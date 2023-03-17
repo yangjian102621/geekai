@@ -14,22 +14,18 @@ type Client interface {
 
 // WsClient websocket client
 type WsClient struct {
-	NodeId    string
-	SessionId string
-	Conn      *websocket.Conn
-	lock      sync.Mutex
-	mt        int
-	closed    bool
+	Conn   *websocket.Conn
+	lock   sync.Mutex
+	mt     int
+	closed bool
 }
 
-func NewWsClient(nodeId string, sessionId string, conn *websocket.Conn) *WsClient {
+func NewWsClient(conn *websocket.Conn) *WsClient {
 	return &WsClient{
-		NodeId:    nodeId,
-		SessionId: sessionId,
-		Conn:      conn,
-		lock:      sync.Mutex{},
-		mt:        2, // fixed bug for 'Invalid UTF-8 in text frame'
-		closed:    false,
+		Conn:   conn,
+		lock:   sync.Mutex{},
+		mt:     2, // fixed bug for 'Invalid UTF-8 in text frame'
+		closed: false,
 	}
 }
 

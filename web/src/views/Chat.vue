@@ -16,13 +16,17 @@
     <div class="input-box" :style="{width: inputBoxWidth+'px'}" id="input-box">
       <div class="input-container">
         <textarea class="input-text" id="input-text" rows="1" :style="{minHeight:'24px', height: textHeight+'px'}"
-                  v-on:keyup="inputKeyUp"
+                  v-on:keydown="inputKeyDown"
                   v-model="inputValue"
                   placeholder="Input any thing here..."
                   autofocus></textarea>
       </div>
       <div class="btn-container">
-        <button type="button">发送</button>
+        <button type="button"
+                class="btn btn-success"
+                :disabled="sending"
+                v-on:click="sendMessage">发送
+        </button>
       </div>
     </div>
   </div>
@@ -60,7 +64,10 @@ export default defineComponent({
       textHeight: 24,
       textWidth: 0,
       chatBoxHeight: 0,
-      isMobile: false
+      isMobile: false,
+
+      socket: null,
+      sending: false
     }
   },
 
@@ -81,6 +88,37 @@ export default defineComponent({
     }
 
     window.addEventListener('resize', this.windowResize);
+
+    // 初始化 WebSocket 对象
+    const socket = new WebSocket('ws://172.22.11.200:5678/api/chat');
+    socket.addEventListener('open', () => {
+      console.log('WebSocket 连接已打开');
+    });
+    socket.addEventListener('message', event => {
+      if (event.data instanceof Blob) {
+        const reader = new FileReader();
+        reader.readAsText(event.data, "UTF-8");
+        reader.onload = () => {
+          this.chatData.push({
+            type: "reply",
+            id: randString(32),
+            icon: 'images/gpt-icon.png',
+            content: reader.result
+          });
+          this.sending = false;
+        };
+      }
+
+    });
+    socket.addEventListener('close', event => {
+      console.log('WebSocket 连接已关闭', event.reason);
+    });
+    socket.addEventListener('error', event => {
+      console.error('WebSocket 连接发生错误', event);
+    });
+
+    this.socket = socket;
+
   },
 
   beforeUnmount() {
@@ -88,20 +126,36 @@ export default defineComponent({
   },
 
   methods: {
-    inputKeyUp: function (e) {
+    inputKeyDown: function (e) {
       // PC 端按回车键直接提交数据
       if (e.keyCode === 13 && !this.isMobile) {
-        this.chatData.push({
-          type: "prompt",
-          id: randString(32),
-          icon: 'images/user-icon.png',
-          content: this.inputValue
-        });
-        this.inputValue = '';
-        console.log("提交数据")
+        e.stopPropagation();
+        e.preventDefault();
+        return this.sendMessage();
       }
 
       this.inputResize();
+    },
+
+    // 发送消息
+    sendMessage: function () {
+      if (this.sending) {
+        return false;
+      }
+
+      // 追加消息
+      this.chatData.push({
+        type: "prompt",
+        id: randString(32),
+        icon: 'images/user-icon.png',
+        content: this.inputValue
+      });
+
+      // TODO: 使用 websocket 提交数据到后端
+      this.sending = true;
+      this.socket.send(this.inputValue);
+      this.inputValue = '';
+      return true;
     },
 
     // 初始化
@@ -205,21 +259,6 @@ export default defineComponent({
 
     button {
       width 70px;
-      outline none
-      border none
-      cursor pointer
-      background-color: #07c160
-      position: relative;
-      margin-left: auto;
-      margin-right: auto;
-      font-size 16px
-      box-sizing: border-box;
-      font-weight: 700;
-      text-align: center;
-      text-decoration: none;
-      color: #fff;
-      line-height: 2.25;
-      border-radius: 8px;
     }
   }
 

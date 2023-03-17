@@ -6,6 +6,7 @@ import App from './App.vue'
 import Home from './views/Chat.vue'
 import NotFound from './views/404.vue'
 import './utils/prototype'
+import "./assets/css/bootstrap.min.css"
 
 
 const routes = [
