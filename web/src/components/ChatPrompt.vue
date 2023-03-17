@@ -1,0 +1,69 @@
+<template>
+  <div class="chat-line chat-line-right">
+    <div class="chat-item">
+      <span class="content">{{ content }}</span>
+      <div class="triangle"></div>
+    </div>
+
+    <div class="chat-icon">
+      <img :src="icon" alt="User"/>
+    </div>
+  </div>
+</template>
+
+<script>
+import {defineComponent} from "vue"
+
+export default defineComponent({
+  name: 'ChatPrompt',
+  props: {
+    content: {
+      type: String,
+      default: '',
+    },
+    icon: {
+      type: String,
+      default: 'images/user-icon.png',
+    }
+  },
+  data() {
+    return {}
+  },
+})
+</script>
+
+<style lang="stylus">
+.chat-line-right {
+  justify-content: end;
+
+  .chat-icon {
+    margin-left 5px;
+  }
+
+  .chat-item {
+    position: relative;
+    padding: 0 5px 0 0;
+    overflow: hidden;
+
+    .triangle {
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 5px solid #98E165;
+      position: absolute;
+      right: 0;
+      top: 10px;
+    }
+
+    .content {
+      float: right;
+      padding: 5px 10px;
+      background-color: #98E165;
+      color var(--content-color);
+      font-size: var(--content-font-size);
+      border-radius: 5px;
+    }
+  }
+}
+</style>
