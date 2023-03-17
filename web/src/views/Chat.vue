@@ -1,39 +1,44 @@
 <template>
-  <div class="common-layout">
-    <div class="chat-box" :style="{height: chatBoxHeight+'px'}">
-      <div v-for="chat in chatData" :key="chat.id">
-        <chat-prompt
-            v-if="chat.type==='prompt'"
-            :icon="chat.icon"
-            :content="chat.content"/>
-        <chat-reply v-else-if="chat.type==='reply'"
-                    :icon="chat.icon"
-                    :content="chat.content"/>
-      </div>
+  <div class="body">
+    <div id="container">
+      <div class="chat-box" :style="{height: chatBoxHeight+'px'}">
+        <div v-for="chat in chatData" :key="chat.id">
+          <chat-prompt
+              v-if="chat.type==='prompt'"
+              :icon="chat.icon"
+              :content="chat.content"/>
+          <chat-reply v-else-if="chat.type==='reply'"
+                      :icon="chat.icon"
+                      :content="chat.content"/>
+        </div>
 
-    </div>
+      </div><!-- end chat box -->
 
-    <div class="input-box" :style="{width: inputBoxWidth+'px'}" id="input-box">
-      <div class="input-container">
-        <textarea class="input-text" id="input-text" rows="1" :style="{minHeight:'24px', height: textHeight+'px'}"
-                  v-on:keydown="inputKeyDown"
-                  v-model="inputValue"
-                  placeholder="Input any thing here..."
-                  autofocus></textarea>
-      </div>
-      <div class="btn-container">
-        <button type="button"
-                class="btn btn-success"
-                :disabled="sending"
-                v-on:click="sendMessage">发送
-        </button>
-      </div>
-    </div>
+      <div class="input-box" :style="{width: inputBoxWidth+'px'}" id="input-box">
+        <div class="input-container">
+          <textarea class="input-text" id="input-text" rows="1" :style="{minHeight:'24px', height: textHeight+'px'}"
+                    v-on:keydown="inputKeyDown"
+                    v-model="inputValue"
+                    placeholder="Input any thing here..."
+                    v-on:focus="focus"></textarea>
+        </div>
+
+        <div class="btn-container">
+          <button type="button"
+                  class="btn btn-success"
+                  :disabled="sending"
+                  v-on:click="sendMessage">发送
+          </button>
+        </div>
+
+      </div><!-- end input box -->
+    </div><!-- end container -->
+
   </div>
 </template>
 
 <script>
-import {defineComponent} from 'vue'
+import {defineComponent, nextTick} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {randString} from "@/utils/libs";
@@ -59,7 +64,7 @@ export default defineComponent({
         }
       ],
       inputBoxHeight: 63,
-      inputBoxWidth: window.innerWidth - 20,
+      inputBoxWidth: 0,
       inputValue: '',
       textHeight: 24,
       textWidth: 0,
@@ -74,18 +79,22 @@ export default defineComponent({
   computed: {},
 
   mounted: function () {
-    this.inputBoxHeight = document.getElementById("input-box").offsetHeight;
-    this.textWidth = document.getElementById("input-text").offsetWidth;
-    this.chatBoxHeight = window.innerHeight - this.inputBoxHeight - 40;
+    nextTick(() => {
+      this.inputBoxHeight = document.getElementById("input-box").offsetHeight;
+      this.textWidth = document.getElementById("input-text").offsetWidth;
+      this.chatBoxHeight = window.innerHeight - this.inputBoxHeight - 40;
+    })
 
     //判断是否手机端访问
     const userAgentInfo = navigator.userAgent.toLowerCase();
     const Agents = ["android", "iphone", "windows phone", "ipad", "ipod"];
     for (let v = 0; v < Agents.length; v++) {
-      if (userAgentInfo.indexOf(Agents[v]) >= 0) {
+      if (userAgentInfo.toLowerCase().indexOf(Agents[v]) >= 0) {
         this.isMobile = true;
       }
     }
+
+    this.inputBoxWidth = window.innerWidth;
 
     window.addEventListener('resize', this.windowResize);
 
@@ -106,6 +115,11 @@ export default defineComponent({
             content: reader.result
           });
           this.sending = false;
+
+          // 将聊天框的滚动条滑动到最底部
+          nextTick(() => {
+            document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+          })
         };
       }
 
@@ -127,19 +141,22 @@ export default defineComponent({
 
   methods: {
     inputKeyDown: function (e) {
-      // PC 端按回车键直接提交数据
-      if (e.keyCode === 13 && !this.isMobile) {
-        e.stopPropagation();
-        e.preventDefault();
-        return this.sendMessage();
-      }
 
-      this.inputResize();
+      if (e.keyCode === 13) {
+        if (!this.isMobile) { // PC 端按回车键直接提交数据
+          e.preventDefault();
+          return this.sendMessage();
+        } else {
+          return this.inputResize(true);
+        }
+
+      }
+      this.inputResize(false);
     },
 
     // 发送消息
     sendMessage: function () {
-      if (this.sending) {
+      if (this.sending || this.inputValue.trim().length === 0) {
         return false;
       }
 
@@ -155,34 +172,54 @@ export default defineComponent({
       this.sending = true;
       this.socket.send(this.inputValue);
       this.inputValue = '';
+      this.inputResize(false);
       return true;
     },
 
-    // 初始化
-    inputResize: function () {
-      // 根据输入的字数自动调整输入框的大小
+    /**
+     * 根据输入内容的多少动态调整输入框的大小
+     * @param flag 是否输入回车键，如果输入了回车键则需要增加一行
+     */
+    inputResize: function (flag) {
       let line = 1;
+      if (flag) {
+        line++;
+      }
+
       let textWidth = 0;
       for (let i in this.inputValue) {
         if (this.inputValue[i] === '\n') {
           line++;
           textWidth = 0; // 换行之后前面字数清零
+          continue;
         }
         if (this.inputValue.charCodeAt(Number(i)) < 128) {
-          textWidth += 9.65; // 英文字符宽度
+          textWidth += 8; // 英文字符宽度
         } else {
-          textWidth += 16.07; // 中文字符宽度
+          textWidth += 16; // 中文字符宽度
+        }
+
+        if (textWidth >= this.textWidth) { // 另起一行
+          textWidth = textWidth - this.textWidth;
+          line++;
         }
       }
-      line = line + (Math.ceil(textWidth / this.textWidth)) - 1;
+
       this.inputBoxHeight = 63 + (line - 1) * 24;
       this.textHeight = line * 24;
     },
 
     windowResize: function () {
-      this.inputResize();
+      this.inputResize(false);
       this.chatBoxHeight = window.innerHeight - this.inputBoxHeight - 40;
-      this.inputBoxWidth = window.innerWidth - 20;
+      this.inputBoxWidth = window.innerWidth;
+    },
+
+    // 获取焦点
+    focus: function () {
+      setTimeout(function () {
+        document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+      }, 200)
     }
   },
 
@@ -190,77 +227,98 @@ export default defineComponent({
 </script>
 
 <style lang="stylus">
-.chat-box {
-  // 变量定义
-  --content-font-size: 16px;
-  --content-color: #374151;
+#app {
+  height: 100%;
 
-  background-color: rgba(247, 247, 248, 1);
-  font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-  padding: 20px 10px;
+  .body {
+    background-color: rgba(247, 247, 248, 1);
+    display flex;
+    justify-content center;
+    align-items flex-start;
+    height 100%;
 
-  .chat-line {
-    padding 10px;
-    font-size 14px;
-    display: flex;
-    align-items: flex-start;
+    #container {
+      overflow auto;
 
-    .chat-icon {
-      img {
-        width 32px;
-        height 32px;
+      .chat-box {
+        // 变量定义
+        --content-font-size: 16px;
+        --content-color: #374151;
+
+        font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+        padding: 20px 10px;
+
+        .chat-line {
+          padding 10px;
+          font-size 14px;
+          display: flex;
+          align-items: flex-start;
+
+          .chat-icon {
+            img {
+              width 32px;
+              height 32px;
+            }
+          }
+        }
+
+      }
+
+      .input-box {
+        padding 10px;
+
+        position: absolute;
+        bottom: 0
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+
+        .input-container {
+          overflow hidden
+          width 100%
+          margin: 0;
+          border: none;
+          border-radius: 6px;
+          box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+          background-color: rgba(255, 255, 255, 1);
+          padding: 5px 10px;
+
+          .input-text {
+            font-size: 16px;
+            padding 0
+            margin 0
+            outline: none;
+            width 100%;
+            border none
+            background #ffffff
+            resize none
+            line-height 24px;
+            color #333;
+          }
+
+          .input-text::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+          }
+        }
+
+        .btn-container {
+          margin-left 10px;
+
+          button {
+            width 70px;
+          }
+        }
       }
     }
-  }
 
-}
-
-.input-box {
-  background-color: rgba(255, 255, 255, 1);
-  padding 10px;
-
-  position: absolute;
-  bottom: 0
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  .input-container {
-    overflow hidden
-    width 100%
-    margin: 0;
-    background #ffffff
-    border: none;
-    border-radius: 6px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-    padding: 5px 10px;
-
-    .input-text {
-      font-size: 16px;
-      padding 0
-      margin 0
-      outline: none;
-      width 100%;
-      border none
-      background transparent
-      resize none
-      line-height 24px;
-      color #333;
-    }
-
-    .input-text::-webkit-scrollbar {
+    #container::-webkit-scrollbar {
       width: 0;
       height: 0;
     }
+
   }
-
-  .btn-container {
-    margin-left 10px;
-
-    button {
-      width 70px;
-    }
-  }
-
 }
+
+
 </style>

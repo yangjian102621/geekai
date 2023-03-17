@@ -1,7 +1,7 @@
 <template>
   <div class="chat-line chat-line-right">
     <div class="chat-item">
-      <span class="content">{{ content }}</span>
+      <div class="content">{{ content }}</div>
       <div class="triangle"></div>
     </div>
 
@@ -38,6 +38,10 @@ export default defineComponent({
 
   .chat-icon {
     margin-left 5px;
+
+    img {
+      border-radius 5px;
+    }
   }
 
   .chat-item {
@@ -57,7 +61,7 @@ export default defineComponent({
     }
 
     .content {
-      float: right;
+      word-break break-word;
       padding: 5px 10px;
       background-color: #98E165;
       color var(--content-color);
