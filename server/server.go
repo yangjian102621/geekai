@@ -30,11 +30,12 @@ func (s StaticFile) Open(name string) (fs.File, error) {
 }
 
 type Server struct {
-	Config *types.Config
+	Config  *types.Config
+	History map[string][]types.Message
 }
 
 func NewServer(config *types.Config) *Server {
-	return &Server{Config: config}
+	return &Server{Config: config, History: make(map[string][]types.Message, 16)}
 }
 
 func (s *Server) Run(webRoot embed.FS, path string) {

@@ -108,12 +108,13 @@ export default defineComponent({
         const reader = new FileReader();
         reader.readAsText(event.data, "UTF-8");
         reader.onload = () => {
-          this.chatData.push({
-            type: "reply",
-            id: randString(32),
-            icon: 'images/gpt-icon.png',
-            content: reader.result
-          });
+          // this.chatData.push({
+          //   type: "reply",
+          //   id: randString(32),
+          //   icon: 'images/gpt-icon.png',
+          //   content: reader.result
+          // });
+          this.chatData[this.chatData.length - 1]["content"] += reader.result
           this.sending = false;
 
           // 将聊天框的滚动条滑动到最底部

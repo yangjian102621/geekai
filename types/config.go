@@ -9,14 +9,16 @@ import (
 )
 
 type Config struct {
-	Listen  string
-	Session Session
-	OpenAi  OpenAi
+	Listen   string
+	Session  Session
+	ProxyURL string
+	OpenAi   OpenAi
 }
 
 // OpenAi configs struct
 type OpenAi struct {
-	ApiKey      string
+	ApiURL      string
+	ApiKey      []string
 	Model       string
 	Temperature float32
 	MaxTokens   int
@@ -49,6 +51,8 @@ func NewDefaultConfig() *Config {
 			SameSite:  http.SameSiteLaxMode,
 		},
 		OpenAi: OpenAi{
+			ApiURL:      "https://api.openai.com/v1/chat/completions",
+			ApiKey:      []string{""},
 			Model:       "gpt-3.5-turbo",
 			MaxTokens:   1024,
 			Temperature: 1.0,
