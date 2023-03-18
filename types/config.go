@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"net/http"
+	logger2 "openai/logger"
 	"openai/utils"
 	"os"
 )
@@ -13,16 +13,17 @@ type Config struct {
 	Listen   string
 	Session  Session
 	ProxyURL string
-	OpenAi   OpenAi
+	Chat     Chat
 }
 
-// OpenAi configs struct
-type OpenAi struct {
-	ApiURL      string
-	ApiKeys     []string
-	Model       string
-	Temperature float32
-	MaxTokens   int
+// Chat configs struct
+type Chat struct {
+	ApiURL        string
+	ApiKeys       []string
+	Model         string
+	Temperature   float32
+	MaxTokens     int
+	EnableContext bool // 是否保持聊天上下文
 }
 
 // Session configs struct
@@ -51,21 +52,24 @@ func NewDefaultConfig() *Config {
 			HttpOnly:  false,
 			SameSite:  http.SameSiteLaxMode,
 		},
-		OpenAi: OpenAi{
-			ApiURL:      "https://api.openai.com/v1/chat/completions",
-			ApiKeys:     []string{""},
-			Model:       "gpt-3.5-turbo",
-			MaxTokens:   1024,
-			Temperature: 1.0,
+		Chat: Chat{
+			ApiURL:        "https://api.openai.com/v1/chat/completions",
+			ApiKeys:       []string{""},
+			Model:         "gpt-3.5-turbo",
+			MaxTokens:     1024,
+			Temperature:   1.0,
+			EnableContext: true,
 		},
 	}
 }
+
+var logger = logger2.GetLogger()
 
 func LoadConfig(configFile string) (*Config, error) {
 	var config *Config
 	_, err := os.Stat(configFile)
 	if err != nil {
-		fmt.Errorf("Error: %s", err.Error())
+		logger.Errorf("Error open config file: %s", err.Error())
 		config = NewDefaultConfig()
 		// save config
 		err := SaveConfig(config, configFile)
@@ -76,7 +80,6 @@ func LoadConfig(configFile string) (*Config, error) {
 		return config, nil
 	}
 	_, err = toml.DecodeFile(configFile, &config)
-	fmt.Println(config)
 	if err != nil {
 		return nil, err
 	}

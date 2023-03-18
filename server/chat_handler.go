@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"openai/types"
+	"strings"
 	"time"
 )
 
@@ -52,8 +53,9 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		Stream:      true,
 	}
 	var history []types.Message
-	if v, ok := s.History[userId]; ok {
+	if v, ok := s.History[userId]; ok && s.Config.Chat.EnableContext {
 		history = v
+		//logger.Infof("上下文历史消息:%+v", history)
 	} else {
 		history = make([]types.Message, 0)
 	}
@@ -62,22 +64,22 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		Content: text,
 	})
 
-	logger.Info("上下文历史消息:%+v", s.History[userId])
 	requestBody, err := json.Marshal(r)
 	if err != nil {
 		return err
 	}
 
-	request, err := http.NewRequest(http.MethodPost, s.Config.OpenAi.ApiURL, bytes.NewBuffer(requestBody))
+	request, err := http.NewRequest(http.MethodPost, s.Config.Chat.ApiURL, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return err
 	}
 
 	// TODO: API KEY 负载均衡
 	rand.Seed(time.Now().UnixNano())
-	index := rand.Intn(len(s.Config.OpenAi.ApiKeys))
+	index := rand.Intn(len(s.Config.Chat.ApiKeys))
+	logger.Infof("Use API KEY: %s", s.Config.Chat.ApiKeys[index])
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", s.Config.OpenAi.ApiKeys[index]))
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", s.Config.Chat.ApiKeys[index]))
 
 	uri := url.URL{}
 	proxy, _ := uri.Parse(s.Config.ProxyURL)
@@ -104,11 +106,12 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil && err != io.EOF {
-			fmt.Println(err)
+			logger.Error(err)
 			break
 		}
 
 		if line == "" {
+			replyMessage(types.WsMessage{Type: types.WsEnd}, ws)
 			break
 		} else if len(line) < 20 {
 			continue
@@ -116,29 +119,47 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 
 		err = json.Unmarshal([]byte(line[6:]), &responseBody)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error(err)
 			continue
 		}
 		// 初始化 role
 		if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
 			message.Role = responseBody.Choices[0].Delta.Role
+			replyMessage(types.WsMessage{Type: types.WsStart}, ws)
 			continue
-		} else {
-			contents = append(contents, responseBody.Choices[0].Delta.Content)
-		}
-		// 推送消息到客户端
-		err = ws.(*WsClient).Send([]byte(responseBody.Choices[0].Delta.Content))
-		if err != nil {
-			logger.Error(err)
-		}
-		fmt.Print(responseBody.Choices[0].Delta.Content)
-		if responseBody.Choices[0].FinishReason != "" {
+		} else if responseBody.Choices[0].FinishReason != "" { // 输出完成或者输出中断了
+			replyMessage(types.WsMessage{Type: types.WsEnd}, ws)
 			break
+		} else {
+			content := responseBody.Choices[0].Delta.Content
+			contents = append(contents, content)
+			replyMessage(types.WsMessage{
+				Type:    types.WsMiddle,
+				Content: responseBody.Choices[0].Delta.Content,
+			}, ws)
 		}
 	}
 
 	// 追加历史消息
+	history = append(history, types.Message{
+		Role:    "user",
+		Content: text,
+	})
+	message.Content = strings.Join(contents, "")
 	history = append(history, message)
 	s.History[userId] = history
 	return nil
+}
+
+// 回复客户端消息
+func replyMessage(message types.WsMessage, client Client) {
+	msg, err := json.Marshal(message)
+	if err != nil {
+		logger.Errorf("Error for decoding json data: %v", err.Error())
+		return
+	}
+	err = client.(*WsClient).Send(msg)
+	if err != nil {
+		logger.Errorf("Error for reply message: %v", err.Error())
+	}
 }

@@ -9,6 +9,7 @@
               :content="chat.content"/>
           <chat-reply v-else-if="chat.type==='reply'"
                       :icon="chat.icon"
+                      :cursor="chat.cursor"
                       :content="chat.content"/>
         </div>
 
@@ -42,6 +43,7 @@ import {defineComponent, nextTick} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {randString} from "@/utils/libs";
+import {ElMessage} from 'element-plus'
 
 export default defineComponent({
   name: "XChat",
@@ -49,20 +51,7 @@ export default defineComponent({
   data() {
     return {
       title: "ChatGPT 控制台",
-      chatData: [
-        {
-          id: "1",
-          type: 'prompt',
-          icon: 'images/user-icon.png',
-          content: '请问棒球棒可以放进人的耳朵里面吗'
-        },
-        {
-          id: "2",
-          type: 'reply',
-          icon: 'images/gpt-icon.png',
-          content: '不可以。棒球棒的直径通常都比人的耳道大得多，而且人的耳朵是非常敏感和易受伤的，如果硬塞棒球棒可能会导致耳道损伤、出血和疼痛等问题。此外，塞入耳道的物体还可能引起耳屎的囤积和感染等问题，因此强烈建议不要将任何非耳朵医学用品的物品插入耳朵。如果您有耳道不适或者其他耳朵健康问题，应该咨询专业医生的建议。'
-        }
-      ],
+      chatData: [],
       inputBoxHeight: 63,
       inputBoxWidth: 0,
       inputValue: '',
@@ -99,24 +88,34 @@ export default defineComponent({
     window.addEventListener('resize', this.windowResize);
 
     // 初始化 WebSocket 对象
-    const socket = new WebSocket(process.env.VUE_APP_WS_HOST+'/api/chat');
+    const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat');
     socket.addEventListener('open', () => {
-      console.log('WebSocket 连接已打开');
+      ElMessage.success('创建会话成功！');
     });
     socket.addEventListener('message', event => {
       if (event.data instanceof Blob) {
         const reader = new FileReader();
         reader.readAsText(event.data, "UTF-8");
         reader.onload = () => {
-          // this.chatData.push({
-          //   type: "reply",
-          //   id: randString(32),
-          //   icon: 'images/gpt-icon.png',
-          //   content: reader.result
-          // });
-          this.chatData[this.chatData.length - 1]["content"] += reader.result
-          this.sending = false;
-
+          const data = JSON.parse(String(reader.result));
+          if (data.type === 'start') {
+            this.chatData.push({
+              type: "reply",
+              id: randString(32),
+              icon: 'images/gpt-icon.png',
+              content: "",
+              cursor: true
+            });
+          } else if (data.type === 'end') {
+            this.sending = false;
+            this.chatData[this.chatData.length - 1]["cursor"] = false;
+          } else {
+            let content = data.content;
+            if (content.indexOf("\n\n") >= 0) {
+              content = content.replace("\n\n", "<br />");
+            }
+            this.chatData[this.chatData.length - 1]["content"] += content;
+          }
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
             document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
@@ -125,11 +124,11 @@ export default defineComponent({
       }
 
     });
-    socket.addEventListener('close', event => {
-      console.log('WebSocket 连接已关闭', event.reason);
+    socket.addEventListener('close', () => {
+      ElMessage.error('会话发生异常，请刷新页面后重试');
     });
     socket.addEventListener('error', event => {
-      console.error('WebSocket 连接发生错误', event);
+      ElMessage.error('WebSocket 连接发生错误: ' + event.message);
     });
 
     this.socket = socket;
@@ -240,6 +239,7 @@ export default defineComponent({
 
     #container {
       overflow auto;
+      width 100%;
 
       .chat-box {
         // 变量定义

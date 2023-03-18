@@ -19,7 +19,7 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	}
 	// API key
 	if key, ok := data["api_key"]; ok && len(key) > 20 {
-		s.Config.OpenAi.ApiKeys = append(s.Config.OpenAi.ApiKeys, key)
+		s.Config.Chat.ApiKeys = append(s.Config.Chat.ApiKeys, key)
 	}
 
 	// proxy URL
@@ -29,7 +29,7 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 
 	// Model
 	if model, ok := data["model"]; ok {
-		s.Config.OpenAi.Model = model
+		s.Config.Chat.Model = model
 	}
 
 	// Temperature
@@ -42,7 +42,7 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 			})
 			return
 		}
-		s.Config.OpenAi.Temperature = float32(v)
+		s.Config.Chat.Temperature = float32(v)
 	}
 
 	// max_tokens
@@ -55,8 +55,20 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 			})
 			return
 		}
-		s.Config.OpenAi.MaxTokens = v
+		s.Config.Chat.MaxTokens = v
+	}
 
+	// enable Context
+	if enableContext, ok := data["enable_context"]; ok {
+		v, err := strconv.ParseBool(enableContext)
+		if err != nil {
+			c.JSON(http.StatusOK, types.BizVo{
+				Code:    types.InvalidParams,
+				Message: "enable_context must be a bool parameter",
+			})
+			return
+		}
+		s.Config.Chat.EnableContext = v
 	}
 
 	// 保存配置文件

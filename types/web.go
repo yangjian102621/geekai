@@ -10,11 +10,18 @@ type BizVo struct {
 	Data     interface{} `json:"data,omitempty"`
 }
 
-// WsVo Websocket 信息 VO
-type WsVo struct {
-	Stop    bool
-	Content string
+// WsMessage Websocket message
+type WsMessage struct {
+	Type    WsMsgType `json:"type"` // 消息类别，start, end
+	Content string    `json:"content"`
 }
+type WsMsgType string
+
+const (
+	WsStart  = WsMsgType("start")
+	WsMiddle = WsMsgType("middle")
+	WsEnd    = WsMsgType("end")
+)
 
 type BizCode int
 
