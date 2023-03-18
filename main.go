@@ -5,7 +5,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 	logger2 "openai/logger"
 	"openai/server"
-	config2 "openai/types"
 	"os"
 	"path/filepath"
 )
@@ -33,14 +32,15 @@ func main() {
 		}
 	}
 
-	// load service configs
-	config, err := config2.LoadConfig(filepath.Join(configDir, "/config.toml"))
 	if err != nil {
 		logger.Errorf("failed to load web types: %v", err)
 		return
 	}
 
 	// start server
-	s := server.NewServer(config)
+	s, err := server.NewServer(filepath.Join(configDir, "/config.toml"))
+	if err != nil {
+		panic(err)
+	}
 	s.Run(webRoot, "web")
 }

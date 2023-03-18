@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/BurntSushi/toml"
 	"net/http"
 	"openai/utils"
@@ -18,7 +19,7 @@ type Config struct {
 // OpenAi configs struct
 type OpenAi struct {
 	ApiURL      string
-	ApiKey      []string
+	ApiKeys     []string
 	Model       string
 	Temperature float32
 	MaxTokens   int
@@ -52,7 +53,7 @@ func NewDefaultConfig() *Config {
 		},
 		OpenAi: OpenAi{
 			ApiURL:      "https://api.openai.com/v1/chat/completions",
-			ApiKey:      []string{""},
+			ApiKeys:     []string{""},
 			Model:       "gpt-3.5-turbo",
 			MaxTokens:   1024,
 			Temperature: 1.0,
@@ -64,16 +65,10 @@ func LoadConfig(configFile string) (*Config, error) {
 	var config *Config
 	_, err := os.Stat(configFile)
 	if err != nil {
+		fmt.Errorf("Error: %s", err.Error())
 		config = NewDefaultConfig()
-		// generate types file
-		buf := new(bytes.Buffer)
-		encoder := toml.NewEncoder(buf)
-
-		if err := encoder.Encode(&config); err != nil {
-			return nil, err
-		}
-
-		err := os.WriteFile(configFile, buf.Bytes(), 0644)
+		// save config
+		err := SaveConfig(config, configFile)
 		if err != nil {
 			return nil, err
 		}
@@ -81,9 +76,20 @@ func LoadConfig(configFile string) (*Config, error) {
 		return config, nil
 	}
 	_, err = toml.DecodeFile(configFile, &config)
+	fmt.Println(config)
 	if err != nil {
 		return nil, err
 	}
 
 	return config, err
+}
+
+func SaveConfig(config *Config, configFile string) error {
+	buf := new(bytes.Buffer)
+	encoder := toml.NewEncoder(buf)
+	if err := encoder.Encode(&config); err != nil {
+		return err
+	}
+
+	return os.WriteFile(configFile, buf.Bytes(), 0644)
 }

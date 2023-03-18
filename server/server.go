@@ -30,12 +30,21 @@ func (s StaticFile) Open(name string) (fs.File, error) {
 }
 
 type Server struct {
-	Config  *types.Config
-	History map[string][]types.Message
+	Config     *types.Config
+	ConfigPath string
+	History    map[string][]types.Message
 }
 
-func NewServer(config *types.Config) *Server {
-	return &Server{Config: config, History: make(map[string][]types.Message, 16)}
+func NewServer(configPath string) (*Server, error) {
+	// load service configs
+	config, err := types.LoadConfig(configPath)
+	if err != nil {
+		return nil, err
+	}
+	return &Server{
+		Config:     config,
+		ConfigPath: configPath,
+		History:    make(map[string][]types.Message, 16)}, nil
 }
 
 func (s *Server) Run(webRoot embed.FS, path string) {
@@ -46,7 +55,8 @@ func (s *Server) Run(webRoot embed.FS, path string) {
 	engine.Use(AuthorizeMiddleware())
 
 	engine.GET("/hello", Hello)
-	engine.Any("/api/chat", s.Chat)
+	engine.Any("/api/chat", s.ChatHandle)
+	engine.POST("/api/config/set", s.ConfigSetHandle)
 
 	// process front-end web static files
 	engine.StaticFS("/chat", http.FS(StaticFile{

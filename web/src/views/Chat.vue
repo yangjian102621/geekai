@@ -99,7 +99,7 @@ export default defineComponent({
     window.addEventListener('resize', this.windowResize);
 
     // 初始化 WebSocket 对象
-    const socket = new WebSocket('ws://172.22.11.200:5678/api/chat');
+    const socket = new WebSocket(process.env.VUE_APP_WS_HOST+'/api/chat');
     socket.addEventListener('open', () => {
       console.log('WebSocket 连接已打开');
     });

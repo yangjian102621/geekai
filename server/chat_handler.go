@@ -8,13 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"openai/types"
 	"time"
 )
 
-func (s *Server) Chat(c *gin.Context) {
+// ChatHandle 处理聊天 WebSocket 请求
+func (s *Server) ChatHandle(c *gin.Context) {
 	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		logger.Fatal(err)
@@ -32,19 +34,16 @@ func (s *Server) Chat(c *gin.Context) {
 			}
 
 			logger.Info(string(message))
-			for {
-				err = client.Send([]byte("H"))
-				time.Sleep(time.Second)
-			}
 			// TODO: 根据会话请求，传入不同的用户 ID
-			//err = s.sendMessage("test", string(message), client)
-			//if err != nil {
-			//	logger.Error(err)
-			//}
+			err = s.sendMessage("test", string(message), client)
+			if err != nil {
+				logger.Error(err)
+			}
 		}
 	}()
 }
 
+// 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
 func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	var r = types.ApiRequest{
 		Model:       "gpt-3.5-turbo",
@@ -75,8 +74,10 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	}
 
 	// TODO: API KEY 负载均衡
+	rand.Seed(time.Now().UnixNano())
+	index := rand.Intn(len(s.Config.OpenAi.ApiKeys))
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", s.Config.OpenAi.ApiKey[0]))
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", s.Config.OpenAi.ApiKeys[index]))
 
 	uri := url.URL{}
 	proxy, _ := uri.Parse(s.Config.ProxyURL)
@@ -125,19 +126,19 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		} else {
 			contents = append(contents, responseBody.Choices[0].Delta.Content)
 		}
-
+		// 推送消息到客户端
 		err = ws.(*WsClient).Send([]byte(responseBody.Choices[0].Delta.Content))
 		if err != nil {
 			logger.Error(err)
 		}
 		fmt.Print(responseBody.Choices[0].Delta.Content)
 		if responseBody.Choices[0].FinishReason != "" {
-			fmt.Println()
 			break
 		}
 	}
 
 	// 追加历史消息
 	history = append(history, message)
+	s.History[userId] = history
 	return nil
 }
