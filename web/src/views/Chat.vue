@@ -15,26 +15,33 @@
 
       </div><!-- end chat box -->
 
-      <div class="input-box" :style="{width: inputBoxWidth+'px'}" id="input-box">
+      <div class="input-box">
         <div class="input-container">
-          <textarea class="input-text" id="input-text" rows="1" :style="{minHeight:'24px', height: textHeight+'px'}"
-                    v-on:keydown="inputKeyDown"
-                    v-model="inputValue"
-                    placeholder="Input any thing here..."
-                    v-on:focus="focus"></textarea>
+          <el-input
+              v-model="inputValue"
+              :autosize="{ minRows: 1, maxRows: 10 }"
+              v-on:keydown="inputKeyDown"
+              v-on:focus="focus"
+              type="textarea"
+              placeholder="Input any thing here..."
+          />
         </div>
 
         <div class="btn-container">
-          <button type="button"
-                  class="btn btn-success"
-                  :disabled="sending"
-                  v-on:click="sendMessage">发送
-          </button>
+          <el-row>
+            <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
+            <el-button type="danger" class="config" circle @click="showDialog = true">
+              <el-icon>
+                <Tools/>
+              </el-icon>
+            </el-button>
+          </el-row>
         </div>
 
       </div><!-- end input box -->
     </div><!-- end container -->
 
+    <config-dialog v-model="showDialog"></config-dialog>
   </div>
 </template>
 
@@ -44,21 +51,19 @@ import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {randString} from "@/utils/libs";
 import {ElMessage} from 'element-plus'
+import {Tools} from '@element-plus/icons-vue'
+import ConfigDialog from '@/components/ConfigDialog.vue'
 
 export default defineComponent({
   name: "XChat",
-  components: {ChatPrompt, ChatReply},
+  components: {ChatPrompt, ChatReply, Tools, ConfigDialog},
   data() {
     return {
       title: "ChatGPT 控制台",
       chatData: [],
-      inputBoxHeight: 63,
-      inputBoxWidth: 0,
       inputValue: '',
-      textHeight: 24,
-      textWidth: 0,
       chatBoxHeight: 0,
-      isMobile: false,
+      showDialog: false,
 
       socket: null,
       sending: false
@@ -69,23 +74,8 @@ export default defineComponent({
 
   mounted: function () {
     nextTick(() => {
-      this.inputBoxHeight = document.getElementById("input-box").offsetHeight;
-      this.textWidth = document.getElementById("input-text").offsetWidth;
-      this.chatBoxHeight = window.innerHeight - this.inputBoxHeight - 40;
+      this.chatBoxHeight = window.innerHeight - 61;
     })
-
-    //判断是否手机端访问
-    const userAgentInfo = navigator.userAgent.toLowerCase();
-    const Agents = ["android", "iphone", "windows phone", "ipad", "ipod"];
-    for (let v = 0; v < Agents.length; v++) {
-      if (userAgentInfo.toLowerCase().indexOf(Agents[v]) >= 0) {
-        this.isMobile = true;
-      }
-    }
-
-    this.inputBoxWidth = window.innerWidth;
-
-    window.addEventListener('resize', this.windowResize);
 
     // 初始化 WebSocket 对象
     const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat');
@@ -135,23 +125,15 @@ export default defineComponent({
 
   },
 
-  beforeUnmount() {
-    window.removeEventListener("resize", this.windowResize);
-  },
-
   methods: {
     inputKeyDown: function (e) {
-
       if (e.keyCode === 13) {
-        if (!this.isMobile) { // PC 端按回车键直接提交数据
+        if (this.sending) {
           e.preventDefault();
-          return this.sendMessage();
         } else {
-          return this.inputResize(true);
+          this.sendMessage();
         }
-
       }
-      this.inputResize(false);
     },
 
     // 发送消息
@@ -172,47 +154,7 @@ export default defineComponent({
       this.sending = true;
       this.socket.send(this.inputValue);
       this.inputValue = '';
-      this.inputResize(false);
       return true;
-    },
-
-    /**
-     * 根据输入内容的多少动态调整输入框的大小
-     * @param flag 是否输入回车键，如果输入了回车键则需要增加一行
-     */
-    inputResize: function (flag) {
-      let line = 1;
-      if (flag) {
-        line++;
-      }
-
-      let textWidth = 0;
-      for (let i in this.inputValue) {
-        if (this.inputValue[i] === '\n') {
-          line++;
-          textWidth = 0; // 换行之后前面字数清零
-          continue;
-        }
-        if (this.inputValue.charCodeAt(Number(i)) < 128) {
-          textWidth += 8; // 英文字符宽度
-        } else {
-          textWidth += 16; // 中文字符宽度
-        }
-
-        if (textWidth >= this.textWidth) { // 另起一行
-          textWidth = textWidth - this.textWidth;
-          line++;
-        }
-      }
-
-      this.inputBoxHeight = 63 + (line - 1) * 24;
-      this.textHeight = line * 24;
-    },
-
-    windowResize: function () {
-      this.inputResize(false);
-      this.chatBoxHeight = window.innerHeight - this.inputBoxHeight - 40;
-      this.inputBoxWidth = window.innerWidth;
     },
 
     // 获取焦点
@@ -220,7 +162,8 @@ export default defineComponent({
       setTimeout(function () {
         document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
       }, 200)
-    }
+    },
+
   },
 
 })
@@ -267,12 +210,13 @@ export default defineComponent({
 
       .input-box {
         padding 10px;
+        width 100%;
 
         position: absolute;
         bottom: 0
         display: flex;
-        justify-content: center;
-        align-items: flex-start;
+        justify-content: start;
+        align-items: center;
 
         .input-container {
           overflow hidden
@@ -306,8 +250,15 @@ export default defineComponent({
         .btn-container {
           margin-left 10px;
 
-          button {
-            width 70px;
+          .el-row {
+            flex-wrap nowrap
+            width 106px;
+            align-items center
+          }
+
+          .send {
+            width 60px;
+            height 40px;
           }
         }
       }
