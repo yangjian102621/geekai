@@ -17,16 +17,16 @@
 
       <div class="input-box">
         <div class="input-container">
-          <el-form ref="form">
-            <el-input
-                v-model="inputValue"
-                :autosize="{ minRows: 1, maxRows: 10 }"
-                v-on:keydown="inputKeyDown"
-                v-on:focus="focus"
-                type="textarea"
-                placeholder="Input any thing here..."
-            />
-          </el-form>
+          <el-input
+              ref="text-input"
+              v-model="inputValue"
+              :autosize="{ minRows: 1, maxRows: 10 }"
+              v-on:keydown="inputKeyDown"
+              v-on:focus="focus"
+              autofocus
+              type="textarea"
+              placeholder="Input any thing here..."
+          />
         </div>
 
         <div class="btn-container">
@@ -41,6 +41,7 @@
         </div>
 
       </div><!-- end input box -->
+
     </div><!-- end container -->
 
     <config-dialog v-model:show="showDialog"></config-dialog>
@@ -52,7 +53,7 @@ import {defineComponent, nextTick} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {randString} from "@/utils/libs";
-import {ElMessage} from 'element-plus'
+import {ElMessage, ElMessageBox} from 'element-plus'
 import {Tools} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 
@@ -67,6 +68,7 @@ export default defineComponent({
       chatBoxHeight: 0,
       showDialog: false,
 
+      connectingMessageBox: null,
       socket: null,
       sending: false
     }
@@ -78,53 +80,84 @@ export default defineComponent({
     nextTick(() => {
       this.chatBoxHeight = window.innerHeight - 61;
     })
-
-    // 初始化 WebSocket 对象
-    const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat');
-    socket.addEventListener('open', () => {
-      ElMessage.success('创建会话成功！');
-    });
-    socket.addEventListener('message', event => {
-      if (event.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.readAsText(event.data, "UTF-8");
-        reader.onload = () => {
-          const data = JSON.parse(String(reader.result));
-          if (data.type === 'start') {
-            this.chatData.push({
-              type: "reply",
-              id: randString(32),
-              icon: 'images/gpt-icon.png',
-              content: "",
-              cursor: true
-            });
-          } else if (data.type === 'end') {
-            this.sending = false;
-            this.chatData[this.chatData.length - 1]["cursor"] = false;
-          } else {
-            let content = data.content;
-            if (content.indexOf("\n\n") >= 0) {
-              content = content.replace("\n\n", "<br />");
-            }
-            this.chatData[this.chatData.length - 1]["content"] += content;
-          }
-          // 将聊天框的滚动条滑动到最底部
-          nextTick(() => {
-            document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
-          })
-        };
-      }
-
-    });
-    socket.addEventListener('error', () => {
-      ElMessage.error('会话发生异常，请刷新页面后重试');
-    });
-
-    this.socket = socket;
+    this.connect();
 
   },
 
   methods: {
+    connect: function () {
+      if (this.online) {
+        return
+      }
+
+      // 初始化 WebSocket 对象
+      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat');
+      socket.addEventListener('open', () => {
+        ElMessage.success('创建会话成功！');
+
+        if (this.connectingMessageBox != null) {
+          this.connectingMessageBox.close();
+          this.connectingMessageBox = null;
+        }
+      });
+
+      socket.addEventListener('message', event => {
+        if (event.data instanceof Blob) {
+          const reader = new FileReader();
+          reader.readAsText(event.data, "UTF-8");
+          reader.onload = () => {
+            const data = JSON.parse(String(reader.result));
+            if (data.type === 'start') {
+              this.chatData.push({
+                type: "reply",
+                id: randString(32),
+                icon: 'images/gpt-icon.png',
+                content: "",
+                cursor: true
+              });
+            } else if (data.type === 'end') {
+              this.sending = false;
+              this.chatData[this.chatData.length - 1]["cursor"] = false;
+            } else {
+              let content = data.content;
+              // 替换换行符
+              if (content.indexOf("\n\n") >= 0) {
+                content = content.replace("\n\n", "<br />");
+              }
+              this.chatData[this.chatData.length - 1]["content"] += content;
+            }
+            // 将聊天框的滚动条滑动到最底部
+            nextTick(() => {
+              document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+            })
+          };
+        }
+
+      });
+      socket.addEventListener('close', () => {
+        ElMessageBox.confirm(
+            '^_^ 会话发生异常，您已经从服务器断开连接!',
+            '注意：',
+            {
+              confirmButtonText: '重连会话',
+              cancelButtonText: '不聊了',
+              type: 'warning',
+            }
+        )
+            .then(() => {
+              this.connect();
+            })
+            .catch(() => {
+              ElMessage({
+                type: 'info',
+                message: '您关闭了会话',
+              })
+            })
+      });
+
+      this.socket = socket;
+    },
+
     inputKeyDown: function (e) {
       if (e.keyCode === 13) {
         if (this.sending) {
@@ -152,7 +185,10 @@ export default defineComponent({
       // TODO: 使用 websocket 提交数据到后端
       this.sending = true;
       this.socket.send(this.inputValue);
+      this.$refs["text-input"].blur();
       this.inputValue = '';
+      // 等待 textarea 重新调整尺寸之后再自动获取焦点
+      setTimeout(() => this.$refs["text-input"].focus(), 100)
       return true;
     },
 
@@ -227,20 +263,12 @@ export default defineComponent({
           background-color: rgba(255, 255, 255, 1);
           padding: 5px 10px;
 
-          .input-text {
-            font-size: 16px;
-            padding 0
-            margin 0
-            outline: none;
-            width 100%;
-            border none
-            background #ffffff
-            resize none
-            line-height 24px;
-            color #333;
+          .el-textarea__inner {
+            box-shadow: none
+            padding 5px 0
           }
 
-          .input-text::-webkit-scrollbar {
+          .el-textarea__inner::-webkit-scrollbar {
             width: 0;
             height: 0;
           }
@@ -267,8 +295,18 @@ export default defineComponent({
       width: 0;
       height: 0;
     }
-
   }
+}
+
+.el-message-box {
+  width 90%;
+  max-width 420px;
+}
+
+.el-message {
+  width 90%;
+  min-width: 300px;
+  max-width 600px;
 }
 
 

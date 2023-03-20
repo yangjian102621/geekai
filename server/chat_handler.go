@@ -10,7 +10,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"openai/types"
 	"strings"
 	"time"
@@ -74,34 +73,32 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		return err
 	}
 
-	// TODO: API KEY 负载均衡
-	rand.Seed(time.Now().UnixNano())
-	index := rand.Intn(len(s.Config.Chat.ApiKeys))
-	logger.Infof("Use API KEY: %s", s.Config.Chat.ApiKeys[index])
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", s.Config.Chat.ApiKeys[index]))
-
-	uri := url.URL{}
-	proxy, _ := uri.Parse(s.Config.ProxyURL)
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxy),
-		},
-	}
-	response, err := client.Do(request)
+	// 随机获取一个 API Key，如果请求失败，则更换 API Key 重试
+	// TODO: 需要将失败的 Key 移除列表
+	rand.Seed(time.Now().UnixNano())
 	var retryCount = 3
-	for err != nil {
-		if retryCount <= 0 {
-			return err
+	var response *http.Response
+	for retryCount > 0 {
+		index := rand.Intn(len(s.Config.Chat.ApiKeys))
+		apiKey := s.Config.Chat.ApiKeys[index]
+		logger.Infof("Use API KEY: %s", apiKey)
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+		response, err = s.Client.Do(request)
+		if err == nil {
+			break
+		} else {
+			logger.Error(err)
 		}
-		response, err = client.Do(request)
 		retryCount--
+	}
+	if err != nil {
+		return err
 	}
 
 	var message = types.Message{}
 	var contents = make([]string, 0)
 	var responseBody = types.ApiResponse{}
-
 	reader := bufio.NewReader(response.Body)
 	for {
 		line, err := reader.ReadString('\n')
@@ -119,7 +116,7 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 
 		err = json.Unmarshal([]byte(line[6:]), &responseBody)
 		if err != nil {
-			logger.Error(err)
+			logger.Error(line)
 			continue
 		}
 		// 初始化 role

@@ -6,10 +6,7 @@
 
     <div class="chat-item">
       <div class="triangle"></div>
-      <div class="content">
-        <span v-html="content"></span>
-        <span class="cursor" v-show="cursor"></span>
-      </div>
+      <div class="content" v-html="content"></div>
     </div>
   </div>
 </template>
@@ -41,7 +38,7 @@ export default defineComponent({
 
 <style lang="stylus">
 .chat-line-left {
-  justify-content: start;
+  justify-content: flex-start;
 
   .chat-icon {
     margin-right 5px;
@@ -76,20 +73,20 @@ export default defineComponent({
       font-size: var(--content-font-size);
       border-radius: 5px;
 
-      .cursor {
-        height 24px;
-        border-left 1px solid black;
-
-        animation: cursorImg 1s infinite steps(1, start);
-        @keyframes cursorImg {
-          0%, 100% {
-            opacity: 0;
-          }
-          50% {
-            opacity: 1;
-          }
-        }
-      }
+      //.cursor {
+      //  height 24px;
+      //  border-left 1px solid black;
+      //
+      //  animation: cursorImg 1s infinite steps(1, start);
+      //  @keyframes cursorImg {
+      //    0%, 100% {
+      //      opacity: 0;
+      //    }
+      //    50% {
+      //      opacity: 1;
+      //    }
+      //  }
+      //}
     }
   }
 }

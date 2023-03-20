@@ -2,7 +2,6 @@
   <el-dialog
       v-model="$props.show"
       title="聊天配置"
-      width="30%"
       :before-close="beforeClose"
   >
     <span>正在努力开发中...</span>
@@ -42,5 +41,8 @@ export default defineComponent({
 </script>
 
 <style lang="stylus">
-
+.el-dialog {
+  --el-dialog-width 90%;
+  max-width 800px;
+}
 </style>

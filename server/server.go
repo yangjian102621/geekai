@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
 	logger2 "openai/logger"
 	"openai/types"
 	"os"
@@ -32,6 +33,7 @@ func (s StaticFile) Open(name string) (fs.File, error) {
 type Server struct {
 	Config     *types.Config
 	ConfigPath string
+	Client     *http.Client
 	History    map[string][]types.Message
 }
 
@@ -41,8 +43,17 @@ func NewServer(configPath string) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	uri := url.URL{}
+	proxy, _ := uri.Parse(config.ProxyURL)
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxy),
+		},
+	}
 	return &Server{
 		Config:     config,
+		Client:     client,
 		ConfigPath: configPath,
 		History:    make(map[string][]types.Message, 16)}, nil
 }

@@ -34,7 +34,7 @@ export default defineComponent({
 
 <style lang="stylus">
 .chat-line-right {
-  justify-content: end;
+  justify-content: flex-end;
 
   .chat-icon {
     margin-left 5px;
