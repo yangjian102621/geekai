@@ -17,20 +17,22 @@
 
       <div class="input-box">
         <div class="input-container">
-          <el-input
-              v-model="inputValue"
-              :autosize="{ minRows: 1, maxRows: 10 }"
-              v-on:keydown="inputKeyDown"
-              v-on:focus="focus"
-              type="textarea"
-              placeholder="Input any thing here..."
-          />
+          <el-form ref="form">
+            <el-input
+                v-model="inputValue"
+                :autosize="{ minRows: 1, maxRows: 10 }"
+                v-on:keydown="inputKeyDown"
+                v-on:focus="focus"
+                type="textarea"
+                placeholder="Input any thing here..."
+            />
+          </el-form>
         </div>
 
         <div class="btn-container">
           <el-row>
             <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
-            <el-button type="danger" class="config" circle @click="showDialog = true">
+            <el-button type="info" class="config" circle @click="showDialog = true">
               <el-icon>
                 <Tools/>
               </el-icon>
@@ -41,7 +43,7 @@
       </div><!-- end input box -->
     </div><!-- end container -->
 
-    <config-dialog v-model="showDialog"></config-dialog>
+    <config-dialog v-model:show="showDialog"></config-dialog>
   </div>
 </template>
 
@@ -114,11 +116,8 @@ export default defineComponent({
       }
 
     });
-    socket.addEventListener('close', () => {
+    socket.addEventListener('error', () => {
       ElMessage.error('会话发生异常，请刷新页面后重试');
-    });
-    socket.addEventListener('error', event => {
-      ElMessage.error('WebSocket 连接发生错误: ' + event.message);
     });
 
     this.socket = socket;
