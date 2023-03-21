@@ -50,9 +50,9 @@ func NewDefaultConfig() *Config {
 			Domain:    "",
 			Path:      "/",
 			MaxAge:    86400,
-			Secure:    false,
+			Secure:    true,
 			HttpOnly:  false,
-			SameSite:  http.SameSiteLaxMode,
+			SameSite:  http.SameSiteNoneMode,
 		},
 		Chat: Chat{
 			ApiURL:        "https://api.openai.com/v1/chat/completions",

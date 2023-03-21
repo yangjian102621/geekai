@@ -117,7 +117,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-Token, Session")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-Token")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -148,19 +148,17 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 			return
 		}
 
-		tokenName := c.GetHeader("Sec-WebSocket-Protocol")
-		logger.Info(s.WsSession)
-		logger.Info(tokenName)
-		if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
-			c.Next()
-			return
+		tokenName := c.Query("token")
+		if tokenName == "" {
+			tokenName = c.GetHeader(types.TokenName)
 		}
-
-		tokenName = c.GetHeader(types.TokenName)
-		session := sessions.Default(c)
-		user := session.Get(tokenName)
-		if user != nil {
-			c.Set(types.SessionKey, user)
+		// TODO: 会话过期设置
+		if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
+			session := sessions.Default(c)
+			user := session.Get(tokenName)
+			if user != nil {
+				c.Set(types.SessionKey, user)
+			}
 			c.Next()
 		} else {
 			c.Abort()
@@ -193,11 +191,15 @@ func (s *Server) LoginHandle(c *gin.Context) {
 	sessionId := utils.RandString(42)
 	session := sessions.Default(c)
 	session.Set(sessionId, token)
+	err = session.Save()
+	if err != nil {
+		logger.Error("Error for save session: ", err)
+	}
 	// 记录客户端 IP 地址
 	s.WsSession[sessionId] = c.ClientIP()
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: sessionId})
 }
 
 func Hello(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"code": 0, "message": fmt.Sprintf("HELLO, XWEBSSH !!!")})
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": fmt.Sprintf("HELLO, ChatGPT !!!")})
 }

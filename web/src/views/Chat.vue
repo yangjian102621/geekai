@@ -111,12 +111,7 @@ export default defineComponent({
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     })
 
-    // 获取会话
-    httpPost("/api/session/get").then(() => {
-      this.connect();
-    }).catch(() => {
-      this.showLoginDialog = true;
-    })
+    this.checkSession();
 
     for (let i = 0; i < 10; i++) {
       this.chatData.push({
@@ -139,14 +134,38 @@ export default defineComponent({
   },
 
   methods: {
-    connect: function () {
-      if (this.online) {
-        return
-      }
+    // 检查会话
+    checkSession: function () {
+      httpPost("/api/session/get").then(() => {
+        this.connect();
+      }).catch((res) => {
+        if (res.code === 400) {
+          this.showLoginDialog = true;
+        } else {
+          this.connectingMessageBox = ElMessageBox.confirm(
+              '^_^ 会话发生异常，您已经从服务器断开连接!',
+              '注意：',
+              {
+                confirmButtonText: '重连会话',
+                cancelButtonText: '不聊了',
+                type: 'warning',
+              }
+          ).then(() => {
+            this.connect();
+          }).catch(() => {
+            ElMessage({
+              type: 'info',
+              message: '您关闭了会话',
+            })
+          })
+        }
+      })
+    },
 
+    connect: function () {
       // 初始化 WebSocket 对象
       const token = getSessionId();
-      const socket = new WebSocket('ws://' + process.env.VUE_APP_API_HOST + '/api/chat', [token]);
+      const socket = new WebSocket('ws://' + process.env.VUE_APP_API_HOST + '/api/chat?token=' + token);
       socket.addEventListener('open', () => {
         ElMessage.success('创建会话成功！');
 
@@ -193,24 +212,8 @@ export default defineComponent({
 
       });
       socket.addEventListener('close', () => {
-        ElMessageBox.confirm(
-            '^_^ 会话发生异常，您已经从服务器断开连接!',
-            '注意：',
-            {
-              confirmButtonText: '重连会话',
-              cancelButtonText: '不聊了',
-              type: 'warning',
-            }
-        )
-            .then(() => {
-              this.connect();
-            })
-            .catch(() => {
-              ElMessage({
-                type: 'info',
-                message: '您关闭了会话',
-              })
-            })
+        // 检查会话，自动登录
+        this.checkSession();
       });
 
       this.socket = socket;

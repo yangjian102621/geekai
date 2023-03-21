@@ -46,9 +46,9 @@ func (s *Server) ChatHandle(c *gin.Context) {
 // 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
 func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	var r = types.ApiRequest{
-		Model:       "gpt-3.5-turbo",
-		Temperature: 0.9,
-		MaxTokens:   1024,
+		Model:       s.Config.Chat.Model,
+		Temperature: s.Config.Chat.Temperature,
+		MaxTokens:   s.Config.Chat.MaxTokens,
 		Stream:      true,
 	}
 	var history []types.Message
