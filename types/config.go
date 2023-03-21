@@ -10,10 +10,12 @@ import (
 )
 
 type Config struct {
-	Listen   string
-	Session  Session
-	ProxyURL string
-	Chat     Chat
+	Listen     string
+	Session    Session
+	ProxyURL   string
+	Chat       Chat
+	EnableAuth bool     // 是否开启鉴权
+	Tokens     []string // 授权的白名单列表 TODO: 后期要存储到 LevelDB 或者 Mysql 数据库
 }
 
 // Chat configs struct
@@ -60,6 +62,7 @@ func NewDefaultConfig() *Config {
 			Temperature:   1.0,
 			EnableContext: true,
 		},
+		EnableAuth: true,
 	}
 }
 

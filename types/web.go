@@ -31,5 +31,9 @@ const (
 	InvalidParams = BizCode(101) // 非法参数
 	NotAuthorized = BizCode(400) // 未授权
 
-	OkMsg = "Success"
+	OkMsg    = "Success"
+	ErrorMsg = "系统开小差了"
 )
+
+const TokenName = "ChatGPT-Token"
+const SessionKey = "WEB_SSH_SESSION"

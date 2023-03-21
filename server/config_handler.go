@@ -10,6 +10,12 @@ import (
 
 // ConfigSetHandle set configs
 func (s *Server) ConfigSetHandle(c *gin.Context) {
+	token := c.Query("token")
+	if token != "RockYang" {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
+		return
+	}
+
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
@@ -69,6 +75,23 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 			return
 		}
 		s.Config.Chat.EnableContext = v
+	}
+
+	// enable auth
+	if enableAuth, ok := data["enable_auth"]; ok {
+		v, err := strconv.ParseBool(enableAuth)
+		if err != nil {
+			c.JSON(http.StatusOK, types.BizVo{
+				Code:    types.InvalidParams,
+				Message: "enable_auth must be a bool parameter",
+			})
+			return
+		}
+		s.Config.EnableAuth = v
+	}
+
+	if token, ok := data["token"]; ok {
+		s.Config.Tokens = append(s.Config.Tokens, token)
 	}
 
 	// 保存配置文件

@@ -2,6 +2,7 @@ package server
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -12,6 +13,7 @@ import (
 	"net/url"
 	logger2 "openai/logger"
 	"openai/types"
+	"openai/utils"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,6 +37,8 @@ type Server struct {
 	ConfigPath string
 	Client     *http.Client
 	History    map[string][]types.Message
+
+	WsSession map[string]string // 关闭 Websocket 会话
 }
 
 func NewServer(configPath string) (*Server, error) {
@@ -55,7 +59,9 @@ func NewServer(configPath string) (*Server, error) {
 		Config:     config,
 		Client:     client,
 		ConfigPath: configPath,
-		History:    make(map[string][]types.Message, 16)}, nil
+		History:    make(map[string][]types.Message, 16),
+		WsSession:  make(map[string]string),
+	}, nil
 }
 
 func (s *Server) Run(webRoot embed.FS, path string) {
@@ -63,9 +69,11 @@ func (s *Server) Run(webRoot embed.FS, path string) {
 	engine := gin.Default()
 	engine.Use(sessionMiddleware(s.Config))
 	engine.Use(corsMiddleware())
-	engine.Use(AuthorizeMiddleware())
+	engine.Use(AuthorizeMiddleware(s))
 
 	engine.GET("/hello", Hello)
+	engine.POST("/api/session/get", s.GetSessionHandle)
+	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
 	engine.POST("/api/config/set", s.ConfigSetHandle)
 
@@ -109,7 +117,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, Session-Name, Session")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-Token, Session")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -133,25 +141,61 @@ func corsMiddleware() gin.HandlerFunc {
 }
 
 // AuthorizeMiddleware 用户授权验证
-func AuthorizeMiddleware() gin.HandlerFunc {
+func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Next()
-		//if c.Request.URL.Path == "/login" {
-		//	c.Next()
-		//	return
-		//}
+		if !s.Config.EnableAuth || c.Request.URL.Path == "/api/login" || c.Request.URL.Path == "/api/config/set" {
+			c.Next()
+			return
+		}
 
-		//sessionName := c.GetHeader("Session-Name")
-		//session, err := c.Cookie(sessionName)
-		//if err == nil {
-		//	c.Request.Header.Set(utils.SessionKey, session)
-		//	c.Next()
-		//} else {
-		//	logger.Fatal(err)
-		//	c.Abort()
-		//	c.JSON(http.StatusUnauthorized, "No session data found")
-		//}
+		tokenName := c.GetHeader("Sec-WebSocket-Protocol")
+		logger.Info(s.WsSession)
+		logger.Info(tokenName)
+		if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
+			c.Next()
+			return
+		}
+
+		tokenName = c.GetHeader(types.TokenName)
+		session := sessions.Default(c)
+		user := session.Get(tokenName)
+		if user != nil {
+			c.Set(types.SessionKey, user)
+			c.Next()
+		} else {
+			c.Abort()
+			c.JSON(http.StatusOK, types.BizVo{
+				Code:    types.NotAuthorized,
+				Message: "Not Authorized",
+			})
+		}
 	}
+}
+
+func (s *Server) GetSessionHandle(c *gin.Context) {
+	session := sessions.Default(c)
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: session.Get(types.TokenName)})
+}
+
+func (s *Server) LoginHandle(c *gin.Context) {
+	var data map[string]string
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
+		return
+	}
+	token := data["token"]
+	if !utils.ContainsItem(s.Config.Tokens, token) {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid token"})
+		return
+	}
+
+	sessionId := utils.RandString(42)
+	session := sessions.Default(c)
+	session.Set(sessionId, token)
+	// 记录客户端 IP 地址
+	s.WsSession[sessionId] = c.ClientIP()
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: sessionId})
 }
 
 func Hello(c *gin.Context) {

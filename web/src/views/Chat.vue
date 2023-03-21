@@ -1,6 +1,11 @@
 <template>
-  <div class="body">
+  <div class="body" v-loading="loading">
     <div id="container">
+      <div class="tool-box">
+        <el-image style="width: 24px; height: 24px" :src="logo"/>
+        <el-button round>欢迎来到人工智能时代</el-button>
+      </div>
+
       <div class="chat-box" :style="{height: chatBoxHeight+'px'}">
         <div v-for="chat in chatData" :key="chat.id">
           <chat-prompt
@@ -9,7 +14,6 @@
               :content="chat.content"/>
           <chat-reply v-else-if="chat.type==='reply'"
                       :icon="chat.icon"
-                      :cursor="chat.cursor"
                       :content="chat.content"/>
         </div>
 
@@ -25,14 +29,14 @@
               v-on:focus="focus"
               autofocus
               type="textarea"
-              placeholder="Input any thing here..."
+              placeholder="开始你的提问"
           />
         </div>
 
         <div class="btn-container">
           <el-row>
             <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
-            <el-button type="info" class="config" circle @click="showDialog = true">
+            <el-button type="info" class="config" circle @click="showConnectDialog = true">
               <el-icon>
                 <Tools/>
               </el-icon>
@@ -44,7 +48,28 @@
 
     </div><!-- end container -->
 
-    <config-dialog v-model:show="showDialog"></config-dialog>
+    <config-dialog v-model:show="showConnectDialog"></config-dialog>
+
+    <div class="token-dialog">
+      <el-dialog
+          v-model="showLoginDialog"
+          :show-close="false"
+          :close-on-click-modal="false"
+          title="请输入口令继续访问"
+      >
+        <el-row>
+          <el-input v-model="token" placeholder="在此输入口令">
+            <template #prefix>
+              <el-icon class="el-input__icon">
+                <Lock/>
+              </el-icon>
+            </template>
+          </el-input>
+          <el-button type="primary" @click="submitToken">提交</el-button>
+        </el-row>
+
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -54,34 +79,63 @@ import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools} from '@element-plus/icons-vue'
+import {Tools, Lock} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
+import {httpPost} from "@/utils/http";
+import {getSessionId, setSessionId} from "@/utils/storage";
 
 export default defineComponent({
   name: "XChat",
-  components: {ChatPrompt, ChatReply, Tools, ConfigDialog},
+  components: {ChatPrompt, ChatReply, Tools, Lock, ConfigDialog},
   data() {
     return {
-      title: "ChatGPT 控制台",
+      title: 'ChatGPT 控制台',
+      logo: 'images/logo.png',
       chatData: [],
       inputValue: '',
       chatBoxHeight: 0,
-      showDialog: false,
+      showConnectDialog: false,
+      showLoginDialog: false,
+      token: '',
 
       connectingMessageBox: null,
       socket: null,
-      sending: false
+      toolBoxHeight: 61 + 42,
+      sending: false,
+      loading: false
     }
   },
 
-  computed: {},
-
   mounted: function () {
     nextTick(() => {
-      this.chatBoxHeight = window.innerHeight - 61;
+      this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     })
-    this.connect();
 
+    // 获取会话
+    httpPost("/api/session/get").then(() => {
+      this.connect();
+    }).catch(() => {
+      this.showLoginDialog = true;
+    })
+
+    for (let i = 0; i < 10; i++) {
+      this.chatData.push({
+        type: "prompt",
+        id: randString(32),
+        icon: 'images/user-icon.png',
+        content: "孙悟空为什么可以把金棍棒放进耳朵？",
+      });
+      this.chatData.push({
+        type: "reply",
+        id: randString(32),
+        icon: 'images/gpt-icon.png',
+        content: "孙悟空是中国神话中的人物，传说中他可以把金箍棒放进耳朵里，这是一种超自然能力，无法用现代科学解释。这种能力可能是象征孙悟空超人力量的古代文化传说。",
+      });
+    }
+
+    window.addEventListener("resize", () => {
+      this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
+    });
   },
 
   methods: {
@@ -91,7 +145,8 @@ export default defineComponent({
       }
 
       // 初始化 WebSocket 对象
-      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat');
+      const token = getSessionId();
+      const socket = new WebSocket('ws://' + process.env.VUE_APP_API_HOST + '/api/chat', [token]);
       socket.addEventListener('open', () => {
         ElMessage.success('创建会话成功！');
 
@@ -122,6 +177,9 @@ export default defineComponent({
               let content = data.content;
               // 替换换行符
               if (content.indexOf("\n\n") >= 0) {
+                if (this.chatData[this.chatData.length - 1]["content"].length === 0) {
+                  return
+                }
                 content = content.replace("\n\n", "<br />");
               }
               this.chatData[this.chatData.length - 1]["content"] += content;
@@ -182,7 +240,6 @@ export default defineComponent({
         content: this.inputValue
       });
 
-      // TODO: 使用 websocket 提交数据到后端
       this.sending = true;
       this.socket.send(this.inputValue);
       this.$refs["text-input"].blur();
@@ -199,6 +256,26 @@ export default defineComponent({
       }, 200)
     },
 
+    // 提交 Token
+    submitToken: function () {
+      this.showLoginDialog = false;
+      this.loading = true
+
+      // 获取会话
+      httpPost("/api/login", {
+        token: this.token
+      }).then((res) => {
+        setSessionId(res.data)
+        this.connect();
+        this.loading = false;
+      }).catch(() => {
+        ElMessage.error("口令错误");
+        this.token = '';
+        this.showLoginDialog = true;
+        this.loading = false;
+      })
+    }
+
   },
 
 })
@@ -211,7 +288,7 @@ export default defineComponent({
   .body {
     background-color: rgba(247, 247, 248, 1);
     display flex;
-    justify-content center;
+    //justify-content center;
     align-items flex-start;
     height 100%;
 
@@ -219,13 +296,24 @@ export default defineComponent({
       overflow auto;
       width 100%;
 
+      .tool-box {
+        padding-top 10px;
+        display flex;
+        justify-content center;
+        align-items center;
+
+        .el-image {
+          margin-right 5px;
+        }
+      }
+
       .chat-box {
         // 变量定义
         --content-font-size: 16px;
         --content-color: #374151;
 
         font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-        padding: 20px 10px;
+        padding: 0 10px 10px 10px;
 
         .chat-line {
           padding 10px;
@@ -304,10 +392,27 @@ export default defineComponent({
 }
 
 .el-message {
-  width 90%;
-  min-width: 300px;
+  min-width: 100px;
   max-width 600px;
 }
 
+.token-dialog {
+  .el-dialog {
+    --el-dialog-width 90%;
+    max-width 400px;
+
+    .el-dialog__body {
+      padding 10px 10px 20px 10px;
+    }
+
+    .el-row {
+      flex-wrap nowrap
+
+      button {
+        margin-left 5px;
+      }
+    }
+  }
+}
 
 </style>

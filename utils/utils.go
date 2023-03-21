@@ -30,3 +30,12 @@ func Long2IP(ipInt int64) string {
 func IsBlank(value string) bool {
 	return len(strings.TrimSpace(value)) == 0
 }
+
+func ContainsItem(slice []string, item string) bool {
+	for _, e := range slice {
+		if e == item {
+			return true
+		}
+	}
+	return false
+}

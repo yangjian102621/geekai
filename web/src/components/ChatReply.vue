@@ -24,10 +24,6 @@ export default defineComponent({
     icon: {
       type: String,
       default: 'images/gpt-icon.png',
-    },
-    cursor: {
-      type: Boolean,
-      default: true
     }
   },
   data() {
