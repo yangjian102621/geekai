@@ -36,7 +36,7 @@
         <div class="btn-container">
           <el-row>
             <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
-            <el-button type="info" class="config" circle @click="showConnectDialog = true">
+            <el-button type="info" class="config" ref="send-btn" circle @click="showConnectDialog = true">
               <el-icon>
                 <Tools/>
               </el-icon>
@@ -137,7 +137,11 @@ export default defineComponent({
     // 检查会话
     checkSession: function () {
       httpPost("/api/session/get").then(() => {
-        this.connect();
+        if (this.socket == null) {
+          this.connect();
+        }
+        // 发送心跳
+        setTimeout(() => this.checkSession(), 5000);
       }).catch((res) => {
         if (res.code === 400) {
           this.showLoginDialog = true;
@@ -230,7 +234,16 @@ export default defineComponent({
     },
 
     // 发送消息
-    sendMessage: function () {
+    sendMessage: function (e) {
+      // 强制按钮失去焦点
+      if (e) {
+        let target = e.target;
+        if (target.nodeName === "SPAN") {
+          target = e.target.parentNode;
+        }
+        target.blur();
+      }
+
       if (this.sending || this.inputValue.trim().length === 0) {
         return false;
       }
@@ -248,7 +261,7 @@ export default defineComponent({
       this.$refs["text-input"].blur();
       this.inputValue = '';
       // 等待 textarea 重新调整尺寸之后再自动获取焦点
-      setTimeout(() => this.$refs["text-input"].focus(), 100)
+      setTimeout(() => this.$refs["text-input"].focus(), 100);
       return true;
     },
 
@@ -377,6 +390,12 @@ export default defineComponent({
           .send {
             width 60px;
             height 40px;
+            background-color: var(--el-color-success)
+          }
+
+          .is-disabled {
+            background-color: var(--el-button-disabled-bg-color);
+            border-color: var(--el-button-disabled-border-color);
           }
         }
       }

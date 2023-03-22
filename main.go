@@ -11,7 +11,7 @@ import (
 
 var logger = logger2.GetLogger()
 
-//go:embed web
+//go:embed dist
 var webRoot embed.FS
 
 func main() {
@@ -42,5 +42,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s.Run(webRoot, "web")
+	s.Run(webRoot, "dist")
 }

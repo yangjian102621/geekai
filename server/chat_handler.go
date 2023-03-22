@@ -22,6 +22,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 		logger.Fatal(err)
 		return
 	}
+	token := c.Query("token")
 	logger.Infof("New websocket connected, IP: %s", c.Request.RemoteAddr)
 	client := NewWsClient(ws)
 	go func() {
@@ -34,8 +35,8 @@ func (s *Server) ChatHandle(c *gin.Context) {
 			}
 
 			logger.Info(string(message))
-			// TODO: 根据会话请求，传入不同的用户 ID
-			err = s.sendMessage("test", string(message), client)
+			// TODO: 当前只保持当前会话的上下文，部保存用户的所有的聊天历史记录，后期要考虑保存所有的历史记录
+			err = s.sendMessage(token, string(message), client)
 			if err != nil {
 				logger.Error(err)
 			}
@@ -54,7 +55,6 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	var history []types.Message
 	if v, ok := s.History[userId]; ok && s.Config.Chat.EnableContext {
 		history = v
-		//logger.Infof("上下文历史消息:%+v", history)
 	} else {
 		history = make([]types.Message, 0)
 	}
@@ -74,14 +74,16 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	}
 
 	request.Header.Add("Content-Type", "application/json")
-	// 随机获取一个 API Key，如果请求失败，则更换 API Key 重试
-	// TODO: 需要将失败的 Key 移除列表
-	rand.Seed(time.Now().UnixNano())
 	var retryCount = 3
 	var response *http.Response
+	var failedKey = ""
 	for retryCount > 0 {
-		index := rand.Intn(len(s.Config.Chat.ApiKeys))
-		apiKey := s.Config.Chat.ApiKeys[index]
+		apiKey := s.getApiKey(failedKey)
+		if apiKey == "" {
+			logger.Info("Too many requests, all Api Key is not available")
+			time.Sleep(time.Second)
+			continue
+		}
 		logger.Infof("Use API KEY: %s", apiKey)
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 		response, err = s.Client.Do(request)
@@ -89,6 +91,7 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 			break
 		} else {
 			logger.Error(err)
+			failedKey = apiKey
 		}
 		retryCount--
 	}
@@ -146,6 +149,34 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	history = append(history, message)
 	s.History[userId] = history
 	return nil
+}
+
+// 随机获取一个 API Key，如果请求失败，则更换 API Key 重试
+func (s *Server) getApiKey(failedKey string) string {
+	var keys = make([]string, 0)
+	for _, v := range s.Config.Chat.ApiKeys {
+		// 过滤掉刚刚失败的 Key
+		if v == failedKey {
+			continue
+		}
+
+		// 获取 API Key 的上次调用时间，控制调用频率
+		var lastAccess int64
+		if t, ok := s.ApiKeyAccessStat[v]; ok {
+			lastAccess = t
+		}
+		// 保持每分钟访问不超过 15 次
+		if time.Now().Unix()-lastAccess <= 4 {
+			continue
+		}
+
+		keys = append(keys, v)
+	}
+	rand.Seed(time.Now().UnixNano())
+	if len(keys) > 0 {
+		return keys[rand.Intn(len(keys))]
+	}
+	return ""
 }
 
 // 回复客户端消息

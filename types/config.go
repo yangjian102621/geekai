@@ -46,7 +46,7 @@ func NewDefaultConfig() *Config {
 
 		Session: Session{
 			SecretKey: utils.RandString(64),
-			Name:      "CHAT_GPT_SESSION_ID",
+			Name:      "CHAT_SESSION_ID",
 			Domain:    "",
 			Path:      "/",
 			MaxAge:    86400,

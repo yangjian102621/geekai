@@ -17,10 +17,10 @@ module.exports = defineConfig({
     },
 
     publicPath: process.env.NODE_ENV === 'production'
-        ? '/web'
+        ? '/chat'
         : '/',
 
-    outputDir: 'dist',
+    outputDir: '../dist',
     crossorigin: "anonymous",
     devServer: {
         allowedHosts: ['127.0.0.1:5678'],

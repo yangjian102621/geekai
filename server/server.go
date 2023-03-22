@@ -3,7 +3,6 @@ package server
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -38,7 +37,10 @@ type Server struct {
 	Client     *http.Client
 	History    map[string][]types.Message
 
-	WsSession map[string]string // 关闭 Websocket 会话
+	// 保存 Websocket 会话 Token, 每个 Token 只能连接一次
+	// 防止第三方直接连接 socket 调用 OpenAI API
+	WsSession        map[string]string
+	ApiKeyAccessStat map[string]int64 // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
 }
 
 func NewServer(configPath string) (*Server, error) {
@@ -56,11 +58,12 @@ func NewServer(configPath string) (*Server, error) {
 		},
 	}
 	return &Server{
-		Config:     config,
-		Client:     client,
-		ConfigPath: configPath,
-		History:    make(map[string][]types.Message, 16),
-		WsSession:  make(map[string]string),
+		Config:           config,
+		Client:           client,
+		ConfigPath:       configPath,
+		History:          make(map[string][]types.Message, 16),
+		WsSession:        make(map[string]string),
+		ApiKeyAccessStat: make(map[string]int64),
 	}, nil
 }
 
@@ -143,22 +146,32 @@ func corsMiddleware() gin.HandlerFunc {
 // AuthorizeMiddleware 用户授权验证
 func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !s.Config.EnableAuth || c.Request.URL.Path == "/api/login" || c.Request.URL.Path == "/api/config/set" {
+		if !s.Config.EnableAuth ||
+			c.Request.URL.Path == "/api/login" ||
+			c.Request.URL.Path == "/api/config/set" ||
+			!strings.HasPrefix(c.Request.URL.Path, "/api") {
 			c.Next()
 			return
 		}
 
-		tokenName := c.Query("token")
-		if tokenName == "" {
-			tokenName = c.GetHeader(types.TokenName)
-		}
-		// TODO: 会话过期设置
-		if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
-			session := sessions.Default(c)
-			user := session.Get(tokenName)
-			if user != nil {
-				c.Set(types.SessionKey, user)
+		// WebSocket 连接请求验证
+		if c.Request.URL.Path == "/api/chat" {
+			tokenName := c.Query("token")
+			if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
+				// 每个令牌只能连接一次
+				delete(s.WsSession, tokenName)
+				c.Next()
+			} else {
+				c.Abort()
 			}
+			return
+		}
+
+		tokenName := c.GetHeader(types.TokenName)
+		session := sessions.Default(c)
+		userInfo := session.Get(tokenName)
+		if userInfo != nil {
+			c.Set(types.SessionKey, userInfo)
 			c.Next()
 		} else {
 			c.Abort()
@@ -171,8 +184,7 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 }
 
 func (s *Server) GetSessionHandle(c *gin.Context) {
-	session := sessions.Default(c)
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: session.Get(types.TokenName)})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success})
 }
 
 func (s *Server) LoginHandle(c *gin.Context) {
@@ -201,5 +213,5 @@ func (s *Server) LoginHandle(c *gin.Context) {
 }
 
 func Hello(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"code": 0, "message": fmt.Sprintf("HELLO, ChatGPT !!!")})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: "HELLO, ChatGPT !!!"})
 }

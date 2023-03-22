@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"openai/types"
+	"openai/utils"
 	"strconv"
 )
 
@@ -91,7 +92,9 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	}
 
 	if token, ok := data["token"]; ok {
-		s.Config.Tokens = append(s.Config.Tokens, token)
+		if !utils.ContainsItem(s.Config.Tokens, token) {
+			s.Config.Tokens = append(s.Config.Tokens, token)
+		}
 	}
 
 	// 保存配置文件
