@@ -68,7 +68,7 @@ func NewServer(configPath string) (*Server, error) {
 }
 
 func (s *Server) Run(webRoot embed.FS, path string) {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	engine := gin.Default()
 	engine.Use(sessionMiddleware(s.Config))
 	engine.Use(corsMiddleware())
@@ -79,6 +79,12 @@ func (s *Server) Run(webRoot embed.FS, path string) {
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
 	engine.POST("/api/config/set", s.ConfigSetHandle)
+
+	engine.NoRoute(func(c *gin.Context) {
+		if c.Request.URL.Path == "/favicon.ico" {
+			c.Redirect(http.StatusMovedPermanently, "/chat/"+c.Request.URL.Path)
+		}
+	})
 
 	// process front-end web static files
 	engine.StaticFS("/chat", http.FS(StaticFile{

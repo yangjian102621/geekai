@@ -198,6 +198,8 @@ export default defineComponent({
                 confirmButtonText: '重连会话',
                 cancelButtonText: '不聊了',
                 type: 'warning',
+                showClose: false,
+                closeOnClickModal: false
               }
           ).then(() => {
             this.connect();
@@ -214,7 +216,7 @@ export default defineComponent({
     connect: function () {
       // 初始化 WebSocket 对象
       const token = getSessionId();
-      const socket = new WebSocket('ws://' + process.env.VUE_APP_API_HOST + '/api/chat?token=' + token);
+      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat?token=' + token);
       socket.addEventListener('open', () => {
         ElMessage.success('创建会话成功！');
 

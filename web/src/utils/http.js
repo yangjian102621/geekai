@@ -2,7 +2,7 @@ import axios from 'axios'
 import {getSessionId} from "@/utils/storage";
 
 axios.defaults.timeout = 5000
-axios.defaults.baseURL = process.env.VUE_APP_API_SECURE === true ? 'https://' + process.env.VUE_APP_API_HOST : 'http://' + process.env.VUE_APP_API_HOST
+axios.defaults.baseURL = process.env.VUE_APP_API_HOST
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = 'application/json'
 
