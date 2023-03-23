@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"flag"
+	"fmt"
 	"github.com/mitchellh/go-homedir"
 	logger2 "openai/logger"
 	"openai/server"
@@ -13,6 +15,7 @@ var logger = logger2.GetLogger()
 
 //go:embed dist
 var webRoot embed.FS
+var configFile string
 
 func main() {
 	defer func() {
@@ -37,10 +40,36 @@ func main() {
 		return
 	}
 
+	if configFile == "" {
+		configFile = filepath.Join(configDir, "config.toml")
+	}
+
 	// start server
-	s, err := server.NewServer(filepath.Join(configDir, "/config.toml"))
+	s, err := server.NewServer(configFile)
 	if err != nil {
 		panic(err)
 	}
 	s.Run(webRoot, "dist")
+}
+
+func init() {
+
+	flag.StringVar(&configFile, "config", "", "Config file path (default: ~/.config/chat-gpt/config.toml)")
+	flag.Usage = usage
+	flag.Parse()
+}
+
+func usage() {
+	fmt.Printf(`WeChat-GPT, Version: 1.0.0
+USAGE: 
+  %s [command options]
+OPTIONS:
+`, os.Args[0])
+
+	flagSet := flag.CommandLine
+	order := []string{"config"}
+	for _, name := range order {
+		f := flagSet.Lookup(name)
+		fmt.Printf("  --%s => %s\n", f.Name, f.Usage)
+	}
 }

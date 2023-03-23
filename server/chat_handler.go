@@ -95,7 +95,12 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		}
 		retryCount--
 	}
+
+	// 如果三次请求都失败的话，则返回对应的错误信息
 	if err != nil {
+		replyMessage(types.WsMessage{Type: types.WsStart}, ws)
+		replyMessage(types.WsMessage{Type: types.WsMiddle, Content: "抱歉，AI 助手开小差了，我马上找人去盘它。"}, ws)
+		replyMessage(types.WsMessage{Type: types.WsEnd}, ws)
 		return err
 	}
 

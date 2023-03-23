@@ -113,20 +113,20 @@ export default defineComponent({
 
     this.checkSession();
 
-    for (let i = 0; i < 10; i++) {
-      this.chatData.push({
-        type: "prompt",
-        id: randString(32),
-        icon: 'images/user-icon.png',
-        content: "孙悟空为什么可以把金棍棒放进耳朵？",
-      });
-      this.chatData.push({
-        type: "reply",
-        id: randString(32),
-        icon: 'images/gpt-icon.png',
-        content: "孙悟空是中国神话中的人物，传说中他可以把金箍棒放进耳朵里，这是一种超自然能力，无法用现代科学解释。这种能力可能是象征孙悟空超人力量的古代文化传说。",
-      });
-    }
+    // for (let i = 0; i < 10; i++) {
+    //   this.chatData.push({
+    //     type: "prompt",
+    //     id: randString(32),
+    //     icon: 'images/user-icon.png',
+    //     content: "孙悟空为什么可以把金棍棒放进耳朵？",
+    //   });
+    //   this.chatData.push({
+    //     type: "reply",
+    //     id: randString(32),
+    //     icon: 'images/gpt-icon.png',
+    //     content: "孙悟空是中国神话中的人物，传说中他可以把金箍棒放进耳朵里，这是一种超自然能力，无法用现代科学解释。这种能力可能是象征孙悟空超人力量的古代文化传说。",
+    //   });
+    // }
 
     window.addEventListener("resize", () => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
@@ -195,7 +195,6 @@ export default defineComponent({
               });
             } else if (data.type === 'end') {
               this.sending = false;
-              this.chatData[this.chatData.length - 1]["cursor"] = false;
             } else {
               let content = data.content;
               // 替换换行符
