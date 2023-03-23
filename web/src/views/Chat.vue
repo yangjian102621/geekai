@@ -6,7 +6,7 @@
         <el-button round>欢迎来到人工智能时代</el-button>
       </div>
 
-      <div class="chat-box" :style="{height: chatBoxHeight+'px'}">
+      <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
         <div v-for="chat in chatData" :key="chat.id">
           <chat-prompt
               v-if="chat.type==='prompt'"
@@ -83,6 +83,8 @@ import {Tools, Lock} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost} from "@/utils/http";
 import {getSessionId, setSessionId} from "@/utils/storage";
+import hl from 'highlight.js'
+import 'highlight.js/styles/a11y-dark.css'
 
 export default defineComponent({
   name: "XChat",
@@ -92,15 +94,16 @@ export default defineComponent({
       title: 'ChatGPT 控制台',
       logo: 'images/logo.png',
       chatData: [],
-      inputValue: '',
-      chatBoxHeight: 0,
+      inputValue: '', // 聊天内容
+      chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
       showLoginDialog: false,
-      token: '',
+      token: '', // 会话 token
 
-      connectingMessageBox: null,
+      lineBuffer: '', // 输出缓冲行
+      connectingMessageBox: null, // 保存重连的消息框对象
       socket: null,
-      toolBoxHeight: 61 + 42,
+      toolBoxHeight: 61 + 42, // 工具框的高度
       sending: false,
       loading: false
     }
@@ -124,13 +127,55 @@ export default defineComponent({
     //     type: "reply",
     //     id: randString(32),
     //     icon: 'images/gpt-icon.png',
-    //     content: "孙悟空是中国神话中的人物，传说中他可以把金箍棒放进耳朵里，这是一种超自然能力，无法用现代科学解释。这种能力可能是象征孙悟空超人力量的古代文化传说。",
+    //     content: "以下是一个使用 WebSocket API 建立 WebSocket 连接并发送消息的 JavaScript 示例代码：\n" +
+    //         "\n" +
+    //         "```js\n" +
+    //         "const socket = new WebSocket('ws://localhost:8080');\n" +
+    //         "\n" +
+    //         "// 监听 WebSocket 连接打开事件\n" +
+    //         "socket.addEventListener('open', (event) => {\n" +
+    //         "  console.log('WebSocket 连接已打开');\n" +
+    //         "\n" +
+    //         "  // 发送消息\n" +
+    //         "  socket.send('Hello WebSocket!');\n" +
+    //         "});\n" +
+    //         "\n" +
+    //         "// 监听 WebSocket 接收到消息事件\n" +
+    //         "socket.addEventListener('message', (event) => {\n" +
+    //         "  console.log('接收到消息：' + event.data);\n" +
+    //         "});\n" +
+    //         "\n" +
+    //         "// 监听 WebSocket 连接关闭事件\n" +
+    //         "socket.addEventListener('close', (event) => {\n" +
+    //         "   console.log('WebSocket 连接已关闭');\n" +
+    //         "});\n" +
+    //         "\n" +
+    //         "// 监听 WebSocket 出错事件\n" +
+    //         "socket.addEventListener('error', (event) => {\n" +
+    //         "   console.log('WebSocket 连接出错');\n" +
+    //         "});\n" +
+    //         "```\n" +
+    //         "\n" +
+    //         "在实际使用时，需要替换上述代码中的 WebSocket 连接地址和端口号。此外，根据后端的实现，可能需要在客户端发送的消息中携带一些特定信息，以便后端能够正确地处理这些消息。",
     //   });
     // }
+    //
+    // let md = require('markdown-it')();
+    // this.chatData[this.chatData.length - 1]["content"] = md.render(this.chatData[this.chatData.length - 1]["content"]);
+    //
+    // nextTick(() => {
+    //   const lines = document.querySelectorAll('.chat-line');
+    //   const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+    //   blocks.forEach((block) => {
+    //     hl.highlightElement(block)
+    //   })
+    // })
 
     window.addEventListener("resize", () => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     });
+
+
   },
 
   methods: {
@@ -141,7 +186,7 @@ export default defineComponent({
           this.connect();
         }
         // 发送心跳
-        setTimeout(() => this.checkSession(), 5000);
+        //setTimeout(() => this.checkSession(), 5000);
       }).catch((res) => {
         if (res.code === 400) {
           this.showLoginDialog = true;
@@ -173,9 +218,8 @@ export default defineComponent({
       socket.addEventListener('open', () => {
         ElMessage.success('创建会话成功！');
 
-        if (this.connectingMessageBox != null) {
+        if (this.connectingMessageBox && typeof this.connectingMessageBox.close === 'function') {
           this.connectingMessageBox.close();
-          this.connectingMessageBox = null;
         }
       });
 
@@ -195,16 +239,19 @@ export default defineComponent({
               });
             } else if (data.type === 'end') {
               this.sending = false;
+              this.lineBuffer = ''; // 清空缓冲
             } else {
-              let content = data.content;
-              // 替换换行符
-              if (content.indexOf("\n\n") >= 0) {
-                if (this.chatData[this.chatData.length - 1]["content"].length === 0) {
-                  return
-                }
-                content = content.replace("\n\n", "<br />");
-              }
-              this.chatData[this.chatData.length - 1]["content"] += content;
+              this.lineBuffer += data.content;
+              let md = require('markdown-it')();
+              this.chatData[this.chatData.length - 1]["content"] = md.render(this.lineBuffer);
+
+              nextTick(() => {
+                const lines = document.querySelectorAll('.chat-line');
+                const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+                blocks.forEach((block) => {
+                  hl.highlightElement(block)
+                })
+              })
             }
             // 将聊天框的滚动条滑动到最底部
             nextTick(() => {

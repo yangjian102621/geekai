@@ -69,6 +69,10 @@ export default defineComponent({
       font-size: var(--content-font-size);
       border-radius: 5px;
 
+      p:last-child {
+        margin-bottom: 0
+      }
+
       //.cursor {
       //  height 24px;
       //  border-left 1px solid black;

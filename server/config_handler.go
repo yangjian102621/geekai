@@ -98,7 +98,6 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	}
 
 	// 保存配置文件
-	logger.Infof("Config: %+v", s.Config)
 	err = types.SaveConfig(s.Config, s.ConfigPath)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config file"})

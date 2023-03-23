@@ -5,6 +5,7 @@ import "element-plus/dist/index.css"
 import App from './App.vue'
 import Chat from './views/Chat.vue'
 import NotFound from './views/404.vue'
+import TestPage from './views/Test.vue'
 import './utils/prototype'
 import "./assets/css/bootstrap.min.css"
 import {Global} from "@/utils/storage";
@@ -14,7 +15,12 @@ Global['Chat'] = Chat
 const routes = [
     {
         name: 'home', path: '/', component: Chat, meta: {
-            title: 'ChatGPT-Console'
+            title: 'WeChat-GPT'
+        }
+    },
+    {
+        name: 'test', path: '/test', component: TestPage, meta: {
+            title: '测试页面'
         }
     },
     {
