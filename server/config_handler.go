@@ -149,3 +149,7 @@ func (s *Server) AddApiKey(c *gin.Context) {
 func (s *Server) ListApiKeys(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
 }
+
+func (s *Server) GetChatRoles(c *gin.Context) {
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ChatRoles})
+}

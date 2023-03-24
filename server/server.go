@@ -31,9 +31,9 @@ func (s StaticFile) Open(name string) (fs.File, error) {
 }
 
 type Server struct {
-	Config     *types.Config
-	ConfigPath string
-	History    map[string][]types.Message
+	Config      *types.Config
+	ConfigPath  string
+	ChatContext map[string][]types.Message // 聊天上下文 [SessionID] => []Messages
 
 	// 保存 Websocket 会话 Token, 每个 Token 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
@@ -44,6 +44,9 @@ type Server struct {
 func NewServer(configPath string) (*Server, error) {
 	// load service configs
 	config, err := types.LoadConfig(configPath)
+	if config.ChatRoles == nil {
+		config.ChatRoles = types.GetDefaultChatRole()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +54,7 @@ func NewServer(configPath string) (*Server, error) {
 	return &Server{
 		Config:           config,
 		ConfigPath:       configPath,
-		History:          make(map[string][]types.Message, 16),
+		ChatContext:      make(map[string][]types.Message, 16),
 		WsSession:        make(map[string]string),
 		ApiKeyAccessStat: make(map[string]int64),
 	}, nil
@@ -67,9 +70,10 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.Use(AuthorizeMiddleware(s))
 
 	engine.GET("/hello", Hello)
-	engine.POST("/api/session/get", s.GetSessionHandle)
+	engine.GET("/api/session/get", s.GetSessionHandle)
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
+	engine.GET("/api/chat-roles/get", s.GetChatRoles)
 	engine.POST("/api/config/set", s.ConfigSetHandle)
 	engine.POST("api/config/token/add", s.AddToken)
 	engine.POST("api/config/token/remove", s.RemoveToken)

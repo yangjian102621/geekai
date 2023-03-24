@@ -4,6 +4,14 @@
       <div class="tool-box">
         <el-image style="width: 24px; height: 24px" :src="logo"/>
         <el-button round>欢迎来到人工智能时代</el-button>
+        <el-select v-model="role" class="m-2" placeholder="请选择对话角色">
+          <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+          />
+        </el-select>
       </div>
 
       <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
@@ -81,7 +89,7 @@ import {randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {Tools, Lock} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
-import {httpPost} from "@/utils/http";
+import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, setSessionId} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
@@ -94,6 +102,13 @@ export default defineComponent({
       title: 'ChatGPT 控制台',
       logo: 'images/logo.png',
       chatData: [],
+      options: [
+        {
+          value: 'gpt',
+          label: 'AI 智能助手',
+        },
+      ],
+      role: 'gpt',
       inputValue: '', // 聊天内容
       chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
@@ -173,6 +188,13 @@ export default defineComponent({
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     });
 
+    // 获取聊天角色
+    httpGet("/api/chat-roles/get").then((res) => {
+      console.log(res)
+    }).catch((e) => {
+      console.log(e)
+    })
+
     this.connect();
 
   },
@@ -230,7 +252,7 @@ export default defineComponent({
       });
       socket.addEventListener('close', () => {
         // 检查会话
-        httpPost("/api/session/get").then(() => {
+        httpGet("/api/session/get").then(() => {
           this.connectingMessageBox = ElMessageBox.confirm(
               '^_^ 会话发生异常，您已经从服务器断开连接!',
               '注意：',
@@ -354,6 +376,10 @@ export default defineComponent({
         display flex;
         justify-content center;
         align-items center;
+
+        .el-select {
+          max-width 150px;
+        }
 
         .el-image {
           margin-right 5px;

@@ -53,13 +53,13 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		MaxTokens:   s.Config.Chat.MaxTokens,
 		Stream:      true,
 	}
-	var history []types.Message
-	if v, ok := s.History[userId]; ok && s.Config.Chat.EnableContext {
-		history = v
+	var context []types.Message
+	if v, ok := s.ChatContext[userId]; ok && s.Config.Chat.EnableContext {
+		context = v
 	} else {
-		history = make([]types.Message, 0)
+		context = make([]types.Message, 0)
 	}
-	r.Messages = append(history, types.Message{
+	r.Messages = append(context, types.Message{
 		Role:    "user",
 		Content: text,
 	})
@@ -160,13 +160,13 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	}
 
 	// 追加历史消息
-	history = append(history, types.Message{
+	context = append(context, types.Message{
 		Role:    "user",
 		Content: text,
 	})
 	message.Content = strings.Join(contents, "")
-	history = append(history, message)
-	s.History[userId] = history
+	context = append(context, message)
+	s.ChatContext[userId] = context
 	return nil
 }
 

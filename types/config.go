@@ -14,8 +14,9 @@ type Config struct {
 	Session    Session
 	ProxyURL   string
 	Chat       Chat
-	EnableAuth bool     // 是否开启鉴权
-	Tokens     []string // 授权的白名单列表 TODO: 后期要存储到 LevelDB 或者 Mysql 数据库
+	EnableAuth bool                // 是否开启鉴权
+	Tokens     []string            // 授权的白名单列表 TODO: 后期要存储到 LevelDB 或者 Mysql 数据库
+	ChatRoles  map[string]ChatRole // 保存预设角色信息
 }
 
 // Chat configs struct
@@ -63,6 +64,7 @@ func NewDefaultConfig() *Config {
 			EnableContext: true,
 		},
 		EnableAuth: true,
+		ChatRoles:  GetDefaultChatRole(),
 	}
 }
 
