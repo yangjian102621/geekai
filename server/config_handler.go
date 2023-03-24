@@ -11,22 +11,12 @@ import (
 
 // ConfigSetHandle set configs
 func (s *Server) ConfigSetHandle(c *gin.Context) {
-	token := c.Query("token")
-	if token != "RockYang" {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
-		return
-	}
-
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		logger.Errorf("Error decode json data: %s", err.Error())
 		c.JSON(http.StatusBadRequest, nil)
 		return
-	}
-	// API key
-	if key, ok := data["api_key"]; ok && len(key) > 20 {
-		s.Config.Chat.ApiKeys = append(s.Config.Chat.ApiKeys, key)
 	}
 
 	// proxy URL
@@ -91,12 +81,6 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 		s.Config.EnableAuth = v
 	}
 
-	if token, ok := data["token"]; ok {
-		if !utils.ContainsItem(s.Config.Tokens, token) {
-			s.Config.Tokens = append(s.Config.Tokens, token)
-		}
-	}
-
 	// 保存配置文件
 	err = types.SaveConfig(s.Config, s.ConfigPath)
 	if err != nil {
@@ -105,4 +89,63 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
+}
+
+func (s *Server) AddToken(c *gin.Context) {
+	var data map[string]string
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if token, ok := data["token"]; ok {
+		if !utils.ContainsItem(s.Config.Tokens, token) {
+			s.Config.Tokens = append(s.Config.Tokens, token)
+		}
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Tokens})
+}
+
+func (s *Server) RemoveToken(c *gin.Context) {
+	var data map[string]string
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if token, ok := data["token"]; ok {
+		for i, v := range s.Config.Tokens {
+			if v == token {
+				s.Config.Tokens = append(s.Config.Tokens[:i], s.Config.Tokens[i+1:]...)
+				break
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Tokens})
+}
+
+func (s *Server) AddApiKey(c *gin.Context) {
+
+	var data map[string]string
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+	if key, ok := data["api_key"]; ok && len(key) > 20 {
+		s.Config.Chat.ApiKeys = append(s.Config.Chat.ApiKeys, key)
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
+}
+
+func (s *Server) ListApiKeys(c *gin.Context) {
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
 }

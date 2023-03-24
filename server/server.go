@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"net/url"
 	logger2 "openai/logger"
 	"openai/types"
 	"openai/utils"
@@ -34,7 +33,6 @@ func (s StaticFile) Open(name string) (fs.File, error) {
 type Server struct {
 	Config     *types.Config
 	ConfigPath string
-	Client     *http.Client
 	History    map[string][]types.Message
 
 	// 保存 Websocket 会话 Token, 每个 Token 只能连接一次
@@ -50,16 +48,8 @@ func NewServer(configPath string) (*Server, error) {
 		return nil, err
 	}
 
-	uri := url.URL{}
-	proxy, _ := uri.Parse(config.ProxyURL)
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxy),
-		},
-	}
 	return &Server{
 		Config:           config,
-		Client:           client,
 		ConfigPath:       configPath,
 		History:          make(map[string][]types.Message, 16),
 		WsSession:        make(map[string]string),
@@ -67,11 +57,13 @@ func NewServer(configPath string) (*Server, error) {
 	}, nil
 }
 
-func (s *Server) Run(webRoot embed.FS, path string) {
+func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.Default()
+	if debug {
+		engine.Use(corsMiddleware())
+	}
 	engine.Use(sessionMiddleware(s.Config))
-	engine.Use(corsMiddleware())
 	engine.Use(AuthorizeMiddleware(s))
 
 	engine.GET("/hello", Hello)
@@ -79,6 +71,10 @@ func (s *Server) Run(webRoot embed.FS, path string) {
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
 	engine.POST("/api/config/set", s.ConfigSetHandle)
+	engine.POST("api/config/token/add", s.AddToken)
+	engine.POST("api/config/token/remove", s.RemoveToken)
+	engine.POST("api/config/apikey/add", s.AddApiKey)
+	engine.POST("api/config/apikey/list", s.ListApiKeys)
 
 	engine.NoRoute(func(c *gin.Context) {
 		if c.Request.URL.Path == "/favicon.ico" {
@@ -123,7 +119,7 @@ func corsMiddleware() gin.HandlerFunc {
 		origin := c.Request.Header.Get("Origin")
 		if origin != "" {
 			// 设置允许的请求源
-			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
 			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-Token")
@@ -154,9 +150,19 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !s.Config.EnableAuth ||
 			c.Request.URL.Path == "/api/login" ||
-			c.Request.URL.Path == "/api/config/set" ||
 			!strings.HasPrefix(c.Request.URL.Path, "/api") {
 			c.Next()
+			return
+		}
+
+		if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
+			accessKey := c.Query("access_key")
+			if accessKey != "RockYang" {
+				c.Abort()
+				c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
+			} else {
+				c.Next()
+			}
 			return
 		}
 
@@ -165,7 +171,7 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 			tokenName := c.Query("token")
 			if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
 				// 每个令牌只能连接一次
-				delete(s.WsSession, tokenName)
+				//delete(s.WsSession, tokenName)
 				c.Next()
 			} else {
 				c.Abort()
@@ -190,7 +196,16 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 }
 
 func (s *Server) GetSessionHandle(c *gin.Context) {
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success})
+	tokenName := c.GetHeader(types.TokenName)
+	if addr, ok := s.WsSession[tokenName]; ok && addr == c.ClientIP() {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: addr})
+	} else {
+		c.JSON(http.StatusOK, types.BizVo{
+			Code:    types.NotAuthorized,
+			Message: "Not Authorized",
+		})
+	}
+
 }
 
 func (s *Server) LoginHandle(c *gin.Context) {

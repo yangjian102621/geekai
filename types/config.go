@@ -52,7 +52,7 @@ func NewDefaultConfig() *Config {
 			MaxAge:    86400,
 			Secure:    true,
 			HttpOnly:  false,
-			SameSite:  http.SameSiteNoneMode,
+			SameSite:  http.SameSiteLaxMode,
 		},
 		Chat: Chat{
 			ApiURL:        "https://api.openai.com/v1/chat/completions",

@@ -16,6 +16,7 @@ var logger = logger2.GetLogger()
 //go:embed dist
 var webRoot embed.FS
 var configFile string
+var debugMode bool
 
 func main() {
 	defer func() {
@@ -49,12 +50,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s.Run(webRoot, "dist")
+	s.Run(webRoot, "dist", debugMode)
 }
 
 func init() {
 
 	flag.StringVar(&configFile, "config", "", "Config file path (default: ~/.config/chat-gpt/config.toml)")
+	flag.BoolVar(&debugMode, "debug", true, "Enable debug mode (default: true, recommend to set false in production env)")
 	flag.Usage = usage
 	flag.Parse()
 }
@@ -67,7 +69,7 @@ OPTIONS:
 `, os.Args[0])
 
 	flagSet := flag.CommandLine
-	order := []string{"config"}
+	order := []string{"config", "debug"}
 	for _, name := range order {
 		f := flagSet.Lookup(name)
 		fmt.Printf("  --%s => %s\n", f.Name, f.Usage)

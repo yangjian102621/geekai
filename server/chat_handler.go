@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"openai/types"
 	"strings"
 	"time"
@@ -68,6 +69,19 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		return err
 	}
 
+	// 创建 HttpClient 请求对象
+	var client *http.Client
+	if s.Config.ProxyURL == "" {
+		client = &http.Client{}
+	} else { // 使用代理
+		uri := url.URL{}
+		proxy, _ := uri.Parse(s.Config.ProxyURL)
+		client = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxy),
+			},
+		}
+	}
 	request, err := http.NewRequest(http.MethodPost, s.Config.Chat.ApiURL, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return err
@@ -86,7 +100,7 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		}
 		logger.Infof("Use API KEY: %s", apiKey)
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-		response, err = s.Client.Do(request)
+		response, err = client.Do(request)
 		if err == nil {
 			break
 		} else {

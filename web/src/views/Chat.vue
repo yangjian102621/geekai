@@ -114,8 +114,6 @@ export default defineComponent({
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     })
 
-    this.checkSession();
-
     // for (let i = 0; i < 10; i++) {
     //   this.chatData.push({
     //     type: "prompt",
@@ -175,44 +173,11 @@ export default defineComponent({
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     });
 
+    this.connect();
 
   },
 
   methods: {
-    // 检查会话
-    checkSession: function () {
-      httpPost("/api/session/get").then(() => {
-        if (this.socket == null) {
-          this.connect();
-        }
-        // 发送心跳
-        //setTimeout(() => this.checkSession(), 5000);
-      }).catch((res) => {
-        if (res.code === 400) {
-          this.showLoginDialog = true;
-        } else {
-          this.connectingMessageBox = ElMessageBox.confirm(
-              '^_^ 会话发生异常，您已经从服务器断开连接!',
-              '注意：',
-              {
-                confirmButtonText: '重连会话',
-                cancelButtonText: '不聊了',
-                type: 'warning',
-                showClose: false,
-                closeOnClickModal: false
-              }
-          ).then(() => {
-            this.connect();
-          }).catch(() => {
-            ElMessage({
-              type: 'info',
-              message: '您关闭了会话',
-            })
-          })
-        }
-      })
-    },
-
     connect: function () {
       // 初始化 WebSocket 对象
       const token = getSessionId();
@@ -264,8 +229,32 @@ export default defineComponent({
 
       });
       socket.addEventListener('close', () => {
-        // 检查会话，自动登录
-        this.checkSession();
+        // 检查会话
+        httpPost("/api/session/get").then(() => {
+          this.connectingMessageBox = ElMessageBox.confirm(
+              '^_^ 会话发生异常，您已经从服务器断开连接!',
+              '注意：',
+              {
+                confirmButtonText: '重连会话',
+                cancelButtonText: '不聊了',
+                type: 'warning',
+                showClose: false,
+                closeOnClickModal: false
+              }
+          ).then(() => {
+            this.connect();
+          }).catch(() => {
+            ElMessage({
+              type: 'info',
+              message: '您关闭了会话',
+            })
+          })
+        }).catch((res) => {
+          if (res.code === 400) {
+            this.showLoginDialog = true;
+          }
+        })
+
       });
 
       this.socket = socket;
