@@ -4,12 +4,14 @@
       <div class="tool-box">
         <el-image style="width: 24px; height: 24px" :src="logo"/>
         <el-button round>欢迎来到人工智能时代</el-button>
-        <el-select v-model="role" class="m-2" placeholder="请选择对话角色">
+        <el-select v-model="role" class="m-2"
+                   v-on:change="changeRole"
+                   placeholder="请选择对话角色">
           <el-option
               v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              :key="item.key"
+              :label="item.name"
+              :value="item.key"
           />
         </el-select>
       </div>
@@ -102,13 +104,8 @@ export default defineComponent({
       title: 'ChatGPT 控制台',
       logo: 'images/logo.png',
       chatData: [],
-      options: [
-        {
-          value: 'gpt',
-          label: 'AI 智能助手',
-        },
-      ],
-      role: 'gpt',
+      options: [],
+      role: 'seller',
       inputValue: '', // 聊天内容
       chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
@@ -188,13 +185,6 @@ export default defineComponent({
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
     });
 
-    // 获取聊天角色
-    httpGet("/api/chat-roles/get").then((res) => {
-      console.log(res)
-    }).catch((e) => {
-      console.log(e)
-    })
-
     this.connect();
 
   },
@@ -203,9 +193,21 @@ export default defineComponent({
     connect: function () {
       // 初始化 WebSocket 对象
       const token = getSessionId();
-      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + '/api/chat?token=' + token);
+      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?token=${token}&role=${this.role}`);
       socket.addEventListener('open', () => {
         ElMessage.success('创建会话成功！');
+
+        // 获取聊天角色
+        httpGet("/api/config/chat-roles/get").then((res) => {
+          let options = [];
+          for (let key in res.data) {
+            options.push(res.data[key])
+          }
+          this.options = options;
+          console.log(res.data);
+        }).catch(() => {
+          ElMessage.error("获取聊天角色失败");
+        })
 
         if (this.connectingMessageBox && typeof this.connectingMessageBox.close === 'function') {
           this.connectingMessageBox.close();
@@ -274,12 +276,21 @@ export default defineComponent({
         }).catch((res) => {
           if (res.code === 400) {
             this.showLoginDialog = true;
+          } else {
+            ElMessage.error(res.message)
           }
         })
 
       });
 
       this.socket = socket;
+    },
+
+    // 更换角色
+    changeRole: function () {
+      // 清空对话列表
+      this.chatData = [];
+      this.connect();
     },
 
     inputKeyDown: function (e) {

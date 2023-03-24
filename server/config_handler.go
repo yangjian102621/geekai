@@ -151,5 +151,15 @@ func (s *Server) ListApiKeys(c *gin.Context) {
 }
 
 func (s *Server) GetChatRoles(c *gin.Context) {
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ChatRoles})
+	var roles = make(map[string]interface{})
+	for k, v := range s.Config.ChatRoles {
+		roles[k] = struct {
+			Key  string `json:"key"`
+			Name string `json:"name"`
+		}{
+			Key:  v.Key,
+			Name: v.Name,
+		}
+	}
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: roles})
 }

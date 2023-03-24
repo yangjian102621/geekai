@@ -73,8 +73,8 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.GET("/api/session/get", s.GetSessionHandle)
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
-	engine.GET("/api/chat-roles/get", s.GetChatRoles)
 	engine.POST("/api/config/set", s.ConfigSetHandle)
+	engine.GET("/api/config/chat-roles/get", s.GetChatRoles)
 	engine.POST("api/config/token/add", s.AddToken)
 	engine.POST("api/config/token/remove", s.RemoveToken)
 	engine.POST("api/config/apikey/add", s.AddApiKey)
@@ -154,6 +154,7 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !s.Config.EnableAuth ||
 			c.Request.URL.Path == "/api/login" ||
+			c.Request.URL.Path == "/api/config/chat-roles/get" ||
 			!strings.HasPrefix(c.Request.URL.Path, "/api") {
 			c.Next()
 			return

@@ -24,6 +24,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 		return
 	}
 	token := c.Query("token")
+	role := c.Query("role")
 	logger.Infof("New websocket connected, IP: %s", c.Request.RemoteAddr)
 	client := NewWsClient(ws)
 	go func() {
@@ -37,7 +38,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 
 			logger.Info(string(message))
 			// TODO: 当前只保持当前会话的上下文，部保存用户的所有的聊天历史记录，后期要考虑保存所有的历史记录
-			err = s.sendMessage(token, string(message), client)
+			err = s.sendMessage(token, role, string(message), client)
 			if err != nil {
 				logger.Error(err)
 			}
@@ -46,7 +47,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 }
 
 // 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
-func (s *Server) sendMessage(userId string, text string, ws Client) error {
+func (s *Server) sendMessage(sessionId string, role string, text string, ws Client) error {
 	var r = types.ApiRequest{
 		Model:       s.Config.Chat.Model,
 		Temperature: s.Config.Chat.Temperature,
@@ -54,11 +55,13 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 		Stream:      true,
 	}
 	var context []types.Message
-	if v, ok := s.ChatContext[userId]; ok && s.Config.Chat.EnableContext {
+	var key = sessionId + role
+	if v, ok := s.ChatContext[key]; ok && s.Config.Chat.EnableContext {
 		context = v
 	} else {
-		context = make([]types.Message, 0)
+		context = s.Config.ChatRoles[role].Context
 	}
+	logger.Info(context)
 	r.Messages = append(context, types.Message{
 		Role:    "user",
 		Content: text,
@@ -166,7 +169,8 @@ func (s *Server) sendMessage(userId string, text string, ws Client) error {
 	})
 	message.Content = strings.Join(contents, "")
 	context = append(context, message)
-	s.ChatContext[userId] = context
+	// 保存上下文
+	s.ChatContext[key] = context
 	return nil
 }
 
