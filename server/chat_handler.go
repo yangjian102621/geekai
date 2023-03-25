@@ -115,9 +115,7 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 
 	// 如果三次请求都失败的话，则返回对应的错误信息
 	if err != nil {
-		replyMessage(types.WsMessage{Type: types.WsStart}, ws)
-		replyMessage(types.WsMessage{Type: types.WsMiddle, Content: "抱歉，AI 助手开小差了，我马上找人去盘它。"}, ws)
-		replyMessage(types.WsMessage{Type: types.WsEnd}, ws)
+		replyError(ws)
 		return err
 	}
 
@@ -142,6 +140,7 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 		err = json.Unmarshal([]byte(line[6:]), &responseBody)
 		if err != nil {
 			logger.Error(line)
+			replyError(ws)
 			continue
 		}
 		// 初始化 role
@@ -174,6 +173,12 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 	return nil
 }
 
+func replyError(ws Client) {
+	replyMessage(types.WsMessage{Type: types.WsStart}, ws)
+	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: "抱歉，AI 助手开小差了，我马上找人去盘它。"}, ws)
+	replyMessage(types.WsMessage{Type: types.WsEnd}, ws)
+}
+
 // 随机获取一个 API Key，如果请求失败，则更换 API Key 重试
 func (s *Server) getApiKey(failedKey string) string {
 	var keys = make([]string, 0)
@@ -197,7 +202,9 @@ func (s *Server) getApiKey(failedKey string) string {
 	}
 	rand.Seed(time.Now().UnixNano())
 	if len(keys) > 0 {
-		return keys[rand.Intn(len(keys))]
+		key := keys[rand.Intn(len(keys))]
+		s.ApiKeyAccessStat[key] = time.Now().Unix()
+		return key
 	}
 	return ""
 }

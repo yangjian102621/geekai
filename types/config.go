@@ -60,7 +60,7 @@ func NewDefaultConfig() *Config {
 			ApiKeys:       []string{""},
 			Model:         "gpt-3.5-turbo",
 			MaxTokens:     1024,
-			Temperature:   1.0,
+			Temperature:   0.9,
 			EnableContext: true,
 		},
 		EnableAuth: true,

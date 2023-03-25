@@ -68,7 +68,7 @@
           title="请输入口令继续访问"
       >
         <el-row>
-          <el-input v-model="token" placeholder="在此输入口令">
+          <el-input v-model="token" placeholder="在此输入口令" @keyup="loginInputKeyup">
             <template #prefix>
               <el-icon class="el-input__icon">
                 <Lock/>
@@ -105,7 +105,7 @@ export default defineComponent({
       logo: 'images/logo.png',
       chatData: [],
       options: [],
-      role: 'seller',
+      role: 'programmer',
       inputValue: '', // 聊天内容
       chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
@@ -190,6 +190,7 @@ export default defineComponent({
   },
 
   methods: {
+    // 创建 socket 会话连接
     connect: function () {
       // 初始化 WebSocket 对象
       const token = getSessionId();
@@ -204,7 +205,6 @@ export default defineComponent({
             options.push(res.data[key])
           }
           this.options = options;
-          console.log(res.data);
         }).catch(() => {
           ElMessage.error("获取聊天角色失败");
         })
@@ -237,6 +237,7 @@ export default defineComponent({
               this.chatData[this.chatData.length - 1]["content"] = md.render(this.lineBuffer);
 
               nextTick(() => {
+                hl.configure({ignoreUnescapedHTML: true})
                 const lines = document.querySelectorAll('.chat-line');
                 const blocks = lines[lines.length - 1].querySelectorAll('pre code');
                 blocks.forEach((block) => {
@@ -360,8 +361,14 @@ export default defineComponent({
         this.showLoginDialog = true;
         this.loading = false;
       })
-    }
+    },
 
+    // 登录输入框输入事件处理
+    loginInputKeyup: function (e) {
+      if (e.keyCode === 13) {
+        this.submitToken();
+      }
+    }
   },
 
 })
