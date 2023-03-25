@@ -27,6 +27,10 @@ func (s *Server) ChatHandle(c *gin.Context) {
 	role := c.Query("role")
 	logger.Infof("New websocket connected, IP: %s", c.Request.RemoteAddr)
 	client := NewWsClient(ws)
+	// 发送打招呼信息
+	replyMessage(types.WsMessage{Type: types.WsStart}, client)
+	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: s.Config.ChatRoles[role].HelloMsg}, client)
+	replyMessage(types.WsMessage{Type: types.WsEnd}, client)
 	go func() {
 		for {
 			_, message, err := client.Receive()
@@ -141,7 +145,7 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 		if err != nil {
 			logger.Error(line)
 			replyError(ws)
-			continue
+			break
 		}
 		// 初始化 role
 		if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {

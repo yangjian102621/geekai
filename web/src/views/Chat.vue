@@ -105,7 +105,7 @@ export default defineComponent({
       logo: 'images/logo.png',
       chatData: [],
       options: [],
-      role: 'programmer',
+      role: 'gpt',
       inputValue: '', // 聊天内容
       chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
