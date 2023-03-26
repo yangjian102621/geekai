@@ -81,6 +81,8 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/config/apikey/remove", s.RemoveApiKey)
 	engine.POST("api/config/apikey/list", s.ListApiKeys)
 	engine.POST("api/config/role/set", s.UpdateChatRole)
+	engine.POST("api/config/proxy/add", s.AddProxy)
+	engine.POST("api/config/proxy/remove", s.RemoveProxy)
 
 	engine.NoRoute(func(c *gin.Context) {
 		if c.Request.URL.Path == "/favicon.ico" {

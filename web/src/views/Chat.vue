@@ -220,7 +220,7 @@ export default defineComponent({
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
             // 过滤掉重复的打招呼信息
-            if (data['is_hello_msg'] && this.chatData.length > 3) {
+            if (data['is_hello_msg'] && this.chatData.length > 1) {
               return
             }
 

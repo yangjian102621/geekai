@@ -19,11 +19,6 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 		return
 	}
 
-	// proxy URL
-	if proxy, ok := data["proxy"]; ok {
-		s.Config.ProxyURL = proxy
-	}
-
 	// Model
 	if model, ok := data["model"]; ok {
 		s.Config.Chat.Model = model
@@ -267,4 +262,58 @@ func (s *Server) UpdateChatRole(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
+}
+
+// AddProxy 添加一个代理
+func (s *Server) AddProxy(c *gin.Context) {
+	var data map[string]string
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if proxy, ok := data["proxy"]; ok {
+		if !utils.ContainsItem(s.Config.ProxyURL, proxy) {
+			s.Config.ProxyURL = append(s.Config.ProxyURL, proxy)
+		}
+	}
+
+	// 保存配置文件
+	err = types.SaveConfig(s.Config, s.ConfigPath)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config file"})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ProxyURL})
+}
+
+func (s *Server) RemoveProxy(c *gin.Context) {
+	var data map[string]string
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if proxy, ok := data["proxy"]; ok {
+		for i, v := range s.Config.ProxyURL {
+			if v == proxy {
+				s.Config.ProxyURL = append(s.Config.ProxyURL[:i], s.Config.ProxyURL[i+1:]...)
+				break
+			}
+		}
+	}
+
+	// 保存配置文件
+	err = types.SaveConfig(s.Config, s.ConfigPath)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config file"})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ProxyURL})
 }

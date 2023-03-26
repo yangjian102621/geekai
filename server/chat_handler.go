@@ -66,6 +66,7 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 	} else {
 		context = s.Config.ChatRoles[role].Context
 	}
+	logger.Infof("会话上下文：%+v", context)
 	r.Messages = append(context, types.Message{
 		Role:    "user",
 		Content: text,
@@ -78,17 +79,6 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 
 	// 创建 HttpClient 请求对象
 	var client *http.Client
-	if s.Config.ProxyURL == "" {
-		client = &http.Client{}
-	} else { // 使用代理
-		uri := url.URL{}
-		proxy, _ := uri.Parse(s.Config.ProxyURL)
-		client = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxy),
-			},
-		}
-	}
 	request, err := http.NewRequest(http.MethodPost, s.Config.Chat.ApiURL, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return err
@@ -98,7 +88,20 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 	var retryCount = 3
 	var response *http.Response
 	var failedKey = ""
+	var failedProxyURL = ""
 	for retryCount > 0 {
+		proxyURL := s.getProxyURL(failedProxyURL)
+		if proxyURL == "" {
+			client = &http.Client{}
+		} else { // 使用代理
+			uri := url.URL{}
+			proxy, _ := uri.Parse(proxyURL)
+			client = &http.Client{
+				Transport: &http.Transport{
+					Proxy: http.ProxyURL(proxy),
+				},
+			}
+		}
 		apiKey := s.getApiKey(failedKey)
 		if apiKey == "" {
 			logger.Info("Too many requests, all Api Key is not available")
@@ -113,6 +116,7 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 		} else {
 			logger.Error(err)
 			failedKey = apiKey
+			failedProxyURL = proxyURL
 		}
 		retryCount--
 	}
@@ -210,6 +214,28 @@ func (s *Server) getApiKey(failedKey string) string {
 		key := keys[rand.Intn(len(keys))]
 		s.ApiKeyAccessStat[key] = time.Now().Unix()
 		return key
+	}
+	return ""
+}
+
+// 获取一个可用的代理
+func (s *Server) getProxyURL(failedProxyURL string) string {
+	if len(s.Config.ProxyURL) == 0 {
+		return ""
+	}
+
+	if len(s.Config.ProxyURL) == 1 || failedProxyURL == "" {
+		return s.Config.ProxyURL[0]
+	}
+
+	for i, v := range s.Config.ProxyURL {
+		if failedProxyURL == v {
+			if i == len(s.Config.ProxyURL)-1 {
+				return s.Config.ProxyURL[0]
+			} else {
+				return s.Config.ProxyURL[i+1]
+			}
+		}
 	}
 	return ""
 }

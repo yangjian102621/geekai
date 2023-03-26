@@ -12,7 +12,7 @@ import (
 type Config struct {
 	Listen     string
 	Session    Session
-	ProxyURL   string
+	ProxyURL   []string
 	Chat       Chat
 	EnableAuth bool                // 是否开启鉴权
 	Tokens     []string            // 授权的白名单列表 TODO: 后期要存储到 LevelDB 或者 Mysql 数据库
@@ -43,7 +43,8 @@ type Session struct {
 
 func NewDefaultConfig() *Config {
 	return &Config{
-		Listen: "0.0.0.0:5678",
+		Listen:   "0.0.0.0:5678",
+		ProxyURL: make([]string, 0),
 
 		Session: Session{
 			SecretKey: utils.RandString(64),
