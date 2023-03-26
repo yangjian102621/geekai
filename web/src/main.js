@@ -7,7 +7,6 @@ import Chat from './views/Chat.vue'
 import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import './utils/prototype'
-import "./assets/css/bootstrap.min.css"
 import {Global} from "@/utils/storage";
 
 Global['Chat'] = Chat

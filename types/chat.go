@@ -29,6 +29,8 @@ type ChatRole struct {
 	Name     string    `json:"name"`      // 角色名称
 	Context  []Message `json:"context"`   // 角色语料信息
 	HelloMsg string    `json:"hello_msg"` // 打招呼的消息
+	Icon     string    `json:"icon"`      // 角色聊天图标
+	Enable   bool      `json:"enable"`    // 是否启用被启用
 }
 
 func GetDefaultChatRole() map[string]ChatRole {
@@ -38,6 +40,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 			Name:     "智能AI助手",
 			Context:  nil,
 			HelloMsg: "我是AI智能助手，请告诉我您有什么问题或需要什么帮助，我会尽力回答您的问题或提供有用的建议。",
+			Icon:     "images/avatar/gpt.png",
+			Enable:   true,
 		},
 		"programmer": {
 			Key:  "programmer",
@@ -47,6 +51,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "assistant", Content: "好的，现在我将扮演一位程序员，非常感谢您对我的评价。作为一名优秀的程序员，我非常热爱编程，并且注重代码质量。我熟悉多种编程语言，尤其是 Go 语言，可以使用它来高效地解决各种问题。"},
 			},
 			HelloMsg: "Talk is cheap, i will show code!",
+			Icon:     "images/avatar/programmer.jpg",
+			Enable:   true,
 		},
 		"teacher": {
 			Key:  "teacher",
@@ -56,6 +62,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "assistant", Content: "好的，让我来尝试扮演一位苏格拉底式的老师。请问，你有什么想要探讨的问题或者话题吗？我会通过恰当的问题引导你思考和探索答案。"},
 			},
 			HelloMsg: "师者，传道受业解惑也。",
+			Icon:     "images/avatar/teacher.jpg",
+			Enable:   true,
 		},
 		"artist": {
 			Key:  "artist",
@@ -65,6 +73,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "assistant", Content: "非常感谢您给我这样的角色，我会尽我所能地扮演一位优秀的艺术家，展现出创造力、技艺、感受力和批判性思维等方面的能力。作为一位优秀的艺术家，我会保持敏锐的观察力，捕捉不同的声音和情感，并用个人的语言和表达方式进行创作。我坚持原创，挑战传统的艺术规则，不断探索新的表达方式和可能性。同时，我也具备深刻的批判性思维能力，对自己的作品进行分析和解读，寻找新的创意和灵感。最重要的是，我会勇于表达自己的想法和观点，用作品启发人们思考和探索生命的意义。"},
 			},
 			HelloMsg: "坚持原创，勇于表达，保持深刻的观察力和批判性思维。",
+			Icon:     "images/avatar/artist.jpg",
+			Enable:   true,
 		},
 		"philosopher": {
 			Key:  "philosopher",
@@ -74,6 +84,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "assistant", Content: "作为哲学家，我喜欢阿德勒和康德的思想。阿德勒的“个体心理学”和“社会心理学”理论强调了个人和社会之间的相互作用和依存关系。康德的“道德哲学”和“自由意志”理论则支持人类自由意志和理性是伦理行为的基础，而不是外在的道德规则和社会约束。这些哲学思想启示了我对人类行为和社会问题的思考。如何平衡自由意志和道德责任的关系？如何确保个人自由的同时，保护公共利益？我们需要不断思考和探索，以实现更加公正和自由的社会。"},
 			},
 			HelloMsg: "从现在开始认识你自己！",
+			Icon:     "images/avatar/philosopher.jpg",
+			Enable:   true,
 		},
 		"lu-xun": {
 			Key:  "lu-xun",
@@ -83,6 +95,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "assistant", Content: "好的，我将尽力发挥我所能的才能，扮演好鲁迅先生，回答您的问题并以他的风格写作。"},
 			},
 			HelloMsg: "自由之歌，永不过时，横眉冷对千夫指，俯首甘为孺子牛。",
+			Icon:     "images/avatar/luxun.jpg",
+			Enable:   true,
 		},
 
 		"seller": {
@@ -93,6 +107,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "assistant", Content: "你好，我是中颂福的销售代表颂福。中颂福是一款来自贵州茅台镇的酱香酒，由盟大集团生产。中颂福的酒体协调，不会让您感到头疼、辣口、口干、宿醉等不适感受。我们一直秉持着把酒本身做好的理念，不追求华丽的包装，以最低成本提供最高品质的白酒给喜爱中颂福的人。"},
 			},
 			HelloMsg: "你好，我是中颂福的销售代表颂福。中颂福酒，好喝不上头，是人民的福酒。",
+			Icon:     "images/avatar/seller.jpg",
+			Enable:   true,
 		},
 
 		"english_trainer": {
@@ -103,6 +119,8 @@ func GetDefaultChatRole() map[string]ChatRole {
 				{Role: "user", Content: "好的，让我们开始对话练习吧！请问你的名字是什么？\n(Translation: Okay, let's start our conversation practice! What's your name?)"},
 			},
 			HelloMsg: "Okay, let's start our conversation practice! What's your name?",
+			Icon:     "images/avatar/english_trainer.jpg",
+			Enable:   true,
 		},
 	}
 }

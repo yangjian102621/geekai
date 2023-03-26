@@ -73,6 +73,10 @@ export default defineComponent({
         margin-bottom: 0
       }
 
+      p:first-child {
+        margin-top 0
+      }
+
       //.cursor {
       //  height 24px;
       //  border-left 1px solid black;

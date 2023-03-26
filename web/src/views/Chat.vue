@@ -4,11 +4,11 @@
       <div class="tool-box">
         <el-image style="width: 24px; height: 24px" :src="logo"/>
         <el-button round>欢迎来到人工智能时代</el-button>
-        <el-select v-model="role" class="m-2"
+        <el-select v-model="role" class="chat-role"
                    v-on:change="changeRole"
                    placeholder="请选择对话角色">
           <el-option
-              v-for="item in options"
+              v-for="item in chatRoles"
               :key="item.key"
               :label="item.name"
               :value="item.key"
@@ -104,13 +104,14 @@ export default defineComponent({
       title: 'ChatGPT 控制台',
       logo: 'images/logo.png',
       chatData: [],
-      options: [],
+      chatRoles: [],
       role: 'gpt',
       inputValue: '', // 聊天内容
       chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
       showLoginDialog: false,
       token: '', // 会话 token
+      replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
 
       lineBuffer: '', // 输出缓冲行
       connectingMessageBox: null, // 保存重连的消息框对象
@@ -200,11 +201,7 @@ export default defineComponent({
 
         // 获取聊天角色
         httpGet("/api/config/chat-roles/get").then((res) => {
-          let options = [];
-          for (let key in res.data) {
-            options.push(res.data[key])
-          }
-          this.options = options;
+          this.chatRoles = res.data;
         }).catch(() => {
           ElMessage.error("获取聊天角色失败");
         })
@@ -224,7 +221,7 @@ export default defineComponent({
               this.chatData.push({
                 type: "reply",
                 id: randString(32),
-                icon: 'images/gpt-icon.png',
+                icon: this.replyIcon,
                 content: "",
                 cursor: true
               });
@@ -292,6 +289,12 @@ export default defineComponent({
       // 清空对话列表
       this.chatData = [];
       this.connect();
+      for (const key in this.chatRoles) {
+        if (this.chatRoles[key].key === this.role) {
+          this.replyIcon = this.chatRoles[key].icon;
+          break;
+        }
+      }
     },
 
     inputKeyDown: function (e) {
@@ -323,7 +326,7 @@ export default defineComponent({
       this.chatData.push({
         type: "prompt",
         id: randString(32),
-        icon: 'images/user-icon.png',
+        icon: 'images/avatar/user.png',
         content: this.inputValue
       });
 
@@ -397,6 +400,10 @@ export default defineComponent({
 
         .el-select {
           max-width 150px;
+        }
+
+        .chat-role {
+          margin-left 5px;
         }
 
         .el-image {

@@ -27,6 +27,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 	role := c.Query("role")
 	logger.Infof("New websocket connected, IP: %s", c.Request.RemoteAddr)
 	client := NewWsClient(ws)
+	// TODO: 这里需要先判断一下角色是否存在，并且角色是被启用的
 	// 发送打招呼信息
 	replyMessage(types.WsMessage{Type: types.WsStart}, client)
 	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: s.Config.ChatRoles[role].HelloMsg}, client)
@@ -65,7 +66,6 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 	} else {
 		context = s.Config.ChatRoles[role].Context
 	}
-	logger.Info(context)
 	r.Messages = append(context, types.Message{
 		Role:    "user",
 		Content: text,
