@@ -29,7 +29,7 @@
 
       </div><!-- end chat box -->
 
-      <div class="input-box">
+      <div class="input-box" :style="{width: inputBoxWidth+'px'}">
         <div class="input-container">
           <el-input
               ref="text-input"
@@ -114,10 +114,11 @@ export default defineComponent({
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
 
       lineBuffer: '', // 输出缓冲行
-      connectingMessageBox: null, // 保存重连的消息框对象
+      connectingMessageBox: null, // 保存重连的消息框对象load
       socket: null,
       toolBoxHeight: 61 + 42, // 工具框的高度
-      sending: false,
+      inputBoxWidth: window.innerWidth - 20,
+      sending: true,
       loading: false
     }
   },
@@ -197,17 +198,18 @@ export default defineComponent({
       const token = getSessionId();
       const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?token=${token}&role=${this.role}`);
       socket.addEventListener('open', () => {
-        ElMessage.success('创建会话成功！');
-
         // 获取聊天角色
         httpGet("/api/config/chat-roles/get").then((res) => {
+          ElMessage.success('创建会话成功！');
           this.chatRoles = res.data;
+          this.loading = false
         }).catch(() => {
           ElMessage.error("获取聊天角色失败");
         })
 
         if (this.connectingMessageBox && typeof this.connectingMessageBox.close === 'function') {
           this.connectingMessageBox.close();
+          this.connectingMessageBox = null;
         }
       });
 
@@ -217,6 +219,11 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
+            // 过滤掉重复的打招呼信息
+            if (data['is_hello_msg'] && this.chatData.length > 3) {
+              return
+            }
+
             if (data.type === 'start') {
               this.chatData.push({
                 type: "reply",
@@ -253,24 +260,26 @@ export default defineComponent({
       socket.addEventListener('close', () => {
         // 检查会话
         httpGet("/api/session/get").then(() => {
-          this.connectingMessageBox = ElMessageBox.confirm(
-              '^_^ 会话发生异常，您已经从服务器断开连接!',
-              '注意：',
-              {
-                confirmButtonText: '重连会话',
-                cancelButtonText: '不聊了',
-                type: 'warning',
-                showClose: false,
-                closeOnClickModal: false
-              }
-          ).then(() => {
-            this.connect();
-          }).catch(() => {
-            ElMessage({
-              type: 'info',
-              message: '您关闭了会话',
+          if (this.connectingMessageBox === null) {
+            this.connectingMessageBox = ElMessageBox.confirm(
+                '^_^ 会话发生异常，您已经从服务器断开连接!',
+                '注意：',
+                {
+                  confirmButtonText: '重连会话',
+                  cancelButtonText: '不聊了',
+                  type: 'warning',
+                  showClose: false,
+                  closeOnClickModal: false
+                }
+            ).then(() => {
+              this.connect();
+            }).catch(() => {
+              ElMessage({
+                type: 'info',
+                message: '您关闭了会话',
+              })
             })
-          })
+          }
         }).catch((res) => {
           if (res.code === 400) {
             this.showLoginDialog = true;
@@ -286,6 +295,7 @@ export default defineComponent({
 
     // 更换角色
     changeRole: function () {
+      this.loading = true
       // 清空对话列表
       this.chatData = [];
       this.connect();

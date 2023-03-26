@@ -29,9 +29,9 @@ func (s *Server) ChatHandle(c *gin.Context) {
 	client := NewWsClient(ws)
 	// TODO: 这里需要先判断一下角色是否存在，并且角色是被启用的
 	// 发送打招呼信息
-	replyMessage(types.WsMessage{Type: types.WsStart}, client)
-	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: s.Config.ChatRoles[role].HelloMsg}, client)
-	replyMessage(types.WsMessage{Type: types.WsEnd}, client)
+	replyMessage(types.WsMessage{Type: types.WsStart, IsHelloMsg: true}, client)
+	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: s.Config.ChatRoles[role].HelloMsg, IsHelloMsg: true}, client)
+	replyMessage(types.WsMessage{Type: types.WsEnd, IsHelloMsg: true}, client)
 	go func() {
 		for {
 			_, message, err := client.Receive()
@@ -41,7 +41,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 				return
 			}
 
-			logger.Info(string(message))
+			logger.Info("Receive a message: ", string(message))
 			// TODO: 当前只保持当前会话的上下文，部保存用户的所有的聊天历史记录，后期要考虑保存所有的历史记录
 			err = s.sendMessage(token, role, string(message), client)
 			if err != nil {
@@ -150,17 +150,18 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 		// 初始化 role
 		if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
 			message.Role = responseBody.Choices[0].Delta.Role
-			replyMessage(types.WsMessage{Type: types.WsStart}, ws)
+			replyMessage(types.WsMessage{Type: types.WsStart, IsHelloMsg: false}, ws)
 			continue
 		} else if responseBody.Choices[0].FinishReason != "" { // 输出完成或者输出中断了
-			replyMessage(types.WsMessage{Type: types.WsEnd}, ws)
+			replyMessage(types.WsMessage{Type: types.WsEnd, IsHelloMsg: false}, ws)
 			break
 		} else {
 			content := responseBody.Choices[0].Delta.Content
 			contents = append(contents, content)
 			replyMessage(types.WsMessage{
-				Type:    types.WsMiddle,
-				Content: responseBody.Choices[0].Delta.Content,
+				Type:       types.WsMiddle,
+				Content:    responseBody.Choices[0].Delta.Content,
+				IsHelloMsg: false,
 			}, ws)
 		}
 	}

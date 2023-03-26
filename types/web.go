@@ -12,8 +12,9 @@ type BizVo struct {
 
 // WsMessage Websocket message
 type WsMessage struct {
-	Type    WsMsgType `json:"type"` // 消息类别，start, end
-	Content string    `json:"content"`
+	Type       WsMsgType `json:"type"`         // 消息类别，start, end
+	IsHelloMsg bool      `json:"is_hello_msg"` // 是否是打招呼的消息
+	Content    string    `json:"content"`
 }
 type WsMsgType string
 
