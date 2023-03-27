@@ -33,6 +33,13 @@ type ChatRole struct {
 	Enable   bool      `json:"enable"`    // 是否启用被启用
 }
 
+// ChatSession 聊天会话对象
+type ChatSession struct {
+	SessionId string `json:"session_id"`
+	ClientIP  string `json:"client_ip"` // 客户端 IP
+	Token     string `json:"token"`     // 当前登录的 token
+}
+
 func GetDefaultChatRole() map[string]ChatRole {
 	return map[string]ChatRole{
 		"gpt": {
@@ -108,7 +115,7 @@ func GetDefaultChatRole() map[string]ChatRole {
 			},
 			HelloMsg: "你好，我是中颂福的销售代表颂福。中颂福酒，好喝不上头，是人民的福酒。",
 			Icon:     "images/avatar/seller.jpg",
-			Enable:   false,
+			Enable:   true,
 		},
 
 		"english_trainer": {
