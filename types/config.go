@@ -1,12 +1,7 @@
 package types
 
 import (
-	"bytes"
-	"github.com/BurntSushi/toml"
 	"net/http"
-	logger2 "openai/logger"
-	"openai/utils"
-	"os"
 )
 
 type Config struct {
@@ -14,9 +9,13 @@ type Config struct {
 	Session    Session
 	ProxyURL   []string
 	Chat       Chat
-	EnableAuth bool                // 是否开启鉴权
-	Tokens     []string            // 授权的白名单列表 TODO: 后期要存储到 LevelDB 或者 Mysql 数据库
-	ChatRoles  map[string]ChatRole // 保存预设角色信息
+	EnableAuth bool // 是否开启鉴权
+}
+
+type Token struct {
+	Name           string `json:"name"`
+	MaxCalls       int    `json:"max_calls"`       // 最多调用次数，如果为 0 则表示不限制
+	RemainingCalls int    `json:"remaining_calls"` // 剩余调用次数
 }
 
 // Chat configs struct
@@ -39,66 +38,4 @@ type Session struct {
 	Secure    bool
 	HttpOnly  bool
 	SameSite  http.SameSite
-}
-
-func NewDefaultConfig() *Config {
-	return &Config{
-		Listen:   "0.0.0.0:5678",
-		ProxyURL: make([]string, 0),
-
-		Session: Session{
-			SecretKey: utils.RandString(64),
-			Name:      "CHAT_SESSION_ID",
-			Domain:    "",
-			Path:      "/",
-			MaxAge:    86400,
-			Secure:    true,
-			HttpOnly:  false,
-			SameSite:  http.SameSiteLaxMode,
-		},
-		Chat: Chat{
-			ApiURL:        "https://api.openai.com/v1/chat/completions",
-			ApiKeys:       []string{""},
-			Model:         "gpt-3.5-turbo",
-			MaxTokens:     1024,
-			Temperature:   0.9,
-			EnableContext: true,
-		},
-		EnableAuth: true,
-		ChatRoles:  GetDefaultChatRole(),
-	}
-}
-
-var logger = logger2.GetLogger()
-
-func LoadConfig(configFile string) (*Config, error) {
-	var config *Config
-	_, err := os.Stat(configFile)
-	if err != nil {
-		logger.Errorf("Error open config file: %s", err.Error())
-		config = NewDefaultConfig()
-		// save config
-		err := SaveConfig(config, configFile)
-		if err != nil {
-			return nil, err
-		}
-
-		return config, nil
-	}
-	_, err = toml.DecodeFile(configFile, &config)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, err
-}
-
-func SaveConfig(config *Config, configFile string) error {
-	buf := new(bytes.Buffer)
-	encoder := toml.NewEncoder(buf)
-	if err := encoder.Encode(&config); err != nil {
-		return err
-	}
-
-	return os.WriteFile(configFile, buf.Bytes(), 0644)
 }

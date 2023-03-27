@@ -24,4 +24,5 @@ dist-ssr
 *.sw?
 tmp
 bin
-web/.env.development
+web/.env.development 
+data

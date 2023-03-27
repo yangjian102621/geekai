@@ -195,8 +195,8 @@ export default defineComponent({
     // 创建 socket 会话连接
     connect: function () {
       // 初始化 WebSocket 对象
-      const token = getSessionId();
-      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?token=${token}&role=${this.role}`);
+      const sessionId = getSessionId();
+      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
       socket.addEventListener('open', () => {
         // 获取聊天角色
         httpGet("/api/config/chat-roles/get").then((res) => {
@@ -219,11 +219,6 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
-            // 过滤掉重复的打招呼信息
-            if (data['is_hello_msg'] && this.chatData.length > 1) {
-              return
-            }
-
             if (data.type === 'start') {
               this.chatData.push({
                 type: "reply",

@@ -23,14 +23,17 @@ func (s *Server) ChatHandle(c *gin.Context) {
 		logger.Fatal(err)
 		return
 	}
-	token := c.Query("token")
+	sessionId := c.Query("sessionId")
 	role := c.Query("role")
 	logger.Infof("New websocket connected, IP: %s", c.Request.RemoteAddr)
 	client := NewWsClient(ws)
-	// TODO: 这里需要先判断一下角色是否存在，并且角色是被启用的
+	if !s.ChatRoles[role].Enable { // 角色未启用
+		c.Abort()
+		return
+	}
 	// 发送打招呼信息
 	replyMessage(types.WsMessage{Type: types.WsStart, IsHelloMsg: true}, client)
-	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: s.Config.ChatRoles[role].HelloMsg, IsHelloMsg: true}, client)
+	replyMessage(types.WsMessage{Type: types.WsMiddle, Content: s.ChatRoles[role].HelloMsg, IsHelloMsg: true}, client)
 	replyMessage(types.WsMessage{Type: types.WsEnd, IsHelloMsg: true}, client)
 	go func() {
 		for {
@@ -43,7 +46,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 
 			logger.Info("Receive a message: ", string(message))
 			// TODO: 当前只保持当前会话的上下文，部保存用户的所有的聊天历史记录，后期要考虑保存所有的历史记录
-			err = s.sendMessage(token, role, string(message), client)
+			err = s.sendMessage(sessionId, role, string(message), client)
 			if err != nil {
 				logger.Error(err)
 			}
@@ -64,9 +67,13 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 	if v, ok := s.ChatContext[key]; ok && s.Config.Chat.EnableContext {
 		context = v
 	} else {
-		context = s.Config.ChatRoles[role].Context
+		context = s.ChatRoles[role].Context
 	}
-	logger.Infof("会话上下文：%+v", context)
+
+	if s.DebugMode {
+		logger.Infof("会话上下文：%+v", context)
+	}
+
 	r.Messages = append(context, types.Message{
 		Role:    "user",
 		Content: text,
@@ -179,6 +186,7 @@ func (s *Server) sendMessage(sessionId string, role string, text string, ws Clie
 	context = append(context, message)
 	// 保存上下文
 	s.ChatContext[key] = context
+	_ = response.Body.Close() // 关闭资源
 	return nil
 }
 

@@ -2,10 +2,26 @@ package main
 
 import (
 	"fmt"
+	"openai/utils"
 )
 
 func main() {
-	var data = make(map[string]string)
-	fmt.Println(data["key"] == "")
+	// leveldb 测试
+	db, err := utils.NewLevelDB("data")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
+	err = db.Put("name", "xiaoming")
+	if err != nil {
+		panic(err)
+	}
+
+	name, err := db.Get("name")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("name: ", name)
 }

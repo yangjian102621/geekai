@@ -38,29 +38,34 @@ type Server struct {
 	// 保存 Websocket 会话 Token, 每个 Token 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
 	WsSession        map[string]string
-	ApiKeyAccessStat map[string]int64 // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
+	ApiKeyAccessStat map[string]int64          // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
+	DebugMode        bool                      // 是否开启调试模式
+	ChatRoles        map[string]types.ChatRole // 保存预设角色信息
 }
 
 func NewServer(configPath string) (*Server, error) {
 	// load service configs
-	config, err := types.LoadConfig(configPath)
-	if config.ChatRoles == nil {
-		config.ChatRoles = types.GetDefaultChatRole()
-	}
+	config, err := utils.LoadConfig(configPath)
 	if err != nil {
 		return nil, err
 	}
 
+	roles := GetChatRoles()
+	if roles == nil {
+		roles = types.GetDefaultChatRole()
+	}
 	return &Server{
 		Config:           config,
 		ConfigPath:       configPath,
 		ChatContext:      make(map[string][]types.Message, 16),
 		WsSession:        make(map[string]string),
 		ApiKeyAccessStat: make(map[string]int64),
+		ChatRoles:        roles,
 	}, nil
 }
 
 func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
+	s.DebugMode = debug
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.Default()
 	if debug {
@@ -225,7 +230,7 @@ func (s *Server) LoginHandle(c *gin.Context) {
 		return
 	}
 	token := data["token"]
-	if !utils.ContainsItem(s.Config.Tokens, token) {
+	if !utils.ContainToken(GetTokens(), token) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid token"})
 		return
 	}

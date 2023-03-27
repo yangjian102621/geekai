@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/rand"
+	"openai/types"
 	"strconv"
 	"strings"
 	"time"
@@ -31,9 +32,18 @@ func IsBlank(value string) bool {
 	return len(strings.TrimSpace(value)) == 0
 }
 
-func ContainsItem(slice []string, item string) bool {
+func ContainsStr(slice []string, item string) bool {
 	for _, e := range slice {
 		if e == item {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainToken(slice []types.Token, token string) bool {
+	for _, e := range slice {
+		if e.Name == token {
 			return true
 		}
 	}
