@@ -63,6 +63,18 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 		s.Config.Chat.EnableContext = v
 	}
 
+	if expireTime, ok := data["chat_context_expire_time"]; ok {
+		v, err := strconv.Atoi(expireTime)
+		if err != nil {
+			c.JSON(http.StatusOK, types.BizVo{
+				Code:    types.InvalidParams,
+				Message: "chat_context_expire_time must be a integer parameter",
+			})
+			return
+		}
+		s.Config.Chat.ChatContextExpireTime = v
+	}
+
 	// enable auth
 	if enableAuth, ok := data["enable_auth"]; ok {
 		v, err := strconv.ParseBool(enableAuth)
@@ -123,7 +135,7 @@ func (s *Server) AddUserHandle(c *gin.Context) {
 		return
 	}
 
-	user := types.User{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls}
+	user := types.User{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory}
 	err = PutUser(user)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})

@@ -80,9 +80,9 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 		Stream:      true,
 	}
 	var context []types.Message
-	var key = session.SessionId + role.Name
-	if v, ok := s.ChatContext[key]; ok && s.Config.Chat.EnableContext {
-		context = v
+	var ctxKey = fmt.Sprintf("%s-%s", session.SessionId, role.Key)
+	if v, ok := s.ChatContexts[ctxKey]; ok && s.Config.Chat.EnableContext {
+		context = v.Messages
 	} else {
 		context = role.Context
 	}
@@ -206,7 +206,11 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	context = append(context, useMsg)
 	message.Content = strings.Join(contents, "")
 	context = append(context, message)
-	s.ChatContext[key] = context
+	// 更新上下文消息
+	s.ChatContexts[ctxKey] = types.ChatContext{
+		Messages:       context,
+		LastAccessTime: time.Now().Unix(),
+	}
 
 	// 追加历史消息
 	if user.EnableHistory {

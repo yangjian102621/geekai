@@ -22,12 +22,13 @@ type User struct {
 
 // Chat configs struct
 type Chat struct {
-	ApiURL        string
-	ApiKeys       []string
-	Model         string
-	Temperature   float32
-	MaxTokens     int
-	EnableContext bool // 是否保持聊天上下文
+	ApiURL                string
+	ApiKeys               []string
+	Model                 string
+	Temperature           float32
+	MaxTokens             int
+	EnableContext         bool // 是否保持聊天上下文
+	ChatContextExpireTime int  // 聊天上下文过期时间，单位：秒
 }
 
 // Session configs struct

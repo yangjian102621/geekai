@@ -48,6 +48,12 @@ type ChatSession struct {
 	Username  string `json:"user"`      // 当前登录的 user
 }
 
+// ChatContext 聊天上下文
+type ChatContext struct {
+	Messages       []Message
+	LastAccessTime int64 // 最后一次访问上下文时间
+}
+
 func GetDefaultChatRole() map[string]ChatRole {
 	return map[string]ChatRole{
 		"gpt": {

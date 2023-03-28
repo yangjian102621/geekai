@@ -27,12 +27,13 @@ func NewDefaultConfig() *types.Config {
 			SameSite:  http.SameSiteLaxMode,
 		},
 		Chat: types.Chat{
-			ApiURL:        "https://api.openai.com/v1/chat/completions",
-			ApiKeys:       []string{""},
-			Model:         "gpt-3.5-turbo",
-			MaxTokens:     1024,
-			Temperature:   0.9,
-			EnableContext: true,
+			ApiURL:                "https://api.openai.com/v1/chat/completions",
+			ApiKeys:               []string{""},
+			Model:                 "gpt-3.5-turbo",
+			MaxTokens:             1024,
+			Temperature:           0.9,
+			EnableContext:         true,
+			ChatContextExpireTime: 3600,
 		},
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 var logger = logger2.GetLogger()
@@ -31,9 +32,9 @@ func (s StaticFile) Open(name string) (fs.File, error) {
 }
 
 type Server struct {
-	Config      *types.Config
-	ConfigPath  string
-	ChatContext map[string][]types.Message // 聊天上下文 [SessionID] => []Messages
+	Config       *types.Config
+	ConfigPath   string
+	ChatContexts map[string]types.ChatContext // 聊天上下文 [SessionID+ChatRole] => ChatContext
 
 	// 保存 Websocket 会话 Username, 每个 Username 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
@@ -61,7 +62,7 @@ func NewServer(configPath string) (*Server, error) {
 	return &Server{
 		Config:           config,
 		ConfigPath:       configPath,
-		ChatContext:      make(map[string][]types.Message, 16),
+		ChatContexts:     make(map[string]types.ChatContext, 16),
 		ChatSession:      make(map[string]types.ChatSession),
 		ApiKeyAccessStat: make(map[string]int64),
 	}, nil
@@ -110,6 +111,20 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 		embedFS: webRoot,
 		path:    path,
 	}))
+
+	// 定时清理过期的会话
+	go func() {
+		for {
+			for key, context := range s.ChatContexts {
+				// 清理超过 60min 没有更新，则表示为过期会话
+				if time.Now().Unix()-context.LastAccessTime > 3600 {
+					logger.Infof("清理会话上下文: %s", key)
+					delete(s.ChatContexts, key)
+				}
+			}
+			time.Sleep(time.Second * 5) // 每隔 5 秒钟清理一次
+		}
+	}()
 
 	logger.Infof("http://%s", s.Config.Listen)
 	err := engine.Run(s.Config.Listen)
