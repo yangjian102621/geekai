@@ -109,13 +109,42 @@ func (s *Server) AddToken(c *gin.Context) {
 		return
 	}
 
-	err = PutToken(types.Token{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls})
+	token := types.Token{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls}
+	err = PutToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetTokens()})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: token})
+}
+
+// BatchAddToken 批量生成 Token
+func (s *Server) BatchAddToken(c *gin.Context) {
+	var data struct {
+		Number   int `json:"number"`
+		MaxCalls int `json:"max_calls"`
+	}
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil || data.MaxCalls <= 0 {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		return
+	}
+
+	var tokens = make([]string, 0)
+	for i := 0; i < data.Number; i++ {
+		name := utils.RandString(12)
+		_, err := GetToken(name)
+		for err == nil {
+			name = utils.RandString(12)
+		}
+		err = PutToken(types.Token{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls})
+		if err == nil {
+			tokens = append(tokens, name)
+		}
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: tokens})
 }
 
 func (s *Server) SetToken(c *gin.Context) {
@@ -263,8 +292,7 @@ func (s *Server) UpdateChatRole(c *gin.Context) {
 		return
 	}
 
-	roles := GetChatRoles()
-	role := roles[key]
+	role, err := GetChatRole(key)
 	if role.Key == "" {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Role key not exists"})
 		return
@@ -293,7 +321,7 @@ func (s *Server) UpdateChatRole(c *gin.Context) {
 	}
 
 	// 保存到 leveldb
-	err = PutChatRole(role)
+	err = PutChatRole(*role)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config"})
 		return

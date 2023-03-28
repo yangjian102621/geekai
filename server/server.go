@@ -14,6 +14,7 @@ import (
 	"openai/utils"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 )
 
@@ -76,6 +77,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	}
 	engine.Use(sessionMiddleware(s.Config))
 	engine.Use(AuthorizeMiddleware(s))
+	engine.Use(Recover)
 
 	engine.GET("/hello", Hello)
 	engine.GET("/api/session/get", s.GetSessionHandle)
@@ -84,6 +86,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("/api/config/set", s.ConfigSetHandle)
 	engine.GET("/api/config/chat-roles/get", s.GetChatRoleList)
 	engine.POST("api/config/token/add", s.AddToken)
+	engine.POST("api/config/token/batch-add", s.BatchAddToken)
 	engine.POST("api/config/token/set", s.SetToken)
 	engine.POST("api/config/token/remove", s.RemoveToken)
 	engine.POST("api/config/apikey/add", s.AddApiKey)
@@ -113,6 +116,19 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 		os.Exit(1)
 	}
 
+}
+
+func Recover(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("panic: %v\n", r)
+			debug.PrintStack()
+			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
+			c.Abort()
+		}
+	}()
+	//加载完 defer recover，继续后续接口调用
+	c.Next()
 }
 
 func sessionMiddleware(config *types.Config) gin.HandlerFunc {
@@ -195,9 +211,9 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 			return
 		}
 
-		tokenName := c.GetHeader(types.TokenName)
+		sessionId := c.GetHeader(types.TokenName)
 		session := sessions.Default(c)
-		userInfo := session.Get(tokenName)
+		userInfo := session.Get(sessionId)
 		if userInfo != nil {
 			c.Set(types.SessionKey, userInfo)
 			c.Next()

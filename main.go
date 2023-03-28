@@ -19,12 +19,6 @@ var configFile string
 var debugMode bool
 
 func main() {
-	defer func() {
-		if err := recover(); err != nil {
-			logger.Error(err)
-		}
-	}()
-
 	// create config dir
 	configDir, _ := homedir.Expand("~/.config/chat-gpt")
 	_, err := os.Stat(configDir)
