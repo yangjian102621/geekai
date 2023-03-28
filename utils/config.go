@@ -11,8 +11,10 @@ import (
 
 func NewDefaultConfig() *types.Config {
 	return &types.Config{
-		Listen:   "0.0.0.0:5678",
-		ProxyURL: make([]string, 0),
+		Listen:     "0.0.0.0:5678",
+		ProxyURL:   make([]string, 0),
+		EnableAuth: true,
+		AccessKey:  "yangjian102621@gmail.com",
 
 		Session: types.Session{
 			SecretKey: RandString(64),
@@ -32,7 +34,6 @@ func NewDefaultConfig() *types.Config {
 			Temperature:   0.9,
 			EnableContext: true,
 		},
-		EnableAuth: true,
 	}
 }
 

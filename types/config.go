@@ -8,8 +8,9 @@ type Config struct {
 	Listen     string
 	Session    Session
 	ProxyURL   []string
+	EnableAuth bool   // 是否开启鉴权
+	AccessKey  string // 管理员访问 AccessKey, 通过传入这个参数可以访问系统管理 API
 	Chat       Chat
-	EnableAuth bool // 是否开启鉴权
 }
 
 type Token struct {

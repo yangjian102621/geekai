@@ -43,14 +43,20 @@ func PutToken(token types.Token) error {
 	return db.Put(key, token)
 }
 
-func GetToken(name string) (types.Token, error) {
+func GetToken(name string) (*types.Token, error) {
 	key := TokenPrefix + name
-	token, err := db.Get(key)
+	bytes, err := db.Get(key)
 	if err != nil {
-		return types.Token{}, err
+		return nil, err
 	}
 
-	return token.(types.Token), nil
+	var token types.Token
+	err = json.Unmarshal(bytes, &token)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
 }
 
 func RemoveToken(token string) error {
@@ -77,6 +83,22 @@ func GetChatRoles() map[string]types.ChatRole {
 func PutChatRole(role types.ChatRole) error {
 	key := ChatRolePrefix + role.Key
 	return db.Put(key, role)
+}
+
+func GetChatRole(key string) (*types.ChatRole, error) {
+	key = ChatHistoryPrefix + key
+	bytes, err := db.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	var role types.ChatRole
+	err = json.Unmarshal(bytes, &role)
+	if err != nil {
+		return nil, err
+	}
+
+	return &role, nil
 }
 
 // GetChatHistory 获取聊天历史记录

@@ -68,7 +68,7 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, tex
 	}
 
 	if token.MaxCalls > 0 && token.RemainingCalls <= 0 {
-		replyError(ws, "当前 TOKEN 点数已经用尽，请充值后再使用！")
+		replyError(ws, "当前 TOKEN 点数已经用尽，请充值后再使用或者联系管理员！")
 		return nil
 	}
 	var r = types.ApiRequest{
@@ -194,6 +194,7 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, tex
 	// 当前 Token 调用次数减 1
 	if token.MaxCalls > 0 {
 		token.RemainingCalls -= 1
+		_ = PutToken(*token)
 	}
 	// 追加历史消息
 	context = append(context, types.Message{

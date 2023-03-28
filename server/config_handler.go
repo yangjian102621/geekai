@@ -88,7 +88,7 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 
 // AddToken 添加 Token
 func (s *Server) AddToken(c *gin.Context) {
-	var data map[string]string
+	var data types.Token
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		logger.Errorf("Error decode json data: %s", err.Error())
@@ -97,30 +97,19 @@ func (s *Server) AddToken(c *gin.Context) {
 	}
 
 	// 参数处理
-	var name = data["name"]
-	var maxCalls = data["max_calls"]
-	if name == "" || maxCalls == "" {
+	if data.Name == "" || data.MaxCalls < 0 {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	}
 
-	n, err := strconv.Atoi(maxCalls)
-	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{
-			Code:    types.InvalidParams,
-			Message: "enable_auth must be a int parameter",
-		})
-		return
-	}
-
 	// 检查当前要添加的 token 是否已经存在
-	_, err = GetToken(name)
+	_, err = GetToken(data.Name)
 	if err == nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Token " + name + " already exists"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Token " + data.Name + " already exists"})
 		return
 	}
 
-	err = PutToken(types.Token{Name: name, MaxCalls: n, RemainingCalls: n})
+	err = PutToken(types.Token{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls})
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
 		return
@@ -130,7 +119,7 @@ func (s *Server) AddToken(c *gin.Context) {
 }
 
 func (s *Server) SetToken(c *gin.Context) {
-	var data map[string]string
+	var data types.Token
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		logger.Errorf("Error decode json data: %s", err.Error())
@@ -138,44 +127,35 @@ func (s *Server) SetToken(c *gin.Context) {
 		return
 	}
 
+	logger.Info(data)
+
 	// 参数处理
-	var name = data["name"]
-	var maxCalls = data["max_calls"]
-	if name == "" || maxCalls == "" {
+	if data.Name == "" || data.MaxCalls < 0 {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	}
 
-	token, err := GetToken(name)
+	token, err := GetToken(data.Name)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Token not found"})
 		return
 	}
 
-	n, err := strconv.Atoi(maxCalls)
-	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{
-			Code:    types.InvalidParams,
-			Message: "enable_auth must be a int parameter",
-		})
-		return
-	}
+	token.RemainingCalls += data.MaxCalls - token.MaxCalls
+	token.MaxCalls = data.MaxCalls
 
-	token.RemainingCalls += n - token.MaxCalls
-	token.MaxCalls = n
-
-	err = PutToken(token)
+	err = PutToken(*token)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetTokens()})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: token})
 }
 
 // RemoveToken 删除 Token
 func (s *Server) RemoveToken(c *gin.Context) {
-	var data map[string]string
+	var data types.Token
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		logger.Errorf("Error decode json data: %s", err.Error())
@@ -183,12 +163,10 @@ func (s *Server) RemoveToken(c *gin.Context) {
 		return
 	}
 
-	if token, ok := data["token"]; ok {
-		err = RemoveToken(token)
-		if err != nil {
-			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
-			return
-		}
+	err = RemoveToken(data.Name)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
+		return
 	}
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetTokens()})
@@ -250,7 +228,7 @@ func (s *Server) ListApiKeys(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
 }
 
-func (s *Server) GetChatRoles(c *gin.Context) {
+func (s *Server) GetChatRoleList(c *gin.Context) {
 	var rolesOrder = []string{"gpt", "programmer", "teacher", "artist", "philosopher", "lu-xun", "english_trainer", "seller"}
 	var res = make([]interface{}, 0)
 	var roles = GetChatRoles()

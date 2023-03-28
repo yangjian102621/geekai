@@ -82,7 +82,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
 	engine.POST("/api/config/set", s.ConfigSetHandle)
-	engine.GET("/api/config/chat-roles/get", s.GetChatRoles)
+	engine.GET("/api/config/chat-roles/get", s.GetChatRoleList)
 	engine.POST("api/config/token/add", s.AddToken)
 	engine.POST("api/config/token/set", s.SetToken)
 	engine.POST("api/config/token/remove", s.RemoveToken)
@@ -174,8 +174,8 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 		}
 
 		if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
-			accessKey := c.Query("access_key")
-			if accessKey != "RockYang" {
+			accessKey := c.GetHeader("ACCESS_KEY")
+			if accessKey != s.Config.AccessKey {
 				c.Abort()
 				c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
 			} else {
