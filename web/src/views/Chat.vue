@@ -3,7 +3,7 @@
     <div id="container">
       <div class="tool-box">
         <el-image style="width: 24px; height: 24px" :src="logo"/>
-        <el-button round>欢迎来到人工智能时代</el-button>
+        <!--        <el-button round>WeChatGPT</el-button>-->
         <el-select v-model="role" class="chat-role"
                    v-on:change="changeRole"
                    placeholder="请选择对话角色">
@@ -14,6 +14,12 @@
               :value="item.key"
           />
         </el-select>
+
+        <el-button type="danger" class="clear-history" size="small" circle @click="clearChatHistory">
+          <el-icon>
+            <Delete/>
+          </el-icon>
+        </el-button>
       </div>
 
       <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
@@ -89,7 +95,7 @@ import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock} from '@element-plus/icons-vue'
+import {Tools, Lock, Delete} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, setSessionId} from "@/utils/storage";
@@ -98,7 +104,7 @@ import 'highlight.js/styles/a11y-dark.css'
 
 export default defineComponent({
   name: "XChat",
-  components: {ChatPrompt, ChatReply, Tools, Lock, ConfigDialog},
+  components: {ChatPrompt, ChatReply, Tools, Lock, Delete, ConfigDialog},
   data() {
     return {
       title: 'ChatGPT 控制台',
@@ -118,7 +124,7 @@ export default defineComponent({
       socket: null,
       toolBoxHeight: 61 + 42, // 工具框的高度
       inputBoxWidth: window.innerWidth - 20,
-      sending: true,
+      sending: false,
       loading: false
     }
   },
@@ -189,9 +195,6 @@ export default defineComponent({
     });
 
     this.connect();
-
-    this.fetchChatHistory();
-
   },
 
   methods: {
@@ -203,12 +206,15 @@ export default defineComponent({
       socket.addEventListener('open', () => {
         // 获取聊天角色
         httpGet("/api/config/chat-roles/get").then((res) => {
-          ElMessage.success('创建会话成功！');
+          // ElMessage.success('创建会话成功！');
           this.chatRoles = res.data;
           this.loading = false
         }).catch(() => {
           ElMessage.error("获取聊天角色失败");
         })
+
+        // 加载聊天记录
+        this.fetchChatHistory();
 
         if (this.connectingMessageBox && typeof this.connectingMessageBox.close === 'function') {
           this.connectingMessageBox.close();
@@ -303,16 +309,33 @@ export default defineComponent({
           break;
         }
       }
-
-      this.fetchChatHistory();
     },
 
     // 从后端获取聊天历史记录
     fetchChatHistory: function () {
       httpPost("/api/chat/history", {role: this.role}).then((res) => {
-        this.chatData = res.data
-      }).catch((e) => {
-        console.error(e.message)
+        const data = res.data
+        const md = require('markdown-it')();
+        for (let i = 0; i < data.length; i++) {
+          if (data[i].type === "prompt") {
+            this.chatData.push(data[i]);
+            continue;
+          }
+
+          data[i].content = md.render(data[i].content);
+          this.chatData.push(data[i]);
+        }
+
+        nextTick(() => {
+          hl.configure({ignoreUnescapedHTML: true})
+          const lines = document.querySelectorAll('.chat-line');
+          const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+          blocks.forEach((block) => {
+            hl.highlightElement(block)
+          })
+        })
+      }).catch(() => {
+        // console.error(e.message)
       })
     },
 
@@ -390,6 +413,31 @@ export default defineComponent({
       if (e.keyCode === 13) {
         this.submitToken();
       }
+    },
+
+    // 清空聊天记录
+    clearChatHistory: function () {
+      ElMessageBox.confirm(
+          '确认要清空当前角色聊天历史记录吗?<br/>此操作不可以撤销！',
+          '操作提示：',
+          {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+            dangerouslyUseHTMLString: true,
+            showClose: true,
+            closeOnClickModal: false,
+            center: true,
+          }
+      ).then(() => {
+        httpPost("/api/chat/history/clear", {role: this.role}).then(() => {
+          ElMessage.success("当前角色会话已清空");
+          this.chatData = [];
+        }).catch(() => {
+          ElMessage.error("删除失败")
+        })
+      }).catch(() => {
+      })
     }
   },
 
@@ -418,7 +466,7 @@ export default defineComponent({
         align-items center;
 
         .el-select {
-          max-width 150px;
+          max-width 120px;
         }
 
         .chat-role {
@@ -427,6 +475,10 @@ export default defineComponent({
 
         .el-image {
           margin-right 5px;
+        }
+
+        .clear-history {
+          margin-left 5px;
         }
       }
 

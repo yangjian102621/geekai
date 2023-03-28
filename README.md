@@ -4,7 +4,7 @@
 
 ## TODOLIST
 
-* [ ] 使用 level DB 保存用户聊天记录
+* [x] 使用 level DB 保存用户聊天记录
 * [x] 用户聊天鉴权，设置口令模式
 * [ ] 定期清理不在线的会话 sessionID 和聊天上下文记录
 * [x] 给 Token 设置调用次数

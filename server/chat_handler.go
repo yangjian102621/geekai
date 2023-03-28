@@ -341,3 +341,25 @@ func (s *Server) GetChatHistoryHandle(c *gin.Context) {
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: messages})
 }
+
+// ClearHistoryHandle 清空聊天记录
+func (s *Server) ClearHistoryHandle(c *gin.Context) {
+	sessionId := c.GetHeader(types.TokenName)
+	var data struct {
+		Role string `json:"role"`
+	}
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		return
+	}
+
+	session := s.ChatSession[sessionId]
+	err = ClearChatHistory(session.Username, data.Role)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to remove data from DB"})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success})
+}

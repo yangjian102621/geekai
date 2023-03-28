@@ -291,6 +291,7 @@ func (s *Server) GetChatRoleListHandle(c *gin.Context) {
 			})
 		}
 	}
+
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: res})
 }
 
