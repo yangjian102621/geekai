@@ -86,13 +86,27 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
 }
 
+// SetDebug 开启/关闭调试模式
+func (s *Server) SetDebug(c *gin.Context) {
+	var data struct {
+		Debug bool `json:"debug"`
+	}
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		return
+	}
+
+	s.DebugMode = data.Debug
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
+}
+
 // AddToken 添加 Token
 func (s *Server) AddToken(c *gin.Context) {
 	var data types.Token
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		logger.Errorf("Error decode json data: %s", err.Error())
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	}
 
@@ -151,12 +165,9 @@ func (s *Server) SetToken(c *gin.Context) {
 	var data types.Token
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		logger.Errorf("Error decode json data: %s", err.Error())
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	}
-
-	logger.Info(data)
 
 	// 参数处理
 	if data.Name == "" || data.MaxCalls < 0 {
@@ -170,7 +181,12 @@ func (s *Server) SetToken(c *gin.Context) {
 		return
 	}
 
-	token.RemainingCalls += data.MaxCalls - token.MaxCalls
+	if data.MaxCalls > 0 {
+		token.RemainingCalls += data.MaxCalls - token.MaxCalls
+		if token.RemainingCalls < 0 {
+			token.RemainingCalls = 0
+		}
+	}
 	token.MaxCalls = data.MaxCalls
 
 	err = PutToken(*token)
@@ -187,8 +203,7 @@ func (s *Server) RemoveToken(c *gin.Context) {
 	var data types.Token
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		logger.Errorf("Error decode json data: %s", err.Error())
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	}
 
