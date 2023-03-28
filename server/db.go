@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	TokenPrefix       = "chat/tokens/"
+	UserPrefix        = "chat/users/"
 	ChatRolePrefix    = "chat/roles/"
 	ChatHistoryPrefix = "chat/history/"
 )
@@ -22,45 +22,45 @@ func init() {
 	db = leveldb
 }
 
-// GetTokens 获取 token 信息
-// chat/tokens
-func GetTokens() []types.Token {
-	items := db.Search(TokenPrefix)
-	var tokens = make([]types.Token, 0)
+// GetUsers 获取 user 信息
+// chat/users
+func GetUsers() []types.User {
+	items := db.Search(UserPrefix)
+	var users = make([]types.User, 0)
 	for _, v := range items {
-		var token types.Token
-		err := json.Unmarshal([]byte(v), &token)
+		var user types.User
+		err := json.Unmarshal([]byte(v), &user)
 		if err != nil {
 			continue
 		}
-		tokens = append(tokens, token)
+		users = append(users, user)
 	}
-	return tokens
+	return users
 }
 
-func PutToken(token types.Token) error {
-	key := TokenPrefix + token.Name
-	return db.Put(key, token)
+func PutUser(user types.User) error {
+	key := UserPrefix + user.Name
+	return db.Put(key, user)
 }
 
-func GetToken(name string) (*types.Token, error) {
-	key := TokenPrefix + name
+func GetUser(username string) (*types.User, error) {
+	key := UserPrefix + username
 	bytes, err := db.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
-	var token types.Token
-	err = json.Unmarshal(bytes, &token)
+	var user types.User
+	err = json.Unmarshal(bytes, &user)
 	if err != nil {
 		return nil, err
 	}
 
-	return &token, nil
+	return &user, nil
 }
 
-func RemoveToken(token string) error {
-	key := TokenPrefix + token
+func RemoveUser(username string) error {
+	key := UserPrefix + username
 	return db.Delete(key)
 }
 
@@ -86,7 +86,7 @@ func PutChatRole(role types.ChatRole) error {
 }
 
 func GetChatRole(key string) (*types.ChatRole, error) {
-	key = ChatHistoryPrefix + key
+	key = ChatRolePrefix + key
 	bytes, err := db.Get(key)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,37 @@ func GetChatRole(key string) (*types.ChatRole, error) {
 }
 
 // GetChatHistory 获取聊天历史记录
-// chat/history/{token}/{role}
-func GetChatHistory() []types.Message {
-	return nil
+// chat/history/{user}/{role}
+func GetChatHistory(user string, role string) ([]types.Message, error) {
+	key := ChatHistoryPrefix + user + "/" + role
+	bytes, err := db.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	var message []types.Message
+	err = json.Unmarshal(bytes, &message)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+
+// AppendChatHistory 追加聊天记录
+func AppendChatHistory(user string, role string, message types.Message) error {
+	messages, err := GetChatHistory(user, role)
+	if err != nil {
+		messages = make([]types.Message, 0)
+	}
+
+	messages = append(messages, message)
+	key := ChatHistoryPrefix + user + "/" + role
+	return db.Put(key, messages)
+}
+
+// ClearChatHistory 清空某个角色下的聊天记录
+func ClearChatHistory(user string, role string) error {
+	key := ChatHistoryPrefix + user + "/" + role
+	return db.Delete(key)
 }

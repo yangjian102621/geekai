@@ -14,6 +14,14 @@ type Message struct {
 	Content string `json:"content"`
 }
 
+// HistoryMessage 历史聊天消息
+type HistoryMessage struct {
+	Type    string `json:"type"`
+	Id      string `json:"id"`
+	Icon    string `json:"icon"`
+	Content string `json:"content"`
+}
+
 type ApiResponse struct {
 	Choices []ChoiceItem `json:"choices"`
 }
@@ -37,7 +45,7 @@ type ChatRole struct {
 type ChatSession struct {
 	SessionId string `json:"session_id"`
 	ClientIP  string `json:"client_ip"` // 客户端 IP
-	Token     string `json:"token"`     // 当前登录的 token
+	Username  string `json:"user"`      // 当前登录的 user
 }
 
 func GetDefaultChatRole() map[string]ChatRole {

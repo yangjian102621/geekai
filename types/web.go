@@ -6,7 +6,7 @@ type BizVo struct {
 	Page     int         `json:"page,omitempty"`
 	PageSize int         `json:"page_size,omitempty"`
 	Total    int         `json:"total,omitempty"`
-	Message  string      `json:"message"`
+	Message  string      `json:"message,omitempty"`
 	Data     interface{} `json:"data,omitempty"`
 }
 
@@ -36,5 +36,5 @@ const (
 	ErrorMsg = "系统开小差了"
 )
 
-const TokenName = "ChatGPT-Token"
+const TokenName = "ChatGPT-TOKEN"
 const SessionKey = "WEB_SSH_SESSION"

@@ -7,7 +7,6 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"io/fs"
-	"log"
 	"net/http"
 	logger2 "openai/logger"
 	"openai/types"
@@ -36,7 +35,7 @@ type Server struct {
 	ConfigPath  string
 	ChatContext map[string][]types.Message // 聊天上下文 [SessionID] => []Messages
 
-	// 保存 Websocket 会话 Token, 每个 Token 只能连接一次
+	// 保存 Websocket 会话 Username, 每个 Username 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
 	ChatSession      map[string]types.ChatSession
 	ApiKeyAccessStat map[string]int64 // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
@@ -83,19 +82,21 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.GET("/api/session/get", s.GetSessionHandle)
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
+	engine.POST("api/chat/history", s.GetChatHistoryHandle)
+
 	engine.POST("/api/config/set", s.ConfigSetHandle)
-	engine.GET("/api/config/chat-roles/get", s.GetChatRoleList)
-	engine.POST("api/config/token/add", s.AddToken)
-	engine.POST("api/config/token/batch-add", s.BatchAddToken)
-	engine.POST("api/config/token/set", s.SetToken)
-	engine.POST("api/config/token/remove", s.RemoveToken)
-	engine.POST("api/config/apikey/add", s.AddApiKey)
-	engine.POST("api/config/apikey/remove", s.RemoveApiKey)
-	engine.POST("api/config/apikey/list", s.ListApiKeys)
-	engine.POST("api/config/role/set", s.UpdateChatRole)
-	engine.POST("api/config/proxy/add", s.AddProxy)
-	engine.POST("api/config/proxy/remove", s.RemoveProxy)
-	engine.POST("api/config/debug", s.SetDebug)
+	engine.GET("/api/config/chat-roles/get", s.GetChatRoleListHandle)
+	engine.POST("api/config/user/add", s.AddUserHandle)
+	engine.POST("api/config/user/batch-add", s.BatchAddUserHandle)
+	engine.POST("api/config/user/set", s.SetUserHandle)
+	engine.POST("api/config/user/remove", s.RemoveUserHandle)
+	engine.POST("api/config/apikey/add", s.AddApiKeyHandle)
+	engine.POST("api/config/apikey/remove", s.RemoveApiKeyHandle)
+	engine.POST("api/config/apikey/list", s.ListApiKeysHandle)
+	engine.POST("api/config/role/set", s.UpdateChatRoleHandle)
+	engine.POST("api/config/proxy/add", s.AddProxyHandle)
+	engine.POST("api/config/proxy/remove", s.RemoveProxyHandle)
+	engine.POST("api/config/debug", s.SetDebugHandle)
 
 	engine.NoRoute(func(c *gin.Context) {
 		if c.Request.URL.Path == "/favicon.ico" {
@@ -122,7 +123,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 func Recover(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("panic: %v\n", r)
+			logger.Error("panic: %v\n", r)
 			debug.PrintStack()
 			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 			c.Abort()
@@ -156,7 +157,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-Token")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-Username")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -171,7 +172,7 @@ func corsMiddleware() gin.HandlerFunc {
 
 		defer func() {
 			if err := recover(); err != nil {
-				log.Printf("Panic info is: %v", err)
+				logger.Info("Panic info is: %v", err)
 			}
 		}()
 
@@ -242,27 +243,28 @@ func (s *Server) GetSessionHandle(c *gin.Context) {
 }
 
 func (s *Server) LoginHandle(c *gin.Context) {
-	var data map[string]string
+	var data struct {
+		Token string `json:"token"`
+	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 		return
 	}
-	token := data["token"]
-	if !utils.ContainToken(GetTokens(), token) {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid token"})
+	if !utils.Containuser(GetUsers(), data.Token) {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid user"})
 		return
 	}
 
 	sessionId := utils.RandString(42)
 	session := sessions.Default(c)
-	session.Set(sessionId, token)
+	session.Set(sessionId, data.Token)
 	err = session.Save()
 	if err != nil {
 		logger.Error("Error for save session: ", err)
 	}
 	// 记录客户端 IP 地址
-	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Token: token, SessionId: sessionId}
+	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Username: data.Token, SessionId: sessionId}
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: sessionId})
 }
 

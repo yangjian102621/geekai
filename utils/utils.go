@@ -41,9 +41,9 @@ func ContainsStr(slice []string, item string) bool {
 	return false
 }
 
-func ContainToken(slice []types.Token, token string) bool {
+func Containuser(slice []types.User, user string) bool {
 	for _, e := range slice {
-		if e.Name == token {
+		if e.Name == user {
 			return true
 		}
 	}

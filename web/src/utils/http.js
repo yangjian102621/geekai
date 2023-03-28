@@ -10,7 +10,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json'
 axios.interceptors.request.use(
     config => {
         // set token
-        config.headers['ChatGPT-Token'] = getSessionId();
+        config.headers['ChatGPT-TOKEN'] = getSessionId();
         return config
     }, error => {
         return Promise.reject(error)

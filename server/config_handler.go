@@ -37,13 +37,13 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 		s.Config.Chat.Temperature = float32(v)
 	}
 
-	// max_tokens
+	// max_users
 	if maxTokens, ok := data["max_tokens"]; ok {
 		v, err := strconv.Atoi(maxTokens)
 		if err != nil {
 			c.JSON(http.StatusOK, types.BizVo{
 				Code:    types.InvalidParams,
-				Message: "max_tokens must be a int parameter",
+				Message: "max_users must be a int parameter",
 			})
 			return
 		}
@@ -86,8 +86,8 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
 }
 
-// SetDebug 开启/关闭调试模式
-func (s *Server) SetDebug(c *gin.Context) {
+// SetDebugHandle 开启/关闭调试模式
+func (s *Server) SetDebugHandle(c *gin.Context) {
 	var data struct {
 		Debug bool `json:"debug"`
 	}
@@ -101,9 +101,9 @@ func (s *Server) SetDebug(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
 }
 
-// AddToken 添加 Token
-func (s *Server) AddToken(c *gin.Context) {
-	var data types.Token
+// AddUserHandle 添加 Username
+func (s *Server) AddUserHandle(c *gin.Context) {
+	var data types.User
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
@@ -116,25 +116,25 @@ func (s *Server) AddToken(c *gin.Context) {
 		return
 	}
 
-	// 检查当前要添加的 token 是否已经存在
-	_, err = GetToken(data.Name)
+	// 检查当前要添加的 Username 是否已经存在
+	_, err = GetUser(data.Name)
 	if err == nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Token " + data.Name + " already exists"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Username " + data.Name + " already exists"})
 		return
 	}
 
-	token := types.Token{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls}
-	err = PutToken(token)
+	user := types.User{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls}
+	err = PutUser(user)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: token})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: user})
 }
 
-// BatchAddToken 批量生成 Token
-func (s *Server) BatchAddToken(c *gin.Context) {
+// BatchAddUserHandle 批量生成 Username
+func (s *Server) BatchAddUserHandle(c *gin.Context) {
 	var data struct {
 		Number   int `json:"number"`
 		MaxCalls int `json:"max_calls"`
@@ -145,24 +145,24 @@ func (s *Server) BatchAddToken(c *gin.Context) {
 		return
 	}
 
-	var tokens = make([]string, 0)
+	var users = make([]string, 0)
 	for i := 0; i < data.Number; i++ {
 		name := utils.RandString(12)
-		_, err := GetToken(name)
+		_, err := GetUser(name)
 		for err == nil {
 			name = utils.RandString(12)
 		}
-		err = PutToken(types.Token{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls})
+		err = PutUser(types.User{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls})
 		if err == nil {
-			tokens = append(tokens, name)
+			users = append(users, name)
 		}
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: tokens})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: users})
 }
 
-func (s *Server) SetToken(c *gin.Context) {
-	var data types.Token
+func (s *Server) SetUserHandle(c *gin.Context) {
+	var data types.User
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
@@ -175,49 +175,50 @@ func (s *Server) SetToken(c *gin.Context) {
 		return
 	}
 
-	token, err := GetToken(data.Name)
+	user, err := GetUser(data.Name)
 	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Token not found"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Username not found"})
 		return
 	}
 
 	if data.MaxCalls > 0 {
-		token.RemainingCalls += data.MaxCalls - token.MaxCalls
-		if token.RemainingCalls < 0 {
-			token.RemainingCalls = 0
+		user.RemainingCalls += data.MaxCalls - user.MaxCalls
+		if user.RemainingCalls < 0 {
+			user.RemainingCalls = 0
 		}
 	}
-	token.MaxCalls = data.MaxCalls
+	user.MaxCalls = data.MaxCalls
+	user.EnableHistory = data.EnableHistory
 
-	err = PutToken(*token)
+	err = PutUser(*user)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: token})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: user})
 }
 
-// RemoveToken 删除 Token
-func (s *Server) RemoveToken(c *gin.Context) {
-	var data types.Token
+// RemoveUserHandle 删除 Username
+func (s *Server) RemoveUserHandle(c *gin.Context) {
+	var data types.User
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	}
 
-	err = RemoveToken(data.Name)
+	err = RemoveUser(data.Name)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetTokens()})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetUsers()})
 }
 
-// AddApiKey 添加一个 API key
-func (s *Server) AddApiKey(c *gin.Context) {
+// AddApiKeyHandle 添加一个 API key
+func (s *Server) AddApiKeyHandle(c *gin.Context) {
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
@@ -239,8 +240,8 @@ func (s *Server) AddApiKey(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
 }
 
-// RemoveApiKey 移除一个 API key
-func (s *Server) RemoveApiKey(c *gin.Context) {
+// RemoveApiKeyHandle 移除一个 API key
+func (s *Server) RemoveApiKeyHandle(c *gin.Context) {
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
@@ -267,12 +268,13 @@ func (s *Server) RemoveApiKey(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
 }
 
-// ListApiKeys 获取 API key 列表
-func (s *Server) ListApiKeys(c *gin.Context) {
+// ListApiKeysHandle 获取 API key 列表
+func (s *Server) ListApiKeysHandle(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.Chat.ApiKeys})
 }
 
-func (s *Server) GetChatRoleList(c *gin.Context) {
+// GetChatRoleListHandle 获取聊天角色列表
+func (s *Server) GetChatRoleListHandle(c *gin.Context) {
 	var rolesOrder = []string{"gpt", "programmer", "teacher", "artist", "philosopher", "lu-xun", "english_trainer", "seller"}
 	var res = make([]interface{}, 0)
 	var roles = GetChatRoles()
@@ -292,8 +294,8 @@ func (s *Server) GetChatRoleList(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: res})
 }
 
-// UpdateChatRole 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
-func (s *Server) UpdateChatRole(c *gin.Context) {
+// UpdateChatRoleHandle 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
+func (s *Server) UpdateChatRoleHandle(c *gin.Context) {
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
@@ -345,8 +347,8 @@ func (s *Server) UpdateChatRole(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: role})
 }
 
-// AddProxy 添加一个代理
-func (s *Server) AddProxy(c *gin.Context) {
+// AddProxyHandle 添加一个代理
+func (s *Server) AddProxyHandle(c *gin.Context) {
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
@@ -371,7 +373,8 @@ func (s *Server) AddProxy(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ProxyURL})
 }
 
-func (s *Server) RemoveProxy(c *gin.Context) {
+// RemoveProxyHandle 删除一个代理
+func (s *Server) RemoveProxyHandle(c *gin.Context) {
 	var data map[string]string
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {

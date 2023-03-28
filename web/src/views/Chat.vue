@@ -185,9 +185,12 @@ export default defineComponent({
 
     window.addEventListener("resize", () => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
+      this.inputBoxWidth = window.innerWidth - 20;
     });
 
     this.connect();
+
+    this.fetchChatHistory();
 
   },
 
@@ -300,6 +303,17 @@ export default defineComponent({
           break;
         }
       }
+
+      this.fetchChatHistory();
+    },
+
+    // 从后端获取聊天历史记录
+    fetchChatHistory: function () {
+      httpPost("/api/chat/history", {role: this.role}).then((res) => {
+        this.chatData = res.data
+      }).catch((e) => {
+        console.error(e.message)
+      })
     },
 
     inputKeyDown: function (e) {

@@ -13,10 +13,11 @@ type Config struct {
 	Chat       Chat
 }
 
-type Token struct {
+type User struct {
 	Name           string `json:"name"`
 	MaxCalls       int    `json:"max_calls"`       // 最多调用次数，如果为 0 则表示不限制
 	RemainingCalls int    `json:"remaining_calls"` // 剩余调用次数
+	EnableHistory  bool   `json:"enable_history"`  // 是否启用聊天记录
 }
 
 // Chat configs struct
