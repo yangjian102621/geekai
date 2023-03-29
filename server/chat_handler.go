@@ -176,6 +176,8 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 		if err != nil { // 数据解析出错
 			logger.Error(err, line)
 			replyChunkMessage(ws, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
+			replyMessage(ws, ErrorMsg, false)
+			replyMessage(ws, "![](images/wx.png)", true)
 			break
 		}
 		// 初始化 role

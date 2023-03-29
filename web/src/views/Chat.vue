@@ -134,7 +134,7 @@ export default defineComponent({
       toolBoxHeight: 61 + 42, // 工具框的高度
       inputBoxWidth: window.innerWidth - 20,
       sending: false,
-      loading: false
+      loading: true
     }
   },
 

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"io"
 	"io/fs"
 	"net/http"
 	logger2 "openai/logger"
@@ -71,6 +72,7 @@ func NewServer(configPath string) (*Server, error) {
 func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	s.DebugMode = debug
 	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = io.Discard
 	engine := gin.Default()
 	if debug {
 		engine.Use(corsMiddleware())
