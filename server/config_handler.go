@@ -24,6 +24,10 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 		s.Config.Chat.Model = model
 	}
 
+	if accessKey, ok := data["access_key"]; ok {
+		s.Config.AccessKey = accessKey
+	}
+
 	// Temperature
 	if temperature, ok := data["temperature"]; ok {
 		v, err := strconv.ParseFloat(temperature, 32)
@@ -148,8 +152,9 @@ func (s *Server) AddUserHandle(c *gin.Context) {
 // BatchAddUserHandle 批量生成 Username
 func (s *Server) BatchAddUserHandle(c *gin.Context) {
 	var data struct {
-		Number   int `json:"number"`
-		MaxCalls int `json:"max_calls"`
+		Number        int  `json:"number"`
+		MaxCalls      int  `json:"max_calls"`
+		EnableHistory bool `json:"enable_history"`
 	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil || data.MaxCalls <= 0 {
@@ -164,7 +169,7 @@ func (s *Server) BatchAddUserHandle(c *gin.Context) {
 		for err == nil {
 			name = utils.RandString(12)
 		}
-		err = PutUser(types.User{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls})
+		err = PutUser(types.User{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory})
 		if err == nil {
 			users = append(users, name)
 		}
@@ -226,6 +231,11 @@ func (s *Server) RemoveUserHandle(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
+}
+
+// GetUserListHandle 获取用户列表
+func (s *Server) GetUserListHandle(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetUsers()})
 }
 

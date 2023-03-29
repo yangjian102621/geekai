@@ -14,7 +14,7 @@ Global['Chat'] = Chat
 const routes = [
     {
         name: 'home', path: '/', component: Chat, meta: {
-            title: 'WeChat-GPT'
+            title: 'ChatGPT-Plus'
         }
     },
     {

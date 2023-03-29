@@ -20,6 +20,12 @@
             <Delete/>
           </el-icon>
         </el-button>
+
+        <el-button type="info" size="small" class="config" ref="send-btn" circle @click="showConnectDialog = true">
+          <el-icon>
+            <Tools/>
+          </el-icon>
+        </el-button>
       </div>
 
       <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
@@ -52,11 +58,6 @@
         <div class="btn-container">
           <el-row>
             <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
-            <el-button type="info" class="config" ref="send-btn" circle @click="showConnectDialog = true">
-              <el-icon>
-                <Tools/>
-              </el-icon>
-            </el-button>
           </el-row>
         </div>
 
@@ -82,6 +83,14 @@
             </template>
           </el-input>
           <el-button type="primary" @click="submitToken">提交</el-button>
+        </el-row>
+
+        <el-row class="row-center">
+          <p>打开微信扫下面二维码免费领取口令</p>
+        </el-row>
+
+        <el-row class="row-center">
+          <el-image src="images/wx.png" fit="cover"/>
         </el-row>
 
       </el-dialog>
@@ -191,7 +200,7 @@ export default defineComponent({
 
     window.addEventListener("resize", () => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
-      this.inputBoxWidth = window.innerWidth - 20;
+      // this.inputBoxWidth = window.innerWidth - 20;
     });
 
     this.connect();
@@ -314,6 +323,10 @@ export default defineComponent({
     // 从后端获取聊天历史记录
     fetchChatHistory: function () {
       httpPost("/api/chat/history", {role: this.role}).then((res) => {
+        if (this.chatData.length > 0) { // 如果已经有聊天记录了，就不追加了
+          return
+        }
+
         const data = res.data
         const md = require('markdown-it')();
         for (let i = 0; i < data.length; i++) {
@@ -477,7 +490,7 @@ export default defineComponent({
           margin-right 5px;
         }
 
-        .clear-history {
+        .clear-history, .config {
           margin-left 5px;
         }
       }
@@ -491,7 +504,7 @@ export default defineComponent({
         padding: 0 10px 10px 10px;
 
         .chat-line {
-          padding 10px;
+          padding 10px 5px;
           font-size 14px;
           display: flex;
           align-items: flex-start;
@@ -542,7 +555,7 @@ export default defineComponent({
 
           .el-row {
             flex-wrap nowrap
-            width 106px;
+            //width 106px;
             align-items center
           }
 
@@ -563,6 +576,10 @@ export default defineComponent({
     #container::-webkit-scrollbar {
       width: 0;
       height: 0;
+    }
+
+    .row-center {
+      justify-content center
     }
   }
 }

@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-const ErrorMsg = "抱歉，AI 助手开小差了，我马上找人去盘它。"
+const ErrorMsg = "抱歉，AI 助手开小差了，请马上联系管理员去盘它。"
 
 // ChatHandle 处理聊天 WebSocket 请求
 func (s *Server) ChatHandle(c *gin.Context) {
@@ -70,7 +70,8 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	}
 
 	if user.MaxCalls > 0 && user.RemainingCalls <= 0 {
-		replyMessage(ws, "当前 user 点数已经用尽，请充值后再使用或者联系管理员！", false)
+		replyMessage(ws, "当前 TOKEN 点数已经用尽，加入我们的知识星球可以免费领取点卡！", false)
+		replyMessage(ws, "![](images/start.png)", true)
 		return nil
 	}
 	var r = types.ApiRequest{
@@ -148,6 +149,7 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	// 如果三次请求都失败的话，则返回对应的错误信息
 	if err != nil {
 		replyMessage(ws, ErrorMsg, false)
+		replyMessage(ws, "![](images/wx.png)", true)
 		return err
 	}
 

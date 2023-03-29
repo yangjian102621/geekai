@@ -91,6 +91,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/config/user/add", s.AddUserHandle)
 	engine.POST("api/config/user/batch-add", s.BatchAddUserHandle)
 	engine.POST("api/config/user/set", s.SetUserHandle)
+	engine.POST("api/config/user/list", s.GetUserListHandle)
 	engine.POST("api/config/user/remove", s.RemoveUserHandle)
 	engine.POST("api/config/apikey/add", s.AddApiKeyHandle)
 	engine.POST("api/config/apikey/remove", s.RemoveApiKeyHandle)
@@ -173,7 +174,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-TOKEN")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-TOKEN, ACCESS_KEY")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -209,7 +210,7 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 
 		if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
 			accessKey := c.GetHeader("ACCESS_KEY")
-			if accessKey != s.Config.AccessKey {
+			if accessKey != strings.TrimSpace(s.Config.AccessKey) {
 				c.Abort()
 				c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
 			} else {
