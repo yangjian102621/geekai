@@ -77,20 +77,10 @@ export default defineComponent({
         margin-top 0
       }
 
-      //.cursor {
-      //  height 24px;
-      //  border-left 1px solid black;
-      //
-      //  animation: cursorImg 1s infinite steps(1, start);
-      //  @keyframes cursorImg {
-      //    0%, 100% {
-      //      opacity: 0;
-      //    }
-      //    50% {
-      //      opacity: 1;
-      //    }
-      //  }
-      //}
+      p > code {
+        color #cc0000
+        background-color #f1f1f1
+      }
     }
   }
 }

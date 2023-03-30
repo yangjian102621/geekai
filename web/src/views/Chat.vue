@@ -200,7 +200,7 @@ export default defineComponent({
 
     window.addEventListener("resize", () => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
-      // this.inputBoxWidth = window.innerWidth - 20;
+      this.inputBoxWidth = window.innerWidth - 20;
     });
 
     this.connect();
@@ -341,8 +341,7 @@ export default defineComponent({
 
         nextTick(() => {
           hl.configure({ignoreUnescapedHTML: true})
-          const lines = document.querySelectorAll('.chat-line');
-          const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+          const blocks = document.querySelector("#chat-box").querySelectorAll('pre code');
           blocks.forEach((block) => {
             hl.highlightElement(block)
           })
