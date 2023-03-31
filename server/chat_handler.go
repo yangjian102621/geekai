@@ -134,7 +134,7 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 			time.Sleep(time.Second)
 			continue
 		}
-		logger.Infof("Use API KEY: %s", apiKey)
+		logger.Infof("Use API KEY: %s, PROXY: %s", apiKey, proxyURL)
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 		response, err = client.Do(request)
 		if err == nil {
@@ -222,11 +222,14 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	useMsg := types.Message{Role: "user", Content: prompt}
 	context = append(context, useMsg)
 	message.Content = strings.Join(contents, "")
-	context = append(context, message)
+
 	// 更新上下文消息
-	s.ChatContexts[ctxKey] = types.ChatContext{
-		Messages:       context,
-		LastAccessTime: time.Now().Unix(),
+	if s.Config.Chat.EnableContext {
+		context = append(context, message)
+		s.ChatContexts[ctxKey] = types.ChatContext{
+			Messages:       context,
+			LastAccessTime: time.Now().Unix(),
+		}
 	}
 
 	// 追加历史消息
@@ -261,7 +264,7 @@ func (s *Server) getApiKey(failedKey string) string {
 
 		keys = append(keys, v)
 	}
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	if len(keys) > 0 {
 		key := keys[rand.Intn(len(keys))]
 		s.ApiKeyAccessStat[key] = time.Now().Unix()

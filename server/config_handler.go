@@ -354,7 +354,7 @@ func (s *Server) SetChatRoleHandle(c *gin.Context) {
 		return
 	}
 
-	role, err := GetChatRole(data.Key)
+	_, err = GetChatRole(data.Key)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Role key not exists"})
 		return
