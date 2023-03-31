@@ -180,6 +180,8 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 					s.Config.Chat.ApiKeys = append(s.Config.Chat.ApiKeys[:i], s.Config.Chat.ApiKeys[i+1:]...)
 				}
 			}
+			// 更新配置文档
+			_ = utils.SaveConfig(s.Config, s.ConfigPath)
 
 			// 重发当前消息
 			return s.sendMessage(session, role, prompt, ws)
