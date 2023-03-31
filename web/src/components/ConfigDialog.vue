@@ -1,13 +1,14 @@
 <template>
   <el-dialog
       v-model="$props.show"
+      :close-on-click-modal="false"
+      :show-close="false"
       title="聊天配置"
-      :before-close="beforeClose"
   >
     <span>正在努力开发中...</span>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="this.$emit('update:show', false)">取消</el-button>
+        <el-button @click="close">关闭</el-button>
         <el-button type="primary" @click="save">
           保存
         </el-button>
@@ -31,9 +32,10 @@ export default defineComponent({
     return {}
   },
   methods: {
-    beforeClose: function () {
-    },
     save: function () {
+      this.$emit('update:show', false);
+    },
+    close: function () {
       this.$emit('update:show', false);
     }
   }
