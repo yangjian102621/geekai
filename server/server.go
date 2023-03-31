@@ -98,7 +98,8 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/config/apikey/add", s.AddApiKeyHandle)
 	engine.POST("api/config/apikey/remove", s.RemoveApiKeyHandle)
 	engine.POST("api/config/apikey/list", s.ListApiKeysHandle)
-	engine.POST("api/config/role/set", s.UpdateChatRoleHandle)
+	engine.POST("api/config/role/set", s.SetChatRoleHandle)
+	engine.POST("api/config/role/get", s.GetChatRoleHandle)
 	engine.POST("api/config/proxy/add", s.AddProxyHandle)
 	engine.POST("api/config/proxy/remove", s.RemoveProxyHandle)
 	engine.POST("api/config/debug", s.SetDebugHandle)
@@ -270,7 +271,7 @@ func (s *Server) LoginHandle(c *gin.Context) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 		return
 	}
-	if !utils.Containuser(GetUsers(), data.Token) {
+	if !utils.ContainUser(GetUsers(), data.Token) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid user"})
 		return
 	}

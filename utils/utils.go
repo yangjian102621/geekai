@@ -41,7 +41,7 @@ func ContainsStr(slice []string, item string) bool {
 	return false
 }
 
-func Containuser(slice []types.User, user string) bool {
+func ContainUser(slice []types.User, user string) bool {
 	for _, e := range slice {
 		if e.Name == user {
 			return true

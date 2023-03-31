@@ -317,57 +317,56 @@ func (s *Server) GetChatRoleListHandle(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: res})
 }
 
-// UpdateChatRoleHandle 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
-func (s *Server) UpdateChatRoleHandle(c *gin.Context) {
-	var data map[string]string
+// GetChatRoleHandle 获取指定的角色
+func (s *Server) GetChatRoleHandle(c *gin.Context) {
+	var data struct {
+		Key string `json:"key"`
+	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
 		logger.Errorf("Error decode json data: %s", err.Error())
 		c.JSON(http.StatusBadRequest, nil)
 		return
 	}
-	key := data["key"]
-	if key == "" {
+
+	role, err := GetChatRole(data.Key)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "No role found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: role})
+	return
+}
+
+// SetChatRoleHandle 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
+func (s *Server) SetChatRoleHandle(c *gin.Context) {
+	var data types.ChatRole
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if data.Key == "" {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Must specified the role key"})
 		return
 	}
 
-	role, err := GetChatRole(key)
-	if role.Key == "" {
+	role, err := GetChatRole(data.Key)
+	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Role key not exists"})
 		return
 	}
 
-	if enable, ok := data["enable"]; ok {
-		v, err := strconv.ParseBool(enable)
-		if err != nil {
-			c.JSON(http.StatusOK, types.BizVo{
-				Code:    types.InvalidParams,
-				Message: "enable must be a bool parameter",
-			})
-			return
-		}
-		role.Enable = v
-	}
-
-	if name, ok := data["name"]; ok {
-		role.Name = name
-	}
-	if helloMsg, ok := data["hello_msg"]; ok {
-		role.HelloMsg = helloMsg
-	}
-	if icon, ok := data["icon"]; ok {
-		role.Icon = icon
-	}
-
-	// 保存到 leveldb
-	err = PutChatRole(*role)
+	err = PutChatRole(data)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config"})
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: role})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: data})
 }
 
 // AddProxyHandle 添加一个代理
