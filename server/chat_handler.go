@@ -52,7 +52,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 
 			logger.Info("Receive a message: ", string(message))
 			// TODO: 当前只保持当前会话的上下文，部保存用户的所有的聊天历史记录，后期要考虑保存所有的历史记录
-			err = s.sendMessage(session, chatRole, string(message), client)
+			err = s.sendMessage(session, chatRole, string(message), client, false)
 			if err != nil {
 				logger.Error(err)
 			}
@@ -61,7 +61,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 }
 
 // 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
-func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, prompt string, ws Client) error {
+func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, prompt string, ws Client, resetContext bool) error {
 	user, err := GetUser(session.Username)
 	if err != nil {
 		replyMessage(ws, "当前 user 无效，请使用合法的 user 登录！", false)
@@ -140,12 +140,6 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 		if err == nil {
 			break
 		} else {
-			// 上下文超出长度了
-			if strings.Contains(err.Error(), "This model's maximum context length is 4097 tokens") {
-				logger.Info("会话上下文长度超出限制, Username: %s", user.Name)
-				replyMessage(ws, "温馨提示：会话上下文长度超出限制，已为您重置会话上下文！", false)
-				context = role.Context
-			}
 			failedKey = apiKey
 			failedProxyURL = proxyURL
 		}
@@ -186,7 +180,16 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 			_ = utils.SaveConfig(s.Config, s.ConfigPath)
 
 			// 重发当前消息
-			return s.sendMessage(session, role, prompt, ws)
+			return s.sendMessage(session, role, prompt, ws, false)
+
+			// 上下文超出长度了
+		} else if strings.Contains(line, "This model's maximum context length is 4097 tokens") {
+			logger.Info("会话上下文长度超出限制, Username: %s", user.Name)
+			// 重置上下文，重发当前消息
+			delete(s.ChatContexts, ctxKey)
+			return s.sendMessage(session, role, prompt, ws, true)
+		} else if !strings.Contains(line, "data:") {
+			continue
 		}
 
 		err = json.Unmarshal([]byte(line[6:]), &responseBody)
@@ -196,6 +199,10 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 			replyMessage(ws, ErrorMsg, false)
 			replyMessage(ws, "![](images/wx.png)", true)
 			break
+		}
+
+		if resetContext {
+			replyMessage(ws, "温馨提示：当前会话上下文长度超出限制，已为您重置会话上下文！", false)
 		}
 		// 初始化 role
 		if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
@@ -221,6 +228,10 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	if user.MaxCalls > 0 {
 		user.RemainingCalls -= 1
 		_ = PutUser(*user)
+	}
+
+	if message.Role == "" {
+		message.Role = "assistant"
 	}
 	// 追加上下文消息
 	useMsg := types.Message{Role: "user", Content: prompt}
