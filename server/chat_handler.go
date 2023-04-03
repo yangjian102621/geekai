@@ -172,7 +172,9 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 		}
 		if len(line) < 20 {
 			continue
-		} else if strings.Contains(line, "This key is associated with a deactivated account") {
+		} else if strings.Contains(line, "This key is associated with a deactivated account") || // 账号被禁用
+			strings.Contains(line, "You exceeded your current quota") { // 当前 KEY 余额被用尽
+
 			logger.Infof("API Key %s is deactivated", apiKey)
 			// 移除当前 API key
 			for i, v := range s.Config.Chat.ApiKeys {
