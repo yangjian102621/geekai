@@ -5,7 +5,19 @@
       :show-close="false"
       title="聊天配置"
   >
-    <span>正在努力开发中...</span>
+    <el-row class="row-center">
+      <span>功能正在开发中，有什么使用建议可以通过下面的方式联系作者。</span>
+    </el-row>
+    <el-row>
+      <el-col :span="12">
+        <el-image :src="wechatGroup"></el-image>
+      </el-col>
+
+      <el-col :span="12">
+        <el-image :src="wechatCard"></el-image>
+      </el-col>
+    </el-row>
+
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="close">关闭</el-button>
@@ -29,7 +41,10 @@ export default defineComponent({
     }
   },
   data() {
-    return {}
+    return {
+      wechatGroup: "https://img.r9it.com/chatgpt/wechat-group.jpeg",
+      wechatCard: "https://img.r9it.com/chatgpt/wechat-card.jpeg"
+    }
   },
   methods: {
     save: function () {
