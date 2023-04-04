@@ -16,7 +16,16 @@ func (s *Server) TestHandle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, nil)
 		return
 	}
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: data})
+	if v, ok := data["opt"]; ok && v == "init_user" {
+		users := GetUsers()
+		for _, user := range users {
+			user.Status = true
+			_ = PutUser(user)
+		}
+
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: GetUsers()})
+	}
+
 }
 
 // ConfigSetHandle set configs
@@ -102,7 +111,7 @@ func (s *Server) AddUserHandle(c *gin.Context) {
 		return
 	}
 
-	user := types.User{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory}
+	user := types.User{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory, Status: true}
 	err = PutUser(user)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
@@ -132,7 +141,7 @@ func (s *Server) BatchAddUserHandle(c *gin.Context) {
 		for err == nil {
 			name = utils.RandString(12)
 		}
-		err = PutUser(types.User{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory})
+		err = PutUser(types.User{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory, Status: true})
 		if err == nil {
 			users = append(users, name)
 		}
@@ -176,6 +185,12 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 	}
 	if v, ok := data["enable_history"]; ok {
 		user.EnableHistory = v.(bool)
+	}
+	if v, ok := data["remaining_calls"]; ok {
+		user.RemainingCalls = v.(int)
+	}
+	if v, ok := data["api_key"]; ok {
+		user.ApiKey = v.(string)
 	}
 
 	err = PutUser(*user)

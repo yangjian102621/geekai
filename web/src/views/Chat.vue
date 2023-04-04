@@ -129,11 +129,12 @@ export default defineComponent({
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
 
       lineBuffer: '', // 输出缓冲行
-      connectingMessageBox: null, // 保存重连的消息框对象load
+      connectingMessageBox: null, // 保存重连的消息框对象
+      errorMessage: null, // 错误信息提示框
       socket: null,
       toolBoxHeight: 61 + 42, // 工具框的高度
       inputBoxWidth: window.innerWidth - 20,
-      sending: false,
+      sending: true,
       loading: true
     }
   },
@@ -214,21 +215,24 @@ export default defineComponent({
       const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
       socket.addEventListener('open', () => {
         // 获取聊天角色
-        httpGet("/api/config/chat-roles/get").then((res) => {
-          // ElMessage.success('创建会话成功！');
-          this.chatRoles = res.data;
+        if (this.chatRoles.length === 0) {
+          httpGet("/api/config/chat-roles/get").then((res) => {
+            // ElMessage.success('创建会话成功！');
+            this.chatRoles = res.data;
+            this.loading = false
+          }).catch(() => {
+            ElMessage.error("获取聊天角色失败");
+          })
+        } else {
           this.loading = false
-        }).catch(() => {
-          ElMessage.error("获取聊天角色失败");
-        })
+        }
 
+        this.sending = false; // 允许用户发送消息
+        if (this.errorMessage !== null) {
+          this.errorMessage.close(); // 关闭错误提示信息
+        }
         // 加载聊天记录
         this.fetchChatHistory();
-
-        if (this.connectingMessageBox && typeof this.connectingMessageBox.close === 'function') {
-          this.connectingMessageBox.close();
-          this.connectingMessageBox = null;
-        }
       });
 
       socket.addEventListener('message', event => {
@@ -270,40 +274,57 @@ export default defineComponent({
         }
 
       });
-      socket.addEventListener('close', () => {
-        // 检查会话
-        httpGet("/api/session/get").then(() => {
-          if (this.connectingMessageBox === null) {
-            this.connectingMessageBox = ElMessageBox.confirm(
-                '^_^ 会话发生异常，您已经从服务器断开连接!',
-                '注意：',
-                {
-                  confirmButtonText: '重连会话',
-                  cancelButtonText: '不聊了',
-                  type: 'warning',
-                  showClose: false,
-                  closeOnClickModal: false
-                }
-            ).then(() => {
-              this.connect();
-            }).catch(() => {
-              ElMessage({
-                type: 'info',
-                message: '您关闭了会话',
-              })
-            })
-          }
-        }).catch((res) => {
-          if (res.code === 400) {
-            this.showLoginDialog = true;
-          } else {
-            ElMessage.error(res.message)
-          }
-        })
 
+      socket.addEventListener('close', () => {
+        // 停止送消息
+        this.sending = true;
+        if (this.errorMessage === null) {
+          this.errorMessage = ElMessage({
+            message: '当前无法连接服务器，可检查网络设置是否正常',
+            type: 'error',
+            duration: 0,
+            showClose: false
+          });
+        }
+        this.checkSession();
       });
 
       this.socket = socket;
+    },
+
+    checkSession: function () {
+      // 检查会话
+      httpGet("/api/session/get").then(() => {
+        // 自动重新连接
+        this.connect();
+        // if (this.connectingMessageBox === null) {
+        //   this.connectingMessageBox = ElMessageBox.confirm(
+        //       '^_^ 会话发生异常，您已经从服务器断开连接!',
+        //       '注意：',
+        //       {
+        //         confirmButtonText: '重连会话',
+        //         cancelButtonText: '不聊了',
+        //         type: 'warning',
+        //         showClose: false,
+        //         closeOnClickModal: false
+        //       }
+        //   ).then(() => {
+        //     this.connect();
+        //   }).catch(() => {
+        //     ElMessage({
+        //       type: 'info',
+        //       message: '您关闭了会话',
+        //     })
+        //   })
+        // }
+      }).catch((res) => {
+        if (res.code === 400) {
+          this.showLoginDialog = true;
+        } else {
+          // 3 秒后继续重连
+          setTimeout(() => this.checkSession(), 3000)
+        }
+      })
     },
 
     // 更换角色

@@ -27,7 +27,12 @@ func (s *Server) ChatHandle(c *gin.Context) {
 	}
 	sessionId := c.Query("sessionId")
 	roleKey := c.Query("role")
-	session := s.ChatSession[sessionId]
+	session, ok := s.ChatSession[sessionId]
+	if !ok { // 用户未登录
+		c.Abort()
+		return
+	}
+	
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.Request.RemoteAddr, session.Username)
 	client := NewWsClient(ws)
 	var roles = GetChatRoles()
@@ -64,7 +69,13 @@ func (s *Server) ChatHandle(c *gin.Context) {
 func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, prompt string, ws Client, resetContext bool) error {
 	user, err := GetUser(session.Username)
 	if err != nil {
-		replyMessage(ws, "当前 user 无效，请使用合法的 user 登录！", false)
+		replyMessage(ws, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
+		return err
+	}
+
+	if user.Status == false {
+		replyMessage(ws, "当前 TOKEN 已经被禁用，如果疑问，请联系管理员！", false)
+		replyMessage(ws, "![](images/wx.png)", true)
 		return err
 	}
 
