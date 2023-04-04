@@ -32,7 +32,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	
+
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.Request.RemoteAddr, session.Username)
 	client := NewWsClient(ws)
 	var roles = GetChatRoles()

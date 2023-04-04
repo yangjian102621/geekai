@@ -50,14 +50,14 @@ func (s *Server) ConfigSetHandle(c *gin.Context) {
 	}
 	// max_users
 	if maxTokens, ok := data["max_tokens"]; ok {
-		s.Config.Chat.MaxTokens = maxTokens.(int)
+		s.Config.Chat.MaxTokens = int(maxTokens.(float64))
 	}
 	// enable Context
 	if enableContext, ok := data["enable_context"]; ok {
 		s.Config.Chat.EnableContext = enableContext.(bool)
 	}
 	if expireTime, ok := data["chat_context_expire_time"]; ok {
-		s.Config.Chat.ChatContextExpireTime = expireTime.(int)
+		s.Config.Chat.ChatContextExpireTime = int(expireTime.(float64))
 	}
 	// enable auth
 	if enableAuth, ok := data["enable_auth"]; ok {
@@ -168,7 +168,7 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 	}
 	var maxCalls int
 	if v, ok := data["max_calls"]; ok {
-		maxCalls = v.(int)
+		maxCalls = int(v.(float64))
 	}
 	if maxCalls < 0 {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
@@ -187,7 +187,7 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 		user.EnableHistory = v.(bool)
 	}
 	if v, ok := data["remaining_calls"]; ok {
-		user.RemainingCalls = v.(int)
+		user.RemainingCalls = int(v.(float64))
 	}
 	if v, ok := data["api_key"]; ok {
 		user.ApiKey = v.(string)
