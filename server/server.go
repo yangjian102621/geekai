@@ -81,7 +81,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.Use(AuthorizeMiddleware(s))
 	engine.Use(Recover)
 
-	engine.GET("/hello", Hello)
+	engine.POST("/test", s.TestHandle)
 	engine.GET("/api/session/get", s.GetSessionHandle)
 	engine.POST("/api/login", s.LoginHandle)
 	engine.Any("/api/chat", s.ChatHandle)
@@ -286,8 +286,4 @@ func (s *Server) LoginHandle(c *gin.Context) {
 	// 记录客户端 IP 地址
 	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Username: data.Token, SessionId: sessionId}
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: sessionId})
-}
-
-func Hello(c *gin.Context) {
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: "HELLO, ChatGPT !!!"})
 }

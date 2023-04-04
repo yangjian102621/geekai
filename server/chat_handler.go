@@ -224,37 +224,41 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	}
 	_ = response.Body.Close() // 关闭资源
 
-	// 当前 Username 调用次数减 1
-	if user.MaxCalls > 0 {
-		user.RemainingCalls -= 1
-		_ = PutUser(*user)
-	}
+	// 消息发送成功
+	if len(contents) > 0 {
+		// 当前 Username 调用次数减 1
+		if user.MaxCalls > 0 {
+			user.RemainingCalls -= 1
+			_ = PutUser(*user)
+		}
 
-	if message.Role == "" {
-		message.Role = "assistant"
-	}
-	// 追加上下文消息
-	useMsg := types.Message{Role: "user", Content: prompt}
-	context = append(context, useMsg)
-	message.Content = strings.Join(contents, "")
+		if message.Role == "" {
+			message.Role = "assistant"
+		}
+		// 追加上下文消息
+		useMsg := types.Message{Role: "user", Content: prompt}
+		context = append(context, useMsg)
+		message.Content = strings.Join(contents, "")
 
-	// 更新上下文消息
-	if s.Config.Chat.EnableContext {
-		context = append(context, message)
-		s.ChatContexts[ctxKey] = types.ChatContext{
-			Messages:       context,
-			LastAccessTime: time.Now().Unix(),
+		// 更新上下文消息
+		if s.Config.Chat.EnableContext {
+			context = append(context, message)
+			s.ChatContexts[ctxKey] = types.ChatContext{
+				Messages:       context,
+				LastAccessTime: time.Now().Unix(),
+			}
+		}
+
+		// 追加历史消息
+		if user.EnableHistory {
+			err = AppendChatHistory(user.Name, role.Key, useMsg)
+			if err != nil {
+				return err
+			}
+			err = AppendChatHistory(user.Name, role.Key, message)
 		}
 	}
 
-	// 追加历史消息
-	if user.EnableHistory {
-		err = AppendChatHistory(user.Name, role.Key, useMsg)
-		if err != nil {
-			return err
-		}
-		err = AppendChatHistory(user.Name, role.Key, message)
-	}
 	return err
 }
 
