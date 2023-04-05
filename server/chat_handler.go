@@ -195,7 +195,7 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 
 			// 上下文超出长度了
 		} else if strings.Contains(line, "This model's maximum context length is 4097 tokens") {
-			logger.Info("会话上下文长度超出限制, Username: %s", user.Name)
+			logger.Infof("会话上下文长度超出限制, Username: %s", user.Name)
 			// 重置上下文，重发当前消息
 			delete(s.ChatContexts, ctxKey)
 			return s.sendMessage(session, role, prompt, ws, true)
