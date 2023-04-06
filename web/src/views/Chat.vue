@@ -278,14 +278,6 @@ export default defineComponent({
       socket.addEventListener('close', () => {
         // 停止送消息
         this.sending = true;
-        if (this.errorMessage === null) {
-          this.errorMessage = ElMessage({
-            message: '当前无法连接服务器，可检查网络设置是否正常',
-            type: 'error',
-            duration: 0,
-            showClose: false
-          });
-        }
         this.checkSession();
       });
 
@@ -320,7 +312,18 @@ export default defineComponent({
       }).catch((res) => {
         if (res.code === 400) {
           this.showLoginDialog = true;
+          if (this.errorMessage !== null) {
+            this.errorMessage.close();
+          }
         } else {
+          if (this.errorMessage === null) {
+            this.errorMessage = ElMessage({
+              message: '当前无法连接服务器，可检查网络设置是否正常',
+              type: 'error',
+              duration: 0,
+              showClose: false
+            });
+          }
           // 3 秒后继续重连
           setTimeout(() => this.checkSession(), 3000)
         }
