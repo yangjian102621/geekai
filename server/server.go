@@ -271,7 +271,8 @@ func (s *Server) LoginHandle(c *gin.Context) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 		return
 	}
-	if !utils.ContainUser(GetUsers(), data.Token) {
+	user, err := GetUser(data.Token)
+	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid user"})
 		return
 	}
@@ -285,5 +286,20 @@ func (s *Server) LoginHandle(c *gin.Context) {
 	}
 	// 记录客户端 IP 地址
 	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Username: data.Token, SessionId: sessionId}
+	// 更新用户激活时间
+	user.ActiveTime = time.Now().Unix()
+	if user.ExpiredTime == 0 {
+		activeTime := time.Unix(user.ActiveTime, 0)
+		if user.Term == 0 {
+			user.Term = 30 // 默认 30 天到期
+		}
+		user.ExpiredTime = activeTime.Add(time.Hour * 24 * time.Duration(user.Term)).Unix()
+	}
+	err = PutUser(*user)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Save user info failed"})
+		return
+	}
+
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: sessionId})
 }

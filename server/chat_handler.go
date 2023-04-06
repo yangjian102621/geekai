@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -76,7 +77,14 @@ func (s *Server) sendMessage(session types.ChatSession, role types.ChatRole, pro
 	if user.Status == false {
 		replyMessage(ws, "当前 TOKEN 已经被禁用，如果疑问，请联系管理员！", false)
 		replyMessage(ws, "![](images/wx.png)", true)
-		return err
+		return errors.New("当前 TOKEN " + user.Name + "已经被禁用")
+	}
+
+	if time.Now().Unix() > user.ExpiredTime {
+		exTime := time.Unix(user.ExpiredTime, 0).Format("2006-01-02 15:04:05")
+		replyMessage(ws, "当前 TOKEN 已过期，过期时间为："+exTime+"，如果疑问，请联系管理员！", false)
+		replyMessage(ws, "![](images/wx.png)", true)
+		return errors.New("当前 TOKEN " + user.Name + "已过期")
 	}
 
 	if user.MaxCalls > 0 && user.RemainingCalls <= 0 {

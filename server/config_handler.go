@@ -81,7 +81,7 @@ func (s *Server) SetDebugHandle(c *gin.Context) {
 	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
 		return
 	}
 
@@ -91,16 +91,21 @@ func (s *Server) SetDebugHandle(c *gin.Context) {
 
 // AddUserHandle 添加 Username
 func (s *Server) AddUserHandle(c *gin.Context) {
-	var data types.User
+	var data struct {
+		Name          string `json:"name"`
+		MaxCalls      int    `json:"max_calls"`
+		EnableHistory bool   `json:"enable_history"`
+		Term          int    `json:"term"` // 有效期
+	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
 		return
 	}
 
 	// 参数处理
 	if data.Name == "" || data.MaxCalls < 0 {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
 		return
 	}
 
@@ -111,7 +116,13 @@ func (s *Server) AddUserHandle(c *gin.Context) {
 		return
 	}
 
-	user := types.User{Name: data.Name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory, Status: true}
+	user := types.User{
+		Name:           data.Name,
+		MaxCalls:       data.MaxCalls,
+		RemainingCalls: data.MaxCalls,
+		EnableHistory:  data.EnableHistory,
+		Term:           data.Term,
+		Status:         true}
 	err = PutUser(user)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save configs"})
@@ -127,23 +138,31 @@ func (s *Server) BatchAddUserHandle(c *gin.Context) {
 		Number        int  `json:"number"`
 		MaxCalls      int  `json:"max_calls"`
 		EnableHistory bool `json:"enable_history"`
+		Term          int  `json:"term"`
 	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil || data.MaxCalls <= 0 {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
 		return
 	}
 
-	var users = make([]string, 0)
+	var users = make([]types.User, 0)
 	for i := 0; i < data.Number; i++ {
 		name := utils.RandString(12)
 		_, err := GetUser(name)
 		for err == nil {
 			name = utils.RandString(12)
 		}
-		err = PutUser(types.User{Name: name, MaxCalls: data.MaxCalls, RemainingCalls: data.MaxCalls, EnableHistory: data.EnableHistory, Status: true})
+		user := types.User{
+			Name:           name,
+			MaxCalls:       data.MaxCalls,
+			RemainingCalls: data.MaxCalls,
+			EnableHistory:  data.EnableHistory,
+			Term:           data.Term,
+			Status:         true}
+		err = PutUser(user)
 		if err == nil {
-			users = append(users, name)
+			users = append(users, user)
 		}
 	}
 
@@ -154,7 +173,7 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 	var data map[string]interface{}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
 		return
 	}
 
@@ -188,6 +207,9 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 	}
 	if v, ok := data["remaining_calls"]; ok {
 		user.RemainingCalls = int(v.(float64))
+	}
+	if v, ok := data["expired_time"]; ok {
+		user.ExpiredTime = int64(v.(float64))
 	}
 	if v, ok := data["api_key"]; ok {
 		user.ApiKey = v.(string)
