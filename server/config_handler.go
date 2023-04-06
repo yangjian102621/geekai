@@ -193,6 +193,7 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
 		return
 	} else if maxCalls > 0 {
+		user.MaxCalls = maxCalls
 		user.RemainingCalls += maxCalls - user.MaxCalls
 		if user.RemainingCalls < 0 {
 			user.RemainingCalls = 0
