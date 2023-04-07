@@ -3,17 +3,14 @@ import {createApp} from 'vue'
 import ElementPlus from "element-plus"
 import "element-plus/dist/index.css"
 import App from './App.vue'
-import Chat from './views/Chat.vue'
+import ChatPlus from "@/views/ChatPlus.vue";
 import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import './utils/prototype'
-import {Global} from "@/utils/storage";
-
-Global['Chat'] = Chat
 
 const routes = [
     {
-        name: 'home', path: '/', component: Chat, meta: {
+        name: 'chat-plus', path: '/', component: ChatPlus, meta: {
             title: 'ChatGPT-Plus'
         }
     },

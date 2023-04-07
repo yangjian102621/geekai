@@ -1,12 +1,12 @@
 <template>
-  <div class="chat-line chat-line-left">
-    <div class="chat-icon">
-      <img :src="icon" alt="ChatGPT">
+  <div class="chat-line chat-line-right">
+    <div class="chat-item">
+      <div class="content">{{ content }}</div>
+      <div class="triangle"></div>
     </div>
 
-    <div class="chat-item">
-      <div class="triangle"></div>
-      <div class="content" v-html="content"></div>
+    <div class="chat-icon">
+      <img :src="icon" alt="User"/>
     </div>
   </div>
 </template>
@@ -15,7 +15,7 @@
 import {defineComponent} from "vue"
 
 export default defineComponent({
-  name: 'ChatReply',
+  name: 'ChatPrompt',
   props: {
     content: {
       type: String,
@@ -23,7 +23,7 @@ export default defineComponent({
     },
     icon: {
       type: String,
-      default: 'images/gpt-icon.png',
+      default: 'images/user-icon.png',
     }
   },
   data() {
@@ -33,11 +33,11 @@ export default defineComponent({
 </script>
 
 <style lang="stylus">
-.chat-line-left {
-  justify-content: flex-start;
+.chat-line-right {
+  justify-content: flex-end;
 
   .chat-icon {
-    margin-right 5px;
+    margin-left 5px;
 
     img {
       border-radius 5px;
@@ -45,9 +45,8 @@ export default defineComponent({
   }
 
   .chat-item {
-    display: inline-block;
     position: relative;
-    padding: 0 0 0 5px;
+    padding: 0 5px 0 0;
     overflow: hidden;
 
     .triangle {
@@ -55,20 +54,23 @@ export default defineComponent({
       height: 0;
       border-top: 5px solid transparent;
       border-bottom: 5px solid transparent;
-      border-right: 5px solid #fff;
+      border-left: 5px solid #223A34;
       position: absolute;
-      left: 0;
-      top: 13px;
+      right: 0;
+      top: 10px;
     }
 
     .content {
-      min-height 20px;
       word-break break-word;
-      padding: 8px 10px;
-      color var(--content-color)
-      background-color: #fff;
+      padding: 12px 15px;
+      background-color: #223A34;
+      color var(--content-color);
       font-size: var(--content-font-size);
       border-radius: 5px;
+
+      p {
+        line-height 1.5
+      }
 
       p:last-child {
         margin-bottom: 0
@@ -77,13 +79,7 @@ export default defineComponent({
       p:first-child {
         margin-top 0
       }
-
-      p > code {
-        color #cc0000
-        background-color #f1f1f1
-      }
     }
   }
 }
-
 </style>

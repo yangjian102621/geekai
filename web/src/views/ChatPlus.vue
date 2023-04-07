@@ -1,69 +1,89 @@
 <template>
-  <div class="body" v-loading="loading">
-    <div id="container">
-      <div class="tool-box">
-        <el-image style="width: 24px; height: 24px" :src="logo"/>
-        <!--        <el-button round>WeChatGPT</el-button>-->
-        <el-select v-model="role" class="chat-role"
-                   v-on:change="changeRole"
-                   placeholder="请选择对话角色">
-          <el-option
-              v-for="item in chatRoles"
-              :key="item.key"
-              :label="item.name"
-              :value="item.key"
-          />
-        </el-select>
+  <div class="body">
+    <el-row>
+      <div class="chat-head">
+        <el-row class="row-center">
+          <el-col :span="12">
+            <div class="title-box">
+              <el-image :src="logo" class="logo"/>
+              <span>ChatGPT-Plus</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="tool-box">
 
-        <el-button type="danger" class="clear-history" size="small" circle @click="clearChatHistory">
-          <el-icon>
-            <Delete/>
-          </el-icon>
-        </el-button>
+              <el-button type="danger" class="clear-history" size="small" circle @click="clearChatHistory">
+                <el-icon>
+                  <Delete/>
+                </el-icon>
+              </el-button>
 
-        <el-button type="info" size="small" class="config" ref="send-btn" circle @click="showConnectDialog = true">
-          <el-icon>
-            <Tools/>
-          </el-icon>
-        </el-button>
+              <el-button type="info" size="small" class="config" ref="send-btn" circle
+                         @click="showConnectDialog = true">
+                <el-icon>
+                  <Tools/>
+                </el-icon>
+              </el-button>
+            </div>
+          </el-col>
+        </el-row>
       </div>
+    </el-row>
+    <el-row>
+      <div class="left-box">
+        <div class="grid-content">
 
-      <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
-        <div v-for="chat in chatData" :key="chat.id">
-          <chat-prompt
-              v-if="chat.type==='prompt'"
-              :icon="chat.icon"
-              :content="chat.content"/>
-          <chat-reply v-else-if="chat.type==='reply'"
-                      :icon="chat.icon"
-                      :content="chat.content"/>
         </div>
+      </div>
+      <div class="right-box" :style="{height: mainWinHeight+'px'}">
+        <div v-loading="loading">
+          <div id="container">
+            <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
+              <div v-for="chat in chatData" :key="chat.id">
+                <chat-prompt
+                    v-if="chat.type==='prompt'"
+                    :icon="chat.icon"
+                    :content="chat.content"/>
+                <chat-reply v-else-if="chat.type==='reply'"
+                            :icon="chat.icon"
+                            :content="chat.content"/>
+              </div>
 
-      </div><!-- end chat box -->
+            </div><!-- end chat box -->
 
-      <div class="input-box" :style="{width: inputBoxWidth+'px'}">
-        <div class="input-container">
-          <el-input
-              ref="text-input"
-              v-model="inputValue"
-              :autosize="{ minRows: 1, maxRows: 10 }"
-              v-on:keydown="inputKeyDown"
-              v-on:focus="focus"
-              autofocus
-              type="textarea"
-              placeholder="开始你的提问"
-          />
-        </div>
+            <el-row class="chat-tool-box">
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="进入AI绘画模式"
+                  placement="top"
+              >
+                <el-icon @click="drawImage">
+                  <Picture/>
+                </el-icon>
+              </el-tooltip>
 
-        <div class="btn-container">
-          <el-row>
-            <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
-          </el-row>
-        </div>
+            </el-row>
 
-      </div><!-- end input box -->
+            <div class="input-box">
+              <div class="input-container">
+                <el-input
+                    ref="text-input"
+                    v-model="inputValue"
+                    :autosize="{ minRows: 5, maxRows: 10 }"
+                    v-on:keydown="inputKeyDown"
+                    v-on:focus="focus"
+                    autofocus
+                    type="textarea"
+                    placeholder="先聊五毛钱吧..."
+                />
+              </div>
+            </div><!-- end input box -->
 
-    </div><!-- end container -->
+          </div><!-- end container -->
+        </div><!-- end loading -->
+      </div>
+    </el-row>
 
     <config-dialog v-model:show="showConnectDialog"></config-dialog>
 
@@ -94,17 +114,19 @@
         </el-row>
 
       </el-dialog>
-    </div>
+    </div> <!--end token dialog-->
   </div>
+
+
 </template>
 
 <script>
 import {defineComponent, nextTick} from 'vue'
-import ChatPrompt from "@/components/ChatPrompt.vue";
-import ChatReply from "@/components/ChatReply.vue";
+import ChatPrompt from "@/components/plus/ChatPrompt.vue";
+import ChatReply from "@/components/plus/ChatReply.vue";
 import {randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock, Delete} from '@element-plus/icons-vue'
+import {Tools, Lock, Delete, Picture} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, setSessionId} from "@/utils/storage";
@@ -112,8 +134,8 @@ import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 
 export default defineComponent({
-  name: "XChat",
-  components: {ChatPrompt, ChatReply, Tools, Lock, Delete, ConfigDialog},
+  name: "ChatPlus",
+  components: {ChatPrompt, ChatReply, Tools, Lock, Delete, Picture, ConfigDialog},
   data() {
     return {
       title: 'ChatGPT 控制台',
@@ -122,7 +144,6 @@ export default defineComponent({
       chatRoles: [],
       role: 'gpt',
       inputValue: '', // 聊天内容
-      chatBoxHeight: 0, // 聊天内容框高度
       showConnectDialog: false,
       showLoginDialog: false,
       token: '', // 会话 token
@@ -132,8 +153,8 @@ export default defineComponent({
       connectingMessageBox: null, // 保存重连的消息框对象
       errorMessage: null, // 错误信息提示框
       socket: null,
-      toolBoxHeight: 61 + 52, // 工具框的高度
-      inputBoxWidth: window.innerWidth - 20,
+      mainWinHeight: 0, // 主窗口高度
+      chatBoxHeight: 0, // 聊天内容框高度
       sending: true,
       loading: true
     }
@@ -141,73 +162,20 @@ export default defineComponent({
 
   mounted: function () {
     nextTick(() => {
-      this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
+      this.resizeElement();
     })
-
-    // for (let i = 0; i < 10; i++) {
-    //   this.chatData.push({
-    //     type: "prompt",
-    //     id: randString(32),
-    //     icon: 'images/user-icon.png',
-    //     content: "孙悟空为什么可以把金棍棒放进耳朵？",
-    //   });
-    //   this.chatData.push({
-    //     type: "reply",
-    //     id: randString(32),
-    //     icon: 'images/gpt-icon.png',
-    //     content: "以下是一个使用 WebSocket API 建立 WebSocket 连接并发送消息的 JavaScript 示例代码：\n" +
-    //         "\n" +
-    //         "```js\n" +
-    //         "const socket = new WebSocket('ws://localhost:8080');\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 连接打开事件\n" +
-    //         "socket.addEventListener('open', (event) => {\n" +
-    //         "  console.log('WebSocket 连接已打开');\n" +
-    //         "\n" +
-    //         "  // 发送消息\n" +
-    //         "  socket.send('Hello WebSocket!');\n" +
-    //         "});\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 接收到消息事件\n" +
-    //         "socket.addEventListener('message', (event) => {\n" +
-    //         "  console.log('接收到消息：' + event.data);\n" +
-    //         "});\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 连接关闭事件\n" +
-    //         "socket.addEventListener('close', (event) => {\n" +
-    //         "   console.log('WebSocket 连接已关闭');\n" +
-    //         "});\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 出错事件\n" +
-    //         "socket.addEventListener('error', (event) => {\n" +
-    //         "   console.log('WebSocket 连接出错');\n" +
-    //         "});\n" +
-    //         "```\n" +
-    //         "\n" +
-    //         "在实际使用时，需要替换上述代码中的 WebSocket 连接地址和端口号。此外，根据后端的实现，可能需要在客户端发送的消息中携带一些特定信息，以便后端能够正确地处理这些消息。",
-    //   });
-    // }
-    //
-    // let md = require('markdown-it')();
-    // this.chatData[this.chatData.length - 1]["content"] = md.render(this.chatData[this.chatData.length - 1]["content"]);
-    //
-    // nextTick(() => {
-    //   const lines = document.querySelectorAll('.chat-line');
-    //   const blocks = lines[lines.length - 1].querySelectorAll('pre code');
-    //   blocks.forEach((block) => {
-    //     hl.highlightElement(block)
-    //   })
-    // })
-
     window.addEventListener("resize", () => {
-      this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
-      this.inputBoxWidth = window.innerWidth - 20;
+      this.resizeElement();
     });
 
     this.connect();
   },
 
   methods: {
+    resizeElement: function () {
+      this.chatBoxHeight = window.innerHeight - 61 - 115 - 38;
+      this.mainWinHeight = window.innerHeight - 61;
+    },
     // 创建 socket 会话连接
     connect: function () {
       // 初始化 WebSocket 对象
@@ -289,26 +257,6 @@ export default defineComponent({
       httpGet("/api/session/get").then(() => {
         // 自动重新连接
         this.connect();
-        // if (this.connectingMessageBox === null) {
-        //   this.connectingMessageBox = ElMessageBox.confirm(
-        //       '^_^ 会话发生异常，您已经从服务器断开连接!',
-        //       '注意：',
-        //       {
-        //         confirmButtonText: '重连会话',
-        //         cancelButtonText: '不聊了',
-        //         type: 'warning',
-        //         showClose: false,
-        //         closeOnClickModal: false
-        //       }
-        //   ).then(() => {
-        //     this.connect();
-        //   }).catch(() => {
-        //     ElMessage({
-        //       type: 'info',
-        //       message: '您关闭了会话',
-        //     })
-        //   })
-        // }
       }).catch((res) => {
         if (res.code === 400) {
           this.showLoginDialog = true;
@@ -327,6 +275,13 @@ export default defineComponent({
           // 3 秒后继续重连
           setTimeout(() => this.checkSession(), 3000)
         }
+      })
+    },
+
+    drawImage: function () {
+      ElMessage({
+        message: '客观别急，AI 绘画服服务正在紧锣密鼓搭建中...',
+        type: 'info',
       })
     },
 
@@ -420,7 +375,7 @@ export default defineComponent({
     // 获取焦点
     focus: function () {
       setTimeout(function () {
-        document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+        document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
       }, 200)
     },
 
@@ -485,31 +440,39 @@ export default defineComponent({
   height: 100%;
 
   .body {
-    background-color: rgba(247, 247, 248, 1);
-
-    background-image url("~@/assets/img/bg_01.jpeg")
-    display flex;
-    //justify-content center;
-    align-items flex-start;
     height 100%;
 
-    #container {
-      overflow auto;
+    .chat-head {
       width 100%;
+      height 60px;
+      background-color: #28292A
+      border-bottom 1px solid #4f4f4f;
+
+      .title-box {
+        padding-top 6px;
+        display flex
+        color #ffffff;
+        font-size 20px;
+
+        .logo {
+          background-color #ffffff
+          border-radius 50%;
+          width 45px;
+          height 45px;
+        }
+
+        span {
+          padding-top: 12px;
+          padding-left: 10px;
+        }
+      }
 
       .tool-box {
-        padding-top 10px;
+        padding-top 16px;
+        padding-right 20px;
         display flex;
-        justify-content center;
+        justify-content flex-end;
         align-items center;
-
-        .el-select {
-          max-width 120px;
-        }
-
-        .chat-role {
-          margin-left 5px;
-        }
 
         .el-image {
           margin-right 5px;
@@ -520,13 +483,49 @@ export default defineComponent({
         }
       }
 
+    }
+
+    .el-row {
+      overflow hidden;
+      display: flex;
+
+      .left-box {
+        display flex
+        min-width 220px;
+        max-width 250px;
+        background-color: #28292A
+        border-top: 1px solid #2F3032
+        border-right: 1px solid #2F3032
+      }
+
+      .right-box {
+        min-width: 0;
+        flex: 1;
+        background-color #232425
+        border-left 1px solid #4f4f4f
+      }
+    }
+
+    #container {
+      overflow hidden;
+      width 100%;
+
+      ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        background-color: transparent;
+      }
+
       .chat-box {
+        overflow-y: scroll;
+        border-bottom 1px solid #4f4f4f
+
         // 变量定义
         --content-font-size: 16px;
-        --content-color: #374151;
+        --content-color: #c1c1c1;
 
         font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-        padding: 0 10px 10px 10px;
+        padding: 10px;
 
         .chat-line {
           padding 10px 5px;
@@ -536,37 +535,48 @@ export default defineComponent({
 
           .chat-icon {
             img {
-              width 32px;
-              height 32px;
+              width 45px;
+              height 45px;
+              border 1px solid #666;
+              border-radius 50%;
+              padding 1px;
             }
           }
         }
+      }
 
+      .chat-tool-box {
+        padding 10px;
+        border-top: 1px solid #2F3032
+
+        .el-icon svg {
+          color #cccccc
+          width 1em;
+          background-color #232425
+          cursor pointer
+        }
       }
 
       .input-box {
-        padding 10px;
-        background #ffffff;
-
-        position: absolute;
-        bottom: 0
+        background-color #232425
         display: flex;
         justify-content: start;
         align-items: center;
 
         .input-container {
-          overflow hidden
-          width 100%
+          width: 100%
           margin: 0;
           border: none;
           border-radius: 6px;
           box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-          background-color: rgba(255, 255, 255, 1);
+          background-color #232425
           padding: 5px 10px;
 
           .el-textarea__inner {
             box-shadow: none
             padding 5px 0
+            background-color #232425
+            color #B5B7B8
           }
 
           .el-textarea__inner::-webkit-scrollbar {
