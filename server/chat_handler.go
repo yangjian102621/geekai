@@ -57,13 +57,13 @@ func (s *Server) ChatHandle(c *gin.Context) {
 			}
 
 			logger.Info("Receive a message: ", string(message))
-			replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
-			replyMessage(client, "![](images/wx.png)", true)
+			//replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
+			//replyMessage(client, "![](images/wx.png)", true)
 			// TODO: 当前只保持当前会话的上下文，部保存用户的所有的聊天历史记录，后期要考虑保存所有的历史记录
-			//err = s.sendMessage(session, chatRole, string(message), client, false)
-			//if err != nil {
-			//	logger.Error(err)
-			//}
+			err = s.sendMessage(session, chatRole, string(message), client, false)
+			if err != nil {
+				logger.Error(err)
+			}
 		}
 	}()
 }

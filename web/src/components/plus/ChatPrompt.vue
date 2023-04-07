@@ -32,7 +32,7 @@ export default defineComponent({
 })
 </script>
 
-<style lang="stylus">
+<style lang="stylus" scoped>
 .chat-line-right {
   justify-content: flex-end;
 
@@ -40,7 +40,7 @@ export default defineComponent({
     margin-left 5px;
 
     img {
-      border-radius 5px;
+      border-radius 50%;
     }
   }
 
@@ -52,9 +52,9 @@ export default defineComponent({
     .triangle {
       width: 0;
       height: 0;
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
-      border-left: 5px solid #223A34;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 10px solid #223A34;
       position: absolute;
       right: 0;
       top: 10px;

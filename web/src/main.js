@@ -4,6 +4,7 @@ import ElementPlus from "element-plus"
 import "element-plus/dist/index.css"
 import App from './App.vue'
 import ChatPlus from "@/views/ChatPlus.vue";
+import Chat from "@/views/Chat.vue";
 import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import './utils/prototype'
@@ -11,7 +12,12 @@ import './utils/prototype'
 const routes = [
     {
         name: 'chat-plus', path: '/', component: ChatPlus, meta: {
-            title: 'ChatGPT-Plus'
+            title: 'ChatGPT-Plus for PC'
+        }
+    },
+    {
+        name: 'chat-mobile', path: '/mobile', component: Chat, meta: {
+            title: 'ChatGPT-Plus for Mobile'
         }
     },
     {

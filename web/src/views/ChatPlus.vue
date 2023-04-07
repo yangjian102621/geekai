@@ -1,5 +1,5 @@
 <template>
-  <div class="body">
+  <div class="body-plus">
     <el-row>
       <div class="chat-head">
         <el-row class="row-center">
@@ -31,8 +31,13 @@
     </el-row>
     <el-row>
       <div class="left-box">
-        <div class="grid-content">
-
+        <div class="content">
+          <el-row v-for="item in chatRoles" :key="item.key">
+            <div :class="item.key === this.role?'chat-role-item active':'chat-role-item'" @click="changeRole(item)">
+              <el-image :src="item.icon" class="avatar"/>
+              <span>{{ item.name }}</span>
+            </div>
+          </el-row>
         </div>
       </div>
       <div class="right-box" :style="{height: mainWinHeight+'px'}">
@@ -236,7 +241,7 @@ export default defineComponent({
             }
             // 将聊天框的滚动条滑动到最底部
             nextTick(() => {
-              document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+              document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
             })
           };
         }
@@ -286,17 +291,13 @@ export default defineComponent({
     },
 
     // 更换角色
-    changeRole: function () {
+    changeRole: function (item) {
       this.loading = true
+      this.role = item.key;
+      this.replyIcon = item.icon;
       // 清空对话列表
       this.chatData = [];
       this.connect();
-      for (const key in this.chatRoles) {
-        if (this.chatRoles[key].key === this.role) {
-          this.replyIcon = this.chatRoles[key].icon;
-          break;
-        }
-      }
     },
 
     // 从后端获取聊天历史记录
@@ -439,7 +440,7 @@ export default defineComponent({
 #app {
   height: 100%;
 
-  .body {
+  .body-plus {
     height 100%;
 
     .chat-head {
@@ -496,6 +497,39 @@ export default defineComponent({
         background-color: #28292A
         border-top: 1px solid #2F3032
         border-right: 1px solid #2F3032
+
+        .content {
+          display flex
+          flex-wrap: wrap;
+          flex-direction column
+          width 100%
+
+          .chat-role-item {
+            display flex
+            width 100%
+            justify-content flex-start
+            padding 10px 18px
+            border-bottom: 1px solid #3c3c3c
+            cursor pointer
+
+
+            .avatar {
+              width 36px;
+              height 36px;
+              border-radius 50%;
+            }
+
+            span {
+              color #c1c1c1
+              padding 8px 10px;
+            }
+          }
+
+
+          .chat-role-item.active {
+            background-color: #363535;
+          }
+        }
       }
 
       .right-box {
@@ -505,6 +539,7 @@ export default defineComponent({
         border-left 1px solid #4f4f4f
       }
     }
+
 
     #container {
       overflow hidden;
@@ -560,7 +595,7 @@ export default defineComponent({
       .input-box {
         background-color #232425
         display: flex;
-        justify-content: start;
+        justify-content: flex-start;
         align-items: center;
 
         .input-container {
@@ -584,27 +619,6 @@ export default defineComponent({
             height: 0;
           }
         }
-
-        .btn-container {
-          margin-left 10px;
-
-          .el-row {
-            flex-wrap nowrap
-            //width 106px;
-            align-items center
-          }
-
-          .send {
-            width 60px;
-            height 40px;
-            background-color: var(--el-color-success)
-          }
-
-          .is-disabled {
-            background-color: var(--el-button-disabled-bg-color);
-            border-color: var(--el-button-disabled-border-color);
-          }
-        }
       }
     }
 
@@ -617,32 +631,32 @@ export default defineComponent({
       justify-content center
     }
   }
-}
 
-.el-message-box {
-  width 90%;
-  max-width 420px;
-}
+  .el-message-box {
+    width 90%;
+    max-width 420px;
+  }
 
-.el-message {
-  min-width: 100px;
-  max-width 600px;
-}
+  .el-message {
+    min-width: 100px;
+    max-width 600px;
+  }
 
-.token-dialog {
-  .el-dialog {
-    --el-dialog-width 90%;
-    max-width 400px;
+  .token-dialog {
+    .el-dialog {
+      --el-dialog-width 90%;
+      max-width 400px;
 
-    .el-dialog__body {
-      padding 10px 10px 20px 10px;
-    }
+      .el-dialog__body {
+        padding 10px 10px 20px 10px;
+      }
 
-    .el-row {
-      flex-wrap nowrap
+      .el-row {
+        flex-wrap nowrap
 
-      button {
-        margin-left 5px;
+        button {
+          margin-left 5px;
+        }
       }
     }
   }
