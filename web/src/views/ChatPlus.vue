@@ -31,6 +31,16 @@
     </el-row>
     <el-row>
       <div class="left-box">
+        <div class="search-box">
+          <el-input v-model="roleName" class="w-50 m-2" size="small" placeholder="搜索聊天角色" @keyup="searchRole">
+            <template #prefix>
+              <el-icon class="el-input__icon">
+                <Search/>
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+
         <div class="content" :style="{height: leftBoxHeight+'px'}">
           <el-row v-for="item in chatRoles" :key="item.key">
             <div :class="item.key === this.role?'chat-role-item active':'chat-role-item'" @click="changeRole(item)">
@@ -129,30 +139,32 @@
 import {defineComponent, nextTick} from 'vue'
 import ChatPrompt from "@/components/plus/ChatPrompt.vue";
 import ChatReply from "@/components/plus/ChatReply.vue";
-import {randString} from "@/utils/libs";
+import {isMobile, randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock, Delete, Picture} from '@element-plus/icons-vue'
+import {Tools, Lock, Delete, Picture, Search} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
-import {getSessionId, setSessionId} from "@/utils/storage";
+import {getSessionId, setLoginUser} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 
 export default defineComponent({
   name: "ChatPlus",
-  components: {ChatPrompt, ChatReply, Tools, Lock, Delete, Picture, ConfigDialog},
+  components: {Search, ChatPrompt, ChatReply, Tools, Lock, Delete, Picture, ConfigDialog},
   data() {
     return {
       title: 'ChatGPT 控制台',
       logo: 'images/logo.png',
       chatData: [],
-      chatRoles: [],
+      chatRoles: [], // 当前显示的角色集合
+      allChatRoles: [], // 所有角色集合
       role: 'gpt',
       inputValue: '', // 聊天内容
       showConnectDialog: false,
       showLoginDialog: false,
       token: '', // 会话 token
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
+      roleName: "", // 搜索角色名称
 
       lineBuffer: '', // 输出缓冲行
       connectingMessageBox: null, // 保存重连的消息框对象
@@ -167,6 +179,11 @@ export default defineComponent({
   },
 
   mounted: function () {
+    if (isMobile()) {
+      this.$router.push("mobile");
+      return;
+    }
+
     nextTick(() => {
       this.resizeElement();
     })
@@ -194,6 +211,7 @@ export default defineComponent({
           httpGet("/api/config/chat-roles/get").then((res) => {
             // ElMessage.success('创建会话成功！');
             this.chatRoles = res.data;
+            this.allChatRoles = res.data;
             this.loading = false
           }).catch(() => {
             ElMessage.error("获取聊天角色失败");
@@ -391,7 +409,7 @@ export default defineComponent({
       httpPost("/api/login", {
         token: this.token
       }).then((res) => {
-        setSessionId(res.data)
+        setLoginUser(res.data)
         this.connect();
       }).catch(() => {
         ElMessage.error("口令错误");
@@ -431,7 +449,22 @@ export default defineComponent({
         })
       }).catch(() => {
       })
-    }
+    },
+
+    // 搜索聊天角色
+    searchRole: function () {
+      if (this.roleName === '') {
+        this.chatRoles = this.allChatRoles;
+        return;
+      }
+      const roles = [];
+      for (let i = 0; i < this.allChatRoles.length; i++) {
+        if (this.allChatRoles[i].name.indexOf(this.roleName) !== -1) {
+          roles.push(this.allChatRoles[i]);
+        }
+      }
+      this.chatRoles = roles;
+    },
   },
 
 })
@@ -493,13 +526,25 @@ export default defineComponent({
 
       .left-box {
         display flex
+        flex-flow column
         min-width 220px;
         max-width 250px;
         background-color: #28292A
         border-top: 1px solid #2F3032
         border-right: 1px solid #2F3032
 
+        .search-box {
+          flex-wrap wrap
+          padding 10px 15px;
+
+          .el-input__wrapper {
+            background-color: #363535;
+            box-shadow: none
+          }
+        }
+
         // 隐藏滚动条
+
         ::-webkit-scrollbar {
           width: 0;
           height: 0;

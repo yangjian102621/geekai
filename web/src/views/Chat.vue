@@ -102,12 +102,12 @@
 import {defineComponent, nextTick} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {randString} from "@/utils/libs";
+import {isMobile, randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {Tools, Lock, Delete} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
-import {getSessionId, setSessionId} from "@/utils/storage";
+import {getSessionId, setLoginUser} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 
@@ -140,6 +140,11 @@ export default defineComponent({
   },
 
   mounted: function () {
+    if (!isMobile()) {
+      this.$router.push("plus");
+      return;
+    }
+
     nextTick(() => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
       ElMessage.warning("强烈建议使用PC浏览器访问获的更好的聊天体验！")
@@ -379,7 +384,7 @@ export default defineComponent({
       httpPost("/api/login", {
         token: this.token
       }).then((res) => {
-        setSessionId(res.data)
+        setLoginUser(res.data)
         this.connect();
         this.loading = false;
       }).catch(() => {

@@ -299,8 +299,8 @@ func (s *Server) ListApiKeysHandle(c *gin.Context) {
 
 // GetChatRoleListHandle 获取聊天角色列表
 func (s *Server) GetChatRoleListHandle(c *gin.Context) {
-	var rolesOrder = []string{"gpt", "programmer", "teacher", "red_book", "dou_yin", "weekly_report", "girl_friend",
-		"kong_zi", "lu_xun", "steve_jobs", "elon_musk", "translator", "english_trainer",
+	var rolesOrder = []string{"gpt", "teacher", "translator", "english_trainer", "weekly_report", "girl_friend",
+		"kong_zi", "lu_xun", "steve_jobs", "elon_musk", "red_book", "dou_yin", "programmer",
 		"seller", "good_comment", "psychiatrist", "artist"}
 	var res = make([]interface{}, 0)
 	var roles = GetChatRoles()

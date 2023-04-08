@@ -3,13 +3,23 @@
  * storage handler
  */
 
-const SessionIdKey = 'ChatGPT_SESSION_ID';
+const SessionUserKey = 'LOGIN_USER';
 export const Global = {}
 
 export function getSessionId() {
-    return sessionStorage.getItem(SessionIdKey)
+    const user = getLoginUser();
+    return user ? user['session_id'] : '';
 }
 
-export function setSessionId(value) {
-    sessionStorage.setItem(SessionIdKey, value)
+export function getLoginUser() {
+    const value = sessionStorage.getItem(SessionUserKey);
+    if (value) {
+        return JSON.parse(value);
+    } else {
+        return null;
+    }
+}
+
+export function setLoginUser(value) {
+    sessionStorage.setItem(SessionUserKey, JSON.stringify(value))
 }

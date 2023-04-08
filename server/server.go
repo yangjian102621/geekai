@@ -302,5 +302,8 @@ func (s *Server) LoginHandle(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: sessionId})
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: struct {
+		User      types.User `json:"user"`
+		SessionId string     `json:"session_id"`
+	}{User: *user, SessionId: sessionId}})
 }
