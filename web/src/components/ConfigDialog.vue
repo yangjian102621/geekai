@@ -2,7 +2,9 @@
   <el-dialog
       v-model="$props.show"
       :close-on-click-modal="false"
-      :show-close="false"
+      :show-close="true"
+      :before-close="close"
+      :top="top"
       title="聊天配置"
   >
     <div class="user-info">
@@ -140,6 +142,15 @@ export default defineComponent({
       user: {},
       wechatGroup: "https://img.r9it.com/chatgpt/wechat-group.jpeg",
       wechatCard: "https://img.r9it.com/chatgpt/wechat-card.jpeg"
+    }
+  },
+  computed: {
+    top: function () {
+      if (window.innerHeight < 1000) {
+        return '1vh';
+      } else {
+        return '15vh';
+      }
     }
   },
   mounted() {
