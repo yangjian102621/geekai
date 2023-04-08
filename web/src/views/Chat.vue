@@ -85,9 +85,9 @@
           <el-button type="primary" @click="submitToken">提交</el-button>
         </el-row>
 
-        <el-row class="row-center">
-          <p>打开微信扫下面二维码免费领取口令</p>
-        </el-row>
+        <div class="tip-text">
+          打开微信扫下面二维码免费领取口令, <strong>强烈建议你使用 PC 浏览器访问获得更好的聊天体验。</strong>
+        </div>
 
         <el-row class="row-center">
           <el-image src="images/wx.png" fit="cover"/>
@@ -142,62 +142,8 @@ export default defineComponent({
   mounted: function () {
     nextTick(() => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
+      ElMessage.warning("强烈建议使用PC浏览器访问获的更好的聊天体验！")
     })
-
-    // for (let i = 0; i < 10; i++) {
-    //   this.chatData.push({
-    //     type: "prompt",
-    //     id: randString(32),
-    //     icon: 'images/user-icon.png',
-    //     content: "孙悟空为什么可以把金棍棒放进耳朵？",
-    //   });
-    //   this.chatData.push({
-    //     type: "reply",
-    //     id: randString(32),
-    //     icon: 'images/gpt-icon.png',
-    //     content: "以下是一个使用 WebSocket API 建立 WebSocket 连接并发送消息的 JavaScript 示例代码：\n" +
-    //         "\n" +
-    //         "```js\n" +
-    //         "const socket = new WebSocket('ws://localhost:8080');\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 连接打开事件\n" +
-    //         "socket.addEventListener('open', (event) => {\n" +
-    //         "  console.log('WebSocket 连接已打开');\n" +
-    //         "\n" +
-    //         "  // 发送消息\n" +
-    //         "  socket.send('Hello WebSocket!');\n" +
-    //         "});\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 接收到消息事件\n" +
-    //         "socket.addEventListener('message', (event) => {\n" +
-    //         "  console.log('接收到消息：' + event.data);\n" +
-    //         "});\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 连接关闭事件\n" +
-    //         "socket.addEventListener('close', (event) => {\n" +
-    //         "   console.log('WebSocket 连接已关闭');\n" +
-    //         "});\n" +
-    //         "\n" +
-    //         "// 监听 WebSocket 出错事件\n" +
-    //         "socket.addEventListener('error', (event) => {\n" +
-    //         "   console.log('WebSocket 连接出错');\n" +
-    //         "});\n" +
-    //         "```\n" +
-    //         "\n" +
-    //         "在实际使用时，需要替换上述代码中的 WebSocket 连接地址和端口号。此外，根据后端的实现，可能需要在客户端发送的消息中携带一些特定信息，以便后端能够正确地处理这些消息。",
-    //   });
-    // }
-    //
-    // let md = require('markdown-it')();
-    // this.chatData[this.chatData.length - 1]["content"] = md.render(this.chatData[this.chatData.length - 1]["content"]);
-    //
-    // nextTick(() => {
-    //   const lines = document.querySelectorAll('.chat-line');
-    //   const blocks = lines[lines.length - 1].querySelectorAll('pre code');
-    //   blocks.forEach((block) => {
-    //     hl.highlightElement(block)
-    //   })
-    // })
 
     window.addEventListener("resize", () => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
@@ -626,15 +572,23 @@ export default defineComponent({
 
     .el-dialog__body {
       padding 10px 10px 20px 10px;
-    }
 
-    .el-row {
-      flex-wrap nowrap
+      .el-row {
+        flex-wrap nowrap
 
-      button {
-        margin-left 5px;
+        button {
+          margin-left 5px;
+        }
+      }
+
+      .tip-text {
+        text-align left
+        padding 10px 20px;
+        line-height 1.5
       }
     }
+
+
   }
 }
 

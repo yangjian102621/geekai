@@ -9,22 +9,11 @@ import (
 )
 
 func (s *Server) TestHandle(c *gin.Context) {
-	var data map[string]interface{}
-	err := json.NewDecoder(c.Request.Body).Decode(&data)
-	if err != nil {
-		logger.Errorf("Error decode json data: %s", err.Error())
-		c.JSON(http.StatusBadRequest, nil)
-		return
+	roles := types.GetDefaultChatRole()
+	for _, v := range roles {
+		PutChatRole(v)
 	}
-	if v, ok := data["opt"]; ok && v == "init_user" {
-		users := GetUsers()
-		for _, user := range users {
-			user.Status = true
-			_ = PutUser(user)
-		}
-
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: GetUsers()})
-	}
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: GetChatRoles()})
 
 }
 
@@ -310,7 +299,9 @@ func (s *Server) ListApiKeysHandle(c *gin.Context) {
 
 // GetChatRoleListHandle 获取聊天角色列表
 func (s *Server) GetChatRoleListHandle(c *gin.Context) {
-	var rolesOrder = []string{"gpt", "programmer", "teacher", "artist", "philosopher", "lu-xun", "english_trainer", "seller"}
+	var rolesOrder = []string{"gpt", "programmer", "teacher", "red_book", "dou_yin", "weekly_report", "girl_friend",
+		"kong_zi", "lu_xun", "steve_jobs", "elon_musk", "translator", "english_trainer",
+		"seller", "good_comment", "psychiatrist", "artist"}
 	var res = make([]interface{}, 0)
 	var roles = GetChatRoles()
 	for _, k := range rolesOrder {
@@ -328,6 +319,30 @@ func (s *Server) GetChatRoleListHandle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: res})
+}
+
+// AddChatRoleHandle 添加一个聊天角色
+func (s *Server) AddChatRoleHandle(c *gin.Context) {
+	var data types.ChatRole
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if data.Key == "" || data.Name == "" || data.Icon == "" {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid parameters"})
+		return
+	}
+
+	err = PutChatRole(data)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save levelDB"})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: data})
 }
 
 // GetChatRoleHandle 获取指定的角色
@@ -395,7 +410,7 @@ func (s *Server) SetChatRoleHandle(c *gin.Context) {
 
 	err = PutChatRole(*role)
 	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save levelDB"})
 		return
 	}
 

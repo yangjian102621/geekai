@@ -31,7 +31,7 @@
     </el-row>
     <el-row>
       <div class="left-box">
-        <div class="content">
+        <div class="content" :style="{height: leftBoxHeight+'px'}">
           <el-row v-for="item in chatRoles" :key="item.key">
             <div :class="item.key === this.role?'chat-role-item active':'chat-role-item'" @click="changeRole(item)">
               <el-image :src="item.icon" class="avatar"/>
@@ -41,7 +41,7 @@
         </div>
       </div>
       <div class="right-box" :style="{height: mainWinHeight+'px'}">
-        <div v-loading="loading">
+        <div v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
           <div id="container">
             <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
               <div v-for="chat in chatData" :key="chat.id">
@@ -160,6 +160,7 @@ export default defineComponent({
       socket: null,
       mainWinHeight: 0, // 主窗口高度
       chatBoxHeight: 0, // 聊天内容框高度
+      leftBoxHeight: 0,
       sending: true,
       loading: true
     }
@@ -180,6 +181,7 @@ export default defineComponent({
     resizeElement: function () {
       this.chatBoxHeight = window.innerHeight - 61 - 115 - 38;
       this.mainWinHeight = window.innerHeight - 61;
+      this.leftBoxHeight = window.innerHeight - 61 - 100;
     },
     // 创建 socket 会话连接
     connect: function () {
@@ -391,7 +393,6 @@ export default defineComponent({
       }).then((res) => {
         setSessionId(res.data)
         this.connect();
-        this.loading = false;
       }).catch(() => {
         ElMessage.error("口令错误");
         this.token = '';
@@ -498,11 +499,19 @@ export default defineComponent({
         border-top: 1px solid #2F3032
         border-right: 1px solid #2F3032
 
+        // 隐藏滚动条
+        ::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          background-color: transparent;
+        }
+
         .content {
-          display flex
-          flex-wrap: wrap;
-          flex-direction column
+          //display flex
+          //flex-wrap: wrap;
+          //flex-direction column
           width 100%
+          overflow-y scroll
 
           .chat-role-item {
             display flex

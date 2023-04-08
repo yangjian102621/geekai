@@ -13,3 +13,9 @@ export function randString(length) {
     }
     return buf.join("")
 }
+
+export function isMobile() {
+    const userAgent = navigator.userAgent;
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+    return mobileRegex.test(userAgent);
+}

@@ -90,6 +90,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 
 	engine.POST("/api/config/set", s.ConfigSetHandle)
 	engine.GET("/api/config/chat-roles/get", s.GetChatRoleListHandle)
+	engine.GET("/api/config/chat-roles/add", s.AddChatRoleHandle)
 	engine.POST("api/config/user/add", s.AddUserHandle)
 	engine.POST("api/config/user/batch-add", s.BatchAddUserHandle)
 	engine.POST("api/config/user/set", s.SetUserHandle)

@@ -7,16 +7,22 @@ import ChatPlus from "@/views/ChatPlus.vue";
 import Chat from "@/views/Chat.vue";
 import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
+import Home from "@/views/Home.vue";
 import './utils/prototype'
 
 const routes = [
     {
-        name: 'chat-plus', path: '/', component: ChatPlus, meta: {
+        name: 'home', path: '/', component: Home, meta: {
+            title: 'ChatGPT-Plus'
+        }
+    },
+    {
+        name: 'plus', path: '/plus', component: ChatPlus, meta: {
             title: 'ChatGPT-Plus for PC'
         }
     },
     {
-        name: 'chat-mobile', path: '/mobile', component: Chat, meta: {
+        name: 'mobile', path: '/mobile', component: Chat, meta: {
             title: 'ChatGPT-Plus for Mobile'
         }
     },
