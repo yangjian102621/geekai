@@ -20,6 +20,6 @@ export function getLoginUser() {
     }
 }
 
-export function setLoginUser(value) {
-    sessionStorage.setItem(SessionUserKey, JSON.stringify(value))
+export function setLoginUser(user) {
+    sessionStorage.setItem(SessionUserKey, JSON.stringify(user))
 }

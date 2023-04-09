@@ -156,9 +156,11 @@ export default defineComponent({
   mounted() {
     // 获取用户信息
     const data = getLoginUser();
-    this.user = data.user;
-    this.user['active_time'] = dateFormat(this.user['active_time']);
-    this.user['expired_time'] = dateFormat(this.user['expired_time']);
+    if (data !== null) {
+      this.user = data["user"];
+      this.user['active_time'] = dateFormat(this.user['active_time']);
+      this.user['expired_time'] = dateFormat(this.user['expired_time']);
+    }
   },
   methods: {
     save: function () {

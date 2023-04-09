@@ -12,18 +12,36 @@
           <el-col :span="12">
             <div class="tool-box">
 
-              <el-button type="danger" class="clear-history" size="small" circle @click="clearChatHistory">
-                <el-icon>
-                  <Delete/>
-                </el-icon>
-              </el-button>
+              <el-dropdown :hide-on-click="true" class="user-info" trigger="click">
+                <span class="el-dropdown-link">
+                  <el-image src="images/avatar/user.png"/>
+                  <el-icon><ArrowDown/></el-icon>
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click="showConnectDialog = true">
+                      <el-icon>
+                        <Tools/>
+                      </el-icon>
+                      <span>聊天设置</span>
+                    </el-dropdown-item>
 
-              <el-button type="info" size="small" class="config" ref="send-btn" circle
-                         @click="showConnectDialog = true">
-                <el-icon>
-                  <Tools/>
-                </el-icon>
-              </el-button>
+                    <el-dropdown-item @click="clearChatHistory">
+                      <el-icon>
+                        <Delete/>
+                      </el-icon>
+                      <span>删除记录</span>
+                    </el-dropdown-item>
+
+                    <el-dropdown-item>
+                      <el-icon>
+                        <Monitor/>
+                      </el-icon>
+                      <span>注销</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </el-col>
         </el-row>
@@ -141,7 +159,7 @@ import ChatPrompt from "@/components/plus/ChatPrompt.vue";
 import ChatReply from "@/components/plus/ChatReply.vue";
 import {isMobile, randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock, Delete, Picture, Search} from '@element-plus/icons-vue'
+import {Tools, Lock, Delete, Picture, Search, ArrowDown, Monitor} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, setLoginUser} from "@/utils/storage";
@@ -150,7 +168,7 @@ import 'highlight.js/styles/a11y-dark.css'
 
 export default defineComponent({
   name: "ChatPlus",
-  components: {Search, ChatPrompt, ChatReply, Tools, Lock, Delete, Picture, ConfigDialog},
+  components: {ArrowDown, Search, ChatPrompt, ChatReply, Tools, Lock, Delete, Picture, Monitor, ConfigDialog},
   data() {
     return {
       title: 'ChatGPT 控制台',
@@ -372,8 +390,10 @@ export default defineComponent({
         target.blur();
       }
 
-      if (this.sending || this.inputValue.trim().length === 0) {
+      if (this.inputValue.trim().length === 0) {
         return false;
+      } else if (this.sending) {
+        ElMessage.warning("AI 正在作答中请稍后...")
       }
 
       // 追加消息
@@ -509,12 +529,24 @@ export default defineComponent({
         justify-content flex-end;
         align-items center;
 
-        .el-image {
-          margin-right 5px;
-        }
+        .user-info {
+          margin-left 20px;
 
-        .clear-history, .config {
-          margin-left 5px;
+          .el-dropdown-link {
+            cursor pointer
+
+            img {
+              width 30px;
+              height 30px;
+              border-radius 50%;
+            }
+
+            .el-icon {
+              bottom 8px
+              color #cccccc
+              margin-left 5px;
+            }
+          }
         }
       }
 
