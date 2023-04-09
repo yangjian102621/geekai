@@ -14,7 +14,7 @@
 
               <el-dropdown :hide-on-click="true" class="user-info" trigger="click">
                 <span class="el-dropdown-link">
-                  <el-image src="images/avatar/user.png"/>
+                  <el-image src="images/user-info.jpg"/>
                   <el-icon><ArrowDown/></el-icon>
                 </span>
                 <template #dropdown>
@@ -33,7 +33,7 @@
                       <span>删除记录</span>
                     </el-dropdown-item>
 
-                    <el-dropdown-item>
+                    <el-dropdown-item @click="logout">
                       <el-icon>
                         <Monitor/>
                       </el-icon>
@@ -431,6 +431,7 @@ export default defineComponent({
       }).then((res) => {
         setLoginUser(res.data)
         this.connect();
+        this.token = '';
       }).catch(() => {
         ElMessage.error("口令错误");
         this.token = '';
@@ -485,6 +486,15 @@ export default defineComponent({
       }
       this.chatRoles = roles;
     },
+
+    // 退出登录
+    logout: function () {
+      httpPost("/api/logout", {opt: "logout"}).then(() => {
+        this.checkSession();
+      }).catch(() => {
+        ElMessage.error("注销失败");
+      })
+    }
   },
 
 })

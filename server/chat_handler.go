@@ -42,6 +42,9 @@ func (s *Server) ChatHandle(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	// 保存会话连接
+	s.ChatClients[sessionId] = client
+
 	// 加载历史消息，如果历史消息为空则发送打招呼消息
 	_, err = GetChatHistory(session.Username, roleKey)
 	if err != nil {
@@ -53,6 +56,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 			if err != nil {
 				logger.Error(err)
 				client.Close()
+				delete(s.ChatClients, sessionId)
 				return
 			}
 
