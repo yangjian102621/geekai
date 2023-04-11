@@ -92,7 +92,7 @@
                   停止生成
                 </el-button>
 
-                <el-button type="info" v-if="showReGenerate" @click="reGenerate" plain>
+                <el-button type="primary" v-if="showReGenerate" @click="reGenerate" plain>
                   <el-icon>
                     <RefreshRight/>
                   </el-icon>
@@ -145,7 +145,7 @@
           title="请输入口令继续访问"
       >
         <el-row>
-          <el-input v-model="token" placeholder="在此输入口令" @keyup="loginInputKeyup">
+          <el-input v-model="token" placeholder="在此输入口令" type="password" @keyup="loginInputKeyup">
             <template #prefix>
               <el-icon class="el-input__icon">
                 <Lock/>
@@ -310,7 +310,7 @@ export default defineComponent({
               }
             } else if (data.type === 'end') { // 消息接收完毕
               this.sending = false;
-              if (data['is_hello_mgs'] !== true) {
+              if (data['is_hello_msg'] !== true) {
                 this.showReGenerate = true;
               }
               this.showStopGenerate = false;
@@ -387,6 +387,8 @@ export default defineComponent({
       this.replyIcon = item.icon;
       // 清空对话列表
       this.chatData = [];
+      this.showStopGenerate = false;
+      this.showReGenerate = false;
       this.connect();
     },
 
