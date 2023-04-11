@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"github.com/gin-contrib/sessions"
@@ -39,10 +40,11 @@ type Server struct {
 
 	// 保存 Websocket 会话 Username, 每个 Username 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
-	ChatSession      map[string]types.ChatSession //map[sessionId]User
-	ApiKeyAccessStat map[string]int64             // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
-	ChatClients      map[string]*WsClient         // Websocket 连接集合
-	DebugMode        bool                         // 是否开启调试模式
+	ChatSession      map[string]types.ChatSession  //map[sessionId]User
+	ApiKeyAccessStat map[string]int64              // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
+	ChatClients      map[string]*WsClient          // Websocket 连接集合
+	ReqCancelFunc    map[string]context.CancelFunc // HttpClient 请求取消 handle function
+	DebugMode        bool                          // 是否开启调试模式
 }
 
 func NewServer(configPath string) (*Server, error) {
@@ -67,6 +69,7 @@ func NewServer(configPath string) (*Server, error) {
 		ChatContexts:     make(map[string]types.ChatContext, 16),
 		ChatSession:      make(map[string]types.ChatSession),
 		ChatClients:      make(map[string]*WsClient),
+		ReqCancelFunc:    make(map[string]context.CancelFunc),
 		ApiKeyAccessStat: make(map[string]int64),
 	}, nil
 }
@@ -83,17 +86,18 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.Use(AuthorizeMiddleware(s))
 	engine.Use(Recover)
 
-	engine.POST("/test", s.TestHandle)
-	engine.GET("/api/session/get", s.GetSessionHandle)
-	engine.POST("/api/login", s.LoginHandle)
-	engine.POST("/api/logout", s.LogoutHandle)
-	engine.Any("/api/chat", s.ChatHandle)
+	engine.POST("test", s.TestHandle)
+	engine.GET("api/session/get", s.GetSessionHandle)
+	engine.POST("api/login", s.LoginHandle)
+	engine.POST("api/logout", s.LogoutHandle)
+	engine.Any("api/chat", s.ChatHandle)
+	engine.POST("api/chat/stop", s.StopGenerateHandle)
 	engine.POST("api/chat/history", s.GetChatHistoryHandle)
 	engine.POST("api/chat/history/clear", s.ClearHistoryHandle)
 
-	engine.POST("/api/config/set", s.ConfigSetHandle)
-	engine.GET("/api/config/chat-roles/get", s.GetChatRoleListHandle)
-	engine.GET("/api/config/chat-roles/add", s.AddChatRoleHandle)
+	engine.POST("api/config/set", s.ConfigSetHandle)
+	engine.GET("api/config/chat-roles/get", s.GetChatRoleListHandle)
+	engine.GET("api/config/chat-roles/add", s.AddChatRoleHandle)
 	engine.POST("api/config/user/add", s.AddUserHandle)
 	engine.POST("api/config/user/batch-add", s.BatchAddUserHandle)
 	engine.POST("api/config/user/set", s.SetUserHandle)

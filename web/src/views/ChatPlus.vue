@@ -81,8 +81,25 @@
                             :icon="chat.icon"
                             :content="chat.content"/>
               </div>
-
             </div><!-- end chat box -->
+
+            <div class="re-generate">
+              <div class="btn-box">
+                <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
+                  <el-icon>
+                    <VideoPause/>
+                  </el-icon>
+                  停止生成
+                </el-button>
+
+                <el-button type="info" v-if="showReGenerate" @click="reGenerate" plain>
+                  <el-icon>
+                    <RefreshRight/>
+                  </el-icon>
+                  重新生成
+                </el-button>
+              </div>
+            </div>
 
             <el-row class="chat-tool-box">
               <el-tooltip
@@ -159,7 +176,17 @@ import ChatPrompt from "@/components/plus/ChatPrompt.vue";
 import ChatReply from "@/components/plus/ChatReply.vue";
 import {isMobile, randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock, Delete, Picture, Search, ArrowDown, Monitor} from '@element-plus/icons-vue'
+import {
+  Tools,
+  Lock,
+  Delete,
+  Picture,
+  Search,
+  ArrowDown,
+  Monitor,
+  VideoPause,
+  RefreshRight
+} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, setLoginUser} from "@/utils/storage";
@@ -168,7 +195,20 @@ import 'highlight.js/styles/a11y-dark.css'
 
 export default defineComponent({
   name: "ChatPlus",
-  components: {ArrowDown, Search, ChatPrompt, ChatReply, Tools, Lock, Delete, Picture, Monitor, ConfigDialog},
+  components: {
+    RefreshRight,
+    VideoPause,
+    ArrowDown,
+    Search,
+    ChatPrompt,
+    ChatReply,
+    Tools,
+    Lock,
+    Delete,
+    Picture,
+    Monitor,
+    ConfigDialog
+  },
   data() {
     return {
       title: 'ChatGPT 控制台',
@@ -183,6 +223,11 @@ export default defineComponent({
       token: '', // 会话 token
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
       roleName: "", // 搜索角色名称
+
+      showStopGenerate: false, // 停止生成
+      showReGenerate: false, // 重新生成
+      canReGenerate: false, // 是否可以重新生
+      previousText: '', // 上一次提问
 
       lineBuffer: '', // 输出缓冲行
       connectingMessageBox: null, // 保存重连的消息框对象
@@ -260,8 +305,15 @@ export default defineComponent({
                 content: "",
                 cursor: true
               });
-            } else if (data.type === 'end') {
+              if (data['is_hello_msg'] !== true) {
+                this.canReGenerate = true;
+              }
+            } else if (data.type === 'end') { // 消息接收完毕
               this.sending = false;
+              if (data['is_hello_mgs'] !== true) {
+                this.showReGenerate = true;
+              }
+              this.showStopGenerate = false;
               this.lineBuffer = ''; // 清空缓冲
             } else {
               this.lineBuffer += data.content;
@@ -372,6 +424,7 @@ export default defineComponent({
     inputKeyDown: function (e) {
       if (e.keyCode === 13) {
         if (this.sending) {
+          ElMessage.warning("AI 正在作答中，请稍后...");
           e.preventDefault();
         } else {
           this.sendMessage();
@@ -390,10 +443,8 @@ export default defineComponent({
         target.blur();
       }
 
-      if (this.inputValue.trim().length === 0) {
+      if (this.inputValue.trim().length === 0 || this.sending) {
         return false;
-      } else if (this.sending) {
-        ElMessage.warning("AI 正在作答中请稍后...")
       }
 
       // 追加消息
@@ -405,8 +456,11 @@ export default defineComponent({
       });
 
       this.sending = true;
+      this.showStopGenerate = true;
+      this.showReGenerate = false;
       this.socket.send(this.inputValue);
       this.$refs["text-input"].blur();
+      this.previousText = this.inputValue;
       this.inputValue = '';
       // 等待 textarea 重新调整尺寸之后再自动获取焦点
       setTimeout(() => this.$refs["text-input"].focus(), 100);
@@ -494,6 +548,26 @@ export default defineComponent({
       }).catch(() => {
         ElMessage.error("注销失败");
       })
+    },
+
+    // 停止生成
+    stopGenerate: function () {
+      this.showStopGenerate = false;
+      httpPost("/api/chat/stop").then(() => {
+        console.log("stopped generate.")
+        this.sending = false;
+        if (this.canReGenerate) {
+          this.showReGenerate = true;
+        }
+      })
+    },
+
+    // 重新生成
+    reGenerate: function () {
+      this.sending = true;
+      this.showStopGenerate = true;
+      this.showReGenerate = false;
+      this.socket.send('重新生成上述问题的答案：' + this.previousText);
     }
   },
 
@@ -673,6 +747,24 @@ export default defineComponent({
               padding 1px;
             }
           }
+        }
+      }
+
+      .re-generate {
+        position: relative;
+        display: flex;
+        justify-content: center;
+
+        .btn-box {
+          position absolute
+          bottom 10px;
+
+          .el-button {
+            .el-icon {
+              margin-right 5px;
+            }
+          }
+
         }
       }
 
