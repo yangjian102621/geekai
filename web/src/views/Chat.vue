@@ -21,7 +21,7 @@
           </el-icon>
         </el-button>
 
-        <el-button type="info" size="small" class="config" ref="send-btn" circle @click="showConnectDialog = true">
+        <el-button type="info" size="small" class="config" ref="send-btn" circle @click="configDialog">
           <el-icon>
             <Tools/>
           </el-icon>
@@ -65,7 +65,7 @@
 
     </div><!-- end container -->
 
-    <config-dialog v-model:show="showConnectDialog"></config-dialog>
+    <config-dialog v-model:show="showConfigDialog" :user="userInfo"></config-dialog>
 
     <div class="token-dialog">
       <el-dialog
@@ -107,7 +107,7 @@ import {ElMessage, ElMessageBox} from 'element-plus'
 import {Tools, Lock, Delete} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
-import {getSessionId, setLoginUser} from "@/utils/storage";
+import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 
@@ -123,8 +123,11 @@ export default defineComponent({
       role: 'gpt',
       inputValue: '', // 聊天内容
       chatBoxHeight: 0, // 聊天内容框高度
-      showConnectDialog: false,
+
+      showConfigDialog: false,
+      userInfo: {},
       showLoginDialog: false,
+
       token: '', // 会话 token
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
 
@@ -159,6 +162,10 @@ export default defineComponent({
   },
 
   methods: {
+    configDialog: function () {
+      this.showConfigDialog = true;
+      this.userInfo = getUserInfo();
+    },
     // 创建 socket 会话连接
     connect: function () {
       // 初始化 WebSocket 对象
@@ -240,26 +247,6 @@ export default defineComponent({
       httpGet("/api/session/get").then(() => {
         // 自动重新连接
         this.connect();
-        // if (this.connectingMessageBox === null) {
-        //   this.connectingMessageBox = ElMessageBox.confirm(
-        //       '^_^ 会话发生异常，您已经从服务器断开连接!',
-        //       '注意：',
-        //       {
-        //         confirmButtonText: '重连会话',
-        //         cancelButtonText: '不聊了',
-        //         type: 'warning',
-        //         showClose: false,
-        //         closeOnClickModal: false
-        //       }
-        //   ).then(() => {
-        //     this.connect();
-        //   }).catch(() => {
-        //     ElMessage({
-        //       type: 'info',
-        //       message: '您关闭了会话',
-        //     })
-        //   })
-        // }
       }).catch((res) => {
         if (res.code === 400) {
           this.showLoginDialog = true;

@@ -1,4 +1,6 @@
 /* eslint-disable no-constant-condition */
+import {dateFormat} from "@/utils/libs";
+
 /**
  * storage handler
  */
@@ -22,4 +24,15 @@ export function getLoginUser() {
 
 export function setLoginUser(user) {
     sessionStorage.setItem(SessionUserKey, JSON.stringify(user))
+}
+
+export function getUserInfo() {
+    const data = getLoginUser();
+    if (data !== null) {
+        const user = data["user"];
+        user['active_time'] = dateFormat(user['active_time']);
+        user['expired_time'] = dateFormat(user['expired_time']);
+        return user;
+    }
+    return {}
 }

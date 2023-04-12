@@ -8,14 +8,14 @@
       title="聊天配置"
   >
     <div class="user-info">
-      <el-input v-model="user['api_key']" placeholder="填写你 OpenAI 的 API KEY">
+      <el-input :value="user['api_key']" placeholder="填写你 OpenAI 的 API KEY">
         <template #prepend>API KEY</template>
       </el-input>
 
       <el-descriptions
           class="margin-top"
           title="账户信息"
-          :column="2"
+          :column="col"
           border
       >
 
@@ -125,8 +125,7 @@ import {
   UserFilled,
   Histogram
 } from '@element-plus/icons-vue'
-import {getLoginUser} from "@/utils/storage";
-import {dateFormat} from "@/utils/libs";
+import {isMobile} from "@/utils/libs";
 
 export default defineComponent({
   name: 'ConfigDialog',
@@ -135,11 +134,16 @@ export default defineComponent({
     show: {
       type: Boolean,
       default: true
+    },
+    user: {
+      type: Object,
+      default() {
+        return {}
+      },
     }
   },
   data() {
     return {
-      user: {},
       wechatGroup: "https://img.r9it.com/chatgpt/wechat-group.jpeg",
       wechatCard: "https://img.r9it.com/chatgpt/wechat-card.jpeg"
     }
@@ -151,16 +155,14 @@ export default defineComponent({
       } else {
         return '15vh';
       }
+    },
+    
+    col: function () {
+      return isMobile() ? 1 : 2;
     }
   },
   mounted() {
-    // 获取用户信息
-    const data = getLoginUser();
-    if (data !== null) {
-      this.user = data["user"];
-      this.user['active_time'] = dateFormat(this.user['active_time']);
-      this.user['expired_time'] = dateFormat(this.user['expired_time']);
-    }
+
   },
   methods: {
     save: function () {

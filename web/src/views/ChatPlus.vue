@@ -19,7 +19,7 @@
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="showConnectDialog = true">
+                    <el-dropdown-item @click="configDialog()">
                       <el-icon>
                         <Tools/>
                       </el-icon>
@@ -135,7 +135,7 @@
       </div>
     </el-row>
 
-    <config-dialog v-model:show="showConnectDialog"></config-dialog>
+    <config-dialog v-model:show="showConfigDialog" :user="userInfo"></config-dialog>
 
     <div class="token-dialog">
       <el-dialog
@@ -189,7 +189,7 @@ import {
 } from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
-import {getSessionId, setLoginUser} from "@/utils/storage";
+import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 
@@ -218,7 +218,10 @@ export default defineComponent({
       allChatRoles: [], // 所有角色集合
       role: 'gpt',
       inputValue: '', // 聊天内容
-      showConnectDialog: false,
+
+      showConfigDialog: false, // 显示配置对话框
+      userInfo: {},
+
       showLoginDialog: false,
       token: '', // 会话 token
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
@@ -258,6 +261,11 @@ export default defineComponent({
   },
 
   methods: {
+    configDialog() {
+      this.showConfigDialog = true
+      this.userInfo = getUserInfo();
+    },
+
     resizeElement: function () {
       this.chatBoxHeight = window.innerHeight - 61 - 115 - 38;
       this.mainWinHeight = window.innerHeight - 61;
