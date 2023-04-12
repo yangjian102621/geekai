@@ -61,15 +61,19 @@ func (s *Server) ChatHandle(c *gin.Context) {
 				return
 			}
 			logger.Info("Receive a message: ", string(message))
-			//replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
-			//replyMessage(client, "![](images/wx.png)", true)
-			ctx, cancel := context.WithCancel(context.Background())
-			s.ReqCancelFunc[sessionId] = cancel
-			// 回复消息
-			err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
-			if err != nil {
-				logger.Error(err)
-			}
+			replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
+			replyMessage(client, "![](images/wx.png)", true)
+			//ctx, cancel := context.WithCancel(context.Background())
+			//s.ReqCancelFunc[sessionId] = cancel
+			//// 回复消息
+			//err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
+			//if err != nil {
+			//	logger.Error(err)
+			//} else {
+			//	replyChunkMessage(client, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
+			//	logger.Info("回答完毕: " + string(message))
+			//}
+
 		}
 	}()
 }
@@ -232,7 +236,6 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 		err = json.Unmarshal([]byte(line[6:]), &responseBody)
 		if err != nil { // 数据解析出错
 			logger.Error(err, line)
-			replyChunkMessage(ws, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
 			replyMessage(ws, ErrorMsg, false)
 			replyMessage(ws, "![](images/wx.png)", true)
 			break
@@ -246,9 +249,8 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 			message.Role = responseBody.Choices[0].Delta.Role
 			replyChunkMessage(ws, types.WsMessage{Type: types.WsStart, IsHelloMsg: false})
 			continue
-		} else if responseBody.Choices[0].FinishReason != "" { // 输出完成或者输出中断了
-			replyChunkMessage(ws, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
-			break
+		} else if responseBody.Choices[0].FinishReason != "" {
+			break // 输出完成或者输出中断了
 		} else {
 			content := responseBody.Choices[0].Delta.Content
 			contents = append(contents, content)
@@ -262,9 +264,7 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 		// 监控取消信号
 		select {
 		case <-ctx.Done():
-			// 结束输出
-			replyChunkMessage(ws, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
-			_ = response.Body.Close()
+			_ = response.Body.Close() // 关闭响应流
 			return errors.New("用户取消了请求：" + prompt)
 		default:
 			continue
@@ -306,7 +306,7 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 		}
 	}
 
-	return err
+	return nil
 }
 
 // 随机获取一个 API Key，如果请求失败，则更换 API Key 重试

@@ -6,18 +6,23 @@
 
     <div class="chat-item">
       <div class="triangle"></div>
-      <div class="content" v-html="content"></div>
+      <div class="content reply-content" :data-clipboard-text="orgContent" v-html="content"></div>
     </div>
   </div>
 </template>
 
 <script>
 import {defineComponent} from "vue"
+import {randString} from "@/utils/libs";
 
 export default defineComponent({
   name: 'ChatReply',
   props: {
     content: {
+      type: String,
+      default: '',
+    },
+    orgContent: {
       type: String,
       default: '',
     },
@@ -27,8 +32,12 @@ export default defineComponent({
     }
   },
   data() {
-    return {}
+    return {
+      id: randString(32),
+      clipboard: null,
+    }
   },
+
 })
 </script>
 

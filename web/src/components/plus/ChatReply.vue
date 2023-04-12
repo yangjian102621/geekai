@@ -6,7 +6,7 @@
 
     <div class="chat-item">
       <div class="triangle"></div>
-      <div class="content" v-html="content"></div>
+      <div class="content reply-content" :data-clipboard-text="orgContent" v-html="content"></div>
     </div>
   </div>
 </template>
@@ -18,6 +18,10 @@ export default defineComponent({
   name: 'ChatReply',
   props: {
     content: {
+      type: String,
+      default: '',
+    },
+    orgContent: {
       type: String,
       default: '',
     },

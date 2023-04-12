@@ -79,6 +79,7 @@
                     :content="chat.content"/>
                 <chat-reply v-else-if="chat.type==='reply'"
                             :icon="chat.icon"
+                            :org-content="chat.orgContent"
                             :content="chat.content"/>
               </div>
             </div><!-- end chat box -->
@@ -192,6 +193,7 @@ import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
+import Clipboard from "clipboard";
 
 export default defineComponent({
   name: "ChatPlus",
@@ -249,6 +251,15 @@ export default defineComponent({
       this.$router.push("mobile");
       return;
     }
+
+    const clipboard = new Clipboard('.reply-content');
+    clipboard.on('success', () => {
+      ElMessage.success('复制成功！');
+    })
+
+    clipboard.on('error', () => {
+      ElMessage.error('复制失败！');
+    })
 
     nextTick(() => {
       this.resizeElement();
@@ -326,7 +337,8 @@ export default defineComponent({
             } else {
               this.lineBuffer += data.content;
               let md = require('markdown-it')();
-              this.chatData[this.chatData.length - 1]["content"] = md.render(this.lineBuffer);
+              this.chatData[this.chatData.length - 1]['orgContent'] = this.lineBuffer;
+              this.chatData[this.chatData.length - 1]['content'] = md.render(this.lineBuffer);
 
               nextTick(() => {
                 hl.configure({ignoreUnescapedHTML: true})
@@ -415,6 +427,7 @@ export default defineComponent({
             continue;
           }
 
+          data[i].orgContent = data[i].content;
           data[i].content = md.render(data[i].content);
           this.chatData.push(data[i]);
         }

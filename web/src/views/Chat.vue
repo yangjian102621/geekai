@@ -12,7 +12,12 @@
               :key="item.key"
               :label="item.name"
               :value="item.key"
-          />
+          >
+            <div class="role-option">
+              <el-image :src="item.icon"></el-image>
+              <span>{{ item.name }}</span>
+            </div>
+          </el-option>
         </el-select>
 
         <el-button type="danger" class="clear-history" size="small" circle @click="clearChatHistory">
@@ -36,29 +41,50 @@
               :content="chat.content"/>
           <chat-reply v-else-if="chat.type==='reply'"
                       :icon="chat.icon"
+                      :org-content="chat.orgContent"
                       :content="chat.content"/>
         </div>
 
       </div><!-- end chat box -->
 
       <div class="input-box" :style="{width: inputBoxWidth+'px'}">
-        <div class="input-container">
-          <el-input
-              ref="text-input"
-              v-model="inputValue"
-              :autosize="{ minRows: 1, maxRows: 10 }"
-              v-on:keydown="inputKeyDown"
-              v-on:focus="focus"
-              autofocus
-              type="textarea"
-              placeholder="开始你的提问"
-          />
+        <div class="re-generate">
+          <div class="btn-box">
+            <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
+              <el-icon>
+                <VideoPause/>
+              </el-icon>
+              停止生成
+            </el-button>
+
+            <el-button type="primary" v-if="showReGenerate" @click="reGenerate" plain>
+              <el-icon>
+                <RefreshRight/>
+              </el-icon>
+              重新生成
+            </el-button>
+          </div>
         </div>
 
-        <div class="btn-container">
-          <el-row>
-            <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
-          </el-row>
+        <div class="input-wrapper">
+          <div class="input-container">
+            <el-input
+                ref="text-input"
+                v-model="inputValue"
+                :autosize="{ minRows: 1, maxRows: 10 }"
+                v-on:keydown="inputKeyDown"
+                v-on:focus="focus"
+                autofocus
+                type="textarea"
+                placeholder="开始你的提问"
+            />
+          </div>
+
+          <div class="btn-container">
+            <el-row>
+              <el-button type="success" class="send" :disabled="sending" v-on:click="sendMessage">发送</el-button>
+            </el-row>
+          </div>
         </div>
 
       </div><!-- end input box -->
@@ -75,7 +101,7 @@
           title="请输入口令继续访问"
       >
         <el-row>
-          <el-input v-model="token" placeholder="在此输入口令" @keyup="loginInputKeyup">
+          <el-input v-model="token" placeholder="在此输入口令" type="password" @keyup="loginInputKeyup">
             <template #prefix>
               <el-icon class="el-input__icon">
                 <Lock/>
@@ -104,16 +130,17 @@ import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {isMobile, randString} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock, Delete} from '@element-plus/icons-vue'
+import {Tools, Lock, Delete, VideoPause, RefreshRight} from '@element-plus/icons-vue'
 import ConfigDialog from '@/components/ConfigDialog.vue'
 import {httpPost, httpGet} from "@/utils/http";
 import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
+import Clipboard from "clipboard";
 
 export default defineComponent({
   name: "XChat",
-  components: {ChatPrompt, ChatReply, Tools, Lock, Delete, ConfigDialog},
+  components: {RefreshRight, VideoPause, ChatPrompt, ChatReply, Tools, Lock, Delete, ConfigDialog},
   data() {
     return {
       title: 'ChatGPT 控制台',
@@ -127,6 +154,11 @@ export default defineComponent({
       showConfigDialog: false,
       userInfo: {},
       showLoginDialog: false,
+
+      showStopGenerate: false,
+      showReGenerate: false,
+      canReGenerate: false, // 是否可以重新生
+      previousText: '', // 上一次提问
 
       token: '', // 会话 token
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
@@ -147,6 +179,15 @@ export default defineComponent({
       this.$router.push("plus");
       return;
     }
+
+    const clipboard = new Clipboard('.reply-content');
+    clipboard.on('success', () => {
+      ElMessage.success('复制成功！');
+    })
+
+    clipboard.on('error', () => {
+      ElMessage.error('复制失败！');
+    })
 
     nextTick(() => {
       this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
@@ -207,13 +248,21 @@ export default defineComponent({
                 content: "",
                 cursor: true
               });
+              if (data['is_hello_msg'] !== true) {
+                this.canReGenerate = true;
+              }
             } else if (data.type === 'end') {
               this.sending = false;
+              if (data['is_hello_msg'] !== true) {
+                this.showReGenerate = true;
+              }
+              this.showStopGenerate = false;
               this.lineBuffer = ''; // 清空缓冲
             } else {
               this.lineBuffer += data.content;
+              this.chatData[this.chatData.length - 1]['orgContent'] = this.lineBuffer;
               let md = require('markdown-it')();
-              this.chatData[this.chatData.length - 1]["content"] = md.render(this.lineBuffer);
+              this.chatData[this.chatData.length - 1]['content'] = md.render(this.lineBuffer);
 
               nextTick(() => {
                 hl.configure({ignoreUnescapedHTML: true})
@@ -296,7 +345,7 @@ export default defineComponent({
             this.chatData.push(data[i]);
             continue;
           }
-
+          data[i].orgContent = data[i].content;
           data[i].content = md.render(data[i].content);
           this.chatData.push(data[i]);
         }
@@ -347,8 +396,11 @@ export default defineComponent({
       });
 
       this.sending = true;
+      this.showStopGenerate = true;
+      this.showReGenerate = false;
       this.socket.send(this.inputValue);
       this.$refs["text-input"].blur();
+      this.previousText = this.inputValue;
       this.inputValue = '';
       // 等待 textarea 重新调整尺寸之后再自动获取焦点
       setTimeout(() => this.$refs["text-input"].focus(), 100);
@@ -412,6 +464,26 @@ export default defineComponent({
         })
       }).catch(() => {
       })
+    },
+
+    // 停止生成
+    stopGenerate: function () {
+      this.showStopGenerate = false;
+      httpPost("/api/chat/stop").then(() => {
+        console.log("stopped generate.")
+        this.sending = false;
+        if (this.canReGenerate) {
+          this.showReGenerate = true;
+        }
+      })
+    },
+
+    // 重新生成
+    reGenerate: function () {
+      this.sending = true;
+      this.showStopGenerate = true;
+      this.showReGenerate = false;
+      this.socket.send('重新生成上述问题的答案：' + this.previousText);
     }
   },
 
@@ -485,54 +557,77 @@ export default defineComponent({
       .input-box {
         padding 10px;
         background #ffffff;
-
         position: absolute;
         bottom: 0
         display: flex;
         justify-content: start;
         align-items: center;
+        flex-flow: column;
 
-        .input-container {
-          overflow hidden
-          width 100%
-          margin: 0;
-          border: none;
-          border-radius: 6px;
-          box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-          background-color: rgba(255, 255, 255, 1);
-          padding: 5px 10px;
+        .re-generate {
+          position relative
+          display flex
+          justify-content center
 
-          .el-textarea__inner {
-            box-shadow: none
-            padding 5px 0
-          }
+          .btn-box {
+            position absolute
+            bottom 20px
 
-          .el-textarea__inner::-webkit-scrollbar {
-            width: 0;
-            height: 0;
+            .el-icon {
+              margin-right 5px;
+            }
           }
         }
 
-        .btn-container {
-          margin-left 10px;
+        .input-wrapper {
+          width 100%;
+          display flex;
 
-          .el-row {
-            flex-wrap nowrap
-            //width 106px;
-            align-items center
+          .input-container {
+            overflow hidden
+            width 100%
+            margin: 0;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 1);
+            padding: 5px 10px;
+
+            .el-textarea__inner {
+              box-shadow: none
+              padding 5px 0
+            }
+
+            .el-textarea__inner::-webkit-scrollbar {
+              width: 0;
+              height: 0;
+            }
           }
 
-          .send {
-            width 60px;
-            height 40px;
-            background-color: var(--el-color-success)
-          }
+          .btn-container {
+            margin-left 10px;
 
-          .is-disabled {
-            background-color: var(--el-button-disabled-bg-color);
-            border-color: var(--el-button-disabled-border-color);
+            .el-row {
+              flex-wrap nowrap
+              //width 106px;
+              align-items center
+            }
+
+            .send {
+              width 60px;
+              height 40px;
+              background-color: var(--el-color-success)
+            }
+
+            .is-disabled {
+              background-color: var(--el-button-disabled-bg-color);
+              border-color: var(--el-button-disabled-border-color);
+            }
           }
         }
+
+        // end of input wrapper
+
       }
     }
 
@@ -584,4 +679,26 @@ export default defineComponent({
   }
 }
 
+.el-select-dropdown {
+  .el-select-dropdown__item {
+    padding 8px 5px;
+
+    .role-option {
+      display flex
+      flex-flow row
+
+      .el-image {
+        width 20px
+        height 20px
+        border-radius 50%
+      }
+
+      span {
+        margin-left 5px;
+        height 20px;
+        line-height 20px;
+      }
+    }
+  }
+}
 </style>
