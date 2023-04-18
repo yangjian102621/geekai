@@ -127,9 +127,9 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	// 定时清理过期的会话
 	go func() {
 		for {
-			for key, context := range s.ChatContexts {
+			for key, ctx := range s.ChatContexts {
 				// 清理超过 60min 没有更新，则表示为过期会话
-				if time.Now().Unix()-context.LastAccessTime > int64(s.Config.Chat.ChatContextExpireTime) {
+				if time.Now().Unix()-ctx.LastAccessTime > int64(s.Config.Chat.ChatContextExpireTime) {
 					logger.Infof("清理会话上下文: %s", key)
 					delete(s.ChatContexts, key)
 				}
@@ -279,7 +279,8 @@ func (s *Server) LoginHandle(c *gin.Context) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 		return
 	}
-	user, err := GetUser(data.Token)
+	username := strings.TrimSpace(data.Token)
+	user, err := GetUser(username)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid user"})
 		return
@@ -287,13 +288,13 @@ func (s *Server) LoginHandle(c *gin.Context) {
 
 	sessionId := utils.RandString(42)
 	session := sessions.Default(c)
-	session.Set(sessionId, data.Token)
+	session.Set(sessionId, username)
 	err = session.Save()
 	if err != nil {
 		logger.Error("Error for save session: ", err)
 	}
 	// 记录客户端 IP 地址
-	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Username: data.Token, SessionId: sessionId}
+	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Username: username, SessionId: sessionId}
 	// 更新用户激活时间
 	user.ActiveTime = time.Now().Unix()
 	if user.ExpiredTime == 0 {

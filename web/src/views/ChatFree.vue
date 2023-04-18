@@ -1,51 +1,47 @@
 <template>
-  <div class="body" v-loading="loading">
-    <div id="container">
-      <div class="tool-box">
-        <el-image style="width: 24px; height: 24px" :src="logo"/>
-        <!--        <el-button round>WeChatGPT</el-button>-->
-        <el-select v-model="role" class="chat-role"
-                   v-on:change="changeRole"
-                   placeholder="请选择对话角色">
-          <el-option
-              v-for="item in chatRoles"
-              :key="item.key"
-              :label="item.name"
-              :value="item.key"
-          >
-            <div class="role-option">
-              <el-image :src="item.icon"></el-image>
-              <span>{{ item.name }}</span>
-            </div>
-          </el-option>
-        </el-select>
+  <div class="chat-free-page">
+    <div class="sidebar" id="sidebar">
+      <nav>
+        <ul>
+          <li class="new-chat"><a>
+            <span class="icon"><el-icon><Plus/></el-icon></span>
+            <span class="text">新建会话</span>
+          </a></li>
+          <li><a>
+            <span class="icon"><el-icon><ChatRound/></el-icon></span>
+            <span class="text">新建会话</span>
+          </a></li>
+          <li class="active"><a>
+            <span class="icon"><el-icon><ChatRound/></el-icon></span>
+            <span class="text">新建会话</span>
+          </a></li>
+        </ul>
+      </nav>
+    </div>
 
-        <el-button type="danger" class="clear-history" size="small" circle @click="clearChatHistory">
-          <el-icon>
-            <Delete/>
-          </el-icon>
-        </el-button>
-
-        <el-button type="info" size="small" class="config" ref="send-btn" circle @click="configDialog">
-          <el-icon>
-            <Tools/>
-          </el-icon>
-        </el-button>
+    <div class="main-content" v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
+      <div class="title">
+        <span class="icon">
+          <el-icon><Fold/></el-icon>
+        </span>
+        <span class="text">响应式页面布局代码</span>
       </div>
 
-      <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
-        <div v-for="chat in chatData" :key="chat.id">
-          <chat-prompt
-              v-if="chat.type==='prompt'"
-              :icon="chat.icon"
-              :content="chat.content"/>
-          <chat-reply v-else-if="chat.type==='reply'"
-                      :icon="chat.icon"
-                      :org-content="chat.orgContent"
-                      :content="chat.content"/>
-        </div>
+      <div class="chat-container">
+        <div class="chat-box" id="chat-box">
+          <div v-for="chat in chatData" :key="chat.id">
+            <chat-prompt
+                v-if="chat.type==='prompt'"
+                :icon="chat.icon"
+                :content="chat.content"/>
+            <chat-reply v-else-if="chat.type==='reply'"
+                        :icon="chat.icon"
+                        :org-content="chat.orgContent"
+                        :content="chat.content"/>
+          </div>
 
-      </div><!-- end chat box -->
+        </div><!-- end chat box -->
+      </div>
 
       <div class="input-box" :style="{width: inputBoxWidth+'px'}">
         <div class="re-generate">
@@ -71,7 +67,7 @@
             <el-input
                 ref="text-input"
                 v-model="inputValue"
-                :autosize="{ minRows: 1, maxRows: 10 }"
+                :autosize="{ minRows: 1, maxRows: 5 }"
                 v-on:keydown="inputKeyDown"
                 v-on:focus="focus"
                 autofocus
@@ -89,7 +85,7 @@
 
       </div><!-- end input box -->
 
-    </div><!-- end container -->
+    </div>
 
     <config-dialog v-model:show="showConfigDialog" :user="userInfo"></config-dialog>
 
@@ -125,34 +121,32 @@
 </template>
 
 <script>
-import {defineComponent, nextTick} from 'vue'
-import ChatPrompt from "@/components/ChatPrompt.vue";
+import {defineComponent, nextTick} from "vue"
+import {ChatRound, Fold, Lock, Plus, RefreshRight, VideoPause} from "@element-plus/icons-vue";
+import {httpGet, httpPost} from "@/utils/http";
+import hl from "highlight.js";
 import ChatReply from "@/components/ChatReply.vue";
-import {isMobile, randString} from "@/utils/libs";
-import {ElMessage, ElMessageBox} from 'element-plus'
-import {Tools, Lock, Delete, VideoPause, RefreshRight} from '@element-plus/icons-vue'
-import ConfigDialog from '@/components/ConfigDialog.vue'
-import {httpPost, httpGet} from "@/utils/http";
+import ChatPrompt from "@/components/ChatPrompt.vue";
 import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
-import hl from 'highlight.js'
-import 'highlight.js/styles/a11y-dark.css'
+import {ElMessage, ElMessageBox} from "element-plus";
+import {randString} from "@/utils/libs";
 import Clipboard from "clipboard";
+import ConfigDialog from "@/components/ConfigDialog.vue";
 
+// 免费版 ChatGPT
 export default defineComponent({
-  name: "XChat",
-  components: {RefreshRight, VideoPause, ChatPrompt, ChatReply, Tools, Lock, Delete, ConfigDialog},
+  name: 'ChatFree',
+  components: {ConfigDialog, Lock, VideoPause, RefreshRight, ChatPrompt, ChatReply, ChatRound, Plus, Fold},
   data() {
     return {
-      logo: 'images/logo.png',
       chatData: [],
-      chatRoles: [],
-      role: 'gpt',
       inputValue: '', // 聊天内容
-      chatBoxHeight: 0, // 聊天内容框高度
 
       showConfigDialog: false,
       userInfo: {},
       showLoginDialog: false,
+      role: 'gpt',
+      replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
 
       showStopGenerate: false,
       showReGenerate: false,
@@ -160,24 +154,18 @@ export default defineComponent({
       previousText: '', // 上一次提问
 
       token: '', // 会话 token
-      replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
-
       lineBuffer: '', // 输出缓冲行
-      connectingMessageBox: null, // 保存重连的消息框对象
       errorMessage: null, // 错误信息提示框
       socket: null,
-      toolBoxHeight: 61 + 52, // 工具框的高度
-      inputBoxWidth: window.innerWidth - 20,
+      inputBoxWidth: 0,
       sending: true,
-      loading: true
+      loading: true,
+
     }
   },
 
-  mounted: function () {
-    if (!isMobile()) {
-      this.$router.push("plus");
-      return;
-    }
+  mounted() {
+    this.fetchChatHistory();
 
     const clipboard = new Clipboard('.reply-content');
     clipboard.on('success', () => {
@@ -189,16 +177,17 @@ export default defineComponent({
     })
 
     nextTick(() => {
-      this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
-      ElMessage.warning("强烈建议使用PC浏览器访问获的更好的聊天体验！")
+      this.inputBoxWidth = document.getElementById('sidebar') ?
+          window.innerWidth - document.getElementById('sidebar').offsetWidth - 20 : window.innerWidth - 20;
     })
 
     window.addEventListener("resize", () => {
-      this.chatBoxHeight = window.innerHeight - this.toolBoxHeight;
-      this.inputBoxWidth = window.innerWidth - 20;
+      this.inputBoxWidth = document.getElementById('sidebar') ?
+          window.innerWidth - document.getElementById('sidebar').offsetWidth - 20 : window.innerWidth - 20;
     });
 
     this.connect();
+
   },
 
   methods: {
@@ -212,20 +201,8 @@ export default defineComponent({
       const sessionId = getSessionId();
       const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
       socket.addEventListener('open', () => {
-        // 获取聊天角色
-        if (this.chatRoles.length === 0) {
-          httpGet("/api/config/chat-roles/get").then((res) => {
-            // ElMessage.success('创建会话成功！');
-            this.chatRoles = res.data;
-            this.loading = false
-          }).catch(() => {
-            ElMessage.error("获取聊天角色失败");
-          })
-        } else {
-          this.loading = false
-        }
-
         this.sending = false; // 允许用户发送消息
+        this.loading = false; // 隐藏加载层
         if (this.errorMessage !== null) {
           this.errorMessage.close(); // 关闭错误提示信息
         }
@@ -274,7 +251,7 @@ export default defineComponent({
             }
             // 将聊天框的滚动条滑动到最底部
             nextTick(() => {
-              document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+              document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
             })
           };
         }
@@ -314,20 +291,6 @@ export default defineComponent({
           setTimeout(() => this.checkSession(), 3000)
         }
       })
-    },
-
-    // 更换角色
-    changeRole: function () {
-      this.loading = true
-      // 清空对话列表
-      this.chatData = [];
-      this.connect();
-      for (const key in this.chatRoles) {
-        if (this.chatRoles[key].key === this.role) {
-          this.replyIcon = this.chatRoles[key].icon;
-          break;
-        }
-      }
     },
 
     // 从后端获取聊天历史记录
@@ -409,7 +372,7 @@ export default defineComponent({
     // 获取焦点
     focus: function () {
       setTimeout(function () {
-        document.getElementById('container').scrollTo(0, document.getElementById('container').scrollHeight)
+        document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
       }, 200)
     },
 
@@ -484,58 +447,118 @@ export default defineComponent({
       this.showReGenerate = false;
       this.socket.send('重新生成上述问题的答案：' + this.previousText);
     }
-  },
-
+  }
 })
 </script>
 
 <style lang="stylus">
-#app {
-  height: 100%;
+.chat-free-page {
+  display: flex;
+  flex-direction: row;
+  height 100%;
+  background-color: rgba(247, 247, 248, 1);
 
-  .body {
-    background-color: rgba(247, 247, 248, 1);
+  .sidebar {
+    background-color: #1D1E20
+    height: 100%;
+    width 350px;
 
+    nav {
+      margin 0
+      padding 0
+
+      ul {
+        list-style-type: none
+        padding 5px
+        margin 0
+
+        li {
+          padding: 10px
+          color: #ffffff
+          cursor pointer
+          margin-bottom 10px;
+          box-sizing: border-box;
+          border-radius 5px;
+
+          &:hover {
+            background-color #2E2F39
+          }
+
+          a {
+            display flex
+            text-decoration: none;
+
+            .icon {
+              font-size 16px;
+              margin-top 3px;
+              margin-right 8px;
+            }
+
+            .text {
+              font-size 14px;
+              padding-top 2px;
+              overflow hidden
+            }
+
+          }
+
+        }
+
+        li.active {
+          background-color #2E2F39
+        }
+
+        li.new-chat {
+          border: 1px solid #4A4B4D;
+        }
+
+      }
+    }
+  }
+
+  .main-content {
+    width 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow hidden
     background-image url("~@/assets/img/bg_01.jpeg")
-    display flex;
-    //justify-content center;
-    align-items flex-start;
-    height 100%;
 
-    #container {
-      overflow auto;
-      width 100%;
+    .title {
+      height 30px
+      width 100%
+      padding 5px 0
+      font-size 16px
+      color: rgba(217, 217, 227, 1)
+      background-color: rgba(52, 53, 65, 1)
+      display none
 
-      .tool-box {
-        padding-top 10px;
-        display flex;
-        justify-content center;
-        align-items center;
-
-        .el-select {
-          max-width 120px;
-        }
-
-        .chat-role {
-          margin-left 5px;
-        }
-
-        .el-image {
-          margin-right 5px;
-        }
-
-        .clear-history, .config {
-          margin-left 5px;
-        }
+      .el-icon {
+        font-size 24px;
+        cursor pointer
       }
 
+      .text {
+        width: 100%
+        text-align: center;
+      }
+
+    }
+
+    .chat-container {
+      display flex
+      justify-content flex-start
+
       .chat-box {
+        padding: 10px;
+        overflow-y: auto;
+        height: calc(100vh - 80px);
         // 变量定义
         --content-font-size: 16px;
         --content-color: #374151;
 
         font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-        padding: 0 10px 10px 10px;
 
         .chat-line {
           padding 10px 5px;
@@ -552,152 +575,120 @@ export default defineComponent({
         }
 
       }
-
-      .input-box {
-        padding 10px;
-        background #ffffff;
-        position: absolute;
-        bottom: 0
-        display: flex;
-        justify-content: start;
-        align-items: center;
-        flex-flow: column;
-
-        .re-generate {
-          position relative
-          display flex
-          justify-content center
-
-          .btn-box {
-            position absolute
-            bottom 20px
-
-            .el-icon {
-              margin-right 5px;
-            }
-          }
-        }
-
-        .input-wrapper {
-          width 100%;
-          display flex;
-
-          .input-container {
-            overflow hidden
-            width 100%
-            margin: 0;
-            border: none;
-            border-radius: 6px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            background-color: rgba(255, 255, 255, 1);
-            padding: 5px 10px;
-
-            .el-textarea__inner {
-              box-shadow: none
-              padding 5px 0
-            }
-
-            .el-textarea__inner::-webkit-scrollbar {
-              width: 0;
-              height: 0;
-            }
-          }
-
-          .btn-container {
-            margin-left 10px;
-
-            .el-row {
-              flex-wrap nowrap
-              //width 106px;
-              align-items center
-            }
-
-            .send {
-              width 60px;
-              height 40px;
-              background-color: var(--el-color-success)
-            }
-
-            .is-disabled {
-              background-color: var(--el-button-disabled-bg-color);
-              border-color: var(--el-button-disabled-border-color);
-            }
-          }
-        }
-
-        // end of input wrapper
-
-      }
     }
 
-    #container::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-    }
 
-    .row-center {
-      justify-content center
-    }
-  }
-}
+    .input-box {
+      padding 10px;
+      background #ffffff;
+      position: absolute;
+      bottom: 0
+      display: flex;
+      justify-content: start;
+      align-items: center;
+      flex-flow: column;
 
-.el-message-box {
-  width 90%;
-  max-width 420px;
-}
+      .re-generate {
+        position relative
+        display flex
+        justify-content center
 
-.el-message {
-  min-width: 100px;
-  max-width 600px;
-}
+        .btn-box {
+          position absolute
+          bottom 20px
 
-.token-dialog {
-  .el-dialog {
-    --el-dialog-width 90%;
-    max-width 400px;
-
-    .el-dialog__body {
-      padding 10px 10px 20px 10px;
-
-      .el-row {
-        flex-wrap nowrap
-
-        button {
-          margin-left 5px;
+          .el-icon {
+            margin-right 5px;
+          }
         }
       }
 
-      .tip-text {
-        text-align left
-        padding 10px 20px;
-        line-height 1.5
+      .input-wrapper {
+        width 100%;
+        display flex;
+
+        .input-container {
+          overflow hidden
+          width 100%
+          margin: 0;
+          border: none;
+          border-radius: 6px;
+          box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+          background-color: rgba(255, 255, 255, 1);
+          padding: 5px 10px;
+
+          .el-textarea__inner {
+            box-shadow: none
+            padding 5px 0
+            min-height 24px !important;
+          }
+
+          .el-textarea__inner::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+          }
+        }
+
+        .btn-container {
+          margin-left 10px;
+
+          .el-row {
+            flex-wrap nowrap
+            //width 106px;
+            align-items center
+          }
+
+          .send {
+            width 60px;
+            height 40px;
+            background-color: var(--el-color-success)
+          }
+
+          .is-disabled {
+            background-color: var(--el-button-disabled-bg-color);
+            border-color: var(--el-button-disabled-border-color);
+          }
+        }
       }
+
+      // end of input wrapper
+
     }
 
+    // end of input box
 
   }
 }
 
-.el-select-dropdown {
-  .el-select-dropdown__item {
-    padding 8px 5px;
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .chat-free-page {
+    flex-direction: column;
 
-    .role-option {
-      display flex
-      flex-flow row
+    .sidebar {
+      width: 90%;
+      position absolute;
+      z-index 9999;
+      display none
+    }
 
-      .el-image {
-        width 20px
-        height 20px
-        border-radius 50%
+    .main-content {
+      width: 100%;
+
+      .title {
+        display flex
       }
 
-      span {
-        margin-left 5px;
-        height 20px;
-        line-height 20px;
+      .chat-container {
+        height: calc(100vh - 50px);
+
+        .chat-box {
+          height: calc(100vh - 120px);
+        }
       }
+
     }
   }
+
 }
 </style>

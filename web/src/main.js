@@ -9,6 +9,7 @@ import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import Home from "@/views/Home.vue";
 import './utils/prototype'
+import ChatFree from "@/views/ChatFree.vue";
 
 const routes = [
     {
@@ -29,6 +30,11 @@ const routes = [
     {
         name: 'test', path: '/test', component: TestPage, meta: {
             title: '测试页面'
+        }
+    },
+    {
+        name: 'free', path: '/free', component: ChatFree, meta: {
+            title: 'ChatGPT 免费版'
         }
     },
     {
