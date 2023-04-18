@@ -6,14 +6,15 @@
           <li class="new-chat"><a>
             <span class="icon"><el-icon><Plus/></el-icon></span>
             <span class="text">新建会话</span>
+            <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
           </a></li>
           <li><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
-            <span class="text">新建会话</span>
+            <span class="text">会话一</span>
           </a></li>
           <li class="active"><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
-            <span class="text">新建会话</span>
+            <span class="text">会话二</span>
           </a></li>
         </ul>
       </nav>
@@ -21,7 +22,7 @@
 
     <div class="main-content" v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
       <div class="title">
-        <span class="icon">
+        <span class="icon" @click="toggleSidebar">
           <el-icon><Fold/></el-icon>
         </span>
         <span class="text">响应式页面布局代码</span>
@@ -87,8 +88,6 @@
 
     </div>
 
-    <config-dialog v-model:show="showConfigDialog" :user="userInfo"></config-dialog>
-
     <div class="token-dialog">
       <el-dialog
           v-model="showLoginDialog"
@@ -122,27 +121,25 @@
 
 <script>
 import {defineComponent, nextTick} from "vue"
-import {ChatRound, Fold, Lock, Plus, RefreshRight, VideoPause} from "@element-plus/icons-vue";
+import {ChatRound, CloseBold, Fold, Lock, Plus, RefreshRight, VideoPause} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import hl from "highlight.js";
 import ChatReply from "@/components/ChatReply.vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {randString} from "@/utils/libs";
+import {isMobile, randString} from "@/utils/libs";
 import Clipboard from "clipboard";
-import ConfigDialog from "@/components/ConfigDialog.vue";
 
 // 免费版 ChatGPT
 export default defineComponent({
   name: 'ChatFree',
-  components: {ConfigDialog, Lock, VideoPause, RefreshRight, ChatPrompt, ChatReply, ChatRound, Plus, Fold},
+  components: {CloseBold, Lock, VideoPause, RefreshRight, ChatPrompt, ChatReply, ChatRound, Plus, Fold},
   data() {
     return {
       chatData: [],
       inputValue: '', // 聊天内容
 
-      showConfigDialog: false,
       userInfo: {},
       showLoginDialog: false,
       role: 'gpt',
@@ -177,13 +174,19 @@ export default defineComponent({
     })
 
     nextTick(() => {
-      this.inputBoxWidth = document.getElementById('sidebar') ?
-          window.innerWidth - document.getElementById('sidebar').offsetWidth - 20 : window.innerWidth - 20;
+      if (isMobile()) {
+        this.inputBoxWidth = window.innerWidth - 20;
+      } else {
+        this.inputBoxWidth = window.innerWidth - document.getElementById('sidebar').offsetWidth - 20;
+      }
     })
 
     window.addEventListener("resize", () => {
-      this.inputBoxWidth = document.getElementById('sidebar') ?
-          window.innerWidth - document.getElementById('sidebar').offsetWidth - 20 : window.innerWidth - 20;
+      if (isMobile()) {
+        this.inputBoxWidth = window.innerWidth - 20;
+      } else {
+        this.inputBoxWidth = window.innerWidth - document.getElementById('sidebar').offsetWidth - 20;
+      }
     });
 
     this.connect();
@@ -446,7 +449,12 @@ export default defineComponent({
       this.showStopGenerate = true;
       this.showReGenerate = false;
       this.socket.send('重新生成上述问题的答案：' + this.previousText);
-    }
+    },
+
+    // 显示/关闭侧边栏
+    toggleSidebar: function () {
+      document.getElementById("sidebar").classList.toggle('show');
+    },
   }
 })
 </script>
@@ -466,6 +474,7 @@ export default defineComponent({
     nav {
       margin 0
       padding 0
+      width 100%
 
       ul {
         list-style-type: none
@@ -487,6 +496,7 @@ export default defineComponent({
           a {
             display flex
             text-decoration: none;
+            position relative
 
             .icon {
               font-size 16px;
@@ -510,6 +520,13 @@ export default defineComponent({
 
         li.new-chat {
           border: 1px solid #4A4B4D;
+
+          .btn {
+            display none
+            position absolute
+            right -2px;
+            top -2px;
+          }
         }
 
       }
@@ -537,6 +554,7 @@ export default defineComponent({
       .el-icon {
         font-size 24px;
         cursor pointer
+        padding-left 10px
       }
 
       .text {
@@ -669,7 +687,23 @@ export default defineComponent({
       width: 90%;
       position absolute;
       z-index 9999;
-      display none
+      top: 0;
+      left: -350px;
+      transition: transform 0.3s ease-in-out;
+
+      nav {
+        ul {
+          li.new-chat {
+            .btn {
+              display inline
+            }
+          }
+        }
+      }
+    }
+
+    .sidebar.show {
+      transform: translateX(350px);
     }
 
     .main-content {
@@ -680,7 +714,7 @@ export default defineComponent({
       }
 
       .chat-container {
-        height: calc(100vh - 50px);
+        height: calc(100vh - 40px);
 
         .chat-box {
           height: calc(100vh - 120px);
