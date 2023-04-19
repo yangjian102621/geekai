@@ -2,21 +2,14 @@
   <div class="chat-free-page">
     <div class="sidebar" id="sidebar">
       <nav>
-        <div class="new-chat" @click="newChat">
-          <a>
+        <ul>
+          <li class="new-chat" @click="newChat"><a>
             <span class="icon"><el-icon><Plus/></el-icon></span>
             <span class="text">新建会话</span>
             <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
-          </a>
-        </div>
-
-        <ul>
-          <!--          <li class="new-chat" @click="newChat"><a>-->
-          <!--            <span class="icon"><el-icon><Plus/></el-icon></span>-->
-          <!--            <span class="text">新建会话</span>-->
-          <!--            <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>-->
-          <!--          </a></li>-->
-          <li v-for="chat in chatList" :key="chat.id" @click="changeChat(chat)" :class="chat.active ? 'active' : ''"><a>
+          </a></li>
+          <li v-for="chat in chatList" :key="chat.id" @click="changeChat(chat)"
+              :class="chat.id === curChat.id ? 'active' : ''"><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
 
             <span class="text" v-if="chat.edit">
@@ -161,7 +154,7 @@ import {
   getChatList,
   getSessionId,
   getUserInfo,
-  setLoginUser
+  setLoginUser, removeChat
 } from "@/utils/storage";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {isMobile, randString} from "@/utils/libs";
@@ -549,7 +542,6 @@ export default defineComponent({
         id: randString(32),
         edit: false, // 是否处于编辑模式
         removing: false, // 是否处于删除模式
-        active: false,
         title: '新会话 - 0'
       };
 
@@ -571,11 +563,9 @@ export default defineComponent({
         chat.edit = false;
         setChat(chat)
       } else if (this.curOpt === 'remove') {
-        for (let i = 0; i < this.chatList.length; i++) {
-          if (this.chatList[i].id === chat.id) {
-            this.chatList.remove(i)
-          }
-        }
+        delete this.chatList[chat.id];
+        removeChat(chat.id);
+        chat.removing = false;
       }
 
     },
@@ -596,8 +586,6 @@ export default defineComponent({
         return;
       }
 
-      this.curChat.active = false;
-      chat.active = true;
       this.curChat = chat;
       const chatHistory = getChatHistory(chat.id);
       if (!chatHistory) {
@@ -627,50 +615,11 @@ export default defineComponent({
       padding 0
       width 100%
       height calc(100vh - 150px)
-      border 1px solid red;
       overflow-y auto
-
-      .new-chat {
-        position fixed;
-        color: #ffffff
-        padding 10px;
-        cursor pointer
-
-        &:hover {
-          background-color #3E3F49
-
-          a {
-            .btn {
-              display block
-              background-color: #3E3F49;
-            }
-          }
-        }
-
-        a {
-          border: 1px solid #4A4B4D;
-          box-sizing: border-box;
-          border-radius 5px;
-          width 100%;
-          display flex;
-          padding 10px;
-
-          .btn {
-            display none
-            right -2px;
-            top -2px;
-
-            .el-icon {
-              margin-left 0;
-              color #ffffff
-            }
-          }
-        }
-      }
 
       ul {
         list-style-type: none
-        padding 50px 5px 5px 5px
+        padding 8px
         margin 0
 
         li {
@@ -935,8 +884,10 @@ export default defineComponent({
       nav {
         ul {
           li.new-chat {
-            .btn {
-              display inline
+            a {
+              .btn {
+                display inline
+              }
             }
           }
         }

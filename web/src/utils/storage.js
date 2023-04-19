@@ -85,3 +85,11 @@ export function setChat(chat) {
     chatList[chat.id] = chat;
     Storage.set(ChatListKey, chatList);
 }
+
+export function removeChat(chatId) {
+    const chatList = Storage.get(ChatListKey);
+    if (chatList) {
+        delete chatList[chatId];
+        Storage.set(ChatListKey, chatList);
+    }
+}
