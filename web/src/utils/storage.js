@@ -53,6 +53,10 @@ export function appendChatHistory(chatId, message) {
     Storage.set(ChatHistoryKey, history);
 }
 
+export function clearChatHistory() {
+    Storage.remove(ChatHistoryKey);
+}
+
 // 获取指定会话的历史记录
 export function getChatHistory(chatId) {
     const history = Storage.get(ChatHistoryKey);

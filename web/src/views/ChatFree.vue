@@ -1,13 +1,16 @@
 <template>
   <div class="chat-free-page">
     <div class="sidebar" id="sidebar">
+      <div class="block-btn new-chat" @click="newChat">
+        <div class="block-btn-container text-center">
+          <span class="icon"><el-icon><Plus/></el-icon></span>
+          <span class="text">新建会话</span>
+          <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
+        </div>
+      </div>
+
       <nav>
         <ul>
-          <li class="new-chat" @click="newChat"><a>
-            <span class="icon"><el-icon><Plus/></el-icon></span>
-            <span class="text">新建会话</span>
-            <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
-          </a></li>
           <li v-for="chat in chatList" :key="chat.id" @click="changeChat(chat)"
               :class="chat.id === curChat.id ? 'active' : ''"><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
@@ -30,6 +33,20 @@
 
         </ul>
       </nav>
+
+      <div class="block-btn no-border mt-10">
+        <div class="block-btn-container" @click="clearChatHistory">
+          <span class="icon"><el-icon><DeleteFilled/></el-icon></span>
+          <span class="text">清空聊天记录</span>
+        </div>
+      </div>
+
+      <div class="block-btn no-border">
+        <div class="block-btn-container" @click="logout">
+          <span class="icon"><el-icon><Monitor/></el-icon></span>
+          <span class="text">退出登录</span>
+        </div>
+      </div>
     </div>
 
     <div class="main-content" v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
@@ -37,7 +54,10 @@
         <span class="icon" @click="toggleSidebar">
           <el-icon><Fold/></el-icon>
         </span>
-        <span class="text">响应式页面布局代码</span>
+        <span class="text">{{ curChat ? curChat.title : '新建会话' }}</span>
+        <span class="plus-icon" @click="newChat">
+          <el-icon><Plus/></el-icon>
+        </span>
       </div>
 
       <div class="chat-container">
@@ -136,9 +156,9 @@ import {defineComponent, nextTick} from "vue"
 import {
   ChatRound, Check, Close,
   CloseBold,
-  Delete, Edit,
+  Delete, DeleteFilled, Edit,
   Fold,
-  Lock,
+  Lock, Monitor,
   Plus,
   RefreshRight,
   VideoPause
@@ -154,7 +174,7 @@ import {
   getChatList,
   getSessionId,
   getUserInfo,
-  setLoginUser, removeChat
+  setLoginUser, removeChat, clearChatHistory
 } from "@/utils/storage";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {isMobile, randString} from "@/utils/libs";
@@ -164,6 +184,8 @@ import Clipboard from "clipboard";
 export default defineComponent({
   name: 'ChatFree',
   components: {
+    Monitor,
+    DeleteFilled,
     Close,
     Check,
     Edit,
@@ -479,7 +501,7 @@ export default defineComponent({
     // 清空聊天记录
     clearChatHistory: function () {
       ElMessageBox.confirm(
-          '确认要清空当前角色聊天历史记录吗?<br/>此操作不可以撤销！',
+          '确认要清空所有聊天历史记录吗?<br/>此操作不可以撤销！',
           '操作提示：',
           {
             confirmButtonText: '确认',
@@ -491,12 +513,8 @@ export default defineComponent({
             center: true,
           }
       ).then(() => {
-        httpPost("/api/chat/history/clear", {role: this.role}).then(() => {
-          ElMessage.success("当前角色会话已清空");
-          this.chatData = [];
-        }).catch(() => {
-          ElMessage.error("删除失败")
-        })
+        clearChatHistory();
+        ElMessage.success("当前角色会话已清空");
       }).catch(() => {
       })
     },
@@ -546,6 +564,10 @@ export default defineComponent({
       };
 
       this.chatData = [];
+      this.showReGenerate = false;
+      this.showStopGenerate = false;
+      this.loading = true;
+      this.sending = true;
       this.connect();
     },
 
@@ -592,7 +614,16 @@ export default defineComponent({
         return;
       }
       this.chatData = chatHistory;
-    }
+    },
+
+    // 退出登录
+    logout: function () {
+      httpPost("/api/logout", {opt: "logout"}).then(() => {
+        this.checkSession();
+      }).catch(() => {
+        ElMessage.error("注销失败");
+      })
+    },
 
   }
 })
@@ -610,11 +641,69 @@ export default defineComponent({
     height: 100%;
     width 350px;
 
+    .block-btn {
+      font-size 14px;
+
+      .block-btn-container {
+        border: 1px solid #4A4B4D;
+        padding: 8px 10px
+        color: #ffffff
+        cursor pointer
+        box-sizing: border-box;
+        border-radius 5px;
+        position relative;
+
+        &:hover {
+          background-color #3E3F49
+        }
+
+        .text {
+          margin-left 5px;
+        }
+
+        .btn {
+          position absolute;
+          display none
+          right 8px;
+          top 8px;
+
+          .el-icon {
+            margin-left 0;
+            color #ffffff
+          }
+        }
+      }
+
+      .text-center {
+        text-align center;
+      }
+    }
+
+
+    .new-chat {
+      padding 10px 10px 0 10px;
+    }
+
+    .mt-10 {
+      margin-top 10px;
+    }
+
+    .no-border {
+      .block-btn-container {
+        border none
+        padding 10px;
+
+        .text {
+          margin-left 12px;
+        }
+      }
+    }
+
     nav {
       margin 0
       padding 0
       width 100%
-      height calc(100vh - 150px)
+      height calc(100vh - 250px)
       overflow-y auto
 
       ul {
@@ -692,7 +781,7 @@ export default defineComponent({
           background-color #3E3F49
         }
 
-        li.new-chat {
+        li.block-btn {
           border: 1px solid #4A4B4D;
 
           a {
@@ -881,14 +970,10 @@ export default defineComponent({
       left: -350px;
       transition: transform 0.3s ease-in-out;
 
-      nav {
-        ul {
-          li.new-chat {
-            a {
-              .btn {
-                display inline
-              }
-            }
+      .block-btn {
+        .block-btn-container {
+          .btn {
+            display inline
           }
         }
       }
@@ -903,6 +988,10 @@ export default defineComponent({
 
       .title {
         display flex
+
+        .plus-icon {
+          padding-right 10px;
+        }
       }
 
       .chat-container {
