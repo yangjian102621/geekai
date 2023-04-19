@@ -62,7 +62,7 @@ export default defineComponent({
 
     .content {
       word-break break-word;
-      padding: 5px 10px;
+      padding: 6px 10px;
       background-color: #98E165;
       color var(--content-color);
       font-size: var(--content-font-size);

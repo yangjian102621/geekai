@@ -97,7 +97,7 @@ export default defineComponent({
       .content {
         min-height 20px;
         word-break break-word;
-        padding: 8px 10px;
+        padding: 6px 10px;
         color var(--content-color)
         background-color: #fff;
         font-size: var(--content-font-size);

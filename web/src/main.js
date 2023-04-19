@@ -34,7 +34,7 @@ const routes = [
     },
     {
         name: 'free', path: '/free', component: ChatFree, meta: {
-            title: 'ChatGPT 通用免费版'
+            title: '【文心一言】免费版'
         }
     },
     {

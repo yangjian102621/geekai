@@ -329,8 +329,7 @@ export default defineComponent({
                 type: "reply",
                 id: randString(32),
                 icon: this.replyIcon,
-                content: "",
-                cursor: true
+                content: ""
               });
               if (data['is_hello_msg'] !== true) {
                 this.canReGenerate = true;
@@ -370,7 +369,7 @@ export default defineComponent({
         if (this.activelyClose) { // 忽略主动关闭
           return;
         }
-        
+
         // 停止送消息
         this.sending = true;
         this.checkSession();

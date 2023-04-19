@@ -61,18 +61,18 @@ func (s *Server) ChatHandle(c *gin.Context) {
 				return
 			}
 			logger.Info("Receive a message: ", string(message))
-			//replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
+			replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
 			//replyMessage(client, "![](images/wx.png)", true)
-			ctx, cancel := context.WithCancel(context.Background())
-			s.ReqCancelFunc[sessionId] = cancel
-			// 回复消息
-			err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
-			if err != nil {
-				logger.Error(err)
-			} else {
-				replyChunkMessage(client, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
-				logger.Info("回答完毕: " + string(message))
-			}
+			//ctx, cancel := context.WithCancel(context.Background())
+			//s.ReqCancelFunc[sessionId] = cancel
+			//// 回复消息
+			//err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
+			//if err != nil {
+			//	logger.Error(err)
+			//} else {
+			//	replyChunkMessage(client, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
+			//	logger.Info("回答完毕: " + string(message))
+			//}
 
 		}
 	}()

@@ -2,13 +2,21 @@
   <div class="chat-free-page">
     <div class="sidebar" id="sidebar">
       <nav>
-        <ul>
-          <li class="new-chat" @click="newChat"><a>
+        <div class="new-chat" @click="newChat">
+          <a>
             <span class="icon"><el-icon><Plus/></el-icon></span>
             <span class="text">新建会话</span>
             <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
-          </a></li>
-          <li v-for="chat in chatList" :key="chat.id"><a>
+          </a>
+        </div>
+
+        <ul>
+          <!--          <li class="new-chat" @click="newChat"><a>-->
+          <!--            <span class="icon"><el-icon><Plus/></el-icon></span>-->
+          <!--            <span class="text">新建会话</span>-->
+          <!--            <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>-->
+          <!--          </a></li>-->
+          <li v-for="chat in chatList" :key="chat.id" @click="changeChat(chat)" :class="chat.active ? 'active' : ''"><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
 
             <span class="text" v-if="chat.edit">
@@ -47,7 +55,7 @@
                 :icon="chat.icon"
                 :content="chat.content"/>
             <chat-reply v-else-if="chat.type==='reply'"
-                        :icon="chat.icon"
+                        :icon="replyIcon"
                         :org-content="chat.orgContent"
                         :content="chat.content"/>
           </div>
@@ -146,7 +154,15 @@ import {httpGet, httpPost} from "@/utils/http";
 import hl from "highlight.js";
 import ChatReply from "@/components/ChatReply.vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
-import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
+import {
+  setChat,
+  appendChatHistory,
+  getChatHistory,
+  getChatList,
+  getSessionId,
+  getUserInfo,
+  setLoginUser
+} from "@/utils/storage";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {isMobile, randString} from "@/utils/libs";
 import Clipboard from "clipboard";
@@ -177,12 +193,13 @@ export default defineComponent({
       userInfo: {},
       showLoginDialog: false,
       role: 'gpt',
-      replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
+      replyIcon: 'images/avatar/yi_yan.png', // 回复信息的头像
 
       chatList: [], // 会话列表
       tmpChatTitle: '',
       curOpt: '', // 当前操作
       curChat: null, // 当前会话
+      curPrompt: null, // 当前用户输入
 
       showStopGenerate: false,
       showReGenerate: false,
@@ -202,8 +219,6 @@ export default defineComponent({
   },
 
   mounted() {
-    this.fetchChatHistory();
-
     const clipboard = new Clipboard('.copy-reply');
     clipboard.on('success', () => {
       ElMessage.success('复制成功！');
@@ -229,7 +244,7 @@ export default defineComponent({
       }
     });
 
-    this.connect();
+    this.newChat();
 
   },
 
@@ -256,7 +271,6 @@ export default defineComponent({
           this.errorMessage.close(); // 关闭错误提示信息
         }
         this.activelyClose = false;
-        // this.chatList.push(this.curChat);
         // 加载聊天记录
         this.fetchChatHistory();
       });
@@ -273,7 +287,6 @@ export default defineComponent({
                 id: randString(32),
                 icon: this.replyIcon,
                 content: "",
-                cursor: true
               });
               if (data['is_hello_msg'] !== true) {
                 this.canReGenerate = true;
@@ -282,9 +295,19 @@ export default defineComponent({
               this.sending = false;
               if (data['is_hello_msg'] !== true) {
                 this.showReGenerate = true;
+                // 保存聊天记录
+                appendChatHistory(this.curChat.id, this.curPrompt);
+                appendChatHistory(this.curChat.id, {
+                  type: "reply",
+                  id: randString(32),
+                  icon: this.replyIcon,
+                  content: this.lineBuffer,
+                })
               }
               this.showStopGenerate = false;
+
               this.lineBuffer = ''; // 清空缓冲
+
             } else {
               this.lineBuffer += data.content;
               this.chatData[this.chatData.length - 1]['orgContent'] = this.lineBuffer;
@@ -313,7 +336,7 @@ export default defineComponent({
         if (this.activelyClose) { // 忽略主动关闭
           return;
         }
-        
+
         // 停止送消息
         this.sending = true;
         this.checkSession();
@@ -350,33 +373,34 @@ export default defineComponent({
 
     // 从后端获取聊天历史记录
     fetchChatHistory: function () {
-      httpPost("/api/chat/history", {role: this.role}).then((res) => {
-        if (this.chatData.length > 0) { // 如果已经有聊天记录了，就不追加了
-          return
-        }
+      const chatList = getChatList();
+      if (chatList) {
+        this.chatList = chatList;
 
-        const data = res.data
-        const md = require('markdown-it')();
-        for (let i = 0; i < data.length; i++) {
-          if (data[i].type === "prompt") {
-            this.chatData.push(data[i]);
-            continue;
+        const list = getChatHistory(this.curChat.id);
+        if (list) {
+          const md = require('markdown-it')();
+          for (let i = 0; i < list.length; i++) {
+            if (list[i].type === "prompt") {
+              this.chatData.push(list[i]);
+              continue;
+            }
+            list[i].orgContent = list[i].content;
+            list[i].content = md.render(list[i].content);
+            this.chatData.push(list[i]);
           }
-          data[i].orgContent = data[i].content;
-          data[i].content = md.render(data[i].content);
-          this.chatData.push(data[i]);
+
+          nextTick(() => {
+            hl.configure({ignoreUnescapedHTML: true})
+            const blocks = document.querySelector("#chat-box").querySelectorAll('pre code');
+            blocks.forEach((block) => {
+              hl.highlightElement(block)
+            })
+          })
         }
 
-        nextTick(() => {
-          hl.configure({ignoreUnescapedHTML: true})
-          const blocks = document.querySelector("#chat-box").querySelectorAll('pre code');
-          blocks.forEach((block) => {
-            hl.highlightElement(block)
-          })
-        })
-      }).catch(() => {
-        // console.error(e.message)
-      })
+
+      }
     },
 
     inputKeyDown: function (e) {
@@ -405,12 +429,13 @@ export default defineComponent({
       }
 
       // 追加消息
-      this.chatData.push({
+      this.curPrompt = {
         type: "prompt",
         id: randString(32),
         icon: 'images/avatar/user.png',
         content: this.inputValue
-      });
+      };
+      this.chatData.push(this.curPrompt);
 
       this.sending = true;
       this.showStopGenerate = true;
@@ -510,14 +535,25 @@ export default defineComponent({
 
     // 新建会话
     newChat: function () {
+      // 判断当前会话是否已经有聊天记录
+      if (this.curChat !== null) {
+        const chatHistory = getChatHistory(this.curChat.id);
+        if (chatHistory === null) {
+          return;
+        }
+        // 追加会话
+        setChat(this.curChat);
+      }
+
       this.curChat = {
         id: randString(32),
         edit: false, // 是否处于编辑模式
         removing: false, // 是否处于删除模式
-        title: '新会话 - ' + this.chatList.length
+        active: false,
+        title: '新会话 - 0'
       };
 
-      // 连接会话
+      this.chatData = [];
       this.connect();
     },
 
@@ -533,6 +569,7 @@ export default defineComponent({
       if (this.curOpt === 'edit') {
         chat.title = this.tmpChatTitle;
         chat.edit = false;
+        setChat(chat)
       } else if (this.curOpt === 'remove') {
         for (let i = 0; i < this.chatList.length; i++) {
           if (this.chatList[i].id === chat.id) {
@@ -551,8 +588,23 @@ export default defineComponent({
     removeChat: function (chat) {
       chat.removing = true;
       this.curOpt = 'remove';
-    }
+    },
 
+    // 切换会话
+    changeChat: function (chat) {
+      if (this.curChat.id === chat.id) {
+        return;
+      }
+
+      this.curChat.active = false;
+      chat.active = true;
+      this.curChat = chat;
+      const chatHistory = getChatHistory(chat.id);
+      if (!chatHistory) {
+        return;
+      }
+      this.chatData = chatHistory;
+    }
 
   }
 })
@@ -574,10 +626,51 @@ export default defineComponent({
       margin 0
       padding 0
       width 100%
+      height calc(100vh - 150px)
+      border 1px solid red;
+      overflow-y auto
+
+      .new-chat {
+        position fixed;
+        color: #ffffff
+        padding 10px;
+        cursor pointer
+
+        &:hover {
+          background-color #3E3F49
+
+          a {
+            .btn {
+              display block
+              background-color: #3E3F49;
+            }
+          }
+        }
+
+        a {
+          border: 1px solid #4A4B4D;
+          box-sizing: border-box;
+          border-radius 5px;
+          width 100%;
+          display flex;
+          padding 10px;
+
+          .btn {
+            display none
+            right -2px;
+            top -2px;
+
+            .el-icon {
+              margin-left 0;
+              color #ffffff
+            }
+          }
+        }
+      }
 
       ul {
         list-style-type: none
-        padding 5px
+        padding 50px 5px 5px 5px
         margin 0
 
         li {
@@ -589,12 +682,12 @@ export default defineComponent({
           border-radius 5px;
 
           &:hover {
-            background-color #2E2F39
+            background-color #3E3F49
 
             a {
               .btn {
                 display block
-                background-color: #282A32;
+                background-color: #3E3F49;
               }
             }
           }
@@ -647,7 +740,7 @@ export default defineComponent({
         }
 
         li.active {
-          background-color #2E2F39
+          background-color #3E3F49
         }
 
         li.new-chat {
@@ -668,6 +761,11 @@ export default defineComponent({
         }
 
       }
+    }
+
+    nav::-webkit-scrollbar {
+      width: 0;
+      height: 0;
     }
   }
 
@@ -707,6 +805,7 @@ export default defineComponent({
       justify-content flex-start
 
       .chat-box {
+        width 100%;
         padding: 10px;
         overflow-y: auto;
         height: calc(100vh - 80px);

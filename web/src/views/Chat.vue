@@ -213,7 +213,7 @@ export default defineComponent({
         this.activelyClose = true;
         this.socket.close();
       }
-      
+
       // 初始化 WebSocket 对象
       const sessionId = getSessionId();
       const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
@@ -252,7 +252,6 @@ export default defineComponent({
                 id: randString(32),
                 icon: this.replyIcon,
                 content: "",
-                cursor: true
               });
               if (data['is_hello_msg'] !== true) {
                 this.canReGenerate = true;

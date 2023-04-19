@@ -7,7 +7,8 @@ import Storage from 'good-storage'
  */
 
 const SessionUserKey = 'LOGIN_USER';
-const ChatHistoryKey = "CHAT_HISTORY";
+const ChatHistoryKey = 'CHAT_HISTORY';
+const ChatListKey = 'CHAT_LIST';
 
 export function getSessionId() {
     const user = getLoginUser();
@@ -55,8 +56,32 @@ export function appendChatHistory(chatId, message) {
 // 获取指定会话的历史记录
 export function getChatHistory(chatId) {
     const history = Storage.get(ChatHistoryKey);
-    if (history && history[chatId]) {
-        return history[chatId];
+    if (!history) {
+        return null;
     }
-    return [];
+
+    return history[chatId] ? history[chatId] : null;
+}
+
+export function getChatList() {
+    return Storage.get(ChatListKey);
+}
+
+export function getChat(chatId) {
+    let chatList = Storage.get(ChatListKey);
+    if (!chatList) {
+        return null;
+    }
+
+    return chatList[chatId] ? chatList[chatId] : null;
+}
+
+export function setChat(chat) {
+    let chatList = Storage.get(ChatListKey);
+    if (!chatList) {
+        chatList = {};
+    }
+
+    chatList[chat.id] = chat;
+    Storage.set(ChatListKey, chatList);
 }
