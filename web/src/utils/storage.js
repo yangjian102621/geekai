@@ -55,6 +55,7 @@ export function appendChatHistory(chatId, message) {
 
 export function clearChatHistory() {
     Storage.remove(ChatHistoryKey);
+    Storage.remove(ChatListKey);
 }
 
 // 获取指定会话的历史记录

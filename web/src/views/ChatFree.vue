@@ -514,6 +514,8 @@ export default defineComponent({
           }
       ).then(() => {
         clearChatHistory();
+        this.chatData = [];
+        this.chatList = [];
         ElMessage.success("当前角色会话已清空");
       }).catch(() => {
       })
@@ -552,6 +554,7 @@ export default defineComponent({
         if (chatHistory === null) {
           return;
         }
+        this.curChat.title = chatHistory[0].content;
         // 追加会话
         setChat(this.curChat);
       }
@@ -591,6 +594,7 @@ export default defineComponent({
       }
 
     },
+    // 取消修改
     cancel: function (chat) {
       chat.edit = false;
       chat.removing = false;
