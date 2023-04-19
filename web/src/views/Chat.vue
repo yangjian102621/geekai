@@ -208,6 +208,12 @@ export default defineComponent({
     },
     // 创建 socket 会话连接
     connect: function () {
+      // 先关闭已有连接
+      if (this.socket !== null) {
+        this.activelyClose = true;
+        this.socket.close();
+      }
+      
       // 初始化 WebSocket 对象
       const sessionId = getSessionId();
       const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
@@ -226,6 +232,7 @@ export default defineComponent({
         }
 
         this.sending = false; // 允许用户发送消息
+        this.activelyClose = false;
         if (this.errorMessage !== null) {
           this.errorMessage.close(); // 关闭错误提示信息
         }
@@ -282,6 +289,10 @@ export default defineComponent({
       });
 
       socket.addEventListener('close', () => {
+        if (this.activelyClose) { // 忽略主动关闭
+          return;
+        }
+
         // 停止送消息
         this.sending = true;
         this.checkSession();

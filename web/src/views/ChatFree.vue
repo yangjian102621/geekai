@@ -8,13 +8,23 @@
             <span class="text">新建会话</span>
             <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
           </a></li>
-          <li v-for="session in sessionList" :key="session.id"><a>
+          <li v-for="chat in chatList" :key="chat.id"><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
-            <span class="text">{{ session.title }}</span>
-            <span class="btn">
-              <el-icon title="编辑"><Edit/></el-icon>
-              <el-icon title="删除会话"><Delete/></el-icon>
+
+            <span class="text" v-if="chat.edit">
+              <el-input v-model="tmpChatTitle" size="small" placeholder="请输入会话标题"/>
             </span>
+            <span class="text" v-else>{{ chat.title }}</span>
+
+            <span class="btn btn-check" v-if="chat.edit || chat.removing">
+              <el-icon @click="confirm(chat)"><Check/></el-icon>
+              <el-icon @click="cancel(chat)"><Close/></el-icon>
+            </span>
+            <span class="btn" v-else>
+              <el-icon title="编辑" @click="editChatTitle(chat)"><Edit/></el-icon>
+              <el-icon title="删除会话" @click="removeChat(chat)"><Delete/></el-icon>
+            </span>
+
           </a></li>
 
         </ul>
@@ -123,7 +133,7 @@
 <script>
 import {defineComponent, nextTick} from "vue"
 import {
-  ChatRound,
+  ChatRound, Check, Close,
   CloseBold,
   Delete, Edit,
   Fold,
@@ -145,6 +155,8 @@ import Clipboard from "clipboard";
 export default defineComponent({
   name: 'ChatFree',
   components: {
+    Close,
+    Check,
     Edit,
     Delete,
     CloseBold,
@@ -166,10 +178,11 @@ export default defineComponent({
       showLoginDialog: false,
       role: 'gpt',
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
-      sessionList: [{
-        id: randString(32),
-        title: '响应式页面布局代码'
-      }], // 会话列表
+
+      chatList: [], // 会话列表
+      tmpChatTitle: '',
+      curOpt: '', // 当前操作
+      curChat: null, // 当前会话
 
       showStopGenerate: false,
       showReGenerate: false,
@@ -180,6 +193,7 @@ export default defineComponent({
       lineBuffer: '', // 输出缓冲行
       errorMessage: null, // 错误信息提示框
       socket: null,
+      activelyClose: false, // 主动关闭
       inputBoxWidth: 0,
       sending: true,
       loading: true,
@@ -226,6 +240,12 @@ export default defineComponent({
     },
     // 创建 socket 会话连接
     connect: function () {
+      // 先关闭已有连接
+      if (this.socket !== null) {
+        this.activelyClose = true;
+        this.socket.close();
+      }
+
       // 初始化 WebSocket 对象
       const sessionId = getSessionId();
       const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
@@ -235,6 +255,8 @@ export default defineComponent({
         if (this.errorMessage !== null) {
           this.errorMessage.close(); // 关闭错误提示信息
         }
+        this.activelyClose = false;
+        // this.chatList.push(this.curChat);
         // 加载聊天记录
         this.fetchChatHistory();
       });
@@ -288,6 +310,10 @@ export default defineComponent({
       });
 
       socket.addEventListener('close', () => {
+        if (this.activelyClose) { // 忽略主动关闭
+          return;
+        }
+        
         // 停止送消息
         this.sending = true;
         this.checkSession();
@@ -484,8 +510,50 @@ export default defineComponent({
 
     // 新建会话
     newChat: function () {
+      this.curChat = {
+        id: randString(32),
+        edit: false, // 是否处于编辑模式
+        removing: false, // 是否处于删除模式
+        title: '新会话 - ' + this.chatList.length
+      };
 
+      // 连接会话
+      this.connect();
+    },
+
+    // 编辑会话标题
+    editChatTitle: function (chat) {
+      chat.edit = true;
+      this.curOpt = 'edit';
+      this.tmpChatTitle = chat.title;
+    },
+
+    // 确认修改
+    confirm: function (chat) {
+      if (this.curOpt === 'edit') {
+        chat.title = this.tmpChatTitle;
+        chat.edit = false;
+      } else if (this.curOpt === 'remove') {
+        for (let i = 0; i < this.chatList.length; i++) {
+          if (this.chatList[i].id === chat.id) {
+            this.chatList.remove(i)
+          }
+        }
+      }
+
+    },
+    cancel: function (chat) {
+      chat.edit = false;
+      chat.removing = false;
+    },
+
+    // 删除会话
+    removeChat: function (chat) {
+      chat.removing = true;
+      this.curOpt = 'remove';
     }
+
+
   }
 })
 </script>
@@ -522,6 +590,13 @@ export default defineComponent({
 
           &:hover {
             background-color #2E2F39
+
+            a {
+              .btn {
+                display block
+                background-color: #282A32;
+              }
+            }
           }
 
           a {
@@ -539,11 +614,13 @@ export default defineComponent({
               font-size 14px;
               padding-top 2px;
               overflow hidden
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              max-width 200px;
             }
 
             .btn {
-              //display none
-
+              display none
               position absolute
               right 0;
               top 2px;
@@ -558,8 +635,14 @@ export default defineComponent({
               }
 
             }
-          }
 
+            .btn-check {
+              .el-icon {
+                margin-left 10px;
+                font-size 18px;
+              }
+            }
+          }
 
         }
 

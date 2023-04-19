@@ -290,6 +290,17 @@ func (s *Server) RemoveUserHandle(c *gin.Context) {
 
 // GetUserListHandle 获取用户列表
 func (s *Server) GetUserListHandle(c *gin.Context) {
+	username := c.PostForm("username")
+	if username != "" {
+		user, err := GetUser(username)
+		if err != nil {
+			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "User not exists"})
+		} else {
+			c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: user})
+		}
+		return
+	}
+
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetUsers()})
 }
 

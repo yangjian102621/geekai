@@ -1,12 +1,13 @@
 /* eslint-disable no-constant-condition */
 import {dateFormat} from "@/utils/libs";
+import Storage from 'good-storage'
 
 /**
  * storage handler
  */
 
 const SessionUserKey = 'LOGIN_USER';
-export const Global = {}
+const ChatHistoryKey = "CHAT_HISTORY";
 
 export function getSessionId() {
     const user = getLoginUser();
@@ -35,4 +36,27 @@ export function getUserInfo() {
         return user;
     }
     return {}
+}
+
+// 追加历史记录
+export function appendChatHistory(chatId, message) {
+    let history = Storage.get(ChatHistoryKey);
+    if (!history) {
+        history = {};
+    }
+    if (!history[chatId]) {
+        history[chatId] = [message];
+    } else {
+        history[chatId].push(message);
+    }
+    Storage.set(ChatHistoryKey, history);
+}
+
+// 获取指定会话的历史记录
+export function getChatHistory(chatId) {
+    const history = Storage.get(ChatHistoryKey);
+    if (history && history[chatId]) {
+        return history[chatId];
+    }
+    return [];
 }

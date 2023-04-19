@@ -13,7 +13,7 @@
               class="box-item"
               effect="dark"
               content="复制回答"
-              placement="top"
+              placement="bottom"
           >
             <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent" plain>
               <el-icon>

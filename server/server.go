@@ -129,7 +129,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 		for {
 			for key, ctx := range s.ChatContexts {
 				// 清理超过 60min 没有更新，则表示为过期会话
-				if time.Now().Unix()-ctx.LastAccessTime > int64(s.Config.Chat.ChatContextExpireTime) {
+				if time.Now().Unix()-ctx.LastAccessTime >= int64(s.Config.Chat.ChatContextExpireTime) {
 					logger.Infof("清理会话上下文: %s", key)
 					delete(s.ChatContexts, key)
 				}

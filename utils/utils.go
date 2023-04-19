@@ -3,7 +3,6 @@ package utils
 import (
 	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -25,10 +24,6 @@ func Long2IP(ipInt int64) string {
 	b2 := strconv.FormatInt((ipInt>>8)&0xff, 10)
 	b3 := strconv.FormatInt(ipInt&0xff, 10)
 	return b0 + "." + b1 + "." + b2 + "." + b3
-}
-
-func IsBlank(value string) bool {
-	return len(strings.TrimSpace(value)) == 0
 }
 
 func ContainsStr(slice []string, item string) bool {
