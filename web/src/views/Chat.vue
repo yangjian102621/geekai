@@ -179,7 +179,7 @@ export default defineComponent({
       return;
     }
 
-    const clipboard = new Clipboard('.reply-content');
+    const clipboard = new Clipboard('.copy-reply');
     clipboard.on('success', () => {
       ElMessage.success('复制成功！');
     })

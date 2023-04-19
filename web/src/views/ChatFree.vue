@@ -3,19 +3,20 @@
     <div class="sidebar" id="sidebar">
       <nav>
         <ul>
-          <li class="new-chat"><a>
+          <li class="new-chat" @click="newChat"><a>
             <span class="icon"><el-icon><Plus/></el-icon></span>
             <span class="text">新建会话</span>
             <span class="btn" @click="toggleSidebar"><el-button size="small" type="info" circle><el-icon><CloseBold/></el-icon></el-button></span>
           </a></li>
-          <li><a>
+          <li v-for="session in sessionList" :key="session.id"><a>
             <span class="icon"><el-icon><ChatRound/></el-icon></span>
-            <span class="text">会话一</span>
+            <span class="text">{{ session.title }}</span>
+            <span class="btn">
+              <el-icon title="编辑"><Edit/></el-icon>
+              <el-icon title="删除会话"><Delete/></el-icon>
+            </span>
           </a></li>
-          <li class="active"><a>
-            <span class="icon"><el-icon><ChatRound/></el-icon></span>
-            <span class="text">会话二</span>
-          </a></li>
+
         </ul>
       </nav>
     </div>
@@ -121,7 +122,16 @@
 
 <script>
 import {defineComponent, nextTick} from "vue"
-import {ChatRound, CloseBold, Fold, Lock, Plus, RefreshRight, VideoPause} from "@element-plus/icons-vue";
+import {
+  ChatRound,
+  CloseBold,
+  Delete, Edit,
+  Fold,
+  Lock,
+  Plus,
+  RefreshRight,
+  VideoPause
+} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import hl from "highlight.js";
 import ChatReply from "@/components/ChatReply.vue";
@@ -134,7 +144,19 @@ import Clipboard from "clipboard";
 // 免费版 ChatGPT
 export default defineComponent({
   name: 'ChatFree',
-  components: {CloseBold, Lock, VideoPause, RefreshRight, ChatPrompt, ChatReply, ChatRound, Plus, Fold},
+  components: {
+    Edit,
+    Delete,
+    CloseBold,
+    Lock,
+    VideoPause,
+    RefreshRight,
+    ChatPrompt,
+    ChatReply,
+    ChatRound,
+    Plus,
+    Fold
+  },
   data() {
     return {
       chatData: [],
@@ -144,6 +166,10 @@ export default defineComponent({
       showLoginDialog: false,
       role: 'gpt',
       replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
+      sessionList: [{
+        id: randString(32),
+        title: '响应式页面布局代码'
+      }], // 会话列表
 
       showStopGenerate: false,
       showReGenerate: false,
@@ -164,7 +190,7 @@ export default defineComponent({
   mounted() {
     this.fetchChatHistory();
 
-    const clipboard = new Clipboard('.reply-content');
+    const clipboard = new Clipboard('.copy-reply');
     clipboard.on('success', () => {
       ElMessage.success('复制成功！');
     })
@@ -455,6 +481,11 @@ export default defineComponent({
     toggleSidebar: function () {
       document.getElementById("sidebar").classList.toggle('show');
     },
+
+    // 新建会话
+    newChat: function () {
+
+    }
   }
 })
 </script>
@@ -510,7 +541,25 @@ export default defineComponent({
               overflow hidden
             }
 
+            .btn {
+              //display none
+
+              position absolute
+              right 0;
+              top 2px;
+
+              .el-icon {
+                margin-left 5px;
+                color #9f9f9f
+              }
+
+              .el-icon:hover {
+                color #ffffff
+              }
+
+            }
           }
+
 
         }
 
@@ -521,11 +570,17 @@ export default defineComponent({
         li.new-chat {
           border: 1px solid #4A4B4D;
 
-          .btn {
-            display none
-            position absolute
-            right -2px;
-            top -2px;
+          a {
+            .btn {
+              display none
+              right -2px;
+              top -2px;
+
+              .el-icon {
+                margin-left 0;
+                color #ffffff
+              }
+            }
           }
         }
 
@@ -676,6 +731,10 @@ export default defineComponent({
     // end of input box
 
   }
+}
+
+.row-center {
+  justify-content center
 }
 
 /* 移动端适配 */

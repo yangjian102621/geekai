@@ -393,6 +393,17 @@ func (s *Server) GetChatHistoryHandle(c *gin.Context) {
 	}
 
 	session := s.ChatSession[sessionId]
+	user, err := GetUser(session.Username)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid args"})
+		return
+	}
+
+	if v, ok := user.ChatRoles[data.Role]; !ok || v != 1 {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "No permission to access the history of role " + data.Role})
+		return
+	}
+
 	history, err := GetChatHistory(session.Username, data.Role)
 	if err != nil {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "No history message"})

@@ -2,16 +2,18 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"openai/types"
 	"openai/utils"
+	"strings"
 )
 
 func (s *Server) TestHandle(c *gin.Context) {
 	roles := types.GetDefaultChatRole()
 	for _, v := range roles {
-		PutChatRole(v)
+		_ = PutChatRole(v)
 	}
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: GetChatRoles()})
 
@@ -81,10 +83,11 @@ func (s *Server) SetDebugHandle(c *gin.Context) {
 // AddUserHandle 添加 Username
 func (s *Server) AddUserHandle(c *gin.Context) {
 	var data struct {
-		Name          string `json:"name"`
-		MaxCalls      int    `json:"max_calls"`
-		EnableHistory bool   `json:"enable_history"`
-		Term          int    `json:"term"` // 有效期
+		Name          string   `json:"name"`
+		MaxCalls      int      `json:"max_calls"`
+		EnableHistory bool     `json:"enable_history"`
+		Term          int      `json:"term"`       // 有效期
+		ChatRoles     []string `json:"chat_roles"` // 订阅角色
 	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
@@ -105,12 +108,28 @@ func (s *Server) AddUserHandle(c *gin.Context) {
 		return
 	}
 
+	var chatRoles = make(map[string]int)
+	if len(data.ChatRoles) > 0 {
+		if data.ChatRoles[0] == "all" { // 所有的角色
+			roles := GetChatRoles()
+			for key := range roles {
+				chatRoles[key] = 1
+			}
+		} else {
+			for _, key := range data.ChatRoles {
+				chatRoles[key] = 1
+			}
+		}
+
+	}
+
 	user := types.User{
 		Name:           data.Name,
 		MaxCalls:       data.MaxCalls,
 		RemainingCalls: data.MaxCalls,
 		EnableHistory:  data.EnableHistory,
 		Term:           data.Term,
+		ChatRoles:      chatRoles,
 		Status:         true}
 	err = PutUser(user)
 	if err != nil {
@@ -124,15 +143,31 @@ func (s *Server) AddUserHandle(c *gin.Context) {
 // BatchAddUserHandle 批量生成 Username
 func (s *Server) BatchAddUserHandle(c *gin.Context) {
 	var data struct {
-		Number        int  `json:"number"`
-		MaxCalls      int  `json:"max_calls"`
-		EnableHistory bool `json:"enable_history"`
-		Term          int  `json:"term"`
+		Number        int      `json:"number"`
+		MaxCalls      int      `json:"max_calls"`
+		EnableHistory bool     `json:"enable_history"`
+		Term          int      `json:"term"`
+		ChatRoles     []string `json:"chat_roles"`
 	}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil || data.MaxCalls <= 0 {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
 		return
+	}
+
+	var chatRoles = make(map[string]int)
+	if len(data.ChatRoles) > 0 {
+		if data.ChatRoles[0] == "all" { // 所有的角色
+			roles := GetChatRoles()
+			for key := range roles {
+				chatRoles[key] = 1
+			}
+		} else {
+			for _, key := range data.ChatRoles {
+				chatRoles[key] = 1
+			}
+		}
+
 	}
 
 	var users = make([]types.User, 0)
@@ -148,6 +183,7 @@ func (s *Server) BatchAddUserHandle(c *gin.Context) {
 			RemainingCalls: data.MaxCalls,
 			EnableHistory:  data.EnableHistory,
 			Term:           data.Term,
+			ChatRoles:      chatRoles,
 			Status:         true}
 		err = PutUser(user)
 		if err == nil {
@@ -203,6 +239,24 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 	}
 	if v, ok := data["api_key"]; ok {
 		user.ApiKey = v.(string)
+	}
+	if v, ok := data["chat_roles"]; ok {
+		if roles, ok := v.([]interface{}); ok {
+			chatRoles := make(map[string]int)
+			if roles[0] == "all" {
+				roles := GetChatRoles()
+				for key := range roles {
+					chatRoles[key] = 1
+				}
+			} else {
+				for _, key := range roles {
+					key := strings.TrimSpace(fmt.Sprintf("%v", key))
+					chatRoles[key] = 1
+				}
+			}
+			user.ChatRoles = chatRoles
+		}
+
 	}
 
 	err = PutUser(*user)
@@ -299,12 +353,24 @@ func (s *Server) ListApiKeysHandle(c *gin.Context) {
 
 // GetChatRoleListHandle 获取聊天角色列表
 func (s *Server) GetChatRoleListHandle(c *gin.Context) {
+	sessionId := c.GetHeader(types.TokenName)
+	session := s.ChatSession[sessionId]
+	user, err := GetUser(session.Username)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hacker Access!!!"})
+		return
+	}
 	var rolesOrder = []string{"gpt", "teacher", "translator", "english_trainer", "weekly_report", "girl_friend",
 		"kong_zi", "lu_xun", "steve_jobs", "elon_musk", "red_book", "dou_yin", "programmer",
 		"seller", "good_comment", "psychiatrist", "artist"}
 	var res = make([]interface{}, 0)
 	var roles = GetChatRoles()
 	for _, k := range rolesOrder {
+		// 确认当前用户是否订阅了当前角色
+		if v, ok := user.ChatRoles[k]; !ok || v != 1 {
+			continue
+		}
+
 		if v, ok := roles[k]; ok && v.Enable {
 			res = append(res, struct {
 				Key  string `json:"key"`

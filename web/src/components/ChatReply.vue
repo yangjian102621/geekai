@@ -6,7 +6,24 @@
 
     <div class="chat-item">
       <div class="triangle"></div>
-      <div class="content reply-content" :data-clipboard-text="orgContent" v-html="content"></div>
+      <div class="content-box">
+        <div class="content" v-html="content"></div>
+        <div class="tool-box">
+          <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="复制回答"
+              placement="top"
+          >
+            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent" plain>
+              <el-icon>
+                <DocumentCopy/>
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -14,9 +31,11 @@
 <script>
 import {defineComponent} from "vue"
 import {randString} from "@/utils/libs";
+import {DocumentCopy} from "@element-plus/icons-vue";
 
 export default defineComponent({
   name: 'ChatReply',
+  components: {DocumentCopy},
   props: {
     content: {
       type: String,
@@ -70,28 +89,45 @@ export default defineComponent({
       top: 13px;
     }
 
-    .content {
-      min-height 20px;
-      word-break break-word;
-      padding: 8px 10px;
-      color var(--content-color)
-      background-color: #fff;
-      font-size: var(--content-font-size);
-      border-radius: 5px;
+    .content-box {
 
-      p:last-child {
-        margin-bottom: 0
+      display flex
+      flex-direction row
+
+      .content {
+        min-height 20px;
+        word-break break-word;
+        padding: 8px 10px;
+        color var(--content-color)
+        background-color: #fff;
+        font-size: var(--content-font-size);
+        border-radius: 5px;
+
+        p:last-child {
+          margin-bottom: 0
+        }
+
+        p:first-child {
+          margin-top 0
+        }
+
+        p > code {
+          color #cc0000
+          background-color #f1f1f1
+        }
       }
 
-      p:first-child {
-        margin-top 0
-      }
+      .tool-box {
+        padding-left 10px;
+        font-size 16px;
 
-      p > code {
-        color #cc0000
-        background-color #f1f1f1
+        .el-button {
+          height 20px
+          padding 5px 2px;
+        }
       }
     }
+
   }
 }
 

@@ -439,8 +439,8 @@ export default defineComponent({
             hl.highlightElement(block)
           })
         })
-      }).catch(() => {
-        // console.error(e.message)
+      }).catch((e) => {
+        console.error(e.message)
       })
     },
 

@@ -14,15 +14,16 @@ type Config struct {
 }
 
 type User struct {
-	Name           string `json:"name"`
-	MaxCalls       int    `json:"max_calls"`         // 最多调用次数，如果为 0 则表示不限制
-	RemainingCalls int    `json:"remaining_calls"`   // 剩余调用次数
-	EnableHistory  bool   `json:"enable_history"`    // 是否启用聊天记录
-	Status         bool   `json:"status"`            // 当前状态
-	Term           int    `json:"term" default:"30"` // 会员有效期，单位：天
-	ActiveTime     int64  `json:"active_time"`       // 激活时间
-	ExpiredTime    int64  `json:"expired_time"`      // 到期时间
-	ApiKey         string `json:"api_key"`           // OpenAI  API KEY
+	Name           string         `json:"name"`
+	MaxCalls       int            `json:"max_calls"`         // 最多调用次数，如果为 0 则表示不限制
+	RemainingCalls int            `json:"remaining_calls"`   // 剩余调用次数
+	EnableHistory  bool           `json:"enable_history"`    // 是否启用聊天记录
+	Status         bool           `json:"status"`            // 当前状态
+	Term           int            `json:"term" default:"30"` // 会员有效期，单位：天
+	ActiveTime     int64          `json:"active_time"`       // 激活时间
+	ExpiredTime    int64          `json:"expired_time"`      // 到期时间
+	ApiKey         string         `json:"api_key"`           // OpenAI  API KEY
+	ChatRoles      map[string]int `json:"chat_roles"`        // 当前用户已订阅的聊天角色 map[role_key] => 0/1
 }
 
 // Chat configs struct
