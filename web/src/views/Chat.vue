@@ -679,8 +679,16 @@ export default defineComponent({
 
       .tip-text {
         text-align left
-        padding 10px 20px;
-        line-height 1.5
+        padding 0 20px 10px 20px;
+
+        .el-alert {
+          padding 5px;
+
+          .el-alert__description {
+            font-size 14px;
+          }
+        }
+
       }
     }
 

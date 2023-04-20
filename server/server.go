@@ -86,7 +86,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.Use(AuthorizeMiddleware(s))
 	engine.Use(Recover)
 
-	engine.POST("test", s.TestHandle)
+	engine.POST("api/test", s.TestHandle)
 	engine.GET("api/session/get", s.GetSessionHandle)
 	engine.POST("api/login", s.LoginHandle)
 	engine.POST("api/logout", s.LogoutHandle)
@@ -115,6 +115,9 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.NoRoute(func(c *gin.Context) {
 		if c.Request.URL.Path == "/favicon.ico" {
 			c.Redirect(http.StatusMovedPermanently, "/chat/"+c.Request.URL.Path)
+		}
+		if c.Request.URL.Path == "/" {
+			c.Redirect(http.StatusMovedPermanently, "/chat")
 		}
 	})
 
