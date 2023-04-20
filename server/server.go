@@ -188,7 +188,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-TOKEN, ACCESS_KEY")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-TOKEN, ACCESS-KEY")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -223,7 +223,7 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 		}
 
 		if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
-			accessKey := c.GetHeader("ACCESS_KEY")
+			accessKey := c.GetHeader("ACCESS-KEY")
 			if accessKey != strings.TrimSpace(s.Config.AccessKey) {
 				c.Abort()
 				c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})

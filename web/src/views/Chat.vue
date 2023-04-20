@@ -569,7 +569,7 @@ export default defineComponent({
         position: absolute;
         bottom: 0
         display: flex;
-        justify-content: start;
+        justify-content: flex-start;
         align-items: center;
         flex-flow: column;
 

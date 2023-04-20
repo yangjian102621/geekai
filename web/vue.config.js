@@ -16,7 +16,7 @@ module.exports = defineConfig({
         ]
     },
 
-    publicPath: process.env.NODE_ENV === 'production' ? '/chat' : '/',
+    publicPath: '/chat',
     outputDir: '../dist',
     crossorigin: "anonymous",
     devServer: {
