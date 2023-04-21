@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import {dateFormat} from "@/utils/libs";
+import {dateFormat, removeArrayItem} from "@/utils/libs";
 import Storage from 'good-storage'
 
 /**
@@ -69,32 +69,32 @@ export function getChatHistory(chatId) {
 }
 
 export function getChatList() {
-    return Storage.get(ChatListKey);
-}
-
-export function getChat(chatId) {
-    let chatList = Storage.get(ChatListKey);
-    if (!chatList) {
-        return null;
+    const list = Storage.get(ChatListKey);
+    if (list) {
+        if (typeof list.reverse !== 'function') {
+            Storage.remove(ChatListKey)
+            return null;
+        }
+        return list.reverse();
     }
-
-    return chatList[chatId] ? chatList[chatId] : null;
 }
 
 export function setChat(chat) {
     let chatList = Storage.get(ChatListKey);
     if (!chatList) {
-        chatList = {};
+        chatList = [];
     }
 
-    chatList[chat.id] = chat;
+    chatList.push(chat);
     Storage.set(ChatListKey, chatList);
 }
 
-export function removeChat(chatId) {
-    const chatList = Storage.get(ChatListKey);
+export function removeChat(chat) {
+    let chatList = Storage.get(ChatListKey);
     if (chatList) {
-        delete chatList[chatId];
+        chatList = removeArrayItem(chatList, chat, function (v1, v2) {
+            return v1.id === v2.id
+        })
         Storage.set(ChatListKey, chatList);
     }
 }

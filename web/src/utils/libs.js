@@ -73,6 +73,7 @@ export function dateFormat(timestamp, format) {
     return timeDate;
 }
 
+// 判断数组中是否包含某个元素
 export function arrayContains(array, value, compare) {
     if (typeof compare !== 'function') {
         compare = function (v1, v2) {
@@ -85,4 +86,27 @@ export function arrayContains(array, value, compare) {
         }
     }
     return false;
+}
+
+// 删除数组中指定的元素
+export function removeArrayItem(array, value, compare) {
+    if (typeof compare !== 'function') {
+        compare = function (v1, v2) {
+            return v1 === v2;
+        }
+    }
+    for (let i = 0; i < array.length; i++) {
+        if (compare(array[i], value)) {
+            array.splice(i, 1);
+            break;
+        }
+    }
+    return array;
+}
+
+// 渲染输入的换行符
+export function renderInputText(text) {
+    const replaceRegex = /(\n\r|\r\n|\r|\n)/g;
+    text = text || '';
+    return text.replace(replaceRegex, "<br/>");
 }

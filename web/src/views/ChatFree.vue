@@ -183,7 +183,7 @@ import {
   setLoginUser, removeChat, clearChatHistory
 } from "@/utils/storage";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {arrayContains, isMobile, randString} from "@/utils/libs";
+import {arrayContains, isMobile, randString, removeArrayItem, renderInputText} from "@/utils/libs";
 import Clipboard from "clipboard";
 
 // 免费版 ChatGPT
@@ -469,7 +469,7 @@ export default defineComponent({
         type: "prompt",
         id: randString(32),
         icon: 'images/avatar/user.png',
-        content: this.inputValue
+        content: renderInputText(this.inputValue)
       };
       this.chatData.push(this.curPrompt);
 
@@ -537,6 +537,8 @@ export default defineComponent({
         clearChatHistory();
         this.chatData = [];
         this.chatList = [];
+        this.curChat = null;
+        this.newChat();
         ElMessage.success("当前角色会话已清空");
       }).catch(() => {
       })
@@ -600,7 +602,7 @@ export default defineComponent({
           return v1.id === v2.id;
         }
         if (!arrayContains(this.chatList, this.curChat, compare)) {
-          this.chatList[this.curChat.id] = this.curChat;
+          this.chatList.unshift(this.curChat);
         }
       }
     },
@@ -621,13 +623,16 @@ export default defineComponent({
         chat.edit = false;
         setChat(chat)
       } else if (this.curOpt === 'remove') {
-        delete this.chatList[chat.id];
+
+        this.chatList = removeArrayItem(this.chatList, chat, function (v1, v2) {
+          return v1.id === v2.id
+        });
         // 删除的会话是当前的聊天会话，则新建会话
         if (this.curChat.id === chat.id) {
           this.curChat = null;
           this.newChat();
         }
-        removeChat(chat.id);
+        removeChat(chat);
         chat.removing = false;
       }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="chat-line chat-line-right">
     <div class="chat-item">
-      <div class="content">{{ content }}</div>
+      <div class="content" v-html="content"></div>
       <div class="triangle"></div>
     </div>
 
@@ -67,6 +67,7 @@ export default defineComponent({
       color var(--content-color);
       font-size: var(--content-font-size);
       border-radius: 5px;
+      line-height 1.5
     }
   }
 }
