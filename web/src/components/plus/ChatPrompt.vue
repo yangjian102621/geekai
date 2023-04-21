@@ -1,7 +1,7 @@
 <template>
   <div class="chat-line chat-line-right">
     <div class="chat-item">
-      <div class="content">{{ content }}</div>
+      <div class="content" v-html="content"></div>
       <div class="triangle"></div>
     </div>
 

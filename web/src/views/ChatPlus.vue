@@ -175,7 +175,7 @@
 import {defineComponent, nextTick} from 'vue'
 import ChatPrompt from "@/components/plus/ChatPrompt.vue";
 import ChatReply from "@/components/plus/ChatReply.vue";
-import {isMobile, randString} from "@/utils/libs";
+import {isMobile, randString, renderInputText} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {
   Tools,
@@ -486,7 +486,7 @@ export default defineComponent({
         type: "prompt",
         id: randString(32),
         icon: 'images/avatar/user.png',
-        content: this.inputValue
+        content: renderInputText(this.inputValue)
       });
 
       this.sending = true;
