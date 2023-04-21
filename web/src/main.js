@@ -8,7 +8,6 @@ import Chat from "@/views/Chat.vue";
 import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import Home from "@/views/Home.vue";
-import './utils/prototype'
 import ChatFree from "@/views/ChatFree.vue";
 
 const routes = [

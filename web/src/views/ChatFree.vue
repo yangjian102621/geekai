@@ -21,12 +21,12 @@
             <span class="text" v-else>{{ chat.title }}</span>
 
             <span class="btn btn-check" v-if="chat.edit || chat.removing">
-              <el-icon @click="confirm(chat)"><Check/></el-icon>
-              <el-icon @click="cancel(chat)"><Close/></el-icon>
+              <el-icon @click="confirm($event, chat)"><Check/></el-icon>
+              <el-icon @click="cancel($event, chat)"><Close/></el-icon>
             </span>
             <span class="btn" v-else>
-              <el-icon title="编辑" @click="editChatTitle(chat)"><Edit/></el-icon>
-              <el-icon title="删除会话" @click="removeChat(chat)"><Delete/></el-icon>
+              <el-icon title="编辑" @click="editChatTitle($event, chat)"><Edit/></el-icon>
+              <el-icon title="删除会话" @click="removeChat($event, chat)"><Delete/></el-icon>
             </span>
 
           </a></li>
@@ -183,7 +183,7 @@ import {
   setLoginUser, removeChat, clearChatHistory
 } from "@/utils/storage";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {isMobile, randString} from "@/utils/libs";
+import {arrayContains, isMobile, randString} from "@/utils/libs";
 import Clipboard from "clipboard";
 
 // 免费版 ChatGPT
@@ -215,6 +215,7 @@ export default defineComponent({
       showLoginDialog: false,
       role: 'gpt',
       replyIcon: 'images/avatar/yi_yan.png', // 回复信息的头像
+      helloMsg: '', // 打招呼信息
 
       chatList: [], // 会话列表
       tmpChatTitle: '',
@@ -264,9 +265,23 @@ export default defineComponent({
         this.inputBoxWidth = window.innerWidth - document.getElementById('sidebar').offsetWidth - 20;
       }
     });
+    // 初始化打招呼信息
+    httpGet("api/role/hello?role=" + this.role).then((res) => {
+      this.helloMsg = {
+        type: "reply",
+        id: randString(32),
+        icon: this.replyIcon,
+        content: res.data,
+      };
+    })
+    // 加载聊天列表
+    const chatList = getChatList();
+    if (chatList) {
+      this.chatList = chatList;
+    }
 
+    // 创建新会话
     this.newChat();
-
   },
 
   methods: {
@@ -284,7 +299,7 @@ export default defineComponent({
 
       // 初始化 WebSocket 对象
       const sessionId = getSessionId();
-      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
+      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}&chatId=${this.curChat.id}`);
       socket.addEventListener('open', () => {
         this.sending = false; // 允许用户发送消息
         this.loading = false; // 隐藏加载层
@@ -292,11 +307,10 @@ export default defineComponent({
           this.errorMessage.close(); // 关闭错误提示信息
         }
         this.activelyClose = false;
-        // 加载聊天列表
-        const chatList = getChatList();
-        if (chatList) {
-          this.chatList = chatList;
-        }
+
+        // 显示打招呼信息
+        this.chatData.push(this.helloMsg);
+        this.fetchChatHistory(this.curChat.id);
       });
 
       socket.addEventListener('message', event => {
@@ -305,11 +319,6 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
-            // 有聊天记录就不输出打招呼消息
-            if (data['is_hello_msg'] && this.chatData.length > 1) {
-              return
-            }
-
             if (data.type === 'start') {
               this.chatData.push({
                 type: "reply",
@@ -334,8 +343,13 @@ export default defineComponent({
                 })
               }
               this.showStopGenerate = false;
-
               this.lineBuffer = ''; // 清空缓冲
+
+              // 追加会话
+              if (this.curChat.title === '') {
+                this.curChat.title = this.previousText;
+                setChat(this.curChat);
+              }
 
             } else {
               this.lineBuffer += data.content;
@@ -400,12 +414,11 @@ export default defineComponent({
       })
     },
 
-    // 从后端获取聊天历史记录
+    // 加载聊天历史记录
     fetchChatHistory: function (chatId) {
       const list = getChatHistory(chatId);
       if (list) {
         const md = require('markdown-it')();
-        console.log(list)
         for (let i = 0; i < list.length; i++) {
           if (list[i].type === "prompt") {
             this.chatData.push(list[i]);
@@ -562,16 +575,14 @@ export default defineComponent({
         if (chatHistory === null) {
           return;
         }
-        this.curChat.title = chatHistory[0].content;
-        // 追加会话
-        setChat(this.curChat);
       }
 
+      this.appendChat();
       this.curChat = {
         id: randString(32),
         edit: false, // 是否处于编辑模式
         removing: false, // 是否处于删除模式
-        title: '新会话 - 0'
+        title: ''
       };
 
       this.chatData = [];
@@ -582,23 +593,39 @@ export default defineComponent({
       this.connect();
     },
 
+    // 追加当前会话到列表
+    appendChat: function () {
+      if (this.curChat !== null && this.curChat.title !== '') {
+        const compare = function (v1, v2) {
+          return v1.id === v2.id;
+        }
+        if (!arrayContains(this.chatList, this.curChat, compare)) {
+          this.chatList[this.curChat.id] = this.curChat;
+        }
+      }
+    },
+
     // 编辑会话标题
-    editChatTitle: function (chat) {
+    editChatTitle: function (event, chat) {
+      event.stopPropagation();
       chat.edit = true;
       this.curOpt = 'edit';
       this.tmpChatTitle = chat.title;
     },
 
     // 确认修改
-    confirm: function (chat) {
+    confirm: function (event, chat) {
+      event.stopPropagation();
       if (this.curOpt === 'edit') {
         chat.title = this.tmpChatTitle;
         chat.edit = false;
         setChat(chat)
       } else if (this.curOpt === 'remove') {
         delete this.chatList[chat.id];
+        // 删除的会话是当前的聊天会话，则新建会话
         if (this.curChat.id === chat.id) {
-          this.chatData = [];
+          this.curChat = null;
+          this.newChat();
         }
         removeChat(chat.id);
         chat.removing = false;
@@ -606,13 +633,15 @@ export default defineComponent({
 
     },
     // 取消修改
-    cancel: function (chat) {
+    cancel: function (event, chat) {
+      event.stopPropagation();
       chat.edit = false;
       chat.removing = false;
     },
 
     // 删除会话
-    removeChat: function (chat) {
+    removeChat: function (event, chat) {
+      event.stopPropagation();
       chat.removing = true;
       this.curOpt = 'remove';
     },
@@ -623,8 +652,10 @@ export default defineComponent({
         return;
       }
 
+      this.appendChat();
+      this.chatData = [];
       this.curChat = chat;
-      this.fetchChatHistory(chat.id);
+      this.connect();
     },
 
     // 退出登录

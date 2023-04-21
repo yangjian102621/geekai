@@ -6,16 +6,34 @@
 
     <div class="chat-item">
       <div class="triangle"></div>
-      <div class="content reply-content" :data-clipboard-text="orgContent" v-html="content"></div>
+      <div class="content-box">
+        <div class="content" v-html="content"></div>
+        <div class="tool-box">
+          <el-tooltip
+              class="box-item"
+              effect="light"
+              content="复制回答"
+              placement="bottom"
+          >
+            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent">
+              <el-icon>
+                <DocumentCopy/>
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import {defineComponent} from "vue"
+import {DocumentCopy} from "@element-plus/icons-vue";
 
 export default defineComponent({
   name: 'ChatReply',
+  components: {DocumentCopy},
   props: {
     content: {
       type: String,
@@ -66,34 +84,49 @@ export default defineComponent({
         top: 13px;
       }
 
-      .content {
-        min-height 20px;
-        word-break break-word;
-        padding: 12px 15px;
-        color var(--content-color)
-        background-color: #404042;
-        font-size: var(--content-font-size);
-        border-radius: 5px;
+      .content-box {
 
-        p {
-          line-height 1.5
+        display flex
+        flex-direction row
 
-          code {
-            color #f1f1f1
-            background-color #202121
-            padding 0 3px;
-            border-radius 5px;
+        .content {
+          min-height 20px;
+          word-break break-word;
+          padding: 12px 15px;
+          color var(--content-color)
+          background-color: #404042;
+          font-size: var(--content-font-size);
+          border-radius: 5px;
+
+          p {
+            line-height 1.5
+
+            code {
+              color #f1f1f1
+              background-color #202121
+              padding 0 3px;
+              border-radius 5px;
+            }
+          }
+
+          p:last-child {
+            margin-bottom: 0
+          }
+
+          p:first-child {
+            margin-top 0
           }
         }
 
-        p:last-child {
-          margin-bottom: 0
-        }
+        .tool-box {
+          padding-left 10px;
+          font-size 16px;
 
-        p:first-child {
-          margin-top 0
+          .el-button {
+            height 20px
+            padding 5px 2px;
+          }
         }
-
       }
     }
   }

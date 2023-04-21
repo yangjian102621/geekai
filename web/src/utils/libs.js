@@ -72,3 +72,17 @@ export function dateFormat(timestamp, format) {
     }
     return timeDate;
 }
+
+export function arrayContains(array, value, compare) {
+    if (typeof compare !== 'function') {
+        compare = function (v1, v2) {
+            return v1 === v2;
+        }
+    }
+    for (let i = 0; i < array.length; i++) {
+        if (compare(array[i], value)) {
+            return true;
+        }
+    }
+    return false;
+}

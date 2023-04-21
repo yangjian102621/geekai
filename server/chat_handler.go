@@ -29,7 +29,9 @@ func (s *Server) ChatHandle(c *gin.Context) {
 	}
 	sessionId := c.Query("sessionId")
 	roleKey := c.Query("role")
+	chatId := c.Query("chatId")
 	session, ok := s.ChatSession[sessionId]
+	session.ChatId = chatId
 	if !ok { // 用户未登录
 		c.Abort()
 		return
@@ -61,18 +63,18 @@ func (s *Server) ChatHandle(c *gin.Context) {
 				return
 			}
 			logger.Info("Receive a message: ", string(message))
-			//replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
-			//replyMessage(client, "![](images/wx.png)", true)
-			ctx, cancel := context.WithCancel(context.Background())
-			s.ReqCancelFunc[sessionId] = cancel
-			// 回复消息
-			err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
-			if err != nil {
-				logger.Error(err)
-			} else {
-				replyChunkMessage(client, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
-				logger.Info("回答完毕: " + string(message))
-			}
+			replyMessage(client, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
+			replyMessage(client, "![](images/wx.png)", false)
+			//ctx, cancel := context.WithCancel(context.Background())
+			//s.ReqCancelFunc[sessionId] = cancel
+			//// 回复消息
+			//err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
+			//if err != nil {
+			//	logger.Error(err)
+			//} else {
+			//	replyChunkMessage(client, types.WsMessage{Type: types.WsEnd, IsHelloMsg: false})
+			//	logger.Info("回答完毕: " + string(message))
+			//}
 
 		}
 	}()
@@ -94,20 +96,20 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 
 	if user.Status == false {
 		replyMessage(ws, "当前 TOKEN 已经被禁用，如果疑问，请联系管理员！", false)
-		replyMessage(ws, "![](images/wx.png)", true)
+		replyMessage(ws, "![](images/wx.png)", false)
 		return errors.New("当前 TOKEN " + user.Name + "已经被禁用")
 	}
 
 	if time.Now().Unix() > user.ExpiredTime {
 		exTime := time.Unix(user.ExpiredTime, 0).Format("2006-01-02 15:04:05")
 		replyMessage(ws, "当前 TOKEN 已过期，过期时间为："+exTime+"，如果疑问，请联系管理员！", false)
-		replyMessage(ws, "![](images/wx.png)", true)
+		replyMessage(ws, "![](images/wx.png)", false)
 		return errors.New("当前 TOKEN " + user.Name + "已过期")
 	}
 
 	if user.MaxCalls > 0 && user.RemainingCalls <= 0 {
 		replyMessage(ws, "当前 TOKEN 点数已经用尽，加入我们的知识星球可以免费领取点卡！", false)
-		replyMessage(ws, "![](images/start.png)", true)
+		replyMessage(ws, "![](images/start.png)", false)
 		return nil
 	}
 	var req = types.ApiRequest{
@@ -117,7 +119,7 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 		Stream:      true,
 	}
 	var chatCtx []types.Message
-	var ctxKey = fmt.Sprintf("%s-%s", session.SessionId, role.Key)
+	var ctxKey = fmt.Sprintf("%s-%s-%s", session.SessionId, role.Key, session.ChatId)
 	if v, ok := s.ChatContexts[ctxKey]; ok && s.Config.Chat.EnableContext {
 		chatCtx = v.Messages
 	} else {
@@ -190,7 +192,7 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 	// 如果三次请求都失败的话，则返回对应的错误信息
 	if err != nil {
 		replyMessage(ws, ErrorMsg, false)
-		replyMessage(ws, "![](images/wx.png)", true)
+		replyMessage(ws, "![](images/wx.png)", false)
 		return err
 	}
 
@@ -237,7 +239,7 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 		if err != nil { // 数据解析出错
 			logger.Error(err, line)
 			replyMessage(ws, ErrorMsg, false)
-			replyMessage(ws, "![](images/wx.png)", true)
+			replyMessage(ws, "![](images/wx.png)", false)
 			break
 		}
 
@@ -472,4 +474,19 @@ func (s *Server) StopGenerateHandle(c *gin.Context) {
 	cancel()
 	delete(s.ReqCancelFunc, sessionId)
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success})
+}
+
+// GetHelloMsgHandle 获取角色的打招呼信息
+func (s *Server) GetHelloMsgHandle(c *gin.Context) {
+	role := strings.TrimSpace(c.Query("role"))
+	if role == "" {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.InvalidParams, Message: "Invalid args"})
+		return
+	}
+	chatRole, err := GetChatRole(role)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Role not found"})
+		return
+	}
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: chatRole.HelloMsg})
 }
