@@ -114,6 +114,8 @@
                 </el-icon>
               </el-tooltip>
 
+              <span class="text">Ctrl + Enter 换行</span>
+
             </el-row>
 
             <div class="input-box">
@@ -457,6 +459,11 @@ export default defineComponent({
 
     inputKeyDown: function (e) {
       if (e.keyCode === 13) {
+        if (e.ctrlKey) { // Ctrl + Enter 换行
+          this.inputValue += "\n";
+          return;
+        }
+
         if (this.sending) {
           ElMessage.warning("AI 正在作答中，请稍后...");
           e.preventDefault();
@@ -811,6 +818,11 @@ export default defineComponent({
           width 1em;
           background-color #232425
           cursor pointer
+        }
+        .text {
+          margin-left 10px;
+          font-size 12px;
+          color #9f9f9f;
         }
       }
 

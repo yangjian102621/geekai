@@ -105,7 +105,7 @@
                 v-on:focus="focus"
                 autofocus
                 type="textarea"
-                placeholder="开始你的提问"
+                placeholder="输入 Ctrl + Enter 换行"
             />
           </div>
 
@@ -308,9 +308,11 @@ export default defineComponent({
         }
         this.activelyClose = false;
 
-        // 显示打招呼信息
-        this.chatData.push(this.helloMsg);
+        // 获取历史记录
         this.fetchChatHistory(this.curChat.id);
+        if (this.chatData.length === 0) { // 显示打招呼信息
+          this.chatData.push(this.helloMsg);
+        }
       });
 
       socket.addEventListener('message', event => {
@@ -319,6 +321,10 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
+            if (data['is_hello_msg'] === true) { // 过滤掉打招呼消息
+              return;
+            }
+
             if (data.type === 'start') {
               this.chatData.push({
                 type: "reply",
@@ -326,23 +332,19 @@ export default defineComponent({
                 icon: this.replyIcon,
                 content: "",
               });
-              if (data['is_hello_msg'] !== true) {
-                this.canReGenerate = true;
-              }
+              this.canReGenerate = true;
             } else if (data.type === 'end') {
+              // 保存聊天记录
+              appendChatHistory(this.curChat.id, this.curPrompt);
+              appendChatHistory(this.curChat.id, {
+                type: "reply",
+                id: randString(32),
+                icon: this.replyIcon,
+                content: this.lineBuffer,
+              })
               this.sending = false;
-              if (data['is_hello_msg'] !== true) {
-                this.showReGenerate = true;
-                // 保存聊天记录
-                appendChatHistory(this.curChat.id, this.curPrompt);
-                appendChatHistory(this.curChat.id, {
-                  type: "reply",
-                  id: randString(32),
-                  icon: this.replyIcon,
-                  content: this.lineBuffer,
-                })
-              }
               this.showStopGenerate = false;
+              this.showReGenerate = true;
               this.lineBuffer = ''; // 清空缓冲
 
               // 追加会话
@@ -441,6 +443,11 @@ export default defineComponent({
 
     inputKeyDown: function (e) {
       if (e.keyCode === 13) {
+        if (e.ctrlKey) { // Ctrl + Enter 换行
+          this.inputValue += "\n";
+          return;
+        }
+
         if (this.sending) {
           e.preventDefault();
         } else {
@@ -660,6 +667,8 @@ export default defineComponent({
       this.appendChat();
       this.chatData = [];
       this.curChat = chat;
+      this.showStopGenerate = false;
+      this.showReGenerate = false;
       this.connect();
     },
 
@@ -1021,6 +1030,18 @@ export default defineComponent({
         .block-btn-container {
           .btn {
             display inline
+          }
+        }
+      }
+
+      nav {
+        ul {
+          .active {
+            a {
+              .btn {
+                display inline
+              }
+            }
           }
         }
       }

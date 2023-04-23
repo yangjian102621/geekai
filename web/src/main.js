@@ -33,7 +33,7 @@ const routes = [
     },
     {
         name: 'free', path: '/free', component: ChatFree, meta: {
-            title: '【文心一言】免费版'
+            title: 'Chat-Plus AI 助理'
         }
     },
     {
