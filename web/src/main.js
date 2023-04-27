@@ -9,6 +9,7 @@ import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import Home from "@/views/Home.vue";
 import ChatFree from "@/views/ChatFree.vue";
+import Admin from "@/views/Admin.vue";
 
 const routes = [
     {
@@ -27,15 +28,21 @@ const routes = [
         }
     },
     {
-        name: 'test', path: '/test', component: TestPage, meta: {
-            title: '测试页面'
-        }
-    },
-    {
         name: 'free', path: '/free', component: ChatFree, meta: {
             title: 'Chat-Plus AI 助理'
         }
     },
+    {
+        name: 'admin', path: '/admin', component: Admin, meta: {
+            title: 'Chat-Plus 控制台'
+        }
+    },
+    {
+        name: 'test', path: '/test', component: TestPage, meta: {
+            title: '测试页面'
+        }
+    },
+
     {
         name: 'NotFound', path: '/:all(.*)', component: NotFound, meta: {
             title: '页面没有找到'

@@ -3,11 +3,11 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import {defineComponent} from 'vue'
 
 export default defineComponent({
-  setup () {
-    // TODO: 获取会话
+  setup() {
+    // TODO: 初始化操作
   },
 })
 </script>
