@@ -15,6 +15,7 @@ func NewDefaultConfig() *types.Config {
 		ProxyURL:   make([]string, 0),
 		EnableAuth: true,
 		AccessKey:  "yangjian102621@gmail.com",
+		ImgURL:     types.ImgURL{},
 
 		Session: types.Session{
 			SecretKey: RandString(64),

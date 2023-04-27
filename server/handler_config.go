@@ -550,3 +550,39 @@ func (s *Server) RemoveProxyHandle(c *gin.Context) {
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ProxyURL})
 }
+
+// SetImgURLHandle SetImgURL 设置图片地址集合
+func (s *Server) SetImgURLHandle(c *gin.Context) {
+	var data struct {
+		WechatCard  string `json:"wechat_card"`  // 个人微信二维码
+		WechatGroup string `json:"wechat_group"` // 微信群聊二维码
+	}
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		logger.Errorf("Error decode json data: %s", err.Error())
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	if data.WechatCard != "" {
+		s.Config.ImgURL.WechatCard = data.WechatCard
+	}
+	if data.WechatGroup != "" {
+		s.Config.ImgURL.WechatGroup = data.WechatGroup
+	}
+
+	// 保存配置文件
+	err = utils.SaveConfig(s.Config, s.ConfigPath)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Failed to save config file"})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ImgURL})
+
+}
+
+// GetImgURLHandle 获取图片地址集合
+func (s *Server) GetImgURLHandle(c *gin.Context) {
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: s.Config.ImgURL})
+}

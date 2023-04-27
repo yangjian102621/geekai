@@ -95,6 +95,8 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/chat/history", s.GetChatHistoryHandle)
 	engine.POST("api/chat/history/clear", s.ClearHistoryHandle)
 	engine.GET("api/role/hello", s.GetHelloMsgHandle)
+	engine.POST("api/img/get", s.GetImgURLHandle)
+	engine.POST("api/img/set", s.SetImgURLHandle)
 
 	engine.POST("api/config/set", s.ConfigSetHandle)
 	engine.GET("api/config/chat-roles/get", s.GetChatRoleListHandle)

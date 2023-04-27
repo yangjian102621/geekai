@@ -11,6 +11,7 @@ type Config struct {
 	EnableAuth bool   // 是否开启鉴权
 	AccessKey  string // 管理员访问 AccessKey, 通过传入这个参数可以访问系统管理 API
 	Chat       Chat
+	ImgURL     ImgURL // 各种图片资源链接地址，比如微信二维码，群二维码
 }
 
 type User struct {
@@ -47,4 +48,9 @@ type Session struct {
 	Secure    bool
 	HttpOnly  bool
 	SameSite  http.SameSite
+}
+
+type ImgURL struct {
+	WechatCard  string `json:"wechat_card"`  // 个人微信二维码
+	WechatGroup string `json:"wechat_group"` // 微信群二维码
 }
