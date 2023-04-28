@@ -5,13 +5,14 @@ import (
 )
 
 type Config struct {
-	Listen     string
-	Session    Session
-	ProxyURL   []string
-	EnableAuth bool   // 是否开启鉴权
-	AccessKey  string // 管理员访问 AccessKey, 通过传入这个参数可以访问系统管理 API
-	Chat       Chat
-	ImgURL     ImgURL // 各种图片资源链接地址，比如微信二维码，群二维码
+	Title        string
+	ConsoleTitle string
+	Listen       string
+	Session      Session
+	ProxyURL     []string
+	EnableAuth   bool // 是否开启鉴权
+	Chat         Chat
+	ImgURL       ImgURL // 各种图片资源链接地址，比如微信二维码，群二维码
 }
 
 type User struct {
@@ -25,6 +26,12 @@ type User struct {
 	ExpiredTime    int64          `json:"expired_time"`      // 到期时间
 	ApiKey         string         `json:"api_key"`           // OpenAI  API KEY
 	ChatRoles      map[string]int `json:"chat_roles"`        // 当前用户已订阅的聊天角色 map[role_key] => 0/1
+}
+
+// Manager 管理员
+type Manager struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 // Chat configs struct

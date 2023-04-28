@@ -11,11 +11,12 @@ import (
 
 func NewDefaultConfig() *types.Config {
 	return &types.Config{
-		Listen:     "0.0.0.0:5678",
-		ProxyURL:   make([]string, 0),
-		EnableAuth: true,
-		AccessKey:  "yangjian102621@gmail.com",
-		ImgURL:     types.ImgURL{},
+		Title:        "Chat-Plus AI 助手",
+		ConsoleTitle: "Chat-Plus 控制台",
+		Listen:       "0.0.0.0:5678",
+		ProxyURL:     make([]string, 0),
+		EnableAuth:   true,
+		ImgURL:       types.ImgURL{},
 
 		Session: types.Session{
 			SecretKey: RandString(64),

@@ -98,22 +98,21 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/img/get", s.GetImgURLHandle)
 	engine.POST("api/img/set", s.SetImgURLHandle)
 
-	engine.POST("api/config/set", s.ConfigSetHandle)
-	engine.GET("api/config/chat-roles/get", s.GetChatRoleListHandle)
-	engine.GET("api/config/chat-roles/add", s.AddChatRoleHandle)
-	engine.POST("api/config/user/add", s.AddUserHandle)
-	engine.POST("api/config/user/batch-add", s.BatchAddUserHandle)
-	engine.POST("api/config/user/set", s.SetUserHandle)
-	engine.POST("api/config/user/list", s.GetUserListHandle)
-	engine.POST("api/config/user/remove", s.RemoveUserHandle)
-	engine.POST("api/config/apikey/add", s.AddApiKeyHandle)
-	engine.POST("api/config/apikey/remove", s.RemoveApiKeyHandle)
-	engine.POST("api/config/apikey/list", s.ListApiKeysHandle)
-	engine.POST("api/config/role/set", s.SetChatRoleHandle)
-	engine.POST("api/config/role/get", s.GetChatRoleHandle)
-	engine.POST("api/config/proxy/add", s.AddProxyHandle)
-	engine.POST("api/config/proxy/remove", s.RemoveProxyHandle)
-	engine.POST("api/config/debug", s.SetDebugHandle)
+	engine.POST("api/admin/config", s.ConfigSetHandle)
+	engine.GET("api/admin/chat-roles/get", s.GetChatRoleListHandle)
+	engine.GET("api/admin/chat-roles/add", s.AddChatRoleHandle)
+	engine.POST("api/admin/user/add", s.AddUserHandle)
+	engine.POST("api/admin/user/batch-add", s.BatchAddUserHandle)
+	engine.POST("api/admin/user/set", s.SetUserHandle)
+	engine.POST("api/admin/user/list", s.GetUserListHandle)
+	engine.POST("api/admin/user/remove", s.RemoveUserHandle)
+	engine.POST("api/admin/apikey/add", s.AddApiKeyHandle)
+	engine.POST("api/admin/apikey/remove", s.RemoveApiKeyHandle)
+	engine.POST("api/admin/apikey/list", s.ListApiKeysHandle)
+	engine.POST("api/admin/role/set", s.SetChatRoleHandle)
+	engine.POST("api/admin/role/get", s.GetChatRoleHandle)
+	engine.POST("api/admin/proxy/add", s.AddProxyHandle)
+	engine.POST("api/admin/proxy/remove", s.RemoveProxyHandle)
 
 	engine.NoRoute(func(c *gin.Context) {
 		if c.Request.URL.Path == "/favicon.ico" {
@@ -225,16 +224,16 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 			return
 		}
 
-		if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
-			accessKey := c.GetHeader("ACCESS-KEY")
-			if accessKey != strings.TrimSpace(s.Config.AccessKey) {
-				c.Abort()
-				c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
-			} else {
-				c.Next()
-			}
-			return
-		}
+		//if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
+		//	accessKey := c.GetHeader("ACCESS-KEY")
+		//	if accessKey != strings.TrimSpace(s.Config.AccessKey) {
+		//		c.Abort()
+		//		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
+		//	} else {
+		//		c.Next()
+		//	}
+		//	return
+		//}
 
 		// WebSocket 连接请求验证
 		if c.Request.URL.Path == "/api/chat" {
