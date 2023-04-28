@@ -27,7 +27,7 @@
                 :key="nav.id"
                 :style="{ paddingLeft: nodeListPaddingLeft + 'px' }"
                 :class="nav.active?'active':''"
-                @click="changeMenu(nav)"
+                @click="addTab(nav)"
             >
               <el-tooltip
                   class="box-item"
@@ -48,11 +48,32 @@
         <el-main>
           <div
               class="main-container"
-              id="main-container"
               :style="{ height: winHeight + 'px' }"
           >
-            <XWelcome v-if="curPage==='welcome'"/>
-            <TestPage v-if="curPage==='config'"/>
+            <x-welcome v-if="curTab==='welcome'"/>
+
+            <div v-else>
+              <el-tabs
+                  v-model="curTab"
+                  class="content-tabs"
+                  type="card"
+                  closable
+                  @tab-remove="removeTab"
+                  @tab-change="changeTab"
+              >
+                <el-tab-pane label="系统配置" name="config" v-if="arrayContains(tabs, 'config')">
+                  <sys-config v-if="curTab==='config'"/>
+                </el-tab-pane>
+
+                <el-tab-pane label="用户管理" name="user" v-if="arrayContains(tabs, 'user')">
+                  <user-list v-if="curTab==='user'"/>
+                </el-tab-pane>
+
+                <el-tab-pane label="角色管理" name="role" v-if="arrayContains(tabs, 'role')">
+                  <role-list v-if="curTab==='role'"/>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
           </div>
         </el-main>
 
@@ -96,13 +117,16 @@
 <script>
 import {defineComponent} from 'vue'
 import {Fold, Menu} from "@element-plus/icons-vue"
-import XWelcome from "@/views/Welcome.vue";
-import TestPage from "@/views/Test.vue";
+import XWelcome from "@/views/admin/Welcome.vue";
+import SysConfig from "@/views/admin/SysConfig.vue";
+import {arrayContains, removeArrayItem} from "@/utils/libs";
+import UserList from "@/views/admin/UserList.vue";
+import RoleList from "@/views/admin/RoleList.vue";
 
 
 export default defineComponent({
   name: "XAdmin",
-  components: {TestPage, XWelcome, Fold, Menu},
+  components: {RoleList, UserList, SysConfig, XWelcome, Fold, Menu},
   data() {
     return {
       title: "Chat-Plus 控制台",
@@ -112,24 +136,26 @@ export default defineComponent({
         {
           id: 1,
           title: '系统配置',
-          page: 'config',
+          tab: 'config',
           active: false,
         },
         {
           id: 2,
           title: '用户管理',
-          page: 'user',
+          tab: 'user',
           active: false,
         },
         {
           id: 3,
           title: '角色管理',
-          page: 'role',
+          tab: 'role',
           active: false,
         }
       ],
+
       curNav: null,
-      curPage: 'welcome',
+      curTab: 'welcome',
+      tabs: [],
 
       showDialog: false,
 
@@ -162,16 +188,52 @@ export default defineComponent({
   },
 
   methods: {
+    arrayContains(array, value, compare) {
+      return arrayContains(array, value, compare);
+    },
+
     hideSidebar: function () {
       this.showSidebar = !this.showSidebar
     },
-    changeMenu: function (nav) {
+
+    // 添加 tab 窗口
+    addTab: function (nav) {
       if (this.curNav) {
         this.curNav.active = false
       }
-      nav.active = true;
       this.curNav = nav;
-      this.curPage = nav.page;
+      this.curNav.active = true;
+      this.curTab = nav.tab;
+      if (!arrayContains(this.tabs, nav.tab)) {
+        this.tabs.push(nav.tab);
+      }
+    },
+
+    changeTab: function (name) {
+      for (let i = 0; i < this.navs.length; i++) {
+        if (this.navs[i].tab === name) {
+          this.curNav.active = false
+          this.curNav = this.navs[i];
+          this.curNav.active = true;
+          break;
+        }
+      }
+    },
+
+    // 删除 tab 窗口
+    removeTab: function (name) {
+      this.tabs = removeArrayItem(this.tabs, name);
+      if (this.tabs.length === 0) {
+        this.curTab = 'welcome';
+        return;
+      }
+
+      for (let i = 0; i < this.navs.length; i++) {
+        if (this.navs[i].tab === this.tabs[this.tabs.length - 1]) {
+          this.addTab(this.navs[i]);
+        }
+      }
+
     }
   },
 
@@ -265,10 +327,16 @@ $borderColor = #4676d0;
     display: flex;
     flex-flow: column;
 
-    .console-wrapper {
-      position: absolute;
-      width: 100%;
+    .content-tabs {
+      background: #ffffff;
+      padding 10px 20px;
+
+      .el-tabs__item {
+        height 35px
+        line-height 35px
+      }
     }
+
   }
 }
 </style>
