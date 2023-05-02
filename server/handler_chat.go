@@ -215,7 +215,7 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 			logger.Infof("API Key %s is deactivated", apiKey)
 			// 移除当前 API key
 			for i, v := range s.Config.Chat.ApiKeys {
-				if v == apiKey {
+				if v.Value == apiKey {
 					s.Config.Chat.ApiKeys = append(s.Config.Chat.ApiKeys[:i], s.Config.Chat.ApiKeys[i+1:]...)
 				}
 			}
@@ -313,30 +313,26 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 
 // 随机获取一个 API Key，如果请求失败，则更换 API Key 重试
 func (s *Server) getApiKey(failedKey string) string {
-	var keys = make([]string, 0)
-	for _, v := range s.Config.Chat.ApiKeys {
+	var keys = make([]types.APIKey, 0)
+	for _, key := range s.Config.Chat.ApiKeys {
 		// 过滤掉刚刚失败的 Key
-		if v == failedKey {
+		if key.Value == failedKey {
 			continue
 		}
 
-		// 获取 API Key 的上次调用时间，控制调用频率
-		var lastAccess int64
-		if t, ok := s.ApiKeyAccessStat[v]; ok {
-			lastAccess = t
-		}
-		// 保持每分钟访问不超过 15 次
-		if time.Now().Unix()-lastAccess <= 4 {
+		// 保持每分钟访问不超过 15 次，控制调用频率
+		if key.LastUsed > 0 && time.Now().Unix()-key.LastUsed <= 4 {
 			continue
 		}
 
-		keys = append(keys, v)
+		keys = append(keys, key)
 	}
+	// 从可用的 Key 中随机选一个
 	rand.NewSource(time.Now().UnixNano())
 	if len(keys) > 0 {
 		key := keys[rand.Intn(len(keys))]
-		s.ApiKeyAccessStat[key] = time.Now().Unix()
-		return key
+		key.LastUsed = time.Now().Unix()
+		return key.Value
 	}
 	return ""
 }

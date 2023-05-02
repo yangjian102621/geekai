@@ -37,12 +37,17 @@ type Manager struct {
 // Chat configs struct
 type Chat struct {
 	ApiURL                string
-	ApiKeys               []string
+	ApiKeys               []APIKey
 	Model                 string
 	Temperature           float32
 	MaxTokens             int
 	EnableContext         bool // 是否保持聊天上下文
 	ChatContextExpireTime int  // 聊天上下文过期时间，单位：秒
+}
+
+type APIKey struct {
+	Value string `json:"value"` // Key value
+	LastUsed int64 `json:"last_used"` // 最后使用时间
 }
 
 // Session configs struct

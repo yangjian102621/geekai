@@ -41,7 +41,6 @@ type Server struct {
 	// 保存 Websocket 会话 Username, 每个 Username 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
 	ChatSession      map[string]types.ChatSession  //map[sessionId]User
-	ApiKeyAccessStat map[string]int64              // 记录每个 API Key 的最后访问之间，保持在 15/min 之内
 	ChatClients      map[string]*WsClient          // Websocket 连接集合
 	ReqCancelFunc    map[string]context.CancelFunc // HttpClient 请求取消 handle function
 	DebugMode        bool                          // 是否开启调试模式
@@ -70,7 +69,6 @@ func NewServer(configPath string) (*Server, error) {
 		ChatSession:      make(map[string]types.ChatSession),
 		ChatClients:      make(map[string]*WsClient),
 		ReqCancelFunc:    make(map[string]context.CancelFunc),
-		ApiKeyAccessStat: make(map[string]int64),
 	}, nil
 }
 

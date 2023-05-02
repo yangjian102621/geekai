@@ -30,7 +30,7 @@ func NewDefaultConfig() *types.Config {
 		},
 		Chat: types.Chat{
 			ApiURL:                "https://api.openai.com/v1/chat/completions",
-			ApiKeys:               []string{""},
+			ApiKeys:               make([]types.APIKey, 0),
 			Model:                 "gpt-3.5-turbo",
 			MaxTokens:             1024,
 			Temperature:           0.9,
