@@ -15,7 +15,6 @@ func NewDefaultConfig() *types.Config {
 		ConsoleTitle: "Chat-Plus 控制台",
 		Listen:       "0.0.0.0:5678",
 		ProxyURL:     make([]string, 0),
-		EnableAuth:   true,
 		ImgURL:       types.ImgURL{},
 
 		Session: types.Session{

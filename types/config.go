@@ -10,7 +10,6 @@ type Config struct {
 	Listen       string
 	Session      Session
 	ProxyURL     []string
-	EnableAuth   bool // 是否开启鉴权
 	Chat         Chat
 	ImgURL       ImgURL // 各种图片资源链接地址，比如微信二维码，群二维码
 }

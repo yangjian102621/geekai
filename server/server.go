@@ -96,9 +96,10 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/img/get", s.GetImgURLHandle)
 	engine.POST("api/img/set", s.SetImgURLHandle)
 
-	engine.POST("api/admin/config", s.ConfigSetHandle)
-	engine.GET("api/admin/chat-roles/get", s.GetChatRoleListHandle)
-	engine.GET("api/admin/chat-roles/add", s.AddChatRoleHandle)
+	engine.GET("api/admin/config/get", s.ConfigGetHandle)
+	engine.POST("api/admin/config/set", s.ConfigSetHandle)
+	engine.POST("api/admin/chat-roles/get", s.GetChatRoleListHandle)
+	engine.POST("api/admin/chat-roles/add", s.AddChatRoleHandle)
 	engine.POST("api/admin/user/add", s.AddUserHandle)
 	engine.POST("api/admin/user/batch-add", s.BatchAddUserHandle)
 	engine.POST("api/admin/user/set", s.SetUserHandle)
@@ -214,49 +215,39 @@ func corsMiddleware() gin.HandlerFunc {
 // AuthorizeMiddleware 用户授权验证
 func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !s.Config.EnableAuth ||
-			c.Request.URL.Path == "/api/login" ||
-			c.Request.URL.Path == "/api/config/chat-roles/get" ||
-			!strings.HasPrefix(c.Request.URL.Path, "/api") {
-			c.Next()
-			return
-		}
-
-		//if strings.HasPrefix(c.Request.URL.Path, "/api/config") {
-		//	accessKey := c.GetHeader("ACCESS-KEY")
-		//	if accessKey != strings.TrimSpace(s.Config.AccessKey) {
-		//		c.Abort()
-		//		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
-		//	} else {
+		c.Next()
+		//if !s.Config.EnableAuth ||
+		//	c.Request.URL.Path == "/api/login" ||
+		//	c.Request.URL.Path == "/api/config/chat-roles/get" ||
+		//	!strings.HasPrefix(c.Request.URL.Path, "/api") {
+		//	c.Next()
+		//	return
+		//}
+		//
+		//// WebSocket 连接请求验证
+		//if c.Request.URL.Path == "/api/chat" {
+		//	sessionId := c.Query("sessionId")
+		//	if session, ok := s.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
 		//		c.Next()
+		//	} else {
+		//		c.Abort()
 		//	}
 		//	return
 		//}
-
-		// WebSocket 连接请求验证
-		if c.Request.URL.Path == "/api/chat" {
-			sessionId := c.Query("sessionId")
-			if session, ok := s.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
-				c.Next()
-			} else {
-				c.Abort()
-			}
-			return
-		}
-
-		sessionId := c.GetHeader(types.TokenName)
-		session := sessions.Default(c)
-		userInfo := session.Get(sessionId)
-		if userInfo != nil {
-			c.Set(types.SessionKey, userInfo)
-			c.Next()
-		} else {
-			c.Abort()
-			c.JSON(http.StatusOK, types.BizVo{
-				Code:    types.NotAuthorized,
-				Message: "Not Authorized",
-			})
-		}
+		//
+		//sessionId := c.GetHeader(types.TokenName)
+		//session := sessions.Default(c)
+		//userInfo := session.Get(sessionId)
+		//if userInfo != nil {
+		//	c.Set(types.SessionKey, userInfo)
+		//	c.Next()
+		//} else {
+		//	c.Abort()
+		//	c.JSON(http.StatusOK, types.BizVo{
+		//		Code:    types.NotAuthorized,
+		//		Message: "Not Authorized",
+		//	})
+		//}
 	}
 }
 
