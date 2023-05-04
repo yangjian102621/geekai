@@ -40,10 +40,10 @@ type Server struct {
 
 	// 保存 Websocket 会话 Username, 每个 Username 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
-	ChatSession      map[string]types.ChatSession  //map[sessionId]User
-	ChatClients      map[string]*WsClient          // Websocket 连接集合
-	ReqCancelFunc    map[string]context.CancelFunc // HttpClient 请求取消 handle function
-	DebugMode        bool                          // 是否开启调试模式
+	ChatSession   map[string]types.ChatSession  //map[sessionId]User
+	ChatClients   map[string]*WsClient          // Websocket 连接集合
+	ReqCancelFunc map[string]context.CancelFunc // HttpClient 请求取消 handle function
+	DebugMode     bool                          // 是否开启调试模式
 }
 
 func NewServer(configPath string) (*Server, error) {
@@ -63,12 +63,12 @@ func NewServer(configPath string) (*Server, error) {
 		}
 	}
 	return &Server{
-		Config:           config,
-		ConfigPath:       configPath,
-		ChatContexts:     make(map[string]types.ChatContext, 16),
-		ChatSession:      make(map[string]types.ChatSession),
-		ChatClients:      make(map[string]*WsClient),
-		ReqCancelFunc:    make(map[string]context.CancelFunc),
+		Config:        config,
+		ConfigPath:    configPath,
+		ChatContexts:  make(map[string]types.ChatContext, 16),
+		ChatSession:   make(map[string]types.ChatSession),
+		ChatClients:   make(map[string]*WsClient),
+		ReqCancelFunc: make(map[string]context.CancelFunc),
 	}, nil
 }
 
@@ -98,18 +98,22 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 
 	engine.GET("api/admin/config/get", s.ConfigGetHandle)
 	engine.POST("api/admin/config/set", s.ConfigSetHandle)
-	engine.POST("api/admin/chat-roles/get", s.GetChatRoleListHandle)
+
+	engine.POST("api/chat-roles/list", s.GetChatRoleListHandle)
+	engine.POST("api/admin/chat-roles/list", s.GetAllChatRolesHandle)
+	engine.POST("api/chat-roles/get", s.GetChatRoleHandle)
 	engine.POST("api/admin/chat-roles/add", s.AddChatRoleHandle)
+	engine.POST("api/admin/chat-roles/set", s.SetChatRoleHandle)
+
 	engine.POST("api/admin/user/add", s.AddUserHandle)
 	engine.POST("api/admin/user/batch-add", s.BatchAddUserHandle)
 	engine.POST("api/admin/user/set", s.SetUserHandle)
 	engine.POST("api/admin/user/list", s.GetUserListHandle)
 	engine.POST("api/admin/user/remove", s.RemoveUserHandle)
+
 	engine.POST("api/admin/apikey/add", s.AddApiKeyHandle)
 	engine.POST("api/admin/apikey/remove", s.RemoveApiKeyHandle)
 	engine.POST("api/admin/apikey/list", s.ListApiKeysHandle)
-	engine.POST("api/admin/role/set", s.SetChatRoleHandle)
-	engine.POST("api/admin/role/get", s.GetChatRoleHandle)
 	engine.POST("api/admin/proxy/add", s.AddProxyHandle)
 	engine.POST("api/admin/proxy/remove", s.RemoveProxyHandle)
 

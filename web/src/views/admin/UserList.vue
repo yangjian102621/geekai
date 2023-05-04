@@ -5,7 +5,7 @@
         <el-icon>
           <Plus/>
         </el-icon>
-        新增
+        新增用户
       </el-button>
 
       <el-button type="success" @click="showBatchAddUserDialog = true">
@@ -306,7 +306,7 @@ onMounted(() => {
   })
 
   // 获取角色列表
-  httpPost("/api/admin/chat-roles/get").then((res) => {
+  httpPost('/api/admin/chat-roles/list').then((res) => {
     roles.value = res.data;
     roles.value.unshift({name: '全部', key: 'all'})
   }).catch(() => {

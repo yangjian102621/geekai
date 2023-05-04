@@ -8,19 +8,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetChatRoleListHandle 获取聊天角色列表
-func (s *Server) GetChatRoleListHandle(c *gin.Context) {
-	var user *types.User
-	username := c.Query("username")
-	if username != "" {
-		u, err := GetUser(username)
-		if err != nil {
-			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hacker Access!!!"})
-			return
+// GetAllChatRolesHandle 获取所有聊天角色列表
+func (s *Server) GetAllChatRolesHandle(c *gin.Context) {
+	var rolesOrder = []string{"gpt", "teacher", "translator", "english_trainer", "weekly_report", "girl_friend",
+		"kong_zi", "lu_xun", "steve_jobs", "elon_musk", "red_book", "dou_yin", "programmer",
+		"seller", "good_comment", "psychiatrist", "artist"}
+	var res = make([]interface{}, 0)
+	var roles = GetChatRoles()
+	for _, k := range rolesOrder {
+		if v, ok := roles[k]; ok {
+			res = append(res, v)
 		}
-		user = u
 	}
 
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: res})
+}
+
+// GetChatRoleListHandle 获取当前登录用户的角色列表
+func (s *Server) GetChatRoleListHandle(c *gin.Context) {
+	sessionId := c.GetHeader(types.TokenName)
+	session := s.ChatSession[sessionId]
+	user, err := GetUser(session.Username)
+	if err != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hacker Access!!!"})
+		return
+	}
 	var rolesOrder = []string{"gpt", "teacher", "translator", "english_trainer", "weekly_report", "girl_friend",
 		"kong_zi", "lu_xun", "steve_jobs", "elon_musk", "red_book", "dou_yin", "programmer",
 		"seller", "good_comment", "psychiatrist", "artist"}
@@ -28,11 +40,10 @@ func (s *Server) GetChatRoleListHandle(c *gin.Context) {
 	var roles = GetChatRoles()
 	for _, k := range rolesOrder {
 		// 确认当前用户是否订阅了当前角色
-		if user != nil {
-			if v, ok := user.ChatRoles[k]; !ok || v != 1 {
-				continue
-			}
+		if v, ok := user.ChatRoles[k]; !ok || v != 1 {
+			continue
 		}
+
 		if v, ok := roles[k]; ok && v.Enable {
 			res = append(res, struct {
 				Key  string `json:"key"`
