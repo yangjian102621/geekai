@@ -34,3 +34,21 @@ func ContainsStr(slice []string, item string) bool {
 	}
 	return false
 }
+
+// Stamp2str 时间戳转字符串
+func Stamp2str(timestamp int64) string {
+	if timestamp == 0 {
+		return ""
+	}
+	return time.Unix(timestamp, 0).Format("2006-01-02 15:04:05")
+}
+
+// Str2stamp 字符串转时间戳
+func Str2stamp(str string) int64 {
+	layout := "2006-01-02 15:04:05"
+	t, err := time.Parse(layout, str)
+	if err != nil {
+		return 0
+	}
+	return t.Unix()
+}

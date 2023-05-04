@@ -819,6 +819,7 @@ export default defineComponent({
           background-color #232425
           cursor pointer
         }
+
         .text {
           margin-left 10px;
           font-size 12px;

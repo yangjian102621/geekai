@@ -48,7 +48,7 @@
       </el-row>
 
       <el-form-item label="对话上下文">
-        <el-switch v-model="form['enable_context']" />
+        <el-switch v-model="form['enable_context']"/>
       </el-form-item>
 
       <el-form-item>
@@ -65,7 +65,9 @@
       >
         <template #prepend>
           <el-button type="primary">
-            <el-icon><Plus /></el-icon>
+            <el-icon>
+              <Plus/>
+            </el-icon>
           </el-button>
         </template>
         <template #append>
@@ -76,7 +78,7 @@
 
     <el-row>
       <el-table :data="apiKeys" style="width: 100%">
-        <el-table-column prop="value" label="API-KEY" />
+        <el-table-column prop="value" label="API-KEY"/>
         <el-table-column prop="last_used" label="最后使用" width="180">
           <template #default="scope">
             <span v-if="scope.row['last_used'] > 0">{{ dateFormat(scope.row['last_used']) }}</span>
@@ -85,12 +87,22 @@
         </el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="scope">
-            <el-button
-                size="small"
-                type="danger"
-                @click="removeApiKey(scope.row.value)"
-            >删除</el-button
+            <el-popconfirm
+                width="220"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                title="确定删除该记录吗?"
+                :hide-after="0"
+                @confirm="removeApiKey(scope.row.value)"
             >
+              <template #reference>
+                <el-button
+                    size="small"
+                    type="danger">删除
+                </el-button>
+              </template>
+            </el-popconfirm>
+
           </template>
         </el-table-column>
       </el-table>
@@ -111,7 +123,6 @@ export default defineComponent({
   components: {Plus},
   data() {
     return {
-      title: "系统管理",
       apiKey: '',
       form: {},
       apiKeys: [],
@@ -143,13 +154,12 @@ export default defineComponent({
     },
   },
   methods: {
-    saveConfig: function (e) {
-      this.form['temperature'] = parseFloat(this.form['temperature'])
-      this.form['chat_context_expire_time'] = parseInt(this.form['chat_context_expire_time'])
-      this.form['max_tokens'] = parseInt(this.form['max_tokens'])
+    saveConfig: function () {
+      this.form['temperature'] = parseFloat(this.form.temperature)
+      this.form['chat_context_expire_time'] = parseInt(this.form.chat_context_expire_time)
+      this.form['max_tokens'] = parseInt(this.form.max_tokens)
       httpPost("/api/admin/config/set", this.form).then(() => {
         ElMessage.success("保存成功");
-        e.currentTarget.blur()
       }).catch((e) => {
         console.log(e.message);
         ElMessage.error("保存失败");
@@ -164,21 +174,21 @@ export default defineComponent({
 
       httpPost('api/admin/apikey/add', {api_key: this.apiKey.trim()}).then(() => {
         ElMessage.success('添加成功')
-        this.apiKeys.push({value: this.apiKey, last_used: 0})
+        this.apiKeys.unshift({value: this.apiKey, last_used: 0})
         this.apiKey = ''
       }).catch((e) => {
-        ElMessage.error('添加失败，'+e.message)
+        ElMessage.error('添加失败，' + e.message)
       })
     },
 
-    removeApiKey:function (key) {
+    removeApiKey: function (key) {
       httpPost('api/admin/apikey/remove', {api_key: key}).then(() => {
         ElMessage.success('删除成功')
-        this.apiKeys = removeArrayItem(this.apiKeys, key, function (v1,v2) {
+        this.apiKeys = removeArrayItem(this.apiKeys, key, function (v1, v2) {
           return v1.value === v2
         })
       }).catch((e) => {
-        ElMessage.error('删除失败，'+e.message)
+        ElMessage.error('删除失败，' + e.message)
       })
     }
   }

@@ -319,7 +319,6 @@ $borderColor = #4676d0;
 
 .el-main {
   --el-main-padding: 0;
-  overflow: hidden;
   margin: 0;
   background-image url("~@/assets/img/bg_01.jpeg")
 

@@ -100,7 +100,7 @@ func (s *Server) BatchAddUserHandle(c *gin.Context) {
 
 	}
 
-	var users = make([]types.User, 0)
+	var users = make([]UserVo, 0)
 	for i := 0; i < data.Number; i++ {
 		name := utils.RandString(12)
 		_, err := GetUser(name)
@@ -117,7 +117,7 @@ func (s *Server) BatchAddUserHandle(c *gin.Context) {
 			Status:         true}
 		err = PutUser(user)
 		if err == nil {
-			users = append(users, user)
+			users = append(users, user2vo(user))
 		}
 	}
 
@@ -165,7 +165,7 @@ func (s *Server) SetUserHandle(c *gin.Context) {
 		user.RemainingCalls = int(v.(float64))
 	}
 	if v, ok := data["expired_time"]; ok {
-		user.ExpiredTime = int64(v.(float64))
+		user.ExpiredTime = utils.Str2stamp(v.(string))
 	}
 	if v, ok := data["api_key"]; ok {
 		user.ApiKey = v.(string)
@@ -218,6 +218,19 @@ func (s *Server) RemoveUserHandle(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg})
 }
 
+type UserVo struct {
+	Name           string   `json:"name"`
+	MaxCalls       int      `json:"max_calls"`         // 最多调用次数，如果为 0 则表示不限制
+	RemainingCalls int      `json:"remaining_calls"`   // 剩余调用次数
+	EnableHistory  bool     `json:"enable_history"`    // 是否启用聊天记录
+	Status         bool     `json:"status"`            // 当前状态
+	Term           int      `json:"term" default:"30"` // 会员有效期，单位：天
+	ActiveTime     string   `json:"active_time"`       // 激活时间
+	ExpiredTime    string   `json:"expired_time"`      // 到期时间
+	ApiKey         string   `json:"api_key"`           // OpenAI  API KEY
+	ChatRoles      []string `json:"chat_roles"`        // 当前用户已订阅的聊天角色 map[role_key] => 0/1
+}
+
 // GetUserListHandle 获取用户列表
 func (s *Server) GetUserListHandle(c *gin.Context) {
 	username := c.PostForm("username")
@@ -231,5 +244,29 @@ func (s *Server) GetUserListHandle(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: GetUsers()})
+	users := make([]UserVo, 0)
+	for _, u := range GetUsers() {
+		users = append(users, user2vo(u))
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Message: types.OkMsg, Data: users})
+}
+
+// 将 User 实体转为 UserVo 实体
+func user2vo(user types.User) UserVo {
+	vo := UserVo{
+		Name:           user.Name,
+		MaxCalls:       user.MaxCalls,
+		RemainingCalls: user.RemainingCalls,
+		EnableHistory:  user.EnableHistory,
+		Status:         user.Status,
+		Term:           user.Term,
+		ActiveTime:     utils.Stamp2str(user.ActiveTime),
+		ExpiredTime:    utils.Stamp2str(user.ExpiredTime),
+		ChatRoles:      make([]string, 0),
+	}
+	for k := range user.ChatRoles {
+		vo.ChatRoles = append(vo.ChatRoles, k)
+	}
+	return vo
 }
