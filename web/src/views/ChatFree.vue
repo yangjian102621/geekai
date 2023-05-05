@@ -430,6 +430,7 @@ export default defineComponent({
 
     // 加载聊天历史记录
     fetchChatHistory: function (chatId) {
+      this.chatData = [];
       const list = getChatHistory(chatId);
       if (list) {
         const md = require('markdown-it')();

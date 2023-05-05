@@ -68,7 +68,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 			ctx, cancel := context.WithCancel(context.Background())
 			s.ReqCancelFunc[sessionId] = cancel
 			// 回复消息
-			err = s.sendMessage(ctx, session, chatRole, string(message), client, false)
+			err = s.sendMessage(ctx, session, chatRole, string(message), client)
 			if err != nil {
 				logger.Error(err)
 			} else {
@@ -81,7 +81,7 @@ func (s *Server) ChatHandle(c *gin.Context) {
 }
 
 // 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
-func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, role types.ChatRole, prompt string, ws Client, resetContext bool) error {
+func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, role types.ChatRole, prompt string, ws Client) error {
 	cancel := s.ReqCancelFunc[session.SessionId]
 	defer func() {
 		cancel()
@@ -189,6 +189,10 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 		retryCount--
 	}
 
+	if response != nil {
+		defer response.Body.Close()
+	}
+
 	// 如果三次请求都失败的话，则返回对应的错误信息
 	if err != nil {
 		replyMessage(ws, ErrorMsg, false)
@@ -223,14 +227,15 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 			_ = utils.SaveConfig(s.Config, s.ConfigPath)
 
 			// 重发当前消息
-			return s.sendMessage(ctx, session, role, prompt, ws, false)
+			return s.sendMessage(ctx, session, role, prompt, ws)
 
 			// 上下文超出长度了
 		} else if strings.Contains(line, "This model's maximum context length is 4097 tokens") {
 			logger.Infof("会话上下文长度超出限制, Username: %s", user.Name)
-			// 重置上下文，重发当前消息
+			replyMessage(ws, "温馨提示：当前会话上下文长度超出限制，已为您重置会话上下文！", false)
+			// 重置上下文
 			delete(s.ChatContexts, ctxKey)
-			return s.sendMessage(ctx, session, role, prompt, ws, true)
+			break
 		} else if !strings.Contains(line, "data:") {
 			continue
 		}
@@ -243,9 +248,6 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 			break
 		}
 
-		if resetContext {
-			replyMessage(ws, "温馨提示：当前会话上下文长度超出限制，已为您重置会话上下文！", false)
-		}
 		// 初始化 role
 		if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
 			message.Role = responseBody.Choices[0].Delta.Role
@@ -272,7 +274,6 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 			continue
 		}
 	} // end for
-	_ = response.Body.Close() // 关闭资源
 
 	// 消息发送成功
 	if len(contents) > 0 {
