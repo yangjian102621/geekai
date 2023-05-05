@@ -95,7 +95,8 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/img/get", s.GetImgURLHandle)
 	engine.POST("api/img/set", s.SetImgURLHandle)
 
-	engine.GET("api/config/get", s.ConfigGetHandle)
+	engine.GET("api/config/get", s.GetConfigHandle)          // 获取一些公开的配置信息，前端使用
+	engine.GET("api/admin/config/get", s.GetAllConfigHandle) // 获取所有配置，后台管理使用
 	engine.POST("api/admin/config/set", s.ConfigSetHandle)
 
 	engine.GET("api/chat-roles/list", s.GetChatRoleListHandle)
@@ -221,6 +222,7 @@ func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.URL.Path == "/api/login" ||
 			c.Request.URL.Path == "/api/admin/login" ||
+			c.Request.URL.Path == "/api/config/get" ||
 			c.Request.URL.Path == "/api/chat-roles/list" ||
 			!strings.HasPrefix(c.Request.URL.Path, "/api") {
 			c.Next()

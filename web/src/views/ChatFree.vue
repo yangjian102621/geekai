@@ -149,7 +149,7 @@
         </div>
 
         <el-row class="row-center">
-          <el-image src="https://img.r9it.com/chatgpt/wechat-group.jpeg" fit="cover"/>
+          <el-image :src="sysConfig['wechat_group']" fit="cover" style="width: 250px;"/>
         </el-row>
 
       </el-dialog>
@@ -223,6 +223,9 @@ export default defineComponent({
       curChat: null, // 当前会话
       curPrompt: null, // 当前用户输入
 
+      sysConfig: {}, // 系统配置
+      hasHelloMsg: {}, // 是否发送过打招呼信息
+
       showStopGenerate: false,
       showReGenerate: false,
       canReGenerate: false, // 是否可以重新生
@@ -280,6 +283,13 @@ export default defineComponent({
       this.chatList = chatList;
     }
 
+    // 获取系统配置
+    httpGet('/api/config/get').then((res) => {
+      this.sysConfig = res.data;
+    }).catch(() => {
+      ElMessage.error('获取系统配置失败')
+    })
+
     // 创建新会话
     this.newChat();
   },
@@ -310,8 +320,10 @@ export default defineComponent({
 
         // 获取历史记录
         this.fetchChatHistory(this.curChat.id);
-        if (this.chatData.length === 0) { // 显示打招呼信息
+        // 显示打招呼信息
+        if (!this.hasHelloMsg[this.curChat.id] && this.chatData.length === 0) {
           this.chatData.push(this.helloMsg);
+          this.hasHelloMsg[this.curChat.id] = true
         }
       });
 
@@ -666,6 +678,7 @@ export default defineComponent({
 
       this.appendChat();
       this.chatData = [];
+      this.hasHelloMsg = {};
       this.curChat = chat;
       this.showStopGenerate = false;
       this.showReGenerate = false;

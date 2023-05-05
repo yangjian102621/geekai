@@ -18,7 +18,8 @@ func (s *Server) TestHandle(c *gin.Context) {
 
 }
 
-func (s *Server) ConfigGetHandle(c *gin.Context) {
+// GetAllConfigHandle 获取所有配置
+func (s *Server) GetAllConfigHandle(c *gin.Context) {
 	data := struct {
 		Title                 string       `json:"title"`
 		ConsoleTitle          string       `json:"console_title"`
@@ -39,6 +40,22 @@ func (s *Server) ConfigGetHandle(c *gin.Context) {
 		EnableContext:         s.Config.Chat.EnableContext,
 		ChatContextExpireTime: s.Config.Chat.ChatContextExpireTime,
 		ImgURL:                s.Config.ImgURL,
+	}
+
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: data})
+}
+
+func (s *Server) GetConfigHandle(c *gin.Context) {
+	data := struct {
+		Title        string `json:"title"`
+		ConsoleTitle string `json:"console_title"`
+		WechatCard   string `json:"wechat_card"`  // 个人微信二维码
+		WechatGroup  string `json:"wechat_group"` // 微信群二维码
+	}{
+		Title:        s.Config.Title,
+		ConsoleTitle: s.Config.ConsoleTitle,
+		WechatCard:   s.Config.ImgURL.WechatCard,
+		WechatGroup:  s.Config.ImgURL.WechatGroup,
 	}
 
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: data})

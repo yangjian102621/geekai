@@ -139,7 +139,7 @@ export default defineComponent({
   },
   mounted() {
     // 获取系统配置
-    httpGet('/api/config/get').then((res) => {
+    httpGet('/api/admin/config/get').then((res) => {
       this.form = res.data;
     }).catch(() => {
       ElMessage.error('获取系统配置失败')

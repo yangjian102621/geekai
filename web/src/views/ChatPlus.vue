@@ -163,7 +163,7 @@
         </el-row>
 
         <el-row class="row-center">
-          <el-image src="images/wx.png" fit="cover"/>
+          <el-image :src="sysConfig.wechat_card" fit="cover" style="width: 250px;"/>
         </el-row>
 
       </el-dialog>
@@ -222,7 +222,8 @@ export default defineComponent({
       allChatRoles: [], // 所有角色集合
       role: 'gpt',
       inputValue: '', // 聊天内容
-      sendHelloMsg: {}, // 是否发送过打招呼信息
+      hasHelloMsg: {}, // 是否发送过打招呼信息
+      sysConfig: {}, // 系统配置
 
       showConfigDialog: false, // 显示配置对话框
       userInfo: {},
@@ -271,6 +272,13 @@ export default defineComponent({
     window.addEventListener("resize", () => {
       this.resizeElement();
     });
+
+    // 获取系统配置
+    httpGet('/api/config/get').then((res) => {
+      this.sysConfig = res.data;
+    }).catch(() => {
+      ElMessage.error('获取系统配置失败')
+    })
 
     this.connect();
   },
@@ -327,7 +335,7 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
-            if (data['is_hello_msg'] && this.sendHelloMsg[this.role]) { // 一定发送过打招呼信息的
+            if (data['is_hello_msg'] && this.hasHelloMsg[this.role]) { // 一定发送过打招呼信息的
               return
             }
 
@@ -346,7 +354,7 @@ export default defineComponent({
               if (data['is_hello_msg'] !== true) {
                 this.showReGenerate = true;
               } else {
-                this.sendHelloMsg[this.role] = true
+                this.hasHelloMsg[this.role] = true
               }
               this.showStopGenerate = false;
               this.lineBuffer = ''; // 清空缓冲
@@ -427,6 +435,7 @@ export default defineComponent({
       this.replyIcon = item.icon;
       // 清空对话列表
       this.chatData = [];
+      this.hasHelloMsg = {};
       this.showStopGenerate = false;
       this.showReGenerate = false;
       this.connect();

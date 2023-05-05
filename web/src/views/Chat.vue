@@ -116,7 +116,7 @@
         </div>
 
         <el-row class="row-center">
-          <el-image src="images/wx.png" fit="cover"/>
+          <el-image :src="sysConfig['wechat_card']" fit="cover" style="width: 250px;"/>
         </el-row>
 
       </el-dialog>
@@ -153,6 +153,8 @@ export default defineComponent({
       showConfigDialog: false,
       userInfo: {},
       showLoginDialog: false,
+      sysConfig: {}, // 系统配置
+      hasHelloMsg: {}, // 是否发送过打招呼信息
 
       showStopGenerate: false,
       showReGenerate: false,
@@ -198,6 +200,13 @@ export default defineComponent({
       this.inputBoxWidth = window.innerWidth - 20;
     });
 
+    // 获取系统配置
+    httpGet('/api/config/get').then((res) => {
+      this.sysConfig = res.data;
+    }).catch(() => {
+      ElMessage.error('获取系统配置失败')
+    })
+
     this.connect();
   },
 
@@ -220,7 +229,7 @@ export default defineComponent({
       socket.addEventListener('open', () => {
         // 获取聊天角色
         if (this.chatRoles.length === 0) {
-          httpGet("/api/config/chat-roles/get").then((res) => {
+          httpGet("/api/chat-roles/list").then((res) => {
             // ElMessage.success('创建会话成功！');
             this.chatRoles = res.data;
             this.loading = false
@@ -246,6 +255,9 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
+            if (data['is_hello_msg'] && this.hasHelloMsg[this.role]) { // 一定发送过打招呼信息的
+              return
+            }
             if (data.type === 'start') {
               this.chatData.push({
                 type: "reply",
@@ -260,6 +272,8 @@ export default defineComponent({
               this.sending = false;
               if (data['is_hello_msg'] !== true) {
                 this.showReGenerate = true;
+              } else {
+                this.hasHelloMsg[this.role] = true
               }
               this.showStopGenerate = false;
               this.lineBuffer = ''; // 清空缓冲
@@ -331,6 +345,9 @@ export default defineComponent({
       this.loading = true
       // 清空对话列表
       this.chatData = [];
+      this.hasHelloMsg = {};
+      this.showStopGenerate = false;
+      this.showReGenerate = false;
       this.connect();
       for (const key in this.chatRoles) {
         if (this.chatRoles[key].key === this.role) {
@@ -679,7 +696,7 @@ export default defineComponent({
 
       .tip-text {
         text-align left
-        padding 0 20px 10px 20px;
+        padding 20px;
 
         .el-alert {
           padding 5px;
