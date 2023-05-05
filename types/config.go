@@ -10,8 +10,10 @@ type Config struct {
 	Listen       string
 	Session      Session
 	ProxyURL     []string
+	ImgURL       ImgURL  // 各种图片资源链接地址，比如微信二维码，群二维码
+	AccessKey    string  // 管理员访问 AccessKey, 通过传入这个参数可以访问系统管理 API
+	Manager      Manager // 后台管理员账户信息
 	Chat         Chat
-	ImgURL       ImgURL // 各种图片资源链接地址，比如微信二维码，群二维码
 }
 
 type User struct {
@@ -45,8 +47,8 @@ type Chat struct {
 }
 
 type APIKey struct {
-	Value string `json:"value"` // Key value
-	LastUsed int64 `json:"last_used"` // 最后使用时间
+	Value    string `json:"value"`     // Key value
+	LastUsed int64  `json:"last_used"` // 最后使用时间
 }
 
 // Session configs struct

@@ -16,6 +16,8 @@ func NewDefaultConfig() *types.Config {
 		Listen:       "0.0.0.0:5678",
 		ProxyURL:     make([]string, 0),
 		ImgURL:       types.ImgURL{},
+		Manager:      types.Manager{Username: "admin", Password: "admin123"},
+		AccessKey:    "yangjian102621@gmail.com",
 
 		Session: types.Session{
 			SecretKey: RandString(64),

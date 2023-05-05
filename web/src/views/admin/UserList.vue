@@ -190,8 +190,6 @@
         v-model="showUserEditDialog"
         title="编辑用户"
         width="50%"
-        :destroy-on-close="true"
-
     >
       <el-form :model="form2" label-width="100px" ref="userEditFormRef" :rules="rules">
         <el-form-item label="用户名：" prop="name">

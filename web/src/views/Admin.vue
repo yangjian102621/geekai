@@ -43,6 +43,10 @@
               <span v-if="showSidebar">{{ nav.title }}</span>
             </li>
           </ul>
+
+          <el-row class="tool-box">
+            <el-button type="primary" plain @click="logout" v-show="isLogin">退出登录</el-button>
+          </el-row>
         </el-aside>
 
         <el-main>
@@ -86,7 +90,7 @@
           <el-form :model="user" label-width="80px">
             <el-form-item label="用户名：">
               <el-input
-                  v-model="user.username"
+                  v-model.trim="user.username"
                   autocomplete="off"
                   placeholder="请输入用户名"
               />
@@ -94,10 +98,11 @@
 
             <el-form-item label="密码：">
               <el-input
-                  v-model="user.password"
+                  v-model.trim="user.password"
                   autocomplete="off"
                   type="password"
                   placeholder="请输入密码"
+                  @keyup="loginInputKeyup"
               />
             </el-form-item>
           </el-form>
@@ -105,7 +110,7 @@
           <template #footer>
             <span class="dialog-footer">
               <el-button @click="showDialog = false">取消</el-button>
-              <el-button type="primary" @click="saveHost">提交</el-button>
+              <el-button type="primary" @click="login">提交</el-button>
             </span>
           </template>
         </el-dialog>
@@ -122,6 +127,9 @@ import SysConfig from "@/views/admin/SysConfig.vue";
 import {arrayContains, removeArrayItem} from "@/utils/libs";
 import UserList from "@/views/admin/UserList.vue";
 import RoleList from "@/views/admin/RoleList.vue";
+import {httpGet, httpPost} from "@/utils/http";
+import {ElMessage} from "element-plus";
+import {setLoginUser} from "@/utils/storage";
 
 
 export default defineComponent({
@@ -156,6 +164,7 @@ export default defineComponent({
       curNav: null,
       curTab: 'welcome',
       tabs: [],
+      isLogin: false,
 
       showDialog: false,
 
@@ -180,14 +189,54 @@ export default defineComponent({
   },
 
   mounted: function () {
-
     // bind window resize event
     window.addEventListener("resize", function () {
       this.winHeight = window.innerHeight
     })
+    this.checkSession()
   },
 
   methods: {
+    checkSession: function () {
+      httpGet("/api/session/get").then(() => {
+        this.isLogin = true
+      }).catch(() => {
+        this.showDialog = true
+      })
+    },
+
+    // 登录输入框输入事件处理
+    loginInputKeyup: function (e) {
+      if (e.keyCode === 13) {
+        this.login();
+      }
+    },
+
+    // 登录
+    login: function () {
+      if (!this.user.username || !this.user.password) {
+        ElMessage.error('请输入用户名和密码')
+        return
+      }
+      httpPost('/api/admin/login', this.user).then((res) => {
+        setLoginUser(res.data)
+        this.showDialog = false
+        this.isLogin = true
+        this.user = {}
+      }).catch((e) => {
+        ElMessage.error('登录失败，' + e.message)
+      })
+    },
+
+    logout: function () {
+      httpPost("/api/logout", {opt: "logout"}).then(() => {
+        this.checkSession();
+        this.isLogin = false
+      }).catch(() => {
+        ElMessage.error("注销失败");
+      })
+    },
+
     arrayContains(array, value, compare) {
       return arrayContains(array, value, compare);
     },
@@ -314,6 +363,12 @@ $borderColor = #4676d0;
     li.active {
       background-color: #363535
     }
+  }
+
+  .tool-box {
+    display flex
+    justify-content center
+    padding 10px 20px;
   }
 }
 

@@ -37,7 +37,7 @@
         <el-table-column label="打招呼信息" prop="hello_msg"/>
         <el-table-column label="操作" width="80" align="right">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="rowEdit(scope.row)">编辑</el-button>
+            <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -47,8 +47,6 @@
         v-model="showDialog"
         title="编辑用户"
         width="50%"
-        :destroy-on-close="true"
-
     >
       <el-form :model="form1" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="角色名称：" prop="name">
@@ -140,6 +138,7 @@ import {Plus, RemoveFilled} from "@element-plus/icons-vue";
 import {reactive, ref} from "vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {copyObj} from "@/utils/libs";
 
 const showDialog = ref(false)
 const parentBorder = ref(false)
@@ -164,8 +163,10 @@ httpPost('/api/admin/chat-roles/list').then((res) => {
 })
 
 // 编辑
-const rowEdit = function (row) {
-  form1.value = row
+const curIndex = ref(0)
+const rowEdit = function (index, row) {
+  curIndex.value = index
+  form1.value = copyObj(row)
   showDialog.value = true
 }
 
@@ -175,6 +176,8 @@ const doUpdate = function () {
       showDialog.value = false
       httpPost('/api/admin/chat-roles/set', form1.value).then(() => {
         ElMessage.success('更新角色成功')
+        // 更新当前数据行
+        tableData.value[curIndex.value] = form1.value
       }).catch((e) => {
         ElMessage.error('更新角色失败，' + e.message)
       })

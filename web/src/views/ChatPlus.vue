@@ -222,6 +222,7 @@ export default defineComponent({
       allChatRoles: [], // 所有角色集合
       role: 'gpt',
       inputValue: '', // 聊天内容
+      sendHelloMsg: {}, // 是否发送过打招呼信息
 
       showConfigDialog: false, // 显示配置对话框
       userInfo: {},
@@ -299,7 +300,7 @@ export default defineComponent({
       socket.addEventListener('open', () => {
         // 获取聊天角色
         if (this.chatRoles.length === 0) {
-          httpGet("/api/config/chat-roles/get").then((res) => {
+          httpGet("/api/chat-roles/list").then((res) => {
             // ElMessage.success('创建会话成功！');
             this.chatRoles = res.data;
             this.allChatRoles = res.data;
@@ -326,6 +327,10 @@ export default defineComponent({
           reader.readAsText(event.data, "UTF-8");
           reader.onload = () => {
             const data = JSON.parse(String(reader.result));
+            if (data['is_hello_msg'] && this.sendHelloMsg[this.role]) { // 一定发送过打招呼信息的
+              return
+            }
+
             if (data.type === 'start') {
               this.chatData.push({
                 type: "reply",
@@ -340,6 +345,8 @@ export default defineComponent({
               this.sending = false;
               if (data['is_hello_msg'] !== true) {
                 this.showReGenerate = true;
+              } else {
+                this.sendHelloMsg[this.role] = true
               }
               this.showStopGenerate = false;
               this.lineBuffer = ''; // 清空缓冲

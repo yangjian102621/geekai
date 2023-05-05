@@ -11,6 +11,14 @@
         <el-input v-model="form['proxy_url']" placeholder="多个地址之间用逗号隔开"/>
       </el-form-item>
 
+      <el-form-item label="微信群聊二维码">
+        <el-input v-model="form['img_url']['wechat_group']" placeholder="群聊二维码地址"/>
+      </el-form-item>
+
+      <el-form-item label="个人微信名片">
+        <el-input v-model="form['img_url']['wechat_card']" placeholder="名片二维码地址"/>
+      </el-form-item>
+
       <el-divider content-position="center">聊天设置</el-divider>
       <el-row>
         <el-col :span="12">
@@ -124,14 +132,14 @@ export default defineComponent({
   data() {
     return {
       apiKey: '',
-      form: {},
+      form: {img_url: {}},
       apiKeys: [],
       loading: true
     }
   },
   mounted() {
     // 获取系统配置
-    httpGet('/api/admin/config/get').then((res) => {
+    httpGet('/api/config/get').then((res) => {
       this.form = res.data;
     }).catch(() => {
       ElMessage.error('获取系统配置失败')

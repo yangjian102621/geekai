@@ -110,3 +110,8 @@ export function renderInputText(text) {
     text = text || '';
     return text.replace(replaceRegex, "<br/>");
 }
+
+// 拷贝对象
+export function copyObj(origin) {
+    return JSON.parse(JSON.stringify(origin));
+}

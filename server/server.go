@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"embed"
-	"encoding/json"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -96,10 +95,10 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/img/get", s.GetImgURLHandle)
 	engine.POST("api/img/set", s.SetImgURLHandle)
 
-	engine.GET("api/admin/config/get", s.ConfigGetHandle)
+	engine.GET("api/config/get", s.ConfigGetHandle)
 	engine.POST("api/admin/config/set", s.ConfigSetHandle)
 
-	engine.POST("api/chat-roles/list", s.GetChatRoleListHandle)
+	engine.GET("api/chat-roles/list", s.GetChatRoleListHandle)
 	engine.POST("api/admin/chat-roles/list", s.GetAllChatRolesHandle)
 	engine.POST("api/chat-roles/get", s.GetChatRoleHandle)
 	engine.POST("api/admin/chat-roles/add", s.AddChatRoleHandle)
@@ -110,6 +109,7 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 	engine.POST("api/admin/user/set", s.SetUserHandle)
 	engine.POST("api/admin/user/list", s.GetUserListHandle)
 	engine.POST("api/admin/user/remove", s.RemoveUserHandle)
+	engine.POST("api/admin/login", s.ManagerLoginHandle) // 管理员登录
 
 	engine.POST("api/admin/apikey/add", s.AddApiKeyHandle)
 	engine.POST("api/admin/apikey/remove", s.RemoveApiKeyHandle)
@@ -219,128 +219,54 @@ func corsMiddleware() gin.HandlerFunc {
 // AuthorizeMiddleware 用户授权验证
 func AuthorizeMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Next()
-		//if !s.Config.EnableAuth ||
-		//	c.Request.URL.Path == "/api/login" ||
-		//	c.Request.URL.Path == "/api/config/chat-roles/get" ||
-		//	!strings.HasPrefix(c.Request.URL.Path, "/api") {
-		//	c.Next()
-		//	return
-		//}
-		//
-		//// WebSocket 连接请求验证
-		//if c.Request.URL.Path == "/api/chat" {
-		//	sessionId := c.Query("sessionId")
-		//	if session, ok := s.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
-		//		c.Next()
-		//	} else {
-		//		c.Abort()
-		//	}
-		//	return
-		//}
-		//
-		//sessionId := c.GetHeader(types.TokenName)
-		//session := sessions.Default(c)
-		//userInfo := session.Get(sessionId)
-		//if userInfo != nil {
-		//	c.Set(types.SessionKey, userInfo)
-		//	c.Next()
-		//} else {
-		//	c.Abort()
-		//	c.JSON(http.StatusOK, types.BizVo{
-		//		Code:    types.NotAuthorized,
-		//		Message: "Not Authorized",
-		//	})
-		//}
-	}
-}
-
-func (s *Server) GetSessionHandle(c *gin.Context) {
-	sessionId := c.GetHeader(types.TokenName)
-	if session, ok := s.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Success})
-	} else {
-		c.JSON(http.StatusOK, types.BizVo{
-			Code:    types.NotAuthorized,
-			Message: "Not Authorized",
-		})
-	}
-
-}
-
-func (s *Server) LoginHandle(c *gin.Context) {
-	var data struct {
-		Token string `json:"token"`
-	}
-	err := json.NewDecoder(c.Request.Body).Decode(&data)
-	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
-		return
-	}
-	username := strings.TrimSpace(data.Token)
-	user, err := GetUser(username)
-	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Invalid user"})
-		return
-	}
-
-	sessionId := utils.RandString(42)
-	session := sessions.Default(c)
-	session.Set(sessionId, username)
-	err = session.Save()
-	if err != nil {
-		logger.Error("Error for save session: ", err)
-	}
-	// 记录客户端 IP 地址
-	s.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), Username: username, SessionId: sessionId}
-	// 更新用户激活时间
-	user.ActiveTime = time.Now().Unix()
-	if user.ExpiredTime == 0 {
-		activeTime := time.Unix(user.ActiveTime, 0)
-		if user.Term == 0 {
-			user.Term = 30 // 默认 30 天到期
+		if c.Request.URL.Path == "/api/login" ||
+			c.Request.URL.Path == "/api/admin/login" ||
+			c.Request.URL.Path == "/api/chat-roles/list" ||
+			!strings.HasPrefix(c.Request.URL.Path, "/api") {
+			c.Next()
+			return
 		}
-		user.ExpiredTime = activeTime.Add(time.Hour * 24 * time.Duration(user.Term)).Unix()
-	}
-	err = PutUser(*user)
-	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Save user info failed"})
-		return
-	}
 
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: struct {
-		User      types.User `json:"user"`
-		SessionId string     `json:"session_id"`
-	}{User: *user, SessionId: sessionId}})
-}
+		if strings.HasPrefix(c.Request.URL.Path, "/api/admin") {
+			accessKey := c.GetHeader("ACCESS-KEY")
+			if accessKey == strings.TrimSpace(s.Config.AccessKey) {
+				c.Next()
+				return
+			}
+			// 验证当前登录用户是否是管理员
+			sessionId := c.GetHeader(types.TokenName)
+			if m, ok := s.ChatSession[sessionId]; ok && m.Username == s.Config.Manager.Username {
+				c.Next()
+				return
+			}
 
-// LogoutHandle 注销
-func (s *Server) LogoutHandle(c *gin.Context) {
-	var data struct {
-		Opt string `json:"opt"`
-	}
-	err := json.NewDecoder(c.Request.Body).Decode(&data)
-	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
-		return
-	}
+			c.Abort()
+			c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "No Permissions"})
+		}
 
-	if data.Opt == "logout" {
+		// WebSocket 连接请求验证
+		if c.Request.URL.Path == "/api/chat" {
+			sessionId := c.Query("sessionId")
+			if session, ok := s.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
+				c.Next()
+			} else {
+				c.Abort()
+			}
+			return
+		}
+
 		sessionId := c.GetHeader(types.TokenName)
 		session := sessions.Default(c)
-		session.Delete(sessionId)
-		err := session.Save()
-		if err != nil {
-			logger.Error("Error for save session: ", err)
+		userInfo := session.Get(sessionId)
+		if userInfo != nil {
+			c.Set(types.SessionKey, userInfo)
+			c.Next()
+		} else {
+			c.Abort()
+			c.JSON(http.StatusOK, types.BizVo{
+				Code:    types.NotAuthorized,
+				Message: "Not Authorized",
+			})
 		}
-		// 删除 websocket 会话列表
-		delete(s.ChatSession, sessionId)
-		// 关闭 socket 连接
-		if client, ok := s.ChatClients[sessionId]; ok {
-			client.Close()
-		}
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Success})
-	} else {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hack attempt!"})
 	}
 }

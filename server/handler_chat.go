@@ -404,7 +404,7 @@ func (s *Server) GetChatHistoryHandle(c *gin.Context) {
 
 	history, err := GetChatHistory(session.Username, data.Role)
 	if err != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "No history message"})
+		c.JSON(http.StatusOK, types.BizVo{Code: types.Success, Data: nil, Message: "No history message"})
 		return
 	}
 
