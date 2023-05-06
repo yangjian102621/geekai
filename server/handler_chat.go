@@ -332,7 +332,12 @@ func (s *Server) getApiKey(failedKey string) string {
 	rand.NewSource(time.Now().UnixNano())
 	if len(keys) > 0 {
 		key := keys[rand.Intn(len(keys))]
-		key.LastUsed = time.Now().Unix()
+		// 更新选中 Key 的最后使用时间
+		for i, item := range s.Config.Chat.ApiKeys {
+			if item.Value == key.Value {
+				s.Config.Chat.ApiKeys[i].LastUsed = time.Now().Unix()
+			}
+		}
 		return key.Value
 	}
 	return ""

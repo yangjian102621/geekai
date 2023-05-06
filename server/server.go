@@ -143,6 +143,8 @@ func (s *Server) Run(webRoot embed.FS, path string, debug bool) {
 					delete(s.ChatContexts, key)
 				}
 			}
+			// 保存配置文档
+			_ = utils.SaveConfig(s.Config, s.ConfigPath)
 			time.Sleep(time.Second * 5) // 每隔 5 秒钟清理一次
 		}
 	}()
