@@ -26,4 +26,6 @@ src/tmp
 src/bin
 src/data
 web/.env.development
+web/.env.test 
+web/.env.test2
 config.toml
