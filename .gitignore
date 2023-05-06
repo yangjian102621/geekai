@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 src/tmp
-bin
-web/.env.development 
+src/bin
 src/data
+web/.env.development

@@ -30,11 +30,29 @@
 
 ## 功能截图
 
-### 1. 
+### 1. 角色版PC端
+![ChatGPT Plus](docs/imgs/chat-plus.png)
 
+![ChatGPT admin](docs/imgs/gpt.gif)
+
+### 2. 角色版移动端
+![ChatGPT Mobile](docs/imgs/chat-mobile.png)
+
+### 3. 通用版
+![ChatGPT Free](docs/imgs/chat-free.png)
+
+### 4. 管理后台
+![ChatGPT admin](docs/imgs/admin-01.png)
+
+![ChatGPT admin](docs/imgs/admin-02.png)
+
+![ChatGPT admin](docs/imgs/admin-03.png)
+
+> 体验地址：[https://www.chat-plus.net/chat/#/free](https://www.chat-plus.net/chat/#/free) </br>
+> 口令：GeekMaster
 
 ## TODOLIST
-* [ ] 用户配置界面，配置用户的使用习惯，可以让用户配置自己的 API KEY，调用自己的 API Key，将不记 Token 的使用次数
+* [ ] 让用户配置自己的 API KEY，调用自己的 API Key，将不记 Token 的使用次数
 * [ ] 嵌入 AI 绘画功能，支持根据描述词生成图片
 * [ ] 接入自己训练的开源大语言模型
 * [ ] 接入 Google 语音 API，支持语音聊天
