@@ -86,6 +86,8 @@ chmod +x wechatGPT-amd64-linux
 
 ![新增用户](docs/imgs/new-user.png)
 
+**切记要先退出后台登录，再登录前端应用！！！前后端账号权限不一致。**
+
 然后直接使用用户名登录前端应用：
 
 * 角色版：http://localhost:5678/chat/#/plus 
@@ -190,6 +192,11 @@ make linux
 
 > **特别注意：** 线上发布请记得修改配置文档中的 AccessKey， 以免给你的应用造成风险！！！
 
+**另外，如果你部署在国外的服务器，那么就不需要配置代理，直接留空就行了。**
+
+```shell
+ProxyURL = []
+```
 ### 使用 Nginx 代理
 
 ```nginx
