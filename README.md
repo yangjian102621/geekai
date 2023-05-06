@@ -1,4 +1,4 @@
-# Chat-Plus 智能助手
+# ChatGPT-Plus
 
 基于 OpenAI API 实现的 ChatGPT Web 应用，一共分为两个版本：
 
@@ -48,6 +48,7 @@
 
 ![ChatGPT admin](docs/imgs/admin-03.png)
 
+### 5. 体验地址
 > 体验地址：[https://www.chat-plus.net/chat/#/free](https://www.chat-plus.net/chat/#/free) </br>
 > 口令：GeekMaster
 
@@ -58,7 +59,6 @@
 * [ ] 接入 Google 语音 API，支持语音聊天
 
 ## 本地部署
-
 ## 线上发布
 
 ## 注意事项

@@ -6,9 +6,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"os"
-	"path/filepath"
 )
 
 var logger = logger2.GetLogger()
@@ -19,26 +17,7 @@ var configFile string
 var debugMode bool
 
 func main() {
-	// create config dir
-	configDir, _ := homedir.Expand("~/.config/chat-gpt")
-	_, err := os.Stat(configDir)
-	if err != nil {
-		err := os.MkdirAll(configDir, 0755)
-		if err != nil {
-			logger.Error(err)
-			return
-		}
-	}
-
-	if err != nil {
-		logger.Errorf("failed to load web types: %v", err)
-		return
-	}
-
-	if configFile == "" {
-		configFile = filepath.Join(configDir, "config.toml")
-	}
-
+	logger.Info("Loading config file: ", configFile)
 	// start server
 	s, err := server.NewServer(configFile)
 	if err != nil {
@@ -49,7 +28,7 @@ func main() {
 
 func init() {
 
-	flag.StringVar(&configFile, "config", "", "Config file path (default: ~/.config/chat-gpt/config.toml)")
+	flag.StringVar(&configFile, "config", "config.toml", "Config file path (default: config.toml)")
 	flag.BoolVar(&debugMode, "debug", true, "Enable debug mode (default: true, recommend to set false in production env)")
 	flag.Usage = usage
 	flag.Parse()
