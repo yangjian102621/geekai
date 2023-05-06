@@ -38,12 +38,12 @@ type Manager struct {
 // Chat configs struct
 type Chat struct {
 	ApiURL                string
-	ApiKeys               []APIKey
 	Model                 string
 	Temperature           float32
 	MaxTokens             int
 	EnableContext         bool // 是否保持聊天上下文
 	ChatContextExpireTime int  // 聊天上下文过期时间，单位：秒
+	ApiKeys               []APIKey
 }
 
 type APIKey struct {

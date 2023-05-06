@@ -17,7 +17,7 @@ func NewDefaultConfig() *types.Config {
 		ProxyURL:     make([]string, 0),
 		ImgURL:       types.ImgURL{},
 		Manager:      types.Manager{Username: "admin", Password: "admin123"},
-		AccessKey:    "yangjian102621@gmail.com",
+		AccessKey:    RandString(42),
 
 		Session: types.Session{
 			SecretKey: RandString(64),
@@ -47,7 +47,7 @@ func LoadConfig(configFile string) (*types.Config, error) {
 	var config *types.Config
 	_, err := os.Stat(configFile)
 	if err != nil {
-		logger.Errorf("Error open config file: %s", err.Error())
+		logger.Info("creating new config file: ", configFile)
 		config = NewDefaultConfig()
 		// save config
 		err := SaveConfig(config, configFile)
