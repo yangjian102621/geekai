@@ -3,6 +3,8 @@ package server
 import (
 	"bufio"
 	"bytes"
+	"chatplus/types"
+	"chatplus/utils"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,8 +14,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
-	"openai/types"
-	"openai/utils"
 	"strings"
 	"time"
 )

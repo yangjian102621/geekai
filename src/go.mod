@@ -1,4 +1,4 @@
-module openai
+module chatplus
 
 go 1.19
 

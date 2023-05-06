@@ -1,12 +1,12 @@
 package main
 
 import (
+	logger2 "chatplus/logger"
+	"chatplus/server"
 	"embed"
 	"flag"
 	"fmt"
 	"github.com/mitchellh/go-homedir"
-	logger2 "openai/logger"
-	"openai/server"
 	"os"
 	"path/filepath"
 )

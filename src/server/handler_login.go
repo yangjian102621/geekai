@@ -1,12 +1,12 @@
 package server
 
 import (
+	"chatplus/types"
+	"chatplus/utils"
 	"encoding/json"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"openai/types"
-	"openai/utils"
 	"strings"
 	"time"
 )

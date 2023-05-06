@@ -1,9 +1,9 @@
 package server
 
 import (
+	"chatplus/types"
+	"chatplus/utils"
 	"encoding/json"
-	"openai/types"
-	"openai/utils"
 )
 
 const (

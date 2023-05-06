@@ -45,7 +45,7 @@
 
     <el-dialog
         v-model="showDialog"
-        title="编辑用户"
+        title="编辑角色"
         width="50%"
     >
       <el-form :model="form1" label-width="120px" ref="formRef" :rules="rules">

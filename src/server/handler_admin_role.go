@@ -1,9 +1,9 @@
 package server
 
 import (
+	"chatplus/types"
 	"encoding/json"
 	"net/http"
-	"openai/types"
 
 	"github.com/gin-gonic/gin"
 )

@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+src/dist
 dist-ssr
 *.local
 
@@ -22,7 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-tmp
+src/tmp
 bin
 web/.env.development 
-data
+src/data

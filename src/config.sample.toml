@@ -1,0 +1,31 @@
+Title = "Chat-Plus AI 助手"
+ConsoleTitle = "Chat-Plus 控制台"
+Listen = "0.0.0.0:5678"
+ProxyURL = ["YOUR_PORYX_URL"]
+AccessKey = "YOUR_ACCESS_KEY"
+
+[Session]
+SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
+Name = "CHAT_SESSION_ID"
+Path = "/"
+Domain = ""
+MaxAge = 86400
+Secure = false
+HttpOnly = false
+SameSite = 2
+
+[ImgURL]
+WechatCard = "https://img.r9it.com/chatgpt/WX20230505-162403.png"
+WechatGroup = " https://img.r9it.com/chatgpt/WX20230505-162538.png"
+
+[Manager]
+Username = "admin"
+Password = "admin123"
+
+[Chat]
+ApiURL = "https://api.openai.com/v1/chat/completions"
+Model = "gpt-3.5-turbo"
+Temperature = 1.0
+MaxTokens = 1024
+EnableContext = true
+ChatContextExpireTime = 3600

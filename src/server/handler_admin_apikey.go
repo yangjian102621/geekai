@@ -1,11 +1,11 @@
 package server
 
 import (
+	"chatplus/types"
+	"chatplus/utils"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"openai/types"
-	"openai/utils"
 )
 
 // AddApiKeyHandle 添加一个 API key
@@ -20,7 +20,7 @@ func (s *Server) AddApiKeyHandle(c *gin.Context) {
 		return
 	}
 	// 过滤已存在的 Key
-	for _,key:=range s.Config.Chat.ApiKeys {
+	for _, key := range s.Config.Chat.ApiKeys {
 		if key.Value == data.ApiKey {
 			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "API KEY 已存在"})
 			return

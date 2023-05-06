@@ -1,9 +1,5 @@
 const {defineConfig} = require('@vue/cli-service')
 let webpack = require('webpack')
-// const fs = require('fs')
-// const path = require('path')
-// const os = require('os')
-
 module.exports = defineConfig({
     transpileDependencies: true,
     configureWebpack: {
@@ -17,7 +13,7 @@ module.exports = defineConfig({
     },
 
     publicPath: '/chat',
-    outputDir: '../dist',
+    outputDir: '../src/dist',
     crossorigin: "anonymous",
     devServer: {
         allowedHosts: ['127.0.0.1:5678'],

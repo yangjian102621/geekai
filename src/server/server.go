@@ -1,6 +1,9 @@
 package server
 
 import (
+	logger2 "chatplus/logger"
+	"chatplus/types"
+	"chatplus/utils"
 	"context"
 	"embed"
 	"github.com/gin-contrib/sessions"
@@ -9,9 +12,6 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	logger2 "openai/logger"
-	"openai/types"
-	"openai/utils"
 	"os"
 	"path/filepath"
 	"runtime/debug"

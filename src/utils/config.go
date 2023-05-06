@@ -2,10 +2,10 @@ package utils
 
 import (
 	"bytes"
+	logger2 "chatplus/logger"
+	"chatplus/types"
 	"github.com/BurntSushi/toml"
 	"net/http"
-	logger2 "openai/logger"
-	"openai/types"
 	"os"
 )
 
