@@ -23,8 +23,4 @@ body:
     attributes:
       label: 动机 🔦
       description: 为什么要新增或者优化这个功能，缺少这个功能会给你或者其他用户带来什么不便？
-  - type: textarea
-    attributes:
-      label: Expected behavior 🤔
-      description: Describe what should happen.
  
