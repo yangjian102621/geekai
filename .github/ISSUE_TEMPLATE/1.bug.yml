@@ -41,7 +41,7 @@ body:
     attributes:
       label: 你的应用配置信息
       description: 请提供你的配置文档，**请注意数据脱敏**。
-	  value: |
-      ```toml
-      把你的配置信息粘贴到这里
-      ```
+      value: |
+        ```toml
+        把你的配置信息粘贴到这里
+        ```
