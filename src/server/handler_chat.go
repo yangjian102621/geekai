@@ -52,6 +52,8 @@ func (s *Server) ChatHandle(c *gin.Context) {
 	_, err = GetChatHistory(session.Username, roleKey)
 	if err != nil {
 		replyMessage(client, chatRole.HelloMsg, true)
+		// 发送项目地址
+		replyMessage(client, "本项目已开放全部源代码：https://github.com/yangjian102621/chatgpt-plus，一分钟搭建自己的 ChatGPT 应用。", false)
 	}
 	go func() {
 		for {
