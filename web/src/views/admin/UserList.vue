@@ -5,20 +5,20 @@
         <el-icon>
           <Plus/>
         </el-icon>
-        新增用户
+        新增口令
       </el-button>
 
       <el-button type="success" @click="showBatchAddUserDialog = true">
         <el-icon>
           <Plus/>
         </el-icon>
-        批量新增
+        批量生成口令
       </el-button>
     </el-row>
 
     <el-row>
       <el-table :data="users">
-        <el-table-column prop="name" label="用户名"/>
+        <el-table-column prop="name" label="口令名称"/>
         <el-table-column prop="max_calls" label="最大提问次数"/>
         <el-table-column prop="remaining_calls" label="剩余提问次数"/>
         <el-table-column label="激活时间" width="180">
@@ -63,16 +63,16 @@
 
     <el-dialog
         v-model="showUserDialog"
-        title="新增用户"
+        title="新增口令"
         width="50%"
         :destroy-on-close="true"
     >
       <el-form :model="form1" label-width="100px" ref="userAddFormRef" :rules="rules">
-        <el-form-item label="用户名：" prop="name">
+        <el-form-item label="口令名称：" prop="name">
           <el-input
               v-model="form1.name"
               autocomplete="off"
-              placeholder="请输入用户名"
+              placeholder="请输入口令名称"
           />
         </el-form-item>
 
@@ -125,7 +125,7 @@
 
     <el-dialog
         v-model="showBatchAddUserDialog"
-        title="批量生成用户"
+        title="批量生成口令"
         width="50%"
         :destroy-on-close="true"
 
@@ -135,15 +135,15 @@
           <el-input
               v-model.number="form3.max_calls"
               autocomplete="off"
-              placeholder="最大提问次数"
+              placeholder="生成口令的最大提问次数"
           />
         </el-form-item>
 
-        <el-form-item label="用户数量：" prop="number">
+        <el-form-item label="口令数量：" prop="number">
           <el-input
               v-model.number="form3.number"
               autocomplete="off"
-              placeholder="批量生成的用户数量"
+              placeholder="批量生成的口令数量"
           />
         </el-form-item>
 
@@ -188,15 +188,15 @@
 
     <el-dialog
         v-model="showUserEditDialog"
-        title="编辑用户"
+        title="编辑口令"
         width="50%"
     >
       <el-form :model="form2" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item label="用户名：" prop="name">
+        <el-form-item label="口令名称：" prop="name">
           <el-input
               v-model="form2.name"
               autocomplete="off"
-              placeholder="请输入用户名"
+              placeholder="请输入口令名称"
               readonly
           />
         </el-form-item>
@@ -271,7 +271,7 @@ const roles = ref([])
 const showUserDialog = ref(false)
 const showUserEditDialog = ref(false)
 const rules = reactive({
-  name: [{required: true, message: '请输入用户名', trigger: 'change',}],
+  name: [{required: true, message: '请输入口令名称', trigger: 'change',}],
   max_calls: [
     {required: true, message: '请输入提问次数'},
     {type: 'number', message: '请输入有效数字'},
@@ -285,7 +285,7 @@ const rules = reactive({
     {type: 'number', message: '请输入有效数字'},
   ],
   number: [
-    {required: true, message: '请输入用户数量', trigger: 'change'},
+    {required: true, message: '请输入口令数量', trigger: 'change'},
     {type: 'number', message: '请输入有效数字'},
   ],
   chat_roles: [{required: true, message: '请选择聊天角色', trigger: 'change'}],
@@ -296,7 +296,7 @@ const userAddFormRef = ref(null)
 const userEditFormRef = ref(null)
 
 onMounted(() => {
-// 获取用户列表
+// 获取口令列表
   httpPost('/api/admin/user/list').then((res) => {
     users.value = res.data;
   }).catch(() => {
@@ -316,7 +316,7 @@ onMounted(() => {
   })
 })
 
-// 新增用户
+// 新增口令
 const addUser = () => {
   userAddFormRef.value.validate((valid) => {
     if (valid) {
@@ -324,11 +324,11 @@ const addUser = () => {
       form1.value.term = parseInt(form1.value.term)
       form1.value.max_calls = parseInt(form1.value.max_calls)
       httpPost('/api/admin/user/add', form1.value).then((res) => {
-        ElMessage.success('添加用户成功')
+        ElMessage.success('添加口令成功')
         form1.value = {chat_roles: []}
         users.value.unshift(res.data)
       }).catch((e) => {
-        ElMessage.error('添加用户失败，' + e.message)
+        ElMessage.error('添加口令失败，' + e.message)
       })
     } else {
       return false
@@ -359,15 +359,15 @@ const selectRole = function (items) {
 
 }
 
-// 删除用户
+// 删除口令
 const removeUser = function (user) {
   httpPost('/api/admin/user/remove', {name: user.name}).then(() => {
-    ElMessage.success('删除用户成功')
+    ElMessage.success('删除口令成功')
     users.value = removeArrayItem(users.value, user, function (v1, v2) {
       return v1.name === v2.name
     })
   }).catch((e) => {
-    ElMessage.error('删除用户失败，' + e.message)
+    ElMessage.error('删除口令失败，' + e.message)
   })
 }
 
@@ -376,7 +376,7 @@ const userEdit = function (user) {
   showUserEditDialog.value = true
 }
 
-// 更新用户
+// 更新口令
 const updateUser = function () {
   userEditFormRef.value.validate((valid) => {
     if (valid) {
@@ -384,9 +384,9 @@ const updateUser = function () {
       form2.value.term = parseInt(form2.value.term)
       form2.value.remaining_calls = parseInt(form2.value.remaining_calls)
       httpPost('/api/admin/user/set', form2.value).then(() => {
-        ElMessage.success('更新用户成功')
+        ElMessage.success('更新口令成功')
       }).catch((e) => {
-        ElMessage.error('更新用户失败，' + e.message)
+        ElMessage.error('更新口令失败，' + e.message)
       })
     } else {
       return false
@@ -400,11 +400,11 @@ const form3 = ref({chat_roles: []})
 const batchAddUser = function () {
   httpPost('api/admin/user/batch-add', form3.value).then((res) => {
     console.log(res.data)
-    ElMessage.success('添加用户成功')
+    ElMessage.success('添加口令成功')
     users.value = [...res.data, ...users.value]
     showBatchAddUserDialog.value = false
   }).catch((e) => {
-    console.log('添加用户失败，' + e.message)
+    console.log('添加口令失败，' + e.message)
   })
 }
 </script>

@@ -90,26 +90,26 @@ func (s *Server) sendMessage(ctx context.Context, session types.ChatSession, rol
 
 	user, err := GetUser(session.Username)
 	if err != nil {
-		replyMessage(ws, "当前 TOKEN 无效，请使用合法的 TOKEN 登录！", false)
+		replyMessage(ws, "当前口令无效，请使用合法的口令登录！", false)
 		return err
 	}
 
 	if user.Status == false {
-		replyMessage(ws, "当前 TOKEN 已经被禁用，如果疑问，请联系管理员！", false)
+		replyMessage(ws, "当前口令已经被禁用，如果疑问，请联系管理员！", false)
 		replyMessage(ws, "![](images/wx.png)", false)
-		return errors.New("当前 TOKEN " + user.Name + "已经被禁用")
+		return errors.New("当前口令" + user.Name + "已经被禁用")
 	}
 
 	if time.Now().Unix() > user.ExpiredTime {
 		exTime := time.Unix(user.ExpiredTime, 0).Format("2006-01-02 15:04:05")
-		replyMessage(ws, "当前 TOKEN 已过期，过期时间为："+exTime+"，如果疑问，请联系管理员！", false)
+		replyMessage(ws, "当前口令已过期，过期时间为："+exTime+"，如果疑问，请联系管理员！", false)
 		replyMessage(ws, "![](images/wx.png)", false)
-		return errors.New("当前 TOKEN " + user.Name + "已过期")
+		return errors.New("当前口令" + user.Name + "已过期")
 	}
 
 	if user.MaxCalls > 0 && user.RemainingCalls <= 0 {
-		replyMessage(ws, "当前 TOKEN 点数已经用尽，加入我们的知识星球可以免费领取点卡！", false)
-		replyMessage(ws, "![](images/start.png)", false)
+		replyMessage(ws, "当前口令点数已经用尽，请联系管理员领取新的免费口令！", false)
+		replyMessage(ws, "![](images/wx.png)", false)
 		return nil
 	}
 	var req = types.ApiRequest{
