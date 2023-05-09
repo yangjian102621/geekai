@@ -1,0 +1,30 @@
+name: 功能优化 🚀
+description: 为 chatgpt-plus 提交优化建议
+labels: ['feature']
+body:
+  - type: checkboxes
+    attributes:
+      label: ⚠️  确认 issue 是否已存在 ⚠️
+      description: >
+        在提交 Issue 之前，请在 issue 列表搜索一下，确保你不是在提交一个重复的 issue。
+      options:
+        - label: 我已经搜索了现有的问题，没有找到相关 issue。
+          required: true
+  - type: textarea
+    attributes:
+      label: 功能描述 📝
+      description: |
+        描述此功能该如何工作。
+  - type: textarea
+    attributes:
+      label: 示例 🌈
+      description: 是否可以提供类似的样例，比如提供参考项目的链接或者截图。
+  - type: textarea
+    attributes:
+      label: 动机 🔦
+      description: 为什么要新增或者优化这个功能，缺少这个功能会给你或者其他用户带来什么不便？
+  - type: textarea
+    attributes:
+      label: Expected behavior 🤔
+      description: Describe what should happen.
+ 
