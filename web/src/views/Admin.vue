@@ -69,7 +69,7 @@
                   <sys-config v-if="curTab==='config'"/>
                 </el-tab-pane>
 
-                <el-tab-pane label="用户管理" name="user" v-if="arrayContains(tabs, 'user')">
+                <el-tab-pane label="口令管理" name="user" v-if="arrayContains(tabs, 'user')">
                   <user-list v-if="curTab==='user'"/>
                 </el-tab-pane>
 
@@ -149,7 +149,7 @@ export default defineComponent({
         },
         {
           id: 2,
-          title: '用户管理',
+          title: '口令管理',
           tab: 'user',
           active: false,
         },
