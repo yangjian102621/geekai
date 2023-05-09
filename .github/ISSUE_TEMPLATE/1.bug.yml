@@ -15,7 +15,7 @@ body:
       description: 请选择你使用的 GPT 模型
       options:
         - GPT-3.5
-	- GPT-4
+        - GPT-4
     validations:
       required: true
   - type: dropdown
@@ -24,8 +24,8 @@ body:
       description: 请选择你使用的操作系统
       options:
         - Windows
-	- Linux
-	- MacOS
+        - Linux
+        - MacOS
     validations:
       required: true
   - type: textarea
