@@ -1,0 +1,13 @@
+services:
+    chatgptplus:
+        container_name: chatgptplus
+        build: ./
+        restart: unless-stopped
+        volumes:
+            - ./src/config.toml:/usr/src/app/config.toml
+        ports:
+            - 5678:5678
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "3"

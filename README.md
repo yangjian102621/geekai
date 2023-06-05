@@ -188,6 +188,9 @@ make linux
 打包后的可执行文件在 `src/bin` 目录下。
 
 ### 线上部署 
+
+#### 1. 手动部署
+
 部署方式跟 [快速本地部署](#快速本地部署) 一样，将打包好的可执行文件在线上服务器运行即可。
 
 > **特别注意：** 线上发布请记得修改配置文档中的 AccessKey， 以免给你的应用造成风险！！！
@@ -197,6 +200,14 @@ make linux
 ```shell
 ProxyURL = []
 ```
+
+#### 2. Docker 部署
+
+- 安装必要的工具：node, go, docker；
+- 编辑 web 目录下的 `.env.production` 改为自己需要的参数;
+- 在 src 目录复制 `config.sample.toml` 并命名一个新的配置文件 `config.toml`，然后编辑它改为自己需要的参数;
+- 执行 `Startup.sh` 脚本。
+
 ### 使用 Nginx 代理
 
 ```nginx
