@@ -1,21 +1,32 @@
 <template>
-  <div class="chat-line chat-line-right">
-    <div class="chat-item">
-      <div class="content" v-html="content"></div>
-      <div class="triangle"></div>
+  <div class="chat-line chat-line-prompt">
+    <div class="chat-line-inner">
+      <div class="chat-icon">
+        <img :src="icon" alt="User"/>
+      </div>
+
+      <div class="chat-item">
+        <div class="content" v-html="content"></div>
+        <div class="bar" v-if="createdAt !== ''">
+          <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
+          <span class="bar-item">tokens: {{ finalTokens }}</span>
+        </div>
+      </div>
     </div>
 
-    <div class="chat-icon">
-      <img :src="icon" alt="User"/>
-    </div>
   </div>
 </template>
 
 <script>
 import {defineComponent} from "vue"
+import {dateFormat} from "@/utils/libs";
+import {Clock} from "@element-plus/icons-vue";
+import {httpGet} from "@/utils/http";
 
 export default defineComponent({
   name: 'ChatPrompt',
+  components: {Clock},
+  methods: {dateFormat},
   props: {
     content: {
       type: String,
@@ -24,51 +35,106 @@ export default defineComponent({
     icon: {
       type: String,
       default: 'images/user-icon.png',
-    }
+    },
+    createdAt: {
+      type: String,
+      default: '',
+    },
+    tokens: {
+      type: Number,
+      default: 0,
+    },
+    model: {
+      type: String,
+      default: '',
+    },
   },
   data() {
-    return {}
+    return {
+      finalTokens: this.tokens
+    }
   },
+  mounted() {
+    if (!this.finalTokens) {
+      httpGet(`/api/chat/tokens?text=${this.content}&model=${this.model}`).then(res => {
+        this.finalTokens = res.data;
+      })
+    }
+  }
 })
 </script>
 
-<style lang="stylus">
-.chat-line-right {
-  justify-content: flex-end;
+<style lang="stylus" scoped>
+.chat-line-prompt {
+  background-color #ffffff;
+  justify-content: center;
+  width 100%
+  padding-bottom: 1.5rem;
+  padding-top: 1.5rem;
+  border-bottom: 1px solid #d9d9e3;
 
-  .chat-icon {
-    margin-left 5px;
+  .chat-line-inner {
+    display flex;
+    width 100%;
+    max-width 900px;
+    padding-left 10px;
 
-    img {
-      border-radius 5px;
+    .chat-icon {
+      margin-right 20px;
+
+      img {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        padding: 1px;
+      }
+    }
+
+    .chat-item {
+      position: relative;
+      padding: 0 5px 0 0;
+      overflow: hidden;
+
+      .content {
+        word-break break-word;
+        padding: 6px 10px;
+        color #374151;
+        font-size: var(--content-font-size);
+        border-radius: 5px;
+        overflow: auto;
+
+        p {
+          line-height 1.5
+        }
+
+        p:last-child {
+          margin-bottom: 0
+        }
+
+        p:first-child {
+          margin-top 0
+        }
+      }
+
+      .bar {
+        padding 10px;
+
+        .bar-item {
+          background-color #f7f7f8;
+          color #888
+          padding 3px 5px;
+          margin-right 10px;
+          border-radius 5px;
+
+          .el-icon {
+            position relative
+            top 2px;
+          }
+        }
+      }
     }
   }
 
-  .chat-item {
-    position: relative;
-    padding: 0 5px 0 0;
-    overflow: hidden;
 
-    .triangle {
-      width: 0;
-      height: 0;
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
-      border-left: 5px solid #98E165;
-      position: absolute;
-      right: 0;
-      top: 10px;
-    }
-
-    .content {
-      word-break break-word;
-      padding: 6px 10px;
-      background-color: #98E165;
-      color var(--content-color);
-      font-size: var(--content-font-size);
-      border-radius: 5px;
-      line-height 1.5
-    }
-  }
 }
 </style>

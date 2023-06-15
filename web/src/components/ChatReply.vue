@@ -1,21 +1,22 @@
 <template>
-  <div class="chat-line chat-line-left">
-    <div class="chat-icon">
-      <img :src="icon" alt="ChatGPT">
-    </div>
+  <div class="chat-line chat-line-reply">
+    <div class="chat-line-inner">
+      <div class="chat-icon">
+        <img :src="icon" alt="ChatGPT">
+      </div>
 
-    <div class="chat-item">
-      <div class="triangle"></div>
-      <div class="content-box">
+      <div class="chat-item">
         <div class="content" v-html="content"></div>
-        <div class="tool-box">
+        <div class="bar" v-if="createdAt !== ''">
+          <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
+          <span class="bar-item">tokens: {{ tokens }}</span>
           <el-tooltip
               class="box-item"
-              effect="dark"
+              effect="light"
               content="复制回答"
-              placement="bottom"
+              placement="top"
           >
-            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent" plain>
+            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent">
               <el-icon>
                 <DocumentCopy/>
               </el-icon>
@@ -30,12 +31,11 @@
 
 <script>
 import {defineComponent} from "vue"
-import {randString} from "@/utils/libs";
-import {DocumentCopy} from "@element-plus/icons-vue";
+import {Clock, DocumentCopy} from "@element-plus/icons-vue";
 
 export default defineComponent({
   name: 'ChatReply',
-  components: {DocumentCopy},
+  components: {Clock, DocumentCopy},
   props: {
     content: {
       type: String,
@@ -45,6 +45,14 @@ export default defineComponent({
       type: String,
       default: '',
     },
+    createdAt: {
+      type: String,
+      default: '',
+    },
+    tokens: {
+      type: Number,
+      default: 0,
+    },
     icon: {
       type: String,
       default: 'images/gpt-icon.png',
@@ -52,73 +60,99 @@ export default defineComponent({
   },
   data() {
     return {
-      id: randString(32),
-      clipboard: null,
+      finalTokens: this.tokens
     }
-  },
-
+  }
 })
 </script>
 
 <style lang="stylus">
-.chat-line-left {
-  justify-content: flex-start;
+.common-layout {
+  .chat-line-reply {
+    justify-content: center;
+    background-color: rgba(247, 247, 248, 1);
+    width 100%
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+    border-bottom: 1px solid #d9d9e3;
 
-  .chat-icon {
-    margin-right 5px;
+    .chat-line-inner {
+      display flex;
+      width 100%;
+      max-width 900px;
+      padding-left 10px;
 
-    img {
-      border-radius 5px;
-    }
-  }
+      .chat-icon {
+        margin-right 20px;
 
-  .chat-item {
-    display: inline-block;
-    position: relative;
-    padding: 0 0 0 5px;
-    overflow: hidden;
-
-    .triangle {
-      width: 0;
-      height: 0;
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
-      border-right: 5px solid #fff;
-      position: absolute;
-      left: 0;
-      top: 13px;
-    }
-
-    .content-box {
-
-      display flex
-      flex-direction row
-
-      .content {
-        min-height 20px;
-        word-break break-word;
-        padding: 6px 10px;
-        color var(--content-color)
-        background-color: #fff;
-        font-size: var(--content-font-size);
-        border-radius: 5px;
-
-        p:last-child {
-          margin-bottom: 0
-        }
-
-        p:first-child {
-          margin-top 0
-        }
-
-        p > code {
-          color #cc0000
-          background-color #f1f1f1
+        img {
+          width: 30px;
+          height: 30px;
+          border-radius: 10px;
+          padding: 1px;
         }
       }
 
+      .chat-item {
+        position: relative;
+        padding: 0 0 0 5px;
+        overflow: hidden;
+
+        .content {
+          min-height 20px;
+          word-break break-word;
+          padding: 6px 10px;
+          color #374151;
+          font-size: var(--content-font-size);
+          border-radius: 5px;
+          overflow auto;
+
+          p {
+            line-height 1.5
+
+            code {
+              color #f1f1f1
+              background-color #202121
+              padding 0 3px;
+              border-radius 5px;
+            }
+          }
+
+          p:last-child {
+            margin-bottom: 0
+          }
+
+          p:first-child {
+            margin-top 0
+          }
+        }
+
+
+        .bar {
+          padding 10px;
+
+          .bar-item {
+            background-color #e7e7e8;
+            color #888
+            padding 3px 5px;
+            margin-right 10px;
+            border-radius 5px;
+
+            .el-icon {
+              position relative
+              top 2px;
+            }
+          }
+
+          .el-button {
+            height 20px
+            padding 5px 2px;
+          }
+        }
+
+      }
+
       .tool-box {
-        padding-left 10px;
         font-size 16px;
 
         .el-button {

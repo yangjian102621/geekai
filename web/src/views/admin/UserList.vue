@@ -416,12 +416,12 @@ const batchAddUser = function () {
     padding-bottom: 10px;
 
     .el-icon {
-      margin-right 5px;
+      margin-right: 5px;
     }
   }
 
   .el-select {
-    width 100%
+    width: 100%
   }
 
 }
