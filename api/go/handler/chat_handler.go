@@ -167,7 +167,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			if res.Error == nil {
 				for _, msg := range historyMessages {
 					ms := types.Message{Role: "user", Content: msg.Content}
-					if msg.Type == types.REPLY_MSG {
+					if msg.Type == types.ReplyMsg {
 						ms.Role = "assistant"
 					}
 					chatCtx = append(chatCtx, ms)
@@ -276,7 +276,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					UserId:  userVo.Id,
 					ChatId:  session.ChatId,
 					RoleId:  role.Id,
-					Type:    types.PROMPT_MSG,
+					Type:    types.PromptMsg,
 					Icon:    user.Avatar,
 					Content: prompt,
 					Tokens:  token,
@@ -297,7 +297,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					UserId:  userVo.Id,
 					ChatId:  session.ChatId,
 					RoleId:  role.Id,
-					Type:    types.REPLY_MSG,
+					Type:    types.ReplyMsg,
 					Icon:    role.Icon,
 					Content: message.Content,
 					Tokens:  token,

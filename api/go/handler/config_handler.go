@@ -52,6 +52,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 	resp.SUCCESS(c, config)
 }
 
+// Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
 	key := c.Query("key")
 	var config model.Config
