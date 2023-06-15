@@ -43,5 +43,5 @@ type ApiError struct {
 	}
 }
 
-const PROMPT_MSG = "prompt" // prompt message
-const REPLY_MSG = "reply"   // reply message
+const PromptMsg = "prompt" // prompt message
+const ReplyMsg = "reply"   // reply message

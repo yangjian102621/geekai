@@ -33,7 +33,7 @@ type Session struct {
 
 // ChatConfig 系统默认的聊天配置
 type ChatConfig struct {
-	ApiURL        string  `json:"api_url"`
+	ApiURL        string  `json:"api_url,omitempty"`
 	Model         string  `json:"model"` // 默认模型
 	Temperature   float32 `json:"temperature"`
 	MaxTokens     int     `json:"max_tokens"`
@@ -43,9 +43,12 @@ type ChatConfig struct {
 }
 
 type SystemConfig struct {
-	Title      string   `json:"title"`
-	AdminTitle string   `json:"admin_title"`
-	Models     []string `json:"models"`
+	Title         string   `json:"title"`
+	AdminTitle    string   `json:"admin_title"`
+	Models        []string `json:"models"`
+	UserInitCalls int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
 }
 
 var GptModels = []string{"gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613", "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613"}
+
+const UserInitCalls = 1000
