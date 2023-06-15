@@ -1,8 +1,6 @@
-Title = "Chat-Plus AI 助手"
-ConsoleTitle = "Chat-Plus 控制台"
 Listen = "0.0.0.0:5678"
 ProxyURL = ["YOUR_PROXY_URL"]
-AccessKey = "YOUR_ACCESS_KEY"
+MysqlDns = "mysql_user:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
@@ -14,22 +12,6 @@ AccessKey = "YOUR_ACCESS_KEY"
   HttpOnly = false
   SameSite = 2
 
-[ImgURL]
-  WechatCard = "https://img.r9it.com/chatgpt/WX20230505-162403.png"
-  WechatGroup = " https://img.r9it.com/chatgpt/WX20230505-162538.png"
-
 [Manager]
   Username = "admin"
   Password = "admin123"
-
-[Chat]
-  ApiURL = "https://api.openai.com/v1/chat/completions"
-  Model = "gpt-3.5-turbo"
-  Temperature = 1.0
-  MaxTokens = 1024
-  EnableContext = true
-  ChatContextExpireTime = 3600
-
-  [[Chat.ApiKeys]]
-    Value = "YOUR_OPENAI_API_KEY"
-    LastUsed = 0
