@@ -29,7 +29,7 @@ const routes = [
     },
     {
         name: 'plus', path: '/chat', component: ChatPlus, meta: {
-            title: 'ChatGPT-Plus for PC'
+            title: 'ChatGPT-智能助手V3'
         }
     },
     {
