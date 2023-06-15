@@ -80,6 +80,9 @@ const register = function () {
   if (formData.value.username.length < 4) {
     return ElMessage.error('用户名的长度为4-30个字符');
   }
+  if (!validateEmail(formData.value.username) && !validateMobile(formData.value.username)) {
+    return ElMessage.error('用户名不合法，请输入手机号码或者邮箱地址');
+  }
   if (formData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符');
   }
@@ -92,6 +95,15 @@ const register = function () {
   }).catch((e) => {
     ElMessage.error('注册失败，' + e.message)
   })
+}
+
+const validateEmail = function (email) {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+}
+const validateMobile = function (mobile) {
+  const regex = /^1[345789]\d{9}$/;
+  return regex.test(mobile);
 }
 
 </script>
