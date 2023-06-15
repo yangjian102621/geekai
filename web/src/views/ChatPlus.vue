@@ -419,7 +419,15 @@ const connect = function (chat_id, role_id) {
   const _role = getRoleById(role_id);
   // 初始化 WebSocket 对象
   const _sessionId = getSessionId();
-  const _socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat/new?sessionId=${_sessionId}&roleId=${role_id}&chatId=${chat_id}&model=${model.value}`);
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https') {
+      host = 'wss://'+location.host;
+    } else {
+      host = 'ws://'+location.host;
+    }
+  }
+  const _socket = new WebSocket(host + `/api/chat/new?sessionId=${_sessionId}&roleId=${role_id}&chatId=${chat_id}&model=${model.value}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     previousText.value = '';
