@@ -69,7 +69,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 
 	session.ChatId = chatId
 	session.Model = chatModel
-	logger.Infof("New websocket connected, IP: %s, UserId: %s", c.Request.RemoteAddr, session.Username)
+	logger.Infof("New websocket connected, IP: %s, Username: %s", c.Request.RemoteAddr, session.Username)
 	client := core.NewWsClient(ws)
 	var chatRole model.ChatRole
 	res = h.db.First(&chatRole, roleId)

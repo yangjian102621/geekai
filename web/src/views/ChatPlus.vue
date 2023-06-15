@@ -169,7 +169,7 @@
       </el-main>
     </el-container>
 
-    <config-dialog v-model:show="showConfigDialog" :models="models"></config-dialog>
+    <config-dialog v-model:show="showConfigDialog" :models="models" @update-user="updateUser"></config-dialog>
   </div>
 
 
@@ -213,29 +213,28 @@ const mainWinHeight = ref(0); // 主窗口高度
 const chatBoxHeight = ref(0); // 聊天内容框高度
 const leftBoxHeight = ref(0);
 const loading = ref(true);
-const user = getLoginUser();
+const user = ref(getLoginUser());
 const roles = ref([]);
 const roleId = ref(0)
 const newChatItem = ref(null);
 const router = useRouter();
 const showConfigDialog = ref(false);
 
-if (!user) {
+if (!user.value) {
   router.push("login");
 } else {
   onMounted(() => {
     resizeElement();
     checkSession().then(() => {
       // 加载角色列表
-      httpGet(`/api/chat/role/list?user_id=${user.id}`).then((res) => {
+      httpGet(`/api/chat/role/list?user_id=${user.value.id}`).then((res) => {
         roles.value = res.data;
         roleId.value = roles.value[0]['id'];
         // 获取会话列表
         loadChats();
         // 创建新的会话
         newChat();
-      }).catch((e) => {
-        console.log(e)
+      }).catch(() => {
         ElMessage.error('获取聊天角色失败')
       })
     }).catch(() => {
@@ -247,8 +246,7 @@ if (!user) {
       ElMessage.success('复制成功！');
     })
 
-    clipboard.on('error', (e) => {
-      console.log(e)
+    clipboard.on('error', () => {
       ElMessage.error('复制失败！');
     })
   });
@@ -274,7 +272,7 @@ const checkSession = function () {
 
 // 加载会话
 const loadChats = function () {
-  httpGet("/api/chat/list?user_id=" + user.id).then((res) => {
+  httpGet("/api/chat/list?user_id=" + user.value.id).then((res) => {
     if (res.data) {
       chatList.value = res.data;
       allChats.value = res.data;
@@ -355,7 +353,6 @@ const editChatTitle = function (event, chat) {
 
 // 确认修改
 const confirm = function (event, chat) {
-  console.log(chat)
   event.stopPropagation();
   if (curOpt.value === 'edit') {
     if (tmpChatTitle.value === '') {
@@ -556,7 +553,7 @@ const sendMessage = function () {
   chatData.value.push({
     type: "prompt",
     id: randString(32),
-    icon: user['avatar'],
+    icon: user.value.avatar,
     content: renderInputText(prompt.value),
     created_at: new Date().getTime(),
   });
@@ -596,6 +593,7 @@ const clearAllChats = function () {
       ElMessage.success("操作成功！");
       chatData.value = [];
       chatList.value = [];
+      newChat();
     }).catch(e => {
       ElMessage.error("操作失败：" + e.message)
     })
@@ -686,6 +684,11 @@ const searchChat = function () {
     }
   }
   chatList.value = roles;
+}
+
+const updateUser = function (data) {
+  user.value.avatar = data.avatar;
+  user.value.nickname = data.nickname;
 }
 </script>
 

@@ -73,6 +73,7 @@ import {ElMessage} from "element-plus";
 
 const props = defineProps({
   show: Boolean,
+  user: Object,
   models: Array,
 });
 
@@ -102,6 +103,8 @@ const save = function () {
       appendTo: document.getElementById('user-info'),
       onClose: () => emits('update:show', false)
     })
+    // 更新用户数据
+    emits('update-user', {nickname:form.value['nickname'], avatar: form.value['avatar']});
   }).catch(() => {
     ElMessage.error({
       message: '更新失败',
