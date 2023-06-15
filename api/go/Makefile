@@ -1,5 +1,5 @@
 SHELL=/usr/bin/env bash
-NAME := wechatGPT
+NAME := chatgpt-v3
 all: window linux darwin
 
 
