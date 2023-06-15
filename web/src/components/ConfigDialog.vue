@@ -1,111 +1,57 @@
 <template>
   <el-dialog
-      v-model="$props.show"
+      v-model="props.show"
       :close-on-click-modal="false"
       :show-close="true"
       :before-close="close"
       :top="top"
-      title="聊天配置"
+      title="用户设置"
   >
-    <div class="user-info">
-      <el-input :value="user['api_key']" placeholder="填写你 OpenAI 的 API KEY">
-        <template #prepend>API KEY</template>
-      </el-input>
+    <div class="user-info" id="user-info">
+      <el-form :model="form" label-width="120px">
+        <el-form-item label="昵称">
+          <el-input v-model="form['nickname']"/>
+        </el-form-item>
+        <el-form-item label="头像">
+          <el-input v-model="form['avatar']"/>
+        </el-form-item>
+        <el-form-item label="用户名">
+          <el-input v-model="form['username']" disabled/>
+        </el-form-item>
 
-      <el-descriptions
-          class="margin-top"
-          title="账户信息"
-          :column="col"
-          border
-      >
-
-        <el-descriptions-item>
-          <template #label>
-            <div class="cell-item">
-              <el-icon>
-                <UserFilled/>
-              </el-icon>
-              账户
-            </div>
-          </template>
-          {{ user.name }}
-        </el-descriptions-item>
-
-        <el-descriptions-item>
-          <template #label>
-            <div class="cell-item">
-              <el-icon>
-                <List/>
-              </el-icon>
-              聊天记录
-            </div>
-          </template>
-          <el-tag v-if="user['enable_history']" type="success">已开通</el-tag>
-          <el-tag v-else type="info">未开通</el-tag>
-        </el-descriptions-item>
-
-        <el-descriptions-item>
-          <template #label>
-            <div class="cell-item">
-              <el-icon>
-                <Histogram/>
-              </el-icon>
-              总调用次数
-            </div>
-          </template>
-          {{ user['max_calls'] }}
-        </el-descriptions-item>
-
-        <el-descriptions-item>
-          <template #label>
-            <div class="cell-item">
-              <el-icon>
-                <Histogram/>
-              </el-icon>
-              剩余点数
-            </div>
-          </template>
-          {{ user["remaining_calls"] }}
-        </el-descriptions-item>
-
-        <el-descriptions-item>
-          <template #label>
-            <div class="cell-item">
-              <el-icon>
-                <Timer/>
-              </el-icon>
-              激活时间
-            </div>
-          </template>
-          {{ user['active_time'] }}
-        </el-descriptions-item>
-
-        <el-descriptions-item>
-          <template #label>
-            <div class="cell-item">
-              <el-icon>
-                <Watch/>
-              </el-icon>
-              到期时间
-            </div>
-          </template>
-          {{ user['expired_time'] }}
-        </el-descriptions-item>
-
-      </el-descriptions>
+        <el-form-item label="聊天上下文">
+          <el-switch v-model="form['chat_config']['enable_context']"/>
+        </el-form-item>
+        <el-form-item label="聊天记录">
+          <el-switch v-model="form['chat_config']['enable_history']"/>
+        </el-form-item>
+        <el-form-item label="Model">
+          <el-select v-model="form['chat_config']['model']" placeholder="默认会话模型">
+            <el-option
+                v-for="item in props.models"
+                :key="item"
+                :label="item.toUpperCase()"
+                :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="MaxTokens">
+          <el-input v-model.number="form['chat_config']['max_tokens']"/>
+        </el-form-item>
+        <el-form-item label="Temperature">
+          <el-input v-model.number="form['chat_config']['temperature']"/>
+        </el-form-item>
+        <el-form-item label="剩余调用次数">
+          <el-tag>{{ form['calls'] }}</el-tag>
+        </el-form-item>
+        <el-form-item label="剩余 Tokens">
+          <el-tag type="info">{{ form['tokens'] }}</el-tag>
+        </el-form-item>
+        <el-form-item label="API KEY">
+          <el-input v-model="form['chat_config']['api_key']"/>
+        </el-form-item>
+      </el-form>
     </div>
-    <el-row class="row-center">
-      <span>其他功能正在开发中，有什么使用建议可以通过下面的方式联系作者。</span>
-    </el-row>
-    <el-row>
-      <el-col :span="12">
-        <el-image :src="wechatGroup"></el-image>
-      </el-col>
-
-      <el-col :span="12">
-        <el-image :src="wechatCard"></el-image>
-      </el-col>
-    </el-row>
 
     <template #footer>
       <span class="dialog-footer">
@@ -118,61 +64,54 @@
   </el-dialog>
 </template>
 
-<script>
-import {defineComponent} from "vue"
-import {
-  List, Timer, Watch,
-  UserFilled,
-  Histogram
-} from '@element-plus/icons-vue'
-import {isMobile} from "@/utils/libs";
+<script setup>
 
-export default defineComponent({
-  name: 'ConfigDialog',
-  components: {Watch, Timer, UserFilled, List, Histogram},
-  props: {
-    show: {
-      type: Boolean,
-      default: true
-    },
-    user: {
-      type: Object,
-      default() {
-        return {}
-      },
-    }
-  },
-  data() {
-    return {
-      wechatGroup: "https://img.r9it.com/chatgpt/wechat-group.jpeg",
-      wechatCard: "https://img.r9it.com/chatgpt/wechat-card.jpeg"
-    }
-  },
-  computed: {
-    top: function () {
-      if (window.innerHeight < 1000) {
-        return '1vh';
-      } else {
-        return '15vh';
-      }
-    },
-    
-    col: function () {
-      return isMobile() ? 1 : 2;
-    }
-  },
-  mounted() {
 
-  },
-  methods: {
-    save: function () {
-      this.$emit('update:show', false);
-    },
-    close: function () {
-      this.$emit('update:show', false);
-    }
+import {computed, defineEmits, defineProps, onMounted, ref} from "vue"
+import {httpGet, httpPost} from "@/utils/http";
+import {ElMessage} from "element-plus";
+
+const props = defineProps({
+  show: Boolean,
+  models: Array,
+});
+
+const form = ref({})
+const top = computed(() => {
+  if (window.innerHeight < 768) {
+    return '1vh';
+  } else {
+    return '15vh';
   }
 })
+
+onMounted(() => {
+  // 获取最新用户信息
+  httpGet('/api/user/profile').then(res => {
+    form.value = res.data
+  }).catch(() => {
+    ElMessage.error('获取用户信息失败')
+  });
+})
+
+const emits = defineEmits(['update:show']);
+const save = function () {
+  httpPost('/api/user/profile/update', form.value).then(() => {
+    ElMessage.success({
+      message: '更新成功',
+      appendTo: document.getElementById('user-info'),
+      onClose: () => emits('update:show', false)
+    })
+  }).catch(() => {
+    ElMessage.error({
+      message: '更新失败',
+      appendTo: document.getElementById('user-info')
+    })
+  })
+}
+const close = function () {
+  emits('update:show', false);
+}
 </script>
 
 <style lang="stylus">
@@ -182,17 +121,15 @@ export default defineComponent({
 
   .el-dialog__body {
     padding-top 10px;
+    max-height 600px;
+    overflow-y auto;
 
     .user-info {
-      .margin-top {
-        margin-top 20px;
-      }
+      position relative;
 
-      .el-icon {
-        top 2px;
+      .el-message {
+        position: absolute;
       }
-
-      margin-bottom 15px;
     }
   }
 }

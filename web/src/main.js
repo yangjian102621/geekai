@@ -1,15 +1,15 @@
-import {createRouter, createWebHashHistory} from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 import {createApp} from 'vue'
 import ElementPlus from "element-plus"
 import "element-plus/dist/index.css"
 import App from './App.vue'
 import ChatPlus from "@/views/ChatPlus.vue";
-import Chat from "@/views/Chat.vue";
 import NotFound from './views/404.vue'
 import TestPage from './views/Test.vue'
 import Home from "@/views/Home.vue";
-import ChatFree from "@/views/ChatFree.vue";
 import Admin from "@/views/Admin.vue";
+import Login from "@/views/Login.vue"
+import Register from "@/views/Register.vue";
 
 const routes = [
     {
@@ -18,18 +18,18 @@ const routes = [
         }
     },
     {
-        name: 'plus', path: '/plus', component: ChatPlus, meta: {
+        name: 'login', path: '/login', component: Login, meta: {
+            title: '用户登录'
+        }
+    },
+    {
+        name: 'register', path: '/register', component: Register, meta: {
+            title: '用户注册'
+        }
+    },
+    {
+        name: 'plus', path: '/chat', component: ChatPlus, meta: {
             title: 'ChatGPT-Plus for PC'
-        }
-    },
-    {
-        name: 'mobile', path: '/mobile', component: Chat, meta: {
-            title: 'ChatGPT-Plus for Mobile'
-        }
-    },
-    {
-        name: 'free', path: '/free', component: ChatFree, meta: {
-            title: 'Chat-Plus AI 助理'
         }
     },
     {
@@ -51,7 +51,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHashHistory(),
+    history: createWebHistory(),
     routes: routes,
 })
 

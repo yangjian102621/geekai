@@ -1,714 +1,733 @@
 <template>
-  <div class="body-plus">
-    <el-row>
-      <div class="chat-head">
-        <el-row class="row-center">
-          <el-col :span="12">
-            <div class="title-box">
-              <el-image :src="logo" class="logo"/>
-              <span>ChatGPT-Plus</span>
-            </div>
-          </el-col>
-          <el-col :span="12">
-            <div class="tool-box">
-
-              <el-dropdown :hide-on-click="true" class="user-info" trigger="click">
-                <span class="el-dropdown-link">
-                  <el-image src="images/user-info.jpg"/>
-                  <el-icon><ArrowDown/></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click="configDialog()">
-                      <el-icon>
-                        <Tools/>
-                      </el-icon>
-                      <span>聊天设置</span>
-                    </el-dropdown-item>
-
-                    <el-dropdown-item @click="clearChatHistory">
-                      <el-icon>
-                        <Delete/>
-                      </el-icon>
-                      <span>删除记录</span>
-                    </el-dropdown-item>
-
-                    <el-dropdown-item @click="logout">
-                      <el-icon>
-                        <Monitor/>
-                      </el-icon>
-                      <span>注销</span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </el-col>
-        </el-row>
-      </div>
-    </el-row>
-    <el-row>
-      <div class="left-box">
-        <div class="search-box">
-          <el-input v-model="roleName" class="w-50 m-2" size="small" placeholder="搜索聊天角色" @keyup="searchRole">
-            <template #prefix>
-              <el-icon class="el-input__icon">
-                <Search/>
-              </el-icon>
-            </template>
-          </el-input>
+  <div class="common-layout theme-white">
+    <el-container>
+      <el-aside width="320px">
+        <div class="title-box">
+          <el-image :src="logo" class="logo"/>
+          <span>{{ title }}</span>
         </div>
-
-        <div class="content" :style="{height: leftBoxHeight+'px'}">
-          <el-row v-for="item in chatRoles" :key="item.key">
-            <div :class="item.key === this.role?'chat-role-item active':'chat-role-item'" @click="changeRole(item)">
-              <el-image :src="item.icon" class="avatar"/>
-              <span>{{ item.name }}</span>
-            </div>
-          </el-row>
-        </div>
-      </div>
-      <div class="right-box" :style="{height: mainWinHeight+'px'}">
-        <div v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
-          <div id="container">
-            <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
-              <div v-for="chat in chatData" :key="chat.id">
-                <chat-prompt
-                    v-if="chat.type==='prompt'"
-                    :icon="chat.icon"
-                    :content="chat.content"/>
-                <chat-reply v-else-if="chat.type==='reply'"
-                            :icon="chat.icon"
-                            :org-content="chat.orgContent"
-                            :content="chat.content"/>
-              </div>
-            </div><!-- end chat box -->
-
-            <div class="re-generate">
-              <div class="btn-box">
-                <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
-                  <el-icon>
-                    <VideoPause/>
-                  </el-icon>
-                  停止生成
-                </el-button>
-
-                <el-button type="primary" v-if="showReGenerate" @click="reGenerate" plain>
-                  <el-icon>
-                    <RefreshRight/>
-                  </el-icon>
-                  重新生成
-                </el-button>
-              </div>
-            </div>
-
-            <el-row class="chat-tool-box">
-              <el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="进入AI绘画模式"
-                  placement="top"
-              >
-                <el-icon @click="drawImage">
-                  <Picture/>
+        <div class="chat-list">
+          <div class="search-box">
+            <el-input v-model="chatName" class="w-50 m-2" size="small" placeholder="搜索会话" @keyup="searchChat">
+              <template #prefix>
+                <el-icon class="el-input__icon">
+                  <Search/>
                 </el-icon>
-              </el-tooltip>
+              </template>
+            </el-input>
+          </div>
 
-              <span class="text">Ctrl + Enter 换行</span>
-
-            </el-row>
-
-            <div class="input-box">
-              <div class="input-container">
-                <el-input
-                    ref="text-input"
-                    v-model="inputValue"
-                    :autosize="{ minRows: 5, maxRows: 10 }"
-                    v-on:keydown="inputKeyDown"
-                    v-on:focus="focus"
-                    autofocus
-                    type="textarea"
-                    placeholder="先聊五毛钱吧..."
-                />
+          <div class="content" :style="{height: leftBoxHeight+'px'}">
+            <el-row v-for="chat in chatList" :key="chat.chat_id">
+              <div :class="chat.chat_id === activeChat.chat_id?'chat-list-item active':'chat-list-item'"
+                   @click="changeChat(chat)">
+                <el-image :src="chat.icon" class="avatar"/>
+                <span class="chat-title-input" v-if="chat.edit">
+              <el-input v-model="tmpChatTitle" size="small" placeholder="请输入会话标题"/>
+            </span>
+                <span v-else class="chat-title">{{ chat.title }}</span>
+                <span class="btn btn-check" v-if="chat.edit || chat.removing">
+                <el-icon @click="confirm($event, chat)"><Check/></el-icon>
+                <el-icon @click="cancel($event, chat)"><Close/></el-icon>
+              </span>
+                <span class="btn" v-else>
+                <el-icon title="编辑" @click="editChatTitle($event, chat)"><Edit/></el-icon>
+                <el-icon title="删除会话" @click="removeChat($event, chat)"><Delete/></el-icon>
+              </span>
               </div>
-            </div><!-- end input box -->
+            </el-row>
+          </div>
+        </div>
 
-          </div><!-- end container -->
-        </div><!-- end loading -->
-      </div>
-    </el-row>
+        <div class="tool-box">
 
-    <config-dialog v-model:show="showConfigDialog" :user="userInfo"></config-dialog>
+          <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="user">
+                        <span class="el-dropdown-link">
+                          <el-image :src="user['avatar']"/>
+                          <span class="username">{{ user ? user['nickname'] : 'Chat-Plus-User' }}</span>
+                          <el-icon><ArrowDown/></el-icon>
+                        </span>
+            <template #dropdown>
+              <el-dropdown-menu style="width: 315px;">
+                <el-dropdown-item @click="showConfig">
+                  <el-icon>
+                    <Tools/>
+                  </el-icon>
+                  <span>聊天设置</span>
+                </el-dropdown-item>
 
-    <div class="token-dialog">
-      <el-dialog
-          v-model="showLoginDialog"
-          :show-close="false"
-          :close-on-click-modal="false"
-          title="请输入口令继续访问"
-      >
-        <el-row>
-          <el-input v-model="token" placeholder="在此输入口令" type="password" @keyup="loginInputKeyup">
-            <template #prefix>
-              <el-icon class="el-input__icon">
-                <Lock/>
-              </el-icon>
+                <el-dropdown-item @click="clearAllChats">
+                  <el-icon>
+                    <Delete/>
+                  </el-icon>
+                  <span>清除所有会话</span>
+                </el-dropdown-item>
+
+                <el-dropdown-item @click="logout">
+                  <el-icon>
+                    <Monitor/>
+                  </el-icon>
+                  <span>注销</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
             </template>
-          </el-input>
-          <el-button type="primary" @click="submitToken">提交</el-button>
-        </el-row>
+          </el-dropdown>
+        </div>
+      </el-aside>
+      <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
+        <div class="chat-head">
+          <div class="chat-config">
+            <el-select v-model="roleId" filterable placeholder="角色" class="role-select">
+              <el-option
+                  v-for="item in roles"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+              >
+                <div class="role-option">
+                  <el-image :src="item.icon"></el-image>
+                  <span>{{ item.name }}</span>
+                </div>
+              </el-option>
+            </el-select>
 
-        <el-row class="row-center">
-          <p>打开微信扫下面二维码免费领取口令</p>
-        </el-row>
+            <el-select v-model="model" placeholder="模型">
+              <el-option
+                  v-for="item in models"
+                  :key="item"
+                  :label="item.toUpperCase()"
+                  :value="item"
+              />
+            </el-select>
+            <el-button type="primary" @click="newChat">
+              <el-icon>
+                <Plus/>
+              </el-icon>
+              新建会话
+            </el-button>
 
-        <el-row class="row-center">
-          <el-image :src="sysConfig.wechat_card" fit="cover" style="width: 250px;"/>
-        </el-row>
+          </div>
+        </div>
 
-      </el-dialog>
-    </div> <!--end token dialog-->
+        <div class="right-box" :style="{height: mainWinHeight+'px'}">
+          <div>
+            <div id="container">
+              <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
+                <div v-for="item in chatData" :key="item.id">
+                  <chat-prompt
+                      v-if="item.type==='prompt'"
+                      :icon="item.icon"
+                      :created-at="dateFormat(item['created_at'])"
+                      :tokens="item['tokens']"
+                      :model="model"
+                      :content="item.content"/>
+                  <chat-reply v-else-if="item.type==='reply'"
+                              :icon="item.icon"
+                              :org-content="item.orgContent"
+                              :created-at="dateFormat(item['created_at'])"
+                              :tokens="item['tokens']"
+                              :content="item.content"/>
+                </div>
+              </div><!-- end chat box -->
+
+              <div class="re-generate">
+                <div class="btn-box">
+                  <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
+                    <el-icon>
+                      <VideoPause/>
+                    </el-icon>
+                    停止生成
+                  </el-button>
+
+                  <el-button type="primary" v-if="showReGenerate" @click="reGenerate" plain>
+                    <el-icon>
+                      <RefreshRight/>
+                    </el-icon>
+                    重新生成
+                  </el-button>
+                </div>
+              </div>
+
+              <div class="input-box">
+                <div class="input-container">
+                  <el-input
+                      ref="text-input"
+                      v-model="prompt"
+                      v-on:keydown="inputKeyDown"
+                      autofocus
+                      type="textarea"
+                      :rows="2"
+                      placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
+                  />
+
+                </div>
+              </div><!-- end input box -->
+
+            </div><!-- end container -->
+          </div><!-- end loading -->
+        </div>
+      </el-main>
+    </el-container>
+
+    <config-dialog v-model:show="showConfigDialog" :models="models"></config-dialog>
   </div>
 
 
 </template>
-
-<script>
-import {defineComponent, nextTick} from 'vue'
-import ChatPrompt from "@/components/plus/ChatPrompt.vue";
-import ChatReply from "@/components/plus/ChatReply.vue";
-import {isMobile, randString, renderInputText} from "@/utils/libs";
-import {ElMessage, ElMessageBox} from 'element-plus'
+<script setup>
+import {nextTick, onMounted, ref} from 'vue'
+import ChatPrompt from "@/components/ChatPrompt.vue";
+import ChatReply from "@/components/ChatReply.vue";
 import {
-  Tools,
-  Lock,
-  Delete,
-  Picture,
-  Search,
   ArrowDown,
+  Check,
+  Close,
+  Delete,
+  Edit,
   Monitor,
-  VideoPause,
-  RefreshRight
+  Plus,
+  RefreshRight,
+  Search,
+  Tools,
+  VideoPause
 } from '@element-plus/icons-vue'
-import ConfigDialog from '@/components/ConfigDialog.vue'
-import {httpPost, httpGet} from "@/utils/http";
-import {getSessionId, getUserInfo, setLoginUser} from "@/utils/storage";
-import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
+import {dateFormat, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
+import {ElMessage, ElMessageBox} from "element-plus";
+import hl from "highlight.js";
+import {getLoginUser, getSessionId} from "@/utils/storage";
+import {httpGet, httpPost} from "@/utils/http";
+import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
+import ConfigDialog from "@/components/ConfigDialog.vue";
 
-export default defineComponent({
-  name: "ChatPlus",
-  components: {
-    RefreshRight,
-    VideoPause,
-    ArrowDown,
-    Search,
-    ChatPrompt,
-    ChatReply,
-    Tools,
-    Lock,
-    Delete,
-    Picture,
-    Monitor,
-    ConfigDialog
-  },
-  data() {
-    return {
-      title: 'ChatGPT 控制台',
-      logo: 'images/logo.png',
-      chatData: [],
-      chatRoles: [], // 当前显示的角色集合
-      allChatRoles: [], // 所有角色集合
-      role: 'gpt',
-      inputValue: '', // 聊天内容
-      hasHelloMsg: {}, // 是否发送过打招呼信息
-      sysConfig: {}, // 系统配置
+const title = ref('ChatGPT-智能助手');
+const logo = 'images/logo.png';
+const models = ref([])
+const model = ref('gpt-3.5-turbo')
+const chatData = ref([]);
+const allChats = ref([]); // 会话列表
+const chatList = ref(allChats.value);
+const activeChat = ref({});
+const mainWinHeight = ref(0); // 主窗口高度
+const chatBoxHeight = ref(0); // 聊天内容框高度
+const leftBoxHeight = ref(0);
+const loading = ref(true);
+const user = getLoginUser();
+const roles = ref([]);
+const roleId = ref(0)
+const newChatItem = ref(null);
+const router = useRouter();
+const showConfigDialog = ref(false);
 
-      showConfigDialog: false, // 显示配置对话框
-      userInfo: {},
-
-      showLoginDialog: false,
-      token: '', // 会话 token
-      replyIcon: 'images/avatar/gpt.png', // 回复信息的头像
-      roleName: "", // 搜索角色名称
-
-      showStopGenerate: false, // 停止生成
-      showReGenerate: false, // 重新生成
-      canReGenerate: false, // 是否可以重新生
-      previousText: '', // 上一次提问
-
-      lineBuffer: '', // 输出缓冲行
-      connectingMessageBox: null, // 保存重连的消息框对象
-      errorMessage: null, // 错误信息提示框
-      socket: null,
-      activelyClose: false, // 主动关闭
-      mainWinHeight: 0, // 主窗口高度
-      chatBoxHeight: 0, // 聊天内容框高度
-      leftBoxHeight: 0,
-      sending: true,
-      loading: true
-    }
-  },
-
-  mounted: function () {
-    if (isMobile()) {
-      this.$router.push("mobile");
-      return;
-    }
+if (!user) {
+  router.push("login");
+} else {
+  onMounted(() => {
+    resizeElement();
+    checkSession().then(() => {
+      // 加载角色列表
+      httpGet(`/api/chat/role/list?user_id=${user.id}`).then((res) => {
+        roles.value = res.data;
+        roleId.value = roles.value[0]['id'];
+        // 获取会话列表
+        loadChats();
+        // 创建新的会话
+        newChat();
+      }).catch((e) => {
+        console.log(e)
+        ElMessage.error('获取聊天角色失败')
+      })
+    }).catch(() => {
+      router.push('login')
+    });
 
     const clipboard = new Clipboard('.copy-reply');
     clipboard.on('success', () => {
       ElMessage.success('复制成功！');
     })
 
-    clipboard.on('error', () => {
+    clipboard.on('error', (e) => {
+      console.log(e)
       ElMessage.error('复制失败！');
     })
+  });
+}
 
-    nextTick(() => {
-      this.resizeElement();
+// 加载系统配置
+httpGet('/api/config/get?key=system').then(res => {
+  title.value = res.data.title;
+  models.value = res.data.models;
+}).catch(e => {
+  ElMessage.error("加载系统配置失败: " + e.message)
+})
+
+const checkSession = function () {
+  return new Promise((resolve, reject) => {
+    httpGet('/api/user/session').then(res => {
+      resolve(res)
+    }).catch(err => {
+      reject(err)
     })
-    window.addEventListener("resize", () => {
-      this.resizeElement();
-    });
+  })
+}
 
-    // 获取系统配置
-    httpGet('/api/config/get').then((res) => {
-      this.sysConfig = res.data;
-    }).catch(() => {
-      ElMessage.error('获取系统配置失败')
+// 加载会话
+const loadChats = function () {
+  httpGet("/api/chat/list?user_id=" + user.id).then((res) => {
+    if (res.data) {
+      chatList.value = res.data;
+      allChats.value = res.data;
+    }
+  }).catch(() => {
+    // TODO: 增加重试按钮
+    ElMessage.error("加载会话列表失败！")
+  })
+}
+
+const getRoleById = function (rid) {
+  for (let i = 0; i < roles.value.length; i++) {
+    if (roles.value[i]['id'] === rid) {
+      return roles.value[i];
+    }
+  }
+  return null;
+}
+
+const resizeElement = function () {
+  chatBoxHeight.value = window.innerHeight - 51 - 82 - 38;
+  mainWinHeight.value = window.innerHeight - 51;
+  leftBoxHeight.value = window.innerHeight - 51 - 100;
+};
+
+// 新建会话
+const newChat = function () {
+  // 已有新开的会话
+  if (newChatItem.value !== null && newChatItem.value['role_id'] === roles.value[0]['role_id']) {
+    return;
+  }
+
+  // 获取当前聊天角色图标
+  let icon = '';
+  roles.value.forEach(item => {
+    if (item['id'] === roleId.value) {
+      icon = item['icon']
+    }
+  })
+  newChatItem.value = {
+    chat_id: "",
+    icon: icon,
+    role_id: roleId.value,
+    model: model.value,
+    title: '',
+    edit: false,
+    removing: false,
+  };
+  activeChat.value = {} //取消激活的会话高亮
+  showStopGenerate.value = false;
+  showReGenerate.value = false;
+  connect(null, roleId.value)
+}
+
+// 切换会话
+const changeChat = function (chat) {
+  if (activeChat.value['chat_id'] === chat.chat_id) {
+    return;
+  }
+  activeChat.value = chat
+  newChatItem.value = null;
+  roleId.value = chat.role_id;
+  model.value = chat.model;
+  showStopGenerate.value = false;
+  showReGenerate.value = false;
+  connect(chat.chat_id, chat.role_id)
+}
+
+// 编辑会话标题
+const curOpt = ref('')
+const tmpChatTitle = ref('');
+const editChatTitle = function (event, chat) {
+  event.stopPropagation();
+  chat.edit = true;
+  curOpt.value = 'edit';
+  tmpChatTitle.value = chat.title;
+};
+
+// 确认修改
+const confirm = function (event, chat) {
+  console.log(chat)
+  event.stopPropagation();
+  if (curOpt.value === 'edit') {
+    if (tmpChatTitle.value === '') {
+      ElMessage.error("请输入会话标题！");
+      return;
+    }
+
+    httpPost('/api/chat/update', {id: chat.id, title: tmpChatTitle.value}).then(() => {
+      chat.title = tmpChatTitle.value;
+      chat.edit = false;
+    }).catch(e => {
+      ElMessage.error("操作失败：" + e.message);
+    })
+  } else if (curOpt.value === 'remove') {
+    httpGet('/api/chat/remove?chat_id=' + chat.chat_id).then(() => {
+      chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
+        return e1.id === e2.id
+      })
+      // 重置会话
+      newChat();
+    }).catch(e => {
+      ElMessage.error("操作失败：" + e.message);
     })
 
-    this.connect();
-  },
+  }
 
-  methods: {
-    configDialog() {
-      this.showConfigDialog = true
-      this.userInfo = getUserInfo();
-    },
+}
+// 取消修改
+const cancel = function (event, chat) {
+  event.stopPropagation();
+  chat.edit = false;
+  chat.removing = false;
+}
 
-    resizeElement: function () {
-      this.chatBoxHeight = window.innerHeight - 61 - 115 - 38;
-      this.mainWinHeight = window.innerHeight - 61;
-      this.leftBoxHeight = window.innerHeight - 61 - 100;
-    },
-    // 创建 socket 会话连接
-    connect: function () {
-      // 先关闭已有连接
-      if (this.socket !== null) {
-        this.activelyClose = true;
-        this.socket.close();
-      }
+// 删除会话
+const removeChat = function (event, chat) {
+  event.stopPropagation();
+  chat.removing = true;
+  curOpt.value = 'remove';
+}
 
-      // 初始化 WebSocket 对象
-      const sessionId = getSessionId();
-      const socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat?sessionId=${sessionId}&role=${this.role}`);
-      socket.addEventListener('open', () => {
-        // 获取聊天角色
-        if (this.chatRoles.length === 0) {
-          httpGet("/api/chat-roles/list").then((res) => {
-            // ElMessage.success('创建会话成功！');
-            this.chatRoles = res.data;
-            this.allChatRoles = res.data;
-            this.loading = false
-          }).catch(() => {
-            ElMessage.error("获取聊天角色失败");
-          })
-        } else {
-          this.loading = false
-        }
+// 创建 socket 连接
+const prompt = ref('');
+// const replyIcon = 'images/avatar/gpt.png';// 回复信息的头像
+const showStopGenerate = ref(false); // 停止生成
+const showReGenerate = ref(false); // 重新生成
+const previousText = ref(''); // 上一次提问
+const lineBuffer = ref(''); // 输出缓冲行
+const socket = ref(null);
+const activelyClose = ref(false); // 主动关闭
+const canSend = ref(true);
+const connect = function (chat_id, role_id) {
+  let isNewChat = false;
+  if (!chat_id) {
+    isNewChat = true;
+    chat_id = UUID();
+  }
+  // 先关闭已有连接
+  if (socket.value !== null) {
+    activelyClose.value = true;
+    socket.value.close();
+  }
 
-        this.sending = false; // 允许用户发送消息
-        this.activelyClose = false;
-        if (this.errorMessage !== null) {
-          this.errorMessage.close(); // 关闭错误提示信息
-        }
-        // 加载聊天记录
-        this.fetchChatHistory();
-      });
+  const _role = getRoleById(role_id);
+  // 初始化 WebSocket 对象
+  const _sessionId = getSessionId();
+  const _socket = new WebSocket(process.env.VUE_APP_WS_HOST + `/api/chat/new?sessionId=${_sessionId}&roleId=${role_id}&chatId=${chat_id}&model=${model.value}`);
+  _socket.addEventListener('open', () => {
+    chatData.value = []; // 初始化聊天数据
+    previousText.value = '';
+    canSend.value = true;
+    activelyClose.value = false;
 
-      socket.addEventListener('message', event => {
-        if (event.data instanceof Blob) {
-          const reader = new FileReader();
-          reader.readAsText(event.data, "UTF-8");
-          reader.onload = () => {
-            const data = JSON.parse(String(reader.result));
-            if (data['is_hello_msg'] && this.hasHelloMsg[this.role]) { // 一定发送过打招呼信息的
-              return
-            }
+    if (isNewChat) { // 加载打招呼信息
+      loading.value = false;
+      chatData.value.push({
+        type: "reply",
+        id: randString(32),
+        icon: _role['icon'],
+        content: _role['hello_msg'],
+        orgContent: _role['hello_msg'],
+      })
+    } else { // 加载聊天记录
+      loadChatHistory(chat_id);
+    }
+  });
 
-            if (data.type === 'start') {
-              this.chatData.push({
-                type: "reply",
-                id: randString(32),
-                icon: this.replyIcon,
-                content: ""
-              });
-              if (data['is_hello_msg'] !== true) {
-                this.canReGenerate = true;
-              }
-            } else if (data.type === 'end') { // 消息接收完毕
-              this.sending = false;
-              if (data['is_hello_msg'] !== true) {
-                this.showReGenerate = true;
-              } else {
-                this.hasHelloMsg[this.role] = true
-              }
-              this.showStopGenerate = false;
-              this.lineBuffer = ''; // 清空缓冲
-            } else {
-              this.lineBuffer += data.content;
-              let md = require('markdown-it')();
-              this.chatData[this.chatData.length - 1]['orgContent'] = this.lineBuffer;
-              this.chatData[this.chatData.length - 1]['content'] = md.render(this.lineBuffer);
+  _socket.addEventListener('message', event => {
+    if (event.data instanceof Blob) {
+      const reader = new FileReader();
+      reader.readAsText(event.data, "UTF-8");
+      reader.onload = () => {
+        const data = JSON.parse(String(reader.result));
+        if (data.type === 'start') {
+          chatData.value.push({
+            type: "reply",
+            id: randString(32),
+            icon: _role['icon'],
+            content: ""
+          });
+        } else if (data.type === 'end') { // 消息接收完毕
+          canSend.value = true;
+          showReGenerate.value = true;
+          showStopGenerate.value = false;
+          lineBuffer.value = ''; // 清空缓冲
 
-              nextTick(() => {
-                hl.configure({ignoreUnescapedHTML: true})
-                const lines = document.querySelectorAll('.chat-line');
-                const blocks = lines[lines.length - 1].querySelectorAll('pre code');
-                blocks.forEach((block) => {
-                  hl.highlightElement(block)
-                })
-              })
-            }
+          // 追加当前会话到会话列表
+          if (isNewChat && newChatItem.value !== null) {
+            newChatItem.value['title'] = previousText.value;
+            newChatItem.value['chat_id'] = chat_id;
+            chatList.value.unshift(newChatItem.value);
+            activeChat.value = newChatItem.value;
+            newChatItem.value = null; // 只追加一次
+          }
+
+          // 获取 token
+          const reply = chatData.value[chatData.value.length - 1]
+          httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${model.value}`).then(res => {
+            reply['created_at'] = new Date().getTime();
+            reply['tokens'] = res.data;
             // 将聊天框的滚动条滑动到最底部
             nextTick(() => {
               document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
             })
-          };
-        }
-
-      });
-
-      socket.addEventListener('close', () => {
-        if (this.activelyClose) { // 忽略主动关闭
-          return;
-        }
-
-        // 停止送消息
-        this.sending = true;
-        this.checkSession();
-      });
-
-      this.socket = socket;
-    },
-
-    checkSession: function () {
-      // 检查会话
-      httpGet("/api/session/get").then(() => {
-        // 自动重新连接
-        this.connect();
-      }).catch((res) => {
-        if (res.code === 400) {
-          this.showLoginDialog = true;
-          if (this.errorMessage !== null) {
-            this.errorMessage.close();
-          }
-        } else {
-          if (this.errorMessage === null) {
-            this.errorMessage = ElMessage({
-              message: '当前无法连接服务器，可检查网络设置是否正常',
-              type: 'error',
-              duration: 0,
-              showClose: false
-            });
-          }
-          // 3 秒后继续重连
-          setTimeout(() => this.checkSession(), 3000)
-        }
-      })
-    },
-
-    drawImage: function () {
-      ElMessage({
-        message: '客观别急，AI 绘画服服务正在紧锣密鼓搭建中...',
-        type: 'info',
-      })
-    },
-
-    // 更换角色
-    changeRole: function (item) {
-      this.loading = true
-      this.role = item.key;
-      this.replyIcon = item.icon;
-      // 清空对话列表
-      this.chatData = [];
-      this.hasHelloMsg = {};
-      this.showStopGenerate = false;
-      this.showReGenerate = false;
-      this.connect();
-    },
-
-    // 从后端获取聊天历史记录
-    fetchChatHistory: function () {
-      httpPost("/api/chat/history", {role: this.role}).then((res) => {
-        if (this.chatData.length > 0) { // 如果已经有聊天记录了，就不追加了
-          return
-        }
-
-        const data = res.data
-        const md = require('markdown-it')();
-        for (let i = 0; i < data.length; i++) {
-          if (data[i].type === "prompt") {
-            this.chatData.push(data[i]);
-            continue;
-          }
-
-          data[i].orgContent = data[i].content;
-          data[i].content = md.render(data[i].content);
-          this.chatData.push(data[i]);
-        }
-
-        nextTick(() => {
-          hl.configure({ignoreUnescapedHTML: true})
-          const blocks = document.querySelector("#chat-box").querySelectorAll('pre code');
-          blocks.forEach((block) => {
-            hl.highlightElement(block)
           })
-        })
-      }).catch((e) => {
-        console.error(e.message)
-      })
-    },
 
-    inputKeyDown: function (e) {
-      if (e.keyCode === 13) {
-        if (e.ctrlKey) { // Ctrl + Enter 换行
-          this.inputValue += "\n";
-          return;
-        }
-
-        if (this.sending) {
-          ElMessage.warning("AI 正在作答中，请稍后...");
-          e.preventDefault();
         } else {
-          this.sendMessage();
+          lineBuffer.value += data.content;
+          let md = require('markdown-it')();
+          const reply = chatData.value[chatData.value.length - 1]
+          reply['orgContent'] = lineBuffer.value;
+          reply['content'] = md.render(lineBuffer.value);
+
+          nextTick(() => {
+            hl.configure({ignoreUnescapedHTML: true})
+            const lines = document.querySelectorAll('.chat-line');
+            const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+            blocks.forEach((block) => {
+              hl.highlightElement(block)
+            })
+          })
         }
-      }
-    },
-
-    // 发送消息
-    sendMessage: function (e) {
-      // 强制按钮失去焦点
-      if (e) {
-        let target = e.target;
-        if (target.nodeName === "SPAN") {
-          target = e.target.parentNode;
-        }
-        target.blur();
-      }
-
-      if (this.inputValue.trim().length === 0 || this.sending) {
-        return false;
-      }
-
-      // 追加消息
-      this.chatData.push({
-        type: "prompt",
-        id: randString(32),
-        icon: 'images/avatar/user.png',
-        content: renderInputText(this.inputValue)
-      });
-
-      this.sending = true;
-      this.showStopGenerate = true;
-      this.showReGenerate = false;
-      this.socket.send(this.inputValue);
-      this.$refs["text-input"].blur();
-      this.previousText = this.inputValue;
-      this.inputValue = '';
-      // 等待 textarea 重新调整尺寸之后再自动获取焦点
-      setTimeout(() => this.$refs["text-input"].focus(), 100);
-      return true;
-    },
-
-    // 获取焦点
-    focus: function () {
-      setTimeout(function () {
-        document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
-      }, 200)
-    },
-
-    // 提交 Token
-    submitToken: function () {
-      this.showLoginDialog = false;
-      this.loading = true
-
-      // 获取会话
-      httpPost("/api/login", {
-        token: this.token
-      }).then((res) => {
-        setLoginUser(res.data)
-        this.connect();
-        this.token = '';
-      }).catch(() => {
-        ElMessage.error("口令错误");
-        this.token = '';
-        this.showLoginDialog = true;
-        this.loading = false;
-      })
-    },
-
-    // 登录输入框输入事件处理
-    loginInputKeyup: function (e) {
-      if (e.keyCode === 13) {
-        this.submitToken();
-      }
-    },
-
-    // 清空聊天记录
-    clearChatHistory: function () {
-      ElMessageBox.confirm(
-          '确认要清空当前角色聊天历史记录吗?<br/>此操作不可以撤销！',
-          '操作提示：',
-          {
-            confirmButtonText: '确认',
-            cancelButtonText: '取消',
-            type: 'warning',
-            dangerouslyUseHTMLString: true,
-            showClose: true,
-            closeOnClickModal: false,
-            center: true,
-          }
-      ).then(() => {
-        httpPost("/api/chat/history/clear", {role: this.role}).then(() => {
-          ElMessage.success("当前角色会话已清空");
-          this.chatData = [];
-        }).catch(() => {
-          ElMessage.error("删除失败")
+        // 将聊天框的滚动条滑动到最底部
+        nextTick(() => {
+          document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
         })
-      }).catch(() => {
-      })
-    },
-
-    // 搜索聊天角色
-    searchRole: function () {
-      if (this.roleName === '') {
-        this.chatRoles = this.allChatRoles;
-        return;
-      }
-      const roles = [];
-      for (let i = 0; i < this.allChatRoles.length; i++) {
-        if (this.allChatRoles[i].name.indexOf(this.roleName) !== -1) {
-          roles.push(this.allChatRoles[i]);
-        }
-      }
-      this.chatRoles = roles;
-    },
-
-    // 退出登录
-    logout: function () {
-      httpPost("/api/logout", {opt: "logout"}).then(() => {
-        this.checkSession();
-      }).catch(() => {
-        ElMessage.error("注销失败");
-      })
-    },
-
-    // 停止生成
-    stopGenerate: function () {
-      this.showStopGenerate = false;
-      httpPost("/api/chat/stop").then(() => {
-        console.log("stopped generate.")
-        this.sending = false;
-        if (this.canReGenerate) {
-          this.showReGenerate = true;
-        }
-      })
-    },
-
-    // 重新生成
-    reGenerate: function () {
-      this.sending = true;
-      this.showStopGenerate = true;
-      this.showReGenerate = false;
-      this.socket.send('重新生成上述问题的答案：' + this.previousText);
+      };
     }
-  },
 
-})
+  });
+
+  _socket.addEventListener('close', () => {
+    if (activelyClose.value) { // 忽略主动关闭
+      return;
+    }
+    // 停止发送消息
+    canSend.value = true;
+    socket.value = null;
+    loading.value = true;
+    checkSession().then(() => {
+      connect(chat_id, role_id)
+    }).catch(() => {
+      ElMessageBox({
+        title: '会话提示',
+        message: "当前会话已经失效，请重新登录",
+        confirmButtonText: 'OK',
+        callback: () => router.push('login')
+      });
+    });
+  });
+
+  socket.value = _socket;
+}
+
+// 登录输入框输入事件处理
+const inputKeyDown = function (e) {
+  if (e.keyCode === 13) {
+    if (e.ctrlKey) { // Ctrl + Enter 换行
+      prompt.value += "\n";
+      return;
+    }
+
+    e.preventDefault();
+    if (canSend.value === false) {
+      ElMessage.warning("AI 正在作答中，请稍后...");
+    } else {
+      sendMessage();
+    }
+  }
+}
+// 发送消息
+const sendMessage = function () {
+  if (prompt.value.trim().length === 0 || canSend.value === false) {
+    return false;
+  }
+
+  // 追加消息
+  chatData.value.push({
+    type: "prompt",
+    id: randString(32),
+    icon: user['avatar'],
+    content: renderInputText(prompt.value),
+    created_at: new Date().getTime(),
+  });
+
+  nextTick(() => {
+    document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+  })
+
+  canSend.value = false;
+  showStopGenerate.value = true;
+  showReGenerate.value = false;
+  socket.value.send(prompt.value);
+  previousText.value = prompt.value;
+  prompt.value = '';
+  return true;
+}
+
+const showConfig = function () {
+  showConfigDialog.value = true;
+}
+
+const clearAllChats = function () {
+  ElMessageBox.confirm(
+      '确认要清空所有的会话历史记录吗?<br/>此操作不可以撤销！',
+      '操作提示：',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: true,
+        showClose: true,
+        closeOnClickModal: false,
+        center: true,
+      }
+  ).then(() => {
+    httpGet("/api/chat/clear").then(() => {
+      ElMessage.success("操作成功！");
+      chatData.value = [];
+      chatList.value = [];
+    }).catch(e => {
+      ElMessage.error("操作失败：" + e.message)
+    })
+  }).catch(() => {
+  })
+}
+
+const logout = function () {
+  activelyClose.value = true;
+  httpGet('/api/user/logout').then(() => {
+    router.push('login');
+  }).catch(() => {
+    ElMessage.error('注销失败！');
+  })
+}
+
+const loadChatHistory = function (chatId) {
+  httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
+    const data = res.data
+    if (!data) {
+      loading.value = false
+      return
+    }
+
+    const md = require('markdown-it')();
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].type === "prompt") {
+        chatData.value.push(data[i]);
+        continue;
+      }
+
+      data[i].orgContent = data[i].content;
+      data[i].content = md.render(data[i].content);
+      chatData.value.push(data[i]);
+    }
+
+    nextTick(() => {
+      hl.configure({ignoreUnescapedHTML: true})
+      const blocks = document.querySelector("#chat-box").querySelectorAll('pre code');
+      blocks.forEach((block) => {
+        hl.highlightElement(block)
+      })
+      document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+    })
+    loading.value = false
+  }).catch(e => {
+    // TODO: 显示重新加载按钮
+    ElMessage.error('加载聊天记录失败：' + e.message);
+  })
+}
+
+const stopGenerate = function () {
+  showStopGenerate.value = false;
+  httpGet("/api/chat/stop?chat_id=" + activeChat.value['chat_id']).then(() => {
+    canSend.value = true;
+    if (previousText.value !== '') {
+      showReGenerate.value = true;
+    }
+  })
+}
+
+// 重新生成
+const reGenerate = function () {
+  canSend.value = false;
+  showStopGenerate.value = true;
+  showReGenerate.value = false;
+  const text = '重新生成上述问题的答案：' + previousText.value;
+  // 追加消息
+  chatData.value.push({
+    type: "prompt",
+    id: randString(32),
+    icon: 'images/avatar/user.png',
+    content: renderInputText(text)
+  });
+  socket.value.send(text);
+}
+
+const chatName = ref('')
+// 搜索会话
+const searchChat = function () {
+  if (chatName.value === '') {
+    return
+  }
+  const roles = [];
+  for (let i = 0; i < allChats.value.length; i++) {
+    if (allChats.value[i].title.indexOf(chatName.value) !== -1) {
+      roles.push(allChats.value[i]);
+    }
+  }
+  chatList.value = roles;
+}
 </script>
 
 <style lang="stylus">
 #app {
   height: 100%;
 
-  .body-plus {
-    height 100%;
+  .common-layout {
+    height: 100%;
 
-    .chat-head {
-      width 100%;
-      height 60px;
-      background-color: #28292A
-      border-bottom 1px solid #4f4f4f;
+    // left side
 
+    .el-aside {
       .title-box {
-        padding-top 6px;
-        display flex
-        color #ffffff;
-        font-size 20px;
+        padding: 6px 10px;
+        display: flex;
+        color: #ffffff;
+        font-size: 20px;
 
         .logo {
-          background-color #ffffff
-          border-radius 50%;
-          width 45px;
-          height 45px;
+          background-color: #ffffff
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
         }
 
         span {
-          padding-top: 12px;
+          padding-top: 8px;
           padding-left: 10px;
         }
       }
 
-      .tool-box {
-        padding-top 16px;
-        padding-right 20px;
-        display flex;
-        justify-content flex-end;
-        align-items center;
-
-        .user-info {
-          margin-left 20px;
-
-          .el-dropdown-link {
-            cursor pointer
-
-            img {
-              width 30px;
-              height 30px;
-              border-radius 50%;
-            }
-
-            .el-icon {
-              bottom 8px
-              color #cccccc
-              margin-left 5px;
-            }
-          }
-        }
-      }
-
-    }
-
-    .el-row {
-      overflow hidden;
-      display: flex;
-
-      .left-box {
-        display flex
-        flex-flow column
-        min-width 220px;
-        max-width 250px;
+      .chat-list {
+        display: flex
+        flex-flow: column
         background-color: #28292A
         border-top: 1px solid #2F3032
         border-right: 1px solid #2F3032
 
         .search-box {
-          flex-wrap wrap
-          padding 10px 15px;
+          flex-wrap: wrap
+          padding: 10px 15px;
 
           .el-input__wrapper {
             background-color: #363535;
@@ -728,33 +747,143 @@ export default defineComponent({
           //display flex
           //flex-wrap: wrap;
           //flex-direction column
-          width 100%
-          overflow-y scroll
+          width: 100%
+          overflow-y: scroll
 
-          .chat-role-item {
-            display flex
-            width 100%
-            justify-content flex-start
-            padding 10px 18px
+          .chat-list-item {
+            display: flex
+            width: 100%
+            justify-content: flex-start
+            padding: 8px 12px
             border-bottom: 1px solid #3c3c3c
-            cursor pointer
+            cursor: pointer
 
 
             .avatar {
-              width 36px;
-              height 36px;
-              border-radius 50%;
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
             }
 
-            span {
-              color #c1c1c1
-              padding 8px 10px;
+            .chat-title-input {
+              font-size: 14px;
+              margin-top: 4px;
+              margin-left: 10px;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              width: 210px;
+            }
+
+            .chat-title {
+              color: #c1c1c1
+              padding: 5px 10px;
+              max-width 220px;
+              font-size 14px;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+            }
+
+            .btn {
+              display none
+              position: absolute;
+              right: 2px;
+              top: 16px;
+              color #ffffff
+
+              .el-icon {
+                margin-right 8px;
+              }
             }
           }
 
-
-          .chat-role-item.active {
+          .chat-list-item.active {
             background-color: #363535;
+
+            .btn {
+              display inline
+            }
+          }
+        }
+      }
+
+
+      .tool-box {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding 5px 20px;
+
+        .user-info {
+          width 100%
+          padding-top 10px;
+
+          .el-tooltip__trigger {
+            width 100%;
+
+            .el-dropdown-link {
+              cursor: pointer
+              display flex
+
+              .el-image {
+                display flex
+
+                img {
+                  width: 20px;
+                  height: 20px;
+                  border-radius: 5px;
+                }
+              }
+
+
+              .username {
+                display flex
+                line-height 24px;
+                width 230px;
+                padding-left 10px;
+
+              }
+
+              .el-icon {
+                color: #cccccc;
+                line-height 24px;
+              }
+            }
+          }
+
+        }
+      }
+    }
+
+    .el-main {
+      overflow: hidden;
+
+      .chat-head {
+        width: 100%;
+        height: 50px;
+        background-color: #28292A
+
+        .chat-config {
+          display flex
+          flex-direction row
+          align-items: center;
+          justify-content center;
+          padding-top 10px;
+
+          .el-select {
+            //max-width 150px;
+            margin-right 10px;
+          }
+
+          .role-select {
+            max-width 130px;
+          }
+
+          .el-button {
+            .el-icon {
+              margin-right 5px;
+            }
           }
         }
       }
@@ -762,155 +891,151 @@ export default defineComponent({
       .right-box {
         min-width: 0;
         flex: 1;
-        background-color #232425
-        border-left 1px solid #4f4f4f
-      }
-    }
+        background-color: #ffffff
+        border-left: 1px solid #4f4f4f
 
+        #container {
+          overflow: hidden;
+          width: 100%;
 
-    #container {
-      overflow hidden;
-      width 100%;
-
-      ::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        background-color: transparent;
-      }
-
-      .chat-box {
-        overflow-y: scroll;
-        border-bottom 1px solid #4f4f4f
-
-        // 变量定义
-        --content-font-size: 16px;
-        --content-color: #c1c1c1;
-
-        font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-        padding: 10px;
-
-        .chat-line {
-          padding 10px 5px;
-          font-size 14px;
-          display: flex;
-          align-items: flex-start;
-
-          .chat-icon {
-            img {
-              width 45px;
-              height 45px;
-              border 1px solid #666;
-              border-radius 50%;
-              padding 1px;
-            }
-          }
-        }
-      }
-
-      .re-generate {
-        position: relative;
-        display: flex;
-        justify-content: center;
-
-        .btn-box {
-          position absolute
-          bottom 10px;
-
-          .el-button {
-            .el-icon {
-              margin-right 5px;
-            }
-          }
-
-        }
-      }
-
-      .chat-tool-box {
-        padding 10px;
-        border-top: 1px solid #2F3032
-
-        .el-icon svg {
-          color #cccccc
-          width 1em;
-          background-color #232425
-          cursor pointer
-        }
-
-        .text {
-          margin-left 10px;
-          font-size 12px;
-          color #9f9f9f;
-        }
-      }
-
-      .input-box {
-        background-color #232425
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-
-        .input-container {
-          width: 100%
-          margin: 0;
-          border: none;
-          border-radius: 6px;
-          box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-          background-color #232425
-          padding: 5px 10px;
-
-          .el-textarea__inner {
-            box-shadow: none
-            padding 5px 0
-            background-color #232425
-            color #B5B7B8
-          }
-
-          .el-textarea__inner::-webkit-scrollbar {
+          ::-webkit-scrollbar {
             width: 0;
             height: 0;
+            background-color: transparent;
+          }
+
+          .chat-box {
+            overflow-y: scroll;
+            //border-bottom: 1px solid #4f4f4f
+
+            // 变量定义
+            --content-font-size: 16px;
+            --content-color: #c1c1c1;
+
+            font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+            padding: 0 0 50px 0;
+
+            .chat-line {
+              font-size: 14px;
+              display: flex;
+              align-items: flex-start;
+
+            }
+          }
+
+          .re-generate {
+            position: relative;
+            display: flex;
+            justify-content: center;
+
+            .btn-box {
+              position: absolute
+              bottom: 10px;
+
+              .el-button {
+                .el-icon {
+                  margin-right 5px;
+                }
+              }
+
+            }
+          }
+
+          .input-box {
+            background-color: #232425
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+
+            .input-container {
+              width: 100%
+              margin: 0;
+              border: none;
+              //background-color: #232425
+              background-color: #ffffff
+              padding: 10px 0;
+              display flex
+              justify-content center
+
+              .el-textarea {
+                max-width 768px;
+
+                //.el-textarea__inner {
+                //  box-shadow: none
+                //  padding: 5px 0
+                //  background-color: #232425
+                //  color: #B5B7B8
+                //}
+
+                .el-textarea__inner::-webkit-scrollbar {
+                  width: 0;
+                  height: 0;
+                }
+              }
+
+
+            }
           }
         }
+
+        #container::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+        }
       }
-    }
-
-    #container::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-    }
-
-    .row-center {
-      justify-content center
     }
   }
 
   .el-message-box {
-    width 90%;
-    max-width 420px;
+    width: 90%;
+    max-width: 420px;
   }
 
   .el-message {
     min-width: 100px;
-    max-width 600px;
+    max-width: 600px;
   }
 
   .token-dialog {
     .el-dialog {
-      --el-dialog-width 90%;
-      max-width 400px;
+      --el-dialog-width: 90%;
+      max-width: 400px;
 
       .el-dialog__body {
-        padding 10px 10px 20px 10px;
+        padding: 10px 10px 20px 10px;
       }
 
       .el-row {
-        flex-wrap nowrap
+        flex-wrap: nowrap
 
         button {
-          margin-left 5px;
+          margin-left: 5px;
         }
       }
     }
   }
 }
 
+.el-select-dropdown__wrap {
+  .el-select-dropdown__item {
+    .role-option {
+      display flex
+      flex-flow row
+      margin-top 8px;
+
+      .el-image {
+        width 20px
+        height 20px
+        border-radius 50%
+      }
+
+      span {
+        margin-left 5px;
+        height 20px;
+        line-height 20px;
+      }
+    }
+  }
+}
 </style>
