@@ -56,7 +56,9 @@
         </div>
       </div>
 
-      <footer-bar />
+      <footer class="footer">
+        <footer-bar />
+      </footer>
     </div>
   </div>
 </template>
@@ -180,6 +182,14 @@ const validateMobile = function (mobile) {
         padding-top 10px;
         font-size 14px;
       }
+    }
+  }
+
+  .footer {
+    color #ffffff;
+
+    .container {
+      padding 20px;
     }
   }
 }

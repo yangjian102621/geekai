@@ -40,7 +40,6 @@
         </div>
 
         <div class="tool-box">
-
           <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="user">
                         <span class="el-dropdown-link">
                           <el-image :src="user['avatar']"/>
@@ -69,6 +68,13 @@
                   </el-icon>
                   <span>注销</span>
                 </el-dropdown-item>
+
+<!--                <el-dropdown-item>-->
+<!--                  <i class="icon-font icon-github"></i>-->
+<!--                 <span>-->
+<!--                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">ChatGPT-Plus-V3</el-link>-->
+<!--                 </span>-->
+<!--                </el-dropdown-item>-->
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -159,7 +165,11 @@
                       :rows="2"
                       placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
                   />
-
+                  <span class="send-btn">
+                    <el-button @click="sendMessage">
+                      <el-icon><Promotion /></el-icon>
+                    </el-button>
+                  </span>
                 </div>
               </div><!-- end input box -->
 
@@ -169,7 +179,7 @@
       </el-main>
     </el-container>
 
-    <config-dialog v-model:show="showConfigDialog" :models="models" @update-user="updateUser"></config-dialog>
+    <config-dialog :show="showConfigDialog" :models="models" @hide="showConfigDialog = false" @update-user="updateUser" />
   </div>
 
 
@@ -185,7 +195,7 @@ import {
   Delete,
   Edit,
   Monitor,
-  Plus,
+  Plus, Promotion,
   RefreshRight,
   Search,
   Tools,
@@ -200,6 +210,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
 import ConfigDialog from "@/components/ConfigDialog.vue";
+import FooterBar from "@/components/FooterBar.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
@@ -543,17 +554,16 @@ const inputKeyDown = function (e) {
       prompt.value += "\n";
       return;
     }
-
     e.preventDefault();
-    if (canSend.value === false) {
-      ElMessage.warning("AI 正在作答中，请稍后...");
-    } else {
-      sendMessage();
-    }
   }
 }
 // 发送消息
 const sendMessage = function () {
+  if (canSend.value === false) {
+    ElMessage.warning("AI 正在作答中，请稍后...");
+    return
+  }
+
   if (prompt.value.trim().length === 0 || canSend.value === false) {
     return false;
   }
@@ -954,38 +964,43 @@ const updateUser = function (data) {
           }
 
           .input-box {
-            background-color: #232425
+            background-color: #ffffff
             display: flex;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
 
             .input-container {
-              width: 100%
+              max-width 600px;
+              width 100%
               margin: 0;
               border: none;
-              //background-color: #232425
-              background-color: #ffffff
               padding: 10px 0;
               display flex
               justify-content center
+              position relative
 
               .el-textarea {
-                max-width 768px;
-
-                //.el-textarea__inner {
-                //  box-shadow: none
-                //  padding: 5px 0
-                //  background-color: #232425
-                //  color: #B5B7B8
-                //}
-
+                max-width 600px;
                 .el-textarea__inner::-webkit-scrollbar {
                   width: 0;
                   height: 0;
                 }
               }
 
+              .send-btn {
+                position absolute;
+                right 12px;
+                top 20px;
+
+                .el-button {
+                  padding 8px 5px;
+                  border-radius 6px;
+                  background:rgb(25,195,125)
+                  color #ffffff;
+                  font-size 20px;
+                }
+              }
 
             }
           }

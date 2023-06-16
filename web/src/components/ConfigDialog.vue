@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-      v-model="$props.show"
+      v-model="show"
       :close-on-click-modal="false"
       :show-close="true"
       :before-close="close"
@@ -28,7 +28,7 @@
         <el-form-item label="Model">
           <el-select v-model="form['chat_config']['model']" placeholder="默认会话模型">
             <el-option
-                v-for="item in props.models"
+                v-for="item in models"
                 :key="item"
                 :label="item.toUpperCase()"
                 :value="item"
@@ -95,13 +95,13 @@ onMounted(() => {
   });
 })
 
-const emits = defineEmits(['update:show']);
+const emits = defineEmits(['hide', 'update-user']);
 const save = function () {
   httpPost('/api/user/profile/update', form.value).then(() => {
     ElMessage.success({
       message: '更新成功',
       appendTo: document.getElementById('user-info'),
-      onClose: () => emits('update:show', false)
+      onClose: () => emits('hide', false)
     })
     // 更新用户数据
     emits('update-user', {nickname:form.value['nickname'], avatar: form.value['avatar']});
@@ -113,7 +113,7 @@ const save = function () {
   })
 }
 const close = function () {
-  emits('update:show', false);
+  emits('hide', false);
 }
 </script>
 
