@@ -3,6 +3,9 @@
     <div class="bg"></div>
     <div class="main">
       <div class="contain">
+        <div class="logo">
+          <el-image src="images/logo.png" fit="cover" />
+        </div>
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
@@ -105,13 +108,20 @@ const login = function () {
   .contain {
     position fixed
     left 50%
-    top 50%
+    top 40%
     width 90%
     max-width 400px;
     transform translate(-50%, -50%)
     padding 20px 10px;
     color #ffffff
     border-radius 10px;
+
+    .logo {
+      text-align center
+      .el-image {
+        width 120px;
+      }
+    }
 
     .header {
       width 100%

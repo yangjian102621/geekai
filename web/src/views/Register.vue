@@ -3,6 +3,10 @@
     <div class="bg"></div>
     <div class="main">
       <div class="contain">
+        <div class="logo">
+          <el-image src="images/logo.png" fit="cover" />
+        </div>
+
         <div class="header">{{ title }}</div>
         <div class="content">
           <el-form :model="formData" label-width="120px" ref="formRef" :rules="rules">
@@ -140,6 +144,13 @@ const validateMobile = function (mobile) {
     color #ffffff
     border-radius 10px;
     background rgba(255, 255, 255, 0.3)
+
+    .logo {
+      text-align center
+      .el-image {
+        width 120px;
+      }
+    }
 
     .header {
       width 100%
