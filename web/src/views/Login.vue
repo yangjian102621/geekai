@@ -35,6 +35,10 @@
           </el-row>
         </div>
       </div>
+
+      <footer class="footer">
+        <footer-bar />
+      </footer>
     </div>
   </div>
 </template>
@@ -47,6 +51,7 @@ import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {setLoginUser} from "@/utils/storage";
 import {useRouter} from "vue-router";
+import FooterBar from "@/components/FooterBar.vue";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户登录');
@@ -149,6 +154,14 @@ const login = function () {
         padding-top 10px;
         font-size 14px;
       }
+    }
+  }
+
+  .footer {
+    color #ffffff;
+
+    .container {
+      padding 20px;
     }
   }
 }
