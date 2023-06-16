@@ -50,8 +50,8 @@ import {useRouter} from "vue-router";
 
 const router = useRouter();
 const title = ref('ChatGPT Plus 用户登录');
-const username = ref('geekmaster');
-const password = ref('12345678');
+const username = ref(process.env.VUE_APP_USER);
+const password = ref(process.env.VUE_APP_PASS);
 
 onMounted(() => {
   document.addEventListener('keyup', (e) => {
