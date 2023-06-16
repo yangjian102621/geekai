@@ -23,14 +23,14 @@ var logger = logger2.GetLogger()
 type AppServer struct {
 	AppConfig    *types.AppConfig
 	Engine       *gin.Engine
-	ChatContexts map[string][]types.Message // 聊天上下文 [chatId] => []Message
-	ChatConfig   *types.ChatConfig          // 聊天配置
+	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
+	ChatConfig   *types.ChatConfig                    // 聊天配置
 
 	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
-	ChatSession   map[string]types.ChatSession  //map[sessionId]UserId
-	ChatClients   map[string]*WsClient          // Websocket 连接集合
-	ReqCancelFunc map[string]context.CancelFunc // HttpClient 请求取消 handle function
+	ChatSession   *types.LMap[string, types.ChatSession]  //map[sessionId]UserId
+	ChatClients   *types.LMap[string, *types.WsClient]    // Websocket 连接集合
+	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 }
 
 func NewServer(appConfig *types.AppConfig) *AppServer {
@@ -39,10 +39,10 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 	return &AppServer{
 		AppConfig:     appConfig,
 		Engine:        gin.Default(),
-		ChatContexts:  make(map[string][]types.Message, 16),
-		ChatSession:   make(map[string]types.ChatSession),
-		ChatClients:   make(map[string]*WsClient),
-		ReqCancelFunc: make(map[string]context.CancelFunc),
+		ChatContexts:  types.NewLMap[string, []types.Message](),
+		ChatSession:   types.NewLMap[string, types.ChatSession](),
+		ChatClients:   types.NewLMap[string, *types.WsClient](),
+		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
 	}
 }
 
@@ -149,7 +149,8 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 		// WebSocket 连接请求验证
 		if c.Request.URL.Path == "/api/chat" {
 			sessionId := c.Query("sessionId")
-			if session, ok := s.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
+			session := s.ChatSession.Get(sessionId)
+			if session.ClientIP == c.ClientIP() {
 				c.Next()
 			} else {
 				c.Abort()

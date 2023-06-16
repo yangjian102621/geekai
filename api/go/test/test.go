@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -16,7 +17,11 @@ import (
 )
 
 func main() {
-	//resp.JSON(nil, types.Success, types.OkMsg, new)
+	lMap := types.NewLMap[string, types.ChatSession]()
+	lMap.Put("name", types.ChatSession{SessionId: utils.RandString(32)})
+
+	item := lMap.Get("abc")
+	fmt.Println(item)
 }
 
 // Http client 取消操作

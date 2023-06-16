@@ -89,7 +89,7 @@ func (h *ChatHandler) Remove(c *gin.Context) {
 	}
 
 	// 清空会话上下文
-	delete(h.app.ChatContexts, chatId)
+	h.app.ChatContexts.Delete(chatId)
 	resp.SUCCESS(c, types.OkMsg)
 }
 
@@ -144,7 +144,7 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 			logger.Warnf("Failed to delele chat history for ChatID: %s", chat.ChatId)
 		}
 		// 清空会话上下文
-		delete(h.app.ChatContexts, chat.ChatId)
+		h.app.ChatContexts.Delete(chat.ChatId)
 	}
 	// 删除所有的会话记录
 	res = h.db.Where("user_id = ?", user.Id).Delete(&model.ChatItem{})
