@@ -234,7 +234,8 @@ if (!user.value) {
         loadChats();
         // 创建新的会话
         newChat();
-      }).catch(() => {
+      }).catch((e) => {
+        console.log(e)
         ElMessage.error('获取聊天角色失败')
       })
     }).catch(() => {
@@ -421,7 +422,7 @@ const connect = function (chat_id, role_id) {
   const _sessionId = getSessionId();
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
-    if (location.protocol === 'https') {
+    if (location.protocol === 'https:') {
       host = 'wss://'+location.host;
     } else {
       host = 'ws://'+location.host;
