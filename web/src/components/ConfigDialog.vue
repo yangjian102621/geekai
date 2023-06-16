@@ -91,7 +91,7 @@ onMounted(() => {
   httpGet('/api/user/profile').then(res => {
     form.value = res.data
   }).catch(() => {
-    ElMessage.error('获取用户信息失败')
+    ElMessage.error({message:'获取用户信息失败', appendTo: '#user-info'})
   });
 })
 
@@ -100,7 +100,7 @@ const save = function () {
   httpPost('/api/user/profile/update', form.value).then(() => {
     ElMessage.success({
       message: '更新成功',
-      appendTo: document.getElementById('user-info'),
+      appendTo: '#user-info',
       onClose: () => emits('hide', false)
     })
     // 更新用户数据

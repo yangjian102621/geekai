@@ -32,12 +32,11 @@
 </template>
 
 <script setup>
-
-
 import {defineEmits, defineProps, onMounted, ref} from "vue"
-import {httpGet, httpPost} from "@/utils/http";
+import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
+// eslint-disable-next-line no-unused-vars
 const props = defineProps({
   show: Boolean,
 });
@@ -48,24 +47,24 @@ onMounted(() => {
 
 })
 
-const emits = defineEmits(['hide']);
+const emits = defineEmits(['hide','logout']);
 const save = function () {
-  if (form.value['password'].length < 8) {
-    return ElMessage.error('密码的长度为8-16个字符');
+  if (!form.value['password'] || form.value['password'].length < 8) {
+    return ElMessage.error({message:"密码的长度为8-16个字符", appendTo:"#password-form"});
   }
   if (form.value['repass'] !== form.value['password']) {
-    return ElMessage.error('两次输入密码不一致');
+    return ElMessage.error({message:'两次输入密码不一致', appendTo:'#password-form'});
   }
   httpPost('/api/user/password', form.value).then(() => {
     ElMessage.success({
       message: '更新成功',
-      appendTo: document.getElementById('password-form'),
+      appendTo: '#password-form',
       onClose: () => emits('logout', false)
     })
   }).catch((e) => {
     ElMessage.error({
       message: '更新失败，'+e.message,
-      appendTo: document.getElementById('password-form')
+      appendTo: '#password-form'
     })
   })
 }
@@ -77,7 +76,7 @@ const close = function () {
 <style lang="stylus">
 .el-dialog {
   --el-dialog-width 90%;
-  max-width 500px;
+  max-width 650px;
 
   .el-dialog__body {
     padding-top 10px;
