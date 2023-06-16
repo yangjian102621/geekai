@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-      v-model="props.show"
+      v-model="$props.show"
       :close-on-click-modal="false"
       :show-close="true"
       :before-close="close"
