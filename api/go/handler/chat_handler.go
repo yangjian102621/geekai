@@ -350,7 +350,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			replyMessage(ws, "当前会话上下文长度超出限制，已为您删减会话上下文！")
 			// 只保留最近的三条记录
 			chatContext := h.app.ChatContexts.Get(session.ChatId)
-			chatContext = chatContext[len(chatContext)-3:]
+			if len(chatContext) > 3 {
+				chatContext = chatContext[len(chatContext)-3:]
+			}
 			h.app.ChatContexts.Put(session.ChatId, chatContext)
 			return h.sendMessage(ctx, session, role, prompt, ws)
 		} else {
