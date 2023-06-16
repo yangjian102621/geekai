@@ -210,7 +210,6 @@ import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
 import ConfigDialog from "@/components/ConfigDialog.vue";
-import FooterBar from "@/components/FooterBar.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
@@ -439,7 +438,7 @@ const connect = function (chat_id, role_id) {
       host = 'ws://'+location.host;
     }
   }
-  const _socket = new WebSocket(host + `/api/chat/new?sessionId=${_sessionId}&roleId=${role_id}&chatId=${chat_id}&model=${model.value}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model=${model.value}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     previousText.value = '';
@@ -555,6 +554,7 @@ const inputKeyDown = function (e) {
       return;
     }
     e.preventDefault();
+    sendMessage();
   }
 }
 // 发送消息
@@ -666,7 +666,7 @@ const loadChatHistory = function (chatId) {
 
 const stopGenerate = function () {
   showStopGenerate.value = false;
-  httpGet("/api/chat/stop?chat_id=" + activeChat.value['chat_id']).then(() => {
+  httpGet("/api/chat/stop?session_id=" + getSessionId() ).then(() => {
     canSend.value = true;
     if (previousText.value !== '') {
       showReGenerate.value = true;

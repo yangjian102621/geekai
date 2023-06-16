@@ -168,7 +168,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	// 记录登录信息在服务器
-	h.app.ChatSession[sessionId] = types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId}
+	h.app.ChatSession.Put(sessionId, types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId})
 
 	// 加载用户订阅的聊天角色
 	var roleMap map[string]int
@@ -237,9 +237,10 @@ func (h *UserHandler) Logout(c *gin.Context) {
 		logger.Error("Error for save session: ", err)
 	}
 	// 删除 websocket 会话列表
-	delete(h.app.ChatSession, sessionId)
+	h.app.ChatSession.Delete(sessionId)
 	// 关闭 socket 连接
-	if client, ok := h.app.ChatClients[sessionId]; ok {
+	client := h.app.ChatClients.Get(sessionId)
+	if client != nil {
 		client.Close()
 	}
 	resp.SUCCESS(c)
@@ -248,7 +249,8 @@ func (h *UserHandler) Logout(c *gin.Context) {
 // Session 获取/验证会话
 func (h *UserHandler) Session(c *gin.Context) {
 	sessionId := c.GetHeader(types.TokenSessionName)
-	if session, ok := h.app.ChatSession[sessionId]; ok && session.ClientIP == c.ClientIP() {
+	session := h.app.ChatSession.Get(sessionId)
+	if session.ClientIP == c.ClientIP() {
 		resp.SUCCESS(c, session)
 	} else {
 		resp.NotAuth(c)
