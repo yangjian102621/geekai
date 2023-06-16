@@ -1,0 +1,37 @@
+{
+  "id": "4125778",
+  "name": "chatgpt",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "611345",
+      "name": "密码",
+      "font_class": "password",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
+      "icon_id": "1418205",
+      "name": "发送",
+      "font_class": "send",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "1048893",
+      "name": "注销",
+      "font_class": "logout",
+      "unicode": "e62e",
+      "unicode_decimal": 58926
+    },
+    {
+      "icon_id": "14401714",
+      "name": "github",
+      "font_class": "github",
+      "unicode": "e66f",
+      "unicode_decimal": 58991
+    }
+  ]
+}
