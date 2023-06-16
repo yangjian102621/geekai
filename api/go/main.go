@@ -106,6 +106,7 @@ func main() {
 			group.GET("session", h.Session)
 			group.GET("profile", h.Profile)
 			group.POST("profile/update", h.ProfileUpdate)
+			group.POST("password", h.Password)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")

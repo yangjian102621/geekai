@@ -318,3 +318,43 @@ func (h *UserHandler) Profile(c *gin.Context) {
 	userVo.UpdatedAt = user.UpdatedAt.Unix()
 	resp.SUCCESS(c, userVo)
 }
+
+// Password 更新密码
+func (h *UserHandler) Password(c *gin.Context) {
+	var data struct {
+		OldPass  string `json:"old_pass"`
+		Password string `json:"password"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	if len(data.Password) < 8 {
+		resp.ERROR(c, "密码长度不能少于8个字符")
+		return
+	}
+
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	password := utils.GenPassword(data.OldPass, user.Salt)
+	logger.Info(user.Salt, ",", user.Password, ",", password, ",", data.OldPass)
+	if password != user.Password {
+		resp.ERROR(c, "原密码错误")
+		return
+	}
+
+	newPass := utils.GenPassword(data.Password, user.Salt)
+	res := h.db.Model(&user).UpdateColumn("password", newPass)
+	if res.Error != nil {
+		logger.Error("更新数据库失败: ", res.Error)
+		resp.ERROR(c, "更新数据库失败")
+		return
+	}
+
+	resp.SUCCESS(c)
+}

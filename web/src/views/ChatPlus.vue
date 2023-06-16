@@ -55,6 +55,11 @@
                   <span>聊天设置</span>
                 </el-dropdown-item>
 
+                <el-dropdown-item @click="showPasswordDialog=true">
+                  <i class="iconfont icon-password"></i>
+                  <span>修改密码</span>
+                </el-dropdown-item>
+
                 <el-dropdown-item @click="clearAllChats">
                   <el-icon>
                     <Delete/>
@@ -63,18 +68,17 @@
                 </el-dropdown-item>
 
                 <el-dropdown-item @click="logout">
-                  <el-icon>
-                    <Monitor/>
-                  </el-icon>
+                  <i class="iconfont icon-logout"></i>
                   <span>注销</span>
                 </el-dropdown-item>
 
-<!--                <el-dropdown-item>-->
-<!--                  <i class="icon-font icon-github"></i>-->
-<!--                 <span>-->
-<!--                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">ChatGPT-Plus-V3</el-link>-->
-<!--                 </span>-->
-<!--                </el-dropdown-item>-->
+                <el-dropdown-item>
+                  <i class="iconfont icon-github"></i>
+                 <span>
+                    powered by
+                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">chatgpt-plus-v3</el-link>
+                 </span>
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -180,6 +184,7 @@
     </el-container>
 
     <config-dialog :show="showConfigDialog" :models="models" @hide="showConfigDialog = false" @update-user="updateUser" />
+    <password-dialog :show="showPasswordDialog" @hide="showPasswordDialog = false" @logout="logout" />
   </div>
 
 
@@ -210,6 +215,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
 import ConfigDialog from "@/components/ConfigDialog.vue";
+import PasswordDialog from "@/components/PasswordDialog.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
@@ -229,6 +235,7 @@ const roleId = ref(0)
 const newChatItem = ref(null);
 const router = useRouter();
 const showConfigDialog = ref(false);
+const showPasswordDialog = ref(false);
 
 if (!user.value) {
   router.push("login");
@@ -712,6 +719,7 @@ const updateUser = function (data) {
 </script>
 
 <style lang="stylus">
+@import '@/assets/iconfont/iconfont.css';
 #app {
   height: 100%;
 
@@ -729,13 +737,13 @@ const updateUser = function (data) {
 
         .logo {
           background-color: #ffffff
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
+          border-radius: 8px;
+          width: 35px;
+          height: 35px;
         }
 
         span {
-          padding-top: 8px;
+          padding-top: 5px;
           padding-left: 10px;
         }
       }
