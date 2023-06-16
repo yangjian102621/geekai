@@ -49,7 +49,7 @@ import {setLoginUser} from "@/utils/storage";
 import {useRouter} from "vue-router";
 
 const router = useRouter();
-const title = ref('ChatGPT Plus 用户登录');
+const title = ref('ChatGPT-PLUS 用户登录');
 const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
 
@@ -89,7 +89,7 @@ const login = function () {
   top 0
   bottom 0
   background-color #313237
-  background-image url("~@/assets/img/login-bg.png")
+  background-image url("~@/assets/img/login-bg.jpg")
   background-size cover
   background-position center
   background-repeat repeat-y

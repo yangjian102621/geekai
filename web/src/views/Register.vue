@@ -55,6 +55,8 @@
           </el-form>
         </div>
       </div>
+
+      <footer-bar />
     </div>
   </div>
 </template>
@@ -66,9 +68,10 @@ import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
+import FooterBar from "@/components/FooterBar.vue";
 
 const router = useRouter();
-const title = ref('ChatGPT Plus 用户注册');
+const title = ref('ChatGPT-PLUS 用户注册');
 const formData = ref({
   username: '',
   password: '',
@@ -116,7 +119,7 @@ const validateMobile = function (mobile) {
   top 0
   bottom 0
   background-color #091519
-  background-image url("~@/assets/img/reg-bg.png")
+  background-image url("~@/assets/img/reg-bg.jpg")
   background-size cover
   background-position center
   background-repeat no-repeat
