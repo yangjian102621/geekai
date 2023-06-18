@@ -32,11 +32,10 @@
 </template>
 
 <script setup>
-import {defineEmits, defineProps, onMounted, ref} from "vue"
+import {onMounted, ref} from "vue"
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
-// eslint-disable-next-line no-unused-vars
 const props = defineProps({
   show: Boolean,
 });
@@ -47,13 +46,13 @@ onMounted(() => {
 
 })
 
-const emits = defineEmits(['hide','logout']);
+const emits = defineEmits(['hide', 'logout']);
 const save = function () {
   if (!form.value['password'] || form.value['password'].length < 8) {
-    return ElMessage.error({message:"密码的长度为8-16个字符", appendTo:"#password-form"});
+    return ElMessage.error({message: "密码的长度为8-16个字符", appendTo: "#password-form"});
   }
   if (form.value['repass'] !== form.value['password']) {
-    return ElMessage.error({message:'两次输入密码不一致', appendTo:'#password-form'});
+    return ElMessage.error({message: '两次输入密码不一致', appendTo: '#password-form'});
   }
   httpPost('/api/user/password', form.value).then(() => {
     ElMessage.success({
@@ -63,7 +62,7 @@ const save = function () {
     })
   }).catch((e) => {
     ElMessage.error({
-      message: '更新失败，'+e.message,
+      message: '更新失败，' + e.message,
       appendTo: '#password-form'
     })
   })

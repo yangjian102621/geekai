@@ -67,7 +67,7 @@
 <script setup>
 
 
-import {computed, defineEmits, defineProps, onMounted, ref} from "vue"
+import {computed, onMounted, ref} from "vue"
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
@@ -91,7 +91,7 @@ onMounted(() => {
   httpGet('/api/user/profile').then(res => {
     form.value = res.data
   }).catch(() => {
-    ElMessage.error({message:'获取用户信息失败', appendTo: '#user-info'})
+    ElMessage.error({message: '获取用户信息失败', appendTo: '#user-info'})
   });
 })
 
@@ -104,7 +104,7 @@ const save = function () {
       onClose: () => emits('hide', false)
     })
     // 更新用户数据
-    emits('update-user', {nickname:form.value['nickname'], avatar: form.value['avatar']});
+    emits('update-user', {nickname: form.value['nickname'], avatar: form.value['avatar']});
   }).catch(() => {
     ElMessage.error({
       message: '更新失败',

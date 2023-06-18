@@ -74,7 +74,7 @@
 
                 <el-dropdown-item>
                   <i class="iconfont icon-github"></i>
-                 <span>
+                  <span>
                     powered by
                     <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">chatgpt-plus-v3</el-link>
                  </span>
@@ -171,7 +171,7 @@
                   />
                   <span class="send-btn">
                     <el-button @click="sendMessage">
-                      <el-icon><Promotion /></el-icon>
+                      <el-icon><Promotion/></el-icon>
                     </el-button>
                   </span>
                 </div>
@@ -183,8 +183,9 @@
       </el-main>
     </el-container>
 
-    <config-dialog :show="showConfigDialog" :models="models" @hide="showConfigDialog = false" @update-user="updateUser" />
-    <password-dialog :show="showPasswordDialog" @hide="showPasswordDialog = false" @logout="logout" />
+    <config-dialog :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
+                   @update-user="updateUser"/>
+    <password-dialog :show="showPasswordDialog" @hide="showPasswordDialog = false" @logout="logout"/>
   </div>
 
 
@@ -440,9 +441,9 @@ const connect = function (chat_id, role_id) {
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
     if (location.protocol === 'https:') {
-      host = 'wss://'+location.host;
+      host = 'wss://' + location.host;
     } else {
-      host = 'ws://'+location.host;
+      host = 'ws://' + location.host;
     }
   }
   const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model=${model.value}`);
@@ -645,6 +646,7 @@ const loadChatHistory = function (chatId) {
     }
 
     const md = require('markdown-it')();
+    // md.use(require('markdown-it-copy')); // 代码复制功能
     for (let i = 0; i < data.length; i++) {
       if (data[i].type === "prompt") {
         chatData.value.push(data[i]);
@@ -673,7 +675,7 @@ const loadChatHistory = function (chatId) {
 
 const stopGenerate = function () {
   showStopGenerate.value = false;
-  httpGet("/api/chat/stop?session_id=" + getSessionId() ).then(() => {
+  httpGet("/api/chat/stop?session_id=" + getSessionId()).then(() => {
     canSend.value = true;
     if (previousText.value !== '') {
       showReGenerate.value = true;
@@ -990,6 +992,7 @@ const updateUser = function (data) {
 
               .el-textarea {
                 max-width 600px;
+
                 .el-textarea__inner::-webkit-scrollbar {
                   width: 0;
                   height: 0;
@@ -1004,7 +1007,7 @@ const updateUser = function (data) {
                 .el-button {
                   padding 8px 5px;
                   border-radius 6px;
-                  background:rgb(25,195,125)
+                  background: rgb(25, 195, 125)
                   color #ffffff;
                   font-size 20px;
                 }
