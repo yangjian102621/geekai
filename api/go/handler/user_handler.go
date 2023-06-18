@@ -8,12 +8,13 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 )
 
 type UserHandler struct {
@@ -22,10 +23,9 @@ type UserHandler struct {
 	searcher *xdb.Searcher
 }
 
-func NewUserHandler(config *types.AppConfig, app *core.AppServer, db *gorm.DB, searcher *xdb.Searcher) *UserHandler {
+func NewUserHandler(app *core.AppServer, db *gorm.DB, searcher *xdb.Searcher) *UserHandler {
 	handler := &UserHandler{db: db, searcher: searcher}
-	handler.app = app
-	handler.config = config
+	handler.App = app
 	return handler
 }
 
@@ -77,11 +77,11 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Status:    true,
 		ChatRoles: utils.JsonEncode(roleMap),
 		ChatConfig: utils.JsonEncode(types.ChatConfig{
-			Temperature:   h.app.ChatConfig.Temperature,
-			MaxTokens:     h.app.ChatConfig.MaxTokens,
-			EnableContext: h.app.ChatConfig.EnableContext,
+			Temperature:   h.App.ChatConfig.Temperature,
+			MaxTokens:     h.App.ChatConfig.MaxTokens,
+			EnableContext: h.App.ChatConfig.EnableContext,
 			EnableHistory: true,
-			Model:         h.app.ChatConfig.Model,
+			Model:         h.App.ChatConfig.Model,
 			ApiKey:        "",
 		}),
 	}
@@ -159,16 +159,15 @@ func (h *UserHandler) Login(c *gin.Context) {
 	h.db.Model(&user).Updates(user)
 
 	sessionId := utils.RandString(42)
-	c.Header(types.TokenSessionName, sessionId)
-	err := utils.SetLoginUser(c, user.Id)
+	err := utils.SetLoginUser(c, user)
 	if err != nil {
 		resp.ERROR(c, "保存会话失败")
 		logger.Error("Error for save session: ", err)
 		return
 	}
 
-	// 记录登录信息在服务器
-	h.app.ChatSession.Put(sessionId, types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId})
+	// 记录登录信息在服务端
+	h.App.ChatSession.Put(sessionId, types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId})
 
 	// 加载用户订阅的聊天角色
 	var roleMap map[string]int
@@ -229,17 +228,17 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 // Logout 注 销
 func (h *UserHandler) Logout(c *gin.Context) {
-	sessionId := c.GetHeader(types.TokenSessionName)
+	sessionId := c.GetHeader(types.SessionName)
 	session := sessions.Default(c)
-	session.Delete(sessionId)
+	session.Delete(types.SessionUser)
 	err := session.Save()
 	if err != nil {
 		logger.Error("Error for save session: ", err)
 	}
 	// 删除 websocket 会话列表
-	h.app.ChatSession.Delete(sessionId)
+	h.App.ChatSession.Delete(sessionId)
 	// 关闭 socket 连接
-	client := h.app.ChatClients.Get(sessionId)
+	client := h.App.ChatClients.Get(sessionId)
 	if client != nil {
 		client.Close()
 	}
@@ -248,8 +247,8 @@ func (h *UserHandler) Logout(c *gin.Context) {
 
 // Session 获取/验证会话
 func (h *UserHandler) Session(c *gin.Context) {
-	sessionId := c.GetHeader(types.TokenSessionName)
-	session := h.app.ChatSession.Get(sessionId)
+	sessionId := c.GetHeader(types.SessionName)
+	session := h.App.ChatSession.Get(sessionId)
 	if session.ClientIP == c.ClientIP() {
 		resp.SUCCESS(c, session)
 	} else {

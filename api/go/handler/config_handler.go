@@ -6,6 +6,7 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -15,10 +16,9 @@ type ConfigHandler struct {
 	db *gorm.DB
 }
 
-func NewConfigHandler(config *types.AppConfig, app *core.AppServer, db *gorm.DB) *ConfigHandler {
+func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
 	handler := ConfigHandler{db: db}
-	handler.app = app
-	handler.config = config
+	handler.App = app
 	return &handler
 }
 

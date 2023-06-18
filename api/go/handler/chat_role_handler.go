@@ -8,8 +8,9 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ChatRoleHandler struct {
@@ -17,10 +18,9 @@ type ChatRoleHandler struct {
 	service *service.ChatRoleService
 }
 
-func NewChatRoleHandler(config *types.AppConfig, app *core.AppServer, service *service.ChatRoleService) *ChatRoleHandler {
+func NewChatRoleHandler(app *core.AppServer, service *service.ChatRoleService) *ChatRoleHandler {
 	handler := &ChatRoleHandler{service: service}
-	handler.app = app
-	handler.config = config
+	handler.App = app
 	return handler
 }
 

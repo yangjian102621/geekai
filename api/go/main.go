@@ -4,20 +4,22 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/handler"
+	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
 	"chatplus/service"
 	"chatplus/store"
 	"context"
 	"flag"
 	"fmt"
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
-	"go.uber.org/fx"
-	"gorm.io/gorm"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
+	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 var logger = logger2.GetLogger()
@@ -80,19 +82,15 @@ func main() {
 		fx.Invoke(core.InitChatRoles),
 
 		// 创建控制器
-		fx.Provide(handler.NewAdminHandler),
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(handler.NewChatHandler),
-		fx.Provide(handler.NewApiKeyHandler),
 		fx.Provide(handler.NewConfigHandler),
 
+		fx.Provide(admin.NewAdminHandler),
+		fx.Provide(admin.NewApiKeyHandler),
+
 		// 注册路由
-		fx.Invoke(func(s *core.AppServer, h *handler.AdminHandler) {
-			group := s.Engine.Group("/api/admin/")
-			group.POST("login", h.Login)
-			group.GET("logout", h.Logout)
-		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
 			group := s.Engine.Group("/api/chat/role/")
 			group.GET("list", h.List)
@@ -119,16 +117,22 @@ func main() {
 			group.GET("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ApiKeyHandler) {
-			group := s.Engine.Group("/api/apikey/")
-			group.POST("add", h.Add)
-			group.GET("list", h.List)
-		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
 			group := s.Engine.Group("/api/config/")
 			group.POST("update", h.Update)
 			group.GET("get", h.Get)
 			group.GET("models", h.AllGptModels)
+		}),
+
+		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
+			group := s.Engine.Group("/api/admin/")
+			group.POST("login", h.Login)
+			group.GET("logout", h.Logout)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
+			group := s.Engine.Group("/api/admin/apikey/")
+			group.POST("add", h.Add)
+			group.GET("list", h.List)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
