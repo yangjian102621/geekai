@@ -2,7 +2,6 @@ package core
 
 import (
 	"chatplus/core/types"
-	logger2 "chatplus/logger"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
@@ -17,8 +16,6 @@ import (
 	"runtime/debug"
 	"strings"
 )
-
-var logger = logger2.GetLogger()
 
 type AppServer struct {
 	AppConfig    *types.AppConfig
@@ -111,7 +108,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-TOKEN, ACCESS-KEY")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, ChatGPT-TOKEN, ADMIN-SESSION-TOKEN")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -138,10 +135,10 @@ func corsMiddleware() gin.HandlerFunc {
 func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.URL.Path == "/api/user/login" ||
+			c.Request.URL.Path == "/api/admin/login" ||
 			c.Request.URL.Path == "/api/user/register" ||
 			c.Request.URL.Path == "/api/apikey/add" ||
-			//c.Request.URL.Path == "/api/apikey/list" {
-			strings.Contains(c.Request.URL.Path, "/api/config/") { // TODO： 后台 API 暂时放行，用于调试
+			c.Request.URL.Path == "/api/apikey/list" {
 			c.Next()
 			return
 		}
@@ -158,7 +155,12 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 			return
 		}
 		session := sessions.Default(c)
-		value := session.Get(types.SessionUserId)
+		var value interface{}
+		if strings.Contains(c.Request.URL.Path, "/api/admin/") {
+			value = session.Get(types.SessionAdmin)
+		} else {
+			value = session.Get(types.SessionUser)
+		}
 		if value != nil {
 			c.Next()
 		} else {

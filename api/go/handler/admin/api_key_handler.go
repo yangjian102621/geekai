@@ -1,28 +1,28 @@
-package handler
+package admin
 
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
-	"chatplus/utils/param"
 	"chatplus/utils/resp"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type ApiKeyHandler struct {
-	BaseHandler
+	handler.BaseHandler
 	db *gorm.DB
 }
 
-func NewApiKeyHandler(config *types.AppConfig, app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
-	handler := ApiKeyHandler{db: db}
-	handler.app = app
-	handler.config = config
-	return &handler
+func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
+	h := ApiKeyHandler{db: db}
+	h.App = app
+	return &h
 }
 
 func (h *ApiKeyHandler) Add(c *gin.Context) {
@@ -49,8 +49,8 @@ func (h *ApiKeyHandler) Add(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
-	page := param.GetInt(c, "page", 1)
-	pageSize := param.GetInt(c, "page_size", 20)
+	page := h.GetInt(c, "page", 1)
+	pageSize := h.GetInt(c, "page_size", 20)
 	offset := (page - 1) * pageSize
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)

@@ -3,11 +3,15 @@ package core
 import (
 	"bytes"
 	"chatplus/core/types"
+	logger2 "chatplus/logger"
 	"chatplus/utils"
-	"github.com/BurntSushi/toml"
 	"net/http"
 	"os"
+
+	"github.com/BurntSushi/toml"
 )
+
+var logger = logger2.GetLogger()
 
 func NewDefaultConfig() *types.AppConfig {
 	return &types.AppConfig{
@@ -17,7 +21,7 @@ func NewDefaultConfig() *types.AppConfig {
 
 		Session: types.Session{
 			SecretKey: utils.RandString(64),
-			Name:      "CHAT_SESSION_ID",
+			Name:      "CHAT_PLUS_SESSION",
 			Domain:    "",
 			Path:      "/",
 			MaxAge:    86400,

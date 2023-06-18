@@ -5,14 +5,14 @@ import (
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
-	"chatplus/utils/param"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 )
 
 // List 获取会话列表
 func (h *ChatHandler) List(c *gin.Context) {
-	userId := param.GetInt(c, "user_id", 0)
+	userId := h.GetInt(c, "user_id", 0)
 	if userId == 0 {
 		resp.ERROR(c, "The parameter 'user_id' is needed.")
 		return
@@ -71,7 +71,7 @@ func (h *ChatHandler) Update(c *gin.Context) {
 
 // Remove 删除会话
 func (h *ChatHandler) Remove(c *gin.Context) {
-	chatId := param.GetTrim(c, "chat_id")
+	chatId := h.GetTrim(c, "chat_id")
 	if chatId == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
@@ -89,7 +89,7 @@ func (h *ChatHandler) Remove(c *gin.Context) {
 	}
 
 	// 清空会话上下文
-	h.app.ChatContexts.Delete(chatId)
+	h.App.ChatContexts.Delete(chatId)
 	resp.SUCCESS(c, types.OkMsg)
 }
 
@@ -144,7 +144,7 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 			logger.Warnf("Failed to delele chat history for ChatID: %s", chat.ChatId)
 		}
 		// 清空会话上下文
-		h.app.ChatContexts.Delete(chat.ChatId)
+		h.App.ChatContexts.Delete(chat.ChatId)
 	}
 	// 删除所有的会话记录
 	res = h.db.Where("user_id = ?", user.Id).Delete(&model.ChatItem{})

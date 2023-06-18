@@ -4,7 +4,7 @@
     <div class="main">
       <div class="contain">
         <div class="logo">
-          <el-image src="images/logo.png" fit="cover" />
+          <el-image src="images/logo.png" fit="cover"/>
         </div>
 
         <div class="header">{{ title }}</div>
@@ -61,7 +61,7 @@
       </div>
 
       <footer class="footer">
-        <footer-bar />
+        <footer-bar/>
       </footer>
     </div>
   </div>
@@ -140,13 +140,14 @@ const validateMobile = function (mobile) {
     width 90%
     max-width 400px
     transform translate(-50%, -50%)
-    padding 20px;
+    padding 20px 40px;
     color #ffffff
     border-radius 10px;
     background rgba(255, 255, 255, 0.3)
 
     .logo {
       text-align center
+
       .el-image {
         width 120px;
       }
