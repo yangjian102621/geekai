@@ -1,8 +1,9 @@
-package handler
+package admin
 
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
@@ -12,14 +13,14 @@ import (
 )
 
 type ConfigHandler struct {
-	BaseHandler
+	handler.BaseHandler
 	db *gorm.DB
 }
 
 func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
-	handler := ConfigHandler{db: db}
-	handler.App = app
-	return &handler
+	h := ConfigHandler{db: db}
+	h.App = app
+	return &h
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {
@@ -70,9 +71,4 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, m)
-}
-
-// AllGptModels 获取所有的 GPT 模型
-func (h *ConfigHandler) AllGptModels(c *gin.Context) {
-	resp.SUCCESS(c, types.GptModels)
 }

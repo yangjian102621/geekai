@@ -1,6 +1,6 @@
 <template>
   <div class="welcome" :style="{ height: winHeight + 'px' }">
-    <h1>Chat-Plus 控制台</h1>
+    <h1>ChatGPT-PLUS 控制台</h1>
   </div>
 </template>
 

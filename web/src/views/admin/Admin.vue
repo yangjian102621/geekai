@@ -94,16 +94,15 @@
 </template>
 
 <script setup>
-import {computed, defineComponent, onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {Fold, Menu} from "@element-plus/icons-vue"
 import XWelcome from "@/views/admin/Welcome.vue";
 import SysConfig from "@/views/admin/SysConfig.vue";
 import {arrayContains, removeArrayItem} from "@/utils/libs";
 import UserList from "@/views/admin/UserList.vue";
 import RoleList from "@/views/admin/RoleList.vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {setLoginUser} from "@/utils/storage";
 import {useRouter} from "vue-router";
 
 const title = ref('Chat-Plus 控制台')
@@ -118,7 +117,7 @@ const navs = ref([
   },
   {
     id: 2,
-    title: '口令管理',
+    title: '用户管理',
     tab: 'user',
     active: false,
   },
@@ -129,20 +128,20 @@ const navs = ref([
     active: false,
   }
 ])
-const tabs= ref([])
+const tabs = ref([])
 const curNav = ref(null)
 const curTab = ref('welcome')
 const winHeight = ref(window.innerHeight)
 const showSidebar = ref(true)
 
-const sideWidth = computed(() =>{
+const sideWidth = computed(() => {
   return showSidebar.value ? 250 : 30
 })
-const foldIconRight = computed(() =>{
+const foldIconRight = computed(() => {
   return showSidebar.value ? 3 : 0
 })
-const nodeListPaddingLeft = computed(() =>{
-  return showSidebar.value ?  20 : 5
+const nodeListPaddingLeft = computed(() => {
+  return showSidebar.value ? 20 : 5
 })
 const router = useRouter()
 
@@ -151,8 +150,16 @@ onMounted(() => {
     winHeight.value = window.innerHeight
   })
 
+  // 获取会话信息
   httpGet("/api/admin/session").catch(() => {
-   router.push('/admin/login')
+    router.push('/admin/login')
+  })
+
+  // 加载系统配置
+  httpGet('/api/admin/config/get?key=system').then(res => {
+    title.value = res.data['admin_title'];
+  }).catch(e => {
+    ElMessage.error("加载系统配置失败: " + e.message)
   })
 })
 
@@ -160,12 +167,12 @@ const logout = function () {
   httpGet("/api/admin/logout").then(() => {
     router.push('/admin/login')
   }).catch((e) => {
-    ElMessage.error("注销失败: "+ e.message);
+    ElMessage.error("注销失败: " + e.message);
   })
 }
 
 // 添加 tab 窗口
-const addTab= function (nav) {
+const addTab = function (nav) {
   if (curNav.value) {
     curNav.value.active = false
   }
@@ -178,7 +185,7 @@ const addTab= function (nav) {
 }
 
 // 切换 tab 窗口
-const changeTab= function (name) {
+const changeTab = function (name) {
   for (let i = 0; i < navs.value.length; i++) {
     let _nav = navs.value[i]
     if (_nav.tab === name) {
@@ -191,7 +198,7 @@ const changeTab= function (name) {
 }
 
 // 删除 tab 窗口
-const removeTab= function (name) {
+const removeTab = function (name) {
   tabs.value = removeArrayItem(tabs.value, name);
   if (tabs.value.length === 0) {
     curTab.value = 'welcome';
@@ -286,6 +293,7 @@ $borderColor = #4676d0;
 
     .nav-footer {
       flex-direction column
+
       div {
         padding 10px 20px;
         font-size 14px;
@@ -311,7 +319,6 @@ $borderColor = #4676d0;
   .el-main {
     --el-main-padding: 0;
     margin: 0;
-    background-image url("~@/assets/img/bg_01.jpeg")
 
     .main-container {
       display: flex;
@@ -325,12 +332,15 @@ $borderColor = #4676d0;
           height 35px
           line-height 35px
         }
+
+        .el-tabs__content {
+          padding 10px 20px 20px 20px;
+        }
       }
 
     }
   }
 }
-
 
 
 </style>
