@@ -1,26 +1,26 @@
 <template>
   <div class="user-list" v-loading="loading">
     <el-row>
-      <el-table :data="users">
-        <el-table-column prop="name" label="口令名称"/>
-        <el-table-column prop="max_calls" label="最大提问次数"/>
-        <el-table-column prop="remaining_calls" label="剩余提问次数"/>
-        <el-table-column label="激活时间" width="180">
-          <template #default="scope">
-            <el-tag type="info" v-if="scope.row.active_time === ''">未激活</el-tag>
-            <span v-else>{{ scope.row.active_time }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="过期时间" width="180">
-          <template #default="scope">
-            <el-tag type="info" v-if="scope.row.expired_time === ''">未激活</el-tag>
-            <span v-else>{{ scope.row.expired_time }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="180">
+      <el-table :data="users.items">
+        <el-table-column prop="username" label="用户名"/>
+        <el-table-column prop="nickname" label="昵称"/>
+        <el-table-column prop="calls" label="提问次数" width="100"/>
+        <el-table-column label="状态" width="80">
           <template #default="scope">
             <el-tag v-if="scope.row.status" type="success">正常</el-tag>
             <el-tag type="danger" v-else>停用</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="过期时间">
+          <template #default="scope">
+            <span v-if="scope.row['expired_time'] > 0">{{ dateFormat(scope.row['expired_time']) }}</span>
+            <el-tag v-else>长期有效</el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="注册时间">
+          <template #default="scope">
+            <span>{{ dateFormat(scope.row['created_at']) }}</span>
           </template>
         </el-table-column>
 
@@ -43,154 +43,29 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination">
+        <el-pagination background
+                       layout="prev, pager, next"
+                       :hide-on-single-page="true"
+                       v-model:current-page="users.page"
+                       v-model:page-size="users['page_size']"
+                       :total="1000"/>
+      </div>
     </el-row>
 
     <el-dialog
-        v-model="showUserDialog"
-        title="新增口令"
-        width="50%"
-        :destroy-on-close="true"
-    >
-      <el-form :model="form1" label-width="100px" ref="userAddFormRef" :rules="rules">
-        <el-form-item label="口令名称：" prop="name">
-          <el-input
-              v-model="form1.name"
-              autocomplete="off"
-              placeholder="请输入口令名称"
-          />
-        </el-form-item>
-
-        <el-form-item label="提问次数：" prop="max_calls">
-          <el-input
-              v-model.number="form1.max_calls"
-              autocomplete="off"
-              placeholder="0 表示不限制提问次数"
-          />
-        </el-form-item>
-
-        <el-form-item label="有效期：" prop="term">
-          <el-input
-              v-model.number="form1.term"
-              autocomplete="off"
-              placeholder="单位：天"
-          />
-        </el-form-item>
-
-        <el-form-item label="聊天角色" prop="chat_roles">
-          <el-select
-              v-model="form1.chat_roles"
-              multiple
-              :filterable="true"
-              placeholder="选择聊天角色，多选"
-              @change="selectRole"
-          >
-            <el-option
-                v-for="item in roles"
-                :key="item.key"
-                :label="item.name"
-                :value="item.key"
-                :disabled="item.disabled"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="聊天记录">
-          <el-switch v-model="form1.enable_history"/>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="showUserDialog = false">取消</el-button>
-              <el-button type="primary" @click="addUser">提交</el-button>
-            </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog
-        v-model="showBatchAddUserDialog"
-        title="批量生成口令"
-        width="50%"
-        :destroy-on-close="true"
-
-    >
-      <el-form :model="form3" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item label="提问次数：" prop="max_calls">
-          <el-input
-              v-model.number="form3.max_calls"
-              autocomplete="off"
-              placeholder="生成口令的最大提问次数"
-          />
-        </el-form-item>
-
-        <el-form-item label="口令数量：" prop="number">
-          <el-input
-              v-model.number="form3.number"
-              autocomplete="off"
-              placeholder="批量生成的口令数量"
-          />
-        </el-form-item>
-
-        <el-form-item label="有效期：" prop="term">
-          <el-input
-              v-model.number="form3.term"
-              autocomplete="off"
-              placeholder="单位：天"
-          />
-        </el-form-item>
-
-        <el-form-item label="聊天角色" prop="chat_roles">
-          <el-select
-              v-model="form3.chat_roles"
-              multiple
-              :filterable="true"
-              placeholder="选择聊天角色，多选"
-              @change="selectRole"
-          >
-            <el-option
-                v-for="item in roles"
-                :key="item.key"
-                :label="item.name"
-                :value="item.key"
-                :disabled="item.disabled"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="聊天记录">
-          <el-switch v-model="form2.enable_history"/>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="showBatchAddUserDialog = false">取消</el-button>
-              <el-button type="success" @click="batchAddUser">提交</el-button>
-            </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog
         v-model="showUserEditDialog"
-        title="编辑口令"
+        title="编辑用户"
         width="50%"
     >
-      <el-form :model="form2" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item label="口令名称：" prop="name">
-          <el-input
-              v-model="form2.name"
-              autocomplete="off"
-              placeholder="请输入口令名称"
-              readonly
-          />
+      <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
+        <el-form-item label="昵称：" prop="nickname">
+          <el-input v-model="user.nickname" autocomplete="off"/>
         </el-form-item>
 
-        <el-form-item label="提问次数：" prop="remaining_calls">
-          <el-input
-              v-model.number="form2.remaining_calls"
-              autocomplete="off"
-              placeholder="0"
-          />
+        <el-form-item label="提问次数：" prop="calls">
+          <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
         </el-form-item>
 
         <el-form-item label="有效期：" prop="term">
@@ -242,14 +117,14 @@
 
 <script setup>
 import {nextTick, onMounted, reactive, ref} from "vue";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {arrayContains, removeArrayItem} from "@/utils/libs";
+import {arrayContains, dateFormat, removeArrayItem} from "@/utils/libs";
 
 // 变量定义
-const users = ref([])
-const form1 = ref({chat_roles: []})
-const form2 = ref({})
+const users = ref({})
+
+const user = ref({chat_roles: []})
 const roles = ref([])
 const showUserDialog = ref(false)
 const showUserEditDialog = ref(false)
@@ -280,16 +155,15 @@ const userEditFormRef = ref(null)
 
 onMounted(() => {
 // 获取口令列表
-  httpPost('/api/admin/user/list').then((res) => {
+  httpGet('/api/admin/user/list', {page: 1, page_size: 20}).then((res) => {
     users.value = res.data;
   }).catch(() => {
-    ElMessage.error('获取系统配置失败')
+    ElMessage.error('加载用户列表失败')
   })
 
   // 获取角色列表
-  httpPost('/api/admin/chat-roles/list').then((res) => {
+  httpGet('/api/admin/role/list').then((res) => {
     roles.value = res.data;
-    roles.value.unshift({name: '全部', key: 'all'})
   }).catch(() => {
     ElMessage.error("获取聊天角色失败");
   })
@@ -298,26 +172,6 @@ onMounted(() => {
     loading.value = false
   })
 })
-
-// 新增口令
-const addUser = () => {
-  userAddFormRef.value.validate((valid) => {
-    if (valid) {
-      showUserDialog.value = false
-      form1.value.term = parseInt(form1.value.term)
-      form1.value.max_calls = parseInt(form1.value.max_calls)
-      httpPost('/api/admin/user/add', form1.value).then((res) => {
-        ElMessage.success('添加口令成功')
-        form1.value = {chat_roles: []}
-        users.value.unshift(res.data)
-      }).catch((e) => {
-        ElMessage.error('添加口令失败，' + e.message)
-      })
-    } else {
-      return false
-    }
-  })
-}
 
 // 选择角色事件
 const selectRole = function (items) {
@@ -342,20 +196,20 @@ const selectRole = function (items) {
 
 }
 
-// 删除口令
+// 删除用户
 const removeUser = function (user) {
   httpPost('/api/admin/user/remove', {name: user.name}).then(() => {
-    ElMessage.success('删除口令成功')
+    ElMessage.success('操作成功！')
     users.value = removeArrayItem(users.value, user, function (v1, v2) {
       return v1.name === v2.name
     })
   }).catch((e) => {
-    ElMessage.error('删除口令失败，' + e.message)
+    ElMessage.error('操作失败，' + e.message)
   })
 }
 
-const userEdit = function (user) {
-  form2.value = user
+const userEdit = function (_user) {
+  user.value = _user
   showUserEditDialog.value = true
 }
 
@@ -366,28 +220,14 @@ const updateUser = function () {
       showUserEditDialog.value = false
       form2.value.term = parseInt(form2.value.term)
       form2.value.remaining_calls = parseInt(form2.value.remaining_calls)
-      httpPost('/api/admin/user/set', form2.value).then(() => {
-        ElMessage.success('更新口令成功')
+      httpPost('/api/admin/user/update', form2.value).then(() => {
+        ElMessage.success('操作成功！')
       }).catch((e) => {
-        ElMessage.error('更新口令失败，' + e.message)
+        ElMessage.error('操作失败，' + e.message)
       })
     } else {
       return false
     }
-  })
-}
-
-// 批量新增
-const showBatchAddUserDialog = ref(false)
-const form3 = ref({chat_roles: []})
-const batchAddUser = function () {
-  httpPost('api/admin/user/batch-add', form3.value).then((res) => {
-    console.log(res.data)
-    ElMessage.success('添加口令成功')
-    users.value = [...res.data, ...users.value]
-    showBatchAddUserDialog.value = false
-  }).catch((e) => {
-    console.log('添加口令失败，' + e.message)
   })
 }
 </script>
@@ -401,6 +241,13 @@ const batchAddUser = function () {
     .el-icon {
       margin-right: 5px;
     }
+  }
+
+  .pagination {
+    padding-top 20px;
+    display flex
+    justify-content center
+    width 100%
   }
 
   .el-select {

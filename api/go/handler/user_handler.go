@@ -105,31 +105,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	resp.SUCCESS(c, user)
 }
 
-func (h *UserHandler) List(c *gin.Context) {
-	var users []model.User
-	res := h.db.Find(&users)
-	if res.Error != nil {
-		resp.ERROR(c, "No user found")
-		logger.Error("get user failed: ", res.Error.Error())
-		return
-	}
-
-	// 转成 VO 输出
-	var userVos = make([]vo.User, 0)
-	for _, u := range users {
-		logger.Info(u)
-		var v vo.User
-		err := utils.CopyObject(u, &v)
-		if err == nil {
-			v.Id = u.Id
-			v.CreatedAt = u.CreatedAt.Unix()
-			v.UpdatedAt = u.UpdatedAt.Unix()
-			userVos = append(userVos, v)
-		}
-	}
-	resp.SUCCESS(c, userVos)
-}
-
 // Login 用户登录
 func (h *UserHandler) Login(c *gin.Context) {
 	var data struct {
