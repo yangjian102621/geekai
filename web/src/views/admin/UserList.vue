@@ -1,7 +1,8 @@
 <template>
   <div class="user-list" v-loading="loading">
     <el-row>
-      <el-table :data="users.items">
+      <el-table :data="users.items" :row-key="row => row.id" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55"/>
         <el-table-column prop="username" label="用户名"/>
         <el-table-column prop="nickname" label="昵称"/>
         <el-table-column prop="calls" label="提问次数" width="100"/>
@@ -27,19 +28,7 @@
         <el-table-column label="操作" width="180">
           <template #default="scope">
             <el-button size="small" type="primary" @click="userEdit(scope.row)">编辑</el-button>
-            <el-popconfirm
-                width="220"
-                confirm-button-text="确定"
-                cancel-button-text="取消"
-                title="确定删除该记录吗?"
-                :hide-after="0"
-                @confirm="removeUser(scope.row)"
-            >
-              <template #reference>
-                <el-button size="small" type="danger">删除</el-button>
-              </template>
-            </el-popconfirm>
-
+            <el-button size="small" type="danger" @click="removeUser(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -115,7 +104,7 @@
 <script setup>
 import {nextTick, onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 import {dateFormat, removeArrayItem} from "@/utils/libs";
 
 // 变量定义
@@ -164,14 +153,29 @@ const disabledDate = (time) => {
 
 // 删除用户
 const removeUser = function (user) {
-  httpPost('/api/admin/user/remove', {name: user.name}).then(() => {
-    ElMessage.success('操作成功！')
-    users.value = removeArrayItem(users.value, user, function (v1, v2) {
-      return v1.name === v2.name
-    })
-  }).catch((e) => {
-    ElMessage.error('操作失败，' + e.message)
-  })
+  ElMessageBox.confirm(
+      '此操作将会永久删除用户信息和聊天记录，确认操作吗?',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  )
+      .then(() => {
+        httpGet('/api/admin/user/remove', {id: user.id}).then(() => {
+          ElMessage.success('操作成功！')
+          users.value.items = removeArrayItem(users.value.items, user, function (v1, v2) {
+            return v1.id === v2.id
+          })
+        }).catch((e) => {
+          ElMessage.error('操作失败，' + e.message)
+        })
+      })
+      .catch(() => {
+        ElMessage.info('操作被取消')
+      })
+
 }
 
 const userEdit = function (_user) {
@@ -194,6 +198,11 @@ const updateUser = function () {
       return false
     }
   })
+}
+
+const handleSelectionChange = function (rows) {
+  // TODO: 批量删除操作
+  console.log(rows)
 }
 </script>
 

@@ -65,20 +65,56 @@ func (h *UserHandler) Update(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	var user = model.User{
-		Nickname:    data.Nickname,
-		Calls:       data.Calls,
-		Status:      data.Status,
-		ChatRoles:   utils.JsonEncode(data.ChatRoles),
-		ExpiredTime: utils.Str2stamp(data.ExpiredTime),
-	}
+	var user = model.User{}
 	user.Id = data.Id
-	res := h.db.Updates(&user)
+	// 此处需要用 map 更新，用结构体无法更新 0 值
+	res := h.db.Model(&user).Updates(map[string]interface{}{
+		"nickname":        data.Nickname,
+		"calls":           data.Calls,
+		"status":          data.Status,
+		"chat_roles_json": utils.JsonEncode(data.ChatRoles),
+		"expired_time":    utils.Str2stamp(data.ExpiredTime),
+	})
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}
 
+	resp.SUCCESS(c)
+}
+
+func (h *UserHandler) Remove(c *gin.Context) {
+	id := h.GetInt(c, "id", 0)
+	if id > 0 {
+		tx := h.db.Begin()
+		res := h.db.Where("id = ?", id).Delete(&model.User{})
+		if res.Error != nil {
+			resp.ERROR(c, "删除失败")
+			return
+		}
+		// 删除聊天记录
+		res = h.db.Where("user_id = ?", id).Delete(&model.ChatItem{})
+		if res.Error != nil {
+			tx.Rollback()
+			resp.ERROR(c, "删除失败")
+			return
+		}
+		// 删除聊天历史记录
+		res = h.db.Where("user_id = ?", id).Delete(&model.HistoryMessage{})
+		if res.Error != nil {
+			tx.Rollback()
+			resp.ERROR(c, "删除失败")
+			return
+		}
+		// 删除登录日志
+		res = h.db.Where("user_id = ?", id).Delete(&model.UserLoginLog{})
+		if res.Error != nil {
+			tx.Rollback()
+			resp.ERROR(c, "删除失败")
+			return
+		}
+		tx.Commit()
+	}
 	resp.SUCCESS(c)
 }
 
