@@ -1,5 +1,7 @@
 package vo
 
+import "math"
+
 type Page struct {
 	Items     interface{} `json:"items"`
 	Page      int         `json:"page"`
@@ -9,12 +11,12 @@ type Page struct {
 }
 
 func NewPage(total int64, page int, pageSize int, items interface{}) Page {
-	totalPage := int(total / int64(pageSize))
+	totalPage := math.Ceil(float64(total) / float64(pageSize))
 	return Page{
 		Items:     items,
 		Page:      page,
 		PageSize:  pageSize,
 		Total:     total,
-		TotalPage: totalPage,
+		TotalPage: int(totalPage),
 	}
 }

@@ -46,10 +46,10 @@
           <el-input v-model="chat['model']" placeholder="用户默认使用的 GPT 模型"/>
         </el-form-item>
         <el-form-item label="模型温度">
-          <el-input v-model="chat['temperature']" placeholder="0-1之间的小数"/>
+          <el-input v-model.number="chat['temperature']" placeholder="0-1之间的小数"/>
         </el-form-item>
         <el-form-item label="Max Tokens">
-          <el-input v-model="chat['max_tokens']" placeholder="回复的最大字数，最大4096"/>
+          <el-input v-model.number="chat['max_tokens']" placeholder="回复的最大字数，最大4096"/>
         </el-form-item>
         <el-form-item label="开启聊天上下文">
           <el-switch v-model="chat['enable_context']"/>

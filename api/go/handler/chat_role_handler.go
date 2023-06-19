@@ -2,24 +2,21 @@ package handler
 
 import (
 	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/service"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type ChatRoleHandler struct {
 	BaseHandler
-	service *service.ChatRoleService
+	db *gorm.DB
 }
 
-func NewChatRoleHandler(app *core.AppServer, service *service.ChatRoleService) *ChatRoleHandler {
-	handler := &ChatRoleHandler{service: service}
+func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
+	handler := &ChatRoleHandler{db: db}
 	handler.App = app
 	return handler
 }
@@ -27,15 +24,15 @@ func NewChatRoleHandler(app *core.AppServer, service *service.ChatRoleService) *
 // List get user list
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	var roles []model.ChatRole
-	res := h.service.DB.Find(&roles)
+	res := h.db.Find(&roles)
 	if res.Error != nil {
 		resp.ERROR(c, "No roles found,"+res.Error.Error())
 		return
 	}
-	userId, err := strconv.Atoi(c.Query("user_id"))
-	if err == nil && userId > 0 {
+	userId := h.GetInt(c, "user_id", 0)
+	if userId > 0 {
 		var user model.User
-		h.service.DB.First(&user, userId)
+		h.db.First(&user, userId)
 		var roleMap map[string]int
 		err := utils.JsonDecode(user.ChatRoles, &roleMap)
 		if err == nil {
@@ -57,36 +54,4 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 		}
 	}
 	resp.SUCCESS(c, roleVos)
-}
-
-// Add 添加一个聊天角色
-func (h *ChatRoleHandler) Add(c *gin.Context) {
-	var data vo.ChatRole
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	if data.Key == "" || data.Name == "" || data.Icon == "" {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	err := h.service.Create(data)
-	if err != nil {
-		resp.ERROR(c, "Save failed: "+err.Error())
-		return
-	}
-
-	resp.SUCCESS(c, data)
-}
-
-// Get 获取指定的角色
-func (h *ChatRoleHandler) Get(c *gin.Context) {
-
-}
-
-// Update 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
-func (h *ChatRoleHandler) Update(c *gin.Context) {
-
 }

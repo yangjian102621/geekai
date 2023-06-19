@@ -6,7 +6,6 @@ import (
 	"chatplus/handler"
 	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
-	"chatplus/service"
 	"chatplus/store"
 	"context"
 	"flag"
@@ -64,6 +63,7 @@ func main() {
 		// 初始化数据库
 		fx.Provide(store.NewGormConfig),
 		fx.Provide(store.NewMysql),
+		fx.Provide(store.NewLevelDB),
 
 		// 创建 Ip2Region 查询对象
 		fx.Provide(func() (*xdb.Searcher, error) {
@@ -76,11 +76,6 @@ func main() {
 			return xdb.NewWithBuffer(cBuff)
 		}),
 
-		// 初始化服务
-		fx.Provide(store.NewLevelDB),
-		fx.Provide(service.NewChatRoleService),
-		fx.Invoke(core.InitChatRoles),
-
 		// 创建控制器
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
@@ -89,6 +84,8 @@ func main() {
 
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
+		fx.Provide(admin.NewUserHandler),
+		fx.Provide(admin.NewChatRoleHandler),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
@@ -98,7 +95,6 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
 			group := s.Engine.Group("/api/user/")
 			group.POST("register", h.Register)
-			group.GET("list", h.List)
 			group.POST("login", h.Login)
 			group.GET("logout", h.Logout)
 			group.GET("session", h.Session)
@@ -134,6 +130,16 @@ func main() {
 			group := s.Engine.Group("/api/admin/apikey/")
 			group.POST("add", h.Add)
 			group.GET("list", h.List)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
+			group := s.Engine.Group("/api/admin/user/")
+			group.GET("list", h.List)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
+			group := s.Engine.Group("/api/admin/role/")
+			group.GET("list", h.List)
+			group.POST("add", h.Add)
+			group.POST("update", h.Update)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {

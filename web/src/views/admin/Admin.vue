@@ -77,7 +77,7 @@
                   <sys-config v-if="curTab==='config'"/>
                 </el-tab-pane>
 
-                <el-tab-pane label="口令管理" name="user" v-if="arrayContains(tabs, 'user')">
+                <el-tab-pane label="用户管理" name="user" v-if="arrayContains(tabs, 'user')">
                   <user-list v-if="curTab==='user'"/>
                 </el-tab-pane>
 
