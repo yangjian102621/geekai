@@ -1,21 +1,5 @@
 <template>
   <div class="user-list" v-loading="loading">
-    <el-row class="opt-box">
-      <el-button type="primary" @click="showUserDialog = true">
-        <el-icon>
-          <Plus/>
-        </el-icon>
-        新增口令
-      </el-button>
-
-      <el-button type="success" @click="showBatchAddUserDialog = true">
-        <el-icon>
-          <Plus/>
-        </el-icon>
-        批量生成口令
-      </el-button>
-    </el-row>
-
     <el-row>
       <el-table :data="users">
         <el-table-column prop="name" label="口令名称"/>
@@ -258,7 +242,6 @@
 
 <script setup>
 import {nextTick, onMounted, reactive, ref} from "vue";
-import {Plus} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {arrayContains, removeArrayItem} from "@/utils/libs";

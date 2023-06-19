@@ -200,7 +200,8 @@ import {
   Close,
   Delete,
   Edit,
-  Plus, Promotion,
+  Plus,
+  Promotion,
   RefreshRight,
   Search,
   Tools,
@@ -270,7 +271,7 @@ if (!user.value) {
   });
 
   // 加载系统配置
-  httpGet('/api/config/get?key=system').then(res => {
+  httpGet('/api/admin/config/get?key=system').then(res => {
     title.value = res.data.title;
     models.value = res.data.models;
   }).catch(e => {
@@ -731,8 +732,10 @@ $borderColor = #4676d0;
     height: 100%;
 
     // left side
+
     .el-aside {
       background-color: $sideBgColor;
+
       .title-box {
         padding: 6px 10px;
         display: flex;

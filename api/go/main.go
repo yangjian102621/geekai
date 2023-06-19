@@ -85,7 +85,7 @@ func main() {
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(handler.NewChatHandler),
-		fx.Provide(handler.NewConfigHandler),
+		fx.Provide(admin.NewConfigHandler),
 
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
@@ -117,13 +117,13 @@ func main() {
 			group.GET("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
-			group := s.Engine.Group("/api/config/")
+
+		//
+		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
+			group := s.Engine.Group("/api/admin/config/")
 			group.POST("update", h.Update)
 			group.GET("get", h.Get)
-			group.GET("models", h.AllGptModels)
 		}),
-
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
 			group.POST("login", h.Login)
