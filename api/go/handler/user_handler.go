@@ -62,9 +62,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// 默认订阅所有角色
 	var chatRoles []model.ChatRole
 	h.db.Find(&chatRoles)
-	var roleMap = make(map[string]int)
+	var roleKeys = make([]string, 0)
 	for _, r := range chatRoles {
-		roleMap[r.Key] = 1
+		roleKeys = append(roleKeys, r.Key)
 	}
 
 	salt := utils.RandString(8)
@@ -75,7 +75,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Avatar:    "images/avatar/user.png",
 		Salt:      salt,
 		Status:    true,
-		ChatRoles: utils.JsonEncode(roleMap),
+		ChatRoles: utils.JsonEncode(roleKeys),
 		ChatConfig: utils.JsonEncode(types.ChatConfig{
 			Temperature:   h.App.ChatConfig.Temperature,
 			MaxTokens:     h.App.ChatConfig.MaxTokens,
@@ -145,14 +145,10 @@ func (h *UserHandler) Login(c *gin.Context) {
 	h.App.ChatSession.Put(sessionId, types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId})
 
 	// 加载用户订阅的聊天角色
-	var roleMap map[string]int
-	err = utils.JsonDecode(user.ChatRoles, &roleMap)
+	var roleKeys []string
+	err = utils.JsonDecode(user.ChatRoles, &roleKeys)
 	var chatRoles interface{}
 	if err == nil {
-		roleKeys := make([]string, 0)
-		for key := range roleMap {
-			roleKeys = append(roleKeys, key)
-		}
 		var roles []model.ChatRole
 		res = h.db.Where("marker IN ?", roleKeys).Find(&roles)
 		if res.Error == err {

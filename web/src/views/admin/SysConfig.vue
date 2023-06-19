@@ -43,7 +43,14 @@
           <el-input v-model="chat['api_url']" placeholder="gpt-3/gpt-3.5-turbo/gpt-4"/>
         </el-form-item>
         <el-form-item label="默认模型">
-          <el-input v-model="chat['model']" placeholder="用户默认使用的 GPT 模型"/>
+          <el-select v-model="chat['model']" placeholder="默认会话模型">
+            <el-option
+                v-for="item in system.models"
+                :key="item"
+                :label="item.toUpperCase()"
+                :value="item"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="模型温度">
           <el-input v-model.number="chat['temperature']" placeholder="0-1之间的小数"/>
