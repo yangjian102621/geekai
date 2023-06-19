@@ -10,16 +10,11 @@ module.exports = defineConfig({
         },
         plugins: [
             new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000})
-        ],
-        // resolve: {
-        //     fallback: {
-        //         fs: false,
-        //         path: require.resolve('path-browserify')
-        //     }
-        // }
+        ]
     },
 
-    publicPath: '/',
+    publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
+
     outputDir: 'dist',
     crossorigin: "anonymous",
     devServer: {

@@ -75,7 +75,7 @@ const login = function () {
 
   httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
     setLoginUser(res.data)
-    router.push("admin")
+    router.push("/admin")
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
   })

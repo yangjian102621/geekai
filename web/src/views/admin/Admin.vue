@@ -1,5 +1,5 @@
 <template>
-  <div class="common-layout">
+  <div class="admin-body common-layout">
     <el-container>
       <el-container>
         <el-aside
@@ -13,7 +13,7 @@
             <span class="text">{{ title }}</span>
             <span
                 class="fold"
-                @click="hideSidebar()"
+                @click="showSidebar = !showSidebar"
                 :style="{ right: foldIconRight + 'px' }"
             >
               <el-icon>
@@ -44,8 +44,16 @@
             </li>
           </ul>
 
-          <el-row class="tool-box">
-            <el-button type="primary" plain @click="logout" v-show="isLogin">退出登录</el-button>
+          <el-row class="nav-footer">
+            <div class="source">
+              <i class="iconfont icon-github"></i>
+              <el-link href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">ChatGPT-Plus-V3</el-link>
+            </div>
+
+            <div class="logout" @click="logout">
+              <i class="iconfont icon-logout"></i>
+              <span>退出登录</span>
+            </div>
           </el-row>
         </el-aside>
 
@@ -80,47 +88,13 @@
             </div>
           </div>
         </el-main>
-
-        <el-dialog
-            v-model="showDialog"
-            title="管理后台登录"
-            width="30%"
-            :destroy-on-close="true"
-        >
-          <el-form :model="user" label-width="80px">
-            <el-form-item label="用户名：">
-              <el-input
-                  v-model.trim="user.username"
-                  autocomplete="off"
-                  placeholder="请输入用户名"
-              />
-            </el-form-item>
-
-            <el-form-item label="密码：">
-              <el-input
-                  v-model.trim="user.password"
-                  autocomplete="off"
-                  type="password"
-                  placeholder="请输入密码"
-                  @keyup="loginInputKeyup"
-              />
-            </el-form-item>
-          </el-form>
-
-          <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="showDialog = false">取消</el-button>
-              <el-button type="primary" @click="login">提交</el-button>
-            </span>
-          </template>
-        </el-dialog>
       </el-container>
     </el-container>
   </div>
 </template>
 
-<script>
-import {defineComponent} from 'vue'
+<script setup>
+import {computed, defineComponent, onMounted, ref} from 'vue'
 import {Fold, Menu} from "@element-plus/icons-vue"
 import XWelcome from "@/views/admin/Welcome.vue";
 import SysConfig from "@/views/admin/SysConfig.vue";
@@ -130,267 +104,233 @@ import RoleList from "@/views/admin/RoleList.vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {setLoginUser} from "@/utils/storage";
+import {useRouter} from "vue-router";
 
-
-export default defineComponent({
-  name: "XAdmin",
-  components: {RoleList, UserList, SysConfig, XWelcome, Fold, Menu},
-  data() {
-    return {
-      title: "Chat-Plus 控制台",
-      logo: 'images/logo.png',
-      user: {},
-      navs: [
-        {
-          id: 1,
-          title: '系统配置',
-          tab: 'config',
-          active: false,
-        },
-        {
-          id: 2,
-          title: '口令管理',
-          tab: 'user',
-          active: false,
-        },
-        {
-          id: 3,
-          title: '角色管理',
-          tab: 'role',
-          active: false,
-        }
-      ],
-
-      curNav: null,
-      curTab: 'welcome',
-      tabs: [],
-      isLogin: false,
-
-      showDialog: false,
-
-      // window height
-      winHeight: window.innerHeight,
-      showSidebar: true
-    }
+const title = ref('Chat-Plus 控制台')
+const logo = ref('images/logo.png')
+const user = ref({})
+const navs = ref([
+  {
+    id: 1,
+    title: '系统配置',
+    tab: 'config',
+    active: false,
   },
-
-  computed: {
-    sideWidth: function () {
-      return this.showSidebar ? 250 : 30
-    },
-
-    foldIconRight: function () {
-      return this.showSidebar ? 3 : 0
-    },
-
-    nodeListPaddingLeft: function () {
-      return this.showSidebar ? 20 : 5
-    }
+  {
+    id: 2,
+    title: '口令管理',
+    tab: 'user',
+    active: false,
   },
+  {
+    id: 3,
+    title: '角色管理',
+    tab: 'role',
+    active: false,
+  }
+])
+const tabs= ref([])
+const curNav = ref(null)
+const curTab = ref('welcome')
+const winHeight = ref(window.innerHeight)
+const showSidebar = ref(true)
 
-  mounted: function () {
-    // bind window resize event
-    window.addEventListener("resize", function () {
-      this.winHeight = window.innerHeight
-    })
-    this.checkSession()
-  },
-
-  methods: {
-    checkSession: function () {
-      httpGet("/api/session/get").then(() => {
-        this.isLogin = true
-      }).catch(() => {
-        this.showDialog = true
-      })
-    },
-
-    // 登录输入框输入事件处理
-    loginInputKeyup: function (e) {
-      if (e.keyCode === 13) {
-        this.login();
-      }
-    },
-
-    // 登录
-    login: function () {
-      if (!this.user.username || !this.user.password) {
-        ElMessage.error('请输入用户名和密码')
-        return
-      }
-      httpPost('/api/admin/login', this.user).then((res) => {
-        setLoginUser(res.data)
-        this.showDialog = false
-        this.isLogin = true
-        this.user = {}
-      }).catch((e) => {
-        ElMessage.error('登录失败，' + e.message)
-      })
-    },
-
-    logout: function () {
-      httpPost("/api/logout", {opt: "logout"}).then(() => {
-        this.checkSession();
-        this.isLogin = false
-      }).catch(() => {
-        ElMessage.error("注销失败");
-      })
-    },
-
-    arrayContains(array, value, compare) {
-      return arrayContains(array, value, compare);
-    },
-
-    hideSidebar: function () {
-      this.showSidebar = !this.showSidebar
-    },
-
-    // 添加 tab 窗口
-    addTab: function (nav) {
-      if (this.curNav) {
-        this.curNav.active = false
-      }
-      this.curNav = nav;
-      this.curNav.active = true;
-      this.curTab = nav.tab;
-      if (!arrayContains(this.tabs, nav.tab)) {
-        this.tabs.push(nav.tab);
-      }
-    },
-
-    changeTab: function (name) {
-      for (let i = 0; i < this.navs.length; i++) {
-        if (this.navs[i].tab === name) {
-          this.curNav.active = false
-          this.curNav = this.navs[i];
-          this.curNav.active = true;
-          break;
-        }
-      }
-    },
-
-    // 删除 tab 窗口
-    removeTab: function (name) {
-      this.tabs = removeArrayItem(this.tabs, name);
-      if (this.tabs.length === 0) {
-        this.curTab = 'welcome';
-        return;
-      }
-
-      for (let i = 0; i < this.navs.length; i++) {
-        if (this.navs[i].tab === this.tabs[this.tabs.length - 1]) {
-          this.addTab(this.navs[i]);
-        }
-      }
-
-    }
-  },
-
+const sideWidth = computed(() =>{
+  return showSidebar.value ? 250 : 30
 })
+const foldIconRight = computed(() =>{
+  return showSidebar.value ? 3 : 0
+})
+const nodeListPaddingLeft = computed(() =>{
+  return showSidebar.value ?  20 : 5
+})
+const router = useRouter()
+
+onMounted(() => {
+  window.addEventListener("resize", function () {
+    winHeight.value = window.innerHeight
+  })
+
+  httpGet("/api/admin/session").catch(() => {
+   router.push('/admin/login')
+  })
+})
+
+const logout = function () {
+  httpGet("/api/admin/logout").then(() => {
+    router.push('/admin/login')
+  }).catch((e) => {
+    ElMessage.error("注销失败: "+ e.message);
+  })
+}
+
+// 添加 tab 窗口
+const addTab= function (nav) {
+  if (curNav.value) {
+    curNav.value.active = false
+  }
+  nav.active = true
+  curNav.value = nav;
+  curTab.value = nav.tab;
+  if (!arrayContains(tabs.value, nav.tab)) {
+    this.tabs.push(nav.tab);
+  }
+}
+
+// 切换 tab 窗口
+const changeTab= function (name) {
+  for (let i = 0; i < navs.value.length; i++) {
+    let _nav = navs.value[i]
+    if (_nav.tab === name) {
+      curNav.value.active = false // 取消上一个 active 窗口的激活状态
+      _nav.active = true
+      curNav.value = _nav;
+      break;
+    }
+  }
+}
+
+// 删除 tab 窗口
+const removeTab= function (name) {
+  tabs.value = removeArrayItem(tabs.value, name);
+  if (tabs.value.length === 0) {
+    curTab.value = 'welcome';
+    return;
+  }
+
+  for (let i = 0; i < navs.value.length; i++) {
+    if (navs.value[i].tab === tabs.value[tabs.value.length - 1]) {
+      addTab(navs.value[i]);
+    }
+  }
+
+}
 </script>
 
-<style lang="stylus">
+<style scoped lang="stylus">
 $sideBgColor = #252526;
 $borderColor = #4676d0;
-.el-aside {
-  background-color: $sideBgColor;
+.admin-body {
+  .el-aside {
+    background-color: $sideBgColor;
 
-  .title {
-    text-align: center;
-    line-height: 60px;
-    color: #fff;
-    font-size: 20px;
-    border-bottom: 2px solid #333841;
-    display flex
-    flex-direction row
+    .title {
+      text-align: center;
+      line-height: 60px;
+      color: #fff;
+      font-size: 20px;
+      border-bottom: 2px solid #333841;
+      display flex
+      flex-direction row
 
-    .logo {
-      background-color #ffffff
-      border-radius 50%;
-      width 32px;
-      height 32px;
-      margin: 12px 5px 0 5px;
-    }
+      .logo {
+        background-color #ffffff
+        border-radius 50%;
+        width 32px;
+        height 32px;
+        margin: 12px 5px 0 5px;
+      }
 
-    .fold {
-      cursor: pointer;
-      position: relative;
-      top: 2px;
-      margin-left 10px;
-    }
-  }
-
-  .title.hide {
-    .text {
-      display none
-    }
-
-    .logo {
-      display none
-    }
-
-    .fold {
-      margin-left 5px;
-    }
-  }
-
-  .nav-list {
-    list-style: none;
-    position: relative;
-    margin: 0;
-    padding-left: 0;
-    text-align: left;
-
-    li {
-      line-height: 40px;
-      color: #aaa;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 0 10px 0 10px;
-      border-bottom: 1px dashed #333841;
-
-      i {
-        margin-right: 6px;
+      .fold {
+        cursor: pointer;
         position: relative;
-        top: 1px;
-      }
-
-      .delete {
-        float: right;
+        top: 2px;
+        margin-left 10px;
       }
     }
 
-    li.active {
-      background-color: #363535
+    .title.hide {
+      .text {
+        display none
+      }
+
+      .logo {
+        display none
+      }
+
+      .fold {
+        margin-left 5px;
+      }
+    }
+
+    .nav-list {
+      list-style: none;
+      position: relative;
+      margin: 0;
+      padding-left: 0;
+      text-align: left;
+
+      li {
+        line-height: 40px;
+        color: #ffffff;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0 10px 0 10px;
+        border-bottom: 1px dashed #333841;
+
+        i {
+          margin-right: 6px;
+          position: relative;
+          top: 1px;
+        }
+
+        .delete {
+          float: right;
+        }
+      }
+
+      li.active {
+        background-color: #363535
+      }
+    }
+
+    .nav-footer {
+      flex-direction column
+      div {
+        padding 10px 20px;
+        font-size 14px;
+        color #aaaaaa
+
+        .el-link {
+          color #aaaaaa
+        }
+
+        .iconfont {
+          margin-right 5px
+          position relative
+          top 1px
+        }
+      }
+
+      .logout {
+        cursor pointer
+      }
     }
   }
 
-  .tool-box {
-    display flex
-    justify-content center
-    padding 10px 20px;
+  .el-main {
+    --el-main-padding: 0;
+    margin: 0;
+    background-image url("~@/assets/img/bg_01.jpeg")
+
+    .main-container {
+      display: flex;
+      flex-flow: column;
+
+      .content-tabs {
+        background: #ffffff;
+        padding 10px 20px;
+
+        .el-tabs__item {
+          height 35px
+          line-height 35px
+        }
+      }
+
+    }
   }
 }
 
-.el-main {
-  --el-main-padding: 0;
-  margin: 0;
-  background-image url("~@/assets/img/bg_01.jpeg")
 
-  .main-container {
-    display: flex;
-    flex-flow: column;
 
-    .content-tabs {
-      background: #ffffff;
-      padding 10px 20px;
-
-      .el-tabs__item {
-        height 35px
-        line-height 35px
-      }
-    }
-
-  }
-}
 </style>

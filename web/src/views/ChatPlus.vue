@@ -183,9 +183,9 @@
       </el-main>
     </el-container>
 
-    <config-dialog :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
+    <config-dialog v-if="user" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
                    @update-user="updateUser"/>
-    <password-dialog :show="showPasswordDialog" @hide="showPasswordDialog = false" @logout="logout"/>
+    <password-dialog v-if="user" :show="showPasswordDialog" @hide="showPasswordDialog = false" @logout="logout"/>
   </div>
 
 
@@ -200,7 +200,6 @@ import {
   Close,
   Delete,
   Edit,
-  Monitor,
   Plus, Promotion,
   RefreshRight,
   Search,
@@ -211,7 +210,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import {dateFormat, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
-import {getLoginUser, getSessionId} from "@/utils/storage";
+import {getLoginUser, getSessionId, removeLoginUser} from "@/utils/storage";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
@@ -269,15 +268,15 @@ if (!user.value) {
       ElMessage.error('复制失败！');
     })
   });
-}
 
-// 加载系统配置
-httpGet('/api/config/get?key=system').then(res => {
-  title.value = res.data.title;
-  models.value = res.data.models;
-}).catch(e => {
-  ElMessage.error("加载系统配置失败: " + e.message)
-})
+  // 加载系统配置
+  httpGet('/api/config/get?key=system').then(res => {
+    title.value = res.data.title;
+    models.value = res.data.models;
+  }).catch(e => {
+    ElMessage.error("加载系统配置失败: " + e.message)
+  })
+}
 
 const checkSession = function () {
   return new Promise((resolve, reject) => {
@@ -631,6 +630,7 @@ const clearAllChats = function () {
 const logout = function () {
   activelyClose.value = true;
   httpGet('/api/user/logout').then(() => {
+    removeLoginUser();
     router.push('login');
   }).catch(() => {
     ElMessage.error('注销失败！');
@@ -720,8 +720,10 @@ const updateUser = function (data) {
 }
 </script>
 
-<style lang="stylus">
+<style scoped lang="stylus">
 @import '@/assets/iconfont/iconfont.css';
+$sideBgColor = #252526;
+$borderColor = #4676d0;
 #app {
   height: 100%;
 
@@ -729,8 +731,8 @@ const updateUser = function (data) {
     height: 100%;
 
     // left side
-
     .el-aside {
+      background-color: $sideBgColor;
       .title-box {
         padding: 6px 10px;
         display: flex;
@@ -859,19 +861,14 @@ const updateUser = function (data) {
               display flex
 
               .el-image {
-                display flex
-
-                img {
-                  width: 20px;
-                  height: 20px;
-                  border-radius: 5px;
-                }
+                width: 20px;
+                height: 20px;
+                border-radius: 5px;
               }
-
 
               .username {
                 display flex
-                line-height 24px;
+                line-height 22px;
                 width 230px;
                 padding-left 10px;
 
@@ -890,6 +887,8 @@ const updateUser = function (data) {
 
     .el-main {
       overflow: hidden;
+      --el-main-padding: 0;
+      margin: 0;
 
       .chat-head {
         width: 100%;
