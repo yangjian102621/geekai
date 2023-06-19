@@ -6,6 +6,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -33,11 +34,11 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	if userId > 0 {
 		var user model.User
 		h.db.First(&user, userId)
-		var roleMap map[string]int
-		err := utils.JsonDecode(user.ChatRoles, &roleMap)
+		var roleKeys []string
+		err := utils.JsonDecode(user.ChatRoles, &roleKeys)
 		if err == nil {
 			for index, r := range roles {
-				if _, ok := roleMap[r.Key]; !ok {
+				if utils.ContainsStr(roleKeys, r.Key) {
 					roles = append(roles[:index], roles[index+1:]...)
 				}
 			}

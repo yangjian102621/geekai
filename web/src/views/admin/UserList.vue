@@ -45,12 +45,14 @@
       </el-table>
 
       <div class="pagination">
-        <el-pagination background
+        <el-pagination v-if="users.total > 0" background
                        layout="prev, pager, next"
                        :hide-on-single-page="true"
                        v-model:current-page="users.page"
-                       v-model:page-size="users['page_size']"
-                       :total="1000"/>
+                       v-model:page-size="users.page_size"
+                       @update:current-change="fetchUserList(users.page, users.page_size)"
+                       :page-count="users.total_page"/>
+
       </div>
     </el-row>
 
@@ -68,40 +70,35 @@
           <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
         </el-form-item>
 
-        <el-form-item label="有效期：" prop="term">
+        <el-form-item label="有效期：" prop="expired_time">
           <el-date-picker
-              v-model="form2.expired_time"
+              v-model="user.expired_time"
               type="datetime"
-              placeholder="选择时间"
+              placeholder="选择日期"
               format="YYYY-MM-DD HH:mm:ss"
               value-format="YYYY-MM-DD HH:mm:ss"
+              :disabled-date="disabledDate"
           />
         </el-form-item>
 
         <el-form-item label="聊天角色" prop="chat_roles">
           <el-select
-              v-model="form2.chat_roles"
+              v-model="user.chat_roles"
               multiple
               :filterable="true"
               placeholder="选择聊天角色，多选"
-              @change="selectRole"
           >
             <el-option
                 v-for="item in roles"
                 :key="item.key"
                 :label="item.name"
                 :value="item.key"
-                :disabled="item.disabled"
             />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="聊天记录">
-          <el-switch v-model="form2.enable_history"/>
-        </el-form-item>
-
         <el-form-item label="启用状态">
-          <el-switch v-model="form2.status"/>
+          <el-switch v-model="user.status"/>
         </el-form-item>
       </el-form>
 
@@ -119,48 +116,28 @@
 import {nextTick, onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {arrayContains, dateFormat, removeArrayItem} from "@/utils/libs";
+import {dateFormat, removeArrayItem} from "@/utils/libs";
 
 // 变量定义
 const users = ref({})
 
 const user = ref({chat_roles: []})
 const roles = ref([])
-const showUserDialog = ref(false)
 const showUserEditDialog = ref(false)
 const rules = reactive({
-  name: [{required: true, message: '请输入口令名称', trigger: 'change',}],
-  max_calls: [
+  nickname: [{required: true, message: '请输入昵称', trigger: 'change',}],
+  calls: [
     {required: true, message: '请输入提问次数'},
-    {type: 'number', message: '请输入有效数字'},
-  ],
-  remaining_calls: [
-    {required: true, message: '请输入提问次数'},
-    {type: 'number', message: '请输入有效数字'},
-  ],
-  term: [
-    {required: true, message: '请输入有效期', trigger: 'change'},
-    {type: 'number', message: '请输入有效数字'},
-  ],
-  number: [
-    {required: true, message: '请输入口令数量', trigger: 'change'},
     {type: 'number', message: '请输入有效数字'},
   ],
   chat_roles: [{required: true, message: '请选择聊天角色', trigger: 'change'}],
 })
 const loading = ref(true)
 
-const userAddFormRef = ref(null)
 const userEditFormRef = ref(null)
 
 onMounted(() => {
-// 获取口令列表
-  httpGet('/api/admin/user/list', {page: 1, page_size: 20}).then((res) => {
-    users.value = res.data;
-  }).catch(() => {
-    ElMessage.error('加载用户列表失败')
-  })
-
+  fetchUserList(1, 20)
   // 获取角色列表
   httpGet('/api/admin/role/list').then((res) => {
     roles.value = res.data;
@@ -173,27 +150,16 @@ onMounted(() => {
   })
 })
 
-// 选择角色事件
-const selectRole = function (items) {
-  if (arrayContains(items, 'all')) {
-    for (let i = 0; i < roles.value.length; i++) {
-      if (roles.value[i].key === 'all') {
-        continue
-      }
-      roles.value[i].disabled = true
-      form1.value.chat_roles = ['all']
-      form2.value.chat_roles = ['all']
-      form3.value.chat_roles = ['all']
-    }
-  } else {
-    for (let i = 0; i < roles.value.length; i++) {
-      if (roles.value[i].key === 'all') {
-        continue
-      }
-      roles.value[i].disabled = false
-    }
-  }
+const fetchUserList = function (page, pageSize) {
+  httpGet('/api/admin/user/list', {page: page, page_size: pageSize}).then((res) => {
+    users.value = res.data;
+  }).catch(() => {
+    ElMessage.error('加载用户列表失败')
+  })
+}
 
+const disabledDate = (time) => {
+  return time.getTime() < Date.now()
 }
 
 // 删除用户
@@ -209,6 +175,7 @@ const removeUser = function (user) {
 }
 
 const userEdit = function (_user) {
+  _user.expired_time = dateFormat(_user.expired_time)
   user.value = _user
   showUserEditDialog.value = true
 }
@@ -218,9 +185,7 @@ const updateUser = function () {
   userEditFormRef.value.validate((valid) => {
     if (valid) {
       showUserEditDialog.value = false
-      form2.value.term = parseInt(form2.value.term)
-      form2.value.remaining_calls = parseInt(form2.value.remaining_calls)
-      httpPost('/api/admin/user/update', form2.value).then(() => {
+      httpPost('/api/admin/user/update', user.value).then(() => {
         ElMessage.success('操作成功！')
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
