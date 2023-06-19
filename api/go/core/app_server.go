@@ -6,7 +6,6 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"context"
-	"encoding/gob"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -51,7 +50,7 @@ func (s *AppServer) Init(debug bool) {
 	s.Engine.Use(sessionMiddleware(s.AppConfig))
 	s.Engine.Use(authorizeMiddleware(s))
 	s.Engine.Use(errorHandler)
-	gob.Register(model.User{})
+	//gob.Register(model.User{})
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {

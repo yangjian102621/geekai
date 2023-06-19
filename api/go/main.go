@@ -135,6 +135,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/user/")
 			group.GET("list", h.List)
 			group.POST("update", h.Update)
+			group.GET("remove", h.Remove)
 			group.GET("test", h.InitUser)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
