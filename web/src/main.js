@@ -18,11 +18,12 @@ const routes = [
     {name: 'register', path: '/register', component: Register, meta: {title: '用户注册'}},
     {name: 'plus', path: '/chat', component: ChatPlus, meta: {title: 'ChatGPT-智能助手V3'}},
     {name: 'admin', path: '/admin', component: Admin, meta: {title: 'Chat-Plus 控制台'}},
-    {name: 'admin/login', path: '/admin/login', component: AdminLogin, meta: {title: 'Chat-Plus 控制台登录'}},
+    {name: 'admin-login', path: '/admin/login', component: AdminLogin, meta: {title: 'Chat-Plus 控制台登录'}},
     {name: 'test', path: '/test', component: TestPage, meta: {title: '测试页面'}},
     {name: 'NotFound', path: '/:all(.*)', component: NotFound, meta: {title: '页面没有找到'}},
 ]
 
+// console.log(MY_VARIABLE)
 const router = createRouter({
     history: createWebHistory(),
     routes: routes,

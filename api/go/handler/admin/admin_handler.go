@@ -5,6 +5,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	logger2 "chatplus/logger"
+	"chatplus/utils"
 	"chatplus/utils/resp"
 
 	"github.com/gin-contrib/sessions"
@@ -35,7 +36,12 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	}
 	manager := h.App.AppConfig.Manager
 	if data.Username == manager.Username && data.Password == manager.Password {
-		manager.Password = "" // 清空密码
+		err := utils.SetLoginAdmin(c, manager)
+		if err != nil {
+			resp.ERROR(c, "Save session failed")
+			return
+		}
+		manager.Password = "" // 清空密码]
 		resp.SUCCESS(c, manager)
 	} else {
 		resp.ERROR(c, "用户名或者密码错误")

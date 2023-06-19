@@ -19,7 +19,7 @@ func SetLoginUser(c *gin.Context, user model.User) error {
 
 func SetLoginAdmin(c *gin.Context, admin types.Manager) error {
 	session := sessions.Default(c)
-	session.Set(types.SessionAdmin, admin)
+	session.Set(types.SessionAdmin, admin.Username)
 	return session.Save()
 }
 

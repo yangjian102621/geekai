@@ -4,22 +4,14 @@
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue"
+<script setup>
+import {defineComponent, onMounted, ref} from "vue"
 
-export default defineComponent({
-  name: 'XWelcome',
-  data() {
-    return {
-      winHeight: window.innerHeight,
-    }
-  },
-  mounted: function () {
-    const that = this
-    window.addEventListener("resize", function () {
-      that.winHeight = window.innerHeight
-    })
-  }
+const winHeight = ref(window.innerHeight)
+onMounted(() => {
+  window.addEventListener("resize", function () {
+    winHeight.value = window.innerHeight
+  })
 })
 </script>
 
