@@ -109,13 +109,18 @@ func CopyObject(src interface{}, dst interface{}) error {
 				if err == nil {
 					value.Set(reflect.ValueOf(v2).Elem())
 				}
-				// string to map, struct, slice
+				// map, struct, slice to string
 			} else if (field.Type.Kind() == reflect.Struct ||
 				field.Type.Kind() == reflect.Map ||
 				field.Type.Kind() == reflect.Slice) && value.Type().Kind() == reflect.String {
 				ba, err := json.Marshal(v.Interface())
 				if err == nil {
-					value.Set(reflect.ValueOf(string(ba)))
+					val := string(ba)
+					if strings.Contains(val, "{") {
+						value.Set(reflect.ValueOf(string(ba)))
+					} else {
+						value.Set(reflect.ValueOf(""))
+					}
 				}
 			} else { // 简单数据类型的强制类型转换
 				switch value.Kind() {

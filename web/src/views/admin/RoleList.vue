@@ -1,13 +1,13 @@
 <template>
   <div class="role-list">
-    <!--    <el-row class="opt-box">-->
-    <!--      <el-button type="primary" @click="showDialog = true">-->
-    <!--        <el-icon>-->
-    <!--          <Plus/>-->
-    <!--        </el-icon>-->
-    <!--        新增角色-->
-    <!--      </el-button>-->
-    <!--    </el-row>-->
+    <el-row class="opt-box">
+      <el-button type="primary" @click="addRole">
+        <el-icon>
+          <Plus/>
+        </el-icon>
+        新增角色
+      </el-button>
+    </el-row>
 
     <el-row>
       <el-table :data="tableData" :border="parentBorder" style="width: 100%">
@@ -23,7 +23,8 @@
         </el-table-column>
         <el-table-column label="角色名称" prop="name"/>
         <el-table-column label="角色标识" prop="key"/>
-        <el-table-column label="启用状态" width="180">
+        <el-table-column label="排序" prop="sort"/>
+        <el-table-column label="启用状态">
           <template #default="scope">
             <el-tag v-if="scope.row.enable" type="success">启用</el-tag>
             <el-tag type="danger" v-else>禁用</el-tag>
@@ -35,9 +36,14 @@
           </template>
         </el-table-column>
         <el-table-column label="打招呼信息" prop="hello_msg"/>
-        <el-table-column label="操作" width="80" align="right">
+        <el-table-column label="操作" width="180" align="right">
           <template #default="scope">
             <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-popconfirm title="确定要删除当前角色吗?" @confirm="removeRole(scope.row)">
+              <template #reference>
+                <el-button size="small" type="danger">删除</el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -48,38 +54,38 @@
         title="编辑角色"
         width="50%"
     >
-      <el-form :model="form1" label-width="120px" ref="formRef" :rules="rules">
+      <el-form :model="role" label-width="120px" ref="formRef" label-position="left" :rules="rules">
         <el-form-item label="角色名称：" prop="name">
           <el-input
-              v-model="form1.name"
+              v-model="role.name"
               autocomplete="off"
           />
         </el-form-item>
 
         <el-form-item label="角色标志：" prop="key">
           <el-input
-              v-model="form1.key"
+              v-model="role.key"
               autocomplete="off"
           />
         </el-form-item>
 
         <el-form-item label="角色图标：" prop="icon">
           <el-input
-              v-model="form1.icon"
+              v-model="role.icon"
               autocomplete="off"
           />
         </el-form-item>
 
         <el-form-item label="打招呼信息：" prop="hello_msg">
           <el-input
-              v-model="form1.hello_msg"
+              v-model="role.hello_msg"
               autocomplete="off"
           />
         </el-form-item>
 
         <el-form-item label="上下文信息：" prop="context">
           <template #default>
-            <el-table :data="form1.context" :border="childBorder" size="small">
+            <el-table :data="role.context" :border="childBorder" size="small">
               <el-table-column label="对话角色" width="120">
                 <template #default="scope">
                   <el-input
@@ -118,7 +124,10 @@
         </el-form-item>
 
         <el-form-item label="启用状态">
-          <el-switch v-model="form1.enable"/>
+          <el-switch v-model="role.enable"/>
+        </el-form-item>
+        <el-form-item label="排序" prop="sort">
+          <el-input v-model.number="role.sort"/>
         </el-form-item>
       </el-form>
 
@@ -135,38 +144,68 @@
 <script setup>
 
 import {Plus, RemoveFilled} from "@element-plus/icons-vue";
-import {reactive, ref} from "vue";
-import {httpPost} from "@/utils/http";
+import {onMounted, reactive, ref} from "vue";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {copyObj} from "@/utils/libs";
+import {copyObj, removeArrayItem} from "@/utils/libs";
+import {Sortable} from "sortablejs"
 
 const showDialog = ref(false)
 const parentBorder = ref(false)
 const childBorder = ref(true)
 const tableData = ref([])
-const form1 = ref({context: []})
-// const form2 = ref({context: []})
+const role = ref({context: []})
 const formRef = ref(null)
 
 const rules = reactive({
-  name: [{required: true, message: '请输入用户名', trigger: 'change',}],
-  key: [{required: true, message: '请输入角色标识', trigger: 'change',}],
-  icon: [{required: true, message: '请输入角色图标', trigger: 'change',}],
+  name: [{required: true, message: '请输入用户名', trigger: 'blur',}],
+  key: [{required: true, message: '请输入角色标识', trigger: 'blur',}],
+  icon: [{required: true, message: '请输入角色图标', trigger: 'blur',}],
+  sort: [
+    {required: true, message: '请输入排序数字', trigger: 'blur'},
+    {type: 'number', message: '请输入有效数字'},
+  ],
   hello_msg: [{required: true, message: '请输入打招呼信息', trigger: 'change',}]
 })
 
 // 获取角色列表
-httpPost('/api/admin/chat-roles/list').then((res) => {
+httpGet('/api/admin/role/list').then((res) => {
   tableData.value = res.data
 }).catch(() => {
   ElMessage.error("获取聊天角色失败");
+})
+
+onMounted(() => {
+  const drawBodyWrapper = document.querySelector('.el-table__body tbody')
+  Sortable.create(drawBodyWrapper, {
+    onEnd({newIndex, oldIndex}) {
+      // console.log(oldIndex, newIndex);
+      if (oldIndex === newIndex) {
+        return
+      }
+      const role = tableData.value[oldIndex]
+      if (newIndex > oldIndex) {
+        role.sort = tableData.value[newIndex].sort + 1
+      } else {
+        role.sort = tableData.value[newIndex].sort - 1
+      }
+      httpPost('/api/admin/role/sort', {"id": role.id, "sort": role.sort}).catch(() => {
+        ElMessage.error("移动失败！")
+      })
+    }
+  })
 })
 
 // 编辑
 const curIndex = ref(0)
 const rowEdit = function (index, row) {
   curIndex.value = index
-  form1.value = copyObj(row)
+  role.value = copyObj(row)
+  showDialog.value = true
+}
+
+const addRole = function () {
+  role.value = {context: []}
   showDialog.value = true
 }
 
@@ -174,25 +213,41 @@ const doUpdate = function () {
   formRef.value.validate((valid) => {
     if (valid) {
       showDialog.value = false
-      httpPost('/api/admin/chat-roles/set', form1.value).then(() => {
-        ElMessage.success('更新角色成功')
+      httpPost('/api/admin/role/update', role.value).then((res) => {
+        ElMessage.success('操作成功')
         // 更新当前数据行
-        tableData.value[curIndex.value] = form1.value
+        if (role.value.id) {
+          tableData.value[curIndex.value] = role.value
+        } else {
+          tableData.value.push(res.data)
+        }
       }).catch((e) => {
-        ElMessage.error('更新角色失败，' + e.message)
+        ElMessage.error('操作失败，' + e.message)
       })
-    } else {
-      return false
     }
   })
 }
 
+const removeRole = function (row) {
+  httpGet('/api/admin/role/remove?id=' + row.id).then(() => {
+    ElMessage.success("删除成功！")
+    tableData.value = removeArrayItem(tableData.value, row, (v1, v2) => {
+      return v1.id === v2.id
+    })
+  }).catch(() => {
+    ElMessage.error("删除失败！")
+  })
+}
+
 const addContext = function () {
-  form1.value.context.push({role: '', content: ''})
+  if (!role.value.context) {
+    role.value.context = []
+  }
+  role.value.context.push({role: '', content: ''})
 }
 
 const removeContext = function (index) {
-  form1.value.context.splice(index, 1);
+  role.value.context.splice(index, 1);
 }
 
 </script>

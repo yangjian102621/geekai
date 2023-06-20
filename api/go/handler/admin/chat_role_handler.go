@@ -10,6 +10,7 @@ import (
 	"chatplus/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ChatRoleHandler struct {
@@ -23,42 +24,38 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 	return &h
 }
 
-// Add 添加一个聊天角色
-func (h *ChatRoleHandler) Add(c *gin.Context) {
+// Update 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
+func (h *ChatRoleHandler) Update(c *gin.Context) {
 	var data vo.ChatRole
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-
-	if data.Key == "" || data.Name == "" || data.Icon == "" {
+	var role model.ChatRole
+	err := utils.CopyObject(data, &role)
+	if err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-
-	//err := h.service.Create(data)
-	//if err != nil {
-	//	resp.ERROR(c, "Save failed: "+err.Error())
-	//	return
-	//}
-
+	role.Id = data.Id
+	if data.CreatedAt > 0 {
+		role.CreatedAt = time.Unix(data.CreatedAt, 0)
+	}
+	res := h.db.Save(&role)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败！")
+		return
+	}
+	// 填充 ID 数据
+	data.Id = role.Id
+	data.CreatedAt = role.CreatedAt.Unix()
 	resp.SUCCESS(c, data)
-}
-
-// Get 获取指定的角色
-func (h *ChatRoleHandler) Get(c *gin.Context) {
-
-}
-
-// Update 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
-func (h *ChatRoleHandler) Update(c *gin.Context) {
-
 }
 
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
-	res := h.db.Where("enable", true).Order("sort ASC").Find(&items)
+	res := h.db.Debug().Order("sort ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return
@@ -76,4 +73,42 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, roles)
+}
+
+// SetSort 更新角色排序
+func (h *ChatRoleHandler) SetSort(c *gin.Context) {
+	var data struct {
+		Id   uint `json:"id"`
+		Sort int  `json:"sort"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id <= 0 {
+		resp.HACKER(c)
+		return
+	}
+	res := h.db.Debug().Model(&model.ChatRole{}).Where("id = ?", data.Id).Update("sort", data.Sort)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败！")
+		return
+	}
+
+	resp.SUCCESS(c)
+}
+
+func (h *ChatRoleHandler) Remove(c *gin.Context) {
+	id := h.GetInt(c, "id", 0)
+	if id <= 0 {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	
+	res := h.db.Where("id = ?", id).Delete(&model.ChatRole{})
+	if res.Error != nil {
+		resp.ERROR(c, "删除失败！")
+		return
+	}
+	resp.SUCCESS(c)
 }

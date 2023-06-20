@@ -245,7 +245,7 @@ if (!user.value) {
     resizeElement();
     checkSession().then(() => {
       // 加载角色列表
-      httpGet(`/api/chat/role/list?user_id=${user.value.id}`).then((res) => {
+      httpGet(`/api/role/list?user_id=${user.value.id}`).then((res) => {
         roles.value = res.data;
         roleId.value = roles.value[0]['id'];
         // 获取会话列表
