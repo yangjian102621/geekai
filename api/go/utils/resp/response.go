@@ -23,6 +23,10 @@ func ERROR(c *gin.Context, messages ...string) {
 	}
 }
 
+func HACKER(c *gin.Context) {
+	c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hacker attempt!!!"})
+}
+
 func NotAuth(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "Not Authorized"})
 }

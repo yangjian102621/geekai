@@ -89,7 +89,7 @@ func main() {
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
-			group := s.Engine.Group("/api/chat/role/")
+			group := s.Engine.Group("/api/role/")
 			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
@@ -141,8 +141,9 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
 			group := s.Engine.Group("/api/admin/role/")
 			group.GET("list", h.List)
-			group.POST("add", h.Add)
 			group.POST("update", h.Update)
+			group.POST("sort", h.SetSort)
+			group.GET("remove", h.Remove)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
