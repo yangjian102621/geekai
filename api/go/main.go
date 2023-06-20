@@ -137,6 +137,7 @@ func main() {
 			group.GET("list", h.List)
 			group.POST("update", h.Update)
 			group.GET("remove", h.Remove)
+			group.GET("loginLog", h.LoginLog)
 			group.GET("test", h.InitUser)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
