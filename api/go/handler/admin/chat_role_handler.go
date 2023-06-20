@@ -24,8 +24,8 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 	return &h
 }
 
-// Update 更新某个聊天角色信息，这里只允许更改名称以及启用和禁用角色操作
-func (h *ChatRoleHandler) Update(c *gin.Context) {
+// Save 创建或者更新某个角色
+func (h *ChatRoleHandler) Save(c *gin.Context) {
 	var data vo.ChatRole
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)

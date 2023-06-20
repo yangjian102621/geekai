@@ -140,7 +140,7 @@
       <template #footer>
             <span class="dialog-footer">
               <el-button @click="showDialog = false">取消</el-button>
-              <el-button type="primary" @click="doUpdate">保存</el-button>
+              <el-button type="primary" @click="save">保存</el-button>
             </span>
       </template>
     </el-dialog>
@@ -245,11 +245,11 @@ const addRole = function () {
   showDialog.value = true
 }
 
-const doUpdate = function () {
+const save = function () {
   formRef.value.validate((valid) => {
     if (valid) {
       showDialog.value = false
-      httpPost('/api/admin/role/update', role.value).then((res) => {
+      httpPost('/api/admin/role/save', role.value).then((res) => {
         ElMessage.success('操作成功')
         // 更新当前数据行
         if (role.value.id) {

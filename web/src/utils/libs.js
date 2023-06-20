@@ -124,3 +124,7 @@ export function renderInputText(text) {
 export function copyObj(origin) {
     return JSON.parse(JSON.stringify(origin));
 }
+
+export function disabledDate(time) {
+    return time.getTime() < Date.now()
+}

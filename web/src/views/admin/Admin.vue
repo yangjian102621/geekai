@@ -84,6 +84,9 @@
                 <el-tab-pane label="角色管理" name="role" v-if="arrayContains(tabs, 'role')">
                   <role-list v-if="curTab==='role'"/>
                 </el-tab-pane>
+                <el-tab-pane label="API KEY" name="apikey" v-if="arrayContains(tabs, 'apikey')">
+                  <api-key v-if="curTab==='apikey'"/>
+                </el-tab-pane>
               </el-tabs>
             </div>
           </div>
@@ -104,6 +107,7 @@ import RoleList from "@/views/admin/RoleList.vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
+import ApiKey from "@/views/admin/ApiKey.vue";
 
 const title = ref('Chat-Plus 控制台')
 const logo = ref('images/logo.png')
@@ -125,6 +129,12 @@ const navs = ref([
     id: 3,
     title: '角色管理',
     tab: 'role',
+    active: false,
+  },
+  {
+    id: 4,
+    title: 'API KEY',
+    tab: 'apikey',
     active: false,
   }
 ])

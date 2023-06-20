@@ -128,8 +128,9 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
 			group := s.Engine.Group("/api/admin/apikey/")
-			group.POST("add", h.Add)
+			group.POST("save", h.Save)
 			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
 			group := s.Engine.Group("/api/admin/user/")
@@ -141,7 +142,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
 			group := s.Engine.Group("/api/admin/role/")
 			group.GET("list", h.List)
-			group.POST("update", h.Update)
+			group.POST("save", h.Save)
 			group.POST("sort", h.SetSort)
 			group.GET("remove", h.Remove)
 		}),
