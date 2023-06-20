@@ -55,7 +55,7 @@ func (h *ChatRoleHandler) Update(c *gin.Context) {
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
-	res := h.db.Debug().Order("sort ASC").Find(&items)
+	res := h.db.Order("sort ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return
@@ -89,7 +89,7 @@ func (h *ChatRoleHandler) SetSort(c *gin.Context) {
 		resp.HACKER(c)
 		return
 	}
-	res := h.db.Debug().Model(&model.ChatRole{}).Where("id = ?", data.Id).Update("sort", data.Sort)
+	res := h.db.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update("sort", data.Sort)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -104,7 +104,7 @@ func (h *ChatRoleHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	
+
 	res := h.db.Where("id = ?", id).Delete(&model.ChatRole{})
 	if res.Error != nil {
 		resp.ERROR(c, "删除失败！")

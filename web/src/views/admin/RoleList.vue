@@ -23,7 +23,13 @@
         </el-table-column>
         <el-table-column label="角色名称" prop="name"/>
         <el-table-column label="角色标识" prop="key"/>
-        <el-table-column label="排序" prop="sort"/>
+        <el-table-column label="排序" prop="sort">
+          <template #default="scope">
+            <el-input v-if="scope.row.id === editRow.id" v-model.number="scope.row.sort" @blur="updateSort(scope.row)"
+                      size="small" autofocus/>
+            <span v-else @click="editSort($event,scope.row)">{{ scope.row.sort }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="启用状态">
           <template #default="scope">
             <el-tag v-if="scope.row.enable" type="success">启用</el-tag>
@@ -154,8 +160,10 @@ const showDialog = ref(false)
 const parentBorder = ref(false)
 const childBorder = ref(true)
 const tableData = ref([])
+const sortedTableData = ref([])
 const role = ref({context: []})
 const formRef = ref(null)
+const editRow = ref({})
 
 const rules = reactive({
   name: [{required: true, message: '请输入用户名', trigger: 'blur',}],
@@ -171,30 +179,58 @@ const rules = reactive({
 // 获取角色列表
 httpGet('/api/admin/role/list').then((res) => {
   tableData.value = res.data
+  sortedTableData.value = copyObj(tableData.value)
 }).catch(() => {
   ElMessage.error("获取聊天角色失败");
 })
 
 onMounted(() => {
   const drawBodyWrapper = document.querySelector('.el-table__body tbody')
+
+  // 初始化拖动排序插件
   Sortable.create(drawBodyWrapper, {
+    sort: true,
     onEnd({newIndex, oldIndex}) {
-      // console.log(oldIndex, newIndex);
+      //console.log(oldIndex, newIndex);
       if (oldIndex === newIndex) {
         return
       }
-      const role = tableData.value[oldIndex]
+
+      const curRow = sortedTableData.value[oldIndex]
+      const newRow = sortedTableData.value[newIndex]
+      sortedTableData.value.splice(oldIndex, 1)
+      sortedTableData.value.splice(newIndex, 0, curRow)
+      // console.log(currRow)
+
       if (newIndex > oldIndex) {
-        role.sort = tableData.value[newIndex].sort + 1
+        curRow.sort = curRow.sort === newRow.sort ? newRow.sort + 1 : newRow.sort
       } else {
-        role.sort = tableData.value[newIndex].sort - 1
+        curRow.sort = curRow.sort === newRow.sort ? newRow.sort - 1 : newRow.sort
       }
-      httpPost('/api/admin/role/sort', {"id": role.id, "sort": role.sort}).catch(() => {
+      httpPost('/api/admin/role/sort', {"id": curRow.id, "sort": curRow.sort}).catch(() => {
         ElMessage.error("移动失败！")
       })
     }
   })
 })
+
+const editSort = function (event, row) {
+  event.stopPropagation()
+  editRow.value.id = row.id
+  editRow.value.sort = row.sort
+}
+const updateSort = function (row) {
+  if (row.sort === editRow.value.sort) {
+    editRow.value.id = 0
+    return
+  }
+
+  httpPost('/api/admin/role/sort', {"id": row.id, "sort": row.sort}).then(() => {
+    editRow.value.id = 0
+  }).catch(() => {
+    ElMessage.error("更新失败！")
+  })
+}
 
 // 编辑
 const curIndex = ref(0)
@@ -280,6 +316,14 @@ const removeContext = function (index) {
       margin-top 5px;
       margin-left 5px;
       cursor pointer
+    }
+  }
+
+  .el-input--small {
+    width 30px;
+
+    .el-input__inner {
+      text-align center
     }
   }
 }
