@@ -30,8 +30,8 @@
 ![ChatGPT admin](docs/imgs/admin-03.png)
 
 ### 5. 体验地址
-> 体验地址：[https://www.chat-plus.net/chat/#/free](https://www.chat-plus.net/chat/#/free) <br/>
-> 口令：GeekMaster
+> 体验地址：[https://www.chat-plus.net/chat](https://www.chat-plus.net/chat) <br/>
+> 涉及到数据隐私问题，没有提供共享账号，大家自己快速注册一个账号就可以免费体验
 
 ## 项目介绍
 这一套完整的系统，包括两套前端聊天应用和一个后台管理系统。系统有用户鉴权，你可以自己使用，也可以部署直接给 C 端用户提供 ChatGPT 的服务。
