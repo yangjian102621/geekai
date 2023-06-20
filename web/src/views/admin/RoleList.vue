@@ -1,11 +1,11 @@
 <template>
   <div class="role-list">
     <el-row class="opt-box">
-      <el-button type="primary" @click="addRole">
+      <el-button type="primary" @click="addRole" size="small">
         <el-icon>
           <Plus/>
         </el-icon>
-        新增角色
+        新增
       </el-button>
     </el-row>
 
@@ -292,6 +292,8 @@ const removeContext = function (index) {
 .role-list {
   .opt-box {
     padding-bottom: 10px;
+    display flex;
+    justify-content end
 
     .el-icon {
       margin-right 5px;

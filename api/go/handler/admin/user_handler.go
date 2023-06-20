@@ -118,6 +118,32 @@ func (h *UserHandler) Remove(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
+func (h *UserHandler) LoginLog(c *gin.Context) {
+	page := h.GetInt(c, "page", 1)
+	pageSize := h.GetInt(c, "page_size", 20)
+	var total int64
+	h.db.Model(&model.UserLoginLog{}).Count(&total)
+	offset := (page - 1) * pageSize
+	var items []model.UserLoginLog
+	res := h.db.Offset(offset).Limit(pageSize).Find(&items)
+	if res.Error != nil {
+		resp.ERROR(c, "获取数据失败")
+		return
+	}
+	var logs []vo.UserLoginLog
+	for _, v := range items {
+		var log vo.UserLoginLog
+		err := utils.CopyObject(v, &log)
+		if err == nil {
+			log.Id = v.Id
+			log.CreatedAt = v.CreatedAt.Unix()
+			logs = append(logs, log)
+		}
+	}
+
+	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, logs))
+}
+
 func (h *UserHandler) InitUser(c *gin.Context) {
 	var users []model.User
 	h.db.Find(&users)

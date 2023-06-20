@@ -8,9 +8,10 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ApiKeyHandler struct {
@@ -61,7 +62,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
 	userId := h.GetInt(c, "user_id", -1)
-	query := h.db.Debug().Session(&gorm.Session{})
+	query := h.db.Session(&gorm.Session{})
 	if userId >= 0 {
 		query = query.Where("user_id", userId)
 	}

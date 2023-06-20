@@ -87,6 +87,9 @@
                 <el-tab-pane label="API KEY" name="apikey" v-if="arrayContains(tabs, 'apikey')">
                   <api-key v-if="curTab==='apikey'"/>
                 </el-tab-pane>
+                <el-tab-pane label="登录日志" name="loginLog" v-if="arrayContains(tabs, 'loginLog')">
+                  <login-log v-if="curTab==='loginLog'"/>
+                </el-tab-pane>
               </el-tabs>
             </div>
           </div>
@@ -108,10 +111,10 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import ApiKey from "@/views/admin/ApiKey.vue";
+import LoginLog from "@/views/admin/LoginLog.vue";
 
 const title = ref('Chat-Plus 控制台')
 const logo = ref('images/logo.png')
-const user = ref({})
 const navs = ref([
   {
     id: 1,
@@ -136,6 +139,12 @@ const navs = ref([
     title: 'API KEY',
     tab: 'apikey',
     active: false,
+  },
+  {
+    id: 5,
+    title: '登录日志',
+    tab: 'loginLog',
+    active: false,
   }
 ])
 const tabs = ref([])
@@ -155,21 +164,21 @@ const nodeListPaddingLeft = computed(() => {
 })
 const router = useRouter()
 
-onMounted(() => {
-  window.addEventListener("resize", function () {
-    winHeight.value = window.innerHeight
-  })
-
-  // 获取会话信息
-  httpGet("/api/admin/session").catch(() => {
-    router.push('/admin/login')
-  })
-
+// 获取会话信息
+httpGet("/api/admin/session").then(() => {
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system').then(res => {
     title.value = res.data['admin_title'];
   }).catch(e => {
     ElMessage.error("加载系统配置失败: " + e.message)
+  })
+}).catch(() => {
+  router.push('/admin/login')
+})
+
+onMounted(() => {
+  window.addEventListener("resize", function () {
+    winHeight.value = window.innerHeight
   })
 })
 
@@ -353,4 +362,13 @@ $borderColor = #4676d0;
 }
 
 
+</style>
+
+<style lang="stylus">
+.pagination {
+  padding 20px;
+  display flex
+  justify-content center
+  width 100%
+}
 </style>

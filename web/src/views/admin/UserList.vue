@@ -39,7 +39,7 @@
                        :hide-on-single-page="true"
                        v-model:current-page="users.page"
                        v-model:page-size="users.page_size"
-                       @update:current-change="fetchUserList(users.page, users.page_size)"
+                       @current-change="fetchUserList(users.page, users.page_size)"
                        :total="users.total"/>
 
       </div>
@@ -126,7 +126,7 @@ const loading = ref(true)
 const userEditFormRef = ref(null)
 
 onMounted(() => {
-  fetchUserList(1, 20)
+  fetchUserList(1, 10)
   // 获取角色列表
   httpGet('/api/admin/role/list').then((res) => {
     roles.value = res.data;
@@ -217,13 +217,6 @@ const handleSelectionChange = function (rows) {
     .el-icon {
       margin-right: 5px;
     }
-  }
-
-  .pagination {
-    padding-top 20px;
-    display flex
-    justify-content center
-    width 100%
   }
 
   .el-select {
