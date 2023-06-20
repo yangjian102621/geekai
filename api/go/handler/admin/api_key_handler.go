@@ -8,10 +8,9 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ApiKeyHandler struct {
@@ -25,38 +24,50 @@ func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
 	return &h
 }
 
-func (h *ApiKeyHandler) Add(c *gin.Context) {
+func (h *ApiKeyHandler) Save(c *gin.Context) {
 	var data struct {
-		Key string
+		Id         uint   `json:"id"`
+		UserId     uint   `json:"user_id"`
+		Value      string `json:"value"`
+		LastUsedAt string `json:"last_used_at"`
+		CreatedAt  int64  `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	// 获取当前登录用户
-	var userId uint = 0
-	user, err := utils.GetLoginUser(c, h.db)
-	if err == nil {
-		userId = user.Id
+
+	apiKey := model.ApiKey{Value: data.Value, UserId: data.UserId, LastUsedAt: utils.Str2stamp(data.LastUsedAt)}
+	apiKey.Id = data.Id
+	if apiKey.Id > 0 {
+		apiKey.CreatedAt = time.Unix(data.CreatedAt, 0)
 	}
-	var key = model.ApiKey{Value: data.Key, UserId: userId}
-	res := h.db.Create(&key)
+	res := h.db.Save(&apiKey)
 	if res.Error != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "操作失败"})
+		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
-	resp.SUCCESS(c, key)
+
+	var keyVo vo.ApiKey
+	err := utils.CopyObject(apiKey, &keyVo)
+	if err != nil {
+		resp.ERROR(c, "数据拷贝失败！")
+		return
+	}
+	keyVo.Id = apiKey.Id
+	keyVo.CreatedAt = apiKey.CreatedAt.Unix()
+	resp.SUCCESS(c, keyVo)
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
-	page := h.GetInt(c, "page", 1)
-	pageSize := h.GetInt(c, "page_size", 20)
-	offset := (page - 1) * pageSize
+	userId := h.GetInt(c, "user_id", -1)
+	query := h.db.Debug().Session(&gorm.Session{})
+	if userId >= 0 {
+		query = query.Where("user_id", userId)
+	}
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
-	var total int64
-	h.db.Model(&model.ApiKey{}).Count(&total)
-	res := h.db.Offset(offset).Limit(pageSize).Find(&items)
+	res := query.Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var key vo.ApiKey
@@ -71,6 +82,18 @@ func (h *ApiKeyHandler) List(c *gin.Context) {
 			}
 		}
 	}
-	pageVo := vo.NewPage(total, page, pageSize, keys)
-	resp.SUCCESS(c, pageVo)
+	resp.SUCCESS(c, keys)
+}
+
+func (h *ApiKeyHandler) Remove(c *gin.Context) {
+	id := h.GetInt(c, "id", 0)
+
+	if id > 0 {
+		res := h.db.Where("id = ?", id).Delete(&model.ApiKey{})
+		if res.Error != nil {
+			resp.ERROR(c, "更新数据库失败！")
+			return
+		}
+	}
+	resp.SUCCESS(c)
 }

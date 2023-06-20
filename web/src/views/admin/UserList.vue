@@ -14,7 +14,7 @@
         </el-table-column>
         <el-table-column label="过期时间">
           <template #default="scope">
-            <span v-if="scope.row['expired_time'] > 0">{{ dateFormat(scope.row['expired_time']) }}</span>
+            <span v-if="scope.row['expired_time']">{{ scope.row['expired_time'] }}</span>
             <el-tag v-else>长期有效</el-tag>
           </template>
         </el-table-column>
@@ -40,7 +40,7 @@
                        v-model:current-page="users.page"
                        v-model:page-size="users.page_size"
                        @update:current-change="fetchUserList(users.page, users.page_size)"
-                       :page-count="users.total_page"/>
+                       :total="users.total"/>
 
       </div>
     </el-row>
@@ -105,7 +105,7 @@
 import {nextTick, onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {dateFormat, removeArrayItem} from "@/utils/libs";
+import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
 
 // 变量定义
 const users = ref({})
@@ -141,14 +141,17 @@ onMounted(() => {
 
 const fetchUserList = function (page, pageSize) {
   httpGet('/api/admin/user/list', {page: page, page_size: pageSize}).then((res) => {
-    users.value = res.data;
+    if (res.data) {
+      // 初始化数据
+      const arr = res.data.items;
+      for (let i = 0; i < arr.length; i++) {
+        arr[i].expired_time = dateFormat(arr[i].expired_time)
+      }
+      users.value.items = arr
+    }
   }).catch(() => {
     ElMessage.error('加载用户列表失败')
   })
-}
-
-const disabledDate = (time) => {
-  return time.getTime() < Date.now()
 }
 
 // 删除用户
@@ -179,7 +182,6 @@ const removeUser = function (user) {
 }
 
 const userEdit = function (_user) {
-  _user.expired_time = dateFormat(_user.expired_time)
   user.value = _user
   showUserEditDialog.value = true
 }
