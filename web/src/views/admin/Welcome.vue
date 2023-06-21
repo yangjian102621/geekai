@@ -1,19 +1,10 @@
 <template>
-  <div class="welcome" :style="{ height: winHeight + 'px' }">
+  <div class="welcome">
     <h1>ChatGPT-PLUS 控制台</h1>
   </div>
 </template>
 
-<script setup>
-import {defineComponent, onMounted, ref} from "vue"
-
-const winHeight = ref(window.innerHeight)
-onMounted(() => {
-  window.addEventListener("resize", function () {
-    winHeight.value = window.innerHeight
-  })
-})
-</script>
+<script setup></script>
 
 <style lang="stylus" scoped>
 .welcome {
@@ -22,6 +13,7 @@ onMounted(() => {
   align-items: center;
   color: #202020;
   background-color: #282c34;
+  height 100%;
 
   h1 {
     font-size: 300%;

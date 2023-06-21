@@ -10,16 +10,6 @@
             <span>{{ dateFormat(scope.row['created_at']) }}</span>
           </template>
         </el-table-column>
-
-        <el-table-column label="操作" width="180">
-          <template #default="scope">
-            <el-popconfirm title="确定要删除当前记录吗?" @confirm="remove(scope.row)">
-              <template #reference>
-                <el-button size="small" type="danger">删除</el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
       </el-table>
     </el-row>
 
@@ -77,7 +67,7 @@ const fetchList = function (_page, _pageSize) {
   .opt-box {
     padding-bottom: 10px;
     display flex;
-    justify-content end
+    justify-content flex-start
 
     .el-icon {
       margin-right: 5px;

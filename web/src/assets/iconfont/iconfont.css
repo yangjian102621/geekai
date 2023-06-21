@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1686901862117') format('woff2'),
-       url('iconfont.woff?t=1686901862117') format('woff'),
-       url('iconfont.ttf?t=1686901862117') format('truetype');
+  src: url('iconfont.woff2?t=1687320603149') format('woff2'),
+       url('iconfont.woff?t=1687320603149') format('woff'),
+       url('iconfont.ttf?t=1687320603149') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,50 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-home:before {
+  content: "\e6cb";
+}
+
+.icon-menu:before {
+  content: "\e6a6";
+}
+
+.icon-log:before {
+  content: "\e61c";
+}
+
+.icon-user-fill:before {
+  content: "\e7d5";
+}
+
+.icon-user-circle:before {
+  content: "\e860";
+}
+
+.icon-chart:before {
+  content: "\e631";
+}
+
+.icon-wechat:before {
+  content: "\e621";
+}
+
+.icon-config:before {
+  content: "\e612";
+}
+
+.icon-api-key:before {
+  content: "\e7d8";
+}
+
+.icon-role:before {
+  content: "\e60a";
+}
+
+.icon-dashboard:before {
+  content: "\e602";
 }
 
 .icon-password:before {

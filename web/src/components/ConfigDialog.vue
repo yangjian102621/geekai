@@ -1,14 +1,13 @@
 <template>
   <el-dialog
-      v-model="show"
+      v-model="showDialog"
       :close-on-click-modal="false"
-      :show-close="true"
       :before-close="close"
       :top="top"
       title="用户设置"
   >
     <div class="user-info" id="user-info">
-      <el-form :model="form" label-width="120px">
+      <el-form v-if="form.id" :model="form" label-width="120px">
         <el-form-item label="昵称">
           <el-input v-model="form['nickname']"/>
         </el-form-item>
@@ -77,6 +76,9 @@ const props = defineProps({
   models: Array,
 });
 
+const showDialog = computed(() => {
+  return props.show
+})
 const form = ref({})
 const top = computed(() => {
   if (window.innerHeight < 768) {

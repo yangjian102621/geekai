@@ -1,15 +1,12 @@
 <template>
-  <router-view></router-view>
+  <el-config-provider :locale="zhCn">
+    <router-view/>
+  </el-config-provider>
 </template>
 
-<script>
-import {defineComponent} from 'vue'
-
-export default defineComponent({
-  setup() {
-    // TODO: 初始化操作
-  },
-})
+<script setup>
+import {ElConfigProvider} from 'element-plus';
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
 </script>
 
 

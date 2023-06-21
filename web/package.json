@@ -17,6 +17,8 @@
     "highlight.js": "^11.7.0",
     "json-bigint": "^1.0.0",
     "markdown-it": "^13.0.1",
+    "md-editor-v3": "^2.2.1",
+    "pinia": "^2.1.4",
     "qs": "^6.11.1",
     "sortablejs": "^1.15.0",
     "vue": "^3.2.13",

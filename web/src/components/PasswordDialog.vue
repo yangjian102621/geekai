@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-      v-model="show"
+      v-model="showDialog"
       :close-on-click-modal="false"
       :show-close="true"
       :before-close="close"
@@ -32,20 +32,17 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {computed, ref} from "vue"
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
 const props = defineProps({
   show: Boolean,
 });
-
-const form = ref({})
-
-onMounted(() => {
-
+const showDialog = computed(() => {
+  return props.show
 })
-
+const form = ref({})
 const emits = defineEmits(['hide', 'logout']);
 const save = function () {
   if (!form.value['password'] || form.value['password'].length < 8) {

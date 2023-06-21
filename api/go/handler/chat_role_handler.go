@@ -30,23 +30,24 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 		resp.ERROR(c, "No roles found,"+res.Error.Error())
 		return
 	}
-	userId := h.GetInt(c, "user_id", 0)
-	if userId > 0 {
-		var user model.User
-		h.db.First(&user, userId)
-		var roleKeys []string
-		err := utils.JsonDecode(user.ChatRoles, &roleKeys)
-		if err == nil {
-			for index, r := range roles {
-				if utils.ContainsStr(roleKeys, r.Key) {
-					roles = append(roles[:index], roles[index+1:]...)
-				}
-			}
-		}
+
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+	var roleKeys []string
+	err = utils.JsonDecode(user.ChatRoles, &roleKeys)
+	if err != nil {
+		resp.ERROR(c, "角色解析失败！")
+		return
 	}
 	// 转成 vo
 	var roleVos = make([]vo.ChatRole, 0)
 	for _, r := range roles {
+		if !utils.ContainsStr(roleKeys, r.Key) {
+			continue
+		}
 		var v vo.ChatRole
 		err := utils.CopyObject(r, &v)
 		if err == nil {

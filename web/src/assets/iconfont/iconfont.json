@@ -6,6 +6,83 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "673799",
+      "name": "首页",
+      "font_class": "home",
+      "unicode": "e6cb",
+      "unicode_decimal": 59083
+    },
+    {
+      "icon_id": "11808058",
+      "name": "menu",
+      "font_class": "menu",
+      "unicode": "e6a6",
+      "unicode_decimal": 59046
+    },
+    {
+      "icon_id": "1166053",
+      "name": "日志",
+      "font_class": "log",
+      "unicode": "e61c",
+      "unicode_decimal": 58908
+    },
+    {
+      "icon_id": "6151151",
+      "name": "user-fill",
+      "font_class": "user-fill",
+      "unicode": "e7d5",
+      "unicode_decimal": 59349
+    },
+    {
+      "icon_id": "6172778",
+      "name": "user-circle",
+      "font_class": "user-circle",
+      "unicode": "e860",
+      "unicode_decimal": 59488
+    },
+    {
+      "icon_id": "7821146",
+      "name": "chart",
+      "font_class": "chart",
+      "unicode": "e631",
+      "unicode_decimal": 58929
+    },
+    {
+      "icon_id": "8430216",
+      "name": "wechat",
+      "font_class": "wechat",
+      "unicode": "e621",
+      "unicode_decimal": 58913
+    },
+    {
+      "icon_id": "9769247",
+      "name": "config",
+      "font_class": "config",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "10055632",
+      "name": "API密钥",
+      "font_class": "api-key",
+      "unicode": "e7d8",
+      "unicode_decimal": 59352
+    },
+    {
+      "icon_id": "11466716",
+      "name": "mg-role",
+      "font_class": "role",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "4194141",
+      "name": "首页dashboard",
+      "font_class": "dashboard",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
       "icon_id": "611345",
       "name": "密码",
       "font_class": "password",
