@@ -1,7 +1,7 @@
 <template>
-  <div class="list" v-loading="loading">
+  <div class="container list" v-loading="loading">
     <el-row>
-      <el-table :data="items" :row-key="row => row.id">
+      <el-table :data="items" border :row-key="row => row.id">
         <el-table-column label="用户名" prop="username"/>
         <el-table-column label="登录IP" prop="login_ip"/>
         <el-table-column label="登录地址" prop="login_address"/>
@@ -15,7 +15,7 @@
 
     <div class="pagination">
       <el-pagination v-if="total > 0" background
-                     layout="prev, pager, next"
+                     layout="total,prev, pager, next"
                      :hide-on-single-page="true"
                      v-model:current-page="page"
                      v-model:page-size="pageSize"

@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "6343824",
+      "name": "menu",
+      "font_class": "sub-menu",
+      "unicode": "e86b",
+      "unicode_decimal": 59499
+    },
+    {
       "icon_id": "1487626",
       "name": "微信支付",
       "font_class": "wechat-pay",

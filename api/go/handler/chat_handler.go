@@ -125,19 +125,19 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 
 	if userVo.Status == false {
 		replyMessage(ws, "您的账号已经被禁用，如果疑问，请联系管理员！")
-		replyMessage(ws, "![](images/wx.png)")
+		replyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}
 
 	if userVo.Calls <= 0 {
 		replyMessage(ws, "您的对话次数已经用尽，请联系管理员充值！")
-		replyMessage(ws, "![](images/wx.png)")
+		replyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
 		replyMessage(ws, "您的账号已经过期，请联系管理员！")
-		replyMessage(ws, "![](images/wx.png)")
+		replyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}
 	var req = types.ApiRequest{
@@ -189,7 +189,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		}
 
 		replyMessage(ws, ErrorMsg)
-		replyMessage(ws, "![](images/wx.png)")
+		replyMessage(ws, "![](/images/wx.png)")
 		return err
 	} else {
 		defer response.Body.Close()
@@ -221,7 +221,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			if err != nil { // 数据解析出错
 				logger.Error(err, line)
 				replyMessage(ws, ErrorMsg)
-				replyMessage(ws, "![](images/wx.png)")
+				replyMessage(ws, "![](/images/wx.png)")
 				break
 			}
 

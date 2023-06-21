@@ -52,7 +52,7 @@ const closeTags = (index) => {
   if (item) {
     delItem.path === route.fullPath && router.push(item.path);
   } else {
-    router.push('/');
+    router.push('/admin');
   }
 };
 
@@ -78,7 +78,7 @@ onBeforeRouteUpdate(to => {
 // 关闭全部标签
 const closeAll = () => {
   tags.clearTags();
-  router.push('/');
+  router.push('/admin');
 };
 // 关闭其他标签
 const closeOther = () => {

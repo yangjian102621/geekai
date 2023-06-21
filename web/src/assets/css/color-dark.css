@@ -1,23 +1,22 @@
-.header{
-    background-color: #242f42;
+.admin-home .header {
+  background-color: #242f42;
 }
-.login-wrap{
-    background: #324157;
+.admin-home .login-wrap {
+  background: #324157;
 }
-.plugins-tips{
-    background: #eef1f6;
+.admin-home .plugins-tips {
+  background: #eef1f6;
 }
-.plugins-tips a{
-    color: #20a0ff;
+.admin-home .plugins-tips a {
+  color: #20a0ff;
 }
-
-.tags-li.active {
-    border: 1px solid #409EFF;
-    background-color: #409EFF;
+.admin-home .tags-li.active {
+  border: 1px solid #409eff;
+  background-color: #409eff;
 }
-.message-title{
-    color: #20a0ff;
+.admin-home .message-title {
+  color: #20a0ff;
 }
-.collapse-btn:hover{
-    background: rgb(40,52,70);
+.admin-home .collapse-btn:hover {
+  background: #283446;
 }
