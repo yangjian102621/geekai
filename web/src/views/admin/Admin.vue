@@ -343,32 +343,31 @@ $borderColor = #4676d0;
       display: flex;
       flex-flow: column;
 
-      .content-tabs {
+      .el-tabs {
         background: #ffffff;
         padding 10px 20px;
-
-        .el-tabs__item {
-          height 35px
-          line-height 35px
-        }
-
-        .el-tabs__content {
-          padding 10px 20px 20px 20px;
-        }
       }
 
     }
   }
 }
 
-
 </style>
 
 <style lang="stylus">
 .pagination {
-  padding 20px;
+  padding-top 20px;
   display flex
   justify-content center
   width 100%
+}
+
+.el-tabs__item {
+  height 35px
+  line-height 35px
+}
+
+.el-tabs__content {
+  padding-bottom 20px;
 }
 </style>

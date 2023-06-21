@@ -183,9 +183,10 @@
       </el-main>
     </el-container>
 
-    <config-dialog v-if="user" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
+    <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
                    @update-user="updateUser"/>
-    <password-dialog v-if="user" :show="showPasswordDialog" @hide="showPasswordDialog = false" @logout="logout"/>
+    <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
+                     @logout="logout"/>
   </div>
 
 
@@ -237,47 +238,45 @@ const newChatItem = ref(null);
 const router = useRouter();
 const showConfigDialog = ref(false);
 const showPasswordDialog = ref(false);
+const isLogin = ref(false)
 
-if (!user.value) {
-  router.push("login");
-} else {
-  onMounted(() => {
-    resizeElement();
-    checkSession().then(() => {
-      // 加载角色列表
-      httpGet(`/api/role/list?user_id=${user.value.id}`).then((res) => {
-        roles.value = res.data;
-        roleId.value = roles.value[0]['id'];
-        // 获取会话列表
-        loadChats();
-        // 创建新的会话
-        newChat();
-      }).catch((e) => {
-        console.log(e)
-        ElMessage.error('获取聊天角色失败')
-      })
-    }).catch(() => {
-      router.push('login')
-    });
-
-    const clipboard = new Clipboard('.copy-reply');
-    clipboard.on('success', () => {
-      ElMessage.success('复制成功！');
+onMounted(() => {
+  resizeElement();
+  checkSession().then(() => {
+    isLogin.value = true
+    // 加载角色列表
+    httpGet(`/api/role/list?user_id=${user.value.id}`).then((res) => {
+      roles.value = res.data;
+      roleId.value = roles.value[0]['id'];
+      // 获取会话列表
+      loadChats();
+      // 创建新的会话
+      newChat();
+    }).catch((e) => {
+      console.log(e)
+      ElMessage.error('获取聊天角色失败')
     })
 
-    clipboard.on('error', () => {
-      ElMessage.error('复制失败！');
+    // 加载系统配置
+    httpGet('/api/admin/config/get?key=system').then(res => {
+      title.value = res.data.title;
+      models.value = res.data.models;
+    }).catch(e => {
+      ElMessage.error("加载系统配置失败: " + e.message)
     })
+  }).catch(() => {
+    router.push('login')
   });
 
-  // 加载系统配置
-  httpGet('/api/admin/config/get?key=system').then(res => {
-    title.value = res.data.title;
-    models.value = res.data.models;
-  }).catch(e => {
-    ElMessage.error("加载系统配置失败: " + e.message)
+  const clipboard = new Clipboard('.copy-reply');
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！');
   })
-}
+
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+});
 
 const checkSession = function () {
   return new Promise((resolve, reject) => {
@@ -851,6 +850,7 @@ $borderColor = #4676d0;
         justify-content: flex-end;
         align-items: center;
         padding 5px 20px;
+        border-top 1px solid #3c3c3c;
 
         .user-info {
           width 100%

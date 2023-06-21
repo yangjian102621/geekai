@@ -151,7 +151,7 @@ const remove = function (row) {
   .opt-box {
     padding-bottom: 10px;
     display flex;
-    justify-content end
+    justify-content flex-end
 
     .el-icon {
       margin-right: 5px;
