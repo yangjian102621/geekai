@@ -42,10 +42,10 @@
         <el-table-column prop="date" label="注册时间"></el-table-column>
         <el-table-column label="操作" width="220" align="center">
           <template #default="scope">
-            <el-button text :icon="Edit" @click="handleEdit(scope.$index, scope.row)" v-permiss="15">
+            <el-button text :icon="Edit" @click="handleEdit(scope.$index, scope.row)">
               编辑
             </el-button>
-            <el-button text :icon="Delete" class="red" @click="handleDelete(scope.$index)" v-permiss="16">
+            <el-button text :icon="Delete" class="red" @click="handleDelete(scope.$index)">
               删除
             </el-button>
           </template>
@@ -94,7 +94,7 @@ const query = reactive({
   pageIndex: 1,
   pageSize: 10
 });
-const tableData = ref();
+const tableData = ref([]);
 const pageTotal = ref(0);
 // 获取表格数据
 const getData = () => {

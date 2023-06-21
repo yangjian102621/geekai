@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1487626",
+      "name": "微信支付",
+      "font_class": "wechat-pay",
+      "unicode": "e639",
+      "unicode_decimal": 58937
+    },
+    {
+      "icon_id": "7791019",
+      "name": "捐赠",
+      "font_class": "donate",
+      "unicode": "e7ee",
+      "unicode_decimal": 59374
+    },
+    {
+      "icon_id": "14593731",
+      "name": "打赏",
+      "font_class": "reward",
+      "unicode": "e6c7",
+      "unicode_decimal": 59079
+    },
+    {
+      "icon_id": "8623603",
+      "name": "bell",
+      "font_class": "bell",
+      "unicode": "e887",
+      "unicode_decimal": 59527
+    },
+    {
       "icon_id": "673799",
       "name": "首页",
       "font_class": "home",

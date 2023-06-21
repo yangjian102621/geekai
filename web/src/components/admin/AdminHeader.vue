@@ -9,6 +9,7 @@
         <Fold/>
       </el-icon>
     </div>
+
     <div class="logo">后台管理系统</div>
     <div class="header-right">
       <div class="header-user-con">
@@ -19,14 +20,14 @@
               :content="message ? `有${message}条未读消息` : `消息中心`"
               placement="bottom"
           >
-            <i class="el-icon-lx-notice"></i>
+            <i class="iconfont icon-bell"></i>
           </el-tooltip>
           <span class="btn-bell-badge" v-if="message"></span>
         </div>
         <!-- 用户头像 -->
-        <el-avatar class="user-avatar" :size="30" :src="imgUrl"/>
+        <el-avatar class="user-avatar" :size="30" :src="avatar"/>
         <!-- 用户名下拉菜单 -->
-        <el-dropdown class="user-name" trigger="click" @command="handleCommand">
+        <el-dropdown class="user-name" :hide-on-click="true" trigger="click">
 					<span class="el-dropdown-link">
 						{{ username }}
 						<el-icon class="el-icon--right">
@@ -35,27 +36,56 @@
 					</span>
           <template #dropdown>
             <el-dropdown-menu>
-              <a href="https://github.com/lin-xin/vue-manage-system" target="_blank">
-                <el-dropdown-item>项目仓库</el-dropdown-item>
+
+              <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+                <el-dropdown-item>
+                  <i class="iconfont icon-github"></i>
+                  <span>ChatGPT-Plus-V3</span>
+                </el-dropdown-item>
               </a>
-              <el-dropdown-item command="user">个人中心</el-dropdown-item>
-              <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              <el-dropdown-item @click="showDialog = true">
+                <i class="iconfont icon-reward"></i>
+                <span>打赏作者</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided @click="logout">
+                <i class="iconfont icon-logout"></i>
+                <span>退出登录</span>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </div>
+
+    <el-dialog
+        v-model="showDialog"
+        :show-close="true"
+        custom-class="donate-dialog"
+        width="400px"
+        title="请作者喝杯咖啡"
+    >
+      <el-alert type="info" :closable="false">
+        <p>如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～</p>
+      </el-alert>
+      <p>
+        <el-image :src="donateImg"/>
+      </p>
+    </el-dialog>
   </div>
 </template>
 <script setup>
 import {onMounted, ref} from 'vue';
 import {useSidebarStore} from '@/store/sidebar';
 import {useRouter} from 'vue-router';
-import imgUrl from '../../assets/img/avatar.jpg';
 import {ArrowDown, Expand, Fold} from "@element-plus/icons-vue";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
 
 const message = ref(5);
 const username = ref('极客学长')
+const avatar = ref('/images/user-info.jpg')
+const donateImg = ref('/images/wechat-pay.png')
+const showDialog = ref(false)
 const sidebar = useSidebarStore();
 // 侧边栏折叠
 const collapseChange = () => {
@@ -68,16 +98,16 @@ onMounted(() => {
   }
 });
 
-// 用户名下拉菜单选择事件
 const router = useRouter();
-const handleCommand = (command) => {
-  if (command === 'logout') {
-    localStorage.removeItem('ms_username');
-    router.push('/login');
-  }
-};
+const logout = function () {
+  httpGet("/api/admin/logout").then(() => {
+    router.push('/admin/login')
+  }).catch((e) => {
+    ElMessage.error("注销失败: " + e.message);
+  })
+}
 </script>
-<style scoped>
+<style scoped lang="stylus">
 .header {
   position: relative;
   box-sizing: border-box;
@@ -85,74 +115,67 @@ const handleCommand = (command) => {
   height: 70px;
   font-size: 22px;
   color: #fff;
-}
 
-.collapse-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  float: left;
-  padding: 0 21px;
-  cursor: pointer;
-}
+  .collapse-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    float: left;
+    padding: 0 21px;
+    cursor: pointer;
+  }
 
-.header .logo {
-  float: left;
-  width: 250px;
-  line-height: 70px;
-}
+  .logo {
+    float: left;
+    width: 250px;
+    line-height: 70px;
+  }
 
-.header-right {
-  float: right;
-  padding-right: 50px;
-}
+  .header-right {
+    float: right;
+    padding-right: 50px;
 
-.header-user-con {
-  display: flex;
-  height: 70px;
-  align-items: center;
-}
+    .header-user-con {
+      display: flex;
+      height: 70px;
+      align-items: center;
 
-.btn-fullscreen {
-  transform: rotate(45deg);
-  margin-right: 5px;
-  font-size: 24px;
-}
+      .btn-bell {
+        position: relative;
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        border-radius: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
 
-.btn-bell,
-.btn-fullscreen {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  text-align: center;
-  border-radius: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
+        .btn-bell-badge {
+          position: absolute;
+          right: 4px;
+          top: 0;
+          width: 8px;
+          height: 8px;
+          border-radius: 4px;
+          background: #f56c6c;
+          color: #fff;
+        }
 
-.btn-bell-badge {
-  position: absolute;
-  right: 4px;
-  top: 0px;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background: #f56c6c;
-  color: #fff;
-}
+        .icon-bell {
+          font-size: 24px;
+        }
+      }
 
-.btn-bell .el-icon-lx-notice {
-  color: #fff;
-}
+      .user-name {
+        margin-left: 10px;
+      }
 
-.user-name {
-  margin-left: 10px;
-}
-
-.user-avatar {
-  margin-left: 20px;
+      .user-avatar {
+        margin-left: 20px;
+      }
+    }
+  }
 }
 
 .el-dropdown-link {
@@ -164,5 +187,25 @@ const handleCommand = (command) => {
 
 .el-dropdown-menu__item {
   text-align: center;
+
+  .icon-reward {
+    font-size 18px;
+    font-weight bold;
+    color #F56C6C
+  }
+}
+</style>
+
+<style lang="stylus">
+.donate-dialog {
+  .el-dialog__body {
+    text-align center;
+
+    .el-alert__description {
+      text-align left
+      font-size 14px;
+      line-height 1.5
+    }
+  }
 }
 </style>
