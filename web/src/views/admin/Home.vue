@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="admin-home">
     <admin-header/>
     <admin-sidebar/>
     <div class="content-box" :class="{ 'content-collapse': sidebar.collapse }">
@@ -27,7 +27,7 @@ const sidebar = useSidebarStore();
 const tags = useTagsStore();
 </script>
 
-<style lang="stylus">
+<style scoped lang="stylus">
 @import '@/assets/css/main.css';
 @import '@/assets/css/color-dark.css';
 @import '@/assets/iconfont/iconfont.css';

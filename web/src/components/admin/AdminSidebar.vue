@@ -14,7 +14,7 @@
         <template v-if="item.subs">
           <el-sub-menu :index="item.index" :key="item.index">
             <template #title>
-              <i :class="'iconfont '+item.icon"></i>
+              <i :class="'iconfont icon-'+item.icon"></i>
               <span>{{ item.title }}</span>
             </template>
             <template v-for="subItem in item.subs">
@@ -29,6 +29,7 @@
                 </el-menu-item>
               </el-sub-menu>
               <el-menu-item v-else :index="subItem.index">
+                <i v-if="subItem.icon" :class="'iconfont icon-'+subItem.icon"></i>
                 {{ subItem.title }}
               </el-menu-item>
             </template>
@@ -63,12 +64,32 @@ const items = [
   },
 
   {
+    icon: 'user-fill',
+    index: '/admin/user',
+    title: '用户管理',
+  },
+
+  {
+    icon: 'role',
+    index: '/admin/role',
+    title: '角色管理',
+  },
+  {
+    icon: 'api-key',
+    index: '/admin/apikey',
+    title: 'API-KEY 管理',
+  },
+  {
+    icon: 'log',
+    index: '/admin/loginLog',
+    title: '用户登录日志',
+  },
+  {
     icon: 'menu',
     index: '1',
     title: '常用模板页面',
     subs: [
       {
-        icon: 'menu',
         index: '/admin/demo/form',
         title: '表单页面',
       },
@@ -108,15 +129,11 @@ const sidebar = useSidebarStore();
   ul {
     height: 100%;
 
-    .el-menu-item {
+    .el-menu-item, .el-sub-menu {
       .iconfont {
         font-size 16px;
         margin-right 5px;
       }
-    }
-
-    .el-menu-item.is-active {
-      background-color #242f42
     }
   }
 

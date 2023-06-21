@@ -143,20 +143,3 @@ func (h *UserHandler) LoginLog(c *gin.Context) {
 
 	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, logs))
 }
-
-func (h *UserHandler) InitUser(c *gin.Context) {
-	var users []model.User
-	h.db.Find(&users)
-	for _, u := range users {
-		var m map[string]int
-		var roleKeys = make([]string, 0)
-		utils.JsonDecode(u.ChatRoles, &m)
-		for k, _ := range m {
-			roleKeys = append(roleKeys, k)
-		}
-		u.ChatRoles = utils.JsonEncode(roleKeys)
-		h.db.Updates(&u)
-
-	}
-	resp.SUCCESS(c, "SUCCESS")
-}

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="admin-login">
     <div class="bg"></div>
     <div class="main">
       <div class="contain">
@@ -85,91 +85,98 @@ const login = function () {
 </script>
 
 <style lang="stylus" scoped>
-.bg {
-  position fixed
-  left 0
-  right 0
-  top 0
-  bottom 0
-  background-color #313237
-  background-image url("~@/assets/img/admin-login-bg.jpg")
-  background-size cover
-  background-position center
-  background-repeat no-repeat
-  filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
-}
-
-.main {
-  .contain {
+.admin-login {
+  .bg {
     position fixed
-    left 50%
-    top 40%
-    width 90%
-    max-width 400px;
-    transform translate(-50%, -50%)
-    padding 20px 40px;
-    color #ffffff
-    border-radius 10px;
-    background rgba(255, 255, 255, 0.3)
+    left 0
+    right 0
+    top 0
+    bottom 0
+    background-color #313237
+    background-image url("~@/assets/img/admin-login-bg.jpg")
+    background-size cover
+    background-position center
+    background-repeat no-repeat
+    filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
+  }
 
-    .logo {
-      text-align center
+  .main {
+    .contain {
+      position fixed
+      left 50%
+      top 40%
+      width 90%
+      max-width 400px;
+      transform translate(-50%, -50%)
+      padding 20px 40px;
+      color #ffffff
+      border-radius 10px;
+      background rgba(255, 255, 255, 0.3)
 
-      .el-image {
-        width 120px;
-      }
-    }
+      .logo {
+        text-align center
 
-    .header {
-      width 100%
-      margin-bottom 24px
-      font-size 24px
-      color $white_v1
-      letter-space 2px
-      text-align center
-    }
+        .el-image {
+          width 120px;
 
-    .content {
-      width 100%
-      height: auto
-      border-radius 3px
-
-      .block {
-        margin-bottom 16px
-
-        .el-input__inner {
-          border 1px solid $gray-v6 !important
-
-          .el-icon-user, .el-icon-lock {
-            font-size 20px
+          .el-image__inner {
+            height 100%
           }
         }
       }
 
-      .btn-row {
-        padding-top 10px;
+      .header {
+        width 100%
+        margin-bottom 24px
+        font-size 24px
+        color $white_v1
+        letter-space 2px
+        text-align center
+      }
 
-        .login-btn {
-          width 100%
-          font-size 16px
-          letter-spacing 2px
+      .content {
+        width 100%
+        height: auto
+        border-radius 3px
+
+        .block {
+          margin-bottom 16px
+
+          .el-input__inner {
+            border 1px solid $gray-v6 !important
+
+            .el-icon-user, .el-icon-lock {
+              font-size 20px
+            }
+          }
+        }
+
+        .btn-row {
+          padding-top 10px;
+
+          .login-btn {
+            width 100%
+            font-size 16px
+            letter-spacing 2px
+          }
+        }
+
+        .text-line {
+          justify-content center
+          padding-top 10px;
+          font-size 14px;
         }
       }
-
-      .text-line {
-        justify-content center
-        padding-top 10px;
-        font-size 14px;
-      }
     }
-  }
 
-  .footer {
-    color #ffffff;
+    .footer {
+      color #ffffff;
 
-    .container {
-      padding 20px;
+      .container {
+        padding 20px;
+      }
     }
   }
 }
+
 </style>

@@ -1,8 +1,9 @@
 <template>
-  <div class="user-list" v-loading="loading">
+  <div class="container user-list" v-loading="loading">
     <el-row>
-      <el-table :data="users.items" :row-key="row => row.id" @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55"/>
+      <el-table :data="users.items" border class="table" :row-key="row => row.id"
+                @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="38"/>
         <el-table-column prop="username" label="用户名"/>
         <el-table-column prop="nickname" label="昵称"/>
         <el-table-column prop="calls" label="提问次数" width="100"/>
@@ -34,13 +35,14 @@
       </el-table>
 
       <div class="pagination">
-        <el-pagination v-if="users.total > 0" background
-                       layout="prev, pager, next"
-                       :hide-on-single-page="true"
-                       v-model:current-page="users.page"
-                       v-model:page-size="users.page_size"
+        <el-pagination v-if="users.total > 0"
+                       background
+                       layout="total, prev, pager, next"
+                       :current-page="users.page"
+                       :page-size="users.page_size"
+                       :total="users.total"
                        @current-change="fetchUserList(users.page, users.page_size)"
-                       :total="users.total"/>
+        />
 
       </div>
     </el-row>
@@ -148,6 +150,9 @@ const fetchUserList = function (page, pageSize) {
         arr[i].expired_time = dateFormat(arr[i].expired_time)
       }
       users.value.items = arr
+      users.value.total = res.data.total
+      users.value.page = res.data.page
+      user.value.page_size = res.data.page_size
     }
   }).catch(() => {
     ElMessage.error('加载用户列表失败')

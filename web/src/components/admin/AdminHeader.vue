@@ -1,5 +1,9 @@
 <template>
-  <div class="header">
+  <div class="header admin-header">
+    <div class="logo">
+      <el-image :src="logo"/>
+      <span class="text">{{ title }}</span>
+    </div>
     <!-- 折叠按钮 -->
     <div class="collapse-btn" @click="collapseChange">
       <el-icon v-if="sidebar.collapse">
@@ -9,8 +13,6 @@
         <Fold/>
       </el-icon>
     </div>
-
-    <div class="logo">后台管理系统</div>
     <div class="header-right">
       <div class="header-user-con">
         <!-- 消息中心 -->
@@ -87,6 +89,21 @@ const avatar = ref('/images/user-info.jpg')
 const donateImg = ref('/images/wechat-pay.png')
 const showDialog = ref(false)
 const sidebar = useSidebarStore();
+const title = ref('Chat-Plus 控制台')
+const logo = ref('/images/logo.png')
+
+// 获取会话信息
+httpGet("/api/admin/session").then(() => {
+  // 加载系统配置
+  httpGet('/api/admin/config/get?key=system').then(res => {
+    title.value = res.data['admin_title'];
+  }).catch(e => {
+    ElMessage.error("加载系统配置失败: " + e.message)
+  })
+}).catch(() => {
+  router.replace('/admin/login')
+})
+
 // 侧边栏折叠
 const collapseChange = () => {
   sidebar.handleCollapse();
@@ -101,7 +118,7 @@ onMounted(() => {
 const router = useRouter();
 const logout = function () {
   httpGet("/api/admin/logout").then(() => {
-    router.push('/admin/login')
+    router.replace('/admin/login')
   }).catch((e) => {
     ElMessage.error("注销失败: " + e.message);
   })
@@ -128,13 +145,18 @@ const logout = function () {
 
   .logo {
     float: left;
-    width: 250px;
-    line-height: 70px;
+    padding-left 10px;
+    display flex
+
+    .text {
+      line-height: 66px;
+      margin-left 10px;
+    }
   }
 
   .header-right {
     float: right;
-    padding-right: 50px;
+    padding-right: 20px;
 
     .header-user-con {
       display: flex;
@@ -208,4 +230,17 @@ const logout = function () {
     }
   }
 }
+
+.admin-header {
+  .logo {
+    .el-image {
+      padding-top 10px
+
+      .el-image__inner {
+        height 40px
+      }
+    }
+  }
+}
+
 </style>

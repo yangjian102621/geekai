@@ -1,13 +1,9 @@
 <template>
-  <div class="list" v-loading="loading">
-    <el-row class="opt-box">
-      <el-button type="primary" @click="add" size="small">
-        <el-icon>
-          <Plus/>
-        </el-icon>
-        新增
-      </el-button>
-    </el-row>
+  <div class="container list" v-loading="loading">
+
+    <div class="handle-box">
+      <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
+    </div>
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id">
@@ -156,13 +152,6 @@ const remove = function (row) {
     .el-icon {
       margin-right: 5px;
     }
-  }
-
-  .pagination {
-    padding-top 20px;
-    display flex
-    justify-content center
-    width 100%
   }
 
   .el-select {

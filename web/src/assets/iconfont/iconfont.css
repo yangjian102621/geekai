@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1687330009953') format('woff2'),
-       url('iconfont.woff?t=1687330009953') format('woff'),
-       url('iconfont.ttf?t=1687330009953') format('truetype');
+  src: url('iconfont.woff2?t=1687341905766') format('woff2'),
+       url('iconfont.woff?t=1687341905766') format('woff'),
+       url('iconfont.ttf?t=1687341905766') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,10 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-sub-menu:before {
+  content: "\e86b";
 }
 
 .icon-wechat-pay:before {

@@ -2,20 +2,18 @@
   <div>
     <div class="container">
       <div class="handle-box">
-        <el-select v-model="query.address" placeholder="地址" class="handle-select mr10">
-          <el-option key="1" label="广东省" value="广东省"></el-option>
-          <el-option key="2" label="湖南省" value="湖南省"></el-option>
+        <el-select v-model="query.address" placeholder="模型" class="handle-select mr10">
+          <el-option key="1" label="GPT-3.5" value="GPT-3.5"></el-option>
+          <el-option key="2" label="GPT-4.0" value="GPT-4.0"></el-option>
+          <el-option key="2" label="GPT-5.0" value="GPT-5.0"></el-option>
         </el-select>
-        <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
+        <el-input v-model="query.name" placeholder="姓名" class="handle-input mr10"></el-input>
         <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
         <el-button type="primary" :icon="Plus">新增</el-button>
       </div>
       <el-table :data="tableData" border class="table" ref="multipleTable" header-cell-class-name="table-header">
         <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-        <el-table-column prop="name" label="用户名"></el-table-column>
-        <el-table-column label="账户余额">
-          <template #default="scope">￥{{ scope.row.money }}</template>
-        </el-table-column>
+        <el-table-column prop="name" label="姓名"></el-table-column>
         <el-table-column label="头像(查看大图)" align="center">
           <template #default="scope">
             <el-image
@@ -28,11 +26,11 @@
             </el-image>
           </template>
         </el-table-column>
-        <el-table-column prop="address" label="地址"></el-table-column>
+        <el-table-column prop="info" label="简介"></el-table-column>
         <el-table-column label="状态" align="center">
           <template #default="scope">
             <el-tag
-                :type="scope.row.state === '成功' ? 'success' : scope.row.state === '失败' ? 'danger' : ''"
+                :type="scope.row.state === '启用' ? 'success' : scope.row.state === '禁用' ? 'danger' : ''"
             >
               {{ scope.row.state }}
             </el-tag>
@@ -66,11 +64,11 @@
     <!-- 编辑弹出框 -->
     <el-dialog title="编辑" v-model="editVisible" width="30%">
       <el-form label-width="70px">
-        <el-form-item label="用户名">
+        <el-form-item label="姓名">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
-        <el-form-item label="地址">
-          <el-input v-model="form.address"></el-input>
+        <el-form-item label="简介">
+          <el-input v-model="form.info"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -89,7 +87,6 @@ import {ElMessage, ElMessageBox} from 'element-plus';
 import {Delete, Edit, Plus, Search} from '@element-plus/icons-vue';
 
 const query = reactive({
-  address: '',
   name: '',
   pageIndex: 1,
   pageSize: 10
@@ -100,39 +97,35 @@ const pageTotal = ref(0);
 const getData = () => {
   tableData.value = [{
     "id": 1,
-    "name": "张三",
-    "money": 123,
-    "address": "广东省东莞市长安镇",
-    "state": "成功",
-    "date": "2019-11-1",
-    "thumb": "https://lin-xin.gitee.io/images/post/wms.png"
+    "name": "孔子",
+    "info": "有朋自远方来，不亦说乎？",
+    "state": "禁用",
+    "date": "2023-06-21",
+    "thumb": "/images/avatar/kong_zi.jpg"
   },
     {
       "id": 2,
-      "name": "李四",
-      "money": 456,
-      "address": "广东省广州市白云区",
-      "state": "成功",
-      "date": "2019-10-11",
-      "thumb": "https://lin-xin.gitee.io/images/post/node3.png"
+      "name": "乔布斯",
+      "info": "活着就是为了改变世界！难道还有其他原因吗？",
+      "state": "禁用",
+      "date": "2023-06-21",
+      "thumb": "/images/avatar/steve_jobs.jpg"
     },
     {
       "id": 3,
-      "name": "王五",
-      "money": 789,
-      "address": "湖南省长沙市",
-      "state": "失败",
-      "date": "2019-11-11",
-      "thumb": "https://lin-xin.gitee.io/images/post/parcel.png"
+      "name": "马斯克",
+      "info": "梦想要远大，如果你的梦想没有吓到你，说明你做得不对。",
+      "state": "启用",
+      "date": "2023-06-21",
+      "thumb": "/images/avatar/elon_musk.jpg"
     },
     {
       "id": 4,
-      "name": "赵六",
-      "money": 1011,
-      "address": "福建省厦门市鼓浪屿",
-      "state": "成功",
-      "date": "2019-10-20",
-      "thumb": "https://lin-xin.gitee.io/images/post/notice.png"
+      "name": "鲁迅",
+      "info": "自由之歌，永不过时，横眉冷对千夫指，俯首甘为孺子牛。",
+      "state": "启用",
+      "date": "2023-06-21",
+      "thumb": "/images/avatar/lu_xun.jpg"
     }
   ]
   pageTotal.value = 5
@@ -168,20 +161,20 @@ const handleDelete = (index) => {
 const editVisible = ref(false);
 let form = reactive({
   name: '',
-  address: ''
+  info: ''
 });
 let idx = -1;
 const handleEdit = (index, row) => {
   idx = index;
   form.name = row.name;
-  form.address = row.address;
+  form.info = row.info;
   editVisible.value = true;
 };
 const saveEdit = () => {
   editVisible.value = false;
   ElMessage.success(`修改第 ${idx + 1} 行成功`);
   tableData.value[idx].name = form.name;
-  tableData.value[idx].address = form.address;
+  tableData.value[idx].info = form.info;
 };
 </script>
 

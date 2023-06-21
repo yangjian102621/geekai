@@ -1,14 +1,8 @@
 <template>
-  <div class="role-list">
-    <el-row class="opt-box">
-      <el-button type="primary" @click="addRole" size="small">
-        <el-icon>
-          <Plus/>
-        </el-icon>
-        新增
-      </el-button>
-    </el-row>
-
+  <div class="container role-list">
+    <div class="handle-box">
+      <el-button type="primary" :icon="Plus" @click="addRole">新增</el-button>
+    </div>
     <el-row>
       <el-table :data="tableData" :border="parentBorder" style="width: 100%">
         <el-table-column type="expand">
@@ -157,7 +151,7 @@ import {copyObj, removeArrayItem} from "@/utils/libs";
 import {Sortable} from "sortablejs"
 
 const showDialog = ref(false)
-const parentBorder = ref(false)
+const parentBorder = ref(true)
 const childBorder = ref(true)
 const tableData = ref([])
 const sortedTableData = ref([])
