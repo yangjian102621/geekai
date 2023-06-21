@@ -10,11 +10,16 @@
 </template>
 
 <script setup>
-import {MdEditor} from 'md-editor-v3';
+import MdEditor from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {ref} from "vue";
 
-const text = ref('Hello Editor!');
+const text = ref(`
+ChatGPT-PLUS 是基于 OpenAI API 实现的 ChatGPT Web 系统。主要有如下特性：
+* 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
+* 聊天体验跟 ChatGPT 官方版本完全一致。
+* 内置了各种预训练好的角色，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
+`);
 const onUploadImg = (files) => {
   console.log(files);
 };
