@@ -8,8 +8,10 @@ import (
 	logger2 "chatplus/logger"
 	"chatplus/store"
 	"context"
+	"embed"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -22,9 +24,11 @@ import (
 )
 
 var logger = logger2.GetLogger()
-
 var configFile string
 var debugMode bool
+
+//go:embed res/ip2region.xdb
+var xdbFS embed.FS
 
 // AppLifecycle 应用程序生命周期
 type AppLifecycle struct {
@@ -67,8 +71,11 @@ func main() {
 
 		// 创建 Ip2Region 查询对象
 		fx.Provide(func() (*xdb.Searcher, error) {
-			dbPath := "res/ip2region.xdb"
-			cBuff, err := xdb.LoadContentFromFile(dbPath)
+			file, err := xdbFS.Open("res/ip2region.xdb")
+			if err != nil {
+				return nil, err
+			}
+			cBuff, err := io.ReadAll(file)
 			if err != nil {
 				return nil, err
 			}
@@ -125,8 +132,7 @@ func main() {
 			group.POST("login", h.Login)
 			group.GET("logout", h.Logout)
 			group.GET("session", h.Session)
-			group.GET("test/user", h.TestUser)
-			group.GET("test/role", h.TestRole)
+			group.GET("migrate", h.Migrate)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
 			group := s.Engine.Group("/api/admin/apikey/")

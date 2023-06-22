@@ -72,36 +72,40 @@ func (h *ManagerHandler) Session(c *gin.Context) {
 	}
 }
 
-// TestUser 修正用户配置数据接口
-// 将用户订阅角色的数据结构从 map 改成数组
-func (h *ManagerHandler) TestUser(c *gin.Context) {
-	var users []model.User
-	h.db.Find(&users)
-	for _, u := range users {
-		var m map[string]int
-		var roleKeys = make([]string, 0)
-		err := utils.JsonDecode(u.ChatRoles, &m)
-		if err != nil {
-			continue
+// Migrate 数据修正
+func (h *ManagerHandler) Migrate(c *gin.Context) {
+	opt := c.Query("opt")
+	switch opt {
+	case "user":
+		// 将用户订阅角色的数据结构从 map 改成数组
+		var users []model.User
+		h.db.Find(&users)
+		for _, u := range users {
+			var m map[string]int
+			var roleKeys = make([]string, 0)
+			err := utils.JsonDecode(u.ChatRoles, &m)
+			if err != nil {
+				continue
+			}
+
+			for k, _ := range m {
+				roleKeys = append(roleKeys, k)
+			}
+			u.ChatRoles = utils.JsonEncode(roleKeys)
+			h.db.Updates(&u)
+
 		}
-
-		for k, _ := range m {
-			roleKeys = append(roleKeys, k)
+		break
+	case "role":
+		// TestRole 修改角色图片，改成绝对路径
+		var roles []model.ChatRole
+		h.db.Find(&roles)
+		for _, r := range roles {
+			r.Icon = "/" + r.Icon
+			h.db.Updates(&r)
 		}
-		u.ChatRoles = utils.JsonEncode(roleKeys)
-		h.db.Updates(&u)
-
+		break
 	}
-	resp.SUCCESS(c, "SUCCESS")
-}
 
-// TestRole 修改角色图片，改成绝对路径
-func (h *ManagerHandler) TestRole(c *gin.Context) {
-	var roles []model.ChatRole
-	h.db.Find(&roles)
-	for _, r := range roles {
-		r.Icon = "/" + r.Icon
-		h.db.Updates(&r)
-	}
 	resp.SUCCESS(c, "SUCCESS")
 }
