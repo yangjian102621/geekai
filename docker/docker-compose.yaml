@@ -2,8 +2,8 @@ version: '3'
 services:
   # 后端 API 程序
   chatgpt-plus-go:
-    #   image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:v3.0.0
-    image: chatplus-go:v3.0.0
+    image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:v3.0.0
+    #    image: chatplus-go:v3.0.0
     container_name: chatgpt-plus-go
     #build: ./
     restart: always
@@ -15,8 +15,8 @@ services:
 
   # 前端应用
   chatgpt-vue:
-    #   image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:v3.0.0
-    image: chatplus-vue:v3.0.0
+    image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:v3.0.0
+    #    image: chatplus-vue:v3.0.0
     container_name: chatgpt-plus-vue
     #build: ./
     restart: always
