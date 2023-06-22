@@ -1,0 +1,17 @@
+Listen = "0.0.0.0:5678"
+ProxyURL = "http://127.0.0.1:7777"
+MysqlDns = "root:12345678@tcp(192.168.3.200:3306)/chatgpt_plus?charset=utf8mb4&parseTime=True&loc=Local"
+
+[Session]
+  SecretKey = "8k0c67y2or1n7kbmn1w1c86ygqscguoktuf9t524jm64ls585z8uibpdssiy128s"
+  Name = "CHAT_PLUS_SESSION"
+  Path = "/"
+  Domain = "localhost"
+  MaxAge = 86400
+  Secure = false
+  HttpOnly = false
+  SameSite = 2
+
+[Manager]
+  Username = "admin"
+  Password = "admin123"
