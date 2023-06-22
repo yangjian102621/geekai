@@ -1,0 +1,12 @@
+# GO api docker 镜像创建
+FROM ubuntu:22.04
+
+MAINTAINER yangjian<yangjian102621@163.com>
+
+WORKDIR /var/www/app
+COPY ./api/go/bin/chatgpt-v3-amd64-linux /var/www/app
+
+EXPOSE 5678
+
+# 容器启动时执行的命令
+CMD ["./chatgpt-v3-amd64-linux"]
