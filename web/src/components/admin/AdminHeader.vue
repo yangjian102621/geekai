@@ -82,6 +82,7 @@ import {useRouter} from 'vue-router';
 import {ArrowDown, Expand, Fold} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {checkAdminSession} from "@/action/session";
 
 const message = ref(5);
 const username = ref('极客学长')
@@ -93,7 +94,7 @@ const title = ref('Chat-Plus 控制台')
 const logo = ref('/images/logo.png')
 
 // 获取会话信息
-httpGet("/api/admin/session").then(() => {
+checkAdminSession().then(() => {
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system').then(res => {
     title.value = res.data['admin_title'];
