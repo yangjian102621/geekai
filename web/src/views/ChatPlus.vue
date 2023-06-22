@@ -218,6 +218,7 @@ import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
 import ConfigDialog from "@/components/ConfigDialog.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
+import {checkSession} from "@/action/session";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
@@ -277,16 +278,6 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 });
-
-const checkSession = function () {
-  return new Promise((resolve, reject) => {
-    httpGet('/api/user/session').then(res => {
-      resolve(res)
-    }).catch(err => {
-      reject(err)
-    })
-  })
-}
 
 // 加载会话
 const loadChats = function () {

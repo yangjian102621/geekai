@@ -1,40 +1,18 @@
 <template>
-  <div class="home" :style="{ height: winHeight + 'px' }">
-    <h1>{{ title }}</h1>
-  </div>
+  <h1>{{ title }}</h1>
 </template>
 
 <script setup>
 import {ref} from "vue"
-import {useRouter} from "vue-router"; // 导入useRouter函数
+import {useRouter} from "vue-router";
+import {checkSession} from "@/action/session";
 
 const title = ref("HI, ChatGPT PLUS!");
-const winHeight = ref(window.innerHeight)
 const router = useRouter();
-// onMounted(() => {
-//   if (isMobile()) {
-//     router.push("mobile");
-//   } else {
-//     router.push("chat");
-//   }
-// })
-
+checkSession().then(() => {
+  router.push("chat")
+}).catch(() => {
+  router.push("login")
+})
 
 </script>
-
-<style lang="stylus" scoped>
-.home {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #202020;
-  background-color: #282c34;
-
-  h1 {
-    font-size: 300%;
-    font-weight: bold;
-    letter-spacing: 0.1em;
-    text-shadow: -1px -1px 1px #111111, 2px 2px 1px #363636;
-  }
-}
-</style>

@@ -36,14 +36,24 @@
 import {useTagsStore} from '@/store/tags';
 import {onBeforeRouteUpdate, useRoute, useRouter} from 'vue-router';
 import {ArrowDown, Close} from "@element-plus/icons-vue";
+import {checkAdminSession} from "@/action/session";
+import {ElMessageBox} from "element-plus";
 
-const route = useRoute();
 const router = useRouter();
+checkAdminSession().catch(() => {
+  ElMessageBox({
+    title: '提示',
+    message: "当前会话已经失效，请重新登录",
+    confirmButtonText: 'OK',
+    callback: () => router.replace('/admin/login')
+  });
+})
 const isActive = (path) => {
   return path === route.fullPath;
 };
 
 const tags = useTagsStore();
+const route = useRoute();
 // 关闭单个标签
 const closeTags = (index) => {
   const delItem = tags.list[index];
