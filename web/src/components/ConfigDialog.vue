@@ -81,8 +81,8 @@ const showDialog = computed(() => {
 })
 const form = ref({})
 const top = computed(() => {
-  if (window.innerHeight < 768) {
-    return '1vh';
+  if (window.innerHeight < 1024) {
+    return '5vh';
   } else {
     return '15vh';
   }

@@ -304,7 +304,7 @@ const getRoleById = function (rid) {
 const resizeElement = function () {
   chatBoxHeight.value = window.innerHeight - 51 - 82 - 38;
   mainWinHeight.value = window.innerHeight - 51;
-  leftBoxHeight.value = window.innerHeight - 51 - 100;
+  leftBoxHeight.value = window.innerHeight - 43 - 47 - 44;
 };
 
 // 新建会话
@@ -782,9 +782,12 @@ $borderColor = #4676d0;
             width: 100%
             justify-content: flex-start
             padding: 8px 12px
-            border-bottom: 1px solid #3c3c3c
+            //border-bottom: 1px solid #3c3c3c
             cursor: pointer
 
+            &:hover {
+              background-color #343540
+            }
 
             .avatar {
               width: 28px;
@@ -826,7 +829,7 @@ $borderColor = #4676d0;
           }
 
           .chat-list-item.active {
-            background-color: #363535;
+            background-color: #343540;
 
             .btn {
               display inline
@@ -840,7 +843,7 @@ $borderColor = #4676d0;
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        padding 5px 20px;
+        padding 0 20px 10px 20px;
         border-top 1px solid #3c3c3c;
 
         .user-info {
