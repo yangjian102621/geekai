@@ -8,5 +8,8 @@ COPY ./api/go/bin/chatgpt-v3-amd64-linux /var/www/app
 
 EXPOSE 5678
 
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends ca-certificates curl
+
 # 容器启动时执行的命令
 CMD ["./chatgpt-v3-amd64-linux"]

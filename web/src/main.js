@@ -16,18 +16,18 @@ const routes = [
     {name: 'register', path: '/register', component: Register, meta: {title: '用户注册'}},
     {name: 'plus', path: '/chat', component: ChatPlus, meta: {title: 'ChatGPT-智能助手V3'}},
     {
+        path: '/admin/login',
+        name: 'admin-login',
+        meta: {title: 'Chat-Plus 控制台登录'},
+        component: () => import('@/views/admin/Login.vue'),
+    },
+    {
         name: 'admin',
         path: '/admin',
         redirect: '/admin/welcome',
         component: () => import("@/views/admin/Home.vue"),
         meta: {title: 'ChatGPT-Plus 管理后台'},
         children: [
-            {
-                path: '/admin/welcome',
-                name: 'admin-home',
-                meta: {title: 'Chat-Plus 控制台登录'},
-                component: () => import('@/views/admin/Login.vue'),
-            },
             {
                 path: '/admin/welcome',
                 name: 'admin-home',
