@@ -697,13 +697,13 @@ const searchChat = function () {
     chatList.value = allChats.value
     return
   }
-  const roles = [];
+  const items = [];
   for (let i = 0; i < allChats.value.length; i++) {
     if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
-      roles.push(allChats.value[i]);
+      items.push(allChats.value[i]);
     }
   }
-  chatList.value = roles;
+  chatList.value = items;
 }
 
 const updateUser = function (data) {

@@ -218,10 +218,9 @@ func (h *UserHandler) Logout(c *gin.Context) {
 
 // Session 获取/验证会话
 func (h *UserHandler) Session(c *gin.Context) {
-	sessionId := c.GetHeader(types.SessionName)
-	session := h.App.ChatSession.Get(sessionId)
-	if session.ClientIP == c.ClientIP() {
-		resp.SUCCESS(c, session)
+	user, err := utils.GetLoginUser(c, h.db)
+	if err == nil {
+		resp.SUCCESS(c, user)
 	} else {
 		resp.NotAuth(c)
 	}

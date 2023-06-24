@@ -3,7 +3,7 @@ import {httpGet} from "@/utils/http";
 export function checkSession() {
     return new Promise((resolve, reject) => {
         httpGet('/api/user/session').then(res => {
-            resolve(res)
+            resolve(res.data)
         }).catch(err => {
             reject(err)
         })
