@@ -694,11 +694,12 @@ const chatName = ref('')
 // 搜索会话
 const searchChat = function () {
   if (chatName.value === '') {
+    chatList.value = allChats.value
     return
   }
   const roles = [];
   for (let i = 0; i < allChats.value.length; i++) {
-    if (allChats.value[i].title.indexOf(chatName.value) !== -1) {
+    if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
       roles.push(allChats.value[i]);
     }
   }
