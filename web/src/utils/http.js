@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {getSessionId} from "@/utils/storage";
+import {getSessionId} from "@/store/session";
 
 axios.defaults.timeout = 10000
 axios.defaults.baseURL = process.env.VUE_APP_API_HOST

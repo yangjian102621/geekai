@@ -212,7 +212,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import {dateFormat, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
-import {getLoginUser, getSessionId, removeLoginUser} from "@/utils/storage";
+import {getLoginUser, getSessionId, removeLoginUser} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
@@ -232,7 +232,7 @@ const mainWinHeight = ref(0); // 主窗口高度
 const chatBoxHeight = ref(0); // 聊天内容框高度
 const leftBoxHeight = ref(0);
 const loading = ref(true);
-const user = ref(getLoginUser());
+const user = getLoginUser();
 const roles = ref([]);
 const roleId = ref(0)
 const newChatItem = ref(null);
@@ -246,7 +246,7 @@ onMounted(() => {
   checkSession().then(() => {
     isLogin.value = true
     // 加载角色列表
-    httpGet(`/api/role/list?user_id=${user.value.id}`).then((res) => {
+    httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
       roles.value = res.data;
       roleId.value = roles.value[0]['id'];
       // 获取会话列表
@@ -265,8 +265,9 @@ onMounted(() => {
     }).catch(e => {
       ElMessage.error("加载系统配置失败: " + e.message)
     })
-  }).catch(() => {
-    router.push('login')
+  }).catch((e) => {
+    console.log(e)
+    //router.push('login')
   });
 
   const clipboard = new Clipboard('.copy-reply');
@@ -281,7 +282,7 @@ onMounted(() => {
 
 // 加载会话
 const loadChats = function () {
-  httpGet("/api/chat/list?user_id=" + user.value.id).then((res) => {
+  httpGet("/api/chat/list?user_id=" + user.id).then((res) => {
     if (res.data) {
       chatList.value = res.data;
       allChats.value = res.data;
@@ -405,7 +406,6 @@ const removeChat = function (event, chat) {
 
 // 创建 socket 连接
 const prompt = ref('');
-// const replyIcon = 'images/avatar/gpt.png';// 回复信息的头像
 const showStopGenerate = ref(false); // 停止生成
 const showReGenerate = ref(false); // 重新生成
 const previousText = ref(''); // 上一次提问
@@ -570,7 +570,7 @@ const sendMessage = function () {
   chatData.value.push({
     type: "prompt",
     id: randString(32),
-    icon: user.value.avatar,
+    icon: user.avatar,
     content: renderInputText(prompt.value),
     created_at: new Date().getTime(),
   });
@@ -707,8 +707,8 @@ const searchChat = function () {
 }
 
 const updateUser = function (data) {
-  user.value.avatar = data.avatar;
-  user.value.nickname = data.nickname;
+  user.avatar = data.avatar;
+  user.nickname = data.nickname;
 }
 </script>
 

@@ -5,8 +5,15 @@ import 'vant/lib/index.css';
 import App from './App.vue'
 import {createPinia} from "pinia";
 import {
+    Button,
     Cell,
+    CellGroup,
     ConfigProvider,
+    DropdownItem,
+    DropdownMenu,
+    Field,
+    Form,
+    Icon,
     Image,
     List,
     NavBar,
@@ -14,6 +21,8 @@ import {
     Picker,
     Popup,
     Search,
+    Sticky,
+    SwipeCell,
     Tabbar,
     TabbarItem,
     TextEllipsis
@@ -34,6 +43,15 @@ app.use(Notify)
 app.use(Picker)
 app.use(Popup)
 app.use(List);
+app.use(Form);
+app.use(Field);
+app.use(CellGroup);
+app.use(Button);
+app.use(DropdownMenu);
+app.use(Icon);
+app.use(DropdownItem);
+app.use(Sticky);
+app.use(SwipeCell);
 app.use(router).use(ElementPlus).mount('#app')
 
 
