@@ -48,6 +48,12 @@ func (l *AppLifecycle) OnStop(context.Context) error {
 
 func main() {
 	logger.Info("Loading config file: ", configFile)
+	defer func() {
+		if err := recover(); err != nil {
+			logger.Error("Panic Error:", err)
+		}
+	}()
+
 	app := fx.New(
 		// 初始化配置应用配置
 		fx.Provide(func() *types.AppConfig {
