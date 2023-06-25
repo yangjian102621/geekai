@@ -162,6 +162,10 @@ docker-compose up -d
 * 后台管理地址：http://localhost:8080/admin
 * 移动端地址：http://localhost:8080/mobile
 
+> 注意：你得访问后台管理系统 http://localhost:8080/admin
+> 输入你前面配置文档中设置的管理员用户名和密码登录。
+> 然后进入 `API KEY 管理` 菜单，添加一个 OpenAI 的 API KEY 才可以正常开启 AI 对话。
+
 ## 手动安装部署
 
 由于本项目采用的是前后端分离的开发方式，所以部署也需要前后端分开部署。我这里以 linux 系统为例，演示一下部署过程：
@@ -254,9 +258,7 @@ server {
 }
 ```
 
-配置好之后重启 Nginx，然后访问后台管理系统 [http://www.chatgpt.com/admin](http://www.chatgpt.com/admin),
-输入你前面配置文档中设置的管理员用户名和密码登录。
-然后进入 `API KEY 管理` 菜单，添加一个 OpenAI 的 API KEY 即可。
+配置好之后重启 Nginx，然后 []
 
 ![add API Key](docs/imgs/apikey_add.png)
 

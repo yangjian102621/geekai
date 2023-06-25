@@ -25,7 +25,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const ErrorMsg = "抱歉，AI 助手开小差了，请马上联系管理员去盘它。"
+const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
 
 type ChatHandler struct {
 	BaseHandler
@@ -218,7 +218,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			}
 
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil { // 数据解析出错
+			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
 				logger.Error(err, line)
 				replyMessage(ws, ErrorMsg)
 				replyMessage(ws, "![](/images/wx.png)")

@@ -72,7 +72,7 @@ func (s *AppServer) Run(db *gorm.DB) error {
 func errorHandler(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error("panic: %v\n", r)
+			logger.Error("Handler Panic: %v\n", r)
 			debug.PrintStack()
 			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 			c.Abort()
