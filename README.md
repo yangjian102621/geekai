@@ -6,7 +6,8 @@
 * 聊天体验跟 ChatGPT 官方版本完全一致。
 * 内置了各种预训练好的角色，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
 
-**本项目基于 MIT 协议，免费开放全部源代码，可以作为个人学习使用或者商用。如需商用建议联系作者登记，仅做统计使用，优秀项目我们将在项目首页为您展示。**
+**本项目基于 MIT 协议，免费开放全部源代码，可以作为个人学习使用或者商用。如需商用建议联系作者登记，仅做统计使用，优秀项目我们将在项目首页为您展示。
+**
 
 ## 功能截图
 
@@ -66,9 +67,9 @@ ChatGPT 的服务。
 3. 创建会话的时候可以选择聊天角色和模型。
 4. 新增聊天设置功能，用户可以导入自己的 API KEY
 5. 保存聊天记录，支持聊天上下文。
-7. 重构后台管理模块，更友好，扩展性更好的后台管理系统。
-8. 引入 ip2region 组件，记录用户的登录IP和地址。
-9. 支持会话搜索过滤。
+6. 重构后台管理模块，更友好，扩展性更好的后台管理系统。
+7. 引入 ip2region 组件，记录用户的登录IP和地址。
+8. 支持会话搜索过滤。
 
 ## 项目地址
 
@@ -83,32 +84,40 @@ ChatGPT 的服务。
 * [ ] 接入语音和 TTS API，支持语音聊天
 * [ ] 开发手机 App 客户端
 
-## 安装部署
+## Docker 快速部署
 
-由于本项目采用的是前后端分离的开发方式，所以部署也需要前后端分开部署。我这里以 linux 系统为例，演示一下部署过程：
+V3.0.0 版本以后已经支持使用容器部署了，跳过所有的繁琐的环境准备，一条命令就可以轻松部署上线。
 
 ### 1. 导入数据库
 
+首先我们需要创建一个 MySQL 容器，并导入初始数据库。
+
 ```shell
-# 下载数据库
-wget wget https://github.com/yangjian102621/chatgpt-plus/releases/download/v3.0.0/chatgpt_plus.sql
+cd docker/mysql
+# 创建 mysql 容器
+docker-compose up -d
+# 导入数据库
+docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus.sql
+```
+
+如果你本地已经安装了 MySQL 服务，那么你只需手动导入数据库即可。
+
+```shell
 # 连接数据库
 mysql -u username -p password
 # 导入数据库
-source chatgpt_plus.sql
+source database/chatgpt_plus.sql
 ```
 
 ### 2. 修改配置文档
 
-先拷贝项目中的 `api/go/config.sample.toml` 配置文档，修改代理地址和管理员密码：
+修改配置文档 `docker/conf/config.toml` 配置文档，修改代理地址和管理员密码：
 
 ```toml
 Listen = "0.0.0.0:5678"
 ProxyURL = ["YOUR_PROXY_URL"] # 替换成你本地代理，如：http://127.0.0.1:7777
-#ProxyURL = "http://127.0.0.1:7777"
 #ProxyURL = "" 如果你的服务器本身就在墙外，那么你直接留空就好了
-MysqlDns = "mysql_user:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
-
+MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
   Name = "CHAT_SESSION_ID"
@@ -123,6 +132,49 @@ MysqlDns = "mysql_user:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8&
   Username = "admin"
   Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
 ```
+
+修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
+
+```shell
+ # 这里配置后端 API 的转发
+location /api/ {
+       proxy_http_version 1.1;
+       proxy_connect_timeout 300s;
+       proxy_read_timeout 300s;
+       proxy_send_timeout 12s;
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection $connection_upgrade;
+       proxy_pass http://172.28.173.76:6789; # 这里改成后端服务的内网 IP 地址
+}
+```
+
+### 3. 启动应用
+
+```shell
+cd docker
+docker-compose up -d
+```
+
+* 前端访问地址：http://localhost:8080/chat
+* 后台管理地址：http://localhost:8080/admin
+* 移动端地址：http://localhost:8080/mobile
+
+## 手动安装部署
+
+由于本项目采用的是前后端分离的开发方式，所以部署也需要前后端分开部署。我这里以 linux 系统为例，演示一下部署过程：
+
+### 1. 导入数据库
+
+请参考容器部署的[导入数据](#1-导入数据库)。
+
+### 2. 修改配置文档
+
+先拷贝项目中的 `api/go/config.sample.toml` 配置文档，修改代理地址和管理员密码：
+
+如何修改请参考[修改配置文档](#2-修改配置文档)
 
 ### 3. 运行后端程序
 

@@ -5,21 +5,18 @@ services:
     image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:v3.0.1
     #    image: chatgpt-plus-go:v3.0.1
     container_name: chatgpt-plus-go
-    #build: ./
     restart: always
-    #      network_mode: host
     ports:
       - "6789:5678"
     volumes:
       - ./conf/config.toml:/var/www/app/config.toml
+
   # 前端应用
   chatgpt-vue:
     image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:v3.0.1
     #    image: chatgpt-plus-vue:v3.0.1
     container_name: chatgpt-plus-vue
-    #build: ./
     restart: always
-    #    network_mode: host
     ports:
       - "8080:8080"
     volumes:

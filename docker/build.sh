@@ -25,7 +25,8 @@ docker build -t chatgpt-plus-vue:$version -f dockerfile-vue ../
 # add tag for aliyum docker registry
 goImageId=`docker images |grep chatgpt-plus-go |grep $version |awk '{print $3}'`
 docker tag $goImageId registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:$version
-
+echo $goImageId
 vueImageId=`docker images |grep chatgpt-plus-vue |grep $version |awk '{print $3}'`
+echo $vueImageId
 docker tag $vueImageId registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:$version
 

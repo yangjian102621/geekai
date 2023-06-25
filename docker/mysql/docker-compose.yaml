@@ -1,0 +1,19 @@
+version: '3'
+services:
+  # 后端 API 程序
+  mysql:
+    image: mysql:8.0.33
+    container_name: chatgpt-plus-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=12345678
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./conf/my.cnf:/etc/mysql/my.cnf
+      - ./data:/var/lib/mysql
+      - ./logs:/var/log/mysql
+
+
+
