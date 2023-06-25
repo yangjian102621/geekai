@@ -18,8 +18,30 @@
     </van-sticky>
 
 
-    <div class="message-list-box" :style="{height: winHeight+'px'}">
-
+    <div class="message-list-box" id="message-list-box" :style="{height: winHeight+'px'}">
+      <van-list
+          v-model:loading="loading"
+          :finished="finished"
+          v-model:error="error"
+          error-text="请求失败，点击重新加载"
+          @load="onLoad"
+      >
+        <van-cell v-for="item in chatData" :key="item">
+          <chat-prompt
+              v-if="item.type==='prompt'"
+              :icon="item.icon"
+              :created-at="dateFormat(item['created_at'])"
+              :tokens="item['tokens']"
+              :model="model"
+              :content="item.content"/>
+          <chat-reply v-else-if="item.type==='reply'"
+                      :icon="item.icon"
+                      :org-content="item.orgContent"
+                      :created-at="dateFormat(item['created_at'])"
+                      :tokens="item['tokens']"
+                      :content="item.content"/>
+        </van-cell>
+      </van-list>
     </div>
 
     <van-sticky :offset-bottom="0" position="bottom" ref="bottomBarRef">
@@ -49,13 +71,17 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
+import {nextTick, onMounted, ref} from "vue";
 import {showToast} from "vant";
 import {useRouter} from "vue-router";
-import {UUID} from "@/utils/libs";
+import {dateFormat, UUID} from "@/utils/libs";
 import {getChatConfig} from "@/store/chat";
+import {httpGet} from "@/utils/http";
+import hl from "highlight.js";
+import 'highlight.js/styles/a11y-dark.css'
+import ChatPrompt from "@/components/mobile/ChatPrompt.vue";
+import ChatReply from "@/components/mobile/ChatReply.vue";
 
-const title = ref('简单介绍一下高更的艺术思想')
 const winHeight = ref(0)
 const navBarRef = ref(null)
 const bottomBarRef = ref(null)
@@ -64,10 +90,51 @@ const router = useRouter()
 const chatConfig = getChatConfig()
 const role = chatConfig.role
 const model = chatConfig.model
+const title = chatConfig.title
+const chatId = chatConfig.chatId
 
 onMounted(() => {
-  winHeight.value = window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight
+  winHeight.value = document.body.offsetHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight
 })
+
+const chatData = ref([])
+const loading = ref(false)
+const finished = ref(false)
+const error = ref(false)
+const onLoad = () => {
+  httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
+    // 加载状态结束
+    loading.value = false;
+    finished.value = true;
+    const data = res.data
+    if (!data || data.length === 0) {
+      return
+    }
+
+    const md = require('markdown-it')();
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].type === "prompt") {
+        chatData.value.push(data[i]);
+        continue;
+      }
+
+      data[i].orgContent = data[i].content;
+      data[i].content = md.render(data[i].content);
+      chatData.value.push(data[i]);
+    }
+
+    nextTick(() => {
+      hl.configure({ignoreUnescapedHTML: true})
+      const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
+      blocks.forEach((block) => {
+        hl.highlightElement(block)
+      })
+    })
+  }).catch(() => {
+    error.value = true
+  })
+
+};
 
 // 创建 socket 连接
 const prompt = ref('');
@@ -229,7 +296,7 @@ const reGenerate = () => {
 <style scoped lang="stylus">
 .mobile-chat {
   .message-list-box {
-
+    overflow-x auto
   }
 
   .chat-box {

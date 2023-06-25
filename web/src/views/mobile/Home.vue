@@ -4,7 +4,7 @@
       <router-view/>
 
       <van-tabbar route v-model="active" @change="onChange">
-        <van-tabbar-item to="/mobile/chat" name="home" icon="chat-o"></van-tabbar-item>
+        <van-tabbar-item to="/mobile/chat/list" name="home" icon="chat-o"></van-tabbar-item>
         <van-tabbar-item to="/mobile/setting" name="setting" icon="setting-o"></van-tabbar-item>
         <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o"></van-tabbar-item>
       </van-tabbar>

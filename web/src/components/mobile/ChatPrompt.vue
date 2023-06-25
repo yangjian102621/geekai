@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-line chat-line-right">
+  <div class="message-reply">
     <div class="chat-item">
       <div class="content" v-html="content"></div>
       <div class="triangle"></div>
@@ -32,15 +32,15 @@ export default defineComponent({
 })
 </script>
 
-<style lang="stylus" scoped>
-.chat-line-right {
+<style lang="stylus">
+.message-reply {
   justify-content: flex-end;
 
   .chat-icon {
     margin-left 5px;
 
     img {
-      border-radius 50%;
+      border-radius 5px;
     }
   }
 
@@ -52,9 +52,9 @@ export default defineComponent({
     .triangle {
       width: 0;
       height: 0;
-      border-top: 6px solid transparent;
-      border-bottom: 6px solid transparent;
-      border-left: 6px solid #223A34;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 5px solid #98E165;
       position: absolute;
       right: 0;
       top: 10px;
@@ -63,23 +63,11 @@ export default defineComponent({
     .content {
       word-break break-word;
       padding: 6px 10px;
-      background-color: #223A34;
+      background-color: #98E165;
       color var(--content-color);
       font-size: var(--content-font-size);
       border-radius: 5px;
-      overflow: auto;
-
-      p {
-        line-height 1.5
-      }
-
-      p:last-child {
-        margin-bottom: 0
-      }
-
-      p:first-child {
-        margin-top 0
-      }
+      line-height 1.5
     }
   }
 }
