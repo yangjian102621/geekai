@@ -1,6 +1,6 @@
 Listen = "0.0.0.0:5678"
-ProxyURL = "http://192.168.3.200:7777"
-MysqlDns = "root:12345678@tcp(192.168.3.200:3306)/chatgpt_plus?charset=utf8mb4&parseTime=True&loc=Local"
+ProxyURL = "http://127.0.0.1:7777"
+MysqlDns = "root:12345678@tcp(172.28.173.76:3307)/chatgpt_plus?charset=utf8mb4&parseTime=True&loc=Local"
 
 [Session]
   SecretKey = "8k0c67y2or1n7kbmn1w1c86ygqscguoktuf9t524jm64ls585z8uibpdssiy128s"
