@@ -103,16 +103,21 @@ const routes = [
     },
 
     {
+        path: '/mobile/chat/session',
+        name: 'mobile-chat-session',
+        component: () => import('@/views/mobile/ChatSession.vue'),
+    },
+    {
         name: 'mobile',
         path: '/mobile',
         meta: {title: 'ChatGPT-智能助手V3'},
         component: () => import('@/views/mobile/Home.vue'),
-        redirect: '/mobile/chat',
+        redirect: '/mobile/chat/list',
         children: [
             {
-                path: '/mobile/chat',
-                name: 'mobile-chat',
-                component: () => import('@/views/mobile/Chat.vue'),
+                path: '/mobile/chat/list',
+                name: 'mobile-chat-list',
+                component: () => import('@/views/mobile/ChatList.vue'),
             },
             {
                 path: '/mobile/setting',

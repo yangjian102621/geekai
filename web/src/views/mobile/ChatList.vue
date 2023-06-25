@@ -1,10 +1,13 @@
 <template>
-  <div class="container chat-mobile">
+  <div class="container mobile-chat-list" v-if="isLogin">
     <van-nav-bar
         :title="title"
-        right-text="新建会话"
-        @click-right="showPicker = true"
-    />
+        left-text="新建会话"
+        @click-left="showPicker = true">
+      <template #right>
+        <van-icon name="delete-o" @click="clearAllChatHistory"/>
+      </template>
+    </van-nav-bar>
 
     <div class="content">
       <van-search
@@ -22,15 +25,21 @@
           finished-text="没有更多了"
           @load="onLoad"
       >
-        <van-cell v-for="item in chats" :key="item.id">
-          <div class="chat-list-item">
-            <van-image
-                round
-                :src="item.icon"
-            />
-            <van-text-ellipsis class="text" :content="item.title"/>
-          </div>
-        </van-cell>
+        <van-swipe-cell v-for="item in chats" :key="item.id">
+          <van-cell>
+            <div class="chat-list-item">
+              <van-image
+                  round
+                  :src="item.icon"
+              />
+              <div class="van-ellipsis">{{ item.title }}</div>
+            </div>
+          </van-cell>
+          <template #right>
+            <van-button square type="primary" text="修改" @click="editChat(item)"/>
+            <van-button square type="danger" text="删除" @click="removeChat(item)"/>
+          </template>
+        </van-swipe-cell>
       </van-list>
     </div>
 
@@ -60,10 +69,11 @@
 <script setup>
 import {ref} from "vue";
 import {httpGet} from "@/utils/http";
-import {getLoginUser} from "@/utils/storage";
-import {showFailToast} from "vant";
+import {getLoginUser} from "@/store/session";
+import {showFailToast, showSuccessToast, showToast} from "vant";
 import {checkSession} from "@/action/session";
 import router from "@/router";
+import {setChatConfig} from "@/store/chat";
 
 const title = ref("会话列表")
 const chatName = ref("")
@@ -73,11 +83,13 @@ const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
 const user = getLoginUser()
+const isLogin = ref(false)
 
 const showPicker = ref(false)
 const columns = ref([])
 
 checkSession().then(() => {
+  isLogin.value = true
   // 加载角色列表
   httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
     if (res.data) {
@@ -138,16 +150,37 @@ const search = () => {
   chats.value = items;
 }
 
+const clearAllChatHistory = () => {
+  showSuccessToast('所有聊天记录已清空')
+}
+
 const newChat = (item) => {
-  console.log(item.selectedValues)
   showPicker.value = false
+  const options = item.selectedOptions
+  setChatConfig({
+    role: {
+      id: options[0].value,
+      name: options[0].text,
+      icon: options[0].icon
+    },
+    model: options[1].value,
+  })
+  router.push('/mobile/chat/session')
+}
+
+const editChat = (item) => {
+  showToast('修改会话标题')
+}
+
+const removeChat = (item) => {
+  showToast('删除当前会话')
 }
 
 </script>
 
 <style scoped lang="stylus">
 
-.chat-mobile {
+.mobile-chat-list {
   .content {
     .van-cell__value {
       .chat-list-item {
@@ -158,7 +191,7 @@ const newChat = (item) => {
           height 30px
         }
 
-        .text {
+        .van-ellipsis {
           margin-top 4px;
           margin-left 10px;
         }
@@ -176,6 +209,14 @@ const newChat = (item) => {
         width 20px;
         height 20px;
         margin-right 5px
+      }
+    }
+  }
+
+  .van-nav-bar {
+    .van-nav-bar__right {
+      .van-icon {
+        font-size 20px;
       }
     }
   }

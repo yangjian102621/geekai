@@ -4,7 +4,7 @@
     <div class="main">
       <div class="contain">
         <div class="logo">
-          <el-image src="images/logo.png" fit="cover" />
+          <el-image src="images/logo.png" fit="cover"/>
         </div>
         <div class="header">{{ title }}</div>
         <div class="content">
@@ -40,7 +40,7 @@
       </div>
 
       <footer class="footer">
-        <footer-bar />
+        <footer-bar/>
       </footer>
     </div>
   </div>
@@ -52,9 +52,10 @@ import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {setLoginUser} from "@/utils/storage";
+import {setLoginUser} from "@/store/session";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
+import {isMobile} from "@/utils/libs";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户登录');
@@ -79,8 +80,11 @@ const login = function () {
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
     setLoginUser(res.data)
-    router.push("chat")
-
+    if (isMobile()) {
+      router.push('/mobile')
+    } else {
+      router.push('chat')
+    }
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
   })
@@ -118,6 +122,7 @@ const login = function () {
 
     .logo {
       text-align center
+
       .el-image {
         width 120px;
       }
