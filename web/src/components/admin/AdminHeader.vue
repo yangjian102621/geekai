@@ -82,7 +82,6 @@ import {useRouter} from 'vue-router';
 import {ArrowDown, Expand, Fold} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {checkAdminSession} from "@/action/session";
 
 const message = ref(5);
 const username = ref('极客学长')
@@ -93,16 +92,11 @@ const sidebar = useSidebarStore();
 const title = ref('Chat-Plus 控制台')
 const logo = ref('/images/logo.png')
 
-// 获取会话信息
-checkAdminSession().then(() => {
-  // 加载系统配置
-  httpGet('/api/admin/config/get?key=system').then(res => {
-    title.value = res.data['admin_title'];
-  }).catch(e => {
-    ElMessage.error("加载系统配置失败: " + e.message)
-  })
-}).catch(() => {
-  router.replace('/admin/login')
+// 加载系统配置
+httpGet('/api/admin/config/get?key=system').then(res => {
+  title.value = res.data['admin_title'];
+}).catch(e => {
+  ElMessage.error("加载系统配置失败: " + e.message)
 })
 
 // 侧边栏折叠
