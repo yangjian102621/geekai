@@ -26,7 +26,7 @@
           @load="onLoad"
       >
         <van-swipe-cell v-for="item in chats" :key="item.id">
-          <van-cell>
+          <van-cell @click="changeChat(item)">
             <div class="chat-list-item">
               <van-image
                   round
@@ -70,10 +70,12 @@
 import {ref} from "vue";
 import {httpGet} from "@/utils/http";
 import {getLoginUser} from "@/store/session";
-import {showFailToast, showSuccessToast, showToast} from "vant";
+import {showConfirmDialog, showFailToast, showSuccessToast, showToast} from "vant";
 import {checkSession} from "@/action/session";
 import router from "@/router";
 import {setChatConfig} from "@/store/chat";
+import {removeArrayItem, UUID} from "@/utils/libs";
+import {ElMessage} from "element-plus";
 
 const title = ref("会话列表")
 const chatName = ref("")
@@ -84,9 +86,10 @@ const finished = ref(false)
 const error = ref(false)
 const user = getLoginUser()
 const isLogin = ref(false)
-
+const roles = ref([])
+const models = ref([])
 const showPicker = ref(false)
-const columns = ref([])
+const columns = ref([roles.value, models.value])
 
 checkSession().then(() => {
   isLogin.value = true
@@ -94,12 +97,10 @@ checkSession().then(() => {
   httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
     if (res.data) {
       const items = res.data
-      const roles = []
       for (let i = 0; i < items.length; i++) {
         // console.log(items[i])
-        roles.push({text: items[i].name, value: items[i].id, icon: items[i].icon})
+        roles.value.push({text: items[i].name, value: items[i].id, icon: items[i].icon})
       }
-      columns.value[0] = roles
     }
   }).catch(() => {
     showFailToast("加载聊天角色失败")
@@ -109,11 +110,9 @@ checkSession().then(() => {
   httpGet('/api/admin/config/get?key=system').then(res => {
     if (res.data) {
       const items = res.data.models
-      const models = []
       for (let i = 0; i < items.length; i++) {
-        models.push({text: items[i].toUpperCase(), value: items[i]})
+        models.value.push({text: items[i].toUpperCase(), value: items[i]})
       }
-      columns.value[1] = models
     }
   }).catch(() => {
     showFailToast("加载系统配置失败")
@@ -151,7 +150,19 @@ const search = () => {
 }
 
 const clearAllChatHistory = () => {
-  showSuccessToast('所有聊天记录已清空')
+  showConfirmDialog({
+    title: '操作提示',
+    message: '确定要删除所有的会话记录吗？'
+  }).then(() => {
+    httpGet("/api/chat/clear").then(() => {
+      showSuccessToast('所有聊天记录已清空')
+      chats.value = [];
+    }).catch(e => {
+      showFailToast("操作失败：" + e.message)
+    })
+  }).catch(() => {
+    // on cancel
+  })
 }
 
 const newChat = (item) => {
@@ -164,16 +175,47 @@ const newChat = (item) => {
       icon: options[0].icon
     },
     model: options[1].value,
+    title: '新建会话',
+    chatId: UUID()
+  })
+  router.push('/mobile/chat/session')
+}
+
+const changeChat = (chat) => {
+  let role = {}
+  for (let i = 0; i < roles.value.length; i++) {
+    if (roles.value[i].value === chat.role_id) {
+      role = roles.value[i]
+      break
+    }
+  }
+  setChatConfig({
+    role: {
+      id: chat.role_id,
+      name: role.text,
+      icon: role.icon
+    },
+    model: chat.model,
+    title: chat.title,
+    chatId: chat.chat_id
   })
   router.push('/mobile/chat/session')
 }
 
 const editChat = (item) => {
   showToast('修改会话标题')
+
 }
 
 const removeChat = (item) => {
-  showToast('删除当前会话')
+  httpGet('/api/chat/remove?chat_id=' + item.chat_id).then(() => {
+    chats.value = removeArrayItem(chats.value, item, function (e1, e2) {
+      return e1.id === e2.id
+    })
+  }).catch(e => {
+    showFailToast('操作失败：' + e.message);
+  })
+
 }
 
 </script>

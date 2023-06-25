@@ -97,10 +97,19 @@ func (h *ManagerHandler) Migrate(c *gin.Context) {
 		}
 		break
 	case "role":
-		// TestRole 修改角色图片，改成绝对路径
+		// 修改角色图片，改成绝对路径
 		var roles []model.ChatRole
 		h.db.Find(&roles)
 		for _, r := range roles {
+			r.Icon = "/" + r.Icon
+			h.db.Updates(&r)
+		}
+		break
+	case "history":
+		// 修改角色图片，改成绝对路径
+		var message []model.HistoryMessage
+		h.db.Find(&message)
+		for _, r := range message {
 			r.Icon = "/" + r.Icon
 			h.db.Updates(&r)
 		}
