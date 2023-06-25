@@ -75,13 +75,7 @@ const error = ref(false)
 const user = getLoginUser()
 
 const showPicker = ref(false)
-const columns = ref([
-  [{text: 'GPT-3.5', value: 1},
-    {text: 'GPT-4', value: 2},
-  ],
-  [{text: 'xxxx', value: 3},
-    {text: 'yyy', value: 4},]
-])
+const columns = ref([])
 
 checkSession().then(() => {
   // 加载角色列表
@@ -105,7 +99,6 @@ checkSession().then(() => {
       const items = res.data.models
       const models = []
       for (let i = 0; i < items.length; i++) {
-        console.log(items[i])
         models.push({text: items[i].toUpperCase(), value: items[i]})
       }
       columns.value[1] = models
@@ -145,8 +138,9 @@ const search = () => {
   chats.value = items;
 }
 
-const newChat = (value) => {
-  console.log(value)
+const newChat = (item) => {
+  console.log(item.selectedValues)
+  showPicker.value = false
 }
 
 </script>

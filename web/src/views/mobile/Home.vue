@@ -17,12 +17,14 @@
 <script setup>
 import {ref} from "vue";
 
-const active = ref('home');
+const active = ref('home')
 const theme = ref("light")
+
 const onChange = (index) => {
   console.log(index)
   // showToast(`标签 ${index}`);
 }
+
 </script>
 
 <style lang="stylus">
