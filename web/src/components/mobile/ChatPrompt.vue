@@ -47,7 +47,7 @@ onMounted(() => {
     margin-left 5px
 
     .van-image {
-      width 25px
+      width 32px
 
       img {
         border-radius 5px
@@ -73,7 +73,7 @@ onMounted(() => {
 
     .content {
       word-break break-word;
-      padding: 6px 10px;
+      padding: 5px 10px;
       background-color: #98E165;
       color #444444
       font-size: 16px

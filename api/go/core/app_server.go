@@ -51,6 +51,9 @@ func (s *AppServer) Init(debug bool) {
 	s.Engine.Use(authorizeMiddleware(s))
 	s.Engine.Use(errorHandler)
 	//gob.Register(model.User{})
+
+	// 添加静态资源访问
+	s.Engine.Static("/static", s.AppConfig.StaticDir)
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {

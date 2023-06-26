@@ -289,8 +289,6 @@ func (h *UserHandler) Profile(c *gin.Context) {
 	}
 
 	userVo.Id = user.Id
-	userVo.CreatedAt = user.CreatedAt.Unix()
-	userVo.UpdatedAt = user.UpdatedAt.Unix()
 	resp.SUCCESS(c, userVo)
 }
 

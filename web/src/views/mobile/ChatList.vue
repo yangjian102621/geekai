@@ -227,20 +227,22 @@ const removeChat = (item) => {
 </script>
 
 <style lang="stylus" scoped>
-
+$fontSize = 16px;
 .mobile-chat-list {
+
   .content {
     .van-cell__value {
       .chat-list-item {
         display flex
+        font-size $fontSize
 
         .van-image {
-          width 30px
-          height 30px
+          width 32px
+          height 32px
         }
 
         .van-ellipsis {
-          margin-top 4px;
+          margin-top 5px;
           margin-left 10px;
         }
       }

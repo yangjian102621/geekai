@@ -25,6 +25,7 @@ import {
     ShareSheet,
     Sticky,
     SwipeCell,
+    Switch,
     Tabbar,
     TabbarItem,
     TextEllipsis
@@ -56,6 +57,7 @@ app.use(Sticky);
 app.use(SwipeCell);
 app.use(Dialog);
 app.use(ShareSheet);
+app.use(Switch);
 app.use(router).use(ElementPlus).mount('#app')
 
 

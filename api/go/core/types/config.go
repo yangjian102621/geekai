@@ -5,12 +5,13 @@ import (
 )
 
 type AppConfig struct {
-	Path     string `toml:"-"`
-	Listen   string
-	Session  Session
-	ProxyURL string
-	MysqlDns string  // mysql 连接地址
-	Manager  Manager // 后台管理员账户信息
+	Path      string `toml:"-"`
+	Listen    string
+	Session   Session
+	ProxyURL  string
+	MysqlDns  string  // mysql 连接地址
+	Manager   Manager // 后台管理员账户信息
+	StaticDir string  // 静态资源目录
 }
 
 // Manager 管理员
