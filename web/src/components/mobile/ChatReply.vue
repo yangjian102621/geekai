@@ -56,7 +56,7 @@ onMounted(() => {
     margin-right 5px
 
     .van-image {
-      width 25px
+      width 32px
 
       img {
         border-radius 5px
@@ -92,7 +92,7 @@ onMounted(() => {
         overflow-x auto
         min-height 20px;
         word-break break-word;
-        padding: 6px 10px;
+        padding: 5px 10px;
         color #444444
         background-color: #ffffff;
         font-size: 16px
