@@ -1,46 +1,57 @@
 <template>
-  <div class="message-reply">
+  <div class="mobile-message-prompt">
     <div class="chat-item">
-      <div class="content" v-html="content"></div>
+      <div ref="contentRef" :data-clipboard-text="content" class="content" v-html="content"></div>
       <div class="triangle"></div>
     </div>
 
     <div class="chat-icon">
-      <img :src="icon" alt="User"/>
+      <van-image :src="icon"/>
     </div>
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue"
+<script setup>
+import {onMounted, ref} from "vue";
+import Clipboard from "clipboard";
+import {showNotify} from "vant";
 
-export default defineComponent({
-  name: 'ChatPrompt',
-  props: {
-    content: {
-      type: String,
-      default: '',
-    },
-    icon: {
-      type: String,
-      default: 'images/user-icon.png',
-    }
+const props = defineProps({
+  content: {
+    type: String,
+    default: '',
   },
-  data() {
-    return {}
-  },
+  icon: {
+    type: String,
+    default: '/images/user-icon.png',
+  }
+});
+const contentRef = ref(null)
+onMounted(() => {
+  const clipboard = new Clipboard(contentRef.value);
+  clipboard.on('success', () => {
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
+  })
+  clipboard.on('error', () => {
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+  })
 })
 </script>
 
 <style lang="stylus">
-.message-reply {
-  justify-content: flex-end;
+.mobile-message-prompt {
+  display flex
+  justify-content: flex-end
 
   .chat-icon {
-    margin-left 5px;
+    margin-left 5px
 
-    img {
-      border-radius 5px;
+    .van-image {
+      width 25px
+
+      img {
+        border-radius 5px
+      }
     }
   }
 
@@ -64,10 +75,26 @@ export default defineComponent({
       word-break break-word;
       padding: 6px 10px;
       background-color: #98E165;
-      color var(--content-color);
-      font-size: var(--content-font-size);
-      border-radius: 5px;
+      color #444444
+      font-size: 16px
+      border-radius: 5px
       line-height 1.5
+    }
+  }
+}
+
+.van-theme-dark {
+  .mobile-message-prompt {
+    .chat-item {
+
+      .triangle {
+        border-left: 5px solid #223A34
+      }
+
+      .content {
+        background-color: #223A34
+        color #c1c1c1
+      }
     }
   }
 }

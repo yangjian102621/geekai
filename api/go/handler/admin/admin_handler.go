@@ -8,6 +8,7 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 
@@ -88,7 +89,7 @@ func (h *ManagerHandler) Migrate(c *gin.Context) {
 				continue
 			}
 
-			for k, _ := range m {
+			for k := range m {
 				roleKeys = append(roleKeys, k)
 			}
 			u.ChatRoles = utils.JsonEncode(roleKeys)
@@ -101,8 +102,10 @@ func (h *ManagerHandler) Migrate(c *gin.Context) {
 		var roles []model.ChatRole
 		h.db.Find(&roles)
 		for _, r := range roles {
-			r.Icon = "/" + r.Icon
-			h.db.Updates(&r)
+			if !strings.HasPrefix(r.Icon, "/") {
+				r.Icon = "/" + r.Icon
+				h.db.Updates(&r)
+			}
 		}
 		break
 	case "history":
@@ -112,6 +115,18 @@ func (h *ManagerHandler) Migrate(c *gin.Context) {
 		for _, r := range message {
 			r.Icon = "/" + r.Icon
 			h.db.Updates(&r)
+		}
+		break
+
+	case "avatar":
+		// 更新用户的头像地址
+		var users []model.User
+		h.db.Find(&users)
+		for _, u := range users {
+			if !strings.HasPrefix(u.Avatar, "/") {
+				u.Avatar = "/" + u.Avatar
+				h.db.Updates(&u)
+			}
 		}
 		break
 	}

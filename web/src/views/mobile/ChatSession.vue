@@ -1,86 +1,97 @@
 <template>
-  <div class="mobile-chat">
-    <van-sticky :offset-top="0" position="top" ref="navBarRef">
-      <van-nav-bar left-text="返回" left-arrow @click-left="router.back()">
-        <template #title>
-          <van-dropdown-menu>
-            <van-dropdown-item :title="title">
-              <van-cell center title="角色"> {{ role.name }}</van-cell>
-              <van-cell center title="模型">{{ model }}</van-cell>
-            </van-dropdown-item>
-          </van-dropdown-menu>
-        </template>
+  <van-config-provider :theme="getMobileTheme()">
+    <div class="mobile-chat">
+      <van-sticky ref="navBarRef" :offset-top="0" position="top">
+        <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
+          <template #title>
+            <van-dropdown-menu>
+              <van-dropdown-item :title="title">
+                <van-cell center title="角色"> {{ role.name }}</van-cell>
+                <van-cell center title="模型">{{ model }}</van-cell>
+              </van-dropdown-item>
+            </van-dropdown-menu>
+          </template>
 
-        <template #right>
-          <van-icon name="delete-o" @click="clearChatHistory"/>
-        </template>
-      </van-nav-bar>
-    </van-sticky>
+          <template #right>
+            <van-icon name="share-o" @click="showShare = true"/>
+          </template>
+        </van-nav-bar>
+      </van-sticky>
 
+      <van-share-sheet
+          v-model:show="showShare"
+          title="立即分享给好友"
+          :options="shareOptions"
+          @select="shareChat"
+      />
 
-    <div class="message-list-box" id="message-list-box" :style="{height: winHeight+'px'}">
-      <van-list
-          v-model:loading="loading"
-          :finished="finished"
-          v-model:error="error"
-          error-text="请求失败，点击重新加载"
-          @load="onLoad"
-      >
-        <van-cell v-for="item in chatData" :key="item">
-          <chat-prompt
-              v-if="item.type==='prompt'"
-              :icon="item.icon"
-              :created-at="dateFormat(item['created_at'])"
-              :tokens="item['tokens']"
-              :model="model"
-              :content="item.content"/>
-          <chat-reply v-else-if="item.type==='reply'"
-                      :icon="item.icon"
-                      :org-content="item.orgContent"
-                      :created-at="dateFormat(item['created_at'])"
-                      :tokens="item['tokens']"
-                      :content="item.content"/>
-        </van-cell>
-      </van-list>
-    </div>
-
-    <van-sticky :offset-bottom="0" position="bottom" ref="bottomBarRef">
-      <div class="chat-box">
-        <van-cell-group>
-          <van-field
-              v-model="prompt"
-              center
-              clearable
-              placeholder="输入你的问题"
-          >
-            <template #button>
-              <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
-            </template>
-            <template #extra>
-              <div class="icon-box">
-                <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate"/>
-                <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate"/>
-              </div>
-            </template>
-          </van-field>
-        </van-cell-group>
+      <div id="message-list-box" :style="{height: winHeight+'px'}" class="message-list-box">
+        <van-list
+            v-model:error="error"
+            v-model:loading="loading"
+            :finished="finished"
+            error-text="请求失败，点击重新加载"
+            @load="onLoad"
+        >
+          <van-cell v-for="item in chatData" :key="item" :border="false" class="message-line">
+            <chat-prompt
+                v-if="item.type==='prompt'"
+                :content="item.content"
+                :created-at="dateFormat(item['created_at'])"
+                :icon="item.icon"
+                :model="model"
+                :tokens="item['tokens']"/>
+            <chat-reply v-else-if="item.type==='reply'"
+                        :content="item.content"
+                        :created-at="dateFormat(item['created_at'])"
+                        :icon="item.icon"
+                        :org-content="item.orgContent"
+                        :tokens="item['tokens']"/>
+          </van-cell>
+        </van-list>
       </div>
-    </van-sticky>
-  </div>
+
+      <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
+        <div class="chat-box">
+          <van-cell-group>
+            <van-field
+                v-model="prompt"
+                center
+                clearable
+                placeholder="输入你的问题"
+            >
+              <template #button>
+                <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
+              </template>
+              <template #extra>
+                <div class="icon-box">
+                  <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate"/>
+                  <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate"/>
+                </div>
+              </template>
+            </van-field>
+          </van-cell-group>
+        </div>
+      </van-sticky>
+    </div>
+  </van-config-provider>
 
 </template>
 
 <script setup>
 import {nextTick, onMounted, ref} from "vue";
-import {showToast} from "vant";
+import {showToast, showDialog} from "vant";
 import {useRouter} from "vue-router";
-import {dateFormat, UUID} from "@/utils/libs";
+import {dateFormat, randString, renderInputText, UUID} from "@/utils/libs";
 import {getChatConfig} from "@/store/chat";
 import {httpGet} from "@/utils/http";
 import hl from "highlight.js";
 import 'highlight.js/styles/a11y-dark.css'
 import ChatPrompt from "@/components/mobile/ChatPrompt.vue";
 import ChatReply from "@/components/mobile/ChatReply.vue";
+import {getSessionId} from "@/store/session";
+import {checkSession} from "@/action/session";
+import {getMobileTheme} from "@/store/system";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -92,6 +103,7 @@ const role = chatConfig.role
 const model = chatConfig.model
 const title = chatConfig.title
 const chatId = chatConfig.chatId
+const loginUser = ref(null)
 
 onMounted(() => {
   winHeight.value = document.body.offsetHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight
@@ -101,35 +113,44 @@ const chatData = ref([])
 const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
+
+checkSession().then(user => {
+  loginUser.value = user
+}).catch(() => {
+  router.push('/login')
+})
+
 const onLoad = () => {
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
     // 加载状态结束
     loading.value = false;
     finished.value = true;
     const data = res.data
-    if (!data || data.length === 0) {
-      return
-    }
+    if (data && data.length > 0) {
+      const md = require('markdown-it')();
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].type === "prompt") {
+          chatData.value.push(data[i]);
+          continue;
+        }
 
-    const md = require('markdown-it')();
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].type === "prompt") {
+        data[i].orgContent = data[i].content;
+        data[i].content = md.render(data[i].content);
         chatData.value.push(data[i]);
-        continue;
       }
 
-      data[i].orgContent = data[i].content;
-      data[i].content = md.render(data[i].content);
-      chatData.value.push(data[i]);
+      nextTick(() => {
+        hl.configure({ignoreUnescapedHTML: true})
+        const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
+        blocks.forEach((block) => {
+          hl.highlightElement(block)
+        })
+        scrollListBox()
+      })
     }
 
-    nextTick(() => {
-      hl.configure({ignoreUnescapedHTML: true})
-      const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
-      blocks.forEach((block) => {
-        hl.highlightElement(block)
-      })
-    })
+    // 连接会话
+    connect(chatId, role.id);
   }).catch(() => {
     error.value = true
   })
@@ -157,7 +178,6 @@ const connect = function (chat_id, role_id) {
     socket.value.close();
   }
 
-  const _role = getRoleById(role_id);
   // 初始化 WebSocket 对象
   const _sessionId = getSessionId();
   let host = process.env.VUE_APP_WS_HOST
@@ -168,9 +188,8 @@ const connect = function (chat_id, role_id) {
       host = 'ws://' + location.host;
     }
   }
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model=${model.value}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model=${model}`);
   _socket.addEventListener('open', () => {
-    chatData.value = []; // 初始化聊天数据
     previousText.value = '';
     canSend.value = true;
     activelyClose.value = false;
@@ -180,12 +199,10 @@ const connect = function (chat_id, role_id) {
       chatData.value.push({
         type: "reply",
         id: randString(32),
-        icon: _role['icon'],
-        content: _role['hello_msg'],
-        orgContent: _role['hello_msg'],
+        icon: role.icon,
+        content: role.helloMsg,
+        orgContent: role.helloMsg,
       })
-    } else { // 加载聊天记录
-      loadChatHistory(chat_id);
     }
   });
 
@@ -199,7 +216,7 @@ const connect = function (chat_id, role_id) {
           chatData.value.push({
             type: "reply",
             id: randString(32),
-            icon: _role['icon'],
+            icon: role.icon,
             content: ""
           });
         } else if (data.type === 'end') { // 消息接收完毕
@@ -207,26 +224,6 @@ const connect = function (chat_id, role_id) {
           showReGenerate.value = true;
           showStopGenerate.value = false;
           lineBuffer.value = ''; // 清空缓冲
-
-          // 追加当前会话到会话列表
-          if (isNewChat && newChatItem.value !== null) {
-            newChatItem.value['title'] = previousText.value;
-            newChatItem.value['chat_id'] = chat_id;
-            chatList.value.unshift(newChatItem.value);
-            activeChat.value = newChatItem.value;
-            newChatItem.value = null; // 只追加一次
-          }
-
-          // 获取 token
-          const reply = chatData.value[chatData.value.length - 1]
-          httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${model.value}`).then(res => {
-            reply['created_at'] = new Date().getTime();
-            reply['tokens'] = res.data;
-            // 将聊天框的滚动条滑动到最底部
-            nextTick(() => {
-              document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
-            })
-          })
 
         } else {
           lineBuffer.value += data.content;
@@ -237,16 +234,16 @@ const connect = function (chat_id, role_id) {
 
           nextTick(() => {
             hl.configure({ignoreUnescapedHTML: true})
-            const lines = document.querySelectorAll('.chat-line');
+            const lines = document.querySelectorAll('.message-line');
             const blocks = lines[lines.length - 1].querySelectorAll('pre code');
             blocks.forEach((block) => {
               hl.highlightElement(block)
             })
           })
         }
-        // 将聊天框的滚动条滑动到最底部
+
         nextTick(() => {
-          document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+          scrollListBox()
         })
       };
     }
@@ -254,21 +251,21 @@ const connect = function (chat_id, role_id) {
   });
 
   _socket.addEventListener('close', () => {
+    console.log(activelyClose.value)
     if (activelyClose.value) { // 忽略主动关闭
       return;
     }
     // 停止发送消息
     canSend.value = true;
     socket.value = null;
-    loading.value = true;
     checkSession().then(() => {
       connect(chat_id, role_id)
     }).catch(() => {
-      ElMessageBox({
+      showDialog({
         title: '会话提示',
-        message: "当前会话已经失效，请重新登录",
-        confirmButtonText: 'OK',
-        callback: () => router.push('login')
+        message: '当前会话已经失效，请重新登录！',
+      }).then(() => {
+        router.push('/login')
       });
     });
   });
@@ -276,27 +273,92 @@ const connect = function (chat_id, role_id) {
   socket.value = _socket;
 }
 
-const clearChatHistory = () => {
-  showToast('清空聊记录')
+// 将聊天框的滚动条滑动到最底部
+const scrollListBox = () => {
+  document.getElementById('message-list-box').scrollTo(0, document.getElementById('message-list-box').scrollHeight)
 }
 
 const sendMessage = () => {
-  showToast("发送成功")
+  if (canSend.value === false) {
+    showToast("AI 正在作答中，请稍后...");
+    return
+  }
+
+  if (prompt.value.trim().length === 0 || canSend.value === false) {
+    return false;
+  }
+
+  // 追加消息
+  chatData.value.push({
+    type: "prompt",
+    id: randString(32),
+    icon: loginUser.value.avatar,
+    content: renderInputText(prompt.value),
+    created_at: new Date().getTime(),
+  });
+
+  nextTick(() => {
+    scrollListBox()
+  })
+
+  canSend.value = false;
+  showStopGenerate.value = true;
+  showReGenerate.value = false;
+  socket.value.send(prompt.value);
+  previousText.value = prompt.value;
+  prompt.value = '';
+  return true;
 }
 
 const stopGenerate = () => {
-  showToast("停止生成")
+  showStopGenerate.value = false;
+  httpGet("/api/chat/stop?session_id=" + getSessionId()).then(() => {
+    canSend.value = true;
+    if (previousText.value !== '') {
+      showReGenerate.value = true;
+    }
+  })
 }
 
 const reGenerate = () => {
-  showToast('重新生成')
+  canSend.value = false;
+  showStopGenerate.value = true;
+  showReGenerate.value = false;
+  const text = '重新生成上述问题的答案：' + previousText.value;
+  // 追加消息
+  chatData.value.push({
+    type: "prompt",
+    id: randString(32),
+    icon: loginUser.value.avatar,
+    content: renderInputText(text)
+  });
+  socket.value.send(text);
+}
+
+const showShare = ref(false)
+const shareOptions = [
+  {name: '微信', icon: 'wechat'},
+  {name: '微博', icon: 'weibo'},
+  {name: '复制链接', icon: 'link'},
+  {name: '分享海报', icon: 'poster'},
+]
+const shareChat = () => {
+  showShare.value = false
+  showToast('功能待开发')
 }
 </script>
 
-<style scoped lang="stylus">
+<style lang="stylus" scoped>
 .mobile-chat {
   .message-list-box {
+    padding-top 50px
     overflow-x auto
+    background #F5F5F5;
+
+    .van-cell {
+      background none
+      font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    }
   }
 
   .chat-box {
@@ -305,6 +367,14 @@ const reGenerate = () => {
         font-size 24px
         margin-left 10px;
       }
+    }
+  }
+}
+
+.van-theme-dark {
+  .mobile-chat {
+    .message-list-box {
+      background #232425;
     }
   }
 }
