@@ -1,74 +1,66 @@
 <template>
-  <div class="message-prompt">
+  <div class="mobile-message-reply">
     <div class="chat-icon">
-      <img :src="icon" alt="ChatGPT">
+      <van-image :src="icon"/>
     </div>
 
     <div class="chat-item">
       <div class="triangle"></div>
       <div class="content-box">
-        <div class="content" v-html="content"></div>
-        <div class="tool-box">
-          <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制回答"
-              placement="bottom"
-          >
-            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent" plain>
-              <el-icon>
-                <DocumentCopy/>
-              </el-icon>
-            </el-button>
-          </el-tooltip>
-        </div>
+        <div ref="contentRef" :data-clipboard-text="orgContent" class="content" v-html="content"></div>
       </div>
 
     </div>
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue"
-import {randString} from "@/utils/libs";
-import {DocumentCopy} from "@element-plus/icons-vue";
+<script setup>
+import {onMounted, ref} from "vue"
 
-export default defineComponent({
-  name: 'ChatReply',
-  components: {DocumentCopy},
-  props: {
-    content: {
-      type: String,
-      default: '',
-    },
-    orgContent: {
-      type: String,
-      default: '',
-    },
-    icon: {
-      type: String,
-      default: 'images/gpt-icon.png',
-    }
-  },
-  data() {
-    return {
-      id: randString(32),
-      clipboard: null,
-    }
-  },
+import Clipboard from "clipboard";
+import {showNotify} from "vant";
 
+const props = defineProps({
+  content: {
+    type: String,
+    default: '',
+  },
+  orgContent: {
+    type: String,
+    default: '',
+  },
+  icon: {
+    type: String,
+    default: '/images/gpt-icon.png',
+  }
+});
+
+const contentRef = ref(null)
+onMounted(() => {
+  const clipboard = new Clipboard(contentRef.value);
+  clipboard.on('success', () => {
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
+  })
+  clipboard.on('error', () => {
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+  })
 })
 </script>
 
 <style lang="stylus">
-.message-prompt {
+.mobile-message-reply {
+  display flex
   justify-content: flex-start;
 
   .chat-icon {
-    margin-right 5px;
+    margin-right 5px
 
-    img {
-      border-radius 5px;
+    .van-image {
+      width 25px
+
+      img {
+        border-radius 5px
+      }
     }
   }
 
@@ -95,12 +87,15 @@ export default defineComponent({
       flex-direction row
 
       .content {
+        text-align left
+        width 100%
+        overflow-x auto
         min-height 20px;
         word-break break-word;
         padding: 6px 10px;
-        color var(--content-color)
-        background-color: #fff;
-        font-size: var(--content-font-size);
+        color #444444
+        background-color: #ffffff;
+        font-size: 16px
         border-radius: 5px;
 
         p:last-child {
@@ -112,18 +107,10 @@ export default defineComponent({
         }
 
         p > code {
-          color #cc0000
-          background-color #f1f1f1
-        }
-      }
-
-      .tool-box {
-        padding-left 10px;
-        font-size 16px;
-
-        .el-button {
-          height 20px
-          padding 5px 2px;
+          color #2b2b2b
+          background-color #c1c1c1
+          padding 2px 5px
+          border-radius 5px
         }
       }
     }
@@ -131,4 +118,28 @@ export default defineComponent({
   }
 }
 
+
+.van-theme-dark {
+  .mobile-message-reply {
+    .chat-item {
+      .triangle {
+        border-right: 5px solid #404042;
+      }
+
+      .content-box {
+        .content {
+          color #c1c1c1
+          background-color: #404042;
+
+          p > code {
+            color #c1c1c1
+            background-color #2b2b2b
+          }
+        }
+      }
+
+    }
+  }
+
+}
 </style>

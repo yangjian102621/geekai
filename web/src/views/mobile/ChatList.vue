@@ -1,5 +1,5 @@
 <template>
-  <div class="container mobile-chat-list" v-if="isLogin">
+  <div v-if="isLogin" class="container mobile-chat-list">
     <van-nav-bar
         :title="title"
         left-text="新建会话"
@@ -12,16 +12,16 @@
     <div class="content">
       <van-search
           v-model="chatName"
-          placeholder="请输入会话标题"
           input-align="center"
+          placeholder="请输入会话标题"
           @input="search"
       />
 
       <van-list
-          v-model:loading="loading"
           v-model:error="error"
-          error-text="请求失败，点击重新加载"
+          v-model:loading="loading"
           :finished="finished"
+          error-text="请求失败，点击重新加载"
           finished-text="没有更多了"
           @load="onLoad"
       >
@@ -29,15 +29,15 @@
           <van-cell @click="changeChat(item)">
             <div class="chat-list-item">
               <van-image
-                  round
                   :src="item.icon"
+                  round
               />
               <div class="van-ellipsis">{{ item.title }}</div>
             </div>
           </van-cell>
           <template #right>
-            <van-button square type="primary" text="修改" @click="editChat(item)"/>
-            <van-button square type="danger" text="删除" @click="removeChat(item)"/>
+            <van-button square text="修改" type="primary" @click="editChat(item)"/>
+            <van-button square text="删除" type="danger" @click="removeChat(item)"/>
           </template>
         </van-swipe-cell>
       </van-list>
@@ -45,18 +45,18 @@
 
     <van-popup v-model:show="showPicker" position="bottom">
       <van-picker
-          title="选择模型和角色"
           :columns="columns"
+          title="选择模型和角色"
           @cancel="showPicker = false"
           @confirm="newChat"
       >
         <template #option="item">
           <div class="picker-option">
             <van-image
-                fit="cover"
-                :src="item.icon"
-                round
                 v-if="item.icon"
+                :src="item.icon"
+                fit="cover"
+                round
             />
             <span>{{ item.text }}</span>
           </div>
@@ -69,13 +69,11 @@
 <script setup>
 import {ref} from "vue";
 import {httpGet} from "@/utils/http";
-import {getLoginUser} from "@/store/session";
 import {showConfirmDialog, showFailToast, showSuccessToast, showToast} from "vant";
 import {checkSession} from "@/action/session";
 import router from "@/router";
 import {setChatConfig} from "@/store/chat";
-import {removeArrayItem, UUID} from "@/utils/libs";
-import {ElMessage} from "element-plus";
+import {removeArrayItem} from "@/utils/libs";
 
 const title = ref("会话列表")
 const chatName = ref("")
@@ -84,14 +82,15 @@ const allChats = ref([])
 const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
-const user = getLoginUser()
+const loginUser = ref(null)
 const isLogin = ref(false)
 const roles = ref([])
 const models = ref([])
 const showPicker = ref(false)
 const columns = ref([roles.value, models.value])
 
-checkSession().then(() => {
+checkSession().then((user) => {
+  loginUser.value = user
   isLogin.value = true
   // 加载角色列表
   httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
@@ -99,7 +98,12 @@ checkSession().then(() => {
       const items = res.data
       for (let i = 0; i < items.length; i++) {
         // console.log(items[i])
-        roles.value.push({text: items[i].name, value: items[i].id, icon: items[i].icon})
+        roles.value.push({
+          text: items[i].name,
+          value: items[i].id,
+          icon: items[i].icon,
+          helloMsg: items[i].hello_msg
+        })
       }
     }
   }).catch(() => {
@@ -122,7 +126,7 @@ checkSession().then(() => {
 })
 
 const onLoad = () => {
-  httpGet("/api/chat/list?user_id=" + user.id).then((res) => {
+  httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
     if (res.data) {
       chats.value = res.data;
       allChats.value = res.data;
@@ -172,11 +176,12 @@ const newChat = (item) => {
     role: {
       id: options[0].value,
       name: options[0].text,
-      icon: options[0].icon
+      icon: options[0].icon,
+      helloMsg: options[0].helloMsg
     },
     model: options[1].value,
     title: '新建会话',
-    chatId: UUID()
+    chatId: 0
   })
   router.push('/mobile/chat/session')
 }
@@ -197,7 +202,8 @@ const changeChat = (chat) => {
     },
     model: chat.model,
     title: chat.title,
-    chatId: chat.chat_id
+    chatId: chat.chat_id,
+    helloMsg: chat.hello_msg,
   })
   router.push('/mobile/chat/session')
 }
@@ -220,7 +226,7 @@ const removeChat = (item) => {
 
 </script>
 
-<style scoped lang="stylus">
+<style lang="stylus" scoped>
 
 .mobile-chat-list {
   .content {

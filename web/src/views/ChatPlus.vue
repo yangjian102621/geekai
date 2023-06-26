@@ -40,10 +40,10 @@
         </div>
 
         <div class="tool-box">
-          <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="user">
+          <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="isLogin">
                         <span class="el-dropdown-link">
-                          <el-image :src="user['avatar']"/>
-                          <span class="username">{{ user ? user['nickname'] : 'Chat-Plus-User' }}</span>
+                          <el-image :src="loginUser.avatar"/>
+                          <span class="username">{{ loginUser.nickname }}</span>
                           <el-icon><ArrowDown/></el-icon>
                         </span>
             <template #dropdown>
@@ -212,7 +212,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import {dateFormat, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
-import {getLoginUser, getSessionId, removeLoginUser} from "@/store/session";
+import {getSessionId, removeLoginUser} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
@@ -232,7 +232,7 @@ const mainWinHeight = ref(0); // 主窗口高度
 const chatBoxHeight = ref(0); // 聊天内容框高度
 const leftBoxHeight = ref(0);
 const loading = ref(true);
-const user = getLoginUser();
+const loginUser = ref(null);
 const roles = ref([]);
 const roleId = ref(0)
 const newChatItem = ref(null);
@@ -243,7 +243,8 @@ const isLogin = ref(false)
 
 onMounted(() => {
   resizeElement();
-  checkSession().then(() => {
+  checkSession().then((user) => {
+    loginUser.value = user
     isLogin.value = true
     // 加载角色列表
     httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
@@ -267,7 +268,7 @@ onMounted(() => {
     })
   }).catch((e) => {
     console.log(e)
-    //router.push('login')
+    router.push('login')
   });
 
   const clipboard = new Clipboard('.copy-reply');
@@ -282,7 +283,7 @@ onMounted(() => {
 
 // 加载会话
 const loadChats = function () {
-  httpGet("/api/chat/list?user_id=" + user.id).then((res) => {
+  httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
     if (res.data) {
       chatList.value = res.data;
       allChats.value = res.data;
@@ -570,7 +571,7 @@ const sendMessage = function () {
   chatData.value.push({
     type: "prompt",
     id: randString(32),
-    icon: user.avatar,
+    icon: loginUser.value.avatar,
     content: renderInputText(prompt.value),
     created_at: new Date().getTime(),
   });
@@ -707,8 +708,8 @@ const searchChat = function () {
 }
 
 const updateUser = function (data) {
-  user.avatar = data.avatar;
-  user.nickname = data.nickname;
+  loginUser.value.avatar = data.avatar;
+  loginUser.value.nickname = data.nickname;
 }
 </script>
 

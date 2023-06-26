@@ -22,6 +22,7 @@ import {
     Picker,
     Popup,
     Search,
+    ShareSheet,
     Sticky,
     SwipeCell,
     Tabbar,
@@ -54,6 +55,7 @@ app.use(DropdownItem);
 app.use(Sticky);
 app.use(SwipeCell);
 app.use(Dialog);
+app.use(ShareSheet);
 app.use(router).use(ElementPlus).mount('#app')
 
 

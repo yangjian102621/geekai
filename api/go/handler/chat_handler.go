@@ -52,9 +52,19 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 
 	session := h.App.ChatSession.Get(sessionId)
 	if session.SessionId == "" {
-		logger.Info("用户未登录")
-		c.Abort()
-		return
+		user, err := utils.GetLoginUser(c, h.db)
+		if err != nil {
+			logger.Info("用户未登录")
+			c.Abort()
+			return
+		}
+		session = types.ChatSession{
+			SessionId: sessionId,
+			ClientIP:  c.ClientIP(),
+			Username:  user.Username,
+			UserId:    user.Id,
+		}
+		h.App.ChatSession.Put(sessionId, session)
 	}
 
 	// use old chat data override the chat model and role ID

@@ -1,5 +1,5 @@
 <template>
-  <van-config-provider :theme="theme">
+  <van-config-provider :theme="getMobileTheme()">
     <div class="mobile-home">
       <router-view/>
 
@@ -16,9 +16,9 @@
 
 <script setup>
 import {ref} from "vue";
+import {getMobileTheme} from "@/store/system";
 
 const active = ref('home')
-const theme = ref("light")
 
 const onChange = (index) => {
   console.log(index)

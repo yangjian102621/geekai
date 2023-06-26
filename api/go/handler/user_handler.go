@@ -220,7 +220,13 @@ func (h *UserHandler) Logout(c *gin.Context) {
 func (h *UserHandler) Session(c *gin.Context) {
 	user, err := utils.GetLoginUser(c, h.db)
 	if err == nil {
-		resp.SUCCESS(c, user)
+		var userVo vo.User
+		err := utils.CopyObject(user, &userVo)
+		if err != nil {
+			resp.ERROR(c)
+		}
+		userVo.Id = user.Id
+		resp.SUCCESS(c, userVo)
 	} else {
 		resp.NotAuth(c)
 	}
