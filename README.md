@@ -33,7 +33,13 @@
 
 ![ChatGPT admin](docs/imgs/admin_user.png)
 
-### 6. 体验地址
+### 6. 移动端 Web 页面
+
+![Mobile chat list](/docs/imgs/mobile_chat_list.png)
+![Mobile chat session](/docs/imgs/mobile_chat_session.png)
+![Mobile chat setting](/docs/imgs/mobile_chat_setting.png)
+
+### 7. 体验地址
 
 > 体验地址：[https://www.chat-plus.net/chat](https://www.chat-plus.net/chat) <br/>
 > 涉及到数据隐私问题，没有提供共享账号，大家自己快速注册一个账号就可以免费体验
