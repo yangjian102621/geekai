@@ -242,7 +242,7 @@ server {
     location / {
         try_files $uri $uri/ /index.html;
         
-        # 这里配置后端 API 的转发
+         # 后端 API 的转发
         location /api/ {
                 proxy_http_version 1.1;
                 proxy_connect_timeout 300s;
@@ -253,14 +253,15 @@ server {
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection $connection_upgrade;
-                proxy_pass http://localhost:5678; 
+                proxy_pass http://172.28.173.76:6789; # 这里改成后端服务的内网 IP 地址
+        }
+
+        # 静态资源转发
+        location /static/ {
+            proxy_pass http://172.28.173.76:6789; # 这里改成后端服务的内网 IP 地址
         }
     }
     
-    # 关闭静态资源的日志
-    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|js|css)$ {
-        access_log off;
-    }
 }
 ```
 

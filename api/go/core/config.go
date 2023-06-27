@@ -20,8 +20,10 @@ func NewDefaultConfig() *types.AppConfig {
 		Manager:   types.Manager{Username: "admin", Password: "admin123"},
 		StaticDir: "./static",
 		StaticUrl: "http://localhost/5678/static",
+		Redis:     types.RedisConfig{Host: "localhost", Port: 6379, Password: ""},
 
 		Session: types.Session{
+			Driver:    types.SessionDriverCookie,
 			SecretKey: utils.RandString(64),
 			Name:      "CHAT_PLUS_SESSION",
 			Domain:    "",

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -9,10 +10,21 @@ type AppConfig struct {
 	Listen    string
 	Session   Session
 	ProxyURL  string
-	MysqlDns  string  // mysql 连接地址
-	Manager   Manager // 后台管理员账户信息
-	StaticDir string  // 静态资源目录
-	StaticUrl string  // 静态资源 URL
+	MysqlDns  string      // mysql 连接地址
+	Manager   Manager     // 后台管理员账户信息
+	StaticDir string      // 静态资源目录
+	StaticUrl string      // 静态资源 URL
+	Redis     RedisConfig // redis 连接信息
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     int
+	Password string
+}
+
+func (c RedisConfig) Url() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
 // Manager 管理员
@@ -21,9 +33,18 @@ type Manager struct {
 	Password string `json:"password"`
 }
 
+type SessionDriver string
+
+const (
+	SessionDriverMem    = SessionDriver("mem")
+	SessionDriverRedis  = SessionDriver("redis")
+	SessionDriverCookie = SessionDriver("cookie")
+)
+
 // Session configs struct
 type Session struct {
-	SecretKey string // session encryption key
+	Driver    SessionDriver // session 存储驱动 mem|cookie|redis
+	SecretKey string        // session encryption key
 	Name      string
 	Path      string
 	Domain    string
