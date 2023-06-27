@@ -6,7 +6,10 @@ import (
 )
 
 func CalcTokens(text string, model string) (int, error) {
-	encoding := tiktoken.MODEL_TO_ENCODING[model]
+	encoding, ok := tiktoken.MODEL_TO_ENCODING[model]
+	if !ok {
+		encoding = "cl100k_base"
+	}
 	tke, err := tiktoken.GetEncoding(encoding)
 	if err != nil {
 		return 0, fmt.Errorf("getEncoding: %v", err)

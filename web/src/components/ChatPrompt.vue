@@ -26,7 +26,7 @@ import {httpGet} from "@/utils/http";
 export default defineComponent({
   name: 'ChatPrompt',
   components: {Clock},
-  methods: {dateFormat},
+  methods: {},
   props: {
     content: {
       type: String,

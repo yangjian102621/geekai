@@ -127,7 +127,7 @@ const onLoad = () => {
     finished.value = true;
     const data = res.data
     if (data && data.length > 0) {
-      const md = require('markdown-it')();
+      const md = require('markdown-it')({breaks: true});
       for (let i = 0; i < data.length; i++) {
         if (data[i].type === "prompt") {
           chatData.value.push(data[i]);
@@ -228,7 +228,7 @@ const connect = function (chat_id, role_id) {
 
         } else {
           lineBuffer.value += data.content;
-          let md = require('markdown-it')();
+          const md = require('markdown-it')({breaks: true});
           const reply = chatData.value[chatData.value.length - 1]
           reply['orgContent'] = lineBuffer.value;
           reply['content'] = md.render(lineBuffer.value);
