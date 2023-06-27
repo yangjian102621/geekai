@@ -108,6 +108,7 @@ func sessionMiddleware(config *types.AppConfig) gin.HandlerFunc {
 		store = cookie.NewStore([]byte(config.Session.SecretKey))
 		break
 	default:
+		config.Session.Driver = types.SessionDriverCookie
 		store = cookie.NewStore([]byte(config.Session.SecretKey))
 	}
 
