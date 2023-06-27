@@ -17,6 +17,7 @@ import (
 )
 
 type AppServer struct {
+	Debug        bool
 	AppConfig    *types.AppConfig
 	Engine       *gin.Engine
 	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
@@ -33,6 +34,7 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
+		Debug:         false,
 		AppConfig:     appConfig,
 		Engine:        gin.Default(),
 		ChatContexts:  types.NewLMap[string, []types.Message](),
@@ -44,9 +46,11 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 
 func (s *AppServer) Init(debug bool) {
 	if debug { // 调试模式允许跨域请求 API
+		s.Debug = debug
 		logger.Info("Enabled debug mode")
 		s.Engine.Use(corsMiddleware())
 	}
+
 	s.Engine.Use(sessionMiddleware(s.AppConfig))
 	s.Engine.Use(authorizeMiddleware(s))
 	s.Engine.Use(errorHandler)

@@ -38,8 +38,8 @@
         <el-pagination v-if="users.total > 0"
                        background
                        layout="total, prev, pager, next"
-                       :current-page="users.page"
-                       :page-size="users.page_size"
+                       v-model:current-page="users.page"
+                       v-model:page-size="users.page_size"
                        :total="users.total"
                        @current-change="fetchUserList(users.page, users.page_size)"
         />
@@ -110,7 +110,7 @@ import {ElMessage, ElMessageBox} from "element-plus";
 import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
 
 // 变量定义
-const users = ref({})
+const users = ref({page: 1, page_size: 15})
 
 const user = ref({chat_roles: []})
 const roles = ref([])
@@ -128,7 +128,7 @@ const loading = ref(true)
 const userEditFormRef = ref(null)
 
 onMounted(() => {
-  fetchUserList(1, 10)
+  fetchUserList(users.value.page, users.value.page_size)
   // 获取角色列表
   httpGet('/api/admin/role/list').then((res) => {
     roles.value = res.data;

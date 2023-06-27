@@ -28,7 +28,9 @@ import {
     Switch,
     Tabbar,
     TabbarItem,
-    TextEllipsis
+    Tag,
+    TextEllipsis,
+    Uploader
 } from "vant";
 import router from "@/router";
 
@@ -58,6 +60,8 @@ app.use(SwipeCell);
 app.use(Dialog);
 app.use(ShareSheet);
 app.use(Switch);
+app.use(Uploader);
+app.use(Tag);
 app.use(router).use(ElementPlus).mount('#app')
 
 

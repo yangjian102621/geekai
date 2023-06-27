@@ -19,6 +19,7 @@ func NewDefaultConfig() *types.AppConfig {
 		ProxyURL:  "",
 		Manager:   types.Manager{Username: "admin", Password: "admin123"},
 		StaticDir: "./static",
+		StaticUrl: "http://localhost/5678/static",
 
 		Session: types.Session{
 			SecretKey: utils.RandString(64),

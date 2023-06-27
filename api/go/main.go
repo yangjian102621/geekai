@@ -93,8 +93,9 @@ func main() {
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(handler.NewChatHandler),
-		fx.Provide(admin.NewConfigHandler),
+		fx.Provide(handler.NewUploadHandler),
 
+		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
@@ -126,8 +127,11 @@ func main() {
 			group.GET("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
 		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
+			s.Engine.POST("/api/upload", h.Upload)
+		}),
 
-		//
+		// 管理后台控制器
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
 			group := s.Engine.Group("/api/admin/config/")
 			group.POST("update", h.Update)

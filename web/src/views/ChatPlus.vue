@@ -209,7 +209,7 @@ import {
   VideoPause
 } from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
-import {dateFormat, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
+import {dateFormat, isMobile, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
 import {getSessionId, removeLoginUser} from "@/store/session";
@@ -240,6 +240,10 @@ const router = useRouter();
 const showConfigDialog = ref(false);
 const showPasswordDialog = ref(false);
 const isLogin = ref(false)
+
+if (isMobile()) {
+  router.replace("/mobile")
+}
 
 onMounted(() => {
   resizeElement();

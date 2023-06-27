@@ -7,7 +7,6 @@
         <van-cell-group inset>
           <van-field
               v-model="form.chat_config.model"
-              is-link
               readonly
               label="默认模型"
               placeholder=""
@@ -15,8 +14,8 @@
           />
           <van-field
               v-model.number="form.chat_config.max_tokens"
-              name="MaxTokens"
               type="number"
+              name="MaxTokens"
               label="MaxTokens"
               placeholder="每次请求最大 token 数量"
               :rules="[{ required: true, message: '请填写 MaxTokens' }]"
@@ -51,7 +50,7 @@
         </van-cell-group>
         <div style="margin: 16px;">
           <van-button round block type="primary" native-type="submit">
-            保存
+            提交
           </van-button>
         </div>
       </van-form>
@@ -90,7 +89,6 @@ const models = ref([])
 onMounted(() => {
   // 获取最新用户信息
   httpGet('/api/user/profile').then(res => {
-    console.log(res.data)
     form.value = res.data
   }).catch(() => {
     showFailToast('获取用户信息失败')
@@ -99,7 +97,6 @@ onMounted(() => {
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system').then(res => {
     const mds = res.data.models;
-    console.log(mds)
     mds.forEach(item => {
       models.value.push({text: item, value: item})
     })

@@ -145,6 +145,7 @@ const onLoad = () => {
         blocks.forEach((block) => {
           hl.highlightElement(block)
         })
+
         scrollListBox()
       })
     }
@@ -239,12 +240,10 @@ const connect = function (chat_id, role_id) {
             blocks.forEach((block) => {
               hl.highlightElement(block)
             })
+            scrollListBox()
           })
         }
 
-        nextTick(() => {
-          scrollListBox()
-        })
       };
     }
 
@@ -275,7 +274,7 @@ const connect = function (chat_id, role_id) {
 
 // 将聊天框的滚动条滑动到最底部
 const scrollListBox = () => {
-  document.getElementById('message-list-box').scrollTo(0, document.getElementById('message-list-box').scrollHeight)
+  document.getElementById('message-list-box').scrollTo(0, document.getElementById('message-list-box').scrollHeight + 46)
 }
 
 const sendMessage = () => {
@@ -352,6 +351,7 @@ const shareChat = () => {
 .mobile-chat {
   .message-list-box {
     padding-top 50px
+    padding-bottom 10px
     overflow-x auto
     background #F5F5F5;
 

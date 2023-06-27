@@ -233,8 +233,38 @@ func (h *UserHandler) Session(c *gin.Context) {
 
 }
 
+type userProfile struct {
+	Id         uint             `json:"id"`
+	Username   string           `json:"username"`
+	Nickname   string           `json:"nickname"`
+	Avatar     string           `json:"avatar"`
+	ChatConfig types.ChatConfig `json:"chat_config"`
+	Calls      int              `json:"calls"`
+	Tokens     int              `json:"tokens"`
+}
+
+func (h *UserHandler) Profile(c *gin.Context) {
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	h.db.First(&user, user.Id)
+	var profile userProfile
+	err = utils.CopyObject(user, &profile)
+	if err != nil {
+		logger.Error("对象拷贝失败：", err.Error())
+		resp.ERROR(c, "获取用户信息失败")
+		return
+	}
+
+	profile.Id = user.Id
+	resp.SUCCESS(c, profile)
+}
+
 func (h *UserHandler) ProfileUpdate(c *gin.Context) {
-	var data vo.User
+	var data userProfile
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
@@ -270,26 +300,6 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 		return
 	}
 	resp.SUCCESS(c)
-}
-
-func (h *UserHandler) Profile(c *gin.Context) {
-	user, err := utils.GetLoginUser(c, h.db)
-	if err != nil {
-		resp.NotAuth(c)
-		return
-	}
-
-	h.db.First(&user, user.Id)
-	var userVo vo.User
-	err = utils.CopyObject(user, &userVo)
-	if err != nil {
-		logger.Error("对象拷贝失败：", err.Error())
-		resp.ERROR(c, "获取用户信息失败")
-		return
-	}
-
-	userVo.Id = user.Id
-	resp.SUCCESS(c, userVo)
 }
 
 // Password 更新密码
