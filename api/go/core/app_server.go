@@ -8,6 +8,8 @@ import (
 	"context"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/sessions/memstore"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"io"
@@ -54,8 +56,6 @@ func (s *AppServer) Init(debug bool) {
 	s.Engine.Use(sessionMiddleware(s.AppConfig))
 	s.Engine.Use(authorizeMiddleware(s))
 	s.Engine.Use(errorHandler)
-	//gob.Register(model.User{})
-
 	// 添加静态资源访问
 	s.Engine.Static("/static", s.AppConfig.StaticDir)
 }
@@ -92,7 +92,27 @@ func errorHandler(c *gin.Context) {
 // 会话处理
 func sessionMiddleware(config *types.AppConfig) gin.HandlerFunc {
 	// encrypt the cookie
-	store := cookie.NewStore([]byte(config.Session.SecretKey))
+	var store sessions.Store
+	var err error
+	switch config.Session.Driver {
+	case types.SessionDriverMem:
+		store = memstore.NewStore([]byte(config.Session.SecretKey))
+		break
+	case types.SessionDriverRedis:
+		store, err = redis.NewStore(10, "tcp", config.Redis.Url(), config.Redis.Password, []byte(config.Session.SecretKey))
+		if err != nil {
+			logger.Fatal(err)
+		}
+		break
+	case types.SessionDriverCookie:
+		store = cookie.NewStore([]byte(config.Session.SecretKey))
+		break
+	default:
+		store = cookie.NewStore([]byte(config.Session.SecretKey))
+	}
+
+	logger.Info("Session driver: ", config.Session.Driver)
+
 	store.Options(sessions.Options{
 		Path:     config.Session.Path,
 		Domain:   config.Session.Domain,
@@ -143,6 +163,7 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 		if c.Request.URL.Path == "/api/user/login" ||
 			c.Request.URL.Path == "/api/admin/login" ||
 			c.Request.URL.Path == "/api/user/register" ||
+			strings.HasPrefix(c.Request.URL.Path, "/static/") ||
 			c.Request.URL.Path == "/api/admin/config/get" {
 			c.Next()
 			return

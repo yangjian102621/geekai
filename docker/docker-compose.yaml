@@ -2,19 +2,23 @@ version: '3'
 services:
   # 后端 API 程序
   chatgpt-plus-go:
-    image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:v3.0.1
-    #    image: chatgpt-plus-go:v3.0.1
+    image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:v3.0.2
+    #    image: chatgpt-plus-go:v3.0.2
     container_name: chatgpt-plus-go
     restart: always
+    environment:
+      - DEBUG=false
+      - CONFIG_FILE=config.toml
     ports:
       - "6789:5678"
     volumes:
       - ./conf/config.toml:/var/www/app/config.toml
+      - ./static:/var/www/app/static
 
   # 前端应用
   chatgpt-vue:
-    image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:v3.0.1
-    #    image: chatgpt-plus-vue:v3.0.1
+    image: registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:v3.0.2
+    #    image: chatgpt-plus-vue:v3.0.2
     container_name: chatgpt-plus-vue
     restart: always
     ports:

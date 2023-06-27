@@ -1,0 +1,4 @@
+mysql/data/*
+mysql/logs/*
+logs
+static/*

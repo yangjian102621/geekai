@@ -9,12 +9,11 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
-	"flag"
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -24,8 +23,6 @@ import (
 )
 
 var logger = logger2.GetLogger()
-var configFile string
-var debugMode bool
 
 //go:embed res/ip2region.xdb
 var xdbFS embed.FS
@@ -47,6 +44,8 @@ func (l *AppLifecycle) OnStop(context.Context) error {
 }
 
 func main() {
+	configFile := os.Getenv("CONFIG_FILE")
+	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	logger.Info("Loading config file: ", configFile)
 	defer func() {
 		if err := recover(); err != nil {
@@ -61,13 +60,14 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			config.Path = configFile
 			return config
 		}),
 		// 创建应用服务
 		fx.Provide(core.NewServer),
 		// 初始化
 		fx.Invoke(func(s *core.AppServer) {
-			s.Init(debugMode)
+			s.Init(debug)
 		}),
 
 		// 初始化数据库
@@ -203,26 +203,4 @@ func main() {
 		log.Fatal(err)
 	}
 
-}
-
-func init() {
-	flag.StringVar(&configFile, "config", "config.toml", "AppConfig file path (default: config.toml)")
-	flag.BoolVar(&debugMode, "debug", true, "Enable debug mode (default: true, recommend to set false in production env)")
-	flag.Usage = usage
-	flag.Parse()
-}
-
-func usage() {
-	fmt.Printf(`ChatGPT-Web-Plus, Version: 2.0.0
-USAGE: 
-  %s [command options]
-OPTIONS:
-`, os.Args[0])
-
-	flagSet := flag.CommandLine
-	order := []string{"config", "debug"}
-	for _, name := range order {
-		f := flagSet.Lookup(name)
-		fmt.Printf("  --%s => %s\n", f.Name, f.Usage)
-	}
 }
