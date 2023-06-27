@@ -237,6 +237,7 @@ $fontSize = 16px;
         font-size $fontSize
 
         .van-image {
+          min-width 32px
           width 32px
           height 32px
         }
