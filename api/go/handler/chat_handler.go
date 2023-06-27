@@ -182,7 +182,10 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				}
 			}
 		}
-		logger.Info("聊天上下文：", chatCtx)
+
+		if h.App.Debug { // 调试打印聊天上下文
+			logger.Info("聊天上下文：", chatCtx)
+		}
 	}
 	req.Messages = append(chatCtx, types.Message{
 		Role:    "user",

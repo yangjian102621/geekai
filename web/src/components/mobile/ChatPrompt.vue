@@ -73,6 +73,7 @@ onMounted(() => {
 
     .content {
       word-break break-word;
+      text-align left
       padding: 5px 10px;
       background-color: #98E165;
       color #444444

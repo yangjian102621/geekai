@@ -9,23 +9,33 @@
     <div class="user-info" id="user-info">
       <el-form v-if="form.id" :model="form" label-width="120px">
         <el-form-item label="昵称">
-          <el-input v-model="form['nickname']"/>
+          <el-input v-model="form.nickname"/>
         </el-form-item>
         <el-form-item label="头像">
-          <el-input v-model="form['avatar']"/>
+          <el-upload
+              class="avatar-uploader"
+              :auto-upload="true"
+              :show-file-list="false"
+              :http-request="afterRead"
+          >
+            <el-avatar v-if="form.avatar" :src="form.avatar" shape="square" :size="100"/>
+            <el-icon v-else class="avatar-uploader-icon">
+              <Plus/>
+            </el-icon>
+          </el-upload>
         </el-form-item>
         <el-form-item label="用户名">
-          <el-input v-model="form['username']" disabled/>
+          <el-input v-model="form.username" readonly disabled/>
         </el-form-item>
 
         <el-form-item label="聊天上下文">
-          <el-switch v-model="form['chat_config']['enable_context']"/>
+          <el-switch v-model="form.chat_config.enable_context"/>
         </el-form-item>
         <el-form-item label="聊天记录">
-          <el-switch v-model="form['chat_config']['enable_history']"/>
+          <el-switch v-model="form.chat_config.enable_history"/>
         </el-form-item>
         <el-form-item label="Model">
-          <el-select v-model="form['chat_config']['model']" placeholder="默认会话模型">
+          <el-select v-model="form.chat_config.model" placeholder="默认会话模型">
             <el-option
                 v-for="item in models"
                 :key="item"
@@ -35,10 +45,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="MaxTokens">
-          <el-input v-model.number="form['chat_config']['max_tokens']"/>
+          <el-input v-model.number="form.chat_config.max_tokens"/>
         </el-form-item>
         <el-form-item label="Temperature">
-          <el-input v-model.number="form['chat_config']['temperature']"/>
+          <el-input v-model.number="form.chat_config.temperature"/>
         </el-form-item>
         <el-form-item label="剩余调用次数">
           <el-tag>{{ form['calls'] }}</el-tag>
@@ -69,6 +79,9 @@
 import {computed, onMounted, ref} from "vue"
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {Plus} from "@element-plus/icons-vue";
+import Compressor from "compressorjs";
+import {showNotify} from "vant";
 
 const props = defineProps({
   show: Boolean,
@@ -79,7 +92,14 @@ const props = defineProps({
 const showDialog = computed(() => {
   return props.show
 })
-const form = ref({})
+const form = ref({
+  username: '',
+  nickname: '',
+  avatar: '',
+  calls: 0,
+  tokens: 0,
+  chat_configs: {}
+})
 const top = computed(() => {
   if (window.innerHeight < 1024) {
     return '5vh';
@@ -96,6 +116,29 @@ onMounted(() => {
     ElMessage.error({message: '获取用户信息失败', appendTo: '#user-info'})
   });
 })
+
+const afterRead = (file) => {
+  console.log(file)
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/upload', formData).then((res) => {
+        form.value.avatar = res.data
+        ElMessage.success({message: '上传成功', appendTo: '#user-info', duration: 1000})
+      }).catch((e) => {
+        console.log(e.message)
+        ElMessage.error({message: '上传失败', appendTo: '#user-info'})
+      })
+    },
+    error(err) {
+      console.log(err.message);
+    },
+  });
+};
 
 const emits = defineEmits(['hide', 'update-user']);
 const save = function () {

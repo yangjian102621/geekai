@@ -17,9 +17,20 @@
 <script setup>
 import {ref} from "vue";
 import {getMobileTheme} from "@/store/system";
+import {useRouter} from "vue-router";
+import {isMobile} from "@/utils/libs";
+import {checkSession} from "@/action/session";
+
+const router = useRouter()
+checkSession().then(() => {
+  if (!isMobile()) {
+    router.replace('/chat')
+  }
+}).catch(() => {
+  router.push('/login')
+})
 
 const active = ref('home')
-
 const onChange = (index) => {
   console.log(index)
   // showToast(`标签 ${index}`);
