@@ -45,7 +45,16 @@ func (l *AppLifecycle) OnStop(context.Context) error {
 
 func main() {
 	configFile := os.Getenv("CONFIG_FILE")
-	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+	if configFile == "" {
+		configFile = "config.toml"
+	}
+	var debug bool
+	debugEnv := os.Getenv("DEBUG")
+	if debugEnv == "" {
+		debug = true
+	} else {
+		debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
+	}
 	logger.Info("Loading config file: ", configFile)
 	defer func() {
 		if err := recover(); err != nil {
