@@ -310,7 +310,7 @@ const getRoleById = function (rid) {
 const resizeElement = function () {
   chatBoxHeight.value = window.innerHeight - 51 - 82 - 38;
   mainWinHeight.value = window.innerHeight - 51;
-  leftBoxHeight.value = window.innerHeight - 43 - 47 - 44;
+  leftBoxHeight.value = window.innerHeight - 43 - 47 - 45;
 };
 
 // 新建会话
