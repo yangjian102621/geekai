@@ -72,7 +72,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Username:  data.Username,
 		Password:  utils.GenPassword(data.Password, salt),
 		Nickname:  fmt.Sprintf("极客学长@%d", utils.RandomNumber(5)),
-		Avatar:    "images/avatar/user.png",
+		Avatar:    "/images/avatar/user.png",
 		Salt:      salt,
 		Status:    true,
 		ChatRoles: utils.JsonEncode(roleKeys),

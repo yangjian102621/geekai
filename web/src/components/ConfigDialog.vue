@@ -81,8 +81,8 @@ import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
-import {showNotify} from "vant";
 
+// eslint-disable-next-line no-undef
 const props = defineProps({
   show: Boolean,
   user: Object,
@@ -140,6 +140,7 @@ const afterRead = (file) => {
   });
 };
 
+// eslint-disable-next-line no-undef
 const emits = defineEmits(['hide', 'update-user']);
 const save = function () {
   httpPost('/api/user/profile/update', form.value).then(() => {
