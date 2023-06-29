@@ -1,5 +1,5 @@
 # GO api docker 镜像创建
-FROM ubuntu:22.04
+FROM registry.cn-hangzhou.aliyuncs.com/geekmaster/ubuntu-ca:22.04
 
 MAINTAINER yangjian<yangjian102621@163.com>
 
