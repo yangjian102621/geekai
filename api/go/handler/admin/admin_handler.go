@@ -113,8 +113,11 @@ func (h *ManagerHandler) Migrate(c *gin.Context) {
 		var message []model.HistoryMessage
 		h.db.Find(&message)
 		for _, r := range message {
-			r.Icon = "/" + r.Icon
-			h.db.Updates(&r)
+			if !strings.HasPrefix(r.Icon, "/") {
+				r.Icon = "/" + r.Icon
+				h.db.Updates(&r)
+			}
+
 		}
 		break
 
