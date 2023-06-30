@@ -144,27 +144,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 	// 记录登录信息在服务端
 	h.App.ChatSession.Put(sessionId, types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId})
 
-	// 加载用户订阅的聊天角色
-	var roleKeys []string
-	err = utils.JsonDecode(user.ChatRoles, &roleKeys)
-	var chatRoles interface{}
-	if err == nil {
-		var roles []model.ChatRole
-		res = h.db.Where("marker IN ?", roleKeys).Find(&roles)
-		if res.Error == err {
-			type Item struct {
-				Name string
-				Key  string
-				Icon string
-			}
-			items := make([]Item, 0)
-			for _, r := range roles {
-				items = append(items, Item{Name: r.Name, Key: r.Key, Icon: r.Icon})
-			}
-			chatRoles = items
-		}
-	}
-
 	h.db.Create(&model.UserLoginLog{
 		UserId:       user.Id,
 		Username:     user.Username,
@@ -186,8 +165,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"username":       user.Username,
 		"tokens":         user.Tokens,
 		"calls":          user.Calls,
-		"expiredTime":    user.ExpiredTime,
-		"chatRoles":      chatRoles,
+		"expired_time":   user.ExpiredTime,
 		"api_key":        chatConfig.ApiKey,
 		"model":          chatConfig.Model,
 		"temperature":    chatConfig.Temperature,
