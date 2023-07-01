@@ -45,7 +45,6 @@
               name="API KEY"
               label="API KEY"
               placeholder="配置自己的 api key"
-              :rules="[{ required: true, message: '请填写 API KEY' }]"
           />
         </van-cell-group>
         <div style="margin: 16px;">
