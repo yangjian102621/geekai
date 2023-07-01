@@ -218,7 +218,7 @@ type userProfile struct {
 	Avatar     string           `json:"avatar"`
 	ChatConfig types.ChatConfig `json:"chat_config"`
 	Calls      int              `json:"calls"`
-	Tokens     int              `json:"tokens"`
+	Tokens     int64            `json:"tokens"`
 }
 
 func (h *UserHandler) Profile(c *gin.Context) {

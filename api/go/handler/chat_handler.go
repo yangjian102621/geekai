@@ -319,6 +319,10 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				if res.Error != nil {
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
+
+				// 统计用户 token 数量
+				h.db.Model(&user).UpdateColumn("tokens", gorm.Expr("tokens + ?",
+					historyUserMsg.Tokens+historyReplyMsg.Tokens))
 			}
 
 			// 保存当前会话

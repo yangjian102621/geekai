@@ -35,7 +35,7 @@
             </template>
           </van-field>
 
-          <van-field label="剩余 Tokens">
+          <van-field label="消耗 Tokens">
             <template #input>
               <van-tag type="primary">{{ form.tokens }}</van-tag>
             </template>
