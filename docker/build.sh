@@ -20,7 +20,7 @@ docker build -t chatgpt-plus-go:$version -f dockerfile-api-go ../
 # build docker image for chatgpt-plus-vue
 docker rmi -f registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:$version
 docker rmi -f chatgpt-plus-vue:$version
-docker build -t chatgpt-plus-vue:$version -f dockerfile-vue ../
+docker build --platform linux/amd64 -t chatgpt-plus-vue:$version -f dockerfile-vue ../
 
 # add tag for aliyum docker registry
 goImageId=`docker images |grep chatgpt-plus-go |grep $version |awk '{print $3}'`
