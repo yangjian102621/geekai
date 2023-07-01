@@ -3,7 +3,7 @@
       v-model="showDialog"
       :close-on-click-modal="false"
       :before-close="close"
-      :top="top"
+      :top="50+'px'"
       title="用户设置"
   >
     <div class="user-info" id="user-info">
@@ -53,7 +53,7 @@
         <el-form-item label="剩余调用次数">
           <el-tag>{{ form['calls'] }}</el-tag>
         </el-form-item>
-        <el-form-item label="剩余 Tokens">
+        <el-form-item label="消耗 Tokens">
           <el-tag type="info">{{ form['tokens'] }}</el-tag>
         </el-form-item>
         <el-form-item label="API KEY">
@@ -99,13 +99,6 @@ const form = ref({
   calls: 0,
   tokens: 0,
   chat_configs: {}
-})
-const top = computed(() => {
-  if (window.innerHeight < 1024) {
-    return '5vh';
-  } else {
-    return '15vh';
-  }
 })
 
 onMounted(() => {
