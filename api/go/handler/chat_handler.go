@@ -394,7 +394,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 	request = request.WithContext(ctx)
 	request.Header.Add("Content-Type", "application/json")
 
-	proxyURL := h.App.AppConfig.ProxyURL
+	proxyURL := h.App.Config.ProxyURL
 	if proxyURL == "" {
 		client = &http.Client{}
 	} else { // 使用代理

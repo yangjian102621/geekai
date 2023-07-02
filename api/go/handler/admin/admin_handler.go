@@ -36,7 +36,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	manager := h.App.AppConfig.Manager
+	manager := h.App.Config.Manager
 	if data.Username == manager.Username && data.Password == manager.Password {
 		err := utils.SetLoginAdmin(c, manager)
 		if err != nil {

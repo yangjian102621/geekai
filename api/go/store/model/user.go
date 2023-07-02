@@ -3,6 +3,7 @@ package model
 type User struct {
 	BaseModel
 	Username    string `gorm:"index:username,unique"`
+	Mobile      string
 	Password    string
 	Nickname    string
 	Avatar      string

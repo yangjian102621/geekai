@@ -11,7 +11,7 @@
         <div class="content">
           <el-form :model="formData" label-width="120px" ref="formRef" :rules="rules">
             <div class="block">
-              <el-input placeholder="手机号/邮箱(4-30位)"
+              <el-input placeholder="请输入用户名(4-30位)"
                         size="large" maxlength="30"
                         v-model="formData.username"
                         autocomplete="off">
@@ -48,6 +48,42 @@
               </el-input>
             </div>
 
+            <div class="block">
+              <el-input placeholder="手机号码"
+                        size="large" maxlength="11"
+                        v-model="formData.mobile"
+                        autocomplete="off">
+                <template #prefix>
+                  <el-icon>
+                    <Iphone/>
+                  </el-icon>
+                </template>
+              </el-input>
+            </div>
+
+            <div class="block">
+              <el-row :gutter="10">
+                <el-col :span="12">
+                  <el-input placeholder="手机验证码"
+                            size="large" maxlength="30"
+                            v-model.number="formData.code"
+                            autocomplete="off">
+                    <template #prefix>
+                      <el-icon>
+                        <Checked/>
+                      </el-icon>
+                    </template>
+                  </el-input>
+                </el-col>
+                <el-col :span="12">
+                  <el-button type="primary" class="sms-btn" :disabled="!canSend" size="large" @click="sendMsg" plain>{{
+                      btnText
+                    }}
+                  </el-button>
+                </el-col>
+              </el-row>
+            </div>
+
             <el-row class="btn-row">
               <el-button class="login-btn" size="large" type="primary" @click="register">注册</el-button>
             </el-row>
@@ -70,17 +106,20 @@
 <script setup>
 
 import {ref} from "vue";
-import {Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
+import {Checked, Iphone, Lock, UserFilled} from "@element-plus/icons-vue";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');
+const btnText = ref('发送验证码')
 const formData = ref({
   username: '',
   password: '',
+  mobile: '18575670125',
+  code: '',
   repass: '',
 })
 const formRef = ref(null)
@@ -88,9 +127,6 @@ const formRef = ref(null)
 const register = function () {
   if (formData.value.username.length < 4) {
     return ElMessage.error('用户名的长度为4-30个字符');
-  }
-  if (!validateEmail(formData.value.username) && !validateMobile(formData.value.username)) {
-    return ElMessage.error('用户名不合法，请输入手机号码或者邮箱地址');
   }
   if (formData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符');
@@ -106,13 +142,48 @@ const register = function () {
   })
 }
 
-const validateEmail = function (email) {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-}
+// const validateEmail = function (email) {
+//   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//   return regex.test(email);
+// }
 const validateMobile = function (mobile) {
   const regex = /^1[345789]\d{9}$/;
   return regex.test(mobile);
+}
+
+const canSend = ref(true)
+const sendMsg = () => {
+  if (!canSend.value) {
+    return
+  }
+
+  if (!validateMobile(formData.value.mobile)) {
+    return ElMessage.error("请输入合法的手机号")
+  }
+  canSend.value = false
+  httpGet('/api/verify/token').then(res => {
+    httpPost('/api/verify/sms', {token: res.data, mobile: formData.value.mobile}).then(() => {
+      ElMessage.success('短信发送成功')
+      let time = 120
+      btnText.value = time
+      const handler = setInterval(() => {
+        time = time - 1
+        if (time <= 0) {
+          clearInterval(handler)
+          btnText.value = '重新发送'
+          canSend.value = true
+        } else {
+          btnText.value = time
+        }
+      }, 1000)
+    }).catch(e => {
+      canSend.value = true
+      ElMessage.error('短信发送失败：' + e.message)
+    })
+  }).catch(e => {
+    console.log('failed to fetch token: ' + e.message)
+  })
+
 }
 
 </script>

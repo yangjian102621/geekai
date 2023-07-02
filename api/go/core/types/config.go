@@ -15,6 +15,16 @@ type AppConfig struct {
 	StaticDir string      // 静态资源目录
 	StaticUrl string      // 静态资源 URL
 	Redis     RedisConfig // redis 连接信息
+
+	AesEncryptKey string
+	SmsConfig     AliYunSmsConfig // 短信发送配置
+}
+
+type AliYunSmsConfig struct {
+	AccessKey    string
+	AccessSecret string
+	Product      string
+	Domain       string
 }
 
 type RedisConfig struct {

@@ -6,6 +6,7 @@ import (
 	"chatplus/handler"
 	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
+	"chatplus/service"
 	"chatplus/store"
 	"context"
 	"embed"
@@ -103,12 +104,16 @@ func main() {
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(handler.NewChatHandler),
 		fx.Provide(handler.NewUploadHandler),
+		fx.Provide(handler.NewVerifyHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
 		fx.Provide(admin.NewChatRoleHandler),
+
+		// 创建服务
+		fx.Provide(service.NewAliYunSmsService),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
@@ -138,6 +143,11 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.VerifyHandler) {
+			group := s.Engine.Group("/api/verify/")
+			group.GET("token", h.Token)
+			group.POST("sms", h.SendMsg)
 		}),
 
 		// 管理后台控制器

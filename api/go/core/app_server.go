@@ -20,7 +20,7 @@ import (
 
 type AppServer struct {
 	Debug        bool
-	AppConfig    *types.AppConfig
+	Config       *types.AppConfig
 	Engine       *gin.Engine
 	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
 	ChatConfig   *types.ChatConfig                    // 聊天配置
@@ -37,7 +37,7 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
 		Debug:         false,
-		AppConfig:     appConfig,
+		Config:        appConfig,
 		Engine:        gin.Default(),
 		ChatContexts:  types.NewLMap[string, []types.Message](),
 		ChatSession:   types.NewLMap[string, types.ChatSession](),
@@ -53,11 +53,11 @@ func (s *AppServer) Init(debug bool) {
 		s.Engine.Use(corsMiddleware())
 	}
 
-	s.Engine.Use(sessionMiddleware(s.AppConfig))
+	s.Engine.Use(sessionMiddleware(s.Config))
 	s.Engine.Use(authorizeMiddleware(s))
 	s.Engine.Use(errorHandler)
 	// 添加静态资源访问
-	s.Engine.Static("/static", s.AppConfig.StaticDir)
+	s.Engine.Static("/static", s.Config.StaticDir)
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
@@ -71,15 +71,15 @@ func (s *AppServer) Run(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	logger.Infof("http://%s", s.AppConfig.Listen)
-	return s.Engine.Run(s.AppConfig.Listen)
+	logger.Infof("http://%s", s.Config.Listen)
+	return s.Engine.Run(s.Config.Listen)
 }
 
 // 全局异常处理
 func errorHandler(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error("Handler Panic: %v\n", r)
+			logger.Errorf("Handler Panic: %v", r)
 			debug.PrintStack()
 			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 			c.Abort()
@@ -164,6 +164,7 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 		if c.Request.URL.Path == "/api/user/login" ||
 			c.Request.URL.Path == "/api/admin/login" ||
 			c.Request.URL.Path == "/api/user/register" ||
+			strings.HasPrefix(c.Request.URL.Path, "/api/verify/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/static/") ||
 			c.Request.URL.Path == "/api/admin/config/get" {
 			c.Next()
