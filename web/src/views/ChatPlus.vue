@@ -187,6 +187,8 @@
                    @update-user="updateUser"/>
     <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
                      @logout="logout"/>
+
+    <bind-mobile/>
   </div>
 
 
@@ -219,6 +221,7 @@ import Clipboard from "clipboard";
 import ConfigDialog from "@/components/ConfigDialog.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
 import {checkSession} from "@/action/session";
+import BindMobile from "@/components/BindMobile.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';

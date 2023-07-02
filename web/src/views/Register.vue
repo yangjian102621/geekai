@@ -76,10 +76,7 @@
                   </el-input>
                 </el-col>
                 <el-col :span="12">
-                  <el-button type="primary" class="sms-btn" :disabled="!canSend" size="large" @click="sendMsg" plain>{{
-                      btnText
-                    }}
-                  </el-button>
+                  <send-msg size="large" :mobile="formData.mobile"/>
                 </el-col>
               </el-row>
             </div>
@@ -107,14 +104,14 @@
 
 import {ref} from "vue";
 import {Checked, Iphone, Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
+import SendMsg from "@/components/SendMsg.vue";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');
-const btnText = ref('发送验证码')
 const formData = ref({
   username: '',
   password: '',
@@ -140,50 +137,6 @@ const register = function () {
   }).catch((e) => {
     ElMessage.error('注册失败，' + e.message)
   })
-}
-
-// const validateEmail = function (email) {
-//   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//   return regex.test(email);
-// }
-const validateMobile = function (mobile) {
-  const regex = /^1[345789]\d{9}$/;
-  return regex.test(mobile);
-}
-
-const canSend = ref(true)
-const sendMsg = () => {
-  if (!canSend.value) {
-    return
-  }
-
-  if (!validateMobile(formData.value.mobile)) {
-    return ElMessage.error("请输入合法的手机号")
-  }
-  canSend.value = false
-  httpGet('/api/verify/token').then(res => {
-    httpPost('/api/verify/sms', {token: res.data, mobile: formData.value.mobile}).then(() => {
-      ElMessage.success('短信发送成功')
-      let time = 120
-      btnText.value = time
-      const handler = setInterval(() => {
-        time = time - 1
-        if (time <= 0) {
-          clearInterval(handler)
-          btnText.value = '重新发送'
-          canSend.value = true
-        } else {
-          btnText.value = time
-        }
-      }, 1000)
-    }).catch(e => {
-      canSend.value = true
-      ElMessage.error('短信发送失败：' + e.message)
-    })
-  }).catch(e => {
-    console.log('failed to fetch token: ' + e.message)
-  })
-
 }
 
 </script>
