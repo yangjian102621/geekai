@@ -89,6 +89,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Avatar:    "/images/avatar/user.png",
 		Salt:      salt,
 		Status:    true,
+		Mobile:    data.Mobile,
 		ChatRoles: utils.JsonEncode(roleKeys),
 		ChatConfig: utils.JsonEncode(types.ChatConfig{
 			Temperature:   h.App.ChatConfig.Temperature,
