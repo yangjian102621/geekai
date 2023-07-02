@@ -3,6 +3,7 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -21,10 +22,11 @@ type UserHandler struct {
 	BaseHandler
 	db       *gorm.DB
 	searcher *xdb.Searcher
+	levelDB  *store.LevelDB
 }
 
-func NewUserHandler(app *core.AppServer, db *gorm.DB, searcher *xdb.Searcher) *UserHandler {
-	handler := &UserHandler{db: db, searcher: searcher}
+func NewUserHandler(app *core.AppServer, db *gorm.DB, searcher *xdb.Searcher, levelDB *store.LevelDB) *UserHandler {
+	handler := &UserHandler{db: db, searcher: searcher, levelDB: levelDB}
 	handler.App = app
 	return handler
 }
@@ -35,6 +37,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var data struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
+		Mobile   string `json:"mobile"`
+		Code     int    `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -50,6 +54,16 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if len(data.Password) < 8 {
 		resp.ERROR(c, "密码长度不能少于8个字符")
 		return
+	}
+
+	// 检查验证码
+	key := CodeStorePrefix + data.Mobile
+	code, err := h.levelDB.Get(key)
+	if err != nil || int(code.(float64)) != data.Code {
+		resp.ERROR(c, "短信验证码错误")
+		return
+	} else {
+		_ = h.levelDB.Delete(key) // 删除短信验证码
 	}
 
 	// check if the username is exists
@@ -89,7 +103,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var cfg model.Config
 	h.db.Where("marker = ?", "system").First(&cfg)
 	var config types.SystemConfig
-	err := utils.JsonDecode(cfg.Config, &config)
+	err = utils.JsonDecode(cfg.Config, &config)
 	if err != nil || config.UserInitCalls <= 0 {
 		user.Calls = types.UserInitCalls
 	} else {

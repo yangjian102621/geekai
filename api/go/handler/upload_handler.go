@@ -47,7 +47,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 // 生成上传文件路径
 func (h *UploadHandler) genFilePath(filename string) (string, error) {
 	now := time.Now()
-	dir := fmt.Sprintf("%s/upload/%d/%d", h.App.AppConfig.StaticDir, now.Year(), now.Month())
+	dir := fmt.Sprintf("%s/upload/%d/%d", h.App.Config.StaticDir, now.Year(), now.Month())
 	_, err := os.Stat(dir)
 	if err != nil {
 		err = os.MkdirAll(dir, 0755)
@@ -63,5 +63,5 @@ func (h *UploadHandler) genFilePath(filename string) (string, error) {
 func (h *UploadHandler) genFileUrl(filePath string) string {
 	now := time.Now()
 	filename := filepath.Base(filePath)
-	return fmt.Sprintf("%s/upload/%d/%d/%s", h.App.AppConfig.StaticUrl, now.Year(), now.Month(), filename)
+	return fmt.Sprintf("%s/upload/%d/%d/%s", h.App.Config.StaticUrl, now.Year(), now.Month(), filename)
 }

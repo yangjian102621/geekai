@@ -22,15 +22,18 @@ func RandString(length int) string {
 }
 
 func RandomNumber(bit int) int {
-	rand.Seed(time.Now().UnixNano())
-	min := 1 // min value
-	max := 1 //max value
-	for i := 0; i < bit; i++ {
-		min = min * 10
-		max = max * 10
-	}
-	max = max * 10
+	min := intPow(10, bit-1)
+	max := intPow(10, bit) - 1
+
 	return rand.Intn(max-min+1) + min
+}
+
+func intPow(x, y int) int {
+	result := 1
+	for i := 0; i < y; i++ {
+		result *= x
+	}
+	return result
 }
 
 func ContainsStr(slice []string, item string) bool {

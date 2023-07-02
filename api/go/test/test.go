@@ -1,27 +1,24 @@
 package main
 
 import (
-	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"context"
 	"fmt"
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
-	"github.com/pkoukk/tiktoken-go"
 	"io"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
+	"github.com/pkoukk/tiktoken-go"
 )
 
 func main() {
-	lMap := types.NewLMap[string, types.ChatSession]()
-	lMap.Put("name", types.ChatSession{SessionId: utils.RandString(32)})
-
-	item := lMap.Get("abc")
-	fmt.Println(item)
+	//testAesEncrypt()
+	fmt.Println(utils.RandomNumber(6))
 }
 
 // Http client 取消操作
@@ -142,4 +139,21 @@ func calTokens() {
 	// num_tokens
 	fmt.Println(len(token))
 
+}
+
+func testAesEncrypt() {
+	// 加密
+	text := []byte("this is a secret text")
+	key := utils.RandString(24)
+	encrypt, err := utils.AesEncrypt(key, text)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("加密密文：", encrypt)
+	// 解密
+	decrypt, err := utils.AesDecrypt(key, encrypt)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("解密明文：", string(decrypt))
 }
