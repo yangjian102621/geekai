@@ -129,6 +129,7 @@ func main() {
 			group.GET("profile", h.Profile)
 			group.POST("profile/update", h.ProfileUpdate)
 			group.POST("password", h.Password)
+			group.POST("bind/mobile", h.BindMobile)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")

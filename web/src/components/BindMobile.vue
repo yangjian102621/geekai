@@ -2,24 +2,28 @@
   <el-dialog
       v-model="showDialog"
       :close-on-click-modal="false"
-      :show-close="false"
+      :show-close="mobile !== ''"
+      :before-close="close"
       :title="title"
   >
-    <div class="form" id="password-form">
+    <div class="form" id="bind-mobile-form">
+      <el-alert v-if="mobile !== ''" type="info" show-icon :closable="false" style="margin-bottom: 20px;">
+        <p>当前用户已绑定手机号：{{ mobile }}, 绑定其他手机号之后自动解绑该手机号。</p>
+      </el-alert>
+
       <el-form :model="form" label-width="120px">
         <el-form-item label="手机号码">
-          <el-input v-model="form.mobile" type="password"/>
+          <el-input v-model="form.mobile"/>
         </el-form-item>
         <el-form-item label="手机验证码">
           <el-row :gutter="10">
             <el-col :span="12">
-              <el-input v-model="form.code" type="password"/>
+              <el-input v-model.number="form.code" maxlength="6"/>
             </el-col>
             <el-col :span="12">
-              <send-msg size="large" v-model:mobile="form.mobile"/>
+              <send-msg size="" :mobile="form.mobile"/>
             </el-col>
           </el-row>
-
         </el-form-item>
       </el-form>
     </div>
@@ -35,31 +39,51 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
-import {checkSession} from "@/action/session";
+import {computed, ref} from "vue";
 import SendMsg from "@/components/SendMsg.vue";
+import {ElMessage} from "element-plus";
+import {httpPost} from "@/utils/http";
+import {validateMobile} from "@/utils/validate";
+
+const props = defineProps({
+  show: Boolean,
+  mobile: String
+});
+
+const showDialog = computed(() => {
+  return props.show
+})
 
 const title = ref('绑定手机号')
-const showDialog = ref(false)
 const form = ref({
   mobile: '',
   code: ''
 })
 
-checkSession().then(user => {
-  if (user.mobile === '') {
-    showDialog.value = true
-  }
-}).catch(e => {
-  console.log(e.message)
-})
+const emits = defineEmits(['hide']);
 
 const save = () => {
+  if (!validateMobile(form.value.mobile)) {
+    return ElMessage.error({message: "请输入正确的手机号码", appendTo: "#bind-mobile-form"});
+  }
+  if (form.value.code === '') {
+    return ElMessage.error({message: "请输入短信验证码", appendTo: "#bind-mobile-form"});
+  }
 
+  httpPost('/api/user/bind/mobile', form.value).then(() => {
+    ElMessage.success({
+      message: '绑定成功',
+      appendTo: '#bind-mobile-form',
+      duration: 1000,
+      onClose: () => emits('hide', false)
+    })
+  }).catch(e => {
+    ElMessage.error({message: "绑定失败：" + e.message, appendTo: "#bind-mobile-form"});
+  })
 }
 
-const sendMsg = () => {
-
+const close = function () {
+  emits('hide', false);
 }
 </script>
 

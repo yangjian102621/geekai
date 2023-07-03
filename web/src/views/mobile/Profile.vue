@@ -14,6 +14,14 @@
               placeholder="用户名"
           />
           <van-field
+              v-model="form.mobile"
+              name="手机号"
+              label="手机号"
+              readonly
+              disabled
+              placeholder="手机号"
+          />
+          <van-field
               v-model="form.nickname"
               name="昵称"
               label="昵称"
@@ -61,6 +69,7 @@ const title = ref('用户设置')
 const form = ref({
   username: '',
   nickname: '',
+  mobile: '',
   avatar: '',
   calls: 0,
   tokens: 0

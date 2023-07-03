@@ -1,8 +1,10 @@
 <template>
-  <el-button type="primary" :disabled="!canSend" :size="props.size" @click="sendMsg" plain>{{
-      btnText
-    }}
-  </el-button>
+  <van-button size="small"
+              type="primary"
+              :disabled="!canSend"
+              :size="props.size"
+              @click="sendMsg">{{ btnText }}
+  </van-button>
 </template>
 
 <script setup>
@@ -11,6 +13,7 @@ import {ref} from "vue";
 import {validateMobile} from "@/utils/validate";
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
+import {showNotify} from "vant";
 
 const props = defineProps({
   mobile: String,
@@ -25,12 +28,12 @@ const sendMsg = () => {
   }
 
   if (!validateMobile(props.mobile)) {
-    return ElMessage.error("请输入合法的手机号")
+    return showNotify({type: 'danger', message: '请输入合法的手机号'})
   }
   canSend.value = false
   httpGet('/api/verify/token').then(res => {
     httpPost('/api/verify/sms', {token: res.data, mobile: props.mobile}).then(() => {
-      ElMessage.success('短信发送成功')
+      showNotify({type: 'success', message: '短信发送成功'})
       let time = 120
       btnText.value = time
       const handler = setInterval(() => {
@@ -45,7 +48,7 @@ const sendMsg = () => {
       }, 1000)
     }).catch(e => {
       canSend.value = true
-      ElMessage.error('短信发送失败：' + e.message)
+      showNotify({type: 'danger', message: '短信发送失败：' + e.message})
     })
   }).catch(e => {
     console.log('failed to fetch token: ' + e.message)

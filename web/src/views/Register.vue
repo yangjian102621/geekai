@@ -9,7 +9,7 @@
 
         <div class="header">{{ title }}</div>
         <div class="content">
-          <el-form :model="formData" label-width="120px" ref="formRef" :rules="rules">
+          <el-form :model="formData" label-width="120px" ref="formRef">
             <div class="block">
               <el-input placeholder="请输入用户名(4-30位)"
                         size="large" maxlength="30"
@@ -115,7 +115,7 @@ const title = ref('ChatGPT-PLUS 用户注册');
 const formData = ref({
   username: '',
   password: '',
-  mobile: '18575670125',
+  mobile: '',
   code: '',
   repass: '',
 })

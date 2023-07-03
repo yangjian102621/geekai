@@ -62,8 +62,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if err != nil || int(code.(float64)) != data.Code {
 		resp.ERROR(c, "短信验证码错误")
 		return
-	} else {
-		_ = h.levelDB.Delete(key) // 删除短信验证码
 	}
 
 	// check if the username is exists
@@ -117,6 +115,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
+	_ = h.levelDB.Delete(key) // 注册成功，删除短信验证码
 	resp.SUCCESS(c, user)
 }
 
@@ -230,6 +229,7 @@ type userProfile struct {
 	Id         uint             `json:"id"`
 	Username   string           `json:"username"`
 	Nickname   string           `json:"nickname"`
+	Mobile     string           `json:"mobile"`
 	Avatar     string           `json:"avatar"`
 	ChatConfig types.ChatConfig `json:"chat_config"`
 	Calls      int              `json:"calls"`
@@ -332,5 +332,48 @@ func (h *UserHandler) Password(c *gin.Context) {
 		return
 	}
 
+	resp.SUCCESS(c)
+}
+
+// BindMobile 绑定手机号
+func (h *UserHandler) BindMobile(c *gin.Context) {
+	var data struct {
+		Mobile string `json:"mobile"`
+		Code   int    `json:"code"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 检查手机号是否被其他账号绑定
+	var item model.User
+	res := h.db.Where("mobile = ?", data.Mobile).First(&item)
+	if res.Error == nil {
+		resp.ERROR(c, "该手机号已经被其他账号绑定")
+		return
+	}
+
+	// 检查验证码
+	key := CodeStorePrefix + data.Mobile
+	code, err := h.levelDB.Get(key)
+	if err != nil || int(code.(float64)) != data.Code {
+		resp.ERROR(c, "短信验证码错误")
+		return
+	}
+
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	res = h.db.Model(&user).UpdateColumn("mobile", data.Mobile)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败")
+		return
+	}
+
+	_ = h.levelDB.Delete(key) // 删除短信验证码
 	resp.SUCCESS(c)
 }
