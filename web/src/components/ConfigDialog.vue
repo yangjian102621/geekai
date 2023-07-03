@@ -28,6 +28,10 @@
           <el-input v-model="form.username" readonly disabled/>
         </el-form-item>
 
+        <el-form-item label="绑定手机号">
+          <el-input v-model="form.mobile" readonly disabled/>
+        </el-form-item>
+
         <el-form-item label="聊天上下文">
           <el-switch v-model="form.chat_config.enable_context"/>
         </el-form-item>
@@ -96,6 +100,7 @@ const form = ref({
   username: '',
   nickname: '',
   avatar: '',
+  mobile: '',
   calls: 0,
   tokens: 0,
   chat_configs: {}

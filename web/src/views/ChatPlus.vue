@@ -60,6 +60,13 @@
                   <span>修改密码</span>
                 </el-dropdown-item>
 
+                <el-dropdown-item @click="showBindMobileDialog = true">
+                  <el-icon>
+                    <Iphone/>
+                  </el-icon>
+                  <span>绑定手机号</span>
+                </el-dropdown-item>
+
                 <el-dropdown-item @click="clearAllChats">
                   <el-icon>
                     <Delete/>
@@ -188,7 +195,8 @@
     <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
                      @logout="logout"/>
 
-    <bind-mobile/>
+    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
+                 @hide="showBindMobileDialog = false"/>
   </div>
 
 
@@ -202,7 +210,7 @@ import {
   Check,
   Close,
   Delete,
-  Edit,
+  Edit, Iphone,
   Plus,
   Promotion,
   RefreshRight,
@@ -242,6 +250,7 @@ const newChatItem = ref(null);
 const router = useRouter();
 const showConfigDialog = ref(false);
 const showPasswordDialog = ref(false);
+const showBindMobileDialog = ref(false);
 const isLogin = ref(false)
 
 if (isMobile()) {
@@ -253,6 +262,9 @@ onMounted(() => {
   checkSession().then((user) => {
     loginUser.value = user
     isLogin.value = true
+    if (user.mobile === '') {
+      showBindMobileDialog.value = true
+    }
     // 加载角色列表
     httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
       roles.value = res.data;

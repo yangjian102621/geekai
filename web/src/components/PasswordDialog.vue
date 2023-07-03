@@ -55,6 +55,7 @@ const save = function () {
     ElMessage.success({
       message: '更新成功',
       appendTo: '#password-form',
+      duration: 1000,
       onClose: () => emits('logout', false)
     })
   }).catch((e) => {

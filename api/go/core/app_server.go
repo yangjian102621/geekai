@@ -184,7 +184,7 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 		}
 		session := sessions.Default(c)
 		var value interface{}
-		if strings.Contains(c.Request.URL.Path, "/api/admin/") {
+		if strings.Contains(c.Request.URL.Path, "/api/admin/") { // 后台管理 API
 			value = session.Get(types.SessionAdmin)
 		} else {
 			value = session.Get(types.SessionUser)

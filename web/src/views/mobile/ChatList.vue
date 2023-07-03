@@ -63,6 +63,9 @@
         </template>
       </van-picker>
     </van-popup>
+
+    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
+                 @hide="showBindMobileDialog = false"/>
   </div>
 </template>
 
@@ -74,6 +77,7 @@ import {checkSession} from "@/action/session";
 import router from "@/router";
 import {setChatConfig} from "@/store/chat";
 import {removeArrayItem} from "@/utils/libs";
+import BindMobile from "@/components/mobile/BindMobile.vue";
 
 const title = ref("会话列表")
 const chatName = ref("")
@@ -88,10 +92,14 @@ const roles = ref([])
 const models = ref([])
 const showPicker = ref(false)
 const columns = ref([roles.value, models.value])
+const showBindMobileDialog = ref(false)
 
 checkSession().then((user) => {
   loginUser.value = user
   isLogin.value = true
+  if (user.mobile === '') {
+    showBindMobileDialog.value = true
+  }
   // 加载角色列表
   httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
     if (res.data) {
