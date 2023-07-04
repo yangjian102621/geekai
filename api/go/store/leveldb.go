@@ -3,7 +3,6 @@ package store
 import (
 	"chatplus/store/vo"
 	"encoding/json"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -30,19 +29,13 @@ func (db *LevelDB) Put(key string, value interface{}) error {
 	return db.driver.Put([]byte(key), bytes, nil)
 }
 
-func (db *LevelDB) Get(key string) (interface{}, error) {
+func (db *LevelDB) Get(key string, value interface{}) error {
 	bytes, err := db.driver.Get([]byte(key), nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var value interface{}
-	err = json.Unmarshal(bytes, &value)
-	if err != nil {
-		return nil, err
-	}
-
-	return value, nil
+	return json.Unmarshal(bytes, &value)
 }
 
 func (db *LevelDB) Search(prefix string) []string {

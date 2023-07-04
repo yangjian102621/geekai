@@ -31,7 +31,7 @@ const sendMsg = () => {
   httpGet('/api/verify/token').then(res => {
     httpPost('/api/verify/sms', {token: res.data, mobile: props.mobile}).then(() => {
       ElMessage.success('短信发送成功')
-      let time = 120
+      let time = 10
       btnText.value = time
       const handler = setInterval(() => {
         time = time - 1

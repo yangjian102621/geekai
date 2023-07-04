@@ -7,6 +7,7 @@ import (
 	"chatplus/store"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +21,9 @@ type VerifyHandler struct {
 	db  *store.LevelDB
 }
 
-const TokenStorePrefix = "/tokens/"
-const CodeStorePrefix = "/codes/"
+const TokenStorePrefix = "/verify/tokens/"
+const CodeStorePrefix = "/verify/codes/"
+const MobileStatPrefix = "/verify/stats/"
 
 func NewVerifyHandler(app *core.AppServer, sms *service.AliYunSmsService, db *store.LevelDB) *VerifyHandler {
 	handler := &VerifyHandler{sms: sms, db: db}
@@ -34,11 +36,24 @@ type VerifyToken struct {
 	Timestamp int64
 }
 
+// CodeStats 验证码发送统计
+type CodeStats struct {
+	Mobile string
+	Count  uint
+	Time   int64
+}
+
 // Token 生成自验证 token
 func (h *VerifyHandler) Token(c *gin.Context) {
-	// 确保是通过浏览器访问
+	// 如果不是通过浏览器访问，则返回错误的 token
 	if c.GetHeader("Sec-Fetch-Mode") != "cors" {
-		resp.HACKER(c)
+		token := fmt.Sprintf("%s:%d", utils.RandString(32), time.Now().Unix())
+		encrypt, err := utils.AesEncrypt(h.App.Config.AesEncryptKey, []byte(token))
+		if err != nil {
+			resp.ERROR(c, "Token 加密出错")
+			return
+		}
+		resp.SUCCESS(c, encrypt)
 		return
 	}
 
@@ -85,15 +100,29 @@ func (h *VerifyHandler) SendMsg(c *gin.Context) {
 		return
 	}
 
-	_, err = h.db.Get(TokenStorePrefix + token.Token)
-	if err != nil {
-		resp.HACKER(c)
-		return
-	}
-
 	if time.Now().Unix()-token.Timestamp > 30 {
 		resp.ERROR(c, "Token 已过期，请刷新页面重试")
 		return
+	}
+
+	// 验证当前手机号发送次数，24 小时内相同手机号只允许发送 2 次
+	var stat CodeStats
+	err = h.db.Get(MobileStatPrefix+data.Mobile, &stat)
+	if err != nil {
+		logger.Error(err)
+		stat = CodeStats{
+			Mobile: data.Mobile,
+			Count:  0,
+			Time:   time.Now().Unix(),
+		}
+	} else if stat.Count == 2 {
+		if time.Now().Unix()-stat.Time > 86400 {
+			stat.Count = 0
+			stat.Time = time.Now().Unix()
+		} else {
+			resp.ERROR(c, "触发流量预警，请 24 小时后再操作！")
+			return
+		}
 	}
 
 	code := utils.RandomNumber(6)
@@ -111,6 +140,11 @@ func (h *VerifyHandler) SendMsg(c *gin.Context) {
 		resp.ERROR(c, "验证码保存失败")
 		return
 	}
+
+	// 更新发送次数
+	stat.Count = stat.Count + 1
+	_ = h.db.Put(MobileStatPrefix+data.Mobile, stat)
+	logger.Infof("%+v", stat)
 
 	resp.SUCCESS(c)
 }

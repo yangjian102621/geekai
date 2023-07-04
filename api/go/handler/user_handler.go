@@ -58,8 +58,10 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
-	code, err := h.levelDB.Get(key)
-	if err != nil || int(code.(float64)) != data.Code {
+	var code int
+	err := h.levelDB.Get(key, &code)
+	if err != nil || code != data.Code {
+		logger.Info(code)
 		resp.ERROR(c, "短信验证码错误")
 		return
 	}
@@ -356,8 +358,9 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
-	code, err := h.levelDB.Get(key)
-	if err != nil || int(code.(float64)) != data.Code {
+	var code int
+	err := h.levelDB.Get(key, &code)
+	if err != nil || code != data.Code {
 		resp.ERROR(c, "短信验证码错误")
 		return
 	}

@@ -17,8 +17,7 @@ import (
 )
 
 func main() {
-	//testAesEncrypt()
-	fmt.Println(utils.RandomNumber(6))
+	testAesEncrypt()
 }
 
 // Http client 取消操作
