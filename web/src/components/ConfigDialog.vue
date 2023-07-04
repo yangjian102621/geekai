@@ -111,7 +111,7 @@ onMounted(() => {
   httpGet('/api/user/profile').then(res => {
     form.value = res.data
   }).catch(() => {
-    ElMessage.error({message: '获取用户信息失败', appendTo: '#user-info'})
+    ElMessage.error("获取用户信息失败")
   });
 })
 
@@ -126,10 +126,10 @@ const afterRead = (file) => {
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
         form.value.avatar = res.data
-        ElMessage.success({message: '上传成功', appendTo: '#user-info', duration: 1000})
+        ElMessage.success('上传成功')
       }).catch((e) => {
         console.log(e.message)
-        ElMessage.error({message: '上传失败', appendTo: '#user-info'})
+        ElMessage.error('上传失败')
       })
     },
     error(err) {
@@ -144,16 +144,12 @@ const save = function () {
   httpPost('/api/user/profile/update', form.value).then(() => {
     ElMessage.success({
       message: '更新成功',
-      appendTo: '#user-info',
       onClose: () => emits('hide', false)
     })
     // 更新用户数据
     emits('update-user', {nickname: form.value['nickname'], avatar: form.value['avatar']});
-  }).catch(() => {
-    ElMessage.error({
-      message: '更新失败',
-      appendTo: document.getElementById('user-info')
-    })
+  }).catch((e) => {
+    ElMessage.error('更新失败：' + e.message)
   })
 }
 const close = function () {
