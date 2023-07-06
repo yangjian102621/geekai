@@ -197,6 +197,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		if strings.Contains(err.Error(), "context canceled") {
 			logger.Info("用户取消了请求：", prompt)
 			return nil
+		} else if strings.Contains(err.Error(), "no available key") {
+			replyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY🔑，您可以导入自己的 API KEY🔑 继续使用！🙏🙏🙏")
+			return nil
 		} else {
 			logger.Error(err)
 		}
@@ -414,7 +417,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 		var key model.ApiKey
 		res := h.db.Where("user_id = ?", 0).Order("last_used_at ASC").First(&key)
 		if res.Error != nil {
-			return nil, errors.New("no available key, please import key")
+			return nil, errors.New("no available key")
 		}
 		*apiKey = key.Value
 		// 更新 API KEY 的最后使用时间
