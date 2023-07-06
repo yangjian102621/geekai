@@ -417,7 +417,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 		var key model.ApiKey
 		res := h.db.Where("user_id = ?", 0).Order("last_used_at ASC").First(&key)
 		if res.Error != nil {
-			return nil, errors.New("no available key")
+			return nil, errors.New("no available key, please import key")
 		}
 		*apiKey = key.Value
 		// 更新 API KEY 的最后使用时间
