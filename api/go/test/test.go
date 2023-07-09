@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bufio"
+	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -17,7 +21,8 @@ import (
 )
 
 func main() {
-	testAesEncrypt()
+	err := extractFunction()
+	fmt.Println(err)
 }
 
 // Http client 取消操作
@@ -155,4 +160,35 @@ func testAesEncrypt() {
 		panic(err)
 	}
 	fmt.Println("解密明文：", string(decrypt))
+}
+
+func extractFunction() error {
+	open, err := os.Open("data.txt")
+	if err != nil {
+		return err
+	}
+	reader := bufio.NewReader(open)
+	//var contents = make([]string, 0)
+	var responseBody = types.ApiResponse{}
+	//var functionCall = false
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		if !strings.Contains(line, "data:") {
+			continue
+		}
+
+		err = json.Unmarshal([]byte(line[6:]), &responseBody)
+		if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
+			return err
+		}
+
+		if !utils.IsEmptyValue(responseBody.Choices[0].Delta.FunctionCall) {
+			//functionCall = true
+			fmt.Println("函数调用")
+			continue
+		}
+	}
 }

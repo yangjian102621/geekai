@@ -10,8 +10,14 @@ type ApiRequest struct {
 }
 
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role         string       `json:"role"`
+	Content      string       `json:"content"`
+	FunctionCall FunctionCall `json:"function_call"`
+}
+
+type FunctionCall struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
 }
 
 type ApiResponse struct {
