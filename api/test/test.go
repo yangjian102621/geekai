@@ -9,20 +9,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
+	"github.com/pkoukk/tiktoken-go"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
-	"github.com/pkoukk/tiktoken-go"
 )
 
 func main() {
-	err := extractFunction()
-	fmt.Println(err)
 }
 
 // Http client 取消操作
@@ -163,32 +160,43 @@ func testAesEncrypt() {
 }
 
 func extractFunction() error {
-	open, err := os.Open("data.txt")
+	open, err := os.Open("res/data.txt")
 	if err != nil {
 		return err
 	}
 	reader := bufio.NewReader(open)
-	//var contents = make([]string, 0)
-	var responseBody = types.ApiResponse{}
-	//var functionCall = false
+	var contents = make([]string, 0)
+	var functionCall = false
+	var functionName string
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
-			return err
+			break
 		}
 		if !strings.Contains(line, "data:") {
 			continue
 		}
 
+		var responseBody = types.ApiResponse{}
 		err = json.Unmarshal([]byte(line[6:]), &responseBody)
 		if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
-			return err
+			break
 		}
 
-		if !utils.IsEmptyValue(responseBody.Choices[0].Delta.FunctionCall) {
-			//functionCall = true
-			fmt.Println("函数调用")
+		function := responseBody.Choices[0].Delta.FunctionCall
+		if functionCall && function.Name == "" {
+			contents = append(contents, function.Arguments)
+			continue
+		}
+
+		if !utils.IsEmptyValue(function) {
+			functionCall = true
+			functionName = function.Name
 			continue
 		}
 	}
+
+	fmt.Println("函数名称: ", functionName)
+	fmt.Println(strings.Join(contents, ""))
+	return err
 }

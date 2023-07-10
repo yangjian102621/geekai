@@ -28,7 +28,7 @@ type AppServer struct {
 	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
 	ChatSession   *types.LMap[string, types.ChatSession]  //map[sessionId]UserId
-	ChatClients   *types.LMap[string, *types.WsClient]    // Websocket 连接集合
+	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 }
 

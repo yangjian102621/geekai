@@ -7,6 +7,7 @@ import (
 	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
 	"chatplus/service"
+	"chatplus/service/function"
 	"chatplus/store"
 	"context"
 	"embed"
@@ -97,6 +98,12 @@ func main() {
 			}
 
 			return xdb.NewWithBuffer(cBuff)
+		}),
+
+		// 创建函数
+		fx.Provide(func() *function.FuncZaoBao {
+			token := os.Getenv("AL_API_TOKEN")
+			return function.NewZaoBao(token)
 		}),
 
 		// 创建控制器

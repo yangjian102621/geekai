@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service/function"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -29,11 +30,12 @@ const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
 
 type ChatHandler struct {
 	BaseHandler
-	db *gorm.DB
+	db         *gorm.DB
+	funcZaoBao *function.FuncZaoBao
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB) *ChatHandler {
-	handler := ChatHandler{db: db}
+func NewChatHandler(app *core.AppServer, db *gorm.DB, zaoBao *function.FuncZaoBao) *ChatHandler {
+	handler := ChatHandler{db: db, funcZaoBao: zaoBao}
 	handler.App = app
 	return &handler
 }
@@ -192,7 +194,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		Content: prompt,
 	})
 	var apiKey string
-	response, err := h.doRequest(ctx, userVo, &apiKey, req)
+	response, err := h.fakeRequest(ctx, userVo, &apiKey, req)
 	if err != nil {
 		if strings.Contains(err.Error(), "context canceled") {
 			logger.Info("用户取消了请求：", prompt)
@@ -211,13 +213,16 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		defer response.Body.Close()
 	}
 
-	contentType := response.Header.Get("Content-Type")
-	if strings.Contains(contentType, "text/event-stream") {
+	//contentType := response.Header.Get("Content-Type")
+	//if strings.Contains(contentType, "text/event-stream") || true {
+	if true {
 		replyCreatedAt := time.Now()
 		// 循环读取 Chunk 消息
 		var message = types.Message{}
 		var contents = make([]string, 0)
-		var responseBody = types.ApiResponse{}
+		var functionCall = false
+		var functionName string
+		var arguments = make([]string, 0)
 		reader := bufio.NewReader(response.Body)
 		for {
 			line, err := reader.ReadString('\n')
@@ -229,15 +234,34 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				}
 				break
 			}
-			if !strings.Contains(line, "data:") {
+			if !strings.Contains(line, "data:") || len(line) < 30 {
 				continue
 			}
 
+			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
 			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
 				logger.Error(err, line)
 				replyMessage(ws, ErrorMsg)
 				replyMessage(ws, "![](/images/wx.png)")
+				break
+			}
+
+			fun := responseBody.Choices[0].Delta.FunctionCall
+			if functionCall && fun.Name == "" {
+				arguments = append(arguments, fun.Arguments)
+				continue
+			}
+
+			if !utils.IsEmptyValue(fun) {
+				functionCall = true
+				functionName = fun.Name
+				replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+				replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 %s 作答 ...\n\n", functionName)})
+				continue
+			}
+
+			if responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
 				break
 			}
 
@@ -258,6 +282,23 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			}
 		} // end for
 
+		if functionCall { // 调用函数完成任务
+			// TODO 调用函数完成任务
+			data, err := h.funcZaoBao.Fetch()
+			if err != nil {
+				replyChunkMessage(ws, types.WsMessage{
+					Type:    types.WsMiddle,
+					Content: "调用函数出错",
+				})
+			} else {
+				replyChunkMessage(ws, types.WsMessage{
+					Type:    types.WsMiddle,
+					Content: data,
+				})
+			}
+			contents = append(contents, data)
+		}
+
 		// 消息发送成功
 		if len(contents) > 0 {
 			// 更新用户的对话次数
@@ -272,8 +313,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			message.Content = strings.Join(contents, "")
 			useMsg := types.Message{Role: "user", Content: prompt}
 
-			// 更新上下文消息
-			if userVo.ChatConfig.EnableContext {
+			// 更新上下文消息，如果是调用函数则不需要更新上下文
+			if userVo.ChatConfig.EnableContext && functionCall == false {
 				chatCtx = append(chatCtx, useMsg)  // 提问消息
 				chatCtx = append(chatCtx, message) // 回复消息
 				h.App.ChatContexts.Put(session.ChatId, chatCtx)
@@ -401,8 +442,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 	if proxyURL == "" {
 		client = &http.Client{}
 	} else { // 使用代理
-		uri := url.URL{}
-		proxy, _ := uri.Parse(proxyURL)
+		proxy, _ := url.Parse(proxyURL)
 		client = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxy),
@@ -426,6 +466,13 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 
 	logger.Infof("Sending OpenAI request, KEY: %s, PROXY: %s, Model: %s", *apiKey, proxyURL, req.Model)
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *apiKey))
+	return client.Do(request)
+}
+
+func (h *ChatHandler) fakeRequest(ctx context.Context, user vo.User, apiKey *string, req types.ApiRequest) (*http.Response, error) {
+	link := "https://img.r9it.com/chatgpt/response"
+	client := &http.Client{}
+	request, _ := http.NewRequest(http.MethodGet, link, nil)
 	return client.Do(request)
 }
 
