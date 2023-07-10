@@ -15,11 +15,6 @@ type Message struct {
 	FunctionCall FunctionCall `json:"function_call"`
 }
 
-type FunctionCall struct {
-	Name      string `json:"name"`
-	Arguments string `json:"arguments"`
-}
-
 type ApiResponse struct {
 	Choices []ChoiceItem `json:"choices"`
 }
