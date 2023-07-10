@@ -184,7 +184,7 @@ docker-compose up -d
 
 ### 2. 修改配置文档
 
-先拷贝项目中的 `api/go/config.sample.toml` 配置文档，修改代理地址和管理员密码：
+先拷贝项目中的 `api/config.sample.toml` 配置文档，修改代理地址和管理员密码：
 
 如何修改请参考[修改配置文档](#2-修改配置文档)
 
@@ -287,7 +287,7 @@ server {
 3. 运行后端程序：
 
     ```shell
-    cd api/go 
+    cd api 
     # 1. 先下载依赖
     go mod tidy
     # 2. 运行程序
@@ -340,7 +340,7 @@ npm run build
 你可以根据个人需求将项目打包成 windows/linux/darwin 平台项目。
 
 ```shell
-cd api/go
+cd api
 # for all platforms
 make all
 # for linux only
