@@ -68,11 +68,18 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// check if the username is exists
 	var item model.User
-	tx := h.db.Where("username = ?", data.Username).First(&item)
-	if tx.RowsAffected > 0 {
+	res := h.db.Where("username = ?", data.Username).First(&item)
+	if res.RowsAffected > 0 {
 		resp.ERROR(c, "用户名已存在")
 		return
 	}
+
+	res = h.db.Where("mobile = ?", data.Mobile).First(&item)
+	if res.RowsAffected > 0 {
+		resp.ERROR(c, "该手机号码以及被注册，请更换其他手机号")
+		return
+	}
+
 	// 默认订阅所有角色
 	var chatRoles []model.ChatRole
 	h.db.Find(&chatRoles)
@@ -110,7 +117,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	} else {
 		user.Calls = config.UserInitCalls
 	}
-	res := h.db.Create(&user)
+	res = h.db.Create(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "保存数据失败")
 		logger.Error(res.Error)
