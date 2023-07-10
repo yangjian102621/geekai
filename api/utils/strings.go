@@ -25,6 +25,7 @@ func RandomNumber(bit int) int {
 	min := intPow(10, bit-1)
 	max := intPow(10, bit) - 1
 
+	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(max-min+1) + min
 }
 
