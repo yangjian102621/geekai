@@ -283,7 +283,7 @@ const sendMessage = () => {
     return
   }
 
-  if (prompt.value.trim().length === 0 || canSend.value === false) {
+  if (prompt.value.trim().length === 0) {
     return false;
   }
 
