@@ -72,7 +72,9 @@ type ChatConfig struct {
 	MaxTokens     int     `json:"max_tokens"`
 	EnableContext bool    `json:"enable_context"` // 是否开启聊天上下文
 	EnableHistory bool    `json:"enable_history"` // 是否允许保存聊天记录
-	ApiKey        string  `json:"api_key"`        // OpenAI  API key
+	ApiKey        string  `json:"api_key"`
+	ContextDeep   int     `json:"context_deep"` // 上下文深度
+
 }
 
 type SystemConfig struct {

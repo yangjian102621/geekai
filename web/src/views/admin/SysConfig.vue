@@ -65,6 +65,14 @@
           <el-switch v-model="chat['enable_history']"/>
         </el-form-item>
 
+        <el-alert type="info" show-icon :closable="false">
+          <p>会话上下文深度：在老会话中继续会话，默认加载多少条聊天记录作为上下文。如果设置为 0
+            则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置为 2 的整数倍。</p>
+        </el-alert>
+        <el-form-item label="会话上下文深度">
+          <el-input-number v-model="chat['context_deep']" :min="0" :max="10"/>
+        </el-form-item>
+
         <el-form-item style="text-align: right">
           <el-button type="primary" @click="save('chat')">保存</el-button>
         </el-form-item>
@@ -177,6 +185,10 @@ const addModel = function () {
           .el-button--small {
             font-size 16px;
           }
+        }
+
+        .tip-text {
+          padding-left 10px;
         }
       }
     }
