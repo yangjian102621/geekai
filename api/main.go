@@ -11,6 +11,7 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -101,9 +102,12 @@ func main() {
 		}),
 
 		// 创建函数
-		fx.Provide(func() *function.FuncZaoBao {
+		fx.Provide(func() (*function.FuncZaoBao, error) {
 			token := os.Getenv("AL_API_TOKEN")
-			return function.NewZaoBao(token)
+			if token == "" {
+				return nil, errors.New("invalid AL api token")
+			}
+			return function.NewZaoBao(token), nil
 		}),
 
 		// 创建控制器

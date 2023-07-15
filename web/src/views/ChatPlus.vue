@@ -94,6 +94,7 @@
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-head">
           <div class="chat-config">
+            <span class="role-select-label">聊天角色：</span>
             <el-select v-model="roleId" filterable placeholder="角色" class="role-select">
               <el-option
                   v-for="item in roles"
@@ -210,7 +211,8 @@ import {
   Check,
   Close,
   Delete,
-  Edit, Iphone,
+  Edit,
+  Iphone,
   Plus,
   Promotion,
   RefreshRight,
@@ -919,6 +921,10 @@ $borderColor = #4676d0;
           align-items: center;
           justify-content center;
           padding-top 10px;
+
+          .role-select-label {
+            color #ffffff
+          }
 
           .el-select {
             //max-width 150px;

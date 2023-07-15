@@ -2,13 +2,14 @@ package model
 
 type HistoryMessage struct {
 	BaseModel
-	ChatId  string // 会话 ID
-	UserId  uint   // 用户 ID
-	RoleId  uint   // 角色 ID
-	Type    string
-	Icon    string
-	Tokens  int
-	Content string
+	ChatId     string // 会话 ID
+	UserId     uint   // 用户 ID
+	RoleId     uint   // 角色 ID
+	Type       string
+	Icon       string
+	Tokens     int
+	Content    string
+	UseContext bool // 是否可以作为聊天上下文
 }
 
 func (HistoryMessage) TableName() string {

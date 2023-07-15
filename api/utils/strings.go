@@ -81,3 +81,10 @@ func JsonEncode(value interface{}) string {
 func JsonDecode(src string, dest interface{}) error {
 	return json.Unmarshal([]byte(src), dest)
 }
+
+func InterfaceToString(value interface{}) string {
+	if str, ok := value.(string); ok {
+		return str
+	}
+	return JsonEncode(value)
+}
