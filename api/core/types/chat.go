@@ -2,17 +2,17 @@ package types
 
 // ApiRequest API 请求实体
 type ApiRequest struct {
-	Model       string    `json:"model"`
-	Temperature float32   `json:"temperature"`
-	MaxTokens   int       `json:"max_tokens"`
-	Stream      bool      `json:"stream"`
-	Messages    []Message `json:"messages"`
+	Model       string        `json:"model"`
+	Temperature float32       `json:"temperature"`
+	MaxTokens   int           `json:"max_tokens"`
+	Stream      bool          `json:"stream"`
+	Messages    []interface{} `json:"messages"`
+	Functions   []Function    `json:"functions"`
 }
 
 type Message struct {
-	Role         string       `json:"role"`
-	Content      string       `json:"content"`
-	FunctionCall FunctionCall `json:"function_call"`
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type ApiResponse struct {
@@ -21,8 +21,15 @@ type ApiResponse struct {
 
 // ChoiceItem API 响应实体
 type ChoiceItem struct {
-	Delta        Message `json:"delta"`
-	FinishReason string  `json:"finish_reason"`
+	Delta        Delta  `json:"delta"`
+	FinishReason string `json:"finish_reason"`
+}
+
+type Delta struct {
+	Role         string       `json:"role"`
+	Name         string       `json:"name"`
+	Content      interface{}  `json:"content"`
+	FunctionCall FunctionCall `json:"function_call,omitempty"`
 }
 
 // ChatSession 聊天会话对象

@@ -22,8 +22,8 @@ type AppServer struct {
 	Debug        bool
 	Config       *types.AppConfig
 	Engine       *gin.Engine
-	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
-	ChatConfig   *types.ChatConfig                    // 聊天配置
+	ChatContexts *types.LMap[string, []interface{}] // 聊天上下文 Map [chatId] => []Message
+	ChatConfig   *types.ChatConfig                  // 聊天配置
 
 	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
@@ -39,7 +39,7 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 		Debug:         false,
 		Config:        appConfig,
 		Engine:        gin.Default(),
-		ChatContexts:  types.NewLMap[string, []types.Message](),
+		ChatContexts:  types.NewLMap[string, []interface{}](),
 		ChatSession:   types.NewLMap[string, types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),

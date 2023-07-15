@@ -157,10 +157,11 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		Temperature: userVo.ChatConfig.Temperature,
 		MaxTokens:   userVo.ChatConfig.MaxTokens,
 		Stream:      true,
+		Functions:   types.InnerFunctions,
 	}
 
 	// 加载聊天上下文
-	var chatCtx []types.Message
+	var chatCtx []interface{}
 	if userVo.ChatConfig.EnableContext {
 		if h.App.ChatContexts.Has(session.ChatId) {
 			chatCtx = h.App.ChatContexts.Get(session.ChatId)
@@ -169,11 +170,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			var messages []types.Message
 			err := utils.JsonDecode(role.Context, &messages)
 			if err == nil {
-				chatCtx = messages
+				for _, v := range messages {
+					chatCtx = append(chatCtx, v)
+				}
 			}
-			// TODO: 这里默认加载最近 4 条聊天记录作为上下文，后期应该做成可配置的
+			// TODO: 这里默认加载最近 2 条聊天记录作为上下文，后期应该做成可配置的
 			var historyMessages []model.HistoryMessage
-			res := h.db.Where("chat_id = ?", session.ChatId).Limit(4).Order("created_at desc").Find(&historyMessages)
+			res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(2).Order("created_at desc").Find(&historyMessages)
 			if res.Error == nil {
 				for _, msg := range historyMessages {
 					ms := types.Message{Role: "user", Content: msg.Content}
@@ -189,12 +192,17 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			logger.Info("聊天上下文：", chatCtx)
 		}
 	}
-	req.Messages = append(chatCtx, types.Message{
-		Role:    "user",
-		Content: prompt,
+	reqMgs := make([]interface{}, 0)
+	for _, m := range chatCtx {
+		reqMgs = append(reqMgs, m)
+	}
+
+	req.Messages = append(reqMgs, map[string]interface{}{
+		"role":    "user",
+		"content": prompt,
 	})
 	var apiKey string
-	response, err := h.fakeRequest(ctx, userVo, &apiKey, req)
+	response, err := h.doRequest(ctx, userVo, &apiKey, req)
 	if err != nil {
 		if strings.Contains(err.Error(), "context canceled") {
 			logger.Info("用户取消了请求：", prompt)
@@ -213,176 +221,191 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		defer response.Body.Close()
 	}
 
-	//contentType := response.Header.Get("Content-Type")
-	//if strings.Contains(contentType, "text/event-stream") || true {
-	if true {
-		replyCreatedAt := time.Now()
-		// 循环读取 Chunk 消息
-		var message = types.Message{}
-		var contents = make([]string, 0)
-		var functionCall = false
-		var functionName string
-		var arguments = make([]string, 0)
-		reader := bufio.NewReader(response.Body)
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				if strings.Contains(err.Error(), "context canceled") {
-					logger.Info("用户取消了请求：", prompt)
-				} else {
-					logger.Error(err)
-				}
-				break
-			}
-			if !strings.Contains(line, "data:") || len(line) < 30 {
-				continue
-			}
-
-			var responseBody = types.ApiResponse{}
-			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
-				logger.Error(err, line)
-				replyMessage(ws, ErrorMsg)
-				replyMessage(ws, "![](/images/wx.png)")
-				break
-			}
-
-			fun := responseBody.Choices[0].Delta.FunctionCall
-			if functionCall && fun.Name == "" {
-				arguments = append(arguments, fun.Arguments)
-				continue
-			}
-
-			if !utils.IsEmptyValue(fun) {
-				functionCall = true
-				functionName = fun.Name
-				replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-				replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 %s 作答 ...\n\n", functionName)})
-				continue
-			}
-
-			if responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
-				break
-			}
-
-			// 初始化 role
-			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
-				message.Role = responseBody.Choices[0].Delta.Role
-				replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-				continue
-			} else if responseBody.Choices[0].FinishReason != "" {
-				break // 输出完成或者输出中断了
-			} else {
-				content := responseBody.Choices[0].Delta.Content
-				contents = append(contents, content)
-				replyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: responseBody.Choices[0].Delta.Content,
-				})
-			}
-		} // end for
-
-		if functionCall { // 调用函数完成任务
-			// TODO 调用函数完成任务
-			data, err := h.funcZaoBao.Fetch()
-			if err != nil {
-				replyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: "调用函数出错",
-				})
-			} else {
-				replyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: data,
-				})
-			}
-			contents = append(contents, data)
-		}
-
-		// 消息发送成功
-		if len(contents) > 0 {
-			// 更新用户的对话次数
-			res := h.db.Model(&user).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
-			if res.Error != nil {
-				return res.Error
-			}
-
-			if message.Role == "" {
-				message.Role = "assistant"
-			}
-			message.Content = strings.Join(contents, "")
-			useMsg := types.Message{Role: "user", Content: prompt}
-
-			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if userVo.ChatConfig.EnableContext && functionCall == false {
-				chatCtx = append(chatCtx, useMsg)  // 提问消息
-				chatCtx = append(chatCtx, message) // 回复消息
-				h.App.ChatContexts.Put(session.ChatId, chatCtx)
-			}
-
-			// 追加聊天记录
-			if userVo.ChatConfig.EnableHistory {
-				// for prompt
-				token, err := utils.CalcTokens(prompt, req.Model)
+	contentType := response.Header.Get("Content-Type")
+	if strings.Contains(contentType, "text/event-stream") {
+		if true {
+			replyCreatedAt := time.Now()
+			// 循环读取 Chunk 消息
+			var message = types.Message{}
+			var contents = make([]string, 0)
+			var functionCall = false
+			var functionName string
+			var arguments = make([]string, 0)
+			reader := bufio.NewReader(response.Body)
+			for {
+				line, err := reader.ReadString('\n')
 				if err != nil {
-					logger.Error(err)
+					if strings.Contains(err.Error(), "context canceled") {
+						logger.Info("用户取消了请求：", prompt)
+					} else if err != io.EOF {
+						logger.Error(err)
+					}
+					break
 				}
-				historyUserMsg := model.HistoryMessage{
-					UserId:  userVo.Id,
-					ChatId:  session.ChatId,
-					RoleId:  role.Id,
-					Type:    types.PromptMsg,
-					Icon:    user.Avatar,
-					Content: prompt,
-					Tokens:  token,
-				}
-				historyUserMsg.CreatedAt = promptCreatedAt
-				historyUserMsg.UpdatedAt = promptCreatedAt
-				res := h.db.Save(&historyUserMsg)
-				if res.Error != nil {
-					logger.Error("failed to save prompt history message: ", res.Error)
+				if !strings.Contains(line, "data:") || len(line) < 30 {
+					continue
 				}
 
-				// for reply
-				token, err = utils.CalcTokens(message.Content, req.Model)
+				var responseBody = types.ApiResponse{}
+				err = json.Unmarshal([]byte(line[6:]), &responseBody)
+				if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
+					logger.Error(err, line)
+					replyMessage(ws, ErrorMsg)
+					replyMessage(ws, "![](/images/wx.png)")
+					break
+				}
+
+				fun := responseBody.Choices[0].Delta.FunctionCall
+				if functionCall && fun.Name == "" {
+					arguments = append(arguments, fun.Arguments)
+					continue
+				}
+
+				if !utils.IsEmptyValue(fun) {
+					functionCall = true
+					functionName = fun.Name
+					replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+					replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 `%s` 作答 ...\n\n", types.FunctionNameMap[functionName])})
+					continue
+				}
+
+				if responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
+					break
+				}
+
+				// 初始化 role
+				if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
+					message.Role = responseBody.Choices[0].Delta.Role
+					replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+					continue
+				} else if responseBody.Choices[0].FinishReason != "" {
+					break // 输出完成或者输出中断了
+				} else {
+					content := responseBody.Choices[0].Delta.Content
+					contents = append(contents, utils.InterfaceToString(content))
+					replyChunkMessage(ws, types.WsMessage{
+						Type:    types.WsMiddle,
+						Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
+					})
+				}
+			} // end for
+
+			if functionCall { // 调用函数完成任务
+				logger.Info(functionName)
+				logger.Info(arguments)
+				// TODO 调用函数完成任务
+				data, err := h.funcZaoBao.Fetch()
 				if err != nil {
-					logger.Error(err)
+					replyChunkMessage(ws, types.WsMessage{
+						Type:    types.WsMiddle,
+						Content: "调用函数出错",
+					})
+				} else {
+					replyChunkMessage(ws, types.WsMessage{
+						Type:    types.WsMiddle,
+						Content: data,
+					})
 				}
-				historyReplyMsg := model.HistoryMessage{
-					UserId:  userVo.Id,
-					ChatId:  session.ChatId,
-					RoleId:  role.Id,
-					Type:    types.ReplyMsg,
-					Icon:    role.Icon,
-					Content: message.Content,
-					Tokens:  token,
-				}
-				historyReplyMsg.CreatedAt = replyCreatedAt
-				historyReplyMsg.UpdatedAt = replyCreatedAt
-				res = h.db.Create(&historyReplyMsg)
-				if res.Error != nil {
-					logger.Error("failed to save reply history message: ", res.Error)
-				}
-
-				// 统计用户 token 数量
-				h.db.Model(&user).UpdateColumn("tokens", gorm.Expr("tokens + ?",
-					historyUserMsg.Tokens+historyReplyMsg.Tokens))
+				contents = append(contents, data)
 			}
 
-			// 保存当前会话
-			var chatItem model.ChatItem
-			res = h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
-			if res.Error != nil {
-				chatItem.ChatId = session.ChatId
-				chatItem.UserId = session.UserId
-				chatItem.RoleId = role.Id
-				chatItem.Model = session.Model
-				if utf8.RuneCountInString(prompt) > 30 {
-					chatItem.Title = string([]rune(prompt)[:30]) + "..."
-				} else {
-					chatItem.Title = prompt
+			// 消息发送成功
+			if len(contents) > 0 {
+				// 更新用户的对话次数
+				res := h.db.Model(&user).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
+				if res.Error != nil {
+					return res.Error
 				}
-				h.db.Create(&chatItem)
+
+				if message.Role == "" {
+					message.Role = "assistant"
+				}
+				message.Content = strings.Join(contents, "")
+				useMsg := types.Message{Role: "user", Content: prompt}
+
+				// 计算本次对话消耗的总 token 数量
+				req.Messages = append(req.Messages, message)
+				totalTokens := getTotalTokens(req)
+				replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("`本轮对话共消耗 Token 数量: %d`", totalTokens)})
+
+				// 更新上下文消息，如果是调用函数则不需要更新上下文
+				if userVo.ChatConfig.EnableContext && functionCall == false {
+					chatCtx = append(chatCtx, useMsg)  // 提问消息
+					chatCtx = append(chatCtx, message) // 回复消息
+					h.App.ChatContexts.Put(session.ChatId, chatCtx)
+				}
+
+				// 追加聊天记录
+				if userVo.ChatConfig.EnableHistory {
+					useContext := true
+					if functionCall {
+						useContext = false
+					}
+
+					// for prompt
+					token, err := utils.CalcTokens(prompt, req.Model)
+					if err != nil {
+						logger.Error(err)
+					}
+					historyUserMsg := model.HistoryMessage{
+						UserId:     userVo.Id,
+						ChatId:     session.ChatId,
+						RoleId:     role.Id,
+						Type:       types.PromptMsg,
+						Icon:       user.Avatar,
+						Content:    prompt,
+						Tokens:     token,
+						UseContext: useContext,
+					}
+					historyUserMsg.CreatedAt = promptCreatedAt
+					historyUserMsg.UpdatedAt = promptCreatedAt
+					res := h.db.Save(&historyUserMsg)
+					if res.Error != nil {
+						logger.Error("failed to save prompt history message: ", res.Error)
+					}
+
+					// for reply
+					token, err = utils.CalcTokens(message.Content, req.Model)
+					if err != nil {
+						logger.Error(err)
+					}
+					historyReplyMsg := model.HistoryMessage{
+						UserId:     userVo.Id,
+						ChatId:     session.ChatId,
+						RoleId:     role.Id,
+						Type:       types.ReplyMsg,
+						Icon:       role.Icon,
+						Content:    message.Content,
+						Tokens:     token,
+						UseContext: useContext,
+					}
+					historyReplyMsg.CreatedAt = replyCreatedAt
+					historyReplyMsg.UpdatedAt = replyCreatedAt
+					res = h.db.Create(&historyReplyMsg)
+					if res.Error != nil {
+						logger.Error("failed to save reply history message: ", res.Error)
+					}
+
+					// 统计用户 token 数量
+					h.db.Model(&user).UpdateColumn("tokens", gorm.Expr("tokens + ?",
+						historyUserMsg.Tokens+historyReplyMsg.Tokens))
+				}
+
+				// 保存当前会话
+				var chatItem model.ChatItem
+				res = h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
+				if res.Error != nil {
+					chatItem.ChatId = session.ChatId
+					chatItem.UserId = session.UserId
+					chatItem.RoleId = role.Id
+					chatItem.Model = session.Model
+					if utf8.RuneCountInString(prompt) > 30 {
+						chatItem.Title = string([]rune(prompt)[:30]) + "..."
+					} else {
+						chatItem.Title = prompt
+					}
+					h.db.Create(&chatItem)
+				}
 			}
 		}
 	} else {
@@ -469,13 +492,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 	return client.Do(request)
 }
 
-func (h *ChatHandler) fakeRequest(ctx context.Context, user vo.User, apiKey *string, req types.ApiRequest) (*http.Response, error) {
-	link := "https://img.r9it.com/chatgpt/response"
-	client := &http.Client{}
-	request, _ := http.NewRequest(http.MethodGet, link, nil)
-	return client.Do(request)
-}
-
 // 回复客户片段端消息
 func replyChunkMessage(client types.Client, message types.WsMessage) {
 	msg, err := json.Marshal(message)
@@ -507,6 +523,26 @@ func (h *ChatHandler) Tokens(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, tokens)
+}
+
+func getTotalTokens(req types.ApiRequest) int {
+	encode := utils.JsonEncode(req.Messages)
+	var items []map[string]interface{}
+	err := utils.JsonDecode(encode, &items)
+	if err != nil {
+		return 0
+	}
+	tokens := 0
+	for _, item := range items {
+		content, ok := item["content"]
+		if ok && !utils.IsEmptyValue(content) {
+			t, err := utils.CalcTokens(utils.InterfaceToString(content), req.Model)
+			if err == nil {
+				tokens += t
+			}
+		}
+	}
+	return tokens
 }
 
 // StopGenerate 停止生成
