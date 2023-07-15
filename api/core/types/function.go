@@ -22,9 +22,15 @@ type Property struct {
 	Description string `json:"description"`
 }
 
+const (
+	FuncZaoBao   = "zao_bao"   // 每日早报
+	FuncHeadLine = "headline"  // 今日头条
+	FuncWeibo    = "weibo_hot" // 微博热搜
+)
+
 var InnerFunctions = []Function{
 	{
-		Name:        "zao_bao",
+		Name:        FuncZaoBao,
 		Description: "每日早报，获取当天全球的热门新闻事件列表",
 		Parameters: Parameters{
 
@@ -39,7 +45,7 @@ var InnerFunctions = []Function{
 		},
 	},
 	{
-		Name:        "weibo_hot",
+		Name:        FuncWeibo,
 		Description: "新浪微博热搜榜，微博当日热搜榜单",
 		Parameters: Parameters{
 			Type: "object",
@@ -54,8 +60,8 @@ var InnerFunctions = []Function{
 	},
 
 	{
-		Name:        "zhihu_top",
-		Description: "知乎热榜,知乎当日话题讨论榜单",
+		Name:        FuncHeadLine,
+		Description: "今日头条，给用户推荐当天的头条新闻，周榜热文",
 		Parameters: Parameters{
 			Type: "object",
 			Properties: map[string]Property{
@@ -67,10 +73,4 @@ var InnerFunctions = []Function{
 			Required: []string{},
 		},
 	},
-}
-
-var FunctionNameMap = map[string]string{
-	"zao_bao":   "每日早报",
-	"weibo_hot": "微博热搜",
-	"zhihu_top": "知乎热榜",
 }

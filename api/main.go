@@ -102,12 +102,26 @@ func main() {
 		}),
 
 		// 创建函数
-		fx.Provide(func() (*function.FuncZaoBao, error) {
-			token := os.Getenv("AL_API_TOKEN")
-			if token == "" {
-				return nil, errors.New("invalid AL api token")
+		fx.Provide(func() (function.FuncZaoBao, error) {
+			apiToken := os.Getenv("AL_API_TOKEN")
+			if apiToken == "" {
+				return function.FuncZaoBao{}, errors.New("invalid AL api token")
 			}
-			return function.NewZaoBao(token), nil
+			return function.NewZaoBao(apiToken), nil
+		}),
+		fx.Provide(func() (function.FuncWeiboHot, error) {
+			apiToken := os.Getenv("AL_API_TOKEN")
+			if apiToken == "" {
+				return function.FuncWeiboHot{}, errors.New("invalid AL api token")
+			}
+			return function.NewWeiboHot(apiToken), nil
+		}),
+		fx.Provide(func() (function.FuncHeadlines, error) {
+			apiToken := os.Getenv("AL_API_TOKEN")
+			if apiToken == "" {
+				return function.FuncHeadlines{}, errors.New("invalid AL api token")
+			}
+			return function.NewHeadLines(apiToken), nil
 		}),
 
 		// 创建控制器
