@@ -9,17 +9,17 @@ import (
 // 每日早报函数实现
 
 type FuncZaoBao struct {
+	name   string
 	apiURL string
 	token  string
 }
 
-func NewZaoBao(token string) *FuncZaoBao {
-	return &FuncZaoBao{apiURL: "https://v2.alapi.cn/api/zaobao", token: token}
+func NewZaoBao(token string) FuncZaoBao {
+	return FuncZaoBao{name: "每日早报", apiURL: "https://v2.alapi.cn/api/zaobao", token: token}
 }
 
-type resVo struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg"`
+type ZaoBaoVo struct {
+	resVo
 	Data struct {
 		Date  string   `json:"date"`
 		News  []string `json:"news"`
@@ -27,14 +27,14 @@ type resVo struct {
 	} `json:"data"`
 }
 
-func (f *FuncZaoBao) Fetch() (string, error) {
+func (f FuncZaoBao) Invoke(...interface{}) (string, error) {
 
 	url := fmt.Sprintf("%s?format=json&token=%s", f.apiURL, f.token)
 	bytes, err := utils.HttpGet(url, "")
 	if err != nil {
 		return "", err
 	}
-	var res resVo
+	var res ZaoBaoVo
 	err = utils.JsonDecode(string(bytes), &res)
 	if err != nil {
 		return "", err
@@ -48,4 +48,8 @@ func (f *FuncZaoBao) Fetch() (string, error) {
 	builder = append(builder, res.Data.News...)
 	builder = append(builder, fmt.Sprintf("%s", res.Data.WeiYu))
 	return strings.Join(builder, "\n\n"), nil
+}
+
+func (f FuncZaoBao) Name() string {
+	return f.name
 }

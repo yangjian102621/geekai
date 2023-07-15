@@ -2,6 +2,7 @@ package core
 
 import (
 	"chatplus/core/types"
+	"chatplus/service/function"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
@@ -30,9 +31,14 @@ type AppServer struct {
 	ChatSession   *types.LMap[string, types.ChatSession]  //map[sessionId]UserId
 	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
+	Functions     map[string]function.Function
 }
 
-func NewServer(appConfig *types.AppConfig) *AppServer {
+func NewServer(
+	appConfig *types.AppConfig,
+	funZaoBao function.FuncZaoBao,
+	funZhiHu function.FuncHeadlines,
+	funWeibo function.FuncWeiboHot) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
@@ -43,6 +49,11 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 		ChatSession:   types.NewLMap[string, types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
+		Functions: map[string]function.Function{
+			types.FuncZaoBao:   funZaoBao,
+			types.FuncWeibo:    funWeibo,
+			types.FuncHeadLine: funZhiHu,
+		},
 	}
 }
 
