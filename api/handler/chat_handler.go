@@ -151,7 +151,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		return nil
 	}
 
-	if userVo.Calls <= 0 {
+	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKey == "" {
 		replyMessage(ws, "您的对话次数已经用尽，请联系管理员充值！")
 		replyMessage(ws, "![](/images/wx.png)")
 		return nil
@@ -327,9 +327,11 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			// 消息发送成功
 			if len(contents) > 0 {
 				// 更新用户的对话次数
-				res := h.db.Model(&user).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
-				if res.Error != nil {
-					return res.Error
+				if userVo.ChatConfig.ApiKey == "" { // 如果用户使用的是自己绑定的 API KEY 则不扣减对话次数
+					res := h.db.Model(&user).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
+					if res.Error != nil {
+						return res.Error
+					}
 				}
 
 				if message.Role == "" {
@@ -408,8 +410,10 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 						totalTokens += getTotalTokens(req)
 					}
 					//replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("\n\n `本轮对话共消耗 Token 数量: %d`", totalTokens+11)})
-					h.db.Model(&user).UpdateColumn("tokens", gorm.Expr("tokens + ?",
-						totalTokens))
+					if userVo.ChatConfig.ApiKey != "" { // 调用自己的 API KEY 不计算 token 消耗
+						h.db.Model(&user).UpdateColumn("tokens", gorm.Expr("tokens + ?",
+							totalTokens))
+					}
 				}
 
 				// 保存当前会话
