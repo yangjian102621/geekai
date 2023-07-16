@@ -2,11 +2,11 @@
 
 version=$1
 # build go api
-cd ../api/go
+cd ../api
 make clean linux
 
 # build web app
-cd ../../web
+cd ../web
 npm run build
 
 cd ../docker
