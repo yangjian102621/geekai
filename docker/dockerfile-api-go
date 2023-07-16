@@ -4,7 +4,7 @@ FROM registry.cn-hangzhou.aliyuncs.com/geekmaster/ubuntu-ca:22.04
 MAINTAINER yangjian<yangjian102621@163.com>
 
 WORKDIR /var/www/app
-COPY ./api/go/bin/chatgpt-v3-amd64-linux /var/www/app
+COPY ./api/bin/chatgpt-v3-amd64-linux /var/www/app
 
 EXPOSE 5678
 
