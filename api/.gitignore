@@ -16,4 +16,5 @@ tmp
 bin
 data
 config.toml
-static/upload
+static/upload 
+storage.json
