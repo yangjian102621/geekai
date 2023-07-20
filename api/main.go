@@ -6,6 +6,7 @@ import (
 	"chatplus/handler"
 	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
+	"chatplus/modules/wexin"
 	"chatplus/service"
 	"chatplus/service/function"
 	"chatplus/store"
@@ -99,6 +100,12 @@ func main() {
 			}
 
 			return xdb.NewWithBuffer(cBuff)
+		}),
+
+		// 创建微信机器人
+		fx.Provide(wexin.NewWeChatBot),
+		fx.Invoke(func(bot *wexin.WeChatBot) error {
+			return bot.Login()
 		}),
 
 		// 创建函数
