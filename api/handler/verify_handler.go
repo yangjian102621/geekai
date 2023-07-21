@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 生成验证的控制器
+// 短信验证码控制器
 
 type VerifyHandler struct {
 	BaseHandler

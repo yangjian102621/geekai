@@ -198,6 +198,23 @@
 
     <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
                  @hide="showBindMobileDialog = false"/>
+
+    <el-dialog
+        v-model="showRewardDialog"
+        :show-close="true"
+        custom-class="donate-dialog"
+        width="400px"
+        title="参与众筹"
+    >
+      <el-alert type="info" :closable="false">
+        <p>您好，ChatGPT-Plus 项目目前已经运行了快半年了，一直免费给大家使用的。然而免费服务始终难以维持，服务器即将到期，免费的
+          API KEY 也全部用完了，因此我们准备开启众筹模式，只需要打赏9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
+          账单和服务器的费用。</p>
+      </el-alert>
+      <p>
+        <el-image :src="donateImg"/>
+      </p>
+    </el-dialog>
   </div>
 
 
@@ -253,6 +270,7 @@ const router = useRouter();
 const showConfigDialog = ref(false);
 const showPasswordDialog = ref(false);
 const showBindMobileDialog = ref(false);
+const showRewardDialog = ref(false);
 const isLogin = ref(false)
 
 if (isMobile()) {

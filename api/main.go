@@ -104,8 +104,11 @@ func main() {
 
 		// 创建微信机器人
 		fx.Provide(wexin.NewWeChatBot),
-		fx.Invoke(func(bot *wexin.WeChatBot) error {
-			return bot.Login()
+		fx.Invoke(func(bot *wexin.WeChatBot) {
+			go func() {
+				err := bot.Login()
+				log.Fatal(err)
+			}()
 		}),
 
 		// 创建函数
@@ -137,6 +140,7 @@ func main() {
 		fx.Provide(handler.NewChatHandler),
 		fx.Provide(handler.NewUploadHandler),
 		fx.Provide(handler.NewVerifyHandler),
+		fx.Provide(handler.NewRewardHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -181,6 +185,10 @@ func main() {
 			group := s.Engine.Group("/api/verify/")
 			group.GET("token", h.Token)
 			group.POST("sms", h.SendMsg)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
+			group := s.Engine.Group("/api/reward/")
+			group.GET("verify", h.Verify)
 		}),
 
 		// 管理后台控制器
