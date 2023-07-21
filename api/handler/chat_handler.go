@@ -152,7 +152,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 	}
 
 	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKey == "" {
-		replyMessage(ws, "您的对话次数已经用尽，请联系管理员充值！")
+		replyMessage(ws, "您的对话次数已经用尽，请联系管理员或者点击左下角菜单加入众筹获得100次对话！")
 		replyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}

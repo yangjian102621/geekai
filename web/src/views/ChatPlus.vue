@@ -67,6 +67,20 @@
                   <span>绑定手机号</span>
                 </el-dropdown-item>
 
+                <el-dropdown-item @click="showRewardDialog = true">
+                  <el-icon>
+                    <Present/>
+                  </el-icon>
+                  <span>加入众筹</span>
+                </el-dropdown-item>
+
+                <el-dropdown-item @click="showRewardVerifyDialog = true">
+                  <el-icon>
+                    <Checked/>
+                  </el-icon>
+                  <span>众筹核销</span>
+                </el-dropdown-item>
+
                 <el-dropdown-item @click="clearAllChats">
                   <el-icon>
                     <Delete/>
@@ -199,11 +213,14 @@
     <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
                  @hide="showBindMobileDialog = false"/>
 
+    <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
+
     <el-dialog
         v-model="showRewardDialog"
         :show-close="true"
         custom-class="donate-dialog"
         width="400px"
+        top="5vh"
         title="参与众筹"
     >
       <el-alert type="info" :closable="false">
@@ -212,7 +229,7 @@
           账单和服务器的费用。</p>
       </el-alert>
       <p>
-        <el-image :src="donateImg"/>
+        <el-image :src="rewardImg"/>
       </p>
     </el-dialog>
   </div>
@@ -226,11 +243,13 @@ import ChatReply from "@/components/ChatReply.vue";
 import {
   ArrowDown,
   Check,
+  Checked,
   Close,
   Delete,
   Edit,
   Iphone,
   Plus,
+  Present,
   Promotion,
   RefreshRight,
   Search,
@@ -249,9 +268,11 @@ import ConfigDialog from "@/components/ConfigDialog.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
 import {checkSession} from "@/action/session";
 import BindMobile from "@/components/BindMobile.vue";
+import RewardVerify from "@/components/RewardVerify.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
+const rewardImg = ref('images/reward.png')
 const models = ref([])
 const model = ref('gpt-3.5-turbo')
 const chatData = ref([]);
@@ -271,6 +292,7 @@ const showConfigDialog = ref(false);
 const showPasswordDialog = ref(false);
 const showBindMobileDialog = ref(false);
 const showRewardDialog = ref(false);
+const showRewardVerifyDialog = ref(false);
 const isLogin = ref(false)
 
 if (isMobile()) {
