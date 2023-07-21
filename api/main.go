@@ -107,7 +107,9 @@ func main() {
 		fx.Invoke(func(bot *wexin.WeChatBot) {
 			go func() {
 				err := bot.Login()
-				log.Fatal(err)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}()
 		}),
 
@@ -188,7 +190,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
 			group := s.Engine.Group("/api/reward/")
-			group.GET("verify", h.Verify)
+			group.POST("verify", h.Verify)
 		}),
 
 		// 管理后台控制器

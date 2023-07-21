@@ -24,7 +24,7 @@ func NewRewardHandler(server *core.AppServer, db *gorm.DB) *RewardHandler {
 // Verify 打赏码核销
 func (h *RewardHandler) Verify(c *gin.Context) {
 	var data struct {
-		TxId string
+		TxId string `json:"tx_id"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -34,12 +34,12 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	var item model.Reward
 	res := h.db.Where("tx_id = ?", data.TxId).First(&item)
 	if res.Error != nil {
-		resp.ERROR(c, "无效的打赏交易流水号！")
+		resp.ERROR(c, "无效的众筹交易流水号！")
 		return
 	}
 
 	if item.Status {
-		resp.ERROR(c, "当前打赏交易流水号已经被核销，请不要重复核销！")
+		resp.ERROR(c, "当前众筹交易流水号已经被核销，请不要重复核销！")
 		return
 	}
 
@@ -50,7 +50,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	}
 
 	tx := h.db.Begin()
-	calls := (item.Amount + 0.01) * 10
+	calls := (item.Amount + 0.1) * 10
 	res = h.db.Model(&user).UpdateColumn("calls", gorm.Expr("calls + ?", calls))
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")

@@ -15,4 +15,5 @@ ALTER TABLE `chatgpt_rewards`
 
 ALTER TABLE `chatgpt_rewards`
     MODIFY `id` int NOT NULL AUTO_INCREMENT;
-COMMIT;
+
+update chatgpt_users set calls=0
