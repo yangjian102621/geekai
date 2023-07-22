@@ -4,6 +4,7 @@ package model
 
 type Reward struct {
 	BaseModel
+	UserId uint    // 用户 ID
 	TxId   string  // 交易ID
 	Amount float64 // 打赏金额
 	Remark string  // 打赏备注

@@ -17,3 +17,5 @@ ALTER TABLE `chatgpt_rewards`
     MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 update chatgpt_users set calls=0
+
+ALTER TABLE `chatgpt_rewards` ADD `user_id` INT(11) NOT NULL COMMENT '用户 ID' AFTER `id`;
