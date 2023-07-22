@@ -59,6 +59,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 
 	// 更新核销状态
 	item.Status = true
+	item.UserId = user.Id
 	res = h.db.Updates(&item)
 	if res.Error != nil {
 		tx.Rollback()
