@@ -251,7 +251,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					if strings.Contains(err.Error(), "context canceled") {
 						logger.Info("用户取消了请求：", prompt)
 					} else if err != io.EOF {
-						logger.Error(err)
+						logger.Error("信息读取出错：", err)
 					}
 					break
 				}
@@ -313,7 +313,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				if err != nil {
 					replyChunkMessage(ws, types.WsMessage{
 						Type:    types.WsMiddle,
-						Content: "调用函数出错",
+						Content: "调用函数出错：" + err.Error(),
 					})
 				} else {
 					replyChunkMessage(ws, types.WsMessage{

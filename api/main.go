@@ -12,7 +12,6 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
-	"errors"
 	"io"
 	"log"
 	"os"
@@ -114,26 +113,14 @@ func main() {
 		}),
 
 		// 创建函数
-		fx.Provide(func() (function.FuncZaoBao, error) {
-			apiToken := os.Getenv("AL_API_TOKEN")
-			if apiToken == "" {
-				return function.FuncZaoBao{}, errors.New("invalid AL api token")
-			}
-			return function.NewZaoBao(apiToken), nil
+		fx.Provide(func(config *types.AppConfig) (function.FuncZaoBao, error) {
+			return function.NewZaoBao(config.AlApiToken), nil
 		}),
-		fx.Provide(func() (function.FuncWeiboHot, error) {
-			apiToken := os.Getenv("AL_API_TOKEN")
-			if apiToken == "" {
-				return function.FuncWeiboHot{}, errors.New("invalid AL api token")
-			}
-			return function.NewWeiboHot(apiToken), nil
+		fx.Provide(func(config *types.AppConfig) (function.FuncWeiboHot, error) {
+			return function.NewWeiboHot(config.AlApiToken), nil
 		}),
-		fx.Provide(func() (function.FuncHeadlines, error) {
-			apiToken := os.Getenv("AL_API_TOKEN")
-			if apiToken == "" {
-				return function.FuncHeadlines{}, errors.New("invalid AL api token")
-			}
-			return function.NewHeadLines(apiToken), nil
+		fx.Provide(func(config *types.AppConfig) (function.FuncHeadlines, error) {
+			return function.NewHeadLines(config.AlApiToken), nil
 		}),
 
 		// 创建控制器
