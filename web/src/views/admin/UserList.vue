@@ -5,6 +5,7 @@
                 @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="38"/>
         <el-table-column prop="username" label="用户名"/>
+        <el-table-column prop="mobile" label="手机号"/>
         <el-table-column prop="nickname" label="昵称"/>
         <el-table-column prop="calls" label="提问次数" width="100"/>
         <el-table-column label="状态" width="80">

@@ -70,6 +70,12 @@ const routes = [
                 component: () => import('@/views/admin/ApiKey.vue'),
             },
             {
+                path: '/admin/reward',
+                name: 'admin-reward',
+                meta: {title: '众筹管理'},
+                component: () => import('@/views/admin/RewardList.vue'),
+            },
+            {
                 path: '/admin/loginLog',
                 name: 'admin-loginLog',
                 meta: {title: '登录日志'},

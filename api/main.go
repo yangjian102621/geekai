@@ -136,6 +136,7 @@ func main() {
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
 		fx.Provide(admin.NewChatRoleHandler),
+		fx.Provide(admin.NewRewardHandler),
 
 		// 创建服务
 		fx.Provide(service.NewAliYunSmsService),
@@ -212,6 +213,10 @@ func main() {
 			group.POST("save", h.Save)
 			group.POST("sort", h.SetSort)
 			group.GET("remove", h.Remove)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
+			group := s.Engine.Group("/api/admin/reward/")
+			group.GET("list", h.List)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {

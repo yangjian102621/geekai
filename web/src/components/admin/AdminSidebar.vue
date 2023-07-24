@@ -80,6 +80,11 @@ const items = [
     title: 'API-KEY 管理',
   },
   {
+    icon: 'reward',
+    index: '/admin/reward',
+    title: '众筹管理',
+  },
+  {
     icon: 'log',
     index: '/admin/loginLog',
     title: '用户登录日志',
