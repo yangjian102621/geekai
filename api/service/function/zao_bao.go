@@ -2,6 +2,7 @@ package function
 
 import (
 	"chatplus/utils"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -28,6 +29,9 @@ type ZaoBaoVo struct {
 }
 
 func (f FuncZaoBao) Invoke(...interface{}) (string, error) {
+	if f.token == "" {
+		return "", errors.New("无效的 API Token")
+	}
 
 	url := fmt.Sprintf("%s?format=json&token=%s", f.apiURL, f.token)
 	bytes, err := utils.HttpGet(url, "")

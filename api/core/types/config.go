@@ -16,8 +16,10 @@ type AppConfig struct {
 	StaticUrl string      // 静态资源 URL
 	Redis     RedisConfig // redis 连接信息
 
-	AesEncryptKey string
-	SmsConfig     AliYunSmsConfig // 短信发送配置
+	AesEncryptKey  string
+	SmsConfig      AliYunSmsConfig // 短信发送配置
+	AlApiToken     string          // AL API 服务 token
+	StartWechatBot bool            // 是否启动微信机器人
 }
 
 type AliYunSmsConfig struct {

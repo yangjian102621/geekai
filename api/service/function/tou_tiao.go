@@ -2,6 +2,7 @@ package function
 
 import (
 	"chatplus/utils"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -32,6 +33,9 @@ type HeadLineVo struct {
 }
 
 func (f FuncHeadlines) Invoke(...interface{}) (string, error) {
+	if f.token == "" {
+		return "", errors.New("无效的 API Token")
+	}
 
 	url := fmt.Sprintf("%s?type=toutiao&token=%s", f.apiURL, f.token)
 	bytes, err := utils.HttpGet(url, "")
