@@ -46,6 +46,7 @@ type CodeStats struct {
 // Token 生成自验证 token
 func (h *VerifyHandler) Token(c *gin.Context) {
 	// 如果不是通过浏览器访问，则返回错误的 token
+	// TODO: 引入验证码机制防刷机制
 	if c.GetHeader("Sec-Fetch-Mode") != "cors" {
 		token := fmt.Sprintf("%s:%d", utils.RandString(32), time.Now().Unix())
 		encrypt, err := utils.AesEncrypt(h.App.Config.AesEncryptKey, []byte(token))
@@ -109,7 +110,6 @@ func (h *VerifyHandler) SendMsg(c *gin.Context) {
 	var stat CodeStats
 	err = h.db.Get(MobileStatPrefix+data.Mobile, &stat)
 	if err != nil {
-		logger.Error(err)
 		stat = CodeStats{
 			Mobile: data.Mobile,
 			Count:  0,

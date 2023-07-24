@@ -304,9 +304,6 @@ onMounted(() => {
   checkSession().then((user) => {
     loginUser.value = user
     isLogin.value = true
-    if (user.mobile === '') {
-      showBindMobileDialog.value = true
-    }
     // 加载角色列表
     httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
       roles.value = res.data;

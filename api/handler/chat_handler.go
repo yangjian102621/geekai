@@ -47,6 +47,10 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		logger.Error(err)
 		return
 	}
+	// 设置读写超时时间
+	_ = ws.SetWriteDeadline(time.Now().Add(300 * time.Second))
+	_ = ws.SetReadDeadline(time.Now().Add(300 * time.Second))
+
 	sessionId := c.Query("session_id")
 	roleId := h.GetInt(c, "role_id", 0)
 	chatId := c.Query("chat_id")
