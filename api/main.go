@@ -114,13 +114,13 @@ func main() {
 
 		// 创建函数
 		fx.Provide(func(config *types.AppConfig) (function.FuncZaoBao, error) {
-			return function.NewZaoBao(config.AlApiToken), nil
+			return function.NewZaoBao(config.FunApiToken), nil
 		}),
 		fx.Provide(func(config *types.AppConfig) (function.FuncWeiboHot, error) {
-			return function.NewWeiboHot(config.AlApiToken), nil
+			return function.NewWeiboHot(config.FunApiToken), nil
 		}),
 		fx.Provide(func(config *types.AppConfig) (function.FuncHeadlines, error) {
-			return function.NewHeadLines(config.AlApiToken), nil
+			return function.NewHeadLines(config.FunApiToken), nil
 		}),
 
 		// 创建控制器

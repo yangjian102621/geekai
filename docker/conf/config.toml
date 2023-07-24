@@ -1,15 +1,18 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "http://172.22.11.200:7777"
-MysqlDns = "root:12345678@tcp(172.28.173.76:3307)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+MysqlDns = "root:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static"
-StaticUrl = "http://localhost:8080/static"
+StaticUrl = "http://localhost:5678/static"
+AesEncryptKey = "YOUR_AES_KEY"
+FunApiToken = "YOUR_FUN_API_TOKEN"
+StartWechatBot = false
 
 [Session]
   Driver = "cookie"
-  SecretKey = "8k0c67y2or1n7kbmn1w1c86ygqscguoktuf9t524jm64ls585z8uibpdssiy128s"
-  Name = "CHAT_PLUS_SESSION"
+  SecretKey = "m0cjm3gsuw9jk73np1ni7r42koilybjcndlycjdmq7za3pbqn7w12fyok5pqh6q5"
+  Name = "CHAT_SESSION_ID"
   Path = "/"
-  Domain = ""
+  Domain = "localhost"
   MaxAge = 86400
   Secure = false
   HttpOnly = false
@@ -23,3 +26,11 @@ StaticUrl = "http://localhost:8080/static"
   Host = "localhost"
   Port = 6379
   Password = ""
+
+[SmsConfig]
+  AccessKey = "YOUR_ACCESS_KEY"
+  AccessSecret = "YOUR_SECRET_KEY"
+  Product = "Dysmsapi"
+  Domain = "dysmsapi.aliyuncs.com"
+
+
