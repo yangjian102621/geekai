@@ -6,19 +6,18 @@ import (
 )
 
 type AppConfig struct {
-	Path      string `toml:"-"`
-	Listen    string
-	Session   Session
-	ProxyURL  string
-	MysqlDns  string      // mysql 连接地址
-	Manager   Manager     // 后台管理员账户信息
-	StaticDir string      // 静态资源目录
-	StaticUrl string      // 静态资源 URL
-	Redis     RedisConfig // redis 连接信息
-
+	Path              string `toml:"-"`
+	Listen            string
+	Session           Session
+	ProxyURL          string
+	MysqlDns          string            // mysql 连接地址
+	Manager           Manager           // 后台管理员账户信息
+	StaticDir         string            // 静态资源目录
+	StaticUrl         string            // 静态资源 URL
+	Redis             RedisConfig       // redis 连接信息
+	Func              FunctionApiConfig // function api configs
 	AesEncryptKey     string
 	SmsConfig         AliYunSmsConfig // 短信发送配置
-	FunApiToken       string          // 函数服务 API token
 	StartWechatBot    bool            // 是否启动微信机器人
 	EnabledMsgService bool            // 是否启用短信服务
 }
@@ -85,6 +84,12 @@ type SystemConfig struct {
 	AdminTitle    string   `json:"admin_title"`
 	Models        []string `json:"models"`
 	UserInitCalls int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
+}
+
+type FunctionApiConfig struct {
+	ApiURL string
+	AppId  string
+	Token  string
 }
 
 const UserInitCalls = 1000

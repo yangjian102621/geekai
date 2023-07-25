@@ -1,60 +1,52 @@
 package function
 
 import (
-	"chatplus/utils"
+	"chatplus/core/types"
 	"errors"
 	"fmt"
+	"github.com/imroc/req/v3"
 	"strings"
+	"time"
 )
 
 // 今日头条函数实现
 
 type FuncHeadlines struct {
 	name   string
-	apiURL string
-	token  string
+	config types.FunctionApiConfig
+	client *req.Client
 }
 
-func NewHeadLines(token string) FuncHeadlines {
-	return FuncHeadlines{name: "今日头条", apiURL: "https://v2.alapi.cn/api/tophub/get", token: token}
-}
-
-type HeadLineVo struct {
-	resVo
-	Data struct {
-		Name       string `json:"name"`
-		LastUpdate string `json:"last_update"`
-		List       []struct {
-			Title string `json:"title"`
-			Link  string `json:"link"`
-			Other string `json:"other"`
-		} `json:"list"`
-	} `json:"data"`
+func NewHeadLines(config types.FunctionApiConfig) FuncHeadlines {
+	return FuncHeadlines{
+		name:   "今日头条",
+		config: config,
+		client: req.C().SetTimeout(10 * time.Second)}
 }
 
 func (f FuncHeadlines) Invoke(...interface{}) (string, error) {
-	if f.token == "" {
+	if f.config.Token == "" {
 		return "", errors.New("无效的 API Token")
 	}
 
-	url := fmt.Sprintf("%s?type=toutiao&token=%s", f.apiURL, f.token)
-	bytes, err := utils.HttpGet(url, "")
-	if err != nil {
-		return "", err
-	}
-	var res HeadLineVo
-	err = utils.JsonDecode(string(bytes), &res)
-	if err != nil {
+	url := fmt.Sprintf("%s/api/headline/fetch", f.config.ApiURL)
+	var res resVo
+	r, err := f.client.R().
+		SetHeader("AppId", f.config.AppId).
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", f.config.Token)).
+		SetSuccessResult(&res).Get(url)
+	if err != nil || r.IsErrorState() {
 		return "", err
 	}
 
-	if res.Code != 200 {
-		return "", fmt.Errorf("call api fail: %s", res.Msg)
+	if res.Code != types.Success {
+		return "", errors.New(res.Message)
 	}
+
 	builder := make([]string, 0)
-	builder = append(builder, fmt.Sprintf("**%s**，最新更新：%s", res.Data.Name, res.Data.LastUpdate))
-	for i, v := range res.Data.List {
-		builder = append(builder, fmt.Sprintf("%d、 [%s](%s) [%s]", i+1, v.Title, v.Link, v.Other))
+	builder = append(builder, fmt.Sprintf("**%s**，最新更新：%s", res.Data.Title, res.Data.UpdatedAt))
+	for i, v := range res.Data.Items {
+		builder = append(builder, fmt.Sprintf("%d、 [%s](%s) [%s]", i+1, v.Title, v.Url, v.Remark))
 	}
 	return strings.Join(builder, "\n\n"), nil
 }

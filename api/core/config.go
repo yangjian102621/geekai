@@ -33,7 +33,7 @@ func NewDefaultConfig() *types.AppConfig {
 			HttpOnly:  false,
 			SameSite:  http.SameSiteLaxMode,
 		},
-		FunApiToken:    "",
+		Func:           types.FunctionApiConfig{},
 		StartWechatBot: false,
 	}
 }
