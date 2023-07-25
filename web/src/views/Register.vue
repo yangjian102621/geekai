@@ -48,7 +48,7 @@
               </el-input>
             </div>
 
-            <div class="block">
+            <div class="block" v-if="enableMsg">
               <el-input placeholder="手机号码"
                         size="large" maxlength="11"
                         v-model="formData.mobile"
@@ -61,7 +61,7 @@
               </el-input>
             </div>
 
-            <div class="block">
+            <div class="block" v-if="enableMsg">
               <el-row :gutter="10">
                 <el-col :span="12">
                   <el-input placeholder="手机验证码"
@@ -104,7 +104,7 @@
 
 import {ref} from "vue";
 import {Checked, Iphone, Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
@@ -120,6 +120,13 @@ const formData = ref({
   repass: '',
 })
 const formRef = ref(null)
+const enableMsg = ref(false)
+
+httpGet('/api/sms/status').then(res => {
+  if (res.data === true) {
+    enableMsg.value = true
+  }
+})
 
 const register = function () {
   if (formData.value.username.length < 4) {

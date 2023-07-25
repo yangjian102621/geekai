@@ -24,6 +24,7 @@
     "sortablejs": "^1.15.0",
     "vant": "^4.5.0",
     "vue": "^3.2.13",
+    "lodash": "^4.17.21",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {

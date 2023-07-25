@@ -58,12 +58,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
-	var code int
-	err := h.levelDB.Get(key, &code)
-	if err != nil || code != data.Code {
-		logger.Info(code)
-		resp.ERROR(c, "短信验证码错误")
-		return
+	if h.App.Config.EnabledMsgService {
+		var code int
+		err := h.levelDB.Get(key, &code)
+		if err != nil || code != data.Code {
+			logger.Info(code)
+			resp.ERROR(c, "短信验证码错误")
+			return
+		}
 	}
 
 	// check if the username is exists
@@ -111,7 +113,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var cfg model.Config
 	h.db.Where("marker = ?", "system").First(&cfg)
 	var config types.SystemConfig
-	err = utils.JsonDecode(cfg.Config, &config)
+	err := utils.JsonDecode(cfg.Config, &config)
 	if err != nil || config.UserInitCalls <= 0 {
 		user.Calls = types.UserInitCalls
 	} else {
@@ -124,7 +126,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	_ = h.levelDB.Delete(key) // 注册成功，删除短信验证码
+	if h.App.Config.EnabledMsgService {
+		_ = h.levelDB.Delete(key) // 注册成功，删除短信验证码
+	}
 	resp.SUCCESS(c, user)
 }
 

@@ -3,9 +3,9 @@ ProxyURL = "http://172.22.11.200:7777"
 MysqlDns = "root:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static"
 StaticUrl = "http://localhost:5678/static"
-AesEncryptKey = "YOUR_AES_KEY"
-FunApiToken = "YOUR_FUN_API_TOKEN"
+AesEncryptKey = "{YOUR_AES_KEY}"
 StartWechatBot = false
+EnabledMsgService = false
 
 [Session]
   Driver = "cookie"
@@ -27,9 +27,14 @@ StartWechatBot = false
   Port = 6379
   Password = ""
 
+[ApiConfig]
+  ApiURL = "{URL}"
+  AppId = "{APP_ID}"
+  Token = "{TOKEN}"
+
 [SmsConfig]
-  AccessKey = "YOUR_ACCESS_KEY"
-  AccessSecret = "YOUR_SECRET_KEY"
+  AccessKey = "{YOUR_ACCESS_KEY}"
+  AccessSecret = "{YOUR_SECRET_KEY}"
   Product = "Dysmsapi"
   Domain = "dysmsapi.aliyuncs.com"
 
