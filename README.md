@@ -8,29 +8,33 @@
 
 ## 功能截图
 
-### 1.PC 端聊天界面
+### PC 端聊天界面
 
 ![ChatGPT Chat Page](docs/imgs/gpt.gif)
 
-### 2. 新版聊天界面
+### 新版聊天界面
 
 ![ChatGPT new Chat Page](docs/imgs/chat-new.png)
 
-### 3. 用户设置
+### 自动调用函数插件
+
+![ChatGPT function plugin](docs/imgs/plugin.png)
+
+### 用户设置
 
 ![ChatGPT user profle](docs/imgs/user_profile.png)
 
-### 4. 登录页面
+### 登录页面
 
 ![ChatGPT Login](docs/imgs/login.png)
 
-### 5. 管理后台
+### 管理后台
 
 ![ChatGPT admin](docs/imgs/admin_config.png)
 
 ![ChatGPT admin](docs/imgs/admin_user.png)
 
-### 6. 移动端 Web 页面
+### 移动端 Web 页面
 
 ![Mobile chat list](/docs/imgs/mobile_chat_list.png)
 ![Mobile chat session](/docs/imgs/mobile_chat_session.png)
@@ -78,6 +82,7 @@ ChatGPT 的服务。
 6. 重构后台管理模块，更友好，扩展性更好的后台管理系统。
 7. 引入 ip2region 组件，记录用户的登录IP和地址。
 8. 支持会话搜索过滤。
+9. 支持微信支付充值
 
 ## 项目地址
 
@@ -88,7 +93,8 @@ ChatGPT 的服务。
 
 * [ ] 整合 Midjourney AI 绘画 API
 * [ ] 开发移动端聊天页面
-* [ ] 接入微信支付功能
+* [x] 接入微信支付功能
+* [x] 支持 ChatGPT 函数功能，通过函数实现插件
 * [ ] 接入语音和 TTS API，支持语音聊天
 * [ ] 开发手机 App 客户端
 
@@ -126,6 +132,9 @@ Listen = "0.0.0.0:5678"
 ProxyURL = ["YOUR_PROXY_URL"] # 替换成你本地代理，如：http://127.0.0.1:7777
 #ProxyURL = "" 如果你的服务器本身就在墙外，那么你直接留空就好了
 MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+StartWechatBot = false # 是否启动微信机器人，默认关闭，如果设置为 TRUE 则启动服务的时候需要微信扫码登录
+EnabledMsgService = false # 注册时是否开启短信验证功能，该功能需要配合短信服务一起使用
+
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
   Name = "CHAT_SESSION_ID"
@@ -139,6 +148,18 @@ MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&pars
 [Manager]
   Username = "admin"
   Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
+  
+[ApiConfig] # 插件 API 服务配置，此为第三方插件服务，如需使用请联系作者开通
+  ApiURL = "{URL}"
+  AppId = "{APP_ID}"
+  Token = "{TOKEN}"
+
+[SmsConfig] # 阿里云短信服务配置
+  AccessKey = "{YOUR_ACCESS_KEY}"
+  AccessSecret = "{YOUR_SECRET_KEY}"
+  Product = "Dysmsapi"
+  Domain = "dysmsapi.aliyuncs.com"
+
 ```
 
 修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
