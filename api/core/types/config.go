@@ -15,7 +15,7 @@ type AppConfig struct {
 	StaticDir         string            // 静态资源目录
 	StaticUrl         string            // 静态资源 URL
 	Redis             RedisConfig       // redis 连接信息
-	Func              FunctionApiConfig // function api configs
+	ApiConfig         ChatPlusApiConfig // chatplus api configs
 	AesEncryptKey     string
 	SmsConfig         AliYunSmsConfig // 短信发送配置
 	StartWechatBot    bool            // 是否启动微信机器人
@@ -86,7 +86,7 @@ type SystemConfig struct {
 	UserInitCalls int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
 }
 
-type FunctionApiConfig struct {
+type ChatPlusApiConfig struct {
 	ApiURL string
 	AppId  string
 	Token  string

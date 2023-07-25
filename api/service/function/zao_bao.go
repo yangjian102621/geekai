@@ -13,11 +13,11 @@ import (
 
 type FuncZaoBao struct {
 	name   string
-	config types.FunctionApiConfig
+	config types.ChatPlusApiConfig
 	client *req.Client
 }
 
-func NewZaoBao(config types.FunctionApiConfig) FuncZaoBao {
+func NewZaoBao(config types.ChatPlusApiConfig) FuncZaoBao {
 	return FuncZaoBao{
 		name:   "每日早报",
 		config: config,

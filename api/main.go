@@ -117,13 +117,13 @@ func main() {
 
 		// 创建函数
 		fx.Provide(func(config *types.AppConfig) (function.FuncZaoBao, error) {
-			return function.NewZaoBao(config.Func), nil
+			return function.NewZaoBao(config.ApiConfig), nil
 		}),
 		fx.Provide(func(config *types.AppConfig) (function.FuncWeiboHot, error) {
-			return function.NewWeiboHot(config.Func), nil
+			return function.NewWeiboHot(config.ApiConfig), nil
 		}),
 		fx.Provide(func(config *types.AppConfig) (function.FuncHeadlines, error) {
-			return function.NewHeadLines(config.Func), nil
+			return function.NewHeadLines(config.ApiConfig), nil
 		}),
 
 		// 创建控制器
@@ -131,8 +131,9 @@ func main() {
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(handler.NewChatHandler),
 		fx.Provide(handler.NewUploadHandler),
-		fx.Provide(handler.NewVerifyHandler),
+		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRewardHandler),
+		fx.Provide(handler.NewCaptchaHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -143,6 +144,9 @@ func main() {
 
 		// 创建服务
 		fx.Provide(service.NewAliYunSmsService),
+		fx.Provide(func(config *types.AppConfig) *service.CaptchaService {
+			return service.NewCaptchaService(config.ApiConfig)
+		}),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
@@ -174,10 +178,15 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.VerifyHandler) {
-			group := s.Engine.Group("/api/verify/")
-			group.GET("token", h.Token)
-			group.POST("sms", h.SendMsg)
+		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
+			group := s.Engine.Group("/api/sms/")
+			group.GET("status", h.Status)
+			group.POST("code", h.VerifyCode)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
+			group := s.Engine.Group("/api/captcha/")
+			group.GET("get", h.Get)
+			group.POST("check", h.Check)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
 			group := s.Engine.Group("/api/reward/")

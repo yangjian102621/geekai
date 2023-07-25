@@ -13,11 +13,11 @@ import (
 
 type FuncWeiboHot struct {
 	name   string
-	config types.FunctionApiConfig
+	config types.ChatPlusApiConfig
 	client *req.Client
 }
 
-func NewWeiboHot(config types.FunctionApiConfig) FuncWeiboHot {
+func NewWeiboHot(config types.ChatPlusApiConfig) FuncWeiboHot {
 	return FuncWeiboHot{
 		name:   "微博热搜",
 		config: config,

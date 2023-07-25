@@ -13,11 +13,11 @@ import (
 
 type FuncHeadlines struct {
 	name   string
-	config types.FunctionApiConfig
+	config types.ChatPlusApiConfig
 	client *req.Client
 }
 
-func NewHeadLines(config types.FunctionApiConfig) FuncHeadlines {
+func NewHeadLines(config types.ChatPlusApiConfig) FuncHeadlines {
 	return FuncHeadlines{
 		name:   "今日头条",
 		config: config,
