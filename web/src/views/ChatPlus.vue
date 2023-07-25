@@ -1039,9 +1039,9 @@ $borderColor = #4676d0;
             justify-content: center;
             align-items: center;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding 0 15px;
 
             .input-container {
-              max-width 600px;
               width 100%
               margin: 0;
               border: none;
@@ -1051,7 +1051,6 @@ $borderColor = #4676d0;
               position relative
 
               .el-textarea {
-                max-width 600px;
 
                 .el-textarea__inner::-webkit-scrollbar {
                   width: 0;

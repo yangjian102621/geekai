@@ -1,1 +1,0 @@
-ALTER TABLE `chatgpt_users` ADD `mobile` CHAR(11) NOT NULL COMMENT '手机号码' AFTER `username`;

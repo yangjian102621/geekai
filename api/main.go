@@ -73,6 +73,9 @@ func main() {
 				log.Fatal(err)
 			}
 			config.Path = configFile
+			if debug {
+				_ = core.SaveConfig(config)
+			}
 			return config
 		}),
 		// 创建应用服务
@@ -114,13 +117,13 @@ func main() {
 
 		// 创建函数
 		fx.Provide(func(config *types.AppConfig) (function.FuncZaoBao, error) {
-			return function.NewZaoBao(config.FunApiToken), nil
+			return function.NewZaoBao(config.Func), nil
 		}),
 		fx.Provide(func(config *types.AppConfig) (function.FuncWeiboHot, error) {
-			return function.NewWeiboHot(config.FunApiToken), nil
+			return function.NewWeiboHot(config.Func), nil
 		}),
 		fx.Provide(func(config *types.AppConfig) (function.FuncHeadlines, error) {
-			return function.NewHeadLines(config.FunApiToken), nil
+			return function.NewHeadLines(config.Func), nil
 		}),
 
 		// 创建控制器

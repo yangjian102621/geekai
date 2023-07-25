@@ -1,56 +1,54 @@
 package function
 
 import (
-	"chatplus/utils"
+	"chatplus/core/types"
 	"errors"
 	"fmt"
+	"github.com/imroc/req/v3"
 	"strings"
+	"time"
 )
 
 // 每日早报函数实现
 
 type FuncZaoBao struct {
 	name   string
-	apiURL string
-	token  string
+	config types.FunctionApiConfig
+	client *req.Client
 }
 
-func NewZaoBao(token string) FuncZaoBao {
-	return FuncZaoBao{name: "每日早报", apiURL: "https://v2.alapi.cn/api/zaobao", token: token}
-}
-
-type ZaoBaoVo struct {
-	resVo
-	Data struct {
-		Date  string   `json:"date"`
-		News  []string `json:"news"`
-		WeiYu string   `json:"weiyu"`
-	} `json:"data"`
+func NewZaoBao(config types.FunctionApiConfig) FuncZaoBao {
+	return FuncZaoBao{
+		name:   "每日早报",
+		config: config,
+		client: req.C().SetTimeout(10 * time.Second)}
 }
 
 func (f FuncZaoBao) Invoke(...interface{}) (string, error) {
-	if f.token == "" {
+	if f.config.Token == "" {
 		return "", errors.New("无效的 API Token")
 	}
 
-	url := fmt.Sprintf("%s?format=json&token=%s", f.apiURL, f.token)
-	bytes, err := utils.HttpGet(url, "")
-	if err != nil {
-		return "", err
-	}
-	var res ZaoBaoVo
-	err = utils.JsonDecode(string(bytes), &res)
-	if err != nil {
+	url := fmt.Sprintf("%s/api/zaobao/fetch", f.config.ApiURL)
+	var res resVo
+	r, err := f.client.R().
+		SetHeader("AppId", f.config.AppId).
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", f.config.Token)).
+		SetSuccessResult(&res).Get(url)
+	if err != nil || r.IsErrorState() {
 		return "", err
 	}
 
-	if res.Code != 200 {
-		return "", fmt.Errorf("call api fail: %s", res.Msg)
+	if res.Code != types.Success {
+		return "", errors.New(res.Message)
 	}
+
 	builder := make([]string, 0)
-	builder = append(builder, fmt.Sprintf("**%s 早报：**", res.Data.Date))
-	builder = append(builder, res.Data.News...)
-	builder = append(builder, fmt.Sprintf("%s", res.Data.WeiYu))
+	builder = append(builder, fmt.Sprintf("**%s 早报：**", res.Data.UpdatedAt))
+	for _, v := range res.Data.Items {
+		builder = append(builder, v.Title)
+	}
+	builder = append(builder, fmt.Sprintf("%s", res.Data.Title))
 	return strings.Join(builder, "\n\n"), nil
 }
 

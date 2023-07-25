@@ -1,56 +1,52 @@
 package function
 
 import (
-	"chatplus/utils"
+	"chatplus/core/types"
 	"errors"
 	"fmt"
+	"github.com/imroc/req/v3"
 	"strings"
+	"time"
 )
 
 // 微博热搜函数实现
 
 type FuncWeiboHot struct {
 	name   string
-	apiURL string
-	token  string
+	config types.FunctionApiConfig
+	client *req.Client
 }
 
-func NewWeiboHot(token string) FuncWeiboHot {
-	return FuncWeiboHot{name: "微博热搜", apiURL: "https://v2.alapi.cn/api/new/wbtop", token: token}
-}
-
-type WeiBoVo struct {
-	resVo
-	Data []struct {
-		HotWord    string `json:"hot_word"`
-		HotWordNum int    `json:"hot_word_num"`
-		Url        string `json:"url"`
-	} `json:"data"`
+func NewWeiboHot(config types.FunctionApiConfig) FuncWeiboHot {
+	return FuncWeiboHot{
+		name:   "微博热搜",
+		config: config,
+		client: req.C().SetTimeout(10 * time.Second)}
 }
 
 func (f FuncWeiboHot) Invoke(...interface{}) (string, error) {
-	if f.token == "" {
+	if f.config.Token == "" {
 		return "", errors.New("无效的 API Token")
 	}
 
-	url := fmt.Sprintf("%s?num=10&token=%s", f.apiURL, f.token)
-	bytes, err := utils.HttpGet(url, "")
-	if err != nil {
-		return "", err
-	}
-	var res WeiBoVo
-	err = utils.JsonDecode(string(bytes), &res)
-	if err != nil {
+	url := fmt.Sprintf("%s/api/weibo/fetch", f.config.ApiURL)
+	var res resVo
+	r, err := f.client.R().
+		SetHeader("AppId", f.config.AppId).
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", f.config.Token)).
+		SetSuccessResult(&res).Get(url)
+	if err != nil || r.IsErrorState() {
 		return "", err
 	}
 
-	if res.Code != 200 {
-		return "", fmt.Errorf("call api fail: %s", res.Msg)
+	if res.Code != types.Success {
+		return "", errors.New(res.Message)
 	}
+
 	builder := make([]string, 0)
-	builder = append(builder, "**新浪微博今日热搜：**")
-	for i, v := range res.Data {
-		builder = append(builder, fmt.Sprintf("%d、 [%s](%s) [热度：%d]", i+1, v.HotWord, v.Url, v.HotWordNum))
+	builder = append(builder, fmt.Sprintf("**%s**，最新更新：%s", res.Data.Title, res.Data.UpdatedAt))
+	for i, v := range res.Data.Items {
+		builder = append(builder, fmt.Sprintf("%d、 [%s](%s) [热度：%s]", i+1, v.Title, v.Url, v.Remark))
 	}
 	return strings.Join(builder, "\n\n"), nil
 }
