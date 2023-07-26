@@ -228,7 +228,7 @@
           API KEY 也全部用完了，因此我们准备开启众筹模式，只需要打赏9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
           账单和服务器的费用。</p>
       </el-alert>
-      <p>
+      <p style="text-align: center">
         <el-image :src="rewardImg"/>
       </p>
     </el-dialog>
