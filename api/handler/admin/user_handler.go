@@ -28,12 +28,24 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
 func (h *UserHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
+	mobile := h.GetTrim(c, "mobile")
+	username := h.GetTrim(c, "username")
+
 	offset := (page - 1) * pageSize
 	var items []model.User
 	var users = make([]vo.User, 0)
 	var total int64
-	h.db.Model(&model.User{}).Count(&total)
-	res := h.db.Offset(offset).Limit(pageSize).Find(&items)
+
+	session := h.db.Session(&gorm.Session{})
+	if mobile != "" {
+		session = session.Where("mobile LIKE ?", "%"+mobile+"%")
+	}
+	if username != "" {
+		session = session.Where("username LIKE ?", "%"+username+"%")
+	}
+
+	session.Model(&model.User{}).Count(&total)
+	res := session.Offset(offset).Limit(pageSize).Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var user vo.User
@@ -81,6 +93,34 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c)
+}
+
+// ResetPass 重置密码
+func (h *UserHandler) ResetPass(c *gin.Context) {
+	var data struct {
+		Id       uint
+		Password string
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var user model.User
+	res := h.db.First(&user, data.Id)
+	if res.Error != nil {
+		resp.ERROR(c, "No user found")
+		return
+	}
+
+	password := utils.GenPassword(data.Password, user.Salt)
+	user.Password = password
+	res = h.db.Updates(&user)
+	if res.Error != nil {
+		resp.ERROR(c)
+	} else {
+		resp.SUCCESS(c)
+	}
 }
 
 func (h *UserHandler) Remove(c *gin.Context) {

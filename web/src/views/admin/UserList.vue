@@ -1,5 +1,11 @@
 <template>
   <div class="container user-list" v-loading="loading">
+    <div class="handle-box">
+      <el-input v-model="query.username" placeholder="用户名" class="handle-input mr10"></el-input>
+      <el-input v-model="query.mobile" placeholder="手机号码" class="handle-input mr10"></el-input>
+      <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+    </div>
+
     <el-row>
       <el-table :data="users.items" border class="table" :row-key="row => row.id"
                 @selection-change="handleSelectionChange">
@@ -27,10 +33,13 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="180">
+        <el-table-column fixed="right" label="操作" width="200">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="userEdit(scope.row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="removeUser(scope.row)">删除</el-button>
+            <el-button-group class="ml-4">
+              <el-button size="small" type="primary" @click="userEdit(scope.row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="removeUser(scope.row)">删除</el-button>
+              <el-button size="small" type="success" @click="resetPass(scope.row)">重置密码</el-button>
+            </el-button-group>
           </template>
         </el-table-column>
       </el-table>
@@ -101,6 +110,29 @@
             </span>
       </template>
     </el-dialog>
+
+    <el-dialog
+        v-model="showResetPassDialog"
+        title="重置密码"
+        width="50%"
+    >
+      <el-form label-width="100px" ref="userEditFormRef">
+        <el-form-item label="用户名：">
+          <el-input v-model="pass.username" autocomplete="off" readonly disabled/>
+        </el-form-item>
+
+        <el-form-item label="新密码：">
+          <el-input v-model="pass.password" autocomplete="off"/>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+            <span class="dialog-footer">
+              <el-button type="primary" @click="doResetPass">提交</el-button>
+            </span>
+      </template>
+
+    </el-dialog>
   </div>
 </template>
 
@@ -109,13 +141,17 @@ import {nextTick, onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
+import {Plus, Search} from "@element-plus/icons-vue";
 
 // 变量定义
-const users = ref({page: 1, page_size: 15})
+const users = ref({page: 1, page_size: 15, items: []})
+const query = ref({username: '', mobile: '', page: 1, page_size: 15})
 
 const user = ref({chat_roles: []})
+const pass = ref({username: '', password: '', id: 0})
 const roles = ref([])
 const showUserEditDialog = ref(false)
+const showResetPassDialog = ref(false)
 const rules = reactive({
   nickname: [{required: true, message: '请输入昵称', trigger: 'change',}],
   calls: [
@@ -143,7 +179,9 @@ onMounted(() => {
 })
 
 const fetchUserList = function (page, pageSize) {
-  httpGet('/api/admin/user/list', {page: page, page_size: pageSize}).then((res) => {
+  query.value.page = page
+  query.value.page_size = pageSize
+  httpGet('/api/admin/user/list', query.value).then((res) => {
     if (res.data) {
       // 初始化数据
       const arr = res.data.items;
@@ -158,6 +196,10 @@ const fetchUserList = function (page, pageSize) {
   }).catch(() => {
     ElMessage.error('加载用户列表失败')
   })
+}
+
+const handleSearch = () => {
+  fetchUserList(users.value.page, users.value.page_size)
 }
 
 // 删除用户
@@ -212,10 +254,37 @@ const handleSelectionChange = function (rows) {
   // TODO: 批量删除操作
   console.log(rows)
 }
+
+const resetPass = (row) => {
+  showResetPassDialog.value = true
+  pass.value.id = row.id
+  pass.value.username = row.username
+}
+
+const doResetPass = () => {
+  httpPost('/api/admin/user/resetPass', pass.value).then(() => {
+    ElMessage.success('操作成功！')
+    showResetPassDialog.value = false
+  }).catch((e) => {
+    ElMessage.error('操作失败，' + e.message)
+  })
+}
+
 </script>
 
 <style lang="stylus" scoped>
 .user-list {
+
+  .handle-box {
+    .handle-input {
+      max-width 150px;
+      margin-right 10px;
+    }
+  }
+
+  .table {
+    width 100%
+  }
 
   .opt-box {
     padding-bottom: 10px;
