@@ -218,6 +218,7 @@ func main() {
 			group.POST("update", h.Update)
 			group.GET("remove", h.Remove)
 			group.GET("loginLog", h.LoginLog)
+			group.POST("resetPass", h.ResetPass)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
 			group := s.Engine.Group("/api/admin/role/")

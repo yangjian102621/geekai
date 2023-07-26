@@ -11,8 +11,8 @@
         <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
         <el-button type="primary" :icon="Plus">新增</el-button>
       </div>
-      <el-table :data="tableData" border class="table" ref="multipleTable" header-cell-class-name="table-header">
-        <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
+      <el-table :data="tableData" border class="table" style="width: 100%" header-cell-class-name="table-header">
+        <el-table-column prop="id" fixed label="ID" width="55" align="center"></el-table-column>
         <el-table-column prop="name" label="姓名"></el-table-column>
         <el-table-column label="头像(查看大图)" align="center">
           <template #default="scope">
@@ -38,7 +38,7 @@
         </el-table-column>
 
         <el-table-column prop="date" label="注册时间"></el-table-column>
-        <el-table-column label="操作" width="220" align="center">
+        <el-table-column label="操作" fixed="right" align="center">
           <template #default="scope">
             <el-button text :icon="Edit" @click="handleEdit(scope.$index, scope.row)">
               编辑
