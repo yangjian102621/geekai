@@ -139,6 +139,9 @@ const register = function () {
     return ElMessage.error('两次输入密码不一致');
   }
 
+  if (formData.value.code === '') {
+    formData.value.code = 0
+  }
   httpPost('/api/user/register', formData.value).then(() => {
     ElMessage.success({"message": "注册成功，即将跳转到登录页...", onClose: () => router.push("login")})
   }).catch((e) => {
