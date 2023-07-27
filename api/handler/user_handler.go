@@ -143,7 +143,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	var user model.User
-	res := h.db.Where("username = ?", data.Username).First(&user)
+	res := h.db.Where("username = ? OR mobile = ?", data.Username, data.Username).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户名不存在")
 		return

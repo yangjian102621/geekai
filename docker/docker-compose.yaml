@@ -11,6 +11,7 @@ services:
     ports:
       - "6789:5678"
     volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./conf/config.toml:/var/www/app/config.toml
       - ./static:/var/www/app/static
 
@@ -22,7 +23,6 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./logs/nginx:/var/log/nginx
       - ./conf/nginx/conf.d:/etc/nginx/conf.d
       - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf

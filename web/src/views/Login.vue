@@ -9,7 +9,7 @@
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
-            <el-input placeholder="手机号/邮箱" size="large" v-model="username" autocomplete="off">
+            <el-input placeholder="手机号/用户名" size="large" v-model="username" autocomplete="off">
               <template #prefix>
                 <el-icon>
                   <UserFilled/>
