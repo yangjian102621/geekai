@@ -181,7 +181,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
 			group := s.Engine.Group("/api/sms/")
 			group.GET("status", h.Status)
-			group.POST("code", h.VerifyCode)
+			group.POST("code", h.SendCode)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
 			group := s.Engine.Group("/api/captcha/")

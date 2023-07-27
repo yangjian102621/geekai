@@ -25,8 +25,8 @@ func NewSmsHandler(app *core.AppServer, db *store.LevelDB, sms *service.AliYunSm
 	return handler
 }
 
-// VerifyCode 发送验证码短信
-func (h *SmsHandler) VerifyCode(c *gin.Context) {
+// SendCode 发送验证码短信
+func (h *SmsHandler) SendCode(c *gin.Context) {
 	var data struct {
 		Mobile string `json:"mobile"`
 		Key    string `json:"key"`
