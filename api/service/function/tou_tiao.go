@@ -35,8 +35,11 @@ func (f FuncHeadlines) Invoke(...interface{}) (string, error) {
 		SetHeader("AppId", f.config.AppId).
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", f.config.Token)).
 		SetSuccessResult(&res).Get(url)
-	if err != nil || r.IsErrorState() {
+	if err != nil {
 		return "", err
+	}
+	if r.IsErrorState() {
+		return "", r.Err
 	}
 
 	if res.Code != types.Success {
