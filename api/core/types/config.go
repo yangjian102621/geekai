@@ -15,11 +15,17 @@ type AppConfig struct {
 	StaticDir         string            // 静态资源目录
 	StaticUrl         string            // 静态资源 URL
 	Redis             RedisConfig       // redis 连接信息
-	ApiConfig         ChatPlusApiConfig // chatplus api configs
+	ApiConfig         ChatPlusApiConfig // ChatPlus API authorization configs
 	AesEncryptKey     string
-	SmsConfig         AliYunSmsConfig // 短信发送配置
+	SmsConfig         AliYunSmsConfig // AliYun send message service config
 	StartWechatBot    bool            // 是否启动微信机器人
 	EnabledMsgService bool            // 是否启用短信服务
+}
+
+type ChatPlusApiConfig struct {
+	ApiURL string
+	AppId  string
+	Token  string
 }
 
 type AliYunSmsConfig struct {
@@ -76,7 +82,6 @@ type ChatConfig struct {
 	EnableHistory bool    `json:"enable_history"` // 是否允许保存聊天记录
 	ApiKey        string  `json:"api_key"`
 	ContextDeep   int     `json:"context_deep"` // 上下文深度
-
 }
 
 type SystemConfig struct {
@@ -86,10 +91,4 @@ type SystemConfig struct {
 	UserInitCalls int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
 }
 
-type ChatPlusApiConfig struct {
-	ApiURL string
-	AppId  string
-	Token  string
-}
-
-const UserInitCalls = 1000
+const UserInitCalls = 20

@@ -24,7 +24,9 @@ type AppServer struct {
 	Config       *types.AppConfig
 	Engine       *gin.Engine
 	ChatContexts *types.LMap[string, []interface{}] // 聊天上下文 Map [chatId] => []Message
-	ChatConfig   *types.ChatConfig                  // 聊天配置
+
+	ChatConfig *types.ChatConfig   // chat config cache
+	SysConfig  *types.SystemConfig // system config cache
 
 	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
@@ -61,9 +63,8 @@ func (s *AppServer) Init(debug bool) {
 	if debug { // 调试模式允许跨域请求 API
 		s.Debug = debug
 		logger.Info("Enabled debug mode")
-		s.Engine.Use(corsMiddleware())
 	}
-
+	s.Engine.Use(corsMiddleware())
 	s.Engine.Use(sessionMiddleware(s.Config))
 	s.Engine.Use(authorizeMiddleware(s))
 	s.Engine.Use(errorHandler)
@@ -79,6 +80,15 @@ func (s *AppServer) Run(db *gorm.DB) error {
 		return res.Error
 	}
 	err := utils.JsonDecode(config.Config, &s.ChatConfig)
+	if err != nil {
+		return err
+	}
+	// load system configs
+	res = db.Where("marker", "system").First(&config)
+	if res.Error != nil {
+		return res.Error
+	}
+	err = utils.JsonDecode(config.Config, &s.SysConfig)
 	if err != nil {
 		return err
 	}
