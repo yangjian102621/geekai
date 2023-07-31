@@ -195,104 +195,9 @@ docker-compose up -d
 > 输入你前面配置文档中设置的管理员用户名和密码登录。
 > 然后进入 `API KEY 管理` 菜单，添加一个 OpenAI 的 API KEY 才可以正常开启 AI 对话。
 
-## 手动安装部署
-
-由于本项目采用的是前后端分离的开发方式，所以部署也需要前后端分开部署。我这里以 linux 系统为例，演示一下部署过程：
-
-### 1. 导入数据库
-
-请参考容器部署的[导入数据](#1-导入数据库)。
-
-### 2. 修改配置文档
-
-先拷贝项目中的 `api/config.sample.toml` 配置文档，修改代理地址和管理员密码：
-
-如何修改请参考[修改配置文档](#2-修改配置文档)
-
-### 3. 运行后端程序
-
-你可以自己编译或者直接下载我打包好的后端程序运行。
-
-```shell
-# 1. 下载程序，你也可以自己编译
-wget https://github.com/yangjian102621/chatgpt-plus/releases/download/v3.0.0/chatgpt-v3-amd64-linux
-# 2. 添加执行权限
-chmod +x chatgpt-v3-amd64-linux
-# 3. 运行程序，如果配置文档不在当前目录，注意指定配置文档
-./chatgpt-v3-amd64-linux
-```
-
-### 4. 前端部署
-
-前端是 Vue 项目编译好静态资源文件，同样你也可以直接下载我编译好的文件解压。
-
-```shell
-# 1. 下载程序
-wget https://github.com/yangjian102621/chatgpt-plus/releases/download/v3.0.0/dist.tar.gz
-# 2. 解压
-tar -xf dist.tar.gz
-```
-
-### 5. 配置 Nginx 服务
-
-前端程序需要搭载 Web 服务器才可以运行，这里我们选择 Nginx，先安装：
-
-```shell
-sudo apt install nginx -y
-```
-
-建立 Nginx 配置文件：
-
-```conf
-server {
-    listen  443 ssl;
-    server_name  www.chatgpt.com; #替换成你自己的域名
-
-    ssl_certificate     xxx.pem;  # 替换成自己的 SSL 证书
-    ssl_certificate_key  xxx.key;
-    ssl_session_timeout  5m;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-    ssl_prefer_server_ciphers on;
-    
-    # 日志地址
-    access_log  /var/log/chatgpt/access.log;
-    error_log /var/log/chatgpt/error.log;
-    
-    index index.html;
-    root /var/www/chatgpt/dist; # 这里改成前端静态页面的地址
-
-    location / {
-        try_files $uri $uri/ /index.html;
-        
-         # 后端 API 的转发
-        location /api/ {
-                proxy_http_version 1.1;
-                proxy_connect_timeout 300s;
-                proxy_read_timeout 300s;
-                proxy_send_timeout 12s;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection $connection_upgrade;
-                proxy_pass http://172.28.173.76:6789; # 这里改成后端服务的内网 IP 地址
-        }
-
-        # 静态资源转发
-        location /static/ {
-            proxy_pass http://172.28.173.76:6789; # 这里改成后端服务的内网 IP 地址
-        }
-    }
-    
-}
-```
-
-配置好之后重启 Nginx，然后 []
-
 ![add API Key](docs/imgs/apikey_add.png)
 
-最后登录前端聊天页面 [http://www.chatgpt.com/admin](http://www.chatgpt.com/admin)
+最后登录前端聊天页面 [http://localhost:8080/chat](http://localhost:8080/chat)
 你可以注册新用户，也可以使用系统默认有个账号：`geekmaster/12345678` 登录聊天。
 
 祝你使用愉快！！！
@@ -363,9 +268,9 @@ npm run build
 ```shell
 cd api
 # for all platforms
-make all
+make clean all
 # for linux only
-make linux
+make clean linux
 ```
 
 打包后的可执行文件在 `bin` 目录下。
