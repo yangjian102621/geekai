@@ -57,7 +57,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 			resp.ERROR(c, "Failed to update config cache: "+err.Error())
 			return
 		}
-		logger.Infof("Update AppServer's config successfully: %v", config.Config)
+		logger.Debugf("Update AppServer's config successfully: %v", config.Config)
 	}
 
 	resp.SUCCESS(c, config)

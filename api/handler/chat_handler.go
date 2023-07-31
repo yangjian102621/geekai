@@ -205,9 +205,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			}
 		}
 
-		if h.App.Debug { // 调试打印聊天上下文
-			logger.Info("聊天上下文：", chatCtx)
-		}
+		logger.Debugf("聊天上下文：%+v", chatCtx)
 	}
 	reqMgs := make([]interface{}, 0)
 	for _, m := range chatCtx {
@@ -312,7 +310,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				logger.Info(functionName)
 				logger.Info(arguments)
 				f := h.App.Functions[functionName]
-				// TODO 调用函数完成任务
 				data, err := f.Invoke(arguments)
 				if err != nil {
 					msg := "调用函数出错：" + err.Error()
