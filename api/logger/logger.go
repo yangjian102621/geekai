@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
+	"strings"
 )
 
 var logger *zap.Logger
@@ -15,7 +16,7 @@ func GetLogger() *zap.SugaredLogger {
 		return sugarLogger
 	}
 
-	logLevel := zap.NewAtomicLevelAt(zapcore.InfoLevel)
+	logLevel := zap.NewAtomicLevelAt(getLogLevel(os.Getenv("LOG_LEVEL")))
 	encoder := getEncoder()
 	writerSyncer := getLogWriter()
 	fileCore := zapcore.NewCore(encoder, writerSyncer, logLevel)
@@ -57,4 +58,17 @@ func getLogWriter() zapcore.WriteSyncer {
 		Compress:   false,
 	}
 	return zapcore.AddSync(lumberJackLogger)
+}
+
+func getLogLevel(level string) zapcore.Level {
+	switch strings.ToUpper(level) {
+	case "DEBUG":
+		return zapcore.DebugLevel
+	case "WARN":
+		return zapcore.WarnLevel
+	case "ERROR":
+		return zapcore.ErrorLevel
+	default:
+		return zapcore.InfoLevel
+	}
 }
