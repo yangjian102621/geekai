@@ -74,21 +74,22 @@ func (s *AppServer) Init(debug bool) {
 
 func (s *AppServer) Run(db *gorm.DB) error {
 	// load chat config from database
-	var config model.Config
-	res := db.Where("marker", "chat").First(&config)
+	var chatConfig model.Config
+	res := db.Where("marker", "chat").First(&chatConfig)
 	if res.Error != nil {
 		return res.Error
 	}
-	err := utils.JsonDecode(config.Config, &s.ChatConfig)
+	err := utils.JsonDecode(chatConfig.Config, &s.ChatConfig)
 	if err != nil {
 		return err
 	}
 	// load system configs
-	res = db.Where("marker", "system").First(&config)
+	var sysConfig model.Config
+	res = db.Where("marker", "system").First(&sysConfig)
 	if res.Error != nil {
 		return res.Error
 	}
-	err = utils.JsonDecode(config.Config, &s.SysConfig)
+	err = utils.JsonDecode(sysConfig.Config, &s.SysConfig)
 	if err != nil {
 		return err
 	}

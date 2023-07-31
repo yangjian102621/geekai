@@ -48,6 +48,16 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 			resp.ERROR(c, res.Error.Error())
 			return
 		}
+
+		// update config cache for AppServer
+		var cfg model.Config
+		h.db.Where("marker", data.Key).First(&cfg)
+		err := utils.JsonDecode(cfg.Config, &h.App.ChatConfig)
+		if err != nil {
+			resp.ERROR(c, "Failed to update config cache: "+err.Error())
+			return
+		}
+		logger.Infof("Update AppServer's config successfully: %v", config.Config)
 	}
 
 	resp.SUCCESS(c, config)

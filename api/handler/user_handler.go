@@ -108,16 +108,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 			Model:         h.App.ChatConfig.Model,
 			ApiKey:        "",
 		}),
-	}
-	// 初始化调用次数
-	var cfg model.Config
-	h.db.Where("marker = ?", "system").First(&cfg)
-	var config types.SystemConfig
-	err := utils.JsonDecode(cfg.Config, &config)
-	if err != nil || config.UserInitCalls <= 0 {
-		user.Calls = types.UserInitCalls
-	} else {
-		user.Calls = config.UserInitCalls
+		Calls: h.App.SysConfig.UserInitCalls,
 	}
 	res = h.db.Create(&user)
 	if res.Error != nil {
