@@ -132,7 +132,7 @@ const save = function () {
 const remove = function (row) {
   httpGet('/api/admin/apikey/remove?id=' + row.id).then(() => {
     ElMessage.success("删除成功！")
-    item.value = removeArrayItem(items.value, row, (v1, v2) => {
+    items.value = removeArrayItem(items.value, row, (v1, v2) => {
       return v1.id === v2.id
     })
   }).catch((e) => {
