@@ -215,7 +215,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
 			group := s.Engine.Group("/api/admin/user/")
 			group.GET("list", h.List)
-			group.POST("update", h.Update)
+			group.POST("save", h.Save)
 			group.GET("remove", h.Remove)
 			group.GET("loginLog", h.LoginLog)
 			group.POST("resetPass", h.ResetPass)

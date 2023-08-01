@@ -146,6 +146,11 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
+	if user.Status == false {
+		resp.ERROR(c, "该用户已被禁止登录，请联系管理员")
+		return
+	}
+
 	// 更新最后登录时间和IP
 	user.LastLoginIp = c.ClientIP()
 	user.LastLoginAt = time.Now().Unix()

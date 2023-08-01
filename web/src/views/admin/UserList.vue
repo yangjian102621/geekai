@@ -4,6 +4,8 @@
       <el-input v-model="query.username" placeholder="用户名" class="handle-input mr10"></el-input>
       <el-input v-model="query.mobile" placeholder="手机号码" class="handle-input mr10"></el-input>
       <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+
+      <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
     </div>
 
     <el-row>
@@ -59,14 +61,24 @@
 
     <el-dialog
         v-model="showUserEditDialog"
-        title="编辑用户"
+        :title="title"
         width="50%"
     >
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item label="昵称：" prop="nickname">
+        <el-form-item v-if="add" label="用户名：" prop="username">
+          <el-input v-model="user.username" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item v-else label="昵称：" prop="nickname">
           <el-input v-model="user.nickname" autocomplete="off"/>
         </el-form-item>
 
+        <el-form-item v-if="add" label="密码：" prop="password">
+          <el-input v-model="user.password" autocomplete="off"/>
+        </el-form-item>
+
+        <el-form-item label="手机号：" prop="mobile">
+          <el-input v-model="user.mobile" autocomplete="off"/>
+        </el-form-item>
         <el-form-item label="提问次数：" prop="calls">
           <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
         </el-form-item>
@@ -106,7 +118,7 @@
       <template #footer>
             <span class="dialog-footer">
               <el-button @click="showUserEditDialog = false">取消</el-button>
-              <el-button type="primary" @click="updateUser">提交</el-button>
+              <el-button type="primary" @click="saveUser">提交</el-button>
             </span>
       </template>
     </el-dialog>
@@ -147,13 +159,18 @@ import {Plus, Search} from "@element-plus/icons-vue";
 const users = ref({page: 1, page_size: 15, items: []})
 const query = ref({username: '', mobile: '', page: 1, page_size: 15})
 
+const title = ref('添加用户')
+const add = ref(true)
 const user = ref({chat_roles: []})
 const pass = ref({username: '', password: '', id: 0})
 const roles = ref([])
 const showUserEditDialog = ref(false)
 const showResetPassDialog = ref(false)
 const rules = reactive({
+  username: [{required: true, message: '请输入用户名', trigger: 'change',}],
   nickname: [{required: true, message: '请输入昵称', trigger: 'change',}],
+  password: [{required: true, message: '请输入密码', trigger: 'change',}],
+  mobile: [{required: true, message: '请输入手机号码', trigger: 'change',}],
   calls: [
     {required: true, message: '请输入提问次数'},
     {type: 'number', message: '请输入有效数字'},
@@ -212,35 +229,44 @@ const removeUser = function (user) {
         cancelButtonText: '取消',
         type: 'warning',
       }
-  )
-      .then(() => {
-        httpGet('/api/admin/user/remove', {id: user.id}).then(() => {
-          ElMessage.success('操作成功！')
-          users.value.items = removeArrayItem(users.value.items, user, function (v1, v2) {
-            return v1.id === v2.id
-          })
-        }).catch((e) => {
-          ElMessage.error('操作失败，' + e.message)
-        })
+  ).then(() => {
+    httpGet('/api/admin/user/remove', {id: user.id}).then(() => {
+      ElMessage.success('操作成功！')
+      users.value.items = removeArrayItem(users.value.items, user, function (v1, v2) {
+        return v1.id === v2.id
       })
-      .catch(() => {
-        ElMessage.info('操作被取消')
-      })
+    }).catch((e) => {
+      ElMessage.error('操作失败，' + e.message)
+    })
+  }).catch(() => {
+    ElMessage.info('操作被取消')
+  })
 
 }
 
-const userEdit = function (_user) {
-  user.value = _user
+const userEdit = function (row) {
+  user.value = row
+  title.value = '编辑用户'
   showUserEditDialog.value = true
+  add.value = false
 }
 
-// 更新口令
-const updateUser = function () {
+const addUser = () => {
+  user.value = {}
+  title.value = '添加用户'
+  showUserEditDialog.value = true
+  add.value = true
+}
+
+const saveUser = function () {
   userEditFormRef.value.validate((valid) => {
     if (valid) {
       showUserEditDialog.value = false
-      httpPost('/api/admin/user/update', user.value).then(() => {
+      httpPost('/api/admin/user/save', user.value).then((res) => {
         ElMessage.success('操作成功！')
+        if (add.value) {
+          users.value.items.push(res.data)
+        }
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
       })
