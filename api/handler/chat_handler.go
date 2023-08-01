@@ -180,21 +180,37 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		if h.App.ChatContexts.Has(session.ChatId) {
 			chatCtx = h.App.ChatContexts.Get(session.ChatId)
 		} else {
-			// 加载角色信息
+			// calculate the tokens of current request, to prevent to exceeding the max tokens num
+			tokens := req.MaxTokens
+			for _, f := range types.InnerFunctions {
+				tks, _ := utils.CalcTokens(utils.JsonEncode(f), req.Model)
+				tokens += tks
+			}
+
+			// loading the role context
 			var messages []types.Message
 			err := utils.JsonDecode(role.Context, &messages)
 			if err == nil {
 				for _, v := range messages {
+					tks, _ := utils.CalcTokens(v.Content, req.Model)
+					if tokens+tks >= types.ModelToTokens[req.Model] {
+						break
+					}
+					tokens += tks
 					chatCtx = append(chatCtx, v)
 				}
 			}
 
-			// 加载最近的聊天记录作为聊天上下文
+			// loading recent chat history as chat context
 			if chatConfig.ContextDeep > 0 {
 				var historyMessages []model.HistoryMessage
-				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(2).Order("created_at desc").Find(&historyMessages)
+				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("created_at desc").Find(&historyMessages)
 				if res.Error == nil {
 					for _, msg := range historyMessages {
+						if tokens+msg.Tokens >= types.ModelToTokens[session.Model] {
+							break
+						}
+						tokens += msg.Tokens
 						ms := types.Message{Role: "user", Content: msg.Content}
 						if msg.Type == types.ReplyMsg {
 							ms.Role = "assistant"
@@ -204,7 +220,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				}
 			}
 		}
-
 		logger.Debugf("聊天上下文：%+v", chatCtx)
 	}
 	reqMgs := make([]interface{}, 0)
@@ -459,13 +474,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		} else if strings.Contains(res.Error.Message, "You exceeded your current quota") {
 			replyMessage(ws, "请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
 		} else if strings.Contains(res.Error.Message, "This model's maximum context length") {
-			replyMessage(ws, "当前会话上下文长度超出限制，已为您删减会话上下文！")
-			// 只保留最近的三条记录
-			chatContext := h.App.ChatContexts.Get(session.ChatId)
-			if len(chatContext) > 3 {
-				chatContext = chatContext[len(chatContext)-3:]
-			}
-			h.App.ChatContexts.Put(session.ChatId, chatContext)
+			logger.Error(res.Error.Message)
+			replyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
+			h.App.ChatContexts.Delete(session.ChatId)
 			return h.sendMessage(ctx, session, role, prompt, ws)
 		} else {
 			replyMessage(ws, "请求 OpenAI API 失败："+res.Error.Message)
