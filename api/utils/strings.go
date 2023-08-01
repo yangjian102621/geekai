@@ -56,6 +56,10 @@ func Stamp2str(timestamp int64) string {
 
 // Str2stamp 字符串转时间戳
 func Str2stamp(str string) int64 {
+	if len(str) == 0 {
+		return 0
+	}
+	
 	layout := "2006-01-02 15:04:05"
 	t, err := time.Parse(layout, str)
 	if err != nil {

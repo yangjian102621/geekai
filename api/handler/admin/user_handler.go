@@ -8,6 +8,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -64,9 +65,12 @@ func (h *UserHandler) List(c *gin.Context) {
 	resp.SUCCESS(c, pageVo)
 }
 
-func (h *UserHandler) Update(c *gin.Context) {
+func (h *UserHandler) Save(c *gin.Context) {
 	var data struct {
 		Id          uint     `json:"id"`
+		Username    string   `json:"username"`
+		Password    string   `json:"password"`
+		Mobile      string   `json:"mobile"`
 		Nickname    string   `json:"nickname"`
 		Calls       int      `json:"calls"`
 		ChatRoles   []string `json:"chat_roles"`
@@ -78,21 +82,54 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 	var user = model.User{}
-	user.Id = data.Id
-	// 此处需要用 map 更新，用结构体无法更新 0 值
-	res := h.db.Model(&user).Updates(map[string]interface{}{
-		"nickname":        data.Nickname,
-		"calls":           data.Calls,
-		"status":          data.Status,
-		"chat_roles_json": utils.JsonEncode(data.ChatRoles),
-		"expired_time":    utils.Str2stamp(data.ExpiredTime),
-	})
+	var res *gorm.DB
+	var userVo vo.User
+	if data.Id > 0 { // 更新
+		user.Id = data.Id
+		// 此处需要用 map 更新，用结构体无法更新 0 值
+		res = h.db.Model(&user).Updates(map[string]interface{}{
+			"nickname":        data.Nickname,
+			"mobile":          data.Mobile,
+			"calls":           data.Calls,
+			"status":          data.Status,
+			"chat_roles_json": utils.JsonEncode(data.ChatRoles),
+			"expired_time":    utils.Str2stamp(data.ExpiredTime),
+		})
+	} else {
+		salt := utils.RandString(8)
+		u := model.User{
+			Username:    data.Username,
+			Password:    utils.GenPassword(data.Password, salt),
+			Nickname:    fmt.Sprintf("极客学长@%d", utils.RandomNumber(5)),
+			Avatar:      "/images/avatar/user.png",
+			Salt:        salt,
+			Status:      true,
+			Mobile:      data.Mobile,
+			ChatRoles:   utils.JsonEncode(data.ChatRoles),
+			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
+			ChatConfig: utils.JsonEncode(types.ChatConfig{
+				Temperature:   h.App.ChatConfig.Temperature,
+				MaxTokens:     h.App.ChatConfig.MaxTokens,
+				EnableContext: h.App.ChatConfig.EnableContext,
+				EnableHistory: true,
+				Model:         h.App.ChatConfig.Model,
+				ApiKey:        "",
+			}),
+			Calls: h.App.SysConfig.UserInitCalls,
+		}
+		res = h.db.Create(&u)
+		_ = utils.CopyObject(u, &userVo)
+		userVo.Id = u.Id
+		userVo.CreatedAt = u.CreatedAt.Unix()
+		userVo.UpdatedAt = u.UpdatedAt.Unix()
+	}
+
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}
 
-	resp.SUCCESS(c)
+	resp.SUCCESS(c, userVo)
 }
 
 // ResetPass 重置密码
