@@ -20,3 +20,7 @@ docker build -t registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:$ve
 docker rmi -f registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:$version
 docker build --platform linux/amd64 -t registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:$version -f dockerfile-vue ../
 
+if [ "$2" = "push" ];then
+  docker push registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-vue:$version
+  docker push registry.cn-hangzhou.aliyuncs.com/geekmaster/chatgpt-plus-go:$version
+fi
