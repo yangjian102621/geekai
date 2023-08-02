@@ -35,15 +35,15 @@ const routes = [
     {
         name: 'admin',
         path: '/admin',
-        redirect: '/admin/welcome',
+        redirect: '/admin/dashboard',
         component: () => import("@/views/admin/Home.vue"),
         meta: {title: 'ChatGPT-Plus 管理后台'},
         children: [
             {
-                path: '/admin/welcome',
-                name: 'admin-home',
-                meta: {title: '系统首页'},
-                component: () => import('@/views/admin/Welcome.vue'),
+                path: '/admin/dashboard',
+                name: 'admin-dashboard',
+                meta: {title: '仪表盘'},
+                component: () => import('@/views/admin/Dashboard.vue'),
             },
             {
                 path: '/admin/system',
