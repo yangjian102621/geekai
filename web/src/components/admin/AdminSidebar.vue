@@ -1,5 +1,10 @@
 <template>
   <div class="sidebar">
+    <div class="logo">
+      <el-image :src="logo"/>
+      <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
+    </div>
+
     <el-menu
         class="sidebar-el-menu"
         :default-active="onRoutes"
@@ -47,15 +52,27 @@
 </template>
 
 <script setup>
-import {computed} from 'vue';
-import {useSidebarStore} from '@/store/sidebar';
+import {computed, ref} from 'vue';
+import {setMenuItems, useSidebarStore} from '@/store/sidebar';
 import {useRoute} from 'vue-router';
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
+
+const title = ref('Chat-Plus-Admin')
+const logo = ref('/images/logo.png')
+
+// 加载系统配置
+httpGet('/api/admin/config/get?key=system').then(res => {
+  title.value = res.data['admin_title'];
+}).catch(e => {
+  ElMessage.error("加载系统配置失败: " + e.message)
+})
 
 const items = [
   {
     icon: 'home',
     index: '/admin/welcome',
-    title: '系统首页',
+    title: '仪表盘',
   },
   {
     icon: 'config',
@@ -120,6 +137,7 @@ const onRoutes = computed(() => {
 });
 
 const sidebar = useSidebarStore();
+setMenuItems(items)
 </script>
 
 <style scoped lang="stylus">
@@ -127,9 +145,34 @@ const sidebar = useSidebarStore();
   display: block;
   position: absolute;
   left: 0;
-  top: 70px;
+  top: 0;
   bottom: 0;
   overflow-y: scroll;
+
+  .logo {
+    display flex
+    width 219px
+    background-color #324157
+    padding 6px 15px;
+
+    .el-image {
+      width 30px;
+      height 30px;
+      padding-top 5px;
+      border-radius 100%
+
+      .el-image__inner {
+        height 40px
+      }
+    }
+
+    .text {
+      color #ffffff
+      font-weight bold
+      padding 12px 0 12px 10px;
+      transition: width 2s ease;
+    }
+  }
 
   ul {
     height: 100%;
@@ -139,6 +182,10 @@ const sidebar = useSidebarStore();
         font-size 16px;
         margin-right 5px;
       }
+    }
+
+    .el-menu-item.is-active {
+      background-color rgb(40, 52, 70)
     }
   }
 

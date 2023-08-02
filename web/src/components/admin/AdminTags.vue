@@ -15,7 +15,7 @@
     </ul>
     <div class="tags-close-box">
       <el-dropdown @command="handleTags">
-        <el-button size="small" type="primary">
+        <el-button size="small" type="info">
           标签选项
           <el-icon class="el-icon--right">
             <arrow-down/>
@@ -115,7 +115,8 @@ const handleTags = (command) => {
   overflow: hidden;
   background: #fff;
   padding-right: 120px;
-  box-shadow: 0 5px 10px #ddd;
+  -webkit-box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
 }
 
 .tags ul {
@@ -168,14 +169,13 @@ const handleTags = (command) => {
 .tags-close-box {
   position: absolute;
   right: 0;
-  top: 0;
+  top: 2px;
   box-sizing: border-box;
   padding-top: 1px;
   text-align: center;
   width: 110px;
   height: 30px;
   background: #fff;
-  box-shadow: -3px 0 15px 3px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+//box-shadow: -3px 0 15px 3px rgba(0, 0, 0, 0.1); z-index: 10;
 }
 </style>
