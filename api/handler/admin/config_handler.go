@@ -52,12 +52,17 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 		// update config cache for AppServer
 		var cfg model.Config
 		h.db.Where("marker", data.Key).First(&cfg)
-		err := utils.JsonDecode(cfg.Config, &h.App.ChatConfig)
+		var err error
+		if data.Key == "system" {
+			err = utils.JsonDecode(cfg.Config, &h.App.SysConfig)
+		} else if data.Key == "chat" {
+			err = utils.JsonDecode(cfg.Config, &h.App.ChatConfig)
+		}
 		if err != nil {
 			resp.ERROR(c, "Failed to update config cache: "+err.Error())
 			return
 		}
-		logger.Debugf("Update AppServer's config successfully: %v", config.Config)
+		logger.Infof("Update AppServer's config successfully: %v", config.Config)
 	}
 
 	resp.SUCCESS(c, config)
