@@ -1,11 +1,7 @@
 <template>
   <div class="admin-login">
-    <div class="bg"></div>
     <div class="main">
       <div class="contain">
-        <div class="logo">
-          <el-image src="../images/logo.png" fit="cover"/>
-        </div>
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
@@ -53,7 +49,7 @@ import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 
 const router = useRouter();
-const title = ref('ChatGPT-PLUS 控制台登录');
+const title = ref('ChatGPT Plus Admin');
 const username = ref(process.env.VUE_APP_ADMIN_USER);
 const password = ref(process.env.VUE_APP_ADMIN_PASS);
 
@@ -86,51 +82,29 @@ const login = function () {
 
 <style lang="stylus" scoped>
 .admin-login {
-  .bg {
-    position fixed
-    left 0
-    right 0
-    top 0
-    bottom 0
-    background-color #313237
-    background-image url("~@/assets/img/admin-login-bg.jpg")
-    background-size cover
-    background-position center
-    background-repeat no-repeat
-    filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
-  }
+  display flex
+  justify-content center
+  width: 100%
+  background #2D3A4B
 
   .main {
+    width 400px;
+    display flex
+    justify-content center
+    align-items center
+    height 100vh
+
     .contain {
-      position fixed
-      left 50%
-      top 40%
-      width 90%
-      max-width 400px;
-      transform translate(-50%, -50%)
+      width 100%
       padding 20px 40px;
       color #ffffff
       border-radius 10px;
       background rgba(255, 255, 255, 0.3)
 
-      .logo {
-        text-align center
-
-        .el-image {
-          width 120px;
-
-          .el-image__inner {
-            height 100%
-          }
-        }
-      }
-
       .header {
         width 100%
-        margin-bottom 24px
+        margin-bottom 20px
         font-size 24px
-        color $white_v1
-        letter-space 2px
         text-align center
       }
 
@@ -168,6 +142,7 @@ const login = function () {
         }
       }
     }
+
 
     .footer {
       color #ffffff;

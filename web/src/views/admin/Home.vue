@@ -1,8 +1,8 @@
 <template>
   <div class="admin-home" v-if="isLogin">
-    <admin-header/>
     <admin-sidebar/>
     <div class="content-box" :class="{ 'content-collapse': sidebar.collapse }">
+      <admin-header/>
       <admin-tags/>
       <div class="content">
         <router-view v-slot="{ Component }">

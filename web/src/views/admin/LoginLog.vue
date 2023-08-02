@@ -46,7 +46,6 @@ onMounted(() => {
 
 // 获取数据
 const fetchList = function (_page, _pageSize) {
-  console.log(_page, _pageSize)
   httpGet(`/api/admin/user/loginLog?page=${_page}&page_size=${_pageSize}`).then((res) => {
     if (res.data) {
       items.value = res.data.items

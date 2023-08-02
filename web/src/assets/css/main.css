@@ -11,7 +11,9 @@ body,
   overflow: hidden;
 }
 body {
-  font-family: 'PingFang SC', "Helvetica Neue", Helvetica, "microsoft yahei", arial, STHeiTi, sans-serif;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 .admin-home a {
   text-decoration: none;
@@ -20,7 +22,7 @@ body {
   position: absolute;
   left: 250px;
   right: 0;
-  top: 70px;
+  top: 0;
   bottom: 0;
   padding-bottom: 30px;
   -webkit-transition: left 0.3s ease-in-out;
