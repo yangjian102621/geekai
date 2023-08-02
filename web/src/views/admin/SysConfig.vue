@@ -12,6 +12,9 @@
         <el-form-item label="注册赠送次数" prop="init_calls">
           <el-input v-model.number="system['user_init_calls']" placeholder="新用户注册赠送对话次数"/>
         </el-form-item>
+        <el-form-item label="开放用户注册" prop="init_calls">
+          <el-switch v-model="system['enabled_register']"/>
+        </el-form-item>
         <el-alert type="info" show-icon :closable="false">
           <p>在这里维护前端聊天页面可用的 GPT 模型列表</p>
         </el-alert>

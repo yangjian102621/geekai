@@ -85,10 +85,9 @@ type ChatConfig struct {
 }
 
 type SystemConfig struct {
-	Title         string   `json:"title"`
-	AdminTitle    string   `json:"admin_title"`
-	Models        []string `json:"models"`
-	UserInitCalls int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
+	Title           string   `json:"title"`
+	AdminTitle      string   `json:"admin_title"`
+	Models          []string `json:"models"`
+	UserInitCalls   int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
+	EnabledRegister bool     `json:"enabled_register"`
 }
-
-const UserInitCalls = 20

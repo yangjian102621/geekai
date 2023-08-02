@@ -59,7 +59,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
+type statusVo struct {
+	EnabledMsgService bool `json:"enabled_msg_service"`
+	EnabledRegister   bool `json:"enabled_register"`
+}
+
 // Status check if the message service is enabled
 func (h *SmsHandler) Status(c *gin.Context) {
-	resp.SUCCESS(c, h.App.Config.EnabledMsgService)
+	resp.SUCCESS(c, statusVo{EnabledMsgService: h.App.Config.EnabledMsgService, EnabledRegister: h.App.SysConfig.EnabledRegister})
 }
