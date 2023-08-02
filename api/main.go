@@ -141,6 +141,7 @@ func main() {
 		fx.Provide(admin.NewUserHandler),
 		fx.Provide(admin.NewChatRoleHandler),
 		fx.Provide(admin.NewRewardHandler),
+		fx.Provide(admin.NewDashboardHandler),
 
 		// 创建服务
 		fx.Provide(service.NewAliYunSmsService),
@@ -230,6 +231,10 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
 			group := s.Engine.Group("/api/admin/reward/")
 			group.GET("list", h.List)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
+			group := s.Engine.Group("/api/admin/dashboard/")
+			group.GET("stats", h.Stats)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {

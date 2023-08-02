@@ -71,7 +71,7 @@ httpGet('/api/admin/config/get?key=system').then(res => {
 const items = [
   {
     icon: 'home',
-    index: '/admin/welcome',
+    index: '/admin/dashboard',
     title: '仪表盘',
   },
   {
