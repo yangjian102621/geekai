@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <el-row class="mgb20" :gutter="20">
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="hover" :body-style="{ padding: '0px' }">
           <div class="grid-content grid-con-1">
             <el-icon class="grid-con-icon">
@@ -14,7 +14,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="hover" :body-style="{ padding: '0px' }">
           <div class="grid-content grid-con-2">
             <el-icon class="grid-con-icon">
@@ -27,7 +27,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="hover" :body-style="{ padding: '0px' }">
           <div class="grid-content grid-con-3">
             <el-icon class="grid-con-icon">
@@ -36,6 +36,19 @@
             <div class="grid-cont-right">
               <div class="grid-num">{{ stats.tokens }}</div>
               <div>今日消耗 Tokens</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card shadow="hover" :body-style="{ padding: '0px' }">
+          <div class="grid-content grid-con-3">
+            <el-icon class="grid-con-icon">
+              <i class="iconfont icon-reward"></i>
+            </el-icon>
+            <div class="grid-cont-right">
+              <div class="grid-num">￥{{ stats.rewards }}</div>
+              <div>今日入账</div>
             </div>
           </div>
         </el-card>
@@ -50,12 +63,13 @@ import {ChatDotRound, TrendCharts, User} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
-const stats = ref({users: 0, chats: 0, tokens: 0})
+const stats = ref({users: 0, chats: 0, tokens: 0, rewards: 0})
 
 httpGet('/api/admin/dashboard/stats').then((res) => {
   stats.value.users = res.data.users
   stats.value.chats = res.data.chats
   stats.value.tokens = res.data.tokens
+  stats.value.rewards = res.data.rewards
 }).catch((e) => {
   ElMessage.error("获取统计数据失败：" + e.message)
 })
@@ -89,6 +103,10 @@ httpGet('/api/admin/dashboard/stats').then((res) => {
     text-align: center;
     line-height: 100px;
     color: #fff;
+
+    .iconfont {
+      font-size: 50px;
+    }
   }
 
   .grid-con-1 .grid-con-icon {
