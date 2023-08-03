@@ -49,7 +49,7 @@
                 </el-input>
               </div>
 
-              <div class="block" v-if="enableMsg">
+              <div class="block">
                 <el-input placeholder="手机号码"
                           size="large" maxlength="11"
                           v-model="formData.mobile"
@@ -184,6 +184,7 @@ const register = function () {
 
   .page-inner {
     max-width 450px
+    min-width 360px
     height 100vh
     display flex
     justify-content center
@@ -191,6 +192,7 @@ const register = function () {
 
     .contain {
       padding 0 40px 20px 40px;
+      width 100%
       color #ffffff
       border-radius 10px;
       z-index 10
