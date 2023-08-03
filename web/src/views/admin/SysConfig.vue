@@ -12,7 +12,10 @@
         <el-form-item label="注册赠送次数" prop="init_calls">
           <el-input v-model.number="system['user_init_calls']" placeholder="新用户注册赠送对话次数"/>
         </el-form-item>
-        <el-form-item label="开放用户注册" prop="init_calls">
+        <el-form-item label="短信验证服务" prop="enabled_msg_service">
+          <el-switch v-model="system['enabled_msg_service']"/>
+        </el-form-item>
+        <el-form-item label="开放用户注册" prop="enabled_register">
           <el-switch v-model="system['enabled_register']"/>
         </el-form-item>
         <el-alert type="info" show-icon :closable="false">

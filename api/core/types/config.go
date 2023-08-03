@@ -6,20 +6,19 @@ import (
 )
 
 type AppConfig struct {
-	Path              string `toml:"-"`
-	Listen            string
-	Session           Session
-	ProxyURL          string
-	MysqlDns          string            // mysql 连接地址
-	Manager           Manager           // 后台管理员账户信息
-	StaticDir         string            // 静态资源目录
-	StaticUrl         string            // 静态资源 URL
-	Redis             RedisConfig       // redis 连接信息
-	ApiConfig         ChatPlusApiConfig // ChatPlus API authorization configs
-	AesEncryptKey     string
-	SmsConfig         AliYunSmsConfig // AliYun send message service config
-	StartWechatBot    bool            // 是否启动微信机器人
-	EnabledMsgService bool            // 是否启用短信服务
+	Path           string `toml:"-"`
+	Listen         string
+	Session        Session
+	ProxyURL       string
+	MysqlDns       string            // mysql 连接地址
+	Manager        Manager           // 后台管理员账户信息
+	StaticDir      string            // 静态资源目录
+	StaticUrl      string            // 静态资源 URL
+	Redis          RedisConfig       // redis 连接信息
+	ApiConfig      ChatPlusApiConfig // ChatPlus API authorization configs
+	AesEncryptKey  string
+	SmsConfig      AliYunSmsConfig // AliYun send message service config
+	StartWechatBot bool            // 是否启动微信机器人
 }
 
 type ChatPlusApiConfig struct {
@@ -85,9 +84,10 @@ type ChatConfig struct {
 }
 
 type SystemConfig struct {
-	Title           string   `json:"title"`
-	AdminTitle      string   `json:"admin_title"`
-	Models          []string `json:"models"`
-	UserInitCalls   int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
-	EnabledRegister bool     `json:"enabled_register"`
+	Title             string   `json:"title"`
+	AdminTitle        string   `json:"admin_title"`
+	Models            []string `json:"models"`
+	UserInitCalls     int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
+	EnabledRegister   bool     `json:"enabled_register"`
+	EnabledMsgService bool     `json:"enabled_msg_service"`
 }
