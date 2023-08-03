@@ -138,6 +138,10 @@
               新建会话
             </el-button>
 
+            <el-button type="success" @click="exportChat" plain>
+              <i class="iconfont icon-export"></i>
+              <span>导出会话</span>
+            </el-button>
           </div>
         </div>
 
@@ -769,6 +773,15 @@ const updateUser = function (data) {
   loginUser.value.avatar = data.avatar;
   loginUser.value.nickname = data.nickname;
 }
+
+// 导出会话
+const exportChat = () => {
+  if (!activeChat.value['chat_id']) {
+    return ElMessage.error("请先选中一个会话")
+  }
+  
+  window.open(location.protocol + location.host + '/chat/export?chat_id=' + activeChat.value['chat_id'], '_blank');
+}
 </script>
 
 <style scoped lang="stylus">
@@ -776,6 +789,7 @@ const updateUser = function (data) {
 $sideBgColor = #252526;
 $borderColor = #4676d0;
 #app {
+
   height: 100%;
 
   .common-layout {
@@ -977,6 +991,10 @@ $borderColor = #4676d0;
               margin-right 5px;
             }
           }
+        }
+
+        .iconfont {
+          margin-right 5px;
         }
       }
 
