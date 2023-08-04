@@ -38,7 +38,7 @@
         <el-form-item label="聊天记录">
           <el-switch v-model="form.chat_config.enable_history"/>
         </el-form-item>
-        <el-form-item label="Model">
+        <el-form-item label="默认模型">
           <el-select v-model="form.chat_config.model" placeholder="默认会话模型">
             <el-option
                 v-for="item in models"
@@ -51,8 +51,9 @@
         <el-form-item label="MaxTokens">
           <el-input v-model.number="form.chat_config.max_tokens"/>
         </el-form-item>
-        <el-form-item label="Temperature">
-          <el-input v-model.number="form.chat_config.temperature"/>
+        <el-form-item label="创意度">
+          <el-slider v-model="form.chat_config.temperature" :max="2" :step="0.1"/>
+          <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
         </el-form-item>
         <el-form-item label="剩余调用次数">
           <el-tag>{{ form['calls'] }}</el-tag>
@@ -80,7 +81,7 @@
 <script setup>
 
 
-import {computed, onMounted, ref} from "vue"
+import {computed, onMounted, reactive, ref} from "vue"
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Plus} from "@element-plus/icons-vue";
@@ -173,6 +174,11 @@ const close = function () {
       .el-message {
         position: absolute;
       }
+    }
+
+    .tip {
+      color #c1c1c1
+      font-size 12px;
     }
   }
 }
