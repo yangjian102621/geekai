@@ -146,6 +146,8 @@ const exportChat = () => {
           img {
             width 30px
             height 30px
+            border-radius: 10px;
+            padding: 1px
           }
         }
       }
