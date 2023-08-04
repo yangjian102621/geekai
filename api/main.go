@@ -169,6 +169,7 @@ func main() {
 			group := s.Engine.Group("/api/chat/")
 			group.Any("new", h.ChatHandle)
 			group.GET("list", h.List)
+			group.GET("detail", h.Detail)
 			group.POST("update", h.Update)
 			group.GET("remove", h.Remove)
 			group.GET("history", h.History)

@@ -27,6 +27,12 @@ const routes = [
         component: () => import('@/views/ChatPlus.vue'),
     },
     {
+        name: 'chat-export',
+        path: '/chat/export',
+        meta: {title: '导出会话记录'},
+        component: () => import('@/views/ChatExport.vue'),
+    },
+    {
         path: '/admin/login',
         name: 'admin-login',
         meta: {title: 'Chat-Plus 控制台登录'},
