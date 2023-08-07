@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, reactive, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {Plus} from "@element-plus/icons-vue";
@@ -118,13 +118,11 @@ onMounted(() => {
   // 加载聊天配置
   httpGet('/api/admin/config/get?key=chat').then(res => {
     chat.value = res.data
+    loading.value = false
   }).catch(e => {
     ElMessage.error("加载聊天配置失败: " + e.message)
   })
 
-  nextTick(() => {
-    loading.value = false
-  })
 })
 
 const rules = reactive({

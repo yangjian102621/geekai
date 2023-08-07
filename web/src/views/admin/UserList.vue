@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, reactive, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
@@ -189,10 +189,6 @@ onMounted(() => {
   }).catch(() => {
     ElMessage.error("获取聊天角色失败");
   })
-
-  nextTick(() => {
-    loading.value = false
-  })
 })
 
 const fetchUserList = function (page, pageSize) {
@@ -210,6 +206,7 @@ const fetchUserList = function (page, pageSize) {
       users.value.page = res.data.page
       user.value.page_size = res.data.page_size
     }
+    loading.value = false
   }).catch(() => {
     ElMessage.error('加载用户列表失败')
   })

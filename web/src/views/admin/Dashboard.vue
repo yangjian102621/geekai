@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard">
+  <div class="dashboard" v-loading="loading">
     <el-row class="mgb20" :gutter="20">
       <el-col :span="6">
         <el-card shadow="hover" :body-style="{ padding: '0px' }">
@@ -64,12 +64,14 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
 const stats = ref({users: 0, chats: 0, tokens: 0, rewards: 0})
+const loading = ref(true)
 
 httpGet('/api/admin/dashboard/stats').then((res) => {
   stats.value.users = res.data.users
   stats.value.chats = res.data.chats
   stats.value.tokens = res.data.tokens
   stats.value.rewards = res.data.rewards
+  loading.value = false
 }).catch((e) => {
   ElMessage.error("获取统计数据失败：" + e.message)
 })

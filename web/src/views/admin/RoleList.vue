@@ -1,5 +1,5 @@
 <template>
-  <div class="container role-list">
+  <div class="container role-list" v-loading="loading">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="addRole">新增</el-button>
     </div>
@@ -158,6 +158,7 @@ const sortedTableData = ref([])
 const role = ref({context: []})
 const formRef = ref(null)
 const editRow = ref({})
+const loading = ref(true)
 
 const rules = reactive({
   name: [{required: true, message: '请输入用户名', trigger: 'blur',}],
@@ -174,6 +175,7 @@ const rules = reactive({
 httpGet('/api/admin/role/list').then((res) => {
   tableData.value = res.data
   sortedTableData.value = copyObj(tableData.value)
+  loading.value = false
 }).catch(() => {
   ElMessage.error("获取聊天角色失败");
 })
