@@ -149,7 +149,10 @@
           <div>
             <div id="container">
               <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
-                <div v-for="item in chatData" :key="item.id">
+                <div v-if="showHello">
+                  <welcome @send="autofillPrompt"/>
+                </div>
+                <div v-for="item in chatData" :key="item.id" v-else>
                   <chat-prompt
                       v-if="item.type==='prompt'"
                       :icon="item.icon"
@@ -187,7 +190,7 @@
               <div class="input-box">
                 <div class="input-container">
                   <el-input
-                      ref="text-input"
+                      ref="textInput"
                       v-model="prompt"
                       v-on:keydown="inputKeyDown"
                       autofocus
@@ -273,6 +276,7 @@ import PasswordDialog from "@/components/PasswordDialog.vue";
 import {checkSession} from "@/action/session";
 import BindMobile from "@/components/BindMobile.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
+import Welcome from "@/components/Welcome.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
@@ -298,6 +302,8 @@ const showBindMobileDialog = ref(false);
 const showRewardDialog = ref(false);
 const showRewardVerifyDialog = ref(false);
 const isLogin = ref(false)
+const showHello = ref(true)
+const textInput = ref(null)
 
 if (isMobile()) {
   router.replace("/mobile")
@@ -621,6 +627,13 @@ const inputKeyDown = function (e) {
     sendMessage();
   }
 }
+
+// 自动填充 prompt
+const autofillPrompt = (text) => {
+  prompt.value = text
+  textInput.value.focus()
+  // sendMessage()
+}
 // 发送消息
 const sendMessage = function () {
   if (canSend.value === false) {
@@ -645,6 +658,7 @@ const sendMessage = function () {
     document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
   })
 
+  showHello.value = false
   canSend.value = false;
   showStopGenerate.value = true;
   showReGenerate.value = false;
@@ -701,6 +715,7 @@ const loadChatHistory = function (chatId) {
       loading.value = false
       return
     }
+    showHello.value = false
 
     const md = require('markdown-it')({breaks: true});
     // md.use(require('markdown-it-copy')); // 代码复制功能

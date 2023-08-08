@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "5244045",
+      "name": "插件",
+      "font_class": "plugin",
+      "unicode": "e69d",
+      "unicode_decimal": 59037
+    },
+    {
+      "icon_id": "8893244",
+      "name": "高效率 copy",
+      "font_class": "quick-start",
+      "unicode": "e677",
+      "unicode_decimal": 58999
+    },
+    {
+      "icon_id": "16480872",
+      "name": "插件功能",
+      "font_class": "control",
+      "unicode": "e69e",
+      "unicode_decimal": 59038
+    },
+    {
+      "icon_id": "22187612",
+      "name": "缺陷管理",
+      "font_class": "bug",
+      "unicode": "e645",
+      "unicode_decimal": 58949
+    },
+    {
       "icon_id": "4765958",
       "name": "export",
       "font_class": "export",
