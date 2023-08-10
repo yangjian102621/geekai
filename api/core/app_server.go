@@ -186,6 +186,7 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 		if c.Request.URL.Path == "/api/user/login" ||
 			c.Request.URL.Path == "/api/admin/login" ||
 			c.Request.URL.Path == "/api/user/register" ||
+			c.Request.URL.Path == "/api/reward/push" ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/static/") ||

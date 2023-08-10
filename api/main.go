@@ -6,7 +6,6 @@ import (
 	"chatplus/handler"
 	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
-	"chatplus/modules/wexin"
 	"chatplus/service"
 	"chatplus/service/function"
 	"chatplus/store"
@@ -104,17 +103,6 @@ func main() {
 			return xdb.NewWithBuffer(cBuff)
 		}),
 
-		// 创建微信机器人
-		fx.Provide(wexin.NewWeChatBot),
-		fx.Invoke(func(bot *wexin.WeChatBot) {
-			go func() {
-				err := bot.Login()
-				if err != nil {
-					log.Fatal(err)
-				}
-			}()
-		}),
-
 		// 创建函数
 		fx.Provide(func(config *types.AppConfig) (function.FuncZaoBao, error) {
 			return function.NewZaoBao(config.ApiConfig), nil
@@ -192,6 +180,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
 			group := s.Engine.Group("/api/reward/")
+			group.POST("push", h.Push)
 			group.POST("verify", h.Verify)
 		}),
 

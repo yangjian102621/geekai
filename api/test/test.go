@@ -20,6 +20,7 @@ import (
 )
 
 func main() {
+	fmt.Println(utils.RandString(32))
 }
 
 // Http client 取消操作
