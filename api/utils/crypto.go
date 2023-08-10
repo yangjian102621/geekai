@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"io"
 )
 
 // AesEncrypt 加密
@@ -67,4 +70,15 @@ func pkcs7UnPadding(data []byte) ([]byte, error) {
 	}
 	unPadding := int(data[length-1])
 	return data[:(length - unPadding)], nil
+}
+
+func Sha256(data string) string {
+	hash := sha256.New()
+	_, err := io.WriteString(hash, data)
+	if err != nil {
+		return ""
+	}
+
+	hashValue := hash.Sum(nil)
+	return fmt.Sprintf("%x", hashValue)
 }

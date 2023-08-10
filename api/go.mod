@@ -5,14 +5,12 @@ go 1.19
 require (
 	github.com/BurntSushi/toml v1.1.0
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.405
-	github.com/eatmoreapple/openwechat v1.2.1
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/imroc/req/v3 v3.37.2
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20230415042440-a5e3d8259ae0
 	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
-	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
