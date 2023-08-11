@@ -24,7 +24,7 @@ func NewWeiboHot(config types.ChatPlusApiConfig) FuncWeiboHot {
 		client: req.C().SetTimeout(10 * time.Second)}
 }
 
-func (f FuncWeiboHot) Invoke(...interface{}) (string, error) {
+func (f FuncWeiboHot) Invoke(map[string]interface{}) (string, error) {
 	if f.config.Token == "" {
 		return "", errors.New("无效的 API Token")
 	}
@@ -35,11 +35,8 @@ func (f FuncWeiboHot) Invoke(...interface{}) (string, error) {
 		SetHeader("AppId", f.config.AppId).
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", f.config.Token)).
 		SetSuccessResult(&res).Get(url)
-	if err != nil {
-		return "", err
-	}
-	if r.IsErrorState() {
-		return "", r.Err
+	if err != nil || r.IsErrorState() {
+		return "", fmt.Errorf("%v%v", err, r.Err)
 	}
 
 	if res.Code != types.Success {
@@ -57,3 +54,5 @@ func (f FuncWeiboHot) Invoke(...interface{}) (string, error) {
 func (f FuncWeiboHot) Name() string {
 	return f.name
 }
+
+var _ Function = &FuncWeiboHot{}

@@ -23,9 +23,10 @@ type Property struct {
 }
 
 const (
-	FuncZaoBao   = "zao_bao"   // 每日早报
-	FuncHeadLine = "headline"  // 今日头条
-	FuncWeibo    = "weibo_hot" // 微博热搜
+	FuncZaoBao     = "zao_bao"     // 每日早报
+	FuncHeadLine   = "headline"    // 今日头条
+	FuncWeibo      = "weibo_hot"   // 微博热搜
+	FuncMidJourney = "mid_journey" // MJ 绘画
 )
 
 var InnerFunctions = []Function{
@@ -68,6 +69,25 @@ var InnerFunctions = []Function{
 				"text": {
 					Type:        "string",
 					Description: "",
+				},
+			},
+			Required: []string{},
+		},
+	},
+
+	{
+		Name:        FuncMidJourney,
+		Description: "AI 绘画工具，使用 MJ MidJourney API 进行 AI 绘画",
+		Parameters: Parameters{
+			Type: "object",
+			Properties: map[string]Property{
+				"prompt": {
+					Type:        "string",
+					Description: "绘画内容描述，提示词，此参数需要翻译成英文",
+				},
+				"ar": {
+					Type:        "string",
+					Description: "图片长宽比，如 16:9",
 				},
 			},
 			Required: []string{},

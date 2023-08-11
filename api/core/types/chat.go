@@ -42,6 +42,16 @@ type ChatSession struct {
 	Model     string `json:"model"`     // GPT 模型
 }
 
+type MjTask struct {
+	Client      Client
+	ChatId      string
+	MessageId   string
+	MessageHash string
+	UserId      uint
+	RoleId      uint
+	Icon        string
+}
+
 type ApiError struct {
 	Error struct {
 		Message string

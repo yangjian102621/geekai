@@ -21,9 +21,9 @@ func NewRewardHandler(server *core.AppServer, db *gorm.DB) *RewardHandler {
 	return &h
 }
 
-func (h *RewardHandler) Push(c *gin.Context) {
-	token := c.GetHeader("X-TOKEN")
-	if token != h.App.Config.ChatPlusExtApiToken {
+func (h *RewardHandler) Notify(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	if token != h.App.Config.ExtConfig.Token {
 		resp.NotAuth(c)
 		return
 	}
