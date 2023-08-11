@@ -34,13 +34,10 @@ type AppServer struct {
 	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	Functions     map[string]function.Function
+	MjTasks       *types.LMap[string, types.MjTask]
 }
 
-func NewServer(
-	appConfig *types.AppConfig,
-	funZaoBao function.FuncZaoBao,
-	funZhiHu function.FuncHeadlines,
-	funWeibo function.FuncWeiboHot) *AppServer {
+func NewServer(appConfig *types.AppConfig, functions map[string]function.Function) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
@@ -51,11 +48,8 @@ func NewServer(
 		ChatSession:   types.NewLMap[string, types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
-		Functions: map[string]function.Function{
-			types.FuncZaoBao:   funZaoBao,
-			types.FuncWeibo:    funWeibo,
-			types.FuncHeadLine: funZhiHu,
-		},
+		MjTasks:       types.NewLMap[string, types.MjTask](),
+		Functions:     functions,
 	}
 }
 
@@ -186,7 +180,8 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 		if c.Request.URL.Path == "/api/user/login" ||
 			c.Request.URL.Path == "/api/admin/login" ||
 			c.Request.URL.Path == "/api/user/register" ||
-			c.Request.URL.Path == "/api/reward/push" ||
+			c.Request.URL.Path == "/api/reward/notify" ||
+			c.Request.URL.Path == "/api/mj/notify" ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/static/") ||

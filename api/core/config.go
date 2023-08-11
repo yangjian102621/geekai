@@ -33,8 +33,8 @@ func NewDefaultConfig() *types.AppConfig {
 			HttpOnly:  false,
 			SameSite:  http.SameSiteLaxMode,
 		},
-		ApiConfig:           types.ChatPlusApiConfig{},
-		ChatPlusExtApiToken: utils.RandString(32),
+		ApiConfig: types.ChatPlusApiConfig{},
+		ExtConfig: types.ChatPlusExtConfig{Token: utils.RandString(32)},
 	}
 }
 

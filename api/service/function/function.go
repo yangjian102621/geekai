@@ -1,11 +1,16 @@
 package function
 
-import "chatplus/core/types"
+import (
+	"chatplus/core/types"
+	logger2 "chatplus/logger"
+)
 
 type Function interface {
-	Invoke(...interface{}) (string, error)
+	Invoke(map[string]interface{}) (string, error)
 	Name() string
 }
+
+var logger = logger2.GetLogger()
 
 type resVo struct {
 	Code    types.BizCode `json:"code"`
@@ -21,4 +26,13 @@ type dataItem struct {
 	Title  string `json:"title"`
 	Url    string `json:"url"`
 	Remark string `json:"remark"`
+}
+
+func NewFunctions(config *types.AppConfig) map[string]Function {
+	return map[string]Function{
+		types.FuncZaoBao:     NewZaoBao(config.ApiConfig),
+		types.FuncWeibo:      NewWeiboHot(config.ApiConfig),
+		types.FuncHeadLine:   NewHeadLines(config.ApiConfig),
+		types.FuncMidJourney: NewMidJourneyFunc(config.ExtConfig),
+	}
 }

@@ -104,15 +104,7 @@ func main() {
 		}),
 
 		// 创建函数
-		fx.Provide(func(config *types.AppConfig) (function.FuncZaoBao, error) {
-			return function.NewZaoBao(config.ApiConfig), nil
-		}),
-		fx.Provide(func(config *types.AppConfig) (function.FuncWeiboHot, error) {
-			return function.NewWeiboHot(config.ApiConfig), nil
-		}),
-		fx.Provide(func(config *types.AppConfig) (function.FuncHeadlines, error) {
-			return function.NewHeadLines(config.ApiConfig), nil
-		}),
+		fx.Provide(function.NewFunctions),
 
 		// 创建控制器
 		fx.Provide(handler.NewChatRoleHandler),
@@ -122,6 +114,7 @@ func main() {
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRewardHandler),
 		fx.Provide(handler.NewCaptchaHandler),
+		fx.Provide(handler.NewMidJourneyHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -180,8 +173,11 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
 			group := s.Engine.Group("/api/reward/")
-			group.POST("push", h.Push)
+			group.POST("notify", h.Notify)
 			group.POST("verify", h.Verify)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
+			s.Engine.POST("/api/mj/notify", h.Notify)
 		}),
 
 		// 管理后台控制器

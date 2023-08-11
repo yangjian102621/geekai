@@ -88,7 +88,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	var chatRole model.ChatRole
 	res = h.db.First(&chatRole, roleId)
 	if res.Error != nil || !chatRole.Enable {
-		replyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
+		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
 		c.Abort()
 		return
 	}
@@ -98,7 +98,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	h.db.Where("marker", "chat").First(&config)
 	err = utils.JsonDecode(config.Config, &chatConfig)
 	if err != nil {
-		replyMessage(client, "加载系统配置失败，连接已关闭！！！")
+		utils.ReplyMessage(client, "加载系统配置失败，连接已关闭！！！")
 		c.Abort()
 		return
 	}
@@ -116,7 +116,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 				return
 			}
 			logger.Info("Receive a message: ", string(message))
-			//replyMessage(client, "这是一条测试消息！")
+			//utils.ReplyMessage(client, "这是一条测试消息！")
 			ctx, cancel := context.WithCancel(context.Background())
 			h.App.ReqCancelFunc.Put(sessionId, cancel)
 			// 回复消息
@@ -124,7 +124,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			if err != nil {
 				logger.Error(err)
 			} else {
-				replyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
+				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
 				logger.Info("回答完毕: " + string(message))
 			}
 
@@ -139,7 +139,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 	var user model.User
 	res := h.db.Model(&model.User{}).First(&user, session.UserId)
 	if res.Error != nil {
-		replyMessage(ws, "非法用户，请联系管理员！")
+		utils.ReplyMessage(ws, "非法用户，请联系管理员！")
 		return res.Error
 	}
 	var userVo vo.User
@@ -150,20 +150,20 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 	}
 
 	if userVo.Status == false {
-		replyMessage(ws, "您的账号已经被禁用，如果疑问，请联系管理员！")
-		replyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, "您的账号已经被禁用，如果疑问，请联系管理员！")
+		utils.ReplyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}
 
 	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKey == "" {
-		replyMessage(ws, "您的对话次数已经用尽，请联系管理员或者点击左下角菜单加入众筹获得100次对话！")
-		replyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者点击左下角菜单加入众筹获得100次对话！")
+		utils.ReplyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
-		replyMessage(ws, "您的账号已经过期，请联系管理员！")
-		replyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, "您的账号已经过期，请联系管理员！")
+		utils.ReplyMessage(ws, "![](/images/wx.png)")
 		return nil
 	}
 	var req = types.ApiRequest{
@@ -238,14 +238,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			logger.Info("用户取消了请求：", prompt)
 			return nil
 		} else if strings.Contains(err.Error(), "no available key") {
-			replyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY🔑，您可以导入自己的 API KEY🔑 继续使用！🙏🙏🙏")
+			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY🔑，您可以导入自己的 API KEY🔑 继续使用！🙏🙏🙏")
 			return nil
 		} else {
 			logger.Error(err)
 		}
 
-		replyMessage(ws, ErrorMsg)
-		replyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrorMsg)
+		utils.ReplyMessage(ws, "![](/images/wx.png)")
 		return err
 	} else {
 		defer response.Body.Close()
@@ -280,8 +280,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				err = json.Unmarshal([]byte(line[6:]), &responseBody)
 				if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
 					logger.Error(err, line)
-					replyMessage(ws, ErrorMsg)
-					replyMessage(ws, "![](/images/wx.png)")
+					utils.ReplyMessage(ws, ErrorMsg)
+					utils.ReplyMessage(ws, "![](/images/wx.png)")
 					break
 				}
 
@@ -295,8 +295,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					functionCall = true
 					functionName = fun.Name
 					f := h.App.Functions[functionName]
-					replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 `%s` 作答 ...\n\n", f.Name())})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 `%s` 作答 ...\n\n", f.Name())})
 					continue
 				}
 
@@ -307,14 +307,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 				// 初始化 role
 				if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
 					message.Role = responseBody.Choices[0].Delta.Role
-					replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 					continue
 				} else if responseBody.Choices[0].FinishReason != "" {
 					break // 输出完成或者输出中断了
 				} else {
 					content := responseBody.Choices[0].Delta.Content
 					contents = append(contents, utils.InterfaceToString(content))
-					replyChunkMessage(ws, types.WsMessage{
+					utils.ReplyChunkMessage(ws, types.WsMessage{
 						Type:    types.WsMiddle,
 						Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
 					})
@@ -322,23 +322,39 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 			} // end for
 
 			if functionCall { // 调用函数完成任务
-				logger.Info(functionName)
-				logger.Info(arguments)
+				logger.Info("函数名称：", functionName)
+				var params map[string]interface{}
+				_ = utils.JsonDecode(strings.Join(arguments, ""), &params)
+				logger.Info("函数参数：", params)
 				f := h.App.Functions[functionName]
-				data, err := f.Invoke(arguments)
+				data, err := f.Invoke(params)
 				if err != nil {
 					msg := "调用函数出错：" + err.Error()
-					replyChunkMessage(ws, types.WsMessage{
+					utils.ReplyChunkMessage(ws, types.WsMessage{
 						Type:    types.WsMiddle,
 						Content: msg,
 					})
 					contents = append(contents, msg)
 				} else {
-					replyChunkMessage(ws, types.WsMessage{
+					content := data
+					if functionName == types.FuncMidJourney {
+						key := utils.Sha256(data)
+						// add task for MidJourney
+						h.App.MjTasks.Put(key, types.MjTask{
+							UserId: userVo.Id,
+							RoleId: role.Id,
+							Icon:   role.Icon,
+							Client: ws,
+							ChatId: session.ChatId,
+						})
+						content = fmt.Sprintf("绘画提示词：%s 已推送任务到 MidJourney 机器人，请耐心等待任务执行...", data)
+					}
+
+					utils.ReplyChunkMessage(ws, types.WsMessage{
 						Type:    types.WsMiddle,
-						Content: data,
+						Content: content,
 					})
-					contents = append(contents, data)
+					contents = append(contents, content)
 				}
 			}
 
@@ -430,7 +446,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					} else {
 						totalTokens = replyToken + getTotalTokens(req)
 					}
-					//replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("\n\n `本轮对话共消耗 Token 数量: %d`", totalTokens+11)})
+					//utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("\n\n `本轮对话共消耗 Token 数量: %d`", totalTokens+11)})
 					if userVo.ChatConfig.ApiKey != "" { // 调用自己的 API KEY 不计算 token 消耗
 						h.db.Model(&user).UpdateColumn("tokens", gorm.Expr("tokens + ?",
 							totalTokens))
@@ -468,18 +484,18 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 		// OpenAI API 调用异常处理
 		// TODO: 是否考虑重发消息？
 		if strings.Contains(res.Error.Message, "This key is associated with a deactivated account") {
-			replyMessage(ws, "请求 OpenAI API 失败：API KEY 所关联的账户被禁用。")
+			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 所关联的账户被禁用。")
 			// 移除当前 API key
 			h.db.Where("value = ?", apiKey).Delete(&model.ApiKey{})
 		} else if strings.Contains(res.Error.Message, "You exceeded your current quota") {
-			replyMessage(ws, "请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
+			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
 		} else if strings.Contains(res.Error.Message, "This model's maximum context length") {
 			logger.Error(res.Error.Message)
-			replyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
+			utils.ReplyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
 			h.App.ChatContexts.Delete(session.ChatId)
 			return h.sendMessage(ctx, session, role, prompt, ws)
 		} else {
-			replyMessage(ws, "请求 OpenAI API 失败："+res.Error.Message)
+			utils.ReplyMessage(ws, "请求 OpenAI API 失败："+res.Error.Message)
 		}
 	}
 
@@ -532,26 +548,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, user vo.User, apiKey *strin
 	logger.Infof("Sending OpenAI request, KEY: %s, PROXY: %s, Model: %s", *apiKey, proxyURL, req.Model)
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *apiKey))
 	return client.Do(request)
-}
-
-// 回复客户片段端消息
-func replyChunkMessage(client types.Client, message types.WsMessage) {
-	msg, err := json.Marshal(message)
-	if err != nil {
-		logger.Errorf("Error for decoding json data: %v", err.Error())
-		return
-	}
-	err = client.(*types.WsClient).Send(msg)
-	if err != nil {
-		logger.Errorf("Error for reply message: %v", err.Error())
-	}
-}
-
-// 回复客户端一条完整的消息
-func replyMessage(ws types.Client, message string) {
-	replyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-	replyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: message})
-	replyChunkMessage(ws, types.WsMessage{Type: types.WsEnd})
 }
 
 // Tokens 统计 token 数量

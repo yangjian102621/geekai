@@ -6,24 +6,29 @@ import (
 )
 
 type AppConfig struct {
-	Path                string `toml:"-"`
-	Listen              string
-	Session             Session
-	ProxyURL            string
-	MysqlDns            string            // mysql 连接地址
-	Manager             Manager           // 后台管理员账户信息
-	StaticDir           string            // 静态资源目录
-	StaticUrl           string            // 静态资源 URL
-	Redis               RedisConfig       // redis 连接信息
-	ApiConfig           ChatPlusApiConfig // ChatPlus API authorization configs
-	AesEncryptKey       string
-	SmsConfig           AliYunSmsConfig // AliYun send message service config
-	ChatPlusExtApiToken string          // chatgpt-plus-exts callback api token
+	Path          string `toml:"-"`
+	Listen        string
+	Session       Session
+	ProxyURL      string
+	MysqlDns      string            // mysql 连接地址
+	Manager       Manager           // 后台管理员账户信息
+	StaticDir     string            // 静态资源目录
+	StaticUrl     string            // 静态资源 URL
+	Redis         RedisConfig       // redis 连接信息
+	ApiConfig     ChatPlusApiConfig // ChatPlus API authorization configs
+	AesEncryptKey string
+	SmsConfig     AliYunSmsConfig   // AliYun send message service config
+	ExtConfig     ChatPlusExtConfig // ChatPlus extensions callback api config
 }
 
 type ChatPlusApiConfig struct {
 	ApiURL string
 	AppId  string
+	Token  string
+}
+
+type ChatPlusExtConfig struct {
+	ApiURL string
 	Token  string
 }
 
