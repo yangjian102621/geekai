@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -26,14 +27,16 @@ import (
 )
 
 const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
+const TaskStorePrefix = "/tasks/"
 
 type ChatHandler struct {
 	BaseHandler
-	db *gorm.DB
+	db      *gorm.DB
+	leveldb *store.LevelDB
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB) *ChatHandler {
-	handler := ChatHandler{db: db}
+func NewChatHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB) *ChatHandler {
+	handler := ChatHandler{db: db, leveldb: levelDB}
 	handler.App = app
 	return &handler
 }
@@ -133,7 +136,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 }
 
 // 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
-func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession, role model.ChatRole, prompt string, ws types.Client) error {
+func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
 
 	var user model.User
@@ -340,13 +343,18 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					if functionName == types.FuncMidJourney {
 						key := utils.Sha256(data)
 						// add task for MidJourney
-						h.App.MjTasks.Put(key, types.MjTask{
+						h.App.MjTaskClients.Put(key, ws)
+						task := types.MjTask{
 							UserId: userVo.Id,
 							RoleId: role.Id,
 							Icon:   role.Icon,
 							Client: ws,
 							ChatId: session.ChatId,
-						})
+						}
+						err := h.leveldb.Put(TaskStorePrefix+key, task)
+						if err != nil {
+							logger.Error("error with store MidJourney task: ", err)
+						}
 						content = fmt.Sprintf("绘画提示词：%s 已推送任务到 MidJourney 机器人，请耐心等待任务执行...", data)
 					}
 

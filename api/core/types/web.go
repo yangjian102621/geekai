@@ -12,8 +12,8 @@ type BizVo struct {
 
 // WsMessage Websocket message
 type WsMessage struct {
-	Type    WsMsgType `json:"type"` // 消息类别，start, end
-	Content string    `json:"content"`
+	Type    WsMsgType   `json:"type"` // 消息类别，start, end, img
+	Content interface{} `json:"content"`
 }
 type WsMsgType string
 
@@ -21,6 +21,7 @@ const (
 	WsStart  = WsMsgType("start")
 	WsMiddle = WsMsgType("middle")
 	WsEnd    = WsMsgType("end")
+	WsImg    = WsMsgType("img")
 )
 
 type BizCode int
