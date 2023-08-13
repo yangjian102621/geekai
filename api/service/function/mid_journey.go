@@ -36,12 +36,13 @@ func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
 		delete(params, "ar")
 	}
 	prompt = prompt + " --niji 5"
+	url := fmt.Sprintf("%s/api/mj/image", f.config.ApiURL)
 	var res types.BizVo
 	r, err := f.client.R().
 		SetHeader("Authorization", f.config.Token).
 		SetHeader("Content-Type", "application/json").
 		SetBody(params).
-		SetSuccessResult(&res).Post(f.config.ApiURL)
+		SetSuccessResult(&res).Post(url)
 	if err != nil || r.IsErrorState() {
 		return "", fmt.Errorf("%v%v", r.String(), err)
 	}

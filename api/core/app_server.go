@@ -34,7 +34,7 @@ type AppServer struct {
 	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	Functions     map[string]function.Function
-	MjTasks       *types.LMap[string, types.MjTask]
+	MjTaskClients *types.LMap[string, *types.WsClient]
 }
 
 func NewServer(appConfig *types.AppConfig, functions map[string]function.Function) *AppServer {
@@ -48,7 +48,7 @@ func NewServer(appConfig *types.AppConfig, functions map[string]function.Functio
 		ChatSession:   types.NewLMap[string, types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
-		MjTasks:       types.NewLMap[string, types.MjTask](),
+		MjTaskClients: types.NewLMap[string, *types.WsClient](),
 		Functions:     functions,
 	}
 }

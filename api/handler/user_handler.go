@@ -22,11 +22,11 @@ type UserHandler struct {
 	BaseHandler
 	db       *gorm.DB
 	searcher *xdb.Searcher
-	levelDB  *store.LevelDB
+	leveldb  *store.LevelDB
 }
 
 func NewUserHandler(app *core.AppServer, db *gorm.DB, searcher *xdb.Searcher, levelDB *store.LevelDB) *UserHandler {
-	handler := &UserHandler{db: db, searcher: searcher, levelDB: levelDB}
+	handler := &UserHandler{db: db, searcher: searcher, leveldb: levelDB}
 	handler.App = app
 	return handler
 }
@@ -60,7 +60,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	key := CodeStorePrefix + data.Mobile
 	if h.App.SysConfig.EnabledMsgService {
 		var code int
-		err := h.levelDB.Get(key, &code)
+		err := h.leveldb.Get(key, &code)
 		if err != nil || code != data.Code {
 			logger.Info(code)
 			resp.ERROR(c, "短信验证码错误")
@@ -118,7 +118,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	if h.App.SysConfig.EnabledMsgService {
-		_ = h.levelDB.Delete(key) // 注册成功，删除短信验证码
+		_ = h.leveldb.Delete(key) // 注册成功，删除短信验证码
 	}
 	resp.SUCCESS(c, user)
 }
@@ -366,7 +366,7 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
 	var code int
-	err := h.levelDB.Get(key, &code)
+	err := h.leveldb.Get(key, &code)
 	if err != nil || code != data.Code {
 		resp.ERROR(c, "短信验证码错误")
 		return
@@ -384,6 +384,6 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 		return
 	}
 
-	_ = h.levelDB.Delete(key) // 删除短信验证码
+	_ = h.leveldb.Delete(key) // 删除短信验证码
 	resp.SUCCESS(c)
 }

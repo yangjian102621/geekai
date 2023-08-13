@@ -24,6 +24,7 @@ type Image struct {
 	Width    int    `json:"width"`
 	Height   int    `json:"height"`
 	Size     int    `json:"size"`
+	Hash     string `json:"hash"`
 }
 
 type MidJourneyHandler struct {
@@ -44,18 +45,30 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	}
 
 	var data struct {
-		Image   Image      `json:"image"`
-		Content string     `json:"content"`
-		Status  TaskStatus `json:"status"`
+		Type      string     `json:"type"`
+		MessageId string     `json:"message_id"`
+		Image     Image      `json:"image"`
+		Content   string     `json:"content"`
+		Prompt    string     `json:"prompt"`
+		Status    TaskStatus `json:"status"`
+		Key       string     `json:"key"`
 	}
-	if err := c.ShouldBindJSON(&data); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil || data.Prompt == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	key := utils.Sha256(data.Prompt)
+	data.Key = key
+	// TODO: 如果绘画任务完成了则将该消息保存到当前会话的聊天历史记录
 
-	sessionId := "u7blnft9zqisyrwidjb22j6b78iqc30lv9jtud3k9o"
-	wsClient := h.App.ChatClients.Get(sessionId)
-	utils.ReplyMessage(wsClient, "![](https://cdn.discordapp.com/attachments/1138713254718361633/1139482452579070053/lal603743923_A_Chinese_girl_walking_barefoot_on_the_beach_weari_df8b6dc0-3b13-478c-8dbb-983015d21661.png)")
-	logger.Infof("Data: %+v", data)
+	wsClient := h.App.MjTaskClients.Get(key)
+	if wsClient == nil { // 客户端断线，则丢弃
+		resp.SUCCESS(c)
+		return
+	}
+
+	// 推送消息到客户端
+	// TODO: 增加绘画消息类型
+	utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsImg, Content: data})
 	resp.ERROR(c, "Error with CallBack")
 }

@@ -14,13 +14,13 @@ const CodeStorePrefix = "/verify/codes/"
 
 type SmsHandler struct {
 	BaseHandler
-	db      *store.LevelDB
+	leveldb *store.LevelDB
 	sms     *service.AliYunSmsService
 	captcha *service.CaptchaService
 }
 
 func NewSmsHandler(app *core.AppServer, db *store.LevelDB, sms *service.AliYunSmsService, captcha *service.CaptchaService) *SmsHandler {
-	handler := &SmsHandler{db: db, sms: sms, captcha: captcha}
+	handler := &SmsHandler{leveldb: db, sms: sms, captcha: captcha}
 	handler.App = app
 	return handler
 }
@@ -50,7 +50,7 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	}
 
 	// 存储验证码，等待后面注册验证
-	err = h.db.Put(CodeStorePrefix+data.Mobile, code)
+	err = h.leveldb.Put(CodeStorePrefix+data.Mobile, code)
 	if err != nil {
 		resp.ERROR(c, "验证码保存失败")
 		return

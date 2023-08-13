@@ -9,20 +9,20 @@ import (
 var logger = logger2.GetLogger()
 
 // ReplyChunkMessage 回复客户片段端消息
-func ReplyChunkMessage(client types.Client, message types.WsMessage) {
+func ReplyChunkMessage(client *types.WsClient, message types.WsMessage) {
 	msg, err := json.Marshal(message)
 	if err != nil {
 		logger.Errorf("Error for decoding json data: %v", err.Error())
 		return
 	}
-	err = client.(*types.WsClient).Send(msg)
+	err = client.Send(msg)
 	if err != nil {
 		logger.Errorf("Error for reply message: %v", err.Error())
 	}
 }
 
 // ReplyMessage 回复客户端一条完整的消息
-func ReplyMessage(ws types.Client, message string) {
+func ReplyMessage(ws *types.WsClient, message interface{}) {
 	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: message})
 	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsEnd})
