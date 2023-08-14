@@ -166,6 +166,10 @@
                               :created-at="dateFormat(item['created_at'])"
                               :tokens="item['tokens']"
                               :content="item.content"/>
+                  <chat-mid-journey v-else-if="item.type==='mj'"
+                                    :content="item.content"
+                                    :icon="item.icon"
+                                    :created-at="dateFormat(item['created_at'])"/>
                 </div>
               </div><!-- end chat box -->
 
@@ -277,6 +281,7 @@ import {checkSession} from "@/action/session";
 import BindMobile from "@/components/BindMobile.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
 import Welcome from "@/components/Welcome.vue";
+import ChatMidJourney from "@/components/ChatMidJourney.vue";
 
 const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
@@ -542,12 +547,39 @@ const connect = function (chat_id, role_id) {
             icon: _role['icon'],
             content: ""
           });
-        } else if (data.type === 'end') { // 消息接收完毕
-          canSend.value = true;
-          showReGenerate.value = true;
-          showStopGenerate.value = false;
-          lineBuffer.value = ''; // 清空缓冲
+        } else if (data.type === "mj") {
+          canSend.value = false;
+          showReGenerate.value = false;
+          showStopGenerate.value = true;
+          const content = data.content;
+          const md = require('markdown-it')({breaks: true});
+          content.content = md.render(content.content)
+          // console.log(content)
+          // check if the message is in chatData
+          let flag = false
+          for (let i = 0; i < chatData.value.length; i++) {
+            if (chatData.value[i].id === content.key) {
+              console.log(chatData.value[i])
+              flag = true
+              chatData.value[i].content = content
+              break
+            }
+          }
+          if (flag === false) {
+            chatData.value.push({
+              type: "mj",
+              id: content.key,
+              icon: "/images/avatar/mid_journey.png",
+              content: content
+            });
+          }
 
+          if (content.status === "Finished") {
+            canSend.value = true;
+            showReGenerate.value = true;
+            showStopGenerate.value = false;
+          }
+        } else if (data.type === 'end') { // 消息接收完毕
           // 追加当前会话到会话列表
           if (isNewChat && newChatItem.value !== null) {
             newChatItem.value['title'] = previousText.value;
@@ -556,9 +588,18 @@ const connect = function (chat_id, role_id) {
             activeChat.value = newChatItem.value;
             newChatItem.value = null; // 只追加一次
           }
+          const reply = chatData.value[chatData.value.length - 1]
+          if (reply.content.indexOf("绘画提示词：") === -1) {
+            return
+          }
+
+          canSend.value = true;
+          showReGenerate.value = true;
+          showStopGenerate.value = false;
+          lineBuffer.value = ''; // 清空缓冲
+
 
           // 获取 token
-          const reply = chatData.value[chatData.value.length - 1]
           httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${model.value}`).then(res => {
             reply['created_at'] = new Date().getTime();
             reply['tokens'] = res.data;
@@ -721,6 +762,11 @@ const loadChatHistory = function (chatId) {
     // md.use(require('markdown-it-copy')); // 代码复制功能
     for (let i = 0; i < data.length; i++) {
       if (data[i].type === "prompt") {
+        chatData.value.push(data[i]);
+        continue;
+      } else if (data[i].type === "mj") {
+        data[i].content = JSON.parse(data[i].content)
+        data[i].content.content = md.render(data[i].content?.content)
         chatData.value.push(data[i]);
         continue;
       }

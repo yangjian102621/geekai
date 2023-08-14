@@ -22,6 +22,10 @@
                     :created-at="dateFormat(item['created_at'])"
                     :tokens="item['tokens']"
                     :content="item.content"/>
+        <chat-mid-journey v-else-if="item.type==='mj'"
+                          :content="item.content"
+                          :icon="item.icon"
+                          :created-at="dateFormat(item['created_at'])"/>
       </div>
     </div><!-- end chat box -->
   </div>
@@ -38,6 +42,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import hl from "highlight.js";
 import {ElMessage} from "element-plus";
 import {Promotion} from "@element-plus/icons-vue";
+import ChatMidJourney from "@/components/ChatMidJourney.vue";
 
 const chatData = ref([])
 const router = useRouter()
@@ -55,6 +60,11 @@ httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
   const md = require('markdown-it')({breaks: true});
   for (let i = 0; i < data.length; i++) {
     if (data[i].type === "prompt") {
+      chatData.value.push(data[i]);
+      continue;
+    } else if (data[i].type === "mj") {
+      data[i].content = JSON.parse(data[i].content)
+      data[i].content.content = md.render(data[i].content?.content)
       chatData.value.push(data[i]);
       continue;
     }
