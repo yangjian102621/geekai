@@ -89,6 +89,10 @@ func Ip2Region(searcher *xdb.Searcher, ip string) string {
 }
 
 func IsEmptyValue(obj interface{}) bool {
+	if obj == nil {
+		return true
+	}
+	
 	v := reflect.ValueOf(obj)
 	switch v.Kind() {
 	case reflect.Ptr, reflect.Interface:

@@ -43,7 +43,6 @@ type ChatSession struct {
 }
 
 type MjTask struct {
-	Client      Client
 	ChatId      string
 	MessageId   string
 	MessageHash string
@@ -63,6 +62,7 @@ type ApiError struct {
 
 const PromptMsg = "prompt" // prompt message
 const ReplyMsg = "reply"   // reply message
+const MjMsg = "mj"
 
 var ModelToTokens = map[string]int{
 	"gpt-3.5-turbo":     4096,
@@ -70,3 +70,5 @@ var ModelToTokens = map[string]int{
 	"gpt-4":             8192,
 	"gpt-4-32k":         32768,
 }
+
+const TaskStorePrefix = "/tasks/"

@@ -21,7 +21,7 @@ func NewMidJourneyFunc(config types.ChatPlusExtConfig) FuncMidJourney {
 	return FuncMidJourney{
 		name:   "MidJourney AI 绘画",
 		config: config,
-		client: req.C().SetTimeout(10 * time.Second)}
+		client: req.C().SetTimeout(30 * time.Second)}
 }
 
 func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
@@ -29,13 +29,19 @@ func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
 		return "", errors.New("无效的 API Token")
 	}
 
-	logger.Infof("MJ 绘画参数：%+v", params)
+	//logger.Infof("MJ 绘画参数：%+v", params)
 	prompt := utils.InterfaceToString(params["prompt"])
 	if !utils.IsEmptyValue(params["ar"]) {
-		prompt = prompt + fmt.Sprintf(" --ar %v", params["ar"])
-		delete(params, "ar")
+		prompt = fmt.Sprintf("%s --ar %s", prompt, params["ar"])
+		delete(params, "--ar")
 	}
-	prompt = prompt + " --niji 5"
+	if !utils.IsEmptyValue(params["niji"]) {
+		prompt = fmt.Sprintf("%s --niji %s", prompt, params["niji"])
+		delete(params, "niji")
+	} else {
+		prompt = prompt + " --v 5.2"
+	}
+	params["prompt"] = prompt
 	url := fmt.Sprintf("%s/api/mj/image", f.config.ApiURL)
 	var res types.BizVo
 	r, err := f.client.R().

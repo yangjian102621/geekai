@@ -64,7 +64,7 @@ export default defineComponent({
 })
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
 .chat-line-prompt {
   background-color #ffffff;
   justify-content: center;

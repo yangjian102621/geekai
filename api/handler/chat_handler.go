@@ -27,7 +27,6 @@ import (
 )
 
 const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
-const TaskStorePrefix = "/tasks/"
 
 type ChatHandler struct {
 	BaseHandler
@@ -342,16 +341,16 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession
 					content := data
 					if functionName == types.FuncMidJourney {
 						key := utils.Sha256(data)
+						//logger.Info(data, ",", key)
 						// add task for MidJourney
 						h.App.MjTaskClients.Put(key, ws)
 						task := types.MjTask{
 							UserId: userVo.Id,
 							RoleId: role.Id,
-							Icon:   role.Icon,
-							Client: ws,
+							Icon:   "/images/avatar/mid_journey.png",
 							ChatId: session.ChatId,
 						}
-						err := h.leveldb.Put(TaskStorePrefix+key, task)
+						err := h.leveldb.Put(types.TaskStorePrefix+key, task)
 						if err != nil {
 							logger.Error("error with store MidJourney task: ", err)
 						}

@@ -65,7 +65,7 @@ const login = function () {
   if (username.value === '') {
     return ElMessage.error('请输入用户名');
   }
-  if (password.value.trim() === '') {
+  if (password.value === '') {
     return ElMessage.error('请输入密码');
   }
 
