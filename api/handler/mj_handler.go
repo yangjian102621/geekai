@@ -8,6 +8,7 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"time"
@@ -83,7 +84,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		err := h.leveldb.Get(types.TaskStorePrefix+data.Key, &task)
 		if err != nil {
 			logger.Error("error with get MidJourney task: ", err)
-			resp.ERROR(c, err.Error())
+			resp.SUCCESS(c)
 			return
 		}
 
@@ -138,16 +139,18 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	resp.SUCCESS(c, "SUCCESS")
 }
 
+type reqVo struct {
+	Index       int32  `json:"index"`
+	MessageId   string `json:"message_id"`
+	MessageHash string `json:"message_hash"`
+	SessionId   string `json:"session_id"`
+	Key         string `json:"key"`
+	Prompt      string `json:"prompt"`
+}
+
 // Upscale send upscale command to MidJourney Bot
 func (h *MidJourneyHandler) Upscale(c *gin.Context) {
-	var data struct {
-		Index       int32  `json:"index"`
-		MessageId   string `json:"message_id"`
-		MessageHash string `json:"message_hash"`
-		SessionId   string `json:"session_id"`
-		Key         string `json:"key"`
-	}
-
+	var data reqVo
 	if err := c.ShouldBindJSON(&data); err != nil ||
 		data.SessionId == "" ||
 		data.Key == "" {
@@ -170,7 +173,39 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	utils.ReplyMessage(wsClient, "已推送放大图片任务到 MidJourney 机器人，请耐心等待任务执行...")
+	content := fmt.Sprintf("**%s** 已推送 Upscale 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
+	utils.ReplyMessage(wsClient, content)
+	if h.App.MjTaskClients.Get(data.Key) == nil {
+		h.App.MjTaskClients.Put(data.Key, wsClient)
+	}
+	resp.SUCCESS(c)
+}
+
+func (h *MidJourneyHandler) Variation(c *gin.Context) {
+	var data reqVo
+	if err := c.ShouldBindJSON(&data); err != nil ||
+		data.SessionId == "" ||
+		data.Key == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	wsClient := h.App.ChatClients.Get(data.SessionId)
+	if wsClient == nil {
+		resp.ERROR(c, "No Websocket client online")
+		return
+	}
+
+	err := h.mjFunc.Variation(function.MjVariationReq{
+		Index:       data.Index,
+		MessageId:   data.MessageId,
+		MessageHash: data.MessageHash,
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	content := fmt.Sprintf("**%s** 已推送 Variation 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
+	utils.ReplyMessage(wsClient, content)
 	if h.App.MjTaskClients.Get(data.Key) == nil {
 		h.App.MjTaskClients.Put(data.Key, wsClient)
 	}

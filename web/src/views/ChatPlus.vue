@@ -554,6 +554,12 @@ const connect = function (chat_id, role_id) {
           const content = data.content;
           const md = require('markdown-it')({breaks: true});
           content.content = md.render(content.content)
+          let key = content.key
+          // fixed bug: 执行 Upscale 和 Variation 操作的时候覆盖之前的绘画
+          if (content.status === "Finished") {
+            key = randString(32)
+            enableInput()
+          }
           // console.log(content)
           // check if the message is in chatData
           let flag = false
@@ -562,21 +568,19 @@ const connect = function (chat_id, role_id) {
               console.log(chatData.value[i])
               flag = true
               chatData.value[i].content = content
+              chatData.value[i].id = key
               break
             }
           }
           if (flag === false) {
             chatData.value.push({
               type: "mj",
-              id: content["message_id"],
+              id: key,
               icon: "/images/avatar/mid_journey.png",
               content: content
             });
           }
 
-          if (content.status === "Finished") {
-            enableInput()
-          }
         } else if (data.type === 'end') { // 消息接收完毕
           // 追加当前会话到会话列表
           if (isNewChat && newChatItem.value !== null) {
@@ -589,7 +593,7 @@ const connect = function (chat_id, role_id) {
 
           enableInput()
           lineBuffer.value = ''; // 清空缓冲
-          
+
           // 获取 token
           const reply = chatData.value[chatData.value.length - 1]
           httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${model.value}`).then(res => {
