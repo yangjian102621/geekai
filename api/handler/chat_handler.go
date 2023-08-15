@@ -50,8 +50,8 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		return
 	}
 	// 设置读写超时时间
-	_ = ws.SetWriteDeadline(time.Now().Add(300 * time.Second))
-	_ = ws.SetReadDeadline(time.Now().Add(300 * time.Second))
+	//_ = ws.SetWriteDeadline(time.Now().Add(300 * time.Second))
+	//_ = ws.SetReadDeadline(time.Now().Add(300 * time.Second))
 
 	sessionId := c.Query("session_id")
 	roleId := h.GetInt(c, "role_id", 0)
@@ -109,7 +109,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	h.App.ChatClients.Put(sessionId, client)
 	go func() {
 		for {
-			_, message, err := client.Receive()
+			_, msg, err := client.Receive()
 			if err != nil {
 				logger.Error(err)
 				client.Close()
@@ -117,12 +117,14 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 				h.App.ReqCancelFunc.Delete(sessionId)
 				return
 			}
-			logger.Info("Receive a message: ", string(message))
+
+			message := string(msg)
+			logger.Info("Receive a message: ", message)
 			//utils.ReplyMessage(client, "这是一条测试消息！")
 			ctx, cancel := context.WithCancel(context.Background())
 			h.App.ReqCancelFunc.Put(sessionId, cancel)
 			// 回复消息
-			err = h.sendMessage(ctx, session, chatRole, string(message), client)
+			err = h.sendMessage(ctx, session, chatRole, message, client)
 			if err != nil {
 				logger.Error(err)
 			} else {

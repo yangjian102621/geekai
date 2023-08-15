@@ -534,6 +534,7 @@ const connect = function (chat_id, role_id) {
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
+    
   });
 
   _socket.addEventListener('message', event => {
