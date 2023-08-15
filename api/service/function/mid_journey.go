@@ -81,7 +81,32 @@ func (f FuncMidJourney) Upscale(upReq MjUpscaleReq) error {
 	if res.Code != types.Success {
 		return errors.New(res.Message)
 	}
-	
+
+	return nil
+}
+
+type MjVariationReq struct {
+	Index       int32  `json:"index"`
+	MessageId   string `json:"message_id"`
+	MessageHash string `json:"message_hash"`
+}
+
+func (f FuncMidJourney) Variation(upReq MjVariationReq) error {
+	url := fmt.Sprintf("%s/api/mj/variation", f.config.ApiURL)
+	var res types.BizVo
+	r, err := f.client.R().
+		SetHeader("Authorization", f.config.Token).
+		SetHeader("Content-Type", "application/json").
+		SetBody(upReq).
+		SetSuccessResult(&res).Post(url)
+	if err != nil || r.IsErrorState() {
+		return fmt.Errorf("%v%v", r.String(), err)
+	}
+
+	if res.Code != types.Success {
+		return errors.New(res.Message)
+	}
+
 	return nil
 }
 

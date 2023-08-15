@@ -44,7 +44,6 @@ import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {setSession} from "@/store/session";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 

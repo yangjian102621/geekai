@@ -83,15 +83,15 @@ var InnerFunctions = []Function{
 			Properties: map[string]Property{
 				"prompt": {
 					Type:        "string",
-					Description: "绘画内容描述，提示词，此参数需要翻译成英文",
+					Description: "绘画内容描述，提示词，如果该参数中有中文的话，则需要翻译成英文",
 				},
 				"ar": {
 					Type:        "string",
-					Description: "图片长宽比，如 16:9, --ar 3:2",
+					Description: "图片长宽比，如 --ar 4:3",
 				},
 				"niji": {
 					Type:        "string",
-					Description: "动漫模型版本，如 --niji 5",
+					Description: "动漫模型版本，例如 --niji 5",
 				},
 			},
 			Required: []string{},

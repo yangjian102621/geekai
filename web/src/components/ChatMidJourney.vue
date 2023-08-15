@@ -92,14 +92,23 @@ watch(() => props.content, (newVal) => {
 });
 const emits = defineEmits(['disable-input', 'disable-input']);
 const upscale = (index) => {
+  send('/api/mj/upscale', index)
+}
+
+const variation = (index) => {
+  send('/api/mj/variation', index)
+}
+
+const send = (url, index) => {
   loading.value = true
   emits('disable-input')
-  httpPost("/api/mj/upscale", {
+  httpPost(url, {
     index: index,
     message_id: data.value?.["message_id"],
     message_hash: data.value?.["image"]?.hash,
     session_id: getSessionId(),
-    key: data.value?.["key"]
+    key: data.value?.["key"],
+    prompt: data.value?.["prompt"],
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
     loading.value = false
@@ -107,10 +116,6 @@ const upscale = (index) => {
     ElMessage.error("任务推送失败：" + e.message)
     emits('disable-input')
   })
-}
-
-const variation = (index) => {
-  ElMessage.warning("当前版本暂未实现 Variation 功能！")
 }
 </script>
 
