@@ -52,7 +52,7 @@ import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {setLoginUser} from "@/store/session";
+import {setSessionId} from "@/store/session";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
@@ -79,7 +79,7 @@ const login = function () {
   }
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
-    setLoginUser(res.data)
+    setSessionId(res.data)
     if (isMobile()) {
       router.push('/mobile')
     } else {

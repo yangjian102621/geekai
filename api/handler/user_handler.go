@@ -173,29 +173,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 		LoginIp:      c.ClientIP(),
 		LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
 	})
-	var chatConfig types.ChatConfig
-	err = utils.JsonDecode(user.ChatConfig, &chatConfig)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
 
-	resp.SUCCESS(c, gin.H{
-		"session_id":     sessionId,
-		"id":             user.Id,
-		"nickname":       user.Nickname,
-		"avatar":         user.Avatar,
-		"username":       user.Username,
-		"tokens":         user.Tokens,
-		"calls":          user.Calls,
-		"expired_time":   user.ExpiredTime,
-		"api_key":        chatConfig.ApiKey,
-		"model":          chatConfig.Model,
-		"temperature":    chatConfig.Temperature,
-		"max_tokens":     chatConfig.MaxTokens,
-		"enable_context": chatConfig.EnableContext,
-		"enable_history": chatConfig.EnableHistory,
-	})
+	resp.SUCCESS(c, sessionId)
 }
 
 // Logout 注 销

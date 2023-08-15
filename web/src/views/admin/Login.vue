@@ -44,7 +44,7 @@ import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {setLoginUser} from "@/store/session";
+import {setSession} from "@/store/session";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 
@@ -70,7 +70,6 @@ const login = function () {
   }
 
   httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
-    setLoginUser(res.data)
     router.push("/admin")
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)

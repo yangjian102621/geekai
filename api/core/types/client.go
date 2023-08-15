@@ -6,18 +6,14 @@ import (
 	"sync"
 )
 
-var ErrConClosed = errors.New("connection closed")
-
-type Client interface {
-	Close()
-}
+var ErrConClosed = errors.New("connection Closed")
 
 // WsClient websocket client
 type WsClient struct {
 	Conn   *websocket.Conn
 	lock   sync.Mutex
 	mt     int
-	closed bool
+	Closed bool
 }
 
 func NewWsClient(conn *websocket.Conn) *WsClient {
@@ -25,7 +21,7 @@ func NewWsClient(conn *websocket.Conn) *WsClient {
 		Conn:   conn,
 		lock:   sync.Mutex{},
 		mt:     2, // fixed bug for 'Invalid UTF-8 in text frame'
-		closed: false,
+		Closed: false,
 	}
 }
 
@@ -33,7 +29,7 @@ func (wc *WsClient) Send(message []byte) error {
 	wc.lock.Lock()
 	defer wc.lock.Unlock()
 
-	if wc.closed {
+	if wc.Closed {
 		return ErrConClosed
 	}
 
@@ -41,7 +37,7 @@ func (wc *WsClient) Send(message []byte) error {
 }
 
 func (wc *WsClient) Receive() (int, []byte, error) {
-	if wc.closed {
+	if wc.Closed {
 		return 0, nil, ErrConClosed
 	}
 
@@ -52,10 +48,10 @@ func (wc *WsClient) Close() {
 	wc.lock.Lock()
 	defer wc.lock.Unlock()
 
-	if wc.closed {
+	if wc.Closed {
 		return
 	}
 
 	_ = wc.Conn.Close()
-	wc.closed = true
+	wc.Closed = true
 }

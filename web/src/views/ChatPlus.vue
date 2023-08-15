@@ -169,6 +169,8 @@
                   <chat-mid-journey v-else-if="item.type==='mj'"
                                     :content="item.content"
                                     :icon="item.icon"
+                                    @disable-input="disableInput(true)"
+                                    @enable-input="enableInput"
                                     :created-at="dateFormat(item['created_at'])"/>
                 </div>
               </div><!-- end chat box -->
@@ -517,7 +519,7 @@ const connect = function (chat_id, role_id) {
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     previousText.value = '';
-    canSend.value = true;
+    enableInput()
     activelyClose.value = false;
 
     if (isNewChat) { // 加载打招呼信息
@@ -548,9 +550,7 @@ const connect = function (chat_id, role_id) {
             content: ""
           });
         } else if (data.type === "mj") {
-          canSend.value = false;
-          showReGenerate.value = false;
-          showStopGenerate.value = true;
+          disableInput(true)
           const content = data.content;
           const md = require('markdown-it')({breaks: true});
           content.content = md.render(content.content)
@@ -568,16 +568,14 @@ const connect = function (chat_id, role_id) {
           if (flag === false) {
             chatData.value.push({
               type: "mj",
-              id: content.key,
+              id: content["message_id"],
               icon: "/images/avatar/mid_journey.png",
               content: content
             });
           }
 
           if (content.status === "Finished") {
-            canSend.value = true;
-            showReGenerate.value = true;
-            showStopGenerate.value = false;
+            enableInput()
           }
         } else if (data.type === 'end') { // 消息接收完毕
           // 追加当前会话到会话列表
@@ -588,18 +586,12 @@ const connect = function (chat_id, role_id) {
             activeChat.value = newChatItem.value;
             newChatItem.value = null; // 只追加一次
           }
-          const reply = chatData.value[chatData.value.length - 1]
-          if (reply.content.indexOf("绘画提示词：") === -1) {
-            return
-          }
 
-          canSend.value = true;
-          showReGenerate.value = true;
-          showStopGenerate.value = false;
+          enableInput()
           lineBuffer.value = ''; // 清空缓冲
-
-
+          
           // 获取 token
+          const reply = chatData.value[chatData.value.length - 1]
           httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${model.value}`).then(res => {
             reply['created_at'] = new Date().getTime();
             reply['tokens'] = res.data;
@@ -639,7 +631,7 @@ const connect = function (chat_id, role_id) {
       return;
     }
     // 停止发送消息
-    canSend.value = true;
+    disableInput(true)
     socket.value = null;
     loading.value = true;
     checkSession().then(() => {
@@ -655,6 +647,18 @@ const connect = function (chat_id, role_id) {
   });
 
   socket.value = _socket;
+}
+
+const disableInput = (force) => {
+  canSend.value = false;
+  showReGenerate.value = false;
+  showStopGenerate.value = !force;
+}
+
+const enableInput = () => {
+  canSend.value = true;
+  showReGenerate.value = previousText.value !== "";
+  showStopGenerate.value = false;
 }
 
 // 登录输入框输入事件处理
@@ -700,9 +704,7 @@ const sendMessage = function () {
   })
 
   showHello.value = false
-  canSend.value = false;
-  showStopGenerate.value = true;
-  showReGenerate.value = false;
+  disableInput(false)
   socket.value.send(prompt.value);
   previousText.value = prompt.value;
   prompt.value = '';
@@ -794,18 +796,13 @@ const loadChatHistory = function (chatId) {
 const stopGenerate = function () {
   showStopGenerate.value = false;
   httpGet("/api/chat/stop?session_id=" + getSessionId()).then(() => {
-    canSend.value = true;
-    if (previousText.value !== '') {
-      showReGenerate.value = true;
-    }
+    enableInput()
   })
 }
 
 // 重新生成
 const reGenerate = function () {
-  canSend.value = false;
-  showStopGenerate.value = true;
-  showReGenerate.value = false;
+  disableInput(false)
   const text = '重新生成上述问题的答案：' + previousText.value;
   // 追加消息
   chatData.value.push({
