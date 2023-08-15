@@ -3,12 +3,14 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service/function"
 	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"time"
 )
 
 type TaskStatus string
@@ -34,10 +36,11 @@ type MidJourneyHandler struct {
 	BaseHandler
 	leveldb *store.LevelDB
 	db      *gorm.DB
+	mjFunc  function.FuncMidJourney
 }
 
-func NewMidJourneyHandler(app *core.AppServer, leveldb *store.LevelDB, db *gorm.DB) *MidJourneyHandler {
-	h := MidJourneyHandler{leveldb: leveldb, db: db}
+func NewMidJourneyHandler(app *core.AppServer, leveldb *store.LevelDB, db *gorm.DB, functions map[string]function.Function) *MidJourneyHandler {
+	h := MidJourneyHandler{leveldb: leveldb, db: db, mjFunc: functions[types.FuncMidJourney].(function.FuncMidJourney)}
 	h.App = app
 	return &h
 }
@@ -50,34 +53,43 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	}
 
 	var data struct {
-		Type      string     `json:"type"`
-		MessageId string     `json:"message_id"`
-		Image     Image      `json:"image"`
-		Content   string     `json:"content"`
-		Prompt    string     `json:"prompt"`
-		Status    TaskStatus `json:"status"`
-		Key       string     `json:"key"`
+		MessageId   string     `json:"message_id"`
+		ReferenceId string     `json:"reference_id"`
+		Image       Image      `json:"image"`
+		Content     string     `json:"content"`
+		Prompt      string     `json:"prompt"`
+		Status      TaskStatus `json:"status"`
+		Key         string     `json:"key"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil || data.Prompt == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	key := utils.Sha256(data.Prompt)
-	data.Key = key
+	logger.Infof("收到 MidJourney 回调请求：%+v", data)
+
+	// the job is saved
+	var job model.MidJourneyJob
+	res := h.db.Where("message_id = ?", data.MessageId).First(&job)
+	if res.Error == nil {
+		resp.SUCCESS(c)
+		return
+	}
+
+	data.Key = utils.Sha256(data.Prompt)
 	//logger.Info(data.Prompt, ",", key)
 	if data.Status == Finished {
 		var task types.MjTask
-		err := h.leveldb.Get(types.TaskStorePrefix+key, &task)
+		err := h.leveldb.Get(types.TaskStorePrefix+data.Key, &task)
 		if err != nil {
 			logger.Error("error with get MidJourney task: ", err)
-			resp.ERROR(c)
+			resp.ERROR(c, err.Error())
 			return
 		}
 
 		// TODO: 是否需要把图片下载到本地服务器？
 
-		historyUserMsg := model.HistoryMessage{
+		message := model.HistoryMessage{
 			UserId:     task.UserId,
 			ChatId:     task.ChatId,
 			RoleId:     task.RoleId,
@@ -87,18 +99,30 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 			Tokens:     0,
 			UseContext: false,
 		}
-		res := h.db.Save(&historyUserMsg)
+		res := h.db.Create(&message)
 		if res.Error != nil {
-			logger.Error("error with save MidJourney message: ", res.Error)
+			logger.Error("error with save chat history message: ", res.Error)
 		}
 
-		// delete task from leveldb
-		_ = h.leveldb.Delete(types.TaskStorePrefix + key)
+		// save the job
+		job.UserId = task.UserId
+		job.ChatId = task.ChatId
+		job.MessageId = data.MessageId
+		job.Content = data.Content
+		job.Prompt = data.Prompt
+		job.Image = utils.JsonEncode(data.Image)
+		job.Hash = data.Image.Hash
+		job.CreatedAt = time.Now()
+		res = h.db.Create(&job)
+		if res.Error != nil {
+			logger.Error("error with save MidJourney Job: ", res.Error)
+		}
 	}
 
 	// 推送消息到客户端
-	wsClient := h.App.MjTaskClients.Get(key)
+	wsClient := h.App.MjTaskClients.Get(data.Key)
 	if wsClient == nil { // 客户端断线，则丢弃
+		logger.Errorf("Client is offline: %+v", data)
 		resp.SUCCESS(c, "Client is offline")
 		return
 	}
@@ -107,9 +131,48 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
 		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsEnd})
 		// delete client
-		h.App.MjTaskClients.Delete(key)
+		h.App.MjTaskClients.Delete(data.Key)
 	} else {
 		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
 	}
 	resp.SUCCESS(c, "SUCCESS")
+}
+
+// Upscale send upscale command to MidJourney Bot
+func (h *MidJourneyHandler) Upscale(c *gin.Context) {
+	var data struct {
+		Index       int32  `json:"index"`
+		MessageId   string `json:"message_id"`
+		MessageHash string `json:"message_hash"`
+		SessionId   string `json:"session_id"`
+		Key         string `json:"key"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil ||
+		data.SessionId == "" ||
+		data.Key == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	wsClient := h.App.ChatClients.Get(data.SessionId)
+	if wsClient == nil {
+		resp.ERROR(c, "No Websocket client online")
+		return
+	}
+
+	err := h.mjFunc.Upscale(function.MjUpscaleReq{
+		Index:       data.Index,
+		MessageId:   data.MessageId,
+		MessageHash: data.MessageHash,
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	utils.ReplyMessage(wsClient, "已推送放大图片任务到 MidJourney 机器人，请耐心等待任务执行...")
+	if h.App.MjTaskClients.Get(data.Key) == nil {
+		h.App.MjTaskClients.Put(data.Key, wsClient)
+	}
+	resp.SUCCESS(c)
 }

@@ -29,7 +29,7 @@ func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
 		return "", errors.New("无效的 API Token")
 	}
 
-	//logger.Infof("MJ 绘画参数：%+v", params)
+	logger.Infof("MJ 绘画参数：%+v", params)
 	prompt := utils.InterfaceToString(params["prompt"])
 	if !utils.IsEmptyValue(params["ar"]) {
 		prompt = fmt.Sprintf("%s --ar %s", prompt, params["ar"])
@@ -58,6 +58,31 @@ func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
 	}
 
 	return prompt, nil
+}
+
+type MjUpscaleReq struct {
+	Index       int32  `json:"index"`
+	MessageId   string `json:"message_id"`
+	MessageHash string `json:"message_hash"`
+}
+
+func (f FuncMidJourney) Upscale(upReq MjUpscaleReq) error {
+	url := fmt.Sprintf("%s/api/mj/upscale", f.config.ApiURL)
+	var res types.BizVo
+	r, err := f.client.R().
+		SetHeader("Authorization", f.config.Token).
+		SetHeader("Content-Type", "application/json").
+		SetBody(upReq).
+		SetSuccessResult(&res).Post(url)
+	if err != nil || r.IsErrorState() {
+		return fmt.Errorf("%v%v", r.String(), err)
+	}
+
+	if res.Code != types.Success {
+		return errors.New(res.Message)
+	}
+	
+	return nil
 }
 
 func (f FuncMidJourney) Name() string {

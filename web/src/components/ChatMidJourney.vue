@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-line chat-line-mj">
+  <div class="chat-line chat-line-mj" v-loading="loading">
     <div class="chat-line-inner">
       <div class="chat-icon">
         <img :src="icon" alt="User"/>
@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <div class="opt" v-if="data.image?.hash !== ''">
+        <div class="opt" v-if="!data['reference_id'] &&data.image?.hash !== ''">
           <div class="opt-line">
             <ul>
               <li><a @click="upscale(1)">U1</a></li>
@@ -64,6 +64,8 @@
 import {ref, watch} from "vue";
 import {Clock} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
+import {httpPost} from "@/utils/http";
+import {getSessionId} from "@/store/session";
 
 const props = defineProps({
   content: Object,
@@ -72,10 +74,10 @@ const props = defineProps({
 });
 
 const data = ref(props.content)
-console.log(data.value)
 const tokens = ref(0)
 const cacheKey = "img_placeholder_height"
 const item = localStorage.getItem(cacheKey);
+const loading = ref(false)
 const height = ref(0)
 if (item) {
   height.value = parseInt(item)
@@ -88,9 +90,23 @@ if (data.value["image"]?.width > 0) {
 watch(() => props.content, (newVal) => {
   data.value = newVal;
 });
-
+const emits = defineEmits(['disable-input', 'disable-input']);
 const upscale = (index) => {
-  ElMessage.warning("当前版本暂未实现 Variation 功能！")
+  loading.value = true
+  emits('disable-input')
+  httpPost("/api/mj/upscale", {
+    index: index,
+    message_id: data.value?.["message_id"],
+    message_hash: data.value?.["image"]?.hash,
+    session_id: getSessionId(),
+    key: data.value?.["key"]
+  }).then(() => {
+    ElMessage.success("任务推送成功，请耐心等待任务执行...")
+    loading.value = false
+  }).catch(e => {
+    ElMessage.error("任务推送失败：" + e.message)
+    emits('disable-input')
+  })
 }
 
 const variation = (index) => {

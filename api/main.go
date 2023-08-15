@@ -178,6 +178,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
 			s.Engine.POST("/api/mj/notify", h.Notify)
+			s.Engine.POST("/api/mj/upscale", h.Upscale)
 		}),
 
 		// 管理后台控制器

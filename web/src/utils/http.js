@@ -1,5 +1,4 @@
 import axios from 'axios'
-import {getSessionId} from "@/store/session";
 
 axios.defaults.timeout = 10000
 axios.defaults.baseURL = process.env.VUE_APP_API_HOST
@@ -10,7 +9,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json'
 axios.interceptors.request.use(
     config => {
         // set token
-        config.headers['ChatGPT-TOKEN'] = getSessionId();
+        // config.headers['ChatGPT-TOKEN'] = getSessionId();
         return config
     }, error => {
         return Promise.reject(error)
