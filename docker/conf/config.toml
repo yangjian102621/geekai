@@ -4,8 +4,6 @@ MysqlDns = "root:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8mb4&col
 StaticDir = "./static"
 StaticUrl = "http://localhost:5678/static"
 AesEncryptKey = "{YOUR_AES_KEY}"
-StartWechatBot = false
-EnabledMsgService = false
 
 [Session]
   Driver = "cookie"
@@ -38,4 +36,6 @@ EnabledMsgService = false
   Product = "Dysmsapi"
   Domain = "dysmsapi.aliyuncs.com"
 
-
+[ExtConfig]
+  ApiURL = "插件扩展 API 地址"
+  Token = "插件扩展 API Token"

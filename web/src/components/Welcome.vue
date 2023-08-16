@@ -13,7 +13,7 @@
 
             <div class="item-list">
               <ul>
-                <li v-for="item in samples"><a @click="send(item)">{{ item }}</a></li>
+                <li v-for="item in samples" :key="item"><a @click="send(item)">{{ item }}</a></li>
               </ul>
             </div>
           </div>
@@ -27,7 +27,7 @@
 
             <div class="item-list">
               <ul>
-                <li v-for="item in plugins"><a @click="send(item.value)">{{ item.text }}</a></li>
+                <li v-for="item in plugins" :key="item.value"><a @click="send(item.value)">{{ item.text }}</a></li>
               </ul>
             </div>
           </div>
@@ -41,7 +41,10 @@
 
             <div class="item-list">
               <ul>
-                <li v-for="item in capabilities">{{ item }}</li>
+                <li v-for="item in capabilities" :key="item">
+                  <span v-if="item.value === ''">{{ item.text }}</span>
+                  <a @click="send(item.value)" v-else>{{ item.text }}</a>
+                </li>
               </ul>
             </div>
           </div>
@@ -76,9 +79,18 @@ const plugins = ref([
 ])
 
 const capabilities = ref([
-  "轻松扮演翻译专家，程序员，AI 女友，文案高手...",
-  "国产大语言模型支持，GLM2 模型接入中",
-  "Midjourney, Stable Diffusion AI 绘画支持"
+  {
+    text: "轻松扮演翻译专家，程序员，AI 女友，文案高手...",
+    value: ""
+  },
+  {
+    text: "国产大语言模型支持，GLM2 模型接入中",
+    value: ""
+  },
+  {
+    text: "绘画：马斯克开拖拉机，20世纪，中国农村。3:2",
+    value: "绘画：马斯克开拖拉机，20世纪，中国农村。3:2"
+  }
 ])
 
 const emits = defineEmits(['send']);

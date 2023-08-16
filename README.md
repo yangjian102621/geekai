@@ -20,6 +20,8 @@
 
 ![ChatGPT function plugin](docs/imgs/plugin.png)
 
+![ChatGPT function plugin](docs/imgs/mj.jpg)
+
 ### 用户设置
 
 ![ChatGPT user profle](docs/imgs/user_profile.png)
@@ -138,8 +140,6 @@ Listen = "0.0.0.0:5678"
 ProxyURL = ["YOUR_PROXY_URL"] # 替换成你本地代理，如：http://127.0.0.1:7777
 #ProxyURL = "" 如果你的服务器本身就在墙外，那么你直接留空就好了
 MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
-StartWechatBot = false # 是否启动微信机器人，默认关闭，如果设置为 TRUE 则启动服务的时候需要微信扫码登录
-EnabledMsgService = false # 注册时是否开启短信验证功能，该功能需要配合短信服务一起使用
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
@@ -155,7 +155,7 @@ EnabledMsgService = false # 注册时是否开启短信验证功能，该功能�
   Username = "admin"
   Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
   
-[ApiConfig] # 插件 API 服务配置，此为第三方插件服务，如需使用请联系作者开通
+[ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
   ApiURL = "{URL}"
   AppId = "{APP_ID}"
   Token = "{TOKEN}"
@@ -166,7 +166,13 @@ EnabledMsgService = false # 注册时是否开启短信验证功能，该功能�
   Product = "Dysmsapi"
   Domain = "dysmsapi.aliyuncs.com"
 
+[ExtConfig] # MidJourney和微信机器人服务 API 配置，开通此功能需要配合 chatpgt-plus-exts 项目部署
+  ApiURL = "插件扩展 API 地址"
+  Token = "插件扩展 API Token" # 这个 token 随便填，只要确保跟 chatgpt-plus-exts 项目的 token 一样就行 
 ```
+
+> 如果要启用微信收款服务和 MidJourney
+> 绘画功能，请先部署扩展服务项目 [chatgpt-plus-exts](https://github.com/yangjian102621/chatgpt-plus-exts)。
 
 修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
 
@@ -284,7 +290,6 @@ make clean linux
 ## 参与贡献
 
 个人的力量始终有限，任何形式的贡献都是欢迎的，包括但不限于贡献代码，优化文档，提交 issue 和 PR 等。
-**尤其是新版本的开发计划比较大，包括各种语言的后端 API 实现，本人精力有限，希望借助社区的力量来完成这些 API 的开发。**
 
 如果有兴趣的话，也可以加微信进入微信讨论群（**添加好友时请注明来自Github!!!**）。
 
