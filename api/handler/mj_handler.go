@@ -109,6 +109,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		job.UserId = task.UserId
 		job.ChatId = task.ChatId
 		job.MessageId = data.MessageId
+		job.ReferenceId = data.ReferenceId
 		job.Content = data.Content
 		job.Prompt = data.Prompt
 		job.Image = utils.JsonEncode(data.Image)

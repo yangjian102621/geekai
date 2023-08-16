@@ -93,6 +93,7 @@ type SystemConfig struct {
 	AdminTitle        string   `json:"admin_title"`
 	Models            []string `json:"models"`
 	UserInitCalls     int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
+	InitImgCalls      int      `json:"init_img_calls"`
 	EnabledRegister   bool     `json:"enabled_register"`
 	EnabledMsgService bool     `json:"enabled_msg_service"`
 }

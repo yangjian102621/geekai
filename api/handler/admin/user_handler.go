@@ -73,6 +73,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		Mobile      string   `json:"mobile"`
 		Nickname    string   `json:"nickname"`
 		Calls       int      `json:"calls"`
+		ImgCalls    int      `json:"img_calls"`
 		ChatRoles   []string `json:"chat_roles"`
 		ExpiredTime string   `json:"expired_time"`
 		Status      bool     `json:"status"`
@@ -91,6 +92,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			"nickname":        data.Nickname,
 			"mobile":          data.Mobile,
 			"calls":           data.Calls,
+			"img_calls":       data.ImgCalls,
 			"status":          data.Status,
 			"chat_roles_json": utils.JsonEncode(data.ChatRoles),
 			"expired_time":    utils.Str2stamp(data.ExpiredTime),

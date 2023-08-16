@@ -9,8 +9,11 @@
         <el-form-item label="控制台标题" prop="admin_title">
           <el-input v-model="system['admin_title']"/>
         </el-form-item>
-        <el-form-item label="注册赠送次数" prop="init_calls">
+        <el-form-item label="赠送对话次数" prop="init_calls">
           <el-input v-model.number="system['user_init_calls']" placeholder="新用户注册赠送对话次数"/>
+        </el-form-item>
+        <el-form-item label="赠送绘图次数" prop="init_calls">
+          <el-input v-model.number="system['init_img_calls']" placeholder="新用户注册赠送绘图次数"/>
         </el-form-item>
         <el-form-item label="短信验证服务" prop="enabled_msg_service">
           <el-switch v-model="system['enabled_msg_service']"/>

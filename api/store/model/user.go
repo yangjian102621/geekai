@@ -10,6 +10,7 @@ type User struct {
 	Salt        string // 密码盐
 	Tokens      int64  // 剩余tokens
 	Calls       int    // 剩余对话次数
+	ImgCalls    int    // 剩余绘图次数
 	ChatConfig  string `gorm:"column:chat_config_json"` // 聊天配置 json
 	ChatRoles   string `gorm:"column:chat_roles_json"`  // 聊天角色
 	ExpiredTime int64  // 账户到期时间
