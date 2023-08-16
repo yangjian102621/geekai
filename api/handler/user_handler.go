@@ -222,6 +222,7 @@ type userProfile struct {
 	Avatar     string           `json:"avatar"`
 	ChatConfig types.ChatConfig `json:"chat_config"`
 	Calls      int              `json:"calls"`
+	ImgCalls   int              `json:"img_calls"`
 	Tokens     int64            `json:"tokens"`
 }
 

@@ -15,7 +15,8 @@
         <el-table-column prop="username" label="用户名"/>
         <el-table-column prop="mobile" label="手机号"/>
         <el-table-column prop="nickname" label="昵称"/>
-        <el-table-column prop="calls" label="提问次数" width="100"/>
+        <el-table-column prop="calls" label="对话次数" width="100"/>
+        <el-table-column prop="img_calls" label="绘图次数" width="100"/>
         <el-table-column label="状态" width="80">
           <template #default="scope">
             <el-tag v-if="scope.row.status" type="success">正常</el-tag>
@@ -79,7 +80,7 @@
         <el-form-item label="手机号：" prop="mobile">
           <el-input v-model="user.mobile" autocomplete="off"/>
         </el-form-item>
-        <el-form-item label="提问次数：" prop="calls">
+        <el-form-item label="对话次数：" prop="calls">
           <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
         </el-form-item>
         <el-form-item label="绘图次数：" prop="img_calls">
