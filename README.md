@@ -46,7 +46,7 @@
 
 ### 7. 体验地址
 
-> 免费体验地址：[https://www.chat-plus.net/chat](https://www.chat-plus.net/chat) <br/>
+> 免费体验地址：[https://ai.r9it.com/chat](https://ai.r9it.com/chat) <br/>
 > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
 
 ## 使用须知
