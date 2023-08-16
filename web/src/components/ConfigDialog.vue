@@ -55,8 +55,11 @@
           <el-slider v-model="form.chat_config.temperature" :max="2" :step="0.1"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
         </el-form-item>
-        <el-form-item label="剩余调用次数">
+        <el-form-item label="剩余对话次数">
           <el-tag>{{ form['calls'] }}</el-tag>
+        </el-form-item>
+        <el-form-item label="剩余绘图次数">
+          <el-tag>{{ form['img_calls'] }}</el-tag>
         </el-form-item>
         <el-form-item label="消耗 Tokens">
           <el-tag type="info">{{ form['tokens'] }}</el-tag>
@@ -81,7 +84,7 @@
 <script setup>
 
 
-import {computed, onMounted, reactive, ref} from "vue"
+import {computed, onMounted, ref} from "vue"
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Plus} from "@element-plus/icons-vue";
