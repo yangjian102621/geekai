@@ -108,7 +108,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 			Model:         h.App.ChatConfig.Model,
 			ApiKey:        "",
 		}),
-		Calls: h.App.SysConfig.UserInitCalls,
+		Calls:    h.App.SysConfig.UserInitCalls,
+		ImgCalls: h.App.SysConfig.InitImgCalls,
 	}
 	res = h.db.Create(&user)
 	if res.Error != nil {

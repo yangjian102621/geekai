@@ -31,4 +31,7 @@ ALTER TABLE `chatgpt_mj_jobs`
 --
 ALTER TABLE `chatgpt_mj_jobs`
     MODIFY `id` int NOT NULL AUTO_INCREMENT;
-COMMIT;
+
+ALTER TABLE `chatgpt_mj_jobs` ADD `reference_id` CHAR(40) NULL DEFAULT NULL COMMENT '引用消息 ID' AFTER `message_id`;
+
+ALTER TABLE `chatgpt_users` ADD `img_calls` INT NOT NULL DEFAULT '0' COMMENT '剩余绘图次数' AFTER `calls`;

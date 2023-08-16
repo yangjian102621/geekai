@@ -82,6 +82,9 @@
         <el-form-item label="提问次数：" prop="calls">
           <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
         </el-form-item>
+        <el-form-item label="绘图次数：" prop="img_calls">
+          <el-input v-model.number="user['img_calls']" autocomplete="off" placeholder="0"/>
+        </el-form-item>
 
         <el-form-item label="有效期：" prop="expired_time">
           <el-date-picker

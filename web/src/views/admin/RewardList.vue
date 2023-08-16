@@ -6,6 +6,7 @@
         <el-table-column prop="username" label="用户名"/>
         <el-table-column prop="tx_id" label="转账单号"/>
         <el-table-column prop="amount" label="转账金额"/>
+        <el-table-column prop="remark" label="备注"/>
 
         <el-table-column label="转账时间">
           <template #default="scope">
@@ -27,11 +28,10 @@
 </template>
 
 <script setup>
-import {reactive, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {ref} from "vue";
+import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
-import {Plus} from "@element-plus/icons-vue";
+import {dateFormat} from "@/utils/libs";
 
 // 变量定义
 const items = ref([])
