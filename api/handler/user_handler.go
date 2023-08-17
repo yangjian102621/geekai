@@ -157,16 +157,12 @@ func (h *UserHandler) Login(c *gin.Context) {
 	user.LastLoginAt = time.Now().Unix()
 	h.db.Model(&user).Updates(user)
 
-	sessionId := utils.RandString(42)
 	err := utils.SetLoginUser(c, user)
 	if err != nil {
 		resp.ERROR(c, "保存会话失败")
 		logger.Error("Error for save session: ", err)
 		return
 	}
-
-	// 记录登录信息在服务端
-	h.App.ChatSession.Put(sessionId, types.ChatSession{ClientIP: c.ClientIP(), UserId: user.Id, Username: data.Username, SessionId: sessionId})
 
 	h.db.Create(&model.UserLoginLog{
 		UserId:       user.Id,
@@ -175,7 +171,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
 	})
 
-	resp.SUCCESS(c, sessionId)
+	resp.SUCCESS(c)
 }
 
 // Logout 注 销

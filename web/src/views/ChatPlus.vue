@@ -534,7 +534,7 @@ const connect = function (chat_id, role_id) {
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
-    
+
   });
 
   _socket.addEventListener('message', event => {
@@ -554,7 +554,7 @@ const connect = function (chat_id, role_id) {
           disableInput(true)
           const content = data.content;
           const md = require('markdown-it')({breaks: true});
-          content.content = md.render(content.content)
+          content.html = md.render(content.content)
           let key = content.key
           // fixed bug: 执行 Upscale 和 Variation 操作的时候覆盖之前的绘画
           if (content.status === "Finished") {
@@ -773,7 +773,7 @@ const loadChatHistory = function (chatId) {
         continue;
       } else if (data[i].type === "mj") {
         data[i].content = JSON.parse(data[i].content)
-        data[i].content.content = md.render(data[i].content?.content)
+        data[i].content.html = md.render(data[i].content?.content)
         chatData.value.push(data[i]);
         continue;
       }

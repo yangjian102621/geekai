@@ -49,9 +49,6 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		logger.Error(err)
 		return
 	}
-	// 设置读写超时时间
-	//_ = ws.SetWriteDeadline(time.Now().Add(300 * time.Second))
-	//_ = ws.SetReadDeadline(time.Now().Add(300 * time.Second))
 
 	sessionId := c.Query("session_id")
 	roleId := h.GetInt(c, "role_id", 0)
@@ -59,14 +56,14 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	chatModel := c.Query("model")
 
 	session := h.App.ChatSession.Get(sessionId)
-	if session.SessionId == "" {
+	if session == nil {
 		user, err := utils.GetLoginUser(c, h.db)
 		if err != nil {
 			logger.Info("用户未登录")
 			c.Abort()
 			return
 		}
-		session = types.ChatSession{
+		session = &types.ChatSession{
 			SessionId: sessionId,
 			ClientIP:  c.ClientIP(),
 			Username:  user.Username,
@@ -137,7 +134,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 }
 
 // 将消息发送给 ChatGPT 并获取结果，通过 WebSocket 推送到客户端
-func (h *ChatHandler) sendMessage(ctx context.Context, session types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
+func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
 
 	var user model.User
