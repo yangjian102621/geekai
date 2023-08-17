@@ -52,7 +52,6 @@ import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {setSessionId} from "@/store/session";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
@@ -78,8 +77,7 @@ const login = function () {
     return ElMessage.error('请输入密码');
   }
 
-  httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
-    setSessionId(res.data)
+  httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then(() => {
     if (isMobile()) {
       router.push('/mobile')
     } else {

@@ -6,7 +6,7 @@ services:
     container_name: chatgpt-plus-go
     restart: always
     environment:
-      - DEBUG=false
+      - LOG_LEVEL=info
       - CONFIG_FILE=config.toml
     ports:
       - "5678:5678"

@@ -67,7 +67,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		return
 	}
 
-	logger.Infof("收到 MidJourney 回调请求：%+v", data)
+	logger.Debugf("收到 MidJourney 回调请求：%+v", data)
 
 	// the job is saved
 	var job model.MidJourneyJob

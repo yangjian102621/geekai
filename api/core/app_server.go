@@ -30,7 +30,7 @@ type AppServer struct {
 
 	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
-	ChatSession   *types.LMap[string, types.ChatSession]  //map[sessionId]UserId
+	ChatSession   *types.LMap[string, *types.ChatSession] //map[sessionId]UserId
 	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	Functions     map[string]function.Function
@@ -45,7 +45,7 @@ func NewServer(appConfig *types.AppConfig, functions map[string]function.Functio
 		Config:        appConfig,
 		Engine:        gin.Default(),
 		ChatContexts:  types.NewLMap[string, []interface{}](),
-		ChatSession:   types.NewLMap[string, types.ChatSession](),
+		ChatSession:   types.NewLMap[string, *types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
 		MjTaskClients: types.NewLMap[string, *types.WsClient](),
@@ -151,7 +151,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, Chat-Token")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间

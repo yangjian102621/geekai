@@ -7,7 +7,7 @@
 
       <div class="chat-item">
         <div class="content">
-          <div class="text" v-html="data.content"></div>
+          <div class="text" v-html="data.html"></div>
           <div class="images" v-if="data.image?.url !== ''">
             <el-image :src="data.image?.url"
                       :zoom-rate="1.0"
@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <div class="opt" v-if="!data['reference_id'] &&data.image?.hash !== ''">
+        <div class="opt" v-if="data.showOpt &&data.image?.hash !== ''">
           <div class="opt-line">
             <ul>
               <li><a @click="upscale(1)">U1</a></li>
@@ -86,6 +86,8 @@ if (data.value["image"]?.width > 0) {
   height.value = 350 * data.value["image"]?.height / data.value["image"]?.width
   localStorage.setItem(cacheKey, height.value)
 }
+data.value["showOpt"] = data.value["content"]?.indexOf("- Image #") === -1;
+// console.log(data.value)
 
 watch(() => props.content, (newVal) => {
   data.value = newVal;
