@@ -22,7 +22,7 @@
               <template #error>
                 <div class="image-slot">
                   <el-icon>
-                    <icon-picture/>
+                    <Picture/>
                   </el-icon>
                 </div>
               </template>
@@ -62,7 +62,7 @@
 
 <script setup>
 import {ref, watch} from "vue";
-import {Clock} from "@element-plus/icons-vue";
+import {Clock, Picture} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
 import {getSessionId} from "@/store/session";

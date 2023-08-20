@@ -8,6 +8,7 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -38,10 +39,20 @@ type MidJourneyHandler struct {
 	leveldb *store.LevelDB
 	db      *gorm.DB
 	mjFunc  function.FuncMidJourney
+	//minio   *service.MinioService
 }
 
-func NewMidJourneyHandler(app *core.AppServer, leveldb *store.LevelDB, db *gorm.DB, functions map[string]function.Function) *MidJourneyHandler {
-	h := MidJourneyHandler{leveldb: leveldb, db: db, mjFunc: functions[types.FuncMidJourney].(function.FuncMidJourney)}
+func NewMidJourneyHandler(
+	app *core.AppServer,
+	leveldb *store.LevelDB,
+	db *gorm.DB,
+	//minio *service.MinioService,
+	functions map[string]function.Function) *MidJourneyHandler {
+	h := MidJourneyHandler{
+		leveldb: leveldb,
+		db:      db,
+		//minio:   minio,
+		mjFunc: functions[types.FuncMidJourney].(function.FuncMidJourney)}
 	h.App = app
 	return &h
 }
@@ -87,9 +98,22 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 			resp.SUCCESS(c)
 			return
 		}
+		// TODO: 下载本地或者 OSS，提供可配置的选项
+		// 下载图片到本地服务器
+		filePath, err := utils.GenUploadPath(h.App.Config.StaticDir, data.Image.Filename)
+		if err != nil {
+			logger.Error("error with generate image dir: ", err)
+			resp.SUCCESS(c)
+			return
+		}
+		err = utils.DownloadFile(data.Image.URL, filePath, h.App.Config.ProxyURL)
+		if err != nil {
+			logger.Error("error with download image: ", err)
+			resp.SUCCESS(c)
+			return
+		}
 
-		// TODO: 是否需要把图片下载到本地服务器？
-
+		data.Image.URL = utils.GenUploadUrl(h.App.Config.StaticDir, h.App.Config.StaticUrl, filePath)
 		message := model.HistoryMessage{
 			UserId:     task.UserId,
 			ChatId:     task.ChatId,
@@ -135,6 +159,13 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		// delete client
 		h.App.MjTaskClients.Delete(data.Key)
 	} else {
+		// 使用代理临时转发图片
+		if data.Image.URL != "" {
+			image, err := utils.DownloadImage(data.Image.URL, h.App.Config.ProxyURL)
+			if err == nil {
+				data.Image.URL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+			}
+		}
 		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
 	}
 	resp.SUCCESS(c, "SUCCESS")

@@ -4,6 +4,9 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/url"
 )
 
 var logger = logger2.GetLogger()
@@ -26,4 +29,35 @@ func ReplyMessage(ws *types.WsClient, message interface{}) {
 	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: message})
 	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsEnd})
+}
+
+func DownloadImage(imageURL string, proxy string) ([]byte, error) {
+	var client *http.Client
+	if proxy == "" {
+		client = http.DefaultClient
+	} else {
+		proxyURL, _ := url.Parse(proxy)
+		client = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURL),
+			},
+		}
+	}
+	req, err := http.NewRequest("GET", imageURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	imageBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return imageBytes, nil
 }

@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
+	"chatplus/core"
 	"chatplus/core/types"
-	"chatplus/store/model"
-	"chatplus/store/vo"
+	"chatplus/service"
 	"chatplus/utils"
 	"context"
 	"encoding/json"
@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	fmt.Println(utils.RandString(32))
+	minio()
 }
 
 // Http client 取消操作
@@ -89,37 +89,6 @@ func testIp2Region() {
 	}
 	arr := strings.Split(str, "|")
 	fmt.Println(arr[2], arr[3], arr[4])
-
-}
-
-func testJson() {
-
-	var role = model.ChatRole{
-		Key:      "programmer",
-		Name:     "程序员",
-		Context:  "[{\"role\":\"user\",\"content\":\"现在开始你扮演一位程序员，你是一名优秀的程序员，具有很强的逻辑思维能力，总能高效的解决问题。你热爱编程，熟悉多种编程语言，尤其精通 Go 语言，注重代码质量，有创新意识，持续学习，良好的沟通协作。\"},{\"role\"\n:\"assistant\",\"content\":\"好的，现在我将扮演一位程序员，非常感谢您对我的评价。作为一名优秀的程序员，我非常热爱编程，并且注重代码质量。我熟悉多种编程语言，尤其是 Go 语言，可以使用它来高效地解决各种问题。\"}]",
-		HelloMsg: "Talk is cheap, i will show code!",
-		Icon:     "images/avatar/programmer.jpg",
-		Enable:   true,
-		Sort:     1,
-	}
-	role.Id = 1
-	var v vo.ChatRole
-
-	err := utils.CopyObject(role, &v)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("%+v\n", v.Id)
-
-	//var v2 = model.ChatRoles{}
-	//err = utils.CopyObject(v, &v2)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//fmt.Printf("%+v\n", v2.Id)
 
 }
 
@@ -200,4 +169,28 @@ func extractFunction() error {
 	fmt.Println("函数名称: ", functionName)
 	fmt.Println(strings.Join(contents, ""))
 	return err
+}
+
+func minio() {
+	config := core.NewDefaultConfig()
+	config.ProxyURL = "http://localhost:7777"
+	config.MinioConfig = types.MinioConfig{
+		Endpoint:     "localhost:9010",
+		AccessKey:    "ObWIEyXaQUHOYU26L0oI",
+		AccessSecret: "AJW3HHhlGrprfPcmiC7jSOSzVCyrlhX4AnOAUzqI",
+		Bucket:       "chatgpt-plus",
+		UseSSL:       false,
+		Domain:       "http://localhost:9010",
+	}
+	minioService, err := service.NewMinioService(config)
+	if err != nil {
+		panic(err)
+	}
+
+	url, err := minioService.UploadMjImg("https://cdn.discordapp.com/attachments/1139552247693443184/1141619433752768572/lisamiller4099_A_beautiful_fairy_sister_from_Chinese_mythology__3162726e-5ee4-4f60-932b-6b78b375eaef.png")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(url)
 }
