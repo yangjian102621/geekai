@@ -22,7 +22,7 @@ func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderMan
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {
-	fileURL, err := h.uploaderManager.GetActiveService().PutFile(c)
+	fileURL, err := h.uploaderManager.GetActiveService().PutFile(c, "file")
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("文件上传失败: %s", err.Error()))
 		return

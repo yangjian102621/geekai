@@ -35,6 +35,13 @@ func NewDefaultConfig() *types.AppConfig {
 		},
 		ApiConfig: types.ChatPlusApiConfig{},
 		ExtConfig: types.ChatPlusExtConfig{Token: utils.RandString(32)},
+		OSS: types.OSSConfig{
+			Active: "local",
+			Local: types.LocalStorageConfig{
+				BaseURL:  "http://localhost/5678/static/upload",
+				BasePath: "./static/upload",
+			},
+		},
 	}
 }
 
