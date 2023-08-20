@@ -4,6 +4,7 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/service/function"
+	"chatplus/service/oss"
 	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/utils"
@@ -36,23 +37,23 @@ type Image struct {
 
 type MidJourneyHandler struct {
 	BaseHandler
-	leveldb *store.LevelDB
-	db      *gorm.DB
-	mjFunc  function.FuncMidJourney
-	//minio   *service.MinioService
+	leveldb         *store.LevelDB
+	db              *gorm.DB
+	mjFunc          function.FuncMidJourney
+	uploaderManager *oss.UploaderManager
 }
 
 func NewMidJourneyHandler(
 	app *core.AppServer,
 	leveldb *store.LevelDB,
 	db *gorm.DB,
-	//minio *service.MinioService,
+	manager *oss.UploaderManager,
 	functions map[string]function.Function) *MidJourneyHandler {
 	h := MidJourneyHandler{
-		leveldb: leveldb,
-		db:      db,
-		//minio:   minio,
-		mjFunc: functions[types.FuncMidJourney].(function.FuncMidJourney)}
+		leveldb:         leveldb,
+		db:              db,
+		uploaderManager: manager,
+		mjFunc:          functions[types.FuncMidJourney].(function.FuncMidJourney)}
 	h.App = app
 	return &h
 }
@@ -98,22 +99,15 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 			resp.SUCCESS(c)
 			return
 		}
-		// TODO: 下载本地或者 OSS，提供可配置的选项
-		// 下载图片到本地服务器
-		filePath, err := utils.GenUploadPath(h.App.Config.StaticDir, data.Image.Filename)
-		if err != nil {
-			logger.Error("error with generate image dir: ", err)
-			resp.SUCCESS(c)
-			return
-		}
-		err = utils.DownloadFile(data.Image.URL, filePath, h.App.Config.ProxyURL)
+		// download image
+		imgURL, err := h.uploaderManager.GetActiveService().PutImg(data.Image.URL)
 		if err != nil {
 			logger.Error("error with download image: ", err)
 			resp.SUCCESS(c)
 			return
 		}
 
-		data.Image.URL = utils.GenUploadUrl(h.App.Config.StaticDir, h.App.Config.StaticUrl, filePath)
+		data.Image.URL = imgURL
 		message := model.HistoryMessage{
 			UserId:     task.UserId,
 			ChatId:     task.ChatId,
