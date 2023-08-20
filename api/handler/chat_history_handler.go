@@ -6,6 +6,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -75,19 +76,30 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 		resp.ERROR(c, "No chats found")
 		return
 	}
-	// 清空聊天记录
+
+	var chatIds = make([]string, 0)
 	for _, chat := range chats {
-		err := h.db.Where("chat_id = ? AND user_id = ?", chat.ChatId, user.Id).Delete(&model.HistoryMessage{})
-		if err != nil {
-			logger.Warnf("Failed to delele chat history for ChatID: %s", chat.ChatId)
-		}
+		chatIds = append(chatIds, chat.ChatId)
 		// 清空会话上下文
 		h.App.ChatContexts.Delete(chat.ChatId)
 	}
+	err = h.db.Transaction(func(tx *gorm.DB) error {
+		res := h.db.Where("user_id =?", user.Id).Delete(&model.ChatItem{})
+		if res.Error != nil {
+			return res.Error
+		}
 
-	// 删除所有的会话记录
-	res = h.db.Where("user_id = ?", user.Id).Delete(&model.ChatItem{})
-	if res.Error != nil {
+		res = h.db.Where("user_id = ? AND chat_id IN ?", user.Id, chatIds).Delete(&model.HistoryMessage{})
+		if res.Error != nil {
+			return res.Error
+		}
+
+		// TODO: 是否要删除 MidJourney 绘画记录和图片文件？
+		return nil
+	})
+
+	if err != nil {
+		logger.Errorf("Error with delete chats: %+v", err)
 		resp.ERROR(c, "Failed to remove chat from database.")
 		return
 	}
