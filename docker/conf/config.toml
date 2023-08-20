@@ -39,3 +39,16 @@ AesEncryptKey = "{YOUR_AES_KEY}"
 [ExtConfig]
   ApiURL = "插件扩展 API 地址"
   Token = "插件扩展 API Token"
+
+[OSS]
+   Active = "local"
+   [OSS.Local]
+     BasePath = "./static/upload"
+     BaseURL = "http://localhost:5678/static/upload"
+   [OSS.Minio]
+     Endpoint = "IP:端口"
+     AccessKey = "minio oss access key"
+     AccessSecret = "minio oss access secret"
+     Bucket = "chatgpt-plus"
+     UseSSL = false
+     Domain = "minio 文件公开访问地址"
