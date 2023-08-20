@@ -66,6 +66,15 @@ func (h *ChatHandler) Remove(c *gin.Context) {
 		return
 	}
 
+	// 删除当前会话的聊天记录
+	res = h.db.Where("user_id = ? AND chat_id =?", user.Id, chatId).Delete(&model.ChatItem{})
+	if res.Error != nil {
+		resp.ERROR(c, "Failed to remove chat from database.")
+		return
+	}
+
+	// TODO: 是否要删除 MidJourney 绘画记录和图片文件？
+
 	// 清空会话上下文
 	h.App.ChatContexts.Delete(chatId)
 	resp.SUCCESS(c, types.OkMsg)
