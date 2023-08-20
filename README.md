@@ -169,6 +169,19 @@ MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&pars
 [ExtConfig] # MidJourney和微信机器人服务 API 配置，开通此功能需要配合 chatpgt-plus-exts 项目部署
   ApiURL = "插件扩展 API 地址"
   Token = "插件扩展 API Token" # 这个 token 随便填，只要确保跟 chatgpt-plus-exts 项目的 token 一样就行 
+  
+[OSS] # OSS 配置，用于存储 MJ 绘画图片
+   Active = "local" # 默认使用本地文件存储
+   [OSS.Local]
+     BasePath = "./static/upload" # 本地文件上传根路径
+     BaseURL = "http://localhost:5678/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
+   [OSS.Minio]
+     Endpoint = "IP:端口" # 如 172.22.11.200:9000
+     AccessKey = "minio oss access key" # 自己去 Minio 控制台去创建一个 Access Key
+     AccessSecret = "minio oss access secret"
+     Bucket = "chatgpt-plus" # 替换为你自己创建的 Bucket，注意要给 Bucket 设置公开的读权限，否则会出现图片无法显示。
+     UseSSL = false
+     Domain = "minio 文件公开访问地址" # 地址必须是能够通过公网访问的，否则会出现图片无法显示。
 ```
 
 > 如果要启用微信收款服务和 MidJourney
