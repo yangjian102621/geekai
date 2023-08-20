@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -44,6 +45,30 @@ func (h *ChatHandler) List(c *gin.Context) {
 
 	}
 	resp.SUCCESS(c, items)
+}
+
+// Remove 删除会话
+func (h *ChatHandler) Remove(c *gin.Context) {
+	chatId := h.GetTrim(c, "chat_id")
+	if chatId == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	res := h.db.Where("user_id = ? AND chat_id = ?", user.Id, chatId).Delete(&model.ChatItem{})
+	if res.Error != nil {
+		resp.ERROR(c, "Failed to update database")
+		return
+	}
+
+	// 清空会话上下文
+	h.App.ChatContexts.Delete(chatId)
+	resp.SUCCESS(c, types.OkMsg)
 }
 
 func (h *ChatHandler) Detail(c *gin.Context) {

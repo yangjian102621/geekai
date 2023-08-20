@@ -31,30 +31,6 @@ func (h *ChatHandler) Update(c *gin.Context) {
 	resp.SUCCESS(c, types.OkMsg)
 }
 
-// Remove 删除会话
-func (h *ChatHandler) Remove(c *gin.Context) {
-	chatId := h.GetTrim(c, "chat_id")
-	if chatId == "" {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-	user, err := utils.GetLoginUser(c, h.db)
-	if err != nil {
-		resp.NotAuth(c)
-		return
-	}
-
-	res := h.db.Where("user_id = ? AND chat_id = ?", user.Id, chatId).Delete(&model.ChatItem{})
-	if res.Error != nil {
-		resp.ERROR(c, "Failed to update database")
-		return
-	}
-
-	// 清空会话上下文
-	h.App.ChatContexts.Delete(chatId)
-	resp.SUCCESS(c, types.OkMsg)
-}
-
 // History 获取聊天历史记录
 func (h *ChatHandler) History(c *gin.Context) {
 	chatId := c.Query("chat_id") // 会话 ID
@@ -108,6 +84,7 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 		// 清空会话上下文
 		h.App.ChatContexts.Delete(chat.ChatId)
 	}
+
 	// 删除所有的会话记录
 	res = h.db.Where("user_id = ?", user.Id).Delete(&model.ChatItem{})
 	if res.Error != nil {

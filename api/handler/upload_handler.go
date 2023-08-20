@@ -2,13 +2,11 @@ package handler
 
 import (
 	"chatplus/core"
+	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 type UploadHandler struct {
@@ -29,7 +27,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	filePath, err := h.genFilePath(file.Filename)
+	filePath, err := utils.GenUploadPath(h.App.Config.StaticDir, file.Filename)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("文件上传失败: %s", err.Error()))
 		return
@@ -41,27 +39,5 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	resp.SUCCESS(c, h.genFileUrl(filePath))
-}
-
-// 生成上传文件路径
-func (h *UploadHandler) genFilePath(filename string) (string, error) {
-	now := time.Now()
-	dir := fmt.Sprintf("%s/upload/%d/%d", h.App.Config.StaticDir, now.Year(), now.Month())
-	_, err := os.Stat(dir)
-	if err != nil {
-		err = os.MkdirAll(dir, 0755)
-		if err != nil {
-			return "", fmt.Errorf("创建上传目录失败：%s", err)
-		}
-	}
-	fileExt := filepath.Ext(filename)
-	return fmt.Sprintf("%s/%d%s", dir, now.UnixMilli(), fileExt), nil
-}
-
-// 生成上传文件 URL
-func (h *UploadHandler) genFileUrl(filePath string) string {
-	now := time.Now()
-	filename := filepath.Base(filePath)
-	return fmt.Sprintf("%s/upload/%d/%d/%s", h.App.Config.StaticUrl, now.Year(), now.Month(), filename)
+	resp.SUCCESS(c, utils.GenUploadUrl(h.App.Config.StaticDir, h.App.Config.StaticUrl, filePath))
 }
