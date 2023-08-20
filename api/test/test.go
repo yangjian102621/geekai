@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"chatplus/core"
 	"chatplus/core/types"
-	"chatplus/service"
+	"chatplus/service/oss"
 	"chatplus/utils"
 	"context"
 	"encoding/json"
@@ -15,12 +15,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
 func main() {
-	minio()
+	imageURL := "https://cdn.discordapp.com/attachments/1139552247693443184/1141619433752768572/lisamiller4099_A_beautiful_fairy_sister_from_Chinese_mythology__3162726e-5ee4-4f60-932b-6b78b375eaef.png"
+
+	fmt.Println(filepath.Ext(filepath.Base(imageURL)))
 }
 
 // Http client 取消操作
@@ -174,7 +177,7 @@ func extractFunction() error {
 func minio() {
 	config := core.NewDefaultConfig()
 	config.ProxyURL = "http://localhost:7777"
-	config.MinioConfig = types.MinioConfig{
+	config.OSS.Minio = types.MinioConfig{
 		Endpoint:     "localhost:9010",
 		AccessKey:    "ObWIEyXaQUHOYU26L0oI",
 		AccessSecret: "AJW3HHhlGrprfPcmiC7jSOSzVCyrlhX4AnOAUzqI",
@@ -182,12 +185,12 @@ func minio() {
 		UseSSL:       false,
 		Domain:       "http://localhost:9010",
 	}
-	minioService, err := service.NewMinioService(config)
+	minioService, err := oss.NewMinioService(config)
 	if err != nil {
 		panic(err)
 	}
 
-	url, err := minioService.UploadMjImg("https://cdn.discordapp.com/attachments/1139552247693443184/1141619433752768572/lisamiller4099_A_beautiful_fairy_sister_from_Chinese_mythology__3162726e-5ee4-4f60-932b-6b78b375eaef.png")
+	url, err := minioService.PutImg("https://cdn.discordapp.com/attachments/1139552247693443184/1141619433752768572/lisamiller4099_A_beautiful_fairy_sister_from_Chinese_mythology__3162726e-5ee4-4f60-932b-6b78b375eaef.png")
 	if err != nil {
 		panic(err)
 	}

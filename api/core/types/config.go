@@ -19,7 +19,8 @@ type AppConfig struct {
 	AesEncryptKey string
 	SmsConfig     AliYunSmsConfig   // AliYun send message service config
 	ExtConfig     ChatPlusExtConfig // ChatPlus extensions callback api config
-	MinioConfig   MinioConfig
+
+	OSS OSSConfig // OSS config
 }
 
 type ChatPlusApiConfig struct {
@@ -40,6 +41,11 @@ type AliYunSmsConfig struct {
 	Domain       string
 }
 
+type OSSConfig struct {
+	Active string
+	Local  LocalStorageConfig
+	Minio  MinioConfig
+}
 type MinioConfig struct {
 	Endpoint     string
 	AccessKey    string
@@ -47,6 +53,11 @@ type MinioConfig struct {
 	Bucket       string
 	UseSSL       bool
 	Domain       string
+}
+
+type LocalStorageConfig struct {
+	BasePath string
+	BaseURL  string
 }
 
 type RedisConfig struct {

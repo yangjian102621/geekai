@@ -23,7 +23,7 @@ func GenUploadPath(basePath, filename string) (string, error) {
 		}
 	}
 	fileExt := filepath.Ext(filename)
-	return fmt.Sprintf("%s/%d%s", dir, now.UnixMilli(), fileExt), nil
+	return fmt.Sprintf("%s/%d%s", dir, now.UnixNano(), fileExt), nil
 }
 
 // GenUploadUrl 生成上传文件 URL

@@ -8,6 +8,7 @@ import (
 	logger2 "chatplus/logger"
 	"chatplus/service"
 	"chatplus/service/function"
+	"chatplus/service/oss"
 	"chatplus/store"
 	"context"
 	"embed"
@@ -129,6 +130,7 @@ func main() {
 		fx.Provide(func(config *types.AppConfig) *service.CaptchaService {
 			return service.NewCaptchaService(config.ApiConfig)
 		}),
+		fx.Provide(oss.NewUploaderManager),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
