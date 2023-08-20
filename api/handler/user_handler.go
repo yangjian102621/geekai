@@ -3,6 +3,7 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service/oss"
 	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -20,13 +21,19 @@ import (
 
 type UserHandler struct {
 	BaseHandler
-	db       *gorm.DB
-	searcher *xdb.Searcher
-	leveldb  *store.LevelDB
+	db            *gorm.DB
+	searcher      *xdb.Searcher
+	leveldb       *store.LevelDB
+	uploadManager *oss.UploaderManager
 }
 
-func NewUserHandler(app *core.AppServer, db *gorm.DB, searcher *xdb.Searcher, levelDB *store.LevelDB) *UserHandler {
-	handler := &UserHandler{db: db, searcher: searcher, leveldb: levelDB}
+func NewUserHandler(
+	app *core.AppServer,
+	db *gorm.DB,
+	searcher *xdb.Searcher,
+	levelDB *store.LevelDB,
+	manager *oss.UploaderManager) *UserHandler {
+	handler := &UserHandler{db: db, searcher: searcher, leveldb: levelDB, uploadManager: manager}
 	handler.App = app
 	return handler
 }
@@ -256,6 +263,7 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 	}
 	h.db.First(&user, user.Id)
 	user.Nickname = data.Nickname
+	oldAvatar := user.Avatar
 	user.Avatar = data.Avatar
 
 	var chatConfig types.ChatConfig
@@ -277,6 +285,14 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 	if res.Error != nil {
 		resp.ERROR(c, "更新用户信息失败")
 		return
+	}
+
+	// remove the old avatar image file
+	if oldAvatar != data.Avatar {
+		err = h.uploadManager.GetActiveService().Delete(oldAvatar)
+		if err != nil {
+			logger.Error("error with delete image: ", err)
+		}
 	}
 	resp.SUCCESS(c)
 }

@@ -5,7 +5,9 @@ import (
 	"chatplus/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"os"
 	"path/filepath"
+	"strings"
 )
 
 type LocalStorageService struct {
@@ -20,8 +22,8 @@ func NewLocalStorageService(config *types.AppConfig) LocalStorageService {
 	}
 }
 
-func (s LocalStorageService) PutFile(ctx *gin.Context) (string, error) {
-	file, err := ctx.FormFile("file")
+func (s LocalStorageService) PutFile(ctx *gin.Context, name string) (string, error) {
+	file, err := ctx.FormFile(name)
 	if err != nil {
 		return "", fmt.Errorf("error with get form: %v", err)
 	}
@@ -52,6 +54,11 @@ func (s LocalStorageService) PutImg(imageURL string) (string, error) {
 	}
 
 	return utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, filePath), nil
+}
+
+func (s LocalStorageService) Delete(fileURL string) error {
+	filePath := strings.Replace(fileURL, s.config.BaseURL, s.config.BasePath, 1)
+	return os.Remove(filePath)
 }
 
 var _ Uploader = LocalStorageService{}

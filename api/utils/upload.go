@@ -14,16 +14,16 @@ import (
 // GenUploadPath 生成上传文件路径
 func GenUploadPath(basePath, filename string) (string, error) {
 	now := time.Now()
-	dir := fmt.Sprintf("%s/upload/%d/%d", basePath, now.Year(), now.Month())
+	dir := fmt.Sprintf("%s/%d/%d", basePath, now.Year(), now.Month())
 	_, err := os.Stat(dir)
 	if err != nil {
 		err = os.MkdirAll(dir, 0755)
 		if err != nil {
-			return "", fmt.Errorf("创建上传目录失败：%s", err)
+			return "", fmt.Errorf("error with create upload dir：%v", err)
 		}
 	}
 	fileExt := filepath.Ext(filename)
-	return fmt.Sprintf("%s/%d%s", dir, now.UnixNano(), fileExt), nil
+	return fmt.Sprintf("%s/%d%s", dir, now.UnixMicro(), fileExt), nil
 }
 
 // GenUploadUrl 生成上传文件 URL

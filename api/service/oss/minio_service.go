@@ -37,7 +37,7 @@ func (s MinioService) PutImg(imageURL string) (string, error) {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}
 	fileExt := filepath.Ext(filepath.Base(imageURL))
-	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(
 		context.Background(),
 		s.config.Bucket,
@@ -51,8 +51,8 @@ func (s MinioService) PutImg(imageURL string) (string, error) {
 	return fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key), nil
 }
 
-func (s MinioService) PutFile(ctx *gin.Context) (string, error) {
-	file, err := ctx.FormFile("file")
+func (s MinioService) PutFile(ctx *gin.Context, name string) (string, error) {
+	file, err := ctx.FormFile(name)
 	if err != nil {
 		return "", fmt.Errorf("error with get form: %v", err)
 	}
@@ -64,7 +64,7 @@ func (s MinioService) PutFile(ctx *gin.Context) (string, error) {
 	defer fileReader.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(ctx, s.config.Bucket, filename, fileReader, file.Size, minio.PutObjectOptions{
 		ContentType: file.Header.Get("Content-Type"),
 	})
@@ -73,6 +73,11 @@ func (s MinioService) PutFile(ctx *gin.Context) (string, error) {
 	}
 
 	return fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key), nil
+}
+
+func (s MinioService) Delete(fileURL string) error {
+	objectName := filepath.Base(fileURL)
+	return s.client.RemoveObject(context.Background(), s.config.Bucket, objectName, minio.RemoveObjectOptions{})
 }
 
 var _ Uploader = MinioService{}
