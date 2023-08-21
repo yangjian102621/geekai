@@ -158,7 +158,7 @@ setMenuItems(items)
     .el-image {
       width 30px;
       height 30px;
-      padding-top 5px;
+      padding-top 8px;
       border-radius 100%
 
       .el-image__inner {

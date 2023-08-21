@@ -12,7 +12,7 @@
             <el-image :src="data.image?.url"
                       :zoom-rate="1.0"
                       :preview-src-list="[data.image?.url]"
-                      :initial-index="0" lazy>
+                      :initial-index="0" loading="lazy">
               <template #placeholder>
                 <div class="image-slot"
                      :style="{height: height+'px', lineHeight:height+'px'}">

@@ -62,7 +62,7 @@
     <el-dialog
         v-model="showDialog"
         :show-close="true"
-        custom-class="donate-dialog"
+        class="donate-dialog"
         width="400px"
         title="请作者喝杯咖啡"
     >
