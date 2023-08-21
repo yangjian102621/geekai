@@ -333,8 +333,7 @@ onMounted(() => {
       // 创建新的会话
       newChat();
     }).catch((e) => {
-      console.log(e)
-      ElMessage.error('获取聊天角色失败')
+      ElMessage.error('获取聊天角色失败: ' + e.messages)
     })
 
     // 加载系统配置
@@ -344,8 +343,7 @@ onMounted(() => {
     }).catch(e => {
       ElMessage.error("加载系统配置失败: " + e.message)
     })
-  }).catch((e) => {
-    console.log(e)
+  }).catch(() => {
     router.push('login')
   });
 
@@ -566,7 +564,6 @@ const connect = function (chat_id, role_id) {
           let flag = false
           for (let i = 0; i < chatData.value.length; i++) {
             if (chatData.value[i].id === content.key) {
-              console.log(chatData.value[i])
               flag = true
               chatData.value[i].content = content
               chatData.value[i].id = key

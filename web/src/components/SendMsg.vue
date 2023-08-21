@@ -53,7 +53,6 @@ const handleRequestCaptCode = () => {
 
   httpGet('/api/captcha/get').then(res => {
     const data = res.data
-    console.log(res)
     imageBase64.value = data.image
     thumbBase64.value = data.thumb
     captKey.value = data.key
