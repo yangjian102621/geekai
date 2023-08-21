@@ -44,3 +44,16 @@ checkAdminSession().then(() => {
 @import '@/assets/css/color-dark.css';
 @import '@/assets/iconfont/iconfont.css';
 </style>
+
+<style lang="stylus">
+.el-overlay-dialog {
+  display flex
+  justify-content center
+  align-items center
+
+  .el-dialog {
+    margin 10px;
+  }
+}
+
+</style>

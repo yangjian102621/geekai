@@ -231,9 +231,7 @@
     <el-dialog
         v-model="showRewardDialog"
         :show-close="true"
-        custom-class="donate-dialog"
         width="400px"
-        top="5vh"
         title="参与众筹"
     >
       <el-alert type="info" :closable="false">
@@ -989,31 +987,28 @@ $borderColor = #4676d0;
           width 100%
           padding-top 10px;
 
-          .el-tooltip__trigger {
+          .el-dropdown-link {
             width 100%;
+            cursor: pointer
+            display flex
 
-            .el-dropdown-link {
-              cursor: pointer
+            .el-image {
+              width: 20px;
+              height: 20px;
+              border-radius: 5px;
+            }
+
+            .username {
               display flex
+              line-height 22px;
+              width 230px;
+              padding-left 10px;
 
-              .el-image {
-                width: 20px;
-                height: 20px;
-                border-radius: 5px;
-              }
+            }
 
-              .username {
-                display flex
-                line-height 22px;
-                width 230px;
-                padding-left 10px;
-
-              }
-
-              .el-icon {
-                color: #cccccc;
-                line-height 24px;
-              }
+            .el-icon {
+              color: #cccccc;
+              line-height 24px;
             }
           }
 
@@ -1218,4 +1213,17 @@ $borderColor = #4676d0;
     }
   }
 }
+</style>
+
+<style lang="stylus">
+.el-overlay-dialog {
+  display flex
+  justify-content center
+  align-items center
+
+  .el-dialog {
+    margin 10px;
+  }
+}
+
 </style>
