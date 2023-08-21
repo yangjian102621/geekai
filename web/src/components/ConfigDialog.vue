@@ -120,7 +120,7 @@ onMounted(() => {
 })
 
 const afterRead = (file) => {
-  console.log(file)
+  // console.log(file)
   // 压缩图片并上传
   new Compressor(file.file, {
     quality: 0.6,
@@ -132,8 +132,7 @@ const afterRead = (file) => {
         form.value.avatar = res.data
         ElMessage.success('上传成功')
       }).catch((e) => {
-        console.log(e.message)
-        ElMessage.error('上传失败')
+        ElMessage.error('上传失败:' + e.message)
       })
     },
     error(err) {
