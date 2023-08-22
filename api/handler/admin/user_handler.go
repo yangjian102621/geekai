@@ -204,7 +204,7 @@ func (h *UserHandler) LoginLog(c *gin.Context) {
 	h.db.Model(&model.UserLoginLog{}).Count(&total)
 	offset := (page - 1) * pageSize
 	var items []model.UserLoginLog
-	res := h.db.Offset(offset).Limit(pageSize).Find(&items)
+	res := h.db.Offset(offset).Limit(pageSize).Order("id DESC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "获取数据失败")
 		return

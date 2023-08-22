@@ -24,7 +24,7 @@ func NewRewardHandler(app *core.AppServer, db *gorm.DB) *RewardHandler {
 
 func (h *RewardHandler) List(c *gin.Context) {
 	var items []model.Reward
-	res := h.db.Find(&items)
+	res := h.db.Order("id DESC").Find(&items)
 	var rewards = make([]vo.Reward, 0)
 	if res.Error == nil {
 		userIds := make([]uint, 0)
