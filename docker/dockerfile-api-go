@@ -4,9 +4,9 @@ FROM alpine:3.18.2
 MAINTAINER yangjian<yangjian102621@163.com>
 
 WORKDIR /var/www/app
-COPY ./api/bin/chatgpt-v3-amd64-linux /var/www/app
+COPY ./api/bin/chatgpt-plus-amd64-linux /var/www/app
 
 EXPOSE 5678
 
 # 容器启动时执行的命令
-CMD ["./chatgpt-v3-amd64-linux"]
+CMD ["./chatgpt-plus-amd64-linux"]
