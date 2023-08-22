@@ -1171,25 +1171,6 @@ $borderColor = #4676d0;
     min-width: 100px;
     max-width: 600px;
   }
-
-  .token-dialog {
-    .el-dialog {
-      --el-dialog-width: 90%;
-      max-width: 400px;
-
-      .el-dialog__body {
-        padding: 10px 10px 20px 10px;
-      }
-
-      .el-row {
-        flex-wrap: nowrap
-
-        button {
-          margin-left: 5px;
-        }
-      }
-    }
-  }
 }
 
 .el-select-dropdown__wrap {
@@ -1213,17 +1194,4 @@ $borderColor = #4676d0;
     }
   }
 }
-</style>
-
-<style lang="stylus">
-.el-overlay-dialog {
-  display flex
-  justify-content center
-  align-items center
-
-  .el-dialog {
-    margin 10px;
-  }
-}
-
 </style>

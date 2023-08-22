@@ -1,7 +1,8 @@
 <template>
   <el-dialog
+      class="password-dialog"
       v-model="showDialog"
-      :close-on-click-modal="false"
+      :close-on-click-modal="true"
       :show-close="true"
       :before-close="close"
       title="修改密码"
@@ -71,20 +72,20 @@ const close = function () {
 </script>
 
 <style lang="stylus">
-.el-dialog {
-  --el-dialog-width 90%;
-  max-width 650px;
+.password-dialog {
+  .el-dialog {
+    --el-dialog-width 90%;
+    max-width 650px;
 
-  .el-dialog__body {
-    padding-top 10px;
-    max-height 600px;
-    overflow-y auto;
+    .el-dialog__body {
+      overflow-y auto;
 
-    .form {
-      position relative;
+      .form {
+        position relative;
 
-      .el-message {
-        position: absolute;
+        .el-message {
+          position: absolute;
+        }
       }
     }
   }
