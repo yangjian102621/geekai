@@ -1,9 +1,9 @@
 <template>
   <el-dialog
+      class="config-dialog"
       v-model="showDialog"
-      :close-on-click-modal="false"
+      :close-on-click-modal="true"
       :before-close="close"
-      :top="50+'px'"
       title="用户设置"
   >
     <div class="user-info" id="user-info">
@@ -161,26 +161,26 @@ const close = function () {
 </script>
 
 <style lang="stylus">
-.el-dialog {
-  --el-dialog-width 90%;
-  max-width 800px;
+.config-dialog {
+  .el-dialog {
+    --el-dialog-width 90%;
+    max-width 800px;
 
-  .el-dialog__body {
-    padding-top 10px;
-    max-height 600px;
-    overflow-y auto;
+    .el-dialog__body {
+      overflow-y auto;
 
-    .user-info {
-      position relative;
+      .user-info {
+        position relative;
 
-      .el-message {
-        position: absolute;
+        .el-message {
+          position: absolute;
+        }
       }
-    }
 
-    .tip {
-      color #c1c1c1
-      font-size 12px;
+      .tip {
+        color #c1c1c1
+        font-size 12px;
+      }
     }
   }
 }

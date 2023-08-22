@@ -1,7 +1,7 @@
 <template>
   <el-dialog
       v-model="showDialog"
-      :close-on-click-modal="false"
+      :close-on-click-modal="true"
       :show-close="mobile !== ''"
       :before-close="close"
       :title="title"

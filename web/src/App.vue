@@ -24,4 +24,20 @@ html, body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+.el-overlay-dialog {
+  display flex
+  justify-content center
+  align-items center
+  overflow hidden
+
+  .el-dialog {
+    margin 0;
+
+    .el-dialog__body {
+      //max-height 1440px
+    }
+  }
+}
+
 </style>
