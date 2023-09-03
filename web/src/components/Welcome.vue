@@ -1,7 +1,7 @@
 <template>
   <div class="welcome">
     <div class="container">
-      <h1 class="title">ChatGPT-PLUS</h1>
+      <h1 class="title">{{ title }}</h1>
 
       <el-row :gutter="20">
         <el-col :span="8">
@@ -56,6 +56,8 @@
 <script setup>
 
 import {ref} from "vue";
+
+const title = process.env.VUE_APP_TITLE
 
 const samples = ref([
   "用小学生都能听懂的术语解释什么是量子纠缠",

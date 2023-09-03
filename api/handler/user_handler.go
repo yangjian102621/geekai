@@ -9,7 +9,6 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"fmt"
 	"strings"
 	"time"
 
@@ -42,20 +41,18 @@ func NewUserHandler(
 func (h *UserHandler) Register(c *gin.Context) {
 	// parameters process
 	var data struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
 		Mobile   string `json:"mobile"`
+		Password string `json:"password"`
 		Code     int    `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	data.Username = strings.TrimSpace(data.Username)
 	data.Password = strings.TrimSpace(data.Password)
 
-	if len(data.Username) < 5 {
-		resp.ERROR(c, "用户名长度不能少于5个字符")
+	if len(data.Mobile) < 10 {
+		resp.ERROR(c, "请输入合法的手机号")
 		return
 	}
 	if len(data.Password) < 8 {
@@ -77,13 +74,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// check if the username is exists
 	var item model.User
-	res := h.db.Where("username = ?", data.Username).First(&item)
-	if res.RowsAffected > 0 {
-		resp.ERROR(c, "用户名已存在")
-		return
-	}
-
-	res = h.db.Where("mobile = ?", data.Mobile).First(&item)
+	res := h.db.Where("mobile = ?", data.Mobile).First(&item)
 	if res.RowsAffected > 0 {
 		resp.ERROR(c, "该手机号码以及被注册，请更换其他手机号")
 		return
@@ -99,21 +90,18 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	salt := utils.RandString(8)
 	user := model.User{
-		Username:  data.Username,
 		Password:  utils.GenPassword(data.Password, salt),
-		Nickname:  fmt.Sprintf("极客学长@%d", utils.RandomNumber(5)),
 		Avatar:    "/images/avatar/user.png",
 		Salt:      salt,
 		Status:    true,
 		Mobile:    data.Mobile,
 		ChatRoles: utils.JsonEncode(roleKeys),
-		ChatConfig: utils.JsonEncode(types.ChatConfig{
-			Temperature:   h.App.ChatConfig.Temperature,
-			MaxTokens:     h.App.ChatConfig.MaxTokens,
-			EnableContext: h.App.ChatConfig.EnableContext,
-			EnableHistory: true,
-			Model:         h.App.ChatConfig.Model,
-			ApiKey:        "",
+		ChatConfig: utils.JsonEncode(types.UserChatConfig{
+			ApiKeys: map[types.Platform]string{
+				types.OpenAI:  "",
+				types.Azure:   "",
+				types.ChatGML: "",
+			},
 		}),
 		Calls:    h.App.SysConfig.UserInitCalls,
 		ImgCalls: h.App.SysConfig.InitImgCalls,
@@ -134,15 +122,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 // Login 用户登录
 func (h *UserHandler) Login(c *gin.Context) {
 	var data struct {
-		Username string
-		Password string
+		Username string `json:"mobile"`
+		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 	var user model.User
-	res := h.db.Where("username = ? OR mobile = ?", data.Username, data.Username).First(&user)
+	res := h.db.Where("mobile = ?", data.Username).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户名不存在")
 		return
@@ -173,7 +161,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	h.db.Create(&model.UserLoginLog{
 		UserId:       user.Id,
-		Username:     user.Username,
+		Username:     user.Mobile,
 		LoginIp:      c.ClientIP(),
 		LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
 	})
@@ -218,15 +206,13 @@ func (h *UserHandler) Session(c *gin.Context) {
 }
 
 type userProfile struct {
-	Id         uint             `json:"id"`
-	Username   string           `json:"username"`
-	Nickname   string           `json:"nickname"`
-	Mobile     string           `json:"mobile"`
-	Avatar     string           `json:"avatar"`
-	ChatConfig types.ChatConfig `json:"chat_config"`
-	Calls      int              `json:"calls"`
-	ImgCalls   int              `json:"img_calls"`
-	Tokens     int64            `json:"tokens"`
+	Id          uint                 `json:"id"`
+	Mobile      string               `json:"mobile"`
+	Avatar      string               `json:"avatar"`
+	ChatConfig  types.UserChatConfig `json:"chat_config"`
+	Calls       int                  `json:"calls"`
+	ImgCalls    int                  `json:"img_calls"`
+	TotalTokens int64                `json:"total_tokens"`
 }
 
 func (h *UserHandler) Profile(c *gin.Context) {
@@ -262,25 +248,9 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 		return
 	}
 	h.db.First(&user, user.Id)
-	user.Nickname = data.Nickname
 	oldAvatar := user.Avatar
 	user.Avatar = data.Avatar
-
-	var chatConfig types.ChatConfig
-	err = utils.JsonDecode(user.ChatConfig, &chatConfig)
-	if err != nil {
-		resp.ERROR(c, "用户配置解析失败")
-		return
-	}
-
-	chatConfig.EnableHistory = data.ChatConfig.EnableHistory
-	chatConfig.EnableContext = data.ChatConfig.EnableContext
-	chatConfig.Model = data.ChatConfig.Model
-	chatConfig.MaxTokens = data.ChatConfig.MaxTokens
-	chatConfig.ApiKey = data.ChatConfig.ApiKey
-	chatConfig.Temperature = data.ChatConfig.Temperature
-
-	user.ChatConfig = utils.JsonEncode(chatConfig)
+	user.ChatConfig = utils.JsonEncode(data.ChatConfig)
 	res := h.db.Updates(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "更新用户信息失败")

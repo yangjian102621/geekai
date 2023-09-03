@@ -11,7 +11,3 @@ type HistoryMessage struct {
 	Content    string `json:"content"`
 	UseContext bool   `json:"use_context"`
 }
-
-func (HistoryMessage) TableName() string {
-	return "chatgpt_chat_history"
-}

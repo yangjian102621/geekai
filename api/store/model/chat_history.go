@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/gorm"
+
 type HistoryMessage struct {
 	BaseModel
 	ChatId     string // 会话 ID
@@ -10,6 +12,7 @@ type HistoryMessage struct {
 	Tokens     int
 	Content    string
 	UseContext bool // 是否可以作为聊天上下文
+	DeletedAt  gorm.DeletedAt
 }
 
 func (HistoryMessage) TableName() string {

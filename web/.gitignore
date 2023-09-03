@@ -8,5 +8,4 @@ lerna-debug.log*
 node_modules
 dist
 dist.tar.gz
-.env.development
 

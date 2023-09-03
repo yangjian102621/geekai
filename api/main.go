@@ -89,6 +89,7 @@ func main() {
 		fx.Provide(store.NewGormConfig),
 		fx.Provide(store.NewMysql),
 		fx.Provide(store.NewLevelDB),
+		fx.Provide(store.NewRedisClient),
 
 		// 创建 Ip2Region 查询对象
 		fx.Provide(func() (*xdb.Searcher, error) {

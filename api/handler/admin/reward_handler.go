@@ -46,7 +46,7 @@ func (h *RewardHandler) List(c *gin.Context) {
 			}
 
 			r.Id = v.Id
-			r.Username = userMap[v.UserId].Username
+			r.Username = userMap[v.UserId].Mobile
 			r.CreatedAt = v.CreatedAt.Unix()
 			r.UpdatedAt = v.UpdatedAt.Unix()
 			rewards = append(rewards, r)

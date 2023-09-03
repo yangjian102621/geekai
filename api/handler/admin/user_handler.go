@@ -8,8 +8,6 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -100,22 +98,19 @@ func (h *UserHandler) Save(c *gin.Context) {
 	} else {
 		salt := utils.RandString(8)
 		u := model.User{
-			Username:    data.Username,
+			Mobile:      data.Mobile,
 			Password:    utils.GenPassword(data.Password, salt),
-			Nickname:    fmt.Sprintf("极客学长@%d", utils.RandomNumber(5)),
 			Avatar:      "/images/avatar/user.png",
 			Salt:        salt,
 			Status:      true,
-			Mobile:      data.Mobile,
 			ChatRoles:   utils.JsonEncode(data.ChatRoles),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
-			ChatConfig: utils.JsonEncode(types.ChatConfig{
-				Temperature:   h.App.ChatConfig.Temperature,
-				MaxTokens:     h.App.ChatConfig.MaxTokens,
-				EnableContext: h.App.ChatConfig.EnableContext,
-				EnableHistory: true,
-				Model:         h.App.ChatConfig.Model,
-				ApiKey:        "",
+			ChatConfig: utils.JsonEncode(types.UserChatConfig{
+				ApiKeys: map[types.Platform]string{
+					types.OpenAI:  "",
+					types.Azure:   "",
+					types.ChatGML: "",
+				},
 			}),
 			Calls: h.App.SysConfig.UserInitCalls,
 		}

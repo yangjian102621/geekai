@@ -4,7 +4,7 @@ const routes = [
     {
         name: 'home',
         path: '/',
-        meta: {title: 'ChatGPT-Plus'},
+        meta: {title: '首页'},
         component: () => import('@/views/Home.vue'),
     },
     {
@@ -23,7 +23,7 @@ const routes = [
     {
         name: 'plus',
         path: '/chat',
-        meta: {title: 'ChatGPT-智能助手V3'},
+        meta: {title: '创作中心'},
         component: () => import('@/views/ChatPlus.vue'),
     },
     {
@@ -166,7 +166,7 @@ const router = createRouter({
 // dynamic change the title when router change
 router.beforeEach((to, from, next) => {
     if (to.meta.title) {
-        document.title = `${to.meta.title} | ChatGPT-PLUS`
+        document.title = `${to.meta.title} | ${process.env.VUE_APP_TITLE}`
     }
     next()
 })

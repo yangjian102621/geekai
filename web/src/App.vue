@@ -6,8 +6,7 @@
 
 <script setup>
 import {ElConfigProvider} from 'element-plus';
-import zhCn from 'element-plus/es/locale/lang/zh-cn';
-</script>
+import zhCn from 'element-plus/es/locale/lang/zh-cn';</script>
 
 
 <style lang="stylus">
@@ -35,7 +34,7 @@ html, body {
     margin 0;
 
     .el-dialog__body {
-      //max-height 1440px
+      max-height 90vh
     }
   }
 }
