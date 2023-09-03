@@ -2,13 +2,11 @@ package model
 
 type User struct {
 	BaseModel
-	Username    string `gorm:"index:username,unique"`
 	Mobile      string
 	Password    string
-	Nickname    string
 	Avatar      string
 	Salt        string // 密码盐
-	Tokens      int64  // 剩余tokens
+	TotalTokens int64  // 总消耗 tokens
 	Calls       int    // 剩余对话次数
 	ImgCalls    int    // 剩余绘图次数
 	ChatConfig  string `gorm:"column:chat_config_json"` // 聊天配置 json

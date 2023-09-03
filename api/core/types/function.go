@@ -87,11 +87,15 @@ var InnerFunctions = []Function{
 				},
 				"ar": {
 					Type:        "string",
-					Description: "图片长宽比，如 --ar 4:3",
+					Description: "图片长宽比，默认值 16:9",
 				},
 				"niji": {
 					Type:        "string",
-					Description: "动漫模型版本，例如 --niji 5",
+					Description: "动漫模型版本，默认值空",
+				},
+				"v": {
+					Type:        "string",
+					Description: "模型版本，默认值: 5.2",
 				},
 			},
 			Required: []string{},

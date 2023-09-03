@@ -28,7 +28,6 @@ func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
 func (h *ApiKeyHandler) Save(c *gin.Context) {
 	var data struct {
 		Id         uint   `json:"id"`
-		UserId     uint   `json:"user_id"`
 		Value      string `json:"value"`
 		LastUsedAt string `json:"last_used_at"`
 		CreatedAt  int64  `json:"created_at"`
@@ -38,7 +37,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 		return
 	}
 
-	apiKey := model.ApiKey{Value: data.Value, UserId: data.UserId, LastUsedAt: utils.Str2stamp(data.LastUsedAt)}
+	apiKey := model.ApiKey{Value: data.Value, LastUsedAt: utils.Str2stamp(data.LastUsedAt)}
 	apiKey.Id = data.Id
 	if apiKey.Id > 0 {
 		apiKey.CreatedAt = time.Unix(data.CreatedAt, 0)

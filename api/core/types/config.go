@@ -64,6 +64,7 @@ type RedisConfig struct {
 	Host     string
 	Port     int
 	Password string
+	DB       int
 }
 
 func (c RedisConfig) Url() string {
@@ -99,14 +100,31 @@ type Session struct {
 
 // ChatConfig 系统默认的聊天配置
 type ChatConfig struct {
-	ApiURL        string  `json:"api_url,omitempty"`
-	Model         string  `json:"model"` // 默认模型
-	Temperature   float32 `json:"temperature"`
-	MaxTokens     int     `json:"max_tokens"`
-	EnableContext bool    `json:"enable_context"` // 是否开启聊天上下文
-	EnableHistory bool    `json:"enable_history"` // 是否允许保存聊天记录
-	ApiKey        string  `json:"api_key"`
-	ContextDeep   int     `json:"context_deep"` // 上下文深度
+	OpenAI  ModelAPIConfig `json:"open_ai"`
+	Azure   ModelAPIConfig `json:"azure"`
+	ChatGML ModelAPIConfig `json:"chat_gml"`
+
+	EnableContext bool `json:"enable_context"` // 是否开启聊天上下文
+	EnableHistory bool `json:"enable_history"` // 是否允许保存聊天记录
+	ContextDeep   int  `json:"context_deep"`   // 上下文深度
+}
+
+type Platform string
+
+const OpenAI = Platform("OpenAI")
+const Azure = Platform("Azure")
+const ChatGML = Platform("ChatGML")
+
+// UserChatConfig 用户的聊天配置
+type UserChatConfig struct {
+	ApiKeys map[Platform]string
+}
+
+type ModelAPIConfig struct {
+	ApiURL      string  `json:"api_url,omitempty"`
+	Temperature float32 `json:"temperature"`
+	MaxTokens   int     `json:"max_tokens"`
+	ApiKey      string  `json:"api_key"`
 }
 
 type SystemConfig struct {
@@ -115,6 +133,8 @@ type SystemConfig struct {
 	Models            []string `json:"models"`
 	UserInitCalls     int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
 	InitImgCalls      int      `json:"init_img_calls"`
+	VipMonthCalls     int      `json:"vip_month_calls"` // 会员每个赠送的调用次数
 	EnabledRegister   bool     `json:"enabled_register"`
 	EnabledMsgService bool     `json:"enabled_msg_service"`
+	EnabledDraw       bool     `json:"enabled_draw"` // 启动 AI 绘画功能
 }

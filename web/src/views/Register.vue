@@ -12,13 +12,13 @@
           <div class="content">
             <el-form :model="formData" label-width="120px" ref="formRef">
               <div class="block">
-                <el-input placeholder="请输入用户名(4-30位)"
-                          size="large" maxlength="30"
-                          v-model="formData.username"
+                <el-input placeholder="手机号码"
+                          size="large" maxlength="11"
+                          v-model="formData.mobile"
                           autocomplete="off">
                   <template #prefix>
                     <el-icon>
-                      <UserFilled/>
+                      <Iphone/>
                     </el-icon>
                   </template>
                 </el-input>
@@ -44,19 +44,6 @@
                   <template #prefix>
                     <el-icon>
                       <Lock/>
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-
-              <div class="block">
-                <el-input placeholder="手机号码"
-                          size="large" maxlength="11"
-                          v-model="formData.mobile"
-                          autocomplete="off">
-                  <template #prefix>
-                    <el-icon>
-                      <Iphone/>
                     </el-icon>
                   </template>
                 </el-input>
@@ -113,19 +100,19 @@
 <script setup>
 
 import {ref} from "vue";
-import {Checked, Iphone, Lock, UserFilled} from "@element-plus/icons-vue";
+import {Checked, Iphone, Lock} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
+import {validateMobile} from "@/utils/validate";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');
 const formData = ref({
-  username: '',
-  password: '',
   mobile: '',
+  password: '',
   code: '',
   repass: '',
 })
@@ -141,8 +128,8 @@ httpGet('/api/sms/status').then(res => {
 })
 
 const register = function () {
-  if (formData.value.username.length < 4) {
-    return ElMessage.error('用户名的长度为4-30个字符');
+  if (!validateMobile(formData.value.mobile)) {
+    return ElMessage.error('请输入合法的手机号');
   }
   if (formData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符');
@@ -151,8 +138,8 @@ const register = function () {
     return ElMessage.error('两次输入密码不一致');
   }
 
-  if (formData.value.code === '') {
-    formData.value.code = 0
+  if (enableMsg.value && formData.value.code === '') {
+    return ElMessage.error('请输入短信验证码');
   }
   httpPost('/api/user/register', formData.value).then(() => {
     ElMessage.success({"message": "注册成功，即将跳转到登录页...", onClose: () => router.push("login")})

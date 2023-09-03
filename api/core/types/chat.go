@@ -6,8 +6,9 @@ type ApiRequest struct {
 	Temperature float32       `json:"temperature"`
 	MaxTokens   int           `json:"max_tokens"`
 	Stream      bool          `json:"stream"`
-	Messages    []interface{} `json:"messages"`
-	Functions   []Function    `json:"functions"`
+	Messages    []interface{} `json:"messages,omitempty"`
+	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
+	Functions   []Function    `json:"functions,omitempty"`
 }
 
 type Message struct {
@@ -34,12 +35,18 @@ type Delta struct {
 
 // ChatSession 聊天会话对象
 type ChatSession struct {
-	SessionId string `json:"session_id"`
-	ClientIP  string `json:"client_ip"` // 客户端 IP
-	Username  string `json:"username"`  // 当前登录的 username
-	UserId    uint   `json:"user_id"`   // 当前登录的 user ID
-	ChatId    string `json:"chat_id"`   // 客户端聊天会话 ID, 多会话模式专用字段
-	Model     string `json:"model"`     // GPT 模型
+	SessionId string    `json:"session_id"`
+	ClientIP  string    `json:"client_ip"` // 客户端 IP
+	Username  string    `json:"username"`  // 当前登录的 username
+	UserId    uint      `json:"user_id"`   // 当前登录的 user ID
+	ChatId    string    `json:"chat_id"`   // 客户端聊天会话 ID, 多会话模式专用字段
+	Model     ChatModel `json:"model"`     // GPT 模型
+}
+
+type ChatModel struct {
+	Id       uint     `json:"id"`
+	Platform Platform `json:"platform"`
+	Value    string   `json:"value"`
 }
 
 type MjTask struct {
