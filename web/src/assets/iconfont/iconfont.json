@@ -6,6 +6,48 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "4766917",
+      "name": "image",
+      "font_class": "image",
+      "unicode": "e7de",
+      "unicode_decimal": 59358
+    },
+    {
+      "icon_id": "1375",
+      "name": "订单",
+      "font_class": "order",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "6562297",
+      "name": "客服",
+      "font_class": "service",
+      "unicode": "e62d",
+      "unicode_decimal": 58925
+    },
+    {
+      "icon_id": "21598358",
+      "name": "喜欢",
+      "font_class": "like",
+      "unicode": "e640",
+      "unicode_decimal": 58944
+    },
+    {
+      "icon_id": "936873",
+      "name": "充值1",
+      "font_class": "recharge",
+      "unicode": "e637",
+      "unicode_decimal": 58935
+    },
+    {
+      "icon_id": "18991679",
+      "name": "model",
+      "font_class": "model",
+      "unicode": "e867",
+      "unicode_decimal": 59495
+    },
+    {
       "icon_id": "5244045",
       "name": "插件",
       "font_class": "plugin",

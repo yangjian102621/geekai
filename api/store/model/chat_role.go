@@ -8,5 +8,5 @@ type ChatRole struct {
 	HelloMsg string // 打招呼的消息
 	Icon     string // 角色聊天图标
 	Enable   bool   // 是否启用被启用
-	Sort     int    //排序数字
+	SortNum  int    //排序数字
 }

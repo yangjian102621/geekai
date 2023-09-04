@@ -55,7 +55,7 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
-	res := h.db.Order("sort ASC").Find(&items)
+	res := h.db.Order("sort_num ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return
@@ -75,24 +75,24 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	resp.SUCCESS(c, roles)
 }
 
-// SetSort 更新角色排序
-func (h *ChatRoleHandler) SetSort(c *gin.Context) {
+// Sort 更新角色排序
+func (h *ChatRoleHandler) Sort(c *gin.Context) {
 	var data struct {
-		Id   uint `json:"id"`
-		Sort int  `json:"sort"`
+		Ids   []uint `json:"ids"`
+		Sorts []int  `json:"sorts"`
 	}
+
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if data.Id <= 0 {
-		resp.HACKER(c)
-		return
-	}
-	res := h.db.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update("sort", data.Sort)
-	if res.Error != nil {
-		resp.ERROR(c, "更新数据库失败！")
-		return
+
+	for index, id := range data.Ids {
+		res := h.db.Model(&model.ChatRole{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
+		if res.Error != nil {
+			resp.ERROR(c, "更新数据库失败！")
+			return
+		}
 	}
 
 	resp.SUCCESS(c)

@@ -3,7 +3,7 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id">
-        <el-table-column prop="username" label="用户名"/>
+        <el-table-column prop="username" label="用户"/>
         <el-table-column prop="tx_id" label="转账单号"/>
         <el-table-column prop="amount" label="转账金额"/>
         <el-table-column prop="remark" label="备注"/>

@@ -117,6 +117,7 @@ func main() {
 		fx.Provide(handler.NewRewardHandler),
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
+		fx.Provide(handler.NewChatModelHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -125,6 +126,7 @@ func main() {
 		fx.Provide(admin.NewChatRoleHandler),
 		fx.Provide(admin.NewRewardHandler),
 		fx.Provide(admin.NewDashboardHandler),
+		fx.Provide(admin.NewChatModelHandler),
 
 		// 创建服务
 		fx.Provide(service.NewAliYunSmsService),
@@ -216,7 +218,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/role/")
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
-			group.POST("sort", h.SetSort)
+			group.POST("sort", h.Sort)
 			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
@@ -226,6 +228,18 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
 			group := s.Engine.Group("/api/admin/dashboard/")
 			group.GET("stats", h.Stats)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.ChatModelHandler) {
+			group := s.Engine.Group("/api/model/")
+			group.GET("list", h.List)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.ChatModelHandler) {
+			group := s.Engine.Group("/api/admin/model/")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.POST("enable", h.Enable)
+			group.POST("sort", h.Sort)
+			group.GET("remove", h.Remove)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {

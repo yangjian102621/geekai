@@ -1,8 +1,8 @@
 <template>
   <el-dialog
       v-model="showDialog"
-      :close-on-click-modal="false"
-      :show-close="mobile !== ''"
+      :close-on-click-modal="true"
+      style="max-width: 600px"
       :before-close="close"
       :title="title"
   >
@@ -16,14 +16,8 @@
           <el-input v-model="form.mobile"/>
         </el-form-item>
         <el-form-item label="手机验证码">
-          <el-row :gutter="10">
-            <el-col :span="12">
-              <el-input v-model.number="form.code" maxlength="6"/>
-            </el-col>
-            <el-col :span="12">
-              <send-msg size="" :mobile="form.mobile"/>
-            </el-col>
-          </el-row>
+          <el-input v-model.number="form.code" maxlength="6" style="max-width: 200px; margin-right: 10px;"/>
+          <send-msg size="" :mobile="form.mobile"/>
         </el-form-item>
       </el-form>
     </div>
@@ -64,10 +58,10 @@ const emits = defineEmits(['hide']);
 
 const save = () => {
   if (!validateMobile(form.value.mobile)) {
-    return ElMessage.error({message: "请输入正确的手机号码", appendTo: "#bind-mobile-form"});
+    return ElMessage.error("请输入正确的手机号码");
   }
   if (form.value.code === '') {
-    return ElMessage.error({message: "请输入短信验证码", appendTo: "#bind-mobile-form"});
+    return ElMessage.error("请输入短信验证码");
   }
 
   httpPost('/api/user/bind/mobile', form.value).then(() => {
@@ -78,7 +72,7 @@ const save = () => {
       onClose: () => emits('hide', false)
     })
   }).catch(e => {
-    ElMessage.error({message: "绑定失败：" + e.message, appendTo: "#bind-mobile-form"});
+    ElMessage.error("绑定失败：" + e.message);
   })
 }
 

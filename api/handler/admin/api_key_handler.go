@@ -8,8 +8,6 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -27,21 +25,21 @@ func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
 
 func (h *ApiKeyHandler) Save(c *gin.Context) {
 	var data struct {
-		Id         uint   `json:"id"`
-		Value      string `json:"value"`
-		LastUsedAt string `json:"last_used_at"`
-		CreatedAt  int64  `json:"created_at"`
+		Id       uint   `json:"id"`
+		Platform string `json:"platform"`
+		Value    string `json:"value"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	apiKey := model.ApiKey{Value: data.Value, LastUsedAt: utils.Str2stamp(data.LastUsedAt)}
-	apiKey.Id = data.Id
-	if apiKey.Id > 0 {
-		apiKey.CreatedAt = time.Unix(data.CreatedAt, 0)
+	apiKey := model.ApiKey{}
+	if data.Id > 0 {
+		h.db.Find(&apiKey)
 	}
+	apiKey.Platform = data.Platform
+	apiKey.Value = data.Value
 	res := h.db.Save(&apiKey)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
@@ -60,14 +58,9 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
-	userId := h.GetInt(c, "user_id", -1)
-	query := h.db.Session(&gorm.Session{})
-	if userId >= 0 {
-		query = query.Where("user_id", userId)
-	}
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
-	res := query.Find(&items)
+	res := h.db.Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var key vo.ApiKey

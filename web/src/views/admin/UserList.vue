@@ -10,13 +10,12 @@
 
     <el-row>
       <el-table :data="users.items" border class="table" :row-key="row => row.id"
-                @selection-change="handleSelectionChange">
+                @selection-change="handleSelectionChange" table-layout="auto">
         <el-table-column type="selection" width="38"/>
-        <el-table-column prop="username" label="用户名"/>
-        <el-table-column prop="mobile" label="手机号"/>
-        <el-table-column prop="nickname" label="昵称"/>
-        <el-table-column prop="calls" label="对话次数" width="100"/>
-        <el-table-column prop="img_calls" label="绘图次数" width="100"/>
+        <el-table-column prop="mobile" label="账号"/>
+        <el-table-column prop="calls" label="剩余对话次数"/>
+        <el-table-column prop="img_calls" label="剩余绘图次数"/>
+        <el-table-column prop="total_tokens" label="累计消耗tokens"/>
         <el-table-column label="状态" width="80">
           <template #default="scope">
             <el-tag v-if="scope.row.status" type="success">正常</el-tag>

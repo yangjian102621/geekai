@@ -74,11 +74,6 @@ const items = [
     index: '/admin/dashboard',
     title: '仪表盘',
   },
-  {
-    icon: 'config',
-    index: '/admin/system',
-    title: '系统设置',
-  },
 
   {
     icon: 'user-fill',
@@ -97,9 +92,19 @@ const items = [
     title: 'API-KEY 管理',
   },
   {
+    icon: 'model',
+    index: '/admin/chat/model',
+    title: '语言模型',
+  },
+  {
     icon: 'reward',
     index: '/admin/reward',
     title: '众筹管理',
+  },
+  {
+    icon: 'config',
+    index: '/admin/system',
+    title: '系统设置',
   },
   {
     icon: 'log',
