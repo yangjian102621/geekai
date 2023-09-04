@@ -28,7 +28,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 	ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
 	start := time.Now()
-	var apiKey string
+	var apiKey = userVo.ChatConfig.ApiKeys[session.Model.Platform]
 	response, err := h.doRequest(ctx, req, session.Model.Platform, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {
@@ -174,7 +174,9 @@ func (h *ChatHandler) sendOpenAiMessage(
 		// 消息发送成功
 		if len(contents) > 0 {
 			// 更新用户的对话次数
-			h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
+			if userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
+				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
+			}
 
 			if message.Role == "" {
 				message.Role = "assistant"
@@ -183,14 +185,14 @@ func (h *ChatHandler) sendOpenAiMessage(
 			useMsg := types.Message{Role: "user", Content: prompt}
 
 			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if userVo.ChatConfig.EnableContext && functionCall == false {
+			if h.App.ChatConfig.EnableContext && functionCall == false {
 				chatCtx = append(chatCtx, useMsg)  // 提问消息
 				chatCtx = append(chatCtx, message) // 回复消息
 				h.App.ChatContexts.Put(session.ChatId, chatCtx)
 			}
 
 			// 追加聊天记录
-			if userVo.ChatConfig.EnableHistory {
+			if h.App.ChatConfig.EnableHistory {
 				useContext := true
 				if functionCall {
 					useContext = false
@@ -254,8 +256,6 @@ func (h *ChatHandler) sendOpenAiMessage(
 				} else {
 					totalTokens = replyToken + getTotalTokens(req)
 				}
-				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
-					UpdateColumn("tokens", gorm.Expr("tokens + ?", totalTokens))
 				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
 					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
 			}
