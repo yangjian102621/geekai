@@ -76,7 +76,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var item model.User
 	res := h.db.Where("mobile = ?", data.Mobile).First(&item)
 	if res.RowsAffected > 0 {
-		resp.ERROR(c, "该手机号码以及被注册，请更换其他手机号")
+		resp.ERROR(c, "该手机号码已经被注册，请更换其他手机号")
 		return
 	}
 
