@@ -10,5 +10,5 @@ type ChatRole struct {
 	HelloMsg string          `json:"hello_msg"` // 打招呼的消息
 	Icon     string          `json:"icon"`      // 角色聊天图标
 	Enable   bool            `json:"enable"`    // 是否启用被启用
-	Sort     int             `json:"sort"`      // 排序
+	SortNum  int             `json:"sort"`      // 排序
 }

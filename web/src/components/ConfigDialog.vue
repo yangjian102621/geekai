@@ -4,12 +4,13 @@
       v-model="showDialog"
       :close-on-click-modal="true"
       :before-close="close"
+      style="max-width: 600px"
       title="用户设置"
   >
     <div class="user-info" id="user-info">
       <el-form v-if="form.id" :model="form" label-width="120px">
-        <el-form-item label="昵称">
-          <el-input v-model="form.nickname"/>
+        <el-form-item label="账户">
+          <span>{{ form.mobile }}</span>
         </el-form-item>
         <el-form-item label="头像">
           <el-upload
@@ -24,45 +25,14 @@
             </el-icon>
           </el-upload>
         </el-form-item>
-        <el-form-item label="用户名">
-          <el-input v-model="form.username" readonly disabled/>
-        </el-form-item>
-
-        <el-form-item label="绑定手机号">
-          <el-input v-model="form.mobile" readonly disabled/>
-        </el-form-item>
-
-        <el-form-item label="聊天上下文">
-          <el-switch v-model="form.chat_config.enable_context"/>
-        </el-form-item>
-        <el-form-item label="聊天记录">
-          <el-switch v-model="form.chat_config.enable_history"/>
-        </el-form-item>
-        <el-form-item label="默认模型">
-          <el-select v-model="form.chat_config.model" placeholder="默认会话模型">
-            <el-option
-                v-for="item in models"
-                :key="item"
-                :label="item.toUpperCase()"
-                :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="MaxTokens">
-          <el-input v-model.number="form.chat_config.max_tokens"/>
-        </el-form-item>
-        <el-form-item label="创意度">
-          <el-slider v-model="form.chat_config.temperature" :max="2" :step="0.1"/>
-          <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
-        </el-form-item>
         <el-form-item label="剩余对话次数">
           <el-tag>{{ form['calls'] }}</el-tag>
         </el-form-item>
         <el-form-item label="剩余绘图次数">
           <el-tag>{{ form['img_calls'] }}</el-tag>
         </el-form-item>
-        <el-form-item label="消耗 Tokens">
-          <el-tag type="info">{{ form['tokens'] }}</el-tag>
+        <el-form-item label="累计消耗 Tokens">
+          <el-tag type="info">{{ form['total_tokens'] }}</el-tag>
         </el-form-item>
         <el-form-item label="API KEY">
           <el-input v-model="form['chat_config']['api_key']"/>

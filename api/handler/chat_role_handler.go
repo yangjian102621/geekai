@@ -25,7 +25,7 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 // List get user list
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	var roles []model.ChatRole
-	res := h.db.Where("enable", true).Order("sort ASC").Find(&roles)
+	res := h.db.Where("enable", true).Order("sort_num ASC").Find(&roles)
 	if res.Error != nil {
 		resp.ERROR(c, "No roles found,"+res.Error.Error())
 		return

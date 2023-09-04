@@ -43,7 +43,7 @@
           <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="isLogin">
                         <span class="el-dropdown-link">
                           <el-image :src="loginUser.avatar"/>
-                          <span class="username">{{ loginUser.nickname }}</span>
+                          <span class="username">{{ '极客学长@' + loginUser.mobile }}</span>
                           <el-icon><ArrowDown/></el-icon>
                         </span>
             <template #dropdown>
@@ -123,12 +123,12 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="model" placeholder="模型">
+            <el-select v-model="modelID" placeholder="模型">
               <el-option
                   v-for="item in models"
-                  :key="item"
-                  :label="item.toUpperCase()"
-                  :value="item"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
               />
             </el-select>
             <el-button type="primary" @click="newChat">
@@ -158,7 +158,7 @@
                       :icon="item.icon"
                       :created-at="dateFormat(item['created_at'])"
                       :tokens="item['tokens']"
-                      :model="model"
+                      :model="modelID"
                       :content="item.content"/>
                   <chat-reply v-else-if="item.type==='reply'"
                               :icon="item.icon"
@@ -287,7 +287,7 @@ const title = ref('ChatGPT-智能助手');
 const logo = 'images/logo.png';
 const rewardImg = ref('images/reward.png')
 const models = ref([])
-const model = ref('gpt-3.5-turbo-16k')
+const modelID = ref(0)
 const chatData = ref([]);
 const allChats = ref([]); // 会话列表
 const chatList = ref(allChats.value);
@@ -320,7 +320,7 @@ onMounted(() => {
     loginUser.value = user
     isLogin.value = true
     if (user.chat_config?.model !== '') {
-      model.value = user.chat_config.model
+      modelID.value = user.chat_config.model
     }
     // 加载角色列表
     httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
@@ -328,18 +328,17 @@ onMounted(() => {
       roleId.value = roles.value[0]['id'];
       // 获取会话列表
       loadChats();
-      // 创建新的会话
-      newChat();
+      // 加载模型
+      httpGet('/api/model/list?enable=1').then(res => {
+        models.value = res.data
+        modelID.value = models.value[0].id
+        // 创建新的对话
+        newChat();
+      }).catch(e => {
+        ElMessage.error("加载模型失败: " + e.message)
+      })
     }).catch((e) => {
       ElMessage.error('获取聊天角色失败: ' + e.messages)
-    })
-
-    // 加载系统配置
-    httpGet('/api/admin/config/get?key=system').then(res => {
-      title.value = res.data.title;
-      models.value = res.data.models;
-    }).catch(e => {
-      ElMessage.error("加载系统配置失败: " + e.message)
     })
   }).catch(() => {
     router.push('login')
@@ -401,7 +400,7 @@ const newChat = function () {
     chat_id: "",
     icon: icon,
     role_id: roleId.value,
-    model: model.value,
+    model: modelID.value,
     title: '',
     edit: false,
     removing: false,
@@ -420,7 +419,7 @@ const changeChat = function (chat) {
   activeChat.value = chat
   newChatItem.value = null;
   roleId.value = chat.role_id;
-  model.value = chat.model;
+  modelID.value = chat.model;
   showStopGenerate.value = false;
   showReGenerate.value = false;
   connect(chat.chat_id, chat.role_id)
@@ -511,7 +510,7 @@ const connect = function (chat_id, role_id) {
       host = 'ws://' + location.host;
     }
   }
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model=${model.value}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     previousText.value = '';
@@ -527,6 +526,7 @@ const connect = function (chat_id, role_id) {
         content: _role['hello_msg'],
         orgContent: _role['hello_msg'],
       })
+      ElMessage.success("对话连接成功！")
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
@@ -592,7 +592,7 @@ const connect = function (chat_id, role_id) {
 
           // 获取 token
           const reply = chatData.value[chatData.value.length - 1]
-          httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${model.value}`).then(res => {
+          httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${modelID.value}`).then(res => {
             reply['created_at'] = new Date().getTime();
             reply['tokens'] = res.data;
             // 将聊天框的滚动条滑动到最底部
@@ -637,12 +637,8 @@ const connect = function (chat_id, role_id) {
     checkSession().then(() => {
       connect(chat_id, role_id)
     }).catch(() => {
-      ElMessageBox({
-        title: '会话提示',
-        message: "当前会话已经失效，请重新登录",
-        confirmButtonText: 'OK',
-        callback: () => router.push('login')
-      });
+      loading.value = true
+      setTimeout(() => connect(chat_id, role_id), 3000)
     });
   });
 

@@ -76,6 +76,12 @@ const routes = [
                 component: () => import('@/views/admin/ApiKey.vue'),
             },
             {
+                path: '/admin/chat/model',
+                name: 'admin-chat-model',
+                meta: {title: '语言模型'},
+                component: () => import('@/views/admin/ChatModel.vue'),
+            },
+            {
                 path: '/admin/reward',
                 name: 'admin-reward',
                 meta: {title: '众筹管理'},

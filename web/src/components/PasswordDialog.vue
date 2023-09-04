@@ -4,6 +4,7 @@
       v-model="showDialog"
       :close-on-click-modal="true"
       :show-close="true"
+      style="max-width: 600px"
       :before-close="close"
       title="修改密码"
   >

@@ -1,3 +1,4 @@
+TRUNCATE `chatgpt_plus`.`chatgpt_chat_items`;
 ALTER TABLE `chatgpt_chat_items` CHANGE `model` `model_id` INT(11) NOT NULL DEFAULT '0' COMMENT '模型 ID';
 ALTER TABLE `chatgpt_api_keys` ADD `platform` CHAR(20)  DEFAULT NULL COMMENT '平台' AFTER id;
 ALTER TABLE `chatgpt_users` CHANGE `tokens` `total_tokens` BIGINT NOT NULL DEFAULT '0' COMMENT '累计消耗 tokens';
@@ -29,3 +30,7 @@ INSERT INTO `chatgpt_chat_models` (`id`, `platform`, `name`, `value`, `sort_num`
 ALTER TABLE `chatgpt_users`
 DROP `username`,
 DROP `nickname`;
+
+-- 2023/09/04
+ALTER TABLE `chatgpt_chat_roles` CHANGE `sort` `sort_num` SMALLINT NOT NULL DEFAULT '0' COMMENT '角色排序';
+ALTER TABLE `chatgpt_api_keys` DROP `user_id`;

@@ -15,15 +15,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="角色名称" prop="name"/>
-        <el-table-column label="角色标识" prop="key"/>
-        <el-table-column label="排序" prop="sort">
+        <el-table-column label="角色名称" prop="name">
           <template #default="scope">
-            <el-input v-if="scope.row.id === editRow.id" v-model.number="scope.row.sort" @blur="updateSort(scope.row)"
-                      size="small" autofocus/>
-            <span v-else @click="editSort($event,scope.row)">{{ scope.row.sort }}</span>
+            <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="角色标识" prop="key"/>
         <el-table-column label="启用状态">
           <template #default="scope">
             <el-tag v-if="scope.row.enable" type="success">启用</el-tag>
@@ -126,9 +123,6 @@
         <el-form-item label="启用状态">
           <el-switch v-model="role.enable"/>
         </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input v-model.number="role.sort"/>
-        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -186,25 +180,22 @@ onMounted(() => {
   // 初始化拖动排序插件
   Sortable.create(drawBodyWrapper, {
     sort: true,
-    onEnd({newIndex, oldIndex}) {
-      //console.log(oldIndex, newIndex);
+    animation: 500,
+    onEnd({newIndex, oldIndex, from}) {
       if (oldIndex === newIndex) {
         return
       }
 
-      const curRow = sortedTableData.value[oldIndex]
-      const newRow = sortedTableData.value[newIndex]
-      sortedTableData.value.splice(oldIndex, 1)
-      sortedTableData.value.splice(newIndex, 0, curRow)
-      // console.log(currRow)
+      const sortedData = Array.from(from.children).map(row => row.querySelector('.sort').getAttribute('data-id'));
+      const ids = []
+      const sorts = []
+      sortedData.forEach((id, index) => {
+        ids.push(parseInt(id))
+        sorts.push(index)
+      })
 
-      if (newIndex > oldIndex) {
-        curRow.sort = curRow.sort === newRow.sort ? newRow.sort + 1 : newRow.sort
-      } else {
-        curRow.sort = curRow.sort === newRow.sort ? newRow.sort - 1 : newRow.sort
-      }
-      httpPost('/api/admin/role/sort', {"id": curRow.id, "sort": curRow.sort}).catch(() => {
-        ElMessage.error("移动失败！")
+      httpPost("/api/admin/role/sort", {ids: ids, sorts: sorts}).catch(e => {
+        ElMessage.error("排序失败：" + e.message)
       })
     }
   })

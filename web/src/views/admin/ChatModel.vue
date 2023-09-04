@@ -7,19 +7,22 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
-        <el-table-column prop="platform" label="所属平台"/>
-        <el-table-column prop="value" label="KEY"/>
+        <el-table-column prop="platform" label="所属平台">
+          <template #default="scope">
+            <span class="sort" :data-id="scope.row.id">{{scope.row.platform}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" label="模型名称"/>
+        <el-table-column prop="value" label="模型值"/>
+        <el-table-column prop="enabled" label="启用状态">
+          <template #default="scope">
+            <el-switch v-model="scope.row['enabled']" @change="enable(scope.row)"/>
+          </template>
+        </el-table-column>
 
         <el-table-column label="创建时间">
           <template #default="scope">
             <span>{{ dateFormat(scope.row['created_at']) }}</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="最后使用时间">
-          <template #default="scope">
-            <span v-if="scope.row['last_used_at']">{{ scope.row['last_used_at'] }}</span>
-            <el-tag v-else>未使用</el-tag>
           </template>
         </el-table-column>
 
@@ -44,14 +47,21 @@
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="所属平台：" prop="platform">
           <el-select v-model="item.platform" placeholder="请选择平台">
-            <el-option v-for="item in platforms" :value="item" :key="item">{{ item }}</el-option>
+            <el-option v-for="item in platforms" :value="item" :key="item">{{item}}</el-option>
           </el-select>
         </el-form-item>
 
-        <el-form-item label="API KEY：" prop="value">
+        <el-form-item label="模型名称：" prop="name">
+          <el-input v-model="item.name" autocomplete="off"/>
+        </el-form-item>
+
+        <el-form-item label="模型值：" prop="value">
           <el-input v-model="item.value" autocomplete="off"/>
         </el-form-item>
 
+        <el-form-item label="启用状态：" prop="enable">
+          <el-switch v-model="item.enabled"/>
+        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -65,27 +75,29 @@
 </template>
 
 <script setup>
-import {reactive, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
+import {dateFormat, removeArrayItem} from "@/utils/libs";
 import {Plus} from "@element-plus/icons-vue";
+import {Sortable} from "sortablejs";
 
 // 变量定义
 const items = ref([])
 const item = ref({})
 const showDialog = ref(false)
+const title = ref("")
 const rules = reactive({
   platform: [{required: true, message: '请选择平台', trigger: 'change',}],
-  value: [{required: true, message: '请输入 API KEY 值', trigger: 'change',}]
+  name: [{required: true, message: '请输入模型名称', trigger: 'change',}],
+  value: [{required: true, message: '请输入模型值', trigger: 'change',}]
 })
 const loading = ref(true)
 const formRef = ref(null)
-const title = ref("")
-const platforms = ref(["Azure", "OpenAI", "ChatGML"])
+const platforms = ref(["Azure","OpenAI","ChatGML"])
 
 // 获取数据
-httpGet('/api/admin/apikey/list').then((res) => {
+httpGet('/api/admin/model/list').then((res) => {
   if (res.data) {
     // 初始化数据
     const arr = res.data;
@@ -99,15 +111,43 @@ httpGet('/api/admin/apikey/list').then((res) => {
   ElMessage.error("获取数据失败");
 })
 
+
+onMounted(() => {
+  const drawBodyWrapper = document.querySelector('.el-table__body tbody')
+
+  // 初始化拖动排序插件
+  Sortable.create(drawBodyWrapper, {
+    sort: true,
+    animation: 500,
+    onEnd({newIndex, oldIndex, from}) {
+      if (oldIndex === newIndex) {
+        return
+      }
+
+      const sortedData = Array.from(from.children).map(row => row.querySelector('.sort').getAttribute('data-id'));
+      const ids = []
+      const sorts = []
+      sortedData.forEach((id,index) => {
+        ids.push(parseInt(id))
+        sorts.push(index)
+      })
+
+      httpPost("/api/admin/model/sort", {ids: ids, sorts:sorts}).catch(e => {
+        ElMessage.error("排序失败："+e.message)
+      })
+    }
+  })
+})
+
 const add = function () {
+  title.value = "新增模型"
   showDialog.value = true
-  title.value = "新增 API KEY"
   item.value = {}
 }
 
 const edit = function (row) {
+  title.value = "修改模型"
   showDialog.value = true
-  title.value = "修改 API KEY"
   item.value = row
 }
 
@@ -115,11 +155,10 @@ const save = function () {
   formRef.value.validate((valid) => {
     if (valid) {
       showDialog.value = false
-      httpPost('/api/admin/apikey/save', item.value).then((res) => {
+      httpPost('/api/admin/model/save', item.value).then((res) => {
         ElMessage.success('操作成功！')
         if (!item.value['id']) {
           const newItem = res.data
-          newItem.last_used_at = dateFormat(newItem.last_used_at)
           items.value.push(newItem)
         }
       }).catch((e) => {
@@ -131,8 +170,16 @@ const save = function () {
   })
 }
 
+const enable = (row) => {
+  httpPost('/api/admin/model/enable', {id: row.id, enabled: row.enabled}).then(() => {
+    ElMessage.success("操作成功！")
+  }).catch(e => {
+    ElMessage.error("操作失败："+e.message)
+  })
+}
+
 const remove = function (row) {
-  httpGet('/api/admin/apikey/remove?id=' + row.id).then(() => {
+  httpGet('/api/admin/model/remove?id=' + row.id).then(() => {
     ElMessage.success("删除成功！")
     items.value = removeArrayItem(items.value, row, (v1, v2) => {
       return v1.id === v2.id
