@@ -113,11 +113,11 @@ type Platform string
 
 const OpenAI = Platform("OpenAI")
 const Azure = Platform("Azure")
-const ChatGML = Platform("ChatGML")
+const ChatGLM = Platform("ChatGLM")
 
 // UserChatConfig 用户的聊天配置
 type UserChatConfig struct {
-	ApiKeys map[Platform]string
+	ApiKeys map[Platform]string `json:"api_keys"`
 }
 
 type ModelAPIConfig struct {

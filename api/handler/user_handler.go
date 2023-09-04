@@ -100,7 +100,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 			ApiKeys: map[types.Platform]string{
 				types.OpenAI:  "",
 				types.Azure:   "",
-				types.ChatGML: "",
+				types.ChatGLM: "",
 			},
 		}),
 		Calls:    h.App.SysConfig.UserInitCalls,

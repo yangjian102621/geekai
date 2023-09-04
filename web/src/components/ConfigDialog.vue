@@ -8,7 +8,7 @@
       title="用户设置"
   >
     <div class="user-info" id="user-info">
-      <el-form v-if="form.id" :model="form" label-width="120px">
+      <el-form v-if="form.id" :model="form" label-width="150px">
         <el-form-item label="账户">
           <span>{{ form.mobile }}</span>
         </el-form-item>
@@ -34,8 +34,14 @@
         <el-form-item label="累计消耗 Tokens">
           <el-tag type="info">{{ form['total_tokens'] }}</el-tag>
         </el-form-item>
-        <el-form-item label="API KEY">
-          <el-input v-model="form['chat_config']['api_key']"/>
+        <el-form-item label="OpenAI API KEY">
+          <el-input v-model="form.chat_config['api_keys']['OpenAI']"/>
+        </el-form-item>
+        <el-form-item label="Azure API KEY">
+          <el-input v-model="form['chat_config']['api_keys']['Azure']"/>
+        </el-form-item>
+        <el-form-item label="ChatGLM API KEY">
+          <el-input v-model="form['chat_config']['api_keys']['ChatGLM']"/>
         </el-form-item>
       </el-form>
     </div>
@@ -77,15 +83,16 @@ const form = ref({
   mobile: '',
   calls: 0,
   tokens: 0,
-  chat_configs: {}
+  chat_config: {api_keys: {OpenAI: "", Azure: "", ChatGLM: ""}}
 })
 
 onMounted(() => {
   // 获取最新用户信息
   httpGet('/api/user/profile').then(res => {
     form.value = res.data
-  }).catch(() => {
-    ElMessage.error("获取用户信息失败")
+    form.value.chat_config.api_keys = res.data.chat_config.api_keys ?? {OpenAI: "", Azure: "", ChatGLM: ""}
+  }).catch(e => {
+    ElMessage.error("获取用户信息失败：" + e.message)
   });
 })
 

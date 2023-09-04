@@ -9,7 +9,7 @@
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
         <el-table-column prop="platform" label="所属平台">
           <template #default="scope">
-            <span class="sort" :data-id="scope.row.id">{{scope.row.platform}}</span>
+            <span class="sort" :data-id="scope.row.id">{{ scope.row.platform }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="name" label="模型名称"/>
@@ -47,7 +47,7 @@
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="所属平台：" prop="platform">
           <el-select v-model="item.platform" placeholder="请选择平台">
-            <el-option v-for="item in platforms" :value="item" :key="item">{{item}}</el-option>
+            <el-option v-for="item in platforms" :value="item" :key="item">{{ item }}</el-option>
           </el-select>
         </el-form-item>
 
@@ -94,7 +94,7 @@ const rules = reactive({
 })
 const loading = ref(true)
 const formRef = ref(null)
-const platforms = ref(["Azure","OpenAI","ChatGML"])
+const platforms = ref(["Azure", "OpenAI", "ChatGLM"])
 
 // 获取数据
 httpGet('/api/admin/model/list').then((res) => {
@@ -127,13 +127,13 @@ onMounted(() => {
       const sortedData = Array.from(from.children).map(row => row.querySelector('.sort').getAttribute('data-id'));
       const ids = []
       const sorts = []
-      sortedData.forEach((id,index) => {
+      sortedData.forEach((id, index) => {
         ids.push(parseInt(id))
         sorts.push(index)
       })
 
-      httpPost("/api/admin/model/sort", {ids: ids, sorts:sorts}).catch(e => {
-        ElMessage.error("排序失败："+e.message)
+      httpPost("/api/admin/model/sort", {ids: ids, sorts: sorts}).catch(e => {
+        ElMessage.error("排序失败：" + e.message)
       })
     }
   })
@@ -174,7 +174,7 @@ const enable = (row) => {
   httpPost('/api/admin/model/enable', {id: row.id, enabled: row.enabled}).then(() => {
     ElMessage.success("操作成功！")
   }).catch(e => {
-    ElMessage.error("操作失败："+e.message)
+    ElMessage.error("操作失败：" + e.message)
   })
 }
 

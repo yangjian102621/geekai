@@ -82,7 +82,7 @@ const rules = reactive({
 const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
-const platforms = ref(["Azure", "OpenAI", "ChatGML"])
+const platforms = ref(["Azure", "OpenAI", "ChatGLM"])
 
 // 获取数据
 httpGet('/api/admin/apikey/list').then((res) => {
