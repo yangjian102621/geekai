@@ -6,45 +6,19 @@
       <van-form @submit="save" v-model="form">
         <van-cell-group inset>
           <van-field
-              v-model="form.chat_config.model"
-              readonly
-              label="默认模型"
-              placeholder=""
-              @click="showPicker = true"
+              v-model="form.chat_config.api_keys.OpenAI"
+              label="OpenAI KEY"
+              placeholder="OpenAI API KEY"
           />
           <van-field
-              v-model.number="form.chat_config.max_tokens"
-              type="number"
-              name="MaxTokens"
-              label="MaxTokens"
-              placeholder="每次请求最大 token 数量"
-              :rules="[{ required: true, message: '请填写 MaxTokens' }]"
+              v-model="form.chat_config.api_keys.Azure"
+              label="Azure KEY"
+              placeholder="Azure API KEY"
           />
           <van-field
-              v-model.number="form.chat_config.temperature"
-              type="number"
-              name="Temperature"
-              label="Temperature"
-              placeholder="模型温度"
-              :rules="[{ required: true, message: '请填写 Temperature' }]"
-          />
-
-          <van-field name="switch" label="聊天记录">
-            <template #input>
-              <van-switch v-model="form.chat_config.enable_history"/>
-            </template>
-          </van-field>
-
-          <van-field name="switch" label="聊天上下文">
-            <template #input>
-              <van-switch v-model="form.chat_config.enable_context"/>
-            </template>
-          </van-field>
-          <van-field
-              v-model="form.chat_config.api_key"
-              name="API KEY"
-              label="API KEY"
-              placeholder="配置自己的 api key"
+              v-model="form.chat_config.api_keys.ChatGLM"
+              label="ChatGLM KEY"
+              placeholder="ChatGLM API KEY"
           />
         </van-cell-group>
         <div style="margin: 16px;">
@@ -74,12 +48,7 @@ import {ElMessage} from "element-plus";
 const title = ref('聊天设置')
 const form = ref({
   chat_config: {
-    model: '',
-    max_tokens: 0,
-    enable_context: false,
-    enable_history: false,
-    temperature: false,
-    api_key: ''
+    api_keys: {OpenAI: "", Azure: "", ChatGLM: ""}
   }
 })
 const showPicker = ref(false)
@@ -89,6 +58,7 @@ onMounted(() => {
   // 获取最新用户信息
   httpGet('/api/user/profile').then(res => {
     form.value = res.data
+    form.value.chat_config.api_keys = res.data.chat_config.api_keys ?? {OpenAI: "", Azure: "", ChatGLM: ""}
   }).catch(() => {
     showFailToast('获取用户信息失败')
   });
@@ -119,10 +89,15 @@ const save = () => {
 
 </script>
 
-<style scoped lang="stylus">
+<style lang="stylus">
 .mobile-setting {
   .content {
     padding-top 60px
+
+    .van-field__label {
+      width 100px
+      text-align right
+    }
   }
 }
 </style>

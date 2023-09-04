@@ -89,7 +89,7 @@ const items = [
   {
     icon: 'api-key',
     index: '/admin/apikey',
-    title: 'API-KEY 管理',
+    title: 'API-KEY',
   },
   {
     icon: 'model',

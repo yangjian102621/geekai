@@ -64,6 +64,10 @@
       </van-picker>
     </van-popup>
 
+    <van-dialog v-model:show="showEditChat" title="修改对话标题" show-cancel-button @confirm="saveTitle">
+      <van-field v-model="tmpChatTitle" label="" placeholder="请输入对话标题"/>
+    </van-dialog>
+
     <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
                  @hide="showBindMobileDialog = false"/>
   </div>
@@ -71,8 +75,8 @@
 
 <script setup>
 import {ref} from "vue";
-import {httpGet} from "@/utils/http";
-import {showConfirmDialog, showFailToast, showSuccessToast, showToast} from "vant";
+import {httpGet, httpPost} from "@/utils/http";
+import {showConfirmDialog, showFailToast, showSuccessToast} from "vant";
 import {checkSession} from "@/action/session";
 import router from "@/router";
 import {setChatConfig} from "@/store/chat";
@@ -93,6 +97,9 @@ const models = ref([])
 const showPicker = ref(false)
 const columns = ref([roles.value, models.value])
 const showBindMobileDialog = ref(false)
+const showEditChat = ref(false)
+const item = ref({})
+const tmpChatTitle = ref("")
 
 checkSession().then((user) => {
   loginUser.value = user
@@ -115,17 +122,18 @@ checkSession().then((user) => {
     showFailToast("加载聊天角色失败")
   })
 
-  // 加载系统配置
-  httpGet('/api/admin/config/get?key=system').then(res => {
+  // 加载模型
+  httpGet('/api/model/list?enable=1').then(res => {
     if (res.data) {
-      const items = res.data.models
+      const items = res.data
       for (let i = 0; i < items.length; i++) {
-        models.value.push({text: items[i].toUpperCase(), value: items[i]})
+        models.value.push({text: items[i].name, value: items[i].id})
       }
     }
-  }).catch(() => {
-    showFailToast("加载系统配置失败")
+  }).catch(e => {
+    showFailToast("加载模型失败: " + e.message)
   })
+
 }).catch(() => {
   router.push("/login")
 })
@@ -143,6 +151,15 @@ const onLoad = () => {
     showFailToast("加载会话列表失败")
   })
 };
+
+const getModelValue = (model_id) => {
+  for (let i = 0; i < models.value.length; i++) {
+    if (models.value[i].value === model_id) {
+      return models.value[i].text
+    }
+  }
+  return ""
+}
 
 const search = () => {
   if (chatName.value === '') {
@@ -185,6 +202,7 @@ const newChat = (item) => {
       helloMsg: options[0].helloMsg
     },
     model: options[1].value,
+    modelValue: getModelValue(options[1].value),
     title: '新建会话',
     chatId: 0
   })
@@ -205,7 +223,8 @@ const changeChat = (chat) => {
       name: role.text,
       icon: role.icon
     },
-    model: chat.model,
+    model: chat.model_id,
+    modelValue: getModelValue(chat.model_id),
     title: chat.title,
     chatId: chat.chat_id,
     helloMsg: chat.hello_msg,
@@ -213,9 +232,18 @@ const changeChat = (chat) => {
   router.push('/mobile/chat/session')
 }
 
-const editChat = (item) => {
-  showToast('修改会话标题')
-
+const editChat = (row) => {
+  showEditChat.value = true
+  item.value = row
+  tmpChatTitle.value = row.title
+}
+const saveTitle = () => {
+  httpPost('/api/chat/update', {id: item.value.id, title: tmpChatTitle.value}).then(() => {
+    showSuccessToast("操作成功！");
+    item.value.title = tmpChatTitle.value;
+  }).catch(e => {
+    showFailToast("操作失败：" + e.message);
+  })
 }
 
 const removeChat = (item) => {

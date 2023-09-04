@@ -55,11 +55,21 @@ import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
+import {checkSession} from "@/action/session";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户登录');
 const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
+
+checkSession().then(() => {
+  if (isMobile()) {
+    router.replace('mobile')
+  } else {
+    router.replace('chat')
+  }
+}).catch(() => {
+})
 
 onMounted(() => {
   document.addEventListener('keyup', (e) => {
