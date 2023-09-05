@@ -1,4 +1,6 @@
-TRUNCATE `chatgpt_plus`.`chatgpt_chat_items`;
+-- 请慎重执行，因为 model 数据类型变了，如果有历史记录会导致字段类型更改失败，需清空数据或者先写脚本转换数据再
+-- TRUNCATE `chatgpt_plus`.`chatgpt_chat_items`;
+
 ALTER TABLE `chatgpt_chat_items` CHANGE `model` `model_id` INT(11) NOT NULL DEFAULT '0' COMMENT '模型 ID';
 ALTER TABLE `chatgpt_api_keys` ADD `platform` CHAR(20)  DEFAULT NULL COMMENT '平台' AFTER id;
 ALTER TABLE `chatgpt_users` CHANGE `tokens` `total_tokens` BIGINT NOT NULL DEFAULT '0' COMMENT '累计消耗 tokens';
