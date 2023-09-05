@@ -21,11 +21,11 @@ ALTER TABLE `chatgpt_chat_models`
     MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 INSERT INTO `chatgpt_chat_models` (`id`, `platform`, `name`, `value`, `sort_num`, `enabled`, `created_at`, `updated_at`) VALUES
- (1, 'OpenAI', 'Bot GPT-3.5', 'gpt-3.5-turbo', 0, 1, '2023-08-23 12:06:36', '2023-09-02 16:49:36'),
- (2, 'Azure', 'Bot Azure-3.5', 'gpt-3.5-turbo', 0, 1, '2023-08-23 12:15:30', '2023-09-02 16:49:46'),
- (3, 'ChatGML', 'ChatGML-Pro', 'chatglm_pro', 3, 1, '2023-08-23 13:35:45', '2023-08-29 11:41:29'),
- (5, 'ChatGML', 'ChatGLM-Std', 'chatglm_std', 2, 1, '2023-08-24 15:05:38', '2023-08-29 11:41:28'),
- (6, 'ChatGML', 'ChatGLM-Lite', 'chatglm_lite', 4, 1, '2023-08-24 15:06:15', '2023-08-29 11:41:29');
+ (1, 'OpenAI', 'GPT-3.5', 'gpt-3.5-turbo', 0, 1, '2023-08-23 12:06:36', '2023-09-02 16:49:36'),
+ (2, 'Azure', 'Azure-3.5', 'gpt-3.5-turbo', 0, 1, '2023-08-23 12:15:30', '2023-09-02 16:49:46'),
+ (3, 'ChatGLM', 'ChatGML-Pro', 'chatglm_pro', 3, 1, '2023-08-23 13:35:45', '2023-08-29 11:41:29'),
+ (5, 'ChatGLM', 'ChatGLM-Std', 'chatglm_std', 2, 1, '2023-08-24 15:05:38', '2023-08-29 11:41:28'),
+ (6, 'ChatGLM', 'ChatGLM-Lite', 'chatglm_lite', 4, 1, '2023-08-24 15:06:15', '2023-08-29 11:41:29');
 
 ALTER TABLE `chatgpt_users`
 DROP `username`,
