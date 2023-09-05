@@ -28,7 +28,6 @@ func (h *UserHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	mobile := h.GetTrim(c, "mobile")
-	username := h.GetTrim(c, "username")
 
 	offset := (page - 1) * pageSize
 	var items []model.User
@@ -38,9 +37,6 @@ func (h *UserHandler) List(c *gin.Context) {
 	session := h.db.Session(&gorm.Session{})
 	if mobile != "" {
 		session = session.Where("mobile LIKE ?", "%"+mobile+"%")
-	}
-	if username != "" {
-		session = session.Where("username LIKE ?", "%"+username+"%")
 	}
 
 	session.Model(&model.User{}).Count(&total)

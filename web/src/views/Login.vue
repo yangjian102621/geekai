@@ -66,9 +66,9 @@ const password = ref(process.env.VUE_APP_PASS);
 
 checkSession().then(() => {
   if (isMobile()) {
-    router.replace('mobile')
+    router.push('mobile')
   } else {
-    router.replace('chat')
+    router.push('chat')
   }
 }).catch(() => {
 })
