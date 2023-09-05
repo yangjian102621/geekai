@@ -200,7 +200,7 @@ const connect = function (chat_id, role_id) {
       host = 'ws://' + location.host;
     }
   }
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${model}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${model}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     loading.value = false
     previousText.value = '';

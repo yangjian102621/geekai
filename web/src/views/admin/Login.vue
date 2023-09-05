@@ -46,6 +46,7 @@ import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
+import {setAdminToken} from "@/store/session";
 
 const router = useRouter();
 const title = ref('ChatGPT Plus Admin');
@@ -68,7 +69,8 @@ const login = function () {
     return ElMessage.error('请输入密码');
   }
 
-  httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
+  httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then(res => {
+    setAdminToken(res.data)
     router.push("/admin")
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)

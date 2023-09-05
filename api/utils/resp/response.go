@@ -27,6 +27,10 @@ func HACKER(c *gin.Context) {
 	c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hacker attempt!!!"})
 }
 
-func NotAuth(c *gin.Context) {
-	c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "Not Authorized"})
+func NotAuth(c *gin.Context, messages ...string) {
+	if messages != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: messages[0]})
+	} else {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "Not Authorized"})
+	}
 }

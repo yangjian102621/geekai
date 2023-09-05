@@ -5,23 +5,9 @@ import (
 	"chatplus/store/model"
 	"errors"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
-
-func SetLoginUser(c *gin.Context, user model.User) error {
-	session := sessions.Default(c)
-	session.Set(types.SessionUser, user.Id)
-	// TODO: 后期用户数量增加，考虑将用户数据存储到 leveldb，避免每次查询数据库
-	return session.Save()
-}
-
-func SetLoginAdmin(c *gin.Context, admin types.Manager) error {
-	session := sessions.Default(c)
-	session.Set(types.SessionAdmin, admin.Username)
-	return session.Save()
-}
 
 func GetLoginUser(c *gin.Context, db *gorm.DB) (model.User, error) {
 	value, exists := c.Get(types.LoginUserCache)
@@ -29,9 +15,8 @@ func GetLoginUser(c *gin.Context, db *gorm.DB) (model.User, error) {
 		return value.(model.User), nil
 	}
 
-	session := sessions.Default(c)
-	userId := session.Get(types.SessionUser)
-	if userId == nil {
+	userId, ok := c.Get(types.LoginUserID)
+	if !ok {
 		return model.User{}, errors.New("user not login")
 	}
 

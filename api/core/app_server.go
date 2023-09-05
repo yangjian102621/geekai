@@ -7,16 +7,16 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"context"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-contrib/sessions/memstore"
-	"github.com/gin-contrib/sessions/redis"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 type AppServer struct {
@@ -53,14 +53,13 @@ func NewServer(appConfig *types.AppConfig, functions map[string]function.Functio
 	}
 }
 
-func (s *AppServer) Init(debug bool) {
+func (s *AppServer) Init(debug bool, client *redis.Client) {
 	if debug { // 调试模式允许跨域请求 API
 		s.Debug = debug
 		logger.Info("Enabled debug mode")
 	}
 	s.Engine.Use(corsMiddleware())
-	s.Engine.Use(sessionMiddleware(s.Config))
-	s.Engine.Use(authorizeMiddleware(s))
+	s.Engine.Use(authorizeMiddleware(s, client))
 	s.Engine.Use(errorHandler)
 	// 添加静态资源访问
 	s.Engine.Static("/static", s.Config.StaticDir)
@@ -105,42 +104,6 @@ func errorHandler(c *gin.Context) {
 	c.Next()
 }
 
-// 会话处理
-func sessionMiddleware(config *types.AppConfig) gin.HandlerFunc {
-	// encrypt the cookie
-	var store sessions.Store
-	var err error
-	switch config.Session.Driver {
-	case types.SessionDriverMem:
-		store = memstore.NewStore([]byte(config.Session.SecretKey))
-		break
-	case types.SessionDriverRedis:
-		store, err = redis.NewStore(10, "tcp", config.Redis.Url(), config.Redis.Password, []byte(config.Session.SecretKey))
-		if err != nil {
-			logger.Fatal(err)
-		}
-		break
-	case types.SessionDriverCookie:
-		store = cookie.NewStore([]byte(config.Session.SecretKey))
-		break
-	default:
-		config.Session.Driver = types.SessionDriverCookie
-		store = cookie.NewStore([]byte(config.Session.SecretKey))
-	}
-
-	logger.Info("Session driver: ", config.Session.Driver)
-
-	store.Options(sessions.Options{
-		Path:     config.Session.Path,
-		Domain:   config.Session.Domain,
-		MaxAge:   config.Session.MaxAge,
-		Secure:   config.Session.Secure,
-		HttpOnly: config.Session.HttpOnly,
-		SameSite: config.Session.SameSite,
-	})
-	return sessions.Sessions(config.Session.Name, store)
-}
-
 // 跨域中间件设置
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -151,7 +114,7 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, Chat-Token")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, Chat-Token, Admin-Authorization")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
 			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
@@ -175,7 +138,7 @@ func corsMiddleware() gin.HandlerFunc {
 }
 
 // 用户授权验证
-func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
+func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.URL.Path == "/api/user/login" ||
 			c.Request.URL.Path == "/api/admin/login" ||
@@ -190,29 +153,54 @@ func authorizeMiddleware(s *AppServer) gin.HandlerFunc {
 			return
 		}
 
-		// WebSocket 连接请求验证
-		if c.Request.URL.Path == "/api/chat" {
-			sessionId := c.Query("sessionId")
-			session := s.ChatSession.Get(sessionId)
-			if session.ClientIP == c.ClientIP() {
-				c.Next()
-			} else {
-				c.Abort()
-			}
+		var tokenString string
+		if strings.Contains(c.Request.URL.Path, "/api/admin/") { // 后台管理 API
+			tokenString = c.GetHeader(types.AdminAuthHeader)
+		} else if c.Request.URL.Path == "/api/chat/new" {
+			tokenString = c.Query("token")
+		} else {
+			tokenString = c.GetHeader(types.UserAuthHeader)
+		}
+		if tokenString == "" {
+			resp.ERROR(c, "You should put Authorization in request headers")
+			c.Abort()
 			return
 		}
-		session := sessions.Default(c)
-		var value interface{}
-		if strings.Contains(c.Request.URL.Path, "/api/admin/") { // 后台管理 API
-			value = session.Get(types.SessionAdmin)
-		} else {
-			value = session.Get(types.SessionUser)
-		}
-		if value != nil {
-			c.Next()
-		} else {
-			resp.NotAuth(c)
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+
+			return []byte(s.Config.Session.SecretKey), nil
+		})
+
+		if err != nil {
+			resp.NotAuth(c, fmt.Sprintf("Error with parse auth token: %v", err))
 			c.Abort()
+			return
 		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			resp.NotAuth(c, "Token is invalid")
+			c.Abort()
+			return
+		}
+
+		expr := utils.IntValue(utils.InterfaceToString(claims["expired"]), 0)
+		if expr > 0 && int64(expr) < time.Now().Unix() {
+			resp.NotAuth(c, "Token is expired")
+			c.Abort()
+			return
+		}
+
+		key := fmt.Sprintf("users/%v", claims["user_id"])
+		if _, err := client.Get(context.Background(), key).Result(); err != nil {
+			resp.NotAuth(c, "Token is not found in redis")
+			c.Abort()
+			return
+		}
+		c.Set(types.LoginUserID, claims["user_id"])
 	}
 }

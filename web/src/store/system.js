@@ -1,6 +1,6 @@
 import Storage from "good-storage";
 
-const MOBILE_THEME = "MOBILE_THEME"
+const MOBILE_THEME = process.env.VUE_APP_KEY_PREFIX + "MOBILE_THEME"
 
 export function getMobileTheme() {
     return Storage.get(MOBILE_THEME) ? Storage.get(MOBILE_THEME) : 'light'
