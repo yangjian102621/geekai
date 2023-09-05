@@ -64,8 +64,7 @@
                     </el-input>
                   </el-col>
                   <el-col :span="12">
-                    <send-msg-mobile size="large" :mobile="formData.mobile" v-if="isMobile()"/>
-                    <send-msg size="large" :mobile="formData.mobile" v-else/>
+                    <send-msg size="large" :mobile="formData.mobile"/>
                   </el-col>
                 </el-row>
               </div>
@@ -109,7 +108,7 @@ import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {validateMobile} from "@/utils/validate";
 import {isMobile} from "@/utils/libs";
-import SendMsgMobile from "@/components/mobile/SendMsgMobile.vue";
+import SendMsgMobile from "@/components/SendMsg.vue";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');

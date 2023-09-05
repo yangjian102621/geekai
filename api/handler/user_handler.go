@@ -70,7 +70,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 		var code int
 		err := h.leveldb.Get(key, &code)
 		if err != nil || code != data.Code {
-			logger.Info(code)
 			resp.ERROR(c, "短信验证码错误")
 			return
 		}

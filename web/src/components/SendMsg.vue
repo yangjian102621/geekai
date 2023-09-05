@@ -1,29 +1,26 @@
 <template>
-  <el-container>
-    <el-popover
-        :visible="showCaptcha"
-        :hide-after="0"
-        placement="top"
-        :width="325"
-        trigger="click"
-        content="this is content, this is content, this is content"
+  <el-container class="captcha-box">
+    <el-button type="primary" class="send-btn" :size="props.size" :disabled="!canSend" @click="loadCaptcha" plain>
+      {{ btnText }}
+    </el-button>
+
+    <el-dialog
+        v-model="showCaptcha"
+        :close-on-click-modal="true"
+        :show-close="false"
+        style="width:90%;max-width: 360px;"
     >
       <captcha-plus
-          v-if="showCaptcha"
           :max-dot="maxDot"
           :image-base64="imageBase64"
           :thumb-base64="thumbBase64"
+          width="300"
           @close="showCaptcha = false"
           @refresh="handleRequestCaptCode"
           @confirm="handleConfirm"
       />
 
-      <template #reference>
-        <el-button type="primary" :size="props.size" :disabled="!canSend" @click="loadCaptcha" plain>
-          {{ btnText }}
-        </el-button>
-      </template>
-    </el-popover>
+    </el-dialog>
   </el-container>
 </template>
 
@@ -75,6 +72,7 @@ const handleConfirm = (dots) => {
     dots: dots.value,
     key: captKey.value
   }).then(() => {
+    // ElMessage.success('人机验证成功')
     showCaptcha.value = false
     sendMsg()
   }).catch(() => {
@@ -120,6 +118,21 @@ const sendMsg = () => {
 
 </script>
 
-<style scoped>
+<style lang="stylus">
 
+.captcha-box {
+  .send-btn {
+    width: 100%;
+  }
+
+  .el-dialog {
+    .el-dialog__header {
+      padding: 0;
+    }
+
+    .el-dialog__body {
+      //padding 0
+    }
+  }
+}
 </style>

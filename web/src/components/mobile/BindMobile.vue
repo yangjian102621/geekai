@@ -18,7 +18,7 @@
           placeholder="请输入短信验证码"
       >
         <template #button>
-          <send-msg-mobile size="small" :mobile="form.mobile"/>
+          <send-msg size="small" :mobile="form.mobile"/>
         </template>
       </van-field>
     </van-cell-group>
@@ -30,7 +30,7 @@ import {computed, ref} from "vue";
 import {httpPost} from "@/utils/http";
 import {validateMobile} from "@/utils/validate";
 import {showNotify} from "vant";
-import SendMsgMobile from "@/components/mobile/SendMsgMobile.vue";
+import SendMsg from "@/components/SendMsg.vue";
 
 const props = defineProps({
   show: Boolean,

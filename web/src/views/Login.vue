@@ -9,7 +9,7 @@
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
-            <el-input placeholder="手机号" size="large" v-model="username" autocomplete="off">
+            <el-input placeholder="手机号" size="large" maxlength="11" v-model="username" autocomplete="off">
               <template #prefix>
                 <el-icon>
                   <UserFilled/>
@@ -57,6 +57,7 @@ import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
 import {checkSession} from "@/action/session";
 import {setUserToken} from "@/store/session";
+import {validateMobile} from "@/utils/validate";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户登录');
@@ -81,8 +82,8 @@ onMounted(() => {
 })
 
 const login = function () {
-  if (username.value === '') {
-    return ElMessage.error('请输入用户名');
+  if (!validateMobile(username.value)) {
+    return ElMessage.error('请输入合法的手机号');
   }
   if (password.value.trim() === '') {
     return ElMessage.error('请输入密码');
