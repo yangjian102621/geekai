@@ -6,15 +6,8 @@ StaticUrl = "http://localhost:5678/static"
 AesEncryptKey = "{YOUR_AES_KEY}"
 
 [Session]
-  Driver = "cookie"
   SecretKey = "m0cjm3gsuw9jk73np1ni7r42koilybjcndlycjdmq7za3pbqn7w12fyok5pqh6q5"
-  Name = "CHAT_SESSION_ID"
-  Path = "/"
-  Domain = "localhost"
   MaxAge = 86400
-  Secure = false
-  HttpOnly = false
-  SameSite = 2
 
 [Manager]
   Username = "admin"

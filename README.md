@@ -5,6 +5,9 @@
 * 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
 * 聊天体验跟 ChatGPT 官方版本完全一致。
 * 内置了各种预训练好的角色，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
+* 支持 MidJourney AI 绘画集成，开箱即用。
+* 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。（可定制开发其他支付通道支持）
+* 集成插件 API 功能，可结合 GPT 开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI 绘画函数插件。
 
 ## 功能截图
 
@@ -95,11 +98,12 @@ ChatGPT 的服务。
 
 ## TODOLIST
 
-* [ ] 整合 Midjourney AI 绘画 API
-* [ ] 开发移动端聊天页面
+* [x] 整合 Midjourney AI 绘画 API
+* [x] 开发移动端聊天页面
 * [x] 接入微信支付功能
 * [x] 支持 ChatGPT 函数功能，通过函数实现插件
-* [ ] 接入语音和 TTS API，支持语音聊天
+* [ ] 支持基于知识库的 AI 问答
+* [ ] 开发桌面版应用
 * [ ] 开发手机 App 客户端
 
 ## Docker 快速部署
@@ -142,14 +146,8 @@ ProxyURL = ["YOUR_PROXY_URL"] # 替换成你本地代理，如：http://127.0.0.
 MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
 
 [Session]
-  SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
-  Name = "CHAT_SESSION_ID"
-  Path = "/"
-  Domain = ""
+  SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
   MaxAge = 86400
-  Secure = false
-  HttpOnly = false
-  SameSite = 2
 
 [Manager]
   Username = "admin"
