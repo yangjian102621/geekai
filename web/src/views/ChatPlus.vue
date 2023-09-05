@@ -271,7 +271,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import {dateFormat, isMobile, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
-import {getSessionId, removeLoginUser} from "@/store/session";
+import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
@@ -319,9 +319,6 @@ onMounted(() => {
   checkSession().then((user) => {
     loginUser.value = user
     isLogin.value = true
-    if (user.chat_config?.model !== '') {
-      modelID.value = user.chat_config.model
-    }
     // 加载角色列表
     httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
       roles.value = res.data;
@@ -400,7 +397,7 @@ const newChat = function () {
     chat_id: "",
     icon: icon,
     role_id: roleId.value,
-    model: modelID.value,
+    model_id: modelID.value,
     title: '',
     edit: false,
     removing: false,
@@ -419,7 +416,7 @@ const changeChat = function (chat) {
   activeChat.value = chat
   newChatItem.value = null;
   roleId.value = chat.role_id;
-  modelID.value = chat.model;
+  modelID.value = chat.model_id;
   showStopGenerate.value = false;
   showReGenerate.value = false;
   connect(chat.chat_id, chat.role_id)
@@ -510,7 +507,7 @@ const connect = function (chat_id, role_id) {
       host = 'ws://' + location.host;
     }
   }
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     previousText.value = '';
@@ -740,7 +737,7 @@ const clearAllChats = function () {
 const logout = function () {
   activelyClose.value = true;
   httpGet('/api/user/logout').then(() => {
-    removeLoginUser();
+    removeUserToken();
     router.push('login');
   }).catch(() => {
     ElMessage.error('注销失败！');

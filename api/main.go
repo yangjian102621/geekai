@@ -12,6 +12,7 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
+	"github.com/go-redis/redis/v8"
 	"io"
 	"log"
 	"os"
@@ -81,8 +82,8 @@ func main() {
 		// 创建应用服务
 		fx.Provide(core.NewServer),
 		// 初始化
-		fx.Invoke(func(s *core.AppServer) {
-			s.Init(debug)
+		fx.Invoke(func(s *core.AppServer, client *redis.Client) {
+			s.Init(debug, client)
 		}),
 
 		// 初始化数据库

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
@@ -92,7 +93,7 @@ func IsEmptyValue(obj interface{}) bool {
 	if obj == nil {
 		return true
 	}
-	
+
 	v := reflect.ValueOf(obj)
 	switch v.Kind() {
 	case reflect.Ptr, reflect.Interface:
@@ -112,4 +113,28 @@ func IsEmptyValue(obj interface{}) bool {
 	default:
 		return reflect.DeepEqual(obj, reflect.Zero(reflect.TypeOf(obj)).Interface())
 	}
+}
+
+func BoolValue(str string) bool {
+	value, err := strconv.ParseBool(str)
+	if err != nil {
+		return false
+	}
+	return value
+}
+
+func FloatValue(str string) float64 {
+	value, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
+func IntValue(str string, defaultValue int) int {
+	value, err := strconv.Atoi(str)
+	if err != nil {
+		return defaultValue
+	}
+	return value
 }

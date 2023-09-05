@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {getSessionId} from "@/store/session";
+import {getAdminToken, getSessionId, getUserToken} from "@/store/session";
 
 axios.defaults.timeout = 10000
 axios.defaults.baseURL = process.env.VUE_APP_API_HOST
@@ -11,6 +11,8 @@ axios.interceptors.request.use(
     config => {
         // set token
         config.headers['Chat-Token'] = getSessionId();
+        config.headers['Authorization'] = getUserToken();
+        config.headers['Admin-Authorization'] = getAdminToken();
         return config
     }, error => {
         return Promise.reject(error)

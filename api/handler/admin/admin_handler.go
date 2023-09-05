@@ -8,9 +8,11 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"context"
+	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
 	"strings"
-
-	"github.com/gin-contrib/sessions"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,11 +22,12 @@ var logger = logger2.GetLogger()
 
 type ManagerHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
+	db    *gorm.DB
+	redis *redis.Client
 }
 
-func NewAdminHandler(app *core.AppServer, db *gorm.DB) *ManagerHandler {
-	h := ManagerHandler{db: db}
+func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client) *ManagerHandler {
+	h := ManagerHandler{db: db, redis: client}
 	h.App = app
 	return &h
 }
@@ -38,13 +41,22 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	}
 	manager := h.App.Config.Manager
 	if data.Username == manager.Username && data.Password == manager.Password {
-		err := utils.SetLoginAdmin(c, manager)
+		// 创建 token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user_id": manager.Username,
+			"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)),
+		})
+		tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
 		if err != nil {
-			resp.ERROR(c, "Save session failed")
+			resp.ERROR(c, "Failed to generate token, "+err.Error())
 			return
 		}
-		manager.Password = "" // 清空密码]
-		resp.SUCCESS(c, manager)
+		// 保存到 redis
+		if _, err := h.redis.Set(context.Background(), "users/"+manager.Username, tokenString, 0).Result(); err != nil {
+			resp.ERROR(c, "error with save token: "+err.Error())
+			return
+		}
+		resp.SUCCESS(c, tokenString)
 	} else {
 		resp.ERROR(c, "用户名或者密码错误")
 	}
@@ -52,11 +64,9 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 
 // Logout 注销
 func (h *ManagerHandler) Logout(c *gin.Context) {
-	session := sessions.Default(c)
-	session.Delete(types.SessionAdmin)
-	err := session.Save()
-	if err != nil {
-		resp.ERROR(c, "Save session failed")
+	token := c.GetHeader(types.AdminAuthHeader)
+	if _, err := h.redis.Del(c, token).Result(); err != nil {
+		logger.Error("error with delete session: ", err)
 	} else {
 		resp.SUCCESS(c)
 	}
@@ -64,9 +74,8 @@ func (h *ManagerHandler) Logout(c *gin.Context) {
 
 // Session 会话检测
 func (h *ManagerHandler) Session(c *gin.Context) {
-	session := sessions.Default(c)
-	admin := session.Get(types.SessionAdmin)
-	if admin == nil {
+	token := c.GetHeader(types.AdminAuthHeader)
+	if token == "" {
 		resp.NotAuth(c)
 	} else {
 		resp.SUCCESS(c)

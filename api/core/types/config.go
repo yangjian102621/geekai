@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"net/http"
 )
 
 type AppConfig struct {
@@ -84,19 +83,6 @@ const (
 	SessionDriverRedis  = SessionDriver("redis")
 	SessionDriverCookie = SessionDriver("cookie")
 )
-
-// Session configs struct
-type Session struct {
-	Driver    SessionDriver // session 存储驱动 mem|cookie|redis
-	SecretKey string        // session encryption key
-	Name      string
-	Path      string
-	Domain    string
-	MaxAge    int
-	Secure    bool
-	HttpOnly  bool
-	SameSite  http.SameSite
-}
 
 // ChatConfig 系统默认的聊天配置
 type ChatConfig struct {

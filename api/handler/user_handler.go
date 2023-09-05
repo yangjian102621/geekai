@@ -9,10 +9,12 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"fmt"
+	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
 	"strings"
 	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"gorm.io/gorm"
@@ -23,6 +25,7 @@ type UserHandler struct {
 	db            *gorm.DB
 	searcher      *xdb.Searcher
 	leveldb       *store.LevelDB
+	redis         *redis.Client
 	uploadManager *oss.UploaderManager
 }
 
@@ -31,8 +34,9 @@ func NewUserHandler(
 	db *gorm.DB,
 	searcher *xdb.Searcher,
 	levelDB *store.LevelDB,
+	client *redis.Client,
 	manager *oss.UploaderManager) *UserHandler {
-	handler := &UserHandler{db: db, searcher: searcher, leveldb: levelDB, uploadManager: manager}
+	handler := &UserHandler{db: db, searcher: searcher, leveldb: levelDB, redis: client, uploadManager: manager}
 	handler.App = app
 	return handler
 }
@@ -122,7 +126,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 // Login 用户登录
 func (h *UserHandler) Login(c *gin.Context) {
 	var data struct {
-		Username string `json:"mobile"`
+		Mobile   string `json:"username"`
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -130,7 +134,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	var user model.User
-	res := h.db.Where("mobile = ?", data.Username).First(&user)
+	res := h.db.Where("mobile = ?", data.Mobile).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户名不存在")
 		return
@@ -152,13 +156,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 	user.LastLoginAt = time.Now().Unix()
 	h.db.Model(&user).Updates(user)
 
-	err := utils.SetLoginUser(c, user)
-	if err != nil {
-		resp.ERROR(c, "保存会话失败")
-		logger.Error("Error for save session: ", err)
-		return
-	}
-
 	h.db.Create(&model.UserLoginLog{
 		UserId:       user.Id,
 		Username:     user.Mobile,
@@ -166,17 +163,32 @@ func (h *UserHandler) Login(c *gin.Context) {
 		LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
 	})
 
-	resp.SUCCESS(c)
+	// 创建 token
+	expired := time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.Id,
+		"expired": expired,
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		resp.ERROR(c, "Failed to generate token, "+err.Error())
+		return
+	}
+	// 保存到 redis
+	key := fmt.Sprintf("users/%d", user.Id)
+	if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+		resp.ERROR(c, "error with save token: "+err.Error())
+		return
+	}
+	resp.SUCCESS(c, tokenString)
 }
 
 // Logout 注 销
 func (h *UserHandler) Logout(c *gin.Context) {
-	sessionId := c.GetHeader(types.SessionName)
-	session := sessions.Default(c)
-	session.Delete(types.SessionUser)
-	err := session.Save()
-	if err != nil {
-		logger.Error("Error for save session: ", err)
+	sessionId := c.GetHeader(types.ChatTokenHeader)
+	token := c.GetHeader(types.UserAuthHeader)
+	if _, err := h.redis.Del(c, token).Result(); err != nil {
+		logger.Error("error with delete session: ", err)
 	}
 	// 删除 websocket 会话列表
 	h.App.ChatSession.Delete(sessionId)

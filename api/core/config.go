@@ -5,7 +5,6 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/utils"
-	"net/http"
 	"os"
 
 	"github.com/BurntSushi/toml"
@@ -23,15 +22,8 @@ func NewDefaultConfig() *types.AppConfig {
 		Redis:         types.RedisConfig{Host: "localhost", Port: 6379, Password: ""},
 		AesEncryptKey: utils.RandString(24),
 		Session: types.Session{
-			Driver:    types.SessionDriverCookie,
 			SecretKey: utils.RandString(64),
-			Name:      "CHAT_PLUS_SESSION",
-			Domain:    "",
-			Path:      "/",
 			MaxAge:    86400,
-			Secure:    true,
-			HttpOnly:  false,
-			SameSite:  http.SameSiteLaxMode,
 		},
 		ApiConfig: types.ChatPlusApiConfig{},
 		ExtConfig: types.ChatPlusExtConfig{Token: utils.RandString(32)},
