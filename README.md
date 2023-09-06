@@ -169,7 +169,7 @@ MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&pars
   Token = "插件扩展 API Token" # 这个 token 随便填，只要确保跟 chatgpt-plus-exts 项目的 token 一样就行 
   
 [OSS] # OSS 配置，用于存储 MJ 绘画图片
-   Active = "local" # 默认使用本地文件存储
+   Active = "local" # 默认使用本地文件存储引擎
    [OSS.Local]
      BasePath = "./static/upload" # 本地文件上传根路径
      BaseURL = "http://localhost:5678/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
@@ -180,6 +180,12 @@ MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&pars
      Bucket = "chatgpt-plus" # 替换为你自己创建的 Bucket，注意要给 Bucket 设置公开的读权限，否则会出现图片无法显示。
      UseSSL = false
      Domain = "minio 文件公开访问地址" # 地址必须是能够通过公网访问的，否则会出现图片无法显示。
+   [OSS.QiNiu] # 七牛云 OSS 配置
+       Zone = "z2" # 区域，z0：华东，z1: 华北，na0：北美，as0：新加坡
+       AccessKey = "七牛云 OSS AccessKey"
+       AccessSecret = "七牛云 OSS AccessSecret"
+       Bucket = "七牛云 OSS Bucket"
+       Domain = "OSS Bucket 所绑定的域名，如 https://img.r9it.com"
 ```
 
 > 如果要启用微信收款服务和 MidJourney

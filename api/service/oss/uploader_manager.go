@@ -10,8 +10,9 @@ type UploaderManager struct {
 	uploadServices map[string]Uploader
 }
 
-const uploaderLocal = "LOCAL"
-const uploaderMinio = "MINIO"
+const Local = "LOCAL"
+const Minio = "MINIO"
+const QiNiu = "QINIU"
 
 func NewUploaderManager(config *types.AppConfig) (*UploaderManager, error) {
 	services := make(map[string]Uploader)
@@ -20,12 +21,15 @@ func NewUploaderManager(config *types.AppConfig) (*UploaderManager, error) {
 		if err != nil {
 			return nil, err
 		}
-		services[uploaderMinio] = minioService
+		services[Minio] = minioService
 	}
 	if config.OSS.Local.BasePath != "" {
-		services[uploaderLocal] = NewLocalStorageService(config)
+		services[Local] = NewLocalStorageService(config)
 	}
-	active := uploaderLocal
+	if config.OSS.QiNiu.AccessKey != "" {
+		services[QiNiu] = NewQiNiuService(config)
+	}
+	active := Local
 	if config.OSS.Active != "" {
 		active = strings.ToUpper(config.OSS.Active)
 	}
