@@ -58,7 +58,7 @@ const save = () => {
     ElMessage.success({
       message: '核销成功',
       duration: 1000,
-      onClose: () => emits('hide', false)
+      onClose: () => location.reload()
     })
   }).catch(e => {
     ElMessage.error({message: "核销失败：" + e.message});
