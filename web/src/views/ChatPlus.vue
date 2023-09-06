@@ -235,13 +235,14 @@
         title="参与众筹"
     >
       <el-alert type="info" :closable="false">
-        <p>您好，ChatGPT-Plus 项目目前已经运行了快半年了，一直免费给大家使用的。然而免费服务始终难以维持，服务器即将到期，免费的
-          API KEY 也全部用完了，因此我们准备开启众筹模式，只需要打赏9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
-          账单和服务器的费用。</p>
+        <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
+          账单和服务器的费用。<strong
+              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号进入核销【众筹核销】菜单手动核销。</strong>
+        </div>
       </el-alert>
-      <p style="text-align: center">
+      <div style="text-align: center;padding-top: 10px;">
         <el-image :src="rewardImg"/>
-      </p>
+      </div>
     </el-dialog>
   </div>
 

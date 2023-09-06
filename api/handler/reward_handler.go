@@ -8,6 +8,7 @@ import (
 	"chatplus/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type RewardHandler struct {
@@ -74,6 +75,9 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	// 移除转账单号中间的空格，防止有人复制的时候多复制了空格
+	data.TxId = strings.ReplaceAll(data.TxId, " ", "")
 
 	var item model.Reward
 	res := h.db.Where("tx_id = ?", data.TxId).First(&item)
