@@ -1,0 +1,35 @@
+{
+  "name": "chatgpt-plus-desktop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+	"package": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "build": {
+    "appId": "ai.r9it.com",
+    "productName": "ChatGPT-Plus",
+    "directories": {
+      "output": "dist" 
+    },
+    "files": [
+      "index.js", 
+      "package.json"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis",
+	  "icon": "icons/logo.ico"
+    }
+  },
+
+  "author": "geekmaster",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^26.1.0"
+  }
+}
