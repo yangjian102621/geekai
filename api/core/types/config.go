@@ -44,6 +44,7 @@ type OSSConfig struct {
 	Active string
 	Local  LocalStorageConfig
 	Minio  MinioConfig
+	QiNiu  QiNiuConfig
 }
 type MinioConfig struct {
 	Endpoint     string
@@ -51,6 +52,14 @@ type MinioConfig struct {
 	AccessSecret string
 	Bucket       string
 	UseSSL       bool
+	Domain       string
+}
+
+type QiNiuConfig struct {
+	Zone         string
+	AccessKey    string
+	AccessSecret string
+	Bucket       string
 	Domain       string
 }
 
@@ -75,14 +84,6 @@ type Manager struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
-
-type SessionDriver string
-
-const (
-	SessionDriverMem    = SessionDriver("mem")
-	SessionDriverRedis  = SessionDriver("redis")
-	SessionDriverCookie = SessionDriver("cookie")
-)
 
 // ChatConfig 系统默认的聊天配置
 type ChatConfig struct {

@@ -42,6 +42,12 @@ AesEncryptKey = "{YOUR_AES_KEY}"
      Endpoint = "IP:端口"
      AccessKey = "minio oss access key"
      AccessSecret = "minio oss access secret"
-     Bucket = "chatgpt-plus"
+     Bucket = "minio oss bucket"
      UseSSL = false
      Domain = "minio 文件公开访问地址"
+   [OSS.QiNiu] # 七牛云 OSS 配置
+       Zone = "z2" # 区域，z0：华东，z1: 华北，na0：北美，as0：新加坡
+       AccessKey = "七牛云 OSS AccessKey"
+       AccessSecret = "七牛云 OSS AccessSecret"
+       Bucket = "七牛云 OSS Bucket"
+       Domain = "OSS Bucket 所绑定的域名，如 https://img.r9it.com"

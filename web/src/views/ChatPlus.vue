@@ -349,6 +349,8 @@ onMounted(() => {
   clipboard.on('error', () => {
     ElMessage.error('复制失败！');
   })
+
+  window.onresize = () => resizeElement();
 });
 
 // 加载会话

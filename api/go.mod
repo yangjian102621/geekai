@@ -13,6 +13,7 @@ require (
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20230415042440-a5e3d8259ae0
 	github.com/minio/minio-go/v7 v7.0.62
 	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
+	github.com/qiniu/go-sdk/v7 v7.17.1
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -60,6 +61,7 @@ require (
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
