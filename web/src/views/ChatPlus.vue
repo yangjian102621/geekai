@@ -285,8 +285,8 @@ import Welcome from "@/components/Welcome.vue";
 import ChatMidJourney from "@/components/ChatMidJourney.vue";
 
 const title = ref('ChatGPT-智能助手');
-const logo = 'images/logo.png';
-const rewardImg = ref('images/reward.png')
+const logo = '/images/logo.png';
+const rewardImg = ref('/images/reward.png')
 const models = ref([])
 const modelID = ref(0)
 const chatData = ref([]);
@@ -320,23 +320,40 @@ onMounted(() => {
   checkSession().then((user) => {
     loginUser.value = user
     isLogin.value = true
-    // 加载角色列表
-    httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
-      roles.value = res.data;
-      roleId.value = roles.value[0]['id'];
-      // 获取会话列表
-      loadChats();
+    // 获取会话列表
+    httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
+      if (res.data) {
+        chatList.value = res.data;
+        allChats.value = res.data;
+      }
       // 加载模型
       httpGet('/api/model/list?enable=1').then(res => {
         models.value = res.data
         modelID.value = models.value[0].id
-        // 创建新的对话
-        newChat();
+
+        // 加载角色列表
+        httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
+          roles.value = res.data;
+          roleId.value = roles.value[0]['id'];
+          const chatId = router.currentRoute.value.params['id']
+          const chat = getChatById(chatId)
+          if (chat === null) {
+            // 创建新的对话
+            newChat();
+          } else {
+            // 加载对话
+            loadChat(chat)
+          }
+        }).catch((e) => {
+          ElMessage.error('获取聊天角色失败: ' + e.messages)
+        })
       }).catch(e => {
         ElMessage.error("加载模型失败: " + e.message)
       })
-    }).catch((e) => {
-      ElMessage.error('获取聊天角色失败: ' + e.messages)
+
+    }).catch(() => {
+      // TODO: 增加重试按钮
+      ElMessage.error("加载会话列表失败！")
     })
   }).catch(() => {
     router.push('login')
@@ -353,19 +370,6 @@ onMounted(() => {
 
   window.onresize = () => resizeElement();
 });
-
-// 加载会话
-const loadChats = function () {
-  httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
-    if (res.data) {
-      chatList.value = res.data;
-      allChats.value = res.data;
-    }
-  }).catch(() => {
-    // TODO: 增加重试按钮
-    ElMessage.error("加载会话列表失败！")
-  })
-}
 
 const getRoleById = function (rid) {
   for (let i = 0; i < roles.value.length; i++) {
@@ -412,7 +416,12 @@ const newChat = function () {
 }
 
 // 切换会话
-const changeChat = function (chat) {
+const changeChat = (chat) => {
+  router.push("/chat/"+chat.chat_id)
+  loadChat(chat)
+}
+
+const loadChat = function (chat) {
   if (activeChat.value['chat_id'] === chat.chat_id) {
     return;
   }
@@ -841,353 +850,18 @@ const exportChat = () => {
   // console.log(url)
   window.open(url, '_blank');
 }
+
+const getChatById = (chatId) => {
+  for (let index in chatList.value) {
+    if (chatList.value[index].chat_id === chatId) {
+      return chatList.value[index]
+    }
+  }
+  return null
+}
 </script>
 
 <style scoped lang="stylus">
 @import '@/assets/iconfont/iconfont.css';
-$sideBgColor = #252526;
-$borderColor = #4676d0;
-#app {
-
-  height: 100%;
-
-  .common-layout {
-    height: 100%;
-
-    // left side
-
-    .el-aside {
-      background-color: $sideBgColor;
-
-      .title-box {
-        padding: 6px 10px;
-        display: flex;
-        color: #ffffff;
-        font-size: 20px;
-
-        .logo {
-          background-color: #ffffff
-          border-radius: 8px;
-          width: 35px;
-          height: 35px;
-        }
-
-        span {
-          padding-top: 5px;
-          padding-left: 10px;
-        }
-      }
-
-      .chat-list {
-        display: flex
-        flex-flow: column
-        background-color: #28292A
-        border-top: 1px solid #2F3032
-        border-right: 1px solid #2F3032
-
-        .search-box {
-          flex-wrap: wrap
-          padding: 10px 15px;
-
-          .el-input__wrapper {
-            background-color: #363535;
-            box-shadow: none
-          }
-        }
-
-        // 隐藏滚动条
-
-        ::-webkit-scrollbar {
-          width: 0;
-          height: 0;
-          background-color: transparent;
-        }
-
-        .content {
-          //display flex
-          //flex-wrap: wrap;
-          //flex-direction column
-          width: 100%
-          overflow-y: scroll
-
-          .chat-list-item {
-            display: flex
-            width: 100%
-            justify-content: flex-start
-            padding: 8px 12px
-            //border-bottom: 1px solid #3c3c3c
-            cursor: pointer
-
-            &:hover {
-              background-color #343540
-            }
-
-            .avatar {
-              width: 28px;
-              height: 28px;
-              border-radius: 50%;
-            }
-
-            .chat-title-input {
-              font-size: 14px;
-              margin-top: 4px;
-              margin-left: 10px;
-              overflow: hidden;
-              white-space: nowrap;
-              text-overflow: ellipsis;
-              width: 210px;
-            }
-
-            .chat-title {
-              color: #c1c1c1
-              padding: 5px 10px;
-              max-width 220px;
-              font-size 14px;
-              overflow: hidden;
-              white-space: nowrap;
-              text-overflow: ellipsis;
-            }
-
-            .btn {
-              display none
-              position: absolute;
-              right: 2px;
-              top: 16px;
-              color #ffffff
-
-              .el-icon {
-                margin-right 8px;
-              }
-            }
-          }
-
-          .chat-list-item.active {
-            background-color: #343540;
-
-            .btn {
-              display inline
-            }
-          }
-        }
-      }
-
-
-      .tool-box {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        padding 0 20px 10px 20px;
-        border-top 1px solid #3c3c3c;
-
-        .user-info {
-          width 100%
-          padding-top 10px;
-
-          .el-dropdown-link {
-            width 100%;
-            cursor: pointer
-            display flex
-
-            .el-image {
-              width: 20px;
-              height: 20px;
-              border-radius: 5px;
-            }
-
-            .username {
-              display flex
-              line-height 22px;
-              width 230px;
-              padding-left 10px;
-
-            }
-
-            .el-icon {
-              color: #cccccc;
-              line-height 24px;
-            }
-          }
-
-        }
-      }
-    }
-
-    .el-main {
-      overflow: hidden;
-      --el-main-padding: 0;
-      margin: 0;
-
-      .chat-head {
-        width: 100%;
-        height: 50px;
-        background-color: #28292A
-
-        .chat-config {
-          display flex
-          flex-direction row
-          align-items: center;
-          justify-content center;
-          padding-top 10px;
-
-          .role-select-label {
-            color #ffffff
-          }
-
-          .el-select {
-            //max-width 150px;
-            margin-right 10px;
-          }
-
-          .role-select {
-            max-width 130px;
-          }
-
-          .el-button {
-            .el-icon {
-              margin-right 5px;
-            }
-          }
-        }
-
-        .iconfont {
-          margin-right 5px;
-        }
-      }
-
-      .right-box {
-        min-width: 0;
-        flex: 1;
-        background-color: #ffffff
-        border-left: 1px solid #4f4f4f
-
-        #container {
-          overflow: hidden;
-          width: 100%;
-
-          ::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-            background-color: transparent;
-          }
-
-          .chat-box {
-            overflow-y: scroll;
-            //border-bottom: 1px solid #4f4f4f
-
-            // 变量定义
-            --content-font-size: 16px;
-            --content-color: #c1c1c1;
-
-            font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-            padding: 0 0 50px 0;
-
-            .chat-line {
-              font-size: 14px;
-              display: flex;
-              align-items: flex-start;
-
-            }
-          }
-
-          .re-generate {
-            position: relative;
-            display: flex;
-            justify-content: center;
-
-            .btn-box {
-              position: absolute
-              bottom: 10px;
-
-              .el-button {
-                .el-icon {
-                  margin-right 5px;
-                }
-              }
-
-            }
-          }
-
-          .input-box {
-            background-color: #ffffff
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            padding 0 15px;
-
-            .input-container {
-              width 100%
-              margin: 0;
-              border: none;
-              padding: 10px 0;
-              display flex
-              justify-content center
-              position relative
-
-              .el-textarea {
-
-                .el-textarea__inner::-webkit-scrollbar {
-                  width: 0;
-                  height: 0;
-                }
-              }
-
-              .send-btn {
-                position absolute;
-                right 12px;
-                top 20px;
-
-                .el-button {
-                  padding 8px 5px;
-                  border-radius 6px;
-                  background: rgb(25, 195, 125)
-                  color #ffffff;
-                  font-size 20px;
-                }
-              }
-
-            }
-          }
-        }
-
-        #container::-webkit-scrollbar {
-          width: 0;
-          height: 0;
-        }
-      }
-    }
-  }
-
-  .el-message-box {
-    width: 90%;
-    max-width: 420px;
-  }
-
-  .el-message {
-    min-width: 100px;
-    max-width: 600px;
-  }
-}
-
-.el-select-dropdown__wrap {
-  .el-select-dropdown__item {
-    .role-option {
-      display flex
-      flex-flow row
-      margin-top 8px;
-
-      .el-image {
-        width 20px
-        height 20px
-        border-radius 50%
-      }
-
-      span {
-        margin-left 5px;
-        height 20px;
-        line-height 20px;
-      }
-    }
-  }
-}
+@import "@/assets/css/chat-plus.styl"
 </style>

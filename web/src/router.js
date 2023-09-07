@@ -21,10 +21,17 @@ const routes = [
         component: () => import('@/views/Register.vue'),
     },
     {
-        name: 'plus',
+        name: 'chat',
         path: '/chat',
         meta: {title: '创作中心'},
         component: () => import('@/views/ChatPlus.vue'),
+    },
+    {
+        name: 'chat-id',
+        path: '/chat/:id',
+        meta: {title: '创作中心'},
+        component: () => import('@/views/ChatPlus.vue'),
+        props: true // 将路由参数传递给组件的 props
     },
     {
         name: 'chat-export',
