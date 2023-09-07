@@ -34,7 +34,7 @@
 
           <el-row class="text-line">
             还没有账号？
-            <el-link type="primary" @click="router.push('register')">注册新账号</el-link>
+            <el-link type="primary" @click="router.push('/register')">注册新账号</el-link>
           </el-row>
         </div>
       </div>
@@ -66,9 +66,9 @@ const password = ref(process.env.VUE_APP_PASS);
 
 checkSession().then(() => {
   if (isMobile()) {
-    router.push('mobile')
+    router.push('/mobile')
   } else {
-    router.push('chat')
+    router.push('/chat')
   }
 }).catch(() => {
 })
@@ -94,7 +94,7 @@ const login = function () {
     if (isMobile()) {
       router.push('/mobile')
     } else {
-      router.push('chat')
+      router.push('/chat')
     }
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)

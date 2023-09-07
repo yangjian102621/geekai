@@ -102,7 +102,7 @@ const exportChat = () => {
   justify-content center
 
   .chat-box {
-    max-width 800px;
+    width 800px;
     // 变量定义
     --content-font-size: 16px;
     --content-color: #c1c1c1;
