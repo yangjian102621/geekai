@@ -17,7 +17,7 @@ checkSession().then(() => {
     router.push("/chat")
   }
 }).catch(() => {
-  router.push("login")
+  router.push("/login")
 })
 
 </script>

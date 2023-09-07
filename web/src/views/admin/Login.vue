@@ -55,7 +55,7 @@ const username = ref(process.env.VUE_APP_ADMIN_USER);
 const password = ref(process.env.VUE_APP_ADMIN_PASS);
 
 checkAdminSession().then(() => {
-  router.push("admin")
+  router.push("/admin")
 }).catch(() => {
 })
 onMounted(() => {
@@ -76,7 +76,7 @@ const login = function () {
 
   httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then(res => {
     setAdminToken(res.data)
-    router.push("admin")
+    router.push("/admin")
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
   })

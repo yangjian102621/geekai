@@ -75,7 +75,7 @@
 
               <el-row class="text-line">
                 已经有账号？
-                <el-link type="primary" @click="router.push('login')">登录</el-link>
+                <el-link type="primary" @click="router.push('/login')">登录</el-link>
               </el-row>
             </el-form>
           </div>
@@ -144,7 +144,7 @@ const register = function () {
     return ElMessage.error('请输入短信验证码');
   }
   httpPost('/api/user/register', formData.value).then(() => {
-    ElMessage.success({"message": "注册成功，即将跳转到登录页...", onClose: () => router.push("login")})
+    ElMessage.success({"message": "注册成功，即将跳转到登录页...", onClose: () => router.push("/login")})
   }).catch((e) => {
     ElMessage.error('注册失败，' + e.message)
   })

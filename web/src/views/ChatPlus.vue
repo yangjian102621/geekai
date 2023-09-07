@@ -356,7 +356,7 @@ onMounted(() => {
       ElMessage.error("加载会话列表失败！")
     })
   }).catch(() => {
-    router.push('login')
+    router.push('/login')
   });
 
   const clipboard = new Clipboard('.copy-reply');
@@ -417,7 +417,7 @@ const newChat = function () {
 
 // 切换会话
 const changeChat = (chat) => {
-  router.push("/chat/"+chat.chat_id)
+  router.push("/chat/" + chat.chat_id)
   loadChat(chat)
 }
 
@@ -750,7 +750,7 @@ const logout = function () {
   activelyClose.value = true;
   httpGet('/api/user/logout').then(() => {
     removeUserToken();
-    router.push('login');
+    router.push('/login');
   }).catch(() => {
     ElMessage.error('注销失败！');
   })
