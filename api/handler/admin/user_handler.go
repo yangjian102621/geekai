@@ -62,10 +62,8 @@ func (h *UserHandler) List(c *gin.Context) {
 func (h *UserHandler) Save(c *gin.Context) {
 	var data struct {
 		Id          uint     `json:"id"`
-		Username    string   `json:"username"`
 		Password    string   `json:"password"`
 		Mobile      string   `json:"mobile"`
-		Nickname    string   `json:"nickname"`
 		Calls       int      `json:"calls"`
 		ImgCalls    int      `json:"img_calls"`
 		ChatRoles   []string `json:"chat_roles"`
@@ -83,7 +81,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 		user.Id = data.Id
 		// 此处需要用 map 更新，用结构体无法更新 0 值
 		res = h.db.Model(&user).Updates(map[string]interface{}{
-			"nickname":        data.Nickname,
 			"mobile":          data.Mobile,
 			"calls":           data.Calls,
 			"img_calls":       data.ImgCalls,

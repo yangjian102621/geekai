@@ -64,19 +64,11 @@
         width="50%"
     >
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item v-if="add" label="用户名：" prop="username">
-          <el-input v-model="user.username" autocomplete="off"/>
-        </el-form-item>
-        <el-form-item v-else label="昵称：" prop="nickname">
-          <el-input v-model="user.nickname" autocomplete="off"/>
-        </el-form-item>
-
-        <el-form-item v-if="add" label="密码：" prop="password">
-          <el-input v-model="user.password" autocomplete="off"/>
-        </el-form-item>
-
         <el-form-item label="手机号：" prop="mobile">
           <el-input v-model="user.mobile" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item v-if="add" label="密码：" prop="password">
+          <el-input v-model="user.password" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="对话次数：" prop="calls">
           <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
