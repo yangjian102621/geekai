@@ -1,6 +1,6 @@
 # ChatGPT-Plus
 
-**ChatGPT-PLUS** 是基于 OpenAI API 实现的 ChatGPT 聊天系统。主要有如下特性：
+**ChatGPT-PLUS** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Azure, ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。主要有如下特性：
 
 * 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
 * 聊天体验跟 ChatGPT 官方版本完全一致。
