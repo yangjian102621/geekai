@@ -18,8 +18,13 @@
       "index.js", 
       "package.json"
     ],
+	"linux": {
+    "target": "AppImage",
+    "icon": "icons/logo.png"
+	 },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "icons/logo.icns"
     },
     "win": {
       "target": "nsis",
