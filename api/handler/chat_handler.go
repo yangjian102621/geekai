@@ -93,7 +93,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		Id:       chatModel.Id,
 		Value:    chatModel.Value,
 		Platform: types.Platform(chatModel.Platform)}
-	logger.Infof("New websocket connected, IP: %s, Username: %s", c.Request.RemoteAddr, session.Username)
+	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 	var chatRole model.ChatRole
 	res = h.db.First(&chatRole, roleId)
 	if res.Error != nil || !chatRole.Enable {

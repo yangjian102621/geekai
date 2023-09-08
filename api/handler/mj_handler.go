@@ -85,7 +85,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	logger.Debugf("收到 MidJourney 回调请求：%+v", data)
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	
+
 	// the job is saved
 	var job model.MidJourneyJob
 	res := h.db.Where("message_id = ?", data.MessageId).First(&job)
