@@ -1,7 +1,7 @@
 <template>
   <div class="common-layout theme-white">
     <el-container>
-      <el-aside width="320px">
+      <el-aside>
         <div class="title-box">
           <el-image :src="logo" class="logo"/>
           <span>{{ title }}</span>
@@ -47,7 +47,7 @@
                           <el-icon><ArrowDown/></el-icon>
                         </span>
             <template #dropdown>
-              <el-dropdown-menu style="width: 315px;">
+              <el-dropdown-menu style="width: 296px;">
                 <el-dropdown-item @click="showConfig">
                   <el-icon>
                     <Tools/>

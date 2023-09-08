@@ -134,6 +134,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			err = h.sendMessage(ctx, session, chatRole, message, client)
 			if err != nil {
 				logger.Error(err)
+				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
 			} else {
 				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
 				logger.Info("回答完毕: " + string(message))
@@ -272,7 +273,11 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	case types.ChatGLM:
 		return h.sendChatGLMMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	}
-	return fmt.Errorf("not supported platform: %s", session.Model.Platform)
+	utils.ReplyChunkMessage(ws, types.WsMessage{
+		Type:    types.WsMiddle,
+		Content: fmt.Sprintf("Not supported platform: %s", session.Model.Platform),
+	})
+	return nil
 }
 
 // Tokens 统计 token 数量

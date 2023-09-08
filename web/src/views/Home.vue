@@ -1,50 +1,49 @@
 <template>
   <div class="home">
-    <div class="inner">
-      <h1>HI <br/> ChatGPT-PLUS</h1>
+    <div class="navigator"></div>
+    <div class="content">
+      <router-view v-slot="{ Component }">
+        <transition name="move" mode="out-in">
+          <component :is="Component"></component>
+        </transition>
+      </router-view>
     </div>
   </div>
 </template>
 
 <script setup>
-import {useRouter} from "vue-router";
-import {checkSession} from "@/action/session";
-import {isMobile} from "@/utils/libs";
 
-const router = useRouter();
-checkSession().then(() => {
-  if (isMobile()) {
-    router.push("/mobile")
-  } else {
-    router.push("/chat")
-  }
-}).catch(() => {
-  router.push("/login")
-})
+// const router = useRouter();
+// checkSession().then(() => {
+//   if (isMobile()) {
+//     router.push("/mobile")
+//   } else {
+//     router.push("/chat")
+//   }
+// }).catch(() => {
+//   router.push("/login")
+// })
 
 </script>
 
 <style lang="stylus" scoped>
 .home {
   display: flex;
-  justify-content: center;
-  background-color: #282c34;
+  background-color: #343540;
   height 100vh
+  width 100%
 
-  .inner {
-    text-align center
+  .navigator {
     display flex
-    justify-content center
-    max-width 400px
-    align-items center
+    width 30px
+    padding 10px 6px
+  }
 
-    h1 {
-      color: #202020;
-      font-size: 55px;
-      line-height 1.5
-      font-weight: bold;
-      text-shadow: -1px -1px 1px #111111, 2px 2px 1px #363636;
-    }
+  .content {
+    width: 100%;
+    height: 100vh;
+    overflow-y: scroll;
+    box-sizing: border-box;
   }
 
 }
