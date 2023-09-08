@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"sync"
 	"time"
 )
 
@@ -41,6 +42,7 @@ type MidJourneyHandler struct {
 	db              *gorm.DB
 	mjFunc          function.FuncMidJourney
 	uploaderManager *oss.UploaderManager
+	lock            sync.Mutex
 }
 
 func NewMidJourneyHandler(
@@ -53,6 +55,7 @@ func NewMidJourneyHandler(
 		leveldb:         leveldb,
 		db:              db,
 		uploaderManager: manager,
+		lock:            sync.Mutex{},
 		mjFunc:          functions[types.FuncMidJourney].(function.FuncMidJourney)}
 	h.App = app
 	return &h
@@ -80,7 +83,9 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	}
 
 	logger.Debugf("收到 MidJourney 回调请求：%+v", data)
-
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	
 	// the job is saved
 	var job model.MidJourneyJob
 	res := h.db.Where("message_id = ?", data.MessageId).First(&job)
