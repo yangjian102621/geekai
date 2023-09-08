@@ -108,7 +108,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		imgURL, err := h.uploaderManager.GetUploadHandler().PutImg(data.Image.URL)
 		if err != nil {
 			logger.Error("error with download image: ", err)
-			resp.SUCCESS(c)
+			resp.ERROR(c, err.Error())
 			return
 		}
 
