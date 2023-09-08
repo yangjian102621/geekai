@@ -4,8 +4,30 @@ const routes = [
     {
         name: 'home',
         path: '/',
+        redirect: '/chat',
         meta: {title: '首页'},
         component: () => import('@/views/Home.vue'),
+        children: [
+            {
+                name: 'chat',
+                path: '/chat',
+                meta: {title: '创作中心'},
+                component: () => import('@/views/ChatPlus.vue'),
+            },
+            {
+                name: 'chat-id',
+                path: '/chat/:id',
+                meta: {title: '创作中心'},
+                component: () => import('@/views/ChatPlus.vue'),
+                props: true // 将路由参数传递给组件的 props
+            },
+            {
+                name: 'chat-export',
+                path: '/chat/export',
+                meta: {title: '导出会话记录'},
+                component: () => import('@/views/ChatExport.vue'),
+            },
+        ]
     },
     {
         name: 'login',
@@ -19,25 +41,6 @@ const routes = [
 
         meta: {title: '用户注册'},
         component: () => import('@/views/Register.vue'),
-    },
-    {
-        name: 'chat',
-        path: '/chat',
-        meta: {title: '创作中心'},
-        component: () => import('@/views/ChatPlus.vue'),
-    },
-    {
-        name: 'chat-id',
-        path: '/chat/:id',
-        meta: {title: '创作中心'},
-        component: () => import('@/views/ChatPlus.vue'),
-        props: true // 将路由参数传递给组件的 props
-    },
-    {
-        name: 'chat-export',
-        path: '/chat/export',
-        meta: {title: '导出会话记录'},
-        component: () => import('@/views/ChatExport.vue'),
     },
     {
         path: '/admin/login',
