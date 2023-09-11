@@ -3,7 +3,6 @@
     <el-container>
       <el-aside>
         <div class="title-box">
-          <el-image :src="logo" class="logo"/>
           <span>{{ title }}</span>
         </div>
         <div class="chat-list">
@@ -285,7 +284,6 @@ import Welcome from "@/components/Welcome.vue";
 import ChatMidJourney from "@/components/ChatMidJourney.vue";
 
 const title = ref('ChatGPT-智能助手');
-const logo = '/images/logo.png';
 const rewardImg = ref('/images/reward.png')
 const models = ref([])
 const modelID = ref(0)
@@ -358,6 +356,12 @@ onMounted(() => {
   }).catch(() => {
     router.push('/login')
   });
+
+  httpGet("/api/admin/config/get?key=system").then(res => {
+    title.value = res.data.title
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
 
   const clipboard = new Clipboard('.copy-reply');
   clipboard.on('success', () => {
