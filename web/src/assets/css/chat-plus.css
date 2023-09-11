@@ -13,11 +13,6 @@
   color: #fff;
   font-size: 20px;
 }
-#app .common-layout .el-aside .title-box .logo {
-  border-radius: 8px;
-  width: 35px;
-  height: 35px;
-}
 #app .common-layout .el-aside .title-box span {
   padding-top: 5px;
   padding-left: 10px;

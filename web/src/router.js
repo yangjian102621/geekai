@@ -22,12 +22,54 @@ const routes = [
                 props: true // 将路由参数传递给组件的 props
             },
             {
-                name: 'chat-export',
-                path: '/chat/export',
-                meta: {title: '导出会话记录'},
-                component: () => import('@/views/ChatExport.vue'),
+                name: 'image-mj',
+                path: '/mj',
+                meta: {title: 'MidJourney 绘画中心'},
+                component: () => import('@/views/ImageMj.vue'),
+            },
+            {
+                name: 'image-sd',
+                path: '/sd',
+                meta: {title: 'Stable Diffusion 绘画中心'},
+                component: () => import('@/views/ImageSd.vue'),
+            },
+            {
+                name: 'member',
+                path: '/member',
+                meta: {title: '会员充值中心'},
+                component: () => import('@/views/Member.vue'),
+            },
+            {
+                name: 'chat-role',
+                path: '/apps',
+                meta: {title: '应用中心'},
+                component: () => import('@/views/ChatRoles.vue'),
+            },
+            {
+                name: 'images',
+                path: '/images',
+                meta: {title: '绘画社区'},
+                component: () => import('@/views/Images.vue'),
+            },
+            {
+                name: 'user-invitation',
+                path: '/invite',
+                meta: {title: '推广计划'},
+                component: () => import('@/views/Invitation.vue'),
+            },
+            {
+                name: 'knowledge',
+                path: '/knowledge',
+                meta: {title: '我的知识库'},
+                component: () => import('@/views/Knowledge.vue'),
             },
         ]
+    },
+    {
+        name: 'chat-export',
+        path: '/chat/export',
+        meta: {title: '导出会话记录'},
+        component: () => import('@/views/ChatExport.vue'),
     },
     {
         name: 'login',

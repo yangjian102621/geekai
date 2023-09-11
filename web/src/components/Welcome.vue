@@ -55,9 +55,11 @@
 </template>
 <script setup>
 
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
 
-const title = process.env.VUE_APP_TITLE
+const title = ref(process.env.VUE_APP_TITLE)
 
 const samples = ref([
   "用小学生都能听懂的术语解释什么是量子纠缠",
@@ -94,6 +96,14 @@ const capabilities = ref([
     value: "绘画：马斯克开拖拉机，20世纪，中国农村。3:2"
   }
 ])
+
+onMounted(() => {
+  httpGet("/api/admin/config/get?key=system").then(res => {
+    title.value = res.data.title
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
+})
 
 const emits = defineEmits(['send']);
 const send = (text) => {
