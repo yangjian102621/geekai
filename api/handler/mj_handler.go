@@ -95,6 +95,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	}
 
 	data.Key = utils.Sha256(data.Prompt)
+	wsClient := h.App.MjTaskClients.Get(data.Key)
 	//logger.Info(data.Prompt, ",", key)
 	if data.Status == Finished {
 		var task types.MjTask
@@ -104,10 +105,18 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 			resp.SUCCESS(c)
 			return
 		}
+		if wsClient != nil && data.ReferenceId != "" {
+			content := fmt.Sprintf("**%s** 任务执行成功，正在从 MidJourney 服务器下载图片，请稍后...", data.Prompt)
+			utils.ReplyMessage(wsClient, content)
+		}
 		// download image
 		imgURL, err := h.uploaderManager.GetUploadHandler().PutImg(data.Image.URL)
 		if err != nil {
 			logger.Error("error with download image: ", err)
+			if wsClient != nil && data.ReferenceId != "" {
+				content := fmt.Sprintf("**%s** 图片下载失败：%s", data.Prompt, err.Error())
+				utils.ReplyMessage(wsClient, content)
+			}
 			resp.ERROR(c, err.Error())
 			return
 		}
@@ -144,8 +153,6 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		}
 	}
 
-	// 推送消息到客户端
-	wsClient := h.App.MjTaskClients.Get(data.Key)
 	if wsClient == nil { // 客户端断线，则丢弃
 		logger.Errorf("Client is offline: %+v", data)
 		resp.SUCCESS(c, "Client is offline")

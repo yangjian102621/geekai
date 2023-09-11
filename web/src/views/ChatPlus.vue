@@ -158,7 +158,7 @@
                       :icon="item.icon"
                       :created-at="dateFormat(item['created_at'])"
                       :tokens="item['tokens']"
-                      :model="modelID"
+                      :model="getModelValue(modelID.value)"
                       :content="item.content"/>
                   <chat-reply v-else-if="item.type==='reply'"
                               :icon="item.icon"
@@ -601,7 +601,7 @@ const connect = function (chat_id, role_id) {
 
           // 获取 token
           const reply = chatData.value[chatData.value.length - 1]
-          httpGet(`/api/chat/tokens?text=${reply.orgContent}&model=${modelID.value}`).then(res => {
+          httpPost("/api/chat/tokens", {text: "", model: getModelValue(modelID.value)}).then(res => {
             reply['created_at'] = new Date().getTime();
             reply['tokens'] = res.data;
             // 将聊天框的滚动条滑动到最底部
@@ -813,7 +813,7 @@ const reGenerate = function () {
   chatData.value.push({
     type: "prompt",
     id: randString(32),
-    icon: 'images/avatar/user.png',
+    icon: loginUser.value.avatar,
     content: renderInputText(text)
   });
   socket.value.send(text);
@@ -858,6 +858,15 @@ const getChatById = (chatId) => {
     }
   }
   return null
+}
+
+const getModelValue = (model_id) => {
+  for (let i = 0; i < models.value.length; i++) {
+    if (models.value[i].id === model_id) {
+      return models.value[i].value
+    }
+  }
+  return ""
 }
 </script>
 

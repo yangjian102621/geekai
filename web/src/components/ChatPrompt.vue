@@ -19,9 +19,8 @@
 
 <script>
 import {defineComponent} from "vue"
-import {dateFormat} from "@/utils/libs";
 import {Clock} from "@element-plus/icons-vue";
-import {httpGet} from "@/utils/http";
+import {httpPost} from "@/utils/http";
 
 export default defineComponent({
   name: 'ChatPrompt',
@@ -56,7 +55,7 @@ export default defineComponent({
   },
   mounted() {
     if (!this.finalTokens) {
-      httpGet(`/api/chat/tokens?text=${this.content}&model=${this.model}`).then(res => {
+      httpPost("/api/chat/tokens", {text: this.content, model: this.model}).then(res => {
         this.finalTokens = res.data;
       })
     }
@@ -83,8 +82,8 @@ export default defineComponent({
       margin-right 20px;
 
       img {
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
         border-radius: 10px;
         padding: 1px;
       }
