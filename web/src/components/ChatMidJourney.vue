@@ -140,8 +140,8 @@ const send = (url, index) => {
       margin-right 20px;
 
       img {
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
         border-radius: 10px;
         padding: 1px;
       }

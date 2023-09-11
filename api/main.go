@@ -161,7 +161,7 @@ func main() {
 			group.GET("remove", h.Remove)
 			group.GET("history", h.History)
 			group.GET("clear", h.Clear)
-			group.GET("tokens", h.Tokens)
+			group.POST("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {

@@ -146,9 +146,8 @@ func (h *ChatHandler) sendChatGLMMessage(
 
 				// for reply
 				// 计算本次对话消耗的总 token 数量
-				var replyToken = 0
-				replyToken, _ = utils.CalcTokens(message.Content, req.Model)
-
+				replyToken, _ := utils.CalcTokens(message.Content, req.Model)
+				totalTokens := replyToken + getTotalTokens(req)
 				historyReplyMsg := model.HistoryMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
@@ -156,7 +155,7 @@ func (h *ChatHandler) sendChatGLMMessage(
 					Type:       types.ReplyMsg,
 					Icon:       role.Icon,
 					Content:    message.Content,
-					Tokens:     replyToken,
+					Tokens:     totalTokens,
 					UseContext: true,
 				}
 				historyReplyMsg.CreatedAt = replyCreatedAt
@@ -165,10 +164,7 @@ func (h *ChatHandler) sendChatGLMMessage(
 				if res.Error != nil {
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
-
-				// 计算本次对话消耗的总 token 数量
-				var totalTokens = 0
-				totalTokens = replyToken + getTotalTokens(req)
+				// 更新用户信息
 				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
 					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
 			}

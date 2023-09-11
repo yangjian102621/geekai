@@ -291,6 +291,19 @@ func (h *ChatHandler) Tokens(c *gin.Context) {
 		return
 	}
 
+	// 如果没有传入 text 字段，则说明是获取当前 reply 总的 token 消耗（带上下文）
+	if data.Text == "" {
+		var item model.HistoryMessage
+		userId, _ := c.Get(types.LoginUserID)
+		res := h.db.Where("user_id = ?", userId).Last(&item)
+		if res.Error != nil {
+			resp.ERROR(c, res.Error.Error())
+			return
+		}
+		resp.SUCCESS(c, item.Tokens)
+		return
+	}
+
 	tokens, err := utils.CalcTokens(data.Text, data.Model)
 	if err != nil {
 		resp.ERROR(c, err.Error())

@@ -220,17 +220,17 @@ func (h *ChatHandler) sendAzureMessage(
 					logger.Error("failed to save prompt history message: ", res.Error)
 				}
 
-				// for reply
 				// 计算本次对话消耗的总 token 数量
-				var replyToken = 0
-				if functionCall { // 函数名 + 参数 token
+				var totalTokens = 0
+				if functionCall { // prompt + 函数名 + 参数 token
 					tokens, _ := utils.CalcTokens(functionName, req.Model)
-					replyToken += tokens
+					totalTokens += tokens
 					tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
-					replyToken += tokens
+					totalTokens += tokens
 				} else {
-					replyToken, _ = utils.CalcTokens(message.Content, req.Model)
+					totalTokens, _ = utils.CalcTokens(message.Content, req.Model)
 				}
+				totalTokens += getTotalTokens(req)
 
 				historyReplyMsg := model.HistoryMessage{
 					UserId:     userVo.Id,
@@ -239,7 +239,7 @@ func (h *ChatHandler) sendAzureMessage(
 					Type:       types.ReplyMsg,
 					Icon:       role.Icon,
 					Content:    message.Content,
-					Tokens:     replyToken,
+					Tokens:     totalTokens,
 					UseContext: useContext,
 				}
 				historyReplyMsg.CreatedAt = replyCreatedAt
@@ -249,13 +249,7 @@ func (h *ChatHandler) sendAzureMessage(
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
 
-				// 计算本次对话消耗的总 token 数量
-				var totalTokens = 0
-				if functionCall { // prompt + 函数名 + 参数 token
-					totalTokens = promptToken + replyToken
-				} else {
-					totalTokens = replyToken + getTotalTokens(req)
-				}
+				// 更新用户信息
 				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
 					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
 			}
