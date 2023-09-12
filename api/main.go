@@ -136,7 +136,7 @@ func main() {
 		}),
 		fx.Provide(oss.NewUploaderManager),
 		fx.Provide(service.NewMjService),
-		fx.Provide(func(mjService *service.MjService) {
+		fx.Invoke(func(mjService *service.MjService) {
 			go func() {
 				mjService.Run()
 			}()

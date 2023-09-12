@@ -70,6 +70,8 @@ import {getSessionId} from "@/store/session";
 const props = defineProps({
   content: Object,
   icon: String,
+  chatId: String,
+  roleId: Number,
   createdAt: String
 });
 
@@ -110,6 +112,9 @@ const send = (url, index) => {
     message_hash: data.value?.["image"]?.hash,
     session_id: getSessionId(),
     prompt: data.value?.["prompt"],
+    chat_id: props.chatId,
+    role_id: props.roleId,
+    icon: props.icon,
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
     loading.value = false

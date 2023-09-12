@@ -44,7 +44,7 @@ export default defineComponent({
       default: 0,
     },
     model: {
-      type: Number,
+      type: String,
       default: '',
     },
   },
