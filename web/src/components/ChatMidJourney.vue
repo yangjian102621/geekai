@@ -109,7 +109,6 @@ const send = (url, index) => {
     message_id: data.value?.["message_id"],
     message_hash: data.value?.["image"]?.hash,
     session_id: getSessionId(),
-    key: data.value?.["key"],
     prompt: data.value?.["prompt"],
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")

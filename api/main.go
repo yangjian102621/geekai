@@ -135,6 +135,12 @@ func main() {
 			return service.NewCaptchaService(config.ApiConfig)
 		}),
 		fx.Provide(oss.NewUploaderManager),
+		fx.Provide(service.NewMjService),
+		fx.Provide(func(mjService *service.MjService) {
+			go func() {
+				mjService.Run()
+			}()
+		}),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
@@ -183,9 +189,11 @@ func main() {
 			group.POST("verify", h.Verify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
-			s.Engine.POST("/api/mj/notify", h.Notify)
-			s.Engine.POST("/api/mj/upscale", h.Upscale)
-			s.Engine.POST("/api/mj/variation", h.Variation)
+			group := s.Engine.Group("/api/mj/")
+			group.POST("notify", h.Notify)
+			group.POST("upscale", h.Upscale)
+			group.POST("variation", h.Variation)
+			group.GET("proxy", h.Proxy)
 		}),
 
 		// 管理后台控制器

@@ -131,6 +131,13 @@ func (h *ChatHandler) sendAzureMessage(
 				utils.ReplyMessage(ws, "![](/images/wx.png)")
 			} else {
 				f := h.App.Functions[functionName]
+				if functionName == types.FuncMidJourney {
+					params["user_id"] = userVo.Id
+					params["role_id"] = role.Id
+					params["chat_id"] = session.ChatId
+					params["icon"] = "/images/avatar/mid_journey.png"
+					params["session_id"] = session.SessionId
+				}
 				data, err := f.Invoke(params)
 				if err != nil {
 					msg := "调用函数出错：" + err.Error()
@@ -142,22 +149,8 @@ func (h *ChatHandler) sendAzureMessage(
 				} else {
 					content := data
 					if functionName == types.FuncMidJourney {
-						key := utils.Sha256(data)
-						logger.Debug(data, ",", key)
-						// add task for MidJourney
-						h.App.MjTaskClients.Put(key, ws)
-						task := types.MjTask{
-							UserId: userVo.Id,
-							RoleId: role.Id,
-							Icon:   "/images/avatar/mid_journey.png",
-							ChatId: session.ChatId,
-						}
-						err := h.leveldb.Put(types.TaskStorePrefix+key, task)
-						if err != nil {
-							logger.Error("error with store MidJourney task: ", err)
-						}
 						content = fmt.Sprintf("绘画提示词：%s 已推送任务到 MidJourney 机器人，请耐心等待任务执行...", data)
-
+						h.App.MjTaskClients.Put(session.SessionId, ws)
 						// update user's img_calls
 						h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 					}

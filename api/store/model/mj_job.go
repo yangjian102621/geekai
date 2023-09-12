@@ -4,14 +4,13 @@ import "time"
 
 type MidJourneyJob struct {
 	Id          uint `gorm:"primarykey;column:id"`
-	UserId      uint
-	ChatId      string
+	UserId      int
 	MessageId   string
 	ReferenceId string
-	Hash        string
-	Content     string
+	ImgURL      string
+	Hash        string // message hash
+	Progress    int
 	Prompt      string
-	Image       string
 	CreatedAt   time.Time
 }
 
