@@ -157,7 +157,7 @@
                       :icon="item.icon"
                       :created-at="dateFormat(item['created_at'])"
                       :tokens="item['tokens']"
-                      :model="getModelValue(modelID.value)"
+                      :model="getModelValue(modelID)"
                       :content="item.content"/>
                   <chat-reply v-else-if="item.type==='reply'"
                               :icon="item.icon"
@@ -167,6 +167,8 @@
                               :content="item.content"/>
                   <chat-mid-journey v-else-if="item.type==='mj'"
                                     :content="item.content"
+                                    :role-id="item.role_id"
+                                    :chat-id="item.chat_id"
                                     :icon="item.icon"
                                     @disable-input="disableInput(true)"
                                     @enable-input="enableInput"
@@ -333,14 +335,14 @@ onMounted(() => {
         httpGet(`/api/role/list?user_id=${user.id}`).then((res) => {
           roles.value = res.data;
           roleId.value = roles.value[0]['id'];
-          const chatId = router.currentRoute.value.params['id']
+          const chatId = localStorage.getItem("chat_id")
           const chat = getChatById(chatId)
           if (chat === null) {
             // 创建新的对话
             newChat();
           } else {
             // 加载对话
-            loadChat(chat)
+            changeChat(chat)
           }
         }).catch((e) => {
           ElMessage.error('获取聊天角色失败: ' + e.messages)
@@ -353,15 +355,15 @@ onMounted(() => {
       // TODO: 增加重试按钮
       ElMessage.error("加载会话列表失败！")
     })
+
+    httpGet("/api/admin/config/get?key=system").then(res => {
+      title.value = res.data.title
+    }).catch(e => {
+      ElMessage.error("获取系统配置失败：" + e.message)
+    })
   }).catch(() => {
     router.push('/login')
   });
-
-  httpGet("/api/admin/config/get?key=system").then(res => {
-    title.value = res.data.title
-  }).catch(e => {
-    ElMessage.error("获取系统配置失败：" + e.message)
-  })
 
   const clipboard = new Clipboard('.copy-reply');
   clipboard.on('success', () => {
@@ -422,6 +424,7 @@ const newChat = function () {
 // 切换会话
 const changeChat = (chat) => {
   router.push("/chat/" + chat.chat_id)
+  localStorage.setItem("chat_id", chat.chat_id)
   loadChat(chat)
 }
 
@@ -533,6 +536,8 @@ const connect = function (chat_id, role_id) {
     if (isNewChat) { // 加载打招呼信息
       loading.value = false;
       chatData.value.push({
+        chat_id: chat_id,
+        role_id: role_id,
         type: "reply",
         id: randString(32),
         icon: _role['icon'],

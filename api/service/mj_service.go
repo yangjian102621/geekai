@@ -56,19 +56,21 @@ type MjService struct {
 	redis     *redis.Client
 }
 
-func NewMjService(config types.ChatPlusExtConfig, client *redis.Client) *MjService {
+func NewMjService(appConfig *types.AppConfig, client *redis.Client) *MjService {
 	return &MjService{
-		config:    config,
+		config:    appConfig.ExtConfig,
 		redis:     client,
 		taskQueue: store.NewRedisQueue("midjourney_task_queue", client),
 		client:    req.C().SetTimeout(30 * time.Second)}
 }
 
 func (s *MjService) Run() {
+	logger.Info("Starting MidJourney job consumer.")
 	ctx := context.Background()
 	for {
-		_, err := s.redis.Get(ctx, MjRunningJobKey).Result()
-		if err == nil { // a task is running, waiting for finish
+		t, err := s.redis.Get(ctx, MjRunningJobKey).Result()
+		if err == nil {
+			logger.Infof("An task is not finished: %s", t)
 			time.Sleep(time.Second * 3)
 			continue
 		}
@@ -78,7 +80,7 @@ func (s *MjService) Run() {
 			logger.Errorf("taking task with error: %v", err)
 			continue
 		}
-
+		logger.Infof("Consuming Task: %+v", task)
 		switch task.Type {
 		case Image:
 			err = s.image(task.Prompt)
@@ -98,11 +100,11 @@ func (s *MjService) Run() {
 			})
 		}
 		if err != nil {
+			logger.Error("绘画任务执行失败：", err)
 			if task.RetryCount > 5 {
 				continue
 			}
 			task.RetryCount += 1
-			time.Sleep(time.Second)
 			s.taskQueue.RPush(task)
 			// TODO: 执行失败通知聊天客户端
 			continue
@@ -114,6 +116,7 @@ func (s *MjService) Run() {
 }
 
 func (s *MjService) PushTask(task MjTask) {
+	logger.Infof("add a new MidJourney Task: %+v", task)
 	s.taskQueue.RPush(task)
 }
 
