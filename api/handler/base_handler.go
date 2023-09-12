@@ -2,8 +2,10 @@ package handler
 
 import (
 	"chatplus/core"
+	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/utils"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,4 +41,11 @@ func (h *BaseHandler) GetBool(c *gin.Context, key string) bool {
 }
 func (h *BaseHandler) PostBool(c *gin.Context, key string) bool {
 	return utils.BoolValue(c.PostForm(key))
+}
+func (h *BaseHandler) GetUserKey(c *gin.Context) string {
+	userId, ok := c.Get(types.LoginUserID)
+	if !ok {
+		return ""
+	}
+	return fmt.Sprintf("users/%v", userId)
 }

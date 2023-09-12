@@ -44,7 +44,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		// 创建 token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"user_id": manager.Username,
-			"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)),
+			"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
 		})
 		tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
 		if err != nil {
@@ -52,7 +52,8 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 			return
 		}
 		// 保存到 redis
-		if _, err := h.redis.Set(context.Background(), "users/"+manager.Username, tokenString, 0).Result(); err != nil {
+		key := "users/" + manager.Username
+		if _, err := h.redis.Set(context.Background(), key, tokenString, 0).Result(); err != nil {
 			resp.ERROR(c, "error with save token: "+err.Error())
 			return
 		}
@@ -64,8 +65,8 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 
 // Logout 注销
 func (h *ManagerHandler) Logout(c *gin.Context) {
-	token := c.GetHeader(types.AdminAuthHeader)
-	if _, err := h.redis.Del(c, token).Result(); err != nil {
+	key := h.GetUserKey(c)
+	if _, err := h.redis.Del(c, key).Result(); err != nil {
 		logger.Error("error with delete session: ", err)
 	} else {
 		resp.SUCCESS(c)
