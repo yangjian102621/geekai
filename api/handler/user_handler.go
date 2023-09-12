@@ -160,10 +160,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 
 	// 创建 token
-	expired := time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.Id,
-		"expired": expired,
+		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
 	if err != nil {
@@ -182,8 +181,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 // Logout 注 销
 func (h *UserHandler) Logout(c *gin.Context) {
 	sessionId := c.GetHeader(types.ChatTokenHeader)
-	token := c.GetHeader(types.UserAuthHeader)
-	if _, err := h.redis.Del(c, token).Result(); err != nil {
+	key := h.GetUserKey(c)
+	if _, err := h.redis.Del(c, key).Result(); err != nil {
 		logger.Error("error with delete session: ", err)
 	}
 	// 删除 websocket 会话列表
