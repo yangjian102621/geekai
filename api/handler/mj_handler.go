@@ -3,16 +3,18 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service"
 	"chatplus/service/function"
 	"chatplus/service/oss"
-	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -38,25 +40,26 @@ type Image struct {
 
 type MidJourneyHandler struct {
 	BaseHandler
-	leveldb         *store.LevelDB
+	redis           *redis.Client
 	db              *gorm.DB
-	mjFunc          function.FuncMidJourney
+	mjService       *service.MjService
 	uploaderManager *oss.UploaderManager
 	lock            sync.Mutex
 }
 
 func NewMidJourneyHandler(
 	app *core.AppServer,
-	leveldb *store.LevelDB,
+	client *redis.Client,
 	db *gorm.DB,
 	manager *oss.UploaderManager,
-	functions map[string]function.Function) *MidJourneyHandler {
+	mjService *service.MjService) *MidJourneyHandler {
 	h := MidJourneyHandler{
-		leveldb:         leveldb,
+		redis:           client,
 		db:              db,
 		uploaderManager: manager,
 		lock:            sync.Mutex{},
-		mjFunc:          functions[types.FuncMidJourney].(function.FuncMidJourney)}
+		mjService:       mjService,
+	}
 	h.App = app
 	return &h
 }
@@ -75,7 +78,7 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		Content     string     `json:"content"`
 		Prompt      string     `json:"prompt"`
 		Status      TaskStatus `json:"status"`
-		Key         string     `json:"key"`
+		Progress    int        `json:"progress"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil || data.Prompt == "" {
 		resp.ERROR(c, types.InvalidArgs)
@@ -86,95 +89,142 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	// the job is saved
-	var job model.MidJourneyJob
-	res := h.db.Where("message_id = ?", data.MessageId).First(&job)
-	if res.Error == nil {
-		resp.SUCCESS(c)
+	taskString, err := h.redis.Get(c, service.MjRunningJobKey).Result()
+	if err != nil {
+		resp.SUCCESS(c) // 过期任务，丢弃
 		return
 	}
 
-	data.Key = utils.Sha256(data.Prompt)
-	wsClient := h.App.MjTaskClients.Get(data.Key)
-	//logger.Info(data.Prompt, ",", key)
-	if data.Status == Finished {
-		var task types.MjTask
-		err := h.leveldb.Get(types.TaskStorePrefix+data.Key, &task)
-		if err != nil {
-			logger.Error("error with get MidJourney task: ", err)
+	var task service.MjTask
+	err = utils.JsonDecode(taskString, &task)
+	if err != nil {
+		resp.SUCCESS(c) // 非标准任务，丢弃
+		return
+	}
+
+	if task.Src == service.TaskSrcImg { // 绘画任务
+		logger.Error(err)
+		var job model.MidJourneyJob
+		res := h.db.First(&job, task.Id)
+		if res.Error != nil {
+			resp.SUCCESS(c) // 非法任务，丢弃
+			return
+		}
+		job.MessageId = data.MessageId
+		job.ReferenceId = data.ReferenceId
+		job.Progress = data.Progress
+
+		// download image
+		if data.Progress == 100 {
+			imgURL, err := h.uploaderManager.GetUploadHandler().PutImg(data.Image.URL)
+			if err != nil {
+				resp.ERROR(c, "error with download img: "+err.Error())
+				return
+			}
+			job.ImgURL = imgURL
+		} else {
+			// 使用图片代理
+			job.ImgURL = fmt.Sprintf("/api/mj/proxy?url=%s", data.Image.URL)
+		}
+		res = h.db.Updates(&job)
+		if res.Error != nil {
+			resp.ERROR(c, "error with update job: "+err.Error())
+			return
+		}
+
+		resp.SUCCESS(c)
+
+	} else if task.Src == service.TaskSrcChat { // 聊天任务
+		var job model.MidJourneyJob
+		res := h.db.Where("message_id = ?", data.MessageId).First(&job)
+		if res.Error == nil {
 			resp.SUCCESS(c)
 			return
 		}
-		if wsClient != nil && data.ReferenceId != "" {
-			content := fmt.Sprintf("**%s** 任务执行成功，正在从 MidJourney 服务器下载图片，请稍后...", data.Prompt)
-			utils.ReplyMessage(wsClient, content)
-		}
-		// download image
-		imgURL, err := h.uploaderManager.GetUploadHandler().PutImg(data.Image.URL)
-		if err != nil {
-			logger.Error("error with download image: ", err)
+
+		wsClient := h.App.MjTaskClients.Get(task.Id)
+		if data.Status == Finished {
 			if wsClient != nil && data.ReferenceId != "" {
-				content := fmt.Sprintf("**%s** 图片下载失败：%s", data.Prompt, err.Error())
+				content := fmt.Sprintf("**%s** 任务执行成功，正在从 MidJourney 服务器下载图片，请稍后...", data.Prompt)
 				utils.ReplyMessage(wsClient, content)
 			}
-			resp.ERROR(c, err.Error())
+			// download image
+			imgURL, err := h.uploaderManager.GetUploadHandler().PutImg(data.Image.URL)
+			if err != nil {
+				logger.Error("error with download image: ", err)
+				if wsClient != nil && data.ReferenceId != "" {
+					content := fmt.Sprintf("**%s** 图片下载失败：%s", data.Prompt, err.Error())
+					utils.ReplyMessage(wsClient, content)
+				}
+				resp.ERROR(c, err.Error())
+				return
+			}
+
+			data.Image.URL = imgURL
+			message := model.HistoryMessage{
+				UserId:     uint(task.UserId),
+				ChatId:     task.ChatId,
+				RoleId:     uint(task.RoleId),
+				Type:       types.MjMsg,
+				Icon:       task.Icon,
+				Content:    utils.JsonEncode(data),
+				Tokens:     0,
+				UseContext: false,
+			}
+			res := h.db.Create(&message)
+			if res.Error != nil {
+				logger.Error("error with save chat history message: ", res.Error)
+			}
+
+			// save the job
+			job.UserId = task.UserId
+			job.MessageId = data.MessageId
+			job.ReferenceId = data.ReferenceId
+			job.Prompt = data.Prompt
+			job.ImgURL = imgURL
+			job.Progress = data.Progress
+			job.CreatedAt = time.Now()
+			res = h.db.Create(&job)
+			if res.Error != nil {
+				logger.Error("error with save MidJourney Job: ", res.Error)
+			}
+		}
+
+		if wsClient == nil { // 客户端断线，则丢弃
+			logger.Errorf("Client is offline: %+v", data)
+			resp.SUCCESS(c, "Client is offline")
 			return
 		}
 
-		data.Image.URL = imgURL
-		message := model.HistoryMessage{
-			UserId:     task.UserId,
-			ChatId:     task.ChatId,
-			RoleId:     task.RoleId,
-			Type:       types.MjMsg,
-			Icon:       task.Icon,
-			Content:    utils.JsonEncode(data),
-			Tokens:     0,
-			UseContext: false,
+		if data.Status == Finished {
+			utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
+			utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsEnd})
+			// delete client
+			h.App.MjTaskClients.Delete(task.Id)
+		} else {
+			//// 使用代理临时转发图片
+			//if data.Image.URL != "" {
+			//	image, err := utils.DownloadImage(data.Image.URL, h.App.Config.ProxyURL)
+			//	if err == nil {
+			//		data.Image.URL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+			//	}
+			//}
+			data.Image.URL = fmt.Sprintf("/api/mj/proxy?url=%s", data.Image.URL)
+			utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
 		}
-		res := h.db.Create(&message)
-		if res.Error != nil {
-			logger.Error("error with save chat history message: ", res.Error)
-		}
-
-		// save the job
-		job.UserId = task.UserId
-		job.ChatId = task.ChatId
-		job.MessageId = data.MessageId
-		job.ReferenceId = data.ReferenceId
-		job.Content = data.Content
-		job.Prompt = data.Prompt
-		job.Image = utils.JsonEncode(data.Image)
-		job.Hash = data.Image.Hash
-		job.CreatedAt = time.Now()
-		res = h.db.Create(&job)
-		if res.Error != nil {
-			logger.Error("error with save MidJourney Job: ", res.Error)
-		}
+		resp.SUCCESS(c, "SUCCESS")
 	}
 
-	if wsClient == nil { // 客户端断线，则丢弃
-		logger.Errorf("Client is offline: %+v", data)
-		resp.SUCCESS(c, "Client is offline")
+}
+
+func (h *MidJourneyHandler) Proxy(c *gin.Context) {
+	url := c.Query("url")
+	image, err := utils.DownloadImage(url, h.App.Config.ProxyURL)
+	if err != nil {
+		c.String(http.StatusOK, err.Error())
 		return
 	}
-
-	if data.Status == Finished {
-		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
-		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsEnd})
-		// delete client
-		h.App.MjTaskClients.Delete(data.Key)
-	} else {
-		// 使用代理临时转发图片
-		if data.Image.URL != "" {
-			image, err := utils.DownloadImage(data.Image.URL, h.App.Config.ProxyURL)
-			if err == nil {
-				data.Image.URL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
-			}
-		}
-		utils.ReplyChunkMessage(wsClient, types.WsMessage{Type: types.WsMjImg, Content: data})
-	}
-	resp.SUCCESS(c, "SUCCESS")
+	c.String(http.StatusOK, "data:image/png;base64,"+base64.StdEncoding.EncodeToString(image))
 }
 
 type reqVo struct {
@@ -201,7 +251,12 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	err := h.mjFunc.Upscale(function.MjUpscaleReq{
+	h.mjService.PushTask(service.MjTask{
+		Index:       data.Index,
+		MessageId:   data.MessageId,
+		MessageHash: data.MessageHash,
+	})
+	err := n.Upscale(function.MjUpscaleReq{
 		Index:       data.Index,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
@@ -211,7 +266,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	content := fmt.Sprintf("**%s** 已推送 Upscale 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
+	content := fmt.Sprintf("**%s** 已推送 upscale 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
 	utils.ReplyMessage(wsClient, content)
 	if h.App.MjTaskClients.Get(data.Key) == nil {
 		h.App.MjTaskClients.Put(data.Key, wsClient)
@@ -242,7 +297,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	content := fmt.Sprintf("**%s** 已推送 Variation 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
+	content := fmt.Sprintf("**%s** 已推送 variation 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
 	utils.ReplyMessage(wsClient, content)
 	if h.App.MjTaskClients.Get(data.Key) == nil {
 		h.App.MjTaskClients.Put(data.Key, wsClient)

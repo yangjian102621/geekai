@@ -49,15 +49,6 @@ type ChatModel struct {
 	Value    string   `json:"value"`
 }
 
-type MjTask struct {
-	ChatId      string
-	MessageId   string
-	MessageHash string
-	UserId      uint
-	RoleId      uint
-	Icon        string
-}
-
 type ApiError struct {
 	Error struct {
 		Message string
@@ -77,5 +68,3 @@ var ModelToTokens = map[string]int{
 	"gpt-4":             8192,
 	"gpt-4-32k":         32768,
 }
-
-const TaskStorePrefix = "/tasks/"
