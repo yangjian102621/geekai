@@ -39,16 +39,6 @@ import {isMobile} from "@/utils/libs";
 import {ref} from "vue";
 
 const router = useRouter();
-checkSession().then(() => {
-  if (isMobile()) {
-    router.push("/mobile")
-  } else {
-    router.push("/chat")
-  }
-}).catch(() => {
-  router.push("/login")
-})
-
 const logo = '/images/logo.png';
 const navs = ref([
   {path: "/chat", icon: "wechat", title: "对话聊天"},
@@ -60,7 +50,7 @@ const navs = ref([
   {path: "/member", icon: "vip-user", title: "会员计划"},
   {path: "/invite", icon: "share", title: "推广计划"},
 ])
-const curPath = ref(navs.value[0].path)
+const curPath = ref(router.currentRoute.value.path)
 
 const changeNav = (item) => {
   curPath.value = item.path
@@ -69,6 +59,7 @@ const changeNav = (item) => {
 </script>
 
 <style lang="stylus" scoped>
+@import '@/assets/iconfont/iconfont.css';
 .home {
   display: flex;
   background-color: #25272D;

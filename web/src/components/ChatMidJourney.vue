@@ -10,8 +10,9 @@
           <div class="text" v-html="data.html"></div>
           <div class="images" v-if="data.image?.url !== ''">
             <el-image :src="data.image?.url"
-                      :zoom-rate="1.0"
+                      :zoom-rate="1.2"
                       :preview-src-list="[data.image?.url]"
+                      fit="cover"
                       :initial-index="0" loading="lazy">
               <template #placeholder>
                 <div class="image-slot"

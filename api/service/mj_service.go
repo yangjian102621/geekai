@@ -110,8 +110,8 @@ func (s *MjService) Run() {
 			continue
 		}
 
-		// 锁定任务执行通道，直到任务超时（10分钟）
-		s.redis.Set(ctx, MjRunningJobKey, utils.JsonEncode(task), time.Minute*10)
+		// 锁定任务执行通道，直到任务超时（5分钟）
+		s.redis.Set(ctx, MjRunningJobKey, utils.JsonEncode(task), time.Minute*5)
 	}
 }
 
