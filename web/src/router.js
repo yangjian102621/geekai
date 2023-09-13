@@ -4,7 +4,7 @@ const routes = [
     {
         name: 'home',
         path: '/',
-        redirect: '/chat',
+        redirect: '/mj',
         meta: {title: '首页'},
         component: () => import('@/views/Home.vue'),
         children: [
@@ -13,13 +13,6 @@ const routes = [
                 path: '/chat',
                 meta: {title: '创作中心'},
                 component: () => import('@/views/ChatPlus.vue'),
-            },
-            {
-                name: 'chat-id',
-                path: '/chat/:id',
-                meta: {title: '创作中心'},
-                component: () => import('@/views/ChatPlus.vue'),
-                props: true // 将路由参数传递给组件的 props
             },
             {
                 name: 'image-mj',

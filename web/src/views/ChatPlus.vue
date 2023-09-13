@@ -342,7 +342,7 @@ onMounted(() => {
             newChat();
           } else {
             // 加载对话
-            changeChat(chat)
+            loadChat(chat)
           }
         }).catch((e) => {
           ElMessage.error('获取聊天角色失败: ' + e.messages)
@@ -423,7 +423,6 @@ const newChat = function () {
 
 // 切换会话
 const changeChat = (chat) => {
-  router.push("/chat/" + chat.chat_id)
   localStorage.setItem("chat_id", chat.chat_id)
   loadChat(chat)
 }
@@ -880,6 +879,5 @@ const getModelValue = (model_id) => {
 </script>
 
 <style scoped lang="stylus">
-@import '@/assets/iconfont/iconfont.css';
 @import "@/assets/css/chat-plus.styl"
 </style>
