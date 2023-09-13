@@ -68,9 +68,8 @@ func (s *MjService) Run() {
 	logger.Info("Starting MidJourney job consumer.")
 	ctx := context.Background()
 	for {
-		t, err := s.redis.Get(ctx, MjRunningJobKey).Result()
+		_, err := s.redis.Get(ctx, MjRunningJobKey).Result()
 		if err == nil {
-			logger.Infof("An task is not finished: %s", t)
 			time.Sleep(time.Second * 3)
 			continue
 		}
@@ -107,11 +106,12 @@ func (s *MjService) Run() {
 			task.RetryCount += 1
 			s.taskQueue.RPush(task)
 			// TODO: 执行失败通知聊天客户端
+			time.Sleep(time.Second * 3)
 			continue
 		}
 
 		// 锁定任务执行通道，直到任务超时（10分钟）
-		s.redis.Set(ctx, MjRunningJobKey, utils.JsonEncode(task), time.Second*600)
+		s.redis.Set(ctx, MjRunningJobKey, utils.JsonEncode(task), time.Minute*10)
 	}
 }
 
