@@ -49,6 +49,8 @@
             <chat-mid-journey v-else-if="item.type==='mj'"
                               :content="item.content"
                               :icon="item.icon"
+                              :role-id="role"
+                              :chat-id="chatId"
                               @disable-input="disableInput(true)"
                               @enable-input="enableInput"
                               :created-at="dateFormat(item['created_at'])"/>

@@ -193,6 +193,7 @@ func main() {
 			group.POST("notify", h.Notify)
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
+			group.GET("jobs", h.JobList)
 			group.GET("proxy", h.Proxy)
 		}),
 

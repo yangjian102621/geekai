@@ -120,7 +120,7 @@
               <el-form-item label="原始模式">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-switch v-model="params.raw"/>
+                    <el-switch v-model="params.raw" style="--el-switch-on-color: #47fff1;"/>
                     <el-tooltip
                         effect="light"
                         content="启用新的RAW模式，以“不带偏见”的方式生成图像。<br/> 同时也意味着您需要添加更长的提示。"
@@ -166,6 +166,7 @@
                   :auto-upload="true"
                   :show-file-list="false"
                   :http-request="afterRead"
+                  style="--el-color-primary:#47fff1"
               >
                 <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
                 <el-icon v-else class="uploader-icon">
@@ -178,7 +179,8 @@
               <el-form-item label="图像权重">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-slider v-model="params.weight" :max="1" :step="0.01" style="width: 180px"/>
+                    <el-slider v-model="params.weight" :max="1" :step="0.01"
+                               style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
                     <el-tooltip
                         effect="light"
                         content="使用图像权重参数--iw来调整图像 URL 与文本的重要性 <br/>权重较高时意味着图像提示将对完成的作业产生更大的影响"
@@ -209,24 +211,107 @@
           <el-button color="#47fff1" :dark="false" round @click="generate">立即生成</el-button>
         </div>
       </div>
-      <div class="task-list-box" :style="{ height: listBoxHeight + 'px' }">
-        <div class="task-list-inner">
+      <div class="task-list-box">
+        <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <h2>任务列表</h2>
           <div class="running-job-list">
-            <el-row :gutter="20">
-              <el-col :span="4" v-for="n in 10">
-                <div class="grid-content">
-                  <el-image src="http://172.22.11.47:9010/chatgpt-plus/1694167591080692.png"/>
+            <waterfall :items="runningJobs" v-if="runningJobs.length > 0">
+              <template #default="scope">
+                <div class="job-item">
+                  <el-popover
+                      placement="top-start"
+                      :title="getTaskType(scope.item.type)"
+                      :width="240"
+                      trigger="hover"
+                  >
+                    <template #reference>
+                      <el-image :src="scope.item.img_url"
+                                :zoom-rate="1.2"
+                                :preview-src-list="[scope.item.img_url]"
+                                fit="cover"
+                                :initial-index="0" loading="lazy" v-if="scope.item.progress > 0">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
+
+                        <template #error>
+                          <div class="image-slot">
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
+                      <el-image fit="cover" v-else>
+                        <template #error>
+                          <div class="image-slot">
+                            <i class="iconfont icon-quick-start"></i>
+                            <span>任务正在排队中</span>
+                          </div>
+                        </template>
+                      </el-image>
+                    </template>
+
+                    <template #default>
+                      <div class="mj-list-item-prompt">
+                        <span>{{ scope.item.prompt }}</span>
+                        <el-icon class="copy-prompt" :data-clipboard-text="scope.item.prompt">
+                          <DocumentCopy/>
+                        </el-icon>
+                      </div>
+                    </template>
+                  </el-popover>
+
                 </div>
-              </el-col>
-            </el-row>
+              </template>
+            </waterfall>
+            <el-empty :image-size="100" v-else/>
           </div>
           <h2>创作记录</h2>
           <div class="finish-job-list">
-            <el-row :gutter="20">
-              <el-col :span="4" v-for="n in 100">
-                <div class="grid-content">
-                  <el-image src="http://172.22.11.47:9010/chatgpt-plus/1694568531910050.png" fit="cover"/>
+            <waterfall :items="finishedJobs" height="350" v-if="finishedJobs.length > 0">
+              <template #default="scope">
+                <div class="job-item">
+                  <el-popover
+                      placement="top-start"
+                      title="提示词"
+                      :width="240"
+                      trigger="hover"
+                  >
+                    <template #reference>
+                      <el-image :src="scope.item.img_url"
+                                :zoom-rate="1.2"
+                                :preview-src-list="previewImgList"
+                                fit="cover"
+                                :initial-index="scope.index" loading="lazy" v-if="scope.item.progress > 0">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
+
+                        <template #error>
+                          <div class="image-slot">
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
+                    </template>
+
+                    <template #default>
+                      <div class="mj-list-item-prompt">
+                        <span>{{ scope.item.prompt }}</span>
+                        <el-icon class="copy-prompt" :data-clipboard-text="scope.item.prompt">
+                          <DocumentCopy/>
+                        </el-icon>
+                      </div>
+                    </template>
+                  </el-popover>
+
                   <div class="opt">
                     <div class="opt-line">
                       <ul>
@@ -247,23 +332,28 @@
                     </div>
                   </div>
                 </div>
-              </el-col>
-            </el-row>
-          </div>
+              </template>
+            </waterfall>
+          </div> <!-- end finish job list-->
         </div>
-      </div>
+
+        <el-backtop :right="100" :bottom="100"/>
+      </div><!-- end task list box -->
     </div>
+
   </div>
 </template>
 
 <script setup>
-import {ref} from "vue"
-import {DeleteFilled, InfoFilled, Plus} from "@element-plus/icons-vue";
+import {onMounted, ref} from "vue"
+import {DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import Waterfall from "@/components/ItemList.vue";
+import Clipboard from "clipboard";
 
-const listBoxHeight = window.innerHeight - 20
+const listBoxHeight = window.innerHeight - 40
 const mjBoxHeight = window.innerHeight - 150
 const rates = [
   {css: "horizontal", value: "16:9", text: "横图"},
@@ -285,6 +375,43 @@ const params = ref({
   weight: 0.25,
   prompt: ""
 })
+
+const runningJobs = ref([])
+const finishedJobs = ref([])
+const previewImgList = ref([])
+
+onMounted(() => {
+  fetchFinishedJobs()
+  fetchRunningJobs()
+
+  const clipboard = new Clipboard('.copy-prompt');
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！');
+  })
+
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
+
+const fetchFinishedJobs = () => {
+  httpGet("/api/mj/jobs?status=1").then(res => {
+    finishedJobs.value = res.data
+    for (let index in finishedJobs.value) {
+      previewImgList.value.push(finishedJobs.value[index]["img_url"])
+    }
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
+
+const fetchRunningJobs = () => {
+  httpGet("/api/mj/jobs?status=0").then(res => {
+    runningJobs.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
 
 // 切换图片比例
 const changeRate = (item) => {
@@ -316,6 +443,18 @@ const afterRead = (file) => {
     },
   });
 };
+
+const getTaskType = (type) => {
+  switch (type) {
+    case "image":
+      return "绘画任务"
+    case "upscale":
+      return "放大任务"
+    case "variation":
+      return "变化任务"
+  }
+  return "未知任务"
+}
 
 // 创建绘图任务
 const generate = () => {

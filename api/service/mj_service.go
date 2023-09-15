@@ -21,6 +21,10 @@ const MjRunningJobKey = "MidJourney_Running_Job"
 
 type TaskType string
 
+func (t TaskType) String() string {
+	return string(t)
+}
+
 const (
 	Image     = TaskType("image")
 	Upscale   = TaskType("upscale")
@@ -100,9 +104,9 @@ func (s *MjService) Run() {
 		}
 		if err != nil {
 			logger.Error("绘画任务执行失败：", err)
-			if task.RetryCount > 5 {
-				continue
-			}
+			//if task.RetryCount > 5 {
+			//	continue
+			//}
 			task.RetryCount += 1
 			s.taskQueue.RPush(task)
 			// TODO: 执行失败通知聊天客户端
