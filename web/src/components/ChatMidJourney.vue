@@ -109,6 +109,7 @@ const send = (url, index) => {
   emits('disable-input')
   httpPost(url, {
     index: index,
+    src: "chat",
     message_id: data.value?.["message_id"],
     message_hash: data.value?.["image"]?.hash,
     session_id: getSessionId(),

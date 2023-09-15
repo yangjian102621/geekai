@@ -69,6 +69,8 @@ import {showNotify} from "vant";
 const props = defineProps({
   content: Object,
   icon: String,
+  chatId: String,
+  roleId: Number,
   createdAt: String
 });
 
@@ -104,11 +106,15 @@ const send = (url, index) => {
   emits('disable-input')
   httpPost(url, {
     index: index,
+    src: "chat",
     message_id: data.value?.["message_id"],
     message_hash: data.value?.["image"]?.hash,
     session_id: getSessionId(),
     key: data.value?.["key"],
     prompt: data.value?.["prompt"],
+    chat_id: props.chatId,
+    role_id: props.roleId,
+    icon: props.icon,
   }).then(() => {
     showNotify({type: "success", message: "任务推送成功，请耐心等待任务执行..."})
     loading.value = false

@@ -34,4 +34,5 @@ const (
 	OkMsg       = "Success"
 	ErrorMsg    = "系统开小差了"
 	InvalidArgs = "非法参数或参数解析失败"
+	NoData      = "No Data"
 )

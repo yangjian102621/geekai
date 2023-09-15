@@ -6,6 +6,7 @@ import (
 	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/store/model"
+	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"encoding/base64"
@@ -23,6 +24,7 @@ type TaskStatus string
 const (
 	Stopped  = TaskStatus("Stopped")
 	Finished = TaskStatus("Finished")
+	Running  = TaskStatus("Running")
 )
 
 type Image struct {
@@ -190,6 +192,7 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 
 			// save the job
 			job.UserId = task.UserId
+			job.Type = task.Type.String()
 			job.MessageId = data.MessageId
 			job.ReferenceId = data.ReferenceId
 			job.Prompt = data.Prompt
@@ -242,6 +245,7 @@ func (h *MidJourneyHandler) Proxy(c *gin.Context) {
 }
 
 type reqVo struct {
+	Src         string `json:"src"`
 	Index       int32  `json:"index"`
 	MessageId   string `json:"message_id"`
 	MessageHash string `json:"message_hash"`
@@ -259,15 +263,11 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	wsClient := h.App.ChatClients.Get(data.SessionId)
-	if wsClient == nil {
-		resp.ERROR(c, "No Websocket client online")
-		return
-	}
+
 	userId, _ := c.Get(types.LoginUserID)
 	h.mjService.PushTask(service.MjTask{
 		Id:          data.SessionId,
-		Src:         service.TaskSrcChat,
+		Src:         service.TaskSrc(data.Src),
 		Type:        service.Upscale,
 		Prompt:      data.Prompt,
 		UserId:      utils.IntValue(utils.InterfaceToString(userId), 0),
@@ -279,30 +279,29 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		MessageHash: data.MessageHash,
 	})
 
-	content := fmt.Sprintf("**%s** 已推送 upscale 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
-	utils.ReplyMessage(wsClient, content)
-	if h.App.MjTaskClients.Get(data.SessionId) == nil {
-		h.App.MjTaskClients.Put(data.SessionId, wsClient)
+	wsClient := h.App.ChatClients.Get(data.SessionId)
+	if wsClient != nil {
+		content := fmt.Sprintf("**%s** 已推送 upscale 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
+		utils.ReplyMessage(wsClient, content)
+		if h.App.MjTaskClients.Get(data.SessionId) == nil {
+			h.App.MjTaskClients.Put(data.SessionId, wsClient)
+		}
 	}
 	resp.SUCCESS(c)
 }
 
+// Variation send variation command to MidJourney Bot
 func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	var data reqVo
 	if err := c.ShouldBindJSON(&data); err != nil || data.SessionId == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	wsClient := h.App.ChatClients.Get(data.SessionId)
-	if wsClient == nil {
-		resp.ERROR(c, "No Websocket client online")
-		return
-	}
 
 	userId, _ := c.Get(types.LoginUserID)
 	h.mjService.PushTask(service.MjTask{
 		Id:          data.SessionId,
-		Src:         service.TaskSrcChat,
+		Src:         service.TaskSrc(data.Src),
 		Type:        service.Variation,
 		Prompt:      data.Prompt,
 		UserId:      utils.IntValue(utils.InterfaceToString(userId), 0),
@@ -313,10 +312,43 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
 	})
-	content := fmt.Sprintf("**%s** 已推送 variation 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
-	utils.ReplyMessage(wsClient, content)
-	if h.App.MjTaskClients.Get(data.SessionId) == nil {
-		h.App.MjTaskClients.Put(data.SessionId, wsClient)
+
+	// 从聊天窗口发送的请求，记录客户端信息
+	wsClient := h.App.ChatClients.Get(data.SessionId)
+	if wsClient != nil {
+		content := fmt.Sprintf("**%s** 已推送 variation 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
+		utils.ReplyMessage(wsClient, content)
+		if h.App.MjTaskClients.Get(data.SessionId) == nil {
+			h.App.MjTaskClients.Put(data.SessionId, wsClient)
+		}
 	}
 	resp.SUCCESS(c)
+}
+
+// JobList 获取 MJ 任务列表
+func (h *MidJourneyHandler) JobList(c *gin.Context) {
+	status := h.GetInt(c, "status", 0)
+	var items []model.MidJourneyJob
+	var res *gorm.DB
+	userId, _ := c.Get(types.LoginUserID)
+	if status == 1 {
+		res = h.db.Where("user_id = ? AND progress = 100", userId).Find(&items)
+	} else {
+		res = h.db.Where("user_id = ? AND progress < 100", userId).Find(&items)
+	}
+	if res.Error != nil {
+		resp.ERROR(c, types.NoData)
+		return
+	}
+
+	var jobs = make([]vo.MidJourneyJob, 0)
+	for _, item := range items {
+		var job vo.MidJourneyJob
+		err := utils.CopyObject(item, &job)
+		if err != nil {
+			continue
+		}
+		jobs = append(jobs, job)
+	}
+	resp.SUCCESS(c, jobs)
 }

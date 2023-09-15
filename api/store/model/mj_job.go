@@ -4,6 +4,7 @@ import "time"
 
 type MidJourneyJob struct {
 	Id          uint `gorm:"primarykey;column:id"`
+	Type        string
 	UserId      int
 	MessageId   string
 	ReferenceId string
