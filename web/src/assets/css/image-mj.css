@@ -171,6 +171,26 @@
   padding: 2px;
   background-color: #555;
 }
+.page-mj .inner .task-list-box .running-job-list .job-item .job-item-inner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+.page-mj .inner .task-list-box .running-job-list .job-item .job-item-inner .progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0,0,0,0.5);
+}
+.page-mj .inner .task-list-box .running-job-list .job-item .job-item-inner .progress span {
+  font-size: 20px;
+  color: #fff;
+}
 .page-mj .inner .task-list-box .running-job-list .job-item .el-image {
   width: 100%;
   height: 100%;
@@ -187,20 +207,20 @@
   font-size: 50px;
   margin-bottom: 10px;
 }
-.page-mj .inner .task-list-box .task-list-inner .job-item {
+.page-mj .inner .task-list-box .finish-job-list .job-item {
   margin-bottom: 20px;
 }
-.page-mj .inner .task-list-box .task-list-inner .job-item .opt .opt-line {
+.page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line {
   margin: 6px 0;
 }
-.page-mj .inner .task-list-box .task-list-inner .job-item .opt .opt-line ul {
+.page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul {
   display: flex;
   flex-flow: row;
 }
-.page-mj .inner .task-list-box .task-list-inner .job-item .opt .opt-line ul li {
+.page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul li {
   margin-right: 10px;
 }
-.page-mj .inner .task-list-box .task-list-inner .job-item .opt .opt-line ul li a {
+.page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul li a {
   padding: 3px 0;
   width: 50px;
   text-align: center;
@@ -210,7 +230,7 @@
   background-color: #4e5058;
   color: #fff;
 }
-.page-mj .inner .task-list-box .task-list-inner .job-item .opt .opt-line ul li a:hover {
+.page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul li a:hover {
   background-color: #6d6f78;
 }
 .mj-list-item-prompt .el-icon {

@@ -225,25 +225,31 @@
                       trigger="hover"
                   >
                     <template #reference>
-                      <el-image :src="scope.item.img_url"
-                                :zoom-rate="1.2"
-                                :preview-src-list="[scope.item.img_url]"
-                                fit="cover"
-                                :initial-index="0" loading="lazy" v-if="scope.item.progress > 0">
-                        <template #placeholder>
-                          <div class="image-slot">
-                            正在加载图片
-                          </div>
-                        </template>
+                      <div v-if="scope.item.progress > 0" class="job-item-inner">
+                        <el-image :src="scope.item.img_url"
+                                  :zoom-rate="1.2"
+                                  :preview-src-list="[scope.item.img_url]"
+                                  fit="cover"
+                                  :initial-index="0" loading="lazy">
+                          <template #placeholder>
+                            <div class="image-slot">
+                              正在加载图片
+                            </div>
+                          </template>
 
-                        <template #error>
-                          <div class="image-slot">
-                            <el-icon>
-                              <Picture/>
-                            </el-icon>
-                          </div>
-                        </template>
-                      </el-image>
+                          <template #error>
+                            <div class="image-slot">
+                              <el-icon>
+                                <Picture/>
+                              </el-icon>
+                            </div>
+                          </template>
+                        </el-image>
+
+                        <div class="progress">
+                          <el-progress type="circle" :percentage="scope.item.progress" :width="100" color="#47fff1"/>
+                        </div>
+                      </div>
                       <el-image fit="cover" v-else>
                         <template #error>
                           <div class="image-slot">
