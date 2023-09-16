@@ -543,7 +543,7 @@ const connect = function (chat_id, role_id) {
         content: _role['hello_msg'],
         orgContent: _role['hello_msg'],
       })
-      ElMessage.success("对话连接成功！")
+      ElMessage.success({message: "对话连接成功！", duration: 500})
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }

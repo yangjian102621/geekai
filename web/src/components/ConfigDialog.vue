@@ -58,8 +58,6 @@
 </template>
 
 <script setup>
-
-
 import {computed, onMounted, ref} from "vue"
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
@@ -107,7 +105,7 @@ const afterRead = (file) => {
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
         form.value.avatar = res.data
-        ElMessage.success('上传成功')
+        ElMessage.success({message: "上传成功", duration: 500})
       }).catch((e) => {
         ElMessage.error('上传失败:' + e.message)
       })
@@ -124,6 +122,7 @@ const save = function () {
   httpPost('/api/user/profile/update', form.value).then(() => {
     ElMessage.success({
       message: '更新成功',
+      duration: 500,
       onClose: () => emits('hide', false)
     })
     // 更新用户数据

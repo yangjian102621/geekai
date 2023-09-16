@@ -1,11 +1,11 @@
 <template>
-  <div class="waterfall" ref="container">
-    <div class="waterfall-inner">
+  <div class="list-box" ref="container">
+    <div class="list-inner">
       <div
-          class="waterfall-item"
+          class="list-item"
           v-for="(item, index) in items"
           :key="index"
-          :style="{width:itemWidth + 'px', height:height+'px', marginBottom: margin*2+'px'}"
+          :style="{width:itemWidth + 'px', marginBottom: margin*2+'px'}"
       >
         <div :style="{marginLeft: margin+'px', marginRight: margin+'px'}">
           <div class="item-wrapper">
@@ -51,10 +51,10 @@ onMounted(() => {
 const computeSize = () => {
   const w = container.value.offsetWidth - 10 // 减去滚动条的宽度
   let cols = Math.floor(w / props.width)
-  itemWidth.value = w / cols
+  itemWidth.value = Math.floor(w / cols) - 1
   while (itemWidth.value < props.width && cols > 1) {
     cols -= 1
-    itemWidth.value = w / cols
+    itemWidth.value = Math.floor(w / cols) - 1
   }
 
   if (props.gap > 0) {
@@ -69,13 +69,13 @@ window.onresize = () => {
 
 <style scoped lang="stylus">
 
-.waterfall {
+.list-box {
 
-  .waterfall-inner {
+  .list-inner {
     display flex
     flex-wrap wrap
 
-    .waterfall-item {
+    .list-item {
 
       div {
         display flex

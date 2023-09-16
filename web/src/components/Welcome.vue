@@ -11,7 +11,7 @@
               <div>小试牛刀</div>
             </div>
 
-            <div class="item-list">
+            <div class="list-box">
               <ul>
                 <li v-for="item in samples" :key="item"><a @click="send(item)">{{ item }}</a></li>
               </ul>
@@ -25,7 +25,7 @@
               <div>插件增强</div>
             </div>
 
-            <div class="item-list">
+            <div class="list-box">
               <ul>
                 <li v-for="item in plugins" :key="item.value"><a @click="send(item.value)">{{ item.text }}</a></li>
               </ul>
@@ -39,7 +39,7 @@
               <div>能力扩展</div>
             </div>
 
-            <div class="item-list">
+            <div class="list-box">
               <ul>
                 <li v-for="item in capabilities" :key="item">
                   <span v-if="item.value === ''">{{ item.text }}</span>
@@ -139,7 +139,7 @@ const send = (text) => {
         }
       }
 
-      .item-list {
+      .list-box {
         ul {
           padding 10px;
 
