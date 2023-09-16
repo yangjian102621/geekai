@@ -215,7 +215,7 @@
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <h2>任务列表</h2>
           <div class="running-job-list">
-            <waterfall :items="runningJobs" v-if="runningJobs.length > 0">
+            <ItemList :items="runningJobs" v-if="runningJobs.length > 0">
               <template #default="scope">
                 <div class="job-item">
                   <el-popover
@@ -272,12 +272,12 @@
 
                 </div>
               </template>
-            </waterfall>
+            </ItemList>
             <el-empty :image-size="100" v-else/>
           </div>
           <h2>创作记录</h2>
           <div class="finish-job-list">
-            <waterfall :items="finishedJobs" height="350" v-if="finishedJobs.length > 0">
+            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0">
               <template #default="scope">
                 <div class="job-item">
                   <el-popover
@@ -339,7 +339,7 @@
                   </div>
                 </div>
               </template>
-            </waterfall>
+            </ItemList>
           </div> <!-- end finish job list-->
         </div>
 
@@ -356,7 +356,7 @@ import {DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-pl
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import Waterfall from "@/components/ItemList.vue";
+import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 
 const listBoxHeight = window.innerHeight - 40
