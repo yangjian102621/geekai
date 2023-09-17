@@ -8,3 +8,5 @@ ALTER TABLE `chatgpt_mj_jobs` ADD `img_url` VARCHAR(255) NULL DEFAULT NULL COMME
 
 -- 2023-09-15
 ALTER TABLE `chatgpt_mj_jobs` ADD `type` VARCHAR(20) NULL DEFAULT 'image' COMMENT '任务类别' AFTER `user_id`;
+ALTER TABLE `chatgpt_mj_jobs` DROP INDEX `message_id`;
+ALTER TABLE `chatgpt_mj_jobs` ADD INDEX(`message_id`);

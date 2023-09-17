@@ -83,31 +83,7 @@ var InnerFunctions = []Function{
 			Properties: map[string]Property{
 				"prompt": {
 					Type:        "string",
-					Description: "绘画内容描述，提示词，如果该参数中有中文的话，则需要翻译成英文",
-				},
-				"--ar": {
-					Type:        "string",
-					Description: "图片长宽比，默认值 16:9",
-				},
-				"--niji": {
-					Type:        "string",
-					Description: "动漫模型版本，默认值空",
-				},
-				"--s": {
-					Type:        "string",
-					Description: "风格，stylize",
-				},
-				"--seed": {
-					Type:        "string",
-					Description: "随机种子",
-				},
-				"--no": {
-					Type:        "string",
-					Description: "负面提示词，指定不要什么元素或者风格,如果该参数中有中文的话，则需要翻译成英文",
-				},
-				"--v": {
-					Type:        "string",
-					Description: "模型版本，默认值: 5.2",
+					Description: "提示词，如果该参数中有中文的话，则需要翻译成英文。提示词中的参数作为提示的一部分，不要删除",
 				},
 			},
 			Required: []string{},

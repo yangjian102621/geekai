@@ -4,12 +4,14 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/store"
+	"chatplus/store/model"
 	"chatplus/utils"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -58,12 +60,14 @@ type MjService struct {
 	client    *req.Client
 	taskQueue *store.RedisQueue
 	redis     *redis.Client
+	db        *gorm.DB
 }
 
-func NewMjService(appConfig *types.AppConfig, client *redis.Client) *MjService {
+func NewMjService(appConfig *types.AppConfig, client *redis.Client, db *gorm.DB) *MjService {
 	return &MjService{
 		config:    appConfig.ExtConfig,
 		redis:     client,
+		db:        db,
 		taskQueue: store.NewRedisQueue("midjourney_task_queue", client),
 		client:    req.C().SetTimeout(30 * time.Second)}
 }
@@ -104,9 +108,11 @@ func (s *MjService) Run() {
 		}
 		if err != nil {
 			logger.Error("绘画任务执行失败：", err)
-			//if task.RetryCount > 5 {
-			//	continue
-			//}
+			if task.RetryCount > 5 {
+				// 取消并删除任务
+				s.db.Where("id = ?", task.Id).Delete(&model.MidJourneyJob{})
+				continue
+			}
 			task.RetryCount += 1
 			s.taskQueue.RPush(task)
 			// TODO: 执行失败通知聊天客户端

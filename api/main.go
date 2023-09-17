@@ -191,10 +191,10 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
 			group := s.Engine.Group("/api/mj/")
 			group.POST("notify", h.Notify)
+			group.POST("image", h.Image)
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
-			group.GET("proxy", h.Proxy)
 		}),
 
 		// 管理后台控制器
