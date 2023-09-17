@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
-	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -24,7 +24,6 @@ type TaskStatus string
 const (
 	Stopped  = TaskStatus("Stopped")
 	Finished = TaskStatus("Finished")
-	Running  = TaskStatus("Running")
 )
 
 type Image struct {
@@ -117,18 +116,25 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 		return nil, false
 	}
 
+	var job model.MidJourneyJob
+	res := h.db.Where("message_id = ?", data.MessageId).First(&job)
+	if res.Error == nil && data.Status == Finished {
+		logger.Warn("重复消息：", data.MessageId)
+		return nil, false
+	}
+
 	if task.Src == service.TaskSrcImg { // 绘画任务
-		logger.Error(err)
 		var job model.MidJourneyJob
-		res := h.db.First(&job, task.Id)
+		res := h.db.Where("id = ?", task.Id).First(&job)
 		if res.Error != nil {
-			logger.Warn("非法任务：", err)
+			logger.Warn("非法任务：", res.Error)
 			return nil, false
 		}
 		job.MessageId = data.MessageId
 		job.ReferenceId = data.ReferenceId
 		job.Progress = data.Progress
 		job.Prompt = data.Prompt
+		job.Hash = data.Image.Hash
 
 		// 任务完成，将最终的图片下载下来
 		if data.Progress == 100 {
@@ -144,18 +150,11 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 		}
 		res = h.db.Updates(&job)
 		if res.Error != nil {
-			logger.Error("error with update job: ", err.Error())
+			logger.Error("error with update job: ", res.Error)
 			return res.Error, false
 		}
 
 	} else if task.Src == service.TaskSrcChat { // 聊天任务
-		var job model.MidJourneyJob
-		res := h.db.Where("message_id = ?", data.MessageId).First(&job)
-		if res.Error == nil {
-			logger.Warn("重复消息：", data.MessageId)
-			return nil, false
-		}
-
 		wsClient := h.App.MjTaskClients.Get(task.Id)
 		if data.Status == Finished {
 			if wsClient != nil && data.ReferenceId != "" {
@@ -233,15 +232,68 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 	return nil, true
 }
 
-// Proxy 通过代理访问 discord f服务器图片
-func (h *MidJourneyHandler) Proxy(c *gin.Context) {
-	imgURL := c.Query("url")
-	imageData, err := utils.DownloadImage(imgURL, h.App.Config.ProxyURL)
-	if err != nil {
-		c.String(http.StatusOK, err.Error())
+// Image 创建一个绘画任务
+func (h *MidJourneyHandler) Image(c *gin.Context) {
+	var data struct {
+		Prompt  string  `json:"prompt"`
+		Rate    string  `json:"rate"`
+		Model   string  `json:"model"`
+		Chaos   int     `json:"chaos"`
+		Raw     bool    `json:"raw"`
+		Seed    int64   `json:"seed"`
+		Stylize int     `json:"stylize"`
+		Img     string  `json:"img"`
+		Weight  float32 `json:"weight"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	c.String(http.StatusOK, "data:image/png;base64,"+base64.StdEncoding.EncodeToString(imageData))
+	var prompt = data.Prompt
+	if data.Rate != "" && !strings.Contains(prompt, "--ar") {
+		prompt += " --ar " + data.Rate
+	}
+	if data.Seed > 0 && !strings.Contains(prompt, "--seed") {
+		prompt += fmt.Sprintf(" --seed %d", data.Seed)
+	}
+	if data.Stylize > 0 && !strings.Contains(prompt, "--s") && !strings.Contains(prompt, "--stylize") {
+		prompt += fmt.Sprintf(" --s %d", data.Stylize)
+	}
+	if data.Chaos > 0 && !strings.Contains(prompt, "--c") && !strings.Contains(prompt, "--chaos") {
+		prompt += fmt.Sprintf(" --c %d", data.Chaos)
+	}
+	if data.Img != "" {
+		prompt = fmt.Sprintf("%s %s", data.Img, prompt)
+		if data.Weight > 0 {
+			prompt += fmt.Sprintf(" --iw %f", data.Weight)
+		}
+	}
+	if data.Model != "" && !strings.Contains(prompt, "--v") && !strings.Contains(prompt, "--niji") {
+		prompt += data.Model
+	}
+
+	idValue, _ := c.Get(types.LoginUserID)
+	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	job := model.MidJourneyJob{
+		Type:      service.Image.String(),
+		UserId:    userId,
+		Progress:  0,
+		Prompt:    prompt,
+		CreatedAt: time.Now(),
+	}
+	if res := h.db.Create(&job); res.Error != nil {
+		resp.ERROR(c, "添加任务失败："+res.Error.Error())
+		return
+	}
+
+	h.mjService.PushTask(service.MjTask{
+		Id:     fmt.Sprintf("%d", job.Id),
+		Src:    service.TaskSrcImg,
+		Type:   service.Image,
+		Prompt: prompt,
+		UserId: userId,
+	})
+	resp.SUCCESS(c)
 }
 
 type reqVo struct {
@@ -264,13 +316,32 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get(types.LoginUserID)
+	idValue, _ := c.Get(types.LoginUserID)
+	jobId := data.SessionId
+	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	src := service.TaskSrc(data.Src)
+	if src == service.TaskSrcImg {
+		job := model.MidJourneyJob{
+			Type:      service.Upscale.String(),
+			UserId:    userId,
+			Hash:      data.MessageHash,
+			Progress:  0,
+			Prompt:    data.Prompt,
+			CreatedAt: time.Now(),
+		}
+		if res := h.db.Create(&job); res.Error == nil {
+			jobId = fmt.Sprintf("%d", job.Id)
+		} else {
+			resp.ERROR(c, "添加任务失败："+res.Error.Error())
+			return
+		}
+	}
 	h.mjService.PushTask(service.MjTask{
-		Id:          data.SessionId,
-		Src:         service.TaskSrc(data.Src),
+		Id:          jobId,
+		Src:         src,
 		Type:        service.Upscale,
 		Prompt:      data.Prompt,
-		UserId:      utils.IntValue(utils.InterfaceToString(userId), 0),
+		UserId:      userId,
 		RoleId:      data.RoleId,
 		Icon:        data.Icon,
 		ChatId:      data.ChatId,
@@ -298,13 +369,33 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get(types.LoginUserID)
+	idValue, _ := c.Get(types.LoginUserID)
+	jobId := data.SessionId
+	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	src := service.TaskSrc(data.Src)
+	if src == service.TaskSrcImg {
+		job := model.MidJourneyJob{
+			Type:      service.Variation.String(),
+			UserId:    userId,
+			ImgURL:    "",
+			Hash:      data.MessageHash,
+			Progress:  0,
+			Prompt:    data.Prompt,
+			CreatedAt: time.Now(),
+		}
+		if res := h.db.Create(&job); res.Error == nil {
+			jobId = fmt.Sprintf("%d", job.Id)
+		} else {
+			resp.ERROR(c, "添加任务失败："+res.Error.Error())
+			return
+		}
+	}
 	h.mjService.PushTask(service.MjTask{
-		Id:          data.SessionId,
-		Src:         service.TaskSrc(data.Src),
+		Id:          jobId,
+		Src:         src,
 		Type:        service.Variation,
 		Prompt:      data.Prompt,
-		UserId:      utils.IntValue(utils.InterfaceToString(userId), 0),
+		UserId:      userId,
 		RoleId:      data.RoleId,
 		Icon:        data.Icon,
 		ChatId:      data.ChatId,
@@ -332,9 +423,9 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 	var res *gorm.DB
 	userId, _ := c.Get(types.LoginUserID)
 	if status == 1 {
-		res = h.db.Where("user_id = ? AND progress = 100", userId).Find(&items)
+		res = h.db.Where("user_id = ? AND progress = 100", userId).Order("id DESC").Find(&items)
 	} else {
-		res = h.db.Where("user_id = ? AND progress < 100", userId).Find(&items)
+		res = h.db.Where("user_id = ? AND progress < 100", userId).Order("id ASC").Find(&items)
 	}
 	if res.Error != nil {
 		resp.ERROR(c, types.NoData)
@@ -347,6 +438,12 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 		err := utils.CopyObject(item, &job)
 		if err != nil {
 			continue
+		}
+		if item.Progress < 100 && item.ImgURL != "" { // 正在运行中任务使用代理访问图片
+			image, err := utils.DownloadImage(item.ImgURL, h.App.Config.ProxyURL)
+			if err == nil {
+				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+			}
 		}
 		jobs = append(jobs, job)
 	}
