@@ -285,10 +285,10 @@
                       placement="top-start"
                       title="提示词"
                       :width="240"
-                      trigger="hover"
+                      trigger="click"
                   >
                     <template #reference>
-                      <el-image :src="scope.item.img_url"
+                      <el-image :src="scope.item.img_url" :class="scope.item.type === 'upscale'?'upscale':''"
                                 :zoom-rate="1.2"
                                 :preview-src-list="previewImgList"
                                 fit="cover"
@@ -319,7 +319,7 @@
                     </template>
                   </el-popover>
 
-                  <div class="opt">
+                  <div class="opt" v-if="scope.item.type !== 'upscale'">
                     <div class="opt-line">
                       <ul>
                         <li><a @click="upscale(1,scope.item)">U1</a></li>
@@ -352,7 +352,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 import {DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
@@ -361,7 +361,9 @@ import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
-import {getSessionId} from "@/store/session";
+import {getSessionId, getUserToken} from "@/store/session";
+import {randString} from "@/utils/libs";
+import hl from "highlight.js";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -395,10 +397,85 @@ const runningJobs = ref([])
 const finishedJobs = ref([])
 const previewImgList = ref([])
 const router = useRouter()
+
+const socket = ref(null)
+
+const connect = () => {
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https:') {
+      host = 'wss://' + location.host;
+    } else {
+      host = 'ws://' + location.host;
+    }
+  }
+  const _socket = new WebSocket(host + `/api/mj/client?session_id=${getSessionId()}`);
+  _socket.addEventListener('open', () => {
+    socket.value = _socket;
+  });
+
+  _socket.addEventListener('message', event => {
+    if (event.data instanceof Blob) {
+      const reader = new FileReader();
+      reader.readAsText(event.data, "UTF-8");
+      reader.onload = () => {
+        const data = JSON.parse(String(reader.result));
+        console.log(data)
+        let isNew = false
+        if (data.progress === 100) {
+          for (let i = 0; i < finishedJobs.value.length; i++) {
+            if (finishedJobs.value[i].id === data.id) {
+              isNew = false
+              break
+            }
+          }
+          if (isNew) {
+            finishedJobs.value.unshift(data)
+          }
+        } else {
+          for (let i = 0; i < runningJobs.value; i++) {
+            if (runningJobs.value[i].id === data.id) {
+              isNew = false
+              runningJobs.value[i] = data
+              break
+            }
+          }
+          if (isNew) {
+            runningJobs.value.push(data)
+          }
+        }
+      }
+    }
+  });
+
+  _socket.addEventListener('close', () => {
+    connect()
+  });
+}
+
 onMounted(() => {
   checkSession().then(() => {
-    fetchFinishedJobs()
-    fetchRunningJobs()
+    // 获取运行中的任务
+    httpGet("/api/mj/jobs?status=1").then(res => {
+      if (finishedJobs.value.length !== res.data.length) {
+        finishedJobs.value = res.data
+      }
+      previewImgList.value = []
+      for (let index in finishedJobs.value) {
+        previewImgList.value.push(finishedJobs.value[index]["img_url"])
+      }
+    }).catch(e => {
+      ElMessage.error("获取任务失败：" + e.message)
+    })
+
+    // 获取运行中的任务
+    httpGet("/api/mj/jobs?status=0").then(res => {
+      if (runningJobs.value.length !== res.data.length) {
+        runningJobs.value = res.data
+      }
+    }).catch(e => {
+      ElMessage.error("获取任务失败：" + e.message)
+    })
   }).catch(() => {
     router.push('/login')
   });
@@ -412,32 +489,6 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 })
-
-const fetchFinishedJobs = () => {
-  httpGet("/api/mj/jobs?status=1").then(res => {
-    finishedJobs.value = res.data
-    previewImgList.value = []
-    for (let index in finishedJobs.value) {
-      previewImgList.value.push(finishedJobs.value[index]["img_url"])
-    }
-    setTimeout(() => {
-      fetchFinishedJobs()
-    }, 2000)
-  }).catch(e => {
-    ElMessage.error("获取任务失败：" + e.message)
-  })
-}
-
-const fetchRunningJobs = () => {
-  httpGet("/api/mj/jobs?status=0").then(res => {
-    runningJobs.value = res.data
-    setTimeout(() => {
-      fetchRunningJobs()
-    }, 1000)
-  }).catch(e => {
-    ElMessage.error("获取任务失败：" + e.message)
-  })
-}
 
 // 切换图片比例
 const changeRate = (item) => {
@@ -489,6 +540,10 @@ const generate = () => {
     promptRef.value.focus()
     return ElMessage.error("请输入绘画提示词！")
   }
+  if (params.value.model.indexOf("niji") !== -1 && params.value.raw) {
+    return ElMessage.error("动漫模型不允许启用原始模式")
+  }
+  params.value.session_id = getSessionId()
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
   }).catch(e => {
