@@ -195,6 +195,7 @@ func main() {
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
+			group.Any("client", h.Client)
 		}),
 
 		// 管理后台控制器
