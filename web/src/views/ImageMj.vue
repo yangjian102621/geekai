@@ -285,7 +285,7 @@
                       placement="top-start"
                       title="提示词"
                       :width="240"
-                      trigger="click"
+                      trigger="hover"
                   >
                     <template #reference>
                       <el-image :src="scope.item.img_url" :class="scope.item.type === 'upscale'?'upscale':''"
@@ -352,7 +352,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
+import {onMounted, ref} from "vue"
 import {DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
@@ -362,8 +362,6 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId, getUserToken} from "@/store/session";
-import {randString} from "@/utils/libs";
-import hl from "highlight.js";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -409,7 +407,7 @@ const connect = () => {
       host = 'ws://' + location.host;
     }
   }
-  const _socket = new WebSocket(host + `/api/mj/client?session_id=${getSessionId()}`);
+  const _socket = new WebSocket(host + `/api/mj/client?session_id=${getSessionId()}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
   });
@@ -421,7 +419,7 @@ const connect = () => {
       reader.onload = () => {
         const data = JSON.parse(String(reader.result));
         console.log(data)
-        let isNew = false
+        let isNew = true
         if (data.progress === 100) {
           for (let i = 0; i < finishedJobs.value.length; i++) {
             if (finishedJobs.value[i].id === data.id) {
@@ -429,11 +427,17 @@ const connect = () => {
               break
             }
           }
+          for (let i = 0; i < runningJobs.value.length; i++) {
+            if (runningJobs.value[i].id === data.id) {
+              runningJobs.value.splice(i, 1)
+              break
+            }
+          }
           if (isNew) {
             finishedJobs.value.unshift(data)
           }
         } else {
-          for (let i = 0; i < runningJobs.value; i++) {
+          for (let i = 0; i < runningJobs.value.length; i++) {
             if (runningJobs.value[i].id === data.id) {
               isNew = false
               runningJobs.value[i] = data
@@ -479,6 +483,9 @@ onMounted(() => {
   }).catch(() => {
     router.push('/login')
   });
+
+  // 连接 socket
+  connect();
 
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {

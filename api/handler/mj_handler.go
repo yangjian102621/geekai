@@ -86,11 +86,10 @@ func (h *MidJourneyHandler) Client(c *gin.Context) {
 
 	sessionId := c.Query("session_id")
 	client := types.NewWsClient(ws)
-	// 关闭旧的连接
-	if h.clients.Has(sessionId) {
-		h.clients.Get(sessionId).Close()
-	}
+	// 删除旧的连接
+	h.clients.Delete(sessionId)
 	h.clients.Put(sessionId, client)
+	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
 }
 
 func (h *MidJourneyHandler) Notify(c *gin.Context) {
@@ -265,7 +264,28 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 		}
 	}
 
+	// 更新用户剩余绘图次数
+	if data.Status == Finished && task.Type != service.Upscale {
+		h.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+	}
+
 	return nil, true
+}
+
+func (h *MidJourneyHandler) checkLimits(c *gin.Context) bool {
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return false
+	}
+
+	if user.ImgCalls <= 0 {
+		resp.ERROR(c, "您的绘图次数不足，请联系管理员充值！")
+		return false
+	}
+
+	return true
+
 }
 
 // Image 创建一个绘画任务
@@ -286,6 +306,10 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	if h.checkLimits(c) {
+		return
+	}
+
 	var prompt = data.Prompt
 	if data.Rate != "" && !strings.Contains(prompt, "--ar") {
 		prompt += " --ar " + data.Rate
@@ -367,6 +391,10 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
+	if h.checkLimits(c) {
+		return
+	}
+
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
@@ -429,6 +457,10 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	var data reqVo
 	if err := c.ShouldBindJSON(&data); err != nil || data.SessionId == "" {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	if h.checkLimits(c) {
 		return
 	}
 
