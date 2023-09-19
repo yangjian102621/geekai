@@ -12,7 +12,7 @@ import (
 var logger = logger2.GetLogger()
 
 // ReplyChunkMessage 回复客户片段端消息
-func ReplyChunkMessage(client *types.WsClient, message types.WsMessage) {
+func ReplyChunkMessage(client *types.WsClient, message interface{}) {
 	msg, err := json.Marshal(message)
 	if err != nil {
 		logger.Errorf("Error for decoding json data: %v", err.Error())

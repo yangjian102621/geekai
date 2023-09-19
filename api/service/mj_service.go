@@ -41,7 +41,8 @@ const (
 )
 
 type MjTask struct {
-	Id          string   `json:"id"`
+	Id          int      `json:"id"`
+	SessionId   string   `json:"session_id"`
 	Src         TaskSrc  `json:"src"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
