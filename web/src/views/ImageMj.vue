@@ -318,16 +318,28 @@
                         <li><a @click="upscale(3,scope.item)">U3</a></li>
                         <li><a @click="upscale(4,scope.item)">U4</a></li>
                         <li class="show-prompt">
-                          <el-tooltip
-                              class="box-item"
-                              effect="light"
-                              content="复制提示词"
-                              placement="top"
+
+                          <el-popover
+                              placement="left"
+                              title="提示词"
+                              :width="240"
+                              trigger="hover"
                           >
-                            <el-icon class="copy-prompt" :data-clipboard-text="scope.item.prompt">
-                              <DocumentCopy/>
-                            </el-icon>
-                          </el-tooltip>
+                            <template #reference>
+                              <el-icon>
+                                <ChromeFilled/>
+                              </el-icon>
+                            </template>
+
+                            <template #default>
+                              <div class="mj-list-item-prompt">
+                                <span>{{ scope.item.prompt }}</span>
+                                <el-icon class="copy-prompt" :data-clipboard-text="scope.item.prompt">
+                                  <DocumentCopy/>
+                                </el-icon>
+                              </div>
+                            </template>
+                          </el-popover>
                         </li>
                       </ul>
                     </div>
@@ -356,7 +368,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue"
-import {Comment, DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
+import {ChromeFilled, DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
