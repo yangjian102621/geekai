@@ -202,10 +202,17 @@
                   :autosize="{ minRows: 4, maxRows: 6 }"
                   type="textarea"
                   ref="promptRef"
-                  placeholder="这里输入你的咒语，例如：A chinese girl walking in the middle of a cobblestone street"
+                  placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"
               />
             </div>
 
+            <div class="param-line pt">
+              <el-form-item label="剩余次数">
+                <template #default>
+                  <el-tag type="info">{{ imgCalls }}</el-tag>
+                </template>
+              </el-form-item>
+            </div>
           </el-form>
         </div>
         <div class="submit-btn">
@@ -281,43 +288,27 @@
             <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0">
               <template #default="scope">
                 <div class="job-item">
-                  <el-popover
-                      placement="top-start"
-                      title="提示词"
-                      :width="240"
-                      trigger="hover"
-                  >
-                    <template #reference>
-                      <el-image :src="scope.item.img_url" :class="scope.item.type === 'upscale'?'upscale':''"
-                                :zoom-rate="1.2"
-                                :preview-src-list="previewImgList"
-                                fit="cover"
-                                :initial-index="scope.index" loading="lazy" v-if="scope.item.progress > 0">
-                        <template #placeholder>
-                          <div class="image-slot">
-                            正在加载图片
-                          </div>
-                        </template>
-
-                        <template #error>
-                          <div class="image-slot">
-                            <el-icon>
-                              <Picture/>
-                            </el-icon>
-                          </div>
-                        </template>
-                      </el-image>
+                  <el-image
+                      :src="scope.item.type === 'upscale'?scope.item.img_url+'?imageView2/1/w/240/h/300/q/75':scope.item.img_url+'?imageView2/1/w/240/h/240/q/75'"
+                      :class="scope.item.type === 'upscale'?'upscale':''"
+                      :zoom-rate="1.2"
+                      :preview-src-list="previewImgList"
+                      fit="cover"
+                      :initial-index="scope.index" loading="lazy" v-if="scope.item.progress > 0">
+                    <template #placeholder>
+                      <div class="image-slot">
+                        正在加载图片
+                      </div>
                     </template>
 
-                    <template #default>
-                      <div class="mj-list-item-prompt">
-                        <span>{{ scope.item.prompt }}</span>
-                        <el-icon class="copy-prompt" :data-clipboard-text="scope.item.prompt">
-                          <DocumentCopy/>
+                    <template #error>
+                      <div class="image-slot">
+                        <el-icon>
+                          <Picture/>
                         </el-icon>
                       </div>
                     </template>
-                  </el-popover>
+                  </el-image>
 
                   <div class="opt" v-if="scope.item.type !== 'upscale'">
                     <div class="opt-line">
@@ -326,6 +317,18 @@
                         <li><a @click="upscale(2,scope.item)">U2</a></li>
                         <li><a @click="upscale(3,scope.item)">U3</a></li>
                         <li><a @click="upscale(4,scope.item)">U4</a></li>
+                        <li class="show-prompt">
+                          <el-tooltip
+                              class="box-item"
+                              effect="light"
+                              content="复制提示词"
+                              placement="top"
+                          >
+                            <el-icon class="copy-prompt" :data-clipboard-text="scope.item.prompt">
+                              <DocumentCopy/>
+                            </el-icon>
+                          </el-tooltip>
+                        </li>
                       </ul>
                     </div>
 
@@ -353,7 +356,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue"
-import {DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
+import {Comment, DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
@@ -383,7 +386,7 @@ const params = ref({
   rate: rates[1].value,
   model: models[0].value,
   chaos: 0,
-  stylize: 100,
+  stylize: 0,
   seed: 0,
   raw: false,
   img: "",
@@ -397,6 +400,7 @@ const previewImgList = ref([])
 const router = useRouter()
 
 const socket = ref(null)
+const imgCalls = ref(0)
 
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST
@@ -418,7 +422,6 @@ const connect = () => {
       reader.readAsText(event.data, "UTF-8");
       reader.onload = () => {
         const data = JSON.parse(String(reader.result));
-        console.log(data)
         let isNew = true
         if (data.progress === 100) {
           for (let i = 0; i < finishedJobs.value.length; i++) {
@@ -436,6 +439,7 @@ const connect = () => {
           if (isNew) {
             finishedJobs.value.unshift(data)
           }
+          previewImgList.value.unshift(data["img_url"])
         } else {
           for (let i = 0; i < runningJobs.value.length; i++) {
             if (runningJobs.value[i].id === data.id) {
@@ -458,12 +462,18 @@ const connect = () => {
 }
 
 onMounted(() => {
-  checkSession().then(() => {
+  checkSession().then(user => {
+    imgCalls.value = user['img_calls']
+    // 获取运行中的任务
+    httpGet("/api/mj/jobs?status=0").then(res => {
+      runningJobs.value = res.data
+    }).catch(e => {
+      ElMessage.error("获取任务失败：" + e.message)
+    })
+
     // 获取运行中的任务
     httpGet("/api/mj/jobs?status=1").then(res => {
-      if (finishedJobs.value.length !== res.data.length) {
-        finishedJobs.value = res.data
-      }
+      finishedJobs.value = res.data
       previewImgList.value = []
       for (let index in finishedJobs.value) {
         previewImgList.value.push(finishedJobs.value[index]["img_url"])
@@ -472,20 +482,11 @@ onMounted(() => {
       ElMessage.error("获取任务失败：" + e.message)
     })
 
-    // 获取运行中的任务
-    httpGet("/api/mj/jobs?status=0").then(res => {
-      if (runningJobs.value.length !== res.data.length) {
-        runningJobs.value = res.data
-      }
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-    })
+    // 连接 socket
+    connect();
   }).catch(() => {
     router.push('/login')
   });
-
-  // 连接 socket
-  connect();
 
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {
@@ -553,6 +554,7 @@ const generate = () => {
   params.value.session_id = getSessionId()
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
+    imgCalls.value -= 1
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })
@@ -578,6 +580,7 @@ const send = (url, index, item) => {
     prompt: item.prompt,
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
+    imgCalls.value -= 1
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

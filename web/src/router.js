@@ -36,7 +36,7 @@ const routes = [
                 name: 'chat-role',
                 path: '/apps',
                 meta: {title: '应用中心'},
-                component: () => import('@/views/ChatRoles.vue'),
+                component: () => import('@/views/ChatApps.vue'),
             },
             {
                 name: 'images',
