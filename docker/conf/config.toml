@@ -1,53 +1,54 @@
 Listen = "0.0.0.0:5678"
-ProxyURL = "http://172.22.11.200:7777"
-MysqlDns = "root:mysql_pass@tcp(localhost:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
-StaticDir = "./static"
-StaticUrl = "http://localhost:5678/static"
-AesEncryptKey = "{YOUR_AES_KEY}"
+ProxyURL = "" # 如 http://127.0.0.1:7777
+MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+StaticDir = "./static" # 静态资源的目录
+StaticUrl = "/static" # 静态资源访问 URL
+AesEncryptKey = ""
 
 [Session]
-  SecretKey = "m0cjm3gsuw9jk73np1ni7r42koilybjcndlycjdmq7za3pbqn7w12fyok5pqh6q5"
+  SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
   MaxAge = 86400
 
 [Manager]
   Username = "admin"
-  Password = "admin123"
+  Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
 
-[Redis]
+[Redis] # redis 配置信息
   Host = "localhost"
   Port = 6379
   Password = ""
+  DB = 0
 
-[ApiConfig]
-  ApiURL = "{URL}"
-  AppId = "{APP_ID}"
-  Token = "{TOKEN}"
+[ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
+  ApiURL = ""
+  AppId = ""
+  Token = ""
 
-[SmsConfig]
-  AccessKey = "{YOUR_ACCESS_KEY}"
-  AccessSecret = "{YOUR_SECRET_KEY}"
+[SmsConfig] # 阿里云短信服务配置
+  AccessKey = ""
+  AccessSecret = ""
   Product = "Dysmsapi"
   Domain = "dysmsapi.aliyuncs.com"
 
-[ExtConfig]
-  ApiURL = "插件扩展 API 地址"
-  Token = "插件扩展 API Token"
+[ExtConfig] # MidJourney和微信机器人服务 API 配置，开通此功能需要配合 chatpgt-plus-exts 项目部署
+  ApiURL = "" # 插件扩展 API 地址
+  Token = "" # 这个 token 随便填，只要确保跟 chatgpt-plus-exts 项目的 token 一样就行
 
- [OSS]
-   Active = "local"
+[OSS] # OSS 配置，用于存储 MJ 绘画图片
+   Active = "local" # 默认使用本地文件存储引擎
    [OSS.Local]
-     BasePath = "./static/upload"
-     BaseURL = "http://localhost:5678/static/upload"
+     BasePath = "./static/upload" # 本地文件上传根路径
+     BaseURL = "http://localhost:5678/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
    [OSS.Minio]
-     Endpoint = "IP:端口"
-     AccessKey = "minio oss access key"
-     AccessSecret = "minio oss access secret"
-     Bucket = "minio oss bucket"
+     Endpoint = "" # 如 172.22.11.200:9000
+     AccessKey = "" # 自己去 Minio 控制台去创建一个 Access Key
+     AccessSecret = ""
+     Bucket = "chatgpt-plus" # 替换为你自己创建的 Bucket，注意要给 Bucket 设置公开的读权限，否则会出现图片无法显示。
      UseSSL = false
-     Domain = "minio 文件公开访问地址"
+     Domain = "" # 地址必须是能够通过公网访问的，否则会出现图片无法显示。
    [OSS.QiNiu] # 七牛云 OSS 配置
        Zone = "z2" # 区域，z0：华东，z1: 华北，na0：北美，as0：新加坡
-       AccessKey = "七牛云 OSS AccessKey"
-       AccessSecret = "七牛云 OSS AccessSecret"
-       Bucket = "七牛云 OSS Bucket"
-       Domain = "OSS Bucket 所绑定的域名，如 https://img.r9it.com"
+       AccessKey = ""
+       AccessSecret = ""
+       Bucket = ""
+       Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com

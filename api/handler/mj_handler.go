@@ -177,9 +177,11 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 		var jobVo vo.MidJourneyJob
 		err := utils.CopyObject(job, &jobVo)
 		if err == nil {
-			image, err := utils.DownloadImage(jobVo.ImgURL, h.App.Config.ProxyURL)
-			if err == nil {
-				jobVo.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+			if data.Progress < 100 {
+				image, err := utils.DownloadImage(jobVo.ImgURL, h.App.Config.ProxyURL)
+				if err == nil {
+					jobVo.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+				}
 			}
 
 			// 推送任务到前端
@@ -265,7 +267,8 @@ func (h *MidJourneyHandler) notifyHandler(c *gin.Context, data notifyData) (erro
 	}
 
 	// 更新用户剩余绘图次数
-	if data.Status == Finished && task.Type != service.Upscale {
+	// TODO: 放大图片是否需要消耗绘图次数？
+	if data.Status == Finished {
 		h.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 	}
 
@@ -306,7 +309,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if h.checkLimits(c) {
+	if !h.checkLimits(c) {
 		return
 	}
 
@@ -391,7 +394,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	if h.checkLimits(c) {
+	if !h.checkLimits(c) {
 		return
 	}
 
@@ -460,7 +463,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		return
 	}
 
-	if h.checkLimits(c) {
+	if !h.checkLimits(c) {
 		return
 	}
 
