@@ -1,7 +1,7 @@
 <template>
   <div class="page-apps" :style="{ height: winHeight + 'px' }">
     <div class="inner">
-      <h1>MidJourney 绘画中心</h1>
+      <h1>应用中心</h1>
       <h2>页面正在紧锣密鼓开发中，敬请期待！</h2>
     </div>
   </div>
