@@ -12,6 +12,7 @@ type UploaderManager struct {
 const Local = "LOCAL"
 const Minio = "MINIO"
 const QiNiu = "QINIU"
+const AliYun = "ALIYUN"
 
 func NewUploaderManager(config *types.AppConfig) (*UploaderManager, error) {
 	active := Local
@@ -21,17 +22,25 @@ func NewUploaderManager(config *types.AppConfig) (*UploaderManager, error) {
 	var handler Uploader
 	switch active {
 	case Local:
-		handler = NewLocalStorageService(config)
+		handler = NewLocalStorage(config)
 		break
 	case Minio:
-		service, err := NewMinioService(config)
+		client, err := NewMiniOss(config)
 		if err != nil {
 			return nil, err
 		}
-		handler = service
+		handler = client
 		break
 	case QiNiu:
-		handler = NewQiNiuService(config)
+		handler = NewQiNiuOss(config)
+		break
+	case AliYun:
+		client, err := NewAliYunOss(config)
+		if err != nil {
+			return nil, err
+		}
+		handler = client
+		break
 	}
 
 	return &UploaderManager{handler: handler}, nil

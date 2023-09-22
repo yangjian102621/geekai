@@ -10,19 +10,19 @@ import (
 	"strings"
 )
 
-type LocalStorageService struct {
+type LocalStorage struct {
 	config   *types.LocalStorageConfig
 	proxyURL string
 }
 
-func NewLocalStorageService(config *types.AppConfig) LocalStorageService {
-	return LocalStorageService{
+func NewLocalStorage(config *types.AppConfig) LocalStorage {
+	return LocalStorage{
 		config:   &config.OSS.Local,
 		proxyURL: config.ProxyURL,
 	}
 }
 
-func (s LocalStorageService) PutFile(ctx *gin.Context, name string) (string, error) {
+func (s LocalStorage) PutFile(ctx *gin.Context, name string) (string, error) {
 	file, err := ctx.FormFile(name)
 	if err != nil {
 		return "", fmt.Errorf("error with get form: %v", err)
@@ -41,7 +41,7 @@ func (s LocalStorageService) PutFile(ctx *gin.Context, name string) (string, err
 	return utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, filePath), nil
 }
 
-func (s LocalStorageService) PutImg(imageURL string) (string, error) {
+func (s LocalStorage) PutImg(imageURL string) (string, error) {
 	filename := filepath.Base(imageURL)
 	filePath, err := utils.GenUploadPath(s.config.BasePath, filename)
 	if err != nil {
@@ -56,9 +56,9 @@ func (s LocalStorageService) PutImg(imageURL string) (string, error) {
 	return utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, filePath), nil
 }
 
-func (s LocalStorageService) Delete(fileURL string) error {
+func (s LocalStorage) Delete(fileURL string) error {
 	filePath := strings.Replace(fileURL, s.config.BaseURL, s.config.BasePath, 1)
 	return os.Remove(filePath)
 }
 
-var _ Uploader = LocalStorageService{}
+var _ Uploader = LocalStorage{}

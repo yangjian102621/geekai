@@ -1,5 +1,7 @@
 <template>
-  <div>{{ title }}</div>
+  <div>
+    {{ title }}
+  </div>
 </template>
 
 <script setup>

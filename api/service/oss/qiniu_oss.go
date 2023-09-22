@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-type QiNiuService struct {
-	config   *types.QiNiuConfig
+type QinNiuOss struct {
+	config   *types.QiNiuOssConfig
 	token    string
 	uploader *storage.FormUploader
 	manager  *storage.BucketManager
@@ -22,7 +22,7 @@ type QiNiuService struct {
 	dir      string
 }
 
-func NewQiNiuService(appConfig *types.AppConfig) QiNiuService {
+func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 	config := &appConfig.OSS.QiNiu
 	// build storage uploader
 	zone, ok := storage.GetRegionByID(storage.RegionID(config.Zone))
@@ -36,7 +36,7 @@ func NewQiNiuService(appConfig *types.AppConfig) QiNiuService {
 	putPolicy := storage.PutPolicy{
 		Scope: config.Bucket,
 	}
-	return QiNiuService{
+	return QinNiuOss{
 		config:   config,
 		token:    putPolicy.UploadToken(mac),
 		uploader: formUploader,
@@ -46,7 +46,7 @@ func NewQiNiuService(appConfig *types.AppConfig) QiNiuService {
 	}
 }
 
-func (s QiNiuService) PutFile(ctx *gin.Context, name string) (string, error) {
+func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	// 解析表单
 	file, err := ctx.FormFile(name)
 	if err != nil {
@@ -72,7 +72,7 @@ func (s QiNiuService) PutFile(ctx *gin.Context, name string) (string, error) {
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QiNiuService) PutImg(imageURL string) (string, error) {
+func (s QinNiuOss) PutImg(imageURL string) (string, error) {
 	imageData, err := utils.DownloadImage(imageURL, s.proxyURL)
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
@@ -89,10 +89,10 @@ func (s QiNiuService) PutImg(imageURL string) (string, error) {
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QiNiuService) Delete(fileURL string) error {
+func (s QinNiuOss) Delete(fileURL string) error {
 	objectName := filepath.Base(fileURL)
 	key := fmt.Sprintf("%s/%s", s.dir, objectName)
 	return s.manager.Delete(s.config.Bucket, key)
 }
 
-var _ Uploader = QiNiuService{}
+var _ Uploader = QinNiuOss{}
