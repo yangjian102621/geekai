@@ -105,7 +105,8 @@ func (h *UserHandler) Save(c *gin.Context) {
 					types.ChatGLM: "",
 				},
 			}),
-			Calls: h.App.SysConfig.UserInitCalls,
+			Calls:    data.Calls,
+			ImgCalls: data.ImgCalls,
 		}
 		res = h.db.Create(&u)
 		_ = utils.CopyObject(u, &userVo)
