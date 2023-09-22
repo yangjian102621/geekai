@@ -40,34 +40,6 @@ type AliYunSmsConfig struct {
 	Domain       string
 }
 
-type OSSConfig struct {
-	Active string
-	Local  LocalStorageConfig
-	Minio  MinioConfig
-	QiNiu  QiNiuConfig
-}
-type MinioConfig struct {
-	Endpoint     string
-	AccessKey    string
-	AccessSecret string
-	Bucket       string
-	UseSSL       bool
-	Domain       string
-}
-
-type QiNiuConfig struct {
-	Zone         string
-	AccessKey    string
-	AccessSecret string
-	Bucket       string
-	Domain       string
-}
-
-type LocalStorageConfig struct {
-	BasePath string
-	BaseURL  string
-}
-
 type RedisConfig struct {
 	Host     string
 	Port     int
