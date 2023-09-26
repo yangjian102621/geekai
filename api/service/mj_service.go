@@ -109,18 +109,16 @@ func (s *MjService) Run() {
 		}
 		if err != nil {
 			logger.Error("绘画任务执行失败：", err)
-			if task.RetryCount > 5 {
-				// 取消并删除任务
-				s.db.Where("id = ?", task.Id).Delete(&model.MidJourneyJob{})
-				continue
+			if task.RetryCount <= 5 {
+				s.taskQueue.RPush(task)
 			}
 			task.RetryCount += 1
-			s.taskQueue.RPush(task)
-			// TODO: 执行失败通知聊天客户端
 			time.Sleep(time.Second * 3)
 			continue
 		}
 
+		// 更新任务的执行状态
+		s.db.Model(&model.MidJourneyJob{}).Where("id = ?", task.Id).UpdateColumn("started", true)
 		// 锁定任务执行通道，直到任务超时（5分钟）
 		s.redis.Set(ctx, MjRunningJobKey, utils.JsonEncode(task), time.Minute*5)
 	}
