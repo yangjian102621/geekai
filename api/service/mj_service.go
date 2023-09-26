@@ -21,41 +21,6 @@ var logger = logger2.GetLogger()
 
 const MjRunningJobKey = "MidJourney_Running_Job"
 
-type TaskType string
-
-func (t TaskType) String() string {
-	return string(t)
-}
-
-const (
-	Image     = TaskType("image")
-	Upscale   = TaskType("upscale")
-	Variation = TaskType("variation")
-)
-
-type TaskSrc string
-
-const (
-	TaskSrcChat = TaskSrc("chat")
-	TaskSrcImg  = TaskSrc("img")
-)
-
-type MjTask struct {
-	Id          int      `json:"id"`
-	SessionId   string   `json:"session_id"`
-	Src         TaskSrc  `json:"src"`
-	Type        TaskType `json:"type"`
-	UserId      int      `json:"user_id"`
-	Prompt      string   `json:"prompt,omitempty"`
-	ChatId      string   `json:"chat_id,omitempty"`
-	RoleId      int      `json:"role_id,omitempty"`
-	Icon        string   `json:"icon,omitempty"`
-	Index       int32    `json:"index,omitempty"`
-	MessageId   string   `json:"message_id,omitempty"`
-	MessageHash string   `json:"message_hash,omitempty"`
-	RetryCount  int      `json:"retry_count"`
-}
-
 type MjService struct {
 	config    types.ChatPlusExtConfig
 	client    *req.Client
@@ -78,11 +43,11 @@ func (s *MjService) Run() {
 	ctx := context.Background()
 	for {
 		_, err := s.redis.Get(ctx, MjRunningJobKey).Result()
-		if err == nil {
+		if err == nil { // 队列串行执行
 			time.Sleep(time.Second * 3)
 			continue
 		}
-		var task MjTask
+		var task types.MjTask
 		err = s.taskQueue.LPop(&task)
 		if err != nil {
 			logger.Errorf("taking task with error: %v", err)
@@ -90,17 +55,17 @@ func (s *MjService) Run() {
 		}
 		logger.Infof("Consuming Task: %+v", task)
 		switch task.Type {
-		case Image:
+		case types.TaskImage:
 			err = s.image(task.Prompt)
 			break
-		case Upscale:
+		case types.TaskUpscale:
 			err = s.upscale(MjUpscaleReq{
 				Index:       task.Index,
 				MessageId:   task.MessageId,
 				MessageHash: task.MessageHash,
 			})
 			break
-		case Variation:
+		case types.TaskVariation:
 			err = s.variation(MjVariationReq{
 				Index:       task.Index,
 				MessageId:   task.MessageId,
@@ -124,7 +89,7 @@ func (s *MjService) Run() {
 	}
 }
 
-func (s *MjService) PushTask(task MjTask) {
+func (s *MjService) PushTask(task types.MjTask) {
 	logger.Infof("add a new MidJourney Task: %+v", task)
 	s.taskQueue.RPush(task)
 }
