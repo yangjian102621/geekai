@@ -548,10 +548,17 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		if item.Progress < 100 && item.ImgURL != "" { // 正在运行中任务使用代理访问图片
-			image, err := utils.DownloadImage(item.ImgURL, h.App.Config.ProxyURL)
-			if err == nil {
-				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+		if item.Progress < 100 {
+			// 30 分钟还没完成的任务直接删除
+			if time.Now().Sub(item.CreatedAt) > time.Minute*30 {
+				h.db.Delete(&item)
+				continue
+			}
+			if item.ImgURL != "" { // 正在运行中任务使用代理访问图片
+				image, err := utils.DownloadImage(item.ImgURL, h.App.Config.ProxyURL)
+				if err == nil {
+					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+				}
 			}
 		}
 		jobs = append(jobs, job)

@@ -12,6 +12,7 @@ type MidJourneyJob struct {
 	Hash        string // message hash
 	Progress    int
 	Prompt      string
+	Started     bool
 	CreatedAt   time.Time
 }
 

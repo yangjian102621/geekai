@@ -143,6 +143,7 @@ const register = function () {
   if (enableMsg.value && formData.value.code === '') {
     return ElMessage.error('请输入短信验证码');
   }
+  formData.value.code = parseInt(formData.value.code)
   httpPost('/api/user/register', formData.value).then(() => {
     ElMessage.success({"message": "注册成功，即将跳转到登录页...", onClose: () => router.push("/login")})
   }).catch((e) => {
