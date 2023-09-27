@@ -26,7 +26,6 @@ func NewDefaultConfig() *types.AppConfig {
 			MaxAge:    86400,
 		},
 		ApiConfig: types.ChatPlusApiConfig{},
-		ExtConfig: types.ChatPlusExtConfig{Token: utils.RandString(32)},
 		OSS: types.OSSConfig{
 			Active: "local",
 			Local: types.LocalStorageConfig{
@@ -34,6 +33,9 @@ func NewDefaultConfig() *types.AppConfig {
 				BasePath: "./static/upload",
 			},
 		},
+		MjConfig:  types.MidJourneyConfig{Enabled: false},
+		SdConfig:  types.StableDiffusionConfig{Enabled: false},
+		WeChatBot: false,
 	}
 }
 

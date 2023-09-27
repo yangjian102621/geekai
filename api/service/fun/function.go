@@ -1,9 +1,9 @@
-package function
+package fun
 
 import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
-	"chatplus/service"
+	"chatplus/service/mj"
 )
 
 type Function interface {
@@ -29,7 +29,7 @@ type dataItem struct {
 	Remark string `json:"remark"`
 }
 
-func NewFunctions(config *types.AppConfig, mjService *service.MjService) map[string]Function {
+func NewFunctions(config *types.AppConfig, mjService *mj.Service) map[string]Function {
 	return map[string]Function{
 		types.FuncZaoBao:     NewZaoBao(config.ApiConfig),
 		types.FuncWeibo:      NewWeiboHot(config.ApiConfig),

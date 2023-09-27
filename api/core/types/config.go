@@ -16,10 +16,11 @@ type AppConfig struct {
 	Redis         RedisConfig       // redis 连接信息
 	ApiConfig     ChatPlusApiConfig // ChatPlus API authorization configs
 	AesEncryptKey string
-	SmsConfig     AliYunSmsConfig   // AliYun send message service config
-	ExtConfig     ChatPlusExtConfig // ChatPlus extensions callback api config
-
-	OSS OSSConfig // OSS config
+	SmsConfig     AliYunSmsConfig       // AliYun send message service config
+	OSS           OSSConfig             // OSS config
+	MjConfig      MidJourneyConfig      // mj 绘画配置
+	WeChatBot     bool                  // 是否启用微信机器人
+	SdConfig      StableDiffusionConfig // sd 绘画配置
 }
 
 type ChatPlusApiConfig struct {
@@ -28,9 +29,22 @@ type ChatPlusApiConfig struct {
 	Token  string
 }
 
-type ChatPlusExtConfig struct {
-	ApiURL string
-	Token  string
+type MidJourneyConfig struct {
+	Enabled   bool
+	UserToken string
+	BotToken  string
+	GuildId   string // Server ID
+	ChanelId  string // Chanel ID
+}
+
+type WeChatConfig struct {
+	Enabled bool
+}
+
+type StableDiffusionConfig struct {
+	Enabled bool
+	ApiURL  string
+	ApiKey  string
 }
 
 type AliYunSmsConfig struct {

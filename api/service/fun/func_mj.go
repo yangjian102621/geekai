@@ -1,7 +1,8 @@
-package function
+package fun
 
 import (
-	"chatplus/service"
+	"chatplus/core/types"
+	"chatplus/service/mj"
 	"chatplus/utils"
 )
 
@@ -9,10 +10,10 @@ import (
 
 type FuncMidJourney struct {
 	name    string
-	service *service.MjService
+	service *mj.Service
 }
 
-func NewMidJourneyFunc(mjService *service.MjService) FuncMidJourney {
+func NewMidJourneyFunc(mjService *mj.Service) FuncMidJourney {
 	return FuncMidJourney{
 		name:    "MidJourney AI 绘画",
 		service: mjService}
@@ -21,10 +22,10 @@ func NewMidJourneyFunc(mjService *service.MjService) FuncMidJourney {
 func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
 	logger.Infof("MJ 绘画参数：%+v", params)
 	prompt := utils.InterfaceToString(params["prompt"])
-	f.service.PushTask(service.MjTask{
+	f.service.PushTask(types.MjTask{
 		SessionId: utils.InterfaceToString(params["session_id"]),
-		Src:       service.TaskSrcChat,
-		Type:      service.Image,
+		Src:       types.TaskSrcChat,
+		Type:      types.TaskImage,
 		Prompt:    prompt,
 		UserId:    utils.IntValue(utils.InterfaceToString(params["user_id"]), 0),
 		RoleId:    utils.IntValue(utils.InterfaceToString(params["role_id"]), 0),

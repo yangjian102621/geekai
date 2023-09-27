@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service/mj"
 	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -27,13 +28,14 @@ const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
 
 type ChatHandler struct {
 	BaseHandler
-	db      *gorm.DB
-	leveldb *store.LevelDB
-	redis   *redis.Client
+	db        *gorm.DB
+	leveldb   *store.LevelDB
+	redis     *redis.Client
+	mjService *mj.Service
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, redis *redis.Client) *ChatHandler {
-	handler := ChatHandler{db: db, leveldb: levelDB, redis: redis}
+func NewChatHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, redis *redis.Client, service *mj.Service) *ChatHandler {
+	handler := ChatHandler{db: db, leveldb: levelDB, redis: redis, mjService: service}
 	handler.App = app
 	return &handler
 }
