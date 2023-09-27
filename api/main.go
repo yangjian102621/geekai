@@ -7,8 +7,10 @@ import (
 	"chatplus/handler/admin"
 	logger2 "chatplus/logger"
 	"chatplus/service"
-	"chatplus/service/function"
+	"chatplus/service/fun"
+	"chatplus/service/mj"
 	"chatplus/service/oss"
+	"chatplus/service/wx"
 	"chatplus/store"
 	"context"
 	"embed"
@@ -107,7 +109,7 @@ func main() {
 		}),
 
 		// 创建函数
-		fx.Provide(function.NewFunctions),
+		fx.Provide(fun.NewFunctions),
 
 		// 创建控制器
 		fx.Provide(handler.NewChatRoleHandler),
@@ -135,11 +137,34 @@ func main() {
 			return service.NewCaptchaService(config.ApiConfig)
 		}),
 		fx.Provide(oss.NewUploaderManager),
-		fx.Provide(service.NewMjService),
-		fx.Invoke(func(mjService *service.MjService) {
+		fx.Provide(mj.NewService),
+		fx.Invoke(func(mjService *mj.Service) {
 			go func() {
 				mjService.Run()
 			}()
+		}),
+
+		// 微信机器人服务
+		fx.Provide(wx.NewWeChatBot),
+		fx.Invoke(func(config *types.AppConfig, bot *wx.Bot) {
+			if config.WeChatBot {
+				err := bot.Run()
+				if err != nil {
+					logger.Error("微信登录失败：", err)
+				}
+			}
+		}),
+
+		// MidJourney 机器人
+		fx.Provide(mj.NewBot),
+		fx.Provide(mj.NewClient),
+		fx.Invoke(func(config *types.AppConfig, bot *mj.Bot) {
+			if config.MjConfig.Enabled {
+				err := bot.Run()
+				if err != nil {
+					log.Fatal("MidJourney 服务启动失败：", err)
+				}
+			}
 		}),
 
 		// 注册路由
@@ -185,12 +210,10 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
 			group := s.Engine.Group("/api/reward/")
-			group.POST("notify", h.Notify)
 			group.POST("verify", h.Verify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
 			group := s.Engine.Group("/api/mj/")
-			group.POST("notify", h.Notify)
 			group.POST("image", h.Image)
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)

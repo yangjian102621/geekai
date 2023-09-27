@@ -33,14 +33,24 @@ type MjTask struct {
 	ChatId      string   `json:"chat_id,omitempty"`
 	RoleId      int      `json:"role_id,omitempty"`
 	Icon        string   `json:"icon,omitempty"`
-	Index       int32    `json:"index,omitempty"`
+	Index       int      `json:"index,omitempty"`
 	MessageId   string   `json:"message_id,omitempty"`
 	MessageHash string   `json:"message_hash,omitempty"`
 	RetryCount  int      `json:"retry_count"`
 }
 
-// SdParams stable diffusion 绘画参数
-type SdParams struct {
+type SdTask struct {
+	Id         int          `json:"id"`
+	SessionId  string       `json:"session_id"`
+	Src        TaskSrc      `json:"src"`
+	Type       TaskType     `json:"type"`
+	UserId     int          `json:"user_id"`
+	Prompt     string       `json:"prompt,omitempty"`
+	Params     SdTaskParams `json:"params"`
+	RetryCount int          `json:"retry_count"`
+}
+
+type SdTaskParams struct {
 	TaskId         string  `json:"task_id"`
 	Prompt         string  `json:"prompt"`
 	NegativePrompt string  `json:"negative_prompt"`
@@ -56,15 +66,4 @@ type SdParams struct {
 	HdScale        int     `json:"hd_scale"`
 	HdScaleAlg     string  `json:"hd_scale_alg"`
 	HdSampleNum    int     `json:"hd_sample_num"`
-}
-
-type SdTask struct {
-	Id         int            `json:"id"`
-	SessionId  string         `json:"session_id"`
-	Src        types.TaskSrc  `json:"src"`
-	Type       types.TaskType `json:"type"`
-	UserId     int            `json:"user_id"`
-	Prompt     string         `json:"prompt,omitempty"`
-	Params     types.SdParams `json:"params"`
-	RetryCount int            `json:"retry_count"`
 }

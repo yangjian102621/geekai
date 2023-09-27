@@ -5,6 +5,9 @@ go 1.19
 require (
 	github.com/BurntSushi/toml v1.1.0
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.405
+	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
+	github.com/bwmarrin/discordgo v0.27.1
+	github.com/eatmoreapple/openwechat v1.2.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.0.0
@@ -14,6 +17,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.62
 	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
 	github.com/qiniu/go-sdk/v7 v7.17.1
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -21,7 +25,6 @@ require (
 )
 
 require (
-	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

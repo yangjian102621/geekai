@@ -1,4 +1,4 @@
-package function
+package fun
 
 import (
 	"chatplus/core/types"
@@ -9,27 +9,27 @@ import (
 	"time"
 )
 
-// 每日早报函数实现
+// 今日头条函数实现
 
-type FuncZaoBao struct {
+type FuncHeadlines struct {
 	name   string
 	config types.ChatPlusApiConfig
 	client *req.Client
 }
 
-func NewZaoBao(config types.ChatPlusApiConfig) FuncZaoBao {
-	return FuncZaoBao{
-		name:   "每日早报",
+func NewHeadLines(config types.ChatPlusApiConfig) FuncHeadlines {
+	return FuncHeadlines{
+		name:   "今日头条",
 		config: config,
 		client: req.C().SetTimeout(10 * time.Second)}
 }
 
-func (f FuncZaoBao) Invoke(map[string]interface{}) (string, error) {
+func (f FuncHeadlines) Invoke(map[string]interface{}) (string, error) {
 	if f.config.Token == "" {
 		return "", errors.New("无效的 API Token")
 	}
 
-	url := fmt.Sprintf("%s/api/zaobao/fetch", f.config.ApiURL)
+	url := fmt.Sprintf("%s/api/headline/fetch", f.config.ApiURL)
 	var res resVo
 	r, err := f.client.R().
 		SetHeader("AppId", f.config.AppId).
@@ -44,16 +44,15 @@ func (f FuncZaoBao) Invoke(map[string]interface{}) (string, error) {
 	}
 
 	builder := make([]string, 0)
-	builder = append(builder, fmt.Sprintf("**%s 早报：**", res.Data.UpdatedAt))
-	for _, v := range res.Data.Items {
-		builder = append(builder, v.Title)
+	builder = append(builder, fmt.Sprintf("**%s**，最新更新：%s", res.Data.Title, res.Data.UpdatedAt))
+	for i, v := range res.Data.Items {
+		builder = append(builder, fmt.Sprintf("%d、 [%s](%s) [%s]", i+1, v.Title, v.Url, v.Remark))
 	}
-	builder = append(builder, fmt.Sprintf("%s", res.Data.Title))
 	return strings.Join(builder, "\n\n"), nil
 }
 
-func (f FuncZaoBao) Name() string {
+func (f FuncHeadlines) Name() string {
 	return f.name
 }
 
-var _ Function = &FuncZaoBao{}
+var _ Function = &FuncHeadlines{}

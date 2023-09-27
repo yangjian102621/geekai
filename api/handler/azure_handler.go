@@ -150,7 +150,7 @@ func (h *ChatHandler) sendAzureMessage(
 					content := data
 					if functionName == types.FuncMidJourney {
 						content = fmt.Sprintf("绘画提示词：%s 已推送任务到 MidJourney 机器人，请耐心等待任务执行...", data)
-						h.App.MjTaskClients.Put(session.SessionId, ws)
+						h.mjService.ChatClients.Put(session.SessionId, ws)
 						// update user's img_calls
 						h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 					}

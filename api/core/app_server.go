@@ -2,7 +2,7 @@ package core
 
 import (
 	"chatplus/core/types"
-	"chatplus/service/function"
+	"chatplus/service/fun"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
@@ -33,11 +33,10 @@ type AppServer struct {
 	ChatSession   *types.LMap[string, *types.ChatSession] //map[sessionId]UserId
 	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
-	Functions     map[string]function.Function
-	MjTaskClients *types.LMap[string, *types.WsClient]
+	Functions     map[string]fun.Function
 }
 
-func NewServer(appConfig *types.AppConfig, functions map[string]function.Function) *AppServer {
+func NewServer(appConfig *types.AppConfig, functions map[string]fun.Function) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
@@ -48,7 +47,6 @@ func NewServer(appConfig *types.AppConfig, functions map[string]function.Functio
 		ChatSession:   types.NewLMap[string, *types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
-		MjTaskClients: types.NewLMap[string, *types.WsClient](),
 		Functions:     functions,
 	}
 }
