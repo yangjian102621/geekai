@@ -4,7 +4,6 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/service/mj"
-	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -17,33 +16,25 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
 type MidJourneyHandler struct {
 	BaseHandler
-	redis           *redis.Client
-	db              *gorm.DB
-	mjService       *mj.Service
-	uploaderManager *oss.UploaderManager
-	lock            sync.Mutex
-	clients         *types.LMap[string, *types.WsClient]
+	redis     *redis.Client
+	db        *gorm.DB
+	mjService *mj.Service
 }
 
 func NewMidJourneyHandler(
 	app *core.AppServer,
 	client *redis.Client,
 	db *gorm.DB,
-	manager *oss.UploaderManager,
 	mjService *mj.Service) *MidJourneyHandler {
 	h := MidJourneyHandler{
-		redis:           client,
-		db:              db,
-		uploaderManager: manager,
-		lock:            sync.Mutex{},
-		mjService:       mjService,
-		clients:         types.NewLMap[string, *types.WsClient](),
+		redis:     client,
+		db:        db,
+		mjService: mjService,
 	}
 	h.App = app
 	return &h
@@ -59,9 +50,7 @@ func (h *MidJourneyHandler) Client(c *gin.Context) {
 
 	sessionId := c.Query("session_id")
 	client := types.NewWsClient(ws)
-	// 删除旧的连接
-	h.clients.Delete(sessionId)
-	h.clients.Put(sessionId, client)
+	h.mjService.Clients.Put(sessionId, client)
 	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
 }
 
@@ -156,7 +145,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	err := utils.CopyObject(job, &jobVo)
 	if err == nil {
 		// 推送任务到前端
-		client := h.clients.Get(data.SessionId)
+		client := h.mjService.Clients.Get(data.SessionId)
 		if client != nil {
 			utils.ReplyChunkMessage(client, jobVo)
 		}
@@ -212,7 +201,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		err := utils.CopyObject(job, &jobVo)
 		if err == nil {
 			// 推送任务到前端
-			client := h.clients.Get(data.SessionId)
+			client := h.mjService.Clients.Get(data.SessionId)
 			if client != nil {
 				utils.ReplyChunkMessage(client, jobVo)
 			}
@@ -283,7 +272,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		err := utils.CopyObject(job, &jobVo)
 		if err == nil {
 			// 推送任务到前端
-			client := h.clients.Get(data.SessionId)
+			client := h.mjService.Clients.Get(data.SessionId)
 			if client != nil {
 				utils.ReplyChunkMessage(client, jobVo)
 			}

@@ -63,7 +63,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
-	if h.App.SysConfig.EnabledMsgService {
+	if h.App.SysConfig.EnabledMsg {
 		var code int
 		err := h.leveldb.Get(key, &code)
 		if err != nil || code != data.Code {
@@ -113,7 +113,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.EnabledMsgService {
+	if h.App.SysConfig.EnabledMsg {
 		_ = h.leveldb.Delete(key) // 注册成功，删除短信验证码
 	}
 	resp.SUCCESS(c, user)

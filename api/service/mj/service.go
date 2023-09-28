@@ -20,7 +20,7 @@ import (
 const RunningJobKey = "MidJourney_Running_Job"
 
 type Service struct {
-	client        *Client
+	client        *Client // MJ 客户端
 	taskQueue     *store.RedisQueue
 	redis         *redis.Client
 	db            *gorm.DB
@@ -128,7 +128,7 @@ func (s *Service) Notify(data CBReq) {
 
 		// 任务完成，将最终的图片下载下来
 		if data.Progress == 100 {
-			imgURL, err := s.uploadManager.GetUploadHandler().PutImg(data.Image.URL)
+			imgURL, err := s.uploadManager.GetUploadHandler().PutImg(data.Image.URL, true)
 			if err != nil {
 				logger.Error("error with download img: ", err.Error())
 				return
@@ -169,7 +169,7 @@ func (s *Service) Notify(data CBReq) {
 				utils.ReplyMessage(wsClient, content)
 			}
 			// download image
-			imgURL, err := s.uploadManager.GetUploadHandler().PutImg(data.Image.URL)
+			imgURL, err := s.uploadManager.GetUploadHandler().PutImg(data.Image.URL, true)
 			if err != nil {
 				logger.Error("error with download image: ", err)
 				if wsClient != nil && data.ReferenceId != "" {

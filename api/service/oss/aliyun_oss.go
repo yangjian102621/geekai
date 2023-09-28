@@ -63,8 +63,14 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	return fmt.Sprintf("https://%s.%s/%s", s.config.Bucket, s.config.Endpoint, objectKey), nil
 }
 
-func (s AliYunOss) PutImg(imageURL string) (string, error) {
-	imageData, err := utils.DownloadImage(imageURL, s.proxyURL)
+func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
+	var imageData []byte
+	var err error
+	if useProxy {
+		imageData, err = utils.DownloadImage(imageURL, s.proxyURL)
+	} else {
+		imageData, err = utils.DownloadImage(imageURL, "")
+	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}

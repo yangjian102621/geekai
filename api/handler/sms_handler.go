@@ -66,5 +66,5 @@ type statusVo struct {
 
 // Status check if the message service is enabled
 func (h *SmsHandler) Status(c *gin.Context) {
-	resp.SUCCESS(c, statusVo{EnabledMsgService: h.App.SysConfig.EnabledMsgService, EnabledRegister: h.App.SysConfig.EnabledRegister})
+	resp.SUCCESS(c, statusVo{EnabledMsgService: h.App.SysConfig.EnabledMsg, EnabledRegister: h.App.SysConfig.EnabledRegister})
 }

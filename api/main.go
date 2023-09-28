@@ -10,6 +10,7 @@ import (
 	"chatplus/service/fun"
 	"chatplus/service/mj"
 	"chatplus/service/oss"
+	"chatplus/service/sd"
 	"chatplus/service/wx"
 	"chatplus/store"
 	"context"
@@ -121,6 +122,7 @@ func main() {
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
+		fx.Provide(handler.NewSdJobHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -167,6 +169,13 @@ func main() {
 			}
 		}),
 
+		// Stable Diffusion 机器人
+		fx.Provide(sd.NewService),
+		fx.Invoke(func(service *sd.Service) {
+			go func() {
+				service.Run()
+			}()
+		}),
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
 			group := s.Engine.Group("/api/role/")
@@ -217,6 +226,12 @@ func main() {
 			group.POST("image", h.Image)
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
+			group.GET("jobs", h.JobList)
+			group.Any("client", h.Client)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
+			group := s.Engine.Group("/api/sd")
+			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.Any("client", h.Client)
 		}),

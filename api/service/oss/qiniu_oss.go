@@ -72,8 +72,14 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QinNiuOss) PutImg(imageURL string) (string, error) {
-	imageData, err := utils.DownloadImage(imageURL, s.proxyURL)
+func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
+	var imageData []byte
+	var err error
+	if useProxy {
+		imageData, err = utils.DownloadImage(imageURL, s.proxyURL)
+	} else {
+		imageData, err = utils.DownloadImage(imageURL, "")
+	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}

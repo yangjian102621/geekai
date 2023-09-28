@@ -18,8 +18,8 @@
         <el-form-item label="开放注册服务" prop="enabled_register">
           <el-switch v-model="system['enabled_register']"/>
         </el-form-item>
-        <el-form-item label="短信验证服务" prop="enabled_msg_service">
-          <el-switch v-model="system['enabled_msg_service']"/>
+        <el-form-item label="短信验证服务" prop="enabled_msg">
+          <el-switch v-model="system['enabled_msg']"/>
         </el-form-item>
         <el-form-item label="开放AI绘画" prop="enabled_draw">
           <el-switch v-model="system['enabled_draw']"/>
