@@ -31,8 +31,14 @@ func NewMiniOss(appConfig *types.AppConfig) (MiniOss, error) {
 	return MiniOss{config: config, client: minioClient, proxyURL: appConfig.ProxyURL}, nil
 }
 
-func (s MiniOss) PutImg(imageURL string) (string, error) {
-	imageData, err := utils.DownloadImage(imageURL, s.proxyURL)
+func (s MiniOss) PutImg(imageURL string, useProxy bool) (string, error) {
+	var imageData []byte
+	var err error
+	if useProxy {
+		imageData, err = utils.DownloadImage(imageURL, s.proxyURL)
+	} else {
+		imageData, err = utils.DownloadImage(imageURL, "")
+	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}

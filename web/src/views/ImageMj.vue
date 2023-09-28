@@ -230,13 +230,13 @@
                       placement="top-start"
                       :title="getTaskType(scope.item.type)"
                       :width="240"
-                      trigger="click"
+                      trigger="hover"
                   >
                     <template #reference>
                       <div v-if="scope.item.progress > 0" class="job-item-inner">
-                        <el-image :src="scope.item.img_url"
+                        <el-image :src="scope.item['img_url']"
                                   :zoom-rate="1.2"
-                                  :preview-src-list="[scope.item.img_url]"
+                                  :preview-src-list="[scope.item['img_url']]"
                                   fit="cover"
                                   :initial-index="0" loading="lazy">
                           <template #placeholder>
@@ -289,7 +289,7 @@
               <template #default="scope">
                 <div class="job-item">
                   <el-image
-                      :src="scope.item.type === 'upscale'?scope.item.img_url+'?imageView2/1/w/240/h/300/q/75':scope.item.img_url+'?imageView2/1/w/240/h/240/q/75'"
+                      :src="scope.item.type === 'upscale'?scope.item['img_url']+'?imageView2/1/w/240/h/300/q/75':scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
                       :class="scope.item.type === 'upscale'?'upscale':''"
                       :zoom-rate="1.2"
                       :preview-src-list="previewImgList"
@@ -359,7 +359,6 @@
           </div> <!-- end finish job list-->
         </div>
 
-        <el-backtop :right="100" :bottom="100"/>
       </div><!-- end task list box -->
     </div>
 

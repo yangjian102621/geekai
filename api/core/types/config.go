@@ -101,13 +101,13 @@ type ModelAPIConfig struct {
 }
 
 type SystemConfig struct {
-	Title             string   `json:"title"`
-	AdminTitle        string   `json:"admin_title"`
-	Models            []string `json:"models"`
-	UserInitCalls     int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
-	InitImgCalls      int      `json:"init_img_calls"`
-	VipMonthCalls     int      `json:"vip_month_calls"` // 会员每个赠送的调用次数
-	EnabledRegister   bool     `json:"enabled_register"`
-	EnabledMsgService bool     `json:"enabled_msg_service"`
-	EnabledDraw       bool     `json:"enabled_draw"` // 启动 AI 绘画功能
+	Title           string   `json:"title"`
+	AdminTitle      string   `json:"admin_title"`
+	Models          []string `json:"models"`
+	UserInitCalls   int      `json:"user_init_calls"` // 新用户注册默认总送多少次调用
+	InitImgCalls    int      `json:"init_img_calls"`
+	VipMonthCalls   int      `json:"vip_month_calls"` // 会员每个赠送的调用次数
+	EnabledRegister bool     `json:"enabled_register"`
+	EnabledMsg      bool     `json:"enabled_msg"`  // 启用短信验证码服务
+	EnabledDraw     bool     `json:"enabled_draw"` // 启动 AI 绘画功能
 }
