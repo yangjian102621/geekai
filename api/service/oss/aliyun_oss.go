@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gin-gonic/gin"
+	"net/url"
 	"path/filepath"
 	"time"
 )
@@ -74,7 +75,11 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}
-	fileExt := filepath.Ext(filepath.Base(imageURL))
+	parse, err := url.Parse(imageURL)
+	if err != nil {
+		return "", fmt.Errorf("error with parse image URL: %v", err)
+	}
+	fileExt := filepath.Ext(parse.Path)
 	objectKey := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	// 上传文件字节数据
 	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
