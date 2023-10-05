@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
@@ -42,7 +43,11 @@ func (s MiniOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}
-	fileExt := filepath.Ext(filepath.Base(imageURL))
+	parse, err := url.Parse(imageURL)
+	if err != nil {
+		return "", fmt.Errorf("error with parse image URL: %v", err)
+	}
+	fileExt := filepath.Ext(parse.Path)
 	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(
 		context.Background(),
