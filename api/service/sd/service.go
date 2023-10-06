@@ -114,7 +114,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 			TaskId:      params.TaskId,
 			Data:        data,
 			EventData:   nil,
-			FnIndex:     405,
+			FnIndex:     232,
 			SessionHash: "ycaxgzm9ah",
 		}, s.httpClient)
 	}()
@@ -233,6 +233,8 @@ func (s *Service) runTask(taskInfo TaskInfo, client *req.Client) {
 }
 
 func (s *Service) callback(data CBReq) {
+	// 释放任务锁
+	s.redis.Del(context.Background(), RunningJobKey)
 	client := s.Clients.Get(data.SessionId)
 	if data.Success { // 任务成功
 		var job model.SdJob
@@ -262,6 +264,7 @@ func (s *Service) callback(data CBReq) {
 			job.ImgURL = imageURL
 		}
 
+		job.Params = utils.JsonEncode(params)
 		res = s.db.Updates(&job)
 		if res.Error != nil {
 			logger.Error("error with update job: ", res.Error)
@@ -276,7 +279,6 @@ func (s *Service) callback(data CBReq) {
 		}
 
 		if data.Progress < 100 {
-			logger.Infof(data.ImageData)
 			jobVo.ImgURL = data.ImageData
 		}
 

@@ -87,31 +87,6 @@
       }
     }
 
-    /* 修改滚动条的颜色 */
-
-    ::-webkit-scrollbar {
-      width: 10px; /* 滚动条宽度 */
-    }
-
-    /* 修改滚动条轨道的背景颜色 */
-
-    ::-webkit-scrollbar-track {
-      background-color: #282C34;
-    }
-
-    /* 修改滚动条的滑块颜色 */
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #444444;
-      border-radius 10px
-    }
-
-    /* 修改滚动条的滑块的悬停颜色 */
-
-    ::-webkit-scrollbar-thumb:hover {
-      background-color: #666666;
-    }
-
     .task-list-box {
       width 100%
       padding 10px
@@ -243,13 +218,106 @@
     }
   }
 
+  .el-overlay-dialog {
+    .el-dialog {
+      background-color #1a1b1e
+
+      .el-dialog__header {
+        .el-dialog__title {
+          color #F5F5F5
+        }
+      }
+
+      .el-dialog__body {
+        padding 0 0 0 15px !important
+        display flex
+        height 100%
+
+        .img-container {
+          display flex
+          justify-content center
+          width 100%
+        }
+
+        .task-info {
+          max-width 320px
+          min-width 320px
+          background-color #25262b
+          padding 10px 15px
+
+          .info-line {
+            width 100%
+
+            .prompt {
+              background-color #35363b
+              padding 10px
+              color #999999
+              overflow auto
+              max-height 100px
+              min-height 50px
+            }
+
+            .wrapper {
+              margin-top 10px
+              display flex
+
+              label {
+                display flex
+                width 100px
+                color #a5a5a5
+              }
+
+              .item-value {
+                display flex
+                width 100%
+                background-color #35363b
+                padding 2px 5px
+                border-radius 5px
+                color #F5F5F5
+              }
+            }
+
+          }
+        }
+      }
+    }
+  }
+
+  .mj-list-item-prompt {
+    .el-icon {
+      margin-left 10px
+      cursor pointer
+      position relative
+      top 2px
+    }
+  }
+
 }
 
-.mj-list-item-prompt {
-  .el-icon {
-    margin-left 10px
-    cursor pointer
-    position relative
-    top 2px
+.custom-scroll {
+  /* 修改滚动条的颜色 */
+
+  ::-webkit-scrollbar {
+    width: 10px; /* 滚动条宽度 */
+  }
+
+  /* 修改滚动条轨道的背景颜色 */
+
+  ::-webkit-scrollbar-track {
+    background-color: #282C34;
+  }
+
+  /* 修改滚动条的滑块颜色 */
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #444444;
+    border-radius 10px
+  }
+
+  /* 修改滚动条的滑块的悬停颜色 */
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #666666;
   }
 }
+
