@@ -5,13 +5,13 @@ import logger2 "chatplus/logger"
 var logger = logger2.GetLogger()
 
 type TaskInfo struct {
-	SessionId   string
-	JobId       int
-	TaskId      string
-	Data        []interface{}
-	EventData   interface{}
-	FnIndex     int
-	SessionHash string
+	SessionId   string        `json:"session_id"`
+	JobId       int           `json:"job_id"`
+	TaskId      string        `json:"task_id"`
+	Data        []interface{} `json:"data"`
+	EventData   interface{}   `json:"event_data"`
+	FnIndex     int           `json:"fn_index"`
+	SessionHash string        `json:"session_hash"`
 }
 
 type CBReq struct {
@@ -43,97 +43,3 @@ var ParamKeys = map[string]int{
 	"hd_scale_alg":    22, // 高清修复放大算法
 	"hd_sample_num":   23, // 高清修复采样次数
 }
-
-const Text2ImgParamTemplate = `[
-  "task(6sm0b3j17tag2gd)",
-  "A beautiful  Chinese girl wearing a cheongsam walks on the bluestone street",
-  "",
-  [],
-  50,
-  "Euler a",
-  false,
-  false,
-  1,
-  1,
-  15,
-  null,
-  -1,
-  0,
-  0,
-  0,
-  false,
-  768,
-  512,
-  false,
-  0.7,
-  2,
-  "ESRGAN_4x",
-  10,
-  0,
-  0,
-  "Use same sampler",
-  "",
-  "",
-  [],
-  "None",
-  null,
-  false,
-  false,
-  "positive",
-  "comma",
-  0,
-  false,
-  false,
-  "",
-  "Seed",
-  "",
-  [],
-  "Nothing",
-  "",
-  [],
-  "Nothing",
-  "",
-  [],
-  true,
-  false,
-  false,
-  false,
-  0,
-  "Not set",
-  true,
-  true,
-  "",
-  "",
-  "",
-  "",
-  "",
-  1.3,
-  "Not set",
-  "Not set",
-  1.3,
-  "Not set",
-  1.3,
-  "Not set",
-  1.3,
-  1.3,
-  "Not set",
-  1.3,
-  "Not set",
-  1.3,
-  "Not set",
-  1.3,
-  "Not set",
-  1.3,
-  "Not set",
-  1.3,
-  "Not set",
-  false,
-  "None",
-  null,
-  false,
-  50,
-  [],
-  "",
-  "",
-  ""
-]`

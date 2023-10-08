@@ -34,7 +34,7 @@ func NewDefaultConfig() *types.AppConfig {
 			},
 		},
 		MjConfig:  types.MidJourneyConfig{Enabled: false},
-		SdConfig:  types.StableDiffusionConfig{Enabled: false},
+		SdConfig:  types.StableDiffusionConfig{Enabled: false, Txt2ImgJsonPath: "res/text2img.json"},
 		WeChatBot: false,
 	}
 }

@@ -358,6 +358,7 @@ onMounted(() => {
 
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
+      rewardImg.value = res.data.reward_img
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })

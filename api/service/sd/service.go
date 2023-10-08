@@ -8,11 +8,13 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
 	"io"
+	"os"
 	"strconv"
 	"time"
 )
@@ -85,11 +87,18 @@ func (s *Service) PushTask(task types.SdTask) {
 
 // Txt2Img 文生图 API
 func (s *Service) Txt2Img(task types.SdTask) error {
-	var data []interface{}
-	err := utils.JsonDecode(Text2ImgParamTemplate, &data)
+	var taskInfo TaskInfo
+	bytes, err := os.ReadFile(s.config.Txt2ImgJsonPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("error with load text2img json template file: %s", err.Error())
 	}
+
+	err = json.Unmarshal(bytes, &taskInfo)
+	if err != nil {
+		return fmt.Errorf("error with decode json params: %s", err.Error())
+	}
+
+	data := taskInfo.Data
 	params := task.Params
 	data[ParamKeys["task_id"]] = params.TaskId
 	data[ParamKeys["prompt"]] = params.Prompt
@@ -107,16 +116,12 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	data[ParamKeys["hd_scale_alg"]] = params.HdScaleAlg
 	data[ParamKeys["hd_sample_num"]] = params.HdSteps
 
+	taskInfo.SessionId = task.SessionId
+	taskInfo.TaskId = params.TaskId
+	taskInfo.Data = data
+	taskInfo.JobId = task.Id
 	go func() {
-		s.runTask(TaskInfo{
-			SessionId:   task.SessionId,
-			JobId:       task.Id,
-			TaskId:      params.TaskId,
-			Data:        data,
-			EventData:   nil,
-			FnIndex:     232,
-			SessionHash: "ycaxgzm9ah",
-		}, s.httpClient)
+		s.runTask(taskInfo, s.httpClient)
 	}()
 	return nil
 }
@@ -177,9 +182,7 @@ func (s *Service) runTask(taskInfo TaskInfo, client *req.Client) {
 			return
 		}
 
-		//for k, v := range info {
-		//	fmt.Println(k, " => ", v)
-		//}
+		// 获取真实的 seed 值
 		cbReq.ImageName = images[0].Name
 		seed, _ := strconv.ParseInt(utils.InterfaceToString(info["seed"]), 10, 64)
 		cbReq.Seed = seed
@@ -278,7 +281,7 @@ func (s *Service) callback(data CBReq) {
 			return
 		}
 
-		if data.Progress < 100 {
+		if data.Progress < 100 && data.ImageData != "" {
 			jobVo.ImgURL = data.ImageData
 		}
 
@@ -295,7 +298,7 @@ func (s *Service) callback(data CBReq) {
 			utils.ReplyChunkMessage(client, vo.SdJob{
 				Id:       uint(data.JobId),
 				Progress: -1,
-				Prompt:   fmt.Sprintf("任务[%s]执行失败，已删除！", data.TaskId),
+				TaskId:   data.TaskId,
 			})
 		}
 	}
