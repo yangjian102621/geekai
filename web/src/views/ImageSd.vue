@@ -241,7 +241,7 @@
             </div>
 
             <div class="param-line pt">
-              <span>图片比例：</span>
+              <span>反向提示词：</span>
               <el-tooltip
                   effect="light"
                   content="不希望出现的元素，下面给了默认的起手式"
@@ -486,12 +486,13 @@
 import {onMounted, ref} from "vue"
 import {DocumentCopy, InfoFilled, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId, getUserToken} from "@/store/session";
+import {removeArrayItem} from "@/utils/libs";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -569,6 +570,14 @@ const connect = () => {
             finishedJobs.value.unshift(data)
           }
           previewImgList.value.unshift(data["img_url"])
+        } else if (data.progress === -1) { // 任务执行失败
+          ElNotification({
+            title: '任务执行失败',
+            message: "任务ID：" + data['task_id'],
+            type: 'error',
+          })
+          runningJobs.value = removeArrayItem(runningJobs.value, data, (v1, v2) => v1.id === v2.id)
+
         } else { // 启动新的任务
           for (let i = 0; i < runningJobs.value.length; i++) {
             if (runningJobs.value[i].id === data.id) {

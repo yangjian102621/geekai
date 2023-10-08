@@ -24,6 +24,21 @@
         <el-form-item label="开放AI绘画" prop="enabled_draw">
           <el-switch v-model="system['enabled_draw']"/>
         </el-form-item>
+        <el-form-item label="收款二维码" prop="reward_img">
+          <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
+            <template #append>
+              <el-upload
+                  :auto-upload="true"
+                  :show-file-list="false"
+                  :http-request="uploadRewardImg"
+              >
+                <el-icon class="uploader-icon">
+                  <UploadFilled/>
+                </el-icon>
+              </el-upload>
+            </template>
+          </el-input>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save('system')">保存</el-button>
         </el-form-item>
@@ -93,7 +108,9 @@
 <script setup>
 import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
+import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
+import {UploadFilled} from "@element-plus/icons-vue";
 
 const system = ref({models: []})
 const chat = ref({
@@ -169,8 +186,29 @@ const save = function (key) {
       }
     })
   }
-
 }
+
+// 图片上传
+const uploadRewardImg = (file) => {
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/upload', formData).then((res) => {
+        system.value['reward_img'] = res.data
+        ElMessage.success('上传成功')
+      }).catch((e) => {
+        ElMessage.error('上传失败:' + e.message)
+      })
+    },
+    error(err) {
+      console.log(err.message);
+    },
+  });
+};
 
 </script>
 
@@ -194,6 +232,12 @@ const save = function (key) {
           color #c1c1c1
           font-size 12px;
           line-height 1.5;
+        }
+
+        .uploader-icon {
+          font-size 24px
+          position relative
+          top 3px
         }
       }
     }

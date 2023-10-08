@@ -42,9 +42,10 @@ type WeChatConfig struct {
 }
 
 type StableDiffusionConfig struct {
-	Enabled bool
-	ApiURL  string
-	ApiKey  string
+	Enabled         bool
+	ApiURL          string
+	ApiKey          string
+	Txt2ImgJsonPath string
 }
 
 type AliYunSmsConfig struct {
@@ -112,4 +113,5 @@ type SystemConfig struct {
 	EnabledRegister bool     `json:"enabled_register"`
 	EnabledMsg      bool     `json:"enabled_msg"`  // 启用短信验证码服务
 	EnabledDraw     bool     `json:"enabled_draw"` // 启动 AI 绘画功能
+	RewardImg       string   `json:"reward_img"`   // 众筹收款二维码地址
 }
