@@ -149,6 +149,7 @@ MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&pars
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
+WeChatBot = false # 是否启动微信机器人
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
@@ -197,10 +198,21 @@ AesEncryptKey = ""
        AccessSecret = ""
        Bucket = ""
        Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com
-```
+       
+[MjConfig] # MidJourney AI 绘画配置
+  Enabled = false # 是否启动 MidJourney 机器人服务
+  UserToken = "" # 用户授权 Token
+  BotToken = "" # Discord 机器人 Token
+  GuildId = "" # 服务器 ID
+  ChanelId = "" # 频道 ID
 
-> 如果要启用微信收款服务和 MidJourney
-> 绘画功能，请先部署扩展服务项目 [chatgpt-plus-exts](https://github.com/yangjian102621/chatgpt-plus-exts)。
+[SdConfig]
+  Enabled = false # 是否启动 Stable Diffusion 机器人服务
+  ApiURL = "http://172.22.11.200:7860" # stable-diffusion-webui API 地址
+  ApiKey = "" # 如果开启了授权，这里需要配置授权的 ApiKey
+  Txt2ImgJsonPath = "res/text2img.json" # 文生图的 API 请求报文 json 模板，允许自定义请求json报文，因为不同版本的 API 绘图的参数以及 fn_index 会不同。
+```
+修改其中的几处配置，如果你不知道如何获取 Discord 用户 Token 和 Bot Token 请查参考 [Midjourney｜如何集成到自己的平台](https://zhuanlan.zhihu.com/p/631079476)。
 
 修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
 

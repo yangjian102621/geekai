@@ -2,7 +2,7 @@
   <div class="page-sd">
     <div class="inner custom-scroll">
       <div class="sd-box">
-        <h2>MidJourney 创作中心</h2>
+        <h2>Stable Diffusion 创作中心</h2>
 
         <div class="sd-params" :style="{ height: mjBoxHeight + 'px' }">
           <el-form :model="params" label-width="80px" label-position="left">

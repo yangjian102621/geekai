@@ -4,6 +4,7 @@ MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&pars
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
+WeChatBot = false
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
@@ -29,6 +30,8 @@ AesEncryptKey = ""
   AccessSecret = ""
   Product = "Dysmsapi"
   Domain = "dysmsapi.aliyuncs.com"
+  Sign = ""
+  CodeTempId = ""
 
 [ExtConfig] # MidJourney和微信机器人服务 API 配置，开通此功能需要配合 chatpgt-plus-exts 项目部署
   ApiURL = "" # 插件扩展 API 地址
@@ -52,3 +55,16 @@ AesEncryptKey = ""
        AccessSecret = ""
        Bucket = ""
        Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com
+
+[MjConfig]
+  Enabled = false
+  UserToken = ""
+  BotToken = ""
+  GuildId = ""
+  ChanelId = ""
+
+[SdConfig]
+  Enabled = false
+  ApiURL = "http://172.22.11.200:7860"
+  ApiKey = ""
+  Txt2ImgJsonPath = "res/text2img.json"
