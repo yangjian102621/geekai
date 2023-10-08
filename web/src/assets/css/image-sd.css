@@ -3,10 +3,6 @@
 }
 .page-sd .inner {
   display: flex;
-/* 修改滚动条的颜色 */
-/* 修改滚动条轨道的背景颜色 */
-/* 修改滚动条的滑块颜色 */
-/* 修改滚动条的滑块的悬停颜色 */
 }
 .page-sd .inner .sd-box {
   margin: 10px;
@@ -69,19 +65,6 @@
 }
 .page-sd .inner .el-form .el-form-item__label {
   color: #fff;
-}
-.page-sd .inner ::-webkit-scrollbar {
-  width: 10px; /* 滚动条宽度 */
-}
-.page-sd .inner ::-webkit-scrollbar-track {
-  background-color: #282c34;
-}
-.page-sd .inner ::-webkit-scrollbar-thumb {
-  background-color: #444;
-  border-radius: 10px;
-}
-.page-sd .inner ::-webkit-scrollbar-thumb:hover {
-  background-color: #666;
 }
 .page-sd .inner .task-list-box {
   width: 100%;
@@ -179,9 +162,85 @@
   width: auto;
   height: auto;
 }
-.mj-list-item-prompt .el-icon {
+.page-sd .el-overlay-dialog .el-dialog {
+  background-color: #1a1b1e;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__header .el-dialog__title {
+  color: #f5f5f5;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body {
+  padding: 0 0 0 15px !important;
+  display: flex;
+  height: 100%;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row {
+  width: 100%;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .img-container {
+  display: flex;
+  justify-content: center;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info {
+  background-color: #25262b;
+  padding: 1rem 1.5rem;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line {
+  width: 100%;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .prompt {
+  background-color: #35363b;
+  padding: 10px;
+  color: #999;
+  overflow: auto;
+  max-height: 100px;
+  min-height: 50px;
+  position: relative;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .prompt .el-icon {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  cursor: pointer;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .wrapper {
+  margin-top: 10px;
+  display: flex;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .wrapper label {
+  display: flex;
+  width: 100px;
+  color: #a5a5a5;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .wrapper .item-value {
+  display: flex;
+  width: 100%;
+  background-color: #35363b;
+  padding: 2px 5px;
+  border-radius: 5px;
+  color: #f5f5f5;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .copy-params {
+  padding: 20px 0 10px 0;
+}
+.page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .copy-params .el-button {
+  width: 100%;
+}
+.page-sd .mj-list-item-prompt .el-icon {
   margin-left: 10px;
   cursor: pointer;
   position: relative;
   top: 2px;
+}
+.custom-scroll ::-webkit-scrollbar {
+  width: 10px; /* 滚动条宽度 */
+}
+.custom-scroll ::-webkit-scrollbar-track {
+  background-color: #282c34;
+}
+.custom-scroll ::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 10px;
+}
+.custom-scroll ::-webkit-scrollbar-thumb:hover {
+  background-color: #666;
 }
