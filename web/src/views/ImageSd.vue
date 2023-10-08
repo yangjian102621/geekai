@@ -100,6 +100,17 @@
                         <InfoFilled/>
                       </el-icon>
                     </el-tooltip>
+
+                    <el-tooltip
+                        effect="light"
+                        content="使用随机数"
+                        raw-content
+                        placement="right"
+                    >
+                      <el-icon @click="params.seed = -1">
+                        <Orange/>
+                      </el-icon>
+                    </el-tooltip>
                   </div>
                 </template>
               </el-form-item>
@@ -484,7 +495,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue"
-import {DocumentCopy, InfoFilled, Picture} from "@element-plus/icons-vue";
+import {DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
@@ -506,7 +517,7 @@ window.onresize = () => {
 }
 const samplers = ["Euler a", "Euler", "DPM2 a Karras", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM2", "DPM2 a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM fast", "DPM adaptive",
   "LMS Karras", "DPM2 Karras", "DDIM", "PLMS", "UniPC", "LMS", "Heun",]
-const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
+const scaleAlg = ["ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
   width: 1024,
   height: 1024,
@@ -643,6 +654,9 @@ const generate = () => {
   if (params.value.prompt === '') {
     promptRef.value.focus()
     return ElMessage.error("请输入绘画提示词！")
+  }
+  if (params.value.seed === '') {
+    params.value.seed = -1
   }
   params.value.session_id = getSessionId()
   httpPost("/api/sd/image", params.value).then(() => {
