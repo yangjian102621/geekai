@@ -1,6 +1,7 @@
 # ChatGPT-Plus
 
-**ChatGPT-PLUS** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Azure, ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。主要有如下特性：
+**ChatGPT-PLUS** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Azure,
+ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。主要有如下特性：
 
 * 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
 * 聊天体验跟 ChatGPT 官方版本完全一致。
@@ -20,6 +21,7 @@
 ![ChatGPT new Chat Page](/docs/imgs/chat-new.png)
 
 ### MidJourney 专业绘画界面(v3.1.3)
+
 ![ChatGPT-midjourney](/docs/imgs/mj_image.png)
 
 ### 自动调用函数插件
@@ -126,7 +128,7 @@ cd docker/mysql
 # 创建 mysql 容器
 docker-compose up -d
 # 导入数据库
-docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.3.sql
+docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.4.sql
 ```
 
 如果你本地已经安装了 MySQL 服务，那么你只需手动导入数据库即可。
@@ -212,7 +214,9 @@ WeChatBot = false # 是否启动微信机器人
   ApiKey = "" # 如果开启了授权，这里需要配置授权的 ApiKey
   Txt2ImgJsonPath = "res/text2img.json" # 文生图的 API 请求报文 json 模板，允许自定义请求json报文，因为不同版本的 API 绘图的参数以及 fn_index 会不同。
 ```
-修改其中的几处配置，如果你不知道如何获取 Discord 用户 Token 和 Bot Token 请查参考 [Midjourney｜如何集成到自己的平台](https://zhuanlan.zhihu.com/p/631079476)。
+
+修改其中的几处配置，如果你不知道如何获取 Discord 用户 Token 和 Bot Token
+请查参考 [Midjourney｜如何集成到自己的平台](https://zhuanlan.zhihu.com/p/631079476)。
 
 修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
 
