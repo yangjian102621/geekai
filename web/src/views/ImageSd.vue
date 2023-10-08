@@ -129,7 +129,7 @@
               <el-form-item label="高清修复">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;" @change="switchHdFix"/>
+                    <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;"/>
                     <el-tooltip
                         effect="light"
                         content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节"
@@ -145,7 +145,7 @@
               </el-form-item>
             </div>
 
-            <div v-show="showHdFix">
+            <div v-show="params.hd_fix">
               <div class="param-line">
                 <el-form-item label="重绘幅度">
                   <template #default>
@@ -369,95 +369,115 @@
 
     <!-- 任务详情弹框 -->
     <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
-      <div class="img-container">
-        <el-image :src="item['img_url']"
-                  :style="{maxHeight: fullImgHeight+'px'}" fix="cover"/>
-      </div>
-
-      <div class="task-info">
-        <div class="info-line">
-          <el-divider>
-            正向提示词
-          </el-divider>
-          <div class="prompt">{{ item.prompt }}</div>
-
-        </div>
-
-        <div class="info-line">
-          <el-divider>
-            反向提示词
-          </el-divider>
-          <div class="prompt">{{ item.params.negative_prompt }}</div>
-        </div>
-
-        <div class="info-line">
-          <div class="wrapper">
-            <label>采样方法：</label>
-            <div class="item-value">{{ item.params.sampler }}</div>
+      <el-row :gutter="20">
+        <el-col :span="16">
+          <div class="img-container" :style="{maxHeight: fullImgHeight+'px'}">
+            <el-image :src="item['img_url']" fit="contain"/>
           </div>
-        </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="task-info">
+            <div class="info-line">
+              <el-divider>
+                正向提示词
+              </el-divider>
+              <div class="prompt">
+                <span>{{ item.prompt }}</span>
+                <el-icon class="copy-prompt" :data-clipboard-text="item.prompt">
+                  <DocumentCopy/>
+                </el-icon>
+              </div>
 
-        <div class="info-line">
-          <div class="wrapper">
-            <label>图片尺寸：</label>
-            <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
-          </div>
-        </div>
-
-        <div class="info-line">
-          <div class="wrapper">
-            <label>迭代步数：</label>
-            <div class="item-value">{{ item.params.steps }}</div>
-          </div>
-        </div>
-
-        <div class="info-line">
-          <div class="wrapper">
-            <label>引导系数：</label>
-            <div class="item-value">{{ item.params.cfg_scale }}</div>
-          </div>
-        </div>
-
-        <div class="info-line">
-          <div class="wrapper">
-            <label>随机因子：</label>
-            <div class="item-value">{{ item.params.seed }}</div>
-          </div>
-        </div>
-
-        <div v-if="item.params.hd_fix">
-          <el-divider>
-            高清修复
-          </el-divider>
-          <div class="info-line">
-            <div class="wrapper">
-              <label>重绘幅度：</label>
-              <div class="item-value">{{ item.params.hd_redraw_rate }}</div>
             </div>
-          </div>
 
-          <div class="info-line">
-            <div class="wrapper">
-              <label>放大算法：</label>
-              <div class="item-value">{{ item.params.hd_scale_alg }}</div>
+            <div class="info-line">
+              <el-divider>
+                反向提示词
+              </el-divider>
+              <div class="prompt">
+                <span>{{ item.params.negative_prompt }}</span>
+                <el-icon class="copy-prompt" :data-clipboard-text="item.params.negative_prompt">
+                  <DocumentCopy/>
+                </el-icon>
+              </div>
             </div>
-          </div>
 
-          <div class="info-line">
-            <div class="wrapper">
-              <label>放大倍数：</label>
-              <div class="item-value">{{ item.params.hd_scale }}</div>
+            <div class="info-line">
+              <div class="wrapper">
+                <label>采样方法：</label>
+                <div class="item-value">{{ item.params.sampler }}</div>
+              </div>
             </div>
-          </div>
 
-          <div class="info-line">
-            <div class="wrapper">
-              <label>迭代步数：</label>
-              <div class="item-value">{{ item.params.hd_steps }}</div>
+            <div class="info-line">
+              <div class="wrapper">
+                <label>图片尺寸：</label>
+                <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
+              </div>
             </div>
+
+            <div class="info-line">
+              <div class="wrapper">
+                <label>迭代步数：</label>
+                <div class="item-value">{{ item.params.steps }}</div>
+              </div>
+            </div>
+
+            <div class="info-line">
+              <div class="wrapper">
+                <label>引导系数：</label>
+                <div class="item-value">{{ item.params.cfg_scale }}</div>
+              </div>
+            </div>
+
+            <div class="info-line">
+              <div class="wrapper">
+                <label>随机因子：</label>
+                <div class="item-value">{{ item.params.seed }}</div>
+              </div>
+            </div>
+
+            <div v-if="item.params.hd_fix">
+              <el-divider>
+                高清修复
+              </el-divider>
+              <div class="info-line">
+                <div class="wrapper">
+                  <label>重绘幅度：</label>
+                  <div class="item-value">{{ item.params.hd_redraw_rate }}</div>
+                </div>
+              </div>
+
+              <div class="info-line">
+                <div class="wrapper">
+                  <label>放大算法：</label>
+                  <div class="item-value">{{ item.params.hd_scale_alg }}</div>
+                </div>
+              </div>
+
+              <div class="info-line">
+                <div class="wrapper">
+                  <label>放大倍数：</label>
+                  <div class="item-value">{{ item.params.hd_scale }}</div>
+                </div>
+              </div>
+
+              <div class="info-line">
+                <div class="wrapper">
+                  <label>迭代步数：</label>
+                  <div class="item-value">{{ item.params.hd_steps }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="copy-params">
+              <el-button type="primary" round @click="copyParams(item)">画一张同款的</el-button>
+            </div>
+
           </div>
-        </div>
-      </div>
+        </el-col>
+      </el-row>
+
     </el-dialog>
   </div>
 </template>
@@ -476,7 +496,6 @@ import {getSessionId, getUserToken} from "@/store/session";
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
-const showHdFix = ref(false)
 const showTaskDialog = ref(false)
 const item = ref({})
 
@@ -608,11 +627,6 @@ onMounted(() => {
   })
 })
 
-// 启用高清修复
-const switchHdFix = () => {
-  showHdFix.value = params.value.hd_fix === true;
-}
-
 
 // 创建绘图任务
 const promptRef = ref(null)
@@ -633,6 +647,11 @@ const generate = () => {
 const showTask = (row) => {
   item.value = row
   showTaskDialog.value = true
+}
+
+const copyParams = (row) => {
+  params.value = row.params
+  showTaskDialog.value = false
 }
 
 </script>
