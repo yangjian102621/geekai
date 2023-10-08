@@ -8,7 +8,7 @@ import (
 )
 
 type AliYunSmsService struct {
-	config *types.AppConfig
+	config *types.AliYunSmsConfig
 	db     *store.LevelDB
 	client *dysmsapi.Client
 }
@@ -24,7 +24,7 @@ func NewAliYunSmsService(config *types.AppConfig, db *store.LevelDB) (*AliYunSms
 	}
 
 	return &AliYunSmsService{
-		config: config,
+		config: &config.SmsConfig,
 		db:     db,
 		client: client,
 	}, nil
@@ -34,10 +34,10 @@ func (s *AliYunSmsService) SendVerifyCode(mobile string, code int) error {
 	// 创建短信请求并设置参数
 	request := dysmsapi.CreateSendSmsRequest()
 	request.Scheme = "https"
-	request.Domain = s.config.SmsConfig.Domain
+	request.Domain = s.config.Domain
 	request.PhoneNumbers = mobile
-	request.SignName = "飞行的蜗牛"
-	request.TemplateCode = "SMS_281460317"
+	request.SignName = s.config.Sign
+	request.TemplateCode = s.config.CodeTempId
 	request.TemplateParam = fmt.Sprintf("{\"code\":\"%d\"}", code) // 短信模板中的参数
 
 	// 发送短信

@@ -52,6 +52,8 @@ type AliYunSmsConfig struct {
 	AccessSecret string
 	Product      string
 	Domain       string
+	Sign         string // 短信签名
+	CodeTempId   string // 验证码短信模板 ID
 }
 
 type RedisConfig struct {
