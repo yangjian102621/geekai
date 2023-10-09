@@ -1,4 +1,14 @@
 # 更新日志
+## v3.1.4
+1. 功能新增：新增阿里云 OSS 图片上传实现，目前已支持本地存储，七牛云，Minio和阿里云 OSS 四种存储介质。
+2. 功能新增：**增加 Stable Diffusion 绘画功能页面**。
+3. 功能重构：将 [chatgpt-plus-exts](https://github.com/yangjian102621/chatgpt-plus-exts) 合并到本项目，部署更加简单，无需部署两个项目了。
+4. Bug修复：修复[用户注册报错BUG #37](https://github.com/yangjian102621/chatgpt-plus/issues/37)。
+5. Bug修复：修复 MidJourney API 接口升级导致图片文保存失败的 Bug。
+6. 功能优化：增加阿里云短信服务配置项 `Sign` 和 `CodeTempId` 用来配置自己的短信签名和短信验证码模版 ID。  
+7. 功能优化：添加系统配置用来设置自定义的众筹微信收款二维码。
+8. 功能优化：优化绘画页面的弹窗样式和页面布局。
+
 ## v3.1.3
 1. 页面重构：重后 Home 页面，拆分成聊天，MJ绘画，SD 绘画，应用广场等多个功能菜单。
 2. 功能新增：新增 MidJourney 专业绘画页面，开放更高级的 MJ 绘画姿势。

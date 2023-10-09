@@ -140,11 +140,6 @@ func main() {
 		}),
 		fx.Provide(oss.NewUploaderManager),
 		fx.Provide(mj.NewService),
-		fx.Invoke(func(mjService *mj.Service) {
-			go func() {
-				mjService.Run()
-			}()
-		}),
 
 		// 微信机器人服务
 		fx.Provide(wx.NewWeChatBot),
@@ -168,13 +163,22 @@ func main() {
 				}
 			}
 		}),
+		fx.Invoke(func(config *types.AppConfig, mjService *mj.Service) {
+			if config.MjConfig.Enabled {
+				go func() {
+					mjService.Run()
+				}()
+			}
+		}),
 
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewService),
-		fx.Invoke(func(service *sd.Service) {
-			go func() {
-				service.Run()
-			}()
+		fx.Invoke(func(config *types.AppConfig, service *sd.Service) {
+			if config.SdConfig.Enabled {
+				go func() {
+					service.Run()
+				}()
+			}
 		}),
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
