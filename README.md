@@ -215,8 +215,9 @@ WeChatBot = false # 是否启动微信机器人
   Txt2ImgJsonPath = "res/text2img.json" # 文生图的 API 请求报文 json 模板，允许自定义请求json报文，因为不同版本的 API 绘图的参数以及 fn_index 会不同。
 ```
 
-修改其中的几处配置，如果你不知道如何获取 Discord 用户 Token 和 Bot Token
+> 1. 如果你不知道如何获取 Discord 用户 Token 和 Bot Token
 请查参考 [Midjourney｜如何集成到自己的平台](https://zhuanlan.zhihu.com/p/631079476)。
+> 2. `Txt2ImgJsonPath` 的默认用的是使用最广泛的 [stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui) 项目的 API，如果你用的是其他版本，比如秋叶的懒人包部署的，那么请将对应的 text2img 的参数报文复制放在 `res/text2img.json` 文件中即可。
 
 修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
 

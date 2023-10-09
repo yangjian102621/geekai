@@ -72,6 +72,11 @@ func (h *MidJourneyHandler) checkLimits(c *gin.Context) bool {
 
 // Image 创建一个绘画任务
 func (h *MidJourneyHandler) Image(c *gin.Context) {
+	if !h.App.Config.MjConfig.Enabled {
+		resp.ERROR(c, "MidJourney service is disabled")
+		return
+	}
+
 	var data struct {
 		SessionId string  `json:"session_id"`
 		Prompt    string  `json:"prompt"`
