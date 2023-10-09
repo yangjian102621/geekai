@@ -101,6 +101,12 @@ ChatGPT 的服务。
 * Github 地址：https://github.com/yangjian102621/chatgpt-plus
 * 码云地址：https://gitee.com/blackfox/chatgpt-plus
 
+
+## 客户端下载
+
+目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/chatgpt-plus/releases/tag/v3.1.2
+
+
 ## TODOLIST
 
 * [x] 整合 Midjourney AI 绘画 API
