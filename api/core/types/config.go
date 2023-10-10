@@ -90,6 +90,7 @@ type Platform string
 const OpenAI = Platform("OpenAI")
 const Azure = Platform("Azure")
 const ChatGLM = Platform("ChatGLM")
+const Baidu = Platform("Baidu")
 
 // UserChatConfig 用户的聊天配置
 type UserChatConfig struct {

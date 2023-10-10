@@ -39,12 +39,16 @@
     <el-dialog
         v-model="showDialog"
         :title="title"
-        style="width: 90%; max-width: 600px;"
     >
+      <el-alert title="注意：如果是百度文心一言平台，需要用竖线（|）将 API Key 和 Secret Key 串接起来填入！"
+                type="warning"
+                :closable="false"
+                show-icon
+                style="margin-bottom: 10px; font-size:14px;"/>
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="所属平台：" prop="platform">
           <el-select v-model="item.platform" placeholder="请选择平台">
-            <el-option v-for="item in platforms" :value="item" :key="item">{{ item }}</el-option>
+            <el-option v-for="item in platforms" :value="item.value" :key="item.value">{{ item.name }}</el-option>
           </el-select>
         </el-form-item>
 
@@ -82,7 +86,13 @@ const rules = reactive({
 const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
-const platforms = ref(["Azure", "OpenAI", "ChatGLM"])
+const platforms = ref([
+  {name: "【清华智普】ChatGLM", value: "ChatGLM"},
+  {name: "【百度】文心一言", value: "Baidu"},
+  {name: "【微软】Azure", value: "Azure"},
+  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
+
+])
 
 // 获取数据
 httpGet('/api/admin/apikey/list').then((res) => {

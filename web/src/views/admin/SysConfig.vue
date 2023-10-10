@@ -90,11 +90,23 @@
           <el-input v-model="chat['chat_gml']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
         </el-form-item>
         <el-form-item label="模型创意度">
-          <el-slider v-model="chat['chat_gml']['temperature']" :max="2" :step="0.1"/>
+          <el-slider v-model="chat['chat_gml']['temperature']" :max="1" :step="0.01"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
         </el-form-item>
         <el-form-item label="最大响应长度">
           <el-input v-model.number="chat['chat_gml']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
+        </el-form-item>
+
+        <el-divider content-position="center">文心一言</el-divider>
+        <el-form-item label="API 地址" prop="baidu.api_url">
+          <el-input v-model="chat['baidu']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
+        </el-form-item>
+        <el-form-item label="模型创意度">
+          <el-slider v-model="chat['baidu']['temperature']" :max="1" :step="0.01"/>
+          <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
+        </el-form-item>
+        <el-form-item label="最大响应长度">
+          <el-input v-model.number="chat['baidu']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
         </el-form-item>
 
         <el-form-item style="text-align: right">
@@ -116,7 +128,8 @@ const system = ref({models: []})
 const chat = ref({
   open_ai: {api_url: "", temperature: 1, max_tokens: 1024},
   azure: {api_url: "", temperature: 1, max_tokens: 1024},
-  chat_gml: {api_url: "", temperature: 1, max_tokens: 1024},
+  chat_gml: {api_url: "", temperature: 0.95, max_tokens: 1024},
+  baidu: {api_url: "", temperature: 0.95, max_tokens: 1024},
   context_deep: 0,
   enable_context: true,
   enable_history: true,
