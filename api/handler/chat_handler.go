@@ -196,7 +196,10 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		req.Temperature = h.App.ChatConfig.ChatGML.Temperature
 		req.MaxTokens = h.App.ChatConfig.ChatGML.MaxTokens
 		break
-	default:
+	case types.Baidu:
+		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
+		// TODO： 目前只支持 ERNIE-Bot-turbo 模型，如果是 ERNIE-Bot 模型则需要增加函数支持
+	case types.OpenAI:
 		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
 		req.MaxTokens = h.App.ChatConfig.OpenAI.MaxTokens
 		var functions = make([]types.Function, 0)
@@ -207,6 +210,10 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			functions = append(functions, f)
 		}
 		req.Functions = functions
+	default:
+		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
+		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		return nil
 	}
 
 	// 加载聊天上下文

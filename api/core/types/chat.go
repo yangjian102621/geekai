@@ -2,9 +2,9 @@ package types
 
 // ApiRequest API 请求实体
 type ApiRequest struct {
-	Model       string        `json:"model"`
+	Model       string        `json:"model,omitempty"` // 兼容百度文心一言
 	Temperature float32       `json:"temperature"`
-	MaxTokens   int           `json:"max_tokens"`
+	MaxTokens   int           `json:"max_tokens,omitempty"` // 兼容百度文心一言
 	Stream      bool          `json:"stream"`
 	Messages    []interface{} `json:"messages,omitempty"`
 	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
