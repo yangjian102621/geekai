@@ -1,4 +1,4 @@
-package handler
+package chatimpl
 
 import (
 	"chatplus/core/types"

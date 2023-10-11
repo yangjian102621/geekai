@@ -1,4 +1,4 @@
-package handler
+package chatimpl
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"io"
 	"strings"
@@ -16,8 +17,9 @@ import (
 	"unicode/utf8"
 )
 
-// 将消息发送给 Azure API 并获取结果，通过 WebSocket 推送到客户端
-func (h *ChatHandler) sendAzureMessage(
+// 清华大学 ChatGML 消息发送实现
+
+func (h *ChatHandler) sendChatGLMMessage(
 	chatCtx []interface{},
 	req types.ApiRequest,
 	userVo vo.User,
@@ -55,61 +57,40 @@ func (h *ChatHandler) sendAzureMessage(
 		// 循环读取 Chunk 消息
 		var message = types.Message{}
 		var contents = make([]string, 0)
-		var functionCall = false
-		var functionName string
-		var arguments = make([]string, 0)
+		var event, content string
 		scanner := bufio.NewScanner(response.Body)
 		for scanner.Scan() {
 			line := scanner.Text()
-			if !strings.Contains(line, "data:") || len(line) < 30 {
+			if len(line) < 5 || strings.HasPrefix(line, "id:") {
+				continue
+			}
+			if strings.HasPrefix(line, "event:") {
+				event = line[6:]
 				continue
 			}
 
-			var responseBody = types.ApiResponse{}
-			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
-				logger.Error(err, line)
-				utils.ReplyMessage(ws, ErrorMsg)
-				utils.ReplyMessage(ws, "![](/images/wx.png)")
-				break
+			if strings.HasPrefix(line, "data:") {
+				content = line[5:]
 			}
-
-			fun := responseBody.Choices[0].Delta.FunctionCall
-			if functionCall && fun.Name == "" {
-				arguments = append(arguments, fun.Arguments)
-				continue
-			}
-
-			if !utils.IsEmptyValue(fun) {
-				functionName = fun.Name
-				f := h.App.Functions[functionName]
-				if f != nil {
-					functionCall = true
+			switch event {
+			case "add":
+				if len(contents) == 0 {
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 `%s` 作答 ...\n\n", f.Name())})
-					continue
 				}
-			}
-
-			if responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
-				break
-			}
-
-			// 初始化 role
-			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
-				message.Role = responseBody.Choices[0].Delta.Role
-				utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-				continue
-			} else if responseBody.Choices[0].FinishReason != "" {
-				break // 输出完成或者输出中断了
-			} else {
-				content := responseBody.Choices[0].Delta.Content
-				contents = append(contents, utils.InterfaceToString(content))
 				utils.ReplyChunkMessage(ws, types.WsMessage{
 					Type:    types.WsMiddle,
-					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
+					Content: utils.InterfaceToString(content),
 				})
+				contents = append(contents, content)
+			case "finish":
+				break
+			case "error":
+				utils.ReplyMessage(ws, fmt.Sprintf("**调用 ChatGLM API 出错：%s**", content))
+				break
+			case "interrupted":
+				utils.ReplyMessage(ws, "**调用 ChatGLM API 出错，当前输出被中断！**")
 			}
+
 		} // end for
 
 		if err := scanner.Err(); err != nil {
@@ -117,50 +98,6 @@ func (h *ChatHandler) sendAzureMessage(
 				logger.Info("用户取消了请求：", prompt)
 			} else {
 				logger.Error("信息读取出错：", err)
-			}
-		}
-
-		if functionCall { // 调用函数完成任务
-			var params map[string]interface{}
-			_ = utils.JsonDecode(strings.Join(arguments, ""), &params)
-			logger.Debugf("函数名称: %s, 函数参数：%s", functionName, params)
-
-			// for creating image, check if the user's img_calls > 0
-			if functionName == types.FuncMidJourney && userVo.ImgCalls <= 0 {
-				utils.ReplyMessage(ws, "**当前用户剩余绘图次数已用尽，请扫描下面二维码联系管理员！**")
-				utils.ReplyMessage(ws, "![](/images/wx.png)")
-			} else {
-				f := h.App.Functions[functionName]
-				if functionName == types.FuncMidJourney {
-					params["user_id"] = userVo.Id
-					params["role_id"] = role.Id
-					params["chat_id"] = session.ChatId
-					params["icon"] = "/images/avatar/mid_journey.png"
-					params["session_id"] = session.SessionId
-				}
-				data, err := f.Invoke(params)
-				if err != nil {
-					msg := "调用函数出错：" + err.Error()
-					utils.ReplyChunkMessage(ws, types.WsMessage{
-						Type:    types.WsMiddle,
-						Content: msg,
-					})
-					contents = append(contents, msg)
-				} else {
-					content := data
-					if functionName == types.FuncMidJourney {
-						content = fmt.Sprintf("绘画提示词：%s 已推送任务到 MidJourney 机器人，请耐心等待任务执行...", data)
-						h.mjService.ChatClients.Put(session.SessionId, ws)
-						// update user's img_calls
-						h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
-					}
-
-					utils.ReplyChunkMessage(ws, types.WsMessage{
-						Type:    types.WsMiddle,
-						Content: content,
-					})
-					contents = append(contents, content)
-				}
 			}
 		}
 
@@ -178,7 +115,7 @@ func (h *ChatHandler) sendAzureMessage(
 			useMsg := types.Message{Role: "user", Content: prompt}
 
 			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if h.App.ChatConfig.EnableContext && functionCall == false {
+			if h.App.ChatConfig.EnableContext {
 				chatCtx = append(chatCtx, useMsg)  // 提问消息
 				chatCtx = append(chatCtx, message) // 回复消息
 				h.App.ChatContexts.Put(session.ChatId, chatCtx)
@@ -186,11 +123,6 @@ func (h *ChatHandler) sendAzureMessage(
 
 			// 追加聊天记录
 			if h.App.ChatConfig.EnableHistory {
-				useContext := true
-				if functionCall {
-					useContext = false
-				}
-
 				// for prompt
 				promptToken, err := utils.CalcTokens(prompt, req.Model)
 				if err != nil {
@@ -204,7 +136,7 @@ func (h *ChatHandler) sendAzureMessage(
 					Icon:       userVo.Avatar,
 					Content:    prompt,
 					Tokens:     promptToken,
-					UseContext: useContext,
+					UseContext: true,
 				}
 				historyUserMsg.CreatedAt = promptCreatedAt
 				historyUserMsg.UpdatedAt = promptCreatedAt
@@ -213,18 +145,10 @@ func (h *ChatHandler) sendAzureMessage(
 					logger.Error("failed to save prompt history message: ", res.Error)
 				}
 
+				// for reply
 				// 计算本次对话消耗的总 token 数量
-				var totalTokens = 0
-				if functionCall { // prompt + 函数名 + 参数 token
-					tokens, _ := utils.CalcTokens(functionName, req.Model)
-					totalTokens += tokens
-					tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
-					totalTokens += tokens
-				} else {
-					totalTokens, _ = utils.CalcTokens(message.Content, req.Model)
-				}
-				totalTokens += getTotalTokens(req)
-
+				replyToken, _ := utils.CalcTokens(message.Content, req.Model)
+				totalTokens := replyToken + getTotalTokens(req)
 				historyReplyMsg := model.HistoryMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
@@ -233,7 +157,7 @@ func (h *ChatHandler) sendAzureMessage(
 					Icon:       role.Icon,
 					Content:    message.Content,
 					Tokens:     totalTokens,
-					UseContext: useContext,
+					UseContext: true,
 				}
 				historyReplyMsg.CreatedAt = replyCreatedAt
 				historyReplyMsg.UpdatedAt = replyCreatedAt
@@ -241,7 +165,6 @@ func (h *ChatHandler) sendAzureMessage(
 				if res.Error != nil {
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
-
 				// 更新用户信息
 				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
 					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
@@ -268,21 +191,46 @@ func (h *ChatHandler) sendAzureMessage(
 		if err != nil {
 			return fmt.Errorf("error with reading response: %v", err)
 		}
-		var res types.ApiError
+
+		var res struct {
+			Code    int    `json:"code"`
+			Success bool   `json:"success"`
+			Msg     string `json:"msg"`
+		}
 		err = json.Unmarshal(body, &res)
 		if err != nil {
 			return fmt.Errorf("error with decode response: %v", err)
 		}
-
-		if strings.Contains(res.Error.Message, "maximum context length") {
-			logger.Error(res.Error.Message)
-			utils.ReplyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
-			h.App.ChatContexts.Delete(session.ChatId)
-			return h.sendMessage(ctx, session, role, prompt, ws)
-		} else {
-			utils.ReplyMessage(ws, "请求 Azure API 失败："+res.Error.Message)
+		if !res.Success {
+			utils.ReplyMessage(ws, "请求 ChatGLM 失败："+res.Msg)
 		}
 	}
 
 	return nil
+}
+
+func (h *ChatHandler) getChatGLMToken(apiKey string) (string, error) {
+	ctx := context.Background()
+	tokenString, err := h.redis.Get(ctx, apiKey).Result()
+	if err == nil {
+		return tokenString, nil
+	}
+
+	expr := time.Hour * 2
+	key := strings.Split(apiKey, ".")
+	if len(key) != 2 {
+		return "", fmt.Errorf("invalid api key: %s", apiKey)
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"api_key":   key[0],
+		"timestamp": time.Now().Unix(),
+		"exp":       time.Now().Add(expr).Add(time.Second * 10).Unix(),
+	})
+	token.Header["alg"] = "HS256"
+	token.Header["sign_type"] = "SIGN"
+	delete(token.Header, "typ")
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err = token.SignedString([]byte(key[1]))
+	h.redis.Set(ctx, apiKey, tokenString, expr)
+	return tokenString, err
 }

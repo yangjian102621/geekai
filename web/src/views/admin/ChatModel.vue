@@ -95,10 +95,11 @@ const rules = reactive({
 const loading = ref(true)
 const formRef = ref(null)
 const platforms = ref([
+  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
+  {name: "【讯飞】星火大模型", value: "XunFei"},
   {name: "【清华智普】ChatGLM", value: "ChatGLM"},
   {name: "【百度】文心一言", value: "Baidu"},
   {name: "【微软】Azure", value: "Azure"},
-  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
 ])
 
 // 获取数据

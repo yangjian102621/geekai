@@ -1,4 +1,4 @@
-package handler
+package chatimpl
 
 import (
 	"bufio"
@@ -16,8 +16,9 @@ import (
 	"unicode/utf8"
 )
 
-// 将消息发送给 OpenAI API 并获取结果，通过 WebSocket 推送到客户端
-func (h *ChatHandler) sendOpenAiMessage(
+// 微软 Azure 模型消息发送实现
+
+func (h *ChatHandler) sendAzureMessage(
 	chatCtx []interface{},
 	req types.ApiRequest,
 	userVo vo.User,
@@ -87,8 +88,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 					functionCall = true
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 `%s` 作答 ...\n\n", f.Name())})
+					continue
 				}
-				continue
 			}
 
 			if responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
@@ -274,20 +275,13 @@ func (h *ChatHandler) sendOpenAiMessage(
 			return fmt.Errorf("error with decode response: %v", err)
 		}
 
-		// OpenAI API 调用异常处理
-		if strings.Contains(res.Error.Message, "This key is associated with a deactivated account") {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 所关联的账户被禁用。")
-			// 移除当前 API key
-			h.db.Where("value = ?", apiKey).Delete(&model.ApiKey{})
-		} else if strings.Contains(res.Error.Message, "You exceeded your current quota") {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
-		} else if strings.Contains(res.Error.Message, "This model's maximum context length") {
+		if strings.Contains(res.Error.Message, "maximum context length") {
 			logger.Error(res.Error.Message)
 			utils.ReplyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
 			h.App.ChatContexts.Delete(session.ChatId)
 			return h.sendMessage(ctx, session, role, prompt, ws)
 		} else {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败："+res.Error.Message)
+			utils.ReplyMessage(ws, "请求 Azure API 失败："+res.Error.Message)
 		}
 	}
 

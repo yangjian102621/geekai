@@ -80,6 +80,7 @@ type ChatConfig struct {
 	Azure   ModelAPIConfig `json:"azure"`
 	ChatGML ModelAPIConfig `json:"chat_gml"`
 	Baidu   ModelAPIConfig `json:"baidu"`
+	XunFei  ModelAPIConfig `json:"xun_fei"`
 
 	EnableContext bool `json:"enable_context"` // 是否开启聊天上下文
 	EnableHistory bool `json:"enable_history"` // 是否允许保存聊天记录
@@ -92,6 +93,7 @@ const OpenAI = Platform("OpenAI")
 const Azure = Platform("Azure")
 const ChatGLM = Platform("ChatGLM")
 const Baidu = Platform("Baidu")
+const XunFei = Platform("XunFei")
 
 // UserChatConfig 用户的聊天配置
 type UserChatConfig struct {

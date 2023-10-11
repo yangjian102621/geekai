@@ -91,7 +91,7 @@
           <el-input-number v-model="chat['context_deep']" :min="0" :max="10"/>
           <div class="tip" style="margin-top: 10px;">会话上下文深度：在老会话中继续会话，默认加载多少条聊天记录作为上下文。如果设置为
             0
-            则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置为 2 的整数倍。
+            则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置需要为偶数，否则将无法兼容百度的 API。
           </div>
         </el-form-item>
 
@@ -143,6 +143,18 @@
           <el-input v-model.number="chat['baidu']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
         </el-form-item>
 
+        <el-divider content-position="center">讯飞星火</el-divider>
+        <el-form-item label="API 地址" prop="xun_fei.api_url">
+          <el-input v-model="chat['xun_fei']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
+        </el-form-item>
+        <el-form-item label="模型创意度">
+          <el-slider v-model="chat['xun_fei']['temperature']" :max="1" :step="0.1"/>
+          <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
+        </el-form-item>
+        <el-form-item label="最大响应长度">
+          <el-input v-model.number="chat['xun_fei']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
+        </el-form-item>
+
         <el-form-item style="text-align: right">
           <el-button type="primary" @click="save('chat')">保存</el-button>
         </el-form-item>
@@ -164,6 +176,7 @@ const chat = ref({
   azure: {api_url: "", temperature: 1, max_tokens: 1024},
   chat_gml: {api_url: "", temperature: 0.95, max_tokens: 1024},
   baidu: {api_url: "", temperature: 0.95, max_tokens: 1024},
+  xun_fei: {api_url: "", temperature: 0.5, max_tokens: 1024},
   context_deep: 0,
   enable_context: true,
   enable_history: true,
@@ -195,6 +208,9 @@ onMounted(() => {
     if (res.data.baidu) {
       chat.value.baidu = res.data.baidu
     }
+    if (res.data.xun_fei) {
+      chat.value.xun_fei = res.data.xun_fei
+    }
     chat.value.context_deep = res.data.context_deep
     chat.value.enable_context = res.data.enable_context
     chat.value.enable_history = res.data.enable_history
@@ -210,9 +226,6 @@ const rules = reactive({
   admin_title: [{required: true, message: '请输入控制台标题', trigger: 'blur',}],
   user_init_calls: [{required: true, message: '请输入赠送对话次数', trigger: 'blur'}],
   user_img_calls: [{required: true, message: '请输入赠送绘图次数', trigger: 'blur'}],
-  open_ai: {api_url: [{required: true, message: '请输入 API URL', trigger: 'blur'}]},
-  azure: {api_url: [{required: true, message: '请输入 API URL', trigger: 'blur'}]},
-  chat_gml: {api_url: [{required: true, message: '请输入 API URL', trigger: 'blur'}]},
 })
 const save = function (key) {
   if (key === 'system') {
@@ -226,6 +239,9 @@ const save = function (key) {
       }
     })
   } else if (key === 'chat') {
+    if (chat.value.context_deep % 2 !== 0) {
+      return ElMessage.error("会话上下文深度必须为偶数！")
+    }
     chatFormRef.value.validate((valid) => {
       if (valid) {
         httpPost('/api/admin/config/update', {key: key, config: chat.value}).then(() => {

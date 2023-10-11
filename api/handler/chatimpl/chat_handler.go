@@ -1,9 +1,11 @@
-package handler
+package chatimpl
 
 import (
 	"bytes"
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/handler"
+	logger2 "chatplus/logger"
 	"chatplus/service/mj"
 	"chatplus/store"
 	"chatplus/store/model"
@@ -26,8 +28,10 @@ import (
 
 const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
 
+var logger = logger2.GetLogger()
+
 type ChatHandler struct {
-	BaseHandler
+	handler.BaseHandler
 	db        *gorm.DB
 	leveldb   *store.LevelDB
 	redis     *redis.Client
@@ -35,9 +39,9 @@ type ChatHandler struct {
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, redis *redis.Client, service *mj.Service) *ChatHandler {
-	handler := ChatHandler{db: db, leveldb: levelDB, redis: redis, mjService: service}
-	handler.App = app
-	return &handler
+	h := ChatHandler{db: db, leveldb: levelDB, redis: redis, mjService: service}
+	h.App = app
+	return &h
 }
 
 var chatConfig types.ChatConfig
@@ -249,9 +253,10 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			// loading recent chat history as chat context
 			if chatConfig.ContextDeep > 0 {
 				var historyMessages []model.HistoryMessage
-				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("created_at desc").Find(&historyMessages)
+				res := h.db.Debug().Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("id desc").Find(&historyMessages)
 				if res.Error == nil {
-					for _, msg := range historyMessages {
+					for i := len(historyMessages) - 1; i >= 0; i-- {
+						msg := historyMessages[i]
 						if tokens+msg.Tokens >= types.ModelToTokens[session.Model.Value] {
 							break
 						}

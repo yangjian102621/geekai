@@ -5,6 +5,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	"chatplus/handler/admin"
+	"chatplus/handler/chatimpl"
 	logger2 "chatplus/logger"
 	"chatplus/service"
 	"chatplus/service/fun"
@@ -115,7 +116,7 @@ func main() {
 		// 创建控制器
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
-		fx.Provide(handler.NewChatHandler),
+		fx.Provide(chatimpl.NewChatHandler),
 		fx.Provide(handler.NewUploadHandler),
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRewardHandler),
@@ -196,7 +197,7 @@ func main() {
 			group.POST("password", h.Password)
 			group.POST("bind/mobile", h.BindMobile)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
+		fx.Invoke(func(s *core.AppServer, h *chatimpl.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")
 			group.Any("new", h.ChatHandle)
 			group.GET("list", h.List)
