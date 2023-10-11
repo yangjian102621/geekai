@@ -67,4 +67,8 @@ var ModelToTokens = map[string]int{
 	"gpt-3.5-turbo-16k": 16384,
 	"gpt-4":             8192,
 	"gpt-4-32k":         32768,
+	"chatglm_pro":       32768,
+	"chatglm_std":       16384,
+	"chatglm_lite":      4096,
+	"ernie_bot_turbo":   8192, // 文心一言
 }

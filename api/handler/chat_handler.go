@@ -202,6 +202,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	case types.OpenAI:
 		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
 		req.MaxTokens = h.App.ChatConfig.OpenAI.MaxTokens
+		// OpenAI 支持函数功能
 		var functions = make([]types.Function, 0)
 		for _, f := range types.InnerFunctions {
 			if !h.App.SysConfig.EnabledDraw && f.Name == types.FuncMidJourney {
@@ -281,6 +282,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return h.sendOpenAiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	case types.ChatGLM:
 		return h.sendChatGLMMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+	case types.Baidu:
+		return h.sendBaiduMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+
 	}
 	utils.ReplyChunkMessage(ws, types.WsMessage{
 		Type:    types.WsMiddle,
@@ -364,12 +368,36 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		break
 	case types.ChatGLM:
 		apiURL = strings.Replace(h.App.ChatConfig.ChatGML.ApiURL, "{model}", req.Model, 1)
-		req.Prompt = req.Messages
+		req.Prompt = req.Messages // 使用 prompt 字段替代 message 字段
 		req.Messages = nil
+		break
+	case types.Baidu:
+		apiURL = h.App.ChatConfig.Baidu.ApiURL
 		break
 	default:
 		apiURL = h.App.ChatConfig.OpenAI.ApiURL
 	}
+	if *apiKey == "" {
+		var key model.ApiKey
+		res := h.db.Where("platform = ?", platform).Order("last_used_at ASC").First(&key)
+		if res.Error != nil {
+			return nil, errors.New("no available key, please import key")
+		}
+		// 更新 API KEY 的最后使用时间
+		h.db.Model(&key).UpdateColumn("last_used_at", time.Now().Unix())
+		*apiKey = key.Value
+	}
+
+	// 百度文心，需要串接 access_token
+	if platform == types.Baidu {
+		token, err := h.getBaiduToken(*apiKey)
+		if err != nil {
+			return nil, err
+		}
+		logger.Info("百度文心 Access_Token：", token)
+		apiURL = fmt.Sprintf("%s?access_token=%s", apiURL, token)
+	}
+
 	// 创建 HttpClient 请求对象
 	var client *http.Client
 	requestBody, err := json.Marshal(req)
@@ -394,17 +422,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	} else {
 		client = http.DefaultClient
 	}
-	if *apiKey == "" {
-		var key model.ApiKey
-		res := h.db.Where("platform = ?", platform).Order("last_used_at ASC").First(&key)
-		if res.Error != nil {
-			return nil, errors.New("no available key, please import key")
-		}
-		// 更新 API KEY 的最后使用时间
-		h.db.Model(&key).UpdateColumn("last_used_at", time.Now().Unix())
-		*apiKey = key.Value
-	}
-
 	logger.Infof("Sending %s request, KEY: %s, PROXY: %s, Model: %s", platform, *apiKey, proxyURL, req.Model)
 	switch platform {
 	case types.Azure:
@@ -418,7 +435,9 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		logger.Info(token)
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		break
-	default:
+	case types.Baidu:
+		request.RequestURI = ""
+	case types.OpenAI:
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *apiKey))
 	}
 	return client.Do(request)

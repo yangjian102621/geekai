@@ -36,11 +36,11 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 
 	apiKey := model.ApiKey{}
 	if data.Id > 0 {
-		h.db.Find(&apiKey)
+		h.db.Find(&apiKey, data.Id)
 	}
 	apiKey.Platform = data.Platform
 	apiKey.Value = data.Value
-	res := h.db.Save(&apiKey)
+	res := h.db.Debug().Save(&apiKey)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return

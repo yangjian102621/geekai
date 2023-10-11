@@ -158,6 +158,9 @@ onMounted(() => {
     if (res.data.chat_gml) {
       chat.value.chat_gml = res.data.chat_gml
     }
+    if (res.data.baidu) {
+      chat.value.baidu = res.data.baidu
+    }
     chat.value.context_deep = res.data.context_deep
     chat.value.enable_context = res.data.enable_context
     chat.value.enable_history = res.data.enable_history
