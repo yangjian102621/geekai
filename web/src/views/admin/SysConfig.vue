@@ -18,12 +18,46 @@
         <el-form-item label="开放注册服务" prop="enabled_register">
           <el-switch v-model="system['enabled_register']"/>
         </el-form-item>
-        <el-form-item label="短信验证服务" prop="enabled_msg">
+        <el-form-item label="短信服务" prop="enabled_msg">
           <el-switch v-model="system['enabled_msg']"/>
+          <el-tooltip
+              effect="dark"
+              content="是否在注册时候开启短信验证码服务"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
         </el-form-item>
-        <el-form-item label="开放AI绘画" prop="enabled_draw">
+        <el-form-item label="启用函数功能" prop="enabled_function">
+          <el-switch v-model="system['enabled_function']"/>
+          <el-tooltip
+              effect="dark"
+              content="是否在AI对话时启用函数功能"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+        <el-form-item label="启用AI绘画" prop="enabled_draw">
           <el-switch v-model="system['enabled_draw']"/>
+          <el-tooltip
+              effect="dark"
+              content="需要开启函数功能此配置才会生效"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
         </el-form-item>
+
         <el-form-item label="收款二维码" prop="reward_img">
           <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
             <template #append>
@@ -122,7 +156,7 @@ import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
-import {UploadFilled} from "@element-plus/icons-vue";
+import {InfoFilled, UploadFilled} from "@element-plus/icons-vue";
 
 const system = ref({models: []})
 const chat = ref({
@@ -248,6 +282,12 @@ const uploadRewardImg = (file) => {
           color #c1c1c1
           font-size 12px;
           line-height 1.5;
+        }
+
+        .el-icon {
+          font-size 16px
+          margin-left 10px
+          cursor pointer
         }
 
         .uploader-icon {

@@ -203,14 +203,16 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
 		req.MaxTokens = h.App.ChatConfig.OpenAI.MaxTokens
 		// OpenAI 支持函数功能
-		var functions = make([]types.Function, 0)
-		for _, f := range types.InnerFunctions {
-			if !h.App.SysConfig.EnabledDraw && f.Name == types.FuncMidJourney {
-				continue
+		if h.App.SysConfig.EnabledFunction {
+			var functions = make([]types.Function, 0)
+			for _, f := range types.InnerFunctions {
+				if !h.App.SysConfig.EnabledDraw && f.Name == types.FuncMidJourney {
+					continue
+				}
+				functions = append(functions, f)
 			}
-			functions = append(functions, f)
+			req.Functions = functions
 		}
-		req.Functions = functions
 	default:
 		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
 		utils.ReplyMessage(ws, "![](/images/wx.png)")
