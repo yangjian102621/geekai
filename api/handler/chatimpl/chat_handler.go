@@ -39,7 +39,12 @@ type ChatHandler struct {
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, redis *redis.Client, service *mj.Service) *ChatHandler {
-	h := ChatHandler{db: db, leveldb: levelDB, redis: redis, mjService: service}
+	h := ChatHandler{
+		db:        db,
+		leveldb:   levelDB,
+		redis:     redis,
+		mjService: service,
+	}
 	h.App = app
 	return &h
 }
@@ -127,7 +132,11 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 				logger.Error(err)
 				client.Close()
 				h.App.ChatClients.Delete(sessionId)
-				h.App.ReqCancelFunc.Delete(sessionId)
+				cancelFunc := h.App.ReqCancelFunc.Get(sessionId)
+				if cancelFunc != nil {
+					cancelFunc()
+					h.App.ReqCancelFunc.Delete(sessionId)
+				}
 				return
 			}
 
@@ -217,6 +226,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			}
 			req.Functions = functions
 		}
+	case types.XunFei:
+		req.Temperature = h.App.ChatConfig.XunFei.Temperature
+		req.MaxTokens = h.App.ChatConfig.XunFei.MaxTokens
 	default:
 		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
 		utils.ReplyMessage(ws, "![](/images/wx.png)")
@@ -291,6 +303,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return h.sendChatGLMMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	case types.Baidu:
 		return h.sendBaiduMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+	case types.XunFei:
+		return h.sendXunFeiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 
 	}
 	utils.ReplyChunkMessage(ws, types.WsMessage{

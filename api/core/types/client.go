@@ -36,6 +36,16 @@ func (wc *WsClient) Send(message []byte) error {
 	return wc.Conn.WriteMessage(wc.mt, message)
 }
 
+func (wc *WsClient) SendJson(value interface{}) error {
+	wc.lock.Lock()
+	defer wc.lock.Unlock()
+
+	if wc.Closed {
+		return ErrConClosed
+	}
+	return wc.Conn.WriteJSON(value)
+}
+
 func (wc *WsClient) Receive() (int, []byte, error) {
 	if wc.Closed {
 		return 0, nil, ErrConClosed
