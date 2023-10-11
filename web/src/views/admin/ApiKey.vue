@@ -40,11 +40,14 @@
         v-model="showDialog"
         :title="title"
     >
-      <el-alert title="注意：如果是百度文心一言平台，需要用竖线（|）将 API Key 和 Secret Key 串接起来填入！"
-                type="warning"
-                :closable="false"
-                show-icon
-                style="margin-bottom: 10px; font-size:14px;"/>
+      <el-alert
+          type="warning"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 10px; font-size:14px;">
+        <p><b>注意：</b>如果是百度文心一言平台，需要用竖线（|）将 API Key 和 Secret Key 串接起来填入！</p>
+        <p><b>注意：</b>如果是讯飞星火大模型，需要用竖线（|）将 APPID, APIKey 和 APISecret 按照顺序串接起来填入！</p>
+      </el-alert>
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="所属平台：" prop="platform">
           <el-select v-model="item.platform" placeholder="请选择平台">
@@ -87,10 +90,11 @@ const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
 const platforms = ref([
+  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
+  {name: "【讯飞】星火大模型", value: "XunFei"},
   {name: "【清华智普】ChatGLM", value: "ChatGLM"},
   {name: "【百度】文心一言", value: "Baidu"},
   {name: "【微软】Azure", value: "Azure"},
-  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
 ])
 
 // 获取数据

@@ -1,4 +1,4 @@
-package handler
+package chatimpl
 
 import (
 	"bufio"
@@ -33,7 +33,8 @@ type baiduResp struct {
 	} `json:"usage"`
 }
 
-// 将消息发送给百度文心一言大模型 API 并获取结果，通过 WebSocket 推送到客户端
+// 百度文心一言消息发送实现
+
 func (h *ChatHandler) sendBaiduMessage(
 	chatCtx []interface{},
 	req types.ApiRequest,
