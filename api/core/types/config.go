@@ -79,6 +79,7 @@ type ChatConfig struct {
 	OpenAI  ModelAPIConfig `json:"open_ai"`
 	Azure   ModelAPIConfig `json:"azure"`
 	ChatGML ModelAPIConfig `json:"chat_gml"`
+	Baidu   ModelAPIConfig `json:"baidu"`
 
 	EnableContext bool `json:"enable_context"` // 是否开启聊天上下文
 	EnableHistory bool `json:"enable_history"` // 是否允许保存聊天记录

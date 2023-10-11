@@ -9,13 +9,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 	"unicode/utf8"
 )
+
+type baiduResp struct {
+	Id               string `json:"id"`
+	Object           string `json:"object"`
+	Created          int    `json:"created"`
+	SentenceId       int    `json:"sentence_id"`
+	IsEnd            bool   `json:"is_end"`
+	IsTruncated      bool   `json:"is_truncated"`
+	Result           string `json:"result"`
+	NeedClearHistory bool   `json:"need_clear_history"`
+	Usage            struct {
+		PromptTokens     int `json:"prompt_tokens"`
+		CompletionTokens int `json:"completion_tokens"`
+		TotalTokens      int `json:"total_tokens"`
+	} `json:"usage"`
+}
 
 // 将消息发送给百度文心一言大模型 API 并获取结果，通过 WebSocket 推送到客户端
 func (h *ChatHandler) sendBaiduMessage(
@@ -56,38 +72,42 @@ func (h *ChatHandler) sendBaiduMessage(
 		// 循环读取 Chunk 消息
 		var message = types.Message{}
 		var contents = make([]string, 0)
-		var event, content string
+		var content string
 		scanner := bufio.NewScanner(response.Body)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if len(line) < 5 || strings.HasPrefix(line, "id:") {
 				continue
 			}
-			if strings.HasPrefix(line, "event:") {
-				event = line[6:]
-				continue
-			}
 
 			if strings.HasPrefix(line, "data:") {
 				content = line[5:]
 			}
-			switch event {
-			case "add":
-				if len(contents) == 0 {
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-				}
-				utils.ReplyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: utils.InterfaceToString(content),
-				})
-				contents = append(contents, content)
-			case "finish":
+
+			var resp baiduResp
+			err := utils.JsonDecode(content, &resp)
+			if err != nil {
+				logger.Error("error with parse data line: ", err)
+				utils.ReplyMessage(ws, fmt.Sprintf("**解析数据行失败：%s**", err))
 				break
-			case "error":
-				utils.ReplyMessage(ws, fmt.Sprintf("**调用 ChatGLM API 出错：%s**", content))
+			}
+
+			if len(contents) == 0 {
+				utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+			}
+			utils.ReplyChunkMessage(ws, types.WsMessage{
+				Type:    types.WsMiddle,
+				Content: utils.InterfaceToString(resp.Result),
+			})
+			contents = append(contents, resp.Result)
+
+			if resp.IsTruncated {
+				utils.ReplyMessage(ws, "AI 输出异常中断")
 				break
-			case "interrupted":
-				utils.ReplyMessage(ws, "**调用 ChatGLM API 出错，当前输出被中断！**")
+			}
+
+			if resp.IsEnd {
+				break
 			}
 
 		} // end for
@@ -192,17 +212,14 @@ func (h *ChatHandler) sendBaiduMessage(
 		}
 
 		var res struct {
-			Code    int    `json:"code"`
-			Success bool   `json:"success"`
-			Msg     string `json:"msg"`
+			Code int    `json:"error_code"`
+			Msg  string `json:"error_msg"`
 		}
 		err = json.Unmarshal(body, &res)
 		if err != nil {
 			return fmt.Errorf("error with decode response: %v", err)
 		}
-		if !res.Success {
-			utils.ReplyMessage(ws, "请求 ChatGLM 失败："+res.Msg)
-		}
+		utils.ReplyMessage(ws, "请求百度文心大模型 API 失败："+res.Msg)
 	}
 
 	return nil
@@ -215,21 +232,41 @@ func (h *ChatHandler) getBaiduToken(apiKey string) (string, error) {
 		return tokenString, nil
 	}
 
-	expr := time.Hour * 2
-	key := strings.Split(apiKey, ".")
+	expr := time.Hour * 24 * 20 // access_token 有效期
+	key := strings.Split(apiKey, "|")
 	if len(key) != 2 {
 		return "", fmt.Errorf("invalid api key: %s", apiKey)
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"api_key":   key[0],
-		"timestamp": time.Now().Unix(),
-		"exp":       time.Now().Add(expr).Add(time.Second * 10).Unix(),
-	})
-	token.Header["alg"] = "HS256"
-	token.Header["sign_type"] = "SIGN"
-	delete(token.Header, "typ")
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err = token.SignedString([]byte(key[1]))
+	url := fmt.Sprintf("https://aip.baidubce.com/oauth/2.0/token?client_id=%s&client_secret=%s&grant_type=client_credentials", key[0], key[1])
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error with send request: %w", err)
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("error with read response: %w", err)
+	}
+	var r map[string]interface{}
+	err = json.Unmarshal(body, &r)
+	if err != nil {
+		return "", fmt.Errorf("error with parse response: %w", err)
+	}
+
+	if r["error"] != nil {
+		return "", fmt.Errorf("error with api response: %s", r["error_description"])
+	}
+
+	tokenString = fmt.Sprintf("%s", r["access_token"])
 	h.redis.Set(ctx, apiKey, tokenString, expr)
-	return tokenString, err
+	return tokenString, nil
 }
