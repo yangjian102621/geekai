@@ -22,7 +22,8 @@
                    @click="changeChat(chat)">
                 <el-image :src="chat.icon" class="avatar"/>
                 <span class="chat-title-input" v-if="chat.edit">
-              <el-input v-model="tmpChatTitle" size="small" placeholder="请输入会话标题"/>
+              <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
+                        placeholder="请输入会话标题"/>
             </span>
                 <span v-else class="chat-title">{{ chat.title }}</span>
                 <span class="btn btn-check" v-if="chat.edit || chat.removing">
@@ -451,16 +452,24 @@ const editChatTitle = function (event, chat) {
   tmpChatTitle.value = chat.title;
 };
 
+
+const titleKeydown = (e, chat) => {
+  if (e.keyCode === 13) {
+    e.stopPropagation();
+    confirm(e, chat)
+  }
+}
 // 确认修改
 const confirm = function (event, chat) {
   event.stopPropagation();
   if (curOpt.value === 'edit') {
     if (tmpChatTitle.value === '') {
-      ElMessage.error("请输入会话标题！");
-      return;
+      return ElMessage.error("请输入会话标题！");
     }
-
-    httpPost('/api/chat/update', {id: chat.id, title: tmpChatTitle.value}).then(() => {
+    if (!chat.chat_id) {
+      return ElMessage.error("对话 ID 为空，请刷新页面再试！");
+    }
+    httpPost('/api/chat/update', {chat_id: chat.chat_id, title: tmpChatTitle.value}).then(() => {
       chat.title = tmpChatTitle.value;
       chat.edit = false;
     }).catch(e => {

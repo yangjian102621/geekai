@@ -150,6 +150,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 		})
 
 		if result.Payload.Choices.Status == 2 { // 最终结果
+			_ = conn.Close() // 关闭连接
 			break
 		}
 
