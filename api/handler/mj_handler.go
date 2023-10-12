@@ -315,14 +315,26 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 // JobList 获取 MJ 任务列表
 func (h *MidJourneyHandler) JobList(c *gin.Context) {
 	status := h.GetInt(c, "status", 0)
-	var items []model.MidJourneyJob
-	var res *gorm.DB
-	userId, _ := c.Get(types.LoginUserID)
+	userId := h.GetInt(c, "user_id", 0)
+	page := h.GetInt(c, "page", 0)
+	pageSize := h.GetInt(c, "page_size", 0)
+
+	session := h.db.Session(&gorm.Session{})
 	if status == 1 {
-		res = h.db.Where("user_id = ? AND progress = 100", userId).Order("id DESC").Find(&items)
+		session = session.Where("progress = ?", 100).Order("id DESC")
 	} else {
-		res = h.db.Where("user_id = ? AND progress < 100", userId).Order("id ASC").Find(&items)
+		session = session.Where("progress < ?", 100).Order("id ASC")
 	}
+	if userId > 0 {
+		session = session.Where("user_id = ?", userId)
+	}
+	if page > 0 && pageSize > 0 {
+		offset := (page - 1) * pageSize
+		session = session.Offset(offset).Limit(pageSize)
+	}
+
+	var items []model.MidJourneyJob
+	res := session.Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, types.NoData)
 		return

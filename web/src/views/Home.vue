@@ -45,7 +45,7 @@ const navs = ref([
   {path: "/mj", icon: "image", title: "MJ 绘画"},
   {path: "/sd", icon: "palette", title: "SD 绘画"},
   {path: "/apps", icon: "menu", title: "应用中心"},
-  {path: "/images", icon: "image-list", title: "绘画社区"},
+  {path: "/images-wall", icon: "image-list", title: "作品展示"},
   {path: "/knowledge", icon: "book", title: "我的知识库"},
   {path: "/member", icon: "vip-user", title: "会员计划"},
   {path: "/invite", icon: "share", title: "推广计划"},
