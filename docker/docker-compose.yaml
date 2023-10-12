@@ -2,7 +2,7 @@ version: '3'
 services:
   # 后端 API 程序
   chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.4
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.5
     container_name: chatgpt-plus-api
     restart: always
     environment:
@@ -19,7 +19,7 @@ services:
 
   # 前端应用
   chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.4
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.5
     container_name: chatgpt-plus-web
     restart: always
     ports:
