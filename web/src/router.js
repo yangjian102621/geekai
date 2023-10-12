@@ -40,9 +40,9 @@ const routes = [
             },
             {
                 name: 'images',
-                path: '/images',
-                meta: {title: '绘画社区'},
-                component: () => import('@/views/Images.vue'),
+                path: '/images-wall',
+                meta: {title: '作品展示'},
+                component: () => import('@/views/ImagesWall.vue'),
             },
             {
                 name: 'user-invitation',

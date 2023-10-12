@@ -379,7 +379,6 @@ import {getSessionId, getUserToken} from "@/store/session";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
-
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   mjBoxHeight.value = window.innerHeight - 150
@@ -476,14 +475,14 @@ onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
     // 获取运行中的任务
-    httpGet("/api/mj/jobs?status=0").then(res => {
+    httpGet(`/api/mj/jobs?status=0&user_id=${user['id']}`).then(res => {
       runningJobs.value = res.data
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
     })
 
     // 获取运行中的任务
-    httpGet("/api/mj/jobs?status=1").then(res => {
+    httpGet(`/api/mj/jobs?status=1&user_id=${user['id']}`).then(res => {
       finishedJobs.value = res.data
       previewImgList.value = []
       for (let index in finishedJobs.value) {
