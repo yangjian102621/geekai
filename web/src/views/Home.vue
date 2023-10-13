@@ -109,7 +109,7 @@ const changeNav = (item) => {
         }
 
         a:hover, a.active {
-          color #58D3FF
+          color #47fff1
         }
       }
     }

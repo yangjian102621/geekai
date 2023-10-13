@@ -1,0 +1,20 @@
+.page-apps {
+  background-color: #282c34;
+  height: 100vh;
+}
+.page-apps .title {
+  text-align: center;
+  background-color: #25272d;
+  font-size: 24px;
+  color: #fff;
+  padding: 10px;
+  border-bottom: 1px solid #3c3c3c;
+}
+.page-apps .inner {
+  display: flex;
+  color: #fff;
+  padding: 20px;
+}
+.page-apps .inner .left-menu {
+  width: 160px;
+}
