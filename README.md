@@ -101,11 +101,9 @@ ChatGPT 的服务。
 * Github 地址：https://github.com/yangjian102621/chatgpt-plus
 * 码云地址：https://gitee.com/blackfox/chatgpt-plus
 
-
 ## 客户端下载
 
 目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/chatgpt-plus/releases/tag/v3.1.2
-
 
 ## TODOLIST
 
@@ -134,7 +132,7 @@ cd docker/mysql
 # 创建 mysql 容器
 docker-compose up -d
 # 导入数据库
-docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.4.sql
+docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.5.sql
 ```
 
 如果你本地已经安装了 MySQL 服务，那么你只需手动导入数据库即可。
@@ -222,8 +220,11 @@ WeChatBot = false # 是否启动微信机器人
 ```
 
 > 1. 如果你不知道如何获取 Discord 用户 Token 和 Bot Token
-请查参考 [Midjourney｜如何集成到自己的平台](https://zhuanlan.zhihu.com/p/631079476)。
-> 2. `Txt2ImgJsonPath` 的默认用的是使用最广泛的 [stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui) 项目的 API，如果你用的是其他版本，比如秋叶的懒人包部署的，那么请将对应的 text2img 的参数报文复制放在 `res/text2img.json` 文件中即可。
+     请查参考 [Midjourney｜如何集成到自己的平台](https://zhuanlan.zhihu.com/p/631079476)。
+> 2. `Txt2ImgJsonPath`
+     的默认用的是使用最广泛的 [stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui) 项目的
+     API，如果你用的是其他版本，比如秋叶的懒人包部署的，那么请将对应的 text2img 的参数报文复制放在 `res/text2img.json`
+     文件中即可。
 
 修改 nginx 配置文档 `docker/conf/nginx/conf.d/chatgpt-plus.conf`，把后端转发的地址改成当前主机的内网 IP 地址。
 
@@ -249,6 +250,42 @@ location /static/ {
 ```
 
 ### 3. 启动应用
+
+先修改 `docker/docker-compose.yaml` 文件中的镜像地址，改成最新的版本：
+
+```yaml
+version: '3'
+services:
+  # 后端 API 镜像
+  chatgpt-plus-api:
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.5 #这里改成最新的 release 版本地址
+    container_name: chatgpt-plus-api
+    restart: always
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - CONFIG_FILE=config.toml
+    ports:
+      - "5678:5678"
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
+      - ./conf/config.toml:/var/www/app/config.toml
+      - ./logs:/var/www/app/logs
+      - ./static:/var/www/app/static
+
+  # 前端应用镜像
+  chatgpt-plus-web:
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.5 #这里改成最新的 release 版本地址
+    container_name: chatgpt-plus-web
+    restart: always
+    ports:
+      - "8080:8080" # 这边是对外的端口，支持 8080，80和443
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+      - ./conf/nginx/conf.d:/etc/nginx/conf.d
+      - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+```
 
 ```shell
 cd docker
