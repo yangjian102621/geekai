@@ -283,6 +283,7 @@
             </ItemList>
             <el-empty :image-size="100" v-else/>
           </div>
+
           <h2>创作记录</h2>
           <div class="finish-job-list">
             <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0">
@@ -356,6 +357,8 @@
                 </div>
               </template>
             </ItemList>
+
+            <el-empty :image-size="100" v-else/>
           </div> <!-- end finish job list-->
         </div>
 
