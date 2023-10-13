@@ -1,3 +1,12 @@
+@keyframes expandUp {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
 .page-images-wall {
   display: flex;
   background-color: #282c34;
@@ -36,6 +45,69 @@
       margin: 0 auto;
       overflow-y auto
       overflow-x hidden
+
+      .list-item {
+
+        .image {
+          overflow hidden
+
+          .el-image {
+            transition: transform 0.3s;
+          }
+        }
+
+        .prompt {
+          display none
+          position absolute
+          bottom 0
+          color #ffffff
+          padding 10px 10px 20px 10px
+          line-height 1.2
+          background-color rgba(10, 10, 10, 0.7)
+
+          .el-icon {
+            position absolute
+            bottom 10px
+            right 10px
+            cursor pointer
+            border 1px solid #ffffff
+            border-radius 5px
+            padding 2px
+            font-size 12px;
+
+            &:hover {
+              background-color #999999
+            }
+          }
+        }
+
+        &:hover {
+          .prompt {
+            display block
+            animation: expandUp 0.3s ease-in-out forwards;
+            transform-origin: bottom center;
+            transform: scaleY(0); /* 初始状态，元素高度为0 */
+          }
+
+          .image {
+            .el-image {
+              transform: scale(1.2); /* 放大图像到1.2倍大小 */
+            }
+          }
+        }
+      }
+
+
+      .footer {
+        display flex
+        padding 20px
+        align-items center
+        justify-content center
+
+        .iconfont {
+          margin-left 6px
+        }
+      }
     }
 
   }
