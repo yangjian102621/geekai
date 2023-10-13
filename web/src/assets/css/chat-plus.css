@@ -63,7 +63,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: 210px;
+  width: 190px;
 }
 #app .common-layout .el-aside .chat-list .content .chat-list-item .chat-title {
   color: #c1c1c1;
