@@ -3,10 +3,6 @@
 }
 .page-mj .inner {
   display: flex;
-/* 修改滚动条的颜色 */
-/* 修改滚动条轨道的背景颜色 */
-/* 修改滚动条的滑块颜色 */
-/* 修改滚动条的滑块的悬停颜色 */
 }
 .page-mj .inner .mj-box {
   margin: 10px;
@@ -146,19 +142,6 @@
 .page-mj .inner .el-form .el-input,
 .page-mj .inner .el-form .el-slider {
   width: 180px;
-}
-.page-mj .inner ::-webkit-scrollbar {
-  width: 10px; /* 滚动条宽度 */
-}
-.page-mj .inner ::-webkit-scrollbar-track {
-  background-color: #282c34;
-}
-.page-mj .inner ::-webkit-scrollbar-thumb {
-  background-color: #444;
-  border-radius: 10px;
-}
-.page-mj .inner ::-webkit-scrollbar-thumb:hover {
-  background-color: #666;
 }
 .page-mj .inner .task-list-box {
   width: 100%;
