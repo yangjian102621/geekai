@@ -1,41 +1,36 @@
 <template>
-  <div class="page-apps" :style="{ height: winHeight + 'px' }">
-    <div class="inner">
-      <h1>应用中心</h1>
-      <h2>页面正在紧锣密鼓开发中，敬请期待！</h2>
+  <div class="page-apps">
+    <div class="title">
+      AI 助手应用中心
+    </div>
+    <div class="inner custom-scroll">
+      <div class="app-list">
+        <div class="list-item" v-for="item in list" :key="item.id">
+          <div v-if="item.key !=='gpt'">
+            <el-image :src="item.icon"/>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import {ref} from "vue"
+import {onMounted, ref} from "vue"
+import {ElMessage} from "element-plus";
+import {httpGet} from "@/utils/http";
 
-const winHeight = ref(window.innerHeight)
+const list = ref([])
+onMounted(() => {
+  httpGet("/api/role/list?all=true").then((res) => {
+    list.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取应用失败：" + e.message)
+  })
+})
 </script>
 
 <style lang="stylus" scoped>
-.page-apps {
-  display: flex;
-  justify-content: center;
-  align-items center
-  background-color: #282c34;
-
-  .inner {
-    text-align center
-
-    h1 {
-      color: #202020;
-      font-size: 80px;
-      font-weight: bold;
-      letter-spacing: 0.1em;
-      text-shadow: -1px -1px 1px #111111, 2px 2px 1px #363636;
-    }
-
-    h2 {
-      color #ffffff;
-      font-weight: bold;
-    }
-  }
-
-}
+@import "@/assets/css/chat-app.styl"
+@import "@/assets/css/custom-scroll.styl"
 </style>

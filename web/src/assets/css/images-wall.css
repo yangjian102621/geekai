@@ -50,6 +50,9 @@
   border-top-right-radius: 10px;
   background-color: rgba(10,10,10,0.7);
 }
+.page-images-wall .inner .waterfall .list-item .prompt span {
+  word-break: break-all;
+}
 .page-images-wall .inner .waterfall .list-item .prompt .el-icon {
   position: absolute;
   bottom: 10px;
