@@ -11,7 +11,7 @@
         </div>
       </div>
       <div class="waterfall" :style="{ height:listBoxHeight + 'px' }" id="waterfall-box">
-        <v3-waterfall id="waterfall" :list="list" srcKey="img_url"
+        <v3-waterfall id="waterfall" :list="list" srcKey="img_thumb"
                       :gap="12"
                       :bottomGap="-5"
                       :colWidth="colWidth"
@@ -22,7 +22,7 @@
           <template #default="slotProp">
             <div class="list-item">
               <div class="image" v-if="imgType === 'mj'">
-                <el-image :src="slotProp.item['img_url']+'?imageView2/4/w/300/q/75'"
+                <el-image :src="slotProp.item['img_thumb']"
                           :zoom-rate="1.2"
                           :preview-src-list="[slotProp.item['img_url']]"
                           :preview-teleported="true"
@@ -44,7 +44,7 @@
                 </el-image>
               </div>
               <div class="image" v-else>
-                <el-image :src="slotProp.item['img_url']+'?imageView2/4/w/300/q/75'" loading="lazy"
+                <el-image :src="slotProp.item['img_thumb']" loading="lazy"
                           @click="showTask(slotProp.item)">
                   <template #placeholder>
                     <div class="image-slot">
@@ -84,7 +84,21 @@
       <el-row :gutter="20">
         <el-col :span="16">
           <div class="img-container" :style="{maxHeight: fullImgHeight+'px'}">
-            <el-image :src="item['img_url']" fit="contain"/>
+            <el-image :src="item['img_url']" fit="contain">
+              <template #placeholder>
+                <div class="image-slot">
+                  正在加载图片
+                </div>
+              </template>
+
+              <template #error>
+                <div class="image-slot">
+                  <el-icon>
+                    <Picture/>
+                  </el-icon>
+                </div>
+              </template>
+            </el-image>
           </div>
         </el-col>
         <el-col :span="8">
@@ -206,7 +220,7 @@ const list = ref([])
 const loading = ref(true)
 const isOver = ref(false)
 const imgType = ref("mj") // 图片类别
-const listBoxHeight = window.innerHeight - 71
+const listBoxHeight = window.innerHeight - 74
 const colWidth = ref(240)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
@@ -237,15 +251,25 @@ const getNext = () => {
   // 获取运行中的任务
   httpGet(`${url}?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     loading.value = false
-    if (list.value.length === 0) {
-      list.value = res.data
+    if (res.data.length === 0) {
+      isOver.value = true
       return
     }
 
-    if (res.data.length < pageSize.value) {
+    // 生成缩略图
+    const imageList = res.data
+    for (let i = 0; i < imageList.length; i++) {
+      imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/q/75"
+    }
+    if (list.value.length === 0) {
+      list.value = imageList
+      return
+    }
+
+    if (imageList.length < pageSize.value) {
       isOver.value = true
     }
-    list.value = list.value.concat(res.data)
+    list.value = list.value.concat(imageList)
 
   }).catch(e => {
     ElMessage.error("获取图片失败：" + e.message)
