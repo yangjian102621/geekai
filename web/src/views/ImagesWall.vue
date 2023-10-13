@@ -12,29 +12,45 @@
       </div>
       <v3-waterfall class="waterfall" id="waterfall" :list="list" srcKey="img_url" :gap="12" :colWidth="colWidth"
                     :style="{ height:listBoxHeight + 'px' }"
-                    :distanceToScroll="100" :isLoading="loading" :isOver="over" @scrollReachBottom="getNext">
+                    :distanceToScroll="200" :isLoading="loading" :isOver="over" @scrollReachBottom="getNext">
         <template #default="slotProp">
           <div class="list-item">
-            <el-image :src="slotProp.item['img_url']+'?imageView2/4/w/300/q/75'"
-                      :zoom-rate="1.2"
-                      :preview-src-list="[slotProp.item['img_url']]"
-                      :preview-teleported="true"
-                      :initial-index="10"
-                      loading="lazy">
-              <template #placeholder>
-                <div class="image-slot">
-                  正在加载图片
-                </div>
-              </template>
+            <div class="image">
+              <el-image :src="slotProp.item['img_url']+'?imageView2/4/w/300/q/75'"
+                        :zoom-rate="1.2"
+                        :preview-src-list="[slotProp.item['img_url']]"
+                        :preview-teleported="true"
+                        :initial-index="10"
+                        loading="lazy">
+                <template #placeholder>
+                  <div class="image-slot">
+                    正在加载图片
+                  </div>
+                </template>
 
-              <template #error>
-                <div class="image-slot">
-                  <el-icon v-if="slotProp.item['img'] !== ''">
-                    <Picture/>
-                  </el-icon>
-                </div>
-              </template>
-            </el-image>
+                <template #error>
+                  <div class="image-slot">
+                    <el-icon v-if="slotProp.item['img'] !== ''">
+                      <Picture/>
+                    </el-icon>
+                  </div>
+                </template>
+              </el-image>
+            </div>
+
+            <div class="prompt">
+              <span>{{ slotProp.item.prompt }}</span>
+              <el-icon class="copy-prompt" :data-clipboard-text="slotProp.item.prompt">
+                <DocumentCopy/>
+              </el-icon>
+            </div>
+          </div>
+        </template>
+
+        <template #footer>
+          <div class="footer">
+            <span>没有更多数据了</span>
+            <i class="iconfont icon-face"></i>
           </div>
         </template>
       </v3-waterfall>
@@ -43,16 +59,17 @@
 </template>
 
 <script setup>
-import {ref} from "vue"
-import {Picture} from "@element-plus/icons-vue";
+import {onMounted, ref} from "vue"
+import {DocumentCopy, Picture} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import Clipboard from "clipboard";
 
 const list = ref([])
 const loading = ref(true)
 const over = ref(false)
 const imgType = ref("mj") // 图片类别
-const listBoxHeight = window.innerHeight - 100
+const listBoxHeight = window.innerHeight - 71
 const colWidth = ref(240)
 
 // 计算瀑布流列宽度
@@ -90,6 +107,17 @@ const getNext = () => {
 }
 
 getNext()
+
+onMounted(() => {
+  const clipboard = new Clipboard('.copy-prompt');
+  clipboard.on('success', () => {
+    ElMessage.success({message: "复制成功！", duration: 500});
+  })
+
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
 
 </script>
 
