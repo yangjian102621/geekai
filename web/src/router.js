@@ -22,7 +22,7 @@ const routes = [
             },
             {
                 name: 'image-sd',
-                path: '/sd',
+                path: '/sd/',
                 meta: {title: 'Stable Diffusion 绘画中心'},
                 component: () => import('@/views/ImageSd.vue'),
             },

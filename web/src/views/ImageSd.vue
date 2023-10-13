@@ -539,6 +539,11 @@ const runningJobs = ref([])
 const finishedJobs = ref([])
 const previewImgList = ref([])
 const router = useRouter()
+// 检查是否有画同款的参数
+const _params = router.currentRoute.value.params["copyParams"]
+if (_params) {
+  params.value = JSON.parse(_params)
+}
 
 const socket = ref(null)
 const imgCalls = ref(0)
@@ -681,4 +686,5 @@ const copyParams = (row) => {
 
 <style lang="stylus">
 @import "@/assets/css/image-sd.styl"
+@import "@/assets/css/custom-scroll.styl"
 </style>

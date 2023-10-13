@@ -1,6 +1,6 @@
 <template>
   <div class="page-mj">
-    <div class="inner">
+    <div class="inner custom-scroll">
       <div class="mj-box">
         <h2>MidJourney 创作中心</h2>
 
@@ -600,4 +600,5 @@ const send = (url, index, item) => {
 
 <style lang="stylus">
 @import "@/assets/css/image-mj.styl"
+@import "@/assets/css/custom-scroll.styl"
 </style>
