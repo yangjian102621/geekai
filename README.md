@@ -30,9 +30,9 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ![ChatGPT function plugin](/docs/imgs/mj.jpg)
 
-### 用户设置
+### 绘图作品展
 
-![ChatGPT user profle](/docs/imgs/user_profile.png)
+![ChatGPT image_list](/docs/imgs/image-list.png)
 
 ### 登录页面
 
@@ -50,7 +50,8 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ![Mobile chat list](/docs/imgs/mobile_chat_list.png)
 ![Mobile chat session](/docs/imgs/mobile_chat_session.png)
-![Mobile chat setting](/docs/imgs/mobile_chat_setting.png)
+![Mobile chat setting](/docs/imgs/mobile_user_profile.png)
+![Mobile chat setting](/docs/imgs/mobile_user_profile.png)
 
 ### 7. 体验地址
 
