@@ -372,6 +372,7 @@
                 </div>
               </template>
             </ItemList>
+            <el-empty :image-size="100" v-else/>
           </div> <!-- end finish job list-->
         </div>
 
@@ -619,14 +620,14 @@ onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
     // 获取运行中的任务
-    httpGet("/api/sd/jobs?status=0").then(res => {
+    httpGet(`/api/sd/jobs?status=0&user_id=${user['id']}`).then(res => {
       runningJobs.value = res.data
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
     })
 
     // 获取运行中的任务
-    httpGet("/api/sd/jobs?status=1").then(res => {
+    httpGet(`/api/sd/jobs?status=1&user_id=${user['id']}`).then(res => {
       finishedJobs.value = res.data
       previewImgList.value = []
       for (let index in finishedJobs.value) {

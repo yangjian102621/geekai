@@ -80,14 +80,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// 默认订阅所有角色
-	var chatRoles []model.ChatRole
-	h.db.Find(&chatRoles)
-	var roleKeys = make([]string, 0)
-	for _, r := range chatRoles {
-		roleKeys = append(roleKeys, r.Key)
-	}
-
 	salt := utils.RandString(8)
 	user := model.User{
 		Password:  utils.GenPassword(data.Password, salt),
@@ -95,7 +87,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Salt:      salt,
 		Status:    true,
 		Mobile:    data.Mobile,
-		ChatRoles: utils.JsonEncode(roleKeys),
+		ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
 		ChatConfig: utils.JsonEncode(types.UserChatConfig{
 			ApiKeys: map[types.Platform]string{
 				types.OpenAI:  "",
@@ -116,7 +108,24 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if h.App.SysConfig.EnabledMsg {
 		_ = h.leveldb.Delete(key) // 注册成功，删除短信验证码
 	}
-	resp.SUCCESS(c, user)
+
+	// 自动登录创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.Id,
+		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		resp.ERROR(c, "Failed to generate token, "+err.Error())
+		return
+	}
+	// 保存到 redis
+	key = fmt.Sprintf("users/%d", user.Id)
+	if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+		resp.ERROR(c, "error with save token: "+err.Error())
+		return
+	}
+	resp.SUCCESS(c, tokenString)
 }
 
 // Login 用户登录

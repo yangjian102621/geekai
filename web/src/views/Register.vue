@@ -109,6 +109,7 @@ import SendMsg from "@/components/SendMsg.vue";
 import {validateMobile} from "@/utils/validate";
 import {isMobile} from "@/utils/libs";
 import SendMsgMobile from "@/components/SendMsg.vue";
+import {setUserToken} from "@/store/session";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');
@@ -144,8 +145,13 @@ const register = function () {
     return ElMessage.error('请输入短信验证码');
   }
   formData.value.code = parseInt(formData.value.code)
-  httpPost('/api/user/register', formData.value).then(() => {
-    ElMessage.success({"message": "注册成功，即将跳转到登录页...", onClose: () => router.push("/login")})
+  httpPost('/api/user/register', formData.value).then((res) => {
+    setUserToken(res.data)
+    ElMessage.success({
+      "message": "注册成功，即将跳转到对话主界面...",
+      onClose: () => router.push("/chat"),
+      duration: 1000
+    })
   }).catch((e) => {
     ElMessage.error('注册失败，' + e.message)
   })

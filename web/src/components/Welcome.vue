@@ -88,7 +88,7 @@ const capabilities = ref([
     value: ""
   },
   {
-    text: "国产大语言模型支持，GLM2 模型接入中",
+    text: "国产大语言模型支持，百度文心，科大讯飞，ChatGLM...",
     value: ""
   },
   {

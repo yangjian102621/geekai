@@ -41,10 +41,13 @@
 .page-images-wall .inner .waterfall .list-item .prompt {
   display: none;
   position: absolute;
+  width: 180px;
   bottom: 0;
+  left: 0;
   color: #fff;
   padding: 10px 10px 20px 10px;
   line-height: 1.2;
+  border-top-right-radius: 10px;
   background-color: rgba(10,10,10,0.7);
 }
 .page-images-wall .inner .waterfall .list-item .prompt .el-icon {
