@@ -286,7 +286,7 @@
 
           <h2>创作记录</h2>
           <div class="finish-job-list">
-            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0">
+            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" width="240">
               <template #default="scope">
                 <div class="job-item">
                   <el-image
@@ -503,7 +503,7 @@ onMounted(() => {
 
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {
-    ElMessage.success({message: "复制成功！", duration: 500});
+    ElMessage.success("复制成功！");
   })
 
   clipboard.on('error', () => {

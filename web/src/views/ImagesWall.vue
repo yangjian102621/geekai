@@ -281,7 +281,7 @@ getNext()
 onMounted(() => {
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {
-    ElMessage.success({message: "复制成功！", duration: 500});
+    ElMessage.success("复制成功！");
   })
 
   clipboard.on('error', () => {
@@ -293,6 +293,7 @@ const changeImgType = () => {
   document.getElementById('waterfall-box').scrollTo(0, 0)
   page.value = 0
   list.value = []
+  loading.value = true
   isOver.value = false
   nextTick(() => getNext())
 }

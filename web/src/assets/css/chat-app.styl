@@ -14,12 +14,59 @@
   .inner {
     display flex
     color #ffffff
-    padding 20px;
+    padding 15px;
+    overflow-y visible
+    overflow-x hidden
 
-    .left-menu {
-      width 160px
+    .list-box {
+      .app-item {
+        border 1px solid #666666
+        border-radius 6px
+        overflow hidden
+        transition: all 0.3s ease; /* 添加过渡效果 */
+
+        .el-image {
+          padding 6px
+
+          .el-image__inner {
+            border-radius 10px
+          }
+        }
+
+        .title {
+          display flex
+          padding 10px
+
+          .name {
+            width 100%
+            text-align left
+            font-size 16px
+            font-weight bold
+            color #47fff1
+          }
+
+          .opt {
+            position: relative;
+            top -5px
+          }
+        }
+
+        .hello-msg {
+          overflow: hidden;
+          white-space normal
+          text-overflow: ellipsis;
+          height 60px
+          padding 10px
+          font-size 14px
+          color #999999
+        }
+
+        &:hover {
+          box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+          transform: translateY(-10px); /* 向上移动10像素 */
+        }
+      }
     }
-
   }
 
 }
