@@ -289,7 +289,7 @@
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <h2>任务列表</h2>
           <div class="running-job-list">
-            <ItemList :items="runningJobs" v-if="runningJobs.length > 0">
+            <ItemList :items="runningJobs" v-if="runningJobs.length > 0" width="240">
               <template #default="scope">
                 <div class="job-item">
                   <el-popover
@@ -645,7 +645,7 @@ onMounted(() => {
 
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {
-    ElMessage.success({message: "复制成功！", duration: 500});
+    ElMessage.success("复制成功！");
   })
 
   clipboard.on('error', () => {

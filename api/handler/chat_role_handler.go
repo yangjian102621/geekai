@@ -48,13 +48,15 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 		return
 	}
 
-	user, err := utils.GetLoginUser(c, h.db)
-	if err != nil {
+	userId := h.GetInt(c, "user_id", 0)
+	if userId == 0 {
 		resp.NotAuth(c)
 		return
 	}
+	var user model.User
+	h.db.First(&user, userId)
 	var roleKeys []string
-	err = utils.JsonDecode(user.ChatRoles, &roleKeys)
+	err := utils.JsonDecode(user.ChatRoles, &roleKeys)
 	if err != nil {
 		resp.ERROR(c, "角色解析失败！")
 		return

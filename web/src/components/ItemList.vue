@@ -5,11 +5,11 @@
           class="list-item"
           v-for="(item, index) in items"
           :key="index"
-          :style="{width:itemWidth + 'px', marginBottom: margin*2+'px'}"
+          :style="{width:itemWidth + 'px'}"
       >
-        <div :style="{marginLeft: margin+'px', marginRight: margin+'px'}">
+        <div class="item-inner" :style="{padding: gap/2+'px'}">
           <div class="item-wrapper">
-            <slot :item="item" :index="index"></slot>
+            <slot :item="item" :index="index" :width="itemWidth"></slot>
           </div>
         </div>
       </div>
@@ -21,6 +21,7 @@
 // 列表组件
 import {onMounted, ref} from "vue";
 
+// eslint-disable-next-line no-undef
 const props = defineProps({
   items: {
     type: Array,
@@ -28,13 +29,9 @@ const props = defineProps({
   },
   gap: {
     type: Number,
-    default: 10
+    default: 12
   },
   width: {
-    type: Number,
-    default: 240
-  },
-  height: {
     type: Number,
     default: 240
   }
@@ -42,24 +39,15 @@ const props = defineProps({
 
 const container = ref(null)
 const itemWidth = ref(props.width)
-const margin = ref(props.gap)
 
 onMounted(() => {
   computeSize()
 })
 
 const computeSize = () => {
-  const w = container.value.offsetWidth - 10 // 减去滚动条的宽度
+  const w = container.value.offsetWidth - 8 // 减去滚动条的宽度
   let cols = Math.floor(w / props.width)
-  itemWidth.value = Math.floor(w / cols) - 1
-  while (itemWidth.value < props.width && cols > 1) {
-    cols -= 1
-    itemWidth.value = Math.floor(w / cols) - 1
-  }
-
-  if (props.gap > 0) {
-    margin.value = props.gap / 2
-  }
+  itemWidth.value = Math.floor(w / cols)
 }
 
 window.onresize = () => {
@@ -76,15 +64,14 @@ window.onresize = () => {
     flex-wrap wrap
 
     .list-item {
-
-      div {
+      .item-inner {
         display flex
-        height 100%
-        overflow hidden
 
         .item-wrapper {
           height 100%
           width 100%
+          display flex
+          justify-content center
         }
       }
     }
