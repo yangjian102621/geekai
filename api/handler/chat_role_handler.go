@@ -2,6 +2,7 @@ package handler
 
 import (
 	"chatplus/core"
+	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -75,4 +76,30 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 		}
 	}
 	resp.SUCCESS(c, roleVos)
+}
+
+// AddRole 为用户添加角色
+func (h *ChatRoleHandler) AddRole(c *gin.Context) {
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	var data struct {
+		Keys []string `json:"keys"`
+	}
+	if err = c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	res := h.db.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("chat_roles_json", utils.JsonEncode(data.Keys))
+	if res.Error != nil {
+		logger.Error("添加应用失败：", err)
+		resp.ERROR(c, "更新数据库失败！")
+		return
+	}
+
+	resp.SUCCESS(c)
 }
