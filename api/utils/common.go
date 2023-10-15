@@ -36,7 +36,7 @@ func CopyObject(src interface{}, dst interface{}) error {
 				pType := reflect.New(value.Type())
 				v2 := pType.Interface()
 				err := json.Unmarshal([]byte(v.String()), &v2)
-				if err == nil {
+				if err == nil && v2 != nil {
 					value.Set(reflect.ValueOf(v2).Elem())
 				}
 				// map, struct, slice to string
