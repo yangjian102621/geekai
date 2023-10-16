@@ -185,7 +185,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
 			group := s.Engine.Group("/api/role/")
 			group.GET("list", h.List)
-			group.POST("add", h.AddRole)
+			group.POST("update", h.UpdateRole)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
 			group := s.Engine.Group("/api/user/")
