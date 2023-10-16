@@ -8,7 +8,6 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -160,7 +159,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-// JobList 获取 MJ 任务列表
+// JobList 获取 stable diffusion 任务列表
 func (h *SdJobHandler) JobList(c *gin.Context) {
 	status := h.GetInt(c, "status", 0)
 	userId := h.GetInt(c, "user_id", 0)
@@ -200,12 +199,6 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 			if time.Now().Sub(item.CreatedAt) > time.Minute*30 {
 				h.db.Delete(&item)
 				continue
-			}
-			if item.ImgURL != "" { // 正在运行中任务使用代理访问图片
-				image, err := utils.DownloadImage(item.ImgURL, h.App.Config.ProxyURL)
-				if err == nil {
-					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
-				}
 			}
 		}
 		jobs = append(jobs, job)

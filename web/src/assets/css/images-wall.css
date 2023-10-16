@@ -102,6 +102,15 @@
   display: flex;
   justify-content: center;
 }
+.page-images-wall .el-overlay-dialog .el-dialog .el-dialog__body .el-row .img-container .image-slot {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+.page-images-wall .el-overlay-dialog .el-dialog .el-dialog__body .el-row .img-container .image-slot .el-icon {
+  font-size: 60px;
+}
 .page-images-wall .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info {
   background-color: #25262b;
   padding: 1rem 1.5rem;

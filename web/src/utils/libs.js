@@ -128,3 +128,32 @@ export function copyObj(origin) {
 export function disabledDate(time) {
     return time.getTime() < Date.now()
 }
+
+// 字符串截取
+export function substr(str, length) {
+    let result = ''
+    let count = 0
+
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charAt(i)
+        const charCode = str.charCodeAt(i);
+
+        // 判断字符是否为中文字符
+        if (charCode >= 0x4e00 && charCode <= 0x9fff) {
+            // 中文字符算两个字符
+            count += 2
+        } else {
+            count++
+        }
+
+        if (count <= length) {
+            result += char
+        } else {
+            result += " ..."
+            break
+        }
+    }
+
+    return result
+}
+

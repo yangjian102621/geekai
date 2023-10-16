@@ -78,8 +78,8 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	resp.SUCCESS(c, roleVos)
 }
 
-// AddRole 为用户添加角色
-func (h *ChatRoleHandler) AddRole(c *gin.Context) {
+// UpdateRole 更新用户聊天角色
+func (h *ChatRoleHandler) UpdateRole(c *gin.Context) {
 	user, err := utils.GetLoginUser(c, h.db)
 	if err != nil {
 		resp.NotAuth(c)

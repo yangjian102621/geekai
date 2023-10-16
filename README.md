@@ -51,7 +51,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 ![Mobile chat list](/docs/imgs/mobile_chat_list.png)
 ![Mobile chat session](/docs/imgs/mobile_chat_session.png)
 ![Mobile chat setting](/docs/imgs/mobile_user_profile.png)
-![Mobile chat setting](/docs/imgs/mobile_user_profile.png)
+![Mobile chat setting](/docs/imgs/mobile_pay.png)
 
 ### 7. 体验地址
 

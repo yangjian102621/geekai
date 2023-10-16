@@ -12,7 +12,8 @@
               <span class="name">{{ scope.item.name }}</span>
               <div class="opt">
 
-                <el-button v-if="hasRole(scope.item.key)" size="small" type="danger">
+                <el-button v-if="hasRole(scope.item.key)" size="small" type="danger"
+                           @click="updateRole(scope.item,'remove')">
                   <el-icon>
                     <Delete/>
                   </el-icon>
@@ -20,7 +21,7 @@
                 </el-button>
                 <el-button v-else size="small"
                            style="--el-color-primary:#009999"
-                           @click="addRole(scope.item)">
+                           @click="updateRole(scope.item, 'add')">
                   <el-icon>
                     <Plus/>
                   </el-icon>
@@ -28,7 +29,7 @@
                 </el-button>
               </div>
             </div>
-            <div class="hello-msg">{{ scope.item['hello_msg'] }}</div>
+            <div class="hello-msg" ref="elements">{{ scope.item.intro }}</div>
           </div>
         </template>
       </ItemList>
@@ -39,22 +40,28 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
 import {Delete, Plus} from "@element-plus/icons-vue";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
-import {arrayContains} from "@/utils/libs";
+import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
 const showLoginDialog = ref(false)
 const roles = ref([])
+const elements = ref(null)
 onMounted(() => {
   httpGet("/api/role/list?all=true").then((res) => {
-    list.value = res.data
+    const items = res.data
+    // 处理 hello message
+    for (let i = 0; i < items.length; i++) {
+      items[i].intro = substr(items[i].hello_msg, 80)
+    }
+    list.value = items
   }).catch(e => {
     ElMessage.error("获取应用失败：" + e.message)
   })
@@ -63,19 +70,31 @@ onMounted(() => {
     roles.value = user.chat_roles
   }).catch(() => {
   })
+
 })
 
-const addRole = (row) => {
+const updateRole = (row, opt) => {
   checkSession().then(() => {
-    const exists = arrayContains(roles.value, row.key, (v1, v2) => v1 === v2)
-    if (exists) {
-      return
+    const title = ref("")
+    if (opt === "add") {
+      title.value = "添加应用"
+      const exists = arrayContains(roles.value, row.key)
+      if (exists) {
+        return
+      }
+      roles.value.push(row.key)
+    } else {
+      title.value = "移除应用"
+      const exists = arrayContains(roles.value, row.key)
+      if (!exists) {
+        return
+      }
+      roles.value = removeArrayItem(roles.value, row.key)
     }
-    roles.value.push(row.key)
-    httpPost("/api/role/add", {keys: roles.value}).then(() => {
-      ElMessage.success("添加应用成功！")
+    httpPost("/api/role/update", {keys: roles.value}).then(() => {
+      ElMessage.success(title.value + "成功！")
     }).catch(e => {
-      ElMessage.error("添加应用失败：" + e.message)
+      ElMessage.error(title.value + "失败：" + e.message)
     })
   }).catch(() => {
     showLoginDialog.value = true
