@@ -110,11 +110,14 @@ ChatGPT 的服务。
 
 * [x] 整合 Midjourney AI 绘画 API
 * [x] 开发移动端聊天页面
-* [x] 接入微信支付功能
+* [x] 接入微信收款功能
 * [x] 支持 ChatGPT 函数功能，通过函数实现插件
+* [x] 开发桌面版应用
+* [x] 开发手机 App 客户端
+* [x] 支付宝支付功能
 * [ ] 支持基于知识库的 AI 问答
-* [ ] 开发桌面版应用
-* [ ] 开发手机 App 客户端
+* [ ] 会员推广功能
+* [ ] 微信支付功能
 
 ## Docker 快速部署
 
@@ -133,7 +136,7 @@ cd docker/mysql
 # 创建 mysql 容器
 docker-compose up -d
 # 导入数据库
-docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.5.sql
+docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.6.sql
 ```
 
 如果你本地已经安装了 MySQL 服务，那么你只需手动导入数据库即可。
