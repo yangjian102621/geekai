@@ -35,7 +35,7 @@
       </ItemList>
     </div>
 
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
+    <login-dialog :show="showLoginDialog" @hide="getRoles"/>
   </div>
 </template>
 
@@ -48,6 +48,7 @@ import {Delete, Plus} from "@element-plus/icons-vue";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
+import router from "@/router";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -66,12 +67,16 @@ onMounted(() => {
     ElMessage.error("获取应用失败：" + e.message)
   })
 
+  getRoles()
+})
+
+const getRoles = () => {
   checkSession().then(user => {
+    showLoginDialog.value = false
     roles.value = user.chat_roles
   }).catch(() => {
   })
-
-})
+}
 
 const updateRole = (row, opt) => {
   checkSession().then(() => {
@@ -92,7 +97,7 @@ const updateRole = (row, opt) => {
       roles.value = removeArrayItem(roles.value, row.key)
     }
     httpPost("/api/role/update", {keys: roles.value}).then(() => {
-      ElMessage.success(title.value + "成功！")
+      ElMessage.success({message: title.value + "成功！", duration: 1000})
     }).catch(e => {
       ElMessage.error(title.value + "失败：" + e.message)
     })
