@@ -408,6 +408,8 @@ make clean linux
 
 如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～
 
+![支付宝打赏](docs/imgs/alipay.png)
 ![微信打赏](docs/imgs/wechat-pay.png)
+
 
 
