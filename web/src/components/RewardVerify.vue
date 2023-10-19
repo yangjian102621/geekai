@@ -4,15 +4,16 @@
       :close-on-click-modal="true"
       :show-close="mobile !== ''"
       :before-close="close"
+      :width="450"
       :title="title"
   >
     <div class="form" id="bind-mobile-form">
       <el-alert v-if="mobile !== ''" type="info" show-icon :closable="false" style="margin-bottom: 20px;">
-        <p>请输入您参与众筹的微信支付转账单号兑换相应的对话次数。</p>
+        <p>请输入您参与众筹的 <strong style="color:#F56C6C">微信支付转账单号</strong> 兑换相应的对话次数。</p>
       </el-alert>
 
-      <el-form :model="form" label-width="120px">
-        <el-form-item label="转账单号">
+      <el-form :model="form">
+        <el-form-item label="">
           <el-input v-model="form.tx_id"/>
         </el-form-item>
       </el-form>
