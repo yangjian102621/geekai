@@ -119,4 +119,5 @@ type SystemConfig struct {
 	EnabledDraw     bool     `json:"enabled_draw"`     // 启动 AI 绘画功能
 	RewardImg       string   `json:"reward_img"`       // 众筹收款二维码地址
 	EnabledFunction bool     `json:"enabled_function"` // 启用 API 函数功能
+	EnabledReward   bool     `json:"enabled_reward"`   // 启用众筹功能
 }

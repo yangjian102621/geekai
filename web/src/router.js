@@ -4,7 +4,7 @@ const routes = [
     {
         name: 'home',
         path: '/',
-        redirect: '/apps',
+        redirect: '/chat',
         meta: {title: '首页'},
         component: () => import('@/views/Home.vue'),
         children: [

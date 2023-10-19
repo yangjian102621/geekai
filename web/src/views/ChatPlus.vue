@@ -67,14 +67,14 @@
                   <span>绑定手机号</span>
                 </el-dropdown-item>
 
-                <el-dropdown-item @click="showRewardDialog = true">
+                <el-dropdown-item @click="showRewardDialog = true" v-if="enableReward">
                   <el-icon>
                     <Present/>
                   </el-icon>
                   <span>加入众筹</span>
                 </el-dropdown-item>
 
-                <el-dropdown-item @click="showRewardVerifyDialog = true">
+                <el-dropdown-item @click="showRewardVerifyDialog = true" v-if="enableReward">
                   <el-icon>
                     <Checked/>
                   </el-icon>
@@ -243,7 +243,7 @@
         </div>
       </el-alert>
       <div style="text-align: center;padding-top: 10px;">
-        <el-image :src="rewardImg"/>
+        <el-image v-if="enableReward" :src="rewardImg"/>
       </div>
     </el-dialog>
   </div>
@@ -287,6 +287,7 @@ import Welcome from "@/components/Welcome.vue";
 import ChatMidJourney from "@/components/ChatMidJourney.vue";
 
 const title = ref('ChatGPT-智能助手');
+const enableReward = ref(false) // 是否启用众筹功能
 const rewardImg = ref('/images/reward.png')
 const models = ref([])
 const modelID = ref(0)
@@ -360,6 +361,7 @@ onMounted(() => {
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
       rewardImg.value = res.data.reward_img
+      enableReward.value = res.data.enabled_reward
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })

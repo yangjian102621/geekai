@@ -58,6 +58,20 @@
           </el-tooltip>
         </el-form-item>
 
+        <el-form-item label="启用众筹功能" prop="enabled_reward">
+          <el-switch v-model="system['enabled_reward']"/>
+          <el-tooltip
+              effect="dark"
+              content="如果关闭次功能将不在用户菜单显示众筹二维码"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+
         <el-form-item label="收款二维码" prop="reward_img">
           <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
             <template #append>
