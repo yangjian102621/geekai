@@ -132,7 +132,7 @@
   font-size: 20px;
   cursor: pointer;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item:hover {
+.page-sd .inner .task-list-box .finish-job-list .animate:hover {
   box-shadow: 0 0 10px rgba(71,255,241,0.6); /* 添加阴影效果 */
   transform: translateY(-10px); /* 向上移动10像素 */
 }

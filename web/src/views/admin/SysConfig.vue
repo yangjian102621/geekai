@@ -87,6 +87,38 @@
             </template>
           </el-input>
         </el-form-item>
+        <el-form-item label="默认AI模型" prop="default_models">
+          <template #default>
+            <div class="tip-input">
+              <el-select
+                  v-model="system['default_models']"
+                  multiple
+                  :filterable="true"
+                  placeholder="选择AI模型，多选"
+                  style="width: 100%"
+              >
+                <el-option
+                    v-for="item in models"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.value"
+                />
+              </el-select>
+              <div class="info">
+                <el-tooltip
+                    class="box-item"
+                    effect="dark"
+                    content="新用户注册默认开通的 AI 模型"
+                    placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled/>
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </div>
+          </template>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save('system')">保存</el-button>
         </el-form-item>
@@ -198,6 +230,7 @@ const chat = ref({
 const loading = ref(true)
 const systemFormRef = ref(null)
 const chatFormRef = ref(null)
+const models = ref([])
 
 onMounted(() => {
   // 加载系统配置
@@ -231,6 +264,12 @@ onMounted(() => {
     loading.value = false
   }).catch(e => {
     ElMessage.error("加载聊天配置失败: " + e.message)
+  })
+
+  httpGet('/api/admin/model/list').then(res => {
+    models.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取模型失败：" + e.message)
   })
 
 })
@@ -293,6 +332,7 @@ const uploadRewardImg = (file) => {
 </script>
 
 <style lang="stylus" scoped>
+@import "@/assets/css/admin-form.styl"
 .system-config {
   display flex
   justify-content center

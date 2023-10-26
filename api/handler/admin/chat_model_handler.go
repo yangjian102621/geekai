@@ -32,6 +32,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Enabled   bool   `json:"enabled"`
 		SortNum   int    `json:"sort_num"`
 		Platform  string `json:"platform"`
+		Weight    int    `json:"weight"`
 		CreatedAt int64  `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -39,7 +40,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		return
 	}
 
-	item := model.ChatModel{Platform: data.Platform, Name: data.Name, Value: data.Value, Enabled: data.Enabled}
+	item := model.ChatModel{Platform: data.Platform, Name: data.Name, Value: data.Value, Enabled: data.Enabled, SortNum: data.SortNum, Weight: data.Weight}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)

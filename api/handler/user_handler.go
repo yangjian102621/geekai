@@ -82,12 +82,13 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	salt := utils.RandString(8)
 	user := model.User{
-		Password:  utils.GenPassword(data.Password, salt),
-		Avatar:    "/images/avatar/user.png",
-		Salt:      salt,
-		Status:    true,
-		Mobile:    data.Mobile,
-		ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
+		Password:   utils.GenPassword(data.Password, salt),
+		Avatar:     "/images/avatar/user.png",
+		Salt:       salt,
+		Status:     true,
+		Mobile:     data.Mobile,
+		ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
+		ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
 		ChatConfig: utils.JsonEncode(types.UserChatConfig{
 			ApiKeys: map[types.Platform]string{
 				types.OpenAI:  "",

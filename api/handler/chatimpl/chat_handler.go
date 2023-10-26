@@ -393,7 +393,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		req.Messages = nil
 		break
 	case types.Baidu:
-		apiURL = h.App.ChatConfig.Baidu.ApiURL
+		apiURL = strings.Replace(h.App.ChatConfig.Baidu.ApiURL, "{model}", req.Model, 1)
 		break
 	default:
 		apiURL = h.App.ChatConfig.OpenAI.ApiURL
