@@ -103,6 +103,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	session.Model = types.ChatModel{
 		Id:       chatModel.Id,
 		Value:    chatModel.Value,
+		Weight:   chatModel.Weight,
 		Platform: types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 	var chatRole model.ChatRole
@@ -462,4 +463,16 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *apiKey))
 	}
 	return client.Do(request)
+}
+
+// 扣减用户的对话次数
+func (h *ChatHandler) subUserCalls(userVo vo.User, session *types.ChatSession) {
+	// 仅当用户没有导入自己的 API KEY 时才进行扣减
+	if userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
+		num := 1
+		if session.Model.Weight > 0 {
+			num = session.Model.Weight
+		}
+		h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", num))
+	}
 }

@@ -47,6 +47,7 @@ type ChatModel struct {
 	Id       uint     `json:"id"`
 	Platform Platform `json:"platform"`
 	Value    string   `json:"value"`
+	Weight   int      `json:"weight"`
 }
 
 type ApiError struct {

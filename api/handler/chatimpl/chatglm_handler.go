@@ -104,9 +104,7 @@ func (h *ChatHandler) sendChatGLMMessage(
 		// 消息发送成功
 		if len(contents) > 0 {
 			// 更新用户的对话次数
-			if userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
-				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", 1))
-			}
+			h.subUserCalls(userVo, session)
 
 			if message.Role == "" {
 				message.Role = "assistant"
