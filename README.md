@@ -4,11 +4,12 @@
 ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了 MidJourney 和 Stable Diffusion AI绘画功能。主要有如下特性：
 
 * 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
-* 聊天体验跟 ChatGPT 官方版本完全一致。
-* 内置了各种预训练好的角色，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
+* 基于 Websocket 实现，完美的打字机体验。
+* 内置了各种预训练好的角色应用，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
+* 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
 * 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
 * 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。（可定制开发其他支付通道支持）
-* 集成插件 API 功能，可结合 GPT 开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI 绘画函数插件。
+* 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI 绘画函数插件。
 
 ## 功能截图
 
@@ -16,34 +17,30 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ![ChatGPT Chat Page](/docs/imgs/gpt.gif)
 
-### 新版聊天界面
+### AI 对话界面
 
 ![ChatGPT new Chat Page](/docs/imgs/chat-new.png)
 
-### MidJourney 专业绘画界面(v3.1.3)
+### MidJourney 专业绘画界面
+![mid-journey](/docs/imgs/mj_image.jpg)
 
-![ChatGPT-midjourney](/docs/imgs/mj_image.png)
+### Stable-Diffusion 专业绘画页面
+![Stable-Diffusion](/docs/imgs/sd_image.jpg)
+![Stable-Diffusion](/docs/imgs/sd_image_detail.jpg)
+### 绘图作品展
+![ChatGPT image_list](/docs/imgs/image-list.png)
+### AI应用列表
+![ChatGPT-app-list](/docs/imgs/app-list.jpg)
 
 ### 自动调用函数插件
-
 ![ChatGPT function plugin](/docs/imgs/plugin.png)
-
 ![ChatGPT function plugin](/docs/imgs/mj.jpg)
-
-### 绘图作品展
-
-![ChatGPT image_list](/docs/imgs/image-list.png)
-
-### 登录页面
-
-![ChatGPT Login](/docs/imgs/login.png)
 
 ### 管理后台
 
 ![ChatGPT admin](/docs/imgs/admin_dashboard.png)
-
-![ChatGPT admin](/docs/imgs/admin_config.png)
-
+![ChatGPT admin](/docs/imgs/admin_config.jpg)
+![ChatGPT admin](/docs/imgs/admin_models.jpg)
 ![ChatGPT admin](/docs/imgs/admin_user.png)
 
 ### 移动端 Web 页面
@@ -306,8 +303,8 @@ docker-compose up -d
 
 ![add API Key](docs/imgs/apikey_add.png)
 
-最后登录前端聊天页面 [http://localhost:8080/chat](http://localhost:8080/chat)
-你可以注册新用户，也可以使用系统默认有个账号：`geekmaster/12345678` 登录聊天。
+最后进入前端聊天页面 [http://localhost:8080/chat](http://localhost:8080/chat)
+你可以注册新用户，也可以使用系统默认有个账号：`18575670125/12345678` 登录聊天。
 
 祝你使用愉快！！！
 
@@ -410,6 +407,8 @@ make clean linux
 
 ![支付宝打赏](docs/imgs/alipay.png)
 ![微信打赏](docs/imgs/wechat-pay.png)
+
+![Star History Chart](https://api.star-history.com/svg?repos=yangjian102621/chatgpt-plus&type=Date)
 
 
 

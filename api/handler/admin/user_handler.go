@@ -67,6 +67,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		Calls       int      `json:"calls"`
 		ImgCalls    int      `json:"img_calls"`
 		ChatRoles   []string `json:"chat_roles"`
+		ChatModels  []string `json:"chat_models"`
 		ExpiredTime string   `json:"expired_time"`
 		Status      bool     `json:"status"`
 	}
@@ -81,12 +82,13 @@ func (h *UserHandler) Save(c *gin.Context) {
 		user.Id = data.Id
 		// 此处需要用 map 更新，用结构体无法更新 0 值
 		res = h.db.Model(&user).Updates(map[string]interface{}{
-			"mobile":          data.Mobile,
-			"calls":           data.Calls,
-			"img_calls":       data.ImgCalls,
-			"status":          data.Status,
-			"chat_roles_json": utils.JsonEncode(data.ChatRoles),
-			"expired_time":    utils.Str2stamp(data.ExpiredTime),
+			"mobile":           data.Mobile,
+			"calls":            data.Calls,
+			"img_calls":        data.ImgCalls,
+			"status":           data.Status,
+			"chat_roles_json":  utils.JsonEncode(data.ChatRoles),
+			"chat_models_json": utils.JsonEncode(data.ChatModels),
+			"expired_time":     utils.Str2stamp(data.ExpiredTime),
 		})
 	} else {
 		salt := utils.RandString(8)
@@ -97,6 +99,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			Salt:        salt,
 			Status:      true,
 			ChatRoles:   utils.JsonEncode(data.ChatRoles),
+			ChatModels:  utils.JsonEncode(data.ChatModels),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
 			ChatConfig: utils.JsonEncode(types.UserChatConfig{
 				ApiKeys: map[types.Platform]string{

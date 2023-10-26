@@ -332,7 +332,7 @@
           <div class="finish-job-list">
             <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" width="240" :gap="16">
               <template #default="scope">
-                <div class="job-item" @click="showTask(scope.item)">
+                <div class="job-item animate" @click="showTask(scope.item)">
                   <el-image
                       :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
                       fit="cover"

@@ -24,8 +24,22 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 // List 模型列表
 func (h *ChatModelHandler) List(c *gin.Context) {
 	var items []model.ChatModel
-	var cms = make([]vo.ChatModel, 0)
-	res := h.db.Where("enabled = ?", true).Order("sort_num ASC").Find(&items)
+	var chatModels = make([]vo.ChatModel, 0)
+	// 只加载用户订阅的 AI 模型
+	user, err := utils.GetLoginUser(c, h.db)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	var models []string
+	err = utils.JsonDecode(user.ChatModels, &models)
+	if err != nil {
+		resp.ERROR(c, "当前用户没有订阅任何模型")
+		return
+	}
+
+	res := h.db.Where("enabled = ?", true).Where("value IN ?", models).Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var cm vo.ChatModel
@@ -34,11 +48,11 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 				cm.Id = item.Id
 				cm.CreatedAt = item.CreatedAt.Unix()
 				cm.UpdatedAt = item.UpdatedAt.Unix()
-				cms = append(cms, cm)
+				chatModels = append(chatModels, cm)
 			} else {
 				logger.Error(err)
 			}
 		}
 	}
-	resp.SUCCESS(c, cms)
+	resp.SUCCESS(c, chatModels)
 }

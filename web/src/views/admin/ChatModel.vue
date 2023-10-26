@@ -14,6 +14,7 @@
         </el-table-column>
         <el-table-column prop="name" label="模型名称"/>
         <el-table-column prop="value" label="模型值"/>
+        <el-table-column prop="weight" label="对话权重"/>
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enabled']" @change="enable(scope.row)"/>
@@ -59,6 +60,27 @@
           <el-input v-model="item.value" autocomplete="off"/>
         </el-form-item>
 
+        <el-form-item label="对话权重：" prop="weight">
+
+          <template #default>
+            <div class="tip-input">
+              <el-input-number :min="1" v-model="item.weight" autocomplete="off"/>
+              <div class="info">
+                <el-tooltip
+                    class="box-item"
+                    effect="dark"
+                    content="对话权重，每次对话扣减多少次对话额度"
+                    placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled/>
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </div>
+          </template>
+        </el-form-item>
+
         <el-form-item label="启用状态：" prop="enable">
           <el-switch v-model="item.enabled"/>
         </el-form-item>
@@ -79,7 +101,7 @@ import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, removeArrayItem} from "@/utils/libs";
-import {Plus} from "@element-plus/icons-vue";
+import {InfoFilled, Plus} from "@element-plus/icons-vue";
 import {Sortable} from "sortablejs";
 
 // 变量定义
@@ -136,9 +158,11 @@ onMounted(() => {
       sortedData.forEach((id, index) => {
         ids.push(parseInt(id))
         sorts.push(index)
+        items.value[index].sort_num = index
       })
 
-      httpPost("/api/admin/model/sort", {ids: ids, sorts: sorts}).catch(e => {
+      httpPost("/api/admin/model/sort", {ids: ids, sorts: sorts}).then(() => {
+      }).catch(e => {
         ElMessage.error("排序失败：" + e.message)
       })
     }
@@ -148,7 +172,7 @@ onMounted(() => {
 const add = function () {
   title.value = "新增模型"
   showDialog.value = true
-  item.value = {}
+  item.value = {enabled: true, weight: 1}
 }
 
 const edit = function (row) {
@@ -197,6 +221,7 @@ const remove = function (row) {
 </script>
 
 <style lang="stylus" scoped>
+@import "@/assets/css/admin-form.styl"
 .list {
 
   .opt-box {

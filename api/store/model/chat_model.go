@@ -7,4 +7,5 @@ type ChatModel struct {
 	Value    string // API Key 的值
 	SortNum  int
 	Enabled  bool
+	Weight   int // 对话权重，每次对话扣减多少次对话额度
 }

@@ -104,6 +104,23 @@
           </el-select>
         </el-form-item>
 
+        <el-form-item label="模型权限" prop="chat_models">
+          <el-select
+              v-model="user.chat_models"
+              multiple
+              :filterable="true"
+              placeholder="选择AI模型，多选"
+          >
+            <el-option
+                v-for="item in models"
+                :key="item.id"
+                :label="item.name"
+                :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+
+
         <el-form-item label="启用状态">
           <el-switch v-model="user.status"/>
         </el-form-item>
@@ -155,9 +172,10 @@ const query = ref({username: '', mobile: '', page: 1, page_size: 15})
 
 const title = ref('添加用户')
 const add = ref(true)
-const user = ref({chat_roles: []})
+const user = ref({chat_roles: [], chat_models: []})
 const pass = ref({username: '', password: '', id: 0})
 const roles = ref([])
+const models = ref([])
 const showUserEditDialog = ref(false)
 const showResetPassDialog = ref(false)
 const rules = reactive({
@@ -170,6 +188,7 @@ const rules = reactive({
     {type: 'number', message: '请输入有效数字'},
   ],
   chat_roles: [{required: true, message: '请选择聊天角色', trigger: 'change'}],
+  chat_models: [{required: true, message: '请选择AI模型', trigger: 'change'}],
 })
 const loading = ref(true)
 
@@ -182,6 +201,12 @@ onMounted(() => {
     roles.value = res.data;
   }).catch(() => {
     ElMessage.error("获取聊天角色失败");
+  })
+
+  httpGet('/api/admin/model/list').then(res => {
+    models.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取模型失败：" + e.message)
   })
 })
 

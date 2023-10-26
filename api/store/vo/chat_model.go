@@ -6,4 +6,6 @@ type ChatModel struct {
 	Name     string `json:"name"`
 	Value    string `json:"value"`
 	Enabled  bool   `json:"enabled"`
+	SortNum  int    `json:"sort_num"`
+	Weight   int    `json:"weight"`
 }

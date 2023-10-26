@@ -120,4 +120,5 @@ type SystemConfig struct {
 	RewardImg       string   `json:"reward_img"`       // 众筹收款二维码地址
 	EnabledFunction bool     `json:"enabled_function"` // 启用 API 函数功能
 	EnabledReward   bool     `json:"enabled_reward"`   // 启用众筹功能
+	DefaultModels   []string `json:"default_models"`   // 默认开通的 AI 模型
 }
