@@ -43,7 +43,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		}
 
 		utils.ReplyMessage(ws, ErrorMsg)
-		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrImg)
 		return err
 	} else {
 		defer response.Body.Close()
@@ -70,7 +70,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
 				logger.Error(err, line)
 				utils.ReplyMessage(ws, ErrorMsg)
-				utils.ReplyMessage(ws, "![](/images/wx.png)")
+				utils.ReplyMessage(ws, ErrImg)
 				break
 			}
 
@@ -128,7 +128,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			// for creating image, check if the user's img_calls > 0
 			if functionName == types.FuncMidJourney && userVo.ImgCalls <= 0 {
 				utils.ReplyMessage(ws, "**当前用户剩余绘图次数已用尽，请扫描下面二维码联系管理员！**")
-				utils.ReplyMessage(ws, "![](/images/wx.png)")
+				utils.ReplyMessage(ws, ErrImg)
 			} else {
 				f := h.App.Functions[functionName]
 				if functionName == types.FuncMidJourney {

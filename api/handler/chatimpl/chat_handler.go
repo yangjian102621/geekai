@@ -27,6 +27,7 @@ import (
 )
 
 const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
+const ErrImg = "![](/images/wx.png)"
 
 var logger = logger2.GetLogger()
 
@@ -182,19 +183,19 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 	if userVo.Status == false {
 		utils.ReplyMessage(ws, "您的账号已经被禁用，如果疑问，请联系管理员！")
-		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
 
 	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
 		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者点击左下角菜单加入众筹获得100次对话！")
-		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
 		utils.ReplyMessage(ws, "您的账号已经过期，请联系管理员！")
-		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
 	var req = types.ApiRequest{
@@ -232,7 +233,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		req.MaxTokens = h.App.ChatConfig.XunFei.MaxTokens
 	default:
 		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
-		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
 

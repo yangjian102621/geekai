@@ -31,7 +31,7 @@ func (c *Client) Imagine(prompt string) error {
 		ChannelID:     c.config.ChanelId,
 		SessionID:     SessionID,
 		Data: map[string]any{
-			"version": "1118961510123847772",
+			"version": "1166847114203123795",
 			"id":      "938956540159881230",
 			"name":    "imagine",
 			"type":    "1",
