@@ -61,7 +61,7 @@ func (h *ChatHandler) sendBaiduMessage(
 		}
 
 		utils.ReplyMessage(ws, ErrorMsg)
-		utils.ReplyMessage(ws, "![](/images/wx.png)")
+		utils.ReplyMessage(ws, ErrImg)
 		return err
 	} else {
 		defer response.Body.Close()
