@@ -17,4 +17,6 @@ type User struct {
 	Status      bool                 `json:"status"`        // 当前状态
 	LastLoginAt int64                `json:"last_login_at"` // 最后登录时间
 	LastLoginIp string               `json:"last_login_ip"` // 最后登录 IP
+	Vip         bool                 `json:"vip"`
+	Tokens      int                  `json:"token"` // 当月消耗的 fee
 }

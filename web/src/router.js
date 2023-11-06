@@ -127,6 +127,18 @@ const routes = [
                 component: () => import('@/views/admin/ChatModel.vue'),
             },
             {
+                path: '/admin/product',
+                name: 'admin-product',
+                meta: {title: '充值产品'},
+                component: () => import('@/views/admin/Product.vue'),
+            },
+            {
+                path: '/admin/order',
+                name: 'admin-order',
+                meta: {title: '充值订单'},
+                component: () => import('@/views/admin/Order.vue'),
+            },
+            {
                 path: '/admin/reward',
                 name: 'admin-reward',
                 meta: {title: '众筹管理'},

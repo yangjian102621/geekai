@@ -21,6 +21,9 @@ type AppConfig struct {
 	MjConfig      MidJourneyConfig      // mj 绘画配置
 	WeChatBot     bool                  // 是否启用微信机器人
 	SdConfig      StableDiffusionConfig // sd 绘画配置
+
+	XXLConfig    XXLConfig
+	AlipayConfig AlipayConfig
 }
 
 type ChatPlusApiConfig struct {
@@ -55,6 +58,27 @@ type AliYunSmsConfig struct {
 	Domain       string
 	Sign         string // 短信签名
 	CodeTempId   string // 验证码短信模板 ID
+}
+
+type AlipayConfig struct {
+	Enabled         bool   // 是否启用支付宝服务
+	Company         string // 公司名称
+	UserId          string // 支付宝用户 ID
+	AppId           string // 支付宝 AppID
+	PrivateKey      string // 用户私钥文件路径
+	PublicKey       string // 用户公钥文件路径
+	AlipayPublicKey string // 支付宝公钥文件路径
+	RootCert        string // Root 秘钥路径
+	ReturnURL       string // 支付成功返回 URL
+	NotifyURL       string // 异步通知回调
+}
+
+type XXLConfig struct { // XXL 任务调度配置
+	ServerAddr   string
+	AccessToken  string
+	ExecutorIp   string
+	ExecutorPort string
+	RegistryKey  string
 }
 
 type RedisConfig struct {

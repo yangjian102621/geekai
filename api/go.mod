@@ -18,11 +18,14 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
 	github.com/qiniu/go-sdk/v7 v7.17.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
+	github.com/smartwalle/alipay/v3 v3.2.15
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.4.7
 )
+
+require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -34,6 +37,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gaukas/godicttls v0.0.3 // indirect
+	github.com/go-basic/ipv4 v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
@@ -49,6 +53,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/onsi/ginkgo/v2 v2.10.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
@@ -59,6 +64,9 @@ require (
 	github.com/refraction-networking/utls v1.3.2 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/smartwalle/ncrypto v1.0.2 // indirect
+	github.com/smartwalle/ngx v1.0.6 // indirect
+	github.com/smartwalle/nsign v1.0.8 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	go.uber.org/dig v1.16.1 // indirect
 	golang.org/x/arch v0.3.0 // indirect
