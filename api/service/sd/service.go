@@ -81,7 +81,7 @@ func (s *Service) Run() {
 
 // PushTask 推送任务到队列
 func (s *Service) PushTask(task types.SdTask) {
-	logger.Infof("add a new MidJourney Task: %+v", task)
+	logger.Infof("add a new Stable Diffusion Task: %+v", task)
 	s.taskQueue.RPush(task)
 }
 
