@@ -20,27 +20,27 @@ var logger = logger2.GetLogger()
 func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 	config := appConfig.AlipayConfig
 	if !config.Enabled {
-		logger.Info("Disabled alipay service")
+		logger.Info("Disabled Alipay service")
 		return nil, nil
 	}
 	priKey, err := readKey(config.PrivateKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error with read App Private key: %v", err)
 	}
 
-	xClient, err := alipay.New(config.AppId, priKey, true)
+	xClient, err := alipay.New(config.AppId, priKey, !config.SandBox)
 	if err != nil {
 		return nil, fmt.Errorf("error with initialize alipay service: %v", err)
 	}
 
 	if err = xClient.LoadAppCertPublicKeyFromFile(config.PublicKey); err != nil {
-		return nil, fmt.Errorf("error with loading alipay CertPublicKey: %v", err)
+		return nil, fmt.Errorf("error with loading App PublicKey: %v", err)
 	}
 	if err = xClient.LoadAliPayRootCertFromFile(config.RootCert); err != nil {
 		return nil, fmt.Errorf("error with loading alipay RootCert: %v", err)
 	}
 	if err = xClient.LoadAlipayCertPublicKeyFromFile(config.AlipayPublicKey); err != nil {
-		return nil, fmt.Errorf("error with loading alipay AlipayCertPublicKey: %v", err)
+		return nil, fmt.Errorf("error with loading Alipay PublicKey: %v", err)
 	}
 
 	return &AlipayService{config: &config, client: xClient}, nil
