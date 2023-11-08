@@ -15,12 +15,13 @@ import (
 )
 
 type QinNiuOss struct {
-	config   *types.QiNiuOssConfig
-	token    string
-	uploader *storage.FormUploader
-	manager  *storage.BucketManager
-	proxyURL string
-	dir      string
+	config    *types.QiNiuOssConfig
+	mac       *qbox.Mac
+	putPolicy storage.PutPolicy
+	uploader  *storage.FormUploader
+	manager   *storage.BucketManager
+	proxyURL  string
+	dir       string
 }
 
 func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
@@ -38,12 +39,13 @@ func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 		Scope: config.Bucket,
 	}
 	return QinNiuOss{
-		config:   config,
-		token:    putPolicy.UploadToken(mac),
-		uploader: formUploader,
-		manager:  storage.NewBucketManager(mac, &storeConfig),
-		proxyURL: appConfig.ProxyURL,
-		dir:      "chatgpt-plus",
+		config:    config,
+		mac:       mac,
+		putPolicy: putPolicy,
+		uploader:  formUploader,
+		manager:   storage.NewBucketManager(mac, &storeConfig),
+		proxyURL:  appConfig.ProxyURL,
+		dir:       "chatgpt-plus",
 	}
 }
 
@@ -65,7 +67,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	// 上传文件
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
-	err = s.uploader.Put(ctx, &ret, s.token, key, src, file.Size, &extra)
+	err = s.uploader.Put(ctx, &ret, s.putPolicy.UploadToken(s.mac), key, src, file.Size, &extra)
 	if err != nil {
 		return "", err
 	}
@@ -93,7 +95,7 @@ func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
-	err = s.uploader.Put(context.Background(), &ret, s.token, key, bytes.NewReader(imageData), int64(len(imageData)), &extra)
+	err = s.uploader.Put(context.Background(), &ret, s.putPolicy.UploadToken(s.mac), key, bytes.NewReader(imageData), int64(len(imageData)), &extra)
 	if err != nil {
 		return "", err
 	}
