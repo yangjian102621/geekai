@@ -148,11 +148,11 @@ func IntValue(str string, defaultValue int) int {
 }
 
 func ForceCovert(src any, dst interface{}) error {
-	bytes, err := json.Marshal(src)
+	b, err := json.Marshal(src)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(bytes, dst)
+	err = json.Unmarshal(b, dst)
 	if err != nil {
 		return err
 	}
