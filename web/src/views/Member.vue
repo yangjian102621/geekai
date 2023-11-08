@@ -14,7 +14,7 @@
 
       <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="250">
         <template #default="scope">
-          <div class="product-item" :style="{width: scope.width+'px'}" @click="pay(scope.item)">
+          <div class="product-item" :style="{width: scope.width+'px'}" @click="orderPay(scope.item)">
             <div class="image-container">
               <el-image :src="vipImg" fit="cover"/>
             </div>
@@ -42,6 +42,32 @@
     </div>
 
     <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
+
+    <el-dialog
+        v-model="showPayDialog"
+        :close-on-click-modal="false"
+        :show-close="true"
+        :width="400"
+        title="用户登录">
+      <div class="pay-container">
+        <div class="pay-qrcode">
+          <el-image :src="qrcode"/>
+        </div>
+
+        <div class="tip success" v-if="text !== ''">
+          <el-icon>
+            <SuccessFilled/>
+          </el-icon>
+          <span class="text">{{ text }}</span>
+        </div>
+        <div class="tip" v-else>
+          <el-icon>
+            <InfoFilled/>
+          </el-icon>
+          <span class="text">请打开手机支付宝扫码支付</span>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -50,7 +76,7 @@ import {nextTick, onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
-import {Delete, Plus} from "@element-plus/icons-vue";
+import {Delete, InfoFilled, Plus, SuccessFilled} from "@element-plus/icons-vue";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
@@ -59,8 +85,13 @@ import router from "@/router";
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
 const showLoginDialog = ref(false)
+const showPayDialog = ref(false)
 const elements = ref(null)
 const vipImg = ref("/images/vip.png")
+const qrcode = ref("")
+const amount = ref(0)
+const discount = ref(0)
+const text = ref("")
 onMounted(() => {
   httpGet("/api/product/list").then((res) => {
     list.value = res.data
@@ -69,11 +100,36 @@ onMounted(() => {
   })
 })
 
-const pay = (row) => {
+const orderPay = (row) => {
   checkSession().then(user => {
     console.log(row)
-  }).catch(() => {
+    httpPost("/api/payment/alipay/qrcode", {product_id: row.id, user_id: user.id}).then(res => {
+      console.log(res)
+      showPayDialog.value = true
+      qrcode.value = res.data['image']
+      queryOrder(res.data['order_no'])
+    }).catch(e => {
+      ElMessage.error("生成支付订单失败：" + e.message)
+    })
+  }).catch(e => {
+    console.log(e)
     showLoginDialog.value = true
+  })
+}
+
+const queryOrder = (orderNo) => {
+  httpPost("/api/payment/query", {order_no: orderNo}).then(res => {
+    if (res.data.status === 1) {
+      text.value = "扫码成功，请在手机上进行支付！"
+      queryOrder(orderNo)
+    } else if (res.data.status === 2) {
+      text.value = "支付成功，正在刷新页面"
+      setTimeout(() => location.reload(), 500)
+    } else {
+      queryOrder(orderNo)
+    }
+  }).catch(e => {
+    ElMessage.error("查询支付状态失败：" + e.message)
   })
 }
 
@@ -84,6 +140,42 @@ const pay = (row) => {
 .member {
   background-color: #282c34;
   height 100vh
+
+  .el-dialog {
+    .el-dialog__body {
+      padding-top 0
+
+      .pay-container {
+        .pay-qrcode {
+          display flex
+          justify-content center
+
+          .el-image {
+            width 360px;
+            height 360px;
+          }
+        }
+
+        .tip {
+          display flex
+          justify-content center
+
+          .el-icon {
+            font-size 24px
+          }
+
+          .text {
+            font-size: 16px
+            margin-left 10px
+          }
+        }
+
+        .tip.success {
+          color #07c160
+        }
+      }
+    }
+  }
 
   .title {
     text-align center

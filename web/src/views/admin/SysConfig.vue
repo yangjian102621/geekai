@@ -12,6 +12,9 @@
         <el-form-item label="注册赠送对话次数" prop="user_init_calls">
           <el-input v-model.number="system['user_init_calls']" placeholder="新用户注册赠送对话次数"/>
         </el-form-item>
+        <el-form-item label="VIP每月对话次数" prop="vip_month_calls">
+          <el-input v-model.number="system['vip_month_calls']" placeholder="VIP用户每月赠送对话次数"/>
+        </el-form-item>
         <el-form-item label="注册赠送绘图次数" prop="init_img_calls">
           <el-input v-model.number="system['init_img_calls']" placeholder="新用户注册赠送绘图次数"/>
         </el-form-item>

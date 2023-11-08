@@ -19,6 +19,11 @@ import (
 	"time"
 )
 
+const (
+	PayWayAlipay = "支付宝"
+	PayWayWechat = "微信支付"
+)
+
 // PaymentHandler 支付服务回调 handler
 type PaymentHandler struct {
 	BaseHandler
@@ -110,6 +115,7 @@ func (h *PaymentHandler) OrderQuery(c *gin.Context) {
 func (h *PaymentHandler) AlipayQrcode(c *gin.Context) {
 	var data struct {
 		ProductId uint `json:"product_id"`
+		UserId    int  `json:"user_id"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -128,9 +134,10 @@ func (h *PaymentHandler) AlipayQrcode(c *gin.Context) {
 		resp.ERROR(c, "error with generate trade no: "+err.Error())
 		return
 	}
-	user, err := utils.GetLoginUser(c, h.db)
-	if err != nil {
-		resp.NotAuth(c)
+	var user model.User
+	res = h.db.First(&user, data.UserId)
+	if res.Error != nil {
+		resp.ERROR(c, "Invalid user ID")
 		return
 	}
 
@@ -150,6 +157,7 @@ func (h *PaymentHandler) AlipayQrcode(c *gin.Context) {
 		Subject:   product.Name,
 		Amount:    product.Price - product.Discount,
 		Status:    types.OrderNotPaid,
+		PayWay:    PayWayAlipay,
 		Remark:    utils.JsonEncode(remark),
 	}
 	res = h.db.Create(&order)
@@ -229,6 +237,7 @@ func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 		}
 		user.Vip = true
+
 	} else if !user.Vip { // 充值点卡的非 VIP 用户
 		user.ExpiredTime = time.Now().AddDate(0, 0, 30).Unix()
 	}

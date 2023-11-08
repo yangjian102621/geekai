@@ -14,5 +14,6 @@ type Order struct {
 	Amount    float64           `json:"amount"`
 	Status    types.OrderStatus `json:"status"`
 	PayTime   int64             `json:"pay_time"`
+	PayWay    string            `json:"pay_way"`
 	Remark    types.OrderRemark `json:"remark"`
 }
