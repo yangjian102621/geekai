@@ -38,6 +38,7 @@
             <el-tag v-else>未支付</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="pay_way" label="支付方式"/>
 
         <el-table-column label="操作" width="180">
           <template #default="scope">

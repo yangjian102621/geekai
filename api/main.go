@@ -33,7 +33,7 @@ import (
 
 var logger = logger2.GetLogger()
 
-//go:embed res/ip2region.xdb
+//go:embed res
 var xdbFS embed.FS
 
 // AppLifecycle 应用程序生命周期

@@ -28,7 +28,7 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 		return nil, fmt.Errorf("error with read App Private key: %v", err)
 	}
 
-	xClient, err := alipay.New(config.AppId, priKey, !config.SandBox)
+	xClient, err := alipay.New(config.AppId, priKey, false)
 	if err != nil {
 		return nil, fmt.Errorf("error with initialize alipay service: %v", err)
 	}

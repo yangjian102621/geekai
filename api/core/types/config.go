@@ -62,7 +62,6 @@ type AliYunSmsConfig struct {
 
 type AlipayConfig struct {
 	Enabled         bool   // 是否启用该服务
-	SandBox         bool   // 是否沙箱环境
 	Company         string // 公司名称
 	UserId          string // 支付宝用户 ID
 	AppId           string // 支付宝 AppID

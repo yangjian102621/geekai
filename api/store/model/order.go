@@ -17,5 +17,6 @@ type Order struct {
 	Status    types.OrderStatus
 	Remark    string
 	PayTime   int64
+	PayWay    string // 支付方式
 	DeletedAt gorm.DeletedAt
 }
