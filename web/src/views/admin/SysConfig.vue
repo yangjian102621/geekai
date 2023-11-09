@@ -90,6 +90,19 @@
             </template>
           </el-input>
         </el-form-item>
+        <el-form-item label="启用支付宝" prop="enabled_alipay">
+          <el-switch v-model="system['enabled_alipay']"/>
+          <el-tooltip
+              effect="dark"
+              content="是否启用支付宝支付功能，<br />请先在 config.toml 配置文件配置支付秘钥"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
         <el-form-item label="默认AI模型" prop="default_models">
           <template #default>
             <div class="tip-input">

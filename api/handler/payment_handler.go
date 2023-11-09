@@ -62,7 +62,7 @@ func (h *PaymentHandler) Alipay(c *gin.Context) {
 	h.db.Model(&order).UpdateColumn("status", types.OrderScanned)
 	// 生成支付链接
 	notifyURL := h.App.Config.AlipayConfig.NotifyURL
-	returnURL := h.App.Config.AlipayConfig.ReturnURL
+	returnURL := "" // 关闭同步回跳
 	amount := fmt.Sprintf("%.2f", order.Amount)
 
 	uri, err := h.alipayService.PayUrlMobile(order.OrderNo, notifyURL, returnURL, amount, order.Subject)
@@ -113,6 +113,11 @@ func (h *PaymentHandler) OrderQuery(c *gin.Context) {
 
 // AlipayQrcode 生成支付宝支付 URL 二维码
 func (h *PaymentHandler) AlipayQrcode(c *gin.Context) {
+	if !h.App.SysConfig.EnabledAlipay {
+		resp.ERROR(c, "当前支付通道已经关闭，请联系管理员开通！")
+		return
+	}
+
 	var data struct {
 		ProductId uint `json:"product_id"`
 		UserId    int  `json:"user_id"`

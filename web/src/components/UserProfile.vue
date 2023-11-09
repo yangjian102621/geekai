@@ -16,6 +16,14 @@
       </el-row>
       <el-form-item label="账户">
         <span>{{ user.mobile }}</span>
+        <el-tooltip
+            class="box-item"
+            effect="light"
+            content="您已经是 VIP 会员"
+            placement="right"
+        >
+          <el-image v-if="user.vip" :src="vipImg" style="height: 25px;margin-left: 10px"/>
+        </el-tooltip>
       </el-form-item>
       <el-form-item label="剩余对话次数">
         <el-tag>{{ user['calls'] }}</el-tag>
@@ -60,6 +68,7 @@ import {dateFormat} from "@/utils/libs";
 import {checkSession} from "@/action/session";
 
 const user = ref({
+  vip: false,
   username: '',
   nickname: '',
   avatar: '',
@@ -68,6 +77,7 @@ const user = ref({
   tokens: 0,
   chat_config: {api_keys: {OpenAI: "", Azure: "", ChatGLM: ""}}
 })
+const vipImg = ref("/images/vip.png")
 
 onMounted(() => {
   checkSession().then(() => {

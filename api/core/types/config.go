@@ -62,6 +62,7 @@ type AliYunSmsConfig struct {
 
 type AlipayConfig struct {
 	Enabled         bool   // 是否启用该服务
+	SandBox         bool   // 是否沙盒环境
 	Company         string // 公司名称
 	UserId          string // 支付宝用户 ID
 	AppId           string // 支付宝 AppID
@@ -69,7 +70,6 @@ type AlipayConfig struct {
 	PublicKey       string // 用户公钥文件路径
 	AlipayPublicKey string // 支付宝公钥文件路径
 	RootCert        string // Root 秘钥路径
-	ReturnURL       string // 支付成功返回 URL
 	NotifyURL       string // 异步通知回调
 }
 
@@ -144,5 +144,6 @@ type SystemConfig struct {
 	RewardImg       string   `json:"reward_img"`       // 众筹收款二维码地址
 	EnabledFunction bool     `json:"enabled_function"` // 启用 API 函数功能
 	EnabledReward   bool     `json:"enabled_reward"`   // 启用众筹功能
+	EnabledAlipay   bool     `json:"enabled_alipay"`   // 是否启用支付宝支付通道
 	DefaultModels   []string `json:"default_models"`   // 默认开通的 AI 模型
 }
