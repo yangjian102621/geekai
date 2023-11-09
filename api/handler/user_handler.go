@@ -232,6 +232,7 @@ type userProfile struct {
 	TotalTokens int64                `json:"total_tokens"`
 	Tokens      int64                `json:"tokens"`
 	ExpiredTime int64                `json:"expired_time"`
+	Vip         bool                 `json:"vip"`
 }
 
 func (h *UserHandler) Profile(c *gin.Context) {

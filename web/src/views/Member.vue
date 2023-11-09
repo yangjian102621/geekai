@@ -10,16 +10,20 @@
 
         <el-row class="user-opt" :gutter="20">
           <el-col :span="12">
-            <el-button type="primary">修改密码</el-button>
+            <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
           </el-col>
           <el-col :span="12">
-            <el-button type="primary">绑定手机号</el-button>
+            <el-button type="primary" @click="showBindMobileDialog = true">绑定手机号</el-button>
           </el-col>
           <el-col :span="12">
-            <el-button type="primary">加入众筹</el-button>
+            <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
           </el-col>
           <el-col :span="12">
-            <el-button type="primary">众筹核销</el-button>
+            <el-button type="primary" v-if="enableReward" @click="showRewardVerifyDialog = true">众筹核销</el-button>
+          </el-col>
+
+          <el-col :span="24" style="padding-top: 30px">
+            <el-button type="danger" round @click="logout">退出登录</el-button>
           </el-col>
         </el-row>
       </div>
@@ -67,7 +71,7 @@
     <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
                      @logout="logout"/>
 
-    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
+    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="user.mobile"
                  @hide="showBindMobileDialog = false"/>
 
     <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
@@ -81,7 +85,7 @@
       <el-alert type="info" :closable="false">
         <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
           账单和服务器的费用。<strong
-              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号进入核销【众筹核销】菜单手动核销。</strong>
+              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号,点击【众筹核销】按钮手动核销。</strong>
         </div>
       </el-alert>
       <div style="text-align: center;padding-top: 10px;">
@@ -94,7 +98,7 @@
         :close-on-click-modal="false"
         :show-close="true"
         :width="400"
-        title="用户登录">
+        title="充值订单支付">
       <div class="pay-container">
         <div class="pay-qrcode">
           <el-image :src="qrcode"/>
@@ -130,6 +134,7 @@ import PasswordDialog from "@/components/PasswordDialog.vue";
 import BindMobile from "@/components/BindMobile.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
+import {removeUserToken} from "@/store/session";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -198,6 +203,15 @@ const queryOrder = (orderNo) => {
     }
   }).catch(e => {
     ElMessage.error("查询支付状态失败：" + e.message)
+  })
+}
+
+const logout = function () {
+  httpGet('/api/user/logout').then(() => {
+    removeUserToken();
+    router.push('/login');
+  }).catch(() => {
+    ElMessage.error('注销失败！');
   })
 }
 

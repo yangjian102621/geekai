@@ -194,8 +194,7 @@
       </el-main>
     </el-container>
 
-    <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
-                   @update-user="updateUser"/>
+    <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
   </div>
 
 

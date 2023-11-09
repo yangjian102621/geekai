@@ -36,7 +36,7 @@ func NewDefaultConfig() *types.AppConfig {
 		MjConfig:     types.MidJourneyConfig{Enabled: false},
 		SdConfig:     types.StableDiffusionConfig{Enabled: false, Txt2ImgJsonPath: "res/text2img.json"},
 		WeChatBot:    false,
-		AlipayConfig: types.AlipayConfig{Enabled: false},
+		AlipayConfig: types.AlipayConfig{Enabled: false, SandBox: false},
 	}
 }
 
