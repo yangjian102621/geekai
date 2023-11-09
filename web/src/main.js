@@ -32,7 +32,7 @@ import {
     TextEllipsis,
     Uploader
 } from "vant";
-import router from "@/router";
+import {router} from "@/router";
 import 'v3-waterfall/dist/style.css'
 import V3waterfall from "v3-waterfall";
 

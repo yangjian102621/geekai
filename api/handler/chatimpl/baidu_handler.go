@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"strings"
@@ -184,8 +183,7 @@ func (h *ChatHandler) sendBaiduMessage(
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
 				// 更新用户信息
-				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
-					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
+				h.incUserTokenFee(userVo.Id, totalTokens)
 			}
 
 			// 保存当前会话

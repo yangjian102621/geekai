@@ -226,12 +226,14 @@ const router = createRouter({
     routes: routes,
 })
 
+let prevRoute = null
 // dynamic change the title when router change
 router.beforeEach((to, from, next) => {
     if (to.meta.title) {
         document.title = `${to.meta.title} | ${process.env.VUE_APP_TITLE}`
     }
+    prevRoute = from
     next()
 })
 
-export default router;
+export {router, prevRoute};

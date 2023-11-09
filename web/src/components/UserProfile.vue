@@ -32,6 +32,20 @@
       <el-form-item label="会员到期时间" v-if="user['expired_time']  > 0">
         <el-tag type="danger">{{ dateFormat(user['expired_time']) }}</el-tag>
       </el-form-item>
+
+      <el-form-item label="OpenAI API KEY">
+        <el-input v-model="user.chat_config['api_keys']['OpenAI']"/>
+      </el-form-item>
+      <el-form-item label="Azure API KEY">
+        <el-input v-model="user['chat_config']['api_keys']['Azure']"/>
+      </el-form-item>
+      <el-form-item label="ChatGLM API KEY">
+        <el-input v-model="user['chat_config']['api_keys']['ChatGLM']"/>
+      </el-form-item>
+
+      <el-row class="opt-line">
+        <el-button color="#47fff1" :dark="false" round @click="save">保存</el-button>
+      </el-row>
     </el-form>
   </div>
 </template>
@@ -43,6 +57,7 @@ import {ElMessage} from "element-plus";
 import {Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {dateFormat} from "@/utils/libs";
+import {checkSession} from "@/action/session";
 
 const user = ref({
   username: '',
@@ -55,13 +70,17 @@ const user = ref({
 })
 
 onMounted(() => {
-  // 获取最新用户信息
-  httpGet('/api/user/profile').then(res => {
-    user.value = res.data
-    user.value.chat_config.api_keys = res.data.chat_config.api_keys ?? {OpenAI: "", Azure: "", ChatGLM: ""}
+  checkSession().then(() => {
+    // 获取最新用户信息
+    httpGet('/api/user/profile').then(res => {
+      user.value = res.data
+      user.value.chat_config.api_keys = res.data.chat_config.api_keys ?? {OpenAI: "", Azure: "", ChatGLM: ""}
+    }).catch(e => {
+      ElMessage.error("获取用户信息失败：" + e.message)
+    });
   }).catch(e => {
-    ElMessage.error("获取用户信息失败：" + e.message)
-  });
+    console.log(e)
+  })
 })
 
 const afterRead = (file) => {
@@ -74,14 +93,7 @@ const afterRead = (file) => {
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
         user.value.avatar = res.data
-        httpPost('/api/user/profile/update', user.value).then(() => {
-          ElMessage.success({
-            message: '更新成功',
-            duration: 500,
-          })
-        }).catch((e) => {
-          ElMessage.error('更新失败：' + e.message)
-        })
+        ElMessage.success({message: "上传成功", duration: 500})
       }).catch((e) => {
         ElMessage.error('图片上传失败:' + e.message)
       })
@@ -91,6 +103,14 @@ const afterRead = (file) => {
     },
   });
 };
+
+const save = () => {
+  httpPost('/api/user/profile/update', user.value).then(() => {
+    ElMessage.success({message: '更新成功', duration: 500})
+  }).catch((e) => {
+    ElMessage.error('更新失败：' + e.message)
+  })
+}
 </script>
 
 <style lang="stylus" scoped>
@@ -100,6 +120,14 @@ const afterRead = (file) => {
   .el-row {
     justify-content center
     margin-bottom 10px
+  }
+
+  .opt-line {
+    padding-top 20px
+
+    .el-button {
+      width 100%
+    }
   }
 }
 </style>
