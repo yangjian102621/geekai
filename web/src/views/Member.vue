@@ -7,6 +7,21 @@
 
       <div class="user-profile">
         <user-profile/>
+
+        <el-row class="user-opt" :gutter="20">
+          <el-col :span="12">
+            <el-button type="primary">修改密码</el-button>
+          </el-col>
+          <el-col :span="12">
+            <el-button type="primary">绑定手机号</el-button>
+          </el-col>
+          <el-col :span="12">
+            <el-button type="primary">加入众筹</el-button>
+          </el-col>
+          <el-col :span="12">
+            <el-button type="primary">众筹核销</el-button>
+          </el-col>
+        </el-row>
       </div>
 
       <div class="product-box">
@@ -49,6 +64,31 @@
 
     <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
 
+    <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
+                     @logout="logout"/>
+
+    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
+                 @hide="showBindMobileDialog = false"/>
+
+    <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
+
+    <el-dialog
+        v-model="showRewardDialog"
+        :show-close="true"
+        width="400px"
+        title="参与众筹"
+    >
+      <el-alert type="info" :closable="false">
+        <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
+          账单和服务器的费用。<strong
+              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号进入核销【众筹核销】菜单手动核销。</strong>
+        </div>
+      </el-alert>
+      <div style="text-align: center;padding-top: 10px;">
+        <el-image v-if="enableReward" :src="rewardImg"/>
+      </div>
+    </el-dialog>
+
     <el-dialog
         v-model="showPayDialog"
         :close-on-click-modal="false"
@@ -78,16 +118,18 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
+import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
-import {Delete, InfoFilled, Plus, SuccessFilled} from "@element-plus/icons-vue";
+import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
-import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
-import router from "@/router";
 import UserProfile from "@/components/UserProfile.vue";
+import PasswordDialog from "@/components/PasswordDialog.vue";
+import BindMobile from "@/components/BindMobile.vue";
+import RewardVerify from "@/components/RewardVerify.vue";
+import {useRouter} from "vue-router";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -95,32 +137,51 @@ const showLoginDialog = ref(false)
 const showPayDialog = ref(false)
 const elements = ref(null)
 const vipImg = ref("/images/vip.png")
+const enableReward = ref(false) // 是否启用众筹功能
+const rewardImg = ref('/images/reward.png')
 const qrcode = ref("")
-const amount = ref(0)
-const discount = ref(0)
+const showPasswordDialog = ref(false);
+const showBindMobileDialog = ref(false);
+const showRewardDialog = ref(false);
+const showRewardVerifyDialog = ref(false);
 const text = ref("")
+const user = ref(null)
+const isLogin = ref(false)
+const router = useRouter()
+
+
 onMounted(() => {
-  httpGet("/api/product/list").then((res) => {
-    list.value = res.data
+  checkSession().then(_user => {
+    user.value = _user
+    isLogin.value = true
+    httpGet("/api/product/list").then((res) => {
+      list.value = res.data
+    }).catch(e => {
+      ElMessage.error("获取产品套餐失败：" + e.message)
+    })
+  }).catch(() => {
+    router.push("/login")
+  })
+
+  httpGet("/api/admin/config/get?key=system").then(res => {
+    rewardImg.value = res.data['reward_img']
+    enableReward.value = res.data['enabled_reward']
   }).catch(e => {
-    ElMessage.error("获取产品套餐失败：" + e.message)
+    ElMessage.error("获取系统配置失败：" + e.message)
   })
 })
 
 const orderPay = (row) => {
-  checkSession().then(user => {
-    console.log(row)
-    httpPost("/api/payment/alipay/qrcode", {product_id: row.id, user_id: user.id}).then(res => {
-      console.log(res)
-      showPayDialog.value = true
-      qrcode.value = res.data['image']
-      queryOrder(res.data['order_no'])
-    }).catch(e => {
-      ElMessage.error("生成支付订单失败：" + e.message)
-    })
-  }).catch(e => {
-    console.log(e)
+  if (!user.value.id) {
     showLoginDialog.value = true
+    return
+  }
+  httpPost("/api/payment/alipay/qrcode", {product_id: row.id, user_id: user.value.id}).then(res => {
+    showPayDialog.value = true
+    qrcode.value = res.data['image']
+    queryOrder(res.data['order_no'])
+  }).catch(e => {
+    ElMessage.error("生成支付订单失败：" + e.message)
   })
 }
 
@@ -210,7 +271,18 @@ const queryOrder = (orderNo) => {
         color #ffffff
         justify-content start
       }
+
+      .user-opt {
+        .el-col {
+          padding 10px
+
+          .el-button {
+            width 100%
+          }
+        }
+      }
     }
+
 
     .product-box {
       padding 0 10px

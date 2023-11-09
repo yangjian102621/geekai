@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"net/url"
@@ -227,8 +226,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 				logger.Error("failed to save reply history message: ", res.Error)
 			}
 			// 更新用户信息
-			h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
-				UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
+			h.incUserTokenFee(userVo.Id, totalTokens)
 		}
 
 		// 保存当前会话
