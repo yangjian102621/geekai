@@ -32,14 +32,14 @@ var ParamKeys = map[string]int{
 	"negative_prompt": 2,
 	"steps":           4,
 	"sampler":         5,
-	"face_fix":        6,
-	"cfg_scale":       10,
-	"seed":            11,
-	"height":          17,
-	"width":           18,
-	"hd_fix":          19,
-	"hd_redraw_rate":  20, //高清修复重绘幅度
-	"hd_scale":        21, // 高清修复放大倍数
-	"hd_scale_alg":    22, // 高清修复放大算法
-	"hd_sample_num":   23, // 高清修复采样次数
+	"face_fix":        6, // 面部修复
+	"cfg_scale":       8,
+	"seed":            27,
+	"height":          9,
+	"width":           10,
+	"hd_fix":          11,
+	"hd_redraw_rate":  12, //高清修复重绘幅度
+	"hd_scale":        13, // 高清修复放大倍数
+	"hd_scale_alg":    14, // 高清修复放大算法
+	"hd_sample_num":   15, // 高清修复采样次数
 }

@@ -1,8 +1,16 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/nfnt/resize"
+	"github.com/skip2/go-qrcode"
+	"image"
+	"image/color"
+	"image/draw"
+	"image/jpeg"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
@@ -140,13 +148,57 @@ func IntValue(str string, defaultValue int) int {
 }
 
 func ForceCovert(src any, dst interface{}) error {
-	bytes, err := json.Marshal(src)
+	b, err := json.Marshal(src)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(bytes, dst)
+	err = json.Unmarshal(b, dst)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func GenQrcode(text string, size int, logo io.Reader) ([]byte, error) {
+	qr, err := qrcode.New(text, qrcode.Medium)
+	if err != nil {
+		return nil, err
+	}
+
+	qr.BackgroundColor = color.White
+	qr.ForegroundColor = color.Black
+	if logo == nil {
+		return qr.PNG(size)
+	}
+
+	// 生成带Logo的二维码图像
+	logoImage, _, err := image.Decode(logo)
+	if err != nil {
+		return nil, err
+	}
+
+	// 缩放 Logo
+	scaledLogo := resize.Resize(uint(size/9), uint(size/9), logoImage, resize.Lanczos3)
+	// 将Logo叠加到二维码图像上
+	qrWithLogo := overlayLogo(qr.Image(size), scaledLogo)
+
+	// 将带Logo的二维码图像以JPEG格式编码为图片数据
+	var buf bytes.Buffer
+	err = jpeg.Encode(&buf, qrWithLogo, nil)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// 叠加Logo到图片上
+func overlayLogo(qrImage, logoImage image.Image) image.Image {
+	offsetX := (qrImage.Bounds().Dx() - logoImage.Bounds().Dx()) / 2
+	offsetY := (qrImage.Bounds().Dy() - logoImage.Bounds().Dy()) / 2
+
+	combinedImage := image.NewRGBA(qrImage.Bounds())
+	draw.Draw(combinedImage, qrImage.Bounds(), qrImage, image.Point{}, draw.Over)
+	draw.Draw(combinedImage, logoImage.Bounds().Add(image.Pt(offsetX, offsetY)), logoImage, image.Point{}, draw.Over)
+
+	return combinedImage
 }

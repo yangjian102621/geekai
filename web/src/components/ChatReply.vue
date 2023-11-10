@@ -125,6 +125,31 @@ export default defineComponent({
           p:first-child {
             margin-top 0
           }
+
+          // 设置表格边框
+
+          table {
+            width 100%
+            margin-bottom 1rem
+            color #212529
+            border-collapse collapse;
+            border 1px solid #dee2e6;
+            background-color #ffffff
+
+            thead {
+              th {
+                border 1px solid #dee2e6
+                vertical-align: bottom
+                border-bottom: 2px solid #dee2e6
+                padding 10px
+              }
+            }
+
+            td {
+              border 1px solid #dee2e6
+              padding 10px
+            }
+          }
         }
 
 

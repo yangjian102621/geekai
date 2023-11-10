@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	"gorm.io/gorm"
 	"io"
 	"strings"
 	"time"
@@ -164,8 +163,7 @@ func (h *ChatHandler) sendChatGLMMessage(
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
 				// 更新用户信息
-				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
-					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
+				h.incUserTokenFee(userVo.Id, totalTokens)
 			}
 
 			// 保存当前会话

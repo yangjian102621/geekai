@@ -9,7 +9,7 @@
       title="用户登录"
   >
     <div class="form">
-      <el-form label-width="65px">
+      <el-form label-width="75px">
         <el-form-item>
           <template #label>
             <div class="label">
@@ -20,7 +20,7 @@
             </div>
           </template>
           <template #default>
-            <el-input v-model="username" placeholder="手机号码"/>
+            <el-input v-model="username" size="large" placeholder="手机号码"/>
           </template>
         </el-form-item>
         <el-form-item>
@@ -33,12 +33,12 @@
             </div>
           </template>
           <template #default>
-            <el-input v-model="password" type="password" placeholder="密码"/>
+            <el-input v-model="password" type="password" size="large" placeholder="密码"/>
           </template>
         </el-form-item>
 
         <div class="login-btn">
-          <el-button type="primary" @click="submit" round>登录</el-button>
+          <el-button type="primary" @click="submit" size="large" round>登录</el-button>
         </div>
       </el-form>
     </div>
@@ -90,9 +90,17 @@ const close = function () {
   border-radius 20px
 
   .label {
+    padding-top 3px
+
     .el-icon {
-      font-size 16px
+      position relative
+      font-size 20px
       margin-right 6px
+      top 4px
+    }
+
+    span {
+      font-size 16px
     }
   }
 

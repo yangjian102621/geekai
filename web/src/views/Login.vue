@@ -58,6 +58,7 @@ import {isMobile} from "@/utils/libs";
 import {checkSession} from "@/action/session";
 import {setUserToken} from "@/store/session";
 import {validateMobile} from "@/utils/validate";
+import {prevRoute} from "@/router";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户登录');
@@ -91,11 +92,16 @@ const login = function () {
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
     setUserToken(res.data)
-    if (isMobile()) {
-      router.push('/mobile')
+    if (prevRoute.path === '') {
+      if (isMobile()) {
+        router.push('/mobile')
+      } else {
+        router.push('/chat')
+      }
     } else {
-      router.push('/chat')
+      router.push(prevRoute.path)
     }
+
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
   })

@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
+import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
@@ -48,7 +48,6 @@ import {Delete, Plus} from "@element-plus/icons-vue";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
-import router from "@/router";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -71,8 +70,8 @@ onMounted(() => {
 })
 
 const getRoles = () => {
+  showLoginDialog.value = false
   checkSession().then(user => {
-    showLoginDialog.value = false
     roles.value = user.chat_roles
   }).catch(() => {
   })

@@ -33,9 +33,10 @@ func NewDefaultConfig() *types.AppConfig {
 				BasePath: "./static/upload",
 			},
 		},
-		MjConfig:  types.MidJourneyConfig{Enabled: false},
-		SdConfig:  types.StableDiffusionConfig{Enabled: false, Txt2ImgJsonPath: "res/text2img.json"},
-		WeChatBot: false,
+		MjConfig:     types.MidJourneyConfig{Enabled: false},
+		SdConfig:     types.StableDiffusionConfig{Enabled: false, Txt2ImgJsonPath: "res/text2img.json"},
+		WeChatBot:    false,
+		AlipayConfig: types.AlipayConfig{Enabled: false, SandBox: false},
 	}
 }
 

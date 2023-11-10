@@ -81,7 +81,7 @@ func (s *Service) Run() {
 
 // PushTask 推送任务到队列
 func (s *Service) PushTask(task types.SdTask) {
-	logger.Infof("add a new MidJourney Task: %+v", task)
+	logger.Infof("add a new Stable Diffusion Task: %+v", task)
 	s.taskQueue.RPush(task)
 }
 
@@ -105,7 +105,8 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	data[ParamKeys["negative_prompt"]] = params.NegativePrompt
 	data[ParamKeys["steps"]] = params.Steps
 	data[ParamKeys["sampler"]] = params.Sampler
-	data[ParamKeys["face_fix"]] = params.FaceFix
+	// @fix bug: 有些 stable diffusion 没有面部修复功能
+	//data[ParamKeys["face_fix"]] = params.FaceFix
 	data[ParamKeys["cfg_scale"]] = params.CfgScale
 	data[ParamKeys["seed"]] = params.Seed
 	data[ParamKeys["height"]] = params.Height
@@ -176,7 +177,8 @@ func (s *Service) runTask(taskInfo TaskInfo, client *req.Client) {
 		var info map[string]any
 		err = utils.JsonDecode(utils.InterfaceToString(res.Data[1]), &info)
 		if err != nil {
-			cbReq.Message = err.Error()
+			logger.Error(res.Data)
+			cbReq.Message = "error with decode image url:" + err.Error()
 			cbReq.Success = false
 			result <- cbReq
 			return
@@ -229,6 +231,7 @@ func (s *Service) runTask(taskInfo TaskInfo, client *req.Client) {
 
 			cbReq.ImageData = progressRes.LivePreview
 			cbReq.Progress = int(progressRes.Progress * 100)
+			logger.Debug(cbReq)
 			s.callback(cbReq)
 			time.Sleep(time.Second)
 		}

@@ -97,6 +97,16 @@ const items = [
     title: '语言模型',
   },
   {
+    icon: 'recharge',
+    index: '/admin/product',
+    title: '充值产品',
+  },
+  {
+    icon: 'order',
+    index: '/admin/order',
+    title: '充值订单',
+  },
+  {
     icon: 'reward',
     index: '/admin/reward',
     title: '众筹管理',

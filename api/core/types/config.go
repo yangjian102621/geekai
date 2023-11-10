@@ -21,6 +21,9 @@ type AppConfig struct {
 	MjConfig      MidJourneyConfig      // mj 绘画配置
 	WeChatBot     bool                  // 是否启用微信机器人
 	SdConfig      StableDiffusionConfig // sd 绘画配置
+
+	XXLConfig    XXLConfig
+	AlipayConfig AlipayConfig
 }
 
 type ChatPlusApiConfig struct {
@@ -55,6 +58,27 @@ type AliYunSmsConfig struct {
 	Domain       string
 	Sign         string // 短信签名
 	CodeTempId   string // 验证码短信模板 ID
+}
+
+type AlipayConfig struct {
+	Enabled         bool   // 是否启用该服务
+	SandBox         bool   // 是否沙盒环境
+	AppId           string // 应用 ID
+	UserId          string // 支付宝用户 ID
+	PrivateKey      string // 用户私钥文件路径
+	PublicKey       string // 用户公钥文件路径
+	AlipayPublicKey string // 支付宝公钥文件路径
+	RootCert        string // Root 秘钥路径
+	NotifyURL       string // 异步通知回调
+}
+
+type XXLConfig struct { // XXL 任务调度配置
+	Enabled      bool
+	ServerAddr   string
+	ExecutorIp   string
+	ExecutorPort string
+	AccessToken  string
+	RegistryKey  string
 }
 
 type RedisConfig struct {
@@ -115,10 +139,12 @@ type SystemConfig struct {
 	InitImgCalls    int      `json:"init_img_calls"`
 	VipMonthCalls   int      `json:"vip_month_calls"` // 会员每个赠送的调用次数
 	EnabledRegister bool     `json:"enabled_register"`
-	EnabledMsg      bool     `json:"enabled_msg"`      // 启用短信验证码服务
-	EnabledDraw     bool     `json:"enabled_draw"`     // 启动 AI 绘画功能
-	RewardImg       string   `json:"reward_img"`       // 众筹收款二维码地址
-	EnabledFunction bool     `json:"enabled_function"` // 启用 API 函数功能
-	EnabledReward   bool     `json:"enabled_reward"`   // 启用众筹功能
-	DefaultModels   []string `json:"default_models"`   // 默认开通的 AI 模型
+	EnabledMsg      bool     `json:"enabled_msg"`       // 启用短信验证码服务
+	EnabledDraw     bool     `json:"enabled_draw"`      // 启动 AI 绘画功能
+	RewardImg       string   `json:"reward_img"`        // 众筹收款二维码地址
+	EnabledFunction bool     `json:"enabled_function"`  // 启用 API 函数功能
+	EnabledReward   bool     `json:"enabled_reward"`    // 启用众筹功能
+	EnabledAlipay   bool     `json:"enabled_alipay"`    // 是否启用支付宝支付通道
+	OrderPayTimeout int      `json:"order_pay_timeout"` //订单支付超时时间
+	DefaultModels   []string `json:"default_models"`    // 默认开通的 AI 模型
 }

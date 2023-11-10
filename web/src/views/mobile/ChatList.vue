@@ -78,7 +78,7 @@ import {ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {showConfirmDialog, showFailToast, showSuccessToast} from "vant";
 import {checkSession} from "@/action/session";
-import router from "@/router";
+import {router} from "@/router";
 import {setChatConfig} from "@/store/chat";
 import {removeArrayItem} from "@/utils/libs";
 import BindMobile from "@/components/mobile/BindMobile.vue";

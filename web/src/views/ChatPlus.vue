@@ -52,33 +52,7 @@
                   <el-icon>
                     <Tools/>
                   </el-icon>
-                  <span>聊天设置</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item @click="showPasswordDialog=true">
-                  <i class="iconfont icon-password"></i>
-                  <span>修改密码</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item @click="showBindMobileDialog = true">
-                  <el-icon>
-                    <Iphone/>
-                  </el-icon>
-                  <span>绑定手机号</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item @click="showRewardDialog = true" v-if="enableReward">
-                  <el-icon>
-                    <Present/>
-                  </el-icon>
-                  <span>加入众筹</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item @click="showRewardVerifyDialog = true" v-if="enableReward">
-                  <el-icon>
-                    <Checked/>
-                  </el-icon>
-                  <span>众筹核销</span>
+                  <span>账户信息</span>
                 </el-dropdown-item>
 
                 <el-dropdown-item @click="clearAllChats">
@@ -220,32 +194,7 @@
       </el-main>
     </el-container>
 
-    <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"
-                   @update-user="updateUser"/>
-    <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
-                     @logout="logout"/>
-
-    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
-                 @hide="showBindMobileDialog = false"/>
-
-    <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
-
-    <el-dialog
-        v-model="showRewardDialog"
-        :show-close="true"
-        width="400px"
-        title="参与众筹"
-    >
-      <el-alert type="info" :closable="false">
-        <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
-          账单和服务器的费用。<strong
-              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号进入核销【众筹核销】菜单手动核销。</strong>
-        </div>
-      </el-alert>
-      <div style="text-align: center;padding-top: 10px;">
-        <el-image v-if="enableReward" :src="rewardImg"/>
-      </div>
-    </el-dialog>
+    <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
   </div>
 
 
@@ -257,13 +206,10 @@ import ChatReply from "@/components/ChatReply.vue";
 import {
   ArrowDown,
   Check,
-  Checked,
   Close,
   Delete,
   Edit,
-  Iphone,
   Plus,
-  Present,
   Promotion,
   RefreshRight,
   Search,
@@ -279,16 +225,11 @@ import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
 import ConfigDialog from "@/components/ConfigDialog.vue";
-import PasswordDialog from "@/components/PasswordDialog.vue";
 import {checkSession} from "@/action/session";
-import BindMobile from "@/components/BindMobile.vue";
-import RewardVerify from "@/components/RewardVerify.vue";
 import Welcome from "@/components/Welcome.vue";
 import ChatMidJourney from "@/components/ChatMidJourney.vue";
 
 const title = ref('ChatGPT-智能助手');
-const enableReward = ref(false) // 是否启用众筹功能
-const rewardImg = ref('/images/reward.png')
 const models = ref([])
 const modelID = ref(0)
 const chatData = ref([]);
@@ -305,10 +246,6 @@ const roleId = ref(0)
 const newChatItem = ref(null);
 const router = useRouter();
 const showConfigDialog = ref(false);
-const showPasswordDialog = ref(false);
-const showBindMobileDialog = ref(false);
-const showRewardDialog = ref(false);
-const showRewardVerifyDialog = ref(false);
 const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
@@ -360,8 +297,6 @@ onMounted(() => {
 
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
-      rewardImg.value = res.data.reward_img
-      enableReward.value = res.data.enabled_reward
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
@@ -853,11 +788,6 @@ const searchChat = function () {
     }
   }
   chatList.value = items;
-}
-
-const updateUser = function (data) {
-  loginUser.value.avatar = data.avatar;
-  loginUser.value.nickname = data.nickname;
 }
 
 // 导出会话

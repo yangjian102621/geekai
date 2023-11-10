@@ -242,8 +242,7 @@ func (h *ChatHandler) sendAzureMessage(
 				}
 
 				// 更新用户信息
-				h.db.Model(&model.User{}).Where("id = ?", userVo.Id).
-					UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", totalTokens))
+				h.incUserTokenFee(userVo.Id, totalTokens)
 			}
 
 			// 保存当前会话

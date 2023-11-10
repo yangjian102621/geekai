@@ -12,6 +12,9 @@
         <el-form-item label="注册赠送对话次数" prop="user_init_calls">
           <el-input v-model.number="system['user_init_calls']" placeholder="新用户注册赠送对话次数"/>
         </el-form-item>
+        <el-form-item label="VIP每月对话次数" prop="vip_month_calls">
+          <el-input v-model.number="system['vip_month_calls']" placeholder="VIP用户每月赠送对话次数"/>
+        </el-form-item>
         <el-form-item label="注册赠送绘图次数" prop="init_img_calls">
           <el-input v-model.number="system['init_img_calls']" placeholder="新用户注册赠送绘图次数"/>
         </el-form-item>
@@ -86,6 +89,36 @@
               </el-upload>
             </template>
           </el-input>
+        </el-form-item>
+        <el-form-item label="启用支付宝" prop="enabled_alipay">
+          <el-switch v-model="system['enabled_alipay']"/>
+          <el-tooltip
+              effect="dark"
+              content="是否启用支付宝支付功能，<br />请先在 config.toml 配置文件配置支付秘钥"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+        <el-form-item label="订单超时时间" prop="order_pay_timeout">
+          <div class="tip-input">
+            <el-input v-model.number="system['order_pay_timeout']" placeholder="单位：秒"/>
+            <div class="info">
+              <el-tooltip
+                  effect="dark"
+                  content="系统会定期清理超时未支付的订单<br/>默认值：900秒"
+                  raw-content
+                  placement="right"
+              >
+                <el-icon>
+                  <InfoFilled/>
+                </el-icon>
+              </el-tooltip>
+            </div>
+          </div>
         </el-form-item>
         <el-form-item label="默认AI模型" prop="default_models">
           <template #default>

@@ -16,8 +16,14 @@
           <el-input v-model="form.mobile"/>
         </el-form-item>
         <el-form-item label="手机验证码">
-          <el-input v-model.number="form.code" maxlength="6" style="max-width: 200px; margin-right: 10px;"/>
-          <send-msg size="" :mobile="form.mobile"/>
+          <el-row :gutter="20">
+            <el-col :span="16">
+              <el-input v-model.number="form.code" maxlength="6"/>
+            </el-col>
+            <el-col :span="8">
+              <send-msg size="" :mobile="form.mobile"/>
+            </el-col>
+          </el-row>
         </el-form-item>
       </el-form>
     </div>
@@ -81,6 +87,12 @@ const close = function () {
 }
 </script>
 
-<style scoped>
-
+<style lang="stylus" scoped>
+#bind-mobile-form {
+  .el-form-item__content {
+    .el-row {
+      width 100%
+    }
+  }
+}
 </style>
