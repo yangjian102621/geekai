@@ -195,10 +195,12 @@ func main() {
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(service.NewSnowflake),
 		fx.Provide(service.NewXXLJobExecutor),
-		fx.Invoke(func(exec *service.XXLJobExecutor) {
-			go func() {
-				log.Fatal(exec.Run())
-			}()
+		fx.Invoke(func(exec *service.XXLJobExecutor, config *types.AppConfig) {
+			if config.XXLConfig.Enabled {
+				go func() {
+					log.Fatal(exec.Run())
+				}()
+			}
 		}),
 
 		// 注册路由

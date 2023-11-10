@@ -113,7 +113,7 @@ func (h *PaymentHandler) OrderQuery(c *gin.Context) {
 
 // AlipayQrcode 生成支付宝支付 URL 二维码
 func (h *PaymentHandler) AlipayQrcode(c *gin.Context) {
-	if !h.App.SysConfig.EnabledAlipay {
+	if !h.App.SysConfig.EnabledAlipay || h.alipayService == nil {
 		resp.ERROR(c, "当前支付通道已经关闭，请联系管理员开通！")
 		return
 	}
