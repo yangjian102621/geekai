@@ -18,3 +18,4 @@ data
 config.toml
 static/upload 
 storage.json
+certs/alipay/*

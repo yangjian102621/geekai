@@ -11,6 +11,7 @@ import (
 	"chatplus/service/fun"
 	"chatplus/service/mj"
 	"chatplus/service/oss"
+	"chatplus/service/payment"
 	"chatplus/service/sd"
 	"chatplus/service/wx"
 	"chatplus/store"
@@ -32,7 +33,7 @@ import (
 
 var logger = logger2.GetLogger()
 
-//go:embed res/ip2region.xdb
+//go:embed res
 var xdbFS embed.FS
 
 // AppLifecycle 应用程序生命周期
@@ -96,6 +97,10 @@ func main() {
 		fx.Provide(store.NewLevelDB),
 		fx.Provide(store.NewRedisClient),
 
+		fx.Provide(func() embed.FS {
+			return xdbFS
+		}),
+
 		// 创建 Ip2Region 查询对象
 		fx.Provide(func() (*xdb.Searcher, error) {
 			file, err := xdbFS.Open("res/ip2region.xdb")
@@ -124,6 +129,9 @@ func main() {
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
 		fx.Provide(handler.NewSdJobHandler),
+		fx.Provide(handler.NewPaymentHandler),
+		fx.Provide(handler.NewOrderHandler),
+		fx.Provide(handler.NewProductHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -133,6 +141,8 @@ func main() {
 		fx.Provide(admin.NewRewardHandler),
 		fx.Provide(admin.NewDashboardHandler),
 		fx.Provide(admin.NewChatModelHandler),
+		fx.Provide(admin.NewProductHandler),
+		fx.Provide(admin.NewOrderHandler),
 
 		// 创建服务
 		fx.Provide(service.NewAliYunSmsService),
@@ -181,6 +191,18 @@ func main() {
 				}()
 			}
 		}),
+
+		fx.Provide(payment.NewAlipayService),
+		fx.Provide(service.NewSnowflake),
+		fx.Provide(service.NewXXLJobExecutor),
+		fx.Invoke(func(exec *service.XXLJobExecutor, config *types.AppConfig) {
+			if config.XXLConfig.Enabled {
+				go func() {
+					log.Fatal(exec.Run())
+				}()
+			}
+		}),
+
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
 			group := s.Engine.Group("/api/role/")
@@ -295,6 +317,34 @@ func main() {
 			group.POST("enable", h.Enable)
 			group.POST("sort", h.Sort)
 			group.GET("remove", h.Remove)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
+			group := s.Engine.Group("/api/payment/")
+			group.GET("alipay", h.Alipay)
+			group.POST("query", h.OrderQuery)
+			group.POST("alipay/qrcode", h.AlipayQrcode)
+			group.POST("alipay/notify", h.AlipayNotify)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
+			group := s.Engine.Group("/api/admin/product/")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.POST("enable", h.Enable)
+			group.POST("sort", h.Sort)
+			group.GET("remove", h.Remove)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.OrderHandler) {
+			group := s.Engine.Group("/api/admin/order/")
+			group.POST("list", h.List)
+			group.GET("remove", h.Remove)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
+			group := s.Engine.Group("/api/order/")
+			group.POST("list", h.List)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.ProductHandler) {
+			group := s.Engine.Group("/api/product/")
+			group.GET("list", h.List)
 		}),
 
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {

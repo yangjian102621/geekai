@@ -187,8 +187,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return nil
 	}
 
+	if userVo.Calls < session.Model.Weight {
+		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余对话次数（%d）已不足以支付当前模型的单次对话需要消耗的对话额度（%d）！", userVo.Calls, session.Model.Weight))
+		utils.ReplyMessage(ws, ErrImg)
+		return nil
+	}
+
 	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
-		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者点击左下角菜单加入众筹获得100次对话！")
+		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者充值点卡继续对话！")
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
@@ -478,4 +484,11 @@ func (h *ChatHandler) subUserCalls(userVo vo.User, session *types.ChatSession) {
 		}
 		h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", num))
 	}
+}
+
+func (h *ChatHandler) incUserTokenFee(userId uint, tokens int) {
+	h.db.Model(&model.User{}).Where("id = ?", userId).
+		UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", tokens))
+	h.db.Model(&model.User{}).Where("id = ?", userId).
+		UpdateColumn("tokens", gorm.Expr("tokens + ?", tokens))
 }

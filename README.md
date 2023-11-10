@@ -8,7 +8,8 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 * 内置了各种预训练好的角色应用，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
 * 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
 * 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
-* 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。（可定制开发其他支付通道支持）
+* 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
+* 已集成支付宝支付功能，支持多种会员套餐和点卡购买功能。
 * 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI 绘画函数插件。
 
 ## 功能截图
@@ -133,7 +134,7 @@ cd docker/mysql
 # 创建 mysql 容器
 docker-compose up -d
 # 导入数据库
-docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.7.sql
+docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.8.sql
 ```
 
 如果你本地已经安装了 MySQL 服务，那么你只需手动导入数据库即可。
@@ -218,6 +219,25 @@ WeChatBot = false # 是否启动微信机器人
   ApiURL = "http://172.22.11.200:7860" # stable-diffusion-webui API 地址
   ApiKey = "" # 如果开启了授权，这里需要配置授权的 ApiKey
   Txt2ImgJsonPath = "res/text2img.json" # 文生图的 API 请求报文 json 模板，允许自定义请求json报文，因为不同版本的 API 绘图的参数以及 fn_index 会不同。
+  
+[XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
+  Enabled = false # 是否启用 XXL JOB 服务
+  ServerAddr = "http://172.22.11.47:8080/xxl-job-admin" # xxl-job-admin 管理地址
+  ExecutorIp = "172.22.11.47" # 执行器 IP 地址
+  ExecutorPort = "9999" # 执行器服务端口
+  AccessToken = "xxl-job-api-token" # 执行器 API 通信 token
+  RegistryKey = "chatgpt-plus" # 任务注册 key
+
+[AlipayConfig]
+  Enabled = false # 启用支付宝支付通道
+  SandBox = false # 是否启用沙盒模式
+  UserId = "2088721020750581" # 商户ID
+  AppId = "9021000131658023" # App Id
+  PrivateKey = "certs/alipay/privateKey.txt" # 应用私钥
+  PublicKey = "certs/alipay/appPublicCert.crt" # 应用公钥证书
+  AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
+  RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
+  NotifyURL = "http://r9it.com:6004/api/payment/alipay/notify" # 支付异步回调地址
 ```
 
 > 1. 如果你不知道如何获取 Discord 用户 Token 和 Bot Token
@@ -259,7 +279,7 @@ version: '3'
 services:
   # 后端 API 镜像
   chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.5 #这里改成最新的 release 版本地址
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.8 #这里改成最新的 release 版本
     container_name: chatgpt-plus-api
     restart: always
     environment:
@@ -276,7 +296,7 @@ services:
 
   # 前端应用镜像
   chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.5 #这里改成最新的 release 版本地址
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.8 #这里改成最新的 release 版本
     container_name: chatgpt-plus-web
     restart: always
     ports:
