@@ -68,3 +68,22 @@ WeChatBot = false
   ApiURL = "http://172.22.11.200:7860"
   ApiKey = ""
   Txt2ImgJsonPath = "res/text2img.json"
+
+[XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
+  Enabled = false # 是否启用 XXL JOB 服务
+  ServerAddr = "http://172.22.11.47:8080/xxl-job-admin" # xxl-job-admin 管理地址
+  ExecutorIp = "172.22.11.47" # 执行器 IP 地址
+  ExecutorPort = "9999" # 执行器服务端口
+  AccessToken = "xxl-job-api-token" # 执行器 API 通信 token
+  RegistryKey = "chatgpt-plus" # 任务注册 key
+
+[AlipayConfig]
+  Enabled = false # 启用支付宝支付通道
+  SandBox = false # 是否启用沙盒模式
+  UserId = "2088721020750581" # 商户ID
+  AppId = "9021000131658023" # App Id
+  PrivateKey = "certs/alipay/privateKey.txt" # 应用私钥
+  PublicKey = "certs/alipay/appPublicCert.crt" # 应用公钥证书
+  AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
+  RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
+  NotifyURL = "http://r9it.com:6004/api/payment/alipay/notify" # 支付异步回调地址
