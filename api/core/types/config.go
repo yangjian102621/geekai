@@ -74,10 +74,11 @@ type AlipayConfig struct {
 }
 
 type XXLConfig struct { // XXL 任务调度配置
+	Enabled      bool
 	ServerAddr   string
-	AccessToken  string
 	ExecutorIp   string
 	ExecutorPort string
+	AccessToken  string
 	RegistryKey  string
 }
 
