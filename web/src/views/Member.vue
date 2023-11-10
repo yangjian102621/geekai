@@ -1,9 +1,9 @@
 <template>
-  <div class="member custom-scroll">
+  <div class="member">
     <div class="title">
       会员充值中心
     </div>
-    <div class="inner" :style="{height: listBoxHeight + 'px'}">
+    <div class="inner custom-scroll">
 
       <div class="user-profile">
         <user-profile/>
@@ -28,7 +28,7 @@
         </el-row>
       </div>
 
-      <div class="product-box">
+      <div class="product-box" :style="{height: listBoxHeight + 'px'}">
         <div class="info">
           <el-alert type="info" show-icon :closable="false" effect="dark">
             <strong>说明:</strong> 成为本站会员后每月有500次对话额度，50次 AI 绘画额度，限制下月1号解除，若在期间超过次数后可单独购买点卡。
@@ -36,7 +36,7 @@
           </el-alert>
         </div>
 
-        <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="200">
+        <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="240">
           <template #default="scope">
             <div class="product-item" :style="{width: scope.width+'px'}" @click="orderPay(scope.item)">
               <div class="image-container">
@@ -63,6 +63,12 @@
             </div>
           </template>
         </ItemList>
+
+        <h2 class="headline">消费账单</h2>
+
+        <div class="user-order">
+          <user-order v-if="isLogin"/>
+        </div>
       </div>
     </div>
 
@@ -140,6 +146,7 @@ import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import CountDown from "@/components/CountDown.vue";
+import UserOrder from "@/components/UserOrder.vue";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -302,9 +309,8 @@ const logout = function () {
   .inner {
     display flex
     color #ffffff
-    padding 15px;
-    overflow-y visible
-    overflow-x hidden
+    padding 15px 0 15px 15px;
+    overflow hidden
 
     .user-profile {
       padding 10px 20px
@@ -330,7 +336,10 @@ const logout = function () {
 
 
     .product-box {
-      padding 0 10px
+      overflow-x hidden
+      overflow-y visible
+      width 100%
+      padding-left 20px
 
       .info {
         .el-alert__description {
@@ -411,6 +420,14 @@ const logout = function () {
             transform: translateY(-10px); /* 向上移动10像素 */
           }
         }
+      }
+
+      .headline {
+        padding 0 20px
+      }
+
+      .user-order {
+        padding 0 20px 20px 20px
       }
     }
   }
