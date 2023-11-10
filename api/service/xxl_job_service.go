@@ -17,9 +17,15 @@ var logger = logger2.GetLogger()
 type XXLJobExecutor struct {
 	executor xxl.Executor
 	db       *gorm.DB
+	config   *types.XXLConfig
 }
 
 func NewXXLJobExecutor(config *types.AppConfig, db *gorm.DB) *XXLJobExecutor {
+	if !config.XXLConfig.Enabled {
+		logger.Info("XXL-JOB service is disabled")
+		return nil
+	}
+
 	exec := xxl.NewExecutor(
 		xxl.ServerAddr(config.XXLConfig.ServerAddr),
 		xxl.AccessToken(config.XXLConfig.AccessToken),   //请求令牌(默认为空)
@@ -29,10 +35,14 @@ func NewXXLJobExecutor(config *types.AppConfig, db *gorm.DB) *XXLJobExecutor {
 		xxl.SetLogger(&customLogger{}),                  //自定义日志
 	)
 	exec.Init()
-	return &XXLJobExecutor{executor: exec, db: db}
+	return &XXLJobExecutor{executor: exec, db: db, config: &config.XXLConfig}
 }
 
 func (e *XXLJobExecutor) Run() error {
+	if !e.config.Enabled {
+		return nil
+	}
+
 	e.executor.RegTask("ClearOrder", e.ClearOrder)
 	e.executor.RegTask("ResetVipCalls", e.ResetVipCalls)
 	return e.executor.Run()

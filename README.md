@@ -8,7 +8,8 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 * 内置了各种预训练好的角色应用，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
 * 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
 * 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
-* 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。（可定制开发其他支付通道支持）
+* 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
+* 已集成支付宝支付功能，支持多种会员套餐和点卡购买功能。
 * 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI 绘画函数插件。
 
 ## 功能截图
@@ -133,7 +134,7 @@ cd docker/mysql
 # 创建 mysql 容器
 docker-compose up -d
 # 导入数据库
-docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.7.sql
+docker exec -i chatgpt-plus-mysql sh -c 'exec mysql -uroot -p12345678' < ../../database/chatgpt_plus-v3.1.8.sql
 ```
 
 如果你本地已经安装了 MySQL 服务，那么你只需手动导入数据库即可。
