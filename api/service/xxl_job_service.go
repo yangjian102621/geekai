@@ -40,9 +40,25 @@ func (e *XXLJobExecutor) Run() error {
 
 // ClearOrder 清理未支付的订单，如果没有抛出异常则表示执行成功
 func (e *XXLJobExecutor) ClearOrder(cxt context.Context, param *xxl.RunReq) (msg string) {
-	timeout := time.Now().Unix() - 600
+	logger.Debug("执行清理未支付订单...")
+	var sysConfig model.Config
+	res := e.db.Where("marker", "system").First(&sysConfig)
+	if res.Error != nil {
+		return "error with get system config: " + res.Error.Error()
+	}
+
+	var config types.SystemConfig
+	err := utils.JsonDecode(sysConfig.Config, &config)
+	if err != nil {
+		return "error with decode system config: " + err.Error()
+	}
+
+	if config.OrderPayTimeout == 0 { // 默认未支付订单的生命周期为 30 分钟
+		config.OrderPayTimeout = 1800
+	}
+	timeout := time.Now().Unix() - int64(config.OrderPayTimeout)
 	start := utils.Stamp2str(timeout)
-	res := e.db.Where("status != ? AND created_at < ?", types.OrderPaidSuccess, start).Delete(&model.Order{})
+	res = e.db.Where("status != ? AND created_at < ?", types.OrderPaidSuccess, start).Delete(&model.Order{})
 	return fmt.Sprintf("Clear order successfully, affect rows: %d", res.RowsAffected)
 }
 
@@ -58,13 +74,13 @@ func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (
 	var sysConfig model.Config
 	res = e.db.Where("marker", "system").First(&sysConfig)
 	if res.Error != nil {
-		panic(res.Error)
+		return "error with get system config: " + res.Error.Error()
 	}
 
 	var config types.SystemConfig
 	err := utils.JsonDecode(sysConfig.Config, &config)
 	if err != nil {
-		panic(err)
+		return "error with decode system config: " + err.Error()
 	}
 
 	// 获取本月月初时间
@@ -115,9 +131,9 @@ func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (
 type customLogger struct{}
 
 func (l *customLogger) Info(format string, a ...interface{}) {
-	logger.Debug(format, a)
+	logger.Debugf(format, a...)
 }
 
 func (l *customLogger) Error(format string, a ...interface{}) {
-	logger.Error(format, a)
+	logger.Errorf(format, a...)
 }

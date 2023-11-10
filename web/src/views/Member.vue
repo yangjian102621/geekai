@@ -100,7 +100,11 @@
         :width="400"
         title="充值订单支付">
       <div class="pay-container">
-        <div class="pay-qrcode">
+        <div class="count-down">
+          <count-down :second="orderTimeout" @timeout="orderPay" ref="countDown"/>
+        </div>
+
+        <div class="pay-qrcode" v-loading="loading">
           <el-image :src="qrcode"/>
         </div>
 
@@ -135,6 +139,7 @@ import BindMobile from "@/components/BindMobile.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
+import CountDown from "@/components/CountDown.vue";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -153,6 +158,11 @@ const text = ref("")
 const user = ref(null)
 const isLogin = ref(false)
 const router = useRouter()
+const curPayProduct = ref(null)
+const activeOrderNo = ref("")
+const countDown = ref(null)
+const orderTimeout = ref(1800)
+const loading = ref(true)
 
 
 onMounted(() => {
@@ -171,6 +181,9 @@ onMounted(() => {
   httpGet("/api/admin/config/get?key=system").then(res => {
     rewardImg.value = res.data['reward_img']
     enableReward.value = res.data['enabled_reward']
+    if (res.data['order_pay_timeout'] > 0) {
+      orderTimeout.value = res.data['order_pay_timeout']
+    }
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
@@ -181,10 +194,20 @@ const orderPay = (row) => {
     showLoginDialog.value = true
     return
   }
-  httpPost("/api/payment/alipay/qrcode", {product_id: row.id, user_id: user.value.id}).then(res => {
+  if (row) {
+    curPayProduct.value = row
+  }
+  loading.value = true
+  httpPost("/api/payment/alipay/qrcode", {product_id: curPayProduct.value.id, user_id: user.value.id}).then(res => {
     showPayDialog.value = true
     qrcode.value = res.data['image']
-    queryOrder(res.data['order_no'])
+    activeOrderNo.value = res.data['order_no']
+    queryOrder(activeOrderNo.value)
+    loading.value = false
+    // 重置计数器
+    if (countDown.value) {
+      countDown.value.resetTimer()
+    }
   }).catch(e => {
     ElMessage.error("生成支付订单失败：" + e.message)
   })
@@ -199,7 +222,10 @@ const queryOrder = (orderNo) => {
       text.value = "支付成功，正在刷新页面"
       setTimeout(() => location.reload(), 500)
     } else {
-      queryOrder(orderNo)
+      // 如果当前订单没有过期，继续等待订单的下一个状态
+      if (activeOrderNo.value === orderNo) {
+        queryOrder(orderNo)
+      }
     }
   }).catch(e => {
     ElMessage.error("查询支付状态失败：" + e.message)
@@ -225,9 +251,14 @@ const logout = function () {
 
   .el-dialog {
     .el-dialog__body {
-      padding-top 0
+      padding-top 10px
 
       .pay-container {
+        .count-down {
+          display flex
+          justify-content center
+        }
+
         .pay-qrcode {
           display flex
           justify-content center
