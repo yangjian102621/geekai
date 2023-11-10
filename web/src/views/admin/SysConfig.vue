@@ -103,6 +103,23 @@
             </el-icon>
           </el-tooltip>
         </el-form-item>
+        <el-form-item label="订单超时时间" prop="order_pay_timeout">
+          <div class="tip-input">
+            <el-input v-model.number="system['order_pay_timeout']" placeholder="单位：秒"/>
+            <div class="info">
+              <el-tooltip
+                  effect="dark"
+                  content="系统会定期清理超时未支付的订单<br/>默认值：900秒"
+                  raw-content
+                  placement="right"
+              >
+                <el-icon>
+                  <InfoFilled/>
+                </el-icon>
+              </el-tooltip>
+            </div>
+          </div>
+        </el-form-item>
         <el-form-item label="默认AI模型" prop="default_models">
           <template #default>
             <div class="tip-input">

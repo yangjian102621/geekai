@@ -139,11 +139,12 @@ type SystemConfig struct {
 	InitImgCalls    int      `json:"init_img_calls"`
 	VipMonthCalls   int      `json:"vip_month_calls"` // 会员每个赠送的调用次数
 	EnabledRegister bool     `json:"enabled_register"`
-	EnabledMsg      bool     `json:"enabled_msg"`      // 启用短信验证码服务
-	EnabledDraw     bool     `json:"enabled_draw"`     // 启动 AI 绘画功能
-	RewardImg       string   `json:"reward_img"`       // 众筹收款二维码地址
-	EnabledFunction bool     `json:"enabled_function"` // 启用 API 函数功能
-	EnabledReward   bool     `json:"enabled_reward"`   // 启用众筹功能
-	EnabledAlipay   bool     `json:"enabled_alipay"`   // 是否启用支付宝支付通道
-	DefaultModels   []string `json:"default_models"`   // 默认开通的 AI 模型
+	EnabledMsg      bool     `json:"enabled_msg"`       // 启用短信验证码服务
+	EnabledDraw     bool     `json:"enabled_draw"`      // 启动 AI 绘画功能
+	RewardImg       string   `json:"reward_img"`        // 众筹收款二维码地址
+	EnabledFunction bool     `json:"enabled_function"`  // 启用 API 函数功能
+	EnabledReward   bool     `json:"enabled_reward"`    // 启用众筹功能
+	EnabledAlipay   bool     `json:"enabled_alipay"`    // 是否启用支付宝支付通道
+	OrderPayTimeout int      `json:"order_pay_timeout"` //订单支付超时时间
+	DefaultModels   []string `json:"default_models"`    // 默认开通的 AI 模型
 }
