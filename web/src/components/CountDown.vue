@@ -8,6 +8,7 @@
 
 import {onMounted, ref, watch} from "vue";
 
+// eslint-disable-next-line no-undef
 const props = defineProps({
   second: Number,
   type: {
@@ -16,6 +17,7 @@ const props = defineProps({
   }
 });
 
+// eslint-disable-next-line no-undef
 const emits = defineEmits(['timeout']);
 const counter = ref(props.second)
 const timerStr = ref("")
@@ -34,7 +36,7 @@ const resetTimer = () => {
   if (handler.value) {
     clearInterval(handler.value)
   }
-  
+
   counter.value = props.second
   formatTimer(counter.value)
   handler.value = setInterval(() => {
@@ -80,6 +82,7 @@ const formatTimer = (secs) => {
   timerStr.value = timer.join("")
 }
 
+// eslint-disable-next-line no-undef
 defineExpose({resetTimer})
 </script>
 
