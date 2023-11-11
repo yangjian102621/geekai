@@ -4,71 +4,79 @@
       会员充值中心
     </div>
     <div class="inner" :style="{height: listBoxHeight + 'px'}">
-      <div class="user-profile">
-        <user-profile/>
+      <el-row :gutter="20">
+        <el-col :span="7">
+          <div class="user-profile">
+            <user-profile/>
 
-        <el-row class="user-opt" :gutter="20">
-          <el-col :span="12">
-            <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
-          </el-col>
-          <el-col :span="12">
-            <el-button type="primary" @click="showBindMobileDialog = true">绑定手机号</el-button>
-          </el-col>
-          <el-col :span="12">
-            <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
-          </el-col>
-          <el-col :span="12">
-            <el-button type="primary" v-if="enableReward" @click="showRewardVerifyDialog = true">众筹核销</el-button>
-          </el-col>
+            <el-row class="user-opt" :gutter="20">
+              <el-col :span="12">
+                <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
+              </el-col>
+              <el-col :span="12">
+                <el-button type="primary" @click="showBindMobileDialog = true">绑定手机号</el-button>
+              </el-col>
+              <el-col :span="12">
+                <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
+              </el-col>
+              <el-col :span="12">
+                <el-button type="primary" v-if="enableReward" @click="showRewardVerifyDialog = true">众筹核销
+                </el-button>
+              </el-col>
 
-          <el-col :span="24" style="padding-top: 30px">
-            <el-button type="danger" round @click="logout">退出登录</el-button>
-          </el-col>
-        </el-row>
-      </div>
+              <el-col :span="24" style="padding-top: 30px">
+                <el-button type="danger" round @click="logout">退出登录</el-button>
+              </el-col>
+            </el-row>
+          </div>
+        </el-col>
 
-      <div class="product-box">
-        <div class="info">
-          <el-alert type="info" show-icon :closable="false" effect="dark">
-            <strong>说明:</strong> 成为本站会员后每月有500次对话额度，50次 AI 绘画额度，限制下月1号解除，若在期间超过次数后可单独购买点卡。
-            当月充值的点卡有效期可以延期到下个月底。
-          </el-alert>
-        </div>
-
-        <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="240">
-          <template #default="scope">
-            <div class="product-item" :style="{width: scope.width+'px'}" @click="orderPay(scope.item)">
-              <div class="image-container">
-                <el-image :src="vipImg" fit="cover"/>
-              </div>
-              <div class="product-title">
-                <span class="name">{{ scope.item.name }}</span>
-              </div>
-              <div class="product-info">
-                <div class="info-line">
-                  <span class="label">商品原价：</span>
-                  <span class="price">￥{{ scope.item.price }}</span>
-                </div>
-                <div class="info-line">
-                  <span class="label">促销立减：</span>
-                  <span class="price">￥{{ scope.item.discount }}</span>
-                </div>
-                <div class="info-line">
-                  <span class="label">有效期：</span>
-                  <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
-                  <span class="expire" v-else>当月有效</span>
-                </div>
-              </div>
+        <el-col :span="17">
+          <div class="product-box">
+            <div class="info">
+              <el-alert type="info" show-icon :closable="false" effect="dark">
+                <strong>说明:</strong> 成为本站会员后每月有500次对话额度，50次 AI 绘画额度，限制下月1号解除，若在期间超过次数后可单独购买点卡。
+                当月充值的点卡有效期可以延期到下个月底。
+              </el-alert>
             </div>
-          </template>
-        </ItemList>
 
-        <h2 class="headline">消费账单</h2>
+            <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="240">
+              <template #default="scope">
+                <div class="product-item" :style="{width: scope.width+'px'}" @click="orderPay(scope.item)">
+                  <div class="image-container">
+                    <el-image :src="vipImg" fit="cover"/>
+                  </div>
+                  <div class="product-title">
+                    <span class="name">{{ scope.item.name }}</span>
+                  </div>
+                  <div class="product-info">
+                    <div class="info-line">
+                      <span class="label">商品原价：</span>
+                      <span class="price">￥{{ scope.item.price }}</span>
+                    </div>
+                    <div class="info-line">
+                      <span class="label">促销立减：</span>
+                      <span class="price">￥{{ scope.item.discount }}</span>
+                    </div>
+                    <div class="info-line">
+                      <span class="label">有效期：</span>
+                      <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
+                      <span class="expire" v-else>当月有效</span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </ItemList>
 
-        <div class="user-order">
-          <user-order v-if="isLogin"/>
-        </div>
-      </div>
+            <h2 class="headline">消费账单</h2>
+
+            <div class="user-order">
+              <user-order v-if="isLogin"/>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+
     </div>
 
     <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
@@ -203,6 +211,7 @@ const orderPay = (row) => {
     curPayProduct.value = row
   }
   loading.value = true
+  text.value = ""
   httpPost("/api/payment/alipay/qrcode", {product_id: curPayProduct.value.id, user_id: user.value.id}).then(res => {
     showPayDialog.value = true
     qrcode.value = res.data['image']
@@ -336,15 +345,12 @@ const logout = function () {
 
 
     .product-box {
-      width 100%
-      padding-left 20px
-
       .info {
         .el-alert__description {
           font-size 14px !important
           margin 0
         }
-        padding 10px 20px
+        padding 10px 20px 20px 0
       }
 
       .list-box {
@@ -421,11 +427,11 @@ const logout = function () {
       }
 
       .headline {
-        padding 0 20px
+        padding 0 20px 20px 0
       }
 
       .user-order {
-        padding 0 20px 20px 20px
+        padding 0 20px 20px 0
       }
     }
   }

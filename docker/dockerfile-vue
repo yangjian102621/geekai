@@ -1,5 +1,5 @@
 # 前端 Vue 项目构建
-FROM nginx:1.20
+FROM nginx:1.20.2
 
 MAINTAINER yangjian<yangjian102621@163.com>
 
