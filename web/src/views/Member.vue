@@ -1,10 +1,9 @@
 <template>
-  <div class="member">
+  <div class="member custom-scroll">
     <div class="title">
       会员充值中心
     </div>
-    <div class="inner custom-scroll">
-
+    <div class="inner" :style="{height: listBoxHeight + 'px'}">
       <div class="user-profile">
         <user-profile/>
 
@@ -28,7 +27,7 @@
         </el-row>
       </div>
 
-      <div class="product-box" :style="{height: listBoxHeight + 'px'}">
+      <div class="product-box">
         <div class="info">
           <el-alert type="info" show-icon :closable="false" effect="dark">
             <strong>说明:</strong> 成为本站会员后每月有500次对话额度，50次 AI 绘画额度，限制下月1号解除，若在期间超过次数后可单独购买点卡。
@@ -145,14 +144,13 @@ import BindMobile from "@/components/BindMobile.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
-import CountDown from "@/components/CountDown.vue";
 import UserOrder from "@/components/UserOrder.vue";
+import CountDown from "@/components/CountDown.vue";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
 const showLoginDialog = ref(false)
 const showPayDialog = ref(false)
-const elements = ref(null)
 const vipImg = ref("/images/vip.png")
 const enableReward = ref(false) // 是否启用众筹功能
 const rewardImg = ref('/images/reward.png')
@@ -310,13 +308,15 @@ const logout = function () {
     display flex
     color #ffffff
     padding 15px 0 15px 15px;
-    overflow hidden
+    overflow-x hidden
+    overflow-y visible
 
     .user-profile {
-      padding 10px 20px
+      padding 10px 20px 20px 20px
       background-color #393F4A
       color #ffffff
       border-radius 10px
+      height 100vh
 
       .el-form-item__label {
         color #ffffff
@@ -336,8 +336,6 @@ const logout = function () {
 
 
     .product-box {
-      overflow-x hidden
-      overflow-y visible
       width 100%
       padding-left 20px
 
