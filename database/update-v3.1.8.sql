@@ -44,3 +44,5 @@ INSERT INTO `chatgpt_products` (`id`, `name`, `price`, `discount`, `days`, `call
 
 ALTER TABLE `chatgpt_products` ADD PRIMARY KEY (`id`);
 ALTER TABLE `chatgpt_products` MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+ALTER TABLE `chatgpt_orders` ADD `pay_way` VARCHAR(20) DEFAULT '0'  NOT NULL COMMENT '支付方式' AFTER `pay_time`;
