@@ -38,13 +38,13 @@ func NewXXLJobExecutor(config *types.AppConfig, db *gorm.DB) *XXLJobExecutor {
 }
 
 func (e *XXLJobExecutor) Run() error {
-	e.executor.RegTask("ClearOrder", e.ClearOrder)
+	e.executor.RegTask("ClearOrders", e.ClearOrders)
 	e.executor.RegTask("ResetVipCalls", e.ResetVipCalls)
 	return e.executor.Run()
 }
 
-// ClearOrder 清理未支付的订单，如果没有抛出异常则表示执行成功
-func (e *XXLJobExecutor) ClearOrder(cxt context.Context, param *xxl.RunReq) (msg string) {
+// ClearOrders 清理未支付的订单，如果没有抛出异常则表示执行成功
+func (e *XXLJobExecutor) ClearOrders(cxt context.Context, param *xxl.RunReq) (msg string) {
 	logger.Debug("执行清理未支付订单...")
 	var sysConfig model.Config
 	res := e.db.Where("marker", "system").First(&sysConfig)
