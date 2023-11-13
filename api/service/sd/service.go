@@ -287,7 +287,8 @@ func (s *Service) callback(data CBReq) {
 		if data.Progress < 100 && data.ImageData != "" {
 			jobVo.ImgURL = data.ImageData
 		}
-
+		// 扣减绘图次数
+		s.db.Where("id = ?", jobVo.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 		// 推送任务到前端
 		if client != nil {
 			utils.ReplyChunkMessage(client, jobVo)
