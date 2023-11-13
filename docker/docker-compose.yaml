@@ -11,6 +11,7 @@ services:
       - CONFIG_FILE=config.toml
     ports:
       - "5678:5678"
+      - "9999:9999"
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./conf/config.toml:/var/www/app/config.toml

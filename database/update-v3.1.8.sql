@@ -17,20 +17,6 @@ CREATE TABLE `chatgpt_orders` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='充值订单表';
 
---
--- 转存表中的数据 `chatgpt_orders`
---
-INSERT INTO `chatgpt_orders` (`id`, `user_id`, `product_id`, `mobile`, `order_no`, `subject`, `amount`, `status`, `remark`, `pay_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
-  (4, 4, 1, '18575670125', '202308317102915300416290816', '会员1个月', '0.01', 2, '{\"days\":30,\"calls\":500,\"name\":\"会员1个月\",\"discount\":10.99}', 1693466990, '2023-08-31 15:29:33', '2023-08-31 15:29:51', NULL),
-  (5, 4, 5, '18575670125', '202308317102946758199607296', '100次点卡', '0.30', 2, '{\"days\":0,\"calls\":100,\"name\":\"100次点卡\"}', 1693466990, '2023-08-31 17:34:34', '2023-08-31 17:34:34', NULL),
-  (6, 4, 5, '18575670125', '202308317102946843595636736', '100次点卡', '0.03', 2, '{\"days\":0,\"calls\":100,\"name\":\"100次点卡\"}', 1693474722, '2023-08-31 17:34:54', '2023-08-31 17:38:43', NULL),
-  (7, 4, 1, '18575670125', '202309017103252664456052736', '会员1个月', '0.01', 2, '{\"days\":30,\"calls\":0,\"name\":\"会员1个月\"}', 1693466990, '2023-09-01 13:50:07', '2023-09-01 13:50:07', NULL),
-  (8, 4, 1, '18575670125', '202309017103252894391992320', '会员1个月', '0.01', 2, '{\"days\":30,\"calls\":0,\"name\":\"会员1个月\"}', 1693466990, '2023-09-01 13:51:02', '2023-09-01 13:51:02', NULL),
-  (9, 4, 5, '18575670125', '202309017103254657538981888', '100次点卡', '0.03', 2, '{\"days\":0,\"calls\":100,\"name\":\"100次点卡\"}', 1693474722, '2023-09-01 13:58:02', '2023-09-01 13:58:02', NULL),
-  (10, 4, 1, '18575670125', '202309017103259375405367296', '会员1个月', '0.01', 2, '{\"days\":30,\"calls\":0,\"name\":\"会员1个月\"}', 1693474722, '2023-09-01 14:16:47', '2023-09-01 14:16:47', NULL),
-  (11, 4, 3, '18575670125', '202309017103290730432430080', '会员6个月', '190.00', 2, '{\"days\":180,\"calls\":0,\"name\":\"会员6个月\",\"price\":290,\"discount\":100}', 1693474722, '2023-09-01 16:21:23', '2023-09-01 16:21:23', NULL),
-  (12, 4, 4, '18575670125', '202309017103291707520712704', '会员12个月', '380.00', 2, '{\"days\":365,\"calls\":0,\"name\":\"会员12个月\",\"price\":580,\"discount\":200}', 1693466990, '2023-09-01 16:25:16', '2023-09-01 16:25:16', NULL);
-
 -- 创建索引
 ALTER TABLE `chatgpt_orders` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `order_no` (`order_no`);
 ALTER TABLE `chatgpt_orders` MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
@@ -58,3 +44,5 @@ INSERT INTO `chatgpt_products` (`id`, `name`, `price`, `discount`, `days`, `call
 
 ALTER TABLE `chatgpt_products` ADD PRIMARY KEY (`id`);
 ALTER TABLE `chatgpt_products` MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+ALTER TABLE `chatgpt_orders` ADD `pay_way` VARCHAR(20) DEFAULT '0'  NOT NULL COMMENT '支付方式' AFTER `pay_time`;
