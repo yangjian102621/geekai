@@ -42,7 +42,7 @@ import {ref} from "vue";
 const router = useRouter();
 const logo = '/images/logo.png';
 const navs = ref([
-  {path: "/chat", icon: "wechat", title: "对话聊天"},
+  {path: "/chat", icon_path: "/images/chat.png", title: "对话聊天"},
   {path: "/mj", icon_path: "/images/mj.png", title: "MJ 绘画"},
   {path: "/sd", icon_path: "/images/sd.png", title: "SD 绘画"},
   {path: "/apps", icon: "menu", title: "应用中心"},
@@ -88,7 +88,7 @@ const changeNav = (item) => {
     }
 
     .nav-items {
-      margin-top 20px
+      margin-top 10px
 
       li {
         margin-bottom 15px
