@@ -1,6 +1,5 @@
 version: '3'
 services:
-  # 后端 API 程序
   mysql:
     image: mysql:8.0.33
     container_name: chatgpt-plus-mysql

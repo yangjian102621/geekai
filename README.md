@@ -42,7 +42,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ### 会员充值
 
-![会员充值](/docs/imgs/alipay.png)
+![会员充值](/docs/imgs/member.png)
 
 ### 自动调用函数插件
 
@@ -437,8 +437,7 @@ make clean linux
 
 如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～
 
-![支付宝打赏](docs/imgs/alipay.png)
-![微信打赏](docs/imgs/wechat-pay.png)
+![打赏](docs/imgs/donate.png)
 
 ![Star History Chart](https://api.star-history.com/svg?repos=yangjian102621/chatgpt-plus&type=Date)
 
