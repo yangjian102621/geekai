@@ -314,7 +314,6 @@ const logout = function () {
   }
 
   .inner {
-    display flex
     color #ffffff
     padding 15px 0 15px 15px;
     overflow-x hidden
