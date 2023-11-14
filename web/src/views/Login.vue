@@ -48,7 +48,7 @@
 
 <script setup>
 
-import {onMounted, ref} from "vue";
+import {onMounted, onUnmounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
@@ -74,12 +74,17 @@ checkSession().then(() => {
 }).catch(() => {
 })
 
+const handleKeyup = (e) => {
+  if (e.key === 'Enter') {
+    login();
+  }
+};
+
 onMounted(() => {
-  document.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') {
-      login();
-    }
-  });
+  document.addEventListener('keyup', handleKeyup)
+})
+onUnmounted(() => {
+  document.removeEventListener('keyup', handleKeyup)
 })
 
 const login = function () {
