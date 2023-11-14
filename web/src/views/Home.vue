@@ -2,7 +2,9 @@
   <div class="home">
     <div class="navigator">
       <div class="logo">
-        <el-image :src="logo"/>
+        <el-link href="/">
+          <el-image :src="logo"/>
+        </el-link>
 
         <div class="divider"></div>
       </div>
