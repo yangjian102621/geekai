@@ -258,17 +258,15 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 			// loading the role context
 			var messages []types.Message
-			if len(messages) > 0 {
-				err := utils.JsonDecode(role.Context, &messages)
-				if err == nil {
-					for _, v := range messages {
-						tks, _ := utils.CalcTokens(v.Content, req.Model)
-						if tokens+tks >= types.ModelToTokens[req.Model] {
-							break
-						}
-						tokens += tks
-						chatCtx = append(chatCtx, v)
+			err := utils.JsonDecode(role.Context, &messages)
+			if err == nil {
+				for _, v := range messages {
+					tks, _ := utils.CalcTokens(v.Content, req.Model)
+					if tokens+tks >= types.ModelToTokens[req.Model] {
+						break
 					}
+					tokens += tks
+					chatCtx = append(chatCtx, v)
 				}
 			}
 
