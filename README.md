@@ -196,10 +196,6 @@ WeChatBot = false # 是否启动微信机器人
   Product = "Dysmsapi"
   Domain = "dysmsapi.aliyuncs.com"
 
-[ExtConfig] # MidJourney和微信机器人服务 API 配置，开通此功能需要配合 chatpgt-plus-exts 项目部署
-  ApiURL = "" # 插件扩展 API 地址
-  Token = "" # 这个 token 随便填，只要确保跟 chatgpt-plus-exts 项目的 token 一样就行 
-  
 [OSS] # OSS 配置，用于存储 MJ 绘画图片
    Active = "local" # 默认使用本地文件存储引擎
    [OSS.Local]
