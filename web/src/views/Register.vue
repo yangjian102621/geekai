@@ -85,6 +85,9 @@
           <el-result icon="error" title="注册功能已关闭">
             <template #sub-title>
               <p>抱歉，系统已关闭注册功能，请联系管理员添加账号！</p>
+              <div class="wechat-card">
+                <el-image :src="wxImg"/>
+              </div>
             </template>
           </el-result>
         </div>
@@ -122,6 +125,7 @@ const formData = ref({
 const formRef = ref(null)
 const enableMsg = ref(false)
 const enableRegister = ref(true)
+const wxImg = ref("/images/wx.png")
 
 httpGet('/api/sms/status').then(res => {
   if (res.data) {
@@ -249,6 +253,10 @@ const register = function () {
 
     .tip-result {
       z-index 10
+
+      .wechat-card {
+        padding 20px
+      }
     }
 
     .footer {
