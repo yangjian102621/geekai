@@ -5,13 +5,10 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	logger2 "chatplus/logger"
-	"chatplus/store/model"
-	"chatplus/utils"
 	"chatplus/utils/resp"
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -81,68 +78,4 @@ func (h *ManagerHandler) Session(c *gin.Context) {
 	} else {
 		resp.SUCCESS(c)
 	}
-}
-
-// Migrate 数据修正
-func (h *ManagerHandler) Migrate(c *gin.Context) {
-	opt := c.Query("opt")
-	switch opt {
-	case "user":
-		// 将用户订阅角色的数据结构从 map 改成数组
-		var users []model.User
-		h.db.Find(&users)
-		for _, u := range users {
-			var m map[string]int
-			var roleKeys = make([]string, 0)
-			err := utils.JsonDecode(u.ChatRoles, &m)
-			if err != nil {
-				continue
-			}
-
-			for k := range m {
-				roleKeys = append(roleKeys, k)
-			}
-			u.ChatRoles = utils.JsonEncode(roleKeys)
-			h.db.Updates(&u)
-
-		}
-		break
-	case "role":
-		// 修改角色图片，改成绝对路径
-		var roles []model.ChatRole
-		h.db.Find(&roles)
-		for _, r := range roles {
-			if !strings.HasPrefix(r.Icon, "/") {
-				r.Icon = "/" + r.Icon
-				h.db.Updates(&r)
-			}
-		}
-		break
-	case "history":
-		// 修改角色图片，改成绝对路径
-		var message []model.HistoryMessage
-		h.db.Find(&message)
-		for _, r := range message {
-			if !strings.HasPrefix(r.Icon, "/") {
-				r.Icon = "/" + r.Icon
-				h.db.Updates(&r)
-			}
-
-		}
-		break
-
-	case "avatar":
-		// 更新用户的头像地址
-		var users []model.User
-		h.db.Find(&users)
-		for _, u := range users {
-			if !strings.HasPrefix(u.Avatar, "/") {
-				u.Avatar = "/" + u.Avatar
-				h.db.Updates(&u)
-			}
-		}
-		break
-	}
-
-	resp.SUCCESS(c, "SUCCESS")
 }
