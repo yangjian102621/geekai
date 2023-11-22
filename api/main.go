@@ -313,7 +313,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/model/")
 			group.POST("save", h.Save)
 			group.GET("list", h.List)
-			group.POST("enable", h.Enable)
+			group.POST("set", h.Set)
 			group.POST("sort", h.Sort)
 			group.GET("remove", h.Remove)
 		}),

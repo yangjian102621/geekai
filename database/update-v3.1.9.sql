@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_chat_models` ADD `open` TINYINT(1) NOT NULL COMMENT '是否开放模型' AFTER `weight`;
