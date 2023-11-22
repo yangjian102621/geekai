@@ -116,6 +116,13 @@
               <i class="iconfont icon-export"></i>
               <span>导出会话</span>
             </el-button>
+
+            <el-button type="warning" @click="showFeekbackDialog = true">
+              <el-icon>
+                <Promotion/>
+              </el-icon>
+              <span>意见反馈</span>
+            </el-button>
           </div>
         </div>
 
@@ -194,6 +201,27 @@
       </el-main>
     </el-container>
 
+    <el-dialog
+        v-model="showFeekbackDialog"
+        :show-close="true"
+        width="300px"
+        title="意见反馈"
+    >
+      <el-alert type="info" :closable="false">
+        <div style="font-size: 14px">
+          如果您对本项目有任何改进意见，您可以通过 Github
+          <el-link style="color: #f56c6c; font-weight: bold;" href="https://github.com/yangjian102621/chatgpt-plus">
+            提交改进意见
+          </el-link>
+          或者通过扫描下面的微信二维码加入 AI 技术交流群。
+        </div>
+      </el-alert>
+
+      <div style="text-align: center;padding-top: 10px;">
+        <el-image src="/images/wx.png"/>
+      </div>
+    </el-dialog>
+
     <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
   </div>
 
@@ -249,6 +277,7 @@ const showConfigDialog = ref(false);
 const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
+const showFeekbackDialog = ref(false)
 
 if (isMobile()) {
   router.replace("/mobile")
