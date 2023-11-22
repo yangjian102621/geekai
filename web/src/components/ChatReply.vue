@@ -31,11 +31,11 @@
 
 <script>
 import {defineComponent} from "vue"
-import {Clock, DocumentCopy} from "@element-plus/icons-vue";
+import {Clock, DocumentCopy, Position} from "@element-plus/icons-vue";
 
 export default defineComponent({
   name: 'ChatReply',
-  components: {Clock, DocumentCopy},
+  components: {Position, Clock, DocumentCopy},
   props: {
     content: {
       type: String,
@@ -124,6 +124,39 @@ export default defineComponent({
 
           p:first-child {
             margin-top 0
+          }
+
+          .code-container {
+            position relative
+
+            .hljs {
+              border-radius 10px
+              line-height 1.5
+            }
+
+            .copy-code-btn {
+              position: absolute;
+              right 10px
+              top 10px
+              cursor pointer
+              font-size 12px
+              color #c1c1c1
+
+              &:hover {
+                color #20a0ff
+              }
+            }
+
+          }
+
+          .lang-name {
+            position absolute;
+            right 10px
+            bottom 50px
+            padding 2px 6px 4px 6px
+            background-color #444444
+            border-radius 10px
+            color #00e0e0
           }
 
           // 设置表格边框

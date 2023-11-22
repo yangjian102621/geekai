@@ -2,6 +2,7 @@ package admin
 
 import (
 	"chatplus/core"
+	"chatplus/core/types"
 	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/utils/resp"
@@ -22,10 +23,10 @@ func NewDashboardHandler(app *core.AppServer, db *gorm.DB) *DashboardHandler {
 }
 
 type statsVo struct {
-	Users   int64   `json:"users"`
-	Chats   int64   `json:"chats"`
-	Tokens  int64   `json:"tokens"`
-	Rewards float64 `json:"rewards"`
+	Users  int64   `json:"users"`
+	Chats  int64   `json:"chats"`
+	Tokens int     `json:"tokens"`
+	Income float64 `json:"income"`
 }
 
 func (h *DashboardHandler) Stats(c *gin.Context) {
@@ -47,17 +48,24 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	}
 
 	// tokens took stats
-	var tokenCount int64
-	res = h.db.Model(&model.HistoryMessage{}).Select("sum(tokens) as total").Where("created_at > ?", zeroTime).Scan(&tokenCount)
-	if res.Error == nil {
-		stats.Tokens = tokenCount
+	var historyMessages []model.HistoryMessage
+	res = h.db.Where("created_at > ?", zeroTime).Find(&historyMessages)
+	for _, item := range historyMessages {
+		stats.Tokens += item.Tokens
 	}
 
-	// reward revenue
-	var amount float64
-	res = h.db.Model(&model.Reward{}).Select("sum(amount) as total").Where("created_at > ?", zeroTime).Scan(&amount)
-	if res.Error == nil {
-		stats.Rewards = amount
+	// 众筹收入
+	var rewards []model.Reward
+	res = h.db.Where("created_at > ?", zeroTime).Find(&rewards)
+	for _, item := range rewards {
+		stats.Income += item.Amount
+	}
+
+	// 订单收入
+	var orders []model.Order
+	res = h.db.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Find(&orders)
+	for _, item := range orders {
+		stats.Income += item.Amount
 	}
 	resp.SUCCESS(c, stats)
 }

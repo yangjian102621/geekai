@@ -71,6 +71,10 @@ func (h *ChatHandler) sendChatGLMMessage(
 			if strings.HasPrefix(line, "data:") {
 				content = line[5:]
 			}
+			// 处理代码换行
+			if len(content) == 0 {
+				content = "\n"
+			}
 			switch event {
 			case "add":
 				if len(contents) == 0 {

@@ -47,7 +47,7 @@
               <i class="iconfont icon-reward"></i>
             </el-icon>
             <div class="grid-cont-right">
-              <div class="grid-num">￥{{ stats.rewards }}</div>
+              <div class="grid-num">￥{{ stats.income }}</div>
               <div>今日入账</div>
             </div>
           </div>
@@ -70,7 +70,7 @@ httpGet('/api/admin/dashboard/stats').then((res) => {
   stats.value.users = res.data.users
   stats.value.chats = res.data.chats
   stats.value.tokens = res.data.tokens
-  stats.value.rewards = res.data.rewards
+  stats.value.income = res.data.income
   loading.value = false
 }).catch((e) => {
   ElMessage.error("获取统计数据失败：" + e.message)

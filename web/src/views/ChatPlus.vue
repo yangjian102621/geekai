@@ -117,7 +117,7 @@
               <span>导出会话</span>
             </el-button>
 
-            <el-button type="warning" @click="showFeekbackDialog = true">
+            <el-button type="warning" @click="showFeedbackDialog = true">
               <el-icon>
                 <Promotion/>
               </el-icon>
@@ -202,15 +202,16 @@
     </el-container>
 
     <el-dialog
-        v-model="showFeekbackDialog"
+        v-model="showFeedbackDialog"
         :show-close="true"
-        width="300px"
+        width="340px"
         title="意见反馈"
     >
       <el-alert type="info" :closable="false">
         <div style="font-size: 14px">
           如果您对本项目有任何改进意见，您可以通过 Github
-          <el-link style="color: #f56c6c; font-weight: bold;" href="https://github.com/yangjian102621/chatgpt-plus">
+          <el-link style="color: #f56c6c; font-weight: bold;"
+                   href="https://github.com/yangjian102621/chatgpt-plus/issues">
             提交改进意见
           </el-link>
           或者通过扫描下面的微信二维码加入 AI 技术交流群。
@@ -277,7 +278,7 @@ const showConfigDialog = ref(false);
 const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
-const showFeekbackDialog = ref(false)
+const showFeedbackDialog = ref(false)
 
 if (isMobile()) {
   router.replace("/mobile")
@@ -333,7 +334,7 @@ onMounted(() => {
     router.push('/login')
   });
 
-  const clipboard = new Clipboard('.copy-reply');
+  const clipboard = new Clipboard('.copy-reply, .copy-code-btn');
   clipboard.on('success', () => {
     ElMessage.success('复制成功！');
   })
@@ -469,6 +470,28 @@ const removeChat = function (event, chat) {
   curOpt.value = 'remove';
 }
 
+const md = require('markdown-it')({
+  breaks: true,
+  highlight: function (str, lang) {
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
+    // 显示复制代码按钮
+    const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(/<\/textarea>/g, '&lt;/textarea>')}</textarea>`
+    if (lang && hl.getLanguage(lang)) {
+      const langHtml = `<span class="lang-name">${lang}</span>`
+      // 处理代码高亮
+      const preCode = hl.highlight(lang, str, true).value
+      // 将代码包裹在 pre 中
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+    }
+
+    // 处理代码高亮
+    const preCode = md.utils.escapeHtml(str)
+    // 将代码包裹在 pre 中
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+  }
+});
+
 // 创建 socket 连接
 const prompt = ref('');
 const showStopGenerate = ref(false); // 停止生成
@@ -542,7 +565,6 @@ const connect = function (chat_id, role_id) {
         } else if (data.type === "mj") {
           disableInput(true)
           const content = data.content;
-          const md = require('markdown-it')({breaks: true});
           content.html = md.render(content.content)
           let key = content.key
           // fixed bug: 执行 Upscale 和 Variation 操作的时候覆盖之前的绘画
@@ -596,19 +618,9 @@ const connect = function (chat_id, role_id) {
 
         } else {
           lineBuffer.value += data.content;
-          const md = require('markdown-it')({breaks: true});
           const reply = chatData.value[chatData.value.length - 1]
           reply['orgContent'] = lineBuffer.value;
           reply['content'] = md.render(lineBuffer.value);
-
-          nextTick(() => {
-            hl.configure({ignoreUnescapedHTML: true})
-            const lines = document.querySelectorAll('.chat-line');
-            const blocks = lines[lines.length - 1].querySelectorAll('pre code');
-            blocks.forEach((block) => {
-              hl.highlightElement(block)
-            })
-          })
         }
         // 将聊天框的滚动条滑动到最底部
         nextTick(() => {
@@ -748,9 +760,6 @@ const loadChatHistory = function (chatId) {
       return
     }
     showHello.value = false
-
-    const md = require('markdown-it')({breaks: true});
-    // md.use(require('markdown-it-copy')); // 代码复制功能
     for (let i = 0; i < data.length; i++) {
       if (data[i].type === "prompt") {
         chatData.value.push(data[i]);
@@ -768,11 +777,6 @@ const loadChatHistory = function (chatId) {
     }
 
     nextTick(() => {
-      hl.configure({ignoreUnescapedHTML: true})
-      const blocks = document.querySelector("#chat-box").querySelectorAll('pre code');
-      blocks.forEach((block) => {
-        hl.highlightElement(block)
-      })
       document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
     })
     loading.value = false

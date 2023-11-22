@@ -120,6 +120,15 @@
             </div>
           </div>
         </el-form-item>
+        <el-form-item label="会员充值说明" prop="order_pay_info_text">
+          <el-input
+              v-model="system['order_pay_info_text']"
+              :autosize="{ minRows: 3, maxRows: 10 }"
+              type="textarea"
+              placeholder="请输入会员充值说明文字，比如介绍会员计划"
+          />
+        </el-form-item>
+
         <el-form-item label="默认AI模型" prop="default_models">
           <template #default>
             <div class="tip-input">
