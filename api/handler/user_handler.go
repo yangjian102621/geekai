@@ -275,8 +275,8 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-// Password 更新密码
-func (h *UserHandler) Password(c *gin.Context) {
+// UpdatePass 更新密码
+func (h *UserHandler) UpdatePass(c *gin.Context) {
 	var data struct {
 		OldPass  string `json:"old_pass"`
 		Password string `json:"password"`
@@ -313,6 +313,46 @@ func (h *UserHandler) Password(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c)
+}
+
+// ResetPass 重置密码
+func (h *UserHandler) ResetPass(c *gin.Context) {
+	var data struct {
+		Mobile   string
+		Code     string // 验证码
+		Password string // 新密码
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var user model.User
+	res := h.db.Where("mobile", data.Mobile).First(&user)
+	if res.Error != nil {
+		resp.ERROR(c, "用户不存在！")
+		return
+	}
+
+	// 检查验证码
+	key := CodeStorePrefix + data.Mobile
+	if h.App.SysConfig.EnabledMsg {
+		code, err := h.redis.Get(c, key).Result()
+		if err != nil || code != data.Code {
+			resp.ERROR(c, "短信验证码错误")
+			return
+		}
+	}
+
+	password := utils.GenPassword(data.Password, user.Salt)
+	user.Password = password
+	res = h.db.Updates(&user)
+	if res.Error != nil {
+		resp.ERROR(c)
+	} else {
+		h.redis.Del(c, key)
+		resp.SUCCESS(c)
+	}
 }
 
 // BindMobile 绑定手机号

@@ -32,12 +32,14 @@
             <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
           </el-row>
 
-          <el-row class="text-line">
-            还没有账号？
-            <el-link type="primary" @click="router.push('/register')">注册新账号</el-link>
+          <el-row class="text-line" gutter="20">
+            <el-button type="primary" @click="router.push('/register')" size="small" plain>注册新账号</el-button>
+            <el-button type="success" @click="showResetPass = true" size="small" plain>重置密码</el-button>
           </el-row>
         </div>
       </div>
+
+      <reset-pass @hide="showResetPass = false" :show="showResetPass"/>
 
       <footer class="footer">
         <footer-bar/>
@@ -59,11 +61,13 @@ import {checkSession} from "@/action/session";
 import {setUserToken} from "@/store/session";
 import {validateMobile} from "@/utils/validate";
 import {prevRoute} from "@/router";
+import ResetPass from "@/components/ResetPass.vue";
 
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户登录');
 const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
+const showResetPass = ref(false)
 
 checkSession().then(() => {
   if (isMobile()) {

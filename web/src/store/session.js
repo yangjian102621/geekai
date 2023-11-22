@@ -27,7 +27,7 @@ export function setSessionId(sessionId) {
 }
 
 export function getUserToken() {
-    return Storage.get(UserTokenKey)
+    return Storage.get(UserTokenKey) ?? ""
 }
 
 export function setUserToken(token) {
