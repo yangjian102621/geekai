@@ -2,18 +2,16 @@ package service
 
 import (
 	"chatplus/core/types"
-	"chatplus/store"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dysmsapi"
 )
 
 type AliYunSmsService struct {
 	config *types.AliYunSmsConfig
-	db     *store.LevelDB
 	client *dysmsapi.Client
 }
 
-func NewAliYunSmsService(config *types.AppConfig, db *store.LevelDB) (*AliYunSmsService, error) {
+func NewAliYunSmsService(config *types.AppConfig) (*AliYunSmsService, error) {
 	// 创建阿里云短信客户端
 	client, err := dysmsapi.NewClientWithAccessKey(
 		"cn-hangzhou",
@@ -25,7 +23,6 @@ func NewAliYunSmsService(config *types.AppConfig, db *store.LevelDB) (*AliYunSms
 
 	return &AliYunSmsService{
 		config: &config.SmsConfig,
-		db:     db,
 		client: client,
 	}, nil
 }

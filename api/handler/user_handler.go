@@ -3,7 +3,6 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
-	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -23,7 +22,6 @@ type UserHandler struct {
 	BaseHandler
 	db       *gorm.DB
 	searcher *xdb.Searcher
-	leveldb  *store.LevelDB
 	redis    *redis.Client
 }
 
@@ -31,9 +29,8 @@ func NewUserHandler(
 	app *core.AppServer,
 	db *gorm.DB,
 	searcher *xdb.Searcher,
-	levelDB *store.LevelDB,
 	client *redis.Client) *UserHandler {
-	handler := &UserHandler{db: db, searcher: searcher, leveldb: levelDB, redis: client}
+	handler := &UserHandler{db: db, searcher: searcher, redis: client}
 	handler.App = app
 	return handler
 }
@@ -44,7 +41,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var data struct {
 		Mobile   string `json:"mobile"`
 		Password string `json:"password"`
-		Code     int    `json:"code"`
+		Code     string `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -64,8 +61,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
 	if h.App.SysConfig.EnabledMsg {
-		var code int
-		err := h.leveldb.Get(key, &code)
+		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {
 			resp.ERROR(c, "短信验证码错误")
 			return
@@ -107,7 +103,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	if h.App.SysConfig.EnabledMsg {
-		_ = h.leveldb.Delete(key) // 注册成功，删除短信验证码
+		_ = h.redis.Del(c, key) // 注册成功，删除短信验证码
 	}
 
 	// 自动登录创建 token
@@ -323,10 +319,18 @@ func (h *UserHandler) Password(c *gin.Context) {
 func (h *UserHandler) BindMobile(c *gin.Context) {
 	var data struct {
 		Mobile string `json:"mobile"`
-		Code   int    `json:"code"`
+		Code   string `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 检查验证码
+	key := CodeStorePrefix + data.Mobile
+	code, err := h.redis.Get(c, key).Result()
+	if err != nil || code != data.Code {
+		resp.ERROR(c, "短信验证码错误")
 		return
 	}
 
@@ -335,15 +339,6 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 	res := h.db.Where("mobile = ?", data.Mobile).First(&item)
 	if res.Error == nil {
 		resp.ERROR(c, "该手机号已经被其他账号绑定")
-		return
-	}
-
-	// 检查验证码
-	key := CodeStorePrefix + data.Mobile
-	var code int
-	err := h.leveldb.Get(key, &code)
-	if err != nil || code != data.Code {
-		resp.ERROR(c, "短信验证码错误")
 		return
 	}
 
@@ -359,6 +354,6 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 		return
 	}
 
-	_ = h.leveldb.Delete(key) // 删除短信验证码
+	_ = h.redis.Del(c, key) // 删除短信验证码
 	resp.SUCCESS(c)
 }

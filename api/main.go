@@ -94,7 +94,6 @@ func main() {
 		// 初始化数据库
 		fx.Provide(store.NewGormConfig),
 		fx.Provide(store.NewMysql),
-		fx.Provide(store.NewLevelDB),
 		fx.Provide(store.NewRedisClient),
 
 		fx.Provide(func() embed.FS {

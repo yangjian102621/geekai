@@ -18,7 +18,7 @@
         <el-form-item label="手机验证码">
           <el-row :gutter="20">
             <el-col :span="16">
-              <el-input v-model.number="form.code" maxlength="6"/>
+              <el-input v-model="form.code" maxlength="6"/>
             </el-col>
             <el-col :span="8">
               <send-msg size="" :mobile="form.mobile"/>

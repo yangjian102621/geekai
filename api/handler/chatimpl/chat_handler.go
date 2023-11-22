@@ -7,7 +7,6 @@ import (
 	"chatplus/handler"
 	logger2 "chatplus/logger"
 	"chatplus/service/mj"
-	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -34,15 +33,13 @@ var logger = logger2.GetLogger()
 type ChatHandler struct {
 	handler.BaseHandler
 	db        *gorm.DB
-	leveldb   *store.LevelDB
 	redis     *redis.Client
 	mjService *mj.Service
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, redis *redis.Client, service *mj.Service) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, service *mj.Service) *ChatHandler {
 	h := ChatHandler{
 		db:        db,
-		leveldb:   levelDB,
 		redis:     redis,
 		mjService: service,
 	}
