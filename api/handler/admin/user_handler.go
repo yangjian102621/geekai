@@ -70,6 +70,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		ChatModels  []string `json:"chat_models"`
 		ExpiredTime string   `json:"expired_time"`
 		Status      bool     `json:"status"`
+		Vip         bool     `json:"vip"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -86,6 +87,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			"calls":            data.Calls,
 			"img_calls":        data.ImgCalls,
 			"status":           data.Status,
+			"vip":              data.Vip,
 			"chat_roles_json":  utils.JsonEncode(data.ChatRoles),
 			"chat_models_json": utils.JsonEncode(data.ChatModels),
 			"expired_time":     utils.Str2stamp(data.ExpiredTime),
