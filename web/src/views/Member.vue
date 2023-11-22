@@ -33,10 +33,9 @@
 
         <el-col :span="17">
           <div class="product-box">
-            <div class="info">
+            <div class="info" v-if="orderPayInfoText !== ''">
               <el-alert type="info" show-icon :closable="false" effect="dark">
-                <strong>说明:</strong> 成为本站会员后每月有500次对话额度，50次 AI 绘画额度，限制下月1号解除，若在期间超过次数后可单独购买点卡。
-                当月充值的点卡有效期可以延期到下个月底。
+                <strong>说明:</strong> {{ orderPayInfoText }}
               </el-alert>
             </div>
 
@@ -176,6 +175,7 @@ const activeOrderNo = ref("")
 const countDown = ref(null)
 const orderTimeout = ref(1800)
 const loading = ref(true)
+const orderPayInfoText = ref("")
 
 
 onMounted(() => {
@@ -194,6 +194,7 @@ onMounted(() => {
   httpGet("/api/admin/config/get?key=system").then(res => {
     rewardImg.value = res.data['reward_img']
     enableReward.value = res.data['enabled_reward']
+    orderPayInfoText.value = res.data['order_pay_info_text']
     if (res.data['order_pay_timeout'] > 0) {
       orderTimeout.value = res.data['order_pay_timeout']
     }

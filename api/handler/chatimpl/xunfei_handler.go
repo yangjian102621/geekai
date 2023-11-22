@@ -138,6 +138,10 @@ func (h *ChatHandler) sendXunFeiMessage(
 		}
 
 		content = result.Payload.Choices.Text[0].Content
+		// 处理代码换行
+		if len(content) == 0 {
+			content = "\n"
+		}
 		contents = append(contents, content)
 		// 第一个结果
 		if result.Payload.Choices.Status == 0 {

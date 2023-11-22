@@ -84,6 +84,11 @@ func (h *ChatHandler) sendBaiduMessage(
 				content = line[5:]
 			}
 
+			// 处理代码换行
+			if len(content) == 0 {
+				content = "\n"
+			}
+
 			var resp baiduResp
 			err := utils.JsonDecode(content, &resp)
 			if err != nil {
