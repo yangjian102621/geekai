@@ -54,7 +54,7 @@
                   <el-col :span="12">
                     <el-input placeholder="手机验证码"
                               size="large" maxlength="30"
-                              v-model.number="formData.code"
+                              v-model="formData.code"
                               autocomplete="off">
                       <template #prefix>
                         <el-icon>
@@ -148,7 +148,6 @@ const register = function () {
   if (enableMsg.value && formData.value.code === '') {
     return ElMessage.error('请输入短信验证码');
   }
-  formData.value.code = parseInt(formData.value.code)
   httpPost('/api/user/register', formData.value).then((res) => {
     setUserToken(res.data)
     ElMessage.success({
