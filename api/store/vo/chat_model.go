@@ -8,4 +8,5 @@ type ChatModel struct {
 	Enabled  bool   `json:"enabled"`
 	SortNum  int    `json:"sort_num"`
 	Weight   int    `json:"weight"`
+	Open     bool   `json:"open"`
 }

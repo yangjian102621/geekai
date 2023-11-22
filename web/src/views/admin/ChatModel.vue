@@ -17,7 +17,12 @@
         <el-table-column prop="weight" label="对话权重"/>
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
-            <el-switch v-model="scope.row['enabled']" @change="enable(scope.row)"/>
+            <el-switch v-model="scope.row['enabled']" @change="modelSet('enabled',scope.row)"/>
+          </template>
+        </el-table-column>
+        <el-table-column prop="enabled" label="开放状态">
+          <template #default="scope">
+            <el-switch v-model="scope.row['open']" @change="modelSet('open',scope.row)"/>
           </template>
         </el-table-column>
 
@@ -83,6 +88,9 @@
 
         <el-form-item label="启用状态：" prop="enable">
           <el-switch v-model="item.enabled"/>
+        </el-form-item>
+        <el-form-item label="开放状态：" prop="open">
+          <el-switch v-model="item.open"/>
         </el-form-item>
       </el-form>
 
@@ -200,8 +208,8 @@ const save = function () {
   })
 }
 
-const enable = (row) => {
-  httpPost('/api/admin/model/enable', {id: row.id, enabled: row.enabled}).then(() => {
+const modelSet = (filed, row) => {
+  httpPost('/api/admin/model/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
     ElMessage.success("操作成功！")
   }).catch(e => {
     ElMessage.error("操作失败：" + e.message)

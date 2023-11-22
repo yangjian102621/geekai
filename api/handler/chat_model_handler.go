@@ -39,7 +39,10 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Where("enabled = ?", true).Where("value IN ?", models).Order("sort_num ASC").Find(&items)
+	// 查询用户有权限访问的模型以及所有开放的模型
+	res := h.db.Where("enabled = ?", true).Where(
+		h.db.Where("value IN ?", models).Or("open =?", true),
+	).Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var cm vo.ChatModel

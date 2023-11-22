@@ -31,6 +31,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Value     string `json:"value"`
 		Enabled   bool   `json:"enabled"`
 		SortNum   int    `json:"sort_num"`
+		Open      bool   `json:"open"`
 		Platform  string `json:"platform"`
 		Weight    int    `json:"weight"`
 		CreatedAt int64  `json:"created_at"`
@@ -40,7 +41,14 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		return
 	}
 
-	item := model.ChatModel{Platform: data.Platform, Name: data.Name, Value: data.Value, Enabled: data.Enabled, SortNum: data.SortNum, Weight: data.Weight}
+	item := model.ChatModel{
+		Platform: data.Platform,
+		Name:     data.Name,
+		Value:    data.Value,
+		Enabled:  data.Enabled,
+		SortNum:  data.SortNum,
+		Open:     data.Open,
+		Weight:   data.Weight}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)
@@ -89,10 +97,11 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	resp.SUCCESS(c, cms)
 }
 
-func (h *ChatModelHandler) Enable(c *gin.Context) {
+func (h *ChatModelHandler) Set(c *gin.Context) {
 	var data struct {
-		Id      uint `json:"id"`
-		Enabled bool `json:"enabled"`
+		Id    uint        `json:"id"`
+		Filed string      `json:"filed"`
+		Value interface{} `json:"value"`
 	}
 
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -100,7 +109,7 @@ func (h *ChatModelHandler) Enable(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.ChatModel{}).Where("id = ?", data.Id).Update("enabled", data.Enabled)
+	res := h.db.Model(&model.ChatModel{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return

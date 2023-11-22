@@ -48,6 +48,12 @@ type xunFeiResp struct {
 	} `json:"payload"`
 }
 
+var Model2URL = map[string]string{
+	"generalv1": "1.1",
+	"generalv2": "v2.1",
+	"generalv3": "v3.1",
+}
+
 // 科大讯飞消息发送实现
 
 func (h *ChatHandler) sendXunFeiMessage(
@@ -82,13 +88,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 		return nil
 	}
 
-	var apiURL string
-	if req.Model == "generalv2" {
-		apiURL = strings.Replace(h.App.ChatConfig.XunFei.ApiURL, "{version}", "v2.1", 1)
-	} else {
-		apiURL = strings.Replace(h.App.ChatConfig.XunFei.ApiURL, "{version}", "v1.1", 1)
-	}
-
+	apiURL := strings.Replace(h.App.ChatConfig.XunFei.ApiURL, "{version}", Model2URL[req.Model], 1)
 	wsURL, err := assembleAuthUrl(apiURL, key[1], key[2])
 	//握手并建立websocket 连接
 	conn, resp, err := d.Dial(wsURL, nil)
