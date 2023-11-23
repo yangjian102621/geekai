@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/nfnt/resize"
 	"github.com/skip2/go-qrcode"
 	"image"
@@ -14,8 +15,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 )
 
 // CopyObject 拷贝对象
@@ -60,6 +59,8 @@ func CopyObject(src interface{}, dst interface{}) error {
 						value.Set(reflect.ValueOf(""))
 					}
 				}
+			} else if field.Type.Kind() != value.Type().Kind() { // 不同类型的字段过滤掉
+				continue
 			} else { // 简单数据类型的强制类型转换
 				switch value.Kind() {
 				case reflect.Int:

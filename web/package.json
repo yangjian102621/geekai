@@ -21,6 +21,7 @@
     "markdown-it": "^13.0.1",
     "md-editor-v3": "^2.2.1",
     "pinia": "^2.1.4",
+    "qrcode": "^1.5.3",
     "qs": "^6.11.1",
     "sortablejs": "^1.15.0",
     "v3-waterfall": "^1.2.1",
