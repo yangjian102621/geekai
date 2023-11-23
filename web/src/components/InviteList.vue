@@ -1,5 +1,5 @@
 <template>
-  <div class="user-bill" v-loading="loading">
+  <div class="invite-list" v-loading="loading">
     <el-row v-if="items.length > 0">
       <el-table :data="items" :row-key="row => row.id" table-layout="auto" border
                 style="--el-table-border-color:#373C47;
@@ -7,26 +7,18 @@
                 --el-table-row-hover-bg-color:#373C47;
                 --el-table-header-bg-color:#474E5C;
                 --el-table-text-color:#d1d1d1">
-        <el-table-column prop="order_no" label="订单号">
+        <el-table-column prop="username" label="用户"/>
+        <el-table-column prop="invite_code" label="邀请码"/>
+        <el-table-column label="邀请奖励">
           <template #default="scope">
-            <span>{{ scope.row.order_no }}</span>
-            <el-icon class="copy-order-no" :data-clipboard-text="scope.row.order_no">
-              <DocumentCopy/>
-            </el-icon>
-          </template>
-        </el-table-column>
-        <el-table-column prop="subject" label="产品名称"/>
-        <el-table-column prop="amount" label="订单金额"/>
-        <el-table-column label="调用次数">
-          <template #default="scope">
-            <span>{{ scope.row.remark?.calls }}</span>
+            <span>对话：{{ scope.row['reward']['chat_calls'] }}次</span>，
+            <span>绘图：{{ scope.row['reward']['chat_calls'] }}次</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="支付时间">
+        <el-table-column label="注册时间">
           <template #default="scope">
-            <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row['pay_time']) }}</span>
-            <el-tag v-else>未支付</el-tag>
+            <span>{{ dateFormat(scope.row['created_at']) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -47,7 +39,7 @@
 
 <script setup>
 import {onMounted, ref, watch} from "vue";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat} from "@/utils/libs";
 import {DocumentCopy} from "@element-plus/icons-vue";
@@ -73,7 +65,7 @@ onMounted(() => {
 
 // 获取数据
 const fetchData = () => {
-  httpPost('/api/order/list', {page: page.value, page_size: pageSize.value}).then((res) => {
+  httpPost('/api/invite/list', {page: page.value, page_size: pageSize.value}).then((res) => {
     if (res.data) {
       items.value = res.data.items
       total.value = res.data.total
@@ -88,7 +80,7 @@ const fetchData = () => {
 </script>
 
 <style scoped lang="stylus">
-.user-bill {
+.invite-list {
   .pagination {
     margin: 20px 0 0 0;
     display: flex;

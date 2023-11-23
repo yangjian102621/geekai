@@ -350,7 +350,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.InviteHandler) {
 			group := s.Engine.Group("/api/invite/")
 			group.GET("code", h.Code)
-			group.GET("list", h.List)
+			group.POST("list", h.List)
 			group.GET("hits", h.Hits)
 		}),
 
