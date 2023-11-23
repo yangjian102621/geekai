@@ -2,6 +2,7 @@ package handler
 
 import (
 	"chatplus/core"
+	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -55,7 +56,36 @@ func (h *InviteHandler) Code(c *gin.Context) {
 // List Log 用户邀请记录
 func (h *InviteHandler) List(c *gin.Context) {
 
-	resp.SUCCESS(c)
+	var data struct {
+		Page     int `json:"page"`
+		PageSize int `json:"page_size"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	userId := h.GetLoginUserId(c)
+	session := h.db.Session(&gorm.Session{}).Where("inviter_id = ?", userId)
+	var total int64
+	session.Model(&model.InviteLog{}).Count(&total)
+	var items []model.InviteLog
+	var list = make([]vo.InviteLog, 0)
+	offset := (data.Page - 1) * data.PageSize
+	res := session.Order("id DESC").Offset(offset).Limit(data.PageSize).Find(&items)
+	if res.Error == nil {
+		for _, item := range items {
+			var v vo.InviteLog
+			err := utils.CopyObject(item, &v)
+			if err == nil {
+				v.Id = item.Id
+				v.CreatedAt = item.CreatedAt.Unix()
+				list = append(list, v)
+			} else {
+				logger.Error(err)
+			}
+		}
+	}
+	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, list))
 }
 
 // Hits 访问邀请码
