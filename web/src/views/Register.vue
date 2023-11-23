@@ -69,6 +69,19 @@
                 </el-row>
               </div>
 
+              <div class="block">
+                <el-input placeholder="邀请码"
+                          size="large"
+                          v-model="formData.invite_code"
+                          autocomplete="off">
+                  <template #prefix>
+                    <el-icon>
+                      <Message/>
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+
               <el-row class="btn-row">
                 <el-button class="login-btn" size="large" type="primary" @click="register">注册</el-button>
               </el-row>
@@ -103,7 +116,7 @@
 <script setup>
 
 import {ref} from "vue";
-import {Checked, Iphone, Lock} from "@element-plus/icons-vue";
+import {Checked, Iphone, Lock, Message} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
@@ -121,6 +134,7 @@ const formData = ref({
   password: '',
   code: '',
   repass: '',
+  invite_code: router.currentRoute.value.query['invite_code'],
 })
 const formRef = ref(null)
 const enableMsg = ref(false)
@@ -133,6 +147,11 @@ httpGet('/api/sms/status').then(res => {
     enableRegister.value = res.data['enabled_register']
   }
 })
+
+httpGet("/api/invite/hits", {code: formData.value.invite_code}).then(() => {
+}).catch(() => {
+})
+
 
 const register = function () {
   if (!validateMobile(formData.value.mobile)) {

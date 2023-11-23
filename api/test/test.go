@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
-	"strconv"
+	"reflect"
+	"time"
 )
 
 func main() {
-	value, err := strconv.Atoi("012345")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(value)
+	r := time.Now()
+	f := reflect.ValueOf(r)
+	fmt.Println(f.Type().Kind())
 }

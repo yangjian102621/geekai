@@ -49,3 +49,11 @@ func (h *BaseHandler) GetUserKey(c *gin.Context) string {
 	}
 	return fmt.Sprintf("users/%v", userId)
 }
+
+func (h *BaseHandler) GetLoginUserId(c *gin.Context) uint {
+	userId, ok := c.Get(types.LoginUserID)
+	if !ok {
+		return 0
+	}
+	return uint(utils.IntValue(utils.InterfaceToString(userId), 0))
+}

@@ -346,6 +346,14 @@ func main() {
 			group.GET("list", h.List)
 		}),
 
+		fx.Provide(handler.NewInviteHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.InviteHandler) {
+			group := s.Engine.Group("/api/invite/")
+			group.GET("code", h.Code)
+			group.GET("list", h.List)
+			group.GET("hits", h.Hits)
+		}),
+
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)
 			if err != nil {

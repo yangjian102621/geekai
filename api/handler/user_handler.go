@@ -39,9 +39,10 @@ func NewUserHandler(
 func (h *UserHandler) Register(c *gin.Context) {
 	// parameters process
 	var data struct {
-		Mobile   string `json:"mobile"`
-		Password string `json:"password"`
-		Code     string `json:"code"`
+		Mobile     string `json:"mobile"`
+		Password   string `json:"password"`
+		Code       string `json:"code"`
+		InviteCode string `json:"invite_code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -64,6 +65,16 @@ func (h *UserHandler) Register(c *gin.Context) {
 		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {
 			resp.ERROR(c, "短信验证码错误")
+			return
+		}
+	}
+
+	// 验证邀请码
+	inviteCode := model.InviteCode{}
+	if data.InviteCode != "" {
+		res := h.db.Where("code = ?", data.InviteCode).First(&inviteCode)
+		if res.Error != nil {
+			resp.ERROR(c, "无效的邀请码")
 			return
 		}
 	}
@@ -92,7 +103,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 				types.ChatGLM: "",
 			},
 		}),
-		Calls:    h.App.SysConfig.UserInitCalls,
+		Calls:    h.App.SysConfig.InitChatCalls,
 		ImgCalls: h.App.SysConfig.InitImgCalls,
 	}
 	res = h.db.Create(&user)
@@ -102,6 +113,26 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// 记录邀请关系
+	if data.InviteCode != "" {
+		// 增加邀请数量
+		h.db.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
+		if h.App.SysConfig.InviteChatCalls > 0 {
+			h.db.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("calls", gorm.Expr("calls + ?", h.App.SysConfig.InviteChatCalls))
+		}
+		if h.App.SysConfig.InviteImgCalls > 0 {
+			h.db.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", h.App.SysConfig.InviteImgCalls))
+		}
+
+		// 添加邀请记录
+		h.db.Create(&model.InviteLog{
+			InviterId:  inviteCode.UserId,
+			UserId:     user.Id,
+			Username:   user.Mobile,
+			InviteCode: inviteCode.Code,
+			Reward:     utils.JsonEncode(types.InviteReward{ChatCalls: h.App.SysConfig.InviteChatCalls, ImgCalls: h.App.SysConfig.InviteImgCalls}),
+		})
+	}
 	if h.App.SysConfig.EnabledMsg {
 		_ = h.redis.Del(c, key) // 注册成功，删除短信验证码
 	}
