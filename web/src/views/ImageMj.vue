@@ -274,7 +274,7 @@
                       :src="scope.item.type === 'upscale'?scope.item['img_url']+'?imageView2/1/w/240/h/300/q/75':scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
                       :class="scope.item.type === 'upscale'?'upscale':''"
                       :zoom-rate="1.2"
-                      :preview-src-list="previewImgList"
+                      :preview-src-list="[scope.item['img_url']]"
                       fit="cover"
                       :initial-index="scope.index" loading="lazy" v-if="scope.item.progress > 0">
                     <template #placeholder>
@@ -390,7 +390,6 @@ const params = ref({
 
 const runningJobs = ref([])
 const finishedJobs = ref([])
-const previewImgList = ref([])
 const router = useRouter()
 
 const socket = ref(null)
@@ -433,7 +432,6 @@ const connect = () => {
           if (isNew) {
             finishedJobs.value.unshift(data)
           }
-          previewImgList.value.unshift(data["img_url"])
         } else {
           for (let i = 0; i < runningJobs.value.length; i++) {
             if (runningJobs.value[i].id === data.id) {
@@ -468,10 +466,6 @@ onMounted(() => {
     // 获取运行中的任务
     httpGet(`/api/mj/jobs?status=1&user_id=${user['id']}`).then(res => {
       finishedJobs.value = res.data
-      previewImgList.value = []
-      for (let index in finishedJobs.value) {
-        previewImgList.value.push(finishedJobs.value[index]["img_url"])
-      }
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
     })
