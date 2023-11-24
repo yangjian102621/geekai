@@ -71,7 +71,12 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 验证邀请码
 	inviteCode := model.InviteCode{}
-	if data.InviteCode != "" {
+	if data.InviteCode == "" {
+		if h.App.SysConfig.ForceInvite {
+			resp.ERROR(c, "当前系统设定必须使用邀请码才能注册")
+			return
+		}
+	} else {
 		res := h.db.Where("code = ?", data.InviteCode).First(&inviteCode)
 		if res.Error != nil {
 			resp.ERROR(c, "无效的邀请码")

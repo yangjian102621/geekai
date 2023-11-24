@@ -118,7 +118,7 @@
 import {ref} from "vue";
 import {Checked, Iphone, Lock, Message} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElNotification} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
@@ -141,11 +141,23 @@ const enableMsg = ref(false)
 const enableRegister = ref(true)
 const wxImg = ref("/images/wx.png")
 
-httpGet('/api/sms/status').then(res => {
+httpGet("/api/admin/config/get?key=system").then(res => {
   if (res.data) {
-    enableMsg.value = res.data['enabled_msg_service']
+    enableMsg.value = res.data['enabled_msg']
     enableRegister.value = res.data['enabled_register']
+    console.log(res.data)
+    if (res.data['force_invite']) {
+      ElNotification({
+        title: '提示：',
+        dangerouslyUseHTMLString: true,
+        message: '当前系统开启了强制邀请注册功能，必须有邀请码才能注册哦。扫描下面二维码获取邀请码。<br/> <img alt="qrcode" src="/images/wx.png" />',
+        type: 'info',
+        duration: 0,
+      })
+    }
   }
+}).catch(e => {
+  ElMessage.error("获取系统配置失败：" + e.message)
 })
 
 httpGet("/api/invite/hits", {code: formData.value.invite_code}).then(() => {

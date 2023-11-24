@@ -4,6 +4,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/service/mj"
 	"chatplus/utils"
+	"errors"
 )
 
 // AI 绘画函数
@@ -11,15 +12,21 @@ import (
 type FuncMidJourney struct {
 	name    string
 	service *mj.Service
+	config  types.MidJourneyConfig
 }
 
-func NewMidJourneyFunc(mjService *mj.Service) FuncMidJourney {
+func NewMidJourneyFunc(mjService *mj.Service, config types.MidJourneyConfig) FuncMidJourney {
 	return FuncMidJourney{
 		name:    "MidJourney AI 绘画",
+		config:  config,
 		service: mjService}
 }
 
 func (f FuncMidJourney) Invoke(params map[string]interface{}) (string, error) {
+	if !f.config.Enabled {
+		return "", errors.New("MidJourney AI 绘画功能没有启用")
+	}
+
 	logger.Infof("MJ 绘画参数：%+v", params)
 	prompt := utils.InterfaceToString(params["prompt"])
 	f.service.PushTask(types.MjTask{
