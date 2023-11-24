@@ -63,7 +63,8 @@ func (e *XXLJobExecutor) ClearOrders(cxt context.Context, param *xxl.RunReq) (ms
 	}
 	timeout := time.Now().Unix() - int64(config.OrderPayTimeout)
 	start := utils.Stamp2str(timeout)
-	res = e.db.Where("status != ? AND created_at < ?", types.OrderPaidSuccess, start).Delete(&model.Order{})
+	// 这里不是用软删除，而是永久删除订单
+	res = e.db.Unscoped().Where("status != ? AND created_at < ?", types.OrderPaidSuccess, start).Delete(&model.Order{})
 	return fmt.Sprintf("Clear order successfully, affect rows: %d", res.RowsAffected)
 }
 

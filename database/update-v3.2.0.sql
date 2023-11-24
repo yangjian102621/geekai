@@ -24,3 +24,5 @@ CREATE TABLE `chatgpt_invite_codes` (
 ALTER TABLE `chatgpt_invite_codes` ADD PRIMARY KEY (`id`);
 ALTER TABLE `chatgpt_invite_codes` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `chatgpt_invite_codes` ADD UNIQUE(`code`);
+
+ALTER TABLE `chatgpt_api_keys` ADD `type` VARCHAR(10) NOT NULL DEFAULT 'chat' COMMENT '用途（chat=>聊天，img=>图片）' AFTER `value`;

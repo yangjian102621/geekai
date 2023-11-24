@@ -145,8 +145,7 @@ httpGet("/api/admin/config/get?key=system").then(res => {
   if (res.data) {
     enableMsg.value = res.data['enabled_msg']
     enableRegister.value = res.data['enabled_register']
-    console.log(res.data)
-    if (res.data['force_invite']) {
+    if (res.data['force_invite'] && !formData.value.invite_code) {
       ElNotification({
         title: '提示：',
         dangerouslyUseHTMLString: true,
