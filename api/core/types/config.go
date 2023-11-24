@@ -140,12 +140,12 @@ type SystemConfig struct {
 	Title            string   `json:"title"`
 	AdminTitle       string   `json:"admin_title"`
 	Models           []string `json:"models"`
-	InitChatCalls    int      `json:"init_chat_calls"` // 新用户注册赠送对话次数
-	InitImgCalls     int      `json:"init_img_calls"`  // 新用户注册赠送绘图次数
-	VipMonthCalls    int      `json:"vip_month_calls"` // 会员每个赠送的调用次数
-	EnabledRegister  bool     `json:"enabled_register"`
-	EnabledMsg       bool     `json:"enabled_msg"`         // 启用短信验证码服务
-	EnabledDraw      bool     `json:"enabled_draw"`        // 启动 AI 绘画功能
+	InitChatCalls    int      `json:"init_chat_calls"`     // 新用户注册赠送对话次数
+	InitImgCalls     int      `json:"init_img_calls"`      // 新用户注册赠送绘图次数
+	VipMonthCalls    int      `json:"vip_month_calls"`     // 会员每个赠送的调用次数
+	EnabledRegister  bool     `json:"enabled_register"`    // 是否启用注册功能，关闭注册功能之后将无法注册
+	EnabledMsg       bool     `json:"enabled_msg"`         // 是否启用短信验证码服务
+	EnabledDraw      bool     `json:"enabled_draw"`        // 是否启用 AI 绘画功能
 	RewardImg        string   `json:"reward_img"`          // 众筹收款二维码地址
 	EnabledFunction  bool     `json:"enabled_function"`    // 启用 API 函数功能
 	EnabledReward    bool     `json:"enabled_reward"`      // 启用众筹功能
@@ -155,4 +155,5 @@ type SystemConfig struct {
 	OrderPayInfoText string   `json:"order_pay_info_text"` // 订单支付页面说明文字
 	InviteChatCalls  int      `json:"invite_chat_calls"`   // 邀请用户注册奖励对话次数
 	InviteImgCalls   int      `json:"invite_img_calls"`    // 邀请用户注册奖励绘图次数
+	ForceInvite      bool     `json:"force_invite"`        // 是否强制必须使用邀请码才能注册
 }

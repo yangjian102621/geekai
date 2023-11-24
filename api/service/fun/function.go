@@ -34,6 +34,6 @@ func NewFunctions(config *types.AppConfig, mjService *mj.Service) map[string]Fun
 		types.FuncZaoBao:     NewZaoBao(config.ApiConfig),
 		types.FuncWeibo:      NewWeiboHot(config.ApiConfig),
 		types.FuncHeadLine:   NewHeadLines(config.ApiConfig),
-		types.FuncMidJourney: NewMidJourneyFunc(mjService),
+		types.FuncMidJourney: NewMidJourneyFunc(mjService, config.MjConfig),
 	}
 }

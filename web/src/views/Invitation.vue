@@ -78,7 +78,7 @@
       <h2>您推荐用户</h2>
 
       <div class="invite-logs">
-        <invite-list/>
+        <invite-list v-if="isLogin"/>
       </div>
     </div>
   </div>
@@ -91,6 +91,8 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import Clipboard from "clipboard";
 import InviteList from "@/components/InviteList.vue";
+import {checkSession} from "@/action/session";
+import {useRouter} from "vue-router";
 
 const inviteURL = ref("")
 const qrImg = ref("")
@@ -100,34 +102,40 @@ const users = ref([])
 const hits = ref(0)
 const regNum = ref(0)
 const rate = ref(0)
-
+const router = useRouter()
+const isLogin = ref(false)
 
 onMounted(() => {
-  httpGet("/api/invite/code").then(res => {
-    const text = `${location.protocol}//${location.host}/register?invite_code=${res.data.code}`
-    hits.value = res.data["hits"]
-    regNum.value = res.data["reg_num"]
-    if (hits.value > 0) {
-      rate.value = ((regNum.value / hits.value) * 100).toFixed(2)
-    }
-    QRCode.toDataURL(text, {width: 400, height: 400, margin: 2}, (error, url) => {
-      if (error) {
-        console.error(error)
-      } else {
-        qrImg.value = url;
+  checkSession().then(() => {
+    isLogin.value = true
+    httpGet("/api/invite/code").then(res => {
+      const text = `${location.protocol}//${location.host}/register?invite_code=${res.data.code}`
+      hits.value = res.data["hits"]
+      regNum.value = res.data["reg_num"]
+      if (hits.value > 0) {
+        rate.value = ((regNum.value / hits.value) * 100).toFixed(2)
       }
-    });
-    inviteURL.value = text
-  }).catch(e => {
-    ElMessage.error("获取邀请码失败：" + e.message)
-  })
+      QRCode.toDataURL(text, {width: 400, height: 400, margin: 2}, (error, url) => {
+        if (error) {
+          console.error(error)
+        } else {
+          qrImg.value = url;
+        }
+      });
+      inviteURL.value = text
+    }).catch(e => {
+      ElMessage.error("获取邀请码失败：" + e.message)
+    })
 
-  httpGet("/api/admin/config/get?key=system").then(res => {
-    inviteChatCalls.value = res.data["invite_chat_calls"]
-    inviteImgCalls.value = res.data["invite_img_calls"]
-  }).catch(e => {
-    ElMessage.error("获取系统配置失败：" + e.message)
-  })
+    httpGet("/api/admin/config/get?key=system").then(res => {
+      inviteChatCalls.value = res.data["invite_chat_calls"]
+      inviteImgCalls.value = res.data["invite_img_calls"]
+    }).catch(e => {
+      ElMessage.error("获取系统配置失败：" + e.message)
+    })
+  }).catch(() => {
+    router.push('/login')
+  });
 
   // 复制链接
   const clipboard = new Clipboard('.copy-link');
