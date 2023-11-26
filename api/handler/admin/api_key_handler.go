@@ -27,6 +27,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	var data struct {
 		Id       uint   `json:"id"`
 		Platform string `json:"platform"`
+		Type     string `json:"type"`
 		Value    string `json:"value"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -40,7 +41,8 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	}
 	apiKey.Platform = data.Platform
 	apiKey.Value = data.Value
-	res := h.db.Debug().Save(&apiKey)
+	apiKey.Type = data.Type
+	res := h.db.Save(&apiKey)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return

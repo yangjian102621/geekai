@@ -69,7 +69,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 	var apiKey = userVo.ChatConfig.ApiKeys[session.Model.Platform]
 	if apiKey == "" {
 		var key model.ApiKey
-		res := h.db.Where("platform = ?", session.Model.Platform).Order("last_used_at ASC").First(&key)
+		res := h.db.Where("platform = ? AND type = ?", session.Model.Platform, "chat").Order("last_used_at ASC").First(&key)
 		if res.Error != nil {
 			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 			return nil

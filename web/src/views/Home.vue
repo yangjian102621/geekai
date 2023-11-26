@@ -2,10 +2,7 @@
   <div class="home">
     <div class="navigator">
       <div class="logo">
-        <el-link href="/">
-          <el-image :src="logo"/>
-        </el-link>
-
+        <el-image :src="logo"/>
         <div class="divider"></div>
       </div>
 
@@ -37,8 +34,6 @@
 <script setup>
 
 import {useRouter} from "vue-router";
-import {checkSession} from "@/action/session";
-import {isMobile} from "@/utils/libs";
 import {ref} from "vue";
 
 const router = useRouter();

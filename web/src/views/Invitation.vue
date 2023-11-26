@@ -1,84 +1,87 @@
 <template>
-  <div class="page-invitation">
-    <div class="inner">
-      <h2>会员推广计划</h2>
-      <div class="share-box">
-        <div class="info">
-          我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您将获得 <strong>{{ inviteChatCalls }}</strong> 次对话额度以及
-          <strong>{{ inviteImgCalls }}</strong> 次AI绘画额度作为奖励。
-          你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
+  <div class="custom-scroll">
+    <div class="page-invitation" :style="{height: listBoxHeight + 'px'}">
+      <div class="inner">
+        <h2>会员推广计划</h2>
+        <div class="share-box">
+          <div class="info">
+            我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您将获得 <strong>{{ inviteChatCalls }}</strong>
+            次对话额度以及
+            <strong>{{ inviteImgCalls }}</strong> 次AI绘画额度作为奖励。
+            你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
+          </div>
+
+          <div class="invite-qrcode">
+            <el-image :src="qrImg"/>
+          </div>
+
+          <div class="invite-url">
+            <span>{{ inviteURL }}</span>
+            <el-button type="primary" plain class="copy-link" :data-clipboard-text="inviteURL">复制链接</el-button>
+          </div>
         </div>
 
-        <div class="invite-qrcode">
-          <el-image :src="qrImg"/>
+        <div class="invite-stats">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <div class="item-box yellow">
+                <el-row :gutter="10">
+                  <el-col :span="10">
+                    <div class="item-icon">
+                      <i class="iconfont icon-role"></i>
+                    </div>
+                  </el-col>
+                  <el-col :span="14">
+                    <div class="item-info">
+                      <div class="num">{{ hits }}</div>
+                      <div class="text">点击量</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="item-box blue">
+                <el-row :gutter="10">
+                  <el-col :span="10">
+                    <div class="item-icon">
+                      <i class="iconfont icon-order"></i>
+                    </div>
+                  </el-col>
+                  <el-col :span="14">
+                    <div class="item-info">
+                      <div class="num">{{ regNum }}</div>
+                      <div class="text">注册量</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="item-box green">
+                <el-row :gutter="10">
+                  <el-col :span="10">
+                    <div class="item-icon">
+                      <i class="iconfont icon-chart"></i>
+                    </div>
+                  </el-col>
+                  <el-col :span="14">
+                    <div class="item-info">
+                      <div class="num">{{ rate }}%</div>
+                      <div class="text">转化率</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-col>
+          </el-row>
         </div>
 
-        <div class="invite-url">
-          <span>{{ inviteURL }}</span>
-          <el-button type="primary" plain class="copy-link" :data-clipboard-text="inviteURL">复制链接</el-button>
+        <h2>您推荐用户</h2>
+
+        <div class="invite-logs">
+          <invite-list v-if="isLogin"/>
         </div>
-      </div>
-
-      <div class="invite-stats">
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <div class="item-box yellow">
-              <el-row :gutter="10">
-                <el-col :span="10">
-                  <div class="item-icon">
-                    <i class="iconfont icon-role"></i>
-                  </div>
-                </el-col>
-                <el-col :span="14">
-                  <div class="item-info">
-                    <div class="num">{{ hits }}</div>
-                    <div class="text">点击量</div>
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
-          </el-col>
-          <el-col :span="8">
-            <div class="item-box blue">
-              <el-row :gutter="10">
-                <el-col :span="10">
-                  <div class="item-icon">
-                    <i class="iconfont icon-order"></i>
-                  </div>
-                </el-col>
-                <el-col :span="14">
-                  <div class="item-info">
-                    <div class="num">{{ regNum }}</div>
-                    <div class="text">注册量</div>
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
-          </el-col>
-          <el-col :span="8">
-            <div class="item-box green">
-              <el-row :gutter="10">
-                <el-col :span="10">
-                  <div class="item-icon">
-                    <i class="iconfont icon-chart"></i>
-                  </div>
-                </el-col>
-                <el-col :span="14">
-                  <div class="item-info">
-                    <div class="num">{{ rate }}%</div>
-                    <div class="text">转化率</div>
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
-          </el-col>
-        </el-row>
-      </div>
-
-      <h2>您推荐用户</h2>
-
-      <div class="invite-logs">
-        <invite-list v-if="isLogin"/>
       </div>
     </div>
   </div>
@@ -94,11 +97,11 @@ import InviteList from "@/components/InviteList.vue";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 
+const listBoxHeight = window.innerHeight
 const inviteURL = ref("")
 const qrImg = ref("")
 const inviteChatCalls = ref(0)
 const inviteImgCalls = ref(0)
-const users = ref([])
 const hits = ref(0)
 const regNum = ref(0)
 const rate = ref(0)
@@ -150,11 +153,14 @@ onMounted(() => {
 </script>
 
 <style lang="stylus" scoped>
+@import "@/assets/css/custom-scroll.styl"
 .page-invitation {
   display: flex;
   justify-content: center;
   background-color: #282c34;
   height 100vh
+  overflow-x hidden
+  overflow-y visible
 
   .inner {
     max-width 1000px
