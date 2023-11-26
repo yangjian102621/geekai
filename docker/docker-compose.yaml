@@ -1,10 +1,39 @@
 version: '3'
 services:
+  # mysql
+  chatgpt-plus-mysql:
+    image: mysql:8.0.33
+    container_name: chatgpt-plus-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSOL_ROOT_PASSWORD=12345678
+    ports:
+      - "3307:3306"
+    volumes :
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/logs:/var/log/mysql
+      - ./mysql/init.d:/docker-entrypoint-initdb.d/
+  
+  # redis 
+  chatgpt-plus-redis:
+    image: redis:6.0.16
+    restart: always
+    command: redis-server --requirepass 12345678
+    volumes :
+      - ./redis/data:/data
+    ports:
+      - "6380:6379"
+
   # 后端 API 程序
   chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.5
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.8.1
     container_name: chatgpt-plus-api
     restart: always
+    depends_on:
+      - chatgpt-plus-mysql
+      - chatgpt-plus-redis
     environment:
       - DEBUG=false
       - LOG_LEVEL=info
@@ -20,9 +49,11 @@ services:
 
   # 前端应用
   chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.5
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.8.1
     container_name: chatgpt-plus-web
     restart: always
+    depends_on:
+      - chatgpt-plus-api
     ports:
       - "8080:8080"
     volumes:

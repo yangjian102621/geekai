@@ -1,6 +1,6 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
@@ -15,9 +15,9 @@ WeChatBot = false
   Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
 
 [Redis] # redis 配置信息
-  Host = "localhost"
+  Host = "chatgpt-plus-redis"
   Port = 6379
-  Password = ""
+  Password = "12345678"
   DB = 0
 
 [ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
@@ -67,7 +67,7 @@ WeChatBot = false
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = false # 是否启用 XXL JOB 服务
-  ServerAddr = "http://172.22.11.47:8080/xxl-job-admin" # xxl-job-admin 管理地址
+  ServerAddr = "http://chatgpt-plus-xxl-job:8080/xxl-job-admin" # xxl-job-admin 管理地址
   ExecutorIp = "172.22.11.47" # 执行器 IP 地址
   ExecutorPort = "9999" # 执行器服务端口
   AccessToken = "xxl-job-api-token" # 执行器 API 通信 token
