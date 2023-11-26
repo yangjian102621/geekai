@@ -124,9 +124,17 @@ import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {validateMobile} from "@/utils/validate";
 import {isMobile} from "@/utils/libs";
-import SendMsgMobile from "@/components/SendMsg.vue";
 import {setUserToken} from "@/store/session";
+import {checkSession} from "@/action/session";
 
+checkSession().then(() => {
+  if (isMobile()) {
+    router.push('/mobile')
+  } else {
+    router.push('/chat')
+  }
+}).catch(() => {
+})
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');
 const formData = ref({

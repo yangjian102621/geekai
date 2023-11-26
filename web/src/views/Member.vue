@@ -152,7 +152,6 @@ import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import UserOrder from "@/components/UserOrder.vue";
-import CountDown from "@/components/CountDown.vue";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])

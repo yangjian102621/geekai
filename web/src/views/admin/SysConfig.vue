@@ -66,19 +66,6 @@
             </el-icon>
           </el-tooltip>
         </el-form-item>
-        <el-form-item label="启用AI绘画" prop="enabled_draw">
-          <el-switch v-model="system['enabled_draw']"/>
-          <el-tooltip
-              effect="dark"
-              content="需要开启函数功能此配置才会生效"
-              raw-content
-              placement="right"
-          >
-            <el-icon>
-              <InfoFilled/>
-            </el-icon>
-          </el-tooltip>
-        </el-form-item>
 
         <el-form-item label="启用众筹功能" prop="enabled_reward">
           <el-switch v-model="system['enabled_reward']"/>

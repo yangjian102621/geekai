@@ -127,12 +127,12 @@ func (h *ChatHandler) sendAzureMessage(
 			logger.Debugf("函数名称: %s, 函数参数：%s", functionName, params)
 
 			// for creating image, check if the user's img_calls > 0
-			if functionName == types.FuncMidJourney && userVo.ImgCalls <= 0 {
+			if functionName == types.FuncImage && userVo.ImgCalls <= 0 {
 				utils.ReplyMessage(ws, "**当前用户剩余绘图次数已用尽，请扫描下面二维码联系管理员！**")
 				utils.ReplyMessage(ws, ErrImg)
 			} else {
 				f := h.App.Functions[functionName]
-				if functionName == types.FuncMidJourney {
+				if functionName == types.FuncImage {
 					params["user_id"] = userVo.Id
 					params["role_id"] = role.Id
 					params["chat_id"] = session.ChatId
@@ -149,9 +149,8 @@ func (h *ChatHandler) sendAzureMessage(
 					contents = append(contents, msg)
 				} else {
 					content := data
-					if functionName == types.FuncMidJourney {
-						content = fmt.Sprintf("绘画提示词：%s 已推送任务到 MidJourney 机器人，请耐心等待任务执行...", data)
-						h.mjService.ChatClients.Put(session.SessionId, ws)
+					if functionName == types.FuncImage {
+						content = fmt.Sprintf("下面是根据您的描述创作的图片，他们描绘了 【%s】 的场景", params["prompt"])
 						// update user's img_calls
 						h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 					}

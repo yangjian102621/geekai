@@ -23,10 +23,10 @@ type Property struct {
 }
 
 const (
-	FuncZaoBao     = "zao_bao"     // 每日早报
-	FuncHeadLine   = "headline"    // 今日头条
-	FuncWeibo      = "weibo_hot"   // 微博热搜
-	FuncMidJourney = "mid_journey" // MJ 绘画
+	FuncZaoBao   = "zao_bao"    // 每日早报
+	FuncHeadLine = "headline"   // 今日头条
+	FuncWeibo    = "weibo_hot"  // 微博热搜
+	FuncImage    = "draw_image" // AI 绘画
 )
 
 var InnerFunctions = []Function{
@@ -76,14 +76,14 @@ var InnerFunctions = []Function{
 	},
 
 	{
-		Name:        FuncMidJourney,
-		Description: "AI 绘画工具，使用 MJ MidJourney API 进行 AI 绘画",
+		Name:        FuncImage,
+		Description: "AI 绘画工具，根据输入的绘图描述用 AI 工具进行绘画",
 		Parameters: Parameters{
 			Type: "object",
 			Properties: map[string]Property{
 				"prompt": {
 					Type:        "string",
-					Description: "提示词，如果该参数中有中文的话，则需要翻译成英文。提示词中的参数作为提示的一部分，不要删除",
+					Description: "提示词，如果该参数中有中文的话，则需要翻译成英文。",
 				},
 			},
 			Required: []string{},

@@ -224,9 +224,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		if h.App.SysConfig.EnabledFunction {
 			var functions = make([]types.Function, 0)
 			for _, f := range types.InnerFunctions {
-				if !h.App.SysConfig.EnabledDraw && f.Name == types.FuncMidJourney {
-					continue
-				}
 				functions = append(functions, f)
 			}
 			req.Functions = functions
@@ -405,7 +402,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	}
 	if *apiKey == "" {
 		var key model.ApiKey
-		res := h.db.Where("platform = ?", platform).Order("last_used_at ASC").First(&key)
+		res := h.db.Where("platform = ? AND type = ?", platform, "chat").Order("last_used_at ASC").First(&key)
 		if res.Error != nil {
 			return nil, errors.New("no available key, please import key")
 		}
