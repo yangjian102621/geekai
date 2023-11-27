@@ -9,7 +9,7 @@ make clean linux
 cd ../web
 npm run build
 
-cd ../docker
+cd ../build
 
 # remove docker image if exists
 docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version
