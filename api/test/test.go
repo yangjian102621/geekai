@@ -1,23 +1,42 @@
 package main
 
 import (
+	"chatplus/store/model"
 	"chatplus/utils"
 	"fmt"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"log"
 	"os"
+	"path"
 )
 
 func main() {
-	imgURL := "https://oaidalleapiprodscus.blob.core.windows.net/private/org-UJimNEKhVm07E58nxnjx5FeG/user-e5UAcPVbkm2nwD8urggRRM8q/img-zFXWyrJ9Z1HppI36dZMXNEaA.png?st=2023-11-26T09%3A57%3A49Z&se=2023-11-26T11%3A57%3A49Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-11-26T08%3A14%3A59Z&ske=2023-11-27T08%3A14%3A59Z&sks=b&skv=2021-08-06&sig=VmlU9didavbl02XYim2XuMmLMFJsLtCY/ULnzCjeO1g%3D"
-	imageData, err := utils.DownloadImage(imgURL, "")
+	MysqlDns := "root:12345678@tcp(localhost:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(MysqlDns), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	newImagePath := "newimage.png"
-	err = os.WriteFile(newImagePath, imageData, 0644)
-	if err != nil {
-		fmt.Println("Error writing image file:", err)
-		return
+	_ = os.MkdirAll("static/upload/images", 0755)
+	var jobs []model.MidJourneyJob
+	db.Find(&jobs)
+	for _, job := range jobs {
+		basename := path.Base(job.ImgURL)
+		imageData, err := utils.DownloadImage(job.ImgURL, "")
+		if err != nil {
+			fmt.Println("图片下载失败：" + job.ImgURL)
+			continue
+		}
+		newImagePath := fmt.Sprintf("static/upload/images/%s", basename)
+		err = os.WriteFile(newImagePath, imageData, 0644)
+		if err != nil {
+			fmt.Println("Error writing image file:", err)
+			continue
+		}
+		fmt.Println("图片保存成功！", newImagePath)
+		// 更新数据库
+		job.ImgURL = fmt.Sprintf("http://localhost:5678/%s", newImagePath)
+		db.Updates(&job)
 	}
 
-	fmt.Println("图片保存成功！")
 }
