@@ -7,7 +7,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
-      - MYSOL_ROOT_PASSWORD=12345678
+      - MYSQL_ROOT_PASSWORD=12345678
     ports:
       - "3307:3306"
     volumes :
@@ -19,7 +19,8 @@ services:
   # redis 
   chatgpt-plus-redis:
     image: redis:6.0.16
-    restart: always
+    restart: always 
+    container_name: chatgpt-plus-redis
     command: redis-server --requirepass 12345678
     volumes :
       - ./redis/data:/data
