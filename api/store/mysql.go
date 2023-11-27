@@ -21,6 +21,9 @@ func NewGormConfig() *gorm.Config {
 
 func NewMysql(config *gorm.Config, appConfig *types.AppConfig) (*gorm.DB, error) {
 	db, err := gorm.Open(mysql.Open(appConfig.MysqlDns), config)
+	if err != nil {
+		return nil, err
+	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -29,8 +32,6 @@ func NewMysql(config *gorm.Config, appConfig *types.AppConfig) (*gorm.DB, error)
 	sqlDB.SetMaxIdleConns(32)
 	sqlDB.SetMaxOpenConns(512)
 	sqlDB.SetConnMaxLifetime(time.Hour)
-	if err != nil {
-		return nil, err
-	}
+
 	return db, nil
 }
