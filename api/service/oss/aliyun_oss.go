@@ -61,7 +61,7 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("https://%s.%s/%s", s.config.Bucket, s.config.Endpoint, objectKey), nil
+	return fmt.Sprintf("https://%s.%s/%s", s.config.Bucket, s.config.Domain, objectKey), nil
 }
 
 func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
@@ -86,7 +86,7 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("https://%s.%s/%s", s.config.Bucket, s.config.Endpoint, objectKey), nil
+	return fmt.Sprintf("https://%s.%s/%s", s.config.Bucket, s.config.Domain, objectKey), nil
 }
 
 func (s AliYunOss) Delete(fileURL string) error {
