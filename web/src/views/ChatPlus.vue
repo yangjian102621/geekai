@@ -83,7 +83,7 @@
         <div class="chat-head">
           <div class="chat-config">
             <span class="role-select-label">聊天角色：</span>
-            <el-select v-model="roleId" filterable placeholder="角色" class="role-select">
+            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="handleRoleChange">
               <el-option
                   v-for="item in roles"
                   :key="item.id"
@@ -97,7 +97,7 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="modelID" placeholder="模型">
+            <el-select v-model="modelID" placeholder="模型" @change="handleModelChange">
               <el-option
                   v-for="item in models"
                   :key="item.id"
@@ -388,6 +388,24 @@ const newChat = function () {
   showStopGenerate.value = false;
   showReGenerate.value = false;
   connect(null, roleId.value)
+}
+
+const handleModelChange = function() {
+  const selectedModel = getModelValue(modelID.value);
+  // console.log(selectedModel);
+  if (selectedModel) {
+    // 在这里对选中的模型进行处理
+    newChat();
+  }
+}
+
+const handleRoleChange = function() {
+  const selectedRole = getRoleById(roleId.value);
+  // console.log(selectedRole);
+  if (selectedRole) {
+    // 在这里对选中的角色进行处理
+    newChat();
+  }
 }
 
 // 切换会话
