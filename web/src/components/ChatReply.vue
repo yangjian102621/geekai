@@ -111,8 +111,8 @@ export default defineComponent({
             line-height 1.5
 
             code {
-              color #f1f1f1
-              background-color #202121
+              color #374151
+              background-color #e7e7e8
               padding 0 3px;
               border-radius 5px;
             }
