@@ -120,7 +120,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		prompt += " --style raw"
 	}
 	if data.Model != "" && !strings.Contains(prompt, "--v") && !strings.Contains(prompt, "--niji") {
-		prompt += data.Model
+		prompt += fmt.Sprintf(" %s", data.Model)
 	}
 
 	idValue, _ := c.Get(types.LoginUserID)
@@ -348,8 +348,8 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 			continue
 		}
 		if item.Progress < 100 {
-			// 30 分钟还没完成的任务直接删除
-			if time.Now().Sub(item.CreatedAt) > time.Minute*30 {
+			// 10 分钟还没完成的任务直接删除
+			if time.Now().Sub(item.CreatedAt) > time.Minute*10 {
 				h.db.Delete(&item)
 				continue
 			}

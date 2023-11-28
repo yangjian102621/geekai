@@ -72,6 +72,8 @@ func (s *Service) Run() {
 		}
 		if err != nil {
 			logger.Error("绘画任务执行失败：", err)
+			// 删除任务
+			s.db.Delete(&model.MidJourneyJob{Id: uint(task.Id)})
 			// 推送任务到前端
 			client := s.Clients.Get(task.SessionId)
 			if client != nil {
