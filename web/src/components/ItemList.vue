@@ -45,9 +45,9 @@ onMounted(() => {
 })
 
 const computeSize = () => {
-  const w = container.value.offsetWidth - 8 // 减去滚动条的宽度
+  const w = container.value.offsetWidth - 10 // 减去滚动条的宽度
   let cols = Math.floor(w / props.width)
-  itemWidth.value = Math.ceil(w / cols)
+  itemWidth.value = Math.floor(w / cols)
 }
 
 window.onresize = () => {

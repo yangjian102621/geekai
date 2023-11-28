@@ -314,10 +314,16 @@ func staticResourceMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			// 生成缩略图
-			resizedImg := resize.Thumbnail(uint(with), uint(height), img, resize.Lanczos3)
+			var newImg image.Image
+			if height == 0 || with == 0 {
+				// 固定宽度，高度自适应
+				newImg = resize.Resize(uint(with), uint(height), img, resize.Lanczos3)
+			} else {
+				// 生成缩略图
+				newImg = resize.Thumbnail(uint(with), uint(height), img, resize.Lanczos3)
+			}
 			var buffer bytes.Buffer
-			err = jpeg.Encode(&buffer, resizedImg, &jpeg.Options{Quality: quality})
+			err = jpeg.Encode(&buffer, newImg, &jpeg.Options{Quality: quality})
 			if err != nil {
 				log.Fatal(err)
 			}

@@ -259,7 +259,7 @@ const getNext = () => {
     // 生成缩略图
     const imageList = res.data
     for (let i = 0; i < imageList.length; i++) {
-      imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/q/75"
+      imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }
     if (list.value.length === 0) {
       list.value = imageList
