@@ -90,7 +90,13 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ## 项目文档
 
-请参考 [ChatGPT-Plus 文档](https://ai.r9it.com/docs/)。
+chatgpt-plus v3.2.0 一键部署脚本来了，真的只需运行一条命令，就可以完成部署：
+```shell
+bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.0-24e4849229.sh)"
+```
+目前只支持 Ubuntu 系统，推荐 Ubuntu 22.04 LTS
+
+详细部署文档请参考 [ChatGPT-Plus 文档](https://ai.r9it.com/docs/)。
 
 ## 参与贡献
 
