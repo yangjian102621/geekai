@@ -354,12 +354,14 @@ import {onMounted, ref} from "vue"
 import {ChromeFilled, DeleteFilled, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId, getUserToken} from "@/store/session";
+import {removeArrayItem} from "@/utils/libs";
+import axios from "axios";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -432,6 +434,14 @@ const connect = () => {
           if (isNew) {
             finishedJobs.value.unshift(data)
           }
+        } else if (data.progress === -1) { // 任务执行失败
+          ElNotification({
+            title: '任务执行失败',
+            message: "提示词：" + data['prompt'],
+            type: 'error',
+          })
+          runningJobs.value = removeArrayItem(runningJobs.value, data, (v1, v2) => v1.id === v2.id)
+
         } else {
           for (let i = 0; i < runningJobs.value.length; i++) {
             if (runningJobs.value[i].id === data.id) {
@@ -463,7 +473,7 @@ onMounted(() => {
       ElMessage.error("获取任务失败：" + e.message)
     })
 
-    // 获取运行中的任务
+    // 获取已完成的任务
     httpGet(`/api/mj/jobs?status=1&user_id=${user['id']}`).then(res => {
       finishedJobs.value = res.data
     }).catch(e => {
@@ -516,19 +526,6 @@ const afterRead = (file) => {
     },
   });
 };
-
-const getTaskType = (type) => {
-  switch (type) {
-    case "image":
-      return "绘画任务"
-    case "upscale":
-      return "放大任务"
-    case "variation":
-      return "变化任务"
-  }
-  return "未知任务"
-}
-
 // 创建绘图任务
 const promptRef = ref(null)
 const generate = () => {
