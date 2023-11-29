@@ -83,7 +83,7 @@
         <div class="chat-head">
           <div class="chat-config">
             <span class="role-select-label">聊天角色：</span>
-            <el-select v-model="roleId" filterable placeholder="角色" class="role-select">
+            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="newChat">
               <el-option
                   v-for="item in roles"
                   :key="item.id"
@@ -97,7 +97,7 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="modelID" placeholder="模型">
+            <el-select v-model="modelID" placeholder="模型" @change="newChat">
               <el-option
                   v-for="item in models"
                   :key="item.id"
@@ -105,12 +105,12 @@
                   :value="item.id"
               />
             </el-select>
-            <el-button type="primary" @click="newChat">
-              <el-icon>
-                <Plus/>
-              </el-icon>
-              新建会话
-            </el-button>
+            <!--            <el-button type="primary" @click="newChat">-->
+            <!--              <el-icon>-->
+            <!--                <Plus/>-->
+            <!--              </el-icon>-->
+            <!--              新建会话-->
+            <!--            </el-button>-->
 
             <el-button type="success" @click="exportChat" plain>
               <i class="iconfont icon-export"></i>
@@ -238,7 +238,6 @@ import {
   Close,
   Delete,
   Edit,
-  Plus,
   Promotion,
   RefreshRight,
   Search,
