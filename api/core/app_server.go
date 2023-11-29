@@ -232,6 +232,12 @@ func parameterHandlerMiddleware() gin.HandlerFunc {
 		// 更新参数
 		c.Request.URL.RawQuery = params.Encode()
 
+		contentType := c.Request.Header.Get("Content-Type")
+		if strings.Contains(contentType, "multipart/form-data") {
+			c.Next()
+			return
+		}
+
 		// POST JSON 参数处理
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
