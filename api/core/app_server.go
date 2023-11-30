@@ -229,16 +229,16 @@ func parameterHandlerMiddleware() gin.HandlerFunc {
 				params[key][i] = strings.TrimSpace(value)
 			}
 		}
-		// 更新参数
+		// update get parameters
 		c.Request.URL.RawQuery = params.Encode()
-
+		// skip file upload requests
 		contentType := c.Request.Header.Get("Content-Type")
 		if strings.Contains(contentType, "multipart/form-data") {
 			c.Next()
 			return
 		}
 
-		// POST JSON 参数处理
+		// process POST JSON request body
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			c.Next()
