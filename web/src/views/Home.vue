@@ -1,43 +1,43 @@
 <template>
-  <div class="home">
-    <div class="navigator">
-      <div class="logo">
-        <el-image :src="logo"/>
-        <div class="divider"></div>
-      </div>
-
-      <ul class="nav-items">
-        <li v-for="item in navs" :key="item.path">
-          <el-tooltip
-              effect="light"
-              :content="item.title"
-              placement="right"
-          >
-            <a @click="changeNav(item)" :class="item.path === curPath?'active':''">
-              <el-image :src="item.icon_path" :width="20" v-if="item.icon_path"/>
-              <i :class="'iconfont icon-'+item.icon" v-else></i>
-            </a>
-          </el-tooltip>
-        </li>
-      </ul>
-    </div>
-    <div class="content">
-      <router-view v-slot="{ Component }">
-        <transition name="move" mode="out-in">
-          <component :is="Component"></component>
-        </transition>
-      </router-view>
-    </div>
-  </div>
+	<div class="home">
+		<div class="navigator">
+			<div class="logo">
+				<el-link href="/">
+					<el-image :src="logo" />
+				</el-link>
+				<div class="divider"></div>
+			</div>
+			<ul class="nav-items">
+				<li v-for="item in navs" :key="item.path">
+					<el-tooltip effect="light" :content="item.title" placement="right">
+						<a @click="changeNav(item)" :class="item.path === curPath ? 'active' : ''">
+							<el-image :src="item.icon_path" :width="20" v-if="item.icon_path" />
+							<i :class="'iconfont icon-' + item.icon" v-else></i>
+						</a>
+					</el-tooltip>
+					<div :class="item.path === curPath ? 'title active' : 'title'">{{ item.title }}</div>
+				</li>
+			</ul>
+		</div>
+		<div class="content">
+			<router-view v-slot="{ Component }">
+				<transition name="move" mode="out-in">
+					<component :is="Component"></component>
+				</transition>
+			</router-view>
+		</div>
+	</div>
 </template>
 
 <script setup>
 
-import {useRouter} from "vue-router";
-import {ref} from "vue";
+import { useRouter } from "vue-router";
+import { checkSession } from "@/action/session";
+import { isMobile } from "@/utils/libs";
+import { ref } from "vue";
 
 const router = useRouter();
-const logo = '/images/logo.png';
+const logo = '/images/icon-logo.png';
 const navs = ref([
   {path: "/chat", icon_path: "/images/chat.png", title: "对话聊天"},
   {path: "/mj", icon_path: "/images/mj.png", title: "MJ 绘画"},
@@ -51,8 +51,8 @@ const navs = ref([
 const curPath = ref(router.currentRoute.value.path)
 
 const changeNav = (item) => {
-  curPath.value = item.path
-  router.push(item.path)
+	curPath.value = item.path
+	router.push(item.path)
 }
 </script>
 
@@ -67,7 +67,7 @@ const changeNav = (item) => {
   .navigator {
     display flex
     flex-flow column
-    width 48px
+    width 70px
     padding 10px 6px
     border-right: 1px solid #3c3c3c
 
@@ -75,7 +75,7 @@ const changeNav = (item) => {
       display flex
       flex-flow column
       align-items center
-      height 60px
+
 
       .divider {
         border-bottom 1px solid #4A4A4A
@@ -85,7 +85,9 @@ const changeNav = (item) => {
     }
 
     .nav-items {
-      margin-top 10px
+		margin-top: 20px;
+		padding-left: 10px;
+		padding-right: 10px;
 
       li {
         margin-bottom 15px
@@ -94,8 +96,8 @@ const changeNav = (item) => {
           color #DADBDC
           background-color #40444A
           border-radius 10px
-          width 44px
-          height 44px
+          width 48px
+          height 48px
           display flex
           justify-content center
           align-items center
@@ -111,6 +113,16 @@ const changeNav = (item) => {
         }
 
         a:hover, a.active {
+          color #47fff1
+        }
+
+		.title{
+			font-size: 12px
+			padding-top: 5px 
+			color: #e5e7eb;
+			text-align: center;
+		}
+		.active {
           color #47fff1
         }
       }
