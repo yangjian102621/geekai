@@ -80,6 +80,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	var data struct {
 		SessionId string  `json:"session_id"`
 		Prompt    string  `json:"prompt"`
+		NegPrompt string  `json:"neg_prompt"`
 		Rate      string  `json:"rate"`
 		Model     string  `json:"model"`
 		Chaos     int     `json:"chaos"`
@@ -87,6 +88,8 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Seed      int64   `json:"seed"`
 		Stylize   int     `json:"stylize"`
 		Img       string  `json:"img"`
+		Tile      bool    `json:"tile"`
+		Quality   float32 `json:"quality"`
 		Weight    float32 `json:"weight"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -118,6 +121,15 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 	if data.Raw {
 		prompt += " --style raw"
+	}
+	if data.Quality > 0 {
+		prompt += fmt.Sprintf(" --q %.2f", data.Quality)
+	}
+	if data.NegPrompt != "" {
+		prompt += fmt.Sprintf(" --no %s", data.NegPrompt)
+	}
+	if data.Tile {
+		prompt += " --tile "
 	}
 	if data.Model != "" && !strings.Contains(prompt, "--v") && !strings.Contains(prompt, "--niji") {
 		prompt += fmt.Sprintf(" %s", data.Model)
