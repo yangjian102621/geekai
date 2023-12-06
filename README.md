@@ -90,21 +90,15 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ## 项目文档
 
-chatgpt-plus v3.2.0 一键部署脚本来了，真的只需运行一条命令，就可以完成部署：
-```shell
-bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.0-24e4849229.sh)"
-```
-目前只支持 Ubuntu 系统，推荐 Ubuntu 22.04 LTS
+详细的部署和开发文档请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/)。
 
-详细部署文档请参考 [ChatGPT-Plus 文档](https://ai.r9it.com/docs/)。
+加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自Github!!!）。**
+
+![微信名片](docs/imgs/wx.png)
 
 ## 参与贡献
 
 个人的力量始终有限，任何形式的贡献都是欢迎的，包括但不限于贡献代码，优化文档，提交 issue 和 PR 等。
-
-如果有兴趣的话，也可以加微信进入微信讨论群（**添加好友时请注明来自Github!!!**）。
-
-![微信名片](docs/imgs/wx.png)
 
 #### 特此声明：由于个人时间有限，不接受在微信或者微信群给开发者提 Bug，有问题或者优化建议请提交 Issue 和 PR。非常感谢您的配合！
 
