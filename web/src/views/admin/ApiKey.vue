@@ -57,7 +57,10 @@
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="所属平台：" prop="platform">
           <el-select v-model="item.platform" placeholder="请选择平台">
-            <el-option v-for="item in platforms" :value="item.value" :key="item.value">{{ item.name }}</el-option>
+            <el-option v-for="item in platforms" :value="item.value" :label="item.name" :key="item.value">{{
+                item.name
+              }}
+            </el-option>
           </el-select>
         </el-form-item>
 
@@ -66,7 +69,10 @@
         </el-form-item>
         <el-form-item label="用途：" prop="type">
           <el-select v-model="item.type" placeholder="请选择用途">
-            <el-option v-for="item in types" :value="item.value" :key="item.value">{{ item.name }}</el-option>
+            <el-option v-for="item in types" :value="item.value" :label="item.name" :key="item.value">{{
+                item.name
+              }}
+            </el-option>
           </el-select>
         </el-form-item>
 
