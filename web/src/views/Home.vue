@@ -2,22 +2,21 @@
   <div class="home">
     <div class="navigator">
       <div class="logo">
-        <el-image :src="logo"/>
+        <el-link href="/">
+          <el-image :src="logo"/>
+        </el-link>
         <div class="divider"></div>
       </div>
-
       <ul class="nav-items">
         <li v-for="item in navs" :key="item.path">
-          <el-tooltip
-              effect="light"
-              :content="item.title"
-              placement="right"
-          >
-            <a @click="changeNav(item)" :class="item.path === curPath?'active':''">
-              <el-image :src="item.icon_path" :width="20" v-if="item.icon_path"/>
-              <i :class="'iconfont icon-'+item.icon" v-else></i>
-            </a>
-          </el-tooltip>
+          <!--          <el-tooltip effect="light" :content="item.title" placement="right">-->
+          <!--            -->
+          <!--          </el-tooltip>-->
+          <a @click="changeNav(item)" :class="item.path === curPath ? 'active' : ''">
+            <el-image :src="item.icon_path" :width="20" v-if="item.icon_path"/>
+            <i :class="'iconfont icon-' + item.icon" v-else></i>
+          </a>
+          <div :class="item.path === curPath ? 'title active' : 'title'">{{ item.title }}</div>
         </li>
       </ul>
     </div>
@@ -34,6 +33,8 @@
 <script setup>
 
 import {useRouter} from "vue-router";
+import {checkSession} from "@/action/session";
+import {isMobile} from "@/utils/libs";
 import {ref} from "vue";
 
 const router = useRouter();
@@ -44,7 +45,7 @@ const navs = ref([
   {path: "/sd", icon_path: "/images/sd.png", title: "SD 绘画"},
   {path: "/apps", icon: "menu", title: "应用中心"},
   {path: "/images-wall", icon: "image-list", title: "作品展示"},
-  {path: "/knowledge", icon: "book", title: "我的知识库"},
+  {path: "/knowledge", icon: "book", title: "知识库"},
   {path: "/member", icon: "vip-user", title: "会员计划"},
   {path: "/invite", icon: "share", title: "推广计划"},
 ])
@@ -67,7 +68,7 @@ const changeNav = (item) => {
   .navigator {
     display flex
     flex-flow column
-    width 48px
+    width 70px
     padding 10px 6px
     border-right: 1px solid #3c3c3c
 
@@ -75,7 +76,7 @@ const changeNav = (item) => {
       display flex
       flex-flow column
       align-items center
-      height 60px
+
 
       .divider {
         border-bottom 1px solid #4A4A4A
@@ -85,7 +86,9 @@ const changeNav = (item) => {
     }
 
     .nav-items {
-      margin-top 10px
+      margin-top: 20px;
+      padding-left: 10px;
+      padding-right: 10px;
 
       li {
         margin-bottom 15px
@@ -94,8 +97,8 @@ const changeNav = (item) => {
           color #DADBDC
           background-color #40444A
           border-radius 10px
-          width 44px
-          height 44px
+          width 48px
+          height 48px
           display flex
           justify-content center
           align-items center
@@ -111,6 +114,17 @@ const changeNav = (item) => {
         }
 
         a:hover, a.active {
+          color #47fff1
+        }
+
+        .title {
+          font-size: 12px
+          padding-top: 5px
+          color: #e5e7eb;
+          text-align: center;
+        }
+
+        .active {
           color #47fff1
         }
       }

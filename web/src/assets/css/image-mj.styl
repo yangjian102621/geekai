@@ -40,7 +40,6 @@
 
           .el-icon {
             position relative
-            top 3px
           }
 
           .grid-content {
@@ -49,29 +48,72 @@
             padding 8px 14px
             display flex
             cursor pointer
+            margin-bottom: 10px;
 
             &:hover {
               background-color #585858
             }
 
+            .icon {
+              width 20px
+              height 20px
+              margin-bottom 5px
+            }
+
             .shape {
               width 16px
               height 16px
-              margin-right 5px
+              margin-bottom 5px
               border 1px solid #C4C4C4
               border-radius 3px
             }
 
-            .shape.vertical {
-              width 12px
-              height 20px
+            .shape.size9-16 {
+              width 9px
+              height 16px
             }
 
-            .shape.horizontal {
-              height 12px
-              width 20px
+            .shape.size16-9 {
+              height 9px
+              width 16px
               position relative
-              top 3px
+              margin 4px 0 7px
+            }
+
+            .shape.size3-4 {
+              width 12px
+              height 16px
+            }
+
+            .shape.size4-3 {
+              height 12px
+              width 16px
+              position relative
+              margin 4px 0 4px
+            }
+
+            .shape.size2-3 {
+              width 11px
+              height 16px
+            }
+
+            .shape.size3-2 {
+              height 11px
+              width 16px
+              position relative
+              margin 4px 0 5px
+            }
+
+            .shape.size1-2 {
+              width 8px
+              height 16px
+            }
+
+            .shape.size2-1 {
+              height 8px
+              width 16px
+              position relative
+              margin 4px 0 8px
             }
           }
 
@@ -90,6 +132,7 @@
             border 1px solid #454545
             border-radius 5px
             padding 10px
+            margin-bottom 10px
             display flex
             flex-flow column
             align-items center
@@ -118,13 +161,25 @@
 
           .form-item-inner {
             display flex
+            align-items: center
+
+            .el-select {
+              --el-select-input-focus-border-color: #47FFF1;
+              --el-input-focus-border-color: #47FFF1;
+            }
+
+            .el-input__wrapper {
+              background: #383838;
+            }
+
+            .el-input__inner {
+              color: #fff
+            }
 
             .el-icon {
               margin-left 10px
-              margin-top 2px
             }
           }
-
 
           .img-uploader {
             .el-upload {
@@ -153,21 +208,10 @@
         }
 
         .param-line.pt {
+          display: flex
+          align-items: center
           padding-top 5px
           padding-bottom 5px
-        }
-      }
-
-      .submit-btn {
-        padding 10px 15px 0 15px
-        text-align center
-
-        .el-button {
-          width 100%
-
-          span {
-            color #2D3A4B
-          }
         }
       }
     }
@@ -192,6 +236,5 @@
     margin-left 10px
     cursor pointer
     position relative
-    top 2px
   }
 }
