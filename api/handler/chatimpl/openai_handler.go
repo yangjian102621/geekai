@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gorm.io/gorm"
+	"html/template"
 	"io"
 	"strings"
 	"time"
@@ -199,7 +200,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 					RoleId:     role.Id,
 					Type:       types.PromptMsg,
 					Icon:       userVo.Avatar,
-					Content:    prompt,
+					Content:    template.HTMLEscapeString(prompt),
 					Tokens:     promptToken,
 					UseContext: useContext,
 				}

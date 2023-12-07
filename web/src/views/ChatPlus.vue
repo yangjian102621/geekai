@@ -245,7 +245,7 @@ import {
   VideoPause
 } from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
-import {dateFormat, isMobile, randString, removeArrayItem, renderInputText, UUID} from "@/utils/libs";
+import {dateFormat, isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
 import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
@@ -690,13 +690,12 @@ const sendMessage = function () {
   if (prompt.value.trim().length === 0 || canSend.value === false) {
     return false;
   }
-
   // 追加消息
   chatData.value.push({
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: renderInputText(prompt.value),
+    content: md.render(prompt.value),
     created_at: new Date().getTime(),
   });
 
@@ -761,10 +760,7 @@ const loadChatHistory = function (chatId) {
     }
     showHello.value = false
     for (let i = 0; i < data.length; i++) {
-      if (data[i].type === "prompt") {
-        chatData.value.push(data[i]);
-        continue;
-      } else if (data[i].type === "mj") {
+      if (data[i].type === "mj") {
         data[i].content = JSON.parse(data[i].content)
         data[i].content.html = md.render(data[i].content?.content)
         chatData.value.push(data[i]);
@@ -802,7 +798,7 @@ const reGenerate = function () {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: renderInputText(text)
+    content: md.render(text)
   });
   socket.value.send(text);
 }
