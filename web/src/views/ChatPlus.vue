@@ -624,6 +624,7 @@ const connect = function (chat_id, role_id) {
         // 将聊天框的滚动条滑动到最底部
         nextTick(() => {
           document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+          localStorage.setItem("chat_id", chat_id)
         })
       };
     }
