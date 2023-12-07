@@ -14,7 +14,6 @@ import (
 
 type FuncImage struct {
 	name          string
-	apiURL        string
 	db            *gorm.DB
 	uploadManager *oss.UploaderManager
 	proxyURL      string
@@ -26,7 +25,6 @@ func NewImageFunc(db *gorm.DB, manager *oss.UploaderManager, config *types.AppCo
 		name:          "DALL-E3 绘画",
 		uploadManager: manager,
 		proxyURL:      config.ProxyURL,
-		apiURL:        "https://api.openai.com/v1/images/generations",
 	}
 }
 
@@ -57,9 +55,26 @@ type ErrRes struct {
 func (f FuncImage) Invoke(params map[string]interface{}) (string, error) {
 	logger.Infof("绘画参数：%+v", params)
 	prompt := utils.InterfaceToString(params["prompt"])
-	// 获取绘图 API KEY
+	// get image generation API KEY
 	var apiKey model.ApiKey
-	f.db.Where("platform = ? AND type = ?", types.OpenAI, "img").Order("last_used_at ASC").First(&apiKey)
+	tx := f.db.Where("platform = ? AND type = ?", types.OpenAI, "img").Order("last_used_at ASC").First(&apiKey)
+	if tx.Error != nil {
+		return "", fmt.Errorf("error with get generation API KEY: %v", tx.Error)
+	}
+
+	// get image generation api URL
+	var conf model.Config
+	var chatConfig types.ChatConfig
+	tx = f.db.Where("marker", "chat").First(&conf)
+	if tx.Error != nil {
+		return "", fmt.Errorf("error with get chat configs: %v", tx.Error)
+	}
+	
+	err := utils.JsonDecode(conf.Config, &chatConfig)
+	if err != nil {
+		return "", fmt.Errorf("error with decode chat config: %v", err)
+	}
+
 	var res imgRes
 	var errRes ErrRes
 	r, err := req.C().SetProxyURL(f.proxyURL).R().SetHeader("Content-Type", "application/json").
@@ -71,7 +86,7 @@ func (f FuncImage) Invoke(params map[string]interface{}) (string, error) {
 			Size:   "1024x1024",
 		}).
 		SetErrorResult(&errRes).
-		SetSuccessResult(&res).Post(f.apiURL)
+		SetSuccessResult(&res).Post(chatConfig.DallApiURL)
 	if err != nil || r.IsErrorState() {
 		return "", fmt.Errorf("error with http request: %v%v%s", err, r.Err, errRes.Error.Message)
 	}
