@@ -106,9 +106,10 @@ type ChatConfig struct {
 	Baidu   ModelAPIConfig `json:"baidu"`
 	XunFei  ModelAPIConfig `json:"xun_fei"`
 
-	EnableContext bool `json:"enable_context"` // 是否开启聊天上下文
-	EnableHistory bool `json:"enable_history"` // 是否允许保存聊天记录
-	ContextDeep   int  `json:"context_deep"`   // 上下文深度
+	EnableContext bool   `json:"enable_context"` // 是否开启聊天上下文
+	EnableHistory bool   `json:"enable_history"` // 是否允许保存聊天记录
+	ContextDeep   int    `json:"context_deep"`   // 上下文深度
+	DallApiURL    string `json:"dall_api_url"`   // dall-e3 绘图 API 地址
 }
 
 type Platform string

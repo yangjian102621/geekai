@@ -136,7 +136,6 @@ func (h *ChatHandler) sendOpenAiMessage(
 					params["user_id"] = userVo.Id
 					params["role_id"] = role.Id
 					params["chat_id"] = session.ChatId
-					params["icon"] = "/images/avatar/mid_journey.png"
 					params["session_id"] = session.SessionId
 				}
 				data, err := f.Invoke(params)

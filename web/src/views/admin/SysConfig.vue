@@ -249,6 +249,10 @@
           <el-input v-model.number="chat['xun_fei']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
         </el-form-item>
 
+        <el-divider content-position="center">绘图绘图</el-divider>
+        <el-form-item label="DALL-E3 API地址">
+          <el-input v-model="chat['dall_api_url']" placeholder="OpenAI官方API需要配合代理使用"/>
+        </el-form-item>
         <el-form-item style="text-align: right">
           <el-button type="primary" @click="save('chat')">保存</el-button>
         </el-form-item>
@@ -274,6 +278,7 @@ const chat = ref({
   context_deep: 0,
   enable_context: true,
   enable_history: true,
+  dall_api_url: "",
 })
 const loading = ref(true)
 const systemFormRef = ref(null)
@@ -309,6 +314,7 @@ onMounted(() => {
     chat.value.context_deep = res.data.context_deep
     chat.value.enable_context = res.data.enable_context
     chat.value.enable_history = res.data.enable_history
+    chat.value.dall_api_url = res.data.dall_api_url
     loading.value = false
   }).catch(e => {
     ElMessage.error("加载聊天配置失败: " + e.message)
