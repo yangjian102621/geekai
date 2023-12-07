@@ -4,7 +4,7 @@ FROM alpine:3.18.2
 MAINTAINER yangjian<yangjian102621@163.com>
 
 WORKDIR /var/www/app
-COPY ./api/bin/chatgpt-plus-amd64-linux /var/www/app
+COPY ./api/bin/chatgpt-plus-linux /var/www/app
 
 EXPOSE 5678
 

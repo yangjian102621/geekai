@@ -1,9 +1,11 @@
 #!/bin/bash
 
 version=$1
-# build go api
+arch=${2:-amd64}
+
+# build go api program
 cd ../api
-make clean linux
+make clean $arch
 
 # build web app
 cd ../web
@@ -12,15 +14,15 @@ npm run build
 cd ../build
 
 # remove docker image if exists
-docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version
+docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version-$arch
 # build docker image for chatgpt-plus-go
-docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version -f dockerfile-api-go ../
+docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version-$arch -f dockerfile-api-go ../
 
 # build docker image for chatgpt-plus-vue
-docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version
-docker build --platform linux/amd64 -t registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version -f dockerfile-vue ../
+docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version-$arch
+docker build --platform linux/amd64 -t registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version-$arch -f dockerfile-vue ../
 
-if [ "$2" = "push" ];then
-  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version
-  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version
+if [ "$3" = "push" ];then
+  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version-$arch
+  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version-$arch
 fi
