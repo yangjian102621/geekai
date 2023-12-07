@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -198,7 +199,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 				RoleId:     role.Id,
 				Type:       types.PromptMsg,
 				Icon:       userVo.Avatar,
-				Content:    prompt,
+				Content:    template.HTMLEscapeString(prompt),
 				Tokens:     promptToken,
 				UseContext: true,
 			}

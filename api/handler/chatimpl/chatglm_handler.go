@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"html/template"
 	"io"
 	"strings"
 	"time"
@@ -135,7 +136,7 @@ func (h *ChatHandler) sendChatGLMMessage(
 					RoleId:     role.Id,
 					Type:       types.PromptMsg,
 					Icon:       userVo.Avatar,
-					Content:    prompt,
+					Content:    template.HTMLEscapeString(prompt),
 					Tokens:     promptToken,
 					UseContext: true,
 				}

@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"strings"
@@ -156,7 +157,7 @@ func (h *ChatHandler) sendBaiduMessage(
 					RoleId:     role.Id,
 					Type:       types.PromptMsg,
 					Icon:       userVo.Avatar,
-					Content:    prompt,
+					Content:    template.HTMLEscapeString(prompt),
 					Tokens:     promptToken,
 					UseContext: true,
 				}
