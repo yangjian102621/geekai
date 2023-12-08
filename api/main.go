@@ -192,6 +192,7 @@ func main() {
 		}),
 
 		fx.Provide(payment.NewAlipayService),
+		fx.Provide(payment.NewHuPiPay),
 		fx.Provide(service.NewSnowflake),
 		fx.Provide(service.NewXXLJobExecutor),
 		fx.Invoke(func(exec *service.XXLJobExecutor, config *types.AppConfig) {
@@ -318,10 +319,12 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			group := s.Engine.Group("/api/payment/")
-			group.GET("alipay", h.Alipay)
+			group.GET("doPay", h.DoPay)
+			group.GET("payWays", h.GetPayWays)
 			group.POST("query", h.OrderQuery)
-			group.POST("alipay/qrcode", h.AlipayQrcode)
+			group.POST("qrcode", h.PayQrcode)
 			group.POST("alipay/notify", h.AlipayNotify)
+			group.POST("hupipay/notify", h.HuPiPayNotify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
 			group := s.Engine.Group("/api/admin/product/")
@@ -353,6 +356,11 @@ func main() {
 			group.GET("hits", h.Hits)
 		}),
 
+		fx.Provide(handler.NewTestHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
+			group := s.Engine.Group("/test/")
+			group.GET("pay", h.TestPay)
+		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)
 			if err != nil {

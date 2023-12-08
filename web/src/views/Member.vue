@@ -41,7 +41,7 @@
 
             <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="240">
               <template #default="scope">
-                <div class="product-item" :style="{width: scope.width+'px'}" @click="orderPay(scope.item)">
+                <div class="product-item" :style="{width: scope.width+'px'}">
                   <div class="image-container">
                     <el-image :src="vipImg" fit="cover"/>
                   </div>
@@ -61,6 +61,16 @@
                       <span class="label">有效期：</span>
                       <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
                       <span class="expire" v-else>当月有效</span>
+                    </div>
+
+                    <div class="pay-way">
+                      <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
+                        <i class="iconfont icon-alipay"></i> 支付宝
+                      </el-button>
+                      <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
+                        <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
+                        <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
+                      </el-button>
                     </div>
                   </div>
                 </div>
@@ -113,7 +123,7 @@
         title="充值订单支付">
       <div class="pay-container">
         <div class="count-down">
-          <count-down :second="orderTimeout" @timeout="orderPay" ref="countDown"/>
+          <count-down :second="orderTimeout" @timeout="refreshPayCode" ref="countDownRef"/>
         </div>
 
         <div class="pay-qrcode" v-loading="loading">
@@ -130,9 +140,10 @@
           <el-icon>
             <InfoFilled/>
           </el-icon>
-          <span class="text">请打开手机支付宝扫码支付</span>
+          <span class="text">请打开手机{{ payName }}扫码支付</span>
         </div>
       </div>
+
     </el-dialog>
   </div>
 </template>
@@ -152,6 +163,7 @@ import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import UserOrder from "@/components/UserOrder.vue";
+import CountDown from "@/components/CountDown.vue";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -171,10 +183,14 @@ const isLogin = ref(false)
 const router = useRouter()
 const curPayProduct = ref(null)
 const activeOrderNo = ref("")
-const countDown = ref(null)
+const countDownRef = ref(null)
 const orderTimeout = ref(1800)
 const loading = ref(true)
 const orderPayInfoText = ref("")
+
+const payWays = ref({})
+const payName = ref("支付宝")
+const curPay = ref("alipay") // 当前支付方式
 
 
 onMounted(() => {
@@ -200,9 +216,48 @@ onMounted(() => {
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
+
+  httpGet("/api/payment/payWays").then(res => {
+    payWays.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取支付方式失败：" + e.message)
+  })
 })
 
-const orderPay = (row) => {
+// refresh payment qrcode
+const refreshPayCode = () => {
+  if (curPay.value === 'alipay') {
+    alipay()
+  } else if (curPay.value === 'hupi') {
+    huPiPay()
+  }
+}
+
+const genPayQrcode = () => {
+  loading.value = true
+  text.value = ""
+  httpPost("/api/payment/qrcode", {
+    pay_way: curPay.value,
+    product_id: curPayProduct.value.id,
+    user_id: user.value.id
+  }).then(res => {
+    showPayDialog.value = true
+    qrcode.value = res.data['image']
+    activeOrderNo.value = res.data['order_no']
+    queryOrder(activeOrderNo.value)
+    loading.value = false
+    // 重置计数器
+    if (countDownRef.value) {
+      countDownRef.value.resetTimer()
+    }
+  }).catch(e => {
+    ElMessage.error("生成支付订单失败：" + e.message)
+  })
+}
+
+const alipay = (row) => {
+  payName.value = "支付宝"
+  curPay.value = "alipay"
   if (!user.value.id) {
     showLoginDialog.value = true
     return
@@ -210,21 +265,22 @@ const orderPay = (row) => {
   if (row) {
     curPayProduct.value = row
   }
-  loading.value = true
-  text.value = ""
-  httpPost("/api/payment/alipay/qrcode", {product_id: curPayProduct.value.id, user_id: user.value.id}).then(res => {
-    showPayDialog.value = true
-    qrcode.value = res.data['image']
-    activeOrderNo.value = res.data['order_no']
-    queryOrder(activeOrderNo.value)
-    loading.value = false
-    // 重置计数器
-    if (countDown.value) {
-      countDown.value.resetTimer()
-    }
-  }).catch(e => {
-    ElMessage.error("生成支付订单失败：" + e.message)
-  })
+  genPayQrcode()
+}
+
+// 虎皮椒支付
+const huPiPay = (row) => {
+  payName.value = payWays.value["hupi"]["name"] === "wechat" ? '微信' : '支付宝'
+  curPay.value = "hupi"
+  if (!user.value.id) {
+    showLoginDialog.value = true
+    return
+  }
+  if (row) {
+    curPayProduct.value = row
+  }
+  genPayQrcode()
+
 }
 
 const queryOrder = (orderNo) => {
@@ -416,6 +472,16 @@ const logout = function () {
               }
             }
 
+
+            .pay-way {
+              padding 10px 0
+              display flex
+              justify-content: space-between
+
+              .iconfont {
+                margin-right 5px
+              }
+            }
           }
 
           &:hover {

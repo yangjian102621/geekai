@@ -22,8 +22,9 @@ type AppConfig struct {
 	WeChatBot     bool                  // 是否启用微信机器人
 	SdConfig      StableDiffusionConfig // sd 绘画配置
 
-	XXLConfig    XXLConfig
-	AlipayConfig AlipayConfig
+	XXLConfig     XXLConfig
+	AlipayConfig  AlipayConfig
+	HuPiPayConfig HuPiPayConfig
 }
 
 type ChatPlusApiConfig struct {
@@ -38,10 +39,6 @@ type MidJourneyConfig struct {
 	BotToken  string
 	GuildId   string // Server ID
 	ChanelId  string // Chanel ID
-}
-
-type WeChatConfig struct {
-	Enabled bool
 }
 
 type StableDiffusionConfig struct {
@@ -61,7 +58,7 @@ type AliYunSmsConfig struct {
 }
 
 type AlipayConfig struct {
-	Enabled         bool   // 是否启用该服务
+	Enabled         bool   // 是否启用该支付通道
 	SandBox         bool   // 是否沙盒环境
 	AppId           string // 应用 ID
 	UserId          string // 支付宝用户 ID
@@ -70,6 +67,15 @@ type AlipayConfig struct {
 	AlipayPublicKey string // 支付宝公钥文件路径
 	RootCert        string // Root 秘钥路径
 	NotifyURL       string // 异步通知回调
+}
+
+type HuPiPayConfig struct { //虎皮椒第四方支付配置
+	Enabled   bool   // 是否启用该支付通道
+	Name      string // 支付名称，如：wechat/alipay
+	AppId     string // App ID
+	AppSecret string // app 密钥
+	NotifyURL string // 异步通知回调
+	PayURL    string // 支付网关
 }
 
 type XXLConfig struct { // XXL 任务调度配置

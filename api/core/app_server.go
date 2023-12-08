@@ -156,6 +156,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 			c.Request.URL.Path == "/api/mj/jobs" ||
 			c.Request.URL.Path == "/api/invite/hits" ||
 			c.Request.URL.Path == "/api/sd/jobs" ||
+			strings.HasPrefix(c.Request.URL.Path, "/test/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/payment/") ||
@@ -238,26 +239,28 @@ func parameterHandlerMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// process POST JSON request body
-		bodyBytes, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			c.Next()
-			return
-		}
+		if strings.Contains(contentType, "application/json") {
+			// process POST JSON request body
+			bodyBytes, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				c.Next()
+				return
+			}
 
-		// 还原请求体
-		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		// 将请求体解析为 JSON
-		var jsonData map[string]interface{}
-		if err := c.ShouldBindJSON(&jsonData); err != nil {
-			c.Next()
-			return
-		}
+			// 还原请求体
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			// 将请求体解析为 JSON
+			var jsonData map[string]interface{}
+			if err := c.ShouldBindJSON(&jsonData); err != nil {
+				c.Next()
+				return
+			}
 
-		// 对 JSON 数据中的字符串值去除两端空格
-		trimJSONStrings(jsonData)
-		// 更新请求体
-		c.Request.Body = io.NopCloser(bytes.NewBufferString(utils.JsonEncode(jsonData)))
+			// 对 JSON 数据中的字符串值去除两端空格
+			trimJSONStrings(jsonData)
+			// 更新请求体
+			c.Request.Body = io.NopCloser(bytes.NewBufferString(utils.JsonEncode(jsonData)))
+		}
 
 		c.Next()
 	}
