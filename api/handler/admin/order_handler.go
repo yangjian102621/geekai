@@ -44,6 +44,8 @@ func (h *OrderHandler) List(c *gin.Context) {
 		end := utils.Str2stamp(data.PayTime[1] + " 00:00:00")
 		session = session.Where("pay_time >= ? AND pay_time <= ?", start, end)
 	}
+	session = session.Where("status = ?", types.OrderPaidSuccess)
+
 	var total int64
 	session.Model(&model.Order{}).Count(&total)
 	var items []model.Order

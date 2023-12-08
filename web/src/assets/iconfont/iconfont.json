@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1486848",
+      "name": "支付宝支付",
+      "font_class": "alipay",
+      "unicode": "e634",
+      "unicode_decimal": 58932
+    },
+    {
       "icon_id": "845789",
       "name": "笑脸",
       "font_class": "face",
