@@ -500,21 +500,21 @@ window.onresize = () => {
 }
 const samplers = ["Euler a", "Euler", "DPM2 a Karras", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM2", "DPM2 a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM fast", "DPM adaptive",
   "LMS Karras", "DPM2 Karras", "DDIM", "PLMS", "UniPC", "LMS", "Heun",]
-const scaleAlg = ["ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
+const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
-  width: 1024,
-  height: 1024,
+  width: 512,
+  height: 512,
   sampler: samplers[0],
   seed: -1,
-  steps: 20,
+  steps: 30,
   cfg_scale: 7,
   face_fix: false,
-  hd_fix: false,
-  hd_redraw_rate: 0.3,
+  hd_fix: true,
+  hd_redraw_rate: 0.7,
   hd_scale: 2,
   hd_scale_alg: scaleAlg[0],
-  hd_steps: 0,
-  prompt: "A beautiful Chinese girl riding on a tiger",
+  hd_steps: 10,
+  prompt: "A beautiful Chinese girl in a garden",
   negative_prompt: "nsfw, paintings, cartoon, anime, sketches, low quality,easynegative,ng_deepnegative _v1 75t,(worst quality:2),(low quality:2),(normalquality:2),lowres,bad anatomy,bad hands,normal quality,((monochrome)),((grayscale)),((watermark))",
 })
 
