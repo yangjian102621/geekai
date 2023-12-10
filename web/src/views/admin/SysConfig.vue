@@ -249,9 +249,12 @@
           <el-input v-model.number="chat['xun_fei']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
         </el-form-item>
 
-        <el-divider content-position="center">绘图绘图</el-divider>
+        <el-divider content-position="center">AI绘图</el-divider>
         <el-form-item label="DALL-E3 API地址">
           <el-input v-model="chat['dall_api_url']" placeholder="OpenAI官方API需要配合代理使用"/>
+        </el-form-item>
+        <el-form-item label="默认出图数量">
+          <el-input v-model.number="chat['dall_img_num']" placeholder="调用 DALL E3 API 传入的出图数量"/>
         </el-form-item>
         <el-form-item style="text-align: right">
           <el-button type="primary" @click="save('chat')">保存</el-button>
@@ -295,26 +298,7 @@ onMounted(() => {
 
   // 加载聊天配置
   httpGet('/api/admin/config/get?key=chat').then(res => {
-    // chat.value = res.data
-    if (res.data.open_ai) {
-      chat.value.open_ai = res.data.open_ai
-    }
-    if (res.data.azure) {
-      chat.value.azure = res.data.azure
-    }
-    if (res.data.chat_gml) {
-      chat.value.chat_gml = res.data.chat_gml
-    }
-    if (res.data.baidu) {
-      chat.value.baidu = res.data.baidu
-    }
-    if (res.data.xun_fei) {
-      chat.value.xun_fei = res.data.xun_fei
-    }
-    chat.value.context_deep = res.data.context_deep
-    chat.value.enable_context = res.data.enable_context
-    chat.value.enable_history = res.data.enable_history
-    chat.value.dall_api_url = res.data.dall_api_url
+    chat.value = res.data
     loading.value = false
   }).catch(e => {
     ElMessage.error("加载聊天配置失败: " + e.message)
