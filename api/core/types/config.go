@@ -116,6 +116,7 @@ type ChatConfig struct {
 	EnableHistory bool   `json:"enable_history"` // 是否允许保存聊天记录
 	ContextDeep   int    `json:"context_deep"`   // 上下文深度
 	DallApiURL    string `json:"dall_api_url"`   // dall-e3 绘图 API 地址
+	DallImgNum int `json:"dall_img_num"` // dall-e3 出图数量
 }
 
 type Platform string

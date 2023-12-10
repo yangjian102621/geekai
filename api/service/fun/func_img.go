@@ -6,6 +6,7 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"fmt"
+
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
 )
@@ -69,12 +70,20 @@ func (f FuncImage) Invoke(params map[string]interface{}) (string, error) {
 	if tx.Error != nil {
 		return "", fmt.Errorf("error with get chat configs: %v", tx.Error)
 	}
-	
+
 	err := utils.JsonDecode(conf.Config, &chatConfig)
 	if err != nil {
 		return "", fmt.Errorf("error with decode chat config: %v", err)
 	}
 
+	apiURL := chatConfig.DallApiURL
+	if utils.IsEmptyValue(apiURL) {
+		apiURL = "https://api.openai.com/v1/images/generations"
+	}
+	imgNum := chatConfig.DallImgNum
+	if imgNum <= 0 {
+		imgNum = 1
+	}
 	var res imgRes
 	var errRes ErrRes
 	r, err := req.C().SetProxyURL(f.proxyURL).R().SetHeader("Content-Type", "application/json").
@@ -82,11 +91,11 @@ func (f FuncImage) Invoke(params map[string]interface{}) (string, error) {
 		SetBody(imgReq{
 			Model:  "dall-e-3",
 			Prompt: prompt,
-			N:      1,
+			N:      imgNum,
 			Size:   "1024x1024",
 		}).
 		SetErrorResult(&errRes).
-		SetSuccessResult(&res).Post(chatConfig.DallApiURL)
+		SetSuccessResult(&res).Post(apiURL)
 	if err != nil || r.IsErrorState() {
 		return "", fmt.Errorf("error with http request: %v%v%s", err, r.Err, errRes.Error.Message)
 	}
