@@ -243,7 +243,7 @@
                     </el-icon>
                   </el-tooltip>
                 </div>
-                <el-button type="success">
+                <el-button type="success" @click="translatePrompt">
                   <el-icon style="margin-right: 6px;font-size: 18px;">
                     <Refresh/>
                   </el-icon>
@@ -268,12 +268,12 @@
                     </el-icon>
                   </el-tooltip>
                 </div>
-                <el-button type="success">
-                  <el-icon style="margin-right: 6px;font-size: 18px;">
-                    <Refresh/>
-                  </el-icon>
-                  翻译
-                </el-button>
+<!--                <el-button type="success">-->
+<!--                  <el-icon style="margin-right: 6px;font-size: 18px;">-->
+<!--                    <Refresh/>-->
+<!--                  </el-icon>-->
+<!--                  翻译-->
+<!--                </el-button>-->
               </div>
             </div>
 
@@ -286,7 +286,7 @@
             <div class="submit-btn">
               <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
               <div class="text-info">
-                <el-tag type="success">可用额度：{{ imgCalls }}</el-tag>
+                <el-tag type="success">绘图可用额度：{{ imgCalls }}</el-tag>
               </div>
             </div>
           </el-form>
@@ -336,7 +336,7 @@
 
           <h2>创作记录</h2>
           <div class="finish-job-list">
-            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" width="240" :gap="16">
+            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
               <template #default="scope">
                 <div class="job-item">
                   <el-image
@@ -487,7 +487,7 @@ const params = ref({
   img: "",
   weight: 0.25,
   prompt: "",
-  neg_prompt: "",
+  neg_prompt: "nsfw, paintings, cartoon, anime, sketches, low quality,easynegative,ng_deepnegative _v1 75t,(worst quality:2),(low quality:2),(normalquality:2),lowres,bad anatomy,bad hands,normal quality,((monochrome)),((grayscale)),((watermark))",
   tile: false,
   quality: 0.5
 })
@@ -566,6 +566,14 @@ const connect = () => {
     ElMessage.error("Websocket 已经断开，正在重新连接服务器")
     connect()
   });
+}
+
+const translatePrompt = () => {
+  httpPost("/api/prompt/translate",{"prompt":params.value.prompt}).then(res => {
+    params.value.prompt = res.data
+  }).then(e => {
+    ElMessage.error("翻译失败："+e.message)
+  })
 }
 
 onMounted(() => {

@@ -502,14 +502,14 @@ const samplers = ["Euler a", "Euler", "DPM2 a Karras", "DPM++ 2S a Karras", "DPM
   "LMS Karras", "DPM2 Karras", "DDIM", "PLMS", "UniPC", "LMS", "Heun",]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
-  width: 512,
-  height: 512,
+  width: 1024,
+  height: 1024,
   sampler: samplers[0],
   seed: -1,
   steps: 30,
   cfg_scale: 7,
   face_fix: false,
-  hd_fix: true,
+  hd_fix: false,
   hd_redraw_rate: 0.7,
   hd_scale: 2,
   hd_scale_alg: scaleAlg[0],

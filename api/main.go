@@ -17,7 +17,6 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
-	"github.com/go-redis/redis/v8"
 	"io"
 	"log"
 	"os"
@@ -25,6 +24,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"go.uber.org/fx"
@@ -354,6 +355,12 @@ func main() {
 			group.GET("code", h.Code)
 			group.POST("list", h.List)
 			group.GET("hits", h.Hits)
+		}),
+
+		fx.Provide(handler.NewPromptHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
+			group := s.Engine.Group("/api/prompt/")
+			group.POST("translate", h.Translate)
 		}),
 
 		fx.Provide(handler.NewTestHandler),

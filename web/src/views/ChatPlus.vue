@@ -105,12 +105,12 @@
                   :value="item.id"
               />
             </el-select>
-            <!--            <el-button type="primary" @click="newChat">-->
-            <!--              <el-icon>-->
-            <!--                <Plus/>-->
-            <!--              </el-icon>-->
-            <!--              新建会话-->
-            <!--            </el-button>-->
+                        <el-button type="primary" @click="newChat">
+                          <el-icon>
+                            <Plus/>
+                          </el-icon>
+                          新建对话
+                        </el-button>
 
             <el-button type="success" @click="exportChat" plain>
               <i class="iconfont icon-export"></i>
@@ -237,7 +237,7 @@ import {
   Check,
   Close,
   Delete,
-  Edit,
+  Edit, Plus,
   Promotion,
   RefreshRight,
   Search,
