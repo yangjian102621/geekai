@@ -1,20 +1,20 @@
 {
   "data": [
-    "task(m1wpaa4v60zedj8)",
-    "a cute cat",
+    "task(s95jqt5jr8yppcp)",
+    "A beautiful Chinese girl in a garden",
     "",
     [],
-    20,
-    "DPM++ 2M Karras",
+    30,
+    "Euler a",
     1,
     1,
     7,
     512,
-    384,
+    512,
     true,
     0.7,
     2,
-    "ESRGAN_4x",
+    "Latent",
     10,
     0,
     0,
@@ -55,13 +55,13 @@
     false,
     false,
     0,
-    false,
-    [],
+    [
+    ],
     "",
     "",
     ""
   ],
   "event_data": null,
-  "fn_index": 96,
-  "session_hash": "kmb0ojjfhdj"
+  "fn_index": 95,
+  "session_hash": "eqwumnt3rov"
 }

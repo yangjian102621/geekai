@@ -135,7 +135,6 @@ func (s *Service) runTask(taskInfo TaskInfo, client *req.Client) {
 		"fn_index":     taskInfo.FnIndex,
 		"session_hash": taskInfo.SessionHash,
 	}
-	logger.Debug(utils.JsonEncode(body))
 	var result = make(chan CBReq)
 	go func() {
 		var res struct {
@@ -231,7 +230,6 @@ func (s *Service) runTask(taskInfo TaskInfo, client *req.Client) {
 
 			cbReq.ImageData = progressRes.LivePreview
 			cbReq.Progress = int(progressRes.Progress * 100)
-			logger.Debug(cbReq)
 			s.callback(cbReq)
 			time.Sleep(time.Second)
 		}
@@ -287,8 +285,13 @@ func (s *Service) callback(data CBReq) {
 		if data.Progress < 100 && data.ImageData != "" {
 			jobVo.ImgURL = data.ImageData
 		}
+
+		logger.Infof("绘图进度：%d", data.Progress)
+
 		// 扣减绘图次数
-		s.db.Model(&model.User{}).Where("id = ?", jobVo.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+		if data.Progress == 100 {
+			s.db.Model(&model.User{}).Where("id = ? AND img_calls > 0", jobVo.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+		}
 		// 推送任务到前端
 		if client != nil {
 			utils.ReplyChunkMessage(client, jobVo)
