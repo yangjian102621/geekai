@@ -9,4 +9,4 @@ COPY ./api/bin/chatgpt-plus-linux /var/www/app
 EXPOSE 5678
 
 # 容器启动时执行的命令
-CMD ["./chatgpt-plus-amd64-linux"]
+CMD ["./chatgpt-plus-linux"]

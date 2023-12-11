@@ -37,7 +37,7 @@ WeChatBot = false
    Active = "local" # 默认使用本地文件存储引擎
    [OSS.Local]
      BasePath = "./static/upload" # 本地文件上传根路径
-     BaseURL = "http://localhost:5678/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
+     BaseURL = "/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
    [OSS.Minio]
      Endpoint = "" # 如 172.22.11.200:9000
      AccessKey = "" # 自己去 Minio 控制台去创建一个 Access Key
@@ -82,4 +82,12 @@ WeChatBot = false
   PublicKey = "certs/alipay/appPublicCert.crt" # 应用公钥证书
   AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
   RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
-  NotifyURL = "http://r9it.com:6004/api/payment/alipay/notify" # 支付异步回调地址
+  NotifyURL = "http://ai.r9it.com/api/payment/alipay/notify" # 支付异步回调地址
+
+[HuPiPayConfig] # 虎皮椒支付配置
+  Enabled = false
+  Name = "wechat"
+  AppId = ""
+  AppSecret = ""
+  PayURL = "https://api.xunhupay.com/payment/do.html"
+  NotifyURL = "http://ai.r9it.com/api/payment/hupipay/notify"
