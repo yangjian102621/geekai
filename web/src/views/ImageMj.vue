@@ -233,29 +233,31 @@
               </el-tab-pane>
             </el-tabs>
 
-            <div class="param-line pt">
-              <div class="flex-row justify-between items-center">
-                <div class="flex-row justify-start items-center">
-                  <span>提示词：</span>
-                  <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
-                    <el-icon>
-                      <InfoFilled/>
+            <div v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
+              <div class="param-line pt">
+                <div class="flex-row justify-between items-center">
+                  <div class="flex-row justify-start items-center">
+                    <span>提示词：</span>
+                    <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
+                      <el-icon>
+                        <InfoFilled/>
+                      </el-icon>
+                    </el-tooltip>
+                  </div>
+                  <el-button type="success" @click="translatePrompt">
+                    <el-icon style="margin-right: 6px;font-size: 18px;">
+                      <Refresh/>
                     </el-icon>
-                  </el-tooltip>
+                    翻译
+                  </el-button>
                 </div>
-                <el-button type="success" @click="translatePrompt">
-                  <el-icon style="margin-right: 6px;font-size: 18px;">
-                    <Refresh/>
-                  </el-icon>
-                  翻译
-                </el-button>
               </div>
-            </div>
 
-            <div class="param-line pt">
-              <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                        ref="promptRef"
-                        placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
+              <div class="param-line pt">
+                <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
+                          ref="promptRef"
+                          placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
+              </div>
             </div>
 
             <div class="param-line pt">
@@ -268,12 +270,12 @@
                     </el-icon>
                   </el-tooltip>
                 </div>
-<!--                <el-button type="success">-->
-<!--                  <el-icon style="margin-right: 6px;font-size: 18px;">-->
-<!--                    <Refresh/>-->
-<!--                  </el-icon>-->
-<!--                  翻译-->
-<!--                </el-button>-->
+                <!--                <el-button type="success">-->
+                <!--                  <el-icon style="margin-right: 6px;font-size: 18px;">-->
+                <!--                    <Refresh/>-->
+                <!--                  </el-icon>-->
+                <!--                  翻译-->
+                <!--                </el-button>-->
               </div>
             </div>
 
@@ -500,6 +502,7 @@ const router = useRouter()
 
 const socket = ref(null)
 const imgCalls = ref(0)
+const loading = ref(false)
 
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST
@@ -569,10 +572,12 @@ const connect = () => {
 }
 
 const translatePrompt = () => {
-  httpPost("/api/prompt/translate",{"prompt":params.value.prompt}).then(res => {
+  loading.value = true
+  httpPost("/api/prompt/translate", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data
+    loading.value = false
   }).then(e => {
-    ElMessage.error("翻译失败："+e.message)
+    ElMessage.error("翻译失败：" + e.message)
   })
 }
 
