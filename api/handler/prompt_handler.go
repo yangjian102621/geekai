@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/store/model"
 	"chatplus/utils/resp"
@@ -19,8 +20,10 @@ type PromptHandler struct {
 	db *gorm.DB
 }
 
-func NewPromptHandler(db *gorm.DB) *PromptHandler {
-	return &PromptHandler{db: db}
+func NewPromptHandler(app *core.AppServer, db *gorm.DB) *PromptHandler {
+	h := &PromptHandler{db: db}
+	h.App = app
+	return h
 }
 
 type apiRes struct {
