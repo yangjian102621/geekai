@@ -489,7 +489,7 @@ const params = ref({
   img: "",
   weight: 0.25,
   prompt: "",
-  neg_prompt: "nsfw, paintings, cartoon, anime, sketches, low quality,easynegative,ng_deepnegative _v1 75t,(worst quality:2),(low quality:2),(normalquality:2),lowres,bad anatomy,bad hands,normal quality,((monochrome)),((grayscale)),((watermark))",
+  neg_prompt: "",
   tile: false,
   quality: 0.5
 })
