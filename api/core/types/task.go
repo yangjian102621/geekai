@@ -11,28 +11,15 @@ const (
 	TaskImage     = TaskType("image")
 	TaskUpscale   = TaskType("upscale")
 	TaskVariation = TaskType("variation")
-	TaskTxt2Img   = TaskType("text2img")
-)
-
-// TaskSrc 任务来源
-type TaskSrc string
-
-const (
-	TaskSrcChat = TaskSrc("chat") // 来自聊天页面
-	TaskSrcImg  = TaskSrc("img")  // 专业绘画页面
 )
 
 // MjTask MidJourney 任务
 type MjTask struct {
 	Id          int      `json:"id"`
 	SessionId   string   `json:"session_id"`
-	Src         TaskSrc  `json:"src"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
 	Prompt      string   `json:"prompt,omitempty"`
-	ChatId      string   `json:"chat_id,omitempty"`
-	RoleId      int      `json:"role_id,omitempty"`
-	Icon        string   `json:"icon,omitempty"`
 	Index       int      `json:"index,omitempty"`
 	MessageId   string   `json:"message_id,omitempty"`
 	MessageHash string   `json:"message_hash,omitempty"`
@@ -42,7 +29,6 @@ type MjTask struct {
 type SdTask struct {
 	Id         int          `json:"id"` // job 数据库ID
 	SessionId  string       `json:"session_id"`
-	Src        TaskSrc      `json:"src"`
 	Type       TaskType     `json:"type"`
 	UserId     int          `json:"user_id"`
 	Prompt     string       `json:"prompt,omitempty"`

@@ -165,23 +165,6 @@ func main() {
 
 		// MidJourney 机器人
 		fx.Provide(mj.NewBot),
-		fx.Provide(mj.NewClient),
-		fx.Invoke(func(config *types.AppConfig, bot *mj.Bot) {
-			if config.MjConfig.Enabled {
-				err := bot.Run()
-				if err != nil {
-					log.Fatal("MidJourney 服务启动失败：", err)
-				}
-			}
-		}),
-		fx.Invoke(func(config *types.AppConfig, mjService *mj.Service) {
-			if config.MjConfig.Enabled {
-				go func() {
-					mjService.Run()
-				}()
-			}
-		}),
-
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewService),
 		fx.Invoke(func(config *types.AppConfig, service *sd.Service) {
@@ -256,13 +239,11 @@ func main() {
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
-			group.Any("client", h.Client)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
-			group.Any("client", h.Client)
 		}),
 
 		// 管理后台控制器

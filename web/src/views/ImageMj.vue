@@ -504,72 +504,72 @@ const socket = ref(null)
 const imgCalls = ref(0)
 const loading = ref(false)
 
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-  const _socket = new WebSocket(host + `/api/mj/client?session_id=${getSessionId()}&token=${getUserToken()}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8");
-      reader.onload = () => {
-        const data = JSON.parse(String(reader.result));
-        let isNew = true
-        if (data.progress === 100) {
-          for (let i = 0; i < finishedJobs.value.length; i++) {
-            if (finishedJobs.value[i].id === data.id) {
-              isNew = false
-              break
-            }
-          }
-          for (let i = 0; i < runningJobs.value.length; i++) {
-            if (runningJobs.value[i].id === data.id) {
-              runningJobs.value.splice(i, 1)
-              break
-            }
-          }
-          if (isNew) {
-            finishedJobs.value.unshift(data)
-          }
-        } else if (data.progress === -1) { // 任务执行失败
-          ElNotification({
-            title: '任务执行失败',
-            message: "提示词：" + data['prompt'],
-            type: 'error',
-          })
-          runningJobs.value = removeArrayItem(runningJobs.value, data, (v1, v2) => v1.id === v2.id)
-
-        } else {
-          for (let i = 0; i < runningJobs.value.length; i++) {
-            if (runningJobs.value[i].id === data.id) {
-              isNew = false
-              runningJobs.value[i] = data
-              break
-            }
-          }
-          if (isNew) {
-            runningJobs.value.push(data)
-          }
-        }
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    ElMessage.error("Websocket 已经断开，正在重新连接服务器")
-    connect()
-  });
-}
+// const connect = () => {
+//   let host = process.env.VUE_APP_WS_HOST
+//   if (host === '') {
+//     if (location.protocol === 'https:') {
+//       host = 'wss://' + location.host;
+//     } else {
+//       host = 'ws://' + location.host;
+//     }
+//   }
+//   const _socket = new WebSocket(host + `/api/mj/client?session_id=${getSessionId()}&token=${getUserToken()}`);
+//   _socket.addEventListener('open', () => {
+//     socket.value = _socket;
+//   });
+//
+//   _socket.addEventListener('message', event => {
+//     if (event.data instanceof Blob) {
+//       const reader = new FileReader();
+//       reader.readAsText(event.data, "UTF-8");
+//       reader.onload = () => {
+//         const data = JSON.parse(String(reader.result));
+//         let isNew = true
+//         if (data.progress === 100) {
+//           for (let i = 0; i < finishedJobs.value.length; i++) {
+//             if (finishedJobs.value[i].id === data.id) {
+//               isNew = false
+//               break
+//             }
+//           }
+//           for (let i = 0; i < runningJobs.value.length; i++) {
+//             if (runningJobs.value[i].id === data.id) {
+//               runningJobs.value.splice(i, 1)
+//               break
+//             }
+//           }
+//           if (isNew) {
+//             finishedJobs.value.unshift(data)
+//           }
+//         } else if (data.progress === -1) { // 任务执行失败
+//           ElNotification({
+//             title: '任务执行失败',
+//             message: "提示词：" + data['prompt'],
+//             type: 'error',
+//           })
+//           runningJobs.value = removeArrayItem(runningJobs.value, data, (v1, v2) => v1.id === v2.id)
+//
+//         } else {
+//           for (let i = 0; i < runningJobs.value.length; i++) {
+//             if (runningJobs.value[i].id === data.id) {
+//               isNew = false
+//               runningJobs.value[i] = data
+//               break
+//             }
+//           }
+//           if (isNew) {
+//             runningJobs.value.push(data)
+//           }
+//         }
+//       }
+//     }
+//   });
+//
+//   _socket.addEventListener('close', () => {
+//     ElMessage.error("Websocket 已经断开，正在重新连接服务器")
+//     connect()
+//   });
+// }
 
 const translatePrompt = () => {
   loading.value = true

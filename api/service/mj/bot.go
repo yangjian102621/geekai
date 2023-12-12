@@ -23,7 +23,7 @@ type Bot struct {
 }
 
 func NewBot(config *types.AppConfig, service *Service) (*Bot, error) {
-	discord, err := discordgo.New("Bot " + config.MjConfig.BotToken)
+	discord, err := discordgo.New("Bot " + config.MjConfigs.BotToken)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func NewBot(config *types.AppConfig, service *Service) (*Bot, error) {
 	}
 
 	return &Bot{
-		config:  &config.MjConfig,
+		config:  &config.MjConfigs,
 		bot:     discord,
 		service: service,
 	}, nil

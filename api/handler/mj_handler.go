@@ -12,9 +12,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -40,20 +38,6 @@ func NewMidJourneyHandler(
 	return &h
 }
 
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *MidJourneyHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		return
-	}
-
-	sessionId := c.Query("session_id")
-	client := types.NewWsClient(ws)
-	h.mjService.Clients.Put(sessionId, client)
-	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
-}
-
 func (h *MidJourneyHandler) checkLimits(c *gin.Context) bool {
 	user, err := utils.GetLoginUser(c, h.db)
 	if err != nil {
@@ -72,7 +56,7 @@ func (h *MidJourneyHandler) checkLimits(c *gin.Context) bool {
 
 // Image 创建一个绘画任务
 func (h *MidJourneyHandler) Image(c *gin.Context) {
-	if !h.App.Config.MjConfig.Enabled {
+	if !h.App.Config.MjConfigs[0].Enabled {
 		resp.ERROR(c, "MidJourney service is disabled")
 		return
 	}
