@@ -55,7 +55,7 @@ func (s *HuPiPayService) Sign(params map[string]string) string {
 	var data string
 	keys := make([]string, 0, 0)
 	params["appid"] = s.appId
-	for key, _ := range params {
+	for key := range params {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)

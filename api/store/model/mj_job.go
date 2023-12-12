@@ -6,13 +6,14 @@ type MidJourneyJob struct {
 	Id          uint `gorm:"primarykey;column:id"`
 	Type        string
 	UserId      int
+	TaskId      string
 	MessageId   string
 	ReferenceId string
 	ImgURL      string
+	OrgURL      string // 原图地址
 	Hash        string // message hash
 	Progress    int
 	Prompt      string
-	Started     bool
 	CreatedAt   time.Time
 }
 

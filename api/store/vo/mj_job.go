@@ -9,9 +9,9 @@ type MidJourneyJob struct {
 	MessageId   string    `json:"message_id"`
 	ReferenceId string    `json:"reference_id"`
 	ImgURL      string    `json:"img_url"`
+	OrgURL      string    `json:"org_url"`
 	Hash        string    `json:"hash"`
 	Progress    int       `json:"progress"`
 	Prompt      string    `json:"prompt"`
 	CreatedAt   time.Time `json:"created_at"`
-	Started     bool      `json:"started"`
 }
