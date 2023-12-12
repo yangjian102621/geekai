@@ -514,7 +514,7 @@ const params = ref({
   hd_scale: 2,
   hd_scale_alg: scaleAlg[0],
   hd_steps: 10,
-  prompt: "A beautiful Chinese girl in a garden",
+  prompt: "",
   negative_prompt: "nsfw, paintings, cartoon, anime, sketches, low quality,easynegative,ng_deepnegative _v1 75t,(worst quality:2),(low quality:2),(normalquality:2),lowres,bad anatomy,bad hands,normal quality,((monochrome)),((grayscale)),((watermark))",
 })
 
