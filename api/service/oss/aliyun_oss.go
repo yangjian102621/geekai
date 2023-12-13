@@ -32,6 +32,10 @@ func NewAliYunOss(appConfig *types.AppConfig) (*AliYunOss, error) {
 		return nil, err
 	}
 
+	if config.SubDir == "" {
+		config.SubDir = "gpt"
+	}
+
 	return &AliYunOss{
 		config:   config,
 		bucket:   bucket,
@@ -54,7 +58,7 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	defer src.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	objectKey := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
+	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	// 上传文件
 	err = s.bucket.PutObject(objectKey, src)
 	if err != nil {
@@ -80,7 +84,7 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
 	fileExt := filepath.Ext(parse.Path)
-	objectKey := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
+	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	// 上传文件字节数据
 	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
 	if err != nil {
@@ -91,7 +95,8 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 
 func (s AliYunOss) Delete(fileURL string) error {
 	objectName := filepath.Base(fileURL)
-	return s.bucket.DeleteObject(objectName)
+	key := fmt.Sprintf("%s/%s", s.config.SubDir, objectName)
+	return s.bucket.DeleteObject(key)
 }
 
 var _ Uploader = AliYunOss{}

@@ -29,6 +29,9 @@ func NewMiniOss(appConfig *types.AppConfig) (MiniOss, error) {
 	if err != nil {
 		return MiniOss{}, err
 	}
+	if config.SubDir == "" {
+		config.SubDir = "gpt"
+	}
 	return MiniOss{config: config, client: minioClient, proxyURL: appConfig.ProxyURL}, nil
 }
 
@@ -48,7 +51,7 @@ func (s MiniOss) PutImg(imageURL string, useProxy bool) (string, error) {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
 	fileExt := filepath.Ext(parse.Path)
-	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
+	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(
 		context.Background(),
 		s.config.Bucket,
@@ -75,7 +78,7 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	defer fileReader.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
+	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(ctx, s.config.Bucket, filename, fileReader, file.Size, minio.PutObjectOptions{
 		ContentType: file.Header.Get("Content-Type"),
 	})
@@ -88,7 +91,8 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (string, error) {
 
 func (s MiniOss) Delete(fileURL string) error {
 	objectName := filepath.Base(fileURL)
-	return s.client.RemoveObject(context.Background(), s.config.Bucket, objectName, minio.RemoveObjectOptions{})
+	key := fmt.Sprintf("%s/%s", s.config.SubDir, objectName)
+	return s.client.RemoveObject(context.Background(), s.config.Bucket, key, minio.RemoveObjectOptions{})
 }
 
 var _ Uploader = MiniOss{}

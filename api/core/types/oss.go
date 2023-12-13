@@ -12,6 +12,7 @@ type MiniOssConfig struct {
 	AccessKey    string
 	AccessSecret string
 	Bucket       string
+	SubDir       string
 	UseSSL       bool
 	Domain       string
 }
@@ -21,6 +22,7 @@ type QiNiuOssConfig struct {
 	AccessKey    string
 	AccessSecret string
 	Bucket       string
+	SubDir       string
 	Domain       string
 }
 
@@ -29,6 +31,7 @@ type AliYunOssConfig struct {
 	AccessKey    string
 	AccessSecret string
 	Bucket       string
+	SubDir       string
 	Domain       string
 }
 
