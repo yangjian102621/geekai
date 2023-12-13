@@ -21,7 +21,6 @@ type QinNiuOss struct {
 	uploader  *storage.FormUploader
 	manager   *storage.BucketManager
 	proxyURL  string
-	dir       string
 }
 
 func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
@@ -38,6 +37,9 @@ func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 	putPolicy := storage.PutPolicy{
 		Scope: config.Bucket,
 	}
+	if config.SubDir == "" {
+		config.SubDir = "gpt"
+	}
 	return QinNiuOss{
 		config:    config,
 		mac:       mac,
@@ -45,7 +47,6 @@ func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 		uploader:  formUploader,
 		manager:   storage.NewBucketManager(mac, &storeConfig),
 		proxyURL:  appConfig.ProxyURL,
-		dir:       "chatgpt-plus",
 	}
 }
 
@@ -63,7 +64,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	defer src.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	key := fmt.Sprintf("%s/%d%s", s.dir, time.Now().UnixMicro(), fileExt)
+	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	// 上传文件
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
@@ -91,7 +92,7 @@ func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
 	fileExt := filepath.Ext(parse.Path)
-	key := fmt.Sprintf("%s/%d%s", s.dir, time.Now().UnixMicro(), fileExt)
+	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
@@ -104,7 +105,7 @@ func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
 
 func (s QinNiuOss) Delete(fileURL string) error {
 	objectName := filepath.Base(fileURL)
-	key := fmt.Sprintf("%s/%s", s.dir, objectName)
+	key := fmt.Sprintf("%s/%s", s.config.SubDir, objectName)
 	return s.manager.Delete(s.config.Bucket, key)
 }
 
