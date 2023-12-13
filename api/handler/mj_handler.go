@@ -3,6 +3,7 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service"
 	"chatplus/service/mj"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -11,7 +12,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -19,26 +19,22 @@ import (
 
 type MidJourneyHandler struct {
 	BaseHandler
-	redis     *redis.Client
 	db        *gorm.DB
-	mjService *mj.Service
+	pool      *mj.ServicePool
+	snowflake *service.Snowflake
 }
 
-func NewMidJourneyHandler(
-	app *core.AppServer,
-	client *redis.Client,
-	db *gorm.DB,
-	mjService *mj.Service) *MidJourneyHandler {
+func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, pool *mj.ServicePool) *MidJourneyHandler {
 	h := MidJourneyHandler{
-		redis:     client,
 		db:        db,
-		mjService: mjService,
+		snowflake: snowflake,
+		pool:      pool,
 	}
 	h.App = app
 	return &h
 }
 
-func (h *MidJourneyHandler) checkLimits(c *gin.Context) bool {
+func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 	user, err := utils.GetLoginUser(c, h.db)
 	if err != nil {
 		resp.NotAuth(c)
@@ -50,17 +46,17 @@ func (h *MidJourneyHandler) checkLimits(c *gin.Context) bool {
 		return false
 	}
 
+	if !h.pool.HasAvailableService() {
+		resp.ERROR(c, "MidJourney 池子中没有没有可用的服务！")
+		return false
+	}
+
 	return true
 
 }
 
 // Image 创建一个绘画任务
 func (h *MidJourneyHandler) Image(c *gin.Context) {
-	if !h.App.Config.MjConfigs[0].Enabled {
-		resp.ERROR(c, "MidJourney service is disabled")
-		return
-	}
-
 	var data struct {
 		SessionId string  `json:"session_id"`
 		Prompt    string  `json:"prompt"`
@@ -80,7 +76,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if !h.checkLimits(c) {
+	if !h.preCheck(c) {
 		return
 	}
 
@@ -121,9 +117,16 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	// generate task id
+	taskId, err := h.snowflake.Next(true)
+	if err != nil {
+		resp.ERROR(c, "error with generate task id: "+err.Error())
+		return
+	}
 	job := model.MidJourneyJob{
 		Type:      types.TaskImage.String(),
 		UserId:    userId,
+		TaskId:    taskId,
 		Progress:  0,
 		Prompt:    prompt,
 		CreatedAt: time.Now(),
@@ -133,24 +136,13 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.mjService.PushTask(types.MjTask{
+	h.pool.PushTask(types.MjTask{
 		Id:        int(job.Id),
 		SessionId: data.SessionId,
-		Src:       types.TaskSrcImg,
 		Type:      types.TaskImage,
-		Prompt:    prompt,
+		Prompt:    fmt.Sprintf("%s %s", taskId, prompt),
 		UserId:    userId,
 	})
-
-	var jobVo vo.MidJourneyJob
-	err := utils.CopyObject(job, &jobVo)
-	if err == nil {
-		// 推送任务到前端
-		client := h.mjService.Clients.Get(data.SessionId)
-		if client != nil {
-			utils.ReplyChunkMessage(client, jobVo)
-		}
-	}
 	resp.SUCCESS(c)
 }
 
@@ -174,65 +166,23 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	if !h.checkLimits(c) {
+	if !h.preCheck(c) {
 		return
 	}
 
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
-	src := types.TaskSrc(data.Src)
-	if src == types.TaskSrcImg {
-		job := model.MidJourneyJob{
-			Type:      types.TaskUpscale.String(),
-			UserId:    userId,
-			Hash:      data.MessageHash,
-			Progress:  0,
-			Prompt:    data.Prompt,
-			CreatedAt: time.Now(),
-		}
-		if res := h.db.Create(&job); res.Error == nil {
-			jobId = int(job.Id)
-		} else {
-			resp.ERROR(c, "添加任务失败："+res.Error.Error())
-			return
-		}
-
-		var jobVo vo.MidJourneyJob
-		err := utils.CopyObject(job, &jobVo)
-		if err == nil {
-			// 推送任务到前端
-			client := h.mjService.Clients.Get(data.SessionId)
-			if client != nil {
-				utils.ReplyChunkMessage(client, jobVo)
-			}
-		}
-	}
-	h.mjService.PushTask(types.MjTask{
+	h.pool.PushTask(types.MjTask{
 		Id:          jobId,
 		SessionId:   data.SessionId,
-		Src:         src,
 		Type:        types.TaskUpscale,
 		Prompt:      data.Prompt,
 		UserId:      userId,
-		RoleId:      data.RoleId,
-		Icon:        data.Icon,
-		ChatId:      data.ChatId,
 		Index:       data.Index,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
 	})
-
-	if src == types.TaskSrcChat {
-		wsClient := h.App.ChatClients.Get(data.SessionId)
-		if wsClient != nil {
-			content := fmt.Sprintf("**%s** 已推送 upscale 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
-			utils.ReplyMessage(wsClient, content)
-			if h.mjService.ChatClients.Get(data.SessionId) == nil {
-				h.mjService.ChatClients.Put(data.SessionId, wsClient)
-			}
-		}
-	}
 	resp.SUCCESS(c)
 }
 
@@ -244,67 +194,23 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		return
 	}
 
-	if !h.checkLimits(c) {
+	if !h.preCheck(c) {
 		return
 	}
 
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
-	src := types.TaskSrc(data.Src)
-	if src == types.TaskSrcImg {
-		job := model.MidJourneyJob{
-			Type:      types.TaskVariation.String(),
-			UserId:    userId,
-			ImgURL:    "",
-			Hash:      data.MessageHash,
-			Progress:  0,
-			Prompt:    data.Prompt,
-			CreatedAt: time.Now(),
-		}
-		if res := h.db.Create(&job); res.Error == nil {
-			jobId = int(job.Id)
-		} else {
-			resp.ERROR(c, "添加任务失败："+res.Error.Error())
-			return
-		}
-
-		var jobVo vo.MidJourneyJob
-		err := utils.CopyObject(job, &jobVo)
-		if err == nil {
-			// 推送任务到前端
-			client := h.mjService.Clients.Get(data.SessionId)
-			if client != nil {
-				utils.ReplyChunkMessage(client, jobVo)
-			}
-		}
-	}
-	h.mjService.PushTask(types.MjTask{
+	h.pool.PushTask(types.MjTask{
 		Id:          jobId,
 		SessionId:   data.SessionId,
-		Src:         src,
 		Type:        types.TaskVariation,
 		Prompt:      data.Prompt,
 		UserId:      userId,
-		RoleId:      data.RoleId,
-		Icon:        data.Icon,
-		ChatId:      data.ChatId,
 		Index:       data.Index,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
 	})
-
-	if src == types.TaskSrcChat {
-		// 从聊天窗口发送的请求，记录客户端信息
-		wsClient := h.mjService.ChatClients.Get(data.SessionId)
-		if wsClient != nil {
-			content := fmt.Sprintf("**%s** 已推送 variation 任务到 MidJourney 机器人，请耐心等待任务执行...", data.Prompt)
-			utils.ReplyMessage(wsClient, content)
-			if h.mjService.Clients.Get(data.SessionId) == nil {
-				h.mjService.Clients.Put(data.SessionId, wsClient)
-			}
-		}
-	}
 	resp.SUCCESS(c)
 }
 
@@ -343,19 +249,27 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 		if err != nil {
 			continue
 		}
+
+		if job.Progress == -1 {
+			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
+		}
+
 		if item.Progress < 100 {
 			// 10 分钟还没完成的任务直接删除
 			if time.Now().Sub(item.CreatedAt) > time.Minute*10 {
 				h.db.Delete(&item)
 				continue
 			}
-			if item.ImgURL != "" { // 正在运行中任务使用代理访问图片
-				image, err := utils.DownloadImage(item.ImgURL, h.App.Config.ProxyURL)
+
+			// 正在运行中任务使用代理访问图片
+			if item.ImgURL == "" && item.OrgURL != "" {
+				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
 				if err == nil {
 					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 				}
 			}
 		}
+
 		jobs = append(jobs, job)
 	}
 	resp.SUCCESS(c, jobs)

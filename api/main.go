@@ -163,8 +163,9 @@ func main() {
 			}
 		}),
 
-		// MidJourney 机器人
-		fx.Provide(mj.NewBot),
+		// MidJourney service pool
+		fx.Provide(mj.NewServicePool),
+
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewService),
 		fx.Invoke(func(config *types.AppConfig, service *sd.Service) {
@@ -341,6 +342,7 @@ func main() {
 		fx.Provide(handler.NewPromptHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
 			group := s.Engine.Group("/api/prompt/")
+			group.POST("rewrite", h.Rewrite)
 			group.POST("translate", h.Translate)
 		}),
 

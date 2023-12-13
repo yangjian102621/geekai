@@ -23,7 +23,7 @@ func NewSnowflake() *Snowflake {
 }
 
 // Next 生成一个新的唯一ID
-func (s *Snowflake) Next() (string, error) {
+func (s *Snowflake) Next(raw bool) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -43,6 +43,9 @@ func (s *Snowflake) Next() (string, error) {
 
 	s.lastTimestamp = timestamp
 	id := (timestamp << 22) | (int64(s.workerID) << 10) | int64(s.sequence)
+	if raw {
+		return fmt.Sprintf("%d", id), nil
+	}
 	now := time.Now()
 	return fmt.Sprintf("%d%02d%02d%d", now.Year(), now.Month(), now.Day(), id), nil
 }
