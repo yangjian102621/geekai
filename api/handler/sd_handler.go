@@ -141,7 +141,6 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	h.service.PushTask(types.SdTask{
 		Id:        int(job.Id),
 		SessionId: data.SessionId,
-		Src:       types.TaskSrcImg,
 		Type:      types.TaskImage,
 		Prompt:    data.Prompt,
 		Params:    params,

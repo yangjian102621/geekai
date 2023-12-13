@@ -244,12 +244,30 @@
                       </el-icon>
                     </el-tooltip>
                   </div>
-                  <el-button type="success" @click="translatePrompt">
-                    <el-icon style="margin-right: 6px;font-size: 18px;">
-                      <Refresh/>
-                    </el-icon>
-                    翻译
-                  </el-button>
+                  <div>
+                    <el-button type="primary" @click="translatePrompt">
+                      <el-icon style="margin-right: 6px;font-size: 18px;">
+                        <Refresh/>
+                      </el-icon>
+                      翻译
+                    </el-button>
+
+                    <el-tooltip
+                        class="box-item"
+                        effect="light"
+                        raw-content
+                        content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
+                        placement="top-end"
+                    >
+                      <el-button type="success" @click="rewritePrompt">
+                        <el-icon style="margin-right: 6px;font-size: 18px;">
+                          <Refresh/>
+                        </el-icon>
+                        翻译并重写
+                      </el-button>
+                    </el-tooltip>
+
+                  </div>
                 </div>
               </div>
 
@@ -432,8 +450,7 @@ import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
-import {getSessionId, getUserToken} from "@/store/session";
-import {removeArrayItem} from "@/utils/libs";
+import {getSessionId} from "@/store/session";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -504,79 +521,22 @@ const socket = ref(null)
 const imgCalls = ref(0)
 const loading = ref(false)
 
-// const connect = () => {
-//   let host = process.env.VUE_APP_WS_HOST
-//   if (host === '') {
-//     if (location.protocol === 'https:') {
-//       host = 'wss://' + location.host;
-//     } else {
-//       host = 'ws://' + location.host;
-//     }
-//   }
-//   const _socket = new WebSocket(host + `/api/mj/client?session_id=${getSessionId()}&token=${getUserToken()}`);
-//   _socket.addEventListener('open', () => {
-//     socket.value = _socket;
-//   });
-//
-//   _socket.addEventListener('message', event => {
-//     if (event.data instanceof Blob) {
-//       const reader = new FileReader();
-//       reader.readAsText(event.data, "UTF-8");
-//       reader.onload = () => {
-//         const data = JSON.parse(String(reader.result));
-//         let isNew = true
-//         if (data.progress === 100) {
-//           for (let i = 0; i < finishedJobs.value.length; i++) {
-//             if (finishedJobs.value[i].id === data.id) {
-//               isNew = false
-//               break
-//             }
-//           }
-//           for (let i = 0; i < runningJobs.value.length; i++) {
-//             if (runningJobs.value[i].id === data.id) {
-//               runningJobs.value.splice(i, 1)
-//               break
-//             }
-//           }
-//           if (isNew) {
-//             finishedJobs.value.unshift(data)
-//           }
-//         } else if (data.progress === -1) { // 任务执行失败
-//           ElNotification({
-//             title: '任务执行失败',
-//             message: "提示词：" + data['prompt'],
-//             type: 'error',
-//           })
-//           runningJobs.value = removeArrayItem(runningJobs.value, data, (v1, v2) => v1.id === v2.id)
-//
-//         } else {
-//           for (let i = 0; i < runningJobs.value.length; i++) {
-//             if (runningJobs.value[i].id === data.id) {
-//               isNew = false
-//               runningJobs.value[i] = data
-//               break
-//             }
-//           }
-//           if (isNew) {
-//             runningJobs.value.push(data)
-//           }
-//         }
-//       }
-//     }
-//   });
-//
-//   _socket.addEventListener('close', () => {
-//     ElMessage.error("Websocket 已经断开，正在重新连接服务器")
-//     connect()
-//   });
-// }
+const rewritePrompt = () => {
+  loading.value = true
+  httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
+    params.value.prompt = res.data
+    loading.value = false
+  }).catch(e => {
+    ElMessage.error("翻译失败：" + e.message)
+  })
+}
 
 const translatePrompt = () => {
   loading.value = true
   httpPost("/api/prompt/translate", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data
     loading.value = false
-  }).then(e => {
+  }).catch(e => {
     ElMessage.error("翻译失败：" + e.message)
   })
 }
@@ -584,22 +544,10 @@ const translatePrompt = () => {
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
-    // 获取运行中的任务
-    httpGet(`/api/mj/jobs?status=0&user_id=${user['id']}`).then(res => {
-      runningJobs.value = res.data
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-    })
 
-    // 获取已完成的任务
-    httpGet(`/api/mj/jobs?status=1&user_id=${user['id']}`).then(res => {
-      finishedJobs.value = res.data
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-    })
+    fetchRunningJobs(user.id)
+    fetchFinishJobs(user.id)
 
-    // 连接 socket
-    connect();
   }).catch(() => {
     router.push('/login')
   });
@@ -613,6 +561,41 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 })
+
+// 获取运行中的任务
+const fetchRunningJobs = (userId) => {
+  httpGet(`/api/mj/jobs?status=0&user_id=${userId}`).then(res => {
+    const jobs = res.data
+    const _jobs = []
+    for (let i = 0; i < jobs.length; i++) {
+      if (jobs[i].progress === -1) {
+        ElNotification({
+          title: '任务执行失败',
+          message: "任务ID：" + jobs[i]['task_id'],
+          type: 'error',
+        })
+        continue
+      }
+      _jobs.push(jobs[i])
+    }
+    runningJobs.value = _jobs
+
+    setTimeout(() => fetchRunningJobs(userId), 10000)
+
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
+
+const fetchFinishJobs = (userId) => {
+  // 获取已完成的任务
+  httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
+    finishedJobs.value = res.data
+    setTimeout(() => fetchFinishJobs(userId), 10000)
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
 
 // 切换图片比例
 const changeRate = (item) => {
@@ -676,7 +659,6 @@ const variation = (index, item) => {
 const send = (url, index, item) => {
   httpPost(url, {
     index: index,
-    src: "img",
     message_id: item.message_id,
     message_hash: item.hash,
     session_id: getSessionId(),

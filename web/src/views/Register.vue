@@ -127,14 +127,6 @@ import {isMobile} from "@/utils/libs";
 import {setUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
 
-checkSession().then(() => {
-  if (isMobile()) {
-    router.push('/mobile')
-  } else {
-    router.push('/chat')
-  }
-}).catch(() => {
-})
 const router = useRouter();
 const title = ref('ChatGPT-PLUS 用户注册');
 const formData = ref({

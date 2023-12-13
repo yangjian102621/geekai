@@ -101,7 +101,7 @@ const login = function () {
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
     setUserToken(res.data)
-    if (prevRoute.path === '') {
+    if (prevRoute.path === '' || prevRoute.path === '/register') {
       if (isMobile()) {
         router.push('/mobile')
       } else {

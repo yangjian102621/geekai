@@ -176,7 +176,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		return
 	}
 
-	orderNo, err := h.snowflake.Next()
+	orderNo, err := h.snowflake.Next(false)
 	if err != nil {
 		resp.ERROR(c, "error with generate trade no: "+err.Error())
 		return

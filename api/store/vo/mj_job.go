@@ -6,6 +6,7 @@ type MidJourneyJob struct {
 	Id          uint      `json:"id"`
 	Type        string    `json:"type"`
 	UserId      int       `json:"user_id"`
+	TaskId      string    `json:"task_id"`
 	MessageId   string    `json:"message_id"`
 	ReferenceId string    `json:"reference_id"`
 	ImgURL      string    `json:"img_url"`

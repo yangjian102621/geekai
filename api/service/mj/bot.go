@@ -19,17 +19,18 @@ var logger = logger2.GetLogger()
 type Bot struct {
 	config  *types.MidJourneyConfig
 	bot     *discordgo.Session
+	name    string
 	service *Service
 }
 
-func NewBot(config *types.AppConfig, service *Service) (*Bot, error) {
-	discord, err := discordgo.New("Bot " + config.MjConfigs.BotToken)
+func NewBot(name string, proxy string, config *types.MidJourneyConfig, service *Service) (*Bot, error) {
+	discord, err := discordgo.New("Bot " + config.BotToken)
 	if err != nil {
 		return nil, err
 	}
 
-	if config.ProxyURL != "" {
-		proxy, _ := url.Parse(config.ProxyURL)
+	if proxy != "" {
+		proxy, _ := url.Parse(proxy)
 		discord.Client = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxy),
@@ -41,8 +42,9 @@ func NewBot(config *types.AppConfig, service *Service) (*Bot, error) {
 	}
 
 	return &Bot{
-		config:  &config.MjConfigs,
+		config:  config,
 		bot:     discord,
+		name:    name,
 		service: service,
 	}, nil
 }
@@ -52,13 +54,13 @@ func (b *Bot) Run() error {
 	b.bot.AddHandler(b.messageCreate)
 	b.bot.AddHandler(b.messageUpdate)
 
-	logger.Info("Starting MidJourney Bot...")
+	logger.Infof("Starting MidJourney %s", b.name)
 	err := b.bot.Open()
 	if err != nil {
-		logger.Error("Error opening Discord connection:", err)
+		logger.Errorf("Error opening Discord connection for %s, error: %v", b.name, err)
 		return err
 	}
-	logger.Info("Starting MidJourney Bot successfully!")
+	logger.Infof("Starting MidJourney %s successfully!", b.name)
 	return nil
 }
 

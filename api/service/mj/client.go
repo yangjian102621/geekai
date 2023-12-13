@@ -2,7 +2,6 @@ package mj
 
 import (
 	"chatplus/core/types"
-	"chatplus/utils"
 	"fmt"
 	"github.com/imroc/req/v3"
 	"time"
@@ -18,9 +17,10 @@ type Client struct {
 func NewClient(config *types.MidJourneyConfig, proxy string) *Client {
 	client := req.C().SetTimeout(10 * time.Second)
 	// set proxy URL
-	if utils.IsEmptyValue(proxy) {
+	if proxy != "" {
 		client.SetProxyURL(proxy)
 	}
+	logger.Info(proxy)
 	return &Client{client: client, config: config}
 }
 
