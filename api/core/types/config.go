@@ -16,11 +16,11 @@ type AppConfig struct {
 	Redis         RedisConfig       // redis 连接信息
 	ApiConfig     ChatPlusApiConfig // ChatPlus API authorization configs
 	AesEncryptKey string
-	SmsConfig     AliYunSmsConfig       // AliYun send message service config
-	OSS           OSSConfig             // OSS config
-	MjConfigs     []MidJourneyConfig    // mj 绘画配置池子
-	WeChatBot     bool                  // 是否启用微信机器人
-	SdConfig      StableDiffusionConfig // sd 绘画配置
+	SmsConfig     AliYunSmsConfig         // AliYun send message service config
+	OSS           OSSConfig               // OSS config
+	MjConfigs     []MidJourneyConfig      // mj AI draw service pool
+	WeChatBot     bool                    // 是否启用微信机器人
+	SdConfigs     []StableDiffusionConfig // sd AI draw service pool
 
 	XXLConfig     XXLConfig
 	AlipayConfig  AlipayConfig

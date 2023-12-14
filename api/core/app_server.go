@@ -169,9 +169,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		var tokenString string
 		if strings.Contains(c.Request.URL.Path, "/api/admin/") { // 后台管理 API
 			tokenString = c.GetHeader(types.AdminAuthHeader)
-		} else if c.Request.URL.Path == "/api/chat/new" ||
-			c.Request.URL.Path == "/api/mj/client" ||
-			c.Request.URL.Path == "/api/sd/client" {
+		} else if c.Request.URL.Path == "/api/chat/new" {
 			tokenString = c.Query("token")
 		} else {
 			tokenString = c.GetHeader(types.UserAuthHeader)

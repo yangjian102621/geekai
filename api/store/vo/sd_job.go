@@ -15,5 +15,4 @@ type SdJob struct {
 	Progress  int                `json:"progress"`
 	Prompt    string             `json:"prompt"`
 	CreatedAt time.Time          `json:"created_at"`
-	Started   bool               `json:"started"`
 }

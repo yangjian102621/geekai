@@ -241,7 +241,7 @@
               </div>
             </div>
 
-            <div class="param-line">
+            <div class="param-line" v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
               <el-input
                   v-model="params.prompt"
                   :autosize="{ minRows: 4, maxRows: 6 }"
@@ -249,6 +249,30 @@
                   ref="promptRef"
                   placeholder="正向提示词，例如：A chinese girl walking in the middle of a cobblestone street"
               />
+            </div>
+
+            <div style="padding: 10px">
+              <el-button type="primary" @click="translatePrompt" size="small">
+                <el-icon style="margin-right: 6px;font-size: 18px;">
+                  <Refresh/>
+                </el-icon>
+                翻译
+              </el-button>
+
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  raw-content
+                  content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
+                  placement="top-end"
+              >
+                <el-button type="success" @click="rewritePrompt" size="small">
+                  <el-icon style="margin-right: 6px;font-size: 18px;">
+                    <Refresh/>
+                  </el-icon>
+                  翻译并重写
+                </el-button>
+              </el-tooltip>
             </div>
 
             <div class="param-line pt">
@@ -272,12 +296,8 @@
               />
             </div>
 
-            <div class="param-line pt">
-              <el-form-item label="剩余次数">
-                <template #default>
-                  <el-tag type="info">{{ imgCalls }}</el-tag>
-                </template>
-              </el-form-item>
+            <div class="param-line" style="padding: 10px">
+              <el-tag type="success">绘图可用额度：{{ imgCalls }}</el-tag>
             </div>
           </el-form>
         </div>
@@ -478,21 +498,21 @@
 
 <script setup>
 import {onMounted, ref} from "vue"
-import {DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/icons-vue";
+import {DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
-import {getSessionId, getUserToken} from "@/store/session";
-import {removeArrayItem} from "@/utils/libs";
+import {getSessionId} from "@/store/session";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
+const loading = ref(false)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
@@ -515,115 +535,83 @@ const params = ref({
   hd_scale_alg: scaleAlg[0],
   hd_steps: 10,
   prompt: "",
-  negative_prompt: "nsfw, paintings, cartoon, anime, sketches, low quality,easynegative,ng_deepnegative _v1 75t,(worst quality:2),(low quality:2),(normalquality:2),lowres,bad anatomy,bad hands,normal quality,((monochrome)),((grayscale)),((watermark))",
+  negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
 })
 
 const runningJobs = ref([])
 const finishedJobs = ref([])
-const previewImgList = ref([])
 const router = useRouter()
 // 检查是否有画同款的参数
 const _params = router.currentRoute.value.params["copyParams"]
 if (_params) {
   params.value = JSON.parse(_params)
 }
-
-const socket = ref(null)
 const imgCalls = ref(0)
 
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-  const _socket = new WebSocket(host + `/api/sd/client?session_id=${getSessionId()}&token=${getUserToken()}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
+const rewritePrompt = () => {
+  loading.value = true
+  httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
+    params.value.prompt = res.data
+    loading.value = false
+  }).catch(e => {
+    ElMessage.error("翻译失败：" + e.message)
+  })
+}
 
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8");
-      reader.onload = () => {
-        const data = JSON.parse(String(reader.result));
-        let append = true
-        if (data.progress === 100) { // 任务已完成
-          for (let i = 0; i < finishedJobs.value.length; i++) {
-            if (finishedJobs.value[i].id === data.id) {
-              append = false
-              break
-            }
-          }
-          for (let i = 0; i < runningJobs.value.length; i++) {
-            if (runningJobs.value[i].id === data.id) {
-              runningJobs.value.splice(i, 1)
-              break
-            }
-          }
-          if (append) {
-            finishedJobs.value.unshift(data)
-          }
-          previewImgList.value.unshift(data["img_url"])
-        } else if (data.progress === -1) { // 任务执行失败
-          ElNotification({
-            title: '任务执行失败',
-            message: "任务ID：" + data['task_id'],
-            type: 'error',
-          })
-          runningJobs.value = removeArrayItem(runningJobs.value, data, (v1, v2) => v1.id === v2.id)
-
-        } else { // 启动新的任务
-          for (let i = 0; i < runningJobs.value.length; i++) {
-            if (runningJobs.value[i].id === data.id) {
-              append = false
-              runningJobs.value[i] = data
-              break
-            }
-          }
-          if (append) {
-            runningJobs.value.push(data)
-          }
-        }
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    connect()
-  });
+const translatePrompt = () => {
+  loading.value = true
+  httpPost("/api/prompt/translate", {"prompt": params.value.prompt}).then(res => {
+    params.value.prompt = res.data
+    loading.value = false
+  }).catch(e => {
+    ElMessage.error("翻译失败：" + e.message)
+  })
 }
 
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
-    // 获取运行中的任务
-    httpGet(`/api/sd/jobs?status=0&user_id=${user['id']}`).then(res => {
-      runningJobs.value = res.data
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-    })
 
-    // 获取运行中的任务
-    httpGet(`/api/sd/jobs?status=1&user_id=${user['id']}`).then(res => {
-      finishedJobs.value = res.data
-      previewImgList.value = []
-      for (let index in finishedJobs.value) {
-        previewImgList.value.push(finishedJobs.value[index]["img_url"])
-      }
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-    })
+    fetchRunningJobs(user.id)
+    fetchFinishJobs(user.id)
 
-    // 连接 socket
-    connect();
   }).catch(() => {
     router.push('/login')
   });
+
+  const fetchRunningJobs = (userId) => {
+    // 获取运行中的任务
+    httpGet(`/api/sd/jobs?status=0&user_id=${userId}`).then(res => {
+      const jobs = res.data
+      const _jobs = []
+      for (let i = 0; i < jobs.length; i++) {
+        if (jobs[i].progress === -1) {
+          ElNotification({
+            title: '任务执行失败',
+            message: "任务ID：" + jobs[i]['task_id'],
+            type: 'error',
+          })
+          continue
+        }
+        _jobs.push(jobs[i])
+      }
+      runningJobs.value = _jobs
+
+      setTimeout(() => fetchRunningJobs(userId), 5000)
+    }).catch(e => {
+      ElMessage.error("获取任务失败：" + e.message)
+    })
+  }
+
+  // 获取已完成的任务
+  const fetchFinishJobs = (userId) => {
+    httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
+      finishedJobs.value = res.data
+      setTimeout(() => fetchFinishJobs(userId), 5000)
+    }).catch(e => {
+      ElMessage.error("获取任务失败：" + e.message)
+    })
+  }
 
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {

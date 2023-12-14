@@ -2,7 +2,6 @@ package mj
 
 import (
 	"chatplus/core/types"
-	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/store"
 	"chatplus/store/model"
@@ -24,7 +23,6 @@ type Service struct {
 	handledTaskNum   int32             // already handled task number
 	taskStartTimes   map[int]time.Time // task start time, to check if the task is timeout
 	taskTimeout      int64
-	snowflake        *service.Snowflake
 }
 
 func NewService(name string, queue *store.RedisQueue, maxTaskNum int32, timeout int64, db *gorm.DB, client *Client, manager *oss.UploaderManager, config *types.AppConfig) *Service {
@@ -127,6 +125,12 @@ func (s *Service) Notify(data CBReq) {
 	job.Hash = data.Image.Hash
 	job.OrgURL = data.Image.URL
 
+	res = s.db.Updates(&job)
+	if res.Error != nil {
+		logger.Error("error with update job: ", res.Error)
+		return
+	}
+
 	// upload image
 	if data.Status == Finished {
 		imgURL, err := s.uploadManager.GetUploadHandler().PutImg(data.Image.URL, true)
@@ -135,12 +139,7 @@ func (s *Service) Notify(data CBReq) {
 			return
 		}
 		job.ImgURL = imgURL
-	}
-
-	res = s.db.Updates(&job)
-	if res.Error != nil {
-		logger.Error("error with update job: ", res.Error)
-		return
+		s.db.Updates(&job)
 	}
 
 	if data.Status == Finished {
