@@ -167,14 +167,7 @@ func main() {
 		fx.Provide(mj.NewServicePool),
 
 		// Stable Diffusion 机器人
-		fx.Provide(sd.NewService),
-		fx.Invoke(func(config *types.AppConfig, service *sd.Service) {
-			if config.SdConfig.Enabled {
-				go func() {
-					service.Run()
-				}()
-			}
-		}),
+		fx.Provide(sd.NewServicePool),
 
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),

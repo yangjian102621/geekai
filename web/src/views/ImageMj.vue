@@ -266,7 +266,6 @@
                         翻译并重写
                       </el-button>
                     </el-tooltip>
-
                   </div>
                 </div>
               </div>
@@ -580,7 +579,7 @@ const fetchRunningJobs = (userId) => {
     }
     runningJobs.value = _jobs
 
-    setTimeout(() => fetchRunningJobs(userId), 10000)
+    setTimeout(() => fetchRunningJobs(userId), 5000)
 
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
@@ -591,7 +590,7 @@ const fetchFinishJobs = (userId) => {
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
     finishedJobs.value = res.data
-    setTimeout(() => fetchFinishJobs(userId), 10000)
+    setTimeout(() => fetchFinishJobs(userId), 5000)
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })

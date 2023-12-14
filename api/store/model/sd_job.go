@@ -11,7 +11,6 @@ type SdJob struct {
 	Progress  int
 	Prompt    string
 	Params    string
-	Started   bool
 	CreatedAt time.Time
 }
 

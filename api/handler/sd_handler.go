@@ -8,51 +8,39 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
-	"net/http"
 	"time"
 )
 
 type SdJobHandler struct {
 	BaseHandler
-	redis   *redis.Client
-	db      *gorm.DB
-	service *sd.Service
+	redis *redis.Client
+	db    *gorm.DB
+	pool  *sd.ServicePool
 }
 
-func NewSdJobHandler(app *core.AppServer, redisCli *redis.Client, db *gorm.DB, service *sd.Service) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool) *SdJobHandler {
 	h := SdJobHandler{
-		redis:   redisCli,
-		db:      db,
-		service: service,
+		db:   db,
+		pool: pool,
 	}
 	h.App = app
 	return &h
-}
-
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *SdJobHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		return
-	}
-
-	sessionId := c.Query("session_id")
-	client := types.NewWsClient(ws)
-	// 删除旧的连接
-	h.service.Clients.Put(sessionId, client)
-	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
 }
 
 func (h *SdJobHandler) checkLimits(c *gin.Context) bool {
 	user, err := utils.GetLoginUser(c, h.db)
 	if err != nil {
 		resp.NotAuth(c)
+		return false
+	}
+
+	if !h.pool.HasAvailableService() {
+		resp.ERROR(c, "Stable-Diffusion 池子中没有没有可用的服务！")
 		return false
 	}
 
@@ -67,11 +55,6 @@ func (h *SdJobHandler) checkLimits(c *gin.Context) bool {
 
 // Image 创建一个绘画任务
 func (h *SdJobHandler) Image(c *gin.Context) {
-	if !h.App.Config.SdConfig.Enabled {
-		resp.ERROR(c, "Stable Diffusion service is disabled")
-		return
-	}
-
 	if !h.checkLimits(c) {
 		return
 	}
@@ -129,7 +112,6 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		Params:    utils.JsonEncode(params),
 		Prompt:    data.Prompt,
 		Progress:  0,
-		Started:   false,
 		CreatedAt: time.Now(),
 	}
 	res := h.db.Create(&job)
@@ -138,7 +120,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.service.PushTask(types.SdTask{
+	h.pool.PushTask(types.SdTask{
 		Id:        int(job.Id),
 		SessionId: data.SessionId,
 		Type:      types.TaskImage,
@@ -146,15 +128,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		Params:    params,
 		UserId:    userId,
 	})
-	var jobVo vo.SdJob
-	err := utils.CopyObject(job, &jobVo)
-	if err == nil {
-		// 推送任务到前端
-		client := h.service.Clients.Get(data.SessionId)
-		if client != nil {
-			utils.ReplyChunkMessage(client, jobVo)
-		}
-	}
+
 	resp.SUCCESS(c)
 }
 
@@ -193,11 +167,21 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 		if err != nil {
 			continue
 		}
+
+		if job.Progress == -1 {
+			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
+		}
+
 		if item.Progress < 100 {
-			// 30 分钟还没完成的任务直接删除
-			if time.Now().Sub(item.CreatedAt) > time.Minute*30 {
+			// 10 分钟还没完成的任务直接删除
+			if time.Now().Sub(item.CreatedAt) > time.Minute*10 {
 				h.db.Delete(&item)
 				continue
+			}
+			// 正在运行中任务使用代理访问图片
+			image, err := utils.DownloadImage(item.ImgURL, "")
+			if err == nil {
+				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 			}
 		}
 		jobs = append(jobs, job)

@@ -1,4 +1,4 @@
-package mj
+package sd
 
 import (
 	"chatplus/core/types"
@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// ServicePool Mj service pool
 type ServicePool struct {
 	services  []*Service
 	taskQueue *store.RedisQueue
@@ -17,30 +16,17 @@ type ServicePool struct {
 
 func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
 	services := make([]*Service, 0)
-	queue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
+	queue := store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli)
 	// create mj client and service
-	for k, config := range appConfig.MjConfigs {
+	for k, config := range appConfig.SdConfigs {
 		if config.Enabled == false {
 			continue
 		}
-		// create mj client
-		client := NewClient(&config, appConfig.ProxyURL)
 
-		name := fmt.Sprintf("MjService-%d", k)
-		// create mj service
-		service := NewService(name, queue, 4, 600, db, client, manager, appConfig)
-		botName := fmt.Sprintf("MjBot-%d", k)
-		bot, err := NewBot(botName, appConfig.ProxyURL, &config, service)
-		if err != nil {
-			continue
-		}
-
-		err = bot.Run()
-		if err != nil {
-			continue
-		}
-
-		// run mj service
+		// create sd service
+		name := fmt.Sprintf("StableDifffusion Service-%d", k)
+		service := NewService(name, 4, 600, &config, queue, db, manager)
+		// run sd service
 		go func() {
 			service.Run()
 		}()
@@ -55,7 +41,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 }
 
 // PushTask push a new mj task in to task queue
-func (p *ServicePool) PushTask(task types.MjTask) {
+func (p *ServicePool) PushTask(task types.SdTask) {
 	logger.Debugf("add a new MidJourney task to the task list: %+v", task)
 	p.taskQueue.RPush(task)
 }
