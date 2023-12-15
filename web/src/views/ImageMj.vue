@@ -526,6 +526,7 @@ const rewritePrompt = () => {
     params.value.prompt = res.data
     loading.value = false
   }).catch(e => {
+    loading.value = false
     ElMessage.error("翻译失败：" + e.message)
   })
 }
@@ -536,6 +537,7 @@ const translatePrompt = () => {
     params.value.prompt = res.data
     loading.value = false
   }).catch(e => {
+    loading.value = false
     ElMessage.error("翻译失败：" + e.message)
   })
 }
