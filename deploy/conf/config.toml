@@ -52,16 +52,29 @@ WeChatBot = false
        Bucket = ""
        Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com
 
-[MjConfig]
+[[MjConfigs]]
   Enabled = false
   UserToken = ""
   BotToken = ""
   GuildId = ""
   ChanelId = ""
 
-[SdConfig]
+[[MjConfigs]]
   Enabled = false
-  ApiURL = "http://172.22.11.200:7860"
+  UserToken = ""
+  BotToken = ""
+  GuildId = ""
+  ChanelId = ""
+
+[[SdConfigs]]
+  Enabled = false
+  ApiURL = ""
+  ApiKey = ""
+  Txt2ImgJsonPath = "res/text2img.json"
+
+[[SdConfigs]]
+  Enabled = false
+  ApiURL = ""
   ApiKey = ""
   Txt2ImgJsonPath = "res/text2img.json"
 
