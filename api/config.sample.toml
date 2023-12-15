@@ -70,7 +70,7 @@ WeChatBot = false
   Enabled = false
   ApiURL = ""
   ApiKey = ""
-  Txt2ImgJsonPath = "res/text2img.json"
+  Txt2ImgJsonPath = "res/sd/text2img.json"
 
 [[SdConfigs]]
   Enabled = false
