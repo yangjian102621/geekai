@@ -196,6 +196,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	remark := types.OrderRemark{
 		Days:     product.Days,
 		Calls:    product.Calls,
+		ImgCalls: product.ImgCalls,
 		Name:     product.Name,
 		Price:    product.Price,
 		Discount: product.Discount,
@@ -328,6 +329,12 @@ func (h *PaymentHandler) notify(orderNo string) error {
 		user.Calls += remark.Calls
 	} else {
 		user.Calls += h.App.SysConfig.VipMonthCalls
+	}
+
+	if remark.ImgCalls > 0 {
+		user.ImgCalls += remark.ImgCalls
+	} else {
+		user.ImgCalls += h.App.SysConfig.VipMonthImgCalls
 	}
 
 	// 更新用户信息

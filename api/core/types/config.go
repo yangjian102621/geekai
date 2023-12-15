@@ -150,7 +150,8 @@ type SystemConfig struct {
 	Models           []string `json:"models"`
 	InitChatCalls    int      `json:"init_chat_calls"`     // 新用户注册赠送对话次数
 	InitImgCalls     int      `json:"init_img_calls"`      // 新用户注册赠送绘图次数
-	VipMonthCalls    int      `json:"vip_month_calls"`     // 会员每个赠送的调用次数
+	VipMonthCalls    int      `json:"vip_month_calls"`     // VIP 会员每月赠送的对话次数
+	VipMonthImgCalls int      `json:"vip_month_img_calls"` // VIP 会员每月赠送绘图次数
 	EnabledRegister  bool     `json:"enabled_register"`    // 是否启用注册功能，关闭注册功能之后将无法注册
 	EnabledMsg       bool     `json:"enabled_msg"`         // 是否启用短信验证码服务
 	RewardImg        string   `json:"reward_img"`          // 众筹收款二维码地址

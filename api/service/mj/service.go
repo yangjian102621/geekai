@@ -25,7 +25,7 @@ type Service struct {
 	taskTimeout      int64
 }
 
-func NewService(name string, queue *store.RedisQueue, maxTaskNum int32, timeout int64, db *gorm.DB, client *Client, manager *oss.UploaderManager, config *types.AppConfig) *Service {
+func NewService(name string, queue *store.RedisQueue, maxTaskNum int32, timeout int64, db *gorm.DB, client *Client, manager *oss.UploaderManager, proxy string) *Service {
 	return &Service{
 		name:             name,
 		db:               db,
@@ -34,7 +34,7 @@ func NewService(name string, queue *store.RedisQueue, maxTaskNum int32, timeout 
 		uploadManager:    manager,
 		taskTimeout:      timeout,
 		maxHandleTaskNum: maxTaskNum,
-		proxyURL:         config.ProxyURL,
+		proxyURL:         proxy,
 		taskStartTimes:   make(map[int]time.Time, 0),
 	}
 }
