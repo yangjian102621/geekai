@@ -309,7 +309,7 @@
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <h2>任务列表</h2>
           <div class="running-job-list">
-            <ItemList :items="runningJobs" v-if="runningJobs.length > 0" width="240">
+            <ItemList :items="runningJobs" v-if="runningJobs.length > 0" :width="240">
               <template #default="scope">
                 <div class="job-item">
                   <div v-if="scope.item.progress > 0" class="job-item-inner">
@@ -350,7 +350,7 @@
           </div>
           <h2>创作记录</h2>
           <div class="finish-job-list">
-            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" width="240" :gap="16">
+            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
               <template #default="scope">
                 <div class="job-item animate" @click="showTask(scope.item)">
                   <el-image
@@ -518,8 +518,7 @@ window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   mjBoxHeight.value = window.innerHeight - 150
 }
-const samplers = ["Euler a", "Euler", "DPM2 a Karras", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM2", "DPM2 a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM fast", "DPM adaptive",
-  "LMS Karras", "DPM2 Karras", "DDIM", "PLMS", "UniPC", "LMS", "Heun",]
+const samplers = ["Euler a", "Euler", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
   width: 1024,

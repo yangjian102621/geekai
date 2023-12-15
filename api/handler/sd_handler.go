@@ -10,10 +10,11 @@ import (
 	"chatplus/utils/resp"
 	"encoding/base64"
 	"fmt"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
-	"time"
 )
 
 type SdJobHandler struct {
@@ -169,7 +170,7 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 		}
 
 		if job.Progress == -1 {
-			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
+			h.db.Delete(&model.SdJob{Id: job.Id})
 		}
 
 		if item.Progress < 100 {

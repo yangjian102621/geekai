@@ -8,20 +8,21 @@ import (
 	"chatplus/utils"
 	"encoding/json"
 	"fmt"
-	"github.com/imroc/req/v3"
-	"gorm.io/gorm"
 	"io"
 	"os"
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 )
 
 // SD 绘画服务
 
 type Service struct {
 	httpClient       *req.Client
-	config           *types.StableDiffusionConfig
+	config           types.StableDiffusionConfig
 	taskQueue        *store.RedisQueue
 	db               *gorm.DB
 	uploadManager    *oss.UploaderManager
@@ -32,7 +33,7 @@ type Service struct {
 	taskTimeout      int64
 }
 
-func NewService(name string, maxTaskNum int32, timeout int64, config *types.StableDiffusionConfig, queue *store.RedisQueue, db *gorm.DB, manager *oss.UploaderManager) *Service {
+func NewService(name string, maxTaskNum int32, timeout int64, config types.StableDiffusionConfig, queue *store.RedisQueue, db *gorm.DB, manager *oss.UploaderManager) *Service {
 	return &Service{
 		name:             name,
 		config:           config,
