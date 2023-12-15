@@ -107,6 +107,13 @@ export default defineComponent({
           border-radius: 5px;
           overflow auto;
 
+          // control the image size in content
+
+          img {
+            max-width: 600px;
+            border-radius: 10px;
+          }
+
           p {
             line-height 1.5
 
