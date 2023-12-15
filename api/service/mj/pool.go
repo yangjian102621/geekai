@@ -28,7 +28,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 
 		name := fmt.Sprintf("MjService-%d", k)
 		// create mj service
-		service := NewService(name, queue, 4, 600, db, client, manager, appConfig)
+		service := NewService(name, queue, 4, 600, db, client, manager, appConfig.ProxyURL)
 		botName := fmt.Sprintf("MjBot-%d", k)
 		bot, err := NewBot(botName, appConfig.ProxyURL, &config, service)
 		if err != nil {

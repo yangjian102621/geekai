@@ -9,7 +9,7 @@
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
         <el-table-column prop="name" label="产品名称">
           <template #default="scope">
-            <span class="sort" :data-id="scope.row.id">{{scope.row.name}}</span>
+            <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="price" label="产品价格"/>
@@ -17,10 +17,11 @@
         <el-table-column prop="days" label="有效期(天)">
           <template #default="scope">
             <el-tag v-if="scope.row.days === 0">长期有效</el-tag>
-            <span v-else>{{scope.row.days}}</span>
+            <span v-else>{{ scope.row.days }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="calls" label="调用次数"/>
+        <el-table-column prop="calls" label="对话次数"/>
+        <el-table-column prop="img_calls" label="绘图次数"/>
         <el-table-column prop="sales" label="销量"/>
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
@@ -69,8 +70,12 @@
           <el-input v-model.number="item.days" autocomplete="off" placeholder="会员有效期(天)"/>
         </el-form-item>
 
-        <el-form-item label="调用次数：" prop="days">
-          <el-input v-model.number="item.calls" autocomplete="off" placeholder="增加调用次数"/>
+        <el-form-item label="对话次数：" prop="calls">
+          <el-input v-model.number="item.calls" autocomplete="off" placeholder="增加对话次数"/>
+        </el-form-item>
+
+        <el-form-item label="绘图次数：" prop="img_calls">
+          <el-input v-model.number="item.img_calls" autocomplete="off" placeholder="增加绘图次数"/>
         </el-form-item>
 
         <el-form-item label="启用状态：" prop="enable">
@@ -140,13 +145,13 @@ onMounted(() => {
       const sortedData = Array.from(from.children).map(row => row.querySelector('.sort').getAttribute('data-id'));
       const ids = []
       const sorts = []
-      sortedData.forEach((id,index) => {
+      sortedData.forEach((id, index) => {
         ids.push(parseInt(id))
         sorts.push(index)
       })
 
-      httpPost("/api/admin/product/sort", {ids: ids, sorts:sorts}).catch(e => {
-        ElMessage.error("排序失败："+e.message)
+      httpPost("/api/admin/product/sort", {ids: ids, sorts: sorts}).catch(e => {
+        ElMessage.error("排序失败：" + e.message)
       })
     }
   })
@@ -189,7 +194,7 @@ const enable = (row) => {
   httpPost('/api/admin/product/enable', {id: row.id, enabled: row.enabled}).then(() => {
     ElMessage.success("操作成功！")
   }).catch(e => {
-    ElMessage.error("操作失败："+e.message)
+    ElMessage.error("操作失败：" + e.message)
   })
 }
 

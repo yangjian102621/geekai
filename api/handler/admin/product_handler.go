@@ -33,6 +33,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 		Enabled   bool    `json:"enabled"`
 		Days      int     `json:"days"`
 		Calls     int     `json:"calls"`
+		ImgCalls  int     `json:"img_calls"`
 		CreatedAt int64   `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -40,7 +41,14 @@ func (h *ProductHandler) Save(c *gin.Context) {
 		return
 	}
 
-	item := model.Product{Name: data.Name, Price: data.Price, Discount: data.Discount, Days: data.Days, Calls: data.Calls, Enabled: data.Enabled}
+	item := model.Product{
+		Name:     data.Name,
+		Price:    data.Price,
+		Discount: data.Discount,
+		Days:     data.Days,
+		Calls:    data.Calls,
+		ImgCalls: data.ImgCalls,
+		Enabled:  data.Enabled}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)

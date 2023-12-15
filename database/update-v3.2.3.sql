@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_products` ADD `img_calls` INT(11) NOT NULL DEFAULT '0' COMMENT '绘图次数' AFTER `calls`;

@@ -101,30 +101,39 @@ func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (
 			u.Vip = false
 		} else {
 			if u.Calls <= 0 {
-				u.Calls = config.VipMonthCalls
-			} else {
-				// 如果该用户当月有充值点卡，则将点卡中未用完的点数结余到下个月
-				var orders []model.Order
-				e.db.Debug().Where("user_id = ? AND pay_time > ?", u.Id, firstOfMonth).Find(&orders)
-				var calls = 0
-				for _, o := range orders {
-					var remark types.OrderRemark
-					err = utils.JsonDecode(o.Remark, &remark)
-					if err != nil {
-						continue
-					}
-					if remark.Days > 0 { // 会员续费
-						continue
-					}
-					calls += remark.Calls
-				}
-				if u.Calls > calls { // 本月套餐没有用完
-					u.Calls = calls + config.VipMonthCalls
-				} else {
-					u.Calls = u.Calls + config.VipMonthCalls
-				}
-				logger.Infof("%s 点卡结余：%d", u.Mobile, calls)
+				u.Calls = 0
 			}
+			if u.ImgCalls <= 0 {
+				u.ImgCalls = 0
+			}
+			// 如果该用户当月有充值点卡，则将点卡中未用完的点数结余到下个月
+			var orders []model.Order
+			e.db.Debug().Where("user_id = ? AND pay_time > ?", u.Id, firstOfMonth).Find(&orders)
+			var calls = 0
+			var imgCalls = 0
+			for _, o := range orders {
+				var remark types.OrderRemark
+				err = utils.JsonDecode(o.Remark, &remark)
+				if err != nil {
+					continue
+				}
+				if remark.Days > 0 { // 会员续费
+					continue
+				}
+				calls += remark.Calls
+				imgCalls += remark.ImgCalls
+			}
+			if u.Calls > calls { // 本月套餐没有用完
+				u.Calls = calls + config.VipMonthCalls
+			} else {
+				u.Calls = u.Calls + config.VipMonthCalls
+			}
+			if u.ImgCalls > imgCalls { // 本月套餐没有用完
+				u.ImgCalls = imgCalls + config.VipMonthImgCalls
+			} else {
+				u.ImgCalls = u.ImgCalls + config.VipMonthImgCalls
+			}
+			logger.Infof("%s 点卡结余：%d", u.Mobile, calls)
 		}
 		u.Tokens = 0
 		// update user
