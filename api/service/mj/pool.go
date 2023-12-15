@@ -5,6 +5,7 @@ import (
 	"chatplus/service/oss"
 	"chatplus/store"
 	"fmt"
+
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 )
@@ -24,7 +25,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 			continue
 		}
 		// create mj client
-		client := NewClient(&config, appConfig.ProxyURL)
+		client := NewClient(config, appConfig.ProxyURL)
 
 		name := fmt.Sprintf("MjService-%d", k)
 		// create mj service

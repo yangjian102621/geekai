@@ -5,6 +5,7 @@ import (
 	"chatplus/service/oss"
 	"chatplus/store"
 	"fmt"
+
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 )
@@ -25,7 +26,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 
 		// create sd service
 		name := fmt.Sprintf("StableDifffusion Service-%d", k)
-		service := NewService(name, 4, 600, &config, queue, db, manager)
+		service := NewService(name, 4, 600, config, queue, db, manager)
 		// run sd service
 		go func() {
 			service.Run()
