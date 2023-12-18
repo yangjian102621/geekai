@@ -128,7 +128,7 @@ import {setUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
 
 const router = useRouter();
-const title = ref('ChatGPT-PLUS 用户注册');
+const title = ref('ChatPlus 用户注册');
 const formData = ref({
   mobile: '',
   password: '',
@@ -151,7 +151,7 @@ httpGet("/api/admin/config/get?key=system").then(res => {
         dangerouslyUseHTMLString: true,
         message: '当前系统开启了强制邀请注册功能，必须有邀请码才能注册哦。扫描下面二维码获取邀请码。<br/> <img alt="qrcode" src="/images/wx.png" />',
         type: 'info',
-        duration: 0,
+        duration: 5000,
       })
     }
   }
