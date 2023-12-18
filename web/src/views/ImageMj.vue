@@ -417,6 +417,10 @@
                       </ul>
                     </div>
                   </div>
+
+                  <div class="remove">
+                    <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
+                  </div>
                 </div>
               </template>
             </ItemList>
@@ -434,7 +438,7 @@
 <script setup>
 import {onMounted, ref} from "vue"
 import {
-  ChromeFilled,
+  ChromeFilled, Delete,
   DeleteFilled,
   DocumentCopy,
   InfoFilled,
@@ -444,7 +448,7 @@ import {
 } from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage, ElNotification} from "element-plus";
+import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
@@ -581,10 +585,11 @@ const fetchRunningJobs = (userId) => {
     }
     runningJobs.value = _jobs
 
-    setTimeout(() => fetchRunningJobs(userId), 3000)
+    setTimeout(() => fetchRunningJobs(userId), 1000)
 
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
+    setTimeout(() => fetchRunningJobs(userId), 5000)
   })
 }
 
@@ -592,9 +597,10 @@ const fetchFinishJobs = (userId) => {
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
     finishedJobs.value = res.data
-    setTimeout(() => fetchFinishJobs(userId), 3000)
+    setTimeout(() => fetchFinishJobs(userId), 1000)
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
+    setTimeout(() => fetchFinishJobs(userId), 5000)
   })
 }
 
@@ -671,6 +677,25 @@ const send = (url, index, item) => {
     imgCalls.value -= 1
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
+  })
+}
+
+const removeImage = (item) => {
+  ElMessageBox.confirm(
+      '此操作将会删除任务和图片，继续操作码?',
+      '删除提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(() => {
+    httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url}).then(() => {
+      ElMessage.success("任务删除成功")
+    }).catch(e => {
+      ElMessage.error("任务删除失败：" + e.message)
+    })
+  }).catch(() => {
   })
 }
 

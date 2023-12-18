@@ -233,11 +233,13 @@ func main() {
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
+			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
+			group.POST("remove", h.Remove)
 		}),
 
 		// 管理后台控制器

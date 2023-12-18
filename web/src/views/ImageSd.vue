@@ -371,6 +371,10 @@
                       </div>
                     </template>
                   </el-image>
+
+                  <div class="remove">
+                    <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
+                  </div>
                 </div>
               </template>
             </ItemList>
@@ -498,9 +502,9 @@
 
 <script setup>
 import {onMounted, ref} from "vue"
-import {DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
+import {Delete, DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage, ElNotification} from "element-plus";
+import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
@@ -598,9 +602,10 @@ onMounted(() => {
       }
       runningJobs.value = _jobs
 
-      setTimeout(() => fetchRunningJobs(userId), 3000)
+      setTimeout(() => fetchRunningJobs(userId), 1000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
+      setTimeout(() => fetchRunningJobs(userId), 5000)
     })
   }
 
@@ -608,9 +613,10 @@ onMounted(() => {
   const fetchFinishJobs = (userId) => {
     httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
       finishedJobs.value = res.data
-      setTimeout(() => fetchFinishJobs(userId), 3000)
+      setTimeout(() => fetchFinishJobs(userId), 1000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
+      setTimeout(() => fetchFinishJobs(userId), 5000)
     })
   }
 
@@ -652,6 +658,26 @@ const showTask = (row) => {
 const copyParams = (row) => {
   params.value = row.params
   showTaskDialog.value = false
+}
+
+const removeImage = (event, item) => {
+  event.stopPropagation()
+  ElMessageBox.confirm(
+      '此操作将会删除任务和图片，继续操作码?',
+      '删除提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(() => {
+    httpPost("/api/sd/remove", {id: item.id, img_url: item.img_url}).then(() => {
+      ElMessage.success("任务删除成功")
+    }).catch(e => {
+      ElMessage.error("任务删除失败：" + e.message)
+    })
+  }).catch(() => {
+  })
 }
 
 </script>

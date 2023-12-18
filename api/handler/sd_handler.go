@@ -3,6 +3,7 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service/oss"
 	"chatplus/service/sd"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -19,15 +20,17 @@ import (
 
 type SdJobHandler struct {
 	BaseHandler
-	redis *redis.Client
-	db    *gorm.DB
-	pool  *sd.ServicePool
+	redis    *redis.Client
+	db       *gorm.DB
+	pool     *sd.ServicePool
+	uploader *oss.UploaderManager
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager) *SdJobHandler {
 	h := SdJobHandler{
-		db:   db,
-		pool: pool,
+		db:       db,
+		pool:     pool,
+		uploader: manager,
 	}
 	h.App = app
 	return &h
@@ -188,4 +191,31 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 		jobs = append(jobs, job)
 	}
 	resp.SUCCESS(c, jobs)
+}
+
+// Remove remove task image
+func (h *SdJobHandler) Remove(c *gin.Context) {
+	var data struct {
+		Id     uint   `json:"id"`
+		ImgURL string `json:"img_url"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// remove job recode
+	res := h.db.Delete(&model.SdJob{Id: data.Id})
+	if res.Error != nil {
+		resp.ERROR(c, res.Error.Error())
+		return
+	}
+
+	// remove image
+	err := h.uploader.GetUploadHandler().Delete(data.ImgURL)
+	if err != nil {
+		logger.Error("remove image failed: ", err)
+	}
+
+	resp.SUCCESS(c)
 }

@@ -5,6 +5,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/service"
 	"chatplus/service/mj"
+	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -22,13 +23,15 @@ type MidJourneyHandler struct {
 	db        *gorm.DB
 	pool      *mj.ServicePool
 	snowflake *service.Snowflake
+	uploader  *oss.UploaderManager
 }
 
-func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, pool *mj.ServicePool) *MidJourneyHandler {
+func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, pool *mj.ServicePool, manager *oss.UploaderManager) *MidJourneyHandler {
 	h := MidJourneyHandler{
 		db:        db,
 		snowflake: snowflake,
 		pool:      pool,
+		uploader:  manager,
 	}
 	h.App = app
 	return &h
@@ -305,4 +308,31 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 		jobs = append(jobs, job)
 	}
 	resp.SUCCESS(c, jobs)
+}
+
+// Remove remove task image
+func (h *MidJourneyHandler) Remove(c *gin.Context) {
+	var data struct {
+		Id     uint   `json:"id"`
+		ImgURL string `json:"img_url"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// remove job recode
+	res := h.db.Delete(&model.MidJourneyJob{Id: data.Id})
+	if res.Error != nil {
+		resp.ERROR(c, res.Error.Error())
+		return
+	}
+
+	// remove image
+	err := h.uploader.GetUploadHandler().Delete(data.ImgURL)
+	if err != nil {
+		logger.Error("remove image failed: ", err)
+	}
+
+	resp.SUCCESS(c)
 }
