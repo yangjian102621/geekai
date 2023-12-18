@@ -24,6 +24,9 @@
         <el-form-item label="VIP每月对话次数" prop="vip_month_calls">
           <el-input v-model.number="system['vip_month_calls']" placeholder="VIP用户每月赠送对话次数"/>
         </el-form-item>
+        <el-form-item label="VIP每月绘图次数" prop="vip_month_img_calls">
+          <el-input v-model.number="system['vip_month_img_calls']" placeholder="VIP用户每月赠送绘图次数"/>
+        </el-form-item>
         <el-form-item label="开放注册服务" prop="enabled_register">
           <el-switch v-model="system['enabled_register']"/>
         </el-form-item>

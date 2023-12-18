@@ -8,6 +8,7 @@ type Product struct {
 	Discount float64
 	Days     int
 	Calls    int
+	ImgCalls int
 	Enabled  bool
 	Sales    int
 	SortNum  int
