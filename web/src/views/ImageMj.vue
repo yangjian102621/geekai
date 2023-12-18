@@ -581,7 +581,7 @@ const fetchRunningJobs = (userId) => {
     }
     runningJobs.value = _jobs
 
-    setTimeout(() => fetchRunningJobs(userId), 5000)
+    setTimeout(() => fetchRunningJobs(userId), 3000)
 
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
@@ -592,7 +592,7 @@ const fetchFinishJobs = (userId) => {
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
     finishedJobs.value = res.data
-    setTimeout(() => fetchFinishJobs(userId), 5000)
+    setTimeout(() => fetchFinishJobs(userId), 3000)
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })
@@ -660,6 +660,8 @@ const variation = (index, item) => {
 const send = (url, index, item) => {
   httpPost(url, {
     index: index,
+    task_id: item.task_id,
+    channel_id: item.channel_id,
     message_id: item.message_id,
     message_hash: item.hash,
     session_id: getSessionId(),

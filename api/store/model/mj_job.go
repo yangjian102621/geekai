@@ -7,6 +7,7 @@ type MidJourneyJob struct {
 	Type        string
 	UserId      int
 	TaskId      string
+	ChannelId   string
 	MessageId   string
 	ReferenceId string
 	ImgURL      string

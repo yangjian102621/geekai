@@ -147,8 +147,9 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 }
 
 type reqVo struct {
-	Src         string `json:"src"`
+	TaskId      string `json:"task_id"`
 	Index       int    `json:"index"`
+	ChannelId   string `json:"channel_id"`
 	MessageId   string `json:"message_id"`
 	MessageHash string `json:"message_hash"`
 	SessionId   string `json:"session_id"`
@@ -173,12 +174,27 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	job := model.MidJourneyJob{
+		Type:        types.TaskUpscale.String(),
+		ReferenceId: data.MessageId,
+		UserId:      userId,
+		TaskId:      data.TaskId,
+		Progress:    0,
+		Prompt:      data.Prompt,
+		CreatedAt:   time.Now(),
+	}
+	if res := h.db.Create(&job); res.Error != nil {
+		resp.ERROR(c, "添加任务失败："+res.Error.Error())
+		return
+	}
+
 	h.pool.PushTask(types.MjTask{
 		Id:          jobId,
 		SessionId:   data.SessionId,
 		Type:        types.TaskUpscale,
 		Prompt:      data.Prompt,
 		UserId:      userId,
+		ChannelId:   data.ChannelId,
 		Index:       data.Index,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
@@ -201,6 +217,21 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+
+	job := model.MidJourneyJob{
+		Type:        types.TaskVariation.String(),
+		ReferenceId: data.MessageId,
+		UserId:      userId,
+		TaskId:      data.TaskId,
+		Progress:    0,
+		Prompt:      data.Prompt,
+		CreatedAt:   time.Now(),
+	}
+	if res := h.db.Create(&job); res.Error != nil {
+		resp.ERROR(c, "添加任务失败："+res.Error.Error())
+		return
+	}
+
 	h.pool.PushTask(types.MjTask{
 		Id:          jobId,
 		SessionId:   data.SessionId,
@@ -208,6 +239,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		Prompt:      data.Prompt,
 		UserId:      userId,
 		Index:       data.Index,
+		ChannelId:   data.ChannelId,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
 	})

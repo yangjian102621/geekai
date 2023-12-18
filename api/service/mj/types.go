@@ -24,6 +24,7 @@ type InteractionsResult struct {
 }
 
 type CBReq struct {
+	ChannelId   string     `json:"channel_id"`
 	MessageId   string     `json:"message_id"`
 	ReferenceId string     `json:"reference_id"`
 	Image       Image      `json:"image"`
