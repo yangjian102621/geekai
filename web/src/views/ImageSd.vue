@@ -598,7 +598,7 @@ onMounted(() => {
       }
       runningJobs.value = _jobs
 
-      setTimeout(() => fetchRunningJobs(userId), 5000)
+      setTimeout(() => fetchRunningJobs(userId), 3000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
     })
@@ -608,7 +608,7 @@ onMounted(() => {
   const fetchFinishJobs = (userId) => {
     httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
       finishedJobs.value = res.data
-      setTimeout(() => fetchFinishJobs(userId), 5000)
+      setTimeout(() => fetchFinishJobs(userId), 3000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
     })

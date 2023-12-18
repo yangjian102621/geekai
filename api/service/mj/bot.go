@@ -101,6 +101,7 @@ func (b *Bot) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.Contains(m.Content, "(Waiting to start)") && !strings.Contains(m.Content, "Rerolling **") {
 		// parse content
 		req := CBReq{
+			ChannelId:   m.ChannelID,
 			MessageId:   m.ID,
 			ReferenceId: referenceId,
 			Prompt:      extractPrompt(m.Content),
@@ -111,7 +112,7 @@ func (b *Bot) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	b.addAttachment(m.ID, referenceId, m.Content, m.Attachments)
+	b.addAttachment(m.ChannelID, m.ID, referenceId, m.Content, m.Attachments)
 }
 
 func (b *Bot) messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
@@ -132,6 +133,7 @@ func (b *Bot) messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 	}
 	if strings.Contains(m.Content, "(Stopped)") {
 		req := CBReq{
+			ChannelId:   m.ChannelID,
 			MessageId:   m.ID,
 			ReferenceId: referenceId,
 			Prompt:      extractPrompt(m.Content),
@@ -142,11 +144,11 @@ func (b *Bot) messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 		return
 	}
 
-	b.addAttachment(m.ID, referenceId, m.Content, m.Attachments)
+	b.addAttachment(m.ChannelID, m.ID, referenceId, m.Content, m.Attachments)
 
 }
 
-func (b *Bot) addAttachment(messageId string, referenceId string, content string, attachments []*discordgo.MessageAttachment) {
+func (b *Bot) addAttachment(channelId string, messageId string, referenceId string, content string, attachments []*discordgo.MessageAttachment) {
 	progress := extractProgress(content)
 	var status TaskStatus
 	if progress == 100 {
@@ -168,6 +170,7 @@ func (b *Bot) addAttachment(messageId string, referenceId string, content string
 			Hash:     extractHashFromFilename(attachment.Filename),
 		}
 		req := CBReq{
+			ChannelId:   channelId,
 			MessageId:   messageId,
 			ReferenceId: referenceId,
 			Image:       image,

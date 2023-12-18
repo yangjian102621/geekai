@@ -54,6 +54,15 @@ func (s *Service) Run() {
 		err := s.taskQueue.LPop(&task)
 		if err != nil {
 			logger.Errorf("taking task with error: %v", err)
+			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			continue
+		}
+
+		// if it's reference message, check if it's this channel's  message
+		if task.ChannelId != "" && task.ChannelId != s.client.config.ChanelId {
+			s.taskQueue.RPush(task)
+			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			time.Sleep(time.Second)
 			continue
 		}
 
@@ -74,7 +83,6 @@ func (s *Service) Run() {
 			logger.Error("绘画任务执行失败：", err)
 			// update the task progress
 			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
-			atomic.AddInt32(&s.handledTaskNum, -1)
 			continue
 		}
 
@@ -113,11 +121,17 @@ func (s *Service) Notify(data CBReq) {
 		return
 	}
 
-	res = s.db.Where("task_id = ?", split[0]).First(&job)
+	tx := s.db.Where("task_id = ? AND progress < 100", split[0]).Session(&gorm.Session{}).Order("id ASC")
+	if data.ReferenceId != "" {
+		tx = tx.Where("reference_id = ?", data.ReferenceId)
+	}
+	res = tx.First(&job)
 	if res.Error != nil {
 		logger.Warn("非法任务：", res.Error)
 		return
 	}
+
+	job.ChannelId = data.ChannelId
 	job.MessageId = data.MessageId
 	job.ReferenceId = data.ReferenceId
 	job.Progress = data.Progress

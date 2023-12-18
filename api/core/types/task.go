@@ -16,6 +16,7 @@ const (
 // MjTask MidJourney 任务
 type MjTask struct {
 	Id          int      `json:"id"`
+	ChannelId   string   `json:"channel_id"`
 	SessionId   string   `json:"session_id"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
