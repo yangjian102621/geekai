@@ -42,7 +42,7 @@
               <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
                 <el-dropdown-item>
                   <i class="iconfont icon-github"></i>
-                  <span>ChatGPT-Plus-V3</span>
+                  <span>{{ sysTitle }}</span>
                 </el-dropdown-item>
               </a>
               <el-dropdown-item @click="showDialog = true">
@@ -84,6 +84,7 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
 const message = ref(5);
+const sysTitle = ref(process.env.VUE_APP_TITLE)
 const avatar = ref('/images/user-info.jpg')
 const donateImg = ref('/images/wechat-pay.png')
 const showDialog = ref(false)
