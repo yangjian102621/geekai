@@ -83,7 +83,7 @@ var InnerFunctions = []Function{
 			Properties: map[string]Property{
 				"prompt": {
 					Type:        "string",
-					Description: "提示词，如果该参数中有中文的话，则需要翻译成英文。",
+					Description: "提示词，请自动将该参数翻译成英文。",
 				},
 			},
 			Required: []string{},

@@ -112,6 +112,11 @@ const items = [
     title: '众筹管理',
   },
   {
+    icon: 'control',
+    index: '/admin/functions',
+    title: '函数管理',
+  },
+  {
     icon: 'config',
     index: '/admin/system',
     title: '系统设置',
@@ -121,29 +126,29 @@ const items = [
     index: '/admin/loginLog',
     title: '用户登录日志',
   },
-  {
-    icon: 'menu',
-    index: '1',
-    title: '常用模板页面',
-    subs: [
-      {
-        index: '/admin/demo/form',
-        title: '表单页面',
-      },
-      {
-        index: '/admin/demo/table',
-        title: '常用表格',
-      },
-      {
-        index: '/admin/demo/import',
-        title: '导入Excel',
-      },
-      {
-        index: '/admin/demo/editor',
-        title: '富文本编辑器',
-      },
-    ],
-  },
+  // {
+  //   icon: 'menu',
+  //   index: '1',
+  //   title: '常用模板页面',
+  //   subs: [
+  //     {
+  //       index: '/admin/demo/form',
+  //       title: '表单页面',
+  //     },
+  //     {
+  //       index: '/admin/demo/table',
+  //       title: '常用表格',
+  //     },
+  //     {
+  //       index: '/admin/demo/import',
+  //       title: '导入Excel',
+  //     },
+  //     {
+  //       index: '/admin/demo/editor',
+  //       title: '富文本编辑器',
+  //     },
+  //   ],
+  // },
 ];
 
 const route = useRoute();

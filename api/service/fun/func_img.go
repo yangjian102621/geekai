@@ -105,7 +105,7 @@ func (f FuncImage) Invoke(params map[string]interface{}) (string, error) {
 		return "", fmt.Errorf("下载图片失败: %s", err.Error())
 	}
 
-	logger.Info(imgURL)
+	//logger.Info(imgURL)
 	return fmt.Sprintf("\n\n![](%s)\n", imgURL), nil
 }
 
