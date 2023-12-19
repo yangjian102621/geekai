@@ -4,10 +4,9 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/store/model"
+	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
-
-	"github.com/imroc/req/v3"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -25,27 +24,6 @@ func NewPromptHandler(app *core.AppServer, db *gorm.DB) *PromptHandler {
 	h := &PromptHandler{db: db}
 	h.App = app
 	return h
-}
-
-type apiRes struct {
-	Model   string `json:"model"`
-	Choices []struct {
-		Index   int `json:"index"`
-		Message struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		} `json:"message"`
-		FinishReason string `json:"finish_reason"`
-	} `json:"choices"`
-}
-
-type apiErrRes struct {
-	Error struct {
-		Code    interface{} `json:"code"`
-		Message string      `json:"message"`
-		Param   interface{} `json:"param"`
-		Type    string      `json:"type"`
-	} `json:"error"`
 }
 
 // Rewrite translate and rewrite prompt with ChatGPT
@@ -93,28 +71,5 @@ func (h *PromptHandler) request(prompt string, promptTemplate string) (string, e
 		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
 	}
 
-	messages := make([]interface{}, 1)
-	messages[0] = types.Message{
-		Role:    "user",
-		Content: fmt.Sprintf(promptTemplate, prompt),
-	}
-
-	var response apiRes
-	var errRes apiErrRes
-	r, err := req.C().SetProxyURL(h.App.Config.ProxyURL).R().SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+apiKey.Value).
-		SetBody(types.ApiRequest{
-			Model:       "gpt-3.5-turbo",
-			Temperature: 0.9,
-			MaxTokens:   1024,
-			Stream:      false,
-			Messages:    messages,
-		}).
-		SetErrorResult(&errRes).
-		SetSuccessResult(&response).Post(h.App.ChatConfig.OpenAI.ApiURL)
-	if err != nil || r.IsErrorState() {
-		return "", fmt.Errorf("error with http request: %v%v%s", err, r.Err, errRes.Error.Message)
-	}
-
-	return response.Choices[0].Message.Content, nil
+	return utils.OpenAIRequest(fmt.Sprintf(promptTemplate, prompt), apiKey.Value, h.App.Config.ProxyURL, h.App.ChatConfig.OpenAI.ApiURL)
 }

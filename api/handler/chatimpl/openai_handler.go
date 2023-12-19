@@ -132,11 +132,13 @@ func (h *ChatHandler) sendOpenAiMessage(
 				utils.ReplyMessage(ws, ErrImg)
 			} else {
 				f := h.App.Functions[functionName]
+				// translate prompt
 				if functionName == types.FuncImage {
-					params["user_id"] = userVo.Id
-					params["role_id"] = role.Id
-					params["chat_id"] = session.ChatId
-					params["session_id"] = session.SessionId
+					const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
+					r, err := utils.OpenAIRequest(fmt.Sprintf(translatePromptTemplate, params["prompt"]), apiKey, h.App.Config.ProxyURL, chatConfig.OpenAI.ApiURL)
+					if err == nil {
+						params["prompt"] = r
+					}
 				}
 				data, err := f.Invoke(params)
 				if err != nil {
