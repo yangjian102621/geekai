@@ -99,14 +99,15 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 		}
 
 		var r struct {
-			Openid    int64  `json:"openid"`
-			UrlQrcode string `json:"url_qrcode"`
-			URL       string `json:"url"`
-			ErrCode   int    `json:"errcode"`
-			ErrMsg    string `json:"errmsg"`
+			Openid    interface{} `json:"openid"`
+			UrlQrcode string      `json:"url_qrcode"`
+			URL       string      `json:"url"`
+			ErrCode   int         `json:"errcode"`
+			ErrMsg    string      `json:"errmsg,omitempty"`
 		}
 		err = utils.JsonDecode(res, &r)
 		if err != nil {
+			logger.Debugf(res)
 			resp.ERROR(c, "error with decode payment result: "+err.Error())
 			return
 		}

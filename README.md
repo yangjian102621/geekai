@@ -95,6 +95,8 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ## 项目文档
 
+**最新的部署视频教程：[https://www.bilibili.com/video/BV1ge411C7uA/](https://www.bilibili.com/video/BV1ge411C7uA/?vd_source=dee8b15703ccfcbd24a60ee9a0fabb73)**
+
 详细的部署和开发文档请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/)。
 
 加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自Github!!!）。**
