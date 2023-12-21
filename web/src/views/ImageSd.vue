@@ -612,7 +612,23 @@ onMounted(() => {
   // 获取已完成的任务
   const fetchFinishJobs = (userId) => {
     httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
-      finishedJobs.value = res.data
+      if (finishedJobs.value.length === 0) {
+        finishedJobs.value = res.data
+        return
+      }
+
+      // check if the img url is changed
+      const list = res.data
+      let changed = false
+      for (let i = 0; i < list.length; i++) {
+        if (list[i]["img_url"] !== finishedJobs.value[i]["img_url"]) {
+          changed = true
+          break
+        }
+      }
+      if (changed) {
+        finishedJobs.value = list
+      }
       setTimeout(() => fetchFinishJobs(userId), 1000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)

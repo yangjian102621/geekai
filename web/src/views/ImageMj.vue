@@ -359,7 +359,7 @@
               <template #default="scope">
                 <div class="job-item">
                   <el-image
-                      :src="scope.item.type === 'upscale' ? scope.item['img_url'] + '?imageView2/1/w/240/h/300/q/75' : scope.item['img_url'] + '?imageView2/1/w/240/h/240/q/75'"
+                      :src="scope.item.type === 'upscale' ? scope.item['img_url'] + '?imageView2/1/w/480/h/600/q/75' : scope.item['img_url'] + '?imageView2/1/w/480/h/480/q/75'"
                       :class="scope.item.type === 'upscale' ? 'upscale' : ''" :zoom-rate="1.2"
                       :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
                       loading="lazy" v-if="scope.item.progress > 0">
@@ -370,7 +370,11 @@
                     </template>
 
                     <template #error>
-                      <div class="image-slot">
+                      <div class="image-slot" v-if="scope.item['img_url'] === ''">
+                        <i class="iconfont icon-loading"></i>
+                        <span>正在下载图片</span>
+                      </div>
+                      <div class="image-slot" v-else>
                         <el-icon>
                           <Picture/>
                         </el-icon>
@@ -596,7 +600,23 @@ const fetchRunningJobs = (userId) => {
 const fetchFinishJobs = (userId) => {
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
-    finishedJobs.value = res.data
+    if (finishedJobs.value.length === 0) {
+      finishedJobs.value = res.data
+      return
+    }
+
+    // check if the img url is changed
+    const list = res.data
+    let changed = false
+    for (let i = 0; i < list.length; i++) {
+      if (list[i]["img_url"] !== finishedJobs.value[i]["img_url"]) {
+        changed = true
+        break
+      }
+    }
+    if (changed) {
+      finishedJobs.value = list
+    }
     setTimeout(() => fetchFinishJobs(userId), 1000)
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)

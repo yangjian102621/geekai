@@ -11,7 +11,10 @@
         </div>
       </div>
       <div class="waterfall" :style="{ height:listBoxHeight + 'px' }" id="waterfall-box">
-        <v3-waterfall id="waterfall" :list="list" srcKey="img_thumb"
+        <v3-waterfall v-if="imgType === 'mj'"
+                      id="waterfall"
+                      :list="list"
+                      srcKey="img_thumb"
                       :gap="12"
                       :bottomGap="-5"
                       :colWidth="colWidth"
@@ -21,7 +24,7 @@
                       @scrollReachBottom="getNext">
           <template #default="slotProp">
             <div class="list-item">
-              <div class="image" v-if="imgType === 'mj'">
+              <div class="image">
                 <el-image :src="slotProp.item['img_thumb']"
                           :zoom-rate="1.2"
                           :preview-src-list="[slotProp.item['img_url']]"
@@ -43,7 +46,30 @@
                   </template>
                 </el-image>
               </div>
-              <div class="image" v-else>
+              <div class="prompt">
+                <span>{{ slotProp.item.prompt }}</span>
+                <el-icon class="copy-prompt" :data-clipboard-text="slotProp.item.prompt">
+                  <DocumentCopy/>
+                </el-icon>
+              </div>
+            </div>
+          </template>
+        </v3-waterfall>
+
+        <v3-waterfall v-else
+                      id="waterfall"
+                      :list="list"
+                      srcKey="img_thumb"
+                      :gap="12"
+                      :bottomGap="-5"
+                      :colWidth="colWidth"
+                      :distanceToScroll="100"
+                      :isLoading="loading"
+                      :isOver="false"
+                      @scrollReachBottom="getNext">
+          <template #default="slotProp">
+            <div class="list-item">
+              <div class="image">
                 <el-image :src="slotProp.item['img_thumb']" loading="lazy"
                           @click="showTask(slotProp.item)">
                   <template #placeholder>

@@ -336,9 +336,11 @@ func staticResourceMiddleware() gin.HandlerFunc {
 				log.Fatal(err)
 			}
 
+			// 设置图片缓存有效期为一年 (365天)
+			c.Header("Cache-Control", "max-age=31536000, public")
 			// 直接输出图像数据流
 			c.Data(http.StatusOK, "image/jpeg", buffer.Bytes())
-			return
+			c.Abort() // 中断请求
 		}
 		c.Next()
 	}
