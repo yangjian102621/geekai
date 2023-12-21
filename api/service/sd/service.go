@@ -69,6 +69,8 @@ func (s *Service) Run() {
 			logger.Error("绘画任务执行失败：", err)
 			// update the task progress
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			// restore img_call quota
+			s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 			// release task num
 			atomic.AddInt32(&s.handledTaskNum, -1)
 			continue

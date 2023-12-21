@@ -341,6 +341,14 @@ func main() {
 			group.POST("translate", h.Translate)
 		}),
 
+		fx.Provide(admin.NewFunctionHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.FunctionHandler) {
+			group := s.Engine.Group("/api/admin/function/")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
+		}),
+
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
 			group := s.Engine.Group("/test/")

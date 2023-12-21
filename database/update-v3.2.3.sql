@@ -17,3 +17,5 @@ ALTER TABLE `chatgpt_functions` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `chatgpt_functions` ADD UNIQUE(`name`);
 
 ALTER TABLE `chatgpt_functions` ADD `enabled` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '是否启用' AFTER `action`;
+
+ALTER TABLE `chatgpt_functions` ADD `lebal` VARCHAR(30) NULL COMMENT '函数标签' AFTER `name`;
