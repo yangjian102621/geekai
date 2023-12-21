@@ -10,11 +10,10 @@
             <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="功能描述" prop="key"/>
-        <el-table-column label="">
+        <el-table-column label="功能描述" prop="description"/>
+        <el-table-column label="启用状态">
           <template #default="scope">
-            <el-tag v-if="scope.row.enable" type="success">启用</el-tag>
-            <el-tag type="danger" v-else>禁用</el-tag>
+            <el-switch v-model="scope.row.enabled" @change="functionSet(scope.row)"/>
           </template>
         </el-table-column>
 
@@ -163,7 +162,9 @@ onMounted(() => {
 
 const fetch = () => {
   httpGet('/api/admin/function/list').then((res) => {
-    tableData.value = res.data
+    if (res.data) {
+      tableData.value = res.data
+    }
     loading.value = false
   }).catch(() => {
     ElMessage.error("获取数据失败");
@@ -199,12 +200,12 @@ const save = function () {
       item.value.parameters = {type: "object", "properties": properties, "required": required}
       httpPost('/api/admin/function/save', item.value).then((res) => {
         ElMessage.success('操作成功')
-        // 更新当前数据行
-        // if (item.value.id) {
-        //   tableData.value[curIndex.value] = item.value
-        // } else {
-        //   tableData.value.push(res.data)
-        // }
+        console.log(res.data)
+        if (item.value.id > 0) {
+          tableData.value[curIndex.value] = item.value
+        } else {
+          tableData.value.push(res.data)
+        }
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
       })
@@ -225,11 +226,15 @@ const addParam = function () {
   if (!params.value) {
     item.value = []
   }
-  params.value.push({name: "", type: "", desc: "", required: false})
+  params.value.push({name: "", type: "string", desc: "", required: false})
 }
 
 const removeParam = function (index) {
   params.value.splice(index, 1);
+}
+
+const functionSet = (row) => {
+
 }
 
 </script>
