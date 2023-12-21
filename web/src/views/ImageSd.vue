@@ -533,10 +533,10 @@ const params = ref({
   cfg_scale: 7,
   face_fix: false,
   hd_fix: false,
-  hd_redraw_rate: 0.7,
+  hd_redraw_rate: 0.5,
   hd_scale: 2,
   hd_scale_alg: scaleAlg[0],
-  hd_steps: 10,
+  hd_steps: 15,
   prompt: "",
   negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
 })

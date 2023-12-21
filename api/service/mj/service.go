@@ -54,7 +54,6 @@ func (s *Service) Run() {
 		err := s.taskQueue.LPop(&task)
 		if err != nil {
 			logger.Errorf("taking task with error: %v", err)
-			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
 			continue
 		}
 
@@ -83,6 +82,8 @@ func (s *Service) Run() {
 			logger.Error("绘画任务执行失败：", err)
 			// update the task progress
 			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			// restore img_call quota
+			s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 			continue
 		}
 
@@ -157,8 +158,6 @@ func (s *Service) Notify(data CBReq) {
 	}
 
 	if data.Status == Finished {
-		// update user's img calls
-		s.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 		// release lock task
 		atomic.AddInt32(&s.handledTaskNum, -1)
 	}

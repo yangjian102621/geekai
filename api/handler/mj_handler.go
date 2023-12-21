@@ -146,6 +146,9 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Prompt:    fmt.Sprintf("%s %s", taskId, prompt),
 		UserId:    userId,
 	})
+
+	// update user's img calls
+	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 	resp.SUCCESS(c)
 }
 
@@ -246,6 +249,9 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
 	})
+
+	// update user's img calls
+	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 	resp.SUCCESS(c)
 }
 
