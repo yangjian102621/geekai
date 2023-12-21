@@ -6,6 +6,7 @@ import (
 	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/store/vo"
+	"chatplus/utils"
 	"chatplus/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -29,8 +30,18 @@ func (h *FunctionHandler) Save(c *gin.Context) {
 		return
 	}
 
-	logger.Info(data)
-	resp.SUCCESS(c)
+	var f = model.Function{
+		Id:          data.Id,
+		Name:        data.Name,
+		Description: data.Description,
+		Parameters:  utils.JsonEncode(data.Parameters),
+		Required:    utils.JsonEncode(data.Required),
+		Action:      data.Action,
+		Enabled:     false,
+	}
+
+	logger.Info(f)
+	resp.SUCCESS(c, data)
 }
 
 func (h *FunctionHandler) List(c *gin.Context) {

@@ -25,7 +25,9 @@ type Bot struct {
 
 func NewBot(name string, proxy string, config *types.MidJourneyConfig, service *Service) (*Bot, error) {
 	discord, err := discordgo.New("Bot " + config.BotToken)
+	logger.Info(config.BotToken)
 	if err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 

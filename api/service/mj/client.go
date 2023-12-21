@@ -21,7 +21,6 @@ func NewClient(config types.MidJourneyConfig, proxy string) *Client {
 	if proxy != "" {
 		client.SetProxyURL(proxy)
 	}
-	logger.Info(config)
 	return &Client{client: client, config: config}
 }
 
