@@ -165,6 +165,11 @@ func main() {
 
 		// MidJourney service pool
 		fx.Provide(mj.NewServicePool),
+		fx.Invoke(func(pool *mj.ServicePool) {
+			if pool.HasAvailableService() {
+				pool.DownloadImages()
+			}
+		}),
 
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewServicePool),

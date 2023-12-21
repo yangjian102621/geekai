@@ -2,7 +2,6 @@ package mj
 
 import (
 	"chatplus/core/types"
-	"chatplus/service/oss"
 	"chatplus/store"
 	"chatplus/store/model"
 	"gorm.io/gorm"
@@ -17,24 +16,20 @@ type Service struct {
 	client           *Client // MJ client
 	taskQueue        *store.RedisQueue
 	db               *gorm.DB
-	uploadManager    *oss.UploaderManager
-	proxyURL         string
 	maxHandleTaskNum int32             // max task number current service can handle
 	handledTaskNum   int32             // already handled task number
 	taskStartTimes   map[int]time.Time // task start time, to check if the task is timeout
 	taskTimeout      int64
 }
 
-func NewService(name string, queue *store.RedisQueue, maxTaskNum int32, timeout int64, db *gorm.DB, client *Client, manager *oss.UploaderManager, proxy string) *Service {
+func NewService(name string, queue *store.RedisQueue, maxTaskNum int32, timeout int64, db *gorm.DB, client *Client) *Service {
 	return &Service{
 		name:             name,
 		db:               db,
 		taskQueue:        queue,
 		client:           client,
-		uploadManager:    manager,
 		taskTimeout:      timeout,
 		maxHandleTaskNum: maxTaskNum,
-		proxyURL:         proxy,
 		taskStartTimes:   make(map[int]time.Time, 0),
 	}
 }
@@ -144,17 +139,6 @@ func (s *Service) Notify(data CBReq) {
 	if res.Error != nil {
 		logger.Error("error with update job: ", res.Error)
 		return
-	}
-
-	// upload image
-	if data.Status == Finished {
-		imgURL, err := s.uploadManager.GetUploadHandler().PutImg(data.Image.URL, true)
-		if err != nil {
-			logger.Error("error with download img: ", err.Error())
-			return
-		}
-		job.ImgURL = imgURL
-		s.db.Updates(&job)
 	}
 
 	if data.Status == Finished {
