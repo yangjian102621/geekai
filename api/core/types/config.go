@@ -34,11 +34,15 @@ type ChatPlusApiConfig struct {
 }
 
 type MidJourneyConfig struct {
-	Enabled   bool
-	UserToken string
-	BotToken  string
-	GuildId   string // Server ID
-	ChanelId  string // Chanel ID
+	Enabled        bool
+	UserToken      string
+	BotToken       string
+	GuildId        string // Server ID
+	ChanelId       string // Chanel ID
+	UseCDN         bool
+	DiscordAPI     string
+	DiscordCDN     string
+	DiscordGateway string
 }
 
 type StableDiffusionConfig struct {

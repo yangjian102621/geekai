@@ -442,7 +442,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	} else {
 		client = http.DefaultClient
 	}
-	logger.Infof("Sending %s request, KEY: %s, PROXY: %s, Model: %s", platform, *apiKey, proxyURL, req.Model)
+	logger.Infof("Sending %s request, ApiURL:%s, PROXY: %s, Model: %s", platform, apiURL, proxyURL, req.Model)
 	switch platform {
 	case types.Azure:
 		request.Header.Set("api-key", *apiKey)
@@ -452,7 +452,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		if err != nil {
 			return nil, err
 		}
-		logger.Info(token)
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		break
 	case types.Baidu:

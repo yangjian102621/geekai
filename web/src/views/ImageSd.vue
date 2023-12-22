@@ -612,8 +612,9 @@ onMounted(() => {
   // 获取已完成的任务
   const fetchFinishJobs = (userId) => {
     httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
-      if (finishedJobs.value.length === 0) {
+      if (finishedJobs.value.length === 0 || res.data.length > finishedJobs.value.length) {
         finishedJobs.value = res.data
+        setTimeout(() => fetchFinishJobs(userId), 1000)
         return
       }
 

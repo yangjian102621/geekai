@@ -17,6 +17,7 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
+	"github.com/go-redis/redis/v8"
 	"io"
 	"log"
 	"os"
@@ -24,8 +25,6 @@ import (
 	"strconv"
 	"syscall"
 	"time"
-
-	"github.com/go-redis/redis/v8"
 
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"go.uber.org/fx"
@@ -168,6 +167,7 @@ func main() {
 		fx.Invoke(func(pool *mj.ServicePool) {
 			if pool.HasAvailableService() {
 				pool.DownloadImages()
+				pool.CheckTaskNotify()
 			}
 		}),
 
@@ -234,6 +234,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
 			group := s.Engine.Group("/api/mj/")
+			group.Any("client", h.Client)
 			group.POST("image", h.Image)
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
