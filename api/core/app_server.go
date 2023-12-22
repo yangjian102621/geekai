@@ -154,6 +154,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 			c.Request.URL.Path == "/api/chat/detail" ||
 			c.Request.URL.Path == "/api/role/list" ||
 			c.Request.URL.Path == "/api/mj/jobs" ||
+			c.Request.URL.Path == "/api/mj/client" ||
 			c.Request.URL.Path == "/api/invite/hits" ||
 			c.Request.URL.Path == "/api/sd/jobs" ||
 			c.Request.URL.Path == "/api/upload" ||

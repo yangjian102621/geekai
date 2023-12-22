@@ -359,7 +359,7 @@
               <template #default="scope">
                 <div class="job-item">
                   <el-image
-                      :src="scope.item.type === 'upscale' ? scope.item['img_url'] + '?imageView2/1/w/480/h/600/q/75' : scope.item['img_url'] + '?imageView2/1/w/480/h/480/q/75'"
+                      :src="scope.item['thumb_url']"
                       :class="scope.item.type === 'upscale' ? 'upscale' : ''" :zoom-rate="1.2"
                       :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
                       loading="lazy" v-if="scope.item.progress > 0">
@@ -477,7 +477,8 @@ const rates = [
   {css: "size9-16", value: "9:16", text: "9:16", img: "/images/mj/rate_9_16.png"},
 ]
 const models = [
-  {text: "最新模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.2.png"},
+  {text: "写实模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v6.png"},
+  {text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.2.png"},
   {text: "优质模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.1.jpg"},
   {text: "虚幻模式MJ-5", value: " --v 5", img: "/images/mj/mj-v5.jpg"},
   {text: "真实模式MJ-4", value: " --v 4", img: "/images/mj/mj-v4.jpg"},
@@ -489,6 +490,10 @@ const models = [
 ]
 
 const options = [
+  {
+    value: 0,
+    label: '默认'
+  },
   {
     value: 0.25,
     label: '普通'
@@ -515,7 +520,7 @@ const params = ref({
   prompt: "",
   neg_prompt: "",
   tile: false,
-  quality: 0.5
+  quality: 0
 })
 
 const activeName = ref('图生图')
@@ -527,6 +532,7 @@ const router = useRouter()
 const socket = ref(null)
 const imgCalls = ref(0)
 const loading = ref(false)
+const userId = ref(0)
 
 const rewritePrompt = () => {
   loading.value = true
@@ -550,12 +556,40 @@ const translatePrompt = () => {
   })
 }
 
+const connect = () => {
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https:') {
+      host = 'wss://' + location.host;
+    } else {
+      host = 'ws://' + location.host;
+    }
+  }
+  const _socket = new WebSocket(host + `/api/mj/client?user_id=${userId.value}`);
+  _socket.addEventListener('open', () => {
+    socket.value = _socket;
+  });
+
+  _socket.addEventListener('message', event => {
+    if (event.data instanceof Blob) {
+      fetchRunningJobs(userId.value)
+      fetchFinishJobs(userId.value)
+    }
+  });
+
+  _socket.addEventListener('close', () => {
+    connect()
+  });
+}
+
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
+    userId.value = user.id
 
-    fetchRunningJobs(user.id)
-    fetchFinishJobs(user.id)
+    fetchRunningJobs(userId.value)
+    fetchFinishJobs(userId.value)
+    connect()
 
   }).catch(() => {
     router.push('/login')
@@ -588,39 +622,29 @@ const fetchRunningJobs = (userId) => {
       _jobs.push(jobs[i])
     }
     runningJobs.value = _jobs
-
-    setTimeout(() => fetchRunningJobs(userId), 1000)
-
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
-    setTimeout(() => fetchRunningJobs(userId), 5000)
   })
 }
 
 const fetchFinishJobs = (userId) => {
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
-    if (finishedJobs.value.length === 0) {
-      finishedJobs.value = res.data
-      return
-    }
-
-    // check if the img url is changed
-    const list = res.data
-    let changed = false
-    for (let i = 0; i < list.length; i++) {
-      if (list[i]["img_url"] !== finishedJobs.value[i]["img_url"]) {
-        changed = true
-        break
+    const jobs = res.data
+    for (let i = 0; i < jobs.length; i++) {
+      if (jobs[i]['use_proxy']) {
+        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?x-oss-process=image/quality,q_60&format=webp'
+      } else {
+        if (jobs[i].type === 'upscale') {
+          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
+        } else {
+          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
+        }
       }
     }
-    if (changed) {
-      finishedJobs.value = list
-    }
-    setTimeout(() => fetchFinishJobs(userId), 1000)
+    finishedJobs.value = jobs
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
-    setTimeout(() => fetchFinishJobs(userId), 5000)
   })
 }
 
@@ -710,7 +734,7 @@ const removeImage = (item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url}).then(() => {
+    httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
       ElMessage.success("任务删除成功")
     }).catch(e => {
       ElMessage.error("任务删除失败：" + e.message)

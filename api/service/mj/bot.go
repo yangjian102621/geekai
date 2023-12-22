@@ -4,7 +4,7 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/utils"
-	"github.com/bwmarrin/discordgo"
+	discordgo "github.com/bg5t/mydiscordgo"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
@@ -17,35 +17,48 @@ import (
 var logger = logger2.GetLogger()
 
 type Bot struct {
-	config  *types.MidJourneyConfig
+	config  types.MidJourneyConfig
 	bot     *discordgo.Session
 	name    string
 	service *Service
 }
 
-func NewBot(name string, proxy string, config *types.MidJourneyConfig, service *Service) (*Bot, error) {
-	discord, err := discordgo.New("Bot " + config.BotToken)
-	logger.Info(config.BotToken)
+func NewBot(name string, proxy string, config types.MidJourneyConfig, service *Service) (*Bot, error) {
+	bot, err := discordgo.New("Bot " + config.BotToken)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	if proxy != "" {
-		proxy, _ := url.Parse(proxy)
-		discord.Client = &http.Client{
-			Transport: &http.Transport{
+	// use CDN reverse proxy
+	if config.UseCDN {
+		discordgo.SetEndpointDiscord(config.DiscordAPI)
+		discordgo.SetEndpointCDN(config.DiscordCDN)
+		discordgo.SetEndpointStatus(config.DiscordAPI + "/api/v2/")
+		bot.MjGateway = config.DiscordGateway + "/"
+	} else { // use proxy
+		discordgo.SetEndpointDiscord("https://discord.com")
+		discordgo.SetEndpointCDN("https://cdn.discordapp.com")
+		discordgo.SetEndpointStatus("https://discord.com/api/v2/")
+		bot.MjGateway = "wss://gateway.discord.gg"
+
+		if proxy != "" {
+			proxy, _ := url.Parse(proxy)
+			bot.Client = &http.Client{
+				Transport: &http.Transport{
+					Proxy: http.ProxyURL(proxy),
+				},
+			}
+			bot.Dialer = &websocket.Dialer{
 				Proxy: http.ProxyURL(proxy),
-			},
+			}
 		}
-		discord.Dialer = &websocket.Dialer{
-			Proxy: http.ProxyURL(proxy),
-		}
+
 	}
 
 	return &Bot{
 		config:  config,
-		bot:     discord,
+		bot:     bot,
 		name:    name,
 		service: service,
 	}, nil
