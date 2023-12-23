@@ -8,5 +8,6 @@ type Function struct {
 	Parameters  string
 	Required    string
 	Action      string
+	Token       string
 	Enabled     bool
 }
