@@ -14,9 +14,11 @@ type Property struct {
 type Function struct {
 	Id          uint       `json:"id"`
 	Name        string     `json:"name"`
+	Label       string     `json:"label"`
 	Description string     `json:"description"`
 	Parameters  Parameters `json:"parameters"`
 	Required    []string   `json:"required"`
 	Action      string     `json:"action"`
+	Token       string     `json:"token"`
 	Enabled     bool       `json:"enabled"`
 }

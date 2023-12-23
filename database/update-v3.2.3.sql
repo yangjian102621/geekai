@@ -22,3 +22,5 @@ ALTER TABLE `chatgpt_functions` ADD `label` VARCHAR(30) NULL COMMENT '函数标�
 
 ALTER TABLE `chatgpt_mj_jobs` ADD `use_proxy` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '是否使用反代' AFTER `progress`;
 ALTER TABLE `chatgpt_mj_jobs` CHANGE `img_url` `img_url` VARCHAR(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '图片URL';
+
+ALTER TABLE `chatgpt_functions` ADD `token` VARCHAR(255) NULL COMMENT 'API授权token' AFTER `action`;

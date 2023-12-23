@@ -1,7 +1,7 @@
 <template>
   <div class="container role-list" v-loading="loading">
     <div class="handle-box">
-      <el-button type="primary" :icon="Plus" @click="addRole">新增</el-button>
+      <el-button type="primary" :icon="Plus" @click="addRow">新增</el-button>
     </div>
     <el-row>
       <el-table :data="tableData" :border="parentBorder" style="width: 100%">
@@ -10,10 +10,11 @@
             <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="函数别名" prop="label"/>
         <el-table-column label="功能描述" prop="description"/>
         <el-table-column label="启用状态">
           <template #default="scope">
-            <el-switch v-model="scope.row.enabled" @change="functionSet(scope.row)"/>
+            <el-switch v-model="scope.row.enabled" @change="functionSet('enabled',scope.row)"/>
           </template>
         </el-table-column>
 
@@ -39,6 +40,7 @@
         <el-form-item label="函数名称：" prop="name">
           <el-input
               v-model="item.name"
+              placeholder="函数名称最好为英文"
               autocomplete="off"
           />
         </el-form-item>
@@ -113,6 +115,19 @@
           </template>
         </el-form-item>
 
+        <el-form-item label="API 地址：" prop="action">
+          <el-input
+              v-model="item.action"
+              autocomplete="off"
+          />
+        </el-form-item>
+
+        <el-form-item label="API Token：" prop="token">
+          <el-input
+              v-model="item.token"
+              autocomplete="off"
+          />
+        </el-form-item>
         <el-form-item label="启用状态">
           <el-switch v-model="item.enabled"/>
         </el-form-item>
@@ -130,21 +145,19 @@
 
 <script setup>
 
-import {Delete, Plus, RemoveFilled} from "@element-plus/icons-vue";
+import {Delete, Plus} from "@element-plus/icons-vue";
 import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {copyObj, removeArrayItem} from "@/utils/libs";
-import {Sortable} from "sortablejs"
+import {arrayContains, copyObj} from "@/utils/libs";
 
 const showDialog = ref(false)
 const parentBorder = ref(true)
 const childBorder = ref(true)
 const tableData = ref([])
-const item = ref({parameters: []})
+const item = ref({})
 const params = ref([])
 const formRef = ref(null)
-const editRow = ref({})
 const loading = ref(true)
 const title = ref("新增函数")
 
@@ -176,11 +189,24 @@ const curIndex = ref(0)
 const rowEdit = function (index, row) {
   curIndex.value = index
   item.value = copyObj(row)
+  // initialize parameters
+  const props = item.value?.parameters?.properties
+  const required = item.value?.parameters?.required
+  const _params = []
+  for (let key in props) {
+    _params.push({
+      name: key,
+      type: props[key].type,
+      desc: props[key].description,
+      required: arrayContains(required, key)
+    })
+  }
+  params.value = _params
   showDialog.value = true
 }
 
-const addRole = function () {
-  item.value = {parameters: []}
+const addRow = function () {
+  item.value = {enabled:true}
   showDialog.value = true
 }
 
@@ -233,8 +259,12 @@ const removeParam = function (index) {
   params.value.splice(index, 1);
 }
 
-const functionSet = (row) => {
-
+const functionSet = (filed,row) => {
+  httpPost('/api/admin/function/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
+    ElMessage.success("操作成功！")
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message)
+  })
 }
 
 </script>

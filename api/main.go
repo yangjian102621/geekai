@@ -17,7 +17,6 @@ import (
 	"chatplus/store"
 	"context"
 	"embed"
-	"github.com/go-redis/redis/v8"
 	"io"
 	"log"
 	"os"
@@ -25,6 +24,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"go.uber.org/fx"
@@ -351,6 +352,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.FunctionHandler) {
 			group := s.Engine.Group("/api/admin/function/")
 			group.POST("save", h.Save)
+			group.POST("set", h.Set)
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 		}),
