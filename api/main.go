@@ -355,6 +355,7 @@ func main() {
 			group.POST("set", h.Set)
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
+			group.GET("token", h.GenToken)
 		}),
 
 		fx.Provide(handler.NewTestHandler),

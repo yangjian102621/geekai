@@ -9,6 +9,8 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 
+	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -103,4 +105,21 @@ func (h *FunctionHandler) Remove(c *gin.Context) {
 		}
 	}
 	resp.SUCCESS(c)
+}
+
+// GenToken generate function api access token
+func (h *FunctionHandler) GenToken(c *gin.Context) {
+	// 创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": 0,
+		"expired": 0,
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		logger.Error("error with generate token", err)
+		resp.ERROR(c)
+		return
+	}
+
+	resp.SUCCESS(c, tokenString)
 }

@@ -21,7 +21,7 @@
         <el-table-column label="操作" width="150" align="right">
           <template #default="scope">
             <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
-            <el-popconfirm title="确定要删除当前函数吗?" @confirm="remove(scope.row)">
+            <el-popconfirm title="确定要删除当前函数吗?" @confirm="remove(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
@@ -119,6 +119,7 @@
           <el-input
               v-model="item.action"
               autocomplete="off"
+              placeholder="该函数实现的API地址，可以是第三方服务API"
           />
         </el-form-item>
 
@@ -126,7 +127,20 @@
           <el-input
               v-model="item.token"
               autocomplete="off"
-          />
+              placeholder="API授权Token"
+          >
+            <template #append>
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="只有本地服务才可以使用自动生成Token<br/>第三方服务请填写第三方服务API Token"
+                  placement="top-end"
+                  raw-content
+              >
+                <el-button @click="generateToken">生成Token</el-button>
+              </el-tooltip>
+            </template>
+          </el-input>
         </el-form-item>
         <el-form-item label="启用状态">
           <el-switch v-model="item.enabled"/>
@@ -207,6 +221,7 @@ const rowEdit = function (index, row) {
 
 const addRow = function () {
   item.value = {enabled:true}
+  params.value = []
   showDialog.value = true
 }
 
@@ -240,7 +255,7 @@ const save = function () {
 }
 
 const remove = function (row) {
-  httpGet('/api/admin/role/remove?id=' + row.id).then(() => {
+  httpGet('/api/admin/function/remove?id=' + row.id).then(() => {
     ElMessage.success("删除成功！")
     fetch()
   }).catch(() => {
@@ -264,6 +279,14 @@ const functionSet = (filed,row) => {
     ElMessage.success("操作成功！")
   }).catch(e => {
     ElMessage.error("操作失败：" + e.message)
+  })
+}
+
+const generateToken = () => {
+  httpGet('/api/admin/function/token').then(res => {
+    item.value.token = res.data
+  }).catch(() => {
+    ElMessage.error("生成 Token 失败")
   })
 }
 
