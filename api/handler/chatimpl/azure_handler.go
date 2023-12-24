@@ -69,13 +69,15 @@ func (h *ChatHandler) sendAzureMessage(
 
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
+			if err != nil  { // 数据解析出错
 				logger.Error(err, line)
 				utils.ReplyMessage(ws, ErrorMsg)
 				utils.ReplyMessage(ws, ErrImg)
 				break
 			}
-
+			if len(responseBody.Choices) == 0 {
+				continue;
+			}
 			fun := responseBody.Choices[0].Delta.FunctionCall
 			if functionCall && fun.Name == "" {
 				arguments = append(arguments, fun.Arguments)
