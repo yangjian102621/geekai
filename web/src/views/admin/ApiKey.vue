@@ -32,7 +32,7 @@
         <el-table-column label="操作" width="180">
           <template #default="scope">
             <el-button size="small" type="primary" @click="edit(scope.row)">编辑</el-button>
-            <el-popconfirm title="确定要删除当前记录吗?" @confirm="remove(scope.row)">
+            <el-popconfirm title="确定要删除当前记录吗?" @confirm="remove(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
