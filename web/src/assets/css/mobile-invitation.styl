@@ -1,0 +1,94 @@
+.page-invitation {
+  display  flex 
+  justify-content  center 
+  background-color  #1c1c1c 
+  height  100vh 
+  overflow-x  hidden 
+  overflow-y  visible 
+  .inner {
+    max-width  100% 
+    width  100% 
+    color  #fff 
+    .center {
+      display  flex 
+      justify-content  center 
+      align-items  center 
+    }
+    .title {
+      color  #fff 
+      text-align  center 
+      font-size  16px 
+      font-weight  bold 
+    }
+    .share-box {
+      .info {
+        line-height  1.5 
+        border  1px solid #444444 
+        border-radius  10px 
+        padding  10px 
+        margin  10px 
+        background-color  #1c1c1c 
+        strong {
+          color  #f56c6c 
+        }
+      }
+      .invite-qrcode {
+        text-align  center 
+        margin  15px 
+      }
+      .invite-url {
+        margin  10px 
+        padding  8px 
+        display  flex 
+        justify-content  space-between 
+        border  1px solid #444444 
+        border-radius  10px 
+        background-color  #1c1c1c 
+        span {
+          position  relative 
+          font-size  14px 
+          font-family  'Microsoft YaHei', '微软雅黑', Arial, sans-serif 
+          top  0px 
+        }
+      }
+    }
+    .invite-stats {
+      padding  10px 10px 
+      .item-box {
+        border-radius  10px 
+        padding  10 0px 
+        .el-col {
+          height  80px 
+          display  flex 
+          align-items  center 
+          justify-content  center 
+          .iconfont {
+            font-size  30px 
+          }
+          .item-info {
+            font-size  14px 
+            .text, .num {
+              padding  3px 0 
+              text-align  center 
+            }
+            .num {
+              font-size  14px 
+            }
+          }
+        }
+      }
+      .yellow {
+        background-color  #ffeecc 
+        color  #D68F00 
+      }
+      .blue {
+        background-color  #D6E4FF 
+        color  #1062FE 
+      }
+      .green {
+        background-color  #E7F8EB 
+        color  #2D9F46 
+      }
+    }
+  }
+}
