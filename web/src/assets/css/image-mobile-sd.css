@@ -1,33 +1,25 @@
 .page-sd {
-  background-color: #282c34;
+  background-color: #1c1c1c;
 }
 .page-sd .inner {
   display: flex;
 }
 .page-sd .inner .sd-box {
-  margin: 10px;
-  background-color: #262626;
-  border: 1px solid #454545;
-  min-width: 300px;
-  max-width: 300px;
-  padding: 10px;
-  border-radius: 10px;
+  margin: 5px;
+  background-color: #1c1c1c;
+  min-width: 97%;
+  max-width: 97%;
   color: #fff;
   font-size: 14px;
 }
 .page-sd .inner .sd-box h2 {
   font-weight: bold;
-  font-size: 20px;
+  font-size: 16px;
   text-align: center;
-  color: #47fff1;
-}
-.page-sd .inner .sd-box ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  background-color: transparent;
+  color: #fff;
 }
 .page-sd .inner .sd-box .sd-params {
-  margin-top: 10px;
+  margin-top: 5px;
   overflow: auto;
 }
 .page-sd .inner .sd-box .sd-params .param-line {
@@ -54,7 +46,7 @@
   padding-bottom: 5px;
 }
 .page-sd .inner .sd-box .submit-btn {
-  padding: 10px 15px 0 15px;
+  padding: 10px 15px 10px 15px;
   text-align: center;
 }
 .page-sd .inner .sd-box .submit-btn .el-button {
@@ -68,89 +60,8 @@
 }
 .page-sd .inner .task-list-box {
   width: 100%;
-  padding: 10px;
   color: #fff;
   overflow-x: hidden;
-}
-.page-sd .inner .task-list-box .task-list-inner .el-tabs {
-  --el-tabs-header-height: 55px;
-}
-.page-sd .inner .task-list-box .task-list-inner .el-tabs__item {
-  color: #fff;
-  font-size: 18px;
-}
-.page-sd .inner .task-list-box .task-list-inner .title-tabs .el-tabs__item.is-active {
-  color: #47fff1;
-  font-size: 18px;
-}
-.page-sd .inner .task-list-box .task-list-inner .title-tabs .el-tabs__active-bar {
-  background-color: #47fff1;
-}
-.page-sd .inner .task-list-box .task-list-inner .title-tabs .el-tabs__content {
-  padding: 10px 0;
-}
-.page-sd .inner .task-list-box .task-list-inner .el-textarea {
-  --el-input-focus-border-color: #47fff1;
-}
-.page-sd .inner .task-list-box .task-list-inner .el-textarea__inner {
-  background: transparent;
-  color: #fff;
-}
-.page-sd .inner .task-list-box .task-list-inner .el-input__wrapper {
-  background: transparent;
-  padding: 5px;
-}
-.page-sd .inner .task-list-box .task-list-inner .text {
-  margin-bottom: 10px;
-  color: #6b778c;
-  font-size: 15px;
-}
-.page-sd .inner .task-list-box .task-list-inner .param-line.pt {
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-.page-sd .inner .task-list-box .task-list-inner .form-item-inner {
-  display: flex;
-  align-items: center;
-}
-.page-sd .inner .task-list-box .task-list-inner .form-item-inner .el-icon {
-  margin-left: 10px;
-}
-.page-sd .inner .task-list-box .task-list-inner .el-form-item__label {
-  color: #fff;
-}
-.page-sd .inner .task-list-box .task-list-inner .img-uploader .el-upload {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  width: 300px;
-  transition: var(--el-transition-duration-fast);
-  margin-bottom: 20px;
-}
-.page-sd .inner .task-list-box .task-list-inner .img-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
-}
-.page-sd .inner .task-list-box .task-list-inner .img-uploader .el-upload .el-icon.uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 100%;
-  height: 120px;
-  text-align: center;
-}
-.page-sd .inner .task-list-box .task-list-inner .submit-btn {
-  display: flex;
-  margin: 20px 0;
-}
-.page-sd .inner .task-list-box .task-list-inner .submit-btn .el-button {
-  width: 200px;
-}
-.page-sd .inner .task-list-box .task-list-inner .submit-btn .text-info {
-  width: 100%;
-  display: flex;
-  justify-content: right;
-  align-items: center;
 }
 .page-sd .inner .task-list-box .running-job-list .job-item {
   width: 100%;
@@ -166,8 +77,6 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  top: 0;
-  left: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -180,7 +89,7 @@
   width: 100%;
   height: 100%;
   border: 1px solid #666;
-  padding: 6px;
+  padding: 3px;
   overflow: hidden;
   border-radius: 6px;
   transition: all 0.3s ease; /* 添加过渡效果 */
@@ -222,7 +131,7 @@
   overflow: visible;
 }
 .page-sd .inner .task-list-box .el-image img {
-  height: 240px;
+  height: 100%;
 }
 .page-sd .inner .task-list-box .el-image .el-image-viewer__wrapper img {
   width: auto;
@@ -243,10 +152,10 @@
   margin-bottom: 10px;
 }
 .page-sd .inner .task-list-box .el-image.upscale {
-  max-height: 310px;
+  max-height: 100%;
 }
 .page-sd .inner .task-list-box .el-image.upscale img {
-  height: 310px;
+  height: 100%;
 }
 .page-sd .inner .task-list-box .el-image.upscale .el-image-viewer__wrapper img {
   width: auto;
@@ -291,8 +200,8 @@
   padding: 10px;
   color: #999;
   overflow: auto;
-  max-height: 100px;
-  min-height: 50px;
+  max-height: 100%;
+  min-height: 100%;
   position: relative;
 }
 .page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .prompt .el-icon {
@@ -307,7 +216,7 @@
 }
 .page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .wrapper label {
   display: flex;
-  width: 100px;
+  width:100%;
   color: #a5a5a5;
 }
 .page-sd .el-overlay-dialog .el-dialog .el-dialog__body .el-row .task-info .info-line .wrapper .item-value {
@@ -325,8 +234,28 @@
   width: 100%;
 }
 .page-sd .mj-list-item-prompt .el-icon {
-  margin-left: 10px;
+
   cursor: pointer;
   position: relative;
   top: 2px;
+}
+.mobile-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* 针对手机屏幕的样式 */
+.mobile-form-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.mobile-form-col {
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  box-sizing: border-box;
 }
