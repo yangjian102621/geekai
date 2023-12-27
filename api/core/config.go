@@ -14,13 +14,12 @@ var logger = logger2.GetLogger()
 
 func NewDefaultConfig() *types.AppConfig {
 	return &types.AppConfig{
-		Listen:        "0.0.0.0:5678",
-		ProxyURL:      "",
-		Manager:       types.Manager{Username: "admin", Password: "admin123"},
-		StaticDir:     "./static",
-		StaticUrl:     "http://localhost/5678/static",
-		Redis:         types.RedisConfig{Host: "localhost", Port: 6379, Password: ""},
-		AesEncryptKey: utils.RandString(24),
+		Listen:    "0.0.0.0:5678",
+		ProxyURL:  "",
+		Manager:   types.Manager{Username: "admin", Password: "admin123"},
+		StaticDir: "./static",
+		StaticUrl: "http://localhost/5678/static",
+		Redis:     types.RedisConfig{Host: "localhost", Port: 6379, Password: ""},
 		Session: types.Session{
 			SecretKey: utils.RandString(64),
 			MaxAge:    86400,

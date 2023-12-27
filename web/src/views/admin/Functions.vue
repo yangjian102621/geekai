@@ -1,7 +1,7 @@
 <template>
   <div class="container role-list" v-loading="loading">
     <div class="handle-box">
-      <el-button type="primary" :icon="Plus" @click="addRole">新增</el-button>
+      <el-button type="primary" :icon="Plus" @click="addRow">新增</el-button>
     </div>
     <el-row>
       <el-table :data="tableData" :border="parentBorder" style="width: 100%">
@@ -10,18 +10,18 @@
             <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="功能描述" prop="key"/>
-        <el-table-column label="">
+        <el-table-column label="函数别名" prop="label"/>
+        <el-table-column label="功能描述" prop="description"/>
+        <el-table-column label="启用状态">
           <template #default="scope">
-            <el-tag v-if="scope.row.enable" type="success">启用</el-tag>
-            <el-tag type="danger" v-else>禁用</el-tag>
+            <el-switch v-model="scope.row.enabled" @change="functionSet('enabled',scope.row)"/>
           </template>
         </el-table-column>
 
         <el-table-column label="操作" width="150" align="right">
           <template #default="scope">
             <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
-            <el-popconfirm title="确定要删除当前函数吗?" @confirm="remove(scope.row)">
+            <el-popconfirm title="确定要删除当前函数吗?" @confirm="remove(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
@@ -40,6 +40,7 @@
         <el-form-item label="函数名称：" prop="name">
           <el-input
               v-model="item.name"
+              placeholder="函数名称最好为英文"
               autocomplete="off"
           />
         </el-form-item>
@@ -114,6 +115,33 @@
           </template>
         </el-form-item>
 
+        <el-form-item label="API 地址：" prop="action">
+          <el-input
+              v-model="item.action"
+              autocomplete="off"
+              placeholder="该函数实现的API地址，可以是第三方服务API"
+          />
+        </el-form-item>
+
+        <el-form-item label="API Token：" prop="token">
+          <el-input
+              v-model="item.token"
+              autocomplete="off"
+              placeholder="API授权Token"
+          >
+            <template #append>
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="只有本地服务才可以使用自动生成Token<br/>第三方服务请填写第三方服务API Token"
+                  placement="top-end"
+                  raw-content
+              >
+                <el-button @click="generateToken">生成Token</el-button>
+              </el-tooltip>
+            </template>
+          </el-input>
+        </el-form-item>
         <el-form-item label="启用状态">
           <el-switch v-model="item.enabled"/>
         </el-form-item>
@@ -131,21 +159,19 @@
 
 <script setup>
 
-import {Delete, Plus, RemoveFilled} from "@element-plus/icons-vue";
+import {Delete, Plus} from "@element-plus/icons-vue";
 import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {copyObj, removeArrayItem} from "@/utils/libs";
-import {Sortable} from "sortablejs"
+import {arrayContains, copyObj} from "@/utils/libs";
 
 const showDialog = ref(false)
 const parentBorder = ref(true)
 const childBorder = ref(true)
 const tableData = ref([])
-const item = ref({parameters: []})
+const item = ref({})
 const params = ref([])
 const formRef = ref(null)
-const editRow = ref({})
 const loading = ref(true)
 const title = ref("新增函数")
 
@@ -163,7 +189,9 @@ onMounted(() => {
 
 const fetch = () => {
   httpGet('/api/admin/function/list').then((res) => {
-    tableData.value = res.data
+    if (res.data) {
+      tableData.value = res.data
+    }
     loading.value = false
   }).catch(() => {
     ElMessage.error("获取数据失败");
@@ -175,11 +203,25 @@ const curIndex = ref(0)
 const rowEdit = function (index, row) {
   curIndex.value = index
   item.value = copyObj(row)
+  // initialize parameters
+  const props = item.value?.parameters?.properties
+  const required = item.value?.parameters?.required
+  const _params = []
+  for (let key in props) {
+    _params.push({
+      name: key,
+      type: props[key].type,
+      desc: props[key].description,
+      required: arrayContains(required, key)
+    })
+  }
+  params.value = _params
   showDialog.value = true
 }
 
-const addRole = function () {
-  item.value = {parameters: []}
+const addRow = function () {
+  item.value = {enabled:true}
+  params.value = []
   showDialog.value = true
 }
 
@@ -199,12 +241,12 @@ const save = function () {
       item.value.parameters = {type: "object", "properties": properties, "required": required}
       httpPost('/api/admin/function/save', item.value).then((res) => {
         ElMessage.success('操作成功')
-        // 更新当前数据行
-        // if (item.value.id) {
-        //   tableData.value[curIndex.value] = item.value
-        // } else {
-        //   tableData.value.push(res.data)
-        // }
+        console.log(res.data)
+        if (item.value.id > 0) {
+          tableData.value[curIndex.value] = item.value
+        } else {
+          tableData.value.push(res.data)
+        }
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
       })
@@ -213,7 +255,7 @@ const save = function () {
 }
 
 const remove = function (row) {
-  httpGet('/api/admin/role/remove?id=' + row.id).then(() => {
+  httpGet('/api/admin/function/remove?id=' + row.id).then(() => {
     ElMessage.success("删除成功！")
     fetch()
   }).catch(() => {
@@ -225,11 +267,27 @@ const addParam = function () {
   if (!params.value) {
     item.value = []
   }
-  params.value.push({name: "", type: "", desc: "", required: false})
+  params.value.push({name: "", type: "string", desc: "", required: false})
 }
 
 const removeParam = function (index) {
   params.value.splice(index, 1);
+}
+
+const functionSet = (filed,row) => {
+  httpPost('/api/admin/function/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
+    ElMessage.success("操作成功！")
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message)
+  })
+}
+
+const generateToken = () => {
+  httpGet('/api/admin/function/token').then(res => {
+    item.value.token = res.data
+  }).catch(() => {
+    ElMessage.error("生成 Token 失败")
+  })
 }
 
 </script>

@@ -36,7 +36,7 @@
         <el-table-column label="操作" width="150" align="right">
           <template #default="scope">
             <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
-            <el-popconfirm title="确定要删除当前角色吗?" @confirm="removeRole(scope.row)">
+            <el-popconfirm title="确定要删除当前角色吗?" @confirm="removeRole(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
