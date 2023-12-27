@@ -5,22 +5,21 @@ import (
 )
 
 type AppConfig struct {
-	Path          string `toml:"-"`
-	Listen        string
-	Session       Session
-	ProxyURL      string
-	MysqlDns      string            // mysql 连接地址
-	Manager       Manager           // 后台管理员账户信息
-	StaticDir     string            // 静态资源目录
-	StaticUrl     string            // 静态资源 URL
-	Redis         RedisConfig       // redis 连接信息
-	ApiConfig     ChatPlusApiConfig // ChatPlus API authorization configs
-	AesEncryptKey string
-	SmsConfig     AliYunSmsConfig         // AliYun send message service config
-	OSS           OSSConfig               // OSS config
-	MjConfigs     []MidJourneyConfig      // mj AI draw service pool
-	WeChatBot     bool                    // 是否启用微信机器人
-	SdConfigs     []StableDiffusionConfig // sd AI draw service pool
+	Path      string `toml:"-"`
+	Listen    string
+	Session   Session
+	ProxyURL  string
+	MysqlDns  string                  // mysql 连接地址
+	Manager   Manager                 // 后台管理员账户信息
+	StaticDir string                  // 静态资源目录
+	StaticUrl string                  // 静态资源 URL
+	Redis     RedisConfig             // redis 连接信息
+	ApiConfig ChatPlusApiConfig       // ChatPlus API authorization configs
+	SmsConfig AliYunSmsConfig         // AliYun send message service config
+	OSS       OSSConfig               // OSS config
+	MjConfigs []MidJourneyConfig      // mj AI draw service pool
+	WeChatBot bool                    // 是否启用微信机器人
+	SdConfigs []StableDiffusionConfig // sd AI draw service pool
 
 	XXLConfig     XXLConfig
 	AlipayConfig  AlipayConfig
@@ -34,11 +33,15 @@ type ChatPlusApiConfig struct {
 }
 
 type MidJourneyConfig struct {
-	Enabled   bool
-	UserToken string
-	BotToken  string
-	GuildId   string // Server ID
-	ChanelId  string // Chanel ID
+	Enabled        bool
+	UserToken      string
+	BotToken       string
+	GuildId        string // Server ID
+	ChanelId       string // Chanel ID
+	UseCDN         bool
+	DiscordAPI     string
+	DiscordCDN     string
+	DiscordGateway string
 }
 
 type StableDiffusionConfig struct {

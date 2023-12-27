@@ -6,7 +6,7 @@ import (
 )
 
 type MKey interface {
-	string | int
+	string | int | uint
 }
 type MValue interface {
 	*WsClient | *ChatSession | context.CancelFunc | []interface{}

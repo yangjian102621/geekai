@@ -12,25 +12,32 @@ import (
 
 type Client struct {
 	client *req.Client
-	config types.MidJourneyConfig
+	Config types.MidJourneyConfig
+	apiURL string
 }
 
 func NewClient(config types.MidJourneyConfig, proxy string) *Client {
 	client := req.C().SetTimeout(10 * time.Second)
+	var apiURL string
 	// set proxy URL
-	if proxy != "" {
-		client.SetProxyURL(proxy)
+	if config.UseCDN {
+		apiURL = config.DiscordAPI + "/api/v9/interactions"
+	} else {
+		apiURL = "https://discord.com/api/v9/interactions"
+		if proxy != "" {
+			client.SetProxyURL(proxy)
+		}
 	}
-	logger.Info(config)
-	return &Client{client: client, config: config}
+
+	return &Client{client: client, Config: config, apiURL: apiURL}
 }
 
 func (c *Client) Imagine(prompt string) error {
 	interactionsReq := &InteractionsRequest{
 		Type:          2,
 		ApplicationID: ApplicationID,
-		GuildID:       c.config.GuildId,
-		ChannelID:     c.config.ChanelId,
+		GuildID:       c.Config.GuildId,
+		ChannelID:     c.Config.ChanelId,
 		SessionID:     SessionID,
 		Data: map[string]any{
 			"version": "1166847114203123795",
@@ -68,11 +75,10 @@ func (c *Client) Imagine(prompt string) error {
 		},
 	}
 
-	url := "https://discord.com/api/v9/interactions"
-	r, err := c.client.R().SetHeader("Authorization", c.config.UserToken).
+	r, err := c.client.R().SetHeader("Authorization", c.Config.UserToken).
 		SetHeader("Content-Type", "application/json").
 		SetBody(interactionsReq).
-		Post(url)
+		Post(c.apiURL)
 
 	if err != nil || r.IsErrorState() {
 		return fmt.Errorf("error with http request: %w%v", err, r.Err)
@@ -87,8 +93,8 @@ func (c *Client) Upscale(index int, messageId string, hash string) error {
 	interactionsReq := &InteractionsRequest{
 		Type:          3,
 		ApplicationID: ApplicationID,
-		GuildID:       c.config.GuildId,
-		ChannelID:     c.config.ChanelId,
+		GuildID:       c.Config.GuildId,
+		ChannelID:     c.Config.ChanelId,
 		MessageFlags:  &flags,
 		MessageID:     &messageId,
 		SessionID:     SessionID,
@@ -99,13 +105,12 @@ func (c *Client) Upscale(index int, messageId string, hash string) error {
 		Nonce: fmt.Sprintf("%d", time.Now().UnixNano()),
 	}
 
-	url := "https://discord.com/api/v9/interactions"
 	var res InteractionsResult
-	r, err := c.client.R().SetHeader("Authorization", c.config.UserToken).
+	r, err := c.client.R().SetHeader("Authorization", c.Config.UserToken).
 		SetHeader("Content-Type", "application/json").
 		SetBody(interactionsReq).
 		SetErrorResult(&res).
-		Post(url)
+		Post(c.apiURL)
 	if err != nil || r.IsErrorState() {
 		return fmt.Errorf("error with http request: %v%v%v", err, r.Err, res.Message)
 	}
@@ -119,8 +124,8 @@ func (c *Client) Variation(index int, messageId string, hash string) error {
 	interactionsReq := &InteractionsRequest{
 		Type:          3,
 		ApplicationID: ApplicationID,
-		GuildID:       c.config.GuildId,
-		ChannelID:     c.config.ChanelId,
+		GuildID:       c.Config.GuildId,
+		ChannelID:     c.Config.ChanelId,
 		MessageFlags:  &flags,
 		MessageID:     &messageId,
 		SessionID:     SessionID,
@@ -131,13 +136,12 @@ func (c *Client) Variation(index int, messageId string, hash string) error {
 		Nonce: fmt.Sprintf("%d", time.Now().UnixNano()),
 	}
 
-	url := "https://discord.com/api/v9/interactions"
 	var res InteractionsResult
-	r, err := c.client.R().SetHeader("Authorization", c.config.UserToken).
+	r, err := c.client.R().SetHeader("Authorization", c.Config.UserToken).
 		SetHeader("Content-Type", "application/json").
 		SetBody(interactionsReq).
 		SetErrorResult(&res).
-		Post(url)
+		Post(c.apiURL)
 	if err != nil || r.IsErrorState() {
 		return fmt.Errorf("error with http request: %v%v%v", err, r.Err, res.Message)
 	}

@@ -50,7 +50,7 @@ type xunFeiResp struct {
 }
 
 var Model2URL = map[string]string{
-	"generalv1": "1.1",
+	"general":   "v1.1",
 	"generalv2": "v2.1",
 	"generalv3": "v3.1",
 }

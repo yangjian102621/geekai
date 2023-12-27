@@ -15,6 +15,7 @@ type MidJourneyJob struct {
 	Hash        string // message hash
 	Progress    int
 	Prompt      string
+	UseProxy    bool // 是否使用反代加载图片
 	CreatedAt   time.Time
 }
 
