@@ -9,7 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm"
+	req2 "github.com/imroc/req/v3"
 	"html/template"
 	"io"
 	"strings"
@@ -56,8 +56,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 		// 循环读取 Chunk 消息
 		var message = types.Message{}
 		var contents = make([]string, 0)
-		var functionCall = false
-		var functionName string
+		var function model.Function
+		var toolCall = false
 		var arguments = make([]string, 0)
 		scanner := bufio.NewScanner(response.Body)
 		for scanner.Scan() {
@@ -75,24 +75,26 @@ func (h *ChatHandler) sendOpenAiMessage(
 				break
 			}
 
-			fun := responseBody.Choices[0].Delta.FunctionCall
-			if functionCall && fun.Name == "" {
-				arguments = append(arguments, fun.Arguments)
-				continue
+			var fun types.ToolCall
+			if len(responseBody.Choices[0].Delta.ToolCalls) > 0 {
+				fun = responseBody.Choices[0].Delta.ToolCalls[0]
+				if toolCall && fun.Function.Name == "" {
+					arguments = append(arguments, fun.Function.Arguments)
+					continue
+				}
 			}
 
 			if !utils.IsEmptyValue(fun) {
-				functionName = fun.Name
-				f := h.App.Functions[functionName]
-				if f != nil {
-					functionCall = true
+				res := h.db.Where("name = ?", fun.Function.Name).First(&function)
+				if res.Error == nil {
+					toolCall = true
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用函数 `%s` 作答 ...\n\n", f.Name())})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)})
 				}
 				continue
 			}
 
-			if responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
+			if responseBody.Choices[0].FinishReason == "tool_calls" { // 函数调用完毕
 				break
 			}
 
@@ -121,47 +123,35 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 		}
 
-		if functionCall { // 调用函数完成任务
+		if toolCall { // 调用函数完成任务
 			var params map[string]interface{}
 			_ = utils.JsonDecode(strings.Join(arguments, ""), &params)
-			logger.Debugf("函数名称: %s, 函数参数：%s", functionName, params)
-
-			// for creating image, check if the user's img_calls > 0
-			if functionName == types.FuncImage && userVo.ImgCalls <= 0 {
-				utils.ReplyMessage(ws, "**当前用户剩余绘图次数已用尽，请扫描下面二维码联系管理员！**")
-				utils.ReplyMessage(ws, ErrImg)
+			logger.Debugf("函数名称: %s, 函数参数：%s", function.Name, params)
+			params["user_id"] = userVo.Id
+			var apiRes types.BizVo
+			r, err := req2.C().R().SetHeader("Content-Type", "application/json").
+				SetHeader("Authorization", function.Token).
+				SetBody(params).
+				SetSuccessResult(&apiRes).Post(function.Action)
+			errMsg := ""
+			if err != nil {
+				errMsg = err.Error()
+			} else if r.IsErrorState() {
+				errMsg = r.Err.Error()
+			}
+			if errMsg != "" || apiRes.Code != types.Success {
+				msg := "调用函数工具出错：" + apiRes.Message + errMsg
+				utils.ReplyChunkMessage(ws, types.WsMessage{
+					Type:    types.WsMiddle,
+					Content: msg,
+				})
+				contents = append(contents, msg)
 			} else {
-				f := h.App.Functions[functionName]
-				// translate prompt
-				if functionName == types.FuncImage {
-					const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
-					r, err := utils.OpenAIRequest(fmt.Sprintf(translatePromptTemplate, params["prompt"]), apiKey, h.App.Config.ProxyURL, chatConfig.OpenAI.ApiURL)
-					if err == nil {
-						params["prompt"] = r
-					}
-				}
-				data, err := f.Invoke(params)
-				if err != nil {
-					msg := "调用函数出错：" + err.Error()
-					utils.ReplyChunkMessage(ws, types.WsMessage{
-						Type:    types.WsMiddle,
-						Content: msg,
-					})
-					contents = append(contents, msg)
-				} else {
-					content := data
-					if functionName == types.FuncImage {
-						content = fmt.Sprintf("下面是根据您的描述创作的图片，他们描绘了 【%s】 的场景。%s", params["prompt"], data)
-						// update user's img_calls
-						h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
-					}
-
-					utils.ReplyChunkMessage(ws, types.WsMessage{
-						Type:    types.WsMiddle,
-						Content: content,
-					})
-					contents = append(contents, content)
-				}
+				utils.ReplyChunkMessage(ws, types.WsMessage{
+					Type:    types.WsMiddle,
+					Content: apiRes.Data,
+				})
+				contents = append(contents, utils.InterfaceToString(apiRes.Data))
 			}
 		}
 
@@ -177,7 +167,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			useMsg := types.Message{Role: "user", Content: prompt}
 
 			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if h.App.ChatConfig.EnableContext && functionCall == false {
+			if h.App.ChatConfig.EnableContext && toolCall == false {
 				chatCtx = append(chatCtx, useMsg)  // 提问消息
 				chatCtx = append(chatCtx, message) // 回复消息
 				h.App.ChatContexts.Put(session.ChatId, chatCtx)
@@ -186,7 +176,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			// 追加聊天记录
 			if h.App.ChatConfig.EnableHistory {
 				useContext := true
-				if functionCall {
+				if toolCall {
 					useContext = false
 				}
 
@@ -214,8 +204,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 				// 计算本次对话消耗的总 token 数量
 				var totalTokens = 0
-				if functionCall { // prompt + 函数名 + 参数 token
-					tokens, _ := utils.CalcTokens(functionName, req.Model)
+				if toolCall { // prompt + 函数名 + 参数 token
+					tokens, _ := utils.CalcTokens(function.Name, req.Model)
 					totalTokens += tokens
 					tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
 					totalTokens += tokens

@@ -214,20 +214,45 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	case types.Baidu:
 		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
 		// TODO： 目前只支持 ERNIE-Bot-turbo 模型，如果是 ERNIE-Bot 模型则需要增加函数支持
+		break
 	case types.OpenAI:
 		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
 		req.MaxTokens = h.App.ChatConfig.OpenAI.MaxTokens
 		// OpenAI 支持函数功能
-		if h.App.SysConfig.EnabledFunction {
-			var functions = make([]types.Function, 0)
-			for _, f := range types.InnerFunctions {
-				functions = append(functions, f)
+		var items []model.Function
+		res := h.db.Where("enabled", true).Find(&items)
+		if res.Error != nil {
+			break
+		}
+
+		var tools = make([]interface{}, 0)
+		for _, v := range items {
+			var parameters map[string]interface{}
+			err = utils.JsonDecode(v.Parameters, &parameters)
+			if err != nil {
+				continue
 			}
-			req.Functions = functions
+			required := parameters["required"]
+			delete(parameters, "required")
+			tools = append(tools, gin.H{
+				"type": "function",
+				"function": gin.H{
+					"name":        v.Name,
+					"description": v.Description,
+					"parameters":  parameters,
+					"required":    required,
+				},
+			})
+		}
+
+		if len(tools) > 0 {
+			req.Tools = tools
+			req.ToolChoice = "auto"
 		}
 	case types.XunFei:
 		req.Temperature = h.App.ChatConfig.XunFei.Temperature
 		req.MaxTokens = h.App.ChatConfig.XunFei.MaxTokens
+		break
 	default:
 		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
 		utils.ReplyMessage(ws, ErrImg)
