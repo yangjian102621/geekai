@@ -358,6 +358,14 @@ func main() {
 			group.GET("token", h.GenToken)
 		}),
 
+		fx.Provide(handler.NewFunctionHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
+			group := s.Engine.Group("/api/function/")
+			group.POST("weibo", h.WeiBo)
+			group.POST("zaobao", h.ZaoBao)
+			group.POST("dalle3", h.Dall3)
+		}),
+
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
 			group := s.Engine.Group("/test/")

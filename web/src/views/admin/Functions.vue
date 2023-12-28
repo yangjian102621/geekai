@@ -220,7 +220,7 @@ const rowEdit = function (index, row) {
 }
 
 const addRow = function () {
-  item.value = {enabled:true}
+  item.value = {enabled: true}
   params.value = []
   showDialog.value = true
 }
@@ -238,7 +238,7 @@ const save = function () {
           required.push(params.value[i].name)
         }
       }
-      item.value.parameters = {type: "object", "properties": properties, "required": required}
+      item.value.parameters = {type: "object", "properties": properties, required: required}
       httpPost('/api/admin/function/save', item.value).then((res) => {
         ElMessage.success('操作成功')
         console.log(res.data)
@@ -274,7 +274,7 @@ const removeParam = function (index) {
   params.value.splice(index, 1);
 }
 
-const functionSet = (filed,row) => {
+const functionSet = (filed, row) => {
   httpPost('/api/admin/function/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
     ElMessage.success("操作成功！")
   }).catch(e => {

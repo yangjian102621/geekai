@@ -1,8 +1,11 @@
 package types
 
-type FunctionCall struct {
-	Name      string `json:"name"`
-	Arguments string `json:"arguments"`
+type ToolCall struct {
+	Type     string `json:"type"`
+	Function struct {
+		Name      string `json:"name"`
+		Arguments string `json:"arguments"`
+	} `json:"function"`
 }
 
 type Function struct {
