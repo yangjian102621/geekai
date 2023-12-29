@@ -299,7 +299,6 @@
   overflow: hidden;
   border-radius: 6px;
   transition: all 0.3s ease; /* 添加过渡效果 */
-  position: relative;
 }
 .page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line {
   margin: 6px 0;
@@ -327,15 +326,6 @@
 .page-mj .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul .show-prompt {
   font-size: 20px;
   cursor: pointer;
-}
-.page-mj .inner .task-list-box .finish-job-list .job-item .remove {
-  display: none;
-  position: absolute;
-  right: 10px;
-  top: 10px;
-}
-.page-mj .inner .task-list-box .finish-job-list .job-item:hover .remove {
-  display: block;
 }
 .page-mj .inner .task-list-box .finish-job-list .animate:hover {
   box-shadow: 0 0 10px rgba(71,255,241,0.6); /* 添加阴影效果 */
