@@ -333,6 +333,8 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 			// 10 分钟还没完成的任务直接删除
 			if time.Now().Sub(item.CreatedAt) > time.Minute*10 {
 				h.db.Delete(&item)
+				// 退回绘图次数
+				h.db.Model(&model.User{}).Where("id = ?", item.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 				continue
 			}
 

@@ -183,6 +183,8 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 			// 5 分钟还没完成的任务直接删除
 			if time.Now().Sub(item.CreatedAt) > time.Minute*5 {
 				h.db.Delete(&item)
+				// 退回绘图次数
+				h.db.Model(&model.User{}).Where("id = ?", item.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 				continue
 			}
 			// 正在运行中任务使用代理访问图片
