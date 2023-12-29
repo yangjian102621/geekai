@@ -24,3 +24,5 @@ ALTER TABLE `chatgpt_mj_jobs` ADD `use_proxy` TINYINT(1) NOT NULL DEFAULT '0' CO
 ALTER TABLE `chatgpt_mj_jobs` CHANGE `img_url` `img_url` VARCHAR(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '图片URL';
 
 ALTER TABLE `chatgpt_functions` ADD `token` VARCHAR(255) NULL COMMENT 'API授权token' AFTER `action`;
+
+ALTER TABLE `chatgpt_functions` DROP `required`;
