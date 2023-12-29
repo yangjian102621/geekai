@@ -1,0 +1,45 @@
+.my-tabbar {
+  background-color  #171717  
+  box-shadow  -3px 4px 16px #000  
+  box-sizing  border-box 
+}
+.banner {
+  display  flex 
+  justify-content  center 
+  align-items  center 
+  background-color  #171717 
+  border-bottom-right-radius  10px 
+  box-shadow  0 -4px 13px #000 
+  height  40px 
+  width  100% 
+  position  fixed 
+  z-index  2    /* Add z-index */
+} 
+.banner-title {
+  color  #2CC995 
+  font-size  20px 
+  font-weight  bold 
+  text-shadow  0 -4px 13px #000 
+}
+.mobile-home {
+  background-color  #171717 
+}
+.mobile-home .van-tabbar  before {
+  position  absolute 
+  bottom  0 
+  left  0 
+  right  0 
+  height  50px 
+  background-color  #171717 
+  border-top-left-radius  10px 
+  border-top-right-radius  10px 
+  opacity  0 
+  transition  opacity 0.5s 
+  z-index  -1 
+}
+.mobile-home .van-tabbar.activeTab  before {
+  opacity  1 
+}
+.router-view {
+  margin-bottom  50px 
+}

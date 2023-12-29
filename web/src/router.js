@@ -23,7 +23,7 @@ const routes = [
             {
                 name: 'image-sd',
                 path: '/sd/',
-                meta: {title: 'Stable Diffusion 绘画中心'},
+                meta: {title: 'stable diffusion 绘画中心'},
                 component: () => import('@/views/ImageSd.vue'),
             },
             {
@@ -80,7 +80,7 @@ const routes = [
     {
         path: '/admin/login',
         name: 'admin-login',
-        meta: {title: 'Chat-Plus 控制台登录'},
+        meta: {title: 'ChatPuls 控制台登录'},
         component: () => import('@/views/admin/Login.vue'),
     },
     {
@@ -88,7 +88,7 @@ const routes = [
         path: '/admin',
         redirect: '/admin/dashboard',
         component: () => import("@/views/admin/Home.vue"),
-        meta: {title: 'ChatGPT-Plus 管理后台'},
+        meta: {title: 'ChatPuls 管理后台'},
         children: [
             {
                 path: '/admin/dashboard',
@@ -151,10 +151,28 @@ const routes = [
                 component: () => import('@/views/admin/LoginLog.vue'),
             },
             {
-                path: '/admin/functions',
-                name: 'admin-functions',
-                meta: {title: '函数管理'},
-                component: () => import('@/views/admin/Functions.vue'),
+                path: '/admin/demo/form',
+                name: 'admin-form',
+                meta: {title: '表单页面'},
+                component: () => import('@/views/admin/demo/Form.vue'),
+            },
+            {
+                path: '/admin/demo/table',
+                name: 'admin-table',
+                meta: {title: '数据列表'},
+                component: () => import('@/views/admin/demo/Table.vue'),
+            },
+            {
+                path: '/admin/demo/import',
+                name: 'admin-import',
+                meta: {title: '导入数据'},
+                component: () => import('@/views/admin/demo/Import.vue'),
+            },
+            {
+                path: '/admin/demo/editor',
+                name: 'admin-editor',
+                meta: {title: '富文本编辑器'},
+                component: () => import('@/views/admin/demo/Editor.vue'),
             },
         ]
     },
@@ -167,7 +185,7 @@ const routes = [
     {
         name: 'mobile',
         path: '/mobile',
-        meta: {title: process.env.VUE_APP_TITLE},
+        meta: {title: 'ChatPuls-智能助手V3'},
         component: () => import('@/views/mobile/Home.vue'),
         redirect: '/mobile/chat/list',
         children: [
@@ -177,14 +195,24 @@ const routes = [
                 component: () => import('@/views/mobile/ChatList.vue'),
             },
             {
-                path: '/mobile/setting',
-                name: 'mobile-setting',
-                component: () => import('@/views/mobile/Setting.vue'),
+                path: '/mobile/imageSd',
+                name: 'mobile-imageSd',
+                component: () => import('@/views/mobile/ImageSd.vue'),
+            },
+            {
+                path: '/mobile/apps',
+                name: 'mobile-apps',
+                component: () => import('@/views/mobile/Apps.vue'),
             },
             {
                 path: '/mobile/profile',
                 name: 'mobile-profile',
                 component: () => import('@/views/mobile/Profile.vue'),
+            },
+            {
+                path: '/mobile/invitation',
+                name: 'mobile-invitation',
+                component: () => import('@/views/mobile/Invitation.vue'),
             },
         ]
     },
