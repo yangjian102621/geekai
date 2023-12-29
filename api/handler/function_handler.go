@@ -7,11 +7,14 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
 	"strings"
+	"time"
 )
 
 type FunctionHandler struct {
@@ -50,8 +53,41 @@ type dataItem struct {
 	Remark string `json:"remark"`
 }
 
+// check authorization
+func (h *FunctionHandler) checkAuth(c *gin.Context) error {
+	tokenString := c.GetHeader(types.UserAuthHeader)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(h.App.Config.Session.SecretKey), nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("error with parse auth token: %v", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return errors.New("token is invalid")
+	}
+
+	expr := utils.IntValue(utils.InterfaceToString(claims["expired"]), 0)
+	if expr > 0 && int64(expr) < time.Now().Unix() {
+		return errors.New("token is expired")
+	}
+
+	return nil
+}
+
 // WeiBo 微博热搜
 func (h *FunctionHandler) WeiBo(c *gin.Context) {
+	if err := h.checkAuth(c); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
 	if h.config.Token == "" {
 		resp.ERROR(c, "无效的 API Token")
 		return
@@ -83,6 +119,11 @@ func (h *FunctionHandler) WeiBo(c *gin.Context) {
 
 // ZaoBao 今日早报
 func (h *FunctionHandler) ZaoBao(c *gin.Context) {
+	if err := h.checkAuth(c); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
 	if h.config.Token == "" {
 		resp.ERROR(c, "无效的 API Token")
 		return
@@ -139,6 +180,11 @@ type ErrRes struct {
 
 // Dall3 DallE3 AI 绘图
 func (h *FunctionHandler) Dall3(c *gin.Context) {
+	if err := h.checkAuth(c); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
 	var params map[string]interface{}
 	if err := c.ShouldBindJSON(&params); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
