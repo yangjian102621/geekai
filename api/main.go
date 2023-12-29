@@ -8,7 +8,6 @@ import (
 	"chatplus/handler/chatimpl"
 	logger2 "chatplus/logger"
 	"chatplus/service"
-	"chatplus/service/fun"
 	"chatplus/service/mj"
 	"chatplus/service/oss"
 	"chatplus/service/payment"
@@ -114,9 +113,6 @@ func main() {
 
 			return xdb.NewWithBuffer(cBuff)
 		}),
-
-		// 创建函数
-		fx.Provide(fun.NewFunctions),
 
 		// 创建控制器
 		fx.Provide(handler.NewChatRoleHandler),
