@@ -106,11 +106,17 @@ onMounted(() => {
           margin-top 0
         }
 
-        p > code {
-          color #2b2b2b
-          background-color #c1c1c1
-          padding 2px 5px
-          border-radius 5px
+        p {
+          code {
+            color #2b2b2b
+            background-color #c1c1c1
+            padding 2px 5px
+            border-radius 5px
+          }
+
+          img {
+            max-width 100%
+          }
         }
       }
     }

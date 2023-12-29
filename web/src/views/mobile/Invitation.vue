@@ -1,85 +1,85 @@
 <template>
-    <div class="page-invitation" :style="{height: listBoxHeight + 'px'}">
-      <div class="inner">
-        <div class="title" style="padding-top: 50px">会员推广计划</div>
-        <div class="share-box">
-          <div class="info">
-            感谢您把此应用分享给您身边的朋友，分享成功注册后您将获得 <strong>{{ inviteChatCalls }}</strong>
-            次对话额度以及
-            <strong>{{ inviteImgCalls }}</strong> 次AI绘画额度作为奖励。
-            你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
-          </div>
-
-          <div class="invite-qrcode">
-            <el-image :src="qrImg" fit="contain" />
-          </div>
-          <div class="invite-url">
-            <span>{{ inviteURL }}</span>
-            <el-button type="primary" plain class="copy-link" :data-clipboard-text="inviteURL">复制链接</el-button>
-          </div>
+  <div class="page-invitation" :style="{height: listBoxHeight + 'px'}">
+    <div class="inner">
+      <div class="title" style="padding-top: 50px">会员推广计划</div>
+      <div class="share-box">
+        <div class="info">
+          感谢您把此应用分享给您身边的朋友，分享成功注册后您将获得 <strong>{{ inviteChatCalls }}</strong>
+          次对话额度以及
+          <strong>{{ inviteImgCalls }}</strong> 次AI绘画额度作为奖励。
+          你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
         </div>
 
-        <div class="invite-stats">
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <div class="item-box yellow">
-                <el-row :gutter="10">
-                  <el-col :span="10">
-                    <div class="item-icon">
-                      <i class="iconfont icon-role"></i>
-                    </div>
-                  </el-col>
-                  <el-col :span="14">
-                    <div class="item-info">
-                      <div class="num">{{ hits }}</div>
-                      <div class="text">点击量</div>
-                    </div>
-                  </el-col>
-                </el-row>
-              </div>
-            </el-col>
-            <el-col :span="8">
-              <div class="item-box blue">
-                <el-row :gutter="10">
-                  <el-col :span="10">
-                    <div class="item-icon">
-                      <i class="iconfont icon-order"></i>
-                    </div>
-                  </el-col>
-                  <el-col :span="14">
-                    <div class="item-info">
-                      <div class="num">{{ regNum }}</div>
-                      <div class="text">注册量</div>
-                    </div>
-                  </el-col>
-                </el-row>
-              </div>
-            </el-col>
-            <el-col :span="8">
-              <div class="item-box green">
-                <el-row :gutter="10">
-                  <el-col :span="10">
-                    <div class="item-icon">
-                      <i class="iconfont icon-chart"></i>
-                    </div>
-                  </el-col>
-                  <el-col :span="14">
-                    <div class="item-info">
-                      <div class="num">{{ rate }}%</div>
-                      <div class="text">转化率</div>
-                    </div>
-                  </el-col>
-                </el-row>
-              </div>
-            </el-col>
-          </el-row>
-          <div class="title" style="padding: 20px">您推荐的用户</div>
-            <div class="invite-logs" style="padding-bottom: 50px">
-              <invite-list v-if="isLogin"/>
+        <div class="invite-qrcode">
+          <el-image :src="qrImg" fit="contain"/>
+        </div>
+        <div class="invite-url">
+          <span>{{ inviteURL }}</span>
+          <el-button type="primary" plain class="copy-link" :data-clipboard-text="inviteURL">复制链接</el-button>
+        </div>
+      </div>
+
+      <div class="invite-stats">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <div class="item-box yellow">
+              <el-row :gutter="10">
+                <!--                <el-col :span="10">-->
+                <!--                  <div class="item-icon">-->
+                <!--                    <i class="iconfont icon-role"></i>-->
+                <!--                  </div>-->
+                <!--                </el-col>-->
+                <el-col :span="24">
+                  <div class="item-info">
+                    <div class="num">{{ hits }}</div>
+                    <div class="text">点击量</div>
+                  </div>
+                </el-col>
+              </el-row>
             </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="item-box blue">
+              <el-row :gutter="10">
+                <!--                <el-col :span="10">-->
+                <!--                  <div class="item-icon">-->
+                <!--                    <i class="iconfont icon-order"></i>-->
+                <!--                  </div>-->
+                <!--                </el-col>-->
+                <el-col :span="24">
+                  <div class="item-info">
+                    <div class="num">{{ regNum }}</div>
+                    <div class="text">注册量</div>
+                  </div>
+                </el-col>
+              </el-row>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="item-box green">
+              <el-row :gutter="10">
+                <!--                <el-col :span="10">-->
+                <!--                  <div class="item-icon">-->
+                <!--                    <i class="iconfont icon-chart"></i>-->
+                <!--                  </div>-->
+                <!--                </el-col>-->
+                <el-col :span="24">
+                  <div class="item-info">
+                    <div class="num">{{ rate }}%</div>
+                    <div class="text">转化率</div>
+                  </div>
+                </el-col>
+              </el-row>
+            </div>
+          </el-col>
+        </el-row>
+        <div class="title" style="padding: 20px">您推荐的用户</div>
+        <div class="invite-logs" style="padding-bottom: 50px">
+          <invite-list v-if="isLogin"/>
         </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -148,5 +148,5 @@ onMounted(() => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/mobile-invitation.styl"
+@import "@/assets/css/mobile/invitation.styl"
 </style>

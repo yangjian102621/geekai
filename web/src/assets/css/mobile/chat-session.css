@@ -1,0 +1,45 @@
+.app-background {
+  background-color: #1c1c1c;
+  height: 100vh;
+}
+body,
+.mobile-chat,
+.van-sticky,
+.van-nav-bar,
+.van-list,
+.message-list-box,
+.van-cell,
+.chat-box,
+.van-cell-group,
+.van-field {
+  background-color: #1c1c1c !important;
+  color: #fff !important;
+}
+.chat-box-wrapper {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #1c1c1c;
+}
+.icon-box .van-icon,
+.mobile-chat .van-nav-bar__title .van-dropdown-menu__title,
+.mobile-chat .van-nav-bar__title .van-cell__title,
+.mobile-chat .van-nav-bar__right .van-icon {
+  color: #fff !important;
+}
+.mobile-chat .van-nav-bar__title .van-dropdown-menu__title {
+  margin-right: 15px;
+}
+.mobile-chat .van-nav-bar__title .van-cell__title {
+  text-align: left;
+}
+.mobile-chat .chat-list-wrapper {
+  position: fixed;
+  top: 50px;
+  bottom: 60px;
+  width: 100vw;
+  overflow-y: scroll;
+}
+.mobile-chat .van-nav-bar__right .van-icon {
+  font-size: 20px;
+}
