@@ -1,0 +1,142 @@
+.task-list-box {
+  width 100%
+  padding 5px
+  color #ffffff
+  overflow-x hidden
+
+
+  .running-job-list {
+    .job-item {
+      //border: 1px solid #454545;
+      width: 100%;
+      padding 2px
+      background-color #555555
+
+      .job-item-inner {
+        position relative
+        height 100%
+        overflow hidden
+
+        .progress {
+          position absolute
+          width 100%
+          height 100%
+          top 0
+          left 0
+          display flex
+          justify-content center
+          align-items center
+
+          span {
+            font-size 20px
+            color #ffffff
+          }
+        }
+      }
+    }
+  }
+
+
+  .finish-job-list {
+    .job-item {
+      width 100%
+      height 100%
+      border 1px solid #666666
+      padding 6px
+      overflow hidden
+      border-radius 6px
+      transition: all 0.3s ease; /* 添加过渡效果 */
+
+      .opt {
+        .opt-line {
+          margin 6px 0
+
+          ul {
+            display flex
+            flex-flow row
+
+            li {
+              margin-right 6px
+
+              a {
+                padding 3px 0
+                width 40px
+                text-align center
+                border-radius 5px
+                display block
+                cursor pointer
+                background-color #4E5058
+                color #ffffff
+
+                &:hover {
+                  background-color #6D6F78
+                }
+              }
+            }
+
+            .show-prompt {
+              font-size 20px
+              cursor pointer
+            }
+          }
+        }
+      }
+    }
+
+    .animate {
+      &:hover {
+        box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+        transform: translateY(-10px); /* 向上移动10像素 */
+      }
+    }
+
+  }
+
+  .el-image {
+    width 100%
+    height 100%
+    overflow visible
+
+    img {
+      height 240px
+    }
+
+    .el-image-viewer__wrapper {
+      img {
+        width auto
+        height auto
+      }
+    }
+
+    .image-slot {
+      display flex
+      flex-flow column
+      justify-content center
+      align-items center
+      height 100%
+      min-height 200px
+      color #ffffff
+      height 240px
+
+      .iconfont {
+        font-size 50px
+        margin-bottom 10px
+      }
+    }
+  }
+
+  .el-image.upscale {
+    max-height 310px
+
+    img {
+      height 310px
+    }
+
+    .el-image-viewer__wrapper {
+      img {
+        width auto
+        height auto
+      }
+    }
+  }
+}
