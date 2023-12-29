@@ -158,7 +158,6 @@ type SystemConfig struct {
 	EnabledRegister  bool     `json:"enabled_register"`    // 是否启用注册功能，关闭注册功能之后将无法注册
 	EnabledMsg       bool     `json:"enabled_msg"`         // 是否启用短信验证码服务
 	RewardImg        string   `json:"reward_img"`          // 众筹收款二维码地址
-	EnabledFunction  bool     `json:"enabled_function"`    // 启用 API 函数功能
 	EnabledReward    bool     `json:"enabled_reward"`      // 启用众筹功能
 	EnabledAlipay    bool     `json:"enabled_alipay"`      // 是否启用支付宝支付通道
 	OrderPayTimeout  int      `json:"order_pay_timeout"`   //订单支付超时时间
