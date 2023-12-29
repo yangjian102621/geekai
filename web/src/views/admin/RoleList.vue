@@ -23,8 +23,7 @@
         <el-table-column label="角色标识" prop="key"/>
         <el-table-column label="启用状态">
           <template #default="scope">
-            <el-tag v-if="scope.row.enable" type="success">启用</el-tag>
-            <el-tag type="danger" v-else>禁用</el-tag>
+            <el-switch v-model="scope.row['enable']" @change="roleSet('enable',scope.row)"/>
           </template>
         </el-table-column>
         <el-table-column label="角色图标" prop="icon">
@@ -201,21 +200,11 @@ onMounted(() => {
   })
 })
 
-const editSort = function (event, row) {
-  event.stopPropagation()
-  editRow.value.id = row.id
-  editRow.value.sort = row.sort
-}
-const updateSort = function (row) {
-  if (row.sort === editRow.value.sort) {
-    editRow.value.id = 0
-    return
-  }
-
-  httpPost('/api/admin/role/sort', {"id": row.id, "sort": row.sort}).then(() => {
-    editRow.value.id = 0
-  }).catch(() => {
-    ElMessage.error("更新失败！")
+const roleSet = (filed, row) => {
+  httpPost('/api/admin/role/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
+    ElMessage.success("操作成功！")
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message)
   })
 }
 

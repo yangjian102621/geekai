@@ -98,6 +98,26 @@ func (h *ChatRoleHandler) Sort(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
+func (h *ChatRoleHandler) Set(c *gin.Context) {
+	var data struct {
+		Id    uint        `json:"id"`
+		Filed string      `json:"filed"`
+		Value interface{} `json:"value"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	res := h.db.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败！")
+		return
+	}
+	resp.SUCCESS(c)
+}
+
 func (h *ChatRoleHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 	if id <= 0 {
