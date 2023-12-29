@@ -3,7 +3,6 @@ package core
 import (
 	"bytes"
 	"chatplus/core/types"
-	"chatplus/service/fun"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
@@ -39,10 +38,9 @@ type AppServer struct {
 	ChatSession   *types.LMap[string, *types.ChatSession] //map[sessionId]UserId
 	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
 	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
-	Functions     map[string]fun.Function
 }
 
-func NewServer(appConfig *types.AppConfig, functions map[string]fun.Function) *AppServer {
+func NewServer(appConfig *types.AppConfig) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
@@ -53,7 +51,6 @@ func NewServer(appConfig *types.AppConfig, functions map[string]fun.Function) *A
 		ChatSession:   types.NewLMap[string, *types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
-		Functions:     functions,
 	}
 }
 
@@ -159,6 +156,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 			c.Request.URL.Path == "/api/sd/jobs" ||
 			c.Request.URL.Path == "/api/upload" ||
 			strings.HasPrefix(c.Request.URL.Path, "/test/") ||
+			strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/payment/") ||

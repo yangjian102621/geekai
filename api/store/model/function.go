@@ -6,7 +6,6 @@ type Function struct {
 	Label       string
 	Description string
 	Parameters  string
-	Required    string
 	Action      string
 	Token       string
 	Enabled     bool

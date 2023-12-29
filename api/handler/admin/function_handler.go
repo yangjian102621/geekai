@@ -39,7 +39,6 @@ func (h *FunctionHandler) Save(c *gin.Context) {
 		Label:       data.Label,
 		Description: data.Description,
 		Parameters:  utils.JsonEncode(data.Parameters),
-		Required:    utils.JsonEncode(data.Required),
 		Action:      data.Action,
 		Token:       data.Token,
 		Enabled:     data.Enabled,

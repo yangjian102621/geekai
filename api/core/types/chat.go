@@ -8,7 +8,8 @@ type ApiRequest struct {
 	Stream      bool          `json:"stream"`
 	Messages    []interface{} `json:"messages,omitempty"`
 	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
-	Functions   []Function    `json:"functions,omitempty"`
+	Tools       []interface{} `json:"tools,omitempty"`
+	ToolChoice  string        `json:"tool_choice,omitempty"`
 }
 
 type Message struct {
@@ -27,10 +28,10 @@ type ChoiceItem struct {
 }
 
 type Delta struct {
-	Role         string       `json:"role"`
-	Name         string       `json:"name"`
-	Content      interface{}  `json:"content"`
-	FunctionCall FunctionCall `json:"function_call,omitempty"`
+	Role      string      `json:"role"`
+	Name      string      `json:"name"`
+	Content   interface{} `json:"content"`
+	ToolCalls []ToolCall  `json:"tool_calls,omitempty"`
 }
 
 // ChatSession 聊天会话对象
