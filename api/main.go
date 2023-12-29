@@ -276,6 +276,7 @@ func main() {
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
 			group.POST("sort", h.Sort)
+			group.POST("set", h.Set)
 			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
