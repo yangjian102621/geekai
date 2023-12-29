@@ -364,8 +364,7 @@ func main() {
 
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
-			group := s.Engine.Group("/test/")
-			group.GET("pay", h.TestPay)
+			s.Engine.GET("/api/test", h.Test)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)

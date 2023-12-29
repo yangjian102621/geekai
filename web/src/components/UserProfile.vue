@@ -14,7 +14,10 @@
           </el-icon>
         </el-upload>
       </el-row>
-      <el-form-item label="账户">
+      <el-form-item label="昵称">
+        {{ user['nickname'] }}
+      </el-form-item>
+      <el-form-item label="手机号">
         <span>{{ user.mobile }}</span>
         <el-tooltip
             class="box-item"

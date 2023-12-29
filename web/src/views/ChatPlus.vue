@@ -43,7 +43,7 @@
           <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="isLogin">
                         <span class="el-dropdown-link">
                           <el-image :src="loginUser.avatar"/>
-                          <span class="username">{{ '极客学长@' + loginUser.mobile }}</span>
+                          <span class="username">{{ loginUser.nickname }}</span>
                           <el-icon><ArrowDown/></el-icon>
                         </span>
             <template #dropdown>
@@ -105,12 +105,12 @@
                   :value="item.id"
               />
             </el-select>
-                        <el-button type="primary" @click="newChat">
-                          <el-icon>
-                            <Plus/>
-                          </el-icon>
-                          新建对话
-                        </el-button>
+            <el-button type="primary" @click="newChat">
+              <el-icon>
+                <Plus/>
+              </el-icon>
+              新建对话
+            </el-button>
 
             <el-button type="success" @click="exportChat" plain>
               <i class="iconfont icon-export"></i>
