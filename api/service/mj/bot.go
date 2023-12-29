@@ -104,7 +104,7 @@ func (b *Bot) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	// ignore messages for self
-	if m.Author.ID == s.State.User.ID {
+	if m.Author == nil || m.Author.ID == s.State.User.ID {
 		return
 	}
 
@@ -136,7 +136,7 @@ func (b *Bot) messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 		return
 	}
 	// ignore messages for self
-	if m.Author.ID == s.State.User.ID {
+	if m.Author == nil || m.Author.ID == s.State.User.ID {
 		return
 	}
 

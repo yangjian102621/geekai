@@ -267,11 +267,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		} else {
 			// calculate the tokens of current request, to prevent to exceeding the max tokens num
 			tokens := req.MaxTokens
-			for _, f := range types.InnerFunctions {
-				tks, _ := utils.CalcTokens(utils.JsonEncode(f), req.Model)
-				tokens += tks
-			}
-
+			tks, _ := utils.CalcTokens(utils.JsonEncode(req.Tools), req.Model)
+			tokens += tks
 			// loading the role context
 			var messages []types.Message
 			err := utils.JsonDecode(role.Context, &messages)
