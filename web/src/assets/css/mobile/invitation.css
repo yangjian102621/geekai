@@ -1,0 +1,93 @@
+.page-invitation {
+  display: flex;
+  justify-content: center;
+  background-color: #1c1c1c;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+.page-invitation .inner {
+  max-width: 100%;
+  width: 100%;
+  color: #fff;
+}
+.page-invitation .inner .center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.page-invitation .inner .title {
+  color: #fff;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+.page-invitation .inner .share-box .info {
+  line-height: 1.5;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px;
+  background-color: #1c1c1c;
+}
+.page-invitation .inner .share-box .info strong {
+  color: #f56c6c;
+}
+.page-invitation .inner .share-box .invite-qrcode {
+  text-align: center;
+  margin: 15px;
+}
+.page-invitation .inner .share-box .invite-url {
+  margin: 10px;
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #444;
+  border-radius: 10px;
+  background-color: #1c1c1c;
+}
+.page-invitation .inner .share-box .invite-url span {
+  position: relative;
+  font-size: 14px;
+  font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  top: 0px;
+}
+.page-invitation .inner .invite-stats {
+  padding: 10px 10px;
+}
+.page-invitation .inner .invite-stats .item-box {
+  border-radius: 10px;
+  padding: 10 0px;
+}
+.page-invitation .inner .invite-stats .item-box .el-col {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-invitation .inner .invite-stats .item-box .el-col .iconfont {
+  font-size: 30px;
+}
+.page-invitation .inner .invite-stats .item-box .el-col .item-info {
+  font-size: 14px;
+}
+.page-invitation .inner .invite-stats .item-box .el-col .item-info .text,
+.page-invitation .inner .invite-stats .item-box .el-col .item-info .num {
+  padding: 3px 0;
+  text-align: center;
+}
+.page-invitation .inner .invite-stats .item-box .el-col .item-info .num {
+  font-size: 14px;
+}
+.page-invitation .inner .invite-stats .yellow {
+  background-color: #fec;
+  color: #d68f00;
+}
+.page-invitation .inner .invite-stats .blue {
+  background-color: #d6e4ff;
+  color: #1062fe;
+}
+.page-invitation .inner .invite-stats .green {
+  background-color: #e7f8eb;
+  color: #2d9f46;
+}

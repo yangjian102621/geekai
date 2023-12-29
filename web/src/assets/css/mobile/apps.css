@@ -8,13 +8,10 @@
   background-color: #282828;
   height: 100vh;
 }
-.mobile-setting {
-  .content {
-    padding-top: 60px;
-
-    .van-field__label {
-      width: 100px;
-      text-align: right;
-    }
-  }
+.mobile-setting .content {
+  padding-top: 60px;
+}
+.mobile-setting .content .van-field__label {
+  width: 100px;
+  text-align: right;
 }

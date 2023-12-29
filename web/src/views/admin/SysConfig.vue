@@ -373,7 +373,7 @@ const uploadRewardImg = (file) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/admin-form.styl"
+@import "@/assets/css/admin/form.styl"
 .system-config {
   display flex
   justify-content center

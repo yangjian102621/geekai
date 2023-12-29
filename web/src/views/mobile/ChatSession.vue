@@ -1,93 +1,93 @@
 <template>
   <div class="app-background">
-  <van-config-provider theme="dark">
-    <div class="mobile-chat" v-loading="loading" element-loading-text="正在连接会话...">
-  <van-sticky ref="navBarRef" :offset-top="0" position="top">
-    <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
-          <template #title>
-            <van-dropdown-menu>
-              <van-dropdown-item :title="title">
-                <van-cell center title="角色"> {{ role.name }}</van-cell>
-                <van-cell center title="模型">{{ modelValue }}</van-cell>
-              </van-dropdown-item>
-            </van-dropdown-menu>
-          </template>
-
-          <template #right>
-            <van-icon name="share-o" @click="showShare = true"/>
-          </template>
-
-        </van-nav-bar>
-      </van-sticky>
-
-      <van-share-sheet
-          v-model:show="showShare"
-          title="立即分享给好友"
-          :options="shareOptions"
-          @select="shareChat"
-      />
-
-      <div class="chat-list-wrapper">  
-      <div id="message-list-box" :style="{height: winHeight + 'px'}" class="message-list-box">
-        <van-list
-            v-model:error="error"
-            :finished="finished"
-            error-text="请求失败，点击重新加载"
-            @load="onLoad"
-        >
-          <van-cell v-for="item in chatData" :key="item" :border="false" class="message-line">
-            <chat-prompt
-                v-if="item.type==='prompt'"
-                :content="item.content"
-                :created-at="dateFormat(item['created_at'])"
-                :icon="item.icon"
-                :model="model"
-                :tokens="item['tokens']"/>
-            <chat-reply v-else-if="item.type==='reply'"
-                        :content="item.content"
-                        :created-at="dateFormat(item['created_at'])"
-                        :icon="item.icon"
-                        :org-content="item.orgContent"
-                        :tokens="item['tokens']"/>
-            <chat-mid-journey v-else-if="item.type==='mj'"
-                              :content="item.content"
-                              :icon="item.icon"
-                              :role-id="role"
-                              :chat-id="chatId"
-                              @disable-input="disableInput(true)"
-                              @enable-input="enableInput"
-                              :created-at="dateFormat(item['created_at'])"/>
-          </van-cell>
-        </van-list>
-      </div>
-      </div>
-      <div class="chat-box-wrapper">
-      <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
-
-        <van-cell-group inset>
-          <van-field
-          v-model="prompt"
-          center
-          clearable
-          placeholder="输入你的问题"
-          >
-            <template #button>
-              <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
+    <van-config-provider theme="dark">
+      <div class="mobile-chat" v-loading="loading" element-loading-text="正在连接会话...">
+        <van-sticky ref="navBarRef" :offset-top="0" position="top">
+          <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
+            <template #title>
+              <van-dropdown-menu>
+                <van-dropdown-item :title="title">
+                  <van-cell center title="角色"> {{ role.name }}</van-cell>
+                  <van-cell center title="模型">{{ modelValue }}</van-cell>
+                </van-dropdown-item>
+              </van-dropdown-menu>
             </template>
-            <template #extra>
-              <div class="icon-box">
-                <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate"/>
-                <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate"/>
-              </div>
-            </template>
-          </van-field>
-        </van-cell-group>
 
-      </van-sticky>
-    </div>
+            <template #right>
+              <van-icon name="share-o" @click="showShare = true"/>
+            </template>
+
+          </van-nav-bar>
+        </van-sticky>
+
+        <van-share-sheet
+            v-model:show="showShare"
+            title="立即分享给好友"
+            :options="shareOptions"
+            @select="shareChat"
+        />
+
+        <div class="chat-list-wrapper">
+          <div id="message-list-box" :style="{height: winHeight + 'px'}" class="message-list-box">
+            <van-list
+                v-model:error="error"
+                :finished="finished"
+                error-text="请求失败，点击重新加载"
+                @load="onLoad"
+            >
+              <van-cell v-for="item in chatData" :key="item" :border="false" class="message-line">
+                <chat-prompt
+                    v-if="item.type==='prompt'"
+                    :content="item.content"
+                    :created-at="dateFormat(item['created_at'])"
+                    :icon="item.icon"
+                    :model="model"
+                    :tokens="item['tokens']"/>
+                <chat-reply v-else-if="item.type==='reply'"
+                            :content="item.content"
+                            :created-at="dateFormat(item['created_at'])"
+                            :icon="item.icon"
+                            :org-content="item.orgContent"
+                            :tokens="item['tokens']"/>
+                <chat-mid-journey v-else-if="item.type==='mj'"
+                                  :content="item.content"
+                                  :icon="item.icon"
+                                  :role-id="role"
+                                  :chat-id="chatId"
+                                  @disable-input="disableInput(true)"
+                                  @enable-input="enableInput"
+                                  :created-at="dateFormat(item['created_at'])"/>
+              </van-cell>
+            </van-list>
+          </div>
+        </div>
+        <div class="chat-box-wrapper">
+          <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
+
+            <van-cell-group inset>
+              <van-field
+                  v-model="prompt"
+                  center
+                  clearable
+                  placeholder="输入你的问题"
+              >
+                <template #button>
+                  <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
+                </template>
+                <template #extra>
+                  <div class="icon-box">
+                    <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate"/>
+                    <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate"/>
+                  </div>
+                </template>
+              </van-field>
+            </van-cell-group>
+
+          </van-sticky>
+        </div>
+      </div>
+    </van-config-provider>
   </div>
-  </van-config-provider>
-</div>
 </template>
 
 <script setup>
@@ -410,5 +410,5 @@ const shareChat = () => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/mobile-chat-session.css"
+@import "@/assets/css/mobile/chat-session.css"
 </style>

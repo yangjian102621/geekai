@@ -1,50 +1,51 @@
 <template>
   <div class="app-background" theme="dark">
-  <div class="member">
-    <div class="title" style="padding-top: 50px">
-      会员中心
-    </div>
-    <div class="inner" :style="{height: listBoxHeight + 'px'}">
-      <div class="product-box">
-            <ItemList :items="list" v-if="list.length > 0" :gap="30" >
-              <template #default="scope">
-                <div class="product-item" :style="{width: scope.width+'px'}">
-                  <div class="image-container">
-                    <el-image :src="vipImg" fit="cover"/>
+    <div class="member">
+      <div class="title" style="padding-top: 50px">
+        会员中心
+      </div>
+      <div class="inner" :style="{height: listBoxHeight + 'px'}">
+        <div class="product-box">
+          <ItemList :items="list" v-if="list.length > 0" :gap="30">
+            <template #default="scope">
+              <div class="product-item" :style="{width: scope.width+'px'}">
+                <div class="image-container">
+                  <el-image :src="vipImg" fit="cover"/>
+                </div>
+                <div class="product-title">
+                  <span class="name">{{ scope.item.name }}</span>
+                </div>
+                <div class="product-info">
+                  <div class="info-line">
+                    <span class="label">商品原价：</span>
+                    <span class="price">￥{{ scope.item.price }}</span>
                   </div>
-                  <div class="product-title">
-                    <span class="name">{{ scope.item.name }}</span>
+                  <div class="info-line">
+                    <span class="label">促销立减：</span>
+                    <span class="price">￥{{ scope.item.discount }}</span>
                   </div>
-                  <div class="product-info">
-                    <div class="info-line">
-                      <span class="label">商品原价：</span>
-                      <span class="price">￥{{ scope.item.price }}</span>
-                    </div>
-                    <div class="info-line">
-                      <span class="label">促销立减：</span>
-                      <span class="price">￥{{ scope.item.discount }}</span>
-                    </div>
-                    <div class="info-line">
-                      <span class="label">有效期：</span>
-                      <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
-                      <span class="expire" v-else>当月有效</span>
-                    </div>
+                  <div class="info-line">
+                    <span class="label">有效期：</span>
+                    <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
+                    <span class="expire" v-else>当月有效</span>
+                  </div>
 
-                    <div class="pay-way">
-                      <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
-                        <i class="iconfont icon-alipay"></i> 支付宝
-                      </el-button>
-                      <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
-                        <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
-                        <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
-                      </el-button>
-                    </div>
+                  <div class="pay-way">
+                    <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
+                      <i class="iconfont icon-alipay"></i> 支付宝
+                    </el-button>
+                    <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
+                      <span v-if="payWays['hupi']['name'] === 'wechat'"><i
+                          class="iconfont icon-wechat-pay"></i> 微信</span>
+                      <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
+                    </el-button>
                   </div>
                 </div>
-              </template>
-            </ItemList>
-          </div>
-      <el-row>
+              </div>
+            </template>
+          </ItemList>
+        </div>
+        <el-row>
           <div class="user-profile">
             <user-profile/>
             <el-row class="user-opt" :gutter="20">
@@ -66,62 +67,62 @@
               </el-col>
             </el-row>
           </div>
-      </el-row>
+        </el-row>
+      </div>
+      <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
+      <password-dialog v-if="isLogin" :show="showPasswordDialog" width="100%" @hide="showPasswordDialog = false"
+                       @logout="logout"/>
+      <bind-mobile v-if="isLogin" :show="showBindMobileDialog" width="100%" :mobile="user.mobile"
+                   @hide="showBindMobileDialog = false"/>
+      <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
+      <el-dialog
+          v-model="showRewardDialog"
+          :show-close="true"
+          width="100%"
+          title="参与众筹"
+      >
+        <el-alert type="info" :closable="false">
+          <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
+            账单和服务器的费用。<strong
+                style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号,点击【众筹核销】按钮手动核销。</strong>
+          </div>
+        </el-alert>
+        <div style="text-align: center;padding-top: 10px;">
+          <el-image v-if="enableReward" :src="rewardImg"/>
+        </div>
+      </el-dialog>
+
+      <el-dialog
+          v-model="showPayDialog"
+          :close-on-click-modal="false"
+          :show-close="true"
+          :width="400"
+          title="充值订单支付">
+        <div class="pay-container">
+          <div class="count-down">
+            <count-down :second="orderTimeout" @timeout="refreshPayCode" ref="countDownRef"/>
+          </div>
+
+          <div class="pay-qrcode" v-loading="loading">
+            <el-image :src="qrcode"/>
+          </div>
+
+          <div class="tip success" v-if="text !== ''">
+            <el-icon>
+              <SuccessFilled/>
+            </el-icon>
+            <span class="text">{{ text }}</span>
+          </div>
+          <div class="tip" v-else>
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+            <span class="text">请打开手机{{ payName }}扫码支付</span>
+          </div>
+        </div>
+      </el-dialog>
     </div>
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
-    <password-dialog v-if="isLogin" :show="showPasswordDialog" width="100%" @hide="showPasswordDialog = false"
-                     @logout="logout"/>
-    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" width="100%" :mobile="user.mobile"
-                 @hide="showBindMobileDialog = false"/>
-    <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
-    <el-dialog
-        v-model="showRewardDialog"
-        :show-close="true"
-        width="100%"
-        title="参与众筹"
-    >
-      <el-alert type="info" :closable="false">
-        <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
-          账单和服务器的费用。<strong
-              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号,点击【众筹核销】按钮手动核销。</strong>
-        </div>
-      </el-alert>
-      <div style="text-align: center;padding-top: 10px;">
-        <el-image v-if="enableReward" :src="rewardImg"/>
-      </div>
-    </el-dialog>
-
-    <el-dialog
-        v-model="showPayDialog"
-        :close-on-click-modal="false"
-        :show-close="true"
-        :width="400"
-        title="充值订单支付">
-      <div class="pay-container">
-        <div class="count-down">
-          <count-down :second="orderTimeout" @timeout="refreshPayCode" ref="countDownRef"/>
-        </div>
-
-        <div class="pay-qrcode" v-loading="loading">
-          <el-image :src="qrcode"/>
-        </div>
-
-        <div class="tip success" v-if="text !== ''">
-          <el-icon>
-            <SuccessFilled/>
-          </el-icon>
-          <span class="text">{{ text }}</span>
-        </div>
-        <div class="tip" v-else>
-          <el-icon>
-            <InfoFilled/>
-          </el-icon>
-          <span class="text">请打开手机{{ payName }}扫码支付</span>
-        </div>
-      </div>
-    </el-dialog>
   </div>
-</div>
 </template>
 
 <script setup>
@@ -290,5 +291,5 @@ const logout = function () {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/mobile-profile.styl"
+@import "@/assets/css/mobile/profile.styl"
 </style>

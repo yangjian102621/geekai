@@ -43,204 +43,204 @@
                 </template>
               </el-form-item>
             </div>
-<!-- 这是一个示例注释
-            <div class="param-line">
-              <el-form-item label="迭代步数">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-input v-model.number="params.steps" size="small"/>
-                    <el-tooltip
-                        effect="light"
-                        content="值越大则代表细节越多，同时也意味着出图速度越慢"
-                        raw-content
-                        placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled/>
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+            <!-- 这是一个示例注释
+                        <div class="param-line">
+                          <el-form-item label="迭代步数">
+                            <template #default>
+                              <div class="form-item-inner">
+                                <el-input v-model.number="params.steps" size="small"/>
+                                <el-tooltip
+                                    effect="light"
+                                    content="值越大则代表细节越多，同时也意味着出图速度越慢"
+                                    raw-content
+                                    placement="right"
+                                >
+                                  <el-icon>
+                                    <InfoFilled/>
+                                  </el-icon>
+                                </el-tooltip>
+                              </div>
+                            </template>
+                          </el-form-item>
+                        </div>
 
-            <div class="param-line">
-              <el-form-item label="引导系数">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-input v-model.number="params.cfg_scale" size="small"/>
-                    <el-tooltip
-                        effect="light"
-                        content="提示词引导系数，图像在多大程度上服从提示词<br/> 较低值会产生更有创意的结果"
-                        raw-content
-                        placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled/>
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+                        <div class="param-line">
+                          <el-form-item label="引导系数">
+                            <template #default>
+                              <div class="form-item-inner">
+                                <el-input v-model.number="params.cfg_scale" size="small"/>
+                                <el-tooltip
+                                    effect="light"
+                                    content="提示词引导系数，图像在多大程度上服从提示词<br/> 较低值会产生更有创意的结果"
+                                    raw-content
+                                    placement="right"
+                                >
+                                  <el-icon>
+                                    <InfoFilled/>
+                                  </el-icon>
+                                </el-tooltip>
+                              </div>
+                            </template>
+                          </el-form-item>
+                        </div>
 
-            <div class="param-line">
-              <el-form-item label="随机因子">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-input v-model.number="params.seed" size="small"/>
-                    <el-tooltip
-                        effect="light"
-                        content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
-                        raw-content
-                        placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled/>
-                      </el-icon>
-                    </el-tooltip>
+                        <div class="param-line">
+                          <el-form-item label="随机因子">
+                            <template #default>
+                              <div class="form-item-inner">
+                                <el-input v-model.number="params.seed" size="small"/>
+                                <el-tooltip
+                                    effect="light"
+                                    content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
+                                    raw-content
+                                    placement="right"
+                                >
+                                  <el-icon>
+                                    <InfoFilled/>
+                                  </el-icon>
+                                </el-tooltip>
 
-                    <el-tooltip
-                        effect="light"
-                        content="使用随机数"
-                        raw-content
-                        placement="right"
-                    >
-                      <el-icon @click="params.seed = -1">
-                        <Orange/>
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
- -->
- <!-- 这是一个示例注释
-            <div class="param-line">
-              <el-form-item label="面部修复">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-switch v-model="params.face_fix" style="--el-switch-on-color: #47fff1;"/>
-                    <el-tooltip
-                        effect="light"
-                        content="仅对绘制人物图像有效果。"
-                        raw-content
-                        placement="right"
-                    >
-                      <el-icon style="margin-top: 6px">
-                        <InfoFilled/>
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+                                <el-tooltip
+                                    effect="light"
+                                    content="使用随机数"
+                                    raw-content
+                                    placement="right"
+                                >
+                                  <el-icon @click="params.seed = -1">
+                                    <Orange/>
+                                  </el-icon>
+                                </el-tooltip>
+                              </div>
+                            </template>
+                          </el-form-item>
+                        </div>
+             -->
+            <!-- 这是一个示例注释
+                       <div class="param-line">
+                         <el-form-item label="面部修复">
+                           <template #default>
+                             <div class="form-item-inner">
+                               <el-switch v-model="params.face_fix" style="--el-switch-on-color: #47fff1;"/>
+                               <el-tooltip
+                                   effect="light"
+                                   content="仅对绘制人物图像有效果。"
+                                   raw-content
+                                   placement="right"
+                               >
+                                 <el-icon style="margin-top: 6px">
+                                   <InfoFilled/>
+                                 </el-icon>
+                               </el-tooltip>
+                             </div>
+                           </template>
+                         </el-form-item>
+                       </div>
 
-            <div class="param-line">
-              <el-form-item label="高清修复">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;"/>
-                    <el-tooltip
-                        effect="light"
-                        content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节"
-                        raw-content
-                        placement="right"
-                    >
-                      <el-icon style="margin-top: 6px">
-                        <InfoFilled/>
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+                       <div class="param-line">
+                         <el-form-item label="高清修复">
+                           <template #default>
+                             <div class="form-item-inner">
+                               <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;"/>
+                               <el-tooltip
+                                   effect="light"
+                                   content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节"
+                                   raw-content
+                                   placement="right"
+                               >
+                                 <el-icon style="margin-top: 6px">
+                                   <InfoFilled/>
+                                 </el-icon>
+                               </el-tooltip>
+                             </div>
+                           </template>
+                         </el-form-item>
+                       </div>
 
-            <div v-show="params.hd_fix">
-              <div class="param-line">
-                <el-form-item label="重绘幅度">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-slider v-model.number="params.hd_redraw_rate" :max="1" :step="0.1"
-                                 style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
-                      <el-tooltip
-                          effect="light"
-                          content="决定算法对图像内容的影响程度<br />较大的值将得到越有创意的图像"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon style="margin-top: 6px">
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
+                       <div v-show="params.hd_fix">
+                         <div class="param-line">
+                           <el-form-item label="重绘幅度">
+                             <template #default>
+                               <div class="form-item-inner">
+                                 <el-slider v-model.number="params.hd_redraw_rate" :max="1" :step="0.1"
+                                            style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
+                                 <el-tooltip
+                                     effect="light"
+                                     content="决定算法对图像内容的影响程度<br />较大的值将得到越有创意的图像"
+                                     raw-content
+                                     placement="right"
+                                 >
+                                   <el-icon style="margin-top: 6px">
+                                     <InfoFilled/>
+                                   </el-icon>
+                                 </el-tooltip>
+                               </div>
+                             </template>
+                           </el-form-item>
+                         </div>
 
-              <div class="param-line">
-                <el-form-item label="放大算法">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-select v-model="params.hd_scale_alg" size="small">
-                        <el-option v-for="item in scaleAlg" :label="item" :value="item" :key="item"/>
-                      </el-select>
-                      <el-tooltip
-                          effect="light"
-                          content="高清修复放大算法，主流算法有Latent和ESRGAN_4x"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
+                         <div class="param-line">
+                           <el-form-item label="放大算法">
+                             <template #default>
+                               <div class="form-item-inner">
+                                 <el-select v-model="params.hd_scale_alg" size="small">
+                                   <el-option v-for="item in scaleAlg" :label="item" :value="item" :key="item"/>
+                                 </el-select>
+                                 <el-tooltip
+                                     effect="light"
+                                     content="高清修复放大算法，主流算法有Latent和ESRGAN_4x"
+                                     raw-content
+                                     placement="right"
+                                 >
+                                   <el-icon>
+                                     <InfoFilled/>
+                                   </el-icon>
+                                 </el-tooltip>
+                               </div>
+                             </template>
+                           </el-form-item>
+                         </div>
 
-              <div class="param-line">
-                <el-form-item label="放大倍数">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-input v-model.number="params.hd_scale" size="small"/>
-                      <el-tooltip
-                          effect="light"
-                          content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
+                         <div class="param-line">
+                           <el-form-item label="放大倍数">
+                             <template #default>
+                               <div class="form-item-inner">
+                                 <el-input v-model.number="params.hd_scale" size="small"/>
+                                 <el-tooltip
+                                     effect="light"
+                                     content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
+                                     raw-content
+                                     placement="right"
+                                 >
+                                   <el-icon>
+                                     <InfoFilled/>
+                                   </el-icon>
+                                 </el-tooltip>
+                               </div>
+                             </template>
+                           </el-form-item>
+                         </div>
 
-              <div class="param-line">
-                <el-form-item label="迭代步数">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-input v-model.number="params.hd_steps" size="small"/>
-                      <el-tooltip
-                          effect="light"
-                          content="重绘迭代步数，如果设置为0，则设置跟原图相同的迭代步数"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
-            </div>
- -->
+                         <div class="param-line">
+                           <el-form-item label="迭代步数">
+                             <template #default>
+                               <div class="form-item-inner">
+                                 <el-input v-model.number="params.hd_steps" size="small"/>
+                                 <el-tooltip
+                                     effect="light"
+                                     content="重绘迭代步数，如果设置为0，则设置跟原图相同的迭代步数"
+                                     raw-content
+                                     placement="right"
+                                 >
+                                   <el-icon>
+                                     <InfoFilled/>
+                                   </el-icon>
+                                 </el-tooltip>
+                               </div>
+                             </template>
+                           </el-form-item>
+                         </div>
+                       </div>
+            -->
             <div class="param-line" v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
               <el-input
                   v-model="params.prompt"
@@ -273,46 +273,87 @@
                   翻译并重写
                 </el-button>
               </el-tooltip>
-              <el-tag type="success"  style="margin-left: 12px;">绘图可用额度：{{ imgCalls }}</el-tag>
+              <el-tag type="success" style="margin-left: 12px;">绘图可用额度：{{ imgCalls }}</el-tag>
             </div>
-<!--
-            <div class="param-line pt">
-              <span>反向提示词：</span>
-              <el-tooltip
-                  effect="light"
-                  content="不希望出现的元素，下面给了默认的起手式"
-                  placement="right"
-              >
-                <el-icon>
-                  <InfoFilled/>
-                </el-icon>
-              </el-tooltip>
-            </div>
-            <div class="param-line">
-              <el-input
-                  v-model="params.negative_prompt"
-                  :autosize="{ minRows: 4, maxRows: 6 }"
-                  type="textarea"
-                  placeholder="反向提示词"
-              />
-            </div>
--->
+            <!--
+                        <div class="param-line pt">
+                          <span>反向提示词：</span>
+                          <el-tooltip
+                              effect="light"
+                              content="不希望出现的元素，下面给了默认的起手式"
+                              placement="right"
+                          >
+                            <el-icon>
+                              <InfoFilled/>
+                            </el-icon>
+                          </el-tooltip>
+                        </div>
+                        <div class="param-line">
+                          <el-input
+                              v-model="params.negative_prompt"
+                              :autosize="{ minRows: 4, maxRows: 6 }"
+                              type="textarea"
+                              placeholder="反向提示词"
+                          />
+                        </div>
+            -->
           </el-form>
         </div>
         <div class="submit-btn">
           <el-button color="#47fff1" :dark="false" round @click="generate">立即生成</el-button>
         </div>
         <div class="task-list-box">
-        <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
-          <h2>任务列表</h2>
-          <div class="running-job-list">
-            <ItemList :items="runningJobs" v-if="runningJobs.length > 0" width="240">
-              <template #default="scope">
-                <div class="job-item">
-                  <div v-if="scope.item.progress > 0" class="job-item-inner">
-                    <el-image :src="scope.item['img_url']"
-                              fit="cover"
-                              loading="lazy">
+          <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
+            <h2>任务列表</h2>
+            <div class="running-job-list">
+              <ItemList :items="runningJobs" v-if="runningJobs.length > 0" width="240">
+                <template #default="scope">
+                  <div class="job-item">
+                    <div v-if="scope.item.progress > 0" class="job-item-inner">
+                      <el-image :src="scope.item['img_url']"
+                                fit="cover"
+                                loading="lazy">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
+
+                        <template #error>
+                          <div class="image-slot">
+                            <el-icon v-if="scope.item['img_url'] !== ''">
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
+
+                      <div class="progress">
+                        <el-progress type="circle" :percentage="scope.item.progress" :width="100" color="#47fff1"/>
+                      </div>
+                    </div>
+                    <el-image fit="cover" v-else>
+                      <template #error>
+                        <div class="image-slot">
+                          <i class="iconfont icon-quick-start"></i>
+                          <span>任务正在排队中</span>
+                        </div>
+                      </template>
+                    </el-image>
+                  </div>
+                </template>
+              </ItemList>
+              <el-empty :image-size="100" v-else/>
+            </div>
+            <h2>创作记录</h2>
+            <div class="finish-job-list">
+              <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" width="480" :gap="20">
+                <template #default="scope">
+                  <div class="job-item animate" @click="showTask(scope.item)">
+                    <el-image
+                        :src="scope.item['img_url']+'?imageView2/1/w/480/h/480/q/75'"
+                        fit="cover"
+                        loading="lazy">
                       <template #placeholder>
                         <div class="image-slot">
                           正在加载图片
@@ -321,60 +362,19 @@
 
                       <template #error>
                         <div class="image-slot">
-                          <el-icon v-if="scope.item['img_url'] !== ''">
+                          <el-icon>
                             <Picture/>
                           </el-icon>
                         </div>
                       </template>
                     </el-image>
-
-                    <div class="progress">
-                      <el-progress type="circle" :percentage="scope.item.progress" :width="100" color="#47fff1"/>
-                    </div>
                   </div>
-                  <el-image fit="cover" v-else>
-                    <template #error>
-                      <div class="image-slot">
-                        <i class="iconfont icon-quick-start"></i>
-                        <span>任务正在排队中</span>
-                      </div>
-                    </template>
-                  </el-image>
-                </div>
-              </template>
-            </ItemList>
-            <el-empty :image-size="100" v-else/>
+                </template>
+              </ItemList>
+              <el-empty :image-size="100" v-else/>
+            </div> <!-- end finish job list-->
           </div>
-          <h2>创作记录</h2>
-          <div class="finish-job-list">
-            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" width="480" :gap="20">
-              <template #default="scope">
-                <div class="job-item animate" @click="showTask(scope.item)">
-                  <el-image
-                      :src="scope.item['img_url']+'?imageView2/1/w/480/h/480/q/75'"
-                      fit="cover"
-                      loading="lazy">
-                    <template #placeholder>
-                      <div class="image-slot">
-                        正在加载图片
-                      </div>
-                    </template>
-
-                    <template #error>
-                      <div class="image-slot">
-                        <el-icon>
-                          <Picture/>
-                        </el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-                </div>
-              </template>
-            </ItemList>
-            <el-empty :image-size="100" v-else/>
-          </div> <!-- end finish job list-->
-        </div>
-      </div><!-- end task list box -->
+        </div><!-- end task list box -->
       </div>
     </div>
     <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
@@ -384,105 +384,105 @@
             <el-image :src="item['img_url']" fit="contain"/>
           </div>
           <el-col :span="50">
-          <div class="task-info">
-            <div class="info-line">
-              <el-divider>
-                正向提示词
-              </el-divider>
-              <div class="prompt">
-                <span>{{ item.prompt }}</span>
-                <el-icon class="copy-prompt" :data-clipboard-text="item.prompt">
-                  <DocumentCopy/>
-                </el-icon>
+            <div class="task-info">
+              <div class="info-line">
+                <el-divider>
+                  正向提示词
+                </el-divider>
+                <div class="prompt">
+                  <span>{{ item.prompt }}</span>
+                  <el-icon class="copy-prompt" :data-clipboard-text="item.prompt">
+                    <DocumentCopy/>
+                  </el-icon>
+                </div>
+
               </div>
 
-            </div>
-
-            <div class="info-line">
-              <el-divider>
-                反向提示词
-              </el-divider>
-              <div class="prompt">
-                <span>{{ item.params.negative_prompt }}</span>
-                <el-icon class="copy-prompt" :data-clipboard-text="item.params.negative_prompt">
-                  <DocumentCopy/>
-                </el-icon>
+              <div class="info-line">
+                <el-divider>
+                  反向提示词
+                </el-divider>
+                <div class="prompt">
+                  <span>{{ item.params.negative_prompt }}</span>
+                  <el-icon class="copy-prompt" :data-clipboard-text="item.params.negative_prompt">
+                    <DocumentCopy/>
+                  </el-icon>
+                </div>
               </div>
-            </div>
-            <div class="info-line">
-              <div class="wrapper">
-                <label>采样方法：</label>
-                <div class="item-value">{{ item.params.sampler }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>图片尺寸：</label>
-                <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>迭代步数：</label>
-                <div class="item-value">{{ item.params.steps }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>引导系数：</label>
-                <div class="item-value">{{ item.params.cfg_scale }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>随机因子：</label>
-                <div class="item-value">{{ item.params.seed }}</div>
-              </div>
-            </div>
-
-            <div v-if="item.params.hd_fix">
-              <el-divider>
-                高清修复
-              </el-divider>
               <div class="info-line">
                 <div class="wrapper">
-                  <label>重绘幅度：</label>
-                  <div class="item-value">{{ item.params.hd_redraw_rate }}</div>
+                  <label>采样方法：</label>
+                  <div class="item-value">{{ item.params.sampler }}</div>
                 </div>
               </div>
 
               <div class="info-line">
                 <div class="wrapper">
-                  <label>放大算法：</label>
-                  <div class="item-value">{{ item.params.hd_scale_alg }}</div>
-                </div>
-              </div>
-
-              <div class="info-line">
-                <div class="wrapper">
-                  <label>放大倍数：</label>
-                  <div class="item-value">{{ item.params.hd_scale }}</div>
+                  <label>图片尺寸：</label>
+                  <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
                 </div>
               </div>
 
               <div class="info-line">
                 <div class="wrapper">
                   <label>迭代步数：</label>
-                  <div class="item-value">{{ item.params.hd_steps }}</div>
+                  <div class="item-value">{{ item.params.steps }}</div>
                 </div>
               </div>
-            </div>
 
-            <div class="copy-params">
-              <el-button type="primary" round @click="copyParams(item)">画一张同款的</el-button>
-            </div>
+              <div class="info-line">
+                <div class="wrapper">
+                  <label>引导系数：</label>
+                  <div class="item-value">{{ item.params.cfg_scale }}</div>
+                </div>
+              </div>
 
-          </div>
-        </el-col>
+              <div class="info-line">
+                <div class="wrapper">
+                  <label>随机因子：</label>
+                  <div class="item-value">{{ item.params.seed }}</div>
+                </div>
+              </div>
+
+              <div v-if="item.params.hd_fix">
+                <el-divider>
+                  高清修复
+                </el-divider>
+                <div class="info-line">
+                  <div class="wrapper">
+                    <label>重绘幅度：</label>
+                    <div class="item-value">{{ item.params.hd_redraw_rate }}</div>
+                  </div>
+                </div>
+
+                <div class="info-line">
+                  <div class="wrapper">
+                    <label>放大算法：</label>
+                    <div class="item-value">{{ item.params.hd_scale_alg }}</div>
+                  </div>
+                </div>
+
+                <div class="info-line">
+                  <div class="wrapper">
+                    <label>放大倍数：</label>
+                    <div class="item-value">{{ item.params.hd_scale }}</div>
+                  </div>
+                </div>
+
+                <div class="info-line">
+                  <div class="wrapper">
+                    <label>迭代步数：</label>
+                    <div class="item-value">{{ item.params.hd_steps }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="copy-params">
+                <el-button type="primary" round @click="copyParams(item)">画一张同款的</el-button>
+              </div>
+
+            </div>
+          </el-col>
         </el-col>
       </el-row>
 
@@ -653,5 +653,5 @@ const copyParams = (row) => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/image-mobile-sd.css"
+@import "@/assets/css/mobile/image-sd.css"
 </style>

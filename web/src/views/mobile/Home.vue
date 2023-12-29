@@ -1,17 +1,17 @@
 <template>
-<div class="banner">
-  <h1 class="banner-title">ChatPuls-V3 智能助理</h1>
-</div>
+  <div class="banner">
+    <h1 class="banner-title">ChatPuls-V3 智能助理</h1>
+  </div>
   <van-config-provider theme="dark">
     <div class="mobile-home">
       <router-view/>
-      <van-tabbar 
-        fixed
-        route 
-        v-model="active"
-        active-color="#F5F5F5" 
-        inactive-color="#2CC995" 
-        class="my-tabbar"
+      <van-tabbar
+          fixed
+          route
+          v-model="active"
+          active-color="#F5F5F5"
+          inactive-color="#2CC995"
+          class="my-tabbar"
       >
         <van-tabbar-item to="/mobile/chat/list" name="home" icon="chat-o">对话</van-tabbar-item>
         <van-tabbar-item to="/mobile/imageSd" name="imageSd" icon="photo-o">绘图</van-tabbar-item>
@@ -48,5 +48,5 @@ const onChange = (index) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/mobile-home.css"
+@import "@/assets/css/mobile/home.css"
 </style>

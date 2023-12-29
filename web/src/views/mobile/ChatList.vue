@@ -1,52 +1,52 @@
 <template>
-<div class="app-background">
-  <div v-if="isLogin" class="container mobile-chat-list">
-    <van-nav-bar
-        :title="title"
-        left-text="新建会话"
-        @click-left="showPicker = true"
-        custom-class="navbar"
-        >
-      <template #right>
-        <van-icon name="delete-o" @click="clearAllChatHistory"/>
-      </template>
-    </van-nav-bar>
-
-    <div class="content">
-      <van-search
-          v-model="chatName"
-          input-align="center"
-          placeholder="请输入会话标题"
-          custom-class="van-search"
-          @input="search"
-      />
-
-      <van-list
-          v-model:error="error"
-          v-model:loading="loading"
-          :finished="finished"
-          error-text="请求失败，点击重新加载"
-          finished-text="没有更多了"
-          @load="onLoad"
+  <div class="app-background">
+    <div v-if="isLogin" class="container mobile-chat-list">
+      <van-nav-bar
+          :title="title"
+          left-text="新建会话"
+          @click-left="showPicker = true"
+          custom-class="navbar"
       >
-        <van-swipe-cell v-for="item in chats" :key="item.id">
-          <van-cell @click="changeChat(item)">
-            <div class="chat-list-item">
-              <van-image
-                  :src="item.icon"
-                  round
-              />
-              <div class="van-ellipsis">{{ item.title }}</div>
-            </div>
-          </van-cell>
-          <template #right>
-            <van-button square text="修改" type="primary" @click="editChat(item)"/>
-            <van-button square text="删除" type="danger" @click="removeChat(item)"/>
-          </template>
-        </van-swipe-cell>
-      </van-list>
+        <template #right>
+          <van-icon name="delete-o" @click="clearAllChatHistory"/>
+        </template>
+      </van-nav-bar>
+
+      <div class="content">
+        <van-search
+            v-model="chatName"
+            input-align="center"
+            placeholder="请输入会话标题"
+            custom-class="van-search"
+            @input="search"
+        />
+
+        <van-list
+            v-model:error="error"
+            v-model:loading="loading"
+            :finished="finished"
+            error-text="请求失败，点击重新加载"
+            finished-text="没有更多了"
+            @load="onLoad"
+        >
+          <van-swipe-cell v-for="item in chats" :key="item.id">
+            <van-cell @click="changeChat(item)">
+              <div class="chat-list-item">
+                <van-image
+                    :src="item.icon"
+                    round
+                />
+                <div class="van-ellipsis">{{ item.title }}</div>
+              </div>
+            </van-cell>
+            <template #right>
+              <van-button square text="修改" type="primary" @click="editChat(item)"/>
+              <van-button square text="删除" type="danger" @click="removeChat(item)"/>
+            </template>
+          </van-swipe-cell>
+        </van-list>
+      </div>
     </div>
-  </div>
 
     <van-popup v-model:show="showPicker" position="bottom" class="popup">
       <van-picker
@@ -75,7 +75,7 @@
 
     <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
                  @hide="showBindMobileDialog = false"/>
-</div>
+  </div>
 </template>
 
 <script setup>
@@ -265,5 +265,5 @@ const removeChat = (item) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/mobile-chat-list.styl"
+@import "@/assets/css/mobile/chat-list.styl"
 </style>
