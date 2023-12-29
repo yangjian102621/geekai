@@ -3,6 +3,7 @@ package model
 type User struct {
 	BaseModel
 	Mobile      string
+	Nickname    string
 	Password    string
 	Avatar      string
 	Salt        string // 密码盐

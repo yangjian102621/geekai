@@ -5,6 +5,7 @@ import "chatplus/core/types"
 type User struct {
 	BaseVo
 	Mobile      string               `json:"mobile"`
+	Nickname    string               `json:"nickname"`
 	Avatar      string               `json:"avatar"`
 	Salt        string               `json:"salt"`         // 密码盐
 	TotalTokens int64                `json:"total_tokens"` // 总消耗tokens
