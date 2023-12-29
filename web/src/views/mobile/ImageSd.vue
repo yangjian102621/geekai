@@ -3,6 +3,7 @@
     <div class="inner">
       <div class="sd-box" style="padding-top: 35px">
         <h2>Ai绘图</h2>
+
         <div class="sd-params" :style="{ height: mjBoxHeight + 'px' }">
           <el-form :model="params" label-width="80px" label-position="left">
             <div class="param-line" style="padding-top: 10px">
@@ -274,7 +275,7 @@
                 </el-button>
               </el-tooltip>
               <el-tag type="success" style="margin-left: 12px;">绘图可用额度：{{ imgCalls }}</el-tag>
-            </div>
+              </div>
             <!--
                         <div class="param-line pt">
                           <span>反向提示词：</span>
@@ -368,6 +369,10 @@
                         </div>
                       </template>
                     </el-image>
+
+                    <div class="remove">
+                      <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
+                    </div>  
                   </div>
                 </template>
               </ItemList>
@@ -492,9 +497,9 @@
 
 <script setup>
 import {onMounted, ref} from "vue"
-import {DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
+import {Delete, DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage, ElNotification} from "element-plus";
+import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
@@ -512,12 +517,11 @@ window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
 //   mjBoxHeight.value = window.innerHeight - 150
 }
-const samplers = ["Euler a", "Euler", "DPM2 a Karras", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM2", "DPM2 a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM fast", "DPM adaptive",
-  "LMS Karras", "DPM2 Karras", "DDIM", "PLMS", "UniPC", "LMS", "Heun",]
+const samplers = ["Euler a", "Euler", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
   width: 768,
-  height: 1024,
+  height: 512,
   sampler: samplers[0],
   seed: -1,
   steps: 20,
@@ -529,7 +533,7 @@ const params = ref({
   hd_scale_alg: scaleAlg[0],
   hd_steps: 10,
   prompt: "",
-  negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
+  negative_prompt: "nsfw, paintings,low quality,badhandv4,ng_deepnegative_v1_75t,EasyNegative,EasyNegativeV2,lowres,bad anatomy,bad hands,bad feet",
 })
 
 const runningJobs = ref([])
@@ -588,25 +592,45 @@ onMounted(() => {
             message: "任务ID：" + jobs[i]['task_id'],
             type: 'error',
           })
+          imgCalls.value += 1
           continue
         }
         _jobs.push(jobs[i])
       }
       runningJobs.value = _jobs
 
-      setTimeout(() => fetchRunningJobs(userId), 5000)
+      setTimeout(() => fetchRunningJobs(userId), 1000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
+      setTimeout(() => fetchRunningJobs(userId), 5000)
     })
   }
 
-  // 获取已完成的任务
+// 获取已完成的任务
   const fetchFinishJobs = (userId) => {
     httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
-      finishedJobs.value = res.data
-      setTimeout(() => fetchFinishJobs(userId), 5000)
+      if (finishedJobs.value.length === 0 || res.data.length > finishedJobs.value.length) {
+        finishedJobs.value = res.data
+        setTimeout(() => fetchFinishJobs(userId), 1000)
+        return
+      }
+
+      // check if the img url is changed
+      const list = res.data
+      let changed = false
+      for (let i = 0; i < list.length; i++) {
+        if (list[i]["img_url"] !== finishedJobs.value[i]["img_url"]) {
+          changed = true
+          break
+        }
+      }
+      if (changed) {
+        finishedJobs.value = list
+      }
+      setTimeout(() => fetchFinishJobs(userId), 1000)
     }).catch(e => {
       ElMessage.error("获取任务失败：" + e.message)
+      setTimeout(() => fetchFinishJobs(userId), 5000)
     })
   }
 
@@ -650,6 +674,25 @@ const copyParams = (row) => {
   showTaskDialog.value = false
 }
 
+const removeImage = (event, item) => {
+  event.stopPropagation()
+  ElMessageBox.confirm(
+      '此操作将会删除任务和图片，继续操作码?',
+      '删除提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(() => {
+    httpPost("/api/sd/remove", {id: item.id, img_url: item.img_url}).then(() => {
+      ElMessage.success("任务删除成功")
+    }).catch(e => {
+      ElMessage.error("任务删除失败：" + e.message)
+    })
+  }).catch(() => {
+  })
+}
 </script>
 
 <style lang="stylus">

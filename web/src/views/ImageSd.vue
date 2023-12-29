@@ -525,11 +525,11 @@ window.onresize = () => {
 const samplers = ["Euler a", "Euler", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
-  width: 1024,
-  height: 1024,
+  width: 768,
+  height: 512,
   sampler: samplers[0],
   seed: -1,
-  steps: 30,
+  steps: 20,
   cfg_scale: 7,
   face_fix: false,
   hd_fix: false,
@@ -538,7 +538,7 @@ const params = ref({
   hd_scale_alg: scaleAlg[0],
   hd_steps: 15,
   prompt: "",
-  negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
+  negative_prompt: "nsfw, paintings,low quality,badhandv4,ng_deepnegative_v1_75t,EasyNegative,EasyNegativeV2,lowres,bad anatomy,bad hands,bad feet",
 })
 
 const runningJobs = ref([])

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-background">
+  <div class="app-background" theme="dark">
     <div class="mobile-setting container">
       <div class="title" style="padding-top: 50px">应用广场</div>
       <div class="title" style="padding-top: 200px">视频生成器即将开启……敬请期待</div>

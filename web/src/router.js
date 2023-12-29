@@ -80,7 +80,7 @@ const routes = [
     {
         path: '/admin/login',
         name: 'admin-login',
-        meta: {title: 'ChatPuls 控制台登录'},
+        meta: {title: 'ChatPlus 控制台登录'},
         component: () => import('@/views/admin/Login.vue'),
     },
     {
@@ -88,7 +88,7 @@ const routes = [
         path: '/admin',
         redirect: '/admin/dashboard',
         component: () => import("@/views/admin/Home.vue"),
-        meta: {title: 'ChatPuls 管理后台'},
+        meta: {title: 'ChatPlus 管理后台'},
         children: [
             {
                 path: '/admin/dashboard',
@@ -167,7 +167,7 @@ const routes = [
     {
         name: 'mobile',
         path: '/mobile',
-        meta: {title: 'ChatPuls-智能助手V3'},
+        meta: {title: process.env.VUE_APP_TITLE},
         component: () => import('@/views/mobile/Home.vue'),
         redirect: '/mobile/chat/list',
         children: [
@@ -195,6 +195,11 @@ const routes = [
                 path: '/mobile/invitation',
                 name: 'mobile-invitation',
                 component: () => import('@/views/mobile/Invitation.vue'),
+            },
+            {
+                path: '/mobile/imagesWall',
+                name: 'mobile-imagesWall',
+                component: () => import('@/views/mobile/ImagesWall.vue'),
             },
         ]
     },
