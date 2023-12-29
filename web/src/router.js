@@ -22,7 +22,7 @@ const routes = [
             },
             {
                 name: 'image-sd',
-                path: '/sd/',
+                path: '/sd',
                 meta: {title: 'stable diffusion 绘画中心'},
                 component: () => import('@/views/ImageSd.vue'),
             },
@@ -151,28 +151,10 @@ const routes = [
                 component: () => import('@/views/admin/LoginLog.vue'),
             },
             {
-                path: '/admin/demo/form',
-                name: 'admin-form',
-                meta: {title: '表单页面'},
-                component: () => import('@/views/admin/demo/Form.vue'),
-            },
-            {
-                path: '/admin/demo/table',
-                name: 'admin-table',
-                meta: {title: '数据列表'},
-                component: () => import('@/views/admin/demo/Table.vue'),
-            },
-            {
-                path: '/admin/demo/import',
-                name: 'admin-import',
-                meta: {title: '导入数据'},
-                component: () => import('@/views/admin/demo/Import.vue'),
-            },
-            {
-                path: '/admin/demo/editor',
-                name: 'admin-editor',
-                meta: {title: '富文本编辑器'},
-                component: () => import('@/views/admin/demo/Editor.vue'),
+                path: '/admin/functions',
+                name: 'admin-functions',
+                meta: {title: '函数管理'},
+                component: () => import('@/views/admin/Functions.vue'),
             },
         ]
     },
