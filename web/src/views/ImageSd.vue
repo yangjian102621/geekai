@@ -596,6 +596,7 @@ onMounted(() => {
             message: "任务ID：" + jobs[i]['task_id'],
             type: 'error',
           })
+          imgCalls.value += 1
           continue
         }
         _jobs.push(jobs[i])
