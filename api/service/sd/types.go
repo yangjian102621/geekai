@@ -5,6 +5,7 @@ import logger2 "chatplus/logger"
 var logger = logger2.GetLogger()
 
 type TaskInfo struct {
+	UserId      uint          `json:"user_id"`
 	SessionId   string        `json:"session_id"`
 	JobId       int           `json:"job_id"`
 	TaskId      string        `json:"task_id"`
@@ -15,6 +16,7 @@ type TaskInfo struct {
 }
 
 type CBReq struct {
+	UserId    uint
 	SessionId string
 	JobId     int
 	TaskId    string
