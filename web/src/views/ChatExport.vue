@@ -100,6 +100,7 @@ const exportChat = () => {
 .chat-export {
   display flex
   justify-content center
+  padding 0 20px
 
   .chat-box {
     width 800px;
@@ -158,6 +159,12 @@ const exportChat = () => {
             height 30px
             border-radius: 10px;
             padding: 1px
+          }
+        }
+
+        .chat-item {
+          img {
+            max-width 90%
           }
         }
       }
