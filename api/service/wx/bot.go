@@ -6,6 +6,8 @@ import (
 	"github.com/eatmoreapple/openwechat"
 	"github.com/skip2/go-qrcode"
 	"gorm.io/gorm"
+	"os"
+	"strconv"
 )
 
 // 微信收款机器人
@@ -34,8 +36,13 @@ func (b *Bot) Run() error {
 	}
 	// scan code login callback
 	b.bot.UUIDCallback = b.qrCodeCallBack
-
-	err := b.bot.Login()
+	debug, err := strconv.ParseBool(os.Getenv("APP_DEBUG"))
+	if debug {
+		reloadStorage := openwechat.NewJsonFileHotReloadStorage("storage.json")
+		err = b.bot.HotLogin(reloadStorage, true)
+	} else {
+		err = b.bot.Login()
+	}
 	if err != nil {
 		return err
 	}
@@ -56,8 +63,8 @@ func (b *Bot) messageHandler(msg *openwechat.Message) {
 		msg.MsgType == openwechat.MsgTypeApp ||
 		msg.AppMsgType == openwechat.AppMsgTypeUrl {
 		// 解析支付金额
-		message, err := parseTransactionMessage(msg.Content)
-		if err == nil {
+		message := parseTransactionMessage(msg.Content)
+		if message.Url != "" {
 			transaction := extractTransaction(message)
 			logger.Infof("解析到收款信息：%+v", transaction)
 			var item model.Reward

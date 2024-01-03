@@ -55,3 +55,16 @@ func (h *RewardHandler) List(c *gin.Context) {
 
 	resp.SUCCESS(c, rewards)
 }
+
+func (h *RewardHandler) Remove(c *gin.Context) {
+	id := h.GetInt(c, "id", 0)
+
+	if id > 0 {
+		res := h.db.Where("id = ?", id).Delete(&model.Reward{})
+		if res.Error != nil {
+			resp.ERROR(c, "更新数据库失败！")
+			return
+		}
+	}
+	resp.SUCCESS(c)
+}

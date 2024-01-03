@@ -2,17 +2,15 @@ package wx
 
 import (
 	"encoding/xml"
+	"net/url"
 	"strconv"
 	"strings"
 )
 
 // Message 转账消息
 type Message struct {
-	XMLName xml.Name `xml:"msg"`
-	AppMsg  struct {
-		Des string `xml:"des"`
-		Url string `xml:"url"`
-	} `xml:"appmsg"`
+	Des string
+	Url string
 }
 
 // Transaction 解析后的交易信息
@@ -23,20 +21,40 @@ type Transaction struct {
 }
 
 // 解析微信转账消息
-func parseTransactionMessage(xmlData string) (*Message, error) {
-	var msg Message
-	if err := xml.Unmarshal([]byte(xmlData), &msg); err != nil {
-		return nil, err
-	}
+func parseTransactionMessage(xmlData string) *Message {
+	decoder := xml.NewDecoder(strings.NewReader(xmlData))
+	message := Message{}
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			break
+		}
 
-	return &msg, nil
+		switch se := token.(type) {
+		case xml.StartElement:
+			var value string
+			if se.Name.Local == "des" && message.Des == "" {
+				if err := decoder.DecodeElement(&value, &se); err == nil {
+					message.Des = strings.TrimSpace(value)
+				}
+				break
+			}
+			if se.Name.Local == "weapp_path" && !strings.Contains(message.Url, "customerDetails.html") {
+				if err := decoder.DecodeElement(&value, &se); err == nil {
+					message.Url = strings.TrimSpace(value)
+				}
+				break
+			}
+		}
+	}
+	return &message
 }
 
 // 导出交易信息
 func extractTransaction(message *Message) Transaction {
 	var tx = Transaction{}
 	// 导出交易金额和备注
-	lines := strings.Split(message.AppMsg.Des, "\n")
+	lines := strings.Split(message.Des, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if len(line) == 0 {
@@ -59,10 +77,9 @@ func extractTransaction(message *Message) Transaction {
 	}
 
 	// 解析交易 ID
-	index := strings.Index(message.AppMsg.Url, "trans_id=")
-	if index != -1 {
-		end := strings.LastIndex(message.AppMsg.Url, "&")
-		tx.TransId = strings.TrimSpace(message.AppMsg.Url[index+9 : end])
+	parse, err := url.Parse(message.Url)
+	if err == nil {
+		tx.TransId = parse.Query().Get("id")
 	}
 	return tx
 }

@@ -13,8 +13,17 @@
       </el-alert>
 
       <el-form :model="form">
-        <el-form-item label="">
+        <el-form-item label="转账单号">
           <el-input v-model="form.tx_id"/>
+        </el-form-item>
+      </el-form>
+
+      <el-form :model="form">
+        <el-form-item label="兑换类别">
+          <el-radio-group v-model="form.type">
+            <el-radio label="chat" border>对话聊天</el-radio>
+            <el-radio label="img" border>AI绘图</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
     </div>
@@ -46,6 +55,7 @@ const showDialog = computed(() => {
 const title = ref('众筹码核销')
 const form = ref({
   tx_id: '',
+  type: 'chat'
 })
 
 const emits = defineEmits(['hide']);
