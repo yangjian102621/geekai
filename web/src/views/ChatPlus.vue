@@ -223,6 +223,28 @@
       </div>
     </el-dialog>
 
+    <el-dialog
+        v-model="showDemoNotice"
+        :show-close="true"
+        title="网站公告"
+    >
+      <div class="notice">
+        <el-text type="primary">
+          注意：当前站点仅为开源项目
+          <a style="color: #F56C6C" href="https://github.com/yangjian102621/chatgpt-plus">ChatPlus</a>
+          的演示项目，本项目单纯就是给大家体验项目功能使用。<br/>
+
+          体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
+          体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
+          体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
+        </el-text>
+
+        <p style="text-align: right">
+          <el-button @click="notShow" type="success" plain>我知道了，不再显示</el-button>
+        </p>
+      </div>
+    </el-dialog>
+
     <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
   </div>
 
@@ -278,6 +300,8 @@ const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
 const showFeedbackDialog = ref(false)
+const showDemoNotice = ref(false)
+const showNoticeKey = ref("SHOW_DEMO_NOTICE_")
 
 if (isMobile()) {
   router.replace("/mobile")
@@ -326,6 +350,10 @@ onMounted(() => {
 
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
+      const show = localStorage.getItem(showNoticeKey.value + loginUser.value.mobile)
+      if (!show) {
+        showDemoNotice.value = res.data['show_demo_notice']
+      }
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
@@ -846,6 +874,12 @@ const getModelValue = (model_id) => {
     }
   }
   return ""
+}
+
+
+const notShow = () => {
+  localStorage.setItem(showNoticeKey.value + loginUser.value.mobile, true)
+  showDemoNotice.value = false
 }
 </script>
 

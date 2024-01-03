@@ -169,4 +169,5 @@ type SystemConfig struct {
 	InviteImgCalls   int      `json:"invite_img_calls"`    // 邀请用户注册奖励绘图次数
 	ForceInvite      bool     `json:"force_invite"`        // 是否强制必须使用邀请码才能注册
 
+	ShowDemoNotice bool `json:"show_demo_notice"` // 显示演示站公告
 }

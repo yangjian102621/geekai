@@ -78,23 +78,23 @@
           <el-form-item label="单次绘图价格" prop="img_call_price">
             <el-input v-model="system['img_call_price']" placeholder="众筹金额跟绘图次数的兑换比例"/>
           </el-form-item>
+          <el-form-item label="收款二维码" prop="reward_img">
+            <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
+              <template #append>
+                <el-upload
+                    :auto-upload="true"
+                    :show-file-list="false"
+                    :http-request="uploadRewardImg"
+                >
+                  <el-icon class="uploader-icon">
+                    <UploadFilled/>
+                  </el-icon>
+                </el-upload>
+              </template>
+            </el-input>
+          </el-form-item>
         </div>
 
-        <el-form-item label="收款二维码" prop="reward_img">
-          <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
-            <template #append>
-              <el-upload
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="uploadRewardImg"
-              >
-                <el-icon class="uploader-icon">
-                  <UploadFilled/>
-                </el-icon>
-              </el-upload>
-            </template>
-          </el-input>
-        </el-form-item>
         <el-form-item label="启用支付宝" prop="enabled_alipay">
           <el-switch v-model="system['enabled_alipay']"/>
           <el-tooltip
@@ -108,6 +108,21 @@
             </el-icon>
           </el-tooltip>
         </el-form-item>
+
+        <el-form-item label="显示公告" prop="show_demo_notice">
+          <el-switch v-model="system['show_demo_notice']"/>
+          <el-tooltip
+              effect="dark"
+              content="是否在聊天首页显示演示 Demo 公告，这是专为作者自己开发的功能"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+
         <el-form-item label="订单超时时间" prop="order_pay_timeout">
           <div class="tip-input">
             <el-input v-model.number="system['order_pay_timeout']" placeholder="单位：秒"/>
