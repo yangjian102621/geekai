@@ -159,6 +159,8 @@ type SystemConfig struct {
 	EnabledMsg       bool     `json:"enabled_msg"`         // 是否启用短信验证码服务
 	RewardImg        string   `json:"reward_img"`          // 众筹收款二维码地址
 	EnabledReward    bool     `json:"enabled_reward"`      // 启用众筹功能
+	ChatCallPrice    float64  `json:"chat_call_price"`     // 对话单次调用费用
+	ImgCallPrice     float64  `json:"img_call_price"`      // 绘图单次调用费用
 	EnabledAlipay    bool     `json:"enabled_alipay"`      // 是否启用支付宝支付通道
 	OrderPayTimeout  int      `json:"order_pay_timeout"`   //订单支付超时时间
 	DefaultModels    []string `json:"default_models"`      // 默认开通的 AI 模型
@@ -166,4 +168,5 @@ type SystemConfig struct {
 	InviteChatCalls  int      `json:"invite_chat_calls"`   // 邀请用户注册奖励对话次数
 	InviteImgCalls   int      `json:"invite_img_calls"`    // 邀请用户注册奖励绘图次数
 	ForceInvite      bool     `json:"force_invite"`        // 是否强制必须使用邀请码才能注册
+
 }

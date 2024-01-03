@@ -57,13 +57,7 @@ func main() {
 	if configFile == "" {
 		configFile = "config.toml"
 	}
-	var debug bool
-	debugEnv := os.Getenv("DEBUG")
-	if debugEnv == "" {
-		debug = true
-	} else {
-		debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
-	}
+	debug, _ := strconv.ParseBool(os.Getenv("APP_DEBUG"))
 	logger.Info("Loading config file: ", configFile)
 	defer func() {
 		if err := recover(); err != nil {
@@ -282,6 +276,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
 			group := s.Engine.Group("/api/admin/reward/")
 			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
 			group := s.Engine.Group("/api/admin/dashboard/")

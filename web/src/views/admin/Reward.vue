@@ -21,6 +21,25 @@
           </template>
         </el-table-column>
 
+        <el-table-column label="兑换详情">
+          <template #default="scope">
+            <el-tag v-if="scope.row['exchange']['calls'] > 0">聊天{{ scope.row['exchange']['calls'] }}次</el-tag>
+            <el-tag v-else-if="scope.row['exchange']['img_calls'] > 0" type="success">
+              绘图{{ scope.row['exchange']['img_calls'] }}次
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="180">
+          <template #default="scope">
+            <el-popconfirm title="确定要删除当前记录吗?" @confirm="remove(scope.row)">
+              <template #reference>
+                <el-button size="small" type="danger">删除</el-button>
+              </template>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+
       </el-table>
     </el-row>
 
@@ -31,7 +50,7 @@
 import {ref} from "vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat} from "@/utils/libs";
+import {dateFormat, removeArrayItem} from "@/utils/libs";
 
 // 变量定义
 const items = ref([])
@@ -52,6 +71,16 @@ httpGet('/api/admin/reward/list').then((res) => {
   ElMessage.error("获取数据失败");
 })
 
+const remove = function (row) {
+  httpGet('/api/admin/reward/remove?id=' + row.id).then(() => {
+    ElMessage.success("删除成功！")
+    items.value = removeArrayItem(items.value, row, (v1, v2) => {
+      return v1.id === v2.id
+    })
+  }).catch((e) => {
+    ElMessage.error("删除失败：" + e.message)
+  })
+}
 </script>
 
 <style lang="stylus" scoped>

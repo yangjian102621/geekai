@@ -142,7 +142,7 @@ const routes = [
                 path: '/admin/reward',
                 name: 'admin-reward',
                 meta: {title: '众筹管理'},
-                component: () => import('@/views/admin/RewardList.vue'),
+                component: () => import('@/views/admin/Reward.vue'),
             },
             {
                 path: '/admin/loginLog',

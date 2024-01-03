@@ -71,6 +71,15 @@
           </el-tooltip>
         </el-form-item>
 
+        <div v-if="system['enabled_reward']">
+          <el-form-item label="单次对话价格" prop="chat_call_price">
+            <el-input v-model="system['chat_call_price']" placeholder="众筹金额跟对话次数的兑换比例"/>
+          </el-form-item>
+          <el-form-item label="单次绘图价格" prop="img_call_price">
+            <el-input v-model="system['img_call_price']" placeholder="众筹金额跟绘图次数的兑换比例"/>
+          </el-form-item>
+        </div>
+
         <el-form-item label="收款二维码" prop="reward_img">
           <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
             <template #append>
@@ -312,6 +321,8 @@ const save = function (key) {
   if (key === 'system') {
     systemFormRef.value.validate((valid) => {
       if (valid) {
+        system.value['img_call_price'] = parseFloat(system.value['img_call_price']) ?? 0
+        system.value['chat_call_price'] = parseFloat(system.value['chat_call_price']) ?? 0
         httpPost('/api/admin/config/update', {key: key, config: system.value}).then(() => {
           ElMessage.success("操作成功！")
         }).catch(e => {
