@@ -711,7 +711,6 @@ const variation = (index, item) => {
 const send = (url, index, item) => {
   httpPost(url, {
     index: index,
-    task_id: item.task_id,
     channel_id: item.channel_id,
     message_id: item.message_id,
     message_hash: item.hash,

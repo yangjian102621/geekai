@@ -121,9 +121,11 @@ func (s *Service) Notify(data CBReq) {
 		return
 	}
 
-	tx := s.db.Where("task_id = ? AND progress < 100", split[0]).Session(&gorm.Session{}).Order("id ASC")
+	tx := s.db.Session(&gorm.Session{}).Order("id ASC")
 	if data.ReferenceId != "" {
 		tx = tx.Where("reference_id = ?", data.ReferenceId)
+	} else {
+		tx = tx.Where("task_id = ?", split[0])
 	}
 	res = tx.First(&job)
 	if res.Error != nil {

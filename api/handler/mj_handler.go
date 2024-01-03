@@ -179,7 +179,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 }
 
 type reqVo struct {
-	TaskId      string `json:"task_id"`
 	Index       int    `json:"index"`
 	ChannelId   string `json:"channel_id"`
 	MessageId   string `json:"message_id"`
@@ -206,11 +205,12 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	taskId, _ := h.snowflake.Next(true)
 	job := model.MidJourneyJob{
 		Type:        types.TaskUpscale.String(),
 		ReferenceId: data.MessageId,
 		UserId:      userId,
-		TaskId:      data.TaskId,
+		TaskId:      taskId,
 		Progress:    0,
 		Prompt:      data.Prompt,
 		CreatedAt:   time.Now(),
@@ -253,13 +253,13 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
-
+	taskId, _ := h.snowflake.Next(true)
 	job := model.MidJourneyJob{
 		Type:        types.TaskVariation.String(),
 		ChannelId:   data.ChannelId,
 		ReferenceId: data.MessageId,
 		UserId:      userId,
-		TaskId:      data.TaskId,
+		TaskId:      taskId,
 		Progress:    0,
 		Prompt:      data.Prompt,
 		CreatedAt:   time.Now(),
