@@ -286,12 +286,12 @@
   justify-content: right;
   align-items: center;
 }
-.notice {
-  background-color: #f6deff;
-  width: 100%;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: #cf49ff;
+.el-overlay-dialog .el-dialog .el-dialog__body .notice {
+  padding: 0 20px 0 20px;
+  line-height: 1.8;
+}
+.el-overlay-dialog .el-dialog .el-dialog__body .notice .el-text {
+  font-size: 16px;
 }
 .dialog-service {
   text-align: center;

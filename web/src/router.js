@@ -106,13 +106,13 @@ const routes = [
                 path: '/admin/user',
                 name: 'admin-user',
                 meta: {title: '用户管理'},
-                component: () => import('@/views/admin/UserList.vue'),
+                component: () => import('@/views/admin/Users.vue'),
             },
             {
                 path: '/admin/role',
                 name: 'admin-role',
                 meta: {title: '角色管理'},
-                component: () => import('@/views/admin/RoleList.vue'),
+                component: () => import('@/views/admin/Roles.vue'),
             },
             {
                 path: '/admin/apikey',

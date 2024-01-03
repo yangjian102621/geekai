@@ -381,12 +381,19 @@ $borderColor = #4676d0;
   }
 }
 
-.notice {
-  background-color #F6DEFF
-  width 100%
-  padding 5px 10px;
-  border-radius 5px;
-  color #CF49FF
+.el-overlay-dialog {
+  .el-dialog {
+    .el-dialog__body {
+      .notice {
+        padding 0 20px 0 20px
+        line-height 1.8
+
+        .el-text {
+          font-size 16px
+        }
+      }
+    }
+  }
 }
 
 .dialog-service {
