@@ -109,7 +109,7 @@
           </el-tooltip>
         </el-form-item>
 
-        <el-form-item label="显示公告" prop="show_demo_notice">
+        <el-form-item label="显示演示公告" prop="show_demo_notice">
           <el-switch v-model="system['show_demo_notice']"/>
           <el-tooltip
               effect="dark"

@@ -6,7 +6,8 @@
 
 <script setup>
 import {ElConfigProvider} from 'element-plus';
-import zhCn from 'element-plus/es/locale/lang/zh-cn';</script>
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
+</script>
 
 
 <style lang="stylus">
@@ -41,155 +42,160 @@ html, body {
 
 /* 省略显示 */
 .ellipsis {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .sl {
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
+
 .sl3 {
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 3;
-	overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
+
 .sl4 {
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 3;
-	overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 /* 居中布局 */
-.auto_center{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
+.auto_center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
-.h_center{
-    width: 100%;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    -webkit-transform: translateY(-50%);
+
+.h_center {
+  width: 100%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  -webkit-transform: translateY(-50%);
 }
-.w_center{
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    -webkit-transform: translateX(-50%);
+
+.w_center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
 }
 
 /* flex布局 */
 .flex-row {
-	display: flex;
-	flex-direction: row;
+  display: flex;
+  flex-direction: row;
 }
 
 .flex-col {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .justify-start {
-	justify-content: flex-start;
+  justify-content: flex-start;
 }
 
 .justify-end {
-	justify-content: flex-end;
+  justify-content: flex-end;
 }
 
 .justify-center {
-	justify-content: center;
+  justify-content: center;
 }
 
 .justify-between {
-	justify-content: space-between;
+  justify-content: space-between;
 }
 
 .justify-around {
-	justify-content: space-around;
+  justify-content: space-around;
 }
 
 .justify-evenly {
-	justify-content: space-evenly;
+  justify-content: space-evenly;
 }
 
 .items-start {
-	align-items: flex-start;
+  align-items: flex-start;
 }
 
 .items-end {
-	align-items: flex-end;
+  align-items: flex-end;
 }
 
 .items-center {
-	align-items: center;
+  align-items: center;
 }
 
 .items-baseline {
-	align-items: baseline;
+  align-items: baseline;
 }
 
 .items-stretch {
-	align-items: stretch;
+  align-items: stretch;
 }
 
 .self-start {
-	align-self: flex-start;
+  align-self: flex-start;
 }
 
 .self-end {
-	align-self: flex-end;
+  align-self: flex-end;
 }
 
 .self-center {
-	align-self: center;
+  align-self: center;
 }
 
 .self-baseline {
-	align-self: baseline;
+  align-self: baseline;
 }
 
 .self-stretch {
-	align-self: stretch;
+  align-self: stretch;
 }
 
 .flex-1 {
-	flex: 1 1 0%;
+  flex: 1 1 0%;
 }
 
 .flex-auto {
-	flex: 1 1 auto;
+  flex: 1 1 auto;
 }
 
 .grow {
-	flex-grow: 1;
+  flex-grow: 1;
 }
 
 .grow-0 {
-	flex-grow: 0;
+  flex-grow: 0;
 }
 
 .shrink {
-	flex-shrink: 1;
+  flex-shrink: 1;
 }
 
 .shrink-0 {
-	flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .shrink-1 {
-	flex-shrink: 1;
+  flex-shrink: 1;
 }
 
 .relative {
-	position: relative;
+  position: relative;
 }
 
 </style>
