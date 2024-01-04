@@ -61,22 +61,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
-	if h.App.SysConfig.EnabledMsg {
-		code, err := h.redis.Get(c, key).Result()
-		if err != nil || code != data.Code {
-			resp.ERROR(c, "短信验证码错误")
-			return
-		}
+	code, err := h.redis.Get(c, key).Result()
+	if err != nil || code != data.Code {
+		resp.ERROR(c, "短信验证码错误")
+		return
 	}
 
 	// 验证邀请码
 	inviteCode := model.InviteCode{}
-	if data.InviteCode == "" {
-		if h.App.SysConfig.ForceInvite {
-			resp.ERROR(c, "当前系统设定必须使用邀请码才能注册")
-			return
-		}
-	} else {
+	if data.InviteCode != "" {
 		res := h.db.Where("code = ?", data.InviteCode).First(&inviteCode)
 		if res.Error != nil {
 			resp.ERROR(c, "无效的邀请码")
@@ -139,9 +132,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 			Reward:     utils.JsonEncode(types.InviteReward{ChatCalls: h.App.SysConfig.InviteChatCalls, ImgCalls: h.App.SysConfig.InviteImgCalls}),
 		})
 	}
-	if h.App.SysConfig.EnabledMsg {
-		_ = h.redis.Del(c, key) // 注册成功，删除短信验证码
-	}
+
+	_ = h.redis.Del(c, key) // 注册成功，删除短信验证码
 
 	// 自动登录创建 token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -374,12 +366,10 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 
 	// 检查验证码
 	key := CodeStorePrefix + data.Mobile
-	if h.App.SysConfig.EnabledMsg {
-		code, err := h.redis.Get(c, key).Result()
-		if err != nil || code != data.Code {
-			resp.ERROR(c, "短信验证码错误")
-			return
-		}
+	code, err := h.redis.Get(c, key).Result()
+	if err != nil || code != data.Code {
+		resp.ERROR(c, "短信验证码错误")
+		return
 	}
 
 	password := utils.GenPassword(data.Password, user.Salt)

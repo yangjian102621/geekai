@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 var logger = logger2.GetLogger()
@@ -120,6 +121,9 @@ func OpenAIRequest(db *gorm.DB, prompt string, proxy string) (string, error) {
 	if err != nil || r.IsErrorState() {
 		return "", fmt.Errorf("error with http request: %v%v%s", err, r.Err, errRes.Error.Message)
 	}
+
+	// 更新 API KEY 的最后使用时间
+	db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
 	return response.Choices[0].Message.Content, nil
 }
