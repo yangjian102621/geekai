@@ -15,10 +15,9 @@
             <el-tag v-else-if="scope.row.type === 'img'" type="success">绘图</el-tag>
           </template>
         </el-table-column>
-
-        <el-table-column label="创建时间">
+        <el-table-column prop="use_proxy" label="使用代理">
           <template #default="scope">
-            <span>{{ dateFormat(scope.row['created_at']) }}</span>
+            <el-switch v-model="scope.row['use_proxy']" @change="set('use_proxy',scope.row)"/>
           </template>
         </el-table-column>
 
@@ -26,6 +25,11 @@
           <template #default="scope">
             <span v-if="scope.row['last_used_at']">{{ scope.row['last_used_at'] }}</span>
             <el-tag v-else>未使用</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="enabled" label="启用状态">
+          <template #default="scope">
+            <el-switch v-model="scope.row['enabled']" @change="set('enabled',scope.row)"/>
           </template>
         </el-table-column>
 
@@ -51,31 +55,51 @@
           :closable="false"
           show-icon
           style="margin-bottom: 10px; font-size:14px;">
-        <p><b>注意：</b>如果是百度文心一言平台，需要用竖线（|）将 API Key 和 Secret Key 串接起来填入！</p>
-        <p><b>注意：</b>如果是讯飞星火大模型，需要用竖线（|）将 APPID, APIKey 和 APISecret 按照顺序串接起来填入！</p>
+        <p><b>注意：</b>如果是百度文心一言平台，API-KEY 为 APIKey|SecretKey，中间用竖线（|）连接</p>
+        <p><b>注意：</b>如果是讯飞星火大模型，API-KEY 为 AppId|APIKey|APISecret，中间用竖线（|）连接</p>
       </el-alert>
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="所属平台：" prop="platform">
-          <el-select v-model="item.platform" placeholder="请选择平台">
+          <el-select v-model="item.platform" placeholder="请选择平台" @change="changePlatform">
             <el-option v-for="item in platforms" :value="item.value" :label="item.name" :key="item.value">{{
                 item.name
               }}
             </el-option>
           </el-select>
         </el-form-item>
-
-        <el-form-item label="API KEY：" prop="value">
-          <el-input v-model="item.value" autocomplete="off"/>
-        </el-form-item>
         <el-form-item label="用途：" prop="type">
-          <el-select v-model="item.type" placeholder="请选择用途">
+          <el-select v-model="item.type" placeholder="请选择用途" @change="changePlatform">
             <el-option v-for="item in types" :value="item.value" :label="item.name" :key="item.value">{{
                 item.name
               }}
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="API KEY：" prop="value">
+          <el-input v-model="item.value" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item label="API URL：" prop="api_url">
+          <el-input v-model="item.api_url" autocomplete="off"
+                    placeholder="如果你用了第三方的 API 中转，这里填写中转地址"/>
+        </el-form-item>
 
+        <el-form-item label="使用代理：" prop="use_proxy">
+          <el-switch v-model="item.use_proxy"/>
+          <el-tooltip
+              effect="dark"
+              content="是否使用代理访问 API URL，OpenAI 官方API需要开启代理访问"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+
+        <el-form-item label="启用状态：" prop="enable">
+          <el-switch v-model="item.enabled"/>
+        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -93,7 +117,7 @@ import {reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
-import {Plus} from "@element-plus/icons-vue";
+import {InfoFilled, Plus} from "@element-plus/icons-vue";
 
 // 变量定义
 const items = ref([])
@@ -108,11 +132,32 @@ const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
 const platforms = ref([
-  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
-  {name: "【讯飞】星火大模型", value: "XunFei"},
-  {name: "【清华智普】ChatGLM", value: "ChatGLM"},
-  {name: "【百度】文心一言", value: "Baidu"},
-  {name: "【微软】Azure", value: "Azure"},
+  {
+    name: "【OpenAI】ChatGPT",
+    value: "OpenAI",
+    api_url: "https://api.fast-tunnel.one/v1/chat/completions",
+    img_url: "https://api.openai.com/v1/images/generations"
+  },
+  {
+    name: "【讯飞】星火大模型",
+    value: "XunFei",
+    api_url: "wss://spark-api.xf-yun.com/{version}/chat"
+  },
+  {
+    name: "【清华智普】ChatGLM",
+    value: "ChatGLM",
+    api_url: "https://open.bigmodel.cn/api/paas/v3/model-api/{model}/sse-invoke"
+  },
+  {
+    name: "【百度】文心一言",
+    value: "Baidu",
+    api_url: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{model}"
+  },
+  {
+    name: "【微软】Azure",
+    value: "Azure",
+    api_url: "https://chat-bot-api.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-05-15"
+  },
 ])
 const types = ref([
   {name: "聊天", value: "chat"},
@@ -176,6 +221,33 @@ const remove = function (row) {
     ElMessage.error("删除失败：" + e.message)
   })
 }
+
+const set = (filed, row) => {
+  httpPost('/api/admin/apikey/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
+    ElMessage.success("操作成功！")
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message)
+  })
+}
+
+const changePlatform = () => {
+  let platform = null
+  for (let v of platforms.value) {
+    if (v.value === item.value.platform) {
+      platform = v
+      break
+    }
+  }
+  if (platform !== null) {
+    if (item.value.type === "chat") {
+      item.value.api_url = platform.api_url
+    } else if (platform.img_url) {
+      item.value.api_url = platform.img_url
+    }
+
+  }
+}
+
 </script>
 
 <style lang="stylus" scoped>
@@ -194,6 +266,14 @@ const remove = function (row) {
   .el-select {
     width: 100%
   }
+}
 
+.el-form {
+  .el-form-item__content {
+
+    .el-icon {
+      padding-left 10px;
+    }
+  }
 }
 </style>

@@ -29,6 +29,9 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 		Platform string `json:"platform"`
 		Type     string `json:"type"`
 		Value    string `json:"value"`
+		ApiURL   string `json:"api_url"`
+		Enabled  bool   `json:"enabled"`
+		UseProxy bool   `json:"use_proxy"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -42,6 +45,9 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	apiKey.Platform = data.Platform
 	apiKey.Value = data.Value
 	apiKey.Type = data.Type
+	apiKey.ApiURL = data.ApiURL
+	apiKey.Enabled = data.Enabled
+	apiKey.UseProxy = data.UseProxy
 	res := h.db.Save(&apiKey)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
@@ -78,6 +84,26 @@ func (h *ApiKeyHandler) List(c *gin.Context) {
 		}
 	}
 	resp.SUCCESS(c, keys)
+}
+
+func (h *ApiKeyHandler) Set(c *gin.Context) {
+	var data struct {
+		Id    uint        `json:"id"`
+		Filed string      `json:"filed"`
+		Value interface{} `json:"value"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	res := h.db.Model(&model.ApiKey{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败！")
+		return
+	}
+	resp.SUCCESS(c)
 }
 
 func (h *ApiKeyHandler) Remove(c *gin.Context) {
