@@ -303,7 +303,7 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 	}
 	h.db.First(&user, user.Id)
 	user.Avatar = data.Avatar
-	user.ChatConfig = utils.JsonEncode(data.ChatConfig)
+	user.Nickname = data.Nickname
 	res := h.db.Updates(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "更新用户信息失败")

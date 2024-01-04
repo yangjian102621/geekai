@@ -4,3 +4,4 @@ ALTER TABLE `chatgpt_api_keys` ADD `api_url` VARCHAR(255) NULL COMMENT 'API 地�
 ALTER TABLE `chatgpt_api_keys` DROP INDEX `value`;
 ALTER TABLE `chatgpt_mj_jobs` ADD UNIQUE(`task_id`);
 ALTER TABLE `chatgpt_api_keys` ADD `use_proxy` TINYINT(1) NULL COMMENT '是否使用代理访问' AFTER `enabled`;
+ALTER TABLE `chatgpt_api_keys` ADD `name` VARCHAR(30) NULL COMMENT '名称' AFTER `platform`;
