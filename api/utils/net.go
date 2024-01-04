@@ -3,6 +3,7 @@ package utils
 import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
+	"chatplus/store/model"
 	"encoding/json"
 	"fmt"
 	"github.com/imroc/req/v3"
@@ -85,7 +86,7 @@ type apiErrRes struct {
 	} `json:"error"`
 }
 
-func OpenAIRequest(prompt string, apiKey string, proxy string, apiURL string) (string, error) {
+func OpenAIRequest(prompt string, apiKey model.ApiKey, proxy string) (string, error) {
 	messages := make([]interface{}, 1)
 	messages[0] = types.Message{
 		Role:    "user",
@@ -94,8 +95,12 @@ func OpenAIRequest(prompt string, apiKey string, proxy string, apiURL string) (s
 
 	var response apiRes
 	var errRes apiErrRes
-	r, err := req.C().SetProxyURL(proxy).R().SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+apiKey).
+	client := req.C()
+	if apiKey.UseProxy && proxy != "" {
+		client.SetProxyURL(proxy)
+	}
+	r, err := client.R().SetHeader("Content-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
 			Model:       "gpt-3.5-turbo",
 			Temperature: 0.9,
@@ -104,7 +109,7 @@ func OpenAIRequest(prompt string, apiKey string, proxy string, apiURL string) (s
 			Messages:    messages,
 		}).
 		SetErrorResult(&errRes).
-		SetSuccessResult(&response).Post(apiURL)
+		SetSuccessResult(&response).Post(apiKey.ApiURL)
 	if err != nil || r.IsErrorState() {
 		return "", fmt.Errorf("error with http request: %v%v%s", err, r.Err, errRes.Error.Message)
 	}
