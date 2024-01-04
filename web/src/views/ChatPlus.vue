@@ -634,7 +634,7 @@ const connect = function (chat_id, role_id) {
 
           // 获取 token
           const reply = chatData.value[chatData.value.length - 1]
-          httpPost("/api/chat/tokens", {text: "", model: getModelValue(modelID.value)}).then(res => {
+          httpPost("/api/chat/tokens", {text: "", model: getModelValue(modelID.value), chat_id: chat_id}).then(res => {
             reply['created_at'] = new Date().getTime();
             reply['tokens'] = res.data;
             // 将聊天框的滚动条滑动到最底部

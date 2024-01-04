@@ -338,8 +338,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 // Tokens 统计 token 数量
 func (h *ChatHandler) Tokens(c *gin.Context) {
 	var data struct {
-		Text  string `json:"text"`
-		Model string `json:"model"`
+		Text   string `json:"text"`
+		Model  string `json:"model"`
+		ChatId string `json:"chat_id"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -347,10 +348,10 @@ func (h *ChatHandler) Tokens(c *gin.Context) {
 	}
 
 	// 如果没有传入 text 字段，则说明是获取当前 reply 总的 token 消耗（带上下文）
-	if data.Text == "" {
+	if data.Text == "" && data.ChatId != "" {
 		var item model.HistoryMessage
 		userId, _ := c.Get(types.LoginUserID)
-		res := h.db.Where("user_id = ?", userId).Last(&item)
+		res := h.db.Where("user_id = ?", userId).Where("chat_id = ?", data.ChatId).Last(&item)
 		if res.Error != nil {
 			resp.ERROR(c, res.Error.Error())
 			return
