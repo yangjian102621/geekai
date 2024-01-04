@@ -4,6 +4,7 @@ package vo
 type ApiKey struct {
 	BaseVo
 	Platform   string `json:"platform"`
+	Name       string `json:"name"`
 	Type       string `json:"type"`
 	Value      string `json:"value"` // API Key 的值
 	ApiURL     string `json:"api_url"`

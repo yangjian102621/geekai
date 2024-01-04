@@ -204,9 +204,6 @@
         </el-form-item>
 
         <el-divider content-position="center">OpenAI</el-divider>
-        <el-form-item label="API 地址" prop="open_ai.api_url">
-          <el-input v-model="chat['open_ai']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
-        </el-form-item>
         <el-form-item label="模型创意度">
           <el-slider v-model="chat['open_ai']['temperature']" :max="2" :step="0.1"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
@@ -216,9 +213,6 @@
         </el-form-item>
 
         <el-divider content-position="center">Azure</el-divider>
-        <el-form-item label="API 地址" prop="azure.api_url">
-          <el-input v-model="chat['azure']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
-        </el-form-item>
         <el-form-item label="模型创意度">
           <el-slider v-model="chat['azure']['temperature']" :max="2" :step="0.1"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
@@ -228,9 +222,6 @@
         </el-form-item>
 
         <el-divider content-position="center">ChatGLM</el-divider>
-        <el-form-item label="API 地址" prop="chat_gml.api_url">
-          <el-input v-model="chat['chat_gml']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
-        </el-form-item>
         <el-form-item label="模型创意度">
           <el-slider v-model="chat['chat_gml']['temperature']" :max="1" :step="0.01"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
@@ -240,9 +231,6 @@
         </el-form-item>
 
         <el-divider content-position="center">文心一言</el-divider>
-        <el-form-item label="API 地址" prop="baidu.api_url">
-          <el-input v-model="chat['baidu']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
-        </el-form-item>
         <el-form-item label="模型创意度">
           <el-slider v-model="chat['baidu']['temperature']" :max="1" :step="0.01"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
@@ -252,9 +240,6 @@
         </el-form-item>
 
         <el-divider content-position="center">讯飞星火</el-divider>
-        <el-form-item label="API 地址" prop="xun_fei.api_url">
-          <el-input v-model="chat['xun_fei']['api_url']" placeholder="支持变量，{model} => 模型名称"/>
-        </el-form-item>
         <el-form-item label="模型创意度">
           <el-slider v-model="chat['xun_fei']['temperature']" :max="1" :step="0.1"/>
           <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
@@ -264,10 +249,7 @@
         </el-form-item>
 
         <el-divider content-position="center">AI绘图</el-divider>
-        <el-form-item label="DALL-E3 API地址">
-          <el-input v-model="chat['dall_api_url']" placeholder="OpenAI官方API需要配合代理使用"/>
-        </el-form-item>
-        <el-form-item label="默认出图数量">
+        <el-form-item label="DALL-E3出图数量">
           <el-input v-model.number="chat['dall_img_num']" placeholder="调用 DALL E3 API 传入的出图数量"/>
         </el-form-item>
         <el-form-item style="text-align: right">
@@ -287,11 +269,11 @@ import {InfoFilled, UploadFilled} from "@element-plus/icons-vue";
 
 const system = ref({models: []})
 const chat = ref({
-  open_ai: {api_url: "", temperature: 1, max_tokens: 1024},
-  azure: {api_url: "", temperature: 1, max_tokens: 1024},
-  chat_gml: {api_url: "", temperature: 0.95, max_tokens: 1024},
-  baidu: {api_url: "", temperature: 0.95, max_tokens: 1024},
-  xun_fei: {api_url: "", temperature: 0.5, max_tokens: 1024},
+  open_ai: {temperature: 1, max_tokens: 1024},
+  azure: {temperature: 1, max_tokens: 1024},
+  chat_gml: {temperature: 0.95, max_tokens: 1024},
+  baidu: {temperature: 0.95, max_tokens: 1024},
+  xun_fei: {temperature: 0.5, max_tokens: 1024},
   context_deep: 0,
   enable_context: true,
   enable_history: true,

@@ -15,7 +15,7 @@
         </el-upload>
       </el-row>
       <el-form-item label="昵称">
-        {{ user['nickname'] }}
+        <el-input v-model="user['nickname']"/>
       </el-form-item>
       <el-form-item label="手机号">
         <span>{{ user.mobile }}</span>
@@ -44,16 +44,6 @@
         <el-tag type="danger">{{ dateFormat(user['expired_time']) }}</el-tag>
       </el-form-item>
 
-      <el-form-item label="OpenAI API KEY">
-        <el-input v-model="user.chat_config['api_keys']['OpenAI']"/>
-      </el-form-item>
-      <el-form-item label="Azure API KEY">
-        <el-input v-model="user['chat_config']['api_keys']['Azure']"/>
-      </el-form-item>
-      <el-form-item label="ChatGLM API KEY">
-        <el-input v-model="user['chat_config']['api_keys']['ChatGLM']"/>
-      </el-form-item>
-
       <el-row class="opt-line">
         <el-button color="#47fff1" :dark="false" round @click="save">保存</el-button>
       </el-row>
@@ -78,7 +68,6 @@ const user = ref({
   mobile: '',
   calls: 0,
   tokens: 0,
-  chat_config: {api_keys: {OpenAI: "", Azure: "", ChatGLM: ""}}
 })
 const vipImg = ref("/images/vip.png")
 
@@ -87,7 +76,6 @@ onMounted(() => {
     // 获取最新用户信息
     httpGet('/api/user/profile').then(res => {
       user.value = res.data
-      user.value.chat_config.api_keys = res.data.chat_config.api_keys ?? {OpenAI: "", Azure: "", ChatGLM: ""}
     }).catch(e => {
       ElMessage.error("获取用户信息失败：" + e.message)
     });

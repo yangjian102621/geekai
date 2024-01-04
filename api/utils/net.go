@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"net/url"
@@ -86,7 +87,13 @@ type apiErrRes struct {
 	} `json:"error"`
 }
 
-func OpenAIRequest(prompt string, apiKey model.ApiKey, proxy string) (string, error) {
+func OpenAIRequest(db *gorm.DB, prompt string, proxy string) (string, error) {
+	var apiKey model.ApiKey
+	res := db.Where("platform = ?", types.OpenAI).Where("type = ?", "chat").Where("enabled = ?", true).First(&apiKey)
+	if res.Error != nil {
+		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
+	}
+
 	messages := make([]interface{}, 1)
 	messages[0] = types.Message{
 		Role:    "user",

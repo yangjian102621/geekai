@@ -448,8 +448,9 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 
 	request = request.WithContext(ctx)
 	request.Header.Set("Content-Type", "application/json")
-	proxyURL := h.App.Config.ProxyURL
-	if proxyURL != "" && platform == types.OpenAI { // 使用代理
+	var proxyURL string
+	if h.App.Config.ProxyURL != "" && apiKey.UseProxy { // 使用代理
+		proxyURL = h.App.Config.ProxyURL
 		proxy, _ := url.Parse(proxyURL)
 		client = &http.Client{
 			Transport: &http.Transport{

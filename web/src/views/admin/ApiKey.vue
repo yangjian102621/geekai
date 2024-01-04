@@ -8,7 +8,16 @@
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
         <el-table-column prop="platform" label="所属平台"/>
-        <el-table-column prop="value" label="KEY"/>
+        <el-table-column prop="name" label="名称"/>
+        <el-table-column prop="value" label="KEY">
+          <template #default="scope">
+            <el-tooltip class="box-item"
+                        effect="dark"
+                        :content="scope.row.api_url"
+                        placement="top">{{ scope.row.value }}
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column prop="type" label="用途">
           <template #default="scope">
             <el-tag v-if="scope.row.type === 'chat'">聊天</el-tag>
@@ -66,6 +75,9 @@
               }}
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="名称：" prop="name">
+          <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="用途：" prop="type">
           <el-select v-model="item.type" placeholder="请选择用途" @change="changePlatform">
@@ -125,6 +137,7 @@ const item = ref({})
 const showDialog = ref(false)
 const rules = reactive({
   platform: [{required: true, message: '请选择平台', trigger: 'change',}],
+  name: [{required: true, message: '请输入名称', trigger: 'change',}],
   type: [{required: true, message: '请选择用途', trigger: 'change',}],
   value: [{required: true, message: '请输入 API KEY 值', trigger: 'change',}]
 })
@@ -135,8 +148,8 @@ const platforms = ref([
   {
     name: "【OpenAI】ChatGPT",
     value: "OpenAI",
-    api_url: "https://api.fast-tunnel.one/v1/chat/completions",
-    img_url: "https://api.openai.com/v1/images/generations"
+    api_url: "https://gpt.bemore.lol/v1/chat/completions",
+    img_url: "https://gpt.bemore.lol/v1/images/generations"
   },
   {
     name: "【讯飞】星火大模型",

@@ -3,11 +3,8 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
-	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -36,7 +33,7 @@ func (h *PromptHandler) Rewrite(c *gin.Context) {
 		return
 	}
 
-	content, err := h.request(data.Prompt, rewritePromptTemplate)
+	content, err := utils.OpenAIRequest(h.db, data.Prompt, rewritePromptTemplate)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -54,22 +51,11 @@ func (h *PromptHandler) Translate(c *gin.Context) {
 		return
 	}
 
-	content, err := h.request(data.Prompt, translatePromptTemplate)
+	content, err := utils.OpenAIRequest(h.db, data.Prompt, translatePromptTemplate)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
 	resp.SUCCESS(c, content)
-}
-
-func (h *PromptHandler) request(prompt string, promptTemplate string) (string, error) {
-	// 获取 OpenAI 的 API KEY
-	var apiKey model.ApiKey
-	res := h.db.Where("platform = ?", types.OpenAI).Where("type = ?", "chat").Where("enabled = ?", true).First(&apiKey)
-	if res.Error != nil {
-		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
-	}
-
-	return utils.OpenAIRequest(fmt.Sprintf(promptTemplate, prompt), apiKey, h.App.Config.ProxyURL)
 }

@@ -231,14 +231,9 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	// translate prompt
 	const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
-	pt, err := utils.OpenAIRequest(fmt.Sprintf(translatePromptTemplate, params["prompt"]), apiKey, h.App.Config.ProxyURL)
+	pt, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, params["prompt"]), h.App.Config.ProxyURL)
 	if err == nil {
 		prompt = pt
-	}
-
-	apiURL := chatConfig.DallApiURL
-	if utils.IsEmptyValue(apiURL) {
-		apiURL = "https://api.openai.com/v1/images/generations"
 	}
 	imgNum := chatConfig.DallImgNum
 	if imgNum <= 0 {
@@ -247,11 +242,12 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	var res imgRes
 	var errRes ErrRes
 	var request *req.Request
-	if strings.Contains(apiURL, "api.openai.com") {
+	if apiKey.UseProxy && h.proxyURL != "" {
 		request = req.C().SetProxyURL(h.proxyURL).R()
 	} else {
 		request = req.C().R()
 	}
+	logger.Debugf("Sending %s request, ApiURL:%s, ApiKey:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, h.proxyURL)
 	r, err := request.SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(imgReq{
@@ -261,7 +257,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 			Size:   "1024x1024",
 		}).
 		SetErrorResult(&errRes).
-		SetSuccessResult(&res).Post(apiURL)
+		SetSuccessResult(&res).Post(apiKey.ApiURL)
 	if r.IsErrorState() {
 		resp.ERROR(c, "请求 OpenAI API 失败: "+errRes.Error.Message)
 		return

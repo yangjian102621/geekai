@@ -27,6 +27,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	var data struct {
 		Id       uint   `json:"id"`
 		Platform string `json:"platform"`
+		Name     string `json:"name"`
 		Type     string `json:"type"`
 		Value    string `json:"value"`
 		ApiURL   string `json:"api_url"`
@@ -48,6 +49,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	apiKey.ApiURL = data.ApiURL
 	apiKey.Enabled = data.Enabled
 	apiKey.UseProxy = data.UseProxy
+	apiKey.Name = data.Name
 	res := h.db.Save(&apiKey)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
