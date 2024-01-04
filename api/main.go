@@ -255,6 +255,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/apikey/")
 			group.POST("save", h.Save)
 			group.GET("list", h.List)
+			group.POST("set", h.Set)
 			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
