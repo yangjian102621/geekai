@@ -30,31 +30,11 @@
         <el-form-item label="开放注册服务" prop="enabled_register">
           <el-switch v-model="system['enabled_register']"/>
         </el-form-item>
-        <el-form-item label="强制邀请码注册" prop="force_invite">
-          <el-switch v-model="system['force_invite']"/>
-          <el-tooltip
-              effect="dark"
-              content="开启之后，用户必须使用邀请码才能注册"
-              raw-content
-              placement="right"
-          >
-            <el-icon>
-              <InfoFilled/>
-            </el-icon>
-          </el-tooltip>
-        </el-form-item>
-        <el-form-item label="短信服务" prop="enabled_msg">
-          <el-switch v-model="system['enabled_msg']"/>
-          <el-tooltip
-              effect="dark"
-              content="是否在注册时候开启短信验证码服务"
-              raw-content
-              placement="right"
-          >
-            <el-icon>
-              <InfoFilled/>
-            </el-icon>
-          </el-tooltip>
+        <el-form-item label="注册方式" prop="register_ways">
+          <el-checkbox-group v-model="system['register_ways']">
+            <el-checkbox label="mobile">手机注册</el-checkbox>
+            <el-checkbox label="email">邮箱注册</el-checkbox>
+          </el-checkbox-group>
         </el-form-item>
 
         <el-form-item label="启用众筹功能" prop="enabled_reward">

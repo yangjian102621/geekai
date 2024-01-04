@@ -145,26 +145,27 @@ type ModelAPIConfig struct {
 }
 
 type SystemConfig struct {
-	Title            string   `json:"title"`
-	AdminTitle       string   `json:"admin_title"`
-	Models           []string `json:"models"`
-	InitChatCalls    int      `json:"init_chat_calls"`     // 新用户注册赠送对话次数
-	InitImgCalls     int      `json:"init_img_calls"`      // 新用户注册赠送绘图次数
-	VipMonthCalls    int      `json:"vip_month_calls"`     // VIP 会员每月赠送的对话次数
-	VipMonthImgCalls int      `json:"vip_month_img_calls"` // VIP 会员每月赠送绘图次数
-	EnabledRegister  bool     `json:"enabled_register"`    // 是否启用注册功能，关闭注册功能之后将无法注册
-	EnabledMsg       bool     `json:"enabled_msg"`         // 是否启用短信验证码服务
-	RewardImg        string   `json:"reward_img"`          // 众筹收款二维码地址
-	EnabledReward    bool     `json:"enabled_reward"`      // 启用众筹功能
-	ChatCallPrice    float64  `json:"chat_call_price"`     // 对话单次调用费用
-	ImgCallPrice     float64  `json:"img_call_price"`      // 绘图单次调用费用
+	Title            string `json:"title"`
+	AdminTitle       string `json:"admin_title"`
+	InitChatCalls    int    `json:"init_chat_calls"`     // 新用户注册赠送对话次数
+	InitImgCalls     int    `json:"init_img_calls"`      // 新用户注册赠送绘图次数
+	VipMonthCalls    int    `json:"vip_month_calls"`     // VIP 会员每月赠送的对话次数
+	VipMonthImgCalls int    `json:"vip_month_img_calls"` // VIP 会员每月赠送绘图次数
+
+	EnabledRegister bool     `json:"enabled_register"` // 是否启用注册功能，关闭注册功能之后将无法注册
+	RegisterWays    []string `json:"register_ways"`    // 注册方式：支持手机，邮箱注册
+
+	RewardImg     string  `json:"reward_img"`      // 众筹收款二维码地址
+	EnabledReward bool    `json:"enabled_reward"`  // 启用众筹功能
+	ChatCallPrice float64 `json:"chat_call_price"` // 对话单次调用费用
+	ImgCallPrice  float64 `json:"img_call_price"`  // 绘图单次调用费用
+
 	EnabledAlipay    bool     `json:"enabled_alipay"`      // 是否启用支付宝支付通道
 	OrderPayTimeout  int      `json:"order_pay_timeout"`   //订单支付超时时间
 	DefaultModels    []string `json:"default_models"`      // 默认开通的 AI 模型
 	OrderPayInfoText string   `json:"order_pay_info_text"` // 订单支付页面说明文字
 	InviteChatCalls  int      `json:"invite_chat_calls"`   // 邀请用户注册奖励对话次数
 	InviteImgCalls   int      `json:"invite_img_calls"`    // 邀请用户注册奖励绘图次数
-	ForceInvite      bool     `json:"force_invite"`        // 是否强制必须使用邀请码才能注册
 
 	ShowDemoNotice bool `json:"show_demo_notice"` // 显示演示站公告
 }

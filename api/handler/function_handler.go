@@ -262,6 +262,8 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		resp.ERROR(c, "请求 OpenAI API 失败: "+errRes.Error.Message)
 		return
 	}
+	// 更新 API KEY 的最后使用时间
+	h.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// 存储图片
 	imgURL, err := h.uploadManager.GetUploadHandler().PutImg(res.Data[0].Url, false)
 	if err != nil {
