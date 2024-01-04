@@ -208,7 +208,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	prompt := utils.InterfaceToString(params["prompt"])
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx = h.db.Where("platform = ? AND type = ?", types.OpenAI, "img").Order("last_used_at ASC").First(&apiKey)
+	tx = h.db.Where("platform = ?", types.OpenAI).Where("type = ?", "img").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
 		resp.ERROR(c, "获取绘图 API KEY 失败: "+tx.Error.Error())
 		return
@@ -231,7 +231,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	// translate prompt
 	const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
-	pt, err := utils.OpenAIRequest(fmt.Sprintf(translatePromptTemplate, params["prompt"]), apiKey.Value, h.App.Config.ProxyURL, chatConfig.OpenAI.ApiURL)
+	pt, err := utils.OpenAIRequest(fmt.Sprintf(translatePromptTemplate, params["prompt"]), apiKey, h.App.Config.ProxyURL)
 	if err == nil {
 		prompt = pt
 	}

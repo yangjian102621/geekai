@@ -141,7 +141,6 @@ type InviteReward struct {
 }
 
 type ModelAPIConfig struct {
-	ApiURL      string  `json:"api_url,omitempty"`
 	Temperature float32 `json:"temperature"`
 	MaxTokens   int     `json:"max_tokens"`
 	ApiKey      string  `json:"api_key"`

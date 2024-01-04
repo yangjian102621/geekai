@@ -66,10 +66,10 @@ func (h *PromptHandler) Translate(c *gin.Context) {
 func (h *PromptHandler) request(prompt string, promptTemplate string) (string, error) {
 	// 获取 OpenAI 的 API KEY
 	var apiKey model.ApiKey
-	res := h.db.Where("platform = ?", types.OpenAI).First(&apiKey)
+	res := h.db.Where("platform = ?", types.OpenAI).Where("type = ?", "chat").Where("enabled = ?", true).First(&apiKey)
 	if res.Error != nil {
 		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
 	}
 
-	return utils.OpenAIRequest(fmt.Sprintf(promptTemplate, prompt), apiKey.Value, h.App.Config.ProxyURL, h.App.ChatConfig.OpenAI.ApiURL)
+	return utils.OpenAIRequest(fmt.Sprintf(promptTemplate, prompt), apiKey, h.App.Config.ProxyURL)
 }

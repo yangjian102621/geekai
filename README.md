@@ -14,7 +14,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
   绘画函数插件。
 
 ## 最新版本一键部署脚本
-
+目前仅支持 Ubuntu 和 Centos 系统。
 ```shell
 bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
 ```

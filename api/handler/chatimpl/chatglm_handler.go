@@ -30,7 +30,7 @@ func (h *ChatHandler) sendChatGLMMessage(
 	ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
 	start := time.Now()
-	var apiKey = userVo.ChatConfig.ApiKeys[session.Model.Platform]
+	var apiKey = model.ApiKey{}
 	response, err := h.doRequest(ctx, req, session.Model.Platform, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {

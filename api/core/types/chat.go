@@ -62,7 +62,6 @@ type ApiError struct {
 
 const PromptMsg = "prompt" // prompt message
 const ReplyMsg = "reply"   // reply message
-const MjMsg = "mj"
 
 var ModelToTokens = map[string]int{
 	"gpt-3.5-turbo":     4096,
@@ -75,4 +74,12 @@ var ModelToTokens = map[string]int{
 	"ernie_bot_turbo":   8192, // 文心一言
 	"general":           8192, // 科大讯飞
 	"general2":          8192,
+	"general3":          8192,
+}
+
+func GetModelMaxToken(model string) int {
+	if token, ok := ModelToTokens[model]; ok {
+		return token
+	}
+	return 4096
 }

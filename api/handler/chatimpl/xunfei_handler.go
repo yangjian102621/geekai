@@ -67,29 +67,25 @@ func (h *ChatHandler) sendXunFeiMessage(
 	prompt string,
 	ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
-	var apiKey = userVo.ChatConfig.ApiKeys[session.Model.Platform]
-	if apiKey == "" {
-		var key model.ApiKey
-		res := h.db.Where("platform = ? AND type = ?", session.Model.Platform, "chat").Order("last_used_at ASC").First(&key)
-		if res.Error != nil {
-			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
-			return nil
-		}
-		// 更新 API KEY 的最后使用时间
-		h.db.Model(&key).UpdateColumn("last_used_at", time.Now().Unix())
-		apiKey = key.Value
+	var apiKey model.ApiKey
+	res := h.db.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
+	if res.Error != nil {
+		utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
+		return nil
 	}
+	// 更新 API KEY 的最后使用时间
+	h.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
 	d := websocket.Dialer{
 		HandshakeTimeout: 5 * time.Second,
 	}
-	key := strings.Split(apiKey, "|")
+	key := strings.Split(apiKey.Value, "|")
 	if len(key) != 3 {
 		utils.ReplyMessage(ws, "非法的 API KEY！")
 		return nil
 	}
 
-	apiURL := strings.Replace(h.App.ChatConfig.XunFei.ApiURL, "{version}", Model2URL[req.Model], 1)
+	apiURL := strings.Replace(apiKey.ApiURL, "{version}", Model2URL[req.Model], 1)
 	wsURL, err := assembleAuthUrl(apiURL, key[1], key[2])
 	//握手并建立websocket 连接
 	conn, resp, err := d.Dial(wsURL, nil)
