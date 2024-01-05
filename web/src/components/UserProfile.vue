@@ -17,8 +17,8 @@
       <el-form-item label="昵称">
         <el-input v-model="user['nickname']"/>
       </el-form-item>
-      <el-form-item label="手机号">
-        <span>{{ user.mobile }}</span>
+      <el-form-item label="账号">
+        <span>{{ user.username }}</span>
         <el-tooltip
             class="box-item"
             effect="light"

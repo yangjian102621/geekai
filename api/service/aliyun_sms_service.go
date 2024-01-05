@@ -49,3 +49,5 @@ func (s *AliYunSmsService) SendVerifyCode(mobile string, code int) error {
 
 	return nil
 }
+
+var _ SmsService = &AliYunSmsService{}

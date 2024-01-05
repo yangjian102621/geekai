@@ -1,7 +1,7 @@
 <template>
   <div class="container user-list" v-loading="loading">
     <div class="handle-box">
-      <el-input v-model="query.mobile" placeholder="手机号码" class="handle-input mr10"></el-input>
+      <el-input v-model="query.username" placeholder="账号" class="handle-input mr10"></el-input>
       <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
 
       <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
@@ -13,7 +13,7 @@
         <el-table-column type="selection" width="38"/>
         <el-table-column prop="mobile" label="账号">
           <template #default="scope">
-            <span>{{ scope.row.mobile }}</span>
+            <span>{{ scope.row.username }}</span>
             <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px;position: relative; top:5px; left: 5px"/>
           </template>
         </el-table-column>
@@ -69,7 +69,7 @@
         width="50%"
     >
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item label="手机号：" prop="mobile">
+        <el-form-item label="手机号：" prop="username">
           <el-input v-model="user.mobile" autocomplete="off"/>
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
@@ -150,7 +150,7 @@
     >
       <el-form label-width="100px" ref="userEditFormRef">
         <el-form-item label="账户：">
-          <el-input v-model="pass.mobile" autocomplete="off" readonly disabled/>
+          <el-input v-model="pass.username" autocomplete="off" readonly disabled/>
         </el-form-item>
 
         <el-form-item label="新密码：">
@@ -177,13 +177,13 @@ import {Plus, Search} from "@element-plus/icons-vue";
 
 // 变量定义
 const users = ref({page: 1, page_size: 15, items: []})
-const query = ref({mobile: '', page: 1, page_size: 15})
+const query = ref({username: '', page: 1, page_size: 15})
 
 const title = ref('添加用户')
 const vipImg = ref("/images/vip.png")
 const add = ref(true)
 const user = ref({chat_roles: [], chat_models: []})
-const pass = ref({mobile: '', password: '', id: 0})
+const pass = ref({username: '', password: '', id: 0})
 const roles = ref([])
 const models = ref([])
 const showUserEditDialog = ref(false)
@@ -191,7 +191,7 @@ const showResetPassDialog = ref(false)
 const rules = reactive({
   nickname: [{required: true, message: '请输入昵称', trigger: 'change',}],
   password: [{required: true, message: '请输入密码', trigger: 'change',}],
-  mobile: [{required: true, message: '请输入手机号码', trigger: 'change',}],
+  username: [{required: true, message: '请输入手机号码', trigger: 'change',}],
   calls: [
     {required: true, message: '请输入提问次数'},
     {type: 'number', message: '请输入有效数字'},
@@ -309,7 +309,7 @@ const handleSelectionChange = function (rows) {
 const resetPass = (row) => {
   showResetPassDialog.value = true
   pass.value.id = row.id
-  pass.value.mobile = row.mobile
+  pass.value.username = row.mobile
 }
 
 const doResetPass = () => {

@@ -204,7 +204,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	}
 	order := model.Order{
 		UserId:    user.Id,
-		Mobile:    user.Mobile,
+		Mobile:    user.Username,
 		ProductId: product.Id,
 		OrderNo:   orderNo,
 		Subject:   product.Name,

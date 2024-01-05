@@ -13,12 +13,6 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 * 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI
   绘画函数插件。
 
-## 最新版本一键部署脚本
-目前仅支持 Ubuntu 和 Centos 系统。
-```shell
-bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
-```
-
 ## 功能截图
 
 ### PC 端聊天界面
@@ -69,10 +63,29 @@ bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
 ![Mobile chat setting](/docs/imgs/mobile_user_profile.png)
 ![Mobile chat setting](/docs/imgs/mobile_pay.png)
 
-### 7. 体验地址
+### 体验地址
 
 > 免费体验地址：[https://ai.r9it.com/chat](https://ai.r9it.com/chat) <br/>
 > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
+
+## 快速部署
+**演示站不提供任何充值点卡售卖或者VIP充值服务。** 如果您体验过后觉得还不错的话，可以花两分钟用下面的一键部署脚本自己部署一套。
+```shell
+bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
+```
+目前仅支持 Ubuntu 和 Centos 系统。 部署成功之后可以访问下面地址
+
+* 前端访问地址：http://localhost:8080/chat 使用移动设备访问会自动跳转到移动端页面。
+* 后台管理地址：http://localhost:8080/admin
+* 移动端地址：http://localhost:8080/mobile
+* 初始后台管理账号：admin/admin123
+* 初始前端体验账号：18575670125/12345678
+
+服务启动成功之后不能立刻使用，需要先登录管理后台 -> API-KEY 去添加一个 OpenAI 或者文心一言，科大讯飞等至少一个平台的 API KEY。
+
+![](https://ai.r9it.com/docs/images/env/admin_api_keys.png)
+
+另外，如果您目前还没有 OpenAI 的 API KEY的，推荐您去 https://gpt.bemore.lol 购买，**无需魔法，高速稳定，且价格还远低于 OpenAI 官方**。
 
 ## 使用须知
 

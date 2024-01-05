@@ -142,6 +142,9 @@ func main() {
 		fx.Provide(oss.NewUploaderManager),
 		fx.Provide(mj.NewService),
 
+		// 邮件服务
+		fx.Provide(service.NewSmtpService),
+
 		// 微信机器人服务
 		fx.Provide(wx.NewWeChatBot),
 		fx.Invoke(func(config *types.AppConfig, bot *wx.Bot) {

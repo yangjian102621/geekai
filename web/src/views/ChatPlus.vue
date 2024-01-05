@@ -231,12 +231,17 @@
       <div class="notice">
         <el-text type="primary">
           注意：当前站点仅为开源项目
-          <a style="color: #F56C6C" href="https://github.com/yangjian102621/chatgpt-plus">ChatPlus</a>
+          <a style="color: #F56C6C" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">ChatPlus</a>
           的演示项目，本项目单纯就是给大家体验项目功能使用。<br/>
 
           体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
           体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
           体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
+
+          如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去
+          <a href="https://gpt.bemore.lol" target="_blank"
+             style="font-size: 20px;color:#F56C6C">https://gpt.bemore.lol</a>
+          购买，现在有超级优惠，价格远低于 OpenAI 官方。
         </el-text>
 
         <p style="text-align: right">
@@ -350,7 +355,7 @@ onMounted(() => {
 
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
-      const show = localStorage.getItem(showNoticeKey.value + loginUser.value.mobile)
+      const show = localStorage.getItem(showNoticeKey.value + loginUser.value.username)
       if (!show) {
         showDemoNotice.value = res.data['show_demo_notice']
       }
@@ -878,7 +883,7 @@ const getModelValue = (model_id) => {
 
 
 const notShow = () => {
-  localStorage.setItem(showNoticeKey.value + loginUser.value.mobile, true)
+  localStorage.setItem(showNoticeKey.value + loginUser.value.username, true)
   showDemoNotice.value = false
 }
 </script>

@@ -14,7 +14,7 @@
                 <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
               </el-col>
               <el-col :span="12">
-                <el-button type="primary" @click="showBindMobileDialog = true">绑定手机号</el-button>
+                <el-button type="primary" @click="showBindMobileDialog = true">更改账号</el-button>
               </el-col>
               <el-col :span="12">
                 <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
@@ -93,7 +93,7 @@
     <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
                      @logout="logout"/>
 
-    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="user.mobile"
+    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :username="user.username"
                  @hide="showBindMobileDialog = false"/>
 
     <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
@@ -158,7 +158,7 @@ import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
-import BindMobile from "@/components/BindMobile.vue";
+import BindMobile from "@/components/ResetAccount.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";

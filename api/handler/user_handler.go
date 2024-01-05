@@ -39,7 +39,7 @@ func NewUserHandler(
 func (h *UserHandler) Register(c *gin.Context) {
 	// parameters process
 	var data struct {
-		Mobile     string `json:"mobile"`
+		Username   string `json:"username"`
 		Password   string `json:"password"`
 		Code       string `json:"code"`
 		InviteCode string `json:"invite_code"`
@@ -49,21 +49,16 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 	data.Password = strings.TrimSpace(data.Password)
-
-	if len(data.Mobile) < 10 {
-		resp.ERROR(c, "请输入合法的手机号")
-		return
-	}
 	if len(data.Password) < 8 {
 		resp.ERROR(c, "密码长度不能少于8个字符")
 		return
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Mobile
+	key := CodeStorePrefix + data.Username
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
-		resp.ERROR(c, "短信验证码错误")
+		resp.ERROR(c, "验证码错误")
 		return
 	}
 
@@ -79,20 +74,20 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// check if the username is exists
 	var item model.User
-	res := h.db.Where("mobile = ?", data.Mobile).First(&item)
+	res := h.db.Where("username = ?", data.Username).First(&item)
 	if res.RowsAffected > 0 {
-		resp.ERROR(c, "该手机号码已经被注册，请更换其他手机号")
+		resp.ERROR(c, "该用户名已经被注册")
 		return
 	}
 
 	salt := utils.RandString(8)
 	user := model.User{
+		Username:   data.Username,
 		Password:   utils.GenPassword(data.Password, salt),
 		Nickname:   fmt.Sprintf("极客学长@%d", utils.RandomNumber(6)),
 		Avatar:     "/images/avatar/user.png",
 		Salt:       salt,
 		Status:     true,
-		Mobile:     data.Mobile,
 		ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
 		ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
 		ChatConfig: utils.JsonEncode(types.UserChatConfig{
@@ -105,6 +100,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Calls:    h.App.SysConfig.InitChatCalls,
 		ImgCalls: h.App.SysConfig.InitImgCalls,
 	}
+
 	res = h.db.Create(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "保存数据失败")
@@ -127,7 +123,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		h.db.Create(&model.InviteLog{
 			InviterId:  inviteCode.UserId,
 			UserId:     user.Id,
-			Username:   user.Mobile,
+			Username:   user.Username,
 			InviteCode: inviteCode.Code,
 			Reward:     utils.JsonEncode(types.InviteReward{ChatCalls: h.App.SysConfig.InviteChatCalls, ImgCalls: h.App.SysConfig.InviteImgCalls}),
 		})
@@ -157,7 +153,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 // Login 用户登录
 func (h *UserHandler) Login(c *gin.Context) {
 	var data struct {
-		Mobile   string `json:"username"`
+		Username string `json:"username"`
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -165,7 +161,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	var user model.User
-	res := h.db.Where("mobile = ?", data.Mobile).First(&user)
+	res := h.db.Where("username = ?", data.Username).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户名不存在")
 		return
@@ -189,7 +185,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	h.db.Create(&model.UserLoginLog{
 		UserId:       user.Id,
-		Username:     user.Mobile,
+		Username:     user.Username,
 		LoginIp:      c.ClientIP(),
 		LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
 	})
@@ -250,7 +246,7 @@ func (h *UserHandler) Session(c *gin.Context) {
 type userProfile struct {
 	Id          uint                 `json:"id"`
 	Nickname    string               `json:"nickname"`
-	Mobile      string               `json:"mobile"`
+	Username    string               `json:"username"`
 	Avatar      string               `json:"avatar"`
 	ChatConfig  types.UserChatConfig `json:"chat_config"`
 	Calls       int                  `json:"calls"`
@@ -348,9 +344,9 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 // ResetPass 重置密码
 func (h *UserHandler) ResetPass(c *gin.Context) {
 	var data struct {
-		Mobile   string
-		Code     string // 验证码
-		Password string // 新密码
+		Username string `json:"username"`
+		Code     string `json:"code"`     // 验证码
+		Password string `json:"password"` // 新密码
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -358,14 +354,14 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 	}
 
 	var user model.User
-	res := h.db.Where("mobile", data.Mobile).First(&user)
+	res := h.db.Where("username", data.Username).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户不存在！")
 		return
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Mobile
+	key := CodeStorePrefix + data.Username
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
 		resp.ERROR(c, "短信验证码错误")
@@ -386,8 +382,8 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 // BindMobile 绑定手机号
 func (h *UserHandler) BindMobile(c *gin.Context) {
 	var data struct {
-		Mobile string `json:"mobile"`
-		Code   string `json:"code"`
+		Username string `json:"username"`
+		Code     string `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -395,7 +391,7 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Mobile
+	key := CodeStorePrefix + data.Username
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
 		resp.ERROR(c, "短信验证码错误")
@@ -404,7 +400,7 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 
 	// 检查手机号是否被其他账号绑定
 	var item model.User
-	res := h.db.Where("mobile = ?", data.Mobile).First(&item)
+	res := h.db.Where("username = ?", data.Username).First(&item)
 	if res.Error == nil {
 		resp.ERROR(c, "该手机号已经被其他账号绑定")
 		return
@@ -416,7 +412,7 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 		return
 	}
 
-	res = h.db.Model(&user).UpdateColumn("mobile", data.Mobile)
+	res = h.db.Model(&user).UpdateColumn("username", data.Username)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return
