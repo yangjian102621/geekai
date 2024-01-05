@@ -379,8 +379,8 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 	}
 }
 
-// BindMobile 绑定手机号
-func (h *UserHandler) BindMobile(c *gin.Context) {
+// BindUsername 重置账号
+func (h *UserHandler) BindUsername(c *gin.Context) {
 	var data struct {
 		Username string `json:"username"`
 		Code     string `json:"code"`
@@ -394,7 +394,7 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 	key := CodeStorePrefix + data.Username
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
-		resp.ERROR(c, "短信验证码错误")
+		resp.ERROR(c, "验证码错误")
 		return
 	}
 
@@ -402,7 +402,7 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 	var item model.User
 	res := h.db.Where("username = ?", data.Username).First(&item)
 	if res.Error == nil {
-		resp.ERROR(c, "该手机号已经被其他账号绑定")
+		resp.ERROR(c, "该账号已经被其他账号绑定")
 		return
 	}
 

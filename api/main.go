@@ -195,7 +195,7 @@ func main() {
 			group.GET("profile", h.Profile)
 			group.POST("profile/update", h.ProfileUpdate)
 			group.POST("password", h.UpdatePass)
-			group.POST("bind/mobile", h.BindMobile)
+			group.POST("bind/username", h.BindUsername)
 			group.POST("resetPass", h.ResetPass)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *chatimpl.ChatHandler) {
