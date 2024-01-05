@@ -84,6 +84,10 @@ export function dateFormat(timestamp, format) {
 
 // 判断数组中是否包含某个元素
 export function arrayContains(array, value, compare) {
+    if (!array) {
+        return false
+    }
+
     if (typeof compare !== 'function') {
         compare = function (v1, v2) {
             return v1 === v2;

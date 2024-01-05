@@ -24,6 +24,15 @@ type AppConfig struct {
 	XXLConfig     XXLConfig
 	AlipayConfig  AlipayConfig
 	HuPiPayConfig HuPiPayConfig
+	SmtpConfig    SmtpConfig // 邮件发送配置
+}
+
+type SmtpConfig struct {
+	Host     string
+	Port     int
+	AppName  string // 应用名称
+	From     string // 发件人邮箱地址
+	Password string // 发件人邮箱密码
 }
 
 type ChatPlusApiConfig struct {

@@ -2,7 +2,7 @@ package model
 
 type User struct {
 	BaseModel
-	Mobile      string
+	Username    string
 	Nickname    string
 	Password    string
 	Avatar      string

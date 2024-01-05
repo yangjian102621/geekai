@@ -73,8 +73,6 @@
       <van-field v-model="tmpChatTitle" label="" placeholder="请输入对话标题" class="field"/>
     </van-dialog>
 
-    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :mobile="loginUser.mobile"
-                 @hide="showBindMobileDialog = false"/>
   </div>
 </template>
 
@@ -86,7 +84,6 @@ import {checkSession} from "@/action/session";
 import {router} from "@/router";
 import {setChatConfig} from "@/store/chat";
 import {removeArrayItem} from "@/utils/libs";
-import BindMobile from "@/components/mobile/BindMobile.vue";
 
 const title = ref("会话列表")
 const chatName = ref("")
@@ -101,7 +98,6 @@ const roles = ref([])
 const models = ref([])
 const showPicker = ref(false)
 const columns = ref([roles.value, models.value])
-const showBindMobileDialog = ref(false)
 const showEditChat = ref(false)
 const item = ref({})
 const tmpChatTitle = ref("")

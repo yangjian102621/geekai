@@ -12,9 +12,9 @@
           <div class="content">
             <el-form :model="formData" label-width="120px" ref="formRef">
               <div class="block">
-                <el-input placeholder="手机号码"
-                          size="large" maxlength="11"
-                          v-model="formData.mobile"
+                <el-input :placeholder="placeholder"
+                          size="large"
+                          v-model="formData.username"
                           autocomplete="off">
                   <template #prefix>
                     <el-icon>
@@ -49,10 +49,10 @@
                 </el-input>
               </div>
 
-              <div class="block" v-if="enableMsg">
+              <div class="block">
                 <el-row :gutter="10">
                   <el-col :span="12">
-                    <el-input placeholder="手机验证码"
+                    <el-input placeholder="验证码"
                               size="large" maxlength="30"
                               v-model="formData.code"
                               autocomplete="off">
@@ -64,7 +64,7 @@
                     </el-input>
                   </el-col>
                   <el-col :span="12">
-                    <send-msg size="large" :mobile="formData.mobile"/>
+                    <send-msg size="large" :receiver="formData.username"/>
                   </el-col>
                 </el-row>
               </div>
@@ -118,42 +118,44 @@
 import {ref} from "vue";
 import {Checked, Iphone, Lock, Message} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage, ElNotification} from "element-plus";
+import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
-import {validateMobile} from "@/utils/validate";
-import {isMobile} from "@/utils/libs";
+import {validateEmail, validateMobile} from "@/utils/validate";
+import {arrayContains} from "@/utils/libs";
 import {setUserToken} from "@/store/session";
-import {checkSession} from "@/action/session";
 
 const router = useRouter();
 const title = ref('ChatPlus 用户注册');
 const formData = ref({
-  mobile: '',
+  username: '',
   password: '',
   code: '',
   repass: '',
   invite_code: router.currentRoute.value.query['invite_code'],
 })
 const formRef = ref(null)
-const enableMsg = ref(false)
+const enableMobile = ref(false)
+const enableEmail = ref(false)
 const enableRegister = ref(true)
 const wxImg = ref("/images/wx.png")
+const ways = []
+const placeholder = ref("用户名：")
 
 httpGet("/api/admin/config/get?key=system").then(res => {
   if (res.data) {
-    enableMsg.value = res.data['enabled_msg']
     enableRegister.value = res.data['enabled_register']
-    if (res.data['force_invite'] && !formData.value.invite_code) {
-      ElNotification({
-        title: '提示：',
-        dangerouslyUseHTMLString: true,
-        message: '当前系统开启了强制邀请注册功能，必须有邀请码才能注册哦。扫描下面二维码获取邀请码。<br/> <img alt="qrcode" src="/images/wx.png" />',
-        type: 'info',
-        duration: 5000,
-      })
+    const registerWays = res.data['register_ways']
+    if (arrayContains(registerWays, "mobile")) {
+      enableMobile.value = true
+      ways.push("手机号")
     }
+    if (arrayContains(registerWays, "email")) {
+      enableEmail.value = true
+      ways.push("邮箱地址")
+    }
+    placeholder.value += ways.join("/")
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
@@ -165,8 +167,18 @@ httpGet("/api/invite/hits", {code: formData.value.invite_code}).then(() => {
 
 
 const register = function () {
-  if (!validateMobile(formData.value.mobile)) {
+  if (formData.value.username === '') {
+    return ElMessage.error('请输入用户名');
+  }
+
+  if (!enableMobile.value && !validateEmail(formData.value.username)) {
+    return ElMessage.error('请输入合法的邮箱地址');
+  }
+  if (!enableEmail.value && !validateMobile(formData.value.username)) {
     return ElMessage.error('请输入合法的手机号');
+  }
+  if (!validateMobile(formData.value.username) && !validateEmail(formData.value.username)) {
+    return ElMessage.error('请输入合法的手机号或者邮箱地址');
   }
   if (formData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符');
@@ -175,7 +187,7 @@ const register = function () {
     return ElMessage.error('两次输入密码不一致');
   }
 
-  if (enableMsg.value && formData.value.code === '') {
+  if (formData.value.code === '') {
     return ElMessage.error('请输入短信验证码');
   }
   httpPost('/api/user/register', formData.value).then((res) => {

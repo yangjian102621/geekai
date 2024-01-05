@@ -96,7 +96,7 @@ func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (
 	for _, u := range users {
 		// 账号到期，直接清零
 		if u.ExpiredTime <= currentTime.Unix() {
-			logger.Info("账号过期：", u.Mobile)
+			logger.Info("账号过期：", u.Username)
 			u.Calls = 0
 			u.Vip = false
 		} else {
@@ -133,7 +133,7 @@ func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (
 			} else {
 				u.ImgCalls = u.ImgCalls + config.VipMonthImgCalls
 			}
-			logger.Infof("%s 点卡结余：%d", u.Mobile, calls)
+			logger.Infof("%s 点卡结余：%d", u.Username, calls)
 		}
 		u.Tokens = 0
 		// update user

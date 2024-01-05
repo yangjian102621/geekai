@@ -27,7 +27,7 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
 func (h *UserHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
-	mobile := h.GetTrim(c, "mobile")
+	username := h.GetTrim(c, "username")
 
 	offset := (page - 1) * pageSize
 	var items []model.User
@@ -35,8 +35,8 @@ func (h *UserHandler) List(c *gin.Context) {
 	var total int64
 
 	session := h.db.Session(&gorm.Session{})
-	if mobile != "" {
-		session = session.Where("mobile LIKE ?", "%"+mobile+"%")
+	if username != "" {
+		session = session.Where("username LIKE ?", "%"+username+"%")
 	}
 
 	session.Model(&model.User{}).Count(&total)
@@ -95,7 +95,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	} else {
 		salt := utils.RandString(8)
 		u := model.User{
-			Mobile:      data.Mobile,
+			Username:    data.Mobile,
 			Password:    utils.GenPassword(data.Password, salt),
 			Avatar:      "/images/avatar/user.png",
 			Salt:        salt,

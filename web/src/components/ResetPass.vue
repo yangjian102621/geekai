@@ -10,16 +10,16 @@
       <div class="form">
 
         <el-form :model="form" label-width="120px" label-position="left">
-          <el-form-item label="手机号码">
-            <el-input v-model="form.mobile"/>
+          <el-form-item label="用户名">
+            <el-input v-model="form.username" placeholder="手机号/邮箱地址"/>
           </el-form-item>
-          <el-form-item label="手机验证码">
+          <el-form-item label="验证码">
             <el-row :gutter="20">
               <el-col :span="16">
                 <el-input v-model="form.code" maxlength="6"/>
               </el-col>
               <el-col :span="8">
-                <send-msg size="" :mobile="form.mobile"/>
+                <send-msg size="" :receiver="form.username"/>
               </el-col>
             </el-row>
           </el-form-item>
@@ -48,7 +48,7 @@ import {computed, ref} from "vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
-import {validateMobile} from "@/utils/validate";
+import {validateEmail, validateMobile} from "@/utils/validate";
 
 const props = defineProps({
   show: Boolean,
@@ -61,7 +61,7 @@ const showDialog = computed(() => {
 
 const title = ref('重置密码')
 const form = ref({
-  mobile: '',
+  username: '',
   code: '',
   password: '',
   repass: ''
@@ -70,11 +70,11 @@ const form = ref({
 const emits = defineEmits(['hide']);
 
 const save = () => {
-  if (!validateMobile(form.value.mobile)) {
-    return ElMessage.error("请输入正确的手机号码");
+  if (!validateMobile(form.value.username) && !validateEmail(form.value.username)) {
+    return ElMessage.error("请输入正确的手机号码/邮箱地址");
   }
   if (form.value.code === '') {
-    return ElMessage.error("请输入短信验证码");
+    return ElMessage.error("请输入验证码");
   }
   if (form.value.repass !== form.value.password) {
     return ElMessage.error("两次输入密码不一致");

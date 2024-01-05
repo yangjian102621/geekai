@@ -53,9 +53,6 @@
                 <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
               </el-col>
               <el-col :span="12">
-                <el-button type="primary" @click="showBindMobileDialog = true">绑定手机号</el-button>
-              </el-col>
-              <el-col :span="12">
                 <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
               </el-col>
               <el-col :span="12">
@@ -72,8 +69,6 @@
       <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false"/>
       <password-dialog v-if="isLogin" :show="showPasswordDialog" width="100%" @hide="showPasswordDialog = false"
                        @logout="logout"/>
-      <bind-mobile v-if="isLogin" :show="showBindMobileDialog" width="100%" :mobile="user.mobile"
-                   @hide="showBindMobileDialog = false"/>
       <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
       <el-dialog
           v-model="showRewardDialog"
@@ -135,11 +130,9 @@ import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
-import BindMobile from "@/components/BindMobile.vue";
 import RewardVerify from "@/components/RewardVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
-import UserOrder from "@/components/UserOrder.vue";
 import CountDown from "@/components/CountDown.vue";
 
 const listBoxHeight = window.innerHeight - 97
@@ -151,7 +144,6 @@ const enableReward = ref(false) // 是否启用众筹功能
 const rewardImg = ref('/images/reward.png')
 const qrcode = ref("")
 const showPasswordDialog = ref(false);
-const showBindMobileDialog = ref(false);
 const showRewardDialog = ref(false);
 const showRewardVerifyDialog = ref(false);
 const text = ref("")

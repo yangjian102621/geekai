@@ -3,6 +3,9 @@
 
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
+      <a href="https://gpt.bemore.lol" target="_blank" style="margin-left: 10px">
+        <el-button type="success" :icon="ShoppingCart" @click="add" plain>购买API-KEY</el-button>
+      </a>
     </div>
 
     <el-row>
@@ -129,7 +132,7 @@ import {reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
-import {InfoFilled, Plus} from "@element-plus/icons-vue";
+import {InfoFilled, Plus, ShoppingCart} from "@element-plus/icons-vue";
 
 // 变量定义
 const items = ref([])

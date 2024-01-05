@@ -80,7 +80,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		session = &types.ChatSession{
 			SessionId: sessionId,
 			ClientIP:  c.ClientIP(),
-			Username:  user.Mobile,
+			Username:  user.Username,
 			UserId:    user.Id,
 		}
 		h.App.ChatSession.Put(sessionId, session)

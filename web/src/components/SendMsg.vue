@@ -28,13 +28,13 @@
 // 发送短信验证码组件
 import {ref} from "vue";
 import lodash from 'lodash'
-import {validateMobile} from "@/utils/validate";
+import {validateEmail, validateMobile} from "@/utils/validate";
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import CaptchaPlus from "@/components/CaptchaPlus.vue";
 
 const props = defineProps({
-  mobile: String,
+  receiver: String,
   size: String,
 });
 const btnText = ref('发送验证码')
@@ -82,8 +82,8 @@ const handleConfirm = (dots) => {
 }
 
 const loadCaptcha = () => {
-  if (!validateMobile(props.mobile)) {
-    return ElMessage.error("请输入合法的手机号")
+  if (!validateMobile(props.receiver) && !validateEmail(props.receiver)) {
+    return ElMessage.error("请输入合法的手机号/邮箱地址")
   }
 
   showCaptcha.value = true
@@ -96,8 +96,8 @@ const sendMsg = () => {
   }
 
   canSend.value = false
-  httpPost('/api/sms/code', {mobile: props.mobile, key: captKey.value, dots: dots.value}).then(() => {
-    ElMessage.success('短信发送成功')
+  httpPost('/api/sms/code', {receiver: props.receiver, key: captKey.value, dots: dots.value}).then(() => {
+    ElMessage.success('验证码发送成功')
     let time = 120
     btnText.value = time
     const handler = setInterval(() => {
@@ -112,7 +112,7 @@ const sendMsg = () => {
     }, 1000)
   }).catch(e => {
     canSend.value = true
-    ElMessage.error('短信发送失败：' + e.message)
+    ElMessage.error('验证码发送失败：' + e.message)
   })
 }
 
