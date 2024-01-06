@@ -22,6 +22,7 @@ func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake) *TestHandler {
 
 func (h *TestHandler) Test(c *gin.Context) {
 	h.initUserNickname(c)
+	h.initMjTaskId(c)
 }
 
 func (h *TestHandler) initUserNickname(c *gin.Context) {

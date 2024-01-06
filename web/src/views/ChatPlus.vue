@@ -242,7 +242,12 @@
           <a href="https://gpt.bemore.lol" target="_blank"
              style="font-size: 20px;color:#F56C6C">https://gpt.bemore.lol</a>
           购买，现在有超级优惠，价格远低于 OpenAI 官方。<br/>
-          GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。
+          GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。<br/>
+
+          本项目源码地址：
+          <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+            https://github.com/yangjian102621/chatgpt-plus
+          </a>
         </el-text>
 
         <p style="text-align: right">
