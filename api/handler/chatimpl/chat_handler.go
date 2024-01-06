@@ -14,14 +14,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 )
 
 const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
@@ -156,11 +157,13 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 }
 
 func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recover message from error: ", r)
-		}
-	}()
+	if !h.App.Debug {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error("Recover message from error: ", r)
+			}
+		}()
+	}
 
 	var user model.User
 	res := h.db.Model(&model.User{}).First(&user, session.UserId)
