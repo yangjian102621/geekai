@@ -69,10 +69,13 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
 
 ## 快速部署
+
 **演示站不提供任何充值点卡售卖或者VIP充值服务。** 如果您体验过后觉得还不错的话，可以花两分钟用下面的一键部署脚本自己部署一套。
+
 ```shell
-bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
+bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.4-7b5ff48154.sh)"
 ```
+
 目前仅支持 Ubuntu 和 Centos 系统。 部署成功之后可以访问下面地址
 
 * 前端访问地址：http://localhost:8080/chat 使用移动设备访问会自动跳转到移动端页面。
@@ -81,17 +84,18 @@ bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
 * 初始后台管理账号：admin/admin123
 * 初始前端体验账号：18575670125/12345678
 
-服务启动成功之后不能立刻使用，需要先登录管理后台 -> API-KEY 去添加一个 OpenAI 或者文心一言，科大讯飞等至少一个平台的 API KEY。
+服务启动成功之后不能立刻使用，需要先登录管理后台 -> API-KEY 去添加一个 OpenAI 或者文心一言，科大讯飞等至少一个平台的 API
+KEY。
 
 ![](https://ai.r9it.com/docs/images/env/admin_api_keys.png)
 
-另外，如果您目前还没有 OpenAI 的 API KEY的，推荐您去 https://gpt.bemore.lol 购买，**无需魔法，高速稳定，且价格还远低于 OpenAI 官方**。
+另外，如果您目前还没有 OpenAI 的 API KEY的，推荐您去 https://gpt.bemore.lol 购买，**无需魔法，高速稳定，且价格还远低于 OpenAI
+官方**。
 
 ## 使用须知
 
 1. 本项目基于 MIT 协议，免费开放全部源代码，可以作为个人学习使用或者商用。
 2. 如需商用必须保留版权信息，请自觉遵守。确保合法合规使用，在运营过程中产生的一切任何后果自负，与作者无关。
-
 
 ## 项目地址
 
@@ -103,13 +107,18 @@ bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.3-8b588904ef.sh)"
 目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/chatgpt-plus/releases/tag/v3.1.2
 
 ## TODOLIST
+
 * [ ] 支持基于知识库的 AI 问答
 * [ ] 会员邀请注册推广功能
 * [ ] 微信支付功能
 
 ## 项目文档
 
-**最新的部署视频教程：[https://www.bilibili.com/video/BV1ge411C7uA/](https://www.bilibili.com/video/BV1ge411C7uA/?vd_source=dee8b15703ccfcbd24a60ee9a0fabb73)**
+*
+
+*
+最新的部署视频教程：[https://www.bilibili.com/video/BV1ge411C7uA/](https://www.bilibili.com/video/BV1ge411C7uA/?vd_source=dee8b15703ccfcbd24a60ee9a0fabb73)
+**
 
 详细的部署和开发文档请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/)。
 
