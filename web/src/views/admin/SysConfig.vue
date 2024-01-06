@@ -27,9 +27,6 @@
         <el-form-item label="VIP每月绘图次数" prop="vip_month_img_calls">
           <el-input v-model.number="system['vip_month_img_calls']" placeholder="VIP用户每月赠送绘图次数"/>
         </el-form-item>
-        <el-form-item label="开放注册服务" prop="enabled_register">
-          <el-switch v-model="system['enabled_register']"/>
-        </el-form-item>
         <el-form-item label="注册方式" prop="register_ways">
           <el-checkbox-group v-model="system['register_ways']">
             <el-checkbox label="mobile">手机注册</el-checkbox>
@@ -74,20 +71,6 @@
             </el-input>
           </el-form-item>
         </div>
-
-        <el-form-item label="启用支付宝" prop="enabled_alipay">
-          <el-switch v-model="system['enabled_alipay']"/>
-          <el-tooltip
-              effect="dark"
-              content="是否启用支付宝支付功能，<br />请先在 config.toml 配置文件配置支付秘钥"
-              raw-content
-              placement="right"
-          >
-            <el-icon>
-              <InfoFilled/>
-            </el-icon>
-          </el-tooltip>
-        </el-form-item>
 
         <el-form-item label="显示演示公告" prop="show_demo_notice">
           <el-switch v-model="system['show_demo_notice']"/>

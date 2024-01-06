@@ -145,7 +145,6 @@ const placeholder = ref("用户名：")
 
 httpGet("/api/admin/config/get?key=system").then(res => {
   if (res.data) {
-    enableRegister.value = res.data['enabled_register']
     const registerWays = res.data['register_ways']
     if (arrayContains(registerWays, "mobile")) {
       enableMobile.value = true
@@ -156,6 +155,9 @@ httpGet("/api/admin/config/get?key=system").then(res => {
       ways.push("邮箱地址")
     }
     placeholder.value += ways.join("/")
+    if (ways.length === 0) {
+      enableRegister.value = false
+    }
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
