@@ -6,6 +6,7 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake) *TestHandler {
 }
 
 func (h *TestHandler) Test(c *gin.Context) {
-	h.initMjTaskId(c)
+	h.initUserNickname(c)
 }
 
 func (h *TestHandler) initUserNickname(c *gin.Context) {
