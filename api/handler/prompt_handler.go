@@ -5,6 +5,8 @@ import (
 	"chatplus/core/types"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -33,7 +35,7 @@ func (h *PromptHandler) Rewrite(c *gin.Context) {
 		return
 	}
 
-	content, err := utils.OpenAIRequest(h.db, data.Prompt, rewritePromptTemplate)
+	content, err := utils.OpenAIRequest(h.db, fmt.Sprintf(rewritePromptTemplate, data.Prompt), h.App.Config.ProxyURL)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -51,7 +53,7 @@ func (h *PromptHandler) Translate(c *gin.Context) {
 		return
 	}
 
-	content, err := utils.OpenAIRequest(h.db, data.Prompt, translatePromptTemplate)
+	content, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, data.Prompt), h.App.Config.ProxyURL)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

@@ -25,6 +25,7 @@ type AppConfig struct {
 	AlipayConfig  AlipayConfig
 	HuPiPayConfig HuPiPayConfig
 	SmtpConfig    SmtpConfig // 邮件发送配置
+	JPayConfig    JPayConfig // payjs 支付配置
 }
 
 type SmtpConfig struct {
@@ -33,6 +34,15 @@ type SmtpConfig struct {
 	AppName  string // 应用名称
 	From     string // 发件人邮箱地址
 	Password string // 发件人邮箱密码
+}
+
+// JPayConfig PayJs 支付配置
+type JPayConfig struct {
+	Enabled    bool
+	AppId      string // 商户 ID
+	PrivateKey string // 私钥
+	ApiURL     string // API 网关
+	NotifyURL  string // 异步回调地址
 }
 
 type ChatPlusApiConfig struct {
