@@ -241,7 +241,8 @@
           如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去
           <a href="https://gpt.bemore.lol" target="_blank"
              style="font-size: 20px;color:#F56C6C">https://gpt.bemore.lol</a>
-          购买，现在有超级优惠，价格远低于 OpenAI 官方。
+          购买，现在有超级优惠，价格远低于 OpenAI 官方。<br/>
+          GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。
         </el-text>
 
         <p style="text-align: right">
@@ -264,7 +265,8 @@ import {
   Check,
   Close,
   Delete,
-  Edit, Plus,
+  Edit,
+  Plus,
   Promotion,
   RefreshRight,
   Search,
