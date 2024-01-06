@@ -9,12 +9,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	req2 "github.com/imroc/req/v3"
 	"html/template"
 	"io"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	req2 "github.com/imroc/req/v3"
 )
 
 // OPenAI 消息发送实现
@@ -137,7 +138,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if err != nil {
 				errMsg = err.Error()
 			} else if r.IsErrorState() {
-				errMsg = r.Err.Error()
+				errMsg = r.Status
 			}
 			if errMsg != "" || apiRes.Code != types.Success {
 				msg := "调用函数工具出错：" + apiRes.Message + errMsg
