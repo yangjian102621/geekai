@@ -2,6 +2,7 @@ package payment
 
 import (
 	"chatplus/core/types"
+	"chatplus/utils"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -27,17 +28,37 @@ func NewHuPiPay(config *types.AppConfig) *HuPiPayService {
 	}
 }
 
+type HuPiPayReq struct {
+	AppId        string `json:"appid"`
+	Version      string `json:"version"`
+	TradeOrderId string `json:"trade_order_id"`
+	TotalFee     string `json:"total_fee"`
+	Title        string `json:"title"`
+	NotifyURL    string `json:"notify_url"`
+	ReturnURL    string `json:"return_url"`
+	WapName      string `json:"wap_name"`
+	CallbackURL  string `json:"callback_url"`
+	Time         string `json:"time"`
+	NonceStr     string `json:"nonce_str"`
+}
+
 // Pay 执行支付请求操作
-func (s *HuPiPayService) Pay(params map[string]string) (string, error) {
+func (s *HuPiPayService) Pay(params HuPiPayReq) (string, error) {
 	data := url.Values{}
 	simple := strconv.FormatInt(time.Now().Unix(), 10)
-	params["appid"] = s.appId
-	params["time"] = simple
-	params["nonce_str"] = simple
-	for k, v := range params {
-		data.Add(k, v)
+	params.AppId = s.appId
+	params.Time = simple
+	params.NonceStr = simple
+	encode := utils.JsonEncode(params)
+	m := make(map[string]string)
+	_ = utils.JsonDecode(encode, &m)
+	for k, v := range m {
+		data.Add(k, fmt.Sprintf("%v", v))
 	}
-	data.Add("hash", s.Sign(params))
+	encode = utils.JsonEncode(params)
+	m = make(map[string]string)
+	_ = utils.JsonDecode(encode, &m)
+	data.Add("hash", s.Sign(m))
 	resp, err := http.PostForm(s.host, data)
 	if err != nil {
 		return "error", err
@@ -54,7 +75,6 @@ func (s *HuPiPayService) Pay(params map[string]string) (string, error) {
 func (s *HuPiPayService) Sign(params map[string]string) string {
 	var data string
 	keys := make([]string, 0, 0)
-	params["appid"] = s.appId
 	for key := range params {
 		keys = append(keys, key)
 	}

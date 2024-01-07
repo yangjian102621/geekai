@@ -284,6 +284,7 @@ const functionSet = (filed, row) => {
 
 const generateToken = () => {
   httpGet('/api/admin/function/token').then(res => {
+    ElMessage.success("生成 Token 成功")
     item.value.token = res.data
   }).catch(() => {
     ElMessage.error("生成 Token 失败")

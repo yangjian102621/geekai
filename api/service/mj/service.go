@@ -4,10 +4,11 @@ import (
 	"chatplus/core/types"
 	"chatplus/store"
 	"chatplus/store/model"
-	"gorm.io/gorm"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Service MJ 绘画服务
@@ -121,7 +122,7 @@ func (s *Service) Notify(data CBReq) {
 		return
 	}
 
-	tx := s.db.Session(&gorm.Session{}).Order("id ASC")
+	tx := s.db.Session(&gorm.Session{}).Where("progress < ?", 100).Order("id ASC")
 	if data.ReferenceId != "" {
 		tx = tx.Where("reference_id = ?", data.ReferenceId)
 	} else {

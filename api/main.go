@@ -170,6 +170,7 @@ func main() {
 
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),
+		fx.Provide(payment.NewPayJS),
 		fx.Provide(service.NewSnowflake),
 		fx.Provide(service.NewXXLJobExecutor),
 		fx.Invoke(func(exec *service.XXLJobExecutor, config *types.AppConfig) {
@@ -306,6 +307,7 @@ func main() {
 			group.POST("qrcode", h.PayQrcode)
 			group.POST("alipay/notify", h.AlipayNotify)
 			group.POST("hupipay/notify", h.HuPiPayNotify)
+			group.POST("payjs/notify", h.PayJsNotify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
 			group := s.Engine.Group("/api/admin/product/")

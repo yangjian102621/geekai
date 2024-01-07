@@ -39,6 +39,7 @@ type SmtpConfig struct {
 // JPayConfig PayJs 支付配置
 type JPayConfig struct {
 	Enabled    bool
+	Name       string // 支付名称，默认 wechat
 	AppId      string // 商户 ID
 	PrivateKey string // 私钥
 	ApiURL     string // API 网关
@@ -96,8 +97,8 @@ type HuPiPayConfig struct { //虎皮椒第四方支付配置
 	Name      string // 支付名称，如：wechat/alipay
 	AppId     string // App ID
 	AppSecret string // app 密钥
-	NotifyURL string // 异步通知回调
 	PayURL    string // 支付网关
+	NotifyURL string // 异步通知回调
 }
 
 type XXLConfig struct { // XXL 任务调度配置
