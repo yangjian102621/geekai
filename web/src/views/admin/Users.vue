@@ -70,7 +70,7 @@
     >
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
         <el-form-item label="手机号：" prop="username">
-          <el-input v-model="user.mobile" autocomplete="off"/>
+          <el-input v-model="user.username" autocomplete="off"/>
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
           <el-input v-model="user.password" autocomplete="off"/>
