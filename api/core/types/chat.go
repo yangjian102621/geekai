@@ -9,7 +9,9 @@ type ApiRequest struct {
 	Messages    []interface{} `json:"messages,omitempty"`
 	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
 	Tools       []interface{} `json:"tools,omitempty"`
-	ToolChoice  string        `json:"tool_choice,omitempty"`
+	Functions   []interface{} `json:"functions,omitempty"` // 兼容中转平台
+
+	ToolChoice string `json:"tool_choice,omitempty"`
 }
 
 type Message struct {
@@ -28,10 +30,14 @@ type ChoiceItem struct {
 }
 
 type Delta struct {
-	Role      string      `json:"role"`
-	Name      string      `json:"name"`
-	Content   interface{} `json:"content"`
-	ToolCalls []ToolCall  `json:"tool_calls,omitempty"`
+	Role         string      `json:"role"`
+	Name         string      `json:"name"`
+	Content      interface{} `json:"content"`
+	ToolCalls    []ToolCall  `json:"tool_calls,omitempty"`
+	FunctionCall struct {
+		Name      string `json:"name,omitempty"`
+		Arguments string `json:"arguments,omitempty"`
+	} `json:"function_call,omitempty"`
 }
 
 // ChatSession 聊天会话对象

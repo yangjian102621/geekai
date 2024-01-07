@@ -229,6 +229,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		}
 
 		var tools = make([]interface{}, 0)
+		var functions = make([]interface{}, 0)
 		for _, v := range items {
 			var parameters map[string]interface{}
 			err = utils.JsonDecode(v.Parameters, &parameters)
@@ -246,12 +247,22 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 					"required":    required,
 				},
 			})
+			functions = append(functions, gin.H{
+				"name":        v.Name,
+				"description": v.Description,
+				"parameters":  parameters,
+				"required":    required,
+			})
 		}
 
-		if len(tools) > 0 {
-			req.Tools = tools
-			req.ToolChoice = "auto"
+		//if len(tools) > 0 {
+		//	req.Tools = tools
+		//	req.ToolChoice = "auto"
+		//}
+		if len(functions) > 0 {
+			req.Functions = functions
 		}
+
 	case types.XunFei:
 		req.Temperature = h.App.ChatConfig.XunFei.Temperature
 		req.MaxTokens = h.App.ChatConfig.XunFei.MaxTokens
@@ -437,6 +448,8 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		logger.Info("百度文心 Access_Token：", token)
 		apiURL = fmt.Sprintf("%s?access_token=%s", apiURL, token)
 	}
+
+	logger.Debugf(utils.JsonEncode(req))
 
 	// 创建 HttpClient 请求对象
 	var client *http.Client
