@@ -58,6 +58,10 @@ WeChatBot = false
   BotToken = ""
   GuildId = ""
   ChanelId = ""
+  UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
+  DiscordAPI = "https://mj.r9it.com:8001" # discord API 反代地址
+  DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
+  DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
 
 [[MjConfigs]]
   Enabled = false
@@ -65,6 +69,16 @@ WeChatBot = false
   BotToken = ""
   GuildId = ""
   ChanelId = ""
+  UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
+  DiscordAPI = "https://mj.r9it.com:8001" # discord API 反代地址
+  DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
+  DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
+
+[[SdConfigs]]
+  Enabled = false
+  ApiURL = ""
+  ApiKey = ""
+  Txt2ImgJsonPath = "res/sd/text2img.json"
 
 [[SdConfigs]]
   Enabled = false
@@ -80,7 +94,7 @@ WeChatBot = false
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = false # 是否启用 XXL JOB 服务
-  ServerAddr = "http://chatgpt-plus-xxl-job:8080/xxl-job-admin" # xxl-job-admin 管理地址
+  ServerAddr = "http://172.22.11.47:8080/xxl-job-admin" # xxl-job-admin 管理地址
   ExecutorIp = "172.22.11.47" # 执行器 IP 地址
   ExecutorPort = "9999" # 执行器服务端口
   AccessToken = "xxl-job-api-token" # 执行器 API 通信 token
@@ -95,12 +109,27 @@ WeChatBot = false
   PublicKey = "certs/alipay/appPublicCert.crt" # 应用公钥证书
   AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
   RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
-  NotifyURL = "http://ai.r9it.com/api/payment/alipay/notify" # 支付异步回调地址
+  NotifyURL = "https://ai.r9it.com/api/payment/alipay/notify" # 支付异步回调地址
 
-[HuPiPayConfig] # 虎皮椒支付配置
+[HuPiPayConfig]
   Enabled = false
   Name = "wechat"
-  AppId = ""
-  AppSecret = ""
+  AppId = "201906161477"
+  AppSecret = "7f403199d510fb2c6f0b9f2311800e7c"
   PayURL = "https://api.xunhupay.com/payment/do.html"
-  NotifyURL = "http://ai.r9it.com/api/payment/hupipay/notify"
+  NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
+
+[SmtpConfig] # 注意，阿里云服务器禁用了25号端口，所以如果需要使用邮件功能，请别用阿里云服务器
+  Host = "smtp.163.com"
+  Port = 25
+  AppName = "极客学长"
+  From = "test@163.com" # 发件邮箱人地址
+  Password = "" #邮箱 stmp 服务授权码
+
+[JPayConfig] # PayJs 支付配置
+  Enabled = false
+  Name = "wechat" # 请不要改动
+  AppId = "" # 商户 ID
+  PrivateKey = "" # 秘钥
+  ApiURL = "https://payjs.cn/api/native"
+  NotifyURL = "https://ai.r9it.com/api/payment/payjs/notify" # 异步回调地址，域名改成你自己的

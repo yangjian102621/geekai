@@ -76,17 +76,27 @@ func (h *ChatHandler) sendOpenAiMessage(
 				break
 			}
 
-			var fun types.ToolCall
+			var tool types.ToolCall
 			if len(responseBody.Choices[0].Delta.ToolCalls) > 0 {
-				fun = responseBody.Choices[0].Delta.ToolCalls[0]
-				if toolCall && fun.Function.Name == "" {
-					arguments = append(arguments, fun.Function.Arguments)
+				tool = responseBody.Choices[0].Delta.ToolCalls[0]
+				if toolCall && tool.Function.Name == "" {
+					arguments = append(arguments, tool.Function.Arguments)
 					continue
 				}
 			}
 
-			if !utils.IsEmptyValue(fun) {
-				res := h.db.Where("name = ?", fun.Function.Name).First(&function)
+			// 兼容 Function Call
+			fun := responseBody.Choices[0].Delta.FunctionCall
+			if fun.Name != "" {
+				tool = *new(types.ToolCall)
+				tool.Function.Name = fun.Name
+			} else if toolCall {
+				arguments = append(arguments, fun.Arguments)
+				continue
+			}
+
+			if !utils.IsEmptyValue(tool) {
+				res := h.db.Where("name = ?", tool.Function.Name).First(&function)
 				if res.Error == nil {
 					toolCall = true
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
@@ -95,7 +105,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 				continue
 			}
 
-			if responseBody.Choices[0].FinishReason == "tool_calls" { // 函数调用完毕
+			if responseBody.Choices[0].FinishReason == "tool_calls" ||
+				responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
 				break
 			}
 
