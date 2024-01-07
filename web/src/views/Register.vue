@@ -49,7 +49,7 @@
                 </el-input>
               </div>
 
-              <div class="block">
+              <div class="block" v-if="enableMobile || enableEmail">
                 <el-row :gutter="10">
                   <el-col :span="12">
                     <el-input placeholder="验证码"
@@ -122,7 +122,6 @@ import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
-import {validateEmail, validateMobile} from "@/utils/validate";
 import {arrayContains} from "@/utils/libs";
 import {setUserToken} from "@/store/session";
 
@@ -155,9 +154,6 @@ httpGet("/api/admin/config/get?key=system").then(res => {
       ways.push("邮箱地址")
     }
     placeholder.value += ways.join("/")
-    if (ways.length === 0) {
-      enableRegister.value = false
-    }
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
@@ -173,15 +169,6 @@ const register = function () {
     return ElMessage.error('请输入用户名');
   }
 
-  if (!enableMobile.value && !validateEmail(formData.value.username)) {
-    return ElMessage.error('请输入合法的邮箱地址');
-  }
-  if (!enableEmail.value && !validateMobile(formData.value.username)) {
-    return ElMessage.error('请输入合法的手机号');
-  }
-  if (!validateMobile(formData.value.username) && !validateEmail(formData.value.username)) {
-    return ElMessage.error('请输入合法的手机号或者邮箱地址');
-  }
   if (formData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符');
   }
@@ -189,8 +176,8 @@ const register = function () {
     return ElMessage.error('两次输入密码不一致');
   }
 
-  if (formData.value.code === '') {
-    return ElMessage.error('请输入短信验证码');
+  if ((enableEmail.value || enableMobile.value) && formData.value.code === '') {
+    return ElMessage.error('请输入验证码');
   }
   httpPost('/api/user/register', formData.value).then((res) => {
     setUserToken(res.data)
