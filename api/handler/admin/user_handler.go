@@ -8,6 +8,8 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -63,7 +65,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	var data struct {
 		Id          uint     `json:"id"`
 		Password    string   `json:"password"`
-		Mobile      string   `json:"mobile"`
+		Username    string   `json:"username"`
 		Calls       int      `json:"calls"`
 		ImgCalls    int      `json:"img_calls"`
 		ChatRoles   []string `json:"chat_roles"`
@@ -83,7 +85,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		user.Id = data.Id
 		// 此处需要用 map 更新，用结构体无法更新 0 值
 		res = h.db.Model(&user).Updates(map[string]interface{}{
-			"mobile":           data.Mobile,
+			"username":         data.Username,
 			"calls":            data.Calls,
 			"img_calls":        data.ImgCalls,
 			"status":           data.Status,
@@ -95,7 +97,8 @@ func (h *UserHandler) Save(c *gin.Context) {
 	} else {
 		salt := utils.RandString(8)
 		u := model.User{
-			Username:    data.Mobile,
+			Username:    data.Username,
+			Nickname:    fmt.Sprintf("极客学长@%d", utils.RandomNumber(6)),
 			Password:    utils.GenPassword(data.Password, salt),
 			Avatar:      "/images/avatar/user.png",
 			Salt:        salt,
