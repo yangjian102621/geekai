@@ -6,9 +6,10 @@ import (
 	"chatplus/service"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"strings"
 )
 
 const CodeStorePrefix = "/verify/codes/"
@@ -52,8 +53,16 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	code := utils.RandomNumber(6)
 	var err error
 	if strings.Contains(data.Receiver, "@") { // email
+		if !utils.ContainsStr(h.App.SysConfig.RegisterWays, "email") {
+			resp.ERROR(c, "系统已禁用邮箱注册！")
+			return
+		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
+		if !utils.ContainsStr(h.App.SysConfig.RegisterWays, "mobile") {
+			resp.ERROR(c, "系统已禁用手机号注册！")
+			return
+		}
 		err = h.sms.SendVerifyCode(data.Receiver, code)
 	}
 	if err != nil {

@@ -71,6 +71,10 @@
                         <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
                         <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
                       </el-button>
+
+                      <el-button type="success" @click="PayJs(scope.item)" size="small" v-if="payWays['payjs']">
+                        <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
+                      </el-button>
                     </div>
                   </div>
                 </div>
@@ -280,7 +284,20 @@ const huPiPay = (row) => {
     curPayProduct.value = row
   }
   genPayQrcode()
+}
 
+// PayJS 支付
+const PayJs = (row) => {
+  payName.value = '微信'
+  curPay.value = "payjs"
+  if (!user.value.id) {
+    showLoginDialog.value = true
+    return
+  }
+  if (row) {
+    curPayProduct.value = row
+  }
+  genPayQrcode()
 }
 
 const queryOrder = (orderNo) => {
@@ -290,7 +307,11 @@ const queryOrder = (orderNo) => {
       queryOrder(orderNo)
     } else if (res.data.status === 2) {
       text.value = "支付成功，正在刷新页面"
-      setTimeout(() => location.reload(), 500)
+      if (curPay.value === "payjs") {
+        setTimeout(() => location.reload(), 3000)
+      } else {
+        setTimeout(() => location.reload(), 500)
+      }
     } else {
       // 如果当前订单没有过期，继续等待订单的下一个状态
       if (activeOrderNo.value === orderNo) {

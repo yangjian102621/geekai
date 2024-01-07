@@ -2,6 +2,7 @@ package handler
 
 import (
 	"chatplus/service"
+	"chatplus/service/payment"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
@@ -14,15 +15,30 @@ import (
 type TestHandler struct {
 	db        *gorm.DB
 	snowflake *service.Snowflake
+	js        *payment.PayJS
 }
 
-func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake) *TestHandler {
-	return &TestHandler{db: db, snowflake: snowflake}
+func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.PayJS) *TestHandler {
+	return &TestHandler{db: db, snowflake: snowflake, js: js}
 }
 
 func (h *TestHandler) Test(c *gin.Context) {
-	h.initUserNickname(c)
-	h.initMjTaskId(c)
+	//h.initUserNickname(c)
+	//h.initMjTaskId(c)
+
+	orderId, _ := h.snowflake.Next(false)
+	params := payment.JPayReq{
+		TotalFee:   12345,
+		OutTradeNo: orderId,
+		Subject:    "支付测试",
+	}
+	r := h.js.Pay(params)
+	if !r.IsOK() {
+		resp.ERROR(c, r.ReturnMsg)
+		return
+	}
+	resp.SUCCESS(c, r)
+
 }
 
 func (h *TestHandler) initUserNickname(c *gin.Context) {

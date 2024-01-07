@@ -11,17 +11,20 @@ import (
 	"embed"
 	"encoding/base64"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"math"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 const (
 	PayWayAlipay = "支付宝"
 	PayWayXunHu  = "虎皮椒"
+	PayWayJs     = "PayJS"
 )
 
 // PaymentHandler 支付服务回调 handler
@@ -29,16 +32,25 @@ type PaymentHandler struct {
 	BaseHandler
 	alipayService  *payment.AlipayService
 	huPiPayService *payment.HuPiPayService
+	js             *payment.PayJS
 	snowflake      *service.Snowflake
 	db             *gorm.DB
 	fs             embed.FS
 	lock           sync.Mutex
 }
 
-func NewPaymentHandler(server *core.AppServer, alipayService *payment.AlipayService, huPiPayService *payment.HuPiPayService, snowflake *service.Snowflake, db *gorm.DB, fs embed.FS) *PaymentHandler {
+func NewPaymentHandler(
+	server *core.AppServer,
+	alipayService *payment.AlipayService,
+	huPiPayService *payment.HuPiPayService,
+	js *payment.PayJS,
+	snowflake *service.Snowflake,
+	db *gorm.DB,
+	fs embed.FS) *PaymentHandler {
 	h := PaymentHandler{
 		alipayService:  alipayService,
 		huPiPayService: huPiPayService,
+		js:             js,
 		snowflake:      snowflake,
 		fs:             fs,
 		db:             db,
@@ -81,17 +93,14 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 		c.Redirect(302, uri)
 		return
 	} else if payWay == "hupi" { // 虎皮椒支付
-		params := map[string]string{
-			"version":        "1.1",
-			"trade_order_id": orderNo,
-			"total_fee":      fmt.Sprintf("%f", order.Amount),
-			"title":          order.Subject,
-			"notify_url":     h.App.Config.HuPiPayConfig.NotifyURL,
-			"return_url":     "",
-			"wap_name":       "极客学长",
-			"callback_url":   "",
+		params := payment.HuPiPayReq{
+			Version:      "1.1",
+			TradeOrderId: orderNo,
+			TotalFee:     fmt.Sprintf("%f", order.Amount),
+			Title:        order.Subject,
+			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
+			WapName:      "极客学长",
 		}
-
 		res, err := h.huPiPayService.Pay(params)
 		if err != nil {
 			resp.ERROR(c, "error with generate pay url: "+err.Error())
@@ -189,9 +198,14 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		return
 	}
 
-	payWay := PayWayAlipay
-	if data.PayWay == "hupi" {
+	var payWay string
+	switch data.PayWay {
+	case "hupi":
 		payWay = PayWayXunHu
+	case "payjs":
+		payWay = PayWayJs
+	default:
+		payWay = PayWayAlipay
 	}
 	// 创建订单
 	remark := types.OrderRemark{
@@ -217,6 +231,23 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	if res.Error != nil {
 		resp.ERROR(c, "error with create order: "+res.Error.Error())
 		return
+	}
+
+	// PayJs 单独处理，只能用官方生成的二维码
+	if data.PayWay == "payjs" {
+		params := payment.JPayReq{
+			TotalFee:   int(math.Ceil(order.Amount * 100)),
+			OutTradeNo: order.OrderNo,
+			Subject:    product.Name,
+		}
+		r := h.js.Pay(params)
+		if r.IsOK() {
+			resp.SUCCESS(c, gin.H{"order_no": order.OrderNo, "image": r.Qrcode})
+			return
+		} else {
+			resp.ERROR(c, "error with generating payment qrcode: "+r.ReturnMsg)
+			return
+		}
 	}
 
 	var logo string
@@ -250,35 +281,6 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	}
 	imgDataBase64 := base64.StdEncoding.EncodeToString(imgData)
 	resp.SUCCESS(c, gin.H{"order_no": orderNo, "image": fmt.Sprintf("data:image/jpg;base64, %s", imgDataBase64), "url": imageURL})
-}
-
-// AlipayNotify 支付宝支付回调
-func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
-	err := c.Request.ParseForm()
-	if err != nil {
-		c.String(http.StatusOK, "fail")
-		return
-	}
-
-	// TODO：这里最好用支付宝的公钥签名签证一下交易真假
-	//res := h.alipayService.TradeVerify(c.Request.Form)
-	r := h.alipayService.TradeQuery(c.Request.Form.Get("out_trade_no"))
-	logger.Infof("验证支付结果：%+v", r)
-	if !r.Success() {
-		c.String(http.StatusOK, "fail")
-		return
-	}
-
-	h.lock.Lock()
-	defer h.lock.Unlock()
-
-	err = h.notify(r.OutTradeNo)
-	if err != nil {
-		c.String(http.StatusOK, "fail")
-		return
-	}
-
-	c.String(http.StatusOK, "success")
 }
 
 // 异步通知回调公共逻辑
@@ -370,6 +372,9 @@ func (h *PaymentHandler) GetPayWays(c *gin.Context) {
 	if h.App.Config.HuPiPayConfig.Enabled {
 		data["hupi"] = gin.H{"name": h.App.Config.HuPiPayConfig.Name}
 	}
+	if h.App.Config.JPayConfig.Enabled {
+		data["payjs"] = gin.H{"name": h.App.Config.JPayConfig.Name}
+	}
 	resp.SUCCESS(c, data)
 }
 
@@ -384,6 +389,63 @@ func (h *PaymentHandler) HuPiPayNotify(c *gin.Context) {
 	orderNo := c.Request.Form.Get("trade_order_id")
 	logger.Infof("收到订单支付回调，订单 NO：%s", orderNo)
 	// TODO 是否要保存订单交易流水号
+	h.lock.Lock()
+	defer h.lock.Unlock()
+
+	err = h.notify(orderNo)
+	if err != nil {
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	c.String(http.StatusOK, "success")
+}
+
+// AlipayNotify 支付宝支付回调
+func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
+	err := c.Request.ParseForm()
+	if err != nil {
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// TODO：这里最好用支付宝的公钥签名签证一下交易真假
+	//res := h.alipayService.TradeVerify(c.Request.Form)
+	r := h.alipayService.TradeQuery(c.Request.Form.Get("out_trade_no"))
+	logger.Infof("验证支付结果：%+v", r)
+	if !r.Success() {
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	h.lock.Lock()
+	defer h.lock.Unlock()
+
+	err = h.notify(r.OutTradeNo)
+	if err != nil {
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	c.String(http.StatusOK, "success")
+}
+
+// PayJsNotify PayJs 支付异步回调
+func (h *PaymentHandler) PayJsNotify(c *gin.Context) {
+	err := c.Request.ParseForm()
+	if err != nil {
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	orderNo := c.Request.Form.Get("out_trade_no")
+	returnCode := c.Request.Form.Get("return_code")
+	logger.Infof("收到订单支付回调，订单 NO：%s，支付结果代码：%v", orderNo, returnCode)
+	// 支付失败
+	if returnCode != "1" {
+		return
+	}
+
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
