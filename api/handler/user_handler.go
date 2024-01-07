@@ -8,10 +8,11 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/golang-jwt/jwt/v5"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
@@ -55,11 +56,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Username
-	code, err := h.redis.Get(c, key).Result()
-	if err != nil || code != data.Code {
-		resp.ERROR(c, "验证码错误")
-		return
+	var key string
+	if utils.ContainsStr(h.App.SysConfig.RegisterWays, "email") ||
+		utils.ContainsStr(h.App.SysConfig.RegisterWays, "mobile") {
+		key = CodeStorePrefix + data.Username
+		code, err := h.redis.Get(c, key).Result()
+		if err != nil || code != data.Code {
+			resp.ERROR(c, "验证码错误")
+			return
+		}
 	}
 
 	// 验证邀请码
