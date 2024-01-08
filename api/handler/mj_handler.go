@@ -157,7 +157,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Prompt:    prompt,
 		CreatedAt: time.Now(),
 	}
-	if res := h.db.Create(&job); res.Error != nil {
+	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
@@ -215,7 +215,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		Prompt:      data.Prompt,
 		CreatedAt:   time.Now(),
 	}
-	if res := h.db.Create(&job); res.Error != nil {
+	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
@@ -264,7 +264,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		Prompt:      data.Prompt,
 		CreatedAt:   time.Now(),
 	}
-	if res := h.db.Create(&job); res.Error != nil {
+	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
