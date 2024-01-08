@@ -48,6 +48,7 @@
     <el-dialog
         v-model="showDialog"
         title="编辑角色"
+        :close-on-click-modal="false"
         width="50%"
     >
       <el-form :model="role" label-width="120px" ref="formRef" label-position="left" :rules="rules">

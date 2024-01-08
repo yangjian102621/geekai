@@ -34,6 +34,7 @@
     <el-dialog
         v-model="showDialog"
         :title="title"
+        :close-on-click-modal="false"
         width="50%"
     >
       <el-form :model="item" label-width="120px" ref="formRef" label-position="left" :rules="rules">

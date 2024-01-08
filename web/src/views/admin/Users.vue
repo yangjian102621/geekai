@@ -66,10 +66,11 @@
     <el-dialog
         v-model="showUserEditDialog"
         :title="title"
+        :close-on-click-modal="false"
         width="50%"
     >
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
-        <el-form-item label="手机号：" prop="username">
+        <el-form-item label="账号：" prop="username">
           <el-input v-model="user.username" autocomplete="off"/>
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
@@ -189,9 +190,8 @@ const models = ref([])
 const showUserEditDialog = ref(false)
 const showResetPassDialog = ref(false)
 const rules = reactive({
-  nickname: [{required: true, message: '请输入昵称', trigger: 'change',}],
+  username: [{required: true, message: '请输入账号', trigger: 'change',}],
   password: [{required: true, message: '请输入密码', trigger: 'change',}],
-  username: [{required: true, message: '请输入手机号码', trigger: 'change',}],
   calls: [
     {required: true, message: '请输入提问次数'},
     {type: 'number', message: '请输入有效数字'},

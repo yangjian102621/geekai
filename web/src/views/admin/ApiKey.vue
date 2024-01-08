@@ -60,6 +60,7 @@
 
     <el-dialog
         v-model="showDialog"
+        :close-on-click-modal="false"
         :title="title"
     >
       <el-alert
