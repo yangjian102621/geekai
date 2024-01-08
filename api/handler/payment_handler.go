@@ -199,13 +199,17 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	}
 
 	var payWay string
+	var notifyURL string
 	switch data.PayWay {
 	case "hupi":
 		payWay = PayWayXunHu
+		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
 	case "payjs":
 		payWay = PayWayJs
+		notifyURL = h.App.Config.JPayConfig.NotifyURL
 	default:
 		payWay = PayWayAlipay
+		notifyURL = h.App.Config.AlipayConfig.NotifyURL
 	}
 	// 创建订单
 	remark := types.OrderRemark{
@@ -218,7 +222,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	}
 	order := model.Order{
 		UserId:    user.Id,
-		Mobile:    user.Username,
+		Username:  user.Username,
 		ProductId: product.Id,
 		OrderNo:   orderNo,
 		Subject:   product.Name,
@@ -267,7 +271,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		return
 	}
 
-	parse, err := url.Parse(h.App.Config.AlipayConfig.NotifyURL)
+	parse, err := url.Parse(notifyURL)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

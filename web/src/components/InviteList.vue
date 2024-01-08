@@ -12,7 +12,7 @@
         <el-table-column label="邀请奖励">
           <template #default="scope">
             <span>对话：{{ scope.row['reward']['chat_calls'] }}次</span>，
-            <span>绘图：{{ scope.row['reward']['chat_calls'] }}次</span>
+            <span>绘图：{{ scope.row['reward']['img_calls'] }}次</span>
           </template>
         </el-table-column>
 
