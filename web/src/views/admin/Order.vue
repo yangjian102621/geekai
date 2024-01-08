@@ -17,7 +17,7 @@
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
         <el-table-column prop="order_no" label="订单号"/>
-        <el-table-column prop="mobile" label="下单用户"/>
+        <el-table-column prop="username" label="下单用户"/>
         <el-table-column prop="subject" label="产品名称"/>
         <el-table-column prop="amount" label="订单金额"/>
         <el-table-column label="调用次数">

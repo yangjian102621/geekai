@@ -10,7 +10,7 @@ type Order struct {
 	BaseModel
 	UserId    uint
 	ProductId uint
-	Mobile    string
+	Username  string
 	OrderNo   string
 	Subject   string
 	Amount    float64
