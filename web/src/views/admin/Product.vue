@@ -51,6 +51,7 @@
     <el-dialog
         v-model="showDialog"
         :title="title"
+        :close-on-click-modal="false"
         style="width: 90%; max-width: 600px;"
     >
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
