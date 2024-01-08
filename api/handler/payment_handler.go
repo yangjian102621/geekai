@@ -232,7 +232,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		Remark:    utils.JsonEncode(remark),
 	}
 	res = h.db.Create(&order)
-	if res.Error != nil {
+	if res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "error with create order: "+res.Error.Error())
 		return
 	}
