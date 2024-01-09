@@ -114,8 +114,8 @@ WeChatBot = false
 [HuPiPayConfig]
   Enabled = false
   Name = "wechat"
-  AppId = "201906161477"
-  AppSecret = "7f403199d510fb2c6f0b9f2311800e7c"
+  AppId = ""
+  AppSecret = ""
   PayURL = "https://api.xunhupay.com/payment/do.html"
   NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
 
