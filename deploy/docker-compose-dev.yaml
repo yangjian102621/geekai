@@ -1,0 +1,29 @@
+version: '3'
+services:
+  # mysql
+  chatgpt-plus-mysql:
+    image: mysql:8.0.33
+    container_name: chatgpt-plus-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=12345678
+    ports:
+      - "3307:3306"
+    volumes :
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/logs:/var/log/mysql
+      - ./mysql/init.d:/docker-entrypoint-initdb.d/
+  
+  # redis 
+  chatgpt-plus-redis:
+    image: redis:6.0.16
+    restart: always 
+    container_name: chatgpt-plus-redis
+    command: redis-server --requirepass 12345678
+    volumes :
+      - ./redis/data:/data
+    ports:
+      - "6380:6379"
+
