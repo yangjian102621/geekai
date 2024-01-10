@@ -117,7 +117,7 @@ KEY。
 *
 
 *
-最新的部署视频教程：[https://www.bilibili.com/video/BV1ge411C7uA/](https://www.bilibili.com/video/BV1ge411C7uA/?vd_source=dee8b15703ccfcbd24a60ee9a0fabb73)
+最新的部署视频教程：[https://www.bilibili.com/video/BV1Cc411t7CX/](https://www.bilibili.com/video/BV1Cc411t7CX/)
 **
 
 详细的部署和开发文档请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/)。
