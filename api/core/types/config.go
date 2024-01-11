@@ -5,21 +5,23 @@ import (
 )
 
 type AppConfig struct {
-	Path      string `toml:"-"`
-	Listen    string
-	Session   Session
-	ProxyURL  string
-	MysqlDns  string                  // mysql 连接地址
-	Manager   Manager                 // 后台管理员账户信息
-	StaticDir string                  // 静态资源目录
-	StaticUrl string                  // 静态资源 URL
-	Redis     RedisConfig             // redis 连接信息
-	ApiConfig ChatPlusApiConfig       // ChatPlus API authorization configs
-	SmsConfig AliYunSmsConfig         // AliYun send message service config
-	OSS       OSSConfig               // OSS config
-	MjConfigs []MidJourneyConfig      // mj AI draw service pool
-	WeChatBot bool                    // 是否启用微信机器人
-	SdConfigs []StableDiffusionConfig // sd AI draw service pool
+	Path          string `toml:"-"`
+	Listen        string
+	Session       Session
+	ProxyURL      string
+	MysqlDns      string                  // mysql 连接地址
+	Manager       Manager                 // 后台管理员账户信息
+	StaticDir     string                  // 静态资源目录
+	StaticUrl     string                  // 静态资源 URL
+	Redis         RedisConfig             // redis 连接信息
+	ApiConfig     ChatPlusApiConfig       // ChatPlus API authorization configs
+	SmsConfig     AliYunSmsConfig         // AliYun send message service config
+	OSS           OSSConfig               // OSS config
+	MjConfigs     []MidJourneyConfig      // mj AI draw service pool
+	MjPlusConfigs []MidJourneyPlusConfig  // MJ plus config
+	ImgCdnURL     string                  // 图片反代加速地址
+	WeChatBot     bool                    // 是否启用微信机器人
+	SdConfigs     []StableDiffusionConfig // sd AI draw service pool
 
 	XXLConfig     XXLConfig
 	AlipayConfig  AlipayConfig
@@ -60,7 +62,6 @@ type MidJourneyConfig struct {
 	ChanelId       string // Chanel ID
 	UseCDN         bool
 	DiscordAPI     string
-	DiscordCDN     string
 	DiscordGateway string
 }
 
@@ -69,6 +70,14 @@ type StableDiffusionConfig struct {
 	ApiURL          string
 	ApiKey          string
 	Txt2ImgJsonPath string
+}
+
+type MidJourneyPlusConfig struct {
+	Enabled   bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
+	Name      string // 服务名称，保持唯一
+	ApiURL    string
+	ApiKey    string
+	NotifyURL string // 任务进度更新回调地址
 }
 
 type AliYunSmsConfig struct {

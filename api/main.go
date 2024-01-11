@@ -235,6 +235,7 @@ func main() {
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
 			group.POST("remove", h.Remove)
+			group.POST("notify", h.Notify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
@@ -367,6 +368,7 @@ func main() {
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
 			s.Engine.GET("/api/test", h.Test)
+			s.Engine.POST("/api/test/mj", h.Mj)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)

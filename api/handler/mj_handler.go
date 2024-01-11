@@ -5,6 +5,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/service"
 	"chatplus/service/mj"
+	"chatplus/service/mj/plus"
 	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -203,7 +204,6 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	}
 
 	idValue, _ := c.Get(types.LoginUserID)
-	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
 	job := model.MidJourneyJob{
@@ -221,7 +221,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	}
 
 	h.pool.PushTask(types.MjTask{
-		Id:          jobId,
+		Id:          int(job.Id),
 		SessionId:   data.SessionId,
 		Type:        types.TaskUpscale,
 		Prompt:      data.Prompt,
@@ -251,7 +251,6 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	}
 
 	idValue, _ := c.Get(types.LoginUserID)
-	jobId := 0
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
 	job := model.MidJourneyJob{
@@ -270,7 +269,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	}
 
 	h.pool.PushTask(types.MjTask{
-		Id:          jobId,
+		Id:          int(job.Id),
 		SessionId:   data.SessionId,
 		Type:        types.TaskVariation,
 		Prompt:      data.Prompt,
@@ -340,9 +339,13 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 
 			// 正在运行中任务使用代理访问图片
 			if item.ImgURL == "" && item.OrgURL != "" {
-				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
-				if err == nil {
-					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+				if h.App.Config.ImgCdnURL != "" {
+					job.ImgURL = strings.ReplaceAll(job.OrgURL, "https://cdn.discordapp.com", h.App.Config.ImgCdnURL)
+				} else {
+					image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
+					if err == nil {
+						job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+					}
 				}
 			}
 		}
@@ -379,6 +382,27 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 
 	client := h.pool.Clients.Get(data.UserId)
 	_ = client.Send([]byte("Task Updated"))
+
+	resp.SUCCESS(c)
+}
+
+// Notify MidJourney Plus 服务任务回调处理
+func (h *MidJourneyHandler) Notify(c *gin.Context) {
+	var data plus.CBReq
+	if err := c.ShouldBindJSON(&data); err != nil {
+		logger.Error("非法任务回调：%+v", err)
+		return
+	}
+	err := h.pool.Notify(data)
+	if err != nil {
+		logger.Error(err)
+	} else {
+		userId := h.GetLoginUserId(c)
+		client := h.pool.Clients.Get(userId)
+		if client != nil {
+			_ = client.Send([]byte("Task Updated"))
+		}
+	}
 
 	resp.SUCCESS(c)
 }
