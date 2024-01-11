@@ -2,11 +2,13 @@ package mj
 
 import (
 	"chatplus/core/types"
+	"chatplus/service/mj/plus"
 	"chatplus/service/oss"
 	"chatplus/store"
 	"chatplus/store/model"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,7 +16,7 @@ import (
 
 // ServicePool Mj service pool
 type ServicePool struct {
-	services        []*Service
+	services        []interface{}
 	taskQueue       *store.RedisQueue
 	notifyQueue     *store.RedisQueue
 	db              *gorm.DB
@@ -23,37 +25,53 @@ type ServicePool struct {
 }
 
 func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
-	services := make([]*Service, 0)
+	services := make([]interface{}, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
-	// create mj client and service
-	for k, config := range appConfig.MjConfigs {
+
+	for k, config := range appConfig.MjPlusConfigs {
 		if config.Enabled == false {
 			continue
 		}
-		// create mj client
-		client := NewClient(config, appConfig.ProxyURL)
-
-		name := fmt.Sprintf("MjService-%d", k)
-		// create mj service
-		service := NewService(name, taskQueue, notifyQueue, 4, 600, db, client)
-		botName := fmt.Sprintf("MjBot-%d", k)
-		bot, err := NewBot(botName, appConfig.ProxyURL, config, service)
-		if err != nil {
-			continue
-		}
-
-		err = bot.Run()
-		if err != nil {
-			continue
-		}
-
-		// run mj service
+		client := plus.NewClient(config)
+		name := fmt.Sprintf("MidJourney Plus Service-%d", k)
+		servicePlus := plus.NewService(name, taskQueue, notifyQueue, 10, 600, db, client)
 		go func() {
-			service.Run()
+			servicePlus.Run()
 		}()
+		services = append(services, servicePlus)
+	}
 
-		services = append(services, service)
+	if len(services) == 0 {
+		// create mj client and service
+		for k, config := range appConfig.MjConfigs {
+			if config.Enabled == false {
+				continue
+			}
+			// create mj client
+			client := NewClient(config, appConfig.ProxyURL, appConfig.ImgCdnURL)
+
+			name := fmt.Sprintf("MjService-%d", k)
+			// create mj service
+			service := NewService(name, taskQueue, notifyQueue, 4, 600, db, client)
+			botName := fmt.Sprintf("MjBot-%d", k)
+			bot, err := NewBot(botName, appConfig.ProxyURL, config, service)
+			if err != nil {
+				continue
+			}
+
+			err = bot.Run()
+			if err != nil {
+				continue
+			}
+
+			// run mj service
+			go func() {
+				service.Run()
+			}()
+
+			services = append(services, service)
+		}
 	}
 
 	return &ServicePool{
@@ -94,7 +112,24 @@ func (p *ServicePool) DownloadImages() {
 
 			// download images
 			for _, v := range items {
-				imgURL, err := p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, true)
+				if v.OrgURL == "" {
+					continue
+				}
+				var imgURL string
+				var err error
+				if v.UseProxy {
+					if servicePlus := p.getServicePlus(v.ChannelId); servicePlus != nil {
+						task, _ := servicePlus.Client.QueryTask(v.TaskId)
+						if task.ImageUrl != "" {
+							imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(task.ImageUrl, false)
+						}
+						if len(task.Buttons) > 0 {
+							v.Hash = getImageHash(task.Buttons[0].CustomId)
+						}
+					}
+				} else {
+					imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, true)
+				}
 				if err != nil {
 					logger.Error("error with download image: ", err)
 					continue
@@ -124,4 +159,38 @@ func (p *ServicePool) PushTask(task types.MjTask) {
 // HasAvailableService check if it has available mj service in pool
 func (p *ServicePool) HasAvailableService() bool {
 	return len(p.services) > 0
+}
+
+func (p *ServicePool) Notify(data plus.CBReq) error {
+	logger.Infof("收到任务回调：%+v", data)
+	var job model.MidJourneyJob
+	res := p.db.Where("task_id = ?", data.Id).First(&job)
+	if res.Error != nil {
+		return fmt.Errorf("非法任务：%s", data.Id)
+	}
+
+	if servicePlus := p.getServicePlus(job.ChannelId); servicePlus != nil {
+		return servicePlus.Notify(data, job)
+	}
+
+	return nil
+}
+
+func (p *ServicePool) getServicePlus(name string) *plus.Service {
+	for _, s := range p.services {
+		if servicePlus, ok := s.(*plus.Service); ok {
+			if servicePlus.Client.Config.Name == name {
+				return servicePlus
+			}
+		}
+	}
+	return nil
+}
+
+func getImageHash(action string) string {
+	split := strings.Split(action, "::")
+	if len(split) > 5 {
+		return split[4]
+	}
+	return split[len(split)-1]
 }

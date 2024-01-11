@@ -1,9 +1,11 @@
-package mj
+package plus
 
 import (
 	"chatplus/core/types"
 	"chatplus/store"
 	"chatplus/store/model"
+	"chatplus/utils"
+	"fmt"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -14,7 +16,7 @@ import (
 // Service MJ 绘画服务
 type Service struct {
 	name             string  // service name
-	client           *Client // MJ client
+	Client           *Client // MJ Client
 	taskQueue        *store.RedisQueue
 	notifyQueue      *store.RedisQueue
 	db               *gorm.DB
@@ -30,7 +32,7 @@ func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.Red
 		db:               db,
 		taskQueue:        taskQueue,
 		notifyQueue:      notifyQueue,
-		client:           client,
+		Client:           client,
 		taskTimeout:      timeout,
 		maxHandleTaskNum: maxTaskNum,
 		taskStartTimes:   make(map[int]time.Time, 0),
@@ -56,38 +58,47 @@ func (s *Service) Run() {
 		}
 
 		// if it's reference message, check if it's this channel's  message
-		if task.ChannelId != "" && task.ChannelId != s.client.Config.ChanelId {
+		if task.ChannelId != "" && task.ChannelId != s.Client.Config.Name {
 			s.taskQueue.RPush(task)
 			time.Sleep(time.Second)
 			continue
 		}
 
 		logger.Infof("%s handle a new MidJourney task: %+v", s.name, task)
+		var res ImageRes
 		switch task.Type {
 		case types.TaskImage:
-			err = s.client.Imagine(task.Prompt)
+			index := strings.Index(task.Prompt, " ")
+			res, err = s.Client.Imagine(task.Prompt[index+1:])
 			break
 		case types.TaskUpscale:
-			err = s.client.Upscale(task.Index, task.MessageId, task.MessageHash)
-
+			res, err = s.Client.Upscale(task.Index, task.MessageId, task.MessageHash)
 			break
 		case types.TaskVariation:
-			err = s.client.Variation(task.Index, task.MessageId, task.MessageHash)
+			res, err = s.Client.Variation(task.Index, task.MessageId, task.MessageHash)
 		}
 
-		if err != nil {
+		if err != nil || (res.Code != 1 && res.Code != 22) {
 			logger.Error("绘画任务执行失败：", err)
 			// update the task progress
 			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			// 任务失败，通知前端
 			s.notifyQueue.RPush(task.UserId)
 			// restore img_call quota
 			s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
+
+			// TODO: 任务提交失败，加入队列重试
 			continue
 		}
-
+		logger.Infof("任务提交成功：%+v", res)
 		// lock the task until the execute timeout
 		s.taskStartTimes[task.Id] = time.Now()
 		atomic.AddInt32(&s.handledTaskNum, 1)
+		// 更新任务 ID/频道
+		s.db.Model(&model.MidJourneyJob{}).Where("id = ?", task.Id).UpdateColumns(map[string]interface{}{
+			"task_id":    res.Result,
+			"channel_id": s.Client.Config.Name,
+		})
 
 	}
 }
@@ -110,51 +121,44 @@ func (s *Service) checkTasks() {
 	}
 }
 
-func (s *Service) Notify(data CBReq) {
-	// extract the task ID
-	split := strings.Split(data.Prompt, " ")
-	var job model.MidJourneyJob
-	res := s.db.Where("message_id = ?", data.MessageId).First(&job)
-	if res.Error == nil && data.Status == Finished {
-		logger.Warn("重复消息：", data.MessageId)
-		return
-	}
+type CBReq struct {
+	Id          string      `json:"id"`
+	Action      string      `json:"action"`
+	Status      string      `json:"status"`
+	Prompt      string      `json:"prompt"`
+	PromptEn    string      `json:"promptEn"`
+	Description string      `json:"description"`
+	SubmitTime  int64       `json:"submitTime"`
+	StartTime   int64       `json:"startTime"`
+	FinishTime  int64       `json:"finishTime"`
+	Progress    string      `json:"progress"`
+	ImageUrl    string      `json:"imageUrl"`
+	FailReason  interface{} `json:"failReason"`
+	Properties  struct {
+		FinalPrompt string `json:"finalPrompt"`
+	} `json:"properties"`
+}
 
-	tx := s.db.Session(&gorm.Session{}).Where("progress < ?", 100).Order("id ASC")
-	if data.ReferenceId != "" {
-		tx = tx.Where("reference_id = ?", data.ReferenceId)
-	} else {
-		tx = tx.Where("task_id = ?", split[0])
+func (s *Service) Notify(data CBReq, job model.MidJourneyJob) error {
+
+	job.Progress = utils.IntValue(strings.Replace(data.Progress, "%", "", 1), 0)
+	job.Prompt = data.Properties.FinalPrompt
+	if data.ImageUrl != "" {
+		job.OrgURL = data.ImageUrl
 	}
-	res = tx.First(&job)
+	job.UseProxy = true
+	job.MessageId = data.Id
+	logger.Debugf("JOB: %+v", job)
+	res := s.db.Updates(&job)
 	if res.Error != nil {
-		logger.Warn("非法任务：", res.Error)
-		return
+		return fmt.Errorf("error with update job: %v", res.Error)
 	}
 
-	job.ChannelId = data.ChannelId
-	job.MessageId = data.MessageId
-	job.ReferenceId = data.ReferenceId
-	job.Progress = data.Progress
-	job.Prompt = data.Prompt
-	job.Hash = data.Image.Hash
-	job.OrgURL = data.Image.URL
-	if s.client.Config.UseCDN {
-		job.UseProxy = true
-		job.ImgURL = strings.ReplaceAll(data.Image.URL, "https://cdn.discordapp.com", s.client.imgCdnURL)
-	}
-
-	res = s.db.Updates(&job)
-	if res.Error != nil {
-		logger.Error("error with update job: ", res.Error)
-		return
-	}
-
-	if data.Status == Finished {
+	if data.Status == "SUCCESS" {
 		// release lock task
 		atomic.AddInt32(&s.handledTaskNum, -1)
 	}
 
 	s.notifyQueue.RPush(job.UserId)
-
+	return nil
 }

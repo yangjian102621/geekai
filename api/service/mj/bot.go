@@ -33,7 +33,7 @@ func NewBot(name string, proxy string, config types.MidJourneyConfig, service *S
 	// use CDN reverse proxy
 	if config.UseCDN {
 		discordgo.SetEndpointDiscord(config.DiscordAPI)
-		discordgo.SetEndpointCDN(config.DiscordCDN)
+		discordgo.SetEndpointCDN("https://cdn.discordapp.com")
 		discordgo.SetEndpointStatus(config.DiscordAPI + "/api/v2/")
 		bot.MjGateway = config.DiscordGateway + "/"
 	} else { // use proxy
