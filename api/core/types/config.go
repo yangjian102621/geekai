@@ -73,8 +73,7 @@ type StableDiffusionConfig struct {
 }
 
 type MidJourneyPlusConfig struct {
-	Enabled   bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
-	Name      string // 服务名称，保持唯一
+	Enabled   bool // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
 	ApiURL    string
 	ApiKey    string
 	NotifyURL string // 任务进度更新回调地址

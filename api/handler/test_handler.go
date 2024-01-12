@@ -45,7 +45,7 @@ type resBody struct {
 }
 
 func (h *TestHandler) Test(c *gin.Context) {
-	query(c)
+	image(c)
 
 }
 
