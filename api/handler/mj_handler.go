@@ -328,24 +328,14 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
 		}
 
-		if item.Progress < 100 {
-			// 10 分钟还没完成的任务直接删除
-			if time.Now().Sub(item.CreatedAt) > time.Minute*10 {
-				h.db.Delete(&item)
-				// 退回绘图次数
-				h.db.Model(&model.User{}).Where("id = ?", item.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
-				continue
-			}
-
+		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {
 			// 正在运行中任务使用代理访问图片
-			if item.ImgURL == "" && item.OrgURL != "" {
-				if h.App.Config.ImgCdnURL != "" {
-					job.ImgURL = strings.ReplaceAll(job.OrgURL, "https://cdn.discordapp.com", h.App.Config.ImgCdnURL)
-				} else {
-					image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
-					if err == nil {
-						job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
-					}
+			if h.App.Config.ImgCdnURL != "" {
+				job.ImgURL = strings.ReplaceAll(job.OrgURL, "https://cdn.discordapp.com", h.App.Config.ImgCdnURL)
+			} else {
+				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
+				if err == nil {
+					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 				}
 			}
 		}

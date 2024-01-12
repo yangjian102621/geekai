@@ -162,6 +162,7 @@ func main() {
 			if pool.HasAvailableService() {
 				pool.DownloadImages()
 				pool.CheckTaskNotify()
+				pool.SyncTaskProgress()
 			}
 		}),
 
