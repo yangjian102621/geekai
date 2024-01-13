@@ -15,6 +15,7 @@ logs
 tmp
 bin
 data
+!vendor/**/data
 config.toml
 static/upload 
 storage.json
