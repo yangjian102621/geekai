@@ -209,12 +209,7 @@
     >
       <el-alert type="info" :closable="false">
         <div style="font-size: 14px">
-          如果您对本项目有任何改进意见，您可以通过 Github
-          <el-link style="color: #f56c6c; font-weight: bold;"
-                   href="https://github.com/yangjian102621/chatgpt-plus/issues">
-            提交改进意见
-          </el-link>
-          或者通过扫描下面的微信二维码加入 AI 技术交流群。
+          如果您对本产品有任何改进意见，您可以通过扫描下面的微信二维码加入交流群。
         </div>
       </el-alert>
 
