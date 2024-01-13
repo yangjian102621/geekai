@@ -1,5 +1,5 @@
 # Build stage for Vue.js app
-FROM node:18-alpine3.14 AS builder
+FROM node:17-alpine3.14 AS builder
 WORKDIR /app
 # Copy the source files from the web folder
 COPY ../web /app
