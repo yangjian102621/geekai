@@ -1,0 +1,14 @@
+# see the OWNERS docs at https://go.k8s.io/owners
+
+approvers:
+- CarlJi
+- bachue
+- YangSen-qn
+- Mei-Zhao
+- sxci
+reviewers:
+- CarlJi
+- bachue
+- YangSen-qn
+- Mei-Zhao
+- sxci
