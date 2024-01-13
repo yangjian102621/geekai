@@ -1,4 +1,4 @@
-options=("deploy all", "shutdown all")
+options=("deploy all" "shutdown all")
 
 # get current api version
 export API_VERSION=$(docker images | grep "api" | awk '{print $2}')
