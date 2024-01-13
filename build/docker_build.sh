@@ -1,4 +1,6 @@
-version=$1
+echo "enter version: "
+
+read version
 
 options=("build api" "build web")
 

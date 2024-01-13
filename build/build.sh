@@ -13,11 +13,11 @@ do
             ;;
         "build docker")
             echo "you chose build docker"
-            bash ./build_docker.sh
+            bash ./docker_build.sh
             ;;
         "build docker and push all")
             echo "you chose build docker and push all"
-            bash ./build_docker.sh push all
+            bash ./docker_build.sh push
             ;;
         *) echo "invalid option $REPLY";;
     esac

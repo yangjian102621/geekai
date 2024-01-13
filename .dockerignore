@@ -1,0 +1,5 @@
+bin
+logs
+config.toml
+dist
+node_modules

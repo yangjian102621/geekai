@@ -1,8 +1,17 @@
+# Build stage
+FROM golang:1.19 AS builder
+WORKDIR /app
+# Copy the source files from the api folder
+COPY ../api /app
+# Build the application
+RUN CGO_ENABLED=0 go build -o bin/chatgpt-plus-api main.go
+
 # GO api docker 镜像创建
 FROM alpine:3.18.2
 
 WORKDIR /var/www/app
-COPY ./api/bin/chatgpt-plus-api /var/www/app
+# Copy the built application from the build stage
+COPY --from=builder /app/bin/chatgpt-plus-api /var/www/app
 
 EXPOSE 5678
 
