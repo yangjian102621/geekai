@@ -40,7 +40,7 @@ const logo = '/images/logo.png';
 const navs = ref([
   {path: "/chat", icon_path: "/images/chat.png", title: "对话聊天"},
   {path: "/mj", icon_path: "/images/mj.png", title: "MJ 绘画"},
-  {path: "/sd", icon_path: "/images/sd.png", title: "SD 绘画"},
+  // {path: "/sd", icon_path: "/images/sd.png", title: "SD 绘画"},
   {path: "/apps", icon: "menu", title: "应用中心"},
   {path: "/images-wall", icon: "image-list", title: "作品展示"},
   {path: "/knowledge", icon: "book", title: "知识库"},

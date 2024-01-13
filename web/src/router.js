@@ -20,12 +20,12 @@ const routes = [
                 meta: {title: 'MidJourney 绘画中心'},
                 component: () => import('@/views/ImageMj.vue'),
             },
-            {
-                name: 'image-sd',
-                path: '/sd',
-                meta: {title: 'stable diffusion 绘画中心'},
-                component: () => import('@/views/ImageSd.vue'),
-            },
+            // {
+            //     name: 'image-sd',
+            //     path: '/sd',
+            //     meta: {title: 'stable diffusion 绘画中心'},
+            //     component: () => import('@/views/ImageSd.vue'),
+            // },
             {
                 name: 'member',
                 path: '/member',
