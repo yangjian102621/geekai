@@ -218,7 +218,7 @@
       </div>
     </el-dialog>
 
-    <el-dialog
+    <!-- el-dialog
         v-model="showDemoNotice"
         :show-close="true"
         title="网站公告"
@@ -250,9 +250,11 @@
         </p>
       </div>
     </el-dialog>
+    -->
 
     <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
   </div>
+  
 
 
 </template>
