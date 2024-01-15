@@ -297,6 +297,9 @@ func (h *PaymentHandler) notify(orderNo string) error {
 		return err
 	}
 
+	h.lock.Lock()
+	defer h.lock.Unlock()
+
 	// 已支付订单，直接返回
 	if order.Status == types.OrderPaidSuccess {
 		return nil
@@ -318,30 +321,25 @@ func (h *PaymentHandler) notify(orderNo string) error {
 		return err
 	}
 
-	// 1. 点卡：days == 0, calls > 0
-	// 2. vip 套餐：days > 0, calls == 0
-	if remark.Days > 0 {
-		if user.ExpiredTime > time.Now().Unix() {
+	if user.Vip { // 已经是 VIP 用户
+		if remark.Days > 0 { // 只延期 VIP，不增加调用次数
 			user.ExpiredTime = time.Unix(user.ExpiredTime, 0).AddDate(0, 0, remark.Days).Unix()
-		} else {
-			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
+		} else { // 充值点卡，直接增加次数即可
+			user.Calls += remark.Calls
+			user.ImgCalls += remark.ImgCalls
 		}
-		user.Vip = true
 
-	} else if !user.Vip { // 充值点卡的非 VIP 用户
-		user.ExpiredTime = time.Now().AddDate(0, 0, 30).Unix()
-	}
+	} else {                 // 非 VIP 用户
+		if remark.Days > 0 { // vip 套餐：days > 0, calls == 0
+			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
+			user.Calls += h.App.SysConfig.VipMonthCalls
+			user.ImgCalls += h.App.SysConfig.VipMonthImgCalls
+			user.Vip = true
 
-	if remark.Calls > 0 { // 充值点卡
-		user.Calls += remark.Calls
-	} else {
-		user.Calls += h.App.SysConfig.VipMonthCalls
-	}
-
-	if remark.ImgCalls > 0 {
-		user.ImgCalls += remark.ImgCalls
-	} else {
-		user.ImgCalls += h.App.SysConfig.VipMonthImgCalls
+		} else { //点卡：days == 0, calls > 0
+			user.Calls += remark.Calls
+			user.ImgCalls += remark.ImgCalls
+		}
 	}
 
 	// 更新用户信息
@@ -393,8 +391,6 @@ func (h *PaymentHandler) HuPiPayNotify(c *gin.Context) {
 	orderNo := c.Request.Form.Get("trade_order_id")
 	logger.Infof("收到订单支付回调，订单 NO：%s", orderNo)
 	// TODO 是否要保存订单交易流水号
-	h.lock.Lock()
-	defer h.lock.Unlock()
 
 	err = h.notify(orderNo)
 	if err != nil {
@@ -422,9 +418,6 @@ func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
 		return
 	}
 
-	h.lock.Lock()
-	defer h.lock.Unlock()
-
 	err = h.notify(r.OutTradeNo)
 	if err != nil {
 		c.String(http.StatusOK, "fail")
@@ -449,9 +442,6 @@ func (h *PaymentHandler) PayJsNotify(c *gin.Context) {
 	if returnCode != "1" {
 		return
 	}
-
-	h.lock.Lock()
-	defer h.lock.Unlock()
 
 	err = h.notify(orderNo)
 	if err != nil {
