@@ -329,7 +329,7 @@ func (h *PaymentHandler) notify(orderNo string) error {
 			user.ImgCalls += remark.ImgCalls
 		}
 
-	} else {                 // 非 VIP 用户
+	} else { // 非 VIP 用户
 		if remark.Days > 0 { // vip 套餐：days > 0, calls == 0
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 			user.Calls += h.App.SysConfig.VipMonthCalls

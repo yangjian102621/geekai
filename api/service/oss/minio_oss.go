@@ -65,15 +65,15 @@ func (s MiniOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	return fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key), nil
 }
 
-func (s MiniOss) PutFile(ctx *gin.Context, name string) (string, error) {
+func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	file, err := ctx.FormFile(name)
 	if err != nil {
-		return "", fmt.Errorf("error with get form: %v", err)
+		return File{}, fmt.Errorf("error with get form: %v", err)
 	}
 	// Open the uploaded file
 	fileReader, err := file.Open()
 	if err != nil {
-		return "", fmt.Errorf("error opening file: %v", err)
+		return File{}, fmt.Errorf("error opening file: %v", err)
 	}
 	defer fileReader.Close()
 
@@ -83,10 +83,14 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (string, error) {
 		ContentType: file.Header.Get("Content-Type"),
 	})
 	if err != nil {
-		return "", fmt.Errorf("error uploading to MinIO: %v", err)
+		return File{}, fmt.Errorf("error uploading to MinIO: %v", err)
 	}
 
-	return fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key), nil
+	return File{
+		URL:  fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key),
+		Ext:  fileExt,
+		Size: file.Size,
+	}, nil
 }
 
 func (s MiniOss) Delete(fileURL string) error {

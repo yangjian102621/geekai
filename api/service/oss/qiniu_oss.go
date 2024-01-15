@@ -50,16 +50,16 @@ func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 	}
 }
 
-func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (string, error) {
+func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	// 解析表单
 	file, err := ctx.FormFile(name)
 	if err != nil {
-		return "", err
+		return File{}, err
 	}
 	// 打开上传文件
 	src, err := file.Open()
 	if err != nil {
-		return "", err
+		return File{}, err
 	}
 	defer src.Close()
 
@@ -70,10 +70,15 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	extra := storage.PutExtra{}
 	err = s.uploader.Put(ctx, &ret, s.putPolicy.UploadToken(s.mac), key, src, file.Size, &extra)
 	if err != nil {
-		return "", err
+		return File{}, err
 	}
 
-	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
+	return File{
+		URL:  fmt.Sprintf("%s/%s", s.config.Domain, ret.Key),
+		Ext:  fileExt,
+		Size: file.Size,
+	}, nil
+
 }
 
 func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {

@@ -44,16 +44,16 @@ func NewAliYunOss(appConfig *types.AppConfig) (*AliYunOss, error) {
 
 }
 
-func (s AliYunOss) PutFile(ctx *gin.Context, name string) (string, error) {
+func (s AliYunOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	// 解析表单
 	file, err := ctx.FormFile(name)
 	if err != nil {
-		return "", err
+		return File{}, err
 	}
 	// 打开上传文件
 	src, err := file.Open()
 	if err != nil {
-		return "", err
+		return File{}, err
 	}
 	defer src.Close()
 
@@ -62,10 +62,14 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (string, error) {
 	// 上传文件
 	err = s.bucket.PutObject(objectKey, src)
 	if err != nil {
-		return "", err
+		return File{}, err
 	}
 
-	return fmt.Sprintf("%s/%s", s.config.Domain, objectKey), nil
+	return File{
+		URL:  fmt.Sprintf("%s/%s", s.config.Domain, objectKey),
+		Ext:  fileExt,
+		Size: file.Size,
+	}, nil
 }
 
 func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
