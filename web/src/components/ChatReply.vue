@@ -107,6 +107,10 @@ export default defineComponent({
           border-radius: 5px;
           overflow auto;
 
+          a {
+            color #20a0ff
+          }
+
           // control the image size in content
 
           img {
@@ -166,6 +170,7 @@ export default defineComponent({
             color #00e0e0
           }
 
+
           // 设置表格边框
 
           table {
@@ -189,6 +194,17 @@ export default defineComponent({
               border 1px solid #dee2e6
               padding 10px
             }
+          }
+
+          // 代码快
+
+          blockquote {
+            margin 0
+            background-color: #ebfffe;
+            padding: 0.8rem 1.5rem;
+            border-left: 0.5rem solid;
+            border-color: #026863;
+            color: #2c3e50;
           }
         }
 

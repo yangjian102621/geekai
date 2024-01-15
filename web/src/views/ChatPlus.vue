@@ -511,6 +511,9 @@ const removeChat = function (event, chat) {
 
 const md = require('markdown-it')({
   breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
   highlight: function (str, lang) {
     const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
     // 显示复制代码按钮
@@ -601,36 +604,6 @@ const connect = function (chat_id, role_id) {
             icon: _role['icon'],
             content: ""
           });
-        } else if (data.type === "mj") {
-          disableInput(true)
-          const content = data.content;
-          content.html = md.render(content.content)
-          let key = content.key
-          // fixed bug: 执行 Upscale 和 Variation 操作的时候覆盖之前的绘画
-          if (content.status === "Finished") {
-            key = randString(32)
-            enableInput()
-          }
-          // console.log(content)
-          // check if the message is in chatData
-          let flag = false
-          for (let i = 0; i < chatData.value.length; i++) {
-            if (chatData.value[i].id === content.key) {
-              flag = true
-              chatData.value[i].content = content
-              chatData.value[i].id = key
-              break
-            }
-          }
-          if (flag === false) {
-            chatData.value.push({
-              type: "mj",
-              id: key,
-              icon: "/images/avatar/mid_journey.png",
-              content: content
-            });
-          }
-
         } else if (data.type === 'end') { // 消息接收完毕
           // 追加当前会话到会话列表
           if (isNewChat && newChatItem.value !== null) {
@@ -659,7 +632,7 @@ const connect = function (chat_id, role_id) {
           lineBuffer.value += data.content;
           const reply = chatData.value[chatData.value.length - 1]
           reply['orgContent'] = lineBuffer.value;
-          reply['content'] = md.render(lineBuffer.value);
+          reply['content'] = md.render(processBlankQuote(lineBuffer.value));
         }
         // 将聊天框的滚动条滑动到最底部
         nextTick(() => {
@@ -800,15 +773,8 @@ const loadChatHistory = function (chatId) {
     }
     showHello.value = false
     for (let i = 0; i < data.length; i++) {
-      if (data[i].type === "mj") {
-        data[i].content = JSON.parse(data[i].content)
-        data[i].content.html = md.render(data[i].content?.content)
-        chatData.value.push(data[i]);
-        continue;
-      }
-
       data[i].orgContent = data[i].content;
-      data[i].content = md.render(data[i].content);
+      data[i].content = md.render(processBlankQuote(data[i].content))
       chatData.value.push(data[i]);
     }
 
@@ -820,6 +786,22 @@ const loadChatHistory = function (chatId) {
     // TODO: 显示重新加载按钮
     ElMessage.error('加载聊天记录失败：' + e.message);
   })
+}
+
+const processBlankQuote = (content) => {
+  if (content.indexOf("\n") === -1) {
+    return content
+  }
+
+  const texts = content.split("\n")
+  const lines = []
+  for (let txt of texts) {
+    lines.push(txt)
+    if (txt.startsWith(">")) {
+      lines.push("\n")
+    }
+  }
+  return lines.join("\n")
 }
 
 const stopGenerate = function () {
