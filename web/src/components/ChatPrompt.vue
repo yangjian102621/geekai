@@ -102,6 +102,10 @@ export default defineComponent({
         border-radius: 5px;
         overflow: auto;
 
+        a {
+          color #20a0ff
+        }
+
         p {
           line-height 1.5
         }
