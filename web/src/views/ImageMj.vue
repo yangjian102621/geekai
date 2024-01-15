@@ -700,6 +700,7 @@ const generate = () => {
 
 // 图片放大任务
 const upscale = (index, item) => {
+  console.log(item)
   send('/api/mj/upscale', index, item)
 }
 
