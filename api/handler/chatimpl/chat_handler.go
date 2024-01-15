@@ -435,7 +435,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", req.Model, 1)
 		break
 	default:
-		if req.Model == "gpt-4-all" {
+		if req.Model == "gpt-4-all" || strings.HasPrefix(req.Model, "gpt-4-gizmo-g-") {
 			apiURL = "https://gpt.bemore.lol/v1/chat/completions"
 		} else {
 			apiURL = apiKey.ApiURL

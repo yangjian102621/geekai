@@ -668,7 +668,7 @@ const afterRead = (file) => {
       formData.append('file', result, result.name);
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
-        params.value.img = res.data
+        params.value.img = res.data.url
         ElMessage.success('上传成功')
       }).catch((e) => {
         ElMessage.error('上传失败:' + e.message)

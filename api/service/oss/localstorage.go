@@ -23,23 +23,28 @@ func NewLocalStorage(config *types.AppConfig) LocalStorage {
 	}
 }
 
-func (s LocalStorage) PutFile(ctx *gin.Context, name string) (string, error) {
+func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {
 	file, err := ctx.FormFile(name)
 	if err != nil {
-		return "", fmt.Errorf("error with get form: %v", err)
+		return File{}, fmt.Errorf("error with get form: %v", err)
 	}
 
-	filePath, err := utils.GenUploadPath(s.config.BasePath, file.Filename)
+	path, err := utils.GenUploadPath(s.config.BasePath, file.Filename)
 	if err != nil {
-		return "", fmt.Errorf("error with generate filename: %s", err.Error())
+		return File{}, fmt.Errorf("error with generate filename: %s", err.Error())
 	}
 	// 将文件保存到指定路径
-	err = ctx.SaveUploadedFile(file, filePath)
+	err = ctx.SaveUploadedFile(file, path)
 	if err != nil {
-		return "", fmt.Errorf("error with save upload file: %s", err.Error())
+		return File{}, fmt.Errorf("error with save upload file: %s", err.Error())
 	}
 
-	return utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, filePath), nil
+	ext := filepath.Ext(file.Filename)
+	return File{
+		URL:  utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, path),
+		Ext:  ext,
+		Size: file.Size,
+	}, nil
 }
 
 func (s LocalStorage) PutImg(imageURL string, useProxy bool) (string, error) {

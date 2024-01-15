@@ -316,7 +316,7 @@ const uploadRewardImg = (file) => {
       formData.append('file', result, result.name);
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
-        system.value['reward_img'] = res.data
+        system.value['reward_img'] = res.data.url
         ElMessage.success('上传成功')
       }).catch((e) => {
         ElMessage.error('上传失败:' + e.message)

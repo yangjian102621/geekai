@@ -93,7 +93,7 @@ const afterRead = (file) => {
       formData.append('file', result, result.name);
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
-        user.value.avatar = res.data
+        user.value.avatar = res.data.url
         ElMessage.success({message: "上传成功", duration: 500})
       }).catch((e) => {
         ElMessage.error('图片上传失败:' + e.message)
