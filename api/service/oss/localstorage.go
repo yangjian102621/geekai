@@ -41,6 +41,7 @@ func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {
 
 	ext := filepath.Ext(file.Filename)
 	return File{
+		Name: file.Filename,
 		URL:  utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, path),
 		Ext:  ext,
 		Size: file.Size,

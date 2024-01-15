@@ -214,6 +214,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
+			s.Engine.GET("/api/upload/list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
 			group := s.Engine.Group("/api/sms/")

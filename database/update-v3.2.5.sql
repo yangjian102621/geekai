@@ -10,3 +10,4 @@ CREATE TABLE `chatgpt_plus`.`chatgpt_files` (
     PRIMARY KEY (`id`)) ENGINE = InnoDB COMMENT = '用户文件表';
 
 ALTER TABLE `chatgpt_files` ADD `size` BIGINT(20) NOT NULL DEFAULT '0' COMMENT '文件大小' AFTER `ext`;
+ALTER TABLE `chatgpt_files` ADD `name` VARCHAR(100) NOT NULL COMMENT '文件名' AFTER `user_id`;
