@@ -10,4 +10,4 @@ Write-Host "CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o bin\chatgpt-plus-api
 $env:CGO_ENABLED="0"
 $env:GOOS=$os
 $env:GOARCH=$arch
-go build -o bin\chatgpt-plus-api main.go
+go build -o bin\chatgpt-plus-api.exe main.go

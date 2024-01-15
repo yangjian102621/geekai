@@ -86,8 +86,9 @@ const loadCaptcha = () => {
     return ElMessage.error("请输入合法的手机号/邮箱地址")
   }
 
-  showCaptcha.value = true
-  handleRequestCaptCode() // 每次点开都刷新验证码
+  showCaptcha.value = false
+  //handleRequestCaptCode() // 每次点开都刷新验证码
+  sendMsg()
 }
 
 const sendMsg = () => {

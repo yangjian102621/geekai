@@ -45,10 +45,10 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	if !h.captcha.Check(data) {
-		resp.ERROR(c, "验证码错误，请先完人机验证")
-		return
-	}
+	// if !h.captcha.Check(data) {
+	// 	resp.ERROR(c, "验证码错误，请先完人机验证")
+	// 	return
+	// }
 
 	code := utils.RandomNumber(6)
 	var err error
