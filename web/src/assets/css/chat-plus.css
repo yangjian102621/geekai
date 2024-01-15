@@ -213,6 +213,11 @@
   width: 0;
   height: 0;
 }
+#app .common-layout .el-main .right-box #container .input-box .input-container .select-file {
+  position: absolute;
+  right: 48px;
+  top: 20px;
+}
 #app .common-layout .el-main .right-box #container .input-box .input-container .send-btn {
   position: absolute;
   right: 12px;

@@ -187,6 +187,9 @@
                       :rows="2"
                       placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
                   />
+                  <span class="select-file">
+                    <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertURL"/>
+                  </span>
                   <span class="send-btn">
                     <el-button @click="sendMessage">
                       <el-icon><Promotion/></el-icon>
@@ -290,6 +293,7 @@ import ConfigDialog from "@/components/ConfigDialog.vue";
 import {checkSession} from "@/action/session";
 import Welcome from "@/components/Welcome.vue";
 import ChatMidJourney from "@/components/ChatMidJourney.vue";
+import FileSelect from "@/components/FileSelect.vue";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -874,6 +878,11 @@ const getModelValue = (model_id) => {
 const notShow = () => {
   localStorage.setItem(showNoticeKey.value + loginUser.value.username, true)
   showDemoNotice.value = false
+}
+
+// 插入文件路径
+const insertURL = (url) => {
+  prompt.value += " " + url + " "
 }
 </script>
 

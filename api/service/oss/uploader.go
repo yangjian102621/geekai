@@ -3,9 +3,10 @@ package oss
 import "github.com/gin-gonic/gin"
 
 type File struct {
-	Size int64
-	URL  string
-	Ext  string
+	Name string `json:"name"`
+	Size int64  `json:"size"`
+	URL  string `json:"url"`
+	Ext  string `json:"ext"`
 }
 type Uploader interface {
 	PutFile(ctx *gin.Context, name string) (File, error)

@@ -7,6 +7,7 @@
             :auto-upload="true"
             :show-file-list="false"
             :http-request="afterRead"
+            accept=".png,.jpg,.jpeg,.bmp"
         >
           <el-avatar v-if="user.avatar" :src="user.avatar" shape="circle" :size="100"/>
           <el-icon v-else class="avatar-uploader-icon">

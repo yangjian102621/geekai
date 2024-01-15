@@ -74,6 +74,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}
 
 	return File{
+		Name: file.Filename,
 		URL:  fmt.Sprintf("%s/%s", s.config.Domain, ret.Key),
 		Ext:  fileExt,
 		Size: file.Size,

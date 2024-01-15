@@ -5,6 +5,7 @@ import "time"
 type File struct {
 	Id        uint `gorm:"primarykey;column:id"`
 	UserId    uint
+	Name      string
 	URL       string
 	Ext       string
 	Size      int64

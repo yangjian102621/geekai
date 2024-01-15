@@ -87,6 +87,7 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}
 
 	return File{
+		Name: file.Filename,
 		URL:  fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key),
 		Ext:  fileExt,
 		Size: file.Size,

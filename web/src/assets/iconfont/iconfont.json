@@ -6,6 +6,62 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "12600976",
+      "name": "xls",
+      "font_class": "xls",
+      "unicode": "e678",
+      "unicode_decimal": 59000
+    },
+    {
+      "icon_id": "3750429",
+      "name": "file",
+      "font_class": "file",
+      "unicode": "e62f",
+      "unicode_decimal": 58927
+    },
+    {
+      "icon_id": "4318810",
+      "name": "doc",
+      "font_class": "doc",
+      "unicode": "e6c2",
+      "unicode_decimal": 59074
+    },
+    {
+      "icon_id": "4318811",
+      "name": "pdf",
+      "font_class": "pdf",
+      "unicode": "e6c3",
+      "unicode_decimal": 59075
+    },
+    {
+      "icon_id": "4628503",
+      "name": "ppt",
+      "font_class": "ppt",
+      "unicode": "e642",
+      "unicode_decimal": 58946
+    },
+    {
+      "icon_id": "6233095",
+      "name": "txt",
+      "font_class": "txt",
+      "unicode": "e644",
+      "unicode_decimal": 58948
+    },
+    {
+      "icon_id": "12600910",
+      "name": "sql",
+      "font_class": "sql",
+      "unicode": "e65b",
+      "unicode_decimal": 58971
+    },
+    {
+      "icon_id": "31260974",
+      "name": "md",
+      "font_class": "md",
+      "unicode": "e63a",
+      "unicode_decimal": 58938
+    },
+    {
       "icon_id": "1278349",
       "name": "loading",
       "font_class": "loading",
