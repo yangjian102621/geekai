@@ -282,7 +282,7 @@ import {
   VideoPause
 } from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
-import {dateFormat, isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
+import {dateFormat, isImage, isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
 import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
@@ -636,7 +636,7 @@ const connect = function (chat_id, role_id) {
           lineBuffer.value += data.content;
           const reply = chatData.value[chatData.value.length - 1]
           reply['orgContent'] = lineBuffer.value;
-          reply['content'] = md.render(processBlankQuote(lineBuffer.value));
+          reply['content'] = md.render(processContent(lineBuffer.value));
         }
         // 将聊天框的滚动条滑动到最底部
         nextTick(() => {
@@ -712,7 +712,7 @@ const sendMessage = function () {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(prompt.value),
+    content: md.render(processContent(prompt.value)),
     created_at: new Date().getTime(),
   });
 
@@ -778,7 +778,7 @@ const loadChatHistory = function (chatId) {
     showHello.value = false
     for (let i = 0; i < data.length; i++) {
       data[i].orgContent = data[i].content;
-      data[i].content = md.render(processBlankQuote(data[i].content))
+      data[i].content = md.render(processContent(data[i].content))
       chatData.value.push(data[i]);
     }
 
@@ -792,7 +792,22 @@ const loadChatHistory = function (chatId) {
   })
 }
 
-const processBlankQuote = (content) => {
+const processContent = (content) => {
+  //process img url
+  const linkRegex = /(https?:\/\/\S+)/g;
+  const links = content.match(linkRegex);
+  if (links) {
+    for (let link of links) {
+      if (isImage(link)) {
+        const index = content.indexOf(link)
+        if (content.substring(index - 1, 2) !== "]") {
+          content = content.replace(link, "\n![](" + link + ")\n")
+        }
+      }
+    }
+  }
+
+  // 处理引用块
   if (content.indexOf("\n") === -1) {
     return content
   }

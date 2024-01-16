@@ -102,6 +102,13 @@ export default defineComponent({
         border-radius: 5px;
         overflow: auto;
 
+        img {
+          max-width: 600px;
+          border-radius: 10px;
+          margin 10px 0
+        }
+
+
         a {
           color #20a0ff
         }

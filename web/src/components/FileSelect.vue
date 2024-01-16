@@ -53,6 +53,7 @@ import {ref} from "vue";
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import {PictureFilled, Plus} from "@element-plus/icons-vue";
+import {isImage} from "@/utils/libs";
 
 const props = defineProps({
   userId: String,
@@ -67,11 +68,6 @@ const fetchFiles = () => {
     fileList.value = res.data
   }).catch(() => {
   })
-}
-
-const isImage = (ext) => {
-  const expr = /\.(jpg|jpeg|png|gif|bmp|svg)$/i;
-  return expr.test(ext);
 }
 
 const getFileIcon = (ext) => {
