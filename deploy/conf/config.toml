@@ -52,7 +52,7 @@ WeChatBot = false
        Bucket = ""
        Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com
 
-[[MjConfigs]]
+[[MjConfigs]] # 原生 MidJourney 配置
   Enabled = false
   UserToken = ""
   BotToken = ""
@@ -63,16 +63,12 @@ WeChatBot = false
   DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
   DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
 
-[[MjConfigs]]
-  Enabled = false
-  UserToken = ""
-  BotToken = ""
-  GuildId = ""
-  ChanelId = ""
-  UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
-  DiscordAPI = "https://mj.r9it.com:8001" # discord API 反代地址
-  DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
-  DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
+
+[[MjPlusConfigs]] # MidJourney Plus 配置，建议不要同时配置 MidJourney 和 MidJourney-Plus
+  Enabled = true
+  ApiURL = "https://api.chatgpt-plus.net"
+  ApiKey = ""
+  NotifyURL = "https://ai.r9it.com/api/mj/notify" # 域名换成你自己的部署域名
 
 [[SdConfigs]]
   Enabled = false

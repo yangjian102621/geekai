@@ -247,6 +247,13 @@
           购买，现在有超级优惠，价格远低于 OpenAI 官方。<br/>
           GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。<br/>
 
+          MidJourney API 购买地址：
+          <a href="https://api.chat-plus.net" target="_blank"
+             style="font-size: 20px;color:#F56C6C">https://api.chat-plus.net</a><br/>
+
+          接入教程： <a href="https://ai.r9it.com/docs/install/" target="_blank"
+                       style="font-size: 20px;color:#F56C6C">https://ai.r9it.com/docs/install/</a><br/>
+
           本项目源码地址：
           <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
             https://github.com/yangjian102621/chatgpt-plus
