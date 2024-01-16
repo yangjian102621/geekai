@@ -161,3 +161,8 @@ export function substr(str, length) {
     return result
 }
 
+export function isImage(url) {
+    const expr = /\.(jpg|jpeg|png|gif|bmp|svg)$/i;
+    return expr.test(url);
+}
+
