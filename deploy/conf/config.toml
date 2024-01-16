@@ -4,6 +4,7 @@ MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
+ImgCdnURL = ""
 WeChatBot = false
 
 [Session]
@@ -75,18 +76,6 @@ WeChatBot = false
   ApiURL = ""
   ApiKey = ""
   Txt2ImgJsonPath = "res/sd/text2img.json"
-
-[[SdConfigs]]
-  Enabled = false
-  ApiURL = ""
-  ApiKey = ""
-  Txt2ImgJsonPath = "res/sd/text2img.json"
-
-[[SdConfigs]]
-  Enabled = false
-  ApiURL = ""
-  ApiKey = ""
-  Txt2ImgJsonPath = "res/text2img.json"
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = false # 是否启用 XXL JOB 服务
