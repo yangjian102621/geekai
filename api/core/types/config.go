@@ -5,21 +5,22 @@ import (
 )
 
 type AppConfig struct {
-	Path      string `toml:"-"`
-	Listen    string
-	Session   Session
-	ProxyURL  string
-	MysqlDns  string                  // mysql 连接地址
-	Manager   Manager                 // 后台管理员账户信息
-	StaticDir string                  // 静态资源目录
-	StaticUrl string                  // 静态资源 URL
-	Redis     RedisConfig             // redis 连接信息
-	ApiConfig ChatPlusApiConfig       // ChatPlus API authorization configs
-	SmsConfig AliYunSmsConfig         // AliYun send message service config
-	OSS       OSSConfig               // OSS config
-	MjConfigs []MidJourneyConfig      // mj AI draw service pool
-	WeChatBot bool                    // 是否启用微信机器人
-	SdConfigs []StableDiffusionConfig // sd AI draw service pool
+	Path         string `toml:"-"`
+	Listen       string
+	Session      Session
+	ProxyURL     string
+	MysqlDns     string                  // mysql 连接地址
+	Manager      Manager                 // 后台管理员账户信息
+	StaticDir    string                  // 静态资源目录
+	StaticUrl    string                  // 静态资源 URL
+	Redis        RedisConfig             // redis 连接信息
+	ApiConfig    ChatPlusApiConfig       // ChatPlus API authorization configs
+	SmsConfig    AliYunSmsConfig         // AliYun send message service config
+	OSS          OSSConfig               // OSS config
+	MjConfigs    []MidJourneyConfig      // mj AI draw service pool
+	MjApiConfigs []MidJourneyApiConfig   // mj AI draw service pool
+	WeChatBot    bool                    // 是否启用微信机器人
+	SdConfigs    []StableDiffusionConfig // sd AI draw service pool
 
 	XXLConfig     XXLConfig
 	AlipayConfig  AlipayConfig
@@ -62,6 +63,13 @@ type MidJourneyConfig struct {
 	DiscordAPI     string
 	DiscordCDN     string
 	DiscordGateway string
+}
+
+type MidJourneyApiConfig struct {
+	Enabled     bool
+	ApiURL      string
+	ApiKey      string
+	CallBackUrl string
 }
 
 type StableDiffusionConfig struct {

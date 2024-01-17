@@ -12,12 +12,13 @@ import (
 	"chatplus/utils/resp"
 	"encoding/base64"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 )
 
 type MidJourneyHandler struct {
@@ -166,7 +167,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Id:        int(job.Id),
 		SessionId: data.SessionId,
 		Type:      types.TaskImage,
-		Prompt:    fmt.Sprintf("%s %s", taskId, prompt),
+		Prompt:    fmt.Sprintf("%s", prompt),
 		UserId:    userId,
 	})
 
@@ -219,7 +220,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
-
+	jobId = int(job.Id)
 	h.pool.PushTask(types.MjTask{
 		Id:          jobId,
 		SessionId:   data.SessionId,

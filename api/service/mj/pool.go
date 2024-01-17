@@ -6,15 +6,16 @@ import (
 	"chatplus/store"
 	"chatplus/store/model"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"gorm.io/gorm"
 )
 
 // ServicePool Mj service pool
 type ServicePool struct {
-	services        []*Service
+	services        []MjServiceInterface
 	taskQueue       *store.RedisQueue
 	notifyQueue     *store.RedisQueue
 	db              *gorm.DB
@@ -23,9 +24,22 @@ type ServicePool struct {
 }
 
 func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
-	services := make([]*Service, 0)
+	services := make([]MjServiceInterface, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
+
+	for k, config := range appConfig.MjApiConfigs {
+		if config.Enabled == false {
+			continue
+		}
+		client := NewApiClient(config)
+		name := fmt.Sprintf("MjApiService-%d", k)
+		service := NewApiService(name, taskQueue, notifyQueue, 4, 600, db, client)
+		go func() {
+			service.Run()
+		}()
+		services = append(services, service)
+	}
 	// create mj client and service
 	for k, config := range appConfig.MjConfigs {
 		if config.Enabled == false {

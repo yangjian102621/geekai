@@ -4,12 +4,13 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/utils"
-	discordgo "github.com/bg5t/mydiscordgo"
-	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+
+	discordgo "github.com/bg5t/mydiscordgo"
+	"github.com/gorilla/websocket"
 )
 
 // MidJourney 机器人
@@ -208,16 +209,6 @@ func extractPrompt(input string) string {
 		return strings.TrimSpace(matches[1])
 	}
 	return ""
-}
-
-func extractProgress(input string) int {
-	pattern := `\((\d+)\%\)`
-	re := regexp.MustCompile(pattern)
-	matches := re.FindStringSubmatch(input)
-	if len(matches) > 1 {
-		return utils.IntValue(matches[1], 0)
-	}
-	return 100
 }
 
 func extractHashFromFilename(filename string) string {
