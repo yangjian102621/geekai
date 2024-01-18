@@ -16,5 +16,6 @@ type MidJourneyJob struct {
 	Progress    int       `json:"progress"`
 	Prompt      string    `json:"prompt"`
 	UseProxy    bool      `json:"use_proxy"`
+	Publish     bool      `json:"publish"`
 	CreatedAt   time.Time `json:"created_at"`
 }

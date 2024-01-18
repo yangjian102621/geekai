@@ -11,6 +11,7 @@ type SdJob struct {
 	Progress  int
 	Prompt    string
 	Params    string
+	Publish   bool //是否发布图片到画廊
 	CreatedAt time.Time
 }
 

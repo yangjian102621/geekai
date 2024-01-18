@@ -16,6 +16,7 @@ type MidJourneyJob struct {
 	Progress    int
 	Prompt      string
 	UseProxy    bool // 是否使用反代加载图片
+	Publish     bool //是否发布图片到画廊
 	CreatedAt   time.Time
 }
 

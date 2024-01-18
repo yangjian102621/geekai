@@ -424,6 +424,12 @@
 
                   <div class="remove">
                     <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
+                    <el-button type="warning" v-if="scope.item.publish" @click="publishImage(scope.item, false)" circle>
+                      <i class="iconfont icon-cancel-share"></i>
+                    </el-button>
+                    <el-button type="success" v-else @click="publishImage(scope.item, true)" circle>
+                      <i class="iconfont icon-share-bold"></i>
+                    </el-button>
                   </div>
                 </div>
               </template>
@@ -442,7 +448,8 @@
 <script setup>
 import {onMounted, ref} from "vue"
 import {
-  ChromeFilled, Delete,
+  ChromeFilled,
+  Delete,
   DeleteFilled,
   DocumentCopy,
   InfoFilled,
@@ -741,6 +748,20 @@ const removeImage = (item) => {
       ElMessage.error("任务删除失败：" + e.message)
     })
   }).catch(() => {
+  })
+}
+
+// 发布图片到作品墙
+const publishImage = (item, action) => {
+  let text = "图片发布"
+  if (action === false) {
+    text = "取消发布"
+  }
+  httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
+    ElMessage.success(text + "成功")
+    item.publish = action
+  }).catch(e => {
+    ElMessage.error(text + "失败：" + e.message)
   })
 }
 
