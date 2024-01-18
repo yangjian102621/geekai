@@ -202,6 +202,7 @@ const fetch = () => {
 // 编辑
 const curIndex = ref(0)
 const rowEdit = function (index, row) {
+  title.value = "编辑函数"
   curIndex.value = index
   item.value = copyObj(row)
   // initialize parameters
