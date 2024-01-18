@@ -180,7 +180,8 @@ type SystemConfig struct {
 	VipMonthCalls    int    `json:"vip_month_calls"`     // VIP 会员每月赠送的对话次数
 	VipMonthImgCalls int    `json:"vip_month_img_calls"` // VIP 会员每月赠送绘图次数
 
-	RegisterWays []string `json:"register_ways"` // 注册方式：支持手机，邮箱注册
+	RegisterWays    []string `json:"register_ways"`    // 注册方式：支持手机，邮箱注册
+	EnabledRegister bool     `json:"enabled_register"` // 是否开放注册
 
 	RewardImg     string  `json:"reward_img"`      // 众筹收款二维码地址
 	EnabledReward bool    `json:"enabled_reward"`  // 启用众筹功能

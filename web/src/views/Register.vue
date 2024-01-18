@@ -154,6 +154,8 @@ httpGet("/api/admin/config/get?key=system").then(res => {
       ways.push("邮箱地址")
     }
     placeholder.value += ways.join("/")
+    // 是否启用注册
+    enableRegister.value = res.data['enabled_register']
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)

@@ -27,6 +27,21 @@
         <el-form-item label="VIP每月绘图次数" prop="vip_month_img_calls">
           <el-input v-model.number="system['vip_month_img_calls']" placeholder="VIP用户每月赠送绘图次数"/>
         </el-form-item>
+
+        <el-form-item label="开放注册" prop="enabled_register">
+          <el-switch v-model="system['enabled_register']"/>
+          <el-tooltip
+              effect="dark"
+              content="关闭注册之后只能通过管理后台添加用户"
+              raw-content
+              placement="right"
+          >
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+          </el-tooltip>
+        </el-form-item>
+
         <el-form-item label="注册方式" prop="register_ways">
           <el-checkbox-group v-model="system['register_ways']">
             <el-checkbox label="mobile">手机注册</el-checkbox>

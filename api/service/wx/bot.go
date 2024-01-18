@@ -64,9 +64,9 @@ func (b *Bot) messageHandler(msg *openwechat.Message) {
 		msg.AppMsgType == openwechat.AppMsgTypeUrl {
 		// 解析支付金额
 		message := parseTransactionMessage(msg.Content)
-		if message.Url != "" {
-			transaction := extractTransaction(message)
-			logger.Infof("解析到收款信息：%+v", transaction)
+		transaction := extractTransaction(message)
+		logger.Infof("解析到收款信息：%+v", transaction)
+		if transaction.TransId != "" {
 			var item model.Reward
 			res := b.db.Where("tx_id = ?", transaction.TransId).First(&item)
 			if item.Id > 0 {
