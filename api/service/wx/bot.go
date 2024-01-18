@@ -69,7 +69,7 @@ func (b *Bot) messageHandler(msg *openwechat.Message) {
 			logger.Infof("解析到收款信息：%+v", transaction)
 			var item model.Reward
 			res := b.db.Where("tx_id = ?", transaction.TransId).First(&item)
-			if res.Error == nil {
+			if item.Id > 0 {
 				logger.Error("当前交易 ID 己经存在！")
 				return
 			}

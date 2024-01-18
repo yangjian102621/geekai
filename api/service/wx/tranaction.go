@@ -47,6 +47,20 @@ func parseTransactionMessage(xmlData string) *Message {
 			}
 		}
 	}
+
+	// 兼容旧版消息记录
+	if message.Url == "" {
+		var msg struct {
+			XMLName xml.Name `xml:"msg"`
+			AppMsg  struct {
+				Des string `xml:"des"`
+				Url string `xml:"url"`
+			} `xml:"appmsg"`
+		}
+		if err := xml.Unmarshal([]byte(xmlData), &msg); err == nil {
+			message.Url = msg.AppMsg.Url
+		}
+	}
 	return &message
 }
 
@@ -81,5 +95,6 @@ func extractTransaction(message *Message) Transaction {
 	if err == nil {
 		tx.TransId = parse.Query().Get("id")
 	}
+
 	return tx
 }
