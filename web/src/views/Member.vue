@@ -60,7 +60,7 @@
                     <div class="info-line">
                       <span class="label">有效期：</span>
                       <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
-                      <span class="expire" v-else>当月有效</span>
+                      <span class="expire" v-else>长期有效</span>
                     </div>
 
                     <div class="pay-way">

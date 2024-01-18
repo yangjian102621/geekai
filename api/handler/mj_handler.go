@@ -13,12 +13,13 @@ import (
 	"chatplus/utils/resp"
 	"encoding/base64"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 )
 
 type MidJourneyHandler struct {
@@ -294,6 +295,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 	userId := h.GetInt(c, "user_id", 0)
 	page := h.GetInt(c, "page", 0)
 	pageSize := h.GetInt(c, "page_size", 0)
+	publish := h.GetBool(c, "publish")
 
 	session := h.db.Session(&gorm.Session{})
 	if status == 1 {
@@ -303,6 +305,9 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 	}
 	if userId > 0 {
 		session = session.Where("user_id = ?", userId)
+	}
+	if publish {
+		session = session.Where("publish = ?", publish)
 	}
 	if page > 0 && pageSize > 0 {
 		offset := (page - 1) * pageSize
@@ -392,6 +397,26 @@ func (h *MidJourneyHandler) Notify(c *gin.Context) {
 		if client != nil {
 			_ = client.Send([]byte("Task Updated"))
 		}
+	}
+
+	resp.SUCCESS(c)
+}
+
+// Publish 发布图片到画廊显示
+func (h *MidJourneyHandler) Publish(c *gin.Context) {
+	var data struct {
+		Id     uint `json:"id"`
+		Action bool `json:"action"` // 发布动作，true => 发布，false => 取消分享
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	res := h.db.Model(&model.MidJourneyJob{Id: data.Id}).UpdateColumn("publish", data.Action)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败")
+		return
 	}
 
 	resp.SUCCESS(c)

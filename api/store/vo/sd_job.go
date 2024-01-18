@@ -14,5 +14,6 @@ type SdJob struct {
 	Params    types.SdTaskParams `json:"params"`
 	Progress  int                `json:"progress"`
 	Prompt    string             `json:"prompt"`
+	Publish   bool               `json:"publish"`
 	CreatedAt time.Time          `json:"created_at"`
 }
