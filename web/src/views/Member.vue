@@ -124,6 +124,7 @@
         :close-on-click-modal="false"
         :show-close="true"
         :width="400"
+        @close="closeOrder"
         title="充值订单支付">
       <div class="pay-container">
         <div class="count-down">
@@ -330,6 +331,10 @@ const logout = function () {
   }).catch(() => {
     ElMessage.error('注销失败！');
   })
+}
+
+const closeOrder = () => {
+  activeOrderNo.value = ''
 }
 
 </script>
