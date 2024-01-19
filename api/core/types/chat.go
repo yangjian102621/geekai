@@ -12,6 +12,9 @@ type ApiRequest struct {
 	Functions   []interface{} `json:"functions,omitempty"` // 兼容中转平台
 
 	ToolChoice string `json:"tool_choice,omitempty"`
+
+	Input      map[string]interface{} `json:"input,omitempty"`      //兼容阿里通义千问
+	Parameters map[string]interface{} `json:"parameters,omitempty"` //兼容阿里通义千问
 }
 
 type Message struct {
