@@ -81,7 +81,9 @@ func (s *Service) Run() {
 			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
 			s.notifyQueue.RPush(task.UserId)
 			// restore img_call quota
-			s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
+			if task.Type.String() != types.TaskUpscale.String() {
+				s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
+			}
 			continue
 		}
 

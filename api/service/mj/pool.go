@@ -197,8 +197,10 @@ func (p *ServicePool) SyncTaskProgress() {
 				// 30 分钟还没完成的任务直接删除
 				if time.Now().Sub(v.CreatedAt) > time.Minute*30 {
 					p.db.Delete(&v)
-					// 退回绘图次数
-					p.db.Model(&model.User{}).Where("id = ?", v.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
+					// 非放大任务，退回绘图次数
+					if v.Type != types.TaskUpscale.String() {
+						p.db.Model(&model.User{}).Where("id = ?", v.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
+					}
 					continue
 				}
 
