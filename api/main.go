@@ -59,11 +59,13 @@ func main() {
 	}
 	debug, _ := strconv.ParseBool(os.Getenv("APP_DEBUG"))
 	logger.Info("Loading config file: ", configFile)
-	defer func() {
-		if err := recover(); err != nil {
-			logger.Error("Panic Error:", err)
-		}
-	}()
+	if !debug {
+		defer func() {
+			if err := recover(); err != nil {
+				logger.Error("Panic Error:", err)
+			}
+		}()
+	}
 
 	app := fx.New(
 		// 初始化配置应用配置
@@ -378,7 +380,9 @@ func main() {
 				log.Fatal(err)
 			}
 		}),
-
+		fx.Invoke(func(h *chatimpl.ChatHandler) {
+			h.Init()
+		}),
 		// 注册生命周期回调函数
 		fx.Invoke(func(lifecycle fx.Lifecycle, lc *AppLifecycle) {
 			lifecycle.Append(fx.Hook{

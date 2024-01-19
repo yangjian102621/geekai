@@ -26,7 +26,8 @@ import (
 )
 
 const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
-const ErrImg = "![](/images/wx.png)"
+
+var ErrImg = "![](/images/wx.png)"
 
 var logger = logger2.GetLogger()
 
@@ -43,6 +44,13 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client) *Chat
 	}
 	h.App = app
 	return &h
+}
+
+func (h *ChatHandler) Init() {
+	// 如果后台有上传微信客服微信二维码，则覆盖
+	if h.App.SysConfig.WechatCardURL != "" {
+		ErrImg = fmt.Sprintf("![](%s)", h.App.SysConfig.WechatCardURL)
+	}
 }
 
 var chatConfig types.ChatConfig

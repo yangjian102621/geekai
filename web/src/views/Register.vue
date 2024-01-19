@@ -156,6 +156,10 @@ httpGet("/api/admin/config/get?key=system").then(res => {
     placeholder.value += ways.join("/")
     // 是否启用注册
     enableRegister.value = res.data['enabled_register']
+    // 覆盖微信二维码
+    if (res.data['wechat_card_url'] !== '') {
+      wxImg.value = res.data['wechat_card_url']
+    }
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
