@@ -381,8 +381,26 @@ const uploadImg = (file) => {
     },
   });
 };
-const onUploadImg = (files) => {
-  console.log(files);
+
+// 编辑期文件上传处理
+const onUploadImg = (files, callback) => {
+  Promise.all(
+      files.map((file) => {
+        return new Promise((rev, rej) => {
+          const formData = new FormData();
+          formData.append('file', file, file.name);
+          // 执行上传操作
+          httpPost('/api/upload', formData).then((res) => rev(res)).catch((error) => rej(error));
+        });
+      })
+  ).then(res => {
+    ElMessage.success({message: "上传成功", duration: 500})
+    callback(res.map((item) => item.data.url));
+  }).catch(e => {
+    ElMessage.error('图片上传失败:' + e.message)
+  })
+
+
 };
 
 </script>
