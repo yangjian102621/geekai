@@ -177,7 +177,7 @@ const platforms = ref([
   },
   {
     name: "【阿里】千义通问",
-    value: "Qwen",
+    value: "QWen",
     api_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
   },
 ])

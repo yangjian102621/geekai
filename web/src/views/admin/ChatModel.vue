@@ -134,7 +134,7 @@ const platforms = ref([
   {name: "【清华智普】ChatGLM", value: "ChatGLM"},
   {name: "【百度】文心一言", value: "Baidu"},
   {name: "【微软】Azure", value: "Azure"},
-  {name: "【阿里】通义千问", value: "Ali"},
+  {name: "【阿里】通义千问", value: "QWen"},
 
 ])
 
