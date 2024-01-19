@@ -107,20 +107,6 @@
               </el-input>
             </el-form-item>
 
-            <el-form-item label="显示演示公告" prop="show_demo_notice">
-              <el-switch v-model="system['show_demo_notice']"/>
-              <el-tooltip
-                  effect="dark"
-                  content="是否在聊天首页显示演示 Demo 公告，这是专为作者自己开发的功能"
-                  raw-content
-                  placement="right"
-              >
-                <el-icon>
-                  <InfoFilled/>
-                </el-icon>
-              </el-tooltip>
-            </el-form-item>
-
             <el-form-item label="订单超时时间" prop="order_pay_timeout">
               <div class="tip-input">
                 <el-input v-model.number="system['order_pay_timeout']" placeholder="单位：秒"/>
