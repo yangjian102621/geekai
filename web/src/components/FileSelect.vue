@@ -1,10 +1,12 @@
 <template>
   <el-container class="file-list-box">
-    <el-button class="file-upload-img" @click="fetchFiles">
-      <el-icon>
-        <PictureFilled/>
-      </el-icon>
-    </el-button>
+    <el-tooltip class="box-item" effect="dark" content="打开文件管理中心">
+      <el-button class="file-upload-img" @click="fetchFiles">
+        <el-icon>
+          <PictureFilled/>
+        </el-icon>
+      </el-button>
+    </el-tooltip>
 
     <el-dialog
         v-model="show"
@@ -30,7 +32,7 @@
               </el-upload>
             </div>
           </el-col>
-          <el-col :span="3" v-for="file in fileList">
+          <el-col :span="3" v-for="file in fileList" :key="file.url">
             <div class="grid-content">
               <el-tooltip
                   class="box-item"

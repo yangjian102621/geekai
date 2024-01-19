@@ -145,6 +145,7 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 	userId := h.GetInt(c, "user_id", 0)
 	page := h.GetInt(c, "page", 0)
 	pageSize := h.GetInt(c, "page_size", 0)
+	publish := h.GetBool(c, "publish")
 
 	session := h.db.Session(&gorm.Session{})
 	if status == 1 {
@@ -154,6 +155,9 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 	}
 	if userId > 0 {
 		session = session.Where("user_id = ?", userId)
+	}
+	if publish {
+		session = session.Where("publish", publish)
 	}
 	if page > 0 && pageSize > 0 {
 		offset := (page - 1) * pageSize
@@ -220,6 +224,26 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 	err := h.uploader.GetUploadHandler().Delete(data.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
+	}
+
+	resp.SUCCESS(c)
+}
+
+// Publish 发布/取消发布图片到画廊显示
+func (h *SdJobHandler) Publish(c *gin.Context) {
+	var data struct {
+		Id     uint `json:"id"`
+		Action bool `json:"action"` // 发布动作，true => 发布，false => 取消分享
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	res := h.db.Model(&model.SdJob{Id: data.Id}).UpdateColumn("publish", true)
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败")
+		return
 	}
 
 	resp.SUCCESS(c)

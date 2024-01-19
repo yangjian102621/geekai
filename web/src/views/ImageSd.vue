@@ -374,6 +374,13 @@
 
                   <div class="remove">
                     <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
+                    <el-button type="warning" v-if="scope.item.publish" @click="publishImage($event,scope.item, false)"
+                               circle>
+                      <i class="iconfont icon-cancel-share"></i>
+                    </el-button>
+                    <el-button type="success" v-else @click="publishImage($event,scope.item, true)" circle>
+                      <i class="iconfont icon-share-bold"></i>
+                    </el-button>
                   </div>
                 </div>
               </template>
@@ -695,6 +702,21 @@ const removeImage = (event, item) => {
       ElMessage.error("任务删除失败：" + e.message)
     })
   }).catch(() => {
+  })
+}
+
+// 发布图片到作品墙
+const publishImage = (event, item, action) => {
+  event.stopPropagation()
+  let text = "图片发布"
+  if (action === false) {
+    text = "取消发布"
+  }
+  httpPost("/api/sd/publish", {id: item.id, action: action}).then(() => {
+    ElMessage.success(text + "成功")
+    item.publish = action
+  }).catch(e => {
+    ElMessage.error(text + "失败：" + e.message)
   })
 }
 
