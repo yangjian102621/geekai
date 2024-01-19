@@ -222,7 +222,7 @@
       </el-alert>
 
       <div style="text-align: center;padding-top: 10px;">
-        <el-image src="/images/wx.png"/>
+        <el-image :src="wechatCardURL"/>
       </div>
     </el-dialog>
 
@@ -325,6 +325,7 @@ const textInput = ref(null)
 const showFeedbackDialog = ref(false)
 const showDemoNotice = ref(false)
 const showNoticeKey = ref("SHOW_DEMO_NOTICE_")
+const wechatCardURL = ref("/images/wx.png")
 
 if (isMobile()) {
   router.replace("/mobile")
@@ -377,6 +378,7 @@ onMounted(() => {
       if (!show) {
         showDemoNotice.value = res.data['show_demo_notice']
       }
+      wechatCardURL.value = res.data['wechat_card_url']
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
