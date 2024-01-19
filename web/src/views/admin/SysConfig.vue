@@ -261,6 +261,9 @@
       </el-tab-pane>
       <el-tab-pane label="公告配置" name="notice">
         <md-editor class="mgb20" v-model="notice" @on-upload-img="onUploadImg"/>
+        <el-form-item>
+          <el-button type="primary" @click="save('notice')">保存</el-button>
+        </el-form-item>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -305,13 +308,20 @@ onMounted(() => {
   // 加载聊天配置
   httpGet('/api/admin/config/get?key=chat').then(res => {
     chat.value = res.data
-    loading.value = false
   }).catch(e => {
     ElMessage.error("加载聊天配置失败: " + e.message)
   })
 
+  // 加载聊天配置
+  httpGet('/api/admin/config/get?key=notice').then(res => {
+    notice.value = res.data['content']
+  }).catch(e => {
+    ElMessage.error("公告信息失败: " + e.message)
+  })
+
   httpGet('/api/admin/model/list').then(res => {
     models.value = res.data
+    loading.value = false
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
   })
@@ -349,6 +359,12 @@ const save = function (key) {
           ElMessage.error("操作失败：" + e.message)
         })
       }
+    })
+  } else if (key === 'notice') {
+    httpPost('/api/admin/config/update', {key: key, config: {content: notice.value, updated: true}}).then(() => {
+      ElMessage.success("操作成功！")
+    }).catch(e => {
+      ElMessage.error("操作失败：" + e.message)
     })
   }
 }

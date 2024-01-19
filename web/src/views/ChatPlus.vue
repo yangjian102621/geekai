@@ -227,37 +227,14 @@
     </el-dialog>
 
     <el-dialog
-        v-model="showDemoNotice"
+        v-model="showNotice"
         :show-close="true"
+        custom-class="notice-dialog"
         title="网站公告"
     >
       <div class="notice">
         <el-text type="primary">
-          注意：当前站点仅为开源项目
-          <a style="color: #F56C6C" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">ChatPlus</a>
-          的演示项目，本项目单纯就是给大家体验项目功能使用。<br/>
-
-          体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
-          体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
-          体验额度用完之后请不要在当前站点进行任何充值操作！！！<br/>
-
-          如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去
-          <a href="https://gpt.bemore.lol" target="_blank"
-             style="font-size: 20px;color:#F56C6C">https://gpt.bemore.lol</a>
-          购买，现在有超级优惠，价格远低于 OpenAI 官方。<br/>
-          GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。<br/>
-
-          MidJourney API 购买地址：
-          <a href="https://api.chat-plus.net" target="_blank"
-             style="font-size: 20px;color:#F56C6C">https://api.chat-plus.net</a><br/>
-
-          接入教程： <a href="https://ai.r9it.com/docs/install/" target="_blank"
-                       style="font-size: 20px;color:#F56C6C">https://ai.r9it.com/docs/install/</a><br/>
-
-          本项目源码地址：
-          <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-            https://github.com/yangjian102621/chatgpt-plus
-          </a>
+          <div v-html="notice"></div>
         </el-text>
 
         <p style="text-align: right">
@@ -323,8 +300,9 @@ const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
 const showFeedbackDialog = ref(false)
-const showDemoNotice = ref(false)
-const showNoticeKey = ref("SHOW_DEMO_NOTICE_")
+const showNotice = ref(false)
+const notice = ref("")
+const noticeKey = ref("SYSTEM_NOTICE")
 const wechatCardURL = ref("/images/wx.png")
 
 if (isMobile()) {
@@ -372,13 +350,22 @@ onMounted(() => {
       ElMessage.error("加载会话列表失败！")
     })
 
+    // 获取系统配置
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
-      const show = localStorage.getItem(showNoticeKey.value + loginUser.value.username)
-      if (!show) {
-        showDemoNotice.value = res.data['show_demo_notice']
-      }
       wechatCardURL.value = res.data['wechat_card_url']
+    }).catch(e => {
+      ElMessage.error("获取系统配置失败：" + e.message)
+    })
+
+    // 获取系统公告
+    httpGet("/api/admin/config/get?key=notice").then(res => {
+      notice.value = md.render(res.data['content'])
+      const oldNotice = localStorage.getItem(noticeKey.value);
+      // 如果公告有更新，则显示公告
+      if (oldNotice !== notice.value) {
+        showNotice.value = true
+      }
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
@@ -900,8 +887,8 @@ const getModelValue = (model_id) => {
 
 
 const notShow = () => {
-  localStorage.setItem(showNoticeKey.value + loginUser.value.username, true)
-  showDemoNotice.value = false
+  localStorage.setItem(noticeKey.value, notice.value)
+  showNotice.value = false
 }
 
 // 插入文件路径
@@ -912,4 +899,12 @@ const insertURL = (url) => {
 
 <style scoped lang="stylus">
 @import "@/assets/css/chat-plus.styl"
+</style>
+
+<style lang="stylus">
+.notice-dialog {
+  .el-dialog__body {
+    padding 0 20px
+  }
+}
 </style>
