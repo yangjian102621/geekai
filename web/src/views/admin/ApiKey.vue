@@ -175,6 +175,11 @@ const platforms = ref([
     value: "Azure",
     api_url: "https://chat-bot-api.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-05-15"
   },
+  {
+    name: "【阿里】千义通问",
+    value: "Qwen",
+    api_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+  },
 ])
 const types = ref([
   {name: "聊天", value: "chat"},
@@ -272,7 +277,7 @@ const changePlatform = () => {
 
   .opt-box {
     padding-bottom: 10px;
-    display flex;
+    display: flex;
     justify-content flex-end
 
     .el-icon {
@@ -289,7 +294,7 @@ const changePlatform = () => {
   .el-form-item__content {
 
     .el-icon {
-      padding-left 10px;
+      padding-left: 10px;
     }
   }
 }
