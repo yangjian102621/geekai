@@ -195,6 +195,5 @@ type SystemConfig struct {
 	InviteChatCalls  int      `json:"invite_chat_calls"`   // 邀请用户注册奖励对话次数
 	InviteImgCalls   int      `json:"invite_img_calls"`    // 邀请用户注册奖励绘图次数
 
-	ShowDemoNotice bool   `json:"show_demo_notice"` // 显示演示站公告
-	WechatCardURL  string `json:"wechat_card_url"`  // 微信客服地址
+	WechatCardURL string `json:"wechat_card_url"` // 微信客服地址
 }
