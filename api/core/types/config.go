@@ -156,7 +156,7 @@ const Azure = Platform("Azure")
 const ChatGLM = Platform("ChatGLM")
 const Baidu = Platform("Baidu")
 const XunFei = Platform("XunFei")
-const Ali = Platform("Ali")
+const QWen = Platform("QWen")
 
 // UserChatConfig 用户的聊天配置
 type UserChatConfig struct {

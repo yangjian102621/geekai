@@ -16,7 +16,7 @@ import (
 	"unicode/utf8"
 )
 
-type qwenResp struct {
+type qWenResp struct {
 	Output struct {
 		FinishReason string `json:"finish_reason"`
 		Text         string `json:"text"`
@@ -30,7 +30,7 @@ type qwenResp struct {
 }
 
 // 通义千问消息发送实现
-func (h *ChatHandler) sendQwenMessage(
+func (h *ChatHandler) sendQWenMessage(
 	chatCtx []interface{},
 	req types.ApiRequest,
 	userVo vo.User,
@@ -85,14 +85,15 @@ func (h *ChatHandler) sendQwenMessage(
 				content = "\n"
 			}
 
-			var resp qwenResp
+			var resp qWenResp
 			err := utils.JsonDecode(content, &resp)
 			if err != nil {
 				logger.Error("error with parse data line: ", err)
 				utils.ReplyMessage(ws, fmt.Sprintf("**解析数据行失败：%s**", err))
 				break
 			}
-			if len(contents) == 0 {
+
+			if len(contents) == 0 { // 发送消息头
 				utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 			}
 
@@ -101,12 +102,12 @@ func (h *ChatHandler) sendQwenMessage(
 			//每次循环结束后，lastText 会更新为当前的完整文本，以便于下一次循环进行比较。
 			currentText := resp.Output.Text
 			if currentText != lastText {
-				// 找出新增的文本部分并发送
+				// 提取新增文本
 				newText = strings.Replace(currentText, lastText, "", 1)
 				utils.ReplyChunkMessage(ws, types.WsMessage{
 					Type:    types.WsMiddle,
 					Content: utils.InterfaceToString(newText),
-				}) // 发送新增的文本部分到客户端
+				})
 				lastText = currentText // 更新 lastText
 			}
 			contents = append(contents, newText)

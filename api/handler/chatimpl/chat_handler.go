@@ -267,7 +267,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		req.Temperature = h.App.ChatConfig.XunFei.Temperature
 		req.MaxTokens = h.App.ChatConfig.XunFei.MaxTokens
 		break
-	case types.Ali:
+	case types.QWen:
 		req.Input = map[string]interface{}{"messages": []map[string]string{{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": prompt}}}
 		req.Parameters = map[string]interface{}{}
 		break
@@ -344,8 +344,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return h.sendBaiduMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	case types.XunFei:
 		return h.sendXunFeiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
-	case types.Ali:
-		return h.sendQwenMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+	case types.QWen:
+		return h.sendQWenMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	}
 	utils.ReplyChunkMessage(ws, types.WsMessage{
 		Type:    types.WsMiddle,
@@ -439,7 +439,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	case types.Baidu:
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", req.Model, 1)
 		break
-	case types.Ali:
+	case types.QWen:
 		apiURL = apiKey.ApiURL
 		req.Messages = nil
 		break
@@ -506,7 +506,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	case types.OpenAI:
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
 		break
-	case types.Ali:
+	case types.QWen:
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
 		request.Header.Set("X-DashScope-SSE", "enable")
 		break
