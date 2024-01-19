@@ -240,12 +240,14 @@ func main() {
 			group.GET("jobs", h.JobList)
 			group.POST("remove", h.Remove)
 			group.POST("notify", h.Notify)
+			group.POST("publish", h.Publish)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.POST("remove", h.Remove)
+			group.POST("publish", h.Publish)
 		}),
 
 		// 管理后台控制器

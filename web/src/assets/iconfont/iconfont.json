@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1132455",
+      "name": "share-bold",
+      "font_class": "share-bold",
+      "unicode": "e626",
+      "unicode_decimal": 58918
+    },
+    {
+      "icon_id": "7567359",
+      "name": "cancel-share",
+      "font_class": "cancel-share",
+      "unicode": "e682",
+      "unicode_decimal": 59010
+    },
+    {
       "icon_id": "12600976",
       "name": "xls",
       "font_class": "xls",
