@@ -5,6 +5,8 @@ import (
 	logger2 "chatplus/logger"
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/imroc/req/v3"
 )
 
@@ -63,7 +65,8 @@ func (c *Client) Imagine(prompt string) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
+		errStr, _ := io.ReadAll(r.Body)
+		return ImageRes{}, fmt.Errorf("请求 API 出错：%v，%v", err, string(errStr))
 	}
 
 	if r.IsErrorState() {
