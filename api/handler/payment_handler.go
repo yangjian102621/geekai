@@ -372,9 +372,9 @@ func (h *PaymentHandler) HuPiPayNotify(c *gin.Context) {
 	}
 
 	orderNo := c.Request.Form.Get("trade_order_id")
-	logger.Infof("收到订单支付回调，订单 NO：%s", orderNo)
+	tradeNo := c.Request.Form.Get("open_order_id")
+	logger.Infof("收到虎皮椒订单支付回调，订单 NO：%s，交易流水号：%s", orderNo, tradeNo)
 
-	tradeNo := c.Request.Form.Get("transaction_id")
 	if err = h.huPiPayService.Check(tradeNo); err != nil {
 		logger.Error("订单校验失败：", err)
 		c.String(http.StatusOK, "fail")
