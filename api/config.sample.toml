@@ -33,6 +33,23 @@ WeChatBot = false
   Sign = ""
   CodeTempId = ""
 
+[Sms] # Sms 配置，用于发送短信
+   Active = "SmsBao" # 默认使用
+   [Sms.SmsBao]
+     Account = "" #账号
+     ApiKey = "" # apikey
+     Domain = "api.smsbao.com" # 发送短信的域名
+     Sign = "【鲸落科技】" # 签名
+     CodeTemplate = "您的验证码是{code}。请于{num}分钟内使用，若非本人操作，请忽略本短信。" # 短信模板
+     Num = "30" # 短信有效期
+   [Sms.Ali]
+      AccessKey = ""
+      AccessSecret = ""
+      Product = "Dysmsapi"
+      Domain = "dysmsapi.aliyuncs.com"
+      Sign = ""
+      CodeTempId = ""
+
 [OSS] # OSS 配置，用于存储 MJ 绘画图片
    Active = "local" # 默认使用本地文件存储引擎
    [OSS.Local]

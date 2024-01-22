@@ -17,6 +17,7 @@ type AppConfig struct {
 	ApiConfig ChatPlusApiConfig       // ChatPlus API authorization configs
 	SmsConfig AliYunSmsConfig         // AliYun send message service config
 	OSS       OSSConfig               // OSS config
+	SMS       SMSConfig               // sms config
 	MjConfigs []MidJourneyConfig      // mj AI draw service pool
 	WeChatBot bool                    // 是否启用微信机器人
 	SdConfigs []StableDiffusionConfig // sd AI draw service pool
@@ -71,14 +72,14 @@ type StableDiffusionConfig struct {
 	Txt2ImgJsonPath string
 }
 
-type AliYunSmsConfig struct {
-	AccessKey    string
-	AccessSecret string
-	Product      string
-	Domain       string
-	Sign         string // 短信签名
-	CodeTempId   string // 验证码短信模板 ID
-}
+//type AliYunSmsConfig struct {
+//	AccessKey    string
+//	AccessSecret string
+//	Product      string
+//	Domain       string
+//	Sign         string // 短信签名
+//	CodeTempId   string // 验证码短信模板 ID
+//}
 
 type AlipayConfig struct {
 	Enabled         bool   // 是否启用该支付通道

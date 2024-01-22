@@ -4,6 +4,7 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/service"
+	"chatplus/service/sms"
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"strings"
@@ -17,7 +18,7 @@ const CodeStorePrefix = "/verify/codes/"
 type SmsHandler struct {
 	BaseHandler
 	redis   *redis.Client
-	sms     *service.AliYunSmsService
+	sms     *sms.SmsServiceManager
 	smtp    *service.SmtpService
 	captcha *service.CaptchaService
 }
@@ -25,7 +26,7 @@ type SmsHandler struct {
 func NewSmsHandler(
 	app *core.AppServer,
 	client *redis.Client,
-	sms *service.AliYunSmsService,
+	sms *sms.SmsServiceManager,
 	smtp *service.SmtpService,
 	captcha *service.CaptchaService) *SmsHandler {
 	handler := &SmsHandler{redis: client, sms: sms, captcha: captcha, smtp: smtp}
@@ -63,7 +64,8 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 			resp.ERROR(c, "系统已禁用手机号注册！")
 			return
 		}
-		err = h.sms.SendVerifyCode(data.Receiver, code)
+		err = h.sms.GetUploadHandler().SendVerifyCode(data.Receiver, code)
+
 	}
 	if err != nil {
 		resp.ERROR(c, err.Error())

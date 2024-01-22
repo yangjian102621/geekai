@@ -176,8 +176,8 @@ const platforms = ref([
     api_url: "https://chat-bot-api.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-05-15"
   },
   {
-    name: "【阿里】千义通问",
-    value: "Qwen",
+    name: "【阿里】通义千问",
+    value: "Ali",
     api_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
   },
 ])
