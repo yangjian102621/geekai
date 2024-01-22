@@ -12,6 +12,7 @@ type Order struct {
 	ProductId uint
 	Username  string
 	OrderNo   string
+	TradeNo   string
 	Subject   string
 	Amount    float64
 	Status    types.OrderStatus

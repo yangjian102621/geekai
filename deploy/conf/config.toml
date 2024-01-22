@@ -101,7 +101,7 @@ WeChatBot = false
   Name = "wechat"
   AppId = ""
   AppSecret = ""
-  PayURL = "https://api.xunhupay.com/payment/do.html"
+  ApiURL = "https://api.xunhupay.com"
   NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
 
 [SmtpConfig] # 注意，阿里云服务器禁用了25号端口，所以如果需要使用邮件功能，请别用阿里云服务器
@@ -116,5 +116,5 @@ WeChatBot = false
   Name = "wechat" # 请不要改动
   AppId = "" # 商户 ID
   PrivateKey = "" # 秘钥
-  ApiURL = "https://payjs.cn/api/native"
+  ApiURL = "https://payjs.cn"
   NotifyURL = "https://ai.r9it.com/api/payment/payjs/notify" # 异步回调地址，域名改成你自己的

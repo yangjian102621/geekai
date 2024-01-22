@@ -5,6 +5,7 @@ import (
 	"chatplus/utils"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -55,10 +56,11 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 	}
 	p.Add("mchid", js.config.AppId)
 
-	p.Add("sign", sign(p, js.config.PrivateKey))
+	p.Add("sign", js.sign(p))
 
 	cli := http.Client{}
-	r, err := cli.PostForm(js.config.ApiURL, p)
+	apiURL := fmt.Sprintf("%s/api/native", js.config.ApiURL)
+	r, err := cli.PostForm(apiURL, p)
 	if err != nil {
 		return JPayReps{ReturnMsg: err.Error()}
 	}
@@ -76,7 +78,7 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 	return data
 }
 
-func sign(params url.Values, priKey string) string {
+func (js *PayJS) sign(params url.Values) string {
 	params.Del(`sign`)
 	var keys = make([]string, 0, 0)
 	for key := range params {
@@ -94,9 +96,45 @@ func sign(params url.Values, priKey string) string {
 		}
 	}
 	var src = strings.Join(pList, "&")
-	src += "&key=" + priKey
+	src += "&key=" + js.config.PrivateKey
 
 	md5bs := md5.Sum([]byte(src))
 	md5res := hex.EncodeToString(md5bs[:])
 	return strings.ToUpper(md5res)
+}
+
+// Check 查询订单支付状态
+// @param tradeNo 支付平台交易 ID
+func (js *PayJS) Check(tradeNo string) error {
+	apiURL := fmt.Sprintf("%s/api/check", js.config.ApiURL)
+	params := url.Values{}
+	params.Add("payjs_order_id", tradeNo)
+	params.Add("sign", js.sign(params))
+	data := strings.NewReader(params.Encode())
+	resp, err := http.Post(apiURL, "application/x-www-form-urlencoded", data)
+	defer resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("error with http reqeust: %v", err)
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error with reading response: %v", err)
+	}
+
+	var r struct {
+		ReturnCode int `json:"return_code"`
+		Status     int `json:"status"`
+	}
+	err = utils.JsonDecode(string(body), &r)
+	if err != nil {
+		return fmt.Errorf("error with decode response: %v", err)
+	}
+
+	if r.ReturnCode == 1 && r.Status == 1 {
+		return nil
+	} else {
+		return errors.New("order not paid")
+	}
 }

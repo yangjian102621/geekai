@@ -101,30 +101,12 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
 			WapName:      "极客学长",
 		}
-		res, err := h.huPiPayService.Pay(params)
+		r, err := h.huPiPayService.Pay(params)
 		if err != nil {
-			resp.ERROR(c, "error with generate pay url: "+err.Error())
+			resp.ERROR(c, err.Error())
 			return
 		}
 
-		var r struct {
-			Openid    interface{} `json:"openid"`
-			UrlQrcode string      `json:"url_qrcode"`
-			URL       string      `json:"url"`
-			ErrCode   int         `json:"errcode"`
-			ErrMsg    string      `json:"errmsg,omitempty"`
-		}
-		err = utils.JsonDecode(res, &r)
-		if err != nil {
-			logger.Debugf(res)
-			resp.ERROR(c, "error with decode payment result: "+err.Error())
-			return
-		}
-
-		if r.ErrCode != 0 {
-			resp.ERROR(c, "error with generate pay url: "+r.ErrMsg)
-			return
-		}
 		c.Redirect(302, r.URL)
 	}
 	resp.ERROR(c, "Invalid operations")
@@ -288,7 +270,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 }
 
 // 异步通知回调公共逻辑
-func (h *PaymentHandler) notify(orderNo string) error {
+func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	var order model.Order
 	res := h.db.Where("order_no = ?", orderNo).First(&order)
 	if res.Error != nil {
@@ -329,7 +311,7 @@ func (h *PaymentHandler) notify(orderNo string) error {
 			user.ImgCalls += remark.ImgCalls
 		}
 
-	} else { // 非 VIP 用户
+	} else {                 // 非 VIP 用户
 		if remark.Days > 0 { // vip 套餐：days > 0, calls == 0
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 			user.Calls += h.App.SysConfig.VipMonthCalls
@@ -353,6 +335,7 @@ func (h *PaymentHandler) notify(orderNo string) error {
 	// 更新订单状态
 	order.PayTime = time.Now().Unix()
 	order.Status = types.OrderPaidSuccess
+	order.TradeNo = tradeNo
 	res = h.db.Updates(&order)
 	if res.Error != nil {
 		err := fmt.Errorf("error with update order info: %v", res.Error)
@@ -390,9 +373,14 @@ func (h *PaymentHandler) HuPiPayNotify(c *gin.Context) {
 
 	orderNo := c.Request.Form.Get("trade_order_id")
 	logger.Infof("收到订单支付回调，订单 NO：%s", orderNo)
-	// TODO 是否要保存订单交易流水号
 
-	err = h.notify(orderNo)
+	tradeNo := c.Request.Form.Get("transaction_id")
+	if err = h.huPiPayService.Check(tradeNo); err != nil {
+		logger.Error("订单校验失败：", err)
+		c.String(http.StatusOK, "fail")
+		return
+	}
+	err = h.notify(orderNo, tradeNo)
 	if err != nil {
 		c.String(http.StatusOK, "fail")
 		return
@@ -409,16 +397,17 @@ func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
 		return
 	}
 
-	// TODO：这里最好用支付宝的公钥签名签证一下交易真假
-	//res := h.alipayService.TradeVerify(c.Request.Form)
-	r := h.alipayService.TradeQuery(c.Request.Form.Get("out_trade_no"))
-	logger.Infof("验证支付结果：%+v", r)
-	if !r.Success() {
+	// TODO：验证交易签名
+	res := h.alipayService.TradeVerify(c.Request.Form)
+	logger.Infof("验证支付结果：%+v", res)
+	if !res.Success() {
+		logger.Error("订单校验失败：", res.Message)
 		c.String(http.StatusOK, "fail")
 		return
 	}
 
-	err = h.notify(r.OutTradeNo)
+	tradeNo := c.Request.Form.Get("trade_no")
+	err = h.notify(res.OutTradeNo, tradeNo)
 	if err != nil {
 		c.String(http.StatusOK, "fail")
 		return
@@ -443,7 +432,16 @@ func (h *PaymentHandler) PayJsNotify(c *gin.Context) {
 		return
 	}
 
-	err = h.notify(orderNo)
+	// 校验订单支付状态
+	tradeNo := c.Request.Form.Get("payjs_order_id")
+	err = h.js.Check(tradeNo)
+	if err != nil {
+		logger.Error("订单校验失败：", err)
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	err = h.notify(orderNo, tradeNo)
 	if err != nil {
 		c.String(http.StatusOK, "fail")
 		return
