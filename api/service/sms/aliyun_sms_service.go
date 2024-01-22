@@ -1,4 +1,4 @@
-package service
+package sms
 
 import (
 	"chatplus/core/types"
@@ -11,18 +11,19 @@ type AliYunSmsService struct {
 	client *dysmsapi.Client
 }
 
-func NewAliYunSmsService(config *types.AppConfig) (*AliYunSmsService, error) {
+func NewAliYunSmsService(appConfig *types.AppConfig) (*AliYunSmsService, error) {
+	config := &appConfig.SMS.ALI
 	// 创建阿里云短信客户端
 	client, err := dysmsapi.NewClientWithAccessKey(
 		"cn-hangzhou",
-		config.SmsConfig.AccessKey,
-		config.SmsConfig.AccessSecret)
+		config.AccessKey,
+		config.AccessSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %v", err)
 	}
 
 	return &AliYunSmsService{
-		config: &config.SmsConfig,
+		config: config,
 		client: client,
 	}, nil
 }
@@ -46,7 +47,6 @@ func (s *AliYunSmsService) SendVerifyCode(mobile string, code int) error {
 	if response.Code != "OK" {
 		return fmt.Errorf("failed to send SMS:%v", response.Message)
 	}
-
 	return nil
 }
 
