@@ -9,6 +9,8 @@
 * 功能新增：新增阿里通义千问大模型支持
 * Bug修复：修复 MJ 放大任务失败时候 img_call 会增加的 Bug
 * 功能优化：新增虎皮椒和PayJS订单状态校验功能，增加安全性
+* Bug修复：修复微信转账交易 ID 提取失败 Bug
+* 功能优化：给所有的 websocket 连接加上心跳，解决 "close 1006 (abnormal closure): unexpected EOF" Bug
 
 
 ## v3.2.5

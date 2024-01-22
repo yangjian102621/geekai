@@ -543,6 +543,7 @@ const lineBuffer = ref(''); // 输出缓冲行
 const socket = ref(null);
 const activelyClose = ref(false); // 主动关闭
 const canSend = ref(true);
+const heartbeatHandle = ref(null)
 const connect = function (chat_id, role_id) {
   let isNewChat = false;
   if (!chat_id) {
@@ -588,6 +589,14 @@ const connect = function (chat_id, role_id) {
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
+
+    // 发送心跳消息
+    clearInterval(heartbeatHandle.value)
+    heartbeatHandle.value = setInterval(() => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+    }, 5000);
 
   });
 
@@ -718,7 +727,7 @@ const sendMessage = function () {
 
   showHello.value = false
   disableInput(false)
-  socket.value.send(prompt.value);
+  socket.value.send(JSON.stringify({type: "chat", content: prompt.value}));
   previousText.value = prompt.value;
   prompt.value = '';
   return true;
