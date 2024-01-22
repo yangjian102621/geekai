@@ -10,6 +10,7 @@ type Order struct {
 	ProductId uint              `json:"product_id"`
 	Username  string            `json:"username"`
 	OrderNo   string            `json:"order_no"`
+	TradeNo   string            `json:"trade_no"`
 	Subject   string            `json:"subject"`
 	Amount    float64           `json:"amount"`
 	Status    types.OrderStatus `json:"status"`
