@@ -200,6 +200,7 @@ const lineBuffer = ref(''); // 输出缓冲行
 const socket = ref(null);
 const activelyClose = ref(false); // 主动关闭
 const canSend = ref(true);
+const heartbeatHandle = ref(null)
 const connect = function (chat_id, role_id) {
   let isNewChat = false;
   if (!chat_id) {
@@ -238,6 +239,14 @@ const connect = function (chat_id, role_id) {
         orgContent: role.helloMsg,
       })
     }
+
+    // 发送心跳消息
+    clearInterval(heartbeatHandle.value)
+    heartbeatHandle.value = setInterval(() => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+    }, 5000);
   });
 
   _socket.addEventListener('message', event => {
@@ -370,7 +379,7 @@ const sendMessage = () => {
   })
 
   disableInput(false)
-  socket.value.send(prompt.value);
+  socket.value.send(JSON.stringify({type: "chat", content: prompt.value}));
   previousText.value = prompt.value;
   prompt.value = '';
   return true;

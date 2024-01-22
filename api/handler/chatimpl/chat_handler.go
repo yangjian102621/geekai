@@ -134,7 +134,6 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		for {
 			_, msg, err := client.Receive()
 			if err != nil {
-				logger.Error(err)
 				client.Close()
 				h.App.ChatClients.Delete(sessionId)
 				cancelFunc := h.App.ReqCancelFunc.Get(sessionId)
@@ -145,19 +144,30 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 				return
 			}
 
-			message := string(msg)
-			logger.Info("Receive a message: ", message)
-			//utils.ReplyMessage(client, "这是一条测试消息！")
+			var message types.WsMessage
+			err = utils.JsonDecode(string(msg), &message)
+			if err != nil {
+				continue
+			}
+
+			// 心跳消息
+			if message.Type == "heartbeat" {
+				logger.Debug("收到 Chat 心跳消息：", message.Content)
+				continue
+			}
+
+			logger.Info("Receive a message: ", message.Content)
+
 			ctx, cancel := context.WithCancel(context.Background())
 			h.App.ReqCancelFunc.Put(sessionId, cancel)
 			// 回复消息
-			err = h.sendMessage(ctx, session, chatRole, message, client)
+			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
 			if err != nil {
 				logger.Error(err)
 				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
 			} else {
 				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
-				logger.Info("回答完毕: " + string(message))
+				logger.Infof("回答完毕: %v", message.Content)
 			}
 
 		}
