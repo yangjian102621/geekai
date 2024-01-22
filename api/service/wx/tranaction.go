@@ -39,9 +39,11 @@ func parseTransactionMessage(xmlData string) *Message {
 				}
 				break
 			}
-			if se.Name.Local == "weapp_path" && !strings.Contains(message.Url, "customerDetails.html") {
+			if se.Name.Local == "weapp_path" || se.Name.Local == "url" {
 				if err := decoder.DecodeElement(&value, &se); err == nil {
-					message.Url = strings.TrimSpace(value)
+					if strings.Contains(value, "trans_id=") {
+						message.Url = value
+					}
 				}
 				break
 			}
@@ -94,6 +96,9 @@ func extractTransaction(message *Message) Transaction {
 	parse, err := url.Parse(message.Url)
 	if err == nil {
 		tx.TransId = parse.Query().Get("id")
+		if tx.TransId == "" {
+			tx.TransId = parse.Query().Get("trans_id")
+		}
 	}
 
 	return tx
