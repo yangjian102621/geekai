@@ -37,7 +37,7 @@ type JPayReps struct {
 	Qrcode     string `json:"qrcode"`
 	ReturnCode int    `json:"return_code"`
 	ReturnMsg  string `json:"return_msg"`
-	Sign       string `json:"sign"`
+	Sign       string `json:"Sign"`
 	TotalFee   string `json:"total_fee"`
 }
 
@@ -56,7 +56,7 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 	}
 	p.Add("mchid", js.config.AppId)
 
-	p.Add("sign", js.sign(p))
+	p.Add("Sign", js.sign(p))
 
 	cli := http.Client{}
 	apiURL := fmt.Sprintf("%s/api/native", js.config.ApiURL)
@@ -79,7 +79,7 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 }
 
 func (js *PayJS) sign(params url.Values) string {
-	params.Del(`sign`)
+	params.Del(`Sign`)
 	var keys = make([]string, 0, 0)
 	for key := range params {
 		if params.Get(key) != `` {
@@ -109,7 +109,7 @@ func (js *PayJS) Check(tradeNo string) error {
 	apiURL := fmt.Sprintf("%s/api/check", js.config.ApiURL)
 	params := url.Values{}
 	params.Add("payjs_order_id", tradeNo)
-	params.Add("sign", js.sign(params))
+	params.Add("Sign", js.sign(params))
 	data := strings.NewReader(params.Encode())
 	resp, err := http.Post(apiURL, "application/x-www-form-urlencoded", data)
 	defer resp.Body.Close()

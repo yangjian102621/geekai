@@ -4,6 +4,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/utils"
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -64,12 +65,10 @@ func (s *HuPiPayService) Pay(params HuPiPayReq) (HuPiResp, error) {
 	for k, v := range m {
 		data.Add(k, fmt.Sprintf("%v", v))
 	}
-	encode = utils.JsonEncode(params)
-	m = make(map[string]string)
-	_ = utils.JsonDecode(encode, &m)
-	data.Add("hash", s.sign(m))
+	// 生成签名
+	data.Add("hash", s.Sign(data))
+	// 发送支付请求
 	apiURL := fmt.Sprintf("%s/payment/do.html", s.apiURL)
-	logger.Info(apiURL)
 	resp, err := http.PostForm(apiURL, data)
 	if err != nil {
 		return HuPiResp{}, fmt.Errorf("error with requst api: %v", err)
@@ -94,23 +93,28 @@ func (s *HuPiPayService) Pay(params HuPiPayReq) (HuPiResp, error) {
 }
 
 // Sign 签名方法
-func (s *HuPiPayService) sign(params map[string]string) string {
-	var data string
-	keys := make([]string, 0, 0)
+func (s *HuPiPayService) Sign(params url.Values) string {
+	params.Del(`Sign`)
+	var keys = make([]string, 0, 0)
 	for key := range params {
-		keys = append(keys, key)
+		if params.Get(key) != `` {
+			keys = append(keys, key)
+		}
 	}
 	sort.Strings(keys)
-	//拼接
-	for _, k := range keys {
-		data = fmt.Sprintf("%s%s=%s&", data, k, params[k])
+
+	var pList = make([]string, 0, 0)
+	for _, key := range keys {
+		var value = strings.TrimSpace(params.Get(key))
+		if len(value) > 0 {
+			pList = append(pList, key+"="+value)
+		}
 	}
-	data = strings.Trim(data, "&")
-	data = fmt.Sprintf("%s%s", data, s.appSecret)
-	m := md5.New()
-	m.Write([]byte(data))
-	sign := fmt.Sprintf("%x", m.Sum(nil))
-	return sign
+	var src = strings.Join(pList, "&")
+	src += s.appSecret
+
+	md5bs := md5.Sum([]byte(src))
+	return hex.EncodeToString(md5bs[:])
 }
 
 // Check 校验订单状态
@@ -121,11 +125,7 @@ func (s *HuPiPayService) Check(tradeNo string) error {
 	stamp := strconv.FormatInt(time.Now().Unix(), 10)
 	data.Add("time", stamp)
 	data.Add("nonce_str", stamp)
-	// 生成签名
-	encode := utils.JsonEncode(data)
-	m := make(map[string]string)
-	err := utils.JsonDecode(encode, &m)
-	data.Add("sign", s.sign(m))
+	data.Add("hash", s.Sign(data))
 
 	apiURL := fmt.Sprintf("%s/payment/query.html", s.apiURL)
 	resp, err := http.PostForm(apiURL, data)
@@ -156,6 +156,7 @@ func (s *HuPiPayService) Check(tradeNo string) error {
 	if r.ErrCode == 0 && r.Data.Status == "OD" {
 		return nil
 	} else {
-		return errors.New("order not paid")
+		logger.Debugf("%+v", r)
+		return errors.New("order not paid：" + r.ErrMsg)
 	}
 }
