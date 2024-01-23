@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -81,4 +83,9 @@ func Sha256(data string) string {
 
 	hashValue := hash.Sum(nil)
 	return fmt.Sprintf("%x", hashValue)
+}
+
+func Md5(data string) string {
+	md5bs := md5.Sum([]byte(data))
+	return hex.EncodeToString(md5bs[:])
 }

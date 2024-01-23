@@ -15,7 +15,7 @@ type AppConfig struct {
 	StaticUrl     string                  // 静态资源 URL
 	Redis         RedisConfig             // redis 连接信息
 	ApiConfig     ChatPlusApiConfig       // ChatPlus API authorization configs
-	SmsConfig     AliYunSmsConfig         // AliYun send message service config
+	SMS           SMSConfig               // send mobile message config
 	OSS           OSSConfig               // OSS config
 	MjConfigs     []MidJourneyConfig      // mj AI draw service pool
 	MjPlusConfigs []MidJourneyPlusConfig  // MJ plus config
@@ -67,15 +67,6 @@ type MidJourneyPlusConfig struct {
 	ApiURL    string
 	ApiKey    string
 	NotifyURL string // 任务进度更新回调地址
-}
-
-type AliYunSmsConfig struct {
-	AccessKey    string
-	AccessSecret string
-	Product      string
-	Domain       string
-	Sign         string // 短信签名
-	CodeTempId   string // 验证码短信模板 ID
 }
 
 type AlipayConfig struct {

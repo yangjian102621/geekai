@@ -9,11 +9,6 @@ type UploaderManager struct {
 	handler Uploader
 }
 
-const Local = "LOCAL"
-const Minio = "MINIO"
-const QiNiu = "QINIU"
-const AliYun = "ALIYUN"
-
 func NewUploaderManager(config *types.AppConfig) (*UploaderManager, error) {
 	active := Local
 	if config.OSS.Active != "" {

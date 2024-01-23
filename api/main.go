@@ -12,6 +12,7 @@ import (
 	"chatplus/service/oss"
 	"chatplus/service/payment"
 	"chatplus/service/sd"
+	"chatplus/service/sms"
 	"chatplus/service/wx"
 	"chatplus/store"
 	"context"
@@ -137,7 +138,7 @@ func main() {
 		fx.Provide(admin.NewOrderHandler),
 
 		// 创建服务
-		fx.Provide(service.NewAliYunSmsService),
+		fx.Provide(sms.NewSendServiceManager),
 		fx.Provide(func(config *types.AppConfig) *service.CaptchaService {
 			return service.NewCaptchaService(config.ApiConfig)
 		}),
