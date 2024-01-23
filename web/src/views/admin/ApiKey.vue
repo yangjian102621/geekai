@@ -261,10 +261,10 @@ const changePlatform = () => {
     }
   }
   if (platform !== null) {
-    if (item.value.type === "chat") {
-      item.value.api_url = platform.api_url
-    } else if (platform.img_url) {
+    if (item.value.type === "img" && platform.img_url) {
       item.value.api_url = platform.img_url
+    } else {
+      item.value.api_url = platform.api_url
     }
 
   }
