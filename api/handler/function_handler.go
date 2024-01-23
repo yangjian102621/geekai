@@ -247,7 +247,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	} else {
 		request = req.C().R()
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, ApiKey:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, h.proxyURL)
+	logger.Debugf("Sending %s request, ApiURL:%s, Password:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, h.proxyURL)
 	r, err := request.SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(imgReq{
