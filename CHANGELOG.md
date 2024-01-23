@@ -11,6 +11,7 @@
 * 功能优化：新增虎皮椒和PayJS订单状态校验功能，增加安全性
 * Bug修复：修复微信转账交易 ID 提取失败 Bug
 * 功能优化：给所有的 websocket 连接加上心跳，解决 "close 1006 (abnormal closure): unexpected EOF" Bug
+* 功能新增：新增短信宝短信平台发送平台集成
 
 
 ## v3.2.5
