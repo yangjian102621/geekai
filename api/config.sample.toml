@@ -34,14 +34,13 @@ WeChatBot = false
   CodeTempId = ""
 
 [Sms] # Sms 配置，用于发送短信
-   Active = "SmsBao" # 默认使用
+   Active = "Ali" # 当前启用的短信服务，默认使用阿里云
    [Sms.SmsBao]
-     Account = "" #账号
-     ApiKey = "" # apikey
-     Domain = "api.smsbao.com" # 发送短信的域名
-     Sign = "【鲸落科技】" # 签名
-     CodeTemplate = "您的验证码是{code}。请于{num}分钟内使用，若非本人操作，请忽略本短信。" # 短信模板
-     Num = "30" # 短信有效期
+      Username = ""
+      Password = ""
+      Domain = "api.smsbao.com"
+      Sign = "【极客学长】"
+      CodeTemplate = "您的验证码是{code}。5分钟有效，若非本人操作，请忽略本短信。"
    [Sms.Ali]
       AccessKey = ""
       AccessSecret = ""
@@ -80,34 +79,17 @@ WeChatBot = false
   DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
   DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
 
-[[MjConfigs]]
+[[MjPlusConfigs]]
   Enabled = false
-  UserToken = ""
-  BotToken = ""
-  GuildId = ""
-  ChanelId = ""
-  UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
-  DiscordAPI = "https://mj.r9it.com:8001" # discord API 反代地址
-  DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
-  DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
+  ApiURL = "https://api.chatgpt-plus.net" # 目前暂时不支持更改
+  ApiKey = "sk-xxx"
+  NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要改成你的域名
 
 [[SdConfigs]]
   Enabled = false
   ApiURL = ""
   ApiKey = ""
   Txt2ImgJsonPath = "res/sd/text2img.json"
-
-[[SdConfigs]]
-  Enabled = false
-  ApiURL = ""
-  ApiKey = ""
-  Txt2ImgJsonPath = "res/sd/text2img.json"
-
-[[SdConfigs]]
-  Enabled = false
-  ApiURL = ""
-  ApiKey = ""
-  Txt2ImgJsonPath = "res/text2img.json"
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = false # 是否启用 XXL JOB 服务
