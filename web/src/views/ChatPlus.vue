@@ -567,6 +567,19 @@ const connect = function (chat_id, role_id) {
       host = 'ws://' + location.host;
     }
   }
+
+  // 心跳函数
+  const sendHeartbeat = () => {
+    clearTimeout(heartbeatHandle.value)
+    new Promise((resolve, reject) => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+      resolve("success")
+    }).then(() => {
+      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
+    });
+  }
   const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
@@ -589,15 +602,8 @@ const connect = function (chat_id, role_id) {
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
-
     // 发送心跳消息
-    clearInterval(heartbeatHandle.value)
-    heartbeatHandle.value = setInterval(() => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-    }, 5000);
-
+    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {

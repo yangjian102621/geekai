@@ -1,45 +1,36 @@
-.app-background {
-  background-color: #1c1c1c;
-  height: 100vh;
+.mobile-chat .message-list-box {
+  padding-top: 50px;
+  padding-bottom: 10px;
+  overflow-x: auto;
+  background: #f5f5f5;
 }
-body,
-.mobile-chat,
-.van-sticky,
-.van-nav-bar,
-.van-list,
-.message-list-box,
-.van-cell,
-.chat-box,
-.van-cell-group,
-.van-field {
-  background-color: #1c1c1c !important;
-  color: #fff !important;
+.mobile-chat .message-list-box .van-cell {
+  background: none;
+  font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
 }
-.chat-box-wrapper {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background-color: #1c1c1c;
+.mobile-chat .chat-box-wrapper .van-sticky .van-cell-group--inset {
+  margin: 0;
 }
-.icon-box .van-icon,
-.mobile-chat .van-nav-bar__title .van-dropdown-menu__title,
-.mobile-chat .van-nav-bar__title .van-cell__title,
-.mobile-chat .van-nav-bar__right .van-icon {
-  color: #fff !important;
+.mobile-chat .chat-box-wrapper .van-sticky .van-cell-group--inset .van-cell {
+  padding: 10px;
+}
+.mobile-chat .chat-box-wrapper .van-sticky .van-cell-group--inset .van-cell .icon-box .van-icon {
+  font-size: 24px;
+  margin: 10px 0;
+}
+.mobile-chat .chat-box-wrapper .van-sticky .van-cell-group--inset .van-cell .button-voice {
+  padding: 0 5px;
+  height: 30px;
 }
 .mobile-chat .van-nav-bar__title .van-dropdown-menu__title {
-  margin-right: 15px;
+  margin-right: 10px;
 }
 .mobile-chat .van-nav-bar__title .van-cell__title {
   text-align: left;
 }
-.mobile-chat .chat-list-wrapper {
-  position: fixed;
-  top: 50px;
-  bottom: 60px;
-  width: 100vw;
-  overflow-y: scroll;
-}
 .mobile-chat .van-nav-bar__right .van-icon {
   font-size: 20px;
+}
+.van-theme-dark .mobile-chat .message-list-box {
+  background: #232425;
 }
