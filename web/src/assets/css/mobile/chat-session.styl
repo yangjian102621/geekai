@@ -1,51 +1,61 @@
-.app-background {
-    background-color  #1c1c1c 
-    height  100vh 
+.mobile-chat {
+  .message-list-box {
+    padding-top 50px
+    padding-bottom 10px
+    overflow-x auto
+    background #F5F5F5;
+
+    .van-cell {
+      background none
+      font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    }
   }
-  body,
-  .mobile-chat,
-  .van-sticky,
-  .van-nav-bar,
-  .van-list,
-  .message-list-box
-  .van-cell,
-  .chat-box,
-  .van-cell-group,
-  .van-field {
-    background-color  #1c1c1c !important 
-    color  #fff !important 
-  }
+
   .chat-box-wrapper {
-    position  fixed 
-    bottom  0 
-    width  100% 
-    background-color  #1c1c1c 
+    .van-sticky {
+      .van-cell-group--inset {
+        margin 0
+
+        .van-cell {
+          padding 10px
+
+          .icon-box {
+            .van-icon {
+              font-size 24px
+              margin 10px 0
+            }
+          }
+
+          .button-voice {
+            padding 0 5px
+            height 30px
+          }
+        }
+      }
     }
-  .icon-box .van-icon,
-  .mobile-chat .van-nav-bar__title .van-dropdown-menu__title,
-  .mobile-chat .van-nav-bar__title .van-cell__title,
-  .mobile-chat .van-nav-bar__right .van-icon {
-    color  #fff !important 
   }
+
+  .van-nav-bar__title {
+    .van-dropdown-menu__title {
+      margin-right 10px
+    }
+
+    .van-cell__title {
+      text-align left
+    }
+  }
+
+  .van-nav-bar__right {
+    .van-icon {
+      font-size 20px
+    }
+  }
+}
+
+.van-theme-dark {
   .mobile-chat {
-    .van-nav-bar__title {
-      .van-dropdown-menu__title {
-        margin-right  15px 
-      }
-      .van-cell__title {
-        text-align  left 
-      }
-    }
-    .chat-list-wrapper {
-      position  fixed 
-      top  50px 
-      bottom  60px 
-      width  100vw 
-      overflow-y  scroll 
-    }
-    .van-nav-bar__right {
-      .van-icon {
-        font-size  20px 
-      }
+    .message-list-box {
+      background #232425;
     }
   }
+}

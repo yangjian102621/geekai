@@ -1,99 +1,103 @@
 <template>
   <div class="app-background">
-    <van-config-provider theme="dark">
-      <div class="mobile-chat" v-loading="loading" element-loading-text="正在连接会话...">
-        <van-sticky ref="navBarRef" :offset-top="0" position="top">
-          <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
-            <template #title>
-              <van-dropdown-menu>
-                <van-dropdown-item :title="title">
-                  <van-cell center title="角色"> {{ role.name }}</van-cell>
-                  <van-cell center title="模型">{{ modelValue }}</van-cell>
-                </van-dropdown-item>
-              </van-dropdown-menu>
-            </template>
+    <div class="mobile-chat" v-loading="loading" element-loading-text="正在连接会话...">
+      <van-sticky ref="navBarRef" :offset-top="0" position="top">
+        <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
+          <template #title>
+            <van-dropdown-menu>
+              <van-dropdown-item :title="title">
+                <van-cell center title="角色"> {{ role.name }}</van-cell>
+                <van-cell center title="模型">{{ modelValue }}</van-cell>
+              </van-dropdown-item>
+            </van-dropdown-menu>
+          </template>
 
-            <template #right>
-              <van-icon name="share-o" @click="showShare = true"/>
-            </template>
+          <template #right>
+            <van-icon name="share-o" @click="showShare = true"/>
+          </template>
 
-          </van-nav-bar>
-        </van-sticky>
+        </van-nav-bar>
+      </van-sticky>
 
-        <van-share-sheet
-            v-model:show="showShare"
-            title="立即分享给好友"
-            :options="shareOptions"
-            @select="shareChat"
-        />
+      <van-share-sheet
+          v-model:show="showShare"
+          title="立即分享给好友"
+          :options="shareOptions"
+          @select="shareChat"
+      />
 
-        <div class="chat-list-wrapper">
-          <div id="message-list-box" :style="{height: winHeight + 'px'}" class="message-list-box">
-            <van-list
-                v-model:error="error"
-                :finished="finished"
-                error-text="请求失败，点击重新加载"
-                @load="onLoad"
-            >
-              <van-cell v-for="item in chatData" :key="item" :border="false" class="message-line">
-                <chat-prompt
-                    v-if="item.type==='prompt'"
-                    :content="item.content"
-                    :created-at="dateFormat(item['created_at'])"
-                    :icon="item.icon"
-                    :model="model"
-                    :tokens="item['tokens']"/>
-                <chat-reply v-else-if="item.type==='reply'"
-                            :content="item.content"
-                            :created-at="dateFormat(item['created_at'])"
-                            :icon="item.icon"
-                            :org-content="item.orgContent"
-                            :tokens="item['tokens']"/>
-                <chat-mid-journey v-else-if="item.type==='mj'"
-                                  :content="item.content"
-                                  :icon="item.icon"
-                                  :role-id="role"
-                                  :chat-id="chatId"
-                                  @disable-input="disableInput(true)"
-                                  @enable-input="enableInput"
-                                  :created-at="dateFormat(item['created_at'])"/>
-              </van-cell>
-            </van-list>
-          </div>
-        </div>
-        <div class="chat-box-wrapper">
-          <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
-
-            <van-cell-group inset>
-              <van-field
-                  v-model="prompt"
-                  center
-                  clearable
-                  placeholder="输入你的问题"
-              >
-                <template #button>
-                  <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
-                </template>
-                <template #extra>
-                  <div class="icon-box">
-                    <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate"/>
-                    <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate"/>
-                  </div>
-                </template>
-              </van-field>
-            </van-cell-group>
-
-          </van-sticky>
+      <div class="chat-list-wrapper">
+        <div id="message-list-box" :style="{height: winHeight + 'px'}" class="message-list-box">
+          <van-list
+              v-model:error="error"
+              :finished="finished"
+              error-text="请求失败，点击重新加载"
+              @load="onLoad"
+          >
+            <van-cell v-for="item in chatData" :key="item" :border="false" class="message-line">
+              <chat-prompt
+                  v-if="item.type==='prompt'"
+                  :content="item.content"
+                  :created-at="dateFormat(item['created_at'])"
+                  :icon="item.icon"
+                  :model="model"
+                  :tokens="item['tokens']"/>
+              <chat-reply v-else-if="item.type==='reply'"
+                          :content="item.content"
+                          :created-at="dateFormat(item['created_at'])"
+                          :icon="item.icon"
+                          :org-content="item.orgContent"
+                          :tokens="item['tokens']"/>
+              <chat-mid-journey v-else-if="item.type==='mj'"
+                                :content="item.content"
+                                :icon="item.icon"
+                                :role-id="role"
+                                :chat-id="chatId"
+                                @disable-input="disableInput(true)"
+                                @enable-input="enableInput"
+                                :created-at="dateFormat(item['created_at'])"/>
+            </van-cell>
+          </van-list>
         </div>
       </div>
-    </van-config-provider>
+      <div class="chat-box-wrapper">
+        <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
+
+          <van-cell-group inset>
+            <van-field
+                v-model="prompt"
+                center
+                clearable
+                placeholder="输入你的问题"
+            >
+              <template #left-icon>
+                <van-button round type="success" class="button-voice" @click="inputVoice">
+                  <van-icon name="volume-o"/>
+                </van-button>
+              </template>
+
+              <template #button>
+                <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
+              </template>
+              <template #extra>
+                <div class="icon-box">
+                  <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate"/>
+                  <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate"/>
+                </div>
+              </template>
+            </van-field>
+          </van-cell-group>
+
+        </van-sticky>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import {nextTick, onMounted, ref} from "vue";
-import {showToast} from "vant";
-import {useRouter} from "vue-router";
+import {showFailToast, showNotify, showToast} from "vant";
+import {onBeforeRouteLeave, useRouter} from "vue-router";
 import {dateFormat, randString, renderInputText, UUID} from "@/utils/libs";
 import {getChatConfig} from "@/store/chat";
 import {httpGet} from "@/utils/http";
@@ -103,13 +107,7 @@ import ChatPrompt from "@/components/mobile/ChatPrompt.vue";
 import ChatReply from "@/components/mobile/ChatReply.vue";
 import {getSessionId, getUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
-import {getMobileTheme} from "@/store/system";
 import ChatMidJourney from "@/components/mobile/ChatMidJourney.vue";
-
-import QRCode from "qrcode";
-import {ElMessage} from "element-plus";
-import Clipboard from "clipboard";
-import InviteList from "@/components/InviteList.vue";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -124,15 +122,7 @@ const title = chatConfig.title
 const chatId = chatConfig.chatId
 const loginUser = ref(null)
 
-const listBoxHeight = window.innerHeight
-const inviteURL = ref("")
-const qrImg = ref("")
-const inviteChatCalls = ref(0)
-const inviteImgCalls = ref(0)
 const hits = ref(0)
-const regNum = ref(0)
-const rate = ref(0)
-const isLogin = ref(false)
 
 onMounted(() => {
   winHeight.value = document.body.offsetHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight
@@ -191,6 +181,16 @@ const onLoad = () => {
 
 };
 
+// 离开页面时主动关闭 websocket 连接，节省网络资源
+onBeforeRouteLeave(() => {
+  if (socket.value !== null) {
+    activelyClose.value = true;
+    clearTimeout(heartbeatHandle.value)
+    socket.value.close();
+  }
+
+})
+
 // 创建 socket 连接
 const prompt = ref('');
 const showStopGenerate = ref(false); // 停止生成
@@ -207,11 +207,6 @@ const connect = function (chat_id, role_id) {
     isNewChat = true;
     chat_id = UUID();
   }
-  // 先关闭已有连接
-  if (socket.value !== null) {
-    activelyClose.value = true;
-    socket.value.close();
-  }
 
   // 初始化 WebSocket 对象
   const _sessionId = getSessionId();
@@ -223,6 +218,19 @@ const connect = function (chat_id, role_id) {
       host = 'ws://' + location.host;
     }
   }
+
+  // 心跳函数
+  const sendHeartbeat = () => {
+    if (socket.value !== null) {
+      new Promise((resolve) => {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+        resolve("success")
+      }).then(() => {
+        heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
+      });
+    }
+  }
+
   const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${model}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     loading.value = false
@@ -241,12 +249,7 @@ const connect = function (chat_id, role_id) {
     }
 
     // 发送心跳消息
-    clearInterval(heartbeatHandle.value)
-    heartbeatHandle.value = setInterval(() => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-    }, 5000);
+    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {
@@ -327,6 +330,7 @@ const connect = function (chat_id, role_id) {
     // 停止发送消息
     canSend.value = true;
     socket.value = null;
+    // 重连
     checkSession().then(() => {
       connect(chat_id, role_id)
     }).catch(() => {
@@ -408,16 +412,34 @@ const reGenerate = () => {
 const showShare = ref(false)
 const shareOptions = [
   {name: '微信', icon: 'wechat'},
-  {name: '微博', icon: 'weibo'},
   {name: '复制链接', icon: 'link'},
-  {name: '分享海报', icon: 'poster'},
 ]
 const shareChat = () => {
   showShare.value = false
-  router.push('/mobile/Invitation');
+  showToast('功能待开发')
+}
+
+const inputVoice = () => {
+  const recognition = new webkitSpeechRecognition() || SpeechRecognition();
+  // recognition.lang = 'zh-CN' // 设置语音识别语言
+
+  recognition.onresult = function (event) {
+    const result = event.results[0][0].transcript;
+    showToast('你说了: ' + result)
+  };
+
+  recognition.onerror = function (event) {
+    showNotify({type: 'danger', message: '语音识别错误:' + event.error})
+  };
+
+  recognition.onend = function () {
+    console.log('语音识别结束');
+  };
+
+  recognition.start();
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "@/assets/css/mobile/chat-session.css"
+<style lang="stylus">
+@import "@/assets/css/mobile/chat-session.styl"
 </style>
