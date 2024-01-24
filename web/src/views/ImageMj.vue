@@ -573,17 +573,26 @@ const connect = () => {
       host = 'ws://' + location.host;
     }
   }
+
+  // 心跳函数
+  const sendHeartbeat = () => {
+    clearTimeout(heartbeatHandle.value)
+    new Promise((resolve, reject) => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+      resolve("success")
+    }).then(() => {
+      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
+    });
+  }
+
   const _socket = new WebSocket(host + `/api/mj/client?user_id=${userId.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
 
     // 发送心跳消息
-    clearInterval(heartbeatHandle.value)
-    heartbeatHandle.value = setInterval(() => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-    }, 5000);
+    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {

@@ -176,25 +176,11 @@ const routes = [
                 name: 'mobile-chat-list',
                 component: () => import('@/views/mobile/ChatList.vue'),
             },
-            {
-                path: '/mobile/imageSd',
-                name: 'mobile-imageSd',
-                component: () => import('@/views/mobile/ImageSd.vue'),
-            },
-            {
-                path: '/mobile/apps',
-                name: 'mobile-apps',
-                component: () => import('@/views/mobile/Apps.vue'),
-            },
+
             {
                 path: '/mobile/profile',
                 name: 'mobile-profile',
                 component: () => import('@/views/mobile/Profile.vue'),
-            },
-            {
-                path: '/mobile/invitation',
-                name: 'mobile-invitation',
-                component: () => import('@/views/mobile/Invitation.vue'),
             },
         ]
     },
