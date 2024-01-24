@@ -4,9 +4,10 @@
       <router-view/>
 
       <van-tabbar route v-model="active" @change="onChange">
-        <van-tabbar-item to="/mobile/chat/list" name="home" icon="chat-o"></van-tabbar-item>
-        <van-tabbar-item to="/mobile/setting" name="setting" icon="setting-o"></van-tabbar-item>
-        <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o"></van-tabbar-item>
+        <van-tabbar-item to="/mobile/chat" name="home" icon="chat-o">对话</van-tabbar-item>
+        <van-tabbar-item to="/mobile/mj" name="imageMj" icon="photo-o">绘图</van-tabbar-item>
+        <van-tabbar-item to="/mobile/apps" name="apps" icon="apps-o">应用</van-tabbar-item>
+        <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的</van-tabbar-item>
       </van-tabbar>
 
     </div>
@@ -33,7 +34,6 @@ checkSession().then(() => {
 const active = ref('home')
 const onChange = (index) => {
   console.log(index)
-  // showToast(`标签 ${index}`);
 }
 
 </script>
