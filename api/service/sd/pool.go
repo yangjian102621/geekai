@@ -11,13 +11,16 @@ import (
 )
 
 type ServicePool struct {
-	services  []*Service
-	taskQueue *store.RedisQueue
+	services    []*Service
+	taskQueue   *store.RedisQueue
+	notifyQueue *store.RedisQueue
+	Clients     *types.LMap[uint, *types.WsClient] // UserId => Client
 }
 
 func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
 	services := make([]*Service, 0)
-	queue := store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli)
+	taskQueue := store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli)
+	notifyQueue := store.NewRedisQueue("StableDiffusion_Queue", redisCli)
 	// create mj client and service
 	for k, config := range appConfig.SdConfigs {
 		if config.Enabled == false {
@@ -26,7 +29,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 
 		// create sd service
 		name := fmt.Sprintf("StableDifffusion Service-%d", k)
-		service := NewService(name, 1, 300, config, queue, db, manager)
+		service := NewService(name, 1, 300, config, taskQueue, notifyQueue, db, manager)
 		// run sd service
 		go func() {
 			service.Run()
@@ -36,8 +39,10 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 	}
 
 	return &ServicePool{
-		taskQueue: queue,
-		services:  services,
+		taskQueue:   taskQueue,
+		notifyQueue: notifyQueue,
+		services:    services,
+		Clients:     types.NewLMap[uint, *types.WsClient](),
 	}
 }
 

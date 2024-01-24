@@ -563,6 +563,7 @@ const translatePrompt = () => {
   })
 }
 
+const heartbeatHandle = ref(null)
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
@@ -575,6 +576,14 @@ const connect = () => {
   const _socket = new WebSocket(host + `/api/mj/client?user_id=${userId.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
+
+    // 发送心跳消息
+    clearInterval(heartbeatHandle.value)
+    heartbeatHandle.value = setInterval(() => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+    }, 5000);
   });
 
   _socket.addEventListener('message', event => {

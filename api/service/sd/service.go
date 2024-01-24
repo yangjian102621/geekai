@@ -24,6 +24,7 @@ type Service struct {
 	httpClient       *req.Client
 	config           types.StableDiffusionConfig
 	taskQueue        *store.RedisQueue
+	notifyQueue      *store.RedisQueue
 	db               *gorm.DB
 	uploadManager    *oss.UploaderManager
 	name             string            // service name
@@ -33,12 +34,13 @@ type Service struct {
 	taskTimeout      int64
 }
 
-func NewService(name string, maxTaskNum int32, timeout int64, config types.StableDiffusionConfig, queue *store.RedisQueue, db *gorm.DB, manager *oss.UploaderManager) *Service {
+func NewService(name string, maxTaskNum int32, timeout int64, config types.StableDiffusionConfig, taskQueue *store.RedisQueue, notifyQueue *store.RedisQueue, db *gorm.DB, manager *oss.UploaderManager) *Service {
 	return &Service{
 		name:             name,
 		config:           config,
 		httpClient:       req.C(),
-		taskQueue:        queue,
+		taskQueue:        taskQueue,
+		notifyQueue:      notifyQueue,
 		db:               db,
 		uploadManager:    manager,
 		taskTimeout:      timeout,
@@ -73,6 +75,8 @@ func (s *Service) Run() {
 			s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 			// release task num
 			atomic.AddInt32(&s.handledTaskNum, -1)
+			// 通知前端，任务失败
+			s.notifyQueue.RPush(task.UserId)
 			continue
 		}
 
