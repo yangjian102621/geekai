@@ -159,31 +159,42 @@ const routes = [
         ]
     },
 
-    {
-        path: '/mobile/chat/session',
-        name: 'mobile-chat-session',
-        component: () => import('@/views/mobile/ChatSession.vue'),
-    },
+
     {
         name: 'mobile',
         path: '/mobile',
-        meta: {title: 'ChatPuls-智能助手V3'},
+        meta: {title: 'ChatPlus-智能助手V3'},
         component: () => import('@/views/mobile/Home.vue'),
-        redirect: '/mobile/chat/list',
+        redirect: '/mobile/chat',
         children: [
             {
-                path: '/mobile/chat/list',
-                name: 'mobile-chat-list',
+                path: '/mobile/chat',
+                name: 'mobile-chat',
                 component: () => import('@/views/mobile/ChatList.vue'),
             },
-
+            {
+                path: '/mobile/mj',
+                name: 'mobile-mj',
+                component: () => import('@/views/mobile/ImageMj.vue'),
+            },
             {
                 path: '/mobile/profile',
                 name: 'mobile-profile',
                 component: () => import('@/views/mobile/Profile.vue'),
             },
+            {
+                path: '/mobile/apps',
+                name: 'mobile-app',
+                component: () => import('@/views/mobile/ChatApps.vue'),
+            },
         ]
     },
+    {
+        path: '/mobile/chat/session',
+        name: 'mobile-chat-session',
+        component: () => import('@/views/mobile/ChatSession.vue'),
+    },
+    
     {
         name: 'test',
         path: '/test',
