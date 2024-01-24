@@ -95,7 +95,7 @@ onMounted(() => {
         padding: 5px 10px;
         color #444444
         background-color: #ffffff;
-        font-size: 16px
+        font-size: 14px
         border-radius: 5px;
 
         p:last-child {

@@ -261,49 +261,5 @@ const removeChat = (item) => {
 </script>
 
 <style lang="stylus" scoped>
-$fontSize = 16px;
-.mobile-chat-list {
-
-  .content {
-    .van-cell__value {
-      .chat-list-item {
-        display flex
-        font-size $fontSize
-
-        .van-image {
-          min-width 32px
-          width 32px
-          height 32px
-        }
-
-        .van-ellipsis {
-          margin-top 5px;
-          margin-left 10px;
-        }
-      }
-    }
-  }
-
-  .van-picker-column {
-    .picker-option {
-      display flex
-      width 100%
-      padding 0 10px
-
-      .van-image {
-        width 20px;
-        height 20px;
-        margin-right 5px
-      }
-    }
-  }
-
-  .van-nav-bar {
-    .van-nav-bar__right {
-      .van-icon {
-        font-size 20px;
-      }
-    }
-  }
-}
+@import "@/assets/css/mobile/chat-list.styl"
 </style>
