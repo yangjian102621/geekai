@@ -86,9 +86,6 @@
 .page-sd .inner .task-list-box .task-list-inner .title-tabs .el-tabs__active-bar {
   background-color: #47fff1;
 }
-.page-sd .inner .task-list-box .task-list-inner .title-tabs .el-tabs__content {
-  padding: 10px 0;
-}
 .page-sd .inner .task-list-box .task-list-inner .el-textarea {
   --el-input-focus-border-color: #47fff1;
 }
@@ -138,6 +135,12 @@
   width: 100%;
   height: 120px;
   text-align: center;
+}
+.page-sd .inner .task-list-box .task-list-inner .img-inline {
+  display: flex;
+}
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-uploader {
+  margin-right: 10px;
 }
 .page-sd .inner .task-list-box .task-list-inner .submit-btn {
   display: flex;

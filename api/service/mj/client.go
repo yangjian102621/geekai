@@ -2,6 +2,7 @@ package mj
 
 import (
 	"chatplus/core/types"
+	"errors"
 	"fmt"
 	"time"
 
@@ -33,7 +34,7 @@ func NewClient(config types.MidJourneyConfig, proxy string, imgCdnURL string) *C
 	return &Client{client: client, Config: config, apiURL: apiURL, imgCdnURL: imgCdnURL}
 }
 
-func (c *Client) Imagine(prompt string) error {
+func (c *Client) Imagine(task types.MjTask) error {
 	interactionsReq := &InteractionsRequest{
 		Type:          2,
 		ApplicationID: ApplicationID,
@@ -49,7 +50,7 @@ func (c *Client) Imagine(prompt string) error {
 				{
 					"type":  3,
 					"name":  "prompt",
-					"value": prompt,
+					"value": fmt.Sprintf("%s %s", task.TaskId, task.Prompt),
 				},
 			},
 			"application_command": map[string]any{
@@ -88,20 +89,28 @@ func (c *Client) Imagine(prompt string) error {
 	return nil
 }
 
+func (c *Client) Blend(task types.MjTask) error {
+	return errors.New("function not implemented")
+}
+
+func (c *Client) SwapFace(task types.MjTask) error {
+	return errors.New("function not implemented")
+}
+
 // Upscale 放大指定的图片
-func (c *Client) Upscale(index int, messageId string, hash string) error {
+func (c *Client) Upscale(task types.MjTask) error {
 	flags := 0
 	interactionsReq := &InteractionsRequest{
 		Type:          3,
 		ApplicationID: ApplicationID,
 		GuildID:       c.Config.GuildId,
 		ChannelID:     c.Config.ChanelId,
-		MessageFlags:  &flags,
-		MessageID:     &messageId,
+		MessageFlags:  flags,
+		MessageID:     task.MessageId,
 		SessionID:     SessionID,
 		Data: map[string]any{
 			"component_type": 2,
-			"custom_id":      fmt.Sprintf("MJ::JOB::upsample::%d::%s", index, hash),
+			"custom_id":      fmt.Sprintf("MJ::JOB::upsample::%d::%s", task.Index, task.MessageHash),
 		},
 		Nonce: fmt.Sprintf("%d", time.Now().UnixNano()),
 	}
@@ -120,19 +129,19 @@ func (c *Client) Upscale(index int, messageId string, hash string) error {
 }
 
 // Variation  以指定的图片的视角进行变换再创作，注意需要在对应的频道中关闭 Remix 变换，否则 Variation 指令将不会生效
-func (c *Client) Variation(index int, messageId string, hash string) error {
+func (c *Client) Variation(task types.MjTask) error {
 	flags := 0
 	interactionsReq := &InteractionsRequest{
 		Type:          3,
 		ApplicationID: ApplicationID,
 		GuildID:       c.Config.GuildId,
 		ChannelID:     c.Config.ChanelId,
-		MessageFlags:  &flags,
-		MessageID:     &messageId,
+		MessageFlags:  flags,
+		MessageID:     task.MessageId,
 		SessionID:     SessionID,
 		Data: map[string]any{
 			"component_type": 2,
-			"custom_id":      fmt.Sprintf("MJ::JOB::variation::%d::%s", index, hash),
+			"custom_id":      fmt.Sprintf("MJ::JOB::variation::%d::%s", task.Index, task.MessageHash),
 		},
 		Nonce: fmt.Sprintf("%d", time.Now().UnixNano()),
 	}

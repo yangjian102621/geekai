@@ -167,8 +167,8 @@
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <h2>AI绘画</h2>
           <el-form>
-            <el-tabs v-model="activeName" class="title-tabs">
-              <el-tab-pane label="图生图(可选)" name="图生图">
+            <el-tabs v-model="activeName" class="title-tabs" @tabChange="tabChange">
+              <el-tab-pane label="文生图(可选)" name="image">
                 <div class="text">图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持 PNG 和 JPG 格式图片；
                 </div>
                 <div class="param-line pt">
@@ -194,7 +194,7 @@
 
                 <div class="param-line">
                   <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                             :http-request="afterRead" style="--el-color-primary:#47fff1">
+                             :http-request="uploadImg" style="--el-color-primary:#47fff1">
                     <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
                     <el-icon v-else class="uploader-icon">
                       <Plus/>
@@ -219,88 +219,119 @@
                     </template>
                   </el-form-item>
                 </div>
-              </el-tab-pane>
 
-              <el-tab-pane label="图生文(可选)" name="图生文">
-                <div class="text">图生文功能正在紧锣密鼓开发中，敬请期待...</div>
-                <!--              <div class="param-line pt">-->
-                <!--                <el-empty image-size="100px" description="功能建设中"/>-->
-                <!--              </div>-->
-              </el-tab-pane>
+                <div class="prompt-box">
+                  <div class="param-line pt">
+                    <div class="flex-row justify-between items-center">
+                      <div class="flex-row justify-start items-center">
+                        <span>提示词：</span>
+                        <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
+                          <el-icon>
+                            <InfoFilled/>
+                          </el-icon>
+                        </el-tooltip>
+                      </div>
+                      <div>
+                        <el-button type="primary" @click="translatePrompt(false)" :disabled="loading">
+                          <el-icon style="margin-right: 6px;font-size: 18px;">
+                            <Refresh/>
+                          </el-icon>
+                          翻译
+                        </el-button>
 
-              <el-tab-pane label="融图(可选)" name="融图">
-                <div class="text">融图功能正在紧锣密鼓开发中，敬请期待...</div>
-              </el-tab-pane>
-            </el-tabs>
-
-            <div v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
-              <div class="param-line pt">
-                <div class="flex-row justify-between items-center">
-                  <div class="flex-row justify-start items-center">
-                    <span>提示词：</span>
-                    <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
-                      <el-icon>
-                        <InfoFilled/>
-                      </el-icon>
-                    </el-tooltip>
+                        <el-tooltip
+                            class="box-item"
+                            effect="light"
+                            raw-content
+                            content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
+                            placement="top-end"
+                        >
+                          <el-button type="success" @click="rewritePrompt" :disabled="loading">
+                            <el-icon style="margin-right: 6px;font-size: 18px;">
+                              <Refresh/>
+                            </el-icon>
+                            翻译并重写
+                          </el-button>
+                        </el-tooltip>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <el-button type="primary" @click="translatePrompt">
-                      <el-icon style="margin-right: 6px;font-size: 18px;">
-                        <Refresh/>
-                      </el-icon>
-                      翻译
-                    </el-button>
 
-                    <el-tooltip
-                        class="box-item"
-                        effect="light"
-                        raw-content
-                        content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
-                        placement="top-end"
-                    >
-                      <el-button type="success" @click="rewritePrompt">
+                  <div class="param-line pt">
+                    <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
+                              ref="promptRef"
+                              placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
+                  </div>
+
+                  <div class="param-line pt">
+                    <div class="flex-row justify-between items-center">
+                      <div class="flex-row justify-start items-center">
+                        <span>不希望出现的内容：（可选）</span>
+                        <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
+                          <el-icon>
+                            <InfoFilled/>
+                          </el-icon>
+                        </el-tooltip>
+                      </div>
+                      <el-button type="primary" @click="translatePrompt(true)" :disabled="loading">
                         <el-icon style="margin-right: 6px;font-size: 18px;">
                           <Refresh/>
                         </el-icon>
-                        翻译并重写
+                        翻译
                       </el-button>
-                    </el-tooltip>
+                    </div>
+                  </div>
+
+                  <div class="param-line pt">
+                    <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
+                              ref="promptRef"
+                              placeholder="这里输入你不希望出现在图片上的内容，元素"/>
                   </div>
                 </div>
-              </div>
+              </el-tab-pane>
 
-              <div class="param-line pt">
-                <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                          ref="promptRef"
-                          placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
-              </div>
-            </div>
-
-            <div class="param-line pt">
-              <div class="flex-row justify-between items-center">
-                <div class="flex-row justify-start items-center">
-                  <span>不希望出现的内容：（可选）</span>
-                  <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
-                    <el-icon>
-                      <InfoFilled/>
+              <el-tab-pane label="融图(可选)" name="blend">
+                <div class="text">请上传两张以上的图片</div>
+                <div class="img-inline">
+                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                             :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                    <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
+                    <el-icon v-else class="uploader-icon">
+                      <Plus/>
                     </el-icon>
-                  </el-tooltip>
-                </div>
-                <!--                <el-button type="success">-->
-                <!--                  <el-icon style="margin-right: 6px;font-size: 18px;">-->
-                <!--                    <Refresh/>-->
-                <!--                  </el-icon>-->
-                <!--                  翻译-->
-                <!--                </el-button>-->
-              </div>
-            </div>
+                  </el-upload>
 
-            <div class="param-line pt">
-              <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                        ref="promptRef"
-                        placeholder="这里输入你不希望出现在图片上的内容，元素"/>
-            </div>
+                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                             :http-request="uploadImg2" style="--el-color-primary:#47fff1">
+                    <el-image v-if="params.img2 !== ''" :src="params.img2" fit="cover"/>
+                    <el-icon v-else class="uploader-icon">
+                      <Plus/>
+                    </el-icon>
+                  </el-upload>
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane label="换脸(可选)" name="swapFace">
+                <div class="text">请上传两张有脸部的图片，用右边图片的脸替换左边图片的脸</div>
+                <div class="img-inline">
+                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                             :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                    <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
+                    <el-icon v-else class="uploader-icon">
+                      <Plus/>
+                    </el-icon>
+                  </el-upload>
+
+                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                             :http-request="uploadImg2" style="--el-color-primary:#47fff1">
+                    <el-image v-if="params.img2 !== ''" :src="params.img2" fit="cover"/>
+                    <el-icon v-else class="uploader-icon">
+                      <Plus/>
+                    </el-icon>
+                  </el-upload>
+                </div>
+              </el-tab-pane>
+            </el-tabs>
 
             <div class="submit-btn">
               <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
@@ -516,6 +547,7 @@ const options = [
 ]
 
 const params = ref({
+  task_type: "image",
   rate: rates[0].value,
   model: models[0].value,
   chaos: 0,
@@ -523,6 +555,8 @@ const params = ref({
   seed: 0,
   raw: false,
   img: "",
+  img2: "",
+  img_arr: [],
   weight: 0.25,
   prompt: "",
   neg_prompt: "",
@@ -530,7 +564,7 @@ const params = ref({
   quality: 0
 })
 
-const activeName = ref('图生图')
+const activeName = ref('image')
 
 const runningJobs = ref([])
 const finishedJobs = ref([])
@@ -552,10 +586,18 @@ const rewritePrompt = () => {
   })
 }
 
-const translatePrompt = () => {
+const translatePrompt = (negative) => {
   loading.value = true
-  httpPost("/api/prompt/translate", {"prompt": params.value.prompt}).then(res => {
-    params.value.prompt = res.data
+  let prompt = params.value.prompt
+  if (negative) {
+    prompt = params.value.neg_prompt
+  }
+  httpPost("/api/prompt/translate", {"prompt": prompt}).then(res => {
+    if (negative) {
+      params.value.neg_prompt = res.data
+    } else {
+      params.value.prompt = res.data
+    }
     loading.value = false
   }).catch(e => {
     loading.value = false
@@ -684,7 +726,7 @@ const changeModel = (item) => {
 }
 
 // 图片上传
-const afterRead = (file) => {
+const uploadImg = (file) => {
   // 压缩图片并上传
   new Compressor(file.file, {
     quality: 0.6,
@@ -704,10 +746,30 @@ const afterRead = (file) => {
     },
   });
 };
+const uploadImg2 = (file) => {
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/upload', formData).then((res) => {
+        params.value.img2 = res.data.url
+        ElMessage.success('上传成功')
+      }).catch((e) => {
+        ElMessage.error('上传失败:' + e.message)
+      })
+    },
+    error(err) {
+      console.log(err.message);
+    },
+  });
+};
 // 创建绘图任务
 const promptRef = ref(null)
 const generate = () => {
-  if (params.value.prompt === '') {
+  if (params.value.prompt === '' && params.value.task_type === "image") {
     promptRef.value.focus()
     return ElMessage.error("请输入绘画提示词！")
   }
@@ -715,6 +777,12 @@ const generate = () => {
     return ElMessage.error("动漫模型不允许启用原始模式")
   }
   params.value.session_id = getSessionId()
+  if (params.value.img !== "") {
+    params.value.img_arr.push(params.value.img)
+  }
+  if (params.value.img2 !== "") {
+    params.value.img_arr.push(params.value.img2)
+  }
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
     imgCalls.value -= 1
@@ -725,7 +793,6 @@ const generate = () => {
 
 // 图片放大任务
 const upscale = (index, item) => {
-  console.log(item)
   send('/api/mj/upscale', index, item)
 }
 
@@ -781,6 +848,11 @@ const publishImage = (item, action) => {
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })
+}
+
+// 切换菜单
+const tabChange = (tab) => {
+  params.value.task_type = tab
 }
 
 </script>

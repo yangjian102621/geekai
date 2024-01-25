@@ -86,19 +86,20 @@ func (h *MidJourneyHandler) Client(c *gin.Context) {
 // Image 创建一个绘画任务
 func (h *MidJourneyHandler) Image(c *gin.Context) {
 	var data struct {
-		SessionId string  `json:"session_id"`
-		Prompt    string  `json:"prompt"`
-		NegPrompt string  `json:"neg_prompt"`
-		Rate      string  `json:"rate"`
-		Model     string  `json:"model"`
-		Chaos     int     `json:"chaos"`
-		Raw       bool    `json:"raw"`
-		Seed      int64   `json:"seed"`
-		Stylize   int     `json:"stylize"`
-		Img       string  `json:"img"`
-		Tile      bool    `json:"tile"`
-		Quality   float32 `json:"quality"`
-		Weight    float32 `json:"weight"`
+		SessionId string   `json:"session_id"`
+		TaskType  string   `json:"task_type"`
+		Prompt    string   `json:"prompt"`
+		NegPrompt string   `json:"neg_prompt"`
+		Rate      string   `json:"rate"`
+		Model     string   `json:"model"`
+		Chaos     int      `json:"chaos"`
+		Raw       bool     `json:"raw"`
+		Seed      int64    `json:"seed"`
+		Stylize   int      `json:"stylize"`
+		ImgArr    []string `json:"img_arr"`
+		Tile      bool     `json:"tile"`
+		Quality   float32  `json:"quality"`
+		Weight    float32  `json:"weight"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -121,11 +122,8 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	if data.Chaos > 0 && !strings.Contains(prompt, "--c") && !strings.Contains(prompt, "--chaos") {
 		prompt += fmt.Sprintf(" --c %d", data.Chaos)
 	}
-	if data.Img != "" {
-		prompt = fmt.Sprintf("%s %s", data.Img, prompt)
-		if data.Weight > 0 {
-			prompt += fmt.Sprintf(" --iw %f", data.Weight)
-		}
+	if data.Weight > 0 {
+		prompt += fmt.Sprintf(" --iw %f", data.Weight)
 	}
 	if data.Raw {
 		prompt += " --style raw"
@@ -152,7 +150,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 	job := model.MidJourneyJob{
-		Type:      types.TaskImage.String(),
+		Type:      data.TaskType,
 		UserId:    userId,
 		TaskId:    taskId,
 		Progress:  0,
@@ -166,10 +164,12 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 
 	h.pool.PushTask(types.MjTask{
 		Id:        int(job.Id),
+		TaskId:    taskId,
 		SessionId: data.SessionId,
 		Type:      types.TaskImage,
-		Prompt:    fmt.Sprintf("%s %s", taskId, prompt),
+		Prompt:    prompt,
 		UserId:    userId,
+		ImgArr:    data.ImgArr,
 	})
 
 	client := h.pool.Clients.Get(uint(job.UserId))
