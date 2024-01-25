@@ -48,12 +48,12 @@ func DownloadImage(imageURL string, proxy string) ([]byte, error) {
 			},
 		}
 	}
-	req, err := http.NewRequest("GET", imageURL, nil)
+	request, err := http.NewRequest("GET", imageURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Do(req)
+	resp, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
