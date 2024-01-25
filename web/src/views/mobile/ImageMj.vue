@@ -1,5 +1,5 @@
 <template>
-  <div class="mobile-user-profile container">
+  <div class="mobile-mj container">
     <van-nav-bar :title="title"/>
 
     <div class="content">
@@ -56,7 +56,7 @@ import {showFailToast, showNotify, showSuccessToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
 
-const title = ref('用户设置')
+const title = ref('MidJourney 绘画')
 const form = ref({
   username: '',
   nickname: '',
@@ -116,13 +116,6 @@ const save = () => {
 }
 </script>
 
-<style lang="stylus">
-.mobile-user-profile {
-  .content {
-    .van-field__label {
-      width 100px
-      text-align right
-    }
-  }
-}
+<style lang="stylus" scoped>
+@import "@/assets/css/mobile/image-mj.styl"
 </style>
