@@ -7,7 +7,7 @@
     <div class="chat-item">
       <div class="triangle"></div>
       <div class="content-box">
-        <div ref="contentRef" :data-clipboard-text="orgContent" class="content" v-html="content"></div>
+        <div :data-clipboard-text="orgContent" class="content content-mobile" v-html="content"></div>
       </div>
 
     </div>
@@ -34,17 +34,6 @@ const props = defineProps({
     default: '/images/gpt-icon.png',
   }
 });
-
-const contentRef = ref(null)
-onMounted(() => {
-  const clipboard = new Clipboard(contentRef.value);
-  clipboard.on('success', () => {
-    showNotify({type: 'success', message: '复制成功', duration: 1000})
-  })
-  clipboard.on('error', () => {
-    showNotify({type: 'danger', message: '复制失败', duration: 2000})
-  })
-})
 </script>
 
 <style lang="stylus">
@@ -117,6 +106,77 @@ onMounted(() => {
           img {
             max-width 100%
           }
+        }
+
+        .code-container {
+          position relative
+
+          .hljs {
+            border-radius 10px
+            line-height 1.5
+          }
+
+          .copy-code-mobile {
+            position: absolute;
+            right 10px
+            top 10px
+            cursor pointer
+            font-size 12px
+            color #c1c1c1
+
+            &:hover {
+              color #20a0ff
+            }
+          }
+
+        }
+
+        .lang-name {
+          display none
+          position absolute;
+          right 10px
+          bottom 50px
+          padding 2px 6px 4px 6px
+          background-color #444444
+          border-radius 10px
+          color #00e0e0
+        }
+
+
+        // 设置表格边框
+
+        table {
+          width 100%
+          margin-bottom 1rem
+          color #212529
+          border-collapse collapse;
+          border 1px solid #dee2e6;
+          background-color #ffffff
+
+          thead {
+            th {
+              border 1px solid #dee2e6
+              vertical-align: bottom
+              border-bottom: 2px solid #dee2e6
+              padding 10px
+            }
+          }
+
+          td {
+            border 1px solid #dee2e6
+            padding 10px
+          }
+        }
+
+        // 代码快
+
+        blockquote {
+          margin 0
+          background-color: #ebfffe;
+          padding: 0.8rem 1.5rem;
+          border-left: 0.5rem solid;
+          border-color: #026863;
+          color: #2c3e50;
         }
       }
     }

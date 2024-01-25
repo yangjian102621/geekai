@@ -309,7 +309,7 @@ const handleSelectionChange = function (rows) {
 const resetPass = (row) => {
   showResetPassDialog.value = true
   pass.value.id = row.id
-  pass.value.username = row.mobile
+  pass.value.username = row.username
 }
 
 const doResetPass = () => {

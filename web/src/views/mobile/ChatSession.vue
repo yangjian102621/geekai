@@ -48,14 +48,6 @@
                           :icon="item.icon"
                           :org-content="item.orgContent"
                           :tokens="item['tokens']"/>
-              <chat-mid-journey v-else-if="item.type==='mj'"
-                                :content="item.content"
-                                :icon="item.icon"
-                                :role-id="role"
-                                :chat-id="chatId"
-                                @disable-input="disableInput(true)"
-                                @enable-input="enableInput"
-                                :created-at="dateFormat(item['created_at'])"/>
             </van-cell>
           </van-list>
         </div>
@@ -87,18 +79,19 @@
               </template>
             </van-field>
           </van-cell-group>
-
         </van-sticky>
       </div>
     </div>
+
+    <button id="copy-link-btn" style="display: none;" :data-clipboard-text="url">复制链接地址</button>
   </div>
 </template>
 
 <script setup>
 import {nextTick, onMounted, ref} from "vue";
-import {showFailToast, showNotify, showToast} from "vant";
+import {showNotify, showToast} from "vant";
 import {onBeforeRouteLeave, useRouter} from "vue-router";
-import {dateFormat, randString, renderInputText, UUID} from "@/utils/libs";
+import {dateFormat, processContent, randString, renderInputText, UUID} from "@/utils/libs";
 import {getChatConfig} from "@/store/chat";
 import {httpGet} from "@/utils/http";
 import hl from "highlight.js";
@@ -107,7 +100,7 @@ import ChatPrompt from "@/components/mobile/ChatPrompt.vue";
 import ChatReply from "@/components/mobile/ChatReply.vue";
 import {getSessionId, getUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
-import ChatMidJourney from "@/components/mobile/ChatMidJourney.vue";
+import Clipboard from "clipboard";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -122,10 +115,19 @@ const title = chatConfig.title
 const chatId = chatConfig.chatId
 const loginUser = ref(null)
 
-const hits = ref(0)
+const url = location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId
 
 onMounted(() => {
   winHeight.value = document.body.offsetHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight
+
+  const clipboard = new Clipboard(".content-mobile,.copy-code-mobile,#copy-link-btn");
+  clipboard.on('success', (e) => {
+    e.clearSelection()
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
+  })
+  clipboard.on('error', () => {
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+  })
 })
 
 const chatData = ref([])
@@ -139,26 +141,45 @@ checkSession().then(user => {
   router.push('/login')
 })
 
+const md = require('markdown-it')({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
+  highlight: function (str, lang) {
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
+    // 显示复制代码按钮
+    const copyBtn = `<span class="copy-code-mobile" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(/<\/textarea>/g, '&lt;/textarea>')}</textarea>`
+    if (lang && hl.getLanguage(lang)) {
+      const langHtml = `<span class="lang-name">${lang}</span>`
+      // 处理代码高亮
+      const preCode = hl.highlight(lang, str, true).value
+      // 将代码包裹在 pre 中
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+    }
+
+    // 处理代码高亮
+    const preCode = md.utils.escapeHtml(str)
+    // 将代码包裹在 pre 中
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+  }
+});
+
 const onLoad = () => {
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
     // 加载状态结束
     finished.value = true;
     const data = res.data
     if (data && data.length > 0) {
-      const md = require('markdown-it')({breaks: true});
       for (let i = 0; i < data.length; i++) {
         if (data[i].type === "prompt") {
-          chatData.value.push(data[i]);
-          continue;
-        } else if (data[i].type === "mj") {
-          data[i].content = JSON.parse(data[i].content)
-          data[i].content.html = md.render(data[i].content?.content)
           chatData.value.push(data[i]);
           continue;
         }
 
         data[i].orgContent = data[i].content;
-        data[i].content = md.render(data[i].content);
+        data[i].content = md.render(processContent(data[i].content))
         chatData.value.push(data[i]);
       }
 
@@ -265,47 +286,15 @@ const connect = function (chat_id, role_id) {
             icon: role.icon,
             content: ""
           });
-        } else if (data.type === "mj") {
-          disableInput(true)
-          const content = data.content;
-          const md = require('markdown-it')({breaks: true});
-          content.html = md.render(content.content)
-          let key = content.key
-          // fixed bug: 执行 Upscale 和 Variation 操作的时候覆盖之前的绘画
-          if (content.status === "Finished") {
-            key = randString(32)
-            enableInput()
-          }
-          // console.log(content)
-          // check if the message is in chatData
-          let flag = false
-          for (let i = 0; i < chatData.value.length; i++) {
-            if (chatData.value[i].id === content.key) {
-              flag = true
-              chatData.value[i].content = content
-              chatData.value[i].id = key
-              break
-            }
-          }
-          if (flag === false) {
-            chatData.value.push({
-              type: "mj",
-              id: key,
-              icon: "/images/avatar/mid_journey.png",
-              content: content
-            });
-          }
-
         } else if (data.type === 'end') { // 消息接收完毕
           enableInput()
           lineBuffer.value = ''; // 清空缓冲
 
         } else {
           lineBuffer.value += data.content;
-          const md = require('markdown-it')({breaks: true});
           const reply = chatData.value[chatData.value.length - 1]
           reply['orgContent'] = lineBuffer.value;
-          reply['content'] = md.render(lineBuffer.value);
+          reply['content'] = md.render(processContent(lineBuffer.value));
 
           nextTick(() => {
             hl.configure({ignoreUnescapedHTML: true})
@@ -414,9 +403,17 @@ const shareOptions = [
   {name: '微信', icon: 'wechat'},
   {name: '复制链接', icon: 'link'},
 ]
-const shareChat = () => {
+const shareChat = (option) => {
   showShare.value = false
-  showToast('功能待开发')
+  if (option.icon === "wechat") {
+    showToast({message: "当前会话已经导出，请通过浏览器或者微信的自带分享功能分享给好友", duration: 5000})
+    router.push({
+      path: "/mobile/chat/export",
+      query: {title: title, chat_id: chatId, role: role.name, model: modelValue}
+    })
+  } else if (option.icon === "link") {
+    document.getElementById('copy-link-btn').click();
+  }
 }
 
 const inputVoice = () => {
