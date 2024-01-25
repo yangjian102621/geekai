@@ -65,14 +65,20 @@ func (s *Service) Run() {
 		logger.Infof("%s handle a new MidJourney task: %+v", s.name, task)
 		switch task.Type {
 		case types.TaskImage:
-			err = s.client.Imagine(task.Prompt)
+			err = s.client.Imagine(task)
 			break
 		case types.TaskUpscale:
-			err = s.client.Upscale(task.Index, task.MessageId, task.MessageHash)
-
+			err = s.client.Upscale(task)
 			break
 		case types.TaskVariation:
-			err = s.client.Variation(task.Index, task.MessageId, task.MessageHash)
+			err = s.client.Variation(task)
+			break
+		case types.TaskBlend:
+			err = s.client.Blend(task)
+			break
+		case types.TaskSwapFace:
+			err = s.client.SwapFace(task)
+			break
 		}
 
 		if err != nil {

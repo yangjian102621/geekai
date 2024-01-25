@@ -69,18 +69,24 @@ func (s *Service) Run() {
 		var res ImageRes
 		switch task.Type {
 		case types.TaskImage:
-			index := strings.Index(task.Prompt, " ")
-			res, err = s.Client.Imagine(task.Prompt[index+1:])
+			res, err = s.Client.Imagine(task)
 			break
 		case types.TaskUpscale:
-			res, err = s.Client.Upscale(task.Index, task.MessageId, task.MessageHash)
+			res, err = s.Client.Upscale(task)
 			break
 		case types.TaskVariation:
-			res, err = s.Client.Variation(task.Index, task.MessageId, task.MessageHash)
+			res, err = s.Client.Variation(task)
+			break
+		case types.TaskBlend:
+			res, err = s.Client.Blend(task)
+			break
+		case types.TaskSwapFace:
+			res, err = s.Client.SwapFace(task)
+			break
 		}
 
 		if err != nil || (res.Code != 1 && res.Code != 22) {
-			logger.Error("绘画任务执行失败：", err)
+			logger.Error("绘画任务执行失败：", err, res.Description)
 			// update the task progress
 			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
 			// 任务失败，通知前端
