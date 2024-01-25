@@ -14,7 +14,6 @@
             :icon="item.icon"
             :created-at="dateFormat(item['created_at'])"
             :tokens="item['tokens']"
-            :model="model"
             :content="item.content"/>
         <chat-reply v-else-if="item.type==='reply'"
                     :icon="item.icon"

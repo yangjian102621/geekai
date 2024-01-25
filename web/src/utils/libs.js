@@ -166,3 +166,34 @@ export function isImage(url) {
     return expr.test(url);
 }
 
+export function processContent(content) {
+    //process img url
+    const linkRegex = /(https?:\/\/\S+)/g;
+    const links = content.match(linkRegex);
+    if (links) {
+        for (let link of links) {
+            if (isImage(link)) {
+                const index = content.indexOf(link)
+                if (content.substring(index - 1, 2) !== "]") {
+                    content = content.replace(link, "\n![](" + link + ")\n")
+                }
+            }
+        }
+    }
+
+    // 处理引用块
+    if (content.indexOf("\n") === -1) {
+        return content
+    }
+
+    const texts = content.split("\n")
+    const lines = []
+    for (let txt of texts) {
+        lines.push(txt)
+        if (txt.startsWith(">")) {
+            lines.push("\n")
+        }
+    }
+    return lines.join("\n")
+}
+
