@@ -167,7 +167,7 @@ func (p *ServicePool) HasAvailableService() bool {
 }
 
 func (p *ServicePool) Notify(data plus.CBReq) error {
-	logger.Infof("收到任务回调：%+v", data)
+	logger.Debugf("收到任务回调：%+v", data)
 	var job model.MidJourneyJob
 	res := p.db.Where("task_id = ?", data.Id).First(&job)
 	if res.Error != nil {
@@ -190,7 +190,7 @@ func (p *ServicePool) SyncTaskProgress() {
 	go func() {
 		var items []model.MidJourneyJob
 		for {
-			res := p.db.Where("progress < ?", 100).Find(&items)
+			res := p.db.Where("progress >= ? AND progress < ?", 0, 100).Find(&items)
 			if res.Error != nil {
 				continue
 			}
@@ -213,6 +213,11 @@ func (p *ServicePool) SyncTaskProgress() {
 				if servicePlus := p.getServicePlus(v.ChannelId); servicePlus != nil {
 					task, err := servicePlus.Client.QueryTask(v.TaskId)
 					if err != nil {
+						continue
+					}
+					// 任务失败了
+					if task.FailReason != "" {
+						p.db.Model(&model.MidJourneyJob{Id: v.Id}).UpdateColumn("progress", -1)
 						continue
 					}
 					if len(task.Buttons) > 0 {

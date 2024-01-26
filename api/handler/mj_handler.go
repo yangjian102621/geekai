@@ -157,6 +157,11 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Prompt:    prompt,
 		CreatedAt: time.Now(),
 	}
+	if data.TaskType == types.TaskBlend.String() {
+		data.Prompt = "融图：" + strings.Join(data.ImgArr, ",")
+	} else if data.TaskType == types.TaskSwapFace.String() {
+		data.Prompt = "换脸：" + strings.Join(data.ImgArr, ",")
+	}
 	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
@@ -166,7 +171,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Id:        int(job.Id),
 		TaskId:    taskId,
 		SessionId: data.SessionId,
-		Type:      types.TaskImage,
+		Type:      types.TaskType(data.TaskType),
 		Prompt:    prompt,
 		UserId:    userId,
 		ImgArr:    data.ImgArr,
