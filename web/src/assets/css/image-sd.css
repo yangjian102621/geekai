@@ -116,31 +116,48 @@
 .page-sd .inner .task-list-box .task-list-inner .el-form-item__label {
   color: #fff;
 }
-.page-sd .inner .task-list-box .task-list-inner .img-uploader .el-upload {
+.page-sd .inner .task-list-box .task-list-inner .img-inline {
+  display: flex;
+}
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-uploader .el-upload {
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  width: 300px;
+  width: 120px;
   transition: var(--el-transition-duration-fast);
   margin-bottom: 20px;
 }
-.page-sd .inner .task-list-box .task-list-inner .img-uploader .el-upload:hover {
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-uploader .el-upload:hover {
   border-color: var(--el-color-primary);
 }
-.page-sd .inner .task-list-box .task-list-inner .img-uploader .el-upload .el-icon.uploader-icon {
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-uploader .el-upload .el-icon.uploader-icon {
   font-size: 28px;
   color: #8c939d;
   width: 100%;
   height: 120px;
   text-align: center;
 }
-.page-sd .inner .task-list-box .task-list-inner .img-inline {
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-list-box {
   display: flex;
 }
-.page-sd .inner .task-list-box .task-list-inner .img-inline .img-uploader {
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-list-box .img-item {
+  width: 120px;
+  position: relative;
   margin-right: 10px;
+}
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-list-box .img-item .el-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 5px;
+}
+.page-sd .inner .task-list-box .task-list-inner .img-inline .img-list-box .img-item .el-button {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 20px;
+  height: 20px;
 }
 .page-sd .inner .task-list-box .task-list-inner .submit-btn {
   display: flex;
@@ -155,17 +172,17 @@
   justify-content: right;
   align-items: center;
 }
-.page-sd .inner .task-list-box .running-job-list .job-item {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .running-job-list .job-item {
   width: 100%;
   padding: 2px;
   background-color: #555;
 }
-.page-sd .inner .task-list-box .running-job-list .job-item .job-item-inner {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .running-job-list .job-item .job-item-inner {
   position: relative;
   height: 100%;
   overflow: hidden;
 }
-.page-sd .inner .task-list-box .running-job-list .job-item .job-item-inner .progress {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .running-job-list .job-item .job-item-inner .progress {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -175,11 +192,11 @@
   justify-content: center;
   align-items: center;
 }
-.page-sd .inner .task-list-box .running-job-list .job-item .job-item-inner .progress span {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .running-job-list .job-item .job-item-inner .progress span {
   font-size: 20px;
   color: #fff;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item {
   width: 100%;
   height: 100%;
   border: 1px solid #666;
@@ -189,17 +206,17 @@
   transition: all 0.3s ease; /* 添加过渡效果 */
   position: relative;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .opt .opt-line {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line {
   margin: 6px 0;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul {
   display: flex;
   flex-flow: row;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul li {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul li {
   margin-right: 6px;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul li a {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul li a {
   padding: 3px 0;
   width: 40px;
   text-align: center;
@@ -209,59 +226,58 @@
   background-color: #4e5058;
   color: #fff;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul li a:hover {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul li a:hover {
   background-color: #6d6f78;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .opt .opt-line ul .show-prompt {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul .show-prompt {
   font-size: 20px;
   cursor: pointer;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item .remove {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .remove {
   display: none;
   position: absolute;
   right: 10px;
   top: 10px;
 }
-.page-sd .inner .task-list-box .finish-job-list .job-item:hover .remove {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .job-item:hover .remove {
   display: block;
 }
-.page-sd .inner .task-list-box .finish-job-list .animate:hover {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .animate:hover {
   box-shadow: 0 0 10px rgba(71,255,241,0.6); /* 添加阴影效果 */
   transform: translateY(-10px); /* 向上移动10像素 */
 }
-.page-sd .inner .task-list-box .el-image {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image {
   width: 100%;
   height: 100%;
   overflow: visible;
 }
-.page-sd .inner .task-list-box .el-image img {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image img {
   height: 240px;
 }
-.page-sd .inner .task-list-box .el-image .el-image-viewer__wrapper img {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image .el-image-viewer__wrapper img {
   width: auto;
   height: auto;
 }
-.page-sd .inner .task-list-box .el-image .image-slot {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image .image-slot {
   display: flex;
   flex-flow: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
   min-height: 200px;
   color: #fff;
   height: 240px;
 }
-.page-sd .inner .task-list-box .el-image .image-slot .iconfont {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image .image-slot .iconfont {
   font-size: 50px;
   margin-bottom: 10px;
 }
-.page-sd .inner .task-list-box .el-image.upscale {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale {
   max-height: 310px;
 }
-.page-sd .inner .task-list-box .el-image.upscale img {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale img {
   height: 310px;
 }
-.page-sd .inner .task-list-box .el-image.upscale .el-image-viewer__wrapper img {
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale .el-image-viewer__wrapper img {
   width: auto;
   height: auto;
 }
