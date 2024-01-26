@@ -86,9 +86,13 @@ func (s *Service) Run() {
 		}
 
 		if err != nil || (res.Code != 1 && res.Code != 22) {
-			logger.Error("绘画任务执行失败：", err, res.Description)
+			errMsg := err.Error() + res.Description
+			logger.Error("绘画任务执行失败：", errMsg)
 			// update the task progress
-			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
+				"progress": -1,
+				"err_msg":  errMsg,
+			})
 			// 任务失败，通知前端
 			s.notifyQueue.RPush(task.UserId)
 			// restore img_call quota
