@@ -397,7 +397,7 @@
                   <div class="job-item">
                     <el-image
                         :src="scope.item['thumb_url']"
-                        :class="scope.item.type === 'upscale' ? 'upscale' : ''" :zoom-rate="1.2"
+                        :class="scope.item['can_opt'] ? '' : 'upscale'" :zoom-rate="1.2"
                         :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
                         loading="lazy" v-if="scope.item.progress > 0">
                       <template #placeholder>
@@ -419,7 +419,7 @@
                       </template>
                     </el-image>
 
-                    <div class="opt" v-if="scope.item.type !== 'upscale'">
+                    <div class="opt" v-if="scope.item['can_opt']">
                       <div class="opt-line">
                         <ul>
                           <li><a @click="upscale(1, scope.item)">U1</a></li>
@@ -690,7 +690,8 @@ const fetchRunningJobs = (userId) => {
       if (jobs[i].progress === -1) {
         ElNotification({
           title: '任务执行失败',
-          message: "任务ID：" + jobs[i]['task_id'],
+          dangerouslyUseHTMLString: true,
+          message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
           type: 'error',
         })
         imgCalls.value += 1
@@ -712,9 +713,10 @@ const fetchFinishJobs = (userId) => {
       if (jobs[i]['use_proxy']) {
         jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?x-oss-process=image/quality,q_60&format=webp'
       } else {
-        if (jobs[i].type === 'upscale') {
+        if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
           jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
         } else {
+          jobs[i]['can_opt'] = true
           jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
         }
       }
