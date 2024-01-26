@@ -600,7 +600,8 @@ onMounted(() => {
         if (jobs[i].progress === -1) {
           ElNotification({
             title: '任务执行失败',
-            message: "任务ID：" + jobs[i]['task_id'],
+            dangerouslyUseHTMLString: true,
+            message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
             type: 'error',
           })
           imgCalls.value += 1

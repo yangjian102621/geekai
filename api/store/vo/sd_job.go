@@ -15,5 +15,6 @@ type SdJob struct {
 	Progress  int                `json:"progress"`
 	Prompt    string             `json:"prompt"`
 	Publish   bool               `json:"publish"`
+	ErrMsg    string             `json:"err_msg"`
 	CreatedAt time.Time          `json:"created_at"`
 }
