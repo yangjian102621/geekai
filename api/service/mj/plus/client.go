@@ -98,7 +98,7 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 		BotType:     "MID_JOURNEY",
 		Dimensions:  "SQUARE",
 		NotifyHook:  c.Config.NotifyURL,
-		Base64Array: make([]string, 1),
+		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) > 0 {
@@ -107,7 +107,7 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 			if err != nil {
 				logger.Error("error with download image: ", err)
 			} else {
-				body.Base64Array[0] = "data:image/png;base64," + base64.StdEncoding.EncodeToString(imageData)
+				body.Base64Array = append(body.Base64Array, "data:image/png;base64,"+base64.StdEncoding.EncodeToString(imageData))
 			}
 		}
 	}

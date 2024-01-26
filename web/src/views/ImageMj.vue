@@ -165,191 +165,241 @@
       </div>
       <div class="task-list-box">
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
-          <h2>AI绘画</h2>
-          <el-form>
-            <el-tabs v-model="activeName" class="title-tabs" @tabChange="tabChange">
-              <el-tab-pane label="文生图(可选)" name="image">
-                <div class="text">图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持 PNG 和 JPG 格式图片；
-                </div>
-                <div class="param-line pt">
-                  <el-form-item label="">
-                    <template #default>
-                      <div class="form-item-inner flex-row items-center">
-                        <el-input v-model="params.img" size="small" placeholder="请输入图片地址或者上传图片"
-                                  style="width: 300px;"/>
-                        <el-icon @click="params.img = ''" title="清空图片">
-                          <DeleteFilled/>
-                        </el-icon>
-                        <el-tooltip effect="light"
-                                    content="垫图：以某张图片为底稿参考来创作绘画 <br/> 支持 PNG 和 JPG 格式图片"
-                                    raw-content placement="right">
-                          <el-icon>
-                            <InfoFilled/>
-                          </el-icon>
-                        </el-tooltip>
-                      </div>
-                    </template>
-                  </el-form-item>
-                </div>
-
-                <div class="param-line">
-                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                             :http-request="uploadImg" style="--el-color-primary:#47fff1">
-                    <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
-                    <el-icon v-else class="uploader-icon">
-                      <Plus/>
-                    </el-icon>
-                  </el-upload>
-                </div>
-
-                <div class="param-line" style="padding-top: 10px">
-                  <el-form-item label="图像权重:">
-                    <template #default>
-                      <div class="form-item-inner">
-                        <el-slider v-model.number="params.weight" :max="1" :step="0.01"
-                                   style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
-                        <el-tooltip effect="light"
-                                    content="使用图像权重参数--iw来调整图像 URL 与文本的重要性 <br/>权重较高时意味着图像提示将对完成的作业产生更大的影响"
-                                    raw-content placement="right">
-                          <el-icon style="margin-top: 9px">
-                            <InfoFilled/>
-                          </el-icon>
-                        </el-tooltip>
-                      </div>
-                    </template>
-                  </el-form-item>
-                </div>
-
-                <div class="prompt-box">
+          <div class="extra-params">
+            <el-form>
+              <el-tabs v-model="activeName" class="title-tabs" @tabChange="tabChange">
+                <el-tab-pane label="文生图(可选)" name="image">
+                  <div class="text">图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持 PNG 和 JPG 格式图片；
+                  </div>
                   <div class="param-line pt">
-                    <div class="flex-row justify-between items-center">
-                      <div class="flex-row justify-start items-center">
-                        <span>提示词：</span>
-                        <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
-                          <el-icon>
-                            <InfoFilled/>
+                    <el-form-item label="">
+                      <template #default>
+                        <div class="form-item-inner flex-row items-center">
+                          <el-input v-model="params.img" size="small" placeholder="请输入图片地址或者上传图片"
+                                    style="width: 300px;"/>
+                          <el-icon @click="params.img = ''" title="清空图片">
+                            <DeleteFilled/>
                           </el-icon>
-                        </el-tooltip>
+                          <el-tooltip effect="light"
+                                      content="垫图：以某张图片为底稿参考来创作绘画 <br/> 支持 PNG 和 JPG 格式图片"
+                                      raw-content placement="right">
+                            <el-icon>
+                              <InfoFilled/>
+                            </el-icon>
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </el-form-item>
+                  </div>
+
+                  <div class="param-line">
+                    <div class="img-inline">
+                      <div class="img-list-box">
+                        <div class="img-item" v-for="imgURL in imgList">
+                          <el-image :src="imgURL" fit="cover"/>
+                          <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
+                        </div>
+
                       </div>
-                      <div>
-                        <el-button type="primary" @click="translatePrompt(false)" :disabled="loading">
+                      <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                                 :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                        <el-icon class="uploader-icon">
+                          <Plus/>
+                        </el-icon>
+                      </el-upload>
+                    </div>
+                  </div>
+
+                  <div class="param-line" style="padding-top: 10px">
+                    <el-form-item label="图像权重:">
+                      <template #default>
+                        <div class="form-item-inner">
+                          <el-slider v-model.number="params.weight" :max="1" :step="0.01"
+                                     style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
+                          <el-tooltip effect="light"
+                                      content="使用图像权重参数--iw来调整图像 URL 与文本的重要性 <br/>权重较高时意味着图像提示将对完成的作业产生更大的影响"
+                                      raw-content placement="right">
+                            <el-icon style="margin-top: 9px">
+                              <InfoFilled/>
+                            </el-icon>
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </el-form-item>
+                  </div>
+
+                  <div class="prompt-box">
+                    <div class="param-line pt">
+                      <div class="flex-row justify-between items-center">
+                        <div class="flex-row justify-start items-center">
+                          <span>提示词：</span>
+                          <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
+                            <el-icon>
+                              <InfoFilled/>
+                            </el-icon>
+                          </el-tooltip>
+                        </div>
+                        <div>
+                          <el-button type="primary" @click="translatePrompt(false)" :disabled="loading">
+                            <el-icon style="margin-right: 6px;font-size: 18px;">
+                              <Refresh/>
+                            </el-icon>
+                            翻译
+                          </el-button>
+
+                          <el-tooltip
+                              class="box-item"
+                              effect="light"
+                              raw-content
+                              content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
+                              placement="top-end"
+                          >
+                            <el-button type="success" @click="rewritePrompt" :disabled="loading">
+                              <el-icon style="margin-right: 6px;font-size: 18px;">
+                                <Refresh/>
+                              </el-icon>
+                              翻译并重写
+                            </el-button>
+                          </el-tooltip>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="param-line pt">
+                      <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
+                                ref="promptRef"
+                                placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
+                    </div>
+
+                    <div class="param-line pt">
+                      <div class="flex-row justify-between items-center">
+                        <div class="flex-row justify-start items-center">
+                          <span>不希望出现的内容：（可选）</span>
+                          <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
+                            <el-icon>
+                              <InfoFilled/>
+                            </el-icon>
+                          </el-tooltip>
+                        </div>
+                        <el-button type="primary" @click="translatePrompt(true)" :disabled="loading">
                           <el-icon style="margin-right: 6px;font-size: 18px;">
                             <Refresh/>
                           </el-icon>
                           翻译
                         </el-button>
-
-                        <el-tooltip
-                            class="box-item"
-                            effect="light"
-                            raw-content
-                            content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
-                            placement="top-end"
-                        >
-                          <el-button type="success" @click="rewritePrompt" :disabled="loading">
-                            <el-icon style="margin-right: 6px;font-size: 18px;">
-                              <Refresh/>
-                            </el-icon>
-                            翻译并重写
-                          </el-button>
-                        </el-tooltip>
                       </div>
                     </div>
-                  </div>
 
-                  <div class="param-line pt">
-                    <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                              ref="promptRef"
-                              placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
-                  </div>
-
-                  <div class="param-line pt">
-                    <div class="flex-row justify-between items-center">
-                      <div class="flex-row justify-start items-center">
-                        <span>不希望出现的内容：（可选）</span>
-                        <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
-                          <el-icon>
-                            <InfoFilled/>
-                          </el-icon>
-                        </el-tooltip>
-                      </div>
-                      <el-button type="primary" @click="translatePrompt(true)" :disabled="loading">
-                        <el-icon style="margin-right: 6px;font-size: 18px;">
-                          <Refresh/>
-                        </el-icon>
-                        翻译
-                      </el-button>
+                    <div class="param-line pt">
+                      <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
+                                ref="promptRef"
+                                placeholder="这里输入你不希望出现在图片上的内容，元素"/>
                     </div>
                   </div>
+                </el-tab-pane>
 
-                  <div class="param-line pt">
-                    <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                              ref="promptRef"
-                              placeholder="这里输入你不希望出现在图片上的内容，元素"/>
+                <el-tab-pane label="融图(可选)" name="blend">
+                  <div class="text">请上传两张以上的图片，最多不超过五张，超过五张图片请使用文生图功能</div>
+                  <div class="img-inline">
+                    <div class="img-list-box">
+                      <div class="img-item" v-for="imgURL in imgList">
+                        <el-image :src="imgURL" fit="cover"/>
+                        <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
+                      </div>
+
+                    </div>
+                    <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                               :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                      <el-icon class="uploader-icon">
+                        <Plus/>
+                      </el-icon>
+                    </el-upload>
                   </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="换脸(可选)" name="swapFace">
+                  <div class="text">请上传两张有脸部的图片，用右边图片的脸替换左边图片的脸</div>
+                  <div class="img-inline">
+                    <div class="img-list-box">
+                      <div class="img-item" v-for="imgURL in imgList">
+                        <el-image :src="imgURL" fit="cover"/>
+                        <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
+                      </div>
+
+                    </div>
+                    <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
+                               :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                      <el-icon class="uploader-icon">
+                        <Plus/>
+                      </el-icon>
+                    </el-upload>
+                  </div>
+                </el-tab-pane>
+              </el-tabs>
+
+              <div class="submit-btn">
+                <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
+                <div class="text-info">
+                  <el-tag type="success">绘图可用额度：{{ imgCalls }}</el-tag>
                 </div>
-              </el-tab-pane>
-
-              <el-tab-pane label="融图(可选)" name="blend">
-                <div class="text">请上传两张以上的图片</div>
-                <div class="img-inline">
-                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                             :http-request="uploadImg" style="--el-color-primary:#47fff1">
-                    <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
-                    <el-icon v-else class="uploader-icon">
-                      <Plus/>
-                    </el-icon>
-                  </el-upload>
-
-                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                             :http-request="uploadImg2" style="--el-color-primary:#47fff1">
-                    <el-image v-if="params.img2 !== ''" :src="params.img2" fit="cover"/>
-                    <el-icon v-else class="uploader-icon">
-                      <Plus/>
-                    </el-icon>
-                  </el-upload>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane label="换脸(可选)" name="swapFace">
-                <div class="text">请上传两张有脸部的图片，用右边图片的脸替换左边图片的脸</div>
-                <div class="img-inline">
-                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                             :http-request="uploadImg" style="--el-color-primary:#47fff1">
-                    <el-image v-if="params.img !== ''" :src="params.img" fit="cover"/>
-                    <el-icon v-else class="uploader-icon">
-                      <Plus/>
-                    </el-icon>
-                  </el-upload>
-
-                  <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                             :http-request="uploadImg2" style="--el-color-primary:#47fff1">
-                    <el-image v-if="params.img2 !== ''" :src="params.img2" fit="cover"/>
-                    <el-icon v-else class="uploader-icon">
-                      <Plus/>
-                    </el-icon>
-                  </el-upload>
-                </div>
-              </el-tab-pane>
-            </el-tabs>
-
-            <div class="submit-btn">
-              <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
-              <div class="text-info">
-                <el-tag type="success">绘图可用额度：{{ imgCalls }}</el-tag>
               </div>
-            </div>
-          </el-form>
+            </el-form>
+          </div>
 
-          <h2>任务列表</h2>
-          <div class="running-job-list">
-            <ItemList :items="runningJobs" v-if="runningJobs.length > 0">
-              <template #default="scope">
-                <div class="job-item">
-                  <div v-if="scope.item.progress > 0" class="job-item-inner">
-                    <el-image :src="scope.item['img_url']" :zoom-rate="1.2"
-                              :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="0"
-                              loading="lazy">
+          <div class="job-list-box">
+            <h2>任务列表</h2>
+            <div class="running-job-list">
+              <ItemList :items="runningJobs" v-if="runningJobs.length > 0">
+                <template #default="scope">
+                  <div class="job-item">
+                    <div v-if="scope.item.progress > 0" class="job-item-inner">
+                      <el-image :src="scope.item['img_url']" :zoom-rate="1.2"
+                                :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="0"
+                                loading="lazy">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
+
+                        <template #error>
+                          <div class="image-slot">
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
+
+                      <div class="progress">
+                        <el-progress type="circle" :percentage="scope.item.progress" :width="100"
+                                     color="#47fff1"/>
+                      </div>
+                    </div>
+                    <el-image fit="cover" v-else>
+                      <template #error>
+                        <div class="image-slot">
+                          <i class="iconfont icon-quick-start"></i>
+                          <span>任务正在排队中</span>
+                        </div>
+                      </template>
+                    </el-image>
+                  </div>
+                </template>
+              </ItemList>
+              <el-empty :image-size="100" v-else/>
+            </div>
+
+            <h2>创作记录</h2>
+            <div class="finish-job-list">
+              <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
+                <template #default="scope">
+                  <div class="job-item">
+                    <el-image
+                        :src="scope.item['thumb_url']"
+                        :class="scope.item.type === 'upscale' ? 'upscale' : ''" :zoom-rate="1.2"
+                        :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
+                        loading="lazy" v-if="scope.item.progress > 0">
                       <template #placeholder>
                         <div class="image-slot">
                           正在加载图片
@@ -357,7 +407,11 @@
                       </template>
 
                       <template #error>
-                        <div class="image-slot">
+                        <div class="image-slot" v-if="scope.item['img_url'] === ''">
+                          <i class="iconfont icon-loading"></i>
+                          <span>正在下载图片</span>
+                        </div>
+                        <div class="image-slot" v-else>
                           <el-icon>
                             <Picture/>
                           </el-icon>
@@ -365,109 +419,63 @@
                       </template>
                     </el-image>
 
-                    <div class="progress">
-                      <el-progress type="circle" :percentage="scope.item.progress" :width="100"
-                                   color="#47fff1"/>
-                    </div>
-                  </div>
-                  <el-image fit="cover" v-else>
-                    <template #error>
-                      <div class="image-slot">
-                        <i class="iconfont icon-quick-start"></i>
-                        <span>任务正在排队中</span>
-                      </div>
-                    </template>
-                  </el-image>
-                </div>
-              </template>
-            </ItemList>
-            <el-empty :image-size="100" v-else/>
-          </div>
+                    <div class="opt" v-if="scope.item.type !== 'upscale'">
+                      <div class="opt-line">
+                        <ul>
+                          <li><a @click="upscale(1, scope.item)">U1</a></li>
+                          <li><a @click="upscale(2, scope.item)">U2</a></li>
+                          <li><a @click="upscale(3, scope.item)">U3</a></li>
+                          <li><a @click="upscale(4, scope.item)">U4</a></li>
+                          <li class="show-prompt">
 
-          <h2>创作记录</h2>
-          <div class="finish-job-list">
-            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
-              <template #default="scope">
-                <div class="job-item">
-                  <el-image
-                      :src="scope.item['thumb_url']"
-                      :class="scope.item.type === 'upscale' ? 'upscale' : ''" :zoom-rate="1.2"
-                      :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
-                      loading="lazy" v-if="scope.item.progress > 0">
-                    <template #placeholder>
-                      <div class="image-slot">
-                        正在加载图片
-                      </div>
-                    </template>
-
-                    <template #error>
-                      <div class="image-slot" v-if="scope.item['img_url'] === ''">
-                        <i class="iconfont icon-loading"></i>
-                        <span>正在下载图片</span>
-                      </div>
-                      <div class="image-slot" v-else>
-                        <el-icon>
-                          <Picture/>
-                        </el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-
-                  <div class="opt" v-if="scope.item.type !== 'upscale'">
-                    <div class="opt-line">
-                      <ul>
-                        <li><a @click="upscale(1, scope.item)">U1</a></li>
-                        <li><a @click="upscale(2, scope.item)">U2</a></li>
-                        <li><a @click="upscale(3, scope.item)">U3</a></li>
-                        <li><a @click="upscale(4, scope.item)">U4</a></li>
-                        <li class="show-prompt">
-
-                          <el-popover placement="left" title="提示词" :width="240" trigger="hover">
-                            <template #reference>
-                              <el-icon>
-                                <ChromeFilled/>
-                              </el-icon>
-                            </template>
-
-                            <template #default>
-                              <div class="mj-list-item-prompt">
-                                <span>{{ scope.item.prompt }}</span>
-                                <el-icon class="copy-prompt"
-                                         :data-clipboard-text="scope.item.prompt">
-                                  <DocumentCopy/>
+                            <el-popover placement="left" title="提示词" :width="240" trigger="hover">
+                              <template #reference>
+                                <el-icon>
+                                  <ChromeFilled/>
                                 </el-icon>
-                              </div>
-                            </template>
-                          </el-popover>
-                        </li>
-                      </ul>
+                              </template>
+
+                              <template #default>
+                                <div class="mj-list-item-prompt">
+                                  <span>{{ scope.item.prompt }}</span>
+                                  <el-icon class="copy-prompt"
+                                           :data-clipboard-text="scope.item.prompt">
+                                    <DocumentCopy/>
+                                  </el-icon>
+                                </div>
+                              </template>
+                            </el-popover>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div class="opt-line">
+                        <ul>
+                          <li><a @click="variation(1, scope.item)">V1</a></li>
+                          <li><a @click="variation(2, scope.item)">V2</a></li>
+                          <li><a @click="variation(3, scope.item)">V3</a></li>
+                          <li><a @click="variation(4, scope.item)">V4</a></li>
+                        </ul>
+                      </div>
                     </div>
 
-                    <div class="opt-line">
-                      <ul>
-                        <li><a @click="variation(1, scope.item)">V1</a></li>
-                        <li><a @click="variation(2, scope.item)">V2</a></li>
-                        <li><a @click="variation(3, scope.item)">V3</a></li>
-                        <li><a @click="variation(4, scope.item)">V4</a></li>
-                      </ul>
+                    <div class="remove">
+                      <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
+                      <el-button type="warning" v-if="scope.item.publish" @click="publishImage(scope.item, false)"
+                                 circle>
+                        <i class="iconfont icon-cancel-share"></i>
+                      </el-button>
+                      <el-button type="success" v-else @click="publishImage(scope.item, true)" circle>
+                        <i class="iconfont icon-share-bold"></i>
+                      </el-button>
                     </div>
                   </div>
+                </template>
+              </ItemList>
 
-                  <div class="remove">
-                    <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
-                    <el-button type="warning" v-if="scope.item.publish" @click="publishImage(scope.item, false)" circle>
-                      <i class="iconfont icon-cancel-share"></i>
-                    </el-button>
-                    <el-button type="success" v-else @click="publishImage(scope.item, true)" circle>
-                      <i class="iconfont icon-share-bold"></i>
-                    </el-button>
-                  </div>
-                </div>
-              </template>
-            </ItemList>
-
-            <el-empty :image-size="100" v-else/>
-          </div> <!-- end finish job list-->
+              <el-empty :image-size="100" v-else/>
+            </div> <!-- end finish job list-->
+          </div>
         </div>
 
       </div><!-- end task list box -->
@@ -496,6 +504,7 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
+import {removeArrayItem} from "@/utils/libs";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -553,16 +562,16 @@ const params = ref({
   chaos: 0,
   stylize: 100,
   seed: 0,
-  raw: false,
-  img: "",
-  img2: "",
   img_arr: [],
+  raw: false,
   weight: 0.25,
   prompt: "",
   neg_prompt: "",
   tile: false,
   quality: 0
 })
+
+const imgList = ref([])
 
 const activeName = ref('image')
 
@@ -735,7 +744,7 @@ const uploadImg = (file) => {
       formData.append('file', result, result.name);
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
-        params.value.img = res.data.url
+        imgList.value.push(res.data.url)
         ElMessage.success('上传成功')
       }).catch((e) => {
         ElMessage.error('上传失败:' + e.message)
@@ -746,26 +755,7 @@ const uploadImg = (file) => {
     },
   });
 };
-const uploadImg2 = (file) => {
-  // 压缩图片并上传
-  new Compressor(file.file, {
-    quality: 0.6,
-    success(result) {
-      const formData = new FormData();
-      formData.append('file', result, result.name);
-      // 执行上传操作
-      httpPost('/api/upload', formData).then((res) => {
-        params.value.img2 = res.data.url
-        ElMessage.success('上传成功')
-      }).catch((e) => {
-        ElMessage.error('上传失败:' + e.message)
-      })
-    },
-    error(err) {
-      console.log(err.message);
-    },
-  });
-};
+
 // 创建绘图任务
 const promptRef = ref(null)
 const generate = () => {
@@ -776,13 +766,11 @@ const generate = () => {
   if (params.value.model.indexOf("niji") !== -1 && params.value.raw) {
     return ElMessage.error("动漫模型不允许启用原始模式")
   }
+  if (imgList.value.length !== 2 && params.value.task_type === "swapFace") {
+    return ElMessage.error("换脸操作需要上传两张图片")
+  }
   params.value.session_id = getSessionId()
-  if (params.value.img !== "") {
-    params.value.img_arr.push(params.value.img)
-  }
-  if (params.value.img2 !== "") {
-    params.value.img_arr.push(params.value.img2)
-  }
+  params.value.img_arr = imgList.value
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
     imgCalls.value -= 1
@@ -853,6 +841,11 @@ const publishImage = (item, action) => {
 // 切换菜单
 const tabChange = (tab) => {
   params.value.task_type = tab
+}
+
+// 删除已上传图片
+const removeUploadImage = (url) => {
+  imgList.value = removeArrayItem(imgList.value, url)
 }
 
 </script>
