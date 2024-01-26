@@ -7,6 +7,7 @@ type HistoryMessage struct {
 	ChatId     string // 会话 ID
 	UserId     uint   // 用户 ID
 	RoleId     uint   // 角色 ID
+	Model      string // AI模型
 	Type       string
 	Icon       string
 	Tokens     int

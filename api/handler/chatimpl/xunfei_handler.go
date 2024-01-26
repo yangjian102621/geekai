@@ -198,6 +198,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 				Content:    template.HTMLEscapeString(prompt),
 				Tokens:     promptToken,
 				UseContext: true,
+				Model:      req.Model,
 			}
 			historyUserMsg.CreatedAt = promptCreatedAt
 			historyUserMsg.UpdatedAt = promptCreatedAt
@@ -219,6 +220,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 				Content:    message.Content,
 				Tokens:     totalTokens,
 				UseContext: true,
+				Model:      req.Model,
 			}
 			historyReplyMsg.CreatedAt = replyCreatedAt
 			historyReplyMsg.UpdatedAt = replyCreatedAt
@@ -243,6 +245,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 			} else {
 				chatItem.Title = prompt
 			}
+			chatItem.Model = req.Model
 			h.db.Create(&chatItem)
 		}
 	}
