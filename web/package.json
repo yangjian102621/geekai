@@ -19,6 +19,8 @@
     "json-bigint": "^1.0.0",
     "lodash": "^4.17.21",
     "markdown-it": "^13.0.1",
+    "markdown-it-latex2img": "^0.0.6",
+    "markdown-it-mathjax": "^2.0.0",
     "md-editor-v3": "^2.2.1",
     "pinia": "^2.1.4",
     "qrcode": "^1.5.3",
