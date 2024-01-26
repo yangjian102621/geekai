@@ -141,6 +141,8 @@ checkSession().then(user => {
   router.push('/login')
 })
 
+const latexPlugin = require('markdown-it-latex2img')
+const mathjaxPlugin = require('markdown-it-mathjax')
 const md = require('markdown-it')({
   breaks: true,
   html: true,
@@ -165,6 +167,9 @@ const md = require('markdown-it')({
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
   }
 });
+md.use(latexPlugin)
+md.use(mathjaxPlugin)
+
 
 const onLoad = () => {
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
