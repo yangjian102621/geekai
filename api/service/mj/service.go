@@ -82,9 +82,12 @@ func (s *Service) Run() {
 		}
 
 		if err != nil {
-			logger.Error("绘画任务执行失败：", err)
+			logger.Error("绘画任务执行失败：", err.Error())
 			// update the task progress
-			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumn("progress", -1)
+			s.db.Model(&model.MidJourneyJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
+				"progress": -1,
+				"err_msg":  err.Error(),
+			})
 			s.notifyQueue.RPush(task.UserId)
 			// restore img_call quota
 			if task.Type.String() != types.TaskUpscale.String() {

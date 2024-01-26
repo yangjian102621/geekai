@@ -217,7 +217,10 @@ func (p *ServicePool) SyncTaskProgress() {
 					}
 					// 任务失败了
 					if task.FailReason != "" {
-						p.db.Model(&model.MidJourneyJob{Id: v.Id}).UpdateColumn("progress", -1)
+						p.db.Model(&model.MidJourneyJob{Id: v.Id}).UpdateColumns(map[string]interface{}{
+							"progress": -1,
+							"err_msg":  task.FailReason,
+						})
 						continue
 					}
 					if len(task.Buttons) > 0 {
