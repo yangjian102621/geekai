@@ -206,6 +206,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 					Content:    template.HTMLEscapeString(prompt),
 					Tokens:     promptToken,
 					UseContext: useContext,
+					Model:      req.Model,
 				}
 				historyUserMsg.CreatedAt = promptCreatedAt
 				historyUserMsg.UpdatedAt = promptCreatedAt
@@ -235,6 +236,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 					Content:    message.Content,
 					Tokens:     totalTokens,
 					UseContext: useContext,
+					Model:      req.Model,
 				}
 				historyReplyMsg.CreatedAt = replyCreatedAt
 				historyReplyMsg.UpdatedAt = replyCreatedAt
@@ -260,6 +262,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				} else {
 					chatItem.Title = prompt
 				}
+				chatItem.Model = req.Model
 				h.db.Create(&chatItem)
 			}
 		}

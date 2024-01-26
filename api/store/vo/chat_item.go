@@ -7,5 +7,6 @@ type ChatItem struct {
 	RoleId  uint   `json:"role_id"`
 	ChatId  string `json:"chat_id"`
 	ModelId uint   `json:"model_id"`
+	Model   string `json:"model"`
 	Title   string `json:"title"`
 }
