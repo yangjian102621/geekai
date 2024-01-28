@@ -97,7 +97,7 @@ func (s *Service) Run() {
 		}
 
 		// lock the task until the execute timeout
-		s.taskStartTimes[task.Id] = time.Now()
+		s.taskStartTimes[int(task.Id)] = time.Now()
 		atomic.AddInt32(&s.handledTaskNum, 1)
 
 	}
@@ -152,7 +152,7 @@ func (s *Service) Notify(data CBReq) {
 	job.OrgURL = data.Image.URL
 	if s.client.Config.UseCDN {
 		job.UseProxy = true
-		job.ImgURL = strings.ReplaceAll(data.Image.URL, "https://cdn.discordapp.com", s.client.imgCdnURL)
+		job.ImgURL = strings.ReplaceAll(data.Image.URL, "https://cdn.discordapp.com", s.client.Config.ImgCdnURL)
 	}
 
 	res = s.db.Updates(&job)
