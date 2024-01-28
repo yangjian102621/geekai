@@ -168,7 +168,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 
 	h.pool.PushTask(types.MjTask{
-		Id:        int(job.Id),
+		Id:        job.Id,
 		TaskId:    taskId,
 		SessionId: data.SessionId,
 		Type:      types.TaskType(data.TaskType),
@@ -178,7 +178,9 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	})
 
 	client := h.pool.Clients.Get(uint(job.UserId))
-	_ = client.Send([]byte("Task Updated"))
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
+	}
 
 	// update user's img calls
 	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
@@ -227,7 +229,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	}
 
 	h.pool.PushTask(types.MjTask{
-		Id:          int(job.Id),
+		Id:          job.Id,
 		SessionId:   data.SessionId,
 		Type:        types.TaskUpscale,
 		Prompt:      data.Prompt,
@@ -239,7 +241,9 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	})
 
 	client := h.pool.Clients.Get(uint(job.UserId))
-	_ = client.Send([]byte("Task Updated"))
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
+	}
 
 	resp.SUCCESS(c)
 }
@@ -275,7 +279,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	}
 
 	h.pool.PushTask(types.MjTask{
-		Id:          int(job.Id),
+		Id:          job.Id,
 		SessionId:   data.SessionId,
 		Type:        types.TaskVariation,
 		Prompt:      data.Prompt,
@@ -287,7 +291,9 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	})
 
 	client := h.pool.Clients.Get(uint(job.UserId))
-	_ = client.Send([]byte("Task Updated"))
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
+	}
 
 	// update user's img calls
 	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
@@ -340,8 +346,8 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 
 		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {
 			// 正在运行中任务使用代理访问图片
-			if h.App.Config.ImgCdnURL != "" {
-				job.ImgURL = strings.ReplaceAll(job.OrgURL, "https://cdn.discordapp.com", h.App.Config.ImgCdnURL)
+			if job.UseProxy {
+				job.ImgURL = job.OrgURL
 			} else {
 				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
 				if err == nil {
@@ -381,7 +387,9 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 	}
 
 	client := h.pool.Clients.Get(data.UserId)
-	_ = client.Send([]byte("Task Updated"))
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
+	}
 
 	resp.SUCCESS(c)
 }

@@ -26,23 +26,15 @@ WeChatBot = false
   AppId = ""
   Token = ""
 
-[SmsConfig] # 阿里云短信服务配置
-  AccessKey = ""
-  AccessSecret = ""
-  Product = "Dysmsapi"
-  Domain = "dysmsapi.aliyuncs.com"
-  Sign = ""
-  CodeTempId = ""
-
-[Sms] # Sms 配置，用于发送短信
+[SMS] # Sms 配置，用于发送短信
    Active = "Ali" # 当前启用的短信服务，默认使用阿里云
-   [Sms.SmsBao]
+   [SMS.Bao]
       Username = ""
       Password = ""
       Domain = "api.smsbao.com"
       Sign = "【极客学长】"
       CodeTemplate = "您的验证码是{code}。5分钟有效，若非本人操作，请忽略本短信。"
-   [Sms.Ali]
+   [SMS.Ali]
       AccessKey = ""
       AccessSecret = ""
       Product = "Dysmsapi"
@@ -83,6 +75,7 @@ WeChatBot = false
 [[MjPlusConfigs]]
   Enabled = false
   ApiURL = "https://api.chatgpt-plus.net" # 目前暂时不支持更改
+  CdnURL = "" # CND 加速的 URL，如果有的话就设置
   ApiKey = "sk-xxx"
   NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要改成你的域名
 
@@ -114,9 +107,9 @@ WeChatBot = false
 [HuPiPayConfig]
   Enabled = false
   Name = "wechat"
-  AppId = "201906161477"
-  AppSecret = "7f403199d510fb2c6f0b9f2311800e7c"
-  PayURL = "https://api.xunhupay.com/payment/do.html"
+  AppId = ""
+  AppSecret = ""
+  ApiURL = "https://api.xunhupay.com"
   NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
 
 [SmtpConfig] # 注意，阿里云服务器禁用了25号端口，所以如果需要使用邮件功能，请别用阿里云服务器
@@ -131,5 +124,5 @@ WeChatBot = false
   Name = "wechat" # 请不要改动
   AppId = "" # 商户 ID
   PrivateKey = "" # 秘钥
-  ApiURL = "https://payjs.cn/api/native"
+  ApiURL = "https://payjs.cn"
   NotifyURL = "https://ai.r9it.com/api/payment/payjs/notify" # 异步回调地址，域名改成你自己的

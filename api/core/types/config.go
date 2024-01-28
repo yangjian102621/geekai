@@ -19,7 +19,6 @@ type AppConfig struct {
 	OSS           OSSConfig               // OSS config
 	MjConfigs     []MidJourneyConfig      // mj AI draw service pool
 	MjPlusConfigs []MidJourneyPlusConfig  // MJ plus config
-	ImgCdnURL     string                  // 图片反代加速地址
 	WeChatBot     bool                    // 是否启用微信机器人
 	SdConfigs     []StableDiffusionConfig // sd AI draw service pool
 
@@ -51,6 +50,7 @@ type MidJourneyConfig struct {
 	GuildId        string // Server ID
 	ChanelId       string // Chanel ID
 	UseCDN         bool
+	ImgCdnURL      string // 图片反代加速地址
 	DiscordAPI     string
 	DiscordGateway string
 }
@@ -63,8 +63,9 @@ type StableDiffusionConfig struct {
 }
 
 type MidJourneyPlusConfig struct {
-	Enabled   bool // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
-	ApiURL    string
+	Enabled   bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
+	ApiURL    string // api 地址
+	CdnURL    string // CDN 加速地址
 	ApiKey    string
 	NotifyURL string // 任务进度更新回调地址
 }

@@ -64,7 +64,9 @@
             >
               <template #left-icon>
                 <van-button round type="success" class="button-voice" @click="inputVoice">
-                  <van-icon name="volume-o"/>
+                  <el-icon>
+                    <Microphone/>
+                  </el-icon>
                 </van-button>
               </template>
 
@@ -84,6 +86,19 @@
     </div>
 
     <button id="copy-link-btn" style="display: none;" :data-clipboard-text="url">复制链接地址</button>
+
+    <van-overlay :show="showMic" z-index="100">
+      <div class="mic-wrapper">
+        <div class="image">
+          <van-image
+              width="100"
+              height="100"
+              src="/images/mic.gif"
+          />
+        </div>
+        <van-button type="success" @click="stopVoice">说完了</van-button>
+      </div>
+    </van-overlay>
   </div>
 </template>
 
@@ -101,6 +116,7 @@ import ChatReply from "@/components/mobile/ChatReply.vue";
 import {getSessionId, getUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
 import Clipboard from "clipboard";
+import {Microphone} from "@element-plus/icons-vue";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -114,6 +130,7 @@ const modelValue = chatConfig.modelValue
 const title = chatConfig.title
 const chatId = chatConfig.chatId
 const loginUser = ref(null)
+const showMic = ref(false)
 
 const url = location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId
 
@@ -421,24 +438,28 @@ const shareChat = (option) => {
   }
 }
 
+// eslint-disable-next-line no-undef
+const recognition = new webkitSpeechRecognition() || SpeechRecognition();
+//recognition.lang = 'zh-CN' // 设置语音识别语言
+recognition.onresult = function (event) {
+  prompt.value = event.results[0][0].transcript
+};
+
+recognition.onerror = function (event) {
+  showNotify({type: 'danger', message: '语音识别错误:' + event.error})
+};
+
+recognition.onend = function () {
+  console.log('语音识别结束');
+};
 const inputVoice = () => {
-  const recognition = new webkitSpeechRecognition() || SpeechRecognition();
-  // recognition.lang = 'zh-CN' // 设置语音识别语言
-
-  recognition.onresult = function (event) {
-    const result = event.results[0][0].transcript;
-    showToast('你说了: ' + result)
-  };
-
-  recognition.onerror = function (event) {
-    showNotify({type: 'danger', message: '语音识别错误:' + event.error})
-  };
-
-  recognition.onend = function () {
-    console.log('语音识别结束');
-  };
-
+  showMic.value = true
   recognition.start();
+}
+
+const stopVoice = () => {
+  showMic.value = false
+  recognition.stop()
 }
 </script>
 
