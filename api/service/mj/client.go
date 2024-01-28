@@ -12,13 +12,12 @@ import (
 // MidJourney client
 
 type Client struct {
-	client    *req.Client
-	Config    types.MidJourneyConfig
-	imgCdnURL string
-	apiURL    string
+	client *req.Client
+	Config types.MidJourneyConfig
+	apiURL string
 }
 
-func NewClient(config types.MidJourneyConfig, proxy string, imgCdnURL string) *Client {
+func NewClient(config types.MidJourneyConfig, proxy string) *Client {
 	client := req.C().SetTimeout(10 * time.Second)
 	var apiURL string
 	// set proxy URL
@@ -31,7 +30,7 @@ func NewClient(config types.MidJourneyConfig, proxy string, imgCdnURL string) *C
 		}
 	}
 
-	return &Client{client: client, Config: config, apiURL: apiURL, imgCdnURL: imgCdnURL}
+	return &Client{client: client, Config: config, apiURL: apiURL}
 }
 
 func (c *Client) Imagine(task types.MjTask) error {

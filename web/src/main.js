@@ -19,6 +19,7 @@ import {
     List,
     NavBar,
     Notify,
+    Overlay,
     Picker,
     Popup,
     Search,
@@ -65,6 +66,7 @@ app.use(Switch);
 app.use(Uploader);
 app.use(Tag);
 app.use(V3waterfall)
+app.use(Overlay)
 app.use(router).use(ElementPlus).mount('#app')
 
 
