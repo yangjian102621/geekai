@@ -56,7 +56,7 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 	}
 	p.Add("mchid", js.config.AppId)
 
-	p.Add("Sign", js.sign(p))
+	p.Add("sign", js.sign(p))
 
 	cli := http.Client{}
 	apiURL := fmt.Sprintf("%s/api/native", js.config.ApiURL)

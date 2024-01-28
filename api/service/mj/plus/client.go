@@ -7,8 +7,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/imroc/req/v3"
 )
@@ -18,10 +19,17 @@ var logger = logger2.GetLogger()
 // Client MidJourney Plus Client
 type Client struct {
 	Config types.MidJourneyPlusConfig
+	apiURL string
 }
 
 func NewClient(config types.MidJourneyPlusConfig) *Client {
-	return &Client{Config: config}
+	var apiURL string
+	if config.CdnURL != "" {
+		apiURL = config.CdnURL
+	} else {
+		apiURL = config.ApiURL
+	}
+	return &Client{Config: config, apiURL: apiURL}
 }
 
 type ImageReq struct {
@@ -54,12 +62,12 @@ type ErrRes struct {
 }
 
 func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
-	apiURL := fmt.Sprintf("%s/mj-fast/mj/submit/imagine", c.Config.ApiURL)
+	apiURL := fmt.Sprintf("%s/mj-fast/mj/submit/imagine", c.apiURL)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
 		Prompt:      task.Prompt,
 		NotifyHook:  c.Config.NotifyURL,
-		Base64Array: make([]string, 1),
+		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) > 0 {
@@ -67,7 +75,7 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		if err != nil {
 			logger.Error("error with download image: ", err)
 		} else {
-			body.Base64Array[0] = "data:image/png;base64," + base64.StdEncoding.EncodeToString(imageData)
+			body.Base64Array = append(body.Base64Array, "data:image/png;base64,"+base64.StdEncoding.EncodeToString(imageData))
 		}
 
 	}
@@ -80,12 +88,12 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		errStr, _ := io.ReadAll(r.Body)
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v，%v", err, string(errStr))
+		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
 	if r.IsErrorState() {
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
+		errStr, _ := io.ReadAll(r.Body)
+		return ImageRes{}, fmt.Errorf("API 返回错误：%s，%v", errRes.Error.Message, string(errStr))
 	}
 
 	return res, nil
@@ -93,7 +101,7 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 
 // Blend 融图
 func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
-	apiURL := fmt.Sprintf("%s/mj-fast/mj/submit/blend", c.Config.ApiURL)
+	apiURL := fmt.Sprintf("%s/mj-fast/mj/submit/blend", c.apiURL)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
 		Dimensions:  "SQUARE",
@@ -133,7 +141,7 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 
 // SwapFace 换脸
 func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
-	apiURL := fmt.Sprintf("%s/mj-fast/mj/insight-face/swap", c.Config.ApiURL)
+	apiURL := fmt.Sprintf("%s/mj-fast/mj/insight-face/swap", c.apiURL)
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) != 2 {
 		return ImageRes{}, errors.New("参数错误，必须上传2张图片")
@@ -189,7 +197,7 @@ func (c *Client) Upscale(task types.MjTask) (ImageRes, error) {
 		"taskId":     task.MessageId,
 		"notifyHook": c.Config.NotifyURL,
 	}
-	apiURL := fmt.Sprintf("%s/mj/submit/action", c.Config.ApiURL)
+	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
 	var res ImageRes
 	var errRes ErrRes
 	r, err := req.C().R().
@@ -216,7 +224,7 @@ func (c *Client) Variation(task types.MjTask) (ImageRes, error) {
 		"taskId":     task.MessageId,
 		"notifyHook": c.Config.NotifyURL,
 	}
-	apiURL := fmt.Sprintf("%s/mj/submit/action", c.Config.ApiURL)
+	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
 	var res ImageRes
 	var errRes ErrRes
 	r, err := req.C().R().
@@ -262,7 +270,7 @@ type QueryRes struct {
 }
 
 func (c *Client) QueryTask(taskId string) (QueryRes, error) {
-	apiURL := fmt.Sprintf("%s/mj/task/%s/fetch", c.Config.ApiURL, taskId)
+	apiURL := fmt.Sprintf("%s/mj/task/%s/fetch", c.apiURL, taskId)
 	var res QueryRes
 	r, err := req.C().R().SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetSuccessResult(&res).
