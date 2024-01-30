@@ -6,12 +6,13 @@ import (
 	"chatplus/utils"
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/qiniu/go-sdk/v7/auth/qbox"
-	"github.com/qiniu/go-sdk/v7/storage"
 	"net/url"
 	"path/filepath"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/qiniu/go-sdk/v7/auth/qbox"
+	"github.com/qiniu/go-sdk/v7/storage"
 )
 
 type QinNiuOss struct {
@@ -97,7 +98,7 @@ func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
-	fileExt := filepath.Ext(parse.Path)
+	fileExt := utils.GetImgExt(parse.Path)
 	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}

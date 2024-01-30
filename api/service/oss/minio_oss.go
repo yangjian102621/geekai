@@ -5,13 +5,14 @@ import (
 	"chatplus/utils"
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 type MiniOss struct {
@@ -77,7 +78,7 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}
 	defer fileReader.Close()
 
-	fileExt := filepath.Ext(file.Filename)
+	fileExt := utils.GetImgExt(file.Filename)
 	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(ctx, s.config.Bucket, filename, fileReader, file.Size, minio.PutObjectOptions{
 		ContentType: file.Header.Get("Content-Type"),
