@@ -446,6 +446,8 @@ recognition.onresult = function (event) {
 };
 
 recognition.onerror = function (event) {
+  showMic.value = false
+  recognition.stop()
   showNotify({type: 'danger', message: '语音识别错误:' + event.error})
 };
 
