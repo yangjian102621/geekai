@@ -124,14 +124,12 @@ func (p *ServicePool) DownloadImages() {
 				logger.Infof("try to download image: %s", v.OrgURL)
 				var imgURL string
 				var err error
-				if v.UseProxy {
-					if servicePlus := p.getServicePlus(v.ChannelId); servicePlus != nil {
-						task, _ := servicePlus.Client.QueryTask(v.TaskId)
-						if len(task.Buttons) > 0 {
-							v.Hash = plus.GetImageHash(task.Buttons[0].CustomId)
-						}
-						imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, false)
+				if servicePlus := p.getServicePlus(v.ChannelId); servicePlus != nil {
+					task, _ := servicePlus.Client.QueryTask(v.TaskId)
+					if len(task.Buttons) > 0 {
+						v.Hash = plus.GetImageHash(task.Buttons[0].CustomId)
 					}
+					imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, false)
 				} else {
 					imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, true)
 				}
