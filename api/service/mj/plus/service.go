@@ -180,7 +180,6 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 			job.OrgURL = task.ImageUrl
 		}
 	}
-	job.UseProxy = true
 	job.MessageId = task.Id
 	tx := s.db.Updates(&job)
 	if tx.Error != nil {

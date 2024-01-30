@@ -5,11 +5,12 @@ import (
 	"chatplus/core/types"
 	"chatplus/utils"
 	"fmt"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/gin-gonic/gin"
 	"net/url"
 	"path/filepath"
 	"time"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/gin-gonic/gin"
 )
 
 type AliYunOss struct {
@@ -88,7 +89,7 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
-	fileExt := filepath.Ext(parse.Path)
+	fileExt := utils.GetImgExt(parse.Path)
 	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	// 上传文件字节数据
 	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
