@@ -8,6 +8,7 @@ import {
     Button,
     Cell,
     CellGroup,
+    Col,
     ConfigProvider,
     Dialog,
     DropdownItem,
@@ -22,8 +23,10 @@ import {
     Overlay,
     Picker,
     Popup,
+    Row,
     Search,
     ShareSheet,
+    Slider,
     Sticky,
     SwipeCell,
     Switch,
@@ -67,6 +70,9 @@ app.use(Uploader);
 app.use(Tag);
 app.use(V3waterfall)
 app.use(Overlay)
+app.use(Col)
+app.use(Row)
+app.use(Slider)
 app.use(router).use(ElementPlus).mount('#app')
 
 
