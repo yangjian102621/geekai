@@ -153,6 +153,12 @@
 #app .common-layout .el-main .chat-head .iconfont {
   margin-right: 5px;
 }
+#app .common-layout .el-main .chat-head .is-circle {
+  margin-left: 5px;
+}
+#app .common-layout .el-main .chat-head .is-circle .iconfont {
+  margin-right: 0;
+}
 #app .common-layout .el-main .right-box {
   min-width: 0;
   flex: 1;
