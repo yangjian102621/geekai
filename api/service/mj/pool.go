@@ -136,10 +136,10 @@ func (p *ServicePool) DownloadImages() {
 					imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, true)
 				}
 				if err != nil {
-					logger.Error("error with download image: ", err)
+					logger.Errorf("error with download image %s, %v", v.OrgURL, err)
 					continue
 				} else {
-					logger.Info("download image %v successfully.", v.OrgURL)
+					logger.Infof("download image %s successfully.", v.OrgURL)
 				}
 
 				v.ImgURL = imgURL

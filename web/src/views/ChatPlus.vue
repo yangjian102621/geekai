@@ -117,12 +117,27 @@
               <span>导出会话</span>
             </el-button>
 
-            <el-button type="warning" @click="showFeedbackDialog = true">
-              <el-icon>
-                <Promotion/>
-              </el-icon>
-              <span>意见反馈</span>
-            </el-button>
+            <el-tooltip class="box-item"
+                        effect="dark"
+                        content="部署文档"
+                        placement="bottom">
+              <a href="https://ai.r9it.com/docs/install/" target="_blank">
+                <el-button type="primary" circle>
+                  <i class="iconfont icon-book"></i>
+                </el-button>
+              </a>
+            </el-tooltip>
+
+            <el-tooltip class="box-item"
+                        effect="dark"
+                        content="项目源码"
+                        placement="bottom">
+              <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+                <el-button type="success" circle>
+                  <i class="iconfont icon-github"></i>
+                </el-button>
+              </a>
+            </el-tooltip>
           </div>
         </div>
 
@@ -205,28 +220,6 @@
     </el-container>
 
     <el-dialog
-        v-model="showFeedbackDialog"
-        :show-close="true"
-        width="340px"
-        title="意见反馈"
-    >
-      <el-alert type="info" :closable="false">
-        <div style="font-size: 14px">
-          如果您对本项目有任何改进意见，您可以通过 Github
-          <el-link style="color: #f56c6c; font-weight: bold;"
-                   href="https://github.com/yangjian102621/chatgpt-plus/issues">
-            提交改进意见
-          </el-link>
-          或者通过扫描下面的微信二维码加入 AI 技术交流群。
-        </div>
-      </el-alert>
-
-      <div style="text-align: center;padding-top: 10px;">
-        <el-image :src="wechatCardURL"/>
-      </div>
-    </el-dialog>
-
-    <el-dialog
         v-model="showNotice"
         :show-close="true"
         custom-class="notice-dialog"
@@ -256,7 +249,7 @@ import {
   ArrowDown,
   Check,
   Close,
-  Delete,
+  Delete, Document,
   Edit,
   Plus,
   Promotion,
@@ -299,11 +292,9 @@ const showConfigDialog = ref(false);
 const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
-const showFeedbackDialog = ref(false)
 const showNotice = ref(false)
 const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
-const wechatCardURL = ref("/images/wx.png")
 
 if (isMobile()) {
   router.replace("/mobile")
@@ -353,7 +344,6 @@ onMounted(() => {
     // 获取系统配置
     httpGet("/api/admin/config/get?key=system").then(res => {
       title.value = res.data.title
-      wechatCardURL.value = res.data['wechat_card_url']
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
