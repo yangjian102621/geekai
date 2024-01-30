@@ -19,8 +19,11 @@
   margin-left: 10px;
 }
 .mobile-chat .chat-box-wrapper .van-sticky .van-cell-group--inset .van-cell .button-voice {
-  padding: 0 5px;
+  padding: 0 2px;
   height: 30px;
+}
+.mobile-chat .chat-box-wrapper .van-sticky .van-cell-group--inset .van-cell .button-voice .el-icon {
+  font-size: 24px;
 }
 .mobile-chat .van-nav-bar__title .van-dropdown-menu__title {
   margin-right: 10px;
@@ -30,6 +33,13 @@
 }
 .mobile-chat .van-nav-bar__right .van-icon {
   font-size: 20px;
+}
+.van-overlay .mic-wrapper {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  flex-flow: column;
 }
 .van-theme-dark .mobile-chat .message-list-box {
   background: #232425;
