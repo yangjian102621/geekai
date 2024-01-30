@@ -5,10 +5,13 @@ import 'vant/lib/index.css';
 import App from './App.vue'
 import {createPinia} from "pinia";
 import {
+    Badge,
     Button,
     Cell,
     CellGroup,
     Col,
+    Collapse,
+    CollapseItem,
     ConfigProvider,
     Dialog,
     DropdownItem,
@@ -73,6 +76,9 @@ app.use(Overlay)
 app.use(Col)
 app.use(Row)
 app.use(Slider)
+app.use(Badge)
+app.use(Collapse);
+app.use(CollapseItem);
 app.use(router).use(ElementPlus).mount('#app')
 
 
