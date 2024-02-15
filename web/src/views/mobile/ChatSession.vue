@@ -377,6 +377,7 @@ const sendMessage = () => {
   }
 
   if (prompt.value.trim().length === 0) {
+    showToast("请输入需要 AI 回答的问题")
     return false;
   }
 
@@ -417,7 +418,7 @@ const reGenerate = () => {
     icon: loginUser.value.avatar,
     content: renderInputText(text)
   });
-  socket.value.send(text);
+  socket.value.send(previousText.value);
 }
 
 const showShare = ref(false)
