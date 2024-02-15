@@ -340,20 +340,22 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 			continue
 		}
 
+		// 失败的任务直接删除
 		if job.Progress == -1 {
 			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
+			jobs = append(jobs, job)
 			continue
 		}
 
 		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {
-			// 正在运行中任务使用代理访问图片
-			if job.UseProxy {
-				job.ImgURL = job.OrgURL
-			} else {
+			// discord 服务器图片需要使用代理转发图片数据流
+			if strings.HasPrefix(item.OrgURL, "https://cdn.discordapp.com") {
 				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
 				if err == nil {
 					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 				}
+			} else {
+				job.ImgURL = job.OrgURL
 			}
 		}
 
