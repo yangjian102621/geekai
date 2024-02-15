@@ -342,6 +342,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 
 		if job.Progress == -1 {
 			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
+			continue
 		}
 
 		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {

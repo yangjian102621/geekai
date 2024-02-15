@@ -1,7 +1,3 @@
-.mobile-mj .content .van-field__label {
-  width: 100px;
-  text-align: right;
-}
 .mobile-mj .content .text-line {
   padding: 6px;
   font-size: 14px;
@@ -47,4 +43,92 @@
 }
 .mobile-mj .content .text-line .van-row .van-col .active {
   background-color: #e5e5e5;
+}
+.mobile-mj .content .text-line .van-button {
+  position: relative;
+}
+.mobile-mj .content .text-line .van-button .van-tag {
+  position: absolute;
+  right: 20px;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content {
+  padding: 0;
+  position: relative;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .van-image {
+  min-height: 100px;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(50,50,50,0.5);
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress .van-circle__text {
+  color: #fff;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  color: #c1c1c1;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon {
+  text-align: center;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon .iconfont {
+  font-size: 24px;
+}
+.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .text {
+  font-size: 14px;
+  margin-top: 5px;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content {
+  padding: 0;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item {
+  overflow: hidden;
+  border-radius: 6px;
+  position: relative;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-line {
+  margin: 6px 0;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-line ul {
+  display: flex;
+  flex-flow: row;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-line ul li {
+  margin-right: 6px;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-line ul li a {
+  padding: 3px 0;
+  width: 40px;
+  text-align: center;
+  border-radius: 5px;
+  display: block;
+  cursor: pointer;
+  background-color: #4e5058;
+  color: #fff;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-line ul li a:hover {
+  background-color: #6d6f78;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-line ul .show-prompt {
+  font-size: 20px;
+  cursor: pointer;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove {
+  display: none;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item:hover .remove {
+  display: block;
 }

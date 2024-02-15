@@ -197,3 +197,9 @@ export function processContent(content) {
     return lines.join("\n")
 }
 
+export function escapeHTML(html) {
+    return html.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+

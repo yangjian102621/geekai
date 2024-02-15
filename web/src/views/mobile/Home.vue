@@ -39,6 +39,7 @@ const onChange = (index) => {
 </script>
 
 <style lang="stylus">
+@import '@/assets/iconfont/iconfont.css';
 .mobile-home {
   .container {
     .van-nav-bar {
@@ -47,7 +48,7 @@ const onChange = (index) => {
     }
 
     .content {
-      padding 46px 10px 0 10px;
+      padding 46px 10px 60px 10px;
     }
   }
 

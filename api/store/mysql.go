@@ -11,7 +11,7 @@ import (
 
 func NewGormConfig() *gorm.Config {
 	return &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Warn),
+		Logger: logger.Default.LogMode(logger.Silent),
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   "chatgpt_", // 设置表前缀
 			SingularTable: false,      // 使用单数表名形式
