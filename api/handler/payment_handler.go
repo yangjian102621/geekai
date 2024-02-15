@@ -76,6 +76,12 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 		return
 	}
 
+	// fix: 这里先检查一下订单状态，如果已经支付了，就直接返回
+	if order.Status == types.OrderPaidSuccess {
+		resp.ERROR(c, "This order had been paid, please do not pay twice")
+		return
+	}
+
 	// 更新扫码状态
 	h.db.Model(&order).UpdateColumn("status", types.OrderScanned)
 	if payWay == "alipay" { // 支付宝

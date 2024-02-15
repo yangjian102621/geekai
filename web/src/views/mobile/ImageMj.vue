@@ -99,7 +99,128 @@
         </div>
       </van-form>
 
-      <h2>任务列表</h2>
+      <h3>任务列表</h3>
+      <div class="running-job-list">
+        <van-empty v-if="runningJobs.length ===0"
+                   image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+                   image-size="80"
+                   description="暂无记录"
+        />
+        <van-grid :gutter="10" :column-num="3" v-else>
+          <van-grid-item v-for="item in runningJobs">
+            <div v-if="item.progress > 0">
+              <van-image :src="item['img_url']">
+                <template v-slot:error>加载失败</template>
+              </van-image>
+              <div class="progress">
+                <van-circle
+                    v-model:current-rate="item.progress"
+                    :rate="item.progress"
+                    :speed="100"
+                    :text="item.progress+'%'"
+                    :stroke-width="60"
+                    size="90px"
+                />
+              </div>
+            </div>
+
+            <div v-else class="task-in-queue">
+              <span class="icon"><i class="iconfont icon-quick-start"></i></span>
+              <span class="text">排队中</span>
+            </div>
+
+          </van-grid-item>
+        </van-grid>
+      </div>
+
+      <h3>创作记录</h3>
+      <div class="finish-job-list">
+        <van-empty v-if="finishedJobs.length ===0"
+                   image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+                   image-size="80"
+                   description="暂无记录"
+        />
+        <van-grid :gutter="10" :column-num="3" v-else>
+          <van-grid-item v-for="item in finishedJobs">
+            <div class="job-item">
+              <el-image
+                  :src="item['thumb_url']"
+                  :class="item['can_opt'] ? '' : 'upscale'" :zoom-rate="1.2"
+                  :preview-src-list="[item['img_url']]" fit="cover" :initial-index="0"
+                  loading="lazy" v-if="item.progress > 0">
+                <template #placeholder>
+                  <div class="image-slot">
+                    正在加载图片
+                  </div>
+                </template>
+
+                <template #error>
+                  <div class="image-slot" v-if="item['img_url'] === ''">
+                    <i class="iconfont icon-loading"></i>
+                    <span>正在下载图片</span>
+                  </div>
+                  <div class="image-slot" v-else>
+                    <el-icon>
+                      <Picture/>
+                    </el-icon>
+                  </div>
+                </template>
+              </el-image>
+
+              <div class="opt" v-if="item['can_opt']">
+                <div class="opt-line">
+                  <ul>
+                    <li><a @click="upscale(1, item)">U1</a></li>
+                    <li><a @click="upscale(2, item)">U2</a></li>
+                    <li><a @click="upscale(3, item)">U3</a></li>
+                    <li><a @click="upscale(4, item)">U4</a></li>
+                    <li class="show-prompt">
+
+                      <el-popover placement="left" title="提示词" :width="240" trigger="hover">
+                        <template #reference>
+                          <el-icon>
+                            <ChromeFilled/>
+                          </el-icon>
+                        </template>
+
+                        <template #default>
+                          <div class="mj-list-item-prompt">
+                            <span>{{ item.prompt }}</span>
+                            <el-icon class="copy-prompt"
+                                     :data-clipboard-text="item.prompt">
+                              <DocumentCopy/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-popover>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="opt-line">
+                  <ul>
+                    <li><a @click="variation(1, item)">V1</a></li>
+                    <li><a @click="variation(2, item)">V2</a></li>
+                    <li><a @click="variation(3, item)">V3</a></li>
+                    <li><a @click="variation(4, item)">V4</a></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="remove">
+                <el-button type="danger" :icon="Delete" @click="removeImage(item)" circle/>
+                <el-button type="warning" v-if="item.publish" @click="publishImage(item, false)"
+                           circle>
+                  <i class="iconfont icon-cancel-share"></i>
+                </el-button>
+                <el-button type="success" v-else @click="publishImage(item, true)" circle>
+                  <i class="iconfont icon-share-bold"></i>
+                </el-button>
+              </div>
+            </div>
+          </van-grid-item>
+        </van-grid>
+      </div>
 
     </div>
   </div>
@@ -107,14 +228,15 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showFailToast, showToast} from "vant";
-import {httpPost} from "@/utils/http";
+import {showFailToast, showNotify, showToast} from "vant";
+import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
 import {getSessionId} from "@/store/session";
 import {checkSession} from "@/action/session";
 import Clipboard from "clipboard";
 import {useRouter} from "vue-router";
+import {ChromeFilled, Delete, DocumentCopy, Picture} from "@element-plus/icons-vue";
 
 const title = ref('MidJourney 绘画')
 const activeColspan = ref([""])
@@ -154,14 +276,18 @@ const params = ref({
 const imgCalls = ref(0)
 const userId = ref(0)
 const router = useRouter()
+const runningJobs = ref([])
+const finishedJobs = ref([])
+const socket = ref(null)
+
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
     userId.value = user.id
 
-    // fetchRunningJobs(userId.value)
-    // fetchFinishJobs(userId.value)
-    // connect()
+    fetchRunningJobs(userId.value)
+    fetchFinishJobs(userId.value)
+    connect()
 
   }).catch(() => {
     router.push('/login')
@@ -176,6 +302,98 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 })
+
+const heartbeatHandle = ref(null)
+const connect = () => {
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https:') {
+      host = 'wss://' + location.host;
+    } else {
+      host = 'ws://' + location.host;
+    }
+  }
+
+  // 心跳函数
+  const sendHeartbeat = () => {
+    clearTimeout(heartbeatHandle.value)
+    new Promise((resolve, reject) => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+      resolve("success")
+    }).then(() => {
+      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
+    });
+  }
+
+  const _socket = new WebSocket(host + `/api/mj/client?user_id=${userId.value}`);
+  _socket.addEventListener('open', () => {
+    socket.value = _socket;
+
+    // 发送心跳消息
+    sendHeartbeat()
+  });
+
+  _socket.addEventListener('message', event => {
+    if (event.data instanceof Blob) {
+      fetchRunningJobs(userId.value)
+      fetchFinishJobs(userId.value)
+    }
+  });
+
+  _socket.addEventListener('close', () => {
+    connect()
+  });
+}
+
+// 获取运行中的任务
+const fetchRunningJobs = (userId) => {
+  httpGet(`/api/mj/jobs?status=0&user_id=${userId}`).then(res => {
+    const jobs = res.data
+    const _jobs = []
+    for (let i = 0; i < jobs.length; i++) {
+      if (jobs[i].progress === -1) {
+        showNotify({
+          message: `任务执行失败：${jobs[i]['err_msg']}`,
+          type: 'error',
+        })
+        imgCalls.value += 1
+        continue
+      }
+      _jobs.push(jobs[i])
+    }
+    runningJobs.value = _jobs
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
+
+const fetchFinishJobs = (userId) => {
+  // 获取已完成的任务
+  httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
+    const jobs = res.data
+    for (let i = 0; i < jobs.length; i++) {
+      if (jobs[i]['use_proxy']) {
+        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?x-oss-process=image/quality,q_60&format=webp'
+      } else {
+        if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
+          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
+        } else {
+          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
+        }
+      }
+
+      if (jobs[i].type === 'image' || jobs[i].type === 'variation') {
+        jobs[i]['can_opt'] = true
+      }
+    }
+    finishedJobs.value = jobs
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
+
 // 切换图片比例
 const changeRate = (item) => {
   params.value.rate = item.value
@@ -227,8 +445,9 @@ const generate = () => {
     ElMessage.error("任务推送失败：" + e.message)
   })
 }
+
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
 @import "@/assets/css/mobile/image-mj.styl"
 </style>

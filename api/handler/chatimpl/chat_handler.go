@@ -97,7 +97,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 
 	// use old chat data override the chat model and role ID
 	var chat model.ChatItem
-	res = h.db.Where("chat_id=?", chatId).First(&chat)
+	res = h.db.Where("chat_id = ?", chatId).First(&chat)
 	if res.Error == nil {
 		chatModel.Id = chat.ModelId
 		roleId = int(chat.RoleId)
