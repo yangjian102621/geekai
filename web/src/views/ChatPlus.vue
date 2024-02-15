@@ -259,7 +259,16 @@ import {
   VideoPause
 } from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
-import {dateFormat, isImage, isMobile, processContent, randString, removeArrayItem, UUID} from "@/utils/libs";
+import {
+  dateFormat,
+  escapeHTML,
+  isImage,
+  isMobile,
+  processContent,
+  randString,
+  removeArrayItem,
+  UUID
+} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
 import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
@@ -717,7 +726,7 @@ const sendMessage = function () {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(processContent(prompt.value)),
+    content: md.render(escapeHTML(processContent(prompt.value))),
     created_at: new Date().getTime(),
   });
 
@@ -815,7 +824,7 @@ const reGenerate = function () {
     icon: loginUser.value.avatar,
     content: md.render(text)
   });
-  socket.value.send(text);
+  socket.value.send(previousText);
 }
 
 const chatName = ref('')
