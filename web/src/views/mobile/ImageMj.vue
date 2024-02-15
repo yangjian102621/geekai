@@ -140,7 +140,7 @@
                    image-size="80"
                    description="暂无记录"
         />
-        <van-grid :gutter="10" :column-num="3" v-else>
+        <van-grid :gutter="10" :column-num="2" v-else>
           <van-grid-item v-for="item in finishedJobs">
             <div class="job-item">
               <el-image
@@ -168,43 +168,17 @@
               </el-image>
 
               <div class="opt" v-if="item['can_opt']">
-                <div class="opt-line">
-                  <ul>
-                    <li><a @click="upscale(1, item)">U1</a></li>
-                    <li><a @click="upscale(2, item)">U2</a></li>
-                    <li><a @click="upscale(3, item)">U3</a></li>
-                    <li><a @click="upscale(4, item)">U4</a></li>
-                    <li class="show-prompt">
 
-                      <el-popover placement="left" title="提示词" :width="240" trigger="hover">
-                        <template #reference>
-                          <el-icon>
-                            <ChromeFilled/>
-                          </el-icon>
-                        </template>
-
-                        <template #default>
-                          <div class="mj-list-item-prompt">
-                            <span>{{ item.prompt }}</span>
-                            <el-icon class="copy-prompt"
-                                     :data-clipboard-text="item.prompt">
-                              <DocumentCopy/>
-                            </el-icon>
-                          </div>
-                        </template>
-                      </el-popover>
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="opt-line">
-                  <ul>
-                    <li><a @click="variation(1, item)">V1</a></li>
-                    <li><a @click="variation(2, item)">V2</a></li>
-                    <li><a @click="variation(3, item)">V3</a></li>
-                    <li><a @click="variation(4, item)">V4</a></li>
-                  </ul>
-                </div>
+                <van-grid :gutter="0" :column-num="4">
+                  <van-grid-item><a @click="upscale(1, item)" class="opt-btn">U1</a></van-grid-item>
+                  <van-grid-item><a @click="upscale(2, item)" class="opt-btn">U2</a></van-grid-item>
+                  <van-grid-item><a @click="upscale(3, item)" class="opt-btn">U3</a></van-grid-item>
+                  <van-grid-item><a @click="upscale(4, item)" class="opt-btn">U4</a></van-grid-item>
+                  <van-grid-item><a @click="variation(1, item)" class="opt-btn">V1</a></van-grid-item>
+                  <van-grid-item><a @click="variation(2, item)" class="opt-btn">V2</a></van-grid-item>
+                  <van-grid-item><a @click="variation(3, item)" class="opt-btn">V3</a></van-grid-item>
+                  <van-grid-item><a @click="variation(4, item)" class="opt-btn">V4</a></van-grid-item>
+                </van-grid>
               </div>
 
               <div class="remove">
@@ -236,7 +210,7 @@ import {getSessionId} from "@/store/session";
 import {checkSession} from "@/action/session";
 import Clipboard from "clipboard";
 import {useRouter} from "vue-router";
-import {ChromeFilled, Delete, DocumentCopy, Picture} from "@element-plus/icons-vue";
+import {Delete, Picture} from "@element-plus/icons-vue";
 
 const title = ref('MidJourney 绘画')
 const activeColspan = ref([""])
@@ -263,7 +237,7 @@ const params = ref({
   rate: rates[0].value,
   model: models[0].value,
   chaos: 0,
-  stylize: 100,
+  stylize: 0,
   seed: 0,
   img_arr: [],
   raw: false,
@@ -356,7 +330,7 @@ const fetchRunningJobs = (userId) => {
       if (jobs[i].progress === -1) {
         showNotify({
           message: `任务执行失败：${jobs[i]['err_msg']}`,
-          type: 'error',
+          type: 'danger',
         })
         imgCalls.value += 1
         continue
@@ -439,10 +413,10 @@ const generate = () => {
   params.value.session_id = getSessionId()
   params.value.img_arr = imgList.value.map(img => img.url)
   httpPost("/api/mj/image", params.value).then(() => {
-    ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
+    showToast("绘画任务推送成功，请耐心等待任务执行")
     imgCalls.value -= 1
   }).catch(e => {
-    ElMessage.error("任务推送失败：" + e.message)
+    showFailToast("任务推送失败：" + e.message)
   })
 }
 

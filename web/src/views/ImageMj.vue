@@ -504,7 +504,7 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
-import {removeArrayItem} from "@/utils/libs";
+import {isMobile, removeArrayItem} from "@/utils/libs";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
@@ -560,7 +560,7 @@ const params = ref({
   rate: rates[0].value,
   model: models[0].value,
   chaos: 0,
-  stylize: 100,
+  stylize: 0,
   seed: 0,
   img_arr: [],
   raw: false,
@@ -583,6 +583,10 @@ const socket = ref(null)
 const imgCalls = ref(0)
 const loading = ref(false)
 const userId = ref(0)
+
+if (isMobile()) {
+  router.replace("/mobile/mj")
+}
 
 const rewritePrompt = () => {
   loading.value = true

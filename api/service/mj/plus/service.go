@@ -108,7 +108,7 @@ func (s *Service) Run() {
 		s.taskStartTimes[int(task.Id)] = time.Now()
 		atomic.AddInt32(&s.HandledTaskNum, 1)
 		// 更新任务 ID/频道
-		s.db.Debug().Model(&model.MidJourneyJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
+		s.db.Model(&model.MidJourneyJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 			"task_id":    res.Result,
 			"channel_id": s.Name,
 		})
