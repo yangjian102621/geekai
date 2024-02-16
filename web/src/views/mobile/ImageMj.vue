@@ -190,6 +190,9 @@
                 <el-button type="success" v-else @click="publishImage(item, true)" circle>
                   <i class="iconfont icon-share-bold"></i>
                 </el-button>
+                <el-button type="primary" @click="showPrompt(item)" circle>
+                  <i class="iconfont icon-prompt"></i>
+                </el-button>
               </div>
             </div>
           </van-grid-item>
@@ -202,7 +205,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showFailToast, showNotify, showToast} from "vant";
+import {showConfirmDialog, showFailToast, showNotify, showToast, showDialog} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
@@ -403,6 +406,32 @@ const uploadImg = (file) => {
   });
 };
 
+const send = (url, index, item) => {
+  httpPost(url, {
+    index: index,
+    channel_id: item.channel_id,
+    message_id: item.message_id,
+    message_hash: item.hash,
+    session_id: getSessionId(),
+    prompt: item.prompt,
+  }).then(() => {
+    ElMessage.success("任务推送成功，请耐心等待任务执行...")
+    imgCalls.value -= 1
+  }).catch(e => {
+    ElMessage.error("任务推送失败：" + e.message)
+  })
+}
+
+// 图片放大任务
+const upscale = (index, item) => {
+  send('/api/mj/upscale', index, item)
+}
+
+// 图片变换任务
+const variation = (index, item) => {
+  send('/api/mj/variation', index, item)
+}
+
 const generate = () => {
   if (params.value.prompt === '' && params.value.task_type === "image") {
     return showFailToast("请输入绘画提示词！")
@@ -418,6 +447,44 @@ const generate = () => {
   }).catch(e => {
     showFailToast("任务推送失败：" + e.message)
   })
+}
+
+const removeImage = (item) => {
+  showConfirmDialog({
+    title: '标题',
+    message:
+        '此操作将会删除任务和图片，继续操作码?',
+  }).then(() => {
+    httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
+      ElMessage.success("任务删除成功")
+    }).catch(e => {
+      ElMessage.error("任务删除失败：" + e.message)
+    })
+  }).catch(() => {
+    showToast("您取消了操作")
+  });
+}
+// 发布图片到作品墙
+const publishImage = (item, action) => {
+  let text = "图片发布"
+  if (action === false) {
+    text = "取消发布"
+  }
+  httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
+    ElMessage.success(text + "成功")
+    item.publish = action
+  }).catch(e => {
+    ElMessage.error(text + "失败：" + e.message)
+  })
+}
+
+const showPrompt = (item) => {
+  showDialog({
+    title: "绘画提示词",
+    message: item.prompt,
+  }).then(() => {
+    // on close
+  });
 }
 
 </script>

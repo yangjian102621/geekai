@@ -131,3 +131,8 @@
   right: 5px;
   top: 5px;
 }
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove .el-button {
+  margin-left: 5px;
+  height: auto;
+  padding: 5px;
+}
