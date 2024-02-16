@@ -137,6 +137,12 @@ func (s *Service) Notify(data CBReq) {
 	} else {
 		tx = tx.Where("task_id = ?", split[0])
 	}
+	// fixed: 修复 U/V 操作任务混淆覆盖的 Bug
+	if strings.Contains(data.Prompt, "** - Image #") { // for upscale
+		tx = tx.Where("type = ?", types.TaskUpscale.String())
+	} else if strings.Contains(data.Prompt, "** - Variations (Strong)") { // for Variations
+		tx = tx.Where("type = ?", types.TaskVariation.String())
+	}
 	res = tx.First(&job)
 	if res.Error != nil {
 		logger.Warn("非法任务：", res.Error)
