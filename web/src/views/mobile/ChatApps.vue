@@ -3,39 +3,8 @@
     <van-nav-bar :title="title"/>
 
     <div class="content">
-      <van-form @submit="save" v-model="form">
-        <van-cell-group inset>
-          <van-field
-              v-model="form.chat_config.api_keys.OpenAI"
-              label="OpenAI KEY"
-              placeholder="OpenAI API KEY"
-          />
-          <van-field
-              v-model="form.chat_config.api_keys.Azure"
-              label="Azure KEY"
-              placeholder="Azure API KEY"
-          />
-          <van-field
-              v-model="form.chat_config.api_keys.ChatGLM"
-              label="ChatGLM KEY"
-              placeholder="ChatGLM API KEY"
-          />
-        </van-cell-group>
-        <div style="margin: 16px;">
-          <van-button round block type="primary" native-type="submit">
-            提交
-          </van-button>
-        </div>
-      </van-form>
+      <van-empty description="功能正在开发中"/>
     </div>
-
-    <van-popup v-model:show="showPicker" round position="bottom">
-      <van-picker
-          :columns="models"
-          @cancel="showPicker = false"
-          @confirm="selectModel"
-      />
-    </van-popup>
   </div>
 </template>
 
@@ -45,7 +14,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {showFailToast, showSuccessToast} from "vant";
 import {ElMessage} from "element-plus";
 
-const title = ref('聊天设置')
+const title = ref('图片创作广场')
 const form = ref({
   chat_config: {
     api_keys: {OpenAI: "", Azure: "", ChatGLM: ""}

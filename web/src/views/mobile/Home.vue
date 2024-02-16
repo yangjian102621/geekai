@@ -6,7 +6,7 @@
       <van-tabbar route v-model="active" @change="onChange">
         <van-tabbar-item to="/mobile/chat" name="home" icon="chat-o">对话</van-tabbar-item>
         <van-tabbar-item to="/mobile/mj" name="imageMj" icon="photo-o">绘图</van-tabbar-item>
-        <van-tabbar-item to="/mobile/apps" name="apps" icon="apps-o">应用</van-tabbar-item>
+        <van-tabbar-item to="/mobile/apps" name="apps" icon="apps-o">广场</van-tabbar-item>
         <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的</van-tabbar-item>
       </van-tabbar>
 
