@@ -58,12 +58,12 @@ func (s *Service) Run() {
 		}
 
 		// if it's reference message, check if it's this channel's  message
-		if task.ChannelId != "" && task.ChannelId != s.Name {
-			logger.Debugf("handle other service task, name: %s, channel_id: %s, drop it.", s.Name, task.ChannelId)
-			s.taskQueue.RPush(task)
-			time.Sleep(time.Second)
-			continue
-		}
+		//if task.ChannelId != "" && task.ChannelId != s.Name {
+		//	logger.Debugf("handle other service task, name: %s, channel_id: %s, drop it.", s.Name, task.ChannelId)
+		//	s.taskQueue.RPush(task)
+		//	time.Sleep(time.Second)
+		//	continue
+		//}
 
 		logger.Infof("%s handle a new MidJourney task: %+v", s.Name, task)
 		var res ImageRes
@@ -85,14 +85,15 @@ func (s *Service) Run() {
 			break
 		}
 
+		var job model.MidJourneyJob
+		s.db.Where("id = ?", task.Id).First(&job)
 		if err != nil || (res.Code != 1 && res.Code != 22) {
 			errMsg := fmt.Sprintf("%v,%s", err, res.Description)
 			logger.Error("绘画任务执行失败：", errMsg)
+			job.Progress = -1
+			job.ErrMsg = errMsg
 			// update the task progress
-			s.db.Model(&model.MidJourneyJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
-				"progress": -1,
-				"err_msg":  errMsg,
-			})
+			s.db.Updates(&job)
 			// 任务失败，通知前端
 			s.notifyQueue.RPush(task.UserId)
 			// restore img_call quota
@@ -108,11 +109,9 @@ func (s *Service) Run() {
 		s.taskStartTimes[int(task.Id)] = time.Now()
 		atomic.AddInt32(&s.HandledTaskNum, 1)
 		// 更新任务 ID/频道
-		s.db.Model(&model.MidJourneyJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
-			"task_id":    res.Result,
-			"channel_id": s.Name,
-		})
-
+		job.TaskId = res.Result
+		job.ChannelId = s.Name
+		s.db.Updates(&job)
 	}
 }
 

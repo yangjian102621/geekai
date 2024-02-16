@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "8017627",
+      "name": "prompt",
+      "font_class": "prompt",
+      "unicode": "e6ce",
+      "unicode_decimal": 59086
+    },
+    {
       "icon_id": "1132455",
       "name": "share-bold",
       "font_class": "share-bold",

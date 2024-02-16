@@ -141,6 +141,11 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		prompt += fmt.Sprintf(" %s", data.Model)
 	}
 
+	// 处理融图和换脸的提示词
+	if data.TaskType == types.TaskSwapFace.String() || data.TaskType == types.TaskBlend.String() {
+		prompt = fmt.Sprintf("%s:%s", data.TaskType, strings.Join(data.ImgArr, ","))
+	}
+
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	// generate task id
