@@ -824,7 +824,7 @@ const reGenerate = function () {
     icon: loginUser.value.avatar,
     content: md.render(text)
   });
-  socket.value.send(previousText.value);
+  socket.value.send(JSON.stringify({type: "chat", content: previousText.value}));
 }
 
 const chatName = ref('')
