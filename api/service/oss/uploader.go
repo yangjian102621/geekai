@@ -8,10 +8,11 @@ const QiNiu = "QINIU"
 const AliYun = "ALIYUN"
 
 type File struct {
-	Name string `json:"name"`
-	Size int64  `json:"size"`
-	URL  string `json:"url"`
-	Ext  string `json:"ext"`
+	Name   string `json:"name"`
+	ObjKey string `json:"obj_key"`
+	Size   int64  `json:"size"`
+	URL    string `json:"url"`
+	Ext    string `json:"ext"`
 }
 type Uploader interface {
 	PutFile(ctx *gin.Context, name string) (File, error)

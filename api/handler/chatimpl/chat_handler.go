@@ -462,11 +462,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		req.Messages = nil
 		break
 	default:
-		if req.Model == "gpt-4-all" || strings.HasPrefix(req.Model, "gpt-4-gizmo-g-") {
-			apiURL = "https://gpt.bemore.lol/v1/chat/completions"
-		} else {
-			apiURL = apiKey.ApiURL
-		}
+		apiURL = apiKey.ApiURL
 	}
 	// 更新 API KEY 的最后使用时间
 	h.db.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())

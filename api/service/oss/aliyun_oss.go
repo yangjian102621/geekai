@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -67,10 +68,11 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}
 
 	return File{
-		Name: file.Filename,
-		URL:  fmt.Sprintf("%s/%s", s.config.Domain, objectKey),
-		Ext:  fileExt,
-		Size: file.Size,
+		Name:   file.Filename,
+		ObjKey: objectKey,
+		URL:    fmt.Sprintf("%s/%s", s.config.Domain, objectKey),
+		Ext:    fileExt,
+		Size:   file.Size,
 	}, nil
 }
 
@@ -100,9 +102,14 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 }
 
 func (s AliYunOss) Delete(fileURL string) error {
-	objectName := filepath.Base(fileURL)
-	key := fmt.Sprintf("%s/%s", s.config.SubDir, objectName)
-	return s.bucket.DeleteObject(key)
+	var objectKey string
+	if strings.HasPrefix(fileURL, "http") {
+		filename := filepath.Base(fileURL)
+		objectKey = fmt.Sprintf("%s/%s", s.config.SubDir, filename)
+	} else {
+		objectKey = fileURL
+	}
+	return s.bucket.DeleteObject(objectKey)
 }
 
 var _ Uploader = AliYunOss{}
