@@ -5,6 +5,11 @@
 * Bug修复：修复 issue [
   管理界面操作用户存在的两个问题](https://github.com/yangjian102621/chatgpt-plus/issues/117#issuecomment-1909201532)
 * 功能优化：在对话和聊天记录表中新增冗余字段 model，存储对话模型
+* Bug修复：IPhone 手机验证码触摸事件坐标错位 [issue 144](https://github.com/yangjian102621/chatgpt-plus/issues/144)
+* Bug修复：重新生成按钮功能失效问题
+* Bug修复：对话输入HTML标签不显示的问题
+* 功能优化：gpt-4-all/gpts/midjourney-plus 支持第三方平台的 API KEY
+* 功能新增：新增删除文件功能
 
 ## v3.2.6
 * 功能优化：恢复关闭注册系统配置项，管理员可以在后台关闭用户注册，只允许内部添加账号

@@ -42,10 +42,11 @@ func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {
 
 	ext := filepath.Ext(file.Filename)
 	return File{
-		Name: file.Filename,
-		URL:  utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, path),
-		Ext:  ext,
-		Size: file.Size,
+		Name:   file.Filename,
+		ObjKey: path,
+		URL:    utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, path),
+		Ext:    ext,
+		Size:   file.Size,
 	}, nil
 }
 
@@ -73,6 +74,9 @@ func (s LocalStorage) PutImg(imageURL string, useProxy bool) (string, error) {
 }
 
 func (s LocalStorage) Delete(fileURL string) error {
+	if _, err := os.Stat(fileURL); err == nil {
+		return os.Remove(fileURL)
+	}
 	filePath := strings.Replace(fileURL, s.config.BaseURL, s.config.BasePath, 1)
 	return os.Remove(filePath)
 }
