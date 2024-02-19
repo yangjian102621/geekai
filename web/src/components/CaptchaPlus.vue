@@ -122,10 +122,13 @@ export default {
       // ===============================================
       let mouseX = (navigator.vendor === 'Netscape') ? e.pageX : e.x + document.body.offsetTop
       let mouseY = (navigator.vendor === 'Netscape') ? e.pageY : e.y + document.body.offsetTop
-
-      if (this.calcPosType === 'screen') {
-        mouseX = (navigator.vendor === 'Netscape') ? e.clientX : e.x
-        mouseY = (navigator.vendor === 'Netscape') ? e.clientY : e.y
+      // 兼容移动触摸事件
+      if (e.touches && e.touches.length > 0) {
+        mouseX = e.touches[0].clientX
+        mouseY = e.touches[0].clientY
+      } else {
+        mouseX = e.clientX
+        mouseY = e.clientY
       }
 
       // 计算点击的相对位置
