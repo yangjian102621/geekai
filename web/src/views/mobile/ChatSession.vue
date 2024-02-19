@@ -418,7 +418,7 @@ const reGenerate = () => {
     icon: loginUser.value.avatar,
     content: renderInputText(text)
   });
-  socket.value.send(previousText.value);
+  socket.value.send(JSON.stringify({type: "chat", content: previousText.value}));
 }
 
 const showShare = ref(false)
