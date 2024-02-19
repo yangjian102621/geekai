@@ -88,17 +88,23 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}
 
 	return File{
-		Name: file.Filename,
-		URL:  fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key),
-		Ext:  fileExt,
-		Size: file.Size,
+		Name:   file.Filename,
+		ObjKey: info.Key,
+		URL:    fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key),
+		Ext:    fileExt,
+		Size:   file.Size,
 	}, nil
 }
 
 func (s MiniOss) Delete(fileURL string) error {
-	objectName := filepath.Base(fileURL)
-	key := fmt.Sprintf("%s/%s", s.config.SubDir, objectName)
-	return s.client.RemoveObject(context.Background(), s.config.Bucket, key, minio.RemoveObjectOptions{})
+	var objectKey string
+	if strings.HasPrefix(fileURL, "http") {
+		filename := filepath.Base(fileURL)
+		objectKey = fmt.Sprintf("%s/%s", s.config.SubDir, filename)
+	} else {
+		objectKey = fileURL
+	}
+	return s.client.RemoveObject(context.Background(), s.config.Bucket, objectKey, minio.RemoveObjectOptions{})
 }
 
 var _ Uploader = MiniOss{}
