@@ -33,8 +33,6 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		if config.Enabled == false {
 			continue
 		}
-		// rewrite api key
-		config.ApiURL = "https://api.chat-plus.net"
 		client := plus.NewClient(config)
 		name := fmt.Sprintf("mj-service-plus-%d", k)
 		servicePlus := plus.NewService(name, taskQueue, notifyQueue, 10, 600, db, client)

@@ -39,9 +39,13 @@
                   effect="dark"
                   :content="file.name"
                   placement="top">
-                <el-image :src="file.url" fit="fill" v-if="isImage(file.ext)" @click="insertURL(file.url)"/>
-                <el-image :src="getFileIcon(file.ext)" fit="fill" v-else @click="insertURL(file.url)"/>
+                <el-image :src="file.url" fit="cover" v-if="isImage(file.ext)" @click="insertURL(file.url)"/>
+                <el-image :src="getFileIcon(file.ext)" fit="cover" v-else @click="insertURL(file.url)"/>
               </el-tooltip>
+
+              <div class="opt">
+                <el-button type="danger" size="small" :icon="Delete" @click="removeFile(file)" circle/>
+              </div>
             </div>
           </el-col>
         </el-row>
@@ -54,8 +58,8 @@
 import {ref} from "vue";
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
-import {PictureFilled, Plus} from "@element-plus/icons-vue";
-import {isImage} from "@/utils/libs";
+import {Delete, PictureFilled, Plus} from "@element-plus/icons-vue";
+import {isImage, removeArrayItem} from "@/utils/libs";
 
 const props = defineProps({
   userId: String,
@@ -103,6 +107,17 @@ const afterRead = (file) => {
   })
 };
 
+const removeFile = (file) => {
+  httpGet('/api/upload/remove?id=' + file.id).then(() => {
+    fileList.value = removeArrayItem(fileList.value, file, (v1, v2) => {
+      return v1.id === v2.id
+    })
+    ElMessage.success("文件删除成功！")
+  }).catch((e) => {
+    ElMessage.error('文件删除失败:' + e.message)
+  })
+}
+
 const insertURL = (url) => {
   show.value = false
   emits('selected', url)
@@ -129,6 +144,7 @@ const insertURL = (url) => {
 
         .grid-content {
           margin-bottom 10px
+          position relative
 
           .avatar-uploader {
             width 100%
@@ -145,6 +161,7 @@ const insertURL = (url) => {
           }
 
           .el-image {
+            width 100%
             height 80px
             border 1px solid #ffffff
             border-radius 6px
@@ -159,6 +176,19 @@ const insertURL = (url) => {
           .iconfont {
             color #20a0ff
             font-size 40px
+          }
+
+          .opt {
+            display none
+            position absolute
+            top 5px
+            right 5px
+          }
+
+          &:hover {
+            .opt {
+              display block
+            }
           }
         }
       }

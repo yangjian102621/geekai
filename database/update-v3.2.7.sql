@@ -11,3 +11,5 @@ UPDATE chatgpt_chat_history s SET model=(SELECT model FROM chatgpt_chat_items WH
 
 -- 清理对话已删除的聊天记录（可选）
 -- DELETE FROM `chatgpt_chat_history` WHERE model is NULL;
+
+ALTER TABLE `chatgpt_files` ADD `obj_key` VARCHAR(100) NULL COMMENT '文件标识' AFTER `name`;
