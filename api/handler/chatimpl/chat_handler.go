@@ -6,6 +6,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	logger2 "chatplus/logger"
+	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -16,6 +17,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -33,14 +35,16 @@ var logger = logger2.GetLogger()
 
 type ChatHandler struct {
 	handler.BaseHandler
-	db    *gorm.DB
-	redis *redis.Client
+	db            *gorm.DB
+	redis         *redis.Client
+	uploadManager *oss.UploaderManager
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager) *ChatHandler {
 	h := ChatHandler{
-		db:    db,
-		redis: redis,
+		db:            db,
+		redis:         redis,
+		uploadManager: manager,
 	}
 	h.App = app
 	return &h
@@ -545,4 +549,30 @@ func (h *ChatHandler) incUserTokenFee(userId uint, tokens int) {
 		UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", tokens))
 	h.db.Model(&model.User{}).Where("id = ?", userId).
 		UpdateColumn("tokens", gorm.Expr("tokens + ?", tokens))
+}
+
+// 将AI回复消息中生成的图片链接下载到本地
+func (h *ChatHandler) extractImgUrl(text string) string {
+	pattern := `!\[([^\]]*)]\(([^)]+)\)`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindAllStringSubmatch(text, -1)
+
+	// 下载图片并替换链接地址
+	for _, match := range matches {
+		imageURL := match[2]
+		logger.Debug(imageURL)
+		// 对于相同地址的图片，已经被替换了，就不再重复下载了
+		if !strings.Contains(text, imageURL) {
+			continue
+		}
+
+		newImgURL, err := h.uploadManager.GetUploadHandler().PutImg(imageURL, false)
+		if err != nil {
+			logger.Error("error with download image: ", err)
+			continue
+		}
+
+		text = strings.ReplaceAll(text, imageURL, newImgURL)
+	}
+	return text
 }

@@ -233,7 +233,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 					RoleId:     role.Id,
 					Type:       types.ReplyMsg,
 					Icon:       role.Icon,
-					Content:    message.Content,
+					Content:    h.extractImgUrl(message.Content),
 					Tokens:     totalTokens,
 					UseContext: useContext,
 					Model:      req.Model,
