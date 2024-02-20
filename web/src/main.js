@@ -40,8 +40,10 @@ import {
     Sticky,
     SwipeCell,
     Switch,
+    Tab,
     Tabbar,
     TabbarItem,
+    Tabs,
     Tag,
     TextEllipsis,
     Uploader
@@ -93,6 +95,8 @@ app.use(Circle);
 app.use(Loading);
 app.use(Lazyload);
 app.use(ImagePreview);
+app.use(Tab);
+app.use(Tabs);
 app.use(router).use(ElementPlus).mount('#app')
 
 
