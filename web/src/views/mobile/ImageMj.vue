@@ -269,15 +269,6 @@ onMounted(() => {
   }).catch(() => {
     router.push('/login')
   });
-
-  const clipboard = new Clipboard('.copy-prompt');
-  clipboard.on('success', () => {
-    ElMessage.success("复制成功！");
-  })
-
-  clipboard.on('error', () => {
-    ElMessage.error('复制失败！');
-  })
 })
 
 const heartbeatHandle = ref(null)
