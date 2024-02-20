@@ -6,12 +6,11 @@
       <van-form @submit="save">
         <van-cell-group inset v-model="form">
           <van-field
-              v-model="form.mobile"
-              name="手机号"
-              label="手机号"
+              v-model="form.username"
+              name="账号"
+              label="账号"
               readonly
               disabled
-              placeholder="手机号"
           />
           <van-field label="头像">
             <template #input>
