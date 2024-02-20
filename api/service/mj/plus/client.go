@@ -7,11 +7,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/imroc/req/v3"
 	"io"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/imroc/req/v3"
 )
 
 var logger = logger2.GetLogger()
@@ -28,6 +27,9 @@ func NewClient(config types.MidJourneyPlusConfig) *Client {
 		apiURL = config.CdnURL
 	} else {
 		apiURL = config.ApiURL
+	}
+	if config.Mode == "" {
+		config.Mode = "fast"
 	}
 	return &Client{Config: config, apiURL: apiURL}
 }
@@ -62,7 +64,7 @@ type ErrRes struct {
 }
 
 func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
-	apiURL := fmt.Sprintf("%s/mj-fast/mj/submit/imagine", c.apiURL)
+	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/imagine", c.apiURL, c.Config.Mode)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
 		Prompt:      task.Prompt,
@@ -101,7 +103,7 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 
 // Blend 融图
 func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
-	apiURL := fmt.Sprintf("%s/mj-fast/mj/submit/blend", c.apiURL)
+	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/blend", c.apiURL, c.Config.Mode)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
 		Dimensions:  "SQUARE",
@@ -141,7 +143,7 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 
 // SwapFace 换脸
 func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
-	apiURL := fmt.Sprintf("%s/mj-fast/mj/insight-face/swap", c.apiURL)
+	apiURL := fmt.Sprintf("%s/mj-%s/mj/insight-face/swap", c.apiURL, c.Config.Mode)
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) != 2 {
 		return ImageRes{}, errors.New("参数错误，必须上传2张图片")
