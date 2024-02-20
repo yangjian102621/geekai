@@ -183,9 +183,9 @@ const routes = [
                 component: () => import('@/views/mobile/Profile.vue'),
             },
             {
-                path: '/mobile/apps',
-                name: 'mobile-app',
-                component: () => import('@/views/mobile/ChatApps.vue'),
+                path: '/mobile/img-wall',
+                name: 'mobile-img-wall',
+                component: () => import('@/views/mobile/ImgWall.vue'),
             },
         ]
     },
