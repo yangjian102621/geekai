@@ -48,7 +48,7 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	}
 
 	// tokens took stats
-	var historyMessages []model.HistoryMessage
+	var historyMessages []model.ChatMessage
 	res = h.db.Where("created_at > ?", zeroTime).Find(&historyMessages)
 	for _, item := range historyMessages {
 		stats.Tokens += item.Tokens

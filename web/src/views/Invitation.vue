@@ -1,6 +1,6 @@
 <template>
   <div class="custom-scroll">
-    <div class="page-invitation" :style="{height: listBoxHeight + 'px'}">
+    <div class="page-invitation">
       <div class="inner">
         <h2>会员推广计划</h2>
         <div class="share-box">
@@ -97,7 +97,6 @@ import InviteList from "@/components/InviteList.vue";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 
-const listBoxHeight = window.innerHeight
 const inviteURL = ref("")
 const qrImg = ref("")
 const inviteChatCalls = ref(0)
@@ -163,6 +162,8 @@ onMounted(() => {
   overflow-y visible
 
   .inner {
+    display flex
+    flex-flow column
     max-width 1000px
     width 100%
     color #e1e1e1
@@ -251,6 +252,10 @@ onMounted(() => {
       }
     }
 
+
+    .invite-logs {
+      padding-bottom 20px
+    }
   }
 
 }

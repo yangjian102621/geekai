@@ -176,7 +176,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 			return
 		}
 		// 删除聊天历史记录
-		res = h.db.Where("user_id = ?", id).Delete(&model.HistoryMessage{})
+		res = h.db.Where("user_id = ?", id).Delete(&model.ChatMessage{})
 		if res.Error != nil {
 			tx.Rollback()
 			resp.ERROR(c, "删除失败")
