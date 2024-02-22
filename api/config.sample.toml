@@ -68,14 +68,15 @@ WeChatBot = false
   GuildId = ""
   ChanelId = ""
   UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
-  DiscordAPI = "https://mj.r9it.com:8001" # discord API 反代地址
-  DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
-  DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
+  DiscordAPI = "" # discord API 反代地址
+  DiscordCDN = "" # mj 图片反代地址
+  DiscordGateway = "" # discord 机器人反代地址
 
 [[MjPlusConfigs]]
   Enabled = false
   ApiURL = "https://api.chatgpt-plus.net" # 目前暂时不支持更改
   CdnURL = "" # CND 加速的 URL，如果有的话就设置
+  Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
   ApiKey = "sk-xxx"
   NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要改成你的域名
 
