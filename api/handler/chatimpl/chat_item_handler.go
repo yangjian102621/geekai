@@ -95,7 +95,7 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 			return res.Error
 		}
 
-		res = h.db.Where("user_id = ? AND chat_id IN ?", user.Id, chatIds).Delete(&model.HistoryMessage{})
+		res = h.db.Where("user_id = ? AND chat_id IN ?", user.Id, chatIds).Delete(&model.ChatMessage{})
 		if res.Error != nil {
 			return res.Error
 		}
@@ -116,7 +116,7 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 // History 获取聊天历史记录
 func (h *ChatHandler) History(c *gin.Context) {
 	chatId := c.Query("chat_id") // 会话 ID
-	var items []model.HistoryMessage
+	var items []model.ChatMessage
 	var messages = make([]vo.HistoryMessage, 0)
 	res := h.db.Where("chat_id = ?", chatId).Find(&items)
 	if res.Error != nil {

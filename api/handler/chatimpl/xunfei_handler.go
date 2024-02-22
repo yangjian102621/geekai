@@ -189,7 +189,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 			if err != nil {
 				logger.Error(err)
 			}
-			historyUserMsg := model.HistoryMessage{
+			historyUserMsg := model.ChatMessage{
 				UserId:     userVo.Id,
 				ChatId:     session.ChatId,
 				RoleId:     role.Id,
@@ -211,7 +211,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 			// 计算本次对话消耗的总 token 数量
 			replyToken, _ := utils.CalcTokens(message.Content, req.Model)
 			totalTokens := replyToken + getTotalTokens(req)
-			historyReplyMsg := model.HistoryMessage{
+			historyReplyMsg := model.ChatMessage{
 				UserId:     userVo.Id,
 				ChatId:     session.ChatId,
 				RoleId:     role.Id,

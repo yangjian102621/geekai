@@ -126,7 +126,7 @@ func (h *ChatHandler) sendAzureMessage(
 				if err != nil {
 					logger.Error(err)
 				}
-				historyUserMsg := model.HistoryMessage{
+				historyUserMsg := model.ChatMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
 					RoleId:     role.Id,
@@ -148,7 +148,7 @@ func (h *ChatHandler) sendAzureMessage(
 				totalTokens, _ := utils.CalcTokens(message.Content, req.Model)
 				totalTokens += getTotalTokens(req)
 
-				historyReplyMsg := model.HistoryMessage{
+				historyReplyMsg := model.ChatMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
 					RoleId:     role.Id,
