@@ -46,6 +46,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 		utils.ReplyMessage(ws, ErrorMsg)
 		utils.ReplyMessage(ws, ErrImg)
+		all, _ := io.ReadAll(response.Body)
+		logger.Error(string(all))
 		return err
 	} else {
 		defer response.Body.Close()
@@ -197,7 +199,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				if err != nil {
 					logger.Error(err)
 				}
-				historyUserMsg := model.HistoryMessage{
+				historyUserMsg := model.ChatMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
 					RoleId:     role.Id,
@@ -227,7 +229,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				}
 				totalTokens += getTotalTokens(req)
 
-				historyReplyMsg := model.HistoryMessage{
+				historyReplyMsg := model.ChatMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
 					RoleId:     role.Id,

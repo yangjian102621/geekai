@@ -325,7 +325,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 			// loading recent chat history as chat context
 			if chatConfig.ContextDeep > 0 {
-				var historyMessages []model.HistoryMessage
+				var historyMessages []model.ChatMessage
 				res := h.db.Debug().Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("id desc").Find(&historyMessages)
 				if res.Error == nil {
 					for i := len(historyMessages) - 1; i >= 0; i-- {
@@ -390,7 +390,7 @@ func (h *ChatHandler) Tokens(c *gin.Context) {
 
 	// 如果没有传入 text 字段，则说明是获取当前 reply 总的 token 消耗（带上下文）
 	if data.Text == "" && data.ChatId != "" {
-		var item model.HistoryMessage
+		var item model.ChatMessage
 		userId, _ := c.Get(types.LoginUserID)
 		res := h.db.Where("user_id = ?", userId).Where("chat_id = ?", data.ChatId).Last(&item)
 		if res.Error != nil {

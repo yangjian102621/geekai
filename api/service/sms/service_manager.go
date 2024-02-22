@@ -14,7 +14,7 @@ var logger = logger2.GetLogger()
 
 func NewSendServiceManager(config *types.AppConfig) (*ServiceManager, error) {
 	active := Ali
-	if config.OSS.Active != "" {
+	if config.SMS.Active != "" {
 		active = strings.ToUpper(config.SMS.Active)
 	}
 	var handler Service
