@@ -262,7 +262,6 @@ import 'highlight.js/styles/a11y-dark.css'
 import {
   dateFormat,
   escapeHTML,
-  isImage,
   isMobile,
   processContent,
   randString,

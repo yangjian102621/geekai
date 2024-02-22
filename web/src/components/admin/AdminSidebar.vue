@@ -117,6 +117,11 @@ const items = [
     title: '函数管理',
   },
   {
+    icon: 'prompt',
+    index: '/admin/chats',
+    title: '对话管理',
+  },
+  {
     icon: 'config',
     index: '/admin/system',
     title: '系统设置',

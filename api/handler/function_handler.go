@@ -247,7 +247,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	} else {
 		request = req.C().R()
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, Password:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, h.proxyURL)
+	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, h.proxyURL)
 	r, err := request.SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(imgReq{
@@ -264,6 +264,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 	// 更新 API KEY 的最后使用时间
 	h.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
+	logger.Debugf("%+v", res)
 	// 存储图片
 	imgURL, err := h.uploadManager.GetUploadHandler().PutImg(res.Data[0].Url, false)
 	if err != nil {

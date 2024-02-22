@@ -2,7 +2,7 @@ package model
 
 import "gorm.io/gorm"
 
-type HistoryMessage struct {
+type ChatMessage struct {
 	BaseModel
 	ChatId     string // 会话 ID
 	UserId     uint   // 用户 ID
@@ -16,6 +16,6 @@ type HistoryMessage struct {
 	DeletedAt  gorm.DeletedAt
 }
 
-func (HistoryMessage) TableName() string {
+func (ChatMessage) TableName() string {
 	return "chatgpt_chat_history"
 }

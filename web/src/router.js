@@ -156,6 +156,12 @@ const routes = [
                 meta: {title: '函数管理'},
                 component: () => import('@/views/admin/Functions.vue'),
             },
+            {
+                path: '/admin/chats',
+                name: 'admin-chats',
+                meta: {title: '对话管理'},
+                component: () => import('@/views/admin/ChatList.vue'),
+            },
         ]
     },
 
