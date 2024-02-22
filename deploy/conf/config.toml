@@ -1,10 +1,9 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
-ImgCdnURL = ""
 WeChatBot = false
 
 [Session]
@@ -16,15 +15,16 @@ WeChatBot = false
   Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
 
 [Redis] # redis 配置信息
-  Host = "chatgpt-plus-redis"
+  Host = "localhost"
   Port = 6379
-  Password = "12345678"
+  Password = ""
   DB = 0
 
 [ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
   ApiURL = ""
   AppId = ""
   Token = ""
+
 
 [SMS] # Sms 配置，用于发送短信
    Active = "Ali" # 当前启用的短信服务，默认使用阿里云
@@ -68,14 +68,15 @@ WeChatBot = false
   GuildId = ""
   ChanelId = ""
   UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
-  DiscordAPI = "https://mj.r9it.com:8001" # discord API 反代地址
-  DiscordCDN = "https://mj.r9it.com:8002" # mj 图片反代地址
-  DiscordGateway = "wss://mj.r9it.com:8003" # discord 机器人反代地址
+  DiscordAPI = "" # discord API 反代地址
+  DiscordCDN = "" # mj 图片反代地址
+  DiscordGateway = "" # discord 机器人反代地址
 
 [[MjPlusConfigs]]
   Enabled = false
   ApiURL = "https://api.chatgpt-plus.net" # 目前暂时不支持更改
   CdnURL = "" # CND 加速的 URL，如果有的话就设置
+  Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
   ApiKey = "sk-xxx"
   NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要改成你的域名
 
