@@ -33,17 +33,12 @@
             </template>
           </van-field>
 
-          <van-field label="累计消耗tokens">
+          <van-field label="累计算力消耗">
             <template #input>
               <van-tag type="primary">{{ form.total_tokens }}</van-tag>
             </template>
           </van-field>
         </van-cell-group>
-        <div style="margin: 16px;">
-          <van-button round block type="primary" native-type="submit">
-            提交
-          </van-button>
-        </div>
       </van-form>
     </div>
   </div>
@@ -66,7 +61,7 @@ const form = ref({
 })
 const fileList = ref([
   {
-    url: 'https://fastly.jsdelivr.net/npm/@vant/assets/leaf.jpeg',
+    url: '',
     message: '上传中...',
   }
 ]);
@@ -92,12 +87,15 @@ const afterRead = (file) => {
       formData.append('file', result, result.name);
       // 执行上传操作
       httpPost('/api/upload', formData).then((res) => {
-        form.value.avatar = res.data
+        form.value.avatar = res.data.url
         file.status = 'success'
-        showNotify({type: 'success', message: '上传成功'})
+        httpPost('/api/user/profile/update', form.value).then(() => {
+          showSuccessToast('上传成功')
+        }).catch(() => {
+          showFailToast('上传失败')
+        })
       }).catch((e) => {
-        console.log(e.message)
-        showNotify({type: 'danger', message: '上传失败'})
+        showNotify({type: 'danger', message: '上传失败：' + e.message})
       })
     },
     error(err) {
@@ -107,11 +105,7 @@ const afterRead = (file) => {
 };
 
 const save = () => {
-  httpPost('/api/user/profile/update', form.value).then(() => {
-    showSuccessToast('保存成功')
-  }).catch(() => {
-    showFailToast('保存失败')
-  })
+
 }
 </script>
 

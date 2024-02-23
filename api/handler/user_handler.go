@@ -80,7 +80,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// check if the username is exists
 	var item model.User
 	res := h.db.Where("username = ?", data.Username).First(&item)
-	if res.RowsAffected > 0 {
+	if item.Id > 0 {
 		resp.ERROR(c, "该用户名已经被注册")
 		return
 	}
@@ -257,7 +257,7 @@ type userProfile struct {
 	Calls       int                  `json:"calls"`
 	ImgCalls    int                  `json:"img_calls"`
 	TotalTokens int64                `json:"total_tokens"`
-	Tokens      int64                `json:"tokens"`
+	Tokens      int                  `json:"tokens"`
 	ExpiredTime int64                `json:"expired_time"`
 	Vip         bool                 `json:"vip"`
 }
