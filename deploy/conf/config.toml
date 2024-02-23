@@ -74,7 +74,7 @@ WeChatBot = false
 
 [[MjPlusConfigs]]
   Enabled = false
-  ApiURL = "https://api.chatgpt-plus.net" # 目前暂时不支持更改
+  ApiURL = "https://api.chat-plus.net"
   CdnURL = "" # CND 加速的 URL，如果有的话就设置
   Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
   ApiKey = "sk-xxx"
