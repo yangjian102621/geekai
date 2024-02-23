@@ -9,7 +9,8 @@
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
-            <el-input placeholder="手机号/邮箱地址" size="large" v-model="username" autocomplete="off">
+            <el-input placeholder="手机号/邮箱地址" size="large" v-model="username" autocomplete="off" autofocus
+                      @keyup="handleKeyup">
               <template #prefix>
                 <el-icon>
                   <UserFilled/>
@@ -19,7 +20,8 @@
           </div>
 
           <div class="block">
-            <el-input placeholder="请输入密码" size="large" v-model="password" show-password autocomplete="off">
+            <el-input placeholder="请输入密码" size="large" v-model="password" show-password autocomplete="off"
+                      @keyup="handleKeyup">
               <template #prefix>
                 <el-icon>
                   <Lock/>
@@ -83,13 +85,6 @@ const handleKeyup = (e) => {
     login();
   }
 };
-
-onMounted(() => {
-  document.addEventListener('keyup', handleKeyup)
-})
-onUnmounted(() => {
-  document.removeEventListener('keyup', handleKeyup)
-})
 
 const login = function () {
   if (!validateMobile(username.value) && !validateEmail(username.value)) {
