@@ -62,7 +62,7 @@ import {Delete, PictureFilled, Plus} from "@element-plus/icons-vue";
 import {isImage, removeArrayItem} from "@/utils/libs";
 
 const props = defineProps({
-  userId: String,
+  userId: Number,
 });
 const emits = defineEmits(['selected']);
 const show = ref(false)

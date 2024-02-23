@@ -63,6 +63,18 @@
                       <span class="expire" v-else>长期有效</span>
                     </div>
 
+                    <div class="info-line">
+                      <span class="label">对话次数：</span>
+                      <span class="calls" v-if="scope.item.calls > 0">{{ scope.item.calls }}</span>
+                      <span class="calls" v-else>{{ vipMonthCalls }}</span>
+                    </div>
+
+                    <div class="info-line">
+                      <span class="label">绘图次数：</span>
+                      <span class="calls" v-if="scope.item.img_calls > 0">{{ scope.item.img_calls }}</span>
+                      <span class="calls" v-else>{{ vipMonthImgCalls }}</span>
+                    </div>
+
                     <div class="pay-way">
                       <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
                         <i class="iconfont icon-alipay"></i> 支付宝
@@ -192,6 +204,8 @@ const countDownRef = ref(null)
 const orderTimeout = ref(1800)
 const loading = ref(true)
 const orderPayInfoText = ref("")
+const vipMonthCalls = ref(0)
+const vipMonthImgCalls = ref(0)
 
 const payWays = ref({})
 const payName = ref("支付宝")
@@ -218,6 +232,8 @@ onMounted(() => {
     if (res.data['order_pay_timeout'] > 0) {
       orderTimeout.value = res.data['order_pay_timeout']
     }
+    vipMonthCalls.value = res.data['vip_month_calls']
+    vipMonthImgCalls.value = res.data['vip_month_img_calls']
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
@@ -341,191 +357,5 @@ const closeOrder = () => {
 
 <style lang="stylus">
 @import "@/assets/css/custom-scroll.styl"
-.member {
-  background-color: #282c34;
-  height 100vh
-
-  .el-dialog {
-    .el-dialog__body {
-      padding-top 10px
-
-      .pay-container {
-        .count-down {
-          display flex
-          justify-content center
-        }
-
-        .pay-qrcode {
-          display flex
-          justify-content center
-
-          .el-image {
-            width 360px;
-            height 360px;
-          }
-        }
-
-        .tip {
-          display flex
-          justify-content center
-
-          .el-icon {
-            font-size 24px
-          }
-
-          .text {
-            font-size: 16px
-            margin-left 10px
-          }
-        }
-
-        .tip.success {
-          color #07c160
-        }
-      }
-    }
-  }
-
-  .title {
-    text-align center
-    background-color #25272d
-    font-size 24px
-    color #ffffff
-    padding 10px
-    border-bottom 1px solid #3c3c3c
-  }
-
-  .inner {
-    color #ffffff
-    padding 15px 0 15px 15px;
-    overflow-x hidden
-    overflow-y visible
-
-    .user-profile {
-      padding 10px 20px 20px 20px
-      background-color #393F4A
-      color #ffffff
-      border-radius 10px
-      height 100vh
-
-      .el-form-item__label {
-        color #ffffff
-        justify-content start
-      }
-
-      .user-opt {
-        .el-col {
-          padding 10px
-
-          .el-button {
-            width 100%
-          }
-        }
-      }
-    }
-
-
-    .product-box {
-      .info {
-        .el-alert__description {
-          font-size 14px !important
-          margin 0
-        }
-        padding 10px 20px 20px 0
-      }
-
-      .list-box {
-        .product-item {
-          border 1px solid #666666
-          border-radius 6px
-          overflow hidden
-          cursor pointer
-          transition: all 0.3s ease; /* 添加过渡效果 */
-
-          .image-container {
-            display flex
-            justify-content center
-
-            .el-image {
-              padding 6px
-
-              .el-image__inner {
-                border-radius 10px
-              }
-            }
-          }
-
-          .product-title {
-            display flex
-            padding 10px
-
-            .name {
-              width 100%
-              text-align center
-              font-size 16px
-              font-weight bold
-              color #47fff1
-            }
-          }
-
-          .product-info {
-            padding 10px 20px
-            font-size 14px
-            color #999999
-
-            .info-line {
-              display flex
-              width 100%
-              padding 5px 0
-
-              .label {
-                display flex
-                width 100%
-              }
-
-              .price, .expire {
-                display flex
-                width 90px
-                justify-content right
-              }
-
-              .price {
-                color #f56c6c
-              }
-
-              .expire {
-                color #409eff
-              }
-            }
-
-
-            .pay-way {
-              padding 10px 0
-              display flex
-              justify-content: space-between
-
-              .iconfont {
-                margin-right 5px
-              }
-            }
-          }
-
-          &:hover {
-            box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
-            transform: translateY(-10px); /* 向上移动10像素 */
-          }
-        }
-      }
-
-      .headline {
-        padding 0 20px 20px 0
-      }
-
-      .user-order {
-        padding 0 20px 20px 0
-      }
-    }
-  }
-
-}
+@import "@/assets/css/member.styl"
 </style>
