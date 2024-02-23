@@ -5,7 +5,8 @@
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
-            <el-input placeholder="请输入用户名" size="large" v-model="username" autocomplete="off">
+            <el-input placeholder="请输入用户名" size="large" v-model="username" autocomplete="off" autofocus
+                      @keyup="keyupHandle">
               <template #prefix>
                 <el-icon>
                   <UserFilled/>
@@ -15,7 +16,8 @@
           </div>
 
           <div class="block">
-            <el-input placeholder="请输入密码" size="large" v-model="password" show-password autocomplete="off">
+            <el-input placeholder="请输入密码" size="large" v-model="password" show-password autocomplete="off"
+                      @keyup="keyupHandle">
               <template #prefix>
                 <el-icon>
                   <Lock/>
@@ -58,13 +60,12 @@ checkAdminSession().then(() => {
   router.push("/admin")
 }).catch(() => {
 })
-onMounted(() => {
-  document.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') {
-      login();
-    }
-  });
-})
+
+const keyupHandle = (e) => {
+  if (e.key === 'Enter') {
+    login();
+  }
+}
 
 const login = function () {
   if (username.value === '') {
@@ -76,8 +77,6 @@ const login = function () {
 
   httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then(res => {
     setAdminToken(res.data)
-    // 解除事件绑定
-    document.removeEventListener('keyup')
     router.push("/admin")
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
