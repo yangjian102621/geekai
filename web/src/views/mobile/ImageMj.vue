@@ -143,29 +143,16 @@
         <van-grid :gutter="10" :column-num="2" v-else>
           <van-grid-item v-for="item in finishedJobs">
             <div class="job-item">
-              <el-image
+              <van-image
                   :src="item['thumb_url']"
-                  :class="item['can_opt'] ? '' : 'upscale'" :zoom-rate="1.2"
-                  :preview-src-list="[item['img_url']]" fit="cover" :initial-index="0"
-                  loading="lazy" v-if="item.progress > 0">
-                <template #placeholder>
-                  <div class="image-slot">
-                    正在加载图片
-                  </div>
+                  :class="item['can_opt'] ? '' : 'upscale'"
+                  lazy-load
+                  @click="imageView(item)"
+                  fit="cover">
+                <template v-slot:loading>
+                  <van-loading type="spinner" size="20"/>
                 </template>
-
-                <template #error>
-                  <div class="image-slot" v-if="item['img_url'] === ''">
-                    <i class="iconfont icon-loading"></i>
-                    <span>正在下载图片</span>
-                  </div>
-                  <div class="image-slot" v-else>
-                    <el-icon>
-                      <Picture/>
-                    </el-icon>
-                  </div>
-                </template>
-              </el-image>
+              </van-image>
 
               <div class="opt" v-if="item['can_opt']">
 
@@ -205,7 +192,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showConfirmDialog, showFailToast, showNotify, showToast, showDialog} from "vant";
+import {showConfirmDialog, showFailToast, showNotify, showToast, showDialog, showImagePreview} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
@@ -476,6 +463,10 @@ const showPrompt = (item) => {
   }).then(() => {
     // on close
   });
+}
+
+const imageView = (item) => {
+  showImagePreview([item['img_url']]);
 }
 
 </script>

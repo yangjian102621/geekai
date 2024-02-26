@@ -109,18 +109,9 @@
   background-color: #4e5058;
   color: #fff;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .el-image {
+.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .van-image {
   width: 100%;
   height: 200px;
-}
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .el-image .image-slot {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .el-image .image-slot .iconfont {
-  margin-right: 5px;
 }
 .mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .upscale {
   height: 260px;
