@@ -247,6 +247,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
+			group.Any("client", h.Client)
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.POST("remove", h.Remove)

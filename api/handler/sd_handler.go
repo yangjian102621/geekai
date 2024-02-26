@@ -156,6 +156,11 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		UserId:    userId,
 	})
 
+	client := h.pool.Clients.Get(uint(job.UserId))
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
+	}
+
 	// update user's img calls
 	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
 
@@ -229,6 +234,7 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 func (h *SdJobHandler) Remove(c *gin.Context) {
 	var data struct {
 		Id     uint   `json:"id"`
+		UserId uint   `json:"user_id"`
 		ImgURL string `json:"img_url"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -247,6 +253,11 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 	err := h.uploader.GetUploadHandler().Delete(data.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
+	}
+
+	client := h.pool.Clients.Get(data.UserId)
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
 	}
 
 	resp.SUCCESS(c)
