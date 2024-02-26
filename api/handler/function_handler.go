@@ -233,6 +233,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
 	pt, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, params["prompt"]), h.App.Config.ProxyURL)
 	if err == nil {
+		logger.Debugf("翻译绘画提示词，原文：%s，译文：%s", prompt, pt)
 		prompt = pt
 	}
 	imgNum := chatConfig.DallImgNum

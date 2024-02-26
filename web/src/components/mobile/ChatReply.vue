@@ -6,7 +6,7 @@
 
     <div class="chat-item">
       <div class="triangle"></div>
-      <div class="content-box">
+      <div class="content-box" ref="contentRef">
         <div :data-clipboard-text="orgContent" class="content content-mobile" v-html="content"></div>
       </div>
 
@@ -17,8 +17,7 @@
 <script setup>
 import {onMounted, ref} from "vue"
 
-import Clipboard from "clipboard";
-import {showNotify} from "vant";
+import {showImagePreview} from "vant";
 
 const props = defineProps({
   content: {
@@ -34,6 +33,20 @@ const props = defineProps({
     default: '/images/gpt-icon.png',
   }
 });
+
+const contentRef = ref(null)
+onMounted(() => {
+  const imgs = contentRef.value.querySelectorAll('img')
+  for (let i = 0; i < imgs.length; i++) {
+    if (!imgs[i].src) {
+      continue
+    }
+    imgs[i].addEventListener('click', (e) => {
+      e.stopPropagation()
+      showImagePreview([imgs[i].src]);
+    })
+  }
+})
 </script>
 
 <style lang="stylus">
