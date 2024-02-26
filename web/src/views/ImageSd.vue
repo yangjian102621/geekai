@@ -307,15 +307,57 @@
       </div>
       <div class="task-list-box">
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
-          <h2>任务列表</h2>
-          <div class="running-job-list">
-            <ItemList :items="runningJobs" v-if="runningJobs.length > 0" :width="240">
-              <template #default="scope">
-                <div class="job-item">
-                  <div v-if="scope.item.progress > 0" class="job-item-inner">
-                    <el-image :src="scope.item['img_url']"
-                              fit="cover"
-                              loading="lazy">
+          <div class="job-list-box">
+            <h2>任务列表</h2>
+            <div class="running-job-list">
+              <ItemList :items="runningJobs" v-if="runningJobs.length > 0" :width="240">
+                <template #default="scope">
+                  <div class="job-item">
+                    <div v-if="scope.item.progress > 0" class="job-item-inner">
+                      <el-image :src="scope.item['img_url']"
+                                fit="cover"
+                                loading="lazy">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
+
+                        <template #error>
+                          <div class="image-slot">
+                            <el-icon v-if="scope.item['img_url'] !== ''">
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
+
+                      <div class="progress">
+                        <el-progress type="circle" :percentage="scope.item.progress" :width="100" color="#47fff1"/>
+                      </div>
+                    </div>
+                    <el-image fit="cover" v-else>
+                      <template #error>
+                        <div class="image-slot">
+                          <i class="iconfont icon-quick-start"></i>
+                          <span>任务正在排队中</span>
+                        </div>
+                      </template>
+                    </el-image>
+                  </div>
+                </template>
+              </ItemList>
+              <el-empty :image-size="100" v-else/>
+            </div>
+            <h2>创作记录</h2>
+            <div class="finish-job-list">
+              <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
+                <template #default="scope">
+                  <div class="job-item animate" @click="showTask(scope.item)">
+                    <el-image
+                        :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
+                        fit="cover"
+                        loading="lazy">
                       <template #placeholder>
                         <div class="image-slot">
                           正在加载图片
@@ -324,69 +366,30 @@
 
                       <template #error>
                         <div class="image-slot">
-                          <el-icon v-if="scope.item['img_url'] !== ''">
+                          <el-icon>
                             <Picture/>
                           </el-icon>
                         </div>
                       </template>
                     </el-image>
 
-                    <div class="progress">
-                      <el-progress type="circle" :percentage="scope.item.progress" :width="100" color="#47fff1"/>
+                    <div class="remove">
+                      <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
+                      <el-button type="warning" v-if="scope.item.publish"
+                                 @click="publishImage($event,scope.item, false)"
+                                 circle>
+                        <i class="iconfont icon-cancel-share"></i>
+                      </el-button>
+                      <el-button type="success" v-else @click="publishImage($event,scope.item, true)" circle>
+                        <i class="iconfont icon-share-bold"></i>
+                      </el-button>
                     </div>
                   </div>
-                  <el-image fit="cover" v-else>
-                    <template #error>
-                      <div class="image-slot">
-                        <i class="iconfont icon-quick-start"></i>
-                        <span>任务正在排队中</span>
-                      </div>
-                    </template>
-                  </el-image>
-                </div>
-              </template>
-            </ItemList>
-            <el-empty :image-size="100" v-else/>
+                </template>
+              </ItemList>
+              <el-empty :image-size="100" v-else/>
+            </div> <!-- end finish job list-->
           </div>
-          <h2>创作记录</h2>
-          <div class="finish-job-list">
-            <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
-              <template #default="scope">
-                <div class="job-item animate" @click="showTask(scope.item)">
-                  <el-image
-                      :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
-                      fit="cover"
-                      loading="lazy">
-                    <template #placeholder>
-                      <div class="image-slot">
-                        正在加载图片
-                      </div>
-                    </template>
-
-                    <template #error>
-                      <div class="image-slot">
-                        <el-icon>
-                          <Picture/>
-                        </el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-
-                  <div class="remove">
-                    <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
-                    <el-button type="warning" v-if="scope.item.publish" @click="publishImage($event,scope.item, false)"
-                               circle>
-                      <i class="iconfont icon-cancel-share"></i>
-                    </el-button>
-                    <el-button type="success" v-else @click="publishImage($event,scope.item, true)" circle>
-                      <i class="iconfont icon-share-bold"></i>
-                    </el-button>
-                  </div>
-                </div>
-              </template>
-            </ItemList>
-            <el-empty :image-size="100" v-else/>
-          </div> <!-- end finish job list-->
         </div>
 
       </div><!-- end task list box -->
@@ -529,7 +532,7 @@ window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   mjBoxHeight.value = window.innerHeight - 150
 }
-const samplers = ["Euler a", "Euler", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
+const samplers = ["Euler a", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
   width: 1024,
@@ -580,72 +583,62 @@ const translatePrompt = () => {
   })
 }
 
+const socket = ref(null)
+const userId = ref(0)
+const heartbeatHandle = ref(null)
+const connect = () => {
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https:') {
+      host = 'wss://' + location.host;
+    } else {
+      host = 'ws://' + location.host;
+    }
+  }
+
+  // 心跳函数
+  const sendHeartbeat = () => {
+    clearTimeout(heartbeatHandle.value)
+    new Promise((resolve, reject) => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+      resolve("success")
+    }).then(() => {
+      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
+    });
+  }
+
+  const _socket = new WebSocket(host + `/api/sd/client?user_id=${userId.value}`);
+  _socket.addEventListener('open', () => {
+    socket.value = _socket;
+
+    // 发送心跳消息
+    sendHeartbeat()
+  });
+
+  _socket.addEventListener('message', event => {
+    if (event.data instanceof Blob) {
+      fetchRunningJobs(userId.value)
+      fetchFinishJobs(userId.value)
+    }
+  });
+
+  _socket.addEventListener('close', () => {
+    connect()
+  });
+}
+
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
-
+    userId.value = user.id
     fetchRunningJobs(user.id)
     fetchFinishJobs(user.id)
-
+    connect()
   }).catch(() => {
     router.push('/login')
   });
-
-  const fetchRunningJobs = (userId) => {
-    // 获取运行中的任务
-    httpGet(`/api/sd/jobs?status=0&user_id=${userId}`).then(res => {
-      const jobs = res.data
-      const _jobs = []
-      for (let i = 0; i < jobs.length; i++) {
-        if (jobs[i].progress === -1) {
-          ElNotification({
-            title: '任务执行失败',
-            dangerouslyUseHTMLString: true,
-            message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
-            type: 'error',
-          })
-          imgCalls.value += 1
-          continue
-        }
-        _jobs.push(jobs[i])
-      }
-      runningJobs.value = _jobs
-
-      setTimeout(() => fetchRunningJobs(userId), 1000)
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-      setTimeout(() => fetchRunningJobs(userId), 5000)
-    })
-  }
-
-  // 获取已完成的任务
-  const fetchFinishJobs = (userId) => {
-    httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
-      if (finishedJobs.value.length === 0 || res.data.length > finishedJobs.value.length) {
-        finishedJobs.value = res.data
-        setTimeout(() => fetchFinishJobs(userId), 1000)
-        return
-      }
-
-      // check if the img url is changed
-      const list = res.data
-      let changed = false
-      for (let i = 0; i < list.length; i++) {
-        if (list[i]["img_url"] !== finishedJobs.value[i]["img_url"]) {
-          changed = true
-          break
-        }
-      }
-      if (changed) {
-        finishedJobs.value = list
-      }
-      setTimeout(() => fetchFinishJobs(userId), 1000)
-    }).catch(e => {
-      ElMessage.error("获取任务失败：" + e.message)
-      setTimeout(() => fetchFinishJobs(userId), 5000)
-    })
-  }
-
   const clipboard = new Clipboard('.copy-prompt');
   clipboard.on('success', () => {
     ElMessage.success("复制成功！");
@@ -655,6 +648,39 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 })
+
+const fetchRunningJobs = (userId) => {
+  // 获取运行中的任务
+  httpGet(`/api/sd/jobs?status=0&user_id=${userId}`).then(res => {
+    const jobs = res.data
+    const _jobs = []
+    for (let i = 0; i < jobs.length; i++) {
+      if (jobs[i].progress === -1) {
+        ElNotification({
+          title: '任务执行失败',
+          dangerouslyUseHTMLString: true,
+          message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
+          type: 'error',
+        })
+        imgCalls.value += 1
+        continue
+      }
+      _jobs.push(jobs[i])
+    }
+    runningJobs.value = _jobs
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
+
+// 获取已完成的任务
+const fetchFinishJobs = (userId) => {
+  httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
+    finishedJobs.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取任务失败：" + e.message)
+  })
+}
 
 
 // 创建绘图任务
@@ -697,7 +723,7 @@ const removeImage = (event, item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpPost("/api/sd/remove", {id: item.id, img_url: item.img_url}).then(() => {
+    httpPost("/api/sd/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
       ElMessage.success("任务删除成功")
     }).catch(e => {
       ElMessage.error("任务删除失败：" + e.message)

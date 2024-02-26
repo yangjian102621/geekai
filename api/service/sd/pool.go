@@ -52,6 +52,26 @@ func (p *ServicePool) PushTask(task types.SdTask) {
 	p.taskQueue.RPush(task)
 }
 
+func (p *ServicePool) CheckTaskNotify() {
+	go func() {
+		for {
+			var userId uint
+			err := p.notifyQueue.LPop(&userId)
+			if err != nil {
+				continue
+			}
+			client := p.Clients.Get(userId)
+			if client == nil {
+				continue
+			}
+			err = client.Send([]byte("Task Updated"))
+			if err != nil {
+				continue
+			}
+		}
+	}()
+}
+
 // HasAvailableService check if it has available mj service in pool
 func (p *ServicePool) HasAvailableService() bool {
 	return len(p.services) > 0

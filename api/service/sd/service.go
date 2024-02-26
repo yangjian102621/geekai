@@ -310,4 +310,7 @@ func (s *Service) callback(data CBReq) {
 		// restore img_calls
 		s.db.Model(&model.User{}).Where("id = ? AND img_calls > 0", data.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 	}
+
+	// 发送更新状态信号
+	s.notifyQueue.RPush(data.UserId)
 }
