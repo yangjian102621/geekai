@@ -155,10 +155,11 @@ func (s *Service) Notify(data CBReq) {
 	job.Progress = data.Progress
 	job.Prompt = data.Prompt
 	job.Hash = data.Image.Hash
-	job.OrgURL = data.Image.URL
 	if s.client.Config.UseCDN {
 		job.UseProxy = true
-		job.ImgURL = strings.ReplaceAll(data.Image.URL, "https://cdn.discordapp.com", s.client.Config.ImgCdnURL)
+		job.OrgURL = strings.ReplaceAll(data.Image.URL, "https://cdn.discordapp.com", s.client.Config.ImgCdnURL)
+	} else {
+		job.OrgURL = data.Image.URL
 	}
 
 	res = s.db.Updates(&job)
