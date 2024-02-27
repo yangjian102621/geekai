@@ -139,6 +139,7 @@
         @close="closeOrder"
         title="充值订单支付">
       <div class="pay-container">
+        <h3 class="amount">实付金额：<span>￥{{ amount }}</span></h3>
         <div class="count-down">
           <count-down :second="orderTimeout" @timeout="refreshPayCode" ref="countDownRef"/>
         </div>
@@ -208,6 +209,7 @@ const vipMonthCalls = ref(0)
 const vipMonthImgCalls = ref(0)
 
 const payWays = ref({})
+const amount = ref(0)
 const payName = ref("支付宝")
 const curPay = ref("alipay") // 当前支付方式
 
@@ -279,6 +281,7 @@ const genPayQrcode = () => {
 const alipay = (row) => {
   payName.value = "支付宝"
   curPay.value = "alipay"
+  amount.value = (row.price - row.discount).toFixed(2)
   if (!user.value.id) {
     showLoginDialog.value = true
     return
@@ -293,6 +296,7 @@ const alipay = (row) => {
 const huPiPay = (row) => {
   payName.value = payWays.value["hupi"]["name"] === "wechat" ? '微信' : '支付宝'
   curPay.value = "hupi"
+  amount.value = (row.price - row.discount).toFixed(2)
   if (!user.value.id) {
     showLoginDialog.value = true
     return
@@ -307,6 +311,7 @@ const huPiPay = (row) => {
 const PayJs = (row) => {
   payName.value = '微信'
   curPay.value = "payjs"
+  amount.value = (row.price - row.discount).toFixed(2)
   if (!user.value.id) {
     showLoginDialog.value = true
     return
