@@ -329,7 +329,7 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 	}
 
 	password := utils.GenPassword(data.OldPass, user.Salt)
-	logger.Info(user.Salt, ",", user.Password, ",", password, ",", data.OldPass)
+	logger.Debugf(user.Salt, ",", user.Password, ",", password, ",", data.OldPass)
 	if password != user.Password {
 		resp.ERROR(c, "原密码错误")
 		return

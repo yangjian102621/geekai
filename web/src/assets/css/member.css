@@ -5,6 +5,12 @@
 .member .el-dialog .el-dialog__body {
   padding-top: 10px;
 }
+.member .el-dialog .el-dialog__body .pay-container .amount {
+  text-align: center;
+}
+.member .el-dialog .el-dialog__body .pay-container .amount span {
+  color: #f56c6c;
+}
 .member .el-dialog .el-dialog__body .pay-container .count-down {
   display: flex;
   justify-content: center;
