@@ -697,6 +697,7 @@ const fetchRunningJobs = (userId) => {
           dangerouslyUseHTMLString: true,
           message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
           type: 'error',
+          duration: 0,
         })
         imgCalls.value += 1
         continue

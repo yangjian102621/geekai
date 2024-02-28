@@ -90,16 +90,15 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		if r.Body != nil {
+		if r != nil {
 			errStr, _ := io.ReadAll(r.Body)
-			logger.Errorf("API 返回：%s, API URL: %s", string(errStr), apiURL)
+			logger.Errorf("API URL: %s, 返回：%s", string(errStr), apiURL)
 		}
 		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
 	if r.IsErrorState() {
-		errStr, _ := io.ReadAll(r.Body)
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s，%v", errRes.Error.Message, string(errStr))
+		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
 	}
 
 	return res, nil
