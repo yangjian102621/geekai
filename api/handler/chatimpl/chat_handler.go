@@ -131,6 +131,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	h.Init()
 
 	// 保存会话连接
 	h.App.ChatClients.Put(sessionId, client)
