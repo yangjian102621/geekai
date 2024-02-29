@@ -555,6 +555,7 @@ const options = [
   },
 ]
 
+const router = useRouter()
 const params = ref({
   task_type: "image",
   rate: rates[0].value,
@@ -565,7 +566,7 @@ const params = ref({
   img_arr: [],
   raw: false,
   weight: 0.25,
-  prompt: "",
+  prompt: router.currentRoute.value.params["prompt"] ?? "",
   neg_prompt: "",
   tile: false,
   quality: 0
@@ -577,7 +578,6 @@ const activeName = ref('image')
 
 const runningJobs = ref([])
 const finishedJobs = ref([])
-const router = useRouter()
 
 const socket = ref(null)
 const imgCalls = ref(0)

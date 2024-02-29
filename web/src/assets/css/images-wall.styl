@@ -52,19 +52,20 @@
           overflow hidden
 
           .el-image {
+            width 100%
             transition: transform 0.3s;
             cursor pointer
           }
         }
 
-        .prompt {
+        .opt {
           display none
           position absolute
-          width 180px
+          width 100%
           bottom 0
           left 0
           color #ffffff
-          padding 10px 10px 20px 10px
+          padding 8px 10px
           line-height 1.2
           border-top-right-radius 10px
           background-color rgba(10, 10, 10, 0.7)
@@ -73,24 +74,23 @@
             word-break break-all
           }
 
-          .el-icon {
-            position absolute
-            bottom 10px
-            right 10px
+          .el-icon, .iconfont {
+            top 2px
             cursor pointer
             border 1px solid #ffffff
             border-radius 5px
             padding 2px
-            font-size 12px;
+            font-size 16px;
+            margin-right 10px
 
             &:hover {
-              background-color #999999
+              background-color #444444
             }
           }
         }
 
         &:hover {
-          .prompt {
+          .opt {
             display block
             animation: expandUp 0.3s ease-in-out forwards;
             transform-origin: bottom center;
