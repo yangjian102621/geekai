@@ -104,7 +104,7 @@
 
 <script setup>
 import {nextTick, onMounted, ref} from "vue";
-import {showNotify, showToast} from "vant";
+import {showImagePreview, showNotify, showToast} from "vant";
 import {onBeforeRouteLeave, useRouter} from "vue-router";
 import {dateFormat, processContent, randString, renderInputText, UUID} from "@/utils/libs";
 import {getChatConfig} from "@/store/chat";
@@ -326,6 +326,18 @@ const connect = function (chat_id, role_id) {
               hl.highlightElement(block)
             })
             scrollListBox()
+
+            const items = document.querySelectorAll('.message-line')
+            const imgs = items[items.length - 1].querySelectorAll('img')
+            for (let i = 0; i < imgs.length; i++) {
+              if (!imgs[i].src) {
+                continue
+              }
+              imgs[i].addEventListener('click', (e) => {
+                e.stopPropagation()
+                showImagePreview([imgs[i].src]);
+              })
+            }
           })
         }
 

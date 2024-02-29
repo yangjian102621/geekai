@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 
 import {showImagePreview} from "vant";
 

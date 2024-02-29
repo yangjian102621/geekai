@@ -393,9 +393,6 @@ func main() {
 				log.Fatal(err)
 			}
 		}),
-		fx.Invoke(func(h *chatimpl.ChatHandler) {
-			h.Init()
-		}),
 		// 注册生命周期回调函数
 		fx.Invoke(func(lifecycle fx.Lifecycle, lc *AppLifecycle) {
 			lifecycle.Append(fx.Hook{
