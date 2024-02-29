@@ -35,38 +35,40 @@
   overflow: hidden;
 }
 .page-images-wall .inner .waterfall .list-item .image .el-image {
+  width: 100%;
   transition: transform 0.3s;
   cursor: pointer;
 }
-.page-images-wall .inner .waterfall .list-item .prompt {
+.page-images-wall .inner .waterfall .list-item .opt {
   display: none;
   position: absolute;
-  width: 180px;
+  width: 100%;
   bottom: 0;
   left: 0;
   color: #fff;
-  padding: 10px 10px 20px 10px;
+  padding: 8px 10px;
   line-height: 1.2;
   border-top-right-radius: 10px;
   background-color: rgba(10,10,10,0.7);
 }
-.page-images-wall .inner .waterfall .list-item .prompt span {
+.page-images-wall .inner .waterfall .list-item .opt span {
   word-break: break-all;
 }
-.page-images-wall .inner .waterfall .list-item .prompt .el-icon {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
+.page-images-wall .inner .waterfall .list-item .opt .el-icon,
+.page-images-wall .inner .waterfall .list-item .opt .iconfont {
+  top: 2px;
   cursor: pointer;
   border: 1px solid #fff;
   border-radius: 5px;
   padding: 2px;
-  font-size: 12px;
+  font-size: 16px;
+  margin-right: 10px;
 }
-.page-images-wall .inner .waterfall .list-item .prompt .el-icon:hover {
-  background-color: #999;
+.page-images-wall .inner .waterfall .list-item .opt .el-icon:hover,
+.page-images-wall .inner .waterfall .list-item .opt .iconfont:hover {
+  background-color: #444;
 }
-.page-images-wall .inner .waterfall .list-item:hover .prompt {
+.page-images-wall .inner .waterfall .list-item:hover .opt {
   display: block;
   animation: expandUp 0.3s ease-in-out forwards;
   transform-origin: bottom center;
