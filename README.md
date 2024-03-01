@@ -73,8 +73,10 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 **演示站不提供任何充值点卡售卖或者VIP充值服务。** 如果您体验过后觉得还不错的话，可以花两分钟用下面的一键部署脚本自己部署一套。
 
 ```shell
-bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.5-400fea2598.sh)"
+bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v3.2.7-6c232bdaf8.sh)"
 ```
+
+最新版本的一键部署脚本请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/install/)。
 
 目前仅支持 Ubuntu 和 Centos 系统。 部署成功之后可以访问下面地址
 
