@@ -7,8 +7,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/imroc/req/v3"
 	"io"
+
+	"github.com/imroc/req/v3"
 
 	"github.com/gin-gonic/gin"
 )
@@ -90,15 +91,16 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		if r != nil {
+		if r.Body != nil {
 			errStr, _ := io.ReadAll(r.Body)
-			logger.Errorf("API URL: %s, 返回：%s", string(errStr), apiURL)
+			logger.Errorf("API 返回：%s, API URL: %s", string(errStr), apiURL)
 		}
 		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
 	if r.IsErrorState() {
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
+		errStr, _ := io.ReadAll(r.Body)
+		return ImageRes{}, fmt.Errorf("API 返回错误：%s，%v", errRes.Error.Message, string(errStr))
 	}
 
 	return res, nil
@@ -123,6 +125,10 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 				body.Base64Array = append(body.Base64Array, "data:image/png;base64,"+base64.StdEncoding.EncodeToString(imageData))
 			}
 		}
+	}
+
+	if len(body.Base64Array) < 2 {
+		return ImageRes{}, errors.New("blend must use more than 2 images")
 	}
 	var res ImageRes
 	var errRes ErrRes
@@ -149,19 +155,19 @@ func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/insight-face/swap", c.apiURL, c.Config.Mode)
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) != 2 {
-		return ImageRes{}, errors.New("参数错误，必须上传2张图片")
+		return ImageRes{}, errors.New("invalid params, swap face must pass 2 images")
 	}
 	var sourceBase64 string
 	var targetBase64 string
 	imageData, err := utils.DownloadImage(task.ImgArr[0], "")
 	if err != nil {
-		logger.Error("error with download image: ", err)
+		return ImageRes{}, fmt.Errorf("error with download source image: %v", err)
 	} else {
 		sourceBase64 = "data:image/png;base64," + base64.StdEncoding.EncodeToString(imageData)
 	}
 	imageData, err = utils.DownloadImage(task.ImgArr[1], "")
 	if err != nil {
-		logger.Error("error with download image: ", err)
+		return ImageRes{}, fmt.Errorf("error with download target image: %v", err)
 	} else {
 		targetBase64 = "data:image/png;base64," + base64.StdEncoding.EncodeToString(imageData)
 	}

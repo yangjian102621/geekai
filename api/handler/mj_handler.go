@@ -305,16 +305,40 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
+// ImgWall 照片墙
+func (h *MidJourneyHandler) ImgWall(c *gin.Context) {
+	page := h.GetInt(c, "page", 0)
+	pageSize := h.GetInt(c, "page_size", 0)
+	err, jobs := h.getData(true, 0, page, pageSize, true)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, jobs)
+}
+
 // JobList 获取 MJ 任务列表
 func (h *MidJourneyHandler) JobList(c *gin.Context) {
-	status := h.GetInt(c, "status", 0)
-	userId := h.GetInt(c, "user_id", 0)
+	status := h.GetBool(c, "status")
+	userId := h.GetLoginUserId(c)
 	page := h.GetInt(c, "page", 0)
 	pageSize := h.GetInt(c, "page_size", 0)
 	publish := h.GetBool(c, "publish")
 
+	err, jobs := h.getData(status, userId, page, pageSize, publish)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, jobs)
+}
+
+// JobList 获取 MJ 任务列表
+func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.MidJourneyJob) {
 	session := h.db.Session(&gorm.Session{})
-	if status == 1 {
+	if finish {
 		session = session.Where("progress = ?", 100).Order("id DESC")
 	} else {
 		session = session.Where("progress < ?", 100).Order("id ASC")
@@ -333,8 +357,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 	var items []model.MidJourneyJob
 	res := session.Find(&items)
 	if res.Error != nil {
-		resp.ERROR(c, types.NoData)
-		return
+		return res.Error, nil
 	}
 
 	var jobs = make([]vo.MidJourneyJob, 0)
@@ -366,7 +389,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 
 		jobs = append(jobs, job)
 	}
-	resp.SUCCESS(c, jobs)
+	return nil, jobs
 }
 
 // Remove remove task image
