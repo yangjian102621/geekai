@@ -2,6 +2,14 @@
   <div class="container order" v-loading="loading">
     <div class="handle-box">
       <el-input v-model="query.order_no" placeholder="订单号" class="handle-input mr10"></el-input>
+      <el-select v-model="query.status" placeholder="订单状态" style="width: 100px">
+        <el-option
+            v-for="item in orderStatus"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+        />
+      </el-select>
       <el-date-picker
           v-model="query.pay_time"
           type="daterange"
@@ -74,11 +82,16 @@ import {Search} from "@element-plus/icons-vue";
 
 // 变量定义
 const items = ref([])
-const query = ref({order_no: "", pay_time: []})
+const query = ref({order_no: "", pay_time: [], status: -1})
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(15)
 const loading = ref(true)
+const orderStatus = ref([
+  {value: -1, label: "全部"},
+  {value: 0, label: "未支付"},
+  {value: 2, label: "已支付"},
+])
 
 onMounted(() => {
   fetchData()

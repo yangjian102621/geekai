@@ -46,7 +46,7 @@ WeChatBot = false
    Active = "local" # 默认使用本地文件存储引擎
    [OSS.Local]
      BasePath = "./static/upload" # 本地文件上传根路径
-     BaseURL = "/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
+     BaseURL = "http://localhost:5678/static/upload" # 本地上传文件前缀 URL，线上需要把 localhost 替换成自己的实际域名或者IP
    [OSS.Minio]
      Endpoint = "" # 如 172.22.11.200:9000
      AccessKey = "" # 自己去 Minio 控制台去创建一个 Access Key

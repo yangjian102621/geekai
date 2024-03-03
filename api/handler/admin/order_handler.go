@@ -8,6 +8,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -26,6 +27,7 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 func (h *OrderHandler) List(c *gin.Context) {
 	var data struct {
 		OrderNo  string   `json:"order_no"`
+		Status   int      `json:"status"`
 		PayTime  []string `json:"pay_time"`
 		Page     int      `json:"page"`
 		PageSize int      `json:"page_size"`
@@ -44,8 +46,9 @@ func (h *OrderHandler) List(c *gin.Context) {
 		end := utils.Str2stamp(data.PayTime[1] + " 00:00:00")
 		session = session.Where("pay_time >= ? AND pay_time <= ?", start, end)
 	}
-	session = session.Where("status = ?", types.OrderPaidSuccess)
-
+	if data.Status >= 0 {
+		session = session.Where("status", data.Status)
+	}
 	var total int64
 	session.Model(&model.Order{}).Count(&total)
 	var items []model.Order
@@ -85,7 +88,7 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 			return
 		}
 
-		res = h.db.Where("id = ?", id).Delete(&model.Order{})
+		res = h.db.Unscoped().Where("id = ?", id).Delete(&model.Order{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
