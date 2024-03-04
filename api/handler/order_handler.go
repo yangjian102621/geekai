@@ -7,6 +7,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -31,8 +32,8 @@ func (h *OrderHandler) List(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	user, _ := utils.GetLoginUser(c, h.db)
-	session := h.db.Session(&gorm.Session{}).Where("user_id = ? AND status = ?", user.Id, types.OrderPaidSuccess)
+	userId := h.GetLoginUserId(c)
+	session := h.db.Session(&gorm.Session{}).Where("user_id = ? AND status = ?", userId, types.OrderPaidSuccess)
 	var total int64
 	session.Model(&model.Order{}).Count(&total)
 	var items []model.Order

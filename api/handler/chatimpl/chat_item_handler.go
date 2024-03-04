@@ -6,6 +6,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -17,6 +18,13 @@ func (h *ChatHandler) List(c *gin.Context) {
 		resp.ERROR(c, "The parameter 'user_id' is needed.")
 		return
 	}
+
+	// fix: 只能读取本人的消息列表
+	if uint(userId) != h.GetLoginUserId(c) {
+		resp.ERROR(c, "Hacker attempt, you can ONLY get yourself chats.")
+		return
+	}
+
 	var items = make([]vo.ChatItem, 0)
 	var chats []model.ChatItem
 	res := h.db.Where("user_id = ?", userId).Order("id DESC").Find(&chats)
@@ -116,9 +124,10 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 // History 获取聊天历史记录
 func (h *ChatHandler) History(c *gin.Context) {
 	chatId := c.Query("chat_id") // 会话 ID
+	userId := h.GetLoginUserId(c)
 	var items []model.ChatMessage
 	var messages = make([]vo.HistoryMessage, 0)
-	res := h.db.Where("chat_id = ?", chatId).Find(&items)
+	res := h.db.Where("user_id = ? AND chat_id = ?", userId, chatId).Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No history message")
 		return
