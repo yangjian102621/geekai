@@ -249,7 +249,7 @@ import {
   ArrowDown,
   Check,
   Close,
-  Delete, Document,
+  Delete,
   Edit,
   Plus,
   Promotion,
@@ -259,15 +259,7 @@ import {
   VideoPause
 } from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
-import {
-  dateFormat,
-  escapeHTML,
-  isMobile,
-  processContent,
-  randString,
-  removeArrayItem,
-  UUID
-} from "@/utils/libs";
+import {dateFormat, escapeHTML, isMobile, processContent, randString, removeArrayItem, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
 import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
@@ -361,7 +353,7 @@ onMounted(() => {
       notice.value = md.render(res.data['content'])
       const oldNotice = localStorage.getItem(noticeKey.value);
       // 如果公告有更新，则显示公告
-      if (oldNotice !== notice.value) {
+      if (oldNotice !== notice.value && notice.value.length > 10) {
         showNotice.value = true
       }
     }).catch(e => {

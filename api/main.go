@@ -241,6 +241,7 @@ func main() {
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
+			group.GET("imgWall", h.ImgWall)
 			group.POST("remove", h.Remove)
 			group.POST("notify", h.Notify)
 			group.POST("publish", h.Publish)
@@ -250,6 +251,7 @@ func main() {
 			group.Any("client", h.Client)
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
+			group.GET("imgWall", h.ImgWall)
 			group.POST("remove", h.Remove)
 			group.POST("publish", h.Publish)
 		}),

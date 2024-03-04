@@ -284,8 +284,8 @@ const getNext = () => {
 
   loading.value = true
   page.value = page.value + 1
-  const url = imgType.value === "mj" ? "/api/mj/jobs" : "/api/sd/jobs"
-  httpGet(`${url}?status=1&page=${page.value}&page_size=${pageSize.value}&publish=true`).then(res => {
+  const url = imgType.value === "mj" ? "/api/mj/imgWall" : "/api/sd/imgWall"
+  httpGet(`${url}?page=${page.value}&page_size=${pageSize.value}`).then(res => {
     loading.value = false
     if (res.data.length === 0) {
       isOver.value = true
