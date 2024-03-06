@@ -124,10 +124,9 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 // History 获取聊天历史记录
 func (h *ChatHandler) History(c *gin.Context) {
 	chatId := c.Query("chat_id") // 会话 ID
-	userId := h.GetLoginUserId(c)
 	var items []model.ChatMessage
 	var messages = make([]vo.HistoryMessage, 0)
-	res := h.db.Where("user_id = ? AND chat_id = ?", userId, chatId).Find(&items)
+	res := h.db.Debug().Where("chat_id = ?", chatId).Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No history message")
 		return
