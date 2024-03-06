@@ -1,6 +1,7 @@
 import {
   IconUser,
-  IconDashboard
+  IconDashboard,
+  IconOrderedList,
 } from "@arco-design/web-vue/es/icon";
 
 const menu = [
@@ -21,6 +22,15 @@ const menu = [
       icon: IconUser,
     },
     component: () => import('@/views/User/UserContainer.vue')
+  },
+  {
+    path: '/order',
+    name: 'Order',
+    meta: {
+      title: "充值订单",
+      icon: IconOrderedList,
+    },
+    component: () => import('@/views/Order/OrderContainer.vue')
   },
 ];
 
