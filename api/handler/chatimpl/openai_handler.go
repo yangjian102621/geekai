@@ -276,6 +276,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		var res types.ApiError
 		err = json.Unmarshal(body, &res)
 		if err != nil {
+			logger.Debug(string(body))
 			return fmt.Errorf("error with decode response: %v", err)
 		}
 
