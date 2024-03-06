@@ -241,7 +241,7 @@
               </div>
             </div>
 
-            <div class="param-line" v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.8)">
+            <div class="param-line" v-loading="translating" element-loading-background="rgba(122, 122, 122, 0.8)">
               <el-input
                   v-model="params.prompt"
                   :autosize="{ minRows: 4, maxRows: 6 }"
@@ -305,7 +305,7 @@
           <el-button color="#47fff1" :dark="false" round @click="generate">立即生成</el-button>
         </div>
       </div>
-      <div class="task-list-box">
+      <div class="task-list-box" @scrollend="handleScrollEnd">
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <div class="job-list-box">
             <h2>任务列表</h2>
@@ -350,7 +350,7 @@
               <el-empty :image-size="100" v-else/>
             </div>
             <h2>创作记录</h2>
-            <div class="finish-job-list">
+            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.7)">
               <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
                 <template #default="scope">
                   <div class="job-item animate" @click="showTask(scope.item)">
@@ -526,7 +526,7 @@ const mjBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
-const loading = ref(false)
+const translating = ref(false)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
@@ -562,23 +562,23 @@ if (_params) {
 const imgCalls = ref(0)
 
 const rewritePrompt = () => {
-  loading.value = true
+  translating.value = true
   httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data
-    loading.value = false
+    translating.value = false
   }).catch(e => {
-    loading.value = false
+    translating.value = false
     ElMessage.error("翻译失败：" + e.message)
   })
 }
 
 const translatePrompt = () => {
-  loading.value = true
+  translating.value = true
   httpPost("/api/prompt/translate", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data
-    loading.value = false
+    translating.value = false
   }).catch(e => {
-    loading.value = false
+    translating.value = false
     ElMessage.error("翻译失败：" + e.message)
   })
 }
@@ -619,8 +619,8 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      fetchRunningJobs(userId.value)
-      fetchFinishJobs(userId.value)
+      fetchRunningJobs()
+      fetchFinishJobs(1)
     }
   });
 
@@ -633,8 +633,8 @@ onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
     userId.value = user.id
-    fetchRunningJobs(user.id)
-    fetchFinishJobs(user.id)
+    fetchRunningJobs()
+    fetchFinishJobs()
     connect()
   }).catch(() => {
     router.push('/login')
@@ -673,11 +673,31 @@ const fetchRunningJobs = (userId) => {
   })
 }
 
+const handleScrollEnd = () => {
+  page.value += 1
+  fetchFinishJobs(page.value)
+}
+
+const page = ref(1)
+const pageSize = ref(15)
+const isOver = ref(false)
+const loading = ref(false)
 // 获取已完成的任务
-const fetchFinishJobs = (userId) => {
-  httpGet(`/api/sd/jobs?status=1&user_id=${userId}`).then(res => {
-    finishedJobs.value = res.data
+const fetchFinishJobs = (page) => {
+  if (isOver.value === true) {
+    ElMessage.info("全部数据加载完毕！")
+    return
+  }
+
+  loading.value = true
+  httpGet(`/api/sd/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
+    if (res.data.length < pageSize.value) {
+      isOver.value = true
+    }
+    finishedJobs.value = finishedJobs.value.concat(res.data)
+    loading.value = false
   }).catch(e => {
+    loading.value = false
     ElMessage.error("获取任务失败：" + e.message)
   })
 }
