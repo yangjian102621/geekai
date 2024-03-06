@@ -8,6 +8,9 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 export default defineConfig(({ mode }) => {
   const { VITE_PROXY_BASE_URL, VITE_TARGET_URL } = loadEnv(mode, process.cwd());
   return {
+    define: {
+      __AUTH_KEY: "'Admin-Authorization'"
+    },
     plugins: [
       vue(),
       vueJsx(),

@@ -7,6 +7,8 @@ export const uploadUrl = import.meta.env.VITE_PROXY_BASE_URL + "/common/upload/m
 export const instance = createInstance()
 
 instance.interceptors.request.use((config) => {
+  config.headers[__AUTH_KEY] = localStorage.getItem(__AUTH_KEY);
+  config.headers["Authorization"] = localStorage.getItem(__AUTH_KEY);
   return config;
 });
 
