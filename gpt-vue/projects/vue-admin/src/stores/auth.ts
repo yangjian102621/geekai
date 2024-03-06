@@ -5,12 +5,12 @@ import router from '@/router'
 
 export const useAuthStore = defineStore({
   id: __AUTH_KEY,
-  state: () => ({ token: null }),
+  state: () => ({ token: null } as { token: string | null }),
   actions: {
     init() {
       this.$state.token = localStorage.getItem(__AUTH_KEY);
     },
-    async login(params) {
+    async login(params: any) {
       try {
         const { data } = await userLogin(params)
         if (data) {
@@ -29,7 +29,7 @@ export const useAuthStore = defineStore({
         await userLogout()
         if (this.$state.token) {
           localStorage.removeItem(__AUTH_KEY)
-          this.$restate.token = null
+          this.$reset()
         }
         Message.success('退出成功');
         router.push({ name: 'Login' })
