@@ -48,8 +48,8 @@ function useAsyncTable<T extends Record<string, unknown>>(
         page: paginationState.current,
         pageSize: paginationState.pageSize,
       });
-      tableState.data = data?.items;
-      paginationState.total = data.total;
+      tableState.data = (data as any)?.items;
+      paginationState.total = (data as any)?.total;
     } finally {
       tableState.loading = false
     }
