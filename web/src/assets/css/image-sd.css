@@ -271,10 +271,10 @@
   font-size: 50px;
   margin-bottom: 10px;
 }
-.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale {
-  max-height: 310px;
-}
 .page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale img {
+  height: 310px;
+}
+.page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale .image-slot {
   height: 310px;
 }
 .page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image.upscale .el-image-viewer__wrapper img {

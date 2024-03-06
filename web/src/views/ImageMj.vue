@@ -163,7 +163,7 @@
           </el-form>
         </div>
       </div>
-      <div class="task-list-box">
+      <div class="task-list-box" @scrollend="handleScrollEnd">
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <div class="extra-params">
             <el-form>
@@ -240,7 +240,7 @@
                           </el-tooltip>
                         </div>
                         <div>
-                          <el-button type="primary" @click="translatePrompt(false)" :disabled="loading">
+                          <el-button type="primary" @click="translatePrompt(false)" :disabled="translating">
                             <el-icon style="margin-right: 6px;font-size: 18px;">
                               <Refresh/>
                             </el-icon>
@@ -254,7 +254,7 @@
                               content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
                               placement="top-end"
                           >
-                            <el-button type="success" @click="rewritePrompt" :disabled="loading">
+                            <el-button type="success" @click="rewritePrompt" :disabled="translating">
                               <el-icon style="margin-right: 6px;font-size: 18px;">
                                 <Refresh/>
                               </el-icon>
@@ -281,7 +281,7 @@
                             </el-icon>
                           </el-tooltip>
                         </div>
-                        <el-button type="primary" @click="translatePrompt(true)" :disabled="loading">
+                        <el-button type="primary" @click="translatePrompt(true)" :disabled="translating">
                           <el-icon style="margin-right: 6px;font-size: 18px;">
                             <Refresh/>
                           </el-icon>
@@ -391,7 +391,7 @@
             </div>
 
             <h2>创作记录</h2>
-            <div class="finish-job-list">
+            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.7)">
               <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
                 <template #default="scope">
                   <div class="job-item">
@@ -485,7 +485,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 import {
   ChromeFilled,
   Delete,
@@ -581,7 +581,7 @@ const finishedJobs = ref([])
 
 const socket = ref(null)
 const imgCalls = ref(0)
-const loading = ref(false)
+const translating = ref(false)
 const userId = ref(0)
 
 if (isMobile()) {
@@ -589,18 +589,18 @@ if (isMobile()) {
 }
 
 const rewritePrompt = () => {
-  loading.value = true
+  translating.value = true
   httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data
-    loading.value = false
+    translating.value = false
   }).catch(e => {
-    loading.value = false
+    translating.value = false
     ElMessage.error("翻译失败：" + e.message)
   })
 }
 
 const translatePrompt = (negative) => {
-  loading.value = true
+  translating.value = true
   let prompt = params.value.prompt
   if (negative) {
     prompt = params.value.neg_prompt
@@ -611,9 +611,9 @@ const translatePrompt = (negative) => {
     } else {
       params.value.prompt = res.data
     }
-    loading.value = false
+    translating.value = false
   }).catch(e => {
-    loading.value = false
+    translating.value = false
     ElMessage.error("翻译失败：" + e.message)
   })
 }
@@ -652,8 +652,8 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      fetchRunningJobs(userId.value)
-      fetchFinishJobs(userId.value)
+      fetchRunningJobs()
+      fetchFinishJobs(1)
     }
   });
 
@@ -667,8 +667,8 @@ onMounted(() => {
     imgCalls.value = user['img_calls']
     userId.value = user.id
 
-    fetchRunningJobs(userId.value)
-    fetchFinishJobs(userId.value)
+    fetchRunningJobs()
+    fetchFinishJobs(1)
     connect()
 
   }).catch(() => {
@@ -686,8 +686,8 @@ onMounted(() => {
 })
 
 // 获取运行中的任务
-const fetchRunningJobs = (userId) => {
-  httpGet(`/api/mj/jobs?status=0&user_id=${userId}`).then(res => {
+const fetchRunningJobs = () => {
+  httpGet(`/api/mj/jobs?status=0`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
@@ -710,9 +710,25 @@ const fetchRunningJobs = (userId) => {
   })
 }
 
-const fetchFinishJobs = (userId) => {
+
+const handleScrollEnd = () => {
+  page.value += 1
+  fetchFinishJobs(page.value)
+};
+
+const page = ref(1)
+const pageSize = ref(15)
+const isOver = ref(false)
+const loading = ref(false)
+const fetchFinishJobs = (page) => {
+  if (isOver.value === true) {
+    ElMessage.info("全部数据加载完毕！")
+    return
+  }
+
+  loading.value = true
   // 获取已完成的任务
-  httpGet(`/api/mj/jobs?status=1&user_id=${userId}`).then(res => {
+  httpGet(`/api/mj/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i]['use_proxy']) {
@@ -729,8 +745,13 @@ const fetchFinishJobs = (userId) => {
         jobs[i]['can_opt'] = true
       }
     }
-    finishedJobs.value = jobs
+    finishedJobs.value = finishedJobs.value.concat(jobs)
+    if (jobs.length < pageSize.value) {
+      isOver.value = true
+    }
+    nextTick(() => loading.value = false)
   }).catch(e => {
+    loading.value = false
     ElMessage.error("获取任务失败：" + e.message)
   })
 }
