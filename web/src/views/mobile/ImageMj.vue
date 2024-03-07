@@ -62,14 +62,18 @@
         </div>
 
         <div class="text-line">
-          <van-field
-              v-model="params.prompt"
-              rows="3"
-              autosize
-              label="提示词"
-              type="textarea"
-              placeholder="如：一个美丽的中国女孩站在电影院门口，手上拿着爆米花，微笑，写实风格，电影灯光效果，半身像"
-          />
+          <van-field v-model="params.prompt"
+                     rows="3"
+                     label="提示词"
+                     autosize
+                     type="textarea"
+                     placeholder="如：一个美丽的中国女孩站在电影院门口，手上拿着爆米花，微笑，写实风格，电影灯光效果，半身像">
+            <template #button>
+              <van-button v-if="translating" disabled loading type="primary"/>
+              <van-button v-else size="small" type="primary" @click="translatePrompt">翻译</van-button>
+            </template>
+
+          </van-field>
         </div>
 
         <van-collapse v-model="activeColspan">
@@ -192,7 +196,15 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showConfirmDialog, showFailToast, showNotify, showToast, showDialog, showImagePreview} from "vant";
+import {
+  showConfirmDialog,
+  showFailToast,
+  showNotify,
+  showToast,
+  showDialog,
+  showImagePreview,
+  showSuccessToast
+} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
@@ -449,10 +461,10 @@ const publishImage = (item, action) => {
     text = "取消发布"
   }
   httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
-    ElMessage.success(text + "成功")
+    showSuccessToast(text + "成功")
     item.publish = action
   }).catch(e => {
-    ElMessage.error(text + "失败：" + e.message)
+    showFailToast(text + "失败：" + e.message)
   })
 }
 
@@ -467,6 +479,23 @@ const showPrompt = (item) => {
 
 const imageView = (item) => {
   showImagePreview([item['img_url']]);
+}
+
+const translating = ref(false)
+const translatePrompt = () => {
+  if (params.value.prompt === '') {
+    return showToast("请输入中文提示词！")
+  }
+
+  translating.value = true
+  const prompt = params.value.prompt
+  httpPost("/api/prompt/translate", {"prompt": prompt}).then(res => {
+    params.value.prompt = res.data
+    translating.value = false
+  }).catch(e => {
+    translating.value = false
+    showFailToast("翻译失败：" + e.message)
+  })
 }
 
 </script>
