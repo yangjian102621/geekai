@@ -79,7 +79,6 @@ const props = defineProps({
 
 const formRef = ref();
 const form = ref({
-  id: "",
   username: "",
   password: "",
   calls: "",
