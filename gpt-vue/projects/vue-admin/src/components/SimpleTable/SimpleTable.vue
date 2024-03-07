@@ -33,7 +33,11 @@ const handleSearch = async (tips?: boolean) => {
 onActivated(handleSearch);
 </script>
 <template>
-  <slot name="header" v-bind="{ reload: handleSearch }" />
+  <div class="simple-header">
+    <a-space>
+      <slot name="header" v-bind="{ reload: handleSearch }" />
+    </a-space>
+  </div>
   <div class="simple-table">
     <div ref="tableContainerRef" class="simple-table-container">
       <ATable
@@ -65,5 +69,8 @@ onActivated(handleSearch);
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.simple-header {
+  padding: 16px 0;
 }
 </style>
