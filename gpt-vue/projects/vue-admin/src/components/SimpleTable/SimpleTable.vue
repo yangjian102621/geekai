@@ -5,9 +5,9 @@ import { useTableScroll } from "@/components/SearchTable/utils";
 import { Message } from "@arco-design/web-vue";
 import type { TableRequest, TableOriginalProps } from "./useAsyncTable";
 
-export interface SimpleTable extends TableOriginalProps {
+export interface SimpleTable extends /* @vue-ignore */ TableOriginalProps {
   request: TableRequest<Record<string, unknown>>;
-  params: Record<string, unknown>;
+  params?: Record<string, unknown>;
 }
 
 const props = defineProps<SimpleTable>();
