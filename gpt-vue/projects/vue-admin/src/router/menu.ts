@@ -52,6 +52,15 @@ const menu = [
     component: () => import('@/views/Functions/FunctionsContainer.vue')
   },
   {
+    path: '/chats',
+    name: 'Chats',
+    meta: {
+      title: "对话管理",
+      icon: IconCalendar,
+    },
+    component: () => import('@/views/Chats/ChatsContainer.vue')
+  },
+  {
     path: '/loginLog',
     name: 'LoginLog',
     meta: {

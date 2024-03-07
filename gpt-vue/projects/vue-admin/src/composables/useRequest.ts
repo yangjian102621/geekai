@@ -8,6 +8,7 @@ function useRequest<T>(request: Request<T>) {
   const loading = ref(false)
 
   const requestData = async (params?: any) => {
+    loading.value = true
     try {
       const res = await request(params)
       result.value = res.data
