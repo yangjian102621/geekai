@@ -25,3 +25,11 @@ export const getSession = () => {
   });
 };
 
+
+export const loginLog = (params?: Record<string, unknown>) => {
+  return http({
+    url: "/api/admin/user/loginLog",
+    method: "get",
+    params
+  })
+}

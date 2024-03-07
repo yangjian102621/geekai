@@ -2,6 +2,7 @@ import {
   IconUser,
   IconDashboard,
   IconOrderedList,
+  IconCalendar,
 } from "@arco-design/web-vue/es/icon";
 
 const menu = [
@@ -31,6 +32,24 @@ const menu = [
       icon: IconOrderedList,
     },
     component: () => import('@/views/Order/OrderContainer.vue')
+  },
+  {
+    path: '/reward',
+    name: 'Reward',
+    meta: {
+      title: "众筹管理",
+      icon: IconCalendar,
+    },
+    component: () => import('@/views/Reward/RewardContainer.vue')
+  },
+  {
+    path: '/loginLog',
+    name: 'LoginLog',
+    meta: {
+      title: "登录日志",
+      icon: IconCalendar,
+    },
+    component: () => import('@/views/LoginLog.vue')
   },
 ];
 

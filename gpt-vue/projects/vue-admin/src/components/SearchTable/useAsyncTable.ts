@@ -46,7 +46,7 @@ function useAsyncTable<T extends Record<string, unknown>>(
       const { data } = await request({
         ...unref(params ?? {}),
         page: paginationState.current,
-        pageSize: paginationState.pageSize,
+        page_size: paginationState.pageSize,
       });
       tableState.data = (data as any)?.items;
       paginationState.total = (data as any)?.total;
