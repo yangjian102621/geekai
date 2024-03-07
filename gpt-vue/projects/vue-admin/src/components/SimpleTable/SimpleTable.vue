@@ -33,8 +33,9 @@ const handleSearch = async (tips?: boolean) => {
 onActivated(handleSearch);
 </script>
 <template>
-  <div class="search-table">
-    <div ref="tableContainerRef" class="search-table-container">
+  <slot name="header" v-bind="{ reload: handleSearch }" />
+  <div class="simple-table">
+    <div ref="tableContainerRef" class="simple-table-container">
       <ATable
         v-bind="{
           ...$attrs,
@@ -52,15 +53,15 @@ onActivated(handleSearch);
   </div>
 </template>
 <style scoped>
-.search-table {
+.simple-table {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
-.search-table-container {
+.simple-table-container {
   flex: 1;
 }
-.search-table-header {
+.simple-table-header {
   display: flex;
   align-items: center;
   justify-content: space-between;

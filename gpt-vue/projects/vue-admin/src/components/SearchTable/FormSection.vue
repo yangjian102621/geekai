@@ -84,7 +84,7 @@ const optionsEvent = {
         </AFormItem>
       </AGridItem>
       <AGridItem suffix>
-        <ASpace>
+        <ASpace class="flex-end">
           <slot name="search-options" :option="optionsEvent">
             <AButton
               type="primary"
@@ -113,5 +113,9 @@ const optionsEvent = {
 <style scoped>
 .search-form-conteiner {
   padding: 16px 0;
+}
+.flex-end {
+  display: flex;
+  justify-content: end;
 }
 </style>
