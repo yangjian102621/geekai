@@ -3,6 +3,7 @@ import {
   IconDashboard,
   IconOrderedList,
   IconCalendar,
+  IconSettings,
 } from "@arco-design/web-vue/es/icon";
 
 const menu = [
@@ -59,6 +60,15 @@ const menu = [
       icon: IconCalendar,
     },
     component: () => import('@/views/Chats/ChatsContainer.vue')
+  },
+  {
+    path: '/system',
+    name: 'System',
+    meta: {
+      title: "系统设置",
+      icon: IconSettings,
+    },
+    component: () => import('@/views/System/SystemContainer.vue')
   },
   {
     path: '/loginLog',

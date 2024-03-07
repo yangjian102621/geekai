@@ -35,6 +35,9 @@ importers:
       '@gpt-vue/packages':
         specifier: workspace:^1.0.0
         version: link:../../packages
+      md-editor-v3:
+        specifier: ^2.2.1
+        version: 2.11.3(vue@3.4.21)
       pinia:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.3.3)(vue@3.4.21)
@@ -2242,6 +2245,14 @@ packages:
       semver: 5.7.2
     dev: true
     optional: true
+
+  /md-editor-v3@2.11.3(vue@3.4.21):
+    resolution: {integrity: sha512-SCfS4qMy0HldFdplcIGUMCpSv8qkNWkYShSdv2gTHeViKduA34zV89BOrWcqls2EZSlvt2n3G7nHRzYUvJjDKw==}
+    peerDependencies:
+      vue: ^3.2.47
+    dependencies:
+      vue: 3.4.21(typescript@5.3.3)
+    dev: false
 
   /memorystream@0.3.1:
     resolution: {integrity: sha512-S3UwM3yj5mtUSEfP41UZmt/0SCoVYUcU1rkXv+BQ5Ig8ndL4sPoJNBUJERafdPb5jjHJGuMgytgKvKIf58XNBw==}
