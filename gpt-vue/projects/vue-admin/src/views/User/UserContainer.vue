@@ -3,11 +3,10 @@ import SearchTable from "@/components/SearchTable/SearchTable.vue";
 import type { SearchTableColumns } from "@/components/SearchTable/type";
 import { getList, save as saveApi, deletApi, resetPassword } from "./api";
 import UserForm from "./UserForm.vue";
-import { ref } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { dateFormat } from "@gpt-vue/packages/utils";
-import usePopup from "@/composables/usePopup";
 import UserPassword from "./UserPassword.vue";
+import useCustomFormPopup from "@/composables/useCustomFormPopup";
 const columns: SearchTableColumns[] = [
   {
     title: "账号",
@@ -56,38 +55,8 @@ const columns: SearchTableColumns[] = [
 ];
 
 //弹窗
-
-const popup = (node, api) => {
-  const nodeProps = (arg) => {
-    return {
-      data: arg[0].record,
-    };
-  };
-
-  const popupProps = (arg, getExposed) => {
-    return {
-      width: 700,
-      onBeforeOk: async () => {
-        const exposed = getExposed();
-        const validateRes = await exposed?.formRef.value.validate();
-        if (validateRes) {
-          return false;
-        }
-        const res = await api(exposed?.form.value);
-        if (res.code === 0) {
-          Message.success("操作成功");
-        }
-        arg[0].reload();
-        return res.code === 0;
-      },
-    };
-  };
-
-  return usePopup(node, { nodeProps, popupProps });
-};
-
-const editModal = popup(UserForm, saveApi);
-const password = popup(UserPassword, resetPassword);
+const editModal = useCustomFormPopup(UserForm, saveApi);
+const password = useCustomFormPopup(UserPassword, resetPassword);
 
 const handleDelete = async ({ id }: { id: string }, reload) => {
   const res = await deletApi(id);
