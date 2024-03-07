@@ -7,3 +7,11 @@ export const getList = (params?: Record<string, unknown>) => {
     params
   })
 }
+
+export const remove = (params?: Record<string, unknown>) => {
+  return http({
+    url: "/api/admin/reward/remove",
+    method: "get",
+    params
+  })
+}
