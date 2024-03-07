@@ -369,6 +369,16 @@ func main() {
 			group.GET("token", h.GenToken)
 		}),
 
+		// 系统管理员
+		fx.Provide(admin.NewSysUserHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.SysUserHandler) {
+			group := s.Engine.Group("/api/admin/sysUser/")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.POST("remove", h.Remove)
+			group.POST("resetPass", h.ResetPass)
+		}),
+
 		fx.Provide(handler.NewFunctionHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
 			group := s.Engine.Group("/api/function/")

@@ -27,6 +27,8 @@ require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
 require github.com/bg5t/mydiscordgo v0.28.1
 
+require github.com/shopspring/decimal v1.3.1 // indirect
+
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
