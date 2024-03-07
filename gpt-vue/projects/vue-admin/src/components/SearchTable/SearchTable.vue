@@ -40,11 +40,7 @@ onActivated(handleSearch);
         <slot name="header-title">{{ props.headerTitle }}</slot>
       </div>
       <div class="header-option">
-        <slot
-          name="header-option"
-          :formData="formData"
-          :reload="handleSearch"
-        />
+        <slot name="header-option" :formData="formData" :reload="handleSearch" />
       </div>
     </div>
     <FormSection
@@ -52,7 +48,11 @@ onActivated(handleSearch);
       :columns="columns"
       :submitting="(tableConfig.loading as boolean)"
       @request="handleSearch"
-    />
+    >
+      <template v-for="slot in Object.keys($slots)" #[slot]="config">
+        <slot :name="slot" v-bind="{ ...config, reload: handleSearch }" />
+      </template>
+    </FormSection>
     <div ref="tableContainerRef" class="search-table-container">
       <ATable
         v-bind="{
