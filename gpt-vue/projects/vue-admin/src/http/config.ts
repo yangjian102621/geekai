@@ -1,3 +1,4 @@
+import router from "@/router";
 import { Notification } from "@arco-design/web-vue";
 import createInstance from "@gpt-vue/packages/request"
 import type { BaseResponse } from "@gpt-vue/packages/type";
@@ -16,6 +17,10 @@ instance.interceptors.response.use(
   (response) => {
     const { data }: { data: BaseResponse<unknown> } = response
     if (data && typeof data === "object" && data.code !== 0) {
+      if (data.code === 400) {
+        localStorage.removeItem(__AUTH_KEY);
+        router.push({ name: "Login" })
+      }
       Notification.error(data.message ?? '未知错误')
     }
     return { data, response } as any;
