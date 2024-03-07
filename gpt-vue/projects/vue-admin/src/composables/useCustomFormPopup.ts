@@ -18,7 +18,7 @@ export default function (
 
   const popupProps = (arg: Arg[], getExposed) => {
     return {
-      width: 700,
+      width: 800,
       onBeforeOk: async () => {
         const exposed = getExposed();
         const validateRes = await exposed?.formRef.value.validate();
