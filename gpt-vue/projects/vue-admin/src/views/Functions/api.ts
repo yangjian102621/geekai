@@ -32,10 +32,10 @@ export const setStatus = (data) => {
   })
 }
 
-export const token = (data) => {
+export const token = (params) => {
   return http({
     url: "/api/admin/function/token",
-    method: "post",
-    data
+    method: "get",
+    params
   })
 }

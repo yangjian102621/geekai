@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { ref, watchEffect } from "vue";
+import { Message } from "@arco-design/web-vue";
 import useSubmit from "@/composables/useSubmit";
 import FunctionsFormTable from "./FunctionsFormTable.vue";
+import { token } from "./api";
 import translateTableData from "./translateTableData";
 
 const props = defineProps({
@@ -16,13 +18,19 @@ const { formRef, formData, handleSubmit, submitting } = useSubmit({
   action: "",
   token: "",
   parameters: {},
-  enabled: false,
+  enabled: true,
 });
 
 const rules = {
   name: [{ required: true, message: "请输入函数名称" }],
   label: [{ required: true, message: "请输入函数标签" }],
   description: [{ required: true, message: "请输入函数功能描述" }],
+};
+
+const generateToken = async () => {
+  const { data } = await token();
+  Message.success("生成 Token 成功");
+  formData.token = data;
 };
 
 watchEffect(() => {
@@ -56,15 +64,15 @@ defineExpose({
         <a-input v-model="formData.action" placeholder="该函数实现的API地址，可以是第三方服务API" />
       </a-form-item>
       <a-form-item field="token" label="API Token">
-        <a-input-search v-model="formData.token" placeholder="API授权Token">
+        <a-input v-model="formData.token" placeholder="API授权Token">
           <template #append>
             <a-tooltip
               content="只有本地服务才可以使用自动生成Token第三方服务请填写第三方服务API Token"
             >
-              <a-button>生成Token</a-button>
+              <a-button type="text" @click="generateToken">生成Token</a-button>
             </a-tooltip>
           </template>
-        </a-input-search>
+        </a-input>
       </a-form-item>
       <a-form-item field="enabled" label="启用状态">
         <a-switch v-model="formData.enabled" />

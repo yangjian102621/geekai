@@ -34,11 +34,11 @@ const columns: TableColumnData[] = [
 const openFormModal = usePopup(FunctionsForm, {
   nodeProps: ([_, record]) => ({ record }),
   popupProps: ([reload, record], exposed) => ({
-    title: `${record.id ? "编辑" : "新增"}函数`,
+    title: `${record?.id ? "编辑" : "新增"}函数`,
     width: "800px",
     onBeforeOk: async (done) => {
       await exposed()?.handleSubmit(save, {
-        id: record.id,
+        id: record?.id,
         parameters: exposed()?.parameters(),
       });
       await reload();

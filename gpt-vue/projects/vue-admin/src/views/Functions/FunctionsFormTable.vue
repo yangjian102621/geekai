@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { IconDelete } from "@arco-design/web-vue/es/icon";
-
 const props = defineProps({
   modelValue: {
     type: Array,
@@ -33,7 +31,7 @@ const handleRemoveRow = (index) => {
             <a-input v-model="scope.record.name" />
           </template>
         </a-table-column>
-        <a-table-column title="参数类型" :width="120">
+        <a-table-column title="参数类型" :width="150">
           <template #cell="scope">
             <a-select
               v-model="scope.record.type"
@@ -48,7 +46,7 @@ const handleRemoveRow = (index) => {
           </template>
         </a-table-column>
 
-        <a-table-column title="必填参数" :width="100">
+        <a-table-column title="必填参数" :width="100" align="center">
           <template #cell="scope">
             <a-checkbox v-model="scope.record.required" />
           </template>
@@ -58,15 +56,19 @@ const handleRemoveRow = (index) => {
           <template #cell="scope">
             <a-button
               status="danger"
-              :icon="IconDelete"
-              circle
+              shape="circle"
               @click="handleRemoveRow(scope.rowIndex)"
               size="small"
-            />
+            >
+              <icon-delete />
+            </a-button>
           </template>
         </a-table-column>
       </template>
     </a-table>
-    <a-button type="primary" long @click="handleCreateRow">新增参数</a-button>
+    <a-button type="primary" @click="handleCreateRow">
+      <template #icon><icon-plus /></template>
+      <span>新增参数</span>
+    </a-button>
   </a-space>
 </template>
