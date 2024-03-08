@@ -4,7 +4,7 @@ import { Modal, Drawer } from "@arco-design/web-vue";
 import type { ModalConfig, DrawerConfig } from "@arco-design/web-vue";
 import app from "@/main";
 
-interface Config {
+export interface Config {
   nodeProps?: (...arg: any) => Record<string, any>;
   popupProps?: (
     arg: any[],

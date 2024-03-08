@@ -55,8 +55,12 @@ const columns: SearchTableColumns[] = [
 ];
 
 //弹窗
-const editModal = useCustomFormPopup(UserForm, saveApi);
-const password = useCustomFormPopup(UserPassword, resetPassword);
+const editModal = useCustomFormPopup(UserForm, saveApi, {
+  popupProps: (arg) => ({ title: arg[0].record ? "编辑用户" : "新增用户" }),
+});
+const password = useCustomFormPopup(UserPassword, resetPassword, {
+  popupProps: (arg) => ({ title: "重置密码" }),
+});
 
 const handleDelete = async ({ id }: { id: string }, reload) => {
   const res = await deletApi(id);
@@ -71,7 +75,7 @@ const handleDelete = async ({ id }: { id: string }, reload) => {
     <template #actions="{ record, reload }">
       <a-link @click="editModal({ record, reload })">编辑</a-link>
       <a-popconfirm content="确定删除？" @ok="handleDelete(record, reload)">
-        <a-link>删除</a-link>
+        <a-link status="danger">删除</a-link>
       </a-popconfirm>
       <a-link @click="password({ record, reload })">重置密码</a-link>
     </template>

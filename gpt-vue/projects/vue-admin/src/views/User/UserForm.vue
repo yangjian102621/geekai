@@ -3,7 +3,7 @@
     <a-form-item
       field="username"
       label="账号"
-      :rules="[{ required: true, message: 'name is required' }]"
+      :rules="[{ required: true, message: '请输入账号' }]"
       :validate-trigger="['change', 'input']"
     >
       <a-input v-model="form.username" placeholder="请输入账号" />
@@ -12,7 +12,7 @@
       v-if="!props.data.id"
       field="password"
       label="密码"
-      :rules="[{ required: true, message: 'password is required' }]"
+      :rules="[{ required: true, message: '请输入密码' }]"
       :validate-trigger="['change', 'input']"
       showable
     >
@@ -21,20 +21,14 @@
     <a-form-item
       field="calls"
       label="对话次数"
-      :rules="[
-        { required: true, message: 'count is required' },
-        { type: 'number', message: 'age is max than 200' },
-      ]"
+      :rules="[{ required: true, message: '请输入对话次数' }]"
     >
       <a-input-number v-model="form.calls" placeholder="请输入对话次数" />
     </a-form-item>
     <a-form-item
       field="img_calls"
       label="绘图次数"
-      :rules="[
-        { required: true, message: 'count is required' },
-        { type: 'number', message: 'age is max than 200' },
-      ]"
+      :rules="[{ required: true, message: '请输入绘图次数' }]"
     >
       <a-input-number v-model="form.img_calls" placeholder="请输入绘图次数" />
     </a-form-item>
@@ -48,6 +42,7 @@
         placeholder="请选择聊天角色"
         multiple
         :options="roleOption"
+        :rules="[{ required: true, message: '请选择聊天角色' }]"
       >
       </a-select>
     </a-form-item>
@@ -58,6 +53,7 @@
         placeholder="请选择模型角色"
         multiple
         :options="modalOption"
+        :rules="[{ required: true, message: '请选择模型角色' }]"
       >
       </a-select>
     </a-form-item>

@@ -23,6 +23,7 @@ const columns = [
   {
     title: "角色图标",
     dataIndex: "icon",
+    slotName: "icon",
   },
   {
     title: "打招呼信息",
@@ -64,7 +65,9 @@ const expandColumns = [
 ];
 
 //  新增编辑
-const popup = useCustomFormPopup(RoleForm, save);
+const popup = useCustomFormPopup(RoleForm, save, {
+  popupProps: (arg) => ({ title: arg[0].record ? "编辑角色" : "新增角色" }),
+});
 
 // 删除
 const handleDelete = ({ id }, reload) => {
@@ -98,7 +101,7 @@ const handleStatusChange = ({ value, record, reload }) => {
     <template #action="{ record, reload }">
       <a-link @click="popup({ record, reload })">编辑</a-link>
       <a-popconfirm content="确定删除？" @ok="handleDelete(record, reload)">
-        <a-link>删除</a-link>
+        <a-link status="danger">删除</a-link>
       </a-popconfirm>
     </template>
     <template #header="{ reload }">
@@ -113,6 +116,12 @@ const handleStatusChange = ({ value, record, reload }) => {
           }
         "
       />
+    </template>
+
+    <template #icon="{ record }">
+      <a-avatar>
+        <img alt="avatar" :src="record.icon" />
+      </a-avatar>
     </template>
   </SimpleTable>
 </template>
