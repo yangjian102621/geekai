@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { reactive } from "vue";
 import { useRoute } from "vue-router";
-import { IconUser, IconLock } from "@arco-design/web-vue/es/icon";
 import { useAuthStore } from "@/stores/auth";
 import useRequest from "@/composables/useRequest";
 
@@ -23,70 +22,141 @@ async function handleSubmit({ errors, values }: any) {
 }
 </script>
 <template>
-  <div class="login-wrapper public-bg">
-    <div class="login-container">
-      <div class="login-box">
-        <AForm :model="formData" size="large" @submit="handleSubmit">
-          <h1 class="title">ChatGPT Plus Admin</h1>
-          <AFormItem
-            hide-label
-            field="username"
-            :rules="[{ required: true, message: '请输入用户名' }]"
+  <div class="bg">
+    <div class="content">
+      <!-- 左侧图片 -->
+      <span class="left">
+        <img src="/left-img.png" alt="" style="width: 468px" />
+      </span>
+      <!-- 表单 -->
+      <div class="right-content">
+        <div class="form-box">
+          <div class="title">ChatGPT Plus Admin</div>
+          <a-form
+              ref="formRef"
+              :model="formData"
+              class="form"
+              size="medium"
+              auto-label-width
+              @submit="handleSubmit"
           >
-            <AInput v-model="formData.username" placeholder="用户名">
-              <template #prefix>
-                <IconUser />
-              </template>
-            </AInput>
-          </AFormItem>
-          <AFormItem
-            hide-label
-            field="password"
-            :rules="[{ required: true, message: '请输入密码' }]"
-          >
-            <AInputPassword v-model="formData.password" placeholder="密码">
-              <template #prefix>
-                <IconLock />
-              </template>
-            </AInputPassword>
-          </AFormItem>
-          <AFormItem hide-label>
-            <AButton type="primary" long html-type="submit" :loading="loading">
-              登录
-            </AButton>
-          </AFormItem>
-        </AForm>
+            <a-space direction="vertical" style="width: 100%">
+              <a-form-item
+                  field="username"
+                  label="账号"
+                  hide-label
+                  hide-asterisk
+                  :rules="[{ required: true, message: '请输入您的账号' }]"
+              >
+                <a-input
+                    v-model="formData.username"
+                    placeholder="请输入您的账号"
+                    class="input"
+                ></a-input>
+              </a-form-item>
+              <a-form-item
+                  field="password"
+                  label="密码"
+                  hide-label
+                  hide-asterisk
+                  :rules="[{ required: true, message: '请输入您的密码' }]"
+              >
+                <a-input-password
+                    v-model="formData.password"
+                    placeholder="请输入您的密码"
+                    class="input"
+                >
+                </a-input-password>
+              </a-form-item>
+            </a-space>
+            <a-form-item hide-label>
+              <a-button :disabled="loading" html-type="submit" long type="primary" class="sign-in-btn">
+                登录
+              </a-button>
+            </a-form-item>
+          </a-form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 <style lang="less" scoped>
-.login-wrapper {
-  .login-container {
-    display: flex;
-    width: 1000px;
-    height: 500px;
-    align-items: center;
-    justify-content: right;
-    background-color: #ffffff;
-    background-image: url("/login-content.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: left;
-    border-radius: 40px;
-    .login-box {
-      display: flex;
-      width: 50%;
-      height: 100%;
-      padding: 20px;
-      border-radius: 40px;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-      .title {
-        text-align: center;
-      }
-    }
-  }
+.bg {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(133deg, #ffffff 0%, #dde8fe 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+}
+
+.content {
+  width: 1080px;
+  height: 557px;
+  display: flex;
+}
+
+.left {
+  width: 540px;
+  height: 557px;
+  background: #2670fe;
+  border-radius: 16px 0 0 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.right-content {
+  width: 540px;
+  height: 557px;
+  background: #ffffff;
+  border-radius: 0 16px 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #333333;
+  line-height: 35px;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.form-box {
+  display: flex;
+  flex-direction: column;
+  width: 438px;
+  padding: 58px 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.form {
+  flex: 1;
+  justify-content: space-between;
+}
+
+.input {
+  border-radius: 10px 10px 10px 10px;
+  height: 60px;
+  border: 2px solid #e5e6eb;
+}
+
+.captcha-image {
+  //width: 100%;
+  //height: 100%;
+  cursor: pointer;
+}
+
+.sign-in-btn {
+  height: 60px;
+  font-weight: 500;
+  line-height: 33px;
+  font-size: 28px;
+  border-radius: 10px 10px 10px 10px;
 }
 </style>
