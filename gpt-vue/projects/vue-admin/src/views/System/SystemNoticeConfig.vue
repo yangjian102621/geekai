@@ -56,8 +56,10 @@ const onUploadImg = (files, callback) => {
 onMounted(reload);
 </script>
 <template>
-  <a-form ref="formRef" :model="formData" auto-label-width>
-    <md-editor v-model="formData.content" @on-upload-img="onUploadImg" />
+  <a-form ref="formRef" :model="formData" auto-label-width :disabled="submitting">
+    <a-form-item>
+      <md-editor v-model="formData.content" @on-upload-img="onUploadImg" />
+    </a-form-item>
     <a-form-item>
       <a-button type="primary" :loading="submitting" @click="handleSave">提交</a-button>
     </a-form-item>
