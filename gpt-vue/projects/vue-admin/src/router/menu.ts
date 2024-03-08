@@ -85,6 +85,15 @@ const menu = [
     component: () => import("@/views/Reward/RewardContainer.vue"),
   },
   {
+    path: "/functions",
+    name: "Functions",
+    meta: {
+      title: "函数管理",
+      icon: IconCalendar,
+    },
+    component: () => import("@/views/Functions/FunctionsContainer.vue"),
+  },
+  {
     path: "/chats",
     name: "Chats",
     meta: {
