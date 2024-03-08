@@ -66,7 +66,9 @@ const getData = () => {
 getData();
 
 //  新增编辑
-const popup = useCustomFormPopup(ProductForm, save);
+const popup = useCustomFormPopup(ProductForm, save, {
+  popupProps: (arg) => ({ title: arg[0].record ? "编辑产品" : "新增产品" }),
+});
 
 // 删除
 const handleDelete = ({ id }, reload) => {
@@ -96,7 +98,7 @@ const handleStatusChange = ({ value, record, reload }) => {
     <template #action="{ record, reload }">
       <a-link @click="popup({ record, reload })">编辑</a-link>
       <a-popconfirm content="确定删除？" @ok="handleDelete(record, reload)">
-        <a-link>删除</a-link>
+        <a-link status="danger">删除</a-link>
       </a-popconfirm>
     </template>
     <template #header="{ reload }">

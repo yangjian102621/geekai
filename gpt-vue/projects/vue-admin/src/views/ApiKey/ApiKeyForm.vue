@@ -1,5 +1,17 @@
 <template>
-  <a-form ref="formRef" :model="form" :style="{ width: '600px' }" @submit="handleSubmit">
+  <a-alert type="warning">
+    <div class="warning">
+      {{
+        `注意：如果是百度文心一言平台，API-KEY 为 APIKey|SecretKey，中间用竖线（|）连接\n注意：如果是讯飞星火大模型，API-KEY 为 AppId|APIKey|APISecret，中间用竖线（|）连接`
+      }}
+    </div>
+  </a-alert>
+  <a-form
+    ref="formRef"
+    :model="form"
+    :style="{ width: '600px', 'margin-top': '10px' }"
+    @submit="handleSubmit"
+  >
     <a-form-item
       field="platform"
       label="所属平台"
@@ -44,6 +56,12 @@
 
     <a-form-item field="use_proxy" label="使用代理">
       <a-switch v-model="form.use_proxy" />
+      <a-tooltip
+        content="是否使用代理访问 API URL，OpenAI 官方API需要开启代理访问"
+        position="right"
+      >
+        <icon-info-circle-fill />
+      </a-tooltip>
     </a-form-item>
     <a-form-item field="enable" label="启用状态">
       <a-switch v-model="form.enable" />
@@ -93,5 +111,9 @@ const typeOPtions = [
   svg {
     margin-left: 10px;
   }
+}
+.warning {
+  color: #e6a23c;
+  white-space: pre;
 }
 </style>

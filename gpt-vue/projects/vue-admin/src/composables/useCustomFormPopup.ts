@@ -1,4 +1,4 @@
-import usePopup from "./usePopup";
+import usePopup, { type Config } from "./usePopup";
 import { Message } from "@arco-design/web-vue";
 import type { Component } from "vue";
 import type { BaseResponse } from "@gpt-vue/packages/type";
@@ -6,19 +6,23 @@ interface Arg {
   reload?: () => void;
   record?: Record<string, any>;
 }
+
 export default function (
   node: Component,
-  api: (params?: any) => Promise<BaseResponse<any>>
+  api: (params?: any) => Promise<BaseResponse<any>>,
+  config?: Config
 ): (arg: Arg) => void {
   const nodeProps = (arg: Arg[]) => {
     return {
       data: arg[0].record || {},
+      ...config.nodeProps?.(arg),
     };
   };
 
   const popupProps = (arg: Arg[], getExposed) => {
     return {
-      width: 800,
+      width: 750,
+      maskClosable: false,
       onBeforeOk: async () => {
         const exposed = getExposed();
         const validateRes = await exposed?.formRef.value.validate();
@@ -32,6 +36,7 @@ export default function (
         arg[0]?.reload?.();
         return code === 0;
       },
+      ...config.popupProps?.(arg, getExposed),
     };
   };
 

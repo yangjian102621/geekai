@@ -34,6 +34,9 @@
       showable
     >
       <a-input-number v-model="form.weight" placeholder="请输入对话权重" />
+      <a-tooltip content="对话权重，每次对话扣减多少次对话额度" position="right">
+        <icon-info-circle-fill />
+      </a-tooltip>
     </a-form-item>
 
     <a-form-item field="open" label="开放状态代理">
