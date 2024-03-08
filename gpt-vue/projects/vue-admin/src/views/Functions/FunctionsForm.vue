@@ -28,7 +28,7 @@ const rules = {
 };
 
 const generateToken = async () => {
-  const { data } = await token();
+  const { data } = await token({});
   Message.success("生成 Token 成功");
   formData.token = data;
 };
@@ -64,15 +64,14 @@ defineExpose({
         <a-input v-model="formData.action" placeholder="该函数实现的API地址，可以是第三方服务API" />
       </a-form-item>
       <a-form-item field="token" label="API Token">
-        <a-input v-model="formData.token" placeholder="API授权Token">
-          <template #append>
-            <a-tooltip
-              content="只有本地服务才可以使用自动生成Token第三方服务请填写第三方服务API Token"
-            >
-              <a-button type="text" @click="generateToken">生成Token</a-button>
-            </a-tooltip>
-          </template>
-        </a-input>
+        <a-input-group style="width: 100%">
+          <a-input v-model="formData.token" placeholder="API授权Token" />
+          <a-tooltip
+            content="只有本地服务才可以使用自动生成Token第三方服务请填写第三方服务API Token"
+          >
+            <a-button type="primary" @click="generateToken">生成Token</a-button>
+          </a-tooltip>
+        </a-input-group>
       </a-form-item>
       <a-form-item field="enabled" label="启用状态">
         <a-switch v-model="formData.enabled" />

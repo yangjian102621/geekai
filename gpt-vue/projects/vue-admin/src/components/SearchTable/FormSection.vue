@@ -33,9 +33,9 @@ const formData = computed({
 });
 
 const searchColumns = computed(() => {
-  return props.columns?.filter(
-    (item) => item.dataIndex && item.search
-  ) as (SearchColumns & { dataIndex: string })[];
+  return props.columns?.filter((item) => item.dataIndex && item.search) as (SearchColumns & {
+    dataIndex: string;
+  })[];
 });
 
 const optionsEvent = {
@@ -60,7 +60,7 @@ const optionsEvent = {
     @submit="optionsEvent.onSearch"
   >
     <AGrid
-      :cols="{ md: 1, lg: 2, xl: 3, xxl: 5 }"
+      :cols="{ md: 1, lg: 3, xl: 4, xxl: 5 }"
       :row-gap="12"
       :col-gap="12"
       :collapsed="collapsed"
@@ -70,14 +70,11 @@ const optionsEvent = {
         :key="item.dataIndex"
         style="transition: all 0.3s ease-in-out"
       >
-        <AFormItem :field="item.dataIndex" :label="(item.title as string)">
+        <AFormItem :field="item.dataIndex" :label="item.title as string">
           <slot :name="item.search.slotsName">
             <component
               v-model="formData[item.dataIndex]"
-              :is="
-                ValueType[item.search.valueType ?? 'input'] ??
-                item.search.render
-              "
+              :is="ValueType[item.search.valueType ?? 'input'] ?? item.search.render"
               v-bind="useComponentConfig(size, item)"
             />
           </slot>
@@ -86,20 +83,11 @@ const optionsEvent = {
       <AGridItem suffix>
         <ASpace class="flex-end">
           <slot name="search-options" :option="optionsEvent">
-            <AButton
-              type="primary"
-              html-type="submit"
-              :size="size"
-              :loading="submitting"
-            >
+            <AButton type="primary" html-type="submit" :size="size" :loading="submitting">
               <icon-search />
               <span>查询</span>
             </AButton>
-            <AButton
-              :size="size"
-              @click="optionsEvent.onReset"
-              :loading="submitting"
-            >
+            <AButton :size="size" @click="optionsEvent.onReset" :loading="submitting">
               <icon-refresh />
               <span>重置</span>
             </AButton>

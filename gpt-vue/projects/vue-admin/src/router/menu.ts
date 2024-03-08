@@ -3,6 +3,9 @@ import {
   IconDashboard,
   IconOrderedList,
   IconCalendar,
+  IconHeartFill,
+  IconCodeSquare,
+  IconMessage,
   IconSettings,
   IconUserGroup,
   IconLock,
@@ -80,16 +83,25 @@ const menu = [
     name: "Reward",
     meta: {
       title: "众筹管理",
-      icon: IconCalendar,
+      icon: IconHeartFill,
     },
     component: () => import("@/views/Reward/RewardContainer.vue"),
+  },
+  {
+    path: "/functions",
+    name: "Functions",
+    meta: {
+      title: "函数管理",
+      icon: IconCodeSquare,
+    },
+    component: () => import("@/views/Functions/FunctionsContainer.vue"),
   },
   {
     path: "/chats",
     name: "Chats",
     meta: {
       title: "对话管理",
-      icon: IconCalendar,
+      icon: IconMessage,
     },
     component: () => import("@/views/Chats/ChatsContainer.vue"),
   },

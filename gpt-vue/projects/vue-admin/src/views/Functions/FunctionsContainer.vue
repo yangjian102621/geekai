@@ -55,8 +55,13 @@ const handleRemove = async (id, reload) => {
 };
 </script>
 <template>
-  <a-button type="primary" @click="openFormModal">新增</a-button>
   <SimpleTable :request="getList" :columns="columns" :pagination="false">
+    <template #header="{ reload }">
+      <a-button @click="openFormModal(reload, {})">
+        <template #icon> <icon-plus /> </template>
+        新增
+      </a-button>
+    </template>
     <template #switch="{ record, column }">
       <ConfirmSwitch
         v-model="record[column.dataIndex]"

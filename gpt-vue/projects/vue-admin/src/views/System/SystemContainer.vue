@@ -12,9 +12,17 @@ const tabsList = [
 const activeKey = ref(tabsList[0].key);
 </script>
 <template>
-  <a-tabs v-model:active-key="activeKey" lazy-load>
+  <a-tabs v-model:active-key="activeKey" lazy-load justify>
     <a-tab-pane v-for="item in tabsList" :key="item.key" :title="item.title">
-      <component :is="item.components" />
+      <div class="system-config-wrapper">
+        <component :is="item.components" />
+      </div>
     </a-tab-pane>
   </a-tabs>
 </template>
+<style scoped>
+.system-config-wrapper {
+  height: 100%;
+  overflow-y: auto;
+}
+</style>

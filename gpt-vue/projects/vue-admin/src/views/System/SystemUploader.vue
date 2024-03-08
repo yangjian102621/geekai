@@ -23,14 +23,15 @@ const handleChange = (_, file: FileItem) => {
 </script>
 <template>
   <a-space>
-    <a-input :model-value="modelValue" :placeholder="placeholder" readonly>
-      <template #append>
-        <a-upload v-bind="uploadProps" @change="handleChange">
-          <template #upload-button>
-            <icon-upload />
-          </template>
-        </a-upload>
-      </template>
-    </a-input>
+    <a-input-group>
+      <a-input :model-value="modelValue" :placeholder="placeholder" readonly />
+      <a-upload v-bind="uploadProps" @change="handleChange">
+        <template #upload-button>
+          <a-button type="primary">
+            <icon-cloud />
+          </a-button>
+        </template>
+      </a-upload>
+    </a-input-group>
   </a-space>
 </template>
