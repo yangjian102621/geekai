@@ -46,7 +46,7 @@ const reload = async () => {
 onMounted(reload);
 </script>
 <template>
-  <a-form ref="formRef" :model="chat" :rules="rules" auto-laba-width>
+  <a-form ref="formRef" :model="chat" :rules="rules" auto-label-width>
     <a-form-item label="开启聊天上下文">
       <a-switch v-model="chat['enable_context']" />
     </a-form-item>

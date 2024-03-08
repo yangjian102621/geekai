@@ -38,7 +38,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <a-form ref="formRef" :model="system" :rules="rules" auto-laba-width>
+  <a-form ref="formRef" :model="system" :rules="rules" auto-label-width>
     <a-form-item label="网站标题" field="title">
       <a-input v-model="system['title']" />
     </a-form-item>
@@ -73,10 +73,12 @@ onMounted(async () => {
       />
     </a-form-item>
     <a-form-item label="开放注册" field="enabled_register">
-      <a-switch v-model="system['enabled_register']" />
-      <a-tooltip content="关闭注册之后只能通过管理后台添加用户" position="right">
-        <icon-info-circle-fill size="18" />
-      </a-tooltip>
+      <a-space>
+        <a-switch v-model="system['enabled_register']" />
+        <a-tooltip content="关闭注册之后只能通过管理后台添加用户" position="right">
+          <icon-info-circle-fill size="18" />
+        </a-tooltip>
+      </a-space>
     </a-form-item>
     <a-form-item label="注册方式" field="register_ways">
       <a-checkbox-group v-model="system['register_ways']">
@@ -85,10 +87,12 @@ onMounted(async () => {
       </a-checkbox-group>
     </a-form-item>
     <a-form-item label="启用众筹功能" field="enabled_reward">
-      <a-switch v-model="system['enabled_reward']" />
-      <a-tooltip content="如果关闭次功能将不在用户菜单显示众筹二维码" position="right">
-        <icon-info-circle-fill size="18" />
-      </a-tooltip>
+      <a-space>
+        <a-switch v-model="system['enabled_reward']" />
+        <a-tooltip content="如果关闭次功能将不在用户菜单显示众筹二维码" position="right">
+          <icon-info-circle-fill size="18" />
+        </a-tooltip>
+      </a-space>
     </a-form-item>
     <template v-if="system['enabled_reward']">
       <a-form-item label="单次对话价格" field="chat_call_price">
