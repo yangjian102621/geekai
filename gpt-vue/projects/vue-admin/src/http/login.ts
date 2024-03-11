@@ -33,3 +33,10 @@ export const loginLog = (params?: Record<string, unknown>) => {
     params
   })
 }
+
+export const captcha = () => {
+  return http({
+    url: "/api/admin/login/captcha",
+    method: "get",
+  });
+};
