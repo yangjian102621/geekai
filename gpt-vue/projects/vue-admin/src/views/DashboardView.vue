@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import http from "@/http/config";
-import { ref } from "vue";
-
-const dataSet = {
-  users: "今日新增用户",
-  chats: "今日新增对话",
-  tokens: "今日消耗 Tokens",
-  income: "今日入账",
-};
+import { ref, nextTick } from "vue";
+import * as echarts from "echarts/core";
+import { GridComponent, TitleComponent } from "echarts/components";
+import { LineChart } from "echarts/charts";
+import { UniversalTransition } from "echarts/features";
+import { CanvasRenderer } from "echarts/renderers";
 
 const icons = {
   users: "icon-user",
@@ -15,27 +13,105 @@ const icons = {
   tokens: "icon-computer",
   income: "icon-wechatpay",
 };
+const dataSet = {
+  users: "今日新增用户",
+  chats: "今日新增对话",
+  tokens: "今日消耗 Tokens",
+  income: "今日入账",
+};
 
-const data = ref<Record<string, number>>({});
 const getData = () => {
   http({
     url: "api/admin/dashboard/stats",
     method: "get",
   }).then((res) => {
     data.value = res.data;
+    handeChartData(res.data.chart);
   });
 };
 getData();
+// 图表
+const chartTitle = {
+  historyMessage: "对话",
+  orders: "订单",
+  users: "用户数",
+};
+echarts.use([GridComponent, LineChart, CanvasRenderer, UniversalTransition, TitleComponent]);
+const chartDomRefs = [];
+const chartData = ref({});
+const data = ref<Record<string, number>>({});
+const handeChartData = (data) => {
+  const _chartData = {};
+  for (let key in data) {
+    const type = data[key];
+    _chartData[key] = {
+      series: [],
+      xAxis: [],
+    };
+    for (let date in type) {
+      _chartData[key].series.push(type[date]);
+      _chartData[key].xAxis.push(date);
+    }
+    nextTick(() => {
+      const myChart = echarts.init(chartDomRefs.pop());
+      myChart.setOption(createOption(_chartData[key], key));
+    });
+  }
+  chartData.value = _chartData;
+};
+const createOption = (data, key) => {
+  const { xAxis, series } = data;
+  return {
+    title: {
+      left: "center",
+      text: chartTitle[key],
+    },
+    xAxis: {
+      type: "category",
+      data: xAxis,
+    },
+    yAxis: {
+      type: "value",
+    },
+    series: [
+      {
+        data: series,
+        type: "line",
+      },
+    ],
+  };
+};
 </script>
 <template>
   <div class="dashboard">
     <a-grid :cols="{ xs: 1, sm: 1, md: 2, lg: 3, xl: 4 }" :colGap="12" :rowGap="16" class="grid">
       <a-grid-item v-for="(value, key) in dataSet" :key="key">
         <div class="data-card">
-          <span :class="key" class="icon"><icon-user /></span>
+          <span :class="key" class="icon"><component :is="icons[key]" /> </span>
           <span class="count"
             ><a-statistic :extra="value" :value="data[key]" :precision="0"
           /></span>
+        </div>
+      </a-grid-item>
+    </a-grid>
+  </div>
+  <div class="chart">
+    <a-grid
+      :cols="{ xs: 1, sm: 1, md: 1, lg: 2, xl: 2, xxl: 3 }"
+      :colGap="12"
+      :rowGap="16"
+      class="grid"
+    >
+      <a-grid-item v-for="(value, key, index) in chartData" :key="key">
+        <div
+          :ref="
+            (el) => {
+              chartDomRefs[index] = el;
+            }
+          "
+          class="chartDom"
+        >
+          {{ key }}
         </div>
       </a-grid-item>
     </a-grid>
@@ -80,7 +156,15 @@ getData();
       display: flex;
       align-items: center;
       justify-content: center;
+      background: #f3f3f3;
     }
+  }
+}
+.chart {
+  margin-top: 15px;
+  .chartDom {
+    width: 450px;
+    height: 500px;
   }
 }
 </style>
