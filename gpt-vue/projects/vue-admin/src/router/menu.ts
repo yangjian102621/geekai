@@ -11,6 +11,7 @@ import {
   IconLock,
   IconCodepen,
   IconWechatpay,
+  IconRobot,
 } from "@arco-design/web-vue/es/icon";
 
 const menu = [
@@ -122,6 +123,15 @@ const menu = [
       icon: IconCalendar,
     },
     component: () => import("@/views/LoginLog.vue"),
+  },
+  {
+    path: "/sysAdmin",
+    name: "SysAdmin",
+    meta: {
+      title: "系统管理员",
+      icon: IconRobot,
+    },
+    component: () => import("@/views/SysAdmin/SysAdminContainer.vue"),
   },
 ];
 
