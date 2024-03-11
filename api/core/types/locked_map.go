@@ -9,7 +9,7 @@ type MKey interface {
 	string | int | uint
 }
 type MValue interface {
-	*WsClient | *ChatSession | context.CancelFunc | []interface{}
+	*WsClient | *ChatSession | context.CancelFunc | []Message
 }
 type LMap[K MKey, T MValue] struct {
 	lock sync.RWMutex

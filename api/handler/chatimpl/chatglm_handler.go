@@ -20,7 +20,7 @@ import (
 // 清华大学 ChatGML 消息发送实现
 
 func (h *ChatHandler) sendChatGLMMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,

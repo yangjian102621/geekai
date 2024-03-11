@@ -28,7 +28,7 @@ type AppServer struct {
 	Debug        bool
 	Config       *types.AppConfig
 	Engine       *gin.Engine
-	ChatContexts *types.LMap[string, []interface{}] // 聊天上下文 Map [chatId] => []Message
+	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
 
 	ChatConfig *types.ChatConfig   // chat config cache
 	SysConfig  *types.SystemConfig // system config cache
@@ -47,7 +47,7 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 		Debug:         false,
 		Config:        appConfig,
 		Engine:        gin.Default(),
-		ChatContexts:  types.NewLMap[string, []interface{}](),
+		ChatContexts:  types.NewLMap[string, []types.Message](),
 		ChatSession:   types.NewLMap[string, *types.ChatSession](),
 		ChatClients:   types.NewLMap[string, *types.WsClient](),
 		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
