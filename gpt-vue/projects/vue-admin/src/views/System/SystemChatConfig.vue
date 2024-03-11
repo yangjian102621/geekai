@@ -141,7 +141,7 @@ onMounted(reload);
         />
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" :loading="submitting" @click="handleSave">提交</a-button>
+        <a-button type="primary" :loading="submitting" @click="handleSave">保存</a-button>
       </a-form-item>
     </a-form>
   </a-card>

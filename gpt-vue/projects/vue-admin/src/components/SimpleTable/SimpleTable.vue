@@ -33,12 +33,12 @@ const handleSearch = async (tips?: boolean) => {
 onActivated(handleSearch);
 </script>
 <template>
-  <div class="simple-header">
-    <a-space>
-      <slot name="header" v-bind="{ reload: handleSearch }" />
-    </a-space>
-  </div>
   <div class="simple-table">
+    <div class="simple-header">
+      <a-space class="flex-end">
+        <slot name="header" v-bind="{ reload: handleSearch }" />
+      </a-space>
+    </div>
     <div ref="tableContainerRef" class="simple-table-container">
       <ATable
         v-bind="{
@@ -46,7 +46,7 @@ onActivated(handleSearch);
           ...tableConfig,
           ...props,
           scroll: useTableScroll(_columns || [], tableContainerRef as HTMLElement),
-          columns: _columns
+          columns: _columns,
         }"
       >
         <template v-for="slot in Object.keys($slots)" #[slot]="config">
@@ -71,6 +71,10 @@ onActivated(handleSearch);
   justify-content: space-between;
 }
 .simple-header {
-  padding: 16px 0;
+  padding: 8px 0px 16px;
+}
+.flex-end {
+  display: flex;
+  justify-content: end;
 }
 </style>

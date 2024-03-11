@@ -19,6 +19,7 @@ const columns = [
   {
     title: "key",
     dataIndex: "value",
+    slotName: "value",
   },
   {
     title: "用途",
@@ -96,7 +97,14 @@ const handleStatusChange = ({ filed, value, record, reload }) => {
       </a-popconfirm>
     </template>
     <template #header="{ reload }">
-      <a-button @click="popup({ reload })" size="small"><icon-plus />新增</a-button>
+      <a-button @click="popup({ reload })" size="small" type="primary"
+        ><template #icon> <icon-plus /> </template>新增
+      </a-button>
+    </template>
+    <template #value="{ record, column }">
+      <a-typography-text copyable ellipsis style="margin: 0">
+        {{ record[column.dataIndex] }}
+      </a-typography-text>
     </template>
     <template #status="{ record, reload }">
       <a-switch
