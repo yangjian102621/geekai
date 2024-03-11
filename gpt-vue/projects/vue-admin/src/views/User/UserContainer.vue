@@ -80,9 +80,9 @@ const handleDelete = async ({ id }: { id: string }, reload) => {
       <a-link @click="password({ record, reload })">重置密码</a-link>
     </template>
     <template #search-extra="{ reload }">
-      <a-button @click="editModal({ reload })" status="success" size="small"
-        ><icon-plus />新增用户</a-button
-      >
+      <a-button @click="editModal({ reload })" size="small" type="primary">
+        <template #icon> <icon-plus /> </template>新增
+      </a-button>
     </template>
   </SearchTable>
 </template>
