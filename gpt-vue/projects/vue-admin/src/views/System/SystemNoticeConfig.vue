@@ -61,7 +61,7 @@ onMounted(reload);
       <md-editor v-model="formData.content" @on-upload-img="onUploadImg" />
     </a-form-item>
     <a-form-item>
-      <a-button type="primary" :loading="submitting" @click="handleSave">提交</a-button>
+      <a-button type="primary" :loading="submitting" @click="handleSave">保存</a-button>
     </a-form-item>
   </a-form>
 </template>
