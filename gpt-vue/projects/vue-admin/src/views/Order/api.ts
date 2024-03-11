@@ -1,9 +1,9 @@
 import http from "@/http/config";
 
-export const getList = (params?: Record<string, unknown>) => {
+export const getList = (data?: Record<string, unknown>) => {
   return http({
-    url: "/admin/order/list",
-    methods: "get",
-    params
+    url: "/api/admin/order/list",
+    method: "post",
+    data
   })
 }
