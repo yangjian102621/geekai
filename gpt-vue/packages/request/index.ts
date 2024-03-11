@@ -3,7 +3,7 @@ import tokenHandler from "./token";
 
 const { _tokenData, refreshToken, setCurRequest } = tokenHandler();
 
-const createInstance = (baseURL: string = (import.meta as any).env.VITE_PROXY_BASE_URL) => {
+const createInstance = (baseURL: string) => {
 
   const instance = axios.create({
     baseURL,

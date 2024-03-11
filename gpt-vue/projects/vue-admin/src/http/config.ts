@@ -5,7 +5,7 @@ import type { BaseResponse } from "@gpt-vue/packages/type";
 
 export const uploadUrl = import.meta.env.VITE_PROXY_BASE_URL + "/api/admin/upload";
 
-export const instance = createInstance()
+export const instance = createInstance(import.meta.env.VITE_PROXY_BASE_URL)
 
 instance.interceptors.request.use((config) => {
   config.headers[__AUTH_KEY] = localStorage.getItem(__AUTH_KEY);
