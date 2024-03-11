@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import SearchTable from "@/components/SearchTable/SearchTable.vue";
 import type { SearchTableColumns } from "@/components/SearchTable/type";
+import { dateFormat } from "@gpt-vue/packages/utils";
 import { getList } from "./api";
 
 const columns: SearchTableColumns[] = [
@@ -10,6 +11,7 @@ const columns: SearchTableColumns[] = [
     search: {
       valueType: "input",
     },
+    width: 280,
   },
   {
     dataIndex: "username",
@@ -30,6 +32,8 @@ const columns: SearchTableColumns[] = [
   {
     dataIndex: "created_at",
     title: "下单时间",
+    render: ({ record }) => dateFormat(record.created_at),
+    width: 200,
   },
   {
     dataIndex: "status",
@@ -52,6 +56,8 @@ const columns: SearchTableColumns[] = [
     search: {
       valueType: "range",
     },
+    slotName: "pay_time",
+    width: 200,
   },
   {
     dataIndex: "pay_way",
@@ -60,11 +66,17 @@ const columns: SearchTableColumns[] = [
   {
     title: "操作",
     slotName: "actions",
+    fixed: "right",
+    width: 80,
   },
 ];
 </script>
 <template>
   <SearchTable :request="getList" :columns="columns">
+    <template #pay_time="{ record }">
+      <a-tag v-if="!record.pay_time" color="blue">未支付</a-tag>
+      <span v-else>{{ dateFormat(record.pay_time) }}</span>
+    </template>
     <template #actions="{ record }">
       <a-link :key="record.id" status="danger">删除</a-link>
     </template>

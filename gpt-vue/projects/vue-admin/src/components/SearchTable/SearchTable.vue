@@ -19,11 +19,13 @@ const requestParams = computed(() => ({
 const [tableConfig, getList] = useAsyncTable(props.request, requestParams);
 
 const _columns = computed(() => {
-  return props.columns.map((item) => ({
-    ellipsis: true,
-    tooltip: true,
-    ...item,
-  }));
+  return props.columns
+    .filter((item) => !item.hideInTable)
+    .map((item) => ({
+      ellipsis: true,
+      tooltip: true,
+      ...item,
+    }));
 });
 
 const handleSearch = async (tips?: boolean) => {
@@ -46,7 +48,7 @@ onActivated(handleSearch);
     <FormSection
       v-model="formData"
       :columns="columns"
-      :submitting="(tableConfig.loading as boolean)"
+      :submitting="tableConfig.loading as boolean"
       @request="handleSearch"
     >
       <template v-for="slot in Object.keys($slots)" #[slot]="config">
@@ -60,7 +62,7 @@ onActivated(handleSearch);
           ...tableConfig,
           ...props,
           scroll: useTableScroll(_columns, tableContainerRef as HTMLElement),
-          columns: _columns
+          columns: _columns,
         }"
       >
         <template v-for="slot in Object.keys($slots)" #[slot]="config">
