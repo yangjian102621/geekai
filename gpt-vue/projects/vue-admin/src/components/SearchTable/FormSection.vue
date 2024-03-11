@@ -80,8 +80,8 @@ const optionsEvent = {
           </slot>
         </AFormItem>
       </AGridItem>
-      <AGridItem suffix>
-        <ASpace class="flex-end">
+      <AGridItem>
+        <ASpace>
           <slot name="search-options" :option="optionsEvent">
             <AButton type="primary" html-type="submit" :size="size" :loading="submitting">
               <icon-search />
@@ -92,6 +92,10 @@ const optionsEvent = {
               <span>重置</span>
             </AButton>
           </slot>
+        </ASpace>
+      </AGridItem>
+      <AGridItem suffix>
+        <ASpace class="flex-end">
           <slot name="search-extra" />
         </ASpace>
       </AGridItem>
@@ -100,7 +104,7 @@ const optionsEvent = {
 </template>
 <style scoped>
 .search-form-conteiner {
-  padding: 16px 0;
+  padding: 8px 0px 0px;
 }
 .flex-end {
   display: flex;

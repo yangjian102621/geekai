@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref, h } from "vue";
 import { Message, Modal } from "@arco-design/web-vue";
+import { dateFormat } from "@gpt-vue/packages/utils";
 import SearchTable from "@/components/SearchTable/SearchTable.vue";
 import type { SearchTableColumns } from "@/components/SearchTable/type";
 import app from "@/main";
@@ -51,6 +52,7 @@ const columns: SearchTableColumns[] = [
     search: {
       valueType: "range",
     },
+    render: ({ record }) => dateFormat(record.created_at),
   },
   {
     title: "操作",

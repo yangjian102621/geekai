@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from "vue";
+import { Message } from "@arco-design/web-vue";
 import type { UploadInstance, FileItem } from "@arco-design/web-vue";
 import { uploadUrl } from "@/http/config";
 
@@ -18,20 +19,21 @@ const uploadProps = computed<UploadInstance["$props"]>(() => ({
 }));
 
 const handleChange = (_, file: FileItem) => {
-  console.log(file.response);
+  if (file?.response) {
+    emits("update:modelValue", file?.response?.data?.url);
+    Message.success("上传成功");
+  }
 };
 </script>
 <template>
-  <a-space>
-    <a-input-group>
-      <a-input :model-value="modelValue" :placeholder="placeholder" readonly />
-      <a-upload v-bind="uploadProps" @change="handleChange">
-        <template #upload-button>
-          <a-button type="primary">
-            <icon-cloud />
-          </a-button>
-        </template>
-      </a-upload>
-    </a-input-group>
-  </a-space>
+  <a-upload v-bind="uploadProps" style="width: 100%" @change="handleChange">
+    <template #upload-button>
+      <a-input-group style="width: 100%">
+        <a-input :model-value="modelValue" :placeholder="placeholder" readonly />
+        <a-button type="primary" style="width: 100px">
+          <icon-cloud />
+        </a-button>
+      </a-input-group>
+    </template>
+  </a-upload>
 </template>

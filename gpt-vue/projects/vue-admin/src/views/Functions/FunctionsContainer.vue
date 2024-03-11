@@ -57,7 +57,7 @@ const handleRemove = async (id, reload) => {
 <template>
   <SimpleTable :request="getList" :columns="columns" :pagination="false">
     <template #header="{ reload }">
-      <a-button @click="openFormModal(reload, {})">
+      <a-button type="primary" @click="openFormModal(reload, {})">
         <template #icon> <icon-plus /> </template>
         新增
       </a-button>

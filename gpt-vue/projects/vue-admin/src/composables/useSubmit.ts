@@ -12,7 +12,7 @@ function useSubmit<T extends Record<string, any> = Record<string, any>, R = any>
       const hasError = await formRef.value?.validate();
       if (!hasError) {
         const { data, message } = await api({ ...formData ?? {}, ...unref(params) });
-        Message.success(message);
+        message && Message.success(message);
         return Promise.resolve({ formData, data });
       }
       return Promise.reject(false);
