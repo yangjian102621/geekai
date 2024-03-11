@@ -4,7 +4,7 @@ import "time"
 
 type File struct {
 	Id        uint `gorm:"primarykey;column:id"`
-	UserId    uint
+	UserId    int
 	Name      string
 	ObjKey    string
 	URL       string

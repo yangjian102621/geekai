@@ -64,11 +64,10 @@ func (h *SysUserHandler) List(c *gin.Context) {
 // Save 更新或者新增
 func (h *SysUserHandler) Save(c *gin.Context) {
 	var data struct {
-		Id          uint   `json:"id"`
-		Password    string `json:"password"`
-		Username    string `json:"username"`
-		ExpiredTime string `json:"expired_time"`
-		Status      bool   `json:"status"`
+		Id       uint   `json:"id"`
+		Password string `json:"password"`
+		Username string `json:"username"`
+		Status   bool   `json:"status"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -81,18 +80,16 @@ func (h *SysUserHandler) Save(c *gin.Context) {
 		user.Id = data.Id
 		// 此处需要用 map 更新，用结构体无法更新 0 值
 		res = h.db.Model(&user).Updates(map[string]interface{}{
-			"username":     data.Username,
-			"status":       data.Status,
-			"expired_time": utils.Str2stamp(data.ExpiredTime),
+			"username": data.Username,
+			"status":   data.Status,
 		})
 	} else {
 		salt := utils.RandString(8)
 		u := model.AdminUser{
-			Username:    data.Username,
-			Password:    utils.GenPassword(data.Password, salt),
-			Salt:        salt,
-			Status:      true,
-			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
+			Username: data.Username,
+			Password: utils.GenPassword(data.Password, salt),
+			Salt:     salt,
+			Status:   true,
 		}
 		res = h.db.Create(&u)
 		_ = utils.CopyObject(u, &userVo)
