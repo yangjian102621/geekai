@@ -3,7 +3,7 @@ import { Notification } from "@arco-design/web-vue";
 import createInstance from "@gpt-vue/packages/request"
 import type { BaseResponse } from "@gpt-vue/packages/type";
 
-export const uploadUrl = import.meta.env.VITE_PROXY_BASE_URL + "/api/upload";
+export const uploadUrl = import.meta.env.VITE_PROXY_BASE_URL + "/api/admin/upload";
 
 export const instance = createInstance()
 
