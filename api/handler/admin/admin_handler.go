@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/mojocn/base64Captcha"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,13 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	// add captcha
+	if !base64Captcha.DefaultMemStore.Verify(data.CaptchaId, data.Captcha, true) {
+		resp.ERROR(c, "验证码错误，请重新输入!")
+		return
+	}
+
 	manager := h.App.Config.Manager
 	if data.Username == manager.Username && data.Password == manager.Password {
 		// 创建 token

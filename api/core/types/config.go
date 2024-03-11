@@ -124,8 +124,10 @@ func (c RedisConfig) Url() string {
 
 // Manager 管理员
 type Manager struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Captcha   string `json:"captcha"`    // 验证码
+	CaptchaId string `json:"captcha_id"` // 验证码id
 }
 
 // ChatConfig 系统默认的聊天配置
