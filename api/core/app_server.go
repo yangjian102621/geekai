@@ -146,6 +146,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		if c.Request.URL.Path == "/api/user/login" ||
 			c.Request.URL.Path == "/api/user/resetPass" ||
 			c.Request.URL.Path == "/api/admin/login" ||
+			c.Request.URL.Path == "/api/admin/login/captcha" ||
 			c.Request.URL.Path == "/api/user/register" ||
 			c.Request.URL.Path == "/api/chat/history" ||
 			c.Request.URL.Path == "/api/chat/detail" ||

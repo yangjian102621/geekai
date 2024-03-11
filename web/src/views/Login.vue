@@ -87,8 +87,8 @@ const handleKeyup = (e) => {
 };
 
 const login = function () {
-  if (!validateMobile(username.value) && !validateEmail(username.value)) {
-    return ElMessage.error("请输入合法的手机号/邮箱地址")
+  if (username.value.trim() === '') {
+    return ElMessage.error("请输入用户民")
   }
   if (password.value.trim() === '') {
     return ElMessage.error('请输入密码');
