@@ -1,7 +1,8 @@
-package handler
+package admin
 
 import (
 	"chatplus/core"
+	"chatplus/handler"
 	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -13,15 +14,15 @@ import (
 )
 
 type UploadHandler struct {
-	BaseHandler
+	handler.BaseHandler
 	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 }
 
 func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManager) *UploadHandler {
-	handler := &UploadHandler{db: db, uploaderManager: manager}
-	handler.App = app
-	return handler
+	adminHandler := &UploadHandler{db: db, uploaderManager: manager}
+	adminHandler.App = app
+	return adminHandler
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {
@@ -30,10 +31,9 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
-	userId := h.GetLoginUserId(c)
+	userId := 0
 	res := h.db.Create(&model.File{
-		UserId:    int(userId),
+		UserId:    userId,
 		Name:      file.Name,
 		ObjKey:    file.ObjKey,
 		URL:       file.URL,
@@ -50,7 +50,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 }
 
 func (h *UploadHandler) List(c *gin.Context) {
-	userId := h.GetLoginUserId(c)
+	userId := 0
 	var items []model.File
 	var files = make([]vo.File, 0)
 	h.db.Where("user_id = ?", userId).Find(&items)
@@ -72,7 +72,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 
 // Remove remove files
 func (h *UploadHandler) Remove(c *gin.Context) {
-	userId := h.GetLoginUserId(c)
+	userId := 0
 	id := h.GetInt(c, "id", 0)
 	var file model.File
 	tx := h.db.Where("user_id = ? AND id = ?", userId, id).First(&file)

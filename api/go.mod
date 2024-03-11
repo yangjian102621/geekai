@@ -28,6 +28,16 @@ require github.com/xxl-job/xxl-job-executor-go v1.2.0
 require github.com/bg5t/mydiscordgo v0.28.1
 
 require (
+	github.com/mojocn/base64Captcha v1.3.1
+	github.com/shopspring/decimal v1.3.1
+)
+
+require (
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
+	golang.org/x/image v0.0.0-20190501045829-6d32002ffd75 // indirect
+)
+
+require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
