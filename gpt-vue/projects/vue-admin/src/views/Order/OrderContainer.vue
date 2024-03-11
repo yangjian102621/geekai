@@ -41,6 +41,7 @@ const columns: SearchTableColumns[] = [
     hideInTable: true,
     search: {
       valueType: "select",
+      defaultValue: -1,
       fieldProps: {
         options: [
           { label: "全部", value: -1 },

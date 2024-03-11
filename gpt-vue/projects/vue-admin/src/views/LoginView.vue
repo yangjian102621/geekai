@@ -103,19 +103,14 @@ async function handleSubmit({ errors }: any) {
           >
             <a-space direction="vertical" style="width: 100%">
               <a-form-item field="username" label="账号">
-                <a-input
-                  v-model="formData.username"
-                  placeholder="请输入您的账号"
-                  class="input"
-                ></a-input>
+                <a-input v-model="formData.username" placeholder="请输入您的账号" class="input" />
               </a-form-item>
               <a-form-item field="password" label="密码">
                 <a-input-password
                   v-model="formData.password"
                   placeholder="请输入您的密码"
                   class="input"
-                >
-                </a-input-password>
+                />
               </a-form-item>
               <a-form-item field="captcha" label="验证码">
                 <a-input v-model="formData.captcha" placeholder="请输入验证码" class="input">

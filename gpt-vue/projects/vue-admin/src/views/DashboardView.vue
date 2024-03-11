@@ -165,6 +165,7 @@ const createOption = (data, key) => {
   .chartDom {
     width: 450px;
     height: 500px;
+    text-align: center;
   }
 }
 </style>
