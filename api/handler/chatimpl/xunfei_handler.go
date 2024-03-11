@@ -58,7 +58,7 @@ var Model2URL = map[string]string{
 // 科大讯飞消息发送实现
 
 func (h *ChatHandler) sendXunFeiMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,

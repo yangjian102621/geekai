@@ -36,7 +36,7 @@ type baiduResp struct {
 // 百度文心一言消息发送实现
 
 func (h *ChatHandler) sendBaiduMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,

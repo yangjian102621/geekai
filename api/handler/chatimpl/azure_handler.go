@@ -19,7 +19,7 @@ import (
 // 微软 Azure 模型消息发送实现
 
 func (h *ChatHandler) sendAzureMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,

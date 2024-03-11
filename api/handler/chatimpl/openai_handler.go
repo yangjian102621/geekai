@@ -20,7 +20,7 @@ import (
 
 // OPenAI 消息发送实现
 func (h *ChatHandler) sendOpenAiMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,
@@ -46,8 +46,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 		utils.ReplyMessage(ws, ErrorMsg)
 		utils.ReplyMessage(ws, ErrImg)
-		all, _ := io.ReadAll(response.Body)
-		logger.Error(string(all))
+		if response.Body != nil {
+			all, _ := io.ReadAll(response.Body)
+			logger.Error(string(all))
+		}
 		return err
 	} else {
 		defer response.Body.Close()

@@ -31,7 +31,7 @@ type qWenResp struct {
 
 // 通义千问消息发送实现
 func (h *ChatHandler) sendQWenMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,
