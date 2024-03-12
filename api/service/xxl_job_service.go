@@ -39,7 +39,7 @@ func NewXXLJobExecutor(config *types.AppConfig, db *gorm.DB) *XXLJobExecutor {
 
 func (e *XXLJobExecutor) Run() error {
 	e.executor.RegTask("ClearOrders", e.ClearOrders)
-	e.executor.RegTask("ResetVipCalls", e.ResetVipCalls)
+	e.executor.RegTask("ResetVipPower", e.ResetVipPower)
 	return e.executor.Run()
 }
 
@@ -68,8 +68,8 @@ func (e *XXLJobExecutor) ClearOrders(cxt context.Context, param *xxl.RunReq) (ms
 	return fmt.Sprintf("Clear order successfully, affect rows: %d", res.RowsAffected)
 }
 
-// ResetVipCalls 清理过期的 VIP 会员
-func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (msg string) {
+// ResetVipPower 清理过期的 VIP 会员
+func (e *XXLJobExecutor) ResetVipPower(cxt context.Context, param *xxl.RunReq) (msg string) {
 	logger.Info("开始进行月底账号盘点...")
 	var users []model.User
 	res := e.db.Where("vip = ?", 1).Find(&users)
@@ -89,55 +89,27 @@ func (e *XXLJobExecutor) ResetVipCalls(cxt context.Context, param *xxl.RunReq) (
 		return "error with decode system config: " + err.Error()
 	}
 
-	// 获取本月月初时间
-	currentTime := time.Now()
-	year, month, _ := currentTime.Date()
-	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, currentTime.Location()).Unix()
 	for _, u := range users {
-		// 账号到期，直接清零
-		if u.ExpiredTime <= currentTime.Unix() {
-			logger.Info("账号过期：", u.Username)
-			u.Calls = 0
-			u.Vip = false
-		} else {
-			if u.Calls <= 0 {
-				u.Calls = 0
-			}
-			if u.ImgCalls <= 0 {
-				u.ImgCalls = 0
-			}
-			// 如果该用户当月有充值点卡，则将点卡中未用完的点数结余到下个月
-			var orders []model.Order
-			e.db.Debug().Where("user_id = ? AND pay_time > ?", u.Id, firstOfMonth).Find(&orders)
-			var calls = 0
-			var imgCalls = 0
-			for _, o := range orders {
-				var remark types.OrderRemark
-				err = utils.JsonDecode(o.Remark, &remark)
-				if err != nil {
-					continue
-				}
-				if remark.Days > 0 { // 会员续费
-					continue
-				}
-				calls += remark.Calls
-				imgCalls += remark.ImgCalls
-			}
-			if u.Calls > calls { // 本月套餐没有用完
-				u.Calls = calls + config.VipMonthCalls
-			} else {
-				u.Calls = u.Calls + config.VipMonthCalls
-			}
-			if u.ImgCalls > imgCalls { // 本月套餐没有用完
-				u.ImgCalls = imgCalls + config.VipMonthImgCalls
-			} else {
-				u.ImgCalls = u.ImgCalls + config.VipMonthImgCalls
-			}
-			logger.Infof("%s 点卡结余：%d", u.Username, calls)
+		if u.Power <= 0 {
+			u.Power = 0
 		}
-		u.Tokens = 0
+		u.Power += config.VipMonthPower
 		// update user
-		e.db.Updates(&u)
+		tx := e.db.Updates(&u)
+		// 记录算力充值日志
+		if tx.Error == nil {
+			e.db.Create(&model.PowerLog{
+				UserId:    u.Id,
+				Username:  u.Username,
+				Type:      types.PowerRecharge,
+				Amount:    config.VipMonthPower,
+				Mark:      types.PowerAdd,
+				Balance:   u.Power + config.VipMonthPower,
+				Model:     "",
+				Remark:    fmt.Sprintf("月底盘点，会员每月赠送算力：%d", config.VipMonthPower),
+				CreatedAt: time.Now(),
+			})
+		}
 	}
 	logger.Info("月底盘点完成！")
 	return "success"

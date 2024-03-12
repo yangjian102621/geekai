@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: "0.0.0.0",
-      port: 7410,
+      port: 8100,
       proxy: {
         [VITE_PROXY_BASE_URL]: {
           target: VITE_TARGET_URL,

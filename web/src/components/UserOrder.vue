@@ -17,14 +17,9 @@
         </el-table-column>
         <el-table-column prop="subject" label="产品名称"/>
         <el-table-column prop="amount" label="订单金额"/>
-        <el-table-column label="对话次数">
+        <el-table-column label="订单算力">
           <template #default="scope">
-            <span>{{ scope.row.remark?.calls }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="绘图次数">
-          <template #default="scope">
-            <span>{{ scope.row.remark?.img_calls ?? 0 }}</span>
+            <span>{{ scope.row.remark?.power }}</span>
           </template>
         </el-table-column>
 

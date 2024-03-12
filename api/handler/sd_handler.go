@@ -72,8 +72,8 @@ func (h *SdJobHandler) checkLimits(c *gin.Context) bool {
 		return false
 	}
 
-	if user.ImgCalls <= 0 {
-		resp.ERROR(c, "您的绘图次数不足，请联系管理员充值！")
+	if user.Power < h.App.SysConfig.SdPower {
+		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
 		return false
 	}
 
@@ -140,6 +140,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		Params:    utils.JsonEncode(params),
 		Prompt:    data.Prompt,
 		Progress:  0,
+		Power:     h.App.SysConfig.SdPower,
 		CreatedAt: time.Now(),
 	}
 	res := h.db.Create(&job)
@@ -162,8 +163,23 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		_ = client.Send([]byte("Task Updated"))
 	}
 
-	// update user's img calls
-	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+	// update user's power
+	tx := h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		user, _ := utils.GetLoginUser(c, h.db)
+		h.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    job.Power,
+			Balance:   user.Power - job.Power,
+			Mark:      types.PowerSub,
+			Model:     "stable-diffusion",
+			Remark:    fmt.Sprintf("绘图操作，任务ID：%s", job.TaskId),
+			CreatedAt: time.Now(),
+		})
+	}
 
 	resp.SUCCESS(c)
 }
@@ -232,18 +248,7 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 			continue
 		}
 
-		if job.Progress == -1 {
-			h.db.Delete(&model.SdJob{Id: job.Id})
-		}
-
 		if item.Progress < 100 {
-			// 5 分钟还没完成的任务直接删除
-			if time.Now().Sub(item.CreatedAt) > time.Minute*5 {
-				h.db.Delete(&item)
-				// 退回绘图次数
-				h.db.Model(&model.User{}).Where("id = ?", item.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
-				continue
-			}
 			// 正在运行中任务使用代理访问图片
 			image, err := utils.DownloadImage(item.ImgURL, "")
 			if err == nil {

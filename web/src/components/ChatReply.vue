@@ -9,12 +9,12 @@
         <div class="content" v-html="content"></div>
         <div class="bar" v-if="createdAt !== ''">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
-          <span class="bar-item">算力消耗: {{ tokens }}</span>
+          <span class="bar-item">Tokens: {{ tokens }}</span>
           <el-tooltip
               class="box-item"
-              effect="light"
+              effect="dark"
               content="复制回答"
-              placement="top"
+              placement="bottom"
           >
             <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent">
               <el-icon>
@@ -24,7 +24,6 @@
           </el-tooltip>
         </div>
       </div>
-
     </div>
   </div>
 </template>
