@@ -411,7 +411,7 @@
               </el-divider>
               <div class="prompt">
                 <span>{{ item.prompt }}</span>
-                <el-icon class="copy-prompt" :data-clipboard-text="item.prompt">
+                <el-icon class="copy-prompt-sd" :data-clipboard-text="item.prompt">
                   <DocumentCopy/>
                 </el-icon>
               </div>
@@ -424,7 +424,7 @@
               </el-divider>
               <div class="prompt">
                 <span>{{ item.params.negative_prompt }}</span>
-                <el-icon class="copy-prompt" :data-clipboard-text="item.params.negative_prompt">
+                <el-icon class="copy-prompt-sd" :data-clipboard-text="item.params.negative_prompt">
                   <DocumentCopy/>
                 </el-icon>
               </div>
@@ -511,7 +511,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {onMounted, onUnmounted, ref} from "vue"
 import {Delete, DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
@@ -629,6 +629,7 @@ const connect = () => {
   });
 }
 
+const clipboard = ref(null)
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
@@ -639,14 +640,18 @@ onMounted(() => {
   }).catch(() => {
     router.push('/login')
   });
-  const clipboard = new Clipboard('.copy-prompt');
-  clipboard.on('success', () => {
+  clipboard.value = new Clipboard('.copy-prompt-sd');
+  clipboard.value.on('success', () => {
     ElMessage.success("复制成功！");
   })
 
-  clipboard.on('error', () => {
+  clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 
 const fetchRunningJobs = (userId) => {
@@ -694,7 +699,11 @@ const fetchFinishJobs = (page) => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
     }
-    finishedJobs.value = finishedJobs.value.concat(res.data)
+    if (page === 1) {
+      finishedJobs.value = res.data
+    } else {
+      finishedJobs.value = finishedJobs.value.concat(res.data)
+    }
     loading.value = false
   }).catch(e => {
     loading.value = false

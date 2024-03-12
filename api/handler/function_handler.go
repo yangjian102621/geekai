@@ -200,8 +200,8 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 
-	if user.ImgCalls <= 0 {
-		resp.ERROR(c, "当前用户的绘图次数额度不足！")
+	if user.Power < h.App.SysConfig.DallPower {
+		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
 		return
 	}
 
@@ -275,7 +275,21 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	content := fmt.Sprintf("下面是根据您的描述创作的图片，它描绘了 【%s】 的场景。 \n\n![](%s)\n", prompt, imgURL)
 	// update user's img_calls
-	h.db.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+	tx = h.db.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		h.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    h.App.SysConfig.DallPower,
+			Balance:   user.Power - h.App.SysConfig.DallPower,
+			Mark:      types.PowerSub,
+			Model:     "dall-e-3",
+			Remark:    "",
+			CreatedAt: time.Now(),
+		})
+	}
 
 	resp.SUCCESS(c, content)
 }

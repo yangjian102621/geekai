@@ -12,6 +12,5 @@ type Reward struct {
 }
 
 type RewardExchange struct {
-	Calls    int `json:"calls"`
-	ImgCalls int `json:"img_calls"`
+	Power int `json:"calls"`
 }

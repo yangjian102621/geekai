@@ -96,12 +96,6 @@ func (s *Service) Run() {
 			s.db.Updates(&job)
 			// 任务失败，通知前端
 			s.notifyQueue.RPush(task.UserId)
-			// restore img_call quota
-			if task.Type.String() != types.TaskUpscale.String() {
-				s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
-			}
-
-			// TODO: 任务提交失败，加入队列重试
 			continue
 		}
 		logger.Infof("任务提交成功：%+v", res)

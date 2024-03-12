@@ -128,9 +128,6 @@ func (h *ChatHandler) sendBaiduMessage(
 
 		// 消息发送成功
 		if len(contents) > 0 {
-			// 更新用户的对话次数
-			h.subUserCalls(userVo, session)
-
 			if message.Role == "" {
 				message.Role = "assistant"
 			}
@@ -171,8 +168,8 @@ func (h *ChatHandler) sendBaiduMessage(
 
 				// for reply
 				// 计算本次对话消耗的总 token 数量
-				replyToken, _ := utils.CalcTokens(message.Content, req.Model)
-				totalTokens := replyToken + getTotalTokens(req)
+				replyTokens, _ := utils.CalcTokens(message.Content, req.Model)
+				totalTokens := replyTokens + getTotalTokens(req)
 				historyReplyMsg := model.ChatMessage{
 					UserId:     userVo.Id,
 					ChatId:     session.ChatId,
@@ -190,8 +187,8 @@ func (h *ChatHandler) sendBaiduMessage(
 				if res.Error != nil {
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
-				// 更新用户信息
-				h.incUserTokenFee(userVo.Id, totalTokens)
+				// 更新用户算力
+				h.subUserPower(userVo, session, promptToken, replyTokens)
 			}
 
 			// 保存当前会话

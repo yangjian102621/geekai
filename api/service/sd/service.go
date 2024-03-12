@@ -74,8 +74,6 @@ func (s *Service) Run() {
 				"progress": -1,
 				"err_msg":  err.Error(),
 			})
-			// restore img_call quota
-			s.db.Model(&model.User{}).Where("id = ?", task.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 			// release task num
 			atomic.AddInt32(&s.handledTaskNum, -1)
 			// 通知前端，任务失败
@@ -307,8 +305,6 @@ func (s *Service) callback(data CBReq) {
 			"progress": -1,
 			"err_msg":  data.Message,
 		})
-		// restore img_calls
-		s.db.Model(&model.User{}).Where("id = ? AND img_calls > 0", data.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
 	}
 
 	// 发送更新状态信号
