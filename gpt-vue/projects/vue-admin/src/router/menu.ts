@@ -34,7 +34,7 @@ const menu = [
     component: () => import("@/views/User/UserContainer.vue"),
   },
   {
-    path: "/Role",
+    path: "/role",
     name: "Role",
     meta: {
       title: "角色管理",
@@ -43,7 +43,7 @@ const menu = [
     component: () => import("@/views/Role/RoleContainer.vue"),
   },
   {
-    path: "/ChatModel",
+    path: "/chatModel",
     name: "ChatModel",
     meta: {
       title: "语言模型",
@@ -52,7 +52,7 @@ const menu = [
     component: () => import("@/views/ChatModel/ChatModelContainer.vue"),
   },
   {
-    path: "/Product",
+    path: "/product",
     name: "Product",
     meta: {
       title: "充值产品",
@@ -61,7 +61,7 @@ const menu = [
     component: () => import("@/views/Product/ProductContainer.vue"),
   },
   {
-    path: "/ApiKey",
+    path: "/apiKey",
     name: "ApiKey",
     meta: {
       title: "APIKEY",

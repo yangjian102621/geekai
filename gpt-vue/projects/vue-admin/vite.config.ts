@@ -31,19 +31,5 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: (id) => {
-            if (id.includes("node_modules")) {
-              if (id.includes("echats")) return `echats`;
-              if (id.includes("arco")) return `arco`;
-              if (id.includes("vue") && !id.includes("arco")) return `vue`;
-              return `vendor`;
-            }
-          },
-        },
-      },
-    },
   }
 })
