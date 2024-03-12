@@ -18,14 +18,4 @@
   border-radius: 1px;
   background: #fafafa;
 }
-
-.public-bg {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(133deg, #ffffff 0%, #dde8fe 100%);
-  overflow: hidden;
-}
 </style>
