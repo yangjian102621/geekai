@@ -10,6 +10,6 @@ type InviteLog struct {
 	UserId     uint
 	Username   string
 	InviteCode string
-	Reward     string `gorm:"column:reward_json"` // 邀请奖励
+	Remark     string
 	CreatedAt  time.Time
 }

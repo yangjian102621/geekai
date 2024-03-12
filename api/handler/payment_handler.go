@@ -316,7 +316,7 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 		}
 
 	} else { // 非 VIP 用户
-		if remark.Days > 0 { // vip 套餐：days > 0, calls == 0
+		if remark.Days > 0 { // vip 套餐：days > 0, power == 0
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 			user.Power += h.App.SysConfig.VipMonthPower
 			user.Vip = true

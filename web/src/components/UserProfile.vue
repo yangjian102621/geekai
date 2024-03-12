@@ -29,17 +29,8 @@
           <el-image v-if="user.vip" :src="vipImg" style="height: 25px;margin-left: 10px"/>
         </el-tooltip>
       </el-form-item>
-      <el-form-item label="剩余对话次数">
-        <el-tag>{{ user['calls'] }}</el-tag>
-      </el-form-item>
-      <el-form-item label="剩余绘图次数">
-        <el-tag>{{ user['img_calls'] }}</el-tag>
-      </el-form-item>
-      <el-form-item label="本月算力消耗">
-        <el-tag type="info">{{ user['tokens'] }}</el-tag>
-      </el-form-item>
-      <el-form-item label="累计算力消耗">
-        <el-tag type="info">{{ user['total_tokens'] }}</el-tag>
+      <el-form-item label="剩余算力">
+        <el-tag>{{ user['power'] }}</el-tag>
       </el-form-item>
       <el-form-item label="会员到期时间" v-if="user['expired_time']  > 0">
         <el-tag type="danger">{{ dateFormat(user['expired_time']) }}</el-tag>
@@ -67,8 +58,7 @@ const user = ref({
   nickname: '',
   avatar: '',
   mobile: '',
-  calls: 0,
-  tokens: 0,
+  power: 0,
 })
 const vipImg = ref("/images/vip.png")
 
