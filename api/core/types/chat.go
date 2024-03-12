@@ -1,15 +1,18 @@
 package types
 
+import "encoding/json"
+
 // ApiRequest API 请求实体
 type ApiRequest struct {
-	Model       string        `json:"model,omitempty"` // 兼容百度文心一言
-	Temperature float32       `json:"temperature"`
-	MaxTokens   int           `json:"max_tokens,omitempty"` // 兼容百度文心一言
-	Stream      bool          `json:"stream"`
-	Messages    []interface{} `json:"messages,omitempty"`
-	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
-	Tools       []interface{} `json:"tools,omitempty"`
-	Functions   []interface{} `json:"functions,omitempty"` // 兼容中转平台
+	Model       string          `json:"-"`
+	ModelRaw    json.RawMessage `json:"model,omitempty"` // 兼容 model 字段不是字符串的接口
+	Temperature float32         `json:"temperature"`
+	MaxTokens   int             `json:"max_tokens,omitempty"` // 兼容百度文心一言
+	Stream      bool            `json:"stream"`
+	Messages    []interface{}   `json:"messages,omitempty"`
+	Prompt      []interface{}   `json:"prompt,omitempty"` // 兼容 ChatGLM
+	Tools       []interface{}   `json:"tools,omitempty"`
+	Functions   []interface{}   `json:"functions,omitempty"` // 兼容中转平台
 
 	ToolChoice string `json:"tool_choice,omitempty"`
 

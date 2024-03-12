@@ -135,6 +135,7 @@ const platforms = ref([
   {name: "【百度】文心一言", value: "Baidu"},
   {name: "【微软】Azure", value: "Azure"},
   {name: "【阿里】通义千问", value: "QWen"},
+  {name: "【火山引擎】Skylark", value: "Skylark"},
 
 ])
 

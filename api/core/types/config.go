@@ -135,6 +135,7 @@ type ChatConfig struct {
 	ChatGML ModelAPIConfig `json:"chat_gml"`
 	Baidu   ModelAPIConfig `json:"baidu"`
 	XunFei  ModelAPIConfig `json:"xun_fei"`
+	Skylark ModelAPIConfig `json:"skylark"`
 
 	EnableContext bool `json:"enable_context"` // 是否开启聊天上下文
 	EnableHistory bool `json:"enable_history"` // 是否允许保存聊天记录
@@ -150,6 +151,7 @@ const ChatGLM = Platform("ChatGLM")
 const Baidu = Platform("Baidu")
 const XunFei = Platform("XunFei")
 const QWen = Platform("QWen")
+const Skylark = Platform("Skylark")
 
 // UserChatConfig 用户的聊天配置
 type UserChatConfig struct {

@@ -293,6 +293,17 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		req.Input = map[string]interface{}{"messages": []map[string]string{{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": prompt}}}
 		req.Parameters = map[string]interface{}{}
 		break
+	case types.Skylark:
+		modelStr, err := json.Marshal(map[string]interface{}{"name": req.Model})
+		if err != nil {
+			break
+		}
+		req.Model = string(modelStr)
+		req.Parameters = map[string]interface{}{
+			"temperature":    h.App.ChatConfig.Skylark.Temperature,
+			"max_new_tokens": h.App.ChatConfig.Skylark.MaxTokens,
+		}
+		break
 	default:
 		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
 		utils.ReplyMessage(ws, ErrImg)
@@ -368,6 +379,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return h.sendXunFeiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	case types.QWen:
 		return h.sendQWenMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+	case types.Skylark:
+		return h.sendSkylarkMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	}
 	utils.ReplyChunkMessage(ws, types.WsMessage{
 		Type:    types.WsMiddle,
@@ -465,6 +478,10 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		apiURL = apiKey.ApiURL
 		req.Messages = nil
 		break
+	case types.Skylark:
+		apiURL = apiKey.ApiURL
+		req.Input = nil
+		break
 	default:
 		apiURL = apiKey.ApiURL
 	}
@@ -484,6 +501,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 
 	// 创建 HttpClient 请求对象
 	var client *http.Client
+	req.ModelRaw = json.RawMessage(req.Model)
 	requestBody, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -527,6 +545,25 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	case types.QWen:
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
 		request.Header.Set("X-DashScope-SSE", "enable")
+		break
+	case types.Skylark:
+		key := strings.Split(apiKey.Value, "|")
+		if len(key) != 2 {
+			return nil, errors.New("非法的 API KEY！")
+		}
+		header, err := h.makeSkylarkRequestUrl(SkylarkRequest{
+			Method:          "POST",
+			Url:             apiKey.ApiURL,
+			Body:            requestBody,
+			AccessKeyID:     key[0],
+			SecretAccessKey: key[1],
+		})
+		if err != nil {
+			return nil, err
+		}
+		for hn, hv := range header {
+			request.Header.Set(hn, hv[0])
+		}
 		break
 	}
 	return client.Do(request)

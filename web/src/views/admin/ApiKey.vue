@@ -180,6 +180,11 @@ const platforms = ref([
     value: "QWen",
     api_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
   },
+  {
+    name: "【火山引擎】Skylark",
+    value: "Skylark",
+    api_url: "https://maas-api.ml-platform-cn-beijing.volces.com/api/v1/chat"
+  },
 ])
 const types = ref([
   {name: "聊天", value: "chat"},
