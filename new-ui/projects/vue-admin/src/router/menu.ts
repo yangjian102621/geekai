@@ -11,6 +11,7 @@ import {
   IconLock,
   IconCodepen,
   IconWechatpay,
+  IconRobot,
 } from "@arco-design/web-vue/es/icon";
 
 const menu = [
@@ -33,7 +34,7 @@ const menu = [
     component: () => import("@/views/User/UserContainer.vue"),
   },
   {
-    path: "/Role",
+    path: "/role",
     name: "Role",
     meta: {
       title: "角色管理",
@@ -42,7 +43,7 @@ const menu = [
     component: () => import("@/views/Role/RoleContainer.vue"),
   },
   {
-    path: "/ChatModel",
+    path: "/chatModel",
     name: "ChatModel",
     meta: {
       title: "语言模型",
@@ -51,7 +52,7 @@ const menu = [
     component: () => import("@/views/ChatModel/ChatModelContainer.vue"),
   },
   {
-    path: "/Product",
+    path: "/product",
     name: "Product",
     meta: {
       title: "充值产品",
@@ -60,7 +61,7 @@ const menu = [
     component: () => import("@/views/Product/ProductContainer.vue"),
   },
   {
-    path: "/ApiKey",
+    path: "/apiKey",
     name: "ApiKey",
     meta: {
       title: "APIKEY",
@@ -122,6 +123,15 @@ const menu = [
       icon: IconCalendar,
     },
     component: () => import("@/views/LoginLog.vue"),
+  },
+  {
+    path: "/sysAdmin",
+    name: "SysAdmin",
+    meta: {
+      title: "系统管理员",
+      icon: IconRobot,
+    },
+    component: () => import("@/views/SysAdmin/SysAdminContainer.vue"),
   },
 ];
 

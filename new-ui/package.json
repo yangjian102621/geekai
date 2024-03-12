@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clear": "rimraf node_modules projects/vue-admin/node_modules projects/vue-mobile/node_modules projects/vue-web/node_modules",
+    "clear": "rimraf node_modules projects/vue-admin/node_modules",
     "dev": "pnpm --filter=@gpt-vue-projects/* run dev",
     "build": "pnpm --filter=@gpt-vue-projects/* run build"
   },
