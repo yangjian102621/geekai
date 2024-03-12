@@ -48,8 +48,8 @@ func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 		return false
 	}
 
-	if user.ImgCalls <= 0 {
-		resp.ERROR(c, "您的绘图次数不足，请联系管理员充值！")
+	if user.Power < h.App.SysConfig.MjPower {
+		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
 		return false
 	}
 
@@ -160,13 +160,18 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		TaskId:    taskId,
 		Progress:  0,
 		Prompt:    prompt,
+		Power:     h.App.SysConfig.MjPower,
 		CreatedAt: time.Now(),
 	}
+	opt := "绘图"
 	if data.TaskType == types.TaskBlend.String() {
-		data.Prompt = "融图：" + strings.Join(data.ImgArr, ",")
+		job.Prompt = "融图：" + strings.Join(data.ImgArr, ",")
+		opt = "融图"
 	} else if data.TaskType == types.TaskSwapFace.String() {
-		data.Prompt = "换脸：" + strings.Join(data.ImgArr, ",")
+		job.Prompt = "换脸：" + strings.Join(data.ImgArr, ",")
+		opt = "换脸"
 	}
+
 	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
@@ -187,8 +192,23 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		_ = client.Send([]byte("Task Updated"))
 	}
 
-	// update user's img calls
-	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+	// update user's power
+	tx := h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		user, _ := utils.GetLoginUser(c, h.db)
+		h.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    job.Power,
+			Balance:   user.Power - job.Power,
+			Mark:      types.PowerSub,
+			Model:     "mid-journey",
+			Remark:    fmt.Sprintf("%s操作，任务ID：%s", opt, job.TaskId),
+			CreatedAt: time.Now(),
+		})
+	}
 	resp.SUCCESS(c)
 }
 
@@ -276,6 +296,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		TaskId:      taskId,
 		Progress:    0,
 		Prompt:      data.Prompt,
+		Power:       h.App.SysConfig.MjPower,
 		CreatedAt:   time.Now(),
 	}
 	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
@@ -300,8 +321,23 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		_ = client.Send([]byte("Task Updated"))
 	}
 
-	// update user's img calls
-	h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls - ?", 1))
+	// update user's power
+	tx := h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		user, _ := utils.GetLoginUser(c, h.db)
+		h.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    job.Power,
+			Balance:   user.Power - job.Power,
+			Mark:      types.PowerSub,
+			Model:     "mid-journey",
+			Remark:    fmt.Sprintf("Variation 操作，任务ID：%s", job.TaskId),
+			CreatedAt: time.Now(),
+		})
+	}
 	resp.SUCCESS(c)
 }
 
@@ -365,13 +401,6 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 		var job vo.MidJourneyJob
 		err := utils.CopyObject(item, &job)
 		if err != nil {
-			continue
-		}
-
-		// 失败的任务直接删除
-		if job.Progress == -1 {
-			h.db.Delete(&model.MidJourneyJob{Id: job.Id})
-			jobs = append(jobs, job)
 			continue
 		}
 

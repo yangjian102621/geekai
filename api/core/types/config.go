@@ -158,37 +158,32 @@ type UserChatConfig struct {
 	ApiKeys map[Platform]string `json:"api_keys"`
 }
 
-type InviteReward struct {
-	ChatCalls int `json:"chat_calls"`
-	ImgCalls  int `json:"img_calls"`
-}
-
 type ModelAPIConfig struct {
 	Temperature float32 `json:"temperature"`
 	MaxTokens   int     `json:"max_tokens"`
 }
 
 type SystemConfig struct {
-	Title            string `json:"title"`
-	AdminTitle       string `json:"admin_title"`
-	InitChatCalls    int    `json:"init_chat_calls"`     // 新用户注册赠送对话次数
-	InitImgCalls     int    `json:"init_img_calls"`      // 新用户注册赠送绘图次数
-	VipMonthCalls    int    `json:"vip_month_calls"`     // VIP 会员每月赠送的对话次数
-	VipMonthImgCalls int    `json:"vip_month_img_calls"` // VIP 会员每月赠送绘图次数
+	Title      string `json:"title"`
+	AdminTitle string `json:"admin_title"`
+	InitPower  int    `json:"init_power"` // 新用户注册赠送算力值
 
 	RegisterWays    []string `json:"register_ways"`    // 注册方式：支持手机，邮箱注册
 	EnabledRegister bool     `json:"enabled_register"` // 是否开放注册
 
-	RewardImg     string  `json:"reward_img"`      // 众筹收款二维码地址
-	EnabledReward bool    `json:"enabled_reward"`  // 启用众筹功能
-	ChatCallPrice float64 `json:"chat_call_price"` // 对话单次调用费用
-	ImgCallPrice  float64 `json:"img_call_price"`  // 绘图单次调用费用
+	RewardImg     string  `json:"reward_img"`     // 众筹收款二维码地址
+	EnabledReward bool    `json:"enabled_reward"` // 启用众筹功能
+	PowerPrice    float64 `json:"power_price"`    // 算力单价
 
 	OrderPayTimeout  int      `json:"order_pay_timeout"`   //订单支付超时时间
 	DefaultModels    []string `json:"default_models"`      // 默认开通的 AI 模型
 	OrderPayInfoText string   `json:"order_pay_info_text"` // 订单支付页面说明文字
-	InviteChatCalls  int      `json:"invite_chat_calls"`   // 邀请用户注册奖励对话次数
-	InviteImgCalls   int      `json:"invite_img_calls"`    // 邀请用户注册奖励绘图次数
+	InvitePower      int      `json:"invite_power"`        // 邀请新用户赠送算力值
+	VipMonthPower    int      `json:"vip_month_power"`     // VIP 会员每月赠送的算力值
+
+	MjPower   int `json:"mj_power"`   // MJ 绘画消耗算力
+	SdPower   int `json:"sd_power"`   // SD 绘画消耗算力
+	DallPower int `json:"dall_power"` // DALLE3 绘图消耗算力
 
 	WechatCardURL string `json:"wechat_card_url"` // 微信客服地址
 }
