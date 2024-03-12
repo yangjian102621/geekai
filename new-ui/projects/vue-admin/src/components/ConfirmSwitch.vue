@@ -8,6 +8,7 @@ type OriginProps = SwitchInstance["$props"];
 interface Props extends /* @vue-ignore */ OriginProps {
   modelValue: boolean | string | number;
   api: (params?: any) => Promise<BaseResponse<any>>;
+  onSuccess?: (res?: any) => void;
 }
 
 const props = defineProps<Props>();
@@ -23,8 +24,9 @@ const _value = computed({
 
 const onBeforeChange = async (params) => {
   try {
-    await props.api({ ...params, value: !_value.value });
+    const res = await props.api({ ...params, value: !_value.value });
     Message.success("操作成功");
+    props?.onSuccess?.(res);
     return true;
   } catch (err) {
     console.log(err);

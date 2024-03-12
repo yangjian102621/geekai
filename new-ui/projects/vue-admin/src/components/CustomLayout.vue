@@ -49,11 +49,13 @@ const [visible, setVisible] = useState(false);
             </ADoption>
           </template>
           <template #footer>
-            <APopconfirm content="确认退出？" position="br" @ok="authStore.logout">
-              <ASpace align="center" class="logout-area">
-                <IconExport size="16" />
-                <span>退出</span>
-              </ASpace>
+            <APopconfirm content="确认退出？" position="bl" @ok="authStore.logout">
+              <AButton status="warning" class="logout-area">
+                <ASpace align="center">
+                  <IconExport size="16" />
+                  <span>退出登录</span>
+                </ASpace>
+              </AButton>
             </APopconfirm>
           </template>
         </ADropdown>
@@ -125,7 +127,8 @@ const [visible, setVisible] = useState(false);
 .logout-area {
   padding: 8px 0;
   display: flex;
-  width: 80px;
+  min-width: 80px;
+  width: 100%;
   align-items: center;
   justify-content: center;
 }
