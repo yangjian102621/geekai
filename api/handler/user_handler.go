@@ -126,7 +126,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 			UserId:     user.Id,
 			Username:   user.Username,
 			InviteCode: inviteCode.Code,
-			Reward:     utils.JsonEncode(types.InviteReward{Power: h.App.SysConfig.InvitePower}),
+			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.InvitePower),
 		})
 	}
 

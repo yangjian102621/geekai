@@ -192,7 +192,6 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	logger.Debugf("绘画参数：%+v", params)
-	// check img calls
 	var user model.User
 	tx := h.db.Where("id = ?", params["user_id"]).First(&user)
 	if tx.Error != nil {
@@ -274,7 +273,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	content := fmt.Sprintf("下面是根据您的描述创作的图片，它描绘了 【%s】 的场景。 \n\n![](%s)\n", prompt, imgURL)
-	// update user's img_calls
+	// 更新用户算力
 	tx = h.db.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
 	// 记录算力变化日志
 	if tx.Error == nil && tx.RowsAffected > 0 {

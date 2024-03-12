@@ -156,10 +156,6 @@ type UserChatConfig struct {
 	ApiKeys map[Platform]string `json:"api_keys"`
 }
 
-type InviteReward struct {
-	Power int `json:"power"`
-}
-
 type ModelAPIConfig struct {
 	Temperature float32 `json:"temperature"`
 	MaxTokens   int     `json:"max_tokens"`

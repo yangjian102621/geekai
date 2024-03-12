@@ -42,3 +42,5 @@ ALTER TABLE `chatgpt_power_logs` CHANGE `amount` `amount` SMALLINT NOT NULL COMM
 ALTER TABLE `chatgpt_power_logs` ADD `mark` TINYINT(1) NOT NULL COMMENT '资金类型（0：支出，1：收入）' AFTER `remark`;
 ALTER TABLE `chatgpt_mj_jobs` ADD `power` SMALLINT(5) NOT NULL DEFAULT '0' COMMENT '消耗算力' AFTER `err_msg`;
 ALTER TABLE `chatgpt_sd_jobs` ADD `power` SMALLINT(5) NOT NULL DEFAULT '0' COMMENT '消耗算力' AFTER `err_msg`;
+
+ALTER TABLE `chatgpt_invite_logs` CHANGE `reward_json` `remark` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注';
