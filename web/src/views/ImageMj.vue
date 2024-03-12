@@ -438,7 +438,7 @@
                               <template #default>
                                 <div class="mj-list-item-prompt">
                                   <span>{{ scope.item.prompt }}</span>
-                                  <el-icon class="copy-prompt"
+                                  <el-icon class="copy-prompt-mj"
                                            :data-clipboard-text="scope.item.prompt">
                                     <DocumentCopy/>
                                   </el-icon>
@@ -485,7 +485,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
+import {nextTick, onMounted, onUnmounted, ref} from "vue"
 import {
   ChromeFilled,
   Delete,
@@ -662,6 +662,7 @@ const connect = () => {
   });
 }
 
+const clipboard = ref(null)
 onMounted(() => {
   checkSession().then(user => {
     imgCalls.value = user['img_calls']
@@ -675,14 +676,18 @@ onMounted(() => {
     router.push('/login')
   });
 
-  const clipboard = new Clipboard('.copy-prompt');
-  clipboard.on('success', () => {
+  clipboard.value = new Clipboard('.copy-prompt-mj');
+  clipboard.value.on('success', () => {
     ElMessage.success("复制成功！");
   })
 
-  clipboard.on('error', () => {
+  clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 
 // 获取运行中的任务
@@ -745,9 +750,13 @@ const fetchFinishJobs = (page) => {
         jobs[i]['can_opt'] = true
       }
     }
-    finishedJobs.value = finishedJobs.value.concat(jobs)
     if (jobs.length < pageSize.value) {
       isOver.value = true
+    }
+    if (page === 1) {
+      finishedJobs.value = jobs
+    } else {
+      finishedJobs.value = finishedJobs.value.concat(jobs)
     }
     nextTick(() => loading.value = false)
   }).catch(e => {

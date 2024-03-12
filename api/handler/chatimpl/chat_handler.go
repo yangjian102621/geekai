@@ -111,7 +111,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	session.Model = types.ChatModel{
 		Id:       chatModel.Id,
 		Value:    chatModel.Value,
-		Weight:   chatModel.Weight,
+		Power:    chatModel.Power,
 		Platform: types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 	var chatRole model.ChatRole
@@ -207,13 +207,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return nil
 	}
 
-	if userVo.Calls < session.Model.Weight {
-		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余对话次数（%d）已不足以支付当前模型的单次对话需要消耗的对话额度（%d）！", userVo.Calls, session.Model.Weight))
+	if userVo.Power < session.Model.Power {
+		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余对话次数（%d）已不足以支付当前模型的单次对话需要消耗的对话额度（%d）！", userVo.Power, session.Model.Power))
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
 
-	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
+	if userVo.Power <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
 		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者充值点卡继续对话！")
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
@@ -533,23 +533,28 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	return client.Do(request)
 }
 
-// 扣减用户的对话次数
-func (h *ChatHandler) subUserCalls(userVo vo.User, session *types.ChatSession) {
-	// 仅当用户没有导入自己的 API KEY 时才进行扣减
-	if userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
-		num := 1
-		if session.Model.Weight > 0 {
-			num = session.Model.Weight
-		}
-		h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", num))
+// 扣减用户算力
+func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, promptTokens int, replyTokens int) {
+	power := 1
+	if session.Model.Power > 0 {
+		power = session.Model.Power
 	}
-}
+	res := h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
+	if res.Error == nil {
+		// 记录算力消费日志
+		h.db.Debug().Create(&model.PowerLog{
+			UserId:    userVo.Id,
+			Username:  userVo.Username,
+			Type:      types.PowerConsume,
+			Amount:    power,
+			Mark:      types.PowerSub,
+			Balance:   userVo.Power - power,
+			Model:     session.Model.Value,
+			Remark:    fmt.Sprintf("提问长度：%d，回复长度：%d", promptTokens, replyTokens),
+			CreatedAt: time.Now(),
+		})
+	}
 
-func (h *ChatHandler) incUserTokenFee(userId uint, tokens int) {
-	h.db.Model(&model.User{}).Where("id = ?", userId).
-		UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", tokens))
-	h.db.Model(&model.User{}).Where("id = ?", userId).
-		UpdateColumn("tokens", gorm.Expr("tokens + ?", tokens))
 }
 
 // 将AI回复消息中生成的图片链接下载到本地

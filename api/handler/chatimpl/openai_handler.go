@@ -173,9 +173,6 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 		// 消息发送成功
 		if len(contents) > 0 {
-			// 更新用户的对话次数
-			h.subUserCalls(userVo, session)
-
 			if message.Role == "" {
 				message.Role = "assistant"
 			}
@@ -220,16 +217,16 @@ func (h *ChatHandler) sendOpenAiMessage(
 				}
 
 				// 计算本次对话消耗的总 token 数量
-				var totalTokens = 0
+				var replyTokens = 0
 				if toolCall { // prompt + 函数名 + 参数 token
 					tokens, _ := utils.CalcTokens(function.Name, req.Model)
-					totalTokens += tokens
+					replyTokens += tokens
 					tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
-					totalTokens += tokens
+					replyTokens += tokens
 				} else {
-					totalTokens, _ = utils.CalcTokens(message.Content, req.Model)
+					replyTokens, _ = utils.CalcTokens(message.Content, req.Model)
 				}
-				totalTokens += getTotalTokens(req)
+				replyTokens += getTotalTokens(req)
 
 				historyReplyMsg := model.ChatMessage{
 					UserId:     userVo.Id,
@@ -238,7 +235,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 					Type:       types.ReplyMsg,
 					Icon:       role.Icon,
 					Content:    h.extractImgUrl(message.Content),
-					Tokens:     totalTokens,
+					Tokens:     replyTokens,
 					UseContext: useContext,
 					Model:      req.Model,
 				}
@@ -249,8 +246,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
 
-				// 更新用户信息
-				h.incUserTokenFee(userVo.Id, totalTokens)
+				// 更新用户算力
+				h.subUserPower(userVo, session, promptToken, replyTokens)
 			}
 
 			// 保存当前会话
