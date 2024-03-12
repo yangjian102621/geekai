@@ -10,7 +10,6 @@ type AppConfig struct {
 	Session       Session
 	ProxyURL      string
 	MysqlDns      string                  // mysql 连接地址
-	Manager       Manager                 // 后台管理员账户信息
 	StaticDir     string                  // 静态资源目录
 	StaticUrl     string                  // 静态资源 URL
 	Redis         RedisConfig             // redis 连接信息
@@ -120,14 +119,6 @@ type RedisConfig struct {
 
 func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
-}
-
-// Manager 管理员
-type Manager struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Captcha   string `json:"captcha"`    // 验证码
-	CaptchaId string `json:"captcha_id"` // 验证码id
 }
 
 // ChatConfig 系统默认的聊天配置
