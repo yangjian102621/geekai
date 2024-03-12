@@ -5,6 +5,8 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	logger2 "chatplus/logger"
+	"chatplus/store/model"
+	"chatplus/utils"
 	"chatplus/utils/resp"
 	"context"
 	"github.com/go-redis/redis/v8"
@@ -17,6 +19,14 @@ import (
 )
 
 var logger = logger2.GetLogger()
+
+// Manager 管理员
+type Manager struct {
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Captcha   string `json:"captcha"`    // 验证码
+	CaptchaId string `json:"captcha_id"` // 验证码id
+}
 
 type ManagerHandler struct {
 	handler.BaseHandler
@@ -32,7 +42,8 @@ func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client) *Ma
 
 // Login 登录
 func (h *ManagerHandler) Login(c *gin.Context) {
-	var data types.Manager
+
+	var data Manager
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
@@ -40,32 +51,51 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 
 	// add captcha
 	if !base64Captcha.DefaultMemStore.Verify(data.CaptchaId, data.Captcha, true) {
-		resp.ERROR(c, "验证码错误，请重新输入!")
+		resp.ERROR(c, "验证码错误!")
 		return
 	}
 
-	manager := h.App.Config.Manager
-	if data.Username == manager.Username && data.Password == manager.Password {
-		// 创建 token
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"user_id": manager.Username,
-			"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
-		})
-		tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
-		if err != nil {
-			resp.ERROR(c, "Failed to generate token, "+err.Error())
-			return
-		}
-		// 保存到 redis
-		key := "users/" + manager.Username
-		if _, err := h.redis.Set(context.Background(), key, tokenString, 0).Result(); err != nil {
-			resp.ERROR(c, "error with save token: "+err.Error())
-			return
-		}
-		resp.SUCCESS(c, tokenString)
-	} else {
-		resp.ERROR(c, "用户名或者密码错误")
+	var manager model.AdminUser
+	res := h.db.Model(&model.AdminUser{}).Where("username = ?", data.Username).First(&manager)
+	if res.Error != nil {
+		resp.ERROR(c, "请检查用户名或者密码是否填写正确")
+		return
 	}
+	password := utils.GenPassword(data.Password, manager.Salt)
+	if password != manager.Password {
+		resp.ERROR(c, "用户名或密码错误")
+		return
+	}
+
+	// 超级管理员默认是ID:1
+	if manager.Id != 1 && manager.Status == false {
+		resp.ERROR(c, "该用户已被禁止登录，请联系超级管理员")
+		return
+	}
+
+	// 创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": manager.Username,
+		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		resp.ERROR(c, "Failed to generate token, "+err.Error())
+		return
+	}
+	// 保存到 redis
+	key := "users/" + manager.Username
+	if _, err := h.redis.Set(context.Background(), key, tokenString, 0).Result(); err != nil {
+		resp.ERROR(c, "error with save token: "+err.Error())
+		return
+	}
+
+	// 更新最后登录时间和IP
+	manager.LastLoginIp = c.ClientIP()
+	manager.LastLoginAt = time.Now().Unix()
+	h.db.Model(&manager).Updates(manager)
+
+	resp.SUCCESS(c, tokenString)
 }
 
 // Logout 注销
