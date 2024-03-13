@@ -11,7 +11,7 @@ function useAsyncTable<T extends Record<string, unknown>>(
 ): TableReturn {
   const paginationState = reactive({
     current: 1,
-    pageSize: 10,
+    pageSize: 20,
     total: 0,
   });
 

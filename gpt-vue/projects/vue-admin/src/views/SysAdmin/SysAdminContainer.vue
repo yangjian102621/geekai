@@ -100,16 +100,18 @@ const handleRemove = async (id, reload) => {
       />
     </template>
     <template #actions="{ record, reload }">
-      <a-link @click="openFormModal(reload, record)">编辑</a-link>
       <a-link @click="openResetPWDModal(reload, record)">修改密码</a-link>
-      <a-popconfirm
-        content="是否删除？"
-        position="left"
-        type="warning"
-        :on-before-ok="() => handleRemove(record.id, reload)"
-      >
-        <a-link status="danger">删除</a-link>
-      </a-popconfirm>
+      <template v-if="record.id !== 1">
+        <a-link @click="openFormModal(reload, record)">编辑</a-link>
+        <a-popconfirm
+          content="是否删除？"
+          position="left"
+          type="warning"
+          :on-before-ok="() => handleRemove(record.id, reload)"
+        >
+          <a-link status="danger">删除</a-link>
+        </a-popconfirm>
+      </template>
     </template>
   </SearchTable>
 </template>
