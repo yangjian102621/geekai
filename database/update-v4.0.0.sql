@@ -44,3 +44,19 @@ ALTER TABLE `chatgpt_mj_jobs` ADD `power` SMALLINT(5) NOT NULL DEFAULT '0' COMME
 ALTER TABLE `chatgpt_sd_jobs` ADD `power` SMALLINT(5) NOT NULL DEFAULT '0' COMMENT '消耗算力' AFTER `err_msg`;
 
 ALTER TABLE `chatgpt_invite_logs` CHANGE `reward_json` `remark` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注';
+
+CREATE TABLE `chatgpt_admin_users`  (
+                                        `id` int(0) NOT NULL AUTO_INCREMENT,
+                                        `username` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户名',
+                                        `password` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
+                                        `salt` char(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码盐',
+                                        `status` tinyint(1) NOT NULL COMMENT '当前状态',
+                                        `last_login_at` int(0) NOT NULL COMMENT '最后登录时间',
+                                        `last_login_ip` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '最后登录 IP',
+                                        `created_at` datetime(0) NOT NULL COMMENT '创建时间',
+                                        `updated_at` datetime(0) NOT NULL COMMENT '更新时间',
+                                        PRIMARY KEY (`id`) USING BTREE,
+                                        UNIQUE INDEX `username`(`username`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 108 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户' ROW_FORMAT = Dynamic;
+
+INSERT INTO `chatgpt_admin_users` VALUES (1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1710238055, '172.22.11.29', '2024-03-11 16:30:20', '2024-03-12 18:07:35');
