@@ -1,0 +1,19 @@
+.admin-home .login-wrap {
+  background: #324157;
+}
+.admin-home .plugins-tips {
+  background: #eef1f6;
+}
+.admin-home .plugins-tips a {
+  color: #20a0ff;
+}
+.admin-home .tags-li.active {
+  border: 1px solid #409eff;
+  background-color: #409eff;
+}
+.admin-home .message-title {
+  color: #20a0ff;
+}
+.admin-home .collapse-btn:hover {
+  background: #283446;
+}

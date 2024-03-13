@@ -1,0 +1,106 @@
+.page-sd {
+  background-color: #282c34;
+
+  .inner {
+    display: flex;
+
+    .sd-box {
+      margin 10px
+      background-color #262626
+      border 1px solid #454545
+      min-width 300px
+      max-width 300px
+      padding 10px
+      border-radius 10px
+      color #ffffff;
+      font-size 14px
+
+      h2 {
+        font-weight: bold;
+        font-size 20px
+        text-align center
+        color #47fff1
+      }
+
+      // 隐藏滚动条
+
+      ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        background-color: transparent;
+      }
+
+      .sd-params {
+        margin-top 10px
+        overflow auto
+
+
+        .param-line {
+          padding 0 10px
+
+          .el-icon {
+            position relative
+            top 3px
+          }
+
+          .el-input__suffix-inner {
+            .el-icon {
+              top 0
+            }
+          }
+
+          .grid-content
+          .form-item-inner {
+            display flex
+
+            .el-icon {
+              margin-left 10px
+              margin-top 2px
+            }
+          }
+
+        }
+
+        .param-line.pt {
+          padding-top 5px
+          padding-bottom 5px
+        }
+      }
+
+      .submit-btn {
+        padding 10px 15px 0 15px
+        text-align center
+
+        .el-button {
+          width 100%
+
+          span {
+            color #2D3A4B
+          }
+        }
+      }
+    }
+
+    .el-form {
+      .el-form-item__label {
+        color #ffffff
+      }
+    }
+
+    @import "task-list.styl"
+  }
+
+  @import "sd-task-dialog.styl"
+
+
+  .mj-list-item-prompt {
+    .el-icon {
+      margin-left 10px
+      cursor pointer
+      position relative
+      top 2px
+    }
+  }
+
+}
+
