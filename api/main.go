@@ -392,9 +392,18 @@ func main() {
 			group.POST("remove", h.Remove)
 			group.POST("resetPass", h.ResetPass)
 		}),
+		// 权限
 		fx.Provide(admin.NewSysPermissionHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.SysPermissionHandler) {
 			group := s.Engine.Group("/api/admin/sysPermission/")
+			group.GET("list", h.List)
+			group.POST("save", h.Save)
+			group.POST("remove", h.Remove)
+		}),
+		// 角色
+		fx.Provide(admin.NewSysRoleHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.SysRoleHandler) {
+			group := s.Engine.Group("/api/admin/sysRole/")
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
 			group.POST("remove", h.Remove)
