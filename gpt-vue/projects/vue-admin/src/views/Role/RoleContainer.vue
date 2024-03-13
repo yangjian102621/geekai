@@ -37,7 +37,7 @@ const columns = [
 
 const expandable = reactive({
   title: "",
-  width: 80,
+  width: 50,
 });
 
 // 数据
