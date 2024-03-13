@@ -44,6 +44,8 @@ const columns = [
   {
     title: "操作",
     slotName: "action",
+    width: 120,
+    fixed: "right",
   },
 ];
 

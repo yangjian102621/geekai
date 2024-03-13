@@ -29,10 +29,13 @@ const columns = [
     title: "使用代理",
     dataIndex: "use_proxy",
     slotName: "proxy",
+    align: "center",
+    width: 100
   },
   {
     title: "最后使用时间",
     dataIndex: "last_used_at",
+    width: 180,
     render: ({ record }) => {
       return dateFormat(record.last_used_at);
     },
@@ -41,10 +44,14 @@ const columns = [
     title: "启用状态",
     dataIndex: "enabled",
     slotName: "status",
+    align: "center",
+    width: 100
   },
   {
     title: "操作",
     slotName: "action",
+    width: 120,
+    fixed: "right",
   },
 ];
 
