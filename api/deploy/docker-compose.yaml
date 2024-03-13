@@ -1,0 +1,19 @@
+version: '3'
+services:
+  # 后端 API 程序
+  chatgpt-plus-api:
+    image: litongjava/chatgpt-plus-api:v3.2.7
+    container_name: chatgpt-plus-api
+    restart: always
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - CONFIG_FILE=config.toml
+    ports:
+      - "5678:5678"
+      - "9999:9999"
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
+      - ./conf/config.toml:/var/www/app/config.toml
+      - ./logs:/var/www/app/logs
+      - ./static:/var/www/app/static

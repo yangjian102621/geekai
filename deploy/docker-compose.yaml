@@ -25,11 +25,11 @@ services:
     volumes :
       - ./redis/data:/data
     ports:
-      - "6380:6379"
+      - "6379:6379"
 
   # 后端 API 程序
   chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.8.1
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.2.7-amd64
     container_name: chatgpt-plus-api
     restart: always
     depends_on:
@@ -50,7 +50,7 @@ services:
 
   # 前端应用
   chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.8.1
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.2.7-amd64
     container_name: chatgpt-plus-web
     restart: always
     depends_on:
@@ -62,4 +62,3 @@ services:
       - ./conf/nginx/conf.d:/etc/nginx/conf.d
       - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
-
