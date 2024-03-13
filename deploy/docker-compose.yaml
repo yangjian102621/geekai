@@ -25,7 +25,7 @@ services:
     volumes :
       - ./redis/data:/data
     ports:
-      - "6380:6379"
+      - "6379:6379"
 
   # 后端 API 程序
   chatgpt-plus-api:
