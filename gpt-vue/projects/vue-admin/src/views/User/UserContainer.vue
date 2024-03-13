@@ -37,6 +37,7 @@ const columns: SearchTableColumns[] = [
   {
     title: "过期时间",
     dataIndex: "expired_time",
+    width: 180,
     render: ({ record }) => {
       return dateFormat(record.expired_time);
     },
@@ -44,6 +45,7 @@ const columns: SearchTableColumns[] = [
   {
     title: "注册时间",
     dataIndex: "created_at",
+    width: 180,
     render: ({ record }) => {
       return dateFormat(record.created_at);
     },
@@ -51,6 +53,8 @@ const columns: SearchTableColumns[] = [
   {
     title: "操作",
     slotName: "actions",
+    width: 180,
+    fixed: "right",
   },
 ];
 
