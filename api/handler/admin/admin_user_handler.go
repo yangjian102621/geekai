@@ -135,9 +135,15 @@ func (h *SysUserHandler) ResetPass(c *gin.Context) {
 
 // Remove 删除
 func (h *SysUserHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.AdminUser{})
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
+		res := h.db.Where("id = ?", data.Id).Delete(&model.AdminUser{})
 		if res.Error != nil {
 			resp.ERROR(c, "删除失败")
 			return
