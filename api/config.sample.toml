@@ -10,10 +10,6 @@ WeChatBot = false
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
   MaxAge = 86400
 
-[Manager]
-  Username = "admin"
-  Password = "admin123" # 如果是生产环境的话，这里管理员的密码记得修改
-
 [Redis] # redis 配置信息
   Host = "localhost"
   Port = 6379
