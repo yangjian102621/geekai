@@ -32,8 +32,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 		Discount  float64 `json:"discount"`
 		Enabled   bool    `json:"enabled"`
 		Days      int     `json:"days"`
-		Calls     int     `json:"calls"`
-		ImgCalls  int     `json:"img_calls"`
+		Power     int     `json:"power"`
 		CreatedAt int64   `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -46,8 +45,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 		Price:    data.Price,
 		Discount: data.Discount,
 		Days:     data.Days,
-		Calls:    data.Calls,
-		ImgCalls: data.ImgCalls,
+		Power:    data.Power,
 		Enabled:  data.Enabled}
 	item.Id = data.Id
 	if item.Id > 0 {

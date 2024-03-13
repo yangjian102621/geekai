@@ -191,28 +191,43 @@ func (p *ServicePool) SyncTaskProgress() {
 	go func() {
 		var items []model.MidJourneyJob
 		for {
-			res := p.db.Where("progress >= ? AND progress < ?", 0, 100).Find(&items)
+			res := p.db.Where("progress < ?", 100).Find(&items)
 			if res.Error != nil {
 				continue
 			}
 
-			for _, v := range items {
-				// 30 分钟还没完成的任务直接删除
-				if time.Now().Sub(v.CreatedAt) > time.Minute*30 {
-					p.db.Delete(&v)
-					// 非放大任务，退回绘图次数
-					if v.Type != types.TaskUpscale.String() {
-						p.db.Model(&model.User{}).Where("id = ?", v.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", 1))
+			for _, job := range items {
+				// 失败或者 30 分钟还没完成的任务删除并退回算力
+				if time.Now().Sub(job.CreatedAt) > time.Minute*30 || job.Progress == -1 {
+					p.db.Delete(&job)
+					// 略过 Upscale 任务
+					if job.Type != types.TaskUpscale.String() {
+						continue
 					}
+					tx := p.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
+					if tx.Error == nil && tx.RowsAffected > 0 {
+						var user model.User
+						p.db.Where("id = ?", job.UserId).First(&user)
+						p.db.Create(&model.PowerLog{
+							UserId:    user.Id,
+							Username:  user.Username,
+							Type:      types.PowerConsume,
+							Amount:    job.Power,
+							Balance:   user.Power + job.Power,
+							Mark:      types.PowerAdd,
+							Model:     "mid-journey",
+							Remark:    fmt.Sprintf("绘画任务失败，退回算力。任务ID：%s", job.TaskId),
+							CreatedAt: time.Now(),
+						})
+					}
+				}
+
+				if !strings.HasPrefix(job.ChannelId, "mj-service-plus") {
 					continue
 				}
 
-				if !strings.HasPrefix(v.ChannelId, "mj-service-plus") {
-					continue
-				}
-
-				if servicePlus := p.getServicePlus(v.ChannelId); servicePlus != nil {
-					_ = servicePlus.Notify(v)
+				if servicePlus := p.getServicePlus(job.ChannelId); servicePlus != nil {
+					_ = servicePlus.Notify(job)
 				}
 			}
 

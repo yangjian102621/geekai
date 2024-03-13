@@ -48,7 +48,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Enabled:  data.Enabled,
 		SortNum:  data.SortNum,
 		Open:     data.Open,
-		Weight:   data.Weight}
+		Power:    data.Weight}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)

@@ -38,30 +38,32 @@ onActivated(handleSearch);
 <template>
   <div class="search-table">
     <div class="search-table-header">
-      <div>
-        <slot name="header-title">{{ props.headerTitle }}</slot>
+      <div class="search-table-header-option">
+        <div>
+          <slot name="header-title">{{ props.headerTitle }}</slot>
+        </div>
+        <div class="header-option">
+          <slot name="header-option" :formData="formData" :reload="handleSearch" />
+        </div>
       </div>
-      <div class="header-option">
-        <slot name="header-option" :formData="formData" :reload="handleSearch" />
-      </div>
+      <FormSection
+          v-model="formData"
+          :columns="columns"
+          :submitting="tableConfig.loading as boolean"
+          @request="handleSearch"
+      >
+        <template v-for="slot in Object.keys($slots)" #[slot]="config">
+          <slot :name="slot" v-bind="{ ...config, reload: handleSearch }" />
+        </template>
+      </FormSection>
     </div>
-    <FormSection
-      v-model="formData"
-      :columns="columns"
-      :submitting="tableConfig.loading as boolean"
-      @request="handleSearch"
-    >
-      <template v-for="slot in Object.keys($slots)" #[slot]="config">
-        <slot :name="slot" v-bind="{ ...config, reload: handleSearch }" />
-      </template>
-    </FormSection>
     <div ref="tableContainerRef" class="search-table-container">
       <ATable
         v-bind="{
           ...$attrs,
           ...tableConfig,
           ...props,
-          scroll: useTableScroll(_columns, tableContainerRef as HTMLElement),
+          scroll: useTableScroll(_columns),
           columns: _columns,
         }"
       >
@@ -74,14 +76,18 @@ onActivated(handleSearch);
 </template>
 <style scoped>
 .search-table {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   height: 100%;
 }
 .search-table-container {
-  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 .search-table-header {
+  background: #fff;
+  z-index: 2;
+}
+.search-table-header-option {
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { getList, save, deleting, setStatus } from "./api";
 import { ref } from "vue";
-import ChatModelForm from "./ChatModelForm.vue";
+import ProductForm from "./ProductForm.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
 import { Message } from "@arco-design/web-vue";
 import SimpleTable from "@/components/SimpleTable/SimpleTable.vue";
@@ -9,41 +9,53 @@ import { dateFormat } from "@gpt-vue/packages/utils";
 // table 配置
 const columns = [
   {
-    title: "所属平台",
-    dataIndex: "platform",
-  },
-  {
-    title: "模型名称",
+    title: "产品名称",
     dataIndex: "name",
   },
   {
-    title: "模型值",
-    dataIndex: "value",
+    title: "产品价格",
+    dataIndex: "price",
   },
   {
-    title: "对话权重",
-    dataIndex: "weight",
+    title: "优惠金额",
+    dataIndex: "discount",
+  },
+  {
+    title: "有效期（天）",
+    dataIndex: "days",
+  },
+  {
+    title: "对话次数",
+    dataIndex: "calls",
+  },
+  {
+    title: "绘图次数",
+    dataIndex: "img_calls",
+  },
+  {
+    title: "销量",
+    dataIndex: "sales",
   },
   {
     title: "启用状态",
     dataIndex: "enabled",
     slotName: "status",
+    align: "center",
+    width: 100
   },
   {
-    title: "开放状态",
-    dataIndex: "open",
-    slotName: "open",
-  },
-  {
-    title: "创建时间",
-    dataIndex: "created_at",
+    title: "更新时间",
+    dataIndex: "updated_at",
+    width: 180,
     render: ({ record }) => {
-      return dateFormat(record.created_at);
+      return dateFormat(record.updated_at);
     },
   },
   {
     title: "操作",
     slotName: "action",
+    width: 120,
+    fixed: "right"
   },
 ];
 
@@ -59,8 +71,8 @@ const getData = () => {
 getData();
 
 //  新增编辑
-const popup = useCustomFormPopup(ChatModelForm, save, {
-  popupProps: (arg) => ({ title: arg[0].record ? "编辑ApiKey" : "新增ApiKey" }),
+const popup = useCustomFormPopup(ProductForm, save, {
+  popupProps: (arg) => ({ title: arg[0].record ? "编辑产品" : "新增产品" }),
 });
 
 // 删除
@@ -74,11 +86,10 @@ const handleDelete = ({ id }, reload) => {
 };
 
 // 状态
-const handleStatusChange = ({ filed, value, record, reload }) => {
+const handleStatusChange = ({ value, record, reload }) => {
   setStatus({
     id: record.id,
-    value,
-    filed,
+    enabled: value,
   }).then(({ code }) => {
     if (code === 0) {
       Message.success("操作成功");
@@ -97,25 +108,15 @@ const handleStatusChange = ({ filed, value, record, reload }) => {
     </template>
     <template #header="{ reload }">
       <a-button @click="popup({ reload })" size="small" type="primary"
-        ><template #icon> <icon-plus /> </template>新增</a-button
-      >
+        ><template #icon> <icon-plus /> </template>新增
+      </a-button>
     </template>
     <template #status="{ record, reload }">
       <a-switch
         v-model="record.enabled"
         @change="
           (value) => {
-            handleStatusChange({ filed: 'enabled', value, record, reload });
-          }
-        "
-      />
-    </template>
-    <template #open="{ record, reload }">
-      <a-switch
-        v-model="record.open"
-        @change="
-          (value) => {
-            handleStatusChange({ filed: 'open', value, record, reload });
+            handleStatusChange({ value, record, reload });
           }
         "
       />

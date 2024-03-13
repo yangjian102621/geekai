@@ -18,8 +18,9 @@ export const save = (data?: Record<string, unknown>) => {
 
 export const deletApi = (id: string | number) => {
   return http({
-    url: `/api/admin/user/remove?id=${id}`,
-    method: "get",
+    url: `/api/admin/user/remove`,
+    method: "post",
+    data: { id }
   });
 };
 

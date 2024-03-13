@@ -202,8 +202,7 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	// 创建订单
 	remark := types.OrderRemark{
 		Days:     product.Days,
-		Calls:    product.Calls,
-		ImgCalls: product.ImgCalls,
+		Power:    product.Power,
 		Name:     product.Name,
 		Price:    product.Price,
 		Discount: product.Discount,
@@ -313,20 +312,16 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 		if remark.Days > 0 { // 只延期 VIP，不增加调用次数
 			user.ExpiredTime = time.Unix(user.ExpiredTime, 0).AddDate(0, 0, remark.Days).Unix()
 		} else { // 充值点卡，直接增加次数即可
-			user.Calls += remark.Calls
-			user.ImgCalls += remark.ImgCalls
+			user.Power += remark.Power
 		}
 
 	} else { // 非 VIP 用户
-		if remark.Days > 0 { // vip 套餐：days > 0, calls == 0
+		if remark.Days > 0 { // vip 套餐：days > 0, power == 0
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
-			user.Calls += h.App.SysConfig.VipMonthCalls
-			user.ImgCalls += h.App.SysConfig.VipMonthImgCalls
+			user.Power += h.App.SysConfig.VipMonthPower
 			user.Vip = true
-
 		} else { //点卡：days == 0, calls > 0
-			user.Calls += remark.Calls
-			user.ImgCalls += remark.ImgCalls
+			user.Power += remark.Power
 		}
 	}
 

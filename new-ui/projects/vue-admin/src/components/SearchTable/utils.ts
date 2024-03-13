@@ -1,20 +1,11 @@
-import type { TableColumnData } from "@arco-design/web-vue";
 import type { SearchTableColumns, SearchColumns } from "./type";
 
-export function useTableXScroll(columns: TableColumnData[]) {
-  return columns.reduce((prev, curr) => {
-    const width = curr.width ?? 150;
-    return prev + width;
-  }, 0);
-}
-
-export function useTableScroll(columns: SearchTableColumns[], container?: HTMLElement) {
+export function useTableScroll(columns: SearchTableColumns[]) {
   const x = columns.reduce((prev, curr) => {
     const width = curr.hideInTable ? 0 : curr.width ?? 150;
     return prev + width;
   }, 0);
-  const y = container?.clientHeight ?? undefined;
-  return { x, y };
+  return { x };
 }
 
 export function getDefaultFormData(columns: SearchTableColumns[]) {

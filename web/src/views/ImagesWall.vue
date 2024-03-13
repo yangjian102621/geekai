@@ -53,7 +53,7 @@
                     content="复制提示词"
                     placement="top"
                 >
-                  <el-icon class="copy-prompt" :data-clipboard-text="slotProp.item.prompt">
+                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
                     <DocumentCopy/>
                   </el-icon>
                 </el-tooltip>
@@ -143,7 +143,7 @@
               </el-divider>
               <div class="prompt">
                 <span>{{ item.prompt }}</span>
-                <el-icon class="copy-prompt" :data-clipboard-text="item.prompt">
+                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.prompt">
                   <DocumentCopy/>
                 </el-icon>
               </div>
@@ -156,7 +156,7 @@
               </el-divider>
               <div class="prompt">
                 <span>{{ item.params.negative_prompt }}</span>
-                <el-icon class="copy-prompt" :data-clipboard-text="item.params.negative_prompt">
+                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.params.negative_prompt">
                   <DocumentCopy/>
                 </el-icon>
               </div>
@@ -243,7 +243,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
+import {nextTick, onMounted, onUnmounted, ref} from "vue"
 import {DocumentCopy, Picture} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
@@ -314,15 +314,20 @@ const getNext = () => {
 
 getNext()
 
+const clipboard = ref(null)
 onMounted(() => {
-  const clipboard = new Clipboard('.copy-prompt');
-  clipboard.on('success', () => {
+  clipboard.value = new Clipboard('.copy-prompt-wall');
+  clipboard.value.on('success', () => {
     ElMessage.success("复制成功！");
   })
 
-  clipboard.on('error', () => {
+  clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 
 const changeImgType = () => {

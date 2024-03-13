@@ -7,8 +7,7 @@ type Product struct {
 	Price    float64
 	Discount float64
 	Days     int
-	Calls    int
-	ImgCalls int
+	Power    int
 	Enabled  bool
 	Sales    int
 	SortNum  int
