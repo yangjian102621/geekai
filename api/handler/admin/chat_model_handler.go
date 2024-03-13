@@ -140,10 +140,15 @@ func (h *ChatModelHandler) Sort(c *gin.Context) {
 }
 
 func (h *ChatModelHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-
-	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.ChatModel{})
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
+		res := h.db.Where("id = ?", data.Id).Delete(&model.ChatModel{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
