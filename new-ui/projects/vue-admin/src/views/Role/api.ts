@@ -16,8 +16,9 @@ export const save = (data?: Record<string, unknown>) => {
 };
 export const deleting = (id: string | number) => {
   return http({
-    url: `/api/admin/role/remove?id=${id}`,
-    method: "get",
+    url: `/api/admin/role/remove`,
+    method: "post",
+    data: { id }
   });
 };
 export const setStatus = (data) => {

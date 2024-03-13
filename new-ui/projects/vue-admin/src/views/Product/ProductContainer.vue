@@ -40,10 +40,13 @@ const columns = [
     title: "启用状态",
     dataIndex: "enabled",
     slotName: "status",
+    align: "center",
+    width: 100
   },
   {
     title: "更新时间",
     dataIndex: "updated_at",
+    width: 180,
     render: ({ record }) => {
       return dateFormat(record.updated_at);
     },
@@ -51,6 +54,8 @@ const columns = [
   {
     title: "操作",
     slotName: "action",
+    width: 120,
+    fixed: "right"
   },
 ];
 
