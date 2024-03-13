@@ -273,13 +273,13 @@ func main() {
 			group.POST("save", h.Save)
 			group.GET("list", h.List)
 			group.POST("set", h.Set)
-			group.GET("remove", h.Remove)
+			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
 			group := s.Engine.Group("/api/admin/user/")
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
-			group.GET("remove", h.Remove)
+			group.POST("remove", h.Remove)
 			group.GET("loginLog", h.LoginLog)
 			group.POST("resetPass", h.ResetPass)
 		}),
@@ -289,12 +289,12 @@ func main() {
 			group.POST("save", h.Save)
 			group.POST("sort", h.Sort)
 			group.POST("set", h.Set)
-			group.GET("remove", h.Remove)
+			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
 			group := s.Engine.Group("/api/admin/reward/")
 			group.GET("list", h.List)
-			group.GET("remove", h.Remove)
+			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
 			group := s.Engine.Group("/api/admin/dashboard/")
@@ -310,7 +310,7 @@ func main() {
 			group.GET("list", h.List)
 			group.POST("set", h.Set)
 			group.POST("sort", h.Sort)
-			group.GET("remove", h.Remove)
+			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			group := s.Engine.Group("/api/payment/")
