@@ -1,0 +1,215 @@
+.task-list-box {
+  width: 100%;
+  padding: 10px;
+  color: #fff;
+  overflow-x: hidden;
+}
+.task-list-box .task-list-inner .el-tabs {
+  --el-tabs-header-height: 55px;
+}
+.task-list-box .task-list-inner .el-tabs__item {
+  color: #fff;
+  font-size: 18px;
+}
+.task-list-box .task-list-inner .title-tabs .el-tabs__item.is-active {
+  color: #47fff1;
+  font-size: 18px;
+}
+.task-list-box .task-list-inner .title-tabs .el-tabs__active-bar {
+  background-color: #47fff1;
+}
+.task-list-box .task-list-inner .el-textarea {
+  --el-input-focus-border-color: #47fff1;
+}
+.task-list-box .task-list-inner .el-textarea__inner {
+  background: transparent;
+  color: #fff;
+}
+.task-list-box .task-list-inner .el-input__wrapper {
+  background: transparent;
+  padding: 5px;
+}
+.task-list-box .task-list-inner .text {
+  margin-bottom: 10px;
+  color: #6b778c;
+  font-size: 15px;
+}
+.task-list-box .task-list-inner .param-line.pt {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.task-list-box .task-list-inner .form-item-inner {
+  display: flex;
+  align-items: center;
+}
+.task-list-box .task-list-inner .form-item-inner .el-icon {
+  margin-left: 10px;
+}
+.task-list-box .task-list-inner .el-form-item__label {
+  color: #fff;
+}
+.task-list-box .task-list-inner .img-inline {
+  display: flex;
+}
+.task-list-box .task-list-inner .img-inline .img-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  width: 120px;
+  transition: var(--el-transition-duration-fast);
+  margin-bottom: 20px;
+}
+.task-list-box .task-list-inner .img-inline .img-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+.task-list-box .task-list-inner .img-inline .img-uploader .el-upload .el-icon.uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 100%;
+  height: 120px;
+  text-align: center;
+}
+.task-list-box .task-list-inner .img-inline .img-list-box {
+  display: flex;
+}
+.task-list-box .task-list-inner .img-inline .img-list-box .img-item {
+  width: 120px;
+  position: relative;
+  margin-right: 10px;
+}
+.task-list-box .task-list-inner .img-inline .img-list-box .img-item .el-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 5px;
+}
+.task-list-box .task-list-inner .img-inline .img-list-box .img-item .el-button {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 20px;
+  height: 20px;
+}
+.task-list-box .task-list-inner .submit-btn {
+  display: flex;
+  margin: 20px 0;
+}
+.task-list-box .task-list-inner .submit-btn .el-button {
+  width: 200px;
+}
+.task-list-box .task-list-inner .submit-btn .text-info {
+  width: 100%;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+.task-list-box .task-list-inner .job-list-box .running-job-list .job-item {
+  width: 100%;
+  padding: 2px;
+  background-color: #555;
+}
+.task-list-box .task-list-inner .job-list-box .running-job-list .job-item .job-item-inner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+.task-list-box .task-list-inner .job-list-box .running-job-list .job-item .job-item-inner .progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.task-list-box .task-list-inner .job-list-box .running-job-list .job-item .job-item-inner .progress span {
+  font-size: 20px;
+  color: #fff;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #666;
+  padding: 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  transition: all 0.3s ease; /* 添加过渡效果 */
+  position: relative;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line {
+  margin: 6px 0;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul {
+  display: flex;
+  flex-flow: row;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul li {
+  margin-right: 6px;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul li a {
+  padding: 3px 0;
+  width: 40px;
+  text-align: center;
+  border-radius: 5px;
+  display: block;
+  cursor: pointer;
+  background-color: #4e5058;
+  color: #fff;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul li a:hover {
+  background-color: #6d6f78;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .opt .opt-line ul .show-prompt {
+  font-size: 20px;
+  cursor: pointer;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item .remove {
+  display: none;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .job-item:hover .remove {
+  display: block;
+}
+.task-list-box .task-list-inner .job-list-box .finish-job-list .animate:hover {
+  box-shadow: 0 0 10px rgba(71,255,241,0.6); /* 添加阴影效果 */
+  transform: translateY(-10px); /* 向上移动10像素 */
+}
+.task-list-box .task-list-inner .job-list-box .el-image {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.task-list-box .task-list-inner .job-list-box .el-image img {
+  height: 240px;
+}
+.task-list-box .task-list-inner .job-list-box .el-image .el-image-viewer__wrapper img {
+  width: auto;
+  height: auto;
+}
+.task-list-box .task-list-inner .job-list-box .el-image .image-slot {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: #fff;
+  height: 240px;
+}
+.task-list-box .task-list-inner .job-list-box .el-image .image-slot .iconfont {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+.task-list-box .task-list-inner .job-list-box .el-image.upscale {
+  max-height: 310px;
+}
+.task-list-box .task-list-inner .job-list-box .el-image.upscale img {
+  height: 310px;
+}
+.task-list-box .task-list-inner .job-list-box .el-image.upscale .el-image-viewer__wrapper img {
+  width: auto;
+  height: auto;
+}

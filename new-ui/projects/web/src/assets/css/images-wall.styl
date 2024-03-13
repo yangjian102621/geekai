@@ -1,0 +1,124 @@
+@keyframes expandUp {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+.page-images-wall {
+  display: flex;
+  background-color: #282c34;
+
+  .inner {
+    width 100%
+    color #ffffff
+    overflow hidden
+
+    .header {
+      display flex
+      padding 0 40px
+
+      h2 {
+        width 300px
+      }
+
+      .settings {
+        width 100%
+        display flex
+        justify-content right
+
+        .el-radio-group {
+          font-size 16px
+
+          .el-radio {
+            color #ffffff
+          }
+
+        }
+      }
+    }
+
+    .waterfall {
+      position: relative;
+      margin: 0 auto;
+      overflow-y auto
+      overflow-x hidden
+
+      .list-item {
+
+        .image {
+          overflow hidden
+
+          .el-image {
+            width 100%
+            transition: transform 0.3s;
+            cursor pointer
+          }
+        }
+
+        .opt {
+          display none
+          position absolute
+          width 100%
+          bottom 0
+          left 0
+          color #ffffff
+          padding 8px 10px
+          line-height 1.2
+          border-top-right-radius 10px
+          background-color rgba(10, 10, 10, 0.7)
+
+          span {
+            word-break break-all
+          }
+
+          .el-icon, .iconfont {
+            top 2px
+            cursor pointer
+            border 1px solid #ffffff
+            border-radius 5px
+            padding 2px
+            font-size 16px;
+            margin-right 10px
+
+            &:hover {
+              background-color #444444
+            }
+          }
+        }
+
+        &:hover {
+          .opt {
+            display block
+            animation: expandUp 0.3s ease-in-out forwards;
+            transform-origin: bottom center;
+            transform: scaleY(0); /* 初始状态，元素高度为0 */
+          }
+
+          .image {
+            .el-image {
+              transform: scale(1.2); /* 放大图像到1.2倍大小 */
+            }
+          }
+        }
+      }
+
+    }
+
+
+    .footer {
+      display flex
+      padding 20px
+      align-items center
+      justify-content center
+
+      .iconfont {
+        margin-left 6px
+      }
+    }
+  }
+
+  @import "sd-task-dialog.styl"
+}

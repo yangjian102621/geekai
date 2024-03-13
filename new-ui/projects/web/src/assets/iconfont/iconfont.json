@@ -1,0 +1,380 @@
+{
+  "id": "4125778",
+  "name": "chatgpt",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "8017627",
+      "name": "prompt",
+      "font_class": "prompt",
+      "unicode": "e6ce",
+      "unicode_decimal": 59086
+    },
+    {
+      "icon_id": "1132455",
+      "name": "share-bold",
+      "font_class": "share-bold",
+      "unicode": "e626",
+      "unicode_decimal": 58918
+    },
+    {
+      "icon_id": "7567359",
+      "name": "cancel-share",
+      "font_class": "cancel-share",
+      "unicode": "e682",
+      "unicode_decimal": 59010
+    },
+    {
+      "icon_id": "12600976",
+      "name": "xls",
+      "font_class": "xls",
+      "unicode": "e678",
+      "unicode_decimal": 59000
+    },
+    {
+      "icon_id": "3750429",
+      "name": "file",
+      "font_class": "file",
+      "unicode": "e62f",
+      "unicode_decimal": 58927
+    },
+    {
+      "icon_id": "4318810",
+      "name": "doc",
+      "font_class": "doc",
+      "unicode": "e6c2",
+      "unicode_decimal": 59074
+    },
+    {
+      "icon_id": "4318811",
+      "name": "pdf",
+      "font_class": "pdf",
+      "unicode": "e6c3",
+      "unicode_decimal": 59075
+    },
+    {
+      "icon_id": "4628503",
+      "name": "ppt",
+      "font_class": "ppt",
+      "unicode": "e642",
+      "unicode_decimal": 58946
+    },
+    {
+      "icon_id": "6233095",
+      "name": "txt",
+      "font_class": "txt",
+      "unicode": "e644",
+      "unicode_decimal": 58948
+    },
+    {
+      "icon_id": "12600910",
+      "name": "sql",
+      "font_class": "sql",
+      "unicode": "e65b",
+      "unicode_decimal": 58971
+    },
+    {
+      "icon_id": "31260974",
+      "name": "md",
+      "font_class": "md",
+      "unicode": "e63a",
+      "unicode_decimal": 58938
+    },
+    {
+      "icon_id": "1278349",
+      "name": "loading",
+      "font_class": "loading",
+      "unicode": "e627",
+      "unicode_decimal": 58919
+    },
+    {
+      "icon_id": "1486848",
+      "name": "支付宝支付",
+      "font_class": "alipay",
+      "unicode": "e634",
+      "unicode_decimal": 58932
+    },
+    {
+      "icon_id": "845789",
+      "name": "笑脸",
+      "font_class": "face",
+      "unicode": "e64b",
+      "unicode_decimal": 58955
+    },
+    {
+      "icon_id": "11836501",
+      "name": "知识库",
+      "font_class": "book",
+      "unicode": "e622",
+      "unicode_decimal": 58914
+    },
+    {
+      "icon_id": "1105",
+      "name": "认证用户",
+      "font_class": "vip-user",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
+      "icon_id": "1473442",
+      "name": "VIP",
+      "font_class": "vip",
+      "unicode": "e688",
+      "unicode_decimal": 59016
+    },
+    {
+      "icon_id": "1306",
+      "name": "购物车空",
+      "font_class": "cart",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "1210",
+      "name": "多素材",
+      "font_class": "image-list",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "6438267",
+      "name": "分享",
+      "font_class": "share",
+      "unicode": "e63e",
+      "unicode_decimal": 58942
+    },
+    {
+      "icon_id": "8361893",
+      "name": "绘画",
+      "font_class": "palette",
+      "unicode": "e6da",
+      "unicode_decimal": 59098
+    },
+    {
+      "icon_id": "17832791",
+      "name": "绘图、调色盘",
+      "font_class": "palette-pen",
+      "unicode": "e60c",
+      "unicode_decimal": 58892
+    },
+    {
+      "icon_id": "4766917",
+      "name": "image",
+      "font_class": "image",
+      "unicode": "e7de",
+      "unicode_decimal": 59358
+    },
+    {
+      "icon_id": "1375",
+      "name": "订单",
+      "font_class": "order",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "6562297",
+      "name": "客服",
+      "font_class": "service",
+      "unicode": "e62d",
+      "unicode_decimal": 58925
+    },
+    {
+      "icon_id": "21598358",
+      "name": "喜欢",
+      "font_class": "like",
+      "unicode": "e640",
+      "unicode_decimal": 58944
+    },
+    {
+      "icon_id": "936873",
+      "name": "充值1",
+      "font_class": "recharge",
+      "unicode": "e637",
+      "unicode_decimal": 58935
+    },
+    {
+      "icon_id": "18991679",
+      "name": "model",
+      "font_class": "model",
+      "unicode": "e867",
+      "unicode_decimal": 59495
+    },
+    {
+      "icon_id": "5244045",
+      "name": "插件",
+      "font_class": "plugin",
+      "unicode": "e69d",
+      "unicode_decimal": 59037
+    },
+    {
+      "icon_id": "8893244",
+      "name": "高效率 copy",
+      "font_class": "quick-start",
+      "unicode": "e677",
+      "unicode_decimal": 58999
+    },
+    {
+      "icon_id": "16480872",
+      "name": "插件功能",
+      "font_class": "control",
+      "unicode": "e69e",
+      "unicode_decimal": 59038
+    },
+    {
+      "icon_id": "22187612",
+      "name": "缺陷管理",
+      "font_class": "bug",
+      "unicode": "e645",
+      "unicode_decimal": 58949
+    },
+    {
+      "icon_id": "4765958",
+      "name": "export",
+      "font_class": "export",
+      "unicode": "e791",
+      "unicode_decimal": 59281
+    },
+    {
+      "icon_id": "6343824",
+      "name": "menu",
+      "font_class": "sub-menu",
+      "unicode": "e86b",
+      "unicode_decimal": 59499
+    },
+    {
+      "icon_id": "1487626",
+      "name": "微信支付",
+      "font_class": "wechat-pay",
+      "unicode": "e639",
+      "unicode_decimal": 58937
+    },
+    {
+      "icon_id": "7791019",
+      "name": "捐赠",
+      "font_class": "donate",
+      "unicode": "e7ee",
+      "unicode_decimal": 59374
+    },
+    {
+      "icon_id": "14593731",
+      "name": "打赏",
+      "font_class": "reward",
+      "unicode": "e6c7",
+      "unicode_decimal": 59079
+    },
+    {
+      "icon_id": "8623603",
+      "name": "bell",
+      "font_class": "bell",
+      "unicode": "e887",
+      "unicode_decimal": 59527
+    },
+    {
+      "icon_id": "673799",
+      "name": "首页",
+      "font_class": "home",
+      "unicode": "e6cb",
+      "unicode_decimal": 59083
+    },
+    {
+      "icon_id": "11808058",
+      "name": "menu",
+      "font_class": "menu",
+      "unicode": "e6a6",
+      "unicode_decimal": 59046
+    },
+    {
+      "icon_id": "1166053",
+      "name": "日志",
+      "font_class": "log",
+      "unicode": "e61c",
+      "unicode_decimal": 58908
+    },
+    {
+      "icon_id": "6151151",
+      "name": "user-fill",
+      "font_class": "user-fill",
+      "unicode": "e7d5",
+      "unicode_decimal": 59349
+    },
+    {
+      "icon_id": "6172778",
+      "name": "user-circle",
+      "font_class": "user-circle",
+      "unicode": "e860",
+      "unicode_decimal": 59488
+    },
+    {
+      "icon_id": "7821146",
+      "name": "chart",
+      "font_class": "chart",
+      "unicode": "e631",
+      "unicode_decimal": 58929
+    },
+    {
+      "icon_id": "8430216",
+      "name": "wechat",
+      "font_class": "wechat",
+      "unicode": "e621",
+      "unicode_decimal": 58913
+    },
+    {
+      "icon_id": "9769247",
+      "name": "config",
+      "font_class": "config",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "10055632",
+      "name": "API密钥",
+      "font_class": "api-key",
+      "unicode": "e7d8",
+      "unicode_decimal": 59352
+    },
+    {
+      "icon_id": "11466716",
+      "name": "mg-role",
+      "font_class": "role",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "4194141",
+      "name": "首页dashboard",
+      "font_class": "dashboard",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "611345",
+      "name": "密码",
+      "font_class": "password",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
+      "icon_id": "1418205",
+      "name": "发送",
+      "font_class": "send",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "1048893",
+      "name": "注销",
+      "font_class": "logout",
+      "unicode": "e62e",
+      "unicode_decimal": 58926
+    },
+    {
+      "icon_id": "14401714",
+      "name": "github",
+      "font_class": "github",
+      "unicode": "e66f",
+      "unicode_decimal": 58991
+    }
+  ]
+}
