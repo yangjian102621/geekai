@@ -57,7 +57,7 @@ type ChatModel struct {
 	Id       uint     `json:"id"`
 	Platform Platform `json:"platform"`
 	Value    string   `json:"value"`
-	Weight   int      `json:"weight"`
+	Power    int      `json:"power"`
 }
 
 type ApiError struct {
@@ -92,3 +92,21 @@ func GetModelMaxToken(model string) int {
 	}
 	return 4096
 }
+
+// PowerType 算力日志类型
+type PowerType int
+
+const (
+	PowerRecharge = PowerType(1) // 充值
+	PowerConsume  = PowerType(2) // 消费
+	PowerRefund   = PowerType(3) // 任务（SD,MJ）执行失败，退款
+	PowerInvite   = PowerType(4) // 邀请奖励
+	PowerReward   = PowerType(5) // 众筹
+)
+
+type PowerMark int
+
+const (
+	PowerSub = PowerMark(0)
+	PowerAdd = PowerMark(1)
+)

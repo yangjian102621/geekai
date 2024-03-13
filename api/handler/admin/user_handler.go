@@ -66,8 +66,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 		Id          uint     `json:"id"`
 		Password    string   `json:"password"`
 		Username    string   `json:"username"`
-		Calls       int      `json:"calls"`
-		ImgCalls    int      `json:"img_calls"`
 		ChatRoles   []string `json:"chat_roles"`
 		ChatModels  []string `json:"chat_models"`
 		ExpiredTime string   `json:"expired_time"`
@@ -86,8 +84,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 		// 此处需要用 map 更新，用结构体无法更新 0 值
 		res = h.db.Model(&user).Updates(map[string]interface{}{
 			"username":         data.Username,
-			"calls":            data.Calls,
-			"img_calls":        data.ImgCalls,
 			"status":           data.Status,
 			"vip":              data.Vip,
 			"chat_roles_json":  utils.JsonEncode(data.ChatRoles),
@@ -113,8 +109,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 					types.ChatGLM: "",
 				},
 			}),
-			Calls:    data.Calls,
-			ImgCalls: data.ImgCalls,
 		}
 		res = h.db.Create(&u)
 		_ = utils.CopyObject(u, &userVo)

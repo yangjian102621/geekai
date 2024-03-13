@@ -9,7 +9,7 @@
         <div class="content" v-html="content"></div>
         <div class="bar" v-if="createdAt !== ''">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
-          <span class="bar-item">算力消耗: {{ finalTokens }}</span>
+          <span class="bar-item">Tokens: {{ finalTokens }}</span>
         </div>
       </div>
     </div>

@@ -111,7 +111,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	session.Model = types.ChatModel{
 		Id:       chatModel.Id,
 		Value:    chatModel.Value,
-		Weight:   chatModel.Weight,
+		Power:    chatModel.Power,
 		Platform: types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 	var chatRole model.ChatRole
@@ -207,13 +207,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return nil
 	}
 
-	if userVo.Calls < session.Model.Weight {
-		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余对话次数（%d）已不足以支付当前模型的单次对话需要消耗的对话额度（%d）！", userVo.Calls, session.Model.Weight))
+	if userVo.Power < session.Model.Power {
+		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余对话次数（%d）已不足以支付当前模型的单次对话需要消耗的对话额度（%d）！", userVo.Power, session.Model.Power))
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
 
-	if userVo.Calls <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
+	if userVo.Power <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
 		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者充值点卡继续对话！")
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
@@ -224,6 +224,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}
+
+	// 检查 prompt 长度是否超过了当前模型允许的最大上下文长度
+	promptTokens, err := utils.CalcTokens(prompt, session.Model.Value)
+	if promptTokens > types.GetModelMaxToken(session.Model.Value) {
+		utils.ReplyMessage(ws, "对话内容超出了当前模型允许的最大上下文长度！")
+		return nil
+	}
+
 	var req = types.ApiRequest{
 		Model:  session.Model.Value,
 		Stream: true,
@@ -252,7 +260,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		}
 
 		var tools = make([]interface{}, 0)
-		var functions = make([]interface{}, 0)
 		for _, v := range items {
 			var parameters map[string]interface{}
 			err = utils.JsonDecode(v.Parameters, &parameters)
@@ -270,20 +277,11 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 					"required":    required,
 				},
 			})
-			functions = append(functions, gin.H{
-				"name":        v.Name,
-				"description": v.Description,
-				"parameters":  parameters,
-				"required":    required,
-			})
 		}
 
-		//if len(tools) > 0 {
-		//	req.Tools = tools
-		//	req.ToolChoice = "auto"
-		//}
-		if len(functions) > 0 {
-			req.Functions = functions
+		if len(tools) > 0 {
+			req.Tools = tools
+			req.ToolChoice = "auto"
 		}
 
 	case types.XunFei:
@@ -301,40 +299,19 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	// 加载聊天上下文
-	var chatCtx []interface{}
+	chatCtx := make([]types.Message, 0)
+	messages := make([]types.Message, 0)
 	if h.App.ChatConfig.EnableContext {
 		if h.App.ChatContexts.Has(session.ChatId) {
-			chatCtx = h.App.ChatContexts.Get(session.ChatId)
+			messages = h.App.ChatContexts.Get(session.ChatId)
 		} else {
-			// calculate the tokens of current request, to prevent to exceeding the max tokens num
-			tokens := req.MaxTokens
-			tks, _ := utils.CalcTokens(utils.JsonEncode(req.Tools), req.Model)
-			tokens += tks
-			// loading the role context
-			var messages []types.Message
-			err := utils.JsonDecode(role.Context, &messages)
-			if err == nil {
-				for _, v := range messages {
-					tks, _ := utils.CalcTokens(v.Content, req.Model)
-					if tokens+tks >= types.GetModelMaxToken(req.Model) {
-						break
-					}
-					tokens += tks
-					chatCtx = append(chatCtx, v)
-				}
-			}
-
-			// loading recent chat history as chat context
+			_ = utils.JsonDecode(role.Context, &messages)
 			if chatConfig.ContextDeep > 0 {
 				var historyMessages []model.ChatMessage
-				res := h.db.Debug().Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("id desc").Find(&historyMessages)
+				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("id DESC").Find(&historyMessages)
 				if res.Error == nil {
 					for i := len(historyMessages) - 1; i >= 0; i-- {
 						msg := historyMessages[i]
-						if tokens+msg.Tokens >= types.GetModelMaxToken(session.Model.Value) {
-							break
-						}
-						tokens += msg.Tokens
 						ms := types.Message{Role: "user", Content: msg.Content}
 						if msg.Type == types.ReplyMsg {
 							ms.Role = "assistant"
@@ -344,6 +321,29 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 				}
 			}
 		}
+
+		// 计算当前请求的 token 总长度，确保不会超出最大上下文长度
+		// MaxContextLength = Response + Tool + Prompt + Context
+		tokens := req.MaxTokens // 最大响应长度
+		tks, _ := utils.CalcTokens(utils.JsonEncode(req.Tools), req.Model)
+		tokens += tks + promptTokens
+
+		for _, v := range messages {
+			tks, _ := utils.CalcTokens(v.Content, req.Model)
+			// 上下文 token 超出了模型的最大上下文长度
+			if tokens+tks >= types.GetModelMaxToken(req.Model) {
+				break
+			}
+
+			// 上下文的深度超出了模型的最大上下文深度
+			if len(chatCtx) >= h.App.ChatConfig.ContextDeep {
+				break
+			}
+
+			tokens += tks
+			chatCtx = append(chatCtx, v)
+		}
+
 		logger.Debugf("聊天上下文：%+v", chatCtx)
 	}
 	reqMgs := make([]interface{}, 0)
@@ -533,23 +533,28 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	return client.Do(request)
 }
 
-// 扣减用户的对话次数
-func (h *ChatHandler) subUserCalls(userVo vo.User, session *types.ChatSession) {
-	// 仅当用户没有导入自己的 API KEY 时才进行扣减
-	if userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
-		num := 1
-		if session.Model.Weight > 0 {
-			num = session.Model.Weight
-		}
-		h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("calls", gorm.Expr("calls - ?", num))
+// 扣减用户算力
+func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, promptTokens int, replyTokens int) {
+	power := 1
+	if session.Model.Power > 0 {
+		power = session.Model.Power
 	}
-}
+	res := h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
+	if res.Error == nil {
+		// 记录算力消费日志
+		h.db.Debug().Create(&model.PowerLog{
+			UserId:    userVo.Id,
+			Username:  userVo.Username,
+			Type:      types.PowerConsume,
+			Amount:    power,
+			Mark:      types.PowerSub,
+			Balance:   userVo.Power - power,
+			Model:     session.Model.Value,
+			Remark:    fmt.Sprintf("提问长度：%d，回复长度：%d", promptTokens, replyTokens),
+			CreatedAt: time.Now(),
+		})
+	}
 
-func (h *ChatHandler) incUserTokenFee(userId uint, tokens int) {
-	h.db.Model(&model.User{}).Where("id = ?", userId).
-		UpdateColumn("total_tokens", gorm.Expr("total_tokens + ?", tokens))
-	h.db.Model(&model.User{}).Where("id = ?", userId).
-		UpdateColumn("tokens", gorm.Expr("tokens + ?", tokens))
 }
 
 // 将AI回复消息中生成的图片链接下载到本地

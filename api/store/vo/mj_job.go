@@ -18,5 +18,6 @@ type MidJourneyJob struct {
 	UseProxy    bool      `json:"use_proxy"`
 	Publish     bool      `json:"publish"`
 	ErrMsg      string    `json:"err_msg"`
+	Power       int       `json:"power"`
 	CreatedAt   time.Time `json:"created_at"`
 }

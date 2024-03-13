@@ -4,7 +4,9 @@ import (
 	"chatplus/core/types"
 	"chatplus/service/oss"
 	"chatplus/store"
+	"chatplus/store/model"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
@@ -14,6 +16,7 @@ type ServicePool struct {
 	services    []*Service
 	taskQueue   *store.RedisQueue
 	notifyQueue *store.RedisQueue
+	db          *gorm.DB
 	Clients     *types.LMap[uint, *types.WsClient] // UserId => Client
 }
 
@@ -42,6 +45,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		taskQueue:   taskQueue,
 		notifyQueue: notifyQueue,
 		services:    services,
+		db:          db,
 		Clients:     types.NewLMap[uint, *types.WsClient](),
 	}
 }
@@ -68,6 +72,46 @@ func (p *ServicePool) CheckTaskNotify() {
 			if err != nil {
 				continue
 			}
+		}
+	}()
+}
+
+// CheckTaskStatus 检查任务状态，自动删除过期或者失败的任务
+func (p *ServicePool) CheckTaskStatus() {
+	go func() {
+		for {
+			var jobs []model.SdJob
+			res := p.db.Where("progress < ?", 100).Find(&jobs)
+			if res.Error != nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			for _, job := range jobs {
+				// 5 分钟还没完成的任务直接删除
+				if time.Now().Sub(job.CreatedAt) > time.Minute*5 || job.Progress == -1 {
+					p.db.Delete(&job)
+					var user model.User
+					p.db.Where("id = ?", job.UserId).First(&user)
+					// 退回绘图次数
+					res = p.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
+					if res.Error == nil && res.RowsAffected > 0 {
+						p.db.Create(&model.PowerLog{
+							UserId:    user.Id,
+							Username:  user.Username,
+							Type:      types.PowerConsume,
+							Amount:    job.Power,
+							Balance:   user.Power + job.Power,
+							Mark:      types.PowerAdd,
+							Model:     "stable-diffusion",
+							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s", job.TaskId),
+							CreatedAt: time.Now(),
+						})
+					}
+					continue
+				}
+			}
+
 		}
 	}()
 }

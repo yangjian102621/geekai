@@ -9,12 +9,7 @@
                 --el-table-text-color:#d1d1d1">
         <el-table-column prop="username" label="用户"/>
         <el-table-column prop="invite_code" label="邀请码"/>
-        <el-table-column label="邀请奖励">
-          <template #default="scope">
-            <span>对话：{{ scope.row['reward']['chat_calls'] }}次</span>，
-            <span>绘图：{{ scope.row['reward']['img_calls'] }}次</span>
-          </template>
-        </el-table-column>
+        <el-table-column prop="remark" label="邀请奖励"/>
 
         <el-table-column label="注册时间">
           <template #default="scope">

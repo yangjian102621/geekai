@@ -102,8 +102,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 				types.ChatGLM: "",
 			},
 		}),
-		Calls:    h.App.SysConfig.InitChatCalls,
-		ImgCalls: h.App.SysConfig.InitImgCalls,
+		Power: h.App.SysConfig.InitPower,
 	}
 
 	res = h.db.Create(&user)
@@ -117,11 +116,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if data.InviteCode != "" {
 		// 增加邀请数量
 		h.db.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
-		if h.App.SysConfig.InviteChatCalls > 0 {
-			h.db.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("calls", gorm.Expr("calls + ?", h.App.SysConfig.InviteChatCalls))
-		}
-		if h.App.SysConfig.InviteImgCalls > 0 {
-			h.db.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("img_calls", gorm.Expr("img_calls + ?", h.App.SysConfig.InviteImgCalls))
+		if h.App.SysConfig.InvitePower > 0 {
+			h.db.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("power", gorm.Expr("power + ?", h.App.SysConfig.InvitePower))
 		}
 
 		// 添加邀请记录
@@ -130,7 +126,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 			UserId:     user.Id,
 			Username:   user.Username,
 			InviteCode: inviteCode.Code,
-			Reward:     utils.JsonEncode(types.InviteReward{ChatCalls: h.App.SysConfig.InviteChatCalls, ImgCalls: h.App.SysConfig.InviteImgCalls}),
+			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.InvitePower),
 		})
 	}
 
@@ -254,10 +250,7 @@ type userProfile struct {
 	Username    string               `json:"username"`
 	Avatar      string               `json:"avatar"`
 	ChatConfig  types.UserChatConfig `json:"chat_config"`
-	Calls       int                  `json:"calls"`
-	ImgCalls    int                  `json:"img_calls"`
-	TotalTokens int64                `json:"total_tokens"`
-	Tokens      int                  `json:"tokens"`
+	Power       int                  `json:"power"`
 	ExpiredTime int64                `json:"expired_time"`
 	Vip         bool                 `json:"vip"`
 }

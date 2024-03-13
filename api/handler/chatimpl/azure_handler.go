@@ -19,7 +19,7 @@ import (
 // 微软 Azure 模型消息发送实现
 
 func (h *ChatHandler) sendAzureMessage(
-	chatCtx []interface{},
+	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,
@@ -103,8 +103,6 @@ func (h *ChatHandler) sendAzureMessage(
 
 		// 消息发送成功
 		if len(contents) > 0 {
-			// 更新用户的对话次数
-			h.subUserCalls(userVo, session)
 
 			if message.Role == "" {
 				message.Role = "assistant"
@@ -145,8 +143,8 @@ func (h *ChatHandler) sendAzureMessage(
 				}
 
 				// 计算本次对话消耗的总 token 数量
-				totalTokens, _ := utils.CalcTokens(message.Content, req.Model)
-				totalTokens += getTotalTokens(req)
+				replyTokens, _ := utils.CalcTokens(message.Content, req.Model)
+				replyTokens += getTotalTokens(req)
 
 				historyReplyMsg := model.ChatMessage{
 					UserId:     userVo.Id,
@@ -155,7 +153,7 @@ func (h *ChatHandler) sendAzureMessage(
 					Type:       types.ReplyMsg,
 					Icon:       role.Icon,
 					Content:    message.Content,
-					Tokens:     totalTokens,
+					Tokens:     replyTokens,
 					UseContext: true,
 					Model:      req.Model,
 				}
@@ -166,8 +164,8 @@ func (h *ChatHandler) sendAzureMessage(
 					logger.Error("failed to save reply history message: ", res.Error)
 				}
 
-				// 更新用户信息
-				h.incUserTokenFee(userVo.Id, totalTokens)
+				// 更新用户算力
+				h.subUserPower(userVo, session, promptToken, replyTokens)
 			}
 
 			// 保存当前会话
