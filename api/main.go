@@ -392,6 +392,13 @@ func main() {
 			group.POST("remove", h.Remove)
 			group.POST("resetPass", h.ResetPass)
 		}),
+		fx.Provide(admin.NewSysPermissionHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.SysPermissionHandler) {
+			group := s.Engine.Group("/api/admin/sysPermission/")
+			group.GET("list", h.List)
+			group.POST("save", h.Save)
+			group.POST("remove", h.Remove)
+		}),
 
 		fx.Provide(handler.NewFunctionHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
