@@ -2,6 +2,7 @@ package admin
 
 import (
 	"chatplus/core"
+	"chatplus/core/types"
 	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -57,10 +58,15 @@ func (h *RewardHandler) List(c *gin.Context) {
 }
 
 func (h *RewardHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-
-	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.Reward{})
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
+		res := h.db.Where("id = ?", data.Id).Delete(&model.Reward{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
