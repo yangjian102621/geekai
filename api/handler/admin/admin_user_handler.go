@@ -8,7 +8,6 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -150,15 +149,12 @@ func (h *SysUserHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	// 默认id为1是超级管理员
+	if data.Id == 1 {
+		resp.ERROR(c, "超级管理员不能删除")
+		return
+	}
 	if data.Id > 0 {
-
-		// 默认id为1是超级管理员
-		if data.Id == 1 {
-			resp.ERROR(c, "超级管理员不能删除")
-			return
-		}
-
-
 		res := h.db.Where("id = ?", data.Id).Delete(&model.AdminUser{})
 		if res.Error != nil {
 			resp.ERROR(c, "删除失败")
