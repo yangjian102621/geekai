@@ -48,13 +48,13 @@ const props = defineProps({
 
 const { formRef, formData, handleSubmit } = useSubmit({
   name: "",
-  pid: "0",
+  pid: 0,
   slug: "",
   sort: null,
 });
 
 const _options = computed(() => {
-  return [{ id: "0", name: "顶部权限", children: unref(props.options ?? []) }];
+  return [{ id: 0, name: "顶部权限", children: unref(props.options ?? []) }];
 });
 
 Object.assign(formData, props.record);

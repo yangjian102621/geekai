@@ -28,13 +28,14 @@ const columns: TableColumnData[] = [
 const [reload, data, loading] = useRequest(getList);
 
 const openFormModal = usePopup(SysPermissionForm, {
-  nodeProps: ([_, record]) => ({ record, options: data.value }),
-  popupProps: ([reload, record], exposed) => ({
+  nodeProps: ([record]) => ({ record, options: data.value }),
+  popupProps: ([record], exposed) => ({
     title: `${record?.id ? "编辑" : "新增"}权限`,
     onBeforeOk: async (done) => {
       await exposed()?.handleSubmit(save, {
         id: record?.id,
       });
+      Message.success("操作成功");
       await reload();
       done(true);
     },
@@ -52,7 +53,7 @@ reload();
 </script>
 <template>
   <div style="padding-bottom: 10px; text-align: right">
-    <a-button type="primary" :loading="loading" @click="openFormModal(reload, {})">
+    <a-button type="primary" :loading="loading" @click="openFormModal({})">
       <template #icon>
         <icon-plus />
       </template>
@@ -67,8 +68,8 @@ reload();
     :pagination="false"
     default-expand-all-rows
   >
-    <template #actions="{ record, reload }">
-      <a-link @click="openFormModal(reload, record)">编辑</a-link>
+    <template #actions="{ record }">
+      <a-link @click="openFormModal(record)">编辑</a-link>
       <a-popconfirm
         content="是否删除？"
         position="left"
