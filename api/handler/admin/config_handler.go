@@ -72,7 +72,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

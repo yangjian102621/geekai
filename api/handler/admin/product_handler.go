@@ -71,7 +71,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 // List 模型列表
 func (h *ProductHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

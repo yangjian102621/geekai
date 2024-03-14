@@ -28,7 +28,7 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
 // List 用户列表
 func (h *UserHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

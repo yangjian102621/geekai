@@ -25,7 +25,7 @@ func NewRewardHandler(app *core.AppServer, db *gorm.DB) *RewardHandler {
 
 func (h *RewardHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

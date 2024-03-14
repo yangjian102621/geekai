@@ -34,7 +34,7 @@ type statsVo struct {
 
 func (h *DashboardHandler) Stats(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 
