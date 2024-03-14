@@ -1,13 +1,26 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from "@/stores/auth";
 import CustomLayout from '@/components/CustomLayout.vue'
+import { hasPermission } from "@/directives/permission";
 import menu from './menu'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    title?: string
+    permission?: string
+  }
+}
 
 const whiteListRoutes = [
   {
     path: "/login",
     name: "Login",
     component: () => import("@/views/LoginView.vue"),
+  },
+  {
+    path: "/403",
+    name: "403",
+    component: () => import("@/views/NoPermission.vue"),
   },
   {
     path: "/:pathMatch(.*)*",
@@ -44,8 +57,12 @@ router.beforeEach((to, _, next) => {
     return;
   }
   if (!authStore.token) {
+    authStore.$reset();
     next({ name: "Login" });
     return;
+  }
+  if (to.meta.permission) {
+    next(!hasPermission(to.meta.permission) ? { name: "403" } : undefined);
   }
   next();
 });
