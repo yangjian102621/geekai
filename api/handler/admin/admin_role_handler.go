@@ -26,12 +26,31 @@ func NewSysRoleHandler(app *core.AppServer, db *gorm.DB) *SysRoleHandler {
 type permission struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 func (h *SysRoleHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.ERROR(c, types.NoPermission)
+		return
+	}
+
+	page := h.GetInt(c, "page", 1)
+	pageSize := h.GetInt(c, "page_size", 20)
+	name := h.GetTrim(c, "name")
+
+	offset := (page - 1) * pageSize
 	var items []model.AdminRole
 	var data = make([]vo.AdminRole, 0)
-	res := h.db.Find(&items)
+	var total int64
+
+	session := h.db.Session(&gorm.Session{})
+	if name != "" {
+		session = session.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	session.Model(&model.AdminRole{}).Count(&total)
+	res := session.Offset(offset).Limit(pageSize).Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "暂无数据")
 		return
@@ -41,16 +60,18 @@ func (h *SysRoleHandler) List(c *gin.Context) {
 		err := utils.CopyObject(item, &adminRoleVo)
 		if err == nil {
 			var permissions []permission
-			h.db.Raw("SELECT p.id,p.name "+
+			h.db.Raw("SELECT p.id,p.name,p.slug "+
 				"FROM chatgpt_admin_role_permissions as rp "+
 				"LEFT JOIN chatgpt_admin_permissions as p ON rp.permission_id = p.id "+
 				"WHERE rp.role_id = ?", item.Id).Scan(&permissions)
+
 			adminRoleVo.Permissions = permissions
 			adminRoleVo.CreatedAt = item.CreatedAt.Format("2006-01-02 15:04:05")
 			data = append(data, adminRoleVo)
 		}
 	}
-	resp.SUCCESS(c, data)
+	pageVo := vo.NewPage(total, page, pageSize, data)
+	resp.SUCCESS(c, pageVo)
 }
 
 func (h *SysRoleHandler) Save(c *gin.Context) {
