@@ -14,15 +14,16 @@
     >
       <a-input v-model="formData.description" />
     </a-formItem>
-    <a-formItem
-      label="平台权限"
-      field="permissions"
-      :rules="[{ required: true, message: '请选择平台权限' }]"
-    >
+    <a-formItem label="平台权限" field="permissions">
       <a-tree
         v-model:checked-keys="formData.permissions"
+        :half-checked-keys="[]"
         :data="options"
+        :loading="loading"
         :field-names="{ key: 'id', title: 'name' }"
+        multiple
+        checkable
+        only-check-leaf
       />
     </a-formItem>
   </a-form>
@@ -45,7 +46,10 @@ const { formRef, formData, handleSubmit } = useSubmit({
   permissions: [],
 });
 
-Object.assign(formData, props.record);
+Object.assign(formData, {
+  ...props.record,
+  permissions: props.record?.permissions?.map((item) => item.id) ?? [],
+});
 getOptions();
 defineExpose({ handleSubmit });
 </script>

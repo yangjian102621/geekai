@@ -30,6 +30,7 @@ const columns: SearchTableColumns[] = [
 ];
 
 const openFormModal = usePopup(SysRoleForm, {
+  type: "drawer",
   nodeProps: ([record]) => ({ record }),
   popupProps: ([record, reload], exposed) => ({
     title: `${record?.id ? "编辑" : "新增"}角色`,
