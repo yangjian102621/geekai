@@ -11,11 +11,6 @@ const whiteListRoutes = [
     component: () => import("@/views/LoginView.vue"),
   },
   {
-    path: "/403",
-    name: "403",
-    component: () => import("@/views/NoPermission.vue"),
-  },
-  {
     path: "/:pathMatch(.*)*",
     name: "404",
     component: () => import("@/views/NotFound.vue"),
@@ -30,13 +25,20 @@ const router = createRouter({
       name: 'home',
       component: CustomLayout,
       redirect: () => menu[0].path,
-      children: menu
+      children: [
+        {
+          path: "403",
+          name: "403",
+          component: () => import("@/views/NoPermission.vue"),
+        },
+        ...menu
+      ]
     },
     ...whiteListRoutes
   ]
 })
 
-const whiteList = whiteListRoutes.map((i) => i.name);
+const whiteList = [...whiteListRoutes.map((i) => i.name), "403"];
 
 router.beforeEach((to, _, next) => {
   const authStore = useAuthStore();
