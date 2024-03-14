@@ -9,7 +9,9 @@ function useSubmit<T extends Record<string, any> = Record<string, any>, R = any>
     submitting.value = true;
     try {
       const hasError = await formRef.value?.validate();
-      if (hasError) return Promise.reject({ validateErrors: hasError });
+      if (hasError) {
+        return Promise.reject({ validateErrors: hasError });
+      }
 
       const { data, code, message } = await api({ ...formData ?? {}, ...unref(params) });
       if (code) {
