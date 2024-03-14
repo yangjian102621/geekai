@@ -1,8 +1,9 @@
 <script lang="ts" setup>
+import { Message } from "@arco-design/web-vue";
 import SearchTable from "@/components/SearchTable/SearchTable.vue";
 import type { SearchTableColumns } from "@/components/SearchTable/type";
 import { dateFormat } from "@chatgpt-plus/packages/utils";
-import { getList } from "./api";
+import { getList, remove } from "./api";
 
 const columns: SearchTableColumns[] = [
   {
@@ -71,6 +72,12 @@ const columns: SearchTableColumns[] = [
     width: 80,
   },
 ];
+const handleRemove = async (id, reload) => {
+  await remove({ id });
+  Message.success("删除成功");
+  await reload();
+  return true;
+};
 </script>
 <template>
   <SearchTable :request="getList" :columns="columns">
@@ -78,8 +85,15 @@ const columns: SearchTableColumns[] = [
       <a-tag v-if="!record.pay_time" color="blue">未支付</a-tag>
       <span v-else>{{ dateFormat(record.pay_time) }}</span>
     </template>
-    <template #actions="{ record }">
-      <a-link :key="record.id" status="danger">删除</a-link>
+    <template #actions="{ record, reload }">
+      <a-popconfirm
+        content="是否删除？"
+        position="left"
+        type="warning"
+        :on-before-ok="() => handleRemove(record.id, reload)"
+      >
+        <a-link status="danger">删除</a-link>
+      </a-popconfirm>
     </template>
   </SearchTable>
 </template>
