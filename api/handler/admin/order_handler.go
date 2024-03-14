@@ -26,7 +26,7 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 
 func (h *OrderHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

@@ -75,7 +75,7 @@ func (h *FunctionHandler) Set(c *gin.Context) {
 
 func (h *FunctionHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

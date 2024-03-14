@@ -69,7 +69,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

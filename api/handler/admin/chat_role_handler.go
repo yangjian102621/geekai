@@ -54,7 +54,7 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 

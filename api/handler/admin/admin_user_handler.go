@@ -31,7 +31,7 @@ type role struct {
 // List 用户列表
 func (h *SysUserHandler) List(c *gin.Context) {
 	if err := utils.CheckPermission(c, h.db); err != nil {
-		resp.ERROR(c, types.NoPermission)
+		resp.NotPermission(c)
 		return
 	}
 
