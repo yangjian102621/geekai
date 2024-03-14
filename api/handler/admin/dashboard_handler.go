@@ -5,6 +5,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	"chatplus/store/model"
+	"chatplus/utils"
 	"chatplus/utils/resp"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
@@ -32,6 +33,11 @@ type statsVo struct {
 }
 
 func (h *DashboardHandler) Stats(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.ERROR(c, types.NoPermission)
+		return
+	}
+
 	stats := statsVo{}
 	// new users statistic
 	var userCount int64

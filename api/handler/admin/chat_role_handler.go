@@ -53,6 +53,11 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 }
 
 func (h *ChatRoleHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.ERROR(c, types.NoPermission)
+		return
+	}
+
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
 	res := h.db.Order("sort_num ASC").Find(&items)
