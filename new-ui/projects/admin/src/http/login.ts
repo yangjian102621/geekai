@@ -1,9 +1,6 @@
 import http from "@/http/config";
 
-export const userLogin = (data: {
-  username: string;
-  password: string;
-}) => {
+export const userLogin = (data) => {
   return http({
     url: "/api/admin/login",
     method: "post",
@@ -26,7 +23,7 @@ export const getSession = () => {
 };
 
 
-export const loginLog = (params?: Record<string, unknown>) => {
+export const loginLog = (params) => {
   return http({
     url: "/api/admin/user/loginLog",
     method: "get",

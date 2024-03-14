@@ -7,3 +7,11 @@ export const getList = (data?: Record<string, unknown>) => {
     data
   })
 }
+
+export const remove = (data) => {
+  return http({
+    url: "/api/admin/order/remove",
+    method: "post",
+    data
+  })
+}

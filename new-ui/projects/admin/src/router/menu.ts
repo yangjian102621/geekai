@@ -12,6 +12,7 @@ import {
   IconCodepen,
   IconWechatpay,
   IconRobot,
+  IconSafe,
 } from "@arco-design/web-vue/es/icon";
 
 const menu = [
@@ -132,6 +133,15 @@ const menu = [
       icon: IconRobot,
     },
     component: () => import("@/views/SysAdmin/SysAdminContainer.vue"),
+  },
+  {
+    path: "/sysPermission",
+    name: "SysPermission",
+    meta: {
+      title: "权限配置",
+      icon: IconSafe,
+    },
+    component: () => import("@/views/SysPermission/SysPermissionContainer.vue"),
   },
 ];
 

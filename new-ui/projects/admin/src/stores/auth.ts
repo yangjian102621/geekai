@@ -3,19 +3,29 @@ import { Message } from '@arco-design/web-vue'
 import { userLogin, userLogout } from '@/http/login'
 import router from '@/router'
 
+const defaultState: {
+  token: string
+  is_super_admin?: boolean;
+  permissions?: string[]
+} = {
+  token: null,
+  is_super_admin: false,
+  permissions: []
+}
+
 export const useAuthStore = defineStore({
-  id: __AUTH_KEY,
-  state: () => ({ token: null } as { token: string | null }),
+  id: Symbol(__AUTH_KEY).toString(),
+  state: () => ({ ...defaultState }),
   actions: {
     init() {
-      this.$state.token = localStorage.getItem(__AUTH_KEY);
+      this.$state = JSON.parse(localStorage.getItem(__AUTH_KEY));
     },
     async login(params: any) {
       try {
         const { data } = await userLogin(params)
         if (data) {
-          this.$state.token = data;
-          localStorage.setItem(__AUTH_KEY, data)
+          this.$state = data;
+          localStorage.setItem(__AUTH_KEY, JSON.stringify(data))
           Message.success('登录成功');
           router.replace({ name: 'home' })
           return Promise.resolve(data)

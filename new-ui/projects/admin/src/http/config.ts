@@ -8,8 +8,9 @@ export const uploadUrl = import.meta.env.VITE_PROXY_BASE_URL + "/api/admin/uploa
 export const instance = createInstance(import.meta.env.VITE_PROXY_BASE_URL)
 
 instance.interceptors.request.use((config) => {
-  config.headers[__AUTH_KEY] = localStorage.getItem(__AUTH_KEY);
-  config.headers["Authorization"] = localStorage.getItem(__AUTH_KEY);
+  const TOKEN = JSON.parse(localStorage.getItem(__AUTH_KEY))?.token
+  config.headers[__AUTH_KEY] = TOKEN;
+  config.headers["Authorization"] = TOKEN;
   return config;
 });
 

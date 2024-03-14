@@ -1,5 +1,4 @@
 import { ref, reactive, unref } from "vue";
-import { Message } from "@arco-design/web-vue";
 import type { BaseResponse } from "@chatgpt-plus/packages/type";
 function useSubmit<T extends Record<string, any> = Record<string, any>, R = any>(defaultData?: T) {
   const formRef = ref();
@@ -10,14 +9,16 @@ function useSubmit<T extends Record<string, any> = Record<string, any>, R = any>
     submitting.value = true;
     try {
       const hasError = await formRef.value?.validate();
-      if (!hasError) {
-        const { data, message } = await api({ ...formData ?? {}, ...unref(params) });
-        message && Message.success(message);
-        return Promise.resolve({ formData, data });
+      if (hasError) return Promise.reject({ validateErrors: hasError });
+
+      const { data, code, message } = await api({ ...formData ?? {}, ...unref(params) });
+      if (code) {
+        return Promise.reject({ requestErrors: message })
       }
-      return Promise.reject(false);
+
+      return Promise.resolve({ formData, data });
     } catch (err) {
-      return Promise.reject(err);
+      return Promise.reject({ errors: err });
     } finally {
       submitting.value = false;
     }
