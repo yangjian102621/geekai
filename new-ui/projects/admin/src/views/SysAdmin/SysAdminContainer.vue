@@ -94,7 +94,9 @@ const handleRemove = async (id, reload) => {
       </a-button>
     </template>
     <template #switch="{ record, column }">
+      <template v-if="record.id === 1">-</template>
       <ConfirmSwitch
+        v-else
         v-model="record[column.dataIndex]"
         :api="async () => save({ ...record, status: !record.status })"
       />
