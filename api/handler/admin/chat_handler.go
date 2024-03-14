@@ -35,6 +35,11 @@ type chatItemVo struct {
 }
 
 func (h *ChatHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var data struct {
 		Title    string   `json:"title"`
 		UserId   uint     `json:"user_id"`

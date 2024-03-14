@@ -30,6 +30,11 @@ type role struct {
 
 // List 用户列表
 func (h *SysUserHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	username := h.GetTrim(c, "username")

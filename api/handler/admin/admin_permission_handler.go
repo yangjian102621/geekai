@@ -25,6 +25,11 @@ func NewSysPermissionHandler(app *core.AppServer, db *gorm.DB) *SysPermissionHan
 }
 
 func (h *SysPermissionHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var items []model.AdminPermission
 	var data = make([]vo.AdminPermission, 0)
 	res := h.db.Find(&items)
