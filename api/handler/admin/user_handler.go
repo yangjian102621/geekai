@@ -27,6 +27,11 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
 
 // List 用户列表
 func (h *UserHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	username := h.GetTrim(c, "username")
