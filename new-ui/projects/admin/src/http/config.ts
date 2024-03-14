@@ -17,10 +17,17 @@ instance.interceptors.request.use((config) => {
 instance.interceptors.response.use(
   (response) => {
     const { data }: { data: BaseResponse<unknown> } = response
-    if (data && typeof data === "object" && data.code !== 0) {
-      if (data.code === 400) {
-        localStorage.removeItem(__AUTH_KEY);
-        router.push({ name: "Login" })
+    if (data && typeof data === "object" && data.code > 0) {
+      switch (data.code) {
+        case 400: {
+          localStorage.removeItem(__AUTH_KEY);
+          router.push({ name: "Login" })
+          break;
+        }
+        case 403: {
+          router.replace({ name: "403" })
+          break;
+        }
       }
       Notification.error(data.message ?? '未知错误')
     }
