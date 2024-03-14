@@ -1,21 +1,22 @@
+import type { RouteRecordRaw } from "vue-router";
 import {
   IconUser,
   IconDashboard,
   IconOrderedList,
-  IconCalendar,
   IconHeartFill,
+  IconCodeSandbox,
   IconCodeSquare,
   IconMessage,
   IconSettings,
-  IconUserGroup,
   IconLock,
   IconCodepen,
   IconWechatpay,
   IconRobot,
-  IconSafe,
 } from "@arco-design/web-vue/es/icon";
 
-const menu = [
+import system from "./system";
+
+const menu: RouteRecordRaw[] = [
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -38,8 +39,8 @@ const menu = [
     path: "/role",
     name: "Role",
     meta: {
-      title: "角色管理",
-      icon: IconUserGroup,
+      title: "角色模型",
+      icon: IconCodeSandbox,
     },
     component: () => import("@/views/Role/RoleContainer.vue"),
   },
@@ -111,38 +112,22 @@ const menu = [
     path: "/system",
     name: "System",
     meta: {
-      title: "系统设置",
+      title: "网站设置",
       icon: IconSettings,
     },
     component: () => import("@/views/System/SystemContainer.vue"),
   },
   {
-    path: "/loginLog",
-    name: "LoginLog",
+    path: "/sys",
+    name: "Sys",
     meta: {
-      title: "登录日志",
-      icon: IconCalendar,
-    },
-    component: () => import("@/views/LoginLog.vue"),
-  },
-  {
-    path: "/sysAdmin",
-    name: "SysAdmin",
-    meta: {
-      title: "系统管理员",
+      title: "系统设置",
       icon: IconRobot,
     },
-    component: () => import("@/views/SysAdmin/SysAdminContainer.vue"),
+    redirect: () => system[0].path,
+    children: system
   },
-  {
-    path: "/sysPermission",
-    name: "SysPermission",
-    meta: {
-      title: "权限配置",
-      icon: IconSafe,
-    },
-    component: () => import("@/views/SysPermission/SysPermissionContainer.vue"),
-  },
+
 ];
 
 export default menu;
