@@ -4,13 +4,6 @@ import CustomLayout from '@/components/CustomLayout.vue'
 import { hasPermission } from "@/directives/permission";
 import menu from './menu'
 
-declare module 'vue-router' {
-  interface RouteMeta {
-    title?: string
-    permission?: string
-  }
-}
-
 const whiteListRoutes = [
   {
     path: "/login",

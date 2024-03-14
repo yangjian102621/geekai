@@ -5,5 +5,13 @@ declare module "*.vue" {
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
+import 'vue-router'
+declare module 'vue-router' {
+  interface RouteMeta {
+    title?: string
+    icon?: any
+    permission?: boolean | string | string[]
+  }
+}
 
 declare const __AUTH_KEY: string;
