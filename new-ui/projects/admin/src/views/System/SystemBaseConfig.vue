@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { onMounted } from "vue";
 import { Message } from "@arco-design/web-vue";
+import CustomUploader from "@/components/CustomUploader.vue";
 import useSubmit from "@/composables/useSubmit";
 import useRequest from "@/composables/useRequest";
 import { getConfig, modelList, save } from "./api";
-import SystemUploader from "./SystemUploader.vue";
 
 const { formRef, formData: system, handleSubmit, submitting } = useSubmit({});
 
@@ -103,11 +103,11 @@ onMounted(async () => {
           <a-input v-model="system['img_call_price']" placeholder="众筹金额跟绘图次数的兑换比例" />
         </a-form-item>
         <a-form-item label="收款二维码" field="reward_img">
-          <SystemUploader v-model="system['reward_img']" placeholder="众筹收款二维码地址" />
+          <CustomUploader v-model="system['reward_img']" placeholder="众筹收款二维码地址" />
         </a-form-item>
       </template>
       <a-form-item label="微信客服二维码" field="wechat_card_url">
-        <SystemUploader v-model="system['wechat_card_url']" placeholder="微信客服二维码" />
+        <CustomUploader v-model="system['wechat_card_url']" placeholder="微信客服二维码" />
       </a-form-item>
       <a-form-item label="订单超时时间" field="order_pay_timeout">
         <a-space style="width: 100%">

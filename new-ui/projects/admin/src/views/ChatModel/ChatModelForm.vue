@@ -6,7 +6,7 @@
       :rules="[{ required: true, message: '请输入所属平台' }]"
       :validate-trigger="['change', 'input']"
     >
-      <a-input v-model="form.platform" placeholder="请输入所属平台" />
+      <a-select v-model="form.platform" placeholder="请输入所属平台" :options="platformOptions" />
     </a-form-item>
     <a-form-item
       field="name"
@@ -33,10 +33,12 @@
       :validate-trigger="['change', 'input']"
       showable
     >
-      <a-input-number v-model="form.weight" placeholder="请输入对话权重" />
-      <a-tooltip content="对话权重，每次对话扣减多少次对话额度" position="right">
-        <icon-info-circle-fill />
-      </a-tooltip>
+      <a-space>
+        <a-input-number v-model="form.weight" placeholder="请输入对话权重" />
+        <a-tooltip content="对话权重，每次对话扣减多少次对话额度" position="right">
+          <icon-info-circle-fill />
+        </a-tooltip>
+      </a-space>
     </a-form-item>
 
     <a-form-item field="open" label="开放状态代理">
@@ -65,15 +67,13 @@ defineExpose({
   form,
 });
 
-const typeOPtions = [
-  {
-    label: "聊天",
-    value: "chart",
-  },
-  {
-    label: "绘图",
-    value: "img",
-  },
+const platformOptions = [
+  { label: "【OpenAI】ChatGPT", value: "OpenAI" },
+  { label: "【讯飞】星火大模型", value: "XunFei" },
+  { label: "【清华智普】ChatGLM", value: "ChatGLM" },
+  { label: "【百度】文心一言", value: "Baidu" },
+  { label: "【微软】Azure", value: "Azure" },
+  { label: "【阿里】通义千问", value: "QWen" },
 ];
 </script>
 <style lang="less" scoped>
