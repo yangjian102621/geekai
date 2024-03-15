@@ -22,7 +22,6 @@ type FunctionHandler struct {
 	db            *gorm.DB
 	config        types.ChatPlusApiConfig
 	uploadManager *oss.UploaderManager
-	proxyURL      string
 }
 
 func NewFunctionHandler(server *core.AppServer, db *gorm.DB, config *types.AppConfig, manager *oss.UploaderManager) *FunctionHandler {
@@ -33,7 +32,6 @@ func NewFunctionHandler(server *core.AppServer, db *gorm.DB, config *types.AppCo
 		db:            db,
 		config:        config.ApiConfig,
 		uploadManager: manager,
-		proxyURL:      config.ProxyURL,
 	}
 }
 
@@ -213,47 +211,28 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 
-	// get image generation api URL
-	var conf model.Config
-	var chatConfig types.ChatConfig
-	tx = h.db.Where("marker", "chat").First(&conf)
-	if tx.Error != nil {
-		resp.ERROR(c, "error with get chat configs:"+tx.Error.Error())
-		return
-	}
-
-	err := utils.JsonDecode(conf.Config, &chatConfig)
-	if err != nil {
-		resp.ERROR(c, "error with decode chat config: "+err.Error())
-		return
-	}
-
 	// translate prompt
 	const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
-	pt, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, params["prompt"]), h.App.Config.ProxyURL)
+	pt, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, params["prompt"]))
 	if err == nil {
 		logger.Debugf("翻译绘画提示词，原文：%s，译文：%s", prompt, pt)
 		prompt = pt
 	}
-	imgNum := chatConfig.DallImgNum
-	if imgNum <= 0 {
-		imgNum = 1
-	}
 	var res imgRes
 	var errRes ErrRes
 	var request *req.Request
-	if apiKey.UseProxy && h.proxyURL != "" {
-		request = req.C().SetProxyURL(h.proxyURL).R()
+	if apiKey.ProxyURL != "" {
+		request = req.C().SetProxyURL(apiKey.ProxyURL).R()
 	} else {
 		request = req.C().R()
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, h.proxyURL)
+	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, apiKey.ProxyURL)
 	r, err := request.SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(imgReq{
 			Model:  "dall-e-3",
 			Prompt: prompt,
-			N:      imgNum,
+			N:      1,
 			Size:   "1024x1024",
 		}).
 		SetErrorResult(&errRes).

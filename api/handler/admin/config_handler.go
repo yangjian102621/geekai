@@ -56,8 +56,6 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 		var err error
 		if data.Key == "system" {
 			err = utils.JsonDecode(cfg.Config, &h.App.SysConfig)
-		} else if data.Key == "chat" {
-			err = utils.JsonDecode(cfg.Config, &h.App.ChatConfig)
 		}
 		if err != nil {
 			resp.ERROR(c, "Failed to update config cache: "+err.Error())

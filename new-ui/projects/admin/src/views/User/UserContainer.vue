@@ -9,6 +9,11 @@ import UserPassword from "./UserPassword.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
 const columns: SearchTableColumns[] = [
   {
+    title: "用户头像",
+    dataIndex: "avatar",
+    slotName: "avatar",
+  },
+  {
     title: "账号",
     dataIndex: "username",
     search: {
@@ -16,16 +21,8 @@ const columns: SearchTableColumns[] = [
     },
   },
   {
-    title: "剩余对话次数",
+    title: "剩余算力",
     dataIndex: "calls",
-  },
-  {
-    title: "剩余绘图次数",
-    dataIndex: "img_calls",
-  },
-  {
-    title: "累计消耗tokens",
-    dataIndex: "total_tokens",
   },
   {
     title: "状态",
@@ -38,9 +35,7 @@ const columns: SearchTableColumns[] = [
     title: "过期时间",
     dataIndex: "expired_time",
     width: 180,
-    render: ({ record }) => {
-      return dateFormat(record.expired_time);
-    },
+    slotName: "expired_time",
   },
   {
     title: "注册时间",
@@ -76,6 +71,15 @@ const handleDelete = async ({ id }: { id: string }, reload) => {
 </script>
 <template>
   <SearchTable :request="getList" :columns="columns">
+    <template #avatar="{ record }">
+      <a-avatar>
+        <a-image :src="record.avatar" style="border-radius: 50%" />
+      </a-avatar>
+    </template>
+    <template #expired_time="{ record }">
+      <a-tag v-if="record.expired_time === 0" color="blue">长期有效</a-tag>
+      <template v-else>{{ dateFormat(record.expired_time) }}</template>
+    </template>
     <template #actions="{ record, reload }">
       <a-link @click="editModal({ record, reload })">编辑</a-link>
       <a-popconfirm content="确定删除？" @ok="handleDelete(record, reload)">

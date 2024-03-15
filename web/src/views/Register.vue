@@ -142,7 +142,7 @@ const wxImg = ref("/images/wx.png")
 const ways = []
 const placeholder = ref("用户名：")
 
-httpGet("/api/admin/config/get?key=system").then(res => {
+httpGet("/api/config/get?key=system").then(res => {
   if (res.data) {
     const registerWays = res.data['register_ways']
     if (arrayContains(registerWays, "mobile")) {

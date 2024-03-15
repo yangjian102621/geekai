@@ -315,7 +315,7 @@ func main() {
 			group.GET("list", h.List)
 			group.POST("set", h.Set)
 			group.POST("sort", h.Sort)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			group := s.Engine.Group("/api/payment/")

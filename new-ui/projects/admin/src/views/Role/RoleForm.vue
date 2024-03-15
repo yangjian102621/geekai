@@ -23,7 +23,7 @@
       :rules="[{ required: true, message: '请输入角色图标' }]"
       :validate-trigger="['change', 'input']"
     >
-      <a-input v-model="form.icon" placeholder="请输入角色图标" />
+      <CustomUploader v-model="form.icon" placeholder="请输入角色图标" />
     </a-form-item>
     <a-form-item
       field="hello_msg"
@@ -67,6 +67,7 @@
 
 <script setup>
 import { ref, defineExpose, defineProps } from "vue";
+import CustomUploader from "@/components/CustomUploader.vue";
 const props = defineProps({
   data: {},
 });

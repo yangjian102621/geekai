@@ -26,15 +26,18 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 
 func (h *ChatModelHandler) Save(c *gin.Context) {
 	var data struct {
-		Id        uint   `json:"id"`
-		Name      string `json:"name"`
-		Value     string `json:"value"`
-		Enabled   bool   `json:"enabled"`
-		SortNum   int    `json:"sort_num"`
-		Open      bool   `json:"open"`
-		Platform  string `json:"platform"`
-		Weight    int    `json:"weight"`
-		CreatedAt int64  `json:"created_at"`
+		Id          uint   `json:"id"`
+		Name        string `json:"name"`
+		Value       string `json:"value"`
+		Enabled     bool   `json:"enabled"`
+		SortNum     int    `json:"sort_num"`
+		Open        bool   `json:"open"`
+		Platform    string `json:"platform"`
+		Power       int    `json:"power"`
+		MaxTokens   int    `json:"max_tokens"`  // 最大响应长度
+		MaxContext  int    `json:"max_context"` // 最大上下文长度
+		Temperature string `json:"temperature"` // 模型温度
+		CreatedAt   int64  `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -42,13 +45,16 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 	}
 
 	item := model.ChatModel{
-		Platform: data.Platform,
-		Name:     data.Name,
-		Value:    data.Value,
-		Enabled:  data.Enabled,
-		SortNum:  data.SortNum,
-		Open:     data.Open,
-		Power:    data.Weight}
+		Platform:    data.Platform,
+		Name:        data.Name,
+		Value:       data.Value,
+		Enabled:     data.Enabled,
+		SortNum:     data.SortNum,
+		Open:        data.Open,
+		MaxTokens:   data.MaxTokens,
+		MaxContext:  data.MaxContext,
+		Temperature: float32(utils.Str2Float(data.Temperature)),
+		Power:       data.Power}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)
@@ -145,19 +151,16 @@ func (h *ChatModelHandler) Sort(c *gin.Context) {
 }
 
 func (h *ChatModelHandler) Remove(c *gin.Context) {
-	var data struct {
-		Id uint
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
+	id := h.GetInt(c, "id", 0)
+	if id <= 0 {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if data.Id > 0 {
-		res := h.db.Where("id = ?", data.Id).Delete(&model.ChatModel{})
-		if res.Error != nil {
-			resp.ERROR(c, "更新数据库失败！")
-			return
-		}
+
+	res := h.db.Where("id = ?", id).Delete(&model.ChatModel{})
+	if res.Error != nil {
+		resp.ERROR(c, "更新数据库失败！")
+		return
 	}
 	resp.SUCCESS(c)
 }

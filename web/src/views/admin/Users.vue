@@ -17,9 +17,7 @@
             <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px;position: relative; top:5px; left: 5px"/>
           </template>
         </el-table-column>
-        <el-table-column prop="calls" label="剩余对话次数"/>
-        <el-table-column prop="img_calls" label="剩余绘图次数"/>
-        <el-table-column prop="total_tokens" label="累计消耗tokens"/>
+        <el-table-column prop="power" label="剩余算力"/>
         <el-table-column label="状态" width="80">
           <template #default="scope">
             <el-tag v-if="scope.row.status" type="success">正常</el-tag>
@@ -76,11 +74,8 @@
         <el-form-item v-if="add" label="密码：" prop="password">
           <el-input v-model="user.password" autocomplete="off"/>
         </el-form-item>
-        <el-form-item label="对话次数：" prop="calls">
-          <el-input v-model.number="user.calls" autocomplete="off" placeholder="0"/>
-        </el-form-item>
-        <el-form-item label="绘图次数：" prop="img_calls">
-          <el-input v-model.number="user['img_calls']" autocomplete="off" placeholder="0"/>
+        <el-form-item label="剩余算力：" prop="power">
+          <el-input v-model.number="user.power" autocomplete="off" placeholder="0"/>
         </el-form-item>
 
         <el-form-item label="有效期：" prop="expired_time">

@@ -3,7 +3,7 @@
 
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
-      <a href="https://gpt.bemore.lol" target="_blank" style="margin-left: 10px">
+      <a href="https://api.chat-plus.net" target="_blank" style="margin-left: 10px">
         <el-button type="success" :icon="ShoppingCart" @click="add" plain>购买API-KEY</el-button>
       </a>
     </div>
@@ -12,13 +12,20 @@
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
         <el-table-column prop="platform" label="所属平台"/>
         <el-table-column prop="name" label="名称"/>
-        <el-table-column prop="value" label="KEY">
+        <el-table-column prop="value" label="API KEY">
           <template #default="scope">
-            <el-tooltip class="box-item"
-                        effect="dark"
-                        :content="scope.row.api_url"
-                        placement="top">{{ scope.row.value }}
-            </el-tooltip>
+            <span>{{ substr(scope.row.value, 20) }}</span>
+            <el-icon class="copy-key" :data-clipboard-text="scope.row.value">
+              <DocumentCopy/>
+            </el-icon>
+          </template>
+        </el-table-column>
+        <el-table-column prop="api_url" label="API URL">
+          <template #default="scope">
+            <span>{{ substr(scope.row.api_url, 30) }}</span>
+            <el-icon class="copy-key" :data-clipboard-text="scope.row.api_url">
+              <DocumentCopy/>
+            </el-icon>
           </template>
         </el-table-column>
         <el-table-column prop="type" label="用途">
@@ -27,11 +34,7 @@
             <el-tag v-else-if="scope.row.type === 'img'" type="success">绘图</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="use_proxy" label="使用代理">
-          <template #default="scope">
-            <el-switch v-model="scope.row['use_proxy']" @change="set('use_proxy',scope.row)"/>
-          </template>
-        </el-table-column>
+        <el-table-column prop="proxy_url" label="代理地址"/>
 
         <el-table-column label="最后使用时间">
           <template #default="scope">
@@ -99,18 +102,8 @@
                     placeholder="如果你用了第三方的 API 中转，这里填写中转地址"/>
         </el-form-item>
 
-        <el-form-item label="使用代理：" prop="use_proxy">
-          <el-switch v-model="item.use_proxy"/>
-          <el-tooltip
-              effect="dark"
-              content="是否使用代理访问 API URL，OpenAI 官方API需要开启代理访问"
-              raw-content
-              placement="right"
-          >
-            <el-icon>
-              <InfoFilled/>
-            </el-icon>
-          </el-tooltip>
+        <el-form-item label="代理地址：" prop="proxy_url">
+          <el-input v-model="item.proxy_url" autocomplete="off"/>
         </el-form-item>
 
         <el-form-item label="启用状态：" prop="enable">
@@ -129,11 +122,12 @@
 </template>
 
 <script setup>
-import {reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
-import {InfoFilled, Plus, ShoppingCart} from "@element-plus/icons-vue";
+import {dateFormat, disabledDate, removeArrayItem, substr} from "@/utils/libs";
+import {DocumentCopy, InfoFilled, Plus, ShoppingCart} from "@element-plus/icons-vue";
+import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
@@ -150,10 +144,10 @@ const formRef = ref(null)
 const title = ref("")
 const platforms = ref([
   {
-    name: "【OpenAI】ChatGPT",
+    name: "【OpenAI/中转】ChatGPT",
     value: "OpenAI",
-    api_url: "https://gpt.bemore.lol/v1/chat/completions",
-    img_url: "https://gpt.bemore.lol/v1/images/generations"
+    api_url: "https://api.chat-plus.net/v1/chat/completions",
+    img_url: "https://api.chat-plus.net/v1/images/generations"
   },
   {
     name: "【讯飞】星火大模型",
@@ -185,6 +179,23 @@ const types = ref([
   {name: "聊天", value: "chat"},
   {name: "绘画", value: "img"},
 ])
+
+
+const clipboard = ref(null)
+onMounted(() => {
+  clipboard.value = new ClipboardJS('.copy-key');
+  clipboard.value.on('success', () => {
+    ElMessage.success('复制成功！');
+  })
+
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
+})
 
 // 获取数据
 httpGet('/api/admin/apikey/list').then((res) => {
@@ -269,7 +280,6 @@ const changePlatform = () => {
 
   }
 }
-
 </script>
 
 <style lang="stylus" scoped>
@@ -283,6 +293,11 @@ const changePlatform = () => {
     .el-icon {
       margin-right: 5px;
     }
+  }
+
+  .copy-key {
+    margin-left 5px
+    cursor pointer
   }
 
   .el-select {

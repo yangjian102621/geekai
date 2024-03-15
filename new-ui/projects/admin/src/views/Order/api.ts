@@ -8,10 +8,10 @@ export const getList = (data?: Record<string, unknown>) => {
   })
 }
 
-export const remove = (data) => {
+export const remove = (params) => {
   return http({
     url: "/api/admin/order/remove",
-    method: "post",
-    data
+    method: "get",
+    params
   })
 }

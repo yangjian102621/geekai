@@ -121,20 +121,6 @@ func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
-// ChatConfig 系统默认的聊天配置
-type ChatConfig struct {
-	OpenAI  ModelAPIConfig `json:"open_ai"`
-	Azure   ModelAPIConfig `json:"azure"`
-	ChatGML ModelAPIConfig `json:"chat_gml"`
-	Baidu   ModelAPIConfig `json:"baidu"`
-	XunFei  ModelAPIConfig `json:"xun_fei"`
-
-	EnableContext bool `json:"enable_context"` // 是否开启聊天上下文
-	EnableHistory bool `json:"enable_history"` // 是否允许保存聊天记录
-	ContextDeep   int  `json:"context_deep"`   // 上下文深度
-	DallImgNum    int  `json:"dall_img_num"`   // dall-e3 出图数量
-}
-
 type Platform string
 
 const OpenAI = Platform("OpenAI")
@@ -143,16 +129,6 @@ const ChatGLM = Platform("ChatGLM")
 const Baidu = Platform("Baidu")
 const XunFei = Platform("XunFei")
 const QWen = Platform("QWen")
-
-// UserChatConfig 用户的聊天配置
-type UserChatConfig struct {
-	ApiKeys map[Platform]string `json:"api_keys"`
-}
-
-type ModelAPIConfig struct {
-	Temperature float32 `json:"temperature"`
-	MaxTokens   int     `json:"max_tokens"`
-}
 
 type SystemConfig struct {
 	Title      string `json:"title"`
@@ -178,4 +154,7 @@ type SystemConfig struct {
 	DallPower int `json:"dall_power"` // DALLE3 绘图消耗算力
 
 	WechatCardURL string `json:"wechat_card_url"` // 微信客服地址
+
+	EnableContext bool `json:"enable_context"`
+	ContextDeep   int  `json:"context_deep"`
 }

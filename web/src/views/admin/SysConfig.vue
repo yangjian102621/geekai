@@ -11,23 +11,30 @@
             <el-form-item label="控制台标题" prop="admin_title">
               <el-input v-model="system['admin_title']"/>
             </el-form-item>
-            <el-form-item label="注册赠送对话次数" prop="user_init_calls">
-              <el-input v-model.number="system['init_chat_calls']" placeholder="新用户注册赠送对话次数"/>
+            <el-form-item label="网站 LOGO" prop="logo">
+              <el-input v-model="system['logo']" placeholder="网站LOGO图片">
+                <template #append>
+                  <el-upload
+                      :auto-upload="true"
+                      :show-file-list="false"
+                      @click="beforeUpload('logo')"
+                      :http-request="uploadImg"
+                  >
+                    <el-icon class="uploader-icon">
+                      <UploadFilled/>
+                    </el-icon>
+                  </el-upload>
+                </template>
+              </el-input>
             </el-form-item>
-            <el-form-item label="注册赠送绘图次数" prop="init_img_calls">
-              <el-input v-model.number="system['init_img_calls']" placeholder="新用户注册赠送绘图次数"/>
+            <el-form-item label="注册赠送算力" prop="init_power">
+              <el-input v-model.number="system['init_power']" placeholder="新用户注册赠送算力"/>
             </el-form-item>
-            <el-form-item label="邀请赠送对话次数" prop="invite_chat_calls">
-              <el-input v-model.number="system['invite_chat_calls']" placeholder="邀请新用户注册赠送对话次数"/>
+            <el-form-item label="邀请赠送算力" prop="invite_power">
+              <el-input v-model.number="system['invite_power']" placeholder="邀请新用户注册赠送算力"/>
             </el-form-item>
-            <el-form-item label="邀请赠送绘图次数" prop="invite_img_calls">
-              <el-input v-model.number="system['invite_img_calls']" placeholder="邀请新用户注册赠送绘图次数"/>
-            </el-form-item>
-            <el-form-item label="VIP每月对话次数" prop="vip_month_calls">
-              <el-input v-model.number="system['vip_month_calls']" placeholder="VIP用户每月赠送对话次数"/>
-            </el-form-item>
-            <el-form-item label="VIP每月绘图次数" prop="vip_month_img_calls">
-              <el-input v-model.number="system['vip_month_img_calls']" placeholder="VIP用户每月赠送绘图次数"/>
+            <el-form-item label="VIP每月赠送算力" prop="vip_month_power">
+              <el-input v-model.number="system['vip_month_power']" placeholder="VIP用户每月赠送算力"/>
             </el-form-item>
 
             <el-form-item label="开放注册" prop="enabled_register">
@@ -66,11 +73,9 @@
             </el-form-item>
 
             <div v-if="system['enabled_reward']">
-              <el-form-item label="单次对话价格" prop="chat_call_price">
-                <el-input v-model="system['chat_call_price']" placeholder="众筹金额跟对话次数的兑换比例"/>
-              </el-form-item>
-              <el-form-item label="单次绘图价格" prop="img_call_price">
-                <el-input v-model="system['img_call_price']" placeholder="众筹金额跟绘图次数的兑换比例"/>
+              <el-form-item label="算力单价" prop="power_price">
+                <el-input v-model="system['power_price']"
+                          placeholder="单位算力的价格，比如设置 0.1 表示捐赠1元钱可以得到10个单位算力"/>
               </el-form-item>
               <el-form-item label="收款二维码" prop="reward_img">
                 <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
@@ -165,82 +170,21 @@
                 </div>
               </template>
             </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="save('system')">保存</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="模型配置" name="chat">
-        <div class="container">
-          <el-form :model="chat" label-position="right" label-width="150px" ref="chatFormRef" :rules="rules">
+
             <el-form-item label="开启聊天上下文">
-              <el-switch v-model="chat['enable_context']"/>
-            </el-form-item>
-            <el-form-item label="保存聊天记录">
-              <el-switch v-model="chat['enable_history']"/>
+              <el-switch v-model="system['enable_context']"/>
             </el-form-item>
             <el-form-item label="会话上下文深度">
               <div style="width:100%">
-                <el-input-number v-model="chat['context_deep']" :min="0" :max="10"/>
+                <el-input-number v-model="system['context_deep']" :min="0" :max="10"/>
               </div>
               <div class="tip" style="margin-top: 10px; ">会话上下文深度：在老会话中继续会话，默认加载多少条聊天记录作为上下文。如果设置为
                 0
                 则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置需要为偶数，否则将无法兼容百度的 API。
               </div>
             </el-form-item>
-
-            <el-divider content-position="center">OpenAI</el-divider>
-            <el-form-item label="模型创意度">
-              <el-slider v-model="chat['open_ai']['temperature']" :max="2" :step="0.1"/>
-              <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
-            </el-form-item>
-            <el-form-item label="最大响应长度">
-              <el-input v-model.number="chat['open_ai']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
-            </el-form-item>
-
-            <el-divider content-position="center">Azure</el-divider>
-            <el-form-item label="模型创意度">
-              <el-slider v-model="chat['azure']['temperature']" :max="2" :step="0.1"/>
-              <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
-            </el-form-item>
-            <el-form-item label="最大响应长度">
-              <el-input v-model.number="chat['azure']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
-            </el-form-item>
-
-            <el-divider content-position="center">ChatGLM</el-divider>
-            <el-form-item label="模型创意度">
-              <el-slider v-model="chat['chat_gml']['temperature']" :max="1" :step="0.01"/>
-              <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
-            </el-form-item>
-            <el-form-item label="最大响应长度">
-              <el-input v-model.number="chat['chat_gml']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
-            </el-form-item>
-
-            <el-divider content-position="center">文心一言</el-divider>
-            <el-form-item label="模型创意度">
-              <el-slider v-model="chat['baidu']['temperature']" :max="1" :step="0.01"/>
-              <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
-            </el-form-item>
-            <el-form-item label="最大响应长度">
-              <el-input v-model.number="chat['baidu']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
-            </el-form-item>
-
-            <el-divider content-position="center">讯飞星火</el-divider>
-            <el-form-item label="模型创意度">
-              <el-slider v-model="chat['xun_fei']['temperature']" :max="1" :step="0.1"/>
-              <div class="tip">值越大 AI 回答越发散，值越小回答越保守，建议保持默认值</div>
-            </el-form-item>
-            <el-form-item label="最大响应长度">
-              <el-input v-model.number="chat['xun_fei']['max_tokens']" placeholder="回复的最大字数，最大4096"/>
-            </el-form-item>
-
-            <el-divider content-position="center">AI绘图</el-divider>
-            <el-form-item label="DALL-E3出图数量">
-              <el-input v-model.number="chat['dall_img_num']" placeholder="调用 DALL E3 API 传入的出图数量"/>
-            </el-form-item>
-            <el-form-item style="text-align: right">
-              <el-button type="primary" @click="save('chat')">保存</el-button>
+            <el-form-item>
+              <el-button type="primary" @click="save('system')">保存</el-button>
             </el-form-item>
           </el-form>
         </div>

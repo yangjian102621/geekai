@@ -227,7 +227,7 @@ onMounted(() => {
     router.push("/login")
   })
 
-  httpGet("/api/admin/config/get?key=system").then(res => {
+  httpGet("/api/config/get?key=system").then(res => {
     rewardImg.value = res.data['reward_img']
     enableReward.value = res.data['enabled_reward']
     orderPayInfoText.value = res.data['order_pay_info_text']

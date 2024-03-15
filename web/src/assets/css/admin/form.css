@@ -2,9 +2,10 @@
   display: flex;
   width: 100%;
 }
-.el-form-item__content .tip-input .input {
-  width: 100%;
+.el-form-item__content .tip-input .el-input {
+  width: 50%;
 }
 .el-form-item__content .tip-input .info {
   margin-left: 6px;
+  margin-top: 2px;
 }

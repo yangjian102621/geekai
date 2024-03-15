@@ -32,7 +32,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 		Value    string `json:"value"`
 		ApiURL   string `json:"api_url"`
 		Enabled  bool   `json:"enabled"`
-		UseProxy bool   `json:"use_proxy"`
+		ProxyURL string `json:"proxy_url"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -48,7 +48,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	apiKey.Type = data.Type
 	apiKey.ApiURL = data.ApiURL
 	apiKey.Enabled = data.Enabled
-	apiKey.UseProxy = data.UseProxy
+	apiKey.ProxyURL = data.ProxyURL
 	apiKey.Name = data.Name
 	res := h.db.Save(&apiKey)
 	if res.Error != nil {

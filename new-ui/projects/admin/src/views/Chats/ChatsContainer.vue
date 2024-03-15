@@ -8,7 +8,7 @@ import app from "@/main";
 import { getList, message, remove } from "./api";
 import ChatsLogs from "./ChatsLogs.vue";
 
-const columns: SearchTableColumns[] = [
+const chatColumns: SearchTableColumns[] = [
   {
     dataIndex: "user_id",
     title: "账户ID",
@@ -43,8 +43,46 @@ const columns: SearchTableColumns[] = [
     title: "消耗算力",
   },
   {
+    dataIndex: "created_at",
+    title: "创建时间",
+    search: {
+      valueType: "range",
+    },
+    render: ({ record }) => dateFormat(record.created_at),
+  },
+  {
+    title: "操作",
+    fixed: "right",
+    slotName: "actions",
+  },
+];
+
+const messageColumns: SearchTableColumns[] = [
+  {
+    dataIndex: "user_id",
+    title: "账户ID",
+    search: {
+      valueType: "input",
+    },
+  },
+  {
     dataIndex: "username",
     title: "账户",
+  },
+  {
+    dataIndex: "title",
+    title: "标题",
+    search: {
+      valueType: "input",
+    },
+  },
+  {
+    dataIndex: "msg_num",
+    title: "消息数量",
+  },
+  {
+    dataIndex: "token",
+    title: "消耗算力",
   },
   {
     dataIndex: "created_at",
@@ -62,8 +100,8 @@ const columns: SearchTableColumns[] = [
 ];
 
 const tabsList = [
-  { key: "1", title: "对话列表", api: getList, columns },
-  { key: "2", title: "消息记录", api: message, columns },
+  { key: "1", title: "对话列表", api: getList, columns: chatColumns },
+  { key: "2", title: "消息记录", api: message, columns: messageColumns },
 ];
 
 const activeKey = ref(tabsList[0].key);
@@ -101,7 +139,7 @@ const handleCheck = (record) => {
             content="是否删除？"
             position="left"
             type="warning"
-            :on-before-ok="() => handleRemove(record.id, reload)"
+            :on-before-ok="() => handleRemove(record.chat_id, reload)"
           >
             <a-link status="danger">删除</a-link>
           </a-popconfirm>

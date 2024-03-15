@@ -24,14 +24,15 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB) *ChatHandler {
 }
 
 type chatItemVo struct {
-	Username  string `json:"username"`
-	UserId    uint   `json:"user_id"`
-	ChatId    string `json:"chat_id"`
-	Title     string `json:"title"`
-	Model     string `json:"model"`
-	Token     int    `json:"token"`
-	CreatedAt int64  `json:"created_at"`
-	MsgNum    int    `json:"msg_num"` // 消息数量
+	Username  string      `json:"username"`
+	UserId    uint        `json:"user_id"`
+	ChatId    string      `json:"chat_id"`
+	Title     string      `json:"title"`
+	Role      vo.ChatRole `json:"role"`
+	Model     string      `json:"model"`
+	Token     int         `json:"token"`
+	CreatedAt int64       `json:"created_at"`
+	MsgNum    int         `json:"msg_num"` // 消息数量
 }
 
 func (h *ChatHandler) List(c *gin.Context) {
@@ -78,24 +79,37 @@ func (h *ChatHandler) List(c *gin.Context) {
 	if res.Error == nil {
 		userIds := make([]uint, 0)
 		chatIds := make([]string, 0)
+		roleIds := make([]uint, 0)
 		for _, item := range items {
 			userIds = append(userIds, item.UserId)
 			chatIds = append(chatIds, item.ChatId)
+			roleIds = append(roleIds, item.RoleId)
 		}
 		var messages []model.ChatMessage
 		var users []model.User
+		var roles []model.ChatRole
 		h.db.Where("chat_id IN ?", chatIds).Find(&messages)
 		h.db.Where("id IN ?", userIds).Find(&users)
+		h.db.Where("id IN ?", roleIds).Find(&roles)
 
 		tokenMap := make(map[string]int)
 		userMap := make(map[uint]string)
 		msgMap := make(map[string]int)
+		roleMap := make(map[uint]vo.ChatRole)
 		for _, msg := range messages {
 			tokenMap[msg.ChatId] += msg.Tokens
 			msgMap[msg.ChatId] += 1
 		}
 		for _, user := range users {
 			userMap[user.Id] = user.Username
+		}
+		for _, r := range roles {
+			var roleVo vo.ChatRole
+			err := utils.CopyObject(r, &roleVo)
+			if err != nil {
+				continue
+			}
+			roleMap[r.Id] = roleVo
 		}
 		for _, item := range items {
 			list = append(list, chatItemVo{
@@ -106,6 +120,7 @@ func (h *ChatHandler) List(c *gin.Context) {
 				Model:     item.Model,
 				Token:     tokenMap[item.ChatId],
 				MsgNum:    msgMap[item.ChatId],
+				Role:      roleMap[item.RoleId],
 				CreatedAt: item.CreatedAt.Unix(),
 			})
 		}

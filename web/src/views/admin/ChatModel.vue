@@ -14,7 +14,10 @@
         </el-table-column>
         <el-table-column prop="name" label="模型名称"/>
         <el-table-column prop="value" label="模型值"/>
-        <el-table-column prop="weight" label="对话权重"/>
+        <el-table-column prop="power" label="费率"/>
+        <el-table-column prop="max_tokens" label="最大响应长度"/>
+        <el-table-column prop="max_context" label="最大上下文长度"/>
+        <el-table-column prop="temperature" label="创意度"/>
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enabled']" @change="modelSet('enabled',scope.row)"/>
@@ -69,16 +72,15 @@
           <el-input v-model="item.value" autocomplete="off"/>
         </el-form-item>
 
-        <el-form-item label="对话权重：" prop="weight">
-
+        <el-form-item label="费率：" prop="weight">
           <template #default>
             <div class="tip-input">
-              <el-input-number :min="1" v-model="item.weight" autocomplete="off"/>
+              <el-input-number :min="1" v-model="item.power" autocomplete="off"/>
               <div class="info">
                 <el-tooltip
                     class="box-item"
                     effect="dark"
-                    content="对话权重，每次对话扣减多少次对话额度"
+                    content="每次对话扣减多少单位算力"
                     placement="right"
                 >
                   <el-icon>
@@ -90,11 +92,78 @@
           </template>
         </el-form-item>
 
+        <el-form-item label="最长响应：" prop="max_tokens">
+          <el-input v-model.number="item.max_tokens" autocomplete="off" placeholder="模型最大响应长度"/>
+        </el-form-item>
+
+        <el-form-item label="最大上下文：" prop="max_context">
+          <div class="tip-input">
+            <el-input v-model.number="item.max_context" autocomplete="off" placeholder="模型最大上下文长度"/>
+            <div class="info">
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  raw-content
+                  content="gpt-3.5-turbo:4096 <br/>
+              gpt-3.5-turbo-16k: 16384 <br/>
+              gpt-4:             8192 <br/>
+              gpt-4-32k:         32768 <br/>
+              chatglm_pro:       32768 <br/>
+              chatglm_std:       16384 <br/>
+              chatglm_lite:      4096 <br/>
+              qwen-turbo:        8192 <br/>
+              qwen-plus:         32768 <br/>
+              文心一言:            8192 <br/>
+              星火1.0:            4096 <br/>
+              星火2.0-星火3.5:     8192"
+                  placement="right"
+              >
+                <el-icon>
+                  <InfoFilled/>
+                </el-icon>
+              </el-tooltip>
+            </div>
+          </div>
+        </el-form-item>
+
+        <el-form-item label="创意度：" prop="temperature">
+          <div class="tip-input">
+            <el-input v-model="item.temperature" autocomplete="off" placeholder="模型创意度"/>
+            <div class="info">
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="OpenAI 0-2，其他模型 0-1"
+                  placement="right"
+              >
+                <el-icon>
+                  <InfoFilled/>
+                </el-icon>
+              </el-tooltip>
+            </div>
+          </div>
+        </el-form-item>
+
         <el-form-item label="启用状态：" prop="enable">
           <el-switch v-model="item.enabled"/>
         </el-form-item>
         <el-form-item label="开放状态：" prop="open">
-          <el-switch v-model="item.open"/>
+          <div class="tip-input">
+            <el-switch v-model="item.open"/>
+            <div class="info">
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  raw-content
+                  content="开放后，该模型将对所有用户可见。<br/> 如果模型没有启用，则当前设置无效。"
+                  placement="right"
+              >
+                <el-icon>
+                  <InfoFilled/>
+                </el-icon>
+              </el-tooltip>
+            </div>
+          </div>
         </el-form-item>
       </el-form>
 
