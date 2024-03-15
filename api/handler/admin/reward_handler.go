@@ -2,6 +2,7 @@ package admin
 
 import (
 	"chatplus/core"
+	"chatplus/core/types"
 	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -23,6 +24,11 @@ func NewRewardHandler(app *core.AppServer, db *gorm.DB) *RewardHandler {
 }
 
 func (h *RewardHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var items []model.Reward
 	res := h.db.Order("id DESC").Find(&items)
 	var rewards = make([]vo.Reward, 0)
@@ -57,10 +63,15 @@ func (h *RewardHandler) List(c *gin.Context) {
 }
 
 func (h *RewardHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-
-	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.Reward{})
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
+		res := h.db.Where("id = ?", data.Id).Delete(&model.Reward{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

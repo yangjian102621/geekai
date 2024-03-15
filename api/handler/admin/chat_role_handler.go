@@ -53,6 +53,11 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 }
 
 func (h *ChatRoleHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
 	res := h.db.Order("sort_num ASC").Find(&items)
@@ -119,13 +124,18 @@ func (h *ChatRoleHandler) Set(c *gin.Context) {
 }
 
 func (h *ChatRoleHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-	if id <= 0 {
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-
-	res := h.db.Where("id = ?", id).Delete(&model.ChatRole{})
+	if data.Id <= 0 {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	res := h.db.Where("id = ?", data.Id).Delete(&model.ChatRole{})
 	if res.Error != nil {
 		resp.ERROR(c, "删除失败！")
 		return

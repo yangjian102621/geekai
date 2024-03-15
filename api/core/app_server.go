@@ -162,8 +162,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/payment/") ||
-			strings.HasPrefix(c.Request.URL.Path, "/static/") ||
-			c.Request.URL.Path == "/api/admin/config/get" {
+			strings.HasPrefix(c.Request.URL.Path, "/static/") {
 			c.Next()
 			return
 		}

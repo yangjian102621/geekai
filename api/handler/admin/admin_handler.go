@@ -95,7 +95,31 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	manager.LastLoginAt = time.Now().Unix()
 	h.db.Model(&manager).Updates(manager)
 
-	resp.SUCCESS(c, tokenString)
+	permissions := h.GetAdminSlugs(manager.Id)
+	var result = struct {
+		IsSuperAdmin bool     `json:"is_super_admin"`
+		Token        string   `json:"token"`
+		Permissions  []string `json:"permissions"`
+	}{
+		IsSuperAdmin: manager.Id == 1,
+		Token:        tokenString,
+		Permissions:  permissions,
+	}
+
+	resp.SUCCESS(c, result)
+}
+
+func (h *ManagerHandler) GetAdminSlugs(userId uint) []string {
+	var permissions []string
+	err := h.db.Raw("SELECT distinct p.slug "+
+		"FROM chatgpt_admin_user_roles as ur "+
+		"LEFT JOIN chatgpt_admin_role_permissions as rp ON ur.role_id = rp.role_id "+
+		"LEFT JOIN chatgpt_admin_permissions as p ON rp.permission_id = p.id "+
+		"WHERE ur.admin_id = ?", userId).Scan(&permissions)
+	if err.Error == nil {
+		return []string{}
+	}
+	return permissions
 }
 
 // Logout 注销

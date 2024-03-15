@@ -35,6 +35,11 @@ type chatItemVo struct {
 }
 
 func (h *ChatHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var data struct {
 		Title    string   `json:"title"`
 		UserId   uint     `json:"user_id"`
@@ -212,9 +217,14 @@ func (h *ChatHandler) History(c *gin.Context) {
 // RemoveChat 删除对话
 func (h *ChatHandler) RemoveChat(c *gin.Context) {
 	chatId := h.GetTrim(c, "chat_id")
+	if chatId == "" {
+		resp.ERROR(c, "请传入 ChatId")
+		return
+	}
+
 	tx := h.db.Begin()
 	// 删除聊天记录
-	res := tx.Unscoped().Where("chat_id = ?", chatId).Delete(&model.ChatMessage{})
+	res := tx.Unscoped().Debug().Where("chat_id = ?", chatId).Delete(&model.ChatMessage{})
 	if res.Error != nil {
 		resp.ERROR(c, "failed to remove chat message")
 		return
@@ -235,7 +245,7 @@ func (h *ChatHandler) RemoveChat(c *gin.Context) {
 // RemoveMessage 删除聊天记录
 func (h *ChatHandler) RemoveMessage(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
-	tx := h.db.Unscoped().Delete(&model.ChatMessage{}, id)
+	tx := h.db.Unscoped().Where("id = ?", id).Delete(&model.ChatMessage{})
 	if tx.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return

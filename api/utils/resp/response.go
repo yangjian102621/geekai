@@ -34,3 +34,11 @@ func NotAuth(c *gin.Context, messages ...string) {
 		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "Not Authorized"})
 	}
 }
+
+func NotPermission(c *gin.Context, messages ...string) {
+	if messages != nil {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.NotPermission, Message: messages[0]})
+	} else {
+		c.JSON(http.StatusOK, types.BizVo{Code: types.NotPermission, Message: "Not Permission"})
+	}
+}

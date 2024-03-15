@@ -1,0 +1,138 @@
+html,
+body,
+#app,
+.wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.admin-home a {
+    text-decoration: none;
+}
+
+.admin-home .content-box {
+    position: absolute;
+    left: 250px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    /*padding-bottom: 30px;*/
+    -webkit-transition: left 0.3s ease-in-out;
+    transition: left 0.3s ease-in-out;
+    background: #f0f0f0;
+    overflow-y: scroll;
+}
+
+.admin-home .content-box .content {
+    width: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    /*BaseForm*/
+}
+
+.admin-home .content-box .content .container {
+    padding: 30px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.admin-home .content-box .content .container .handle-box {
+    margin-bottom: 20px;
+}
+
+.admin-home .content-box .content .crumbs {
+    margin: 10px 0;
+}
+
+.admin-home .content-box .content .el-table th {
+    background-color: #f5f7fa !important;
+}
+
+.admin-home .content-box .content .pagination {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.admin-home .content-box .content .plugins-tips {
+    padding: 20px 10px;
+    margin-bottom: 20px;
+}
+
+.admin-home .content-box .content .el-button + .el-tooltip {
+    margin-left: 10px;
+}
+
+.admin-home .content-box .content .el-table tr:hover {
+    background: #f6faff;
+}
+
+.admin-home .content-box .content .mgb20 {
+    margin-bottom: 20px;
+}
+
+.admin-home .content-box .content .move-enter-active,
+.admin-home .content-box .content .move-leave-active {
+    transition: opacity 0.1s ease;
+}
+
+.admin-home .content-box .content .move-enter-from,
+.admin-home .content-box .content .move-leave-to {
+    opacity: 0;
+}
+
+.admin-home .content-box .content .form-box {
+    width: 600px;
+}
+
+.admin-home .content-box .content .form-box .line {
+    text-align: center;
+}
+
+.admin-home .content-box .content .el-time-panel__content::after,
+.admin-home .content-box .content .el-time-panel__content::before {
+    margin-top: -7px;
+}
+
+.admin-home .content-box .content .el-time-spinner__wrapper .el-scrollbar__wrap:not(.el-scrollbar__wrap--hidden-default) {
+    padding-bottom: 0;
+}
+
+.admin-home .content-box .content [class*=" el-icon-"],
+.admin-home .content-box .content [class^=el-icon-] {
+    speak: none;
+    font-style: normal;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    vertical-align: baseline;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.admin-home .content-box .content .el-sub-menu [class^=el-icon-] {
+    vertical-align: middle;
+    margin-right: 5px;
+    width: 24px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.admin-home .content-box .content [hidden] {
+    display: none !important;
+}
+
+.admin-home .content-collapse {
+    left: 65px;
+}

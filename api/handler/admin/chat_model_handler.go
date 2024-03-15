@@ -72,6 +72,11 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 
 // List 模型列表
 func (h *ChatModelHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	session := h.db.Session(&gorm.Session{})
 	enable := h.GetBool(c, "enable")
 	if enable {
@@ -140,10 +145,15 @@ func (h *ChatModelHandler) Sort(c *gin.Context) {
 }
 
 func (h *ChatModelHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-
-	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.ChatModel{})
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
+		res := h.db.Where("id = ?", data.Id).Delete(&model.ChatModel{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
