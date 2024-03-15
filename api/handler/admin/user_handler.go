@@ -107,13 +107,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 			ChatRoles:   utils.JsonEncode(data.ChatRoles),
 			ChatModels:  utils.JsonEncode(data.ChatModels),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
-			ChatConfig: utils.JsonEncode(types.UserChatConfig{
-				ApiKeys: map[types.Platform]string{
-					types.OpenAI:  "",
-					types.Azure:   "",
-					types.ChatGLM: "",
-				},
-			}),
 		}
 		res = h.db.Create(&u)
 		_ = utils.CopyObject(u, &userVo)

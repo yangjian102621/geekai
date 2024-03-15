@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import { getList, save, deleting, setStatus } from "./api";
-import { ref } from "vue";
 import ChatModelForm from "./ChatModelForm.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
-import { Message } from "@arco-design/web-vue";
+import { Message, type TableColumnData } from "@arco-design/web-vue";
 import SimpleTable from "@/components/SimpleTable/SimpleTable.vue";
 import { dateFormat } from "@chatgpt-plus/packages/utils";
 // table 配置
-const columns = [
+const columns: TableColumnData[] = [
   {
     title: "所属平台",
     dataIndex: "platform",
@@ -49,20 +48,9 @@ const columns = [
   },
 ];
 
-// 数据
-const tableData = ref([]);
-const getData = () => {
-  getList().then(({ code, data }) => {
-    if (code === 0) {
-      tableData.value = data;
-    }
-  });
-};
-getData();
-
 //  新增编辑
 const popup = useCustomFormPopup(ChatModelForm, save, {
-  popupProps: (arg) => ({ title: arg[0].record ? "编辑ApiKey" : "新增ApiKey" }),
+  popupProps: (arg) => ({ title: arg[0].record ? "编辑模型" : "新增模型" }),
 });
 
 // 删除

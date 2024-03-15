@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/sha3"
@@ -59,7 +60,7 @@ func Str2stamp(str string) int64 {
 	if len(str) == 0 {
 		return 0
 	}
-	
+
 	layout := "2006-01-02 15:04:05"
 	t, err := time.Parse(layout, str)
 	if err != nil {
@@ -91,4 +92,12 @@ func InterfaceToString(value interface{}) string {
 		return str
 	}
 	return JsonEncode(value)
+}
+
+func Str2Float(str string) float64 {
+	num, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return 0
+	}
+	return num
 }

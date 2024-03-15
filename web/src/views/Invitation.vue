@@ -129,7 +129,7 @@ onMounted(() => {
       ElMessage.error("获取邀请码失败：" + e.message)
     })
 
-    httpGet("/api/admin/config/get?key=system").then(res => {
+    httpGet("/api/config/get?key=system").then(res => {
       inviteChatCalls.value = res.data["invite_chat_calls"]
       inviteImgCalls.value = res.data["invite_img_calls"]
     }).catch(e => {

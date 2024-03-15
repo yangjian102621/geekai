@@ -2,11 +2,11 @@
 import { getList, save, deleting, setStatus } from "./api";
 import ApiKeyForm from "./ApiKeyForm.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
-import { Message } from "@arco-design/web-vue";
+import { Message, type TableColumnData } from "@arco-design/web-vue";
 import SimpleTable from "@/components/SimpleTable/SimpleTable.vue";
 import { dateFormat } from "@chatgpt-plus/packages/utils";
 // table 配置
-const columns = [
+const columns: TableColumnData[] = [
   {
     title: "所属平台",
     dataIndex: "platform",
@@ -18,6 +18,11 @@ const columns = [
   {
     title: "key",
     dataIndex: "value",
+    slotName: "value",
+  },
+  {
+    title: "API URL",
+    dataIndex: "api_url",
     slotName: "value",
   },
   {
@@ -85,17 +90,26 @@ const handleStatusChange = ({ filed, value, record, reload }) => {
 </script>
 <template>
   <SimpleTable :columns="columns" :request="getList">
+    <template #header="{ reload }">
+      <a-space>
+        <a-button @click="popup({ reload })" size="small" type="primary"
+          ><template #icon> <icon-plus /> </template>新增
+        </a-button>
+        <a-button type="primary" status="success" href="https://gpt.bemore.lol" target="_blank">
+          <template #icon>
+            <icon-link />
+          </template>
+          购买API-KEY
+        </a-button>
+      </a-space>
+    </template>
     <template #action="{ record, reload }">
       <a-link @click="popup({ record, reload })">编辑</a-link>
       <a-popconfirm content="确定删除？" @ok="handleDelete(record, reload)">
         <a-link status="danger">删除</a-link>
       </a-popconfirm>
     </template>
-    <template #header="{ reload }">
-      <a-button @click="popup({ reload })" size="small" type="primary"
-        ><template #icon> <icon-plus /> </template>新增
-      </a-button>
-    </template>
+
     <template #value="{ record, column }">
       <a-typography-text copyable ellipsis style="margin: 0">
         {{ record[column.dataIndex] }}

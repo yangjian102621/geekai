@@ -20,8 +20,7 @@
             <span v-else>{{ scope.row.days }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="calls" label="对话次数"/>
-        <el-table-column prop="img_calls" label="绘图次数"/>
+        <el-table-column prop="power" label="算力"/>
         <el-table-column prop="sales" label="销量"/>
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
@@ -71,12 +70,8 @@
           <el-input v-model.number="item.days" autocomplete="off" placeholder="会员有效期(天)"/>
         </el-form-item>
 
-        <el-form-item label="对话次数：" prop="calls">
-          <el-input v-model.number="item.calls" autocomplete="off" placeholder="增加对话次数"/>
-        </el-form-item>
-
-        <el-form-item label="绘图次数：" prop="img_calls">
-          <el-input v-model.number="item.img_calls" autocomplete="off" placeholder="增加绘图次数"/>
+        <el-form-item label="算力：" prop="power">
+          <el-input v-model.number="item.power" autocomplete="off" placeholder="增加算力值"/>
         </el-form-item>
 
         <el-form-item label="启用状态：" prop="enable">

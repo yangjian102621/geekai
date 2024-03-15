@@ -25,8 +25,18 @@
           <el-table :data="data.chat.items" :row-key="row => row.id" table-layout="auto">
             <el-table-column prop="user_id" label="账户ID"/>
             <el-table-column prop="username" label="账户"/>
-            <el-table-column prop="title" label="标题"/>
+            <el-table-column label="图标">
+              <template #default="scope">
+                <el-avatar :size="30" :src="scope.row.role.icon"/>
+              </template>
+            </el-table-column>
+            <el-table-column label="角色">
+              <template #default="scope">
+                <span>{{ scope.row.role.name }}</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="model" label="模型"/>
+            <el-table-column prop="title" label="标题"/>
             <el-table-column prop="msg_num" label="消息数量"/>
             <el-table-column prop="token" label="消耗算力"/>
 

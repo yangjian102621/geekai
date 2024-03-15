@@ -57,8 +57,6 @@ func (h *ChatHandler) Init() {
 	}
 }
 
-var chatConfig types.ChatConfig
-
 // ChatHandle 处理聊天 WebSocket 请求
 func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
@@ -109,10 +107,13 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 
 	session.ChatId = chatId
 	session.Model = types.ChatModel{
-		Id:       chatModel.Id,
-		Value:    chatModel.Value,
-		Power:    chatModel.Power,
-		Platform: types.Platform(chatModel.Platform)}
+		Id:          chatModel.Id,
+		Value:       chatModel.Value,
+		Power:       chatModel.Power,
+		MaxTokens:   chatModel.MaxTokens,
+		MaxContext:  chatModel.MaxContext,
+		Temperature: chatModel.Temperature,
+		Platform:    types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 	var chatRole model.ChatRole
 	res = h.db.First(&chatRole, roleId)
@@ -122,15 +123,6 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		return
 	}
 
-	// 初始化聊天配置
-	var config model.Config
-	h.db.Where("marker", "chat").First(&config)
-	err = utils.JsonDecode(config.Config, &chatConfig)
-	if err != nil {
-		utils.ReplyMessage(client, "加载系统配置失败，连接已关闭！！！")
-		c.Abort()
-		return
-	}
 	h.Init()
 
 	// 保存会话连接
@@ -213,7 +205,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return nil
 	}
 
-	if userVo.Power <= 0 && userVo.ChatConfig.ApiKeys[session.Model.Platform] == "" {
+	if userVo.Power <= 0 {
 		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者充值点卡继续对话！")
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
@@ -227,7 +219,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 	// 检查 prompt 长度是否超过了当前模型允许的最大上下文长度
 	promptTokens, err := utils.CalcTokens(prompt, session.Model.Value)
-	if promptTokens > types.GetModelMaxToken(session.Model.Value) {
+	if promptTokens > session.Model.MaxContext {
 		utils.ReplyMessage(ws, "对话内容超出了当前模型允许的最大上下文长度！")
 		return nil
 	}
@@ -237,21 +229,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		Stream: true,
 	}
 	switch session.Model.Platform {
-	case types.Azure:
-		req.Temperature = h.App.ChatConfig.Azure.Temperature
-		req.MaxTokens = h.App.ChatConfig.Azure.MaxTokens
-		break
-	case types.ChatGLM:
-		req.Temperature = h.App.ChatConfig.ChatGML.Temperature
-		req.MaxTokens = h.App.ChatConfig.ChatGML.MaxTokens
-		break
-	case types.Baidu:
-		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
-		// TODO： 目前只支持 ERNIE-Bot-turbo 模型，如果是 ERNIE-Bot 模型则需要增加函数支持
+	case types.Azure, types.ChatGLM, types.Baidu, types.XunFei:
+		req.Temperature = session.Model.Temperature
+		req.MaxTokens = session.Model.MaxTokens
 		break
 	case types.OpenAI:
-		req.Temperature = h.App.ChatConfig.OpenAI.Temperature
-		req.MaxTokens = h.App.ChatConfig.OpenAI.MaxTokens
+		req.Temperature = session.Model.Temperature
+		req.MaxTokens = session.Model.MaxTokens
 		// OpenAI 支持函数功能
 		var items []model.Function
 		res := h.db.Where("enabled", true).Find(&items)
@@ -283,15 +267,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			req.Tools = tools
 			req.ToolChoice = "auto"
 		}
-
-	case types.XunFei:
-		req.Temperature = h.App.ChatConfig.XunFei.Temperature
-		req.MaxTokens = h.App.ChatConfig.XunFei.MaxTokens
-		break
 	case types.QWen:
-		req.Input = map[string]interface{}{"messages": []map[string]string{{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": prompt}}}
-		req.Parameters = map[string]interface{}{}
+		req.Parameters = map[string]interface{}{
+			"max_tokens":  session.Model.MaxTokens,
+			"temperature": session.Model.Temperature,
+		}
 		break
+
 	default:
 		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
 		utils.ReplyMessage(ws, ErrImg)
@@ -301,14 +283,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	// 加载聊天上下文
 	chatCtx := make([]types.Message, 0)
 	messages := make([]types.Message, 0)
-	if h.App.ChatConfig.EnableContext {
+	if h.App.SysConfig.EnableContext {
 		if h.App.ChatContexts.Has(session.ChatId) {
 			messages = h.App.ChatContexts.Get(session.ChatId)
 		} else {
 			_ = utils.JsonDecode(role.Context, &messages)
-			if chatConfig.ContextDeep > 0 {
+			if h.App.SysConfig.ContextDeep > 0 {
 				var historyMessages []model.ChatMessage
-				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(chatConfig.ContextDeep).Order("id DESC").Find(&historyMessages)
+				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(h.App.SysConfig.ContextDeep).Order("id DESC").Find(&historyMessages)
 				if res.Error == nil {
 					for i := len(historyMessages) - 1; i >= 0; i-- {
 						msg := historyMessages[i]
@@ -331,12 +313,12 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		for _, v := range messages {
 			tks, _ := utils.CalcTokens(v.Content, req.Model)
 			// 上下文 token 超出了模型的最大上下文长度
-			if tokens+tks >= types.GetModelMaxToken(req.Model) {
+			if tokens+tks >= session.Model.MaxContext {
 				break
 			}
 
 			// 上下文的深度超出了模型的最大上下文深度
-			if len(chatCtx) >= h.App.ChatConfig.ContextDeep {
+			if len(chatCtx) >= h.App.SysConfig.ContextDeep {
 				break
 			}
 
@@ -351,10 +333,17 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		reqMgs = append(reqMgs, m)
 	}
 
-	req.Messages = append(reqMgs, map[string]interface{}{
-		"role":    "user",
-		"content": prompt,
-	})
+	if session.Model.Platform == types.QWen {
+		req.Input = map[string]interface{}{"prompt": prompt}
+		if len(reqMgs) > 0 {
+			req.Input["messages"] = reqMgs
+		}
+	} else {
+		req.Messages = append(reqMgs, map[string]interface{}{
+			"role":    "user",
+			"content": prompt,
+		})
+	}
 
 	switch session.Model.Platform {
 	case types.Azure:
@@ -497,9 +486,8 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	request = request.WithContext(ctx)
 	request.Header.Set("Content-Type", "application/json")
 	var proxyURL string
-	if h.App.Config.ProxyURL != "" && apiKey.UseProxy { // 使用代理
-		proxyURL = h.App.Config.ProxyURL
-		proxy, _ := url.Parse(proxyURL)
+	if apiKey.ProxyURL != "" { // 使用代理
+		proxy, _ := url.Parse(apiKey.ProxyURL)
 		client = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxy),
@@ -542,7 +530,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 	res := h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
 	if res.Error == nil {
 		// 记录算力消费日志
-		h.db.Debug().Create(&model.PowerLog{
+		h.db.Create(&model.PowerLog{
 			UserId:    userVo.Id,
 			Username:  userVo.Username,
 			Type:      types.PowerConsume,

@@ -180,79 +180,77 @@ func (h *ChatHandler) sendOpenAiMessage(
 			useMsg := types.Message{Role: "user", Content: prompt}
 
 			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if h.App.ChatConfig.EnableContext && toolCall == false {
+			if h.App.SysConfig.EnableContext && toolCall == false {
 				chatCtx = append(chatCtx, useMsg)  // 提问消息
 				chatCtx = append(chatCtx, message) // 回复消息
 				h.App.ChatContexts.Put(session.ChatId, chatCtx)
 			}
 
 			// 追加聊天记录
-			if h.App.ChatConfig.EnableHistory {
-				useContext := true
-				if toolCall {
-					useContext = false
-				}
-
-				// for prompt
-				promptToken, err := utils.CalcTokens(prompt, req.Model)
-				if err != nil {
-					logger.Error(err)
-				}
-				historyUserMsg := model.ChatMessage{
-					UserId:     userVo.Id,
-					ChatId:     session.ChatId,
-					RoleId:     role.Id,
-					Type:       types.PromptMsg,
-					Icon:       userVo.Avatar,
-					Content:    template.HTMLEscapeString(prompt),
-					Tokens:     promptToken,
-					UseContext: useContext,
-					Model:      req.Model,
-				}
-				historyUserMsg.CreatedAt = promptCreatedAt
-				historyUserMsg.UpdatedAt = promptCreatedAt
-				res := h.db.Save(&historyUserMsg)
-				if res.Error != nil {
-					logger.Error("failed to save prompt history message: ", res.Error)
-				}
-
-				// 计算本次对话消耗的总 token 数量
-				var replyTokens = 0
-				if toolCall { // prompt + 函数名 + 参数 token
-					tokens, _ := utils.CalcTokens(function.Name, req.Model)
-					replyTokens += tokens
-					tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
-					replyTokens += tokens
-				} else {
-					replyTokens, _ = utils.CalcTokens(message.Content, req.Model)
-				}
-				replyTokens += getTotalTokens(req)
-
-				historyReplyMsg := model.ChatMessage{
-					UserId:     userVo.Id,
-					ChatId:     session.ChatId,
-					RoleId:     role.Id,
-					Type:       types.ReplyMsg,
-					Icon:       role.Icon,
-					Content:    h.extractImgUrl(message.Content),
-					Tokens:     replyTokens,
-					UseContext: useContext,
-					Model:      req.Model,
-				}
-				historyReplyMsg.CreatedAt = replyCreatedAt
-				historyReplyMsg.UpdatedAt = replyCreatedAt
-				res = h.db.Create(&historyReplyMsg)
-				if res.Error != nil {
-					logger.Error("failed to save reply history message: ", res.Error)
-				}
-
-				// 更新用户算力
-				h.subUserPower(userVo, session, promptToken, replyTokens)
+			useContext := true
+			if toolCall {
+				useContext = false
 			}
+
+			// for prompt
+			promptToken, err := utils.CalcTokens(prompt, req.Model)
+			if err != nil {
+				logger.Error(err)
+			}
+			historyUserMsg := model.ChatMessage{
+				UserId:     userVo.Id,
+				ChatId:     session.ChatId,
+				RoleId:     role.Id,
+				Type:       types.PromptMsg,
+				Icon:       userVo.Avatar,
+				Content:    template.HTMLEscapeString(prompt),
+				Tokens:     promptToken,
+				UseContext: useContext,
+				Model:      req.Model,
+			}
+			historyUserMsg.CreatedAt = promptCreatedAt
+			historyUserMsg.UpdatedAt = promptCreatedAt
+			res := h.db.Save(&historyUserMsg)
+			if res.Error != nil {
+				logger.Error("failed to save prompt history message: ", res.Error)
+			}
+
+			// 计算本次对话消耗的总 token 数量
+			var replyTokens = 0
+			if toolCall { // prompt + 函数名 + 参数 token
+				tokens, _ := utils.CalcTokens(function.Name, req.Model)
+				replyTokens += tokens
+				tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
+				replyTokens += tokens
+			} else {
+				replyTokens, _ = utils.CalcTokens(message.Content, req.Model)
+			}
+			replyTokens += getTotalTokens(req)
+
+			historyReplyMsg := model.ChatMessage{
+				UserId:     userVo.Id,
+				ChatId:     session.ChatId,
+				RoleId:     role.Id,
+				Type:       types.ReplyMsg,
+				Icon:       role.Icon,
+				Content:    h.extractImgUrl(message.Content),
+				Tokens:     replyTokens,
+				UseContext: useContext,
+				Model:      req.Model,
+			}
+			historyReplyMsg.CreatedAt = replyCreatedAt
+			historyReplyMsg.UpdatedAt = replyCreatedAt
+			res = h.db.Create(&historyReplyMsg)
+			if res.Error != nil {
+				logger.Error("failed to save reply history message: ", res.Error)
+			}
+
+			// 更新用户算力
+			h.subUserPower(userVo, session, promptToken, replyTokens)
 
 			// 保存当前会话
 			var chatItem model.ChatItem
-			res := h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
+			res = h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
 			if res.Error != nil {
 				chatItem.ChatId = session.ChatId
 				chatItem.UserId = session.UserId

@@ -342,14 +342,14 @@ onMounted(() => {
     })
 
     // 获取系统配置
-    httpGet("/api/admin/config/get?key=system").then(res => {
+    httpGet("/api/config/get?key=system").then(res => {
       title.value = res.data.title
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
 
     // 获取系统公告
-    httpGet("/api/admin/config/get?key=notice").then(res => {
+    httpGet("/api/config/get?key=notice").then(res => {
       notice.value = md.render(res.data['content'])
       const oldNotice = localStorage.getItem(noticeKey.value);
       // 如果公告有更新，则显示公告

@@ -54,10 +54,13 @@ type ChatSession struct {
 }
 
 type ChatModel struct {
-	Id       uint     `json:"id"`
-	Platform Platform `json:"platform"`
-	Value    string   `json:"value"`
-	Power    int      `json:"power"`
+	Id          uint     `json:"id"`
+	Platform    Platform `json:"platform"`
+	Value       string   `json:"value"`
+	Power       int      `json:"power"`
+	MaxTokens   int      `json:"max_tokens"`  // 最大响应长度
+	MaxContext  int      `json:"max_context"` // 最大上下文长度
+	Temperature float32  `json:"temperature"` // 模型温度
 }
 
 type ApiError struct {
@@ -71,27 +74,6 @@ type ApiError struct {
 
 const PromptMsg = "prompt" // prompt message
 const ReplyMsg = "reply"   // reply message
-
-var ModelToTokens = map[string]int{
-	"gpt-3.5-turbo":     4096,
-	"gpt-3.5-turbo-16k": 16384,
-	"gpt-4":             8192,
-	"gpt-4-32k":         32768,
-	"chatglm_pro":       32768, // 清华智普
-	"chatglm_std":       16384,
-	"chatglm_lite":      4096,
-	"ernie_bot_turbo":   8192, // 文心一言
-	"general":           8192, // 科大讯飞
-	"general2":          8192,
-	"general3":          8192,
-}
-
-func GetModelMaxToken(model string) int {
-	if token, ok := ModelToTokens[model]; ok {
-		return token
-	}
-	return 4096
-}
 
 // PowerType 算力日志类型
 type PowerType int

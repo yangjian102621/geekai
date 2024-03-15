@@ -149,7 +149,7 @@ onMounted(() => {
     showFailToast("获取产品套餐失败：" + e.message)
   })
 
-  httpGet("/api/admin/config/get?key=system").then(res => {
+  httpGet("/api/config/get?key=system").then(res => {
     vipMonthCalls.value = res.data['vip_month_calls']
     vipMonthImgCalls.value = res.data['vip_month_img_calls']
   }).catch(e => {

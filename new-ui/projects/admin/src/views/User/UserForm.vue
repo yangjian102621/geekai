@@ -20,17 +20,10 @@
     </a-form-item>
     <a-form-item
       field="calls"
-      label="对话次数"
-      :rules="[{ required: true, message: '请输入对话次数' }]"
+      label="用户算力"
+      :rules="[{ required: true, message: '请输入用户算力' }]"
     >
-      <a-input-number v-model="form.calls" placeholder="请输入对话次数" />
-    </a-form-item>
-    <a-form-item
-      field="img_calls"
-      label="绘图次数"
-      :rules="[{ required: true, message: '请输入绘图次数' }]"
-    >
-      <a-input-number v-model="form.img_calls" placeholder="请输入绘图次数" />
+      <a-input-number v-model="form.calls" placeholder="请输入用户算力" />
     </a-form-item>
     <a-form-item field="expired_time" label="有效期">
       <a-date-picker v-model="form.expired_time" placeholder="请选择有效期" />

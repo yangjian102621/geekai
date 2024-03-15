@@ -30,8 +30,7 @@ type AppServer struct {
 	Engine       *gin.Engine
 	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
 
-	ChatConfig *types.ChatConfig   // chat config cache
-	SysConfig  *types.SystemConfig // system config cache
+	SysConfig *types.SystemConfig // system config cache
 
 	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
 	// 防止第三方直接连接 socket 调用 OpenAI API
@@ -69,23 +68,13 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
-	// load chat config from database
-	var chatConfig model.Config
-	res := db.Where("marker", "chat").First(&chatConfig)
-	if res.Error != nil {
-		return res.Error
-	}
-	err := utils.JsonDecode(chatConfig.Config, &s.ChatConfig)
-	if err != nil {
-		return err
-	}
 	// load system configs
 	var sysConfig model.Config
-	res = db.Where("marker", "system").First(&sysConfig)
+	res := db.Where("marker", "system").First(&sysConfig)
 	if res.Error != nil {
 		return res.Error
 	}
-	err = utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	err := utils.JsonDecode(sysConfig.Config, &s.SysConfig)
 	if err != nil {
 		return err
 	}

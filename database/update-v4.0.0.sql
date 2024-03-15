@@ -130,3 +130,8 @@ INSERT INTO `chatgpt_admin_permissions` VALUES (31, '权限配置', '', 2, 28, '
 INSERT INTO `chatgpt_admin_permissions` VALUES (32, '角色配置', '', 3, 28, '2024-03-14 15:29:15', '2024-03-14 15:29:15');
 INSERT INTO `chatgpt_admin_permissions` VALUES (33, '列表', 'api_admin_sysPermission_list', 1, 31, '2024-03-14 15:29:52', '2024-03-14 15:29:52');
 INSERT INTO `chatgpt_admin_permissions` VALUES (34, '列表', 'api_admin_sysRole_list', 1, 32, '2024-03-14 15:30:21', '2024-03-14 15:30:21');
+
+
+ALTER TABLE `chatgpt_api_keys` CHANGE `use_proxy` `proxy_url` VARCHAR(100) NULL DEFAULT NULL COMMENT '代理地址';
+-- 重置 proxy_url
+UPDATE chatgpt_api_keys  set proxy_url=''

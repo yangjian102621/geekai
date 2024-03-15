@@ -9,6 +9,6 @@ type ApiKey struct {
 	Value      string // API Key 的值
 	ApiURL     string // 当前 KEY 的 API 地址
 	Enabled    bool   // 是否启用
-	UseProxy   bool   // 是否使用代理访问 API URL
+	ProxyURL   string // 代理地址
 	LastUsedAt int64  // 最后使用时间
 }

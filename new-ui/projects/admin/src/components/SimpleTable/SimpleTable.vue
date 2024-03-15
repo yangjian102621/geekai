@@ -1,18 +1,17 @@
 <script lang="ts" setup>
-import { computed, ref, onActivated } from "vue";
+import { computed, onActivated } from "vue";
 import useAsyncTable from "./useAsyncTable";
 import { useTableScroll } from "@/components/SearchTable/utils";
-import { Message } from "@arco-design/web-vue";
+import { Message, type TableColumnData } from "@arco-design/web-vue";
 import type { TableRequest, TableOriginalProps } from "./useAsyncTable";
 
 interface SimpleTable extends /* @vue-ignore */ TableOriginalProps {
   request: TableRequest<Record<string, unknown>>;
   params?: Record<string, unknown>;
-  columns?: TableOriginalProps["columns"];
+  columns?: TableColumnData[];
 }
 
 const props = defineProps<SimpleTable>();
-const tableContainerRef = ref<HTMLElement>();
 
 // 表格请求参数
 const [tableConfig, getList] = useAsyncTable(props.request, props.params);
@@ -45,7 +44,7 @@ onActivated(handleSearch);
           ...$attrs,
           ...tableConfig,
           ...props,
-          scroll: useTableScroll(_columns || [], tableContainerRef as HTMLElement),
+          scroll: useTableScroll(_columns || []),
           columns: _columns,
         }"
       >

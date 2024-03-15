@@ -95,14 +95,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Status:     true,
 		ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
 		ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
-		ChatConfig: utils.JsonEncode(types.UserChatConfig{
-			ApiKeys: map[types.Platform]string{
-				types.OpenAI:  "",
-				types.Azure:   "",
-				types.ChatGLM: "",
-			},
-		}),
-		Power: h.App.SysConfig.InitPower,
+		Power:      h.App.SysConfig.InitPower,
 	}
 
 	res = h.db.Create(&user)
@@ -245,14 +238,13 @@ func (h *UserHandler) Session(c *gin.Context) {
 }
 
 type userProfile struct {
-	Id          uint                 `json:"id"`
-	Nickname    string               `json:"nickname"`
-	Username    string               `json:"username"`
-	Avatar      string               `json:"avatar"`
-	ChatConfig  types.UserChatConfig `json:"chat_config"`
-	Power       int                  `json:"power"`
-	ExpiredTime int64                `json:"expired_time"`
-	Vip         bool                 `json:"vip"`
+	Id          uint   `json:"id"`
+	Nickname    string `json:"nickname"`
+	Username    string `json:"username"`
+	Avatar      string `json:"avatar"`
+	Power       int    `json:"power"`
+	ExpiredTime int64  `json:"expired_time"`
+	Vip         bool   `json:"vip"`
 }
 
 func (h *UserHandler) Profile(c *gin.Context) {

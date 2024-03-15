@@ -88,7 +88,7 @@ type apiErrRes struct {
 	} `json:"error"`
 }
 
-func OpenAIRequest(db *gorm.DB, prompt string, proxy string) (string, error) {
+func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	var apiKey model.ApiKey
 	res := db.Where("platform = ?", types.OpenAI).Where("type = ?", "chat").Where("enabled = ?", true).First(&apiKey)
 	if res.Error != nil {
@@ -104,8 +104,8 @@ func OpenAIRequest(db *gorm.DB, prompt string, proxy string) (string, error) {
 	var response apiRes
 	var errRes apiErrRes
 	client := req.C()
-	if apiKey.UseProxy && proxy != "" {
-		client.SetProxyURL(proxy)
+	if apiKey.ProxyURL != "" {
+		client.SetProxyURL(apiKey.ApiURL)
 	}
 	r, err := client.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
