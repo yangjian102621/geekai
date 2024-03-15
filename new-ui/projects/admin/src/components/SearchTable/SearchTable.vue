@@ -1,0 +1,95 @@
+<script lang="ts" setup>
+import { computed, ref, onActivated } from "vue";
+import useAsyncTable from "./useAsyncTable";
+import FormSection from "./FormSection.vue";
+import type { SearchTableProps } from "./type";
+import { useTableScroll, getDefaultFormData, useRequestParams } from "./utils";
+import { Message } from "@arco-design/web-vue";
+
+const props = defineProps<SearchTableProps>();
+const formData = ref({ ...getDefaultFormData(props.columns) });
+const tableContainerRef = ref<HTMLElement>();
+
+// 表格请求参数
+const requestParams = computed(() => ({
+  ...useRequestParams(props.columns, formData.value),
+  ...props.params,
+}));
+
+const [tableConfig, getList] = useAsyncTable(props.request, requestParams);
+
+const _columns = computed(() => {
+  return props.columns
+    .filter((item) => !item.hideInTable)
+    .map((item) => ({
+      ellipsis: true,
+      tooltip: true,
+      ...item,
+    }));
+});
+
+const handleSearch = async (tips?: boolean) => {
+  tips && Message.success("操作成功");
+  await getList();
+};
+
+onActivated(handleSearch);
+</script>
+<template>
+  <div class="search-table">
+    <div class="search-table-header">
+      <div class="search-table-header-option">
+        <div>
+          <slot name="header-title">{{ props.headerTitle }}</slot>
+        </div>
+        <div class="header-option">
+          <slot name="header-option" :formData="formData" :reload="handleSearch" />
+        </div>
+      </div>
+      <FormSection
+          v-model="formData"
+          :columns="columns"
+          :submitting="tableConfig.loading as boolean"
+          @request="handleSearch"
+      >
+        <template v-for="slot in Object.keys($slots)" #[slot]="config">
+          <slot :name="slot" v-bind="{ ...config, reload: handleSearch }" />
+        </template>
+      </FormSection>
+    </div>
+    <div ref="tableContainerRef" class="search-table-container">
+      <ATable
+        v-bind="{
+          ...$attrs,
+          ...tableConfig,
+          ...props,
+          scroll: useTableScroll(_columns),
+          columns: _columns,
+        }"
+      >
+        <template v-for="slot in Object.keys($slots)" #[slot]="config">
+          <slot :name="slot" v-bind="{ ...config, reload: handleSearch }" />
+        </template>
+      </ATable>
+    </div>
+  </div>
+</template>
+<style scoped>
+.search-table {
+  position: relative;
+  height: 100%;
+}
+.search-table-container {
+  position: relative;
+  z-index: 1;
+}
+.search-table-header {
+  background: #fff;
+  z-index: 2;
+}
+.search-table-header-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+</style>

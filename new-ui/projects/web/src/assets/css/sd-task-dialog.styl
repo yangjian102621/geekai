@@ -1,0 +1,96 @@
+.el-overlay-dialog {
+  .el-dialog {
+    background-color #1a1b1e
+
+    .el-dialog__header {
+      .el-dialog__title {
+        color #F5F5F5
+      }
+    }
+
+    .el-dialog__body {
+      padding 0 0 0 15px !important
+      display flex
+      height 100%
+
+      .el-row {
+        width 100%
+
+        .img-container {
+          display flex
+          justify-content center
+
+          .image-slot {
+            display flex
+            height 100vh
+            align-items center
+            justify-content center
+
+            .el-icon {
+              font-size 60px
+            }
+          }
+        }
+
+        .task-info {
+          background-color #25262b
+          padding 1rem 1.5rem
+
+          .info-line {
+            width 100%
+
+            .prompt {
+              background-color #35363b
+              padding 10px
+              color #999999
+              overflow auto
+              max-height 100px
+              min-height 50px
+
+              position relative
+
+              .el-icon {
+                position absolute
+                right 10px
+                bottom 10px
+                cursor pointer
+              }
+            }
+
+            .wrapper {
+              margin-top 10px
+              display flex
+
+              label {
+                display flex
+                width 100px
+                color #a5a5a5
+              }
+
+              .item-value {
+                display flex
+                width 100%
+                background-color #35363b
+                padding 2px 5px
+                border-radius 5px
+                color #F5F5F5
+              }
+            }
+
+          }
+
+          .copy-params {
+            padding 20px 0 10px 0
+
+            .el-button {
+              width 100%
+            }
+          }
+        }
+      }
+
+      // end el-row
+
+    }
+  }
+}

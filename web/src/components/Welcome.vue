@@ -98,7 +98,7 @@ const capabilities = ref([
 ])
 
 onMounted(() => {
-  httpGet("/api/admin/config/get?key=system").then(res => {
+  httpGet("/api/config/get?key=system").then(res => {
     title.value = res.data.title
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)

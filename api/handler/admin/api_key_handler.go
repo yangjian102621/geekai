@@ -68,6 +68,11 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
 	res := h.db.Find(&items)
@@ -109,10 +114,15 @@ func (h *ApiKeyHandler) Set(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-
-	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.ApiKey{})
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
+		res := h.db.Where("id = ?", data.Id).Delete(&model.ApiKey{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

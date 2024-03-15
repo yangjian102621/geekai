@@ -1,0 +1,69 @@
+.page-apps {
+  background-color: #282c34;
+  height 100vh
+
+  .title {
+    text-align center
+    background-color #25272d
+    font-size 24px
+    color #ffffff
+    padding 10px
+    border-bottom 1px solid #3c3c3c
+  }
+
+  .inner {
+    display flex
+    color #ffffff
+    padding 15px;
+    overflow-y visible
+    overflow-x hidden
+
+    .list-box {
+      .app-item {
+        border 1px solid #666666
+        border-radius 6px
+        overflow hidden
+        transition: all 0.3s ease; /* 添加过渡效果 */
+
+        .el-image {
+          padding 6px
+
+          .el-image__inner {
+            border-radius 10px
+          }
+        }
+
+        .title {
+          display flex
+          padding 10px
+
+          .name {
+            width 100%
+            text-align left
+            font-size 16px
+            font-weight bold
+            color #47fff1
+          }
+
+          .opt {
+            position: relative;
+            top -5px
+          }
+        }
+
+        .hello-msg {
+          height 60px
+          padding 10px
+          font-size 14px
+          color #999999
+        }
+
+        &:hover {
+          box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+          transform: translateY(-10px); /* 向上移动10像素 */
+        }
+      }
+    }
+  }
+
+}

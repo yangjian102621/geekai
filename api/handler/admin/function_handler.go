@@ -74,6 +74,11 @@ func (h *FunctionHandler) Set(c *gin.Context) {
 }
 
 func (h *FunctionHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var items []model.Function
 	res := h.db.Find(&items)
 	if res.Error != nil {

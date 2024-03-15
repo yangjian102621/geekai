@@ -1,0 +1,75 @@
+.mobile-chat {
+  .message-list-box {
+    padding-top 50px
+    padding-bottom 10px
+    overflow-x auto
+    background #F5F5F5;
+
+    .van-cell {
+      background none
+      font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    }
+  }
+
+  .chat-box-wrapper {
+    .van-sticky {
+      .van-cell-group--inset {
+        margin 0
+
+        .van-cell {
+          padding 10px
+
+          .icon-box {
+            .van-icon {
+              font-size 24px
+              margin-left 10px
+            }
+          }
+
+          .button-voice {
+            padding 0 2px
+
+            .el-icon {
+              font-size 24px
+            }
+            height 30px
+          }
+        }
+      }
+    }
+  }
+
+  .van-nav-bar__title {
+    .van-dropdown-menu__title {
+      margin-right 10px
+    }
+
+    .van-cell__title {
+      text-align left
+    }
+  }
+
+  .van-nav-bar__right {
+    .van-icon {
+      font-size 20px
+    }
+  }
+}
+
+.van-overlay {
+  .mic-wrapper {
+    display flex
+    height 100vh
+    justify-content center
+    align-items center
+    flex-flow column
+  }
+}
+
+.van-theme-dark {
+  .mobile-chat {
+    .message-list-box {
+      background #232425;
+    }
+  }
+}

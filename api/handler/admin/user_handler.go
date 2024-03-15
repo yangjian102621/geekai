@@ -27,6 +27,11 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
 
 // List 用户列表
 func (h *UserHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	username := h.GetTrim(c, "username")
@@ -154,30 +159,36 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 }
 
 func (h *UserHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-	if id > 0 {
+	var data struct {
+		Id uint
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Id > 0 {
 		tx := h.db.Begin()
-		res := h.db.Where("id = ?", id).Delete(&model.User{})
+		res := h.db.Where("id = ?", data.Id).Delete(&model.User{})
 		if res.Error != nil {
 			resp.ERROR(c, "删除失败")
 			return
 		}
 		// 删除聊天记录
-		res = h.db.Where("user_id = ?", id).Delete(&model.ChatItem{})
+		res = h.db.Where("user_id = ?", data.Id).Delete(&model.ChatItem{})
 		if res.Error != nil {
 			tx.Rollback()
 			resp.ERROR(c, "删除失败")
 			return
 		}
 		// 删除聊天历史记录
-		res = h.db.Where("user_id = ?", id).Delete(&model.ChatMessage{})
+		res = h.db.Where("user_id = ?", data.Id).Delete(&model.ChatMessage{})
 		if res.Error != nil {
 			tx.Rollback()
 			resp.ERROR(c, "删除失败")
 			return
 		}
 		// 删除登录日志
-		res = h.db.Where("user_id = ?", id).Delete(&model.UserLoginLog{})
+		res = h.db.Where("user_id = ?", data.Id).Delete(&model.UserLoginLog{})
 		if res.Error != nil {
 			tx.Rollback()
 			resp.ERROR(c, "删除失败")

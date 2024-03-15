@@ -23,8 +23,18 @@ func NewSysUserHandler(app *core.AppServer, db *gorm.DB) *SysUserHandler {
 	return &h
 }
 
+type role struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 // List 用户列表
 func (h *SysUserHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	username := h.GetTrim(c, "username")
@@ -48,9 +58,16 @@ func (h *SysUserHandler) List(c *gin.Context) {
 			var userVo vo.AdminUser
 			err := utils.CopyObject(item, &userVo)
 			if err == nil {
+				var roles []role
+				h.db.Raw("SELECT r.id,r.name "+
+					"FROM chatgpt_admin_user_roles as ur "+
+					"LEFT JOIN chatgpt_admin_roles as r ON ur.role_id = r.id "+
+					"WHERE ur.admin_id = ?", item.Id).Scan(&roles)
+
 				userVo.Id = item.Id
 				userVo.CreatedAt = item.CreatedAt.Unix()
 				userVo.UpdatedAt = item.UpdatedAt.Unix()
+				userVo.RoleIds = roles
 				users = append(users, userVo)
 			} else {
 				logger.Error(err)
@@ -68,6 +85,7 @@ func (h *SysUserHandler) Save(c *gin.Context) {
 		Password string `json:"password"`
 		Username string `json:"username"`
 		Status   bool   `json:"status"`
+		RoleIds  []int  `json:"role_ids"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -83,31 +101,58 @@ func (h *SysUserHandler) Save(c *gin.Context) {
 	var user = model.AdminUser{}
 	var res *gorm.DB
 	var userVo vo.AdminUser
+
+	tx := h.db.Begin()
+
 	if data.Id > 0 { // 更新
 		user.Id = data.Id
+		err := tx.Where("admin_id = ?", user.Id).Delete(&model.AdminUserRole{})
+		if err.Error != nil {
+			tx.Rollback()
+			resp.ERROR(c, "更新数据库失败")
+			return
+		}
 		// 此处需要用 map 更新，用结构体无法更新 0 值
-		res = h.db.Model(&user).Updates(map[string]interface{}{
+		res = tx.Model(&user).Updates(map[string]interface{}{
 			"username": data.Username,
 			"status":   data.Status,
 		})
 	} else {
 		salt := utils.RandString(8)
-		u := model.AdminUser{
-			Username: data.Username,
-			Password: utils.GenPassword(data.Password, salt),
-			Salt:     salt,
-			Status:   true,
-		}
-		res = h.db.Create(&u)
-		_ = utils.CopyObject(u, &userVo)
-		userVo.Id = u.Id
-		userVo.CreatedAt = u.CreatedAt.Unix()
-		userVo.UpdatedAt = u.UpdatedAt.Unix()
+
+		user.Username = data.Username
+		user.Password = utils.GenPassword(data.Password, salt)
+		user.Salt = salt
+		user.Status = true
+
+		res = tx.Create(&user)
+		_ = utils.CopyObject(user, &userVo)
+		userVo.Id = user.Id
+		userVo.CreatedAt = user.CreatedAt.Unix()
+		userVo.UpdatedAt = user.UpdatedAt.Unix()
 	}
 	if res.Error != nil {
+		tx.Rollback()
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}
+	// 添加角色
+	userRole := make([]model.AdminUserRole, 0)
+	if len(data.RoleIds) > 0 {
+		for _, roleId := range data.RoleIds {
+			userRole = append(userRole, model.AdminUserRole{
+				AdminId: user.Id,
+				RoleId:  roleId,
+			})
+		}
+		err := tx.CreateInBatches(userRole, len(userRole))
+		if err.Error != nil {
+			tx.Rollback()
+			resp.ERROR(c, "更新数据库失败")
+			return
+		}
+	}
+	tx.Commit()
 
 	resp.SUCCESS(c, userVo)
 }
@@ -155,11 +200,20 @@ func (h *SysUserHandler) Remove(c *gin.Context) {
 		return
 	}
 	if data.Id > 0 {
-		res := h.db.Where("id = ?", data.Id).Delete(&model.AdminUser{})
+		tx := h.db.Begin()
+		res := tx.Where("id = ?", data.Id).Delete(&model.AdminUser{})
 		if res.Error != nil {
+			tx.Rollback()
 			resp.ERROR(c, "删除失败")
 			return
 		}
+		res2 := tx.Where("admin_id = ?", data.Id).Delete(&model.AdminUserRole{})
+		if res2.Error != nil {
+			tx.Rollback()
+			resp.ERROR(c, "删除失败")
+			return
+		}
+		tx.Commit()
 	}
 	resp.SUCCESS(c)
 }

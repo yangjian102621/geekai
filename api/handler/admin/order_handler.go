@@ -25,6 +25,11 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 }
 
 func (h *OrderHandler) List(c *gin.Context) {
+	if err := utils.CheckPermission(c, h.db); err != nil {
+		resp.NotPermission(c)
+		return
+	}
+
 	var data struct {
 		OrderNo  string   `json:"order_no"`
 		Status   int      `json:"status"`
