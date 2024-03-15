@@ -157,6 +157,7 @@ type ModelAPIConfig struct {
 type SystemConfig struct {
 	Title      string `json:"title"`
 	AdminTitle string `json:"admin_title"`
+	Logo       string `json:"logo"`
 	InitPower  int    `json:"init_power"` // 新用户注册赠送算力值
 
 	RegisterWays    []string `json:"register_ways"`    // 注册方式：支持手机，邮箱注册
