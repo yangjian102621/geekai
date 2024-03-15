@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import { getList, save, deleting, setStatus } from "./api";
-import { ref } from "vue";
 import ProductForm from "./ProductForm.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
-import { Message } from "@arco-design/web-vue";
+import { Message, type TableColumnData } from "@arco-design/web-vue";
 import SimpleTable from "@/components/SimpleTable/SimpleTable.vue";
 import { dateFormat } from "@chatgpt-plus/packages/utils";
 // table 配置
-const columns = [
+const columns: TableColumnData[] = [
   {
     title: "产品名称",
     dataIndex: "name",
@@ -58,17 +57,6 @@ const columns = [
     fixed: "right",
   },
 ];
-
-// 数据
-const tableData = ref([]);
-const getData = () => {
-  getList().then(({ code, data }) => {
-    if (code === 0) {
-      tableData.value = data;
-    }
-  });
-};
-getData();
 
 //  新增编辑
 const popup = useCustomFormPopup(ProductForm, save, {

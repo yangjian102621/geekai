@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -126,103 +126,6 @@ importers:
       vue-tsc:
         specifier: ^1.8.27
         version: 1.8.27(typescript@5.3.3)
-
-  projects/mobile:
-    dependencies:
-      '@element-plus/icons-vue':
-        specifier: ^2.1.0
-        version: 2.3.1(vue@3.4.21)
-      axios:
-        specifier: ^0.27.2
-        version: 0.27.2
-      clipboard:
-        specifier: ^2.0.11
-        version: 2.0.11
-      compressorjs:
-        specifier: ^1.2.1
-        version: 1.2.1
-      core-js:
-        specifier: ^3.8.3
-        version: 3.36.0
-      element-plus:
-        specifier: ^2.3.0
-        version: 2.6.1(vue@3.4.21)
-      good-storage:
-        specifier: ^1.1.1
-        version: 1.1.1
-      highlight.js:
-        specifier: ^11.7.0
-        version: 11.9.0
-      json-bigint:
-        specifier: ^1.0.0
-        version: 1.0.0
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
-      markdown-it:
-        specifier: ^13.0.1
-        version: 13.0.2
-      markdown-it-latex2img:
-        specifier: ^0.0.6
-        version: 0.0.6
-      markdown-it-mathjax:
-        specifier: ^2.0.0
-        version: 2.0.0
-      md-editor-v3:
-        specifier: ^2.2.1
-        version: 2.11.3(vue@3.4.21)
-      pinia:
-        specifier: ^2.1.4
-        version: 2.1.7(typescript@5.3.3)(vue@3.4.21)
-      qrcode:
-        specifier: ^1.5.3
-        version: 1.5.3
-      qs:
-        specifier: ^6.11.1
-        version: 6.12.0
-      sortablejs:
-        specifier: ^1.15.0
-        version: 1.15.2
-      v3-waterfall:
-        specifier: ^1.2.1
-        version: 1.3.3
-      vant:
-        specifier: ^4.5.0
-        version: 4.8.5(vue@3.4.21)
-      vue:
-        specifier: ^3.2.13
-        version: 3.4.21(typescript@5.3.3)
-      vue-router:
-        specifier: ^4.0.15
-        version: 4.3.0(vue@3.4.21)
-    devDependencies:
-      '@babel/core':
-        specifier: 7.18.6
-        version: 7.18.6
-      '@babel/eslint-parser':
-        specifier: ^7.12.16
-        version: 7.23.10(@babel/core@7.18.6)(eslint@7.32.0)
-      '@vue/cli-plugin-babel':
-        specifier: ~5.0.0
-        version: 5.0.8(@vue/cli-service@5.0.8)(core-js@3.36.0)(vue@3.4.21)
-      '@vue/cli-plugin-eslint':
-        specifier: ~5.0.0
-        version: 5.0.8(@vue/cli-service@5.0.8)(eslint@7.32.0)
-      '@vue/cli-service':
-        specifier: ~5.0.0
-        version: 5.0.8(lodash@4.17.21)(prettier@3.2.5)(stylus-loader@7.1.3)(vue@3.4.21)
-      eslint:
-        specifier: ^7.32.0
-        version: 7.32.0
-      eslint-plugin-vue:
-        specifier: ^8.0.3
-        version: 8.7.1(eslint@7.32.0)
-      stylus:
-        specifier: ^0.58.1
-        version: 0.58.1
-      stylus-loader:
-        specifier: ^7.0.0
-        version: 7.1.3(stylus@0.58.1)(webpack@5.90.3)
 
   projects/web:
     dependencies:

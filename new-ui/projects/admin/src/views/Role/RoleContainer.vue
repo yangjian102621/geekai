@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { getList, save, deleting, setStatus } from "./api";
-import { reactive, ref } from "vue";
+import { reactive } from "vue";
 import RoleForm from "./RoleForm.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
 import { Message } from "@arco-design/web-vue";
@@ -39,17 +39,6 @@ const expandable = reactive({
   title: "",
   width: 50,
 });
-
-// 数据
-const tableData = ref([]);
-const getData = () => {
-  getList().then(({ code, data }) => {
-    if (code === 0) {
-      tableData.value = data;
-    }
-  });
-};
-getData();
 
 //展开行table
 const expandColumns = [
