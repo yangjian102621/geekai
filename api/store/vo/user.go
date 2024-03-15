@@ -8,7 +8,7 @@ type User struct {
 	Nickname    string               `json:"nickname"`
 	Avatar      string               `json:"avatar"`
 	Salt        string               `json:"salt"`          // 密码盐
-	Power       int                  `json:"calls"`         // 剩余算力
+	Power       int                  `json:"power"`         // 剩余算力
 	ChatConfig  types.UserChatConfig `json:"chat_config"`   // 聊天配置
 	ChatRoles   []string             `json:"chat_roles"`    // 聊天角色集合
 	ChatModels  []string             `json:"chat_models"`   // AI模型集合

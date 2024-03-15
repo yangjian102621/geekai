@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import SearchTable from "@/components/SearchTable/SearchTable.vue";
-import type { SearchTableColumns } from "@/components/SearchTable/type";
-import { getList, save as saveApi, deletApi, resetPassword } from "./api";
+import type {SearchTableColumns} from "@/components/SearchTable/type";
+import {getList, save as saveApi, deletApi, resetPassword} from "./api";
 import UserForm from "./UserForm.vue";
-import { Message } from "@arco-design/web-vue";
-import { dateFormat } from "@gpt-vue/packages/utils";
+import {Message} from "@arco-design/web-vue";
+import {dateFormat} from "@gpt-vue/packages/utils";
 import UserPassword from "./UserPassword.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
+
 const columns: SearchTableColumns[] = [
   {
     title: "账号",
@@ -16,21 +17,13 @@ const columns: SearchTableColumns[] = [
     },
   },
   {
-    title: "剩余对话次数",
-    dataIndex: "calls",
-  },
-  {
-    title: "剩余绘图次数",
-    dataIndex: "img_calls",
-  },
-  {
-    title: "累计消耗tokens",
-    dataIndex: "total_tokens",
+    title: "剩余算力",
+    dataIndex: "power",
   },
   {
     title: "状态",
     dataIndex: "status",
-    render: ({ record }) => {
+    render: ({record}) => {
       return record.status ? "正常" : "停用";
     },
   },
@@ -38,15 +31,19 @@ const columns: SearchTableColumns[] = [
     title: "过期时间",
     dataIndex: "expired_time",
     width: 180,
-    render: ({ record }) => {
-      return dateFormat(record.expired_time);
+    render: ({record}) => {
+      if (record.expired_time > 0) {
+        return dateFormat(record.expired_time)
+      } else {
+        return '长期有效'
+      }
     },
   },
   {
     title: "注册时间",
     dataIndex: "created_at",
     width: 180,
-    render: ({ record }) => {
+    render: ({record}) => {
       return dateFormat(record.created_at);
     },
   },
@@ -60,13 +57,13 @@ const columns: SearchTableColumns[] = [
 
 //弹窗
 const editModal = useCustomFormPopup(UserForm, saveApi, {
-  popupProps: (arg) => ({ title: arg[0].record ? "编辑用户" : "新增用户" }),
+  popupProps: (arg) => ({title: arg[0].record ? "编辑用户" : "新增用户"}),
 });
 const password = useCustomFormPopup(UserPassword, resetPassword, {
-  popupProps: (arg) => ({ title: "重置密码" }),
+  popupProps: (arg) => ({title: "重置密码"}),
 });
 
-const handleDelete = async ({ id }: { id: string }, reload) => {
+const handleDelete = async ({id}: { id: string }, reload) => {
   const res = await deletApi(id);
   if (res.code === 0) {
     Message.success("操作成功");
@@ -85,7 +82,10 @@ const handleDelete = async ({ id }: { id: string }, reload) => {
     </template>
     <template #search-extra="{ reload }">
       <a-button @click="editModal({ reload })" size="small" type="primary">
-        <template #icon> <icon-plus /> </template>新增
+        <template #icon>
+          <icon-plus/>
+        </template>
+        新增
       </a-button>
     </template>
   </SearchTable>

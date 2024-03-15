@@ -79,12 +79,12 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 		return
 	}
 
-	var m map[string]interface{}
-	err := utils.JsonDecode(config.Config, &m)
+	var value map[string]interface{}
+	err := utils.JsonDecode(config.Config, &value)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
-	resp.SUCCESS(c, m)
+	resp.SUCCESS(c, value)
 }
