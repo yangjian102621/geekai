@@ -68,6 +68,7 @@
 
 <script setup>
 import { ref, defineExpose, defineProps } from "vue";
+import { dateFormat } from "@chatgpt-plus/packages/utils";
 import { getModel, getRole } from "./api";
 const props = defineProps({
   data: {},
@@ -87,9 +88,9 @@ const form = ref({
 });
 if (props.data?.id) {
   form.value = Object.assign({}, props.data);
-  if (form.value.expired_time === 0) {
-    form.value.expired_time = "";
-  }
+  form.value.expired_time = !form.value.expired_time
+    ? undefined
+    : dateFormat(form.value.expired_time);
 }
 
 //拿选项

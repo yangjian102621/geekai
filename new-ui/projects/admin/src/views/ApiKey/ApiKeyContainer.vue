@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { getList, save, deleting, setStatus } from "./api";
-import { ref } from "vue";
 import ApiKeyForm from "./ApiKeyForm.vue";
 import useCustomFormPopup from "@/composables/useCustomFormPopup";
 import { Message } from "@arco-design/web-vue";
@@ -54,17 +53,6 @@ const columns = [
     fixed: "right",
   },
 ];
-
-// 数据
-const tableData = ref([]);
-const getData = () => {
-  getList().then(({ code, data }) => {
-    if (code === 0) {
-      tableData.value = data;
-    }
-  });
-};
-getData();
 
 //  新增编辑
 const popup = useCustomFormPopup(ApiKeyForm, save, {

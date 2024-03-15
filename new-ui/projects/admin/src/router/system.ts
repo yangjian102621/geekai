@@ -5,6 +5,7 @@ const system: RouteRecordRaw[] = [
     name: "SysAdmin",
     meta: {
       title: "系统管理员",
+      permission: "api_admin_sysUser_list",
     },
     component: () => import("@/views/SysAdmin/SysAdminContainer.vue"),
   },
@@ -13,6 +14,7 @@ const system: RouteRecordRaw[] = [
     name: "SysPermission",
     meta: {
       title: "权限配置",
+      permission: "api_admin_sysPermission_list",
     },
     component: () => import("@/views/SysPermission/SysPermissionContainer.vue"),
   },
@@ -21,6 +23,7 @@ const system: RouteRecordRaw[] = [
     name: "SysRole",
     meta: {
       title: "角色管理",
+      permission: "api_admin_sysRole_list",
     },
     component: () => import("@/views/SysRole/SysRoleContainer.vue"),
   },
