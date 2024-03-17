@@ -620,7 +620,9 @@ const connect = () => {
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
       fetchRunningJobs()
-      fetchFinishJobs(1)
+      isOver.value = false
+      page.value = 1
+      fetchFinishJobs(page.value)
     }
   });
 
@@ -679,6 +681,9 @@ const fetchRunningJobs = (userId) => {
 }
 
 const handleScrollEnd = () => {
+  if (isOver.value === true) {
+    return
+  }
   page.value += 1
   fetchFinishJobs(page.value)
 }
@@ -689,11 +694,6 @@ const isOver = ref(false)
 const loading = ref(false)
 // 获取已完成的任务
 const fetchFinishJobs = (page) => {
-  if (isOver.value === true) {
-    ElMessage.info("全部数据加载完毕！")
-    return
-  }
-
   loading.value = true
   httpGet(`/api/sd/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {

@@ -17,7 +17,7 @@
           end-placeholder="结束日期"
           format="YYYY-MM-DD"
           value-format="YYYY-MM-DD"
-          style="margin-right: 10px;width: 200px; position: relative;top:3px;"
+          style="margin: 0 10px;width: 200px; position: relative;top:3px;"
       />
       <el-button type="primary" :icon="Search" @click="fetchData">搜索</el-button>
     </div>

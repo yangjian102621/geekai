@@ -9,7 +9,7 @@
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
-            <el-input placeholder="手机号/邮箱地址" size="large" v-model="username" autocomplete="off" autofocus
+            <el-input placeholder="账号" size="large" v-model="username" autocomplete="off" autofocus
                       @keyup="handleKeyup">
               <template #prefix>
                 <el-icon>
@@ -20,7 +20,7 @@
           </div>
 
           <div class="block">
-            <el-input placeholder="请输入密码" size="large" v-model="password" show-password autocomplete="off"
+            <el-input placeholder="密码" size="large" v-model="password" show-password autocomplete="off"
                       @keyup="handleKeyup">
               <template #prefix>
                 <el-icon>
@@ -52,7 +52,7 @@
 
 <script setup>
 
-import {onMounted, onUnmounted, ref} from "vue";
+import {ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
@@ -61,7 +61,6 @@ import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
 import {checkSession} from "@/action/session";
 import {setUserToken} from "@/store/session";
-import {validateEmail, validateMobile} from "@/utils/validate";
 import {prevRoute} from "@/router";
 import ResetPass from "@/components/ResetPass.vue";
 

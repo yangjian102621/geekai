@@ -31,8 +31,6 @@
 <script setup>
 
 import {useRouter} from "vue-router";
-import {checkSession} from "@/action/session";
-import {isMobile} from "@/utils/libs";
 import {ref} from "vue";
 
 const router = useRouter();
@@ -43,7 +41,7 @@ const navs = ref([
   {path: "/sd", icon_path: "/images/sd.png", title: "SD 绘画"},
   {path: "/apps", icon: "menu", title: "应用中心"},
   {path: "/images-wall", icon: "image-list", title: "作品展示"},
-  {path: "/knowledge", icon: "book", title: "知识库"},
+  {path: "/powerLog", icon: "log", title: "消费日志"},
   {path: "/member", icon: "vip-user", title: "会员计划"},
   {path: "/invite", icon: "share", title: "推广计划"},
 ])

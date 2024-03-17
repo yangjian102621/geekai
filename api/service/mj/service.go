@@ -95,7 +95,7 @@ func (s *Service) Run() {
 			}
 			continue
 		}
-
+		logger.Infof("Task Executed: %+v", task)
 		// lock the task until the execute timeout
 		s.taskStartTimes[int(task.Id)] = time.Now()
 		atomic.AddInt32(&s.handledTaskNum, 1)

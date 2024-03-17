@@ -268,8 +268,7 @@ const save = function (key) {
   if (key === 'system') {
     systemFormRef.value.validate((valid) => {
       if (valid) {
-        system.value['img_call_price'] = parseFloat(system.value['img_call_price']) ?? 0
-        system.value['chat_call_price'] = parseFloat(system.value['chat_call_price']) ?? 0
+        system.value['power_price'] = parseFloat(system.value['power_price']) ?? 0
         httpPost('/api/admin/config/update', {key: key, config: system.value}).then(() => {
           ElMessage.success("操作成功！")
         }).catch(e => {
