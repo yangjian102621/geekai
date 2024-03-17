@@ -51,10 +51,10 @@ const routes = [
                 component: () => import('@/views/Invitation.vue'),
             },
             {
-                name: 'knowledge',
-                path: '/knowledge',
-                meta: {title: '我的知识库'},
-                component: () => import('@/views/Knowledge.vue'),
+                name: 'powerLog',
+                path: '/powerLog',
+                meta: {title: '消费日志'},
+                component: () => import('@/views/PowerLog.vue'),
             },
         ]
     },

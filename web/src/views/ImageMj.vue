@@ -340,7 +340,7 @@
               <div class="submit-btn">
                 <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
                 <div class="text-info">
-                  <el-tag type="success">绘图可用额度：{{ imgCalls }}</el-tag>
+                  <el-tag type="success">绘图可用额度：{{ power }}</el-tag>
                 </div>
               </div>
             </el-form>
@@ -580,7 +580,7 @@ const runningJobs = ref([])
 const finishedJobs = ref([])
 
 const socket = ref(null)
-const imgCalls = ref(0)
+const power = ref(0)
 const translating = ref(false)
 const userId = ref(0)
 
@@ -653,7 +653,9 @@ const connect = () => {
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
       fetchRunningJobs()
-      fetchFinishJobs(1)
+      isOver.value = false
+      page.value = 1
+      fetchFinishJobs(page.value)
     }
   });
 
@@ -665,7 +667,7 @@ const connect = () => {
 const clipboard = ref(null)
 onMounted(() => {
   checkSession().then(user => {
-    imgCalls.value = user['img_calls']
+    power.value = user['power']
     userId.value = user.id
 
     fetchRunningJobs()
@@ -704,7 +706,7 @@ const fetchRunningJobs = () => {
           type: 'error',
           duration: 0,
         })
-        imgCalls.value += 1
+        power.value += 1
         continue
       }
       _jobs.push(jobs[i])
@@ -717,6 +719,9 @@ const fetchRunningJobs = () => {
 
 
 const handleScrollEnd = () => {
+  if (isOver.value === true) {
+    return
+  }
   page.value += 1
   fetchFinishJobs(page.value)
 };
@@ -726,11 +731,6 @@ const pageSize = ref(15)
 const isOver = ref(false)
 const loading = ref(false)
 const fetchFinishJobs = (page) => {
-  if (isOver.value === true) {
-    ElMessage.info("全部数据加载完毕！")
-    return
-  }
-
   loading.value = true
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
@@ -813,7 +813,7 @@ const generate = () => {
   params.value.img_arr = imgList.value
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
-    imgCalls.value -= 1
+    power.value -= 1
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })
@@ -839,7 +839,7 @@ const send = (url, index, item) => {
     prompt: item.prompt,
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
-    imgCalls.value -= 1
+    power.value -= 1
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

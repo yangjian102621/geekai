@@ -1,5 +1,5 @@
 <template>
-  <div class="page-knowledge" :style="{ height: winHeight + 'px' }">
+  <div class="power-log" :style="{ height: winHeight + 'px' }">
     <div class="inner">
       <h1>会员知识库搜索</h1>
       <h2>页面正在紧锣密鼓开发中，敬请期待！</h2>
@@ -14,7 +14,7 @@ const winHeight = ref(window.innerHeight)
 </script>
 
 <style lang="stylus" scoped>
-.page-knowledge {
+.power-log {
   display: flex;
   justify-content: center;
   align-items center
