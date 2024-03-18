@@ -32,7 +32,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 		return
 	}
 
-	var models []string
+	var models []int
 	err = utils.JsonDecode(user.ChatModels, &models)
 	if err != nil {
 		resp.ERROR(c, "当前用户没有订阅任何模型")
@@ -41,7 +41,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 
 	// 查询用户有权限访问的模型以及所有开放的模型
 	res := h.db.Where("enabled = ?", true).Where(
-		h.db.Where("value IN ?", models).Or("open =?", true),
+		h.db.Where("id IN ?", models).Or("open =?", true),
 	).Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {

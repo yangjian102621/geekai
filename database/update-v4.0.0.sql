@@ -30,7 +30,7 @@ DROP `total_tokens`,
   DROP `img_calls`;
 
 ALTER TABLE `chatgpt_chat_models` CHANGE `weight` `power` TINYINT NOT NULL COMMENT '消耗算力点数';
-ALTER TABLE `chatgpt_chat_models` ADD `temperature` FLOAT(3,2) NOT NULL DEFAULT '1' COMMENT '模型创意度' AFTER `power`, ADD `max_tokens` INT(11) NOT NULL DEFAULT '1024' COMMENT '最大响应长度' AFTER `temperature`, ADD `max_context` INT(11) NOT NULL DEFAULT '4096' COMMENT '最大上下文长度' AFTER `max_tokens`;
+ALTER TABLE `chatgpt_chat_models` ADD `temperature` FLOAT(3,1) NOT NULL DEFAULT '1' COMMENT '模型创意度' AFTER `power`, ADD `max_tokens` INT(11) NOT NULL DEFAULT '1024' COMMENT '最大响应长度' AFTER `temperature`, ADD `max_context` INT(11) NOT NULL DEFAULT '4096' COMMENT '最大上下文长度' AFTER `max_tokens`;
 
 CREATE TABLE `chatgpt_plus`.`chatgpt_power_logs` ( `id` INT(11) NOT NULL AUTO_INCREMENT , `user_id` INT(11) NOT NULL COMMENT '用户ID' , `username` VARCHAR(30) NOT NULL COMMENT '用户名' , `type` TINYINT(1) NOT NULL COMMENT '类型（1：充值，2：消费，3：退费）' , `amount` SMALLINT(3) NOT NULL COMMENT '算力花费' , `balance` INT(11) NOT NULL COMMENT '余额' , `model` VARCHAR(30) NOT NULL COMMENT '模型' , `remark` VARCHAR(255) NOT NULL COMMENT '备注' , `created_at` DATETIME NOT NULL COMMENT '创建时间' , PRIMARY KEY (`id`)) ENGINE = InnoDB COMMENT = '用户算力消费日志';
 

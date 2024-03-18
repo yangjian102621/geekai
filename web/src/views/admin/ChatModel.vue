@@ -266,6 +266,7 @@ const edit = function (row) {
 
 const save = function () {
   formRef.value.validate((valid) => {
+    item.value.temperature = parseFloat(item.value.temperature)
     if (valid) {
       showDialog.value = false
       httpPost('/api/admin/model/save', item.value).then((res) => {

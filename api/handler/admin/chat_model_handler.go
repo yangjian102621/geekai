@@ -26,18 +26,18 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 
 func (h *ChatModelHandler) Save(c *gin.Context) {
 	var data struct {
-		Id          uint   `json:"id"`
-		Name        string `json:"name"`
-		Value       string `json:"value"`
-		Enabled     bool   `json:"enabled"`
-		SortNum     int    `json:"sort_num"`
-		Open        bool   `json:"open"`
-		Platform    string `json:"platform"`
-		Power       int    `json:"power"`
-		MaxTokens   int    `json:"max_tokens"`  // 最大响应长度
-		MaxContext  int    `json:"max_context"` // 最大上下文长度
-		Temperature string `json:"temperature"` // 模型温度
-		CreatedAt   int64  `json:"created_at"`
+		Id          uint    `json:"id"`
+		Name        string  `json:"name"`
+		Value       string  `json:"value"`
+		Enabled     bool    `json:"enabled"`
+		SortNum     int     `json:"sort_num"`
+		Open        bool    `json:"open"`
+		Platform    string  `json:"platform"`
+		Power       int     `json:"power"`
+		MaxTokens   int     `json:"max_tokens"`  // 最大响应长度
+		MaxContext  int     `json:"max_context"` // 最大上下文长度
+		Temperature float32 `json:"temperature"` // 模型温度
+		CreatedAt   int64   `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -53,7 +53,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Open:        data.Open,
 		MaxTokens:   data.MaxTokens,
 		MaxContext:  data.MaxContext,
-		Temperature: float32(utils.Str2Float(data.Temperature)),
+		Temperature: data.Temperature,
 		Power:       data.Power}
 	item.Id = data.Id
 	if item.Id > 0 {

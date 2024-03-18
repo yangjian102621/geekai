@@ -25,8 +25,12 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
 
 func (h *ConfigHandler) Update(c *gin.Context) {
 	var data struct {
-		Key    string                 `json:"key"`
-		Config map[string]interface{} `json:"config"`
+		Key    string `json:"key"`
+		Config struct {
+			types.SystemConfig
+			Content string `json:"content,omitempty"`
+			Updated bool   `json:"updated,omitempty"`
+		} `json:"config"`
 	}
 
 	if err := c.ShouldBindJSON(&data); err != nil {
