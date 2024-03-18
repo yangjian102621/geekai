@@ -131,10 +131,13 @@ const XunFei = Platform("XunFei")
 const QWen = Platform("QWen")
 
 type SystemConfig struct {
-	Title      string `json:"title"`
-	AdminTitle string `json:"admin_title"`
-	Logo       string `json:"logo"`
-	InitPower  int    `json:"init_power"` // 新用户注册赠送算力值
+	Title         string `json:"title"`
+	AdminTitle    string `json:"admin_title"`
+	Logo          string `json:"logo"`
+	InitPower     int    `json:"init_power"`      // 新用户注册赠送算力值
+	DailyPower    int    `json:"daily_power"`     // 每日赠送算力
+	InvitePower   int    `json:"invite_power"`    // 邀请新用户赠送算力值
+	VipMonthPower int    `json:"vip_month_power"` // VIP 会员每月赠送的算力值
 
 	RegisterWays    []string `json:"register_ways"`    // 注册方式：支持手机，邮箱注册
 	EnabledRegister bool     `json:"enabled_register"` // 是否开放注册
@@ -143,11 +146,8 @@ type SystemConfig struct {
 	EnabledReward bool    `json:"enabled_reward"` // 启用众筹功能
 	PowerPrice    float64 `json:"power_price"`    // 算力单价
 
-	OrderPayTimeout  int      `json:"order_pay_timeout"`   //订单支付超时时间
-	DefaultModels    []string `json:"default_models"`      // 默认开通的 AI 模型
-	OrderPayInfoText string   `json:"order_pay_info_text"` // 订单支付页面说明文字
-	InvitePower      int      `json:"invite_power"`        // 邀请新用户赠送算力值
-	VipMonthPower    int      `json:"vip_month_power"`     // VIP 会员每月赠送的算力值
+	OrderPayTimeout int      `json:"order_pay_timeout"` //订单支付超时时间
+	DefaultModels   []string `json:"default_models"`    // 默认开通的 AI 模型
 
 	MjPower   int `json:"mj_power"`   // MJ 绘画消耗算力
 	SdPower   int `json:"sd_power"`   // SD 绘画消耗算力
