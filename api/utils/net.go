@@ -110,7 +110,7 @@ func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	r, err := client.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
-			Model:       "gpt-3.5-turbo",
+			Model:       "gpt-3.5-turbo-0125",
 			Temperature: 0.9,
 			MaxTokens:   1024,
 			Stream:      false,

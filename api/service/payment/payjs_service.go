@@ -79,7 +79,7 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 }
 
 func (js *PayJS) sign(params url.Values) string {
-	params.Del(`Sign`)
+	params.Del(`sign`)
 	var keys = make([]string, 0, 0)
 	for key := range params {
 		if params.Get(key) != `` {
@@ -109,7 +109,7 @@ func (js *PayJS) Check(tradeNo string) error {
 	apiURL := fmt.Sprintf("%s/api/check", js.config.ApiURL)
 	params := url.Values{}
 	params.Add("payjs_order_id", tradeNo)
-	params.Add("Sign", js.sign(params))
+	params.Add("sign", js.sign(params))
 	data := strings.NewReader(params.Encode())
 	resp, err := http.Post(apiURL, "application/x-www-form-urlencoded", data)
 	defer resp.Body.Close()
@@ -135,6 +135,7 @@ func (js *PayJS) Check(tradeNo string) error {
 	if r.ReturnCode == 1 && r.Status == 1 {
 		return nil
 	} else {
+		logger.Errorf("PayJs 支付验证响应：%s", string(body))
 		return errors.New("order not paid")
 	}
 }
