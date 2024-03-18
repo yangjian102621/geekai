@@ -34,8 +34,9 @@
         <el-col :span="17">
           <div class="product-box">
             <div class="info" v-if="orderPayInfoText !== ''">
-              <el-alert type="info" show-icon :closable="false" effect="dark">
-                <strong>说明:</strong> {{ orderPayInfoText }}
+              <el-alert type="success" show-icon :closable="false" effect="dark">
+                <strong>说明:</strong> 月度会员，年度会员每月赠送 {{ vipMonthPower }} 点算力，赠送算力当月有效，当月没有消费完的算力不结余到下个月。
+                点卡充值的算力长期有效。
               </el-alert>
             </div>
 
@@ -64,15 +65,9 @@
                     </div>
 
                     <div class="info-line">
-                      <span class="label">对话次数：</span>
-                      <span class="calls" v-if="scope.item.calls > 0">{{ scope.item.calls }}</span>
-                      <span class="calls" v-else>{{ vipMonthCalls }}</span>
-                    </div>
-
-                    <div class="info-line">
-                      <span class="label">绘图次数：</span>
-                      <span class="calls" v-if="scope.item.img_calls > 0">{{ scope.item.img_calls }}</span>
-                      <span class="calls" v-else>{{ vipMonthImgCalls }}</span>
+                      <span class="label">算力值：</span>
+                      <span class="power" v-if="scope.item.power > 0">{{ scope.item.power }}</span>
+                      <span class="power" v-else>{{ vipMonthPower }}</span>
                     </div>
 
                     <div class="pay-way">
@@ -121,9 +116,9 @@
         title="参与众筹"
     >
       <el-alert type="info" :closable="false">
-        <div style="font-size: 14px">您好，众筹 9.9元，就可以兑换 100 次对话，以此来覆盖我们的 OpenAI
-          账单和服务器的费用。<strong
-              style="color: #f56c6c">由于本人没有开通微信支付，付款后请凭借转账单号,点击【众筹核销】按钮手动核销。</strong>
+        <div style="font-size: 14px">您好，目前每单位算力众筹价格为 <strong style="color: #f56c6c">{{ powerPrice }}
+        </strong>元。
+          由于本人没有开通微信支付，付款后请凭借转账单号,点击【众筹核销】按钮手动核销。
         </div>
       </el-alert>
       <div style="text-align: center;padding-top: 10px;">
@@ -137,9 +132,8 @@
         :show-close="true"
         :width="400"
         @close="closeOrder"
-        title="充值订单支付">
+        :title="'实付金额：￥'+amount">
       <div class="pay-container">
-        <h3 class="amount">实付金额：<span>￥{{ amount }}</span></h3>
         <div class="count-down">
           <count-down :second="orderTimeout" @timeout="refreshPayCode" ref="countDownRef"/>
         </div>
@@ -205,8 +199,8 @@ const countDownRef = ref(null)
 const orderTimeout = ref(1800)
 const loading = ref(true)
 const orderPayInfoText = ref("")
-const vipMonthCalls = ref(0)
-const vipMonthImgCalls = ref(0)
+const vipMonthPower = ref(0)
+const powerPrice = ref(0)
 
 const payWays = ref({})
 const amount = ref(0)
@@ -234,8 +228,8 @@ onMounted(() => {
     if (res.data['order_pay_timeout'] > 0) {
       orderTimeout.value = res.data['order_pay_timeout']
     }
-    vipMonthCalls.value = res.data['vip_month_calls']
-    vipMonthImgCalls.value = res.data['vip_month_img_calls']
+    vipMonthPower.value = res.data['vip_month_power']
+    powerPrice.value = res.data['power_price']
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })

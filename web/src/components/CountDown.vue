@@ -1,7 +1,7 @@
 <template>
   <!-- 倒计时组件 -->
   <div class="countdown">
-    <el-tag size="large" :type="type">{{ timerStr }}</el-tag>
+    <el-tag size="large" type="info">{{ timerStr }}</el-tag>
   </div>
 </template>
 <script setup>

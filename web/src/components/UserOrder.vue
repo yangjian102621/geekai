@@ -22,7 +22,7 @@
             <span>{{ scope.row.remark?.power }}</span>
           </template>
         </el-table-column>
-
+        <el-table-column prop="pay_way" label="支付方式"/>
         <el-table-column label="支付时间">
           <template #default="scope">
             <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row['pay_time']) }}</span>
@@ -56,7 +56,7 @@ import Clipboard from "clipboard";
 const items = ref([])
 const total = ref(0)
 const page = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(12)
 const loading = ref(true)
 
 onMounted(() => {

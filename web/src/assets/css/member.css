@@ -56,7 +56,6 @@
   background-color: #393f4a;
   color: #fff;
   border-radius: 10px;
-  height: 100vh;
 }
 .member .inner .user-profile .el-form-item__label {
   color: #fff;
@@ -130,7 +129,7 @@
 .member .inner .product-box .list-box .product-item .product-info .info-line .expire {
   color: #409eff;
 }
-.member .inner .product-box .list-box .product-item .product-info .info-line .calls {
+.member .inner .product-box .list-box .product-item .product-info .info-line .power {
   color: #f2cb51;
 }
 .member .inner .product-box .list-box .product-item .product-info .pay-way {
