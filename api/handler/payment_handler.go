@@ -11,6 +11,7 @@ import (
 	"embed"
 	"encoding/base64"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"math"
 	"net/http"
 	"net/url"
@@ -207,13 +208,15 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		Price:    product.Price,
 		Discount: product.Discount,
 	}
+
+	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
 	order := model.Order{
 		UserId:    user.Id,
 		Username:  user.Username,
 		ProductId: product.Id,
 		OrderNo:   orderNo,
 		Subject:   product.Name,
-		Amount:    product.Price - product.Discount,
+		Amount:    amount,
 		Status:    types.OrderNotPaid,
 		PayWay:    payWay,
 		Remark:    utils.JsonEncode(remark),
@@ -308,20 +311,28 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 		return err
 	}
 
+	var opt string
+	var power int
 	if user.Vip { // 已经是 VIP 用户
 		if remark.Days > 0 { // 只延期 VIP，不增加调用次数
 			user.ExpiredTime = time.Unix(user.ExpiredTime, 0).AddDate(0, 0, remark.Days).Unix()
 		} else { // 充值点卡，直接增加次数即可
 			user.Power += remark.Power
+			opt = "点卡充值"
+			power = remark.Power
 		}
 
-	} else { // 非 VIP 用户
+	} else {                 // 非 VIP 用户
 		if remark.Days > 0 { // vip 套餐：days > 0, power == 0
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 			user.Power += h.App.SysConfig.VipMonthPower
 			user.Vip = true
+			opt = "VIP充值"
+			power = h.App.SysConfig.VipMonthPower
 		} else { //点卡：days == 0, calls > 0
 			user.Power += remark.Power
+			opt = "点卡充值"
+			power = remark.Power
 		}
 	}
 
@@ -346,6 +357,22 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 
 	// 更新产品销量
 	h.db.Model(&model.Product{}).Where("id = ?", order.ProductId).UpdateColumn("sales", gorm.Expr("sales + ?", 1))
+
+	// 记录算力充值日志
+	if opt != "" {
+		h.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerRecharge,
+			Amount:    power,
+			Balance:   user.Power,
+			Mark:      types.PowerAdd,
+			Model:     "",
+			Remark:    fmt.Sprintf("%s，金额：%f，订单号：%s", opt, order.Amount, order.OrderNo),
+			CreatedAt: time.Now(),
+		})
+	}
+
 	return nil
 }
 

@@ -23,10 +23,7 @@
 
         <el-table-column label="兑换详情">
           <template #default="scope">
-            <el-tag v-if="scope.row['exchange']['calls'] > 0">聊天{{ scope.row['exchange']['calls'] }}次</el-tag>
-            <el-tag v-else-if="scope.row['exchange']['img_calls'] > 0" type="success">
-              绘图{{ scope.row['exchange']['img_calls'] }}次
-            </el-tag>
+            <span v-if="scope.row['exchange']['power'] > 0">增加{{ scope.row['exchange']['power'] }}算力</span>
           </template>
         </el-table-column>
 

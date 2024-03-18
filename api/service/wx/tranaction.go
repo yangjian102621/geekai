@@ -41,7 +41,7 @@ func parseTransactionMessage(xmlData string) *Message {
 			}
 			if se.Name.Local == "weapp_path" || se.Name.Local == "url" {
 				if err := decoder.DecodeElement(&value, &se); err == nil {
-					if strings.Contains(value, "trans_id=") {
+					if strings.Contains(value, "?trans_id=") || strings.Contains(value, "?id=") {
 						message.Url = value
 					}
 				}
