@@ -129,14 +129,6 @@
                 </div>
               </div>
             </el-form-item>
-            <el-form-item label="会员充值说明" prop="order_pay_info_text">
-              <el-input
-                  v-model="system['order_pay_info_text']"
-                  :autosize="{ minRows: 3, maxRows: 10 }"
-                  type="textarea"
-                  placeholder="请输入会员充值说明文字，比如介绍会员计划"
-              />
-            </el-form-item>
 
             <el-form-item label="默认AI模型" prop="default_models">
               <template #default>
@@ -312,7 +304,7 @@ const uploadImg = (file) => {
       const formData = new FormData();
       formData.append('file', result, result.name);
       // 执行上传操作
-      httpPost('/api/upload', formData).then((res) => {
+      httpPost('/api/admin/upload', formData).then((res) => {
         system.value[configKey.value] = res.data.url
         ElMessage.success('上传成功')
       }).catch((e) => {
@@ -333,7 +325,7 @@ const onUploadImg = (files, callback) => {
           const formData = new FormData();
           formData.append('file', file, file.name);
           // 执行上传操作
-          httpPost('/api/upload', formData).then((res) => rev(res)).catch((error) => rej(error));
+          httpPost('/api/admin/upload', formData).then((res) => rev(res)).catch((error) => rej(error));
         });
       })
   ).then(res => {

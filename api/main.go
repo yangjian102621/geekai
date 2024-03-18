@@ -384,8 +384,6 @@ func main() {
 		fx.Provide(admin.NewUploadHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.UploadHandler) {
 			s.Engine.POST("/api/admin/upload", h.Upload)
-			s.Engine.GET("/api/admin/upload/list", h.List)
-			s.Engine.GET("/api/admin/upload/remove", h.Remove)
 		}),
 
 		// 系统管理员
