@@ -131,30 +131,30 @@ const XunFei = Platform("XunFei")
 const QWen = Platform("QWen")
 
 type SystemConfig struct {
-	Title         string `json:"title"`
-	AdminTitle    string `json:"admin_title"`
-	Logo          string `json:"logo"`
-	InitPower     int    `json:"init_power"`      // 新用户注册赠送算力值
-	DailyPower    int    `json:"daily_power"`     // 每日赠送算力
-	InvitePower   int    `json:"invite_power"`    // 邀请新用户赠送算力值
-	VipMonthPower int    `json:"vip_month_power"` // VIP 会员每月赠送的算力值
+	Title         string `json:"title,omitempty"`
+	AdminTitle    string `json:"admin_title,omitempty"`
+	Logo          string `json:"logo,omitempty"`
+	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
+	DailyPower    int    `json:"daily_power,omitempty"`     // 每日赠送算力
+	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
+	VipMonthPower int    `json:"vip_month_power,omitempty"` // VIP 会员每月赠送的算力值
 
-	RegisterWays    []string `json:"register_ways"`    // 注册方式：支持手机，邮箱注册
-	EnabledRegister bool     `json:"enabled_register"` // 是否开放注册
+	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机，邮箱注册
+	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
-	RewardImg     string  `json:"reward_img"`     // 众筹收款二维码地址
-	EnabledReward bool    `json:"enabled_reward"` // 启用众筹功能
-	PowerPrice    float64 `json:"power_price"`    // 算力单价
+	RewardImg     string  `json:"reward_img,omitempty"`     // 众筹收款二维码地址
+	EnabledReward bool    `json:"enabled_reward,omitempty"` // 启用众筹功能
+	PowerPrice    float64 `json:"power_price,omitempty"`    // 算力单价
 
-	OrderPayTimeout int      `json:"order_pay_timeout"` //订单支付超时时间
-	DefaultModels   []string `json:"default_models"`    // 默认开通的 AI 模型
+	OrderPayTimeout int   `json:"order_pay_timeout,omitempty"` //订单支付超时时间
+	DefaultModels   []int `json:"default_models,omitempty"`    // 默认开通的 AI 模型
 
-	MjPower   int `json:"mj_power"`   // MJ 绘画消耗算力
-	SdPower   int `json:"sd_power"`   // SD 绘画消耗算力
-	DallPower int `json:"dall_power"` // DALLE3 绘图消耗算力
+	MjPower   int `json:"mj_power,omitempty"`   // MJ 绘画消耗算力
+	SdPower   int `json:"sd_power,omitempty"`   // SD 绘画消耗算力
+	DallPower int `json:"dall_power,omitempty"` // DALLE3 绘图消耗算力
 
-	WechatCardURL string `json:"wechat_card_url"` // 微信客服地址
+	WechatCardURL string `json:"wechat_card_url,omitempty"` // 微信客服地址
 
-	EnableContext bool `json:"enable_context"`
-	ContextDeep   int  `json:"context_deep"`
+	EnableContext bool `json:"enable_context,omitempty"`
+	ContextDeep   int  `json:"context_deep,omitempty"`
 }

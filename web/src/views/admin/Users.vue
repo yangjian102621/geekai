@@ -116,7 +116,7 @@
                 v-for="item in models"
                 :key="item.id"
                 :label="item.name"
-                :value="item.value"
+                :value="item.id"
             />
           </el-select>
         </el-form-item>
@@ -297,7 +297,6 @@ const saveUser = function () {
 }
 
 const handleSelectionChange = function (rows) {
-  // TODO: 批量删除操作
   console.log(rows)
 }
 

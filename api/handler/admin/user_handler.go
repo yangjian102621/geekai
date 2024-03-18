@@ -72,7 +72,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		Password    string   `json:"password"`
 		Username    string   `json:"username"`
 		ChatRoles   []string `json:"chat_roles"`
-		ChatModels  []string `json:"chat_models"`
+		ChatModels  []int    `json:"chat_models"`
 		ExpiredTime string   `json:"expired_time"`
 		Status      bool     `json:"status"`
 		Vip         bool     `json:"vip"`

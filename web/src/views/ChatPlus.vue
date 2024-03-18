@@ -82,7 +82,7 @@
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-head">
           <div class="chat-config">
-            <span class="role-select-label">聊天角色：</span>
+            <!--            <span class="role-select-label">聊天角色：</span>-->
             <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="newChat">
               <el-option
                   v-for="item in roles"

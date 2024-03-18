@@ -36,7 +36,14 @@
             <el-form-item label="VIP每月赠送算力" prop="vip_month_power">
               <el-input v-model.number="system['vip_month_power']" placeholder="VIP用户每月赠送算力"/>
             </el-form-item>
-
+            <el-form-item label="每日赠送算力" prop="daily_power">
+              <div class="tip-input-line">
+                <el-input v-model.number="system['daily_power']" placeholder="默认值0"/>
+                <div class="tip">
+                  如果设置0表示不赠送，用户享受完免费算力额度之后就不能再发起对话了。如果设置为N，则系统每天将算力值小于N的用户自动补充到N。注意，此功能要配合XXL-JOB启用。
+                </div>
+              </div>
+            </el-form-item>
             <el-form-item label="开放注册" prop="enabled_register">
               <el-switch v-model="system['enabled_register']"/>
               <el-tooltip
@@ -144,7 +151,7 @@
                         v-for="item in models"
                         :key="item.id"
                         :label="item.name"
-                        :value="item.value"
+                        :value="item.id"
                     />
                   </el-select>
                   <div class="info">
@@ -167,12 +174,12 @@
               <el-switch v-model="system['enable_context']"/>
             </el-form-item>
             <el-form-item label="会话上下文深度">
-              <div style="width:100%">
+              <div class="tip-input-line">
                 <el-input-number v-model="system['context_deep']" :min="0" :max="10"/>
-              </div>
-              <div class="tip" style="margin-top: 10px; ">会话上下文深度：在老会话中继续会话，默认加载多少条聊天记录作为上下文。如果设置为
-                0
-                则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置需要为偶数，否则将无法兼容百度的 API。
+                <div class="tip">会话上下文深度：在老会话中继续会话，默认加载多少条聊天记录作为上下文。如果设置为
+                  0
+                  则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置需要为偶数，否则将无法兼容百度的 API。
+                </div>
               </div>
             </el-form-item>
             <el-form-item>
@@ -202,17 +209,6 @@ import 'md-editor-v3/lib/style.css';
 
 const activeName = ref('basic')
 const system = ref({models: []})
-const chat = ref({
-  open_ai: {temperature: 1, max_tokens: 1024},
-  azure: {temperature: 1, max_tokens: 1024},
-  chat_gml: {temperature: 0.95, max_tokens: 1024},
-  baidu: {temperature: 0.95, max_tokens: 1024},
-  xun_fei: {temperature: 0.5, max_tokens: 1024},
-  context_deep: 0,
-  enable_context: true,
-  enable_history: true,
-  dall_api_url: "",
-})
 const loading = ref(true)
 const systemFormRef = ref(null)
 const chatFormRef = ref(null)
@@ -226,14 +222,6 @@ onMounted(() => {
   }).catch(e => {
     ElMessage.error("加载系统配置失败: " + e.message)
   })
-
-  // 加载聊天配置
-  httpGet('/api/admin/config/get?key=chat').then(res => {
-    chat.value = res.data
-  }).catch(e => {
-    ElMessage.error("加载聊天配置失败: " + e.message)
-  })
-
   // 加载聊天配置
   httpGet('/api/admin/config/get?key=notice').then(res => {
     notice.value = res.data['content']
@@ -361,12 +349,6 @@ const onUploadImg = (files, callback) => {
             padding-left 10px;
           }
 
-          .tip {
-            color #c1c1c1
-            font-size 12px;
-            line-height 1.5;
-          }
-
           .el-icon {
             font-size 16px
             margin-left 10px
@@ -377,6 +359,15 @@ const onUploadImg = (files, callback) => {
             font-size 24px
             position relative
             top 3px
+          }
+
+          .tip-input-line {
+            .tip {
+              margin-top 10px
+              color #c1c1c1
+              font-size 12px;
+              line-height 1.5;
+            }
           }
         }
       }
