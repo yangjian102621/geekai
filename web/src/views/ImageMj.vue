@@ -340,7 +340,7 @@
               <div class="submit-btn">
                 <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
                 <div class="text-info">
-                  <el-tag type="success">绘图可用额度：{{ power }}</el-tag>
+                  <el-tag type="success">当前可用算力：{{ power }}</el-tag>
                 </div>
               </div>
             </el-form>
@@ -481,6 +481,7 @@
       </div><!-- end task list box -->
     </div>
 
+    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
@@ -505,9 +506,12 @@ import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {isMobile, removeArrayItem} from "@/utils/libs";
+import LoginDialog from "@/components/LoginDialog.vue";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
+const showLoginDialog = ref(false)
+
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   mjBoxHeight.value = window.innerHeight - 150
@@ -583,12 +587,14 @@ const socket = ref(null)
 const power = ref(0)
 const translating = ref(false)
 const userId = ref(0)
-
-if (isMobile()) {
-  router.replace("/mobile/mj")
-}
+const isLogin = ref(false)
 
 const rewritePrompt = () => {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
+  
   translating.value = true
   httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data
@@ -600,6 +606,11 @@ const rewritePrompt = () => {
 }
 
 const translatePrompt = (negative) => {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
+
   translating.value = true
   let prompt = params.value.prompt
   if (negative) {
@@ -666,18 +677,7 @@ const connect = () => {
 
 const clipboard = ref(null)
 onMounted(() => {
-  checkSession().then(user => {
-    power.value = user['power']
-    userId.value = user.id
-
-    fetchRunningJobs()
-    fetchFinishJobs(1)
-    connect()
-
-  }).catch(() => {
-    router.push('/login')
-  });
-
+  initData()
   clipboard.value = new Clipboard('.copy-prompt-mj');
   clipboard.value.on('success', () => {
     ElMessage.success("复制成功！");
@@ -687,6 +687,23 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 })
+
+// 初始化数据
+
+const initData = () => {
+  checkSession().then(user => {
+    power.value = user['power']
+    userId.value = user.id
+    isLogin.value = true
+
+    fetchRunningJobs()
+    fetchFinishJobs(1)
+    connect()
+
+  }).catch(() => {
+
+  });
+}
 
 onUnmounted(() => {
   clipboard.value.destroy()
@@ -776,6 +793,11 @@ const changeModel = (item) => {
 
 // 图片上传
 const uploadImg = (file) => {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
+
   // 压缩图片并上传
   new Compressor(file.file, {
     quality: 0.6,
@@ -799,6 +821,11 @@ const uploadImg = (file) => {
 // 创建绘图任务
 const promptRef = ref(null)
 const generate = () => {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
+
   if (params.value.prompt === '' && params.value.task_type === "image") {
     promptRef.value.focus()
     return ElMessage.error("请输入绘画提示词！")
