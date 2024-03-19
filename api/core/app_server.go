@@ -146,6 +146,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 			c.Request.URL.Path == "/api/invite/hits" ||
 			c.Request.URL.Path == "/api/sd/imgWall" ||
 			c.Request.URL.Path == "/api/sd/client" ||
+			c.Request.URL.Path == "/api/config/get" ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||

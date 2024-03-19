@@ -277,6 +277,128 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{"order_no": orderNo, "image": fmt.Sprintf("data:image/jpg;base64, %s", imgDataBase64), "url": imageURL})
 }
 
+// Mobile 移动端支付
+func (h *PaymentHandler) Mobile(c *gin.Context) {
+
+	var data struct {
+		PayWay    string `json:"pay_way"` // 支付方式
+		ProductId uint   `json:"product_id"`
+		UserId    int    `json:"user_id"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var product model.Product
+	res := h.db.First(&product, data.ProductId)
+	if res.Error != nil {
+		resp.ERROR(c, "Product not found")
+		return
+	}
+
+	orderNo, err := h.snowflake.Next(false)
+	if err != nil {
+		resp.ERROR(c, "error with generate trade no: "+err.Error())
+		return
+	}
+	var user model.User
+	res = h.db.First(&user, data.UserId)
+	if res.Error != nil {
+		resp.ERROR(c, "Invalid user ID")
+		return
+	}
+
+	var payWay string
+	var notifyURL string
+	switch data.PayWay {
+	case "hupi":
+		payWay = PayWayXunHu
+		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
+	case "payjs":
+		payWay = PayWayJs
+		notifyURL = h.App.Config.JPayConfig.NotifyURL
+	default:
+		payWay = PayWayAlipay
+		notifyURL = h.App.Config.AlipayConfig.NotifyURL
+	}
+	// 创建订单
+	remark := types.OrderRemark{
+		Days:     product.Days,
+		Power:    product.Power,
+		Name:     product.Name,
+		Price:    product.Price,
+		Discount: product.Discount,
+	}
+
+	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
+	order := model.Order{
+		UserId:    user.Id,
+		Username:  user.Username,
+		ProductId: product.Id,
+		OrderNo:   orderNo,
+		Subject:   product.Name,
+		Amount:    amount,
+		Status:    types.OrderNotPaid,
+		PayWay:    payWay,
+		Remark:    utils.JsonEncode(remark),
+	}
+	res = h.db.Create(&order)
+	if res.Error != nil || res.RowsAffected == 0 {
+		resp.ERROR(c, "error with create order: "+res.Error.Error())
+		return
+	}
+
+	// PayJs 单独处理，只能用官方生成的二维码
+	if data.PayWay == "payjs" {
+		params := payment.JPayReq{
+			TotalFee:   int(math.Ceil(order.Amount * 100)),
+			OutTradeNo: order.OrderNo,
+			Subject:    product.Name,
+		}
+		r := h.js.Pay(params)
+		if r.IsOK() {
+			resp.SUCCESS(c, gin.H{"order_no": order.OrderNo, "image": r.Qrcode})
+			return
+		} else {
+			resp.ERROR(c, "error with generating payment qrcode: "+r.ReturnMsg)
+			return
+		}
+	}
+
+	var logo string
+	if data.PayWay == "alipay" {
+		logo = "res/img/alipay.jpg"
+	} else if data.PayWay == "hupi" {
+		if h.App.Config.HuPiPayConfig.Name == "wechat" {
+			logo = "res/img/wechat-pay.jpg"
+		} else {
+			logo = "res/img/alipay.jpg"
+		}
+	}
+
+	file, err := h.fs.Open(logo)
+	if err != nil {
+		resp.ERROR(c, "error with open qrcode log file: "+err.Error())
+		return
+	}
+
+	parse, err := url.Parse(notifyURL)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	imageURL := fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s", parse.Scheme, parse.Host, orderNo, data.PayWay)
+	imgData, err := utils.GenQrcode(imageURL, 400, file)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	imgDataBase64 := base64.StdEncoding.EncodeToString(imgData)
+	resp.SUCCESS(c, gin.H{"order_no": orderNo, "image": fmt.Sprintf("data:image/jpg;base64, %s", imgDataBase64), "url": imageURL})
+}
+
 // 异步通知回调公共逻辑
 func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	var order model.Order

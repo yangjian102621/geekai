@@ -237,6 +237,8 @@
     </el-dialog>
 
     <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
+
+    <login-dialog :show="true"/>
   </div>
 
 
@@ -271,6 +273,7 @@ import {checkSession} from "@/action/session";
 import Welcome from "@/components/Welcome.vue";
 import ChatMidJourney from "@/components/ChatMidJourney.vue";
 import FileSelect from "@/components/FileSelect.vue";
+import LoginDialog from "@/components/LoginDialog.vue";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
