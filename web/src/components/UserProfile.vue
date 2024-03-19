@@ -1,6 +1,6 @@
 <template>
   <div class="user-info" id="user-info">
-    <el-form v-if="user.id" :model="user" label-width="150px">
+    <el-form :model="user" label-width="150px">
       <el-row>
         <el-upload
             class="avatar-uploader"
@@ -54,11 +54,11 @@ import {checkSession} from "@/action/session";
 
 const user = ref({
   vip: false,
-  username: '',
-  nickname: '',
-  avatar: '',
-  mobile: '',
-  power: 0,
+  username: '演示数据',
+  nickname: '演示数据',
+  avatar: '/images/vip.png',
+  mobile: '演示数据',
+  power: 99999,
 })
 const vipImg = ref("/images/vip.png")
 

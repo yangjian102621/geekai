@@ -1,41 +1,44 @@
 <template>
-  <div class="page-apps custom-scroll">
-    <div class="title">
-      AI 助手应用中心
-    </div>
-    <div class="inner" :style="{height: listBoxHeight + 'px'}">
-      <ItemList :items="list" v-if="list.length > 0" :gap="20" :width="250">
-        <template #default="scope">
-          <div class="app-item" :style="{width: scope.width+'px'}">
-            <el-image :src="scope.item.icon" fit="cover" :style="{height: scope.width+'px'}"/>
-            <div class="title">
-              <span class="name">{{ scope.item.name }}</span>
-              <div class="opt">
+  <div>
+    <div class="page-apps custom-scroll">
+      <div class="title">
+        AI 助手应用中心
+      </div>
+      <div class="inner" :style="{height: listBoxHeight + 'px'}">
+        <ItemList :items="list" v-if="list.length > 0" :gap="20" :width="250">
+          <template #default="scope">
+            <div class="app-item" :style="{width: scope.width+'px'}">
+              <el-image :src="scope.item.icon" fit="cover" :style="{height: scope.width+'px'}"/>
+              <div class="title">
+                <span class="name">{{ scope.item.name }}</span>
+                <div class="opt">
 
-                <el-button v-if="hasRole(scope.item.key)" size="small" type="danger"
-                           @click="updateRole(scope.item,'remove')">
-                  <el-icon>
-                    <Delete/>
-                  </el-icon>
-                  <span>移除应用</span>
-                </el-button>
-                <el-button v-else size="small"
-                           style="--el-color-primary:#009999"
-                           @click="updateRole(scope.item, 'add')">
-                  <el-icon>
-                    <Plus/>
-                  </el-icon>
-                  <span>添加应用</span>
-                </el-button>
+                  <el-button v-if="hasRole(scope.item.key)" size="small" type="danger"
+                             @click="updateRole(scope.item,'remove')">
+                    <el-icon>
+                      <Delete/>
+                    </el-icon>
+                    <span>移除应用</span>
+                  </el-button>
+                  <el-button v-else size="small"
+                             style="--el-color-primary:#009999"
+                             @click="updateRole(scope.item, 'add')">
+                    <el-icon>
+                      <Plus/>
+                    </el-icon>
+                    <span>添加应用</span>
+                  </el-button>
+                </div>
               </div>
+              <div class="hello-msg" ref="elements">{{ scope.item.intro }}</div>
             </div>
-            <div class="hello-msg" ref="elements">{{ scope.item.intro }}</div>
-          </div>
-        </template>
-      </ItemList>
-    </div>
+          </template>
+        </ItemList>
+      </div>
 
-    <login-dialog :show="showLoginDialog" @hide="getRoles"/>
+
+    </div>
+    <login-dialog :show="showLoginDialog" @hide="getRoles" @success=""/>
   </div>
 </template>
 
