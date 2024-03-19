@@ -15,13 +15,10 @@ import (
 
 type ChatRoleHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
-	h := ChatRoleHandler{db: db}
-	h.App = app
-	return &h
+	return &ChatRoleHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 // Save 创建或者更新某个角色
@@ -41,7 +38,7 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 	if data.CreatedAt > 0 {
 		role.CreatedAt = time.Unix(data.CreatedAt, 0)
 	}
-	res := h.db.Save(&role)
+	res := h.DB.Save(&role)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -53,14 +50,14 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 }
 
 func (h *ChatRoleHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
 
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
-	res := h.db.Order("sort_num ASC").Find(&items)
+	res := h.DB.Order("sort_num ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return
@@ -93,7 +90,7 @@ func (h *ChatRoleHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		res := h.db.Model(&model.ChatRole{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
+		res := h.DB.Model(&model.ChatRole{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
@@ -115,7 +112,7 @@ func (h *ChatRoleHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
+	res := h.DB.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -135,7 +132,7 @@ func (h *ChatRoleHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	res := h.db.Where("id = ?", data.Id).Delete(&model.ChatRole{})
+	res := h.DB.Where("id = ?", data.Id).Delete(&model.ChatRole{})
 	if res.Error != nil {
 		resp.ERROR(c, "删除失败！")
 		return

@@ -132,51 +132,37 @@ func corsMiddleware() gin.HandlerFunc {
 // 用户授权验证
 func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.URL.Path == "/api/user/login" ||
-			c.Request.URL.Path == "/api/user/resetPass" ||
-			c.Request.URL.Path == "/api/admin/login" ||
-			c.Request.URL.Path == "/api/admin/login/captcha" ||
-			c.Request.URL.Path == "/api/user/register" ||
-			c.Request.URL.Path == "/api/chat/history" ||
-			c.Request.URL.Path == "/api/chat/detail" ||
-			c.Request.URL.Path == "/api/role/list" ||
-			c.Request.URL.Path == "/api/mj/imgWall" ||
-			c.Request.URL.Path == "/api/mj/client" ||
-			c.Request.URL.Path == "/api/mj/notify" ||
-			c.Request.URL.Path == "/api/invite/hits" ||
-			c.Request.URL.Path == "/api/sd/imgWall" ||
-			c.Request.URL.Path == "/api/sd/client" ||
-			c.Request.URL.Path == "/api/config/get" ||
-			strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
-			strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
-			strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
-			strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
-			strings.HasPrefix(c.Request.URL.Path, "/api/payment/") ||
-			strings.HasPrefix(c.Request.URL.Path, "/static/") {
-			c.Next()
-			return
-		}
-
 		var tokenString string
-		if strings.Contains(c.Request.URL.Path, "/api/admin/") { // 后台管理 API
+		isAdminApi := strings.Contains(c.Request.URL.Path, "/api/admin/")
+		if isAdminApi { // 后台管理 API
 			tokenString = c.GetHeader(types.AdminAuthHeader)
 		} else if c.Request.URL.Path == "/api/chat/new" {
 			tokenString = c.Query("token")
 		} else {
 			tokenString = c.GetHeader(types.UserAuthHeader)
 		}
+
 		if tokenString == "" {
-			resp.ERROR(c, "You should put Authorization in request headers")
-			c.Abort()
-			return
+			if needLogin(c) {
+				resp.ERROR(c, "You should put Authorization in request headers")
+				c.Abort()
+				return
+			} else { // 直接放行
+				c.Next()
+				return
+			}
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
+			if isAdminApi {
+				return []byte(s.Config.AdminSession.SecretKey), nil
+			} else {
+				return []byte(s.Config.Session.SecretKey), nil
+			}
 
-			return []byte(s.Config.Session.SecretKey), nil
 		})
 
 		if err != nil {
@@ -200,13 +186,42 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		}
 
 		key := fmt.Sprintf("users/%v", claims["user_id"])
-		if _, err := client.Get(context.Background(), key).Result(); err != nil {
+		if _, err := client.Get(context.Background(), key).Result(); err != nil && needLogin(c) {
 			resp.NotAuth(c, "Token is not found in redis")
 			c.Abort()
 			return
 		}
 		c.Set(types.LoginUserID, claims["user_id"])
 	}
+}
+
+func needLogin(c *gin.Context) bool {
+	if c.Request.URL.Path == "/api/user/login" ||
+		c.Request.URL.Path == "/api/user/resetPass" ||
+		c.Request.URL.Path == "/api/admin/login" ||
+		c.Request.URL.Path == "/api/admin/login/captcha" ||
+		c.Request.URL.Path == "/api/user/register" ||
+		c.Request.URL.Path == "/api/chat/history" ||
+		c.Request.URL.Path == "/api/chat/detail" ||
+		c.Request.URL.Path == "/api/chat/list" ||
+		c.Request.URL.Path == "/api/role/list" ||
+		c.Request.URL.Path == "/api/model/list" ||
+		c.Request.URL.Path == "/api/mj/imgWall" ||
+		c.Request.URL.Path == "/api/mj/client" ||
+		c.Request.URL.Path == "/api/mj/notify" ||
+		c.Request.URL.Path == "/api/invite/hits" ||
+		c.Request.URL.Path == "/api/sd/imgWall" ||
+		c.Request.URL.Path == "/api/sd/client" ||
+		c.Request.URL.Path == "/api/config/get" ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/payment/") ||
+		strings.HasPrefix(c.Request.URL.Path, "/static/") {
+		return false
+	}
+	return true
 }
 
 // 统一参数处理

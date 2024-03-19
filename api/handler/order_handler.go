@@ -14,13 +14,10 @@ import (
 
 type OrderHandler struct {
 	BaseHandler
-	db *gorm.DB
 }
 
 func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
-	h := OrderHandler{db: db}
-	h.App = app
-	return &h
+	return &OrderHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 func (h *OrderHandler) List(c *gin.Context) {
@@ -33,7 +30,7 @@ func (h *OrderHandler) List(c *gin.Context) {
 		return
 	}
 	userId := h.GetLoginUserId(c)
-	session := h.db.Session(&gorm.Session{}).Where("user_id = ? AND status = ?", userId, types.OrderPaidSuccess)
+	session := h.DB.Session(&gorm.Session{}).Where("user_id = ? AND status = ?", userId, types.OrderPaidSuccess)
 	var total int64
 	session.Model(&model.Order{}).Count(&total)
 	var items []model.Order

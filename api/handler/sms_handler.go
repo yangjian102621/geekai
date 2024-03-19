@@ -29,9 +29,12 @@ func NewSmsHandler(
 	sms *sms.ServiceManager,
 	smtp *service.SmtpService,
 	captcha *service.CaptchaService) *SmsHandler {
-	handler := &SmsHandler{redis: client, sms: sms, captcha: captcha, smtp: smtp}
-	handler.App = app
-	return handler
+	return &SmsHandler{
+		redis:       client,
+		sms:         sms,
+		captcha:     captcha,
+		smtp:        smtp,
+		BaseHandler: BaseHandler{App: app}}
 }
 
 // SendCode 发送验证码

@@ -100,7 +100,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 
 			if !utils.IsEmptyValue(tool) {
-				res := h.db.Where("name = ?", tool.Function.Name).First(&function)
+				res := h.DB.Where("name = ?", tool.Function.Name).First(&function)
 				if res.Error == nil {
 					toolCall = true
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
@@ -210,7 +210,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 			historyUserMsg.CreatedAt = promptCreatedAt
 			historyUserMsg.UpdatedAt = promptCreatedAt
-			res := h.db.Save(&historyUserMsg)
+			res := h.DB.Save(&historyUserMsg)
 			if res.Error != nil {
 				logger.Error("failed to save prompt history message: ", res.Error)
 			}
@@ -240,7 +240,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 			historyReplyMsg.CreatedAt = replyCreatedAt
 			historyReplyMsg.UpdatedAt = replyCreatedAt
-			res = h.db.Create(&historyReplyMsg)
+			res = h.DB.Create(&historyReplyMsg)
 			if res.Error != nil {
 				logger.Error("failed to save reply history message: ", res.Error)
 			}
@@ -250,7 +250,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 			// 保存当前会话
 			var chatItem model.ChatItem
-			res = h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
+			res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
 			if res.Error != nil {
 				chatItem.ChatId = session.ChatId
 				chatItem.UserId = session.UserId
@@ -262,18 +262,19 @@ func (h *ChatHandler) sendOpenAiMessage(
 					chatItem.Title = prompt
 				}
 				chatItem.Model = req.Model
-				h.db.Create(&chatItem)
+				h.DB.Create(&chatItem)
 			}
 		}
 	} else {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
+			utils.ReplyMessage(ws, "请求 OpenAI API 失败："+err.Error())
 			return fmt.Errorf("error with reading response: %v", err)
 		}
 		var res types.ApiError
 		err = json.Unmarshal(body, &res)
 		if err != nil {
-			logger.Debug(string(body))
+			utils.ReplyMessage(ws, "请求 OpenAI API 失败：\n"+"```\n"+string(body)+"```")
 			return fmt.Errorf("error with decode response: %v", err)
 		}
 
@@ -281,7 +282,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		if strings.Contains(res.Error.Message, "This key is associated with a deactivated account") {
 			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 所关联的账户被禁用。")
 			// 移除当前 API key
-			h.db.Where("value = ?", apiKey).Delete(&model.ApiKey{})
+			h.DB.Where("value = ?", apiKey).Delete(&model.ApiKey{})
 		} else if strings.Contains(res.Error.Message, "You exceeded your current quota") {
 			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
 		} else if strings.Contains(res.Error.Message, "This model's maximum context length") {

@@ -14,14 +14,11 @@ import (
 
 type UploadHandler struct {
 	BaseHandler
-	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 }
 
 func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManager) *UploadHandler {
-	handler := &UploadHandler{db: db, uploaderManager: manager}
-	handler.App = app
-	return handler
+	return &UploadHandler{BaseHandler: BaseHandler{App: app, DB: db}, uploaderManager: manager}
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {
@@ -32,7 +29,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 	}
 
 	userId := h.GetLoginUserId(c)
-	res := h.db.Create(&model.File{
+	res := h.DB.Create(&model.File{
 		UserId:    int(userId),
 		Name:      file.Name,
 		ObjKey:    file.ObjKey,
@@ -53,7 +50,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	var items []model.File
 	var files = make([]vo.File, 0)
-	h.db.Where("user_id = ?", userId).Find(&items)
+	h.DB.Where("user_id = ?", userId).Find(&items)
 	if len(items) > 0 {
 		for _, v := range items {
 			var file vo.File
@@ -75,14 +72,14 @@ func (h *UploadHandler) Remove(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	id := h.GetInt(c, "id", 0)
 	var file model.File
-	tx := h.db.Where("user_id = ? AND id = ?", userId, id).First(&file)
+	tx := h.DB.Where("user_id = ? AND id = ?", userId, id).First(&file)
 	if tx.Error != nil || file.Id == 0 {
 		resp.ERROR(c, "file not existed")
 		return
 	}
 
 	// remove database
-	tx = h.db.Model(&model.File{}).Delete("id = ?", id)
+	tx = h.DB.Model(&model.File{}).Delete("id = ?", id)
 	if tx.Error != nil || tx.RowsAffected == 0 {
 		resp.ERROR(c, "failed to update database")
 		return

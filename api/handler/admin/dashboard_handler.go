@@ -14,13 +14,10 @@ import (
 
 type DashboardHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewDashboardHandler(app *core.AppServer, db *gorm.DB) *DashboardHandler {
-	h := DashboardHandler{db: db}
-	h.App = app
-	return &h
+	return &DashboardHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 type statsVo struct {
@@ -37,35 +34,35 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	var userCount int64
 	now := time.Now()
 	zeroTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	res := h.db.Model(&model.User{}).Where("created_at > ?", zeroTime).Count(&userCount)
+	res := h.DB.Model(&model.User{}).Where("created_at > ?", zeroTime).Count(&userCount)
 	if res.Error == nil {
 		stats.Users = userCount
 	}
 
 	// new chats statistic
 	var chatCount int64
-	res = h.db.Model(&model.ChatItem{}).Where("created_at > ?", zeroTime).Count(&chatCount)
+	res = h.DB.Model(&model.ChatItem{}).Where("created_at > ?", zeroTime).Count(&chatCount)
 	if res.Error == nil {
 		stats.Chats = chatCount
 	}
 
 	// tokens took stats
 	var historyMessages []model.ChatMessage
-	res = h.db.Where("created_at > ?", zeroTime).Find(&historyMessages)
+	res = h.DB.Where("created_at > ?", zeroTime).Find(&historyMessages)
 	for _, item := range historyMessages {
 		stats.Tokens += item.Tokens
 	}
 
 	// 众筹收入
 	var rewards []model.Reward
-	res = h.db.Where("created_at > ?", zeroTime).Find(&rewards)
+	res = h.DB.Where("created_at > ?", zeroTime).Find(&rewards)
 	for _, item := range rewards {
 		stats.Income += item.Amount
 	}
 
 	// 订单收入
 	var orders []model.Order
-	res = h.db.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Find(&orders)
+	res = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Find(&orders)
 	for _, item := range orders {
 		stats.Income += item.Amount
 	}
@@ -84,7 +81,7 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 
 	// 统计用户7天增加的曲线
 	var users []model.User
-	res = h.db.Model(&model.User{}).Where("created_at > ?", startDate).Find(&users)
+	res = h.DB.Model(&model.User{}).Where("created_at > ?", startDate).Find(&users)
 	if res.Error == nil {
 		for _, item := range users {
 			userStatistic[item.CreatedAt.Format("2006-01-02")] += 1
@@ -92,20 +89,20 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	}
 
 	// 统计7天Token 消耗
-	res = h.db.Where("created_at > ?", startDate).Find(&historyMessages)
+	res = h.DB.Where("created_at > ?", startDate).Find(&historyMessages)
 	for _, item := range historyMessages {
 		historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Tokens)
 	}
 
 	// 浮点数相加？
 	// 统计最近7天的众筹
-	res = h.db.Where("created_at > ?", startDate).Find(&rewards)
+	res = h.DB.Where("created_at > ?", startDate).Find(&rewards)
 	for _, item := range rewards {
 		incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
 	}
 
 	// 统计最近7天的订单
-	res = h.db.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", startDate).Find(&orders)
+	res = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", startDate).Find(&orders)
 	for _, item := range orders {
 		incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
 	}

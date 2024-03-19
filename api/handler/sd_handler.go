@@ -24,19 +24,19 @@ import (
 type SdJobHandler struct {
 	BaseHandler
 	redis    *redis.Client
-	db       *gorm.DB
 	pool     *sd.ServicePool
 	uploader *oss.UploaderManager
 }
 
 func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager) *SdJobHandler {
-	h := SdJobHandler{
-		db:       db,
+	return &SdJobHandler{
 		pool:     pool,
 		uploader: manager,
+		BaseHandler: BaseHandler{
+			App: app,
+			DB:  db,
+		},
 	}
-	h.App = app
-	return &h
 }
 
 // Client WebSocket 客户端，用于通知任务状态变更
@@ -61,7 +61,7 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 }
 
 func (h *SdJobHandler) checkLimits(c *gin.Context) bool {
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return false
@@ -143,7 +143,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		Power:     h.App.SysConfig.SdPower,
 		CreatedAt: time.Now(),
 	}
-	res := h.db.Create(&job)
+	res := h.DB.Create(&job)
 	if res.Error != nil {
 		resp.ERROR(c, "error with save job: "+res.Error.Error())
 		return
@@ -164,11 +164,11 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	// update user's power
-	tx := h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
 	// 记录算力变化日志
 	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := utils.GetLoginUser(c, h.db)
-		h.db.Create(&model.PowerLog{
+		user, _ := h.GetLoginUser(c)
+		h.DB.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,
 			Type:      types.PowerConsume,
@@ -217,7 +217,7 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 // JobList 获取 MJ 任务列表
 func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.SdJob) {
 
-	session := h.db.Session(&gorm.Session{})
+	session := h.DB.Session(&gorm.Session{})
 	if finish {
 		session = session.Where("progress = ?", 100).Order("id DESC")
 	} else {
@@ -274,7 +274,7 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 	}
 
 	// remove job recode
-	res := h.db.Delete(&model.SdJob{Id: data.Id})
+	res := h.DB.Delete(&model.SdJob{Id: data.Id})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
@@ -305,7 +305,7 @@ func (h *SdJobHandler) Publish(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.SdJob{Id: data.Id}).UpdateColumn("publish", true)
+	res := h.DB.Model(&model.SdJob{Id: data.Id}).UpdateColumn("publish", true)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return

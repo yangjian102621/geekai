@@ -12,20 +12,17 @@ import (
 
 type ConfigHandler struct {
 	BaseHandler
-	db *gorm.DB
 }
 
 func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
-	h := ConfigHandler{db: db}
-	h.App = app
-	return &h
+	return &ConfigHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
 	key := c.Query("key")
 	var config model.Config
-	res := h.db.Where("marker", key).First(&config)
+	res := h.DB.Where("marker", key).First(&config)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return

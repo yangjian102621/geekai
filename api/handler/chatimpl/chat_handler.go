@@ -35,19 +35,16 @@ var logger = logger2.GetLogger()
 
 type ChatHandler struct {
 	handler.BaseHandler
-	db            *gorm.DB
 	redis         *redis.Client
 	uploadManager *oss.UploaderManager
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager) *ChatHandler {
-	h := ChatHandler{
-		db:            db,
+	return &ChatHandler{
+		BaseHandler:   handler.BaseHandler{App: app, DB: db},
 		redis:         redis,
 		uploadManager: manager,
 	}
-	h.App = app
-	return &h
 }
 
 func (h *ChatHandler) Init() {
@@ -73,7 +70,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	client := types.NewWsClient(ws)
 	// get model info
 	var chatModel model.ChatModel
-	res := h.db.First(&chatModel, modelId)
+	res := h.DB.First(&chatModel, modelId)
 	if res.Error != nil || chatModel.Enabled == false {
 		utils.ReplyMessage(client, "当前AI模型暂未启用，连接已关闭！！！")
 		c.Abort()
@@ -82,7 +79,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 
 	session := h.App.ChatSession.Get(sessionId)
 	if session == nil {
-		user, err := utils.GetLoginUser(c, h.db)
+		user, err := h.GetLoginUser(c)
 		if err != nil {
 			logger.Info("用户未登录")
 			c.Abort()
@@ -99,7 +96,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 
 	// use old chat data override the chat model and role ID
 	var chat model.ChatItem
-	res = h.db.Where("chat_id = ?", chatId).First(&chat)
+	res = h.DB.Where("chat_id = ?", chatId).First(&chat)
 	if res.Error == nil {
 		chatModel.Id = chat.ModelId
 		roleId = int(chat.RoleId)
@@ -116,7 +113,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		Platform:    types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 	var chatRole model.ChatRole
-	res = h.db.First(&chatRole, roleId)
+	res = h.DB.First(&chatRole, roleId)
 	if res.Error != nil || !chatRole.Enable {
 		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
 		c.Abort()
@@ -181,7 +178,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	var user model.User
-	res := h.db.Model(&model.User{}).First(&user, session.UserId)
+	res := h.DB.Model(&model.User{}).First(&user, session.UserId)
 	if res.Error != nil {
 		utils.ReplyMessage(ws, "非法用户，请联系管理员！")
 		return res.Error
@@ -238,7 +235,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		req.MaxTokens = session.Model.MaxTokens
 		// OpenAI 支持函数功能
 		var items []model.Function
-		res := h.db.Where("enabled", true).Find(&items)
+		res := h.DB.Where("enabled", true).Find(&items)
 		if res.Error != nil {
 			break
 		}
@@ -290,7 +287,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			_ = utils.JsonDecode(role.Context, &messages)
 			if h.App.SysConfig.ContextDeep > 0 {
 				var historyMessages []model.ChatMessage
-				res := h.db.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(h.App.SysConfig.ContextDeep).Order("id DESC").Find(&historyMessages)
+				res := h.DB.Where("chat_id = ? and use_context = 1", session.ChatId).Limit(h.App.SysConfig.ContextDeep).Order("id DESC").Find(&historyMessages)
 				if res.Error == nil {
 					for i := len(historyMessages) - 1; i >= 0; i-- {
 						msg := historyMessages[i]
@@ -382,7 +379,7 @@ func (h *ChatHandler) Tokens(c *gin.Context) {
 	if data.Text == "" && data.ChatId != "" {
 		var item model.ChatMessage
 		userId, _ := c.Get(types.LoginUserID)
-		res := h.db.Where("user_id = ?", userId).Where("chat_id = ?", data.ChatId).Last(&item)
+		res := h.DB.Where("user_id = ?", userId).Where("chat_id = ?", data.ChatId).Last(&item)
 		if res.Error != nil {
 			resp.ERROR(c, res.Error.Error())
 			return
@@ -433,7 +430,7 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 // 发送请求到 OpenAI 服务器
 // useOwnApiKey: 是否使用了用户自己的 API KEY
 func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platform types.Platform, apiKey *model.ApiKey) (*http.Response, error) {
-	res := h.db.Where("platform = ?", platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+	res := h.DB.Where("platform = ?", platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
 	if res.Error != nil {
 		return nil, errors.New("no available key, please import key")
 	}
@@ -459,7 +456,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 		apiURL = apiKey.ApiURL
 	}
 	// 更新 API KEY 的最后使用时间
-	h.db.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())
+	h.DB.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// 百度文心，需要串接 access_token
 	if platform == types.Baidu {
 		token, err := h.getBaiduToken(apiKey.Value)
@@ -527,10 +524,10 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 	if session.Model.Power > 0 {
 		power = session.Model.Power
 	}
-	res := h.db.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
+	res := h.DB.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
 	if res.Error == nil {
 		// 记录算力消费日志
-		h.db.Create(&model.PowerLog{
+		h.DB.Create(&model.PowerLog{
 			UserId:    userVo.Id,
 			Username:  userVo.Username,
 			Type:      types.PowerConsume,

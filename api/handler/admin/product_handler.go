@@ -15,13 +15,10 @@ import (
 
 type ProductHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
-	h := ProductHandler{db: db}
-	h.App = app
-	return &h
+	return &ProductHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 func (h *ProductHandler) Save(c *gin.Context) {
@@ -51,7 +48,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)
 	}
-	res := h.db.Save(&item)
+	res := h.DB.Save(&item)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -70,12 +67,12 @@ func (h *ProductHandler) Save(c *gin.Context) {
 
 // List 模型列表
 func (h *ProductHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
 
-	session := h.db.Session(&gorm.Session{})
+	session := h.DB.Session(&gorm.Session{})
 	enable := h.GetBool(c, "enable")
 	if enable {
 		session = session.Where("enabled", enable)
@@ -111,7 +108,7 @@ func (h *ProductHandler) Enable(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.Product{}).Where("id = ?", data.Id).Update("enabled", data.Enabled)
+	res := h.DB.Model(&model.Product{}).Where("id = ?", data.Id).Update("enabled", data.Enabled)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -131,7 +128,7 @@ func (h *ProductHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		res := h.db.Model(&model.Product{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
+		res := h.DB.Model(&model.Product{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
@@ -145,7 +142,7 @@ func (h *ProductHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 
 	if id > 0 {
-		res := h.db.Where("id = ?", id).Delete(&model.Product{})
+		res := h.DB.Where("id = ?", id).Delete(&model.Product{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

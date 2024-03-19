@@ -15,17 +15,14 @@ import (
 
 type OrderHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
-	h := OrderHandler{db: db}
-	h.App = app
-	return &h
+	return &OrderHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 func (h *OrderHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
@@ -42,7 +39,7 @@ func (h *OrderHandler) List(c *gin.Context) {
 		return
 	}
 
-	session := h.db.Session(&gorm.Session{})
+	session := h.DB.Session(&gorm.Session{})
 	if data.OrderNo != "" {
 		session = session.Where("order_no", data.OrderNo)
 	}
@@ -82,7 +79,7 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 
 	if id > 0 {
 		var item model.Order
-		res := h.db.First(&item, id)
+		res := h.DB.First(&item, id)
 		if res.Error != nil {
 			resp.ERROR(c, "记录不存在！")
 			return
@@ -93,7 +90,7 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 			return
 		}
 
-		res = h.db.Unscoped().Where("id = ?", id).Delete(&model.Order{})
+		res = h.DB.Unscoped().Where("id = ?", id).Delete(&model.Order{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

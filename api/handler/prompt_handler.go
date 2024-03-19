@@ -16,13 +16,10 @@ const translatePromptTemplate = "Translate the following painting prompt words i
 
 type PromptHandler struct {
 	BaseHandler
-	db *gorm.DB
 }
 
 func NewPromptHandler(app *core.AppServer, db *gorm.DB) *PromptHandler {
-	h := &PromptHandler{db: db}
-	h.App = app
-	return h
+	return &PromptHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // Rewrite translate and rewrite prompt with ChatGPT
@@ -35,7 +32,7 @@ func (h *PromptHandler) Rewrite(c *gin.Context) {
 		return
 	}
 
-	content, err := utils.OpenAIRequest(h.db, fmt.Sprintf(rewritePromptTemplate, data.Prompt))
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(rewritePromptTemplate, data.Prompt))
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -53,7 +50,7 @@ func (h *PromptHandler) Translate(c *gin.Context) {
 		return
 	}
 
-	content, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, data.Prompt))
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(translatePromptTemplate, data.Prompt))
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
