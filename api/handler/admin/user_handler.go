@@ -16,18 +16,15 @@ import (
 
 type UserHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
-	h := UserHandler{db: db}
-	h.App = app
-	return &h
+	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 // List 用户列表
 func (h *UserHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
@@ -41,7 +38,7 @@ func (h *UserHandler) List(c *gin.Context) {
 	var users = make([]vo.User, 0)
 	var total int64
 
-	session := h.db.Session(&gorm.Session{})
+	session := h.DB.Session(&gorm.Session{})
 	if username != "" {
 		session = session.Where("username LIKE ?", "%"+username+"%")
 	}
@@ -87,7 +84,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	if data.Id > 0 { // 更新
 		user.Id = data.Id
 		// 此处需要用 map 更新，用结构体无法更新 0 值
-		res = h.db.Model(&user).Updates(map[string]interface{}{
+		res = h.DB.Model(&user).Updates(map[string]interface{}{
 			"username":         data.Username,
 			"status":           data.Status,
 			"vip":              data.Vip,
@@ -108,7 +105,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			ChatModels:  utils.JsonEncode(data.ChatModels),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
 		}
-		res = h.db.Create(&u)
+		res = h.DB.Create(&u)
 		_ = utils.CopyObject(u, &userVo)
 		userVo.Id = u.Id
 		userVo.CreatedAt = u.CreatedAt.Unix()
@@ -135,7 +132,7 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 	}
 
 	var user model.User
-	res := h.db.First(&user, data.Id)
+	res := h.DB.First(&user, data.Id)
 	if res.Error != nil {
 		resp.ERROR(c, "No user found")
 		return
@@ -143,7 +140,7 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 
 	password := utils.GenPassword(data.Password, user.Salt)
 	user.Password = password
-	res = h.db.Updates(&user)
+	res = h.DB.Updates(&user)
 	if res.Error != nil {
 		resp.ERROR(c)
 	} else {
@@ -152,43 +149,33 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 }
 
 func (h *UserHandler) Remove(c *gin.Context) {
-	var data struct {
-		Id uint
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
+	id := h.GetInt(c, "id", 0)
+	if id <= 0 {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if data.Id > 0 {
-		tx := h.db.Begin()
-		res := h.db.Where("id = ?", data.Id).Delete(&model.User{})
-		if res.Error != nil {
-			resp.ERROR(c, "删除失败")
-			return
-		}
-		// 删除聊天记录
-		res = h.db.Where("user_id = ?", data.Id).Delete(&model.ChatItem{})
-		if res.Error != nil {
-			tx.Rollback()
-			resp.ERROR(c, "删除失败")
-			return
-		}
-		// 删除聊天历史记录
-		res = h.db.Where("user_id = ?", data.Id).Delete(&model.ChatMessage{})
-		if res.Error != nil {
-			tx.Rollback()
-			resp.ERROR(c, "删除失败")
-			return
-		}
-		// 删除登录日志
-		res = h.db.Where("user_id = ?", data.Id).Delete(&model.UserLoginLog{})
-		if res.Error != nil {
-			tx.Rollback()
-			resp.ERROR(c, "删除失败")
-			return
-		}
-		tx.Commit()
+	// 删除用户
+	res := h.DB.Where("id = ?", id).Delete(&model.User{})
+	if res.Error != nil {
+		resp.ERROR(c, "删除失败")
+		return
 	}
+
+	// 删除聊天记录
+	h.DB.Where("user_id = ?", id).Delete(&model.ChatItem{})
+	// 删除聊天历史记录
+	h.DB.Where("user_id = ?", id).Delete(&model.ChatMessage{})
+	// 删除登录日志
+	h.DB.Where("user_id = ?", id).Delete(&model.UserLoginLog{})
+	// 删除算力日志
+	h.DB.Where("user_id = ?", id).Delete(&model.PowerLog{})
+	// 删除众筹日志
+	h.DB.Where("user_id = ?", id).Delete(&model.Reward{})
+	// 删除绘图任务
+	h.DB.Where("user_id = ?", id).Delete(&model.MidJourneyJob{})
+	h.DB.Where("user_id = ?", id).Delete(&model.SdJob{})
+	//  删除订单
+	h.DB.Where("user_id = ?", id).Delete(&model.Order{})
 	resp.SUCCESS(c)
 }
 
@@ -196,10 +183,10 @@ func (h *UserHandler) LoginLog(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	var total int64
-	h.db.Model(&model.UserLoginLog{}).Count(&total)
+	h.DB.Model(&model.UserLoginLog{}).Count(&total)
 	offset := (page - 1) * pageSize
 	var items []model.UserLoginLog
-	res := h.db.Offset(offset).Limit(pageSize).Order("id DESC").Find(&items)
+	res := h.DB.Offset(offset).Limit(pageSize).Order("id DESC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "获取数据失败")
 		return

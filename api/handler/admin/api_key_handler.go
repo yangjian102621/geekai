@@ -14,13 +14,10 @@ import (
 
 type ApiKeyHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
-	h := ApiKeyHandler{db: db}
-	h.App = app
-	return &h
+	return &ApiKeyHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}}
 }
 
 func (h *ApiKeyHandler) Save(c *gin.Context) {
@@ -41,7 +38,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 
 	apiKey := model.ApiKey{}
 	if data.Id > 0 {
-		h.db.Find(&apiKey, data.Id)
+		h.DB.Find(&apiKey, data.Id)
 	}
 	apiKey.Platform = data.Platform
 	apiKey.Value = data.Value
@@ -50,7 +47,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	apiKey.Enabled = data.Enabled
 	apiKey.ProxyURL = data.ProxyURL
 	apiKey.Name = data.Name
-	res := h.db.Save(&apiKey)
+	res := h.DB.Save(&apiKey)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -68,14 +65,14 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
 
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
-	res := h.db.Find(&items)
+	res := h.DB.Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var key vo.ApiKey
@@ -105,7 +102,7 @@ func (h *ApiKeyHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.ApiKey{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
+	res := h.DB.Model(&model.ApiKey{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -122,7 +119,7 @@ func (h *ApiKeyHandler) Remove(c *gin.Context) {
 		return
 	}
 	if data.Id > 0 {
-		res := h.db.Where("id = ?", data.Id).Delete(&model.ApiKey{})
+		res := h.DB.Where("id = ?", data.Id).Delete(&model.ApiKey{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

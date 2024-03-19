@@ -13,28 +13,22 @@ import (
 
 // List 获取会话列表
 func (h *ChatHandler) List(c *gin.Context) {
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		resp.ERROR(c, "The parameter 'user_id' is needed.")
+	if !h.IsLogin(c) {
+		resp.SUCCESS(c)
 		return
 	}
 
-	// fix: 只能读取本人的消息列表
-	if uint(userId) != h.GetLoginUserId(c) {
-		resp.ERROR(c, "Hacker attempt, you can ONLY get yourself chats.")
-		return
-	}
-
+	userId := h.GetLoginUserId(c)
 	var items = make([]vo.ChatItem, 0)
 	var chats []model.ChatItem
-	res := h.db.Where("user_id = ?", userId).Order("id DESC").Find(&chats)
+	res := h.DB.Where("user_id = ?", userId).Order("id DESC").Find(&chats)
 	if res.Error == nil {
 		var roleIds = make([]uint, 0)
 		for _, chat := range chats {
 			roleIds = append(roleIds, chat.RoleId)
 		}
 		var roles []model.ChatRole
-		res = h.db.Find(&roles, roleIds)
+		res = h.DB.Find(&roles, roleIds)
 		if res.Error == nil {
 			roleMap := make(map[uint]model.ChatRole)
 			for _, role := range roles {
@@ -66,7 +60,7 @@ func (h *ChatHandler) Update(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	res := h.db.Model(&model.ChatItem{}).Where("chat_id = ?", data.ChatId).UpdateColumn("title", data.Title)
+	res := h.DB.Model(&model.ChatItem{}).Where("chat_id = ?", data.ChatId).UpdateColumn("title", data.Title)
 	if res.Error != nil {
 		resp.ERROR(c, "Failed to update database")
 		return
@@ -78,14 +72,14 @@ func (h *ChatHandler) Update(c *gin.Context) {
 // Clear 清空所有聊天记录
 func (h *ChatHandler) Clear(c *gin.Context) {
 	// 获取当前登录用户所有的聊天会话
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
 	var chats []model.ChatItem
-	res := h.db.Where("user_id = ?", user.Id).Find(&chats)
+	res := h.DB.Where("user_id = ?", user.Id).Find(&chats)
 	if res.Error != nil {
 		resp.ERROR(c, "No chats found")
 		return
@@ -97,13 +91,13 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 		// 清空会话上下文
 		h.App.ChatContexts.Delete(chat.ChatId)
 	}
-	err = h.db.Transaction(func(tx *gorm.DB) error {
-		res := h.db.Where("user_id =?", user.Id).Delete(&model.ChatItem{})
+	err = h.DB.Transaction(func(tx *gorm.DB) error {
+		res := h.DB.Where("user_id =?", user.Id).Delete(&model.ChatItem{})
 		if res.Error != nil {
 			return res.Error
 		}
 
-		res = h.db.Where("user_id = ? AND chat_id IN ?", user.Id, chatIds).Delete(&model.ChatMessage{})
+		res = h.DB.Where("user_id = ? AND chat_id IN ?", user.Id, chatIds).Delete(&model.ChatMessage{})
 		if res.Error != nil {
 			return res.Error
 		}
@@ -126,7 +120,7 @@ func (h *ChatHandler) History(c *gin.Context) {
 	chatId := c.Query("chat_id") // 会话 ID
 	var items []model.ChatMessage
 	var messages = make([]vo.HistoryMessage, 0)
-	res := h.db.Where("chat_id = ?", chatId).Find(&items)
+	res := h.DB.Where("chat_id = ?", chatId).Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No history message")
 		return
@@ -152,20 +146,20 @@ func (h *ChatHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
-	res := h.db.Where("user_id = ? AND chat_id = ?", user.Id, chatId).Delete(&model.ChatItem{})
+	res := h.DB.Where("user_id = ? AND chat_id = ?", user.Id, chatId).Delete(&model.ChatItem{})
 	if res.Error != nil {
 		resp.ERROR(c, "Failed to update database")
 		return
 	}
 
 	// 删除当前会话的聊天记录
-	res = h.db.Where("user_id = ? AND chat_id =?", user.Id, chatId).Delete(&model.ChatItem{})
+	res = h.DB.Where("user_id = ? AND chat_id =?", user.Id, chatId).Delete(&model.ChatItem{})
 	if res.Error != nil {
 		resp.ERROR(c, "Failed to remove chat from database.")
 		return
@@ -187,7 +181,7 @@ func (h *ChatHandler) Detail(c *gin.Context) {
 	}
 
 	var chatItem model.ChatItem
-	res := h.db.Where("chat_id = ?", chatId).First(&chatItem)
+	res := h.DB.Where("chat_id = ?", chatId).First(&chatItem)
 	if res.Error != nil {
 		resp.ERROR(c, "No chat found")
 		return

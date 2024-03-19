@@ -284,7 +284,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/user/")
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 			group.GET("loginLog", h.LoginLog)
 			group.POST("resetPass", h.ResetPass)
 		}),
@@ -386,32 +386,6 @@ func main() {
 			s.Engine.POST("/api/admin/upload", h.Upload)
 		}),
 
-		// 系统管理员
-		fx.Provide(admin.NewSysUserHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.SysUserHandler) {
-			group := s.Engine.Group("/api/admin/sysUser/")
-			group.POST("save", h.Save)
-			group.GET("list", h.List)
-			group.POST("remove", h.Remove)
-			group.POST("resetPass", h.ResetPass)
-		}),
-		// 权限
-		fx.Provide(admin.NewSysPermissionHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.SysPermissionHandler) {
-			group := s.Engine.Group("/api/admin/sysPermission/")
-			group.GET("list", h.List)
-			group.POST("save", h.Save)
-			group.POST("remove", h.Remove)
-		}),
-		// 角色
-		fx.Provide(admin.NewSysRoleHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.SysRoleHandler) {
-			group := s.Engine.Group("/api/admin/sysRole/")
-			group.GET("list", h.List)
-			group.POST("save", h.Save)
-			group.POST("remove", h.Remove)
-		}),
-
 		fx.Provide(handler.NewFunctionHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
 			group := s.Engine.Group("/api/function/")
@@ -429,8 +403,6 @@ func main() {
 		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
-			s.Engine.GET("/api/test", h.Test)
-			s.Engine.POST("/api/test/mj", h.Mj)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)

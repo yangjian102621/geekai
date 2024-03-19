@@ -24,25 +24,25 @@ import (
 
 type MidJourneyHandler struct {
 	BaseHandler
-	db        *gorm.DB
 	pool      *mj.ServicePool
 	snowflake *service.Snowflake
 	uploader  *oss.UploaderManager
 }
 
 func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, pool *mj.ServicePool, manager *oss.UploaderManager) *MidJourneyHandler {
-	h := MidJourneyHandler{
-		db:        db,
+	return &MidJourneyHandler{
 		snowflake: snowflake,
 		pool:      pool,
 		uploader:  manager,
+		BaseHandler: BaseHandler{
+			App: app,
+			DB:  db,
+		},
 	}
-	h.App = app
-	return &h
 }
 
 func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return false
@@ -172,7 +172,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		opt = "换脸"
 	}
 
-	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
+	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
@@ -193,11 +193,11 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 
 	// update user's power
-	tx := h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
 	// 记录算力变化日志
 	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := utils.GetLoginUser(c, h.db)
-		h.db.Create(&model.PowerLog{
+		user, _ := h.GetLoginUser(c)
+		h.DB.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,
 			Type:      types.PowerConsume,
@@ -248,7 +248,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		Prompt:      data.Prompt,
 		CreatedAt:   time.Now(),
 	}
-	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
+	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
@@ -299,7 +299,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		Power:       h.App.SysConfig.MjPower,
 		CreatedAt:   time.Now(),
 	}
-	if res := h.db.Create(&job); res.Error != nil || res.RowsAffected == 0 {
+	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
 		return
 	}
@@ -322,11 +322,11 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	}
 
 	// update user's power
-	tx := h.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
 	// 记录算力变化日志
 	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := utils.GetLoginUser(c, h.db)
-		h.db.Create(&model.PowerLog{
+		user, _ := h.GetLoginUser(c)
+		h.DB.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,
 			Type:      types.PowerConsume,
@@ -373,7 +373,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 
 // JobList 获取 MJ 任务列表
 func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.MidJourneyJob) {
-	session := h.db.Session(&gorm.Session{})
+	session := h.DB.Session(&gorm.Session{})
 	if finish {
 		session = session.Where("progress = ?", 100).Order("id DESC")
 	} else {
@@ -434,7 +434,7 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 	}
 
 	// remove job recode
-	res := h.db.Delete(&model.MidJourneyJob{Id: data.Id})
+	res := h.DB.Delete(&model.MidJourneyJob{Id: data.Id})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
@@ -486,7 +486,7 @@ func (h *MidJourneyHandler) Publish(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.MidJourneyJob{Id: data.Id}).UpdateColumn("publish", data.Action)
+	res := h.DB.Model(&model.MidJourneyJob{Id: data.Id}).UpdateColumn("publish", data.Action)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return

@@ -21,7 +21,6 @@ import (
 
 type UserHandler struct {
 	BaseHandler
-	db       *gorm.DB
 	searcher *xdb.Searcher
 	redis    *redis.Client
 }
@@ -31,15 +30,14 @@ func NewUserHandler(
 	db *gorm.DB,
 	searcher *xdb.Searcher,
 	client *redis.Client) *UserHandler {
-	handler := &UserHandler{db: db, searcher: searcher, redis: client}
-	handler.App = app
-	return handler
+	return &UserHandler{BaseHandler: BaseHandler{DB: db, App: app}, searcher: searcher, redis: client}
 }
 
 // Register user register
 func (h *UserHandler) Register(c *gin.Context) {
 	// parameters process
 	var data struct {
+		RegWay     string `json:"reg_way"`
 		Username   string `json:"username"`
 		Password   string `json:"password"`
 		Code       string `json:"code"`
@@ -57,8 +55,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	var key string
-	if utils.ContainsStr(h.App.SysConfig.RegisterWays, "email") ||
-		utils.ContainsStr(h.App.SysConfig.RegisterWays, "mobile") {
+	if data.RegWay == "email" || data.RegWay == "mobile" {
 		key = CodeStorePrefix + data.Username
 		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {
@@ -70,7 +67,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// 验证邀请码
 	inviteCode := model.InviteCode{}
 	if data.InviteCode != "" {
-		res := h.db.Where("code = ?", data.InviteCode).First(&inviteCode)
+		res := h.DB.Where("code = ?", data.InviteCode).First(&inviteCode)
 		if res.Error != nil {
 			resp.ERROR(c, "无效的邀请码")
 			return
@@ -79,7 +76,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// check if the username is exists
 	var item model.User
-	res := h.db.Where("username = ?", data.Username).First(&item)
+	res := h.DB.Where("username = ?", data.Username).First(&item)
 	if item.Id > 0 {
 		resp.ERROR(c, "该用户名已经被注册")
 		return
@@ -98,7 +95,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Power:      h.App.SysConfig.InitPower,
 	}
 
-	res = h.db.Create(&user)
+	res = h.DB.Create(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "保存数据失败")
 		logger.Error(res.Error)
@@ -108,13 +105,13 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// 记录邀请关系
 	if data.InviteCode != "" {
 		// 增加邀请数量
-		h.db.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
+		h.DB.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
 		if h.App.SysConfig.InvitePower > 0 {
-			h.db.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("power", gorm.Expr("power + ?", h.App.SysConfig.InvitePower))
+			h.DB.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("power", gorm.Expr("power + ?", h.App.SysConfig.InvitePower))
 		}
 
 		// 添加邀请记录
-		h.db.Create(&model.InviteLog{
+		h.DB.Create(&model.InviteLog{
 			InviterId:  inviteCode.UserId,
 			UserId:     user.Id,
 			Username:   user.Username,
@@ -155,7 +152,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	var user model.User
-	res := h.db.Where("username = ?", data.Username).First(&user)
+	res := h.DB.Where("username = ?", data.Username).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户名不存在")
 		return
@@ -175,9 +172,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 	// 更新最后登录时间和IP
 	user.LastLoginIp = c.ClientIP()
 	user.LastLoginAt = time.Now().Unix()
-	h.db.Model(&user).Updates(user)
+	h.DB.Model(&user).Updates(user)
 
-	h.db.Create(&model.UserLoginLog{
+	h.DB.Create(&model.UserLoginLog{
 		UserId:       user.Id,
 		Username:     user.Username,
 		LoginIp:      c.ClientIP(),
@@ -222,7 +219,7 @@ func (h *UserHandler) Logout(c *gin.Context) {
 
 // Session 获取/验证会话
 func (h *UserHandler) Session(c *gin.Context) {
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err == nil {
 		var userVo vo.User
 		err := utils.CopyObject(user, &userVo)
@@ -248,13 +245,13 @@ type userProfile struct {
 }
 
 func (h *UserHandler) Profile(c *gin.Context) {
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
-	h.db.First(&user, user.Id)
+	h.DB.First(&user, user.Id)
 	var profile userProfile
 	err = utils.CopyObject(user, &profile)
 	if err != nil {
@@ -274,15 +271,15 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 		return
 	}
 
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
-	h.db.First(&user, user.Id)
+	h.DB.First(&user, user.Id)
 	user.Avatar = data.Avatar
 	user.Nickname = data.Nickname
-	res := h.db.Updates(&user)
+	res := h.DB.Updates(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "更新用户信息失败")
 		return
@@ -307,7 +304,7 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 		return
 	}
 
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
@@ -321,7 +318,7 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 	}
 
 	newPass := utils.GenPassword(data.Password, user.Salt)
-	res := h.db.Model(&user).UpdateColumn("password", newPass)
+	res := h.DB.Model(&user).UpdateColumn("password", newPass)
 	if res.Error != nil {
 		logger.Error("更新数据库失败: ", res.Error)
 		resp.ERROR(c, "更新数据库失败")
@@ -344,7 +341,7 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 	}
 
 	var user model.User
-	res := h.db.Where("username", data.Username).First(&user)
+	res := h.DB.Where("username", data.Username).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "用户不存在！")
 		return
@@ -360,7 +357,7 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 
 	password := utils.GenPassword(data.Password, user.Salt)
 	user.Password = password
-	res = h.db.Updates(&user)
+	res = h.DB.Updates(&user)
 	if res.Error != nil {
 		resp.ERROR(c)
 	} else {
@@ -390,19 +387,19 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 
 	// 检查手机号是否被其他账号绑定
 	var item model.User
-	res := h.db.Where("username = ?", data.Username).First(&item)
+	res := h.DB.Where("username = ?", data.Username).First(&item)
 	if res.Error == nil {
 		resp.ERROR(c, "该账号已经被其他账号绑定")
 		return
 	}
 
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
-	res = h.db.Model(&user).UpdateColumn("username", data.Username)
+	res = h.DB.Model(&user).UpdateColumn("username", data.Username)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return

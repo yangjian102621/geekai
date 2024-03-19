@@ -12,20 +12,17 @@ import (
 
 type ProductHandler struct {
 	BaseHandler
-	db *gorm.DB
 }
 
 func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
-	h := ProductHandler{db: db}
-	h.App = app
-	return &h
+	return &ProductHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // List 模型列表
 func (h *ProductHandler) List(c *gin.Context) {
 	var items []model.Product
 	var list = make([]vo.Product, 0)
-	res := h.db.Where("enabled", true).Order("sort_num ASC").Find(&items)
+	res := h.DB.Where("enabled", true).Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var product vo.Product

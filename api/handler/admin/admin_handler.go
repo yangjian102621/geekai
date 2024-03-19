@@ -30,19 +30,15 @@ type Manager struct {
 
 type ManagerHandler struct {
 	handler.BaseHandler
-	db    *gorm.DB
 	redis *redis.Client
 }
 
 func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client) *ManagerHandler {
-	h := ManagerHandler{db: db, redis: client}
-	h.App = app
-	return &h
+	return &ManagerHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}, redis: client}
 }
 
 // Login 登录
 func (h *ManagerHandler) Login(c *gin.Context) {
-
 	var data Manager
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -56,7 +52,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	}
 
 	var manager model.AdminUser
-	res := h.db.Model(&model.AdminUser{}).Where("username = ?", data.Username).First(&manager)
+	res := h.DB.Model(&model.AdminUser{}).Where("username = ?", data.Username).First(&manager)
 	if res.Error != nil {
 		resp.ERROR(c, "请检查用户名或者密码是否填写正确")
 		return
@@ -78,7 +74,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		"user_id": manager.Username,
 		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
 	})
-	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	tokenString, err := token.SignedString([]byte(h.App.Config.AdminSession.SecretKey))
 	if err != nil {
 		resp.ERROR(c, "Failed to generate token, "+err.Error())
 		return
@@ -93,33 +89,17 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	// 更新最后登录时间和IP
 	manager.LastLoginIp = c.ClientIP()
 	manager.LastLoginAt = time.Now().Unix()
-	h.db.Model(&manager).Updates(manager)
+	h.DB.Model(&manager).Updates(manager)
 
-	permissions := h.GetAdminSlugs(manager.Id)
 	var result = struct {
-		IsSuperAdmin bool     `json:"is_super_admin"`
-		Token        string   `json:"token"`
-		Permissions  []string `json:"permissions"`
+		IsSuperAdmin bool   `json:"is_super_admin"`
+		Token        string `json:"token"`
 	}{
 		IsSuperAdmin: manager.Id == 1,
 		Token:        tokenString,
-		Permissions:  permissions,
 	}
 
 	resp.SUCCESS(c, result)
-}
-
-func (h *ManagerHandler) GetAdminSlugs(userId uint) []string {
-	var permissions []string
-	err := h.db.Raw("SELECT distinct p.slug "+
-		"FROM chatgpt_admin_user_roles as ur "+
-		"LEFT JOIN chatgpt_admin_role_permissions as rp ON ur.role_id = rp.role_id "+
-		"LEFT JOIN chatgpt_admin_permissions as p ON rp.permission_id = p.id "+
-		"WHERE ur.admin_id = ?", userId).Scan(&permissions)
-	if err.Error == nil {
-		return []string{}
-	}
-	return permissions
 }
 
 // Logout 注销

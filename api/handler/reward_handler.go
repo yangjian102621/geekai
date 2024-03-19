@@ -18,14 +18,11 @@ import (
 
 type RewardHandler struct {
 	BaseHandler
-	db   *gorm.DB
 	lock sync.Mutex
 }
 
-func NewRewardHandler(server *core.AppServer, db *gorm.DB) *RewardHandler {
-	h := RewardHandler{db: db, lock: sync.Mutex{}}
-	h.App = server
-	return &h
+func NewRewardHandler(app *core.AppServer, db *gorm.DB) *RewardHandler {
+	return &RewardHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // Verify 打赏码核销
@@ -38,7 +35,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 		return
 	}
 
-	user, err := utils.GetLoginUser(c, h.db)
+	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.HACKER(c)
 		return
@@ -51,7 +48,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	defer h.lock.Unlock()
 
 	var item model.Reward
-	res := h.db.Where("tx_id = ?", data.TxId).First(&item)
+	res := h.DB.Where("tx_id = ?", data.TxId).First(&item)
 	if res.Error != nil {
 		resp.ERROR(c, "无效的众筹交易流水号！")
 		return
@@ -62,7 +59,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 		return
 	}
 
-	tx := h.db.Begin()
+	tx := h.DB.Begin()
 	exchange := vo.RewardExchange{}
 	power := math.Ceil(item.Amount / h.App.SysConfig.PowerPrice)
 	exchange.Power = int(power)
@@ -85,7 +82,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	}
 
 	// 记录算力充值日志
-	h.db.Create(&model.PowerLog{
+	h.DB.Create(&model.PowerLog{
 		UserId:    user.Id,
 		Username:  user.Username,
 		Type:      types.PowerReward,

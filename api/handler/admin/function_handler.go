@@ -17,13 +17,10 @@ import (
 
 type FunctionHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewFunctionHandler(app *core.AppServer, db *gorm.DB) *FunctionHandler {
-	h := FunctionHandler{db: db}
-	h.App = app
-	return &h
+	return &FunctionHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 func (h *FunctionHandler) Save(c *gin.Context) {
@@ -44,7 +41,7 @@ func (h *FunctionHandler) Save(c *gin.Context) {
 		Enabled:     data.Enabled,
 	}
 
-	res := h.db.Save(&f)
+	res := h.DB.Save(&f)
 	if res.Error != nil {
 		resp.ERROR(c, "error with save data:"+res.Error.Error())
 		return
@@ -65,7 +62,7 @@ func (h *FunctionHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.db.Model(&model.Function{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
+	res := h.DB.Model(&model.Function{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -74,13 +71,13 @@ func (h *FunctionHandler) Set(c *gin.Context) {
 }
 
 func (h *FunctionHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
 
 	var items []model.Function
-	res := h.db.Find(&items)
+	res := h.DB.Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return
@@ -102,7 +99,7 @@ func (h *FunctionHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 
 	if id > 0 {
-		res := h.db.Delete(&model.Function{Id: uint(id)})
+		res := h.DB.Delete(&model.Function{Id: uint(id)})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

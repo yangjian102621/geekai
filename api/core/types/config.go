@@ -8,6 +8,7 @@ type AppConfig struct {
 	Path          string `toml:"-"`
 	Listen        string
 	Session       Session
+	AdminSession  Session
 	ProxyURL      string
 	MysqlDns      string                  // mysql 连接地址
 	StaticDir     string                  // 静态资源目录
@@ -139,7 +140,7 @@ type SystemConfig struct {
 	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
 	VipMonthPower int    `json:"vip_month_power,omitempty"` // VIP 会员每月赠送的算力值
 
-	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机，邮箱注册
+	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机，邮箱注册，账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
 	RewardImg     string  `json:"reward_img,omitempty"`     // 众筹收款二维码地址

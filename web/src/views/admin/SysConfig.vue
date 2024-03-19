@@ -62,6 +62,7 @@
               <el-checkbox-group v-model="system['register_ways']">
                 <el-checkbox label="mobile">手机注册</el-checkbox>
                 <el-checkbox label="email">邮箱注册</el-checkbox>
+                <el-checkbox label="username">用户名注册</el-checkbox>
               </el-checkbox-group>
             </el-form-item>
 

@@ -19,7 +19,6 @@ import (
 
 type FunctionHandler struct {
 	BaseHandler
-	db            *gorm.DB
 	config        types.ChatPlusApiConfig
 	uploadManager *oss.UploaderManager
 }
@@ -28,8 +27,8 @@ func NewFunctionHandler(server *core.AppServer, db *gorm.DB, config *types.AppCo
 	return &FunctionHandler{
 		BaseHandler: BaseHandler{
 			App: server,
+			DB:  db,
 		},
-		db:            db,
 		config:        config.ApiConfig,
 		uploadManager: manager,
 	}
@@ -191,7 +190,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	logger.Debugf("绘画参数：%+v", params)
 	var user model.User
-	tx := h.db.Where("id = ?", params["user_id"]).First(&user)
+	tx := h.DB.Where("id = ?", params["user_id"]).First(&user)
 	if tx.Error != nil {
 		resp.ERROR(c, "当前用户不存在！")
 		return
@@ -205,7 +204,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	prompt := utils.InterfaceToString(params["prompt"])
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx = h.db.Where("platform = ?", types.OpenAI).Where("type = ?", "img").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
+	tx = h.DB.Where("platform = ?", types.OpenAI).Where("type = ?", "img").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
 		resp.ERROR(c, "获取绘图 API KEY 失败: "+tx.Error.Error())
 		return
@@ -213,7 +212,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	// translate prompt
 	const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
-	pt, err := utils.OpenAIRequest(h.db, fmt.Sprintf(translatePromptTemplate, params["prompt"]))
+	pt, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(translatePromptTemplate, params["prompt"]))
 	if err == nil {
 		logger.Debugf("翻译绘画提示词，原文：%s，译文：%s", prompt, pt)
 		prompt = pt
@@ -242,7 +241,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 	// 更新 API KEY 的最后使用时间
-	h.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
+	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	logger.Debugf("%+v", res)
 	// 存储图片
 	imgURL, err := h.uploadManager.GetUploadHandler().PutImg(res.Data[0].Url, false)
@@ -253,10 +252,10 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	content := fmt.Sprintf("下面是根据您的描述创作的图片，它描绘了 【%s】 的场景。 \n\n![](%s)\n", prompt, imgURL)
 	// 更新用户算力
-	tx = h.db.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
+	tx = h.DB.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
 	// 记录算力变化日志
 	if tx.Error == nil && tx.RowsAffected > 0 {
-		h.db.Create(&model.PowerLog{
+		h.DB.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,
 			Type:      types.PowerConsume,

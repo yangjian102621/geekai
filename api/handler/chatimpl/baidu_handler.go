@@ -160,7 +160,7 @@ func (h *ChatHandler) sendBaiduMessage(
 			}
 			historyUserMsg.CreatedAt = promptCreatedAt
 			historyUserMsg.UpdatedAt = promptCreatedAt
-			res := h.db.Save(&historyUserMsg)
+			res := h.DB.Save(&historyUserMsg)
 			if res.Error != nil {
 				logger.Error("failed to save prompt history message: ", res.Error)
 			}
@@ -182,7 +182,7 @@ func (h *ChatHandler) sendBaiduMessage(
 			}
 			historyReplyMsg.CreatedAt = replyCreatedAt
 			historyReplyMsg.UpdatedAt = replyCreatedAt
-			res = h.db.Create(&historyReplyMsg)
+			res = h.DB.Create(&historyReplyMsg)
 			if res.Error != nil {
 				logger.Error("failed to save reply history message: ", res.Error)
 			}
@@ -191,7 +191,7 @@ func (h *ChatHandler) sendBaiduMessage(
 
 			// 保存当前会话
 			var chatItem model.ChatItem
-			res = h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
+			res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
 			if res.Error != nil {
 				chatItem.ChatId = session.ChatId
 				chatItem.UserId = session.UserId
@@ -203,7 +203,7 @@ func (h *ChatHandler) sendBaiduMessage(
 					chatItem.Title = prompt
 				}
 				chatItem.Model = req.Model
-				h.db.Create(&chatItem)
+				h.DB.Create(&chatItem)
 			}
 		}
 	} else {

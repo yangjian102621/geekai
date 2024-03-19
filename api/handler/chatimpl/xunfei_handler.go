@@ -69,13 +69,13 @@ func (h *ChatHandler) sendXunFeiMessage(
 	ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
 	var apiKey model.ApiKey
-	res := h.db.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
+	res := h.DB.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
 	if res.Error != nil {
 		utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 		return nil
 	}
 	// 更新 API KEY 的最后使用时间
-	h.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
+	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
 	d := websocket.Dialer{
 		HandshakeTimeout: 5 * time.Second,
@@ -200,7 +200,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 		}
 		historyUserMsg.CreatedAt = promptCreatedAt
 		historyUserMsg.UpdatedAt = promptCreatedAt
-		res := h.db.Save(&historyUserMsg)
+		res := h.DB.Save(&historyUserMsg)
 		if res.Error != nil {
 			logger.Error("failed to save prompt history message: ", res.Error)
 		}
@@ -222,7 +222,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 		}
 		historyReplyMsg.CreatedAt = replyCreatedAt
 		historyReplyMsg.UpdatedAt = replyCreatedAt
-		res = h.db.Create(&historyReplyMsg)
+		res = h.DB.Create(&historyReplyMsg)
 		if res.Error != nil {
 			logger.Error("failed to save reply history message: ", res.Error)
 		}
@@ -232,7 +232,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 
 		// 保存当前会话
 		var chatItem model.ChatItem
-		res = h.db.Where("chat_id = ?", session.ChatId).First(&chatItem)
+		res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
 		if res.Error != nil {
 			chatItem.ChatId = session.ChatId
 			chatItem.UserId = session.UserId
@@ -244,7 +244,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 				chatItem.Title = prompt
 			}
 			chatItem.Model = req.Model
-			h.db.Create(&chatItem)
+			h.DB.Create(&chatItem)
 		}
 	}
 

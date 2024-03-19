@@ -13,14 +13,11 @@ import (
 
 type UploadHandler struct {
 	handler.BaseHandler
-	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 }
 
 func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManager) *UploadHandler {
-	adminHandler := &UploadHandler{db: db, uploaderManager: manager}
-	adminHandler.App = app
-	return adminHandler
+	return &UploadHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}, uploaderManager: manager}
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {
@@ -30,7 +27,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 	userId := 0
-	res := h.db.Create(&model.File{
+	res := h.DB.Create(&model.File{
 		UserId:    userId,
 		Name:      file.Name,
 		ObjKey:    file.ObjKey,

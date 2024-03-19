@@ -15,32 +15,29 @@ import (
 // InviteHandler 用户邀请
 type InviteHandler struct {
 	BaseHandler
-	db *gorm.DB
 }
 
 func NewInviteHandler(app *core.AppServer, db *gorm.DB) *InviteHandler {
-	h := InviteHandler{db: db}
-	h.App = app
-	return &h
+	return &InviteHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // Code 获取当前用户邀请码
 func (h *InviteHandler) Code(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	var inviteCode model.InviteCode
-	res := h.db.Where("user_id = ?", userId).First(&inviteCode)
+	res := h.DB.Where("user_id = ?", userId).First(&inviteCode)
 	// 如果邀请码不存在，则创建一个
 	if res.Error != nil {
 		code := strings.ToUpper(utils.RandString(8))
 		for {
-			res = h.db.Where("code = ?", code).First(&inviteCode)
+			res = h.DB.Where("code = ?", code).First(&inviteCode)
 			if res.Error != nil { // 不存在相同的邀请码则退出
 				break
 			}
 		}
 		inviteCode.UserId = userId
 		inviteCode.Code = code
-		h.db.Create(&inviteCode)
+		h.DB.Create(&inviteCode)
 	}
 
 	var codeVo vo.InviteCode
@@ -65,7 +62,7 @@ func (h *InviteHandler) List(c *gin.Context) {
 		return
 	}
 	userId := h.GetLoginUserId(c)
-	session := h.db.Session(&gorm.Session{}).Where("inviter_id = ?", userId)
+	session := h.DB.Session(&gorm.Session{}).Where("inviter_id = ?", userId)
 	var total int64
 	session.Model(&model.InviteLog{}).Count(&total)
 	var items []model.InviteLog
@@ -91,6 +88,6 @@ func (h *InviteHandler) List(c *gin.Context) {
 // Hits 访问邀请码
 func (h *InviteHandler) Hits(c *gin.Context) {
 	code := c.Query("code")
-	h.db.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("hits", gorm.Expr("hits + ?", 1))
+	h.DB.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("hits", gorm.Expr("hits + ?", 1))
 	resp.SUCCESS(c)
 }

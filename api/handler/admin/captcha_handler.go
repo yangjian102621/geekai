@@ -13,9 +13,7 @@ type CaptchaHandler struct {
 }
 
 func NewCaptchaHandler(app *core.AppServer) *CaptchaHandler {
-	h := CaptchaHandler{}
-	h.App = app
-	return &h
+	return &CaptchaHandler{BaseHandler: handler.BaseHandler{App: app}}
 }
 
 type CaptchaVo struct {

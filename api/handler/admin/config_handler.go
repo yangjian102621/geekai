@@ -14,13 +14,10 @@ import (
 
 type ConfigHandler struct {
 	handler.BaseHandler
-	db *gorm.DB
 }
 
 func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
-	h := ConfigHandler{db: db}
-	h.App = app
-	return &h
+	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {
@@ -40,7 +37,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 	value := utils.JsonEncode(&data.Config)
 	config := model.Config{Key: data.Key, Config: value}
-	res := h.db.FirstOrCreate(&config, model.Config{Key: data.Key})
+	res := h.DB.FirstOrCreate(&config, model.Config{Key: data.Key})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
@@ -48,7 +45,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 	if config.Id > 0 {
 		config.Config = value
-		res := h.db.Updates(&config)
+		res := h.DB.Updates(&config)
 		if res.Error != nil {
 			resp.ERROR(c, res.Error.Error())
 			return
@@ -56,7 +53,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 		// update config cache for AppServer
 		var cfg model.Config
-		h.db.Where("marker", data.Key).First(&cfg)
+		h.DB.Where("marker", data.Key).First(&cfg)
 		var err error
 		if data.Key == "system" {
 			err = utils.JsonDecode(cfg.Config, &h.App.SysConfig)
@@ -73,14 +70,14 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.db); err != nil {
+	if err := utils.CheckPermission(c, h.DB); err != nil {
 		resp.NotPermission(c)
 		return
 	}
 
 	key := c.Query("key")
 	var config model.Config
-	res := h.db.Where("marker", key).First(&config)
+	res := h.DB.Where("marker", key).First(&config)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
