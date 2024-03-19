@@ -40,7 +40,8 @@
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
     "stylus": "^0.58.1",
-    "stylus-loader": "^7.0.0"
+    "stylus-loader": "^7.0.0",
+    "webpack": "^5.90.3"
   },
   "eslintConfig": {
     "root": true,
