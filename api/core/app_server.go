@@ -165,21 +165,21 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 
 		})
 
-		if err != nil {
+		if err != nil && needLogin(c) {
 			resp.NotAuth(c, fmt.Sprintf("Error with parse auth token: %v", err))
 			c.Abort()
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || !token.Valid {
+		if !ok || !token.Valid && needLogin(c) {
 			resp.NotAuth(c, "Token is invalid")
 			c.Abort()
 			return
 		}
 
 		expr := utils.IntValue(utils.InterfaceToString(claims["expired"]), 0)
-		if expr > 0 && int64(expr) < time.Now().Unix() {
+		if expr > 0 && int64(expr) < time.Now().Unix() && needLogin(c) {
 			resp.NotAuth(c, "Token is expired")
 			c.Abort()
 			return
