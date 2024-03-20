@@ -350,43 +350,50 @@
               <el-empty :image-size="100" v-else/>
             </div>
             <h2>创作记录</h2>
-            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.7)">
-              <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
-                <template #default="scope">
-                  <div class="job-item animate" @click="showTask(scope.item)">
-                    <el-image
-                        :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
-                        fit="cover"
-                        loading="lazy">
-                      <template #placeholder>
-                        <div class="image-slot">
-                          正在加载图片
-                        </div>
-                      </template>
+            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.5)">
+              <div v-if="finishedJobs.length > 0">
+                <ItemList :items="finishedJobs" :width="240" :gap="16">
+                  <template #default="scope">
+                    <div class="job-item animate" @click="showTask(scope.item)">
+                      <el-image
+                          :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
+                          fit="cover"
+                          loading="lazy">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
 
-                      <template #error>
-                        <div class="image-slot">
-                          <el-icon>
-                            <Picture/>
-                          </el-icon>
-                        </div>
-                      </template>
-                    </el-image>
+                        <template #error>
+                          <div class="image-slot">
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
 
-                    <div class="remove">
-                      <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
-                      <el-button type="warning" v-if="scope.item.publish"
-                                 @click="publishImage($event,scope.item, false)"
-                                 circle>
-                        <i class="iconfont icon-cancel-share"></i>
-                      </el-button>
-                      <el-button type="success" v-else @click="publishImage($event,scope.item, true)" circle>
-                        <i class="iconfont icon-share-bold"></i>
-                      </el-button>
+                      <div class="remove">
+                        <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
+                        <el-button type="warning" v-if="scope.item.publish"
+                                   @click="publishImage($event,scope.item, false)"
+                                   circle>
+                          <i class="iconfont icon-cancel-share"></i>
+                        </el-button>
+                        <el-button type="success" v-else @click="publishImage($event,scope.item, true)" circle>
+                          <i class="iconfont icon-share-bold"></i>
+                        </el-button>
+                      </div>
                     </div>
-                  </div>
-                </template>
-              </ItemList>
+                  </template>
+                </ItemList>
+
+                <div class="no-more-data" v-if="isOver">
+                  <span>没有更多数据了</span>
+                  <i class="iconfont icon-face"></i>
+                </div>
+              </div>
               <el-empty :image-size="100" v-else/>
             </div> <!-- end finish job list-->
           </div>

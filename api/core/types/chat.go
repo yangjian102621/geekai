@@ -56,6 +56,7 @@ type ChatSession struct {
 type ChatModel struct {
 	Id          uint     `json:"id"`
 	Platform    Platform `json:"platform"`
+	Name        string   `json:"name"`
 	Value       string   `json:"value"`
 	Power       int      `json:"power"`
 	MaxTokens   int      `json:"max_tokens"`  // 最大响应长度
@@ -85,6 +86,21 @@ const (
 	PowerInvite   = PowerType(4) // 邀请奖励
 	PowerReward   = PowerType(5) // 众筹
 )
+
+func (t PowerType) String() string {
+	switch t {
+	case PowerRecharge:
+		return "充值"
+	case PowerConsume:
+		return "消费"
+	case PowerRefund:
+		return "退款"
+	case PowerReward:
+		return "众筹"
+
+	}
+	return "其他"
+}
 
 type PowerMark int
 

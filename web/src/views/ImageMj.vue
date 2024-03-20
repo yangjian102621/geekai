@@ -391,88 +391,93 @@
             </div>
 
             <h2>创作记录</h2>
-            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.7)">
-              <ItemList :items="finishedJobs" v-if="finishedJobs.length > 0" :width="240" :gap="16">
-                <template #default="scope">
-                  <div class="job-item">
-                    <el-image
-                        :src="scope.item['thumb_url']"
-                        :class="scope.item['can_opt'] ? '' : 'upscale'" :zoom-rate="1.2"
-                        :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
-                        loading="lazy" v-if="scope.item.progress > 0">
-                      <template #placeholder>
-                        <div class="image-slot">
-                          正在加载图片
-                        </div>
-                      </template>
+            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.5)">
+              <div v-if="finishedJobs.length > 0">
+                <ItemList :items="finishedJobs" :width="240" :gap="16">
+                  <template #default="scope">
+                    <div class="job-item">
+                      <el-image
+                          :src="scope.item['thumb_url']"
+                          :class="scope.item['can_opt'] ? '' : 'upscale'" :zoom-rate="1.2"
+                          :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
+                          loading="lazy" v-if="scope.item.progress > 0">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
 
-                      <template #error>
-                        <div class="image-slot" v-if="scope.item['img_url'] === ''">
-                          <i class="iconfont icon-loading"></i>
-                          <span>正在下载图片</span>
-                        </div>
-                        <div class="image-slot" v-else>
-                          <el-icon>
-                            <Picture/>
-                          </el-icon>
-                        </div>
-                      </template>
-                    </el-image>
+                        <template #error>
+                          <div class="image-slot" v-if="scope.item['img_url'] === ''">
+                            <i class="iconfont icon-loading"></i>
+                            <span>正在下载图片</span>
+                          </div>
+                          <div class="image-slot" v-else>
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
+                          </div>
+                        </template>
+                      </el-image>
 
-                    <div class="opt" v-if="scope.item['can_opt']">
-                      <div class="opt-line">
-                        <ul>
-                          <li><a @click="upscale(1, scope.item)">U1</a></li>
-                          <li><a @click="upscale(2, scope.item)">U2</a></li>
-                          <li><a @click="upscale(3, scope.item)">U3</a></li>
-                          <li><a @click="upscale(4, scope.item)">U4</a></li>
-                          <li class="show-prompt">
+                      <div class="opt" v-if="scope.item['can_opt']">
+                        <div class="opt-line">
+                          <ul>
+                            <li><a @click="upscale(1, scope.item)">U1</a></li>
+                            <li><a @click="upscale(2, scope.item)">U2</a></li>
+                            <li><a @click="upscale(3, scope.item)">U3</a></li>
+                            <li><a @click="upscale(4, scope.item)">U4</a></li>
+                            <li class="show-prompt">
 
-                            <el-popover placement="left" title="提示词" :width="240" trigger="hover">
-                              <template #reference>
-                                <el-icon>
-                                  <ChromeFilled/>
-                                </el-icon>
-                              </template>
-
-                              <template #default>
-                                <div class="mj-list-item-prompt">
-                                  <span>{{ scope.item.prompt }}</span>
-                                  <el-icon class="copy-prompt-mj"
-                                           :data-clipboard-text="scope.item.prompt">
-                                    <DocumentCopy/>
+                              <el-popover placement="left" title="提示词" :width="240" trigger="hover">
+                                <template #reference>
+                                  <el-icon>
+                                    <ChromeFilled/>
                                   </el-icon>
-                                </div>
-                              </template>
-                            </el-popover>
-                          </li>
-                        </ul>
+                                </template>
+
+                                <template #default>
+                                  <div class="mj-list-item-prompt">
+                                    <span>{{ scope.item.prompt }}</span>
+                                    <el-icon class="copy-prompt-mj"
+                                             :data-clipboard-text="scope.item.prompt">
+                                      <DocumentCopy/>
+                                    </el-icon>
+                                  </div>
+                                </template>
+                              </el-popover>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div class="opt-line">
+                          <ul>
+                            <li><a @click="variation(1, scope.item)">V1</a></li>
+                            <li><a @click="variation(2, scope.item)">V2</a></li>
+                            <li><a @click="variation(3, scope.item)">V3</a></li>
+                            <li><a @click="variation(4, scope.item)">V4</a></li>
+                          </ul>
+                        </div>
                       </div>
 
-                      <div class="opt-line">
-                        <ul>
-                          <li><a @click="variation(1, scope.item)">V1</a></li>
-                          <li><a @click="variation(2, scope.item)">V2</a></li>
-                          <li><a @click="variation(3, scope.item)">V3</a></li>
-                          <li><a @click="variation(4, scope.item)">V4</a></li>
-                        </ul>
+                      <div class="remove">
+                        <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
+                        <el-button type="warning" v-if="scope.item.publish" @click="publishImage(scope.item, false)"
+                                   circle>
+                          <i class="iconfont icon-cancel-share"></i>
+                        </el-button>
+                        <el-button type="success" v-else @click="publishImage(scope.item, true)" circle>
+                          <i class="iconfont icon-share-bold"></i>
+                        </el-button>
                       </div>
                     </div>
-
-                    <div class="remove">
-                      <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
-                      <el-button type="warning" v-if="scope.item.publish" @click="publishImage(scope.item, false)"
-                                 circle>
-                        <i class="iconfont icon-cancel-share"></i>
-                      </el-button>
-                      <el-button type="success" v-else @click="publishImage(scope.item, true)" circle>
-                        <i class="iconfont icon-share-bold"></i>
-                      </el-button>
-                    </div>
-                  </div>
-                </template>
-              </ItemList>
-
+                  </template>
+                </ItemList>
+                <div class="no-more-data" v-if="isOver">
+                  <span>没有更多数据了</span>
+                  <i class="iconfont icon-face"></i>
+                </div>
+              </div>
               <el-empty :image-size="100" v-else/>
             </div> <!-- end finish job list-->
           </div>
@@ -594,7 +599,7 @@ const rewritePrompt = () => {
     showLoginDialog.value = true
     return
   }
-  
+
   translating.value = true
   httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
     params.value.prompt = res.data

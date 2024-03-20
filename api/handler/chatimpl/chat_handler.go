@@ -105,6 +105,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	session.ChatId = chatId
 	session.Model = types.ChatModel{
 		Id:          chatModel.Id,
+		Name:        chatModel.Name,
 		Value:       chatModel.Value,
 		Power:       chatModel.Power,
 		MaxTokens:   chatModel.MaxTokens,
@@ -535,7 +536,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 			Mark:      types.PowerSub,
 			Balance:   userVo.Power - power,
 			Model:     session.Model.Value,
-			Remark:    fmt.Sprintf("提问长度：%d，回复长度：%d", promptTokens, replyTokens),
+			Remark:    fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
 			CreatedAt: time.Now(),
 		})
 	}

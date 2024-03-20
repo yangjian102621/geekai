@@ -44,6 +44,15 @@
                 </div>
               </div>
             </el-form-item>
+            <el-form-item label="MidJourney算力" prop="mj_power">
+              <el-input v-model.number="system['mj_power']" placeholder="使用MidJourney画一张图消耗算力"/>
+            </el-form-item>
+            <el-form-item label="Stable-Diffusion算力" prop="sd_power">
+              <el-input v-model.number="system['sd_power']" placeholder="使用Stable-Diffusion画一张图消耗算力"/>
+            </el-form-item>
+            <el-form-item label="DALL-E-3算力" prop="dall_power">
+              <el-input v-model.number="system['dall_power']" placeholder="使用DALL-E-3画一张图消耗算力"/>
+            </el-form-item>
             <el-form-item label="开放注册" prop="enabled_register">
               <el-switch v-model="system['enabled_register']"/>
               <el-tooltip

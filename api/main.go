@@ -126,6 +126,7 @@ func main() {
 		fx.Provide(handler.NewOrderHandler),
 		fx.Provide(handler.NewProductHandler),
 		fx.Provide(handler.NewConfigHandler),
+		fx.Provide(handler.NewPowerLogHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -401,8 +402,9 @@ func main() {
 			group.GET("remove", h.RemoveChat)
 			group.GET("message/remove", h.RemoveMessage)
 		}),
-		fx.Provide(handler.NewTestHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
+		fx.Invoke(func(s *core.AppServer, h *handler.PowerLogHandler) {
+			group := s.Engine.Group("/api/powerLog/")
+			group.POST("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)
