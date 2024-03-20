@@ -478,7 +478,7 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 			Amount:    power,
 			Balance:   user.Power,
 			Mark:      types.PowerAdd,
-			Model:     "",
+			Model:     order.PayWay,
 			Remark:    fmt.Sprintf("%s，金额：%f，订单号：%s", opt, order.Amount, order.OrderNo),
 			CreatedAt: time.Now(),
 		})
