@@ -21,23 +21,18 @@
             </template>
           </van-field>
 
-          <van-field label="剩余对话次数">
+          <van-field label="剩余算力">
             <template #input>
-              <van-tag type="primary">{{ form.calls }}</van-tag>
+              <van-tag type="primary">{{ form.power }}</van-tag>
             </template>
           </van-field>
 
-          <van-field label="剩余绘图次数">
+          <van-field label="VIP到期时间" v-if="form.expired_time > 0">
             <template #input>
-              <van-tag type="primary">{{ form.img_calls }}</van-tag>
+              <van-tag type="warning">{{ dateFormat(form.expired_time) }}</van-tag>
             </template>
           </van-field>
 
-          <van-field label="累计算力消耗">
-            <template #input>
-              <van-tag type="primary">{{ form.total_tokens }}</van-tag>
-            </template>
-          </van-field>
         </van-cell-group>
       </van-form>
 
@@ -50,7 +45,19 @@
         <div class="item" v-for="item in products" :key="item.id">
           <h4 class="title">
             <span>{{ item.name }}</span>
-            <van-button type="primary" size="small" icon="cart">立即购买</van-button>
+            <div class="buy-btn">
+              <van-button type="primary" @click="pay('alipay',item)" size="small" v-if="payWays['alipay']">
+                <i class="iconfont icon-alipay"></i> 支付宝
+              </van-button>
+              <van-button type="success" @click="pay('hupi',item)" size="small" v-if="payWays['hupi']">
+                <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
+                <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
+              </van-button>
+
+              <van-button type="success" @click="pay('payjs',item)" size="small" v-if="payWays['payjs']">
+                <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
+              </van-button>
+            </div>
           </h4>
 
           <van-cell-group>
@@ -111,7 +118,10 @@ import {onMounted, ref} from "vue";
 import {showFailToast, showNotify, showSuccessToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
+import {dateFormat} from "@/utils/libs";
 import {ElMessage} from "element-plus";
+import {checkSession} from "@/action/session";
+import {useRouter} from "vue-router";
 
 const title = ref('用户设置')
 const form = ref({
@@ -132,29 +142,45 @@ const fileList = ref([
 const products = ref([])
 const vipMonthCalls = ref(0)
 const vipMonthImgCalls = ref(0)
+const payWays = ref({})
+const router = useRouter()
+const loginUser = ref(null)
 
 onMounted(() => {
-  httpGet('/api/user/profile').then(res => {
-    form.value = res.data
-    fileList.value[0].url = form.value.avatar
-  }).catch((e) => {
-    console.log(e.message)
-    showFailToast('获取用户信息失败')
-  });
+  checkSession().then(user => {
+    loginUser.value = user
+    httpGet('/api/user/profile').then(res => {
+      form.value = res.data
+      fileList.value[0].url = form.value.avatar
+    }).catch((e) => {
+      console.log(e.message)
+      showFailToast('获取用户信息失败')
+    });
 
-  // 获取产品列表
-  httpGet("/api/product/list").then((res) => {
-    products.value = res.data
-  }).catch(e => {
-    showFailToast("获取产品套餐失败：" + e.message)
+    // 获取产品列表
+    httpGet("/api/product/list").then((res) => {
+      products.value = res.data
+    }).catch(e => {
+      showFailToast("获取产品套餐失败：" + e.message)
+    })
+
+    httpGet("/api/config/get?key=system").then(res => {
+      vipMonthCalls.value = res.data['vip_month_calls']
+      vipMonthImgCalls.value = res.data['vip_month_img_calls']
+    }).catch(e => {
+      showFailToast("获取系统配置失败：" + e.message)
+    })
+
+    httpGet("/api/payment/payWays").then(res => {
+      payWays.value = res.data
+    }).catch(e => {
+      ElMessage.error("获取支付方式失败：" + e.message)
+    })
+
+  }).catch(() => {
+    router.push("/login")
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
-    vipMonthCalls.value = res.data['vip_month_calls']
-    vipMonthImgCalls.value = res.data['vip_month_img_calls']
-  }).catch(e => {
-    showFailToast("获取系统配置失败：" + e.message)
-  })
 })
 
 const afterRead = (file) => {
@@ -222,6 +248,18 @@ const updatePass = () => {
     showPasswordDialog.value = false
   })
 }
+
+const pay = (payWay, item) => {
+  httpPost("/api/payment/mobile", {
+    pay_way: payWay,
+    product_id: item.id,
+    user_id: loginUser.value.id
+  }).then(res => {
+    location.href = res.data
+  }).catch(e => {
+    showFailToast("生成支付订单失败：" + e.message)
+  })
+}
 </script>
 
 <style lang="stylus">
@@ -249,10 +287,15 @@ const updatePass = () => {
           padding 0 12px
           position relative
 
-          .van-button {
+          .buy-btn {
             position absolute
             top -5px
             right 10px
+
+            .van-button {
+              font-size 14px
+              margin-left 10px
+            }
           }
         }
 

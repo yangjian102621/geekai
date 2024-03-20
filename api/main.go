@@ -324,6 +324,7 @@ func main() {
 			group.GET("payWays", h.GetPayWays)
 			group.POST("query", h.OrderQuery)
 			group.POST("qrcode", h.PayQrcode)
+			group.POST("mobile", h.Mobile)
 			group.POST("alipay/notify", h.AlipayNotify)
 			group.POST("hupipay/notify", h.HuPiPayNotify)
 			group.POST("payjs/notify", h.PayJsNotify)

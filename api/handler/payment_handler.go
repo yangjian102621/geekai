@@ -279,7 +279,6 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 
 // Mobile 移动端支付
 func (h *PaymentHandler) Mobile(c *gin.Context) {
-
 	var data struct {
 		PayWay    string `json:"pay_way"` // 支付方式
 		ProductId uint   `json:"product_id"`
@@ -309,18 +308,61 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		return
 	}
 
+	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
 	var payWay string
-	var notifyURL string
+	var notifyURL, returnURL string
+	var payURL string
 	switch data.PayWay {
 	case "hupi":
 		payWay = PayWayXunHu
 		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
+		returnURL = h.App.Config.HuPiPayConfig.ReturnURL
+		params := payment.HuPiPayReq{
+			Version:      "1.1",
+			TradeOrderId: orderNo,
+			TotalFee:     fmt.Sprintf("%f", amount),
+			Title:        product.Name,
+			NotifyURL:    notifyURL,
+			ReturnURL:    returnURL,
+			CallbackURL:  returnURL,
+			WapName:      "极客学长",
+		}
+		r, err := h.huPiPayService.Pay(params)
+		if err != nil {
+			logger.Error("error with generating Pay URL: ", err.Error())
+			resp.ERROR(c, "error with generating Pay URL: "+err.Error())
+			return
+		}
+		payURL = r.URL
 	case "payjs":
 		payWay = PayWayJs
 		notifyURL = h.App.Config.JPayConfig.NotifyURL
-	default:
+		returnURL = h.App.Config.JPayConfig.ReturnURL
+		params := payment.JPayReq{
+			TotalFee:   int(math.Ceil(amount * 100)),
+			OutTradeNo: orderNo,
+			Subject:    product.Name,
+			NotifyURL:  notifyURL,
+			ReturnURL:  returnURL,
+		}
+		r := h.js.PayH5(params)
+		if !r.IsOK() {
+			resp.ERROR(c, "error with generating Pay URL: "+r.ReturnMsg)
+			return
+		}
+		payURL = r.H5URL
+	case "alipay":
 		payWay = PayWayAlipay
 		notifyURL = h.App.Config.AlipayConfig.NotifyURL
+		returnURL = h.App.Config.AlipayConfig.ReturnURL
+		payURL, err = h.alipayService.PayUrlMobile(orderNo, notifyURL, returnURL, fmt.Sprintf("%.2f", amount), product.Name)
+		if err != nil {
+			resp.ERROR(c, "error with generating Pay URL: "+err.Error())
+			return
+		}
+	default:
+		resp.ERROR(c, "Unsupported pay way: "+data.PayWay)
+		return
 	}
 	// 创建订单
 	remark := types.OrderRemark{
@@ -331,7 +373,6 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		Discount: product.Discount,
 	}
 
-	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
 	order := model.Order{
 		UserId:    user.Id,
 		Username:  user.Username,
@@ -349,54 +390,7 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		return
 	}
 
-	// PayJs 单独处理，只能用官方生成的二维码
-	if data.PayWay == "payjs" {
-		params := payment.JPayReq{
-			TotalFee:   int(math.Ceil(order.Amount * 100)),
-			OutTradeNo: order.OrderNo,
-			Subject:    product.Name,
-		}
-		r := h.js.Pay(params)
-		if r.IsOK() {
-			resp.SUCCESS(c, gin.H{"order_no": order.OrderNo, "image": r.Qrcode})
-			return
-		} else {
-			resp.ERROR(c, "error with generating payment qrcode: "+r.ReturnMsg)
-			return
-		}
-	}
-
-	var logo string
-	if data.PayWay == "alipay" {
-		logo = "res/img/alipay.jpg"
-	} else if data.PayWay == "hupi" {
-		if h.App.Config.HuPiPayConfig.Name == "wechat" {
-			logo = "res/img/wechat-pay.jpg"
-		} else {
-			logo = "res/img/alipay.jpg"
-		}
-	}
-
-	file, err := h.fs.Open(logo)
-	if err != nil {
-		resp.ERROR(c, "error with open qrcode log file: "+err.Error())
-		return
-	}
-
-	parse, err := url.Parse(notifyURL)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	imageURL := fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s", parse.Scheme, parse.Host, orderNo, data.PayWay)
-	imgData, err := utils.GenQrcode(imageURL, 400, file)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	imgDataBase64 := base64.StdEncoding.EncodeToString(imgData)
-	resp.SUCCESS(c, gin.H{"order_no": orderNo, "image": fmt.Sprintf("data:image/jpg;base64, %s", imgDataBase64), "url": imageURL})
+	resp.SUCCESS(c, payURL)
 }
 
 // 异步通知回调公共逻辑
@@ -444,7 +438,7 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 			power = remark.Power
 		}
 
-	} else { // 非 VIP 用户
+	} else {                 // 非 VIP 用户
 		if remark.Days > 0 { // vip 套餐：days > 0, power == 0
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 			user.Power += h.App.SysConfig.VipMonthPower
