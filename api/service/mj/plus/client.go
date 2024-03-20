@@ -7,9 +7,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
-
 	"github.com/imroc/req/v3"
+	"io"
 
 	"github.com/gin-gonic/gin"
 )
@@ -91,10 +90,8 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		if r.Body != nil {
-			errStr, _ := io.ReadAll(r.Body)
-			logger.Errorf("API 返回：%s, API URL: %s", string(errStr), apiURL)
-		}
+		errStr, _ := io.ReadAll(r.Body)
+		logger.Errorf("API 返回：%s, API URL: %s", string(errStr), apiURL)
 		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
@@ -126,10 +123,6 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 			}
 		}
 	}
-
-	if len(body.Base64Array) < 2 {
-		return ImageRes{}, errors.New("blend must use more than 2 images")
-	}
 	var res ImageRes
 	var errRes ErrRes
 	r, err := req.C().R().
@@ -155,19 +148,19 @@ func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/insight-face/swap", c.apiURL, c.Config.Mode)
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) != 2 {
-		return ImageRes{}, errors.New("invalid params, swap face must pass 2 images")
+		return ImageRes{}, errors.New("参数错误，必须上传2张图片")
 	}
 	var sourceBase64 string
 	var targetBase64 string
 	imageData, err := utils.DownloadImage(task.ImgArr[0], "")
 	if err != nil {
-		return ImageRes{}, fmt.Errorf("error with download source image: %v", err)
+		logger.Error("error with download image: ", err)
 	} else {
 		sourceBase64 = "data:image/png;base64," + base64.StdEncoding.EncodeToString(imageData)
 	}
 	imageData, err = utils.DownloadImage(task.ImgArr[1], "")
 	if err != nil {
-		return ImageRes{}, fmt.Errorf("error with download target image: %v", err)
+		logger.Error("error with download image: ", err)
 	} else {
 		targetBase64 = "data:image/png;base64," + base64.StdEncoding.EncodeToString(imageData)
 	}

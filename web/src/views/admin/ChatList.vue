@@ -7,8 +7,6 @@
                     @keyup="searchChat($event)"></el-input>
           <el-input v-model="data.chat.query.title" placeholder="对话标题" class="handle-input mr10"
                     @keyup="searchChat($event)"></el-input>
-          <el-input v-model="data.chat.query.model" placeholder="模型" class="handle-input mr10"
-                    @keyup="searchChat($event)"></el-input>
           <el-date-picker
               v-model="data.chat.query.created_at"
               type="daterange"
@@ -109,7 +107,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column prop="token" label="消耗算力"/>
+            <el-table-column prop="token" label="算力"/>
 
             <el-table-column label="创建时间">
               <template #default="scope">
