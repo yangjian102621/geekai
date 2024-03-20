@@ -22,6 +22,7 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 
 // List 获取用户聊天应用列表
 func (h *ChatRoleHandler) List(c *gin.Context) {
+	all := h.GetBool(c, "all")
 	userId := h.GetLoginUserId(c)
 	var roles []model.ChatRole
 	res := h.DB.Where("enable", true).Order("sort_num ASC").Find(&roles)
@@ -31,7 +32,7 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	}
 
 	// 获取所有角色
-	if userId == 0 {
+	if userId == 0 || all {
 		// 转成 vo
 		var roleVos = make([]vo.ChatRole, 0)
 		for _, r := range roles {

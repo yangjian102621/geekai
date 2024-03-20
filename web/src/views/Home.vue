@@ -57,7 +57,6 @@ const changeNav = (item) => {
 @import '@/assets/iconfont/iconfont.css';
 .home {
   display: flex;
-  background-color: #25272D;
   height 100vh
   width 100%
 
@@ -67,6 +66,7 @@ const changeNav = (item) => {
     width 70px
     padding 10px 6px
     border-right: 1px solid #3c3c3c
+    background-color: #25272D
 
     .logo {
       display flex

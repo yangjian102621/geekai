@@ -69,6 +69,7 @@
               <el-input placeholder="手机号码"
                         size="large"
                         v-model="data.username"
+                        maxlength="11"
                         autocomplete="off">
                 <template #prefix>
                   <el-icon>

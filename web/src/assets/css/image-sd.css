@@ -281,6 +281,10 @@
   width: auto;
   height: auto;
 }
+.page-sd .inner .task-list-box .no-more-data {
+  text-align: center;
+  padding: 20px;
+}
 .page-sd .el-overlay-dialog .el-dialog {
   background-color: #1a1b1e;
 }
