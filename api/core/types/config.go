@@ -81,6 +81,7 @@ type AlipayConfig struct {
 	AlipayPublicKey string // 支付宝公钥文件路径
 	RootCert        string // Root 秘钥路径
 	NotifyURL       string // 异步通知回调
+	ReturnURL       string // 支付成功返回地址
 }
 
 type HuPiPayConfig struct { //虎皮椒第四方支付配置
@@ -90,6 +91,7 @@ type HuPiPayConfig struct { //虎皮椒第四方支付配置
 	AppSecret string // app 密钥
 	ApiURL    string // 支付网关
 	NotifyURL string // 异步通知回调
+	ReturnURL string // 支付成功返回地址
 }
 
 // JPayConfig PayJs 支付配置
@@ -100,6 +102,7 @@ type JPayConfig struct {
 	PrivateKey string // 私钥
 	ApiURL     string // API 网关
 	NotifyURL  string // 异步回调地址
+	ReturnURL  string // 支付成功返回地址
 }
 
 type XXLConfig struct { // XXL 任务调度配置
