@@ -338,19 +338,14 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		payWay = PayWayJs
 		notifyURL = h.App.Config.JPayConfig.NotifyURL
 		returnURL = h.App.Config.JPayConfig.ReturnURL
-		params := payment.JPayReq{
-			TotalFee:   int(math.Ceil(amount * 100)),
-			OutTradeNo: orderNo,
-			Subject:    product.Name,
-			NotifyURL:  notifyURL,
-			ReturnURL:  returnURL,
-		}
-		r := h.js.PayH5(params)
-		if !r.IsOK() {
-			resp.ERROR(c, "error with generating Pay URL: "+r.ReturnMsg)
-			return
-		}
-		payURL = r.H5URL
+		totalFee := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Mul(decimal.NewFromInt(100)).IntPart()
+		params := url.Values{}
+		params.Add("total_fee", fmt.Sprintf("%d", totalFee))
+		params.Add("out_trade_no", orderNo)
+		params.Add("body", product.Name)
+		params.Add("notify_url", notifyURL)
+		params.Add("auto", "0")
+		payURL = h.js.PayH5(params)
 	case "alipay":
 		payWay = PayWayAlipay
 		notifyURL = h.App.Config.AlipayConfig.NotifyURL

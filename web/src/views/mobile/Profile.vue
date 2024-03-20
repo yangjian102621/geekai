@@ -73,13 +73,9 @@
               <span v-if="item.days > 0">{{ item.days }}天</span>
               <van-tag type="primary" v-else>长期有效</van-tag>
             </van-cell>
-            <van-cell title="对话次数">
-              <span v-if="item.calls > 0">{{ item.calls }}</span>
-              <span v-else>{{ vipMonthCalls }}</span>
-            </van-cell>
-            <van-cell title="绘图次数">
-              <span v-if="item.img_calls > 0">{{ item.img_calls }}</span>
-              <span v-else>{{ vipMonthImgCalls }}</span>
+            <van-cell title="算力值">
+              <span v-if="item.power > 0">{{ item.power }}</span>
+              <span v-else>{{ vipMonthPower }}</span>
             </van-cell>
           </van-cell-group>
         </div>
@@ -140,8 +136,7 @@ const fileList = ref([
 ]);
 
 const products = ref([])
-const vipMonthCalls = ref(0)
-const vipMonthImgCalls = ref(0)
+const vipMonthPower = ref(0)
 const payWays = ref({})
 const router = useRouter()
 const loginUser = ref(null)
@@ -165,8 +160,7 @@ onMounted(() => {
     })
 
     httpGet("/api/config/get?key=system").then(res => {
-      vipMonthCalls.value = res.data['vip_month_calls']
-      vipMonthImgCalls.value = res.data['vip_month_img_calls']
+      vipMonthPower.value = res.data['vip_month_power']
     }).catch(e => {
       showFailToast("获取系统配置失败：" + e.message)
     })
@@ -255,6 +249,7 @@ const pay = (payWay, item) => {
     product_id: item.id,
     user_id: loginUser.value.id
   }).then(res => {
+    // console.log(res.data)
     location.href = res.data
   }).catch(e => {
     showFailToast("生成支付订单失败：" + e.message)

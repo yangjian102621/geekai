@@ -40,7 +40,6 @@ type JPayReps struct {
 	TotalFee   string `json:"total_fee"`
 	CodeUrl    string `json:"code_url,omitempty"`
 	Qrcode     string `json:"qrcode,omitempty"`
-	H5URL      string `json:"h5_url,omitempty"`
 }
 
 func (r JPayReps) IsOK() bool {
@@ -80,37 +79,10 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 	return data
 }
 
-func (js *PayJS) PayH5(param JPayReq) JPayReps {
-	param.NotifyURL = js.config.NotifyURL
-	var p = url.Values{}
-	encode := utils.JsonEncode(param)
-	m := make(map[string]interface{})
-	_ = utils.JsonDecode(encode, &m)
-	for k, v := range m {
-		p.Add(k, fmt.Sprintf("%v", v))
-	}
+func (js *PayJS) PayH5(p url.Values) string {
 	p.Add("mchid", js.config.AppId)
-
 	p.Add("sign", js.sign(p))
-
-	cli := http.Client{}
-	apiURL := fmt.Sprintf("%s/api/h5", js.config.ApiURL)
-	r, err := cli.PostForm(apiURL, p)
-	if err != nil {
-		return JPayReps{ReturnMsg: err.Error()}
-	}
-	defer r.Body.Close()
-	bs, err := io.ReadAll(r.Body)
-	if err != nil {
-		return JPayReps{ReturnMsg: err.Error()}
-	}
-
-	var data JPayReps
-	err = utils.JsonDecode(string(bs), &data)
-	if err != nil {
-		return JPayReps{ReturnMsg: err.Error()}
-	}
-	return data
+	return fmt.Sprintf("%s/api/cashier?%s", js.config.ApiURL, p.Encode())
 }
 
 func (js *PayJS) sign(params url.Values) string {
