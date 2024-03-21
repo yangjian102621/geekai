@@ -528,13 +528,15 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 	res := h.DB.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
 	if res.Error == nil {
 		// 记录算力消费日志
+		var u model.User
+		h.DB.Where("id", userVo.Id).First(&u)
 		h.DB.Create(&model.PowerLog{
 			UserId:    userVo.Id,
 			Username:  userVo.Username,
 			Type:      types.PowerConsume,
 			Amount:    power,
 			Mark:      types.PowerSub,
-			Balance:   userVo.Power - power,
+			Balance:   u.Power,
 			Model:     session.Model.Value,
 			Remark:    fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
 			CreatedAt: time.Now(),

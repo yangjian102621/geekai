@@ -252,18 +252,20 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	content := fmt.Sprintf("下面是根据您的描述创作的图片，它描绘了 【%s】 的场景。 \n\n![](%s)\n", prompt, imgURL)
 	// 更新用户算力
-	tx = h.DB.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
+	tx = h.DB.Model(&model.User{}).Where("id", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
 	// 记录算力变化日志
 	if tx.Error == nil && tx.RowsAffected > 0 {
+		var u model.User
+		h.DB.Where("id", user.Id).First(&u)
 		h.DB.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,
 			Type:      types.PowerConsume,
 			Amount:    h.App.SysConfig.DallPower,
-			Balance:   user.Power - h.App.SysConfig.DallPower,
+			Balance:   u.Power,
 			Mark:      types.PowerSub,
 			Model:     "dall-e-3",
-			Remark:    "",
+			Remark:    fmt.Sprintf("绘画提示词：%s", utils.CutWords(prompt, 10)),
 			CreatedAt: time.Now(),
 		})
 	}

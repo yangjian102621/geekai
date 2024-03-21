@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/sha3"
@@ -94,10 +94,14 @@ func InterfaceToString(value interface{}) string {
 	return JsonEncode(value)
 }
 
-func Str2Float(str string) float64 {
-	num, err := strconv.ParseFloat(str, 64)
-	if err != nil {
-		return 0
+func CutWords(str string, num int) string {
+	// 按空格分割字符串为单词切片
+	words := strings.Fields(str)
+
+	// 如果单词数量超过指定数量，则裁剪单词；否则保持原样
+	if len(words) > num {
+		return strings.Join(words[:num], " ") + " ..."
+	} else {
+		return str
 	}
-	return num
 }
