@@ -186,6 +186,9 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		}
 
 		key := fmt.Sprintf("users/%v", claims["user_id"])
+		if isAdminApi {
+			key = fmt.Sprintf("admin/%v", claims["user_id"])
+		}
 		if _, err := client.Get(context.Background(), key).Result(); err != nil && needLogin(c) {
 			resp.NotAuth(c, "Token is not found in redis")
 			c.Abort()

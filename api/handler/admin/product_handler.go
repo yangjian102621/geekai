@@ -108,7 +108,7 @@ func (h *ProductHandler) Enable(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.Product{}).Where("id = ?", data.Id).Update("enabled", data.Enabled)
+	res := h.DB.Model(&model.Product{}).Where("id", data.Id).UpdateColumn("enabled", data.Enabled)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
