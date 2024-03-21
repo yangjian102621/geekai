@@ -162,6 +162,12 @@ const routes = [
                 meta: {title: '对话管理'},
                 component: () => import('@/views/admin/ChatList.vue'),
             },
+            {
+                path: '/admin/powerLog',
+                name: 'admin-power-log',
+                meta: {title: '算力日志'},
+                component: () => import('@/views/admin/PowerLog.vue'),
+            },
         ]
     },
 

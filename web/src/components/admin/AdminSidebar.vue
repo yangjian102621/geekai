@@ -128,6 +128,11 @@ const items = [
   },
   {
     icon: 'log',
+    index: '/admin/powerLog',
+    title: '用户算力日志',
+  },
+  {
+    icon: 'log',
     index: '/admin/loginLog',
     title: '用户登录日志',
   },
