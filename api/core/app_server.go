@@ -154,7 +154,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok && needLogin(c) {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			if isAdminApi {

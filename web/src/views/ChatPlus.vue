@@ -817,7 +817,7 @@ const logout = function () {
   activelyClose.value = true;
   httpGet('/api/user/logout').then(() => {
     removeUserToken()
-    location.reload()
+    router.push("/login")
   }).catch(() => {
     ElMessage.error('注销失败！');
   })

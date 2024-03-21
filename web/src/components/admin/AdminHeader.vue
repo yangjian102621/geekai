@@ -82,6 +82,7 @@ import {useRouter} from 'vue-router';
 import {ArrowDown, ArrowRight, Expand, Fold} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {removeAdminToken} from "@/store/session";
 
 const message = ref(5);
 const sysTitle = ref(process.env.VUE_APP_TITLE)
@@ -153,6 +154,7 @@ onMounted(() => {
 
 const logout = function () {
   httpGet("/api/admin/logout").then(() => {
+    removeAdminToken()
     router.replace('/admin/login')
   }).catch((e) => {
     ElMessage.error("注销失败: " + e.message);

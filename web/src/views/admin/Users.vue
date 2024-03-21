@@ -17,6 +17,7 @@
             <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px;position: relative; top:5px; left: 5px"/>
           </template>
         </el-table-column>
+        <el-table-column prop="nickname" label="昵称"/>
         <el-table-column prop="power" label="剩余算力"/>
         <el-table-column label="状态" width="80">
           <template #default="scope">
