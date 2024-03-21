@@ -139,6 +139,7 @@ func main() {
 		fx.Provide(admin.NewProductHandler),
 		fx.Provide(admin.NewOrderHandler),
 		fx.Provide(admin.NewChatHandler),
+		fx.Provide(admin.NewPowerLogHandler),
 
 		// 创建服务
 		fx.Provide(sms.NewSendServiceManager),
@@ -405,6 +406,10 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PowerLogHandler) {
 			group := s.Engine.Group("/api/powerLog/")
+			group.POST("list", h.List)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.PowerLogHandler) {
+			group := s.Engine.Group("/api/admin/powerLog/")
 			group.POST("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {

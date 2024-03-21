@@ -1,8 +1,9 @@
-package handler
+package admin
 
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/handler"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -13,15 +14,17 @@ import (
 )
 
 type PowerLogHandler struct {
-	BaseHandler
+	handler.BaseHandler
 }
 
 func NewPowerLogHandler(app *core.AppServer, db *gorm.DB) *PowerLogHandler {
-	return &PowerLogHandler{BaseHandler: BaseHandler{App: app, DB: db}}
+	return &PowerLogHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 func (h *PowerLogHandler) List(c *gin.Context) {
 	var data struct {
+		Username string   `json:"username"`
+		Type     int      `json:"type"`
 		Model    string   `json:"model"`
 		Date     []string `json:"date"`
 		Page     int      `json:"page"`
@@ -35,6 +38,9 @@ func (h *PowerLogHandler) List(c *gin.Context) {
 	session := h.DB.Session(&gorm.Session{})
 	if data.Model != "" {
 		session = session.Where("model", data.Model)
+	}
+	if data.Type > 0 {
+		session = session.Where("type", data.Type)
 	}
 	if len(data.Date) == 2 {
 		start := data.Date[0] + " 00:00:00"
