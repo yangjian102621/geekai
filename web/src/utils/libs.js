@@ -167,7 +167,7 @@ export function isImage(url) {
 }
 
 export function processContent(content) {
-    //process img url
+    // 如果是图片链接地址，则直接替换成图片标签
     const linkRegex = /(https?:\/\/\S+)/g;
     const links = content.match(linkRegex);
     if (links) {
@@ -181,20 +181,31 @@ export function processContent(content) {
         }
     }
 
-    // 处理引用块
-    if (content.indexOf("\n") === -1) {
+    const lines = content.split("\n")
+    if (lines.length <= 1) {
         return content
     }
-
-    const texts = content.split("\n")
-    const lines = []
-    for (let txt of texts) {
-        lines.push(txt)
-        if (txt.startsWith(">")) {
-            lines.push("\n")
+    const texts = []
+    // 定义匹配数学公式的正则表达式
+    const formulaRegex = /^\s*[a-z|A-Z]+[^=]+\s*=\s*[^=]+$/;
+    for (let i = 0; i < lines.length; i++) {
+        // 处理引用块换行
+        if (lines[i].startsWith(">")) {
+            texts.push(lines[i])
+            texts.push("\n")
+            continue
         }
+        console.log(formulaRegex.test(lines[i]))
+        // 识别并处理数学公式，需要排除那些已经被识别出来的公式
+        if (i > 0 && formulaRegex.test(lines[i]) && lines[i - 1].indexOf("$$") === -1) {
+            texts.push("$$")
+            texts.push(lines[i])
+            texts.push("$$")
+            continue
+        }
+        texts.push(lines[i])
     }
-    return lines.join("\n")
+    return texts.join("\n")
 }
 
 export function escapeHTML(html) {
@@ -203,3 +214,23 @@ export function escapeHTML(html) {
         .replace(/>/g, "&gt;");
 }
 
+// 处理数学公式
+export function processMathFormula(input) {
+    const arr = []
+    const lines = input.split("\n")
+    if (lines.length <= 1) {
+        return input
+    }
+    // 定义匹配数学公式的正则表达式
+    const mathFormulaRegex = /[+\-*/^()\d.]/;
+    for (let i = 0; i < lines.length; i++) {
+        if (i > 0 && mathFormulaRegex.test(lines) && lines[i - 1].indexOf("$$") === -1) {
+            arr.push("$$")
+            arr.push(lines[i])
+            arr.push("$$")
+        } else {
+            arr.push(lines[i])
+        }
+    }
+    return arr.join("\n")
+}

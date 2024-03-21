@@ -39,7 +39,7 @@ export function removeUserToken() {
 }
 
 export function getAdminToken() {
-    return Storage.get(AdminTokenKey)
+    return Storage.get(AdminTokenKey) ?? ""
 }
 
 export function setAdminToken(token) {
