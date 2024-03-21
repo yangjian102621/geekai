@@ -274,6 +274,11 @@ func main() {
 			group.POST("login", h.Login)
 			group.GET("logout", h.Logout)
 			group.GET("session", h.Session)
+			group.GET("list", h.List)
+			group.POST("save", h.Save)
+			group.POST("enable", h.Enable)
+			group.GET("remove", h.Remove)
+			group.POST("resetPass", h.ResetPass)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
 			group := s.Engine.Group("/api/admin/apikey/")

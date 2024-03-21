@@ -122,6 +122,11 @@ const items = [
     title: '对话管理',
   },
   {
+    icon: 'role',
+    index: '/admin/manger',
+    title: '管理员',
+  },
+  {
     icon: 'config',
     index: '/admin/system',
     title: '系统设置',

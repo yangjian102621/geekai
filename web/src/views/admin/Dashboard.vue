@@ -80,6 +80,8 @@ httpGet('/api/admin/dashboard/stats').then((res) => {
 
 <style scoped lang="stylus">
 .dashboard {
+  padding 20px
+
   .grid-content {
     display: flex;
     align-items: center;

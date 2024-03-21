@@ -168,6 +168,12 @@ const routes = [
                 meta: {title: '算力日志'},
                 component: () => import('@/views/admin/PowerLog.vue'),
             },
+            {
+                path: '/admin/manger',
+                name: 'admin-manger',
+                meta: {title: '管理员'},
+                component: () => import('@/views/admin/Manager.vue'),
+            },
         ]
     },
 
