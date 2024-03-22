@@ -11,10 +11,10 @@ services:
     ports:
       - "3307:3306"
     volumes :
-      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf
-      - ./mysql/data:/var/lib/mysql
-      - ./mysql/logs:/var/log/mysql
-      - ./mysql/init.d:/docker-entrypoint-initdb.d/
+      - ./conf/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./data/mysql/data:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+      - ./data/mysql/init.d:/docker-entrypoint-initdb.d/
   
   # redis 
   chatgpt-plus-redis:
@@ -23,18 +23,31 @@ services:
     container_name: chatgpt-plus-redis
     command: redis-server --requirepass 12345678
     volumes :
-      - ./redis/data:/data
+      - ./data/redis:/data
     ports:
       - "6380:6379"
 
+  xxl-job-admin:
+    container_name: xxl-job-admin
+    image: xuxueli/xxl-job-admin:2.4.0
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      - PARAMS=--spring.config.location=/application.properties
+    volumes:
+      - ./logs/xxl-job:/data/applogs
+      - ./conf/xxl-job/application.properties:/application.properties
+
   # 后端 API 程序
   chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v3.1.8.1
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v4.0.0-amd64
     container_name: chatgpt-plus-api
     restart: always
     depends_on:
       - chatgpt-plus-mysql
       - chatgpt-plus-redis
+      - xxl-job-admin
     environment:
       - DEBUG=false
       - LOG_LEVEL=info
@@ -45,12 +58,12 @@ services:
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./conf/config.toml:/var/www/app/config.toml
-      - ./logs:/var/www/app/logs
+      - ./logs/app:/var/www/app/logs
       - ./static:/var/www/app/static
 
   # 前端应用
   chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v3.1.8.1
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v4.0.0-amd64
     container_name: chatgpt-plus-web
     restart: always
     depends_on:
@@ -61,5 +74,5 @@ services:
       - ./logs/nginx:/var/log/nginx
       - ./conf/nginx/conf.d:/etc/nginx/conf.d
       - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl:/etc/nginx/ssl
+      - ./conf/nginx/ssl:/etc/nginx/ssl
 

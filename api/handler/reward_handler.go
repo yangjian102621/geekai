@@ -89,7 +89,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 		Amount:    exchange.Power,
 		Balance:   user.Power + exchange.Power,
 		Mark:      types.PowerAdd,
-		Model:     "",
+		Model:     "众筹支付",
 		Remark:    fmt.Sprintf("众筹充值算力，金额：%f，价格：%f", item.Amount, h.App.SysConfig.PowerPrice),
 		CreatedAt: time.Now(),
 	})

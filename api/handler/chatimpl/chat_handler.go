@@ -181,7 +181,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	var user model.User
 	res := h.DB.Model(&model.User{}).First(&user, session.UserId)
 	if res.Error != nil {
-		utils.ReplyMessage(ws, "非法用户，请联系管理员！")
+		utils.ReplyMessage(ws, "未授权用户，您正在进行非法操作！")
 		return res.Error
 	}
 	var userVo vo.User
@@ -199,12 +199,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 	if userVo.Power < session.Model.Power {
 		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余对话次数（%d）已不足以支付当前模型的单次对话需要消耗的对话额度（%d）！", userVo.Power, session.Model.Power))
-		utils.ReplyMessage(ws, ErrImg)
-		return nil
-	}
-
-	if userVo.Power <= 0 {
-		utils.ReplyMessage(ws, "您的对话次数已经用尽，请联系管理员或者充值点卡继续对话！")
 		utils.ReplyMessage(ws, ErrImg)
 		return nil
 	}

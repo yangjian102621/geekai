@@ -1,5 +1,4 @@
-mysql/data/*
-mysql/logs/*
+data/mysql/data
 logs
 static/*
-redis/data/*
+redis/redis
