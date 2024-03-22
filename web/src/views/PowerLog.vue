@@ -124,7 +124,33 @@ const fetchData = () => {
   .inner {
     padding 0 20px 20px 20px
 
+    ::-webkit-scrollbar {
+      width: 8px; /* 滚动条宽度 */
+    }
+
+    /* 修改滚动条轨道的背景颜色 */
+
+    ::-webkit-scrollbar-track {
+      background-color: #ffffff;
+    }
+
+    /* 修改滚动条的滑块颜色 */
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #cccccc;
+      border-radius 8px
+    }
+
+    /* 修改滚动条的滑块的悬停颜色 */
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #999999;
+    }
+
     .list-box {
+      overflow-x hidden
+      //overflow-y auto
+
       .handle-box {
         padding 20px 0
 
