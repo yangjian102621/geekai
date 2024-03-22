@@ -188,6 +188,7 @@ export function processContent(content) {
     const texts = []
     // 定义匹配数学公式的正则表达式
     const formulaRegex = /^\s*[a-z|A-Z]+[^=]+\s*=\s*[^=]+$/;
+    let hasCode = false
     for (let i = 0; i < lines.length; i++) {
         // 处理引用块换行
         if (lines[i].startsWith(">")) {
@@ -195,9 +196,14 @@ export function processContent(content) {
             texts.push("\n")
             continue
         }
-        console.log(formulaRegex.test(lines[i]))
+        // 如果包含代码块则跳过公式检测
+        if (lines[i].indexOf("```") !== -1) {
+            texts.push(lines[i])
+            hasCode = true
+            continue
+        }
         // 识别并处理数学公式，需要排除那些已经被识别出来的公式
-        if (i > 0 && formulaRegex.test(lines[i]) && lines[i - 1].indexOf("$$") === -1) {
+        if (i > 0 && formulaRegex.test(lines[i]) && lines[i - 1].indexOf("$$") === -1 && !hasCode) {
             texts.push("$$")
             texts.push(lines[i])
             texts.push("$$")
