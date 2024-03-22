@@ -1,23 +1,26 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
-AesEncryptKey = ""
 WeChatBot = false
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
   MaxAge = 86400
 
+[AdminSession]
+  SecretKey = "wr1uzwz2meai4z9j0e0tsyf6x523ui6zpnyaim4x2x37meakv13349llqpipyk40"
+  MaxAge = 8640000
+
 [Redis] # redis 配置信息
-  Host = "localhost"
+  Host = "chatgpt-plus-redis"
   Port = 6379
-  Password = ""
+  Password = "12345678"
   DB = 0
 
 [ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
-  ApiURL = ""
+  ApiURL = "http://service.r9it.com:9001"
   AppId = ""
   Token = ""
 
@@ -63,18 +66,17 @@ WeChatBot = false
   BotToken = ""
   GuildId = ""
   ChanelId = ""
-  UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
-  DiscordAPI = "" # discord API 反代地址
-  DiscordCDN = "" # mj 图片反代地址
-  DiscordGateway = "" # discord 机器人反代地址
+  UseCDN = false
+  ImgCdnURL = ""
+  DiscordAPI = ""
+  DiscordGateway = ""
 
 [[MjPlusConfigs]]
-  Enabled = false
-  ApiURL = "https://api.chat-plus.net"
-  CdnURL = "" # CND 加速的 URL，如果有的话就设置
-  Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
-  ApiKey = "sk-xxx"
-  NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要改成你的域名
+   Enabled = false
+   ApiURL = "https://api.chat-plus.net"
+   Mode = "fast"
+   ApiKey = "sk-xxx"
+  NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要把 ai.r9it.com 改成你自己的域名或者 IP:端口
 
 [[SdConfigs]]
   Enabled = false
@@ -83,11 +85,11 @@ WeChatBot = false
   Txt2ImgJsonPath = "res/sd/text2img.json"
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
-  Enabled = false # 是否启用 XXL JOB 服务
-  ServerAddr = "http://172.22.11.47:8080/xxl-job-admin" # xxl-job-admin 管理地址
-  ExecutorIp = "172.22.11.47" # 执行器 IP 地址
+  Enabled = true # 是否启用 XXL JOB 服务
+  ServerAddr = "http://xxl-job-admin:8080/xxl-job-admin" # xxl-job-admin 管理地址
+  ExecutorIp = "chatgpt-plus-api" # 执行器 IP 地址
   ExecutorPort = "9999" # 执行器服务端口
-  AccessToken = "xxl-job-api-token" # 执行器 API 通信 token
+  AccessToken = "GeekMaster" # 执行器 API 通信 token
   RegistryKey = "chatgpt-plus" # 任务注册 key
 
 [AlipayConfig]

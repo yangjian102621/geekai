@@ -20,7 +20,7 @@ WHERE username IN (
 );
 
 -- 给 username 字段建立唯一索引
-ALTER TABLE `chatgpt_users` ADD UNIQUE(`username`)
+ALTER TABLE `chatgpt_users` ADD UNIQUE(`username`);
 
 -- 当前用户剩余算力
 ALTER TABLE `chatgpt_users` CHANGE `calls` `power` INT NOT NULL DEFAULT '0' COMMENT '剩余算力';
@@ -64,4 +64,7 @@ INSERT INTO `chatgpt_admin_users` VALUES (1, 'admin', '6d17e80c87d209efb84ca4b2e
 
 ALTER TABLE `chatgpt_api_keys` CHANGE `use_proxy` `proxy_url` VARCHAR(100) NULL DEFAULT NULL COMMENT '代理地址';
 -- 重置 proxy_url
-UPDATE chatgpt_api_keys  set proxy_url=''
+UPDATE chatgpt_api_keys  set proxy_url='';
+
+-- 重置系统配置，系统配置的数据结构变了，旧数据解析会失败。
+UPDATE `chatgpt_configs` SET `config_json` = '{\"title\":\"ChatPlus AI 智能助手\",\"admin_title\":\"ChatPlus 控制台\",\"logo\":\"http://localhost:5678/static/upload/2024/3/1710732653645531.png\",\"init_power\":100,\"daily_power\":10,\"invite_power\":10,\"vip_month_power\":1000,\"register_ways\":[\"mobile\",\"username\",\"email\"],\"enabled_register\":true,\"reward_img\":\"http://localhost:5678/static/upload/2024/3/1710753716309668.jpg\",\"enabled_reward\":true,\"power_price\":0.1,\"order_pay_timeout\":1800,\"default_models\":[11,7,1,10,12,19,18,17],\"mj_power\":20,\"sd_power\":5,\"dall_power\":15,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4}' WHERE `chatgpt_configs`.`id` = 1;
