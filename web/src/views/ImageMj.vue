@@ -171,27 +171,6 @@
                 <el-tab-pane label="文生图(可选)" name="image">
                   <div class="text">图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持 PNG 和 JPG 格式图片；
                   </div>
-                  <div class="param-line pt">
-                    <el-form-item label="">
-                      <template #default>
-                        <div class="form-item-inner flex-row items-center">
-                          <el-input v-model="params.img" size="small" placeholder="请输入图片地址或者上传图片"
-                                    style="width: 300px;"/>
-                          <el-icon @click="params.img = ''" title="清空图片">
-                            <DeleteFilled/>
-                          </el-icon>
-                          <el-tooltip effect="light"
-                                      content="垫图：以某张图片为底稿参考来创作绘画 <br/> 支持 PNG 和 JPG 格式图片"
-                                      raw-content placement="right">
-                            <el-icon>
-                              <InfoFilled/>
-                            </el-icon>
-                          </el-tooltip>
-                        </div>
-                      </template>
-                    </el-form-item>
-                  </div>
-
                   <div class="param-line">
                     <div class="img-inline">
                       <div class="img-list-box">

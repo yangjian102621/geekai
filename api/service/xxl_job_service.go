@@ -163,7 +163,7 @@ func (e *XXLJobExecutor) ResetUserPower(cxt context.Context, param *xxl.RunReq) 
 				Mark:      types.PowerAdd,
 				Balance:   user.Power,
 				Model:     "系统赠送",
-				Remark:    fmt.Sprintf("系统每日算力派发，今日额度：%d", config.VipMonthPower),
+				Remark:    fmt.Sprintf("系统每日算力派发，今日额度：%d", config.DailyPower),
 				CreatedAt: time.Now(),
 			})
 		}
