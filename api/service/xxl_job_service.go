@@ -142,6 +142,10 @@ func (e *XXLJobExecutor) ResetUserPower(cxt context.Context, param *xxl.RunReq) 
 		return "error with decode system config: " + err.Error()
 	}
 
+	if config.DailyPower <= 0 {
+		return "success"
+	}
+
 	var counter = 0
 	var totalPower = 0
 	for _, u := range users {
