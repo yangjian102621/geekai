@@ -471,16 +471,7 @@
 
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue"
-import {
-  ChromeFilled,
-  Delete,
-  DeleteFilled,
-  DocumentCopy,
-  InfoFilled,
-  Picture,
-  Plus,
-  Refresh
-} from "@element-plus/icons-vue";
+import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus, Refresh} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
@@ -489,7 +480,7 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
-import {isMobile, removeArrayItem} from "@/utils/libs";
+import {removeArrayItem} from "@/utils/libs";
 import LoginDialog from "@/components/LoginDialog.vue";
 
 const listBoxHeight = ref(window.innerHeight - 40)
@@ -673,7 +664,6 @@ onMounted(() => {
 })
 
 // 初始化数据
-
 const initData = () => {
   checkSession().then(user => {
     power.value = user['power']
@@ -683,7 +673,6 @@ const initData = () => {
     fetchRunningJobs()
     fetchFinishJobs(1)
     connect()
-
   }).catch(() => {
 
   });

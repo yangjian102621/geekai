@@ -33,6 +33,8 @@ func (h *PowerLogHandler) List(c *gin.Context) {
 	}
 
 	session := h.DB.Session(&gorm.Session{})
+	userId := h.GetLoginUserId(c)
+	session = session.Where("user_id", userId)
 	if data.Model != "" {
 		session = session.Where("model", data.Model)
 	}

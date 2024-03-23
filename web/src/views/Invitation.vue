@@ -84,6 +84,8 @@
         </div>
       </div>
     </div>
+
+    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
@@ -95,7 +97,7 @@ import {ElMessage} from "element-plus";
 import Clipboard from "clipboard";
 import InviteList from "@/components/InviteList.vue";
 import {checkSession} from "@/action/session";
-import {useRouter} from "vue-router";
+import LoginDialog from "@/components/LoginDialog.vue";
 
 const inviteURL = ref("")
 const qrImg = ref("")
@@ -104,10 +106,24 @@ const inviteImgCalls = ref(0)
 const hits = ref(0)
 const regNum = ref(0)
 const rate = ref(0)
-const router = useRouter()
 const isLogin = ref(false)
+const showLoginDialog = ref(true)
 
 onMounted(() => {
+  initData()
+
+  // 复制链接
+  const clipboard = new Clipboard('.copy-link');
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！');
+  })
+
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
+
+const initData = () => {
   checkSession().then(() => {
     isLogin.value = true
     httpGet("/api/invite/code").then(res => {
@@ -136,19 +152,8 @@ onMounted(() => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
   }).catch(() => {
-    router.push('/login')
   });
-
-  // 复制链接
-  const clipboard = new Clipboard('.copy-link');
-  clipboard.on('success', () => {
-    ElMessage.success('复制成功！');
-  })
-
-  clipboard.on('error', () => {
-    ElMessage.error('复制失败！');
-  })
-})
+}
 </script>
 
 <style lang="stylus" scoped>
