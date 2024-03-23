@@ -9,6 +9,7 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -73,6 +74,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		ExpiredTime string   `json:"expired_time"`
 		Status      bool     `json:"status"`
 		Vip         bool     `json:"vip"`
+		Power       int      `json:"power"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -82,16 +84,39 @@ func (h *UserHandler) Save(c *gin.Context) {
 	var res *gorm.DB
 	var userVo vo.User
 	if data.Id > 0 { // 更新
-		user.Id = data.Id
-		// 此处需要用 map 更新，用结构体无法更新 0 值
-		res = h.DB.Model(&user).Updates(map[string]interface{}{
-			"username":         data.Username,
-			"status":           data.Status,
-			"vip":              data.Vip,
-			"chat_roles_json":  utils.JsonEncode(data.ChatRoles),
-			"chat_models_json": utils.JsonEncode(data.ChatModels),
-			"expired_time":     utils.Str2stamp(data.ExpiredTime),
-		})
+		res = h.DB.Where("id", data.Id).First(&user)
+		if res.Error != nil {
+			resp.ERROR(c, "user not found")
+			return
+		}
+		var changePower = user.Power != data.Power
+		user.Username = data.Username
+		user.Status = data.Status
+		user.Vip = data.Vip
+		user.Power = data.Power
+		user.ChatRoles = utils.JsonEncode(data.ChatRoles)
+		user.ChatModels = utils.JsonEncode(data.ChatModels)
+		user.ExpiredTime = utils.Str2stamp(data.ExpiredTime)
+
+		res = h.DB.Updates(&user)
+		if res.Error != nil {
+			resp.ERROR(c, "更新数据库失败！")
+			return
+		}
+		// 记录算力日志
+		if changePower {
+			h.DB.Create(&model.PowerLog{
+				UserId:    user.Id,
+				Username:  user.Username,
+				Type:      types.PowerGift,
+				Amount:    user.Power,
+				Balance:   user.Power,
+				Mark:      types.PowerAdd,
+				Model:     "管理员",
+				Remark:    fmt.Sprintf("后台管理员强制修改用户算力，修改值：%d, 管理员ID：%d", user.Power, h.GetLoginUserId(c)),
+				CreatedAt: time.Now(),
+			})
+		}
 	} else {
 		salt := utils.RandString(8)
 		u := model.User{
@@ -100,6 +125,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			Password:    utils.GenPassword(data.Password, salt),
 			Avatar:      "/images/avatar/user.png",
 			Salt:        salt,
+			Power:       data.Power,
 			Status:      true,
 			ChatRoles:   utils.JsonEncode(data.ChatRoles),
 			ChatModels:  utils.JsonEncode(data.ChatModels),
