@@ -283,6 +283,7 @@ const saveUser = function () {
   userEditFormRef.value.validate((valid) => {
     if (valid) {
       showUserEditDialog.value = false
+      console.log(user.value)
       httpPost('/api/admin/user/save', user.value).then((res) => {
         ElMessage.success('操作成功！')
         if (add.value) {
