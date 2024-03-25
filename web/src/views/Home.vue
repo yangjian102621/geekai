@@ -31,10 +31,12 @@
 <script setup>
 
 import {useRouter} from "vue-router";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
 
 const router = useRouter();
-const logo = '/images/logo.png';
+const logo = ref('/images/logo.png');
 const navs = ref([
   {path: "/chat", icon_path: "/images/chat.png", title: "对话聊天"},
   {path: "/mj", icon_path: "/images/mj.png", title: "MJ 绘画"},
@@ -51,6 +53,14 @@ const changeNav = (item) => {
   curPath.value = item.path
   router.push(item.path)
 }
+
+onMounted(() => {
+  httpGet("/api/config/get?key=system").then(res => {
+    logo.value = res.data['logo']
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
+})
 </script>
 
 <style lang="stylus" scoped>

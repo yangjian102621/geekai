@@ -147,6 +147,24 @@
               </div>
             </el-form-item>
 
+            <el-form-item label="会员充值说明" prop="order_pay_timeout">
+              <div class="tip-input">
+                <el-input v-model="system['vip_info_text']" placeholder=""/>
+                <div class="info">
+                  <el-tooltip
+                      effect="dark"
+                      content="会员充值页面的充值说明文字"
+                      raw-content
+                      placement="right"
+                  >
+                    <el-icon>
+                      <InfoFilled/>
+                    </el-icon>
+                  </el-tooltip>
+                </div>
+              </div>
+            </el-form-item>
+
             <el-form-item label="默认AI模型" prop="default_models">
               <template #default>
                 <div class="tip-input">
