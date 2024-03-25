@@ -107,7 +107,7 @@ const hits = ref(0)
 const regNum = ref(0)
 const rate = ref(0)
 const isLogin = ref(false)
-const showLoginDialog = ref(true)
+const showLoginDialog = ref(false)
 
 onMounted(() => {
   initData()
@@ -152,6 +152,7 @@ const initData = () => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
   }).catch(() => {
+    showLoginDialog.value = true
   });
 }
 </script>

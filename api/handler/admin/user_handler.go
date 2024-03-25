@@ -89,7 +89,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			resp.ERROR(c, "user not found")
 			return
 		}
-		var changePower = user.Power != data.Power
+		var oldPower = user.Power
 		user.Username = data.Username
 		user.Status = data.Status
 		user.Vip = data.Vip
@@ -98,22 +98,28 @@ func (h *UserHandler) Save(c *gin.Context) {
 		user.ChatModels = utils.JsonEncode(data.ChatModels)
 		user.ExpiredTime = utils.Str2stamp(data.ExpiredTime)
 
-		res = h.DB.Updates(&user)
+		res = h.DB.Select("username", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
 		}
 		// 记录算力日志
-		if changePower {
+		if oldPower != user.Power {
+			mark := types.PowerAdd
+			amount := user.Power - oldPower
+			if oldPower > user.Power {
+				mark = types.PowerSub
+				amount = oldPower - user.Power
+			}
 			h.DB.Create(&model.PowerLog{
 				UserId:    user.Id,
 				Username:  user.Username,
 				Type:      types.PowerGift,
-				Amount:    user.Power,
+				Amount:    amount,
 				Balance:   user.Power,
-				Mark:      types.PowerAdd,
+				Mark:      mark,
 				Model:     "管理员",
-				Remark:    fmt.Sprintf("后台管理员强制修改用户算力，修改值：%d, 管理员ID：%d", user.Power, h.GetLoginUserId(c)),
+				Remark:    fmt.Sprintf("后台管理员强制修改用户算力，修改前：%d,修改后:%d, 管理员ID：%d", oldPower, user.Power, h.GetLoginUserId(c)),
 				CreatedAt: time.Now(),
 			})
 		}

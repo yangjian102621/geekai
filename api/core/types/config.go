@@ -150,8 +150,9 @@ type SystemConfig struct {
 	EnabledReward bool    `json:"enabled_reward,omitempty"` // 启用众筹功能
 	PowerPrice    float64 `json:"power_price,omitempty"`    // 算力单价
 
-	OrderPayTimeout int   `json:"order_pay_timeout,omitempty"` //订单支付超时时间
-	DefaultModels   []int `json:"default_models,omitempty"`    // 默认开通的 AI 模型
+	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
+	VipInfoText     string `json:"vip_info_text"`               // 会员页面充值说明
+	DefaultModels   []int  `json:"default_models,omitempty"`    // 默认开通的 AI 模型
 
 	MjPower   int `json:"mj_power,omitempty"`   // MJ 绘画消耗算力
 	SdPower   int `json:"sd_power,omitempty"`   // SD 绘画消耗算力

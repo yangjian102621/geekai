@@ -59,6 +59,13 @@ WeChatBot = false
        AccessSecret = ""
        Bucket = ""
        Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com
+    [OSS.AliYun]
+          Endpoint = "oss-cn-hangzhou.aliyuncs.com"
+          AccessKey = ""
+          AccessSecret = ""
+          Bucket = "chatgpt-plus"
+          SubDir = ""
+          Domain = ""
 
 [[MjConfigs]]
   Enabled = false

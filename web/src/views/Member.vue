@@ -36,8 +36,7 @@
             <div class="product-box">
               <div class="info" v-if="orderPayInfoText !== ''">
                 <el-alert type="success" show-icon :closable="false" effect="dark">
-                  <strong>说明:</strong> 月度会员，年度会员每月赠送 {{ vipMonthPower }} 点算力，赠送算力当月有效，当月没有消费完的算力不结余到下个月。
-                  点卡充值的算力长期有效。
+                  <strong>说明:</strong> {{ vipInfoText }}
                 </el-alert>
               </div>
 
@@ -208,6 +207,7 @@ const payWays = ref({})
 const amount = ref(0)
 const payName = ref("支付宝")
 const curPay = ref("alipay") // 当前支付方式
+const vipInfoText = ref("")
 
 
 onMounted(() => {
@@ -233,6 +233,7 @@ onMounted(() => {
     }
     vipMonthPower.value = res.data['vip_month_power']
     powerPrice.value = res.data['power_price']
+    vipInfoText.value = res.data['vip_info_text']
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
