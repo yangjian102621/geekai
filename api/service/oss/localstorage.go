@@ -3,13 +3,13 @@ package oss
 import (
 	"chatplus/core/types"
 	"chatplus/utils"
+	"encoding/base64"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 type LocalStorage struct {
@@ -68,6 +68,20 @@ func (s LocalStorage) PutImg(imageURL string, useProxy bool) (string, error) {
 	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
+	}
+
+	return utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, filePath), nil
+}
+
+func (s LocalStorage) PutBase64(base64Img string) (string, error) {
+	imageData, err := base64.StdEncoding.DecodeString(base64Img)
+	if err != nil {
+		return "", fmt.Errorf("error decoding base64:%v", err)
+	}
+	filePath, err := utils.GenUploadPath(s.config.BasePath, "", true)
+	err = os.WriteFile(filePath, imageData, 0644)
+	if err != nil {
+		return "", fmt.Errorf("error writing to file:%v", err)
 	}
 
 	return utils.GenUploadUrl(s.config.BasePath, s.config.BaseURL, filePath), nil

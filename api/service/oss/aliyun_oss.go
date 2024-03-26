@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"chatplus/core/types"
 	"chatplus/utils"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -93,6 +94,20 @@ func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	}
 	fileExt := utils.GetImgExt(parse.Path)
 	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	// 上传文件字节数据
+	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/%s", s.config.Domain, objectKey), nil
+}
+
+func (s AliYunOss) PutBase64(base64Img string) (string, error) {
+	imageData, err := base64.StdEncoding.DecodeString(base64Img)
+	if err != nil {
+		return "", fmt.Errorf("error decoding base64:%v", err)
+	}
+	objectKey := fmt.Sprintf("%s/%d.png", s.config.SubDir, time.Now().UnixMicro())
 	// 上传文件字节数据
 	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
 	if err != nil {

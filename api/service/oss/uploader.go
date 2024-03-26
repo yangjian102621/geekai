@@ -17,5 +17,6 @@ type File struct {
 type Uploader interface {
 	PutFile(ctx *gin.Context, name string) (File, error)
 	PutImg(imageURL string, useProxy bool) (string, error)
+	PutBase64(imageData string) (string, error)
 	Delete(fileURL string) error
 }

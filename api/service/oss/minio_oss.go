@@ -4,6 +4,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/utils"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -94,6 +95,25 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 		Ext:    fileExt,
 		Size:   file.Size,
 	}, nil
+}
+
+func (s MiniOss) PutBase64(base64Img string) (string, error) {
+	imageData, err := base64.StdEncoding.DecodeString(base64Img)
+	if err != nil {
+		return "", fmt.Errorf("error decoding base64:%v", err)
+	}
+	objectKey := fmt.Sprintf("%s/%d.png", s.config.SubDir, time.Now().UnixMicro())
+	info, err := s.client.PutObject(
+		context.Background(),
+		s.config.Bucket,
+		objectKey,
+		strings.NewReader(string(imageData)),
+		int64(len(imageData)),
+		minio.PutObjectOptions{ContentType: "image/png"})
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/%s/%s", s.config.Domain, s.config.Bucket, info.Key), nil
 }
 
 func (s MiniOss) Delete(fileURL string) error {
