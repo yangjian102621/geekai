@@ -56,10 +56,10 @@ type MidJourneyConfig struct {
 }
 
 type StableDiffusionConfig struct {
-	Enabled         bool
-	ApiURL          string
-	ApiKey          string
-	Txt2ImgJsonPath string
+	Enabled bool
+	Model   string // 模型名称
+	ApiURL  string
+	ApiKey  string
 }
 
 type MidJourneyPlusConfig struct {

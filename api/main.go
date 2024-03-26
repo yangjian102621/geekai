@@ -175,6 +175,12 @@ func main() {
 
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewServicePool),
+		fx.Invoke(func(pool *sd.ServicePool) {
+			if pool.HasAvailableService() {
+				pool.CheckTaskNotify()
+				pool.CheckTaskStatus()
+			}
+		}),
 
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),
