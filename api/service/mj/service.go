@@ -2,8 +2,11 @@ package mj
 
 import (
 	"chatplus/core/types"
+	"chatplus/service"
 	"chatplus/store"
 	"chatplus/store/model"
+	"chatplus/utils"
+	"fmt"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -60,6 +63,14 @@ func (s *Service) Run() {
 			s.taskQueue.RPush(task)
 			time.Sleep(time.Second)
 			continue
+		}
+
+		// 翻译提示词
+		if utils.HasChinese(task.Prompt) {
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt))
+			if err == nil {
+				task.Prompt = content
+			}
 		}
 
 		logger.Infof("%s handle a new MidJourney task: %+v", s.name, task)

@@ -67,13 +67,7 @@
                      label="提示词"
                      autosize
                      type="textarea"
-                     placeholder="如：一个美丽的中国女孩站在电影院门口，手上拿着爆米花，微笑，写实风格，电影灯光效果，半身像">
-            <template #button>
-              <van-button v-if="translating" disabled loading type="primary"/>
-              <van-button v-else size="small" type="primary" @click="translatePrompt">翻译</van-button>
-            </template>
-
-          </van-field>
+                     placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
         </div>
 
         <van-collapse v-model="activeColspan">
@@ -206,7 +200,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue";
+import {nextTick, onMounted, onUnmounted, ref} from "vue";
 import {
   showConfirmDialog,
   showFailToast,
@@ -221,9 +215,8 @@ import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
 import {getSessionId} from "@/store/session";
 import {checkSession} from "@/action/session";
-import Clipboard from "clipboard";
 import {useRouter} from "vue-router";
-import {Delete, Picture} from "@element-plus/icons-vue";
+import {Delete} from "@element-plus/icons-vue";
 
 const title = ref('MidJourney 绘画')
 const activeColspan = ref([""])
@@ -281,6 +274,10 @@ onMounted(() => {
   });
 })
 
+onUnmounted(() => {
+  socket.value = null
+})
+
 const heartbeatHandle = ref(null)
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST
@@ -315,13 +312,15 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      fetchRunningJobs(userId.value)
-      fetchFinishJobs(userId.value)
+      fetchRunningJobs()
+      fetchFinishJobs(1)
     }
   });
 
   _socket.addEventListener('close', () => {
-    connect()
+    if (socket.value !== null) {
+      connect()
+    }
   });
 }
 
@@ -512,24 +511,6 @@ const showPrompt = (item) => {
 const imageView = (item) => {
   showImagePreview([item['img_url']]);
 }
-
-const translating = ref(false)
-const translatePrompt = () => {
-  if (params.value.prompt === '') {
-    return showToast("请输入中文提示词！")
-  }
-
-  translating.value = true
-  const prompt = params.value.prompt
-  httpPost("/api/prompt/translate", {"prompt": prompt}).then(res => {
-    params.value.prompt = res.data
-    translating.value = false
-  }).catch(e => {
-    translating.value = false
-    showFailToast("翻译失败：" + e.message)
-  })
-}
-
 </script>
 
 <style lang="stylus">

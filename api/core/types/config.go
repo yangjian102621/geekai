@@ -66,7 +66,6 @@ type MidJourneyPlusConfig struct {
 	Enabled   bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
 	ApiURL    string // api 地址
 	Mode      string // 绘画模式，可选值：fast/turbo/relax
-	CdnURL    string // CDN 加速地址
 	ApiKey    string
 	NotifyURL string // 任务进度更新回调地址
 }

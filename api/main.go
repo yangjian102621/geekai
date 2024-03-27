@@ -371,13 +371,6 @@ func main() {
 			group.GET("hits", h.Hits)
 		}),
 
-		fx.Provide(handler.NewPromptHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
-			group := s.Engine.Group("/api/prompt/")
-			group.POST("rewrite", h.Rewrite)
-			group.POST("translate", h.Translate)
-		}),
-
 		fx.Provide(admin.NewFunctionHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.FunctionHandler) {
 			group := s.Engine.Group("/api/admin/function/")

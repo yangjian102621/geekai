@@ -22,16 +22,7 @@ type Client struct {
 }
 
 func NewClient(config types.MidJourneyPlusConfig) *Client {
-	var apiURL string
-	if config.CdnURL != "" {
-		apiURL = config.CdnURL
-	} else {
-		apiURL = config.ApiURL
-	}
-	if config.Mode == "" {
-		config.Mode = "fast"
-	}
-	return &Client{Config: config, apiURL: apiURL}
+	return &Client{Config: config, apiURL: config.ApiURL}
 }
 
 type ImageReq struct {
@@ -81,6 +72,7 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		}
 
 	}
+	logger.Info("API URL: ", apiURL)
 	var res ImageRes
 	var errRes ErrRes
 	r, err := req.C().R().
@@ -90,9 +82,7 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		errStr, _ := io.ReadAll(r.Body)
-		logger.Errorf("API 返回：%s, API URL: %s", string(errStr), apiURL)
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
+		return ImageRes{}, fmt.Errorf("请求 API %s 出错：%v", apiURL, err)
 	}
 
 	if r.IsErrorState() {
@@ -132,8 +122,7 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		errStr, _ := io.ReadAll(r.Body)
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v，%v", err, string(errStr))
+		return ImageRes{}, fmt.Errorf("请求 API %s 出错：%v", apiURL, err)
 	}
 
 	if r.IsErrorState() {
@@ -183,8 +172,7 @@ func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		errStr, _ := io.ReadAll(r.Body)
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v，%v", err, string(errStr))
+		return ImageRes{}, fmt.Errorf("请求 API %s 出错：%v", apiURL, err)
 	}
 
 	if r.IsErrorState() {

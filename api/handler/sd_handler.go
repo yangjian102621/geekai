@@ -133,6 +133,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		HdScaleAlg:     data.HdScaleAlg,
 		HdSteps:        data.HdSteps,
 	}
+
 	job := model.SdJob{
 		UserId:    userId,
 		Type:      types.TaskImage.String(),
@@ -153,7 +154,6 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		Id:        int(job.Id),
 		SessionId: data.SessionId,
 		Type:      types.TaskImage,
-		Prompt:    data.Prompt,
 		Params:    params,
 		UserId:    userId,
 	})
