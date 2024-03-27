@@ -252,7 +252,6 @@ func main() {
 			group.GET("jobs", h.JobList)
 			group.GET("imgWall", h.ImgWall)
 			group.POST("remove", h.Remove)
-			group.POST("notify", h.Notify)
 			group.POST("publish", h.Publish)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {

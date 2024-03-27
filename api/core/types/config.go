@@ -5,22 +5,22 @@ import (
 )
 
 type AppConfig struct {
-	Path          string `toml:"-"`
-	Listen        string
-	Session       Session
-	AdminSession  Session
-	ProxyURL      string
-	MysqlDns      string                  // mysql 连接地址
-	StaticDir     string                  // 静态资源目录
-	StaticUrl     string                  // 静态资源 URL
-	Redis         RedisConfig             // redis 连接信息
-	ApiConfig     ChatPlusApiConfig       // ChatPlus API authorization configs
-	SMS           SMSConfig               // send mobile message config
-	OSS           OSSConfig               // OSS config
-	MjConfigs     []MidJourneyConfig      // mj AI draw service pool
-	MjPlusConfigs []MidJourneyPlusConfig  // MJ plus config
-	WeChatBot     bool                    // 是否启用微信机器人
-	SdConfigs     []StableDiffusionConfig // sd AI draw service pool
+	Path           string `toml:"-"`
+	Listen         string
+	Session        Session
+	AdminSession   Session
+	ProxyURL       string
+	MysqlDns       string                  // mysql 连接地址
+	StaticDir      string                  // 静态资源目录
+	StaticUrl      string                  // 静态资源 URL
+	Redis          RedisConfig             // redis 连接信息
+	ApiConfig      ChatPlusApiConfig       // ChatPlus API authorization configs
+	SMS            SMSConfig               // send mobile message config
+	OSS            OSSConfig               // OSS config
+	MjProxyConfigs []MjProxyConfig         // MJ proxy config
+	MjPlusConfigs  []MjPlusConfig          // MJ plus config
+	WeChatBot      bool                    // 是否启用微信机器人
+	SdConfigs      []StableDiffusionConfig // sd AI draw service pool
 
 	XXLConfig     XXLConfig
 	AlipayConfig  AlipayConfig
@@ -43,16 +43,11 @@ type ChatPlusApiConfig struct {
 	Token  string
 }
 
-type MidJourneyConfig struct {
-	Enabled        bool
-	UserToken      string
-	BotToken       string
-	GuildId        string // Server ID
-	ChanelId       string // Chanel ID
-	UseCDN         bool
-	ImgCdnURL      string // 图片反代加速地址
-	DiscordAPI     string
-	DiscordGateway string
+type MjProxyConfig struct {
+	Enabled bool
+	ApiURL  string // api 地址
+	Mode    string // 绘画模式，可选值：fast/turbo/relax
+	ApiKey  string
 }
 
 type StableDiffusionConfig struct {
@@ -62,12 +57,11 @@ type StableDiffusionConfig struct {
 	ApiKey  string
 }
 
-type MidJourneyPlusConfig struct {
-	Enabled   bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
-	ApiURL    string // api 地址
-	Mode      string // 绘画模式，可选值：fast/turbo/relax
-	ApiKey    string
-	NotifyURL string // 任务进度更新回调地址
+type MjPlusConfig struct {
+	Enabled bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
+	ApiURL  string // api 地址
+	Mode    string // 绘画模式，可选值：fast/turbo/relax
+	ApiKey  string
 }
 
 type AlipayConfig struct {

@@ -1,4 +1,13 @@
 # 更新日志
+## v4.0.1
+* 功能重构：重构 Stable-Diffusion 绘画实现，使用 SDAPI 替换之前的 websocket 接口，SDAPI 兼容各种 stable-diffusion 发行版，稳定性更强一些
+* 功能优化：使用 [midjouney-proxy](https://github.com/novicezk/midjourney-proxy) 项目替换内置的原生 MidJourney API，兼容 MJ-Plus 中转
+* 功能新增：用户算力消费日志增加统计功能，统计一段时间内用户消费的算力
+* 功能新增：支持前端菜单可以配置
+* 功能优化：手机端支持免登录预览功能
+* 功能新增：手机端支持 Stable-Diffusion 绘画
+* Bug修复：修复 iphone 手机无法通过图形验证码的Bug，使用滑动验证码替换
+
 ## v4.0.0
 非兼容版本，重大重构，引入算力概念，将系统中所有的能力（AI对话，MJ绘画，SD绘画，DALL绘画）全部使用算力来兑换。
 只要你的算力值余额不为0，你就可以进行任何操作。比如一次 GPT3.5 对话消耗1个单位算力，一次 GPT4 对话消耗10个算力。一次 MJ 对话消耗15个算力...

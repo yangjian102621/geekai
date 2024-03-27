@@ -1,159 +1,61 @@
 package mj
 
-import (
-	"chatplus/core/types"
-	"errors"
-	"fmt"
-	"time"
+import "chatplus/core/types"
 
-	"github.com/imroc/req/v3"
-)
-
-// MidJourney client
-
-type Client struct {
-	client *req.Client
-	Config types.MidJourneyConfig
-	apiURL string
+type Client interface {
+	Imagine(task types.MjTask) (ImageRes, error)
+	Blend(task types.MjTask) (ImageRes, error)
+	SwapFace(task types.MjTask) (ImageRes, error)
+	Upscale(task types.MjTask) (ImageRes, error)
+	Variation(task types.MjTask) (ImageRes, error)
+	QueryTask(taskId string) (QueryRes, error)
 }
 
-func NewClient(config types.MidJourneyConfig, proxy string) *Client {
-	client := req.C().SetTimeout(10 * time.Second)
-	var apiURL string
-	// set proxy URL
-	if config.UseCDN {
-		apiURL = config.DiscordAPI + "/api/v9/interactions"
-	} else {
-		apiURL = "https://discord.com/api/v9/interactions"
-		if proxy != "" {
-			client.SetProxyURL(proxy)
-		}
-	}
-
-	return &Client{client: client, Config: config, apiURL: apiURL}
+type ImageReq struct {
+	BotType       string      `json:"botType,omitempty"`
+	Prompt        string      `json:"prompt,omitempty"`
+	Dimensions    string      `json:"dimensions,omitempty"`
+	Base64Array   []string    `json:"base64Array,omitempty"`
+	AccountFilter interface{} `json:"accountFilter,omitempty"`
+	NotifyHook    string      `json:"notifyHook,omitempty"`
+	State         string      `json:"state,omitempty"`
 }
 
-func (c *Client) Imagine(task types.MjTask) error {
-	interactionsReq := &InteractionsRequest{
-		Type:          2,
-		ApplicationID: ApplicationID,
-		GuildID:       c.Config.GuildId,
-		ChannelID:     c.Config.ChanelId,
-		SessionID:     SessionID,
-		Data: map[string]any{
-			"version": "1166847114203123795",
-			"id":      "938956540159881230",
-			"name":    "imagine",
-			"type":    "1",
-			"options": []map[string]any{
-				{
-					"type":  3,
-					"name":  "prompt",
-					"value": fmt.Sprintf("%s %s", task.TaskId, task.Prompt),
-				},
-			},
-			"application_command": map[string]any{
-				"id":                         "938956540159881230",
-				"application_id":             ApplicationID,
-				"version":                    "1118961510123847772",
-				"default_permission":         true,
-				"default_member_permissions": nil,
-				"type":                       1,
-				"nsfw":                       false,
-				"name":                       "imagine",
-				"description":                "Create images with Midjourney",
-				"dm_permission":              true,
-				"options": []map[string]any{
-					{
-						"type":        3,
-						"name":        "prompt",
-						"description": "The prompt to imagine",
-						"required":    true,
-					},
-				},
-				"attachments": []any{},
-			},
-		},
-	}
-
-	r, err := c.client.R().SetHeader("Authorization", c.Config.UserToken).
-		SetHeader("Content-Type", "application/json").
-		SetBody(interactionsReq).
-		Post(c.apiURL)
-
-	if err != nil || r.IsErrorState() {
-		return fmt.Errorf("error with http request: %w%v", err, r.Err)
-	}
-
-	return nil
+type ImageRes struct {
+	Code        int    `json:"code"`
+	Description string `json:"description"`
+	Properties  struct {
+	} `json:"properties"`
+	Result string `json:"result"`
 }
 
-func (c *Client) Blend(task types.MjTask) error {
-	return errors.New("function not implemented")
+type ErrRes struct {
+	Error struct {
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
-func (c *Client) SwapFace(task types.MjTask) error {
-	return errors.New("function not implemented")
-}
-
-// Upscale 放大指定的图片
-func (c *Client) Upscale(task types.MjTask) error {
-	flags := 0
-	interactionsReq := &InteractionsRequest{
-		Type:          3,
-		ApplicationID: ApplicationID,
-		GuildID:       c.Config.GuildId,
-		ChannelID:     c.Config.ChanelId,
-		MessageFlags:  flags,
-		MessageID:     task.MessageId,
-		SessionID:     SessionID,
-		Data: map[string]any{
-			"component_type": 2,
-			"custom_id":      fmt.Sprintf("MJ::JOB::upsample::%d::%s", task.Index, task.MessageHash),
-		},
-		Nonce: fmt.Sprintf("%d", time.Now().UnixNano()),
-	}
-
-	var res InteractionsResult
-	r, err := c.client.R().SetHeader("Authorization", c.Config.UserToken).
-		SetHeader("Content-Type", "application/json").
-		SetBody(interactionsReq).
-		SetErrorResult(&res).
-		Post(c.apiURL)
-	if err != nil || r.IsErrorState() {
-		return fmt.Errorf("error with http request: %v%v%v", err, r.Err, res.Message)
-	}
-
-	return nil
-}
-
-// Variation  以指定的图片的视角进行变换再创作，注意需要在对应的频道中关闭 Remix 变换，否则 Variation 指令将不会生效
-func (c *Client) Variation(task types.MjTask) error {
-	flags := 0
-	interactionsReq := &InteractionsRequest{
-		Type:          3,
-		ApplicationID: ApplicationID,
-		GuildID:       c.Config.GuildId,
-		ChannelID:     c.Config.ChanelId,
-		MessageFlags:  flags,
-		MessageID:     task.MessageId,
-		SessionID:     SessionID,
-		Data: map[string]any{
-			"component_type": 2,
-			"custom_id":      fmt.Sprintf("MJ::JOB::variation::%d::%s", task.Index, task.MessageHash),
-		},
-		Nonce: fmt.Sprintf("%d", time.Now().UnixNano()),
-	}
-
-	var res InteractionsResult
-	r, err := c.client.R().SetHeader("Authorization", c.Config.UserToken).
-		SetHeader("Content-Type", "application/json").
-		SetBody(interactionsReq).
-		SetErrorResult(&res).
-		Post(c.apiURL)
-	if err != nil || r.IsErrorState() {
-		return fmt.Errorf("error with http request: %v%v%v", err, r.Err, res.Message)
-	}
-
-	return nil
+type QueryRes struct {
+	Action  string `json:"action"`
+	Buttons []struct {
+		CustomId string `json:"customId"`
+		Emoji    string `json:"emoji"`
+		Label    string `json:"label"`
+		Style    int    `json:"style"`
+		Type     int    `json:"type"`
+	} `json:"buttons"`
+	Description string `json:"description"`
+	FailReason  string `json:"failReason"`
+	FinishTime  int    `json:"finishTime"`
+	Id          string `json:"id"`
+	ImageUrl    string `json:"imageUrl"`
+	Progress    string `json:"progress"`
+	Prompt      string `json:"prompt"`
+	PromptEn    string `json:"promptEn"`
+	Properties  struct {
+	} `json:"properties"`
+	StartTime  int    `json:"startTime"`
+	State      string `json:"state"`
+	Status     string `json:"status"`
+	SubmitTime int    `json:"submitTime"`
 }
