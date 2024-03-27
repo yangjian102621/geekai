@@ -5,7 +5,6 @@ import (
 	"chatplus/core/types"
 	"chatplus/service"
 	"chatplus/service/mj"
-	"chatplus/service/mj/plus"
 	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -449,27 +448,6 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 	client := h.pool.Clients.Get(data.UserId)
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
-	}
-
-	resp.SUCCESS(c)
-}
-
-// Notify MidJourney Plus 服务任务回调处理
-func (h *MidJourneyHandler) Notify(c *gin.Context) {
-	var data plus.CBReq
-	if err := c.ShouldBindJSON(&data); err != nil {
-		logger.Error("非法任务回调：%+v", err)
-		return
-	}
-	err := h.pool.Notify(data)
-	if err != nil {
-		logger.Error(err)
-	} else {
-		userId := h.GetLoginUserId(c)
-		client := h.pool.Clients.Get(userId)
-		if client != nil {
-			_ = client.Send([]byte("Task Updated"))
-		}
 	}
 
 	resp.SUCCESS(c)

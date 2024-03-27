@@ -1,8 +1,7 @@
-package plus
+package mj
 
 import (
 	"chatplus/core/types"
-	logger2 "chatplus/logger"
 	"chatplus/utils"
 	"encoding/base64"
 	"errors"
@@ -13,53 +12,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var logger = logger2.GetLogger()
-
-// Client MidJourney Plus Client
-type Client struct {
-	Config types.MidJourneyPlusConfig
+// PlusClient MidJourney Plus ProxyClient
+type PlusClient struct {
+	Config types.MjPlusConfig
 	apiURL string
 }
 
-func NewClient(config types.MidJourneyPlusConfig) *Client {
-	return &Client{Config: config, apiURL: config.ApiURL}
+func NewPlusClient(config types.MjPlusConfig) *PlusClient {
+	return &PlusClient{Config: config, apiURL: config.ApiURL}
 }
 
-type ImageReq struct {
-	BotType       string   `json:"botType"`
-	Prompt        string   `json:"prompt,omitempty"`
-	Dimensions    string   `json:"dimensions,omitempty"`
-	Base64Array   []string `json:"base64Array,omitempty"`
-	AccountFilter struct {
-		InstanceId          string        `json:"instanceId"`
-		Modes               []interface{} `json:"modes"`
-		Remix               bool          `json:"remix"`
-		RemixAutoConsidered bool          `json:"remixAutoConsidered"`
-	} `json:"accountFilter,omitempty"`
-	NotifyHook string `json:"notifyHook"`
-	State      string `json:"state,omitempty"`
-}
-
-type ImageRes struct {
-	Code        int    `json:"code"`
-	Description string `json:"description"`
-	Properties  struct {
-	} `json:"properties"`
-	Result string `json:"result"`
-}
-
-type ErrRes struct {
-	Error struct {
-		Message string `json:"message"`
-	} `json:"error"`
-}
-
-func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
+func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/imagine", c.apiURL, c.Config.Mode)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
 		Prompt:      task.Prompt,
-		NotifyHook:  c.Config.NotifyURL,
 		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码
@@ -94,12 +61,11 @@ func (c *Client) Imagine(task types.MjTask) (ImageRes, error) {
 }
 
 // Blend 融图
-func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
+func (c *PlusClient) Blend(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/blend", c.apiURL, c.Config.Mode)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
 		Dimensions:  "SQUARE",
-		NotifyHook:  c.Config.NotifyURL,
 		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码
@@ -133,7 +99,7 @@ func (c *Client) Blend(task types.MjTask) (ImageRes, error) {
 }
 
 // SwapFace 换脸
-func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
+func (c *PlusClient) SwapFace(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/insight-face/swap", c.apiURL, c.Config.Mode)
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) != 2 {
@@ -160,8 +126,7 @@ func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
 		"accountFilter": gin.H{
 			"instanceId": "",
 		},
-		"notifyHook": c.Config.NotifyURL,
-		"state":      "",
+		"state": "",
 	}
 	var res ImageRes
 	var errRes ErrRes
@@ -183,11 +148,10 @@ func (c *Client) SwapFace(task types.MjTask) (ImageRes, error) {
 }
 
 // Upscale 放大指定的图片
-func (c *Client) Upscale(task types.MjTask) (ImageRes, error) {
+func (c *PlusClient) Upscale(task types.MjTask) (ImageRes, error) {
 	body := map[string]string{
-		"customId":   fmt.Sprintf("MJ::JOB::upsample::%d::%s", task.Index, task.MessageHash),
-		"taskId":     task.MessageId,
-		"notifyHook": c.Config.NotifyURL,
+		"customId": fmt.Sprintf("MJ::JOB::upsample::%d::%s", task.Index, task.MessageHash),
+		"taskId":   task.MessageId,
 	}
 	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
 	var res ImageRes
@@ -210,11 +174,10 @@ func (c *Client) Upscale(task types.MjTask) (ImageRes, error) {
 }
 
 // Variation  以指定的图片的视角进行变换再创作，注意需要在对应的频道中关闭 Remix 变换，否则 Variation 指令将不会生效
-func (c *Client) Variation(task types.MjTask) (ImageRes, error) {
+func (c *PlusClient) Variation(task types.MjTask) (ImageRes, error) {
 	body := map[string]string{
-		"customId":   fmt.Sprintf("MJ::JOB::variation::%d::%s", task.Index, task.MessageHash),
-		"taskId":     task.MessageId,
-		"notifyHook": c.Config.NotifyURL,
+		"customId": fmt.Sprintf("MJ::JOB::variation::%d::%s", task.Index, task.MessageHash),
+		"taskId":   task.MessageId,
 	}
 	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
 	var res ImageRes
@@ -236,32 +199,7 @@ func (c *Client) Variation(task types.MjTask) (ImageRes, error) {
 	return res, nil
 }
 
-type QueryRes struct {
-	Action  string `json:"action"`
-	Buttons []struct {
-		CustomId string `json:"customId"`
-		Emoji    string `json:"emoji"`
-		Label    string `json:"label"`
-		Style    int    `json:"style"`
-		Type     int    `json:"type"`
-	} `json:"buttons"`
-	Description string `json:"description"`
-	FailReason  string `json:"failReason"`
-	FinishTime  int    `json:"finishTime"`
-	Id          string `json:"id"`
-	ImageUrl    string `json:"imageUrl"`
-	Progress    string `json:"progress"`
-	Prompt      string `json:"prompt"`
-	PromptEn    string `json:"promptEn"`
-	Properties  struct {
-	} `json:"properties"`
-	StartTime  int    `json:"startTime"`
-	State      string `json:"state"`
-	Status     string `json:"status"`
-	SubmitTime int    `json:"submitTime"`
-}
-
-func (c *Client) QueryTask(taskId string) (QueryRes, error) {
+func (c *PlusClient) QueryTask(taskId string) (QueryRes, error) {
 	apiURL := fmt.Sprintf("%s/mj/task/%s/fetch", c.apiURL, taskId)
 	var res QueryRes
 	r, err := req.C().R().SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
@@ -278,3 +216,5 @@ func (c *Client) QueryTask(taskId string) (QueryRes, error) {
 
 	return res, nil
 }
+
+var _ Client = &PlusClient{}
