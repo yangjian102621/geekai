@@ -103,7 +103,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue";
+import {nextTick, onMounted, onUnmounted, ref} from "vue";
 import {showImagePreview, showNotify, showToast} from "vant";
 import {onBeforeRouteLeave, useRouter} from "vue-router";
 import {dateFormat, processContent, randString, renderInputText, UUID} from "@/utils/libs";
@@ -145,6 +145,10 @@ onMounted(() => {
   clipboard.on('error', () => {
     showNotify({type: 'danger', message: '复制失败', duration: 2000})
   })
+})
+
+onUnmounted(() => {
+  socket.value = null
 })
 
 const chatData = ref([])
@@ -347,12 +351,11 @@ const connect = function (chat_id, role_id) {
   });
 
   _socket.addEventListener('close', () => {
-    if (activelyClose.value) { // 忽略主动关闭
+    if (activelyClose.value || socket.value === null) { // 忽略主动关闭
       return;
     }
     // 停止发送消息
     canSend.value = true;
-    socket.value = null;
     // 重连
     checkSession().then(() => {
       connect(chat_id, role_id)

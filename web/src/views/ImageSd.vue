@@ -118,26 +118,6 @@
               </div>
 
               <div class="param-line">
-                <el-form-item label="面部修复">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-switch v-model="params.face_fix" style="--el-switch-on-color: #47fff1;"/>
-                      <el-tooltip
-                          effect="light"
-                          content="仅对绘制人物图像有效果。"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon style="margin-top: 6px">
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
-
-              <div class="param-line">
                 <el-form-item label="高清修复">
                   <template #default>
                     <div class="form-item-inner">
@@ -248,32 +228,8 @@
                     :autosize="{ minRows: 4, maxRows: 6 }"
                     type="textarea"
                     ref="promptRef"
-                    placeholder="正向提示词，例如：A chinese girl walking in the middle of a cobblestone street"
+                    placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
                 />
-              </div>
-
-              <div style="padding: 10px">
-                <el-button type="primary" @click="translatePrompt" size="small">
-                  <el-icon style="margin-right: 6px;font-size: 18px;">
-                    <Refresh/>
-                  </el-icon>
-                  翻译
-                </el-button>
-
-                <el-tooltip
-                    class="box-item"
-                    effect="dark"
-                    raw-content
-                    content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
-                    placement="top-end"
-                >
-                  <el-button type="success" @click="rewritePrompt" size="small">
-                    <el-icon style="margin-right: 6px;font-size: 18px;">
-                      <Refresh/>
-                    </el-icon>
-                    翻译并重写
-                  </el-button>
-                </el-tooltip>
               </div>
 
               <div class="param-line pt">
@@ -516,7 +472,7 @@
 
       </el-dialog>
     </div>
-    
+
     <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
@@ -553,14 +509,13 @@ const params = ref({
   height: 1024,
   sampler: samplers[0],
   seed: -1,
-  steps: 30,
+  steps: 20,
   cfg_scale: 7,
-  face_fix: false,
   hd_fix: false,
-  hd_redraw_rate: 0.5,
+  hd_redraw_rate: 0.7,
   hd_scale: 2,
   hd_scale_alg: scaleAlg[0],
-  hd_steps: 15,
+  hd_steps: 0,
   prompt: "",
   negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
 })
@@ -574,38 +529,7 @@ if (_params) {
   params.value = JSON.parse(_params)
 }
 const power = ref(0)
-
-const rewritePrompt = () => {
-  if (!isLogin.value) {
-    showLoginDialog.value = true
-    return
-  }
-
-  translating.value = true
-  httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
-    params.value.prompt = res.data
-    translating.value = false
-  }).catch(e => {
-    translating.value = false
-    ElMessage.error("翻译失败：" + e.message)
-  })
-}
-
-const translatePrompt = () => {
-  if (!isLogin.value) {
-    showLoginDialog.value = true
-    return
-  }
-
-  translating.value = true
-  httpPost("/api/prompt/translate", {"prompt": params.value.prompt}).then(res => {
-    params.value.prompt = res.data
-    translating.value = false
-  }).catch(e => {
-    translating.value = false
-    ElMessage.error("翻译失败：" + e.message)
-  })
-}
+const sdPower = ref(0) // 画一张 SD 图片消耗算力
 
 const socket = ref(null)
 const userId = ref(0)
@@ -651,7 +575,9 @@ const connect = () => {
   });
 
   _socket.addEventListener('close', () => {
-    connect()
+    if (socket.value !== null) {
+      connect()
+    }
   });
 }
 
@@ -666,10 +592,17 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+
+  httpGet("/api/config/get?key=system").then(res => {
+    sdPower.value = res.data["sd_power"]
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
+  socket.value = null
 })
 
 
@@ -699,7 +632,7 @@ const fetchRunningJobs = (userId) => {
           message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
           type: 'error',
         })
-        power.value += 1
+        power.value += sdPower.value
         continue
       }
       _jobs.push(jobs[i])
@@ -761,7 +694,7 @@ const generate = () => {
   params.value.session_id = getSessionId()
   httpPost("/api/sd/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
-    power.value -= 1
+    power.value -= sdPower.value
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

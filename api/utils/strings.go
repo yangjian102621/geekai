@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"unicode"
 
 	"golang.org/x/crypto/sha3"
 )
@@ -94,6 +95,7 @@ func InterfaceToString(value interface{}) string {
 	return JsonEncode(value)
 }
 
+// CutWords 截取前 N 个单词
 func CutWords(str string, num int) string {
 	// 按空格分割字符串为单词切片
 	words := strings.Fields(str)
@@ -104,4 +106,14 @@ func CutWords(str string, num int) string {
 	} else {
 		return str
 	}
+}
+
+// HasChinese 判断文本是否含有中文
+func HasChinese(text string) bool {
+	for _, char := range text {
+		if unicode.Is(unicode.Scripts["Han"], char) {
+			return true
+		}
+	}
+	return false
 }

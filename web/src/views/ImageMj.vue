@@ -218,36 +218,13 @@
                             </el-icon>
                           </el-tooltip>
                         </div>
-                        <div>
-                          <el-button type="primary" @click="translatePrompt(false)" :disabled="translating">
-                            <el-icon style="margin-right: 6px;font-size: 18px;">
-                              <Refresh/>
-                            </el-icon>
-                            翻译
-                          </el-button>
-
-                          <el-tooltip
-                              class="box-item"
-                              effect="light"
-                              raw-content
-                              content="使用 AI 翻译并重写提示词，<br/>增加更多细节，风格等描述"
-                              placement="top-end"
-                          >
-                            <el-button type="success" @click="rewritePrompt" :disabled="translating">
-                              <el-icon style="margin-right: 6px;font-size: 18px;">
-                                <Refresh/>
-                              </el-icon>
-                              翻译并重写
-                            </el-button>
-                          </el-tooltip>
-                        </div>
                       </div>
                     </div>
 
                     <div class="param-line pt">
                       <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
                                 ref="promptRef"
-                                placeholder="这里输入你的英文咒语，例如：A chinese girl walking in the middle of a cobblestone street"/>
+                                placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
                     </div>
 
                     <div class="param-line pt">
@@ -260,19 +237,13 @@
                             </el-icon>
                           </el-tooltip>
                         </div>
-                        <el-button type="primary" @click="translatePrompt(true)" :disabled="translating">
-                          <el-icon style="margin-right: 6px;font-size: 18px;">
-                            <Refresh/>
-                          </el-icon>
-                          翻译
-                        </el-button>
                       </div>
                     </div>
 
                     <div class="param-line pt">
                       <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
                                 ref="promptRef"
-                                placeholder="这里输入你不希望出现在图片上的内容，元素"/>
+                                placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"/>
                     </div>
                   </div>
                 </el-tab-pane>
@@ -471,7 +442,7 @@
 
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue"
-import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus, Refresh} from "@element-plus/icons-vue";
+import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
@@ -560,49 +531,8 @@ const finishedJobs = ref([])
 
 const socket = ref(null)
 const power = ref(0)
-const translating = ref(false)
 const userId = ref(0)
 const isLogin = ref(false)
-
-const rewritePrompt = () => {
-  if (!isLogin.value) {
-    showLoginDialog.value = true
-    return
-  }
-
-  translating.value = true
-  httpPost("/api/prompt/rewrite", {"prompt": params.value.prompt}).then(res => {
-    params.value.prompt = res.data
-    translating.value = false
-  }).catch(e => {
-    translating.value = false
-    ElMessage.error("翻译失败：" + e.message)
-  })
-}
-
-const translatePrompt = (negative) => {
-  if (!isLogin.value) {
-    showLoginDialog.value = true
-    return
-  }
-
-  translating.value = true
-  let prompt = params.value.prompt
-  if (negative) {
-    prompt = params.value.neg_prompt
-  }
-  httpPost("/api/prompt/translate", {"prompt": prompt}).then(res => {
-    if (negative) {
-      params.value.neg_prompt = res.data
-    } else {
-      params.value.prompt = res.data
-    }
-    translating.value = false
-  }).catch(e => {
-    translating.value = false
-    ElMessage.error("翻译失败：" + e.message)
-  })
-}
 
 const heartbeatHandle = ref(null)
 const connect = () => {
@@ -646,7 +576,9 @@ const connect = () => {
   });
 
   _socket.addEventListener('close', () => {
-    connect()
+    if (socket.value !== null) {
+      connect()
+    }
   });
 }
 
@@ -661,6 +593,10 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+})
+
+onUnmounted(() => {
+  socket.value = null
 })
 
 // 初始化数据

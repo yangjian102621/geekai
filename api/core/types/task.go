@@ -36,7 +36,6 @@ type SdTask struct {
 	SessionId  string       `json:"session_id"`
 	Type       TaskType     `json:"type"`
 	UserId     int          `json:"user_id"`
-	Prompt     string       `json:"prompt,omitempty"`
 	Params     SdTaskParams `json:"params"`
 	RetryCount int          `json:"retry_count"`
 }

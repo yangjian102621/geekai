@@ -2,6 +2,7 @@ package sd
 
 import (
 	"chatplus/core/types"
+	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/store"
 	"chatplus/store/model"
@@ -46,6 +47,14 @@ func (s *Service) Run() {
 			logger.Errorf("taking task with error: %v", err)
 			continue
 		}
+		// 翻译提示词
+		if utils.HasChinese(task.Params.Prompt) {
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt))
+			if err == nil {
+				task.Params.Prompt = content
+			}
+		}
+
 		logger.Infof("%s handle a new Stable-Diffusion task: %+v", s.name, task)
 		err = s.Txt2Img(task)
 		if err != nil {
@@ -66,7 +75,7 @@ func (s *Service) Run() {
 type Txt2ImgReq struct {
 	Prompt            string  `json:"prompt"`
 	NegativePrompt    string  `json:"negative_prompt"`
-	Seed              int64   `json:"seed"`
+	Seed              int64   `json:"seed,omitempty"`
 	Steps             int     `json:"steps"`
 	CfgScale          float32 `json:"cfg_scale"`
 	Width             int     `json:"width"`

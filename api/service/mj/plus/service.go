@@ -167,11 +167,7 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 	job.Progress = utils.IntValue(strings.Replace(task.Progress, "%", "", 1), 0)
 	job.Prompt = task.PromptEn
 	if task.ImageUrl != "" {
-		if s.Client.Config.CdnURL != "" {
-			job.OrgURL = strings.Replace(task.ImageUrl, s.Client.Config.ApiURL, s.Client.Config.CdnURL, 1)
-		} else {
-			job.OrgURL = task.ImageUrl
-		}
+		job.OrgURL = task.ImageUrl
 	}
 	job.MessageId = task.Id
 	tx := s.db.Updates(&job)

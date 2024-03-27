@@ -244,7 +244,7 @@
 
 </template>
 <script setup>
-import {nextTick, onMounted, ref} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {
@@ -338,6 +338,10 @@ onMounted(() => {
 
   window.onresize = () => resizeElement();
 });
+
+onUnmounted(() => {
+  socket.value = null
+})
 
 // 初始化数据
 const initData = () => {
@@ -699,12 +703,11 @@ const connect = function (chat_id, role_id) {
   });
 
   _socket.addEventListener('close', () => {
-    if (activelyClose.value) { // 忽略主动关闭
+    if (activelyClose.value || socket.value === null) { // 忽略主动关闭
       return;
     }
     // 停止发送消息
     disableInput(true)
-    socket.value = null;
     loading.value = true;
     checkSession().then(() => {
       connect(chat_id, role_id)
