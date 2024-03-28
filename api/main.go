@@ -238,6 +238,8 @@ func main() {
 			group := s.Engine.Group("/api/captcha/")
 			group.GET("get", h.Get)
 			group.POST("check", h.Check)
+			group.GET("slide/get", h.SlideGet)
+			group.POST("slide/check", h.SlideCheck)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
 			group := s.Engine.Group("/api/reward/")

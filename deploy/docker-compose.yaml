@@ -38,6 +38,8 @@ services:
     volumes:
       - ./logs/xxl-job:/data/applogs
       - ./conf/xxl-job/application.properties:/application.properties
+    depends_on:
+      - chatgpt-plus-mysql
 
   # 后端 API 程序
   chatgpt-plus-api:

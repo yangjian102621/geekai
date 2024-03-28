@@ -42,7 +42,7 @@ WeChatBot = false
       CodeTempId = ""
 
 [OSS] # OSS 配置，用于存储 MJ 绘画图片
-   Active = "local" # 默认使用本地文件存储引擎
+   Active = "Local" # 默认使用本地文件存储引擎
    [OSS.Local]
      BasePath = "./static/upload" # 本地文件上传根路径
      BaseURL = "/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可

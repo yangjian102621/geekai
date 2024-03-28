@@ -19,7 +19,9 @@
           value-format="YYYY-MM-DD"
           style="margin: 0 10px;width: 200px; position: relative;top:3px;"
       />
-      <el-button type="primary" :icon="Search" @click="fetchData">搜索</el-button>
+      <el-button type="primary" :icon="Search" @click="search">搜索</el-button>
+
+      <el-button v-if="totalPower > 0">算力总额：{{ totalPower }}</el-button>
     </div>
 
     <el-row v-if="items.length > 0">
@@ -82,6 +84,8 @@ const query = ref({
   date: [],
   type: 0
 })
+const totalPower = ref(0)
+
 const tagColors = ref(["", "success", "primary", "danger", "info", "warning"])
 
 onMounted(() => {
@@ -96,6 +100,12 @@ onMounted(() => {
   })
 })
 
+// 搜索
+const search = () => {
+  page.value = 1
+  fetchData()
+}
+
 // 获取数据
 const fetchData = () => {
   loading.value = true
@@ -106,12 +116,14 @@ const fetchData = () => {
     page: page.value,
     page_size: pageSize.value
   }).then((res) => {
-    if (res.data) {
-      items.value = res.data.items
-      total.value = res.data.total
-      page.value = res.data.page
-      pageSize.value = res.data.page_size
+    const data = res.data.data
+    if (data) {
+      items.value = data.items
+      total.value = data.total
+      page.value = data.page
+      pageSize.value = data.page_size
     }
+    totalPower.value = res.data.stat
     loading.value = false
   }).catch(e => {
     loading.value = false
