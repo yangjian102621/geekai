@@ -10,6 +10,11 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+.admin-home {
+  overflow: hidden;
+  position: relative;
+  height: 100vh;
+}
 .admin-home a {
   text-decoration: none;
 }
@@ -32,10 +37,11 @@ body {
 /*BaseForm*/
 }
 .admin-home .content-box .content .container {
-  padding: 30px;
+  padding: 15px 20px 30px 20px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 5px;
+  margin-bottom: 80px;
 }
 .admin-home .content-box .content .container .handle-box {
   margin-bottom: 20px;
