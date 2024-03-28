@@ -67,7 +67,7 @@ func (s *Service) Run() {
 			continue
 		}
 
-		// 翻译提示词
+		// 如果是 mj-proxy 则自动翻译提示词
 		if utils.HasChinese(task.Prompt) && strings.HasPrefix(s.Name, "mj-proxy-service") {
 			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt))
 			if err == nil {

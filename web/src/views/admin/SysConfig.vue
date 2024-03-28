@@ -44,8 +44,39 @@
                 </div>
               </div>
             </el-form-item>
-            <el-form-item label="MidJourney算力" prop="mj_power">
-              <el-input v-model.number="system['mj_power']" placeholder="使用MidJourney画一张图消耗算力"/>
+            <el-form-item label="MJ绘图算力" prop="mj_power">
+              <div class="tip-input">
+                <el-input v-model.number="system['mj_power']" placeholder=""/>
+                <div class="info">
+                  <el-tooltip
+                      effect="dark"
+                      content="使用MidJourney画一张图消耗算力"
+                      raw-content
+                      placement="right"
+                  >
+                    <el-icon>
+                      <InfoFilled/>
+                    </el-icon>
+                  </el-tooltip>
+                </div>
+              </div>
+            </el-form-item>
+            <el-form-item label="MJ操作算力" prop="mj_action_power">
+              <div class="tip-input">
+                <el-input v-model.number="system['mj_action_power']" placeholder=""/>
+                <div class="info">
+                  <el-tooltip
+                      effect="dark"
+                      content="放大，变换，重绘操作一次消耗的算力"
+                      raw-content
+                      placement="right"
+                  >
+                    <el-icon>
+                      <InfoFilled/>
+                    </el-icon>
+                  </el-tooltip>
+                </div>
+              </div>
             </el-form-item>
             <el-form-item label="Stable-Diffusion算力" prop="sd_power">
               <el-input v-model.number="system['sd_power']" placeholder="使用Stable-Diffusion画一张图消耗算力"/>

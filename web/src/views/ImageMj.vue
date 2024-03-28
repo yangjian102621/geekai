@@ -506,7 +506,7 @@ const options = [
 ]
 
 const router = useRouter()
-const params = ref({
+const initParams = {
   task_type: "image",
   rate: rates[0].value,
   model: models[0].value,
@@ -520,7 +520,8 @@ const params = ref({
   neg_prompt: "",
   tile: false,
   quality: 0
-})
+}
+const params = ref(initParams)
 
 const imgList = ref([])
 
@@ -618,6 +619,15 @@ onUnmounted(() => {
   clipboard.value.destroy()
 })
 
+const mjPower = ref(1)
+const mjActionPower = ref(1)
+httpGet("/api/config/get?key=system").then(res => {
+  mjPower.value = res.data["mj_power"]
+  mjActionPower.value = res.data["mj_action_power"]
+}).catch(e => {
+  ElMessage.error("获取系统配置失败：" + e.message)
+})
+
 // 获取运行中的任务
 const fetchRunningJobs = () => {
   httpGet(`/api/mj/jobs?status=0`).then(res => {
@@ -632,7 +642,11 @@ const fetchRunningJobs = () => {
           type: 'error',
           duration: 0,
         })
-        power.value += 1
+        if (jobs[i].type === 'image') {
+          power.value += mjPower.value
+        } else {
+          power.value += mjActionPower.value
+        }
         continue
       }
       _jobs.push(jobs[i])
@@ -749,7 +763,8 @@ const generate = () => {
   params.value.img_arr = imgList.value
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
-    power.value -= 1
+    power.value -= mjPower.value
+    params.value = initParams
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })
@@ -775,7 +790,7 @@ const send = (url, index, item) => {
     prompt: item.prompt,
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
-    power.value -= 1
+    power.value -= mjActionPower.value
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

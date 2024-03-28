@@ -91,7 +91,7 @@
 
         <div class="text-line">
           <van-button round block type="primary" native-type="submit">
-            <van-tag type="success">可用额度:{{ imgCalls }}</van-tag>
+            <van-tag type="success">可用算力额度:{{ power }}</van-tag>
             立即生成
           </van-button>
         </div>
@@ -253,16 +253,16 @@ const params = ref({
   tile: false,
   quality: 0
 })
-const imgCalls = ref(0)
 const userId = ref(0)
 const router = useRouter()
 const runningJobs = ref([])
 const finishedJobs = ref([])
 const socket = ref(null)
+const power = ref(0)
 
 onMounted(() => {
   checkSession().then(user => {
-    imgCalls.value = user['img_calls']
+    power.value = user['power']
     userId.value = user.id
 
     fetchRunningJobs()
@@ -276,6 +276,15 @@ onMounted(() => {
 
 onUnmounted(() => {
   socket.value = null
+})
+
+const mjPower = ref(1)
+const mjActionPower = ref(1)
+httpGet("/api/config/get?key=system").then(res => {
+  mjPower.value = res.data["mj_power"]
+  mjActionPower.value = res.data["mj_action_power"]
+}).catch(e => {
+  ElMessage.error("获取系统配置失败：" + e.message)
 })
 
 const heartbeatHandle = ref(null)
@@ -335,7 +344,11 @@ const fetchRunningJobs = (userId) => {
           message: `任务执行失败：${jobs[i]['err_msg']}`,
           type: 'danger',
         })
-        imgCalls.value += 1
+        if (jobs[i].type === 'image') {
+          power.value += mjPower.value
+        } else {
+          power.value += mjActionPower.value
+        }
         continue
       }
       _jobs.push(jobs[i])
@@ -437,7 +450,7 @@ const send = (url, index, item) => {
     prompt: item.prompt,
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
-    imgCalls.value -= 1
+    power.value -= mjActionPower.value
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })
@@ -464,7 +477,7 @@ const generate = () => {
   params.value.img_arr = imgList.value.map(img => img.url)
   httpPost("/api/mj/image", params.value).then(() => {
     showToast("绘画任务推送成功，请耐心等待任务执行")
-    imgCalls.value -= 1
+    power.value -= mjPower.value
   }).catch(e => {
     showFailToast("任务推送失败：" + e.message)
   })
