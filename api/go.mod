@@ -25,8 +25,6 @@ require (
 
 require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
-require github.com/bg5t/mydiscordgo v0.28.1
-
 require (
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/shopspring/decimal v1.3.1

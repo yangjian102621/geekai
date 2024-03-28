@@ -1,6 +1,6 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 WeChatBot = false
@@ -67,29 +67,21 @@ WeChatBot = false
           SubDir = ""
           Domain = ""
 
-[[MjConfigs]]
-  Enabled = false
-  UserToken = ""
-  BotToken = ""
-  GuildId = ""
-  ChanelId = ""
-  UseCDN = false
-  ImgCdnURL = ""
-  DiscordAPI = ""
-  DiscordGateway = ""
+[[MjProxyConfigs]]
+  Enabled = true
+  ApiURL = "http://midjourney-proxy:8082"
+  ApiKey = "sk-geekmaster"
 
 [[MjPlusConfigs]]
    Enabled = false
    ApiURL = "https://api.chat-plus.net"
    Mode = "fast"
    ApiKey = "sk-xxx"
-  NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要把 ai.r9it.com 改成你自己的域名或者 IP:端口
 
 [[SdConfigs]]
   Enabled = false
   ApiURL = ""
   ApiKey = ""
-  Txt2ImgJsonPath = "res/sd/text2img.json"
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = true # 是否启用 XXL JOB 服务

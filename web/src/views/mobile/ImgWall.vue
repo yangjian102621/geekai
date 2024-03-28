@@ -12,6 +12,7 @@
               error-text="请求失败，点击重新加载"
               finished-text="没有更多了"
               @load="onLoad"
+              style="height: 100%;width: 100%;"
           >
             <van-cell v-for="item in data['mj'].data" :key="item.id">
               <van-image :src="item['img_thumb']" @click="showPrompt(item)" fit="cover"/>
