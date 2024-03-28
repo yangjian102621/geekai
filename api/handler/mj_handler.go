@@ -245,6 +245,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		TaskId:      taskId,
 		Progress:    0,
 		Prompt:      data.Prompt,
+		Power:       h.App.SysConfig.MjActionPower,
 		CreatedAt:   time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
@@ -268,7 +269,23 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
-
+	// update user's power
+	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		user, _ := h.GetLoginUser(c)
+		h.DB.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    job.Power,
+			Balance:   user.Power - job.Power,
+			Mark:      types.PowerSub,
+			Model:     "mid-journey",
+			Remark:    fmt.Sprintf("Upscale 操作，任务ID：%s", job.TaskId),
+			CreatedAt: time.Now(),
+		})
+	}
 	resp.SUCCESS(c)
 }
 
@@ -295,7 +312,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		TaskId:      taskId,
 		Progress:    0,
 		Prompt:      data.Prompt,
-		Power:       h.App.SysConfig.MjPower,
+		Power:       h.App.SysConfig.MjActionPower,
 		CreatedAt:   time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
