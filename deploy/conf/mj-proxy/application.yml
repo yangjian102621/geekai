@@ -1,0 +1,17 @@
+mj:
+  task-store:
+    type: in_memory
+    timeout: 30d
+  translate-way: null
+  api-secret: "sk-geekmaster" # API 密钥，要跟 chatgpt-plus 应用 config.toml 配置对应上，否则 API 调用会失败
+
+  ng-discord: # 这里必须配置反代，否则无法访问 Discord API
+    server: "" # Discord API 反代
+    cdn: "" # Discord 图片 CDN 反代
+    wss: "" # Discord 网关反代
+
+  accounts: # MJ 账号，配置配置多个
+    - guild-id: ""
+      channel-id: ""
+      user-token: ""
+      user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"

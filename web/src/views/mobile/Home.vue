@@ -48,7 +48,7 @@ const onChange = (index) => {
     }
 
     .content {
-      padding 46px 10px 60px 10px;
+      padding 46px 10px 60px 10px
     }
   }
 

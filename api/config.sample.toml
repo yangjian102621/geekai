@@ -1,6 +1,6 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8&parseTime=True&loc=Local"
+MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
@@ -64,24 +64,16 @@ WeChatBot = false
        SubDir = ""
        Domain = ""
 
-[[MjConfigs]]
-  Enabled = false
-  UserToken = ""
-  BotToken = ""
-  GuildId = ""
-  ChanelId = ""
-  UseCDN = false #是否使用反向代理访问，设置为true下面的设置才会生效
-  DiscordAPI = "" # discord API 反代地址
-  DiscordCDN = "" # mj 图片反代地址
-  DiscordGateway = "" # discord 机器人反代地址
+[[MjProxyConfigs]]
+  Enabled = true
+  ApiURL = "http://midjourney-proxy:8082"
+  ApiKey = "sk-geekmaster"
 
 [[MjPlusConfigs]]
   Enabled = false
   ApiURL = "https://api.chat-plus.net"
-  CdnURL = "" # CND 加速的 URL，如果有的话就设置
   Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
   ApiKey = "sk-xxx"
-  NotifyURL = "https://ai.r9it.com/api/mj/notify" # 这里需要改成你的域名
 
 [[SdConfigs]]
   Enabled = false

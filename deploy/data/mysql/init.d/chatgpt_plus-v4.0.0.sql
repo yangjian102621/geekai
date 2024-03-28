@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： localhost:3307
--- 生成日期： 2024-03-22 11:20:17
+-- 生成日期： 2024-03-28 17:27:20
 -- 服务器版本： 8.0.33
 -- PHP 版本： 8.1.18
 
@@ -47,7 +47,7 @@ CREATE TABLE `chatgpt_admin_users` (
 --
 
 INSERT INTO `chatgpt_admin_users` (`id`, `username`, `password`, `salt`, `status`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1711000963, '172.22.11.200', '2024-03-11 16:30:20', '2024-03-21 14:02:44'),
+(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1711594316, '172.22.11.200', '2024-03-11 16:30:20', '2024-03-28 10:51:57'),
 (108, 'test', '9ed720ce03e0a69885455271b4b3e1710bff79434f2a95d0de6406dd88cc9f79', '4b9orqjh', 0, 1710396975, '::1', '2024-03-13 16:06:43', '2024-03-21 15:15:04');
 
 -- --------------------------------------------------------
@@ -70,6 +70,21 @@ CREATE TABLE `chatgpt_api_keys` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='OpenAI API ';
+
+--
+-- 转存表中的数据 `chatgpt_api_keys`
+--
+
+INSERT INTO `chatgpt_api_keys` (`id`, `platform`, `name`, `value`, `type`, `last_used_at`, `api_url`, `enabled`, `proxy_url`, `created_at`, `updated_at`) VALUES
+(11, 'ChatGLM', '智普', 'c3694f748a33d4d163bfa4b77ec1a153.p6s2NUZf5kAb0M6w', 'chat', 1710498745, 'https://open.bigmodel.cn/api/paas/v3/model-api/{model}/sse-invoke', 1, '', '2023-09-04 16:25:54', '2024-03-15 13:54:00'),
+(14, 'Baidu', '千帆', 'Wdpi8o3T8UWrxgVqjtq7HODS|SeseBNp9Y5rQdwlVG60isEofEMT8y9zz', 'chat', 1699519822, 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{model}', 0, '', '2023-10-10 18:11:50', '2024-03-15 13:53:54'),
+(15, 'XunFei', '星火', 'b54dd11b|dbdcf59c74f8ea05e1792cad54409065|MTAxNjQ1MTVlODliNWM0NTVkOWM2ZTVm', 'chat', 1710497804, 'wss://spark-api.xf-yun.com/{version}/chat', 1, '', '2023-10-11 15:10:09', '2024-03-15 13:54:13'),
+(22, 'OpenAI', '官方', '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', 'img', 0, 'https://api.openai.com/v1/images/generations', 0, 'http://127.0.0.1:7777', '2023-12-07 11:48:36', '2024-03-18 15:32:58'),
+(24, 'OpenAI', '官方', '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', 'chat', 1710747118, 'https://api.openai.com/v1/chat/completions', 0, 'http://127.0.0.1:7777', '2024-01-04 10:10:58', '2024-03-18 15:32:59'),
+(25, 'OpenAI', '极客学长', 'sk-qR5kdnAhTPuiXf2r7d9bEbBdD6F64d9e81Dd9c75D716BdD4', 'chat', 1711586301, 'https://api.chat-plus.net/v1/chat/completions', 1, '', '2024-01-04 15:58:30', '2024-03-18 15:33:02'),
+(26, 'OpenAI', '极客学长', 'sk-n3JghlwzY6JaTIbv7064F94155F942D386F3F685F6Bd3b97', 'img', 1711007339, 'https://gpt.bemore.lol/v1/images/generations', 1, '', '2024-01-05 14:31:45', '2024-03-18 15:33:03'),
+(27, 'QWen', '通义千问', 'sk-6241c622828c44b1a2c70f495b16efac', 'chat', 1711334875, 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', 1, '', '2024-01-19 10:39:22', '2024-03-15 11:55:02'),
+(28, 'OpenAI', '丈母娘', 'sk-tAKgJwKbi9cHzFMdC9C34f0207B74225977256F65972Fb94', 'img', 1708593118, 'https://www.jiujiuai.net/v1/images/generations', 0, '', '2024-02-22 17:06:02', '2024-02-23 09:29:26');
 
 -- --------------------------------------------------------
 
@@ -220,7 +235,7 @@ CREATE TABLE `chatgpt_configs` (
 --
 
 INSERT INTO `chatgpt_configs` (`id`, `marker`, `config_json`) VALUES
-(1, 'system', '{\"title\":\"ChatPlus AI 智能助手\",\"admin_title\":\"ChatPlus 控制台\",\"logo\":\"http://localhost:5678/static/upload/2024/3/1710732653645531.png\",\"init_power\":100,\"daily_power\":99,\"invite_power\":10,\"vip_month_power\":1000,\"register_ways\":[\"mobile\",\"username\",\"email\"],\"enabled_register\":true,\"reward_img\":\"http://localhost:5678/static/upload/2024/3/1710753716309668.jpg\",\"enabled_reward\":true,\"power_price\":0.1,\"order_pay_timeout\":1800,\"default_models\":[11,7,1,10,12,19,18,17,3],\"mj_power\":20,\"sd_power\":5,\"dall_power\":15,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4}'),
+(1, 'system', '{\"title\":\"ChatPlus AI 智能助手\",\"admin_title\":\"ChatPlus 控制台\",\"logo\":\"http://localhost:5678/static/upload/2024/3/1711334798556619.png\",\"init_power\":100,\"daily_power\":99,\"invite_power\":10,\"vip_month_power\":1000,\"register_ways\":[\"mobile\",\"username\",\"email\"],\"enabled_register\":true,\"reward_img\":\"http://localhost:5678/static/upload/2024/3/1710753716309668.jpg\",\"enabled_reward\":true,\"power_price\":0.1,\"order_pay_timeout\":1800,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"default_models\":[11,7,1,10,12,19,18,17,3],\"mj_power\":20,\"mj_action_power\":10,\"sd_power\":5,\"dall_power\":15,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4}'),
 (3, 'notice', '{\"content\":\"注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/chatgpt-plus\\\" target=\\\"_blank\\\"\\u003eChatPlus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n体验额度用完之后请不要在当前站点进行任何充值操作！！！\\n体验额度用完之后请不要在当前站点进行任何充值操作！！！\\n体验额度用完之后请不要在当前站点进行任何充值操作！！！\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去 \\u003ca href=\\\"https://gpt.bemore.lol\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://gpt.bemore.lol\\u003c/a\\u003e 购买，现在有超级优惠，价格远低于 OpenAI 官方。\\nGPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\nMidJourney API 购买地址：\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e\\n接入教程： \\u003ca href=\\\"https://ai.r9it.com/docs/install/\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://ai.r9it.com/docs/install/\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/chatgpt-plus\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/chatgpt-plus\\u003c/a\\u003e\",\"updated\":true}');
 
 -- --------------------------------------------------------
@@ -264,7 +279,7 @@ CREATE TABLE `chatgpt_functions` (
 --
 
 INSERT INTO `chatgpt_functions` (`id`, `name`, `label`, `description`, `parameters`, `token`, `action`, `enabled`) VALUES
-(1, '', '', '', '{\"type\":\"\",\"properties\":null}', '', '', 0),
+(1, 'weibo', '微博热搜', '新浪微博热搜榜，微博当日热搜榜单', '{\"type\":\"object\",\"properties\":{}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.tLAGkF8XWh_G-oQzevpIodsswtPByBLoAZDz_eWuBgw', 'http://localhost:5678/api/function/weibo', 1),
 (2, 'zaobao', '今日早报', '每日早报，获取当天新闻事件列表', '{\"type\":\"object\",\"properties\":{}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.tLAGkF8XWh_G-oQzevpIodsswtPByBLoAZDz_eWuBgw', 'http://localhost:5678/api/function/zaobao', 1),
 (3, 'dalle3', 'DALLE3', 'AI 绘画工具，根据输入的绘图描述用 AI 工具进行绘画', '{\"type\":\"object\",\"required\":[\"prompt\"],\"properties\":{\"prompt\":{\"type\":\"string\",\"description\":\"绘画提示词\"}}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.tLAGkF8XWh_G-oQzevpIodsswtPByBLoAZDz_eWuBgw', 'http://localhost:5678/api/function/dalle3', 1);
 
@@ -481,9 +496,8 @@ CREATE TABLE `chatgpt_users` (
 --
 
 INSERT INTO `chatgpt_users` (`id`, `username`, `nickname`, `password`, `avatar`, `salt`, `power`, `expired_time`, `status`, `chat_config_json`, `chat_roles_json`, `chat_models_json`, `last_login_at`, `vip`, `last_login_ip`, `created_at`, `updated_at`) VALUES
-(4, '18575670125', '极客学长@830270', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/2/1708682650912429.png', 'ueedue5l', 3082, 1717292086, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"red_book\",\"gpt\",\"programmer\",\"seller\"]', '[1,11]', 1710990060, 1, '172.22.11.200', '2023-06-12 16:47:17', '2024-03-22 08:53:00'),
-(91, '18575670126', '极客学长@204872', '5e4050b8dd403f593260395d9edeb9f273dbe92d15dfdd929c4a182e95da10c4', '/images/avatar/user.png', '6fj0otl8', 99, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\"]', '[1,11]', 1697184324, 1, '::1', '2023-10-13 16:01:56', '2024-03-18 14:49:44'),
-(99, '13999999999', '极客学长@396023', 'bf47d517c17ed1ead6ff2542753f9b6a132e79c29e06c3710faf1a36d800a217', '/images/avatar/user.png', 'x1s66pwd', 99, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\"]', '[1,11]', 0, 0, '', '2023-11-23 16:27:20', '2024-03-18 15:08:17'),
+(4, '18575670125', '极客学长@830270', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/2/1708682650912429.png', 'ueedue5l', 9434, 1717292086, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"red_book\",\"gpt\",\"programmer\",\"seller\"]', '[1,11]', 1711608964, 1, '::1', '2023-06-12 16:47:17', '2024-03-28 14:56:05'),
+(91, '18575670126', '极客学长@204872', '5e4050b8dd403f593260395d9edeb9f273dbe92d15dfdd929c4a182e95da10c4', '/images/avatar/user.png', '6fj0otl8', 33, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\"]', '[1,11]', 1697184324, 1, '::1', '2023-10-13 16:01:56', '2024-03-25 11:07:45'),
 (100, '13777777777', '极客学长@292245', 'dcaf31b154432310bd700349e7de7e9dde2a3d6955a035a01fe527c7917a4f99', '/images/avatar/user.png', 'i8a53f8f', 99, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\"]', '[1,11]', 0, 0, '', '2023-11-23 16:55:45', '2024-03-18 15:08:12'),
 (102, 'yangjian102621@gmail.com', '极客学长@207163', 'd51cec21942737083943e5c3a8f063dea034e40622ac8bd47d771f13707e4676', '/images/avatar/user.png', 'eqezapgk', 99, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\"]', '[1,11]', 1704448377, 0, '::1', '2024-01-05 17:48:00', '2024-03-18 15:08:41'),
 (105, '13888888888', '极客学长@551903', '4f893cc6b6d47b42fd0fcaddc55fd4a351cad74ba81ebabb4d7785f9675814da', '/images/avatar/user.png', 'cotpzi3q', 99, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\"]', '[1,11]', 0, 0, '', '2024-01-30 15:37:43', '2024-03-18 15:08:01'),
@@ -653,7 +667,7 @@ ALTER TABLE `chatgpt_admin_users`
 -- 使用表AUTO_INCREMENT `chatgpt_api_keys`
 --
 ALTER TABLE `chatgpt_api_keys`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- 使用表AUTO_INCREMENT `chatgpt_chat_history`

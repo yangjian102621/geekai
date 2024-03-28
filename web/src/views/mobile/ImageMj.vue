@@ -163,7 +163,7 @@
 
                 <div class="opt" v-if="item['can_opt']">
 
-                  <van-grid :gutter="0" :column-num="4">
+                  <van-grid :gutter="3" :column-num="4">
                     <van-grid-item><a @click="upscale(1, item)" class="opt-btn">U1</a></van-grid-item>
                     <van-grid-item><a @click="upscale(2, item)" class="opt-btn">U2</a></van-grid-item>
                     <van-grid-item><a @click="upscale(3, item)" class="opt-btn">U3</a></van-grid-item>
