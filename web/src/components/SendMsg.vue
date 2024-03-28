@@ -10,7 +10,17 @@
         :show-close="false"
         style="width:90%;max-width: 360px;"
     >
+      <slide-captcha
+          v-if="isIphone()"
+          :bg-img="bgImg"
+          :bk-img="bkImg"
+          :result="result"
+          @refresh="getSlideCaptcha"
+          @confirm="handleSlideConfirm"
+          @hide="showCaptcha = false"/>
+
       <captcha-plus
+          v-else
           :max-dot="maxDot"
           :image-base64="imageBase64"
           :thumb-base64="thumbBase64"
@@ -19,7 +29,6 @@
           @refresh="handleRequestCaptCode"
           @confirm="handleConfirm"
       />
-
     </el-dialog>
   </el-container>
 </template>
@@ -32,6 +41,8 @@ import {validateEmail, validateMobile} from "@/utils/validate";
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import CaptchaPlus from "@/components/CaptchaPlus.vue";
+import SlideCaptcha from "@/components/SlideCaptcha.vue";
+import {isIphone} from "@/utils/libs";
 
 const props = defineProps({
   receiver: String,
@@ -87,7 +98,12 @@ const loadCaptcha = () => {
   }
 
   showCaptcha.value = true
-  handleRequestCaptCode() // 每次点开都刷新验证码
+  // iphone 手机用滑动验证码
+  if (isIphone()) {
+    getSlideCaptcha()
+  } else {
+    handleRequestCaptCode()
+  }
 }
 
 const sendMsg = () => {
@@ -116,6 +132,34 @@ const sendMsg = () => {
   })
 }
 
+// 滑动验证码
+const bgImg = ref('')
+const bkImg = ref('')
+const result = ref(0)
+
+const getSlideCaptcha = () => {
+  result.value = 0
+  httpGet("/api/captcha/slide/get").then(res => {
+    bkImg.value = res.data.bkImg
+    bgImg.value = res.data.bgImg
+    captKey.value = res.data.key
+  }).catch(e => {
+    ElMessage.error('获取人机验证数据失败：' + e.message)
+  })
+}
+
+const handleSlideConfirm = (x) => {
+  httpPost("/api/captcha/slide/check", {
+    key: captKey.value,
+    x: x
+  }).then(() => {
+    result.value = 1
+    showCaptcha.value = false
+    sendMsg()
+  }).catch(() => {
+    result.value = 2
+  })
+}
 </script>
 
 <style lang="stylus">

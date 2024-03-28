@@ -220,23 +220,7 @@ export function escapeHTML(html) {
         .replace(/>/g, "&gt;");
 }
 
-// 处理数学公式
-export function processMathFormula(input) {
-    const arr = []
-    const lines = input.split("\n")
-    if (lines.length <= 1) {
-        return input
-    }
-    // 定义匹配数学公式的正则表达式
-    const mathFormulaRegex = /[+\-*/^()\d.]/;
-    for (let i = 0; i < lines.length; i++) {
-        if (i > 0 && mathFormulaRegex.test(lines) && lines[i - 1].indexOf("$$") === -1) {
-            arr.push("$$")
-            arr.push(lines[i])
-            arr.push("$$")
-        } else {
-            arr.push(lines[i])
-        }
-    }
-    return arr.join("\n")
+// 判断是否为 iphone 设备
+export function isIphone() {
+    return /iPhone/i.test(navigator.userAgent) && !/iPad/i.test(navigator.userAgent);
 }
