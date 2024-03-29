@@ -77,6 +77,13 @@ func (s *Service) Run() {
 			}
 		}
 
+		var job model.MidJourneyJob
+		tx := s.db.Where("id = ?", task.Id).First(&job)
+		if tx.Error != nil {
+			logger.Error("任务不存在，任务ID：", task.TaskId)
+			continue
+		}
+
 		logger.Infof("%s handle a new MidJourney task: %+v", s.Name, task)
 		var res ImageRes
 		switch task.Type {
@@ -97,8 +104,6 @@ func (s *Service) Run() {
 			break
 		}
 
-		var job model.MidJourneyJob
-		s.db.Where("id = ?", task.Id).First(&job)
 		if err != nil || (res.Code != 1 && res.Code != 22) {
 			errMsg := fmt.Sprintf("%v,%s", err, res.Description)
 			logger.Error("绘画任务执行失败：", errMsg)
@@ -127,14 +132,17 @@ func (s *Service) canHandleTask() bool {
 	return handledNum < s.maxHandleTaskNum
 }
 
-// remove the expired tasks
+// remove the timeout tasks
 func (s *Service) checkTasks() {
 	for k, t := range s.taskStartTimes {
 		if time.Now().Unix()-t.Unix() > s.taskTimeout {
 			delete(s.taskStartTimes, k)
 			atomic.AddInt32(&s.HandledTaskNum, -1)
-			// delete task from database
-			s.db.Delete(&model.MidJourneyJob{Id: uint(k)}, "progress < 100")
+
+			s.db.Model(&model.MidJourneyJob{Id: uint(k)}).UpdateColumns(map[string]interface{}{
+				"progress": -1,
+				"err_msg":  "任务超时",
+			})
 		}
 	}
 }

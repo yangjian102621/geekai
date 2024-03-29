@@ -114,6 +114,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 		Width:          task.Params.Width,
 		Height:         task.Params.Height,
 		SamplerName:    task.Params.Sampler,
+		ForceTaskId:    task.Params.TaskId,
 	}
 	if task.Params.Seed > 0 {
 		body.Seed = task.Params.Seed
