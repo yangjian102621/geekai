@@ -1,5 +1,5 @@
 <template>
-  <div class="container product" v-loading="loading">
+  <div class="container menu" v-loading="loading">
 
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
@@ -7,33 +7,22 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
-        <el-table-column prop="name" label="产品名称">
+        <el-table-column prop="name" label="菜单名称">
           <template #default="scope">
             <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="price" label="产品价格"/>
-        <el-table-column prop="discount" label="优惠金额"/>
-        <el-table-column prop="days" label="有效期(天)">
+        <el-table-column prop="icon" label="菜单图标">
           <template #default="scope">
-            <el-tag v-if="scope.row.days === 0">长期有效</el-tag>
-            <span v-else>{{ scope.row.days }}</span>
+            <el-image class="menu-icon" :src="scope.row.icon"/>
           </template>
         </el-table-column>
-        <el-table-column prop="power" label="算力"/>
-        <el-table-column prop="sales" label="销量"/>
+        <el-table-column prop="url" label="菜单URL"/>
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enabled']" @change="enable(scope.row)"/>
           </template>
         </el-table-column>
-
-        <el-table-column label="更新时间">
-          <template #default="scope">
-            <span>{{ dateFormat(scope.row['updated_at']) }}</span>
-          </template>
-        </el-table-column>
-
         <el-table-column label="操作" width="180">
           <template #default="scope">
             <el-button size="small" type="primary" @click="edit(scope.row)">编辑</el-button>
@@ -53,24 +42,28 @@
         :close-on-click-modal="false"
     >
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
-        <el-form-item label="产品名称：" prop="name">
+        <el-form-item label="菜单名称：" prop="name">
           <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
 
-        <el-form-item label="产品价格：" prop="price">
-          <el-input v-model="item.price" autocomplete="off"/>
+        <el-form-item label="菜单图标：" prop="icon">
+          <el-input v-model="item.icon" placeholder="菜单图标地址">
+            <template #append>
+              <el-upload
+                  :auto-upload="true"
+                  :show-file-list="false"
+                  :http-request="uploadImg"
+              >
+                <el-icon class="uploader-icon">
+                  <UploadFilled/>
+                </el-icon>
+              </el-upload>
+            </template>
+          </el-input>
         </el-form-item>
 
-        <el-form-item label="优惠金额：" prop="discount">
-          <el-input v-model="item.discount" autocomplete="off"/>
-        </el-form-item>
-
-        <el-form-item label="有效期：" prop="days">
-          <el-input v-model.number="item.days" autocomplete="off" placeholder="会员有效期(天)"/>
-        </el-form-item>
-
-        <el-form-item label="算力：" prop="power">
-          <el-input v-model.number="item.power" autocomplete="off" placeholder="增加算力值"/>
+        <el-form-item label="菜单URL：" prop="url">
+          <el-input v-model="item.url" autocomplete="off"/>
         </el-form-item>
 
         <el-form-item label="启用状态：" prop="enable">
@@ -93,8 +86,9 @@ import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, removeArrayItem} from "@/utils/libs";
-import {Plus} from "@element-plus/icons-vue";
+import {Plus, UploadFilled} from "@element-plus/icons-vue";
 import {Sortable} from "sortablejs";
+import Compressor from "compressorjs";
 
 // 变量定义
 const items = ref([])
@@ -102,31 +96,33 @@ const item = ref({})
 const showDialog = ref(false)
 const title = ref("")
 const rules = reactive({
-  name: [{required: true, message: '请输入产品名称', trigger: 'change',}],
-  price: [{required: true, message: '请输产品价格', trigger: 'change',}],
-  discount: [{required: true, message: '请输优惠金额', trigger: 'change',}],
-  days: [{required: true, message: '请输入有效期', trigger: 'change',}],
+  name: [{required: true, message: '请输入菜单名称', trigger: 'change',}],
+  icon: [{required: true, message: '请上传菜单图标', trigger: 'change',}],
+  url: [{required: true, message: '请输入菜单地址', trigger: 'change',}],
 })
 const loading = ref(true)
 const formRef = ref(null)
 
-// 获取数据
-httpGet('/api/admin/product/list').then((res) => {
-  if (res.data) {
-    // 初始化数据
-    const arr = res.data;
-    for (let i = 0; i < arr.length; i++) {
-      arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+const fetchData = () => {
+  // 获取数据
+  httpGet('/api/admin/menu/list').then((res) => {
+    if (res.data) {
+      // 初始化数据
+      const arr = res.data;
+      for (let i = 0; i < arr.length; i++) {
+        arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+      }
+      items.value = arr
     }
-    items.value = arr
-  }
-  loading.value = false
-}).catch(() => {
-  ElMessage.error("获取数据失败");
-})
+    loading.value = false
+  }).catch(() => {
+    ElMessage.error("获取数据失败");
+  })
+}
 
 onMounted(() => {
   const drawBodyWrapper = document.querySelector('.el-table__body tbody')
+  fetchData()
 
   // 初始化拖动排序插件
   Sortable.create(drawBodyWrapper, {
@@ -145,7 +141,7 @@ onMounted(() => {
         sorts.push(index)
       })
 
-      httpPost("/api/admin/product/sort", {ids: ids, sorts: sorts}).catch(e => {
+      httpPost("/api/admin/menu/sort", {ids: ids, sorts: sorts}).catch(e => {
         ElMessage.error("排序失败：" + e.message)
       })
     }
@@ -153,13 +149,13 @@ onMounted(() => {
 })
 
 const add = function () {
-  title.value = "新增产品"
+  title.value = "新增菜单"
   showDialog.value = true
   item.value = {}
 }
 
 const edit = function (row) {
-  title.value = "修改产品"
+  title.value = "修改菜单"
   showDialog.value = true
   item.value = row
 }
@@ -168,14 +164,12 @@ const save = function () {
   formRef.value.validate((valid) => {
     if (valid) {
       showDialog.value = false
-      item.value['price'] = parseFloat(item.value['price'])
-      item.value['discount'] = parseFloat(item.value['discount'])
-      httpPost('/api/admin/product/save', item.value).then((res) => {
+      if (!item.value.id) {
+        item.value.sort_num = items.value.length + 1
+      }
+      httpPost('/api/admin/menu/save', item.value).then(() => {
         ElMessage.success('操作成功！')
-        if (!item.value['id']) {
-          const newItem = res.data
-          items.value.push(newItem)
-        }
+        fetchData()
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
       })
@@ -186,7 +180,7 @@ const save = function () {
 }
 
 const enable = (row) => {
-  httpPost('/api/admin/product/enable', {id: row.id, enabled: row.enabled}).then(() => {
+  httpPost('/api/admin/menu/enable', {id: row.id, enabled: row.enabled}).then(() => {
     ElMessage.success("操作成功！")
   }).catch(e => {
     ElMessage.error("操作失败：" + e.message)
@@ -194,7 +188,7 @@ const enable = (row) => {
 }
 
 const remove = function (row) {
-  httpGet('/api/admin/product/remove?id=' + row.id).then(() => {
+  httpGet('/api/admin/menu/remove?id=' + row.id).then(() => {
     ElMessage.success("删除成功！")
     items.value = removeArrayItem(items.value, row, (v1, v2) => {
       return v1.id === v2.id
@@ -203,10 +197,32 @@ const remove = function (row) {
     ElMessage.error("删除失败：" + e.message)
   })
 }
+
+// 图片上传
+const uploadImg = (file) => {
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/admin/upload', formData).then((res) => {
+        item.value.icon = res.data.url
+        ElMessage.success('上传成功')
+      }).catch((e) => {
+        ElMessage.error('上传失败:' + e.message)
+      })
+    },
+    error(e) {
+      ElMessage.error('上传失败:' + e.message)
+    },
+  });
+};
 </script>
 
 <style lang="stylus" scoped>
-.product {
+.menu {
 
   .opt-box {
     padding-bottom: 10px;
@@ -216,6 +232,11 @@ const remove = function (row) {
     .el-icon {
       margin-right: 5px;
     }
+  }
+
+  .menu-icon {
+    width 36px
+    height 36px
   }
 
   .el-select {

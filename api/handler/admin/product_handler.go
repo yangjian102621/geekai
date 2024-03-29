@@ -65,21 +65,11 @@ func (h *ProductHandler) Save(c *gin.Context) {
 	resp.SUCCESS(c, itemVo)
 }
 
-// List 模型列表
+// List 数据列表
 func (h *ProductHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
-	session := h.DB.Session(&gorm.Session{})
-	enable := h.GetBool(c, "enable")
-	if enable {
-		session = session.Where("enabled", enable)
-	}
 	var items []model.Product
 	var list = make([]vo.Product, 0)
-	res := session.Order("sort_num ASC").Find(&items)
+	res := h.DB.Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var product vo.Product
@@ -128,7 +118,7 @@ func (h *ProductHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		res := h.DB.Model(&model.Product{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
+		res := h.DB.Model(&model.Product{}).Where("id", id).Update("sort_num", data.Sorts[index])
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return
@@ -142,7 +132,7 @@ func (h *ProductHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 
 	if id > 0 {
-		res := h.DB.Where("id = ?", id).Delete(&model.Product{})
+		res := h.DB.Where("id", id).Delete(&model.Product{})
 		if res.Error != nil {
 			resp.ERROR(c, "更新数据库失败！")
 			return

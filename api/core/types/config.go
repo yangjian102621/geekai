@@ -144,13 +144,13 @@ type SystemConfig struct {
 	PowerPrice    float64 `json:"power_price,omitempty"`    // 算力单价
 
 	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
-	VipInfoText     string `json:"vip_info_text"`               // 会员页面充值说明
+	VipInfoText     string `json:"vip_info_text,omitempty"`     // 会员页面充值说明
 	DefaultModels   []int  `json:"default_models,omitempty"`    // 默认开通的 AI 模型
 
-	MjPower       int `json:"mj_power,omitempty"`   // MJ 绘画消耗算力
-	MjActionPower int `json:"mj_action_power"`      // MJ 操作（放大，变换）消耗算力
-	SdPower       int `json:"sd_power,omitempty"`   // SD 绘画消耗算力
-	DallPower     int `json:"dall_power,omitempty"` // DALLE3 绘图消耗算力
+	MjPower       int `json:"mj_power,omitempty"`        // MJ 绘画消耗算力
+	MjActionPower int `json:"mj_action_power,omitempty"` // MJ 操作（放大，变换）消耗算力
+	SdPower       int `json:"sd_power,omitempty"`        // SD 绘画消耗算力
+	DallPower     int `json:"dall_power,omitempty"`      // DALLE3 绘图消耗算力
 
 	WechatCardURL string `json:"wechat_card_url,omitempty"` // 微信客服地址
 

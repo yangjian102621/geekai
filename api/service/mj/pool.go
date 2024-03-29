@@ -181,6 +181,7 @@ func (p *ServicePool) SyncTaskProgress() {
 							CreatedAt: time.Now(),
 						})
 					}
+					continue
 				}
 
 				if servicePlus := p.getService(job.ChannelId); servicePlus != nil {
