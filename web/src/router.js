@@ -173,7 +173,7 @@ const routes = [
                 name: 'admin-manger',
                 meta: {title: '管理员'},
                 component: () => import('@/views/admin/Manager.vue'),
-            },
+            }
         ]
     },
 

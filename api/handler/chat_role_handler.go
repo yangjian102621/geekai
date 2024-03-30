@@ -25,9 +25,10 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	all := h.GetBool(c, "all")
 	userId := h.GetLoginUserId(c)
 	var roles []model.ChatRole
+	var roleVos = make([]vo.ChatRole, 0)
 	res := h.DB.Where("enable", true).Order("sort_num ASC").Find(&roles)
 	if res.Error != nil {
-		resp.ERROR(c, "No roles found,"+res.Error.Error())
+		resp.SUCCESS(c, roleVos)
 		return
 	}
 
@@ -55,8 +56,7 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 		resp.ERROR(c, "角色解析失败！")
 		return
 	}
-	// 转成 vo
-	var roleVos = make([]vo.ChatRole, 0)
+
 	for _, r := range roles {
 		if !utils.ContainsStr(roleKeys, r.Key) {
 			continue

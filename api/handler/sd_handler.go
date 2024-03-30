@@ -3,6 +3,7 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/service/sd"
 	"chatplus/store/model"
@@ -23,15 +24,17 @@ import (
 
 type SdJobHandler struct {
 	BaseHandler
-	redis    *redis.Client
-	pool     *sd.ServicePool
-	uploader *oss.UploaderManager
+	redis     *redis.Client
+	pool      *sd.ServicePool
+	uploader  *oss.UploaderManager
+	snowflake *service.Snowflake
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager, snowflake *service.Snowflake) *SdJobHandler {
 	return &SdJobHandler{
-		pool:     pool,
-		uploader: manager,
+		pool:      pool,
+		uploader:  manager,
+		snowflake: snowflake,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -116,8 +119,13 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	taskId, err := h.snowflake.Next(true)
+	if err != nil {
+		resp.ERROR(c, "error with generate task id: "+err.Error())
+		return
+	}
 	params := types.SdTaskParams{
-		TaskId:         fmt.Sprintf("task(%s)", utils.RandString(15)),
+		TaskId:         taskId,
 		Prompt:         data.Prompt,
 		NegativePrompt: data.NegativePrompt,
 		Steps:          data.Steps,

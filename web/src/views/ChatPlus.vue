@@ -313,12 +313,16 @@ httpGet("/api/config/get?key=system").then(res => {
 
 // 获取系统公告
 httpGet("/api/config/get?key=notice").then(res => {
-  notice.value = md.render(res.data['content'])
-  const oldNotice = localStorage.getItem(noticeKey.value);
-  // 如果公告有更新，则显示公告
-  if (oldNotice !== notice.value && notice.value.length > 10) {
-    showNotice.value = true
+  try {
+    notice.value = md.render(res.data['content'])
+    const oldNotice = localStorage.getItem(noticeKey.value);
+    // 如果公告有更新，则显示公告
+    if (oldNotice !== notice.value && notice.value.length > 10) {
+      showNotice.value = true
+    }
+  } catch (e) {
   }
+
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
 })

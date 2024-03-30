@@ -253,6 +253,10 @@
           <el-button type="primary" @click="save('notice')">保存</el-button>
         </el-form-item>
       </el-tab-pane>
+
+      <el-tab-pane label="菜单配置" name="menu">
+        <Menu/>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -265,6 +269,7 @@ import {ElMessage} from "element-plus";
 import {InfoFilled, UploadFilled} from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
+import Menu from "@/views/admin/Menu.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
