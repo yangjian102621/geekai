@@ -417,6 +417,20 @@ func main() {
 			group := s.Engine.Group("/api/admin/powerLog/")
 			group.POST("list", h.List)
 		}),
+		fx.Provide(admin.NewMenuHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.MenuHandler) {
+			group := s.Engine.Group("/api/admin/menu/")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.POST("enable", h.Enable)
+			group.POST("sort", h.Sort)
+			group.GET("remove", h.Remove)
+		}),
+		fx.Provide(handler.NewMenuHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.MenuHandler) {
+			group := s.Engine.Group("/api/menu/")
+			group.GET("list", h.List)
+		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			err := s.Run(db)
 			if err != nil {
