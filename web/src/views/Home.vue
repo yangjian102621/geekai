@@ -7,9 +7,6 @@
       </div>
       <ul class="nav-items">
         <li v-for="item in navs" :key="item.path">
-          <!--          <el-tooltip effect="light" :content="item.title" placement="right">-->
-          <!--            -->
-          <!--          </el-tooltip>-->
           <a @click="changeNav(item)" :class="item.path === curPath ? 'active' : ''">
             <el-image :src="item.icon" :width="20"/>
           </a>
