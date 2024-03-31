@@ -103,7 +103,13 @@
                   :key="item.id"
                   :label="item.name"
                   :value="item.id"
-              />
+              >
+                <span>{{ item.name }}</span>
+                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
+                    item.power
+                  }}算力
+                </el-tag>
+              </el-option>
             </el-select>
             <el-button type="primary" @click="newChat">
               <el-icon>
@@ -487,7 +493,7 @@ const loadChat = function (chat) {
   if (activeChat.value['chat_id'] === chat.chat_id) {
     return;
   }
-  
+
   activeChat.value = chat
   newChatItem.value = null;
   roleId.value = chat.role_id;

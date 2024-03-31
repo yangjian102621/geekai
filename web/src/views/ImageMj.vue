@@ -287,11 +287,13 @@
                 </el-tab-pane>
               </el-tabs>
 
+              <el-row class="text-info">
+                <el-tag>每次绘图消耗{{ mjPower }}算力，U/V 操作消耗{{ mjActionPower }}算力</el-tag>
+                <el-tag type="success">当前可用算力：{{ power }}</el-tag>
+              </el-row>
+
               <div class="submit-btn">
                 <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
-                <div class="text-info">
-                  <el-tag type="success">当前可用算力：{{ power }}</el-tag>
-                </div>
               </div>
             </el-form>
           </div>
