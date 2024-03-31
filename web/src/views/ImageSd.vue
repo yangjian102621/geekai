@@ -253,9 +253,11 @@
                 />
               </div>
 
-              <div class="param-line" style="padding: 10px">
+              <div class="text-info">
+                <el-tag>每次绘图消耗{{ sdPower }}算力</el-tag>
                 <el-tag type="success">当前可用算力：{{ power }}</el-tag>
               </div>
+
             </el-form>
           </div>
           <div class="submit-btn">
@@ -479,7 +481,7 @@
 
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue"
-import {Delete, DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
+import {Delete, DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
