@@ -145,6 +145,13 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		prompt = fmt.Sprintf("%s:%s", data.TaskType, strings.Join(data.ImgArr, ","))
 	}
 
+	// 如果本地图片上传的是相对地址，处理成绝对地址
+	for k, v := range data.ImgArr {
+		if !strings.HasPrefix(v, "http") {
+			data.ImgArr[k] = fmt.Sprintf("http://localhost:5678/%s", strings.TrimLeft(v, "/"))
+		}
+	}
+
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	// generate task id

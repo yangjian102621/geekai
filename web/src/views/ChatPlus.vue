@@ -479,9 +479,15 @@ const changeChat = (chat) => {
 }
 
 const loadChat = function (chat) {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return;
+  }
+
   if (activeChat.value['chat_id'] === chat.chat_id) {
     return;
   }
+  
   activeChat.value = chat
   newChatItem.value = null;
   roleId.value = chat.role_id;
