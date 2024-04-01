@@ -1,7 +1,7 @@
 <template>
   <div class="welcome">
     <div class="container">
-      <h1 class="title">{{ title }}</h1>
+      <h1 class="title">{{ title }}-{{ version }}</h1>
 
       <el-row :gutter="20">
         <el-col :span="8">
@@ -60,6 +60,7 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 
 const title = ref(process.env.VUE_APP_TITLE)
+const version = ref(process.env.VUE_APP_VERSION)
 
 const samples = ref([
   "用小学生都能听懂的术语解释什么是量子纠缠",

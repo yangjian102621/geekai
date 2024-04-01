@@ -4,7 +4,7 @@
     <div class="main">
       <div class="contain">
         <div class="logo">
-          <el-image src="images/logo.png" fit="cover"/>
+          <el-image :src="logo" fit="cover"/>
         </div>
         <div class="header">{{ title }}</div>
         <div class="content">
@@ -54,7 +54,7 @@
 
 import {ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
@@ -69,6 +69,15 @@ const title = ref('ChatPlus 用户登录');
 const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
 const showResetPass = ref(false)
+const logo = ref("/images/logo.png")
+
+// 获取系统配置
+httpGet("/api/config/get?key=system").then(res => {
+  logo.value = res.data.logo
+}).catch(e => {
+  ElMessage.error("获取系统配置失败：" + e.message)
+})
+
 
 checkSession().then(() => {
   if (isMobile()) {
