@@ -120,6 +120,10 @@ const removeFile = (file) => {
 
 const insertURL = (url) => {
   show.value = false
+  // 如果是相对路径，处理成绝对路径
+  if (url.indexOf("http") === -1) {
+    url = location.protocol + "//" + location.host + url
+  }
   emits('selected', url)
 }
 </script>

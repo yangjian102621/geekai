@@ -451,6 +451,12 @@ const newChat = () => {
     showLoginDialog.value = true
     return;
   }
+  const role = getRoleById(roleId.value)
+  if (role.key === 'gpt') {
+    showHello.value = true
+  } else {
+    showHello.value = false
+  }
   // 已有新开的会话
   if (newChatItem.value !== null && newChatItem.value['role_id'] === roles.value[0]['role_id']) {
     return;

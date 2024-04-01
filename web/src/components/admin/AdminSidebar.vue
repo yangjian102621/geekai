@@ -2,7 +2,7 @@
   <div class="sidebar">
     <div class="logo">
       <el-image :src="logo"/>
-      <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
+      <span class="text" v-show="!sidebar.collapse">{{ title }} - {{ version }}</span>
     </div>
 
     <el-menu
@@ -60,6 +60,7 @@ import {ElMessage} from "element-plus";
 
 const title = ref('Chat-Plus-Admin')
 const logo = ref('/images/logo.png')
+const version = ref(process.env.VUE_APP_VERSION)
 
 // 加载系统配置
 httpGet('/api/admin/config/get?key=system').then(res => {

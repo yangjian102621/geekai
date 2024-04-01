@@ -61,7 +61,7 @@ func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	var response apiRes
 	var errRes apiErrRes
 	client := req.C()
-	if apiKey.ProxyURL != "" {
+	if len(apiKey.ProxyURL) > 5 {
 		client.SetProxyURL(apiKey.ApiURL)
 	}
 	r, err := client.R().SetHeader("Content-Type", "application/json").
