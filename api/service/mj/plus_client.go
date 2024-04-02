@@ -26,7 +26,7 @@ func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/imagine", c.apiURL, c.Config.Mode)
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
-		Prompt:      task.Prompt,
+		Prompt:      fmt.Sprintf("%s %s", task.Prompt, task.Params),
 		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码

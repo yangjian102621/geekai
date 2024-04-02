@@ -25,6 +25,7 @@ type MjTask struct {
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
 	Prompt      string   `json:"prompt,omitempty"`
+	Params      string   `json:"full_prompt"`
 	Index       int      `json:"index,omitempty"`
 	MessageId   string   `json:"message_id,omitempty"`
 	MessageHash string   `json:"message_hash,omitempty"`
