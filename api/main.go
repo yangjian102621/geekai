@@ -96,6 +96,7 @@ func main() {
 		fx.Provide(store.NewGormConfig),
 		fx.Provide(store.NewMysql),
 		fx.Provide(store.NewRedisClient),
+		fx.Provide(store.NewLevelDB),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
