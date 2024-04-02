@@ -53,6 +53,10 @@ func (l *AppLifecycle) OnStop(context.Context) error {
 	return nil
 }
 
+func NewAppLifeCycle() *AppLifecycle {
+	return &AppLifecycle{}
+}
+
 func main() {
 	configFile := os.Getenv("CONFIG_FILE")
 	if configFile == "" {
@@ -432,11 +436,14 @@ func main() {
 			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
-			err := s.Run(db)
-			if err != nil {
-				log.Fatal(err)
-			}
+			go func() {
+				err := s.Run(db)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}()
 		}),
+		fx.Provide(NewAppLifeCycle),
 		// 注册生命周期回调函数
 		fx.Invoke(func(lifecycle fx.Lifecycle, lc *AppLifecycle) {
 			lifecycle.Append(fx.Hook{

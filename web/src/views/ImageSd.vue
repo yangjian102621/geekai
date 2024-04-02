@@ -222,7 +222,7 @@
                 </div>
               </div>
 
-              <div class="param-line" v-loading="translating" element-loading-background="rgba(122, 122, 122, 0.8)">
+              <div class="param-line" v-loading="translating" element-loading-background="rgba(0, 0, 0, 0.5)">
                 <el-input
                     v-model="params.prompt"
                     :autosize="{ minRows: 4, maxRows: 6 }"
