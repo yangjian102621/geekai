@@ -309,7 +309,7 @@
                 <el-empty :image-size="100" v-else/>
               </div>
               <h2>创作记录</h2>
-              <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.5)">
+              <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.5)">
                 <div v-if="finishedJobs.length > 0">
                   <ItemList :items="finishedJobs" :width="240" :gap="16">
                     <template #default="scope">

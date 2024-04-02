@@ -290,7 +290,7 @@
                 </el-tab-pane>
 
                 <el-tab-pane label="融图" name="blend">
-                  <div class="text">请上传两张以上的图片，最多不超过五张，超过五张图片请使用文生图功能</div>
+                  <div class="text">请上传两张以上的图片，最多不超过五张，超过五张图片请使用图生图功能</div>
                   <div class="img-inline">
                     <div class="img-list-box">
                       <div class="img-item" v-for="imgURL in imgList">

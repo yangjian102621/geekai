@@ -55,6 +55,11 @@
   display: flex;
   justify-content: right;
 }
+.mobile-mj .content .tip-text {
+  padding: 10px;
+  line-height: 1.5;
+  color: #c1c1c1;
+}
 .mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content {
   padding: 0;
   position: relative;
