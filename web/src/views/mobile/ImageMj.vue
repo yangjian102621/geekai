@@ -62,36 +62,113 @@
         </div>
 
         <div class="text-line">
-          <van-field v-model="params.prompt"
-                     rows="3"
-                     label="提示词"
-                     autosize
-                     type="textarea"
-                     placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
+          <van-tabs v-model:active="activeName" @change="tabChange">
+            <van-tab title="文生图" name="txt2img">
+              <div class="text-line">
+                <van-field v-model="params.prompt"
+                           rows="3"
+                           autosize
+                           type="textarea"
+                           placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
+              </div>
+            </van-tab>
+            <van-tab title="图生图" name="img2img">
+              <div class="text-line">
+                <van-field v-model="params.prompt"
+                           rows="3"
+                           autosize
+                           type="textarea"
+                           placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
+              </div>
+
+              <div class="text-line">
+                <van-uploader v-model="imgList" :after-read="uploadImg"/>
+              </div>
+              <div class="text-line">
+                <van-field label="垫图权重">
+                  <template #input>
+                    <van-slider v-model.number="params.iw" :max="1" :step="0.01"
+                                @update:model-value="showToast('当前值：' + params.iw)"/>
+                  </template>
+                </van-field>
+              </div>
+
+              <van-cell-group>
+                <van-field
+                    v-model="params.cref"
+                    center
+                    clearable
+                    label="角色一致性"
+                    placeholder="请输入图片URL或者上传图片"
+                >
+                  <template #button>
+                    <van-uploader @click="beforeUpload('cref')" :after-read="uploadImg">
+                      <van-button size="mini" type="primary" icon="plus"/>
+                    </van-uploader>
+                  </template>
+                </van-field>
+              </van-cell-group>
+
+              <van-cell-group>
+                <van-field
+                    v-model="params.sref"
+                    center
+                    clearable
+                    label="风格一致性"
+                    placeholder="请输入图片URL或者上传图片"
+                >
+                  <template #button>
+                    <van-uploader @click="beforeUpload('sref')" :after-read="uploadImg">
+                      <van-button size="mini" type="primary" icon="plus"/>
+                    </van-uploader>
+                  </template>
+                </van-field>
+              </van-cell-group>
+
+              <div class="text-line">
+                <van-field label="一致性权重">
+                  <template #input>
+                    <van-slider v-model.number="params.cw" :max="100" :step="1"
+                                @update:model-value="showToast('当前值：' + params.cw)"/>
+                  </template>
+                </van-field>
+              </div>
+            </van-tab>
+            <van-tab title="融图" name="blend">
+              <div class="tip-text">请上传两张以上的图片，最多不超过五张，超过五张图片请使用图生图功能。</div>
+              <div class="text-line">
+                <van-uploader v-model="imgList" :after-read="uploadImg"/>
+              </div>
+            </van-tab>
+            <van-tab title="换脸" name="swapFace">
+              <div class="tip-text">请上传两张有脸部的图片，用右边图片的脸替换左边图片的脸。</div>
+              <div class="text-line">
+                <van-uploader v-model="imgList" :after-read="uploadImg"/>
+              </div>
+            </van-tab>
+          </van-tabs>
         </div>
 
-        <van-collapse v-model="activeColspan">
-          <van-collapse-item title="垫图" name="img">
-            <van-field>
-              <template #input>
-                <van-uploader v-model="imgList" :after-read="uploadImg"/>
-              </template>
-            </van-field>
-          </van-collapse-item>
-          <van-collapse-item title="反向提示词" name="neg_prompt">
-            <van-field
-                v-model="params.prompt"
-                rows="3"
-                autosize
-                type="textarea"
-                placeholder="不想出现在图片上的元素(例如：树，建筑)"
-            />
-          </van-collapse-item>
-        </van-collapse>
+        <div class="text-line">
+          <van-collapse v-model="activeColspan">
+            <van-collapse-item title="反向提示词" name="neg_prompt">
+              <van-field
+                  v-model="params.prompt"
+                  rows="3"
+                  autosize
+                  type="textarea"
+                  placeholder="不想出现在图片上的元素(例如：树，建筑)"
+              />
+            </van-collapse-item>
+          </van-collapse>
+        </div>
+
+        <div class="text-line">
+          <el-tag>绘图消耗{{ mjPower }}算力，U/V 操作消耗{{ mjActionPower }}算力，当前算力：{{ power }}</el-tag>
+        </div>
 
         <div class="text-line">
           <van-button round block type="primary" native-type="submit">
-            <van-tag type="success">可用算力额度:{{ power }}</van-tag>
             立即生成
           </van-button>
         </div>
@@ -247,11 +324,14 @@ const params = ref({
   seed: 0,
   img_arr: [],
   raw: false,
-  weight: 0.25,
+  iw: 0,
   prompt: "",
   neg_prompt: "",
   tile: false,
-  quality: 0
+  quality: 0,
+  cref: "",
+  sref: "",
+  cw: 0,
 })
 const userId = ref(0)
 const router = useRouter()
@@ -259,6 +339,7 @@ const runningJobs = ref([])
 const finishedJobs = ref([])
 const socket = ref(null)
 const power = ref(0)
+const activeName = ref("txt2img")
 
 onMounted(() => {
   checkSession().then(user => {
@@ -414,6 +495,10 @@ const changeModel = (item) => {
   params.value.model = item.value
 }
 
+const imgKey = ref("")
+const beforeUpload = (key) => {
+  imgKey.value = key
+}
 
 // 图片上传
 const uploadImg = (file) => {
@@ -427,6 +512,10 @@ const uploadImg = (file) => {
       // 执行上传操作
       httpPost('/api/upload', formData).then(res => {
         file.url = res.data.url
+        if (imgKey.value !== "") { // 单张图片上传
+          params.value[imgKey.value] = res.data.url
+          imgKey.value = ''
+        }
         file.status = "done"
       }).catch(e => {
         file.status = 'failed'
@@ -523,6 +612,15 @@ const showPrompt = (item) => {
 
 const imageView = (item) => {
   showImagePreview([item['img_url']]);
+}
+
+// 切换菜单
+const tabChange = (tab) => {
+  if (tab === "txt2img" || tab === "img2img") {
+    params.value.task_type = "image"
+  } else {
+    params.value.task_type = tab
+  }
 }
 </script>
 
