@@ -559,7 +559,7 @@ const connect = () => {
     });
   }
 
-  const _socket = new WebSocket(host + `/api/sd/client?user_id=${userId.value}`);
+  const _socket = new WebSocket(host + `/api/sd/client`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
 
@@ -621,9 +621,9 @@ const initData = () => {
   });
 }
 
-const fetchRunningJobs = (userId) => {
+const fetchRunningJobs = () => {
   // 获取运行中的任务
-  httpGet(`/api/sd/jobs?status=0&user_id=${userId}`).then(res => {
+  httpGet(`/api/sd/jobs?status=0`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
