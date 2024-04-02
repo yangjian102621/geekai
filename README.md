@@ -91,7 +91,7 @@ KEY。
 
 ![](https://ai.r9it.com/docs/images/env/admin_api_keys.png)
 
-另外，如果您目前还没有 OpenAI 的 API KEY的，推荐您去 https://gpt.bemore.lol 购买，**无需魔法，高速稳定，且价格还远低于 OpenAI
+另外，如果您目前还没有 OpenAI 的 API KEY的，推荐您去 https://api.chat-plus.net 购买，**无需魔法，高速稳定，且价格还远低于 OpenAI
 官方**。
 
 ## 使用须知
