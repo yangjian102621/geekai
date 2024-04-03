@@ -127,21 +127,21 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 	params := types.SdTaskParams{
-		TaskId:         taskId,
-		Prompt:         data.Prompt,
-		NegativePrompt: data.NegativePrompt,
-		Steps:          data.Steps,
-		Sampler:        data.Sampler,
-		FaceFix:        data.FaceFix,
-		CfgScale:       data.CfgScale,
-		Seed:           data.Seed,
-		Height:         data.Height,
-		Width:          data.Width,
-		HdFix:          data.HdFix,
-		HdRedrawRate:   data.HdRedrawRate,
-		HdScale:        data.HdScale,
-		HdScaleAlg:     data.HdScaleAlg,
-		HdSteps:        data.HdSteps,
+		TaskId:       taskId,
+		Prompt:       data.Prompt,
+		NegPrompt:    data.NegPrompt,
+		Steps:        data.Steps,
+		Sampler:      data.Sampler,
+		FaceFix:      data.FaceFix,
+		CfgScale:     data.CfgScale,
+		Seed:         data.Seed,
+		Height:       data.Height,
+		Width:        data.Width,
+		HdFix:        data.HdFix,
+		HdRedrawRate: data.HdRedrawRate,
+		HdScale:      data.HdScale,
+		HdScaleAlg:   data.HdScaleAlg,
+		HdSteps:      data.HdSteps,
 	}
 
 	job := model.SdJob{

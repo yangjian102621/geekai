@@ -49,11 +49,24 @@ func (s *Service) Run() {
 			logger.Errorf("taking task with error: %v", err)
 			continue
 		}
-		// 翻译提示词
+
+		// translate prompt
 		if utils.HasChinese(task.Params.Prompt) {
 			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt))
 			if err == nil {
 				task.Params.Prompt = content
+			} else {
+				logger.Warnf("error with translate prompt: %v", err)
+			}
+		}
+
+		// translate negative prompt
+		if task.Params.NegPrompt != "" && utils.HasChinese(task.Params.NegPrompt) {
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt))
+			if err == nil {
+				task.Params.NegPrompt = content
+			} else {
+				logger.Warnf("error with translate prompt: %v", err)
 			}
 		}
 
@@ -110,7 +123,7 @@ type TaskProgressResp struct {
 func (s *Service) Txt2Img(task types.SdTask) error {
 	body := Txt2ImgReq{
 		Prompt:         task.Params.Prompt,
-		NegativePrompt: task.Params.NegativePrompt,
+		NegativePrompt: task.Params.NegPrompt,
 		Steps:          task.Params.Steps,
 		CfgScale:       task.Params.CfgScale,
 		Width:          task.Params.Width,

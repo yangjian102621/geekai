@@ -222,7 +222,7 @@
                 </div>
               </div>
 
-              <div class="param-line" v-loading="translating" element-loading-background="rgba(0, 0, 0, 0.5)">
+              <div class="param-line">
                 <el-input
                     v-model="params.prompt"
                     :autosize="{ minRows: 4, maxRows: 6 }"
@@ -246,7 +246,7 @@
               </div>
               <div class="param-line">
                 <el-input
-                    v-model="params.negative_prompt"
+                    v-model="params.neg_prompt"
                     :autosize="{ minRows: 4, maxRows: 6 }"
                     type="textarea"
                     placeholder="反向提示词"
@@ -389,8 +389,8 @@
                   反向提示词
                 </el-divider>
                 <div class="prompt">
-                  <span>{{ item.params.negative_prompt }}</span>
-                  <el-icon class="copy-prompt-sd" :data-clipboard-text="item.params.negative_prompt">
+                  <span>{{ item.params.neg_prompt }}</span>
+                  <el-icon class="copy-prompt-sd" :data-clipboard-text="item.params.neg_prompt">
                     <DocumentCopy/>
                   </el-icon>
                 </div>
@@ -496,7 +496,6 @@ const mjBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
-const translating = ref(false)
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
 
@@ -519,7 +518,7 @@ const params = ref({
   hd_scale_alg: scaleAlg[0],
   hd_steps: 0,
   prompt: "",
-  negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
+  neg_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
 })
 
 const runningJobs = ref([])
@@ -559,7 +558,7 @@ const connect = () => {
     });
   }
 
-  const _socket = new WebSocket(host + `/api/sd/client`);
+  const _socket = new WebSocket(host + `/api/sd/client?user_id=${userId.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
 

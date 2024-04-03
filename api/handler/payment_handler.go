@@ -424,27 +424,21 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 
 	var opt string
 	var power int
-	if user.Vip { // 已经是 VIP 用户
-		if remark.Days > 0 { // 只延期 VIP，不增加调用次数
+	if remark.Days > 0 { // VIP 充值
+		if user.ExpiredTime >= time.Now().Unix() {
 			user.ExpiredTime = time.Unix(user.ExpiredTime, 0).AddDate(0, 0, remark.Days).Unix()
-		} else { // 充值点卡，直接增加次数即可
-			user.Power += remark.Power
-			opt = "点卡充值"
-			power = remark.Power
-		}
-
-	} else {                 // 非 VIP 用户
-		if remark.Days > 0 { // vip 套餐：days > 0, power == 0
+			opt = "VIP充值，VIP 没到期，只延期不增加算力"
+		} else {
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
 			user.Power += h.App.SysConfig.VipMonthPower
-			user.Vip = true
-			opt = "VIP充值"
 			power = h.App.SysConfig.VipMonthPower
-		} else { //点卡：days == 0, calls > 0
-			user.Power += remark.Power
-			opt = "点卡充值"
-			power = remark.Power
+			opt = "VIP充值"
 		}
+		user.Vip = true
+	} else { // 充值点卡，直接增加次数即可
+		user.Power += remark.Power
+		opt = "点卡充值"
+		power = remark.Power
 	}
 
 	// 更新用户信息
