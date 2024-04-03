@@ -133,9 +133,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	if data.Quality > 0 {
 		params += fmt.Sprintf(" --q %.2f", data.Quality)
 	}
-	if data.NegPrompt != "" {
-		params += fmt.Sprintf(" --no %s", data.NegPrompt)
-	}
 	if data.Tile {
 		params += " --tile "
 	}
@@ -204,6 +201,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		SessionId: data.SessionId,
 		Type:      types.TaskType(data.TaskType),
 		Prompt:    data.Prompt,
+		NegPrompt: data.NegPrompt,
 		Params:    params,
 		UserId:    userId,
 		ImgArr:    data.ImgArr,

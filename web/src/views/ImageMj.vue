@@ -309,7 +309,7 @@
                 </el-tab-pane>
 
                 <el-tab-pane label="换脸" name="swapFace">
-                  <div class="text">请上传两张有脸部的图片，用右边图片的脸替换左边图片的脸</div>
+                  <div class="text">请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸</div>
                   <div class="img-inline">
                     <div class="img-list-box">
                       <div class="img-item" v-for="imgURL in imgList">
@@ -334,7 +334,7 @@
                     </el-badge>
                   </template>
 
-                  <div class="text">注意：只有于 niji6 和 v6 模型支持一致性功能，如果选择其他模型此功能将不起作用。</div>
+                  <div class="text">注意：只有于 niji6 和 v6 模型支持一致性功能，如果选择其他模型此功能将会生成失败。</div>
                   <div class="param-line">
                     <el-form-item label="角色一致性：" prop="cref">
                       <el-input v-model="params.cref" placeholder="请输入图片URL或者上传图片"

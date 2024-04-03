@@ -181,7 +181,7 @@ const routes = [
     {
         name: 'mobile',
         path: '/mobile',
-        meta: {title: 'ChatPlus-智能助手V3'},
+        meta: {title: 'Geek-AI v4.0'},
         component: () => import('@/views/mobile/Home.vue'),
         redirect: '/mobile/chat',
         children: [
@@ -191,9 +191,9 @@ const routes = [
                 component: () => import('@/views/mobile/ChatList.vue'),
             },
             {
-                path: '/mobile/mj',
-                name: 'mobile-mj',
-                component: () => import('@/views/mobile/ImageMj.vue'),
+                path: '/mobile/image',
+                name: 'mobile-image',
+                component: () => import('@/views/mobile/Image.vue'),
             },
             {
                 path: '/mobile/profile',

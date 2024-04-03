@@ -22,8 +22,12 @@ func NewProxyClient(config types.MjProxyConfig) *ProxyClient {
 
 func (c *ProxyClient) Imagine(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj/submit/imagine", c.apiURL)
+	prompt := fmt.Sprintf("%s %s", task.Prompt, task.Params)
+	if task.NegPrompt != "" {
+		prompt += fmt.Sprintf(" --no %s", task.NegPrompt)
+	}
 	body := ImageReq{
-		Prompt:      fmt.Sprintf("%s %s", task.Prompt, task.Params),
+		Prompt:      prompt,
 		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码
