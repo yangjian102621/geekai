@@ -11,7 +11,7 @@
                 <el-form-item label="采样方法">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.sampler" size="small">
+                      <el-select v-model="params.sampler" size="small" style="width:150px">
                         <el-option v-for="item in samplers" :label="item" :value="item" :key="item"/>
                       </el-select>
                       <el-tooltip
@@ -163,7 +163,7 @@
                   <el-form-item label="放大算法">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-select v-model="params.hd_scale_alg" size="small">
+                        <el-select v-model="params.hd_scale_alg" size="small" style="width:150px">
                           <el-option v-for="item in scaleAlg" :label="item" :value="item" :key="item"/>
                         </el-select>
                         <el-tooltip
