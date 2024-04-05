@@ -21,6 +21,7 @@
           </template>
         </el-table-column>
         <el-table-column label="角色标识" prop="key"/>
+        <el-table-column label="绑定模型" prop="model_name"/>
         <el-table-column label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enable']" @change="roleSet('enable',scope.row)"/>
