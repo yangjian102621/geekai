@@ -33,7 +33,7 @@
               <el-form-item label="图片画质">
                 <template #default>
                   <div class="form-item-inner flex-row items-center">
-                    <el-select v-model="params.quality" placeholder="请选择">
+                    <el-select v-model="params.quality" placeholder="请选择" style="width:150px">
                       <el-option v-for="item in options"
                                  :key="item.value"
                                  :label="item.label"

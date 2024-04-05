@@ -11,7 +11,7 @@
                 <el-form-item label="采样方法">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.sampler" size="small" style="width:150px">
+                      <el-select v-model="params.sampler" style="width:176px">
                         <el-option v-for="item in samplers" :label="item" :value="item" :key="item"/>
                       </el-select>
                       <el-tooltip
@@ -20,7 +20,7 @@
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -35,10 +35,10 @@
                     <div class="form-item-inner">
                       <el-row :gutter="20">
                         <el-col :span="12">
-                          <el-input v-model.number="params.width" size="small" placeholder="图片宽度"/>
+                          <el-input v-model.number="params.width" placeholder="图片宽度"/>
                         </el-col>
                         <el-col :span="12">
-                          <el-input v-model.number="params.height" size="small" placeholder="图片高度"/>
+                          <el-input v-model.number="params.height" placeholder="图片高度"/>
                         </el-col>
                       </el-row>
                     </div>
@@ -50,14 +50,14 @@
                 <el-form-item label="迭代步数">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-input v-model.number="params.steps" size="small"/>
+                      <el-input v-model.number="params.steps"/>
                       <el-tooltip
                           effect="light"
                           content="值越大则代表细节越多，同时也意味着出图速度越慢"
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -70,14 +70,14 @@
                 <el-form-item label="引导系数">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-input v-model.number="params.cfg_scale" size="small"/>
+                      <el-input v-model.number="params.cfg_scale"/>
                       <el-tooltip
                           effect="light"
                           content="提示词引导系数，图像在多大程度上服从提示词<br/> 较低值会产生更有创意的结果"
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -90,14 +90,14 @@
                 <el-form-item label="随机因子">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-input v-model.number="params.seed" size="small"/>
+                      <el-input v-model.number="params.seed"/>
                       <el-tooltip
                           effect="light"
                           content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -108,7 +108,7 @@
                           raw-content
                           placement="right"
                       >
-                        <el-icon @click="params.seed = -1">
+                        <el-icon @click="params.seed = -1" class="info-icon">
                           <Orange/>
                         </el-icon>
                       </el-tooltip>
@@ -121,14 +121,14 @@
                 <el-form-item label="高清修复">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;"/>
+                      <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;" size="large"/>
                       <el-tooltip
                           effect="light"
                           content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节"
                           raw-content
                           placement="right"
                       >
-                        <el-icon style="margin-top: 6px">
+                        <el-icon style="margin-left: 10px; top: 12px">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -150,7 +150,7 @@
                             raw-content
                             placement="right"
                         >
-                          <el-icon style="margin-top: 6px">
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -163,7 +163,7 @@
                   <el-form-item label="放大算法">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-select v-model="params.hd_scale_alg" size="small" style="width:150px">
+                        <el-select v-model="params.hd_scale_alg" style="width:176px">
                           <el-option v-for="item in scaleAlg" :label="item" :value="item" :key="item"/>
                         </el-select>
                         <el-tooltip
@@ -172,7 +172,7 @@
                             raw-content
                             placement="right"
                         >
-                          <el-icon>
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -185,14 +185,14 @@
                   <el-form-item label="放大倍数">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-input v-model.number="params.hd_scale" size="small"/>
+                        <el-input v-model.number="params.hd_scale"/>
                         <el-tooltip
                             effect="light"
                             content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
                             raw-content
                             placement="right"
                         >
-                          <el-icon>
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -205,14 +205,14 @@
                   <el-form-item label="迭代步数">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-input v-model.number="params.hd_steps" size="small"/>
+                        <el-input v-model.number="params.hd_steps"/>
                         <el-tooltip
                             effect="light"
                             content="重绘迭代步数，如果设置为0，则设置跟原图相同的迭代步数"
                             raw-content
                             placement="right"
                         >
-                          <el-icon>
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -239,7 +239,7 @@
                     content="不希望出现的元素，下面给了默认的起手式"
                     placement="right"
                 >
-                  <el-icon>
+                  <el-icon class="info-icon">
                     <InfoFilled/>
                   </el-icon>
                 </el-tooltip>

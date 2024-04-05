@@ -21,7 +21,6 @@
           </template>
         </el-table-column>
         <el-table-column label="角色标识" prop="key"/>
-        <el-table-column label="绑定模型" prop="model_name"/>
         <el-table-column label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enable']" @change="roleSet('enable',scope.row)"/>
@@ -68,10 +67,17 @@
         </el-form-item>
 
         <el-form-item label="角色图标：" prop="icon">
-          <el-input
-              v-model="role.icon"
-              autocomplete="off"
-          />
+          <el-input v-model="role.icon">
+            <template #append>
+              <el-upload
+                  :auto-upload="true"
+                  :show-file-list="false"
+                  :http-request="uploadImg"
+              >
+                上传
+              </el-upload>
+            </template>
+          </el-input>
         </el-form-item>
 
         <el-form-item label="绑定模型：" prop="model_id">
@@ -79,6 +85,7 @@
               v-model="role.model_id"
               filterable
               placeholder="请选择模型"
+              clearable
           >
             <el-option
                 v-for="item in models"
@@ -159,6 +166,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import {Sortable} from "sortablejs"
+import Compressor from "compressorjs";
 
 const showDialog = ref(false)
 const parentBorder = ref(true)
@@ -288,7 +296,27 @@ const removeContext = function (index) {
   role.value.context.splice(index, 1);
 }
 
-
+// 图片上传
+const uploadImg = (file) => {
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/admin/upload', formData).then((res) => {
+        role.value.icon = res.data.url
+        ElMessage.success('上传成功')
+      }).catch((e) => {
+        ElMessage.error('上传失败:' + e.message)
+      })
+    },
+    error(e) {
+      ElMessage.error('上传失败:' + e.message)
+    },
+  });
+};
 </script>
 
 <style lang="stylus" scoped>
