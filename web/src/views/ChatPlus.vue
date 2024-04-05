@@ -82,7 +82,8 @@
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-head">
           <div class="chat-config">
-            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat">
+            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat"
+                       style="width:150px">
               <el-option
                   v-for="item in roles"
                   :key="item.id"
@@ -96,7 +97,8 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel">
+            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel"
+                       style="width:150px">
               <el-option
                   v-for="item in models"
                   :key="item.id"

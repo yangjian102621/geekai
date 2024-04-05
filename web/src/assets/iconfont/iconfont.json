@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1061336",
+      "name": "version",
+      "font_class": "version",
+      "unicode": "e68d",
+      "unicode_decimal": 59021
+    },
+    {
+      "icon_id": "3901033",
+      "name": "绘画",
+      "font_class": "huihua",
+      "unicode": "e62b",
+      "unicode_decimal": 58923
+    },
+    {
+      "icon_id": "39185683",
+      "name": "绘画",
+      "font_class": "huihua1",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "2341972",
+      "name": "chat",
+      "font_class": "chat",
+      "unicode": "e68a",
+      "unicode_decimal": 59018
+    },
+    {
       "icon_id": "8017627",
       "name": "prompt",
       "font_class": "prompt",
