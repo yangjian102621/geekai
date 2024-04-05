@@ -8,10 +8,11 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"fmt"
-	"github.com/imroc/req/v3"
-	"gorm.io/gorm"
 	"strings"
 	"time"
+
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 )
 
 // SD 绘画服务
@@ -146,7 +147,11 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	apiURL := fmt.Sprintf("%s/sdapi/v1/txt2img", s.config.ApiURL)
 	logger.Debugf("send image request to %s", apiURL)
 	go func() {
-		response, err := s.httpClient.R().SetBody(body).SetSuccessResult(&res).Post(apiURL)
+		response, err := s.httpClient.R().
+			SetHeader("Authorization", s.config.ApiKey).
+			SetBody(body).
+			SetSuccessResult(&res).
+			Post(apiURL)
 		if err != nil {
 			errChan <- err
 			return
@@ -207,7 +212,10 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 func (s *Service) checkTaskProgress() (error, *TaskProgressResp) {
 	apiURL := fmt.Sprintf("%s/sdapi/v1/progress?skip_current_image=false", s.config.ApiURL)
 	var res TaskProgressResp
-	response, err := s.httpClient.R().SetSuccessResult(&res).Get(apiURL)
+	response, err := s.httpClient.R().
+		SetHeader("Authorization", s.config.ApiKey).
+		SetSuccessResult(&res).
+		Get(apiURL)
 	if err != nil {
 		return err, nil
 	}

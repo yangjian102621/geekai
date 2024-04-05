@@ -82,7 +82,6 @@
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-head">
           <div class="chat-config">
-            <!--            <span class="role-select-label">聊天角色：</span>-->
             <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat">
               <el-option
                   v-for="item in roles"
@@ -97,7 +96,7 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="modelID" placeholder="模型" @change="_newChat">
+            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel">
               <el-option
                   v-for="item in models"
                   :key="item.id"
@@ -445,6 +444,8 @@ const _newChat = () => {
     newChat()
   }
 }
+
+const disableModel = ref(false)
 // 新建会话
 const newChat = () => {
   if (!isLogin.value) {
@@ -452,10 +453,11 @@ const newChat = () => {
     return;
   }
   const role = getRoleById(roleId.value)
-  if (role.key === 'gpt') {
-    showHello.value = true
-  } else {
-    showHello.value = false
+  showHello.value = role.key === 'gpt';
+  // if the role bind a model, disable model change
+  if (role.model_id > 0) {
+    modelID.value = role.model_id
+    disableModel.value = true
   }
   // 已有新开的会话
   if (newChatItem.value !== null && newChatItem.value['role_id'] === roles.value[0]['role_id']) {

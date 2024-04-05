@@ -68,9 +68,20 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	modelId := h.GetInt(c, "model_id", 0)
 
 	client := types.NewWsClient(ws)
+	var chatRole model.ChatRole
+	res := h.DB.First(&chatRole, roleId)
+	if res.Error != nil || !chatRole.Enable {
+		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
+		c.Abort()
+		return
+	}
+	// if the role bind a model_id, use role's bind model_id
+	if chatRole.ModelId > 0 {
+		modelId = chatRole.ModelId
+	}
 	// get model info
 	var chatModel model.ChatModel
-	res := h.DB.First(&chatModel, modelId)
+	res = h.DB.First(&chatModel, modelId)
 	if res.Error != nil || chatModel.Enabled == false {
 		utils.ReplyMessage(client, "当前AI模型暂未启用，连接已关闭！！！")
 		c.Abort()
@@ -113,13 +124,6 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		Temperature: chatModel.Temperature,
 		Platform:    types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
-	var chatRole model.ChatRole
-	res = h.DB.First(&chatRole, roleId)
-	if res.Error != nil || !chatRole.Enable {
-		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
-		c.Abort()
-		return
-	}
 
 	h.Init()
 
