@@ -130,6 +130,7 @@ func (s *Service) Run() {
 		atomic.AddInt32(&s.HandledTaskNum, 1)
 		// 更新任务 ID/频道
 		job.TaskId = res.Result
+		job.MessageId = res.Result
 		job.ChannelId = s.Name
 		s.db.Updates(&job)
 	}
@@ -198,7 +199,6 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 	if task.ImageUrl != "" {
 		job.OrgURL = task.ImageUrl
 	}
-	job.MessageId = task.Id
 	tx := s.db.Updates(&job)
 	if tx.Error != nil {
 		return fmt.Errorf("error with update database: %v", tx.Error)
