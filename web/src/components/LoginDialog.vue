@@ -226,10 +226,9 @@ import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
-import {Checked, Close, Iphone, Lock, Message, Position, User} from "@element-plus/icons-vue";
+import {Checked, Close, Iphone, Lock, Message} from "@element-plus/icons-vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {arrayContains} from "@/utils/libs";
-import {useRouter} from "vue-router";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -359,7 +358,7 @@ const close = function () {
     .close-icon {
       cursor pointer
       position absolute
-      right -10px
+      right 0
       top 0
       font-weight normal
       font-size 20px

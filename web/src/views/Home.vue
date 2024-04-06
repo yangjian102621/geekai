@@ -89,7 +89,7 @@ onMounted(() => {
     }
 
     .nav-items {
-      margin-top: 20px;
+      margin-top: 10px;
       padding 0 5px
 
       li {
