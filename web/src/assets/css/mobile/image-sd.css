@@ -1,0 +1,133 @@
+.mobile-sd .text-line {
+  padding: 0 6px;
+  font-size: 14px;
+}
+.mobile-sd .text-line .van-row {
+  width: 100%;
+}
+.mobile-sd .text-line .van-row .van-col .rate {
+  display: flex;
+  justify-content: center;
+  background-color: #f5f5f5;
+  padding: 5px 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  flex-flow: column;
+}
+.mobile-sd .text-line .van-row .van-col .rate .icon {
+  text-align: center;
+}
+.mobile-sd .text-line .van-row .van-col .rate .icon .van-image {
+  max-width: 20px;
+}
+.mobile-sd .text-line .van-row .van-col .rate .text {
+  text-align: center;
+  color: #555;
+}
+.mobile-sd .text-line .van-row .van-col .el-input__inner {
+  text-align: center;
+}
+.mobile-sd .text-line .van-row .van-col .model {
+  display: flex;
+  justify-content: center;
+  background-color: #f5f5f5;
+  padding: 6px;
+  margin: 5px 0;
+  border-radius: 5px;
+  flex-flow: column;
+}
+.mobile-sd .text-line .van-row .van-col .model .icon {
+  text-align: center;
+}
+.mobile-sd .text-line .van-row .van-col .model .icon .van-image {
+  width: 100%;
+  height: 50px;
+}
+.mobile-sd .text-line .van-row .van-col .model .text {
+  text-align: center;
+  color: #555;
+}
+.mobile-sd .text-line .van-row .van-col .active {
+  background-color: #e5e5e5;
+}
+.mobile-sd .text-line .van-button {
+  position: relative;
+}
+.mobile-sd .text-line .van-button .van-tag {
+  position: absolute;
+  right: 20px;
+}
+.mobile-sd .text-line .align-right {
+  display: flex;
+  justify-content: right;
+}
+.mobile-sd .pt-6 {
+  padding: 10px;
+}
+.mobile-sd .tip-text {
+  padding: 10px;
+  line-height: 1.5;
+  color: #c1c1c1;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content {
+  padding: 0;
+  position: relative;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .van-image,
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
+  min-height: 100px;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(50,50,50,0.5);
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress .van-circle__text {
+  color: #fff;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  color: #c1c1c1;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon {
+  text-align: center;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon .iconfont {
+  font-size: 24px;
+}
+.mobile-sd .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .text {
+  font-size: 14px;
+  margin-top: 5px;
+}
+.mobile-sd .finish-job-list .van-grid .van-grid-item .van-grid-item__content {
+  padding: 0;
+}
+.mobile-sd .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item {
+  overflow: hidden;
+  border-radius: 6px;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+.mobile-sd .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .van-image {
+  width: 100%;
+  height: 200px;
+}
+.mobile-sd .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+.mobile-sd .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove .el-button {
+  margin-left: 5px;
+  height: auto;
+  padding: 5px;
+}

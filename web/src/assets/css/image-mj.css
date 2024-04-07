@@ -182,6 +182,11 @@
 .page-mj .inner .el-form .el-slider {
   width: 180px;
 }
+.page-mj .inner .el-form .uploader-icon {
+  font-size: 24px;
+  position: relative;
+  top: 3px;
+}
 .page-mj .inner .task-list-box {
   width: 100%;
   padding: 10px;
@@ -275,18 +280,19 @@
   width: 20px;
   height: 20px;
 }
+.page-mj .inner .task-list-box .task-list-inner .el-row.text-info {
+  width: 100%;
+  padding: 10px 0;
+}
+.page-mj .inner .task-list-box .task-list-inner .el-row.text-info .el-tag {
+  margin-right: 10px;
+}
 .page-mj .inner .task-list-box .task-list-inner .submit-btn {
   display: flex;
   margin: 20px 0;
 }
 .page-mj .inner .task-list-box .task-list-inner .submit-btn .el-button {
   width: 200px;
-}
-.page-mj .inner .task-list-box .task-list-inner .submit-btn .text-info {
-  width: 100%;
-  display: flex;
-  justify-content: right;
-  align-items: center;
 }
 .page-mj .inner .task-list-box .task-list-inner .job-list-box .running-job-list .job-item {
   width: 100%;

@@ -1,8 +1,8 @@
-.mobile-mj .content .text-line {
+.mobile-mj .text-line {
   padding: 6px;
   font-size: 14px;
 }
-.mobile-mj .content .text-line .van-row .van-col .rate {
+.mobile-mj .text-line .van-row .van-col .rate {
   display: flex;
   justify-content: center;
   background-color: #f5f5f5;
@@ -11,17 +11,17 @@
   border-radius: 5px;
   flex-flow: column;
 }
-.mobile-mj .content .text-line .van-row .van-col .rate .icon {
+.mobile-mj .text-line .van-row .van-col .rate .icon {
   text-align: center;
 }
-.mobile-mj .content .text-line .van-row .van-col .rate .icon .van-image {
+.mobile-mj .text-line .van-row .van-col .rate .icon .van-image {
   max-width: 20px;
 }
-.mobile-mj .content .text-line .van-row .van-col .rate .text {
+.mobile-mj .text-line .van-row .van-col .rate .text {
   text-align: center;
   color: #555;
 }
-.mobile-mj .content .text-line .van-row .van-col .model {
+.mobile-mj .text-line .van-row .van-col .model {
   display: flex;
   justify-content: center;
   background-color: #f5f5f5;
@@ -30,40 +30,45 @@
   border-radius: 5px;
   flex-flow: column;
 }
-.mobile-mj .content .text-line .van-row .van-col .model .icon {
+.mobile-mj .text-line .van-row .van-col .model .icon {
   text-align: center;
 }
-.mobile-mj .content .text-line .van-row .van-col .model .icon .van-image {
+.mobile-mj .text-line .van-row .van-col .model .icon .van-image {
   width: 100%;
   height: 50px;
 }
-.mobile-mj .content .text-line .van-row .van-col .model .text {
+.mobile-mj .text-line .van-row .van-col .model .text {
   text-align: center;
   color: #555;
 }
-.mobile-mj .content .text-line .van-row .van-col .active {
+.mobile-mj .text-line .van-row .van-col .active {
   background-color: #e5e5e5;
 }
-.mobile-mj .content .text-line .van-button {
+.mobile-mj .text-line .van-button {
   position: relative;
 }
-.mobile-mj .content .text-line .van-button .van-tag {
+.mobile-mj .text-line .van-button .van-tag {
   position: absolute;
   right: 20px;
 }
-.mobile-mj .content .text-line .align-right {
+.mobile-mj .text-line .align-right {
   display: flex;
   justify-content: right;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content {
+.mobile-mj .tip-text {
+  padding: 10px;
+  line-height: 1.5;
+  color: #c1c1c1;
+}
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content {
   padding: 0;
   position: relative;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .van-image,
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .van-image,
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
   min-height: 100px;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -74,36 +79,36 @@
   left: 0;
   top: 0;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress .van-circle__text {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .progress .van-circle__text {
   color: #fff;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue {
   display: flex;
   flex-flow: column;
   justify-content: center;
   color: #c1c1c1;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon {
   text-align: center;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon .iconfont {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .icon .iconfont {
   font-size: 24px;
 }
-.mobile-mj .content .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .text {
+.mobile-mj .running-job-list .van-grid .van-grid-item .van-grid-item__content .task-in-queue .text {
   font-size: 14px;
   margin-top: 5px;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content {
   padding: 0;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item {
   overflow: hidden;
   border-radius: 6px;
   position: relative;
   height: 100%;
   width: 100%;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-btn {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .opt .opt-btn {
   padding: 2px 0;
   text-align: center;
   border-radius: 5px;
@@ -115,20 +120,20 @@
   font-size: 14px;
   width: 100%;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .van-image {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .van-image {
   width: 100%;
   height: 200px;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .upscale {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .upscale {
   height: 260px;
   width: 100%;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove {
   position: absolute;
   right: 5px;
   top: 5px;
 }
-.mobile-mj .content .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove .el-button {
+.mobile-mj .finish-job-list .van-grid .van-grid-item .van-grid-item__content .job-item .remove .el-button {
   margin-left: 5px;
   height: auto;
   padding: 5px;

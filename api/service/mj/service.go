@@ -67,11 +67,20 @@ func (s *Service) Run() {
 			continue
 		}
 
-		// 如果是 mj-proxy 则自动翻译提示词
-		if utils.HasChinese(task.Prompt) && strings.HasPrefix(s.Name, "mj-proxy-service") {
+		// translate prompt
+		if utils.HasChinese(task.Prompt) {
 			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt))
 			if err == nil {
 				task.Prompt = content
+			} else {
+				logger.Warnf("error with translate prompt: %v", err)
+			}
+		}
+		// translate negative prompt
+		if task.NegPrompt != "" && utils.HasChinese(task.NegPrompt) {
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt))
+			if err == nil {
+				task.NegPrompt = content
 			} else {
 				logger.Warnf("error with translate prompt: %v", err)
 			}

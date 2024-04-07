@@ -220,7 +220,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	var res imgRes
 	var errRes ErrRes
 	var request *req.Request
-	if apiKey.ProxyURL != "" {
+	if len(apiKey.ProxyURL) > 5 {
 		request = req.C().SetProxyURL(apiKey.ProxyURL).R()
 	} else {
 		request = req.C().R()

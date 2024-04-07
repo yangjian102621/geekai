@@ -6,12 +6,9 @@
         <div class="divider"></div>
       </div>
       <ul class="nav-items">
-        <li v-for="item in navs" :key="item.path">
-          <!--          <el-tooltip effect="light" :content="item.title" placement="right">-->
-          <!--            -->
-          <!--          </el-tooltip>-->
-          <a @click="changeNav(item)" :class="item.path === curPath ? 'active' : ''">
-            <el-image :src="item.icon" :width="20"/>
+        <li v-for="item in navs" :key="item.url">
+          <a @click="changeNav(item)" :class="item.url === curPath ? 'active' : ''">
+            <el-image :src="item.icon" style="width: 30px;height: 30px"/>
           </a>
           <div :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</div>
         </li>
@@ -69,7 +66,7 @@ onMounted(() => {
   .navigator {
     display flex
     flex-flow column
-    width 70px
+    width 60px
     padding 10px 6px
     border-right: 1px solid #3c3c3c
     background-color: #25272D
@@ -79,6 +76,10 @@ onMounted(() => {
       flex-flow column
       align-items center
 
+      .el-image {
+        width 50px
+        height 50px
+      }
 
       .divider {
         border-bottom 1px solid #4A4A4A
@@ -89,15 +90,13 @@ onMounted(() => {
 
     .nav-items {
       margin-top: 20px;
-      padding-left: 10px;
-      padding-right: 10px;
+      padding 0 5px
 
       li {
         margin-bottom 15px
 
         a {
           color #DADBDC
-          background-color #40444A
           border-radius 10px
           width 48px
           height 48px
@@ -117,6 +116,7 @@ onMounted(() => {
 
         a:hover, a.active {
           color #47fff1
+          background-color #0F7A71
         }
 
         .title {

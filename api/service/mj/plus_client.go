@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/imroc/req/v3"
 	"io"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,17 +17,26 @@ import (
 type PlusClient struct {
 	Config types.MjPlusConfig
 	apiURL string
+	client *req.Client
 }
 
 func NewPlusClient(config types.MjPlusConfig) *PlusClient {
-	return &PlusClient{Config: config, apiURL: config.ApiURL}
+	return &PlusClient{
+		Config: config,
+		apiURL: config.ApiURL,
+		client: req.C().SetTimeout(time.Minute).SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"),
+	}
 }
 
 func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/imagine", c.apiURL, c.Config.Mode)
+	prompt := fmt.Sprintf("%s %s", task.Prompt, task.Params)
+	if task.NegPrompt != "" {
+		prompt += fmt.Sprintf(" --no %s", task.NegPrompt)
+	}
 	body := ImageReq{
 		BotType:     "MID_JOURNEY",
-		Prompt:      task.Prompt,
+		Prompt:      prompt,
 		Base64Array: make([]string, 0),
 	}
 	// 生成图片 Base64 编码
@@ -42,7 +52,7 @@ func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
 	logger.Info("API URL: ", apiURL)
 	var res ImageRes
 	var errRes ErrRes
-	r, err := req.C().R().
+	r, err := c.client.R().
 		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetBody(body).
 		SetSuccessResult(&res).
@@ -81,7 +91,7 @@ func (c *PlusClient) Blend(task types.MjTask) (ImageRes, error) {
 	}
 	var res ImageRes
 	var errRes ErrRes
-	r, err := req.C().R().
+	r, err := c.client.R().
 		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetBody(body).
 		SetSuccessResult(&res).
@@ -130,7 +140,7 @@ func (c *PlusClient) SwapFace(task types.MjTask) (ImageRes, error) {
 	}
 	var res ImageRes
 	var errRes ErrRes
-	r, err := req.C().R().
+	r, err := c.client.SetTimeout(time.Minute).R().
 		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetBody(body).
 		SetSuccessResult(&res).
@@ -156,7 +166,7 @@ func (c *PlusClient) Upscale(task types.MjTask) (ImageRes, error) {
 	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
 	var res ImageRes
 	var errRes ErrRes
-	r, err := req.C().R().
+	r, err := c.client.R().
 		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetBody(body).
 		SetSuccessResult(&res).
@@ -202,7 +212,7 @@ func (c *PlusClient) Variation(task types.MjTask) (ImageRes, error) {
 func (c *PlusClient) QueryTask(taskId string) (QueryRes, error) {
 	apiURL := fmt.Sprintf("%s/mj/task/%s/fetch", c.apiURL, taskId)
 	var res QueryRes
-	r, err := req.C().R().SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
+	r, err := c.client.R().SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetSuccessResult(&res).
 		Get(apiURL)
 

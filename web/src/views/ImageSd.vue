@@ -222,7 +222,7 @@
                 </div>
               </div>
 
-              <div class="param-line" v-loading="translating" element-loading-background="rgba(122, 122, 122, 0.8)">
+              <div class="param-line">
                 <el-input
                     v-model="params.prompt"
                     :autosize="{ minRows: 4, maxRows: 6 }"
@@ -246,16 +246,18 @@
               </div>
               <div class="param-line">
                 <el-input
-                    v-model="params.negative_prompt"
+                    v-model="params.neg_prompt"
                     :autosize="{ minRows: 4, maxRows: 6 }"
                     type="textarea"
                     placeholder="反向提示词"
                 />
               </div>
 
-              <div class="param-line" style="padding: 10px">
+              <div class="text-info">
+                <el-tag>每次绘图消耗{{ sdPower }}算力</el-tag>
                 <el-tag type="success">当前可用算力：{{ power }}</el-tag>
               </div>
+
             </el-form>
           </div>
           <div class="submit-btn">
@@ -307,7 +309,7 @@
                 <el-empty :image-size="100" v-else/>
               </div>
               <h2>创作记录</h2>
-              <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.5)">
+              <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.5)">
                 <div v-if="finishedJobs.length > 0">
                   <ItemList :items="finishedJobs" :width="240" :gap="16">
                     <template #default="scope">
@@ -387,8 +389,8 @@
                   反向提示词
                 </el-divider>
                 <div class="prompt">
-                  <span>{{ item.params.negative_prompt }}</span>
-                  <el-icon class="copy-prompt-sd" :data-clipboard-text="item.params.negative_prompt">
+                  <span>{{ item.params.neg_prompt }}</span>
+                  <el-icon class="copy-prompt-sd" :data-clipboard-text="item.params.neg_prompt">
                     <DocumentCopy/>
                   </el-icon>
                 </div>
@@ -479,7 +481,7 @@
 
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue"
-import {Delete, DocumentCopy, InfoFilled, Orange, Picture, Refresh} from "@element-plus/icons-vue";
+import {Delete, DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import ItemList from "@/components/ItemList.vue";
@@ -494,7 +496,6 @@ const mjBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
-const translating = ref(false)
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
 
@@ -517,7 +518,7 @@ const params = ref({
   hd_scale_alg: scaleAlg[0],
   hd_steps: 0,
   prompt: "",
-  negative_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
+  neg_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
 })
 
 const runningJobs = ref([])
@@ -619,9 +620,9 @@ const initData = () => {
   });
 }
 
-const fetchRunningJobs = (userId) => {
+const fetchRunningJobs = () => {
   // 获取运行中的任务
-  httpGet(`/api/sd/jobs?status=0&user_id=${userId}`).then(res => {
+  httpGet(`/api/sd/jobs?status=0`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {

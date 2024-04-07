@@ -5,7 +5,7 @@
       <div class="page-inner">
         <div class="contain" v-if="enableRegister">
           <div class="logo">
-            <el-image src="images/logo.png" fit="cover"/>
+            <el-image :src="logo" fit="cover"/>
           </div>
 
           <div class="header">{{ title }}</div>
@@ -141,6 +141,7 @@ const enableRegister = ref(true)
 const wxImg = ref("/images/wx.png")
 const ways = []
 const placeholder = ref("用户名：")
+const logo = ref("/images/logo.png")
 
 httpGet("/api/config/get?key=system").then(res => {
   if (res.data) {
@@ -160,6 +161,7 @@ httpGet("/api/config/get?key=system").then(res => {
     if (res.data['wechat_card_url'] !== '') {
       wxImg.value = res.data['wechat_card_url']
     }
+    logo.value = res.data.logo
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
