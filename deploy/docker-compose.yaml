@@ -53,7 +53,7 @@ services:
 
   # 后端 API 程序
   chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v4.0.1-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v4.0.2-amd64
     container_name: chatgpt-plus-api
     restart: always
     depends_on:
@@ -76,7 +76,7 @@ services:
 
   # 前端应用
   chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v4.0.1-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v4.0.2-amd64
     container_name: chatgpt-plus-web
     restart: always
     depends_on:

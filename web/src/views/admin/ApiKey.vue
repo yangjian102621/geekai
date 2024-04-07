@@ -215,7 +215,7 @@ httpGet('/api/admin/apikey/list').then((res) => {
 const add = function () {
   showDialog.value = true
   title.value = "新增 API KEY"
-  item.value = {}
+  item.value = {enabled: true}
 }
 
 const edit = function (row) {
