@@ -20,7 +20,7 @@ type ServicePool struct {
 	Clients     *types.LMap[uint, *types.WsClient] // UserId => Client
 }
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig, levelDB *store.LevelDB) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("StableDiffusion_Queue", redisCli)
@@ -32,7 +32,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 
 		// create sd service
 		name := fmt.Sprintf("StableDifffusion Service-%s", config.Model)
-		service := NewService(name, config, taskQueue, notifyQueue, db, manager)
+		service := NewService(name, config, taskQueue, notifyQueue, db, manager, levelDB)
 		// run sd service
 		go func() {
 			service.Run()

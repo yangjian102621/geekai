@@ -53,6 +53,12 @@
   padding-top: 5px;
   padding-bottom: 5px;
 }
+.page-sd .inner .sd-box .sd-params .text-info {
+  padding: 10px;
+}
+.page-sd .inner .sd-box .sd-params .text-info .el-tag {
+  margin-right: 10px;
+}
 .page-sd .inner .sd-box .submit-btn {
   padding: 10px 15px 0 15px;
   text-align: center;
@@ -159,18 +165,19 @@
   width: 20px;
   height: 20px;
 }
+.page-sd .inner .task-list-box .task-list-inner .el-row.text-info {
+  width: 100%;
+  padding: 10px 0;
+}
+.page-sd .inner .task-list-box .task-list-inner .el-row.text-info .el-tag {
+  margin-right: 10px;
+}
 .page-sd .inner .task-list-box .task-list-inner .submit-btn {
   display: flex;
   margin: 20px 0;
 }
 .page-sd .inner .task-list-box .task-list-inner .submit-btn .el-button {
   width: 200px;
-}
-.page-sd .inner .task-list-box .task-list-inner .submit-btn .text-info {
-  width: 100%;
-  display: flex;
-  justify-content: right;
-  align-items: center;
 }
 .page-sd .inner .task-list-box .task-list-inner .job-list-box .running-job-list .job-item {
   width: 100%;

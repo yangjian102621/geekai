@@ -72,6 +72,7 @@ services:
       - ./conf/config.toml:/var/www/app/config.toml
       - ./logs/app:/var/www/app/logs
       - ./static:/var/www/app/static
+      - ./data/leveldb:/var/www/app/data
 
   # 前端应用
   chatgpt-plus-web:

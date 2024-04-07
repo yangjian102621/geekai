@@ -53,6 +53,10 @@ func (l *AppLifecycle) OnStop(context.Context) error {
 	return nil
 }
 
+func NewAppLifeCycle() *AppLifecycle {
+	return &AppLifecycle{}
+}
+
 func main() {
 	configFile := os.Getenv("CONFIG_FILE")
 	if configFile == "" {
@@ -92,6 +96,7 @@ func main() {
 		fx.Provide(store.NewGormConfig),
 		fx.Provide(store.NewMysql),
 		fx.Provide(store.NewRedisClient),
+		fx.Provide(store.NewLevelDB),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
@@ -292,7 +297,7 @@ func main() {
 			group.POST("save", h.Save)
 			group.GET("list", h.List)
 			group.POST("set", h.Set)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
 			group := s.Engine.Group("/api/admin/user/")
@@ -432,11 +437,14 @@ func main() {
 			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
-			err := s.Run(db)
-			if err != nil {
-				log.Fatal(err)
-			}
+			go func() {
+				err := s.Run(db)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}()
 		}),
+		fx.Provide(NewAppLifeCycle),
 		// 注册生命周期回调函数
 		fx.Invoke(func(lifecycle fx.Lifecycle, lc *AppLifecycle) {
 			lifecycle.Append(fx.Hook{

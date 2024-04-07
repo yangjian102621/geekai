@@ -98,7 +98,10 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		ImgArr    []string `json:"img_arr"`
 		Tile      bool     `json:"tile"`
 		Quality   float32  `json:"quality"`
-		Weight    float32  `json:"weight"`
+		Iw        float32  `json:"iw"`
+		CRef      string   `json:"cref"` //生成角色一致的图像
+		SRef      string   `json:"sref"` //生成风格一致的图像
+		Cw        int      `json:"cw"`   // 参考程度
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -108,41 +111,57 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 
-	var prompt = data.Prompt
-	if data.Rate != "" && !strings.Contains(prompt, "--ar") {
-		prompt += " --ar " + data.Rate
+	var params = ""
+	if data.Rate != "" && !strings.Contains(params, "--ar") {
+		params += " --ar " + data.Rate
 	}
-	if data.Seed > 0 && !strings.Contains(prompt, "--seed") {
-		prompt += fmt.Sprintf(" --seed %d", data.Seed)
+	if data.Seed > 0 && !strings.Contains(params, "--seed") {
+		params += fmt.Sprintf(" --seed %d", data.Seed)
 	}
-	if data.Stylize > 0 && !strings.Contains(prompt, "--s") && !strings.Contains(prompt, "--stylize") {
-		prompt += fmt.Sprintf(" --s %d", data.Stylize)
+	if data.Stylize > 0 && !strings.Contains(params, "--s") && !strings.Contains(params, "--stylize") {
+		params += fmt.Sprintf(" --s %d", data.Stylize)
 	}
-	if data.Chaos > 0 && !strings.Contains(prompt, "--c") && !strings.Contains(prompt, "--chaos") {
-		prompt += fmt.Sprintf(" --c %d", data.Chaos)
+	if data.Chaos > 0 && !strings.Contains(params, "--c") && !strings.Contains(params, "--chaos") {
+		params += fmt.Sprintf(" --c %d", data.Chaos)
 	}
-	if data.Weight > 0 {
-		prompt += fmt.Sprintf(" --iw %f", data.Weight)
+	if len(data.ImgArr) > 0 && data.Iw > 0 {
+		params += fmt.Sprintf(" --iw %f", data.Iw)
 	}
 	if data.Raw {
-		prompt += " --style raw"
+		params += " --style raw"
 	}
 	if data.Quality > 0 {
-		prompt += fmt.Sprintf(" --q %.2f", data.Quality)
-	}
-	if data.NegPrompt != "" {
-		prompt += fmt.Sprintf(" --no %s", data.NegPrompt)
+		params += fmt.Sprintf(" --q %.2f", data.Quality)
 	}
 	if data.Tile {
-		prompt += " --tile "
+		params += " --tile "
 	}
-	if data.Model != "" && !strings.Contains(prompt, "--v") && !strings.Contains(prompt, "--niji") {
-		prompt += fmt.Sprintf(" %s", data.Model)
+	if data.CRef != "" {
+		params += fmt.Sprintf(" --cref %s", data.CRef)
+		if data.Cw > 0 {
+			params += fmt.Sprintf(" --cw %d", data.Cw)
+		} else {
+			params += " --cw 100"
+		}
+	}
+
+	if data.SRef != "" {
+		params += fmt.Sprintf(" --sref %s", data.CRef)
+	}
+	if data.Model != "" && !strings.Contains(params, "--v") && !strings.Contains(params, "--niji") {
+		params += fmt.Sprintf(" %s", data.Model)
 	}
 
 	// 处理融图和换脸的提示词
 	if data.TaskType == types.TaskSwapFace.String() || data.TaskType == types.TaskBlend.String() {
-		prompt = fmt.Sprintf("%s:%s", data.TaskType, strings.Join(data.ImgArr, ","))
+		params = fmt.Sprintf("%s:%s", data.TaskType, strings.Join(data.ImgArr, ","))
+	}
+
+	// 如果本地图片上传的是相对地址，处理成绝对地址
+	for k, v := range data.ImgArr {
+		if !strings.HasPrefix(v, "http") {
+			data.ImgArr[k] = fmt.Sprintf("http://localhost:5678/%s", strings.TrimLeft(v, "/"))
+		}
 	}
 
 	idValue, _ := c.Get(types.LoginUserID)
@@ -158,7 +177,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		UserId:    userId,
 		TaskId:    taskId,
 		Progress:  0,
-		Prompt:    prompt,
+		Prompt:    fmt.Sprintf("%s %s", data.Prompt, params),
 		Power:     h.App.SysConfig.MjPower,
 		CreatedAt: time.Now(),
 	}
@@ -181,7 +200,9 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		TaskId:    taskId,
 		SessionId: data.SessionId,
 		Type:      types.TaskType(data.TaskType),
-		Prompt:    prompt,
+		Prompt:    data.Prompt,
+		NegPrompt: data.NegPrompt,
+		Params:    params,
 		UserId:    userId,
 		ImgArr:    data.ImgArr,
 	})

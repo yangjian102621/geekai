@@ -5,7 +5,7 @@
 
       <van-tabbar route v-model="active" @change="onChange">
         <van-tabbar-item to="/mobile/chat" name="home" icon="chat-o">对话</van-tabbar-item>
-        <van-tabbar-item to="/mobile/mj" name="imageMj" icon="photo-o">绘图</van-tabbar-item>
+        <van-tabbar-item to="/mobile/image" name="image" icon="photo-o">绘图</van-tabbar-item>
         <van-tabbar-item to="/mobile/img-wall" name="apps" icon="apps-o">广场</van-tabbar-item>
         <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的</van-tabbar-item>
       </van-tabbar>
@@ -62,6 +62,11 @@ const onChange = (index) => {
 .van-toast--fail {
   background #fef0f0
   color #f56c6c
+}
+
+.van-toast--success {
+  background #D6FBCC
+  color #07C160
 }
 
 .van-nav-bar {

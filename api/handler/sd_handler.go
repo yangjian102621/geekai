@@ -6,11 +6,11 @@ import (
 	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/service/sd"
+	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"time"
@@ -28,13 +28,15 @@ type SdJobHandler struct {
 	pool      *sd.ServicePool
 	uploader  *oss.UploaderManager
 	snowflake *service.Snowflake
+	leveldb   *store.LevelDB
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager, snowflake *service.Snowflake) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
 	return &SdJobHandler{
 		pool:      pool,
 		uploader:  manager,
 		snowflake: snowflake,
+		leveldb:   levelDB,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -125,21 +127,21 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 	params := types.SdTaskParams{
-		TaskId:         taskId,
-		Prompt:         data.Prompt,
-		NegativePrompt: data.NegativePrompt,
-		Steps:          data.Steps,
-		Sampler:        data.Sampler,
-		FaceFix:        data.FaceFix,
-		CfgScale:       data.CfgScale,
-		Seed:           data.Seed,
-		Height:         data.Height,
-		Width:          data.Width,
-		HdFix:          data.HdFix,
-		HdRedrawRate:   data.HdRedrawRate,
-		HdScale:        data.HdScale,
-		HdScaleAlg:     data.HdScaleAlg,
-		HdSteps:        data.HdSteps,
+		TaskId:       taskId,
+		Prompt:       data.Prompt,
+		NegPrompt:    data.NegPrompt,
+		Steps:        data.Steps,
+		Sampler:      data.Sampler,
+		FaceFix:      data.FaceFix,
+		CfgScale:     data.CfgScale,
+		Seed:         data.Seed,
+		Height:       data.Height,
+		Width:        data.Width,
+		HdFix:        data.HdFix,
+		HdRedrawRate: data.HdRedrawRate,
+		HdScale:      data.HdScale,
+		HdScaleAlg:   data.HdScaleAlg,
+		HdSteps:      data.HdSteps,
 	}
 
 	job := model.SdJob{
@@ -257,10 +259,10 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		}
 
 		if item.Progress < 100 {
-			// 正在运行中任务使用代理访问图片
-			image, err := utils.DownloadImage(item.ImgURL, "")
+			// 从 leveldb 中获取图片预览数据
+			imageData, err := h.leveldb.Get(item.TaskId)
 			if err == nil {
-				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+				job.ImgURL = "data:image/png;base64," + string(imageData)
 			}
 		}
 		jobs = append(jobs, job)
