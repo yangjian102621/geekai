@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： localhost:3307
--- 生成日期： 2024-04-07 08:49:35
+-- 生成日期： 2024-04-07 10:30:00
 -- 服务器版本： 8.0.33
 -- PHP 版本： 8.1.18
 
@@ -47,7 +47,7 @@ CREATE TABLE `chatgpt_admin_users` (
 --
 
 INSERT INTO `chatgpt_admin_users` (`id`, `username`, `password`, `salt`, `status`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1711962479, '::1', '2024-03-11 16:30:20', '2024-04-01 17:08:00'),
+(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1712456145, '::1', '2024-03-11 16:30:20', '2024-04-07 10:15:45'),
 (108, 'test', '9ed720ce03e0a69885455271b4b3e1710bff79434f2a95d0de6406dd88cc9f79', '4b9orqjh', 0, 1710396975, '::1', '2024-03-13 16:06:43', '2024-03-21 15:15:04');
 
 -- --------------------------------------------------------
@@ -223,7 +223,7 @@ CREATE TABLE `chatgpt_configs` (
 
 INSERT INTO `chatgpt_configs` (`id`, `marker`, `config_json`) VALUES
 (1, 'system', '{\"title\":\"Geek-AI创作系统\",\"admin_title\":\"Geek-AI控制台\",\"logo\":\"/images/logo.png\",\"init_power\":100,\"daily_power\":99,\"invite_power\":10,\"vip_month_power\":1000,\"register_ways\":[\"mobile\",\"username\",\"email\"],\"enabled_register\":true,\"reward_img\":\"http://localhost:5678/static/upload/2024/3/1710753716309668.jpg\",\"enabled_reward\":true,\"power_price\":0.1,\"order_pay_timeout\":1800,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"default_models\":[11,7,1,10,12,19,18,17,3],\"mj_power\":20,\"mj_action_power\":10,\"sd_power\":5,\"dall_power\":15,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4}'),
-(3, 'notice', '{\"content\":\"系统每日会给免费会员赠送10算力值，用完请第二天再来领取。\\n## v4.0.1 更新日志\\n* 功能重构：重构 Stable-Diffusion 绘画实现，使用 SDAPI 替换之前的 websocket 接口，SDAPI 兼容各种 stable-diffusion 发行版，稳定性更强一些\\n* 功能优化：使用 [midjouney-proxy](https://github.com/novicezk/midjourney-proxy) 项目替换内置的原生 MidJourney API，兼容 MJ-Plus 中转\\n* 功能新增：用户算力消费日志增加统计功能，统计一段时间内用户消费的算力\\n* Bug修复：修复 iphone 手机无法通过图形验证码的Bug，使用滑动验证码替换\\n* Bug修复：修复手机端 MidJourney 绘画页面滚动条无法滚动的Bug\\n\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e （支持MidJourney，GPT，Claude，Google Gemmi 各种表格模型） 或者 \\u003ca href=\\\"https://gpt.bemore.lol\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://gpt.bemore.lol\\u003c/a\\u003e（不支持 Midjourney） 购买，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://ai.r9it.com/docs/install/errors-handle.html#%E8%B0%83%E7%94%A8%E4%B8%AD%E8%BD%AC-api-%E6%8A%A5%E9%94%99%E6%97%A0%E5%8F%AF%E7%94%A8%E6%B8%A0%E9%81%93)。\\nGPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://ai.r9it.com/docs/install/\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://ai.r9it.com/docs/install/\\u003c/a\\u003e\\n\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/chatgpt-plus\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/chatgpt-plus\\u003c/a\\u003e\",\"updated\":true}');
+(3, 'notice', '{\"content\":\"系统每日会给免费会员赠送10算力值，用完请第二天再来领取。\\n## v4.0.2 更新日志\\n* 功能新增：支持前端菜单可以配置\\n* 功能优化：在登录和注册界面标题显示软件版本号\\n* 功能优化：MJ 绘画支持 --sref 和 --cref 图片一致性参数\\n* 功能优化：使用 leveldb 解决 SD 绘图进度图片预览问题\\n* Bug修复：解决因为图片上传使用相对路径而导致融图失败的问题\\n* 功能新增：手机端支持 Stable-Diffusion 绘画\\n* Bug修复：修复管理后台 API KEY 删除失败的问题\\n\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e （支持MidJourney，GPT，Claude，Google Gemmi 各种表格模型） 或者 \\u003ca href=\\\"https://gpt.bemore.lol\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://gpt.bemore.lol\\u003c/a\\u003e（不支持 Midjourney） 购买，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://ai.r9it.com/docs/install/errors-handle.html#%E8%B0%83%E7%94%A8%E4%B8%AD%E8%BD%AC-api-%E6%8A%A5%E9%94%99%E6%97%A0%E5%8F%AF%E7%94%A8%E6%B8%A0%E9%81%93)。\\nGPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://ai.r9it.com/docs/install/\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://ai.r9it.com/docs/install/\\u003c/a\\u003e\\n\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/chatgpt-plus\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/chatgpt-plus\\u003c/a\\u003e\",\"updated\":true}');
 
 -- --------------------------------------------------------
 
@@ -495,6 +495,15 @@ CREATE TABLE `chatgpt_users` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+
+-- --------------------------------------------------------
+
+--
+-- 转存表中的数据 `chatgpt_users`
+--
+
+INSERT INTO `chatgpt_users` (`id`, `username`, `nickname`, `password`, `avatar`, `salt`, `power`, `expired_time`, `status`, `chat_config_json`, `chat_roles_json`, `chat_models_json`, `last_login_at`, `vip`, `last_login_ip`, `created_at`, `updated_at`) VALUES
+    (4, '18575670125', '极客学长@830270', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/2/1708682650912429.png', 'ueedue5l', 9384, 1717292086, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"red_book\",\"gpt\",\"programmer\",\"seller\"]', '[1,11]', 1711698298, 1, '::1', '2023-06-12 16:47:17', '2024-03-29 15:44:58');
 
 -- --------------------------------------------------------
 
