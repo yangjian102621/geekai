@@ -73,7 +73,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 **演示站不提供任何充值点卡售卖或者VIP充值服务。** 如果您体验过后觉得还不错的话，可以花两分钟用下面的一键部署脚本自己部署一套。
 
 ```shell
-bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v4.0.1-5f1a7c3fc9.sh)"
+bash -c "$(curl -fsSL https://img.r9it.com/tmp/install-v4.0.2-ba5a891bc0.sh)"
 ```
 
 最新版本的一键部署脚本请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/install/)。
