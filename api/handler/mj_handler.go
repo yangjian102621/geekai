@@ -146,7 +146,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 
 	if data.SRef != "" {
-		params += fmt.Sprintf(" --sref %s", data.CRef)
+		params += fmt.Sprintf(" --sref %s", data.SRef)
 	}
 	if data.Model != "" && !strings.Contains(params, "--v") && !strings.Contains(params, "--niji") {
 		params += fmt.Sprintf(" %s", data.Model)

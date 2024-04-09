@@ -36,7 +36,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		}
 		cli := NewPlusClient(config)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
-		service := NewService(name, taskQueue, notifyQueue, 4, 600, db, cli)
+		service := NewService(name, taskQueue, notifyQueue, db, cli)
 		go func() {
 			service.Run()
 		}()
@@ -49,7 +49,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		}
 		cli := NewProxyClient(config)
 		name := fmt.Sprintf("mj-proxy-service-%d", k)
-		service := NewService(name, taskQueue, notifyQueue, 4, 600, db, cli)
+		service := NewService(name, taskQueue, notifyQueue, db, cli)
 		go func() {
 			service.Run()
 		}()
