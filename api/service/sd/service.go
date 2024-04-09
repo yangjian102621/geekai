@@ -146,6 +146,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	var errChan = make(chan error)
 	apiURL := fmt.Sprintf("%s/sdapi/v1/txt2img", s.config.ApiURL)
 	logger.Debugf("send image request to %s", apiURL)
+	// send a request to sd api endpoint
 	go func() {
 		response, err := s.httpClient.R().
 			SetHeader("Authorization", s.config.ApiKey).
@@ -179,12 +180,20 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 		errChan <- nil
 	}()
 
+	// waiting for task finish
 	for {
 		select {
-		case err := <-errChan: // 任务完成
-			if err != nil {
+		case err := <-errChan:
+			if err != nil { // task failed
+				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
+					"progress": -1,
+					"err_msg":  err.Error(),
+				})
+				s.notifyQueue.RPush(task.UserId)
 				return err
 			}
+
+			// task finished
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", 100)
 			s.notifyQueue.RPush(task.UserId)
 			// 从 leveldb 中删除预览图片数据
