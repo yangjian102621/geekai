@@ -339,12 +339,42 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		if len(reqMgs) > 0 {
 			req.Input["messages"] = reqMgs
 		}
+	} else if session.Model.Platform == types.OpenAI { // extract image for gpt-vision model
+		imgURLs := utils.ExtractImgURL(prompt)
+		logger.Debugf("detected IMG: %+v", imgURLs)
+		var content interface{}
+		if len(imgURLs) > 0 {
+			data := make([]interface{}, 0)
+			text := prompt
+			for _, v := range imgURLs {
+				text = strings.Replace(text, v, "", 1)
+				data = append(data, gin.H{
+					"type": "image_url",
+					"image_url": gin.H{
+						"url": v,
+					},
+				})
+			}
+			data = append(data, gin.H{
+				"type": "text",
+				"text": text,
+			})
+			content = data
+		} else {
+			content = prompt
+		}
+		req.Messages = append(reqMgs, map[string]interface{}{
+			"role":    "user",
+			"content": content,
+		})
 	} else {
 		req.Messages = append(reqMgs, map[string]interface{}{
 			"role":    "user",
 			"content": prompt,
 		})
 	}
+
+	logger.Debugf("%+v", req.Messages)
 
 	switch session.Model.Platform {
 	case types.Azure:

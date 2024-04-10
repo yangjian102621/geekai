@@ -70,11 +70,6 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	key := c.Query("key")
 	var config model.Config
 	res := h.DB.Where("marker", key).First(&config)

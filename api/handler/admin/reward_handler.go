@@ -21,11 +21,6 @@ func NewRewardHandler(app *core.AppServer, db *gorm.DB) *RewardHandler {
 }
 
 func (h *RewardHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	var items []model.Reward
 	res := h.DB.Order("id DESC").Find(&items)
 	var rewards = make([]vo.Reward, 0)
