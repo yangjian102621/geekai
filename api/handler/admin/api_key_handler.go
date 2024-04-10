@@ -66,11 +66,6 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
 	res := h.DB.Find(&items)

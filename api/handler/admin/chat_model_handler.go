@@ -76,11 +76,6 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 
 // List 模型列表
 func (h *ChatModelHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	session := h.DB.Session(&gorm.Session{})
 	enable := h.GetBool(c, "enable")
 	if enable {

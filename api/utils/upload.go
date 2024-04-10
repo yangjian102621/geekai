@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -78,4 +79,16 @@ func GetImgExt(filename string) string {
 		return ".png"
 	}
 	return ext
+}
+
+func ExtractImgURL(text string) []string {
+	re := regexp.MustCompile(`(http[s]?:\/\/.*?\.(?:png|jpg|jpeg|gif))`)
+	matches := re.FindAllStringSubmatch(text, 10)
+	urls := make([]string, 0)
+	if len(matches) > 0 {
+		for _, m := range matches {
+			urls = append(urls, m[1])
+		}
+	}
+	return urls
 }
