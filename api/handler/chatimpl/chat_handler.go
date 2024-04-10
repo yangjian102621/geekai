@@ -239,7 +239,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			break
 		}
 
-		var tools = make([]interface{}, 0)
+		var tools = make([]types.Tool, 0)
 		for _, v := range items {
 			var parameters map[string]interface{}
 			err = utils.JsonDecode(v.Parameters, &parameters)
@@ -248,15 +248,20 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			}
 			required := parameters["required"]
 			delete(parameters, "required")
-			tools = append(tools, gin.H{
-				"type": "function",
-				"function": gin.H{
-					"name":        v.Name,
-					"description": v.Description,
-					"parameters":  parameters,
-					"required":    required,
+			tool := types.Tool{
+				Type: "function",
+				Function: types.Function{
+					Name:        v.Name,
+					Description: v.Description,
+					Parameters:  parameters,
 				},
-			})
+			}
+
+			// Fixed: compatible for gpt4-turbo-xxx model
+			if !strings.HasPrefix(req.Model, "gpt-4-turbo-") {
+				tool.Function.Required = required
+			}
+			tools = append(tools, tool)
 		}
 
 		if len(tools) > 0 {

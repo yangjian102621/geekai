@@ -8,7 +8,7 @@ type ApiRequest struct {
 	Stream      bool          `json:"stream"`
 	Messages    []interface{} `json:"messages,omitempty"`
 	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
-	Tools       []interface{} `json:"tools,omitempty"`
+	Tools       []Tool        `json:"tools,omitempty"`
 	Functions   []interface{} `json:"functions,omitempty"` // 兼容中转平台
 
 	ToolChoice string `json:"tool_choice,omitempty"`
