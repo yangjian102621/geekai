@@ -682,6 +682,7 @@ const connect = function (chat_id, role_id) {
       reader.onload = () => {
         const data = JSON.parse(String(reader.result));
         if (data.type === 'start') {
+          console.log(data)
           chatData.value.push({
             type: "reply",
             id: randString(32),
