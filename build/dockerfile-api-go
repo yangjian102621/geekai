@@ -1,5 +1,5 @@
 # GO api docker 镜像创建
-FROM --platform=linux/amd64 alpine:3.18.2
+FROM alpine:3.18.2
 
 MAINTAINER yangjian<yangjian102621@163.com>
 
