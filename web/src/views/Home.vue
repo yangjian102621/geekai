@@ -2,7 +2,7 @@
   <div class="home">
     <div class="navigator">
       <div class="logo">
-        <el-image :src="logo"/>
+        <el-image :src="logo" @click="router.push('/')"/>
         <div class="divider"></div>
       </div>
       <ul class="nav-items">
@@ -75,6 +75,7 @@ onMounted(() => {
       display flex
       flex-flow column
       align-items center
+      cursor pointer
 
       .el-image {
         width 50px

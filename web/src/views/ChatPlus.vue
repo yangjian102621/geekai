@@ -377,16 +377,7 @@ const initData = () => {
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
           roleId.value = roles.value[0]['id'];
-
-          const chatId = localStorage.getItem("chat_id")
-          const chat = getChatById(chatId)
-          if (chat === null) {
-            // 创建新的对话
-            newChat();
-          } else {
-            // 加载对话
-            loadChat(chat)
-          }
+          newChat();
         }).catch((e) => {
           ElMessage.error('获取聊天角色失败: ' + e.messages)
         })

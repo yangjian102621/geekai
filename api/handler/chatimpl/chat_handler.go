@@ -122,6 +122,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		MaxTokens:   chatModel.MaxTokens,
 		MaxContext:  chatModel.MaxContext,
 		Temperature: chatModel.Temperature,
+		KeyId:       chatModel.KeyId,
 		Platform:    types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 
@@ -463,13 +464,21 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 
 // 发送请求到 OpenAI 服务器
 // useOwnApiKey: 是否使用了用户自己的 API KEY
-func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platform types.Platform, apiKey *model.ApiKey) (*http.Response, error) {
-	res := h.DB.Where("platform = ?", platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, session *types.ChatSession, apiKey *model.ApiKey) (*http.Response, error) {
+	// if the chat model bind a KEY, use it directly
+	var res *gorm.DB
+	if session.Model.KeyId > 0 {
+		res = h.DB.Where("id", session.Model.KeyId).Find(apiKey)
+	}
+	// use the last unused key
+	if res.Error != nil {
+		res = h.DB.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+	}
 	if res.Error != nil {
 		return nil, errors.New("no available key, please import key")
 	}
 	var apiURL string
-	switch platform {
+	switch session.Model.Platform {
 	case types.Azure:
 		md := strings.Replace(req.Model, ".", "", 1)
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", md, 1)
@@ -492,7 +501,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	// 更新 API KEY 的最后使用时间
 	h.DB.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// 百度文心，需要串接 access_token
-	if platform == types.Baidu {
+	if session.Model.Platform == types.Baidu {
 		token, err := h.getBaiduToken(apiKey.Value)
 		if err != nil {
 			return nil, err
@@ -527,8 +536,8 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	} else {
 		client = http.DefaultClient
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", platform, apiURL, apiKey.Value, proxyURL, req.Model)
-	switch platform {
+	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiURL, apiKey.Value, proxyURL, req.Model)
+	switch session.Model.Platform {
 	case types.Azure:
 		request.Header.Set("api-key", apiKey.Value)
 		break

@@ -63,7 +63,8 @@ const logo = ref('/images/logo.png')
 
 // 加载系统配置
 httpGet('/api/admin/config/get?key=system').then(res => {
-  title.value = res.data['admin_title'];
+  title.value = res.data['admin_title']
+  logo.value = res.data['logo']
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
@@ -191,9 +192,9 @@ setMenuItems(items)
     padding 6px 15px;
 
     .el-image {
-      width 30px;
-      height 30px;
-      padding-top 8px;
+      width 36px;
+      height 36px;
+      padding-top 5px;
       border-radius 100%
 
       .el-image__inner {

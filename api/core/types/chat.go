@@ -62,6 +62,7 @@ type ChatModel struct {
 	MaxTokens   int      `json:"max_tokens"`  // 最大响应长度
 	MaxContext  int      `json:"max_context"` // 最大上下文长度
 	Temperature float32  `json:"temperature"` // 模型温度
+	KeyId       int      `json:"key_id"`      // 绑定 API KEY
 }
 
 type ApiError struct {

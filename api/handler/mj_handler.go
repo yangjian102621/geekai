@@ -125,7 +125,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		params += fmt.Sprintf(" --c %d", data.Chaos)
 	}
 	if len(data.ImgArr) > 0 && data.Iw > 0 {
-		params += fmt.Sprintf(" --iw %f", data.Iw)
+		params += fmt.Sprintf(" --iw %.2f", data.Iw)
 	}
 	if data.Raw {
 		params += " --style raw"
