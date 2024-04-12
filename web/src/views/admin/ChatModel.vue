@@ -1,5 +1,5 @@
 <template>
-  <div class="container list" v-loading="loading">
+  <div class="container model-list" v-loading="loading">
 
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
@@ -13,7 +13,14 @@
           </template>
         </el-table-column>
         <el-table-column prop="name" label="模型名称"/>
-        <el-table-column prop="value" label="模型值"/>
+        <el-table-column prop="value" label="模型值">
+          <template #default="scope">
+            <span>{{ scope.row.value }}</span>
+            <el-icon class="copy-model" :data-clipboard-text="scope.row.value">
+              <DocumentCopy/>
+            </el-icon>
+          </template>
+        </el-table-column>
         <el-table-column prop="power" label="费率"/>
         <el-table-column prop="max_tokens" label="最大响应长度"/>
         <el-table-column prop="max_context" label="最大上下文长度"/>
@@ -29,12 +36,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="创建时间">
-          <template #default="scope">
-            <span>{{ dateFormat(scope.row['created_at']) }}</span>
-          </template>
-        </el-table-column>
-
+        <!--        <el-table-column label="创建时间">-->
+        <!--          <template #default="scope">-->
+        <!--            <span>{{ dateFormat(scope.row['created_at']) }}</span>-->
+        <!--          </template>-->
+        <!--        </el-table-column>-->
+        <el-table-column prop="key_name" label="绑定API-KEY"/>
         <el-table-column label="操作" width="180">
           <template #default="scope">
             <el-button size="small" type="primary" @click="edit(scope.row)">编辑</el-button>
@@ -75,7 +82,7 @@
         <el-form-item label="费率：" prop="weight">
           <template #default>
             <div class="tip-input">
-              <el-input-number :min="1" v-model="item.power" autocomplete="off"/>
+              <el-input-number :min="0" v-model="item.power" autocomplete="off"/>
               <div class="info">
                 <el-tooltip
                     class="box-item"
@@ -144,6 +151,15 @@
           </div>
         </el-form-item>
 
+        <el-form-item label="绑定API-KEY：" prop="apikey">
+          <el-select v-model="item.key_id" placeholder="请选择 API KEY">
+            <el-option v-for="v in apiKeys" :value="v.id" :label="v.name" :key="v.id">
+              {{ v.name }}
+              <el-text type="info" size="small">{{ substr(v.api_url, 50) }}</el-text>
+            </el-option>
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="启用状态：" prop="enable">
           <el-switch v-model="item.enabled"/>
         </el-form-item>
@@ -178,12 +194,13 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat, removeArrayItem} from "@/utils/libs";
-import {InfoFilled, Plus} from "@element-plus/icons-vue";
+import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
+import {DocumentCopy, InfoFilled, Plus} from "@element-plus/icons-vue";
 import {Sortable} from "sortablejs";
+import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
@@ -207,23 +224,34 @@ const platforms = ref([
 
 ])
 
-// 获取数据
-httpGet('/api/admin/model/list').then((res) => {
-  if (res.data) {
-    // 初始化数据
-    const arr = res.data;
-    for (let i = 0; i < arr.length; i++) {
-      arr[i].last_used_at = dateFormat(arr[i].last_used_at)
-    }
-    items.value = arr
-  }
-  loading.value = false
-}).catch(() => {
-  ElMessage.error("获取数据失败");
+// 获取 API KEY
+const apiKeys = ref([])
+httpGet('/api/admin/apikey/list?status=true&type=chat').then(res => {
+  apiKeys.value = res.data
+}).catch(e => {
+  ElMessage.error("获取 API KEY 失败：" + e.message)
 })
 
+// 获取数据
+const fetchData = () => {
+  httpGet('/api/admin/model/list').then((res) => {
+    if (res.data) {
+      // 初始化数据
+      const arr = res.data;
+      for (let i = 0; i < arr.length; i++) {
+        arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+      }
+      items.value = arr
+    }
+    loading.value = false
+  }).catch(() => {
+    ElMessage.error("获取数据失败");
+  })
+}
 
+const clipboard = ref(null)
 onMounted(() => {
+  fetchData()
   const drawBodyWrapper = document.querySelector('.el-table__body tbody')
 
   // 初始化拖动排序插件
@@ -250,6 +278,19 @@ onMounted(() => {
       })
     }
   })
+
+  clipboard.value = new ClipboardJS('.copy-model');
+  clipboard.value.on('success', () => {
+    ElMessage.success('复制成功！');
+  })
+
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 
 const add = function () {
@@ -267,14 +308,14 @@ const edit = function (row) {
 const save = function () {
   formRef.value.validate((valid) => {
     item.value.temperature = parseFloat(item.value.temperature)
+    if (!item.value.sort_num) {
+      item.value.sort_num = items.value.length
+    }
     if (valid) {
       showDialog.value = false
       httpPost('/api/admin/model/save', item.value).then((res) => {
         ElMessage.success('操作成功！')
-        if (!item.value['id']) {
-          const newItem = res.data
-          items.value.push(newItem)
-        }
+        fetchData()
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
       })
@@ -306,7 +347,7 @@ const remove = function (row) {
 
 <style lang="stylus" scoped>
 @import "@/assets/css/admin/form.styl";
-.list {
+.model-list {
 
   .opt-box {
     padding-bottom: 10px;
@@ -315,6 +356,13 @@ const remove = function (row) {
 
     .el-icon {
       margin-right: 5px;
+    }
+  }
+
+  .cell {
+    .copy-model {
+      margin-left 6px
+      cursor pointer
     }
   }
 

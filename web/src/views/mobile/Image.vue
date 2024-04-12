@@ -19,7 +19,7 @@ import {ref} from "vue";
 import ImageMj from "@/views/mobile/ImageMj.vue";
 import ImageSd from "@/views/mobile/ImageSd.vue";
 
-const activeName = ref("sd")
+const activeName = ref("mj")
 </script>
 
 <style lang="stylus">

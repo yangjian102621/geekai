@@ -8,8 +8,6 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -35,6 +33,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		MaxTokens   int     `json:"max_tokens"`  // 最大响应长度
 		MaxContext  int     `json:"max_context"` // 最大上下文长度
 		Temperature float32 `json:"temperature"` // 模型温度
+		KeyId       int     `json:"key_id"`
 		CreatedAt   int64   `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -52,12 +51,15 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		MaxTokens:   data.MaxTokens,
 		MaxContext:  data.MaxContext,
 		Temperature: data.Temperature,
+		KeyId:       data.KeyId,
 		Power:       data.Power}
-	item.Id = data.Id
-	if item.Id > 0 {
-		item.CreatedAt = time.Unix(data.CreatedAt, 0)
+	var res *gorm.DB
+	if data.Id > 0 {
+		item.Id = data.Id
+		res = h.DB.Select("*").Omit("created_at").Updates(&item)
+	} else {
+		res = h.DB.Create(&item)
 	}
-	res := h.DB.Save(&item)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败！")
 		return
@@ -84,18 +86,33 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	var items []model.ChatModel
 	var cms = make([]vo.ChatModel, 0)
 	res := session.Order("sort_num ASC").Find(&items)
-	if res.Error == nil {
-		for _, item := range items {
-			var cm vo.ChatModel
-			err := utils.CopyObject(item, &cm)
-			if err == nil {
-				cm.Id = item.Id
-				cm.CreatedAt = item.CreatedAt.Unix()
-				cm.UpdatedAt = item.UpdatedAt.Unix()
-				cms = append(cms, cm)
-			} else {
-				logger.Error(err)
-			}
+	if res.Error != nil {
+		resp.SUCCESS(c, cms)
+		return
+	}
+
+	// initialize key name
+	keyIds := make([]int, 0)
+	for _, v := range items {
+		keyIds = append(keyIds, v.KeyId)
+	}
+	var keys []model.ApiKey
+	keyMap := make(map[uint]string)
+	h.DB.Where("id IN ?", keyIds).Find(&keys)
+	for _, v := range keys {
+		keyMap[v.Id] = v.Name
+	}
+	for _, item := range items {
+		var cm vo.ChatModel
+		err := utils.CopyObject(item, &cm)
+		if err == nil {
+			cm.Id = item.Id
+			cm.CreatedAt = item.CreatedAt.Unix()
+			cm.UpdatedAt = item.UpdatedAt.Unix()
+			cm.KeyName = keyMap[uint(item.KeyId)]
+			cms = append(cms, cm)
+		} else {
+			logger.Error(err)
 		}
 	}
 	resp.SUCCESS(c, cms)

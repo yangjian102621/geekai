@@ -66,9 +66,20 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
+	status := h.GetBool(c, "status")
+	t := h.GetTrim(c, "type")
+
+	session := h.DB.Session(&gorm.Session{})
+	if status {
+		session = session.Where("enabled", true)
+	}
+	if t != "" {
+		session = session.Where("type", t)
+	}
+	
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
-	res := h.DB.Find(&items)
+	res := session.Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var key vo.ApiKey

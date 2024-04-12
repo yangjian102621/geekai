@@ -1,7 +1,7 @@
 <template>
   <div class="index-page" :style="{height: winHeight+'px'}">
     <div class="content">
-      <h1>{{title}}</h1>
+      <h1>欢迎使用 {{ title }}</h1>
       <p>{{slogan}}</p>
       <button class="btn" @click="router.push('/chat')">立即使用</button>
 
@@ -20,15 +20,22 @@ import * as THREE from 'three';
 import {onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
 
 const router = useRouter()
 
-const title = ref("欢迎使用 Geek-AI 创作系统")
+const title = ref("Geek-AI 创作系统")
 const slogan = ref("我辈之人，先干为敬，陪您先把 AI 用起来")
 const size = window.innerHeight * 0.8
 const winHeight = window.innerHeight - 150
 
 onMounted(() => {
+  httpGet("/api/config/get?key=system").then(res => {
+    title.value = res.data['title']
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
   init()
 })
 
@@ -77,7 +84,7 @@ const init = () => {
           requestAnimationFrame(animate);
 
           // 使地球自转和公转
-          earth.rotation.y += 0.002;
+          earth.rotation.y += 0.001;
 
           renderer.render(scene, camera);
         };
