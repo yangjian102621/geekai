@@ -62,6 +62,12 @@ const routes = [
                 meta: {title: '消费日志'},
                 component: () => import('@/views/PowerLog.vue'),
             },
+            {
+                name: 'xmind',
+                path: '/xmind',
+                meta: {title: '思维导图'},
+                component: () => import('@/views/MarkMap.vue'),
+            },
         ]
     },
     {

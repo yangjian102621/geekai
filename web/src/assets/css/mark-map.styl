@@ -1,0 +1,87 @@
+.page-mark-map {
+  background-color: #282c34;
+  height 100vh
+
+  .inner {
+    display: flex;
+
+    .mark-map-box {
+      margin 10px
+      background-color #262626
+      border 1px solid #454545
+      min-width 300px
+      max-width 300px
+      padding 10px
+      border-radius 10px
+      color #ffffff;
+      font-size 14px
+
+      h2 {
+        font-weight: bold;
+        font-size 20px
+        text-align center
+        color #47fff1
+      }
+
+      // 隐藏滚动条
+      ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        background-color: transparent;
+      }
+
+      .mark-map-params {
+        margin-top 10px
+        overflow auto
+
+
+        .param-line {
+          padding 10px
+
+          .el-button {
+            width 100%
+
+            span {
+              color #2D3A4B
+            }
+          }
+
+        }
+
+        .text-info {
+          padding 10px
+
+          .el-tag {
+            margin-right 10px
+          }
+        }
+      }
+    }
+
+    .el-form {
+      .el-form-item__label {
+        color #ffffff
+      }
+    }
+
+    .right-box {
+      width 100%
+      h2 {
+        color #ffffff
+      }
+
+      .body {
+        display flex
+        justify-content center
+        align-items center
+
+        .markmap {
+          width 100%
+          color #ffffff
+          font-size 12px
+        }
+      }
+    }
+  }
+}
+
