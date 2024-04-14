@@ -275,8 +275,8 @@ const activeName = ref('basic')
 const system = ref({models: []})
 const loading = ref(true)
 const systemFormRef = ref(null)
-const chatFormRef = ref(null)
 const models = ref([])
+const openAIModels = ref([])
 const notice = ref("")
 
 onMounted(() => {
@@ -295,6 +295,7 @@ onMounted(() => {
 
   httpGet('/api/admin/model/list').then(res => {
     models.value = res.data
+    openAIModels.value = models.value.filter(v => v.platform === "OpenAI")
     loading.value = false
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
@@ -314,19 +315,6 @@ const save = function (key) {
       if (valid) {
         system.value['power_price'] = parseFloat(system.value['power_price']) ?? 0
         httpPost('/api/admin/config/update', {key: key, config: system.value}).then(() => {
-          ElMessage.success("操作成功！")
-        }).catch(e => {
-          ElMessage.error("操作失败：" + e.message)
-        })
-      }
-    })
-  } else if (key === 'chat') {
-    if (chat.value.context_deep % 2 !== 0) {
-      return ElMessage.error("会话上下文深度必须为偶数！")
-    }
-    chatFormRef.value.validate((valid) => {
-      if (valid) {
-        httpPost('/api/admin/config/update', {key: key, config: chat.value}).then(() => {
           ElMessage.success("操作成功！")
         }).catch(e => {
           ElMessage.error("操作失败：" + e.message)
