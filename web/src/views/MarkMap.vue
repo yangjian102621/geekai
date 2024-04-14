@@ -6,7 +6,7 @@
           <h2>思维导图创作中心</h2>
 
           <div class="mark-map-params" :style="{ height: leftBoxHeight + 'px' }">
-            <el-form :model="params" label-width="80px" label-position="left">
+            <el-form label-width="80px" label-position="left">
               <div class="param-line">
                 你的需求？
               </div>
@@ -20,7 +20,31 @@
               </div>
 
               <div class="param-line">
-                <el-button color="#47fff1" :dark="false" round @click="generate">智能生成思维导图</el-button>
+                请选择生成思维导图的AI模型
+              </div>
+              <div class="param-line">
+                <el-select v-model="modelID" placeholder="请选择模型">
+                  <el-option
+                      v-for="item in models"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                  >
+                    <span>{{ item.name }}</span>
+                    <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
+                        item.power
+                      }}算力
+                    </el-tag>
+                  </el-option>
+                </el-select>
+              </div>
+
+              <div class="text-info">
+                <el-tag type="success">当前可用算力：{{ power }}</el-tag>
+              </div>
+
+              <div class="param-line">
+                <el-button color="#47fff1" :dark="false" round @click="generateAI">智能生成思维导图</el-button>
               </div>
 
               <div class="param-line">
@@ -28,7 +52,7 @@
               </div>
               <div class="param-line">
                 <el-input
-                    v-model="prompt"
+                    v-model="text"
                     :autosize="{ minRows: 4, maxRows: 6 }"
                     type="textarea"
                     placeholder="请用markdown语法输入您想要生成思维导图的内容！"
@@ -39,18 +63,6 @@
                 <el-button color="#47fff1" :dark="false" round @click="generate">直接生成（免费）</el-button>
               </div>
 
-
-              <div class="text-info">
-               <el-row :gutter="10">
-                 <el-col :span="12">
-                   <el-tag>每次生成消耗1算力</el-tag>
-                 </el-col>
-                 <el-col :span="12">
-                   <el-tag type="success">当前可用算力：{{ power }}</el-tag>
-                 </el-col>
-               </el-row>
-              </div>
-
             </el-form>
           </div>
         </div>
@@ -58,7 +70,7 @@
         <div class="right-box">
           <h2>思维导图</h2>
           <div class="body">
-            <svg ref="svgRef" :style="{ height: leftBoxHeight + 'px' }"/>
+            <svg ref="svgRef" :style="{ height: rightBoxHeight + 'px' }"/>
           </div>
         </div><!-- end task list box -->
       </div>
@@ -71,13 +83,16 @@
 
 <script setup>
 import LoginDialog from "@/components/LoginDialog.vue";
-import {ref, onMounted, onUpdated} from 'vue';
+import {onMounted, onUpdated, ref} from 'vue';
 import {Markmap} from 'markmap-view';
-import {loadJS, loadCSS} from 'markmap-common';
+import {loadCSS, loadJS} from 'markmap-common';
 import {Transformer} from 'markmap-lib';
+import {checkSession} from "@/action/session";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
 
 const leftBoxHeight = ref(window.innerHeight - 105)
-const rightBoxHeight = ref(window.innerHeight - 105)
+const rightBoxHeight = ref(window.innerHeight - 85)
 
 const prompt = ref("")
 const text = ref(`# Geek-AI 助手
@@ -102,11 +117,32 @@ loadJS(scripts);
 
 const svgRef = ref(null)
 const markMap = ref(null)
+const models = ref([])
+const modelID = ref(0)
 
 onMounted(() => {
+  initData()
   markMap.value = Markmap.create(svgRef.value)
   update()
 });
+
+const initData = () => {
+  checkSession().then(user => {
+    power.value = user['power']
+    isLogin.value = true
+  }).catch(() => {
+  });
+  httpGet("/api/model/list").then(res => {
+    for (let v of res.data) {
+      if (v.platform === "OpenAI") {
+        models.value.push(v)
+      }
+    }
+    modelID.value = models.value[0].id
+  }).catch(e => {
+    ElMessage.error("获取模型失败：" + e.message)
+  })
+}
 
 const update = () => {
   const {root} = transformer.transform(text.value)
@@ -118,6 +154,19 @@ onUpdated(update)
 
 window.onresize = () => {
   leftBoxHeight.value = window.innerHeight - 145
+  rightBoxHeight.value = window.innerHeight - 85
+}
+
+const generate = () => {
+  update()
+}
+
+// 使用 AI 智能生成
+const generateAI = () => {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
 }
 
 </script>
