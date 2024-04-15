@@ -576,9 +576,23 @@ const connect = () => {
   });
 
   _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
+    ElMessageBox.confirm(
+        '检测到您已经在其他客户端创建了新的连接，当前连接将被关闭！',
+        '提示',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '重新连接',
+          cancelButtonText: '关闭',
+          type: 'warning',
+        }
+    ).then(() => {
       connect()
-    }
+    }).catch(() => {
+      ElMessage({
+        type: 'info',
+        message: '连接已关闭',
+      })
+    })
   });
 }
 
