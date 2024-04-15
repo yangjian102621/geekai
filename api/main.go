@@ -439,7 +439,7 @@ func main() {
 		fx.Provide(handler.NewMarkMapHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
 			group := s.Engine.Group("/api/markMap/")
-			group.GET("model", h.GetModel)
+			group.Any("client", h.Client)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
