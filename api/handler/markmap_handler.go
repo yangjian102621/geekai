@@ -42,14 +42,8 @@ func (h *MarkMapHandler) Client(c *gin.Context) {
 
 	modelId := h.GetInt(c, "model_id", 0)
 	userId := h.GetInt(c, "user_id", 0)
-	logger.Info(modelId)
 
 	client := types.NewWsClient(ws)
-	if cli := h.clients.Get(userId); cli != nil {
-		cli.Close()
-	}
-
-	// 保存会话连接
 	h.clients.Put(userId, client)
 	go func() {
 		for {
