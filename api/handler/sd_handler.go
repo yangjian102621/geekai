@@ -61,6 +61,10 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
+	// close the existed connections
+	if cli := h.pool.Clients.Get(uint(userId)); cli != nil {
+		cli.Close()
+	}
 	h.pool.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
