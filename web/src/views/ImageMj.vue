@@ -525,42 +525,10 @@
                       <div class="opt" v-if="scope.item['can_opt']">
                         <div class="opt-line">
                           <ul>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第一张"
-                                  placement="top">
-                                <a @click="upscale(1, scope.item)">U1</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第二张"
-                                  placement="top">
-                                <a @click="upscale(2, scope.item)">U2</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第三张"
-                                  placement="top">
-                                <a @click="upscale(3, scope.item)">U3</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第四张"
-                                  placement="top">
-                                <a @click="upscale(4, scope.item)">U4</a>
-                              </el-tooltip>
-                            </li>
+                            <li><a @click="upscale(1, scope.item)">U1</a></li>
+                            <li><a @click="upscale(2, scope.item)">U2</a></li>
+                            <li><a @click="upscale(3, scope.item)">U3</a></li>
+                            <li><a @click="upscale(4, scope.item)">U4</a></li>
                             <li class="show-prompt">
 
                               <el-popover placement="left" title="提示词" :width="240" trigger="hover">
@@ -586,42 +554,10 @@
 
                         <div class="opt-line">
                           <ul>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第一张"
-                                  placement="top">
-                                <a @click="variation(1, scope.item)">V1</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第二张"
-                                  placement="top">
-                                <a @click="variation(2, scope.item)">V2</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第三张"
-                                  placement="top">
-                                <a @click="variation(3, scope.item)">V3</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第四张"
-                                  placement="top">
-                                <a @click="variation(4, scope.item)">V4</a>
-                              </el-tooltip>
-                            </li>
+                            <li><a @click="variation(1, scope.item)">V1</a></li>
+                            <li><a @click="variation(2, scope.item)">V2</a></li>
+                            <li><a @click="variation(3, scope.item)">V3</a></li>
+                            <li><a @click="variation(4, scope.item)">V4</a></li>
                           </ul>
                         </div>
                       </div>
@@ -797,23 +733,25 @@ const connect = () => {
   });
 
   _socket.addEventListener('close', () => {
-    ElMessageBox.confirm(
-        '检测到您已经在其他客户端创建了新的连接，当前连接将被关闭！',
-        '提示',
-        {
-          dangerouslyUseHTMLString: true,
-          confirmButtonText: '重新连接',
-          cancelButtonText: '关闭',
-          type: 'warning',
-        }
-    ).then(() => {
-      connect()
-    }).catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '连接已关闭',
+    if (socket.value !== null) {
+      ElMessageBox.confirm(
+          '检测到您已经在其他客户端创建了新的连接，当前连接将被关闭！',
+          '提示',
+          {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: '重新连接',
+            cancelButtonText: '关闭',
+            type: 'warning',
+          }
+      ).then(() => {
+        connect()
+      }).catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '连接已关闭',
+        })
       })
-    })
+    }
   });
 }
 

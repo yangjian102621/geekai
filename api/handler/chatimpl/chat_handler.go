@@ -525,7 +525,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 
 	request = request.WithContext(ctx)
 	request.Header.Set("Content-Type", "application/json")
-	var proxyURL string
 	if len(apiKey.ProxyURL) > 5 { // 使用代理
 		proxy, _ := url.Parse(apiKey.ProxyURL)
 		client = &http.Client{
@@ -536,7 +535,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	} else {
 		client = http.DefaultClient
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiURL, apiKey.Value, proxyURL, req.Model)
+	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiURL, apiKey.Value, apiKey.ProxyURL, req.Model)
 	switch session.Model.Platform {
 	case types.Azure:
 		request.Header.Set("api-key", apiKey.Value)
