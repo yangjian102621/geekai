@@ -163,7 +163,7 @@ func (c *PlusClient) Upscale(task types.MjTask) (ImageRes, error) {
 		"customId": fmt.Sprintf("MJ::JOB::upsample::%d::%s", task.Index, task.MessageHash),
 		"taskId":   task.MessageId,
 	}
-	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
+	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/action", c.Config.Mode, c.apiURL)
 	var res ImageRes
 	var errRes ErrRes
 	r, err := c.client.R().
@@ -189,7 +189,7 @@ func (c *PlusClient) Variation(task types.MjTask) (ImageRes, error) {
 		"customId": fmt.Sprintf("MJ::JOB::variation::%d::%s", task.Index, task.MessageHash),
 		"taskId":   task.MessageId,
 	}
-	apiURL := fmt.Sprintf("%s/mj/submit/action", c.apiURL)
+	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/action", c.Config.Mode, c.apiURL)
 	var res ImageRes
 	var errRes ErrRes
 	r, err := req.C().R().
