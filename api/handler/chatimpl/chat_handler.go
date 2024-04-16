@@ -466,15 +466,14 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 // useOwnApiKey: 是否使用了用户自己的 API KEY
 func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, session *types.ChatSession, apiKey *model.ApiKey) (*http.Response, error) {
 	// if the chat model bind a KEY, use it directly
-	var res *gorm.DB
 	if session.Model.KeyId > 0 {
-		res = h.DB.Where("id", session.Model.KeyId).Find(apiKey)
+		h.DB.Debug().Where("id", session.Model.KeyId).Find(apiKey)
 	}
 	// use the last unused key
-	if res.Error != nil {
-		res = h.DB.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+	if apiKey.Id == 0 {
+		h.DB.Debug().Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
 	}
-	if res.Error != nil {
+	if apiKey.Id == 0 {
 		return nil, errors.New("no available key, please import key")
 	}
 	var apiURL string
