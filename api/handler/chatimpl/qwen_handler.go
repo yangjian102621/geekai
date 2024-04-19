@@ -82,10 +82,11 @@ func (h *ChatHandler) sendQWenMessage(
 				continue
 			}
 
-			if strings.HasPrefix(line, "data:") {
-				content = line[5:]
+			if !strings.HasPrefix(line, "data:") {
+				continue
 			}
 
+			content = line[5:]
 			var resp qWenResp
 			if len(contents) == 0 { // 发送消息头
 				if !outPutStart {
