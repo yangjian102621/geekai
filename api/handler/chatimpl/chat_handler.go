@@ -336,10 +336,12 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	if session.Model.Platform == types.QWen {
-		req.Input = map[string]interface{}{"prompt": prompt}
-		if len(reqMgs) > 0 {
-			req.Input["messages"] = reqMgs
-		}
+		req.Input = make(map[string]interface{})
+		reqMgs = append(reqMgs, types.Message{
+			Role:    "user",
+			Content: prompt,
+		})
+		req.Input["messages"] = reqMgs
 	} else if session.Model.Platform == types.OpenAI { // extract image for gpt-vision model
 		imgURLs := utils.ExtractImgURL(prompt)
 		logger.Debugf("detected IMG: %+v", imgURLs)
