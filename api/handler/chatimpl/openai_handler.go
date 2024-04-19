@@ -65,6 +65,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		var toolCall = false
 		var arguments = make([]string, 0)
 		scanner := bufio.NewScanner(response.Body)
+		var isNew = true
 		for scanner.Scan() {
 			line := scanner.Text()
 			if !strings.Contains(line, "data:") || len(line) < 30 {
@@ -117,13 +118,16 @@ func (h *ChatHandler) sendOpenAiMessage(
 			// 初始化 role
 			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
 				message.Role = responseBody.Choices[0].Delta.Role
-				utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 				continue
 			} else if responseBody.Choices[0].FinishReason != "" {
 				break // 输出完成或者输出中断了
 			} else {
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
+				if isNew {
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+					isNew = false
+				}
 				utils.ReplyChunkMessage(ws, types.WsMessage{
 					Type:    types.WsMiddle,
 					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
