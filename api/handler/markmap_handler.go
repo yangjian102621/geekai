@@ -74,6 +74,7 @@ func (h *MarkMapHandler) Client(c *gin.Context) {
 			logger.Info("Receive a message: ", message.Content)
 			err = h.sendMessage(client, utils.InterfaceToString(message.Content), modelId, userId)
 			if err != nil {
+				logger.Error(err)
 				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsErr, Content: err.Error()})
 			}
 
@@ -102,7 +103,7 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 	}
 
 	messages := make([]interface{}, 0)
-	messages = append(messages, types.Message{Role: "system", Content: "你是一位非常优秀的思维导图助手，你会把用户的所有提问都总结成思维导图，然后以 Markdown 格式输出。只输出 Markdown 内容，不要输出任何解释性的语句。"})
+	messages = append(messages, types.Message{Role: "system", Content: "你是一位非常优秀的思维导图助手，你会把用户的所有提问都总结成思维导图，然后以 Markdown 格式输出。不要输出任何解释性的语句。"})
 	messages = append(messages, types.Message{Role: "user", Content: prompt})
 	var req = types.ApiRequest{
 		Model:    chatModel.Value,

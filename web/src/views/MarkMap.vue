@@ -102,14 +102,14 @@ const rightBoxHeight = ref(window.innerHeight - 85)
 const prompt = ref("")
 const text = ref(`# Geek-AI 助手
 
-* 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
-* 基于 Websocket 实现，完美的打字机体验。
-* 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。
-* 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
-* 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
-* 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
-* 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。
-* 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。
+- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
+- 基于 Websocket 实现，完美的打字机体验。
+- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。
+- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
+- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
+- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
+- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。
+- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。
 `)
 const md = require('markdown-it')({breaks: true});
 const content = ref(text.value)
@@ -170,6 +170,7 @@ const processContent = (text) => {
     if (line.indexOf("```") !== -1) {
       continue
     }
+    line = line.replace(/([*_~`>])|(\d+\.)\s/g, '')
     arr.push(line)
   }
   return arr.join("\n")
@@ -240,6 +241,7 @@ const connect = (userId) => {
             break
           case "end":
             loading.value = false
+            content.value = processContent(text.value)
             nextTick(() => update())
             break
           case "error":
@@ -266,6 +268,8 @@ const generate = () => {
 
 // 使用 AI 智能生成
 const generateAI = () => {
+  html.value = ''
+  text.value = ''
   if (prompt.value === '') {
     return ElMessage.error("请输入你的需求")
   }
