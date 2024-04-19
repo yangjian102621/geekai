@@ -30,6 +30,7 @@ type AppConfig struct {
 }
 
 type SmtpConfig struct {
+	UseTls   bool // 是否使用 TLS 发送
 	Host     string
 	Port     int
 	AppName  string // 应用名称
