@@ -94,7 +94,7 @@ import {loadCSS, loadJS} from 'markmap-common';
 import {Transformer} from 'markmap-lib';
 import {checkSession} from "@/action/session";
 import {httpGet} from "@/utils/http";
-import {ElMessage, ElMessageBox} from "element-plus";
+import {ElMessage} from "element-plus";
 
 const leftBoxHeight = ref(window.innerHeight - 105)
 const rightBoxHeight = ref(window.innerHeight - 85)

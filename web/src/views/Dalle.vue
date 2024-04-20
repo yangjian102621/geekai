@@ -568,18 +568,10 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        if (message === "FINISH") {
-          page.value = 1
-          fetchFinishJobs(page.value)
-          isOver.value = false
-        } else {
-          fetchRunningJobs()
-        }
-      }
+      fetchRunningJobs()
+      isOver.value = false
+      page.value = 1
+      fetchFinishJobs(page.value)
     }
   });
 
