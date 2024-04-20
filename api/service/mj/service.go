@@ -3,6 +3,7 @@ package mj
 import (
 	"chatplus/core/types"
 	"chatplus/service"
+	"chatplus/service/sd"
 	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/utils"
@@ -105,7 +106,7 @@ func (s *Service) Run() {
 			// update the task progress
 			s.db.Updates(&job)
 			// 任务失败，通知前端
-			s.notifyQueue.RPush(task.UserId)
+			s.notifyQueue.RPush(sd.NotifyMessage{UserId: task.UserId, JobId: int(job.Id), Message: sd.Failed})
 			continue
 		}
 		logger.Infof("任务提交成功：%+v", res)
@@ -147,7 +148,7 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 			"progress": -1,
 			"err_msg":  task.FailReason,
 		})
-		s.notifyQueue.RPush(job.UserId)
+		s.notifyQueue.RPush(sd.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: sd.Failed})
 		return fmt.Errorf("task failed: %v", task.FailReason)
 	}
 
@@ -166,7 +167,11 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 	}
 	// 通知前端更新任务进度
 	if oldProgress != job.Progress {
-		s.notifyQueue.RPush(job.UserId)
+		message := sd.Running
+		if job.Progress == 100 {
+			message = sd.Finished
+		}
+		s.notifyQueue.RPush(sd.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: message})
 	}
 	return nil
 }

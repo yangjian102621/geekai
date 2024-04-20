@@ -81,7 +81,7 @@ func (s *Service) Run() {
 				"err_msg":  err.Error(),
 			})
 			// 通知前端，任务失败
-			s.notifyQueue.RPush(task.UserId)
+			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Failed})
 			continue
 		}
 	}
@@ -189,13 +189,13 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 					"progress": -1,
 					"err_msg":  err.Error(),
 				})
-				s.notifyQueue.RPush(task.UserId)
+				s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Failed})
 				return err
 			}
 
 			// task finished
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", 100)
-			s.notifyQueue.RPush(task.UserId)
+			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Finished})
 			// 从 leveldb 中删除预览图片数据
 			_ = s.leveldb.Delete(task.Params.TaskId)
 			return nil
@@ -205,7 +205,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 			if err == nil && resp.Progress > 0 {
 				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", int(resp.Progress*100))
 				// 发送更新状态信号
-				s.notifyQueue.RPush(task.UserId)
+				s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Running})
 				// 保存预览图片数据
 				if resp.CurrentImage != "" {
 					_ = s.leveldb.Put(task.Params.TaskId, resp.CurrentImage)

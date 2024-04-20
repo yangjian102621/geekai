@@ -68,6 +68,12 @@ const routes = [
                 meta: {title: '思维导图'},
                 component: () => import('@/views/MarkMap.vue'),
             },
+            {
+                name: 'dalle',
+                path: '/dalle',
+                meta: {title: 'DALLE-3'},
+                component: () => import('@/views/Dalle.vue'),
+            },
         ]
     },
     {

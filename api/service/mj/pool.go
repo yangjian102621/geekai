@@ -4,6 +4,7 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/service/oss"
+	"chatplus/service/sd"
 	"chatplus/store"
 	"chatplus/store/model"
 	"fmt"
@@ -69,16 +70,16 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 func (p *ServicePool) CheckTaskNotify() {
 	go func() {
 		for {
-			var userId uint
-			err := p.notifyQueue.LPop(&userId)
+			var message sd.NotifyMessage
+			err := p.notifyQueue.LPop(&message)
 			if err != nil {
 				continue
 			}
-			cli := p.Clients.Get(userId)
+			cli := p.Clients.Get(uint(message.UserId))
 			if cli == nil {
 				continue
 			}
-			err = cli.Send([]byte("Task Updated"))
+			err = cli.Send([]byte(message.Message))
 			if err != nil {
 				continue
 			}
@@ -127,7 +128,7 @@ func (p *ServicePool) DownloadImages() {
 				if cli == nil {
 					continue
 				}
-				err = cli.Send([]byte("Task Updated"))
+				err = cli.Send([]byte(sd.Finished))
 				if err != nil {
 					continue
 				}
