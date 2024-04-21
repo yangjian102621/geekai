@@ -8,6 +8,7 @@ import (
 	"chatplus/utils/resp"
 	"context"
 	"fmt"
+	"github.com/chai2010/webp"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
@@ -16,7 +17,6 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -215,6 +215,8 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/invite/hits" ||
 		c.Request.URL.Path == "/api/sd/imgWall" ||
 		c.Request.URL.Path == "/api/sd/client" ||
+		c.Request.URL.Path == "/api/dall/imgWall" ||
+		c.Request.URL.Path == "/api/dall/client" ||
 		c.Request.URL.Path == "/api/config/get" ||
 		c.Request.URL.Path == "/api/product/list" ||
 		c.Request.URL.Path == "/api/menu/list" ||
@@ -328,6 +330,10 @@ func staticResourceMiddleware() gin.HandlerFunc {
 
 			// 解码图片
 			img, _, err := image.Decode(file)
+			// for .webp image
+			if err != nil {
+				img, err = webp.Decode(file)
+			}
 			if err != nil {
 				c.String(http.StatusInternalServerError, "Error decoding image")
 				return
@@ -344,7 +350,9 @@ func staticResourceMiddleware() gin.HandlerFunc {
 			var buffer bytes.Buffer
 			err = jpeg.Encode(&buffer, newImg, &jpeg.Options{Quality: quality})
 			if err != nil {
-				log.Fatal(err)
+				logger.Error(err)
+				c.String(http.StatusInternalServerError, err.Error())
+				return
 			}
 
 			// 设置图片缓存有效期为一年 (365天)

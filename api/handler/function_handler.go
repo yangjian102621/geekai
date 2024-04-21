@@ -3,27 +3,35 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service/dalle"
 	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 )
 
 type FunctionHandler struct {
 	BaseHandler
 	config        types.ChatPlusApiConfig
 	uploadManager *oss.UploaderManager
+	dallService   *dalle.Service
 }
 
-func NewFunctionHandler(server *core.AppServer, db *gorm.DB, config *types.AppConfig, manager *oss.UploaderManager) *FunctionHandler {
+func NewFunctionHandler(
+	server *core.AppServer,
+	db *gorm.DB,
+	config *types.AppConfig,
+	manager *oss.UploaderManager,
+	dallService *dalle.Service) *FunctionHandler {
 	return &FunctionHandler{
 		BaseHandler: BaseHandler{
 			App: server,
@@ -31,6 +39,7 @@ func NewFunctionHandler(server *core.AppServer, db *gorm.DB, config *types.AppCo
 		},
 		config:        config.ApiConfig,
 		uploadManager: manager,
+		dallService:   dallService,
 	}
 }
 
@@ -151,30 +160,6 @@ func (h *FunctionHandler) ZaoBao(c *gin.Context) {
 	resp.SUCCESS(c, strings.Join(builder, "\n\n"))
 }
 
-type imgReq struct {
-	Model  string `json:"model"`
-	Prompt string `json:"prompt"`
-	N      int    `json:"n"`
-	Size   string `json:"size"`
-}
-
-type imgRes struct {
-	Created int64 `json:"created"`
-	Data    []struct {
-		RevisedPrompt string `json:"revised_prompt"`
-		Url           string `json:"url"`
-	} `json:"data"`
-}
-
-type ErrRes struct {
-	Error struct {
-		Code    interface{} `json:"code"`
-		Message string      `json:"message"`
-		Param   interface{} `json:"param"`
-		Type    string      `json:"type"`
-	} `json:"error"`
-}
-
 // Dall3 DallE3 AI 绘图
 func (h *FunctionHandler) Dall3(c *gin.Context) {
 	if err := h.checkAuth(c); err != nil {
@@ -190,84 +175,39 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	logger.Debugf("绘画参数：%+v", params)
 	var user model.User
-	tx := h.DB.Where("id = ?", params["user_id"]).First(&user)
-	if tx.Error != nil {
+	res := h.DB.Where("id = ?", params["user_id"]).First(&user)
+	if res.Error != nil {
 		resp.ERROR(c, "当前用户不存在！")
 		return
 	}
 
-	if user.Power < h.App.SysConfig.DallPower {
-		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
-		return
-	}
-
+	// create dall task
 	prompt := utils.InterfaceToString(params["prompt"])
-	// get image generation API KEY
-	var apiKey model.ApiKey
-	tx = h.DB.Where("platform = ?", types.OpenAI).Where("type = ?", "img").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
-	if tx.Error != nil {
-		resp.ERROR(c, "获取绘图 API KEY 失败: "+tx.Error.Error())
+	job := model.DallJob{
+		UserId: user.Id,
+		Prompt: prompt,
+		Power:  h.App.SysConfig.DallPower,
+	}
+	res = h.DB.Create(&job)
+
+	if res.Error != nil {
+		resp.ERROR(c, "创建 DALL-E 绘图任务失败："+res.Error.Error())
 		return
 	}
 
-	// translate prompt
-	const translatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
-	pt, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(translatePromptTemplate, params["prompt"]))
-	if err == nil {
-		logger.Debugf("翻译绘画提示词，原文：%s，译文：%s", prompt, pt)
-		prompt = pt
-	}
-	var res imgRes
-	var errRes ErrRes
-	var request *req.Request
-	if len(apiKey.ProxyURL) > 5 {
-		request = req.C().SetProxyURL(apiKey.ProxyURL).R()
-	} else {
-		request = req.C().R()
-	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, apiKey.ProxyURL)
-	r, err := request.SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+apiKey.Value).
-		SetBody(imgReq{
-			Model:  "dall-e-3",
-			Prompt: prompt,
-			N:      1,
-			Size:   "1024x1024",
-		}).
-		SetErrorResult(&errRes).
-		SetSuccessResult(&res).Post(apiKey.ApiURL)
-	if r.IsErrorState() {
-		resp.ERROR(c, "请求 OpenAI API 失败: "+errRes.Error.Message)
-		return
-	}
-	// 更新 API KEY 的最后使用时间
-	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
-	logger.Debugf("%+v", res)
-	// 存储图片
-	imgURL, err := h.uploadManager.GetUploadHandler().PutImg(res.Data[0].Url, false)
+	content, err := h.dallService.Image(types.DallTask{
+		JobId:   job.Id,
+		UserId:  user.Id,
+		Prompt:  job.Prompt,
+		N:       1,
+		Quality: "standard",
+		Size:    "1024x1024",
+		Style:   "vivid",
+		Power:   job.Power,
+	}, true)
 	if err != nil {
-		resp.ERROR(c, "下载图片失败: "+err.Error())
+		resp.ERROR(c, "任务执行失败："+err.Error())
 		return
-	}
-
-	content := fmt.Sprintf("下面是根据您的描述创作的图片，它描绘了 【%s】 的场景。 \n\n![](%s)\n", prompt, imgURL)
-	// 更新用户算力
-	tx = h.DB.Model(&model.User{}).Where("id", user.Id).UpdateColumn("power", gorm.Expr("power - ?", h.App.SysConfig.DallPower))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		var u model.User
-		h.DB.Where("id", user.Id).First(&u)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    h.App.SysConfig.DallPower,
-			Balance:   u.Power,
-			Mark:      types.PowerSub,
-			Model:     "dall-e-3",
-			Remark:    fmt.Sprintf("绘画提示词：%s", utils.CutWords(prompt, 10)),
-			CreatedAt: time.Now(),
-		})
 	}
 
 	resp.SUCCESS(c, content)

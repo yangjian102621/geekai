@@ -3,15 +3,12 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
-	"chatplus/service"
+	"chatplus/service/dalle"
 	"chatplus/service/oss"
-	"chatplus/service/sd"
-	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -22,21 +19,17 @@ import (
 	"gorm.io/gorm"
 )
 
-type SdJobHandler struct {
+type DallJobHandler struct {
 	BaseHandler
-	redis     *redis.Client
-	pool      *sd.ServicePool
-	uploader  *oss.UploaderManager
-	snowflake *service.Snowflake
-	leveldb   *store.LevelDB
+	redis    *redis.Client
+	service  *dalle.Service
+	uploader *oss.UploaderManager
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
-	return &SdJobHandler{
-		pool:      pool,
-		uploader:  manager,
-		snowflake: snowflake,
-		leveldb:   levelDB,
+func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service, manager *oss.UploaderManager) *DallJobHandler {
+	return &DallJobHandler{
+		service:  service,
+		uploader: manager,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -45,7 +38,7 @@ func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, man
 }
 
 // Client WebSocket 客户端，用于通知任务状态变更
-func (h *SdJobHandler) Client(c *gin.Context) {
+func (h *DallJobHandler) Client(c *gin.Context) {
 	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		logger.Error(err)
@@ -61,19 +54,36 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.pool.Clients.Put(uint(userId), client)
+	h.service.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
+	go func() {
+		for {
+			_, msg, err := client.Receive()
+			if err != nil {
+				client.Close()
+				h.service.Clients.Delete(uint(userId))
+				return
+			}
+
+			var message types.WsMessage
+			err = utils.JsonDecode(string(msg), &message)
+			if err != nil {
+				continue
+			}
+
+			// 心跳消息
+			if message.Type == "heartbeat" {
+				logger.Debug("收到 DallE 心跳消息：", message.Content)
+				continue
+			}
+		}
+	}()
 }
 
-func (h *SdJobHandler) preCheck(c *gin.Context) bool {
+func (h *DallJobHandler) preCheck(c *gin.Context) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
-		return false
-	}
-
-	if !h.pool.HasAvailableService() {
-		resp.ERROR(c, "Stable-Diffusion 池子中没有没有可用的服务！")
 		return false
 	}
 
@@ -87,72 +97,23 @@ func (h *SdJobHandler) preCheck(c *gin.Context) bool {
 }
 
 // Image 创建一个绘画任务
-func (h *SdJobHandler) Image(c *gin.Context) {
+func (h *DallJobHandler) Image(c *gin.Context) {
 	if !h.preCheck(c) {
 		return
 	}
 
-	var data struct {
-		SessionId string `json:"session_id"`
-		types.SdTaskParams
-	}
+	var data types.DallTask
 	if err := c.ShouldBindJSON(&data); err != nil || data.Prompt == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	if data.Width <= 0 {
-		data.Width = 512
-	}
-	if data.Height <= 0 {
-		data.Height = 512
-	}
-	if data.CfgScale <= 0 {
-		data.CfgScale = 7
-	}
-	if data.Seed == 0 {
-		data.Seed = -1
-	}
-	if data.Steps <= 0 {
-		data.Steps = 20
-	}
-	if data.Sampler == "" {
-		data.Sampler = "Euler a"
-	}
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
-	taskId, err := h.snowflake.Next(true)
-	if err != nil {
-		resp.ERROR(c, "error with generate task id: "+err.Error())
-		return
-	}
-	params := types.SdTaskParams{
-		TaskId:       taskId,
-		Prompt:       data.Prompt,
-		NegPrompt:    data.NegPrompt,
-		Steps:        data.Steps,
-		Sampler:      data.Sampler,
-		FaceFix:      data.FaceFix,
-		CfgScale:     data.CfgScale,
-		Seed:         data.Seed,
-		Height:       data.Height,
-		Width:        data.Width,
-		HdFix:        data.HdFix,
-		HdRedrawRate: data.HdRedrawRate,
-		HdScale:      data.HdScale,
-		HdScaleAlg:   data.HdScaleAlg,
-		HdSteps:      data.HdSteps,
-	}
-
-	job := model.SdJob{
-		UserId:    userId,
-		Type:      types.TaskImage.String(),
-		TaskId:    params.TaskId,
-		Params:    utils.JsonEncode(params),
-		Prompt:    data.Prompt,
-		Progress:  0,
-		Power:     h.App.SysConfig.SdPower,
-		CreatedAt: time.Now(),
+	job := model.DallJob{
+		UserId: uint(userId),
+		Prompt: data.Prompt,
+		Power:  h.App.SysConfig.DallPower,
 	}
 	res := h.DB.Create(&job)
 	if res.Error != nil {
@@ -160,42 +121,25 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.pool.PushTask(types.SdTask{
-		Id:        int(job.Id),
-		SessionId: data.SessionId,
-		Type:      types.TaskImage,
-		Params:    params,
-		UserId:    userId,
+	h.service.PushTask(types.DallTask{
+		JobId:   job.Id,
+		UserId:  uint(userId),
+		Prompt:  data.Prompt,
+		Quality: data.Quality,
+		Size:    data.Size,
+		Style:   data.Style,
+		Power:   job.Power,
 	})
 
-	client := h.pool.Clients.Get(uint(job.UserId))
+	client := h.service.Clients.Get(job.UserId)
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
-
-	// update user's power
-	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := h.GetLoginUser(c)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    job.Power,
-			Balance:   user.Power - job.Power,
-			Mark:      types.PowerSub,
-			Model:     "stable-diffusion",
-			Remark:    fmt.Sprintf("绘图操作，任务ID：%s", job.TaskId),
-			CreatedAt: time.Now(),
-		})
-	}
-
 	resp.SUCCESS(c)
 }
 
 // ImgWall 照片墙
-func (h *SdJobHandler) ImgWall(c *gin.Context) {
+func (h *DallJobHandler) ImgWall(c *gin.Context) {
 	page := h.GetInt(c, "page", 0)
 	pageSize := h.GetInt(c, "page_size", 0)
 	err, jobs := h.getData(true, 0, page, pageSize, true)
@@ -208,7 +152,7 @@ func (h *SdJobHandler) ImgWall(c *gin.Context) {
 }
 
 // JobList 获取 SD 任务列表
-func (h *SdJobHandler) JobList(c *gin.Context) {
+func (h *DallJobHandler) JobList(c *gin.Context) {
 	status := h.GetBool(c, "status")
 	userId := h.GetLoginUserId(c)
 	page := h.GetInt(c, "page", 0)
@@ -224,8 +168,8 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 	resp.SUCCESS(c, jobs)
 }
 
-// JobList 获取 MJ 任务列表
-func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.SdJob) {
+// JobList 获取任务列表
+func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.DallJob) {
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
@@ -244,26 +188,22 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		session = session.Offset(offset).Limit(pageSize)
 	}
 
-	var items []model.SdJob
+	var items []model.DallJob
 	res := session.Find(&items)
 	if res.Error != nil {
 		return res.Error, nil
 	}
 
-	var jobs = make([]vo.SdJob, 0)
+	var jobs = make([]vo.DallJob, 0)
 	for _, item := range items {
-		var job vo.SdJob
+		// delete failed or timeout tasks
+		if (item.Progress < 100 && time.Now().Sub(item.CreatedAt) > time.Minute*5) || item.Progress == -1 {
+			h.DB.Delete(&item)
+		}
+		var job vo.DallJob
 		err := utils.CopyObject(item, &job)
 		if err != nil {
 			continue
-		}
-
-		if item.Progress < 100 {
-			// 从 leveldb 中获取图片预览数据
-			imageData, err := h.leveldb.Get(item.TaskId)
-			if err == nil {
-				job.ImgURL = "data:image/png;base64," + string(imageData)
-			}
 		}
 		jobs = append(jobs, job)
 	}
@@ -272,7 +212,7 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 }
 
 // Remove remove task image
-func (h *SdJobHandler) Remove(c *gin.Context) {
+func (h *DallJobHandler) Remove(c *gin.Context) {
 	var data struct {
 		Id     uint   `json:"id"`
 		UserId uint   `json:"user_id"`
@@ -284,7 +224,7 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 	}
 
 	// remove job recode
-	res := h.DB.Delete(&model.SdJob{Id: data.Id})
+	res := h.DB.Delete(&model.DallJob{Id: data.Id})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
@@ -296,16 +236,11 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 		logger.Error("remove image failed: ", err)
 	}
 
-	client := h.pool.Clients.Get(data.UserId)
-	if client != nil {
-		_ = client.Send([]byte(sd.Finished))
-	}
-
 	resp.SUCCESS(c)
 }
 
 // Publish 发布/取消发布图片到画廊显示
-func (h *SdJobHandler) Publish(c *gin.Context) {
+func (h *DallJobHandler) Publish(c *gin.Context) {
 	var data struct {
 		Id     uint `json:"id"`
 		Action bool `json:"action"` // 发布动作，true => 发布，false => 取消分享
@@ -315,7 +250,7 @@ func (h *SdJobHandler) Publish(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.SdJob{Id: data.Id}).UpdateColumn("publish", true)
+	res := h.DB.Model(&model.DallJob{Id: data.Id}).UpdateColumn("publish", true)
 	if res.Error != nil {
 		resp.ERROR(c, "更新数据库失败")
 		return
