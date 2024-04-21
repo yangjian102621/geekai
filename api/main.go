@@ -159,6 +159,7 @@ func main() {
 			service.Run()
 			service.CheckTaskNotify()
 			service.DownloadImages()
+			service.CheckTaskStatus()
 		}),
 
 		// 邮件服务

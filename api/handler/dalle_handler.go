@@ -10,7 +10,6 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/websocket"
 
@@ -196,10 +195,6 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 
 	var jobs = make([]vo.DallJob, 0)
 	for _, item := range items {
-		// delete failed or timeout tasks
-		if (item.Progress < 100 && time.Now().Sub(item.CreatedAt) > time.Minute*5) || item.Progress == -1 {
-			h.DB.Delete(&item)
-		}
 		var job vo.DallJob
 		err := utils.CopyObject(item, &job)
 		if err != nil {

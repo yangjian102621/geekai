@@ -163,7 +163,6 @@ func (p *ServicePool) SyncTaskProgress() {
 			for _, job := range items {
 				// 失败或者 30 分钟还没完成的任务删除并退回算力
 				if time.Now().Sub(job.CreatedAt) > time.Minute*30 || job.Progress == -1 {
-					// 删除任务
 					p.db.Delete(&job)
 					// 退回算力
 					tx := p.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
@@ -190,7 +189,7 @@ func (p *ServicePool) SyncTaskProgress() {
 				}
 			}
 
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * 10)
 		}
 	}()
 }

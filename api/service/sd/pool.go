@@ -113,7 +113,7 @@ func (p *ServicePool) CheckTaskStatus() {
 					continue
 				}
 			}
-
+			time.Sleep(time.Second * 10)
 		}
 	}()
 }
