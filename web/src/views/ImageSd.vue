@@ -5,7 +5,7 @@
         <div class="sd-box">
           <h2>Stable Diffusion 创作中心</h2>
 
-          <div class="sd-params" :style="{ height: mjBoxHeight + 'px' }">
+          <div class="sd-params" :style="{ height: paramBoxHeight + 'px' }">
             <el-form :model="params" label-width="80px" label-position="left">
               <div class="param-line" style="padding-top: 10px">
                 <el-form-item label="采样方法">
@@ -254,8 +254,14 @@
               </div>
 
               <div class="text-info">
-                <el-tag>每次绘图消耗{{ sdPower }}算力</el-tag>
-                <el-tag type="success">当前可用算力：{{ power }}</el-tag>
+                <el-row :gutter="10">
+                  <el-col :span="12">
+                    <el-tag>单次绘图消耗{{ sdPower }}算力</el-tag>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-tag type="success">当前可用{{ power }}算力</el-tag>
+                  </el-col>
+                </el-row>
               </div>
 
             </el-form>
@@ -492,7 +498,7 @@ import {getSessionId} from "@/store/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 
 const listBoxHeight = ref(window.innerHeight - 40)
-const mjBoxHeight = ref(window.innerHeight - 150)
+const paramBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
@@ -501,7 +507,7 @@ const isLogin = ref(false)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
-  mjBoxHeight.value = window.innerHeight - 150
+  paramBoxHeight.value = window.innerHeight - 150
 }
 const samplers = ["Euler a", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
@@ -576,9 +582,8 @@ const connect = () => {
           page.value = 1
           fetchFinishJobs(page.value)
           isOver.value = false
-        } else {
-          fetchRunningJobs()
         }
+        fetchRunningJobs()
       }
     }
   });

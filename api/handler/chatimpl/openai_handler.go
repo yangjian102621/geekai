@@ -104,8 +104,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 				res := h.DB.Where("name = ?", tool.Function.Name).First(&function)
 				if res.Error == nil {
 					toolCall = true
+					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: callMsg})
+					contents = append(contents, callMsg)
 				}
 				continue
 			}

@@ -4,7 +4,7 @@
       <div class="mj-box">
         <h2>MidJourney 创作中心</h2>
 
-        <div class="mj-params" :style="{ height: mjBoxHeight + 'px' }">
+        <div class="mj-params" :style="{ height: paramBoxHeight + 'px' }">
           <el-form :model="params" label-width="80px" label-position="left">
             <div class="param-line pt">
               <span>图片比例：</span>
@@ -607,12 +607,12 @@ import {copyObj, removeArrayItem} from "@/utils/libs";
 import LoginDialog from "@/components/LoginDialog.vue";
 
 const listBoxHeight = ref(window.innerHeight - 40)
-const mjBoxHeight = ref(window.innerHeight - 150)
+const paramBoxHeight = ref(window.innerHeight - 150)
 const showLoginDialog = ref(false)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
-  mjBoxHeight.value = window.innerHeight - 150
+  paramBoxHeight.value = window.innerHeight - 150
 }
 const rates = [
   {css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png"},
@@ -733,9 +733,8 @@ const connect = () => {
           page.value = 1
           fetchFinishJobs(page.value)
           isOver.value = false
-        } else {
-          fetchRunningJobs()
         }
+        fetchRunningJobs()
       }
     }
   });
