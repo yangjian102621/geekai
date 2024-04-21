@@ -257,3 +257,44 @@ func (s *Service) downloadImage(jobId uint, userId int, orgURL string) (string, 
 	s.notifyQueue.RPush(sd.NotifyMessage{UserId: userId, JobId: int(jobId), Message: sd.Failed})
 	return imgURL, nil
 }
+
+// CheckTaskStatus 检查任务状态，自动删除过期或者失败的任务
+func (s *Service) CheckTaskStatus() {
+	go func() {
+		logger.Info("Running Stable-Diffusion task status checking ...")
+		for {
+			var jobs []model.SdJob
+			res := s.db.Where("progress < ?", 100).Find(&jobs)
+			if res.Error != nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			for _, job := range jobs {
+				// 5 分钟还没完成的任务直接删除
+				if time.Now().Sub(job.CreatedAt) > time.Minute*5 || job.Progress == -1 {
+					s.db.Delete(&job)
+					var user model.User
+					s.db.Where("id = ?", job.UserId).First(&user)
+					// 退回绘图次数
+					res = s.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
+					if res.Error == nil && res.RowsAffected > 0 {
+						s.db.Create(&model.PowerLog{
+							UserId:    user.Id,
+							Username:  user.Username,
+							Type:      types.PowerConsume,
+							Amount:    job.Power,
+							Balance:   user.Power + job.Power,
+							Mark:      types.PowerAdd,
+							Model:     "dall-e-3",
+							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s", job.TaskId),
+							CreatedAt: time.Now(),
+						})
+					}
+					continue
+				}
+			}
+			time.Sleep(time.Second * 10)
+		}
+	}()
+}

@@ -184,12 +184,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	for {
 		select {
 		case err := <-errChan:
-			if err != nil { // task failed
-				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
-					"progress": -1,
-					"err_msg":  err.Error(),
-				})
-				s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Failed})
+			if err != nil {
 				return err
 			}
 
