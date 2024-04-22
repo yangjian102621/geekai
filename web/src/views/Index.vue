@@ -2,9 +2,24 @@
   <div class="index-page" :style="{height: winHeight+'px'}">
     <div class="content">
       <h1>欢迎使用 {{ title }}</h1>
-      <p>{{slogan}}</p>
-      <button class="btn" @click="router.push('/chat')">立即使用</button>
+      <p>{{ slogan }}</p>
+      <el-button @click="router.push('/chat')" color="#ffffff" style="color:#007bff" :dark="false">
+        <i class="iconfont icon-chat"></i>
+        <span>AI聊天</span>
+      </el-button>
+      <el-button @click="router.push('/mj')" color="#C4CCFD" style="color:#424282" :dark="false">
+        <i class="iconfont icon-mj"></i>
+        <span>AI-MJ绘画</span>
+      </el-button>
 
+      <el-button @click="router.push('/sd')" color="#4AE6DF" style="color:#424282" :dark="false">
+        <i class="iconfont icon-sd"></i>
+        <span>AI-SD绘画</span>
+      </el-button>
+      <el-button @click="router.push('/xmind')" color="#FFFD55" style="color:#424282" :dark="false">
+        <i class="iconfont icon-xmind"></i>
+        <span>思维导图</span>
+      </el-button>
       <div id="animation-container"></div>
     </div>
 
@@ -84,7 +99,7 @@ const init = () => {
           requestAnimationFrame(animate);
 
           // 使地球自转和公转
-          earth.rotation.y += 0.001;
+          earth.rotation.y += 0.0006;
 
           renderer.render(scene, camera);
         };
@@ -117,27 +132,25 @@ const init = () => {
   .content {
     text-align: center;
     position relative
+
     h1 {
       font-size: 5rem;
       margin-bottom: 1rem;
     }
+
     p {
       font-size: 1.5rem;
       margin-bottom: 2rem;
     }
 
-    .btn {
-      padding: 10px 20px;
-      background-color: #fff;
-      color: #007bff;
-      border: none;
-      border-radius: 5px;
+    .el-button {
+      padding: 25px 20px;
       font-size: 1.3rem;
-      cursor: pointer;
       transition: all 0.3s ease;
 
-      &:hover {
-        background-color: #e6e6e6;
+      .iconfont {
+        font-size 1.6rem
+        margin-right 10px
       }
     }
 
