@@ -295,9 +295,9 @@ const leftBoxHeight = ref(0);
 const loading = ref(true);
 const loginUser = ref(null);
 const roles = ref([]);
+const router = useRouter();
 const roleId = ref(0)
 const newChatItem = ref(null);
-const router = useRouter();
 const showConfigDialog = ref(false);
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
@@ -328,6 +328,7 @@ httpGet("/api/config/get?key=notice").then(res => {
       showNotice.value = true
     }
   } catch (e) {
+    console.warn(e)
   }
 
 }).catch(e => {
@@ -376,7 +377,8 @@ const initData = () => {
         // 加载角色列表
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
-          roleId.value = roles.value[0]['id'];
+          console.log()
+          roleId.value = parseInt(router.currentRoute.value.params["role_id"]) ?? roles.value[0]['id'];
           newChat();
         }).catch((e) => {
           ElMessage.error('获取聊天角色失败: ' + e.messages)

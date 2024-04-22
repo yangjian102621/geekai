@@ -12,14 +12,10 @@
               <div class="title">
                 <span class="name">{{ scope.item.name }}</span>
                 <div class="opt">
-
-                  <el-button v-if="hasRole(scope.item.key)" size="small" type="danger"
-                             @click="updateRole(scope.item,'remove')">
-                    <el-icon>
-                      <Delete/>
-                    </el-icon>
-                    <span>移除应用</span>
-                  </el-button>
+                  <div v-if="hasRole(scope.item.key)">
+                    <el-button size="small" type="success" @click="useRole(scope.item.id)">使用</el-button>
+                    <el-button size="small" type="danger" @click="updateRole(scope.item,'remove')">移除</el-button>
+                  </div>
                   <el-button v-else size="small"
                              style="--el-color-primary:#009999"
                              @click="updateRole(scope.item, 'add')">
@@ -47,10 +43,11 @@ import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
-import {Delete, Plus} from "@element-plus/icons-vue";
+import {Plus} from "@element-plus/icons-vue";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
+import {useRouter} from "vue-router";
 
 const listBoxHeight = window.innerHeight - 97
 const list = ref([])
@@ -110,6 +107,11 @@ const updateRole = (row, opt) => {
 
 const hasRole = (roleKey) => {
   return arrayContains(roles.value, roleKey, (v1, v2) => v1 === v2)
+}
+
+const router = useRouter()
+const useRole = (roleId) => {
+  router.push({name: "chat", params: {role_id: roleId}})
 }
 </script>
 
