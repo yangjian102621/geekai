@@ -70,11 +70,20 @@
         </div>
 
         <div class="right-box">
-          <h2>思维导图</h2>
+          <div class="top-bar">
+            <h2>思维导图</h2>
+            <el-button @click="downloadImage" type="primary">
+              <el-icon>
+                <Download/>
+              </el-icon>
+              <span>下载图片</span>
+            </el-button>
+          </div>
+
           <div class="markdown" v-if="loading">
             <div v-html="html"></div>
           </div>
-          <div class="body" v-show="!loading">
+          <div class="body" id="markmap" v-show="!loading">
             <svg ref="svgRef" :style="{ height: rightBoxHeight + 'px' }"/>
           </div>
         </div><!-- end task list box -->
@@ -95,6 +104,7 @@ import {Transformer} from 'markmap-lib';
 import {checkSession} from "@/action/session";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {Download} from "@element-plus/icons-vue";
 
 const leftBoxHeight = ref(window.innerHeight - 105)
 const rightBoxHeight = ref(window.innerHeight - 85)
@@ -284,6 +294,32 @@ const generateAI = () => {
 const changeModel = () => {
   if (socket.value !== null) {
     socket.value.send(JSON.stringify({type: "model_id", content: modelID.value}))
+  }
+}
+
+// download SVG to png file
+const downloadImage = () => {
+  const svgElement = document.getElementById("markmap");
+  // 将 SVG 渲染到图片对象
+  const serializer = new XMLSerializer()
+  const source = '<?xml version="1.0" standalone="no"?>\r\n' + serializer.serializeToString(svgRef.value)
+  const image = new Image()
+  image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source)
+
+  // 将图片对象渲染
+  const canvas = document.createElement('canvas')
+  canvas.width = svgElement.offsetWidth
+  canvas.height = svgElement.offsetHeight
+  let context = canvas.getContext('2d')
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  image.onload = function () {
+    context.drawImage(image, 0, 0)
+    const a = document.createElement('a')
+    a.download = "geek-ai-xmind.png"
+    a.href = canvas.toDataURL(`image/png`)
+    a.click()
+
   }
 }
 

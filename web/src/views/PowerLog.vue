@@ -19,7 +19,12 @@
         </div>
 
         <el-row v-if="items.length > 0">
-          <el-table :data="items" :row-key="row => row.id" table-layout="auto" border>
+          <el-table :data="items" :row-key="row => row.id" table-layout="auto" border
+                    style="--el-table-border-color:#373C47;
+                --el-table-tr-bg-color:#2D323B;
+                --el-table-row-hover-bg-color:#373C47;
+                --el-table-header-bg-color:#474E5C;
+                --el-table-text-color:#d1d1d1">
             <el-table-column prop="username" label="用户"/>
             <el-table-column prop="model" label="模型"/>
             <el-table-column prop="type" label="类型">
@@ -119,8 +124,7 @@ const fetchData = () => {
 
 <style lang="stylus" scoped>
 .power-log {
-  background-color #ffffff
-
+  color #ffffff
   .inner {
     padding 0 20px 20px 20px
 

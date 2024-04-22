@@ -378,7 +378,12 @@ const initData = () => {
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
           console.log()
-          roleId.value = parseInt(router.currentRoute.value.params["role_id"]) ?? roles.value[0]['id'];
+          if (router.currentRoute.value.params.role_id) {
+            roleId.value = parseInt(router.currentRoute.value.params["role_id"])
+          } else {
+            roleId.value = roles.value[0]['id']
+          }
+
           newChat();
         }).catch((e) => {
           ElMessage.error('获取聊天角色失败: ' + e.messages)
