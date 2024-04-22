@@ -23,7 +23,7 @@
                 请选择生成思维导图的AI模型
               </div>
               <div class="param-line">
-                <el-select v-model="modelID" placeholder="请选择模型" @change="changeModel">
+                <el-select v-model="modelID" placeholder="请选择模型" @change="changeModel" style="width:100%">
                   <el-option
                       v-for="item in models"
                       :key="item.id"
