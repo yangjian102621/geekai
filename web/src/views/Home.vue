@@ -6,12 +6,36 @@
         <div class="divider"></div>
       </div>
       <ul class="nav-items">
-        <li v-for="item in navs" :key="item.url">
+        <li v-for="item in mainNavs" :key="item.url">
           <a @click="changeNav(item)" :class="item.url === curPath ? 'active' : ''">
             <el-image :src="item.icon" style="width: 30px;height: 30px"/>
           </a>
           <div :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</div>
         </li>
+
+        <el-popover
+            v-if="moreNavs.length > 0"
+            placement="right-end"
+            trigger="hover"
+        >
+          <template #reference>
+            <li>
+              <a class="active">
+                <el-image src="/images/menu/more.png" style="width: 30px;height: 30px"/>
+              </a>
+            </li>
+          </template>
+          <template #default>
+            <ul class="more-menus">
+              <li v-for="item in moreNavs" :key="item.url" :class="item.url === curPath ? 'active' : ''">
+                <a @click="changeNav(item)">
+                  <el-image :src="item.icon" style="width: 20px;height: 20px"/>
+                  <span :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</span>
+                </a>
+              </li>
+            </ul>
+          </template>
+        </el-popover>
       </ul>
     </div>
     <div class="content">
@@ -33,7 +57,8 @@ import {ElMessage} from "element-plus";
 
 const router = useRouter();
 const logo = ref('/images/logo.png');
-const navs = ref([])
+const mainNavs = ref([])
+const moreNavs = ref([])
 const curPath = ref(router.currentRoute.value.path)
 
 const changeNav = (item) => {
@@ -49,7 +74,11 @@ onMounted(() => {
   })
   // 获取菜单
   httpGet("/api/menu/list").then(res => {
-    navs.value = res.data
+    mainNavs.value = res.data
+    if (res.data.length > 7) {
+      mainNavs.value = res.data.slice(0, 7)
+      moreNavs.value = res.data.slice(7)
+    }
   }).catch(e => {
     ElMessage.error("获取系统菜单失败：" + e.message)
   })
@@ -132,6 +161,7 @@ onMounted(() => {
         }
       }
     }
+
   }
 
   .content {
@@ -141,5 +171,30 @@ onMounted(() => {
     background-color #282c34
   }
 
+}
+
+.el-popper {
+  .more-menus {
+    li {
+      padding 10px 15px
+      cursor pointer
+      border-radius 5px
+      margin 5px 0
+
+      .el-image {
+        position: relative
+        top 5px
+        right 5px
+      }
+
+      &:hover {
+        background-color #f1f1f1
+      }
+    }
+
+    li.active {
+      background-color #f1f1f1
+    }
+  }
 }
 </style>

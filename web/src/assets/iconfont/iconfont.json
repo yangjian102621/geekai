@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1421807",
+      "name": "更多",
+      "font_class": "more",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    },
+    {
       "icon_id": "36264781",
       "name": "MidJourney",
       "font_class": "mj",

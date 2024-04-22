@@ -69,7 +69,7 @@
 <script setup>
 import {onMounted, ref} from "vue"
 import {dateFormat} from "@/utils/libs";
-import {Back, DocumentCopy, Search} from "@element-plus/icons-vue";
+import {Search} from "@element-plus/icons-vue";
 import Clipboard from "clipboard";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
@@ -84,7 +84,7 @@ const query = ref({
   model: "",
   date: []
 })
-const tagColors = ref(["", "success", "primary", "danger", "info", "warning"])
+const tagColors = ref(["", "success", "", "danger", "info", "warning"])
 
 onMounted(() => {
   fetchData()
