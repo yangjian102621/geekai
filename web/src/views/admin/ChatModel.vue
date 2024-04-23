@@ -152,7 +152,7 @@
         </el-form-item>
 
         <el-form-item label="绑定API-KEY：" prop="apikey">
-          <el-select v-model="item.key_id" placeholder="请选择 API KEY">
+          <el-select v-model="item.key_id" placeholder="请选择 API KEY" clearable>
             <el-option v-for="v in apiKeys" :value="v.id" :label="v.name" :key="v.id">
               {{ v.name }}
               <el-text type="info" size="small">{{ substr(v.api_url, 50) }}</el-text>
@@ -313,7 +313,8 @@ const save = function () {
     }
     if (valid) {
       showDialog.value = false
-      httpPost('/api/admin/model/save', item.value).then((res) => {
+      item.value.key_id = parseInt(item.value.key_id)
+      httpPost('/api/admin/model/save', item.value).then(() => {
         ElMessage.success('操作成功！')
         fetchData()
       }).catch((e) => {

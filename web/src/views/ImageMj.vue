@@ -937,8 +937,6 @@ const generate = () => {
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
     power.value -= mjPower.value
-   //params.value = copyObj(initParams)
-    imgList.value = []
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

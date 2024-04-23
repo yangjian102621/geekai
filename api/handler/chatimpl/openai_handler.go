@@ -34,22 +34,16 @@ func (h *ChatHandler) sendOpenAiMessage(
 	response, err := h.doRequest(ctx, req, session, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {
+		logger.Error(err)
 		if strings.Contains(err.Error(), "context canceled") {
 			logger.Info("用户取消了请求：", prompt)
 			return nil
 		} else if strings.Contains(err.Error(), "no available key") {
 			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 			return nil
-		} else {
-			logger.Error(err)
 		}
 
-		utils.ReplyMessage(ws, ErrorMsg)
-		utils.ReplyMessage(ws, ErrImg)
-		if response.Body != nil {
-			all, _ := io.ReadAll(response.Body)
-			logger.Error(string(all))
-		}
+		utils.ReplyMessage(ws, err.Error())
 		return err
 	} else {
 		defer response.Body.Close()
@@ -78,6 +72,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 				logger.Error(err, line)
 				utils.ReplyMessage(ws, ErrorMsg)
 				utils.ReplyMessage(ws, ErrImg)
+				break
+			}
+			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
+				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
 			}
 
