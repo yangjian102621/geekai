@@ -190,8 +190,10 @@ func (h *MarkMapHandler) doRequest(req types.ApiRequest, chatModel model.ChatMod
 		res = h.DB.Where("id", chatModel.KeyId).Find(apiKey)
 	}
 	// use the last unused key
-	if res.Error != nil {
-		res = h.DB.Where("platform = ?", types.OpenAI).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+	if apiKey.Id == 0 {
+		res = h.DB.Where("platform", types.OpenAI).
+			Where("type", "chat").
+			Where("enabled", true).Order("last_used_at ASC").First(apiKey)
 	}
 	if res.Error != nil {
 		return nil, errors.New("no available key, please import key")

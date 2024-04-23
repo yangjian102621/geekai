@@ -230,7 +230,6 @@ const connect = (userId) => {
   const _socket = new WebSocket(host + `/api/markMap/client?user_id=${userId}&model_id=${modelID.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
-
     // 发送心跳消息
     sendHeartbeat()
   });
