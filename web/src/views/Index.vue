@@ -1,5 +1,31 @@
 <template>
   <div class="index-page" :style="{height: winHeight+'px'}">
+    <div class="menu-box">
+      <el-menu
+          mode="horizontal"
+          :ellipsis="false"
+      >
+        <div class="menu-item">
+          <el-image :src="logo" alt="Geek-AI"/>
+          <div class="title">{{ title }}</div>
+        </div>
+        <div class="menu-item">
+          <a href="https://ai.r9it.com/docs/install/" target="_blank">
+            <el-button type="primary" round>
+              <i class="iconfont icon-book"></i>
+              <span>部署文档</span>
+            </el-button>
+          </a>
+
+          <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+            <el-button type="success" round>
+              <i class="iconfont icon-github"></i>
+              <span>项目源码</span>
+            </el-button>
+          </a>
+        </div>
+      </el-menu>
+    </div>
     <div class="content">
       <h1>欢迎使用 {{ title }}</h1>
       <p>{{ slogan }}</p>
@@ -41,13 +67,15 @@ import {ElMessage} from "element-plus";
 const router = useRouter()
 
 const title = ref("Geek-AI 创作系统")
+const logo = ref("/images/logo.png")
 const slogan = ref("我辈之人，先干为敬，陪您先把 AI 用起来")
 const size = Math.max(window.innerWidth * 0.5, window.innerHeight * 0.8)
 const winHeight = window.innerHeight - 150
 
 onMounted(() => {
   httpGet("/api/config/get?key=system").then(res => {
-    title.value = res.data['title']
+    title.value = res.data.title
+    logo.value = res.data.logo
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
@@ -112,6 +140,7 @@ const init = () => {
 </script>
 
 <style lang="stylus" scoped>
+@import '@/assets/iconfont/iconfont.css'
 .index-page {
   margin: 0
   background-color #007bff /* 科技蓝色背景 */
@@ -122,13 +151,46 @@ const init = () => {
   align-items baseline
   padding-top 150px
 
-  .container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
+  .menu-box {
+    position absolute
+    top 0
+    width 100%
+    display flex
+
+    .el-menu {
+      padding 0 30px
+      width 100%
+      display flex
+      justify-content space-between
+      background none
+      border none
+
+      .menu-item {
+        display flex
+        padding 20px 0
+
+        color #ffffff
+
+        .title {
+          font-size 24px
+          padding 10px 10px 0 10px
+        }
+
+        .el-image {
+          height 50px
+        }
+
+        .el-button {
+          margin-left 10px
+
+          span {
+            margin-left 5px
+          }
+        }
+      }
+    }
   }
+
   .content {
     text-align: center;
     position relative

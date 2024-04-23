@@ -6,6 +6,7 @@ import (
 	"chatplus/core/types"
 	"chatplus/handler"
 	logger2 "chatplus/logger"
+	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/store/model"
 	"chatplus/store/vo"
@@ -35,15 +36,17 @@ var logger = logger2.GetLogger()
 
 type ChatHandler struct {
 	handler.BaseHandler
-	redis         *redis.Client
-	uploadManager *oss.UploaderManager
+	redis          *redis.Client
+	uploadManager  *oss.UploaderManager
+	licenseService *service.LicenseService
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ChatHandler {
 	return &ChatHandler{
-		BaseHandler:   handler.BaseHandler{App: app, DB: db},
-		redis:         redis,
-		uploadManager: manager,
+		BaseHandler:    handler.BaseHandler{App: app, DB: db},
+		redis:          redis,
+		uploadManager:  manager,
+		licenseService: licenseService,
 	}
 }
 
@@ -478,6 +481,15 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	if apiKey.Id == 0 {
 		return nil, errors.New("no available key, please import key")
 	}
+
+	// ONLY allow apiURL in blank list
+	if session.Model.Platform == types.OpenAI {
+		err := h.licenseService.IsValidApiURL(apiKey.ApiURL)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var apiURL string
 	switch session.Model.Platform {
 	case types.Azure:

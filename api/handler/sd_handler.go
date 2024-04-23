@@ -260,9 +260,10 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 
 		if item.Progress < 100 {
 			// 从 leveldb 中获取图片预览数据
-			imageData, err := h.leveldb.Get(item.TaskId)
+			var imageData string
+			err = h.leveldb.Get(item.TaskId, &imageData)
 			if err == nil {
-				job.ImgURL = "data:image/png;base64," + string(imageData)
+				job.ImgURL = "data:image/png;base64," + imageData
 			}
 		}
 		jobs = append(jobs, job)

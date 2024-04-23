@@ -3,6 +3,7 @@ package mj
 import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
+	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/service/sd"
 	"chatplus/store"
@@ -26,7 +27,7 @@ type ServicePool struct {
 
 var logger = logger2.GetLogger()
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig, licenseService *service.LicenseService) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
@@ -35,13 +36,19 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		if config.Enabled == false {
 			continue
 		}
+		err := licenseService.IsValidApiURL(config.ApiURL)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		
 		cli := NewPlusClient(config)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
-		service := NewService(name, taskQueue, notifyQueue, db, cli)
+		plusService := NewService(name, taskQueue, notifyQueue, db, cli)
 		go func() {
-			service.Run()
+			plusService.Run()
 		}()
-		services = append(services, service)
+		services = append(services, plusService)
 	}
 
 	for k, config := range appConfig.MjProxyConfigs {
@@ -50,11 +57,11 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		}
 		cli := NewProxyClient(config)
 		name := fmt.Sprintf("mj-proxy-service-%d", k)
-		service := NewService(name, taskQueue, notifyQueue, db, cli)
+		proxyService := NewService(name, taskQueue, notifyQueue, db, cli)
 		go func() {
-			service.Run()
+			proxyService.Run()
 		}()
-		services = append(services, service)
+		services = append(services, proxyService)
 	}
 
 	return &ServicePool{

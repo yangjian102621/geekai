@@ -44,13 +44,13 @@ type AppLifecycle struct {
 
 // OnStart 应用程序启动时执行
 func (l *AppLifecycle) OnStart(context.Context) error {
-	log.Println("AppLifecycle OnStart")
+	logger.Info("AppLifecycle OnStart")
 	return nil
 }
 
 // OnStop 应用程序停止时执行
 func (l *AppLifecycle) OnStop(context.Context) error {
-	log.Println("AppLifecycle OnStop")
+	logger.Info("AppLifecycle OnStop")
 	return nil
 }
 
@@ -164,6 +164,8 @@ func main() {
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
+		// License 服务
+		fx.Provide(service.NewLicenseService),
 
 		// 微信机器人服务
 		fx.Provide(wx.NewWeChatBot),
@@ -285,9 +287,10 @@ func main() {
 
 		// 管理后台控制器
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			group := s.Engine.Group("/api/admin/config/")
-			group.POST("update", h.Update)
-			group.GET("get", h.Get)
+			group := s.Engine.Group("/api/admin/")
+			group.POST("config/update", h.Update)
+			group.GET("config/get", h.Get)
+			group.POST("active", h.Active)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")

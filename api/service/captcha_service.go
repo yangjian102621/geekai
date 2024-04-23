@@ -9,11 +9,11 @@ import (
 )
 
 type CaptchaService struct {
-	config types.ChatPlusApiConfig
+	config types.ApiConfig
 	client *req.Client
 }
 
-func NewCaptchaService(config types.ChatPlusApiConfig) *CaptchaService {
+func NewCaptchaService(config types.ApiConfig) *CaptchaService {
 	return &CaptchaService{
 		config: config,
 		client: req.C().SetTimeout(10 * time.Second),

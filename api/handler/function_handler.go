@@ -21,7 +21,7 @@ import (
 
 type FunctionHandler struct {
 	BaseHandler
-	config        types.ChatPlusApiConfig
+	config        types.ApiConfig
 	uploadManager *oss.UploaderManager
 	dallService   *dalle.Service
 }
