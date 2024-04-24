@@ -119,11 +119,11 @@ type RedisConfig struct {
 const LicenseKey = "Geek-AI-License"
 
 type License struct {
-	Key       string // 许可证书密钥
-	MachineId string // 机器码
-	UserNum   int    // 用户数量
-	ExpiredAt int64  // 过期时间
-	IsActive  bool   // 是否激活
+	Key       string `json:"key"`        // 许可证书密钥
+	MachineId string `json:"machine_id"` // 机器码
+	UserNum   int    `json:"user_num"`   // 用户数量
+	ExpiredAt int64  `json:"expired_at"` // 过期时间
+	IsActive  bool   `json:"is_active"`  // 是否激活
 }
 
 func (c RedisConfig) Url() string {

@@ -61,16 +61,17 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 	}
 
 	if res.Code != types.Success {
-		return fmt.Errorf( "激活失败：%v", res.Message)
+		return fmt.Errorf("激活失败：%v", res.Message)
 	}
 
-	err = s.levelDB.Put(types.LicenseKey, types.License{
+	s.license = types.License{
 		Key:       license,
 		MachineId: machineId,
 		UserNum:   res.Data.UserNum,
 		ExpiredAt: res.Data.ExpiredAt,
-		IsActive: true,
-	})
+		IsActive:  true,
+	}
+	err = s.levelDB.Put(types.LicenseKey, s.license)
 	if err != nil {
 		return fmt.Errorf("保存许可证书失败：%v", err)
 	}
