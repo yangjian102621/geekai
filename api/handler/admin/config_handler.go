@@ -115,3 +115,9 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 
 	resp.SUCCESS(c, info.HostID)
 }
+
+// GetLicense 获取 License 信息
+func (h *ConfigHandler) GetLicense(c *gin.Context) {
+	license := h.licenseService.GetLicense()
+	resp.SUCCESS(c, license)
+}

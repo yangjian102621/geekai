@@ -291,6 +291,7 @@ func main() {
 			group.POST("config/update", h.Update)
 			group.GET("config/get", h.Get)
 			group.POST("active", h.Active)
+			group.GET("config/get/license", h.GetLicense)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
