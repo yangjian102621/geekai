@@ -166,6 +166,9 @@ func main() {
 		fx.Provide(service.NewSmtpService),
 		// License 服务
 		fx.Provide(service.NewLicenseService),
+		fx.Invoke(func(licenseService *service.LicenseService) {
+			licenseService.SyncLicense()
+		}),
 
 		// 微信机器人服务
 		fx.Provide(wx.NewWeChatBot),

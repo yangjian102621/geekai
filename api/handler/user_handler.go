@@ -3,6 +3,7 @@ package handler
 import (
 	"chatplus/core"
 	"chatplus/core/types"
+	"chatplus/service"
 	"chatplus/store/model"
 	"chatplus/store/vo"
 	"chatplus/utils"
@@ -21,16 +22,23 @@ import (
 
 type UserHandler struct {
 	BaseHandler
-	searcher *xdb.Searcher
-	redis    *redis.Client
+	searcher       *xdb.Searcher
+	redis          *redis.Client
+	licenseService *service.LicenseService
 }
 
 func NewUserHandler(
 	app *core.AppServer,
 	db *gorm.DB,
 	searcher *xdb.Searcher,
-	client *redis.Client) *UserHandler {
-	return &UserHandler{BaseHandler: BaseHandler{DB: db, App: app}, searcher: searcher, redis: client}
+	client *redis.Client,
+	licenseService *service.LicenseService) *UserHandler {
+	return &UserHandler{
+		BaseHandler:    BaseHandler{DB: db, App: app},
+		searcher:       searcher,
+		redis:          client,
+		licenseService: licenseService,
+	}
 }
 
 // Register user register
@@ -50,6 +58,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 	data.Password = strings.TrimSpace(data.Password)
 	if len(data.Password) < 8 {
 		resp.ERROR(c, "密码长度不能少于8个字符")
+		return
+	}
+
+	// 检测最大注册人数
+	var totalUser int64
+	h.DB.Model(&model.User{}).Count(&totalUser)
+	if int(totalUser) >= h.licenseService.GetLicense().UserNum {
+		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
 		return
 	}
 
