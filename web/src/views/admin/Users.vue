@@ -332,6 +332,7 @@ const doResetPass = () => {
 .user-list {
 
   .handle-box {
+    margin-bottom 20px
     .handle-input {
       max-width 150px;
       margin-right 10px;

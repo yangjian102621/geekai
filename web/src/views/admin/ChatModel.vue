@@ -350,14 +350,8 @@ const remove = function (row) {
 @import "@/assets/css/admin/form.styl";
 .model-list {
 
-  .opt-box {
-    padding-bottom: 10px;
-    display: flex;
-    justify-content flex-end
-
-    .el-icon {
-      margin-right: 5px;
-    }
+  .handle-box {
+    margin-bottom 20px
   }
 
   .cell {
