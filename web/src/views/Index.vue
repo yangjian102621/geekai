@@ -24,6 +24,8 @@
               <span>项目源码</span>
             </el-button>
           </a>
+          <el-button @click="router.push('/login')" round>登录</el-button>
+          <el-button @click="router.push('/register')" round>注册</el-button>
         </div>
       </el-menu>
     </div>
