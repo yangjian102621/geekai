@@ -71,7 +71,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	var key string
-	if data.RegWay == "email" || data.RegWay == "mobile" || data.Code != "" {
+	if data.RegWay == "email" || data.RegWay == "mobile" {
 		key = CodeStorePrefix + data.Username
 		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {

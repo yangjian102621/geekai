@@ -4,7 +4,7 @@
     <div class="main">
       <div class="contain">
         <div class="logo">
-          <el-image :src="logo" fit="cover"/>
+          <el-image :src="logo" fit="cover" @click="router.push('/')"/>
         </div>
         <div class="header">{{ title }}</div>
         <div class="content">
@@ -34,7 +34,7 @@
             <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
           </el-row>
 
-          <el-row class="text-line" gutter="20">
+          <el-row class="text-line" :gutter="20">
             <el-button type="primary" @click="router.push('/register')" size="small" plain>注册新账号</el-button>
             <el-button type="success" @click="showResetPass = true" size="small" plain>重置密码</el-button>
           </el-row>
@@ -61,11 +61,10 @@ import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
 import {checkSession} from "@/action/session";
 import {setUserToken} from "@/store/session";
-import {prevRoute} from "@/router";
 import ResetPass from "@/components/ResetPass.vue";
 
 const router = useRouter();
-const title = ref('ChatPlus 用户登录');
+const title = ref('Geek-AI');
 const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
 const showResetPass = ref(false)
@@ -74,6 +73,7 @@ const logo = ref("/images/logo.png")
 // 获取系统配置
 httpGet("/api/config/get?key=system").then(res => {
   logo.value = res.data.logo
+  title.value = res.data.title
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
 })
@@ -104,14 +104,10 @@ const login = function () {
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
     setUserToken(res.data)
-    if (prevRoute.path === '' || prevRoute.path === '/register') {
-      if (isMobile()) {
-        router.push('/mobile')
-      } else {
-        router.push('/chat')
-      }
+    if (isMobile()) {
+      router.push('/mobile')
     } else {
-      router.push(prevRoute.path)
+      router.push('/chat')
     }
 
   }).catch((e) => {
@@ -154,6 +150,7 @@ const login = function () {
 
       .el-image {
         width 120px;
+        cursor pointer
       }
     }
 
@@ -164,6 +161,7 @@ const login = function () {
       color $white_v1
       letter-space 2px
       text-align center
+      padding-top 10px
     }
 
     .content {
