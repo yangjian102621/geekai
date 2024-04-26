@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar">
+  <div class="sidebar dark">
     <div class="logo">
       <el-image :src="logo"/>
       <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
@@ -232,6 +232,34 @@ setMenuItems(items)
 
 .sidebar::-webkit-scrollbar {
   width: 0;
+}
+
+.sidebar.dark {
+  border-right 1px solid var(--el-border-color-dark)
+
+  .logo {
+    background var(--el-bg-color)
+
+    .text {
+      color var(--el-text-color-regular)
+    }
+  }
+
+  ul {
+    background var(--el-bg-color)
+
+    .el-menu-item.is-active {
+      background-color var(--el-menu-bg-color-dark)
+    }
+
+    .el-menu-item:hover {
+      background-color var(--el-menu-bg-color-darker)
+    }
+  }
+
+  .sidebar-el-menu:not(.el-menu--collapse) {
+    width: 250px;
+  }
 }
 
 </style>

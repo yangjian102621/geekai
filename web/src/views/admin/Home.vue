@@ -4,7 +4,7 @@
     <div class="content-box" :class="{ 'content-collapse': sidebar.collapse }">
       <admin-header/>
       <admin-tags/>
-      <div class="content">
+      <div class="content dark">
         <router-view v-slot="{ Component }">
           <transition name="move" mode="out-in">
             <keep-alive :include="tags.nameList">
@@ -40,7 +40,7 @@ checkAdminSession().then(() => {
 </script>
 
 <style scoped lang="stylus">
-@import '@/assets/css/main.css';
-@import '@/assets/css/color-dark.css';
+@import '@/assets/css/color-dark.styl';
+@import '@/assets/css/main.styl';
 @import '@/assets/iconfont/iconfont.css';
 </style>
