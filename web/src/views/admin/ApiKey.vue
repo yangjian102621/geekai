@@ -296,6 +296,12 @@ const changePlatform = () => {
   .el-select {
     width: 100%
   }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content righ
+  }
 }
 
 .el-form {

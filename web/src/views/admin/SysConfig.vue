@@ -459,10 +459,9 @@ const onUploadImg = (files, callback) => {
 
   .el-tabs {
     width 100%
-    background-color #ffffff
+    background-color var(--el-bg-color)
     padding 10px 20px 40px 20px
-    border: 1px solid #ddd;
-    border-radius: 5px
+    border: 1px solid var(--el-border-color);
 
     .container {
       .el-form {

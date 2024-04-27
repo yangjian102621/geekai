@@ -328,5 +328,11 @@ const generateToken = () => {
       text-align center
     }
   }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
+  }
 }
 </style>

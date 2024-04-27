@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar dark">
+  <div :class="'sidebar '+theme">
     <div class="logo">
       <el-image :src="logo"/>
       <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
@@ -67,6 +67,15 @@ httpGet('/api/admin/config/get?key=system').then(res => {
   logo.value = res.data['logo']
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
+})
+
+// eslint-disable-next-line no-undef
+const props = defineProps({
+  theme: String,
+});
+
+const theme = computed(() => {
+  return props.theme
 })
 
 const items = [

@@ -1,5 +1,5 @@
 <template>
-  <div class="tags" v-if="tags.show">
+  <div :class="'tags '+theme" v-if="tags.show">
     <ul>
       <li
           class="tags-li"
@@ -38,6 +38,16 @@ import {onBeforeRouteUpdate, useRoute, useRouter} from 'vue-router';
 import {ArrowDown, Close} from "@element-plus/icons-vue";
 import {checkAdminSession} from "@/action/session";
 import {ElMessageBox} from "element-plus";
+import {computed} from "vue";
+
+// eslint-disable-next-line no-undef
+const props = defineProps({
+  theme: String,
+});
+
+const theme = computed(() => {
+  return props.theme
+})
 
 const router = useRouter();
 checkAdminSession().catch(() => {
@@ -135,21 +145,17 @@ const handleTags = (command) => {
   overflow: hidden;
   cursor: pointer;
   height: 23px;
-  border: 1px solid #e9eaec;
-  background: #fff;
+  border: 1px solid var(--el-border-color);
+  background: var(--el-bg-color);
   padding: 0 5px 0 12px;
-  color: #666;
+  color: var(--el-text-color);
   -webkit-transition: all 0.3s ease-in;
   -moz-transition: all 0.3s ease-in;
   transition: all 0.3s ease-in;
 }
 
-.tags-li:not(.active):hover {
-  background: #f8f8f8;
-}
-
-.tags-li.active {
-  color: #fff;
+.tags-li:hover {
+  background: var(--el-menu-bg-color-dark);
 }
 
 .tags-li-title {
@@ -163,7 +169,7 @@ const handleTags = (command) => {
 }
 
 .tags-li.active .tags-li-title {
-  color: #fff;
+  color: var(--el-color-primary)
 }
 
 .tags-close-box {
@@ -175,7 +181,8 @@ const handleTags = (command) => {
   text-align: center;
   width: 110px;
   height: 30px;
-  background: #fff;
-//box-shadow: -3px 0 15px 3px rgba(0, 0, 0, 0.1); z-index: 10;
+  background: var(--el-bg-color);
+  box-shadow: -3px 0 15px 3px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 </style>

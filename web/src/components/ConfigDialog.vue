@@ -25,10 +25,8 @@
 
 <script setup>
 import {computed, onMounted, ref} from "vue"
-import {httpGet, httpPost} from "@/utils/http";
+import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {Plus} from "@element-plus/icons-vue";
-import Compressor from "compressorjs";
 import {dateFormat} from "@/utils/libs";
 
 // eslint-disable-next-line no-undef
