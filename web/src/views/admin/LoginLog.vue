@@ -71,5 +71,11 @@ const fetchList = function (_page, _pageSize) {
     width: 100%
   }
 
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
+  }
+
 }
 </style>

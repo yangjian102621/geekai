@@ -68,7 +68,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat} from "@/utils/libs";
 import {Search} from "@element-plus/icons-vue";
@@ -154,6 +154,13 @@ const fetchData = () => {
 
   .el-select {
     width: 100%
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    width 100%
+    justify-content right
   }
 
 }
