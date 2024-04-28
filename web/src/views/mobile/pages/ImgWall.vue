@@ -1,9 +1,7 @@
 <template>
   <div class="img-wall container">
-    <van-nav-bar :title="title"/>
-
     <div class="content">
-      <van-tabs v-model:active="activeName">
+      <van-tabs v-model:active="activeName" animated sticky>
         <van-tab title="MidJourney" name="mj">
           <van-list
               v-model:error="data['mj'].error"
@@ -42,12 +40,10 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
-import {showDialog, showFailToast, showSuccessToast} from "vant";
-import {ElMessage} from "element-plus";
+import {ref} from "vue";
+import {httpGet} from "@/utils/http";
+import {showDialog, showFailToast} from "vant";
 
-const title = ref('图片创作广场')
 const activeName = ref("mj")
 const data = ref({
   "mj": {
@@ -121,8 +117,6 @@ const showPrompt = (item) => {
 <style lang="stylus">
 .img-wall {
   .content {
-    padding-top 60px
-
     .van-cell__value {
       .van-image {
         width 100%

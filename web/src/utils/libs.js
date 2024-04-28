@@ -1,6 +1,8 @@
 /**
  * Util lib functions
  */
+import {showConfirmDialog} from "vant";
+import {useRouter} from "vue-router";
 
 // generate a random string
 export function randString(length) {
@@ -223,4 +225,16 @@ export function escapeHTML(html) {
 // 判断是否为 iphone 设备
 export function isIphone() {
     return /iPhone/i.test(navigator.userAgent) && !/iPad/i.test(navigator.userAgent);
+}
+
+export function showLoginDialog(router) {
+    showConfirmDialog({
+        title: '登录',
+        message:
+            '当前操作需要登录才能进行，前往登录？',
+    }).then(() => {
+        router.push("/login")
+    }).catch(() => {
+        // on cancel
+    });
 }

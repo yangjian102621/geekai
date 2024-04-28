@@ -82,7 +82,6 @@ import {httpGet, httpPost} from "@/utils/http";
 import {showConfirmDialog, showFailToast, showSuccessToast} from "vant";
 import {checkSession} from "@/action/session";
 import {router} from "@/router";
-import {setChatConfig} from "@/store/chat";
 import {removeArrayItem} from "@/utils/libs";
 
 const title = ref("会话列表")
@@ -153,15 +152,6 @@ const onLoad = () => {
   })
 };
 
-const getModelValue = (model_id) => {
-  for (let i = 0; i < models.value.length; i++) {
-    if (models.value[i].value === model_id) {
-      return models.value[i].text
-    }
-  }
-  return ""
-}
-
 const search = () => {
   if (chatName.value === '') {
     chats.value = allChats.value
@@ -195,42 +185,45 @@ const clearAllChatHistory = () => {
 const newChat = (item) => {
   showPicker.value = false
   const options = item.selectedOptions
-  setChatConfig({
-    role: {
-      id: options[0].value,
-      name: options[0].text,
-      icon: options[0].icon,
-      helloMsg: options[0].helloMsg
-    },
-    model: options[1].value,
-    modelValue: getModelValue(options[1].value),
-    title: '新建会话',
-    chatId: 0
+  // setChatConfig({
+  //   role: {
+  //     id: options[0].value,
+  //     name: options[0].text,
+  //     icon: options[0].icon,
+  //     helloMsg: options[0].helloMsg
+  //   },
+  //   model: options[1].value,
+  //   modelValue: getModelValue(options[1].value),
+  //   title: '新建会话',
+  //   chatId: 0
+  // })
+  router.push({
+    name: "mobile-chat-session",
+    params: {role_id: options[0].value, model_id: options[1].value, title: '新建会话', chat_id: 0}
   })
-  router.push('/mobile/chat/session')
 }
 
 const changeChat = (chat) => {
-  let role = {}
-  for (let i = 0; i < roles.value.length; i++) {
-    if (roles.value[i].value === chat.role_id) {
-      role = roles.value[i]
-      break
-    }
-  }
-  setChatConfig({
-    role: {
-      id: chat.role_id,
-      name: role.text,
-      icon: role.icon
-    },
-    model: chat.model_id,
-    modelValue: getModelValue(chat.model_id),
-    title: chat.title,
-    chatId: chat.chat_id,
-    helloMsg: chat.hello_msg,
-  })
-  router.push('/mobile/chat/session')
+  // let role = {}
+  // for (let i = 0; i < roles.value.length; i++) {
+  //   if (roles.value[i].value === chat.role_id) {
+  //     role = roles.value[i]
+  //     break
+  //   }
+  // }
+  // setChatConfig({
+  //   role: {
+  //     id: chat.role_id,
+  //     name: role.text,
+  //     icon: role.icon
+  //   },
+  //   model: chat.model_id,
+  //   modelValue: getModelValue(chat.model_id),
+  //   title: chat.title,
+  //   chatId: chat.chat_id,
+  //   helloMsg: chat.hello_msg,
+  // })
+  router.push(`/mobile/chat/session?chat_id=${chat.chat_id}`)
 }
 
 const editChat = (row) => {

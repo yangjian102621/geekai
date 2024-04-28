@@ -16,6 +16,7 @@ import {onMounted, ref} from "vue";
 import Clipboard from "clipboard";
 import {showNotify} from "vant";
 
+// eslint-disable-next-line no-unused-vars,no-undef
 const props = defineProps({
   content: {
     type: String,

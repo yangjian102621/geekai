@@ -11,7 +11,7 @@
         style="width:90%;max-width: 360px;"
     >
       <slide-captcha
-          v-if="isIphone()"
+          v-if="isMobile()"
           :bg-img="bgImg"
           :bk-img="bkImg"
           :result="result"
@@ -42,8 +42,9 @@ import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import CaptchaPlus from "@/components/CaptchaPlus.vue";
 import SlideCaptcha from "@/components/SlideCaptcha.vue";
-import {isIphone} from "@/utils/libs";
+import {isMobile} from "@/utils/libs";
 
+// eslint-disable-next-line no-undef
 const props = defineProps({
   receiver: String,
   size: String,
@@ -98,8 +99,8 @@ const loadCaptcha = () => {
   }
 
   showCaptcha.value = true
-  // iphone 手机用滑动验证码
-  if (isIphone()) {
+  // 手机用滑动验证码
+  if (isMobile()) {
     getSlideCaptcha()
   } else {
     handleRequestCaptCode()
