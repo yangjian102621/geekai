@@ -36,19 +36,8 @@
 					</span>
           <template #dropdown>
             <el-dropdown-menu>
-
-              <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-                <el-dropdown-item>
-                  <i class="iconfont icon-github"></i>
-                  <span>{{ sysTitle }}</span>
-                </el-dropdown-item>
-              </a>
               <el-dropdown-item>
                 <i class="iconfont icon-version"></i> 当前版本：{{ version }}
-              </el-dropdown-item>
-              <el-dropdown-item @click="showDialog = true">
-                <i class="iconfont icon-reward"></i>
-                <span>打赏作者</span>
               </el-dropdown-item>
               <el-dropdown-item divided @click="logout">
                 <i class="iconfont icon-logout"></i>
@@ -60,36 +49,19 @@
       </div>
     </div>
 
-    <el-dialog
-        v-model="showDialog"
-        :show-close="true"
-        class="donate-dialog"
-        width="400px"
-        title="请作者喝杯咖啡"
-    >
-      <el-alert type="info" :closable="false">
-        <p>如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～</p>
-      </el-alert>
-      <p>
-        <el-image :src="donateImg"/>
-      </p>
-    </el-dialog>
   </div>
 </template>
 <script setup>
 import {computed, onMounted, ref} from 'vue';
 import {getMenuItems, useSidebarStore} from '@/store/sidebar';
-import {useRouter} from 'vue-router';
+import {useRouter} from "vue-router";
 import {ArrowDown, ArrowRight, Expand, Fold, Moon, Sunny} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {removeAdminToken} from "@/store/session";
 
-const sysTitle = ref(process.env.VUE_APP_TITLE)
 const version = ref(process.env.VUE_APP_VERSION)
 const avatar = ref('/images/user-info.jpg')
-const donateImg = ref('/images/wechat-pay.png')
-const showDialog = ref(false)
 const sidebar = useSidebarStore();
 const router = useRouter();
 const breadcrumb = ref([])
@@ -187,7 +159,6 @@ const logout = function () {
   font-size: 22px;
   color: #303133;
   background-color #ffffff
-  border-bottom 1px solid #eaecef
 
   .collapse-btn {
     display: flex;

@@ -355,7 +355,6 @@ const initData = () => {
         // 加载角色列表
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
-          console.log()
           if (router.currentRoute.value.params.role_id) {
             roleId.value = parseInt(router.currentRoute.value.params["role_id"])
           } else {
@@ -901,14 +900,6 @@ const exportChat = () => {
   window.open(url, '_blank');
 }
 
-const getChatById = (chatId) => {
-  for (let index in chatList.value) {
-    if (chatList.value[index].chat_id === chatId) {
-      return chatList.value[index]
-    }
-  }
-  return null
-}
 
 const getModelValue = (model_id) => {
   for (let i = 0; i < models.value.length; i++) {

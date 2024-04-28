@@ -34,16 +34,16 @@
       <p>{{ slogan }}</p>
       <el-button @click="router.push('/chat')" color="#ffffff" style="color:#007bff" :dark="false">
         <i class="iconfont icon-chat"></i>
-        <span>AI聊天</span>
+        <span>AI 对话</span>
       </el-button>
       <el-button @click="router.push('/mj')" color="#C4CCFD" style="color:#424282" :dark="false">
         <i class="iconfont icon-mj"></i>
-        <span>AI-MJ绘画</span>
+        <span>MJ 绘画</span>
       </el-button>
 
       <el-button @click="router.push('/sd')" color="#4AE6DF" style="color:#424282" :dark="false">
         <i class="iconfont icon-sd"></i>
-        <span>AI-SD绘画</span>
+        <span>SD 绘画</span>
       </el-button>
       <el-button @click="router.push('/xmind')" color="#FFFD55" style="color:#424282" :dark="false">
         <i class="iconfont icon-xmind"></i>

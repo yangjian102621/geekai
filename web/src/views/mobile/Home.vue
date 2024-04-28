@@ -4,9 +4,9 @@
       <router-view/>
 
       <van-tabbar route v-model="active" @change="onChange">
-        <van-tabbar-item to="/mobile/chat" name="home" icon="chat-o">对话</van-tabbar-item>
+        <van-tabbar-item to="/mobile/index" name="home" icon="home-o">首页</van-tabbar-item>
+        <van-tabbar-item to="/mobile/chat" name="chat" icon="chat-o">对话</van-tabbar-item>
         <van-tabbar-item to="/mobile/image" name="image" icon="photo-o">绘图</van-tabbar-item>
-        <van-tabbar-item to="/mobile/img-wall" name="apps" icon="apps-o">广场</van-tabbar-item>
         <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的</van-tabbar-item>
       </van-tabbar>
 
@@ -20,16 +20,11 @@ import {ref} from "vue";
 import {getMobileTheme} from "@/store/system";
 import {useRouter} from "vue-router";
 import {isMobile} from "@/utils/libs";
-import {checkSession} from "@/action/session";
 
 const router = useRouter()
-checkSession().then(() => {
-  if (!isMobile()) {
-    router.replace('/chat')
-  }
-}).catch(() => {
-  router.push('/login')
-})
+if (!isMobile()) {
+  router.replace('/')
+}
 
 const active = ref('home')
 const onChange = (index) => {
@@ -47,9 +42,7 @@ const onChange = (index) => {
       width 100%
     }
 
-    .content {
-      padding 46px 10px 60px 10px
-    }
+    padding 0 10px
   }
 
 }

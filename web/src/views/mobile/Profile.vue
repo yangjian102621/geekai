@@ -27,7 +27,7 @@
             </template>
           </van-field>
 
-          <van-field label="VIP到期时间" v-if="form.expired_time > 0">
+          <van-field label="会员有效期" v-if="form.expired_time > 0">
             <template #input>
               <van-tag type="warning">{{ dateFormat(form.expired_time) }}</van-tag>
             </template>
@@ -260,6 +260,9 @@ const pay = (payWay, item) => {
 <style lang="stylus">
 .mobile-user-profile {
   .content {
+    padding-top 46px
+    padding-bottom 60px
+
     .van-field__label {
       width 100px
       text-align right

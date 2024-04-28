@@ -1,9 +1,9 @@
 <template>
   <div :class="'sidebar '+theme">
-    <div class="logo">
+    <a class="logo" href="/" target="_blank">
       <el-image :src="logo"/>
       <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
-    </div>
+    </a>
 
     <el-menu
         class="sidebar-el-menu"
@@ -54,9 +54,9 @@
 <script setup>
 import {computed, ref} from 'vue';
 import {setMenuItems, useSidebarStore} from '@/store/sidebar';
-import {useRoute} from 'vue-router';
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {useRoute} from "vue-router";
 
 const title = ref('Chat-Plus-Admin')
 const logo = ref('/images/logo.png')
@@ -199,6 +199,7 @@ setMenuItems(items)
     width 219px
     background-color #324157
     padding 6px 15px;
+    cursor pointer
 
     .el-image {
       width 36px;
@@ -248,6 +249,7 @@ setMenuItems(items)
 
   .logo {
     background var(--el-bg-color)
+    border-right 1px solid var(--el-border-color)
 
     .text {
       color var(--el-text-color-regular)
@@ -268,6 +270,10 @@ setMenuItems(items)
 
   .sidebar-el-menu:not(.el-menu--collapse) {
     width: 250px;
+  }
+
+  .el-menu {
+    border-color var(--el-border-color)
   }
 }
 

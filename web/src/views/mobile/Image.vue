@@ -16,8 +16,8 @@
 
 <script setup>
 import {ref} from "vue";
-import ImageMj from "@/views/mobile/ImageMj.vue";
-import ImageSd from "@/views/mobile/ImageSd.vue";
+import ImageMj from "@/views/mobile/pages/ImageMj.vue";
+import ImageSd from "@/views/mobile/pages/ImageSd.vue";
 
 const activeName = ref("mj")
 </script>

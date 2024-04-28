@@ -14,7 +14,7 @@ import {
     Collapse,
     CollapseItem,
     ConfigProvider,
-    Dialog,
+    Dialog, Divider,
     DropdownItem,
     DropdownMenu,
     Empty,
@@ -28,7 +28,7 @@ import {
     Lazyload,
     List,
     Loading,
-    NavBar,
+    NavBar, NoticeBar,
     Notify,
     Overlay,
     Picker,
@@ -97,6 +97,8 @@ app.use(Lazyload);
 app.use(ImagePreview);
 app.use(Tab);
 app.use(Tabs);
+app.use(Divider);
+app.use(NoticeBar);
 app.use(router).use(ElementPlus).mount('#app')
 
 
