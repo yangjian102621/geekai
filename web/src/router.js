@@ -213,6 +213,11 @@ const routes = [
         component: () => import('@/views/mobile/ChatSession.vue'),
     },
     {
+        path: '/mobile/payment',
+        name: 'mobile-payment',
+        component: () => import('@/views/mobile/Payment.vue'),
+    },
+    {
         path: '/mobile/chat/export',
         name: 'mobile-chat-export',
         component: () => import('@/views/mobile/ChatExport.vue'),

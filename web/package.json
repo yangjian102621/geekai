@@ -23,6 +23,7 @@
     "markdown-it-latex2img": "^0.0.6",
     "markdown-it-mathjax": "^2.0.0",
     "md-editor-v3": "^2.2.1",
+    "moment": "^2.30.1",
     "pinia": "^2.1.4",
     "qrcode": "^1.5.3",
     "qs": "^6.11.1",
@@ -30,7 +31,8 @@
     "v3-waterfall": "^1.2.1",
     "vant": "^4.5.0",
     "vue": "^3.2.13",
-    "vue-router": "^4.0.15"
+    "vue-router": "^4.0.15",
+    "weixin-js-sdk": "^1.6.0"
   },
   "devDependencies": {
     "@babel/core": "7.18.6",

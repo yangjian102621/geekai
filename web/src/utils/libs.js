@@ -30,6 +30,15 @@ export function isMobile() {
     return mobileRegex.test(userAgent);
 }
 
+/**
+ * 判断是否微信浏览器
+ * @returns {boolean}
+ */
+export function isWeChat() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.indexOf('micromessenger') !== -1;
+}
+
 // 格式化日期
 export function dateFormat(timestamp, format) {
     if (!timestamp) {

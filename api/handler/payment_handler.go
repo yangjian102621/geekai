@@ -24,6 +24,7 @@ import (
 
 const (
 	PayWayAlipay = "支付宝"
+	PayWayWxPay  = "微信"
 	PayWayXunHu  = "虎皮椒"
 	PayWayJs     = "PayJS"
 )
@@ -32,6 +33,7 @@ const (
 type PaymentHandler struct {
 	BaseHandler
 	alipayService  *payment.AlipayService
+	wxpayService   *payment.WxpayService
 	huPiPayService *payment.HuPiPayService
 	js             *payment.PayJS
 	snowflake      *service.Snowflake
@@ -42,6 +44,7 @@ type PaymentHandler struct {
 func NewPaymentHandler(
 	server *core.AppServer,
 	alipayService *payment.AlipayService,
+	wxService *payment.WxpayService,
 	huPiPayService *payment.HuPiPayService,
 	js *payment.PayJS,
 	db *gorm.DB,
@@ -49,6 +52,7 @@ func NewPaymentHandler(
 	fs embed.FS) *PaymentHandler {
 	return &PaymentHandler{
 		alipayService:  alipayService,
+		wxpayService:   wxService,
 		huPiPayService: huPiPayService,
 		js:             js,
 		snowflake:      snowflake,
@@ -99,6 +103,23 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 
 		c.Redirect(302, uri)
 		return
+	} else if payWay == "wxpay" { // 微信
+		userId := h.GetLoginUserId(c)
+		var user model.User
+		res = h.DB.First(&user, userId)
+		if res.Error != nil {
+			resp.ERROR(c, "Invalid user ID")
+			return
+		}
+		// 生成支付签名
+		signInfo, err := h.wxpayService.PayUrlMobile(user, order)
+		if err != nil {
+			resp.ERROR(c, "error with generating Pay URL: "+err.Error())
+			return
+		}
+
+		resp.SUCCESS(c, signInfo)
+		return
 	} else if payWay == "hupi" { // 虎皮椒支付
 		params := payment.HuPiPayReq{
 			Version:      "1.1",
@@ -106,7 +127,7 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 			TotalFee:     fmt.Sprintf("%f", order.Amount),
 			Title:        order.Subject,
 			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
-			WapName:      "极客学长",
+			WapName:      "AI小墨",
 		}
 		r, err := h.huPiPayService.Pay(params)
 		if err != nil {
@@ -153,7 +174,27 @@ func (h *PaymentHandler) OrderQuery(c *gin.Context) {
 		counter++
 	}
 
-	resp.SUCCESS(c, gin.H{"status": order.Status})
+	resp.SUCCESS(c, gin.H{"status": order.Status, "amount": order.Amount, "expire": ""})
+}
+
+// OrderQueryAmount 查询订单状态
+func (h *PaymentHandler) OrderQueryAmount(c *gin.Context) {
+	var data struct {
+		OrderNo string `json:"order_no"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var order model.Order
+	res := h.DB.Where("order_no = ?", data.OrderNo).First(&order)
+	if res.Error != nil {
+		resp.ERROR(c, "Order not found")
+		return
+	}
+	h.DB.Model(&order).UpdateColumn("status", types.OrderScanned)
+	resp.SUCCESS(c, gin.H{"status": order.Status, "amount": order.Amount, "createTime": order.CreatedAt.Unix()})
 }
 
 // PayQrcode 生成支付 URL 二维码
@@ -196,6 +237,9 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	case "payjs":
 		payWay = PayWayJs
 		notifyURL = h.App.Config.JPayConfig.NotifyURL
+	case "wxpay":
+		payWay = PayWayWxPay
+		notifyURL = h.App.Config.WxpayConfig.NotifyURL
 	default:
 		payWay = PayWayAlipay
 		notifyURL = h.App.Config.AlipayConfig.NotifyURL
@@ -247,6 +291,8 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	var logo string
 	if data.PayWay == "alipay" {
 		logo = "res/img/alipay.jpg"
+	} else if data.PayWay == "wxpay" {
+		logo = "res/img/wechat-pay.jpg"
 	} else if data.PayWay == "hupi" {
 		if h.App.Config.HuPiPayConfig.Name == "wechat" {
 			logo = "res/img/wechat-pay.jpg"
@@ -268,6 +314,9 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	}
 
 	imageURL := fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s", parse.Scheme, parse.Host, orderNo, data.PayWay)
+	if data.PayWay == "wxpay" {
+		imageURL = fmt.Sprintf("%s://%s/mobile/payment?order_no=%s&pay_way=%s", parse.Scheme, parse.Host, orderNo, data.PayWay)
+	}
 	imgData, err := utils.GenQrcode(imageURL, 400, file)
 	if err != nil {
 		resp.ERROR(c, err.Error())
@@ -325,7 +374,7 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 			NotifyURL:    notifyURL,
 			ReturnURL:    returnURL,
 			CallbackURL:  returnURL,
-			WapName:      "极客学长",
+			WapName:      "AI小墨",
 		}
 		r, err := h.huPiPayService.Pay(params)
 		if err != nil {
@@ -346,6 +395,16 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		params.Add("notify_url", notifyURL)
 		params.Add("auto", "0")
 		payURL = h.js.PayH5(params)
+	case "wxpay":
+		payWay = PayWayWxPay
+		notifyURL = h.App.Config.WxpayConfig.NotifyURL
+		returnURL = h.App.Config.WxpayConfig.ReturnURL
+		payURL = orderNo
+		//signInfo, err = h.wxpayService.Pay(h.App.Config.WxpayConfig.MchId, h.App.Config.WxpayConfig.AppId, h.App.Config.WxpayConfig.MchKey)
+		//if err != nil {
+		//	resp.ERROR(c, "error with generating Pay URL: "+err.Error())
+		//	return
+		//}
 	case "alipay":
 		payWay = PayWayAlipay
 		notifyURL = h.App.Config.AlipayConfig.NotifyURL
@@ -430,8 +489,13 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 			opt = "VIP充值，VIP 没到期，只延期不增加算力"
 		} else {
 			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
-			user.Power += h.App.SysConfig.VipMonthPower
-			power = h.App.SysConfig.VipMonthPower
+			if remark.Days == 1 {
+				user.Power += remark.Power
+				power = remark.Power
+			} else {
+				user.Power += h.App.SysConfig.VipMonthPower
+				power = h.App.SysConfig.VipMonthPower
+			}
 			opt = "VIP充值"
 		}
 		user.Vip = true
@@ -487,6 +551,9 @@ func (h *PaymentHandler) GetPayWays(c *gin.Context) {
 	if h.App.Config.AlipayConfig.Enabled {
 		data["alipay"] = gin.H{"name": "alipay"}
 	}
+	if h.App.Config.WxpayConfig.Enabled {
+		data["wxpay"] = gin.H{"name": "wxpay"}
+	}
 	if h.App.Config.HuPiPayConfig.Enabled {
 		data["hupi"] = gin.H{"name": h.App.Config.HuPiPayConfig.Name}
 	}
@@ -520,6 +587,23 @@ func (h *PaymentHandler) HuPiPayNotify(c *gin.Context) {
 	}
 
 	c.String(http.StatusOK, "success")
+}
+
+// WxpayNotify 微信支付回调
+func (h *PaymentHandler) WxpayNotify(c *gin.Context) {
+	orderNo, outTradeNo, code := h.wxpayService.TradeVerify(c)
+	logger.Infof("验证支付结果：%+v", code)
+	if code != 200 {
+		logger.Error("订单校验失败")
+		c.String(http.StatusUnauthorized, "fail")
+		return
+	}
+	err := h.notify(orderNo, outTradeNo)
+	if err != nil {
+		c.String(http.StatusOK, "fail")
+		return
+	}
+	c.String(code, "fail")
 }
 
 // AlipayNotify 支付宝支付回调
