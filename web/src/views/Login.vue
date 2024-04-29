@@ -34,9 +34,10 @@
             <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
           </el-row>
 
-          <el-row class="text-line" :gutter="20">
-            <el-button type="primary" @click="router.push('/register')" size="small" plain>注册新账号</el-button>
-            <el-button type="success" @click="showResetPass = true" size="small" plain>重置密码</el-button>
+          <el-row class="opt" :gutter="20">
+            <el-col :span="8"><el-link type="primary" @click="router.push('/register')">注册</el-link></el-col>
+            <el-col :span="8"><el-link @click="showResetPass = true">重置密码</el-link></el-col>
+            <el-col :span="8"><el-link @click="router.push('/')">首页</el-link></el-col>
           </el-row>
         </div>
       </div>
@@ -195,6 +196,13 @@ const login = function () {
         justify-content center
         padding-top 10px;
         font-size 14px;
+      }
+
+      .opt {
+        padding 15px
+        .el-col {
+          text-align center
+        }
       }
     }
   }

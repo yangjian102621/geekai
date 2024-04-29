@@ -50,7 +50,7 @@
                   <van-image :src="item.icon" />
                 </div>
                 <div class="info">
-                  <div class="info-title">{{item.name}}{{item.name}}{{item.name}}{{item.name}}</div>
+                  <div class="info-title">{{item.name}}</div>
                   <div class="info-text">{{item.hello_msg}}</div>
                 </div>
               </div>

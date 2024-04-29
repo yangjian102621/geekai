@@ -161,7 +161,7 @@
         </van-collapse>
       </div>
 
-      <div class="text-line">
+      <div class="text-line pt-6">
         <el-tag>绘图消耗{{ mjPower }}算力，U/V 操作消耗{{ mjActionPower }}算力，当前算力：{{ power }}</el-tag>
       </div>
 
@@ -290,6 +290,7 @@ import {getSessionId} from "@/store/session";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {Delete} from "@element-plus/icons-vue";
+import {showLoginDialog} from "@/utils/libs";
 
 const activeColspan = ref([""])
 
@@ -335,18 +336,19 @@ const finishedJobs = ref([])
 const socket = ref(null)
 const power = ref(0)
 const activeName = ref("txt2img")
+const isLogin = ref(false)
 
 onMounted(() => {
   checkSession().then(user => {
     power.value = user['power']
     userId.value = user.id
-
+    isLogin.value = true
     fetchRunningJobs()
     fetchFinishJobs(1)
     connect()
 
   }).catch(() => {
-    router.push('/login')
+    // router.push('/login')
   });
 })
 
@@ -564,6 +566,10 @@ const variation = (index, item) => {
 }
 
 const generate = () => {
+  if (!isLogin.value) {
+    return showLoginDialog(router)
+  }
+
   if (params.value.prompt === '' && params.value.task_type === "image") {
     return showFailToast("请输入绘画提示词！")
   }
