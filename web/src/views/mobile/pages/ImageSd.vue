@@ -228,12 +228,12 @@ import {
   showSuccessToast,
   showToast
 } from "vant";
+import {showLoginDialog} from "@/utils/libs";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
 const showTaskDialog = ref(false)
 const item = ref({})
-const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const activeColspan = ref([""])
 
@@ -429,14 +429,13 @@ const onLoad = () => {
 // 创建绘图任务
 const promptRef = ref(null)
 const generate = () => {
+  if (!isLogin.value) {
+    return showLoginDialog(router)
+  }
+
   if (params.value.prompt === '') {
     promptRef.value.focus()
     return showToast("请输入绘画提示词！")
-  }
-
-  if (!isLogin.value) {
-    showLoginDialog.value = true
-    return
   }
 
   if (params.value.seed === '') {

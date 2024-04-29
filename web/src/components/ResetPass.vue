@@ -9,17 +9,21 @@
     >
       <div class="form">
 
-        <el-form :model="form" label-width="120px" label-position="left">
+        <el-form :model="form" label-width="80px" label-position="left">
           <el-form-item label="用户名">
             <el-input v-model="form.username" placeholder="手机号/邮箱地址"/>
           </el-form-item>
           <el-form-item label="验证码">
+            <div class="code-box">
+              <el-input v-model="form.code" maxlength="6"/>
+              <send-msg size="" :receiver="form.username" style="margin-left: 10px; min-width: 100px"/>
+            </div>
             <el-row :gutter="20">
-              <el-col :span="16">
-                <el-input v-model="form.code" maxlength="6"/>
+              <el-col :span="12">
+
               </el-col>
-              <el-col :span="8">
-                <send-msg size="" :receiver="form.username"/>
+              <el-col :span="12" style="justify-content: right">
+
               </el-col>
             </el-row>
           </el-form-item>
@@ -97,9 +101,13 @@ const close = function () {
 <style lang="stylus">
 .reset-pass {
   .form {
-    padding 10px 40px
+    padding 10px 20px
   }
-
+  .code-box {
+    display: flex;
+    justify-content: space-between;
+    width: 100%
+  }
   .el-dialog__footer {
     text-align center
   }

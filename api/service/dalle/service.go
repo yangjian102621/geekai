@@ -263,7 +263,7 @@ func (s *Service) CheckTaskStatus() {
 	go func() {
 		logger.Info("Running Stable-Diffusion task status checking ...")
 		for {
-			var jobs []model.SdJob
+			var jobs []model.DallJob
 			res := s.db.Where("progress < ?", 100).Find(&jobs)
 			if res.Error != nil {
 				time.Sleep(5 * time.Second)
@@ -287,7 +287,7 @@ func (s *Service) CheckTaskStatus() {
 							Balance:   user.Power + job.Power,
 							Mark:      types.PowerAdd,
 							Model:     "dall-e-3",
-							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s", job.TaskId),
+							Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
 							CreatedAt: time.Now(),
 						})
 					}

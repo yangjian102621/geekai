@@ -1,6 +1,6 @@
 <template>
   <div class="app-background">
-    <div v-if="isLogin" class="container mobile-chat-list">
+    <div class="container mobile-chat-list">
       <van-nav-bar
           :title="title"
           left-text="新建会话"
@@ -82,7 +82,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {showConfirmDialog, showFailToast, showSuccessToast} from "vant";
 import {checkSession} from "@/action/session";
 import {router} from "@/router";
-import {removeArrayItem} from "@/utils/libs";
+import {removeArrayItem, showLoginDialog} from "@/utils/libs";
 
 const title = ref("会话列表")
 const chatName = ref("")
@@ -135,20 +135,53 @@ checkSession().then((user) => {
   })
 
 }).catch(() => {
-  router.push("/login")
+  loading.value = false
+  finished.value = true
+
+  // 加载角色列表
+  httpGet('/api/role/list').then((res) => {
+    if (res.data) {
+      const items = res.data
+      for (let i = 0; i < items.length; i++) {
+        // console.log(items[i])
+        roles.value.push({
+          text: items[i].name,
+          value: items[i].id,
+          icon: items[i].icon,
+          helloMsg: items[i].hello_msg
+        })
+      }
+    }
+  }).catch(() => {
+    showFailToast("加载聊天角色失败")
+  })
+
+  // 加载模型
+  httpGet('/api/model/list').then(res => {
+    if (res.data) {
+      const items = res.data
+      for (let i = 0; i < items.length; i++) {
+        models.value.push({text: items[i].name, value: items[i].id})
+      }
+    }
+  }).catch(e => {
+    showFailToast("加载模型失败: " + e.message)
+  })
 })
 
 const onLoad = () => {
-  httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
-    if (res.data) {
-      chats.value = res.data;
-      allChats.value = res.data;
-      finished.value = true
-    }
-    loading.value = false;
-  }).catch(() => {
-    error.value = true
-    showFailToast("加载会话列表失败")
+  checkSession().then(() => {
+    httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
+      if (res.data) {
+        chats.value = res.data;
+        allChats.value = res.data;
+        finished.value = true
+      }
+      loading.value = false;
+    }).catch(() => {
+      error.value = true
+      showFailToast("加载会话列表失败")
+    })
   })
 };
 
@@ -167,6 +200,10 @@ const search = () => {
 }
 
 const clearAllChatHistory = () => {
+  if (!isLogin.value) {
+    return showLoginDialog(router)
+  }
+
   showConfirmDialog({
     title: '操作提示',
     message: '确定要删除所有的会话记录吗？'
@@ -183,6 +220,9 @@ const clearAllChatHistory = () => {
 }
 
 const newChat = (item) => {
+  if (!isLogin.value) {
+    return showLoginDialog(router)
+  }
   showPicker.value = false
   const options = item.selectedOptions
   // setChatConfig({
