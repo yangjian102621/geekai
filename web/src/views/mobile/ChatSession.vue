@@ -1,7 +1,7 @@
 <template>
   <div class="app-background">
     <div class="mobile-chat" v-loading="loading" element-loading-text="正在连接会话...">
-      <van-nav-bar left-arrow left-text="返回" @click-left="router.back()" ref="navBarRef">
+      <van-nav-bar ref="navBarRef">
         <template #title>
           <van-dropdown-menu>
             <van-dropdown-item :title="title">
@@ -10,7 +10,11 @@
             </van-dropdown-item>
           </van-dropdown-menu>
         </template>
-
+        <template #left>
+          <span class="setting">
+            <van-icon name="setting-o" @click="showPicker = true"/>
+          </span>
+        </template>
         <template #right>
           <van-icon name="share-o" @click="showShare = true"/>
         </template>
@@ -94,6 +98,27 @@
     <!--      </div>-->
     <!--    </van-overlay>-->
   </div>
+
+  <van-popup v-model:show="showPicker" position="bottom" class="popup">
+    <van-picker
+        :columns="columns"
+        title="选择模型和角色"
+        @cancel="showPicker = false"
+        @confirm="newChat"
+    >
+      <template #option="item">
+        <div class="picker-option">
+          <van-image
+              v-if="item.icon"
+              :src="item.icon"
+              fit="cover"
+              round
+          />
+          <span>{{ item.text }}</span>
+        </div>
+      </template>
+    </van-picker>
+  </van-popup>
 </template>
 
 <script setup>
@@ -125,6 +150,8 @@ const title = ref(router.currentRoute.value.query["title"])
 const chatId = ref(router.currentRoute.value.query["chat_id"])
 const loginUser = ref(null)
 // const showMic = ref(false)
+const showPicker = ref(false)
+const columns = ref([roles.value, models.value])
 
 checkSession().then(user => {
   loginUser.value = user
@@ -149,6 +176,10 @@ httpGet('/api/model/list').then(res => {
   if (!modelId.value) {
     modelId.value = models.value[0].id
   }
+  for (let i = 0; i < models.value.length; i++) {
+    models.value[i].text = models.value[i].name
+    models.value[i].value = models.value[i].id
+  }
   modelValue.value = getModelValue(modelId.value)
   // 加载角色列表
   httpGet(`/api/role/list`).then((res) => {
@@ -156,8 +187,19 @@ httpGet('/api/model/list').then(res => {
     if (!roleId.value) {
       roleId.value = roles.value[0]['id']
     }
+    // build data for role picker
+    for (let i = 0; i < roles.value.length; i++) {
+      roles.value[i].text = roles.value[i].name
+      roles.value[i].value = roles.value[i].id
+      roles.value[i].helloMsg = roles.value[i].hello_msg
+    }
+
     role.value = getRoleById(roleId.value)
-    connect(chatId.value, roleId.value, modelId.value)
+    columns.value = [roles.value, models.value]
+    // 新建对话
+    if (!chatId.value) {
+      connect(chatId.value, roleId.value, modelId.value)
+    }
   }).catch((e) => {
     showNotify({type: "danger", message: '获取聊天角色失败: ' + e.messages})
   })
@@ -183,6 +225,18 @@ onMounted(() => {
 onUnmounted(() => {
   socket.value = null
 })
+
+const newChat = (item) => {
+  showPicker.value = false
+  const options = item.selectedOptions
+  roleId.value = options[0].value
+  modelId.value = options[1].value
+  chatId.value = ""
+  chatData.value = []
+  role.value = getRoleById(roleId.value)
+  title.value = "新建对话"
+  connect(chatId.value, roleId.value, modelId.value)
+}
 
 const chatData = ref([])
 const loading = ref(false)
@@ -338,6 +392,9 @@ const connect = function (chat_id, role_id, model_id) {
             icon: role.value.icon,
             content: ""
           });
+          if (isNewChat) {
+            title.value = previousText.value
+          }
         } else if (data.type === 'end') { // 消息接收完毕
           enableInput()
           lineBuffer.value = ''; // 清空缓冲
