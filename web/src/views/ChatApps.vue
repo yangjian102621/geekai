@@ -13,7 +13,7 @@
                 <span class="name">{{ scope.item.name }}</span>
                 <div class="opt">
                   <div v-if="hasRole(scope.item.key)">
-                    <el-button size="small" type="success" @click="useRole(scope.item.id)">使用</el-button>
+                    <el-button size="small" type="success" @click="useRole(scope.item)">使用</el-button>
                     <el-button size="small" type="danger" @click="updateRole(scope.item,'remove')">移除</el-button>
                   </div>
                   <el-button v-else size="small"
@@ -110,8 +110,8 @@ const hasRole = (roleKey) => {
 }
 
 const router = useRouter()
-const useRole = (roleId) => {
-  router.push({name: "chat", params: {role_id: roleId}})
+const useRole = (role) => {
+  router.push(`/chat?role_id=${role.id}`)
 }
 </script>
 
