@@ -5,9 +5,9 @@
         <h2>AI 绘画作品墙</h2>
         <div class="settings">
           <el-radio-group v-model="imgType" @change="changeImgType">
-            <el-radio label="mj" size="large">MidJourney</el-radio>
-            <el-radio label="sd" size="large">Stable Diffusion</el-radio>
-            <el-radio label="dall" size="large">DALL-E</el-radio>
+            <el-radio value="mj" size="large">MidJourney</el-radio>
+            <el-radio value="sd" size="large">Stable Diffusion</el-radio>
+            <el-radio value="dall" size="large">DALL-E</el-radio>
           </el-radio-group>
         </div>
       </div>
@@ -338,7 +338,6 @@ const getNext = () => {
   loading.value = true
   page.value = page.value + 1
   let url = ""
-  console.log(imgType.value)
   switch (imgType.value) {
     case "mj":
       url = "/api/mj/imgWall"

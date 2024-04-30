@@ -264,9 +264,10 @@ const connect = (userId) => {
 
   _socket.addEventListener('close', () => {
     loading.value = false
-    if (socket.value !== null) {
+    checkSession().then(() => {
       connect(userId)
-    }
+    }).catch(() => {
+    })
   });
 }
 
