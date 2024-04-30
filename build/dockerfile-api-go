@@ -1,5 +1,5 @@
 # GO api docker 镜像创建
-FROM alpine:3.18.2
+FROM registry.cn-hangzhou.aliyuncs.com/geekmaster/alpine:3.18.2
 
 MAINTAINER yangjian<yangjian102621@163.com>
 
