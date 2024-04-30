@@ -761,7 +761,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 // 初始化数据
@@ -778,10 +781,6 @@ const initData = () => {
 
   });
 }
-
-onUnmounted(() => {
-  clipboard.value.destroy()
-})
 
 const mjPower = ref(1)
 const mjActionPower = ref(1)

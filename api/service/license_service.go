@@ -6,10 +6,11 @@ import (
 	"chatplus/store"
 	"errors"
 	"fmt"
-	"github.com/imroc/req/v3"
-	"github.com/shirou/gopsutil/host"
 	"strings"
 	"time"
+
+	"github.com/imroc/req/v3"
+	"github.com/shirou/gopsutil/host"
 )
 
 type LicenseService struct {
@@ -20,7 +21,7 @@ type LicenseService struct {
 	machineId    string
 }
 
-func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) * LicenseService {
+func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseService {
 	var license types.License
 	var machineId string
 	_ = levelDB.Get(types.LicenseKey, &license)
@@ -60,7 +61,7 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 	}
 
 	if response.IsErrorState() {
-		return fmt.Errorf( "发送激活请求失败：%v", response.Status)
+		return fmt.Errorf("发送激活请求失败：%v", response.Status)
 	}
 
 	if res.Code != types.Success {
@@ -119,7 +120,7 @@ func (s *LicenseService) SyncLicense() {
 				IsActive:  true,
 			}
 			s.urlWhiteList = res.Data.Urls
-			logger.Debugf("同步 License 成功：%v\n%v", s.license, s.urlWhiteList)
+			//logger.Debugf("同步 License 成功：%v\n%v", s.license, s.urlWhiteList)
 		next:
 			time.Sleep(time.Second * 10)
 		}

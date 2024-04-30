@@ -57,16 +57,6 @@ bus.on('changeTheme', (value) => {
   background #1c1c1e
 }
 
-.van-toast--fail {
-  background #fef0f0
-  color #f56c6c
-}
-
-.van-toast--success {
-  background #D6FBCC
-  color #07C160
-}
-
 .van-nav-bar {
   position fixed
   width 100%
