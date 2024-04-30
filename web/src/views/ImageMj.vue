@@ -760,6 +760,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  clipboard.value.destroy()
   socket.value = null
 })
 

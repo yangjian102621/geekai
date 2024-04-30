@@ -139,6 +139,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			if err != nil {
 				client.Close()
 				h.App.ChatClients.Delete(sessionId)
+				h.App.ChatSession.Delete(sessionId)
 				cancelFunc := h.App.ReqCancelFunc.Get(sessionId)
 				if cancelFunc != nil {
 					cancelFunc()

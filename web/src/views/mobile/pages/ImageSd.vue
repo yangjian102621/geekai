@@ -198,7 +198,7 @@
                 <el-button type="success" v-else @click="publishImage($event, item, true)" circle>
                   <i class="iconfont icon-share-bold"></i>
                 </el-button>
-                <el-button type="primary" @click="showTask(item)" circle>
+                <el-button type="primary" @click="showPrompt(item)" circle>
                   <i class="iconfont icon-prompt"></i>
                 </el-button>
               </div>
@@ -208,7 +208,7 @@
       </van-list>
 
     </div>
-
+    <button style="display: none" class="copy-prompt-sd" :data-clipboard-text="prompt" id="copy-btn-sd">复制</button>
   </div>
 </template>
 
@@ -232,7 +232,6 @@ import {showLoginDialog} from "@/utils/libs";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
-const showTaskDialog = ref(false)
 const item = ref({})
 const isLogin = ref(false)
 const activeColspan = ref([""])
@@ -338,15 +337,15 @@ const connect = () => {
 }
 
 const clipboard = ref(null)
+const prompt = ref('')
 onMounted(() => {
   initData()
-  clipboard.value = new Clipboard('.copy-prompt-sd');
+  clipboard.value = new Clipboard(".copy-prompt-sd");
   clipboard.value.on('success', () => {
-    showNotify({type: "success", message: "复制成功！"});
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
   })
-
   clipboard.value.on('error', () => {
-    showNotify({type: "danger", message: '复制失败！'});
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
   })
 
   httpGet("/api/config/get?key=system").then(res => {
@@ -438,7 +437,7 @@ const generate = () => {
     return showToast("请输入绘画提示词！")
   }
 
-  if (params.value.seed === '') {
+  if (!params.value.seed) {
     params.value.seed = -1
   }
   params.value.session_id = getSessionId()
@@ -450,14 +449,17 @@ const generate = () => {
   })
 }
 
-const showTask = (row) => {
-  item.value = row
-  showTaskDialog.value = true
-}
-
-const copyParams = (row) => {
-  params.value = row.params
-  showTaskDialog.value = false
+const showPrompt = (item) => {
+  prompt.value = item.prompt
+  showConfirmDialog({
+    title: "绘画提示词",
+    message: item.prompt,
+    confirmButtonText: "复制",
+    cancelButtonText: "关闭",
+  }).then(() => {
+    document.querySelector('#copy-btn-sd').click()
+  }).catch(() => {
+  });
 }
 
 const removeImage = (event, item) => {

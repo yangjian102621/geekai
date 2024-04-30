@@ -286,7 +286,7 @@ const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
 
 if (isMobile()) {
-  router.replace("/mobile")
+  router.replace("/mobile/chat")
 }
 
 // 获取系统配置
