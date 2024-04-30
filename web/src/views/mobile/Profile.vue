@@ -30,7 +30,7 @@
 
           <van-field label="有效期" v-if="form.expired_time > 0">
             <template #input>
-              <van-tag type="warning">{{ dateFormat(form.expired_time) }}</van-tag>
+              {{ dateFormat(form.expired_time) }}
             </template>
           </van-field>
 
@@ -39,11 +39,15 @@
 
       <div class="opt" v-if="isLogin">
         <van-row :gutter="10">
-          <van-col :span="12">
-            <van-button round block type="primary" @click="showPasswordDialog = true">修改密码</van-button>
+          <van-col :span="8">
+            <van-button round block @click="showPasswordDialog = true" size="small">修改密码</van-button>
           </van-col>
-          <van-col :span="12">
-            <van-button round block @click="logout">退出登录</van-button>
+          <van-col :span="8">
+            <van-button round block @click="logout" size="small">退出登录</van-button>
+          </van-col>
+
+          <van-col :span="8">
+            <van-button round block @click="showSettings = true" icon="setting" size="small">设置</van-button>
           </van-col>
         </van-row>
       </div>
@@ -114,6 +118,34 @@
         </van-cell-group>
       </van-form>
     </van-dialog>
+
+    <van-action-sheet v-model:show="showSettings" title="用户设置">
+      <div class="setting-content">
+        <van-form>
+          <van-cell-group inset>
+            <van-field name="switch" label="暗黑主题">
+              <template #input>
+                <van-switch v-model="dark" @change="changeTheme"/>
+              </template>
+            </van-field>
+            <!--            <van-field-->
+            <!--                v-model="password"-->
+            <!--                type="password"-->
+            <!--                name="密码"-->
+            <!--                label="密码"-->
+            <!--                placeholder="密码"-->
+            <!--                :rules="[{ required: true, message: '请填写密码' }]"-->
+            <!--            />-->
+          </van-cell-group>
+          <!--          <div style="margin: 16px;">-->
+          <!--            <van-button round block type="primary" native-type="submit">-->
+          <!--              提交-->
+          <!--            </van-button>-->
+          <!--          </div>-->
+        </van-form>
+      </div>
+    </van-action-sheet>
+
   </div>
 </template>
 
@@ -127,6 +159,8 @@ import {ElMessage} from "element-plus";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
+import bus from '@/store/eventbus'
+import {getMobileTheme} from "@/store/system";
 
 const form = ref({
   username: 'GeekMaster',
@@ -148,6 +182,7 @@ const payWays = ref({})
 const router = useRouter()
 const userId = ref(0)
 const isLogin = ref(false)
+const showSettings = ref(false)
 
 onMounted(() => {
   checkSession().then(user => {
@@ -276,6 +311,13 @@ const logout = function () {
     showFailToast('注销失败！');
   })
 }
+
+const dark = ref(getMobileTheme() === 'dark')
+
+const changeTheme = () => {
+  bus.emit('changeTheme', dark.value ? 'dark' : 'light')
+}
+
 </script>
 
 <style lang="stylus">
@@ -305,8 +347,10 @@ const logout = function () {
     .product-list {
       padding 0 15px
 
+      color var(--van-text-color)
+
       .item {
-        border 1px solid #e5e5e5
+        border 1px solid var(--van-border-color)
         border-radius 10px
         margin-bottom 15px
         overflow hidden
@@ -327,12 +371,20 @@ const logout = function () {
           }
         }
 
+        .van-cell__value {
+          flex 2
+        }
+
         .price {
           font-size 18px
           color #f56c6c
         }
       }
     }
+  }
+
+  .setting-content {
+    padding 16px
   }
 }
 </style>

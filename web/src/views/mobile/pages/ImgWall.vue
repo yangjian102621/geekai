@@ -13,7 +13,13 @@
               style="height: 100%;width: 100%;"
           >
             <van-cell v-for="item in data['mj'].data" :key="item.id">
-              <van-image :src="item['img_thumb']" @click="showPrompt(item)" fit="cover"/>
+              <van-image :src="item['img_thumb']" @click="imageView(item)" fit="cover"/>
+
+              <div class="opt-box">
+                <el-button type="primary" @click="showPrompt(item)" circle>
+                  <i class="iconfont icon-prompt"></i>
+                </el-button>
+              </div>
             </van-cell>
           </van-list>
         </van-tab>
@@ -27,7 +33,13 @@
               @load="onLoad"
           >
             <van-cell v-for="item in data['sd'].data" :key="item.id">
-              <van-image :src="item['img_thumb']" @click="showPrompt(item)" fit="cover"/>
+              <van-image :src="item['img_thumb']" @click="imageView(item)" fit="cover"/>
+
+              <div class="opt-box">
+                <el-button type="primary" @click="showPrompt(item)" circle>
+                  <i class="iconfont icon-prompt"></i>
+                </el-button>
+              </div>
             </van-cell>
           </van-list>
         </van-tab>
@@ -36,13 +48,19 @@
         </van-tab>
       </van-tabs>
     </div>
+
+    <button style="display: none" class="copy-prompt-wall" :data-clipboard-text="prompt" id="copy-btn-wall">复制
+    </button>
   </div>
 </template>
 
 <script setup>
-import {ref} from "vue";
+import {onMounted, onUnmounted, ref} from "vue";
 import {httpGet} from "@/utils/http";
-import {showDialog, showFailToast} from "vant";
+import {showConfirmDialog, showDialog, showFailToast, showImagePreview, showNotify} from "vant";
+import {Delete} from "@element-plus/icons-vue";
+import Clipboard from "clipboard";
+import {ElMessage} from "element-plus";
 
 const activeName = ref("mj")
 const data = ref({
@@ -52,7 +70,7 @@ const data = ref({
     error: false,
     page: 1,
     pageSize: 12,
-    url: "/api/mj/jobs",
+    url: "/api/mj/imgWall",
     data: []
   },
   "sd": {
@@ -61,7 +79,7 @@ const data = ref({
     error: false,
     page: 1,
     pageSize: 12,
-    url: "/api/sd/jobs",
+    url: "/api/sd/imgWall",
     data: []
   },
   "dalle3": {
@@ -70,9 +88,30 @@ const data = ref({
     error: false,
     page: 1,
     pageSize: 12,
-    url: "/api/dalle3/jobs",
+    url: "/api/dalle3/imgWall",
     data: []
   }
+})
+
+const prompt = ref('')
+const clipboard = ref(null)
+onMounted(() => {
+  clipboard.value = new Clipboard(".copy-prompt-wall");
+  clipboard.value.on('success', () => {
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
+  })
+  clipboard.value.on('error', () => {
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+  })
+
+
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 
 const onLoad = () => {
@@ -105,12 +144,20 @@ const onLoad = () => {
 };
 
 const showPrompt = (item) => {
-  showDialog({
+  prompt.value = item.prompt
+  showConfirmDialog({
     title: "绘画提示词",
     message: item.prompt,
+    confirmButtonText: "复制",
+    cancelButtonText: "关闭",
   }).then(() => {
-    // on close
+    document.querySelector('#copy-btn-wall').click()
+  }).catch(() => {
   });
+}
+
+const imageView = (item) => {
+  showImagePreview([item['img_url']]);
 }
 </script>
 
@@ -118,8 +165,17 @@ const showPrompt = (item) => {
 .img-wall {
   .content {
     .van-cell__value {
+      min-height 80px
+
       .van-image {
         width 100%
+      }
+
+      .opt-box {
+        position absolute
+        right 0
+        top 0
+        padding 10px
       }
     }
   }

@@ -115,11 +115,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 				break
 			}
 
-			// 初始化 role
-			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
-				message.Role = responseBody.Choices[0].Delta.Role
-				continue
-			} else if responseBody.Choices[0].FinishReason != "" {
+			// output stopped
+			if responseBody.Choices[0].FinishReason != "" {
 				break // 输出完成或者输出中断了
 			} else {
 				content := responseBody.Choices[0].Delta.Content

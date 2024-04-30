@@ -270,6 +270,7 @@
 
     </div>
 
+    <button style="display: none" class="copy-prompt" :data-clipboard-text="prompt" id="copy-btn">复制</button>
   </div>
 </template>
 
@@ -280,7 +281,6 @@ import {
   showFailToast,
   showNotify,
   showToast,
-  showDialog,
   showImagePreview,
   showSuccessToast
 } from "vant";
@@ -291,6 +291,7 @@ import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {Delete} from "@element-plus/icons-vue";
 import {showLoginDialog} from "@/utils/libs";
+import Clipboard from "clipboard";
 
 const activeColspan = ref([""])
 
@@ -337,8 +338,18 @@ const socket = ref(null)
 const power = ref(0)
 const activeName = ref("txt2img")
 const isLogin = ref(false)
+const prompt = ref('')
+const clipboard = ref(null)
 
 onMounted(() => {
+  clipboard.value = new Clipboard(".copy-prompt");
+  clipboard.value.on('success', () => {
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
+  })
+  clipboard.value.on('error', () => {
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+  })
+
   checkSession().then(user => {
     power.value = user['power']
     userId.value = user.id
@@ -354,6 +365,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   socket.value = null
+  clipboard.value.destroy()
 })
 
 const mjPower = ref(1)
@@ -616,11 +628,15 @@ const publishImage = (item, action) => {
 }
 
 const showPrompt = (item) => {
-  showDialog({
+  prompt.value = item.prompt
+  showConfirmDialog({
     title: "绘画提示词",
     message: item.prompt,
+    confirmButtonText: "复制",
+    cancelButtonText: "关闭",
   }).then(() => {
-    // on close
+    document.querySelector('#copy-btn').click()
+  }).catch(() => {
   });
 }
 

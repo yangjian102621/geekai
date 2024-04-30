@@ -232,17 +232,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 // Logout 注 销
 func (h *UserHandler) Logout(c *gin.Context) {
-	sessionId := c.GetHeader(types.ChatTokenHeader)
 	key := h.GetUserKey(c)
 	if _, err := h.redis.Del(c, key).Result(); err != nil {
 		logger.Error("error with delete session: ", err)
-	}
-	// 删除 websocket 会话列表
-	h.App.ChatSession.Delete(sessionId)
-	// 关闭 socket 连接
-	client := h.App.ChatClients.Get(sessionId)
-	if client != nil {
-		client.Close()
 	}
 	resp.SUCCESS(c)
 }

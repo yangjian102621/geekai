@@ -1,13 +1,14 @@
 <template>
-  <van-config-provider :theme="getMobileTheme()">
+  <van-config-provider :theme="theme">
     <div class="mobile-home">
       <router-view/>
 
-      <van-tabbar route v-model="active" @change="onChange">
+      <van-tabbar route v-model="active">
         <van-tabbar-item to="/mobile/index" name="home" icon="home-o">首页</van-tabbar-item>
         <van-tabbar-item to="/mobile/chat" name="chat" icon="chat-o">对话</van-tabbar-item>
         <van-tabbar-item to="/mobile/image" name="image" icon="photo-o">绘图</van-tabbar-item>
-        <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的</van-tabbar-item>
+        <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的
+        </van-tabbar-item>
       </van-tabbar>
 
     </div>
@@ -17,9 +18,10 @@
 
 <script setup>
 import {ref} from "vue";
-import {getMobileTheme} from "@/store/system";
+import {getMobileTheme, setMobileTheme} from "@/store/system";
 import {useRouter} from "vue-router";
 import {isMobile} from "@/utils/libs";
+import bus from '@/store/eventbus'
 
 const router = useRouter()
 if (!isMobile()) {
@@ -27,9 +29,12 @@ if (!isMobile()) {
 }
 
 const active = ref('home')
-const onChange = (index) => {
-  console.log(index)
-}
+const theme = ref(getMobileTheme())
+
+bus.on('changeTheme', (value) => {
+  theme.value = value
+  setMobileTheme(theme.value)
+})
 
 </script>
 

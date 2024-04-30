@@ -5,25 +5,11 @@ import Storage from "good-storage";
  * storage handler
  */
 
-const SessionIDKey = process.env.VUE_APP_KEY_PREFIX + 'SESSION_ID';
 const UserTokenKey = process.env.VUE_APP_KEY_PREFIX + "Authorization";
 const AdminTokenKey = process.env.VUE_APP_KEY_PREFIX + "Admin-Authorization"
 
 export function getSessionId() {
-    let sessionId = Storage.get(SessionIDKey)
-    if (!sessionId) {
-        sessionId = randString(42)
-        setSessionId(sessionId)
-    }
-    return sessionId
-}
-
-export function removeSessionId() {
-    Storage.remove(SessionIDKey)
-}
-
-export function setSessionId(sessionId) {
-    Storage.set(SessionIDKey, sessionId)
+    return randString(42)
 }
 
 export function getUserToken() {
