@@ -616,7 +616,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 

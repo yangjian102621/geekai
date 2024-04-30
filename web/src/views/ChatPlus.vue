@@ -330,7 +330,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 // 初始化数据

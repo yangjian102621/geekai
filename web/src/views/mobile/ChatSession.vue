@@ -134,6 +134,7 @@ import ChatReply from "@/components/mobile/ChatReply.vue";
 import {getSessionId, getUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
 import Clipboard from "clipboard";
+import {showLoginDialog} from "@/utils/dialog";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -178,6 +179,7 @@ httpGet('/api/model/list').then(res => {
   }
   for (let i = 0; i < models.value.length; i++) {
     models.value[i].text = models.value[i].name
+    models.value[i].mValue = models.value[i].value
     models.value[i].value = models.value[i].id
   }
   modelValue.value = getModelValue(modelId.value)
@@ -223,7 +225,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 const newChat = (item) => {
@@ -275,35 +280,38 @@ md.use(mathjaxPlugin)
 
 const onLoad = () => {
   if (chatId.value) {
-    httpGet('/api/chat/history?chat_id=' + chatId.value).then(res => {
-      // 加载状态结束
-      finished.value = true;
-      const data = res.data
-      if (data && data.length > 0) {
-        for (let i = 0; i < data.length; i++) {
-          if (data[i].type === "prompt") {
+    checkSession().then(() => {
+      httpGet('/api/chat/history?chat_id=' + chatId.value).then(res => {
+        // 加载状态结束
+        finished.value = true;
+        const data = res.data
+        if (data && data.length > 0) {
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].type === "prompt") {
+              chatData.value.push(data[i]);
+              continue;
+            }
+
+            data[i].orgContent = data[i].content;
+            data[i].content = md.render(processContent(data[i].content))
             chatData.value.push(data[i]);
-            continue;
           }
 
-          data[i].orgContent = data[i].content;
-          data[i].content = md.render(processContent(data[i].content))
-          chatData.value.push(data[i]);
-        }
+          nextTick(() => {
+            hl.configure({ignoreUnescapedHTML: true})
+            const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
+            blocks.forEach((block) => {
+              hl.highlightElement(block)
+            })
 
-        nextTick(() => {
-          hl.configure({ignoreUnescapedHTML: true})
-          const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
-          blocks.forEach((block) => {
-            hl.highlightElement(block)
+            scrollListBox()
           })
-
-          scrollListBox()
-        })
-      }
-      connect(chatId.value, roleId.value, modelId.value);
+        }
+        connect(chatId.value, roleId.value, modelId.value);
+      }).catch(() => {
+        error.value = true
+      })
     }).catch(() => {
-      error.value = true
     })
   }
 };
@@ -443,8 +451,7 @@ const connect = function (chat_id, role_id, model_id) {
     checkSession().then(() => {
       connect(chat_id, role_id, model_id)
     }).catch(() => {
-      loading.value = true
-      setTimeout(() => connect(chat_id, role_id, model_id), 3000)
+      showLoginDialog(router)
     });
   });
 
@@ -549,7 +556,7 @@ const getRoleById = function (rid) {
 const getModelValue = (model_id) => {
   for (let i = 0; i < models.value.length; i++) {
     if (models.value[i].id === model_id) {
-      return models.value[i].value
+      return models.value[i].mValue
     }
   }
   return ""

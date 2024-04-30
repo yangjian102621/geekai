@@ -180,6 +180,7 @@ import SendMsg from "@/components/SendMsg.vue";
 import {arrayContains} from "@/utils/libs";
 import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
 
 const router = useRouter();
 const title = ref('Geek-AI 用户注册');
@@ -227,37 +228,37 @@ httpGet("/api/config/get?key=system").then(res => {
 // 注册操作
 const submitRegister = () => {
   if (data.value.username === '') {
-    return ElMessage.error('请输入用户名');
+    return showMessageError('请输入用户名');
   }
 
   if (activeName.value === 'mobile' && !validateMobile(data.value.username)) {
-    return ElMessage.error('请输入合法的手机号');
+    return showMessageError('请输入合法的手机号');
   }
 
   if (activeName.value === 'email' && !validateEmail(data.value.username)) {
-    return ElMessage.error('请输入合法的邮箱地址');
+    return showMessageError('请输入合法的邮箱地址');
   }
 
   if (data.value.password.length < 8) {
-    return ElMessage.error('密码的长度为8-16个字符');
+    return showMessageError('密码的长度为8-16个字符');
   }
   if (data.value.repass !== data.value.password) {
-    return ElMessage.error('两次输入密码不一致');
+    return showMessageError('两次输入密码不一致');
   }
 
   if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
-    return ElMessage.error('请输入验证码');
+    return showMessageError('请输入验证码');
   }
   data.value.reg_way = activeName.value
   httpPost('/api/user/register', data.value).then((res) => {
     setUserToken(res.data)
-    ElMessage.success({
+    showMessageOK({
       "message": "注册成功，即将跳转到对话主界面...",
       onClose: () => router.push("/chat"),
       duration: 1000
     })
   }).catch((e) => {
-    ElMessage.error('注册失败，' + e.message)
+    showMessageError('注册失败，' + e.message)
   })
 }
 

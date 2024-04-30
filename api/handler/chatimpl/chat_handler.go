@@ -137,6 +137,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		for {
 			_, msg, err := client.Receive()
 			if err != nil {
+				logger.Debugf("close connection: %s", client.Conn.RemoteAddr())
 				client.Close()
 				h.App.ChatClients.Delete(sessionId)
 				h.App.ChatSession.Delete(sessionId)

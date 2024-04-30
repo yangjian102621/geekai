@@ -276,14 +276,7 @@
 
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
-import {
-  showConfirmDialog,
-  showFailToast,
-  showNotify,
-  showToast,
-  showImagePreview,
-  showSuccessToast
-} from "vant";
+import {showConfirmDialog, showFailToast, showImagePreview, showNotify, showSuccessToast, showToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {getSessionId} from "@/store/session";
@@ -364,8 +357,11 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  socket.value = null
   clipboard.value.destroy()
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 const mjPower = ref(1)
