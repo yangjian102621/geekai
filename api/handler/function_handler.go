@@ -181,6 +181,11 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 
+	if user.Power < h.App.SysConfig.DallPower {
+		resp.ERROR(c, "创建 DALL-E 绘图任务失败，算力不足")
+		return
+	}
+
 	// create dall task
 	prompt := utils.InterfaceToString(params["prompt"])
 	job := model.DallJob{
