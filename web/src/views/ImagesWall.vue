@@ -72,7 +72,7 @@
           </template>
         </v3-waterfall>
 
-        <v3-waterfall v-if="imgType === 'dall'"
+        <v3-waterfall v-else-if="imgType === 'dall'"
                       id="waterfall"
                       :list="data['dall']"
                       srcKey="img_thumb"
