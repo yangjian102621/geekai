@@ -2,7 +2,7 @@
   <div class="img-wall container">
     <div class="content">
       <van-tabs v-model:active="activeName" animated sticky>
-        <van-tab title="MidJourney" name="mj">
+        <van-tab title="MJ" name="mj">
           <van-list
               v-model:error="data['mj'].error"
               v-model:loading="data['mj'].loading"
@@ -23,7 +23,7 @@
             </van-cell>
           </van-list>
         </van-tab>
-        <van-tab title="StableDiffusion" name="sd">
+        <van-tab title="SD" name="sd">
           <van-list
               v-model:error="data['sd'].error"
               v-model:loading="data['sd'].loading"
@@ -43,7 +43,7 @@
             </van-cell>
           </van-list>
         </van-tab>
-        <van-tab title="DALLE3" name="dalle3">
+        <van-tab title="DALL" name="dalle3">
           <van-empty description="功能正在开发中"/>
         </van-tab>
       </van-tabs>
@@ -57,8 +57,7 @@
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue";
 import {httpGet} from "@/utils/http";
-import {showConfirmDialog, showDialog, showFailToast, showImagePreview, showNotify} from "vant";
-import {Delete} from "@element-plus/icons-vue";
+import {showConfirmDialog, showFailToast, showImagePreview, showNotify} from "vant";
 import Clipboard from "clipboard";
 import {ElMessage} from "element-plus";
 

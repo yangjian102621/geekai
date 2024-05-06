@@ -95,6 +95,7 @@ onMounted(() => {
   checkSession().then((user) => {
     isLogin.value = true
     roles.value = user.chat_roles
+  }).catch(() => {
   })
   fetchApps()
 })

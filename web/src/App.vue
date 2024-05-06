@@ -66,4 +66,14 @@ html, body {
   white-space: nowrap;
 }
 
+.van-toast--fail {
+  background #fef0f0
+  color #f56c6c
+}
+
+.van-toast--success {
+  background #D6FBCC
+  color #07C160
+}
+
 </style>

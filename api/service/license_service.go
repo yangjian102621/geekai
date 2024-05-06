@@ -13,21 +13,22 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/store"
-	"github.com/imroc/req/v3"
-	"github.com/shirou/gopsutil/host"
 	"strings"
 	"time"
+
+	"github.com/imroc/req/v3"
+	"github.com/shirou/gopsutil/host"
 )
 
 type LicenseService struct {
 	config       types.ApiConfig
 	levelDB      *store.LevelDB
-	license      types.License
+	license *types.License
 	urlWhiteList []string
 	machineId    string
 }
 
-func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) * LicenseService {
+func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseService {
 	var license types.License
 	var machineId string
 	_ = levelDB.Get(types.LicenseKey, &license)
@@ -35,18 +36,20 @@ func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) * License
 	if err == nil {
 		machineId = info.HostID
 	}
+	logger.Infof("License: %+v", license)
 	return &LicenseService{
 		config:    server.Config.ApiConfig,
 		levelDB:   levelDB,
-		license:   license,
+		license: &license,
 		machineId: machineId,
 	}
 }
 
 type License struct {
 	Name      string `json:"name"`
-	Value     string `json:"license"`
+	License  string `json:"license"`
 	Mid       string `json:"mid"`
+	ActiveAt int64  `json:"active_at"`
 	ExpiredAt int64  `json:"expired_at"`
 	UserNum   int    `json:"user_num"`
 }
@@ -67,14 +70,14 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 	}
 
 	if response.IsErrorState() {
-		return fmt.Errorf( "发送激活请求失败：%v", response.Status)
+		return fmt.Errorf("发送激活请求失败：%v", response.Status)
 	}
 
 	if res.Code != types.Success {
 		return fmt.Errorf("激活失败：%v", res.Message)
 	}
 
-	s.license = types.License{
+	s.license = &types.License{
 		Key:       license,
 		MachineId: machineId,
 		UserNum:   res.Data.UserNum,
@@ -91,50 +94,81 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 // SyncLicense 定期同步 License
 func (s *LicenseService) SyncLicense() {
 	go func() {
+		retryCounter := 0
 		for {
-			var res struct {
-				Code    types.BizCode `json:"code"`
-				Message string        `json:"message"`
-				Data    struct {
-					License License  `json:"license"`
-					Urls    []string `json:"urls"`
-				}
-			}
-			apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/check")
-			response, err := req.C().R().
-				SetBody(map[string]string{"license": s.license.Key, "machine_id": s.machineId}).
-				SetSuccessResult(&res).Post(apiURL)
+			license, err := s.fetchLicense()
 			if err != nil {
-				logger.Errorf("发送激活请求失败: %v", err)
-				goto next
-			}
-			if response.IsErrorState() {
-				logger.Errorf("激活失败：%v", response.Status)
-				goto next
-			}
-			if res.Code != types.Success {
-				logger.Errorf("激活失败：%v", res.Message)
+				retryCounter++
+				if retryCounter < 5 {
+					logger.Error(err)
+				}
 				s.license.IsActive = false
-				goto next
+			} else {
+				s.license = license
 			}
 
-			s.license = types.License{
-				Key:       res.Data.License.Value,
-				MachineId: res.Data.License.Mid,
-				UserNum:   res.Data.License.UserNum,
-				ExpiredAt: res.Data.License.ExpiredAt,
-				IsActive:  true,
+			urls, err := s.fetchUrlWhiteList()
+			if err == nil {
+				s.urlWhiteList = urls
 			}
-			s.urlWhiteList = res.Data.Urls
-			logger.Debugf("同步 License 成功：%v\n%v", s.license, s.urlWhiteList)
-		next:
+
 			time.Sleep(time.Second * 10)
 		}
 	}()
 }
 
+func (s *LicenseService) fetchLicense() (*types.License, error) {
+	var res struct {
+		Code    types.BizCode `json:"code"`
+		Message string        `json:"message"`
+		Data    License       `json:"data"`
+	}
+	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/check")
+	response, err := req.C().R().
+		SetBody(map[string]string{"license": s.license.Key, "machine_id": s.machineId}).
+		SetSuccessResult(&res).Post(apiURL)
+	if err != nil {
+		return nil, fmt.Errorf("发送激活请求失败: %v", err)
+	}
+	if response.IsErrorState() {
+		return nil, fmt.Errorf("激活失败：%v", response.Status)
+	}
+	if res.Code != types.Success {
+		return nil, fmt.Errorf("激活失败：%v", res.Message)
+	}
+
+	return &types.License{
+		Key:       res.Data.License,
+		MachineId: res.Data.Mid,
+		UserNum:   res.Data.UserNum,
+		ExpiredAt: res.Data.ExpiredAt,
+		IsActive:  true,
+	}, nil
+}
+
+func (s *LicenseService) fetchUrlWhiteList() ([]string, error) {
+	var res struct {
+		Code    types.BizCode `json:"code"`
+		Message string        `json:"message"`
+		Data    []string      `json:"data"`
+	}
+	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/urls")
+	response, err := req.C().R().SetSuccessResult(&res).Get(apiURL)
+	if err != nil {
+		return nil, fmt.Errorf("发送请求失败: %v", err)
+	}
+	if response.IsErrorState() {
+		return nil, fmt.Errorf("发送请求失败：%v", response.Status)
+	}
+	if res.Code != types.Success {
+		return nil, fmt.Errorf("获取白名单失败：%v", res.Message)
+	}
+
+	return res.Data, nil
+}
+
 // GetLicense 获取许可信息
-func (s *LicenseService) GetLicense() types.License {
+func (s *LicenseService) GetLicense() *types.License {
 	return s.license
 }
 
