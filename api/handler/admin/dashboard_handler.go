@@ -1,11 +1,18 @@
 package admin
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/handler"
-	"chatplus/store/model"
-	"chatplus/utils/resp"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/handler"
+	"geekai/store/model"
+	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"

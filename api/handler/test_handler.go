@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"chatplus/service"
-	"chatplus/service/payment"
+	"geekai/service"
+	"geekai/service/payment"
 	"gorm.io/gorm"
 )
 

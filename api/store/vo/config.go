@@ -1,6 +1,6 @@
 package vo
 
-import "chatplus/core/types"
+import "geekai/core/types"
 
 type Config struct {
 	Id           uint               `json:"id"`

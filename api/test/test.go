@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chatplus/utils"
+	"geekai/utils"
 	"fmt"
 )
 

@@ -1,12 +1,19 @@
 package handler
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/store/model"
-	"chatplus/store/vo"
-	"chatplus/utils"
-	"chatplus/utils/resp"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/store/model"
+	"geekai/store/vo"
+	"geekai/utils"
+	"geekai/utils/resp"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

@@ -1,7 +1,7 @@
 package vo
 
 import (
-	"chatplus/core/types"
+	"geekai/core/types"
 	"time"
 )
 
