@@ -1,23 +1,30 @@
 package main
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/handler"
-	"chatplus/handler/admin"
-	"chatplus/handler/chatimpl"
-	logger2 "chatplus/logger"
-	"chatplus/service"
-	"chatplus/service/dalle"
-	"chatplus/service/mj"
-	"chatplus/service/oss"
-	"chatplus/service/payment"
-	"chatplus/service/sd"
-	"chatplus/service/sms"
-	"chatplus/service/wx"
-	"chatplus/store"
 	"context"
 	"embed"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/handler"
+	"geekai/handler/admin"
+	"geekai/handler/chatimpl"
+	logger2 "geekai/logger"
+	"geekai/service"
+	"geekai/service/dalle"
+	"geekai/service/mj"
+	"geekai/service/oss"
+	"geekai/service/payment"
+	"geekai/service/sd"
+	"geekai/service/sms"
+	"geekai/service/wx"
+	"geekai/store"
 	"io"
 	"log"
 	"os"
