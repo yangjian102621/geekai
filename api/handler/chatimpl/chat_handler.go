@@ -9,6 +9,10 @@ package chatimpl
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
@@ -19,10 +23,6 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -481,11 +481,11 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, session *types.ChatSession, apiKey *model.ApiKey) (*http.Response, error) {
 	// if the chat model bind a KEY, use it directly
 	if session.Model.KeyId > 0 {
-		h.DB.Debug().Where("id", session.Model.KeyId).Find(apiKey)
+		h.DB.Debug().Where("id", session.Model.KeyId).Where("enabled", true).Find(apiKey)
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {
-		h.DB.Debug().Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+		h.DB.Debug().Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
 	}
 	if apiKey.Id == 0 {
 		return nil, errors.New("no available key, please import key")

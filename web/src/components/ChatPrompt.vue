@@ -57,6 +57,7 @@ export default defineComponent({
     if (!this.finalTokens) {
       httpPost("/api/chat/tokens", {text: this.content, model: this.model}).then(res => {
         this.finalTokens = res.data;
+      }).catch(() => {
       })
     }
   }

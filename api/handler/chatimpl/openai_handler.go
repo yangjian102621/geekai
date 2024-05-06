@@ -9,13 +9,13 @@ package chatimpl
 
 import (
 	"bufio"
+	"context"
+	"encoding/json"
+	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
-	"context"
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 	"strings"
@@ -75,12 +75,16 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
+			if err != nil { // 数据解析出错
 				logger.Error(err, line)
 				utils.ReplyMessage(ws, ErrorMsg)
 				utils.ReplyMessage(ws, ErrImg)
 				break
 			}
+			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
+				continue
+			}
+			
 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
 				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
