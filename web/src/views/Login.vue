@@ -56,13 +56,13 @@
 import {ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
 import {checkSession} from "@/action/session";
 import {setUserToken} from "@/store/session";
 import ResetPass from "@/components/ResetPass.vue";
+import {showMessageError} from "@/utils/dialog";
 
 const router = useRouter();
 const title = ref('Geek-AI');
@@ -76,7 +76,7 @@ httpGet("/api/config/get?key=system").then(res => {
   logo.value = res.data.logo
   title.value = res.data.title
 }).catch(e => {
-  ElMessage.error("获取系统配置失败：" + e.message)
+  showMessageError("获取系统配置失败：" + e.message)
 })
 
 
@@ -97,10 +97,10 @@ const handleKeyup = (e) => {
 
 const login = function () {
   if (username.value.trim() === '') {
-    return ElMessage.error("请输入用户民")
+    return showMessageError("请输入用户民")
   }
   if (password.value.trim() === '') {
-    return ElMessage.error('请输入密码');
+    return showMessageError('请输入密码');
   }
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
@@ -112,10 +112,9 @@ const login = function () {
     }
 
   }).catch((e) => {
-    ElMessage.error('登录失败，' + e.message)
+    showMessageError('登录失败，' + e.message)
   })
 }
-
 
 </script>
 

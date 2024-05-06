@@ -330,7 +330,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 // 初始化数据
@@ -355,8 +358,8 @@ const initData = () => {
         // 加载角色列表
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
-          if (router.currentRoute.value.params.role_id) {
-            roleId.value = parseInt(router.currentRoute.value.params["role_id"])
+          if (router.currentRoute.value.query.role_id) {
+            roleId.value = parseInt(router.currentRoute.value.query.role_id)
           } else {
             roleId.value = roles.value[0]['id']
           }

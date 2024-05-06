@@ -105,7 +105,7 @@
               </div>
 
               <h2>创作记录</h2>
-              <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.5)">
+              <div class="finish-job-list">
                 <div v-if="finishedJobs.length > 0">
                   <ItemList :items="finishedJobs" :width="240" :gap="16">
                     <template #default="scope">
@@ -272,7 +272,6 @@ const initData = () => {
     fetchFinishJobs(1)
     connect()
   }).catch(() => {
-    loading.value = false
   });
 }
 
@@ -341,6 +340,9 @@ const connect = () => {
 }
 
 const fetchRunningJobs = () => {
+  if (!isLogin.value) {
+    return
+  }
   // 获取运行中的任务
   httpGet(`/api/dall/jobs?status=0`).then(res => {
     const jobs = res.data
@@ -367,10 +369,11 @@ const fetchRunningJobs = () => {
 const page = ref(1)
 const pageSize = ref(15)
 const isOver = ref(false)
-const loading = ref(false)
 // 获取已完成的任务
 const fetchFinishJobs = (page) => {
-  loading.value = true
+  if (!isLogin.value) {
+    return
+  }
   httpGet(`/api/dall/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
@@ -380,9 +383,7 @@ const fetchFinishJobs = (page) => {
     } else {
       finishedJobs.value = finishedJobs.value.concat(res.data)
     }
-    loading.value = false
   }).catch(e => {
-    loading.value = false
     ElMessage.error("获取任务失败：" + e.message)
   })
 }

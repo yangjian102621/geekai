@@ -1,5 +1,5 @@
 SHELL=/usr/bin/env bash
-NAME := chatgpt-plus
+NAME := geekai
 all: amd64 arm64
 
 amd64:

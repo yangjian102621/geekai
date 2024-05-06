@@ -6,7 +6,7 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import axios from 'axios'
-import {getAdminToken, getSessionId, getUserToken} from "@/store/session";
+import {getAdminToken, getSessionId, getUserToken, removeAdminToken, removeUserToken} from "@/store/session";
 
 axios.defaults.timeout = 180000
 axios.defaults.baseURL = process.env.VUE_APP_API_HOST
@@ -29,9 +29,14 @@ axios.interceptors.response.use(
         let data = response.data;
         if (data.code === 0) {
             return response
-        } else {
-            return Promise.reject(response.data)
+        } else if (data.code === 400) {
+            if (response.request.responseURL.indexOf("/api/admin") !== -1) {
+                removeAdminToken()
+            } else {
+                removeUserToken()
+            }
         }
+            return Promise.reject(response.data)
     }, error => {
         return Promise.reject(error)
     })
