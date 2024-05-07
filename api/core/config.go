@@ -23,7 +23,7 @@ func NewDefaultConfig() *types.AppConfig {
 			SecretKey: utils.RandString(64),
 			MaxAge:    86400,
 		},
-		ApiConfig: types.ChatPlusApiConfig{},
+		ApiConfig: types.ApiConfig{},
 		OSS: types.OSSConfig{
 			Active: "local",
 			Local: types.LocalStorageConfig{

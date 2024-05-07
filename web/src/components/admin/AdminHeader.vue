@@ -45,6 +45,9 @@
                   <span>{{ sysTitle }}</span>
                 </el-dropdown-item>
               </a>
+              <el-dropdown-item>
+                <i class="iconfont icon-version"></i> 当前版本：{{ version }}
+              </el-dropdown-item>
               <el-dropdown-item @click="showDialog = true">
                 <i class="iconfont icon-reward"></i>
                 <span>打赏作者</span>
@@ -86,6 +89,7 @@ import {removeAdminToken} from "@/store/session";
 
 const message = ref(5);
 const sysTitle = ref(process.env.VUE_APP_TITLE)
+const version = ref(process.env.VUE_APP_VERSION)
 const avatar = ref('/images/user-info.jpg')
 const donateImg = ref('/images/wechat-pay.png')
 const showDialog = ref(false)

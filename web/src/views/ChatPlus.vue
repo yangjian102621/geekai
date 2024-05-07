@@ -82,8 +82,8 @@
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-head">
           <div class="chat-config">
-            <!--            <span class="role-select-label">聊天角色：</span>-->
-            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat">
+            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat"
+                       style="width:150px">
               <el-option
                   v-for="item in roles"
                   :key="item.id"
@@ -97,7 +97,8 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="modelID" placeholder="模型" @change="_newChat">
+            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel"
+                       style="width:150px">
               <el-option
                   v-for="item in models"
                   :key="item.id"
@@ -122,28 +123,6 @@
               <i class="iconfont icon-export"></i>
               <span>导出会话</span>
             </el-button>
-
-            <el-tooltip class="box-item"
-                        effect="dark"
-                        content="部署文档"
-                        placement="bottom">
-              <a href="https://ai.r9it.com/docs/install/" target="_blank">
-                <el-button type="primary" circle>
-                  <i class="iconfont icon-book"></i>
-                </el-button>
-              </a>
-            </el-tooltip>
-
-            <el-tooltip class="box-item"
-                        effect="dark"
-                        content="项目源码"
-                        placement="bottom">
-              <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-                <el-button type="success" circle>
-                  <i class="iconfont icon-github"></i>
-                </el-button>
-              </a>
-            </el-tooltip>
           </div>
         </div>
 
@@ -294,9 +273,9 @@ const leftBoxHeight = ref(0);
 const loading = ref(true);
 const loginUser = ref(null);
 const roles = ref([]);
+const router = useRouter();
 const roleId = ref(0)
 const newChatItem = ref(null);
-const router = useRouter();
 const showConfigDialog = ref(false);
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
@@ -327,6 +306,7 @@ httpGet("/api/config/get?key=notice").then(res => {
       showNotice.value = true
     }
   } catch (e) {
+    console.warn(e)
   }
 
 }).catch(e => {
@@ -375,17 +355,14 @@ const initData = () => {
         // 加载角色列表
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
-          roleId.value = roles.value[0]['id'];
-
-          const chatId = localStorage.getItem("chat_id")
-          const chat = getChatById(chatId)
-          if (chat === null) {
-            // 创建新的对话
-            newChat();
+          console.log()
+          if (router.currentRoute.value.params.role_id) {
+            roleId.value = parseInt(router.currentRoute.value.params["role_id"])
           } else {
-            // 加载对话
-            loadChat(chat)
+            roleId.value = roles.value[0]['id']
           }
+
+          newChat();
         }).catch((e) => {
           ElMessage.error('获取聊天角色失败: ' + e.messages)
         })
@@ -445,6 +422,8 @@ const _newChat = () => {
     newChat()
   }
 }
+
+const disableModel = ref(false)
 // 新建会话
 const newChat = () => {
   if (!isLogin.value) {
@@ -452,10 +431,11 @@ const newChat = () => {
     return;
   }
   const role = getRoleById(roleId.value)
-  if (role.key === 'gpt') {
-    showHello.value = true
-  } else {
-    showHello.value = false
+  showHello.value = role.key === 'gpt';
+  // if the role bind a model, disable model change
+  if (role.model_id > 0) {
+    modelID.value = role.model_id
+    disableModel.value = true
   }
   // 已有新开的会话
   if (newChatItem.value !== null && newChatItem.value['role_id'] === roles.value[0]['role_id']) {
@@ -678,6 +658,7 @@ const connect = function (chat_id, role_id) {
       reader.onload = () => {
         const data = JSON.parse(String(reader.result));
         if (data.type === 'start') {
+          console.log(data)
           chatData.value.push({
             type: "reply",
             id: randString(32),

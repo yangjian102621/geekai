@@ -12,4 +12,5 @@ type ChatModel struct {
 	MaxTokens   int     // 最大响应长度
 	MaxContext  int     // 最大上下文长度
 	Temperature float32 // 模型温度
+	KeyId       int     // 绑定 API KEY ID
 }

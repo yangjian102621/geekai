@@ -8,7 +8,7 @@ type ApiRequest struct {
 	Stream      bool          `json:"stream"`
 	Messages    []interface{} `json:"messages,omitempty"`
 	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
-	Tools       []interface{} `json:"tools,omitempty"`
+	Tools       []Tool        `json:"tools,omitempty"`
 	Functions   []interface{} `json:"functions,omitempty"` // 兼容中转平台
 
 	ToolChoice string `json:"tool_choice,omitempty"`
@@ -62,6 +62,7 @@ type ChatModel struct {
 	MaxTokens   int      `json:"max_tokens"`  // 最大响应长度
 	MaxContext  int      `json:"max_context"` // 最大上下文长度
 	Temperature float32  `json:"temperature"` // 模型温度
+	KeyId       int      `json:"key_id"`      // 绑定 API KEY
 }
 
 type ApiError struct {

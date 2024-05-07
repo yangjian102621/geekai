@@ -7,6 +7,7 @@
           <el-radio-group v-model="imgType" @change="changeImgType">
             <el-radio label="mj" size="large">MidJourney</el-radio>
             <el-radio label="sd" size="large">Stable Diffusion</el-radio>
+            <el-radio label="dall" size="large">DALL-E</el-radio>
           </el-radio-group>
         </div>
       </div>
@@ -65,6 +66,57 @@
                     placement="top"
                 >
                   <i class="iconfont icon-palette-pen" @click="drawSameMj(slotProp.item)"></i>
+                </el-tooltip>
+              </div>
+            </div>
+          </template>
+        </v3-waterfall>
+
+        <v3-waterfall v-if="imgType === 'dall'"
+                      id="waterfall"
+                      :list="data['dall']"
+                      srcKey="img_thumb"
+                      :gap="12"
+                      :bottomGap="-5"
+                      :colWidth="colWidth"
+                      :distanceToScroll="100"
+                      :isLoading="loading"
+                      :isOver="false"
+                      @scrollReachBottom="getNext">
+          <template #default="slotProp">
+            <div class="list-item">
+              <div class="image">
+                <el-image :src="slotProp.item['img_thumb']"
+                          :zoom-rate="1.2"
+                          :preview-src-list="[slotProp.item['img_url']]"
+                          :preview-teleported="true"
+                          :initial-index="10"
+                          loading="lazy">
+                  <template #placeholder>
+                    <div class="image-slot">
+                      正在加载图片
+                    </div>
+                  </template>
+
+                  <template #error>
+                    <div class="image-slot">
+                      <el-icon>
+                        <Picture/>
+                      </el-icon>
+                    </div>
+                  </template>
+                </el-image>
+              </div>
+              <div class="opt">
+                <el-tooltip
+                    class="box-item"
+                    effect="light"
+                    content="复制提示词"
+                    placement="top"
+                >
+                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
+                    <DocumentCopy/>
+                  </el-icon>
                 </el-tooltip>
               </div>
             </div>
@@ -252,7 +304,8 @@ import {useRouter} from "vue-router";
 
 const data = ref({
   "mj": [],
-  "sd": []
+  "sd": [],
+  "dall": [],
 })
 const loading = ref(true)
 const isOver = ref(false)
@@ -284,10 +337,22 @@ const getNext = () => {
 
   loading.value = true
   page.value = page.value + 1
-  const url = imgType.value === "mj" ? "/api/mj/imgWall" : "/api/sd/imgWall"
+  let url = ""
+  console.log(imgType.value)
+  switch (imgType.value) {
+    case "mj":
+      url = "/api/mj/imgWall"
+      break
+    case "sd":
+      url = "/api/sd/imgWall"
+      break
+    case "dall":
+      url = "/api/dall/imgWall"
+      break
+  }
   httpGet(`${url}?page=${page.value}&page_size=${pageSize.value}`).then(res => {
     loading.value = false
-    if (res.data.length === 0) {
+    if (!res.data || res.data.length === 0) {
       isOver.value = true
       return
     }
@@ -335,7 +400,8 @@ const changeImgType = () => {
   page.value = 0
   data.value = {
     "mj": [],
-    "sd": []
+    "sd": [],
+    "dall": [],
   }
   loading.value = true
   isOver.value = false

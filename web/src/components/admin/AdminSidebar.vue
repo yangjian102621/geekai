@@ -2,7 +2,7 @@
   <div class="sidebar">
     <div class="logo">
       <el-image :src="logo"/>
-      <span class="text" v-show="!sidebar.collapse">{{ title }} - {{ version }}</span>
+      <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
     </div>
 
     <el-menu
@@ -60,11 +60,11 @@ import {ElMessage} from "element-plus";
 
 const title = ref('Chat-Plus-Admin')
 const logo = ref('/images/logo.png')
-const version = ref(process.env.VUE_APP_VERSION)
 
 // 加载系统配置
 httpGet('/api/admin/config/get?key=system').then(res => {
-  title.value = res.data['admin_title'];
+  title.value = res.data['admin_title']
+  logo.value = res.data['logo']
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
@@ -192,9 +192,9 @@ setMenuItems(items)
     padding 6px 15px;
 
     .el-image {
-      width 30px;
-      height 30px;
-      padding-top 8px;
+      width 36px;
+      height 36px;
+      padding-top 5px;
       border-radius 100%
 
       .el-image__inner {

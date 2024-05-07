@@ -4,20 +4,24 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/handler"
+	"chatplus/service"
+	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/host"
 	"gorm.io/gorm"
 )
 
 type ConfigHandler struct {
 	handler.BaseHandler
+	levelDB        *store.LevelDB
+	licenseService *service.LicenseService
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
-	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
+func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService) *ConfigHandler {
+	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, levelDB: levelDB, licenseService: licenseService}
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {
@@ -70,11 +74,6 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	key := c.Query("key")
 	var config model.Config
 	res := h.DB.Where("marker", key).First(&config)
@@ -91,4 +90,28 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, value)
+}
+
+// Active 激活系统
+func (h *ConfigHandler) Active(c *gin.Context) {
+	var data struct {
+		License string `json:"license"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	info, err := host.Info()
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	err = h.licenseService.ActiveLicense(data.License, info.HostID)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, info.HostID)
 }

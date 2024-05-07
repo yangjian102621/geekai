@@ -65,7 +65,7 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
-func (h *SdJobHandler) checkLimits(c *gin.Context) bool {
+func (h *SdJobHandler) preCheck(c *gin.Context) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
@@ -88,7 +88,7 @@ func (h *SdJobHandler) checkLimits(c *gin.Context) bool {
 
 // Image 创建一个绘画任务
 func (h *SdJobHandler) Image(c *gin.Context) {
-	if !h.checkLimits(c) {
+	if !h.preCheck(c) {
 		return
 	}
 
@@ -260,9 +260,10 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 
 		if item.Progress < 100 {
 			// 从 leveldb 中获取图片预览数据
-			imageData, err := h.leveldb.Get(item.TaskId)
+			var imageData string
+			err = h.leveldb.Get(item.TaskId, &imageData)
 			if err == nil {
-				job.ImgURL = "data:image/png;base64," + string(imageData)
+				job.ImgURL = "data:image/png;base64," + imageData
 			}
 		}
 		jobs = append(jobs, job)
@@ -298,7 +299,7 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 
 	client := h.pool.Clients.Get(data.UserId)
 	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
+		_ = client.Send([]byte(sd.Finished))
 	}
 
 	resp.SUCCESS(c)
