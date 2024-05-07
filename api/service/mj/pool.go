@@ -3,7 +3,6 @@ package mj
 import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
-	"chatplus/service"
 	"chatplus/service/oss"
 	"chatplus/service/sd"
 	"chatplus/store"
@@ -27,7 +26,7 @@ type ServicePool struct {
 
 var logger = logger2.GetLogger()
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig, licenseService *service.LicenseService) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
@@ -36,12 +35,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		if config.Enabled == false {
 			continue
 		}
-		err := licenseService.IsValidApiURL(config.ApiURL)
-		if err != nil {
-			logger.Error(err)
-			continue
-		}
-		
+
 		cli := NewPlusClient(config)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
 		plusService := NewService(name, taskQueue, notifyQueue, db, cli)
