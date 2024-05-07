@@ -83,7 +83,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 		res = h.DB.Where("id", session.Model.KeyId).Where("enabled", true).Find(&apiKey)
 	}
 	// use the last unused key
-	if res.Error != nil {
+	if apiKey.Id == 0 {
 		res = h.DB.Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(&apiKey)
 	}
 	if res.Error != nil {

@@ -296,7 +296,7 @@ onUnmounted(() => {
 const add = function () {
   title.value = "新增模型"
   showDialog.value = true
-  item.value = {enabled: true, weight: 1}
+  item.value = {enabled: true, weight: 1, open: true}
 }
 
 const edit = function (row) {

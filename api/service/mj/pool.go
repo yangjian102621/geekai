@@ -58,6 +58,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		services = append(services, plusService)
 	}
 
+	// for mid-journey proxy
 	for k, config := range appConfig.MjProxyConfigs {
 		if config.Enabled == false {
 			continue
