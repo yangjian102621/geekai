@@ -2,8 +2,14 @@ import {createRouter, createWebHistory} from "vue-router";
 
 const routes = [
     {
-        name: 'home',
+        name: 'Index',
         path: '/',
+        meta: {title: process.env.VUE_APP_TITLE},
+        component: () => import('@/views/Index.vue'),
+    },
+    {
+        name: 'home',
+        path: '/home',
         redirect: '/chat',
         meta: {title: '首页'},
         component: () => import('@/views/Home.vue'),
@@ -55,6 +61,18 @@ const routes = [
                 path: '/powerLog',
                 meta: {title: '消费日志'},
                 component: () => import('@/views/PowerLog.vue'),
+            },
+            {
+                name: 'xmind',
+                path: '/xmind',
+                meta: {title: '思维导图'},
+                component: () => import('@/views/MarkMap.vue'),
+            },
+            {
+                name: 'dalle',
+                path: '/dalle',
+                meta: {title: 'DALLE-3'},
+                component: () => import('@/views/Dalle.vue'),
             },
         ]
     },

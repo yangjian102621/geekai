@@ -5,13 +5,13 @@
         <div class="sd-box">
           <h2>Stable Diffusion 创作中心</h2>
 
-          <div class="sd-params" :style="{ height: mjBoxHeight + 'px' }">
+          <div class="sd-params" :style="{ height: paramBoxHeight + 'px' }">
             <el-form :model="params" label-width="80px" label-position="left">
               <div class="param-line" style="padding-top: 10px">
                 <el-form-item label="采样方法">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.sampler" size="small">
+                      <el-select v-model="params.sampler" style="width:176px">
                         <el-option v-for="item in samplers" :label="item" :value="item" :key="item"/>
                       </el-select>
                       <el-tooltip
@@ -20,7 +20,7 @@
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -35,10 +35,10 @@
                     <div class="form-item-inner">
                       <el-row :gutter="20">
                         <el-col :span="12">
-                          <el-input v-model.number="params.width" size="small" placeholder="图片宽度"/>
+                          <el-input v-model.number="params.width" placeholder="图片宽度"/>
                         </el-col>
                         <el-col :span="12">
-                          <el-input v-model.number="params.height" size="small" placeholder="图片高度"/>
+                          <el-input v-model.number="params.height" placeholder="图片高度"/>
                         </el-col>
                       </el-row>
                     </div>
@@ -50,14 +50,14 @@
                 <el-form-item label="迭代步数">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-input v-model.number="params.steps" size="small"/>
+                      <el-input v-model.number="params.steps"/>
                       <el-tooltip
                           effect="light"
                           content="值越大则代表细节越多，同时也意味着出图速度越慢"
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -70,14 +70,14 @@
                 <el-form-item label="引导系数">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-input v-model.number="params.cfg_scale" size="small"/>
+                      <el-input v-model.number="params.cfg_scale"/>
                       <el-tooltip
                           effect="light"
                           content="提示词引导系数，图像在多大程度上服从提示词<br/> 较低值会产生更有创意的结果"
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -90,14 +90,14 @@
                 <el-form-item label="随机因子">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-input v-model.number="params.seed" size="small"/>
+                      <el-input v-model.number="params.seed"/>
                       <el-tooltip
                           effect="light"
                           content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
                           raw-content
                           placement="right"
                       >
-                        <el-icon>
+                        <el-icon class="info-icon">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -108,7 +108,7 @@
                           raw-content
                           placement="right"
                       >
-                        <el-icon @click="params.seed = -1">
+                        <el-icon @click="params.seed = -1" class="info-icon">
                           <Orange/>
                         </el-icon>
                       </el-tooltip>
@@ -121,14 +121,14 @@
                 <el-form-item label="高清修复">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;"/>
+                      <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1;" size="large"/>
                       <el-tooltip
                           effect="light"
                           content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节"
                           raw-content
                           placement="right"
                       >
-                        <el-icon style="margin-top: 6px">
+                        <el-icon style="margin-left: 10px; top: 12px">
                           <InfoFilled/>
                         </el-icon>
                       </el-tooltip>
@@ -150,7 +150,7 @@
                             raw-content
                             placement="right"
                         >
-                          <el-icon style="margin-top: 6px">
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -163,7 +163,7 @@
                   <el-form-item label="放大算法">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-select v-model="params.hd_scale_alg" size="small">
+                        <el-select v-model="params.hd_scale_alg" style="width:176px">
                           <el-option v-for="item in scaleAlg" :label="item" :value="item" :key="item"/>
                         </el-select>
                         <el-tooltip
@@ -172,7 +172,7 @@
                             raw-content
                             placement="right"
                         >
-                          <el-icon>
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -185,14 +185,14 @@
                   <el-form-item label="放大倍数">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-input v-model.number="params.hd_scale" size="small"/>
+                        <el-input v-model.number="params.hd_scale"/>
                         <el-tooltip
                             effect="light"
                             content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
                             raw-content
                             placement="right"
                         >
-                          <el-icon>
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -205,14 +205,14 @@
                   <el-form-item label="迭代步数">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-input v-model.number="params.hd_steps" size="small"/>
+                        <el-input v-model.number="params.hd_steps"/>
                         <el-tooltip
                             effect="light"
                             content="重绘迭代步数，如果设置为0，则设置跟原图相同的迭代步数"
                             raw-content
                             placement="right"
                         >
-                          <el-icon>
+                          <el-icon class="info-icon">
                             <InfoFilled/>
                           </el-icon>
                         </el-tooltip>
@@ -239,7 +239,7 @@
                     content="不希望出现的元素，下面给了默认的起手式"
                     placement="right"
                 >
-                  <el-icon>
+                  <el-icon class="info-icon">
                     <InfoFilled/>
                   </el-icon>
                 </el-tooltip>
@@ -254,8 +254,14 @@
               </div>
 
               <div class="text-info">
-                <el-tag>每次绘图消耗{{ sdPower }}算力</el-tag>
-                <el-tag type="success">当前可用算力：{{ power }}</el-tag>
+                <el-row :gutter="10">
+                  <el-col :span="12">
+                    <el-tag>单次绘图消耗{{ sdPower }}算力</el-tag>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-tag type="success">当前可用{{ power }}算力</el-tag>
+                  </el-col>
+                </el-row>
               </div>
 
             </el-form>
@@ -492,7 +498,7 @@ import {getSessionId} from "@/store/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 
 const listBoxHeight = ref(window.innerHeight - 40)
-const mjBoxHeight = ref(window.innerHeight - 150)
+const paramBoxHeight = ref(window.innerHeight - 150)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
@@ -501,7 +507,7 @@ const isLogin = ref(false)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
-  mjBoxHeight.value = window.innerHeight - 150
+  paramBoxHeight.value = window.innerHeight - 150
 }
 const samplers = ["Euler a", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
@@ -568,10 +574,17 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      fetchRunningJobs()
-      isOver.value = false
-      page.value = 1
-      fetchFinishJobs(page.value)
+      const reader = new FileReader();
+      reader.readAsText(event.data, "UTF-8")
+      reader.onload = () => {
+        const message = String(reader.result)
+        if (message === "FINISH") {
+          page.value = 1
+          fetchFinishJobs(page.value)
+          isOver.value = false
+        }
+        fetchRunningJobs()
+      }
     }
   });
 
@@ -579,7 +592,7 @@ const connect = () => {
     if (socket.value !== null) {
       connect()
     }
-  });
+  })
 }
 
 const clipboard = ref(null)

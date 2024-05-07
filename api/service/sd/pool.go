@@ -60,16 +60,16 @@ func (p *ServicePool) CheckTaskNotify() {
 	go func() {
 		logger.Info("Running Stable-Diffusion task notify checking ...")
 		for {
-			var userId uint
-			err := p.notifyQueue.LPop(&userId)
+			var message NotifyMessage
+			err := p.notifyQueue.LPop(&message)
 			if err != nil {
 				continue
 			}
-			client := p.Clients.Get(userId)
+			client := p.Clients.Get(uint(message.UserId))
 			if client == nil {
 				continue
 			}
-			err = client.Send([]byte("Task Updated"))
+			err = client.Send([]byte(message.Message))
 			if err != nil {
 				continue
 			}
@@ -113,7 +113,7 @@ func (p *ServicePool) CheckTaskStatus() {
 					continue
 				}
 			}
-
+			time.Sleep(time.Second * 10)
 		}
 	}()
 }

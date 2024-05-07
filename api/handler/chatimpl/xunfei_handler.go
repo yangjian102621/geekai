@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"net/http"
@@ -69,7 +70,15 @@ func (h *ChatHandler) sendXunFeiMessage(
 	ws *types.WsClient) error {
 	promptCreatedAt := time.Now() // 记录提问时间
 	var apiKey model.ApiKey
-	res := h.DB.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
+	var res *gorm.DB
+	// use the bind key
+	if session.Model.KeyId > 0 {
+		res = h.DB.Where("id", session.Model.KeyId).Find(&apiKey)
+	}
+	// use the last unused key
+	if res.Error != nil {
+		res = h.DB.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
+	}
 	if res.Error != nil {
 		utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 		return nil

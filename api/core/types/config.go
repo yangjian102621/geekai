@@ -14,7 +14,7 @@ type AppConfig struct {
 	StaticDir      string                  // 静态资源目录
 	StaticUrl      string                  // 静态资源 URL
 	Redis          RedisConfig             // redis 连接信息
-	ApiConfig      ChatPlusApiConfig       // ChatPlus API authorization configs
+	ApiConfig      ApiConfig               // ChatPlus API authorization configs
 	SMS            SMSConfig               // send mobile message config
 	OSS            OSSConfig               // OSS config
 	MjProxyConfigs []MjProxyConfig         // MJ proxy config
@@ -30,6 +30,7 @@ type AppConfig struct {
 }
 
 type SmtpConfig struct {
+	UseTls   bool // 是否使用 TLS 发送
 	Host     string
 	Port     int
 	AppName  string // 应用名称
@@ -37,7 +38,7 @@ type SmtpConfig struct {
 	Password string // 发件人邮箱密码
 }
 
-type ChatPlusApiConfig struct {
+type ApiConfig struct {
 	ApiURL string
 	AppId  string
 	Token  string
@@ -114,6 +115,17 @@ type RedisConfig struct {
 	DB       int
 }
 
+// LicenseKey 存储许可证书的 KEY
+const LicenseKey = "Geek-AI-License"
+
+type License struct {
+	Key       string // 许可证书密钥
+	MachineId string // 机器码
+	UserNum   int    // 用户数量
+	ExpiredAt int64  // 过期时间
+	IsActive  bool   // 是否激活
+}
+
 func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
@@ -136,7 +148,7 @@ type SystemConfig struct {
 	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
 	VipMonthPower int    `json:"vip_month_power,omitempty"` // VIP 会员每月赠送的算力值
 
-	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机，邮箱注册，账号密码注册
+	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机（mobile），邮箱注册（email），账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
 	RewardImg     string  `json:"reward_img,omitempty"`     // 众筹收款二维码地址

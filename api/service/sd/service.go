@@ -8,10 +8,11 @@ import (
 	"chatplus/store/model"
 	"chatplus/utils"
 	"fmt"
-	"github.com/imroc/req/v3"
-	"gorm.io/gorm"
 	"strings"
 	"time"
+
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 )
 
 // SD 绘画服务
@@ -80,7 +81,7 @@ func (s *Service) Run() {
 				"err_msg":  err.Error(),
 			})
 			// 通知前端，任务失败
-			s.notifyQueue.RPush(task.UserId)
+			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Failed})
 			continue
 		}
 	}
@@ -145,8 +146,13 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	var errChan = make(chan error)
 	apiURL := fmt.Sprintf("%s/sdapi/v1/txt2img", s.config.ApiURL)
 	logger.Debugf("send image request to %s", apiURL)
+	// send a request to sd api endpoint
 	go func() {
-		response, err := s.httpClient.R().SetBody(body).SetSuccessResult(&res).Post(apiURL)
+		response, err := s.httpClient.R().
+			SetHeader("Authorization", s.config.ApiKey).
+			SetBody(body).
+			SetSuccessResult(&res).
+			Post(apiURL)
 		if err != nil {
 			errChan <- err
 			return
@@ -174,14 +180,17 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 		errChan <- nil
 	}()
 
+	// waiting for task finish
 	for {
 		select {
-		case err := <-errChan: // 任务完成
+		case err := <-errChan:
 			if err != nil {
 				return err
 			}
+
+			// task finished
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", 100)
-			s.notifyQueue.RPush(task.UserId)
+			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Finished})
 			// 从 leveldb 中删除预览图片数据
 			_ = s.leveldb.Delete(task.Params.TaskId)
 			return nil
@@ -191,7 +200,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 			if err == nil && resp.Progress > 0 {
 				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", int(resp.Progress*100))
 				// 发送更新状态信号
-				s.notifyQueue.RPush(task.UserId)
+				s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Running})
 				// 保存预览图片数据
 				if resp.CurrentImage != "" {
 					_ = s.leveldb.Put(task.Params.TaskId, resp.CurrentImage)
@@ -207,7 +216,10 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 func (s *Service) checkTaskProgress() (error, *TaskProgressResp) {
 	apiURL := fmt.Sprintf("%s/sdapi/v1/progress?skip_current_image=false", s.config.ApiURL)
 	var res TaskProgressResp
-	response, err := s.httpClient.R().SetSuccessResult(&res).Get(apiURL)
+	response, err := s.httpClient.R().
+		SetHeader("Authorization", s.config.ApiKey).
+		SetSuccessResult(&res).
+		Get(apiURL)
 	if err != nil {
 		return err, nil
 	}

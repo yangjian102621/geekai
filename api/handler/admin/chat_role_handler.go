@@ -8,9 +8,10 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ChatRoleHandler struct {
@@ -50,17 +51,31 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 }
 
 func (h *ChatRoleHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
 	res := h.DB.Order("sort_num ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return
+	}
+
+	// initialize model mane for role
+	modelIds := make([]int, 0)
+	for _, v := range items {
+		if v.ModelId > 0 {
+			modelIds = append(modelIds, v.ModelId)
+		}
+	}
+
+	modelNameMap := make(map[int]string)
+	if len(modelIds) > 0 {
+		var models []model.ChatModel
+		tx := h.DB.Where("id IN ?", modelIds).Find(&models)
+		if tx.Error == nil {
+			for _, m := range models {
+				modelNameMap[int(m.Id)] = m.Name
+			}
+		}
 	}
 
 	for _, v := range items {
@@ -70,6 +85,7 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 			role.Id = v.Id
 			role.CreatedAt = v.CreatedAt.Unix()
 			role.UpdatedAt = v.UpdatedAt.Unix()
+			role.ModelName = modelNameMap[role.ModelId]
 			roles = append(roles, role)
 		}
 	}

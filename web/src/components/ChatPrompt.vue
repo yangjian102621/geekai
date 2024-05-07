@@ -90,6 +90,7 @@ export default defineComponent({
     }
 
     .chat-item {
+      width 100%
       position: relative;
       padding: 0 5px 0 0;
       overflow: hidden;

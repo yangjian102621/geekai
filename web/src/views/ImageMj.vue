@@ -4,7 +4,7 @@
       <div class="mj-box">
         <h2>MidJourney 创作中心</h2>
 
-        <div class="mj-params" :style="{ height: mjBoxHeight + 'px' }">
+        <div class="mj-params" :style="{ height: paramBoxHeight + 'px' }">
           <el-form :model="params" label-width="80px" label-position="left">
             <div class="param-line pt">
               <span>图片比例：</span>
@@ -33,7 +33,7 @@
               <el-form-item label="图片画质">
                 <template #default>
                   <div class="form-item-inner flex-row items-center">
-                    <el-select v-model="params.quality" placeholder="请选择">
+                    <el-select v-model="params.quality" placeholder="请选择" style="width:175px">
                       <el-option v-for="item in options"
                                  :key="item.value"
                                  :label="item.label"
@@ -525,42 +525,10 @@
                       <div class="opt" v-if="scope.item['can_opt']">
                         <div class="opt-line">
                           <ul>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第一张"
-                                  placement="top">
-                                <a @click="upscale(1, scope.item)">U1</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第二张"
-                                  placement="top">
-                                <a @click="upscale(2, scope.item)">U2</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第三张"
-                                  placement="top">
-                                <a @click="upscale(3, scope.item)">U3</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="放大第四张"
-                                  placement="top">
-                                <a @click="upscale(4, scope.item)">U4</a>
-                              </el-tooltip>
-                            </li>
+                            <li><a @click="upscale(1, scope.item)">U1</a></li>
+                            <li><a @click="upscale(2, scope.item)">U2</a></li>
+                            <li><a @click="upscale(3, scope.item)">U3</a></li>
+                            <li><a @click="upscale(4, scope.item)">U4</a></li>
                             <li class="show-prompt">
 
                               <el-popover placement="left" title="提示词" :width="240" trigger="hover">
@@ -586,42 +554,10 @@
 
                         <div class="opt-line">
                           <ul>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第一张"
-                                  placement="top">
-                                <a @click="variation(1, scope.item)">V1</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第二张"
-                                  placement="top">
-                                <a @click="variation(2, scope.item)">V2</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第三张"
-                                  placement="top">
-                                <a @click="variation(3, scope.item)">V3</a>
-                              </el-tooltip>
-                            </li>
-                            <li>
-                              <el-tooltip
-                                  class="box-item"
-                                  effect="light"
-                                  content="变化第四张"
-                                  placement="top">
-                                <a @click="variation(4, scope.item)">V4</a>
-                              </el-tooltip>
-                            </li>
+                            <li><a @click="variation(1, scope.item)">V1</a></li>
+                            <li><a @click="variation(2, scope.item)">V2</a></li>
+                            <li><a @click="variation(3, scope.item)">V3</a></li>
+                            <li><a @click="variation(4, scope.item)">V4</a></li>
                           </ul>
                         </div>
                       </div>
@@ -671,12 +607,12 @@ import {copyObj, removeArrayItem} from "@/utils/libs";
 import LoginDialog from "@/components/LoginDialog.vue";
 
 const listBoxHeight = ref(window.innerHeight - 40)
-const mjBoxHeight = ref(window.innerHeight - 150)
+const paramBoxHeight = ref(window.innerHeight - 150)
 const showLoginDialog = ref(false)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
-  mjBoxHeight.value = window.innerHeight - 150
+  paramBoxHeight.value = window.innerHeight - 150
 }
 const rates = [
   {css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png"},
@@ -789,10 +725,17 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      fetchRunningJobs()
-      isOver.value = false
-      page.value = 1
-      fetchFinishJobs(page.value)
+      const reader = new FileReader();
+      reader.readAsText(event.data, "UTF-8")
+      reader.onload = () => {
+        const message = String(reader.result)
+        if (message === "FINISH") {
+          page.value = 1
+          fetchFinishJobs(page.value)
+          isOver.value = false
+        }
+        fetchRunningJobs()
+      }
     }
   });
 
@@ -994,8 +937,6 @@ const generate = () => {
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
     power.value -= mjPower.value
-    params.value = copyObj(initParams)
-    imgList.value = []
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

@@ -31,7 +31,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 	promptCreatedAt := time.Now() // 记录提问时间
 	start := time.Now()
 	var apiKey = model.ApiKey{}
-	response, err := h.doRequest(ctx, req, session.Model.Platform, &apiKey)
+	response, err := h.doRequest(ctx, req, session, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {
 		logger.Error(err)
@@ -74,6 +74,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 				utils.ReplyMessage(ws, ErrImg)
 				break
 			}
+			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
+				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
+				break
+			}
 
 			var tool types.ToolCall
 			if len(responseBody.Choices[0].Delta.ToolCalls) > 0 {
@@ -98,8 +102,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 				res := h.DB.Where("name = ?", tool.Function.Name).First(&function)
 				if res.Error == nil {
 					toolCall = true
+					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: callMsg})
+					contents = append(contents, callMsg)
 				}
 				continue
 			}

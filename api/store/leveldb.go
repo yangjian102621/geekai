@@ -35,13 +35,12 @@ func (db *LevelDB) Put(key string, value interface{}) error {
 	return db.driver.Put([]byte(key), byteData, nil)
 }
 
-func (db *LevelDB) Get(key string) ([]byte, error) {
+func (db *LevelDB) Get(key string, dist interface{}) error {
 	bytes, err := db.driver.Get([]byte(key), nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return bytes, nil
+	return json.Unmarshal(bytes, dist)
 }
 
 func (db *LevelDB) Search(prefix string) []string {

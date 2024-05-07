@@ -59,3 +59,16 @@ type SdTaskParams struct {
 	HdScaleAlg   string  `json:"hd_scale_alg"`   // 放大算法
 	HdSteps      int     `json:"hd_steps"`       // 高清修复迭代步数
 }
+
+// DallTask DALL-E task
+type DallTask struct {
+	JobId   uint   `json:"job_id"`
+	UserId  uint   `json:"user_id"`
+	Prompt  string `json:"prompt"`
+	N       int    `json:"n"`
+	Quality string `json:"quality"`
+	Size    string `json:"size"`
+	Style   string `json:"style"`
+
+	Power int `json:"power"`
+}

@@ -257,6 +257,20 @@
       <el-tab-pane label="菜单配置" name="menu">
         <Menu/>
       </el-tab-pane>
+
+      <el-tab-pane label="授权激活" name="license">
+        <div class="container">
+          <el-form :model="system" label-width="150px" label-position="right">
+            <el-form-item label="许可授权码" prop="license">
+              <el-input v-model="license"/>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" @click="active">立即激活</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -275,8 +289,8 @@ const activeName = ref('basic')
 const system = ref({models: []})
 const loading = ref(true)
 const systemFormRef = ref(null)
-const chatFormRef = ref(null)
 const models = ref([])
+const openAIModels = ref([])
 const notice = ref("")
 
 onMounted(() => {
@@ -295,6 +309,7 @@ onMounted(() => {
 
   httpGet('/api/admin/model/list').then(res => {
     models.value = res.data
+    openAIModels.value = models.value.filter(v => v.platform === "OpenAI")
     loading.value = false
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
@@ -320,19 +335,6 @@ const save = function (key) {
         })
       }
     })
-  } else if (key === 'chat') {
-    if (chat.value.context_deep % 2 !== 0) {
-      return ElMessage.error("会话上下文深度必须为偶数！")
-    }
-    chatFormRef.value.validate((valid) => {
-      if (valid) {
-        httpPost('/api/admin/config/update', {key: key, config: chat.value}).then(() => {
-          ElMessage.success("操作成功！")
-        }).catch(e => {
-          ElMessage.error("操作失败：" + e.message)
-        })
-      }
-    })
   } else if (key === 'notice') {
     httpPost('/api/admin/config/update', {key: key, config: {content: notice.value, updated: true}}).then(() => {
       ElMessage.success("操作成功！")
@@ -340,6 +342,19 @@ const save = function (key) {
       ElMessage.error("操作失败：" + e.message)
     })
   }
+}
+
+// 激活授权
+const license = ref("")
+const active = () => {
+  if (license.value === "") {
+    return ElMessage.error("请输入授权码")
+  }
+  httpPost("/api/admin/active", {license: license.value}).then(res => {
+    ElMessage.success("授权成功，机器编码为：" + res.data)
+  }).catch(e => {
+    ElMessage.error(e.message)
+  })
 }
 
 const configKey = ref("")

@@ -6,6 +6,62 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1421807",
+      "name": "更多",
+      "font_class": "more",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    },
+    {
+      "icon_id": "36264781",
+      "name": "MidJourney",
+      "font_class": "mj",
+      "unicode": "e643",
+      "unicode_decimal": 58947
+    },
+    {
+      "icon_id": "37677137",
+      "name": "DALL·E 3",
+      "font_class": "dalle",
+      "unicode": "e646",
+      "unicode_decimal": 58950
+    },
+    {
+      "icon_id": "2629858",
+      "name": "逻辑图",
+      "font_class": "xmind",
+      "unicode": "e610",
+      "unicode_decimal": 58896
+    },
+    {
+      "icon_id": "1061336",
+      "name": "version",
+      "font_class": "version",
+      "unicode": "e68d",
+      "unicode_decimal": 59021
+    },
+    {
+      "icon_id": "3901033",
+      "name": "绘画",
+      "font_class": "sd",
+      "unicode": "e62b",
+      "unicode_decimal": 58923
+    },
+    {
+      "icon_id": "39185683",
+      "name": "绘画",
+      "font_class": "huihua1",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "2341972",
+      "name": "chat",
+      "font_class": "chat",
+      "unicode": "e68a",
+      "unicode_decimal": 59018
+    },
+    {
       "icon_id": "8017627",
       "name": "prompt",
       "font_class": "prompt",

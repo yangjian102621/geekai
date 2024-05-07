@@ -229,7 +229,7 @@ const register = function () {
     align-items center
 
     .contain {
-      padding 0 40px 20px 40px;
+      padding 20px 40px 20px 40px;
       width 100%
       color #ffffff
       border-radius 10px;
