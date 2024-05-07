@@ -608,7 +608,8 @@ onMounted(() => {
   })
 
   httpGet("/api/config/get?key=system").then(res => {
-    sdPower.value = res.data["sd_power"]
+    sdPower.value = res.data.sd_power
+    params.value.neg_prompt = res.data.sd_neg_prompt
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
