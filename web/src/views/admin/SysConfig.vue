@@ -258,19 +258,6 @@
         <Menu/>
       </el-tab-pane>
 
-      <el-tab-pane label="授权激活" name="license">
-        <div class="container">
-          <el-form :model="system" label-width="150px" label-position="right">
-            <el-form-item label="许可授权码" prop="license">
-              <el-input v-model="license"/>
-            </el-form-item>
-
-            <el-form-item>
-              <el-button type="primary" @click="active">立即激活</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -342,19 +329,6 @@ const save = function (key) {
       ElMessage.error("操作失败：" + e.message)
     })
   }
-}
-
-// 激活授权
-const license = ref("")
-const active = () => {
-  if (license.value === "") {
-    return ElMessage.error("请输入授权码")
-  }
-  httpPost("/api/admin/active", {license: license.value}).then(res => {
-    ElMessage.success("授权成功，机器编码为：" + res.data)
-  }).catch(e => {
-    ElMessage.error(e.message)
-  })
 }
 
 const configKey = ref("")
