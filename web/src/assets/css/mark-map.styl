@@ -117,6 +117,7 @@
         display flex
         justify-content center
         align-items center
+        position relative
 
         .markmap {
           width 100%
@@ -126,6 +127,27 @@
           .markmap-foreign {
             //height 30px
           }
+        }
+
+        #toolbar {
+          position: absolute
+          bottom: 10px
+          right: 20px
+
+          .mm-toolbar {
+            display flex
+            flex-flow row
+
+            .mm-toolbar-brand {
+              display none
+            }
+
+            .mm-toolbar-item {
+              cursor pointer
+              color var(--el-color-white)
+            }
+          }
+
         }
       }
     }

@@ -24,6 +24,7 @@
     "markdown-it-mathjax": "^2.0.0",
     "markmap-common": "^0.16.0",
     "markmap-lib": "^0.16.1",
+    "markmap-toolbar": "^0.17.0",
     "markmap-view": "^0.16.0",
     "md-editor-v3": "^2.2.1",
     "mitt": "^3.0.1",

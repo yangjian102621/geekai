@@ -81,10 +81,11 @@
           </div>
 
           <div class="markdown" v-if="loading">
-            <div v-html="html"></div>
+            <div :style="{ height: rightBoxHeight + 'px', overflow:'auto' }" v-html="html"></div>
           </div>
           <div class="body" id="markmap" v-show="!loading">
             <svg ref="svgRef" :style="{ height: rightBoxHeight + 'px' }"/>
+            <div id="toolbar"></div>
           </div>
         </div><!-- end task list box -->
       </div>
@@ -104,6 +105,7 @@ import {checkSession} from "@/action/session";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Download} from "@element-plus/icons-vue";
+import {Toolbar} from 'markmap-toolbar';
 
 const leftBoxHeight = ref(window.innerHeight - 105)
 const rightBoxHeight = ref(window.innerHeight - 85)
@@ -140,6 +142,8 @@ onMounted(() => {
   initData()
   try {
     markMap.value = Markmap.create(svgRef.value)
+    const {el} = Toolbar.create(markMap.value);
+    document.getElementById('toolbar').append(el);
     update()
   } catch (e) {
     console.error(e)
