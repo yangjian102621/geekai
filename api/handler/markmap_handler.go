@@ -103,7 +103,26 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 	}
 
 	messages := make([]interface{}, 0)
-	messages = append(messages, types.Message{Role: "system", Content: "你是一位非常优秀的思维导图助手，你会把用户的所有提问都总结成思维导图，然后以 Markdown 格式输出。不要输出任何解释性的语句。"})
+	messages = append(messages, types.Message{Role: "system", Content: `
+你是一位非常优秀的思维导图助手，你会把用户的所有提问都总结成思维导图，然后以 Markdown 格式输出。markdown 只需要输出一级标题，二级标题，三级标题，四级标题，最多输出四级，除此之外不要输出任何其他 markdown 标记。下面是一个合格的例子：
+# Geek-AI 助手
+
+## 完整的开源系统
+### 前端开源
+### 后端开源
+
+## 支持各种大模型
+### OpenAI 
+### Azure 
+### 文心一言
+### 通义千问
+
+## 集成多种收费方式
+### 支付宝
+### 微信
+
+另外，除此之外不要任何解释性语句。
+`})
 	messages = append(messages, types.Message{Role: "user", Content: prompt})
 	var req = types.ApiRequest{
 		Model:    chatModel.Value,
@@ -190,7 +209,7 @@ func (h *MarkMapHandler) doRequest(req types.ApiRequest, chatModel model.ChatMod
 		res = h.DB.Where("id", chatModel.KeyId).Find(apiKey)
 	}
 	// use the last unused key
-	if res.Error != nil {
+	if apiKey.Id == 0 {
 		res = h.DB.Where("platform = ?", types.OpenAI).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
 	}
 	if res.Error != nil {
