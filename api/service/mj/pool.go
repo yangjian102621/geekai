@@ -17,6 +17,7 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"github.com/go-redis/redis/v8"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -118,17 +119,23 @@ func (p *ServicePool) DownloadImages() {
 				}
 
 				logger.Infof("try to download image: %s", v.OrgURL)
-				var imgURL string
-				var err error
-				if servicePlus := p.getService(v.ChannelId); servicePlus != nil {
-					task, _ := servicePlus.Client.QueryTask(v.TaskId)
-					if len(task.Buttons) > 0 {
-						v.Hash = GetImageHash(task.Buttons[0].CustomId)
-					}
-					imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, false)
-				} else {
-					imgURL, err = p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, true)
+				mjService := p.getService(v.ChannelId)
+				if mjService == nil {
+					logger.Errorf("Invalid task: %+v", v)
+					continue
 				}
+
+				task, _ := mjService.Client.QueryTask(v.TaskId)
+				if len(task.Buttons) > 0 {
+					v.Hash = GetImageHash(task.Buttons[0].CustomId)
+				}
+				// 如果是返回的是 discord 图片地址，则使用代理下载
+				proxy := false
+				if strings.HasPrefix(v.OrgURL, "https://cdn.discordapp.com") {
+					proxy = true
+				}
+				imgURL, err := p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, proxy)
+
 				if err != nil {
 					logger.Errorf("error with download image %s, %v", v.OrgURL, err)
 					continue
