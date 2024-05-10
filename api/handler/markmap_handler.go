@@ -199,6 +199,25 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 		}
 	}
 
+	// 扣减算力
+	res = h.DB.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power - ?", chatModel.Power))
+	if res.Error == nil {
+		// 记录算力消费日志
+		var u model.User
+		h.DB.Where("id", userId).First(&u)
+		h.DB.Create(&model.PowerLog{
+			UserId:    u.Id,
+			Username:  u.Username,
+			Type:      types.PowerConsume,
+			Amount:    chatModel.Power,
+			Mark:      types.PowerSub,
+			Balance:   u.Power,
+			Model:     chatModel.Value,
+			Remark:    fmt.Sprintf("AI绘制思维导图，模型名称：%s, ", chatModel.Value),
+			CreatedAt: time.Now(),
+		})
+	}
+
 	return nil
 }
 
