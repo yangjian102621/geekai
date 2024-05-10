@@ -138,7 +138,8 @@ onMounted(() => {
       const sorts = []
       sortedData.forEach((id, index) => {
         ids.push(parseInt(id))
-        sorts.push(index)
+        sorts.push(index + 1)
+        items.value[index].sort_num = index + 1
       })
 
       httpPost("/api/admin/menu/sort", {ids: ids, sorts: sorts}).catch(e => {

@@ -144,18 +144,13 @@ func (h *ChatRoleHandler) Set(c *gin.Context) {
 }
 
 func (h *ChatRoleHandler) Remove(c *gin.Context) {
-	var data struct {
-		Id uint
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
+	id := h.GetInt(c, "id", 0)
+
+	if id <= 0 {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if data.Id <= 0 {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-	res := h.DB.Where("id = ?", data.Id).Delete(&model.ChatRole{})
+	res := h.DB.Where("id", id).Delete(&model.ChatRole{})
 	if res.Error != nil {
 		resp.ERROR(c, "删除失败！")
 		return

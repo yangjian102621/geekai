@@ -335,7 +335,7 @@ func main() {
 			group.POST("save", h.Save)
 			group.POST("sort", h.Sort)
 			group.POST("set", h.Set)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
 			group := s.Engine.Group("/api/admin/reward/")
