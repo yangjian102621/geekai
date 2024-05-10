@@ -148,7 +148,6 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 	contentType := response.Header.Get("Content-Type")
 	if strings.Contains(contentType, "text/event-stream") {
 		// 循环读取 Chunk 消息
-		var message = types.Message{}
 		scanner := bufio.NewScanner(response.Body)
 		var isNew = true
 		for scanner.Scan() {
@@ -159,26 +158,26 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
-				return fmt.Errorf("error with decode data: %v", err)
+			if err != nil { // 数据解析出错
+				return fmt.Errorf("error with decode data: %v", line)
 			}
 
-			// 初始化 role
-			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
-				message.Role = responseBody.Choices[0].Delta.Role
+			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
 				continue
-			} else if responseBody.Choices[0].FinishReason != "" {
-				break // 输出完成或者输出中断了
-			} else {
-				if isNew {
-					utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsStart})
-					isNew = false
-				}
-				utils.ReplyChunkMessage(client, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
-				})
 			}
+
+			if responseBody.Choices[0].FinishReason == "stop" {
+				break
+			}
+
+			if isNew {
+				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsStart})
+				isNew = false
+			}
+			utils.ReplyChunkMessage(client, types.WsMessage{
+				Type:    types.WsMiddle,
+				Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
+			})
 		} // end for
 
 		utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})

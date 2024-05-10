@@ -16,6 +16,7 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/host"
 	"gorm.io/gorm"
@@ -127,4 +128,13 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 func (h *ConfigHandler) GetLicense(c *gin.Context) {
 	license := h.licenseService.GetLicense()
 	resp.SUCCESS(c, license)
+}
+
+// GetDrawingConfig 获取AI绘画配置
+func (h *ConfigHandler) GetDrawingConfig(c *gin.Context) {
+	resp.SUCCESS(c, gin.H{
+		"mj_plus":  h.App.Config.MjPlusConfigs,
+		"mj_proxy": h.App.Config.MjProxyConfigs,
+		"sd":       h.App.Config.SdConfigs,
+	})
 }
