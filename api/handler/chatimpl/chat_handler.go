@@ -176,7 +176,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
 			if err != nil {
 				logger.Error(err)
-				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
+				utils.ReplyMessage(client, err.Error())
 			} else {
 				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
 				logger.Infof("回答完毕: %v", message.Content)
@@ -198,8 +198,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	var user model.User
 	res := h.DB.Model(&model.User{}).First(&user, session.UserId)
 	if res.Error != nil {
-		utils.ReplyMessage(ws, "未授权用户，您正在进行非法操作！")
-		return res.Error
+		return errors.New("未授权用户，您正在进行非法操作！")
 	}
 	var userVo vo.User
 	err := utils.CopyObject(user, &userVo)
@@ -209,28 +208,22 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	if userVo.Status == false {
-		utils.ReplyMessage(ws, "您的账号已经被禁用，如果疑问，请联系管理员！")
-		utils.ReplyMessage(ws, ErrImg)
-		return nil
+		return errors.New("您的账号已经被禁用，如果疑问，请联系管理员！")
 	}
 
 	if userVo.Power < session.Model.Power {
-		utils.ReplyMessage(ws, fmt.Sprintf("您当前剩余算力（%d）已不足以支付当前模型的单次对话需要消耗的算力（%d）！", userVo.Power, session.Model.Power))
-		utils.ReplyMessage(ws, ErrImg)
-		return nil
+		return fmt.Errorf("您当前剩余算力（%d）已不足以支付当前模型的单次对话需要消耗的算力（%d）！", userVo.Power, session.Model.Power)
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
-		utils.ReplyMessage(ws, "您的账号已经过期，请联系管理员！")
-		utils.ReplyMessage(ws, ErrImg)
-		return nil
+		return errors.New("您的账号已经过期，请联系管理员！")
 	}
 
 	// 检查 prompt 长度是否超过了当前模型允许的最大上下文长度
 	promptTokens, err := utils.CalcTokens(prompt, session.Model.Value)
 	if promptTokens > session.Model.MaxContext {
-		utils.ReplyMessage(ws, "对话内容超出了当前模型允许的最大上下文长度！")
-		return nil
+
+		return errors.New("对话内容超出了当前模型允许的最大上下文长度！")
 	}
 
 	var req = types.ApiRequest{
@@ -289,9 +282,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		break
 
 	default:
-		utils.ReplyMessage(ws, "不支持的平台："+session.Model.Platform+"，请联系管理员！")
-		utils.ReplyMessage(ws, ErrImg)
-		return nil
+		return fmt.Errorf("不支持的平台：%s", session.Model.Platform)
 	}
 
 	// 加载聊天上下文
@@ -405,10 +396,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	case types.QWen:
 		return h.sendQWenMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	}
-	utils.ReplyChunkMessage(ws, types.WsMessage{
-		Type:    types.WsMiddle,
-		Content: fmt.Sprintf("Not supported platform: %s", session.Model.Platform),
-	})
+
 	return nil
 }
 
