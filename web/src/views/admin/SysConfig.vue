@@ -287,6 +287,10 @@
         <Menu/>
       </el-tab-pane>
 
+      <el-tab-pane label="AI绘图配置" name="AIDrawing">
+        <AIDrawing/>
+      </el-tab-pane>
+
       <el-tab-pane label="授权激活" name="license">
         <div class="container">
           <el-descriptions
@@ -347,6 +351,7 @@ import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
 import {dateFormat} from "@/utils/libs";
+import AIDrawing from "@/views/admin/AIDrawing.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
