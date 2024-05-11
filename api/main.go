@@ -190,7 +190,8 @@ func main() {
 
 		// MidJourney service pool
 		fx.Provide(mj.NewServicePool),
-		fx.Invoke(func(pool *mj.ServicePool) {
+		fx.Invoke(func(pool *mj.ServicePool, config *types.AppConfig) {
+			pool.InitServices(config.MjPlusConfigs, config.MjProxyConfigs)
 			if pool.HasAvailableService() {
 				pool.DownloadImages()
 				pool.CheckTaskNotify()
@@ -200,7 +201,8 @@ func main() {
 
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewServicePool),
-		fx.Invoke(func(pool *sd.ServicePool) {
+		fx.Invoke(func(pool *sd.ServicePool, config *types.AppConfig) {
+			pool.InitServices(config.SdConfigs)
 			if pool.HasAvailableService() {
 				pool.CheckTaskNotify()
 				pool.CheckTaskStatus()
@@ -303,6 +305,7 @@ func main() {
 			group.POST("active", h.Active)
 			group.GET("config/get/license", h.GetLicense)
 			group.GET("config/get/draw", h.GetDrawingConfig)
+			group.POST("config/update/draw", h.SaveDrawingConfig)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")

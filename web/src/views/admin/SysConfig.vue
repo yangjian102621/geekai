@@ -279,7 +279,9 @@
       <el-tab-pane label="公告配置" name="notice">
         <md-editor class="mgb20" v-model="notice" @on-upload-img="onUploadImg"/>
         <el-form-item>
-          <el-button type="primary" @click="save('notice')">保存</el-button>
+          <div style="padding-top: 10px;margin-left: 150px;">
+            <el-button type="primary" @click="save('notice')">保存</el-button>
+          </div>
         </el-form-item>
       </el-tab-pane>
 

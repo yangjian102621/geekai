@@ -55,9 +55,10 @@ type SdTaskParams struct {
 	NegPrompt    string  `json:"neg_prompt"` // 反向提示词
 	Steps        int     `json:"steps"`      // 迭代步数，默认20
 	Sampler      string  `json:"sampler"`    // 采样器
-	FaceFix      bool    `json:"face_fix"`   // 面部修复
-	CfgScale     float32 `json:"cfg_scale"`  //引导系数，默认 7
-	Seed         int64   `json:"seed"`       // 随机数种子
+	Scheduler    string  `json:"scheduler"`
+	FaceFix      bool    `json:"face_fix"`  // 面部修复
+	CfgScale     float32 `json:"cfg_scale"` //引导系数，默认 7
+	Seed         int64   `json:"seed"`      // 随机数种子
 	Height       int     `json:"height"`
 	Width        int     `json:"width"`
 	HdFix        bool    `json:"hd_fix"`         // 启用高清修复

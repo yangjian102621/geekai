@@ -31,48 +31,15 @@ type ServicePool struct {
 	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 	Clients         *types.LMap[uint, *types.WsClient] // UserId => Client
+	licenseService *service.LicenseService
 }
 
 var logger = logger2.GetLogger()
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig, licenseService *service.LicenseService) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
-
-	for k, config := range appConfig.MjPlusConfigs {
-		if config.Enabled == false {
-			continue
-		}
-		err := licenseService.IsValidApiURL(config.ApiURL)
-		if err != nil {
-			logger.Error(err)
-			continue
-		}
-		
-		cli := NewPlusClient(config)
-		name := fmt.Sprintf("mj-plus-service-%d", k)
-		plusService := NewService(name, taskQueue, notifyQueue, db, cli)
-		go func() {
-			plusService.Run()
-		}()
-		services = append(services, plusService)
-	}
-
-	// for mid-journey proxy
-	for k, config := range appConfig.MjProxyConfigs {
-		if config.Enabled == false {
-			continue
-		}
-		cli := NewProxyClient(config)
-		name := fmt.Sprintf("mj-proxy-service-%d", k)
-		proxyService := NewService(name, taskQueue, notifyQueue, db, cli)
-		go func() {
-			proxyService.Run()
-		}()
-		services = append(services, proxyService)
-	}
-
 	return &ServicePool{
 		taskQueue:       taskQueue,
 		notifyQueue:     notifyQueue,
@@ -80,6 +47,47 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		uploaderManager: manager,
 		db:              db,
 		Clients:         types.NewLMap[uint, *types.WsClient](),
+		licenseService:  licenseService,
+	}
+}
+
+func (p *ServicePool) InitServices(plusConfigs []types.MjPlusConfig, proxyConfigs []types.MjProxyConfig) {
+	// stop old service
+	for _, s := range p.services {
+		s.Stop()
+	}
+
+	for k, config := range plusConfigs {
+		if config.Enabled == false {
+			continue
+		}
+		err := p.licenseService.IsValidApiURL(config.ApiURL)
+		if err != nil {
+			logger.Errorf("创建 MJ-PLUS 服务失败：%v", err)
+			continue
+		}
+
+		cli := NewPlusClient(config)
+		name := fmt.Sprintf("mj-plus-service-%d", k)
+		plusService := NewService(name, p.taskQueue, p.notifyQueue, p.db, cli)
+		go func() {
+			plusService.Run()
+		}()
+		p.services = append(p.services, plusService)
+	}
+
+	// for mid-journey proxy
+	for k, config := range proxyConfigs {
+		if config.Enabled == false {
+			continue
+		}
+		cli := NewProxyClient(config)
+		name := fmt.Sprintf("mj-proxy-service-%d", k)
+		proxyService := NewService(name, p.taskQueue, p.notifyQueue, p.db, cli)
+		go func() {
+			proxyService.Run()
+		}()
+		p.services = append(p.services, proxyService)
 	}
 }
 
