@@ -6,6 +6,8 @@
 * 功能新增：给思维导图增加 ToolBar，实现思维导图的放大缩小和定位
 * Bug修复：修复思维导图不扣费的Bug
 * Bug修复：修复管理后台角色删除失败的Bug
+* Bug修复：兼容最新版秋叶SD懒人包的 SD API，新增 scheduler 参数
+* 功能优化：支持在管理后台配置 AI 绘图相关配置，包括 SD, MJ-PLUS, MJ-PROXY
 
 ## v4.0.5
 
@@ -45,6 +47,7 @@
 * 功能新增：支持管理后台 Logo 修改
 
 ## 4.0.2
+
 * 功能新增：支持前端菜单可以配置
 * 功能优化：在登录和注册界面标题显示软件版本号
 * 功能优化：MJ 绘画支持 --sref 和 --cref 图片一致性参数
@@ -54,6 +57,7 @@
 * 功能新增：管理后台登录页面增加行为验证码，防止爆破
 
 ## v4.0.1
+
 * 功能重构：重构 Stable-Diffusion 绘画实现，使用 SDAPI 替换之前的 websocket 接口，SDAPI 兼容各种 stable-diffusion
   发行版，稳定性更强一些
 * 功能优化：使用 [midjouney-proxy](https://github.com/novicezk/midjourney-proxy) 项目替换内置的原生 MidJourney API，兼容
@@ -63,6 +67,7 @@
 * Bug修复：修复手机端 MidJourney 绘画页面滚动条无法滚动的Bug
 
 ## v4.0.0
+
 非兼容版本，重大重构，引入算力概念，将系统中所有的能力（AI对话，MJ绘画，SD绘画，DALL绘画）全部使用算力来兑换。
 只要你的算力值余额不为0，你就可以进行任何操作。比如一次 GPT3.5 对话消耗1个单位算力，一次 GPT4 对话消耗10个算力。一次 MJ
 对话消耗15个算力...

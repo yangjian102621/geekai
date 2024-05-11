@@ -29,6 +29,28 @@
                 </el-form-item>
               </div>
 
+              <div class="param-line" style="padding-top: 10px">
+                <el-form-item label="采样调度器">
+                  <template #default>
+                    <div class="form-item-inner">
+                      <el-select v-model="params.scheduler" style="width:176px">
+                        <el-option v-for="item in schedulers" :label="item" :value="item" :key="item"/>
+                      </el-select>
+                      <el-tooltip
+                          effect="light"
+                          content="推荐自动或者 Karras"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon class="info-icon">
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                </el-form-item>
+              </div>
+
               <div class="param-line">
                 <el-form-item label="图片尺寸">
                   <template #default>
@@ -509,12 +531,14 @@ window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   paramBoxHeight.value = window.innerHeight - 150
 }
-const samplers = ["Euler a", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
+const samplers = ["Euler a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM++ 2M SDE", "UniPC", "Restart"]
+const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
   width: 1024,
   height: 1024,
   sampler: samplers[0],
+  scheduler: schedulers[0],
   seed: -1,
   steps: 20,
   cfg_scale: 7,
@@ -640,7 +664,7 @@ const fetchRunningJobs = () => {
   if (!isLogin.value) {
     return
   }
-  
+
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?status=0`).then(res => {
     const jobs = res.data

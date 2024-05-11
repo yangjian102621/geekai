@@ -8,6 +8,7 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
@@ -15,7 +16,6 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"fmt"
 	"strings"
 	"time"
 
@@ -71,7 +71,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	// 检测最大注册人数
 	var totalUser int64
 	h.DB.Model(&model.User{}).Count(&totalUser)
-	if int(totalUser) >= h.licenseService.GetLicense().UserNum {
+	if h.licenseService.GetLicense().UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().UserNum {
 		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
 		return
 	}
