@@ -82,39 +82,70 @@
             </el-button>
           </div>
         </div>
-        <div class="task-list-box" @scrollend="handleScrollEnd">
+        <div class="task-list-box">
           <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
               <h2>任务列表</h2>
               <div class="running-job-list">
-                <ItemList :items="runningJobs" v-if="runningJobs.length > 0" :width="240">
-                  <template #default>
-                    <div class="job-item">
-                      <el-image fit="cover">
+                <div class="running-job-box" v-if="runningJobs.length > 0">
+                  <div class="job-item" v-for="item in runningJobs">
+                    <div v-if="item.progress > 0" class="job-item-inner">
+                      <el-image :src="item['img_url']" fit="cover" loading="lazy">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
+
                         <template #error>
                           <div class="image-slot">
-                            <i class="iconfont icon-quick-start"></i>
-                            <span>任务正在排队中</span>
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
                           </div>
                         </template>
                       </el-image>
+
+                      <div class="progress">
+                        <el-progress type="circle" :percentage="item.progress" :width="100"
+                                     color="#47fff1"/>
+                      </div>
                     </div>
-                  </template>
-                </ItemList>
+                    <el-image fit="cover" v-else>
+                      <template #error>
+                        <div class="image-slot">
+                          <i class="iconfont icon-quick-start"></i>
+                          <span>任务正在排队中</span>
+                        </div>
+                      </template>
+                    </el-image>
+                  </div>
+                </div>
                 <el-empty :image-size="100" v-else/>
               </div>
 
               <h2>创作记录</h2>
               <div class="finish-job-list">
                 <div v-if="finishedJobs.length > 0">
-                  <ItemList :items="finishedJobs" :width="240" :gap="16">
-                    <template #default="scope">
+                  <v3-waterfall
+                      id="waterfall"
+                      :list="finishedJobs"
+                      srcKey="img_thumb"
+                      :gap="20"
+                      :bottomGap="-10"
+                      :colWidth="colWidth"
+                      :distanceToScroll="100"
+                      :isLoading="loading"
+                      :isOver="isOver"
+                      @scrollReachBottom="fetchFinishJobs()">
+                    <template #default="slotProp">
                       <div class="job-item">
-                        <el-image v-if="scope.item['img_url']"
-                                  :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
-                                  fit="cover"
-                                  :preview-src-list="[scope.item['img_url']]"
-                                  loading="lazy">
+                        <el-image
+                            v-if="slotProp.item.img_url !== ''"
+                            @click="previewImg(slotProp.item)"
+                            :src="slotProp.item['img_thumb']"
+                            fit="cover"
+                            loading="lazy">
                           <template #placeholder>
                             <div class="image-slot">
                               正在加载图片
@@ -130,18 +161,12 @@
                           </template>
                         </el-image>
 
-                        <el-image v-else
-                                  :src="scope.item['org_url']"
-                                  fit="cover"
-                                  :preview-src-list="[scope.item['org_url']]"
-                                  loading="lazy">
-                          <template #placeholder>
-                            <div class="image-slot">
-                              正在加载图片
-                            </div>
-                          </template>
-
+                        <el-image v-else>
                           <template #error>
+                            <div class="image-slot">
+                              <i class="iconfont icon-loading"></i>
+                              <span>正在下载图片</span>
+                            </div>
                             <div class="image-slot">
                               <el-icon>
                                 <Picture/>
@@ -152,35 +177,39 @@
 
                         <div class="remove">
                           <el-tooltip content="删除" placement="top" effect="light">
-                            <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
+                            <el-button type="danger" :icon="Delete" @click="removeImage($event,slotProp.item)" circle/>
                           </el-tooltip>
-                          <el-tooltip content="分享" placement="top" effect="light" v-if="scope.item.publish">
+                          <el-tooltip content="分享" placement="top" effect="light" v-if="slotProp.item.publish">
                             <el-button type="warning"
-                                       @click="publishImage($event,scope.item, false)"
+                                       @click="publishImage($event,slotProp.item, false)"
                                        circle>
                               <i class="iconfont icon-cancel-share"></i>
                             </el-button>
                           </el-tooltip>
                           <el-tooltip content="取消分享" placement="top" effect="light" v-else>
-                            <el-button type="success" @click="publishImage($event,scope.item, true)" circle>
+                            <el-button type="success" @click="publishImage($event,slotProp.item, true)" circle>
                               <i class="iconfont icon-share-bold"></i>
                             </el-button>
                           </el-tooltip>
 
                           <el-tooltip content="复制提示词" placement="top" effect="light">
-                            <el-button type="info" circle class="copy-prompt" :data-clipboard-text="scope.item.prompt">
+                            <el-button type="info" circle class="copy-prompt"
+                                       :data-clipboard-text="slotProp.item.prompt">
                               <i class="iconfont icon-file"></i>
                             </el-button>
                           </el-tooltip>
                         </div>
                       </div>
                     </template>
-                  </ItemList>
 
-                  <div class="no-more-data" v-if="isOver">
-                    <span>没有更多数据了</span>
-                    <i class="iconfont icon-face"></i>
-                  </div>
+                    <template #footer>
+                      <div class="no-more-data">
+                        <span>没有更多数据了</span>
+                        <i class="iconfont icon-face"></i>
+                      </div>
+                    </template>
+                  </v3-waterfall>
+
                 </div>
                 <el-empty :image-size="100" v-else/>
               </div> <!-- end finish job list-->
@@ -193,15 +222,15 @@
     </div>
 
     <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
+    <el-image-viewer @close="() => { previewURL = '' }" v-if="previewURL !== ''" :url-list="[previewURL]"/>
   </div>
 </template>
 
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue"
-import {Delete, InfoFilled, Picture} from "@element-plus/icons-vue";
+import {Delete, InfoFilled} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
-import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import LoginDialog from "@/components/LoginDialog.vue";
@@ -210,6 +239,10 @@ const listBoxHeight = ref(window.innerHeight - 40)
 const paramBoxHeight = ref(window.innerHeight - 150)
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
+const loading = ref(true)
+const colWidth = ref(240)
+const isOver = ref(false)
+const previewURL = ref("")
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
@@ -268,19 +301,13 @@ const initData = () => {
     power.value = user['power']
     userId.value = user.id
     isLogin.value = true
+
+    page.value = 0
     fetchRunningJobs()
-    fetchFinishJobs(1)
+    fetchFinishJobs()
     connect()
   }).catch(() => {
   });
-}
-
-const handleScrollEnd = () => {
-  if (isOver.value === true) {
-    return
-  }
-  page.value += 1
-  fetchFinishJobs(page.value)
 }
 
 const socket = ref(null)
@@ -323,7 +350,7 @@ const connect = () => {
       reader.onload = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
-          page.value = 1
+          page.value = 0
           fetchFinishJobs(page.value)
           isOver.value = false
         }
@@ -368,21 +395,30 @@ const fetchRunningJobs = () => {
 
 const page = ref(1)
 const pageSize = ref(15)
-const isOver = ref(false)
 // 获取已完成的任务
-const fetchFinishJobs = (page) => {
+const fetchFinishJobs = () => {
   if (!isLogin.value) {
     return
   }
-  httpGet(`/api/dall/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
+
+  loading.value = true
+  page.value = page.value + 1
+
+  httpGet(`/api/dall/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
     }
-    if (page === 1) {
-      finishedJobs.value = res.data
-    } else {
-      finishedJobs.value = finishedJobs.value.concat(res.data)
+    const imageList = res.data
+    for (let i = 0; i < imageList.length; i++) {
+      imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }
+    if (page.value === 1) {
+      finishedJobs.value = imageList
+    } else {
+      finishedJobs.value = finishedJobs.value.concat(imageList)
+    }
+
+    loading.value = false
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })
@@ -428,6 +464,10 @@ const removeImage = (event, item) => {
     })
   }).catch(() => {
   })
+}
+
+const previewImg = (item) => {
+  previewURL.value = item.img_url
 }
 
 // 发布图片到作品墙

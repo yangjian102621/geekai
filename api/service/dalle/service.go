@@ -8,6 +8,8 @@ package dalle
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"errors"
+	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
 	"geekai/service"
@@ -16,8 +18,6 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
-	"errors"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"time"
 
@@ -261,7 +261,7 @@ func (s *Service) downloadImage(jobId uint, userId int, orgURL string) (string, 
 	if res.Error != nil {
 		return "", err
 	}
-	s.notifyQueue.RPush(sd.NotifyMessage{UserId: userId, JobId: int(jobId), Message: sd.Failed})
+	s.notifyQueue.RPush(sd.NotifyMessage{UserId: userId, JobId: int(jobId), Message: sd.Finished})
 	return imgURL, nil
 }
 
@@ -294,7 +294,7 @@ func (s *Service) CheckTaskStatus() {
 							Balance:   user.Power + job.Power,
 							Mark:      types.PowerAdd,
 							Model:     "dall-e-3",
-							Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
+							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
 							CreatedAt: time.Now(),
 						})
 					}

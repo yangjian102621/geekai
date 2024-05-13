@@ -28,7 +28,7 @@ type Service struct {
 	taskQueue   *store.RedisQueue
 	notifyQueue *store.RedisQueue
 	db          *gorm.DB
-	running bool
+	running     bool
 }
 
 func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.RedisQueue, db *gorm.DB, cli Client) *Service {
@@ -38,7 +38,7 @@ func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.Red
 		taskQueue:   taskQueue,
 		notifyQueue: notifyQueue,
 		Client:      cli,
-		running: true,
+		running:     true,
 	}
 }
 
@@ -129,7 +129,6 @@ func (s *Service) Run() {
 
 func (s *Service) Stop() {
 	s.running = false
-	s.Client = nil
 }
 
 type CBReq struct {
