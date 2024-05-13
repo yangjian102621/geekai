@@ -25,8 +25,8 @@ type ServicePool struct {
 	notifyQueue *store.RedisQueue
 	db          *gorm.DB
 	Clients     *types.LMap[uint, *types.WsClient] // UserId => Client
-	uploader *oss.UploaderManager
-	levelDB  *store.LevelDB
+	uploader    *oss.UploaderManager
+	levelDB     *store.LevelDB
 }
 
 func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, levelDB *store.LevelDB) *ServicePool {
@@ -40,8 +40,8 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		services:    services,
 		db:          db,
 		Clients:     types.NewLMap[uint, *types.WsClient](),
-		uploader: manager,
-		levelDB:  levelDB,
+		uploader:    manager,
+		levelDB:     levelDB,
 	}
 }
 
@@ -50,6 +50,7 @@ func (p *ServicePool) InitServices(configs []types.StableDiffusionConfig) {
 	for _, s := range p.services {
 		s.Stop()
 	}
+	p.services = make([]*Service, 0)
 
 	for k, config := range configs {
 		if config.Enabled == false {

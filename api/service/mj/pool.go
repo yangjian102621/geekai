@@ -31,7 +31,7 @@ type ServicePool struct {
 	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 	Clients         *types.LMap[uint, *types.WsClient] // UserId => Client
-	licenseService *service.LicenseService
+	licenseService  *service.LicenseService
 }
 
 var logger = logger2.GetLogger()
@@ -56,6 +56,7 @@ func (p *ServicePool) InitServices(plusConfigs []types.MjPlusConfig, proxyConfig
 	for _, s := range p.services {
 		s.Stop()
 	}
+	p.services = make([]*Service, 0)
 
 	for k, config := range plusConfigs {
 		if config.Enabled == false {

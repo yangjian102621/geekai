@@ -60,7 +60,7 @@ func (s *Service) Run() {
 			logger.Errorf("taking task with error: %v", err)
 			continue
 		}
-		logger.Infof("%s handle a new Stable-Diffusion task: %+v", s.name, task)
+
 		// translate prompt
 		if utils.HasChinese(task.Params.Prompt) {
 			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt))

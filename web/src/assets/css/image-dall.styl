@@ -81,7 +81,281 @@
       }
     }
 
-    @import "task-list.styl"
+    .task-list-box {
+      width 100%
+      padding 10px
+      color #ffffff
+      overflow-x hidden
+
+      .task-list-inner {
+        .el-tabs {
+          --el-tabs-header-height: 55px;
+        }
+
+        .el-tabs__item {
+          color: #fff;
+          font-size: 18px;
+        }
+
+        .title-tabs .el-tabs__item.is-active {
+          color: #47FFF1;
+          font-size: 18px;
+        }
+
+        .title-tabs .el-tabs__active-bar {
+          background-color: #47FFF1;
+        }
+
+        .el-textarea {
+          --el-input-focus-border-color: #47FFF1;
+        }
+
+        .el-textarea__inner {
+          background: transparent;
+          color: #fff;
+        }
+
+        .el-input__wrapper {
+          background: transparent;
+          padding 5px
+        }
+
+        .text {
+          margin-bottom: 10px;
+          color: #6b778c;
+          font-size: 15px
+        }
+
+        .param-line.pt {
+          padding-top 5px
+          padding-bottom 5px
+        }
+
+        .form-item-inner {
+          display flex
+          align-items: center
+
+          .el-icon {
+            margin-left 10px
+          }
+        }
+
+        .el-form-item__label {
+          color #ffffff
+        }
+
+        // 图片上传样式
+
+        .img-inline {
+          display flex
+
+          .img-uploader {
+            .el-upload {
+              border: 1px dashed var(--el-border-color);
+              border-radius: 6px;
+              cursor: pointer;
+              position: relative;
+              overflow: hidden;
+              width 120px;
+              transition: var(--el-transition-duration-fast);
+              margin-bottom: 20px;
+
+              &:hover {
+                border-color: var(--el-color-primary);
+              }
+
+              .el-icon.uploader-icon {
+                font-size: 28px
+                color: #8c939d
+                width 100%
+                height: 120px
+                text-align: center
+              }
+            }
+          }
+
+          .img-list-box {
+            display flex
+
+            .img-item {
+              width 120px
+              position relative
+              margin-right 10px
+
+              .el-image {
+                width 120px
+                height 120px
+                border-radius 5px
+              }
+
+              .el-button {
+                position absolute
+                right 5px
+                top 5px
+                width 20px
+                height 20px
+              }
+            }
+          }
+        }
+
+        .el-row.text-info {
+          width 100%
+          padding 10px 0
+
+          .el-tag {
+            margin-right 10px
+          }
+        }
+
+        // 提交按钮
+
+        .submit-btn {
+          display flex
+          margin: 20px 0
+
+          .el-button {
+            width 200px
+          }
+        }
+
+
+        // 任务列表
+
+        .job-list-box {
+
+          @import "running-job-list.styl"
+          
+          .finish-job-list {
+            #waterfall {
+              display flex
+              justify-content center
+              padding-top 20px
+              flex-flow column
+
+
+              .job-item {
+                width 100%
+                height 100%
+                border 1px solid #666666
+                padding 6px
+                overflow hidden
+                border-radius 6px
+                transition: all 0.3s ease; /* 添加过渡效果 */
+                position relative
+
+                .opt {
+                  .opt-line {
+                    margin 6px 0
+
+                    ul {
+                      display flex
+                      flex-flow row
+
+                      li {
+                        margin-right 6px
+
+                        a {
+                          padding 3px 0
+                          width 40px
+                          text-align center
+                          border-radius 5px
+                          display block
+                          cursor pointer
+                          background-color #4E5058
+                          color #ffffff
+
+                          &:hover {
+                            background-color #6D6F78
+                          }
+                        }
+                      }
+
+                      .show-prompt {
+                        font-size 20px
+                        cursor pointer
+                      }
+                    }
+                  }
+                }
+
+
+                .remove {
+                  display none
+                  position absolute
+                  right 10px
+                  top 10px
+                }
+
+                &:hover {
+                  .remove {
+                    display block
+                  }
+                }
+              }
+
+
+              .animate {
+                &:hover {
+                  box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+                  transform: translateY(-10px); /* 向上移动10像素 */
+                }
+              }
+            }
+          }
+
+
+          .el-image {
+            width 100%
+            height 100%
+            overflow visible
+
+            .el-image-viewer__wrapper {
+              img {
+                width auto
+                height auto
+              }
+            }
+
+            .image-slot {
+              display flex
+              flex-flow column
+              justify-content center
+              align-items center
+              min-height 200px
+              color #ffffff
+
+              .iconfont {
+                font-size 50px
+                margin-bottom 10px
+              }
+            }
+          }
+
+          .el-image.upscale {
+            img {
+              height 310px
+            }
+
+            .image-slot {
+              height 310px
+            }
+
+            .el-image-viewer__wrapper {
+              img {
+                width auto
+                height auto
+              }
+            }
+          }
+        }
+      }
+
+      .no-more-data {
+        text-align center
+        padding 30px
+      }
+    }
   }
 
 }
