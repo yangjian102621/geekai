@@ -45,7 +45,7 @@ func (h *ChatHandler) sendQWenMessage(
 	promptCreatedAt := time.Now() // 记录提问时间
 	start := time.Now()
 	var apiKey = model.ApiKey{}
-	response, err := h.doRequest(ctx, req, session.Model.Platform, &apiKey)
+	response, err := h.doRequest(ctx, req, session, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {
 		if strings.Contains(err.Error(), "context canceled") {
@@ -82,10 +82,11 @@ func (h *ChatHandler) sendQWenMessage(
 				continue
 			}
 
-			if strings.HasPrefix(line, "data:") {
-				content = line[5:]
+			if !strings.HasPrefix(line, "data:") {
+				continue
 			}
 
+			content = line[5:]
 			var resp qWenResp
 			if len(contents) == 0 { // 发送消息头
 				if !outPutStart {

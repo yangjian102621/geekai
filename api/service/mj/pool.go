@@ -4,6 +4,7 @@ import (
 	"chatplus/core/types"
 	logger2 "chatplus/logger"
 	"chatplus/service/oss"
+	"chatplus/service/sd"
 	"chatplus/store"
 	"chatplus/store/model"
 	"fmt"
@@ -34,13 +35,14 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		if config.Enabled == false {
 			continue
 		}
+
 		cli := NewPlusClient(config)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
-		service := NewService(name, taskQueue, notifyQueue, db, cli)
+		plusService := NewService(name, taskQueue, notifyQueue, db, cli)
 		go func() {
-			service.Run()
+			plusService.Run()
 		}()
-		services = append(services, service)
+		services = append(services, plusService)
 	}
 
 	for k, config := range appConfig.MjProxyConfigs {
@@ -49,11 +51,11 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		}
 		cli := NewProxyClient(config)
 		name := fmt.Sprintf("mj-proxy-service-%d", k)
-		service := NewService(name, taskQueue, notifyQueue, db, cli)
+		proxyService := NewService(name, taskQueue, notifyQueue, db, cli)
 		go func() {
-			service.Run()
+			proxyService.Run()
 		}()
-		services = append(services, service)
+		services = append(services, proxyService)
 	}
 
 	return &ServicePool{
@@ -69,16 +71,16 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 func (p *ServicePool) CheckTaskNotify() {
 	go func() {
 		for {
-			var userId uint
-			err := p.notifyQueue.LPop(&userId)
+			var message sd.NotifyMessage
+			err := p.notifyQueue.LPop(&message)
 			if err != nil {
 				continue
 			}
-			cli := p.Clients.Get(userId)
+			cli := p.Clients.Get(uint(message.UserId))
 			if cli == nil {
 				continue
 			}
-			err = cli.Send([]byte("Task Updated"))
+			err = cli.Send([]byte(message.Message))
 			if err != nil {
 				continue
 			}
@@ -127,7 +129,7 @@ func (p *ServicePool) DownloadImages() {
 				if cli == nil {
 					continue
 				}
-				err = cli.Send([]byte("Task Updated"))
+				err = cli.Send([]byte(sd.Finished))
 				if err != nil {
 					continue
 				}
@@ -162,7 +164,6 @@ func (p *ServicePool) SyncTaskProgress() {
 			for _, job := range items {
 				// 失败或者 30 分钟还没完成的任务删除并退回算力
 				if time.Now().Sub(job.CreatedAt) > time.Minute*30 || job.Progress == -1 {
-					// 删除任务
 					p.db.Delete(&job)
 					// 退回算力
 					tx := p.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
@@ -189,7 +190,7 @@ func (p *ServicePool) SyncTaskProgress() {
 				}
 			}
 
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * 10)
 		}
 	}()
 }

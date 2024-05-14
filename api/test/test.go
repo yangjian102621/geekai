@@ -1,12 +1,12 @@
 package main
 
 import (
+	"chatplus/utils"
 	"fmt"
-	"reflect"
 )
 
 func main() {
-	text := 1
-	bytes := reflect.ValueOf(text).Bytes()
-	fmt.Println(bytes)
+	text := "https://nk.img.r9it.com/chatgpt-plus/1712709360012445.png 请简单描述一下这幅图上的内容 "
+	imgURL := utils.ExtractImgURL(text)
+	fmt.Println(imgURL)
 }

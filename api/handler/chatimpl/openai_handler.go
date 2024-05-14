@@ -31,25 +31,19 @@ func (h *ChatHandler) sendOpenAiMessage(
 	promptCreatedAt := time.Now() // 记录提问时间
 	start := time.Now()
 	var apiKey = model.ApiKey{}
-	response, err := h.doRequest(ctx, req, session.Model.Platform, &apiKey)
+	response, err := h.doRequest(ctx, req, session, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {
+		logger.Error(err)
 		if strings.Contains(err.Error(), "context canceled") {
 			logger.Info("用户取消了请求：", prompt)
 			return nil
 		} else if strings.Contains(err.Error(), "no available key") {
 			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 			return nil
-		} else {
-			logger.Error(err)
 		}
 
-		utils.ReplyMessage(ws, ErrorMsg)
-		utils.ReplyMessage(ws, ErrImg)
-		if response.Body != nil {
-			all, _ := io.ReadAll(response.Body)
-			logger.Error(string(all))
-		}
+		utils.ReplyMessage(ws, err.Error())
 		return err
 	} else {
 		defer response.Body.Close()
@@ -65,6 +59,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		var toolCall = false
 		var arguments = make([]string, 0)
 		scanner := bufio.NewScanner(response.Body)
+		var isNew = true
 		for scanner.Scan() {
 			line := scanner.Text()
 			if !strings.Contains(line, "data:") || len(line) < 30 {
@@ -77,6 +72,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 				logger.Error(err, line)
 				utils.ReplyMessage(ws, ErrorMsg)
 				utils.ReplyMessage(ws, ErrImg)
+				break
+			}
+			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
+				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
 			}
 
@@ -103,8 +102,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 				res := h.DB.Where("name = ?", tool.Function.Name).First(&function)
 				if res.Error == nil {
 					toolCall = true
+					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
 					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)})
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: callMsg})
+					contents = append(contents, callMsg)
 				}
 				continue
 			}
@@ -117,13 +118,16 @@ func (h *ChatHandler) sendOpenAiMessage(
 			// 初始化 role
 			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
 				message.Role = responseBody.Choices[0].Delta.Role
-				utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
 				continue
 			} else if responseBody.Choices[0].FinishReason != "" {
 				break // 输出完成或者输出中断了
 			} else {
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
+				if isNew {
+					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+					isNew = false
+				}
 				utils.ReplyChunkMessage(ws, types.WsMessage{
 					Type:    types.WsMiddle,
 					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),

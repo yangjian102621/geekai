@@ -28,6 +28,7 @@ require github.com/xxl-job/xxl-job-executor-go v1.2.0
 require (
 	github.com/chanxuehong/wechat v0.0.0-20230222024006-36f0325263cd
 	github.com/mojocn/base64Captcha v1.3.1
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.18
@@ -35,9 +36,16 @@ require (
 
 require (
 	github.com/chanxuehong/rand v0.0.0-20211009035549-2f07823e8e99 // indirect
+	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
+)
+
+require (
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
-	golang.org/x/image v0.0.0-20190501045829-6d32002ffd75 // indirect
+	github.com/tklauser/go-sysconf v0.3.13 // indirect
+	github.com/tklauser/numcpus v0.7.0 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 )
 
 require (
@@ -110,6 +118,6 @@ require (
 	go.uber.org/fx v1.19.3
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.12.0
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	gorm.io/gorm v1.25.1
 )

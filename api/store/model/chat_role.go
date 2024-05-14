@@ -9,4 +9,5 @@ type ChatRole struct {
 	Icon     string // 角色聊天图标
 	Enable   bool   // 是否启用被启用
 	SortNum  int    //排序数字
+	ModelId  int    // 绑定模型ID，绑定模型ID的角色只能用指定的模型来问答
 }

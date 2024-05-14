@@ -4,20 +4,21 @@ import (
 	"chatplus/core"
 	"chatplus/core/types"
 	"chatplus/handler"
+	"chatplus/store"
 	"chatplus/store/model"
 	"chatplus/utils"
 	"chatplus/utils/resp"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type ConfigHandler struct {
 	handler.BaseHandler
+	levelDB *store.LevelDB
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
-	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
+func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB) *ConfigHandler {
+	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, levelDB: levelDB}
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {
@@ -70,11 +71,6 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
-
 	key := c.Query("key")
 	var config model.Config
 	res := h.DB.Where("marker", key).First(&config)

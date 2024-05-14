@@ -21,6 +21,7 @@
           </template>
         </el-table-column>
         <el-table-column label="角色标识" prop="key"/>
+        <el-table-column label="绑定模型" prop="model_name"/>
         <el-table-column label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enable']" @change="roleSet('enable',scope.row)"/>
@@ -47,7 +48,7 @@
 
     <el-dialog
         v-model="showDialog"
-        title="编辑角色"
+        :title="optTitle"
         :close-on-click-modal="false"
         width="50%"
     >
@@ -67,10 +68,33 @@
         </el-form-item>
 
         <el-form-item label="角色图标：" prop="icon">
-          <el-input
-              v-model="role.icon"
-              autocomplete="off"
-          />
+          <el-input v-model="role.icon">
+            <template #append>
+              <el-upload
+                  :auto-upload="true"
+                  :show-file-list="false"
+                  :http-request="uploadImg"
+              >
+                上传
+              </el-upload>
+            </template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="绑定模型：" prop="model_id">
+          <el-select
+              v-model="role.model_id"
+              filterable
+              placeholder="请选择模型"
+              clearable
+          >
+            <el-option
+                v-for="item in models"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="打招呼信息：" prop="hello_msg">
@@ -143,6 +167,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import {Sortable} from "sortablejs"
+import Compressor from "compressorjs";
 
 const showDialog = ref(false)
 const parentBorder = ref(true)
@@ -151,7 +176,7 @@ const tableData = ref([])
 const sortedTableData = ref([])
 const role = ref({context: []})
 const formRef = ref(null)
-const editRow = ref({})
+const optTitle = ref({})
 const loading = ref(true)
 
 const rules = reactive({
@@ -165,18 +190,30 @@ const rules = reactive({
   hello_msg: [{required: true, message: '请输入打招呼信息', trigger: 'change',}]
 })
 
-// 获取角色列表
-httpGet('/api/admin/role/list').then((res) => {
-  tableData.value = res.data
-  sortedTableData.value = copyObj(tableData.value)
-  loading.value = false
-}).catch(() => {
-  ElMessage.error("获取聊天角色失败");
+const models = ref([])
+onMounted(() => {
+  fetchData()
+
+  // get chat models
+  httpGet('/api/admin/model/list?enable=1').then((res) => {
+    models.value = res.data
+  }).catch(() => {
+    ElMessage.error("获取AI模型数据失败");
+  })
+
 })
 
-onMounted(() => {
-  const drawBodyWrapper = document.querySelector('.el-table__body tbody')
+const fetchData = () => {
+  // 获取角色列表
+  httpGet('/api/admin/role/list').then((res) => {
+    tableData.value = res.data
+    sortedTableData.value = copyObj(tableData.value)
+    loading.value = false
+  }).catch(() => {
+    ElMessage.error("获取聊天角色失败");
+  })
 
+  const drawBodyWrapper = document.querySelector('.el-table__body tbody')
   // 初始化拖动排序插件
   Sortable.create(drawBodyWrapper, {
     sort: true,
@@ -199,7 +236,7 @@ onMounted(() => {
       })
     }
   })
-})
+}
 
 const roleSet = (filed, row) => {
   httpPost('/api/admin/role/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
@@ -212,12 +249,14 @@ const roleSet = (filed, row) => {
 // 编辑
 const curIndex = ref(0)
 const rowEdit = function (index, row) {
+  optTitle.value = "修改角色"
   curIndex.value = index
   role.value = copyObj(row)
   showDialog.value = true
 }
 
 const addRole = function () {
+  optTitle.value = "添加新角色"
   role.value = {context: []}
   showDialog.value = true
 }
@@ -226,14 +265,9 @@ const save = function () {
   formRef.value.validate((valid) => {
     if (valid) {
       showDialog.value = false
-      httpPost('/api/admin/role/save', role.value).then((res) => {
+      httpPost('/api/admin/role/save', role.value).then(() => {
         ElMessage.success('操作成功')
-        // 更新当前数据行
-        if (role.value.id) {
-          tableData.value[curIndex.value] = role.value
-        } else {
-          tableData.value.push(res.data)
-        }
+        fetchData()
       }).catch((e) => {
         ElMessage.error('操作失败，' + e.message)
       })
@@ -263,6 +297,27 @@ const removeContext = function (index) {
   role.value.context.splice(index, 1);
 }
 
+// 图片上传
+const uploadImg = (file) => {
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/admin/upload', formData).then((res) => {
+        role.value.icon = res.data.url
+        ElMessage.success('上传成功')
+      }).catch((e) => {
+        ElMessage.error('上传失败:' + e.message)
+      })
+    },
+    error(e) {
+      ElMessage.error('上传失败:' + e.message)
+    },
+  });
+};
 </script>
 
 <style lang="stylus" scoped>

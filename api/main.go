@@ -8,6 +8,7 @@ import (
 	"chatplus/handler/chatimpl"
 	logger2 "chatplus/logger"
 	"chatplus/service"
+	"chatplus/service/dalle"
 	"chatplus/service/mj"
 	"chatplus/service/oss"
 	"chatplus/service/payment"
@@ -43,13 +44,13 @@ type AppLifecycle struct {
 
 // OnStart 应用程序启动时执行
 func (l *AppLifecycle) OnStart(context.Context) error {
-	log.Println("AppLifecycle OnStart")
+	logger.Info("AppLifecycle OnStart")
 	return nil
 }
 
 // OnStop 应用程序停止时执行
 func (l *AppLifecycle) OnStop(context.Context) error {
-	log.Println("AppLifecycle OnStop")
+	logger.Info("AppLifecycle OnStop")
 	return nil
 }
 
@@ -153,6 +154,13 @@ func main() {
 		}),
 		fx.Provide(oss.NewUploaderManager),
 		fx.Provide(mj.NewService),
+		fx.Provide(dalle.NewService),
+		fx.Invoke(func(service *dalle.Service) {
+			service.Run()
+			service.CheckTaskNotify()
+			service.DownloadImages()
+			service.CheckTaskStatus()
+		}),
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
@@ -279,9 +287,9 @@ func main() {
 
 		// 管理后台控制器
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			group := s.Engine.Group("/api/admin/config/")
-			group.POST("update", h.Update)
-			group.GET("get", h.Get)
+			group := s.Engine.Group("/api/admin/")
+			group.POST("config/update", h.Update)
+			group.GET("config/get", h.Get)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
@@ -439,6 +447,21 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.MenuHandler) {
 			group := s.Engine.Group("/api/menu/")
 			group.GET("list", h.List)
+		}),
+		fx.Provide(handler.NewMarkMapHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
+			group := s.Engine.Group("/api/markMap/")
+			group.Any("client", h.Client)
+		}),
+		fx.Provide(handler.NewDallJobHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.DallJobHandler) {
+			group := s.Engine.Group("/api/dall")
+			group.Any("client", h.Client)
+			group.POST("image", h.Image)
+			group.GET("jobs", h.JobList)
+			group.GET("imgWall", h.ImgWall)
+			group.POST("remove", h.Remove)
+			group.POST("publish", h.Publish)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

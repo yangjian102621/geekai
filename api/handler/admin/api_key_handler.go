@@ -8,6 +8,7 @@ import (
 	"chatplus/store/vo"
 	"chatplus/utils"
 	"chatplus/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -65,14 +66,20 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 }
 
 func (h *ApiKeyHandler) List(c *gin.Context) {
-	if err := utils.CheckPermission(c, h.DB); err != nil {
-		resp.NotPermission(c)
-		return
-	}
+	status := h.GetBool(c, "status")
+	t := h.GetTrim(c, "type")
 
+	session := h.DB.Session(&gorm.Session{})
+	if status {
+		session = session.Where("enabled", true)
+	}
+	if t != "" {
+		session = session.Where("type", t)
+	}
+	
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
-	res := h.DB.Find(&items)
+	res := session.Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var key vo.ApiKey
@@ -122,6 +129,5 @@ func (h *ApiKeyHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
-
 	resp.SUCCESS(c)
 }

@@ -68,9 +68,20 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	modelId := h.GetInt(c, "model_id", 0)
 
 	client := types.NewWsClient(ws)
+	var chatRole model.ChatRole
+	res := h.DB.First(&chatRole, roleId)
+	if res.Error != nil || !chatRole.Enable {
+		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
+		c.Abort()
+		return
+	}
+	// if the role bind a model_id, use role's bind model_id
+	if chatRole.ModelId > 0 {
+		modelId = chatRole.ModelId
+	}
 	// get model info
 	var chatModel model.ChatModel
-	res := h.DB.First(&chatModel, modelId)
+	res = h.DB.First(&chatModel, modelId)
 	if res.Error != nil || chatModel.Enabled == false {
 		utils.ReplyMessage(client, "当前AI模型暂未启用，连接已关闭！！！")
 		c.Abort()
@@ -111,15 +122,9 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		MaxTokens:   chatModel.MaxTokens,
 		MaxContext:  chatModel.MaxContext,
 		Temperature: chatModel.Temperature,
+		KeyId:       chatModel.KeyId,
 		Platform:    types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
-	var chatRole model.ChatRole
-	res = h.DB.First(&chatRole, roleId)
-	if res.Error != nil || !chatRole.Enable {
-		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
-		c.Abort()
-		return
-	}
 
 	h.Init()
 
@@ -235,7 +240,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			break
 		}
 
-		var tools = make([]interface{}, 0)
+		var tools = make([]types.Tool, 0)
 		for _, v := range items {
 			var parameters map[string]interface{}
 			err = utils.JsonDecode(v.Parameters, &parameters)
@@ -244,15 +249,20 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			}
 			required := parameters["required"]
 			delete(parameters, "required")
-			tools = append(tools, gin.H{
-				"type": "function",
-				"function": gin.H{
-					"name":        v.Name,
-					"description": v.Description,
-					"parameters":  parameters,
-					"required":    required,
+			tool := types.Tool{
+				Type: "function",
+				Function: types.Function{
+					Name:        v.Name,
+					Description: v.Description,
+					Parameters:  parameters,
 				},
-			})
+			}
+
+			// Fixed: compatible for gpt4-turbo-xxx model
+			if !strings.HasPrefix(req.Model, "gpt-4-turbo-") {
+				tool.Function.Required = required
+			}
+			tools = append(tools, tool)
 		}
 
 		if len(tools) > 0 {
@@ -326,16 +336,48 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	if session.Model.Platform == types.QWen {
-		req.Input = map[string]interface{}{"prompt": prompt}
-		if len(reqMgs) > 0 {
-			req.Input["messages"] = reqMgs
+		req.Input = make(map[string]interface{})
+		reqMgs = append(reqMgs, types.Message{
+			Role:    "user",
+			Content: prompt,
+		})
+		req.Input["messages"] = reqMgs
+	} else if session.Model.Platform == types.OpenAI { // extract image for gpt-vision model
+		imgURLs := utils.ExtractImgURL(prompt)
+		logger.Debugf("detected IMG: %+v", imgURLs)
+		var content interface{}
+		if len(imgURLs) > 0 {
+			data := make([]interface{}, 0)
+			text := prompt
+			for _, v := range imgURLs {
+				text = strings.Replace(text, v, "", 1)
+				data = append(data, gin.H{
+					"type": "image_url",
+					"image_url": gin.H{
+						"url": v,
+					},
+				})
+			}
+			data = append(data, gin.H{
+				"type": "text",
+				"text": text,
+			})
+			content = data
+		} else {
+			content = prompt
 		}
+		req.Messages = append(reqMgs, map[string]interface{}{
+			"role":    "user",
+			"content": content,
+		})
 	} else {
 		req.Messages = append(reqMgs, map[string]interface{}{
 			"role":    "user",
 			"content": prompt,
 		})
 	}
+
+	logger.Debugf("%+v", req.Messages)
 
 	switch session.Model.Platform {
 	case types.Azure:
@@ -424,13 +466,21 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 
 // 发送请求到 OpenAI 服务器
 // useOwnApiKey: 是否使用了用户自己的 API KEY
-func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platform types.Platform, apiKey *model.ApiKey) (*http.Response, error) {
-	res := h.DB.Where("platform = ?", platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
-	if res.Error != nil {
+func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, session *types.ChatSession, apiKey *model.ApiKey) (*http.Response, error) {
+	// if the chat model bind a KEY, use it directly
+	if session.Model.KeyId > 0 {
+		h.DB.Debug().Where("id", session.Model.KeyId).Find(apiKey)
+	}
+	// use the last unused key
+	if apiKey.Id == 0 {
+		h.DB.Debug().Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(apiKey)
+	}
+	if apiKey.Id == 0 {
 		return nil, errors.New("no available key, please import key")
 	}
+
 	var apiURL string
-	switch platform {
+	switch session.Model.Platform {
 	case types.Azure:
 		md := strings.Replace(req.Model, ".", "", 1)
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", md, 1)
@@ -453,7 +503,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	// 更新 API KEY 的最后使用时间
 	h.DB.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// 百度文心，需要串接 access_token
-	if platform == types.Baidu {
+	if session.Model.Platform == types.Baidu {
 		token, err := h.getBaiduToken(apiKey.Value)
 		if err != nil {
 			return nil, err
@@ -477,7 +527,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 
 	request = request.WithContext(ctx)
 	request.Header.Set("Content-Type", "application/json")
-	var proxyURL string
 	if len(apiKey.ProxyURL) > 5 { // 使用代理
 		proxy, _ := url.Parse(apiKey.ProxyURL)
 		client = &http.Client{
@@ -488,8 +537,8 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, platf
 	} else {
 		client = http.DefaultClient
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", platform, apiURL, apiKey.Value, proxyURL, req.Model)
-	switch platform {
+	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiURL, apiKey.Value, apiKey.ProxyURL, req.Model)
+	switch session.Model.Platform {
 	case types.Azure:
 		request.Header.Set("api-key", apiKey.Value)
 		break
