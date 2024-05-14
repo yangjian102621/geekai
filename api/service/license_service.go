@@ -186,6 +186,13 @@ func (s *LicenseService) IsValidApiURL(uri string) error {
 		return nil
 	}
 
+	if s.urlWhiteList == nil || len(s.urlWhiteList) == 0 {
+		urls, err := s.fetchUrlWhiteList()
+		if err == nil {
+			s.urlWhiteList = urls
+		}
+	}
+	
 	for _, v := range s.urlWhiteList {
 		if strings.HasPrefix(uri, v) {
 			return nil
