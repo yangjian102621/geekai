@@ -10,59 +10,67 @@
         <div class="bar" v-if="createdAt !== ''">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
           <span class="bar-item">Tokens: {{ tokens }}</span>
-          <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制回答"
-              placement="bottom"
-          >
-            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent">
-              <el-icon>
+          <span class="bar-item">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制回答"
+                placement="bottom"
+            >
+              <el-icon class="copy-reply" :data-clipboard-text="orgContent">
                 <DocumentCopy/>
               </el-icon>
-            </el-button>
           </el-tooltip>
+          </span>
+          <span class="bar-item">
+            <el-dropdown trigger="click">
+              <span class="el-dropdown-link">
+                <el-icon><More/></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :icon="Headset" @click="synthesis(orgContent)">生成语音</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </span>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue"
-import {Clock, DocumentCopy, Position} from "@element-plus/icons-vue";
-
-export default defineComponent({
-  name: 'ChatReply',
-  components: {Position, Clock, DocumentCopy},
-  props: {
-    content: {
-      type: String,
-      default: '',
-    },
-    orgContent: {
-      type: String,
-      default: '',
-    },
-    createdAt: {
-      type: String,
-      default: '',
-    },
-    tokens: {
-      type: Number,
-      default: 0,
-    },
-    icon: {
-      type: String,
-      default: 'images/gpt-icon.png',
-    }
+<script setup>
+import {Clock, DocumentCopy, Headset, More} from "@element-plus/icons-vue";
+import {ElMessage} from "element-plus";
+// eslint-disable-next-line no-undef,no-unused-vars
+const props = defineProps({
+  content: {
+    type: String,
+    default: '',
   },
-  data() {
-    return {
-      finalTokens: this.tokens
-    }
+  orgContent: {
+    type: String,
+    default: '',
+  },
+  createdAt: {
+    type: String,
+    default: '',
+  },
+  tokens: {
+    type: Number,
+    default: 0,
+  },
+  icon: {
+    type: String,
+    default: 'images/gpt-icon.png',
   }
 })
+
+const synthesis = (text) => {
+  console.log(text)
+  ElMessage.info("语音合成功能暂不可用")
+}
 </script>
 
 <style lang="stylus">
@@ -222,6 +230,7 @@ export default defineComponent({
             .el-icon {
               position relative
               top 2px;
+              cursor pointer
             }
           }
 
