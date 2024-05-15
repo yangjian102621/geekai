@@ -23,7 +23,7 @@ import (
 type LicenseService struct {
 	config       types.ApiConfig
 	levelDB      *store.LevelDB
-	license *types.License
+	license      *types.License
 	urlWhiteList []string
 	machineId    string
 }
@@ -40,7 +40,7 @@ func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseS
 	return &LicenseService{
 		config:    server.Config.ApiConfig,
 		levelDB:   levelDB,
-		license: &license,
+		license:   &license,
 		machineId: machineId,
 	}
 }
@@ -186,13 +186,13 @@ func (s *LicenseService) IsValidApiURL(uri string) error {
 		return nil
 	}
 
-	if s.urlWhiteList == nil || len(s.urlWhiteList) == 0 {
+	if len(s.urlWhiteList) == 0 {
 		urls, err := s.fetchUrlWhiteList()
 		if err == nil {
 			s.urlWhiteList = urls
 		}
 	}
-	
+
 	for _, v := range s.urlWhiteList {
 		if strings.HasPrefix(uri, v) {
 			return nil
