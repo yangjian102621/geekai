@@ -58,9 +58,9 @@ func (h *ChatHandler) sendBaiduMessage(
 	response, err := h.doRequest(ctx, req, session, &apiKey)
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 	if err != nil {
+		logger.Error(err)
 		if strings.Contains(err.Error(), "context canceled") {
-			logger.Info("用户取消了请求：", prompt)
-			return nil
+			return fmt.Errorf("用户取消了请求：%s", prompt)
 		} else if strings.Contains(err.Error(), "no available key") {
 			return errors.New("抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 		}
