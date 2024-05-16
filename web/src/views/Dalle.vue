@@ -2,10 +2,10 @@
   <div>
     <div class="page-dall">
       <div class="inner custom-scroll">
-        <div class="sd-box">
+        <div class="sd-box" :style="{ height: paramBoxHeight + 'px' }">
           <h2>DALL-E 创作中心</h2>
 
-          <div class="sd-params" :style="{ height: paramBoxHeight + 'px' }">
+          <div class="sd-params">
             <el-form :model="params" label-width="80px" label-position="left">
               <div class="param-line" style="padding-top: 10px">
                 <el-form-item label="图片质量">
@@ -235,8 +235,8 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 
-const listBoxHeight = ref(window.innerHeight - 40)
-const paramBoxHeight = ref(window.innerHeight - 150)
+const listBoxHeight = ref(0)
+const paramBoxHeight = ref(0)
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const loading = ref(true)
@@ -244,9 +244,13 @@ const colWidth = ref(240)
 const isOver = ref(false)
 const previewURL = ref("")
 
+const resizeElement = function () {
+  listBoxHeight.value = window.innerHeight - 90
+  paramBoxHeight.value = window.innerHeight - 110
+};
+resizeElement()
 window.onresize = () => {
-  listBoxHeight.value = window.innerHeight - 40
-  paramBoxHeight.value = window.innerHeight - 150
+  resizeElement()
 }
 const qualities = [
   {name: "标准", value: "standard"},

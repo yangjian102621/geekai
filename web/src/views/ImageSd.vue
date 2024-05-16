@@ -2,10 +2,10 @@
   <div>
     <div class="page-sd">
       <div class="inner custom-scroll">
-        <div class="sd-box">
+        <div class="sd-box" :style="{ height: paramBoxHeight + 'px' }">
           <h2>Stable Diffusion 创作中心</h2>
 
-          <div class="sd-params" :style="{ height: paramBoxHeight + 'px' }">
+          <div class="sd-params">
             <el-form :model="params" label-width="80px" label-position="left">
               <div class="param-line" style="padding-top: 10px">
                 <el-form-item label="采样方法">
@@ -513,8 +513,8 @@ import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 
-const listBoxHeight = ref(window.innerHeight - 40)
-const paramBoxHeight = ref(window.innerHeight - 150)
+const listBoxHeight = ref(0)
+const paramBoxHeight = ref(0)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
@@ -523,9 +523,13 @@ const isLogin = ref(false)
 const loading = ref(true)
 const colWidth = ref(240)
 
+const resizeElement = function () {
+  listBoxHeight.value = window.innerHeight - 80
+  paramBoxHeight.value = window.innerHeight - 110
+};
+resizeElement()
 window.onresize = () => {
-  listBoxHeight.value = window.innerHeight - 40
-  paramBoxHeight.value = window.innerHeight - 150
+  resizeElement()
 }
 const samplers = ["Euler a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM++ 2M SDE", "UniPC", "Restart"]
 const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"]

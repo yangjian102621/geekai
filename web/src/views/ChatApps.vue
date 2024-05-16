@@ -1,9 +1,6 @@
 <template>
   <div>
     <div class="page-apps custom-scroll">
-      <div class="title">
-        AI 助手应用中心
-      </div>
       <div class="inner" :style="{height: listBoxHeight + 'px'}">
         <ItemList :items="list" v-if="list.length > 0" :gap="20" :width="250">
           <template #default="scope">
@@ -49,7 +46,7 @@ import {checkSession} from "@/action/session";
 import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
 import {useRouter} from "vue-router";
 
-const listBoxHeight = window.innerHeight - 97
+const listBoxHeight = window.innerHeight - 147
 const list = ref([])
 const showLoginDialog = ref(false)
 const roles = ref([])

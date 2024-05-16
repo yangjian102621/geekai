@@ -618,17 +618,22 @@ import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import LoginDialog from "@/components/LoginDialog.vue";
 
-const listBoxHeight = ref(window.innerHeight - 40)
-const paramBoxHeight = ref(window.innerHeight - 150)
+const listBoxHeight = ref(0)
+const paramBoxHeight = ref(0)
 const showLoginDialog = ref(false)
 const loading = ref(true)
 const colWidth = ref(240)
 const previewURL = ref("")
 
+const resizeElement = function () {
+  listBoxHeight.value = window.innerHeight - 80
+  paramBoxHeight.value = window.innerHeight - 190
+};
+resizeElement()
 window.onresize = () => {
-  listBoxHeight.value = window.innerHeight - 40
-  paramBoxHeight.value = window.innerHeight - 150
+  resizeElement()
 }
+
 const rates = [
   {css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png"},
   {css: "size1-2", value: "1:2", text: "1:2", img: "/images/mj/rate_1_2.png"},
