@@ -61,9 +61,16 @@ const mainNavs = ref([])
 const moreNavs = ref([])
 const curPath = ref(router.currentRoute.value.path)
 
+if (curPath.value === "/external") {
+  curPath.value = router.currentRoute.value.query.url
+}
 const changeNav = (item) => {
   curPath.value = item.url
-  router.push(item.url)
+  if (item.url.indexOf("http") !== -1) { // 外部链接
+    router.push({name: 'ExternalLink', query: {url: item.url}})
+  } else {
+    router.push(item.url)
+  }
 }
 
 onMounted(() => {
@@ -75,9 +82,11 @@ onMounted(() => {
   // 获取菜单
   httpGet("/api/menu/list").then(res => {
     mainNavs.value = res.data
-    if (res.data.length > 7) {
-      mainNavs.value = res.data.slice(0, 7)
-      moreNavs.value = res.data.slice(7)
+    // 根据窗口的高度计算应该显示多少菜单
+    const rows = Math.floor((window.innerHeight - 90) / 90)
+    if (res.data.length > rows) {
+      mainNavs.value = res.data.slice(0, rows)
+      moreNavs.value = res.data.slice(rows)
     }
   }).catch(e => {
     ElMessage.error("获取系统菜单失败：" + e.message)

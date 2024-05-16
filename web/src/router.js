@@ -81,6 +81,11 @@ const routes = [
                 meta: {title: 'DALLE-3'},
                 component: () => import('@/views/Dalle.vue'),
             },
+            {
+                name: 'ExternalLink',
+                path: '/external',
+                component: () => import('@/views/ExternalPage.vue'),
+            },
         ]
     },
     {
