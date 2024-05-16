@@ -1,8 +1,6 @@
 <template>
   <div class="power-log" v-loading="loading">
     <div class="inner">
-      <h2>消费日志</h2>
-
       <div class="list-box" :style="{height: listBoxHeight + 'px'}">
         <div class="handle-box">
           <el-input v-model="query.model" placeholder="模型" class="handle-input mr10" clearable></el-input>

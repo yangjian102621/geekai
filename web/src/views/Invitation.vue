@@ -163,7 +163,7 @@ const initData = () => {
   display: flex;
   justify-content: center;
   background-color: #282c34;
-  height 100vh
+  height 100%
   overflow-x hidden
   overflow-y visible
 
@@ -176,6 +176,7 @@ const initData = () => {
 
     h2 {
       color #ffffff;
+      text-align center
     }
 
     .share-box {

@@ -1,13 +1,18 @@
 <template>
-  <div class="common-layout theme-white">
+  <div class="common-layout">
     <el-container>
       <el-aside>
-        <div class="title-box">
-          <span>{{ title }}</span>
-        </div>
         <div class="chat-list">
+          <el-button @click="newChat" color="#21aa93">
+            <el-icon style="margin-right: 5px">
+              <Plus/>
+            </el-icon>
+            新建对话
+          </el-button>
+
           <div class="search-box">
-            <el-input v-model="chatName" class="w-50 m-2" size="small" placeholder="搜索会话" @keyup="searchChat">
+            <el-input v-model="chatName" placeholder="搜索会话" @keyup="searchChat($event)" style=""
+                      class="search-input">
               <template #prefix>
                 <el-icon class="el-input__icon">
                   <Search/>
@@ -22,111 +27,125 @@
                    @click="changeChat(chat)">
                 <el-image :src="chat.icon" class="avatar"/>
                 <span class="chat-title-input" v-if="chat.edit">
-              <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
-                        placeholder="请输入会话标题"/>
-            </span>
+                  <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
+                            :id="'chat-'+chat.chat_id"
+                            @blur="editConfirm(chat)"
+                            @click="stopPropagation($event)"
+                            placeholder="请输入标题"/>
+                </span>
                 <span v-else class="chat-title">{{ chat.title }}</span>
-                <span class="btn btn-check" v-if="chat.edit || chat.removing">
-                <el-icon @click="confirm($event, chat)"><Check/></el-icon>
-                <el-icon @click="cancel($event, chat)"><Close/></el-icon>
-              </span>
-                <span class="btn" v-else>
-                <el-icon title="编辑" @click="editChatTitle($event, chat)"><Edit/></el-icon>
-                <el-icon title="删除会话" @click="removeChat($event, chat)"><Delete/></el-icon>
-              </span>
+
+                <span class="chat-opt">
+                  <el-dropdown trigger="click">
+                    <span class="el-dropdown-link" @click="stopPropagation($event)">
+                      <el-icon><More/></el-icon>
+                    </span>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item :icon="Edit" @click="editChatTitle(chat)">重命名</el-dropdown-item>
+                        <el-dropdown-item :icon="Delete"
+                                          style="--el-text-color-regular: var(--el-color-danger);
+                                          --el-dropdown-menuItem-hover-fill:#F8E1DE;
+                                          --el-dropdown-menuItem-hover-color: var(--el-color-danger)"
+                                          @click="removeChat(chat)">删除</el-dropdown-item>
+                        <el-dropdown-item :icon="Share" @click="shareChat(chat)">分享</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </span>
               </div>
             </el-row>
           </div>
         </div>
 
         <div class="tool-box">
-          <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="isLogin">
-                        <span class="el-dropdown-link">
-                          <el-image :src="loginUser.avatar"/>
-                          <span class="username">{{ loginUser.nickname }}</span>
-                          <el-icon><ArrowDown/></el-icon>
-                        </span>
-            <template #dropdown>
-              <el-dropdown-menu style="width: 296px;">
-                <el-dropdown-item @click="showConfig">
-                  <el-icon>
-                    <Tools/>
-                  </el-icon>
-                  <span>账户信息</span>
-                </el-dropdown-item>
+          <!--          <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="isLogin">-->
+          <!--                        <span class="el-dropdown-link">-->
+          <!--                          <el-image :src="loginUser.avatar"/>-->
+          <!--                          <span class="username">{{ loginUser.nickname }}</span>-->
+          <!--                          <el-icon><ArrowDown/></el-icon>-->
+          <!--                        </span>-->
+          <!--            <template #dropdown>-->
+          <!--              <el-dropdown-menu style="width: 296px;">-->
+          <!--                <el-dropdown-item @click="showConfig">-->
+          <!--                  <el-icon>-->
+          <!--                    <Tools/>-->
+          <!--                  </el-icon>-->
+          <!--                  <span>账户信息</span>-->
+          <!--                </el-dropdown-item>-->
 
-                <el-dropdown-item @click="clearAllChats">
-                  <el-icon>
-                    <Delete/>
-                  </el-icon>
-                  <span>清除所有会话</span>
-                </el-dropdown-item>
+          <!--                <el-dropdown-item @click="clearAllChats">-->
+          <!--                  <el-icon>-->
+          <!--                    <Delete/>-->
+          <!--                  </el-icon>-->
+          <!--                  <span>清除所有会话</span>-->
+          <!--                </el-dropdown-item>-->
 
-                <el-dropdown-item @click="logout">
-                  <i class="iconfont icon-logout"></i>
-                  <span>注销</span>
-                </el-dropdown-item>
+          <!--                <el-dropdown-item @click="logout">-->
+          <!--                  <i class="iconfont icon-logout"></i>-->
+          <!--                  <span>注销</span>-->
+          <!--                </el-dropdown-item>-->
 
-                <el-dropdown-item>
-                  <i class="iconfont icon-github"></i>
-                  <span>
-                    powered by
-                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">chatgpt-plus-v3</el-link>
-                 </span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <!--                <el-dropdown-item>-->
+          <!--                  <i class="iconfont icon-github"></i>-->
+          <!--                  <span>-->
+          <!--                    powered by-->
+          <!--                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">chatgpt-plus-v3</el-link>-->
+          <!--                 </span>-->
+          <!--                </el-dropdown-item>-->
+          <!--              </el-dropdown-menu>-->
+          <!--            </template>-->
+          <!--          </el-dropdown>-->
         </div>
       </el-aside>
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
-        <div class="chat-head">
-          <div class="chat-config">
-            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat"
-                       style="width:150px">
-              <el-option
-                  v-for="item in roles"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-              >
-                <div class="role-option">
-                  <el-image :src="item.icon"></el-image>
-                  <span>{{ item.name }}</span>
-                </div>
-              </el-option>
-            </el-select>
+        <!--        <div class="chat-head">-->
+        <!--          <div class="chat-config">-->
+        <!--            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat"-->
+        <!--                       style="width:150px">-->
+        <!--              <el-option-->
+        <!--                  v-for="item in roles"-->
+        <!--                  :key="item.id"-->
+        <!--                  :label="item.name"-->
+        <!--                  :value="item.id"-->
+        <!--              >-->
+        <!--                <div class="role-option">-->
+        <!--                  <el-image :src="item.icon"></el-image>-->
+        <!--                  <span>{{ item.name }}</span>-->
+        <!--                </div>-->
+        <!--              </el-option>-->
+        <!--            </el-select>-->
 
-            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel"
-                       style="width:150px">
-              <el-option
-                  v-for="item in models"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-              >
-                <span>{{ item.name }}</span>
-                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
-                    item.power
-                  }}算力
-                </el-tag>
-              </el-option>
-            </el-select>
-            <el-button type="primary" @click="newChat">
-              <el-icon>
-                <Plus/>
-              </el-icon>
-              新建对话
-            </el-button>
+        <!--            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel"-->
+        <!--                       style="width:150px">-->
+        <!--              <el-option-->
+        <!--                  v-for="item in models"-->
+        <!--                  :key="item.id"-->
+        <!--                  :label="item.name"-->
+        <!--                  :value="item.id"-->
+        <!--              >-->
+        <!--                <span>{{ item.name }}</span>-->
+        <!--                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{-->
+        <!--                    item.power-->
+        <!--                  }}算力-->
+        <!--                </el-tag>-->
+        <!--              </el-option>-->
+        <!--            </el-select>-->
+        <!--            <el-button type="primary" @click="newChat">-->
+        <!--              <el-icon>-->
+        <!--                <Plus/>-->
+        <!--              </el-icon>-->
+        <!--              新建对话-->
+        <!--            </el-button>-->
 
-            <el-button type="success" @click="exportChat" plain>
-              <i class="iconfont icon-export"></i>
-              <span>导出会话</span>
-            </el-button>
-          </div>
-        </div>
+        <!--            <el-button type="success" @click="exportChat" plain>-->
+        <!--              <i class="iconfont icon-export"></i>-->
+        <!--              <span>导出会话</span>-->
+        <!--            </el-button>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
-        <div class="right-box" :style="{height: mainWinHeight+'px'}">
+        <div class="chat-box" :style="{height: mainWinHeight+'px'}">
           <div>
             <div id="container">
               <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
@@ -207,7 +226,7 @@
     <el-dialog
         v-model="showNotice"
         :show-close="true"
-        custom-class="notice-dialog"
+        class="notice-dialog"
         title="网站公告"
     >
       <div class="notice">
@@ -232,19 +251,7 @@
 import {nextTick, onMounted, onUnmounted, ref} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {
-  ArrowDown,
-  Check,
-  Close,
-  Delete,
-  Edit,
-  Plus,
-  Promotion,
-  RefreshRight,
-  Search,
-  Tools,
-  VideoPause
-} from '@element-plus/icons-vue'
+import {Delete, Edit, More, Plus, Promotion, RefreshRight, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {dateFormat, escapeHTML, isMobile, processContent, randString, removeArrayItem, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
@@ -414,9 +421,9 @@ const getRoleById = function (rid) {
 }
 
 const resizeElement = function () {
-  chatBoxHeight.value = window.innerHeight - 51 - 82 - 38;
-  mainWinHeight.value = window.innerHeight - 51;
-  leftBoxHeight.value = window.innerHeight - 43 - 47 - 45;
+  chatBoxHeight.value = window.innerHeight - 50 - 82 - 38;
+  mainWinHeight.value = window.innerHeight - 50;
+  leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
 };
 
 const _newChat = () => {
@@ -492,64 +499,73 @@ const loadChat = function (chat) {
 }
 
 // 编辑会话标题
-const curOpt = ref('')
 const tmpChatTitle = ref('');
-const editChatTitle = function (event, chat) {
-  event.stopPropagation();
+const editChatTitle = (chat) => {
   chat.edit = true;
-  curOpt.value = 'edit';
   tmpChatTitle.value = chat.title;
+  console.log(chat.chat_id)
+  nextTick(() => {
+    document.getElementById('chat-' + chat.chat_id).focus()
+  })
 };
 
 
 const titleKeydown = (e, chat) => {
   if (e.keyCode === 13) {
     e.stopPropagation();
-    confirm(e, chat)
+    editConfirm(chat)
   }
+}
+
+const stopPropagation = (e) => {
+  e.stopPropagation();
 }
 // 确认修改
-const confirm = function (event, chat) {
-  event.stopPropagation();
-  if (curOpt.value === 'edit') {
-    if (tmpChatTitle.value === '') {
-      return ElMessage.error("请输入会话标题！");
-    }
-    if (!chat.chat_id) {
-      return ElMessage.error("对话 ID 为空，请刷新页面再试！");
-    }
-    httpPost('/api/chat/update', {chat_id: chat.chat_id, title: tmpChatTitle.value}).then(() => {
-      chat.title = tmpChatTitle.value;
-      chat.edit = false;
-    }).catch(e => {
-      ElMessage.error("操作失败：" + e.message);
-    })
-  } else if (curOpt.value === 'remove') {
-    httpGet('/api/chat/remove?chat_id=' + chat.chat_id).then(() => {
-      chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
-        return e1.id === e2.id
-      })
-      // 重置会话
-      newChat();
-    }).catch(e => {
-      ElMessage.error("操作失败：" + e.message);
-    })
-
+const editConfirm = function (chat) {
+  if (tmpChatTitle.value === '') {
+    return ElMessage.error("请输入会话标题！");
+  }
+  if (!chat.chat_id) {
+    return ElMessage.error("对话 ID 为空，请刷新页面再试！");
+  }
+  if (tmpChatTitle.value === chat.title) {
+    chat.edit = false;
+    return
   }
 
-}
-// 取消修改
-const cancel = function (event, chat) {
-  event.stopPropagation();
-  chat.edit = false;
-  chat.removing = false;
-}
+  httpPost('/api/chat/update', {chat_id: chat.chat_id, title: tmpChatTitle.value}).then(() => {
+    chat.title = tmpChatTitle.value;
+    chat.edit = false;
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message);
+  })
 
+}
 // 删除会话
-const removeChat = function (event, chat) {
-  event.stopPropagation();
-  chat.removing = true;
-  curOpt.value = 'remove';
+const removeChat = function (chat) {
+  ElMessageBox.confirm(
+      `该操作会删除"${chat.title}"`,
+      '删除聊天',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  )
+      .then(() => {
+        httpGet('/api/chat/remove?chat_id=' + chat.chat_id).then(() => {
+          chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
+            return e1.id === e2.id
+          })
+          // 重置会话
+          newChat();
+        }).catch(e => {
+          ElMessage.error("操作失败：" + e.message);
+        })
+      })
+      .catch(() => {
+      })
+
 }
 
 const latexPlugin = require('markdown-it-latex2img')
@@ -886,27 +902,29 @@ const reGenerate = function () {
 
 const chatName = ref('')
 // 搜索会话
-const searchChat = function () {
+const searchChat = function (e) {
   if (chatName.value === '') {
     chatList.value = allChats.value
     return
   }
-  const items = [];
-  for (let i = 0; i < allChats.value.length; i++) {
-    if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
-      items.push(allChats.value[i]);
+  if (e.keyCode === 13) {
+    const items = [];
+    for (let i = 0; i < allChats.value.length; i++) {
+      if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
+        items.push(allChats.value[i]);
+      }
     }
+    chatList.value = items;
   }
-  chatList.value = items;
 }
 
 // 导出会话
-const exportChat = () => {
-  if (!activeChat.value['chat_id']) {
+const shareChat = (chat) => {
+  if (!chat.chat_id) {
     return ElMessage.error("请先选中一个会话")
   }
 
-  const url = location.protocol + '//' + location.host + '/chat/export?chat_id=' + activeChat.value['chat_id']
+  const url = location.protocol + '//' + location.host + '/chat/export?chat_id=' + chat.chat_id
   // console.log(url)
   window.open(url, '_blank');
 }

@@ -2,10 +2,10 @@
   <div>
     <div class="page-mark-map">
       <div class="inner custom-scroll">
-        <div class="mark-map-box">
+        <div class="mark-map-box" :style="{ height: leftBoxHeight + 'px' }">
           <h2>思维导图创作中心</h2>
 
-          <div class="mark-map-params" :style="{ height: leftBoxHeight + 'px' }">
+          <div class="mark-map-params">
             <el-form label-width="80px" label-position="left">
               <div class="param-line">
                 你的需求？
@@ -69,9 +69,8 @@
           </div>
         </div>
 
-        <div class="right-box">
+        <div class="chat-box">
           <div class="top-bar">
-            <h2>思维导图</h2>
             <el-button @click="downloadImage" type="primary">
               <el-icon>
                 <Download/>
@@ -108,7 +107,7 @@ import {Download} from "@element-plus/icons-vue";
 import {Toolbar} from 'markmap-toolbar';
 
 const leftBoxHeight = ref(window.innerHeight - 105)
-const rightBoxHeight = ref(window.innerHeight - 85)
+const rightBoxHeight = ref(window.innerHeight - 115)
 
 const prompt = ref("")
 const text = ref(`# Geek-AI 助手
