@@ -8,7 +8,7 @@
         v-model="showCaptcha"
         :close-on-click-modal="true"
         :show-close="false"
-        style="width:90%;max-width: 360px;"
+        style="width: 360px;"
     >
       <slide-captcha
           v-if="isIphone()"
@@ -175,7 +175,7 @@ const handleSlideConfirm = (x) => {
     }
 
     .el-dialog__body {
-      //padding 0
+      padding 0
     }
   }
 }
