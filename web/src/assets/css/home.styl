@@ -35,6 +35,23 @@
     }
 
     .navbar {
+      display flex
+      flex-flow row
+
+      .link-button {
+        margin-right 15px
+        color #e1e1e1
+        padding 0 10px
+
+        &:hover {
+          background-color #414141
+        }
+
+        .iconfont {
+          font-size 24px
+        }
+      }
+
       .user-info {
         width 100%
         padding 5px 0;
@@ -151,6 +168,20 @@
 
     li.active {
       background-color #f1f1f1
+    }
+  }
+
+  .user-info-menu {
+    li {
+      a {
+        width 100%
+        justify-content left
+
+        &:hover {
+          text-decoration none !important
+          color var(--el-primary-text-color)
+        }
+      }
     }
   }
 }

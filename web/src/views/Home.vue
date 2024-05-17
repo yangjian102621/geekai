@@ -11,13 +11,34 @@
       </div>
 
       <div class="navbar">
+
+        <el-tooltip
+            class="box-item"
+            effect="dark"
+            content="部署文档"
+            placement="bottom">
+          <a href="https://ai.r9it.com/docs/install/" class="link-button" target="_blank">
+            <i class="iconfont icon-book"></i>
+          </a>
+        </el-tooltip>
+
+        <el-tooltip
+            class="box-item"
+            effect="dark"
+            content="项目源码"
+            placement="bottom">
+          <a href="https://github.com/yangjian102621/chatgpt-plus" class="link-button" target="_blank">
+            <i class="iconfont icon-github"></i>
+          </a>
+        </el-tooltip>
+
         <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="loginUser.id">
                         <span class="el-dropdown-link">
                           <el-image :src="loginUser.avatar"/>
                         </span>
           <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>
+            <el-dropdown-menu class="user-info-menu">
+              <el-dropdown-item @click="showConfigDialog = true">
                 <el-icon>
                   <UserFilled/>
                 </el-icon>
@@ -26,22 +47,18 @@
 
               <el-dropdown-item>
                 <i class="iconfont icon-book"></i>
-                <span>
-                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-                      用户手册
-                    </el-link>
-                 </span>
+                <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+                  用户手册
+                </a>
               </el-dropdown-item>
 
               <el-dropdown-item>
                 <i class="iconfont icon-github"></i>
-                <span>
-                    <el-link type="primary" href="https://ai.r9it.com/docs/" target="_blank">
-                      Geek-AI {{ version }}
-                    </el-link>
-                 </span>
+                <a href="https://ai.r9it.com/docs/" target="_blank">
+                  Geek-AI {{ version }}
+                </a>
               </el-dropdown-item>
-
+              <el-divider style="margin: 2px 0"/>
               <el-dropdown-item @click="logout">
                 <i class="iconfont icon-logout"></i>
                 <span>退出登录</span>
@@ -49,6 +66,11 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+
+        <div v-else>
+          <el-button size="small" color="#21aa93" @click="show = true" round>登录</el-button>
+          <el-button size="small" @click="router.push('/register')" round>注册</el-button>
+        </div>
       </div>
     </div>
     <div class="main">
@@ -92,25 +114,31 @@
       </div>
 
       <div class="content" :style="{height: mainWinHeight+'px'}">
-        <router-view v-slot="{ Component }">
+        <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
             <component :is="Component"></component>
           </transition>
         </router-view>
       </div>
     </div>
+
+    <login-dialog :show="show" @hide="store.setShowLoginDialog(false)" @success="loginCallback"/>
+    <config-dialog v-if="loginUser.id" :show="showConfigDialog" @hide="showConfigDialog = false"/>
   </div>
 </template>
 
 <script setup>
 
 import {useRouter} from "vue-router";
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {UserFilled} from "@element-plus/icons-vue";
 import {checkSession} from "@/action/session";
 import {removeUserToken} from "@/store/session";
+import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
+import ConfigDialog from "@/components/ConfigDialog.vue";
 
 const router = useRouter();
 const logo = ref('/images/logo.png');
@@ -121,6 +149,14 @@ const title = ref("")
 const mainWinHeight = window.innerHeight - 50
 const loginUser = ref({})
 const version = ref(process.env.VUE_APP_VERSION)
+const routerViewKey = ref(0)
+const showConfigDialog = ref(false)
+
+const store = useSharedStore();
+const show = ref(false)
+watch(() => store.showLoginDialog, (newValue) => {
+  show.value = newValue
+});
 
 if (curPath.value === "/external") {
   curPath.value = router.currentRoute.value.query.url
@@ -154,23 +190,35 @@ onMounted(() => {
     ElMessage.error("获取系统菜单失败：" + e.message)
   })
 
+  init()
+})
+
+const init = () => {
   checkSession().then(user => {
     loginUser.value = user
   }).catch(() => {
   })
-})
+}
 
 const logout = function () {
   httpGet('/api/user/logout').then(() => {
     removeUserToken()
-    router.push("/login")
+    store.setShowLoginDialog(true)
+    loginUser.value = {}
+    // 刷新组件
+    routerViewKey.value += 1
   }).catch(() => {
     ElMessage.error('注销失败！');
   })
 }
+
+const loginCallback = () => {
+  init()
+  // 刷新组件
+  routerViewKey.value += 1
+}
 </script>
 
 <style lang="stylus" scoped>
-@import '@/assets/iconfont/iconfont.css';
 @import "@/assets/css/home.styl"
 </style>

@@ -114,10 +114,13 @@ $borderColor = #4676d0;
 
       .tool-box {
         display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        padding 0 20px 10px 20px;
+        justify-content: center;
+        padding-top 12px
         border-top 1px solid #3c3c3c;
+
+        .iconfont {
+          margin-right 5px
+        }
       }
     }
 
@@ -125,52 +128,6 @@ $borderColor = #4676d0;
       overflow: hidden;
       --el-main-padding: 0;
       margin: 0;
-
-      .chat-head {
-        width: 100%;
-        height: 50px;
-        background-color: #28292A
-
-        .chat-config {
-          display flex
-          flex-direction row
-          align-items: center;
-          justify-content center;
-          padding-top 10px;
-
-          .role-select-label {
-            color #ffffff
-          }
-
-          .el-select {
-            max-width 150px;
-            margin-right 10px;
-          }
-
-          .role-select {
-            max-width 130px;
-          }
-
-          .el-button {
-            .el-icon {
-              margin-right 5px;
-            }
-          }
-        }
-
-        .iconfont {
-          margin-right 5px;
-        }
-
-        .is-circle {
-          margin-left 5px
-
-          .iconfont {
-            margin-right 0
-          }
-        }
-      }
-
 
       .chat-box {
         min-width: 0;
@@ -207,23 +164,6 @@ $borderColor = #4676d0;
             }
           }
 
-          .re-generate {
-            position: relative;
-            display: flex;
-            justify-content: center;
-
-            .btn-box {
-              position: absolute
-              bottom: 10px;
-
-              .el-button {
-                .el-icon {
-                  margin-right 5px;
-                }
-              }
-            }
-          }
-
           .input-box {
             background-color: #ffffff
             display: flex;
@@ -231,6 +171,26 @@ $borderColor = #4676d0;
             align-items: center;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
             padding 0 15px;
+
+            .tool-item {
+              margin-right 15px
+              border-radius: 6px;
+              color: #19c37d;
+              display flex
+              justify-content center
+              justify-items center
+              padding 6px
+              cursor pointer
+              background #F2F2F2
+
+              &:hover {
+                background #D5FAD3
+              }
+
+              .iconfont {
+                font-size: 24px;
+              }
+            }
 
             .input-container {
               width 100%
@@ -242,7 +202,6 @@ $borderColor = #4676d0;
               position relative
 
               .el-textarea {
-
                 .el-textarea__inner::-webkit-scrollbar {
                   width: 0;
                   height: 0;
@@ -263,8 +222,6 @@ $borderColor = #4676d0;
                 .el-button {
                   padding 8px 5px;
                   border-radius 6px;
-                  background: rgb(25, 195, 125)
-                  color #ffffff;
                   font-size 20px;
                 }
               }

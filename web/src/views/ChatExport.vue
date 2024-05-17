@@ -3,9 +3,6 @@
     <div class="chat-box" id="chat-box">
       <div class="title">
         <h2>{{ chatTitle }}</h2>
-        <el-button type="success" @click="exportChat" :icon="Promotion">
-          导出 PDF 文档
-        </el-button>
       </div>
 
       <div v-for="item in chatData" :key="item.id">
@@ -14,17 +11,10 @@
             :icon="item.icon"
             :created-at="dateFormat(item['created_at'])"
             :tokens="item['tokens']"
+            :model="item['model']"
             :content="item.content"/>
         <chat-reply v-else-if="item.type==='reply'"
-                    :icon="item.icon"
-                    :org-content="item.orgContent"
-                    :created-at="dateFormat(item['created_at'])"
-                    :tokens="item['tokens']"
-                    :content="item.content"/>
-        <chat-mid-journey v-else-if="item.type==='mj'"
-                          :content="item.content"
-                          :icon="item.icon"
-                          :created-at="dateFormat(item['created_at'])"/>
+                    :data="item" :read-only="true"/>
       </div>
     </div><!-- end chat box -->
   </div>
@@ -34,14 +24,13 @@
 import {dateFormat} from "@/utils/libs";
 import ChatReply from "@/components/ChatReply.vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
-import {nextTick, ref} from "vue";
+import {nextTick, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {httpGet} from "@/utils/http";
 import 'highlight.js/styles/a11y-dark.css'
 import hl from "highlight.js";
 import {ElMessage} from "element-plus";
-import {Promotion} from "@element-plus/icons-vue";
-import ChatMidJourney from "@/components/ChatMidJourney.vue";
+import Clipboard from "clipboard";
 
 const chatData = ref([])
 const router = useRouter()
@@ -91,9 +80,16 @@ httpGet('/api/chat/detail?chat_id=' + chatId).then(res => {
   ElMessage.error("加载会失败： " + e.message)
 })
 
-const exportChat = () => {
-  window.print()
-}
+onMounted(() => {
+  const clipboard = new Clipboard('.copy-reply');
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！');
+  })
+
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+})
 </script>
 <style lang="stylus">
 .chat-export {
@@ -115,12 +111,15 @@ const exportChat = () => {
     }
 
 
-    .chat-line {
+    .chat-line-prompt {
       font-size: 14px;
       display: flex;
       align-items: flex-start;
 
       .chat-line-inner {
+        .chat-icon {
+          margin-right: 0
+        }
         .content {
           padding-top: 0
           font-size 16px;
@@ -137,10 +136,6 @@ const exportChat = () => {
 
       .chat-line-inner {
         display flex
-
-        .copy-reply {
-          display none
-        }
 
         .bar-item {
           background-color: #f7f7f8;
