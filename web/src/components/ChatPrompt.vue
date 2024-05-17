@@ -7,9 +7,9 @@
 
       <div class="chat-item">
         <div class="content" v-html="content"></div>
-        <div class="bar" v-if="createdAt !== ''">
+        <div class="bar" v-if="createdAt">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
-          <span class="bar-item">Tokens: {{ finalTokens }}</span>
+          <!--          <span class="bar-item">Tokens: {{ finalTokens }}</span>-->
         </div>
       </div>
     </div>

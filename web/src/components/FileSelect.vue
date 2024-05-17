@@ -1,13 +1,8 @@
 <template>
   <el-container class="file-list-box">
-    <el-tooltip class="box-item" effect="dark" content="打开文件管理中心">
-      <el-button class="file-upload-img" @click="fetchFiles">
-        <el-icon>
-          <PictureFilled/>
-        </el-icon>
-      </el-button>
-    </el-tooltip>
-
+    <a class="file-upload-img" @click="fetchFiles">
+      <i class="iconfont icon-attachment-st"></i>
+    </a>
     <el-dialog
         v-model="show"
         :close-on-click-modal="true"
@@ -58,7 +53,7 @@
 import {ref} from "vue";
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
-import {Delete, PictureFilled, Plus} from "@element-plus/icons-vue";
+import {Delete, Plus} from "@element-plus/icons-vue";
 import {isImage, removeArrayItem} from "@/utils/libs";
 
 const props = defineProps({
@@ -132,11 +127,9 @@ const insertURL = (url) => {
 
 .file-list-box {
   .file-upload-img {
-    padding: 8px 5px;
-    border-radius: 6px;
-    background: #19c37d;
-    color: #fff;
-    font-size: 20px;
+    .iconfont {
+      font-size: 24px;
+    }
   }
 
   .el-dialog {
