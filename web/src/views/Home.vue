@@ -14,7 +14,7 @@
 
         <el-tooltip
             class="box-item"
-            effect="dark"
+            effect="light"
             content="部署文档"
             placement="bottom">
           <a href="https://ai.r9it.com/docs/install/" class="link-button" target="_blank">
@@ -24,7 +24,7 @@
 
         <el-tooltip
             class="box-item"
-            effect="dark"
+            effect="light"
             content="项目源码"
             placement="bottom">
           <a href="https://github.com/yangjian102621/chatgpt-plus" class="link-button" target="_blank">
@@ -68,7 +68,7 @@
         </el-dropdown>
 
         <div v-else>
-          <el-button size="small" color="#21aa93" @click="show = true" round>登录</el-button>
+          <el-button size="small" color="#21aa93" @click="store.setShowLoginDialog(true)" round>登录</el-button>
           <el-button size="small" @click="router.push('/register')" round>注册</el-button>
         </div>
       </div>
@@ -113,7 +113,7 @@
         </ul>
       </div>
 
-      <div class="content" :style="{height: mainWinHeight+'px'}">
+      <div class="content custom-scroll" :style="{height: mainWinHeight+'px'}">
         <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
             <component :is="Component"></component>
@@ -220,5 +220,6 @@ const loginCallback = () => {
 </script>
 
 <style lang="stylus" scoped>
+@import "@/assets/css/custom-scroll.styl"
 @import "@/assets/css/home.styl"
 </style>

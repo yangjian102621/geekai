@@ -41,6 +41,8 @@ html, body {
   font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+
+  --primary-color: #21aa93
 }
 
 .el-overlay-dialog {

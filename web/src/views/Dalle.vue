@@ -221,7 +221,6 @@
 
     </div>
 
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
     <el-image-viewer @close="() => { previewURL = '' }" v-if="previewURL !== ''" :url-list="[previewURL]"/>
   </div>
 </template>
@@ -233,16 +232,16 @@ import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
-import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
-const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const loading = ref(true)
-const colWidth = ref(240)
+const colWidth = ref(220)
 const isOver = ref(false)
 const previewURL = ref("")
+const store = useSharedStore();
 
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 90
@@ -438,7 +437,7 @@ const generate = () => {
   }
 
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
   httpPost("/api/dall/image", params.value).then(() => {
