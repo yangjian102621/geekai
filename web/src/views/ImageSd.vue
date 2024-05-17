@@ -497,8 +497,6 @@
 
       </el-dialog>
     </div>
-
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
@@ -511,17 +509,17 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
-import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
-const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const loading = ref(true)
-const colWidth = ref(240)
+const colWidth = ref(220)
+const store = useSharedStore();
 
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 80
@@ -730,7 +728,7 @@ const generate = () => {
   }
 
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 

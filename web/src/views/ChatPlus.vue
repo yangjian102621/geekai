@@ -99,7 +99,7 @@
 
                         <template #default>
                           <div class="chat-config">
-                            <el-select v-model="roleId" filterable placeholder="角色" @change="newChat"
+                            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat"
                                        class="role-select"
                                        style="width:150px">
                               <el-option
@@ -115,7 +115,7 @@
                               </el-option>
                             </el-select>
 
-                            <el-select v-model="modelID" filterable placeholder="模型" @change="newChat"
+                            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat"
                                        :disabled="disableModel"
                                        style="width:150px">
                               <el-option
@@ -144,7 +144,7 @@
                     </el-tooltip>
                   </span>
 
-                  <span class="tool-item">
+                  <span class="tool-item" v-if="isLogin">
                     <el-tooltip class="box-item" effect="dark" content="上传附件">
                       <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertURL"/>
                     </el-tooltip>
@@ -378,6 +378,11 @@ const resizeElement = function () {
   leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
 };
 
+const _newChat = () => {
+  if (isLogin.value) {
+    newChat()
+  }
+}
 const disableModel = ref(false)
 // 新建会话
 const newChat = () => {
