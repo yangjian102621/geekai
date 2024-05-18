@@ -625,7 +625,7 @@ const store = useSharedStore();
 
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 80
-  paramBoxHeight.value = window.innerHeight - 190
+  paramBoxHeight.value = window.innerHeight - 160
 };
 resizeElement()
 window.onresize = () => {

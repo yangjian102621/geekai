@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "12243734",
+      "name": "control",
+      "font_class": "control-simple",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
       "icon_id": "6539424",
       "name": "麦克风",
       "font_class": "mic-bold",

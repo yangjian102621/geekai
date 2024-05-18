@@ -2,7 +2,7 @@
   <div>
     <div class="page-dall">
       <div class="inner custom-scroll">
-        <div class="sd-box" :style="{ height: paramBoxHeight + 'px' }">
+        <div class="sd-box">
           <h2>DALL-E 创作中心</h2>
 
           <div class="sd-params">
@@ -88,7 +88,7 @@
               <h2>任务列表</h2>
               <div class="running-job-list">
                 <div class="running-job-box" v-if="runningJobs.length > 0">
-                  <div class="job-item" v-for="item in runningJobs">
+                  <div class="job-item" v-for="item in runningJobs" :key="item.id">
                     <div v-if="item.progress > 0" class="job-item-inner">
                       <el-image :src="item['img_url']" fit="cover" loading="lazy">
                         <template #placeholder>
@@ -227,7 +227,7 @@
 
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue"
-import {Delete, InfoFilled} from "@element-plus/icons-vue";
+import {Delete, InfoFilled, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
@@ -235,7 +235,7 @@ import {checkSession} from "@/action/session";
 import {useSharedStore} from "@/store/sharedata";
 
 const listBoxHeight = ref(0)
-const paramBoxHeight = ref(0)
+// const paramBoxHeight = ref(0)
 const isLogin = ref(false)
 const loading = ref(true)
 const colWidth = ref(220)
@@ -245,7 +245,7 @@ const store = useSharedStore();
 
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 90
-  paramBoxHeight.value = window.innerHeight - 110
+  // paramBoxHeight.value = window.innerHeight - 110
 };
 resizeElement()
 window.onresize = () => {

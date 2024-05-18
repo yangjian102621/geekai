@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="member custom-scroll">
-      <div class="inner" :style="{height: listBoxHeight + 'px'}">
+      <div class="inner">
         <div class="user-profile">
           <user-profile/>
 
@@ -168,7 +168,6 @@ import UserOrder from "@/components/UserOrder.vue";
 import CountDown from "@/components/CountDown.vue";
 import {useSharedStore} from "@/store/sharedata";
 
-const listBoxHeight = window.innerHeight - 97
 const list = ref([])
 const showPayDialog = ref(false)
 const vipImg = ref("/images/vip.png")

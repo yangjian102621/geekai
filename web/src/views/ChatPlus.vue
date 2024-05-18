@@ -87,14 +87,17 @@
               <el-affix position="bottom" :offset="0">
                 <div class="input-box">
                   <span class="tool-item">
-                    <el-tooltip effect="dark" content="聊天设置">
                       <el-popover
                           :width="300"
                           trigger="click"
                           placement="top-start"
                       >
                         <template #reference>
-                          <i class="iconfont icon-config"></i>
+                          <div>
+                            <el-tooltip effect="dark" content="模型选择">
+                              <i class="iconfont icon-model"></i>
+                            </el-tooltip>
+                          </div>
                         </template>
 
                         <template #default>
@@ -134,8 +137,6 @@
                           </div>
                         </template>
                       </el-popover>
-
-                    </el-tooltip>
                   </span>
 
                   <span class="tool-item" @click="ElMessage.info('暂时不支持语音输入')">
@@ -189,9 +190,7 @@
         title="网站公告"
     >
       <div class="notice">
-        <el-text type="primary">
-          <div v-html="notice"></div>
-        </el-text>
+        <div v-html="notice"></div>
 
         <p style="text-align: right">
           <el-button @click="notShow" type="success" plain>我知道了，不再显示</el-button>
@@ -901,8 +900,25 @@ const insertURL = (url) => {
 
 <style lang="stylus">
 .notice-dialog {
+  .el-dialog__header {
+    padding-bottom 0
+  }
+
   .el-dialog__body {
     padding 0 20px
+
+    ol, ul {
+      padding-left 10px
+    }
+
+    ol {
+      list-style decimal-leading-zero
+      padding-left 20px
+    }
+
+    ul {
+      list-style disc
+    }
   }
 }
 
