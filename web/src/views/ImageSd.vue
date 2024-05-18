@@ -2,7 +2,7 @@
   <div>
     <div class="page-sd">
       <div class="inner custom-scroll">
-        <div class="sd-box" :style="{ height: paramBoxHeight + 'px' }">
+        <div class="sd-box">
           <h2>Stable Diffusion 创作中心</h2>
 
           <div class="sd-params">
@@ -512,7 +512,7 @@ import {getSessionId} from "@/store/session";
 import {useSharedStore} from "@/store/sharedata";
 
 const listBoxHeight = ref(0)
-const paramBoxHeight = ref(0)
+// const paramBoxHeight = ref(0)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
@@ -523,7 +523,7 @@ const store = useSharedStore();
 
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 80
-  paramBoxHeight.value = window.innerHeight - 110
+  // paramBoxHeight.value = window.innerHeight - 200
 };
 resizeElement()
 window.onresize = () => {

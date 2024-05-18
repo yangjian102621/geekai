@@ -1,6 +1,6 @@
 <template>
   <div class="user-info" id="user-info">
-    <el-form :model="user" label-width="150px">
+    <el-form :model="user" label-width="100px">
       <el-row>
         <el-upload
             class="avatar-uploader"
@@ -26,7 +26,7 @@
             content="您已经是 VIP 会员"
             placement="right"
         >
-          <el-image v-if="user.vip" :src="vipImg" style="height: 25px;margin-left: 10px"/>
+          <span class="vip-icon"><el-image v-if="user.vip" :src="vipImg" style="height: 25px;margin-left: 10px"/></span>
         </el-tooltip>
       </el-form-item>
       <el-form-item label="剩余算力">
@@ -37,7 +37,7 @@
       </el-form-item>
 
       <el-row class="opt-line">
-        <el-button color="#47fff1" :dark="false" round @click="save">保存</el-button>
+        <el-button color="#47fff1" :dark="false" @click="save">保存</el-button>
       </el-row>
     </el-form>
   </div>
@@ -107,11 +107,16 @@ const save = () => {
 
 <style lang="stylus" scoped>
 .user-info {
-  padding 20px
+  padding 20px 0
 
   .el-row {
     justify-content center
     margin-bottom 10px
+  }
+
+  .vip-icon {
+    position relative
+    top 5px
   }
 
   .opt-line {
