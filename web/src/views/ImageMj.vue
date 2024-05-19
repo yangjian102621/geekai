@@ -749,8 +749,8 @@ const connect = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
           page.value = 0
-          fetchFinishJobs(page.value)
           isOver.value = false
+          fetchFinishJobs(page.value)
         }
         fetchRunningJobs()
       }
@@ -996,6 +996,9 @@ const removeImage = (item) => {
   ).then(() => {
     httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
       ElMessage.success("任务删除成功")
+      page.value = 0
+      isOver.value = false
+      fetchFinishJobs()
     }).catch(e => {
       ElMessage.error("任务删除失败：" + e.message)
     })
@@ -1012,6 +1015,9 @@ const publishImage = (item, action) => {
   httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
+    page.value = 0
+    isOver.value = false
+    fetchFinishJobs()
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

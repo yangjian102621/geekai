@@ -51,11 +51,12 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 
 // PushTask push a new mj task in to task queue
 func (s *Service) PushTask(task types.DallTask) {
-	logger.Debugf("add a new MidJourney task to the task list: %+v", task)
+	logger.Infof("add a new DALL-E task to the task list: %+v", task)
 	s.taskQueue.RPush(task)
 }
 
 func (s *Service) Run() {
+	logger.Info("Starting DALL-E job consumer...")
 	go func() {
 		for {
 			var task types.DallTask
@@ -64,7 +65,7 @@ func (s *Service) Run() {
 				logger.Errorf("taking task with error: %v", err)
 				continue
 			}
-
+			logger.Infof("handle a new DALL-E task: %+v", task)
 			_, err = s.Image(task, false)
 			if err != nil {
 				logger.Errorf("error with image task: %v", err)
@@ -138,7 +139,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	if len(apiKey.ProxyURL) > 5 {
 		s.httpClient.SetProxyURL(apiKey.ProxyURL).R()
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, apiKey.ProxyURL)
+	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, apiKey.ProxyURL)
 	r, err := s.httpClient.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(imgReq{
@@ -240,6 +241,8 @@ func (s *Service) DownloadImages() {
 				if err != nil {
 					logger.Error("error with download image: %s, error: %v", imgURL, err)
 					continue
+				} else {
+					logger.Infof("download image %s successfully.", v.OrgURL)
 				}
 
 			}
