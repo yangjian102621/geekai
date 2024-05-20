@@ -1,5 +1,5 @@
 name: 功能优化 🚀
-description: 为 chatgpt-plus 提交优化建议
+description: 为 geekai 提交优化建议
 labels: ['feature']
 body:
   - type: checkboxes

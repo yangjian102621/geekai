@@ -14,15 +14,15 @@ npm run build
 cd ../build
 
 # remove docker image if exists
-docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version-$arch
-# build docker image for chatgpt-plus-go
-docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version-$arch -f dockerfile-api-go ../
+docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch
+# build docker image for geekai-go
+docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch -f dockerfile-api-go ../
 
-# build docker image for chatgpt-plus-vue
-docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version-$arch
-docker build --platform linux/amd64 -t registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version-$arch -f dockerfile-vue ../
+# build docker image for geekai-web
+docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch
+docker build --platform linux/amd64 -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api-web:$version-$arch -f dockerfile-vue ../
 
 if [ "$3" = "push" ];then
-  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:$version-$arch
-  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:$version-$arch
+  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch
+  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch
 fi

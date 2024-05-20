@@ -1,5 +1,5 @@
 name: Bug 报告 🐛
-description: 为 chatgpt-plus 提交错误报告
+description: 为 geekai 提交错误报告
 labels: ['Bug']
 body:
   - type: checkboxes
