@@ -1,9 +1,9 @@
 version: '3'
 services:
   # mysql
-  chatgpt-plus-mysql:
+  geekai-mysql:
     image: mysql:8.0.33
-    container_name: chatgpt-plus-mysql
+    container_name: geekai-mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
@@ -15,12 +15,12 @@ services:
       - ./data/mysql/data:/var/lib/mysql
       - ./logs/mysql:/var/log/mysql
       - ./data/mysql/init.d:/docker-entrypoint-initdb.d/
-  
-  # redis 
-  chatgpt-plus-redis:
+
+  # redis
+  geekai-redis:
     image: redis:6.0.16
     restart: always
-    container_name: chatgpt-plus-redis
+    container_name: geekai-redis
     command: redis-server --requirepass 12345678
     volumes :
       - ./data/redis:/data
@@ -52,14 +52,13 @@ services:
 
 
   # 后端 API 程序
-  chatgpt-plus-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-api:v4.0.4-amd64
-    container_name: chatgpt-plus-api
+  geekai-api:
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:v4.0.7-amd64
+    container_name: geekai-api
     restart: always
     depends_on:
-      - chatgpt-plus-mysql
-      - chatgpt-plus-redis
-      - xxl-job-admin
+      - geekai-mysql
+      - geekai-redis
     environment:
       - DEBUG=false
       - LOG_LEVEL=info
@@ -75,12 +74,12 @@ services:
       - ./data/leveldb:/var/www/app/data
 
   # 前端应用
-  chatgpt-plus-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/chatgpt-plus-web:v4.0.4-amd64
-    container_name: chatgpt-plus-web
+  geekai-web:
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:v4.0.7-amd64
+    container_name: geekai-web
     restart: always
     depends_on:
-      - chatgpt-plus-api
+      - geekai-api
     ports:
       - "8080:8080"
     volumes:

@@ -1,6 +1,7 @@
-# ChatGPT-Plus
+# GeekAI
+### 本项目已经正式更名为 GeekAI，请大家及时更新代码克隆地址。
 
-**ChatGPT-PLUS** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Azure,
+**GeekAI** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Azure,
 ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了 MidJourney 和 Stable Diffusion AI绘画功能。
 
 主要特性：
@@ -16,7 +17,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 - 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI
   绘画函数插件。
 
-### 🚀 更多功能请查看 [Geek-AI](https://github.com/yangjian102621/geek-ai)
+### 🚀 更多功能请查看 [GeekAI-PLUS](https://github.com/yangjian102621/geekai-plus)
 
 - [x] 更友好的 UI 界面
 - [x] 支持 Dall-E 文生图功能
@@ -81,29 +82,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ## 快速部署
 
-**演示站不提供任何充值点卡售卖或者VIP充值服务。** 如果您体验过后觉得还不错的话，可以花两分钟用下面的一键部署脚本自己部署一套。
-
-```shell
-bash -c "$(curl -fsSL https://img.r9it.com/geekai/v4.0.6/install.sh)"
-```
-
-最新版本的一键部署脚本请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/install/)。
-
-目前仅支持 Ubuntu 和 Centos 系统。 部署成功之后可以访问下面地址
-
-* 前端访问地址：http://localhost:8080/chat 使用移动设备访问会自动跳转到移动端页面。
-* 后台管理地址：http://localhost:8080/admin
-* 移动端地址：http://localhost:8080/mobile
-* 初始后台管理账号：admin/admin123
-* 初始前端体验账号：18575670125/12345678
-
-服务启动成功之后不能立刻使用，需要先登录管理后台 -> API-KEY 去添加一个 OpenAI 或者文心一言，科大讯飞等至少一个平台的 API
-KEY。
-
-![](https://ai.r9it.com/docs/images/env/admin_api_keys.png)
-
-另外，如果您目前还没有 OpenAI 的 API KEY的，推荐您去 https://api.chat-plus.net 购买，**无需魔法，高速稳定，且价格还远低于 OpenAI
-官方**。
+请参考文档 [**GeekAI 快速部署**](https://ai.r9it.com/docs/install/)。
 
 ## 使用须知
 
@@ -112,12 +91,12 @@ KEY。
 
 ## 项目地址
 
-* Github 地址：https://github.com/yangjian102621/chatgpt-plus
-* 码云地址：https://gitee.com/blackfox/chatgpt-plus
+* Github 地址：https://github.com/yangjian102621/geekai
+* 码云地址：https://gitee.com/blackfox/geekai
 
 ## 客户端下载
 
-目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/chatgpt-plus/releases/tag/v3.1.2
+目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/geekai/releases/tag/v3.1.2
 
 ## TODOLIST
 
@@ -129,7 +108,7 @@ KEY。
 
 最新的部署视频教程：[https://www.bilibili.com/video/BV1Cc411t7CX/](https://www.bilibili.com/video/BV1Cc411t7CX/)
 
-详细的部署和开发文档请参考 [**ChatGPT-Plus 文档**](https://ai.r9it.com/docs/)。
+详细的部署和开发文档请参考 [**GeekAI 文档**](https://ai.r9it.com/docs/)。
 
 加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自Github!!!）。**
 
@@ -157,4 +136,4 @@ KEY。
 
 ![打赏](docs/imgs/donate.png)
 
-![Star History Chart](https://api.star-history.com/svg?repos=yangjian102621/chatgpt-plus&type=Date)
+![Star History Chart](https://api.star-history.com/svg?repos=yangjian102621/geekai&type=Date)
