@@ -1,106 +1,110 @@
 Listen = "0.0.0.0:5678"
-ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:12345678@tcp(chatgpt-plus-mysql:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
-StaticDir = "./static" # 静态资源的目录
-StaticUrl = "/static" # 静态资源访问 URL
+ProxyURL = ""
+MysqlDns = "root:12345678@tcp(geekai-mysql:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+StaticDir = "./static"
+StaticUrl = "/static"
 WeChatBot = false
 
 [Session]
-  SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
+  SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
   MaxAge = 86400
 
 [AdminSession]
   SecretKey = "wr1uzwz2meai4z9j0e0tsyf6x523ui6zpnyaim4x2x37meakv13349llqpipyk40"
   MaxAge = 8640000
 
-[Redis] # redis 配置信息
-  Host = "chatgpt-plus-redis"
+[Redis]
+  Host = "geekai-redis"
   Port = 6379
   Password = "12345678"
   DB = 0
 
-[ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
+[ApiConfig]
   ApiURL = "http://service.r9it.com:9001"
   AppId = ""
   Token = ""
 
+[SMS]
+  Active = "Ali"
+  [SMS.Ali]
+    AccessKey = ""
+    AccessSecret = ""
+    Product = "Dysmsapi"
+    Domain = "dysmsapi.aliyuncs.com"
+    Sign = ""
+    CodeTempId = ""
+  [SMS.Bao]
+    Username = ""
+    Password = ""
+    Domain = "api.smsbao.com"
+    Sign = "【极客学长】"
+    CodeTemplate = "您的验证码是{code}。5分钟有效，若非本人操作，请忽略本短信。"
 
-[SMS] # Sms 配置，用于发送短信
-   Active = "Ali" # 当前启用的短信服务，默认使用阿里云
-   [SMS.Bao]
-      Username = ""
-      Password = ""
-      Domain = "api.smsbao.com"
-      Sign = "【极客学长】"
-      CodeTemplate = "您的验证码是{code}。5分钟有效，若非本人操作，请忽略本短信。"
-   [SMS.Ali]
-      AccessKey = ""
-      AccessSecret = ""
-      Product = "Dysmsapi"
-      Domain = "dysmsapi.aliyuncs.com"
-      Sign = ""
-      CodeTempId = ""
-
-[OSS] # OSS 配置，用于存储 MJ 绘画图片
-   Active = "Local" # 默认使用本地文件存储引擎
-   [OSS.Local]
-     BasePath = "./static/upload" # 本地文件上传根路径
-     BaseURL = "/static/upload" # 本地上传文件根 URL 如果是线上，则直接设置为 /static/upload 即可
-   [OSS.Minio]
-     Endpoint = "" # 如 172.22.11.200:9000
-     AccessKey = "" # 自己去 Minio 控制台去创建一个 Access Key
-     AccessSecret = ""
-     Bucket = "chatgpt-plus" # 替换为你自己创建的 Bucket，注意要给 Bucket 设置公开的读权限，否则会出现图片无法显示。
-     UseSSL = false
-     Domain = "" # 地址必须是能够通过公网访问的，否则会出现图片无法显示。
-   [OSS.QiNiu] # 七牛云 OSS 配置
-       Zone = "z2" # 区域，z0：华东，z1: 华北，na0：北美，as0：新加坡
-       AccessKey = ""
-       AccessSecret = ""
-       Bucket = ""
-       Domain = "" # OSS Bucket 所绑定的域名，如 https://img.r9it.com
-    [OSS.AliYun]
-          Endpoint = "oss-cn-hangzhou.aliyuncs.com"
-          AccessKey = ""
-          AccessSecret = ""
-          Bucket = "chatgpt-plus"
-          SubDir = ""
-          Domain = ""
+[OSS]
+  Active = "Local"
+  [OSS.Local]
+    BasePath = "./static/upload"
+    BaseURL = "/static/upload"
+  [OSS.Minio]
+    Endpoint = ""
+    AccessKey = ""
+    AccessSecret = ""
+    Bucket = "geekai"
+    SubDir = ""
+    UseSSL = false
+    Domain = ""
+  [OSS.QiNiu]
+    Zone = "z2"
+    AccessKey = ""
+    AccessSecret = ""
+    Bucket = ""
+    SubDir = ""
+    Domain = ""
+  [OSS.AliYun]
+    Endpoint = "oss-cn-hangzhou.aliyuncs.com"
+    AccessKey = ""
+    AccessSecret = ""
+    Bucket = "geekai"
+    SubDir = ""
+    Domain = ""
 
 [[MjProxyConfigs]]
-  Enabled = true
+  Enabled = false
   ApiURL = "http://midjourney-proxy:8082"
+  Mode = ""
   ApiKey = "sk-geekmaster"
 
 [[MjPlusConfigs]]
-   Enabled = false
-   ApiURL = "https://api.chat-plus.net"
-   Mode = "fast"
-   ApiKey = "sk-xxx"
+  Enabled = false
+  ApiURL = "https://api.chat-plus.net"
+  Mode = "fast"
+  ApiKey = "sk-xxx"
 
 [[SdConfigs]]
   Enabled = false
+  Model = ""
   ApiURL = ""
   ApiKey = ""
 
-[XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
-  Enabled = true # 是否启用 XXL JOB 服务
-  ServerAddr = "http://xxl-job-admin:8080/xxl-job-admin" # xxl-job-admin 管理地址
-  ExecutorIp = "chatgpt-plus-api" # 执行器 IP 地址
+[XXLConfig]   # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
+  Enabled = true  # 是否启用 XXL JOB 服务
+  ServerAddr = "http://xxl-job-admin:8080/xxl-job-admin"  # xxl-job-admin 管理地址
+  ExecutorIp = "geekai-api"  # 执行器 IP 地址
   ExecutorPort = "9999" # 执行器服务端口
-  AccessToken = "GeekMaster" # 执行器 API 通信 token
-  RegistryKey = "chatgpt-plus" # 任务注册 key
+  AccessToken = "GeekMaster"  # 执行器 API 通信 token
+  RegistryKey = "chatgpt-plus"  # 任务注册 key，需要与 xxl-job 管理后台配置一致，请不要随意改动
 
 [AlipayConfig]
-  Enabled = false # 启用支付宝支付通道
-  SandBox = false # 是否启用沙盒模式
-  UserId = "2088721020750581" # 商户ID
-  AppId = "9021000131658023" # App Id
-  PrivateKey = "certs/alipay/privateKey.txt" # 应用私钥
-  PublicKey = "certs/alipay/appPublicCert.crt" # 应用公钥证书
-  AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
-  RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
-  NotifyURL = "https://ai.r9it.com/api/payment/alipay/notify" # 支付异步回调地址
+  Enabled = false
+  SandBox = false
+  AppId = "9021000131658023"
+  UserId = "2088721020750581"
+  PrivateKey = "certs/alipay/privateKey.txt"
+  PublicKey = "certs/alipay/appPublicCert.crt"
+  AlipayPublicKey = "certs/alipay/alipayPublicCert.crt"
+  RootCert = "certs/alipay/alipayRootCert.crt"
+  NotifyURL = "https://ai.r9it.com/api/payment/alipay/notify"
+  ReturnURL = ""
 
 [HuPiPayConfig]
   Enabled = false
@@ -109,19 +113,21 @@ WeChatBot = false
   AppSecret = ""
   ApiURL = "https://api.xunhupay.com"
   NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
+  ReturnURL = ""
 
-[SmtpConfig] # 注意，阿里云服务器禁用了25号端口，请使用 465 端口，并开启 TLS 连接
+[SmtpConfig]  # 注意，阿里云服务器禁用了25号端口，请使用 465 端口，并开启 TLS 连接
   UseTls = false
   Host = "smtp.163.com"
   Port = 25
   AppName = "极客学长"
-  From = "test@163.com" # 发件邮箱人地址
-  Password = "" #邮箱 stmp 服务授权码
+  From = "test@163.com"  # 发件邮箱人地址
+  Password = ""  #邮箱 stmp 服务授权码
 
-[JPayConfig] # PayJs 支付配置
+[JPayConfig]
   Enabled = false
-  Name = "wechat" # 请不要改动
-  AppId = "" # 商户 ID
+  Name = "wechat"  # 请不要改动
+  AppId = ""  # 商户 ID
   PrivateKey = "" # 秘钥
   ApiURL = "https://payjs.cn"
-  NotifyURL = "https://ai.r9it.com/api/payment/payjs/notify" # 异步回调地址，域名改成你自己的
+  NotifyURL = "https://ai.r9it.com/api/payment/payjs/notify"
+  ReturnURL = ""
