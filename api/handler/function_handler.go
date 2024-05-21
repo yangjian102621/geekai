@@ -1,13 +1,20 @@
 package handler
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/service/dalle"
-	"chatplus/service/oss"
-	"chatplus/store/model"
-	"chatplus/utils"
-	"chatplus/utils/resp"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/service/dalle"
+	"geekai/service/oss"
+	"geekai/store/model"
+	"geekai/utils"
+	"geekai/utils/resp"
 	"errors"
 	"fmt"
 	"strings"
@@ -178,6 +185,11 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	res := h.DB.Where("id = ?", params["user_id"]).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "当前用户不存在！")
+		return
+	}
+
+	if user.Power < h.App.SysConfig.DallPower {
+		resp.ERROR(c, "创建 DALL-E 绘图任务失败，算力不足")
 		return
 	}
 

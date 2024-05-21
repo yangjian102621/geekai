@@ -1,14 +1,21 @@
 package chatimpl
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
 	"bufio"
-	"chatplus/core/types"
-	"chatplus/store/model"
-	"chatplus/store/vo"
-	"chatplus/utils"
 	"context"
 	"encoding/json"
 	"fmt"
+	"geekai/core/types"
+	"geekai/store/model"
+	"geekai/store/vo"
+	"geekai/utils"
 	"html/template"
 	"io"
 	"strings"
@@ -68,12 +75,16 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-			if err != nil || len(responseBody.Choices) == 0 { // 数据解析出错
+			if err != nil { // 数据解析出错
 				logger.Error(err, line)
 				utils.ReplyMessage(ws, ErrorMsg)
 				utils.ReplyMessage(ws, ErrImg)
 				break
 			}
+			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
+				continue
+			}
+			
 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
 				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
@@ -115,11 +126,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 				break
 			}
 
-			// 初始化 role
-			if responseBody.Choices[0].Delta.Role != "" && message.Role == "" {
-				message.Role = responseBody.Choices[0].Delta.Role
-				continue
-			} else if responseBody.Choices[0].FinishReason != "" {
+			// output stopped
+			if responseBody.Choices[0].FinishReason != "" {
 				break // 输出完成或者输出中断了
 			} else {
 				content := responseBody.Choices[0].Delta.Content

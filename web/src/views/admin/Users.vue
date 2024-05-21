@@ -73,7 +73,7 @@
           <el-input v-model="user.username" autocomplete="off"/>
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
-          <el-input v-model="user.password" autocomplete="off"/>
+          <el-input v-model="user.password" autocomplete="off" placeholder="8-16位"/>
         </el-form-item>
         <el-form-item label="剩余算力：" prop="power">
           <el-input v-model.number="user.power" autocomplete="off" placeholder="0"/>
@@ -186,8 +186,17 @@ const models = ref([])
 const showUserEditDialog = ref(false)
 const showResetPassDialog = ref(false)
 const rules = reactive({
-  username: [{required: true, message: '请输入账号', trigger: 'change',}],
-  password: [{required: true, message: '请输入密码', trigger: 'change',}],
+  username: [{required: true, message: '请输入账号', trigger: 'blur',}],
+  password: [
+    {
+      required: true,
+      validator: (rule, value) => {
+        return !(value.length > 16 || value.length < 8);
+
+      }, message: '密码必须为8-16',
+      trigger: 'blur'
+    }
+  ],
   calls: [
     {required: true, message: '请输入提问次数'},
     {type: 'number', message: '请输入有效数字'},
@@ -323,6 +332,7 @@ const doResetPass = () => {
 .user-list {
 
   .handle-box {
+    margin-bottom 20px
     .handle-input {
       max-width 150px;
       margin-right 10px;
@@ -339,6 +349,11 @@ const doResetPass = () => {
     .el-icon {
       margin-right: 5px;
     }
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
   }
 
   .el-select {

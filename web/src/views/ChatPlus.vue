@@ -286,7 +286,7 @@ const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
 
 if (isMobile()) {
-  router.replace("/mobile")
+  router.replace("/mobile/chat")
 }
 
 // 获取系统配置
@@ -330,7 +330,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 // 初始化数据
@@ -355,9 +358,8 @@ const initData = () => {
         // 加载角色列表
         httpGet(`/api/role/list`).then((res) => {
           roles.value = res.data;
-          console.log()
-          if (router.currentRoute.value.params.role_id) {
-            roleId.value = parseInt(router.currentRoute.value.params["role_id"])
+          if (router.currentRoute.value.query.role_id) {
+            roleId.value = parseInt(router.currentRoute.value.query.role_id)
           } else {
             roleId.value = roles.value[0]['id']
           }
@@ -652,55 +654,63 @@ const connect = function (chat_id, role_id) {
   });
 
   _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8");
-      reader.onload = () => {
-        const data = JSON.parse(String(reader.result));
-        if (data.type === 'start') {
-          console.log(data)
-          chatData.value.push({
-            type: "reply",
-            id: randString(32),
-            icon: _role['icon'],
-            content: ""
-          });
-        } else if (data.type === 'end') { // 消息接收完毕
-          // 追加当前会话到会话列表
-          if (isNewChat && newChatItem.value !== null) {
-            newChatItem.value['title'] = previousText.value;
-            newChatItem.value['chat_id'] = chat_id;
-            chatList.value.unshift(newChatItem.value);
-            activeChat.value = newChatItem.value;
-            newChatItem.value = null; // 只追加一次
-          }
+    try {
+      if (event.data instanceof Blob) {
+        const reader = new FileReader();
+        reader.readAsText(event.data, "UTF-8");
+        reader.onload = () => {
+          const data = JSON.parse(String(reader.result));
+          if (data.type === 'start') {
+            chatData.value.push({
+              type: "reply",
+              id: randString(32),
+              icon: _role['icon'],
+              content: ""
+            });
+          } else if (data.type === 'end') { // 消息接收完毕
+            // 追加当前会话到会话列表
+            if (isNewChat && newChatItem.value !== null) {
+              newChatItem.value['title'] = previousText.value;
+              newChatItem.value['chat_id'] = chat_id;
+              chatList.value.unshift(newChatItem.value);
+              activeChat.value = newChatItem.value;
+              newChatItem.value = null; // 只追加一次
+            }
 
-          enableInput()
-          lineBuffer.value = ''; // 清空缓冲
+            enableInput()
+            lineBuffer.value = ''; // 清空缓冲
 
-          // 获取 token
-          const reply = chatData.value[chatData.value.length - 1]
-          httpPost("/api/chat/tokens", {text: "", model: getModelValue(modelID.value), chat_id: chat_id}).then(res => {
-            reply['created_at'] = new Date().getTime();
-            reply['tokens'] = res.data;
-            // 将聊天框的滚动条滑动到最底部
-            nextTick(() => {
-              document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+            // 获取 token
+            const reply = chatData.value[chatData.value.length - 1]
+            httpPost("/api/chat/tokens", {
+              text: "",
+              model: getModelValue(modelID.value),
+              chat_id: chat_id
+            }).then(res => {
+              reply['created_at'] = new Date().getTime();
+              reply['tokens'] = res.data;
+              // 将聊天框的滚动条滑动到最底部
+              nextTick(() => {
+                document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+              })
+            }).catch(() => {
             })
-          })
 
-        } else {
-          lineBuffer.value += data.content;
-          const reply = chatData.value[chatData.value.length - 1]
-          reply['orgContent'] = lineBuffer.value;
-          reply['content'] = md.render(processContent(lineBuffer.value));
-        }
-        // 将聊天框的滚动条滑动到最底部
-        nextTick(() => {
-          document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
-          localStorage.setItem("chat_id", chat_id)
-        })
-      };
+          } else {
+            lineBuffer.value += data.content;
+            const reply = chatData.value[chatData.value.length - 1]
+            reply['orgContent'] = lineBuffer.value;
+            reply['content'] = md.render(processContent(lineBuffer.value));
+          }
+          // 将聊天框的滚动条滑动到最底部
+          nextTick(() => {
+            document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+            localStorage.setItem("chat_id", chat_id)
+          })
+        };
+      }
+    } catch (e) {
+      console.error(e)
     }
 
   });
@@ -901,14 +911,6 @@ const exportChat = () => {
   window.open(url, '_blank');
 }
 
-const getChatById = (chatId) => {
-  for (let index in chatList.value) {
-    if (chatList.value[index].chat_id === chatId) {
-      return chatList.value[index]
-    }
-  }
-  return null
-}
 
 const getModelValue = (model_id) => {
   for (let i = 0; i < models.value.length; i++) {

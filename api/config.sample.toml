@@ -108,7 +108,8 @@ WeChatBot = false
   ApiURL = "https://api.xunhupay.com"
   NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
 
-[SmtpConfig] # 注意，阿里云服务器禁用了25号端口，所以如果需要使用邮件功能，请别用阿里云服务器
+[SmtpConfig] # 注意，阿里云服务器禁用了25号端口，请使用 465 端口，并开启 TLS 连接
+  UseTls = false
   Host = "smtp.163.com"
   Port = 25
   AppName = "极客学长"

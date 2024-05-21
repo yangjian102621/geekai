@@ -37,22 +37,28 @@ body {
     transition: left .3s ease-in-out;
     background: #f0f0f0;
 
+    ::-webkit-scrollbar {
+      width: 8px; /* 滚动条宽度 */
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #666666;
+      border-radius 8px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #999999;
+    }
+
     .content {
       width: auto;
-      height: 100vh;
       overflow-y: scroll;
       box-sizing: border-box;
 
       .container {
         padding: 15px 20px 30px 20px;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+        background: #ffffff;
         margin-bottom 80px
-
-        .handle-box {
-          margin-bottom: 20px;
-        }
       }
 
       .crumbs {
@@ -60,7 +66,7 @@ body {
       }
 
       .el-table th {
-        background-color: #f5f7fa !important;
+        background-color: #f5f7fa;
       }
 
       .pagination {
@@ -141,6 +147,23 @@ body {
       [hidden] {
         display: none !important;
       }
+    }
+
+    .dark {
+      background: var(--el-bg-color);
+
+      .container {
+        background: var(--el-bg-color);
+      }
+
+      .crumbs {
+        margin: 10px 0;
+      }
+
+      .el-table th {
+        background-color: var(--el-fill-color-darker);
+      }
+
     }
   }
 

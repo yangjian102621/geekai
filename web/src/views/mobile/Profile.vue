@@ -1,43 +1,55 @@
 <template>
   <div class="mobile-user-profile container">
-    <van-nav-bar :title="title"/>
-
     <div class="content">
       <van-form>
+        <div class="avatar">
+          <van-uploader v-model="fileList"
+                        reupload max-count="1"
+                        :deletable="false"
+                        :after-read="afterRead"/>
+        </div>
         <van-cell-group inset v-model="form">
           <van-field
               v-model="form.username"
-              name="账号"
               label="账号"
               readonly
               disabled
           />
-          <van-field label="头像">
-            <template #input>
-              <van-uploader v-model="fileList"
-                            reupload max-count="1"
-                            :deletable="false"
-                            :after-read="afterRead"/>
-            </template>
-          </van-field>
+          <van-field
+              v-model="form.nickname"
+              label="昵称"
+              readonly
+              disabled
+          />
 
-          <van-field label="剩余算力">
+          <van-field label="算力">
             <template #input>
               <van-tag type="primary">{{ form.power }}</van-tag>
             </template>
           </van-field>
 
-          <van-field label="VIP到期时间" v-if="form.expired_time > 0">
+          <van-field label="有效期" v-if="form.expired_time > 0">
             <template #input>
-              <van-tag type="warning">{{ dateFormat(form.expired_time) }}</van-tag>
+              {{ dateFormat(form.expired_time) }}
             </template>
           </van-field>
 
         </van-cell-group>
       </van-form>
 
-      <div class="modify-pass">
-        <van-button round block type="primary" @click="showPasswordDialog = true">修改密码</van-button>
+      <div class="opt" v-if="isLogin">
+        <van-row :gutter="10">
+          <van-col :span="8">
+            <van-button round block @click="showPasswordDialog = true" size="small">修改密码</van-button>
+          </van-col>
+          <van-col :span="8">
+            <van-button round block @click="logout" size="small">退出登录</van-button>
+          </van-col>
+
+          <van-col :span="8">
+            <van-button round block @click="showSettings = true" icon="setting" size="small">设置</van-button>
+          </van-col>
+        </van-row>
       </div>
 
       <div class="product-list">
@@ -106,6 +118,34 @@
         </van-cell-group>
       </van-form>
     </van-dialog>
+
+    <van-action-sheet v-model:show="showSettings" title="用户设置">
+      <div class="setting-content">
+        <van-form>
+          <van-cell-group inset>
+            <van-field name="switch" label="暗黑主题">
+              <template #input>
+                <van-switch v-model="dark" @change="changeTheme"/>
+              </template>
+            </van-field>
+            <!--            <van-field-->
+            <!--                v-model="password"-->
+            <!--                type="password"-->
+            <!--                name="密码"-->
+            <!--                label="密码"-->
+            <!--                placeholder="密码"-->
+            <!--                :rules="[{ required: true, message: '请填写密码' }]"-->
+            <!--            />-->
+          </van-cell-group>
+          <!--          <div style="margin: 16px;">-->
+          <!--            <van-button round block type="primary" native-type="submit">-->
+          <!--              提交-->
+          <!--            </van-button>-->
+          <!--          </div>-->
+        </van-form>
+      </div>
+    </van-action-sheet>
+
   </div>
 </template>
 
@@ -114,23 +154,24 @@ import {onMounted, ref} from "vue";
 import {showFailToast, showNotify, showSuccessToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
-import {dateFormat} from "@/utils/libs";
+import {dateFormat, showLoginDialog} from "@/utils/libs";
 import {ElMessage} from "element-plus";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
+import {removeUserToken} from "@/store/session";
+import bus from '@/store/eventbus'
+import {getMobileTheme} from "@/store/system";
 
-const title = ref('用户设置')
 const form = ref({
-  username: '',
-  nickname: '',
-  mobile: '',
+  username: 'GeekMaster',
+  nickname: '极客学长@001',
+  mobile: '1300000000',
   avatar: '',
-  calls: 0,
-  tokens: 0
+  power: 0,
 })
 const fileList = ref([
   {
-    url: '',
+    url: '/images/user-info.png',
     message: '上传中...',
   }
 ]);
@@ -139,11 +180,14 @@ const products = ref([])
 const vipMonthPower = ref(0)
 const payWays = ref({})
 const router = useRouter()
-const loginUser = ref(null)
+const userId = ref(0)
+const isLogin = ref(false)
+const showSettings = ref(false)
 
 onMounted(() => {
   checkSession().then(user => {
-    loginUser.value = user
+    userId.value = user.id
+    isLogin.value = true
     httpGet('/api/user/profile').then(res => {
       form.value = res.data
       fileList.value[0].url = form.value.avatar
@@ -151,28 +195,27 @@ onMounted(() => {
       console.log(e.message)
       showFailToast('获取用户信息失败')
     });
-
-    // 获取产品列表
-    httpGet("/api/product/list").then((res) => {
-      products.value = res.data
-    }).catch(e => {
-      showFailToast("获取产品套餐失败：" + e.message)
-    })
-
-    httpGet("/api/config/get?key=system").then(res => {
-      vipMonthPower.value = res.data['vip_month_power']
-    }).catch(e => {
-      showFailToast("获取系统配置失败：" + e.message)
-    })
-
-    httpGet("/api/payment/payWays").then(res => {
-      payWays.value = res.data
-    }).catch(e => {
-      ElMessage.error("获取支付方式失败：" + e.message)
-    })
-
   }).catch(() => {
-    router.push("/login")
+
+  })
+
+  // 获取产品列表
+  httpGet("/api/product/list").then((res) => {
+    products.value = res.data
+  }).catch(e => {
+    showFailToast("获取产品套餐失败：" + e.message)
+  })
+
+  httpGet("/api/config/get?key=system").then(res => {
+    vipMonthPower.value = res.data['vip_month_power']
+  }).catch(e => {
+    showFailToast("获取系统配置失败：" + e.message)
+  })
+
+  httpGet("/api/payment/payWays").then(res => {
+    payWays.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取支付方式失败：" + e.message)
   })
 
 })
@@ -244,10 +287,14 @@ const updatePass = () => {
 }
 
 const pay = (payWay, item) => {
+  if (!isLogin.value) {
+    return showLoginDialog(router)
+  }
+
   httpPost("/api/payment/mobile", {
     pay_way: payWay,
     product_id: item.id,
-    user_id: loginUser.value.id
+    user_id: userId.value
   }).then(res => {
     // console.log(res.data)
     location.href = res.data
@@ -255,25 +302,55 @@ const pay = (payWay, item) => {
     showFailToast("生成支付订单失败：" + e.message)
   })
 }
+
+const logout = function () {
+  httpGet('/api/user/logout').then(() => {
+    removeUserToken();
+    router.push('/');
+  }).catch(() => {
+    showFailToast('注销失败！');
+  })
+}
+
+const dark = ref(getMobileTheme() === 'dark')
+
+const changeTheme = () => {
+  bus.emit('changeTheme', dark.value ? 'dark' : 'light')
+}
+
 </script>
 
 <style lang="stylus">
 .mobile-user-profile {
   .content {
+    padding-top 15px
+    padding-bottom 60px
+
+    .avatar {
+      display flex
+      justify-content center
+
+      .van-image {
+        border-radius 50%
+      }
+    }
+
     .van-field__label {
       width 100px
       text-align right
     }
 
-    .modify-pass {
+    .opt {
       padding 10px 15px
     }
 
     .product-list {
       padding 0 15px
 
+      color var(--van-text-color)
+
       .item {
-        border 1px solid #e5e5e5
+        border 1px solid var(--van-border-color)
         border-radius 10px
         margin-bottom 15px
         overflow hidden
@@ -294,12 +371,20 @@ const pay = (payWay, item) => {
           }
         }
 
+        .van-cell__value {
+          flex 2
+        }
+
         .price {
           font-size 18px
           color #f56c6c
         }
       }
     }
+  }
+
+  .setting-content {
+    padding 16px
   }
 }
 </style>

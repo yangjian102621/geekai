@@ -1,16 +1,23 @@
 package chatimpl
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core/types"
-	"chatplus/store/model"
-	"chatplus/store/vo"
-	"chatplus/utils"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"geekai/core/types"
+	"geekai/store/model"
+	"geekai/store/vo"
+	"geekai/utils"
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 	"html/template"
@@ -73,11 +80,11 @@ func (h *ChatHandler) sendXunFeiMessage(
 	var res *gorm.DB
 	// use the bind key
 	if session.Model.KeyId > 0 {
-		res = h.DB.Where("id", session.Model.KeyId).Find(&apiKey)
+		res = h.DB.Where("id", session.Model.KeyId).Where("enabled", true).Find(&apiKey)
 	}
 	// use the last unused key
 	if res.Error != nil {
-		res = h.DB.Where("platform = ?", session.Model.Platform).Where("type = ?", "chat").Where("enabled = ?", true).Order("last_used_at ASC").First(&apiKey)
+		res = h.DB.Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(&apiKey)
 	}
 	if res.Error != nil {
 		utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")

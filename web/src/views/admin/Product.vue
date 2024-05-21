@@ -207,6 +207,14 @@ const remove = function (row) {
 
 <style lang="stylus" scoped>
 .product {
+  .handle-box {
+    margin-bottom 20px
+
+    .handle-input {
+      max-width 150px;
+      margin-right 10px;
+    }
+  }
 
   .opt-box {
     padding-bottom: 10px;
@@ -220,6 +228,12 @@ const remove = function (row) {
 
   .el-select {
     width: 100%
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
   }
 
 }

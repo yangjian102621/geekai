@@ -322,6 +322,15 @@ const uploadImg = (file) => {
 
 <style lang="stylus" scoped>
 .role-list {
+  .handle-box {
+    margin-bottom 20px
+
+    .handle-input {
+      max-width 150px;
+      margin-right 10px;
+    }
+  }
+
   .opt-box {
     padding-bottom: 10px;
     display flex;
@@ -359,6 +368,12 @@ const uploadImg = (file) => {
     .el-input__inner {
       text-align center
     }
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
   }
 }
 </style>

@@ -493,7 +493,7 @@
             </div>
 
             <h2>创作记录</h2>
-            <div class="finish-job-list" v-loading="loading" element-loading-background="rgba(0, 0, 0, 0.5)">
+            <div class="finish-job-list">
               <div v-if="finishedJobs.length > 0">
                 <ItemList :items="finishedJobs" :width="240" :gap="16">
                   <template #default="scope">
@@ -593,7 +593,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from "vue"
+import {onMounted, onUnmounted, ref} from "vue"
 import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus, UploadFilled} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
@@ -760,7 +760,11 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  socket.value = null
+  clipboard.value.destroy()
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
 
 // 初始化数据
@@ -778,10 +782,6 @@ const initData = () => {
   });
 }
 
-onUnmounted(() => {
-  clipboard.value.destroy()
-})
-
 const mjPower = ref(1)
 const mjActionPower = ref(1)
 httpGet("/api/config/get?key=system").then(res => {
@@ -793,6 +793,10 @@ httpGet("/api/config/get?key=system").then(res => {
 
 // 获取运行中的任务
 const fetchRunningJobs = () => {
+  if (!isLogin.value) {
+    return
+  }
+
   httpGet(`/api/mj/jobs?status=0`).then(res => {
     const jobs = res.data
     const _jobs = []
@@ -832,9 +836,11 @@ const handleScrollEnd = () => {
 const page = ref(1)
 const pageSize = ref(15)
 const isOver = ref(false)
-const loading = ref(false)
 const fetchFinishJobs = (page) => {
-  loading.value = true
+  if (!isLogin.value) {
+    return
+  }
+
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data
@@ -861,9 +867,7 @@ const fetchFinishJobs = (page) => {
     } else {
       finishedJobs.value = finishedJobs.value.concat(jobs)
     }
-    nextTick(() => loading.value = false)
   }).catch(e => {
-    loading.value = false
     ElMessage.error("获取任务失败：" + e.message)
   })
 }

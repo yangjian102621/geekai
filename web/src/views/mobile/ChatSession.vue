@@ -1,23 +1,25 @@
 <template>
   <div class="app-background">
     <div class="mobile-chat" v-loading="loading" element-loading-text="正在连接会话...">
-      <van-sticky ref="navBarRef" :offset-top="0" position="top">
-        <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
-          <template #title>
-            <van-dropdown-menu>
-              <van-dropdown-item :title="title">
-                <van-cell center title="角色"> {{ role.name }}</van-cell>
-                <van-cell center title="模型">{{ modelValue }}</van-cell>
-              </van-dropdown-item>
-            </van-dropdown-menu>
-          </template>
+      <van-nav-bar ref="navBarRef">
+        <template #title>
+          <van-dropdown-menu>
+            <van-dropdown-item :title="title">
+              <van-cell center title="角色"> {{ role.name }}</van-cell>
+              <van-cell center title="模型">{{ modelValue }}</van-cell>
+            </van-dropdown-item>
+          </van-dropdown-menu>
+        </template>
+        <template #left>
+          <span class="setting">
+            <van-icon name="setting-o" @click="showPicker = true"/>
+          </span>
+        </template>
+        <template #right>
+          <van-icon name="share-o" @click="showShare = true"/>
+        </template>
 
-          <template #right>
-            <van-icon name="share-o" @click="showShare = true"/>
-          </template>
-
-        </van-nav-bar>
-      </van-sticky>
+      </van-nav-bar>
 
       <van-share-sheet
           v-model:show="showShare"
@@ -38,23 +40,19 @@
               <chat-prompt
                   v-if="item.type==='prompt'"
                   :content="item.content"
-                  :created-at="dateFormat(item['created_at'])"
-                  :icon="item.icon"
-                  :model="model"
-                  :tokens="item['tokens']"/>
+                  :icon="item.icon"/>
               <chat-reply v-else-if="item.type==='reply'"
                           :content="item.content"
-                          :created-at="dateFormat(item['created_at'])"
                           :icon="item.icon"
-                          :org-content="item.orgContent"
-                          :tokens="item['tokens']"/>
+                          :org-content="item.orgContent"/>
             </van-cell>
           </van-list>
         </div>
       </div>
+
+
       <div class="chat-box-wrapper">
         <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
-
           <van-cell-group inset>
             <van-field
                 v-model="prompt"
@@ -62,13 +60,13 @@
                 clearable
                 placeholder="输入你的问题"
             >
-              <template #left-icon>
-                <van-button round type="success" class="button-voice" @click="inputVoice">
-                  <el-icon>
-                    <Microphone/>
-                  </el-icon>
-                </van-button>
-              </template>
+              <!--              <template #left-icon>-->
+              <!--                <van-button round type="success" class="button-voice" @click="inputVoice">-->
+              <!--                  <el-icon>-->
+              <!--                    <Microphone/>-->
+              <!--                  </el-icon>-->
+              <!--                </van-button>-->
+              <!--              </template>-->
 
               <template #button>
                 <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
@@ -87,27 +85,47 @@
 
     <button id="copy-link-btn" style="display: none;" :data-clipboard-text="url">复制链接地址</button>
 
-    <van-overlay :show="showMic" z-index="100">
-      <div class="mic-wrapper">
-        <div class="image">
-          <van-image
-              width="100"
-              height="100"
-              src="/images/mic.gif"
-          />
-        </div>
-        <van-button type="success" @click="stopVoice">说完了</van-button>
-      </div>
-    </van-overlay>
+    <!--    <van-overlay :show="showMic" z-index="100">-->
+    <!--      <div class="mic-wrapper">-->
+    <!--        <div class="image">-->
+    <!--          <van-image-->
+    <!--              width="100"-->
+    <!--              height="100"-->
+    <!--              src="/images/mic.gif"-->
+    <!--          />-->
+    <!--        </div>-->
+    <!--        <van-button type="success" @click="stopVoice">说完了</van-button>-->
+    <!--      </div>-->
+    <!--    </van-overlay>-->
   </div>
+
+  <van-popup v-model:show="showPicker" position="bottom" class="popup">
+    <van-picker
+        :columns="columns"
+        title="选择模型和角色"
+        @cancel="showPicker = false"
+        @confirm="newChat"
+    >
+      <template #option="item">
+        <div class="picker-option">
+          <van-image
+              v-if="item.icon"
+              :src="item.icon"
+              fit="cover"
+              round
+          />
+          <span>{{ item.text }}</span>
+        </div>
+      </template>
+    </van-picker>
+  </van-popup>
 </template>
 
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
 import {showImagePreview, showNotify, showToast} from "vant";
 import {onBeforeRouteLeave, useRouter} from "vue-router";
-import {dateFormat, processContent, randString, renderInputText, UUID} from "@/utils/libs";
-import {getChatConfig} from "@/store/chat";
+import {processContent, randString, renderInputText, UUID} from "@/utils/libs";
 import {httpGet} from "@/utils/http";
 import hl from "highlight.js";
 import 'highlight.js/styles/a11y-dark.css'
@@ -116,26 +134,85 @@ import ChatReply from "@/components/mobile/ChatReply.vue";
 import {getSessionId, getUserToken} from "@/store/session";
 import {checkSession} from "@/action/session";
 import Clipboard from "clipboard";
-import {Microphone} from "@element-plus/icons-vue";
+import {showLoginDialog} from "@/utils/dialog";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
 const bottomBarRef = ref(null)
 const router = useRouter()
 
-const chatConfig = getChatConfig()
-const role = chatConfig.role
-const model = chatConfig.model
-const modelValue = chatConfig.modelValue
-const title = chatConfig.title
-const chatId = chatConfig.chatId
+const roles = ref([])
+const roleId = ref(parseInt(router.currentRoute.value.query["role_id"]))
+const role = ref({})
+const models = ref([])
+const modelId = ref(parseInt(router.currentRoute.value.query["model_id"]))
+const modelValue = ref("")
+const title = ref(router.currentRoute.value.query["title"])
+const chatId = ref(router.currentRoute.value.query["chat_id"])
 const loginUser = ref(null)
-const showMic = ref(false)
+// const showMic = ref(false)
+const showPicker = ref(false)
+const columns = ref([roles.value, models.value])
 
-const url = location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId
+checkSession().then(user => {
+  loginUser.value = user
+}).catch(() => {
+  router.push('/login')
+})
+
+if (chatId.value) {
+  httpGet(`/api/chat/detail?chat_id=${chatId.value}`).then(res => {
+    title.value = res.data.title
+    modelId.value = res.data.model_id
+    roleId.value = res.data.role_id
+  }).catch(() => {
+  })
+} else {
+  title.value = "新建对话"
+}
+
+// 加载模型
+httpGet('/api/model/list').then(res => {
+  models.value = res.data
+  if (!modelId.value) {
+    modelId.value = models.value[0].id
+  }
+  for (let i = 0; i < models.value.length; i++) {
+    models.value[i].text = models.value[i].name
+    models.value[i].mValue = models.value[i].value
+    models.value[i].value = models.value[i].id
+  }
+  modelValue.value = getModelValue(modelId.value)
+  // 加载角色列表
+  httpGet(`/api/role/list`).then((res) => {
+    roles.value = res.data;
+    if (!roleId.value) {
+      roleId.value = roles.value[0]['id']
+    }
+    // build data for role picker
+    for (let i = 0; i < roles.value.length; i++) {
+      roles.value[i].text = roles.value[i].name
+      roles.value[i].value = roles.value[i].id
+      roles.value[i].helloMsg = roles.value[i].hello_msg
+    }
+
+    role.value = getRoleById(roleId.value)
+    columns.value = [roles.value, models.value]
+    // 新建对话
+    if (!chatId.value) {
+      connect(chatId.value, roleId.value, modelId.value)
+    }
+  }).catch((e) => {
+    showNotify({type: "danger", message: '获取聊天角色失败: ' + e.messages})
+  })
+}).catch(e => {
+  showNotify({type: "danger", message: "加载模型失败: " + e.message})
+})
+
+const url = ref(location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId.value)
 
 onMounted(() => {
-  winHeight.value = document.body.offsetHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight
+  winHeight.value = window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight - 70
 
   const clipboard = new Clipboard(".content-mobile,.copy-code-mobile,#copy-link-btn");
   clipboard.on('success', (e) => {
@@ -148,19 +225,28 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  socket.value = null
+  if (socket.value !== null) {
+    socket.value.close()
+    socket.value = null
+  }
 })
+
+const newChat = (item) => {
+  showPicker.value = false
+  const options = item.selectedOptions
+  roleId.value = options[0].value
+  modelId.value = options[1].value
+  chatId.value = ""
+  chatData.value = []
+  role.value = getRoleById(roleId.value)
+  title.value = "新建对话"
+  connect(chatId.value, roleId.value, modelId.value)
+}
 
 const chatData = ref([])
 const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
-
-checkSession().then(user => {
-  loginUser.value = user
-}).catch(() => {
-  router.push('/login')
-})
 
 const latexPlugin = require('markdown-it-latex2img')
 const mathjaxPlugin = require('markdown-it-mathjax')
@@ -193,39 +279,41 @@ md.use(mathjaxPlugin)
 
 
 const onLoad = () => {
-  httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
-    // 加载状态结束
-    finished.value = true;
-    const data = res.data
-    if (data && data.length > 0) {
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].type === "prompt") {
-          chatData.value.push(data[i]);
-          continue;
+  if (chatId.value) {
+    checkSession().then(() => {
+      httpGet('/api/chat/history?chat_id=' + chatId.value).then(res => {
+        // 加载状态结束
+        finished.value = true;
+        const data = res.data
+        if (data && data.length > 0) {
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].type === "prompt") {
+              chatData.value.push(data[i]);
+              continue;
+            }
+
+            data[i].orgContent = data[i].content;
+            data[i].content = md.render(processContent(data[i].content))
+            chatData.value.push(data[i]);
+          }
+
+          nextTick(() => {
+            hl.configure({ignoreUnescapedHTML: true})
+            const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
+            blocks.forEach((block) => {
+              hl.highlightElement(block)
+            })
+
+            scrollListBox()
+          })
         }
-
-        data[i].orgContent = data[i].content;
-        data[i].content = md.render(processContent(data[i].content))
-        chatData.value.push(data[i]);
-      }
-
-      nextTick(() => {
-        hl.configure({ignoreUnescapedHTML: true})
-        const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
-        blocks.forEach((block) => {
-          hl.highlightElement(block)
-        })
-
-        scrollListBox()
+        connect(chatId.value, roleId.value, modelId.value);
+      }).catch(() => {
+        error.value = true
       })
-    }
-
-    // 连接会话
-    connect(chatId, role.id);
-  }).catch(() => {
-    error.value = true
-  })
-
+    }).catch(() => {
+    })
+  }
 };
 
 // 离开页面时主动关闭 websocket 连接，节省网络资源
@@ -248,7 +336,7 @@ const socket = ref(null);
 const activelyClose = ref(false); // 主动关闭
 const canSend = ref(true);
 const heartbeatHandle = ref(null)
-const connect = function (chat_id, role_id) {
+const connect = function (chat_id, role_id, model_id) {
   let isNewChat = false;
   if (!chat_id) {
     isNewChat = true;
@@ -278,7 +366,7 @@ const connect = function (chat_id, role_id) {
     }
   }
 
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${model}&token=${getUserToken()}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${model_id}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     loading.value = false
     previousText.value = '';
@@ -289,9 +377,9 @@ const connect = function (chat_id, role_id) {
       chatData.value.push({
         type: "reply",
         id: randString(32),
-        icon: role.icon,
-        content: role.helloMsg,
-        orgContent: role.helloMsg,
+        icon: role.value.icon,
+        content: role.value.hello_msg,
+        orgContent: role.value.hello_msg,
       })
     }
 
@@ -309,9 +397,12 @@ const connect = function (chat_id, role_id) {
           chatData.value.push({
             type: "reply",
             id: randString(32),
-            icon: role.icon,
+            icon: role.value.icon,
             content: ""
           });
+          if (isNewChat) {
+            title.value = previousText.value
+          }
         } else if (data.type === 'end') { // 消息接收完毕
           enableInput()
           lineBuffer.value = ''; // 清空缓冲
@@ -358,10 +449,9 @@ const connect = function (chat_id, role_id) {
     canSend.value = true;
     // 重连
     checkSession().then(() => {
-      connect(chat_id, role_id)
+      connect(chat_id, role_id, model_id)
     }).catch(() => {
-      loading.value = true
-      setTimeout(() => connect(chat_id, role_id), 3000)
+      showLoginDialog(router)
     });
   });
 
@@ -447,38 +537,56 @@ const shareChat = (option) => {
     showToast({message: "当前会话已经导出，请通过浏览器或者微信的自带分享功能分享给好友", duration: 5000})
     router.push({
       path: "/mobile/chat/export",
-      query: {title: title, chat_id: chatId, role: role.name, model: modelValue}
+      query: {title: title, chat_id: chatId, role: role.value.name, model: modelValue}
     })
   } else if (option.icon === "link") {
     document.getElementById('copy-link-btn').click();
   }
 }
 
-// eslint-disable-next-line no-undef
-const recognition = new webkitSpeechRecognition() || SpeechRecognition();
-//recognition.lang = 'zh-CN' // 设置语音识别语言
-recognition.onresult = function (event) {
-  prompt.value = event.results[0][0].transcript
-};
-
-recognition.onerror = function (event) {
-  showMic.value = false
-  recognition.stop()
-  showNotify({type: 'danger', message: '语音识别错误:' + event.error})
-};
-
-recognition.onend = function () {
-  console.log('语音识别结束');
-};
-const inputVoice = () => {
-  showMic.value = true
-  recognition.start();
+const getRoleById = function (rid) {
+  for (let i = 0; i < roles.value.length; i++) {
+    if (roles.value[i]['id'] === rid) {
+      return roles.value[i];
+    }
+  }
+  return null;
 }
 
-const stopVoice = () => {
-  showMic.value = false
-  recognition.stop()
+const getModelValue = (model_id) => {
+  for (let i = 0; i < models.value.length; i++) {
+    if (models.value[i].id === model_id) {
+      return models.value[i].mValue
+    }
+  }
+  return ""
 }
+
+// // eslint-disable-next-line no-undef
+// const recognition = new webkitSpeechRecognition() || SpeechRecognition();
+// //recognition.lang = 'zh-CN' // 设置语音识别语言
+// recognition.onresult = function (event) {
+//   prompt.value = event.results[0][0].transcript
+// };
+//
+// recognition.onerror = function (event) {
+//   showMic.value = false
+//   recognition.stop()
+//   showNotify({type: 'danger', message: '语音识别错误:' + event.error})
+// };
+//
+// recognition.onend = function () {
+//   console.log('语音识别结束');
+// };
+// const inputVoice = () => {
+//   showMic.value = true
+//   recognition.start();
+// }
+//
+// const stopVoice = () => {
+//   showMic.value = false
+//   recognition.stop()
+// }
 </script>
 
 <style lang="stylus">

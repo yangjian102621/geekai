@@ -1,5 +1,5 @@
 <template>
-  <div class="header admin-header">
+  <div :class="'admin-header '+theme">
     <!-- 折叠按钮 -->
     <div class="collapse-btn" @click="collapseChange">
       <el-icon v-if="sidebar.collapse">
@@ -17,17 +17,15 @@
     </div>
     <div class="header-right">
       <div class="header-user-con">
-        <!-- 消息中心 -->
-        <div class="btn-bell">
-          <el-tooltip
-              effect="dark"
-              :content="message ? `有${message}条未读消息` : `消息中心`"
-              placement="bottom"
-          >
-            <i class="iconfont icon-bell"></i>
-          </el-tooltip>
-          <span class="btn-bell-badge" v-if="message"></span>
-        </div>
+        <!-- 切换主题 -->
+        <el-switch
+            style="margin-right: 10px"
+            v-model="dark"
+            inline-prompt
+            :active-action-icon="Moon"
+            :inactive-action-icon="Sunny"
+            @change="changeTheme"
+        />
         <!-- 用户名下拉菜单 -->
         <el-dropdown class="user-name" :hide-on-click="true" trigger="click">
 					<span class="el-dropdown-link">
@@ -38,19 +36,8 @@
 					</span>
           <template #dropdown>
             <el-dropdown-menu>
-
-              <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-                <el-dropdown-item>
-                  <i class="iconfont icon-github"></i>
-                  <span>{{ sysTitle }}</span>
-                </el-dropdown-item>
-              </a>
               <el-dropdown-item>
                 <i class="iconfont icon-version"></i> 当前版本：{{ version }}
-              </el-dropdown-item>
-              <el-dropdown-item @click="showDialog = true">
-                <i class="iconfont icon-reward"></i>
-                <span>打赏作者</span>
               </el-dropdown-item>
               <el-dropdown-item divided @click="logout">
                 <i class="iconfont icon-logout"></i>
@@ -62,41 +49,39 @@
       </div>
     </div>
 
-    <el-dialog
-        v-model="showDialog"
-        :show-close="true"
-        class="donate-dialog"
-        width="400px"
-        title="请作者喝杯咖啡"
-    >
-      <el-alert type="info" :closable="false">
-        <p>如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～</p>
-      </el-alert>
-      <p>
-        <el-image :src="donateImg"/>
-      </p>
-    </el-dialog>
   </div>
 </template>
 <script setup>
-import {onMounted, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {getMenuItems, useSidebarStore} from '@/store/sidebar';
-import {useRouter} from 'vue-router';
-import {ArrowDown, ArrowRight, Expand, Fold} from "@element-plus/icons-vue";
+import {useRouter} from "vue-router";
+import {ArrowDown, ArrowRight, Expand, Fold, Moon, Sunny} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {removeAdminToken} from "@/store/session";
 
-const message = ref(5);
-const sysTitle = ref(process.env.VUE_APP_TITLE)
 const version = ref(process.env.VUE_APP_VERSION)
 const avatar = ref('/images/user-info.jpg')
-const donateImg = ref('/images/wechat-pay.png')
-const showDialog = ref(false)
 const sidebar = useSidebarStore();
 const router = useRouter();
 const breadcrumb = ref([])
 
+// eslint-disable-next-line no-undef
+const props = defineProps({
+  theme: String,
+});
+
+const theme = computed(() => {
+  return props.theme
+})
+const dark = ref(props.theme === 'dark' ? true : false)
+
+
+// eslint-disable-next-line no-undef
+const emits = defineEmits(['changeTheme']);
+const changeTheme = () => {
+  emits('changeTheme', dark.value)
+}
 
 router.afterEach((to, from) => {
   initBreadCrumb(to.path)
@@ -166,7 +151,7 @@ const logout = function () {
 }
 </script>
 <style scoped lang="stylus">
-.header {
+.admin-header {
   position: relative;
   box-sizing: border-box;
   overflow hidden
@@ -174,7 +159,6 @@ const logout = function () {
   font-size: 22px;
   color: #303133;
   background-color #ffffff
-  border-bottom 1px solid #eaecef
 
   .collapse-btn {
     display: flex;

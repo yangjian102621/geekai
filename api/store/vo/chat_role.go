@@ -1,6 +1,6 @@
 package vo
 
-import "chatplus/core/types"
+import "geekai/core/types"
 
 type ChatRole struct {
 	BaseVo

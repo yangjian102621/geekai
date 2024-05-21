@@ -1,14 +1,27 @@
 .mobile-chat {
-  .message-list-box {
-    //padding-top 50px
-    padding-bottom 10px
-    overflow-x auto
-    background #F5F5F5;
+  .van-nav-bar {
+    position static
 
-    .van-cell {
-      background none
-      font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    .setting {
+      font-size 18px
     }
+  }
+
+  .chat-list-wrapper {
+    padding 10px 0 10px 0
+    background var(--van-background);
+    overflow hidden
+
+
+    .message-list-box {
+      overflow auto
+
+      .van-cell {
+        background none
+        font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+      }
+    }
+
   }
 
   .chat-box-wrapper {
@@ -68,8 +81,10 @@
 
 .van-theme-dark {
   .mobile-chat {
-    .message-list-box {
+    .chat-list-wrapper {
       background #232425;
     }
   }
 }
+
+@import "model-select.styl"

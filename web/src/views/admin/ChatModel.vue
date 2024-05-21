@@ -350,13 +350,14 @@ const remove = function (row) {
 @import "@/assets/css/admin/form.styl";
 .model-list {
 
-  .opt-box {
-    padding-bottom: 10px;
-    display: flex;
-    justify-content flex-end
+  .handle-box {
+    margin-bottom 20px
+  }
 
-    .el-icon {
-      margin-right: 5px;
+  .cell {
+    .copy-model {
+      margin-left 6px
+      cursor pointer
     }
   }
 
@@ -369,6 +370,12 @@ const remove = function (row) {
 
   .el-select {
     width: 100%
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
   }
 
 }
