@@ -8,6 +8,8 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"encoding/base64"
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
@@ -17,8 +19,6 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"encoding/base64"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -511,6 +511,7 @@ func (h *MidJourneyHandler) Publish(c *gin.Context) {
 
 	res := h.DB.Model(&model.MidJourneyJob{Id: data.Id}).UpdateColumn("publish", data.Action)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}

@@ -57,6 +57,7 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	apiKey.Name = data.Name
 	res := h.DB.Save(&apiKey)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
@@ -83,7 +84,7 @@ func (h *ApiKeyHandler) List(c *gin.Context) {
 	if t != "" {
 		session = session.Where("type", t)
 	}
-	
+
 	var items []model.ApiKey
 	var keys = make([]vo.ApiKey, 0)
 	res := session.Find(&items)
@@ -118,6 +119,7 @@ func (h *ApiKeyHandler) Set(c *gin.Context) {
 
 	res := h.DB.Model(&model.ApiKey{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
@@ -133,6 +135,7 @@ func (h *ApiKeyHandler) Remove(c *gin.Context) {
 
 	res := h.DB.Where("id", id).Delete(&model.ApiKey{})
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}

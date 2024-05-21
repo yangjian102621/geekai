@@ -349,7 +349,7 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 	newPass := utils.GenPassword(data.Password, user.Salt)
 	res := h.DB.Model(&user).UpdateColumn("password", newPass)
 	if res.Error != nil {
-		logger.Error("更新数据库失败: ", res.Error)
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}
@@ -430,6 +430,7 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 
 	res = h.DB.Model(&user).UpdateColumn("username", data.Username)
 	if res.Error != nil {
+		logger.Error(res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}

@@ -96,7 +96,7 @@ func (h *ChatRoleHandler) UpdateRole(c *gin.Context) {
 
 	res := h.DB.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("chat_roles_json", utils.JsonEncode(data.Keys))
 	if res.Error != nil {
-		logger.Error("添加应用失败：", err)
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}

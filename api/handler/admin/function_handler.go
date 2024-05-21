@@ -71,6 +71,7 @@ func (h *FunctionHandler) Set(c *gin.Context) {
 
 	res := h.DB.Model(&model.Function{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
@@ -103,6 +104,7 @@ func (h *FunctionHandler) Remove(c *gin.Context) {
 	if id > 0 {
 		res := h.DB.Delete(&model.Function{Id: uint(id)})
 		if res.Error != nil {
+			logger.Error("error with update database：", res.Error)
 			resp.ERROR(c, "更新数据库失败！")
 			return
 		}
