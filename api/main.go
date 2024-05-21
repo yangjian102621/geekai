@@ -196,6 +196,7 @@ func main() {
 		}),
 
 		fx.Provide(payment.NewAlipayService),
+		fx.Provide(payment.NewWxpayService),
 		fx.Provide(payment.NewHuPiPay),
 		fx.Provide(payment.NewPayJS),
 		fx.Provide(service.NewSnowflake),
@@ -217,6 +218,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
 			group := s.Engine.Group("/api/user/")
 			group.POST("register", h.Register)
+			group.POST("wxLogin", h.WxLogin)
 			group.POST("login", h.Login)
 			group.GET("logout", h.Logout)
 			group.GET("session", h.Session)
@@ -349,8 +351,10 @@ func main() {
 			group.GET("doPay", h.DoPay)
 			group.GET("payWays", h.GetPayWays)
 			group.POST("query", h.OrderQuery)
+			group.POST("queryOrder", h.OrderQueryAmount)
 			group.POST("qrcode", h.PayQrcode)
 			group.POST("mobile", h.Mobile)
+			group.POST("wxpay/notify", h.WxpayNotify)
 			group.POST("alipay/notify", h.AlipayNotify)
 			group.POST("hupipay/notify", h.HuPiPayNotify)
 			group.POST("payjs/notify", h.PayJsNotify)

@@ -235,6 +235,10 @@ func needLogin(c *gin.Context) bool {
 // 统一参数处理
 func parameterHandlerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if strings.Contains(c.Request.URL.Path, "notify") {
+			c.Next()
+			return
+		}
 		// GET 参数处理
 		params := c.Request.URL.Query()
 		for key, values := range params {

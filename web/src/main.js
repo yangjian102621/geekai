@@ -46,7 +46,8 @@ import {
     Tabs,
     Tag,
     TextEllipsis,
-    Uploader
+    Uploader,
+    CountDown,
 } from "vant";
 import {router} from "@/router";
 import 'v3-waterfall/dist/style.css'
@@ -97,6 +98,7 @@ app.use(Lazyload);
 app.use(ImagePreview);
 app.use(Tab);
 app.use(Tabs);
+app.use(CountDown);
 app.use(router).use(ElementPlus).mount('#app')
 
 

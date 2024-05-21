@@ -34,6 +34,6 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
+	value["wxAppId"] = h.App.Config.WxpayConfig.AppId
 	resp.SUCCESS(c, value)
 }

@@ -21,12 +21,12 @@ type AppConfig struct {
 	MjPlusConfigs  []MjPlusConfig          // MJ plus config
 	WeChatBot      bool                    // 是否启用微信机器人
 	SdConfigs      []StableDiffusionConfig // sd AI draw service pool
-
-	XXLConfig     XXLConfig
-	AlipayConfig  AlipayConfig
-	HuPiPayConfig HuPiPayConfig
-	SmtpConfig    SmtpConfig // 邮件发送配置
-	JPayConfig    JPayConfig // payjs 支付配置
+	XXLConfig      XXLConfig
+	AlipayConfig   AlipayConfig
+	WxpayConfig    WxpayConfig
+	HuPiPayConfig  HuPiPayConfig
+	SmtpConfig     SmtpConfig // 邮件发送配置
+	JPayConfig     JPayConfig // payjs 支付配置
 }
 
 type SmtpConfig struct {
@@ -76,6 +76,19 @@ type AlipayConfig struct {
 	RootCert        string // Root 秘钥路径
 	NotifyURL       string // 异步通知回调
 	ReturnURL       string // 支付成功返回地址
+}
+
+type WxpayConfig struct {
+	Enabled             bool   // 是否启用该支付通道
+	SandBox             bool   // 是否沙盒环境
+	AppId               string // 应用 ID
+	WxAppSecret         string // 应用 Secret
+	MchId               string // 商户 ID
+	MchKey              string // 商户key
+	CertificateSerialNo string // 商户key
+	PrivateKey          string // 商户私密钥文件地址
+	NotifyURL           string // 异步通知回调
+	ReturnURL           string // 支付成功返回地址
 }
 
 type HuPiPayConfig struct { //虎皮椒第四方支付配置

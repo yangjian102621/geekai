@@ -99,7 +99,16 @@ WeChatBot = false
   AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
   RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
   NotifyURL = "https://ai.r9it.com/api/payment/alipay/notify" # 支付异步回调地址
-
+[WxpayConfig]
+    Enabled = false # 启用微信支付通道
+    SandBox = false # 是否启用沙盒模式
+    AppId = "" # AppId
+    WxAppSecret = ""
+    MchId = "" # 商户ID
+    MchKey = "" # 应用私钥mchAPIv3Key
+    CertificateSerialNo = "" #证书序列号
+    PrivateKey = "certs/wx/apiclient_key.pem" # 应用私钥证书
+    NotifyURL = "https://ai.r9it.com/api/payment/wxpay/notify" # 支付异步回调地址
 [HuPiPayConfig]
   Enabled = false
   Name = "wechat"

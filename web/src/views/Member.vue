@@ -74,6 +74,9 @@
                         <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
                           <i class="iconfont icon-alipay"></i> 支付宝
                         </el-button>
+                        <el-button type="success" @click="wxpay(scope.item)" size="small" v-if="payWays['wxpay']">
+                          <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
+                        </el-button>
                         <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
                           <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
                           <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
@@ -290,7 +293,21 @@ const alipay = (row) => {
   }
   genPayQrcode()
 }
+//微信支付
+const wxpay = (row) => {
+  payName.value = "微信"
+  curPay.value = "wxpay"
+  amount.value = (row.price - row.discount).toFixed(2)
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
 
+  if (row) {
+    curPayProduct.value = row
+  }
+  genPayQrcode()
+}
 // 虎皮椒支付
 const huPiPay = (row) => {
   payName.value = payWays.value["hupi"]["name"] === "wechat" ? '微信' : '支付宝'

@@ -53,7 +53,9 @@
                 <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
                 <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
               </van-button>
-
+              <van-button type="success" @click="pay('wxpay',item)" size="small" v-if="payWays['wxpay']">
+                <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
+              </van-button>
               <van-button type="success" @click="pay('payjs',item)" size="small" v-if="payWays['payjs']">
                 <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
               </van-button>
@@ -250,7 +252,11 @@ const pay = (payWay, item) => {
     user_id: loginUser.value.id
   }).then(res => {
     // console.log(res.data)
-    location.href = res.data
+    if (payWay === 'wxpay') {
+      router.push({path: "payment", query: {order_no: res.data, pay_way: 'wxpay'}})
+    } else {
+      location.href = res.data
+    }
   }).catch(e => {
     showFailToast("生成支付订单失败：" + e.message)
   })

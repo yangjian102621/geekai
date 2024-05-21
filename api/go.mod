@@ -26,10 +26,16 @@ require (
 require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
 require (
+	github.com/chanxuehong/wechat v0.0.0-20230222024006-36f0325263cd
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
+	github.com/wechatpay-apiv3/wechatpay-go v0.2.18
+)
+
+require (
+	github.com/chanxuehong/rand v0.0.0-20211009035549-2f07823e8e99 // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
 )
 

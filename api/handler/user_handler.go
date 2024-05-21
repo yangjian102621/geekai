@@ -8,12 +8,14 @@ import (
 	"chatplus/utils"
 	"chatplus/utils/resp"
 	"fmt"
+	"github.com/chanxuehong/wechat/oauth2"
 	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
 
+	openoath "github.com/chanxuehong/wechat/open/oauth2"
 	"github.com/gin-gonic/gin"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"gorm.io/gorm"
@@ -153,6 +155,44 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 	resp.SUCCESS(c, tokenString)
+}
+
+// WxLogin 微信内公众号一键授权（支持改造为微信登录）
+func (h *UserHandler) WxLogin(c *gin.Context) {
+	var data struct {
+		Code  string `json:"code"`
+		State string `json:"state"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	oauth2Endpoint := openoath.NewEndpoint(h.App.Config.WxpayConfig.AppId, h.App.Config.WxpayConfig.WxAppSecret)
+	oaClient := oauth2.Client{Endpoint: oauth2Endpoint}
+	oaToken, errToken := oaClient.ExchangeToken(data.Code)
+	if errToken != nil {
+		logger.Error("errToken=", errToken)
+		resp.ERROR(c, "登录超时，请重试")
+		return
+	}
+	userinfo, err := openoath.GetUserInfo(oaToken.AccessToken, oaToken.OpenId, openoath.LanguageZhCN, nil)
+	if err != nil {
+		logger.Error("err=", err)
+		resp.ERROR(c, "用户信息获取失败，请重试")
+		return
+	}
+	var user model.User
+	userId := h.GetLoginUserId(c)
+	res := h.DB.Where("id = ?", userId).First(&user)
+	user.OfficialOpenid = userinfo.OpenId
+	user.Unionid = userinfo.UnionId
+	res = h.DB.Updates(&user)
+	if res.Error != nil {
+		resp.ERROR(c, "保存数据失败")
+		logger.Error(res.Error)
+		return
+	}
+	resp.SUCCESS(c, "微信授权成功")
 }
 
 // Login 用户登录
