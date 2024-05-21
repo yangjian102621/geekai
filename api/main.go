@@ -172,10 +172,6 @@ func main() {
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
 		// License 服务
-		fx.Provide(service.NewLicenseService),
-		fx.Invoke(func(licenseService *service.LicenseService) {
-			licenseService.SyncLicense()
-		}),
 
 		// 微信机器人服务
 		fx.Provide(wx.NewWeChatBot),
@@ -300,8 +296,6 @@ func main() {
 			group := s.Engine.Group("/api/admin/")
 			group.POST("config/update", h.Update)
 			group.GET("config/get", h.Get)
-			group.POST("active", h.Active)
-			group.GET("config/get/license", h.GetLicense)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
