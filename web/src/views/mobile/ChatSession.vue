@@ -182,7 +182,7 @@ httpGet('/api/model/list').then(res => {
     models.value[i].mValue = models.value[i].value
     models.value[i].value = models.value[i].id
   }
-  modelValue.value = getModelValue(modelId.value)
+  modelValue.value = getModelName(modelId.value)
   // 加载角色列表
   httpGet(`/api/role/list`).then((res) => {
     roles.value = res.data;
@@ -236,6 +236,7 @@ const newChat = (item) => {
   const options = item.selectedOptions
   roleId.value = options[0].value
   modelId.value = options[1].value
+  modelValue.value = getModelName(modelId.value)
   chatId.value = ""
   chatData.value = []
   role.value = getRoleById(roleId.value)
@@ -553,10 +554,10 @@ const getRoleById = function (rid) {
   return null;
 }
 
-const getModelValue = (model_id) => {
+const getModelName = (model_id) => {
   for (let i = 0; i < models.value.length; i++) {
     if (models.value[i].id === model_id) {
-      return models.value[i].mValue
+      return models.value[i].text
     }
   }
   return ""
