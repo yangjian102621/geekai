@@ -99,7 +99,6 @@
 import LoginDialog from "@/components/LoginDialog.vue";
 import {nextTick, onMounted, onUnmounted, ref} from 'vue';
 import {Markmap} from 'markmap-view';
-import {loadCSS, loadJS} from 'markmap-common';
 import {Transformer} from 'markmap-lib';
 import {checkSession} from "@/action/session";
 import {httpGet} from "@/utils/http";
@@ -129,9 +128,6 @@ const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const loginUser = ref({power: 0})
 const transformer = new Transformer();
-const {scripts, styles} = transformer.getAssets()
-loadCSS(styles);
-loadJS(scripts);
 
 
 const svgRef = ref(null)
@@ -142,8 +138,12 @@ const loading = ref(false)
 
 onMounted(() => {
   initData()
-  markMap.value = Markmap.create(svgRef.value)
-  update()
+  try {
+    markMap.value = Markmap.create(svgRef.value)
+    update()
+  } catch (e) {
+    console.error(e)
+  }
 });
 
 const initData = () => {
@@ -168,9 +168,13 @@ const initData = () => {
 
 const update = () => {
 
-  const {root} = transformer.transform(processContent(text.value))
-  markMap.value.setData(root)
-  markMap.value.fit()
+  try {
+    const {root} = transformer.transform(processContent(text.value))
+    markMap.value.setData(root)
+    markMap.value.fit()
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const processContent = (text) => {
@@ -230,7 +234,6 @@ const connect = (userId) => {
   const _socket = new WebSocket(host + `/api/markMap/client?user_id=${userId}&model_id=${modelID.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
-
     // 发送心跳消息
     sendHeartbeat()
   });
@@ -265,9 +268,10 @@ const connect = (userId) => {
 
   _socket.addEventListener('close', () => {
     loading.value = false
-    if (socket.value !== null) {
+    checkSession().then(() => {
       connect(userId)
-    }
+    }).catch(() => {
+    })
   });
 }
 

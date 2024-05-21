@@ -1,12 +1,20 @@
 package handler
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/store/model"
-	"chatplus/store/vo"
-	"chatplus/utils"
-	"chatplus/utils/resp"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/service"
+	"geekai/store/model"
+	"geekai/store/vo"
+	"geekai/utils"
+	"geekai/utils/resp"
 	"fmt"
 	"strings"
 	"time"
@@ -21,16 +29,23 @@ import (
 
 type UserHandler struct {
 	BaseHandler
-	searcher *xdb.Searcher
-	redis    *redis.Client
+	searcher       *xdb.Searcher
+	redis          *redis.Client
+	licenseService *service.LicenseService
 }
 
 func NewUserHandler(
 	app *core.AppServer,
 	db *gorm.DB,
 	searcher *xdb.Searcher,
-	client *redis.Client) *UserHandler {
-	return &UserHandler{BaseHandler: BaseHandler{DB: db, App: app}, searcher: searcher, redis: client}
+	client *redis.Client,
+	licenseService *service.LicenseService) *UserHandler {
+	return &UserHandler{
+		BaseHandler:    BaseHandler{DB: db, App: app},
+		searcher:       searcher,
+		redis:          client,
+		licenseService: licenseService,
+	}
 }
 
 // Register user register
@@ -53,9 +68,17 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// 检测最大注册人数
+	var totalUser int64
+	h.DB.Model(&model.User{}).Count(&totalUser)
+	if int(totalUser) >= h.licenseService.GetLicense().UserNum {
+		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
+		return
+	}
+
 	// 检查验证码
 	var key string
-	if data.RegWay == "email" || data.RegWay == "mobile" || data.Code != "" {
+	if data.RegWay == "email" || data.RegWay == "mobile" {
 		key = CodeStorePrefix + data.Username
 		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {
@@ -216,17 +239,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 // Logout 注 销
 func (h *UserHandler) Logout(c *gin.Context) {
-	sessionId := c.GetHeader(types.ChatTokenHeader)
 	key := h.GetUserKey(c)
 	if _, err := h.redis.Del(c, key).Result(); err != nil {
 		logger.Error("error with delete session: ", err)
-	}
-	// 删除 websocket 会话列表
-	h.App.ChatSession.Delete(sessionId)
-	// 关闭 socket 连接
-	client := h.App.ChatClients.Get(sessionId)
-	if client != nil {
-		client.Close()
 	}
 	resp.SUCCESS(c)
 }

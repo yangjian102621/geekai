@@ -1,5 +1,5 @@
 <template>
-  <div class="tags" v-if="tags.show">
+  <div :class="'tags '+theme" v-if="tags.show">
     <ul>
       <li
           class="tags-li"
@@ -38,6 +38,16 @@ import {onBeforeRouteUpdate, useRoute, useRouter} from 'vue-router';
 import {ArrowDown, Close} from "@element-plus/icons-vue";
 import {checkAdminSession} from "@/action/session";
 import {ElMessageBox} from "element-plus";
+import {computed} from "vue";
+
+// eslint-disable-next-line no-undef
+const props = defineProps({
+  theme: String,
+});
+
+const theme = computed(() => {
+  return props.theme
+})
 
 const router = useRouter();
 checkAdminSession().catch(() => {
@@ -108,74 +118,75 @@ const handleTags = (command) => {
 // });
 </script>
 
-<style>
+<style scoped lang="stylus">
 .tags {
   position: relative;
   height: 30px;
   overflow: hidden;
   background: #fff;
-  padding-right: 120px;
+  padding 5px 120px 5px 10px
   -webkit-box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
   box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+
+  ul {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+
+    .tags-li {
+      display: flex;
+      align-items: center;
+      float: left;
+      margin: 3px 5px 2px 3px;
+      border-radius: 3px;
+      font-size: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      height: 23px;
+      border: 1px solid var(--el-border-color);
+      background: var(--el-bg-color);
+      padding: 0 5px 0 12px;
+      color: var(--el-text-color);
+      -webkit-transition: all 0.3s ease-in;
+      -moz-transition: all 0.3s ease-in;
+      transition: all 0.3s ease-in;
+
+      &:hover {
+        background: var(--el-menu-bg-color-dark);
+      }
+    }
+
+    .tags-li-title {
+      float: left;
+      max-width: 80px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      margin-right: 5px;
+      color: #666;
+    }
+
+    .tags-li.active .tags-li-title {
+      color: var(--el-color-primary)
+    }
+  }
+
+  .tags-close-box {
+    position: absolute;
+    right: 0;
+    top: 7px;
+    box-sizing: border-box;
+    padding-top: 1px;
+    text-align: center;
+    width: 110px;
+    height: 30px;
+    background: var(--el-bg-color);
+    z-index: 10;
+  }
 }
 
-.tags ul {
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
+.tags.dark {
+  border-bottom 1px solid var(--el-border-color)
 }
 
-.tags-li {
-  display: flex;
-  align-items: center;
-  float: left;
-  margin: 3px 5px 2px 3px;
-  border-radius: 3px;
-  font-size: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  height: 23px;
-  border: 1px solid #e9eaec;
-  background: #fff;
-  padding: 0 5px 0 12px;
-  color: #666;
-  -webkit-transition: all 0.3s ease-in;
-  -moz-transition: all 0.3s ease-in;
-  transition: all 0.3s ease-in;
-}
-
-.tags-li:not(.active):hover {
-  background: #f8f8f8;
-}
-
-.tags-li.active {
-  color: #fff;
-}
-
-.tags-li-title {
-  float: left;
-  max-width: 80px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  margin-right: 5px;
-  color: #666;
-}
-
-.tags-li.active .tags-li-title {
-  color: #fff;
-}
-
-.tags-close-box {
-  position: absolute;
-  right: 0;
-  top: 2px;
-  box-sizing: border-box;
-  padding-top: 1px;
-  text-align: center;
-  width: 110px;
-  height: 30px;
-  background: #fff;
-//box-shadow: -3px 0 15px 3px rgba(0, 0, 0, 0.1); z-index: 10;
-}
 </style>

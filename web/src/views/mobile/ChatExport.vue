@@ -1,18 +1,16 @@
 <template>
   <div class="chat-export-mobile">
     <div class="chat-box">
-      <van-sticky :offset-top="0" position="top">
-        <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
-          <template #title>
-            <van-dropdown-menu>
-              <van-dropdown-item :title="title">
-                <van-cell center title="角色"> {{ role }}</van-cell>
-                <van-cell center title="模型">{{ model }}</van-cell>
-              </van-dropdown-item>
-            </van-dropdown-menu>
-          </template>
-        </van-nav-bar>
-      </van-sticky>
+      <van-nav-bar left-arrow left-text="返回" @click-left="router.back()">
+        <template #title>
+          <van-dropdown-menu>
+            <van-dropdown-item :title="title">
+              <van-cell center title="角色"> {{ role }}</van-cell>
+              <van-cell center title="模型">{{ model }}</van-cell>
+            </van-dropdown-item>
+          </van-dropdown-menu>
+        </template>
+      </van-nav-bar>
 
       <div class="chat-list-wrapper">
         <div id="message-list-box" class="message-list-box">
@@ -53,13 +51,14 @@ import {useRouter} from "vue-router";
 import {httpGet} from "@/utils/http";
 import 'highlight.js/styles/a11y-dark.css'
 import hl from "highlight.js";
+import {showFailToast} from "vant";
 
 const chatData = ref([])
 const router = useRouter()
 const chatId = router.currentRoute.value.query['chat_id']
-const title = router.currentRoute.value.query['title']
-const role = router.currentRoute.value.query['role']
-const model = router.currentRoute.value.query['model']
+const title = ref('')
+const role = ref('')
+const model = ref('')
 const finished = ref(false)
 const error = ref(false)
 
@@ -117,27 +116,41 @@ const onLoad = () => {
     error.value = true
   })
 
+  httpGet(`/api/chat/detail?chat_id=${chatId}`).then(res => {
+    title.value = res.data.title
+    model.value = res.data.model
+    role.value = res.data.role_name
+  }).catch(e => {
+    showFailToast('加载对话失败：' + e.message)
+  })
+
 };
 
 </script>
 <style lang="stylus">
 .chat-export-mobile {
-  background #F5F5F5;
   height 100vh
+
+  .van-nav-bar {
+    position static
+  }
 
   .chat-box {
     font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    background #F5F5F5;
 
-    .message-list-box {
-      background #F5F5F5;
-      padding-top 50px
-      padding-bottom: 10px
+    .chat-list-wrapper {
+      padding 10px 0 10px 0
 
-      .van-cell {
-        background none
+      .message-list-box {
+        background #F5F5F5;
+        padding-bottom: 10px
+
+        .van-cell {
+          background none
+        }
       }
     }
-
 
     .van-nav-bar__title {
       .van-dropdown-menu__title {

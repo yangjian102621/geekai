@@ -1,5 +1,5 @@
 <template>
-  <div class="container role-list" v-loading="loading">
+  <div class="container function" v-loading="loading">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="addRow">新增</el-button>
     </div>
@@ -296,15 +296,9 @@ const generateToken = () => {
 </script>
 
 <style lang="stylus" scoped>
-.role-list {
-  .opt-box {
-    padding-bottom: 10px;
-    display flex;
-    justify-content flex-end
-
-    .el-icon {
-      margin-right 5px;
-    }
+.function {
+  .handle-box {
+    margin-bottom 20px
   }
 
   .param-line {
@@ -333,6 +327,12 @@ const generateToken = () => {
     .el-input__inner {
       text-align center
     }
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
   }
 }
 </style>

@@ -1,6 +1,14 @@
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 /**
  * Util lib functions
  */
+import {showConfirmDialog} from "vant";
 
 // generate a random string
 export function randString(length) {
@@ -223,4 +231,16 @@ export function escapeHTML(html) {
 // 判断是否为 iphone 设备
 export function isIphone() {
     return /iPhone/i.test(navigator.userAgent) && !/iPad/i.test(navigator.userAgent);
+}
+
+export function showLoginDialog(router) {
+    showConfirmDialog({
+        title: '登录',
+        message:
+            '此操作需要登录才能进行，前往登录？',
+    }).then(() => {
+        router.push("/login")
+    }).catch(() => {
+        // on cancel
+    });
 }

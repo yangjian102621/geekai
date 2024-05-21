@@ -1,24 +1,34 @@
 package admin
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/handler"
-	"chatplus/store"
-	"chatplus/store/model"
-	"chatplus/utils"
-	"chatplus/utils/resp"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/handler"
+	"geekai/service"
+	"geekai/store"
+	"geekai/store/model"
+	"geekai/utils"
+	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/host"
 	"gorm.io/gorm"
 )
 
 type ConfigHandler struct {
 	handler.BaseHandler
-	levelDB *store.LevelDB
+	levelDB        *store.LevelDB
+	licenseService *service.LicenseService
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB) *ConfigHandler {
-	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, levelDB: levelDB}
+func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService) *ConfigHandler {
+	return &ConfigHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, levelDB: levelDB, licenseService: licenseService}
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {
@@ -87,4 +97,34 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, value)
+}
+
+// Active 激活系统
+func (h *ConfigHandler) Active(c *gin.Context) {
+	var data struct {
+		License string `json:"license"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	info, err := host.Info()
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	err = h.licenseService.ActiveLicense(data.License, info.HostID)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, info.HostID)
+}
+
+// GetLicense 获取 License 信息
+func (h *ConfigHandler) GetLicense(c *gin.Context) {
+	license := h.licenseService.GetLicense()
+	resp.SUCCESS(c, license)
 }

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"chatplus/core/types"
+	"geekai/core/types"
 	"time"
 )
 

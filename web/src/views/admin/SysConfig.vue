@@ -258,6 +258,52 @@
         <Menu/>
       </el-tab-pane>
 
+      <el-tab-pane label="授权激活" name="license">
+        <div class="container">
+          <el-descriptions
+              v-if="license.is_active"
+              class="margin-top"
+              title="授权信息"
+              :column="3"
+              border
+          >
+            <el-descriptions-item :span="3" :width="150">
+              <template #label>
+                <div class="cell-item">License Key</div>
+              </template>
+              {{ license.key }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <div class="cell-item">到期时间</div>
+              </template>
+              {{ dateFormat(license.expired_at) }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <div class="cell-item">用户人数</div>
+              </template>
+              {{ license.user_num }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <div class="cell-item">机器码</div>
+              </template>
+              {{ license.machine_id }}
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <el-form :model="system" label-width="150px" label-position="right">
+            <el-form-item label="许可授权码" prop="license">
+              <el-input v-model="licenseKey"/>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" @click="active">立即激活</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -271,6 +317,7 @@ import {InfoFilled, UploadFilled} from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
+import {dateFormat} from "@/utils/libs";
 
 const activeName = ref('basic')
 const system = ref({models: []})
@@ -279,6 +326,7 @@ const systemFormRef = ref(null)
 const models = ref([])
 const openAIModels = ref([])
 const notice = ref("")
+const license = ref({is_active: false})
 
 onMounted(() => {
   // 加载系统配置
@@ -302,7 +350,16 @@ onMounted(() => {
     ElMessage.error("获取模型失败：" + e.message)
   })
 
+  fetchLicense()
 })
+
+const fetchLicense = () => {
+  httpGet("/api/admin/config/get/license").then(res => {
+    license.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取 License 失败：" + e.message)
+  })
+}
 
 const rules = reactive({
   title: [{required: true, message: '请输入网站标题', trigger: 'blur',}],
@@ -329,6 +386,20 @@ const save = function (key) {
       ElMessage.error("操作失败：" + e.message)
     })
   }
+}
+
+// 激活授权
+const licenseKey = ref("")
+const active = () => {
+  if (licenseKey.value === "") {
+    return ElMessage.error("请输入授权码")
+  }
+  httpPost("/api/admin/active", {license: licenseKey.value}).then(res => {
+    ElMessage.success("授权成功，机器编码为：" + res.data)
+    fetchLicense()
+  }).catch(e => {
+    ElMessage.error(e.message)
+  })
 }
 
 const configKey = ref("")
@@ -375,9 +446,8 @@ const onUploadImg = (files, callback) => {
   }).catch(e => {
     ElMessage.error('图片上传失败:' + e.message)
   })
-
-
 };
+
 
 </script>
 
@@ -389,10 +459,9 @@ const onUploadImg = (files, callback) => {
 
   .el-tabs {
     width 100%
-    background-color #ffffff
+    background-color var(--el-bg-color)
     padding 10px 20px 40px 20px
-    border: 1px solid #ddd;
-    border-radius: 5px
+    border: 1px solid var(--el-border-color);
 
     .container {
       .el-form {
@@ -423,6 +492,10 @@ const onUploadImg = (files, callback) => {
             }
           }
         }
+      }
+
+      .el-descriptions {
+        margin-bottom 20px
       }
 
       .el-alert {

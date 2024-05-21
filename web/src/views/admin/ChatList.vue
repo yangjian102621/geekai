@@ -178,7 +178,7 @@
 import {onMounted, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat, processContent, removeArrayItem} from "@/utils/libs";
+import {dateFormat, processContent} from "@/utils/libs";
 import {Search} from "@element-plus/icons-vue";
 import 'highlight.js/styles/a11y-dark.css'
 import hl from "highlight.js";
@@ -343,8 +343,8 @@ const showMessages = (row) => {
 
 <style lang="stylus" scoped>
 .chat-list {
-
   .handle-box {
+    margin-bottom 20px
     .handle-input {
       max-width 150px;
       margin-right 10px;
@@ -363,6 +363,12 @@ const showMessages = (row) => {
 
   .el-select {
     width: 100%
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
   }
 
   .chat-box {

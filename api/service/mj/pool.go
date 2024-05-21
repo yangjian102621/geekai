@@ -1,13 +1,21 @@
 package mj
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core/types"
-	logger2 "chatplus/logger"
-	"chatplus/service/oss"
-	"chatplus/service/sd"
-	"chatplus/store"
-	"chatplus/store/model"
 	"fmt"
+	"geekai/core/types"
+	logger2 "geekai/logger"
+	"geekai/service"
+	"geekai/service/oss"
+	"geekai/service/sd"
+	"geekai/store"
+	"geekai/store/model"
 	"github.com/go-redis/redis/v8"
 	"time"
 
@@ -26,7 +34,7 @@ type ServicePool struct {
 
 var logger = logger2.GetLogger()
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig, licenseService *service.LicenseService) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
@@ -35,7 +43,12 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		if config.Enabled == false {
 			continue
 		}
-
+		err := licenseService.IsValidApiURL(config.ApiURL)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		
 		cli := NewPlusClient(config)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
 		plusService := NewService(name, taskQueue, notifyQueue, db, cli)

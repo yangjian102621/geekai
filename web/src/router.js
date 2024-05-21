@@ -1,3 +1,10 @@
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import {createRouter, createWebHistory} from "vue-router";
 
 const routes = [
@@ -201,8 +208,13 @@ const routes = [
         path: '/mobile',
         meta: {title: 'Geek-AI v4.0'},
         component: () => import('@/views/mobile/Home.vue'),
-        redirect: '/mobile/chat',
+        redirect: '/mobile/index',
         children: [
+            {
+                path: '/mobile/index',
+                name: 'mobile-index',
+                component: () => import('@/views/mobile/Index.vue'),
+            },
             {
                 path: '/mobile/chat',
                 name: 'mobile-chat',
@@ -219,21 +231,21 @@ const routes = [
                 component: () => import('@/views/mobile/Profile.vue'),
             },
             {
-                path: '/mobile/img-wall',
+                path: '/mobile/imgWall',
                 name: 'mobile-img-wall',
-                component: () => import('@/views/mobile/ImgWall.vue'),
+                component: () => import('@/views/mobile/pages/ImgWall.vue'),
+            },
+            {
+                path: '/mobile/chat/session',
+                name: 'mobile-chat-session',
+                component: () => import('@/views/mobile/ChatSession.vue'),
+            },
+            {
+                path: '/mobile/chat/export',
+                name: 'mobile-chat-export',
+                component: () => import('@/views/mobile/ChatExport.vue'),
             },
         ]
-    },
-    {
-        path: '/mobile/chat/session',
-        name: 'mobile-chat-session',
-        component: () => import('@/views/mobile/ChatSession.vue'),
-    },
-    {
-        path: '/mobile/chat/export',
-        name: 'mobile-chat-export',
-        component: () => import('@/views/mobile/ChatExport.vue'),
     },
 
     {

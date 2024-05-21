@@ -1,3 +1,10 @@
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import {createApp} from 'vue'
 import ElementPlus from "element-plus"
 import "element-plus/dist/index.css"
@@ -5,6 +12,7 @@ import 'vant/lib/index.css';
 import App from './App.vue'
 import {createPinia} from "pinia";
 import {
+    ActionSheet,
     Badge,
     Button,
     Cell,
@@ -15,6 +23,7 @@ import {
     CollapseItem,
     ConfigProvider,
     Dialog,
+    Divider,
     DropdownItem,
     DropdownMenu,
     Empty,
@@ -29,6 +38,7 @@ import {
     List,
     Loading,
     NavBar,
+    NoticeBar,
     Notify,
     Overlay,
     Picker,
@@ -52,8 +62,8 @@ import {router} from "@/router";
 import 'v3-waterfall/dist/style.css'
 import V3waterfall from "v3-waterfall";
 
-const app = createApp(App)
-app.use(createPinia())
+const app = createApp(App);
+app.use(createPinia());
 app.use(ConfigProvider);
 app.use(Tabbar);
 app.use(TabbarItem);
@@ -97,6 +107,9 @@ app.use(Lazyload);
 app.use(ImagePreview);
 app.use(Tab);
 app.use(Tabs);
+app.use(Divider);
+app.use(NoticeBar);
+app.use(ActionSheet);
 app.use(router).use(ElementPlus).mount('#app')
 
 

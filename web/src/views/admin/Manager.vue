@@ -74,7 +74,6 @@ import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {dateFormat, removeArrayItem} from "@/utils/libs";
 import {Plus} from "@element-plus/icons-vue";
-import {Sortable} from "sortablejs";
 
 // 变量定义
 const items = ref([])
@@ -170,18 +169,18 @@ const remove = function (row) {
 <style lang="stylus" scoped>
 .list {
 
-  .opt-box {
-    padding-bottom: 10px;
-    display flex;
-    justify-content flex-end
-
-    .el-icon {
-      margin-right: 5px;
-    }
+  .handle-box {
+    margin-bottom 20px
   }
 
   .el-select {
     width: 100%
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content right
   }
 
 }

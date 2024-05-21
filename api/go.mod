@@ -1,4 +1,4 @@
-module chatplus
+module geekai
 
 go 1.19
 

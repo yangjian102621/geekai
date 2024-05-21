@@ -1,11 +1,18 @@
 package core
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
 	"bytes"
-	"chatplus/core/types"
-	"chatplus/store/model"
-	"chatplus/utils"
-	"chatplus/utils/resp"
+	"geekai/core/types"
+	"geekai/store/model"
+	"geekai/utils"
+	"geekai/utils/resp"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -200,10 +207,13 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 
 func needLogin(c *gin.Context) bool {
 	if c.Request.URL.Path == "/api/user/login" ||
+		c.Request.URL.Path == "/api/user/logout" ||
 		c.Request.URL.Path == "/api/user/resetPass" ||
 		c.Request.URL.Path == "/api/admin/login" ||
+		c.Request.URL.Path == "/api/admin/logout" ||
 		c.Request.URL.Path == "/api/admin/login/captcha" ||
 		c.Request.URL.Path == "/api/user/register" ||
+		c.Request.URL.Path == "/api/user/session" ||
 		c.Request.URL.Path == "/api/chat/history" ||
 		c.Request.URL.Path == "/api/chat/detail" ||
 		c.Request.URL.Path == "/api/chat/list" ||

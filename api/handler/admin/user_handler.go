@@ -1,13 +1,21 @@
 package admin
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core"
-	"chatplus/core/types"
-	"chatplus/handler"
-	"chatplus/store/model"
-	"chatplus/store/vo"
-	"chatplus/utils"
-	"chatplus/utils/resp"
+	"geekai/core"
+	"geekai/core/types"
+	"geekai/handler"
+	"geekai/service"
+	"geekai/store/model"
+	"geekai/store/vo"
+	"geekai/utils"
+	"geekai/utils/resp"
 	"fmt"
 	"time"
 
@@ -17,10 +25,11 @@ import (
 
 type UserHandler struct {
 	handler.BaseHandler
+	licenseService *service.LicenseService
 }
 
-func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
-	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
+func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.LicenseService) *UserHandler {
+	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, licenseService: licenseService}
 }
 
 // List 用户列表
@@ -73,6 +82,13 @@ func (h *UserHandler) Save(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	// 检测最大注册人数
+	var totalUser int64
+	h.DB.Model(&model.User{}).Count(&totalUser)
+	if int(totalUser) >= h.licenseService.GetLicense().UserNum {
+		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
 		return
 	}
 	var user = model.User{}

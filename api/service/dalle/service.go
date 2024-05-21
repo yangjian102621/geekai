@@ -1,14 +1,21 @@
 package dalle
 
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import (
-	"chatplus/core/types"
-	logger2 "chatplus/logger"
-	"chatplus/service"
-	"chatplus/service/oss"
-	"chatplus/service/sd"
-	"chatplus/store"
-	"chatplus/store/model"
-	"chatplus/utils"
+	"geekai/core/types"
+	logger2 "geekai/logger"
+	"geekai/service"
+	"geekai/service/oss"
+	"geekai/service/sd"
+	"geekai/store"
+	"geekai/store/model"
+	"geekai/utils"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -263,7 +270,7 @@ func (s *Service) CheckTaskStatus() {
 	go func() {
 		logger.Info("Running Stable-Diffusion task status checking ...")
 		for {
-			var jobs []model.SdJob
+			var jobs []model.DallJob
 			res := s.db.Where("progress < ?", 100).Find(&jobs)
 			if res.Error != nil {
 				time.Sleep(5 * time.Second)
@@ -287,7 +294,7 @@ func (s *Service) CheckTaskStatus() {
 							Balance:   user.Power + job.Power,
 							Mark:      types.PowerAdd,
 							Model:     "dall-e-3",
-							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s", job.TaskId),
+							Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
 							CreatedAt: time.Now(),
 						})
 					}

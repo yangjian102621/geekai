@@ -11,7 +11,7 @@
         style="width: 360px;"
     >
       <slide-captcha
-          v-if="isIphone()"
+          v-if="isMobile()"
           :bg-img="bgImg"
           :bk-img="bkImg"
           :result="result"
@@ -38,12 +38,13 @@
 import {ref} from "vue";
 import lodash from 'lodash'
 import {validateEmail, validateMobile} from "@/utils/validate";
-import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import CaptchaPlus from "@/components/CaptchaPlus.vue";
 import SlideCaptcha from "@/components/SlideCaptcha.vue";
-import {isIphone} from "@/utils/libs";
+import {isMobile} from "@/utils/libs";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
 
+// eslint-disable-next-line no-undef
 const props = defineProps({
   receiver: String,
   size: String,
@@ -65,13 +66,13 @@ const handleRequestCaptCode = () => {
     thumbBase64.value = data.thumb
     captKey.value = data.key
   }).catch(e => {
-    ElMessage.error('获取人机验证数据失败：' + e.message)
+    showMessageError('获取人机验证数据失败：' + e.message)
   })
 }
 
 const handleConfirm = (dots) => {
   if (lodash.size(dots) <= 0) {
-    return ElMessage.error('请进行人机验证再操作')
+    return showMessageError('请进行人机验证再操作')
   }
 
   let dotArr = []
@@ -87,19 +88,19 @@ const handleConfirm = (dots) => {
     showCaptcha.value = false
     sendMsg()
   }).catch(() => {
-    ElMessage.error('人机验证失败')
+    showMessageError('人机验证失败')
     handleRequestCaptCode()
   })
 }
 
 const loadCaptcha = () => {
   if (!validateMobile(props.receiver) && !validateEmail(props.receiver)) {
-    return ElMessage.error("请输入合法的手机号/邮箱地址")
+    return showMessageError("请输入合法的手机号/邮箱地址")
   }
 
   showCaptcha.value = true
-  // iphone 手机用滑动验证码
-  if (isIphone()) {
+  // 手机用滑动验证码
+  if (isMobile()) {
     getSlideCaptcha()
   } else {
     handleRequestCaptCode()
@@ -113,7 +114,7 @@ const sendMsg = () => {
 
   canSend.value = false
   httpPost('/api/sms/code', {receiver: props.receiver, key: captKey.value, dots: dots.value}).then(() => {
-    ElMessage.success('验证码发送成功')
+    showMessageOK('验证码发送成功')
     let time = 120
     btnText.value = time
     const handler = setInterval(() => {
@@ -128,7 +129,7 @@ const sendMsg = () => {
     }, 1000)
   }).catch(e => {
     canSend.value = true
-    ElMessage.error('验证码发送失败：' + e.message)
+    showMessageError('验证码发送失败：' + e.message)
   })
 }
 
@@ -144,7 +145,7 @@ const getSlideCaptcha = () => {
     bgImg.value = res.data.bgImg
     captKey.value = res.data.key
   }).catch(e => {
-    ElMessage.error('获取人机验证数据失败：' + e.message)
+    showMessageError('获取人机验证数据失败：' + e.message)
   })
 }
 

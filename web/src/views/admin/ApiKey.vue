@@ -284,15 +284,8 @@ const changePlatform = () => {
 
 <style lang="stylus" scoped>
 .list {
-
-  .opt-box {
-    padding-bottom: 10px;
-    display: flex;
-    justify-content flex-end
-
-    .el-icon {
-      margin-right: 5px;
-    }
+  .handle-box {
+    margin-bottom 20px
   }
 
   .copy-key {
@@ -302,6 +295,12 @@ const changePlatform = () => {
 
   .el-select {
     width: 100%
+  }
+
+  .pagination {
+    padding 20px 0
+    display flex
+    justify-content righ
   }
 }
 
