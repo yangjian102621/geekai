@@ -111,6 +111,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 
 		res = h.DB.Select("username", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
 		if res.Error != nil {
+			logger.Error("error with update database：", res.Error)
 			resp.ERROR(c, "更新数据库失败！")
 			return
 		}
@@ -156,6 +157,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	}
 
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}

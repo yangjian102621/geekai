@@ -253,6 +253,7 @@ func (h *DallJobHandler) Publish(c *gin.Context) {
 
 	res := h.DB.Model(&model.DallJob{Id: data.Id}).UpdateColumn("publish", true)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}
