@@ -14,15 +14,15 @@ npm run build
 cd ../build
 
 # remove docker image if exists
-docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch
+docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:$version-$arch
 # build docker image for Geek-AI API
-docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch -f dockerfile-api-go ../
+docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:$version-$arch -f dockerfile-api-go ../
 
 # build docker image for Geek-AI-web
-docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch
-docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch -f dockerfile-vue ../
+docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:$version-$arch
+docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:$version-$arch -f dockerfile-vue ../
 
 if [ "$3" = "push" ];then
-  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch
-  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch
+  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:$version-$arch
+  docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:$version-$arch
 fi
