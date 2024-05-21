@@ -28,7 +28,7 @@ services:
       - "6380:6379"
 
   xxl-job-admin:
-    container_name: xxl-job-admin
+    container_name: geekai-xxl-job-admin
     image: xuxueli/xxl-job-admin:2.4.0
     restart: always
     ports:
@@ -42,7 +42,7 @@ services:
 
   midjourney-proxy:
     image: novicezk/midjourney-proxy:2.6.0
-    container_name: midjourney-proxy
+    container_name: geekai-midjourney-proxy
     restart: always
     ports:
       - "8082:8080"
@@ -53,7 +53,7 @@ services:
 
   # 后端 API 程序
   geekai-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:v4.0.7-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:v4.0.5-amd64
     container_name: geekai-api
     restart: always
     depends_on:
@@ -75,7 +75,7 @@ services:
 
   # 前端应用
   geekai-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:v4.0.7-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:v4.0.5-amd64
     container_name: geekai-web
     restart: always
     depends_on:
