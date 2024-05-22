@@ -28,8 +28,8 @@ type ConfigHandler struct {
 	handler.BaseHandler
 	levelDB        *store.LevelDB
 	licenseService *service.LicenseService
-	mjServicePool *mj.ServicePool
-	sdServicePool *sd.ServicePool
+	mjServicePool  *mj.ServicePool
+	sdServicePool  *sd.ServicePool
 }
 
 func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService, mjPool *mj.ServicePool, sdPool *sd.ServicePool) *ConfigHandler {
@@ -140,12 +140,13 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 	resp.SUCCESS(c, license)
 }
 
-// GetDrawingConfig 获取AI绘画配置
-func (h *ConfigHandler) GetDrawingConfig(c *gin.Context) {
+// GetAppConfig 获取内置配置
+func (h *ConfigHandler) GetAppConfig(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{
-		"mj_plus":  h.App.Config.MjPlusConfigs,
-		"mj_proxy": h.App.Config.MjProxyConfigs,
-		"sd":       h.App.Config.SdConfigs,
+		"mj_plus":   h.App.Config.MjPlusConfigs,
+		"mj_proxy":  h.App.Config.MjProxyConfigs,
+		"sd":        h.App.Config.SdConfigs,
+		"platforms": Platforms,
 	})
 }
 

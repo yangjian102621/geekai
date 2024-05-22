@@ -9,25 +9,25 @@
           <template #default="props">
             <div>
               <el-table :data="props.row.context" :border="childBorder">
-                <el-table-column label="对话角色" prop="role" width="120"/>
+                <el-table-column label="对话应用" prop="role" width="120"/>
                 <el-table-column label="对话内容" prop="content"/>
               </el-table>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="角色名称" prop="name">
+        <el-table-column label="应用名称" prop="name">
           <template #default="scope">
             <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="角色标识" prop="key"/>
+        <el-table-column label="应用标识" prop="key"/>
         <el-table-column label="绑定模型" prop="model_name"/>
         <el-table-column label="启用状态">
           <template #default="scope">
             <el-switch v-model="scope.row['enable']" @change="roleSet('enable',scope.row)"/>
           </template>
         </el-table-column>
-        <el-table-column label="角色图标" prop="icon">
+        <el-table-column label="应用图标" prop="icon">
           <template #default="scope">
             <el-image :src="scope.row.icon" style="width: 45px; height: 45px; border-radius: 50%"/>
           </template>
@@ -36,7 +36,7 @@
         <el-table-column label="操作" width="150" align="right">
           <template #default="scope">
             <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
-            <el-popconfirm title="确定要删除当前角色吗?" @confirm="removeRole(scope.row)" :width="200">
+            <el-popconfirm title="确定要删除当前应用吗?" @confirm="removeRole(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
@@ -53,21 +53,21 @@
         width="50%"
     >
       <el-form :model="role" label-width="120px" ref="formRef" label-position="left" :rules="rules">
-        <el-form-item label="角色名称：" prop="name">
+        <el-form-item label="应用名称：" prop="name">
           <el-input
               v-model="role.name"
               autocomplete="off"
           />
         </el-form-item>
 
-        <el-form-item label="角色标志：" prop="key">
+        <el-form-item label="应用标志：" prop="key">
           <el-input
               v-model="role.key"
               autocomplete="off"
           />
         </el-form-item>
 
-        <el-form-item label="角色图标：" prop="icon">
+        <el-form-item label="应用图标：" prop="icon">
           <el-input v-model="role.icon">
             <template #append>
               <el-upload
@@ -107,7 +107,7 @@
         <el-form-item label="上下文信息：" prop="context">
           <template #default>
             <el-table :data="role.context" :border="childBorder" size="small">
-              <el-table-column label="对话角色" width="120">
+              <el-table-column label="对话应用" width="120">
                 <template #default="scope">
                   <el-input
                       v-model="scope.row.role"
@@ -181,8 +181,8 @@ const loading = ref(true)
 
 const rules = reactive({
   name: [{required: true, message: '请输入用户名', trigger: 'blur',}],
-  key: [{required: true, message: '请输入角色标识', trigger: 'blur',}],
-  icon: [{required: true, message: '请输入角色图标', trigger: 'blur',}],
+  key: [{required: true, message: '请输入应用标识', trigger: 'blur',}],
+  icon: [{required: true, message: '请输入应用图标', trigger: 'blur',}],
   sort: [
     {required: true, message: '请输入排序数字', trigger: 'blur'},
     {type: 'number', message: '请输入有效数字'},
@@ -204,13 +204,13 @@ onMounted(() => {
 })
 
 const fetchData = () => {
-  // 获取角色列表
+  // 获取应用列表
   httpGet('/api/admin/role/list').then((res) => {
     tableData.value = res.data
     sortedTableData.value = copyObj(tableData.value)
     loading.value = false
   }).catch(() => {
-    ElMessage.error("获取聊天角色失败");
+    ElMessage.error("获取聊天应用失败");
   })
 
   const drawBodyWrapper = document.querySelector('.el-table__body tbody')
@@ -250,14 +250,14 @@ const roleSet = (filed, row) => {
 // 编辑
 const curIndex = ref(0)
 const rowEdit = function (index, row) {
-  optTitle.value = "修改角色"
+  optTitle.value = "修改应用"
   curIndex.value = index
   role.value = copyObj(row)
   showDialog.value = true
 }
 
 const addRole = function () {
-  optTitle.value = "添加新角色"
+  optTitle.value = "添加新应用"
   role.value = {context: []}
   showDialog.value = true
 }

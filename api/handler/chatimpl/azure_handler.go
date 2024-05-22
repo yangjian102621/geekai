@@ -17,11 +17,9 @@ import (
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
-	"html/template"
 	"io"
 	"strings"
 	"time"
-	"unicode/utf8"
 )
 
 // 微软 Azure 模型消息发送实现
@@ -101,104 +99,12 @@ func (h *ChatHandler) sendAzureMessage(
 
 		// 消息发送成功
 		if len(contents) > 0 {
-
-			if message.Role == "" {
-				message.Role = "assistant"
-			}
-			message.Content = strings.Join(contents, "")
-			useMsg := types.Message{Role: "user", Content: prompt}
-
-			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if h.App.SysConfig.EnableContext {
-				chatCtx = append(chatCtx, useMsg)  // 提问消息
-				chatCtx = append(chatCtx, message) // 回复消息
-				h.App.ChatContexts.Put(session.ChatId, chatCtx)
-			}
-
-			// 追加聊天记录
-			// for prompt
-			promptToken, err := utils.CalcTokens(prompt, req.Model)
-			if err != nil {
-				logger.Error(err)
-			}
-			historyUserMsg := model.ChatMessage{
-				UserId:     userVo.Id,
-				ChatId:     session.ChatId,
-				RoleId:     role.Id,
-				Type:       types.PromptMsg,
-				Icon:       userVo.Avatar,
-				Content:    template.HTMLEscapeString(prompt),
-				Tokens:     promptToken,
-				UseContext: true,
-				Model:      req.Model,
-			}
-			historyUserMsg.CreatedAt = promptCreatedAt
-			historyUserMsg.UpdatedAt = promptCreatedAt
-			res := h.DB.Save(&historyUserMsg)
-			if res.Error != nil {
-				logger.Error("failed to save prompt history message: ", res.Error)
-			}
-
-			// 计算本次对话消耗的总 token 数量
-			replyTokens, _ := utils.CalcTokens(message.Content, req.Model)
-			replyTokens += getTotalTokens(req)
-
-			historyReplyMsg := model.ChatMessage{
-				UserId:     userVo.Id,
-				ChatId:     session.ChatId,
-				RoleId:     role.Id,
-				Type:       types.ReplyMsg,
-				Icon:       role.Icon,
-				Content:    message.Content,
-				Tokens:     replyTokens,
-				UseContext: true,
-				Model:      req.Model,
-			}
-			historyReplyMsg.CreatedAt = replyCreatedAt
-			historyReplyMsg.UpdatedAt = replyCreatedAt
-			res = h.DB.Create(&historyReplyMsg)
-			if res.Error != nil {
-				logger.Error("failed to save reply history message: ", res.Error)
-			}
-
-			// 更新用户算力
-			h.subUserPower(userVo, session, promptToken, replyTokens)
-
-			// 保存当前会话
-			var chatItem model.ChatItem
-			res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
-			if res.Error != nil {
-				chatItem.ChatId = session.ChatId
-				chatItem.UserId = session.UserId
-				chatItem.RoleId = role.Id
-				chatItem.ModelId = session.Model.Id
-				if utf8.RuneCountInString(prompt) > 30 {
-					chatItem.Title = string([]rune(prompt)[:30]) + "..."
-				} else {
-					chatItem.Title = prompt
-				}
-				chatItem.Model = req.Model
-				h.DB.Create(&chatItem)
-			}
+			h.saveChatHistory(req, prompt, contents, message, chatCtx, session, role, userVo, promptCreatedAt, replyCreatedAt)
 		}
+
 	} else {
-		body, err := io.ReadAll(response.Body)
-		if err != nil {
-			return fmt.Errorf("error with reading response: %v", err)
-		}
-		var res types.ApiError
-		err = json.Unmarshal(body, &res)
-		if err != nil {
-			return fmt.Errorf("error with decode response: %v", err)
-		}
-
-		if strings.Contains(res.Error.Message, "maximum context length") {
-			logger.Error(res.Error.Message)
-			h.App.ChatContexts.Delete(session.ChatId)
-			return h.sendMessage(ctx, session, role, prompt, ws)
-		} else {
-			return fmt.Errorf("请求 Azure API 失败：%v", res.Error)
-		}
+		body, _ := io.ReadAll(response.Body)
+		return fmt.Errorf("请求大模型 API 失败：%s", body)
 	}
 
 	return nil

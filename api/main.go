@@ -304,7 +304,7 @@ func main() {
 			group.GET("config/get", h.Get)
 			group.POST("active", h.Active)
 			group.GET("config/get/license", h.GetLicense)
-			group.GET("config/get/draw", h.GetDrawingConfig)
+			group.GET("config/get/app", h.GetAppConfig)
 			group.POST("config/update/draw", h.SaveDrawingConfig)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {

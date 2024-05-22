@@ -119,12 +119,12 @@ const mjModels = ref([
   {name: "急速（Turbo）", value: "turbo"},
 ])
 
-httpGet("/api/admin/config/get/draw").then(res => {
+httpGet("/api/admin/config/get/app").then(res => {
   sdConfigs.value = res.data.sd
   mjPlusConfigs.value = res.data.mj_plus
   mjProxyConfigs.value = res.data.mj_proxy
 }).catch(e =>{
-  ElMessage.error("获取AI绘画配置失败："+e.message)
+  ElMessage.error("获取配置失败："+e.message)
 })
 
 const addConfig = (configs) => {
