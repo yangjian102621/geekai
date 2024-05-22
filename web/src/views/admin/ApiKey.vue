@@ -2,6 +2,24 @@
   <div class="container list" v-loading="loading">
 
     <div class="handle-box">
+      <el-select v-model="query.platform" placeholder="平台" class="handle-input">
+        <el-option
+            v-for="item in platforms"
+            :key="item.value"
+            :label="item.name"
+            :value="item.value"
+        />
+      </el-select>
+      <el-select v-model="query.type" placeholder="类型" class="handle-input">
+        <el-option
+            v-for="item in types"
+            :key="item.value"
+            :label="item.name"
+            :value="item.value"
+        />
+      </el-select>
+
+      <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
       <a href="https://api.chat-plus.net" target="_blank" style="margin-left: 10px">
         <el-button type="success" :icon="ShoppingCart" @click="add" plain>购买API-KEY</el-button>
@@ -127,11 +145,12 @@ import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
-import {DocumentCopy, Plus, ShoppingCart, InfoFilled} from "@element-plus/icons-vue";
+import {DocumentCopy, Plus, ShoppingCart, Search} from "@element-plus/icons-vue";
 import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
+const query = ref({type: '',platform:''})
 const item = ref({})
 const showDialog = ref(false)
 const rules = reactive({
@@ -166,6 +185,8 @@ onMounted(() => {
   }).catch(e =>{
     ElMessage.error("获取配置失败："+e.message)
   })
+
+  fetchData()
 })
 
 onUnmounted(() => {
@@ -173,19 +194,22 @@ onUnmounted(() => {
 })
 
 // 获取数据
-httpGet('/api/admin/apikey/list').then((res) => {
-  if (res.data) {
-    // 初始化数据
-    const arr = res.data;
-    for (let i = 0; i < arr.length; i++) {
-      arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+
+const fetchData = () => {
+  httpGet('/api/admin/apikey/list', query.value).then((res) => {
+    if (res.data) {
+      // 初始化数据
+      const arr = res.data;
+      for (let i = 0; i < arr.length; i++) {
+        arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+      }
+      items.value = arr
     }
-    items.value = arr
-  }
-  loading.value = false
-}).catch(() => {
-  ElMessage.error("获取数据失败");
-})
+    loading.value = false
+  }).catch(() => {
+    ElMessage.error("获取数据失败");
+  })
+}
 
 const add = function () {
   showDialog.value = true
@@ -264,6 +288,10 @@ const changeType = (value) => {
 .list {
   .handle-box {
     margin-bottom 20px
+    .handle-input {
+      max-width 150px;
+      margin-right 10px;
+    }
   }
 
   .copy-key {

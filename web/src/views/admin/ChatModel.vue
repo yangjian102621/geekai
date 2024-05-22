@@ -2,6 +2,16 @@
   <div class="container model-list" v-loading="loading">
 
     <div class="handle-box">
+      <el-select v-model="query.platform" placeholder="平台" class="handle-input">
+        <el-option
+            v-for="item in platforms"
+            :key="item.value"
+            :label="item.name"
+            :value="item.value"
+        />
+      </el-select>
+
+      <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
     </div>
 
@@ -198,12 +208,13 @@ import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
-import {DocumentCopy, InfoFilled, Plus} from "@element-plus/icons-vue";
+import {DocumentCopy, InfoFilled, Plus,Search} from "@element-plus/icons-vue";
 import {Sortable} from "sortablejs";
 import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
+const query = ref({platform:''})
 const item = ref({})
 const showDialog = ref(false)
 const title = ref("")
@@ -226,7 +237,7 @@ httpGet('/api/admin/apikey/list?status=true&type=chat').then(res => {
 
 // 获取数据
 const fetchData = () => {
-  httpGet('/api/admin/model/list').then((res) => {
+  httpGet('/api/admin/model/list', query.value).then((res) => {
     if (res.data) {
       // 初始化数据
       const arr = res.data;
@@ -350,6 +361,10 @@ const remove = function (row) {
 
   .handle-box {
     margin-bottom 20px
+    .handle-input {
+      max-width 150px;
+      margin-right 10px;
+    }
   }
 
   .cell {
