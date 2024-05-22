@@ -146,7 +146,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 			Model:   "dall-e-3",
 			Prompt:  prompt,
 			N:       1,
-			Size:    "1024x1024",
+			Size:    task.Size,
 			Style:   task.Style,
 			Quality: task.Quality,
 		}).

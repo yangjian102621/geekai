@@ -62,13 +62,8 @@ func (p *ServicePool) InitServices(plusConfigs []types.MjPlusConfig, proxyConfig
 		if config.Enabled == false {
 			continue
 		}
-		err := p.licenseService.IsValidApiURL(config.ApiURL)
-		if err != nil {
-			logger.Errorf("创建 MJ-PLUS 服务失败：%v", err)
-			continue
-		}
 
-		cli := NewPlusClient(config)
+		cli := NewPlusClient(config, p.licenseService)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
 		plusService := NewService(name, p.taskQueue, p.notifyQueue, p.db, cli)
 		go func() {
