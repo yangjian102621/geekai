@@ -89,8 +89,12 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 func (h *ChatModelHandler) List(c *gin.Context) {
 	session := h.DB.Session(&gorm.Session{})
 	enable := h.GetBool(c, "enable")
+	platform := h.GetTrim(c, "platform")
 	if enable {
 		session = session.Where("enabled", enable)
+	}
+	if platform != "" {
+		session = session.Where("platform", platform)
 	}
 	var items []model.ChatModel
 	var cms = make([]vo.ChatModel, 0)
