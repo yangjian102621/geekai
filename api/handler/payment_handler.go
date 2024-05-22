@@ -83,7 +83,7 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 	}
 
 	// 检查二维码是否过期
-	if time.Now().Unix()-int64(t) > 30 {
+	if time.Now().Unix()-int64(t) > int64(h.App.SysConfig.OrderPayTimeout) {
 		resp.ERROR(c, "支付二维码已过期，请重新生成！")
 		return
 	}
@@ -342,6 +342,8 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		payWay = PayWayXunHu
 		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
 		returnURL = h.App.Config.HuPiPayConfig.ReturnURL
+		parse, _ := url.Parse(h.App.Config.HuPiPayConfig.ReturnURL)
+		baseURL := fmt.Sprintf("%s://%s", parse.Scheme, parse.Host)
 		params := payment.HuPiPayReq{
 			Version:      "1.1",
 			TradeOrderId: orderNo,
@@ -351,6 +353,7 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 			ReturnURL:    returnURL,
 			CallbackURL:  returnURL,
 			WapName:      "极客学长",
+			WapUrl:       baseURL,
 			Type:         "WAP",
 		}
 		r, err := h.huPiPayService.Pay(params)
