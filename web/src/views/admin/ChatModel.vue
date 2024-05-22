@@ -214,15 +214,7 @@ const rules = reactive({
 })
 const loading = ref(true)
 const formRef = ref(null)
-const platforms = ref([
-  {name: "【OpenAI】ChatGPT", value: "OpenAI"},
-  {name: "【讯飞】星火大模型", value: "XunFei"},
-  {name: "【清华智普】ChatGLM", value: "ChatGLM"},
-  {name: "【百度】文心一言", value: "Baidu"},
-  {name: "【微软】Azure", value: "Azure"},
-  {name: "【阿里】通义千问", value: "QWen"},
-
-])
+const platforms = ref([])
 
 // 获取 API KEY
 const apiKeys = ref([])
@@ -286,6 +278,12 @@ onMounted(() => {
 
   clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
+  })
+
+  httpGet("/api/admin/config/get/app").then(res => {
+    platforms.value = res.data.platforms
+  }).catch(e =>{
+    ElMessage.error("获取配置失败："+e.message)
   })
 })
 

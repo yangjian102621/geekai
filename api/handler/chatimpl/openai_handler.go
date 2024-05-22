@@ -17,13 +17,10 @@ import (
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
-	"html/template"
+	req2 "github.com/imroc/req/v3"
 	"io"
 	"strings"
 	"time"
-	"unicode/utf8"
-
-	req2 "github.com/imroc/req/v3"
 )
 
 // OPenAI 消息发送实现
@@ -178,126 +175,11 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 		// 消息发送成功
 		if len(contents) > 0 {
-			if message.Role == "" {
-				message.Role = "assistant"
-			}
-			message.Content = strings.Join(contents, "")
-			useMsg := types.Message{Role: "user", Content: prompt}
-
-			// 更新上下文消息，如果是调用函数则不需要更新上下文
-			if h.App.SysConfig.EnableContext && toolCall == false {
-				chatCtx = append(chatCtx, useMsg)  // 提问消息
-				chatCtx = append(chatCtx, message) // 回复消息
-				h.App.ChatContexts.Put(session.ChatId, chatCtx)
-			}
-
-			// 追加聊天记录
-			useContext := true
-			if toolCall {
-				useContext = false
-			}
-
-			// for prompt
-			promptToken, err := utils.CalcTokens(prompt, req.Model)
-			if err != nil {
-				logger.Error(err)
-			}
-			historyUserMsg := model.ChatMessage{
-				UserId:     userVo.Id,
-				ChatId:     session.ChatId,
-				RoleId:     role.Id,
-				Type:       types.PromptMsg,
-				Icon:       userVo.Avatar,
-				Content:    template.HTMLEscapeString(prompt),
-				Tokens:     promptToken,
-				UseContext: useContext,
-				Model:      req.Model,
-			}
-			historyUserMsg.CreatedAt = promptCreatedAt
-			historyUserMsg.UpdatedAt = promptCreatedAt
-			res := h.DB.Save(&historyUserMsg)
-			if res.Error != nil {
-				logger.Error("failed to save prompt history message: ", res.Error)
-			}
-
-			// 计算本次对话消耗的总 token 数量
-			var replyTokens = 0
-			if toolCall { // prompt + 函数名 + 参数 token
-				tokens, _ := utils.CalcTokens(function.Name, req.Model)
-				replyTokens += tokens
-				tokens, _ = utils.CalcTokens(utils.InterfaceToString(arguments), req.Model)
-				replyTokens += tokens
-			} else {
-				replyTokens, _ = utils.CalcTokens(message.Content, req.Model)
-			}
-			replyTokens += getTotalTokens(req)
-
-			historyReplyMsg := model.ChatMessage{
-				UserId:     userVo.Id,
-				ChatId:     session.ChatId,
-				RoleId:     role.Id,
-				Type:       types.ReplyMsg,
-				Icon:       role.Icon,
-				Content:    h.extractImgUrl(message.Content),
-				Tokens:     replyTokens,
-				UseContext: useContext,
-				Model:      req.Model,
-			}
-			historyReplyMsg.CreatedAt = replyCreatedAt
-			historyReplyMsg.UpdatedAt = replyCreatedAt
-			res = h.DB.Create(&historyReplyMsg)
-			if res.Error != nil {
-				logger.Error("failed to save reply history message: ", res.Error)
-			}
-
-			// 更新用户算力
-			h.subUserPower(userVo, session, promptToken, replyTokens)
-
-			// 保存当前会话
-			var chatItem model.ChatItem
-			res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
-			if res.Error != nil {
-				chatItem.ChatId = session.ChatId
-				chatItem.UserId = session.UserId
-				chatItem.RoleId = role.Id
-				chatItem.ModelId = session.Model.Id
-				if utf8.RuneCountInString(prompt) > 30 {
-					chatItem.Title = string([]rune(prompt)[:30]) + "..."
-				} else {
-					chatItem.Title = prompt
-				}
-				chatItem.Model = req.Model
-				h.DB.Create(&chatItem)
-			}
+			h.saveChatHistory(req, prompt, contents, message, chatCtx, session, role, userVo, promptCreatedAt, replyCreatedAt)
 		}
 	} else {
-		body, err := io.ReadAll(response.Body)
-		if err != nil {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败："+err.Error())
-			return fmt.Errorf("error with reading response: %v", err)
-		}
-		var res types.ApiError
-		err = json.Unmarshal(body, &res)
-		if err != nil {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败：\n"+"```\n"+string(body)+"```")
-			return fmt.Errorf("error with decode response: %v", err)
-		}
-
-		// OpenAI API 调用异常处理
-		if strings.Contains(res.Error.Message, "This key is associated with a deactivated account") {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 所关联的账户被禁用。")
-			// 移除当前 API key
-			h.DB.Where("value = ?", apiKey).Delete(&model.ApiKey{})
-		} else if strings.Contains(res.Error.Message, "You exceeded your current quota") {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
-		} else if strings.Contains(res.Error.Message, "This model's maximum context length") {
-			logger.Error(res.Error.Message)
-			utils.ReplyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
-			h.App.ChatContexts.Delete(session.ChatId)
-			return h.sendMessage(ctx, session, role, prompt, ws)
-		} else {
-			utils.ReplyMessage(ws, "请求 OpenAI API 失败："+res.Error.Message)
-		}
+		body, _ := io.ReadAll(response.Body)
+		return fmt.Errorf("请求 OpenAI API 失败：%s", body)
 	}
 
 	return nil
