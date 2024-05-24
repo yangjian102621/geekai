@@ -85,6 +85,7 @@
                 <el-image :src="item.icon" style="width: 30px;height: 30px"/>
               </a>
             </el-tooltip>
+            <span :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</span>
           </li>
 
           <el-popover
