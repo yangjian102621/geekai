@@ -66,6 +66,41 @@
       </el-aside>
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-container">
+          <div class="chat-config">
+            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat"
+                       class="role-select"
+                       style="width:150px">
+              <el-option
+                  v-for="item in roles"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+              >
+                <div class="role-option">
+                  <el-image :src="item.icon"></el-image>
+                  <span>{{ item.name }}</span>
+                </div>
+              </el-option>
+            </el-select>
+
+            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat"
+                       :disabled="disableModel"
+                       style="width:150px">
+              <el-option
+                  v-for="item in models"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+              >
+                <span>{{ item.name }}</span>
+                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
+                    item.power
+                  }}算力
+                </el-tag>
+              </el-option>
+            </el-select>
+          </div>
+
           <div>
             <div id="container" :style="{height: mainWinHeight+'px'}">
               <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
@@ -86,59 +121,6 @@
 
               <div class="input-box">
                 <div class="input-box-inner">
-                  <span class="tool-item">
-                      <el-popover
-                          :width="300"
-                          trigger="click"
-                          placement="top-start"
-                      >
-                        <template #reference>
-                          <div>
-                            <el-tooltip effect="dark" content="模型选择">
-                              <i class="iconfont icon-model"></i>
-                            </el-tooltip>
-                          </div>
-                        </template>
-
-                        <template #default>
-                          <div class="chat-config">
-                            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat"
-                                       class="role-select"
-                                       style="width:150px">
-                              <el-option
-                                  v-for="item in roles"
-                                  :key="item.id"
-                                  :label="item.name"
-                                  :value="item.id"
-                              >
-                                <div class="role-option">
-                                  <el-image :src="item.icon"></el-image>
-                                  <span>{{ item.name }}</span>
-                                </div>
-                              </el-option>
-                            </el-select>
-
-                            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat"
-                                       :disabled="disableModel"
-                                       style="width:150px">
-                              <el-option
-                                  v-for="item in models"
-                                  :key="item.id"
-                                  :label="item.name"
-                                  :value="item.id"
-                              >
-                                <span>{{ item.name }}</span>
-                                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
-                                    item.power
-                                  }}算力
-                                </el-tag>
-                              </el-option>
-                            </el-select>
-                          </div>
-                        </template>
-                      </el-popover>
-                  </span>
-
                   <span class="tool-item" @click="ElMessage.info('暂时不支持语音输入')">
                     <el-tooltip class="box-item" effect="dark" content="语音输入">
                       <i class="iconfont icon-mic-bold"></i>
@@ -376,8 +358,8 @@ const getRoleById = function (rid) {
 }
 
 const resizeElement = function () {
-  chatBoxHeight.value = window.innerHeight - 50 - 82 - 38;
-  mainWinHeight.value = window.innerHeight - 50;
+  chatBoxHeight.value = window.innerHeight - 101 - 82 - 38;
+  mainWinHeight.value = window.innerHeight - 101;
   leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
 };
 
@@ -941,31 +923,6 @@ const insertURL = (url) => {
   .el-textarea {
     .el-textarea__inner {
       padding-right 40px
-    }
-  }
-}
-
-.chat-config {
-  display flex
-  flex-direction row
-  padding-top 10px;
-
-  .role-select-label {
-    color #ffffff
-  }
-
-  .el-select {
-    max-width 150px;
-    margin-right 10px;
-  }
-
-  .role-select {
-    max-width 130px;
-  }
-
-  .el-button {
-    .el-icon {
-      margin-right 5px;
     }
   }
 }
