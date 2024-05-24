@@ -9,12 +9,12 @@ package core
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
@@ -231,11 +231,15 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/product/list" ||
 		c.Request.URL.Path == "/api/menu/list" ||
 		c.Request.URL.Path == "/api/markMap/client" ||
+		c.Request.URL.Path == "/api/payment/alipay/notify" ||
+		c.Request.URL.Path == "/api/payment/hupipay/notify" ||
+		c.Request.URL.Path == "/api/payment/payjs/notify" ||
+		c.Request.URL.Path == "/api/payment/doPay" ||
+		c.Request.URL.Path == "/api/payment/payWays" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/payment/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/static/") {
 		return false
 	}
