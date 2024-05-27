@@ -126,7 +126,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx := s.db.Where("platform", types.OpenAI).
+	tx := s.db.Where("platform", types.OpenAI.Value).
 		Where("type", "img").
 		Where("enabled", true).
 		Order("last_used_at ASC").First(&apiKey)
@@ -162,11 +162,14 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	// update the api key last use time
 	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// update task progress
-	s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
+	tx = s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
 		"progress": 100,
 		"org_url":  res.Data[0].Url,
 		"prompt":   prompt,
 	})
+	if tx.Error != nil {
+		return "", fmt.Errorf("err with update database: %v", tx.Error)
+	}
 
 	s.notifyQueue.RPush(sd.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: sd.Finished})
 	var content string
