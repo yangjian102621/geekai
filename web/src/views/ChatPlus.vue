@@ -697,7 +697,7 @@ const onInput = (e) => {
   textHeightRef.value.style.width = inputRef.value.clientWidth + 'px'; // 设定宽度和 textarea 相同
   const lines = Math.floor(textHeightRef.value.clientHeight / lineHeight);
   inputRef.value.scrollTo(0, inputRef.value.scrollHeight)
-  if (prompt.value.length === 0) {
+  if (prompt.value.length < 10) {
     row.value = 1
   } else if (row.value <= 7) {
     row.value = lines
