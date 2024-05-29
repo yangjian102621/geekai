@@ -1,6 +1,6 @@
 <template>
   <div class="index-page" :style="{height: winHeight+'px'}">
-    <div class="bg"></div>
+    <div :class="bgClass"></div>
     <div class="menu-box">
       <el-menu
           mode="horizontal"
@@ -11,7 +11,8 @@
           <div class="title">{{ title }}</div>
         </div>
         <div class="menu-item">
-          <a href="https://ai.r9it.com/docs/install/" target="_blank">
+          <span v-if="!licenseConfig.de_copy">
+            <a href="https://ai.r9it.com/docs/install/" target="_blank">
             <el-button type="primary" round>
               <i class="iconfont icon-book"></i>
               <span>部署文档</span>
@@ -24,6 +25,7 @@
               <span>项目源码</span>
             </el-button>
           </a>
+          </span>
           <el-button @click="router.push('/login')" round>登录</el-button>
           <el-button @click="router.push('/register')" round>注册</el-button>
         </div>
@@ -52,7 +54,7 @@
       <!--      <div id="animation-container"></div>-->
     </div>
 
-    <div class="footer">
+    <div class="footer" v-if="!licenseConfig.de_copy">
       <footer-bar />
     </div>
   </div>
@@ -77,73 +79,31 @@ if (isMobile()) {
 const title = ref("Geek-AI 创作系统")
 const logo = ref("/images/logo.png")
 const slogan = ref("我辈之人，先干为敬，陪您先把 AI 用起来")
+const licenseConfig = ref({})
 // const size = Math.max(window.innerWidth * 0.5, window.innerHeight * 0.8)
 const winHeight = window.innerHeight - 150
+const bgClass = ref('fixed-bg')
 
 onMounted(() => {
   httpGet("/api/config/get?key=system").then(res => {
     title.value = res.data.title
     logo.value = res.data.logo
+    if (res.data.rand_bg) {
+      bgClass.value = "rand-bg"
+    }
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
+  })
+
+  httpGet("/api/config/license").then(res => {
+    licenseConfig.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取 License 配置：" + e.message)
   })
   init()
 })
 
 const init = () => {
-  // // 创建场景
-  // // 创建场景
-  // const scene = new THREE.Scene();
-  //
-  // // 创建相机
-  // const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 1000);
-  // camera.position.z = 3.88;
-  //
-  // // 创建渲染器
-  // const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  // renderer.setSize(size, size);
-  // renderer.setClearColor(0x000000, 0);
-  // const container = document.getElementById('animation-container');
-  // container.appendChild(renderer.domElement);
-  //
-  // // 加载地球纹理
-  // const loader = new THREE.TextureLoader();
-  // loader.load(
-  //     '/images/land_ocean_ice_cloud_2048.jpg',
-  //     function (texture) {
-  //       // 创建地球球体
-  //       const geometry = new THREE.SphereGeometry(1, 32, 32);
-  //       const material = new THREE.MeshPhongMaterial({
-  //         map: texture,
-  //         bumpMap: texture, // 使用同一张纹理作为凹凸贴图
-  //         bumpScale: 0.05, // 调整凹凸贴图的影响程度
-  //         specularMap: texture, // 高光贴图
-  //         specular: new THREE.Color('#01193B'), // 高光颜色
-  //       });
-  //       const earth = new THREE.Mesh(geometry, material);
-  //       scene.add(earth);
-  //
-  //       // 添加环境光和点光源
-  //       const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-  //       scene.add(ambientLight);
-  //       const pointLight = new THREE.PointLight(0xffffff, 0.8);
-  //       pointLight.position.set(5, 5, 5);
-  //       scene.add(pointLight);
-  //
-  //       // 创建动画
-  //       const animate = function () {
-  //         requestAnimationFrame(animate);
-  //
-  //         // 使地球自转和公转
-  //         earth.rotation.y += 0.0006;
-  //
-  //         renderer.render(scene, camera);
-  //       };
-  //
-  //       // 执行动画
-  //       animate();
-  //     }
-  // );
 }
 </script>
 
@@ -158,14 +118,25 @@ const init = () => {
   align-items baseline
   padding-top 150px
 
-  .bg {
+  .fixed-bg {
     position absolute
     top 0
     left 0
     width 100vw
     height 100vh
     background-image url("~@/assets/img/ai-bg.jpg")
-    //filter: blur(8px);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .rand-bg {
+    position absolute
+    top 0
+    left 0
+    width 100vw
+    height 100vh
+    background-image url("https://api.dujin.org/bing/1920.php")
+    filter: blur(8px);
     background-size: cover;
     background-position: center;
   }

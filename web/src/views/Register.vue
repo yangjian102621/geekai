@@ -160,7 +160,7 @@
           </el-result>
         </div>
 
-        <footer class="footer">
+        <footer class="footer"  v-if="!licenseConfig.de_copy">
           <footer-bar/>
         </footer>
       </div>
@@ -199,6 +199,7 @@ const enableUser = ref(false)
 const enableRegister = ref(false)
 const activeName = ref("mobile")
 const wxImg = ref("/images/wx.png")
+const licenseConfig = ref({})
 
 httpGet("/api/config/get?key=system").then(res => {
   if (res.data) {
@@ -223,6 +224,12 @@ httpGet("/api/config/get?key=system").then(res => {
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
+})
+
+httpGet("/api/config/license").then(res => {
+  licenseConfig.value = res.data
+}).catch(e => {
+  showMessageError("获取 License 配置：" + e.message)
 })
 
 // 注册操作
