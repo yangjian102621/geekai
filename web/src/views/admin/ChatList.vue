@@ -163,11 +163,8 @@
               :model="item.model"
               :content="item.content"/>
           <chat-reply v-else-if="item.type==='reply'"
-                      :icon="item.icon"
-                      :org-content="item.orgContent"
-                      :created-at="dateFormat(item['created_at'])"
-                      :tokens="item['tokens']"
-                      :content="item.content"/>
+                      :read-only="true"
+                      :data="item"/>
         </div>
       </div><!-- end chat box -->
     </el-dialog>
@@ -291,8 +288,7 @@ const removeMessage = function (row) {
   })
 }
 
-const latexPlugin = require('markdown-it-latex2img')
-const mathjaxPlugin = require('markdown-it-mathjax')
+const mathjaxPlugin = require('markdown-it-mathjax3')
 const md = require('markdown-it')({
   breaks: true,
   html: true,
@@ -312,7 +308,6 @@ const md = require('markdown-it')({
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
   }
 });
-md.use(latexPlugin)
 md.use(mathjaxPlugin)
 
 const showContentDialog = ref(false)

@@ -249,8 +249,7 @@ const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
 
-const latexPlugin = require('markdown-it-latex2img')
-const mathjaxPlugin = require('markdown-it-mathjax')
+const mathjaxPlugin = require('markdown-it-mathjax3')
 const md = require('markdown-it')({
   breaks: true,
   html: true,
@@ -275,7 +274,6 @@ const md = require('markdown-it')({
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
   }
 });
-md.use(latexPlugin)
 md.use(mathjaxPlugin)
 
 
