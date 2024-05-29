@@ -126,11 +126,16 @@ type RedisConfig struct {
 const LicenseKey = "Geek-AI-License"
 
 type License struct {
-	Key       string `json:"key"`        // 许可证书密钥
-	MachineId string `json:"machine_id"` // 机器码
-	UserNum   int    `json:"user_num"`   // 用户数量
-	ExpiredAt int64  `json:"expired_at"` // 过期时间
-	IsActive  bool   `json:"is_active"`  // 是否激活
+	Key       string        `json:"key"`        // 许可证书密钥
+	MachineId string        `json:"machine_id"` // 机器码
+	ExpiredAt int64         `json:"expired_at"` // 过期时间
+	IsActive  bool          `json:"is_active"`  // 是否激活
+	Configs   LicenseConfig `json:"configs"`
+}
+
+type LicenseConfig struct {
+	UserNum int  `json:"user_num"` // 用户数量
+	DeCopy  bool `json:"de_copy"`  // 去版权
 }
 
 func (c RedisConfig) Url() string {
@@ -207,4 +212,6 @@ type SystemConfig struct {
 	ContextDeep   int  `json:"context_deep,omitempty"`
 
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
+
+	RandBg bool `json:"rand_bg"` // 前端首页是否启用随机背景
 }

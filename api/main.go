@@ -295,6 +295,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
 			group := s.Engine.Group("/api/config/")
 			group.GET("get", h.Get)
+			group.GET("license", h.License)
 		}),
 
 		// 管理后台控制器

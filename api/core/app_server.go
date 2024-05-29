@@ -227,7 +227,6 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/sd/client" ||
 		c.Request.URL.Path == "/api/dall/imgWall" ||
 		c.Request.URL.Path == "/api/dall/client" ||
-		c.Request.URL.Path == "/api/config/get" ||
 		c.Request.URL.Path == "/api/product/list" ||
 		c.Request.URL.Path == "/api/menu/list" ||
 		c.Request.URL.Path == "/api/markMap/client" ||
@@ -237,6 +236,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/payment/doPay" ||
 		c.Request.URL.Path == "/api/payment/payWays" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/config/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||

@@ -11,8 +11,8 @@
       </div>
 
       <div class="navbar">
-
         <el-tooltip
+            v-if="!licenseConfig.de_copy"
             class="box-item"
             effect="light"
             content="部署文档"
@@ -23,6 +23,7 @@
         </el-tooltip>
 
         <el-tooltip
+            v-if="!licenseConfig.de_copy"
             class="box-item"
             effect="light"
             content="项目源码"
@@ -140,6 +141,7 @@ import {removeUserToken} from "@/store/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {useSharedStore} from "@/store/sharedata";
 import ConfigDialog from "@/components/ConfigDialog.vue";
+import {showMessageError} from "@/utils/dialog";
 
 const router = useRouter();
 const logo = ref('/images/logo.png');
@@ -152,6 +154,7 @@ const loginUser = ref({})
 const version = ref(process.env.VUE_APP_VERSION)
 const routerViewKey = ref(0)
 const showConfigDialog = ref(false)
+const licenseConfig = ref({})
 
 const store = useSharedStore();
 const show = ref(false)
@@ -189,6 +192,12 @@ onMounted(() => {
     }
   }).catch(e => {
     ElMessage.error("获取系统菜单失败：" + e.message)
+  })
+
+  httpGet("/api/config/license").then(res => {
+    licenseConfig.value = res.data
+  }).catch(e => {
+    showMessageError("获取 License 配置：" + e.message)
   })
 
   init()

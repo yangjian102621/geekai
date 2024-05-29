@@ -46,12 +46,13 @@ func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseS
 }
 
 type License struct {
-	Name      string `json:"name"`
-	License   string `json:"license"`
-	MachineId string `json:"mid"`
-	ActiveAt  int64  `json:"active_at"`
-	ExpiredAt int64  `json:"expired_at"`
-	UserNum   int    `json:"user_num"`
+	Name      string              `json:"name"`
+	License   string              `json:"license"`
+	MachineId string              `json:"mid"`
+	ActiveAt  int64               `json:"active_at"`
+	ExpiredAt int64               `json:"expired_at"`
+	UserNum   int                 `json:"user_num"`
+	Configs   types.LicenseConfig `json:"configs"`
 }
 
 // ActiveLicense 激活 License
@@ -80,7 +81,7 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 	s.license = &types.License{
 		Key:       license,
 		MachineId: machineId,
-		UserNum:   res.Data.UserNum,
+		Configs:   res.Data.Configs,
 		ExpiredAt: res.Data.ExpiredAt,
 		IsActive:  true,
 	}
@@ -140,7 +141,7 @@ func (s *LicenseService) fetchLicense() (*types.License, error) {
 	return &types.License{
 		Key:       res.Data.License,
 		MachineId: res.Data.MachineId,
-		UserNum:   res.Data.UserNum,
+		Configs:   res.Data.Configs,
 		ExpiredAt: res.Data.ExpiredAt,
 		IsActive:  true,
 	}, nil

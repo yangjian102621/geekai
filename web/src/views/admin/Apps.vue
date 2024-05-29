@@ -133,6 +133,8 @@
                 <template #default="scope">
                   <div class="context-msg-content">
                     <el-input
+                        type="textarea"
+                        :rows="2"
                         v-model="scope.row.content"
                         autocomplete="off"
                     />
