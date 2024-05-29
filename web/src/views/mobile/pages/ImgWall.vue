@@ -43,8 +43,25 @@
             </van-cell>
           </van-list>
         </van-tab>
-        <van-tab title="DALL" name="dalle3">
-          <van-empty description="功能正在开发中"/>
+        <van-tab title="DALL" name="dall">
+          <van-list
+              v-model:error="data['dall'].error"
+              v-model:loading="data['dall'].loading"
+              :finished="data['dall'].finished"
+              error-text="请求失败，点击重新加载"
+              finished-text="没有更多了"
+              @load="onLoad"
+          >
+            <van-cell v-for="item in data['dall'].data" :key="item.id">
+              <van-image :src="item['img_thumb']" @click="imageView(item)" fit="cover"/>
+
+              <div class="opt-box">
+                <el-button type="primary" @click="showPrompt(item)" circle>
+                  <i class="iconfont icon-prompt"></i>
+                </el-button>
+              </div>
+            </van-cell>
+          </van-list>
         </van-tab>
       </van-tabs>
     </div>
@@ -81,13 +98,13 @@ const data = ref({
     url: "/api/sd/imgWall",
     data: []
   },
-  "dalle3": {
+  "dall": {
     loading: false,
     finished: false,
     error: false,
     page: 1,
     pageSize: 12,
-    url: "/api/dalle3/imgWall",
+    url: "/api/dall/imgWall",
     data: []
   }
 })
