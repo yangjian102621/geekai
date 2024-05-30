@@ -536,7 +536,7 @@ const shareChat = (option) => {
     showToast({message: "当前会话已经导出，请通过浏览器或者微信的自带分享功能分享给好友", duration: 5000})
     router.push({
       path: "/mobile/chat/export",
-      query: {title: title, chat_id: chatId, role: role.value.name, model: modelValue}
+      query: {title: title.value, chat_id: chatId.value, role: role.value.name, model: modelValue.value}
     })
   } else if (option.icon === "link") {
     document.getElementById('copy-link-btn').click();
