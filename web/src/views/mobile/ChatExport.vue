@@ -62,6 +62,7 @@ const model = ref('')
 const finished = ref(false)
 const error = ref(false)
 
+const mathjaxPlugin = require('markdown-it-mathjax3')
 const md = require('markdown-it')({
   breaks: true,
   html: true,
@@ -86,6 +87,7 @@ const md = require('markdown-it')({
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
   }
 });
+md.use(mathjaxPlugin)
 
 const onLoad = () => {
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
@@ -127,7 +129,7 @@ const onLoad = () => {
 };
 
 </script>
-<style lang="stylus">
+<style scoped lang="stylus">
 .chat-export-mobile {
   height 100vh
 
@@ -144,7 +146,7 @@ const onLoad = () => {
 
       .message-list-box {
         background #F5F5F5;
-        padding-bottom: 10px
+        padding-bottom: 50px
 
         .van-cell {
           background none
