@@ -241,8 +241,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			if err != nil {
 				continue
 			}
-			required := parameters["required"]
-			delete(parameters, "required")
 			tool := types.Tool{
 				Type: "function",
 				Function: types.Function{
@@ -251,10 +249,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 					Parameters:  parameters,
 				},
 			}
-
-			// Fixed: compatible for gpt4-turbo-xxx model
-			if !strings.HasPrefix(req.Model, "gpt-4-turbo-") {
-				tool.Function.Required = required
+			if v, ok := parameters["required"]; v == nil || !ok {
+				tool.Function.Parameters["required"] = []string{}
 			}
 			tools = append(tools, tool)
 		}
