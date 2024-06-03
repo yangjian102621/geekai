@@ -330,7 +330,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			Content: prompt,
 		})
 		req.Input["messages"] = reqMgs
-	} else if session.Model.Platform == types.OpenAI.Value { // extract image for gpt-vision model
+	} else if session.Model.Platform == types.OpenAI.Value || session.Model.Platform == types.Azure.Value { // extract image for gpt-vision model
 		imgURLs := utils.ExtractImgURL(prompt)
 		logger.Debugf("detected IMG: %+v", imgURLs)
 		var content interface{}
