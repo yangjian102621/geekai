@@ -13,6 +13,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -32,7 +33,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	var res *gorm.DB
 	// 如果用户没有登录，则加载所有开放模型
 	if !h.IsLogin(c) {
-		res = h.DB.Where("enabled = ?", true).Where("open =?", true).Order("sort_num ASC").Find(&items)
+		res = h.DB.Where("enabled", true).Where("open", true).Order("sort_num ASC").Find(&items)
 	} else {
 		user, _ := h.GetLoginUser(c)
 		var models []int
@@ -43,7 +44,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 		}
 		// 查询用户有权限访问的模型以及所有开放的模型
 		res = h.DB.Where("enabled = ?", true).Where(
-			h.DB.Where("id IN ?", models).Or("open =?", true),
+			h.DB.Where("id IN ?", models).Or("open", true),
 		).Order("sort_num ASC").Find(&items)
 	}
 

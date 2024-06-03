@@ -171,7 +171,6 @@ func main() {
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
-		// License 服务
 
 		// 微信机器人服务
 		fx.Provide(wx.NewWeChatBot),
@@ -186,7 +185,8 @@ func main() {
 
 		// MidJourney service pool
 		fx.Provide(mj.NewServicePool),
-		fx.Invoke(func(pool *mj.ServicePool) {
+		fx.Invoke(func(pool *mj.ServicePool, config *types.AppConfig) {
+			pool.InitServices(config.MjPlusConfigs, config.MjProxyConfigs)
 			if pool.HasAvailableService() {
 				pool.DownloadImages()
 				pool.CheckTaskNotify()
@@ -196,7 +196,8 @@ func main() {
 
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewServicePool),
-		fx.Invoke(func(pool *sd.ServicePool) {
+		fx.Invoke(func(pool *sd.ServicePool, config *types.AppConfig) {
+			pool.InitServices(config.SdConfigs)
 			if pool.HasAvailableService() {
 				pool.CheckTaskNotify()
 				pool.CheckTaskStatus()
@@ -329,7 +330,7 @@ func main() {
 			group.POST("save", h.Save)
 			group.POST("sort", h.Sort)
 			group.POST("set", h.Set)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
 			group := s.Engine.Group("/api/admin/reward/")

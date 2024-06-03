@@ -81,10 +81,11 @@
           </div>
 
           <div class="markdown" v-if="loading">
-            <div v-html="html"></div>
+            <div :style="{ height: rightBoxHeight + 'px', overflow:'auto',width:'80%' }" v-html="html"></div>
           </div>
           <div class="body" id="markmap" v-show="!loading">
             <svg ref="svgRef" :style="{ height: rightBoxHeight + 'px' }"/>
+            <div id="toolbar"></div>
           </div>
         </div><!-- end task list box -->
       </div>
@@ -104,6 +105,7 @@ import {checkSession} from "@/action/session";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Download} from "@element-plus/icons-vue";
+import {Toolbar} from 'markmap-toolbar';
 
 const leftBoxHeight = ref(window.innerHeight - 105)
 const rightBoxHeight = ref(window.innerHeight - 85)
@@ -140,6 +142,8 @@ onMounted(() => {
   initData()
   try {
     markMap.value = Markmap.create(svgRef.value)
+    const {el} = Toolbar.create(markMap.value);
+    document.getElementById('toolbar').append(el);
     update()
   } catch (e) {
     console.error(e)
@@ -153,7 +157,7 @@ const initData = () => {
 
     httpGet("/api/model/list").then(res => {
       for (let v of res.data) {
-        if (v.platform === "OpenAI") {
+        if (v.platform === "OpenAI" && v.value.indexOf("gpt-4-gizmo") === -1) {
           models.value.push(v)
         }
       }
@@ -167,7 +171,6 @@ const initData = () => {
 }
 
 const update = () => {
-
   try {
     const {root} = transformer.transform(processContent(text.value))
     markMap.value.setData(root)
@@ -242,6 +245,7 @@ const connect = (userId) => {
     if (event.data instanceof Blob) {
       const reader = new FileReader();
       reader.readAsText(event.data, "UTF-8")
+      const model = getModelById(modelID.value)
       reader.onload = () => {
         const data = JSON.parse(String(reader.result))
         switch (data.type) {
@@ -255,6 +259,7 @@ const connect = (userId) => {
           case "end":
             loading.value = false
             content.value = processContent(text.value)
+            loginUser.value.power -= model.power
             nextTick(() => update())
             break
           case "error":
@@ -298,6 +303,14 @@ const generateAI = () => {
 const changeModel = () => {
   if (socket.value !== null) {
     socket.value.send(JSON.stringify({type: "model_id", content: modelID.value}))
+  }
+}
+
+const getModelById = (modelId) => {
+  for (let e of models.value) {
+    if (e.id === modelId) {
+      return e
+    }
   }
 }
 

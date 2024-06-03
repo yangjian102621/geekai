@@ -92,8 +92,7 @@ func (h *DallJobHandler) preCheck(c *gin.Context) bool {
 		resp.NotAuth(c)
 		return false
 	}
-
-	if user.Power < h.App.SysConfig.SdPower {
+	if user.Power < h.App.SysConfig.DallPower {
 		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
 		return false
 	}

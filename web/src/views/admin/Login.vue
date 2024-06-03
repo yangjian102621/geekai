@@ -2,6 +2,10 @@
   <div class="admin-login">
     <div class="main">
       <div class="contain">
+        <div class="logo">
+          <el-image :src="logo" fit="cover" @click="router.push('/')"/>
+        </div>
+
         <div class="header">{{ title }}</div>
         <div class="content">
           <div class="block">
@@ -42,9 +46,9 @@
 
 <script setup>
 
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
@@ -52,13 +56,22 @@ import {setAdminToken} from "@/store/session";
 import {checkAdminSession} from "@/action/session";
 
 const router = useRouter();
-const title = ref('ChatGPT Plus Admin');
+const title = ref('Geek-AI Console');
 const username = ref(process.env.VUE_APP_ADMIN_USER);
 const password = ref(process.env.VUE_APP_ADMIN_PASS);
+const logo = ref("/images/logo.png")
 
 checkAdminSession().then(() => {
   router.push("/admin")
 }).catch(() => {
+})
+
+// 加载系统配置
+httpGet('/api/config/get?key=system').then(res => {
+  title.value = res.data.admin_title
+  logo.value = res.data.logo
+}).catch(e => {
+  ElMessage.error("加载系统配置失败: " + e.message)
 })
 
 const keyupHandle = (e) => {
@@ -107,10 +120,20 @@ const login = function () {
       border-radius 10px;
       background rgba(255, 255, 255, 0.3)
 
+      .logo {
+        text-align center
+
+        .el-image {
+          width 120px;
+          cursor pointer
+        }
+      }
+
       .header {
         width 100%
         margin-bottom 20px
-        font-size 24px
+        padding 10px
+        font-size 26px
         text-align center
       }
 
