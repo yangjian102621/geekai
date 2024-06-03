@@ -9,13 +9,14 @@ package chatimpl
 
 import (
 	"bufio"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
-	"context"
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -61,14 +62,8 @@ func (h *ChatHandler) sendBaiduMessage(
 			logger.Info("用户取消了请求：", prompt)
 			return nil
 		} else if strings.Contains(err.Error(), "no available key") {
-			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
-			return nil
-		} else {
-			logger.Error(err)
+			return errors.New("抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 		}
-
-		utils.ReplyMessage(ws, ErrorMsg)
-		utils.ReplyMessage(ws, ErrImg)
 		return err
 	} else {
 		defer response.Body.Close()

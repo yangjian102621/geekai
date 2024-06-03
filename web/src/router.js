@@ -105,7 +105,7 @@ const routes = [
     {
         path: '/admin/login',
         name: 'admin-login',
-        meta: {title: 'ChatPuls 控制台登录'},
+        meta: {title: 'Geek-AI 控制台登录'},
         component: () => import('@/views/admin/Login.vue'),
     },
     {
@@ -113,7 +113,7 @@ const routes = [
         path: '/admin',
         redirect: '/admin/dashboard',
         component: () => import("@/views/admin/Home.vue"),
-        meta: {title: 'ChatPuls 管理后台'},
+        meta: {title: 'Geek-AI 控制台'},
         children: [
             {
                 path: '/admin/dashboard',

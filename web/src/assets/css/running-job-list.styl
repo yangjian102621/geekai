@@ -1,0 +1,39 @@
+.running-job-list {
+
+  .running-job-box {
+    width 100%
+    display flex
+    flex-flow row
+  }
+
+  .job-item {
+    margin-right 10px
+    width 200px
+    height 200px
+    overflow hidden
+    padding 2px
+    background-color #555555
+
+    .job-item-inner {
+      position relative
+      height 100%
+      overflow hidden
+
+      .progress {
+        position absolute
+        width 100%
+        height 100%
+        top 0
+        left 0
+        display flex
+        justify-content center
+        align-items center
+
+        span {
+          font-size 20px
+          color #ffffff
+        }
+      }
+    }
+  }
+}

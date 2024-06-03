@@ -33,6 +33,7 @@ type Service struct {
 	uploadManager *oss.UploaderManager
 	name          string // service name
 	leveldb       *store.LevelDB
+	running       bool // 运行状态
 }
 
 func NewService(name string, config types.StableDiffusionConfig, taskQueue *store.RedisQueue, notifyQueue *store.RedisQueue, db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelDB) *Service {
@@ -46,11 +47,13 @@ func NewService(name string, config types.StableDiffusionConfig, taskQueue *stor
 		db:            db,
 		leveldb:       levelDB,
 		uploadManager: manager,
+		running:       true,
 	}
 }
 
 func (s *Service) Run() {
-	for {
+	logger.Infof("Starting Stable-Diffusion job consumer for %s", s.name)
+	for s.running {
 		var task types.SdTask
 		err := s.taskQueue.LPop(&task)
 		if err != nil {
@@ -94,6 +97,10 @@ func (s *Service) Run() {
 	}
 }
 
+func (s *Service) Stop() {
+	s.running = false
+}
+
 // Txt2ImgReq 文生图请求实体
 type Txt2ImgReq struct {
 	Prompt            string  `json:"prompt"`
@@ -104,6 +111,7 @@ type Txt2ImgReq struct {
 	Width             int     `json:"width"`
 	Height            int     `json:"height"`
 	SamplerName       string  `json:"sampler_name"`
+	Scheduler         string  `json:"scheduler"`
 	EnableHr          bool    `json:"enable_hr,omitempty"`
 	HrScale           int     `json:"hr_scale,omitempty"`
 	HrUpscaler        string  `json:"hr_upscaler,omitempty"`
@@ -137,6 +145,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 		Width:          task.Params.Width,
 		Height:         task.Params.Height,
 		SamplerName:    task.Params.Sampler,
+		Scheduler:      task.Params.Scheduler,
 		ForceTaskId:    task.Params.TaskId,
 	}
 	if task.Params.Seed > 0 {

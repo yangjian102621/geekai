@@ -451,70 +451,78 @@
           <div class="job-list-box">
             <h2>任务列表</h2>
             <div class="running-job-list">
-              <ItemList :items="runningJobs" v-if="runningJobs.length > 0">
-                <template #default="scope">
-                  <div class="job-item">
-                    <div v-if="scope.item.progress > 0" class="job-item-inner">
-                      <el-image :src="scope.item['img_url']" :zoom-rate="1.2"
-                                :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="0"
-                                loading="lazy">
-                        <template #placeholder>
-                          <div class="image-slot">
-                            正在加载图片
-                          </div>
-                        </template>
+              <div class="running-job-box" v-if="runningJobs.length > 0">
+                <div class="job-item" v-for="item in runningJobs">
+                  <div v-if="item.progress > 0" class="job-item-inner">
+                    <el-image :src="item['img_url']" fit="cover" loading="lazy">
+                      <template #placeholder>
+                        <div class="image-slot">
+                          正在加载图片
+                        </div>
+                      </template>
 
-                        <template #error>
-                          <div class="image-slot">
-                            <el-icon>
-                              <Picture/>
-                            </el-icon>
-                          </div>
-                        </template>
-                      </el-image>
-
-                      <div class="progress">
-                        <el-progress type="circle" :percentage="scope.item.progress" :width="100"
-                                     color="#47fff1"/>
-                      </div>
-                    </div>
-                    <el-image fit="cover" v-else>
                       <template #error>
                         <div class="image-slot">
-                          <i class="iconfont icon-quick-start"></i>
-                          <span>任务正在排队中</span>
+                          <el-icon>
+                            <Picture/>
+                          </el-icon>
                         </div>
                       </template>
                     </el-image>
+
+                    <div class="progress">
+                      <el-progress type="circle" :percentage="item.progress" :width="100"
+                                   color="#47fff1"/>
+                    </div>
                   </div>
-                </template>
-              </ItemList>
+                  <el-image fit="cover" v-else>
+                    <template #error>
+                      <div class="image-slot">
+                        <i class="iconfont icon-quick-start"></i>
+                        <span>任务正在排队中</span>
+                      </div>
+                    </template>
+                  </el-image>
+                </div>
+              </div>
               <el-empty :image-size="100" v-else/>
             </div>
 
             <h2>创作记录</h2>
             <div class="finish-job-list">
               <div v-if="finishedJobs.length > 0">
-                <ItemList :items="finishedJobs" :width="240" :gap="16">
-                  <template #default="scope">
+                <v3-waterfall
+                    id="waterfall"
+                    :list="finishedJobs"
+                    srcKey="thumb_url"
+                    :gap="20"
+                    :bottomGap="-8"
+                    :colWidth="colWidth"
+                    :distanceToScroll="100"
+                    :isLoading="loading"
+                    :isOver="isOver"
+                    @scrollReachBottom="fetchFinishJobs()">
+                  <template #default="slotProp">
                     <div class="job-item">
                       <el-image
-                          :src="scope.item['thumb_url']"
-                          :class="scope.item['can_opt'] ? '' : 'upscale'" :zoom-rate="1.2"
-                          :preview-src-list="[scope.item['img_url']]" fit="cover" :initial-index="scope.index"
-                          loading="lazy" v-if="scope.item.progress > 0">
+                          v-if="slotProp.item.img_url !== ''"
+                          :src="slotProp.item['thumb_url']"
+                          :class="slotProp.item['can_opt'] ? '' : 'upscale'" @click="previewImg(slotProp.item)"
+                          fit="cover" :initial-index="slotProp.index"
+                          loading="lazy">
                         <template #placeholder>
                           <div class="image-slot">
                             正在加载图片
                           </div>
                         </template>
-
+                      </el-image>
+                      <el-image v-else>
                         <template #error>
-                          <div class="image-slot" v-if="scope.item['img_url'] === ''">
+                          <div class="image-slot">
                             <i class="iconfont icon-loading"></i>
                             <span>正在下载图片</span>
                           </div>
-                          <div class="image-slot" v-else>
+                          <div class="image-slot">
                             <el-icon>
                               <Picture/>
                             </el-icon>
@@ -522,13 +530,13 @@
                         </template>
                       </el-image>
 
-                      <div class="opt" v-if="scope.item['can_opt']">
+                      <div class="opt" v-if="slotProp.item['can_opt']">
                         <div class="opt-line">
                           <ul>
-                            <li><a @click="upscale(1, scope.item)">U1</a></li>
-                            <li><a @click="upscale(2, scope.item)">U2</a></li>
-                            <li><a @click="upscale(3, scope.item)">U3</a></li>
-                            <li><a @click="upscale(4, scope.item)">U4</a></li>
+                            <li><a @click="upscale(1, slotProp.item)">U1</a></li>
+                            <li><a @click="upscale(2, slotProp.item)">U2</a></li>
+                            <li><a @click="upscale(3, slotProp.item)">U3</a></li>
+                            <li><a @click="upscale(4, slotProp.item)">U4</a></li>
                             <li class="show-prompt">
 
                               <el-popover placement="left" title="提示词" :width="240" trigger="hover">
@@ -540,9 +548,9 @@
 
                                 <template #default>
                                   <div class="mj-list-item-prompt">
-                                    <span>{{ scope.item.prompt }}</span>
+                                    <span>{{ slotProp.item.prompt }}</span>
                                     <el-icon class="copy-prompt-mj"
-                                             :data-clipboard-text="scope.item.prompt">
+                                             :data-clipboard-text="slotProp.item.prompt">
                                       <DocumentCopy/>
                                     </el-icon>
                                   </div>
@@ -554,39 +562,44 @@
 
                         <div class="opt-line">
                           <ul>
-                            <li><a @click="variation(1, scope.item)">V1</a></li>
-                            <li><a @click="variation(2, scope.item)">V2</a></li>
-                            <li><a @click="variation(3, scope.item)">V3</a></li>
-                            <li><a @click="variation(4, scope.item)">V4</a></li>
+                            <li><a @click="variation(1, slotProp.item)">V1</a></li>
+                            <li><a @click="variation(2, slotProp.item)">V2</a></li>
+                            <li><a @click="variation(3, slotProp.item)">V3</a></li>
+                            <li><a @click="variation(4, slotProp.item)">V4</a></li>
                           </ul>
                         </div>
                       </div>
 
                       <div class="remove">
-                        <el-button type="danger" :icon="Delete" @click="removeImage(scope.item)" circle/>
-                        <el-button type="warning" v-if="scope.item.publish" @click="publishImage(scope.item, false)"
+                        <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle/>
+                        <el-button type="warning" v-if="slotProp.item.publish"
+                                   @click="publishImage(slotProp.item, false)"
                                    circle>
                           <i class="iconfont icon-cancel-share"></i>
                         </el-button>
-                        <el-button type="success" v-else @click="publishImage(scope.item, true)" circle>
+                        <el-button type="success" v-else @click="publishImage(slotProp.item, true)" circle>
                           <i class="iconfont icon-share-bold"></i>
                         </el-button>
                       </div>
                     </div>
                   </template>
-                </ItemList>
-                <div class="no-more-data" v-if="isOver">
-                  <span>没有更多数据了</span>
-                  <i class="iconfont icon-face"></i>
-                </div>
+
+                  <template #footer>
+                    <div class="no-more-data">
+                      <span>没有更多数据了</span>
+                      <i class="iconfont icon-face"></i>
+                    </div>
+                  </template>
+                </v3-waterfall>
               </div>
               <el-empty :image-size="100" v-else/>
             </div> <!-- end finish job list-->
           </div>
         </div>
-
       </div><!-- end task list box -->
     </div>
+
+    <el-image-viewer @close="() => { previewURL = '' }" v-if="previewURL !== ''" :url-list="[previewURL]"/>
 
     <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
@@ -598,7 +611,6 @@ import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus, UploadFil
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
-import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
@@ -609,6 +621,9 @@ import LoginDialog from "@/components/LoginDialog.vue";
 const listBoxHeight = ref(window.innerHeight - 40)
 const paramBoxHeight = ref(window.innerHeight - 150)
 const showLoginDialog = ref(false)
+const loading = ref(true)
+const colWidth = ref(240)
+const previewURL = ref("")
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
@@ -730,7 +745,7 @@ const connect = () => {
       reader.onload = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
-          page.value = 1
+          page.value = 0
           fetchFinishJobs(page.value)
           isOver.value = false
         }
@@ -773,9 +788,9 @@ const initData = () => {
     power.value = user['power']
     userId.value = user.id
     isLogin.value = true
-
+    page.value = 0
     fetchRunningJobs()
-    fetchFinishJobs(1)
+    fetchFinishJobs()
     connect()
   }).catch(() => {
 
@@ -824,35 +839,28 @@ const fetchRunningJobs = () => {
   })
 }
 
-
-const handleScrollEnd = () => {
-  if (isOver.value === true) {
-    return
-  }
-  page.value += 1
-  fetchFinishJobs(page.value)
-};
-
-const page = ref(1)
+const page = ref(0)
 const pageSize = ref(15)
 const isOver = ref(false)
-const fetchFinishJobs = (page) => {
-  if (!isLogin.value) {
+const fetchFinishJobs = () => {
+  if (!isLogin.value || isOver.value) {
     return
   }
 
+  loading.value = true
+  page.value = page.value + 1
   // 获取已完成的任务
-  httpGet(`/api/mj/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
+  httpGet(`/api/mj/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data
     for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i]['use_proxy']) {
-        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?x-oss-process=image/quality,q_60&format=webp'
-      } else {
+      if (jobs[i]['img_url'] !== "") {
         if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
           jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
         } else {
           jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
         }
+      } else {
+        jobs[i]['thumb_url'] = '/images/img-placeholder.jpg'
       }
 
       if (jobs[i].type === 'image' || jobs[i].type === 'variation') {
@@ -862,11 +870,12 @@ const fetchFinishJobs = (page) => {
     if (jobs.length < pageSize.value) {
       isOver.value = true
     }
-    if (page === 1) {
+    if (page.value === 1) {
       finishedJobs.value = jobs
     } else {
       finishedJobs.value = finishedJobs.value.concat(jobs)
     }
+    loading.value = false
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })
@@ -1003,6 +1012,11 @@ const publishImage = (item, action) => {
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })
+}
+
+const previewImg = (item) => {
+  previewURL.value = item.img_url
+
 }
 
 // 切换菜单

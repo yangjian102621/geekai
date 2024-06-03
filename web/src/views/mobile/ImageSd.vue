@@ -198,7 +198,7 @@
                 <el-button type="success" v-else @click="publishImage($event, item, true)" circle>
                   <i class="iconfont icon-share-bold"></i>
                 </el-button>
-                <el-button type="primary" @click="showPrompt(item)" circle>
+                <el-button type="primary" @click="showTask(item)" circle>
                   <i class="iconfont icon-prompt"></i>
                 </el-button>
               </div>
@@ -208,7 +208,7 @@
       </van-list>
 
     </div>
-    <button style="display: none" class="copy-prompt-sd" :data-clipboard-text="prompt" id="copy-btn-sd">复制</button>
+
   </div>
 </template>
 
@@ -221,19 +221,19 @@ import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {
-  showConfirmDialog,
-  showDialog,
+  showConfirmDialog, showDialog,
   showFailToast,
   showImagePreview,
   showNotify,
   showSuccessToast,
   showToast
 } from "vant";
-import {showLoginDialog} from "@/utils/libs";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
+const showTaskDialog = ref(false)
 const item = ref({})
+const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const activeColspan = ref([""])
 
@@ -338,20 +338,19 @@ const connect = () => {
 }
 
 const clipboard = ref(null)
-const prompt = ref('')
 onMounted(() => {
   initData()
-  clipboard.value = new Clipboard(".copy-prompt-sd");
+  clipboard.value = new Clipboard('.copy-prompt-sd');
   clipboard.value.on('success', () => {
-    showNotify({type: 'success', message: '复制成功', duration: 1000})
+    showNotify({type: "success", message: "复制成功！"});
   })
+
   clipboard.value.on('error', () => {
-    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+    showNotify({type: "danger", message: '复制失败！'});
   })
 
   httpGet("/api/config/get?key=system").then(res => {
-    sdPower.value = res.data.sd_power
-    params.value.neg_prompt = res.data.sd_neg_prompt
+    sdPower.value = res.data["sd_power"]
   }).catch(e => {
     showNotify({type: "danger", message: "获取系统配置失败：" + e.message})
   })
@@ -359,10 +358,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  if (socket.value !== null) {
-    socket.value.close()
-    socket.value = null
-  }
+  socket.value = null
 })
 
 
@@ -433,16 +429,17 @@ const onLoad = () => {
 // 创建绘图任务
 const promptRef = ref(null)
 const generate = () => {
-  if (!isLogin.value) {
-    return showLoginDialog(router)
-  }
-
   if (params.value.prompt === '') {
     promptRef.value.focus()
     return showToast("请输入绘画提示词！")
   }
 
-  if (!params.value.seed) {
+  if (!isLogin.value) {
+    showLoginDialog.value = true
+    return
+  }
+
+  if (params.value.seed === '') {
     params.value.seed = -1
   }
   params.value.session_id = getSessionId()
@@ -454,17 +451,14 @@ const generate = () => {
   })
 }
 
-const showPrompt = (item) => {
-  prompt.value = item.prompt
-  showConfirmDialog({
-    title: "绘画提示词",
-    message: item.prompt,
-    confirmButtonText: "复制",
-    cancelButtonText: "关闭",
-  }).then(() => {
-    document.querySelector('#copy-btn-sd').click()
-  }).catch(() => {
-  });
+const showTask = (row) => {
+  item.value = row
+  showTaskDialog.value = true
+}
+
+const copyParams = (row) => {
+  params.value = row.params
+  showTaskDialog.value = false
 }
 
 const removeImage = (event, item) => {
