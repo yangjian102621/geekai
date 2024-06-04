@@ -183,45 +183,29 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 		utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
 
 	} else {
-		body, err := io.ReadAll(response.Body)
-		if err != nil {
-			return fmt.Errorf("读取响应失败: %v", err)
-		}
-		var res types.ApiError
-		err = json.Unmarshal(body, &res)
-		if err != nil {
-			return fmt.Errorf("解析响应失败: %v", err)
-		}
-
-		// OpenAI API 调用异常处理
-		if strings.Contains(res.Error.Message, "This key is associated with a deactivated account") {
-			// remove key
-			h.DB.Where("value = ?", apiKey).Delete(&model.ApiKey{})
-			return errors.New("请求 OpenAI API 失败：API KEY 所关联的账户被禁用。")
-		} else if strings.Contains(res.Error.Message, "You exceeded your current quota") {
-			return errors.New("请求 OpenAI API 失败：API KEY 触发并发限制，请稍后再试。")
-		} else {
-			return fmt.Errorf("请求 OpenAI API 失败：%v", res.Error.Message)
-		}
+		body, _ := io.ReadAll(response.Body)
+		return fmt.Errorf("请求 OpenAI API 失败：%s", string(body))
 	}
 
 	// 扣减算力
-	res = h.DB.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power - ?", chatModel.Power))
-	if res.Error == nil {
-		// 记录算力消费日志
-		var u model.User
-		h.DB.Where("id", userId).First(&u)
-		h.DB.Create(&model.PowerLog{
-			UserId:    u.Id,
-			Username:  u.Username,
-			Type:      types.PowerConsume,
-			Amount:    chatModel.Power,
-			Mark:      types.PowerSub,
-			Balance:   u.Power,
-			Model:     chatModel.Value,
-			Remark:    fmt.Sprintf("AI绘制思维导图，模型名称：%s, ", chatModel.Value),
-			CreatedAt: time.Now(),
-		})
+	if chatModel.Power > 0 {
+		res = h.DB.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power - ?", chatModel.Power))
+		if res.Error == nil {
+			// 记录算力消费日志
+			var u model.User
+			h.DB.Where("id", userId).First(&u)
+			h.DB.Create(&model.PowerLog{
+				UserId:    u.Id,
+				Username:  u.Username,
+				Type:      types.PowerConsume,
+				Amount:    chatModel.Power,
+				Mark:      types.PowerSub,
+				Balance:   u.Power,
+				Model:     chatModel.Value,
+				Remark:    fmt.Sprintf("AI绘制思维导图，模型名称：%s, ", chatModel.Value),
+				CreatedAt: time.Now(),
+			})
+		}
 	}
 
 	return nil
@@ -235,7 +219,7 @@ func (h *MarkMapHandler) doRequest(req types.ApiRequest, chatModel model.ChatMod
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {
-		res = h.DB.Where("platform", types.OpenAI).
+		res = h.DB.Where("platform", types.OpenAI.Value).
 			Where("type", "chat").
 			Where("enabled", true).Order("last_used_at ASC").First(apiKey)
 	}
