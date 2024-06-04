@@ -153,10 +153,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	} else {
 		request = request.SetHeader("Authorization", "Bearer "+apiKey.Value)
 	}
-	r, err := request.SetHeader("Authorization", "Bearer "+apiKey.Value).
-		SetBody(reqBody).
-		SetErrorResult(&errRes).
-		SetSuccessResult(&res).Post(apiKey.ApiURL)
+	r, err := request.SetBody(reqBody).SetErrorResult(&errRes).SetSuccessResult(&res).Post(apiKey.ApiURL)
 	if err != nil {
 		return "", fmt.Errorf("error with send request: %v", err)
 	}

@@ -6,19 +6,20 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import {createRouter, createWebHistory} from "vue-router";
+import {ref} from "vue";
+import {httpGet} from "@/utils/http";
 
 const routes = [
     {
         name: 'Index',
         path: '/',
-        meta: {title: process.env.VUE_APP_TITLE},
+        meta: {title: "首页"},
         component: () => import('@/views/Index.vue'),
     },
     {
         name: 'home',
         path: '/home',
         redirect: '/chat',
-        meta: {title: '首页'},
         component: () => import('@/views/Home.vue'),
         children: [
             {
@@ -273,11 +274,22 @@ const router = createRouter({
     routes: routes,
 })
 
+const active = ref(false)
+const title = ref('')
+httpGet("/api/config/license").then(res => {
+    active.value = res.data.de_copy
+}).catch(() => {})
+httpGet("/api/config/get?key=system").then(res => {
+    title.value = res.data.title
+}).catch(()=>{})
+
 let prevRoute = null
 // dynamic change the title when router change
 router.beforeEach((to, from, next) => {
-    if (to.meta.title) {
+    if (!active.value) {
         document.title = `${to.meta.title} | ${process.env.VUE_APP_TITLE}`
+    } else {
+        document.title = `${to.meta.title} | ${title.value}`
     }
     prevRoute = from
     next()

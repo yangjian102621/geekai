@@ -54,7 +54,7 @@ type apiErrRes struct {
 
 func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	var apiKey model.ApiKey
-	res := db.Where("platform = ?", types.OpenAI.Value).Where("type", "chat").Where("enabled = ?", true).First(&apiKey)
+	res := db.Where("platform IN ?", []string{types.OpenAI.Value, types.Azure.Value}).Where("type", "chat").Where("enabled = ?", true).First(&apiKey)
 	if res.Error != nil {
 		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
 	}

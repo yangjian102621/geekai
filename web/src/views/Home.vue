@@ -46,19 +46,21 @@
                 <span class="username">{{ loginUser.nickname }}</span>
               </el-dropdown-item>
 
-              <el-dropdown-item>
-                <i class="iconfont icon-book"></i>
-                <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-                  用户手册
-                </a>
-              </el-dropdown-item>
+              <div  v-if="!licenseConfig.de_copy">
+                <el-dropdown-item>
+                  <i class="iconfont icon-book"></i>
+                  <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+                    用户手册
+                  </a>
+                </el-dropdown-item>
 
-              <el-dropdown-item>
-                <i class="iconfont icon-github"></i>
-                <a href="https://ai.r9it.com/docs/" target="_blank">
-                  Geek-AI {{ version }}
-                </a>
-              </el-dropdown-item>
+                <el-dropdown-item>
+                  <i class="iconfont icon-github"></i>
+                  <a href="https://ai.r9it.com/docs/" target="_blank">
+                    Geek-AI {{ version }}
+                  </a>
+                </el-dropdown-item>
+              </div>
               <el-divider style="margin: 2px 0"/>
               <el-dropdown-item @click="logout">
                 <i class="iconfont icon-logout"></i>
