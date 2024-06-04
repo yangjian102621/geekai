@@ -5,9 +5,9 @@
         <h2>AI 绘画作品墙</h2>
         <div class="settings">
           <el-radio-group v-model="imgType" @change="changeImgType">
-            <el-radio value="mj" size="large">MidJourney</el-radio>
-            <el-radio value="sd" size="large">Stable Diffusion</el-radio>
-            <el-radio value="dall" size="large">DALL-E</el-radio>
+            <el-radio label="mj" size="large">MidJourney</el-radio>
+            <el-radio label="sd" size="large">Stable Diffusion</el-radio>
+            <el-radio label="dall" size="large">DALL-E</el-radio>
           </el-radio-group>
         </div>
       </div>
