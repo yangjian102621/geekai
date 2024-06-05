@@ -493,7 +493,7 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	h.DB.Model(&model.Product{}).Where("id = ?", order.ProductId).UpdateColumn("sales", gorm.Expr("sales + ?", 1))
 
 	// 记录算力充值日志
-	if opt != "" {
+	if power > 0 {
 		h.DB.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,

@@ -109,8 +109,8 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	logger.Debugf("绘画参数：%+v", task)
 	prompt := task.Prompt
 	// translate prompt
-	if utils.HasChinese(task.Prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Prompt))
+	if utils.HasChinese(prompt) {
+		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt))
 		if err == nil {
 			prompt = content
 			logger.Debugf("重写后提示词：%s", prompt)
@@ -124,9 +124,28 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		return "", errors.New("insufficient of power")
 	}
 
+	// 更新用户算力
+	tx := s.db.Model(&model.User{}).Where("id", user.Id).UpdateColumn("power", gorm.Expr("power - ?", task.Power))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		var u model.User
+		s.db.Where("id", user.Id).First(&u)
+		s.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    task.Power,
+			Balance:   u.Power,
+			Mark:      types.PowerSub,
+			Model:     "dall-e-3",
+			Remark:    fmt.Sprintf("绘画提示词：%s", utils.CutWords(task.Prompt, 10)),
+			CreatedAt: time.Now(),
+		})
+	}
+
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx := s.db.Where("type", "img").
+	tx = s.db.Where("type", "img").
 		Where("enabled", true).
 		Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
@@ -181,25 +200,6 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 			return "", fmt.Errorf("error with download image: %v", err)
 		}
 		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", prompt, imgURL)
-	}
-
-	// 更新用户算力
-	tx = s.db.Model(&model.User{}).Where("id", user.Id).UpdateColumn("power", gorm.Expr("power - ?", task.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		var u model.User
-		s.db.Where("id", user.Id).First(&u)
-		s.db.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    task.Power,
-			Balance:   u.Power,
-			Mark:      types.PowerSub,
-			Model:     "dall-e-3",
-			Remark:    fmt.Sprintf("绘画提示词：%s", utils.CutWords(task.Prompt, 10)),
-			CreatedAt: time.Now(),
-		})
 	}
 
 	return content, nil

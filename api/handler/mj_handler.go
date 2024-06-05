@@ -205,7 +205,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	h.pool.PushTask(types.MjTask{
 		Id:        job.Id,
 		TaskId:    taskId,
-		SessionId: data.SessionId,
 		Type:      types.TaskType(data.TaskType),
 		Prompt:    data.Prompt,
 		NegPrompt: data.NegPrompt,
@@ -283,7 +282,6 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 
 	h.pool.PushTask(types.MjTask{
 		Id:          job.Id,
-		SessionId:   data.SessionId,
 		Type:        types.TaskUpscale,
 		Prompt:      data.Prompt,
 		UserId:      userId,
@@ -350,7 +348,6 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 
 	h.pool.PushTask(types.MjTask{
 		Id:          job.Id,
-		SessionId:   data.SessionId,
 		Type:        types.TaskVariation,
 		Prompt:      data.Prompt,
 		UserId:      userId,

@@ -187,7 +187,7 @@ onMounted(() => {
   httpGet("/api/menu/list").then(res => {
     mainNavs.value = res.data
     // 根据窗口的高度计算应该显示多少菜单
-    const rows = Math.floor((window.innerHeight - 90) / 60)
+    const rows = Math.floor((window.innerHeight - 100) / 90)
     if (res.data.length > rows) {
       mainNavs.value = res.data.slice(0, rows)
       moreNavs.value = res.data.slice(rows)

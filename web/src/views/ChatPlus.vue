@@ -191,7 +191,15 @@ import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
-import {dateFormat, escapeHTML, isMobile, processContent, randString, removeArrayItem, UUID} from "@/utils/libs";
+import {
+  dateFormat,
+  isMobile,
+  processContent,
+  processPrompt,
+  randString,
+  removeArrayItem,
+  UUID
+} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
 import hl from "highlight.js";
 import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
@@ -697,8 +705,10 @@ const onInput = (e) => {
   inputRef.value.scrollTo(0, inputRef.value.scrollHeight)
   if (prompt.value.length < 10) {
     row.value = 1
-  } else if (row.value <= 7) {
+  } else if (lines <= 7){
     row.value = lines
+  } else {
+    row.value = 7
   }
 
   // 输入回车自动提交
@@ -738,7 +748,7 @@ const sendMessage = function () {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(escapeHTML(processContent(prompt.value))),
+    content: md.render(processPrompt(prompt.value)),
     created_at: new Date().getTime() / 1000,
   });
 

@@ -28,7 +28,6 @@ type MjTask struct {
 	TaskId      string   `json:"task_id"`
 	ImgArr      []string `json:"img_arr"`
 	ChannelId   string   `json:"channel_id"`
-	SessionId   string   `json:"session_id"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
 	Prompt      string   `json:"prompt,omitempty"`
@@ -42,7 +41,6 @@ type MjTask struct {
 
 type SdTask struct {
 	Id         int          `json:"id"` // job 数据库ID
-	SessionId  string       `json:"session_id"`
 	Type       TaskType     `json:"type"`
 	UserId     int          `json:"user_id"`
 	Params     SdTaskParams `json:"params"`
