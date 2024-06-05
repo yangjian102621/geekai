@@ -222,10 +222,24 @@ export function processContent(content) {
     return texts.join("\n")
 }
 
-export function escapeHTML(html) {
-    return html.replace(/&/g, "&amp;")
+export function processPrompt(prompt) {
+    prompt = prompt.replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+
+    const linkRegex = /(https?:\/\/\S+)/g;
+    const links = prompt.match(linkRegex);
+    if (links) {
+        for (let link of links) {
+            if (isImage(link)) {
+                const index = prompt.indexOf(link)
+                if (prompt.substring(index - 1, 2) !== "]") {
+                    prompt = prompt.replace(link, "\n![](" + link + ")\n")
+                }
+            }
+        }
+    }
+    return prompt
 }
 
 // 判断是否为 iphone 设备

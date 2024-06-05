@@ -179,14 +179,14 @@ func (p *ServicePool) HasAvailableService() bool {
 // SyncTaskProgress 异步拉取任务
 func (p *ServicePool) SyncTaskProgress() {
 	go func() {
-		var items []model.MidJourneyJob
+		var jobs []model.MidJourneyJob
 		for {
-			res := p.db.Where("progress < ?", 100).Find(&items)
+			res := p.db.Where("progress < ?", 100).Find(&jobs)
 			if res.Error != nil {
 				continue
 			}
 
-			for _, job := range items {
+			for _, job := range jobs {
 				// 失败或者 30 分钟还没完成的任务删除并退回算力
 				if time.Now().Sub(job.CreatedAt) > time.Minute*30 || job.Progress == -1 {
 					p.db.Delete(&job)

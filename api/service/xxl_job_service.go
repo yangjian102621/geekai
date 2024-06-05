@@ -106,23 +106,26 @@ func (e *XXLJobExecutor) ResetVipPower(cxt context.Context, param *xxl.RunReq) (
 			e.db.Model(&model.User{}).Where("id", u.Id).UpdateColumn("vip", false)
 			continue
 		}
-		// update user
-		tx := e.db.Model(&model.User{}).Where("id", u.Id).UpdateColumn("power", gorm.Expr("power + ?", config.VipMonthPower))
-		// 记录算力变动日志
-		if tx.Error == nil {
-			var user model.User
-			e.db.Where("id", u.Id).First(&user)
-			e.db.Create(&model.PowerLog{
-				UserId:    u.Id,
-				Username:  u.Username,
-				Type:      types.PowerRecharge,
-				Amount:    config.VipMonthPower,
-				Mark:      types.PowerAdd,
-				Balance:   user.Power,
-				Model:     "系统盘点",
-				Remark:    fmt.Sprintf("VIP会员每月算力派发，：%d", config.VipMonthPower),
-				CreatedAt: time.Now(),
-			})
+		if u.Power < config.VipMonthPower {
+			power := config.VipMonthPower - u.Power
+			// update user
+			tx := e.db.Model(&model.User{}).Where("id", u.Id).UpdateColumn("power", gorm.Expr("power + ?", power))
+			// 记录算力变动日志
+			if tx.Error == nil {
+				var user model.User
+				e.db.Where("id", u.Id).First(&user)
+				e.db.Create(&model.PowerLog{
+					UserId:    u.Id,
+					Username:  u.Username,
+					Type:      types.PowerRecharge,
+					Amount:    power,
+					Mark:      types.PowerAdd,
+					Balance:   user.Power,
+					Model:     "系统盘点",
+					Remark:    fmt.Sprintf("VIP会员每月算力派发，：%d", config.VipMonthPower),
+					CreatedAt: time.Now(),
+				})
+			}
 		}
 	}
 	logger.Info("月底盘点完成！")

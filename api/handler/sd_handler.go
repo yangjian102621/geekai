@@ -168,11 +168,10 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	h.pool.PushTask(types.SdTask{
-		Id:        int(job.Id),
-		SessionId: data.SessionId,
-		Type:      types.TaskImage,
-		Params:    params,
-		UserId:    userId,
+		Id:     int(job.Id),
+		Type:   types.TaskImage,
+		Params: params,
+		UserId: userId,
 	})
 
 	client := h.pool.Clients.Get(uint(job.UserId))
