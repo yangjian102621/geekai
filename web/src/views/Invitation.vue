@@ -5,9 +5,8 @@
         <h2>会员推广计划</h2>
         <div class="share-box">
           <div class="info">
-            我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您将获得 <strong>{{ inviteChatCalls }}</strong>
-            次对话额度以及
-            <strong>{{ inviteImgCalls }}</strong> 次AI绘画额度作为奖励。
+            我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您和被邀请人都将获得 <strong>{{ invitePower }}</strong>
+            算力额度作为奖励。
             你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
           </div>
 
@@ -99,7 +98,7 @@ import {useSharedStore} from "@/store/sharedata";
 
 const inviteURL = ref("")
 const qrImg = ref("/images/wx.png")
-const inviteChatCalls = ref(0)
+const invitePower = ref(0)
 const inviteImgCalls = ref(0)
 const hits = ref(0)
 const regNum = ref(0)
@@ -144,8 +143,7 @@ const initData = () => {
     })
 
     httpGet("/api/config/get?key=system").then(res => {
-      inviteChatCalls.value = res.data["invite_chat_calls"]
-      inviteImgCalls.value = res.data["invite_img_calls"]
+      invitePower.value = res.data["invite_power"]
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
