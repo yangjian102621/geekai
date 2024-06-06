@@ -109,13 +109,22 @@ func (h *UserHandler) Register(c *gin.Context) {
 	user := model.User{
 		Username:   data.Username,
 		Password:   utils.GenPassword(data.Password, salt),
-		Nickname:   fmt.Sprintf("极客学长@%d", utils.RandomNumber(6)),
 		Avatar:     "/images/avatar/user.png",
 		Salt:       salt,
 		Status:     true,
 		ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
 		ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
 		Power:      h.App.SysConfig.InitPower,
+	}
+
+	// 被邀请人也获得赠送算力
+	if data.InviteCode != "" {
+		user.Power += h.App.SysConfig.InvitePower
+	}
+	if h.licenseService.GetLicense().Configs.DeCopy {
+		user.Username = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+	} else {
+		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}
 
 	res = h.DB.Create(&user)

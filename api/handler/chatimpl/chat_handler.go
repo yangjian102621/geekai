@@ -651,26 +651,25 @@ func (h *ChatHandler) saveChatHistory(
 		logger.Error("failed to save reply history message: ", res.Error)
 	}
 
+	// 更新用户算力
 	if session.Model.Power > 0 {
-		// 更新用户算力
 		h.subUserPower(userVo, session, promptToken, replyTokens)
-
-		// 保存当前会话
-		var chatItem model.ChatItem
-		res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
-		if res.Error != nil {
-			chatItem.ChatId = session.ChatId
-			chatItem.UserId = session.UserId
-			chatItem.RoleId = role.Id
-			chatItem.ModelId = session.Model.Id
-			if utf8.RuneCountInString(prompt) > 30 {
-				chatItem.Title = string([]rune(prompt)[:30]) + "..."
-			} else {
-				chatItem.Title = prompt
-			}
-			chatItem.Model = req.Model
-			h.DB.Create(&chatItem)
+	}
+	// 保存当前会话
+	var chatItem model.ChatItem
+	res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
+	if res.Error != nil {
+		chatItem.ChatId = session.ChatId
+		chatItem.UserId = session.UserId
+		chatItem.RoleId = role.Id
+		chatItem.ModelId = session.Model.Id
+		if utf8.RuneCountInString(prompt) > 30 {
+			chatItem.Title = string([]rune(prompt)[:30]) + "..."
+		} else {
+			chatItem.Title = prompt
 		}
+		chatItem.Model = req.Model
+		h.DB.Create(&chatItem)
 	}
 }
 
