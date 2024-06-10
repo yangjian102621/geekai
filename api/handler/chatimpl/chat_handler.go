@@ -235,7 +235,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		Stream: true,
 	}
 	switch session.Model.Platform {
-	case types.Azure, types.ChatGLM, types.Baidu, types.XunFei:
+	case types.Azure, types.ChatGLM, types.Baidu, types.XunFei, types.Ollama:
 		req.Temperature = session.Model.Temperature
 		req.MaxTokens = session.Model.MaxTokens
 		break
@@ -401,6 +401,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		return h.sendXunFeiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	case types.QWen:
 		return h.sendQWenMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+	case types.Ollama:
+		return h.sendOllamaMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	}
 	utils.ReplyChunkMessage(ws, types.WsMessage{
 		Type:    types.WsMiddle,

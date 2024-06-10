@@ -174,6 +174,11 @@ const platforms = ref([
     value: "QWen",
     api_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
   },
+  {
+    name: "【Meta】Ollama",
+    value: "Ollama",
+    api_url: "http://localhost:8080/ollama/api/generate"
+  },
 ])
 const types = ref([
   {name: "聊天", value: "chat"},

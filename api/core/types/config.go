@@ -145,6 +145,7 @@ const ChatGLM = Platform("ChatGLM")
 const Baidu = Platform("Baidu")
 const XunFei = Platform("XunFei")
 const QWen = Platform("QWen")
+const Ollama = Platform("Ollama")
 
 type SystemConfig struct {
 	Title         string `json:"title,omitempty"`
