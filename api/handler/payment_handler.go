@@ -110,11 +110,9 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 	h.DB.Model(&order).UpdateColumn("status", types.OrderScanned)
 	if payWay == "alipay" { // 支付宝
 		// 生成支付链接
-		notifyURL := h.App.Config.AlipayConfig.NotifyURL
-		returnURL := "" // 关闭同步回跳
 		amount := fmt.Sprintf("%.2f", order.Amount)
 
-		uri, err := h.alipayService.PayUrlMobile(order.OrderNo, notifyURL, returnURL, amount, order.Subject)
+		uri, err := h.alipayService.PayUrlMobile(order.OrderNo, amount, order.Subject)
 		if err != nil {
 			resp.ERROR(c, "error with generate pay url: "+err.Error())
 			return
@@ -377,9 +375,7 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		payURL = h.js.PayH5(params)
 	case "alipay":
 		payWay = PayWayAlipay
-		notifyURL = h.App.Config.AlipayConfig.NotifyURL
-		returnURL = h.App.Config.AlipayConfig.ReturnURL
-		payURL, err = h.alipayService.PayUrlMobile(orderNo, notifyURL, returnURL, fmt.Sprintf("%.2f", amount), product.Name)
+		payURL, err = h.alipayService.PayUrlMobile(orderNo, fmt.Sprintf("%.2f", amount), product.Name)
 		if err != nil {
 			resp.ERROR(c, "error with generating Pay URL: "+err.Error())
 			return
@@ -560,7 +556,7 @@ func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
 	}
 
 	// TODO：验证交易签名
-	res := h.alipayService.TradeVerify(c.Request.Form)
+	res := h.alipayService.TradeVerify(c.Request)
 	logger.Infof("验证支付结果：%+v", res)
 	if !res.Success() {
 		logger.Error("订单校验失败：", res.Message)

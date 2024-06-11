@@ -237,9 +237,11 @@ onMounted(() => {
 // refresh payment qrcode
 const refreshPayCode = () => {
   if (curPay.value === 'alipay') {
-    alipay()
+    alipay(curPayProduct.value)
   } else if (curPay.value === 'hupi') {
-    huPiPay()
+    huPiPay(curPayProduct.value)
+  } else if (curPay.value === 'payjs') {
+    PayJs(curPayProduct.value)
   }
 }
 
