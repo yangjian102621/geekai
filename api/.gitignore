@@ -17,4 +17,5 @@ bin
 data
 config.toml
 static/upload 
-storage.json
+storage.json 
+res/certs/wechat/apiclient_key.pem

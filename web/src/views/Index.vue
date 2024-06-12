@@ -96,6 +96,9 @@ onMounted(() => {
     if (res.data.rand_bg) {
       bgClass.value = "rand-bg"
     }
+    if (res.data.slogan) {
+      slogan.value = res.data.slogan
+    }
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })

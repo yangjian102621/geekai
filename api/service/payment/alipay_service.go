@@ -41,8 +41,7 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 		return nil, fmt.Errorf("error with initialize alipay service: %v", err)
 	}
 
-	client.DebugSwitch = gopay.DebugOn
-
+	//client.DebugSwitch = gopay.DebugOn // 开启调试模式
 	client.SetLocation(alipay.LocationShanghai). // 设置时区，不设置或出错均为默认服务器时间
 		SetCharset(alipay.UTF8). // 设置字符编码，不设置默认 utf-8
 		SetSignType(alipay.RSA2). // 设置签名类型，不设置默认 RSA2
@@ -56,12 +55,12 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 	return &AlipayService{config: &config, client: client}, nil
 }
 
-func (s *AlipayService) PayUrlMobile(outTradeNo string, Amount string, subject string) (string, error) {
+func (s *AlipayService) PayUrlMobile(outTradeNo string, amount string, subject string) (string, error) {
 	bm := make(gopay.BodyMap)
 	bm.Set("subject", subject)
 	bm.Set("out_trade_no", outTradeNo)
 	bm.Set("quit_url", s.config.ReturnURL)
-	bm.Set("total_amount", Amount)
+	bm.Set("total_amount", amount)
 	bm.Set("product_code", "QUICK_WAP_WAY")
 	return s.client.TradeWapPay(context.Background(), bm)
 }
@@ -80,7 +79,7 @@ func (s *AlipayService) TradeVerify(request *http.Request) NotifyVo {
 	notifyReq, err := alipay.ParseNotifyToBodyMap(request) // c.Request 是 gin 框架的写法
 	if err != nil {
 		return NotifyVo{
-			Status:  0,
+			Status:  Failure,
 			Message: "error with parse notify request: " + err.Error(),
 		}
 	}
@@ -88,7 +87,7 @@ func (s *AlipayService) TradeVerify(request *http.Request) NotifyVo {
 	_, err = alipay.VerifySignWithCert(s.config.AlipayPublicKey, notifyReq)
 	if err != nil {
 		return NotifyVo{
-			Status:  0,
+			Status:  Failure,
 			Message: "error with verify sign: " + err.Error(),
 		}
 	}
@@ -104,23 +103,23 @@ func (s *AlipayService) TradeQuery(outTradeNo string) NotifyVo {
 	rsp, err := s.client.TradeQuery(context.Background(), bm)
 	if err != nil {
 		return NotifyVo{
-			Status:  0,
+			Status:  Failure,
 			Message: "异步查询验证订单信息发生错误" + outTradeNo + err.Error(),
 		}
 	}
 
 	if rsp.Response.TradeStatus == "TRADE_SUCCESS" {
 		return NotifyVo{
-			Status:     1,
+			Status:     Success,
 			OutTradeNo: rsp.Response.OutTradeNo,
-			TradeNo:    rsp.Response.TradeNo,
+			TradeId:    rsp.Response.TradeNo,
 			Amount:     rsp.Response.TotalAmount,
 			Subject:    rsp.Response.Subject,
 			Message:    "OK",
 		}
 	} else {
 		return NotifyVo{
-			Status:  0,
+			Status:  Failure,
 			Message: "异步查询验证订单信息发生错误" + outTradeNo,
 		}
 	}
@@ -132,17 +131,4 @@ func readKey(filename string) (string, error) {
 		return "", err
 	}
 	return string(data), nil
-}
-
-type NotifyVo struct {
-	Status     int
-	OutTradeNo string
-	TradeNo    string
-	Amount     string
-	Message    string
-	Subject    string
-}
-
-func (v NotifyVo) Success() bool {
-	return v.Status == 1
 }

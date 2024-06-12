@@ -38,6 +38,8 @@ require (
 require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-pay/crypto v0.0.1 // indirect
+	github.com/go-pay/errgroup v0.0.2 // indirect
+	github.com/go-pay/util v0.0.2 // indirect
 	github.com/go-pay/xlog v0.0.2 // indirect
 	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
