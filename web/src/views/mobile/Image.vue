@@ -8,7 +8,7 @@
         <image-sd/>
       </van-tab>
       <van-tab title="DALL" name="dall">
-        <van-empty description="功能正在开发中"/>
+         <van-empty description="功能正在开发中"/>
       </van-tab>
     </van-tabs>
   </div>
