@@ -69,6 +69,9 @@
               <van-button type="success" @click="pay('payjs',item)" size="small" v-if="payWays['payjs']">
                 <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
               </van-button>
+              <van-button type="primary" @click="pay('wechat',item)" size="small" v-if="payWays['wechat']">
+                <i class="iconfont icon-wechat-pay"></i> 微信
+              </van-button>
             </div>
           </h4>
 

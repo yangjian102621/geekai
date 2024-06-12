@@ -29,11 +29,12 @@ type AppConfig struct {
 	WeChatBot      bool                    // 是否启用微信机器人
 	SdConfigs      []StableDiffusionConfig // sd AI draw service pool
 
-	XXLConfig     XXLConfig
-	AlipayConfig  AlipayConfig
-	HuPiPayConfig HuPiPayConfig
-	SmtpConfig    SmtpConfig // 邮件发送配置
-	JPayConfig    JPayConfig // payjs 支付配置
+	XXLConfig       XXLConfig
+	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
+	HuPiPayConfig   HuPiPayConfig   // 虎皮椒支付配置
+	SmtpConfig      SmtpConfig      // 邮件发送配置
+	JPayConfig      JPayConfig      // payjs 支付配置
+	WechatPayConfig WechatPayConfig // 微信支付渠道配置
 }
 
 type SmtpConfig struct {
@@ -83,6 +84,17 @@ type AlipayConfig struct {
 	RootCert        string // Root 秘钥路径
 	NotifyURL       string // 异步通知回调
 	ReturnURL       string // 支付成功返回地址
+}
+
+type WechatPayConfig struct {
+	Enabled    bool   // 是否启用该支付通道
+	AppId      string // 公众号的APPID,如：wxd678efh567hg6787
+	MchId      string // 直连商户的商户号，由微信支付生成并下发
+	SerialNo   string // 商户证书的证书序列号
+	PrivateKey string // 用户私钥文件路径
+	ApiV3Key   string // API V3 秘钥
+	NotifyURL  string // 异步通知回调
+	ReturnURL  string // 支付成功返回地址
 }
 
 type HuPiPayConfig struct { //虎皮椒第四方支付配置
@@ -182,8 +194,9 @@ var QWen = Platform{
 }
 
 type SystemConfig struct {
-	Title         string `json:"title,omitempty"`
-	AdminTitle    string `json:"admin_title,omitempty"`
+	Title         string `json:"title,omitempty"`       // 网站标题
+	Slogan        string `json:"slogan,omitempty"`      // 网站 slogan
+	AdminTitle    string `json:"admin_title,omitempty"` // 管理后台标题
 	Logo          string `json:"logo,omitempty"`
 	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
 	DailyPower    int    `json:"daily_power,omitempty"`     // 每日赠送算力

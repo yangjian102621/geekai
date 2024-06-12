@@ -76,6 +76,9 @@
                     <el-button type="success" @click="PayJs(scope.item)" size="small" v-if="payWays['payjs']">
                       <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
                     </el-button>
+                    <el-button type="success" @click="wechatPay(scope.item)" size="small" v-if="payWays['wechat']">
+                      <i class="iconfont icon-wechat-pay"></i> 微信
+                    </el-button>
                   </div>
                 </div>
               </div>
@@ -302,6 +305,21 @@ const huPiPay = (row) => {
 const PayJs = (row) => {
   payName.value = '微信'
   curPay.value = "payjs"
+  amount.value = (row.price - row.discount).toFixed(2)
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
+  }
+
+  if (row) {
+    curPayProduct.value = row
+  }
+  genPayQrcode()
+}
+
+const wechatPay = (row) => {
+  payName.value = '微信'
+  curPay.value = "wechat"
   amount.value = (row.price - row.discount).toFixed(2)
   if (!isLogin.value) {
     store.setShowLoginDialog(true)
