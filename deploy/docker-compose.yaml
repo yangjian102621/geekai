@@ -2,7 +2,7 @@ version: '3'
 services:
   # mysql
   geekai-mysql:
-    image: mysql:8.0.33
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/mysql:8.0.33
     container_name: geekai-mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: always
@@ -18,7 +18,7 @@ services:
 
   # redis
   geekai-redis:
-    image: redis:6.0.16
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/redis:6.0.6
     restart: always
     container_name: geekai-redis
     command: redis-server --requirepass 12345678
@@ -29,7 +29,7 @@ services:
 
   xxl-job-admin:
     container_name: geekai-xxl-job-admin
-    image: xuxueli/xxl-job-admin:2.4.0
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/xxl-job-admin:2.4.0
     restart: always
     ports:
       - "8081:8080"
@@ -41,7 +41,7 @@ services:
 
 
   midjourney-proxy:
-    image: novicezk/midjourney-proxy:2.6.0
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/midjourney-proxy:2.6.2
     container_name: geekai-midjourney-proxy
     restart: always
     ports:
@@ -53,7 +53,7 @@ services:
 
   # 后端 API 程序
   geekai-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.0.7-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.0.8-amd64
     container_name: geekai-api
     restart: always
     depends_on:
@@ -75,7 +75,7 @@ services:
 
   # 前端应用
   geekai-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.0.7-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.0.8-amd64
     container_name: geekai-web
     restart: always
     depends_on:
