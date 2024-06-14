@@ -269,8 +269,8 @@ onMounted(() => {
       const sorts = []
       sortedData.forEach((id, index) => {
         ids.push(parseInt(id))
-        sorts.push(index)
-        items.value[index].sort_num = index
+        sorts.push(index + 1)
+        items.value[index].sort_num = index + 1
       })
 
       httpPost("/api/admin/model/sort", {ids: ids, sorts: sorts}).then(() => {
@@ -297,7 +297,7 @@ onUnmounted(() => {
 const add = function () {
   title.value = "新增模型"
   showDialog.value = true
-  item.value = {enabled: true, weight: 1}
+  item.value = {enabled: true, weight: 1, open: true}
 }
 
 const edit = function (row) {

@@ -9,13 +9,14 @@ package chatimpl
 
 import (
 	"bufio"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
-	"context"
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 	"strings"
@@ -44,14 +45,9 @@ func (h *ChatHandler) sendAzureMessage(
 			logger.Info("用户取消了请求：", prompt)
 			return nil
 		} else if strings.Contains(err.Error(), "no available key") {
-			utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
-			return nil
-		} else {
-			logger.Error(err)
+			return errors.New("抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 		}
 
-		utils.ReplyMessage(ws, ErrorMsg)
-		utils.ReplyMessage(ws, ErrImg)
 		return err
 	} else {
 		defer response.Body.Close()
@@ -73,10 +69,7 @@ func (h *ChatHandler) sendAzureMessage(
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
 			if err != nil { // 数据解析出错
-				logger.Error(err, line)
-				utils.ReplyMessage(ws, ErrorMsg)
-				utils.ReplyMessage(ws, ErrImg)
-				break
+				return errors.New(line)
 			}
 
 			if len(responseBody.Choices) == 0 {
@@ -203,11 +196,10 @@ func (h *ChatHandler) sendAzureMessage(
 
 		if strings.Contains(res.Error.Message, "maximum context length") {
 			logger.Error(res.Error.Message)
-			utils.ReplyMessage(ws, "当前会话上下文长度超出限制，已为您清空会话上下文！")
 			h.App.ChatContexts.Delete(session.ChatId)
 			return h.sendMessage(ctx, session, role, prompt, ws)
 		} else {
-			utils.ReplyMessage(ws, "请求 Azure API 失败："+res.Error.Message)
+			return fmt.Errorf("请求 Azure API 失败：%v", res.Error)
 		}
 	}
 

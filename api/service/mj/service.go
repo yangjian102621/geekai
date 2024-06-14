@@ -28,6 +28,7 @@ type Service struct {
 	taskQueue   *store.RedisQueue
 	notifyQueue *store.RedisQueue
 	db          *gorm.DB
+	running     bool
 }
 
 func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.RedisQueue, db *gorm.DB, cli Client) *Service {
@@ -37,12 +38,13 @@ func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.Red
 		taskQueue:   taskQueue,
 		notifyQueue: notifyQueue,
 		Client:      cli,
+		running:     true,
 	}
 }
 
 func (s *Service) Run() {
 	logger.Infof("Starting MidJourney job consumer for %s", s.Name)
-	for {
+	for s.running {
 		var task types.MjTask
 		err := s.taskQueue.LPop(&task)
 		if err != nil {
@@ -123,6 +125,10 @@ func (s *Service) Run() {
 		job.ChannelId = s.Name
 		s.db.Updates(&job)
 	}
+}
+
+func (s *Service) Stop() {
+	s.running = false
 }
 
 type CBReq struct {

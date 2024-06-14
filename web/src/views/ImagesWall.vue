@@ -21,7 +21,7 @@
                       :colWidth="colWidth"
                       :distanceToScroll="100"
                       :isLoading="loading"
-                      :isOver="false"
+                      :isOver="isOver"
                       @scrollReachBottom="getNext">
           <template #default="slotProp">
             <div class="list-item">
@@ -81,7 +81,7 @@
                       :colWidth="colWidth"
                       :distanceToScroll="100"
                       :isLoading="loading"
-                      :isOver="false"
+                      :isOver="isOver"
                       @scrollReachBottom="getNext">
           <template #default="slotProp">
             <div class="list-item">
@@ -132,7 +132,7 @@
                       :colWidth="colWidth"
                       :distanceToScroll="100"
                       :isLoading="loading"
-                      :isOver="false"
+                      :isOver="isOver"
                       @scrollReachBottom="getNext">
           <template #default="slotProp">
             <div class="list-item">

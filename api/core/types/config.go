@@ -176,4 +176,6 @@ type SystemConfig struct {
 
 	EnableContext bool `json:"enable_context,omitempty"`
 	ContextDeep   int  `json:"context_deep,omitempty"`
+
+	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
 }

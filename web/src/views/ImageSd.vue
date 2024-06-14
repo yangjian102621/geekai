@@ -29,6 +29,28 @@
                 </el-form-item>
               </div>
 
+              <div class="param-line" style="padding-top: 10px">
+                <el-form-item label="采样调度器">
+                  <template #default>
+                    <div class="form-item-inner">
+                      <el-select v-model="params.scheduler" style="width:176px">
+                        <el-option v-for="item in schedulers" :label="item" :value="item" :key="item"/>
+                      </el-select>
+                      <el-tooltip
+                          effect="light"
+                          content="推荐自动或者 Karras"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon class="info-icon">
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                </el-form-item>
+              </div>
+
               <div class="param-line">
                 <el-form-item label="图片尺寸">
                   <template #default>
@@ -270,94 +292,89 @@
             <el-button color="#47fff1" :dark="false" round @click="generate">立即生成</el-button>
           </div>
         </div>
-        <div class="task-list-box" @scrollend="handleScrollEnd">
+        <div class="task-list-box">
           <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
               <h2>任务列表</h2>
               <div class="running-job-list">
-                <ItemList :items="runningJobs" v-if="runningJobs.length > 0" :width="240">
-                  <template #default="scope">
-                    <div class="job-item">
-                      <div v-if="scope.item.progress > 0" class="job-item-inner">
-                        <el-image :src="scope.item['img_url']"
-                                  fit="cover"
-                                  loading="lazy">
-                          <template #placeholder>
-                            <div class="image-slot">
-                              正在加载图片
-                            </div>
-                          </template>
+                <div class="running-job-box" v-if="runningJobs.length > 0">
+                  <div class="job-item" v-for="item in runningJobs">
+                    <div v-if="item.progress > 0" class="job-item-inner">
+                      <el-image :src="item['img_url']" fit="cover" loading="lazy">
+                        <template #placeholder>
+                          <div class="image-slot">
+                            正在加载图片
+                          </div>
+                        </template>
 
-                          <template #error>
-                            <div class="image-slot">
-                              <el-icon v-if="scope.item['img_url'] !== ''">
-                                <Picture/>
-                              </el-icon>
-                            </div>
-                          </template>
-                        </el-image>
-
-                        <div class="progress">
-                          <el-progress type="circle" :percentage="scope.item.progress" :width="100" color="#47fff1"/>
-                        </div>
-                      </div>
-                      <el-image fit="cover" v-else>
                         <template #error>
                           <div class="image-slot">
-                            <i class="iconfont icon-quick-start"></i>
-                            <span>任务正在排队中</span>
+                            <el-icon>
+                              <Picture/>
+                            </el-icon>
                           </div>
                         </template>
                       </el-image>
+
+                      <div class="progress">
+                        <el-progress type="circle" :percentage="item.progress" :width="100"
+                                     color="#47fff1"/>
+                      </div>
                     </div>
-                  </template>
-                </ItemList>
+                    <el-image fit="cover" v-else>
+                      <template #error>
+                        <div class="image-slot">
+                          <i class="iconfont icon-quick-start"></i>
+                          <span>任务正在排队中</span>
+                        </div>
+                      </template>
+                    </el-image>
+                  </div>
+                </div>
                 <el-empty :image-size="100" v-else/>
               </div>
               <h2>创作记录</h2>
               <div class="finish-job-list">
                 <div v-if="finishedJobs.length > 0">
-                  <ItemList :items="finishedJobs" :width="240" :gap="16">
-                    <template #default="scope">
-                      <div class="job-item animate" @click="showTask(scope.item)">
+                  <v3-waterfall
+                      id="waterfall"
+                      :list="finishedJobs"
+                      srcKey="img_thumb"
+                      :gap="20"
+                      :bottomGap="-10"
+                      :colWidth="colWidth"
+                      :distanceToScroll="100"
+                      :isLoading="loading"
+                      :isOver="isOver"
+                      @scrollReachBottom="fetchFinishJobs()">
+                    <template #default="slotProp">
+                      <div class="job-item animate" @click="showTask(slotProp.item)">
                         <el-image
-                            :src="scope.item['img_url']+'?imageView2/1/w/240/h/240/q/75'"
+                            :src="slotProp.item['img_thumb']"
                             fit="cover"
-                            loading="lazy">
-                          <template #placeholder>
-                            <div class="image-slot">
-                              正在加载图片
-                            </div>
-                          </template>
-
-                          <template #error>
-                            <div class="image-slot">
-                              <el-icon>
-                                <Picture/>
-                              </el-icon>
-                            </div>
-                          </template>
-                        </el-image>
-
+                            loading="lazy"/>
                         <div class="remove">
-                          <el-button type="danger" :icon="Delete" @click="removeImage($event,scope.item)" circle/>
-                          <el-button type="warning" v-if="scope.item.publish"
-                                     @click="publishImage($event,scope.item, false)"
+                          <el-button type="danger" :icon="Delete" @click="removeImage($event,slotProp.item)" circle/>
+                          <el-button type="warning" v-if="slotProp.item.publish"
+                                     @click="publishImage($event,slotProp.item, false)"
                                      circle>
                             <i class="iconfont icon-cancel-share"></i>
                           </el-button>
-                          <el-button type="success" v-else @click="publishImage($event,scope.item, true)" circle>
+                          <el-button type="success" v-else @click="publishImage($event,slotProp.item, true)" circle>
                             <i class="iconfont icon-share-bold"></i>
                           </el-button>
                         </div>
                       </div>
                     </template>
-                  </ItemList>
 
-                  <div class="no-more-data" v-if="isOver">
-                    <span>没有更多数据了</span>
-                    <i class="iconfont icon-face"></i>
-                  </div>
+                    <template #footer>
+                      <div class="no-more-data">
+                        <span>没有更多数据了</span>
+                        <i class="iconfont icon-face"></i>
+                      </div>
+                    </template>
+                  </v3-waterfall>
+
                 </div>
                 <el-empty :image-size="100" v-else/>
               </div> <!-- end finish job list-->
@@ -490,7 +507,6 @@ import {onMounted, onUnmounted, ref} from "vue"
 import {Delete, DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
-import ItemList from "@/components/ItemList.vue";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
@@ -504,17 +520,21 @@ const showTaskDialog = ref(false)
 const item = ref({})
 const showLoginDialog = ref(false)
 const isLogin = ref(false)
+const loading = ref(true)
+const colWidth = ref(240)
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   paramBoxHeight.value = window.innerHeight - 150
 }
-const samplers = ["Euler a", "DPM++ 2S a Karras", "DPM++ 2M Karras", "DPM++ SDE Karras", "DPM++ 2M SDE Karras"]
+const samplers = ["Euler a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM++ 2M SDE", "UniPC", "Restart"]
+const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"]
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"]
 const params = ref({
   width: 1024,
   height: 1024,
   sampler: samplers[0],
+  scheduler: schedulers[0],
   seed: -1,
   steps: 20,
   cfg_scale: 7,
@@ -579,8 +599,8 @@ const connect = () => {
       reader.onload = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
-          page.value = 1
-          fetchFinishJobs(page.value)
+          page.value = 0
+          fetchFinishJobs()
           isOver.value = false
         }
         fetchRunningJobs()
@@ -608,7 +628,8 @@ onMounted(() => {
   })
 
   httpGet("/api/config/get?key=system").then(res => {
-    sdPower.value = res.data["sd_power"]
+    sdPower.value = res.data.sd_power
+    params.value.neg_prompt = res.data.sd_neg_prompt
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
@@ -628,6 +649,7 @@ const initData = () => {
     power.value = user['power']
     userId.value = user.id
     isLogin.value = true
+    page.value = 0
     fetchRunningJobs()
     fetchFinishJobs()
     connect()
@@ -639,7 +661,7 @@ const fetchRunningJobs = () => {
   if (!isLogin.value) {
     return
   }
-  
+
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?status=0`).then(res => {
     const jobs = res.data
@@ -663,31 +685,32 @@ const fetchRunningJobs = () => {
   })
 }
 
-const handleScrollEnd = () => {
-  if (isOver.value === true) {
-    return
-  }
-  page.value += 1
-  fetchFinishJobs(page.value)
-}
-
-const page = ref(1)
-const pageSize = ref(15)
+const page = ref(0)
+const pageSize = ref(20)
 const isOver = ref(false)
 // 获取已完成的任务
-const fetchFinishJobs = (page) => {
-  if (!isLogin.value) {
+const fetchFinishJobs = () => {
+  if (!isLogin.value || isOver.value === true) {
     return
   }
-  httpGet(`/api/sd/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
+  loading.value = true
+  page.value = page.value + 1
+
+  httpGet(`/api/sd/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
     }
-    if (page === 1) {
-      finishedJobs.value = res.data
-    } else {
-      finishedJobs.value = finishedJobs.value.concat(res.data)
+    const imageList = res.data
+    for (let i = 0; i < imageList.length; i++) {
+      imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }
+    if (page.value === 1) {
+      finishedJobs.value = imageList
+    } else {
+      finishedJobs.value = finishedJobs.value.concat(imageList)
+    }
+
+    loading.value = false
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })

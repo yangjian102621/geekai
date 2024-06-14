@@ -25,28 +25,14 @@ type ServicePool struct {
 	notifyQueue *store.RedisQueue
 	db          *gorm.DB
 	Clients     *types.LMap[uint, *types.WsClient] // UserId => Client
+	uploader    *oss.UploaderManager
+	levelDB     *store.LevelDB
 }
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, appConfig *types.AppConfig, levelDB *store.LevelDB) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, levelDB *store.LevelDB) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("StableDiffusion_Queue", redisCli)
-	// create mj client and service
-	for _, config := range appConfig.SdConfigs {
-		if config.Enabled == false {
-			continue
-		}
-
-		// create sd service
-		name := fmt.Sprintf("StableDifffusion Service-%s", config.Model)
-		service := NewService(name, config, taskQueue, notifyQueue, db, manager, levelDB)
-		// run sd service
-		go func() {
-			service.Run()
-		}()
-
-		services = append(services, service)
-	}
 
 	return &ServicePool{
 		taskQueue:   taskQueue,
@@ -54,6 +40,32 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		services:    services,
 		db:          db,
 		Clients:     types.NewLMap[uint, *types.WsClient](),
+		uploader:    manager,
+		levelDB:     levelDB,
+	}
+}
+
+func (p *ServicePool) InitServices(configs []types.StableDiffusionConfig) {
+	// stop old service
+	for _, s := range p.services {
+		s.Stop()
+	}
+	p.services = make([]*Service, 0)
+
+	for k, config := range configs {
+		if config.Enabled == false {
+			continue
+		}
+
+		// create sd service
+		name := fmt.Sprintf(" sd-service-%d", k)
+		service := NewService(name, config, p.taskQueue, p.notifyQueue, p.db, p.uploader, p.levelDB)
+		// run sd service
+		go func() {
+			service.Run()
+		}()
+
+		p.services = append(p.services, service)
 	}
 }
 

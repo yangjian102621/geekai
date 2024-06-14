@@ -11,6 +11,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
@@ -76,10 +77,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
 			if err != nil { // 数据解析出错
-				logger.Error(err, line)
-				utils.ReplyMessage(ws, ErrorMsg)
-				utils.ReplyMessage(ws, ErrImg)
-				break
+				return errors.New(line)
 			}
 			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
 				continue
