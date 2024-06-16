@@ -15,7 +15,9 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -28,23 +30,34 @@ import (
 	"geekai/utils"
 )
 
-type ollamaResp struct {
-	Id    string `json:"id"`
-	Model string `json:"model"`
+// ChatResponse is the response returned by [Client.Chat]. Its fields are
+// similar to [GenerateResponse].
+type ChatResponse struct {
+	Model      string        `json:"model"`
+	CreatedAt  time.Time     `json:"created_at"`
+	Message    types.Message `json:"message"`
+	DoneReason string        `json:"done_reason,omitempty"`
 
-	CreatedAt  string `json:"created_at"`
-	Response   string `json:"response"`
-	Done       bool   `json:"done"`
-	DoneReason string `json:"done_reason"`
-	Context    []int  `json:"context"`
+	Done bool `json:"done"`
 
-	TotalDuration      int64 `json:"total_duration"`       // 生成响应所花费的总时间
-	LoadDuration       int64 `json:"load_duration"`        // 以纳秒为单位加载模型所花费的时间
-	PromptEvalCount    int   `json:"prompt_eval_count"`    // 提示文本中的标记（tokens）数量
-	PromptEvalDuration int64 `json:"prompt_eval_duration"` // 以纳秒为单位评估提示文本所花费的时间
-	EvalCount          int64 `json:"eval_count"`           // 生成响应中的标记数量
-	EvalDuration       int64 `json:"eval_duration"`        // 以纳秒为单位生成响应所花费的时间
+	Metrics
 }
+
+type Metrics struct {
+	TotalDuration      time.Duration `json:"total_duration,omitempty"`
+	LoadDuration       time.Duration `json:"load_duration,omitempty"`
+	PromptEvalCount    int           `json:"prompt_eval_count,omitempty"`
+	PromptEvalDuration time.Duration `json:"prompt_eval_duration,omitempty"`
+	EvalCount          int           `json:"eval_count,omitempty"`
+	EvalDuration       time.Duration `json:"eval_duration,omitempty"`
+}
+
+type Message struct {
+	types.Message
+	Images []ImageData `json:"images,omitempty"`
+}
+
+type ImageData []byte
 
 // 通义千问消息发送实现
 func (h *ChatHandler) sendOllamaMessage(
@@ -62,13 +75,15 @@ func (h *ChatHandler) sendOllamaMessage(
 
 	//var apiKey = model.ApiKey{}
 	//response, err := h.doRequest(ctx, req, session, &apiKey)
-	response, err := h.sendOllamaRequest(session, prompt)
-	defer response.Body.Close()
+	response, err := h.sendOllamaRequest(chatCtx, session, prompt)
 
 	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
 
 	if err != nil {
 		h.processError(err, prompt, ws)
+		return nil
+	} else {
+		defer response.Body.Close()
 	}
 
 	contentType := response.Header.Get("Content-Type")
@@ -85,27 +100,67 @@ func (h *ChatHandler) sendOllamaMessage(
 	return nil
 }
 
-func (h *ChatHandler) sendOllamaRequest(session *types.ChatSession, prompt string) (*http.Response, error) {
+func (h *ChatHandler) sendOllamaRequest(chatCtx []types.Message, session *types.ChatSession, prompt string) (*http.Response, error) {
 	apiKey, err := h.queryApiKey(session)
 	if err != nil {
 		return nil, err
 	}
 
-	// todo add context to request body
-	postData := map[string]interface{}{
-		"model":  session.Model.Value,
-		"stream": true,
-		"prompt": prompt,
+	chatCtx = append(chatCtx, types.Message{
+		Role:    "user",
+		Content: prompt,
+	})
+	messages := make([]Message, 0)
+	for _, ctx := range chatCtx {
+		if ctx.Role == "" {
+			continue
+		}
+
+		m := Message{
+			Message: ctx,
+		}
+
+		url := h.parseURL(ctx.Content)
+		if url != "" {
+			encode, err := h.downImgAndBase64Encode(url)
+			if err != nil {
+				logger.Infof("img url convert to binary err：%s, will not send image to ollama", err)
+				continue
+			}
+			m.Content = strings.Replace(ctx.Content, url, "", 1)
+			m.Images = []ImageData{encode}
+		}
+
+		messages = append(messages, m)
 	}
+
+	postData := map[string]interface{}{
+		"model":    session.Model.Value,
+		"stream":   true,
+		"messages": messages,
+		"options": map[string]interface{}{
+			"temperature": session.Model.Temperature,
+		},
+	}
+
 	headers := map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": "Bearer " + apiKey.Value,
+		"Content-Type": "application/json",
+	}
+	// 兼容ollama原生11343端口，与ollama webui api-key的方式
+	if strings.HasPrefix(apiKey.Value, "sk-") {
+		headers["Authorization"] = "Bearer " + apiKey.Value
 	}
 
 	ro := &grequests.RequestOptions{
 		JSON:    postData,
 		Headers: headers,
 	}
+	requestBody, err := json.Marshal(postData)
+	if err != nil {
+		return nil, err
+	}
+	logger.Debugf("ollama request body: %s", string(requestBody))
+
 	resp, err := grequests.Post(apiKey.ApiURL, ro)
 	if err != nil {
 		return nil, err
@@ -145,31 +200,29 @@ func (h *ChatHandler) processOllamaStreamResponse(
 
 	// 记录回复时间
 	replyCreatedAt := time.Now()
-	// 循环读取 Chunk 消息
-	var message = types.Message{}
 	scanner := bufio.NewScanner(response.Body)
 
+	var contents = make([]string, 0)
 	var content string
-	var replyTokens int
+	var outPutStart = true
 
+	// 循环读取 返回 消息
 	for scanner.Scan() {
-		var resp ollamaResp
+		var resp ChatResponse
 		line := scanner.Text()
 
 		err := utils.JsonDecode(line, &resp)
 		if err != nil {
-			logger.Error("error with parse data line: ", content)
+			logger.Error("error with parse data line: ", line)
 			utils.ReplyMessage(ws, fmt.Sprintf("**解析数据行失败：%s**", err))
 			break
 		}
 
 		if resp.Done == true && resp.DoneReason == "stop" {
 			utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsEnd})
-			message.Content = utils.InterfaceToString(resp.Context)
-			replyTokens = resp.PromptEvalCount
 
 			// 消息发送成功后做记录工作
-			h.recordInfoAfterSendMessage(chatCtx, req, userVo, message, prompt, session, role, promptCreatedAt, replyTokens, replyCreatedAt)
+			h.recordInfoAfterSendMessage(chatCtx, req, userVo, prompt, session, role, promptCreatedAt, replyCreatedAt, strings.Join(contents, ""))
 
 			break
 		} else if resp.Done == true && resp.DoneReason != "stop" {
@@ -177,15 +230,20 @@ func (h *ChatHandler) processOllamaStreamResponse(
 			break
 		}
 
-		if len(resp.Id) > 0 {
+		if len(contents) == 0 && outPutStart {
+			logger.Infof("开始输出消息：%s", resp.Message.Content)
 			utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
+			outPutStart = false
 		}
 
-		if len(resp.Response) > 0 {
+		if len(resp.Message.Content) > 0 {
 			utils.ReplyChunkMessage(ws, types.WsMessage{
 				Type:    types.WsMiddle,
-				Content: utils.InterfaceToString(resp.Response),
+				Content: utils.InterfaceToString(resp.Message.Content),
 			})
+
+			content += resp.Message.Content
+			contents = append(contents, resp.Message.Content)
 		}
 
 	}
@@ -217,11 +275,11 @@ func (h *ChatHandler) processOllamaJsonResponse(response *http.Response, ws *typ
 	return nil
 }
 
-func (h *ChatHandler) recordInfoAfterSendMessage(chatCtx []types.Message, req types.ApiRequest, userVo vo.User, message types.Message, prompt string, session *types.ChatSession, role model.ChatRole, promptCreatedAt time.Time, replyTokens int, replyCreatedAt time.Time) {
-	if message.Role == "" {
-		message.Role = "assistant"
-	}
+func (h *ChatHandler) recordInfoAfterSendMessage(chatCtx []types.Message, req types.ApiRequest, userVo vo.User,
+	prompt string, session *types.ChatSession, role model.ChatRole,
+	promptCreatedAt time.Time, replyCreatedAt time.Time, content string) {
 
+	message := types.Message{Role: "assistant", Content: content}
 	useMsg := types.Message{Role: "user", Content: prompt}
 
 	// 更新上下文消息，如果是调用函数则不需要更新上下文
@@ -257,16 +315,16 @@ func (h *ChatHandler) recordInfoAfterSendMessage(chatCtx []types.Message, req ty
 
 	// for reply
 	// 计算本次对话消耗的总 token 数量
-	//totalTokens := replyTokens + getTotalTokens(req)
-	// todo rebuild the tokens
+	replyTokens, _ := utils.CalcTokens(message.Content, req.Model)
+	totalTokens := replyTokens + getTotalTokens(req)
 	historyReplyMsg := model.ChatMessage{
 		UserId:     userVo.Id,
 		ChatId:     session.ChatId,
 		RoleId:     role.Id,
 		Type:       types.ReplyMsg,
 		Icon:       role.Icon,
-		Content:    message.Content,
-		Tokens:     replyTokens,
+		Content:    content,
+		Tokens:     totalTokens,
 		UseContext: true,
 		Model:      req.Model,
 	}
@@ -312,4 +370,33 @@ func (h *ChatHandler) processError(err error, prompt string, ws *types.WsClient)
 	utils.ReplyMessage(ws, ErrorMsg)
 	utils.ReplyMessage(ws, ErrImg)
 	return
+}
+
+func (h *ChatHandler) downImgAndBase64Encode(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("download img failed")
+	}
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func (h *ChatHandler) parseURL(input string) string {
+	// 正则表达式模式匹配包含 HTTP URL 的字符串
+	regexStr := `(?i)\b((https?://|www\.)[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[-A-Za-z0-9+&@#/%=~_|]\.(jpg|jpeg|png|gif|bmp|webp))`
+
+	// 创建正则表达式对象，并验证输入字符串是否以 URL 开始
+	re := regexp.MustCompile(regexStr)
+
+	matches := re.FindStringSubmatch(input)
+	if len(matches) > 0 {
+		return matches[0] // 返回第一个匹配的URL
+	}
+
+	return ""
 }

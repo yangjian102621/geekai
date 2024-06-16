@@ -177,7 +177,7 @@ const platforms = ref([
   {
     name: "【Meta】Ollama",
     value: "Ollama",
-    api_url: "http://localhost:8080/ollama/api/generate"
+    api_url: "http://localhost:8080/ollama/api/chat"
   },
 ])
 const types = ref([
