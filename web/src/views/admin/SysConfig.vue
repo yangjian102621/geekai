@@ -47,7 +47,7 @@
                   </el-tooltip>
                 </el-form-item>
 
-                <el-form-item label="随机背景">
+                <el-form-item label="动态背景">
                   <el-switch v-model="system['rand_bg']"/>
                   <el-tooltip
                       effect="dark"

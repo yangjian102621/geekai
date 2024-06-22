@@ -154,10 +154,10 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showFailToast, showNotify, showSuccessToast} from "vant";
+import {showFailToast, showNotify, showSuccessToast, showToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
-import {dateFormat, showLoginDialog} from "@/utils/libs";
+import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";
 import {ElMessage} from "element-plus";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
@@ -299,8 +299,11 @@ const pay = (payWay, item) => {
     product_id: item.id,
     user_id: userId.value
   }).then(res => {
-    // console.log(res.data)
-    location.href = res.data
+    if (isWeChatBrowser() && payWay === 'wechat') {
+      showFailToast("请在系统自带浏览器打开支付页面，或者在 PC 端进行扫码支付")
+    } else {
+      location.href = res.data
+    }
   }).catch(e => {
     showFailToast("生成支付订单失败：" + e.message)
   })

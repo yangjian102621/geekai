@@ -242,9 +242,9 @@ export function processPrompt(prompt) {
     return prompt
 }
 
-// 判断是否为 iphone 设备
-export function isIphone() {
-    return /iPhone/i.test(navigator.userAgent) && !/iPad/i.test(navigator.userAgent);
+// 判断是否为微信浏览器
+export function isWeChatBrowser() {
+    return /MicroMessenger/i.test( navigator.userAgent);
 }
 
 export function showLoginDialog(router) {
