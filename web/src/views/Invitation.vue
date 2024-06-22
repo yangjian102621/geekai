@@ -99,7 +99,6 @@ import {useSharedStore} from "@/store/sharedata";
 const inviteURL = ref("")
 const qrImg = ref("/images/wx.png")
 const invitePower = ref(0)
-const inviteImgCalls = ref(0)
 const hits = ref(0)
 const regNum = ref(0)
 const rate = ref(0)
