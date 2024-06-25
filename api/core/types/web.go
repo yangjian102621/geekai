@@ -22,6 +22,7 @@ type WsMessage struct {
 	Type    WsMsgType   `json:"type"` // 消息类别，start, end, img
 	Content interface{} `json:"content"`
 }
+
 type WsMsgType string
 
 const (

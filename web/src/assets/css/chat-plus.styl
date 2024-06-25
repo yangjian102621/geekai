@@ -252,24 +252,34 @@ $borderColor = #4676d0;
                   border: 2px solid #21AA93
                   border-radius 10px
                   padding 10px
+                  background-color #F4F4F4
 
-
-                  .prompt-input::-webkit-scrollbar {
-                    width: 0;
-                    height: 0;
-                  }
-
-                  .prompt-input {
+                  .input-inner {
+                    display flex
+                    flex-flow column
                     width 100%
-                    line-height: 24px
-                    border none
-                    font-size 14px
-                    background none
-                    resize: none
-                    white-space: pre-wrap; /* 保持文本换行 */
-                    word-wrap: break-word; /* 允许单词换行 */
-                    overflow-wrap: break-word; /* 允许长单词换行，适用于现代浏览器 */
+
+                    .file-list {
+                      padding-bottom 10px
+                    }
+                    .prompt-input::-webkit-scrollbar {
+                      width: 0;
+                      height: 0;
+                    }
+
+                    .prompt-input {
+                      width 100%
+                      line-height: 24px
+                      border none
+                      font-size 14px
+                      background none
+                      resize: none
+                      white-space: pre-wrap; /* 保持文本换行 */
+                      word-wrap: break-word; /* 允许单词换行 */
+                      overflow-wrap: break-word; /* 允许长单词换行，适用于现代浏览器 */
+                    }
                   }
+
 
                   .send-btn {
                     width 32px

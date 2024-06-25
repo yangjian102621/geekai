@@ -348,7 +348,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			}
 			data = append(data, gin.H{
 				"type": "text",
-				"text": text,
+				"text": strings.TrimSpace(text),
 			})
 			content = data
 		} else {

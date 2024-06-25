@@ -9,6 +9,7 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/types"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -35,6 +36,12 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
+	logger.Info("upload file: %s", file.Name)
+	// cut the file name if it's too long
+	if len(file.Name) > 100 {
+		file.Name = file.Name[:90] + file.Ext
+	}
+
 	userId := h.GetLoginUserId(c)
 	res := h.DB.Create(&model.File{
 		UserId:    int(userId),
@@ -54,10 +61,24 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 }
 
 func (h *UploadHandler) List(c *gin.Context) {
+	var data struct {
+		Urls []string `json:"urls"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	logger.Info(data)
+
 	userId := h.GetLoginUserId(c)
 	var items []model.File
 	var files = make([]vo.File, 0)
-	h.DB.Where("user_id = ?", userId).Find(&items)
+	session := h.DB.Session(&gorm.Session{})
+	session = session.Where("user_id = ?", userId)
+	if len(data.Urls) > 0 {
+		session = session.Where("url IN ?", data.Urls)
+	}
+	session.Find(&items)
 	if len(items) > 0 {
 		for _, v := range items {
 			var file vo.File

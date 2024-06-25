@@ -129,14 +129,18 @@
 
                   <span class="tool-item" v-if="isLogin">
                     <el-tooltip class="box-item" effect="dark" content="上传附件">
-                      <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertURL"/>
+                      <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertFile"/>
                     </el-tooltip>
                   </span>
 
                   <div class="input-body">
                     <div ref="textHeightRef" class="hide-div">{{prompt}}</div>
                     <div class="input-border">
-                      <textarea
+                      <div class="input-inner">
+                        <div class="file-list" v-if="files.length > 0">
+                          <file-list :files="files" @remove-file="removeFile" />
+                        </div>
+                        <textarea
                             ref="inputRef"
                             class="prompt-input"
                             :rows="row"
@@ -146,6 +150,8 @@
                             placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
                             autofocus>
                       </textarea>
+                      </div>
+
                       <span class="send-btn">
                         <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
                           <el-icon>
@@ -210,6 +216,7 @@ import {checkSession} from "@/action/session";
 import Welcome from "@/components/Welcome.vue";
 import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
+import FileList from "@/components/FileList.vue";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -743,12 +750,17 @@ const sendMessage = function () {
   if (prompt.value.trim().length === 0 || canSend.value === false) {
     return false;
   }
+  // 如果携带了文件，则串上文件地址
+  let content = prompt.value
+  if (files.value.length > 0) {
+    content = files.value.map(file => file.url).join(" ") + " " +  content
+  }
   // 追加消息
   chatData.value.push({
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(processPrompt(prompt.value)),
+    content: content,
     created_at: new Date().getTime() / 1000,
   });
 
@@ -758,9 +770,10 @@ const sendMessage = function () {
 
   showHello.value = false
   disableInput(false)
-  socket.value.send(JSON.stringify({type: "chat", content: prompt.value}));
-  tmpChatTitle.value = prompt.value
-  prompt.value = '';
+  socket.value.send(JSON.stringify({type: "chat", content: content}));
+  tmpChatTitle.value = content
+  prompt.value = ''
+  files.value = []
   return true;
 }
 
@@ -810,9 +823,11 @@ const loadChatHistory = function (chatId) {
     showHello.value = false
     for (let i = 0; i < data.length; i++) {
       data[i].orgContent = data[i].content;
-      data[i].content = md.render(processContent(data[i].content))
-      if (i > 0 && data[i].type === 'reply') {
-        data[i].prompt = data[i - 1].orgContent
+      if (data[i].type === 'reply') {
+        data[i].content = md.render(processContent(data[i].content))
+        if (i > 0) {
+          data[i].prompt = data[i - 1].orgContent
+        }
       }
       chatData.value.push(data[i]);
     }
@@ -893,9 +908,13 @@ const notShow = () => {
   showNotice.value = false
 }
 
-// 插入文件路径
-const insertURL = (url) => {
-  prompt.value += " " + url + " "
+const files = ref([])
+// 插入文件
+const insertFile = (file) => {
+  files.value.push(file)
+}
+const removeFile = (file) => {
+  files.value = removeArrayItem(files.value, file, (v1,v2) => v1.url===v2.url)
 }
 </script>
 
