@@ -241,7 +241,7 @@ const editChat = (row) => {
   tmpChatTitle.value = row.title
 }
 const saveTitle = () => {
-  httpPost('/api/chat/update', {id: item.value.id, title: tmpChatTitle.value}).then(() => {
+  httpPost('/api/chat/update', {chat_id: item.value.chat_id, title: tmpChatTitle.value}).then(() => {
     showSuccessToast("操作成功！");
     item.value.title = tmpChatTitle.value;
   }).catch(e => {

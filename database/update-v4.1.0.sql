@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_chat_models` CHANGE `power` `power` SMALLINT NOT NULL COMMENT '消耗算力点数';
