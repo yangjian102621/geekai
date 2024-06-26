@@ -12,7 +12,9 @@
           <el-image :src="GetFileIcon(file.ext)" fit="cover"  />
         </div>
         <div class="body">
-          <div class="title">{{substr(file.name, 30)}}</div>
+          <div class="title">
+            <el-link :href="file.url" target="_blank" style="--el-font-weight-primary:bold">{{substr(file.name, 30)}}</el-link>
+          </div>
           <div class="info">
             <span>{{GetFileType(file.ext)}}</span>
             <span>{{FormatFileSize(file.size)}}</span>
@@ -87,7 +89,6 @@ const removeFile = (file) => {
       margin-left 5px
       font-size 14px
       .title {
-        font-weight bold
         line-height 24px
         color #0D0D0D
       }
