@@ -68,7 +68,6 @@ func (h *UploadHandler) List(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	logger.Info(data)
 
 	userId := h.GetLoginUserId(c)
 	var items []model.File

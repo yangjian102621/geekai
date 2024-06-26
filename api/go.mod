@@ -28,14 +28,16 @@ require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
 require (
 	github.com/go-pay/gopay v1.5.101
+	github.com/google/go-tika v0.3.1
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
-	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
+	golang.org/x/image v0.15.0
 )
 
 require (
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-pay/crypto v0.0.1 // indirect
 	github.com/go-pay/errgroup v0.0.2 // indirect
@@ -44,6 +46,8 @@ require (
 	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
+	github.com/gorilla/css v1.0.0 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.26 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect

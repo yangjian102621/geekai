@@ -122,7 +122,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		user.Power += h.App.SysConfig.InvitePower
 	}
 	if h.licenseService.GetLicense().Configs.DeCopy {
-		user.Username = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+		user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 	} else {
 		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}

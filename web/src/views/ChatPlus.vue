@@ -774,6 +774,7 @@ const sendMessage = function () {
   tmpChatTitle.value = content
   prompt.value = ''
   files.value = []
+  row.value = 1
   return true;
 }
 
