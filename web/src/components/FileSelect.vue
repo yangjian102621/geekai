@@ -20,6 +20,7 @@
                   :auto-upload="true"
                   :show-file-list="false"
                   :http-request="afterRead"
+                  accept=".doc,.docx,.jpg,.png,.jpeg,.xls,.xlsx,.ppt,.pptx,.pdf"
               >
                 <el-icon class="avatar-uploader-icon">
                   <Plus/>

@@ -97,6 +97,7 @@ const reGenerate = (prompt) => {
 </script>
 
 <style lang="stylus">
+@import '@/assets/css/markdown/vue.css';
 .common-layout {
   .chat-line-reply {
     justify-content: center;
@@ -132,17 +133,11 @@ const reGenerate = (prompt) => {
         .content {
           min-height 20px;
           word-break break-word;
-          padding: 6px 10px;
+          padding: 0 10px;
           color #374151;
           font-size: var(--content-font-size);
           border-radius: 5px;
           overflow auto;
-
-          a {
-            color #20a0ff
-          }
-
-          // control the image size in content
 
           img {
             max-width: 600px;
@@ -170,10 +165,11 @@ const reGenerate = (prompt) => {
 
           .code-container {
             position relative
+            display flex
 
             .hljs {
               border-radius 10px
-              line-height 1.5
+              width 100%
             }
 
             .copy-code-btn {
@@ -194,7 +190,7 @@ const reGenerate = (prompt) => {
           .lang-name {
             position absolute;
             right 10px
-            bottom 50px
+            bottom 20px
             padding 2px 6px 4px 6px
             background-color #444444
             border-radius 10px

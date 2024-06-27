@@ -88,8 +88,20 @@ func GetImgExt(filename string) string {
 	return ext
 }
 
-func ExtractImgURL(text string) []string {
+func ExtractImgURLs(text string) []string {
 	re := regexp.MustCompile(`(http[s]?:\/\/.*?\.(?:png|jpg|jpeg|gif))`)
+	matches := re.FindAllStringSubmatch(text, 10)
+	urls := make([]string, 0)
+	if len(matches) > 0 {
+		for _, m := range matches {
+			urls = append(urls, m[1])
+		}
+	}
+	return urls
+}
+
+func ExtractFileURLs(text string) []string {
+	re := regexp.MustCompile(`(http[s]?:\/\/.*?\.(?:docx?|pdf|pptx?|xlsx?|txt))`)
 	matches := re.FindAllStringSubmatch(text, 10)
 	urls := make([]string, 0)
 	if len(matches) > 0 {

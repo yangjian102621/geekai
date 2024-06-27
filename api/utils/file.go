@@ -13,7 +13,8 @@ import (
 	"github.com/google/go-tika/tika"
 )
 
-func ReadPdf(filePath string) (string, error) {
+func ReadFileContent(filePath string) (string, error) {
+	// for remote file, download it first
 	if strings.HasPrefix(filePath, "http") {
 		file, err := downloadFile(filePath)
 		if err != nil {
@@ -31,22 +32,34 @@ func ReadPdf(filePath string) (string, error) {
 	defer file.Close()
 
 	// 使用 Tika 提取 PDF 文件的文本内容
-	html, err := client.Parse(context.TODO(), file)
+	content, err := client.Parse(context.TODO(), file)
 	if err != nil {
 		return "", fmt.Errorf("error with parse file: %v", err)
 	}
 
-	fmt.Println(html)
-
-	return cleanBlankLine(html), nil
+	ext := filepath.Ext(filePath)
+	switch ext {
+	case ".doc", ".docx", ".pdf", ".pptx", "ppt":
+		return cleanBlankLine(cleanHtml(content, false)), nil
+	case ".xls", ".xlsx":
+		return cleanBlankLine(cleanHtml(content, true)), nil
+	default:
+		return cleanBlankLine(content), nil
+	}
 
 }
 
 // 清理文本内容
-func cleanHtml(html string) string {
+func cleanHtml(html string, keepTable bool) string {
 	// 清理 HTML 标签
-	p := bluemonday.StrictPolicy()
-	return p.Sanitize(html)
+	var policy *bluemonday.Policy
+	if keepTable {
+		policy = bluemonday.NewPolicy()
+		policy.AllowElements("table", "thead", "tbody", "tfoot", "tr", "td", "th")
+	} else {
+		policy = bluemonday.StrictPolicy()
+	}
+	return policy.Sanitize(html)
 }
 
 func cleanBlankLine(content string) string {
@@ -55,6 +68,12 @@ func cleanBlankLine(content string) string {
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if len(line) < 2 {
+			continue
+		}
+		// discard image
+		if strings.HasSuffix(line, ".png") ||
+			strings.HasSuffix(line, ".jpg") ||
+			strings.HasSuffix(line, ".jpeg") {
 			continue
 		}
 		texts = append(texts, line)

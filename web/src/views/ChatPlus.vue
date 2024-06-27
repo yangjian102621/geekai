@@ -24,7 +24,7 @@
           <div class="content" :style="{height: leftBoxHeight+'px'}">
             <el-row v-for="chat in chatList" :key="chat.chat_id">
               <div :class="chat.chat_id === activeChat.chat_id?'chat-list-item active':'chat-list-item'"
-                   @click="changeChat(chat)">
+                   @click="loadChat(chat)">
                 <el-image :src="chat.icon" class="avatar"/>
                 <span class="chat-title-input" v-if="chat.edit">
                   <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
@@ -424,12 +424,8 @@ const newChat = () => {
   connect(null, roleId.value)
 }
 
-// 切换会话
-const changeChat = (chat) => {
-  localStorage.setItem("chat_id", chat.chat_id)
-  loadChat(chat)
-}
 
+// 切换会话
 const loadChat = function (chat) {
   if (!isLogin.value) {
     store.setShowLoginDialog(true)
@@ -753,7 +749,7 @@ const sendMessage = function () {
   // 如果携带了文件，则串上文件地址
   let content = prompt.value
   if (files.value.length > 0) {
-    content = files.value.map(file => file.url).join(" ") + " " +  content
+    content += files.value.map(file => file.url).join(" ")
   }
   // 追加消息
   chatData.value.push({
