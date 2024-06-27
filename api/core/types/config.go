@@ -226,5 +226,5 @@ type SystemConfig struct {
 
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
 
-	RandBg bool `json:"rand_bg"` // 前端首页是否启用随机背景
+	IndexBgURL string `json:"index_bg_url"` // 前端首页背景图片
 }

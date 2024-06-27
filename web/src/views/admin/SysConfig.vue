@@ -33,32 +33,42 @@
                   </el-input>
                 </el-form-item>
 
-                <el-form-item label="开放注册" prop="enabled_register">
-                  <el-switch v-model="system['enabled_register']"/>
-                  <el-tooltip
-                      effect="dark"
-                      content="关闭注册之后只能通过管理后台添加用户"
-                      raw-content
-                      placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled/>
-                    </el-icon>
-                  </el-tooltip>
+                <el-form-item label="首页背景图" prop="logo">
+                  <div class="tip-input">
+                    <el-input v-model="system['index_bg_url']" placeholder="网站首页背景图片">
+                      <template #append>
+                        <el-upload
+                            :auto-upload="true"
+                            :show-file-list="false"
+                            @click="beforeUpload('index_bg_url')"
+                            :http-request="uploadImg"
+                        >
+                          <el-icon class="uploader-icon">
+                            <UploadFilled/>
+                          </el-icon>
+                        </el-upload>
+                      </template>
+                    </el-input>
+                    <el-button type="primary" @click="system.index_bg_url = 'https://api.dujin.org/bing/1920.php'">使用动态背景</el-button>
+                  </div>
                 </el-form-item>
 
-                <el-form-item label="动态背景">
-                  <el-switch v-model="system['rand_bg']"/>
-                  <el-tooltip
-                      effect="dark"
-                      content="打开之后前端首页将使用随机壁纸作为背景图"
-                      raw-content
-                      placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled/>
-                    </el-icon>
-                  </el-tooltip>
+                <el-form-item label="开放注册" prop="enabled_register">
+                  <div class="tip-input">
+                    <el-switch v-model="system['enabled_register']"/>
+                    <div class="info">
+                      <el-tooltip
+                          effect="dark"
+                          content="关闭注册之后只能通过管理后台添加用户"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </div>
                 </el-form-item>
 
                 <el-form-item label="注册方式" prop="register_ways">
@@ -211,17 +221,21 @@
               </el-tab-pane>
               <el-tab-pane label="众筹支付">
                 <el-form-item label="启用众筹功能" prop="enabled_reward">
-                  <el-switch v-model="system['enabled_reward']"/>
-                  <el-tooltip
-                      effect="dark"
-                      content="如果关闭次功能将不在用户菜单显示众筹二维码"
-                      raw-content
-                      placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled/>
-                    </el-icon>
-                  </el-tooltip>
+                  <div class="tip-input">
+                    <el-switch v-model="system['enabled_reward']"/>
+                    <div class="info">
+                      <el-tooltip
+                          effect="dark"
+                          content="如果关闭次功能将不在用户菜单显示众筹二维码"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </div>
                 </el-form-item>
 
                 <div v-if="system['enabled_reward']">
@@ -534,7 +548,6 @@ const onUploadImg = (files, callback) => {
 
           .el-icon {
             font-size 16px
-            margin-left 10px
             cursor pointer
           }
 
