@@ -16,7 +16,9 @@
                 <el-image :src="GetFileIcon(file.ext)" fit="cover"  />
               </div>
               <div class="body">
-                <div class="title">{{file.name}}</div>
+                <div class="title">
+                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary:bold">{{file.name}}</el-link>
+                </div>
                 <div class="info">
                   <span>{{GetFileType(file.ext)}}</span>
                   <span>{{FormatFileSize(file.size)}}</span>
@@ -121,6 +123,7 @@ onMounted(() => {
 </script>
 
 <style lang="stylus">
+@import '@/assets/css/markdown/vue.css';
 .chat-line-prompt {
   background-color #ffffff;
   justify-content: center;
@@ -212,11 +215,6 @@ onMounted(() => {
           max-width: 600px;
           border-radius: 10px;
           margin 10px 0
-        }
-
-
-        a {
-          color #20a0ff
         }
 
         p {

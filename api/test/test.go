@@ -7,7 +7,7 @@ import (
 
 func main() {
 	file := "http://nk.img.r9it.com/chatgpt-plus/1719389335351828.xlsx"
-	content, err := utils.ReadPdf(file)
+	content, err := utils.ReadFileContent(file)
 	if err != nil {
 		panic(err)
 	}

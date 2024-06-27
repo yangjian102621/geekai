@@ -215,7 +215,7 @@ func (h *MarkMapHandler) doRequest(req types.ApiRequest, chatModel model.ChatMod
 	// if the chat model bind a KEY, use it directly
 	var res *gorm.DB
 	if chatModel.KeyId > 0 {
-		res = h.DB.Where("id", chatModel.KeyId).Where("enabled", true).Find(apiKey)
+		res = h.DB.Where("id", chatModel.KeyId).Find(apiKey)
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {
