@@ -142,7 +142,7 @@ import {checkSession} from "@/action/session";
 import {removeUserToken} from "@/store/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {useSharedStore} from "@/store/sharedata";
-import ConfigDialog from "@/components/ConfigDialog.vue";
+import ConfigDialog from "@/components/UserInfoDialog.vue";
 import {showMessageError} from "@/utils/dialog";
 
 const router = useRouter();

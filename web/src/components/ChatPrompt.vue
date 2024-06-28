@@ -1,11 +1,49 @@
 <template>
-  <div class="chat-line chat-line-prompt">
+  <div class="chat-line chat-line-prompt-list" v-if="listStyle === 'list'">
+    <div class="chat-line-inner">
+        <div class="chat-icon">
+          <img :src="data.icon" alt="User"/>
+        </div>
+
+        <div class="chat-item">
+          <div v-if="files.length > 0" class="file-list-box">
+            <div v-for="file in files">
+              <div class="image" v-if="isImage(file.ext)">
+                <el-image :src="file.url" fit="cover"/>
+              </div>
+              <div class="item" v-else>
+                <div class="icon">
+                  <el-image :src="GetFileIcon(file.ext)" fit="cover"  />
+                </div>
+                <div class="body">
+                  <div class="title">
+                    <el-link :href="file.url" target="_blank" style="--el-font-weight-primary:bold">{{file.name}}</el-link>
+                  </div>
+                  <div class="info">
+                    <span>{{GetFileType(file.ext)}}</span>
+                    <span>{{FormatFileSize(file.size)}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content" v-html="content"></div>
+          <div class="bar" v-if="data.created_at > 0">
+            <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
+            <span class="bar-item">tokens: {{ finalTokens }}</span>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="chat-line chat-line-prompt-chat" v-else>
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="icon" alt="User"/>
+        <img :src="data.icon" alt="User"/>
       </div>
 
       <div class="chat-item">
+
         <div v-if="files.length > 0" class="file-list-box">
           <div v-for="file in files">
             <div class="image" v-if="isImage(file.ext)">
@@ -27,14 +65,15 @@
             </div>
           </div>
         </div>
-        <div class="content" v-html="content"></div>
-        <div class="bar" v-if="createdAt">
-          <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
-          <!--          <span class="bar-item">Tokens: {{ finalTokens }}</span>-->
+        <div class="content-wrapper">
+          <div class="content" v-html="content"></div>
+        </div>
+        <div class="bar" v-if="data.created_at > 0">
+          <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
+          <span class="bar-item">tokens: {{ finalTokens }}</span>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -43,7 +82,7 @@ import {onMounted, ref} from "vue"
 import {Clock} from "@element-plus/icons-vue";
 import {httpPost} from "@/utils/http";
 import hl from "highlight.js";
-import {isImage, processPrompt, substr} from "@/utils/libs";
+import {dateFormat, isImage, processPrompt} from "@/utils/libs";
 import {FormatFileSize, GetFileIcon, GetFileType} from "@/store/system";
 
 const mathjaxPlugin = require('markdown-it-mathjax3')
@@ -73,41 +112,35 @@ const md = require('markdown-it')({
 });
 md.use(mathjaxPlugin)
 const props = defineProps({
-  content: {
-    type: String,
-    default: '',
+  data: {
+    type: Object,
+    default: {
+      content: '',
+      created_at: '',
+      tokens: 0,
+      model: '',
+      icon: '',
+    },
   },
-  icon: {
+  listStyle: {
     type: String,
-    default: 'images/user-icon.png',
-  },
-  createdAt: {
-    type: String,
-    default: '',
-  },
-  tokens: {
-    type: Number,
-    default: 0,
-  },
-  model: {
-    type: String,
-    default: '',
+    default: 'list',
   },
 })
-const finalTokens = ref(props.tokens)
-const content =ref(processPrompt(props.content))
+const finalTokens = ref(props.data.tokens)
+const content =ref(processPrompt(props.data.content))
 const files = ref([])
 
 onMounted(() => {
   if (!finalTokens.value) {
-    httpPost("/api/chat/tokens", {text: props.content, model: props.model}).then(res => {
+    httpPost("/api/chat/tokens", {text: props.data.content, model: props.data.model}).then(res => {
       finalTokens.value = res.data;
     }).catch(() => {
     })
   }
 
   const linkRegex = /(https?:\/\/\S+)/g;
-  const links = props.content.match(linkRegex);
+  const links = props.data.content.match(linkRegex);
   if (links) {
     httpPost("/api/upload/list", {urls: links}).then(res => {
       files.value = res.data
@@ -124,131 +157,263 @@ onMounted(() => {
 
 <style lang="stylus">
 @import '@/assets/css/markdown/vue.css';
-.chat-line-prompt {
-  background-color #ffffff;
-  justify-content: center;
-  width 100%
-  padding-bottom: 1.5rem;
-  padding-top: 1.5rem;
-  border-bottom: 1px solid #d9d9e3;
+.chat-page,.chat-export {
+  .chat-line-prompt-list {
+    background-color #ffffff;
+    justify-content: center;
+    width 100%
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+    border-bottom: 1px solid #d9d9e3;
 
-  .chat-line-inner {
-    display flex;
-    width 100%;
-    max-width 900px;
-    padding-left 10px;
+    .chat-line-inner {
+      display flex;
+      width 100%;
+      max-width 900px;
+      padding-left 10px;
 
-    .chat-icon {
-      margin-right 20px;
+      .chat-icon {
+        margin-right 20px;
 
-      img {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        padding: 1px;
-      }
-    }
-
-    .chat-item {
-      width 100%
-      padding: 0 5px 0 0;
-      overflow: hidden;
-
-      .file-list-box {
-        display flex
-        flex-flow column
-        .image {
-          display flex
-          flex-flow row
-          margin-right 10px
-          position relative
-
-          .el-image {
-            border 1px solid #e3e3e3
-            border-radius 10px
-            margin-bottom 10px
-          }
+        img {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          padding: 1px;
         }
-        .item {
-          display flex
-          flex-flow row
-          border-radius 10px
-          background-color #ffffff
-          border 1px solid #e3e3e3
-          padding 6px
-          margin-bottom 10px
+      }
 
-          .icon {
+      .chat-item {
+        width 100%
+        padding: 0 5px 0 0;
+        overflow: hidden;
+
+        .file-list-box {
+          display flex
+          flex-flow column
+          .image {
+            display flex
+            flex-flow row
+            margin-right 10px
+            position relative
+
             .el-image {
-              width 40px
-              height 40px
+              border 1px solid #e3e3e3
+              border-radius 10px
+              margin-bottom 10px
             }
           }
-          .body {
-            margin-left 8px
-            font-size 14px
-            .title {
-              font-weight bold
-              line-height 24px
-              color #0D0D0D
-            }
-            .info {
-              color #B4B4B4
+          .item {
+            display flex
+            flex-flow row
+            border-radius 10px
+            background-color #ffffff
+            border 1px solid #e3e3e3
+            padding 6px
+            margin-bottom 10px
 
-              span {
-                margin-right 10px
+            .icon {
+              .el-image {
+                width 40px
+                height 40px
+              }
+            }
+            .body {
+              margin-left 8px
+              font-size 14px
+              .title {
+                font-weight bold
+                line-height 24px
+                color #0D0D0D
+              }
+              .info {
+                color #B4B4B4
+
+                span {
+                  margin-right 10px
+                }
               }
             }
           }
         }
-      }
 
-      .content {
-        word-break break-word;
-        padding: 6px 10px;
-        color #374151;
-        font-size: var(--content-font-size);
-        border-radius: 5px;
-        overflow: auto;
+        .content {
+          word-break break-word;
+          padding: 0;
+          color #374151;
+          font-size: var(--content-font-size);
+          border-radius: 5px;
+          overflow: auto;
 
-        img {
-          max-width: 600px;
-          border-radius: 10px;
-          margin 10px 0
+          img {
+            max-width: 600px;
+            border-radius: 10px;
+            margin 10px 0
+          }
+
+          p {
+            line-height 1.5
+          }
+
+          p:last-child {
+            margin-bottom: 0
+          }
+
+          p:first-child {
+            margin-top 0
+          }
         }
 
-        p {
-          line-height 1.5
-        }
+        .bar {
+          padding 10px 10px 10px 0;
 
-        p:last-child {
-          margin-bottom: 0
-        }
+          .bar-item {
+            background-color #f7f7f8;
+            color #888
+            padding 3px 5px;
+            margin-right 10px;
+            border-radius 5px;
 
-        p:first-child {
-          margin-top 0
-        }
-      }
-
-      .bar {
-        padding 10px;
-
-        .bar-item {
-          background-color #f7f7f8;
-          color #888
-          padding 3px 5px;
-          margin-right 10px;
-          border-radius 5px;
-
-          .el-icon {
-            position relative
-            top 2px;
+            .el-icon {
+              position relative
+              top 2px;
+            }
           }
         }
       }
     }
+
+
   }
 
+  .chat-line-prompt-chat {
+    background-color #ffffff;
+    justify-content: center;
+    width 100%
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+
+    .chat-line-inner {
+      display flex;
+      width 100%;
+      padding 0 25px;
+
+      .chat-icon {
+        margin-right 20px;
+
+        img {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          padding: 1px;
+        }
+      }
+
+      .chat-item {
+        padding: 0;
+        overflow: hidden;
+
+        .file-list-box {
+          display flex
+          flex-flow column
+          .image {
+            display flex
+            flex-flow row
+            margin-right 10px
+            position relative
+
+            .el-image {
+              border 1px solid #e3e3e3
+              border-radius 10px
+              margin-bottom 10px
+            }
+          }
+          .item {
+            display flex
+            flex-flow row
+            border-radius 10px
+            background-color #ffffff
+            border 1px solid #e3e3e3
+            padding 6px
+            margin-bottom 10px
+
+            .icon {
+              .el-image {
+                width 40px
+                height 40px
+              }
+            }
+            .body {
+              margin-left 8px
+              font-size 14px
+              .title {
+                font-weight bold
+                line-height 24px
+                color #0D0D0D
+              }
+              .info {
+                color #B4B4B4
+
+                span {
+                  margin-right 10px
+                }
+              }
+            }
+          }
+        }
+
+
+        .content-wrapper {
+          display flex
+          .content {
+              word-break break-word;
+              padding: 1rem
+              color #222222;
+              font-size: var(--content-font-size);
+              overflow: auto;
+              background-color #98e165
+              border-radius: 0 10px 10px 10px;
+
+              img {
+                max-width: 600px;
+                border-radius: 10px;
+                margin 10px 0
+              }
+
+              p {
+                line-height 1.5
+              }
+
+              p:last-child {
+                margin-bottom: 0
+              }
+
+              p:first-child {
+                margin-top 0
+              }
+            }
+
+        }
+        .bar {
+          padding 10px 10px 10px 0;
+
+          .bar-item {
+            color #888
+            padding 3px 5px;
+            margin-right 10px;
+            border-radius 5px;
+
+            .el-icon {
+              position relative
+              top 2px;
+            }
+          }
+        }
+      }
+    }
+
+
+  }
 
 }
 </style>

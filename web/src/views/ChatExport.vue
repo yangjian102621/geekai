@@ -6,22 +6,14 @@
       </div>
 
       <div v-for="item in chatData" :key="item.id">
-        <chat-prompt
-            v-if="item.type==='prompt'"
-            :icon="item.icon"
-            :created-at="dateFormat(item['created_at'])"
-            :tokens="item['tokens']"
-            :model="item['model']"
-            :content="item.content"/>
-        <chat-reply v-else-if="item.type==='reply'"
-                    :data="item" :read-only="true"/>
+        <chat-prompt v-if="item.type==='prompt'" :data="item" list-style="list"/>
+        <chat-reply v-else-if="item.type==='reply'" :data="item" :read-only="true" list-style="list"/>
       </div>
     </div><!-- end chat box -->
   </div>
 </template>
 <script setup>
 
-import {dateFormat} from "@/utils/libs";
 import ChatReply from "@/components/ChatReply.vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import {nextTick, onMounted, ref} from "vue";
@@ -98,7 +90,7 @@ onMounted(() => {
   padding 0 20px
 
   .chat-box {
-    width 800px;
+    width 100%;
     // 变量定义
     --content-font-size: 16px;
     --content-color: #c1c1c1;
@@ -110,57 +102,13 @@ onMounted(() => {
       text-align center
     }
 
-
-    .chat-line-prompt {
+    .chat-line {
       font-size: 14px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
 
       .chat-line-inner {
-        .chat-icon {
-          margin-right: 0
-        }
-        .content {
-          padding-top: 0
-          font-size 16px;
-
-          p:first-child {
-            margin-top 0
-          }
-        }
-      }
-    }
-
-    .chat-line-reply {
-      padding-top: 1.5rem;
-
-      .chat-line-inner {
-        display flex
-
-        .bar-item {
-          background-color: #f7f7f8;
-          color: #888;
-          padding: 3px 5px;
-          margin-right: 10px;
-          border-radius: 5px;
-        }
-
-        .chat-icon {
-          margin-right: 20px
-
-          img {
-            width 30px
-            height 30px
-            border-radius: 10px;
-            padding: 1px
-          }
-        }
-
-        .chat-item {
-          img {
-            max-width 90%
-          }
-        }
+        max-width 800px
       }
     }
   }
