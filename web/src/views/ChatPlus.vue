@@ -1,5 +1,5 @@
 <template>
-  <div class="common-layout">
+  <div class="chat-page">
     <el-container>
       <el-aside>
         <div class="chat-list">
@@ -99,6 +99,12 @@
                 </el-tag>
               </el-option>
             </el-select>
+
+            <span class="setting" @click="showChatSetting = true">
+                    <el-tooltip class="box-item" effect="dark" content="对话设置">
+                      <i class="iconfont icon-config"></i>
+                    </el-tooltip>
+                  </span>
           </div>
 
           <div>
@@ -109,13 +115,8 @@
                 </div>
                 <div v-for="item in chatData" :key="item.id" v-else>
                   <chat-prompt
-                      v-if="item.type==='prompt'"
-                      :icon="item.icon"
-                      :created-at="dateFormat(item['created_at'])"
-                      :tokens="item['tokens']"
-                      :model="getModelValue(modelID)"
-                      :content="item.content"/>
-                  <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false"/>
+                      v-if="item.type==='prompt'" :data="item" :list-style="listStyle"/>
+                  <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false" :list-style="listStyle"/>
                 </div>
               </div><!-- end chat box -->
 
@@ -187,21 +188,21 @@
         </p>
       </div>
     </el-dialog>
+
+    <ChatSetting :show="showChatSetting" @hide="showChatSetting = false"/>
   </div>
 
 
 </template>
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {
-  dateFormat,
   isMobile,
   processContent,
-  processPrompt,
   randString,
   removeArrayItem,
   UUID
@@ -217,6 +218,7 @@ import Welcome from "@/components/Welcome.vue";
 import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
+import ChatSetting from "@/components/ChatSetting.vue";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -243,6 +245,12 @@ const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
 const store = useSharedStore();
 const row = ref(1)
+const showChatSetting = ref(false)
+const listStyle = ref(store.chatListStyle)
+watch(() => store.chatListStyle, (newValue) => {
+  listStyle.value = newValue
+});
+
 
 if (isMobile()) {
   router.replace("/mobile/chat")
@@ -757,6 +765,7 @@ const sendMessage = function () {
     id: randString(32),
     icon: loginUser.value.avatar,
     content: content,
+    model: getModelValue(modelID.value),
     created_at: new Date().getTime() / 1000,
   });
 
