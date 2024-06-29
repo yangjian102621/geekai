@@ -310,8 +310,8 @@ const data = ref({
 const loading = ref(true)
 const isOver = ref(false)
 const imgType = ref("mj") // 图片类别
-const listBoxHeight = window.innerHeight - 74
-const colWidth = ref(240)
+const listBoxHeight = window.innerHeight - 124
+const colWidth = ref(220)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
@@ -395,6 +395,7 @@ onUnmounted(() => {
 })
 
 const changeImgType = () => {
+  console.log(imgType.value)
   document.getElementById('waterfall-box').scrollTo(0, 0)
   page.value = 0
   data.value = {

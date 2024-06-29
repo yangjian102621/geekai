@@ -5,7 +5,7 @@
         <div class="sd-box">
           <h2>Stable Diffusion 创作中心</h2>
 
-          <div class="sd-params" :style="{ height: paramBoxHeight + 'px' }">
+          <div class="sd-params">
             <el-form :model="params" label-width="80px" label-position="left">
               <div class="param-line" style="padding-top: 10px">
                 <el-form-item label="采样方法">
@@ -497,8 +497,6 @@
 
       </el-dialog>
     </div>
-
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
@@ -511,21 +509,25 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
-import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
-const listBoxHeight = ref(window.innerHeight - 40)
-const paramBoxHeight = ref(window.innerHeight - 150)
+const listBoxHeight = ref(0)
+// const paramBoxHeight = ref(0)
 const fullImgHeight = ref(window.innerHeight - 60)
 const showTaskDialog = ref(false)
 const item = ref({})
-const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const loading = ref(true)
-const colWidth = ref(240)
+const colWidth = ref(220)
+const store = useSharedStore();
 
+const resizeElement = function () {
+  listBoxHeight.value = window.innerHeight - 80
+  // paramBoxHeight.value = window.innerHeight - 200
+};
+resizeElement()
 window.onresize = () => {
-  listBoxHeight.value = window.innerHeight - 40
-  paramBoxHeight.value = window.innerHeight - 150
+  resizeElement()
 }
 const samplers = ["Euler a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM++ 2M SDE", "UniPC", "Restart"]
 const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"]
@@ -600,8 +602,8 @@ const connect = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
           page.value = 0
-          fetchFinishJobs()
           isOver.value = false
+          fetchFinishJobs()
         }
         fetchRunningJobs()
       }
@@ -726,7 +728,7 @@ const generate = () => {
   }
 
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 
@@ -765,6 +767,9 @@ const removeImage = (event, item) => {
   ).then(() => {
     httpPost("/api/sd/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
       ElMessage.success("任务删除成功")
+      page.value = 0
+      isOver.value = false
+      fetchFinishJobs()
     }).catch(e => {
       ElMessage.error("任务删除失败：" + e.message)
     })
@@ -782,6 +787,9 @@ const publishImage = (event, item, action) => {
   httpPost("/api/sd/publish", {id: item.id, action: action}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
+    page.value = 0
+    isOver.value = false
+    fetchFinishJobs()
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

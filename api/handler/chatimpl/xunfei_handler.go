@@ -13,6 +13,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
@@ -87,8 +88,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 		res = h.DB.Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(&apiKey)
 	}
 	if res.Error != nil {
-		utils.ReplyMessage(ws, "抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
-		return nil
+		return errors.New("抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
 	}
 	// 更新 API KEY 的最后使用时间
 	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())

@@ -528,6 +528,10 @@ const onUploadImg = (files, callback) => {
             }
           }
         }
+
+        .el-input {
+          width 100%
+        }
       }
 
       .el-descriptions {

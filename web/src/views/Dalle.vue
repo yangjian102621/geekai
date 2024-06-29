@@ -5,7 +5,7 @@
         <div class="sd-box">
           <h2>DALL-E 创作中心</h2>
 
-          <div class="sd-params" :style="{ height: paramBoxHeight + 'px' }">
+          <div class="sd-params">
             <el-form :model="params" label-width="80px" label-position="left">
               <div class="param-line" style="padding-top: 10px">
                 <el-form-item label="图片质量">
@@ -88,7 +88,7 @@
               <h2>任务列表</h2>
               <div class="running-job-list">
                 <div class="running-job-box" v-if="runningJobs.length > 0">
-                  <div class="job-item" v-for="item in runningJobs">
+                  <div class="job-item" v-for="item in runningJobs" :key="item.id">
                     <div v-if="item.progress > 0" class="job-item-inner">
                       <el-image :src="item['img_url']" fit="cover" loading="lazy">
                         <template #placeholder>
@@ -221,32 +221,35 @@
 
     </div>
 
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
     <el-image-viewer @close="() => { previewURL = '' }" v-if="previewURL !== ''" :url-list="[previewURL]"/>
   </div>
 </template>
 
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue"
-import {Delete, InfoFilled} from "@element-plus/icons-vue";
+import {Delete, InfoFilled, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
-import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
-const listBoxHeight = ref(window.innerHeight - 40)
-const paramBoxHeight = ref(window.innerHeight - 150)
-const showLoginDialog = ref(false)
+const listBoxHeight = ref(0)
+// const paramBoxHeight = ref(0)
 const isLogin = ref(false)
 const loading = ref(true)
-const colWidth = ref(240)
+const colWidth = ref(220)
 const isOver = ref(false)
 const previewURL = ref("")
+const store = useSharedStore();
 
+const resizeElement = function () {
+  listBoxHeight.value = window.innerHeight - 90
+  // paramBoxHeight.value = window.innerHeight - 110
+};
+resizeElement()
 window.onresize = () => {
-  listBoxHeight.value = window.innerHeight - 40
-  paramBoxHeight.value = window.innerHeight - 150
+  resizeElement()
 }
 const qualities = [
   {name: "标准", value: "standard"},
@@ -351,8 +354,8 @@ const connect = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
           page.value = 0
-          fetchFinishJobs(page.value)
           isOver.value = false
+          fetchFinishJobs(page.value)
         }
         fetchRunningJobs()
       }
@@ -434,7 +437,7 @@ const generate = () => {
   }
 
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
   httpPost("/api/dall/image", params.value).then(() => {
@@ -458,7 +461,9 @@ const removeImage = (event, item) => {
   ).then(() => {
     httpPost("/api/dall/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
       ElMessage.success("任务删除成功")
-      fetchFinishJobs(1)
+      page.value = 0
+      isOver.value = false
+      fetchFinishJobs()
     }).catch(e => {
       ElMessage.error("任务删除失败：" + e.message)
     })
@@ -480,6 +485,9 @@ const publishImage = (event, item, action) => {
   httpPost("/api/dall/publish", {id: item.id, action: action}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
+    page.value = 0
+    isOver.value = false
+    fetchFinishJobs()
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

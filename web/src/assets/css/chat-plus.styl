@@ -10,35 +10,26 @@ $borderColor = #4676d0;
     // left side
 
     .el-aside {
-      background-color: $sideBgColor;
-      height 100vh
-
-      .title-box {
-        padding: 6px 10px;
-        display: flex;
-        color: #ffffff;
-        font-size: 20px;
-
-        span {
-          padding-top: 5px;
-          padding-left: 10px;
-        }
-      }
+      //background-color: $sideBgColor;
+      padding 10px
+      width var(--el-aside-width, 320px)
 
       .chat-list {
         display: flex
         flex-flow: column
-        background-color: #28292A
-        border-top: 1px solid #2F3032
-        border-right: 1px solid #2F3032
+        //background-color: $sideBgColor
+        border-radius 10px
+        padding 10px 0
 
         .search-box {
           flex-wrap: wrap
-          padding: 10px 15px;
-          //background-color #343540
+          padding: 10px 0;
 
-          .el-input__wrapper {
-            background-color: #363535;
+          .search-input {
+            --el-input-bg-color: #363535
+            --el-input-border-color: #464545
+            --el-input-focus-border-color: #47fff1
+            --el-input-hover-border-color: #2DA39A
             box-shadow: none
           }
         }
@@ -52,9 +43,6 @@ $borderColor = #4676d0;
         }
 
         .content {
-          //display flex
-          //flex-wrap: wrap;
-          //flex-direction column
           width: 100%
           overflow-y: scroll
 
@@ -65,14 +53,17 @@ $borderColor = #4676d0;
             padding: 8px 12px
             //border-bottom: 1px solid #3c3c3c
             cursor: pointer
+            border: 1px solid #3c3c3c
+            margin-bottom 6px
+            border-radius 5px
 
             &:hover {
               background-color #343540
             }
 
             .avatar {
-              width: 28px;
-              height: 28px;
+              width: 32px;
+              height: 32px;
               border-radius: 50%;
             }
 
@@ -96,12 +87,16 @@ $borderColor = #4676d0;
               text-overflow: ellipsis;
             }
 
-            .btn {
-              display none
+
+            .chat-opt {
               position: absolute;
               right: 2px;
               top: 16px;
               color #ffffff
+
+              .el-dropdown-link {
+                color #ffffff
+              }
 
               .el-icon {
                 margin-right 8px;
@@ -111,10 +106,7 @@ $borderColor = #4676d0;
 
           .chat-list-item.active {
             background-color: #343540;
-
-            .btn {
-              display inline
-            }
+            border-color #21aa93
           }
         }
       }
@@ -122,40 +114,12 @@ $borderColor = #4676d0;
 
       .tool-box {
         display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        padding 0 20px 10px 20px;
+        justify-content: center;
+        padding-top 12px
         border-top 1px solid #3c3c3c;
 
-        .user-info {
-          width 100%
-          padding-top 10px;
-
-          .el-dropdown-link {
-            width 100%;
-            cursor: pointer
-            display flex
-
-            .el-image {
-              width: 20px;
-              height: 20px;
-              border-radius: 5px;
-            }
-
-            .username {
-              display flex
-              line-height 22px;
-              width 230px;
-              padding-left 10px;
-
-            }
-
-            .el-icon {
-              color: #cccccc;
-              line-height 24px;
-            }
-          }
-
+        .iconfont {
+          margin-right 5px
         }
       }
     }
@@ -165,56 +129,11 @@ $borderColor = #4676d0;
       --el-main-padding: 0;
       margin: 0;
 
-      .chat-head {
-        width: 100%;
-        height: 50px;
-        background-color: #28292A
-
-        .chat-config {
-          display flex
-          flex-direction row
-          align-items: center;
-          justify-content center;
-          padding-top 10px;
-
-          .role-select-label {
-            color #ffffff
-          }
-
-          .el-select {
-            max-width 150px;
-            margin-right 10px;
-          }
-
-          .role-select {
-            max-width 130px;
-          }
-
-          .el-button {
-            .el-icon {
-              margin-right 5px;
-            }
-          }
-        }
-
-        .iconfont {
-          margin-right 5px;
-        }
-
-        .is-circle {
-          margin-left 5px
-
-          .iconfont {
-            margin-right 0
-          }
-        }
-      }
-
-      .right-box {
+      .chat-box {
         min-width: 0;
         flex: 1;
-        background-color: #ffffff
-        border-left: 1px solid #4f4f4f
+        background-color: var(--el-bg-color)
+        color var(--el-text-color-primary)
 
         #container {
           overflow: hidden;
@@ -245,23 +164,6 @@ $borderColor = #4676d0;
             }
           }
 
-          .re-generate {
-            position: relative;
-            display: flex;
-            justify-content: center;
-
-            .btn-box {
-              position: absolute
-              bottom: 10px;
-
-              .el-button {
-                .el-icon {
-                  margin-right 5px;
-                }
-              }
-            }
-          }
-
           .input-box {
             background-color: #ffffff
             display: flex;
@@ -269,6 +171,26 @@ $borderColor = #4676d0;
             align-items: center;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
             padding 0 15px;
+
+            .tool-item {
+              margin-right 15px
+              border-radius: 6px;
+              color: #19c37d;
+              display flex
+              justify-content center
+              justify-items center
+              padding 6px
+              cursor pointer
+              background #F2F2F2
+
+              &:hover {
+                background #D5FAD3
+              }
+
+              .iconfont {
+                font-size: 24px;
+              }
+            }
 
             .input-container {
               width 100%
@@ -280,7 +202,6 @@ $borderColor = #4676d0;
               position relative
 
               .el-textarea {
-
                 .el-textarea__inner::-webkit-scrollbar {
                   width: 0;
                   height: 0;
@@ -301,8 +222,6 @@ $borderColor = #4676d0;
                 .el-button {
                   padding 8px 5px;
                   border-radius 6px;
-                  background: rgb(25, 195, 125)
-                  color #ffffff;
                   font-size 20px;
                 }
               }
@@ -399,12 +318,9 @@ $borderColor = #4676d0;
   .el-dialog {
     .el-dialog__body {
       .notice {
-        padding 0 20px 0 20px
+        //padding 0 20px 0 20px
         line-height 1.8
-
-        .el-text {
-          font-size 16px
-        }
+        font-size 16px
       }
     }
   }

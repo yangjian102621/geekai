@@ -2,10 +2,10 @@
   <div>
     <div class="page-mark-map">
       <div class="inner custom-scroll">
-        <div class="mark-map-box">
+        <div class="mark-map-box" :style="{ height: leftBoxHeight + 'px' }">
           <h2>思维导图创作中心</h2>
 
-          <div class="mark-map-params" :style="{ height: leftBoxHeight + 'px' }">
+          <div class="mark-map-params">
             <el-form label-width="80px" label-position="left">
               <div class="param-line">
                 你的需求？
@@ -69,9 +69,8 @@
           </div>
         </div>
 
-        <div class="right-box">
+        <div class="chat-box">
           <div class="top-bar">
-            <h2>思维导图</h2>
             <el-button @click="downloadImage" type="primary">
               <el-icon>
                 <Download/>
@@ -91,13 +90,10 @@
       </div>
 
     </div>
-
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
 <script setup>
-import LoginDialog from "@/components/LoginDialog.vue";
 import {nextTick, onMounted, onUnmounted, ref} from 'vue';
 import {Markmap} from 'markmap-view';
 import {Transformer} from 'markmap-lib';
@@ -106,9 +102,10 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Download} from "@element-plus/icons-vue";
 import {Toolbar} from 'markmap-toolbar';
+import {useSharedStore} from "@/store/sharedata";
 
 const leftBoxHeight = ref(window.innerHeight - 105)
-const rightBoxHeight = ref(window.innerHeight - 85)
+const rightBoxHeight = ref(window.innerHeight - 115)
 
 const prompt = ref("")
 const text = ref(`# Geek-AI 助手
@@ -126,10 +123,10 @@ const md = require('markdown-it')({breaks: true});
 const content = ref(text.value)
 const html = ref("")
 
-const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const loginUser = ref({power: 0})
 const transformer = new Transformer();
+const store = useSharedStore();
 
 
 const svgRef = ref(null)
@@ -151,21 +148,21 @@ onMounted(() => {
 });
 
 const initData = () => {
+  httpGet("/api/model/list").then(res => {
+    for (let v of res.data) {
+      if (v.platform === "OpenAI" && v.value.indexOf("gpt-4-gizmo") === -1) {
+        models.value.push(v)
+      }
+    }
+    modelID.value = models.value[0].id
+  }).catch(e => {
+    ElMessage.error("获取模型失败：" + e.message)
+  })
+  
   checkSession().then(user => {
     loginUser.value = user
     isLogin.value = true
-
-    httpGet("/api/model/list").then(res => {
-      for (let v of res.data) {
-        if (v.platform === "OpenAI" && v.value.indexOf("gpt-4-gizmo") === -1) {
-          models.value.push(v)
-        }
-      }
-      modelID.value = models.value[0].id
-      connect(user.id)
-    }).catch(e => {
-      ElMessage.error("获取模型失败：" + e.message)
-    })
+    connect(user.id)
   }).catch(() => {
   });
 }
@@ -206,7 +203,7 @@ window.onresize = () => {
 }
 
 const socket = ref(null)
-const heartbeatHandle = ref(null)
+const heartbeatHandle = ref(0)
 const connect = (userId) => {
   if (socket.value !== null) {
     socket.value.close()
@@ -293,7 +290,7 @@ const generateAI = () => {
     return ElMessage.error("请输入你的需求")
   }
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
   loading.value = true
