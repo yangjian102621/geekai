@@ -600,8 +600,6 @@
     </div>
 
     <el-image-viewer @close="() => { previewURL = '' }" v-if="previewURL !== ''" :url-list="[previewURL]"/>
-
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
@@ -616,19 +614,24 @@ import {checkSession} from "@/action/session";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
-import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
-const listBoxHeight = ref(window.innerHeight - 40)
-const paramBoxHeight = ref(window.innerHeight - 150)
-const showLoginDialog = ref(false)
+const listBoxHeight = ref(0)
+const paramBoxHeight = ref(0)
 const loading = ref(true)
-const colWidth = ref(240)
+const colWidth = ref(220)
 const previewURL = ref("")
+const store = useSharedStore();
 
+const resizeElement = function () {
+  listBoxHeight.value = window.innerHeight - 80
+  paramBoxHeight.value = window.innerHeight - 160
+};
+resizeElement()
 window.onresize = () => {
-  listBoxHeight.value = window.innerHeight - 40
-  paramBoxHeight.value = window.innerHeight - 150
+  resizeElement()
 }
+
 const rates = [
   {css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png"},
   {css: "size1-2", value: "1:2", text: "1:2", img: "/images/mj/rate_1_2.png"},
@@ -746,8 +749,8 @@ const connect = () => {
         const message = String(reader.result)
         if (message === "FINISH") {
           page.value = 0
-          fetchFinishJobs(page.value)
           isOver.value = false
+          fetchFinishJobs(page.value)
         }
         fetchRunningJobs()
       }
@@ -898,7 +901,7 @@ const beforeUpload = (key) => {
 // 图片上传
 const uploadImg = (file) => {
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 
@@ -931,7 +934,7 @@ const uploadImg = (file) => {
 const promptRef = ref(null)
 const generate = () => {
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 
@@ -993,6 +996,9 @@ const removeImage = (item) => {
   ).then(() => {
     httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
       ElMessage.success("任务删除成功")
+      page.value = 0
+      isOver.value = false
+      fetchFinishJobs()
     }).catch(e => {
       ElMessage.error("任务删除失败：" + e.message)
     })
@@ -1009,6 +1015,9 @@ const publishImage = (item, action) => {
   httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
+    page.value = 0
+    isOver.value = false
+    fetchFinishJobs()
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

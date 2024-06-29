@@ -2,67 +2,98 @@
   <div class="chat-line chat-line-reply">
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="icon" alt="ChatGPT">
+        <img :src="data.icon" alt="ChatGPT">
       </div>
 
       <div class="chat-item">
-        <div class="content" v-html="content"></div>
-        <div class="bar" v-if="createdAt !== ''">
-          <span class="bar-item"><el-icon><Clock/></el-icon> {{ createdAt }}</span>
-          <span class="bar-item">Tokens: {{ tokens }}</span>
-          <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制回答"
-              placement="bottom"
-          >
-            <el-button type="info" class="copy-reply" :data-clipboard-text="orgContent">
-              <el-icon>
-                <DocumentCopy/>
-              </el-icon>
-            </el-button>
-          </el-tooltip>
+        <div class="content" v-html="data.content"></div>
+        <div class="bar" v-if="data.created_at">
+          <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
+          <!--          <span class="bar-item">Tokens: {{ tokens }}</span>-->
+          <span class="bar-item">
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制回答"
+                  placement="bottom"
+              >
+                <el-icon class="copy-reply" :data-clipboard-text="data.orgContent">
+                  <DocumentCopy/>
+                </el-icon>
+              </el-tooltip>
+            </span>
+          <span v-if="!readOnly">
+            <span class="bar-item" @click="reGenerate(data.prompt)">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="重新生成"
+                placement="bottom"
+            >
+              <el-icon><Refresh/></el-icon>
+            </el-tooltip>
+          </span>
+
+          <span class="bar-item" @click="synthesis(data.orgContent)">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="生成语音朗读"
+                placement="bottom"
+            >
+              <i class="iconfont icon-speaker"></i>
+            </el-tooltip>
+          </span>
+          </span>
+          <!--          <span class="bar-item">-->
+          <!--            <el-dropdown trigger="click">-->
+          <!--              <span class="el-dropdown-link">-->
+          <!--                <el-icon><More/></el-icon>-->
+          <!--              </span>-->
+          <!--              <template #dropdown>-->
+          <!--                <el-dropdown-menu>-->
+          <!--                  <el-dropdown-item :icon="Headset" @click="synthesis(orgContent)">生成语音</el-dropdown-item>-->
+          <!--                </el-dropdown-menu>-->
+          <!--              </template>-->
+          <!--            </el-dropdown>-->
+          <!--          </span>-->
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue"
-import {Clock, DocumentCopy, Position} from "@element-plus/icons-vue";
-
-export default defineComponent({
-  name: 'ChatReply',
-  components: {Position, Clock, DocumentCopy},
-  props: {
-    content: {
-      type: String,
-      default: '',
-    },
-    orgContent: {
-      type: String,
-      default: '',
-    },
-    createdAt: {
-      type: String,
-      default: '',
-    },
-    tokens: {
-      type: Number,
-      default: 0,
-    },
-    icon: {
-      type: String,
-      default: 'images/gpt-icon.png',
-    }
+<script setup>
+import {Clock, DocumentCopy, Refresh} from "@element-plus/icons-vue";
+import {ElMessage} from "element-plus";
+import {dateFormat} from "@/utils/libs";
+// eslint-disable-next-line no-undef,no-unused-vars
+const props = defineProps({
+  data: {
+    type: Object,
+    default: {},
   },
-  data() {
-    return {
-      finalTokens: this.tokens
-    }
+  readOnly: {
+    type: Boolean,
+    default: false
   }
 })
+
+const emits = defineEmits(['regen']);
+
+if (!props.data.icon) {
+  props.data.icon = "images/gpt-icon.png"
+}
+
+const synthesis = (text) => {
+  console.log(text)
+  ElMessage.info("语音合成功能暂不可用")
+}
+
+// 重新生成
+const reGenerate = (prompt) => {
+  emits('regen', prompt)
+}
 </script>
 
 <style lang="stylus">
@@ -218,10 +249,12 @@ export default defineComponent({
             padding 3px 5px;
             margin-right 10px;
             border-radius 5px;
+            cursor pointer
 
             .el-icon {
               position relative
               top 2px;
+              cursor pointer
             }
           }
 

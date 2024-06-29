@@ -1,19 +1,10 @@
 <template>
-  <div class="list-box" ref="container">
-    <div class="list-inner">
-      <div
-          class="list-item"
-          v-for="(item, index) in items"
-          :key="index"
-          :style="{width:itemWidth + 'px'}"
-      >
-        <div class="item-inner" :style="{padding: gap/2+'px'}">
-          <div class="item-wrapper">
-            <slot :item="item" :index="index" :width="itemWidth"></slot>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="list-box" ref="containerRef">
+    <el-row :gutter="gap">
+      <el-col v-for="item in items" :key="item.id" :span="span" :style="{marginBottom:gap+'px'} ">
+        <slot :item="item"></slot>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -29,7 +20,7 @@ const props = defineProps({
   },
   gap: {
     type: Number,
-    default: 12
+    default: 10
   },
   width: {
     type: Number,
@@ -37,45 +28,35 @@ const props = defineProps({
   }
 });
 
-const container = ref(null)
-const itemWidth = ref(props.width)
+const containerRef = ref(null)
+const span = ref(12)
 
 onMounted(() => {
-  computeSize()
+  calcSpan()
 })
 
-const computeSize = () => {
-  const w = container.value.offsetWidth - 10 // 减去滚动条的宽度
-  let cols = Math.floor(w / props.width)
-  itemWidth.value = Math.floor(w / cols)
+const calcSpan = () => {
+  let cols = Math.floor(containerRef.value.offsetWidth / props.width)
+  if (cols >= 12) {
+    span.value = 1
+    return
+  }
+  console.log(cols)
+  while (cols > 1) {
+    if (24 % cols === 0) {
+      span.value = 24 / cols
+      return
+    }
+    cols -= 1
+  }
+  span.value = 12
 }
-
-window.onresize = () => {
-  computeSize()
-}
+window.onresize = () => calcSpan()
 </script>
 
 <style scoped lang="stylus">
 
 .list-box {
-
-  .list-inner {
-    display flex
-    flex-wrap wrap
-
-    .list-item {
-      .item-inner {
-        display flex
-
-        .item-wrapper {
-          height 100%
-          width 100%
-          display flex
-          justify-content center
-        }
-      }
-    }
-  }
 }
 
 </style>

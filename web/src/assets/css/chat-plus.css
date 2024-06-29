@@ -1,313 +1,378 @@
 #app {
-  height: 100%;
+    height: 100%;
 }
+
 #app .common-layout {
-  height: 100%;
+    height: 100%;
 }
+
 #app .common-layout .el-aside {
-  background-color: #252526;
+    background-color: #252526;
 }
+
 #app .common-layout .el-aside .title-box {
-  padding: 6px 10px;
-  display: flex;
-  color: #fff;
-  font-size: 20px;
+    padding: 6px 10px;
+    display: flex;
+    color: #fff;
+    font-size: 20px;
 }
+
 #app .common-layout .el-aside .title-box span {
-  padding-top: 5px;
-  padding-left: 10px;
+    padding-top: 5px;
+    padding-left: 10px;
 }
+
 #app .common-layout .el-aside .chat-list {
-  display: flex;
-  flex-flow: column;
-  background-color: #28292a;
-  border-top: 1px solid #2f3032;
-  border-right: 1px solid #2f3032;
+    display: flex;
+    flex-flow: column;
+    background-color: #28292a;
+    border-top: 1px solid #2f3032;
+    border-right: 1px solid #2f3032;
 }
+
 #app .common-layout .el-aside .chat-list .search-box {
-  flex-wrap: wrap;
-  padding: 10px 15px;
+    flex-wrap: wrap;
+    padding: 10px 15px;
 }
+
 #app .common-layout .el-aside .chat-list .search-box .el-input__wrapper {
-  background-color: #363535;
-  box-shadow: none;
+    background-color: #363535;
+    box-shadow: none;
 }
+
 #app .common-layout .el-aside .chat-list ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  background-color: transparent;
+    width: 0;
+    height: 0;
+    background-color: transparent;
 }
+
 #app .common-layout .el-aside .chat-list .content {
-  width: 100%;
-  overflow-y: scroll;
+    width: 100%;
+    overflow-y: scroll;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item {
-  display: flex;
-  width: 100%;
-  justify-content: flex-start;
-  padding: 8px 12px;
-  cursor: pointer;
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 8px 12px;
+    cursor: pointer;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item:hover {
-  background-color: #343540;
+    background-color: #343540;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item .avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item .chat-title-input {
-  font-size: 14px;
-  margin-top: 4px;
-  margin-left: 10px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 190px;
+    font-size: 14px;
+    margin-top: 4px;
+    margin-left: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 190px;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item .chat-title {
-  color: #c1c1c1;
-  padding: 5px 10px;
-  max-width: 220px;
-  font-size: 14px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+    color: #c1c1c1;
+    padding: 5px 10px;
+    max-width: 220px;
+    font-size: 14px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item .btn {
-  display: none;
-  position: absolute;
-  right: 2px;
-  top: 16px;
-  color: #fff;
+    display: none;
+    position: absolute;
+    right: 2px;
+    top: 16px;
+    color: #fff;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item .btn .el-icon {
-  margin-right: 8px;
+    margin-right: 8px;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item.active {
-  background-color: #343540;
+    background-color: #343540;
 }
+
 #app .common-layout .el-aside .chat-list .content .chat-list-item.active .btn {
-  display: inline;
+    display: inline;
 }
+
 #app .common-layout .el-aside .tool-box {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 20px 10px 20px;
-  border-top: 1px solid #3c3c3c;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 20px 10px 20px;
+    border-top: 1px solid #3c3c3c;
 }
+
 #app .common-layout .el-aside .tool-box .user-info {
-  width: 100%;
-  padding-top: 10px;
+    width: 100%;
+    padding-top: 10px;
 }
+
 #app .common-layout .el-aside .tool-box .user-info .el-dropdown-link {
-  width: 100%;
-  cursor: pointer;
-  display: flex;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
 }
+
 #app .common-layout .el-aside .tool-box .user-info .el-dropdown-link .el-image {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
 }
+
 #app .common-layout .el-aside .tool-box .user-info .el-dropdown-link .username {
-  display: flex;
-  line-height: 22px;
-  width: 230px;
-  padding-left: 10px;
+    display: flex;
+    line-height: 22px;
+    width: 230px;
+    padding-left: 10px;
 }
+
 #app .common-layout .el-aside .tool-box .user-info .el-dropdown-link .el-icon {
-  color: #ccc;
-  line-height: 24px;
+    color: #ccc;
+    line-height: 24px;
 }
+
 #app .common-layout .el-main {
-  overflow: hidden;
-  --el-main-padding: 0;
-  margin: 0;
+    overflow: hidden;
+    --el-main-padding: 0;
+    margin: 0;
 }
+
 #app .common-layout .el-main .chat-head {
-  width: 100%;
-  height: 50px;
-  background-color: #28292a;
+    width: 100%;
+    height: 50px;
+    background-color: #28292a;
 }
+
 #app .common-layout .el-main .chat-head .chat-config {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  padding-top: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px;
 }
+
 #app .common-layout .el-main .chat-head .chat-config .role-select-label {
-  color: #fff;
+    color: #fff;
 }
+
 #app .common-layout .el-main .chat-head .chat-config .el-select {
-  max-width: 150px;
-  margin-right: 10px;
+    max-width: 150px;
+    margin-right: 10px;
 }
+
 #app .common-layout .el-main .chat-head .chat-config .role-select {
-  max-width: 130px;
+    max-width: 130px;
 }
+
 #app .common-layout .el-main .chat-head .chat-config .el-button .el-icon {
-  margin-right: 5px;
+    margin-right: 5px;
 }
+
 #app .common-layout .el-main .chat-head .iconfont {
-  margin-right: 5px;
+    margin-right: 5px;
 }
+
 #app .common-layout .el-main .chat-head .is-circle {
-  margin-left: 5px;
+    margin-left: 5px;
 }
+
 #app .common-layout .el-main .chat-head .is-circle .iconfont {
-  margin-right: 0;
+    margin-right: 0;
 }
-#app .common-layout .el-main .right-box {
-  min-width: 0;
-  flex: 1;
-  background-color: #fff;
-  border-left: 1px solid #4f4f4f;
+
+#app .common-layout .el-main .chat-box {
+    min-width: 0;
+    flex: 1;
+    background-color: #fff;
+    border-left: 1px solid #4f4f4f;
 }
-#app .common-layout .el-main .right-box #container {
-  overflow: hidden;
-  width: 100%;
+
+#app .common-layout .el-main .chat-box #container {
+    overflow: hidden;
+    width: 100%;
 }
-#app .common-layout .el-main .right-box #container ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  background-color: transparent;
+
+#app .common-layout .el-main .chat-box #container ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background-color: transparent;
 }
-#app .common-layout .el-main .right-box #container .chat-box {
-  overflow-y: scroll;
-  --content-font-size: 16px;
-  --content-color: #c1c1c1;
-  font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-  padding: 0 0 50px 0;
+
+#app .common-layout .el-main .chat-box #container .chat-box {
+    overflow-y: scroll;
+    --content-font-size: 16px;
+    --content-color: #c1c1c1;
+    font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    padding: 0 0 50px 0;
 }
-#app .common-layout .el-main .right-box #container .chat-box .chat-line {
-  font-size: 14px;
-  display: flex;
-  align-items: flex-start;
+
+#app .common-layout .el-main .chat-box #container .chat-box .chat-line {
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
 }
-#app .common-layout .el-main .right-box #container .re-generate {
-  position: relative;
-  display: flex;
-  justify-content: center;
+
+#app .common-layout .el-main .chat-box #container .re-generate {
+    position: relative;
+    display: flex;
+    justify-content: center;
 }
-#app .common-layout .el-main .right-box #container .re-generate .btn-box {
-  position: absolute;
-  bottom: 10px;
+
+#app .common-layout .el-main .chat-box #container .re-generate .btn-box {
+    position: absolute;
+    bottom: 10px;
 }
-#app .common-layout .el-main .right-box #container .re-generate .btn-box .el-button .el-icon {
-  margin-right: 5px;
+
+#app .common-layout .el-main .chat-box #container .re-generate .btn-box .el-button .el-icon {
+    margin-right: 5px;
 }
-#app .common-layout .el-main .right-box #container .input-box {
-  background-color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-  padding: 0 15px;
+
+#app .common-layout .el-main .chat-box #container .input-box {
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    padding: 0 15px;
 }
-#app .common-layout .el-main .right-box #container .input-box .input-container {
-  width: 100%;
-  margin: 0;
-  border: none;
-  padding: 10px 0;
-  display: flex;
-  justify-content: center;
-  position: relative;
+
+#app .common-layout .el-main .chat-box #container .input-box .input-container {
+    width: 100%;
+    margin: 0;
+    border: none;
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    position: relative;
 }
-#app .common-layout .el-main .right-box #container .input-box .input-container .el-textarea .el-textarea__inner::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+
+#app .common-layout .el-main .chat-box #container .input-box .input-container .el-textarea .el-textarea__inner::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
-#app .common-layout .el-main .right-box #container .input-box .input-container .select-file {
-  position: absolute;
-  right: 48px;
-  top: 20px;
+
+#app .common-layout .el-main .chat-box #container .input-box .input-container .select-file {
+    position: absolute;
+    right: 48px;
+    top: 20px;
 }
-#app .common-layout .el-main .right-box #container .input-box .input-container .send-btn {
-  position: absolute;
-  right: 12px;
-  top: 20px;
+
+#app .common-layout .el-main .chat-box #container .input-box .input-container .send-btn {
+    position: absolute;
+    right: 12px;
+    top: 20px;
 }
-#app .common-layout .el-main .right-box #container .input-box .input-container .send-btn .el-button {
-  padding: 8px 5px;
-  border-radius: 6px;
-  background: #19c37d;
-  color: #fff;
-  font-size: 20px;
+
+#app .common-layout .el-main .chat-box #container .input-box .input-container .send-btn .el-button {
+    padding: 8px 5px;
+    border-radius: 6px;
+    background: #19c37d;
+    color: #fff;
+    font-size: 20px;
 }
-#app .common-layout .el-main .right-box #container::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+
+#app .common-layout .el-main .chat-box #container::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
+
 #app .el-message-box {
-  width: 90%;
-  max-width: 420px;
+    width: 90%;
+    max-width: 420px;
 }
+
 #app .el-message {
-  min-width: 100px;
-  max-width: 600px;
+    min-width: 100px;
+    max-width: 600px;
 }
+
 .el-select-dropdown__wrap .el-select-dropdown__item .role-option {
-  display: flex;
-  flex-flow: row;
-  margin-top: 8px;
+    display: flex;
+    flex-flow: row;
+    margin-top: 8px;
 }
+
 .el-select-dropdown__wrap .el-select-dropdown__item .role-option .el-image {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
 }
+
 .el-select-dropdown__wrap .el-select-dropdown__item .role-option span {
-  margin-left: 5px;
-  height: 20px;
-  line-height: 20px;
+    margin-left: 5px;
+    height: 20px;
+    line-height: 20px;
 }
+
 .account {
-  display: flex;
-  background-color: #90ffc2;
-  color: #000;
-  width: 100%;
-  border-radius: 10px;
-  padding: 10px;
+    display: flex;
+    background-color: #90ffc2;
+    color: #000;
+    width: 100%;
+    border-radius: 10px;
+    padding: 10px;
 }
+
 .account .vip-logo .el-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 100%;
-  background-color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-color: #fff;
 }
+
 .account .vip-info {
-  padding: 0 10px 0 10px;
+    padding: 0 10px 0 10px;
 }
+
 .account .vip-info h4,
 .account .vip-info p {
-  margin: 0;
+    margin: 0;
 }
+
 .account .vip-info h4 {
-  font-weight: bold;
-  font-size: 16px;
+    font-weight: bold;
+    font-size: 16px;
 }
+
 .account .vip-info p {
-  color: #333;
+    color: #333;
 }
+
 .account .pay-btn {
-  width: 100%;
-  display: flex;
-  justify-content: right;
-  align-items: center;
+    width: 100%;
+    display: flex;
+    justify-content: right;
+    align-items: center;
 }
+
 .el-overlay-dialog .el-dialog .el-dialog__body .notice {
-  padding: 0 20px 0 20px;
-  line-height: 1.8;
+    padding: 0 20px 0 20px;
+    line-height: 1.8;
 }
+
 .el-overlay-dialog .el-dialog .el-dialog__body .notice .el-text {
-  font-size: 16px;
+    font-size: 16px;
 }
+
 .dialog-service {
-  text-align: center;
+    text-align: center;
 }
+
 .dialog-service .el-image {
-  width: 360px;
+    width: 360px;
 }

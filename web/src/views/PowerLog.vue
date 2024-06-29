@@ -1,9 +1,7 @@
 <template>
-  <div class="power-log" v-loading="loading">
-    <div class="inner">
-      <h2>消费日志</h2>
-
-      <div class="list-box" :style="{height: listBoxHeight + 'px'}">
+  <div class="power-log custom-scroll" v-loading="loading">
+    <div class="inner" :style="{height: listBoxHeight + 'px'}">
+      <div class="list-box">
         <div class="handle-box">
           <el-input v-model="query.model" placeholder="模型" class="handle-input mr10" clearable></el-input>
           <el-date-picker
@@ -13,9 +11,9 @@
               end-placeholder="结束日期"
               format="YYYY-MM-DD"
               value-format="YYYY-MM-DD"
-              style="margin: 0 10px;width: 200px; position: relative;top:3px;"
+              style="margin: 0 10px;width: 200px;"
           />
-          <el-button type="primary" :icon="Search" @click="fetchData">搜索</el-button>
+          <el-button color="#21aa93" :icon="Search" @click="fetchData">搜索</el-button>
         </div>
 
         <el-row v-if="items.length > 0">
@@ -73,21 +71,25 @@ import {Search} from "@element-plus/icons-vue";
 import Clipboard from "clipboard";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
+import {checkSession} from "@/action/session";
 
 const items = ref([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const loading = ref(false)
-const listBoxHeight = window.innerHeight - 117
+const listBoxHeight = window.innerHeight - 87
 const query = ref({
   model: "",
   date: []
 })
-const tagColors = ref(["", "success", "", "danger", "info", "warning"])
+const tagColors = ref(["primary", "success", "primary", "danger", "info", "warning"])
 
 onMounted(() => {
-  fetchData()
+  checkSession().then(() => {
+    fetchData()
+  }).catch(() => {
+  })
   const clipboard = new Clipboard('.copy-order-no');
   clipboard.on('success', () => {
     ElMessage.success("复制成功！");
@@ -123,33 +125,12 @@ const fetchData = () => {
 </script>
 
 <style lang="stylus" scoped>
+@import "@/assets/css/custom-scroll.styl"
 .power-log {
   color #ffffff
   .inner {
     padding 0 20px 20px 20px
-
-    ::-webkit-scrollbar {
-      width: 8px; /* 滚动条宽度 */
-    }
-
-    /* 修改滚动条轨道的背景颜色 */
-
-    ::-webkit-scrollbar-track {
-      background-color: #ffffff;
-    }
-
-    /* 修改滚动条的滑块颜色 */
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #cccccc;
-      border-radius 8px
-    }
-
-    /* 修改滚动条的滑块的悬停颜色 */
-
-    ::-webkit-scrollbar-thumb:hover {
-      background-color: #999999;
-    }
+    overflow auto
 
     .list-box {
       overflow-x hidden

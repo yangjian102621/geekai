@@ -1,6 +1,6 @@
 .member {
   background-color: #282c34;
-  height 100vh
+  height 100%
 
   .el-dialog {
     .el-dialog__body {
@@ -65,9 +65,12 @@
     padding 15px 0 15px 15px;
     overflow-x hidden
     overflow-y visible
+    display flex
+    flex-flow row
 
     .user-profile {
       padding 10px 20px 20px 20px
+      width 300px
       background-color #393F4A
       color #ffffff
       border-radius 10px
@@ -91,12 +94,15 @@
 
 
     .product-box {
+      padding 0 20px
+      width 100%
+
       .info {
         .el-alert__description {
           font-size 14px !important
           margin 0
         }
-        padding 10px 20px 20px 0
+        padding 0 0 20px 0
       }
 
       .list-box {

@@ -1,6 +1,6 @@
 .page-mark-map {
   background-color: #282c34;
-  height 100vh
+  height 100%
 
   .inner {
     display: flex;
@@ -24,6 +24,7 @@
       }
 
       // 隐藏滚动条
+
       ::-webkit-scrollbar {
         width: 0;
         height: 0;
@@ -64,21 +65,15 @@
       }
     }
 
-    .right-box {
+
+    .chat-box {
       width 100%
 
       .top-bar {
         display flex
-        justify-content space-between
+        justify-content right
         align-items center
-
-        h2 {
-          color #ffffff
-        }
-
-        .el-button {
-          margin-right 20px
-        }
+        padding 10px 20px 10px 10px
       }
 
       .markdown {

@@ -36,8 +36,12 @@
 
           <el-row class="opt" :gutter="20">
             <el-col :span="8"><el-link type="primary" @click="router.push('/register')">注册</el-link></el-col>
-            <el-col :span="8"><el-link @click="showResetPass = true">重置密码</el-link></el-col>
-            <el-col :span="8"><el-link @click="router.push('/')">首页</el-link></el-col>
+            <el-col :span="8">
+              <el-link type="info" @click="showResetPass = true">重置密码</el-link>
+            </el-col>
+            <el-col :span="8">
+              <el-link type="info" @click="router.push('/')">首页</el-link>
+            </el-col>
           </el-row>
         </div>
       </div>

@@ -8,6 +8,7 @@
 import {createApp} from 'vue'
 import ElementPlus from "element-plus"
 import "element-plus/dist/index.css"
+import '@/assets/iconfont/iconfont.css';
 import 'vant/lib/index.css';
 import App from './App.vue'
 import {createPinia} from "pinia";

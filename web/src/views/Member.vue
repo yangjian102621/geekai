@@ -1,102 +1,93 @@
 <template>
   <div>
     <div class="member custom-scroll">
-      <div class="title">
-        会员充值中心
-      </div>
-      <div class="inner" :style="{height: listBoxHeight + 'px'}">
-        <el-row :gutter="20">
-          <el-col :span="7">
-            <div class="user-profile">
-              <user-profile/>
+      <div class="inner">
+        <div class="user-profile">
+          <user-profile/>
 
-              <el-row class="user-opt" :gutter="20">
-                <el-col :span="12">
-                  <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
-                </el-col>
-                <el-col :span="12">
-                  <el-button type="primary" @click="showBindMobileDialog = true">更改账号</el-button>
-                </el-col>
-                <el-col :span="12">
-                  <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
-                </el-col>
-                <el-col :span="12">
-                  <el-button type="primary" v-if="enableReward" @click="showRewardVerifyDialog = true">众筹核销
-                  </el-button>
-                </el-col>
+          <el-row class="user-opt" :gutter="20">
+            <el-col :span="12">
+              <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
+            </el-col>
+            <el-col :span="12">
+              <el-button type="primary" @click="showBindMobileDialog = true">更改账号</el-button>
+            </el-col>
+            <el-col :span="12">
+              <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
+            </el-col>
+            <el-col :span="12">
+              <el-button type="primary" v-if="enableReward" @click="showRewardVerifyDialog = true">众筹核销
+              </el-button>
+            </el-col>
 
-                <el-col :span="24" style="padding-top: 30px" v-if="isLogin">
-                  <el-button type="danger" round @click="logout">退出登录</el-button>
-                </el-col>
-              </el-row>
-            </div>
-          </el-col>
+            <el-col :span="24" style="padding-top: 30px" v-if="isLogin">
+              <el-button type="danger" round @click="logout">退出登录</el-button>
+            </el-col>
+          </el-row>
+        </div>
 
-          <el-col :span="17">
-            <div class="product-box">
-              <div class="info" v-if="orderPayInfoText !== ''">
-                <el-alert type="success" show-icon :closable="false" effect="dark">
-                  <strong>说明:</strong> {{ vipInfoText }}
-                </el-alert>
-              </div>
+        <div class="product-box">
+          <div class="info" v-if="orderPayInfoText !== ''">
+            <el-alert type="success" show-icon :closable="false" effect="dark">
+              <strong>说明:</strong> {{ vipInfoText }}
+            </el-alert>
+          </div>
 
-              <ItemList :items="list" v-if="list.length > 0" :gap="30" :width="240">
-                <template #default="scope">
-                  <div class="product-item" :style="{width: scope.width+'px'}">
-                    <div class="image-container">
-                      <el-image :src="vipImg" fit="cover"/>
-                    </div>
-                    <div class="product-title">
-                      <span class="name">{{ scope.item.name }}</span>
-                    </div>
-                    <div class="product-info">
-                      <div class="info-line">
-                        <span class="label">商品原价：</span>
-                        <span class="price">￥{{ scope.item.price }}</span>
-                      </div>
-                      <div class="info-line">
-                        <span class="label">促销立减：</span>
-                        <span class="price">￥{{ scope.item.discount }}</span>
-                      </div>
-                      <div class="info-line">
-                        <span class="label">有效期：</span>
-                        <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
-                        <span class="expire" v-else>长期有效</span>
-                      </div>
-
-                      <div class="info-line">
-                        <span class="label">算力值：</span>
-                        <span class="power" v-if="scope.item.power > 0">{{ scope.item.power }}</span>
-                        <span class="power" v-else>{{ vipMonthPower }}</span>
-                      </div>
-
-                      <div class="pay-way">
-                        <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
-                          <i class="iconfont icon-alipay"></i> 支付宝
-                        </el-button>
-                        <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
-                          <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
-                          <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
-                        </el-button>
-
-                        <el-button type="success" @click="PayJs(scope.item)" size="small" v-if="payWays['payjs']">
-                          <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
-                        </el-button>
-                      </div>
-                    </div>
+          <ItemList :items="list" v-if="list.length > 0" :gap="15" :width="240">
+            <template #default="scope">
+              <div class="product-item">
+                <div class="image-container">
+                  <el-image :src="vipImg" fit="cover"/>
+                </div>
+                <div class="product-title">
+                  <span class="name">{{ scope.item.name }}</span>
+                </div>
+                <div class="product-info">
+                  <div class="info-line">
+                    <span class="label">商品原价：</span>
+                    <span class="price">￥{{ scope.item.price }}</span>
                   </div>
-                </template>
-              </ItemList>
+                  <div class="info-line">
+                    <span class="label">促销立减：</span>
+                    <span class="price">￥{{ scope.item.discount }}</span>
+                  </div>
+                  <div class="info-line">
+                    <span class="label">有效期：</span>
+                    <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
+                    <span class="expire" v-else>长期有效</span>
+                  </div>
 
-              <h2 class="headline">消费账单</h2>
+                  <div class="info-line">
+                    <span class="label">算力值：</span>
+                    <span class="power" v-if="scope.item.power > 0">{{ scope.item.power }}</span>
+                    <span class="power" v-else>{{ vipMonthPower }}</span>
+                  </div>
 
-              <div class="user-order">
-                <user-order v-if="isLogin"/>
+                  <div class="pay-way">
+                    <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
+                      <i class="iconfont icon-alipay"></i> 支付宝
+                    </el-button>
+                    <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
+                      <span v-if="payWays['hupi']['name'] === 'wechat'"><i
+                          class="iconfont icon-wechat-pay"></i> 微信</span>
+                      <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
+                    </el-button>
+
+                    <el-button type="success" @click="PayJs(scope.item)" size="small" v-if="payWays['payjs']">
+                      <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
+                    </el-button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </el-col>
-        </el-row>
+            </template>
+          </ItemList>
 
+          <h2 class="headline">消费账单</h2>
+
+          <div class="user-order">
+            <user-order v-if="isLogin"/>
+          </div>
+        </div>
       </div>
 
       <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
@@ -157,7 +148,6 @@
       </el-dialog>
     </div>
 
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog = false" @success="loginSuccess"/>
   </div>
 </template>
 
@@ -167,7 +157,6 @@ import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
 import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
-import LoginDialog from "@/components/LoginDialog.vue";
 import {checkSession} from "@/action/session";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
@@ -177,10 +166,9 @@ import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import UserOrder from "@/components/UserOrder.vue";
 import CountDown from "@/components/CountDown.vue";
+import {useSharedStore} from "@/store/sharedata";
 
-const listBoxHeight = window.innerHeight - 97
 const list = ref([])
-const showLoginDialog = ref(false)
 const showPayDialog = ref(false)
 const vipImg = ref("/images/vip.png")
 const enableReward = ref(false) // 是否启用众筹功能
@@ -208,6 +196,7 @@ const amount = ref(0)
 const payName = ref("支付宝")
 const curPay = ref("alipay") // 当前支付方式
 const vipInfoText = ref("")
+const store = useSharedStore()
 
 
 onMounted(() => {
@@ -215,7 +204,7 @@ onMounted(() => {
     user.value = _user
     isLogin.value = true
   }).catch(() => {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
   })
 
   httpGet("/api/product/list").then((res) => {
@@ -281,7 +270,7 @@ const alipay = (row) => {
   curPay.value = "alipay"
   amount.value = (row.price - row.discount).toFixed(2)
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 
@@ -297,7 +286,7 @@ const huPiPay = (row) => {
   curPay.value = "hupi"
   amount.value = (row.price - row.discount).toFixed(2)
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 
@@ -313,7 +302,7 @@ const PayJs = (row) => {
   curPay.value = "payjs"
   amount.value = (row.price - row.discount).toFixed(2)
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return
   }
 

@@ -6,6 +6,69 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "12243734",
+      "name": "control",
+      "font_class": "control-simple",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "6539424",
+      "name": "麦克风",
+      "font_class": "mic-bold",
+      "unicode": "e683",
+      "unicode_decimal": 59011
+    },
+    {
+      "icon_id": "1727442",
+      "name": "213麦克风",
+      "font_class": "mic-thin",
+      "unicode": "e8c2",
+      "unicode_decimal": 59586
+    },
+    {
+      "icon_id": "3730725",
+      "name": "attach-attachment-cl",
+      "font_class": "attachment-cl",
+      "unicode": "e66a",
+      "unicode_decimal": 58986
+    },
+    {
+      "icon_id": "15748474",
+      "name": "st-attachment",
+      "font_class": "attachment-st",
+      "unicode": "e63b",
+      "unicode_decimal": 58939
+    },
+    {
+      "icon_id": "1010",
+      "name": "扬声器",
+      "font_class": "speaker",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "8094805",
+      "name": "clear",
+      "font_class": "clear",
+      "unicode": "e900",
+      "unicode_decimal": 59648
+    },
+    {
+      "icon_id": "34803640",
+      "name": "论坛",
+      "font_class": "bbs",
+      "unicode": "e623",
+      "unicode_decimal": 58915
+    },
+    {
+      "icon_id": "310708",
+      "name": "license",
+      "font_class": "license",
+      "unicode": "e65a",
+      "unicode_decimal": 58970
+    },
+    {
       "icon_id": "1421807",
       "name": "更多",
       "font_class": "more",

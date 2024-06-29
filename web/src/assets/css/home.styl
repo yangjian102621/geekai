@@ -1,0 +1,188 @@
+.home {
+  display: flex;
+  height 100vh
+  width 100%
+  flex-flow column
+
+  .header {
+    display flex
+    justify-content space-between
+    height 50px
+    line-height 50px
+    background-color #1E1F22
+    padding-right 20px
+
+    .banner {
+      display flex
+
+      .logo {
+        display flex
+        padding 5px
+        cursor pointer
+
+        .el-image {
+          width 40px
+          height 40px
+        }
+      }
+
+      .title {
+        display: flex;
+        color: #ffffff;
+        font-size: 20px;
+        padding 0 10px
+      }
+    }
+
+    .navbar {
+      display flex
+      flex-flow row
+
+      .link-button {
+        margin-right 15px
+        color #e1e1e1
+        padding 0 10px
+
+        &:hover {
+          background-color #414141
+        }
+
+        .iconfont {
+          font-size 24px
+        }
+      }
+
+      .user-info {
+        width 100%
+        padding 5px 0;
+
+        .el-dropdown-link {
+          width 100%;
+          cursor: pointer
+          display flex
+
+          .el-image {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%
+          }
+
+          .el-icon {
+            color: #cccccc;
+            line-height 24px;
+          }
+        }
+
+      }
+    }
+  }
+
+
+  .main {
+    width 100%
+    display flex
+    flex-flow row
+
+    .navigator {
+      display flex
+      flex-flow column
+      width 50px
+      padding 10px 1px
+      border-right: 1px solid #3c3c3c
+      background-color: #1E1F22
+
+      .nav-items {
+        margin-top: 10px;
+        padding 0 5px
+
+        li {
+          margin-bottom 15px
+
+          a {
+            color #DADBDC
+            border-radius 10px
+            width 40px
+            height 40px
+            display flex
+            justify-content center
+            align-items center
+            cursor pointer
+            background-color #414348
+
+            .el-image {
+              border-radius 10px
+            }
+
+            .iconfont {
+              font-size 20px
+            }
+          }
+
+          a:hover, a.active {
+            color #47fff1
+            background-color #0F7A71
+          }
+
+          .title {
+            font-size: 12px
+            padding-top: 5px
+            color: #e5e7eb;
+            text-align: center;
+          }
+
+          .active {
+            color #47fff1
+          }
+        }
+      }
+
+    }
+
+    .content {
+      width: 100%
+      overflow auto
+      box-sizing: border-box
+      background-color #282c34
+    }
+  }
+
+}
+
+.el-popper {
+  .more-menus {
+    li {
+      padding 10px 15px
+      cursor pointer
+      border-radius 5px
+      margin 5px 0
+
+      .el-image {
+        position: relative
+        top 5px
+        right 5px
+      }
+
+      &:hover {
+        background-color #f1f1f1
+      }
+    }
+
+    li.active {
+      background-color #f1f1f1
+    }
+  }
+
+  .user-info-menu {
+    li {
+      a {
+        width 100%
+        justify-content left
+
+        &:hover {
+          text-decoration none !important
+          color var(--el-primary-text-color)
+        }
+      }
+    }
+  }
+}

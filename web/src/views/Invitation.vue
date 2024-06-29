@@ -84,8 +84,6 @@
         </div>
       </div>
     </div>
-
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 </template>
 
@@ -97,17 +95,17 @@ import {ElMessage} from "element-plus";
 import Clipboard from "clipboard";
 import InviteList from "@/components/InviteList.vue";
 import {checkSession} from "@/action/session";
-import LoginDialog from "@/components/LoginDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const inviteURL = ref("")
-const qrImg = ref("")
+const qrImg = ref("/images/wx.png")
 const inviteChatCalls = ref(0)
 const inviteImgCalls = ref(0)
 const hits = ref(0)
 const regNum = ref(0)
 const rate = ref(0)
 const isLogin = ref(false)
-const showLoginDialog = ref(false)
+const store = useSharedStore()
 
 onMounted(() => {
   initData()
@@ -152,7 +150,7 @@ const initData = () => {
       ElMessage.error("获取系统配置失败：" + e.message)
     })
   }).catch(() => {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
   });
 }
 </script>
@@ -163,7 +161,7 @@ const initData = () => {
   display: flex;
   justify-content: center;
   background-color: #282c34;
-  height 100vh
+  height 100%
   overflow-x hidden
   overflow-y visible
 
@@ -176,6 +174,7 @@ const initData = () => {
 
     h2 {
       color #ffffff;
+      text-align center
     }
 
     .share-box {

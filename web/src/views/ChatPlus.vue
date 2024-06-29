@@ -1,13 +1,18 @@
 <template>
-  <div class="common-layout theme-white">
+  <div class="common-layout">
     <el-container>
       <el-aside>
-        <div class="title-box">
-          <span>{{ title }}</span>
-        </div>
         <div class="chat-list">
+          <el-button @click="newChat" color="#21aa93">
+            <el-icon style="margin-right: 5px">
+              <Plus/>
+            </el-icon>
+            新建对话
+          </el-button>
+
           <div class="search-box">
-            <el-input v-model="chatName" class="w-50 m-2" size="small" placeholder="搜索会话" @keyup="searchChat">
+            <el-input v-model="chatName" placeholder="搜索会话" @keyup="searchChat($event)" style=""
+                      class="search-input">
               <template #prefix>
                 <el-icon class="el-input__icon">
                   <Search/>
@@ -22,111 +27,45 @@
                    @click="changeChat(chat)">
                 <el-image :src="chat.icon" class="avatar"/>
                 <span class="chat-title-input" v-if="chat.edit">
-              <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
-                        placeholder="请输入会话标题"/>
-            </span>
+                  <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
+                            :id="'chat-'+chat.chat_id"
+                            @blur="editConfirm(chat)"
+                            @click="stopPropagation($event)"
+                            placeholder="请输入标题"/>
+                </span>
                 <span v-else class="chat-title">{{ chat.title }}</span>
-                <span class="btn btn-check" v-if="chat.edit || chat.removing">
-                <el-icon @click="confirm($event, chat)"><Check/></el-icon>
-                <el-icon @click="cancel($event, chat)"><Close/></el-icon>
-              </span>
-                <span class="btn" v-else>
-                <el-icon title="编辑" @click="editChatTitle($event, chat)"><Edit/></el-icon>
-                <el-icon title="删除会话" @click="removeChat($event, chat)"><Delete/></el-icon>
-              </span>
+
+                <span class="chat-opt">
+                  <el-dropdown trigger="click">
+                    <span class="el-dropdown-link" @click="stopPropagation($event)">
+                      <el-icon><More/></el-icon>
+                    </span>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item :icon="Edit" @click="editChatTitle(chat)">重命名</el-dropdown-item>
+                        <el-dropdown-item :icon="Delete"
+                                          style="--el-text-color-regular: var(--el-color-danger);
+                                          --el-dropdown-menuItem-hover-fill:#F8E1DE;
+                                          --el-dropdown-menuItem-hover-color: var(--el-color-danger)"
+                                          @click="removeChat(chat)">删除</el-dropdown-item>
+                        <el-dropdown-item :icon="Share" @click="shareChat(chat)">分享</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </span>
               </div>
             </el-row>
           </div>
         </div>
 
         <div class="tool-box">
-          <el-dropdown :hide-on-click="true" class="user-info" trigger="click" v-if="isLogin">
-                        <span class="el-dropdown-link">
-                          <el-image :src="loginUser.avatar"/>
-                          <span class="username">{{ loginUser.nickname }}</span>
-                          <el-icon><ArrowDown/></el-icon>
-                        </span>
-            <template #dropdown>
-              <el-dropdown-menu style="width: 296px;">
-                <el-dropdown-item @click="showConfig">
-                  <el-icon>
-                    <Tools/>
-                  </el-icon>
-                  <span>账户信息</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item @click="clearAllChats">
-                  <el-icon>
-                    <Delete/>
-                  </el-icon>
-                  <span>清除所有会话</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item @click="logout">
-                  <i class="iconfont icon-logout"></i>
-                  <span>注销</span>
-                </el-dropdown-item>
-
-                <el-dropdown-item>
-                  <i class="iconfont icon-github"></i>
-                  <span>
-                    powered by
-                    <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">chatgpt-plus-v3</el-link>
-                 </span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <el-button type="danger" size="small" @click="clearAllChats">
+            <i class="iconfont icon-clear"></i> 清空聊天记录
+          </el-button>
         </div>
       </el-aside>
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
-        <div class="chat-head">
-          <div class="chat-config">
-            <el-select v-model="roleId" filterable placeholder="角色" class="role-select" @change="_newChat"
-                       style="width:150px">
-              <el-option
-                  v-for="item in roles"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-              >
-                <div class="role-option">
-                  <el-image :src="item.icon"></el-image>
-                  <span>{{ item.name }}</span>
-                </div>
-              </el-option>
-            </el-select>
-
-            <el-select v-model="modelID" placeholder="模型" @change="_newChat" :disabled="disableModel"
-                       style="width:150px">
-              <el-option
-                  v-for="item in models"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-              >
-                <span>{{ item.name }}</span>
-                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
-                    item.power
-                  }}算力
-                </el-tag>
-              </el-option>
-            </el-select>
-            <el-button type="primary" @click="newChat">
-              <el-icon>
-                <Plus/>
-              </el-icon>
-              新建对话
-            </el-button>
-
-            <el-button type="success" @click="exportChat" plain>
-              <i class="iconfont icon-export"></i>
-              <span>导出会话</span>
-            </el-button>
-          </div>
-        </div>
-
-        <div class="right-box" :style="{height: mainWinHeight+'px'}">
+        <div class="chat-box" :style="{height: mainWinHeight+'px'}">
           <div>
             <div id="container">
               <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
@@ -141,63 +80,103 @@
                       :tokens="item['tokens']"
                       :model="getModelValue(modelID)"
                       :content="item.content"/>
-                  <chat-reply v-else-if="item.type==='reply'"
-                              :icon="item.icon"
-                              :org-content="item.orgContent"
-                              :created-at="dateFormat(item['created_at'])"
-                              :tokens="item['tokens']"
-                              :content="item.content"/>
-                  <chat-mid-journey v-else-if="item.type==='mj'"
-                                    :content="item.content"
-                                    :role-id="item.role_id"
-                                    :chat-id="item.chat_id"
-                                    :icon="item.icon"
-                                    @disable-input="disableInput(true)"
-                                    @enable-input="enableInput"
-                                    :created-at="dateFormat(item['created_at'])"/>
+                  <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false"/>
                 </div>
               </div><!-- end chat box -->
 
-              <div class="re-generate">
-                <div class="btn-box">
-                  <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
-                    <el-icon>
-                      <VideoPause/>
-                    </el-icon>
-                    停止生成
-                  </el-button>
+              <el-affix position="bottom" :offset="0">
+                <div class="input-box">
+                  <span class="tool-item">
+                      <el-popover
+                          :width="300"
+                          trigger="click"
+                          placement="top-start"
+                      >
+                        <template #reference>
+                          <div>
+                            <el-tooltip effect="dark" content="模型选择">
+                              <i class="iconfont icon-model"></i>
+                            </el-tooltip>
+                          </div>
+                        </template>
 
-                  <el-button type="primary" v-if="showReGenerate" @click="reGenerate" plain>
-                    <el-icon>
-                      <RefreshRight/>
-                    </el-icon>
-                    重新生成
-                  </el-button>
-                </div>
-              </div>
+                        <template #default>
+                          <div class="chat-config">
+                            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat"
+                                       class="role-select"
+                                       style="width:150px">
+                              <el-option
+                                  v-for="item in roles"
+                                  :key="item.id"
+                                  :label="item.name"
+                                  :value="item.id"
+                              >
+                                <div class="role-option">
+                                  <el-image :src="item.icon"></el-image>
+                                  <span>{{ item.name }}</span>
+                                </div>
+                              </el-option>
+                            </el-select>
 
-              <div class="input-box">
-                <div class="input-container">
-                  <el-input
-                      ref="textInput"
-                      v-model="prompt"
-                      v-on:keydown="inputKeyDown"
-                      autofocus
-                      type="textarea"
-                      :rows="2"
-                      placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
-                  />
-                  <span class="select-file">
-                    <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertURL"/>
+                            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat"
+                                       :disabled="disableModel"
+                                       style="width:150px">
+                              <el-option
+                                  v-for="item in models"
+                                  :key="item.id"
+                                  :label="item.name"
+                                  :value="item.id"
+                              >
+                                <span>{{ item.name }}</span>
+                                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
+                                    item.power
+                                  }}算力
+                                </el-tag>
+                              </el-option>
+                            </el-select>
+                          </div>
+                        </template>
+                      </el-popover>
                   </span>
-                  <span class="send-btn">
-                    <el-button @click="sendMessage">
+
+                  <span class="tool-item" @click="ElMessage.info('暂时不支持语音输入')">
+                    <el-tooltip class="box-item" effect="dark" content="语音输入">
+                      <i class="iconfont icon-mic-bold"></i>
+                    </el-tooltip>
+                  </span>
+
+                  <span class="tool-item" v-if="isLogin">
+                    <el-tooltip class="box-item" effect="dark" content="上传附件">
+                      <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertURL"/>
+                    </el-tooltip>
+                  </span>
+
+                  <div class="input-container">
+                    <el-input
+                        ref="textInput"
+                        v-model="prompt"
+                        v-on:keydown="inputKeyDown"
+                        autofocus
+                        type="textarea"
+                        :rows="2"
+                        style="--el-input-focus-border-color:#21AA93;
+                        border: 1px solid #21AA93;--el-input-border-color:#21AA93;
+                        border-radius: 5px; --el-input-hover-border-color:#21AA93;"
+                        placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
+                    />
+                    <span class="send-btn">
+                    <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
+                      <el-icon>
+                        <VideoPause/>
+                      </el-icon>
+                    </el-button>
+                    <el-button @click="sendMessage" color="#19c37d" style="color:#ffffff" v-else>
                       <el-icon><Promotion/></el-icon>
                     </el-button>
                   </span>
-                </div>
-              </div><!-- end input box -->
-
+                  </div>
+                </div><!-- end input box -->
+              </el-affix>
             </div><!-- end container -->
           </div><!-- end loading -->
         </div>
@@ -207,23 +186,17 @@
     <el-dialog
         v-model="showNotice"
         :show-close="true"
-        custom-class="notice-dialog"
+        class="notice-dialog"
         title="网站公告"
     >
       <div class="notice">
-        <el-text type="primary">
-          <div v-html="notice"></div>
-        </el-text>
+        <div v-html="notice"></div>
 
         <p style="text-align: right">
           <el-button @click="notShow" type="success" plain>我知道了，不再显示</el-button>
         </p>
       </div>
     </el-dialog>
-
-    <config-dialog v-if="isLogin" :show="showConfigDialog" :models="models" @hide="showConfigDialog = false"/>
-
-    <login-dialog :show="showLoginDialog" @hide="showLoginDialog =  false" @success="initData"/>
   </div>
 
 
@@ -232,19 +205,7 @@
 import {nextTick, onMounted, onUnmounted, ref} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {
-  ArrowDown,
-  Check,
-  Close,
-  Delete,
-  Edit,
-  Plus,
-  Promotion,
-  RefreshRight,
-  Search,
-  Tools,
-  VideoPause
-} from '@element-plus/icons-vue'
+import {Delete, Edit, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {dateFormat, escapeHTML, isMobile, processContent, randString, removeArrayItem, UUID} from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
@@ -253,12 +214,10 @@ import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
-import ConfigDialog from "@/components/ConfigDialog.vue";
 import {checkSession} from "@/action/session";
 import Welcome from "@/components/Welcome.vue";
-import ChatMidJourney from "@/components/ChatMidJourney.vue";
+import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
-import LoginDialog from "@/components/LoginDialog.vue";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -276,14 +235,13 @@ const roles = ref([]);
 const router = useRouter();
 const roleId = ref(0)
 const newChatItem = ref(null);
-const showConfigDialog = ref(false);
-const showLoginDialog = ref(false)
 const isLogin = ref(false)
 const showHello = ref(true)
 const textInput = ref(null)
 const showNotice = ref(false)
 const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
+const store = useSharedStore();
 
 if (isMobile()) {
   router.replace("/mobile/chat")
@@ -414,9 +372,9 @@ const getRoleById = function (rid) {
 }
 
 const resizeElement = function () {
-  chatBoxHeight.value = window.innerHeight - 51 - 82 - 38;
-  mainWinHeight.value = window.innerHeight - 51;
-  leftBoxHeight.value = window.innerHeight - 43 - 47 - 45;
+  chatBoxHeight.value = window.innerHeight - 50 - 82 - 38;
+  mainWinHeight.value = window.innerHeight - 50;
+  leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
 };
 
 const _newChat = () => {
@@ -424,17 +382,17 @@ const _newChat = () => {
     newChat()
   }
 }
-
 const disableModel = ref(false)
 // 新建会话
 const newChat = () => {
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return;
   }
   const role = getRoleById(roleId.value)
   showHello.value = role.key === 'gpt';
   // if the role bind a model, disable model change
+  disableModel.value = false
   if (role.model_id > 0) {
     modelID.value = role.model_id
     disableModel.value = true
@@ -462,7 +420,6 @@ const newChat = () => {
   };
   activeChat.value = {} //取消激活的会话高亮
   showStopGenerate.value = false;
-  showReGenerate.value = false;
   connect(null, roleId.value)
 }
 
@@ -474,7 +431,7 @@ const changeChat = (chat) => {
 
 const loadChat = function (chat) {
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return;
   }
 
@@ -487,69 +444,77 @@ const loadChat = function (chat) {
   roleId.value = chat.role_id;
   modelID.value = chat.model_id;
   showStopGenerate.value = false;
-  showReGenerate.value = false;
   connect(chat.chat_id, chat.role_id)
 }
 
 // 编辑会话标题
-const curOpt = ref('')
 const tmpChatTitle = ref('');
-const editChatTitle = function (event, chat) {
-  event.stopPropagation();
+const editChatTitle = (chat) => {
   chat.edit = true;
-  curOpt.value = 'edit';
   tmpChatTitle.value = chat.title;
+  console.log(chat.chat_id)
+  nextTick(() => {
+    document.getElementById('chat-' + chat.chat_id).focus()
+  })
 };
 
 
 const titleKeydown = (e, chat) => {
   if (e.keyCode === 13) {
     e.stopPropagation();
-    confirm(e, chat)
+    editConfirm(chat)
   }
+}
+
+const stopPropagation = (e) => {
+  e.stopPropagation();
 }
 // 确认修改
-const confirm = function (event, chat) {
-  event.stopPropagation();
-  if (curOpt.value === 'edit') {
-    if (tmpChatTitle.value === '') {
-      return ElMessage.error("请输入会话标题！");
-    }
-    if (!chat.chat_id) {
-      return ElMessage.error("对话 ID 为空，请刷新页面再试！");
-    }
-    httpPost('/api/chat/update', {chat_id: chat.chat_id, title: tmpChatTitle.value}).then(() => {
-      chat.title = tmpChatTitle.value;
-      chat.edit = false;
-    }).catch(e => {
-      ElMessage.error("操作失败：" + e.message);
-    })
-  } else if (curOpt.value === 'remove') {
-    httpGet('/api/chat/remove?chat_id=' + chat.chat_id).then(() => {
-      chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
-        return e1.id === e2.id
-      })
-      // 重置会话
-      newChat();
-    }).catch(e => {
-      ElMessage.error("操作失败：" + e.message);
-    })
-
+const editConfirm = function (chat) {
+  if (tmpChatTitle.value === '') {
+    return ElMessage.error("请输入会话标题！");
+  }
+  if (!chat.chat_id) {
+    return ElMessage.error("对话 ID 为空，请刷新页面再试！");
+  }
+  if (tmpChatTitle.value === chat.title) {
+    chat.edit = false;
+    return
   }
 
-}
-// 取消修改
-const cancel = function (event, chat) {
-  event.stopPropagation();
-  chat.edit = false;
-  chat.removing = false;
-}
+  httpPost('/api/chat/update', {chat_id: chat.chat_id, title: tmpChatTitle.value}).then(() => {
+    chat.title = tmpChatTitle.value;
+    chat.edit = false;
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message);
+  })
 
+}
 // 删除会话
-const removeChat = function (event, chat) {
-  event.stopPropagation();
-  chat.removing = true;
-  curOpt.value = 'remove';
+const removeChat = function (chat) {
+  ElMessageBox.confirm(
+      `该操作会删除"${chat.title}"`,
+      '删除聊天',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  )
+      .then(() => {
+        httpGet('/api/chat/remove?chat_id=' + chat.chat_id).then(() => {
+          chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
+            return e1.id === e2.id
+          })
+          // 重置会话
+          newChat();
+        }).catch(e => {
+          ElMessage.error("操作失败：" + e.message);
+        })
+      })
+      .catch(() => {
+      })
+
 }
 
 const latexPlugin = require('markdown-it-latex2img')
@@ -584,8 +549,6 @@ md.use(mathjaxPlugin)
 // 创建 socket 连接
 const prompt = ref('');
 const showStopGenerate = ref(false); // 停止生成
-const showReGenerate = ref(false); // 重新生成
-const previousText = ref(''); // 上一次提问
 const lineBuffer = ref(''); // 输出缓冲行
 const socket = ref(null);
 const activelyClose = ref(false); // 主动关闭
@@ -630,7 +593,6 @@ const connect = function (chat_id, role_id) {
   const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
-    previousText.value = '';
     enableInput()
     activelyClose.value = false;
 
@@ -670,7 +632,7 @@ const connect = function (chat_id, role_id) {
           } else if (data.type === 'end') { // 消息接收完毕
             // 追加当前会话到会话列表
             if (isNewChat && newChatItem.value !== null) {
-              newChatItem.value['title'] = previousText.value;
+              newChatItem.value['title'] = tmpChatTitle.value;
               newChatItem.value['chat_id'] = chat_id;
               chatList.value.unshift(newChatItem.value);
               activeChat.value = newChatItem.value;
@@ -735,13 +697,11 @@ const connect = function (chat_id, role_id) {
 
 const disableInput = (force) => {
   canSend.value = false;
-  showReGenerate.value = false;
   showStopGenerate.value = !force;
 }
 
 const enableInput = () => {
   canSend.value = true;
-  showReGenerate.value = previousText.value !== "";
   showStopGenerate.value = false;
 }
 
@@ -766,7 +726,7 @@ const autofillPrompt = (text) => {
 // 发送消息
 const sendMessage = function () {
   if (!isLogin.value) {
-    showLoginDialog.value = true
+    store.setShowLoginDialog(true)
     return;
   }
 
@@ -784,7 +744,7 @@ const sendMessage = function () {
     id: randString(32),
     icon: loginUser.value.avatar,
     content: md.render(escapeHTML(processContent(prompt.value))),
-    created_at: new Date().getTime(),
+    created_at: new Date().getTime() / 1000,
   });
 
   nextTick(() => {
@@ -794,13 +754,9 @@ const sendMessage = function () {
   showHello.value = false
   disableInput(false)
   socket.value.send(JSON.stringify({type: "chat", content: prompt.value}));
-  previousText.value = prompt.value;
+  tmpChatTitle.value = prompt.value
   prompt.value = '';
   return true;
-}
-
-const showConfig = function () {
-  showConfigDialog.value = true;
 }
 
 const clearAllChats = function () {
@@ -850,6 +806,9 @@ const loadChatHistory = function (chatId) {
     for (let i = 0; i < data.length; i++) {
       data[i].orgContent = data[i].content;
       data[i].content = md.render(processContent(data[i].content))
+      if (i > 0 && data[i].type === 'reply') {
+        data[i].prompt = data[i - 1].orgContent
+      }
       chatData.value.push(data[i]);
     }
 
@@ -871,9 +830,9 @@ const stopGenerate = function () {
 }
 
 // 重新生成
-const reGenerate = function () {
+const reGenerate = function (prompt) {
   disableInput(false)
-  const text = '重新生成上述问题的答案：' + previousText.value;
+  const text = '重新生成下面问题的答案：' + prompt;
   // 追加消息
   chatData.value.push({
     type: "prompt",
@@ -881,32 +840,34 @@ const reGenerate = function () {
     icon: loginUser.value.avatar,
     content: md.render(text)
   });
-  socket.value.send(JSON.stringify({type: "chat", content: previousText.value}));
+  socket.value.send(JSON.stringify({type: "chat", content: prompt}));
 }
 
 const chatName = ref('')
 // 搜索会话
-const searchChat = function () {
+const searchChat = function (e) {
   if (chatName.value === '') {
     chatList.value = allChats.value
     return
   }
-  const items = [];
-  for (let i = 0; i < allChats.value.length; i++) {
-    if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
-      items.push(allChats.value[i]);
+  if (e.keyCode === 13) {
+    const items = [];
+    for (let i = 0; i < allChats.value.length; i++) {
+      if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
+        items.push(allChats.value[i]);
+      }
     }
+    chatList.value = items;
   }
-  chatList.value = items;
 }
 
 // 导出会话
-const exportChat = () => {
-  if (!activeChat.value['chat_id']) {
+const shareChat = (chat) => {
+  if (!chat.chat_id) {
     return ElMessage.error("请先选中一个会话")
   }
 
-  const url = location.protocol + '//' + location.host + '/chat/export?chat_id=' + activeChat.value['chat_id']
+  const url = location.protocol + '//' + location.host + '/chat/export?chat_id=' + chat.chat_id
   // console.log(url)
   window.open(url, '_blank');
 }
@@ -939,8 +900,58 @@ const insertURL = (url) => {
 
 <style lang="stylus">
 .notice-dialog {
+  .el-dialog__header {
+    padding-bottom 0
+  }
+
   .el-dialog__body {
     padding 0 20px
+
+    ol, ul {
+      padding-left 10px
+    }
+
+    ol {
+      list-style decimal-leading-zero
+      padding-left 20px
+    }
+
+    ul {
+      list-style disc
+    }
+  }
+}
+
+.input-container {
+  .el-textarea {
+    .el-textarea__inner {
+      padding-right 40px
+    }
+  }
+}
+
+.chat-config {
+  display flex
+  flex-direction row
+  padding-top 10px;
+
+  .role-select-label {
+    color #ffffff
+  }
+
+  .el-select {
+    max-width 150px;
+    margin-right 10px;
+  }
+
+  .role-select {
+    max-width 130px;
+  }
+
+  .el-button {
+    .el-icon {
+      margin-right 5px;
+    }
   }
 }
 </style>

@@ -34,10 +34,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const ErrorMsg = "抱歉，AI 助手开小差了，请稍后再试。"
-
-var ErrImg = "![](/images/wx.png)"
-
 var logger = logger2.GetLogger()
 
 type ChatHandler struct {
@@ -51,13 +47,6 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		BaseHandler:   handler.BaseHandler{App: app, DB: db},
 		redis:         redis,
 		uploadManager: manager,
-	}
-}
-
-func (h *ChatHandler) Init() {
-	// 如果后台有上传微信客服微信二维码，则覆盖
-	if h.App.SysConfig.WechatCardURL != "" {
-		ErrImg = fmt.Sprintf("![](%s)", h.App.SysConfig.WechatCardURL)
 	}
 }
 
@@ -133,8 +122,6 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		Platform:    types.Platform(chatModel.Platform)}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 
-	h.Init()
-
 	// 保存会话连接
 	h.App.ChatClients.Put(sessionId, client)
 	go func() {
@@ -209,7 +196,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	if userVo.Power < session.Model.Power {
-		return fmt.Errorf("您当前剩余算力（%d）已不足以支付当前模型的单次对话需要消耗的算力（%d）！", userVo.Power, session.Model.Power)
+		return fmt.Errorf("您当前剩余算力 %d 已不足以支付当前模型的单次对话需要消耗的算力 %d，[立即购买](/member)。", userVo.Power, session.Model.Power)
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
