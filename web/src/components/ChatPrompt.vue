@@ -312,6 +312,7 @@ onMounted(() => {
       .chat-item {
         padding: 0;
         overflow: hidden;
+        max-width 60%
 
         .file-list-box {
           display flex
