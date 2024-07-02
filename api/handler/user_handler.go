@@ -16,6 +16,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"github.com/imroc/req/v3"
 	"strings"
 	"time"
 
@@ -97,7 +98,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		}
 	}
 
-	// check if the username is exists
+	// check if the username is existing
 	var item model.User
 	res := h.DB.Where("username = ?", data.Username).First(&item)
 	if item.Id > 0 {
@@ -253,6 +254,40 @@ func (h *UserHandler) Logout(c *gin.Context) {
 		logger.Error("error with delete session: ", err)
 	}
 	resp.SUCCESS(c)
+}
+
+// CLoginRequest 第三方登录请求二维码
+func (h *UserHandler) CLoginRequest(c *gin.Context) {
+	returnURL := h.GetTrim(c, "return_url")
+	var res types.BizVo
+	apiURL := fmt.Sprintf("%s/api/clogin/request", h.App.Config.ApiConfig.ApiURL)
+	r, err := req.C().R().SetBody(gin.H{"login_type": "wx", "return_url": returnURL}).
+		SetHeader("AppId", h.App.Config.ApiConfig.AppId).
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.App.Config.ApiConfig.Token)).
+		SetSuccessResult(&res).
+		Post(apiURL)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if r.IsErrorState() {
+		resp.ERROR(c, "error with login http status: "+r.Status)
+		return
+	}
+
+	if res.Code != types.Success {
+		resp.ERROR(c, "error with http response: "+res.Message)
+		return
+	}
+
+	resp.SUCCESS(c, res.Data)
+}
+
+// CLoginCallback 第三方登录回调
+func (h *UserHandler) CLoginCallback(c *gin.Context) {
+	//platform := h.GetTrim(c, "type")
+	//code := h.GetTrim(c, "code")
+
 }
 
 // Session 获取/验证会话

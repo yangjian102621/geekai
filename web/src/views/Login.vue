@@ -34,12 +34,17 @@
             <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
           </el-row>
 
-          <el-row class="opt" :gutter="20">
-            <el-col :span="8"><el-link type="primary" @click="router.push('/register')">注册</el-link></el-col>
-            <el-col :span="8">
+          <el-row class="opt" :gutter="24">
+            <el-col :span="span" v-if="cLoginURL !== ''">
+              <el-tooltip class="item" effect="light" content="微信扫码登录" placement="top">
+                <a class="wechat-login" :href="cLoginURL"><i class="iconfont icon-wechat"></i></a>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="span"><el-link type="primary" @click="router.push('/register')">注册</el-link></el-col>
+            <el-col :span="span">
               <el-link type="info" @click="showResetPass = true">重置密码</el-link>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="span">
               <el-link type="info" @click="router.push('/')">首页</el-link>
             </el-col>
           </el-row>
@@ -57,7 +62,7 @@
 
 <script setup>
 
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
@@ -75,28 +80,41 @@ const password = ref(process.env.VUE_APP_PASS);
 const showResetPass = ref(false)
 const logo = ref("/images/logo.png")
 const licenseConfig = ref({})
+const cLoginURL = ref('')
+const span = ref(8)
 
-// 获取系统配置
-httpGet("/api/config/get?key=system").then(res => {
-  logo.value = res.data.logo
-  title.value = res.data.title
-}).catch(e => {
-  showMessageError("获取系统配置失败：" + e.message)
-})
+onMounted(() => {
+  // 获取系统配置
+  httpGet("/api/config/get?key=system").then(res => {
+    logo.value = res.data.logo
+    title.value = res.data.title
+  }).catch(e => {
+    showMessageError("获取系统配置失败：" + e.message)
+  })
 
-httpGet("/api/config/license").then(res => {
-  licenseConfig.value = res.data
-}).catch(e => {
-  showMessageError("获取 License 配置：" + e.message)
-})
+  httpGet("/api/config/license").then(res => {
+    licenseConfig.value = res.data
+    span.value = 6
+  }).catch(e => {
+    showMessageError("获取 License 配置：" + e.message)
+  })
 
-checkSession().then(() => {
-  if (isMobile()) {
-    router.push('/mobile')
-  } else {
-    router.push('/chat')
-  }
-}).catch(() => {
+  checkSession().then(() => {
+    if (isMobile()) {
+      router.push('/mobile')
+    } else {
+      router.push('/chat')
+    }
+  }).catch(() => {
+  })
+
+  // const returnURL = `${location.protocol}//${location.host}/user/api/clogin/callback`
+  const returnURL = `https://ai.r9it.com/user/api/clogin/callback`
+  httpGet("/api/user/clogin/request?return_url="+returnURL).then(res => {
+    cLoginURL.value = res.data.url
+  }).catch(e => {
+    console.error(e)
+  })
 })
 
 const handleKeyup = (e) => {
@@ -211,6 +229,10 @@ const login = function () {
         padding 15px
         .el-col {
           text-align center
+        }
+
+        .wechat-login {
+          color #0bc15f
         }
       }
     }

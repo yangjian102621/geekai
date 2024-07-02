@@ -364,6 +364,7 @@ const reGenerate = (prompt) => {
         position: relative;
         padding: 0;
         overflow: hidden;
+        max-width 60%
 
         .content-wrapper {
           display flex

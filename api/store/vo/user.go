@@ -14,4 +14,6 @@ type User struct {
 	LastLoginAt int64    `json:"last_login_at"` // 最后登录时间
 	LastLoginIp string   `json:"last_login_ip"` // 最后登录 IP
 	Vip         bool     `json:"vip"`
+	OpenId      string   `json:"openid"`   // 第三方登录 OpenID
+	Platform    string   `json:"platform"` // 第三方登录平台
 }

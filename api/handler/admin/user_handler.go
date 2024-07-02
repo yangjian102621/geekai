@@ -139,7 +139,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 		salt := utils.RandString(8)
 		u := model.User{
 			Username:    data.Username,
-			Nickname:    fmt.Sprintf("极客学长@%d", utils.RandomNumber(6)),
 			Password:    utils.GenPassword(data.Password, salt),
 			Avatar:      "/images/avatar/user.png",
 			Salt:        salt,
@@ -148,6 +147,11 @@ func (h *UserHandler) Save(c *gin.Context) {
 			ChatRoles:   utils.JsonEncode(data.ChatRoles),
 			ChatModels:  utils.JsonEncode(data.ChatModels),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
+		}
+		if h.licenseService.GetLicense().Configs.DeCopy {
+			u.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+		} else {
+			u.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 		}
 		res = h.DB.Create(&u)
 		_ = utils.CopyObject(u, &userVo)

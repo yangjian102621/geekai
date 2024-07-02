@@ -74,6 +74,9 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
 				continue
 			}
+			if responseBody.Choices[0].Delta.Content == nil {
+				continue
+			}
 
 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
 				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")

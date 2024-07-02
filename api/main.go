@@ -240,6 +240,8 @@ func main() {
 			group.POST("password", h.UpdatePass)
 			group.POST("bind/username", h.BindUsername)
 			group.POST("resetPass", h.ResetPass)
+			group.GET("clogin/request", h.CLoginRequest)
+			group.GET("clogin/callback", h.CLoginCallback)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *chatimpl.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")
@@ -414,13 +416,6 @@ func main() {
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("token", h.GenToken)
-		}),
-
-		// 验证码
-		fx.Provide(admin.NewCaptchaHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.CaptchaHandler) {
-			group := s.Engine.Group("/api/admin/login/")
-			group.GET("captcha", h.GetCaptcha)
 		}),
 
 		fx.Provide(admin.NewUploadHandler),
