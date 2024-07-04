@@ -446,14 +446,9 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 		}
 
 		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {
-			// discord 服务器图片需要使用代理转发图片数据流
-			if strings.HasPrefix(item.OrgURL, "https://cdn.discordapp.com") {
-				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
-				if err == nil {
-					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
-				}
-			} else {
-				job.ImgURL = job.OrgURL
+			image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
+			if err == nil {
+				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 			}
 		}
 

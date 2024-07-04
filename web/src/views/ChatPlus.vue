@@ -626,10 +626,12 @@ const connect = function (chat_id, role_id) {
         reader.onload = () => {
           const data = JSON.parse(String(reader.result));
           if (data.type === 'start') {
+            const prePrompt = chatData.value[chatData.value.length-1].content
             chatData.value.push({
               type: "reply",
               id: randString(32),
               icon: _role['icon'],
+              prompt:prePrompt,
               content: ""
             });
           } else if (data.type === 'end') { // 消息接收完毕
@@ -864,7 +866,7 @@ const reGenerate = function (prompt) {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(text)
+    content: text
   });
   socket.value.send(JSON.stringify({type: "chat", content: prompt}));
 }
