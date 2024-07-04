@@ -155,6 +155,7 @@ const synthesis = (text) => {
 
 // 重新生成
 const reGenerate = (prompt) => {
+  console.log(prompt)
   emits('regen', prompt)
 }
 </script>

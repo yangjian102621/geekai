@@ -163,7 +163,7 @@
           </el-form>
         </div>
       </div>
-      <div class="task-list-box" @scrollend="handleScrollEnd">
+      <div class="task-list-box">
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <div class="extra-params">
             <el-form>
@@ -450,43 +450,7 @@
 
           <div class="job-list-box">
             <h2>任务列表</h2>
-            <div class="running-job-list">
-              <div class="running-job-box" v-if="runningJobs.length > 0">
-                <div class="job-item" v-for="item in runningJobs">
-                  <div v-if="item.progress > 0" class="job-item-inner">
-                    <el-image :src="item['img_url']" fit="cover" loading="lazy">
-                      <template #placeholder>
-                        <div class="image-slot">
-                          正在加载图片
-                        </div>
-                      </template>
-
-                      <template #error>
-                        <div class="image-slot">
-                          <el-icon>
-                            <Picture/>
-                          </el-icon>
-                        </div>
-                      </template>
-                    </el-image>
-
-                    <div class="progress">
-                      <el-progress type="circle" :percentage="item.progress" :width="100"
-                                   color="#47fff1"/>
-                    </div>
-                  </div>
-                  <el-image fit="cover" v-else>
-                    <template #error>
-                      <div class="image-slot">
-                        <i class="iconfont icon-quick-start"></i>
-                        <span>任务正在排队中</span>
-                      </div>
-                    </template>
-                  </el-image>
-                </div>
-              </div>
-              <el-empty :image-size="100" v-else/>
-            </div>
+            <task-list :list="runningJobs" />
 
             <h2>创作记录</h2>
             <div class="finish-job-list">
@@ -617,6 +581,7 @@ import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import {useSharedStore} from "@/store/sharedata";
+import TaskList from "@/components/TaskList.vue";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
