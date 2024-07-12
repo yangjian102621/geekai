@@ -2,7 +2,7 @@
   <div class="foot-container">
     <div class="footer">
       Powered by {{ author }} @
-      <el-link type="primary" href="https://github.com/yangjian102621/chatgpt-plus" target="_blank" style="--el-link-text-color:#ffffff">
+      <el-link type="primary" :href="gitURL" target="_blank" style="--el-link-text-color:#ffffff">
         {{ title }} -
         {{ version }}
       </el-link>
@@ -15,6 +15,7 @@ import {ref} from "vue";
 
 const title = ref(process.env.VUE_APP_TITLE)
 const version = ref(process.env.VUE_APP_VERSION)
+const gitURL = ref(process.env.VUE_APP_GIT_URL)
 const author = ref('极客学长')
 </script>
 
@@ -33,6 +34,10 @@ const author = ref('极客学长')
     font-size 14px;
     padding 20px;
     width 100%
+
+    .el-link {
+      color #409eff
+    }
   }
 }
 

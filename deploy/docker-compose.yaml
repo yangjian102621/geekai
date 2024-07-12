@@ -39,6 +39,12 @@ services:
       - ./logs/xxl-job:/data/applogs
       - ./conf/xxl-job/application.properties:/application.properties
 
+  tika:
+    image: "registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest"
+    container_name: "tika"
+    restart: always
+    ports:
+      - "9998:9998"
 
   midjourney-proxy:
     image: registry.cn-shenzhen.aliyuncs.com/geekmaster/midjourney-proxy:2.6.2

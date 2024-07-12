@@ -36,7 +36,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	logger.Info("upload file: %s", file.Name)
+	logger.Info("upload file: ", file.Name)
 	// cut the file name if it's too long
 	if len(file.Name) > 100 {
 		file.Name = file.Name[:90] + file.Ext

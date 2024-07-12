@@ -240,7 +240,7 @@ func main() {
 			group.POST("password", h.UpdatePass)
 			group.POST("bind/username", h.BindUsername)
 			group.POST("resetPass", h.ResetPass)
-			group.GET("clogin", h.Clogin)
+			group.GET("clogin", h.CLogin)
 			group.GET("clogin/callback", h.CLoginCallback)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *chatimpl.ChatHandler) {
