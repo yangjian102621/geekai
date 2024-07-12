@@ -782,7 +782,7 @@ const fetchRunningJobs = () => {
     return
   }
 
-  httpGet(`/api/mj/jobs?status=0`).then(res => {
+  httpGet(`/api/mj/jobs?finish=false`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
@@ -820,7 +820,7 @@ const fetchFinishJobs = () => {
   loading.value = true
   page.value = page.value + 1
   // 获取已完成的任务
-  httpGet(`/api/mj/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
+  httpGet(`/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i]['img_url'] !== "") {
@@ -961,7 +961,7 @@ const removeImage = (item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
+    httpGet("/api/mj/remove", {id: item.id, user_id: item.user_id}).then(() => {
       ElMessage.success("任务删除成功")
       page.value = 0
       isOver.value = false
@@ -979,7 +979,7 @@ const publishImage = (item, action) => {
   if (action === false) {
     text = "取消发布"
   }
-  httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
+  httpGet("/api/mj/publish", {id: item.id, action: action,user_id: item.user_id}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
     page.value = 0

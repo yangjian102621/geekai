@@ -185,7 +185,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		resp.ERROR(c, "error with save token: "+err.Error())
 		return
 	}
-	resp.SUCCESS(c, tokenString)
+	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
 }
 
 // Login 用户登录
@@ -244,7 +244,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		resp.ERROR(c, "error with save token: "+err.Error())
 		return
 	}
-	resp.SUCCESS(c, tokenString)
+	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
 }
 
 // Logout 注 销
@@ -256,8 +256,8 @@ func (h *UserHandler) Logout(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-// CLoginRequest 第三方登录请求二维码
-func (h *UserHandler) CLoginRequest(c *gin.Context) {
+// Clogin 第三方登录请求二维码
+func (h *UserHandler) Clogin(c *gin.Context) {
 	returnURL := h.GetTrim(c, "return_url")
 	var res types.BizVo
 	apiURL := fmt.Sprintf("%s/api/clogin/request", h.App.Config.ApiConfig.ApiURL)

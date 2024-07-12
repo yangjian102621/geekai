@@ -62,7 +62,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 
 func (h *UploadHandler) List(c *gin.Context) {
 	var data struct {
-		Urls []string `json:"urls"`
+		Urls []string `json:"urls,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)

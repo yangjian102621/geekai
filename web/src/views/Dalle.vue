@@ -334,7 +334,7 @@ const fetchRunningJobs = () => {
     return
   }
   // 获取运行中的任务
-  httpGet(`/api/dall/jobs?status=0`).then(res => {
+  httpGet(`/api/dall/jobs?finish=false`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
@@ -367,7 +367,7 @@ const fetchFinishJobs = () => {
   loading.value = true
   page.value = page.value + 1
 
-  httpGet(`/api/dall/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
+  httpGet(`/api/dall/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
     }
@@ -419,7 +419,7 @@ const removeImage = (event, item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpPost("/api/dall/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
+    httpGet("/api/dall/remove", {id: item.id, user_id: item.user}).then(() => {
       ElMessage.success("任务删除成功")
       page.value = 0
       isOver.value = false
@@ -442,7 +442,7 @@ const publishImage = (event, item, action) => {
   if (action === false) {
     text = "取消发布"
   }
-  httpPost("/api/dall/publish", {id: item.id, action: action}).then(() => {
+  httpGet("/api/dall/publish", {id: item.id, action: action,user_id:item.user_id}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
     page.value = 0

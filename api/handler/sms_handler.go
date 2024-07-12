@@ -49,14 +49,20 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	var data struct {
 		Receiver string `json:"receiver"` // 接收者
 		Key      string `json:"key"`
-		Dots     string `json:"dots"`
+		Dots     string `json:"dots,omitempty"`
+		X        int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-
-	if !h.captcha.Check(data) {
+	var check bool
+	if data.X != 0 {
+		check = h.captcha.SlideCheck(data)
+	} else {
+		check = h.captcha.Check(data)
+	}
+	if !check {
 		resp.ERROR(c, "验证码错误，请先完人机验证")
 		return
 	}
@@ -89,5 +95,9 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	resp.SUCCESS(c)
+	if h.App.Debug {
+		resp.SUCCESS(c, code)
+	} else {
+		resp.SUCCESS(c)
+	}
 }
