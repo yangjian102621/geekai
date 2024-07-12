@@ -557,6 +557,7 @@ const socket = ref(null);
 const activelyClose = ref(false); // 主动关闭
 const canSend = ref(true);
 const heartbeatHandle = ref(null)
+const sessionId = ref("")
 const connect = function (chat_id, role_id) {
   let isNewChat = false;
   if (!chat_id) {
@@ -571,7 +572,7 @@ const connect = function (chat_id, role_id) {
 
   const _role = getRoleById(role_id);
   // 初始化 WebSocket 对象
-  const _sessionId = getSessionId();
+  sessionId.value = getSessionId();
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
     if (location.protocol === 'https:') {
@@ -593,7 +594,7 @@ const connect = function (chat_id, role_id) {
       heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
     });
   }
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     enableInput()
@@ -852,7 +853,7 @@ const loadChatHistory = function (chatId) {
 
 const stopGenerate = function () {
   showStopGenerate.value = false;
-  httpGet("/api/chat/stop?session_id=" + getSessionId()).then(() => {
+  httpGet("/api/chat/stop?session_id=" + sessionId.value).then(() => {
     enableInput()
   })
 }

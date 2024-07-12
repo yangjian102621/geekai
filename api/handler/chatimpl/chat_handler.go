@@ -44,6 +44,8 @@ type ChatHandler struct {
 	redis          *redis.Client
 	uploadManager  *oss.UploaderManager
 	licenseService *service.LicenseService
+	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
+	ChatContexts   *types.LMap[string, []types.Message]    // 聊天上下文 Map [chatId] => []Message
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ChatHandler {
@@ -52,6 +54,8 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		redis:          redis,
 		uploadManager:  manager,
 		licenseService: licenseService,
+		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
+		ChatContexts:   types.NewLMap[string, []types.Message](),
 	}
 }
 
@@ -89,21 +93,10 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		return
 	}
 
-	session := h.App.ChatSession.Get(sessionId)
-	if session == nil {
-		user, err := h.GetLoginUser(c)
-		if err != nil {
-			logger.Info("用户未登录")
-			c.Abort()
-			return
-		}
-		session = &types.ChatSession{
-			SessionId: sessionId,
-			ClientIP:  c.ClientIP(),
-			Username:  user.Username,
-			UserId:    user.Id,
-		}
-		h.App.ChatSession.Put(sessionId, session)
+	session := &types.ChatSession{
+		SessionId: sessionId,
+		ClientIP:  c.ClientIP(),
+		UserId:    h.GetLoginUserId(c),
 	}
 
 	// use old chat data override the chat model and role ID
@@ -125,22 +118,18 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		Temperature: chatModel.Temperature,
 		KeyId:       chatModel.KeyId,
 		Platform:    chatModel.Platform}
-	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
+	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
 
-	// 保存会话连接
-	h.App.ChatClients.Put(sessionId, client)
 	go func() {
 		for {
 			_, msg, err := client.Receive()
 			if err != nil {
 				logger.Debugf("close connection: %s", client.Conn.RemoteAddr())
 				client.Close()
-				h.App.ChatClients.Delete(sessionId)
-				h.App.ChatSession.Delete(sessionId)
-				cancelFunc := h.App.ReqCancelFunc.Get(sessionId)
+				cancelFunc := h.ReqCancelFunc.Get(sessionId)
 				if cancelFunc != nil {
 					cancelFunc()
-					h.App.ReqCancelFunc.Delete(sessionId)
+					h.ReqCancelFunc.Delete(sessionId)
 				}
 				return
 			}
@@ -160,7 +149,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			logger.Info("Receive a message: ", message.Content)
 
 			ctx, cancel := context.WithCancel(context.Background())
-			h.App.ReqCancelFunc.Put(sessionId, cancel)
+			h.ReqCancelFunc.Put(sessionId, cancel)
 			// 回复消息
 			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
 			if err != nil {
@@ -274,8 +263,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	chatCtx := make([]types.Message, 0)
 	messages := make([]types.Message, 0)
 	if h.App.SysConfig.EnableContext {
-		if h.App.ChatContexts.Has(session.ChatId) {
-			messages = h.App.ChatContexts.Get(session.ChatId)
+		if h.ChatContexts.Has(session.ChatId) {
+			messages = h.ChatContexts.Get(session.ChatId)
 		} else {
 			_ = utils.JsonDecode(role.Context, &messages)
 			if h.App.SysConfig.ContextDeep > 0 {
@@ -468,9 +457,9 @@ func getTotalTokens(req types.ApiRequest) int {
 // StopGenerate 停止生成
 func (h *ChatHandler) StopGenerate(c *gin.Context) {
 	sessionId := c.Query("session_id")
-	if h.App.ReqCancelFunc.Has(sessionId) {
-		h.App.ReqCancelFunc.Get(sessionId)()
-		h.App.ReqCancelFunc.Delete(sessionId)
+	if h.ReqCancelFunc.Has(sessionId) {
+		h.ReqCancelFunc.Get(sessionId)()
+		h.ReqCancelFunc.Delete(sessionId)
 	}
 	resp.SUCCESS(c, types.OkMsg)
 }
@@ -628,7 +617,7 @@ func (h *ChatHandler) saveChatHistory(
 	if h.App.SysConfig.EnableContext {
 		chatCtx = append(chatCtx, useMsg)  // 提问消息
 		chatCtx = append(chatCtx, message) // 回复消息
-		h.App.ChatContexts.Put(session.ChatId, chatCtx)
+		h.ChatContexts.Put(session.ChatId, chatCtx)
 	}
 
 	// 追加聊天记录
@@ -686,7 +675,7 @@ func (h *ChatHandler) saveChatHistory(
 	res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
 	if res.Error != nil {
 		chatItem.ChatId = session.ChatId
-		chatItem.UserId = session.UserId
+		chatItem.UserId = userVo.Id
 		chatItem.RoleId = role.Id
 		chatItem.ModelId = session.Model.Id
 		if utf8.RuneCountInString(prompt) > 30 {

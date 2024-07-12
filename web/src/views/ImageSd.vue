@@ -30,7 +30,7 @@
               </div>
 
               <div class="param-line" style="padding-top: 10px">
-                <el-form-item label="采样调度器">
+                <el-form-item label="采样调度">
                   <template #default>
                     <div class="form-item-inner">
                       <el-select v-model="params.scheduler" style="width:176px">
@@ -631,7 +631,7 @@ const fetchRunningJobs = () => {
   }
 
   // 获取运行中的任务
-  httpGet(`/api/sd/jobs?status=0`).then(res => {
+  httpGet(`/api/sd/jobs?finish=0`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
@@ -664,7 +664,7 @@ const fetchFinishJobs = () => {
   loading.value = true
   page.value = page.value + 1
 
-  httpGet(`/api/sd/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
+  httpGet(`/api/sd/jobs?finish=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
     }
@@ -731,7 +731,7 @@ const removeImage = (event, item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpPost("/api/sd/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
+    httpGet("/api/sd/remove", {id: item.id, user_id: item.user}).then(() => {
       ElMessage.success("任务删除成功")
       page.value = 0
       isOver.value = false
@@ -750,7 +750,7 @@ const publishImage = (event, item, action) => {
   if (action === false) {
     text = "取消发布"
   }
-  httpPost("/api/sd/publish", {id: item.id, action: action}).then(() => {
+  httpGet("/api/sd/publish", {id: item.id, action: action, user_id: item.user}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
     page.value = 0

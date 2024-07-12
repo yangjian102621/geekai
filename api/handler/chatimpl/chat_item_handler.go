@@ -96,7 +96,7 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 	for _, chat := range chats {
 		chatIds = append(chatIds, chat.ChatId)
 		// 清空会话上下文
-		h.App.ChatContexts.Delete(chat.ChatId)
+		h.ChatContexts.Delete(chat.ChatId)
 	}
 	err = h.DB.Transaction(func(tx *gorm.DB) error {
 		res := h.DB.Where("user_id =?", user.Id).Delete(&model.ChatItem{})
@@ -108,8 +108,6 @@ func (h *ChatHandler) Clear(c *gin.Context) {
 		if res.Error != nil {
 			return res.Error
 		}
-
-		// TODO: 是否要删除 MidJourney 绘画记录和图片文件？
 		return nil
 	})
 
@@ -175,7 +173,7 @@ func (h *ChatHandler) Remove(c *gin.Context) {
 	// TODO: 是否要删除 MidJourney 绘画记录和图片文件？
 
 	// 清空会话上下文
-	h.App.ChatContexts.Delete(chatId)
+	h.ChatContexts.Delete(chatId)
 	resp.SUCCESS(c, types.OkMsg)
 }
 

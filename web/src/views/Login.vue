@@ -110,7 +110,7 @@ onMounted(() => {
   })
 
   const returnURL = `${location.protocol}//${location.host}/login/callback`
-  httpGet("/api/user/clogin/request?return_url="+returnURL).then(res => {
+  httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
     wechatLoginURL.value = res.data.url
   }).catch(e => {
     console.error(e)
@@ -132,7 +132,7 @@ const login = function () {
   }
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
-    setUserToken(res.data)
+    setUserToken(res.data.token)
     if (isMobile()) {
       router.push('/mobile')
     } else {
