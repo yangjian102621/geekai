@@ -40,8 +40,8 @@ services:
       - ./conf/xxl-job/application.properties:/application.properties
 
   tika:
-    image: "registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest"
-    container_name: "tika"
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest
+    container_name: tika
     restart: always
     ports:
       - "9998:9998"
@@ -56,10 +56,9 @@ services:
       - ./conf/mj-proxy:/home/spring/config
 
 
-
-  # 后端 API 程序
+    # 后端 API 程序
   geekai-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.0.9-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.1.0-amd64
     container_name: geekai-api
     restart: always
     depends_on:
@@ -81,7 +80,7 @@ services:
 
   # 前端应用
   geekai-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.0.9-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.1.0-amd64
     container_name: geekai-web
     restart: always
     depends_on:
@@ -93,4 +92,3 @@ services:
       - ./conf/nginx/conf.d:/etc/nginx/conf.d
       - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./conf/nginx/ssl:/etc/nginx/ssl
-
