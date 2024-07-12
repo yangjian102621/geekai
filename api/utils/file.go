@@ -13,7 +13,7 @@ import (
 	"github.com/google/go-tika/tika"
 )
 
-func ReadFileContent(filePath string) (string, error) {
+func ReadFileContent(filePath string, tikaHost string) (string, error) {
 	// for remote file, download it first
 	if strings.HasPrefix(filePath, "http") {
 		file, err := downloadFile(filePath)
@@ -23,7 +23,7 @@ func ReadFileContent(filePath string) (string, error) {
 		filePath = file
 	}
 	// 创建 Tika 客户端
-	client := tika.NewClient(nil, "http://172.22.11.69:9998")
+	client := tika.NewClient(nil, tikaHost)
 	// 打开 PDF 文件
 	file, err := os.Open(filePath)
 	if err != nil {

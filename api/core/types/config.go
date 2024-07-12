@@ -35,6 +35,7 @@ type AppConfig struct {
 	SmtpConfig      SmtpConfig      // 邮件发送配置
 	JPayConfig      JPayConfig      // payjs 支付配置
 	WechatPayConfig WechatPayConfig // 微信支付渠道配置
+	TikaHost        string          // TiKa 服务器地址
 }
 
 type SmtpConfig struct {

@@ -26,16 +26,16 @@ axios.interceptors.request.use(
     })
 axios.interceptors.response.use(
     response => {
-        if (response.status === 401) {
-            if (response.request.responseURL.indexOf("/api/admin") !== -1) {
+        return response
+    }, error => {
+        if (error.response.status === 401) {
+            if (error.response.request.responseURL.indexOf("/api/admin") !== -1) {
                 removeAdminToken()
             } else {
                 removeUserToken()
             }
-            return Promise.reject(response.data)
+            return Promise.reject(error.response.data)
         }
-        return response
-    }, error => {
         return Promise.reject(error)
     })
 

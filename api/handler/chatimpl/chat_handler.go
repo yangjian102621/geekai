@@ -317,13 +317,18 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	// extract files in prompt
 	files := utils.ExtractFileURLs(prompt)
 	logger.Debugf("detected FILES: %+v", files)
-	if len(files) > 0 {
+	// 如果不是逆向模型，则提取文件内容
+	if len(files) > 0 && !(session.Model.Value == "gpt-4-all" ||
+		strings.HasPrefix(session.Model.Value, "gpt-4-gizmo") ||
+		strings.HasSuffix(session.Model.Value, "claude-3")) {
 		contents := make([]string, 0)
 		var file model.File
 		for _, v := range files {
 			h.DB.Where("url = ?", v).First(&file)
-			content, err := utils.ReadFileContent(v)
-			if err == nil {
+			content, err := utils.ReadFileContent(v, h.App.Config.TikaHost)
+			if err != nil {
+				logger.Error("error with read file: ", err)
+			} else {
 				contents = append(contents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
 			}
 			text = strings.Replace(text, v, "", 1)

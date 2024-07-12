@@ -49,15 +49,15 @@
               <div  v-if="!licenseConfig.de_copy">
                 <el-dropdown-item>
                   <i class="iconfont icon-book"></i>
-                  <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+                  <a :href="docsURL" target="_blank">
                     用户手册
                   </a>
                 </el-dropdown-item>
 
                 <el-dropdown-item>
                   <i class="iconfont icon-github"></i>
-                  <a href="https://ai.r9it.com/docs/" target="_blank">
-                    Geek-AI {{ version }}
+                  <a :href="gitURL" target="_blank">
+                    GeekAI {{ version }}
                   </a>
                 </el-dropdown-item>
               </div>
@@ -157,6 +157,8 @@ const version = ref(process.env.VUE_APP_VERSION)
 const routerViewKey = ref(0)
 const showConfigDialog = ref(false)
 const licenseConfig = ref({})
+const docsURL = ref(process.env.VUE_APP_DOCS_URL)
+const gitURL = ref(process.env.VUE_APP_GIT_URL)
 
 const store = useSharedStore();
 const show = ref(false)

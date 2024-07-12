@@ -5,6 +5,7 @@ StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 AesEncryptKey = ""
 WeChatBot = false
+TikaHost = "http://tika:9998"
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换

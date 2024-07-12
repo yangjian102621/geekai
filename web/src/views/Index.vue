@@ -12,17 +12,17 @@
         </div>
         <div class="menu-item">
           <span v-if="!licenseConfig.de_copy">
-            <a href="https://ai.r9it.com/docs/install/" target="_blank">
+            <a :href="docsURL" target="_blank">
             <el-button type="primary" round>
               <i class="iconfont icon-book"></i>
-              <span>部署文档</span>
+              <span>文档</span>
             </el-button>
           </a>
 
-          <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+          <a :href="gitURL" target="_blank">
             <el-button type="success" round>
               <i class="iconfont icon-github"></i>
-              <span>项目源码</span>
+              <span>源码</span>
             </el-button>
           </a>
           </span>
@@ -86,6 +86,8 @@ const licenseConfig = ref({})
 const winHeight = window.innerHeight - 150
 const bgImgUrl = ref('')
 const isLogin = ref(false)
+const docsURL = ref(process.env.VUE_APP_DOCS_URL)
+const gitURL = ref(process.env.VUE_APP_GIT_URL)
 
 onMounted(() => {
   httpGet("/api/config/get?key=system").then(res => {

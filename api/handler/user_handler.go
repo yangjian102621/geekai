@@ -256,8 +256,8 @@ func (h *UserHandler) Logout(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-// Clogin 第三方登录请求二维码
-func (h *UserHandler) Clogin(c *gin.Context) {
+// CLogin 第三方登录请求二维码
+func (h *UserHandler) CLogin(c *gin.Context) {
 	returnURL := h.GetTrim(c, "return_url")
 	var res types.BizVo
 	apiURL := fmt.Sprintf("%s/api/clogin/request", h.App.Config.ApiConfig.ApiURL)
