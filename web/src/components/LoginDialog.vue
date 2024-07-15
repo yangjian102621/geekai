@@ -251,7 +251,7 @@ const enableMobile = ref(false)
 const enableEmail = ref(false)
 const enableUser = ref(false)
 const enableRegister = ref(false)
-const activeName = ref("mobile")
+const activeName = ref("")
 const wxImg = ref("/images/wx.png")
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['hide', 'success']);
@@ -261,12 +261,15 @@ httpGet("/api/config/get?key=system").then(res => {
     const registerWays = res.data['register_ways']
     if (arrayContains(registerWays, "mobile")) {
       enableMobile.value = true
+      activeName.value = activeName.value === "" ? "mobile" : activeName.value
     }
     if (arrayContains(registerWays, "email")) {
       enableEmail.value = true
+      activeName.value = activeName.value === "" ? "email" : activeName.value
     }
     if (arrayContains(registerWays, "username")) {
       enableUser.value = true
+      activeName.value = activeName.value === "" ? "username" : activeName.value
     }
     // 是否启用注册
     enableRegister.value = res.data['enabled_register']

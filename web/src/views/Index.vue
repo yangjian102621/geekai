@@ -11,7 +11,7 @@
           <div class="title">{{ title }}</div>
         </div>
         <div class="menu-item">
-          <span v-if="!licenseConfig.de_copy">
+          <span v-if="!license.de_copy">
             <a :href="docsURL" target="_blank">
             <el-button type="primary" round>
               <i class="iconfont icon-book"></i>
@@ -57,9 +57,7 @@
       <!--      <div id="animation-container"></div>-->
     </div>
 
-    <div class="footer" v-if="!licenseConfig.de_copy">
-      <footer-bar />
-    </div>
+    <footer-bar />
   </div>
 </template>
 
@@ -82,7 +80,7 @@ if (isMobile()) {
 const title = ref("Geek-AI 创作系统")
 const logo = ref("/images/logo.png")
 const slogan = ref("我辈之人，先干为敬，陪您先把 AI 用起来")
-const licenseConfig = ref({})
+const license = ref({})
 const winHeight = window.innerHeight - 150
 const bgImgUrl = ref('')
 const isLogin = ref(false)
@@ -106,7 +104,7 @@ onMounted(() => {
   })
 
   httpGet("/api/config/license").then(res => {
-    licenseConfig.value = res.data
+    license.value = res.data
   }).catch(e => {
     ElMessage.error("获取 License 配置：" + e.message)
   })
