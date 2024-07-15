@@ -50,10 +50,17 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 			Content string `json:"content,omitempty"`
 			Updated bool   `json:"updated,omitempty"`
 		} `json:"config"`
+		ConfigBak types.SystemConfig `json:"config_bak,omitempty"`
 	}
 
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// ONLY authorized user can change the copyright
+	if (data.Key == "system" && data.Config.Copyright != data.ConfigBak.Copyright) && !h.licenseService.GetLicense().Configs.DeCopy {
+		resp.ERROR(c, "您无权修改版权信息，请先联系作者获取授权")
 		return
 	}
 

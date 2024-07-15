@@ -53,6 +53,10 @@
                   </div>
                 </el-form-item>
 
+                <el-form-item label="版权信息" prop="copyright">
+                  <el-input v-model="system['copyright']" placeholder="更改此选项需要获取 License 授权"/>
+                </el-form-item>
+
                 <el-form-item label="开放注册" prop="enabled_register">
                   <div class="tip-input">
                     <el-switch v-model="system['enabled_register']"/>
@@ -391,11 +395,12 @@ import {InfoFilled, UploadFilled,Select,CloseBold} from "@element-plus/icons-vue
 import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
-import {dateFormat} from "@/utils/libs";
+import {copyObj, dateFormat} from "@/utils/libs";
 import AIDrawing from "@/views/admin/AIDrawing.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
+const configBak = ref({})
 const loading = ref(true)
 const systemFormRef = ref(null)
 const models = ref([])
@@ -407,6 +412,7 @@ onMounted(() => {
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system').then(res => {
     system.value = res.data
+    configBak.value = copyObj(system.value)
   }).catch(e => {
     ElMessage.error("加载系统配置失败: " + e.message)
   })
@@ -447,7 +453,7 @@ const save = function (key) {
     systemFormRef.value.validate((valid) => {
       if (valid) {
         system.value['power_price'] = parseFloat(system.value['power_price']) ?? 0
-        httpPost('/api/admin/config/update', {key: key, config: system.value}).then(() => {
+        httpPost('/api/admin/config/update', {key: key, config: system.value, config_bak: configBak.value}).then(() => {
           ElMessage.success("操作成功！")
         }).catch(e => {
           ElMessage.error("操作失败：" + e.message)

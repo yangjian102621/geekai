@@ -55,10 +55,8 @@
       </div>
 
       <reset-pass @hide="showResetPass = false" :show="showResetPass"/>
-
-      <footer class="footer"  v-if="!licenseConfig.de_copy">
-        <footer-bar/>
-      </footer>
+      
+      <footer-bar/>
     </div>
   </div>
 </template>
