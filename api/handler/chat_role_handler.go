@@ -29,45 +29,32 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 
 // List 获取用户聊天应用列表
 func (h *ChatRoleHandler) List(c *gin.Context) {
-	all := h.GetBool(c, "all")
+	id := h.GetInt(c, "id", 0)
 	userId := h.GetLoginUserId(c)
 	var roles []model.ChatRole
-	var roleVos = make([]vo.ChatRole, 0)
+	query := h.DB.Where("enable", true)
+	if userId > 0 {
+		var user model.User
+		h.DB.First(&user, userId)
+		var roleKeys []string
+		err := utils.JsonDecode(user.ChatRoles, &roleKeys)
+		if err != nil {
+			resp.ERROR(c, "角色解析失败！")
+			return
+		}
+		query = query.Where("marker IN ?", roleKeys)
+	}
+	if id > 0 {
+		query = query.Or("id", id)
+	}
 	res := h.DB.Where("enable", true).Order("sort_num ASC").Find(&roles)
 	if res.Error != nil {
-		resp.SUCCESS(c, roleVos)
+		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
-	// 获取所有角色
-	if userId == 0 || all {
-		// 转成 vo
-		var roleVos = make([]vo.ChatRole, 0)
-		for _, r := range roles {
-			var v vo.ChatRole
-			err := utils.CopyObject(r, &v)
-			if err == nil {
-				v.Id = r.Id
-				roleVos = append(roleVos, v)
-			}
-		}
-		resp.SUCCESS(c, roleVos)
-		return
-	}
-
-	var user model.User
-	h.DB.First(&user, userId)
-	var roleKeys []string
-	err := utils.JsonDecode(user.ChatRoles, &roleKeys)
-	if err != nil {
-		resp.ERROR(c, "角色解析失败！")
-		return
-	}
-
+	var roleVos = make([]vo.ChatRole, 0)
 	for _, r := range roles {
-		if !utils.Contains(roleKeys, r.Key) {
-			continue
-		}
 		var v vo.ChatRole
 		err := utils.CopyObject(r, &v)
 		if err == nil {

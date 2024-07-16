@@ -407,8 +407,16 @@ const connect = () => {
 
   _socket.addEventListener('message', event => {
     if (event.data instanceof Blob) {
-      fetchRunningJobs()
-      fetchFinishJobs(1)
+      const reader = new FileReader();
+      reader.readAsText(event.data, "UTF-8")
+      reader.onload = () => {
+        const message = String(reader.result)
+        if (message === "FINISH" || message === "FAIL") {
+          page.value = 1
+          fetchFinishJobs(1)
+        }
+        fetchRunningJobs()
+      }
     }
   });
 
@@ -456,7 +464,7 @@ const fetchFinishJobs = (page) => {
   httpGet(`/api/mj/jobs?finish=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data
     for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i].progress === -1) {
+      if (jobs[i].progress === 101) {
         showNotify({
           message: `任务ID：${jobs[i]['task_id']} 原因：${jobs[i]['err_msg']}`,
           type: 'danger',
@@ -479,7 +487,7 @@ const fetchFinishJobs = (page) => {
         }
       }
 
-      if (jobs[i].type === 'image' || jobs[i].type === 'variation') {
+      if ((jobs[i].type === 'image' || jobs[i].type === 'variation') && jobs[i].progress === 100){
         jobs[i]['can_opt'] = true
       }
     }
