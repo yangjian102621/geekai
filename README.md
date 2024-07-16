@@ -77,12 +77,12 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 ### 体验地址
 
-> 免费体验地址：[https://ai.r9it.com/chat](https://ai.r9it.com/chat) <br/>
+> 免费体验地址：[https://chat.geekai.me](https://chat.geekai.me) <br/>
 > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
 
 ## 快速部署
 
-请参考文档 [**GeekAI 快速部署**](https://ai.r9it.com/docs/install/)。
+请参考文档 [**GeekAI 快速部署**](https://docs.geekai.me/install/)。
 
 ## 使用须知
 
@@ -108,7 +108,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 
 最新的部署视频教程：[https://www.bilibili.com/video/BV1Cc411t7CX/](https://www.bilibili.com/video/BV1Cc411t7CX/)
 
-详细的部署和开发文档请参考 [**GeekAI 文档**](https://ai.r9it.com/docs/)。
+详细的部署和开发文档请参考 [**GeekAI 文档**](https://docs.geekai.me)。
 
 加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自Github!!!）。**
 
