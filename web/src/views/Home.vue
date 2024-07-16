@@ -166,6 +166,12 @@ watch(() => store.showLoginDialog, (newValue) => {
   show.value = newValue
 });
 
+// 监听路由变化
+router.beforeEach((to, from, next) => {
+  curPath.value =  to.path
+  next();
+});
+
 if (curPath.value === "/external") {
   curPath.value = router.currentRoute.value.query.url
 }

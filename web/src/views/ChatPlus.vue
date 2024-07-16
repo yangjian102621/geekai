@@ -316,18 +316,17 @@ const initData = () => {
         chatList.value = res.data;
         allChats.value = res.data;
       }
-
+      if (router.currentRoute.value.query.role_id) {
+        roleId.value = parseInt(router.currentRoute.value.query.role_id)
+      }
       // 加载模型
       httpGet('/api/model/list').then(res => {
         models.value = res.data
         modelID.value = models.value[0].id
-
         // 加载角色列表
-        httpGet(`/api/role/list`).then((res) => {
+        httpGet(`/api/role/list`,{id:roleId.value}).then((res) => {
           roles.value = res.data;
-          if (router.currentRoute.value.query.role_id) {
-            roleId.value = parseInt(router.currentRoute.value.query.role_id)
-          } else {
+          if (!roleId.value) {
             roleId.value = roles.value[0]['id']
           }
 
@@ -354,7 +353,7 @@ const initData = () => {
     })
 
     // 加载模型
-    httpGet('/api/model/list').then(res => {
+    httpGet('/api/model/list',{id:roleId.value}).then(res => {
       models.value = res.data
       modelID.value = models.value[0].id
     }).catch(e => {
