@@ -406,7 +406,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.MidJourneyJob) {
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
-		session = session.Where("progress = ?", 100).Order("id DESC")
+		session = session.Where("progress >= ?", 100).Order("id DESC")
 	} else {
 		session = session.Where("progress < ?", 100).Order("id ASC")
 	}

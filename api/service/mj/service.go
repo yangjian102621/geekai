@@ -42,6 +42,8 @@ func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.Red
 	}
 }
 
+const failedProgress = 101
+
 func (s *Service) Run() {
 	logger.Infof("Starting MidJourney job consumer for %s", s.Name)
 	for s.running {
@@ -116,7 +118,7 @@ func (s *Service) Run() {
 			}
 
 			logger.Error("绘画任务执行失败：", errMsg)
-			job.Progress = -1
+			job.Progress = failedProgress
 			job.ErrMsg = errMsg
 			// update the task progress
 			s.db.Updates(&job)
@@ -164,7 +166,7 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 	// 任务执行失败了
 	if task.FailReason != "" {
 		s.db.Model(&model.MidJourneyJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
-			"progress": -1,
+			"progress": failedProgress,
 			"err_msg":  task.FailReason,
 		})
 		s.notifyQueue.RPush(sd.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: sd.Failed})

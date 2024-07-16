@@ -144,15 +144,26 @@ onMounted(() => {
   if (links) {
     httpPost("/api/upload/list", {urls: links}).then(res => {
       files.value = res.data
+
+      for (let link of links) {
+        if (isExternalImg(link, files.value)) {
+          files.value.push({url:link, ext: ".png"})
+        }
+      }
     }).catch(() => {
     })
 
     for (let link of links) {
       content.value = content.value.replace(link,"")
     }
+
   }
   content.value = md.render(content.value.trim())
 })
+
+const isExternalImg = (link, files) => {
+  return isImage(link) && !files.find(file => file.url === link)
+}
 </script>
 
 <style lang="stylus">

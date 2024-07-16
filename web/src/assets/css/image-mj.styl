@@ -420,9 +420,31 @@
               flex-flow column
               justify-content center
               align-items center
-              min-height 200px
+              min-height 220px
               color #ffffff
+              overflow hidden
 
+              .err-msg-container {
+                overflow hidden
+                word-break break-all
+                padding 0 10px 20px 10px
+                .title {
+                  font-size 16px
+                  text-align center
+                  font-weight bold
+                  color #f56c6c
+                  margin-bottom 20px
+                }
+
+                .text {
+                  font-size 14px
+                  color #E9F1F6
+                  line-height 1.5
+                  text-overflow ellipsis
+                  height 100px
+                  overflow hidden
+                }
+              }
               .iconfont {
                 font-size 50px
                 margin-bottom 10px

@@ -67,25 +67,7 @@ func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
 		}
 
 	}
-	logger.Info("API URL: ", apiURL)
-	var res ImageRes
-	var errRes ErrRes
-	r, err := c.client.R().
-		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
-		SetBody(body).
-		SetSuccessResult(&res).
-		SetErrorResult(&errRes).
-		Post(apiURL)
-	if err != nil {
-		return ImageRes{}, fmt.Errorf("请求 API %s 出错：%v", apiURL, err)
-	}
-
-	if r.IsErrorState() {
-		errStr, _ := io.ReadAll(r.Body)
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s，%v", errRes.Error.Message, string(errStr))
-	}
-
-	return res, nil
+	return c.doRequest(body, apiURL)
 }
 
 // Blend 融图
@@ -112,23 +94,7 @@ func (c *PlusClient) Blend(task types.MjTask) (ImageRes, error) {
 			}
 		}
 	}
-	var res ImageRes
-	var errRes ErrRes
-	r, err := c.client.R().
-		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
-		SetBody(body).
-		SetSuccessResult(&res).
-		SetErrorResult(&errRes).
-		Post(apiURL)
-	if err != nil {
-		return ImageRes{}, fmt.Errorf("请求 API %s 出错：%v", apiURL, err)
-	}
-
-	if r.IsErrorState() {
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
-	}
-
-	return res, nil
+	return c.doRequest(body, apiURL)
 }
 
 // SwapFace 换脸
@@ -165,23 +131,7 @@ func (c *PlusClient) SwapFace(task types.MjTask) (ImageRes, error) {
 		},
 		"state": "",
 	}
-	var res ImageRes
-	var errRes ErrRes
-	r, err := c.client.SetTimeout(time.Minute).R().
-		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
-		SetBody(body).
-		SetSuccessResult(&res).
-		SetErrorResult(&errRes).
-		Post(apiURL)
-	if err != nil {
-		return ImageRes{}, fmt.Errorf("请求 API %s 出错：%v", apiURL, err)
-	}
-
-	if r.IsErrorState() {
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
-	}
-
-	return res, nil
+	return c.doRequest(body, apiURL)
 }
 
 // Upscale 放大指定的图片
@@ -195,24 +145,7 @@ func (c *PlusClient) Upscale(task types.MjTask) (ImageRes, error) {
 		"taskId":   task.MessageId,
 	}
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/action", c.apiURL, c.Config.Mode)
-	logger.Info("API URL: ", apiURL)
-	var res ImageRes
-	var errRes ErrRes
-	r, err := c.client.R().
-		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
-		SetBody(body).
-		SetSuccessResult(&res).
-		SetErrorResult(&errRes).
-		Post(apiURL)
-	if err != nil {
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
-	}
-
-	if r.IsErrorState() {
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
-	}
-
-	return res, nil
+	return c.doRequest(body, apiURL)
 }
 
 // Variation  以指定的图片的视角进行变换再创作，注意需要在对应的频道中关闭 Remix 变换，否则 Variation 指令将不会生效
@@ -226,9 +159,14 @@ func (c *PlusClient) Variation(task types.MjTask) (ImageRes, error) {
 		"taskId":   task.MessageId,
 	}
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/action", c.apiURL, c.Config.Mode)
-	logger.Info("API URL: ", apiURL)
+
+	return c.doRequest(body, apiURL)
+}
+
+func (c *PlusClient) doRequest(body interface{}, apiURL string) (ImageRes, error) {
 	var res ImageRes
 	var errRes ErrRes
+	logger.Info("API URL: ", apiURL)
 	r, err := req.C().R().
 		SetHeader("Authorization", "Bearer "+c.Config.ApiKey).
 		SetBody(body).
@@ -236,7 +174,13 @@ func (c *PlusClient) Variation(task types.MjTask) (ImageRes, error) {
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
+		errMsg := err.Error()
+		if r != nil {
+			errStr, _ := io.ReadAll(r.Body)
+			logger.Error("请求 API 出错：", string(errStr))
+			errMsg = errMsg + " " + string(errStr)
+		}
+		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", errMsg)
 	}
 
 	if r.IsErrorState() {
