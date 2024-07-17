@@ -83,6 +83,12 @@ const routes = [
                 component: () => import('@/views/Dalle.vue'),
             },
             {
+                name: 'suno',
+                path: '/suno',
+                meta: {title: 'Suno音乐创作'},
+                component: () => import('@/views/Suno.vue'),
+            },
+            {
                 name: 'ExternalLink',
                 path: '/external',
                 component: () => import('@/views/ExternalPage.vue'),

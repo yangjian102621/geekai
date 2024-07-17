@@ -58,8 +58,8 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRoute} from "vue-router";
 
-const title = ref('Chat-Plus-Admin')
-const logo = ref('/images/logo.png')
+const title = ref('')
+const logo = ref('')
 
 // 加载系统配置
 httpGet('/api/admin/config/get?key=system').then(res => {
