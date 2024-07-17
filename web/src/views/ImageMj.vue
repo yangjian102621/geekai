@@ -492,7 +492,13 @@
                           <div class="image-slot">
                             <div class="err-msg-container">
                               <div class="title">任务失败</div>
-                              <div class="text">{{ slotProp.item['err_msg'] }}</div>
+                              <div class="text">
+                                <el-popover title="错误详情" trigger="hover" :width="250" :content="slotProp.item['err_msg']" placement="top">
+                                  <template #reference>
+                                    {{ slotProp.item['err_msg'] }}
+                                  </template>
+                                </el-popover>
+                              </div>
                             </div>
                             <el-button type="danger"  @click="removeImage(slotProp.item)">删除</el-button>
                           </div>

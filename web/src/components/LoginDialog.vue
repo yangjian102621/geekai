@@ -241,8 +241,8 @@ watch(() => props.show, (newValue) => {
 
 const login = ref(true)
 const data = ref({
-  username: "",
-  password: "",
+  username: process.env.VUE_APP_USER,
+  password: process.env.VUE_APP_PASS,
   repass: "",
   code: "",
   invite_code: ""

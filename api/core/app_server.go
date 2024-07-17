@@ -139,7 +139,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 
 		if tokenString == "" {
 			if needLogin(c) {
-				resp.ERROR(c, "You should put Authorization in request headers")
+				resp.NotAuth(c, "You should put Authorization in request headers")
 				c.Abort()
 				return
 			} else { // 直接放行
