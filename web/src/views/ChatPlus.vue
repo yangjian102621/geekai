@@ -219,6 +219,7 @@ import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
+import axios from "axios";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -342,16 +343,6 @@ const initData = () => {
     })
   }).catch(() => {
     loading.value = false
-    // 加载会话
-    httpGet("/api/chat/list").then((res) => {
-      if (res.data) {
-        chatList.value = res.data;
-        allChats.value = res.data;
-      }
-    }).catch(() => {
-      ElMessage.error("加载会话列表失败！")
-    })
-
     // 加载模型
     httpGet('/api/model/list',{id:roleId.value}).then(res => {
       models.value = res.data
@@ -368,6 +359,37 @@ const initData = () => {
       ElMessage.error('获取聊天角色失败: ' + e.messages)
     })
   })
+
+  inputRef.value.addEventListener('paste', (event) => {
+    const items = (event.clipboardData || window.clipboardData).items;
+    let fileFound = false;
+    loading.value = true
+
+    for (let item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        fileFound = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        // 执行上传操作
+        httpPost('/api/upload', formData).then((res) => {
+          files.value.push(res.data)
+          ElMessage.success({message: "上传成功", duration: 500})
+          loading.value = false
+        }).catch((e) => {
+          ElMessage.error('文件上传失败:' + e.message)
+          loading.value = false
+        })
+
+        break;
+      }
+    }
+
+    if (!fileFound) {
+      document.getElementById('status').innerText = 'No file found in paste data.';
+    }
+  });
 }
 
 const getRoleById = function (rid) {
@@ -739,7 +761,7 @@ const onInput = (e) => {
 const autofillPrompt = (text) => {
   prompt.value = text
   inputRef.value.focus()
-  // sendMessage()
+  sendMessage()
 }
 // 发送消息
 const sendMessage = function () {
