@@ -146,7 +146,7 @@ import ConfigDialog from "@/components/UserInfoDialog.vue";
 import {showMessageError} from "@/utils/dialog";
 
 const router = useRouter();
-const logo = ref('/images/logo.png');
+const logo = ref('');
 const mainNavs = ref([])
 const moreNavs = ref([])
 const curPath = ref(router.currentRoute.value.path)
