@@ -96,18 +96,21 @@
         </div>
       </div>
     </div>
-    <div class="right-box">
-      <div class="list-box" v-if="list.length > 0">
+    <div class="right-box" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
+      <div class="list-box" v-if="!noData">
         <div class="item" v-for="item in list">
           <div class="left">
             <div class="container">
               <el-image :src="item.thumb_img_url" fit="cover" />
               <div class="duration">{{duration(item.duration)}}</div>
+              <button class="play" @click="play(item)">
+                <img src="/images/play.svg" alt=""/>
+              </button>
             </div>
           </div>
           <div class="center">
             <div class="title">
-              <span>{{item.title}}</span>
+              <a href="/song/xxxxx">{{item.title}}</a>
               <span class="model">{{item.model}}</span>
             </div>
             <div class="tags">{{item.tags}}</div>
@@ -117,22 +120,58 @@
               <el-tooltip effect="light" content="以当前歌曲为素材继续创作" placement="top">
                 <button class="btn">续写</button>
               </el-tooltip>
+
+              <button class="btn btn-publish">
+                <span class="text">发布</span>
+                <black-switch v-model:value="item.publish" size="small" />
+              </button>
+
+              <el-tooltip effect="light" content="下载歌曲" placement="top">
+                <a :href="item.audio_url" :download="item.title+'.mp3'">
+                  <button class="btn btn-icon">
+                    <i class="iconfont icon-download"></i>
+                  </button>
+                </a>
+              </el-tooltip>
+
+              <el-tooltip effect="light" content="复制歌曲链接" placement="top">
+                <button class="btn btn-icon">
+                  <i class="iconfont icon-share1"></i>
+                </button>
+              </el-tooltip>
+
+              <el-tooltip effect="light" content="编辑" placement="top">
+                <button class="btn btn-icon">
+                  <i class="iconfont icon-edit"></i>
+                </button>
+              </el-tooltip>
+
+              <el-tooltip effect="light" content="删除" placement="top">
+                <button class="btn btn-icon">
+                  <i class="iconfont icon-remove"></i>
+                </button>
+              </el-tooltip>
             </div>
           </div>
         </div>
       </div>
       <el-empty :image-size="100" description="没有任何作品，赶紧去创作吧！" v-else/>
+
+      <div class="music-player" v-if="playList.length > 0">
+        <music-player :songs="playList" ref="playerRef" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import {ref} from "vue"
+import {nextTick, ref} from "vue"
 import {InfoFilled} from "@element-plus/icons-vue";
 import BlackSelect from "@/components/ui/BlackSelect.vue";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
-import ImageDall from "@/views/mobile/pages/ImageDall.vue";
+import MusicPlayer from "@/components/MusicPlayer.vue";
+import {compact} from "lodash";
 
 const winHeight = ref(window.innerHeight - 60)
 const custom = ref(false)
@@ -148,7 +187,10 @@ const data = ref({
   prompt: "",
   title: ""
 })
-
+const loading = ref(false)
+const noData = ref(false)
+const playList = ref([])
+const playerRef = ref(null)
 const list = ref([
     {
       id: 1,
@@ -157,6 +199,7 @@ const list = ref([
       tags: "uplifting pop",
       thumb_img_url: "https://cdn2.suno.ai/image_047796ce-7bf3-4051-a59c-66ce60448ff2.jpeg?width=100",
       audio_url: "/files/suno.mp3",
+      publish: true,
       duration: 134,
     },
   {
@@ -164,8 +207,9 @@ const list = ref([
     title: "我是一个鸟人",
     model: "v3",
     tags: "摇滚",
+    publish: false,
     thumb_img_url: "https://cdn2.suno.ai/image_e5d25fd0-06a5-4cd7-910c-4b62872cd503.jpeg?width=100",
-    audio_url: "/files/suno.mp3",
+    audio_url: "/files/test.mp3",
     duration: 194,
   },
   {
@@ -173,6 +217,7 @@ const list = ref([
     title: "鸟人传说 (Birdman Legend)",
     model: "v3",
     tags: "uplifting pop",
+    publish: true,
     thumb_img_url: "https://cdn2.suno.ai/image_047796ce-7bf3-4051-a59c-66ce60448ff2.jpeg?width=100",
     audio_url: "/files/suno.mp3",
     duration: 138,
@@ -182,6 +227,7 @@ const list = ref([
     title: "我是一个鸟人",
     model: "v3",
     tags: "摇滚",
+    publish: false,
     thumb_img_url: "https://cdn2.suno.ai/image_e5d25fd0-06a5-4cd7-910c-4b62872cd503.jpeg?width=100",
     audio_url: "/files/suno.mp3",
     duration: 144,
@@ -192,6 +238,10 @@ const create = () => {
   console.log(data.value)
 }
 
+const play = (item) => {
+  playList.value = [item]
+  nextTick(()=> playerRef.value.play())
+}
 // 格式化音频时长
 const duration = (secs) => {
   const minutes =Math.floor(secs/60)
