@@ -339,7 +339,6 @@ const downloadImage = () => {
     a.download = "geek-ai-xmind.png"
     a.href = canvas.toDataURL(`image/png`)
     a.click()
-
   }
 }
 

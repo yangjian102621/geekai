@@ -26,6 +26,7 @@
     "markmap-toolbar": "^0.17.0",
     "markmap-view": "^0.16.0",
     "md-editor-v3": "^2.2.1",
+    "memfs": "^4.9.3",
     "mitt": "^3.0.1",
     "pinia": "^2.1.4",
     "qrcode": "^1.5.3",

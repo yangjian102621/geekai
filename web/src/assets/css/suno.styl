@@ -101,11 +101,34 @@
               bottom 0
               right 0
               background-color rgba(14,8,8,.7)
-              padding 0 2px
+              padding 0 3px
               font-family 'Input Sans'
               font-size 14px
               font-weight 700
               border-radius .125rem
+            }
+
+            .play {
+              position absolute
+              width: 56px;
+              height 100%
+              top: 0;
+              left: 50%;
+              border none
+              border-radius 5px
+              background rgba(100, 100, 100, 0.3)
+              cursor pointer
+              color #ffffff
+              opacity 0
+              transform: translate(-50%, 0px);
+              transition opacity 0.3s ease 0s
+            }
+
+            &:hover {
+              .play {
+                opacity 1
+                //display block
+              }
             }
           }
         }
@@ -124,6 +147,13 @@
             padding 6px 0
             font-size 16px
             font-weight 700
+
+            a {
+              color rgb(250 247 245)
+              &:hover {
+                text-decoration underline
+              }
+            }
 
             .model {
               color #E2E8F0
@@ -145,7 +175,7 @@
         }
 
         .right {
-          width 200px;
+          min-width 320px;
           font-size 14px
           padding 0 15px
 
@@ -157,6 +187,7 @@
             height 90px
 
             .btn {
+              margin-right 10px
               background-color #363030
               border none
               border-radius 5px
@@ -167,6 +198,25 @@
                 background-color #5F5958
               }
             }
+
+            .btn-publish {
+              padding 2px 10px
+
+              .text {
+                margin-right 10px
+              }
+            }
+
+            .btn-icon {
+              background none
+              padding 6px
+              transition background 0.6s ease 0s
+              color #726E6C
+
+              &:hover {
+                background #3C3737
+              }
+            }
           }
         }
       }
@@ -174,6 +224,14 @@
       .item.active {
         background-color #2A2525
       }
+    }
+
+    .music-player {
+      width 100%
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      padding 20px 0
     }
   }
 

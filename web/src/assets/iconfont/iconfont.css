@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1715987806624') format('woff2'),
-       url('iconfont.woff?t=1715987806624') format('woff'),
-       url('iconfont.ttf?t=1715987806624') format('truetype');
+  src: url('iconfont.woff2?t=1721292490257') format('woff2'),
+       url('iconfont.woff?t=1721292490257') format('woff'),
+       url('iconfont.ttf?t=1721292490257') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,54 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-pause:before {
+  content: "\e693";
+}
+
+.icon-prev:before {
+  content: "\e6a5";
+}
+
+.icon-next:before {
+  content: "\e6a7";
+}
+
+.icon-play:before {
+  content: "\e6a8";
+}
+
+.icon-remove:before {
+  content: "\e82b";
+}
+
+.icon-edit:before {
+  content: "\e61d";
+}
+
+.icon-download:before {
+  content: "\e83a";
+}
+
+.icon-more-vertical:before {
+  content: "\e8cb";
+}
+
+.icon-share1:before {
+  content: "\e661";
+}
+
+.icon-suno:before {
+  content: "\e608";
+}
+
+.icon-mp:before {
+  content: "\e6c4";
+}
+
+.icon-mp1:before {
+  content: "\e647";
 }
 
 .icon-control-simple:before {
