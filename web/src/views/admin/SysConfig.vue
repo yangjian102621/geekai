@@ -50,6 +50,38 @@
                       </template>
                     </el-input>
                     <el-button type="primary" @click="system.index_bg_url = 'https://api.dujin.org/bing/1920.php'">使用动态背景</el-button>
+                    <el-button @click="system.index_bg_url = 'color'">使用纯色背景</el-button>
+                  </div>
+                </el-form-item>
+
+                <el-form-item label="首页导航菜单" prop="index_navs">
+                  <div class="tip-input">
+                    <el-select
+                        v-model="system['index_navs']"
+                        multiple
+                        :filterable="true"
+                        placeholder="请选择菜单，多选"
+                        style="width: 100%"
+                    >
+                      <el-option
+                          v-for="item in menus"
+                          :key="item.id"
+                          :label="item.name"
+                          :value="item.id"
+                      />
+                    </el-select>
+                    <div class="info">
+                      <el-tooltip
+                          class="box-item"
+                          effect="dark"
+                          content="被选中的菜单将会在首页导航栏显示"
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
                   </div>
                 </el-form-item>
 
@@ -407,6 +439,7 @@ const models = ref([])
 const openAIModels = ref([])
 const notice = ref("")
 const license = ref({is_active: false})
+const menus = ref([])
 
 onMounted(() => {
   // 加载系统配置
@@ -427,6 +460,12 @@ onMounted(() => {
     models.value = res.data
     openAIModels.value = models.value.filter(v => v.platform === "OpenAI")
     loading.value = false
+  }).catch(e => {
+    ElMessage.error("获取模型失败：" + e.message)
+  })
+
+  httpGet('/api/admin/menu/list').then(res => {
+    menus.value = res.data
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
   })
