@@ -1,13 +1,15 @@
 <template>
   <div class="foot-container">
     <div class="footer">
-      <div v-if="license.de_copy">{{copyRight}}</div>
+      <div v-if="license.de_copy" :style="{color:textColor}">{{copyRight}}</div>
       <div v-else>
-        <span>{{copyRight}}</span>
-        <el-link type="primary" :href="gitURL" target="_blank" style="--el-link-text-color:#ffffff">
-          {{ title }} -
-          {{ version }}
-        </el-link>
+        <span :style="{color:textColor}">{{copyRight}}</span>
+        <div>
+          <a :href="gitURL" target="_blank" :style="{color:textColor}">
+            {{ title }} -
+            {{ version }}
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -23,7 +25,12 @@ const version = ref(process.env.VUE_APP_VERSION)
 const gitURL = ref(process.env.VUE_APP_GIT_URL)
 const copyRight = ref('')
 const license = ref({})
-
+const props = defineProps({
+  textColor: {
+    type: String,
+    default: '#ffffff'
+  },
+});
 
 // 获取系统配置
 httpGet("/api/config/get?key=system").then(res => {
@@ -56,8 +63,10 @@ httpGet("/api/config/license").then(res => {
     padding 20px;
     width 100%
 
-    .el-link {
-      color #409eff
+    a {
+      &:hover {
+        text-decoration underline
+      }
     }
   }
 }

@@ -228,5 +228,6 @@ type SystemConfig struct {
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
 
 	IndexBgURL string `json:"index_bg_url"` // 前端首页背景图片
+	IndexNavs  []int  `json:"index_navs"`   // 首页显示的导航菜单
 	Copyright  string `json:"copyright"`    // 版权信息
 }
