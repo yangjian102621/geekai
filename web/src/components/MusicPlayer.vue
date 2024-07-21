@@ -32,6 +32,8 @@
        <div class="progress" :style="{ width: `${progressPercent}%` }"></div>
      </div>
      <audio ref="audio" @timeupdate="updateProgress" @ended="nextSong"></audio>
+
+     <el-button class="close" type="info" :icon="Close" circle size="small" @click="emits('close')" />
    </div>
  </div>
 </template>
@@ -39,6 +41,7 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue';
 import {showMessageError} from "@/utils/dialog";
+import {Close} from "@element-plus/icons-vue";
 
 const audio = ref(null);
 const isPlaying = ref(false);
@@ -58,6 +61,8 @@ const props = defineProps({
     default: () => []
   },
 });
+// eslint-disable-next-line no-undef
+const emits = defineEmits(['close']);
 
 watch(() => props.songs, (newVal) => {
   console.log(newVal)
@@ -108,8 +113,12 @@ const nextSong = () => {
 };
 
 const updateProgress = () => {
-  currentTime.value = audio.value.currentTime;
-  progressPercent.value = (currentTime.value / duration.value) * 100;
+  try {
+    currentTime.value = audio.value.currentTime;
+    progressPercent.value = (currentTime.value / duration.value) * 100;
+  } catch (e) {
+    console.error(e.message)
+  }
 };
 
 const formatTime = (time) => {
@@ -125,6 +134,7 @@ const setProgress = (event) => {
   audio.value.currentTime = (clickX / totalWidth) * audioDuration;
 };
 
+// eslint-disable-next-line no-undef
 defineExpose({
   play
 });
@@ -236,6 +246,12 @@ onMounted(() => {
         width: 0;
       }
 
+    }
+
+    .close {
+      position absolute
+      right 10px
+      top 15px
     }
   }
 }

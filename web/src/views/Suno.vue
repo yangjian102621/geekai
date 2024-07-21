@@ -157,8 +157,8 @@
       </div>
       <el-empty :image-size="100" description="没有任何作品，赶紧去创作吧！" v-else/>
 
-      <div class="music-player" v-if="playList.length > 0">
-        <music-player :songs="playList" ref="playerRef" />
+      <div class="music-player" v-if="showPlayer">
+        <music-player :songs="playList" ref="playerRef" @close="showPlayer = false" />
       </div>
     </div>
   </div>
@@ -173,7 +173,7 @@ import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import {compact} from "lodash";
 
-const winHeight = ref(window.innerHeight - 60)
+const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
 const instrumental = ref(false)
 const models = ref([
@@ -191,6 +191,7 @@ const loading = ref(false)
 const noData = ref(false)
 const playList = ref([])
 const playerRef = ref(null)
+const showPlayer = ref(false)
 const list = ref([
     {
       id: 1,
@@ -240,6 +241,7 @@ const create = () => {
 
 const play = (item) => {
   playList.value = [item]
+  showPlayer.value = true
   nextTick(()=> playerRef.value.play())
 }
 // 格式化音频时长
