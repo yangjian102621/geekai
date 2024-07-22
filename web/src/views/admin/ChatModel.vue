@@ -46,11 +46,6 @@
           </template>
         </el-table-column>
 
-        <!--        <el-table-column label="创建时间">-->
-        <!--          <template #default="scope">-->
-        <!--            <span>{{ dateFormat(scope.row['created_at']) }}</span>-->
-        <!--          </template>-->
-        <!--        </el-table-column>-->
         <el-table-column prop="key_name" label="绑定API-KEY"/>
         <el-table-column label="操作" width="180">
           <template #default="scope">
@@ -89,7 +84,7 @@
           <el-input v-model="item.value" autocomplete="off"/>
         </el-form-item>
 
-        <el-form-item label="费率：" prop="weight">
+        <el-form-item label="消耗算力：" prop="weight">
           <template #default>
             <div class="tip-input">
               <el-input-number :min="0" v-model="item.power" autocomplete="off"/>
