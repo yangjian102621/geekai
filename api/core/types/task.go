@@ -78,3 +78,16 @@ type DallTask struct {
 
 	Power int `json:"power"`
 }
+
+type SunoTask struct {
+	Id           int    `json:"id"`
+	UserId       string `json:"user_id"`
+	Type         int    `json:"type"`
+	TaskId       string `json:"task_id"`
+	Title        string `json:"title"`
+	ReferenceId  string `json:"reference_id"`
+	Prompt       string `json:"prompt"`
+	Tags         string `json:"tags"`
+	Instrumental bool   `json:"instrumental"` // 是否纯音乐
+	ExtendSecs   int    `json:"extend_secs"`  // 延长秒杀
+}

@@ -44,9 +44,19 @@
                   </el-icon>
                 </template>
               </el-popover>
+              <div class="tag-select">
+                <el-tag
+                  v-for="tag in tags"
+                  :key="tag"
+                  :type="tag === data.tags ? 'success' : ''"
+                  :hit="tag === data.tags"
+                  style="margin-right: 10px"
+                  @click="data.tags = tag"
+                >{{ tag }}</el-tag>
+              </div>
             </div>
             <div class="item">
-              <black-input v-model:value="data.tags" type="textarea" :rows="3" placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..."/>
+              <black-input v-model:value="data.tags" type="textarea" :maxlength="120" :rows="3" placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..."/>
             </div>
           </div>
 
@@ -64,7 +74,7 @@
               </el-popover>
             </div>
             <div class="item">
-              <black-input v-model:value="data.title" type="textarea" :rows="2" placeholder="请输入歌曲名称..."/>
+              <black-input v-model:value="data.title" type="textarea" :rows="1" placeholder="请输入歌曲名称..."/>
             </div>
           </div>
         </div>
@@ -180,6 +190,7 @@ const models = ref([
   {label: "v3.0", value: "chirp-v3-0"},
   {label: "v3.5", value:"chirp-v3-5"}
 ])
+const tags = ref([])
 const data = ref({
   model: "chirp-v3-0",
   tags: "",

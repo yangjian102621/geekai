@@ -1,15 +1,12 @@
 <template>
   <div class="foot-container">
     <div class="footer">
-      <div v-if="license.de_copy" :style="{color:textColor}">{{copyRight}}</div>
-      <div v-else>
-        <span :style="{color:textColor}">{{copyRight}}</span>
-        <div>
-          <a :href="gitURL" target="_blank" :style="{color:textColor}">
-            {{ title }} -
-            {{ version }}
-          </a>
-        </div>
+      <div><span :style="{color:textColor}">{{copyRight}}</span></div>
+      <div v-if="!license.de_copy">
+        <a :href="gitURL" target="_blank" :style="{color:textColor}">
+          {{ title }} -
+          {{ version }}
+        </a>
       </div>
     </div>
   </div>
@@ -35,7 +32,7 @@ const props = defineProps({
 // 获取系统配置
 httpGet("/api/config/get?key=system").then(res => {
   title.value = res.data.title??process.env.VUE_APP_TITLE
-  copyRight.value = res.data.copyright??'极客学长 © 2023 - '+new Date().getFullYear()+' All rights reserved.'
+  copyRight.value = res.data.copyright.length>1?res.data.copyright:'极客学长 © 2023 - '+new Date().getFullYear()+' All rights reserved.'
 }).catch(e => {
   showMessageError("获取系统配置失败：" + e.message)
 })

@@ -104,10 +104,10 @@
         <el-form-item label="名称：" prop="name">
           <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
-        <el-form-item label="用途：" prop="type">
-          <el-select v-model="item.type" placeholder="请选择用途" @change="changeType">
-            <el-option v-for="item in types" :value="item.value" :label="item.name" :key="item.value">{{
-                item.name
+        <el-form-item label="类型：" prop="type">
+          <el-select v-model="item.type" placeholder="请选择类型">
+            <el-option v-for="item in types" :value="item.value" :label="item.label" :key="item.value">{{
+                item.label
               }}
             </el-option>
           </el-select>
@@ -159,13 +159,17 @@ const rules = reactive({
   type: [{required: true, message: '请选择用途', trigger: 'change',}],
   value: [{required: true, message: '请输入 API KEY 值', trigger: 'change',}]
 })
+
 const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
 const platforms = ref([])
 const types = ref([
-  {name: "聊天", value: "chat"},
-  {name: "绘画", value: "img"},
+  {label: "对话", value:"chat"},
+  {label: "Midjourney", value:"mj"},
+  {label: "DALL-E", value:"dall"},
+  {label: "Suno文生歌", value:"suno"},
+  {label: "Luma视频", value:"luma"},
 ])
 
 
