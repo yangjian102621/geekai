@@ -150,10 +150,9 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 // GetAppConfig 获取内置配置
 func (h *ConfigHandler) GetAppConfig(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{
-		"mj_plus":   h.App.Config.MjPlusConfigs,
-		"mj_proxy":  h.App.Config.MjProxyConfigs,
-		"sd":        h.App.Config.SdConfigs,
-		"platforms": Platforms,
+		"mj_plus":  h.App.Config.MjPlusConfigs,
+		"mj_proxy": h.App.Config.MjProxyConfigs,
+		"sd":       h.App.Config.SdConfigs,
 	})
 }
 

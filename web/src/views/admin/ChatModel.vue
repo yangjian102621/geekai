@@ -17,11 +17,6 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
-        <el-table-column prop="platform" label="所属平台">
-          <template #default="scope">
-            <span class="sort" :data-id="scope.row.id">{{ scope.row.platform }}</span>
-          </template>
-        </el-table-column>
         <el-table-column prop="name" label="模型名称"/>
         <el-table-column prop="value" label="模型值">
           <template #default="scope">
@@ -67,15 +62,6 @@
         style="width: 90%; max-width: 600px;"
     >
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
-        <el-form-item label="所属平台：" prop="platform">
-          <el-select v-model="item.platform" placeholder="请选择平台">
-            <el-option v-for="item in platforms" :value="item.value" :label="item.name" :key="item.value">{{
-                item.name
-              }}
-            </el-option>
-          </el-select>
-        </el-form-item>
-
         <el-form-item label="模型名称：" prop="name">
           <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
@@ -116,18 +102,7 @@
                   class="box-item"
                   effect="dark"
                   raw-content
-                  content="gpt-3.5-turbo:4096 <br/>
-              gpt-3.5-turbo-16k: 16384 <br/>
-              gpt-4:             8192 <br/>
-              gpt-4-32k:         32768 <br/>
-              chatglm_pro:       32768 <br/>
-              chatglm_std:       16384 <br/>
-              chatglm_lite:      4096 <br/>
-              qwen-turbo:        8192 <br/>
-              qwen-plus:         32768 <br/>
-              文心一言:            8192 <br/>
-              星火1.0:            4096 <br/>
-              星火2.0-星火3.5:     8192"
+                  content="去各大模型的官方 API 文档查询模型支持的最大上下文长度"
                   placement="right"
               >
                 <el-icon>
@@ -220,7 +195,6 @@ const rules = reactive({
 })
 const loading = ref(true)
 const formRef = ref(null)
-const platforms = ref([])
 
 // 获取 API KEY
 const apiKeys = ref([])
@@ -285,12 +259,6 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
-
-  httpGet("/api/admin/config/get/app").then(res => {
-    platforms.value = res.data.platforms
-  }).catch(e =>{
-    ElMessage.error("获取配置失败："+e.message)
-  })
 })
 
 onUnmounted(() => {
@@ -300,7 +268,7 @@ onUnmounted(() => {
 const add = function () {
   title.value = "新增模型"
   showDialog.value = true
-  item.value = {enabled: true, weight: 1, open: true}
+  item.value = {enabled: true, power: 1, open: true,max_tokens: 1024,max_context: 8192, temperature: 0.9,}
 }
 
 const edit = function (row) {

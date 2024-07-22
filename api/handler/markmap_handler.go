@@ -212,21 +212,21 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 }
 
 func (h *MarkMapHandler) doRequest(req types.ApiRequest, chatModel model.ChatModel, apiKey *model.ApiKey) (*http.Response, error) {
+
+	session := h.DB.Session(&gorm.Session{})
 	// if the chat model bind a KEY, use it directly
-	var res *gorm.DB
 	if chatModel.KeyId > 0 {
-		res = h.DB.Where("id", chatModel.KeyId).Find(apiKey)
+		session = session.Where("id", chatModel.KeyId)
+	} else { // use the last unused key
+		session = session.Where("type", "chat").
+			Where("enabled", true).Order("last_used_at ASC")
 	}
-	// use the last unused key
-	if apiKey.Id == 0 {
-		res = h.DB.Where("platform", types.OpenAI.Value).
-			Where("type", "chat").
-			Where("enabled", true).Order("last_used_at ASC").First(apiKey)
-	}
+
+	res := session.First(apiKey)
 	if res.Error != nil {
 		return nil, errors.New("no available key, please import key")
 	}
-	apiURL := apiKey.ApiURL
+	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	// 更新 API KEY 的最后使用时间
 	h.DB.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
