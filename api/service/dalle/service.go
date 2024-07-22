@@ -145,7 +145,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx = s.db.Where("type", "img").
+	tx = s.db.Where("type", "dalle").
 		Where("enabled", true).
 		Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
@@ -157,6 +157,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	if len(apiKey.ProxyURL) > 5 {
 		s.httpClient.SetProxyURL(apiKey.ProxyURL).R()
 	}
+	apiURL := fmt.Sprintf("%s/v1/images/generations", apiKey.ApiURL)
 	reqBody := imgReq{
 		Model:   "dall-e-3",
 		Prompt:  prompt,
@@ -165,14 +166,13 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		Style:   task.Style,
 		Quality: task.Quality,
 	}
-	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, BODY: %+v", apiKey.Platform, apiKey.ApiURL, apiKey.Value, reqBody)
-	request := s.httpClient.R().SetHeader("Content-Type", "application/json")
-	if apiKey.Platform == types.Azure.Value {
-		request = request.SetHeader("api-key", apiKey.Value)
-	} else {
-		request = request.SetHeader("Authorization", "Bearer "+apiKey.Value)
-	}
-	r, err := request.SetBody(reqBody).SetErrorResult(&errRes).SetSuccessResult(&res).Post(apiKey.ApiURL)
+	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, BODY: %+v", apiKey.Platform, apiURL, apiKey.Value, reqBody)
+	r, err := s.httpClient.R().SetHeader("Content-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
+		SetBody(reqBody).
+		SetErrorResult(&errRes).
+		SetSuccessResult(&res).
+		Post(apiURL)
 	if err != nil {
 		return "", fmt.Errorf("error with send request: %v", err)
 	}
