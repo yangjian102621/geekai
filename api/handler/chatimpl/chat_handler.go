@@ -469,7 +469,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	} else {
 		client = http.DefaultClient
 	}
-	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiKey.ApiURL, apiURL, apiKey.ProxyURL, req.Model)
+	logger.Debugf("Sending %s request, Channel:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiKey.ApiURL, apiURL, apiKey.ProxyURL, req.Model)
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
 	return client.Do(request)
 }
@@ -607,7 +607,7 @@ func (h *ChatHandler) extractImgUrl(text string) string {
 			continue
 		}
 
-		newImgURL, err := h.uploadManager.GetUploadHandler().PutImg(imageURL, false)
+		newImgURL, err := h.uploadManager.GetUploadHandler().PutUrlFile(imageURL, false)
 		if err != nil {
 			logger.Error("error with download image: ", err)
 			continue

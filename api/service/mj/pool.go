@@ -139,7 +139,7 @@ func (p *ServicePool) DownloadImages() {
 				if strings.HasPrefix(v.OrgURL, "https://cdn.discordapp.com") {
 					proxy = true
 				}
-				imgURL, err := p.uploaderManager.GetUploadHandler().PutImg(v.OrgURL, proxy)
+				imgURL, err := p.uploaderManager.GetUploadHandler().PutUrlFile(v.OrgURL, proxy)
 
 				if err != nil {
 					logger.Errorf("error with download image %s, %v", v.OrgURL, err)

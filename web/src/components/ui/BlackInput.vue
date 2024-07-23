@@ -19,7 +19,7 @@
 
 <script setup>
 
-import {ref} from "vue";
+import {ref, watch} from "vue";
 
 const props = defineProps({
   value : {
@@ -43,6 +43,9 @@ const props = defineProps({
     default: 1024
   }
 });
+watch(() => props.value, (newValue) => {
+  model.value = newValue
+})
 const model = ref(props.value)
 const emits = defineEmits(['update:value']);
 const onInput = (value) => {

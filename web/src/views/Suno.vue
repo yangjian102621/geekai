@@ -10,11 +10,11 @@
 
       <div class="params">
         <div class="pure-music">
-          <span class="switch"><black-switch  v-model:value="instrumental" size="default"  /></span>
+          <span class="switch"><black-switch  v-model:value="data.instrumental" size="default"  /></span>
           <span class="text">纯音乐</span>
         </div>
         <div v-if="custom">
-          <div class="item-group" v-if="!instrumental">
+          <div class="item-group" v-if="!data.instrumental">
             <div class="label">
               <span class="text">歌词</span>
               <el-popover placement="right"
@@ -44,20 +44,20 @@
                   </el-icon>
                 </template>
               </el-popover>
-              <div class="tag-select">
-                <el-tag
-                  v-for="tag in tags"
-                  :key="tag"
-                  :type="tag === data.tags ? 'success' : ''"
-                  :hit="tag === data.tags"
-                  style="margin-right: 10px"
-                  @click="data.tags = tag"
-                >{{ tag }}</el-tag>
-              </div>
             </div>
             <div class="item">
               <black-input v-model:value="data.tags" type="textarea" :maxlength="120" :rows="3" placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..."/>
             </div>
+
+            <div class="tag-select">
+              <div class="inner">
+                <span
+                    class="tag"
+                    @click="selectTag(tag)"
+                    v-for="tag in tags"
+                    :key="tag.value">{{ tag.label }}</span>
+              </div>
+              </div>
           </div>
 
           <div class="item-group">
@@ -93,7 +93,7 @@
             </el-popover>
           </div>
           <div class="item">
-            <black-input v-model:value="data.lyrics" type="textarea" :rows="10" placeholder="例如：一首关于鸟人的摇滚歌曲..."/>
+            <black-input v-model:value="data.prompt" type="textarea" :rows="10" placeholder="例如：一首关于鸟人的摇滚歌曲..."/>
           </div>
         </div>
 
@@ -182,21 +182,41 @@ import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import {compact} from "lodash";
+import {httpPost} from "@/utils/http";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
+import {showSuccessToast} from "vant";
 
 const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
-const instrumental = ref(false)
 const models = ref([
   {label: "v3.0", value: "chirp-v3-0"},
   {label: "v3.5", value:"chirp-v3-5"}
 ])
-const tags = ref([])
+const tags = ref([
+  {label: "女声", value: "female vocals"},
+  {label: "男声", value: "male vocals"},
+  {label: "流行", value: "pop"},
+  {label: "摇滚", value: "rock"},
+  {label: "硬摇滚", value: "hard rock"},
+  {label: "电音", value: "electronic"},
+  {label: "金属", value: "metal"},
+  {label: "重金属", value: "heavy metal"},
+  {label: "节拍", value: "beat"},
+  {label: "弱拍", value: "upbeat"},
+  {label: "合成器", value: "synth"},
+  {label: "吉他", value: "guitar"},
+  {label: "钢琴", value: "piano"},
+  {label: "小提琴", value: "violin"},
+  {label: "贝斯", value: "bass"},
+  {label: "嘻哈", value: "hip hop"},
+])
 const data = ref({
   model: "chirp-v3-0",
   tags: "",
   lyrics: "",
   prompt: "",
-  title: ""
+  title: "",
+  instrumental:false
 })
 const loading = ref(false)
 const noData = ref(false)
@@ -247,7 +267,14 @@ const list = ref([
 ])
 
 const create = () => {
+  data.value.type = custom.value ? 2 : 1
   console.log(data.value)
+  httpPost("/api/suno/create", data.value).then(res => {
+    console.log(res)
+    showMessageOK("创建任务成功")
+  }).catch(e => {
+    showMessageError("创建任务失败："+e.message)
+  })
 }
 
 const play = (item) => {
@@ -261,6 +288,14 @@ const duration = (secs) => {
   const seconds = secs%60
   return `${minutes}:${seconds}`
 }
+
+const selectTag = (tag) => {
+  if (data.value.tags.length + tag.value.length >= 119) {
+    return
+  }
+  data.value.tags = compact([...data.value.tags.split(","), tag.value]).join(",")
+}
+
 </script>
 
 <style lang="stylus" scoped>
