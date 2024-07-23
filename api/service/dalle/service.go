@@ -166,7 +166,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		Style:   task.Style,
 		Quality: task.Quality,
 	}
-	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, BODY: %+v", apiKey.Platform, apiURL, apiKey.Value, reqBody)
+	logger.Infof("Sending %s request, Channel:%s, API KEY:%s, BODY: %+v", apiKey.Platform, apiURL, apiKey.Value, reqBody)
 	r, err := s.httpClient.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(reqBody).
@@ -259,7 +259,7 @@ func (s *Service) DownloadImages() {
 
 func (s *Service) downloadImage(jobId uint, userId int, orgURL string) (string, error) {
 	// sava image
-	imgURL, err := s.uploadManager.GetUploadHandler().PutImg(orgURL, false)
+	imgURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(orgURL, false)
 	if err != nil {
 		return "", err
 	}

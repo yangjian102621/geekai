@@ -57,8 +57,8 @@ func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {
 	}, nil
 }
 
-func (s LocalStorage) PutImg(imageURL string, useProxy bool) (string, error) {
-	parse, err := url.Parse(imageURL)
+func (s LocalStorage) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+	parse, err := url.Parse(fileURL)
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
@@ -69,9 +69,9 @@ func (s LocalStorage) PutImg(imageURL string, useProxy bool) (string, error) {
 	}
 
 	if useProxy {
-		err = utils.DownloadFile(imageURL, filePath, s.proxyURL)
+		err = utils.DownloadFile(fileURL, filePath, s.proxyURL)
 	} else {
-		err = utils.DownloadFile(imageURL, filePath, "")
+		err = utils.DownloadFile(fileURL, filePath, "")
 	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)

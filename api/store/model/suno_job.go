@@ -5,14 +5,16 @@ import "time"
 type SunoJob struct {
 	Id           uint `gorm:"primarykey;column:id"`
 	UserId       int
+	Channel      string // 频道
 	Title        string
-	Type         string
+	Type         int
 	TaskId       string
-	ReferenceId  string // 续写的任务id
+	RefTaskId    string // 续写的任务id
 	Tags         string // 歌曲风格和标签
 	Instrumental bool   // 是否生成纯音乐
 	ExtendSecs   int    // 续写秒数
-	SongId       int    // 续写的歌曲id
+	SongId       string // 续写的歌曲id
+	RefSongId    string
 	Prompt       string // 提示词
 	ThumbImgURL  string // 缩略图 URL
 	CoverImgURL  string // 封面图 URL

@@ -254,6 +254,9 @@
                 <el-form-item label="DALL-E-3算力" prop="dall_power">
                   <el-input v-model.number="system['dall_power']" placeholder="使用DALL-E-3画一张图消耗算力"/>
                 </el-form-item>
+                <el-form-item label="Suno 算力" prop="suno_power">
+                  <el-input v-model.number="system['suno_power']" placeholder="使用 Suno 生成一首音乐消耗算力"/>
+                </el-form-item>
               </el-tab-pane>
               <el-tab-pane label="众筹支付">
                 <el-form-item label="启用众筹功能" prop="enabled_reward">

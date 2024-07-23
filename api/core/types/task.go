@@ -80,14 +80,18 @@ type DallTask struct {
 }
 
 type SunoTask struct {
-	Id           int    `json:"id"`
-	UserId       string `json:"user_id"`
+	Id           uint   `json:"id"`
+	Channel      string `json:"channel"`
+	UserId       int    `json:"user_id"`
 	Type         int    `json:"type"`
 	TaskId       string `json:"task_id"`
 	Title        string `json:"title"`
-	ReferenceId  string `json:"reference_id"`
-	Prompt       string `json:"prompt"`
+	RefTaskId    string `json:"ref_task_id"`
+	RefSongId    string `json:"ref_song_id"`
+	Lyrics       string `json:"lyrics"` // 歌词：自定义模式
+	Prompt       string `json:"prompt"` // 提示词：灵感模式
 	Tags         string `json:"tags"`
+	Model        string `json:"model"`
 	Instrumental bool   `json:"instrumental"` // 是否纯音乐
 	ExtendSecs   int    `json:"extend_secs"`  // 延长秒杀
 }

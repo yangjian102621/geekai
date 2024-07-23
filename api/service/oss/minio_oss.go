@@ -44,18 +44,18 @@ func NewMiniOss(appConfig *types.AppConfig) (MiniOss, error) {
 	return MiniOss{config: config, client: minioClient, proxyURL: appConfig.ProxyURL}, nil
 }
 
-func (s MiniOss) PutImg(imageURL string, useProxy bool) (string, error) {
-	var imageData []byte
+func (s MiniOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+	var fileData []byte
 	var err error
 	if useProxy {
-		imageData, err = utils.DownloadImage(imageURL, s.proxyURL)
+		fileData, err = utils.DownloadImage(fileURL, s.proxyURL)
 	} else {
-		imageData, err = utils.DownloadImage(imageURL, "")
+		fileData, err = utils.DownloadImage(fileURL, "")
 	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}
-	parse, err := url.Parse(imageURL)
+	parse, err := url.Parse(fileURL)
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
@@ -65,8 +65,8 @@ func (s MiniOss) PutImg(imageURL string, useProxy bool) (string, error) {
 		context.Background(),
 		s.config.Bucket,
 		filename,
-		strings.NewReader(string(imageData)),
-		int64(len(imageData)),
+		strings.NewReader(string(fileData)),
+		int64(len(fileData)),
 		minio.PutObjectOptions{ContentType: "image/png"})
 	if err != nil {
 		return "", err
