@@ -96,7 +96,7 @@
   .right-box {
     width 100%
     color rgb(250 247 245)
-    overflow hidden
+    overflow auto
 
     .list-box {
       padding 0 0 0 20px
@@ -105,9 +105,10 @@
         flex-flow row
         padding 5px 0
         cursor pointer
+        margin-bottom 10px
 
         &:hover {
-          background-color #1C1616
+          background-color #2A2525
         }
 
         .left {
@@ -246,11 +247,41 @@
         }
       }
 
-      .item.active {
+
+      .task {
+        height 100px
         background-color #2A2525
+        display flex
+        margin-bottom 10px
+        .left {
+          display flex
+          justify-content left
+          align-items center
+          padding 20px
+          width 320px
+          .title {
+            font-size 14px
+            color #e1e1e1
+            white-space: nowrap; /* 防止文字换行 */
+            overflow: hidden; /* 隐藏溢出的内容 */
+            text-overflow: ellipsis; /* 用省略号表示溢出的内容 */
+          }
+        }
+
+        .right {
+          display flex
+          width 100%
+          justify-content center
+        }
       }
     }
 
+
+    .pagination {
+      padding 10px 20px
+      display flex
+      justify-content center
+    }
     .music-player {
       width 100%
       position: fixed;

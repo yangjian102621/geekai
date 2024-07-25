@@ -11,48 +11,55 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service/oss"
 	"geekai/service/suno"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
+	"net/http"
 	"time"
 )
 
 type SunoHandler struct {
 	BaseHandler
-	service *suno.Service
+	service  *suno.Service
+	uploader *oss.UploaderManager
 }
 
-func NewSunoHandler(app *core.AppServer, db *gorm.DB) *SunoHandler {
+func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager) *SunoHandler {
 	return &SunoHandler{
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
 		},
+		service:  service,
+		uploader: uploader,
 	}
 }
 
 // Client WebSocket 客户端，用于通知任务状态变更
 func (h *SunoHandler) Client(c *gin.Context) {
-	//ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	//if err != nil {
-	//	logger.Error(err)
-	//	c.Abort()
-	//	return
-	//}
-	//
-	//userId := h.GetInt(c, "user_id", 0)
-	//if userId == 0 {
-	//	logger.Info("Invalid user ID")
-	//	c.Abort()
-	//	return
-	//}
-	//
-	////client := types.NewWsClient(ws)
-	//logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
+	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		logger.Error(err)
+		c.Abort()
+		return
+	}
+
+	userId := h.GetInt(c, "user_id", 0)
+	if userId == 0 {
+		logger.Info("Invalid user ID")
+		c.Abort()
+		return
+	}
+
+	client := types.NewWsClient(ws)
+	h.service.Clients.Put(uint(userId), client)
+	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
 func (h *SunoHandler) Create(c *gin.Context) {
@@ -88,6 +95,9 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		ExtendSecs:   data.ExtendSecs,
 		Power:        h.App.SysConfig.SunoPower,
 	}
+	if data.Lyrics != "" {
+		job.Prompt = data.Lyrics
+	}
 	tx := h.DB.Create(&job)
 	if tx.Error != nil {
 		resp.ERROR(c, tx.Error.Error())
@@ -100,7 +110,6 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		UserId:       job.UserId,
 		Type:         job.Type,
 		Title:        job.Title,
-		Lyrics:       data.Lyrics,
 		RefTaskId:    data.RefTaskId,
 		RefSongId:    data.RefSongId,
 		ExtendSecs:   data.ExtendSecs,
@@ -128,19 +137,74 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		})
 	}
 
-	var itemVo vo.SunoJob
-	_ = utils.CopyObject(job, &itemVo)
-	resp.SUCCESS(c, itemVo)
+	client := h.service.Clients.Get(uint(job.UserId))
+	if client != nil {
+		_ = client.Send([]byte("Task Updated"))
+	}
+	resp.SUCCESS(c)
 }
 
 func (h *SunoHandler) List(c *gin.Context) {
+	userId := h.GetLoginUserId(c)
+	page := h.GetInt(c, "page", 0)
+	pageSize := h.GetInt(c, "page_size", 0)
+	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
 
+	// 统计总数
+	var total int64
+	session.Debug().Model(&model.SunoJob{}).Count(&total)
+
+	if page > 0 && pageSize > 0 {
+		offset := (page - 1) * pageSize
+		session = session.Offset(offset).Limit(pageSize)
+	}
+	var list []model.SunoJob
+	err := session.Order("id desc").Find(&list).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 转换为 VO
+	items := make([]vo.SunoJob, 0)
+	for _, v := range list {
+		var item vo.SunoJob
+		err = utils.CopyObject(v, &item)
+		if err != nil {
+			continue
+		}
+		items = append(items, item)
+	}
+
+	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, items))
 }
 
 func (h *SunoHandler) Remove(c *gin.Context) {
-
+	id := h.GetInt(c, "id", 0)
+	userId := h.GetLoginUserId(c)
+	var job model.SunoJob
+	err := h.DB.Where("id = ?", id).Where("user_id", userId).First(&job).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	// 删除任务
+	h.DB.Delete(&job)
+	// 删除文件
+	_ = h.uploader.GetUploadHandler().Delete(job.ThumbImgURL)
+	_ = h.uploader.GetUploadHandler().Delete(job.CoverImgURL)
+	_ = h.uploader.GetUploadHandler().Delete(job.AudioURL)
 }
 
 func (h *SunoHandler) Publish(c *gin.Context) {
+	id := h.GetInt(c, "id", 0)
+	userId := h.GetLoginUserId(c)
+	publish := h.GetBool(c, "publish")
+	err := h.DB.Model(&model.SunoJob{}).Where("id", id).Where("user_id", userId).UpdateColumn("publish", publish).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
 
+	resp.SUCCESS(c)
 }

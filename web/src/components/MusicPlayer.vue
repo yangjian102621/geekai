@@ -9,7 +9,7 @@
        <div class="style">
          <span class="tags">{{ tags }}</span>
          <span class="text-lightGray"> | </span>
-         <span class="time">{{ formatTime(currentTime) }} /{{ formatTime(duration) }}</span>
+         <span class="time">{{ formatTime(currentTime) }}<span class="split">/</span>{{ formatTime(duration) }}</span>
        </div>
      </div>
 
@@ -42,6 +42,7 @@
 import {ref, onMounted, watch} from 'vue';
 import {showMessageError} from "@/utils/dialog";
 import {Close} from "@element-plus/icons-vue";
+import {formatTime} from "@/utils/libs";
 
 const audio = ref(null);
 const isPlaying = ref(false);
@@ -121,12 +122,6 @@ const updateProgress = () => {
   }
 };
 
-const formatTime = (time) => {
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-};
-
 const setProgress = (event) => {
   const totalWidth = progressBarRef.value.offsetWidth;
   const clickX = event.offsetX;
@@ -172,7 +167,7 @@ onMounted(() => {
 
     .info {
       padding 0 10px
-      width 300px
+      min-width  300px
       display flex
       justify-content center
       align-items flex-start
@@ -186,8 +181,14 @@ onMounted(() => {
 
       .style {
         font-size 14px
+        display flex
+        color #e1e1e1
         .tags {
           font-weight 600
+          white-space: nowrap; /* 防止文本换行 */
+          overflow: hidden;    /* 隐藏溢出的文本 */
+          text-overflow: ellipsis; /* 使用省略号表示溢出的文本 */
+          max-width 200px
         }
         .text-lightGray {
           color: rgb(114 110 108);
@@ -196,6 +197,12 @@ onMounted(() => {
         .time {
           font-family 'Input Sans'
           font-weight 700
+          .split {
+            font-size 12px
+            position relative
+            top -2px
+            margin 0 1px 0 3px
+          }
         }
       }
     }

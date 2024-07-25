@@ -70,7 +70,7 @@
         </div>
         <div class="bar" v-if="data.created_at > 0">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
-          <span class="bar-item">tokens: {{ finalTokens }}</span>
+<!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
         </div>
       </div>
     </div>
@@ -132,12 +132,12 @@ const content =ref(processPrompt(props.data.content))
 const files = ref([])
 
 onMounted(() => {
-  if (!finalTokens.value) {
-    httpPost("/api/chat/tokens", {text: props.data.content, model: props.data.model}).then(res => {
-      finalTokens.value = res.data;
-    }).catch(() => {
-    })
-  }
+  // if (!finalTokens.value) {
+  //   httpPost("/api/chat/tokens", {text: props.data.content, model: props.data.model}).then(res => {
+  //     finalTokens.value = res.data;
+  //   }).catch(() => {
+  //   })
+  // }
 
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
@@ -308,9 +308,10 @@ const isExternalImg = (link, files) => {
       display flex;
       width 100%;
       padding 0 25px;
+      flex-flow row-reverse
 
       .chat-icon {
-        margin-right 20px;
+        margin-left 20px;
 
         img {
           width: 36px;
@@ -377,6 +378,7 @@ const isExternalImg = (link, files) => {
 
         .content-wrapper {
           display flex
+          flex-flow row-reverse
           .content {
               word-break break-word;
               padding: 1rem
@@ -384,7 +386,7 @@ const isExternalImg = (link, files) => {
               font-size: var(--content-font-size);
               overflow: auto;
               background-color #98e165
-              border-radius: 0 10px 10px 10px;
+              border-radius: 10px 0 10px 10px;
 
               img {
                 max-width: 600px;

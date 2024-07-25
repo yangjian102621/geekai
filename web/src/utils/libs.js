@@ -90,6 +90,12 @@ export function dateFormat(timestamp, format) {
     return timeDate;
 }
 
+export function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
 // 判断数组中是否包含某个元素
 export function arrayContains(array, value, compare) {
     if (!array) {

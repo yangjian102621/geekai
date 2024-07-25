@@ -108,64 +108,93 @@
     </div>
     <div class="right-box" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
       <div class="list-box" v-if="!noData">
-        <div class="item" v-for="item in list">
-          <div class="left">
-            <div class="container">
-              <el-image :src="item.thumb_img_url" fit="cover" />
-              <div class="duration">{{duration(item.duration)}}</div>
-              <button class="play" @click="play(item)">
-                <img src="/images/play.svg" alt=""/>
-              </button>
+        <div v-for="item in list">
+          <div class="item" v-if="item.progress === 100">
+            <div class="left">
+              <div class="container">
+                <el-image :src="item.thumb_img_url" fit="cover" />
+                <div class="duration">{{formatTime(item.duration)}}</div>
+                <button class="play" @click="play(item)">
+                  <img src="/images/play.svg" alt=""/>
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="center">
-            <div class="title">
-              <a href="/song/xxxxx">{{item.title}}</a>
-              <span class="model">{{item.model}}</span>
+            <div class="center">
+              <div class="title">
+                <a href="/song/xxxxx">{{item.title}}</a>
+                <span class="model">{{item.major_model_version}}</span>
+              </div>
+              <div class="tags">{{item.tags}}</div>
             </div>
-            <div class="tags">{{item.tags}}</div>
-          </div>
-          <div class="right">
-            <div class="tools">
-              <el-tooltip effect="light" content="以当前歌曲为素材继续创作" placement="top">
-                <button class="btn">续写</button>
-              </el-tooltip>
+            <div class="right">
+              <div class="tools">
+                <el-tooltip effect="light" content="以当前歌曲为素材继续创作" placement="top">
+                  <button class="btn">续写</button>
+                </el-tooltip>
 
-              <button class="btn btn-publish">
-                <span class="text">发布</span>
-                <black-switch v-model:value="item.publish" size="small" />
-              </button>
+                <button class="btn btn-publish">
+                  <span class="text">发布</span>
+                  <black-switch v-model:value="item.publish" @change="publishJob(item)" size="small" />
+                </button>
 
-              <el-tooltip effect="light" content="下载歌曲" placement="top">
-                <a :href="item.audio_url" :download="item.title+'.mp3'">
+                <el-tooltip effect="light" content="下载歌曲" placement="top">
+                  <a :href="item.audio_url" :download="item.title+'.mp3'" target="_blank">
+                    <button class="btn btn-icon">
+                      <i class="iconfont icon-download"></i>
+                    </button>
+                  </a>
+                </el-tooltip>
+
+                <el-tooltip effect="light" content="复制歌曲链接" placement="top">
                   <button class="btn btn-icon">
-                    <i class="iconfont icon-download"></i>
+                    <i class="iconfont icon-share1"></i>
                   </button>
-                </a>
-              </el-tooltip>
+                </el-tooltip>
 
-              <el-tooltip effect="light" content="复制歌曲链接" placement="top">
-                <button class="btn btn-icon">
-                  <i class="iconfont icon-share1"></i>
-                </button>
-              </el-tooltip>
+                <el-tooltip effect="light" content="编辑" placement="top">
+                  <button class="btn btn-icon">
+                    <i class="iconfont icon-edit"></i>
+                  </button>
+                </el-tooltip>
 
-              <el-tooltip effect="light" content="编辑" placement="top">
-                <button class="btn btn-icon">
-                  <i class="iconfont icon-edit"></i>
-                </button>
-              </el-tooltip>
-
-              <el-tooltip effect="light" content="删除" placement="top">
-                <button class="btn btn-icon">
-                  <i class="iconfont icon-remove"></i>
-                </button>
-              </el-tooltip>
+                <el-tooltip effect="light" content="删除" placement="top">
+                  <button class="btn btn-icon" @click="removeJob(item)">
+                    <i class="iconfont icon-remove"></i>
+                  </button>
+                </el-tooltip>
+              </div>
+            </div>
+          </div>
+          <div class="task" v-else>
+            <div class="left">
+              <div class="title">
+                <span v-if="item.title">{{item.title}}</span>
+                <span v-else>{{item.prompt}}</span>
+              </div>
+            </div>
+            <div class="right">
+              <generating />
             </div>
           </div>
         </div>
       </div>
       <el-empty :image-size="100" description="没有任何作品，赶紧去创作吧！" v-else/>
+
+      <div class="pagination">
+        <el-pagination v-if="total > pageSize" background
+                       style="--el-pagination-button-bg-color:#414141;
+                       --el-pagination-button-color:#d1d1d1;
+                       --el-disabled-bg-color:#414141;
+                       --el-color-primary:#666666;
+                       --el-pagination-hover-color:#e1e1e1"
+                       layout="total,prev, pager, next"
+                       :hide-on-single-page="true"
+                       v-model:current-page="page"
+                       v-model:page-size="pageSize"
+                       @current-change="fetchData(page)"
+                       :total="total"/>
+
+      </div>
 
       <div class="music-player" v-if="showPlayer">
         <music-player :songs="playList" ref="playerRef" @close="showPlayer = false" />
@@ -175,16 +204,19 @@
 </template>
 
 <script setup>
-import {nextTick, ref} from "vue"
+import {nextTick, onMounted, ref} from "vue"
 import {InfoFilled} from "@element-plus/icons-vue";
 import BlackSelect from "@/components/ui/BlackSelect.vue";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import {compact} from "lodash";
-import {httpPost} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
-import {showSuccessToast} from "vant";
+import Generating from "@/components/ui/Generating.vue";
+import {checkSession} from "@/action/session";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {formatTime} from "@/utils/libs";
 
 const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
@@ -218,59 +250,101 @@ const data = ref({
   title: "",
   instrumental:false
 })
-const loading = ref(false)
+const loading = ref(true)
 const noData = ref(false)
 const playList = ref([])
 const playerRef = ref(null)
 const showPlayer = ref(false)
-const list = ref([
-    {
-      id: 1,
-      title: "鸟人传说 (Birdman Legend)",
-      model: "v3",
-      tags: "uplifting pop",
-      thumb_img_url: "https://cdn2.suno.ai/image_047796ce-7bf3-4051-a59c-66ce60448ff2.jpeg?width=100",
-      audio_url: "/files/suno.mp3",
-      publish: true,
-      duration: 134,
-    },
-  {
-    id: 1,
-    title: "我是一个鸟人",
-    model: "v3",
-    tags: "摇滚",
-    publish: false,
-    thumb_img_url: "https://cdn2.suno.ai/image_e5d25fd0-06a5-4cd7-910c-4b62872cd503.jpeg?width=100",
-    audio_url: "/files/test.mp3",
-    duration: 194,
-  },
-  {
-    id: 1,
-    title: "鸟人传说 (Birdman Legend)",
-    model: "v3",
-    tags: "uplifting pop",
-    publish: true,
-    thumb_img_url: "https://cdn2.suno.ai/image_047796ce-7bf3-4051-a59c-66ce60448ff2.jpeg?width=100",
-    audio_url: "/files/suno.mp3",
-    duration: 138,
-  },
-  {
-    id: 1,
-    title: "我是一个鸟人",
-    model: "v3",
-    tags: "摇滚",
-    publish: false,
-    thumb_img_url: "https://cdn2.suno.ai/image_e5d25fd0-06a5-4cd7-910c-4b62872cd503.jpeg?width=100",
-    audio_url: "/files/suno.mp3",
-    duration: 144,
-  },
-])
+const list = ref([])
+
+const socket = ref(null)
+const userId = ref(0)
+const heartbeatHandle = ref(null)
+const connect = () => {
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https:') {
+      host = 'wss://' + location.host;
+    } else {
+      host = 'ws://' + location.host;
+    }
+  }
+
+  // 心跳函数
+  const sendHeartbeat = () => {
+    clearTimeout(heartbeatHandle.value)
+    new Promise((resolve, reject) => {
+      if (socket.value !== null) {
+        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
+      }
+      resolve("success")
+    }).then(() => {
+      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
+    });
+  }
+
+  const _socket = new WebSocket(host + `/api/suno/client?user_id=${userId.value}`);
+  _socket.addEventListener('open', () => {
+    socket.value = _socket;
+
+    // 发送心跳消息
+    sendHeartbeat()
+  });
+
+  _socket.addEventListener('message', event => {
+    if (event.data instanceof Blob) {
+      const reader = new FileReader();
+      reader.readAsText(event.data, "UTF-8")
+      reader.onload = () => {
+        const message = String(reader.result)
+        console.log(message)
+        if (message === "FINISH" || message === "FAIL") {
+          fetchData()
+        }
+      }
+    }
+  });
+
+  _socket.addEventListener('close', () => {
+    if (socket.value !== null) {
+      connect()
+    }
+  });
+}
+
+onMounted(() => {
+  checkSession().then(user => {
+    userId.value = user.id
+    fetchData(1)
+    connect()
+  })
+})
+
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const fetchData = (page) => {
+  httpGet("/api/suno/list",{page:page, page_size:pageSize.value}).then(res => {
+    total.value = res.data.total
+    const items = []
+    for (let v of res.data.items) {
+      if (v.progress === 100) {
+        v.major_model_version = v['raw_data']['major_model_version']
+      }
+      items.push(v)
+    }
+    loading.value = false
+    list.value = items
+    noData.value = list.value.length === 0
+  }).catch(e => {
+    showMessageError("获取作品列表失败："+e.message)
+  })
+}
 
 const create = () => {
   data.value.type = custom.value ? 2 : 1
-  console.log(data.value)
-  httpPost("/api/suno/create", data.value).then(res => {
-    console.log(res)
+  httpPost("/api/suno/create", data.value).then(() => {
+    fetchData(1)
     showMessageOK("创建任务成功")
   }).catch(e => {
     showMessageError("创建任务失败："+e.message)
@@ -282,18 +356,40 @@ const play = (item) => {
   showPlayer.value = true
   nextTick(()=> playerRef.value.play())
 }
-// 格式化音频时长
-const duration = (secs) => {
-  const minutes =Math.floor(secs/60)
-  const seconds = secs%60
-  return `${minutes}:${seconds}`
-}
 
 const selectTag = (tag) => {
   if (data.value.tags.length + tag.value.length >= 119) {
     return
   }
   data.value.tags = compact([...data.value.tags.split(","), tag.value]).join(",")
+}
+
+const removeJob = (item) => {
+  ElMessageBox.confirm(
+      '此操作将会删除任务相关文件，继续操作码?',
+      '删除提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(() => {
+    httpGet("/api/suno/remove", {id: item.id}).then(() => {
+      ElMessage.success("任务删除成功")
+      fetchData()
+    }).catch(e => {
+      ElMessage.error("任务删除失败：" + e.message)
+    })
+  }).catch(() => {
+  })
+}
+
+const publishJob = (item) => {
+  httpGet("/api/suno/publish", {id: item.id, publish:item.publish}).then(() => {
+    ElMessage.success("操作成功")
+  }).catch(e => {
+    ElMessage.error("操作失败：" + e.message)
+  })
 }
 
 </script>
