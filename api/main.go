@@ -214,6 +214,8 @@ func main() {
 		fx.Invoke(func(s *suno.Service) {
 			s.Run()
 			s.SyncTaskProgress()
+			s.CheckTaskNotify()
+			s.DownloadImages()
 		}),
 
 		fx.Provide(payment.NewAlipayService),

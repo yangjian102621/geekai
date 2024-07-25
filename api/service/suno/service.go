@@ -14,6 +14,7 @@ import (
 	"geekai/core/types"
 	logger2 "geekai/logger"
 	"geekai/service/oss"
+	"geekai/service/sd"
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
@@ -53,6 +54,25 @@ func (s *Service) PushTask(task types.SunoTask) {
 }
 
 func (s *Service) Run() {
+	// 将数据库中未提交的人物加载到队列
+	var jobs []model.SunoJob
+	s.db.Where("task_id", "").Find(&jobs)
+	for _, v := range jobs {
+		s.PushTask(types.SunoTask{
+			Id:           v.Id,
+			Channel:      v.Channel,
+			UserId:       v.UserId,
+			Type:         v.Type,
+			Title:        v.Title,
+			RefTaskId:    v.RefTaskId,
+			RefSongId:    v.RefSongId,
+			Prompt:       v.Prompt,
+			Tags:         v.Tags,
+			Model:        v.ModelName,
+			Instrumental: v.Instrumental,
+			ExtendSecs:   v.ExtendSecs,
+		})
+	}
 	logger.Info("Starting Suno job consumer...")
 	go func() {
 		for {
@@ -83,7 +103,7 @@ func (s *Service) Run() {
 }
 
 type RespVo struct {
-	Code    int    `json:"code"`
+	Code    string `json:"code"`
 	Message string `json:"message"`
 	Data    string `json:"data"`
 	Channel string `json:"channel,omitempty"`
@@ -111,7 +131,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	if task.Type == 1 {
 		reqBody["gpt_description_prompt"] = task.Prompt
 	} else { // 自定义模式
-		reqBody["prompt"] = task.Lyrics
+		reqBody["prompt"] = task.Prompt
 		reqBody["tags"] = task.Tags
 		reqBody["mv"] = task.Model
 		reqBody["title"] = task.Title
@@ -131,10 +151,75 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	body, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return RespVo{}, fmt.Errorf("解析API数据失败：%s", string(body))
+		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
 	}
 	res.Channel = apiKey.ApiURL
 	return res, nil
+}
+
+func (s *Service) CheckTaskNotify() {
+	go func() {
+		logger.Info("Running Suno task notify checking ...")
+		for {
+			var message sd.NotifyMessage
+			err := s.notifyQueue.LPop(&message)
+			if err != nil {
+				continue
+			}
+			client := s.Clients.Get(uint(message.UserId))
+			if client == nil {
+				continue
+			}
+			err = client.Send([]byte(message.Message))
+			if err != nil {
+				continue
+			}
+		}
+	}()
+}
+
+func (s *Service) DownloadImages() {
+	go func() {
+		var items []model.SunoJob
+		for {
+			res := s.db.Where("progress", 102).Find(&items)
+			if res.Error != nil {
+				continue
+			}
+
+			for _, v := range items {
+				// 下载图片和音频
+				logger.Infof("try download thumb image: %s", v.ThumbImgURL)
+				thumbURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.ThumbImgURL, true)
+				if err != nil {
+					logger.Errorf("download image with error: %v", err)
+					continue
+				}
+
+				logger.Infof("try download cover image: %s", v.CoverImgURL)
+				coverURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.CoverImgURL, true)
+				if err != nil {
+					logger.Errorf("download image with error: %v", err)
+					continue
+				}
+
+				logger.Infof("try download audio: %s", v.AudioURL)
+				audioURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.AudioURL, true)
+				if err != nil {
+					logger.Errorf("download audio with error: %v", err)
+					continue
+				}
+				v.ThumbImgURL = thumbURL
+				v.CoverImgURL = coverURL
+				v.AudioURL = audioURL
+				v.Progress = 100
+				s.db.Updates(&v)
+				s.notifyQueue.RPush(sd.NotifyMessage{UserId: v.UserId, JobId: int(v.Id), Message: sd.Finished})
+			}
+
+			time.Sleep(time.Second * 10)
+		}
+	}()
 }
 
 // SyncTaskProgress 异步拉取任务
@@ -167,7 +252,7 @@ func (s *Service) SyncTaskProgress() {
 					tx := s.db.Begin()
 					for _, v := range task.Data.Data {
 						job.Id = 0
-						job.Progress = 100
+						job.Progress = 102 // 102 表示资源未下载完成
 						job.Title = v.Title
 						job.SongId = v.Id
 						job.Duration = int(v.Metadata.Duration)
@@ -175,26 +260,9 @@ func (s *Service) SyncTaskProgress() {
 						job.Tags = v.Metadata.Tags
 						job.ModelName = v.ModelName
 						job.RawData = utils.JsonEncode(v)
-
-						// 下载图片和音频
-						thumbURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.ImageUrl, true)
-						if err != nil {
-							logger.Errorf("download image with error: %v", err)
-							continue
-						}
-						coverURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.ImageLargeUrl, true)
-						if err != nil {
-							logger.Errorf("download image with error: %v", err)
-							continue
-						}
-						audioURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.AudioUrl, true)
-						if err != nil {
-							logger.Errorf("download audio with error: %v", err)
-							continue
-						}
-						job.ThumbImgURL = thumbURL
-						job.CoverImgURL = coverURL
-						job.AudioURL = audioURL
+						job.ThumbImgURL = v.ImageUrl
+						job.CoverImgURL = v.ImageLargeUrl
+						job.AudioURL = v.AudioUrl
 
 						if err = tx.Create(&job).Error; err != nil {
 							logger.Error("create job with error: %v", err)
@@ -212,13 +280,13 @@ func (s *Service) SyncTaskProgress() {
 							continue
 						}
 					}
-
 					tx.Commit()
 
 				} else if task.Data.FailReason != "" {
 					job.Progress = 101
 					job.ErrMsg = task.Data.FailReason
 					s.db.Updates(&job)
+					s.notifyQueue.RPush(sd.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: sd.Failed})
 				}
 			}
 
@@ -285,7 +353,7 @@ func (s *Service) QueryTask(taskId string, channel string) (QueryRespVo, error) 
 	body, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return QueryRespVo{}, fmt.Errorf("解析API数据失败：%s", string(body))
+		return QueryRespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
 	}
 
 	return res, nil
