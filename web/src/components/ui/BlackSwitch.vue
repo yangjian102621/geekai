@@ -6,20 +6,19 @@
 
 </template>
 
-<script>
-export default {
-  name: 'BlackSwitch',
-  props: {
-    value : Boolean,
-    size: {
-      type: String,
-      default: 'default',
-    }
-  },
-  data() {
-    return {
-      model: this.value
-    }
+<script setup>
+
+import {ref, watch} from "vue";
+const props = defineProps({
+  value : Boolean,
+  size: {
+    type: String,
+    default: 'default',
   }
-}
+});
+const model = ref(props.value)
+
+watch(() => props.value, (newValue) => {
+  model.value = newValue
+})
 </script>

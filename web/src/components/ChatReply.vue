@@ -177,7 +177,7 @@ const reGenerate = (prompt) => {
       padding-left 10px;
 
       .chat-icon {
-        margin-left 20px;
+        margin-right 20px;
 
         img {
           width: 36px;
@@ -368,7 +368,6 @@ const reGenerate = (prompt) => {
 
         .content-wrapper {
           display flex
-          flex-flow row-reverse
           .content {
             min-height 20px;
             word-break break-word;

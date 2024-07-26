@@ -93,6 +93,12 @@ const routes = [
                 path: '/external',
                 component: () => import('@/views/ExternalPage.vue'),
             },
+            {
+                name: 'song',
+                path: '/song/:id',
+                meta: {title: 'Suno音乐播放'},
+                component: () => import('@/views/Song.vue'),
+            },
         ]
     },
     {

@@ -97,11 +97,36 @@
           </div>
         </div>
 
+        <div class="ref-song" v-if="refSong">
+          <div class="label">
+            <span class="text">续写</span>
+            <el-popover placement="right"
+                        :width="200"
+                        trigger="hover" content="输入额外的歌词，根据您之前的歌词来扩展歌曲。">
+              <template #reference>
+                <el-icon>
+                  <InfoFilled/>
+                </el-icon>
+              </template>
+            </el-popover>
+          </div>
+
+          <div class="item">
+            <div class="song">
+              <el-image :src="refSong.cover_url" fit="cover" />
+              <span class="title">{{refSong.title}}</span>
+              <el-button type="info" @click="removeRefSong" size="small" :icon="Delete" circle />
+            </div>
+            <div class="extend-secs">
+              从  <input v-model="refSong.extend_secs" type="text"/> 秒开始续写
+            </div>
+          </div>
+        </div>
 
         <div class="item">
           <button class="create-btn" @click="create">
             <img src="/images/create-new.svg" alt=""/>
-            <span>生成音乐</span>
+            <span>{{btnText}}</span>
           </button>
         </div>
       </div>
@@ -112,7 +137,7 @@
           <div class="item" v-if="item.progress === 100">
             <div class="left">
               <div class="container">
-                <el-image :src="item.thumb_img_url" fit="cover" />
+                <el-image :src="item.cover_url" fit="cover" />
                 <div class="duration">{{formatTime(item.duration)}}</div>
                 <button class="play" @click="play(item)">
                   <img src="/images/play.svg" alt=""/>
@@ -121,15 +146,19 @@
             </div>
             <div class="center">
               <div class="title">
-                <a href="/song/xxxxx">{{item.title}}</a>
+                <a :href="'/song/'+item.id"  target="_blank">{{item.title}}</a>
                 <span class="model">{{item.major_model_version}}</span>
+                <span class="model" v-if="item.ref_song">
+                    <i class="iconfont icon-link"></i>
+                    {{item.ref_song.title}}
+                  </span>
               </div>
               <div class="tags">{{item.tags}}</div>
             </div>
             <div class="right">
               <div class="tools">
                 <el-tooltip effect="light" content="以当前歌曲为素材继续创作" placement="top">
-                  <button class="btn">续写</button>
+                  <button class="btn" @click="extend(item)">续写</button>
                 </el-tooltip>
 
                 <button class="btn btn-publish">
@@ -146,13 +175,13 @@
                 </el-tooltip>
 
                 <el-tooltip effect="light" content="复制歌曲链接" placement="top">
-                  <button class="btn btn-icon">
+                  <button class="btn btn-icon copy-link" :data-clipboard-text="getShareURL(item)" >
                     <i class="iconfont icon-share1"></i>
                   </button>
                 </el-tooltip>
 
                 <el-tooltip effect="light" content="编辑" placement="top">
-                  <button class="btn btn-icon">
+                  <button class="btn btn-icon" @click="update(item)">
                     <i class="iconfont icon-edit"></i>
                   </button>
                 </el-tooltip>
@@ -172,8 +201,16 @@
                 <span v-else>{{item.prompt}}</span>
               </div>
             </div>
+            <div class="center">
+              <div class="failed" v-if="item.progress === 101">
+                {{item.err_msg}}
+              </div>
+              <generating v-else />
+            </div>
             <div class="right">
-              <generating />
+              <el-button type="info" @click="removeJob(item)" circle>
+                <i class="iconfont icon-remove"></i>
+              </el-button>
             </div>
           </div>
         </div>
@@ -197,15 +234,37 @@
       </div>
 
       <div class="music-player" v-if="showPlayer">
-        <music-player :songs="playList" ref="playerRef" @close="showPlayer = false" />
+        <music-player :songs="playList" ref="playerRef" :show-close="true" @close="showPlayer = false" />
       </div>
     </div>
+
+    <black-dialog v-model:show="showDialog" title="修改歌曲" @cancal="showDialog = false" @confirm="updateSong" :width="500">
+      <form class="form">
+        <div class="form-item">
+          <div class="label">歌曲名称</div>
+          <input class="input" v-model="editData.title" type="text" />
+        </div>
+
+        <div class="form-item">
+          <div class="label">封面图片</div>
+          <el-upload
+              class="avatar-uploader"
+              :auto-upload="true"
+              :show-file-list="false"
+              :http-request="uploadCover"
+              accept=".png,.jpg,.jpeg,.bmp"
+          >
+            <el-avatar :src="editData.cover" shape="square" :size="100"/>
+          </el-upload>
+        </div>
+      </form>
+    </black-dialog>
   </div>
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
-import {InfoFilled} from "@element-plus/icons-vue";
+import {nextTick, onMounted, onUnmounted, ref, watch} from "vue"
+import {Delete, InfoFilled} from "@element-plus/icons-vue";
 import BlackSelect from "@/components/ui/BlackSelect.vue";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
@@ -217,6 +276,9 @@ import Generating from "@/components/ui/Generating.vue";
 import {checkSession} from "@/action/session";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {formatTime} from "@/utils/libs";
+import Clipboard from "clipboard";
+import BlackDialog from "@/components/ui/BlackDialog.vue";
+import Compressor from "compressorjs";
 
 const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
@@ -248,7 +310,10 @@ const data = ref({
   lyrics: "",
   prompt: "",
   title: "",
-  instrumental:false
+  instrumental: false,
+  ref_task_id: "",
+  extend_secs: 0,
+  ref_song_id: "",
 })
 const loading = ref(true)
 const noData = ref(false)
@@ -256,6 +321,10 @@ const playList = ref([])
 const playerRef = ref(null)
 const showPlayer = ref(false)
 const list = ref([])
+const btnText = ref("开始创作")
+const refSong = ref(null)
+const showDialog = ref(false)
+const editData = ref({title:"",cover:"",id:0})
 
 const socket = ref(null)
 const userId = ref(0)
@@ -312,7 +381,17 @@ const connect = () => {
   });
 }
 
+const clipboard = ref(null)
 onMounted(() => {
+  clipboard.value = new Clipboard('.copy-link');
+  clipboard.value.on('success', () => {
+    ElMessage.success("复制歌曲链接成功！");
+  })
+
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！');
+  })
+
   checkSession().then(user => {
     userId.value = user.id
     fetchData(1)
@@ -320,11 +399,18 @@ onMounted(() => {
   })
 })
 
+onUnmounted(() => {
+  clipboard.value.destroy()
+})
+
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const fetchData = (page) => {
-  httpGet("/api/suno/list",{page:page, page_size:pageSize.value}).then(res => {
+const fetchData = (_page) => {
+  if (_page) {
+    page.value = _page
+  }
+  httpGet("/api/suno/list",{page:page.value, page_size:pageSize.value}).then(res => {
     total.value = res.data.total
     const items = []
     for (let v of res.data.items) {
@@ -341,14 +427,75 @@ const fetchData = (page) => {
   })
 }
 
+// 创建新的歌曲
 const create = () => {
   data.value.type = custom.value ? 2 : 1
+  data.value.ref_task_id = refSong.value ? refSong.value.task_id : ""
+  data.value.ref_song_id = refSong.value ? refSong.value.song_id : ""
+  data.value.extend_secs = refSong.value ? refSong.value.extend_secs : 0
+  if (custom.value) {
+    if (data.value.lyrics === "") {
+      return showMessageError("请输入歌词")
+    }
+    if (data.value.title === "") {
+      return showMessageError("请输入歌曲标题")
+    }
+  } else {
+    if (data.value.prompt === "") {
+      return showMessageError("请输入歌曲描述")
+    }
+  }
+  if (refSong.value && data.value.extend_secs > refSong.value.duration) {
+    return showMessageError("续写开始时间不能超过原歌曲长度")
+  }
+
   httpPost("/api/suno/create", data.value).then(() => {
     fetchData(1)
     showMessageOK("创建任务成功")
   }).catch(e => {
     showMessageError("创建任务失败："+e.message)
   })
+}
+
+// 续写歌曲
+const extend = (item) => {
+  refSong.value = item
+  refSong.value.extend_secs = item.duration
+  data.value.title = item.title
+  custom.value = true
+  btnText.value = "续写歌曲"
+}
+
+// 更细歌曲
+const update = (item) => {
+  showDialog.value = true
+  editData.value.title = item.title
+  editData.value.cover = item.cover_url
+  editData.value.id = item.id
+}
+
+const updateSong = ()  => {
+  if (editData.value.title === "" || editData.value.cover === "") {
+    return showMessageError("歌曲标题和封面不能为空")
+  }
+  httpPost("/api/suno/update", editData.value).then(() => {
+    showMessageOK("更新歌曲成功")
+    showDialog.value = false
+    fetchData()
+  }).catch(e => {
+    showMessageError("更新歌曲失败："+e.message)
+  })
+}
+
+watch(() => custom.value, (newValue) => {
+  if (!newValue) {
+    removeRefSong()
+  }
+})
+
+const removeRefSong = () => {
+  refSong.value = null
+  btnText.value = "开始创作"
 }
 
 const play = (item) => {
@@ -390,6 +537,31 @@ const publishJob = (item) => {
   }).catch(e => {
     ElMessage.error("操作失败：" + e.message)
   })
+}
+
+const getShareURL = (item) => {
+  return `${location.protocol}//${location.host}/song/${item.id}`
+}
+
+const uploadCover = (file) => {
+  // 压缩图片并上传
+  new Compressor(file.file, {
+    quality: 0.6,
+    success(result) {
+      const formData = new FormData();
+      formData.append('file', result, result.name);
+      // 执行上传操作
+      httpPost('/api/upload', formData).then((res) => {
+        editData.value.cover = res.data.url
+        ElMessage.success({message: "上传成功", duration: 500})
+      }).catch((e) => {
+        ElMessage.error('图片上传失败:' + e.message)
+      })
+    },
+    error(err) {
+      console.log(err.message);
+    },
+  });
 }
 
 </script>

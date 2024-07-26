@@ -16,8 +16,7 @@ type SunoJob struct {
 	SongId       string // 续写的歌曲id
 	RefSongId    string
 	Prompt       string // 提示词
-	ThumbImgURL  string // 缩略图 URL
-	CoverImgURL  string // 封面图 URL
+	CoverURL     string // 封面图 URL
 	AudioURL     string // 音频 URL
 	ModelName    string // 模型名称
 	Progress     int    // 任务进度
@@ -26,6 +25,7 @@ type SunoJob struct {
 	ErrMsg       string // 错误信息
 	RawData      string // 原始数据 json
 	Power        int    // 消耗算力
+	PlayTimes    int    // 播放次数
 	CreatedAt    time.Time
 }
 

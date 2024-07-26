@@ -33,7 +33,7 @@
      </div>
      <audio ref="audio" @timeupdate="updateProgress" @ended="nextSong"></audio>
 
-     <el-button class="close" type="info" :icon="Close" circle size="small" @click="emits('close')" />
+     <el-button v-if="showClose" class="close" type="info" :icon="Close" circle size="small" @click="emits('close')" />
    </div>
  </div>
 </template>
@@ -61,12 +61,15 @@ const props = defineProps({
     required: true,
     default: () => []
   },
+  showClose: {
+    type: Boolean,
+    default: false
+  }
 });
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['close']);
 
 watch(() => props.songs, (newVal) => {
-  console.log(newVal)
   loadSong(newVal[songIndex.value]);
 });
 
@@ -78,7 +81,7 @@ const loadSong = (song) => {
   }
   title.value = song.title
   tags.value = song.tags
-  cover.value = song.thumb_img_url
+  cover.value = song.cover_url
   audio.value.src = song.audio_url;
   audio.value.load();
   audio.value.onloadedmetadata = () => {
@@ -97,6 +100,7 @@ const togglePlay = () => {
 
 const play = () => {
   audio.value.play();
+  isPlaying.value = true;
 }
 
 const prevSong = () => {
@@ -177,6 +181,7 @@ onMounted(() => {
       .title {
         font-weight 700
         font-size 16px
+        color #ffffff
       }
 
       .style {
