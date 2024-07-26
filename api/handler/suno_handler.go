@@ -152,7 +152,7 @@ func (h *SunoHandler) List(c *gin.Context) {
 
 	// 统计总数
 	var total int64
-	session.Debug().Model(&model.SunoJob{}).Count(&total)
+	session.Model(&model.SunoJob{}).Count(&total)
 
 	if page > 0 && pageSize > 0 {
 		offset := (page - 1) * pageSize
@@ -164,7 +164,19 @@ func (h *SunoHandler) List(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
+	// 初始化续写关系
+	songIds := make([]string, 0)
+	for _, v := range list {
+		if v.RefTaskId != "" {
+			songIds = append(songIds, v.RefSongId)
+		}
+	}
+	var tasks []model.SunoJob
+	h.DB.Where("song_id IN ?", songIds).Find(&tasks)
+	songMap := make(map[string]model.SunoJob)
+	for _, t := range tasks {
+		songMap[t.SongId] = t
+	}
 	// 转换为 VO
 	items := make([]vo.SunoJob, 0)
 	for _, v := range list {
@@ -172,6 +184,15 @@ func (h *SunoHandler) List(c *gin.Context) {
 		err = utils.CopyObject(v, &item)
 		if err != nil {
 			continue
+		}
+		item.CreatedAt = v.CreatedAt.Unix()
+		if s, ok := songMap[v.RefSongId]; ok {
+			item.RefSong = map[string]interface{}{
+				"id":    s.Id,
+				"title": s.Title,
+				"cover": s.CoverURL,
+				"audio": s.AudioURL,
+			}
 		}
 		items = append(items, item)
 	}
@@ -191,8 +212,7 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 	// 删除任务
 	h.DB.Delete(&job)
 	// 删除文件
-	_ = h.uploader.GetUploadHandler().Delete(job.ThumbImgURL)
-	_ = h.uploader.GetUploadHandler().Delete(job.CoverImgURL)
+	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)
 	_ = h.uploader.GetUploadHandler().Delete(job.AudioURL)
 }
 
@@ -207,4 +227,72 @@ func (h *SunoHandler) Publish(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c)
+}
+
+func (h *SunoHandler) Update(c *gin.Context) {
+	var data struct {
+		Id    int    `json:"id"`
+		Title string `json:"title"`
+		Cover string `json:"cover"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	if data.Id == 0 || data.Title == "" || data.Cover == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	userId := h.GetLoginUserId(c)
+	var item model.SunoJob
+	if err := h.DB.Where("id", data.Id).Where("user_id", userId).First(&item).Error; err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	item.Title = data.Title
+	item.CoverURL = data.Cover
+
+	if err := h.DB.Updates(&item).Error; err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c)
+}
+
+// Detail 歌曲详情
+func (h *SunoHandler) Detail(c *gin.Context) {
+	id := h.GetInt(c, "id", 0)
+	if id <= 0 {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	var item model.SunoJob
+	if err := h.DB.Where("id", id).First(&item).Error; err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 读取用户信息
+	var user model.User
+	if err := h.DB.Where("id", item.UserId).First(&user).Error; err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	var itemVo vo.SunoJob
+	if err := utils.CopyObject(item, &itemVo); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	itemVo.CreatedAt = item.CreatedAt.Unix()
+	itemVo.User = map[string]interface{}{
+		"nickname": user.Nickname,
+		"avatar":   user.Avatar,
+	}
+
+	resp.SUCCESS(c, itemVo)
 }

@@ -654,7 +654,8 @@ const connect = function (chat_id, role_id) {
               id: randString(32),
               icon: _role['icon'],
               prompt:prePrompt,
-              content: ""
+              content: "",
+              orgContent: "",
             });
           } else if (data.type === 'end') { // 消息接收完毕
             // 追加当前会话到会话列表
@@ -699,7 +700,7 @@ const connect = function (chat_id, role_id) {
         };
       }
     } catch (e) {
-      console.error(e)
+      console.warn(e)
     }
 
   });

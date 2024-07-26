@@ -38,6 +38,9 @@
         .text {
           margin-right 10px
         }
+        .el-icon {
+          top 2px
+        }
       }
       .item {
         margin-bottom: 20px
@@ -64,6 +67,55 @@
 
           &:hover {
             opacity: 0.9;
+          }
+        }
+
+        .song {
+          display flex
+          padding 10px
+          background-color #252020
+          border-radius 10px
+          margin-bottom 10px
+          font-size 14px
+          position relative
+
+          .el-image {
+            width 50px
+            height 50px
+            border-radius 10px
+          }
+          .title {
+            display flex
+            margin-left 10px
+            align-items center
+          }
+
+          .el-button--info {
+            position absolute
+            right 20px
+            top 20px
+          }
+        }
+
+        .extend-secs {
+          padding 10px 0
+          font-size 14px
+
+          input {
+            width 50px
+            text-align center
+            padding 8px 10px
+            font-size 14px
+            background none
+            border 1px solid #8f8f8f
+            margin 0 10px
+            border-radius 10px
+            outline: none;
+            transition: border-color 0.5s ease, box-shadow 0.5s ease;
+            &:focus {
+              border-color: #0F7A71;
+              box-shadow: 0 0 5px #0F7A71;
+            }
           }
         }
       }
@@ -190,6 +242,10 @@
               padding 1px 3px
               border-radius 5px
               margin-left 10px
+
+              .iconfont {
+                font-size 12px
+              }
             }
           }
 
@@ -267,11 +323,22 @@
             text-overflow: ellipsis; /* 用省略号表示溢出的内容 */
           }
         }
-
-        .right {
+        .center {
           display flex
           width 100%
           justify-content center
+          .failed {
+            display flex
+            align-items center
+            color #E4696B
+            font-size 14px
+          }
+        }
+        .right {
+          display flex
+          width 100px
+          justify-content center
+          align-items center
         }
       }
     }

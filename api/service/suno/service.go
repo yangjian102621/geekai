@@ -86,7 +86,7 @@ func (s *Service) Run() {
 			r, err := s.Create(task)
 			if err != nil {
 				logger.Errorf("create task with error: %v", err)
-				s.db.UpdateColumns(map[string]interface{}{
+				s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 					"err_msg":  err.Error(),
 					"progress": 101,
 				})
@@ -122,7 +122,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	}
 
 	reqBody := map[string]interface{}{
-		"task_id":           task.TaskId,
+		"task_id":           task.RefTaskId,
 		"continue_clip_id":  task.RefSongId,
 		"continue_at":       task.ExtendSecs,
 		"make_instrumental": task.Instrumental,
@@ -152,6 +152,10 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
+	}
+
+	if res.Code != "success" {
+		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
 	}
 	res.Channel = apiKey.ApiURL
 	return res, nil
@@ -189,15 +193,8 @@ func (s *Service) DownloadImages() {
 
 			for _, v := range items {
 				// 下载图片和音频
-				logger.Infof("try download thumb image: %s", v.ThumbImgURL)
-				thumbURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.ThumbImgURL, true)
-				if err != nil {
-					logger.Errorf("download image with error: %v", err)
-					continue
-				}
-
-				logger.Infof("try download cover image: %s", v.CoverImgURL)
-				coverURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.CoverImgURL, true)
+				logger.Infof("try download cover image: %s", v.CoverURL)
+				coverURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.CoverURL, true)
 				if err != nil {
 					logger.Errorf("download image with error: %v", err)
 					continue
@@ -209,8 +206,7 @@ func (s *Service) DownloadImages() {
 					logger.Errorf("download audio with error: %v", err)
 					continue
 				}
-				v.ThumbImgURL = thumbURL
-				v.CoverImgURL = coverURL
+				v.CoverURL = coverURL
 				v.AudioURL = audioURL
 				v.Progress = 100
 				s.db.Updates(&v)
@@ -260,8 +256,7 @@ func (s *Service) SyncTaskProgress() {
 						job.Tags = v.Metadata.Tags
 						job.ModelName = v.ModelName
 						job.RawData = utils.JsonEncode(v)
-						job.ThumbImgURL = v.ImageUrl
-						job.CoverImgURL = v.ImageLargeUrl
+						job.CoverURL = v.ImageLargeUrl
 						job.AudioURL = v.AudioUrl
 
 						if err = tx.Create(&job).Error; err != nil {
