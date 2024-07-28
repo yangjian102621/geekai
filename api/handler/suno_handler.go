@@ -113,7 +113,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefTaskId:    data.RefTaskId,
 		RefSongId:    data.RefSongId,
 		ExtendSecs:   data.ExtendSecs,
-		Prompt:       data.Prompt,
+		Prompt:       job.Prompt,
 		Tags:         data.Tags,
 		Model:        data.Model,
 		Instrumental: data.Instrumental,
@@ -265,13 +265,13 @@ func (h *SunoHandler) Update(c *gin.Context) {
 
 // Detail 歌曲详情
 func (h *SunoHandler) Detail(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-	if id <= 0 {
+	songId := c.Query("song_id")
+	if songId == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 	var item model.SunoJob
-	if err := h.DB.Where("id", id).First(&item).Error; err != nil {
+	if err := h.DB.Where("song_id", songId).First(&item).Error; err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
@@ -295,4 +295,51 @@ func (h *SunoHandler) Detail(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, itemVo)
+}
+
+// Play 增加歌曲播放次数
+func (h *SunoHandler) Play(c *gin.Context) {
+	songId := c.Query("song_id")
+	if songId == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	h.DB.Model(&model.SunoJob{}).Where("song_id", songId).UpdateColumn("play_times", gorm.Expr("play_times + ?", 1))
+}
+
+const genLyricTemplate = `
+你是一位才华横溢的作曲家，拥有丰富的情感和细腻的笔触，你对文字有着独特的感悟力，能将各种情感和意境巧妙地融入歌词中。
+请以【%s】为主题创作一首歌曲，歌曲时间不要太短，3分钟左右，不要输出任何解释性的内容。
+输出格式如下：
+歌曲名称
+第一节：
+{{歌词内容}}
+副歌：
+{{歌词内容}}
+
+第二节：
+{{歌词内容}}
+副歌：
+{{歌词内容}}
+
+尾声：
+{{歌词内容}}
+`
+
+// Lyric 生成歌词
+func (h *SunoHandler) Lyric(c *gin.Context) {
+	var data struct {
+		Prompt string `json:"prompt"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(genLyricTemplate, data.Prompt), "gpt-4o-mini")
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, content)
 }

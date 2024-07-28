@@ -44,6 +44,7 @@
       }
       .item {
         margin-bottom: 20px
+        position relative
 
         .create-btn {
           margin 20px 0
@@ -117,6 +118,14 @@
               box-shadow: 0 0 5px #0F7A71;
             }
           }
+        }
+
+        .btn-lyric {
+          position absolute
+          left 10px
+          bottom 10px
+          font-size 12px
+          padding 2px 5px
         }
       }
 
@@ -268,19 +277,6 @@
             flex-flow row
             height 90px
 
-            .btn {
-              margin-right 10px
-              background-color #363030
-              border none
-              border-radius 5px
-              padding 5px 10px
-              cursor pointer
-
-              &:hover {
-                background-color #5F5958
-              }
-            }
-
             .btn-publish {
               padding 2px 10px
 
@@ -343,7 +339,6 @@
       }
     }
 
-
     .pagination {
       padding 10px 20px
       display flex
@@ -358,4 +353,17 @@
     }
   }
 
+
+  .btn {
+    margin-right 10px
+    background-color #363030
+    border none
+    border-radius 5px
+    padding 5px 10px
+    cursor pointer
+
+    &:hover {
+      background-color #5F5958
+    }
+  }
 }

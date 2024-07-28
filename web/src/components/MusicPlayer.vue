@@ -43,6 +43,7 @@ import {ref, onMounted, watch} from 'vue';
 import {showMessageError} from "@/utils/dialog";
 import {Close} from "@element-plus/icons-vue";
 import {formatTime} from "@/utils/libs";
+import {httpGet} from "@/utils/http"
 
 const audio = ref(null);
 const isPlaying = ref(false);
@@ -55,6 +56,7 @@ const title = ref("")
 const tags = ref("")
 const cover = ref("")
 
+// eslint-disable-next-line no-undef
 const props = defineProps({
   songs: {
     type: Array,
@@ -67,7 +69,7 @@ const props = defineProps({
   }
 });
 // eslint-disable-next-line no-undef
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close','play']);
 
 watch(() => props.songs, (newVal) => {
   loadSong(newVal[songIndex.value]);
@@ -84,6 +86,7 @@ const loadSong = (song) => {
   cover.value = song.cover_url
   audio.value.src = song.audio_url;
   audio.value.load();
+  isPlaying.value = false
   audio.value.onloadedmetadata = () => {
     duration.value = audio.value.duration;
   };
@@ -92,15 +95,23 @@ const loadSong = (song) => {
 const togglePlay = () => {
   if (isPlaying.value) {
     audio.value.pause();
+    isPlaying.value = false
   } else {
-    audio.value.play();
+    play()
   }
-  isPlaying.value = !isPlaying.value;
 };
 
 const play = () => {
+  if (isPlaying.value) {
+    return
+  }
   audio.value.play();
-  isPlaying.value = true;
+  isPlaying.value = true
+  if (audio.value.currentTime === 0) {
+    emits("play")
+    // 增加播放数量
+    httpGet("/api/suno/play",{song_id:props.songs[songIndex.value].song_id}).then().catch()
+  }
 }
 
 const prevSong = () => {

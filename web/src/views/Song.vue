@@ -33,13 +33,13 @@
     </div>
 
     <div class="music-player" v-if="playList.length > 0">
-      <music-player :songs="playList" ref="playerRef"/>
+      <music-player :songs="playList" ref="playerRef" @play="song.play_times += 1"/>
     </div>
   </div>
 </template>
 
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from "vue"
+import {onMounted, onUnmounted, ref} from "vue"
 import {useRouter} from "vue-router";
 import {httpGet} from "@/utils/http";
 import {showMessageError} from "@/utils/dialog";
@@ -54,7 +54,7 @@ const song = ref({title:""})
 const playList = ref([])
 const playerRef = ref(null)
 
-httpGet("/api/suno/detail",{id:id}).then(res => {
+httpGet("/api/suno/detail",{song_id:id}).then(res => {
   song.value = res.data
   playList.value = [song.value]
   document.title = song.value?.title+ " | By "+song.value?.user.nickname+" | Suno音乐"
@@ -84,7 +84,7 @@ const play = () => {
 }
 
 
-const winHeight = ref(window.innerHeight-60)
+const winHeight = ref(window.innerHeight-50)
 const getShareURL = (item) => {
   return `${location.protocol}//${location.host}/song/${item.id}`
 }

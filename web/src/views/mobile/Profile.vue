@@ -3,10 +3,11 @@
     <div class="content">
       <van-form>
         <div class="avatar">
-          <van-uploader v-model="fileList"
-                        reupload max-count="1"
-                        :deletable="false"
-                        :after-read="afterRead"/>
+          <van-image :src="fileList[0].url" size="80" width="80" fit="cover" round />
+<!--          <van-uploader v-model="fileList"-->
+<!--                        reupload max-count="1"-->
+<!--                        :deletable="false"-->
+<!--                        :after-read="afterRead"/>-->
         </div>
         <van-cell-group inset v-model="form">
           <van-field
@@ -154,7 +155,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showFailToast, showNotify, showSuccessToast, showToast} from "vant";
+import {showFailToast, showNotify, showSuccessToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
 import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";

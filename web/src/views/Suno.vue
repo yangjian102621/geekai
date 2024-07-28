@@ -27,8 +27,12 @@
                 </template>
               </el-popover>
             </div>
-            <div class="item">
+            <div class="item"
+                 v-loading="generating"
+                 element-loading-text="正在生成歌词..."
+                 element-loading-background="rgba(122, 122, 122, 0.8)">
               <black-input v-model:value="data.lyrics" type="textarea" :rows="10" placeholder="请在这里输入你自己写的歌词..."/>
+              <button class="btn btn-lyric" @click="createLyric">生成歌词</button>
             </div>
           </div>
 
@@ -146,7 +150,7 @@
             </div>
             <div class="center">
               <div class="title">
-                <a :href="'/song/'+item.id"  target="_blank">{{item.title}}</a>
+                <a :href="'/song/'+item.song_id"  target="_blank">{{item.title}}</a>
                 <span class="model">{{item.major_model_version}}</span>
                 <span class="model" v-if="item.ref_song">
                     <i class="iconfont icon-link"></i>
@@ -328,7 +332,6 @@ const editData = ref({title:"",cover:"",id:0})
 
 const socket = ref(null)
 const userId = ref(0)
-const heartbeatHandle = ref(null)
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
@@ -339,25 +342,9 @@ const connect = () => {
     }
   }
 
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
-
   const _socket = new WebSocket(host + `/api/suno/client?user_id=${userId.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
-
-    // 发送心跳消息
-    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {
@@ -562,6 +549,24 @@ const uploadCover = (file) => {
       console.log(err.message);
     },
   });
+}
+
+const generating = ref(false)
+const createLyric = () => {
+  if (data.value.lyrics === "") {
+    return showMessageError("请输入歌词描述")
+  }
+  generating.value = true
+  httpPost("/api/suno/lyric", {prompt: data.value.lyrics}).then(res => {
+    const lines = res.data.split('\n');
+    data.value.title = lines.shift().replace(/\*/g,"")
+    lines.shift()
+    data.value.lyrics = lines.join('\n');
+    generating.value = false
+  }).catch(e => {
+    showMessageError("歌词生成失败："+e.message)
+    generating.value = false
+  })
 }
 
 </script>

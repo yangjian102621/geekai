@@ -110,12 +110,11 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	prompt := task.Prompt
 	// translate prompt
 	if utils.HasChinese(prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt))
+		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt), "gpt-4o-mini")
 		if err == nil {
 			prompt = content
 			logger.Debugf("重写后提示词：%s", prompt)
 		}
-
 	}
 
 	var user model.User
