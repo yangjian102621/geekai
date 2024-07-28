@@ -83,7 +83,7 @@ func errorHandler(c *gin.Context) {
 		if r := recover(); r != nil {
 			logger.Errorf("Handler Panic: %v", r)
 			debug.PrintStack()
-			c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
+			c.JSON(http.StatusBadRequest, types.BizVo{Code: types.Failed, Message: types.ErrorMsg})
 			c.Abort()
 		}
 	}()
@@ -225,6 +225,8 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/payment/doPay" ||
 		c.Request.URL.Path == "/api/payment/payWays" ||
 		c.Request.URL.Path == "/api/suno/client" ||
+		c.Request.URL.Path == "/api/suno/Detail" ||
+		c.Request.URL.Path == "/api/suno/play" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/config/") ||

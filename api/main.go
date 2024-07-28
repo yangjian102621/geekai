@@ -494,6 +494,8 @@ func main() {
 			group.GET("publish", h.Publish)
 			group.POST("update", h.Update)
 			group.GET("detail", h.Detail)
+			group.GET("play", h.Play)
+			group.POST("lyric", h.Lyric)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

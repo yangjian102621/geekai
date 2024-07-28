@@ -73,7 +73,7 @@ if (isMobile()) {
 const title = ref("")
 const logo = ref("")
 const slogan = ref("")
-const license = ref({})
+const license = ref({de_copy: true})
 const winHeight = window.innerHeight - 150
 const isLogin = ref(false)
 const docsURL = ref(process.env.VUE_APP_DOCS_URL)
@@ -158,6 +158,7 @@ onMounted(() => {
   httpGet("/api/config/license").then(res => {
     license.value = res.data
   }).catch(e => {
+    license.value = {de_copy: false}
     ElMessage.error("获取 License 配置失败：" + e.message)
   })
 

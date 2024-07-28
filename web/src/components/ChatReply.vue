@@ -339,13 +339,10 @@ const reGenerate = (prompt) => {
 
   .chat-line-reply-chat {
     justify-content: center;
-    width 100%
-    padding-bottom: 1.5rem;
-    padding-top: 1.5rem;
+    padding 1.5rem;
 
     .chat-line-inner {
       display flex;
-      padding 0 25px;
       width 100%
       flex-flow row
 
@@ -364,7 +361,7 @@ const reGenerate = (prompt) => {
         position: relative;
         padding: 0;
         overflow: hidden;
-        max-width 60%
+        max-width 70%
 
         .content-wrapper {
           display flex
