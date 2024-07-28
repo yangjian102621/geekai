@@ -283,6 +283,7 @@ import {formatTime} from "@/utils/libs";
 import Clipboard from "clipboard";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
+import {useSharedStore} from "@/store/sharedata";
 
 const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
@@ -329,6 +330,8 @@ const btnText = ref("开始创作")
 const refSong = ref(null)
 const showDialog = ref(false)
 const editData = ref({title:"",cover:"",id:0})
+const isLogin = ref(false)
+const store = useSharedStore();
 
 const socket = ref(null)
 const userId = ref(0)
@@ -381,9 +384,10 @@ onMounted(() => {
 
   checkSession().then(user => {
     userId.value = user.id
-    fetchData(1)
+    isLogin.value = true
     connect()
   })
+  fetchData(1)
 })
 
 onUnmounted(() => {
@@ -411,6 +415,8 @@ const fetchData = (_page) => {
     noData.value = list.value.length === 0
   }).catch(e => {
     showMessageError("获取作品列表失败："+e.message)
+    loading.value = false
+    noData.value = true
   })
 }
 
@@ -436,6 +442,10 @@ const create = () => {
     return showMessageError("续写开始时间不能超过原歌曲长度")
   }
 
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
+  }
   httpPost("/api/suno/create", data.value).then(() => {
     fetchData(1)
     showMessageOK("创建任务成功")

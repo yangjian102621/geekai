@@ -65,7 +65,6 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if !strings.Contains(line, "data:") || len(line) < 30 {
 				continue
 			}
-			logger.Info(line)
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
 			if err != nil { // 数据解析出错
