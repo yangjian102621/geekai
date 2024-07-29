@@ -174,7 +174,7 @@
               </div> <!-- end finish job list-->
             </div>
           </div>
-
+          <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
         </div><!-- end task list box -->
       </div>
 
@@ -193,6 +193,7 @@ import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
+import BackTop from "@/components/BackTop.vue";
 
 const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
