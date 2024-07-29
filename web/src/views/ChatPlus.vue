@@ -118,6 +118,8 @@
                       v-if="item.type==='prompt'" :data="item" :list-style="listStyle"/>
                   <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false" :list-style="listStyle"/>
                 </div>
+
+                <back-top :right="30" :bottom="100" bg-color="#19C27D"/>
               </div><!-- end chat box -->
 
               <div class="input-box">
@@ -220,6 +222,8 @@ import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import axios from "axios";
+import BackTop from "@/components/BackTop.vue";
+import {showMessageError} from "@/utils/dialog";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -603,18 +607,6 @@ const connect = function (chat_id, role_id) {
     }
   }
 
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
   const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
@@ -636,8 +628,6 @@ const connect = function (chat_id, role_id) {
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
-    // 发送心跳消息
-    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {
@@ -648,7 +638,7 @@ const connect = function (chat_id, role_id) {
         reader.onload = () => {
           const data = JSON.parse(String(reader.result));
           if (data.type === 'start') {
-            const prePrompt = chatData.value[chatData.value.length-1].content
+            const prePrompt = chatData.value[chatData.value.length-1]?.content
             chatData.value.push({
               type: "reply",
               id: randString(32),
@@ -689,8 +679,10 @@ const connect = function (chat_id, role_id) {
           } else {
             lineBuffer.value += data.content;
             const reply = chatData.value[chatData.value.length - 1]
-            reply['orgContent'] = lineBuffer.value;
-            reply['content'] = md.render(processContent(lineBuffer.value));
+            if (reply) {
+              reply['orgContent'] = lineBuffer.value;
+              reply['content'] = md.render(processContent(lineBuffer.value));
+            }
           }
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
@@ -716,7 +708,7 @@ const connect = function (chat_id, role_id) {
       connect(chat_id, role_id)
     }).catch(() => {
       loading.value = true
-      setTimeout(() => connect(chat_id, role_id), 3000)
+      showMessageError("会话已断开，刷新页面...")
     });
   });
 

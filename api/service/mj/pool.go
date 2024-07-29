@@ -8,7 +8,6 @@ package mj
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
 	"geekai/service"
@@ -188,28 +187,6 @@ func (p *ServicePool) SyncTaskProgress() {
 			}
 
 			for _, job := range jobs {
-				// 失败或者 30 分钟还没完成的任务删除并退回算力
-				if time.Now().Sub(job.CreatedAt) > time.Minute*30 {
-					p.db.Delete(&job)
-					// 退回算力
-					tx := p.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
-					if tx.Error == nil && tx.RowsAffected > 0 {
-						var user model.User
-						p.db.Where("id = ?", job.UserId).First(&user)
-						p.db.Create(&model.PowerLog{
-							UserId:    user.Id,
-							Username:  user.Username,
-							Type:      types.PowerConsume,
-							Amount:    job.Power,
-							Balance:   user.Power + job.Power,
-							Mark:      types.PowerAdd,
-							Model:     "mid-journey",
-							Remark:    fmt.Sprintf("绘画任务失败，退回算力。任务ID：%s", job.TaskId),
-							CreatedAt: time.Now(),
-						})
-					}
-					continue
-				}
 				if servicePlus := p.getService(job.ChannelId); servicePlus != nil {
 					_ = servicePlus.Notify(job)
 				}

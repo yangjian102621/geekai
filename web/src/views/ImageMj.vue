@@ -593,6 +593,7 @@
             </div> <!-- end finish job list-->
           </div>
         </div>
+        <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
       </div><!-- end task list box -->
     </div>
 
@@ -613,6 +614,7 @@ import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
+import BackTop from "@/components/BackTop.vue";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
@@ -1014,7 +1016,7 @@ const publishImage = (item, action) => {
     item.publish = action
     page.value = 0
     isOver.value = false
-    fetchFinishJobs()
+    item.publish = action
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })
