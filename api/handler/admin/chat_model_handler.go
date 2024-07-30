@@ -60,7 +60,6 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 	item.Enabled = data.Enabled
 	item.SortNum = data.SortNum
 	item.Open = data.Open
-	item.Platform = data.Platform
 	item.Power = data.Power
 	item.MaxTokens = data.MaxTokens
 	item.MaxContext = data.MaxContext
@@ -69,7 +68,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 
 	var res *gorm.DB
 	if data.Id > 0 {
-		res = h.DB.Updates(&item)
+		res = h.DB.Save(&item)
 	} else {
 		res = h.DB.Create(&item)
 	}
@@ -94,12 +93,12 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 func (h *ChatModelHandler) List(c *gin.Context) {
 	session := h.DB.Session(&gorm.Session{})
 	enable := h.GetBool(c, "enable")
-	platform := h.GetTrim(c, "platform")
+	name := h.GetTrim(c, "name")
 	if enable {
 		session = session.Where("enabled", enable)
 	}
-	if platform != "" {
-		session = session.Where("platform", platform)
+	if name != "" {
+		session = session.Where("name LIKE ?", name+"%")
 	}
 	var items []model.ChatModel
 	var cms = make([]vo.ChatModel, 0)

@@ -2,14 +2,7 @@
   <div class="container model-list" v-loading="loading">
 
     <div class="handle-box">
-      <el-select v-model="query.platform" placeholder="平台" class="handle-input">
-        <el-option
-            v-for="item in platforms"
-            :key="item.value"
-            :label="item.name"
-            :value="item.value"
-        />
-      </el-select>
+      <el-input v-model="query.name" placeholder="模型名称" class="handle-input" />
 
       <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
@@ -184,12 +177,11 @@ import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
-const query = ref({platform:''})
+const query = ref({name:''})
 const item = ref({})
 const showDialog = ref(false)
 const title = ref("")
 const rules = reactive({
-  platform: [{required: true, message: '请选择平台', trigger: 'change',}],
   name: [{required: true, message: '请输入模型名称', trigger: 'change',}],
   value: [{required: true, message: '请输入模型值', trigger: 'change',}]
 })
