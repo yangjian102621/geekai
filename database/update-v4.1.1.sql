@@ -27,3 +27,7 @@ CREATE TABLE `chatgpt_suno_jobs` (
 
 ALTER TABLE `chatgpt_suno_jobs` ADD PRIMARY KEY (`id`);
 ALTER TABLE `chatgpt_suno_jobs` ADD UNIQUE(`song_id`);
+
+-- 删除字段
+ALTER TABLE `chatgpt_api_keys` DROP `platform`;
+ALTER TABLE `chatgpt_chat_models` DROP `platform`;
