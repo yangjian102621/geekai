@@ -61,7 +61,6 @@ type ChatSession struct {
 
 type ChatModel struct {
 	Id          uint    `json:"id"`
-	Platform    string  `json:"platform"`
 	Name        string  `json:"name"`
 	Value       string  `json:"value"`
 	Power       int     `json:"power"`

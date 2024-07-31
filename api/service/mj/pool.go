@@ -187,6 +187,14 @@ func (p *ServicePool) SyncTaskProgress() {
 			}
 
 			for _, job := range jobs {
+				// 5 分钟还没完成的任务标记为失败
+				if time.Now().Sub(job.CreatedAt) > time.Minute*5 {
+					job.Progress = 101
+					job.ErrMsg = "任务超时"
+					p.db.Updates(&job)
+					continue
+				}
+
 				if servicePlus := p.getService(job.ChannelId); servicePlus != nil {
 					_ = servicePlus.Notify(job)
 				}

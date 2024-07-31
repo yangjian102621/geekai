@@ -109,27 +109,11 @@ func (p *ServicePool) CheckTaskStatus() {
 			}
 
 			for _, job := range jobs {
-				// 5 分钟还没完成的任务直接删除
-				if time.Now().Sub(job.CreatedAt) > time.Minute*5 || job.Progress == -1 {
-					p.db.Delete(&job)
-					var user model.User
-					p.db.Where("id = ?", job.UserId).First(&user)
-					// 退回绘图次数
-					res = p.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
-					if res.Error == nil && res.RowsAffected > 0 {
-						p.db.Create(&model.PowerLog{
-							UserId:    user.Id,
-							Username:  user.Username,
-							Type:      types.PowerConsume,
-							Amount:    job.Power,
-							Balance:   user.Power + job.Power,
-							Mark:      types.PowerAdd,
-							Model:     "stable-diffusion",
-							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s", job.TaskId),
-							CreatedAt: time.Now(),
-						})
-					}
-					continue
+				// 5 分钟还没完成的任务标记为失败
+				if time.Now().Sub(job.CreatedAt) > time.Minute*5 {
+					job.Progress = 101
+					job.ErrMsg = "任务超时"
+					p.db.Updates(&job)
 				}
 			}
 			time.Sleep(time.Second * 5)

@@ -367,7 +367,6 @@ const initData = () => {
   inputRef.value.addEventListener('paste', (event) => {
     const items = (event.clipboardData || window.clipboardData).items;
     let fileFound = false;
-    loading.value = true
 
     for (let item of items) {
       if (item.kind === 'file') {
@@ -376,6 +375,7 @@ const initData = () => {
 
         const formData = new FormData();
         formData.append('file', file);
+        loading.value = true
         // 执行上传操作
         httpPost('/api/upload', formData).then((res) => {
           files.value.push(res.data)
@@ -389,7 +389,7 @@ const initData = () => {
         break;
       }
     }
-
+    
     if (!fileFound) {
       document.getElementById('status').innerText = 'No file found in paste data.';
     }

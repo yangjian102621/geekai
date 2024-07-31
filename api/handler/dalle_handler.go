@@ -8,6 +8,7 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service/dalle"
@@ -16,9 +17,9 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"net/http"
-
 	"github.com/gorilla/websocket"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -178,7 +179,7 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
-		session = session.Where("progress = ?", 100).Order("id DESC")
+		session = session.Where("progress >= ?", 100).Order("id DESC")
 	} else {
 		session = session.Where("progress < ?", 100).Order("id ASC")
 	}
@@ -215,19 +216,50 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 // Remove remove task image
 func (h *DallJobHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
-	userId := h.GetInt(c, "user_id", 0)
+	userId := h.GetLoginUserId(c)
 	var job model.DallJob
 	if res := h.DB.Where("id = ? AND user_id = ?", id, userId).First(&job); res.Error != nil {
 		resp.ERROR(c, "记录不存在")
 		return
 	}
 
-	// remove job recode
-	res := h.DB.Delete(&model.DallJob{Id: job.Id})
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
+	// 删除任务
+	tx := h.DB.Begin()
+	if err := tx.Delete(&job).Error; err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
 		return
 	}
+
+	// 如果任务未完成，或者任务失败，则恢复用户算力
+	if job.Progress != 100 {
+		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+
+		var user model.User
+		h.DB.Where("id = ?", job.UserId).First(&user)
+		err = tx.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    job.Power,
+			Balance:   user.Power,
+			Mark:      types.PowerAdd,
+			Model:     "dall-e-3",
+			Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+			CreatedAt: time.Now(),
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	tx.Commit()
 
 	// remove image
 	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
@@ -241,10 +273,10 @@ func (h *DallJobHandler) Remove(c *gin.Context) {
 // Publish 发布/取消发布图片到画廊显示
 func (h *DallJobHandler) Publish(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
-	userId := h.GetInt(c, "user_id", 0)
+	userId := h.GetLoginUserId(c)
 	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
 
-	res := h.DB.Model(&model.DallJob{Id: uint(id), UserId: uint(userId)}).UpdateColumn("publish", action)
+	res := h.DB.Model(&model.DallJob{Id: uint(id), UserId: userId}).UpdateColumn("publish", action)
 	if res.Error != nil {
 		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")

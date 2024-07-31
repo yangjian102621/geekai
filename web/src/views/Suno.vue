@@ -381,9 +381,9 @@ onMounted(() => {
 
   checkSession().then(user => {
     userId.value = user.id
-    fetchData(1)
     connect()
   })
+  fetchData(1)
 })
 
 onUnmounted(() => {
@@ -410,6 +410,8 @@ const fetchData = (_page) => {
     list.value = items
     noData.value = list.value.length === 0
   }).catch(e => {
+    loading.value = false
+    noData.value = true
     showMessageError("获取作品列表失败："+e.message)
   })
 }

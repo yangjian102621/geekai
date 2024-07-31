@@ -156,7 +156,7 @@ httpGet("/api/config/get?key=system").then(res => {
 const initData = () => {
   httpGet("/api/model/list").then(res => {
     for (let v of res.data) {
-      if (v.platform === "OpenAI" && v.value.indexOf("gpt-4-gizmo") === -1) {
+      if (v.value.indexOf("gpt-4-gizmo") === -1) {
         models.value.push(v)
       }
     }
