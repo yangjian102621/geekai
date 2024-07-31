@@ -487,7 +487,7 @@
                           </div>
                         </template>
                       </el-image>
-                      <el-image v-else-if="slotProp.item['err_msg'] !== ''">
+                      <el-image v-else-if="slotProp.item.progress === 101">
                         <template #error>
                           <div class="image-slot">
                             <div class="err-msg-container">

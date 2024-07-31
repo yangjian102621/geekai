@@ -87,7 +87,7 @@ func (s *Service) Run() {
 			logger.Error("绘画任务执行失败：", err.Error())
 			// update the task progress
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
-				"progress": -1,
+				"progress": 101,
 				"err_msg":  err.Error(),
 			})
 			// 通知前端，任务失败

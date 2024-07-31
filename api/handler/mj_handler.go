@@ -465,35 +465,37 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// refund power
-	err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
-	if err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
-	}
-	var user model.User
-	h.DB.Where("id = ?", job.UserId).First(&user)
-	err = tx.Create(&model.PowerLog{
-		UserId:    user.Id,
-		Username:  user.Username,
-		Type:      types.PowerConsume,
-		Amount:    job.Power,
-		Balance:   user.Power + job.Power,
-		Mark:      types.PowerAdd,
-		Model:     "mid-journey",
-		Remark:    fmt.Sprintf("绘画任务失败，退回算力。任务ID：%s", job.TaskId),
-		CreatedAt: time.Now(),
-	}).Error
-	if err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
+	// 如果任务未完成，或者任务失败，则恢复用户算力
+	if job.Progress != 100 {
+		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+		var user model.User
+		h.DB.Where("id = ?", job.UserId).First(&user)
+		err = tx.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    job.Power,
+			Balance:   user.Power,
+			Mark:      types.PowerAdd,
+			Model:     "mid-journey",
+			Remark:    fmt.Sprintf("绘画任务失败，退回算力。任务ID：%s，Err: %s", job.TaskId, job.ErrMsg),
+			CreatedAt: time.Now(),
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
 	}
 	tx.Commit()
 
 	// remove image
-	err = h.uploader.GetUploadHandler().Delete(job.ImgURL)
+	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
 	}

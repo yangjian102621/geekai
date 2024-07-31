@@ -17,7 +17,7 @@
             effect="light"
             content="部署文档"
             placement="bottom">
-          <a href="https://docs.geekai.me/install/" class="link-button" target="_blank">
+          <a :href="docsURL" class="link-button" target="_blank">
             <i class="iconfont icon-book"></i>
           </a>
         </el-tooltip>
