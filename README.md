@@ -1,5 +1,5 @@
 # GeekAI
-### 本项目已经正式更名为 GeekAI，请大家及时更新代码克隆地址。
+> 根据[《生成式人工智能服务管理暂行办法》](https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)的要求，请勿对中国地区公众提供一切未经备案的生成式人工智能服务。
 
 **GeekAI** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Azure,
 ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了 MidJourney 和 Stable Diffusion AI绘画功能。
@@ -26,54 +26,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 - [x] 支持网站 Logo 版权等信息的修改
 
 ## 功能截图
-
-### PC 端聊天界面
-
-![ChatGPT Chat Page](/docs/imgs/gpt.gif)
-
-### AI 对话界面
-
-![ChatGPT new Chat Page](/docs/imgs/chat-new.png)
-
-### MidJourney 专业绘画界面
-
-![mid-journey](/docs/imgs/mj_image.jpg)
-
-### Stable-Diffusion 专业绘画页面
-
-![Stable-Diffusion](/docs/imgs/sd_image.jpg)
-![Stable-Diffusion](/docs/imgs/sd_image_detail.jpg)
-
-### 绘图作品展
-
-![ChatGPT image_list](/docs/imgs/image-list.png)
-
-### AI应用列表
-
-![ChatGPT-app-list](/docs/imgs/app-list.jpg)
-
-### 会员充值
-
-![会员充值](/docs/imgs/member.png)
-
-### 自动调用函数插件
-
-![ChatGPT function plugin](/docs/imgs/plugin.png)
-![ChatGPT function plugin](/docs/imgs/mj.jpg)
-
-### 管理后台
-
-![ChatGPT admin](/docs/imgs/admin_dashboard.png)
-![ChatGPT admin](/docs/imgs/admin_config.jpg)
-![ChatGPT admin](/docs/imgs/admin_models.jpg)
-![ChatGPT admin](/docs/imgs/admin_user.png)
-
-### 移动端 Web 页面
-
-![Mobile chat list](/docs/imgs/mobile_chat_list.png)
-![Mobile chat session](/docs/imgs/mobile_chat_session.png)
-![Mobile chat setting](/docs/imgs/mobile_user_profile.png)
-![Mobile chat setting](/docs/imgs/mobile_pay.png)
+请参考 [GeekAI 项目介绍](https://docs.geekai.me/info/)。
 
 ### 体验地址
 
@@ -101,7 +54,7 @@ ChatGLM,讯飞星火，文心一言等多个平台的大语言模型。集成了
 ## TODOLIST
 
 * [ ] 支持基于知识库的 AI 问答
-* [ ] 会员邀请注册推广功能
+* [ ] 文生视频，文生歌曲功能
 * [ ] 微信支付功能
 
 ## 项目文档
