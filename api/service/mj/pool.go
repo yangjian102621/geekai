@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
+	"geekai/service"
 	"geekai/service/oss"
 	"geekai/service/sd"
 	"geekai/store"
@@ -30,11 +31,12 @@ type ServicePool struct {
 	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 	Clients         *types.LMap[uint, *types.WsClient] // UserId => Client
+	licenseService  *service.LicenseService
 }
 
 var logger = logger2.GetLogger()
 
-func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager) *ServicePool {
+func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ServicePool {
 	services := make([]*Service, 0)
 	taskQueue := store.NewRedisQueue("MidJourney_Task_Queue", redisCli)
 	notifyQueue := store.NewRedisQueue("MidJourney_Notify_Queue", redisCli)
@@ -45,6 +47,7 @@ func NewServicePool(db *gorm.DB, redisCli *redis.Client, manager *oss.UploaderMa
 		uploaderManager: manager,
 		db:              db,
 		Clients:         types.NewLMap[uint, *types.WsClient](),
+		licenseService:  licenseService,
 	}
 }
 
@@ -60,7 +63,7 @@ func (p *ServicePool) InitServices(plusConfigs []types.MjPlusConfig, proxyConfig
 			continue
 		}
 
-		cli := NewPlusClient(config)
+		cli := NewPlusClient(config, p.licenseService)
 		name := fmt.Sprintf("mj-plus-service-%d", k)
 		plusService := NewService(name, p.taskQueue, p.notifyQueue, p.db, cli)
 		go func() {

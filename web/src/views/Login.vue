@@ -48,7 +48,7 @@
 
       <reset-pass @hide="showResetPass = false" :show="showResetPass"/>
 
-      <footer class="footer">
+      <footer class="footer"  v-if="!licenseConfig.de_copy">
         <footer-bar/>
       </footer>
     </div>
@@ -74,6 +74,7 @@ const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
 const showResetPass = ref(false)
 const logo = ref("/images/logo.png")
+const licenseConfig = ref({})
 
 // 获取系统配置
 httpGet("/api/config/get?key=system").then(res => {
@@ -83,6 +84,11 @@ httpGet("/api/config/get?key=system").then(res => {
   showMessageError("获取系统配置失败：" + e.message)
 })
 
+httpGet("/api/config/license").then(res => {
+  licenseConfig.value = res.data
+}).catch(e => {
+  showMessageError("获取 License 配置：" + e.message)
+})
 
 checkSession().then(() => {
   if (isMobile()) {

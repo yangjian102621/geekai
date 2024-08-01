@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -28,19 +29,22 @@ import (
 
 type UserHandler struct {
 	BaseHandler
-	searcher *xdb.Searcher
-	redis    *redis.Client
+	searcher       *xdb.Searcher
+	redis          *redis.Client
+	licenseService *service.LicenseService
 }
 
 func NewUserHandler(
 	app *core.AppServer,
 	db *gorm.DB,
 	searcher *xdb.Searcher,
-	client *redis.Client) *UserHandler {
+	client *redis.Client,
+	licenseService *service.LicenseService) *UserHandler {
 	return &UserHandler{
-		BaseHandler: BaseHandler{DB: db, App: app},
-		searcher:    searcher,
-		redis:       client,
+		BaseHandler:    BaseHandler{DB: db, App: app},
+		searcher:       searcher,
+		redis:          client,
+		licenseService: licenseService,
 	}
 }
 
@@ -61,6 +65,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 	data.Password = strings.TrimSpace(data.Password)
 	if len(data.Password) < 8 {
 		resp.ERROR(c, "密码长度不能少于8个字符")
+		return
+	}
+
+	// 检测最大注册人数
+	var totalUser int64
+	h.DB.Model(&model.User{}).Count(&totalUser)
+	if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
+		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
 		return
 	}
 
@@ -337,7 +349,7 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 	newPass := utils.GenPassword(data.Password, user.Salt)
 	res := h.DB.Model(&user).UpdateColumn("password", newPass)
 	if res.Error != nil {
-		logger.Error("更新数据库失败: ", res.Error)
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}
@@ -418,6 +430,7 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 
 	res = h.DB.Model(&user).UpdateColumn("username", data.Username)
 	if res.Error != nil {
+		logger.Error(res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}

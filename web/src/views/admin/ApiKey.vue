@@ -2,6 +2,24 @@
   <div class="container list" v-loading="loading">
 
     <div class="handle-box">
+      <el-select v-model="query.platform" placeholder="平台" class="handle-input">
+        <el-option
+            v-for="item in platforms"
+            :key="item.value"
+            :label="item.name"
+            :value="item.value"
+        />
+      </el-select>
+      <el-select v-model="query.type" placeholder="类型" class="handle-input">
+        <el-option
+            v-for="item in types"
+            :key="item.value"
+            :label="item.name"
+            :value="item.value"
+        />
+      </el-select>
+
+      <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
       <a href="https://api.chat-plus.net" target="_blank" style="margin-left: 10px">
         <el-button type="success" :icon="ShoppingCart" @click="add" plain>购买API-KEY</el-button>
@@ -87,7 +105,7 @@
           <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="用途：" prop="type">
-          <el-select v-model="item.type" placeholder="请选择用途" @change="changePlatform">
+          <el-select v-model="item.type" placeholder="请选择用途" @change="changeType">
             <el-option v-for="item in types" :value="item.value" :label="item.name" :key="item.value">{{
                 item.name
               }}
@@ -99,7 +117,8 @@
         </el-form-item>
         <el-form-item label="API URL：" prop="api_url">
           <el-input v-model="item.api_url" autocomplete="off"
-                    placeholder="如果你用了第三方的 API 中转，这里填写中转地址"/>
+                    placeholder="必须填土完整的 Chat API URL，如：https://api.openai.com/v1/chat/completions"/>
+          <div class="info">如果你使用了第三方中转，这里就填写中转地址</div>
         </el-form-item>
 
         <el-form-item label="代理地址：" prop="proxy_url">
@@ -126,11 +145,12 @@ import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
-import {DocumentCopy, Plus, ShoppingCart} from "@element-plus/icons-vue";
+import {DocumentCopy, Plus, ShoppingCart, Search} from "@element-plus/icons-vue";
 import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
+const query = ref({type: '',platform:''})
 const item = ref({})
 const showDialog = ref(false)
 const rules = reactive({
@@ -142,39 +162,7 @@ const rules = reactive({
 const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
-const platforms = ref([
-  {
-    name: "【OpenAI/中转】ChatGPT",
-    value: "OpenAI",
-    api_url: "https://api.chat-plus.net/v1/chat/completions",
-    img_url: "https://api.chat-plus.net/v1/images/generations"
-  },
-  {
-    name: "【讯飞】星火大模型",
-    value: "XunFei",
-    api_url: "wss://spark-api.xf-yun.com/{version}/chat"
-  },
-  {
-    name: "【清华智普】ChatGLM",
-    value: "ChatGLM",
-    api_url: "https://open.bigmodel.cn/api/paas/v3/model-api/{model}/sse-invoke"
-  },
-  {
-    name: "【百度】文心一言",
-    value: "Baidu",
-    api_url: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{model}"
-  },
-  {
-    name: "【微软】Azure",
-    value: "Azure",
-    api_url: "https://chat-bot-api.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-05-15"
-  },
-  {
-    name: "【阿里】千义通问",
-    value: "QWen",
-    api_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
-  },
-])
+const platforms = ref([])
 const types = ref([
   {name: "聊天", value: "chat"},
   {name: "绘画", value: "img"},
@@ -191,6 +179,14 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+
+  httpGet("/api/admin/config/get/app").then(res => {
+    platforms.value = res.data.platforms
+  }).catch(e =>{
+    ElMessage.error("获取配置失败："+e.message)
+  })
+
+  fetchData()
 })
 
 onUnmounted(() => {
@@ -198,19 +194,22 @@ onUnmounted(() => {
 })
 
 // 获取数据
-httpGet('/api/admin/apikey/list').then((res) => {
-  if (res.data) {
-    // 初始化数据
-    const arr = res.data;
-    for (let i = 0; i < arr.length; i++) {
-      arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+
+const fetchData = () => {
+  httpGet('/api/admin/apikey/list', query.value).then((res) => {
+    if (res.data) {
+      // 初始化数据
+      const arr = res.data;
+      for (let i = 0; i < arr.length; i++) {
+        arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+      }
+      items.value = arr
     }
-    items.value = arr
-  }
-  loading.value = false
-}).catch(() => {
-  ElMessage.error("获取数据失败");
-})
+    loading.value = false
+  }).catch(() => {
+    ElMessage.error("获取数据失败");
+  })
+}
 
 const add = function () {
   showDialog.value = true
@@ -263,21 +262,24 @@ const set = (filed, row) => {
   })
 }
 
-const changePlatform = () => {
-  let platform = null
+const selectedPlatform = ref(null)
+const changePlatform = (value) => {
+  console.log(value)
   for (let v of platforms.value) {
-    if (v.value === item.value.platform) {
-      platform = v
-      break
+    if (v.value === value) {
+      selectedPlatform.value = v
+      item.value.api_url = v.chat_url
     }
   }
-  if (platform !== null) {
-    if (item.value.type === "img" && platform.img_url) {
-      item.value.api_url = platform.img_url
-    } else {
-      item.value.api_url = platform.api_url
-    }
+}
 
+const changeType = (value) => {
+  if (selectedPlatform.value) {
+    if(value === 'img') {
+      item.value.api_url = selectedPlatform.value.img_url
+    } else {
+      item.value.api_url = selectedPlatform.value.chat_url
+    }
   }
 }
 </script>
@@ -286,6 +288,10 @@ const changePlatform = () => {
 .list {
   .handle-box {
     margin-bottom 20px
+    .handle-input {
+      max-width 150px;
+      margin-right 10px;
+    }
   }
 
   .copy-key {
@@ -306,7 +312,9 @@ const changePlatform = () => {
 
 .el-form {
   .el-form-item__content {
-
+    .info {
+      color #999999
+    }
     .el-icon {
       padding-left: 10px;
     }

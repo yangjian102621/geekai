@@ -8,7 +8,7 @@
         <image-sd/>
       </van-tab>
       <van-tab title="DALL" name="dall">
-         <van-empty description="功能正在开发中"/>
+        <image-dall />
       </van-tab>
     </van-tabs>
   </div>
@@ -18,6 +18,7 @@
 import {ref} from "vue";
 import ImageMj from "@/views/mobile/pages/ImageMj.vue";
 import ImageSd from "@/views/mobile/pages/ImageSd.vue";
+import ImageDall from "@/views/mobile/pages/ImageDall.vue";
 
 const activeName = ref("mj")
 </script>

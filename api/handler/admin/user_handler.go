@@ -12,6 +12,7 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
+	"geekai/service"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -24,10 +25,11 @@ import (
 
 type UserHandler struct {
 	handler.BaseHandler
+	licenseService *service.LicenseService
 }
 
-func NewUserHandler(app *core.AppServer, db *gorm.DB) *UserHandler {
-	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
+func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.LicenseService) *UserHandler {
+	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, licenseService: licenseService}
 }
 
 // List 用户列表
@@ -82,7 +84,13 @@ func (h *UserHandler) Save(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-
+	// 检测最大注册人数
+	var totalUser int64
+	h.DB.Model(&model.User{}).Count(&totalUser)
+	if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
+		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
+		return
+	}
 	var user = model.User{}
 	var res *gorm.DB
 	var userVo vo.User
@@ -103,6 +111,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 
 		res = h.DB.Select("username", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
 		if res.Error != nil {
+			logger.Error("error with update database：", res.Error)
 			resp.ERROR(c, "更新数据库失败！")
 			return
 		}
@@ -148,6 +157,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	}
 
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}

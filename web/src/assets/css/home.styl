@@ -21,8 +21,8 @@
         cursor pointer
 
         .el-image {
-          width 40px
-          height 40px
+          width 48px
+          height 48px
         }
       }
 
@@ -86,7 +86,7 @@
     .navigator {
       display flex
       flex-flow column
-      width 50px
+      width 60px
       padding 10px 1px
       border-right: 1px solid #3c3c3c
       background-color: #1E1F22
@@ -97,12 +97,14 @@
 
         li {
           margin-bottom 15px
+          display flex
+          flex-flow column
 
           a {
             color #DADBDC
             border-radius 10px
-            width 40px
-            height 40px
+            width 48px
+            height 48px
             display flex
             justify-content center
             align-items center
@@ -125,9 +127,12 @@
 
           .title {
             font-size: 12px
-            padding-top: 5px
+            padding-top: 6px
             color: #e5e7eb;
             text-align: center;
+            white-space: nowrap;      /* 防止文本换行 */
+            overflow: hidden;         /* 隐藏溢出内容 */
+            text-overflow: unset;  /* 使用省略号表示溢出内容 */
           }
 
           .active {

@@ -126,25 +126,60 @@ type RedisConfig struct {
 const LicenseKey = "Geek-AI-License"
 
 type License struct {
-	Key       string `json:"key"`        // 许可证书密钥
-	MachineId string `json:"machine_id"` // 机器码
-	UserNum   int    `json:"user_num"`   // 用户数量
-	ExpiredAt int64  `json:"expired_at"` // 过期时间
-	IsActive  bool   `json:"is_active"`  // 是否激活
+	Key       string        `json:"key"`        // 许可证书密钥
+	MachineId string        `json:"machine_id"` // 机器码
+	ExpiredAt int64         `json:"expired_at"` // 过期时间
+	IsActive  bool          `json:"is_active"`  // 是否激活
+	Configs   LicenseConfig `json:"configs"`
+}
+
+type LicenseConfig struct {
+	UserNum int  `json:"user_num"` // 用户数量
+	DeCopy  bool `json:"de_copy"`  // 去版权
 }
 
 func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
-type Platform string
+type Platform struct {
+	Name    string `json:"name"`
+	Value   string `json:"value"`
+	ChatURL string `json:"chat_url"`
+	ImgURL  string `json:"img_url"`
+}
 
-const OpenAI = Platform("OpenAI")
-const Azure = Platform("Azure")
-const ChatGLM = Platform("ChatGLM")
-const Baidu = Platform("Baidu")
-const XunFei = Platform("XunFei")
-const QWen = Platform("QWen")
+var OpenAI = Platform{
+	Name:    "OpenAI - GPT",
+	Value:   "OpenAI",
+	ChatURL: "https://api.chat-plus.net/v1/chat/completions",
+	ImgURL:  "https://api.chat-plus.net/v1/images/generations",
+}
+var Azure = Platform{
+	Name:    "微软 - Azure",
+	Value:   "Azure",
+	ChatURL: "https://chat-bot-api.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-05-15",
+}
+var ChatGLM = Platform{
+	Name:    "智谱 - ChatGLM",
+	Value:   "ChatGLM",
+	ChatURL: "https://open.bigmodel.cn/api/paas/v3/model-api/{model}/sse-invoke",
+}
+var Baidu = Platform{
+	Name:    "百度 - 文心大模型",
+	Value:   "Baidu",
+	ChatURL: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{model}",
+}
+var XunFei = Platform{
+	Name:    "讯飞 - 星火大模型",
+	Value:   "XunFei",
+	ChatURL: "wss://spark-api.xf-yun.com/{version}/chat",
+}
+var QWen = Platform{
+	Name:    "阿里 - 通义千问",
+	Value:   "QWen",
+	ChatURL: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+}
 
 type SystemConfig struct {
 	Title         string `json:"title,omitempty"`
@@ -177,4 +212,6 @@ type SystemConfig struct {
 	ContextDeep   int  `json:"context_deep,omitempty"`
 
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
+
+	RandBg bool `json:"rand_bg"` // 前端首页是否启用随机背景
 }

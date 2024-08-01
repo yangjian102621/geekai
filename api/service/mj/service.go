@@ -108,7 +108,13 @@ func (s *Service) Run() {
 		}
 
 		if err != nil || (res.Code != 1 && res.Code != 22) {
-			errMsg := fmt.Sprintf("%v,%s", err, res.Description)
+			var errMsg string
+			if err != nil {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprintf("%v,%s", err, res.Description)
+			}
+
 			logger.Error("绘画任务执行失败：", errMsg)
 			job.Progress = -1
 			job.ErrMsg = errMsg

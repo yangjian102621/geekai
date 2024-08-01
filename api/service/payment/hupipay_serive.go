@@ -49,6 +49,8 @@ type HuPiPayReq struct {
 	CallbackURL  string `json:"callback_url"`
 	Time         string `json:"time"`
 	NonceStr     string `json:"nonce_str"`
+	Type         string `json:"type"`
+	WapUrl       string `json:"wap_url"`
 }
 
 type HuPiResp struct {

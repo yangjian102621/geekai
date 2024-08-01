@@ -92,9 +92,9 @@ const items = [
   },
 
   {
-    icon: 'role',
-    index: '/admin/role',
-    title: '角色管理',
+    icon: 'menu',
+    index: '/admin/app',
+    title: '应用管理',
   },
   {
     icon: 'api-key',

@@ -46,7 +46,7 @@ const routes = [
                 component: () => import('@/views/Member.vue'),
             },
             {
-                name: 'chat-role',
+                name: 'chat-app',
                 path: '/apps',
                 meta: {title: '应用中心'},
                 component: () => import('@/views/ChatApps.vue'),
@@ -139,10 +139,10 @@ const routes = [
                 component: () => import('@/views/admin/Users.vue'),
             },
             {
-                path: '/admin/role',
-                name: 'admin-role',
-                meta: {title: '角色管理'},
-                component: () => import('@/views/admin/Roles.vue'),
+                path: '/admin/app',
+                name: 'admin-app',
+                meta: {title: '应用管理'},
+                component: () => import('@/views/admin/Apps.vue'),
             },
             {
                 path: '/admin/apikey',

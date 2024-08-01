@@ -65,9 +65,44 @@
         </div>
       </el-aside>
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
-        <div class="chat-box" :style="{height: mainWinHeight+'px'}">
+        <div class="chat-container">
+          <div class="chat-config">
+            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat"
+                       class="role-select"
+                       style="width:150px">
+              <el-option
+                  v-for="item in roles"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+              >
+                <div class="role-option">
+                  <el-image :src="item.icon"></el-image>
+                  <span>{{ item.name }}</span>
+                </div>
+              </el-option>
+            </el-select>
+
+            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat"
+                       :disabled="disableModel"
+                       style="width:150px">
+              <el-option
+                  v-for="item in models"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+              >
+                <span>{{ item.name }}</span>
+                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
+                    item.power
+                  }}算力
+                </el-tag>
+              </el-option>
+            </el-select>
+          </div>
+
           <div>
-            <div id="container">
+            <div id="container" :style="{height: mainWinHeight+'px'}">
               <div class="chat-box" id="chat-box" :style="{height: chatBoxHeight+'px'}">
                 <div v-if="showHello">
                   <welcome @send="autofillPrompt"/>
@@ -84,61 +119,8 @@
                 </div>
               </div><!-- end chat box -->
 
-              <el-affix position="bottom" :offset="0">
-                <div class="input-box">
-                  <span class="tool-item">
-                      <el-popover
-                          :width="300"
-                          trigger="click"
-                          placement="top-start"
-                      >
-                        <template #reference>
-                          <div>
-                            <el-tooltip effect="dark" content="模型选择">
-                              <i class="iconfont icon-model"></i>
-                            </el-tooltip>
-                          </div>
-                        </template>
-
-                        <template #default>
-                          <div class="chat-config">
-                            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat"
-                                       class="role-select"
-                                       style="width:150px">
-                              <el-option
-                                  v-for="item in roles"
-                                  :key="item.id"
-                                  :label="item.name"
-                                  :value="item.id"
-                              >
-                                <div class="role-option">
-                                  <el-image :src="item.icon"></el-image>
-                                  <span>{{ item.name }}</span>
-                                </div>
-                              </el-option>
-                            </el-select>
-
-                            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat"
-                                       :disabled="disableModel"
-                                       style="width:150px">
-                              <el-option
-                                  v-for="item in models"
-                                  :key="item.id"
-                                  :label="item.name"
-                                  :value="item.id"
-                              >
-                                <span>{{ item.name }}</span>
-                                <el-tag style="margin-left: 5px; position: relative; top:-2px" type="info" size="small">{{
-                                    item.power
-                                  }}算力
-                                </el-tag>
-                              </el-option>
-                            </el-select>
-                          </div>
-                        </template>
-                      </el-popover>
-                  </span>
-
+              <div class="input-box">
+                <div class="input-box-inner">
                   <span class="tool-item" @click="ElMessage.info('暂时不支持语音输入')">
                     <el-tooltip class="box-item" effect="dark" content="语音输入">
                       <i class="iconfont icon-mic-bold"></i>
@@ -151,32 +133,34 @@
                     </el-tooltip>
                   </span>
 
-                  <div class="input-container">
-                    <el-input
-                        ref="textInput"
-                        v-model="prompt"
-                        v-on:keydown="inputKeyDown"
-                        autofocus
-                        type="textarea"
-                        :rows="2"
-                        style="--el-input-focus-border-color:#21AA93;
-                        border: 1px solid #21AA93;--el-input-border-color:#21AA93;
-                        border-radius: 5px; --el-input-hover-border-color:#21AA93;"
-                        placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
-                    />
-                    <span class="send-btn">
-                    <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
-                      <el-icon>
-                        <VideoPause/>
-                      </el-icon>
-                    </el-button>
-                    <el-button @click="sendMessage" color="#19c37d" style="color:#ffffff" v-else>
-                      <el-icon><Promotion/></el-icon>
-                    </el-button>
-                  </span>
+                  <div class="input-body">
+                    <div ref="textHeightRef" class="hide-div">{{prompt}}</div>
+                    <div class="input-border">
+                      <textarea
+                            ref="inputRef"
+                            class="prompt-input"
+                            :rows="row"
+                            v-model="prompt"
+                            @keydown="onInput"
+                            @input="onInput"
+                            placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
+                            autofocus>
+                      </textarea>
+                      <span class="send-btn">
+                        <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
+                          <el-icon>
+                            <VideoPause/>
+                          </el-icon>
+                        </el-button>
+                        <el-button @click="sendMessage" color="#19c37d" style="color:#ffffff" v-else>
+                          <el-icon><Promotion/></el-icon>
+                        </el-button>
+                      </span>
+                    </div>
+
                   </div>
                 </div><!-- end input box -->
-              </el-affix>
+              </div>
             </div><!-- end container -->
           </div><!-- end loading -->
         </div>
@@ -237,11 +221,13 @@ const roleId = ref(0)
 const newChatItem = ref(null);
 const isLogin = ref(false)
 const showHello = ref(true)
-const textInput = ref(null)
+const inputRef = ref(null)
+const textHeightRef = ref(null)
 const showNotice = ref(false)
 const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
 const store = useSharedStore();
+const row = ref(1)
 
 if (isMobile()) {
   router.replace("/mobile/chat")
@@ -372,8 +358,8 @@ const getRoleById = function (rid) {
 }
 
 const resizeElement = function () {
-  chatBoxHeight.value = window.innerHeight - 50 - 82 - 38;
-  mainWinHeight.value = window.innerHeight - 50;
+  chatBoxHeight.value = window.innerHeight - 101 - 82 - 38;
+  mainWinHeight.value = window.innerHeight - 101;
   leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
 };
 
@@ -517,8 +503,7 @@ const removeChat = function (chat) {
 
 }
 
-const latexPlugin = require('markdown-it-latex2img')
-const mathjaxPlugin = require('markdown-it-mathjax')
+const mathjaxPlugin = require('markdown-it-mathjax3')
 const md = require('markdown-it')({
   breaks: true,
   html: true,
@@ -543,7 +528,6 @@ const md = require('markdown-it')({
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
   }
 });
-md.use(latexPlugin)
 md.use(mathjaxPlugin)
 
 // 创建 socket 连接
@@ -705,8 +689,19 @@ const enableInput = () => {
   showStopGenerate.value = false;
 }
 
-// 登录输入框输入事件处理
-const inputKeyDown = function (e) {
+const onInput = (e) => {
+  // 根据输入的内容自动计算输入框的行数
+  const lineHeight = parseFloat(window.getComputedStyle(inputRef.value).lineHeight)
+  textHeightRef.value.style.width = inputRef.value.clientWidth + 'px'; // 设定宽度和 textarea 相同
+  const lines = Math.floor(textHeightRef.value.clientHeight / lineHeight);
+  inputRef.value.scrollTo(0, inputRef.value.scrollHeight)
+  if (prompt.value.length < 10) {
+    row.value = 1
+  } else if (row.value <= 7) {
+    row.value = lines
+  }
+
+  // 输入回车自动提交
   if (e.keyCode === 13) {
     if (e.ctrlKey) { // Ctrl + Enter 换行
       prompt.value += "\n";
@@ -720,7 +715,7 @@ const inputKeyDown = function (e) {
 // 自动填充 prompt
 const autofillPrompt = (text) => {
   prompt.value = text
-  textInput.value.focus()
+  inputRef.value.focus()
   // sendMessage()
 }
 // 发送消息
@@ -926,31 +921,6 @@ const insertURL = (url) => {
   .el-textarea {
     .el-textarea__inner {
       padding-right 40px
-    }
-  }
-}
-
-.chat-config {
-  display flex
-  flex-direction row
-  padding-top 10px;
-
-  .role-select-label {
-    color #ffffff
-  }
-
-  .el-select {
-    max-width 150px;
-    margin-right 10px;
-  }
-
-  .role-select {
-    max-width 130px;
-  }
-
-  .el-button {
-    .el-icon {
-      margin-right 5px;
     }
   }
 }
