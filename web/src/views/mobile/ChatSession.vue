@@ -182,7 +182,7 @@ httpGet('/api/model/list').then(res => {
     models.value[i].mValue = models.value[i].value
     models.value[i].value = models.value[i].id
   }
-  modelValue.value = getModelValue(modelId.value)
+  modelValue.value = getModelName(modelId.value)
   // 加载角色列表
   httpGet(`/api/role/list`).then((res) => {
     roles.value = res.data;
@@ -236,6 +236,7 @@ const newChat = (item) => {
   const options = item.selectedOptions
   roleId.value = options[0].value
   modelId.value = options[1].value
+  modelValue.value = getModelName(modelId.value)
   chatId.value = ""
   chatData.value = []
   role.value = getRoleById(roleId.value)
@@ -248,8 +249,7 @@ const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
 
-const latexPlugin = require('markdown-it-latex2img')
-const mathjaxPlugin = require('markdown-it-mathjax')
+const mathjaxPlugin = require('markdown-it-mathjax3')
 const md = require('markdown-it')({
   breaks: true,
   html: true,
@@ -274,7 +274,6 @@ const md = require('markdown-it')({
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
   }
 });
-md.use(latexPlugin)
 md.use(mathjaxPlugin)
 
 
@@ -537,7 +536,7 @@ const shareChat = (option) => {
     showToast({message: "当前会话已经导出，请通过浏览器或者微信的自带分享功能分享给好友", duration: 5000})
     router.push({
       path: "/mobile/chat/export",
-      query: {title: title, chat_id: chatId, role: role.value.name, model: modelValue}
+      query: {title: title.value, chat_id: chatId.value, role: role.value.name, model: modelValue.value}
     })
   } else if (option.icon === "link") {
     document.getElementById('copy-link-btn').click();
@@ -553,10 +552,10 @@ const getRoleById = function (rid) {
   return null;
 }
 
-const getModelValue = (model_id) => {
+const getModelName = (model_id) => {
   for (let i = 0; i < models.value.length; i++) {
     if (models.value[i].id === model_id) {
-      return models.value[i].mValue
+      return models.value[i].text
     }
   }
   return ""

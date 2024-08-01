@@ -57,6 +57,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 	}
 	res := h.DB.Save(&item)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
@@ -107,6 +108,7 @@ func (h *ProductHandler) Enable(c *gin.Context) {
 
 	res := h.DB.Model(&model.Product{}).Where("id", data.Id).UpdateColumn("enabled", data.Enabled)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
@@ -127,6 +129,7 @@ func (h *ProductHandler) Sort(c *gin.Context) {
 	for index, id := range data.Ids {
 		res := h.DB.Model(&model.Product{}).Where("id", id).Update("sort_num", data.Sorts[index])
 		if res.Error != nil {
+			logger.Error("error with update database：", res.Error)
 			resp.ERROR(c, "更新数据库失败！")
 			return
 		}
@@ -141,6 +144,7 @@ func (h *ProductHandler) Remove(c *gin.Context) {
 	if id > 0 {
 		res := h.DB.Where("id", id).Delete(&model.Product{})
 		if res.Error != nil {
+			logger.Error("error with update database：", res.Error)
 			resp.ERROR(c, "更新数据库失败！")
 			return
 		}

@@ -17,16 +17,19 @@ import (
 	"geekai/core/types"
 	"geekai/handler"
 	logger2 "geekai/logger"
+	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"html/template"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -38,15 +41,17 @@ var logger = logger2.GetLogger()
 
 type ChatHandler struct {
 	handler.BaseHandler
-	redis         *redis.Client
-	uploadManager *oss.UploaderManager
+	redis          *redis.Client
+	uploadManager  *oss.UploaderManager
+	licenseService *service.LicenseService
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ChatHandler {
 	return &ChatHandler{
-		BaseHandler:   handler.BaseHandler{App: app, DB: db},
-		redis:         redis,
-		uploadManager: manager,
+		BaseHandler:    handler.BaseHandler{App: app, DB: db},
+		redis:          redis,
+		uploadManager:  manager,
+		licenseService: licenseService,
 	}
 }
 
@@ -119,7 +124,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		MaxContext:  chatModel.MaxContext,
 		Temperature: chatModel.Temperature,
 		KeyId:       chatModel.KeyId,
-		Platform:    types.Platform(chatModel.Platform)}
+		Platform:    chatModel.Platform}
 	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
 
 	// 保存会话连接
@@ -215,11 +220,11 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		Stream: true,
 	}
 	switch session.Model.Platform {
-	case types.Azure, types.ChatGLM, types.Baidu, types.XunFei:
+	case types.Azure.Value, types.ChatGLM.Value, types.Baidu.Value, types.XunFei.Value:
 		req.Temperature = session.Model.Temperature
 		req.MaxTokens = session.Model.MaxTokens
 		break
-	case types.OpenAI:
+	case types.OpenAI.Value:
 		req.Temperature = session.Model.Temperature
 		req.MaxTokens = session.Model.MaxTokens
 		// OpenAI 支持函数功能
@@ -236,8 +241,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			if err != nil {
 				continue
 			}
-			required := parameters["required"]
-			delete(parameters, "required")
 			tool := types.Tool{
 				Type: "function",
 				Function: types.Function{
@@ -246,10 +249,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 					Parameters:  parameters,
 				},
 			}
-
-			// Fixed: compatible for gpt4-turbo-xxx model
-			if !strings.HasPrefix(req.Model, "gpt-4-turbo-") {
-				tool.Function.Required = required
+			if v, ok := parameters["required"]; v == nil || !ok {
+				tool.Function.Parameters["required"] = []string{}
 			}
 			tools = append(tools, tool)
 		}
@@ -258,7 +259,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			req.Tools = tools
 			req.ToolChoice = "auto"
 		}
-	case types.QWen:
+	case types.QWen.Value:
 		req.Parameters = map[string]interface{}{
 			"max_tokens":  session.Model.MaxTokens,
 			"temperature": session.Model.Temperature,
@@ -322,14 +323,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		reqMgs = append(reqMgs, m)
 	}
 
-	if session.Model.Platform == types.QWen {
+	if session.Model.Platform == types.QWen.Value {
 		req.Input = make(map[string]interface{})
 		reqMgs = append(reqMgs, types.Message{
 			Role:    "user",
 			Content: prompt,
 		})
 		req.Input["messages"] = reqMgs
-	} else if session.Model.Platform == types.OpenAI { // extract image for gpt-vision model
+	} else if session.Model.Platform == types.OpenAI.Value { // extract image for gpt-vision model
 		imgURLs := utils.ExtractImgURL(prompt)
 		logger.Debugf("detected IMG: %+v", imgURLs)
 		var content interface{}
@@ -367,17 +368,17 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	logger.Debugf("%+v", req.Messages)
 
 	switch session.Model.Platform {
-	case types.Azure:
+	case types.Azure.Value:
 		return h.sendAzureMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
-	case types.OpenAI:
+	case types.OpenAI.Value:
 		return h.sendOpenAiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
-	case types.ChatGLM:
+	case types.ChatGLM.Value:
 		return h.sendChatGLMMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
-	case types.Baidu:
+	case types.Baidu.Value:
 		return h.sendBaiduMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
-	case types.XunFei:
+	case types.XunFei.Value:
 		return h.sendXunFeiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
-	case types.QWen:
+	case types.QWen.Value:
 		return h.sendQWenMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
 	}
 
@@ -457,27 +458,35 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {
-		h.DB.Debug().Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
+		h.DB.Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
 	}
 	if apiKey.Id == 0 {
 		return nil, errors.New("no available key, please import key")
 	}
 
+	// ONLY allow apiURL in blank list
+	if session.Model.Platform == types.OpenAI.Value {
+		err := h.licenseService.IsValidApiURL(apiKey.ApiURL)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var apiURL string
 	switch session.Model.Platform {
-	case types.Azure:
+	case types.Azure.Value:
 		md := strings.Replace(req.Model, ".", "", 1)
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", md, 1)
 		break
-	case types.ChatGLM:
+	case types.ChatGLM.Value:
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", req.Model, 1)
 		req.Prompt = req.Messages // 使用 prompt 字段替代 message 字段
 		req.Messages = nil
 		break
-	case types.Baidu:
+	case types.Baidu.Value:
 		apiURL = strings.Replace(apiKey.ApiURL, "{model}", req.Model, 1)
 		break
-	case types.QWen:
+	case types.QWen.Value:
 		apiURL = apiKey.ApiURL
 		req.Messages = nil
 		break
@@ -487,7 +496,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	// 更新 API KEY 的最后使用时间
 	h.DB.Model(apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// 百度文心，需要串接 access_token
-	if session.Model.Platform == types.Baidu {
+	if session.Model.Platform == types.Baidu.Value {
 		token, err := h.getBaiduToken(apiKey.Value)
 		if err != nil {
 			return nil, err
@@ -523,22 +532,22 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	}
 	logger.Debugf("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiURL, apiKey.Value, apiKey.ProxyURL, req.Model)
 	switch session.Model.Platform {
-	case types.Azure:
+	case types.Azure.Value:
 		request.Header.Set("api-key", apiKey.Value)
 		break
-	case types.ChatGLM:
+	case types.ChatGLM.Value:
 		token, err := h.getChatGLMToken(apiKey.Value)
 		if err != nil {
 			return nil, err
 		}
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		break
-	case types.Baidu:
+	case types.Baidu.Value:
 		request.RequestURI = ""
-	case types.OpenAI:
+	case types.OpenAI.Value:
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
 		break
-	case types.QWen:
+	case types.QWen.Value:
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
 		request.Header.Set("X-DashScope-SSE", "enable")
 		break
@@ -570,6 +579,99 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 		})
 	}
 
+}
+
+func (h *ChatHandler) saveChatHistory(
+	req types.ApiRequest,
+	prompt string,
+	contents []string,
+	message types.Message,
+	chatCtx []types.Message,
+	session *types.ChatSession,
+	role model.ChatRole,
+	userVo vo.User,
+	promptCreatedAt time.Time,
+	replyCreatedAt time.Time) {
+	if message.Role == "" {
+		message.Role = "assistant"
+	}
+	message.Content = strings.Join(contents, "")
+	useMsg := types.Message{Role: "user", Content: prompt}
+
+	// 更新上下文消息，如果是调用函数则不需要更新上下文
+	if h.App.SysConfig.EnableContext {
+		chatCtx = append(chatCtx, useMsg)  // 提问消息
+		chatCtx = append(chatCtx, message) // 回复消息
+		h.App.ChatContexts.Put(session.ChatId, chatCtx)
+	}
+
+	// 追加聊天记录
+	// for prompt
+	promptToken, err := utils.CalcTokens(prompt, req.Model)
+	if err != nil {
+		logger.Error(err)
+	}
+	historyUserMsg := model.ChatMessage{
+		UserId:     userVo.Id,
+		ChatId:     session.ChatId,
+		RoleId:     role.Id,
+		Type:       types.PromptMsg,
+		Icon:       userVo.Avatar,
+		Content:    template.HTMLEscapeString(prompt),
+		Tokens:     promptToken,
+		UseContext: true,
+		Model:      req.Model,
+	}
+	historyUserMsg.CreatedAt = promptCreatedAt
+	historyUserMsg.UpdatedAt = promptCreatedAt
+	res := h.DB.Save(&historyUserMsg)
+	if res.Error != nil {
+		logger.Error("failed to save prompt history message: ", res.Error)
+	}
+
+	// for reply
+	// 计算本次对话消耗的总 token 数量
+	replyTokens, _ := utils.CalcTokens(message.Content, req.Model)
+	totalTokens := replyTokens + getTotalTokens(req)
+	historyReplyMsg := model.ChatMessage{
+		UserId:     userVo.Id,
+		ChatId:     session.ChatId,
+		RoleId:     role.Id,
+		Type:       types.ReplyMsg,
+		Icon:       role.Icon,
+		Content:    message.Content,
+		Tokens:     totalTokens,
+		UseContext: true,
+		Model:      req.Model,
+	}
+	historyReplyMsg.CreatedAt = replyCreatedAt
+	historyReplyMsg.UpdatedAt = replyCreatedAt
+	res = h.DB.Create(&historyReplyMsg)
+	if res.Error != nil {
+		logger.Error("failed to save reply history message: ", res.Error)
+	}
+
+	if session.Model.Power > 0 {
+		// 更新用户算力
+		h.subUserPower(userVo, session, promptToken, replyTokens)
+
+		// 保存当前会话
+		var chatItem model.ChatItem
+		res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
+		if res.Error != nil {
+			chatItem.ChatId = session.ChatId
+			chatItem.UserId = session.UserId
+			chatItem.RoleId = role.Id
+			chatItem.ModelId = session.Model.Id
+			if utf8.RuneCountInString(prompt) > 30 {
+				chatItem.Title = string([]rune(prompt)[:30]) + "..."
+			} else {
+				chatItem.Title = prompt
+			}
+			chatItem.Model = req.Model
+			h.DB.Create(&chatItem)
+		}
+	}
 }
 
 // 将AI回复消息中生成的图片链接下载到本地

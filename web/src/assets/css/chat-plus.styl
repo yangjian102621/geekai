@@ -129,15 +129,44 @@ $borderColor = #4676d0;
       --el-main-padding: 0;
       margin: 0;
 
-      .chat-box {
+      .chat-container {
         min-width: 0;
         flex: 1;
         background-color: var(--el-bg-color)
         color var(--el-text-color-primary)
 
+        .chat-config {
+          height 30px
+          padding 10px 30px
+          display flex
+          justify-content center
+          justify-items center
+          border-bottom 1px solid #d9d9e3
+
+          .role-select-label {
+            color #ffffff
+          }
+
+          .el-select {
+            max-width 150px;
+            margin-right 10px;
+          }
+
+          .role-select {
+            max-width 130px;
+          }
+
+          .el-button {
+            .el-icon {
+              margin-right 5px;
+            }
+          }
+        }
+
         #container {
           overflow: hidden;
           width: 100%;
+          position relative
 
           ::-webkit-scrollbar {
             width: 0;
@@ -165,68 +194,97 @@ $borderColor = #4676d0;
           }
 
           .input-box {
-            background-color: #ffffff
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            padding 0 15px;
+            position absolute
+            bottom 0
+            width 100%
 
-            .tool-item {
-              margin-right 15px
-              border-radius: 6px;
-              color: #19c37d;
+            .input-box-inner {
               display flex
-              justify-content center
-              justify-items center
-              padding 6px
-              cursor pointer
-              background #F2F2F2
+              background-color: #ffffff
+              justify-content: center;
+              align-items: center;
+              box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+              padding 0 15px;
 
-              &:hover {
-                background #D5FAD3
-              }
+              .tool-item {
+                margin-right 15px
+                border-radius: 6px;
+                color: #19c37d;
+                display flex
+                justify-content center
+                justify-items center
+                padding 6px
+                cursor pointer
+                background #F2F2F2
 
-              .iconfont {
-                font-size: 24px;
-              }
-            }
+                &:hover {
+                  background #D5FAD3
+                }
 
-            .input-container {
-              width 100%
-              margin: 0;
-              border: none;
-              padding: 10px 0;
-              display flex
-              justify-content center
-              position relative
-
-              .el-textarea {
-                .el-textarea__inner::-webkit-scrollbar {
-                  width: 0;
-                  height: 0;
+                .iconfont {
+                  font-size: 24px;
                 }
               }
 
-              .select-file {
-                position absolute;
-                right 48px;
-                top 20px;
-              }
+              .input-body {
+                width 100%
+                margin: 0;
+                border: none;
+                padding: 10px 0;
+                display flex
+                justify-content center
+                position relative
 
-              .send-btn {
-                position absolute;
-                right 12px;
-                top 20px;
+                .hide-div {
+                  white-space: pre-wrap; /* 保持文本换行 */
+                  visibility: hidden; /* 隐藏 div */
+                  position: absolute; /* 脱离文档流 */
+                  line-height: 24px
+                  font-size 14px
+                  word-wrap: break-word; /* 允许单词换行 */
+                  overflow-wrap: break-word; /* 允许长单词换行，适用于现代浏览器 */
+                }
 
-                .el-button {
-                  padding 8px 5px;
-                  border-radius 6px;
-                  font-size 20px;
+                .input-border {
+                  display flex
+                  width 100%
+                  overflow hidden
+                  border: 2px solid #21AA93
+                  border-radius 10px
+                  padding 10px
+
+
+                  .prompt-input::-webkit-scrollbar {
+                    width: 0;
+                    height: 0;
+                  }
+
+                  .prompt-input {
+                    width 100%
+                    line-height: 24px
+                    border none
+                    font-size 14px
+                    background none
+                    resize: none
+                    white-space: pre-wrap; /* 保持文本换行 */
+                    word-wrap: break-word; /* 允许单词换行 */
+                    overflow-wrap: break-word; /* 允许长单词换行，适用于现代浏览器 */
+                  }
+
+                  .send-btn {
+                    width 32px
+                    margin-left 10px
+                    .el-button {
+                      padding 8px 5px;
+                      border-radius 6px;
+                      font-size 20px;
+                    }
+                  }
+
                 }
               }
-
             }
+
           }
         }
 

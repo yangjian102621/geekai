@@ -8,6 +8,7 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
@@ -18,7 +19,6 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -325,6 +325,7 @@ func (h *SdJobHandler) Publish(c *gin.Context) {
 
 	res := h.DB.Model(&model.SdJob{Id: data.Id}).UpdateColumn("publish", true)
 	if res.Error != nil {
+		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")
 		return
 	}

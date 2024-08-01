@@ -8,6 +8,9 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"embed"
+	"encoding/base64"
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
@@ -15,9 +18,6 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"embed"
-	"encoding/base64"
-	"fmt"
 	"github.com/shopspring/decimal"
 	"math"
 	"net/http"
@@ -44,6 +44,7 @@ type PaymentHandler struct {
 	snowflake      *service.Snowflake
 	fs             embed.FS
 	lock           sync.Mutex
+	signKey        string // 用来签名的随机秘钥
 }
 
 func NewPaymentHandler(
@@ -65,12 +66,27 @@ func NewPaymentHandler(
 			App: server,
 			DB:  db,
 		},
+		signKey: utils.RandString(32),
 	}
 }
 
 func (h *PaymentHandler) DoPay(c *gin.Context) {
 	orderNo := h.GetTrim(c, "order_no")
 	payWay := h.GetTrim(c, "pay_way")
+	t := h.GetInt(c, "t", 0)
+	sign := h.GetTrim(c, "sign")
+	signStr := fmt.Sprintf("%s-%s-%d-%s", orderNo, payWay, t, h.signKey)
+	newSign := utils.Sha256(signStr)
+	if newSign != sign {
+		resp.ERROR(c, "订单签名错误！")
+		return
+	}
+
+	// 检查二维码是否过期
+	if time.Now().Unix()-int64(t) > int64(h.App.SysConfig.OrderPayTimeout) {
+		resp.ERROR(c, "支付二维码已过期，请重新生成！")
+		return
+	}
 
 	if orderNo == "" {
 		resp.ERROR(c, types.InvalidArgs)
@@ -273,8 +289,10 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
-	imageURL := fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s", parse.Scheme, parse.Host, orderNo, data.PayWay)
+	timestamp := time.Now().Unix()
+	signStr := fmt.Sprintf("%s-%s-%d-%s", orderNo, data.PayWay, timestamp, h.signKey)
+	sign := utils.Sha256(signStr)
+	imageURL := fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s&t=%d&sign=%s", parse.Scheme, parse.Host, orderNo, data.PayWay, timestamp, sign)
 	imgData, err := utils.GenQrcode(imageURL, 400, file)
 	if err != nil {
 		resp.ERROR(c, err.Error())
@@ -324,6 +342,8 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		payWay = PayWayXunHu
 		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
 		returnURL = h.App.Config.HuPiPayConfig.ReturnURL
+		parse, _ := url.Parse(h.App.Config.HuPiPayConfig.ReturnURL)
+		baseURL := fmt.Sprintf("%s://%s", parse.Scheme, parse.Host)
 		params := payment.HuPiPayReq{
 			Version:      "1.1",
 			TradeOrderId: orderNo,
@@ -333,6 +353,8 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 			ReturnURL:    returnURL,
 			CallbackURL:  returnURL,
 			WapName:      "极客学长",
+			WapUrl:       baseURL,
+			Type:         "WAP",
 		}
 		r, err := h.huPiPayService.Pay(params)
 		if err != nil {

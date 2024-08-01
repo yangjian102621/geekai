@@ -8,13 +8,13 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"math"
@@ -73,6 +73,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	res = tx.Model(&user).UpdateColumn("power", gorm.Expr("power + ?", exchange.Power))
 	if res.Error != nil {
 		tx.Rollback()
+		logger.Error("添加应用失败：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}
@@ -84,6 +85,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	res = tx.Updates(&item)
 	if res.Error != nil {
 		tx.Rollback()
+		logger.Error("添加应用失败：", res.Error)
 		resp.ERROR(c, "更新数据库失败！")
 		return
 	}

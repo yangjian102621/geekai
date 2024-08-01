@@ -354,6 +354,8 @@ const doResetPass = () => {
   .pagination {
     padding 20px 0
     display flex
+    justify-content right
+    width 100%
   }
 
   .el-select {

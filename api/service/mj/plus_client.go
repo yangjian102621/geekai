@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/utils"
 	"github.com/imroc/req/v3"
 	"io"
@@ -22,20 +23,30 @@ import (
 
 // PlusClient MidJourney Plus ProxyClient
 type PlusClient struct {
-	Config types.MjPlusConfig
-	apiURL string
-	client *req.Client
+	Config         types.MjPlusConfig
+	apiURL         string
+	client         *req.Client
+	licenseService *service.LicenseService
 }
 
-func NewPlusClient(config types.MjPlusConfig) *PlusClient {
+func NewPlusClient(config types.MjPlusConfig, licenseService *service.LicenseService) *PlusClient {
 	return &PlusClient{
-		Config: config,
-		apiURL: config.ApiURL,
-		client: req.C().SetTimeout(time.Minute).SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"),
+		Config:         config,
+		apiURL:         config.ApiURL,
+		client:         req.C().SetTimeout(time.Minute).SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"),
+		licenseService: licenseService,
 	}
 }
 
+func (c *PlusClient) preCheck() error {
+	return c.licenseService.IsValidApiURL(c.Config.ApiURL)
+}
+
 func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
+	if err := c.preCheck(); err != nil {
+		return ImageRes{}, err
+	}
+
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/imagine", c.apiURL, c.Config.Mode)
 	prompt := fmt.Sprintf("%s %s", task.Prompt, task.Params)
 	if task.NegPrompt != "" {
@@ -79,6 +90,10 @@ func (c *PlusClient) Imagine(task types.MjTask) (ImageRes, error) {
 
 // Blend 融图
 func (c *PlusClient) Blend(task types.MjTask) (ImageRes, error) {
+	if err := c.preCheck(); err != nil {
+		return ImageRes{}, err
+	}
+
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/submit/blend", c.apiURL, c.Config.Mode)
 	logger.Info("API URL: ", apiURL)
 	body := ImageReq{
@@ -118,6 +133,10 @@ func (c *PlusClient) Blend(task types.MjTask) (ImageRes, error) {
 
 // SwapFace 换脸
 func (c *PlusClient) SwapFace(task types.MjTask) (ImageRes, error) {
+	if err := c.preCheck(); err != nil {
+		return ImageRes{}, err
+	}
+
 	apiURL := fmt.Sprintf("%s/mj-%s/mj/insight-face/swap", c.apiURL, c.Config.Mode)
 	// 生成图片 Base64 编码
 	if len(task.ImgArr) != 2 {
@@ -167,6 +186,10 @@ func (c *PlusClient) SwapFace(task types.MjTask) (ImageRes, error) {
 
 // Upscale 放大指定的图片
 func (c *PlusClient) Upscale(task types.MjTask) (ImageRes, error) {
+	if err := c.preCheck(); err != nil {
+		return ImageRes{}, err
+	}
+
 	body := map[string]string{
 		"customId": fmt.Sprintf("MJ::JOB::upsample::%d::%s", task.Index, task.MessageHash),
 		"taskId":   task.MessageId,
@@ -194,6 +217,10 @@ func (c *PlusClient) Upscale(task types.MjTask) (ImageRes, error) {
 
 // Variation  以指定的图片的视角进行变换再创作，注意需要在对应的频道中关闭 Remix 变换，否则 Variation 指令将不会生效
 func (c *PlusClient) Variation(task types.MjTask) (ImageRes, error) {
+	if err := c.preCheck(); err != nil {
+		return ImageRes{}, err
+	}
+
 	body := map[string]string{
 		"customId": fmt.Sprintf("MJ::JOB::variation::%d::%s", task.Index, task.MessageHash),
 		"taskId":   task.MessageId,

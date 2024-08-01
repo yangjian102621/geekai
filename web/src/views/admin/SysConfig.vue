@@ -44,6 +44,20 @@
                   </el-tooltip>
                 </el-form-item>
 
+                <el-form-item label="随机背景">
+                  <el-switch v-model="system['rand_bg']"/>
+                  <el-tooltip
+                      effect="dark"
+                      content="打开之后前端首页将使用随机壁纸作为背景图"
+                      raw-content
+                      placement="right"
+                  >
+                    <el-icon>
+                      <InfoFilled/>
+                    </el-icon>
+                  </el-tooltip>
+                </el-form-item>
+
                 <el-form-item label="注册方式" prop="register_ways">
                   <el-checkbox-group v-model="system['register_ways']">
                     <el-checkbox value="mobile">手机注册</el-checkbox>
@@ -298,15 +312,21 @@
           <el-descriptions
               v-if="license.is_active"
               class="margin-top"
-              title="授权信息"
-              :column="3"
+              title="已授权信息"
+              :column="1"
               border
           >
-            <el-descriptions-item :span="3" :width="150">
+            <el-descriptions-item>
               <template #label>
                 <div class="cell-item">License Key</div>
               </template>
               {{ license.key }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <div class="cell-item">机器码</div>
+              </template>
+              {{ license.machine_id }}
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -318,13 +338,15 @@
               <template #label>
                 <div class="cell-item">用户人数</div>
               </template>
-              {{ license.user_num }}
+              {{ license.configs?.user_num }}
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                <div class="cell-item">机器码</div>
+                <div class="cell-item">去版权</div>
               </template>
-              {{ license.machine_id }}
+              <el-icon class="selected" v-if="license.configs?.de_copy"><Select /></el-icon>
+              <el-icon class="closed" v-else><CloseBold /></el-icon>
+              <span class="text">去版权之后前端页面将不会显示版权信息和源码地址</span>
             </el-descriptions-item>
           </el-descriptions>
 
@@ -348,7 +370,7 @@ import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage} from "element-plus";
-import {InfoFilled, UploadFilled} from "@element-plus/icons-vue";
+import {InfoFilled, UploadFilled,Select,CloseBold} from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
@@ -536,6 +558,23 @@ const onUploadImg = (files, callback) => {
 
       .el-descriptions {
         margin-bottom 20px
+        .el-icon {
+          font-size 18px
+        }
+        .selected {
+          color #0bc15f
+        }
+
+        .closed {
+          color #da0d54
+        }
+        .text {
+          margin-left 10px
+          font-size 12px
+          color #999999
+          position: relative;
+          top -5px
+        }
       }
 
       .el-alert {
