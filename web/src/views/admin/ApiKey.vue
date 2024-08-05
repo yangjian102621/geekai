@@ -193,7 +193,7 @@ const fetchData = () => {
 const add = function () {
   showDialog.value = true
   title.value = "新增 API KEY"
-  item.value = {enabled: true}
+  item.value = {enabled: true,api_url: "https://api.chat-plus.net"}
 }
 
 const edit = function (row) {

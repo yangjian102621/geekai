@@ -70,10 +70,9 @@ func (h *RewardHandler) Remove(c *gin.Context) {
 		return
 	}
 	if data.Id > 0 {
-		res := h.DB.Where("id = ?", data.Id).Delete(&model.Reward{})
-		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+		err := h.DB.Where("id = ?", data.Id).Delete(&model.Reward{}).Error
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}

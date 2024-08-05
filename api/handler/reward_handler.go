@@ -70,11 +70,10 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	exchange := vo.RewardExchange{}
 	power := math.Ceil(item.Amount / h.App.SysConfig.PowerPrice)
 	exchange.Power = int(power)
-	res = tx.Model(&user).UpdateColumn("power", gorm.Expr("power + ?", exchange.Power))
-	if res.Error != nil {
+	err = tx.Model(&user).UpdateColumn("power", gorm.Expr("power + ?", exchange.Power)).Error
+	if err != nil {
 		tx.Rollback()
-		logger.Error("添加应用失败：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+		resp.ERROR(c, err.Error())
 		return
 	}
 
@@ -82,11 +81,10 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	item.Status = true
 	item.UserId = user.Id
 	item.Exchange = utils.JsonEncode(exchange)
-	res = tx.Updates(&item)
-	if res.Error != nil {
+	err = tx.Updates(&item).Error
+	if err != nil {
 		tx.Rollback()
-		logger.Error("添加应用失败：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+		resp.ERROR(c, err.Error())
 		return
 	}
 

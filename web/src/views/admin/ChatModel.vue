@@ -10,7 +10,12 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
-        <el-table-column prop="name" label="模型名称"/>
+        <el-table-column type="selection" width="38"></el-table-column>
+        <el-table-column prop="name" label="模型名称">
+          <template #default="scope">
+            <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="value" label="模型值">
           <template #default="scope">
             <span>{{ scope.row.value }}</span>
@@ -174,6 +179,7 @@ import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
 import {DocumentCopy, InfoFilled, Plus,Search} from "@element-plus/icons-vue";
 import {Sortable} from "sortablejs";
 import ClipboardJS from "clipboard";
+import Default from "md-editor-v3";
 
 // 变量定义
 const items = ref([])

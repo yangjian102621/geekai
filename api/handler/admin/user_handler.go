@@ -168,8 +168,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	}
 
 	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败")
+		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
