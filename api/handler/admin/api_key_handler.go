@@ -8,6 +8,7 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
@@ -53,17 +54,16 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	apiKey.Enabled = data.Enabled
 	apiKey.ProxyURL = data.ProxyURL
 	apiKey.Name = data.Name
-	res := h.DB.Save(&apiKey)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Save(&apiKey).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 
 	var keyVo vo.ApiKey
-	err := utils.CopyObject(apiKey, &keyVo)
+	err = utils.CopyObject(apiKey, &keyVo)
 	if err != nil {
-		resp.ERROR(c, "数据拷贝失败！")
+		resp.ERROR(c, fmt.Sprintf("拷贝数据失败：%v", err))
 		return
 	}
 	keyVo.Id = apiKey.Id
@@ -119,10 +119,9 @@ func (h *ApiKeyHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.ApiKey{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Model(&model.ApiKey{}).Where("id = ?", data.Id).Update(data.Filed, data.Value).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)
@@ -135,10 +134,9 @@ func (h *ApiKeyHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Where("id", id).Delete(&model.ApiKey{})
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Where("id", id).Delete(&model.ApiKey{}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)

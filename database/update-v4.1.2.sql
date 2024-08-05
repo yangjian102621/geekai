@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_suno_jobs` MODIFY `id` INT AUTO_INCREMENT;

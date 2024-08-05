@@ -342,10 +342,9 @@ func (h *SdJobHandler) Publish(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
 
-	res := h.DB.Model(&model.SdJob{Id: uint(id), UserId: int(userId)}).UpdateColumn("publish", action)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败")
+	err := h.DB.Model(&model.SdJob{Id: uint(id), UserId: int(userId)}).UpdateColumn("publish", action).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 

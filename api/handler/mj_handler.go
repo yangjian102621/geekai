@@ -513,10 +513,9 @@ func (h *MidJourneyHandler) Publish(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 	userId := h.GetInt(c, "user_id", 0)
 	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
-	res := h.DB.Model(&model.MidJourneyJob{Id: uint(id), UserId: userId}).UpdateColumn("publish", action)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败")
+	err := h.DB.Model(&model.MidJourneyJob{Id: uint(id), UserId: userId}).UpdateColumn("publish", action).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 

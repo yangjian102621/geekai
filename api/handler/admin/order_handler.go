@@ -92,10 +92,9 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 			return
 		}
 
-		res = h.DB.Unscoped().Where("id = ?", id).Delete(&model.Order{})
+		err := h.DB.Unscoped().Where("id = ?", id).Delete(&model.Order{}).Error
 		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}
