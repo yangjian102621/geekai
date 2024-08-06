@@ -6,8 +6,6 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import {createRouter, createWebHistory} from "vue-router";
-import {ref} from "vue";
-import {httpGet} from "@/utils/http";
 
 const routes = [
     {

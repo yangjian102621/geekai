@@ -14,7 +14,6 @@ import (
 	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/oss"
-	"geekai/service/sd"
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
@@ -70,10 +69,10 @@ func (s *Service) Run() {
 			if err != nil {
 				logger.Errorf("error with image task: %v", err)
 				s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
-					"progress": 101,
+					"progress": service.FailTaskProgress,
 					"err_msg":  err.Error(),
 				})
-				s.notifyQueue.RPush(sd.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: sd.Failed})
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
 			}
 		}
 	}()
@@ -191,7 +190,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		return "", fmt.Errorf("err with update database: %v", tx.Error)
 	}
 
-	s.notifyQueue.RPush(sd.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: sd.Finished})
+	s.notifyQueue.RPush(service.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
 	var content string
 	if sync {
 		imgURL, err := s.downloadImage(task.JobId, int(task.UserId), res.Data[0].Url)
@@ -208,7 +207,7 @@ func (s *Service) CheckTaskNotify() {
 	go func() {
 		logger.Info("Running DALL-E task notify checking ...")
 		for {
-			var message sd.NotifyMessage
+			var message service.NotifyMessage
 			err := s.notifyQueue.LPop(&message)
 			if err != nil {
 				continue
@@ -239,7 +238,7 @@ func (s *Service) CheckTaskStatus() {
 			for _, job := range jobs {
 				// 超时的任务标记为失败
 				if time.Now().Sub(job.CreatedAt) > time.Minute*10 {
-					job.Progress = 101
+					job.Progress = service.FailTaskProgress
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
 				}
@@ -292,6 +291,6 @@ func (s *Service) downloadImage(jobId uint, userId int, orgURL string) (string, 
 	if res.Error != nil {
 		return "", err
 	}
-	s.notifyQueue.RPush(sd.NotifyMessage{UserId: userId, JobId: int(jobId), Message: sd.Finished})
+	s.notifyQueue.RPush(service.NotifyMessage{UserId: userId, JobId: int(jobId), Message: service.TaskStatusFinished})
 	return imgURL, nil
 }

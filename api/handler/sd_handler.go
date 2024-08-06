@@ -330,7 +330,7 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 
 	client := h.pool.Clients.Get(uint(job.UserId))
 	if client != nil {
-		_ = client.Send([]byte(sd.Finished))
+		_ = client.Send([]byte(service.TaskStatusFinished))
 	}
 
 	resp.SUCCESS(c)

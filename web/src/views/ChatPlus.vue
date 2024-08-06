@@ -204,13 +204,11 @@ import {Delete, Edit, More, Plus, Promotion, Search, Share, VideoPause} from '@e
 import 'highlight.js/styles/a11y-dark.css'
 import {
   isMobile,
-  processContent,
   randString,
   removeArrayItem,
   UUID
 } from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
-import hl from "highlight.js";
 import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
@@ -221,7 +219,6 @@ import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
-import axios from "axios";
 import BackTop from "@/components/BackTop.vue";
 import {showMessageError} from "@/utils/dialog";
 
@@ -547,33 +544,6 @@ const removeChat = function (chat) {
 
 }
 
-const mathjaxPlugin = require('markdown-it-mathjax3')
-const md = require('markdown-it')({
-  breaks: true,
-  html: true,
-  linkify: true,
-  typographer: true,
-  highlight: function (str, lang) {
-    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
-    // 显示复制代码按钮
-    const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
-<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(/<\/textarea>/g, '&lt;/textarea>')}</textarea>`
-    if (lang && hl.getLanguage(lang)) {
-      const langHtml = `<span class="lang-name">${lang}</span>`
-      // 处理代码高亮
-      const preCode = hl.highlight(lang, str, true).value
-      // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
-    }
-
-    // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str)
-    // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
-  }
-});
-md.use(mathjaxPlugin)
-
 // 创建 socket 连接
 const prompt = ref('');
 const showStopGenerate = ref(false); // 停止生成
@@ -622,7 +592,6 @@ const connect = function (chat_id, role_id) {
         id: randString(32),
         icon: _role['icon'],
         content: _role['hello_msg'],
-        orgContent: _role['hello_msg'],
       })
       ElMessage.success({message: "对话连接成功！", duration: 1000})
     } else { // 加载聊天记录
@@ -645,7 +614,6 @@ const connect = function (chat_id, role_id) {
               icon: _role['icon'],
               prompt:prePrompt,
               content: "",
-              orgContent: "",
             });
           } else if (data.type === 'end') { // 消息接收完毕
             // 追加当前会话到会话列表
@@ -680,8 +648,7 @@ const connect = function (chat_id, role_id) {
             lineBuffer.value += data.content;
             const reply = chatData.value[chatData.value.length - 1]
             if (reply) {
-              reply['orgContent'] = lineBuffer.value;
-              reply['content'] = md.render(processContent(lineBuffer.value));
+              reply['content'] = lineBuffer.value;
             }
           }
           // 将聊天框的滚动条滑动到最底部
@@ -845,12 +812,8 @@ const loadChatHistory = function (chatId) {
     }
     showHello.value = false
     for (let i = 0; i < data.length; i++) {
-      data[i].orgContent = data[i].content;
-      if (data[i].type === 'reply') {
-        data[i].content = md.render(processContent(data[i].content))
-        if (i > 0) {
-          data[i].prompt = data[i - 1].orgContent
-        }
+      if (data[i].type === 'reply' && i > 0) {
+        data[i].prompt = data[i - 1].content
       }
       chatData.value.push(data[i]);
     }

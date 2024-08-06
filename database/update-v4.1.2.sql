@@ -1,1 +1,2 @@
 ALTER TABLE `chatgpt_suno_jobs` MODIFY `id` INT AUTO_INCREMENT;
+ALTER TABLE `chatgpt_mj_jobs` CHANGE `channel_id` `channel_id` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '频道ID';

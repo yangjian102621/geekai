@@ -194,6 +194,15 @@
                     </div>
                   </div>
                 </el-form-item>
+
+                <el-form-item label="MJ默认API模式" prop="mj_mode">
+                  <el-select v-model="system['mj_mode']" placeholder="请选择模式">
+                    <el-option v-for="item in mjModels" :value="item.value" :label="item.name" :key="item.value">{{
+                        item.name
+                      }}
+                    </el-option>
+                  </el-select>
+                </el-form-item>
               </el-tab-pane>
 
               <el-tab-pane label="算力配置">
@@ -359,10 +368,6 @@
         <Menu/>
       </el-tab-pane>
 
-      <el-tab-pane label="AI绘图配置" name="AIDrawing">
-        <AIDrawing/>
-      </el-tab-pane>
-
       <el-tab-pane label="授权激活" name="license">
         <div class="container">
           <el-descriptions
@@ -431,7 +436,6 @@ import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
 import {copyObj, dateFormat} from "@/utils/libs";
-import AIDrawing from "@/views/admin/AIDrawing.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
@@ -439,10 +443,14 @@ const configBak = ref({})
 const loading = ref(true)
 const systemFormRef = ref(null)
 const models = ref([])
-const openAIModels = ref([])
 const notice = ref("")
 const license = ref({is_active: false})
 const menus = ref([])
+const mjModels = ref([
+  {name: "慢速（Relax）", value: "relax"},
+  {name: "快速（Fast）", value: "fast"},
+  {name: "急速（Turbo）", value: "turbo"},
+])
 
 onMounted(() => {
   // 加载系统配置
@@ -461,7 +469,6 @@ onMounted(() => {
 
   httpGet('/api/admin/model/list').then(res => {
     models.value = res.data
-    openAIModels.value = models.value.filter(v => v.platform === "OpenAI")
     loading.value = false
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)

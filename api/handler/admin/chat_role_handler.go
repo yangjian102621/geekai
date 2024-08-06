@@ -8,6 +8,7 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
@@ -45,6 +46,12 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 	role.Id = data.Id
 	if data.CreatedAt > 0 {
 		role.CreatedAt = time.Unix(data.CreatedAt, 0)
+	} else {
+		err = h.DB.Where("marker", data.Key).First(&role).Error
+		if err == nil {
+			resp.ERROR(c, fmt.Sprintf("角色 %s 已存在", data.Key))
+			return
+		}
 	}
 	err = h.DB.Save(&role).Error
 	if err != nil {

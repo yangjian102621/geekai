@@ -161,13 +161,12 @@ func main() {
 			return service.NewCaptchaService(config.ApiConfig)
 		}),
 		fx.Provide(oss.NewUploaderManager),
-		fx.Provide(mj.NewService),
 		fx.Provide(dalle.NewService),
-		fx.Invoke(func(service *dalle.Service) {
-			service.Run()
-			service.CheckTaskNotify()
-			service.DownloadImages()
-			service.CheckTaskStatus()
+		fx.Invoke(func(s *dalle.Service) {
+			s.Run()
+			s.CheckTaskNotify()
+			s.DownloadImages()
+			s.CheckTaskStatus()
 		}),
 
 		// 邮件服务
@@ -190,14 +189,13 @@ func main() {
 		}),
 
 		// MidJourney service pool
-		fx.Provide(mj.NewServicePool),
-		fx.Invoke(func(pool *mj.ServicePool, config *types.AppConfig) {
-			pool.InitServices(config.MjPlusConfigs, config.MjProxyConfigs)
-			if pool.HasAvailableService() {
-				pool.DownloadImages()
-				pool.CheckTaskNotify()
-				pool.SyncTaskProgress()
-			}
+		fx.Provide(mj.NewService),
+		fx.Provide(mj.NewClient),
+		fx.Invoke(func(s *mj.Service) {
+			s.Run()
+			s.SyncTaskProgress()
+			s.CheckTaskNotify()
+			s.DownloadImages()
 		}),
 
 		// Stable Diffusion 机器人
@@ -317,8 +315,6 @@ func main() {
 			group.GET("config/get", h.Get)
 			group.POST("active", h.Active)
 			group.GET("config/get/license", h.GetLicense)
-			group.GET("config/get/app", h.GetAppConfig)
-			group.POST("config/update/draw", h.SaveDrawingConfig)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")

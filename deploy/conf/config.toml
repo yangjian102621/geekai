@@ -69,18 +69,6 @@ TikaHost = "http://tika:9998"
     SubDir = ""
     Domain = ""
 
-[[MjProxyConfigs]]
-  Enabled = false
-  ApiURL = "http://geekai-midjourney-proxy:8082"
-  Mode = ""
-  ApiKey = "sk-geekmaster"
-
-[[MjPlusConfigs]]
-  Enabled = false
-  ApiURL = "https://api.chat-plus.net"
-  Mode = "fast"
-  ApiKey = "sk-xxx"
-
 [[SdConfigs]]
   Enabled = false
   Model = ""
