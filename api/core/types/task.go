@@ -27,7 +27,6 @@ type MjTask struct {
 	Id          uint     `json:"id"`
 	TaskId      string   `json:"task_id"`
 	ImgArr      []string `json:"img_arr"`
-	ChannelId   string   `json:"channel_id"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
 	Prompt      string   `json:"prompt,omitempty"`
@@ -37,6 +36,8 @@ type MjTask struct {
 	MessageId   string   `json:"message_id,omitempty"`
 	MessageHash string   `json:"message_hash,omitempty"`
 	RetryCount  int      `json:"retry_count"`
+	ChannelId   string   `json:"channel_id"` // 渠道ID，用来区分是哪个渠道创建的任务，一个任务的 create 和 action 操作必须要再同一个渠道
+	Mode        string   `json:"mode"`       // 绘画模式，relax, fast, turbo
 }
 
 type SdTask struct {

@@ -12,22 +12,20 @@ import (
 )
 
 type AppConfig struct {
-	Path           string `toml:"-"`
-	Listen         string
-	Session        Session
-	AdminSession   Session
-	ProxyURL       string
-	MysqlDns       string                  // mysql 连接地址
-	StaticDir      string                  // 静态资源目录
-	StaticUrl      string                  // 静态资源 URL
-	Redis          RedisConfig             // redis 连接信息
-	ApiConfig      ApiConfig               // ChatPlus API authorization configs
-	SMS            SMSConfig               // send mobile message config
-	OSS            OSSConfig               // OSS config
-	MjProxyConfigs []MjProxyConfig         // MJ proxy config
-	MjPlusConfigs  []MjPlusConfig          // MJ plus config
-	WeChatBot      bool                    // 是否启用微信机器人
-	SdConfigs      []StableDiffusionConfig // sd AI draw service pool
+	Path         string `toml:"-"`
+	Listen       string
+	Session      Session
+	AdminSession Session
+	ProxyURL     string
+	MysqlDns     string                  // mysql 连接地址
+	StaticDir    string                  // 静态资源目录
+	StaticUrl    string                  // 静态资源 URL
+	Redis        RedisConfig             // redis 连接信息
+	ApiConfig    ApiConfig               // ChatPlus API authorization configs
+	SMS          SMSConfig               // send mobile message config
+	OSS          OSSConfig               // OSS config
+	WeChatBot    bool                    // 是否启用微信机器人
+	SdConfigs    []StableDiffusionConfig // sd AI draw service pool
 
 	XXLConfig       XXLConfig
 	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
@@ -188,6 +186,7 @@ type SystemConfig struct {
 	ContextDeep   int  `json:"context_deep,omitempty"`
 
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
+	MjMode      string `json:"mj_mode"`       // midjourney 默认的API模式，relax, fast, turbo
 
 	IndexBgURL string `json:"index_bg_url"` // 前端首页背景图片
 	IndexNavs  []int  `json:"index_navs"`   // 首页显示的导航菜单

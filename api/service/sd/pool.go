@@ -10,6 +10,7 @@ package sd
 import (
 	"fmt"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store"
 	"geekai/store/model"
@@ -79,7 +80,7 @@ func (p *ServicePool) CheckTaskNotify() {
 	go func() {
 		logger.Info("Running Stable-Diffusion task notify checking ...")
 		for {
-			var message NotifyMessage
+			var message service.NotifyMessage
 			err := p.notifyQueue.LPop(&message)
 			if err != nil {
 				continue

@@ -64,18 +64,7 @@ TikaHost = "http://tika:9998"
        Bucket = "chatgpt-plus"
        SubDir = ""
        Domain = ""
-
-[[MjProxyConfigs]]
-  Enabled = true
-  ApiURL = "http://midjourney-proxy:8082"
-  ApiKey = "sk-geekmaster"
-
-[[MjPlusConfigs]]
-  Enabled = false
-  ApiURL = "https://api.chat-plus.net"
-  Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
-  ApiKey = "sk-xxx"
-
+      
 [[SdConfigs]]
   Enabled = false
   ApiURL = ""

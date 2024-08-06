@@ -10,6 +10,7 @@ package sd
 import (
 	"fmt"
 	"geekai/core/types"
+	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store"
@@ -21,6 +22,8 @@ import (
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
 )
+
+var logger = logger2.GetLogger()
 
 // SD 绘画服务
 
@@ -87,11 +90,11 @@ func (s *Service) Run() {
 			logger.Error("绘画任务执行失败：", err.Error())
 			// update the task progress
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
-				"progress": 101,
+				"progress": service.FailTaskProgress,
 				"err_msg":  err.Error(),
 			})
 			// 通知前端，任务失败
-			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Failed})
+			s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: service.TaskStatusFailed})
 			continue
 		}
 	}
@@ -206,7 +209,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 
 			// task finished
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", 100)
-			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Finished})
+			s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: service.TaskStatusFinished})
 			// 从 leveldb 中删除预览图片数据
 			_ = s.leveldb.Delete(task.Params.TaskId)
 			return nil
@@ -216,7 +219,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 			if err == nil && resp.Progress > 0 {
 				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", int(resp.Progress*100))
 				// 发送更新状态信号
-				s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Running})
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: service.TaskStatusRunning})
 				// 保存预览图片数据
 				if resp.CurrentImage != "" {
 					_ = s.leveldb.Put(task.Params.TaskId, resp.CurrentImage)
