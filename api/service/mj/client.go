@@ -50,12 +50,6 @@ type ImageRes struct {
 	Channel string `json:"channel,omitempty"`
 }
 
-type ErrRes struct {
-	Error struct {
-		Message string `json:"message"`
-	} `json:"error"`
-}
-
 type QueryRes struct {
 	Action  string `json:"action"`
 	Buttons []struct {
@@ -193,7 +187,6 @@ func (c *Client) Variation(task types.MjTask) (ImageRes, error) {
 
 func (c *Client) doRequest(body interface{}, apiPath string, channel string) (ImageRes, error) {
 	var res ImageRes
-	var errRes ErrRes
 	session := c.db.Session(&gorm.Session{}).Where("type", "mj").Where("enabled", true)
 	if channel != "" {
 		session = session.Where("api_url", channel)
@@ -215,20 +208,14 @@ func (c *Client) doRequest(body interface{}, apiPath string, channel string) (Im
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(body).
 		SetSuccessResult(&res).
-		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		errMsg := err.Error()
-		if r != nil {
-			errStr, _ := io.ReadAll(r.Body)
-			logger.Error("请求 API 出错：", string(errStr))
-			errMsg = errMsg + " " + string(errStr)
-		}
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", errMsg)
+		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
 	if r.IsErrorState() {
-		return ImageRes{}, fmt.Errorf("API 返回错误：%s", errRes.Error.Message)
+		errMsg, _ := io.ReadAll(r.Body)
+		return ImageRes{}, fmt.Errorf("API 返回错误：%s", string(errMsg))
 	}
 
 	// update the api key last used time

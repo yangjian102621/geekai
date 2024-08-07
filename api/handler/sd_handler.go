@@ -32,15 +32,15 @@ import (
 type SdJobHandler struct {
 	BaseHandler
 	redis     *redis.Client
-	pool      *sd.ServicePool
+	service   *sd.Service
 	uploader  *oss.UploaderManager
 	snowflake *service.Snowflake
 	leveldb   *store.LevelDB
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer, db *gorm.DB, service *sd.Service, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
 	return &SdJobHandler{
-		pool:      pool,
+		service:   service,
 		uploader:  manager,
 		snowflake: snowflake,
 		leveldb:   levelDB,
@@ -68,7 +68,7 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.pool.Clients.Put(uint(userId), client)
+	h.service.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
@@ -76,11 +76,6 @@ func (h *SdJobHandler) preCheck(c *gin.Context) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
-		return false
-	}
-
-	if !h.pool.HasAvailableService() {
-		resp.ERROR(c, "Stable-Diffusion 池子中没有没有可用的服务！")
 		return false
 	}
 
@@ -164,14 +159,14 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.pool.PushTask(types.SdTask{
+	h.service.PushTask(types.SdTask{
 		Id:     int(job.Id),
 		Type:   types.TaskImage,
 		Params: params,
 		UserId: userId,
 	})
 
-	client := h.pool.Clients.Get(uint(job.UserId))
+	client := h.service.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
@@ -326,11 +321,6 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
-	}
-
-	client := h.pool.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte(service.TaskStatusFinished))
 	}
 
 	resp.SUCCESS(c)

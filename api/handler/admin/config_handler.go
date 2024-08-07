@@ -12,7 +12,6 @@ import (
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
-	"geekai/service/sd"
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
@@ -27,14 +26,12 @@ type ConfigHandler struct {
 	handler.BaseHandler
 	levelDB        *store.LevelDB
 	licenseService *service.LicenseService
-	sdServicePool  *sd.ServicePool
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService, sdPool *sd.ServicePool) *ConfigHandler {
+func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService) *ConfigHandler {
 	return &ConfigHandler{
 		BaseHandler:    handler.BaseHandler{App: app, DB: db},
 		levelDB:        levelDB,
-		sdServicePool:  sdPool,
 		licenseService: licenseService,
 	}
 }
