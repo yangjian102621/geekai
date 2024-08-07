@@ -392,6 +392,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/order/")
 			group.POST("list", h.List)
 			group.GET("remove", h.Remove)
+			group.GET("clear", h.Clear)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
 			group := s.Engine.Group("/api/order/")

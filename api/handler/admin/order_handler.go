@@ -93,10 +93,20 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 		}
 
 		err := h.DB.Unscoped().Where("id = ?", id).Delete(&model.Order{}).Error
-		if res.Error != nil {
+		if err != nil {
 			resp.ERROR(c, err.Error())
 			return
 		}
+	}
+	resp.SUCCESS(c)
+}
+
+func (h *OrderHandler) Clear(c *gin.Context) {
+
+	err := h.DB.Unscoped().Where("status <> ?", 2).Where("pay_time", 0).Delete(&model.Order{}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
 	resp.SUCCESS(c)
 }
