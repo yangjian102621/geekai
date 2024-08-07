@@ -199,13 +199,11 @@ func main() {
 		}),
 
 		// Stable Diffusion 机器人
-		fx.Provide(sd.NewServicePool),
-		fx.Invoke(func(pool *sd.ServicePool, config *types.AppConfig) {
-			pool.InitServices(config.SdConfigs)
-			if pool.HasAvailableService() {
-				pool.CheckTaskNotify()
-				pool.CheckTaskStatus()
-			}
+		fx.Provide(sd.NewService),
+		fx.Invoke(func(s *sd.Service, config *types.AppConfig) {
+			s.Run()
+			s.CheckTaskStatus()
+			s.CheckTaskNotify()
 		}),
 
 		fx.Provide(suno.NewService),

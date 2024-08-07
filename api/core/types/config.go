@@ -17,15 +17,14 @@ type AppConfig struct {
 	Session      Session
 	AdminSession Session
 	ProxyURL     string
-	MysqlDns     string                  // mysql 连接地址
-	StaticDir    string                  // 静态资源目录
-	StaticUrl    string                  // 静态资源 URL
-	Redis        RedisConfig             // redis 连接信息
-	ApiConfig    ApiConfig               // ChatPlus API authorization configs
-	SMS          SMSConfig               // send mobile message config
-	OSS          OSSConfig               // OSS config
-	WeChatBot    bool                    // 是否启用微信机器人
-	SdConfigs    []StableDiffusionConfig // sd AI draw service pool
+	MysqlDns     string      // mysql 连接地址
+	StaticDir    string      // 静态资源目录
+	StaticUrl    string      // 静态资源 URL
+	Redis        RedisConfig // redis 连接信息
+	ApiConfig    ApiConfig   // ChatPlus API authorization configs
+	SMS          SMSConfig   // send mobile message config
+	OSS          OSSConfig   // OSS config
+	WeChatBot    bool        // 是否启用微信机器人
 
 	XXLConfig       XXLConfig
 	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
@@ -49,27 +48,6 @@ type ApiConfig struct {
 	ApiURL string
 	AppId  string
 	Token  string
-}
-
-type MjProxyConfig struct {
-	Enabled bool
-	ApiURL  string // api 地址
-	Mode    string // 绘画模式，可选值：fast/turbo/relax
-	ApiKey  string
-}
-
-type StableDiffusionConfig struct {
-	Enabled bool
-	Model   string // 模型名称
-	ApiURL  string
-	ApiKey  string
-}
-
-type MjPlusConfig struct {
-	Enabled bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
-	ApiURL  string // api 地址
-	Mode    string // 绘画模式，可选值：fast/turbo/relax
-	ApiKey  string
 }
 
 type AlipayConfig struct {
