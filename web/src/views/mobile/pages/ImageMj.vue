@@ -280,7 +280,7 @@ import {showConfirmDialog, showFailToast, showImagePreview, showNotify, showSucc
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {getSessionId} from "@/store/session";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {Delete} from "@element-plus/icons-vue";
 import {showLoginDialog} from "@/utils/libs";
@@ -366,7 +366,7 @@ onUnmounted(() => {
 
 const mjPower = ref(1)
 const mjActionPower = ref(1)
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   mjPower.value = res.data["mj_power"]
   mjActionPower.value = res.data["mj_action_power"]
 }).catch(e => {

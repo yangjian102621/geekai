@@ -208,7 +208,7 @@ import {Delete, InfoFilled, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
@@ -263,7 +263,7 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     dallPower.value = res.data["dall_power"]
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)

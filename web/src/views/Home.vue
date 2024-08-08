@@ -138,7 +138,7 @@ import {onMounted, ref, watch} from "vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {UserFilled} from "@element-plus/icons-vue";
-import {checkSession} from "@/action/session";
+import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
 import {removeUserToken} from "@/store/session";
 import LoginDialog from "@/components/LoginDialog.vue";
 import {useSharedStore} from "@/store/sharedata";
@@ -185,7 +185,7 @@ const changeNav = (item) => {
 }
 
 onMounted(() => {
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     logo.value = res.data.logo
     title.value = res.data.title
   }).catch(e => {
@@ -204,7 +204,7 @@ onMounted(() => {
     ElMessage.error("获取系统菜单失败：" + e.message)
   })
 
-  httpGet("/api/config/license").then(res => {
+  getLicenseInfo().then(res => {
     license.value = res.data
   }).catch(e => {
     license.value = {de_copy: false}

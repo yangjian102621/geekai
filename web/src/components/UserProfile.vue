@@ -50,7 +50,7 @@ import {ElMessage} from "element-plus";
 import {Plus} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {dateFormat} from "@/utils/libs";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 
 const user = ref({
   vip: false,

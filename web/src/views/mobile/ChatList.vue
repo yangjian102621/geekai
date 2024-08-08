@@ -80,7 +80,7 @@
 import {ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {showConfirmDialog, showFailToast, showSuccessToast} from "vant";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 import {router} from "@/router";
 import {removeArrayItem, showLoginDialog} from "@/utils/libs";
 

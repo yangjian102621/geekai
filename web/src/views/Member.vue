@@ -160,7 +160,7 @@ import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
 import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
 import BindMobile from "@/components/ResetAccount.vue";
@@ -216,7 +216,7 @@ onMounted(() => {
     ElMessage.error("获取产品套餐失败：" + e.message)
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     rewardImg.value = res.data['reward_img']
     enableReward.value = res.data['enabled_reward']
     orderPayInfoText.value = res.data['order_pay_info_text']

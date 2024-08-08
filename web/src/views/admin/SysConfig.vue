@@ -363,7 +363,14 @@
           </div>
         </el-form-item>
       </el-tab-pane>
-
+      <el-tab-pane label="思维导图" name="mark_map">
+        <md-editor class="mgb20" v-model="system['mark_map_text']" @on-upload-img="onUploadImg"/>
+        <el-form-item>
+          <div style="padding-top: 10px;margin-left: 150px;">
+            <el-button type="primary" @click="save('system')">保存</el-button>
+          </div>
+        </el-form-item>
+      </el-tab-pane>
       <el-tab-pane label="菜单配置" name="menu">
         <Menu/>
       </el-tab-pane>

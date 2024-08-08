@@ -217,7 +217,7 @@ import {onMounted, onUnmounted, ref} from "vue"
 import {Delete} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {
@@ -349,7 +349,7 @@ onMounted(() => {
     showNotify({type: 'danger', message: '复制失败', duration: 2000})
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     sdPower.value = res.data.sd_power
     params.value.neg_prompt = res.data.sd_neg_prompt
   }).catch(e => {

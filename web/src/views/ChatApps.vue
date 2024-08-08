@@ -59,7 +59,7 @@
 import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
 import {useRouter} from "vue-router";
 import {useSharedStore} from "@/store/sharedata";
