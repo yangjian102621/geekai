@@ -24,7 +24,6 @@ type AppConfig struct {
 	ApiConfig    ApiConfig   // ChatPlus API authorization configs
 	SMS          SMSConfig   // send mobile message config
 	OSS          OSSConfig   // OSS config
-	WeChatBot    bool        // 是否启用微信机器人
 
 	XXLConfig       XXLConfig
 	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
