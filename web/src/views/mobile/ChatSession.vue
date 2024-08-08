@@ -132,7 +132,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import ChatPrompt from "@/components/mobile/ChatPrompt.vue";
 import ChatReply from "@/components/mobile/ChatReply.vue";
 import {getSessionId, getUserToken} from "@/store/session";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 import Clipboard from "clipboard";
 import {showLoginDialog} from "@/utils/dialog";
 

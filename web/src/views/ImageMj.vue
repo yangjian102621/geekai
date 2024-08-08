@@ -608,7 +608,7 @@ import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
@@ -802,7 +802,7 @@ const initData = () => {
 
 const mjPower = ref(1)
 const mjActionPower = ref(1)
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   mjPower.value = res.data["mj_power"]
   mjActionPower.value = res.data["mj_action_power"]
 }).catch(e => {

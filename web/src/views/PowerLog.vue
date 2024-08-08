@@ -71,7 +71,7 @@ import {Search} from "@element-plus/icons-vue";
 import Clipboard from "clipboard";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 
 const items = ref([])
 const total = ref(0)

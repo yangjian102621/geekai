@@ -277,7 +277,7 @@ import {compact} from "lodash";
 import {httpGet, httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import Generating from "@/components/ui/Generating.vue";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {formatTime} from "@/utils/libs";
 import Clipboard from "clipboard";

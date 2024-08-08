@@ -491,7 +491,7 @@ import {Delete, DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/i
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {useSharedStore} from "@/store/sharedata";
@@ -600,7 +600,7 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     sdPower.value = res.data.sd_power
     params.value.neg_prompt = res.data.sd_neg_prompt
   }).catch(e => {

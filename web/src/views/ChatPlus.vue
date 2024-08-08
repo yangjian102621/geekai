@@ -213,7 +213,7 @@ import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import Welcome from "@/components/Welcome.vue";
 import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
@@ -221,6 +221,7 @@ import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
 import {showMessageError} from "@/utils/dialog";
+import hl from "highlight.js";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -259,12 +260,18 @@ if (isMobile()) {
 }
 
 // 获取系统配置
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   title.value = res.data.title
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
 })
 
+const md = require('markdown-it')({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true
+});
 // 获取系统公告
 httpGet("/api/config/get?key=notice").then(res => {
   try {

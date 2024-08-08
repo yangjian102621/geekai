@@ -23,7 +23,7 @@ import AdminHeader from "@/components/admin/AdminHeader.vue";
 import AdminSidebar from "@/components/admin/AdminSidebar.vue";
 import AdminTags from "@/components/admin/AdminTags.vue";
 import {useRouter} from "vue-router";
-import {checkAdminSession} from "@/action/session";
+import {checkAdminSession} from "@/store/cache";
 import {ref} from "vue";
 import {getAdminTheme, setAdminTheme} from "@/store/system";
 

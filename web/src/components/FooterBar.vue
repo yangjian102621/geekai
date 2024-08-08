@@ -16,6 +16,7 @@
 import {ref} from "vue";
 import {httpGet} from "@/utils/http";
 import {showMessageError} from "@/utils/dialog";
+import {getLicenseInfo, getSystemInfo} from "@/store/cache";
 
 const title = ref("")
 const version = ref(process.env.VUE_APP_VERSION)
@@ -30,14 +31,14 @@ const props = defineProps({
 });
 
 // 获取系统配置
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   title.value = res.data.title??process.env.VUE_APP_TITLE
   copyRight.value = res.data.copyright.length>1?res.data.copyright:'极客学长 © 2023 - '+new Date().getFullYear()+' All rights reserved.'
 }).catch(e => {
   showMessageError("获取系统配置失败：" + e.message)
 })
 
-httpGet("/api/config/license").then(res => {
+getLicenseInfo().then(res => {
   license.value = res.data
 }).catch(e => {
   showMessageError("获取 License 失败：" + e.message)

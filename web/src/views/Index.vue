@@ -62,7 +62,7 @@ import FooterBar from "@/components/FooterBar.vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {isMobile} from "@/utils/libs";
-import {checkSession} from "@/action/session";
+import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
 
 const router = useRouter()
 
@@ -131,7 +131,7 @@ const color = btnColors.value[Math.floor(Math.random() * btnColors.value.length)
 const theme = ref({bgColor: "#ffffff", btnBgColor: color.bgColor, btnTextColor: color.textColor, textColor: "#ffffff", imageBg:true})
 
 onMounted(() => {
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     title.value = res.data.title
     logo.value = res.data.logo
     if (res.data.index_bg_url === 'color') {
@@ -155,7 +155,7 @@ onMounted(() => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
 
-  httpGet("/api/config/license").then(res => {
+  getLicenseInfo().then(res => {
     license.value = res.data
   }).catch(e => {
     license.value = {de_copy: false}
