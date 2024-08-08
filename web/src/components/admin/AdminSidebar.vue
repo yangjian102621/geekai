@@ -118,8 +118,8 @@ const items = [
   },
   {
     icon: 'reward',
-    index: '/admin/reward',
-    title: '众筹管理',
+    index: '/admin/redeem',
+    title: '兑换码',
   },
   {
     icon: 'control',

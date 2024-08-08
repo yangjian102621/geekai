@@ -38,7 +38,6 @@ func NewDefaultConfig() *types.AppConfig {
 				BasePath: "./static/upload",
 			},
 		},
-		WeChatBot:    false,
 		AlipayConfig: types.AlipayConfig{Enabled: false, SandBox: false},
 	}
 }

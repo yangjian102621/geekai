@@ -24,7 +24,6 @@ import (
 	"geekai/service/sd"
 	"geekai/service/sms"
 	"geekai/service/suno"
-	"geekai/service/wx"
 	"geekai/store"
 	"io"
 	"log"
@@ -131,7 +130,7 @@ func main() {
 		fx.Provide(chatimpl.NewChatHandler),
 		fx.Provide(handler.NewUploadHandler),
 		fx.Provide(handler.NewSmsHandler),
-		fx.Provide(handler.NewRewardHandler),
+		fx.Provide(handler.NewRedeemHandler),
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
@@ -147,7 +146,7 @@ func main() {
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
 		fx.Provide(admin.NewChatRoleHandler),
-		fx.Provide(admin.NewRewardHandler),
+		fx.Provide(admin.NewRedeemHandler),
 		fx.Provide(admin.NewDashboardHandler),
 		fx.Provide(admin.NewChatModelHandler),
 		fx.Provide(admin.NewProductHandler),
@@ -175,17 +174,6 @@ func main() {
 		fx.Provide(service.NewLicenseService),
 		fx.Invoke(func(licenseService *service.LicenseService) {
 			licenseService.SyncLicense()
-		}),
-
-		// 微信机器人服务
-		fx.Provide(wx.NewWeChatBot),
-		fx.Invoke(func(config *types.AppConfig, bot *wx.Bot) {
-			if config.WeChatBot {
-				err := bot.Run()
-				if err != nil {
-					logger.Error("微信登录失败：", err)
-				}
-			}
 		}),
 
 		// MidJourney service pool
@@ -276,8 +264,8 @@ func main() {
 			group.GET("slide/get", h.SlideGet)
 			group.POST("slide/check", h.SlideCheck)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
-			group := s.Engine.Group("/api/reward/")
+		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
+			group := s.Engine.Group("/api/redeem/")
 			group.POST("verify", h.Verify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
@@ -348,9 +336,11 @@ func main() {
 			group.POST("set", h.Set)
 			group.GET("remove", h.Remove)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
-			group := s.Engine.Group("/api/admin/reward/")
+		fx.Invoke(func(s *core.AppServer, h *admin.RedeemHandler) {
+			group := s.Engine.Group("/api/admin/redeem/")
 			group.GET("list", h.List)
+			group.POST("create", h.Create)
+			group.POST("set", h.Set)
 			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {

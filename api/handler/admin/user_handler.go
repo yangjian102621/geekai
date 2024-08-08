@@ -225,7 +225,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 	// 删除算力日志
 	h.DB.Where("user_id = ?", id).Delete(&model.PowerLog{})
 	// 删除众筹日志
-	h.DB.Where("user_id = ?", id).Delete(&model.Reward{})
+	h.DB.Where("user_id = ?", id).Delete(&model.Redeem{})
 	// 删除绘图任务
 	h.DB.Where("user_id = ?", id).Delete(&model.MidJourneyJob{})
 	h.DB.Where("user_id = ?", id).Delete(&model.SdJob{})

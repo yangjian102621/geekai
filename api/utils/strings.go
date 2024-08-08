@@ -8,14 +8,16 @@ package utils
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 	"unicode"
 
 	"golang.org/x/crypto/sha3"
+	rand2 "math/rand"
 )
 
 // RandString generate rand string with specified length
@@ -23,7 +25,7 @@ func RandString(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyz"
 	data := []byte(str)
 	var result []byte
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand2.New(rand2.NewSource(time.Now().UnixNano()))
 	for i := 0; i < length; i++ {
 		result = append(result, data[r.Intn(len(data))])
 	}
@@ -34,8 +36,8 @@ func RandomNumber(bit int) int {
 	minNum := intPow(10, bit-1)
 	maxNum := intPow(10, bit) - 1
 
-	rand.NewSource(time.Now().UnixNano())
-	return rand.Intn(maxNum-minNum+1) + minNum
+	rand2.NewSource(time.Now().UnixNano())
+	return rand2.Intn(maxNum-minNum+1) + minNum
 }
 
 func intPow(x, y int) int {
@@ -123,4 +125,12 @@ func HasChinese(text string) bool {
 		}
 	}
 	return false
+}
+
+func GenRedeemCode(codeLength int) (string, error) {
+	bytes := make([]byte, codeLength/2)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
