@@ -78,7 +78,7 @@ func (h *RedeemHandler) Verify(c *gin.Context) {
 
 	// 记录算力充值日志
 	var user model.User
-	err = h.DB.Where("id", userId).First(&user).Error
+	err = tx.Where("id", userId).First(&user).Error
 	if err != nil {
 		tx.Rollback()
 		resp.ERROR(c, err.Error())
@@ -88,7 +88,7 @@ func (h *RedeemHandler) Verify(c *gin.Context) {
 	h.DB.Create(&model.PowerLog{
 		UserId:    userId,
 		Username:  user.Username,
-		Type:      types.PowerReward,
+		Type:      types.PowerRedeem,
 		Amount:    item.Power,
 		Balance:   user.Power,
 		Mark:      types.PowerAdd,

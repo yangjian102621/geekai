@@ -58,7 +58,7 @@ services:
 
     # 后端 API 程序
   geekai-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.1.1-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.1.2-amd64
     container_name: geekai-api
     restart: always
     depends_on:
@@ -80,7 +80,7 @@ services:
 
   # 前端应用
   geekai-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.1.1-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.1.2-amd64
     container_name: geekai-web
     restart: always
     depends_on:

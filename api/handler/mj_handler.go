@@ -472,11 +472,11 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 			return
 		}
 		var user model.User
-		h.DB.Where("id = ?", job.UserId).First(&user)
+		tx.Where("id = ?", job.UserId).First(&user)
 		err = tx.Create(&model.PowerLog{
 			UserId:    user.Id,
 			Username:  user.Username,
-			Type:      types.PowerConsume,
+			Type:      types.PowerRefund,
 			Amount:    job.Power,
 			Balance:   user.Power,
 			Mark:      types.PowerAdd,

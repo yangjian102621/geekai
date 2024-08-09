@@ -90,7 +90,7 @@ const (
 	PowerConsume  = PowerType(2) // 消费
 	PowerRefund   = PowerType(3) // 任务（SD,MJ）执行失败，退款
 	PowerInvite   = PowerType(4) // 邀请奖励
-	PowerReward   = PowerType(5) // 众筹
+	PowerRedeem   = PowerType(5) // 众筹
 	PowerGift     = PowerType(6) // 系统赠送
 )
 
@@ -102,8 +102,8 @@ func (t PowerType) String() string {
 		return "消费"
 	case PowerRefund:
 		return "退款"
-	case PowerReward:
-		return "众筹"
+	case PowerRedeem:
+		return "兑换"
 
 	}
 	return "其他"

@@ -16,6 +16,7 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id">
+        <el-table-column prop="name" label="名称"/>
         <el-table-column prop="code" label="兑换码">
           <template #default="scope">
             <span>{{ substr(scope.row.code, 24) }}</span>
@@ -26,11 +27,10 @@
         </el-table-column>
         <el-table-column label="兑换人">
           <template #default="scope">
-            <span v-if="scope.row['username'] !== ''">{{ dateFormat(scope.row['username']) }}</span>
+            <span v-if="scope.row['username'] !== ''">{{ scope.row['username'] }}</span>
             <el-tag v-else>未兑换</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="user_id" label="兑换人ID"/>
         <el-table-column prop="power" label="算力"/>
 
         <el-table-column label="生成时间">
@@ -48,7 +48,7 @@
 
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
-            <el-switch v-model="scope.row['enabled']" @change="set('enabled',scope.row)"/>
+            <el-switch v-model="scope.row['enabled']" @change="set('enabled',scope.row)" :disabled="scope.row['redeemed_at']>0"/>
           </template>
         </el-table-column>
 
