@@ -80,7 +80,7 @@ export function getLicenseInfo() {
         httpGet('/api/config/license').then(res => {
             item.data = res
             // cache expires after 10 minutes
-            item.expire = Date.now() + 1000 * 60 * 60
+            item.expire = Date.now() + 1000 * 60 * 10
             Storage.set(licenseInfoKey, item)
             resolve(item.data)
         }).catch(err => {

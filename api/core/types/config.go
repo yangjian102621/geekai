@@ -143,10 +143,6 @@ type SystemConfig struct {
 	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机（mobile），邮箱注册（email），账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
-	RewardImg     string  `json:"reward_img,omitempty"`     // 众筹收款二维码地址
-	EnabledReward bool    `json:"enabled_reward,omitempty"` // 启用众筹功能
-	PowerPrice    float64 `json:"power_price,omitempty"`    // 算力单价
-
 	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
 	VipInfoText     string `json:"vip_info_text,omitempty"`     // 会员页面充值说明
 	DefaultModels   []int  `json:"default_models,omitempty"`    // 默认开通的 AI 模型
