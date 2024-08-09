@@ -8,7 +8,6 @@ require (
 	github.com/BurntSushi/toml v1.1.0
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.405
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
-	github.com/eatmoreapple/openwechat v1.2.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.0.0
@@ -30,7 +29,6 @@ require (
 	github.com/go-pay/gopay v1.5.101
 	github.com/google/go-tika v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.26
-	github.com/mojocn/base64Captcha v1.3.6
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
@@ -45,7 +43,6 @@ require (
 	github.com/go-pay/util v0.0.2 // indirect
 	github.com/go-pay/xlog v0.0.2 // indirect
 	github.com/go-pay/xtime v0.0.2 // indirect
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect

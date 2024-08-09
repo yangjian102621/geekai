@@ -482,6 +482,11 @@ func main() {
 			group.GET("play", h.Play)
 			group.POST("lyric", h.Lyric)
 		}),
+		fx.Provide(handler.NewTestHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
+			group := s.Engine.Group("/api/test")
+			group.Any("sse", h.PostTest, h.SseTest)
+		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
 				err := s.Run(db)
