@@ -13,7 +13,7 @@
               <el-button type="primary" @click="showBindMobileDialog = true">更改账号</el-button>
             </el-col>
             <el-col :span="24">
-              <el-button type="success" v-if="enableReward" @click="showRedeemVerifyDialog = true">兑换码核销
+              <el-button type="success" @click="showRedeemVerifyDialog = true">兑换码核销
               </el-button>
             </el-col>
 
