@@ -9,7 +9,10 @@
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
         <el-table-column prop="name" label="产品名称">
           <template #default="scope">
-            <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
+            <span class="sort" :data-id="scope.row.id">
+              <i class="iconfont icon-drag"></i>
+              {{ scope.row.name }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="price" label="产品价格"/>
@@ -224,6 +227,14 @@ const remove = function (row) {
 
     .el-icon {
       margin-right: 5px;
+    }
+  }
+
+  .sort {
+    cursor move
+    .iconfont {
+      position relative
+      top 1px
     }
   }
 
