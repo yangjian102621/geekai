@@ -161,7 +161,7 @@ const docsURL = ref(process.env.VUE_APP_DOCS_URL)
 const gitURL = ref(process.env.VUE_APP_GIT_URL)
 
 const store = useSharedStore();
-const show = ref(false)
+const show = ref(true)
 watch(() => store.showLoginDialog, (newValue) => {
   show.value = newValue
 });
@@ -224,11 +224,10 @@ const init = () => {
 const logout = function () {
   httpGet('/api/user/logout').then(() => {
     removeUserToken()
-    router.push("/login")
-    // store.setShowLoginDialog(true)
-    // loginUser.value = {}
-    // // 刷新组件
-    // routerViewKey.value += 1
+    store.setShowLoginDialog(true)
+    loginUser.value = {}
+    // 刷新组件
+    routerViewKey.value += 1
   }).catch(() => {
     ElMessage.error('注销失败！');
   })

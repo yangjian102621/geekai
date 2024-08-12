@@ -51,12 +51,21 @@
             <el-button class="login-btn" type="primary" size="large" @click="submitLogin">登录</el-button>
           </el-col>
           <el-col :span="12">
-            <div class="text">
+            <span class="text">
               还没有账号？
               <el-tag @click="login = false">注册</el-tag>
-            </div>
+            </span>
+            <el-button type="info" class="forget" size="small" @click="login = false">忘记密码？</el-button>
           </el-col>
+        </el-row>
 
+        <el-row v-if="wechatLoginURL !== ''">
+          <div class="c-login">
+            <div class="text">其他登录方式：</div>
+            <div class="login-type">
+              <a class="wechat-login" :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+            </div>
+          </div>
         </el-row>
       </el-form>
     </div>
@@ -221,8 +230,8 @@
 </template>
 
 <script setup>
-import {ref, watch} from "vue"
-import {httpPost} from "@/utils/http";
+import {onMounted, ref, watch} from "vue"
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
@@ -235,7 +244,7 @@ import {getSystemInfo} from "@/store/cache";
 const props = defineProps({
   show: Boolean,
 });
-const showDialog = ref(false)
+const showDialog = ref(true)
 watch(() => props.show, (newValue) => {
   showDialog.value = newValue
 })
@@ -252,35 +261,45 @@ const enableMobile = ref(false)
 const enableEmail = ref(false)
 const enableUser = ref(false)
 const enableRegister = ref(false)
+const wechatLoginURL = ref('')
 const activeName = ref("")
 const wxImg = ref("/images/wx.png")
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['hide', 'success']);
 
-getSystemInfo().then(res => {
-  if (res.data) {
-    const registerWays = res.data['register_ways']
-    if (arrayContains(registerWays, "mobile")) {
-      enableMobile.value = true
-      activeName.value = activeName.value === "" ? "mobile" : activeName.value
+onMounted(() => {
+  const returnURL = `${location.protocol}//${location.host}/login/callback`
+  httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
+    wechatLoginURL.value = res.data.url
+  }).catch(e => {
+    console.error(e)
+  })
+
+  getSystemInfo().then(res => {
+    if (res.data) {
+      const registerWays = res.data['register_ways']
+      if (arrayContains(registerWays, "mobile")) {
+        enableMobile.value = true
+        activeName.value = activeName.value === "" ? "mobile" : activeName.value
+      }
+      if (arrayContains(registerWays, "email")) {
+        enableEmail.value = true
+        activeName.value = activeName.value === "" ? "email" : activeName.value
+      }
+      if (arrayContains(registerWays, "username")) {
+        enableUser.value = true
+        activeName.value = activeName.value === "" ? "username" : activeName.value
+      }
+      // 是否启用注册
+      enableRegister.value = res.data['enabled_register']
+      // 使用后台上传的客服微信二维码
+      if (res.data['wechat_card_url'] !== '') {
+        wxImg.value = res.data['wechat_card_url']
+      }
     }
-    if (arrayContains(registerWays, "email")) {
-      enableEmail.value = true
-      activeName.value = activeName.value === "" ? "email" : activeName.value
-    }
-    if (arrayContains(registerWays, "username")) {
-      enableUser.value = true
-      activeName.value = activeName.value === "" ? "username" : activeName.value
-    }
-    // 是否启用注册
-    enableRegister.value = res.data['enabled_register']
-    // 使用后台上传的客服微信二维码
-    if (res.data['wechat_card_url'] !== '') {
-      wxImg.value = res.data['wechat_card_url']
-    }
-  }
-}).catch(e => {
-  ElMessage.error("获取系统配置失败：" + e.message)
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
 })
 
 // 登录操作
@@ -388,7 +407,7 @@ const close = function () {
     .btn-row {
       display flex
 
-      .el-button {
+      .login-btn {
         width 100%
       }
 
@@ -400,6 +419,36 @@ const close = function () {
         }
       }
 
+      .forget {
+        margin-left 10px
+      }
+    }
+
+    .c-login {
+      display flex
+      padding-top 20px
+
+      .text {
+        font-size 16px
+        color #a1a1a1
+        display: flex;
+        align-items: center;
+      }
+      .login-type {
+        padding 15px
+        display flex
+        justify-content center
+
+        .iconfont {
+          font-size 20px
+          background: #E9F1F6;
+          padding: 8px;
+          border-radius: 50%;
+        }
+        .iconfont.icon-wechat {
+          color #0bc15f
+        }
+      }
     }
   }
 

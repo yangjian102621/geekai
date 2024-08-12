@@ -107,6 +107,24 @@
                   </div>
                 </el-form-item>
 
+                <el-form-item label="启用验证码" prop="enabled_verify">
+                  <div class="tip-input">
+                    <el-switch v-model="system['enabled_verify']"/>
+                    <div class="info">
+                      <el-tooltip
+                          effect="dark"
+                          content="启用验证码之后，注册登录都会加载行为验证码，增加安全性。此功能需要购买验证码服务才会生效。"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </div>
+                </el-form-item>
+
                 <el-form-item label="注册方式" prop="register_ways">
                   <el-checkbox-group v-model="system['register_ways']">
                     <el-checkbox value="mobile">手机注册</el-checkbox>

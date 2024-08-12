@@ -221,9 +221,8 @@ import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
 import {showMessageError} from "@/utils/dialog";
-import hl from "highlight.js";
 
-const title = ref('ChatGPT-智能助手');
+const title = ref('GeekAI-智能助手');
 const models = ref([])
 const modelID = ref(0)
 const chatData = ref([]);
