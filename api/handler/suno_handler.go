@@ -94,6 +94,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefTaskId:    data.RefTaskId,
 		ExtendSecs:   data.ExtendSecs,
 		Power:        h.App.SysConfig.SunoPower,
+		SongId:       utils.RandString(32),
 	}
 	if data.Lyrics != "" {
 		job.Prompt = data.Lyrics
@@ -210,7 +211,42 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 		return
 	}
 	// 删除任务
-	h.DB.Delete(&job)
+	tx := h.DB.Begin()
+	if err := tx.Delete(&job).Error; err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 如果任务未完成，或者任务失败，则恢复用户算力
+	if job.Progress != 100 {
+		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+		var user model.User
+		tx.Where("id = ?", job.UserId).First(&user)
+		err = tx.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerRefund,
+			Amount:    job.Power,
+			Balance:   user.Power,
+			Mark:      types.PowerAdd,
+			Model:     job.ModelName,
+			Remark:    fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+			CreatedAt: time.Now(),
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	tx.Commit()
+
 	// 删除文件
 	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)
 	_ = h.uploader.GetUploadHandler().Delete(job.AudioURL)

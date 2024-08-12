@@ -53,7 +53,7 @@ import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {setAdminToken} from "@/store/session";
-import {checkAdminSession} from "@/action/session";
+import {checkAdminSession, getSystemInfo} from "@/store/cache";
 
 const router = useRouter();
 const title = ref('Geek-AI Console');
@@ -67,7 +67,7 @@ checkAdminSession().then(() => {
 })
 
 // 加载系统配置
-httpGet('/api/config/get?key=system').then(res => {
+getSystemInfo().then(res => {
   title.value = res.data.admin_title
   logo.value = res.data.logo
 }).catch(e => {

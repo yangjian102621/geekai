@@ -81,10 +81,9 @@ func (h *ChatRoleHandler) UpdateRole(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("chat_roles_json", utils.JsonEncode(data.Keys))
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err = h.DB.Model(&model.User{}).Where("id = ?", user.Id).UpdateColumn("chat_roles_json", utils.JsonEncode(data.Keys)).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 

@@ -23,9 +23,11 @@ CREATE TABLE `chatgpt_suno_jobs` (
                                      `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
                                      `play_times` int DEFAULT NULL COMMENT '播放次数',
                                      `created_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Suno 任务表';
-ALTER TABLE `chatgpt_suno_jobs` MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='MidJourney 任务表';
 
 ALTER TABLE `chatgpt_suno_jobs` ADD PRIMARY KEY (`id`);
+ALTER TABLE `chatgpt_suno_jobs` ADD UNIQUE(`song_id`);
+
+-- 删除字段
 ALTER TABLE `chatgpt_api_keys` DROP `platform`;
 ALTER TABLE `chatgpt_chat_models` DROP `platform`;

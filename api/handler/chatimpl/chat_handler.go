@@ -116,8 +116,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		MaxTokens:   chatModel.MaxTokens,
 		MaxContext:  chatModel.MaxContext,
 		Temperature: chatModel.Temperature,
-		KeyId:       chatModel.KeyId,
-		Platform:    chatModel.Platform}
+		KeyId:       chatModel.KeyId}
 	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
 
 	go func() {
@@ -432,7 +431,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {
-		h.DB.Where("platform", session.Model.Platform).Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
+		h.DB.Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
 	}
 	if apiKey.Id == 0 {
 		return nil, errors.New("no available key, please import key")
@@ -469,8 +468,10 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	} else {
 		client = http.DefaultClient
 	}
-	logger.Debugf("Sending %s request, Channel:%s, API KEY:%s, PROXY: %s, Model: %s", session.Model.Platform, apiKey.ApiURL, apiURL, apiKey.ProxyURL, req.Model)
+	logger.Debugf("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, req.Model)
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
+	// 更新API KEY 最后使用时间
+	h.DB.Model(&model.ApiKey{}).Where("id", apiKey.Id).UpdateColumn("last_used_at", time.Now().Unix())
 	return client.Do(request)
 }
 

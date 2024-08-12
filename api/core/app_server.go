@@ -225,7 +225,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/payment/doPay" ||
 		c.Request.URL.Path == "/api/payment/payWays" ||
 		c.Request.URL.Path == "/api/suno/client" ||
-		c.Request.URL.Path == "/api/suno/Detail" ||
+		c.Request.URL.Path == "/api/suno/detail" ||
 		c.Request.URL.Path == "/api/suno/play" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||

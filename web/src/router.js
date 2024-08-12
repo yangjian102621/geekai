@@ -6,8 +6,6 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import {createRouter, createWebHistory} from "vue-router";
-import {ref} from "vue";
-import {httpGet} from "@/utils/http";
 
 const routes = [
     {
@@ -188,10 +186,10 @@ const routes = [
                 component: () => import('@/views/admin/Order.vue'),
             },
             {
-                path: '/admin/reward',
-                name: 'admin-reward',
-                meta: {title: '众筹管理'},
-                component: () => import('@/views/admin/Reward.vue'),
+                path: '/admin/redeem',
+                name: 'admin-redeem',
+                meta: {title: '兑换码管理'},
+                component: () => import('@/views/admin/Redeem.vue'),
             },
             {
                 path: '/admin/loginLog',

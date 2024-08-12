@@ -2,14 +2,7 @@
   <div class="container model-list" v-loading="loading">
 
     <div class="handle-box">
-      <el-select v-model="query.platform" placeholder="平台" class="handle-input">
-        <el-option
-            v-for="item in platforms"
-            :key="item.value"
-            :label="item.name"
-            :value="item.value"
-        />
-      </el-select>
+      <el-input v-model="query.name" placeholder="模型名称" class="handle-input" />
 
       <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
@@ -17,7 +10,15 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
-        <el-table-column prop="name" label="模型名称"/>
+        <el-table-column type="selection" width="38"></el-table-column>
+        <el-table-column prop="name" label="模型名称">
+          <template #default="scope">
+            <span class="sort" :data-id="scope.row.id">
+              <i class="iconfont icon-drag"></i>
+              {{ scope.row.name }}
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column prop="value" label="模型值">
           <template #default="scope">
             <span>{{ scope.row.value }}</span>
@@ -181,15 +182,15 @@ import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
 import {DocumentCopy, InfoFilled, Plus,Search} from "@element-plus/icons-vue";
 import {Sortable} from "sortablejs";
 import ClipboardJS from "clipboard";
+import Default from "md-editor-v3";
 
 // 变量定义
 const items = ref([])
-const query = ref({platform:''})
+const query = ref({name:''})
 const item = ref({})
 const showDialog = ref(false)
 const title = ref("")
 const rules = reactive({
-  platform: [{required: true, message: '请选择平台', trigger: 'change',}],
   name: [{required: true, message: '请输入模型名称', trigger: 'change',}],
   value: [{required: true, message: '请输入模型值', trigger: 'change',}]
 })
@@ -339,6 +340,14 @@ const remove = function (row) {
 
   .el-select {
     width: 100%
+  }
+
+  .sort {
+    cursor move
+    .iconfont {
+      position relative
+      top 1px
+    }
   }
 
   .pagination {

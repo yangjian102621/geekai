@@ -69,7 +69,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {isMobile} from "@/utils/libs";
-import {checkSession} from "@/action/session";
+import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
 import {setUserToken} from "@/store/session";
 import ResetPass from "@/components/ResetPass.vue";
 import {showMessageError} from "@/utils/dialog";
@@ -85,14 +85,14 @@ const wechatLoginURL = ref('')
 
 onMounted(() => {
   // 获取系统配置
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     logo.value = res.data.logo
     title.value = res.data.title
   }).catch(e => {
     showMessageError("获取系统配置失败：" + e.message)
   })
 
-  httpGet("/api/config/license").then(res => {
+  getLicenseInfo().then(res => {
     licenseConfig.value = res.data
   }).catch(e => {
     showMessageError("获取 License 配置：" + e.message)
