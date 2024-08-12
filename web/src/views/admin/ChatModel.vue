@@ -13,7 +13,10 @@
         <el-table-column type="selection" width="38"></el-table-column>
         <el-table-column prop="name" label="模型名称">
           <template #default="scope">
-            <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
+            <span class="sort" :data-id="scope.row.id">
+              <i class="iconfont icon-drag"></i>
+              {{ scope.row.name }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="value" label="模型值">
@@ -337,6 +340,14 @@ const remove = function (row) {
 
   .el-select {
     width: 100%
+  }
+
+  .sort {
+    cursor move
+    .iconfont {
+      position relative
+      top 1px
+    }
   }
 
   .pagination {
