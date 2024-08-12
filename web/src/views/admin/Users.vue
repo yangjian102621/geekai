@@ -10,7 +10,7 @@
     <el-row>
       <el-table :data="users.items" border class="table" :row-key="row => row.id"
                 @selection-change="handleSelectionChange" table-layout="auto">
-        <el-table-column type="selection" width="38"/>
+        <el-table-column type="selection" width="38"></el-table-column>
         <el-table-column prop="mobile" label="账号">
           <template #default="scope">
             <span>{{ scope.row.username }}</span>
@@ -308,7 +308,7 @@ const saveUser = function () {
 }
 
 const handleSelectionChange = function (rows) {
-  console.log(rows)
+  // console.log(rows)
 }
 
 const resetPass = (row) => {

@@ -168,8 +168,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 	}
 
 	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败")
+		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
@@ -226,7 +225,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 	// 删除算力日志
 	h.DB.Where("user_id = ?", id).Delete(&model.PowerLog{})
 	// 删除众筹日志
-	h.DB.Where("user_id = ?", id).Delete(&model.Reward{})
+	h.DB.Where("user_id = ?", id).Delete(&model.Redeem{})
 	// 删除绘图任务
 	h.DB.Where("user_id = ?", id).Delete(&model.MidJourneyJob{})
 	h.DB.Where("user_id = ?", id).Delete(&model.SdJob{})

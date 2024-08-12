@@ -139,6 +139,7 @@ const title = ref("")
 const types = ref([
   {label: "对话", value:"chat"},
   {label: "Midjourney", value:"mj"},
+  {label: "Stable-Diffusion", value:"sd"},
   {label: "DALL-E", value:"dalle"},
   {label: "Suno文生歌", value:"suno"},
   {label: "Luma视频", value:"luma"},
@@ -193,7 +194,7 @@ const fetchData = () => {
 const add = function () {
   showDialog.value = true
   title.value = "新增 API KEY"
-  item.value = {enabled: true}
+  item.value = {enabled: true,api_url: "https://api.chat-plus.net"}
 }
 
 const edit = function (row) {

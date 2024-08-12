@@ -8,6 +8,7 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
@@ -45,11 +46,16 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 	role.Id = data.Id
 	if data.CreatedAt > 0 {
 		role.CreatedAt = time.Unix(data.CreatedAt, 0)
+	} else {
+		err = h.DB.Where("marker", data.Key).First(&role).Error
+		if err == nil {
+			resp.ERROR(c, fmt.Sprintf("角色 %s 已存在", data.Key))
+			return
+		}
 	}
-	res := h.DB.Save(&role)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err = h.DB.Save(&role).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	// 填充 ID 数据
@@ -114,10 +120,9 @@ func (h *ChatRoleHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		res := h.DB.Model(&model.ChatRole{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
-		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+		err := h.DB.Model(&model.ChatRole{}).Where("id = ?", id).Update("sort_num", data.Sorts[index]).Error
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}
@@ -137,10 +142,9 @@ func (h *ChatRoleHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update(data.Filed, data.Value).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)

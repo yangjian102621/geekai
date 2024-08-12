@@ -313,21 +313,41 @@
                       :isOver="isOver"
                       @scrollReachBottom="fetchFinishJobs()">
                     <template #default="slotProp">
-                      <div class="job-item animate" @click="showTask(slotProp.item)">
-                        <el-image
-                            :src="slotProp.item['img_thumb']"
-                            fit="cover"
-                            loading="lazy"/>
-                        <div class="remove">
-                          <el-button type="danger" :icon="Delete" @click="removeImage($event,slotProp.item)" circle/>
-                          <el-button type="warning" v-if="slotProp.item.publish"
-                                     @click="publishImage($event,slotProp.item, false)"
-                                     circle>
-                            <i class="iconfont icon-cancel-share"></i>
-                          </el-button>
-                          <el-button type="success" v-else @click="publishImage($event,slotProp.item, true)" circle>
-                            <i class="iconfont icon-share-bold"></i>
-                          </el-button>
+                      <div class="job-item animate">
+                        <el-image v-if="slotProp.item.progress === 101">
+                          <template #error>
+                            <div class="image-slot">
+                              <div class="err-msg-container">
+                                <div class="title">任务失败</div>
+                                <div class="opt">
+                                  <el-popover title="错误详情" trigger="click" :width="250" :content="slotProp.item['err_msg']" placement="top">
+                                    <template #reference>
+                                      <el-button type="info">详情</el-button>
+                                    </template>
+                                  </el-popover>
+                                  <el-button type="danger"  @click="removeImage(slotProp.item)">删除</el-button>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </el-image>
+                        <div v-else>
+                          <el-image
+                              :src="slotProp.item['img_thumb']"
+                              @click="showTask(slotProp.item)"
+                              fit="cover"
+                              loading="lazy"/>
+                          <div class="remove">
+                            <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle/>
+                            <el-button type="warning" v-if="slotProp.item.publish"
+                                       @click="publishImage(slotProp.item, false)"
+                                       circle>
+                              <i class="iconfont icon-cancel-share"></i>
+                            </el-button>
+                            <el-button type="success" v-else @click="publishImage(slotProp.item, true)" circle>
+                              <i class="iconfont icon-share-bold"></i>
+                            </el-button>
+                          </div>
                         </div>
                       </div>
                     </template>
@@ -345,7 +365,7 @@
               </div> <!-- end finish job list-->
             </div>
           </div>
-
+          <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
         </div><!-- end task list box -->
       </div>
 
@@ -466,16 +486,17 @@
 </template>
 
 <script setup>
-import {onMounted, onUnmounted, ref} from "vue"
+import {nextTick, onMounted, onUnmounted, ref} from "vue"
 import {Delete, DocumentCopy, InfoFilled, Orange, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
+import BackTop from "@/components/BackTop.vue";
 
 const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
@@ -539,25 +560,9 @@ const connect = () => {
     }
   }
 
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
-
   const _socket = new WebSocket(host + `/api/sd/client?user_id=${userId.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
-
-    // 发送心跳消息
-    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {
@@ -566,12 +571,12 @@ const connect = () => {
       reader.readAsText(event.data, "UTF-8")
       reader.onload = () => {
         const message = String(reader.result)
-        if (message === "FINISH") {
+        if (message === "FINISH" || message === "FAIL") {
           page.value = 0
           isOver.value = false
           fetchFinishJobs()
         }
-        fetchRunningJobs()
+        nextTick(() => fetchRunningJobs())
       }
     }
   });
@@ -595,7 +600,7 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     sdPower.value = res.data.sd_power
     params.value.neg_prompt = res.data.sd_neg_prompt
   }).catch(e => {
@@ -632,22 +637,7 @@ const fetchRunningJobs = () => {
 
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?finish=0`).then(res => {
-    const jobs = res.data
-    const _jobs = []
-    for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i].progress === -1) {
-        ElNotification({
-          title: '任务执行失败',
-          dangerouslyUseHTMLString: true,
-          message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
-          type: 'error',
-        })
-        power.value += sdPower.value
-        continue
-      }
-      _jobs.push(jobs[i])
-    }
-    runningJobs.value = _jobs
+    runningJobs.value = res.data
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })
@@ -698,7 +688,7 @@ const generate = () => {
     return
   }
 
-  if (params.value.seed === '') {
+  if (!params.value.seed) {
     params.value.seed = -1
   }
   params.value.session_id = getSessionId()
@@ -720,8 +710,7 @@ const copyParams = (row) => {
   showTaskDialog.value = false
 }
 
-const removeImage = (event, item) => {
-  event.stopPropagation()
+const removeImage = (item) => {
   ElMessageBox.confirm(
       '此操作将会删除任务和图片，继续操作码?',
       '删除提示',
@@ -731,7 +720,7 @@ const removeImage = (event, item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpGet("/api/sd/remove", {id: item.id, user_id: item.user}).then(() => {
+    httpGet("/api/sd/remove", {id: item.id}).then(() => {
       ElMessage.success("任务删除成功")
       page.value = 0
       isOver.value = false
@@ -744,18 +733,17 @@ const removeImage = (event, item) => {
 }
 
 // 发布图片到作品墙
-const publishImage = (event, item, action) => {
-  event.stopPropagation()
+const publishImage = (item, action) => {
   let text = "图片发布"
   if (action === false) {
     text = "取消发布"
   }
-  httpGet("/api/sd/publish", {id: item.id, action: action, user_id: item.user}).then(() => {
+  httpGet("/api/sd/publish", {id: item.id, action: action}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
     page.value = 0
     isOver.value = false
-    fetchFinishJobs()
+    item.publish = action
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

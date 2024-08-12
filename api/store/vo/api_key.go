@@ -3,7 +3,6 @@ package vo
 // ApiKey OpenAI API 模型
 type ApiKey struct {
 	BaseVo
-	Platform   string `json:"platform"`
 	Name       string `json:"name"`
 	Type       string `json:"type"`
 	Value      string `json:"value"` // API Key 的值

@@ -487,7 +487,7 @@
                           </div>
                         </template>
                       </el-image>
-                      <el-image v-else-if="slotProp.item['err_msg'] !== ''">
+                      <el-image v-else-if="slotProp.item.progress === 101">
                         <template #error>
                           <div class="image-slot">
                             <div class="err-msg-container">
@@ -593,6 +593,7 @@
             </div> <!-- end finish job list-->
           </div>
         </div>
+        <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
       </div><!-- end task list box -->
     </div>
 
@@ -607,12 +608,13 @@ import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
+import BackTop from "@/components/BackTop.vue";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
@@ -800,7 +802,7 @@ const initData = () => {
 
 const mjPower = ref(1)
 const mjActionPower = ref(1)
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   mjPower.value = res.data["mj_power"]
   mjActionPower.value = res.data["mj_action_power"]
 }).catch(e => {
@@ -1014,7 +1016,7 @@ const publishImage = (item, action) => {
     item.publish = action
     page.value = 0
     isOver.value = false
-    fetchFinishJobs()
+    item.publish = action
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

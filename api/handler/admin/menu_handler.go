@@ -41,17 +41,16 @@ func (h *MenuHandler) Save(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Save(&model.Menu{
+	err := h.DB.Save(&model.Menu{
 		Id:      data.Id,
 		Name:    data.Name,
 		Icon:    data.Icon,
 		URL:     data.URL,
 		SortNum: data.SortNum,
 		Enabled: data.Enabled,
-	})
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)
@@ -85,10 +84,9 @@ func (h *MenuHandler) Enable(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.Menu{}).Where("id", data.Id).UpdateColumn("enabled", data.Enabled)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Model(&model.Menu{}).Where("id", data.Id).UpdateColumn("enabled", data.Enabled).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)
@@ -106,10 +104,9 @@ func (h *MenuHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		res := h.DB.Model(&model.Menu{}).Where("id", id).Update("sort_num", data.Sorts[index])
-		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+		err := h.DB.Model(&model.Menu{}).Where("id", id).Update("sort_num", data.Sorts[index]).Error
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}
@@ -121,10 +118,9 @@ func (h *MenuHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 
 	if id > 0 {
-		res := h.DB.Where("id", id).Delete(&model.Menu{})
-		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+		err := h.DB.Where("id", id).Delete(&model.Menu{}).Error
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}
