@@ -4,6 +4,8 @@ type User struct {
 	BaseVo
 	Username    string   `json:"username"`
 	Nickname    string   `json:"nickname"`
+	Mobile      string   `json:"mobile"`
+	Email       string   `json:"email"`
 	Avatar      string   `json:"avatar"`
 	Salt        string   `json:"salt"`          // 密码盐
 	Power       int      `json:"power"`         // 剩余算力

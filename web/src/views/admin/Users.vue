@@ -262,9 +262,7 @@ const removeUser = function (user) {
   ).then(() => {
     httpGet('/api/admin/user/remove', {id: user.id}).then(() => {
       ElMessage.success('操作成功！')
-      users.value.items = removeArrayItem(users.value.items, user, function (v1, v2) {
-        return v1.id === v2.id
-      })
+      fetchUserList(users.value.page, users.value.page_size)
     }).catch((e) => {
       ElMessage.error('操作失败，' + e.message)
     })

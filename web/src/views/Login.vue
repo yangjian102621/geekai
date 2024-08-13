@@ -48,7 +48,7 @@
             <el-divider class="divider">其他登录方式</el-divider>
 
             <div class="clogin">
-              <a class="wechat-login" :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+              <a :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
             </div>
           </div>
         </div>
@@ -76,6 +76,7 @@ import {setUserToken} from "@/store/session";
 import ResetPass from "@/components/ResetPass.vue";
 import {showMessageError} from "@/utils/dialog";
 import Captcha from "@/components/Captcha.vue";
+import QRCode from "qrcode";
 
 const router = useRouter();
 const title = ref('Geek-AI');
@@ -161,7 +162,6 @@ const doLogin = (verifyData) => {
     showMessageError('登录失败，' + e.message)
   })
 }
-
 </script>
 
 <style lang="stylus" scoped>

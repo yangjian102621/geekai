@@ -10,7 +10,7 @@
               <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
             </el-col>
             <el-col :span="12">
-              <el-button type="primary" @click="showBindMobileDialog = true">更改账号</el-button>
+              <el-button type="primary" @click="showBindMobileDialog = true">绑定手机</el-button>
             </el-col>
             <el-col :span="24">
               <el-button type="success" @click="showRedeemVerifyDialog = true">兑换码核销
@@ -93,8 +93,7 @@
       <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
                        @logout="logout"/>
 
-      <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :username="user.username"
-                   @hide="showBindMobileDialog = false"/>
+      <bind-mobile v-if="isLogin" :show="showBindMobileDialog" @hide="showBindMobileDialog = false"/>
 
       <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback"/>
 
@@ -143,7 +142,7 @@ import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
-import BindMobile from "@/components/ResetAccount.vue";
+import BindMobile from "@/components/BindMobile.vue";
 import RedeemVerify from "@/components/RedeemVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";

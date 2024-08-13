@@ -10,13 +10,13 @@
       <div class="form">
 
         <el-form :model="form" label-width="80px" label-position="left">
-          <el-form-item label="用户名">
-            <el-input v-model="form.username" placeholder="手机号/邮箱地址"/>
+          <el-form-item label="手机号">
+            <el-input v-model="form.username" placeholder="手机号"/>
           </el-form-item>
           <el-form-item label="验证码">
             <div class="code-box">
               <el-input v-model="form.code" maxlength="6"/>
-              <send-msg size="" :receiver="form.username" style="margin-left: 10px; min-width: 100px"/>
+              <send-msg size="" :receiver="form.username" type="mobile"/>
             </div>
             <el-row :gutter="20">
               <el-col :span="12">

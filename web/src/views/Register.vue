@@ -41,7 +41,7 @@
                         </el-input>
                       </el-col>
                       <el-col :span="12">
-                        <send-msg size="large" :receiver="data.username"/>
+                        <send-msg size="large" :receiver="data.username" type="mobile"/>
                       </el-col>
                     </el-row>
                   </div>
@@ -50,7 +50,7 @@
                   <div class="block">
                     <el-input placeholder="邮箱地址"
                               size="large"
-                              v-model="data.username"
+                              v-model="data.email"
                               autocomplete="off">
                       <template #prefix>
                         <el-icon>
@@ -74,7 +74,7 @@
                         </el-input>
                       </el-col>
                       <el-col :span="12">
-                        <send-msg size="large" :receiver="data.username"/>
+                        <send-msg size="large" :receiver="data.email" type="email"/>
                       </el-col>
                     </el-row>
                   </div>
@@ -135,13 +135,17 @@
 
               <el-row class="btn-row" :gutter="20">
                 <el-col :span="24">
-                  <el-button class="login-btn" type="primary" size="large" @click="submitRegister">注册</el-button>
+                  <el-button class="login-btn" type="primary" size="large" @click="submitRegister" >注册</el-button>
                 </el-col>
               </el-row>
 
-              <el-row class="text-line">
-                已经有账号？
-                <el-link type="primary" @click="router.push('/login')">登录</el-link>
+              <el-row class="text-line" :gutter="24">
+                <el-col :span="12">
+                  <el-link type="primary" @click="router.push('/login')">登录</el-link>
+                </el-col>
+                <el-col :span="12">
+                  <el-link type="primary" @click="router.push('/')">首页</el-link>
+                </el-col>
               </el-row>
             </el-form>
 
@@ -375,6 +379,10 @@ const doSubmitRegister = (verifyData) => {
           justify-content center
           padding-top 10px;
           font-size 14px;
+
+          .el-col {
+            text-align center
+          }
         }
       }
     }

@@ -58,6 +58,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var data struct {
 		RegWay     string `json:"reg_way"`
 		Username   string `json:"username"`
+		Mobile     string `json:"mobile"`
+		Email      string `json:"email"`
 		Password   string `json:"password"`
 		Code       string `json:"code"`
 		InviteCode string `json:"invite_code"`
@@ -85,8 +87,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	var key string
-	if data.RegWay == "email" || data.RegWay == "mobile" {
-		key = CodeStorePrefix + data.Username
+	if data.RegWay == "email" {
+		key = CodeStorePrefix + data.Email
+		code, err := h.redis.Get(c, key).Result()
+		if err != nil || code != data.Code {
+			resp.ERROR(c, "验证码错误")
+			return
+		}
+	} else if data.RegWay == "mobile" {
+		key = CodeStorePrefix + data.Mobile
 		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {
 			resp.ERROR(c, "验证码错误")
@@ -106,7 +115,17 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// check if the username is existing
 	var item model.User
-	res := h.DB.Where("username = ?", data.Username).First(&item)
+	session := h.DB.Session(&gorm.Session{})
+	if data.Mobile != "" {
+		session = session.Where("mobile = ?", data.Mobile)
+		data.Username = data.Mobile
+	} else if data.Email != "" {
+		session = session.Where("email = ?", data.Email)
+		data.Username = data.Email
+	} else if data.Username != "" {
+		session = session.Where("username = ?", data.Username)
+	}
+	session.First(&item)
 	if item.Id > 0 {
 		resp.ERROR(c, "该用户名已经被注册")
 		return
@@ -115,6 +134,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	salt := utils.RandString(8)
 	user := model.User{
 		Username:   data.Username,
+		Mobile:     data.Mobile,
+		Email:      data.Email,
 		Password:   utils.GenPassword(data.Password, salt),
 		Avatar:     "/images/avatar/user.png",
 		Salt:       salt,
@@ -134,7 +155,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}
 
-	res = h.DB.Create(&user)
+	res := h.DB.Create(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "保存数据失败")
 		logger.Error(res.Error)
