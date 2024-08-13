@@ -55,6 +55,8 @@
       </div>
 
       <reset-pass @hide="showResetPass = false" :show="showResetPass"/>
+
+      <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef"/>
       
       <footer-bar/>
     </div>
@@ -73,6 +75,7 @@ import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
 import {setUserToken} from "@/store/session";
 import ResetPass from "@/components/ResetPass.vue";
 import {showMessageError} from "@/utils/dialog";
+import Captcha from "@/components/Captcha.vue";
 
 const router = useRouter();
 const title = ref('Geek-AI');
@@ -82,12 +85,15 @@ const showResetPass = ref(false)
 const logo = ref("")
 const licenseConfig = ref({})
 const wechatLoginURL = ref('')
+const enableVerify = ref(false)
+const captchaRef = ref(null)
 
 onMounted(() => {
   // 获取系统配置
   getSystemInfo().then(res => {
     logo.value = res.data.logo
     title.value = res.data.title
+    enableVerify.value = res.data['enabled_verify']
   }).catch(e => {
     showMessageError("获取系统配置失败：" + e.message)
   })
@@ -129,7 +135,21 @@ const login = function () {
     return showMessageError('请输入密码');
   }
 
-  httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+  } else {
+    doLogin({})
+  }
+}
+
+const doLogin = (verifyData) => {
+  httpPost('/api/user/login', {
+    username: username.value.trim(),
+    password: password.value.trim(),
+    key: verifyData.key,
+    dots: verifyData.dots,
+    x: verifyData.x
+  }).then((res) => {
     setUserToken(res.data.token)
     if (isMobile()) {
       router.push('/mobile')

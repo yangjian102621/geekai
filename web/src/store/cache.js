@@ -1,6 +1,5 @@
 import {httpGet} from "@/utils/http";
 import Storage from "good-storage";
-import {showMessageError} from "@/utils/dialog";
 
 const userDataKey = "USER_INFO_CACHE_KEY"
 const adminDataKey = "ADMIN_INFO_CACHE_KEY"
@@ -16,12 +15,12 @@ export function checkSession() {
         httpGet('/api/user/session').then(res => {
             item.data = res.data
             // cache expires after 10 secs
-            item.expire = Date.now() + 1000 * 10
+            item.expire = Date.now() + 1000 * 60 * 5
             Storage.set(userDataKey, item)
             resolve(item.data)
-        }).catch(err => {
+        }).catch(e => {
             Storage.remove(userDataKey)
-            reject(err)
+            reject(e)
         })
     })
 }
@@ -38,11 +37,12 @@ export function checkAdminSession() {
     return new Promise((resolve, reject) => {
         httpGet('/api/admin/session').then(res => {
             item.data = res.data
-            item.expire = Date.now() + 1000 * 10
+            item.expire = Date.now() + 1000 * 60 * 5
             Storage.set(adminDataKey, item)
             resolve(item.data)
-        }).catch(err => {
-            reject(err)
+        }).catch(e => {
+            Storage.remove(adminDataKey)
+            reject(e)
         })
     })
 }
@@ -59,11 +59,11 @@ export function getSystemInfo() {
     return new Promise((resolve, reject) => {
         httpGet('/api/config/get?key=system').then(res => {
             item.data = res
-            item.expire = Date.now() + 1000 * 10
+            item.expire = Date.now() + 1000 * 60 * 10
             Storage.set(systemInfoKey, item)
             resolve(item.data)
         }).catch(err => {
-            reject(err)
+            resolve(err)
         })
     })
 }
@@ -77,11 +77,11 @@ export function getLicenseInfo() {
     return new Promise((resolve, reject) => {
         httpGet('/api/config/license').then(res => {
             item.data = res
-            item.expire = Date.now() + 1000 * 10
+            item.expire = Date.now() + 1000 * 60 * 10
             Storage.set(licenseInfoKey, item)
             resolve(item.data)
         }).catch(err => {
-            reject(err)
+            resolve(err)
         })
     })
 }

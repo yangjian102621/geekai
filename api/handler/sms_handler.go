@@ -56,15 +56,17 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	var check bool
-	if data.X != 0 {
-		check = h.captcha.SlideCheck(data)
-	} else {
-		check = h.captcha.Check(data)
-	}
-	if !check {
-		resp.ERROR(c, "验证码错误，请先完人机验证")
-		return
+	if h.App.SysConfig.EnabledVerify {
+		var check bool
+		if data.X != 0 {
+			check = h.captcha.SlideCheck(data)
+		} else {
+			check = h.captcha.Check(data)
+		}
+		if !check {
+			resp.ERROR(c, "请先完人机验证")
+			return
+		}
 	}
 
 	code := utils.RandomNumber(6)
