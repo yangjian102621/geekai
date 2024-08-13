@@ -55,7 +55,7 @@
               还没有账号？
               <el-tag @click="login = false">注册</el-tag>
             </span>
-            <el-button type="info" class="forget" size="small" @click="login = false">忘记密码？</el-button>
+            <el-button type="info" class="forget" size="small" @click="showResetPass = true">忘记密码？</el-button>
           </el-col>
         </el-row>
 
@@ -226,6 +226,10 @@
         </el-row>
       </div>
     </div>
+
+    <captcha v-if="enableVerify" @success="submit" ref="captchaRef"/>
+
+    <reset-pass @hide="showResetPass = false" :show="showResetPass"/>
   </el-dialog>
 </template>
 
@@ -239,12 +243,14 @@ import {Checked, Close, Iphone, Lock, Message} from "@element-plus/icons-vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {arrayContains} from "@/utils/libs";
 import {getSystemInfo} from "@/store/cache";
+import Captcha from "@/components/Captcha.vue";
+import ResetPass from "@/components/ResetPass.vue";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
   show: Boolean,
 });
-const showDialog = ref(true)
+const showDialog = ref(false)
 watch(() => props.show, (newValue) => {
   showDialog.value = newValue
 })
@@ -260,19 +266,23 @@ const data = ref({
 const enableMobile = ref(false)
 const enableEmail = ref(false)
 const enableUser = ref(false)
-const enableRegister = ref(false)
+const enableRegister = ref(true)
 const wechatLoginURL = ref('')
 const activeName = ref("")
 const wxImg = ref("/images/wx.png")
+const captchaRef = ref(null)
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['hide', 'success']);
+const action = ref("login")
+const enableVerify = ref(false)
+const showResetPass = ref(false)
 
 onMounted(() => {
   const returnURL = `${location.protocol}//${location.host}/login/callback`
   httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
     wechatLoginURL.value = res.data.url
   }).catch(e => {
-    console.error(e)
+    console.log(e.message)
   })
 
   getSystemInfo().then(res => {
@@ -296,11 +306,20 @@ onMounted(() => {
       if (res.data['wechat_card_url'] !== '') {
         wxImg.value = res.data['wechat_card_url']
       }
+      enableVerify.value = res.data['enabled_verify']
     }
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
 })
+
+const submit = (verifyData) => {
+  if (action.value === "login") {
+      doLogin(verifyData)
+  } else if (action.value === "register") {
+    doRegister(verifyData)
+  }
+}
 
 // 登录操作
 const submitLogin = () => {
@@ -310,7 +329,18 @@ const submitLogin = () => {
   if (data.value.password === '') {
     return ElMessage.error('请输入密码');
   }
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+    action.value = "login"
+  } else {
+    doLogin({})
+  }
+}
 
+const doLogin = (verifyData) => {
+  data.value.key = verifyData.key
+  data.value.dots = verifyData.dots
+  data.value.x = verifyData.x
   httpPost('/api/user/login', data.value).then((res) => {
     setUserToken(res.data.token)
     ElMessage.success("登录成功！")
@@ -345,9 +375,21 @@ const submitRegister = () => {
   if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
     return ElMessage.error('请输入验证码');
   }
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+    action.value = "register"
+  } else {
+    doRegister({})
+  }
+}
+
+const doRegister = (verifyData) => {
+  data.value.key = verifyData.key
+  data.value.dots = verifyData.dots
+  data.value.x = verifyData.x
   data.value.reg_way = activeName.value
   httpPost('/api/user/register', data.value).then((res) => {
-    setUserToken(res.data)
+    setUserToken(res.data.token)
     ElMessage.success({
       "message": "注册成功!",
       onClose: () => {

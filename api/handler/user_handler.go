@@ -33,6 +33,7 @@ type UserHandler struct {
 	searcher       *xdb.Searcher
 	redis          *redis.Client
 	licenseService *service.LicenseService
+	captcha        *service.CaptchaService
 }
 
 func NewUserHandler(
@@ -40,11 +41,13 @@ func NewUserHandler(
 	db *gorm.DB,
 	searcher *xdb.Searcher,
 	client *redis.Client,
+	captcha *service.CaptchaService,
 	licenseService *service.LicenseService) *UserHandler {
 	return &UserHandler{
 		BaseHandler:    BaseHandler{DB: db, App: app},
 		searcher:       searcher,
 		redis:          client,
+		captcha:        captcha,
 		licenseService: licenseService,
 	}
 }
@@ -58,6 +61,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Password   string `json:"password"`
 		Code       string `json:"code"`
 		InviteCode string `json:"invite_code"`
+		Key        string `json:"key,omitempty"`
+		Dots       string `json:"dots,omitempty"`
+		X          int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -193,11 +199,28 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var data struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
+		Key      string `json:"key,omitempty"`
+		Dots     string `json:"dots,omitempty"`
+		X        int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	if h.App.SysConfig.EnabledVerify {
+		var check bool
+		if data.X != 0 {
+			check = h.captcha.SlideCheck(data)
+		} else {
+			check = h.captcha.Check(data)
+		}
+		if !check {
+			resp.ERROR(c, "请先完人机验证")
+			return
+		}
+	}
+
 	var user model.User
 	res := h.DB.Where("username = ?", data.Username).First(&user)
 	if res.Error != nil {

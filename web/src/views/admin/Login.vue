@@ -37,6 +37,8 @@
         </div>
       </div>
 
+      <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef"/>
+
       <footer class="footer">
         <footer-bar/>
       </footer>
@@ -54,12 +56,15 @@ import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {setAdminToken} from "@/store/session";
 import {checkAdminSession, getSystemInfo} from "@/store/cache";
+import Captcha from "@/components/Captcha.vue";
 
 const router = useRouter();
 const title = ref('Geek-AI Console');
 const username = ref(process.env.VUE_APP_ADMIN_USER);
 const password = ref(process.env.VUE_APP_ADMIN_PASS);
 const logo = ref("")
+const enableVerify = ref(false)
+const captchaRef = ref(null)
 
 checkAdminSession().then(() => {
   router.push("/admin")
@@ -70,6 +75,7 @@ checkAdminSession().then(() => {
 getSystemInfo().then(res => {
   title.value = res.data.admin_title
   logo.value = res.data.logo
+  enableVerify.value = res.data['enabled_verify']
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
@@ -87,8 +93,21 @@ const login = function () {
   if (password.value === '') {
     return ElMessage.error('请输入密码');
   }
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+  } else {
+    doLogin({})
+  }
+}
 
-  httpPost('/api/admin/login', {username: username.value.trim(), password: password.value.trim()}).then(res => {
+const doLogin = function (verifyData) {
+  httpPost('/api/admin/login', {
+    username: username.value.trim(),
+    password: password.value.trim(),
+    key: verifyData.key,
+    dots: verifyData.dots,
+    x: verifyData.x
+  }).then(res => {
     setAdminToken(res.data.token)
     router.push("/admin")
   }).catch((e) => {

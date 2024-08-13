@@ -49,7 +49,7 @@ func (h *UserHandler) List(c *gin.Context) {
 	}
 
 	session.Model(&model.User{}).Count(&total)
-	res := session.Offset(offset).Limit(pageSize).Find(&items)
+	res := session.Offset(offset).Limit(pageSize).Order("id DESC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var user vo.User

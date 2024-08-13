@@ -72,7 +72,6 @@
 
         <div v-else>
           <el-button size="small" color="#21aa93" @click="store.setShowLoginDialog(true)" round>登录</el-button>
-          <el-button size="small" @click="router.push('/register')" round>注册</el-button>
         </div>
       </div>
     </div>
@@ -161,7 +160,7 @@ const docsURL = ref(process.env.VUE_APP_DOCS_URL)
 const gitURL = ref(process.env.VUE_APP_GIT_URL)
 
 const store = useSharedStore();
-const show = ref(true)
+const show = ref(false)
 watch(() => store.showLoginDialog, (newValue) => {
   show.value = newValue
 });

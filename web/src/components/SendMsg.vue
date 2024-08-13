@@ -1,10 +1,10 @@
 <template>
   <el-container class="send-verify-code">
-    <el-button type="primary" class="send-btn" :size="props.size" :disabled="!canSend" @click="showCaptcha" plain>
+    <el-button type="primary" class="send-btn" :size="props.size" :disabled="!canSend" @click="sendMsg" plain>
       {{ btnText }}
     </el-button>
 
-    <captcha @success="sendMsg" ref="captchaRef"/>
+    <captcha @success="doSendMsg" ref="captchaRef"/>
   </el-container>
 </template>
 
@@ -15,6 +15,7 @@ import {validateEmail, validateMobile} from "@/utils/validate";
 import {httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import Captcha from "@/components/Captcha.vue";
+import {getSystemInfo} from "@/store/cache";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -24,15 +25,24 @@ const props = defineProps({
 const btnText = ref('发送验证码')
 const canSend = ref(true)
 const captchaRef = ref(null)
+const enableVerify = ref(false)
 
-const showCaptcha = () => {
+getSystemInfo().then(res => {
+  enableVerify.value = res.data['enabled_verify']
+})
+
+const sendMsg = () => {
   if (!validateMobile(props.receiver) && !validateEmail(props.receiver)) {
     return showMessageError("请输入合法的手机号/邮箱地址")
   }
-  captchaRef.value.loadCaptcha()
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+  } else {
+    doSendMsg({})
+  }
 }
 
-const sendMsg = (data) => {
+const doSendMsg = (data) => {
   if (!canSend.value) {
     return
   }
