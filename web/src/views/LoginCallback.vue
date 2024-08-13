@@ -24,7 +24,8 @@
             </div>
           </template>
           <template #extra>
-            <el-button type="primary" @click="finishLogin">我知道了</el-button>
+            <el-button type="primary" class="copy-user-info" :data-clipboard-text="'用户名：'+username+' 密码：'+password">复制</el-button>
+            <el-button type="danger" @click="finishLogin">关闭</el-button>
           </template>
       </el-result>
     </el-dialog>
@@ -33,12 +34,14 @@
 </template>
 
 <script setup>
-import {ref} from "vue"
+import {onMounted, onUnmounted, ref} from "vue"
 import {useRouter} from "vue-router"
 import {ElMessage, ElMessageBox} from "element-plus";
 import {httpGet} from "@/utils/http";
 import {setUserToken} from "@/store/session";
 import {isMobile} from "@/utils/libs";
+import Clipboard from "clipboard";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
 
 const winHeight = ref(window.innerHeight)
 const loading = ref(true)
@@ -74,7 +77,25 @@ if (code === "") {
     })
   })
 }
+
+const clipboard = ref(null)
+onMounted(() => {
+  clipboard.value = new Clipboard('.copy-user-info');
+  clipboard.value.on('success', () => {
+    showMessageOK('复制成功！');
+  })
+
+  clipboard.value.on('error', () => {
+    showMessageError('复制失败！');
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy();
+})
+
 const finishLogin = () => {
+  show.value = false
   if (isMobile()) {
     router.push('/mobile')
   } else {

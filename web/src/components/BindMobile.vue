@@ -6,14 +6,12 @@
       :before-close="close"
       :title="title"
   >
-    <div class="form" id="bind-mobile-form">
-      <el-alert v-if="username !== ''" type="info" show-icon :closable="false" style="margin-bottom: 20px;">
-        <p>当前绑定账号：{{ username }}，只允许使绑定有效的手机号或者邮箱地址作为登录账号。</p>
-      </el-alert>
+    <div class="form">
+      <div class="text-center">当前已绑手机号：{{ mobile }}</div>
 
       <el-form :model="form" label-width="120px">
-        <el-form-item label="新账号">
-          <el-input v-model="form.username"/>
+        <el-form-item label="手机号">
+          <el-input v-model="form.mobile"/>
         </el-form-item>
         <el-form-item label="验证码">
           <el-row :gutter="20">
@@ -21,7 +19,7 @@
               <el-input v-model="form.code" maxlength="6"/>
             </el-col>
             <el-col :span="8">
-              <send-msg size="" :receiver="form.username"/>
+              <send-msg size="" :receiver="form.username" type="mobile"/>
             </el-col>
           </el-row>
         </el-form-item>
@@ -44,26 +42,31 @@ import SendMsg from "@/components/SendMsg.vue";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
 import {validateEmail, validateMobile} from "@/utils/validate";
+import {checkSession} from "@/store/cache";
 
 const props = defineProps({
   show: Boolean,
-  username: String
 });
 
 const showDialog = computed(() => {
   return props.show
 })
 
-const title = ref('重置登录账号')
+const title = ref('绑定手机')
+const mobile = ref('')
 const form = ref({
-  username: '',
+  mobile: '',
   code: ''
+})
+
+checkSession().then(user => {
+  mobile.value = user.mobile
 })
 
 const emits = defineEmits(['hide']);
 
 const save = () => {
-  if (!validateMobile(form.value.username) && !validateEmail(form.value.username)) {
+  if (!validateMobile(form.value.mobile) && !validateEmail(form.value.mobile)) {
     return ElMessage.error("请输入合法的手机号/邮箱地址")
   }
   if (form.value.code === '') {
@@ -87,7 +90,15 @@ const close = function () {
 </script>
 
 <style lang="stylus" scoped>
-#bind-mobile-form {
+.form {
+  .text-center {
+    text-align center
+    padding-bottom 15px
+    font-size 14px
+    color #a1a1a1
+    font-weight 700
+  }
+
   .el-form-item__content {
     .el-row {
       width 100%

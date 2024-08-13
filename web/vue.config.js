@@ -19,7 +19,7 @@ module.exports = defineConfig({
     outputDir: 'dist',
     crossorigin: "anonymous",
     devServer: {
-        allowedHosts: ['127.0.0.1:5678'],
+        allowedHosts: "all",
         port: 8888,
     }
 })

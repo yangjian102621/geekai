@@ -21,6 +21,10 @@ import {getSystemInfo} from "@/store/cache";
 const props = defineProps({
   receiver: String,
   size: String,
+  type: {
+    type: String,
+    default: 'mobile'
+  }
 });
 const btnText = ref('发送验证码')
 const canSend = ref(true)
@@ -32,9 +36,13 @@ getSystemInfo().then(res => {
 })
 
 const sendMsg = () => {
-  if (!validateMobile(props.receiver) && !validateEmail(props.receiver)) {
-    return showMessageError("请输入合法的手机号/邮箱地址")
+  if (!validateMobile(props.receiver) && props.type === 'mobile') {
+    return showMessageError("请输入合法的手机号")
   }
+  if (!validateEmail(props.receiver) && props.type === 'email') {
+    return showMessageError("请输入合法的邮箱地址")
+  }
+  
   if (enableVerify.value) {
     captchaRef.value.loadCaptcha()
   } else {

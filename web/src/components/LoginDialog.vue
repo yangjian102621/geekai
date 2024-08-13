@@ -47,25 +47,29 @@
         </div>
 
         <el-row class="btn-row" :gutter="20">
-          <el-col :span="12">
+          <el-col :span="24">
             <el-button class="login-btn" type="primary" size="large" @click="submitLogin">登录</el-button>
-          </el-col>
-          <el-col :span="12">
-            <span class="text">
-              还没有账号？
-              <el-tag @click="login = false">注册</el-tag>
-            </span>
-            <el-button type="info" class="forget" size="small" @click="showResetPass = true">忘记密码？</el-button>
           </el-col>
         </el-row>
 
-        <el-row v-if="wechatLoginURL !== ''">
-          <div class="c-login">
-            <div class="text">其他登录方式：</div>
-            <div class="login-type">
-              <a class="wechat-login" :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+        <el-row>
+          <el-col :span="12">
+            <div class="reg">
+              还没有账号？
+              <el-button type="primary" class="forget" size="small" @click="login = false">注册</el-button>
+
+              <el-button type="info" class="forget" size="small" @click="showResetPass = true">忘记密码？</el-button>
             </div>
-          </div>
+          </el-col>
+
+          <el-col :span="12">
+            <div class="c-login" v-if="wechatLoginURL !== ''">
+              <div class="text">其他登录方式：</div>
+              <div class="login-type">
+                <a class="wechat-login" :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+              </div>
+            </div>
+          </el-col>
         </el-row>
       </el-form>
     </div>
@@ -77,7 +81,7 @@
             <div class="block">
               <el-input placeholder="手机号码"
                         size="large"
-                        v-model="data.username"
+                        v-model="data.mobile"
                         maxlength="11"
                         autocomplete="off">
                 <template #prefix>
@@ -102,7 +106,7 @@
                   </el-input>
                 </el-col>
                 <el-col :span="12">
-                  <send-msg size="large" :receiver="data.username"/>
+                  <send-msg size="large" :receiver="data.mobile" type="mobile"/>
                 </el-col>
               </el-row>
             </div>
@@ -111,7 +115,7 @@
             <div class="block">
               <el-input placeholder="邮箱地址"
                         size="large"
-                        v-model="data.username"
+                        v-model="data.email"
                         autocomplete="off">
                 <template #prefix>
                   <el-icon>
@@ -135,7 +139,7 @@
                   </el-input>
                 </el-col>
                 <el-col :span="12">
-                  <send-msg size="large" :receiver="data.username"/>
+                  <send-msg size="large" :receiver="data.email" type="email"/>
                 </el-col>
               </el-row>
             </div>
@@ -257,8 +261,10 @@ watch(() => props.show, (newValue) => {
 
 const login = ref(true)
 const data = ref({
-  username: process.env.VUE_APP_USER,
-  password: process.env.VUE_APP_PASS,
+  username: "",
+  password: "",
+  mobile: "",
+  email: "",
   repass: "",
   code: "",
   invite_code: ""
@@ -353,15 +359,15 @@ const doLogin = (verifyData) => {
 
 // 注册操作
 const submitRegister = () => {
-  if (data.value.username === '') {
+  if (activeName.value === 'username' && data.value.username === '') {
     return ElMessage.error('请输入用户名');
   }
 
-  if (activeName.value === 'mobile' && !validateMobile(data.value.username)) {
+  if (activeName.value === 'mobile' && !validateMobile(data.value.mobile)) {
     return ElMessage.error('请输入合法的手机号');
   }
 
-  if (activeName.value === 'email' && !validateEmail(data.value.username)) {
+  if (activeName.value === 'email' && !validateEmail(data.value.email)) {
     return ElMessage.error('请输入合法的邮箱地址');
   }
 
@@ -468,8 +474,6 @@ const close = function () {
 
     .c-login {
       display flex
-      padding-top 20px
-
       .text {
         font-size 16px
         color #a1a1a1
@@ -482,7 +486,7 @@ const close = function () {
         justify-content center
 
         .iconfont {
-          font-size 20px
+          font-size 18px
           background: #E9F1F6;
           padding: 8px;
           border-radius: 50%;
@@ -490,6 +494,16 @@ const close = function () {
         .iconfont.icon-wechat {
           color #0bc15f
         }
+      }
+    }
+
+    .reg {
+      height 50px
+      display flex
+      align-items center
+
+      .el-button {
+        margin-left 10px
       }
     }
   }
