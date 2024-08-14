@@ -329,8 +329,10 @@ func (h *UserHandler) CLogin(c *gin.Context) {
 
 // CLoginCallback 第三方登录回调
 func (h *UserHandler) CLoginCallback(c *gin.Context) {
-	loginType := h.GetTrim(c, "login_type")
-	code := h.GetTrim(c, "code")
+	loginType := c.Query("login_type")
+	code := c.Query("code")
+	userId := h.GetInt(c, "user_id", 0)
+	action := c.Query("action")
 
 	var res types.BizVo
 	apiURL := fmt.Sprintf("%s/api/clogin/info", h.App.Config.ApiConfig.ApiURL)
@@ -355,11 +357,34 @@ func (h *UserHandler) CLoginCallback(c *gin.Context) {
 
 	// login successfully
 	data := res.Data.(map[string]interface{})
-	session := gin.H{}
 	var user model.User
-	tx := h.DB.Debug().Where("openid", data["openid"]).First(&user)
-	if tx.Error != nil { // user not exist, create new user
-		// 检测最大注册人数
+	if action == "bind" && userId > 0 {
+		err = h.DB.Where("openid", data["openid"]).First(&user).Error
+		if err == nil {
+			resp.ERROR(c, "该微信已经绑定其他账号，请先解绑")
+			return
+		}
+
+		err = h.DB.Where("id", userId).First(&user).Error
+		if err != nil {
+			resp.ERROR(c, "绑定用户不存在")
+			return
+		}
+
+		err = h.DB.Model(&user).UpdateColumn("openid", data["openid"]).Error
+		if err != nil {
+			resp.ERROR(c, "更新用户信息失败，"+err.Error())
+			return
+		}
+
+		resp.SUCCESS(c, gin.H{"token": ""})
+		return
+	}
+
+	session := gin.H{}
+	tx := h.DB.Where("openid", data["openid"]).First(&user)
+	if tx.Error != nil {
+		// create new user
 		var totalUser int64
 		h.DB.Model(&model.User{}).Count(&totalUser)
 		if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
@@ -534,7 +559,7 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-// ResetPass 重置密码
+// ResetPass 找回密码
 func (h *UserHandler) ResetPass(c *gin.Context) {
 	var data struct {
 		Username string `json:"username"`
@@ -572,11 +597,11 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 	}
 }
 
-// BindUsername 重置账号
-func (h *UserHandler) BindUsername(c *gin.Context) {
+// BindMobile 绑定手机号
+func (h *UserHandler) BindMobile(c *gin.Context) {
 	var data struct {
-		Username string `json:"username"`
-		Code     string `json:"code"`
+		Mobile string `json:"mobile"`
+		Code   string `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -584,7 +609,7 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Username
+	key := CodeStorePrefix + data.Mobile
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
 		resp.ERROR(c, "验证码错误")
@@ -593,19 +618,54 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 
 	// 检查手机号是否被其他账号绑定
 	var item model.User
-	res := h.DB.Where("username = ?", data.Username).First(&item)
+	res := h.DB.Where("mobile", data.Mobile).First(&item)
 	if res.Error == nil {
-		resp.ERROR(c, "该账号已经被其他账号绑定")
+		resp.ERROR(c, "该手机号已经绑定了其他账号，请更换手机号")
 		return
 	}
 
-	user, err := h.GetLoginUser(c)
+	userId := h.GetLoginUserId(c)
+
+	err = h.DB.Model(&item).Where("id", userId).UpdateColumn("mobile", data.Mobile).Error
 	if err != nil {
-		resp.NotAuth(c)
+		resp.ERROR(c, err.Error())
 		return
 	}
 
-	err = h.DB.Model(&user).UpdateColumn("username", data.Username).Error
+	_ = h.redis.Del(c, key) // 删除短信验证码
+	resp.SUCCESS(c)
+}
+
+// BindEmail 绑定邮箱
+func (h *UserHandler) BindEmail(c *gin.Context) {
+	var data struct {
+		Email string `json:"email"`
+		Code  string `json:"code"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 检查验证码
+	key := CodeStorePrefix + data.Email
+	code, err := h.redis.Get(c, key).Result()
+	if err != nil || code != data.Code {
+		resp.ERROR(c, "验证码错误")
+		return
+	}
+
+	// 检查手机号是否被其他账号绑定
+	var item model.User
+	res := h.DB.Where("email", data.Email).First(&item)
+	if res.Error == nil {
+		resp.ERROR(c, "该邮箱地址已经绑定了其他账号，请更邮箱地址")
+		return
+	}
+
+	userId := h.GetLoginUserId(c)
+
+	err = h.DB.Model(&item).Where("id", userId).UpdateColumn("email", data.Email).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

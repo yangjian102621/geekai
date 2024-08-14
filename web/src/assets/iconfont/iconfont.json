@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "15838472",
+      "name": "email",
+      "font_class": "email",
+      "unicode": "e670",
+      "unicode_decimal": 58992
+    },
+    {
+      "icon_id": "6151052",
+      "name": "mobile-alt",
+      "font_class": "mobile",
+      "unicode": "e79a",
+      "unicode_decimal": 59290
+    },
+    {
       "icon_id": "15617554",
       "name": "drag",
       "font_class": "drag",

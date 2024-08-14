@@ -7,13 +7,19 @@
 
           <el-row class="user-opt" :gutter="20">
             <el-col :span="12">
-              <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
+              <el-button type="primary" @click="showBindEmailDialog = true">绑定邮箱</el-button>
             </el-col>
             <el-col :span="12">
               <el-button type="primary" @click="showBindMobileDialog = true">绑定手机</el-button>
             </el-col>
+            <el-col :span="12">
+              <el-button type="primary" @click="showThirdLoginDialog = true">第三方登录</el-button>
+            </el-col>
+            <el-col :span="12">
+              <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
+            </el-col>
             <el-col :span="24">
-              <el-button type="success" @click="showRedeemVerifyDialog = true">兑换码核销
+              <el-button type="primary" @click="showRedeemVerifyDialog = true">卡密兑换
               </el-button>
             </el-col>
 
@@ -95,6 +101,9 @@
 
       <bind-mobile v-if="isLogin" :show="showBindMobileDialog" @hide="showBindMobileDialog = false"/>
 
+      <bind-email v-if="isLogin" :show="showBindEmailDialog" @hide="showBindEmailDialog = false"/>
+      <third-login v-if="isLogin" :show="showThirdLoginDialog" @hide="showThirdLoginDialog = false"/>
+
       <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback"/>
 
       <el-dialog
@@ -149,6 +158,8 @@ import {removeUserToken} from "@/store/session";
 import UserOrder from "@/components/UserOrder.vue";
 import CountDown from "@/components/CountDown.vue";
 import {useSharedStore} from "@/store/sharedata";
+import BindEmail from "@/components/BindEmail.vue";
+import ThirdLogin from "@/components/ThirdLogin.vue";
 
 const list = ref([])
 const showPayDialog = ref(false)
@@ -156,9 +167,11 @@ const vipImg = ref("/images/vip.png")
 const enableReward = ref(false) // 是否启用众筹功能
 const rewardImg = ref('/images/reward.png')
 const qrcode = ref("")
-const showPasswordDialog = ref(false);
-const showBindMobileDialog = ref(false);
-const showRedeemVerifyDialog = ref(false);
+const showPasswordDialog = ref(false)
+const showBindMobileDialog = ref(false)
+const showBindEmailDialog = ref(false)
+const showRedeemVerifyDialog = ref(false)
+const showThirdLoginDialog = ref(false)
 const text = ref("")
 const user = ref(null)
 const isLogin = ref(false)

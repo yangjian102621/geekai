@@ -58,7 +58,7 @@ const doSendMsg = (data) => {
   canSend.value = false
   httpPost('/api/sms/code', {receiver: props.receiver, key: data.key, dots: data.dots, x:data.x}).then(() => {
     showMessageOK('验证码发送成功')
-    let time = 120
+    let time = 60
     btnText.value = time
     const handler = setInterval(() => {
       time = time - 1

@@ -2,7 +2,6 @@
   <el-dialog
       v-model="showDialog"
       :close-on-click-modal="true"
-      :show-close="mobile !== ''"
       :before-close="close"
       :width="450"
       :title="title"

@@ -66,7 +66,7 @@
             <div class="c-login" v-if="wechatLoginURL !== ''">
               <div class="text">其他登录方式：</div>
               <div class="login-type">
-                <a class="wechat-login" :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+                <a class="wechat-login" :href="wechatLoginURL"  @click="setRoute(router.currentRoute.value.path)"><i class="iconfont icon-wechat"></i></a>
               </div>
             </div>
           </el-col>
@@ -249,6 +249,8 @@ import {arrayContains} from "@/utils/libs";
 import {getSystemInfo} from "@/store/cache";
 import Captcha from "@/components/Captcha.vue";
 import ResetPass from "@/components/ResetPass.vue";
+import {setRoute} from "@/store/system";
+import {useRouter} from "vue-router";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -282,9 +284,10 @@ const emits = defineEmits(['hide', 'success']);
 const action = ref("login")
 const enableVerify = ref(false)
 const showResetPass = ref(false)
+const router = useRouter()
 
 onMounted(() => {
-  const returnURL = `${location.protocol}//${location.host}/login/callback`
+  const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`
   httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
     wechatLoginURL.value = res.data.url
   }).catch(e => {

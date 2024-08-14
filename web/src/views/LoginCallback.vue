@@ -39,9 +39,10 @@ import {useRouter} from "vue-router"
 import {ElMessage, ElMessageBox} from "element-plus";
 import {httpGet} from "@/utils/http";
 import {setUserToken} from "@/store/session";
-import {isMobile} from "@/utils/libs";
 import Clipboard from "clipboard";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
+import {getRoute} from "@/store/system";
+import {checkSession, removeUserInfo} from "@/store/cache";
 
 const winHeight = ref(window.innerHeight)
 const loading = ref(true)
@@ -52,12 +53,25 @@ const password = ref('')
 
 
 const code = router.currentRoute.value.query.code
+const action = router.currentRoute.value.query.action
 if (code === "") {
   ElMessage.error({message: "登录失败：code 参数不能为空",duration: 2000, onClose: () => router.push("/")})
 } else {
+  checkSession().then(user => {
+    // bind user
+    doLogin(user.id)
+  }).catch(() => {
+    doLogin(0)
+  })
+}
+
+const doLogin = (userId) => {
   // 发送请求获取用户信息
-  httpGet("/api/user/clogin/callback",{login_type: "wx",code: code}).then(res => {
-    setUserToken(res.data.token)
+  httpGet("/api/user/clogin/callback",{login_type: "wx",code: code, action:action, user_id: userId}).then(res => {
+    removeUserInfo()
+    if (res.data.token) {
+      setUserToken(res.data.token)
+    }
     if (res.data.username) {
       username.value = res.data.username
       password.value = res.data.password
@@ -96,11 +110,7 @@ onUnmounted(() => {
 
 const finishLogin = () => {
   show.value = false
-  if (isMobile()) {
-    router.push('/mobile')
-  } else {
-    router.push('/chat')
-  }
+  router.push(getRoute())
 }
 </script>
 

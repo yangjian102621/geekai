@@ -114,7 +114,7 @@ onMounted(() => {
   }).catch(() => {
   })
 
-  const returnURL = `${location.protocol}//${location.host}/login/callback`
+  const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`
   httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
     wechatLoginURL.value = res.data.url
   }).catch(e => {

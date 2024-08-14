@@ -6,6 +6,7 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import Storage from "good-storage";
+import {useRouter} from "vue-router";
 
 const MOBILE_THEME = process.env.VUE_APP_KEY_PREFIX + "MOBILE_THEME"
 const ADMIN_THEME = process.env.VUE_APP_KEY_PREFIX + "ADMIN_THEME"
@@ -62,4 +63,12 @@ export function FormatFileSize(bytes) {
     const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+export function setRoute(path) {
+    Storage.set(process.env.VUE_APP_KEY_PREFIX + 'ROUTE_',path)
+}
+
+export function getRoute() {
+    return Storage.get(process.env.VUE_APP_KEY_PREFIX + 'ROUTE_')
 }
