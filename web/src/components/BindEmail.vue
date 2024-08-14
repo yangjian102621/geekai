@@ -7,11 +7,11 @@
       :title="title"
   >
     <div class="form">
-      <div class="text-center" v-if="mobile !== ''">当前已绑手机号：{{ mobile }}</div>
+      <div class="text-center" v-if="email !== ''">当前已绑定邮箱：{{ email }}</div>
 
       <el-form label-position="top">
-        <el-form-item label="手机号">
-          <el-input v-model="form.mobile"/>
+        <el-form-item label="邮箱地址">
+          <el-input v-model="form.email"/>
         </el-form-item>
         <el-form-item label="验证码">
           <el-row :gutter="0">
@@ -19,7 +19,7 @@
               <el-input v-model="form.code" maxlength="6"/>
             </el-col>
             <el-col :span="8" style="padding-left: 10px">
-              <send-msg :receiver="form.mobile" type="mobile"/>
+              <send-msg :receiver="form.email" type="email"/>
             </el-col>
           </el-row>
         </el-form-item>
@@ -51,22 +51,19 @@ const showDialog = computed(() => {
   return props.show
 })
 
-const title = ref('绑定手机')
-const mobile = ref('')
+const title = ref('绑定邮箱')
+const email = ref('')
 const form = ref({
-  mobile: '',
+  email: '',
   code: ''
 })
 
 watch(showDialog, (val) => {
   if (val) {
-    form.value = {
-      mobile: '',
-      code: ''
-    }
-
+    form.value.code = ''
+    form.value.email = ''
     checkSession().then(user => {
-      mobile.value = user.mobile
+      email.value = user.email
     })
   }
 })
@@ -78,7 +75,7 @@ const save = () => {
     return ElMessage.error("请输入验证码");
   }
 
-  httpPost('/api/user/bind/mobile', form.value).then(() => {
+  httpPost('/api/user/bind/email', form.value).then(() => {
     removeUserInfo()
     ElMessage.success("绑定成功")
     emits('hide')
