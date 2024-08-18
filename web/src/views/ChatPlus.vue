@@ -184,11 +184,13 @@
     >
       <div class="notice">
         <div v-html="notice"></div>
-
-        <p style="text-align: right">
-          <el-button @click="notShow" type="success" plain>我知道了，不再显示</el-button>
-        </p>
       </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="notShow" type="success" plain>我知道了，不再显示</el-button>
+        </span>
+      </template>
     </el-dialog>
 
     <ChatSetting :show="showChatSetting" @hide="showChatSetting = false"/>
