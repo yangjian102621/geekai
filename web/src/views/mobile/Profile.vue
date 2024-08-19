@@ -160,7 +160,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
 import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";
 import {ElMessage} from "element-plus";
-import {checkSession} from "@/store/cache";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import bus from '@/store/eventbus'

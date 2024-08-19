@@ -562,7 +562,9 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 // ResetPass 找回密码
 func (h *UserHandler) ResetPass(c *gin.Context) {
 	var data struct {
-		Username string `json:"username"`
+		Type     string `json:"type"`     // 验证类别：mobile, email
+		Mobile   string `json:"mobile"`   // 手机号
+		Email    string `json:"email"`    // 邮箱地址
 		Code     string `json:"code"`     // 验证码
 		Password string `json:"password"` // 新密码
 	}
@@ -571,26 +573,36 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 		return
 	}
 
+	session := h.DB.Session(&gorm.Session{})
+	var key string
+	if data.Type == "email" {
+		session = session.Where("email", data.Email)
+		key = CodeStorePrefix + data.Email
+	} else if data.Type == "mobile" {
+		session = session.Where("mobile", data.Email)
+		key = CodeStorePrefix + data.Mobile
+	} else {
+		resp.ERROR(c, "验证类别错误")
+		return
+	}
 	var user model.User
-	res := h.DB.Where("username", data.Username).First(&user)
-	if res.Error != nil {
+	err := session.First(&user).Error
+	if err != nil {
 		resp.ERROR(c, "用户不存在！")
 		return
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Username
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
-		resp.ERROR(c, "短信验证码错误")
+		resp.ERROR(c, "验证码错误")
 		return
 	}
 
 	password := utils.GenPassword(data.Password, user.Salt)
-	user.Password = password
-	res = h.DB.Updates(&user)
-	if res.Error != nil {
-		resp.ERROR(c)
+	err = h.DB.Model(&user).UpdateColumn("password", password).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 	} else {
 		h.redis.Del(c, key)
 		resp.SUCCESS(c)

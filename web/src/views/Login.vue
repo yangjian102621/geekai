@@ -48,7 +48,7 @@
             <el-divider class="divider">其他登录方式</el-divider>
 
             <div class="clogin">
-              <a :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+              <a :href="wechatLoginURL" @click="setRoute(router.currentRoute.value.path)"><i class="iconfont icon-wechat"></i></a>
             </div>
           </div>
         </div>
@@ -77,6 +77,7 @@ import ResetPass from "@/components/ResetPass.vue";
 import {showMessageError} from "@/utils/dialog";
 import Captcha from "@/components/Captcha.vue";
 import QRCode from "qrcode";
+import {setRoute} from "@/store/system";
 
 const router = useRouter();
 const title = ref('Geek-AI');
