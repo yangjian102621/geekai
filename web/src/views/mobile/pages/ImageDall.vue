@@ -165,7 +165,7 @@ import {onMounted, onUnmounted, ref} from "vue"
 import {Delete} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import Clipboard from "clipboard";
-import {checkSession} from "@/store/cache";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {
@@ -183,7 +183,6 @@ const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
 const item = ref({})
 const isLogin = ref(false)
-const activeColspan = ref([""])
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
