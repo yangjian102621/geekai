@@ -15,48 +15,5 @@
    ```
 
 ## 功能截图
-**！！！多图预警！！！**
-### 首页
-![首页](imgs/home.png)
-### 注册
-![注册](imgs/register.png)
-### AI 对话
-![AI对话](imgs/chat.png)
-### MidJourney 专业绘画界面
-![MJ绘画](imgs/mj-image.png)
-![MJ绘画](imgs/mj-list.png)
-### Stable-Diffusion 专业绘画
-![SD绘画](imgs/sd.png)
-### DALLE 绘画
-![Dalle](imgs/dalle.png)
-
-### 画廊
-![画廊](imgs/img-wall.png)
-
-### 思维导图
-![思维导图](imgs/markmap.png)
-
-### 会员充值
-![会员充值](imgs/member.png)
-
-### 管理后台
-![管理后台](imgs/admin.png)
-### 管理后台暗黑主题
-![深色主题](imgs/admin-dark.png)
-
-### H5 首页
-![H5首页](imgs/mobile-home.png)
-
-### H5 对话
-![对话列表](imgs/mobile-chat-list.png)
-![对话列表](imgs/mobile-chat.png)
-
-### H5 MidJourney 绘画
-![H5 MidJourney](imgs/mobile-mj.png)
-
-### H5 Stable-Diffusion 绘画
-![H5 SD](imgs/mobile-sd.png)
-
-### H5 会员充值
-![H5 Member](imgs/mobile-member.png)
+请参考 [GeekAI 项目介绍](https://docs.geekai.me/info/)。
 
