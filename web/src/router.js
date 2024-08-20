@@ -97,6 +97,12 @@ const routes = [
                 meta: {title: 'Suno音乐播放'},
                 component: () => import('@/views/Song.vue'),
             },
+            {
+                name: 'luma',
+                path: '/luma',
+                meta: {title: 'Luma视频创作'},
+                component: () => import('@/views/Luma.vue'),
+            },
         ]
     },
     {

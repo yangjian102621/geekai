@@ -1,0 +1,106 @@
+.page-luma {
+  display flex
+  height 100%
+  background-color #0E0808
+  overflow auto
+  //justify-content center
+  flex-flow column
+  align-items center
+  background: linear-gradient(180deg, rgba(75, 62, 53, 0.8), rgba(144, 50, 181, 0.3));
+
+
+  .prompt-box {
+    display flex
+    max-width 56rem
+    width 100%
+    padding 20px
+    flex-flow column
+
+    .images {
+      display flex
+      flex-flow row
+      padding-bottom 10px
+      justify-content center
+
+      .item {
+        position relative
+
+        .el-image {
+          width 100px
+          height 100px
+          border-radius 6px
+          margin-right 10px
+        }
+
+        .el-icon {
+          position absolute
+          cursor pointer
+          font-size 20px
+          color #545454
+          right 10px
+          top 0
+
+          &:hover {
+            color #888888
+          }
+        }
+      }
+    }
+
+    .prompt-container {
+      width: 100%;
+      .input-container {
+        background: linear-gradient(90deg, rgba(75, 62, 53, 0.8), rgba(144, 50, 181, 0.3));
+        border-radius: 28px;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+        .prompt-input {
+          background: transparent;
+          border: none;
+          outline: none;
+          color: white;
+          font-size: 14px;
+          width: 100%;
+          padding: 10px;
+          resize: none;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          line-height 24px
+          overflow-wrap: break-word;
+
+          scrollbar-width: none; /* 隐藏滚动条 */
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+          }
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        }
+
+        .upload-icon, .send-icon {
+          color #e1e1e1
+          .iconfont {
+            font-size 20px
+            cursor pointer
+          }
+        }
+        .upload-icon {
+          position relative
+        }
+      }
+    }
+
+  }
+
+  .h-title {
+    color #ffffff
+    max-width 56rem
+    width 100%
+    padding 40px 20
+    font-size 36px
+    text-align left
+  }
+}
