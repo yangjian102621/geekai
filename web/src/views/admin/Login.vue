@@ -145,6 +145,8 @@ const doLogin = function (verifyData) {
         .el-image {
           width 120px;
           cursor pointer
+          background-color #ffffff
+          border-radius 50%
         }
       }
 

@@ -131,10 +131,10 @@ func (c RedisConfig) Url() string {
 }
 
 type SystemConfig struct {
-	Title         string `json:"title,omitempty"`       // 网站标题
-	Slogan        string `json:"slogan,omitempty"`      // 网站 slogan
-	AdminTitle    string `json:"admin_title,omitempty"` // 管理后台标题
-	Logo          string `json:"logo,omitempty"`
+	Title         string `json:"title,omitempty"`           // 网站标题
+	Slogan        string `json:"slogan,omitempty"`          // 网站 slogan
+	AdminTitle    string `json:"admin_title,omitempty"`     // 管理后台标题
+	Logo          string `json:"logo,omitempty"`            // 方形 Logo
 	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
 	DailyPower    int    `json:"daily_power,omitempty"`     // 每日赠送算力
 	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
