@@ -15,7 +15,7 @@ export function checkSession() {
         httpGet('/api/user/session').then(res => {
             item.data = res.data
             // cache expires after 10 secs
-            item.expire = Date.now() + 1000 * 60 * 5
+            item.expire = Date.now() + 1000 * 30
             Storage.set(userDataKey, item)
             resolve(item.data)
         }).catch(e => {
@@ -37,7 +37,7 @@ export function checkAdminSession() {
     return new Promise((resolve, reject) => {
         httpGet('/api/admin/session').then(res => {
             item.data = res.data
-            item.expire = Date.now() + 1000 * 60 * 5
+            item.expire = Date.now() + 1000 * 30
             Storage.set(adminDataKey, item)
             resolve(item.data)
         }).catch(e => {
@@ -59,7 +59,7 @@ export function getSystemInfo() {
     return new Promise((resolve, reject) => {
         httpGet('/api/config/get?key=system').then(res => {
             item.data = res
-            item.expire = Date.now() + 1000 * 60 * 10
+            item.expire = Date.now() + 1000 * 30
             Storage.set(systemInfoKey, item)
             resolve(item.data)
         }).catch(err => {
@@ -77,7 +77,7 @@ export function getLicenseInfo() {
     return new Promise((resolve, reject) => {
         httpGet('/api/config/license').then(res => {
             item.data = res
-            item.expire = Date.now() + 1000 * 60 * 10
+            item.expire = Date.now() + 1000 * 30
             Storage.set(licenseInfoKey, item)
             resolve(item.data)
         }).catch(err => {

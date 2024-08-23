@@ -452,17 +452,23 @@ func (h *UserHandler) CLoginCallback(c *gin.Context) {
 // Session 获取/验证会话
 func (h *UserHandler) Session(c *gin.Context) {
 	user, err := h.GetLoginUser(c)
-	if err == nil {
-		var userVo vo.User
-		err := utils.CopyObject(user, &userVo)
-		if err != nil {
-			resp.ERROR(c)
-		}
-		userVo.Id = user.Id
-		resp.SUCCESS(c, userVo)
-	} else {
-		resp.NotAuth(c)
+	if err != nil {
+		resp.NotAuth(c, err.Error())
+		return
 	}
+
+	var userVo vo.User
+	err = utils.CopyObject(user, &userVo)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	// 用户 VIP 到期
+	if user.ExpiredTime > 0 && user.ExpiredTime < time.Now().Unix() {
+		h.DB.Model(&user).UpdateColumn("vip", false)
+	}
+	userVo.Id = user.Id
+	resp.SUCCESS(c, userVo)
 
 }
 

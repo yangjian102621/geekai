@@ -376,6 +376,12 @@
             </el-descriptions-item>
           </el-descriptions>
 
+          <h3>激活后可获得以下权限：</h3>
+          <ol class="active-info">
+            <li>1、使用任意第三方中转 API KEY，而不用局限于 GeekAI 推荐的白名单列表</li>
+            <li>2、可以在相关页面去除 GeekAI 的版权信息，或者修改为自己的版权信息</li>
+          </ol>
+
           <el-form :model="system" label-width="150px" label-position="right">
             <el-form-item label="许可授权码" prop="license">
               <el-input v-model="licenseKey"/>
@@ -592,6 +598,11 @@ const onUploadImg = (files, callback) => {
         }
       }
 
+
+      .active-info {
+        line-height 1.5
+        padding 10px 0 30px 0
+      }
       .el-descriptions {
         margin-bottom 20px
         .el-icon {

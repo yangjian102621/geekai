@@ -40,7 +40,7 @@
 
       <div class="navs">
         <el-space wrap>
-          <div v-for="item in navs" class="nav-item">
+          <div v-for="item in navs" :key="item.url" class="nav-item">
             <el-button @click="router.push(item.url)" :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" class="shadow" :dark="false">
               <i :class="'iconfont '+iconMap[item.url]"></i>
               <span>{{item.name}}</span>
