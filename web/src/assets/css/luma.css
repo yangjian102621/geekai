@@ -1,0 +1,142 @@
+.page-luma {
+  display: flex;
+  height: 100%;
+  background-color: #0e0808;
+  overflow: auto;
+  flex-flow: column;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(75,62,53,0.8), rgba(144,50,181,0.3));
+}
+.page-luma .prompt-box {
+  display: flex;
+  max-width: 56rem;
+  width: 100%;
+  padding: 20px;
+  flex-flow: column;
+}
+.page-luma .prompt-box .images {
+  display: flex;
+  flex-flow: row;
+  padding-bottom: 10px;
+  justify-content: center;
+}
+.page-luma .prompt-box .images .item {
+  position: relative;
+}
+.page-luma .prompt-box .images .item .el-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+  margin-right: 10px;
+}
+.page-luma .prompt-box .images .item .el-icon {
+  position: absolute;
+  cursor: pointer;
+  font-size: 20px;
+  color: #545454;
+  right: 10px;
+  top: 0;
+}
+.page-luma .prompt-box .images .item .el-icon:hover {
+  color: #888;
+}
+.page-luma .prompt-box .prompt-container {
+  width: 100%;
+}
+.page-luma .prompt-box .prompt-container .input-container {
+  background: linear-gradient(90deg, rgba(75,62,53,0.8), rgba(144,50,181,0.3));
+  border-radius: 28px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+.page-luma .prompt-box .prompt-container .input-container .prompt-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+  width: 100%;
+  padding: 10px;
+  resize: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 24px;
+  overflow-wrap: break-word;
+  scrollbar-width: none; /* 隐藏滚动条 */
+}
+.page-luma .prompt-box .prompt-container .input-container .prompt-input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+.page-luma .prompt-box .prompt-container .input-container .prompt-input::-webkit-scrollbar {
+  display: none;
+}
+.page-luma .prompt-box .prompt-container .input-container .upload-icon,
+.page-luma .prompt-box .prompt-container .input-container .send-icon {
+  color: #e1e1e1;
+}
+.page-luma .prompt-box .prompt-container .input-container .upload-icon .iconfont,
+.page-luma .prompt-box .prompt-container .input-container .send-icon .iconfont {
+  font-size: 20px;
+  cursor: pointer;
+}
+.page-luma .prompt-box .prompt-container .input-container .upload-icon {
+  position: relative;
+}
+.page-luma .video-container {
+  display: flex;
+  flex-flow: column;
+  width: 100%;
+  padding: 0 40px;
+}
+.page-luma .video-container .h-title {
+  color: #fff;
+  width: 100%;
+  font-size: 36px;
+  text-align: left;
+}
+.page-luma .video-container .videos .item {
+  margin-bottom: 20px;
+}
+.page-luma .video-container .videos .item .video-box {
+  width: 100%;
+  border-radius: 10px;
+}
+.page-luma .video-container .videos .item .video-box video,
+.page-luma .video-container .videos .item .video-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.page-luma .video-container .videos .item .video-name {
+  color: #e1e1e1;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 6px 0;
+  text-align: center;
+}
+.page-luma .video-container .videos .item .opts {
+  display: flex;
+  justify-content: center;
+}
+.page-luma .video-container .videos .item .opts .btn {
+  margin-right: 10px;
+  background-color: rgba(255,255,255,0.15);
+  border: none;
+  border-radius: 20px;
+  padding: 3px 15px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+}
+.page-luma .video-container .videos .item .opts .btn .iconfont {
+  font-size: 12px;
+}
+.page-luma .video-container .videos .item .opts .btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
