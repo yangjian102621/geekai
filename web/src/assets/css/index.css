@@ -1,0 +1,101 @@
+.index-page {
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  padding-top: 150px;
+}
+.index-page .color-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+.index-page .image-bg {
+  filter: blur(8px);
+  background-size: cover;
+  background-position: center;
+}
+.index-page .shadow {
+  box-shadow: rgba(0,0,0,0.3) 0px 0px 3px;
+}
+.index-page .shadow:hover {
+  box-shadow: rgba(0,0,0,0.3) 0px 0px 8px;
+}
+.index-page .menu-box {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  display: flex;
+}
+.index-page .menu-box .el-menu {
+  padding: 0 30px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  background: none;
+  border: none;
+}
+.index-page .menu-box .el-menu .menu-item {
+  display: flex;
+  padding: 20px 0;
+  color: #fff;
+}
+.index-page .menu-box .el-menu .menu-item .title {
+  font-size: 24px;
+  padding: 10px 10px 0 10px;
+}
+.index-page .menu-box .el-menu .menu-item .el-image {
+  height: 50px;
+  background-color: #fff;
+}
+.index-page .menu-box .el-menu .menu-item .el-button {
+  margin-left: 10px;
+}
+.index-page .menu-box .el-menu .menu-item .el-button span {
+  margin-left: 5px;
+}
+.index-page .content {
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+}
+.index-page .content h1 {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+}
+.index-page .content p {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+.index-page .content .navs {
+  display: flex;
+  max-width: 900px;
+  padding: 20px;
+}
+.index-page .content .navs .el-space--horizontal {
+  justify-content: center;
+}
+.index-page .content .navs .nav-item {
+  width: 200px;
+}
+.index-page .content .navs .nav-item .el-button {
+  width: 100%;
+  padding: 25px 20px;
+  font-size: 1.3rem;
+  transition: all 0.3s ease;
+}
+.index-page .content .navs .nav-item .el-button .iconfont {
+  font-size: 24px;
+  margin-right: 10px;
+  position: relative;
+  top: -2px;
+}
+.index-page .footer .el-link__inner {
+  color: #fff;
+}

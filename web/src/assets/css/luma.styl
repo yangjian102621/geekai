@@ -110,10 +110,8 @@
     }
 
     .videos {
-      display flex
-      flex-flow row
-
       .item {
+        margin-bottom 20px
 
         .video-box {
           width 100%
@@ -127,6 +125,7 @@
           }
         }
 
+
         .video-name {
           color #e1e1e1
           font-size 16px
@@ -135,6 +134,29 @@
           text-overflow ellipsis
           padding 6px 0
           text-align center
+        }
+
+        .opts {
+          display flex
+          justify-content center
+          .btn {
+            margin-right 10px
+            background-color hsla(0,0%,100%,.15)
+            border none
+            border-radius 20px
+            padding 3px 15px
+            cursor pointer
+            color #ffffff
+            font-size 14px
+
+            .iconfont {
+              font-size 12px
+            }
+
+            &:hover {
+              background-color hsla(0,0%,100%,.2)
+            }
+          }
         }
       }
     }
