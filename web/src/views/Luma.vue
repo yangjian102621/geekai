@@ -2,15 +2,24 @@
   <div class="page-luma">
     <div class="prompt-box">
       <div class="images">
-        <div v-for="img in images" class="item">
+        <div v-for="img in images" :key="img" class="item">
           <el-image :src="img" fit="cover"/>
-          <el-icon><CircleCloseFilled /></el-icon>
+          <el-icon @click="remove(img)"><CircleCloseFilled /></el-icon>
         </div>
       </div>
       <div class="prompt-container">
         <div class="input-container">
           <div class="upload-icon">
-            <i class="iconfont icon-image"></i>
+
+            <el-upload
+                class="avatar-uploader"
+                :auto-upload="true"
+                :show-file-list="false"
+                :http-request="upload"
+                accept=".jpg,.png,.jpeg"
+            >
+              <i class="iconfont icon-image"></i>
+            </el-upload>
           </div>
           <textarea
               class="prompt-input"
@@ -24,6 +33,16 @@
           </div>
         </div>
 
+        <div class="params">
+          <div class="item-group">
+            <span class="label">循环</span>
+            <el-switch  v-model="loop" size="small" style="--el-switch-on-color:#BF78BF;" />
+          </div>
+          <div class="item-group">
+            <span class="label">提示词优化</span>
+            <el-switch  v-model="promptExtend" size="small" style="--el-switch-on-color:#BF78BF;" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -40,12 +59,11 @@
           </div>
           <div class="video-name">{{item.name}}</div>
           <div class="opts">
-            <a :href="item.url+'?download=true'" download="video.mp4">
-              <button class="btn">
-                <i class="iconfont icon-download"></i>
-                <span>下载</span>
-              </button>
-            </a>
+            <button class="btn" @click="download(item)" :disabled="item.downloading">
+              <i class="iconfont icon-download" v-if="!item.downloading"></i>
+              <el-image src="/images/loading.gif" fit="cover" v-else />
+              <span>下载</span>
+            </button>
           </div>
         </el-col>
       </el-row>
@@ -56,19 +74,21 @@
 <script setup>
 import {ref} from "vue";
 import {CircleCloseFilled} from "@element-plus/icons-vue";
+import {httpDownload, httpPost} from "@/utils/http";
+import {showMessageError} from "@/utils/dialog";
+import {ElMessage} from "element-plus";
 
 const row = ref(1)
 const prompt = ref('')
-const images = ref([
-    "http://nk.img.r9it.com/chatgpt-plus/1719371605709871.jpg",
-    "http://nk.img.r9it.com/chatgpt-plus/1719371605709871.jpg"
-])
+const loop = ref(false)
+const promptExtend = ref(false)
+const images = ref([])
 
 const videos = ref([
   {
     id: 1,
     name: 'a dancing girl',
-    url: 'http://localhost:5678/static/upload/2024/8/1724574661747320.mp4',
+    url: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/watermarked_video01944f69966f14d33b6c4486a8cfb8dde.mp4',
     cover: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/video_0_thumb.jpg',
     playing: false
   },
@@ -101,6 +121,44 @@ const videos = ref([
     playing: false
   },
 ])
+
+const download = (item) => {
+  const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${item.url}`
+  // parse filename
+  const urlObj = new URL(item.url);
+  const fileName = urlObj.pathname.split('/').pop();
+  item.downloading = true
+  httpDownload(downloadURL).then(response  => {
+    const blob = new Blob([response.data]);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    item.downloading = false
+  }).catch(() => {
+    showMessageError("下载失败")
+    item.downloading = false
+  })
+}
+
+const upload = (file) => {
+  const formData = new FormData();
+  formData.append('file', file.file, file.name);
+  // 执行上传操作
+  httpPost('/api/upload', formData).then((res) => {
+    images.value.push(res.data.url)
+    ElMessage.success({message: "上传成功", duration: 500})
+  }).catch((e) => {
+    ElMessage.error('图片上传失败:' + e.message)
+  })
+};
+
+const remove = (img) => {
+  images.value = images.value.filter(item => item !== img)
+}
 
 
 </script>

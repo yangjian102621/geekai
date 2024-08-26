@@ -69,3 +69,17 @@ export function httpPost(url, data = {}, options = {}) {
         })
     })
 }
+
+export function httpDownload(url) {
+    return new Promise((resolve, reject) => {
+        axios({
+            method: 'GET',
+            url: url,
+            responseType: 'blob' // 将响应类型设置为 `blob`
+        }).then(response => {
+            resolve(response)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
