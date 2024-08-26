@@ -17,19 +17,21 @@ import (
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"io"
+	"net/http"
 	"time"
 )
 
-type UploadHandler struct {
+type NetHandler struct {
 	BaseHandler
 	uploaderManager *oss.UploaderManager
 }
 
-func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManager) *UploadHandler {
-	return &UploadHandler{BaseHandler: BaseHandler{App: app, DB: db}, uploaderManager: manager}
+func NewNetHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManager) *NetHandler {
+	return &NetHandler{BaseHandler: BaseHandler{App: app, DB: db}, uploaderManager: manager}
 }
 
-func (h *UploadHandler) Upload(c *gin.Context) {
+func (h *NetHandler) Upload(c *gin.Context) {
 	file, err := h.uploaderManager.GetUploadHandler().PutFile(c, "file")
 	if err != nil {
 		resp.ERROR(c, err.Error())
@@ -60,7 +62,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 	resp.SUCCESS(c, file)
 }
 
-func (h *UploadHandler) List(c *gin.Context) {
+func (h *NetHandler) List(c *gin.Context) {
 	var data struct {
 		Urls []string `json:"urls,omitempty"`
 	}
@@ -95,7 +97,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 }
 
 // Remove remove files
-func (h *UploadHandler) Remove(c *gin.Context) {
+func (h *NetHandler) Remove(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	id := h.GetInt(c, "id", 0)
 	var file model.File
@@ -118,4 +120,29 @@ func (h *UploadHandler) Remove(c *gin.Context) {
 	}
 	_ = h.uploaderManager.GetUploadHandler().Delete(objectKey)
 	resp.SUCCESS(c)
+}
+
+func (h *NetHandler) Download(c *gin.Context) {
+	fileUrl := c.Query("url")
+	// 使用http工具下载文件
+	if fileUrl == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	// 使用http.Get下载文件
+	r, err := http.Get(fileUrl)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode != http.StatusOK {
+		resp.ERROR(c, "error status："+r.Status)
+		return
+	}
+
+	// 将下载的文件内容写入响应
+	c.Status(http.StatusOK)
+	_, _ = io.Copy(c.Writer, r.Body)
 }

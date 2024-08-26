@@ -128,7 +128,7 @@ func main() {
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(chatimpl.NewChatHandler),
-		fx.Provide(handler.NewUploadHandler),
+		fx.Provide(handler.NewNetHandler),
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRedeemHandler),
 		fx.Provide(handler.NewCaptchaHandler),
@@ -249,10 +249,11 @@ func main() {
 			group.POST("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
+		fx.Invoke(func(s *core.AppServer, h *handler.NetHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
 			s.Engine.POST("/api/upload/list", h.List)
 			s.Engine.GET("/api/upload/remove", h.Remove)
+			s.Engine.GET("/api/download", h.Download)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
 			group := s.Engine.Group("/api/sms/")
