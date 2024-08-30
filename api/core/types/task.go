@@ -85,7 +85,6 @@ type SunoTask struct {
 	Channel      string `json:"channel"`
 	UserId       int    `json:"user_id"`
 	Type         int    `json:"type"`
-	TaskId       string `json:"task_id"`
 	Title        string `json:"title"`
 	RefTaskId    string `json:"ref_task_id,omitempty"`
 	RefSongId    string `json:"ref_song_id,omitempty"`
@@ -96,4 +95,31 @@ type SunoTask struct {
 	ExtendSecs   int    `json:"extend_secs,omitempty"` // 延长秒杀
 	SongId       string `json:"song_id,omitempty"`     // 合并歌曲ID
 	AudioURL     string `json:"audio_url"`             // 用户上传音频地址
+}
+
+const (
+	VideoLuma   = "luma"
+	VideoRunway = "runway"
+	VideoCog    = "cog"
+)
+
+type VideoTask struct {
+	Id      uint        `json:"id"`
+	Channel string      `json:"channel"`
+	UserId  int         `json:"user_id"`
+	Type    string      `json:"type"`
+	TaskId  string      `json:"task_id"`
+	Prompt  string      `json:"prompt"` // 提示词
+	Params  VideoParams `json:"params"`
+}
+
+type VideoParams struct {
+	PromptOptimize bool   `json:"prompt_optimize"` // 是否优化提示词
+	Loop           bool   `json:"loop"`            // 是否循环参考图
+	StartImgURL    string `json:"start_img_url"`   // 第一帧参考图地址
+	EndImgURL      string `json:"end_img_url"`     // 最后一帧参考图地址
+	Model          string `json:"model"`           // 使用哪个模型生成视频
+	Radio          string `json:"radio"`           // 视频尺寸
+	Style          string `json:"style"`           // 风格
+	Duration       int    `json:"duration"`        // 视频时长（秒）
 }

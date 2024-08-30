@@ -199,7 +199,7 @@ func main() {
 			s.Run()
 			s.SyncTaskProgress()
 			s.CheckTaskNotify()
-			s.DownloadImages()
+			s.DownloadFiles()
 		}),
 
 		fx.Provide(payment.NewAlipayService),

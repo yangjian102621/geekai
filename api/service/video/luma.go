@@ -1,4 +1,4 @@
-package suno
+package video
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -41,55 +41,49 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
-		taskQueue:     store.NewRedisQueue("Suno_Task_Queue", redisCli),
-		notifyQueue:   store.NewRedisQueue("Suno_Notify_Queue", redisCli),
+		taskQueue:     store.NewRedisQueue("Video_Task_Queue", redisCli),
+		notifyQueue:   store.NewRedisQueue("Video_Notify_Queue", redisCli),
 		Clients:       types.NewLMap[uint, *types.WsClient](),
 		uploadManager: manager,
 	}
 }
 
-func (s *Service) PushTask(task types.SunoTask) {
-	logger.Infof("add a new Suno task to the task list: %+v", task)
+func (s *Service) PushTask(task types.VideoTask) {
+	logger.Infof("add a new Video task to the task list: %+v", task)
 	s.taskQueue.RPush(task)
 }
 
 func (s *Service) Run() {
 	// 将数据库中未提交的人物加载到队列
-	var jobs []model.SunoJob
+	var jobs []model.VideoJob
 	s.db.Where("task_id", "").Find(&jobs)
 	for _, v := range jobs {
-		s.PushTask(types.SunoTask{
-			Id:           v.Id,
-			Channel:      v.Channel,
-			UserId:       v.UserId,
-			Type:         v.Type,
-			Title:        v.Title,
-			RefTaskId:    v.RefTaskId,
-			RefSongId:    v.RefSongId,
-			Prompt:       v.Prompt,
-			Tags:         v.Tags,
-			Model:        v.ModelName,
-			Instrumental: v.Instrumental,
-			ExtendSecs:   v.ExtendSecs,
+		var params types.VideoParams
+		if err := utils.JsonDecode(v.Params, &params); err != nil {
+			logger.Errorf("unmarshal params failed: %v", err)
+			continue
+		}
+		s.PushTask(types.VideoTask{
+			Id:      v.Id,
+			Channel: v.Channel,
+			UserId:  v.UserId,
+			Type:    v.Type,
+			TaskId:  v.TaskId,
+			Prompt:  v.Prompt,
+			Params:  params,
 		})
 	}
-	logger.Info("Starting Suno job consumer...")
+	logger.Info("Starting Video job consumer...")
 	go func() {
 		for {
-			var task types.SunoTask
+			var task types.VideoTask
 			err := s.taskQueue.LPop(&task)
 			if err != nil {
 				logger.Errorf("taking task with error: %v", err)
 				continue
 			}
 			var r RespVo
-			if task.Type == 3 && task.SongId != "" { // 歌曲拼接
-				r, err = s.Merge(task)
-			} else if task.Type == 4 && task.AudioURL != "" { // 上传歌曲
-				r, err = s.Upload(task)
-			} else { // 歌曲创作
-				r, err = s.Create(task)
-			}
+			r, err = s.CreateLuma(task)
 			if err != nil {
 				logger.Errorf("create task with error: %v", err)
 				s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
@@ -102,7 +96,7 @@ func (s *Service) Run() {
 
 			// 更新任务信息
 			s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
-				"task_id": r.Data,
+				"task_id": r.Id,
 				"channel": r.Channel,
 			})
 		}
@@ -110,16 +104,20 @@ func (s *Service) Run() {
 }
 
 type RespVo struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Data    string `json:"data"`
-	Channel string `json:"channel,omitempty"`
+	Id                  string      `json:"id"`
+	Prompt              string      `json:"prompt"`
+	State               string      `json:"state"`
+	CreatedAt           time.Time   `json:"created_at"`
+	Video               interface{} `json:"video"`
+	Liked               interface{} `json:"liked"`
+	EstimateWaitSeconds interface{} `json:"estimate_wait_seconds"`
+	Channel             string      `json:"channel,omitempty"`
 }
 
-func (s *Service) Create(task types.SunoTask) (RespVo, error) {
+func (s *Service) CreateLuma(task types.VideoTask) (RespVo, error) {
 	// 读取 API KEY
 	var apiKey model.ApiKey
-	session := s.db.Session(&gorm.Session{}).Where("type", "suno").Where("enabled", true)
+	session := s.db.Session(&gorm.Session{}).Where("type", "luma").Where("enabled", true)
 	if task.Channel != "" {
 		session = session.Where("api_url", task.Channel)
 	}
@@ -129,23 +127,14 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	}
 
 	reqBody := map[string]interface{}{
-		"task_id":           task.RefTaskId,
-		"continue_clip_id":  task.RefSongId,
-		"continue_at":       task.ExtendSecs,
-		"make_instrumental": task.Instrumental,
+		"user_prompt":   task.Prompt,
+		"expand_prompt": task.Params.PromptOptimize,
+		"loop":          task.Params.Loop,
+		"image_url":     task.Params.StartImgURL,
+		"image_end_url": task.Params.EndImgURL,
 	}
-	// 灵感模式
-	if task.Type == 1 {
-		reqBody["gpt_description_prompt"] = task.Prompt
-	} else { // 自定义模式
-		reqBody["prompt"] = task.Prompt
-		reqBody["tags"] = task.Tags
-		reqBody["mv"] = task.Model
-		reqBody["title"] = task.Title
-	}
-
 	var res RespVo
-	apiURL := fmt.Sprintf("%s/suno/submit/music", apiKey.ApiURL)
+	apiURL := fmt.Sprintf("%s/luma/generations", apiKey.ApiURL)
 	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
 	r, err := req.C().R().
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
@@ -161,96 +150,6 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
 	}
 
-	if res.Code != "success" {
-		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
-	}
-	// update the last_use_at for api key
-	apiKey.LastUsedAt = time.Now().Unix()
-	session.Updates(&apiKey)
-	res.Channel = apiKey.ApiURL
-	return res, nil
-}
-
-func (s *Service) Merge(task types.SunoTask) (RespVo, error) {
-	// 读取 API KEY
-	var apiKey model.ApiKey
-	session := s.db.Session(&gorm.Session{}).Where("type", "suno").Where("enabled", true)
-	if task.Channel != "" {
-		session = session.Where("api_url", task.Channel)
-	}
-	tx := session.Order("last_used_at DESC").First(&apiKey)
-	if tx.Error != nil {
-		return RespVo{}, errors.New("no available API KEY for Suno")
-	}
-
-	reqBody := map[string]interface{}{
-		"clip_id":   task.SongId,
-		"is_infill": false,
-	}
-
-	var res RespVo
-	apiURL := fmt.Sprintf("%s/suno/submit/concat", apiKey.ApiURL)
-	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
-	r, err := req.C().R().
-		SetHeader("Authorization", "Bearer "+apiKey.Value).
-		SetBody(reqBody).
-		Post(apiURL)
-	if err != nil {
-		return RespVo{}, fmt.Errorf("请求 API 出错：%v", err)
-	}
-
-	body, _ := io.ReadAll(r.Body)
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
-	}
-
-	if res.Code != "success" {
-		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
-	}
-	// update the last_use_at for api key
-	apiKey.LastUsedAt = time.Now().Unix()
-	session.Updates(&apiKey)
-	res.Channel = apiKey.ApiURL
-	return res, nil
-}
-
-func (s *Service) Upload(task types.SunoTask) (RespVo, error) {
-	// 读取 API KEY
-	var apiKey model.ApiKey
-	session := s.db.Session(&gorm.Session{}).Where("type", "suno").Where("enabled", true)
-	if task.Channel != "" {
-		session = session.Where("api_url", task.Channel)
-	}
-	tx := session.Order("last_used_at DESC").First(&apiKey)
-	if tx.Error != nil {
-		return RespVo{}, errors.New("no available API KEY for Suno")
-	}
-
-	reqBody := map[string]interface{}{
-		"url": task.AudioURL,
-	}
-
-	var res RespVo
-	apiURL := fmt.Sprintf("%s/suno/uploads/audio-url", apiKey.ApiURL)
-	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
-	r, err := req.C().R().
-		SetHeader("Authorization", "Bearer "+apiKey.Value).
-		SetBody(reqBody).
-		Post(apiURL)
-	if err != nil {
-		return RespVo{}, fmt.Errorf("请求 API 出错：%v", err)
-	}
-
-	body, _ := io.ReadAll(r.Body)
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
-	}
-
-	if res.Code != "success" {
-		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
-	}
 	// update the last_use_at for api key
 	apiKey.LastUsedAt = time.Now().Unix()
 	session.Updates(&apiKey)
