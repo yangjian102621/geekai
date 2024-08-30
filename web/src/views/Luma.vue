@@ -35,7 +35,7 @@
 
         <div class="params">
           <div class="item-group">
-            <span class="label">循环</span>
+            <span class="label">循环参考图</span>
             <el-switch  v-model="loop" size="small" style="--el-switch-on-color:#BF78BF;" />
           </div>
           <div class="item-group">

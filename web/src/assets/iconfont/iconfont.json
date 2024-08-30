@@ -1,10 +1,31 @@
 {
   "id": "4125778",
-  "name": "chatgpt",
+  "name": "geekai",
   "font_family": "iconfont",
   "css_prefix_text": "icon-",
   "description": "",
   "glyphs": [
+    {
+      "icon_id": "8094809",
+      "name": "merge-cells",
+      "font_class": "merge",
+      "unicode": "e901",
+      "unicode_decimal": 59649
+    },
+    {
+      "icon_id": "10278208",
+      "name": "上传",
+      "font_class": "upload",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "23538484",
+      "name": "拼接",
+      "font_class": "concat",
+      "unicode": "e630",
+      "unicode_decimal": 58928
+    },
     {
       "icon_id": "15838472",
       "name": "email",
@@ -120,7 +141,7 @@
     {
       "icon_id": "4318807",
       "name": "mp3",
-      "font_class": "mp",
+      "font_class": "mp3",
       "unicode": "e6c4",
       "unicode_decimal": 59076
     },
