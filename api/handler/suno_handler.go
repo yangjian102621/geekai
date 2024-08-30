@@ -72,13 +72,30 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		Tags         string `json:"tags"`
 		Title        string `json:"title"`
 		Type         int    `json:"type"`
-		RefTaskId    string `json:"ref_task_id"` // 续写的任务id
-		ExtendSecs   int    `json:"extend_secs"` // 续写秒数
-		RefSongId    string `json:"ref_song_id"` // 续写的歌曲id
+		RefTaskId    string `json:"ref_task_id"`         // 续写的任务id
+		ExtendSecs   int    `json:"extend_secs"`         // 续写秒数
+		RefSongId    string `json:"ref_song_id"`         // 续写的歌曲id
+		SongId       string `json:"song_id,omitempty"`   // 要拼接的歌曲id
+		AudioURL     string `json:"audio_url,omitempty"` // 上传自己创作的歌曲
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
+	}
+
+	// 歌曲拼接
+	if data.SongId != "" && data.Type == 3 {
+		var song model.SunoJob
+		if err := h.DB.Where("song_id = ?", data.SongId).First(&song).Error; err == nil {
+			data.Instrumental = song.Instrumental
+			data.Model = song.ModelName
+			data.Tags = song.Tags
+		}
+		// 拼接歌词
+		var refSong model.SunoJob
+		if err := h.DB.Where("song_id = ?", data.RefSongId).First(&refSong).Error; err == nil {
+			data.Prompt = fmt.Sprintf("%s\n%s", song.Prompt, refSong.Prompt)
+		}
 	}
 
 	// 插入数据库
@@ -118,6 +135,8 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		Tags:         data.Tags,
 		Model:        data.Model,
 		Instrumental: data.Instrumental,
+		SongId:       data.SongId,
+		AudioURL:     data.AudioURL,
 	})
 
 	// update user's power

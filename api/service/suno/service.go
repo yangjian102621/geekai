@@ -82,14 +82,21 @@ func (s *Service) Run() {
 				logger.Errorf("taking task with error: %v", err)
 				continue
 			}
-
-			r, err := s.Create(task)
+			var r RespVo
+			if task.Type == 3 && task.SongId != "" { // 歌曲拼接
+				r, err = s.Merge(task)
+			} else if task.Type == 4 && task.AudioURL != "" { // 上传歌曲
+				r, err = s.Upload(task)
+			} else { // 歌曲创作
+				r, err = s.Create(task)
+			}
 			if err != nil {
 				logger.Errorf("create task with error: %v", err)
 				s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 					"err_msg":  err.Error(),
 					"progress": service.FailTaskProgress,
 				})
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
 				continue
 			}
 
@@ -138,7 +145,94 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	}
 
 	var res RespVo
-	apiURL := fmt.Sprintf("%s/task/suno/v1/submit/music", apiKey.ApiURL)
+	apiURL := fmt.Sprintf("%s/suno/submit/music", apiKey.ApiURL)
+	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
+	r, err := req.C().R().
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
+		SetBody(reqBody).
+		Post(apiURL)
+	if err != nil {
+		return RespVo{}, fmt.Errorf("请求 API 出错：%v", err)
+	}
+
+	body, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
+	}
+
+	if res.Code != "success" {
+		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
+	}
+	// update the last_use_at for api key
+	apiKey.LastUsedAt = time.Now().Unix()
+	session.Updates(&apiKey)
+	res.Channel = apiKey.ApiURL
+	return res, nil
+}
+
+func (s *Service) Merge(task types.SunoTask) (RespVo, error) {
+	// 读取 API KEY
+	var apiKey model.ApiKey
+	session := s.db.Session(&gorm.Session{}).Where("type", "suno").Where("enabled", true)
+	if task.Channel != "" {
+		session = session.Where("api_url", task.Channel)
+	}
+	tx := session.Order("last_used_at DESC").First(&apiKey)
+	if tx.Error != nil {
+		return RespVo{}, errors.New("no available API KEY for Suno")
+	}
+
+	reqBody := map[string]interface{}{
+		"clip_id":   task.SongId,
+		"is_infill": false,
+	}
+
+	var res RespVo
+	apiURL := fmt.Sprintf("%s/suno/submit/concat", apiKey.ApiURL)
+	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
+	r, err := req.C().R().
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
+		SetBody(reqBody).
+		Post(apiURL)
+	if err != nil {
+		return RespVo{}, fmt.Errorf("请求 API 出错：%v", err)
+	}
+
+	body, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
+	}
+
+	if res.Code != "success" {
+		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
+	}
+	// update the last_use_at for api key
+	apiKey.LastUsedAt = time.Now().Unix()
+	session.Updates(&apiKey)
+	res.Channel = apiKey.ApiURL
+	return res, nil
+}
+
+func (s *Service) Upload(task types.SunoTask) (RespVo, error) {
+	// 读取 API KEY
+	var apiKey model.ApiKey
+	session := s.db.Session(&gorm.Session{}).Where("type", "suno").Where("enabled", true)
+	if task.Channel != "" {
+		session = session.Where("api_url", task.Channel)
+	}
+	tx := session.Order("last_used_at DESC").First(&apiKey)
+	if tx.Error != nil {
+		return RespVo{}, errors.New("no available API KEY for Suno")
+	}
+
+	reqBody := map[string]interface{}{
+		"url": task.AudioURL,
+	}
+
+	var res RespVo
+	apiURL := fmt.Sprintf("%s/suno/uploads/audio-url", apiKey.ApiURL)
 	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
 	r, err := req.C().R().
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
@@ -339,7 +433,7 @@ func (s *Service) QueryTask(taskId string, channel string) (QueryRespVo, error) 
 		return QueryRespVo{}, errors.New("no available API KEY for Suno")
 	}
 
-	apiURL := fmt.Sprintf("%s/task/suno/v1/fetch/%s", apiKey.ApiURL, taskId)
+	apiURL := fmt.Sprintf("%s/suno/fetch/%s", apiKey.ApiURL, taskId)
 	var res QueryRespVo
 	r, err := req.C().R().SetHeader("Authorization", "Bearer "+apiKey.Value).Get(apiURL)
 

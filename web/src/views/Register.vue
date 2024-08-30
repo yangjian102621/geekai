@@ -211,6 +211,11 @@ const licenseConfig = ref({})
 const enableVerify = ref(false)
 const captchaRef = ref(null)
 
+// 记录邀请码点击次数
+if (data.value.invite_code) {
+  httpGet("/api/invite/hits",{code: data.value.invite_code})
+}
+
 getSystemInfo().then(res => {
   if (res.data) {
     title.value = res.data.title

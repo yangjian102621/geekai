@@ -87,11 +87,13 @@ type SunoTask struct {
 	Type         int    `json:"type"`
 	TaskId       string `json:"task_id"`
 	Title        string `json:"title"`
-	RefTaskId    string `json:"ref_task_id"`
-	RefSongId    string `json:"ref_song_id"`
+	RefTaskId    string `json:"ref_task_id,omitempty"`
+	RefSongId    string `json:"ref_song_id,omitempty"`
 	Prompt       string `json:"prompt"` // 提示词/歌词
 	Tags         string `json:"tags"`
 	Model        string `json:"model"`
-	Instrumental bool   `json:"instrumental"` // 是否纯音乐
-	ExtendSecs   int    `json:"extend_secs"`  // 延长秒杀
+	Instrumental bool   `json:"instrumental"`          // 是否纯音乐
+	ExtendSecs   int    `json:"extend_secs,omitempty"` // 延长秒杀
+	SongId       string `json:"song_id,omitempty"`     // 合并歌曲ID
+	AudioURL     string `json:"audio_url"`             // 用户上传音频地址
 }

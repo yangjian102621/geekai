@@ -5,7 +5,7 @@ type SunoJob struct {
 	UserId       int                    `json:"user_id"`
 	Channel      string                 `json:"channel"`
 	Title        string                 `json:"title"`
-	Type         string                 `json:"type"`
+	Type         int                    `json:"type"`
 	TaskId       string                 `json:"task_id"`
 	RefTaskId    string                 `json:"ref_task_id"`  // 续写的任务id
 	Tags         string                 `json:"tags"`         // 歌曲风格和标签
