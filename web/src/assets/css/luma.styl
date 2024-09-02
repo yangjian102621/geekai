@@ -21,6 +21,7 @@
       flex-flow row
       padding-bottom 10px
       justify-content center
+      align-items center
 
       .item {
         position relative
@@ -45,7 +46,15 @@
           }
         }
       }
+
+      .btn-swap {
+        margin-right 10px
+        .icon{
+          fill #fff
+        }
+      }
     }
+
 
     .prompt-container {
       width: 100%;
@@ -131,6 +140,7 @@
 
         .video-box {
           width 100%
+          aspect-ratio: 16/9;
           border-radius 10px
           video,img {
             width: 100%;
