@@ -42,7 +42,7 @@ import {setUserToken} from "@/store/session";
 import Clipboard from "clipboard";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import {getRoute} from "@/store/system";
-import {checkSession, removeUserInfo} from "@/store/cache";
+import {checkSession} from "@/store/cache";
 
 const winHeight = ref(window.innerHeight)
 const loading = ref(true)
@@ -68,7 +68,6 @@ if (code === "") {
 const doLogin = (userId) => {
   // 发送请求获取用户信息
   httpGet("/api/user/clogin/callback",{login_type: "wx",code: code, action:action, user_id: userId}).then(res => {
-    removeUserInfo()
     if (res.data.token) {
       setUserToken(res.data.token)
     }
