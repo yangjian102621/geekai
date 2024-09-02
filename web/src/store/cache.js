@@ -6,29 +6,15 @@ const adminDataKey = "ADMIN_INFO_CACHE_KEY"
 const systemInfoKey = "SYSTEM_INFO_CACHE_KEY"
 const licenseInfoKey = "LICENSE_INFO_CACHE_KEY"
 export function checkSession() {
-    const item = Storage.get(userDataKey) ?? {expire:0, data:null}
-    if (item.expire > Date.now()) {
-        return Promise.resolve(item.data)
-    }
-
     return new Promise((resolve, reject) => {
         httpGet('/api/user/session').then(res => {
-            item.data = res.data
-            // cache expires after 10 secs
-            item.expire = Date.now() + 1000 * 30
-            Storage.set(userDataKey, item)
-            resolve(item.data)
+            resolve(res.data)
         }).catch(e => {
             Storage.remove(userDataKey)
             reject(e)
         })
     })
 }
-
-export function removeUserInfo() {
-    Storage.remove(userDataKey)
-}
-
 export function checkAdminSession() {
     const item = Storage.get(adminDataKey) ?? {expire:0, data:null}
     if (item.expire > Date.now()) {
@@ -63,7 +49,7 @@ export function getSystemInfo() {
             Storage.set(systemInfoKey, item)
             resolve(item.data)
         }).catch(err => {
-            resolve(err)
+            reject(err)
         })
     })
 }

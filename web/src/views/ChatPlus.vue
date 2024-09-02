@@ -3,7 +3,7 @@
     <el-container>
       <el-aside>
         <div class="chat-list">
-          <el-button @click="newChat" color="#21aa93">
+          <el-button @click="_newChat" color="#21aa93">
             <el-icon style="margin-right: 5px">
               <Plus/>
             </el-icon>
@@ -23,7 +23,7 @@
 
           <div class="content" :style="{height: leftBoxHeight+'px'}">
             <el-row v-for="chat in chatList" :key="chat.chat_id">
-              <div :class="chat.chat_id === activeChat.chat_id?'chat-list-item active':'chat-list-item'"
+              <div :class="chat.chat_id === chatId?'chat-list-item active':'chat-list-item'"
                    @click="loadChat(chat)">
                 <el-image :src="chat.icon" class="avatar"/>
                 <span class="chat-title-input" v-if="chat.edit">
@@ -211,7 +211,7 @@ import {
   UUID
 } from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {getSessionId, getUserToken, removeUserToken} from "@/store/session";
+import {getSessionId, getUserToken} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
@@ -222,7 +222,6 @@ import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
-import {showMessageError} from "@/utils/dialog";
 
 const title = ref('GeekAI-智能助手');
 const models = ref([])
@@ -230,15 +229,15 @@ const modelID = ref(0)
 const chatData = ref([]);
 const allChats = ref([]); // 会话列表
 const chatList = ref(allChats.value);
-const activeChat = ref({});
 const mainWinHeight = ref(0); // 主窗口高度
 const chatBoxHeight = ref(0); // 聊天内容框高度
 const leftBoxHeight = ref(0);
-const loading = ref(true);
+const loading = ref(false);
 const loginUser = ref(null);
 const roles = ref([]);
 const router = useRouter();
 const roleId = ref(0)
+const chatId = ref();
 const newChatItem = ref(null);
 const isLogin = ref(false)
 const showHello = ref(true)
@@ -255,6 +254,11 @@ watch(() => store.chatListStyle, (newValue) => {
   listStyle.value = newValue
 });
 
+// 初始化 ChatID
+chatId.value = router.currentRoute.value.params.id
+if (!chatId.value) {
+  chatId.value = UUID()
+}
 
 if (isMobile()) {
   router.replace("/mobile/chat")
@@ -351,7 +355,6 @@ const initData = () => {
       ElMessage.error("加载会话列表失败！")
     })
   }).catch(() => {
-    loading.value = false
     // 加载模型
     httpGet('/api/model/list',{id:roleId.value}).then(res => {
       models.value = res.data
@@ -418,6 +421,7 @@ const resizeElement = function () {
 
 const _newChat = () => {
   if (isLogin.value) {
+    chatId.value = UUID()
     newChat()
   }
 }
@@ -428,6 +432,7 @@ const newChat = () => {
     store.setShowLoginDialog(true)
     return;
   }
+
   const role = getRoleById(roleId.value)
   showHello.value = role.key === 'gpt';
   // if the role bind a model, disable model change
@@ -457,9 +462,9 @@ const newChat = () => {
     edit: false,
     removing: false,
   };
-  activeChat.value = {} //取消激活的会话高亮
   showStopGenerate.value = false;
-  connect(null, roleId.value)
+  router.push(`/chat/${chatId.value}`)
+  connect()
 }
 
 
@@ -470,16 +475,17 @@ const loadChat = function (chat) {
     return;
   }
 
-  if (activeChat.value['chat_id'] === chat.chat_id) {
+  if (chatId.value === chat.chat_id) {
     return;
   }
 
-  activeChat.value = chat
   newChatItem.value = null;
   roleId.value = chat.role_id;
   modelID.value = chat.model_id;
+  chatId.value = chat.chat_id;
   showStopGenerate.value = false;
-  connect(chat.chat_id, chat.role_id)
+  router.push(`/chat/${chatId.value}`)
+  socket.value.close()
 }
 
 // 编辑会话标题
@@ -487,7 +493,6 @@ const tmpChatTitle = ref('');
 const editChatTitle = (chat) => {
   chat.edit = true;
   tmpChatTitle.value = chat.title;
-  console.log(chat.chat_id)
   nextTick(() => {
     document.getElementById('chat-' + chat.chat_id).focus()
   })
@@ -557,23 +562,10 @@ const prompt = ref('');
 const showStopGenerate = ref(false); // 停止生成
 const lineBuffer = ref(''); // 输出缓冲行
 const socket = ref(null);
-const activelyClose = ref(false); // 主动关闭
 const canSend = ref(true);
-const heartbeatHandle = ref(null)
 const sessionId = ref("")
-const connect = function (chat_id, role_id) {
-  let isNewChat = false;
-  if (!chat_id) {
-    isNewChat = true;
-    chat_id = UUID();
-  }
-  // 先关闭已有连接
-  if (socket.value !== null) {
-    activelyClose.value = true;
-    socket.value.close();
-  }
-
-  const _role = getRoleById(role_id);
+const connect = function () {
+  const chatRole = getRoleById(roleId.value);
   // 初始化 WebSocket 对象
   sessionId.value = getSessionId();
   let host = process.env.VUE_APP_WS_HOST
@@ -585,26 +577,12 @@ const connect = function (chat_id, role_id) {
     }
   }
 
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
+  loading.value = true
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
-    chatData.value = []; // 初始化聊天数据
     enableInput()
-    activelyClose.value = false;
-
-    if (isNewChat) { // 加载打招呼信息
-      loading.value = false;
-      chatData.value.push({
-        chat_id: chat_id,
-        role_id: role_id,
-        type: "reply",
-        id: randString(32),
-        icon: _role['icon'],
-        content: _role['hello_msg'],
-      })
-      ElMessage.success({message: "对话连接成功！", duration: 1000})
-    } else { // 加载聊天记录
-      loadChatHistory(chat_id);
-    }
+    loadChatHistory(chatId.value)
+    loading.value = false
   });
 
   _socket.addEventListener('message', event => {
@@ -619,17 +597,16 @@ const connect = function (chat_id, role_id) {
             chatData.value.push({
               type: "reply",
               id: randString(32),
-              icon: _role['icon'],
+              icon: chatRole['icon'],
               prompt:prePrompt,
               content: "",
             });
           } else if (data.type === 'end') { // 消息接收完毕
             // 追加当前会话到会话列表
-            if (isNewChat && newChatItem.value !== null) {
+            if (newChatItem.value !== null) {
               newChatItem.value['title'] = tmpChatTitle.value;
-              newChatItem.value['chat_id'] = chat_id;
+              newChatItem.value['chat_id'] = chatId.value;
               chatList.value.unshift(newChatItem.value);
-              activeChat.value = newChatItem.value;
               newChatItem.value = null; // 只追加一次
             }
 
@@ -641,7 +618,7 @@ const connect = function (chat_id, role_id) {
             httpPost("/api/chat/tokens", {
               text: "",
               model: getModelValue(modelID.value),
-              chat_id: chat_id
+              chat_id: chatId.value,
             }).then(res => {
               reply['created_at'] = new Date().getTime();
               reply['tokens'] = res.data;
@@ -662,7 +639,7 @@ const connect = function (chat_id, role_id) {
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
             document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
-            localStorage.setItem("chat_id", chat_id)
+            localStorage.setItem("chat_id", chatId.value)
           })
         };
       }
@@ -673,18 +650,8 @@ const connect = function (chat_id, role_id) {
   });
 
   _socket.addEventListener('close', () => {
-    if (activelyClose.value || socket.value === null) { // 忽略主动关闭
-      return;
-    }
-    // 停止发送消息
     disableInput(true)
-    loading.value = true;
-    checkSession().then(() => {
-      connect(chat_id, role_id)
-    }).catch(() => {
-      loading.value = true
-      showMessageError("会话已断开，刷新页面...")
-    });
+    connect()
   });
 
   socket.value = _socket;
@@ -801,21 +768,20 @@ const clearAllChats = function () {
   })
 }
 
-const logout = function () {
-  activelyClose.value = true;
-  httpGet('/api/user/logout').then(() => {
-    removeUserToken()
-    router.push("/login")
-  }).catch(() => {
-    ElMessage.error('注销失败！');
-  })
-}
-
 const loadChatHistory = function (chatId) {
+  chatData.value = []
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
     const data = res.data
-    if (!data) {
-      loading.value = false
+    if (!data || data.length === 0) { // 加载打招呼信息
+      const _role = getRoleById(roleId.value)
+      chatData.value.push({
+        chat_id: chatId,
+        role_id: roleId.value,
+        type: "reply",
+        id: randString(32),
+        icon: _role['icon'],
+        content: _role['hello_msg'],
+      })
       return
     }
     showHello.value = false
@@ -829,7 +795,6 @@ const loadChatHistory = function (chatId) {
     nextTick(() => {
       document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
     })
-    loading.value = false
   }).catch(e => {
     // TODO: 显示重新加载按钮
     ElMessage.error('加载聊天记录失败：' + e.message);
@@ -882,7 +847,6 @@ const shareChat = (chat) => {
   }
 
   const url = location.protocol + '//' + location.host + '/chat/export?chat_id=' + chat.chat_id
-  // console.log(url)
   window.open(url, '_blank');
 }
 

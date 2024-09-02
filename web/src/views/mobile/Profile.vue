@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-user-profile container">
     <div class="content">
-      <van-form>
+      <van-form v-if="isLogin">
         <div class="avatar">
           <van-image :src="fileList[0].url" size="80" width="80" fit="cover" round />
 <!--          <van-uploader v-model="fileList"-->

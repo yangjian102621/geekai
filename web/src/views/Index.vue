@@ -7,7 +7,7 @@
           :ellipsis="false"
       >
         <div class="menu-item">
-          <el-image :src="logo" alt="Geek-AI"/>
+          <el-image :src="logo" class="logo" alt="Geek-AI"/>
           <div class="title" :style="{color:theme.textColor}">{{ title }}</div>
         </div>
         <div class="menu-item">
