@@ -242,6 +242,10 @@ func (s *Service) Upload(task types.SunoTask) (RespVo, error) {
 		return RespVo{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
+	if r.StatusCode != 200 {
+		return RespVo{}, fmt.Errorf("请求 API 出错：%d, %s", r.StatusCode, r.String())
+	}
+
 	body, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(body, &res)
 	if err != nil {

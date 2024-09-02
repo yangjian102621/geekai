@@ -547,7 +547,7 @@ const removeChat = function (chat) {
             return e1.id === e2.id
           })
           // 重置会话
-          newChat();
+          _newChat();
         }).catch(e => {
           ElMessage.error("操作失败：" + e.message);
         })
