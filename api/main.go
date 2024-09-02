@@ -24,6 +24,7 @@ import (
 	"geekai/service/sd"
 	"geekai/service/sms"
 	"geekai/service/suno"
+	"geekai/service/video"
 	"geekai/store"
 	"io"
 	"log"
@@ -196,6 +197,13 @@ func main() {
 
 		fx.Provide(suno.NewService),
 		fx.Invoke(func(s *suno.Service) {
+			s.Run()
+			s.SyncTaskProgress()
+			s.CheckTaskNotify()
+			s.DownloadFiles()
+		}),
+		fx.Provide(video.NewService),
+		fx.Invoke(func(s *video.Service) {
 			s.Run()
 			s.SyncTaskProgress()
 			s.CheckTaskNotify()
@@ -483,6 +491,15 @@ func main() {
 			group.GET("detail", h.Detail)
 			group.GET("play", h.Play)
 			group.POST("lyric", h.Lyric)
+		}),
+		fx.Provide(handler.NewVideoHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
+			group := s.Engine.Group("/api/video")
+			group.Any("client", h.Client)
+			group.POST("luma/create", h.LumaCreate)
+			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
+			group.GET("publish", h.Publish)
 		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {

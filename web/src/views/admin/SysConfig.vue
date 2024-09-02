@@ -302,6 +302,9 @@
                 <el-form-item label="Suno 算力" prop="suno_power">
                   <el-input v-model.number="system['suno_power']" placeholder="使用 Suno 生成一首音乐消耗算力"/>
                 </el-form-item>
+                <el-form-item label="Luma 算力" prop="luma_power">
+                  <el-input v-model.number="system['luma_power']" placeholder="使用 Luma 生成一段视频消耗算力"/>
+                </el-form-item>
               </el-tab-pane>
             </el-tabs>
 

@@ -166,8 +166,8 @@ func (h *SunoHandler) Create(c *gin.Context) {
 
 func (h *SunoHandler) List(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
-	page := h.GetInt(c, "page", 0)
-	pageSize := h.GetInt(c, "page_size", 0)
+	page := h.GetInt(c, "page", 1)
+	pageSize := h.GetInt(c, "page_size", 20)
 	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
 
 	// 统计总数
