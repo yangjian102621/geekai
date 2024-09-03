@@ -176,7 +176,7 @@ func (h *DallJobHandler) JobList(c *gin.Context) {
 }
 
 // JobList 获取任务列表
-func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.DallJob) {
+func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, vo.Page) {
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
@@ -194,11 +194,14 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 		offset := (page - 1) * pageSize
 		session = session.Offset(offset).Limit(pageSize)
 	}
+	// 统计总数
+	var total int64
+	session.Model(&model.DallJob{}).Count(&total)
 
 	var items []model.DallJob
 	res := session.Find(&items)
 	if res.Error != nil {
-		return res.Error, nil
+		return res.Error, vo.Page{}
 	}
 
 	var jobs = make([]vo.DallJob, 0)
@@ -211,7 +214,7 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 		jobs = append(jobs, job)
 	}
 
-	return nil, jobs
+	return nil, vo.NewPage(total, page, pageSize, jobs)
 }
 
 // Remove remove task image

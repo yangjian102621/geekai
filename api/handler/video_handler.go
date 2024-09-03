@@ -135,11 +135,16 @@ func (h *VideoHandler) List(c *gin.Context) {
 	t := c.Query("type")
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
+	all := h.GetBool(c, "all")
 	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
 	if t != "" {
 		session = session.Where("type", t)
 	}
-
+	if all {
+		session = session.Where("publish", 0).Where("progress", 100)
+	} else {
+		session = session.Where("user_id", h.GetLoginUserId(c))
+	}
 	// 统计总数
 	var total int64
 	session.Model(&model.VideoJob{}).Count(&total)

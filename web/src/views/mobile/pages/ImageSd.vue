@@ -382,7 +382,7 @@ const initData = () => {
 const fetchRunningJobs = () => {
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?finish=0`).then(res => {
-    const jobs = res.data
+    const jobs = res.data.items
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i].progress === -1) {
@@ -410,13 +410,14 @@ const pageSize = ref(10)
 const fetchFinishJobs = (page) => {
   loading.value = true
   httpGet(`/api/sd/jobs?finish=1&page=${page}&page_size=${pageSize.value}`).then(res => {
-    if (res.data.length < pageSize.value) {
+    const jobs = res.data.items
+    if (jobs.length < pageSize.value) {
       finished.value = true
     }
     if (page === 1) {
-      finishedJobs.value = res.data
+      finishedJobs.value = jobs
     } else {
-      finishedJobs.value = finishedJobs.value.concat(res.data)
+      finishedJobs.value = finishedJobs.value.concat(jobs)
     }
     loading.value = false
   }).catch(e => {
