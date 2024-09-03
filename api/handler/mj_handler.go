@@ -385,7 +385,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 }
 
 // JobList 获取 MJ 任务列表
-func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.MidJourneyJob) {
+func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, vo.Page) {
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
 		session = session.Where("progress >= ?", 100).Order("id DESC")
@@ -403,10 +403,14 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 		session = session.Offset(offset).Limit(pageSize)
 	}
 
+	// 统计总数
+	var total int64
+	session.Model(&model.MidJourneyJob{}).Count(&total)
+
 	var items []model.MidJourneyJob
 	res := session.Find(&items)
 	if res.Error != nil {
-		return res.Error, nil
+		return res.Error, vo.Page{}
 	}
 
 	var jobs = make([]vo.MidJourneyJob, 0)
@@ -426,7 +430,7 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 
 		jobs = append(jobs, job)
 	}
-	return nil, jobs
+	return nil, vo.NewPage(total, page, pageSize, jobs)
 }
 
 // Remove remove task image

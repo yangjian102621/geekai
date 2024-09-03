@@ -224,7 +224,7 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 }
 
 // JobList 获取 MJ 任务列表
-func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.SdJob) {
+func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, vo.Page) {
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
@@ -243,10 +243,14 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		session = session.Offset(offset).Limit(pageSize)
 	}
 
+	// 统计总数
+	var total int64
+	session.Model(&model.SdJob{}).Count(&total)
+
 	var items []model.SdJob
 	res := session.Find(&items)
 	if res.Error != nil {
-		return res.Error, nil
+		return res.Error, vo.Page{}
 	}
 
 	var jobs = make([]vo.SdJob, 0)
@@ -268,7 +272,7 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		jobs = append(jobs, job)
 	}
 
-	return nil, jobs
+	return nil, vo.NewPage(total, page, pageSize, jobs)
 }
 
 // Remove remove task image
