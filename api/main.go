@@ -209,7 +209,7 @@ func main() {
 			s.CheckTaskNotify()
 			s.DownloadFiles()
 		}),
-
+		fx.Provide(service.NewUserService),
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),
 		fx.Provide(payment.NewJPayService),

@@ -46,9 +46,10 @@ type ChatHandler struct {
 	licenseService *service.LicenseService
 	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	ChatContexts   *types.LMap[string, []types.Message]    // 聊天上下文 Map [chatId] => []Message
+	userService    *service.UserService
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService) *ChatHandler {
 	return &ChatHandler{
 		BaseHandler:    handler.BaseHandler{App: app, DB: db},
 		redis:          redis,
@@ -56,6 +57,7 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		licenseService: licenseService,
 		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
 		ChatContexts:   types.NewLMap[string, []types.Message](),
+		userService:    userService,
 	}
 }
 
@@ -482,24 +484,15 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 	if session.Model.Power > 0 {
 		power = session.Model.Power
 	}
-	res := h.DB.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
-	if res.Error == nil {
-		// 记录算力消费日志
-		var u model.User
-		h.DB.Where("id", userVo.Id).First(&u)
-		h.DB.Create(&model.PowerLog{
-			UserId:    userVo.Id,
-			Username:  userVo.Username,
-			Type:      types.PowerConsume,
-			Amount:    power,
-			Mark:      types.PowerSub,
-			Balance:   u.Power,
-			Model:     session.Model.Value,
-			Remark:    fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
-			CreatedAt: time.Now(),
-		})
-	}
 
+	err := h.userService.DecreasePower(int(userVo.Id), power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  session.Model.Value,
+		Remark: fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
+	})
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func (h *ChatHandler) saveChatHistory(
