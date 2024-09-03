@@ -11,7 +11,8 @@
       <el-table :data="users.items" border class="table" :row-key="row => row.id"
                 @selection-change="handleSelectionChange" table-layout="auto">
         <el-table-column type="selection" width="38"></el-table-column>
-        <el-table-column prop="mobile" label="账号">
+        <el-table-column prop="id" label="ID"/>
+        <el-table-column label="账号">
           <template #default="scope">
             <span>{{ scope.row.username }}</span>
             <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px;position: relative; top:5px; left: 5px"/>

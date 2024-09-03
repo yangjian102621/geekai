@@ -30,16 +30,18 @@ import (
 
 type MidJourneyHandler struct {
 	BaseHandler
-	service   *mj.Service
-	snowflake *service.Snowflake
-	uploader  *oss.UploaderManager
+	mjService   *mj.Service
+	snowflake   *service.Snowflake
+	uploader    *oss.UploaderManager
+	userService *service.UserService
 }
 
-func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, service *mj.Service, manager *oss.UploaderManager) *MidJourneyHandler {
+func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, service *mj.Service, manager *oss.UploaderManager, userService *service.UserService) *MidJourneyHandler {
 	return &MidJourneyHandler{
-		snowflake: snowflake,
-		service:   service,
-		uploader:  manager,
+		snowflake:   snowflake,
+		mjService:   service,
+		uploader:    manager,
+		userService: userService,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -80,7 +82,7 @@ func (h *MidJourneyHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.service.Clients.Put(uint(userId), client)
+	h.mjService.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
@@ -196,7 +198,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.service.PushTask(types.MjTask{
+	h.mjService.PushTask(types.MjTask{
 		Id:        job.Id,
 		TaskId:    taskId,
 		Type:      types.TaskType(data.TaskType),
@@ -208,28 +210,22 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Mode:      h.App.SysConfig.MjMode,
 	})
 
-	client := h.service.Clients.Get(uint(job.UserId))
+	client := h.mjService.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
 
 	// update user's power
-	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := h.GetLoginUser(c)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    job.Power,
-			Balance:   user.Power - job.Power,
-			Mark:      types.PowerSub,
-			Model:     "mid-journey",
-			Remark:    fmt.Sprintf("%s操作，任务ID：%s", opt, job.TaskId),
-			CreatedAt: time.Now(),
-		})
+	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "mid-journey",
+		Remark: fmt.Sprintf("%s操作，任务ID：%s", opt, job.TaskId),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
+
 	resp.SUCCESS(c)
 }
 
@@ -269,7 +265,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	h.service.PushTask(types.MjTask{
+	h.mjService.PushTask(types.MjTask{
 		Id:          job.Id,
 		Type:        types.TaskUpscale,
 		UserId:      userId,
@@ -280,27 +276,22 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		Mode:        h.App.SysConfig.MjMode,
 	})
 
-	client := h.service.Clients.Get(uint(job.UserId))
+	client := h.mjService.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
+
 	// update user's power
-	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := h.GetLoginUser(c)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    job.Power,
-			Balance:   user.Power - job.Power,
-			Mark:      types.PowerSub,
-			Model:     "mid-journey",
-			Remark:    fmt.Sprintf("Upscale 操作，任务ID：%s", job.TaskId),
-			CreatedAt: time.Now(),
-		})
+	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "mid-journey",
+		Remark: fmt.Sprintf("Upscale 操作，任务ID：%s", job.TaskId),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
+
 	resp.SUCCESS(c)
 }
 
@@ -334,7 +325,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		return
 	}
 
-	h.service.PushTask(types.MjTask{
+	h.mjService.PushTask(types.MjTask{
 		Id:          job.Id,
 		Type:        types.TaskVariation,
 		UserId:      userId,
@@ -345,28 +336,21 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		Mode:        h.App.SysConfig.MjMode,
 	})
 
-	client := h.service.Clients.Get(uint(job.UserId))
+	client := h.mjService.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
 
-	// update user's power
-	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := h.GetLoginUser(c)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    job.Power,
-			Balance:   user.Power - job.Power,
-			Mark:      types.PowerSub,
-			Model:     "mid-journey",
-			Remark:    fmt.Sprintf("Variation 操作，任务ID：%s", job.TaskId),
-			CreatedAt: time.Now(),
-		})
+	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "mid-journey",
+		Remark: fmt.Sprintf("Variation 操作，任务ID：%s", job.TaskId),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
+
 	resp.SUCCESS(c)
 }
 
@@ -465,25 +449,11 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 
 	// 如果任务未完成，或者任务失败，则恢复用户算力
 	if job.Progress != 100 {
-		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
-		var user model.User
-		tx.Where("id = ?", job.UserId).First(&user)
-		err = tx.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerRefund,
-			Amount:    job.Power,
-			Balance:   user.Power,
-			Mark:      types.PowerAdd,
-			Model:     "mid-journey",
-			Remark:    fmt.Sprintf("绘画任务失败，退回算力。任务ID：%s，Err: %s", job.TaskId, job.ErrMsg),
-			CreatedAt: time.Now(),
-		}).Error
+		err := h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+			Type:   types.PowerRefund,
+			Model:  "mid-journey",
+			Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+		})
 		if err != nil {
 			tx.Rollback()
 			resp.ERROR(c, err.Error())
@@ -498,7 +468,7 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 		logger.Error("remove image failed: ", err)
 	}
 
-	client := h.service.Clients.Get(uint(job.UserId))
+	client := h.mjService.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}

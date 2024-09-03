@@ -81,54 +81,6 @@ func (e *XXLJobExecutor) ClearOrders(cxt context.Context, param *xxl.RunReq) (ms
 // 自动将 VIP 会员的算力补充到每月赠送的最大值
 func (e *XXLJobExecutor) ResetVipPower(cxt context.Context, param *xxl.RunReq) (msg string) {
 	logger.Info("开始进行月底账号盘点...")
-	var users []model.User
-	res := e.db.Where("vip", 1).Where("status", 1).Find(&users)
-	if res.Error != nil {
-		return "No vip users found"
-	}
-
-	var sysConfig model.Config
-	res = e.db.Where("marker", "system").First(&sysConfig)
-	if res.Error != nil {
-		return "error with get system config: " + res.Error.Error()
-	}
-
-	var config types.SystemConfig
-	err := utils.JsonDecode(sysConfig.Config, &config)
-	if err != nil {
-		return "error with decode system config: " + err.Error()
-	}
-
-	for _, u := range users {
-		// 处理过期的 VIP
-		if u.ExpiredTime > 0 && u.ExpiredTime <= time.Now().Unix() {
-			u.Vip = false
-			e.db.Model(&model.User{}).Where("id", u.Id).UpdateColumn("vip", false)
-			continue
-		}
-		if u.Power < config.VipMonthPower {
-			power := config.VipMonthPower - u.Power
-			// update user
-			tx := e.db.Model(&model.User{}).Where("id", u.Id).UpdateColumn("power", gorm.Expr("power + ?", power))
-			// 记录算力变动日志
-			if tx.Error == nil {
-				var user model.User
-				e.db.Where("id", u.Id).First(&user)
-				e.db.Create(&model.PowerLog{
-					UserId:    u.Id,
-					Username:  u.Username,
-					Type:      types.PowerRecharge,
-					Amount:    power,
-					Mark:      types.PowerAdd,
-					Balance:   user.Power,
-					Model:     "系统盘点",
-					Remark:    fmt.Sprintf("VIP会员每月算力派发，：%d", config.VipMonthPower),
-					CreatedAt: time.Now(),
-				})
-			}
-		}
-	}
-	logger.Info("月底盘点完成！")
 	return "success"
 }
 
