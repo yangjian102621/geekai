@@ -433,6 +433,7 @@ func main() {
 			group.POST("weibo", h.WeiBo)
 			group.POST("zaobao", h.ZaoBao)
 			group.POST("dalle3", h.Dall3)
+			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {
 			group := s.Engine.Group("/api/admin/chat/")
