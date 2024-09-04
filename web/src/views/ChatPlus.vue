@@ -100,7 +100,7 @@
               </el-option>
             </el-select>
 
-            <el-dropdown :hide-on-click="false">
+            <el-dropdown :hide-on-click="false" trigger="click">
               <span class="setting"><i class="iconfont icon-plugin"></i></span>
               <template #dropdown>
                 <el-dropdown-menu class="tools-dropdown">
@@ -117,9 +117,7 @@
             </el-dropdown>
 
             <span class="setting" @click="showChatSetting = true">
-              <el-tooltip class="box-item" effect="dark" content="对话设置">
-                <i class="iconfont icon-config"></i>
-              </el-tooltip>
+              <i class="iconfont icon-config"></i>
             </span>
           </div>
 
