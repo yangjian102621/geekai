@@ -100,11 +100,27 @@
               </el-option>
             </el-select>
 
+            <el-dropdown :hide-on-click="false">
+              <span class="setting"><i class="iconfont icon-plugin"></i></span>
+              <template #dropdown>
+                <el-dropdown-menu class="tools-dropdown">
+                  <el-checkbox-group v-model="toolSelected">
+                    <el-dropdown-item v-for="item in tools" :key="item.id">
+                      <el-checkbox :value="item.id" :label="item.label" @change="changeTool" />
+                      <el-tooltip :content="item.description" placement="right">
+                        <el-icon><InfoFilled /></el-icon>
+                      </el-tooltip>
+                    </el-dropdown-item>
+                  </el-checkbox-group>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+
             <span class="setting" @click="showChatSetting = true">
-                    <el-tooltip class="box-item" effect="dark" content="对话设置">
-                      <i class="iconfont icon-config"></i>
-                    </el-tooltip>
-                  </span>
+              <el-tooltip class="box-item" effect="dark" content="对话设置">
+                <i class="iconfont icon-config"></i>
+              </el-tooltip>
+            </span>
           </div>
 
           <div>
@@ -202,7 +218,7 @@
 import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {Delete, Edit, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
+import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {
   isMobile,
@@ -222,6 +238,7 @@ import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
+import {showMessageError} from "@/utils/dialog";
 
 const title = ref('GeekAI-智能助手');
 const models = ref([])
@@ -253,6 +270,9 @@ const listStyle = ref(store.chatListStyle)
 watch(() => store.chatListStyle, (newValue) => {
   listStyle.value = newValue
 });
+const tools = ref([])
+const toolSelected = ref([])
+const loadHistory = ref(false)
 
 // 初始化 ChatID
 chatId.value = router.currentRoute.value.params.id
@@ -292,6 +312,13 @@ httpGet("/api/config/get?key=notice").then(res => {
 
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
+})
+
+// 获取工具函数
+httpGet("/api/function/list").then(res => {
+  tools.value = res.data
+}).catch(e => {
+  showMessageError("获取工具函数失败：" + e.message)
 })
 
 onMounted(() => {
@@ -464,7 +491,17 @@ const newChat = () => {
   };
   showStopGenerate.value = false;
   router.push(`/chat/${chatId.value}`)
+  loadHistory.value = true
   connect()
+}
+
+// 切换工具
+const changeTool = () => {
+  if (!isLogin.value) {
+    return;
+  }
+  loadHistory.value = false
+  socket.value.close()
 }
 
 
@@ -485,6 +522,7 @@ const loadChat = function (chat) {
   chatId.value = chat.chat_id;
   showStopGenerate.value = false;
   router.push(`/chat/${chatId.value}`)
+  loadHistory.value = true
   socket.value.close()
 }
 
@@ -578,10 +616,13 @@ const connect = function () {
   }
 
   loading.value = true
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelID.value}&token=${getUserToken()}`);
+  const toolIds = toolSelected.value.join(',')
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelID.value}&token=${getUserToken()}&tools=${toolIds}`);
   _socket.addEventListener('open', () => {
     enableInput()
-    loadChatHistory(chatId.value)
+    if (loadHistory.value) {
+      loadChatHistory(chatId.value)
+    }
     loading.value = false
   });
 

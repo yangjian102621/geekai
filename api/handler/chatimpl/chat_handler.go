@@ -73,6 +73,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	roleId := h.GetInt(c, "role_id", 0)
 	chatId := c.Query("chat_id")
 	modelId := h.GetInt(c, "model_id", 0)
+	tools := c.Query("tools")
 
 	client := types.NewWsClient(ws)
 	var chatRole model.ChatRole
@@ -99,6 +100,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		SessionId: sessionId,
 		ClientIP:  c.ClientIP(),
 		UserId:    h.GetLoginUserId(c),
+		Tools:     tools,
 	}
 
 	// use old chat data override the chat model and role ID
@@ -211,34 +213,37 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 	req.Temperature = session.Model.Temperature
 	req.MaxTokens = session.Model.MaxTokens
-	// OpenAI 支持函数功能
-	var items []model.Function
-	res = h.DB.Where("enabled", true).Find(&items)
-	if res.Error == nil {
-		var tools = make([]types.Tool, 0)
-		for _, v := range items {
-			var parameters map[string]interface{}
-			err = utils.JsonDecode(v.Parameters, &parameters)
-			if err != nil {
-				continue
-			}
-			tool := types.Tool{
-				Type: "function",
-				Function: types.Function{
-					Name:        v.Name,
-					Description: v.Description,
-					Parameters:  parameters,
-				},
-			}
-			if v, ok := parameters["required"]; v == nil || !ok {
-				tool.Function.Parameters["required"] = []string{}
-			}
-			tools = append(tools, tool)
-		}
 
-		if len(tools) > 0 {
-			req.Tools = tools
-			req.ToolChoice = "auto"
+	if session.Tools != "" {
+		toolIds := strings.Split(session.Tools, ",")
+		var items []model.Function
+		res = h.DB.Where("enabled", true).Where("id IN ?", toolIds).Find(&items)
+		if res.Error == nil {
+			var tools = make([]types.Tool, 0)
+			for _, v := range items {
+				var parameters map[string]interface{}
+				err = utils.JsonDecode(v.Parameters, &parameters)
+				if err != nil {
+					continue
+				}
+				tool := types.Tool{
+					Type: "function",
+					Function: types.Function{
+						Name:        v.Name,
+						Description: v.Description,
+						Parameters:  parameters,
+					},
+				}
+				if v, ok := parameters["required"]; v == nil || !ok {
+					tool.Function.Parameters["required"] = []string{}
+				}
+				tools = append(tools, tool)
+			}
+
+			if len(tools) > 0 {
+				req.Tools = tools
+				req.ToolChoice = "auto"
+			}
 		}
 	}
 
