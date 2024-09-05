@@ -1,9 +1,7 @@
 <template>
   <div class="index container">
     <h2 class="title">{{title}}</h2>
-    <van-notice-bar  left-icon="info-o" :scrollable="true">
-      你有多少想象力，AI就有多大创造力。我辈之人，先干为敬，陪您先把 AI 用起来。
-    </van-notice-bar>
+    <van-notice-bar  left-icon="info-o" :scrollable="true">{{slogan}}}</van-notice-bar>
 
     <div class="content">
       <van-grid :column-num="3" :gutter="10" border>
@@ -90,8 +88,18 @@ const isLogin = ref(false)
 const apps = ref([])
 const loading = ref(false)
 const roles = ref([])
+const slogan = ref('你有多大想象力，AI就有多大创造力！')
 
 onMounted(() => {
+  httpGet("/api/config/get?key=system").then(res => {
+    title.value = res.data.title
+    if (res.data.slogan) {
+      slogan.value = res.data.slogan
+    }
+  }).catch(e => {
+    ElMessage.error("获取系统配置失败：" + e.message)
+  })
+
   checkSession().then((user) => {
     isLogin.value = true
     roles.value = user.chat_roles

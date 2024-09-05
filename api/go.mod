@@ -19,7 +19,6 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
 	github.com/qiniu/go-sdk/v7 v7.17.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/smartwalle/alipay/v3 v3.2.15
 	go.uber.org/zap v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.4.7
@@ -28,6 +27,7 @@ require (
 require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
 require (
+	github.com/go-pay/gopay v1.5.101
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
@@ -37,6 +37,11 @@ require (
 
 require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/go-pay/crypto v0.0.1 // indirect
+	github.com/go-pay/errgroup v0.0.2 // indirect
+	github.com/go-pay/util v0.0.2 // indirect
+	github.com/go-pay/xlog v0.0.2 // indirect
+	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
@@ -79,9 +84,6 @@ require (
 	github.com/refraction-networking/utls v1.3.2 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/smartwalle/ncrypto v1.0.2 // indirect
-	github.com/smartwalle/ngx v1.0.6 // indirect
-	github.com/smartwalle/nsign v1.0.8 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	go.uber.org/dig v1.16.1 // indirect
 	golang.org/x/arch v0.3.0 // indirect

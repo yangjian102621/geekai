@@ -109,13 +109,13 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	logger.Debugf("绘画参数：%+v", task)
 	prompt := task.Prompt
 	// translate prompt
-	if utils.HasChinese(task.Prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Prompt))
-		if err != nil {
-			return "", fmt.Errorf("error with translate prompt: %v", err)
+	if utils.HasChinese(prompt) {
+		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt))
+		if err == nil {
+			prompt = content
+			logger.Debugf("重写后提示词：%s", prompt)
 		}
-		prompt = content
-		logger.Debugf("重写后提示词：%s", prompt)
+
 	}
 
 	var user model.User
@@ -124,10 +124,28 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		return "", errors.New("insufficient of power")
 	}
 
+	// 更新用户算力
+	tx := s.db.Model(&model.User{}).Where("id", user.Id).UpdateColumn("power", gorm.Expr("power - ?", task.Power))
+	// 记录算力变化日志
+	if tx.Error == nil && tx.RowsAffected > 0 {
+		var u model.User
+		s.db.Where("id", user.Id).First(&u)
+		s.db.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerConsume,
+			Amount:    task.Power,
+			Balance:   u.Power,
+			Mark:      types.PowerSub,
+			Model:     "dall-e-3",
+			Remark:    fmt.Sprintf("绘画提示词：%s", utils.CutWords(task.Prompt, 10)),
+			CreatedAt: time.Now(),
+		})
+	}
+
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx := s.db.Where("platform", types.OpenAI.Value).
-		Where("type", "img").
+	tx = s.db.Where("type", "img").
 		Where("enabled", true).
 		Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
@@ -139,25 +157,28 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	if len(apiKey.ProxyURL) > 5 {
 		s.httpClient.SetProxyURL(apiKey.ProxyURL).R()
 	}
-	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, PROXY: %s", apiKey.Platform, apiKey.ApiURL, apiKey.Value, apiKey.ProxyURL)
-	r, err := s.httpClient.R().SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+apiKey.Value).
-		SetBody(imgReq{
-			Model:   "dall-e-3",
-			Prompt:  prompt,
-			N:       1,
-			Size:    task.Size,
-			Style:   task.Style,
-			Quality: task.Quality,
-		}).
-		SetErrorResult(&errRes).
-		SetSuccessResult(&res).Post(apiKey.ApiURL)
+	reqBody := imgReq{
+		Model:   "dall-e-3",
+		Prompt:  prompt,
+		N:       1,
+		Size:    task.Size,
+		Style:   task.Style,
+		Quality: task.Quality,
+	}
+	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, BODY: %+v", apiKey.Platform, apiKey.ApiURL, apiKey.Value, reqBody)
+	request := s.httpClient.R().SetHeader("Content-Type", "application/json")
+	if apiKey.Platform == types.Azure.Value {
+		request = request.SetHeader("api-key", apiKey.Value)
+	} else {
+		request = request.SetHeader("Authorization", "Bearer "+apiKey.Value)
+	}
+	r, err := request.SetBody(reqBody).SetErrorResult(&errRes).SetSuccessResult(&res).Post(apiKey.ApiURL)
 	if err != nil {
 		return "", fmt.Errorf("error with send request: %v", err)
 	}
 
 	if r.IsErrorState() {
-		return "", fmt.Errorf("error with send request: %v", errRes.Error)
+		return "", fmt.Errorf("error with send request, status: %s, %+v", r.Status, errRes.Error)
 	}
 	// update the api key last use time
 	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
@@ -179,25 +200,6 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 			return "", fmt.Errorf("error with download image: %v", err)
 		}
 		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", prompt, imgURL)
-	}
-
-	// 更新用户算力
-	tx = s.db.Model(&model.User{}).Where("id", user.Id).UpdateColumn("power", gorm.Expr("power - ?", task.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		var u model.User
-		s.db.Where("id", user.Id).First(&u)
-		s.db.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    task.Power,
-			Balance:   u.Power,
-			Mark:      types.PowerSub,
-			Model:     "dall-e-3",
-			Remark:    fmt.Sprintf("绘画提示词：%s", utils.CutWords(task.Prompt, 10)),
-			CreatedAt: time.Now(),
-		})
 	}
 
 	return content, nil

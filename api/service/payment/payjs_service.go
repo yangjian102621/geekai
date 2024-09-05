@@ -21,12 +21,12 @@ import (
 	"strings"
 )
 
-type PayJS struct {
+type JPayService struct {
 	config *types.JPayConfig
 }
 
-func NewPayJS(appConfig *types.AppConfig) *PayJS {
-	return &PayJS{
+func NewJPayService(appConfig *types.AppConfig) *JPayService {
+	return &JPayService{
 		config: &appConfig.JPayConfig,
 	}
 }
@@ -53,7 +53,7 @@ func (r JPayReps) IsOK() bool {
 	return r.ReturnMsg == "SUCCESS"
 }
 
-func (js *PayJS) Pay(param JPayReq) JPayReps {
+func (js *JPayService) Pay(param JPayReq) JPayReps {
 	param.NotifyURL = js.config.NotifyURL
 	var p = url.Values{}
 	encode := utils.JsonEncode(param)
@@ -86,13 +86,13 @@ func (js *PayJS) Pay(param JPayReq) JPayReps {
 	return data
 }
 
-func (js *PayJS) PayH5(p url.Values) string {
+func (js *JPayService) PayH5(p url.Values) string {
 	p.Add("mchid", js.config.AppId)
 	p.Add("sign", js.sign(p))
 	return fmt.Sprintf("%s/api/cashier?%s", js.config.ApiURL, p.Encode())
 }
 
-func (js *PayJS) sign(params url.Values) string {
+func (js *JPayService) sign(params url.Values) string {
 	params.Del(`sign`)
 	var keys = make([]string, 0, 0)
 	for key := range params {
@@ -117,20 +117,18 @@ func (js *PayJS) sign(params url.Values) string {
 	return strings.ToUpper(md5res)
 }
 
-// Check 查询订单支付状态
+// TradeVerify 查询订单支付状态
 // @param tradeNo 支付平台交易 ID
-func (js *PayJS) Check(tradeNo string) error {
+func (js *JPayService) TradeVerify(tradeNo string) error {
 	apiURL := fmt.Sprintf("%s/api/check", js.config.ApiURL)
 	params := url.Values{}
 	params.Add("payjs_order_id", tradeNo)
 	params.Add("sign", js.sign(params))
 	data := strings.NewReader(params.Encode())
 	resp, err := http.Post(apiURL, "application/x-www-form-urlencoded", data)
-	defer resp.Body.Close()
 	if err != nil {
 		return fmt.Errorf("error with http reqeust: %v", err)
 	}
-
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

@@ -142,7 +142,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		}
 
 		if toolCall { // 调用函数完成任务
-			var params map[string]interface{}
+			params := make(map[string]interface{})
 			_ = utils.JsonDecode(strings.Join(arguments, ""), &params)
 			logger.Debugf("函数名称: %s, 函数参数：%s", function.Name, params)
 			params["user_id"] = userVo.Id

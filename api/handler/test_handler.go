@@ -9,9 +9,9 @@ import (
 type TestHandler struct {
 	db        *gorm.DB
 	snowflake *service.Snowflake
-	js        *payment.PayJS
+	js        *payment.JPayService
 }
 
-func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.PayJS) *TestHandler {
+func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.JPayService) *TestHandler {
 	return &TestHandler{db: db, snowflake: snowflake, js: js}
 }

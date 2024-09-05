@@ -167,11 +167,6 @@
                               <i class="iconfont icon-loading"></i>
                               <span>正在下载图片</span>
                             </div>
-                            <div class="image-slot">
-                              <el-icon>
-                                <Picture/>
-                              </el-icon>
-                            </div>
                           </template>
                         </el-image>
 
