@@ -543,9 +543,9 @@ func (h *ChatHandler) saveChatHistory(
 	}
 	historyUserMsg.CreatedAt = promptCreatedAt
 	historyUserMsg.UpdatedAt = promptCreatedAt
-	res := h.DB.Save(&historyUserMsg)
-	if res.Error != nil {
-		logger.Error("failed to save prompt history message: ", res.Error)
+	err = h.DB.Save(&historyUserMsg).Error
+	if err != nil {
+		logger.Error("failed to save prompt history message: ", err)
 	}
 
 	// for reply
@@ -565,9 +565,9 @@ func (h *ChatHandler) saveChatHistory(
 	}
 	historyReplyMsg.CreatedAt = replyCreatedAt
 	historyReplyMsg.UpdatedAt = replyCreatedAt
-	res = h.DB.Create(&historyReplyMsg)
-	if res.Error != nil {
-		logger.Error("failed to save reply history message: ", res.Error)
+	err = h.DB.Create(&historyReplyMsg).Error
+	if err != nil {
+		logger.Error("failed to save reply history message: ", err)
 	}
 
 	// 更新用户算力
@@ -576,8 +576,8 @@ func (h *ChatHandler) saveChatHistory(
 	}
 	// 保存当前会话
 	var chatItem model.ChatItem
-	res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
-	if res.Error != nil {
+	err = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem).Error
+	if err != nil {
 		chatItem.ChatId = session.ChatId
 		chatItem.UserId = userVo.Id
 		chatItem.RoleId = role.Id
@@ -588,7 +588,10 @@ func (h *ChatHandler) saveChatHistory(
 			chatItem.Title = prompt
 		}
 		chatItem.Model = req.Model
-		h.DB.Create(&chatItem)
+		err = h.DB.Create(&chatItem).Error
+		if err != nil {
+			logger.Error("failed to save chat item: ", err)
+		}
 	}
 }
 
