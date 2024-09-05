@@ -95,11 +95,15 @@ func (s *Service) Run() {
 			}
 
 			// 更新任务信息
-			s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
+			err = s.db.Model(&model.VideoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 				"task_id":    r.Id,
 				"channel":    r.Channel,
 				"prompt_ext": r.Prompt,
-			})
+			}).Error
+			if err != nil {
+				logger.Errorf("update task with error: %v", err)
+				s.PushTask(task)
+			}
 		}
 	}()
 }
@@ -145,7 +149,7 @@ func (s *Service) LumaCreate(task types.VideoTask) (LumaRespVo, error) {
 		return LumaRespVo{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != 200 && r.StatusCode != 201 {
 		return LumaRespVo{}, fmt.Errorf("请求 API 出错：%d, %s", r.StatusCode, r.String())
 	}
 
@@ -193,12 +197,28 @@ func (s *Service) DownloadFiles() {
 			}
 
 			for _, v := range items {
-				logger.Infof("try download video: %s", v.VideoURL)
-				videoURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.VideoURL, true)
-				if err != nil {
-					logger.Errorf("download audio with error: %v", err)
+				if v.WaterURL == "" {
 					continue
 				}
+
+				logger.Infof("try download video: %s", v.WaterURL)
+				videoURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.WaterURL, true)
+				if err != nil {
+					logger.Errorf("download video with error: %v", err)
+					continue
+				}
+				logger.Infof("download video success: %s", videoURL)
+				v.WaterURL = videoURL
+
+				if v.VideoURL != "" {
+					logger.Infof("try download no water video: %s", v.VideoURL)
+					videoURL, err = s.uploadManager.GetUploadHandler().PutUrlFile(v.VideoURL, true)
+					if err != nil {
+						logger.Errorf("download video with error: %v", err)
+						continue
+					}
+				}
+				logger.Info("download no water video success: %s", videoURL)
 				v.VideoURL = videoURL
 				v.Progress = 100
 				s.db.Updates(&v)
@@ -224,10 +244,31 @@ func (s *Service) SyncTaskProgress() {
 				task, err := s.QueryLumaTask(job.TaskId, job.Channel)
 				if err != nil {
 					logger.Errorf("query task with error: %v", err)
+					// 更新任务信息
+					s.db.Model(&model.VideoJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
+						"progress": service.FailTaskProgress, // 102 表示资源未下载完成,
+						"err_msg":  err.Error(),
+					})
 					continue
 				}
 
 				logger.Debugf("task: %+v", task)
+				if task.State == "completed" { // 更新任务信息
+					data := map[string]interface{}{
+						"progress":   102, // 102 表示资源未下载完成,
+						"water_url":  task.Video.Url,
+						"raw_data":   utils.JsonEncode(task),
+						"prompt_ext": task.Prompt,
+					}
+					if task.Video.DownloadUrl != "" {
+						data["video_url"] = task.Video.DownloadUrl
+					}
+					err = s.db.Model(&model.VideoJob{Id: job.Id}).UpdateColumns(data).Error
+					if err != nil {
+						logger.Errorf("更新数据库失败：%v", err)
+						continue
+					}
+				}
 
 			}
 
@@ -254,12 +295,12 @@ type LumaTaskVo struct {
 func (s *Service) QueryLumaTask(taskId string, channel string) (LumaTaskVo, error) {
 	// 读取 API KEY
 	var apiKey model.ApiKey
-	tx := s.db.Session(&gorm.Session{}).Where("type", "suno").
+	err := s.db.Session(&gorm.Session{}).Where("type", "luma").
 		Where("api_url", channel).
 		Where("enabled", true).
-		Order("last_used_at DESC").First(&apiKey)
-	if tx.Error != nil {
-		return LumaTaskVo{}, errors.New("no available API KEY for Suno")
+		Order("last_used_at DESC").First(&apiKey).Error
+	if err != nil {
+		return LumaTaskVo{}, errors.New("no available API KEY for Luma")
 	}
 
 	apiURL := fmt.Sprintf("%s/luma/generations/%s", apiKey.ApiURL, taskId)
@@ -269,8 +310,12 @@ func (s *Service) QueryLumaTask(taskId string, channel string) (LumaTaskVo, erro
 	if err != nil {
 		return LumaTaskVo{}, fmt.Errorf("请求 API 失败：%v", err)
 	}
-
 	defer r.Body.Close()
+
+	if r.StatusCode != 200 {
+		return LumaTaskVo{}, fmt.Errorf("API 返回失败：%v", r.String())
+	}
+
 	body, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(body, &res)
 	if err != nil {

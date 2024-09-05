@@ -429,11 +429,11 @@ type QueryRespVo struct {
 func (s *Service) QueryTask(taskId string, channel string) (QueryRespVo, error) {
 	// 读取 API KEY
 	var apiKey model.ApiKey
-	tx := s.db.Session(&gorm.Session{}).Where("type", "suno").
+	err := s.db.Session(&gorm.Session{}).Where("type", "suno").
 		Where("api_url", channel).
 		Where("enabled", true).
-		Order("last_used_at DESC").First(&apiKey)
-	if tx.Error != nil {
+		Order("last_used_at DESC").First(&apiKey).Error
+	if err != nil {
 		return QueryRespVo{}, errors.New("no available API KEY for Suno")
 	}
 
