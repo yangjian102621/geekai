@@ -13,6 +13,9 @@
                 <el-form-item label="控制台标题" prop="admin_title">
                   <el-input v-model="system['admin_title']"/>
                 </el-form-item>
+                <el-form-item label="网站Slogan" prop="slogan">
+                  <el-input v-model="system['slogan']"/>
+                </el-form-item>
                 <el-form-item label="网站 LOGO" prop="logo">
                   <el-input v-model="system['logo']" placeholder="网站LOGO图片">
                     <template #append>
@@ -44,7 +47,7 @@
                   </el-tooltip>
                 </el-form-item>
 
-                <el-form-item label="随机背景">
+                <el-form-item label="动态背景">
                   <el-switch v-model="system['rand_bg']"/>
                   <el-tooltip
                       effect="dark"

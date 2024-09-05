@@ -54,7 +54,7 @@ type apiErrRes struct {
 
 func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	var apiKey model.ApiKey
-	res := db.Where("platform = ?", types.OpenAI.Value).Where("type", "chat").Where("enabled = ?", true).First(&apiKey)
+	res := db.Where("platform", types.OpenAI.Value).Where("type", "chat").Where("enabled", true).First(&apiKey)
 	if res.Error != nil {
 		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
 	}
@@ -74,7 +74,7 @@ func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	r, err := client.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
-			Model:       "gpt-3.5-turbo-0125",
+			Model:       "gpt-3.5-turbo",
 			Temperature: 0.9,
 			MaxTokens:   1024,
 			Stream:      false,

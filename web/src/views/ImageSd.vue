@@ -308,11 +308,7 @@
                         </template>
 
                         <template #error>
-                          <div class="image-slot">
-                            <el-icon>
-                              <Picture/>
-                            </el-icon>
-                          </div>
+                          <div class="image-slot"></div>
                         </template>
                       </el-image>
 

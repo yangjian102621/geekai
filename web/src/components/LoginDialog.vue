@@ -221,7 +221,7 @@
 </template>
 
 <script setup>
-import {ref, watch} from "vue"
+import {nextTick, onUnmounted, ref, watch} from "vue"
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {setUserToken} from "@/store/session";
@@ -339,7 +339,8 @@ const submitRegister = () => {
 }
 
 const close = function () {
-  emits('hide', false);
+  emits('hide', false)
+  login.value = true
 }
 </script>
 

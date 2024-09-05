@@ -233,6 +233,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/payment/alipay/notify" ||
 		c.Request.URL.Path == "/api/payment/hupipay/notify" ||
 		c.Request.URL.Path == "/api/payment/payjs/notify" ||
+		c.Request.URL.Path == "/api/payment/wechat/notify" ||
 		c.Request.URL.Path == "/api/payment/doPay" ||
 		c.Request.URL.Path == "/api/payment/payWays" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||

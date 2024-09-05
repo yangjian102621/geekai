@@ -26,8 +26,11 @@
             </el-button>
           </a>
           </span>
-          <el-button @click="router.push('/login')" round>登录</el-button>
-          <el-button @click="router.push('/register')" round>注册</el-button>
+
+          <span v-if="!isLogin">
+            <el-button @click="router.push('/login')" round>登录</el-button>
+            <el-button @click="router.push('/register')" round>注册</el-button>
+          </span>
         </div>
       </el-menu>
     </div>
@@ -69,6 +72,7 @@ import FooterBar from "@/components/FooterBar.vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {isMobile} from "@/utils/libs";
+import {checkSession} from "@/action/session";
 
 const router = useRouter()
 
@@ -83,6 +87,7 @@ const licenseConfig = ref({})
 // const size = Math.max(window.innerWidth * 0.5, window.innerHeight * 0.8)
 const winHeight = window.innerHeight - 150
 const bgClass = ref('fixed-bg')
+const isLogin = ref(false)
 
 onMounted(() => {
   httpGet("/api/config/get?key=system").then(res => {
@@ -90,6 +95,9 @@ onMounted(() => {
     logo.value = res.data.logo
     if (res.data.rand_bg) {
       bgClass.value = "rand-bg"
+    }
+    if (res.data.slogan) {
+      slogan.value = res.data.slogan
     }
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
@@ -100,11 +108,11 @@ onMounted(() => {
   }).catch(e => {
     ElMessage.error("获取 License 配置：" + e.message)
   })
-  init()
-})
 
-const init = () => {
-}
+  checkSession().then(() => {
+    isLogin.value = true
+  }).catch(()=>{})
+})
 </script>
 
 <style lang="stylus" scoped>

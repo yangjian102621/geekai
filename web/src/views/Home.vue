@@ -46,19 +46,21 @@
                 <span class="username">{{ loginUser.nickname }}</span>
               </el-dropdown-item>
 
-              <el-dropdown-item>
-                <i class="iconfont icon-book"></i>
-                <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
-                  用户手册
-                </a>
-              </el-dropdown-item>
+              <div  v-if="!licenseConfig.de_copy">
+                <el-dropdown-item>
+                  <i class="iconfont icon-book"></i>
+                  <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+                    用户手册
+                  </a>
+                </el-dropdown-item>
 
-              <el-dropdown-item>
-                <i class="iconfont icon-github"></i>
-                <a href="https://ai.r9it.com/docs/" target="_blank">
-                  Geek-AI {{ version }}
-                </a>
-              </el-dropdown-item>
+                <el-dropdown-item>
+                  <i class="iconfont icon-github"></i>
+                  <a href="https://ai.r9it.com/docs/" target="_blank">
+                    Geek-AI {{ version }}
+                  </a>
+                </el-dropdown-item>
+              </div>
               <el-divider style="margin: 2px 0"/>
               <el-dropdown-item @click="logout">
                 <i class="iconfont icon-logout"></i>
@@ -185,7 +187,7 @@ onMounted(() => {
   httpGet("/api/menu/list").then(res => {
     mainNavs.value = res.data
     // 根据窗口的高度计算应该显示多少菜单
-    const rows = Math.floor((window.innerHeight - 90) / 60)
+    const rows = Math.floor((window.innerHeight - 100) / 90)
     if (res.data.length > rows) {
       mainNavs.value = res.data.slice(0, rows)
       moreNavs.value = res.data.slice(rows)

@@ -91,7 +91,7 @@ func (s *LicenseService) SyncLicense() {
 			if err != nil {
 				retryCounter++
 				if retryCounter < 5 {
-					logger.Error(err)
+					logger.Warn(err)
 				}
 				s.license.IsActive = false
 			} else {

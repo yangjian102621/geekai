@@ -192,7 +192,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 			return
 		}
 		task.Params.Seed = int64(utils.IntValue(utils.InterfaceToString(info["seed"]), -1))
-		s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(model.SdJob{ImgURL: imgURL, Params: utils.JsonEncode(task.Params)})
+		s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(model.SdJob{ImgURL: imgURL, Params: utils.JsonEncode(task.Params), Prompt: task.Params.Prompt})
 		errChan <- nil
 	}()
 
