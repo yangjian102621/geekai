@@ -12,7 +12,9 @@
       <div class="bar"></div>
       <div class="bar"></div>
     </div>
-    <div class="text">正在生成歌曲</div>
+    <div class="text">
+      <slot>正在生成歌曲</slot>
+    </div>
   </div>
 </template>
 
