@@ -4,7 +4,7 @@
       <div class="images">
         <template v-for="(img, index) in images" :key="img">
           <div class="item">
-            <el-image :src="img" fit="cover"/>
+            <el-image :src="replaceImg(img)" fit="cover"/>
             <el-icon @click="remove(img)"><CircleCloseFilled /></el-icon>
           </div>
           <div class="btn-swap" v-if="images.length == 2 && index == 0">
@@ -81,7 +81,10 @@
           <div class="item" v-if="item.progress === 100">
             <div class="left">
               <div class="container">
-                <el-image :src="item.cover_url" fit="cover" />
+                <video class="video" :src="replaceImg(item.video_url)"  preload="auto" loop="loop" muted="muted">
+                  您的浏览器不支持视频播放
+                </video>
+                <!-- <el-image :src="item.cover_url" fit="cover" /> -->
                 <!-- <div class="duration">{{formatTime(item.duration)}}</div> -->
                 <button class="play" @click="play(item)">
                   <img src="/images/play.svg" alt=""/>
@@ -89,19 +92,7 @@
               </div>
             </div>
             <div class="center">
-              <div class="title">
-                <a>{{item.prompt}}</a>
-                <!-- <span class="model" v-if="item.major_model_version">{{item.major_model_version}}</span>
-                <span class="model" v-if="item.type === 4">用户上传</span>
-                <span class="model" v-if="item.type === 3">
-                  <i class="iconfont icon-mp3"></i>
-                  完整歌曲
-                </span>
-                <span class="model" v-if="item.ref_song">
-                    <i class="iconfont icon-link"></i>
-                    {{item.ref_song.title}}
-                  </span> -->
-              </div>
+              <div class="title">{{item.prompt}}</div>
               <div class="tags" v-if="item.prompt_ext">{{item.prompt_ext}}</div>
             </div>
             <div class="right">
@@ -111,26 +102,12 @@
                   <black-switch v-model:value="item.publish" @change="publishJob(item)" size="small" />
                 </button>
 
-                <el-tooltip effect="light" content="下载歌曲" placement="top">
-                  <a :href="item.audio_url" :download="item.title+'.mp3'" target="_blank">
-                    <button class="btn btn-icon">
-                      <i class="iconfont icon-download"></i>
-                    </button>
-                  </a>
-                </el-tooltip>
-
-                <el-tooltip effect="light" content="复制歌曲链接" placement="top">
-                  <button class="btn btn-icon copy-link" :data-clipboard-text="getShareURL(item)" >
-                    <i class="iconfont icon-share1"></i>
+                <el-tooltip effect="light" content="下载视频" placement="top">
+                  <button class="btn btn-icon" @click="download(item)" :disabled="item.downloading">
+                    <i class="iconfont icon-download" v-if="!item.downloading"></i>
+                    <el-image src="/images/loading.gif" fit="cover" v-else />
                   </button>
                 </el-tooltip>
-
-                <el-tooltip effect="light" content="编辑" placement="top">
-                  <button class="btn btn-icon" @click="update(item)">
-                    <i class="iconfont icon-edit"></i>
-                  </button>
-                </el-tooltip>
-
                 <el-tooltip effect="light" content="删除" placement="top">
                   <button class="btn btn-icon" @click="removeJob(item)">
                     <i class="iconfont icon-remove"></i>
@@ -140,8 +117,8 @@
             </div>
           </div>
           <div class="task" v-else>
-            <div style="width: 60px; flex-shrink: 0; display: flex; align-items: center;" v-if="item.params.start_img_url">
-              <el-image :src="item.params.start_img_url" fit="cover" />
+            <div style="width: 160px; height: 90px; flex-shrink: 0; display: flex; align-items: center;" v-if="item.params.start_img_url">
+              <el-image style="width: 100%; height: 100%; border-radius: 5px;" :src="replaceImg(item.params.start_img_url)" fit="cover" />
             </div>            
             <div class="left">
               <div class="title">
@@ -180,6 +157,11 @@
           :total="total"/>
       </div>
     </el-container>
+    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" :width="1000">
+      <video style="width: 100%;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
+        您的浏览器不支持视频播放
+      </video>
+    </black-dialog>    
   </div>
 </template>
 
@@ -189,12 +171,15 @@ import {CircleCloseFilled} from "@element-plus/icons-vue";
 import {httpDownload, httpPost, httpGet} from "@/utils/http";
 import {checkSession} from "@/store/cache";
 import {showMessageError} from "@/utils/dialog";
+import { replaceImg } from "@/utils/libs"
 import {ElMessage, ElMessageBox} from "element-plus";
 import Clipboard from "clipboard";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import Generating from "@/components/ui/Generating.vue";
+import BlackDialog from "@/components/ui/BlackDialog.vue";
 
-
+const showDialog = ref(false)
+const currentVideoUrl = ref('')
 const row = ref(1)
 const images = ref([])
 
@@ -290,9 +275,10 @@ onMounted(()=>{
 })
 
 const download = (item) => {
-  const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${item.url}`
+  const url = replaceImg(item.video_url)
+  const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${url}`
   // parse filename
-  const urlObj = new URL(item.url);
+  const urlObj = new URL(url);
   const fileName = urlObj.pathname.split('/').pop();
   item.downloading = true
   httpDownload(downloadURL).then(response  => {
@@ -309,6 +295,11 @@ const download = (item) => {
     showMessageError("下载失败")
     item.downloading = false
   })
+}
+
+const play = (item) => {
+  currentVideoUrl.value = replaceImg(item.video_url)
+  showDialog.value = true
 }
 
 const removeJob = (item) => {
@@ -337,10 +328,6 @@ const publishJob = (item) => {
   }).catch(e => {
     ElMessage.error("操作失败：" + e.message)
   })
-}
-
-const getShareURL = (item) => {
-  return `${location.protocol}//${location.host}/song/${item.id}`
 }
 
 const upload = (file) => {
@@ -376,18 +363,9 @@ const fetchData = (_page) => {
     total.value = res.data.total
     const items = []
     for (let v of res.data.items) {
-      if(v.prompt == '风雨交加的夜晚'){
-        v.progress = 100
-        v.video_url = 'https://storage.cdn-luma.com/dream_machine/92efa55a-f381-4161-a999-54f8fe460fca/watermarked_video0e5aad607a0644c66850d1d77022db847.mp4'
-        v.cover_url = 'https://storage.cdn-luma.com/dream_machine/92efa55a-f381-4161-a999-54f8fe460fca/video_1_thumb.jpg'
-      }
-
       if (v.progress === 100) {
         //v.major_model_version = v['raw_data']['major_model_version']
       }
-
-
-      
       items.push(v)
     }
     loading.value = false
