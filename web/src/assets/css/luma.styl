@@ -139,6 +139,7 @@
       .item {
         display flex
         flex-flow row
+        align-items center
         padding 5px 0
         cursor pointer
         margin-bottom 10px
@@ -149,11 +150,16 @@
 
         .left {
           .container {
-            width 60px
-            height 90px
+            width 160px
             position relative
 
+            .video{
+              width 160px
+              border-radius 5px
+            }
+
             .el-image {
+              width 160px
               height 90px
               border-radius 5px
             }
@@ -172,7 +178,7 @@
 
             .play {
               position absolute
-              width: 56px;
+              width: 100%
               height 100%
               top: 0;
               left: 50%;
@@ -202,14 +208,13 @@
           justify-content center
           align-items flex-start
           flex-flow column
-          height 90px
           padding 0 20px
 
           .title {
             padding 6px 0
             font-size 16px
             font-weight 700
-
+            color rgb(250 247 245)
             a {
               color rgb(250 247 245)
               &:hover {
@@ -241,7 +246,7 @@
         }
 
         .right {
-          min-width 350px;
+          min-width 200px;
           font-size 14px
           padding 0 15px
 
@@ -279,6 +284,7 @@
         height 100px
         background-color #2A2525
         display flex
+        align-items center
         margin-bottom 10px
         .left {
           display flex
