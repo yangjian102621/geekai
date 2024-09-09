@@ -749,12 +749,16 @@ const sendMessage = function () {
   }
 
   if (prompt.value.trim().length === 0 || canSend.value === false) {
+    showMessageError("请输入要发送的消息！")
     return false;
   }
   // 如果携带了文件，则串上文件地址
   let content = prompt.value
-  if (files.value.length > 0) {
+  if (files.value.length === 1) {
     content += files.value.map(file => file.url).join(" ")
+  } else if (files.value.length > 1) {
+    showMessageError("当前只支持一个文件！")
+    return false
   }
   // 追加消息
   chatData.value.push({

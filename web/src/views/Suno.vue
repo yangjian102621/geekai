@@ -234,7 +234,7 @@
               <div class="failed" v-if="item.progress === 101">
                 {{item.err_msg}}
               </div>
-              <generating v-else />
+              <generating v-else message="正在生成歌曲" />
             </div>
             <div class="right">
               <el-button type="info" @click="removeJob(item)" circle>

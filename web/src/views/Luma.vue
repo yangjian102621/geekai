@@ -7,10 +7,8 @@
             <el-image :src="replaceImg(img)" fit="cover"/>
             <el-icon @click="remove(img)"><CircleCloseFilled /></el-icon>
           </div>
-          <div class="btn-swap" v-if="images.length == 2 && index == 0">
-            <svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" @click="switchReverse">
-              <path d="M96 416h832c0.32 0 0.576-0.192 0.896-0.192a30.656 30.656 0 0 0 30.976-30.976c-0.064-0.256 0.128-0.512 0.128-0.832a31.424 31.424 0 0 0-14.912-26.368l-188.48-188.48a30.72 30.72 0 1 0-43.456 43.456L852.544 352H96a32 32 0 0 0 0 64z m832 192H96c-0.32 0-0.576 0.192-0.896 0.192a30.528 30.528 0 0 0-30.976 30.976c0.064 0.256-0.128 0.512-0.128 0.832 0 11.264 6.144 20.672 14.912 26.368l188.48 188.48a30.72 30.72 0 1 0 43.456-43.456L171.456 672H928a32 32 0 0 0 0-64z"></path>
-            </svg>
+          <div class="btn-swap" v-if="images.length === 2 && index === 0">
+            <i class="iconfont icon-exchange" @click="switchReverse"></i>
           </div>
         </template>
       </div>
@@ -57,45 +55,48 @@
     <el-container class="video-container" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
       <h2 class="h-title">你的作品</h2>
 
-      <!-- <el-row :gutter="20" class="videos">
-        <el-col :span="8" class="item" :key="item.id" v-for="item in videos">
-          <div class="video-box" @mouseover="item.playing = true" @mouseout="item.playing = false">
-            <img :src="item.cover"  :alt="item.name" v-show="!item.playing"/>
-            <video :src="item.url"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="item.playing">
-              您的浏览器不支持视频播放
-            </video>
-          </div>
-          <div class="video-name">{{item.name}}</div>
-          <div class="opts">
-            <button class="btn" @click="download(item)" :disabled="item.downloading">
-              <i class="iconfont icon-download" v-if="!item.downloading"></i>
-              <el-image src="/images/loading.gif" fit="cover" v-else />
-              <span>下载</span>
-            </button>
-          </div>
-        </el-col>
-      </el-row> -->
+<!--      <el-row :gutter="20" class="videos" v-if="!noData">-->
+<!--        <el-col :span="8" class="item" :key="item.id" v-for="item in videos">-->
+<!--          <div class="video-box" @mouseover="item.playing = true" @mouseout="item.playing = false">-->
+<!--            <img :src="item.cover"  :alt="item.name" v-show="!item.playing"/>-->
+<!--            <video :src="item.url"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="item.playing">-->
+<!--              您的浏览器不支持视频播放-->
+<!--            </video>-->
+<!--          </div>-->
+<!--          <div class="video-name">{{item.name}}</div>-->
+<!--          <div class="opts">-->
+<!--            <button class="btn" @click="download(item)" :disabled="item.downloading">-->
+<!--              <i class="iconfont icon-download" v-if="!item.downloading"></i>-->
+<!--              <el-image src="/images/loading.gif" fit="cover" v-else />-->
+<!--              <span>下载</span>-->
+<!--            </button>-->
+<!--          </div>-->
+<!--        </el-col>-->
+<!--      </el-row>-->
 
       <div class="list-box" v-if="!noData">
         <div v-for="item in list" :key="item.id">
-          <div class="item" v-if="item.progress === 100">
+          <div class="item">
             <div class="left">
               <div class="container">
-                <video class="video" :src="replaceImg(item.video_url)"  preload="auto" loop="loop" muted="muted">
-                  您的浏览器不支持视频播放
-                </video>
-                <!-- <el-image :src="item.cover_url" fit="cover" /> -->
-                <!-- <div class="duration">{{formatTime(item.duration)}}</div> -->
-                <button class="play" @click="play(item)">
-                  <img src="/images/play.svg" alt=""/>
-                </button>
+                <div v-if="item.progress === 100">
+                  <video class="video" :src="replaceImg(item.video_url)"  preload="auto" loop="loop" muted="muted">
+                    您的浏览器不支持视频播放
+                  </video>
+                  <button class="play" @click="play(item)">
+                    <img src="/images/play.svg" alt=""/>
+                  </button>
+                </div>
+                <el-image :src="item.cover_url" fit="cover" v-else-if="item.progress > 100" />
+                <generating message="正在生成视频" v-else />
+
               </div>
             </div>
             <div class="center">
-              <div class="title">{{item.prompt}}</div>
-              <div class="tags" v-if="item.prompt_ext">{{item.prompt_ext}}</div>
+              <div class="failed" v-if="item.progress === 101">任务执行失败：{{item.err_msg}}，任务提示词：{{item.prompt}}</div>
+              <div class="prompt" v-else>{{item.prompt}}</div>
             </div>
-            <div class="right">
+            <div class="right" v-if="item.progress === 100">
               <div class="tools">
                 <button class="btn btn-publish">
                   <span class="text">发布</span>
@@ -115,32 +116,15 @@
                 </el-tooltip>
               </div>
             </div>
-          </div>
-          <div class="task" v-else>
-            <div style="width: 160px; height: 90px; flex-shrink: 0; display: flex; align-items: center;" v-if="item.params.start_img_url">
-              <el-image style="width: 100%; height: 100%; border-radius: 5px;" :src="replaceImg(item.params.start_img_url)" fit="cover" />
-            </div>            
-            <div class="left">
-              <div class="title">
-                <span v-if="item.title">{{item.title}}</span>
-                <span v-else>{{item.prompt}}</span>
-              </div>
-            </div>
-            <div class="center">
-              <div class="failed" v-if="item.progress === 101">
-                {{item.err_msg}}
-              </div>
-              <generating v-else>正在生成视频</generating>
-            </div>
-            <div class="right">
-              <el-button type="info" @click="removeJob(item)" circle>
+            <div class="right-error" v-else>
+              <el-button type="danger" @click="removeJob(item)" circle>
                 <i class="iconfont icon-remove"></i>
               </el-button>
             </div>
           </div>
         </div>
       </div>
-      <el-empty :image-size="100" description="没有任何作品，赶紧去创作吧！" v-else/>
+      <el-empty :image-size="100" description="没有任何作品，赶紧去创作吧！" v-else />
 
       <div class="pagination">
         <el-pagination v-if="total > pageSize" background
@@ -170,10 +154,9 @@ import {onMounted, reactive, ref} from "vue";
 import {CircleCloseFilled} from "@element-plus/icons-vue";
 import {httpDownload, httpPost, httpGet} from "@/utils/http";
 import {checkSession} from "@/store/cache";
-import {showMessageError} from "@/utils/dialog";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
 import { replaceImg } from "@/utils/libs"
 import {ElMessage, ElMessageBox} from "element-plus";
-import Clipboard from "clipboard";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import Generating from "@/components/ui/Generating.vue";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
@@ -185,49 +168,11 @@ const images = ref([])
 
 const formData = reactive({
   prompt: '',
-  expand_prompt: true,
-  loop: true,
+  expand_prompt: false,
+  loop: false,
   first_frame_img: '',
   end_frame_img: ''
 })
-
-const videos = ref([
-  {
-    id: 1,
-    name: 'a dancing girl',
-    url: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/watermarked_video01944f69966f14d33b6c4486a8cfb8dde.mp4',
-    cover: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/video_0_thumb.jpg',
-    playing: false
-  },
-  {
-    id: 1,
-    name: 'a dancing girl a dancing girl a dancing girl a dancing girl a dancing girl',
-    url: 'https://storage.cdn-luma.com/dream_machine/92efa55a-f381-4161-a999-54f8fe460fca/watermarked_video0e5aad607a0644c66850d1d77022db847.mp4',
-    cover: 'https://storage.cdn-luma.com/dream_machine/92efa55a-f381-4161-a999-54f8fe460fca/video_1_thumb.jpg',
-    playing: false
-  },
-  {
-    id: 1,
-    name: 'a dancing girl',
-    url: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/watermarked_video01944f69966f14d33b6c4486a8cfb8dde.mp4',
-    cover: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/video_0_thumb.jpg',
-    playing: false
-  },
-  {
-    id: 1,
-    name: 'a dancing girl',
-    url: 'https://storage.cdn-luma.com/dream_machine/92efa55a-f381-4161-a999-54f8fe460fca/watermarked_video0e5aad607a0644c66850d1d77022db847.mp4',
-    cover: 'https://storage.cdn-luma.com/dream_machine/92efa55a-f381-4161-a999-54f8fe460fca/video_1_thumb.jpg',
-    playing: false
-  },
-  {
-    id: 1,
-    name: 'a dancing girl',
-    url: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/watermarked_video01944f69966f14d33b6c4486a8cfb8dde.mp4',
-    cover: 'https://storage.cdn-luma.com/dream_machine/d133794f-3124-4059-a9f2-e5fed79f0d5b/video_0_thumb.jpg',
-    playing: false
-  },
-])
 
 const socket = ref(null)
 const userId = ref(0)
@@ -361,20 +306,12 @@ const fetchData = (_page) => {
   }
   httpGet("/api/video/list",{page:page.value, page_size:pageSize.value, type: 'luma'}).then(res => {
     total.value = res.data.total
-    const items = []
-    for (let v of res.data.items) {
-      if (v.progress === 100) {
-        //v.major_model_version = v['raw_data']['major_model_version']
-      }
-      items.push(v)
-    }
     loading.value = false
-    list.value = items
+    list.value = res.data.items
     noData.value = list.value.length === 0
-  }).catch(e => {
+  }).catch(() => {
     loading.value = false
     noData.value = true
-    showMessageError("获取作品列表失败："+e.message)
   })
 }
 
@@ -384,7 +321,7 @@ const create = () => {
   const len =  images.value.length;
   if(len){
     formData.first_frame_img = images.value[0]
-    if(len == 2){
+    if(len === 2){
       formData.end_frame_img = images.value[1]
     }
   }
