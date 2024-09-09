@@ -21,6 +21,7 @@
       flex-flow row
       padding-bottom 10px
       justify-content center
+      align-items center
 
       .item {
         position relative
@@ -45,7 +46,15 @@
           }
         }
       }
+
+      .btn-swap {
+        margin-right 10px
+        .icon{
+          fill #fff
+        }
+      }
     }
+
 
     .prompt-container {
       width: 100%;
@@ -125,12 +134,205 @@
       text-align left
     }
 
+    .list-box {
+      padding 0 0 0 20px
+      .item {
+        display flex
+        flex-flow row
+        align-items center
+        padding 5px 0
+        cursor pointer
+        margin-bottom 10px
+
+        &:hover {
+          background-color #2A2525
+        }
+
+        .left {
+          .container {
+            width 160px
+            position relative
+
+            .video{
+              width 160px
+              border-radius 5px
+            }
+
+            .el-image {
+              width 160px
+              height 90px
+              border-radius 5px
+            }
+
+            .duration {
+              position absolute
+              bottom 0
+              right 0
+              background-color rgba(14,8,8,.7)
+              padding 0 3px
+              font-family 'Input Sans'
+              font-size 14px
+              font-weight 700
+              border-radius .125rem
+            }
+
+            .play {
+              position absolute
+              width: 100%
+              height 100%
+              top: 0;
+              left: 50%;
+              border none
+              border-radius 5px
+              background rgba(100, 100, 100, 0.3)
+              cursor pointer
+              color #ffffff
+              opacity 0
+              transform: translate(-50%, 0px);
+              transition opacity 0.3s ease 0s
+            }
+
+            &:hover {
+              .play {
+                opacity 1
+                //display block
+              }
+            }
+          }
+        }
+
+        .center {
+          width 100%
+          //border 1px solid saddlebrown
+          display flex
+          justify-content center
+          align-items flex-start
+          flex-flow column
+          padding 0 20px
+
+          .title {
+            padding 6px 0
+            font-size 16px
+            font-weight 700
+            color rgb(250 247 245)
+            a {
+              color rgb(250 247 245)
+              &:hover {
+                text-decoration underline
+              }
+            }
+
+            .model {
+              color #E2E8F0
+              background-color #1C1616
+              border 1px solid #8f8f8f
+              font-weight normal
+              font-size 14px
+              padding 1px 3px
+              border-radius 5px
+              margin-left 10px
+
+              .iconfont {
+                font-size 12px
+              }
+            }
+          }
+
+          .tags {
+            font-size 14px
+            color #d1d1d1
+            padding 3px 0
+          }
+        }
+
+        .right {
+          min-width 200px;
+          font-size 14px
+          padding 0 15px
+
+          .tools {
+            display flex
+            justify-content left
+            align-items center
+            flex-flow row
+            height 90px
+
+            .btn-publish {
+              padding 2px 10px
+
+              .text {
+                margin-right 10px
+              }
+            }
+
+            .btn-icon {
+              background none
+              padding 6px
+              transition background 0.6s ease 0s
+              color #726E6C
+
+              &:hover {
+                background #3C3737
+              }
+            }
+          }
+        }
+      }
+
+
+      .task {
+        height 100px
+        background-color #2A2525
+        display flex
+        align-items center
+        margin-bottom 10px
+        .left {
+          display flex
+          justify-content left
+          align-items center
+          padding 20px
+          width 320px
+          .title {
+            font-size 14px
+            color #e1e1e1
+            white-space: nowrap; /* 防止文字换行 */
+            overflow: hidden; /* 隐藏溢出的内容 */
+            text-overflow: ellipsis; /* 用省略号表示溢出的内容 */
+          }
+        }
+        .center {
+          display flex
+          width 100%
+          justify-content center
+          .failed {
+            display flex
+            align-items center
+            color #E4696B
+            font-size 14px
+          }
+        }
+        .right {
+          display flex
+          width 100px
+          justify-content center
+          align-items center
+        }
+      }
+    }
+
+    .pagination {
+      padding 10px 20px
+      display flex
+      justify-content center
+    }
+
     .videos {
       .item {
         margin-bottom 20px
 
         .video-box {
           width 100%
+          aspect-ratio: 16/9;
           border-radius 10px
           video,img {
             width: 100%;
@@ -184,6 +386,19 @@
           }
         }
       }
+    }
+  }
+
+  .btn {
+    margin-right 10px
+    background-color #363030
+    border none
+    border-radius 5px
+    padding 5px 10px
+    cursor pointer
+
+    &:hover {
+      background-color #5F5958
     }
   }
 
