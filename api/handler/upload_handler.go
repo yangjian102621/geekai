@@ -142,7 +142,7 @@ func (h *NetHandler) Download(c *gin.Context) {
 		return
 	}
 
-	// 将下载的文件内容写入响应
 	c.Status(http.StatusOK)
+	// 将下载的文件内容写入响应
 	_, _ = io.Copy(c.Writer, r.Body)
 }

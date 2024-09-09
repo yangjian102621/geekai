@@ -221,10 +221,10 @@ export function showLoginDialog(router) {
 }
 
 export const replaceImg =(img) => {
-    const devhost = "172.22.11.69"
+    const devHost = "172.22.11.69"
     const localhost = "localhost"
     if (img.includes(localhost)) {
-        return img?.replace(localhost, devhost)
+        return img?.replace(localhost, devHost)
     }
     return img
 }

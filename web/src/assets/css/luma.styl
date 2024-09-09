@@ -49,8 +49,9 @@
 
       .btn-swap {
         margin-right 10px
-        .icon{
-          fill #fff
+        .icon-exchange{
+          color #ffffff
+          cursor pointer
         }
       }
     }
@@ -135,12 +136,14 @@
     }
 
     .list-box {
-      padding 0 0 0 20px
+      padding 0
       .item {
         display flex
         flex-flow row
         align-items center
-        padding 5px 0
+        height 100px
+        padding 10px 15px
+        border-radius 10px
         cursor pointer
         margin-bottom 10px
 
@@ -210,45 +213,28 @@
           flex-flow column
           padding 0 20px
 
-          .title {
+          .prompt,.failed {
             padding 6px 0
             font-size 16px
-            font-weight 700
-            color rgb(250 247 245)
-            a {
-              color rgb(250 247 245)
-              &:hover {
-                text-decoration underline
-              }
-            }
-
-            .model {
-              color #E2E8F0
-              background-color #1C1616
-              border 1px solid #8f8f8f
-              font-weight normal
-              font-size 14px
-              padding 1px 3px
-              border-radius 5px
-              margin-left 10px
-
-              .iconfont {
-                font-size 12px
-              }
-            }
+            max-height 80px
+            line-height 28px
+            overflow hidden
+            text-overflow ellipsis
           }
-
-          .tags {
-            font-size 14px
-            color #d1d1d1
-            padding 3px 0
+          .prompt {
+            color rgb(250 247 245)
+          }
+          .failed {
+            color #E4696B
           }
         }
 
         .right {
+          display flex
+          justify-content right
           min-width 200px;
           font-size 14px
-          padding 0 15px
+          padding 0
 
           .tools {
             display flex
@@ -262,6 +248,7 @@
 
               .text {
                 margin-right 10px
+                color #e1e1e1
               }
             }
 
@@ -279,45 +266,6 @@
         }
       }
 
-
-      .task {
-        height 100px
-        background-color #2A2525
-        display flex
-        align-items center
-        margin-bottom 10px
-        .left {
-          display flex
-          justify-content left
-          align-items center
-          padding 20px
-          width 320px
-          .title {
-            font-size 14px
-            color #e1e1e1
-            white-space: nowrap; /* 防止文字换行 */
-            overflow: hidden; /* 隐藏溢出的内容 */
-            text-overflow: ellipsis; /* 用省略号表示溢出的内容 */
-          }
-        }
-        .center {
-          display flex
-          width 100%
-          justify-content center
-          .failed {
-            display flex
-            align-items center
-            color #E4696B
-            font-size 14px
-          }
-        }
-        .right {
-          display flex
-          width 100px
-          justify-content center
-          align-items center
-        }
-      }
     }
 
     .pagination {
@@ -326,67 +274,67 @@
       justify-content center
     }
 
-    .videos {
-      .item {
-        margin-bottom 20px
-
-        .video-box {
-          width 100%
-          aspect-ratio: 16/9;
-          border-radius 10px
-          video,img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius 10px
-            cursor pointer
-          }
-        }
-
-
-        .video-name {
-          color #e1e1e1
-          font-size 16px
-          white-space nowrap
-          overflow hidden
-          text-overflow ellipsis
-          padding 6px 0
-          text-align center
-        }
-
-        .opts {
-          display flex
-          justify-content center
-          .btn {
-            margin-right 10px
-            background-color hsla(0,0%,100%,.15)
-            border none
-            border-radius 20px
-            padding 3px 15px
-            cursor pointer
-            color #ffffff
-            font-size 14px
-
-            .iconfont {
-              font-size 11px
-              position relative
-              margin-right 5px
-              top -2px
-            }
-
-            .el-image {
-              width 14px
-              height 14px
-              margin-right 5px
-            }
-
-            &:hover {
-              background-color hsla(0,0%,100%,.2)
-            }
-          }
-        }
-      }
-    }
+    //.videos {
+    //  .item {
+    //    margin-bottom 20px
+    //
+    //    .video-box {
+    //      width 100%
+    //      aspect-ratio: 16/9;
+    //      border-radius 10px
+    //      video,img {
+    //        width: 100%;
+    //        height: 100%;
+    //        object-fit: cover;
+    //        border-radius 10px
+    //        cursor pointer
+    //      }
+    //    }
+    //
+    //
+    //    .video-name {
+    //      color #e1e1e1
+    //      font-size 16px
+    //      white-space nowrap
+    //      overflow hidden
+    //      text-overflow ellipsis
+    //      padding 6px 0
+    //      text-align center
+    //    }
+    //
+    //    .opts {
+    //      display flex
+    //      justify-content center
+    //      .btn {
+    //        margin-right 10px
+    //        background-color hsla(0,0%,100%,.15)
+    //        border none
+    //        border-radius 20px
+    //        padding 3px 15px
+    //        cursor pointer
+    //        color #ffffff
+    //        font-size 14px
+    //
+    //        .iconfont {
+    //          font-size 11px
+    //          position relative
+    //          margin-right 5px
+    //          top -2px
+    //        }
+    //
+    //        .el-image {
+    //          width 14px
+    //          height 14px
+    //          margin-right 5px
+    //        }
+    //
+    //        &:hover {
+    //          background-color hsla(0,0%,100%,.2)
+    //        }
+    //      }
+    //    }
+    //  }
+    //}
   }
 
   .btn {

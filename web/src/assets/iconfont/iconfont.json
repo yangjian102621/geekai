@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "7573248",
+      "name": "exchange",
+      "font_class": "exchange",
+      "unicode": "e6f5",
+      "unicode_decimal": 59125
+    },
+    {
       "icon_id": "8094809",
       "name": "merge-cells",
       "font_class": "merge",
