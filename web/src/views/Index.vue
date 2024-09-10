@@ -124,6 +124,7 @@ const iconMap =ref(
       "/apps": "icon-app",
       "/member": "icon-vip-user",
       "/invite": "icon-share",
+      "/luma": "icon-luma",
     }
 )
 const bgStyle = {}

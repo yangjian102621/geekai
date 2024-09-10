@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 127.0.0.1
--- 生成日期： 2024-09-09 17:58:40
+-- 生成日期： 2024-09-10 10:42:42
 -- 服务器版本： 8.0.33
 -- PHP 版本： 8.1.2-1ubuntu2.18
 
@@ -212,8 +212,8 @@ CREATE TABLE `chatgpt_configs` (
 --
 
 INSERT INTO `chatgpt_configs` (`id`, `marker`, `config_json`) VALUES
-(1, 'system', '{\"title\":\"GeekAI 创作助手\",\"slogan\":\"我辈之人，先干为敬，让每一个人都能用好AI\",\"admin_title\":\"GeekAI 控制台\",\"logo\":\"/images/logo.png\",\"init_power\":100,\"invite_power\":200,\"vip_month_power\":1000,\"register_ways\":[\"username\",\"email\",\"mobile\"],\"enabled_register\":true,\"order_pay_timeout\":600,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"default_models\":[1],\"mj_power\":20,\"mj_action_power\":5,\"sd_power\":5,\"dall_power\":10,\"suno_power\":10,\"luma_power\":120,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4,\"sd_neg_prompt\":\"nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet\",\"mj_mode\":\"fast\",\"index_bg_url\":\"color\",\"index_navs\":[1,5,13,19,9,12,8,6],\"copyright\":\"极客学长 © 2022- 2024 All rights reserved\",\"mark_map_text\":\"# GeekAI 演示站\\n\\n- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。\\n- 基于 Websocket 实现，完美的打字机体验。\\n- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。\\n- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。\\n- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。\\n- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。\\n- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。\\n- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。\",\"enabled_verify\":true}'),
-(3, 'notice', '{\"sd_neg_prompt\":\"\",\"mj_mode\":\"\",\"index_bg_url\":\"\",\"index_navs\":null,\"copyright\":\"\",\"mark_map_text\":\"\",\"enabled_verify\":false,\"content\":\"## v4.1.2 更新日志\\n\\n* Bug修复：修复思维导图页面获取模型失败的问题\\n* 功能优化：优化MJ,SD,DALL-E 任务列表页面，显示失败任务的错误信息，删除失败任务可以恢复扣减算力\\n* Bug修复：修复后台拖动排序组件 Bug\\n* 功能优化：更新数据库失败时候显示具体的的报错信息\\n* Bug修复：修复管理后台对话详情页内容显示异常问题\\n* 功能优化：管理后台新增清空所有未支付订单的功能\\n* 功能优化：给会话信息和系统配置数据加上缓存功能，减少 http 请求\\n* 功能新增：增加卡密功能，支持用户使用卡密兑换算力\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/chatgpt-plus\\\" target=\\\"_blank\\\"\\u003eChatPlus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n3、 \\u003ca href=\\\"https://gpt.bemore.lol\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://gpt.bemore.lol\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/chatgpt-plus\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/chatgpt-plus\\u003c/a\\u003e\",\"updated\":true}');
+(1, 'system', '{\"title\":\"GeekAI 创作助手\",\"slogan\":\"我辈之人，先干为敬，让每一个人都能用好AI\",\"admin_title\":\"GeekAI 控制台\",\"logo\":\"/images/logo.png\",\"init_power\":100,\"invite_power\":200,\"vip_month_power\":1000,\"register_ways\":[\"username\",\"email\",\"mobile\"],\"enabled_register\":true,\"order_pay_timeout\":600,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"default_models\":[1],\"mj_power\":20,\"mj_action_power\":5,\"sd_power\":5,\"dall_power\":10,\"suno_power\":10,\"luma_power\":120,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4,\"sd_neg_prompt\":\"nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet\",\"mj_mode\":\"fast\",\"index_bg_url\":\"color\",\"index_navs\":[1,5,13,19,9,12,6,20,8,10],\"copyright\":\"极客学长 © 2022- 2024 All rights reserved\",\"mark_map_text\":\"# GeekAI 演示站\\n\\n- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。\\n- 基于 Websocket 实现，完美的打字机体验。\\n- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。\\n- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。\\n- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。\\n- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。\\n- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。\\n- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。\",\"enabled_verify\":true}'),
+(3, 'notice', '{\"sd_neg_prompt\":\"\",\"mj_mode\":\"\",\"index_bg_url\":\"\",\"index_navs\":null,\"copyright\":\"\",\"mark_map_text\":\"\",\"enabled_verify\":false,\"content\":\"## v4.1.3 更新日志\\n\\n* 功能优化：重构用户登录模块，给所有的登录组件增加行为验证码功能，支持用户绑定手机，邮箱和微信\\n* 功能优化：重构找回密码模块，支持通过手机或者邮箱找回密码\\n* 功能优化：管理后台给可以拖动排序的组件添加拖动图标\\n* 功能优化：Suno 支持合成完整歌曲，和上传自己的音乐作品进行二次创作\\n* Bug修复：手机端角色和模型选择不生效\\n* Bug修复：用户登录过期之后聊天页面出现大量报错，需要刷新页面才能正常\\n* 功能优化：优化聊天页面 Websocket 断线重连代码，提高用户体验\\n* 功能优化：给算力增减服务全部加上数据库事务和同步锁\\n* 功能优化：支持用户在前端对话界面选择插件\\n* 功能新增：支持 Luma 文生视频功能\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003eGeekAI-Plus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n3、 \\u003ca href=\\\"https://gpt.bemore.lol\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://gpt.bemore.lol\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/geekai\\u003c/a\\u003e\",\"updated\":true}');
 
 -- --------------------------------------------------------
 
@@ -231,7 +231,7 @@ CREATE TABLE `chatgpt_dall_jobs` (
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `power` smallint NOT NULL COMMENT '消耗算力',
   `progress` smallint NOT NULL COMMENT '任务进度',
-  `err_msg` varchar(255) NOT NULL COMMENT '错误信息',
+  `err_msg` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '错误信息',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='DALLE 绘图任务表';
 
@@ -371,7 +371,7 @@ CREATE TABLE `chatgpt_mj_jobs` (
   `progress` smallint DEFAULT '0' COMMENT '任务进度',
   `use_proxy` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否使用反代',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-  `err_msg` varchar(255) DEFAULT NULL COMMENT '错误信息',
+  `err_msg` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='MidJourney 任务表';
@@ -487,7 +487,7 @@ CREATE TABLE `chatgpt_sd_jobs` (
   `params` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '绘画参数json',
   `progress` smallint DEFAULT '0' COMMENT '任务进度',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-  `err_msg` varchar(255) DEFAULT NULL COMMENT '错误信息',
+  `err_msg` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stable Diffusion 任务表';
@@ -519,7 +519,7 @@ CREATE TABLE `chatgpt_suno_jobs` (
   `progress` smallint DEFAULT '0' COMMENT '任务进度',
   `duration` smallint NOT NULL DEFAULT '0' COMMENT '歌曲时长',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-  `err_msg` varchar(255) DEFAULT NULL COMMENT '错误信息',
+  `err_msg` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `raw_data` text COMMENT '原始数据',
   `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
   `play_times` int DEFAULT NULL COMMENT '播放次数',
@@ -562,28 +562,7 @@ CREATE TABLE `chatgpt_users` (
 --
 
 INSERT INTO `chatgpt_users` (`id`, `username`, `mobile`, `email`, `nickname`, `password`, `avatar`, `salt`, `power`, `expired_time`, `status`, `chat_config_json`, `chat_roles_json`, `chat_models_json`, `last_login_at`, `vip`, `last_login_ip`, `openid`, `platform`, `created_at`, `updated_at`) VALUES
-(4, '18888888888', '18575670125', 'yangjian@pvc123.com', '极客学长', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/5/1715651569509929.png', 'ueedue5l', 4830, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"red_book\",\"gpt\",\"seller\",\"artist\",\"lu_xun\",\"girl_friend\",\"psychiatrist\",\"teacher\",\"programmer\",\"test\",\"qing_gan_da_shi\",\"english_trainer\",\"elon_musk\",\"kong_zi\"]', '[1,11]', 1725853969, 1, '::1', 'oCs0t64FaOLfiTbHZpOqk3aUp_94', NULL, '2023-06-12 16:47:17', '2024-09-09 11:52:49'),
-(9, '1234567', NULL, NULL, '极客学长@604526', '858e2afec79e1d6364f4567f945f2310024896d9aa45dd944efa95a0c31e4d08', '/images/avatar/user.png', '00qawlos', 100, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 0, 0, '', NULL, NULL, '2024-04-26 15:21:06', '2024-04-26 15:21:06'),
-(11, 'abc123', NULL, NULL, '极客学长@965562', '7a15c53afdb1da7093d80f9940e716eb396e682cfb1f2d107d0b81b183a3ba13', '/images/avatar/user.png', '6433mfbk', 1124, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 0, 0, '', NULL, NULL, '2024-06-06 09:37:44', '2024-06-06 09:37:44'),
-(14, 'wx@3567548322', NULL, NULL, '极客学长', '5a349ba89582a4074938b5a3ce84e87c937681ad47e8b87aab03a987e22b6077', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', 'abhzbmij', 83, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 1723537600, 0, '::1', '', '', '2024-07-04 14:52:08', '2024-08-13 16:26:41'),
-(15, 'user123', NULL, NULL, '极客学长@191303', '4a4c0a14d5fc8787357517f14f6e442281b42c8ec4395016b77483997476011e', '/images/avatar/user.png', 'cyzwkbrx', 100, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 0, 0, '', '', '', '2024-07-09 10:49:27', '2024-07-09 10:49:27'),
-(17, 'user1234', NULL, NULL, '极客学长@836764', 'bfe03c9c8c9fff5b77e36e40e8298ad3a6073d43c6a936b008eebb21113bf550', '/images/avatar/user.png', '1d2alwnj', 100, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 0, 0, '', '', '', '2024-07-09 10:53:17', '2024-07-09 10:53:17'),
-(21, 'husm@pvc123.com', NULL, NULL, '极客学长@721654', 'e030537dc43fea1bf1fa55a24f99e44f29311bebea96e88ea186995c77db083b', '/images/avatar/user.png', 'p1etg3oi', 100, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 0, 0, '', '', '', '2024-07-11 16:50:33', '2024-07-11 16:50:33'),
-(22, '15818323616', NULL, NULL, 'ted0000', '3ca6b2ff585d03be8ca4de33ad00148497a09372914ee8aa4cfde343266cbcdd', 'http://localhost:5678/static/upload/2024/7/1720775695548167.jpg', 'sq4s1brf', 100, 0, 1, '', '[\"gpt\"]', '[11,7,1,10,12,19,18,17,3]', 1721785366, 0, '172.22.11.36', '', '', '2024-07-12 15:12:16', '2024-07-24 09:42:46'),
-(26, 'admin1', NULL, NULL, '极客学长@282111', 'c26d3c966ea66eb7bf1549f24a66af386465c16757328bfb9f3077ae5effcfb1', '/images/avatar/user.png', 'v76iw0k1', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 12:07:30', '2024-08-13 12:07:30'),
-(27, 'admin3', NULL, NULL, '极客学长@172692', 'b1a67a2e3e630c532a9127050256aaa9bb6ee03fa0bdf54d73edbbcc5b0a44af', '/images/avatar/user.png', '5wmclwgh', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 12:12:04', '2024-08-13 12:12:04'),
-(28, 'admin4', NULL, NULL, '极客学长@936655', '0a756e0bff6c4b8b19522ff443abd98739fdd746b561bfcd1430ea29996d4ca3', '/images/avatar/user.png', 'j4r5ywfe', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 12:12:49', '2024-08-13 12:12:49'),
-(29, 'admin11', NULL, NULL, '极客学长@822189', 'bd950072a8b944be77ec3054ba75632de4b6a79555f9ceece984d8d91cd6781c', '/images/avatar/user.png', '4hi9ein6', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 14:11:14', '2024-08-13 14:11:14'),
-(30, 'admin5', NULL, NULL, '极客学长@789501', 'ada230c9805f19100dfb5f33a7867f94786db1215654113d29305ab3755b1bf9', '/images/avatar/user.png', 'xvhao7x4', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 14:13:35', '2024-08-13 14:13:35'),
-(31, 'admin67', NULL, NULL, '极客学长@343467', 'fea7ad23610e9aeca7230c422b95adacbab817f097d4e4753fe0b33a1c883172', '/images/avatar/user.png', 'cqmgcj6y', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 14:14:01', '2024-08-30 09:25:45'),
-(32, 'admin7', NULL, NULL, '极客学长@286350', '25f059928fd2db417a844371847bb280d4c31907085180ca44265dd6eebab77f', '/images/avatar/user.png', 'bqmph02n', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 14:16:08', '2024-08-13 14:16:08'),
-(33, 'user1', NULL, NULL, '极客学长@172155', '41435a562af10889f545a90d02635911d3af639eb580bf9b77382e75375fde06', '/images/avatar/user.png', '8mk6g4qx', 100, 0, 1, '', '[\"gpt\"]', '[1]', 1723530263, 0, '::1', '', '', '2024-08-13 14:19:47', '2024-08-13 14:24:24'),
-(34, 'wx@4425914709', '', '', '极客学长', 'f88cfd707b1cc793fc51f8a50b499d4bf4afae032a594f968011c50fb93ae531', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', 'naa3fvjo', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', NULL, '', '2024-08-13 16:36:08', '2024-08-13 16:36:08'),
-(35, 'wx@2463076272', '', '', '极客学长', '02ad55a3828af665168ace544678b848bf7b3681878e8c055e1494973124e903', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', 'kgt5wq2m', 100, 0, 1, '', '[\"gpt\"]', '[1]', 1723539827, 0, '::1', '', '', '2024-08-13 16:48:37', '2024-08-13 17:03:48'),
-(36, 'wx@2206731379', '', '', '极客学长', '92803ab5221da03e1f663c1381648476eb8c975094570e9980843adbd6415dca', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', 'xppsctgl', 100, 0, 1, '', '[\"gpt\"]', '[1]', 1723539964, 0, '::1', '', '', '2024-08-13 17:04:19', '2024-08-13 17:06:05'),
-(37, 'wx@5354985253', '18575670126', 'yangjian1@pvc123.com', '极客学长', 'a0cdb6bf32424c4f3534ea9c0326898537e5a76a12ef0170a1eadd68e7931804', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', 'kcpgg3fs', 97, 0, 1, '', '[\"gpt\"]', '[1]', 1724037840, 0, '::1', 'oCs0t62472W19z2LOEKI1rWyCTTA', '', '2024-08-13 17:16:26', '2024-08-19 11:24:00'),
-(38, 'yangjian102621@gmail.com', '', 'yangjian102621@gmail.com', '极客学长@479380', '18c9c557eee244127e5b841308292e14085cd4e44c44e929eb0eb2355471807b', '/images/avatar/user.png', 'zjyyjdfu', 100, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-13 18:39:14', '2024-08-30 09:25:24'),
-(39, '17620556057', '17620556057', '', '极客学长@896656', 'a7794114454933b3128cf7b17b1c9167943b0d59f85b1490a56f37b12126ebfc', '/images/avatar/user.png', 'qajhd6sj', 96, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-08-30 15:03:32', '2024-08-30 15:03:32');
+(4, '18888888888', '18575670125', 'yangjian@pvc123.com', '极客学长', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/5/1715651569509929.png', 'ueedue5l', 4710, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"red_book\",\"gpt\",\"seller\",\"artist\",\"lu_xun\",\"girl_friend\",\"psychiatrist\",\"teacher\",\"programmer\",\"test\",\"qing_gan_da_shi\",\"english_trainer\",\"elon_musk\",\"kong_zi\"]', '[1,11]', 1725853969, 1, '::1', 'oCs0t64FaOLfiTbHZpOqk3aUp_94', NULL, '2023-06-12 16:47:17', '2024-09-09 11:52:49');
 
 -- --------------------------------------------------------
 
@@ -622,7 +601,7 @@ CREATE TABLE `chatgpt_video_jobs` (
   `water_url` varchar(512) DEFAULT NULL COMMENT '带水印的视频地址',
   `progress` smallint DEFAULT '0' COMMENT '任务进度',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-  `err_msg` varchar(255) DEFAULT NULL COMMENT '错误信息',
+  `err_msg` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `raw_data` text COMMENT '原始数据',
   `params` varchar(512) DEFAULT NULL COMMENT '参数JSON',
   `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',

@@ -14,7 +14,7 @@ CREATE TABLE `chatgpt_video_jobs` (
                                       `water_url` varchar(512) DEFAULT NULL COMMENT '带水印的视频地址',
                                       `progress` smallint DEFAULT '0' COMMENT '任务进度',
                                       `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-                                      `err_msg` varchar(255) DEFAULT NULL COMMENT '错误信息',
+                                      `err_msg` varchar(512) DEFAULT NULL COMMENT '错误信息',
                                       `raw_data` text COMMENT '原始数据',
                                       `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
                                       `created_at` datetime NOT NULL
@@ -25,3 +25,11 @@ ALTER TABLE `chatgpt_video_jobs`ADD PRIMARY KEY (`id`);
 ALTER TABLE `chatgpt_video_jobs` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `chatgpt_video_jobs` ADD `params` VARCHAR(512) NULL COMMENT '参数JSON' AFTER `raw_data`;
+
+ALTER TABLE `chatgpt_suno_jobs` CHANGE `err_msg` `err_msg` VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '错误信息';
+
+ALTER TABLE `chatgpt_sd_jobs` CHANGE `err_msg` `err_msg` VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '错误信息';
+
+ALTER TABLE `chatgpt_mj_jobs` CHANGE `err_msg` `err_msg` VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '错误信息';
+
+ALTER TABLE `chatgpt_dall_jobs` CHANGE `err_msg` `err_msg` VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '错误信息';
