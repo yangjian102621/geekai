@@ -225,10 +225,7 @@ const newChat = (item) => {
   }
   showPicker.value = false
   const options = item.selectedOptions
-  router.push({
-    name: "mobile-chat-session",
-    params: {role_id: options[0].value, model_id: options[1].value, title: '新建会话', chat_id: 0}
-  })
+  router.push(`/mobile/chat/session?title=新对话&role_id=${options[0].value}&model_id=${options[1].value}&chat_id=0}`)
 }
 
 const changeChat = (chat) => {

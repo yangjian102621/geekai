@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
@@ -21,11 +22,12 @@ import (
 
 type RedeemHandler struct {
 	BaseHandler
-	lock sync.Mutex
+	lock        sync.Mutex
+	userService *service.UserService
 }
 
-func NewRedeemHandler(app *core.AppServer, db *gorm.DB) *RedeemHandler {
-	return &RedeemHandler{BaseHandler: BaseHandler{App: app, DB: db}}
+func NewRedeemHandler(app *core.AppServer, db *gorm.DB, userService *service.UserService) *RedeemHandler {
+	return &RedeemHandler{BaseHandler: BaseHandler{App: app, DB: db}, userService: userService}
 }
 
 func (h *RedeemHandler) Verify(c *gin.Context) {
@@ -59,7 +61,11 @@ func (h *RedeemHandler) Verify(c *gin.Context) {
 	}
 
 	tx := h.DB.Begin()
-	err := tx.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power + ?", item.Power)).Error
+	err := h.userService.IncreasePower(int(userId), item.Power, model.PowerLog{
+		Type:   types.PowerRedeem,
+		Model:  "兑换码",
+		Remark: fmt.Sprintf("兑换码核销，算力：%d，兑换码：%s...", item.Power, item.Code[:10]),
+	})
 	if err != nil {
 		tx.Rollback()
 		resp.ERROR(c, err.Error())
@@ -76,26 +82,6 @@ func (h *RedeemHandler) Verify(c *gin.Context) {
 		return
 	}
 
-	// 记录算力充值日志
-	var user model.User
-	err = tx.Where("id", userId).First(&user).Error
-	if err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	h.DB.Create(&model.PowerLog{
-		UserId:    userId,
-		Username:  user.Username,
-		Type:      types.PowerRedeem,
-		Amount:    item.Power,
-		Balance:   user.Power,
-		Mark:      types.PowerAdd,
-		Model:     "兑换码",
-		Remark:    fmt.Sprintf("兑换码核销，算力：%d，兑换码：%s...", item.Power, item.Code[:10]),
-		CreatedAt: time.Now(),
-	})
 	tx.Commit()
 	resp.SUCCESS(c)
 

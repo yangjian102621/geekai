@@ -150,8 +150,9 @@ type SystemConfig struct {
 	MjPower       int `json:"mj_power,omitempty"`        // MJ 绘画消耗算力
 	MjActionPower int `json:"mj_action_power,omitempty"` // MJ 操作（放大，变换）消耗算力
 	SdPower       int `json:"sd_power,omitempty"`        // SD 绘画消耗算力
-	DallPower     int `json:"dall_power,omitempty"`      // DALLE3 绘图消耗算力
+	DallPower     int `json:"dall_power,omitempty"`      // DALL-E-3 绘图消耗算力
 	SunoPower     int `json:"suno_power,omitempty"`      // Suno 生成歌曲消耗算力
+	LumaPower     int `json:"luma_power,omitempty"`      // Luma 生成视频消耗算力
 
 	WechatCardURL string `json:"wechat_card_url,omitempty"` // 微信客服地址
 

@@ -102,6 +102,7 @@
   <van-popup v-model:show="showPicker" position="bottom" class="popup">
     <van-picker
         :columns="columns"
+        v-model="selectedValues"
         title="选择模型和角色"
         @cancel="showPicker = false"
         @confirm="newChat"
@@ -153,6 +154,7 @@ const loginUser = ref(null)
 // const showMic = ref(false)
 const showPicker = ref(false)
 const columns = ref([roles.value, models.value])
+const selectedValues = ref([roleId.value, modelId.value])
 
 checkSession().then(user => {
   loginUser.value = user

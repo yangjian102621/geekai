@@ -28,7 +28,3 @@ type SunoJob struct {
 	PlayTimes    int                    `json:"play_times"`     // 播放次数
 	CreatedAt    int64                  `json:"created_at"`
 }
-
-func (SunoJob) TableName() string {
-	return "chatgpt_suno_jobs"
-}

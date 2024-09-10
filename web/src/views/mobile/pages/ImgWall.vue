@@ -134,13 +134,13 @@ const onLoad = () => {
   const d = data.value[activeName.value]
   httpGet(`${d.url}?status=1&page=${d.page}&page_size=${d.pageSize}&publish=true`).then(res => {
     d.loading = false
-    if (res.data.length === 0) {
+    if (res.data.items.length === 0) {
       d.finished = true
       return
     }
 
     // 生成缩略图
-    const imageList = res.data
+    const imageList = res.data.items
     for (let i = 0; i < imageList.length; i++) {
       imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }

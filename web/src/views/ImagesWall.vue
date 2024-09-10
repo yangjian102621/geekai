@@ -355,13 +355,13 @@ const getNext = () => {
   }
   httpGet(`${url}?page=${page.value}&page_size=${pageSize.value}`).then(res => {
     loading.value = false
-    if (!res.data || res.data.length === 0) {
+    if (!res.data.items || res.data.items.length === 0) {
       isOver.value = true
       return
     }
 
     // 生成缩略图
-    const imageList = res.data
+    const imageList = res.data.items
     for (let i = 0; i < imageList.length; i++) {
       imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }

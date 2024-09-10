@@ -34,6 +34,7 @@ type UserHandler struct {
 	redis          *redis.Client
 	licenseService *service.LicenseService
 	captcha        *service.CaptchaService
+	userService    *service.UserService
 }
 
 func NewUserHandler(
@@ -42,6 +43,7 @@ func NewUserHandler(
 	searcher *xdb.Searcher,
 	client *redis.Client,
 	captcha *service.CaptchaService,
+	userService *service.UserService,
 	licenseService *service.LicenseService) *UserHandler {
 	return &UserHandler{
 		BaseHandler:    BaseHandler{DB: db, App: app},
@@ -49,6 +51,7 @@ func NewUserHandler(
 		redis:          client,
 		captcha:        captcha,
 		licenseService: licenseService,
+		userService:    userService,
 	}
 }
 
@@ -155,10 +158,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}
 
-	res := h.DB.Create(&user)
-	if res.Error != nil {
-		resp.ERROR(c, "保存数据失败")
-		logger.Error(res.Error)
+	tx := h.DB.Begin()
+	if err := tx.Create(&user).Error; err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 
@@ -167,35 +169,35 @@ func (h *UserHandler) Register(c *gin.Context) {
 		// 增加邀请数量
 		h.DB.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
 		if h.App.SysConfig.InvitePower > 0 {
-			h.DB.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("power", gorm.Expr("power + ?", h.App.SysConfig.InvitePower))
-			// 记录邀请算力充值日志
-			var inviter model.User
-			h.DB.Where("id", inviteCode.UserId).First(&inviter)
-			h.DB.Create(&model.PowerLog{
-				UserId:    inviter.Id,
-				Username:  inviter.Username,
-				Type:      types.PowerInvite,
-				Amount:    h.App.SysConfig.InvitePower,
-				Balance:   inviter.Power,
-				Mark:      types.PowerAdd,
-				Model:     "",
-				Remark:    fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
-				CreatedAt: time.Now(),
+			err := h.userService.IncreasePower(int(inviteCode.UserId), h.App.SysConfig.InvitePower, model.PowerLog{
+				Type:   types.PowerInvite,
+				Model:  "",
+				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
 			})
+			if err != nil {
+				tx.Rollback()
+				resp.ERROR(c, err.Error())
+				return
+			}
 		}
 
 		// 添加邀请记录
-		h.DB.Create(&model.InviteLog{
+		err := tx.Create(&model.InviteLog{
 			InviterId:  inviteCode.UserId,
 			UserId:     user.Id,
 			Username:   user.Username,
 			InviteCode: inviteCode.Code,
 			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.InvitePower),
-		})
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
 	}
+	tx.Commit()
 
 	_ = h.redis.Del(c, key) // 注册成功，删除短信验证码
-
 	// 自动登录创建 token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.Id,

@@ -41,7 +41,7 @@ import {computed, ref, watch} from "vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
-import {checkSession, removeUserInfo} from "@/store/cache";
+import {checkSession} from "@/store/cache";
 
 const props = defineProps({
   show: Boolean,
@@ -76,7 +76,6 @@ const save = () => {
   }
 
   httpPost('/api/user/bind/email', form.value).then(() => {
-    removeUserInfo()
     ElMessage.success("绑定成功")
     emits('hide')
   }).catch(e => {
