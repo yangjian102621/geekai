@@ -46,9 +46,10 @@ type ChatHandler struct {
 	licenseService *service.LicenseService
 	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	ChatContexts   *types.LMap[string, []types.Message]    // 聊天上下文 Map [chatId] => []Message
+	userService    *service.UserService
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService) *ChatHandler {
 	return &ChatHandler{
 		BaseHandler:    handler.BaseHandler{App: app, DB: db},
 		redis:          redis,
@@ -56,6 +57,7 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		licenseService: licenseService,
 		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
 		ChatContexts:   types.NewLMap[string, []types.Message](),
+		userService:    userService,
 	}
 }
 
@@ -71,6 +73,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 	roleId := h.GetInt(c, "role_id", 0)
 	chatId := c.Query("chat_id")
 	modelId := h.GetInt(c, "model_id", 0)
+	tools := c.Query("tools")
 
 	client := types.NewWsClient(ws)
 	var chatRole model.ChatRole
@@ -97,6 +100,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		SessionId: sessionId,
 		ClientIP:  c.ClientIP(),
 		UserId:    h.GetLoginUserId(c),
+		Tools:     tools,
 	}
 
 	// use old chat data override the chat model and role ID
@@ -209,34 +213,37 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 	req.Temperature = session.Model.Temperature
 	req.MaxTokens = session.Model.MaxTokens
-	// OpenAI 支持函数功能
-	var items []model.Function
-	res = h.DB.Where("enabled", true).Find(&items)
-	if res.Error == nil {
-		var tools = make([]types.Tool, 0)
-		for _, v := range items {
-			var parameters map[string]interface{}
-			err = utils.JsonDecode(v.Parameters, &parameters)
-			if err != nil {
-				continue
-			}
-			tool := types.Tool{
-				Type: "function",
-				Function: types.Function{
-					Name:        v.Name,
-					Description: v.Description,
-					Parameters:  parameters,
-				},
-			}
-			if v, ok := parameters["required"]; v == nil || !ok {
-				tool.Function.Parameters["required"] = []string{}
-			}
-			tools = append(tools, tool)
-		}
 
-		if len(tools) > 0 {
-			req.Tools = tools
-			req.ToolChoice = "auto"
+	if session.Tools != "" {
+		toolIds := strings.Split(session.Tools, ",")
+		var items []model.Function
+		res = h.DB.Where("enabled", true).Where("id IN ?", toolIds).Find(&items)
+		if res.Error == nil {
+			var tools = make([]types.Tool, 0)
+			for _, v := range items {
+				var parameters map[string]interface{}
+				err = utils.JsonDecode(v.Parameters, &parameters)
+				if err != nil {
+					continue
+				}
+				tool := types.Tool{
+					Type: "function",
+					Function: types.Function{
+						Name:        v.Name,
+						Description: v.Description,
+						Parameters:  parameters,
+					},
+				}
+				if v, ok := parameters["required"]; v == nil || !ok {
+					tool.Function.Parameters["required"] = []string{}
+				}
+				tools = append(tools, tool)
+			}
+
+			if len(tools) > 0 {
+				req.Tools = tools
+				req.ToolChoice = "auto"
+			}
 		}
 	}
 
@@ -270,7 +277,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		tks, _ := utils.CalcTokens(utils.JsonEncode(req.Tools), req.Model)
 		tokens += tks + promptTokens
 
-		for _, v := range messages {
+		for i := len(messages) - 1; i >= 0; i-- {
+			v := messages[i]
 			tks, _ := utils.CalcTokens(v.Content, req.Model)
 			// 上下文 token 超出了模型的最大上下文长度
 			if tokens+tks >= session.Model.MaxContext {
@@ -481,24 +489,15 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 	if session.Model.Power > 0 {
 		power = session.Model.Power
 	}
-	res := h.DB.Model(&model.User{}).Where("id = ?", userVo.Id).UpdateColumn("power", gorm.Expr("power - ?", power))
-	if res.Error == nil {
-		// 记录算力消费日志
-		var u model.User
-		h.DB.Where("id", userVo.Id).First(&u)
-		h.DB.Create(&model.PowerLog{
-			UserId:    userVo.Id,
-			Username:  userVo.Username,
-			Type:      types.PowerConsume,
-			Amount:    power,
-			Mark:      types.PowerSub,
-			Balance:   u.Power,
-			Model:     session.Model.Value,
-			Remark:    fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
-			CreatedAt: time.Now(),
-		})
-	}
 
+	err := h.userService.DecreasePower(int(userVo.Id), power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  session.Model.Value,
+		Remark: fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
+	})
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func (h *ChatHandler) saveChatHistory(

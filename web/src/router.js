@@ -27,6 +27,12 @@ const routes = [
                 component: () => import('@/views/ChatPlus.vue'),
             },
             {
+                name: 'chat-id',
+                path: '/chat/:id',
+                meta: {title: '创作中心'},
+                component: () => import('@/views/ChatPlus.vue'),
+            },
+            {
                 name: 'image-mj',
                 path: '/mj',
                 meta: {title: 'MidJourney 绘画中心'},

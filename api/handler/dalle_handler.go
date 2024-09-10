@@ -11,32 +11,33 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/service/dalle"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/gorilla/websocket"
-	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 type DallJobHandler struct {
 	BaseHandler
-	redis    *redis.Client
-	service  *dalle.Service
-	uploader *oss.UploaderManager
+	redis       *redis.Client
+	dallService *dalle.Service
+	uploader    *oss.UploaderManager
+	userService *service.UserService
 }
 
-func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service, manager *oss.UploaderManager) *DallJobHandler {
+func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service, manager *oss.UploaderManager, userService *service.UserService) *DallJobHandler {
 	return &DallJobHandler{
-		service:  service,
-		uploader: manager,
+		dallService: service,
+		uploader:    manager,
+		userService: userService,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -61,14 +62,14 @@ func (h *DallJobHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.service.Clients.Put(uint(userId), client)
+	h.dallService.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 	go func() {
 		for {
 			_, msg, err := client.Receive()
 			if err != nil {
 				client.Close()
-				h.service.Clients.Delete(uint(userId))
+				h.dallService.Clients.Delete(uint(userId))
 				return
 			}
 
@@ -127,7 +128,7 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.service.PushTask(types.DallTask{
+	h.dallService.PushTask(types.DallTask{
 		JobId:   job.Id,
 		UserId:  uint(userId),
 		Prompt:  data.Prompt,
@@ -137,7 +138,7 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		Power:   job.Power,
 	})
 
-	client := h.service.Clients.Get(job.UserId)
+	client := h.dallService.Clients.Get(job.UserId)
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
@@ -175,7 +176,7 @@ func (h *DallJobHandler) JobList(c *gin.Context) {
 }
 
 // JobList 获取任务列表
-func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.DallJob) {
+func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, vo.Page) {
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
@@ -193,11 +194,14 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 		offset := (page - 1) * pageSize
 		session = session.Offset(offset).Limit(pageSize)
 	}
+	// 统计总数
+	var total int64
+	session.Model(&model.DallJob{}).Count(&total)
 
 	var items []model.DallJob
 	res := session.Find(&items)
 	if res.Error != nil {
-		return res.Error, nil
+		return res.Error, vo.Page{}
 	}
 
 	var jobs = make([]vo.DallJob, 0)
@@ -210,7 +214,7 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 		jobs = append(jobs, job)
 	}
 
-	return nil, jobs
+	return nil, vo.NewPage(total, page, pageSize, jobs)
 }
 
 // Remove remove task image
@@ -233,26 +237,11 @@ func (h *DallJobHandler) Remove(c *gin.Context) {
 
 	// 如果任务未完成，或者任务失败，则恢复用户算力
 	if job.Progress != 100 {
-		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
-
-		var user model.User
-		tx.Where("id = ?", job.UserId).First(&user)
-		err = tx.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerRefund,
-			Amount:    job.Power,
-			Balance:   user.Power,
-			Mark:      types.PowerAdd,
-			Model:     "dall-e-3",
-			Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
-			CreatedAt: time.Now(),
-		}).Error
+		err := h.userService.IncreasePower(int(job.UserId), job.Power, model.PowerLog{
+			Type:   types.PowerRefund,
+			Model:  "dall-e-3",
+			Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+		})
 		if err != nil {
 			tx.Rollback()
 			resp.ERROR(c, err.Error())
