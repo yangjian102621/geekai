@@ -64,7 +64,9 @@ func (h *NetHandler) Upload(c *gin.Context) {
 
 func (h *NetHandler) List(c *gin.Context) {
 	var data struct {
-		Urls []string `json:"urls,omitempty"`
+		Urls     []string `json:"urls,omitempty"`
+		Page     int      `json:"page"`
+		PageSize int      `json:"page_size"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -79,21 +81,32 @@ func (h *NetHandler) List(c *gin.Context) {
 	if len(data.Urls) > 0 {
 		session = session.Where("url IN ?", data.Urls)
 	}
-	session.Find(&items)
-	if len(items) > 0 {
-		for _, v := range items {
-			var file vo.File
-			err := utils.CopyObject(v, &file)
-			if err != nil {
-				logger.Error(err)
-				continue
-			}
-			file.CreatedAt = v.CreatedAt.Unix()
-			files = append(files, file)
-		}
+	// 统计总数
+	var total int64
+	session.Model(&model.File{}).Count(&total)
+
+	if data.Page > 0 && data.PageSize > 0 {
+		offset := (data.Page - 1) * data.PageSize
+		session = session.Offset(offset).Limit(data.PageSize)
+	}
+	err := session.Order("id desc").Find(&items).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
 
-	resp.SUCCESS(c, files)
+	for _, v := range items {
+		var file vo.File
+		err := utils.CopyObject(v, &file)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		file.CreatedAt = v.CreatedAt.Unix()
+		files = append(files, file)
+	}
+
+	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, files))
 }
 
 // Remove remove files
