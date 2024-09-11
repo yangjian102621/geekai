@@ -106,7 +106,7 @@
                 <el-tooltip effect="light" content="下载视频" placement="top">
                   <button class="btn btn-icon" @click="download(item)" :disabled="item.downloading">
                     <i class="iconfont icon-download" v-if="!item.downloading"></i>
-                    <el-image src="/images/loading.gif" fit="cover" v-else />
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
                   </button>
                 </el-tooltip>
                 <el-tooltip effect="light" content="删除" placement="top">
