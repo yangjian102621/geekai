@@ -272,10 +272,22 @@ const tools = ref([])
 const toolSelected = ref([])
 const loadHistory = ref(false)
 
+// 初始化角色ID参数
+if (router.currentRoute.value.query.role_id) {
+  roleId.value = parseInt(router.currentRoute.value.query.role_id)
+}
+
 // 初始化 ChatID
 chatId.value = router.currentRoute.value.params.id
 if (!chatId.value) {
   chatId.value = UUID()
+}else { // 查询对话信息
+  httpGet("/api/chat/detail", {chat_id: chatId.value}).then(res => {
+    roleId.value = res.data.role_id
+    modelID.value = res.data.model_id
+  }).catch(e => {
+    console.error("获取对话信息失败："+e.message)
+  })
 }
 
 if (isMobile()) {
@@ -344,59 +356,46 @@ onUnmounted(() => {
 
 // 初始化数据
 const initData = () => {
-  // 检查会话
-  checkSession().then((user) => {
-    loginUser.value = user
-    isLogin.value = true
 
-    // 获取会话列表
-    httpGet("/api/chat/list").then((res) => {
-      if (res.data) {
-        chatList.value = res.data;
-        allChats.value = res.data;
-      }
-      if (router.currentRoute.value.query.role_id) {
-        roleId.value = parseInt(router.currentRoute.value.query.role_id)
-      }
-      // 加载模型
-      httpGet('/api/model/list').then(res => {
-        models.value = res.data
-        modelID.value = models.value[0].id
-        // 加载角色列表
-        httpGet(`/api/role/list`,{id:roleId.value}).then((res) => {
-          roles.value = res.data;
-          if (!roleId.value) {
-            roleId.value = roles.value[0]['id']
-          }
-
-          newChat();
-        }).catch((e) => {
-          ElMessage.error('获取聊天角色失败: ' + e.messages)
-        })
-      }).catch(e => {
-        ElMessage.error("加载模型失败: " + e.message)
-      })
-    }).catch(() => {
-      ElMessage.error("加载会话列表失败！")
-    })
-  }).catch(() => {
-    // 加载模型
-    httpGet('/api/model/list',{id:roleId.value}).then(res => {
-      models.value = res.data
+  // 加载模型
+  httpGet('/api/model/list').then(res => {
+    models.value = res.data
+    if (!modelID.value) {
       modelID.value = models.value[0].id
-    }).catch(e => {
-      ElMessage.error("加载模型失败: " + e.message)
-    })
-
+    }
     // 加载角色列表
-    httpGet(`/api/role/list`).then((res) => {
+    httpGet(`/api/role/list`,{id:roleId.value}).then((res) => {
       roles.value = res.data;
-      roleId.value = roles.value[0]['id'];
+      if (!roleId.value) {
+        roleId.value = roles.value[0]['id']
+      }
+
+      // 如果登录状态就创建对话连接
+      checkSession().then((user) => {
+        loginUser.value = user
+        isLogin.value = true
+
+        newChat();
+      })
+
     }).catch((e) => {
       ElMessage.error('获取聊天角色失败: ' + e.messages)
     })
+  }).catch(e => {
+    ElMessage.error("加载模型失败: " + e.message)
   })
 
+  // 获取会话列表
+  httpGet("/api/chat/list").then((res) => {
+    if (res.data) {
+      chatList.value = res.data;
+      allChats.value = res.data;
+    }
+  }).catch(() => {
+    ElMessage.error("加载会话列表失败！")
+  })
+
+  // 允许在输入框粘贴文件
   inputRef.value.addEventListener('paste', (event) => {
     const items = (event.clipboardData || window.clipboardData).items;
     let fileFound = false;
@@ -750,12 +749,16 @@ const sendMessage = function () {
   }
 
   if (prompt.value.trim().length === 0 || canSend.value === false) {
+    showMessageError("请输入要发送的消息！")
     return false;
   }
   // 如果携带了文件，则串上文件地址
   let content = prompt.value
-  if (files.value.length > 0) {
+  if (files.value.length === 1) {
     content += files.value.map(file => file.url).join(" ")
+  } else if (files.value.length > 1) {
+    showMessageError("当前只支持一个文件！")
+    return false
   }
   // 追加消息
   chatData.value.push({

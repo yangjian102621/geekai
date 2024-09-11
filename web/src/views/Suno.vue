@@ -190,11 +190,10 @@
                 </button>
 
                 <el-tooltip effect="light" content="下载歌曲" placement="top">
-                  <a :href="item.audio_url" :download="item.title+'.mp3'" target="_blank">
-                    <button class="btn btn-icon">
-                      <i class="iconfont icon-download"></i>
-                    </button>
-                  </a>
+                  <button class="btn btn-icon" @click="download(item)">
+                    <i class="iconfont icon-download" v-if="!item.downloading"></i>
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
+                  </button>
                 </el-tooltip>
 
                 <el-tooltip effect="light" content="获取完整歌曲" placement="top" v-if="item.ref_song">
@@ -234,7 +233,7 @@
               <div class="failed" v-if="item.progress === 101">
                 {{item.err_msg}}
               </div>
-              <generating v-else />
+              <generating v-else message="正在生成歌曲" />
             </div>
             <div class="right">
               <el-button type="info" @click="removeJob(item)" circle>
@@ -299,11 +298,11 @@ import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import {compact} from "lodash";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpDownload, httpGet, httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import {checkSession} from "@/store/cache";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {formatTime} from "@/utils/libs";
+import {formatTime, replaceImg} from "@/utils/libs";
 import Clipboard from "clipboard";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
@@ -480,6 +479,30 @@ const merge = (item) => {
     showMessageOK("创建任务成功")
   }).catch(e => {
     showMessageError("合并歌曲失败："+e.message)
+  })
+}
+
+// 下载歌曲
+const download = (item) => {
+  const url = replaceImg(item.audio_url)
+  const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${url}`
+  // parse filename
+  const urlObj = new URL(url);
+  const fileName = urlObj.pathname.split('/').pop();
+  item.downloading = true
+  httpDownload(downloadURL).then(response  => {
+    const blob = new Blob([response.data]);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    item.downloading = false
+  }).catch(() => {
+    showMessageError("下载失败")
+    item.downloading = false
   })
 }
 

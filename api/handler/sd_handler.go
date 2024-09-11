@@ -295,7 +295,7 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 
 	// 如果任务未完成，或者任务失败，则恢复用户算力
 	if job.Progress != 100 {
-		err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		err := h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 			Type:   types.PowerRefund,
 			Model:  "stable-diffusion",
 			Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%s， Err: %s", job.TaskId, job.ErrMsg),
