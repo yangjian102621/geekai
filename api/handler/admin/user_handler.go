@@ -204,33 +204,69 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 }
 
 func (h *UserHandler) Remove(c *gin.Context) {
-	id := h.GetInt(c, "id", 0)
-	if id <= 0 {
+	id := c.Query("id")
+	ids := c.QueryArray("ids[]")
+	if id != "" {
+		ids = append(ids, id)
+	}
+	if len(ids) == 0 {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	// 删除用户
-	res := h.DB.Where("id = ?", id).Delete(&model.User{})
-	if res.Error != nil {
+
+	tx := h.DB.Begin()
+	var err error
+	for _, id = range ids {
+		// 删除用户
+		if err = tx.Where("id", id).Delete(&model.User{}).Error; err != nil {
+			break
+		}
+		// 删除聊天记录
+		if err = tx.Unscoped().Where("user_id = ?", id).Delete(&model.ChatItem{}).Error; err != nil {
+			break
+		}
+		// 删除聊天历史记录
+		if err = tx.Unscoped().Where("user_id = ?", id).Delete(&model.ChatMessage{}).Error; err != nil {
+			break
+		}
+		// 删除登录日志
+		if err = tx.Where("user_id = ?", id).Delete(&model.UserLoginLog{}).Error; err != nil {
+			break
+		}
+		// 删除算力日志
+		if err = tx.Where("user_id = ?", id).Delete(&model.PowerLog{}).Error; err != nil {
+			break
+		}
+		if err = tx.Where("user_id = ?", id).Delete(&model.InviteLog{}).Error; err != nil {
+			break
+		}
+		// 删除众筹日志
+		if err = tx.Where("user_id = ?", id).Delete(&model.Redeem{}).Error; err != nil {
+			break
+		}
+		// 删除绘图任务
+		if err = tx.Where("user_id = ?", id).Delete(&model.MidJourneyJob{}).Error; err != nil {
+			break
+		}
+		if err = tx.Where("user_id = ?", id).Delete(&model.SdJob{}).Error; err != nil {
+			break
+		}
+		if err = tx.Where("user_id = ?", id).Delete(&model.DallJob{}).Error; err != nil {
+			break
+		}
+		if err = tx.Where("user_id = ?", id).Delete(&model.SunoJob{}).Error; err != nil {
+			break
+		}
+		if err = tx.Where("user_id = ?", id).Delete(&model.VideoJob{}).Error; err != nil {
+			break
+		}
+	}
+	if err != nil {
 		resp.ERROR(c, "删除失败")
+		tx.Rollback()
 		return
 	}
-
-	// 删除聊天记录
-	h.DB.Where("user_id = ?", id).Delete(&model.ChatItem{})
-	// 删除聊天历史记录
-	h.DB.Where("user_id = ?", id).Delete(&model.ChatMessage{})
-	// 删除登录日志
-	h.DB.Where("user_id = ?", id).Delete(&model.UserLoginLog{})
-	// 删除算力日志
-	h.DB.Where("user_id = ?", id).Delete(&model.PowerLog{})
-	// 删除众筹日志
-	h.DB.Where("user_id = ?", id).Delete(&model.Redeem{})
-	// 删除绘图任务
-	h.DB.Where("user_id = ?", id).Delete(&model.MidJourneyJob{})
-	h.DB.Where("user_id = ?", id).Delete(&model.SdJob{})
-	//  删除订单
-	h.DB.Where("user_id = ?", id).Delete(&model.Order{})
+	tx.Commit()
 	resp.SUCCESS(c)
 }
 

@@ -3,8 +3,8 @@
     <div class="handle-box">
       <el-input v-model="query.username" placeholder="账号" class="handle-input mr10"></el-input>
       <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-
       <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
+      <el-button type="danger" :icon="Delete" @click="multipleDelete">删除</el-button>
     </div>
 
     <el-row>
@@ -170,8 +170,8 @@
 import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {dateFormat, disabledDate, removeArrayItem} from "@/utils/libs";
-import {Plus, Search} from "@element-plus/icons-vue";
+import {dateFormat, disabledDate} from "@/utils/libs";
+import {Delete, Plus, Search} from "@element-plus/icons-vue";
 
 // 变量定义
 const users = ref({page: 1, page_size: 15, items: []})
@@ -281,7 +281,7 @@ const userEdit = function (row) {
 }
 
 const addUser = () => {
-  user.value = {}
+  user.value = {chat_id: 0, chat_roles: [], chat_models: []}
   title.value = '添加用户'
   showUserEditDialog.value = true
   add.value = true
@@ -306,8 +306,36 @@ const saveUser = function () {
   })
 }
 
+const userIds = ref([])
 const handleSelectionChange = function (rows) {
-  // console.log(rows)
+  userIds.value = []
+  rows.forEach((row) => {
+    userIds.value.push(row.id)
+  })
+}
+
+const multipleDelete = function () {
+  ElMessageBox.confirm(
+      '此操作将会永久删除用户信息和聊天记录，确认操作吗?',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(() => {
+    loading.value = true
+    httpGet('/api/admin/user/remove', {ids: userIds.value}).then(() => {
+      ElMessage.success('操作成功！')
+      fetchUserList(users.value.page, users.value.page_size)
+      loading.value = false
+    }).catch((e) => {
+      ElMessage.error('操作失败，' + e.message)
+      loading.value = false
+    })
+  }).catch(() => {
+    ElMessage.info('操作被取消')
+  })
 }
 
 const resetPass = (row) => {

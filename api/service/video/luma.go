@@ -56,7 +56,7 @@ func (s *Service) PushTask(task types.VideoTask) {
 func (s *Service) Run() {
 	// 将数据库中未提交的人物加载到队列
 	var jobs []model.VideoJob
-	s.db.Where("task_id", "").Find(&jobs)
+	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {
 		var params types.VideoParams
 		if err := utils.JsonDecode(v.Params, &params); err != nil {
@@ -86,10 +86,14 @@ func (s *Service) Run() {
 			r, err = s.LumaCreate(task)
 			if err != nil {
 				logger.Errorf("create task with error: %v", err)
-				s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
-					"err_msg":  err.Error(),
-					"progress": service.FailTaskProgress,
-				})
+				err = s.db.Model(&model.VideoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
+					"err_msg":   err.Error(),
+					"progress":  service.FailTaskProgress,
+					"cover_url": "/images/failed.jpg",
+				}).Error
+				if err != nil {
+					logger.Errorf("update task with error: %v", err)
+				}
 				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
 				continue
 			}

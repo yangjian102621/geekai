@@ -9,6 +9,8 @@
  * Util lib functions
  */
 import {showConfirmDialog} from "vant";
+import {httpDownload} from "@/utils/http";
+import {showMessageError} from "@/utils/dialog";
 
 // generate a random string
 export function randString(length) {
@@ -221,10 +223,10 @@ export function showLoginDialog(router) {
 }
 
 export const replaceImg =(img) => {
-    const devhost = "172.22.11.69"
-    const localhost = "localhost"
+    const devHost = process.env.VUE_APP_API_HOST
+    const localhost = "http://localhost:5678"
     if (img.includes(localhost)) {
-        return img?.replace(localhost, devhost)
+        return img?.replace(localhost, devHost)
     }
     return img
 }
