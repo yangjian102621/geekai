@@ -25,6 +25,7 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 	var data struct {
 		Id      uint   `json:"id"`
 		Name    string `json:"name"`
+		Enable  bool   `json:"enable"`
 		Icon    string `json:"icon"`
 		SortNum int    `json:"sort_num"`
 	}
@@ -36,12 +37,13 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 	if data.Id == 0 { // for add
 		err := h.DB.Where("name", data.Name).First(&model.AppType{}).Error
 		if err == nil {
-			resp.ERROR(c, "App类型已存在")
+			resp.ERROR(c, "当前分类已经存在")
 			return
 		}
 		err = h.DB.Create(&model.AppType{
 			Name:    data.Name,
 			Icon:    data.Icon,
+			Enabled: data.Enable,
 			SortNum: data.SortNum,
 		}).Error
 		if err != nil {
@@ -49,9 +51,10 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 			return
 		}
 	} else { // for update
-		err := h.DB.Where("id", data.Id).Updates(map[string]interface{}{
-			"name": data.Name,
-			"icon": data.Icon,
+		err := h.DB.Model(&model.AppType{}).Where("id", data.Id).Updates(map[string]interface{}{
+			"name":    data.Name,
+			"icon":    data.Icon,
+			"enabled": data.Enable,
 		}).Error
 		if err != nil {
 			resp.ERROR(c, err.Error())
@@ -65,7 +68,7 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 func (h *ChatAppTypeHandler) List(c *gin.Context) {
 	var items []model.AppType
 	var appTypes = make([]vo.AppType, 0)
-	err := h.DB.Order("created_at DESC").Find(&items).Error
+	err := h.DB.Order("sort_num ASC").Find(&items).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
