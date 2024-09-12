@@ -90,12 +90,22 @@ const items = [
     index: '/admin/user',
     title: '用户管理',
   },
-
   {
     icon: 'menu',
-    index: '/admin/app',
+    index: '1',
     title: '应用管理',
+    subs: [
+      {
+        index: '/admin/app',
+        title: '应用列表',
+      },
+      {
+        index: '/admin/app/type',
+        title: '应用分类',
+      },
+    ],
   },
+  
   {
     icon: 'api-key',
     index: '/admin/apikey',

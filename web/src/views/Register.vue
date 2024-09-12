@@ -16,7 +16,7 @@
                   <div class="block">
                     <el-input placeholder="手机号码"
                               size="large"
-                              v-model="data.username"
+                              v-model="data.mobile"
                               maxlength="11"
                               autocomplete="off">
                       <template #prefix>
@@ -41,7 +41,7 @@
                         </el-input>
                       </el-col>
                       <el-col :span="12">
-                        <send-msg size="large" :receiver="data.username" type="mobile"/>
+                        <send-msg size="large" :receiver="data.mobile" type="mobile"/>
                       </el-col>
                     </el-row>
                   </div>
@@ -195,6 +195,8 @@ const title = ref('');
 const logo = ref("")
 const data = ref({
   username: '',
+  mobile: '',
+  email: '',
   password: '',
   code: '',
   repass: '',
@@ -250,15 +252,15 @@ getLicenseInfo().then(res => {
 
 // 注册操作
 const submitRegister = () => {
-  if (data.value.username === '') {
+  if (activeName.value === 'username' && data.value.username === '') {
     return showMessageError('请输入用户名');
   }
 
-  if (activeName.value === 'mobile' && !validateMobile(data.value.username)) {
+  if (activeName.value === 'mobile' && !validateMobile(data.value.mobile)) {
     return showMessageError('请输入合法的手机号');
   }
 
-  if (activeName.value === 'email' && !validateEmail(data.value.username)) {
+  if (activeName.value === 'email' && !validateEmail(data.value.email)) {
     return showMessageError('请输入合法的邮箱地址');
   }
 
@@ -273,7 +275,8 @@ const submitRegister = () => {
     return showMessageError('请输入验证码');
   }
 
-  if (enableVerify.value) {
+  // 如果是用户名和密码登录，那么需要加载验证码
+  if (enableVerify.value && activeName.value === 'username') {
     captchaRef.value.loadCaptcha()
   } else {
     doSubmitRegister({})
