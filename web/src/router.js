@@ -174,6 +174,12 @@ const routes = [
                 component: () => import('@/views/admin/Apps.vue'),
             },
             {
+                path: '/admin/app/type',
+                name: 'admin-app-type',
+                meta: {title: '应用管理'},
+                component: () => import('@/views/admin/AppType.vue'),
+            },
+            {
                 path: '/admin/apikey',
                 name: 'admin-apikey',
                 meta: {title: 'API-KEY 管理'},

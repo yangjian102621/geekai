@@ -74,6 +74,20 @@ func (h *UserHandler) Register(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	if h.App.SysConfig.EnabledVerify && data.RegWay == "username" {
+		var check bool
+		if data.X != 0 {
+			check = h.captcha.SlideCheck(data)
+		} else {
+			check = h.captcha.Check(data)
+		}
+		if !check {
+			resp.ERROR(c, "请先完人机验证")
+			return
+		}
+	}
+
 	data.Password = strings.TrimSpace(data.Password)
 	if len(data.Password) < 8 {
 		resp.ERROR(c, "密码长度不能少于8个字符")

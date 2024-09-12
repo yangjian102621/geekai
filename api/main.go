@@ -146,7 +146,7 @@ func main() {
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
-		fx.Provide(admin.NewChatRoleHandler),
+		fx.Provide(admin.NewChatAppHandler),
 		fx.Provide(admin.NewRedeemHandler),
 		fx.Provide(admin.NewDashboardHandler),
 		fx.Provide(admin.NewChatModelHandler),
@@ -338,7 +338,7 @@ func main() {
 			group.GET("loginLog", h.LoginLog)
 			group.POST("resetPass", h.ResetPass)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
+		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
 			group := s.Engine.Group("/api/admin/role/")
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
@@ -501,6 +501,15 @@ func main() {
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
+		}),
+		fx.Provide(admin.NewChatAppTypeHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {
+			group := s.Engine.Group("/api/admin/app/type")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
+			group.POST("enable", h.Enable)
+			group.POST("sort", h.Sort)
 		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
