@@ -74,7 +74,6 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 func (h *ApiKeyHandler) List(c *gin.Context) {
 	status := h.GetBool(c, "status")
 	t := h.GetTrim(c, "type")
-	platform := h.GetTrim(c, "platform")
 
 	session := h.DB.Session(&gorm.Session{})
 	if status {
@@ -82,9 +81,6 @@ func (h *ApiKeyHandler) List(c *gin.Context) {
 	}
 	if t != "" {
 		session = session.Where("type", t)
-	}
-	if platform != "" {
-		session = session.Where("platform", platform)
 	}
 
 	var items []model.ApiKey

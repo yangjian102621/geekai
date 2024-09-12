@@ -364,7 +364,7 @@ const initData = () => {
       modelID.value = models.value[0].id
     }
     // 加载角色列表
-    httpGet(`/api/role/list`,{id:roleId.value}).then((res) => {
+    httpGet(`/api/app/list/user`,{id:roleId.value}).then((res) => {
       roles.value = res.data;
       if (!roleId.value) {
         roleId.value = roles.value[0]['id']

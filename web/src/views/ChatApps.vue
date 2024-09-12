@@ -64,7 +64,6 @@ import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
 import {useRouter} from "vue-router";
 import {useSharedStore} from "@/store/sharedata";
 import ItemList from "@/components/ItemList.vue";
-import {Plus} from "@element-plus/icons-vue";
 
 const listBoxHeight = window.innerHeight - 87
 const list = ref([])
@@ -72,7 +71,7 @@ const roles = ref([])
 const store = useSharedStore();
 
 onMounted(() => {
-  httpGet("/api/role/list").then((res) => {
+  httpGet("/api/app/list").then((res) => {
     const items = res.data
     // 处理 hello message
     for (let i = 0; i < items.length; i++) {
@@ -112,7 +111,7 @@ const updateRole = (row, opt) => {
       }
       roles.value = removeArrayItem(roles.value, row.key)
     }
-    httpPost("/api/role/update", {keys: roles.value}).then(() => {
+    httpPost("/api/app/update", {keys: roles.value}).then(() => {
       ElMessage.success({message: title.value + "成功！", duration: 1000})
     }).catch(e => {
       ElMessage.error(title.value + "失败：" + e.message)

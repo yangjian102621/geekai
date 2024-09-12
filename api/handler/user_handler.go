@@ -601,7 +601,7 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 		session = session.Where("email", data.Email)
 		key = CodeStorePrefix + data.Email
 	} else if data.Type == "mobile" {
-		session = session.Where("mobile", data.Email)
+		session = session.Where("mobile", data.Mobile)
 		key = CodeStorePrefix + data.Mobile
 	} else {
 		resp.ERROR(c, "验证类别错误")

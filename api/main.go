@@ -226,8 +226,9 @@ func main() {
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
-			group := s.Engine.Group("/api/role/")
+			group := s.Engine.Group("/api/app/")
 			group.GET("list", h.List)
+			group.GET("list/user", h.ListByUser)
 			group.POST("update", h.UpdateRole)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {

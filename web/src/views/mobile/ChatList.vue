@@ -105,7 +105,7 @@ checkSession().then((user) => {
   loginUser.value = user
   isLogin.value = true
   // 加载角色列表
-  httpGet(`/api/role/list`).then((res) => {
+  httpGet(`/api/app/list/user`).then((res) => {
     if (res.data) {
       const items = res.data
       for (let i = 0; i < items.length; i++) {
@@ -139,7 +139,7 @@ checkSession().then((user) => {
   finished.value = true
 
   // 加载角色列表
-  httpGet('/api/role/list').then((res) => {
+  httpGet('/api/app/list/user').then((res) => {
     if (res.data) {
       const items = res.data
       for (let i = 0; i < items.length; i++) {
