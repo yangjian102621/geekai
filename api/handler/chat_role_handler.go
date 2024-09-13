@@ -69,7 +69,10 @@ func (h *ChatRoleHandler) ListByUser(c *gin.Context) {
 			resp.ERROR(c, "角色解析失败！")
 			return
 		}
-		session = session.Where("marker IN ?", roleKeys)
+		// 保证用户至少有一个角色可用
+		if len(roleKeys) > 0 {
+			session = session.Where("marker IN ?", roleKeys)
+		}
 	}
 
 	if id > 0 {

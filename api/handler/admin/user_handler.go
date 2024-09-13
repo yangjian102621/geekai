@@ -269,7 +269,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 		}
 	}
 	if err != nil {
-		resp.ERROR(c, "删除失败")
+		resp.ERROR(c, err.Error())
 		tx.Rollback()
 		return
 	}
