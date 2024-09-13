@@ -64,7 +64,7 @@ func (h *MarkMapHandler) Client(c *gin.Context) {
 				return
 			}
 
-			var message types.WsMessage
+			var message types.ReplyMessage
 			err = utils.JsonDecode(string(msg), &message)
 			if err != nil {
 				continue
@@ -85,7 +85,7 @@ func (h *MarkMapHandler) Client(c *gin.Context) {
 			err = h.sendMessage(client, utils.InterfaceToString(message.Content), modelId, userId)
 			if err != nil {
 				logger.Error(err)
-				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsErr, Content: err.Error()})
+				utils.ReplyErrorMessage(client, err.Error())
 			}
 
 		}
@@ -170,16 +170,16 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 			}
 
 			if isNew {
-				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsStart})
+				utils.ReplyChunkMessage(client, types.ReplyMessage{Type: types.WsStart})
 				isNew = false
 			}
-			utils.ReplyChunkMessage(client, types.WsMessage{
+			utils.ReplyChunkMessage(client, types.ReplyMessage{
 				Type:    types.WsMiddle,
 				Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
 			})
 		} // end for
 
-		utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
+		utils.ReplyChunkMessage(client, types.ReplyMessage{Type: types.WsEnd})
 
 	} else {
 		body, _ := io.ReadAll(response.Body)

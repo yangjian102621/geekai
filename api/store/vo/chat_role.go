@@ -5,7 +5,7 @@ import "geekai/core/types"
 type ChatRole struct {
 	BaseVo
 	Key       string          `json:"key"` // 角色唯一标识
-	Tid       uint            `json:"tid"`
+	Tid       int             `json:"tid"`
 	Name      string          `json:"name"`       // 角色名称
 	Context   []types.Message `json:"context"`    // 角色语料信息
 	HelloMsg  string          `json:"hello_msg"`  // 打招呼的消息

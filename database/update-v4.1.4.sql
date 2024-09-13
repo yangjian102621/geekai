@@ -10,3 +10,5 @@ CREATE TABLE `chatgpt_app_types` (
 ALTER TABLE `chatgpt_app_types`ADD PRIMARY KEY (`id`);
 ALTER TABLE `chatgpt_app_types` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `chatgpt_chat_roles` ADD `tid` INT NOT NULL COMMENT '分类ID' AFTER `name`;
+
+ALTER TABLE `chatgpt_chat_history` ADD `total_tokens` INT NOT NULL COMMENT '消耗总Token长度' AFTER `tokens`;
