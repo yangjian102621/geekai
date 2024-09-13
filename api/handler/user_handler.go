@@ -244,8 +244,10 @@ func (h *UserHandler) Login(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	verifyKey := fmt.Sprintf("users/verify/%s", data.Username)
+	needVerify, err := h.redis.Get(c, verifyKey).Bool()
 
-	if h.App.SysConfig.EnabledVerify {
+	if h.App.SysConfig.EnabledVerify && needVerify {
 		var check bool
 		if data.X != 0 {
 			check = h.captcha.SlideCheck(data)
@@ -261,12 +263,14 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var user model.User
 	res := h.DB.Where("username = ?", data.Username).First(&user)
 	if res.Error != nil {
+		h.redis.Set(c, verifyKey, true, 0)
 		resp.ERROR(c, "用户名不存在")
 		return
 	}
 
 	password := utils.GenPassword(data.Password, user.Salt)
 	if password != user.Password {
+		h.redis.Set(c, verifyKey, true, 0)
 		resp.ERROR(c, "用户名或密码错误")
 		return
 	}
@@ -299,11 +303,13 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	// 保存到 redis
-	key := fmt.Sprintf("users/%d", user.Id)
-	if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+	sessionKey := fmt.Sprintf("users/%d", user.Id)
+	if _, err = h.redis.Set(c, sessionKey, tokenString, 0).Result(); err != nil {
 		resp.ERROR(c, "error with save token: "+err.Error())
 		return
 	}
+	// 移除登录行为验证码
+	h.redis.Del(c, verifyKey)
 	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
 }
 

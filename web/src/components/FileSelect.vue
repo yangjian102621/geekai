@@ -68,7 +68,7 @@ const fileList = ref([])
 const fetchFiles = () => {
   show.value = true
   httpPost("/api/upload/list").then(res => {
-    fileList.value = res.data
+    fileList.value = res.data.items
   }).catch(() => {
   })
 }

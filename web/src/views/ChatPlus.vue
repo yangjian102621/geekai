@@ -349,7 +349,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (socket.value !== null) {
-    socket.value.close()
     socket.value = null
   }
 })
@@ -518,9 +517,9 @@ const loadChat = function (chat) {
   modelID.value = chat.model_id;
   chatId.value = chat.chat_id;
   showStopGenerate.value = false;
-  router.push(`/chat/${chatId.value}`)
   loadHistory.value = true
-  socket.value.close()
+  connect()
+  router.replace(`/chat/${chatId.value}`)
 }
 
 // 编辑会话标题
@@ -757,7 +756,7 @@ const sendMessage = function () {
   if (files.value.length === 1) {
     content += files.value.map(file => file.url).join(" ")
   } else if (files.value.length > 1) {
-    showMessageError("当前只支持一个文件！")
+    showMessageError("当前只支持上传一个文件！")
     return false
   }
   // 追加消息
