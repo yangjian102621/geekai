@@ -75,19 +75,33 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 
 	// initialize model mane for role
 	modelIds := make([]int, 0)
+	typeIds := make([]int, 0)
 	for _, v := range items {
 		if v.ModelId > 0 {
 			modelIds = append(modelIds, v.ModelId)
 		}
+		if v.Tid > 0 {
+			typeIds = append(typeIds, v.Tid)
+		}
 	}
 
 	modelNameMap := make(map[int]string)
+	typeNameMap := make(map[int]string)
 	if len(modelIds) > 0 {
 		var models []model.ChatModel
 		tx := h.DB.Where("id IN ?", modelIds).Find(&models)
 		if tx.Error == nil {
 			for _, m := range models {
 				modelNameMap[int(m.Id)] = m.Name
+			}
+		}
+	}
+	if len(typeIds) > 0 {
+		var appTypes []model.AppType
+		tx := h.DB.Where("id IN ?", typeIds).Find(&appTypes)
+		if tx.Error == nil {
+			for _, m := range appTypes {
+				typeNameMap[int(m.Id)] = m.Name
 			}
 		}
 	}
@@ -100,6 +114,7 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 			role.CreatedAt = v.CreatedAt.Unix()
 			role.UpdatedAt = v.UpdatedAt.Unix()
 			role.ModelName = modelNameMap[role.ModelId]
+			role.TypeName = typeNameMap[role.Tid]
 			roles = append(roles, role)
 		}
 	}
