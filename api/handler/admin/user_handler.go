@@ -73,6 +73,8 @@ func (h *UserHandler) Save(c *gin.Context) {
 		Id          uint     `json:"id"`
 		Password    string   `json:"password"`
 		Username    string   `json:"username"`
+		Mobile      string   `json:"mobile"`
+		Email       string   `json:"email"`
 		ChatRoles   []string `json:"chat_roles"`
 		ChatModels  []int    `json:"chat_models"`
 		ExpiredTime string   `json:"expired_time"`
@@ -102,6 +104,8 @@ func (h *UserHandler) Save(c *gin.Context) {
 		}
 		var oldPower = user.Power
 		user.Username = data.Username
+		user.Email = data.Email
+		user.Mobile = data.Mobile
 		user.Status = data.Status
 		user.Vip = data.Vip
 		user.Power = data.Power
@@ -109,7 +113,8 @@ func (h *UserHandler) Save(c *gin.Context) {
 		user.ChatModels = utils.JsonEncode(data.ChatModels)
 		user.ExpiredTime = utils.Str2stamp(data.ExpiredTime)
 
-		res = h.DB.Select("username", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
+		res = h.DB.Select("username", "mobile", "email", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
+
 		if res.Error != nil {
 			logger.Error("error with update database：", res.Error)
 			resp.ERROR(c, res.Error.Error())
@@ -147,6 +152,8 @@ func (h *UserHandler) Save(c *gin.Context) {
 		u := model.User{
 			Username:    data.Username,
 			Password:    utils.GenPassword(data.Password, salt),
+			Mobile:      data.Mobile,
+			Email:       data.Email,
 			Avatar:      "/images/avatar/user.png",
 			Salt:        salt,
 			Power:       data.Power,

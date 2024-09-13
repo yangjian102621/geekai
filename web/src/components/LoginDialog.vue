@@ -384,7 +384,7 @@ const submitRegister = () => {
   if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
     return ElMessage.error('请输入验证码');
   }
-  if (enableVerify.value) {
+  if (enableVerify.value && activeName.value === 'username') {
     captchaRef.value.loadCaptcha()
     action.value = "register"
   } else {
