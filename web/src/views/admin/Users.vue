@@ -18,6 +18,8 @@
             <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px;position: relative; top:5px; left: 5px"/>
           </template>
         </el-table-column>
+        <el-table-column prop="mobile" label="手机"/>
+        <el-table-column prop="email" label="邮箱"/>
         <el-table-column prop="nickname" label="昵称"/>
         <el-table-column prop="power" label="剩余算力"/>
         <el-table-column label="状态" width="80">
@@ -72,6 +74,12 @@
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
         <el-form-item label="账号：" prop="username">
           <el-input v-model="user.username" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item label="手机：" prop="mobile">
+          <el-input v-model="user.mobile" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item label="邮箱：" prop="email">
+          <el-input v-model="user.email" autocomplete="off"/>
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
           <el-input v-model="user.password" autocomplete="off" placeholder="8-16位"/>

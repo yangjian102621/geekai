@@ -204,7 +204,8 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/chat/history" ||
 		c.Request.URL.Path == "/api/chat/detail" ||
 		c.Request.URL.Path == "/api/chat/list" ||
-		c.Request.URL.Path == "/api/role/list" ||
+		c.Request.URL.Path == "/api/app/list" ||
+		c.Request.URL.Path == "/api/app/list/user" ||
 		c.Request.URL.Path == "/api/model/list" ||
 		c.Request.URL.Path == "/api/mj/imgWall" ||
 		c.Request.URL.Path == "/api/mj/client" ||

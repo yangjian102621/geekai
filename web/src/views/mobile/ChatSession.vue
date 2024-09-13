@@ -186,7 +186,7 @@ httpGet('/api/model/list').then(res => {
   }
   modelValue.value = getModelName(modelId.value)
   // 加载角色列表
-  httpGet(`/api/role/list`).then((res) => {
+  httpGet(`/api/app/list/user`).then((res) => {
     roles.value = res.data;
     if (!roleId.value) {
       roleId.value = roles.value[0]['id']
