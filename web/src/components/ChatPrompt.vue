@@ -143,7 +143,7 @@ onMounted(() => {
   const links = props.data.content.match(linkRegex);
   if (links) {
     httpPost("/api/upload/list", {urls: links}).then(res => {
-      files.value = res.data
+      files.value = res.data.items
 
       for (let link of links) {
         if (isExternalImg(link, files.value)) {

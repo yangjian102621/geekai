@@ -263,8 +263,8 @@ watch(() => props.show, (newValue) => {
 
 const login = ref(true)
 const data = ref({
-  username: "",
-  password: "",
+  username: process.env.VUE_APP_USER,
+  password: process.env.VUE_APP_PASS,
   mobile: "",
   email: "",
   repass: "",
@@ -285,6 +285,8 @@ const action = ref("login")
 const enableVerify = ref(false)
 const showResetPass = ref(false)
 const router = useRouter()
+// 是否需要验证码，输入一次密码错之后就要验证码
+const needVerify = ref(false)
 
 onMounted(() => {
   const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`
@@ -338,7 +340,7 @@ const submitLogin = () => {
   if (data.value.password === '') {
     return ElMessage.error('请输入密码');
   }
-  if (enableVerify.value) {
+  if (enableVerify.value && needVerify.value) {
     captchaRef.value.loadCaptcha()
     action.value = "login"
   } else {
@@ -355,8 +357,10 @@ const doLogin = (verifyData) => {
     ElMessage.success("登录成功！")
     emits("hide")
     emits('success')
+    needVerify.value = false
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
+    needVerify.value = true
   })
 }
 

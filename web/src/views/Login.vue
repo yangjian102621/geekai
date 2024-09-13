@@ -76,7 +76,6 @@ import {setUserToken} from "@/store/session";
 import ResetPass from "@/components/ResetPass.vue";
 import {showMessageError} from "@/utils/dialog";
 import Captcha from "@/components/Captcha.vue";
-import QRCode from "qrcode";
 import {setRoute} from "@/store/system";
 
 const router = useRouter();
@@ -89,6 +88,8 @@ const licenseConfig = ref({})
 const wechatLoginURL = ref('')
 const enableVerify = ref(false)
 const captchaRef = ref(null)
+// 是否需要验证码，输入一次密码错之后就要验证码
+const needVerify = ref(false)
 
 onMounted(() => {
   // 获取系统配置
@@ -137,7 +138,7 @@ const login = function () {
     return showMessageError('请输入密码');
   }
 
-  if (enableVerify.value) {
+  if (enableVerify.value && needVerify.value) {
     captchaRef.value.loadCaptcha()
   } else {
     doLogin({})
@@ -153,6 +154,7 @@ const doLogin = (verifyData) => {
     x: verifyData.x
   }).then((res) => {
     setUserToken(res.data.token)
+    needVerify.value = false
     if (isMobile()) {
       router.push('/mobile')
     } else {
@@ -161,6 +163,7 @@ const doLogin = (verifyData) => {
 
   }).catch((e) => {
     showMessageError('登录失败，' + e.message)
+    needVerify.value = true
   })
 }
 </script>

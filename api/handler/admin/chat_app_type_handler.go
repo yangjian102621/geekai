@@ -25,7 +25,7 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 	var data struct {
 		Id      uint   `json:"id"`
 		Name    string `json:"name"`
-		Enable  bool   `json:"enable"`
+		Enabled bool   `json:"enabled"`
 		Icon    string `json:"icon"`
 		SortNum int    `json:"sort_num"`
 	}
@@ -43,7 +43,7 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 		err = h.DB.Create(&model.AppType{
 			Name:    data.Name,
 			Icon:    data.Icon,
-			Enabled: data.Enable,
+			Enabled: data.Enabled,
 			SortNum: data.SortNum,
 		}).Error
 		if err != nil {
@@ -54,7 +54,7 @@ func (h *ChatAppTypeHandler) Save(c *gin.Context) {
 		err := h.DB.Model(&model.AppType{}).Where("id", data.Id).Updates(map[string]interface{}{
 			"name":    data.Name,
 			"icon":    data.Icon,
-			"enabled": data.Enable,
+			"enabled": data.Enabled,
 		}).Error
 		if err != nil {
 			resp.ERROR(c, err.Error())

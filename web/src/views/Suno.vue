@@ -610,7 +610,7 @@ const publishJob = (item) => {
 }
 
 const getShareURL = (item) => {
-  return `${location.protocol}//${location.host}/song/${item.id}`
+  return `${location.protocol}//${location.host}/song/${item.song_id}`
 }
 
 const uploadCover = (file) => {
