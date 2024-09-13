@@ -9,14 +9,14 @@ package types
 
 // ApiRequest API 请求实体
 type ApiRequest struct {
-	Model       string        `json:"model,omitempty"` // 兼容百度文心一言
-	Temperature float32       `json:"temperature"`
-	MaxTokens   int           `json:"max_tokens,omitempty"` // 兼容百度文心一言
-	Stream      bool          `json:"stream"`
-	Messages    []interface{} `json:"messages,omitempty"`
-	Prompt      []interface{} `json:"prompt,omitempty"` // 兼容 ChatGLM
-	Tools       []Tool        `json:"tools,omitempty"`
-	Functions   []interface{} `json:"functions,omitempty"` // 兼容中转平台
+	Model               string        `json:"model,omitempty"`
+	Temperature         float32       `json:"temperature"`
+	MaxTokens           int           `json:"max_tokens,omitempty"`
+	MaxCompletionTokens int           `json:"max_completion_tokens,omitempty"` // 兼容GPT O1 模型
+	Stream              bool          `json:"stream,omitempty"`
+	Messages            []interface{} `json:"messages,omitempty"`
+	Tools               []Tool        `json:"tools,omitempty"`
+	Functions           []interface{} `json:"functions,omitempty"` // 兼容中转平台
 
 	ToolChoice string `json:"tool_choice,omitempty"`
 
@@ -57,7 +57,8 @@ type ChatSession struct {
 	ClientIP  string    `json:"client_ip"` // 客户端 IP
 	ChatId    string    `json:"chat_id"`   // 客户端聊天会话 ID, 多会话模式专用字段
 	Model     ChatModel `json:"model"`     // GPT 模型
-	Tools     string    `json:"tools"`     // 函数
+	Tools     []int     `json:"tools"`     // 工具函数列表
+	Stream    bool      `json:"stream"`    // 是否采用流式输出
 }
 
 type ChatModel struct {

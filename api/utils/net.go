@@ -33,9 +33,14 @@ func ReplyChunkMessage(client *types.WsClient, message interface{}) {
 
 // ReplyMessage 回复客户端一条完整的消息
 func ReplyMessage(ws *types.WsClient, message interface{}) {
-	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: message})
-	ReplyChunkMessage(ws, types.WsMessage{Type: types.WsEnd})
+	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsStart})
+	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsMiddle, Content: message})
+	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsEnd})
+}
+
+// ReplyErrorMessage 向客户端发送错误消息
+func ReplyErrorMessage(ws *types.WsClient, message interface{}) {
+	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsErr, Content: message})
 }
 
 func DownloadImage(imageURL string, proxy string) ([]byte, error) {
