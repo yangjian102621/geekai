@@ -23,7 +23,15 @@ import (
 	"time"
 )
 
-type respVo struct {
+type Usage struct {
+	Prompt           string `json:"prompt,omitempty"`
+	Content          string `json:"content,omitempty"`
+	PromptTokens     int    `json:"prompt_tokens"`
+	CompletionTokens int    `json:"completion_tokens"`
+	TotalTokens      int    `json:"total_tokens"`
+}
+
+type OpenAIResVo struct {
 	Id                string `json:"id"`
 	Object            string `json:"object"`
 	Created           int    `json:"created"`
@@ -38,11 +46,7 @@ type respVo struct {
 		Logprobs     interface{} `json:"logprobs"`
 		FinishReason string      `json:"finish_reason"`
 	} `json:"choices"`
-	Usage struct {
-		PromptTokens     int `json:"prompt_tokens"`
-		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
-	} `json:"usage"`
+	Usage Usage `json:"usage"`
 }
 
 // OPenAI 消息发送实现
@@ -73,19 +77,19 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 	if response.StatusCode != 200 {
 		body, _ := io.ReadAll(response.Body)
-		return fmt.Errorf("请求 OpenAI API 失败：%d, %v", response.StatusCode, body)
+		return fmt.Errorf("请求 OpenAI API 失败：%d, %v", response.StatusCode, string(body))
 	}
+
 	contentType := response.Header.Get("Content-Type")
 	if strings.Contains(contentType, "text/event-stream") {
 		replyCreatedAt := time.Now() // 记录回复时间
 		// 循环读取 Chunk 消息
-		var message = types.Message{}
+		var message = types.Message{Role: "assistant"}
 		var contents = make([]string, 0)
 		var function model.Function
 		var toolCall = false
 		var arguments = make([]string, 0)
 		scanner := bufio.NewScanner(response.Body)
-		var isNew = true
 		for scanner.Scan() {
 			line := scanner.Text()
 			if !strings.Contains(line, "data:") || len(line) < 30 {
@@ -132,8 +136,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				if res.Error == nil {
 					toolCall = true
 					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
-					utils.ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsMiddle, Content: callMsg})
+					utils.ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsContent, Content: callMsg})
 					contents = append(contents, callMsg)
 				}
 				continue
@@ -150,12 +153,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 			} else {
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
-				if isNew {
-					utils.ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsStart})
-					isNew = false
-				}
 				utils.ReplyChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsMiddle,
+					Type:    types.WsContent,
 					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
 				})
 			}
@@ -188,13 +187,13 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if errMsg != "" || apiRes.Code != types.Success {
 				msg := "调用函数工具出错：" + apiRes.Message + errMsg
 				utils.ReplyChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsMiddle,
+					Type:    types.WsContent,
 					Content: msg,
 				})
 				contents = append(contents, msg)
 			} else {
 				utils.ReplyChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsMiddle,
+					Type:    types.WsContent,
 					Content: apiRes.Data,
 				})
 				contents = append(contents, utils.InterfaceToString(apiRes.Data))
@@ -210,10 +209,27 @@ func (h *ChatHandler) sendOpenAiMessage(
 				CompletionTokens: 0,
 				TotalTokens:      0,
 			}
+			message.Content = usage.Content
 			h.saveChatHistory(req, usage, message, chatCtx, session, role, userVo, promptCreatedAt, replyCreatedAt)
 		}
 	} else { // 非流式输出
-		
+		var respVo OpenAIResVo
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return fmt.Errorf("读取响应失败：%v", body)
+		}
+		err = json.Unmarshal(body, &respVo)
+		if err != nil {
+			return fmt.Errorf("解析响应失败：%v", body)
+		}
+		content := respVo.Choices[0].Message.Content
+		if strings.HasPrefix(req.Model, "o1-") {
+			content = fmt.Sprintf("AI思考结束，耗时：%d 秒。\n%s", time.Now().Unix()-session.Start, respVo.Choices[0].Message.Content)
+		}
+		utils.ReplyMessage(ws, content)
+		respVo.Usage.Prompt = prompt
+		respVo.Usage.Content = content
+		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, chatCtx, session, role, userVo, promptCreatedAt, time.Now())
 	}
 
 	return nil

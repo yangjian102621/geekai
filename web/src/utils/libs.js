@@ -9,8 +9,6 @@
  * Util lib functions
  */
 import {showConfirmDialog} from "vant";
-import {httpDownload} from "@/utils/http";
-import {showMessageError} from "@/utils/dialog";
 
 // generate a random string
 export function randString(length) {
@@ -183,6 +181,10 @@ export function isImage(url) {
 }
 
 export function processContent(content) {
+    if (!content) {
+        return ""
+    }
+    
     // 如果是图片链接地址，则直接替换成图片标签
     const linkRegex = /(https?:\/\/\S+)/g;
     const links = content.match(linkRegex);

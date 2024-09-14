@@ -26,10 +26,9 @@ type ReplyMessage struct {
 type WsMsgType string
 
 const (
-	WsStart  = WsMsgType("start")
-	WsMiddle = WsMsgType("middle")
-	WsEnd    = WsMsgType("end")
-	WsErr    = WsMsgType("error")
+	WsContent = WsMsgType("content") // 输出内容
+	WsEnd     = WsMsgType("end")
+	WsErr     = WsMsgType("error")
 )
 
 // InputMessage 对话输入消息结构

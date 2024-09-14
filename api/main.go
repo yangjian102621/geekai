@@ -512,6 +512,11 @@ func main() {
 			group.POST("enable", h.Enable)
 			group.POST("sort", h.Sort)
 		}),
+		fx.Provide(handler.NewChatAppTypeHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppTypeHandler) {
+			group := s.Engine.Group("/api/app/type")
+			group.GET("list", h.List)
+		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
 			group := s.Engine.Group("/api/test")

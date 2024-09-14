@@ -86,6 +86,8 @@ func (h *MarkMapHandler) Client(c *gin.Context) {
 			if err != nil {
 				logger.Error(err)
 				utils.ReplyErrorMessage(client, err.Error())
+			} else {
+				utils.ReplyMessage(client, types.ReplyMessage{Type: types.WsEnd})
 			}
 
 		}
@@ -148,7 +150,6 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 	if strings.Contains(contentType, "text/event-stream") {
 		// 循环读取 Chunk 消息
 		scanner := bufio.NewScanner(response.Body)
-		var isNew = true
 		for scanner.Scan() {
 			line := scanner.Text()
 			if !strings.Contains(line, "data:") || len(line) < 30 {
@@ -169,12 +170,8 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 				break
 			}
 
-			if isNew {
-				utils.ReplyChunkMessage(client, types.ReplyMessage{Type: types.WsStart})
-				isNew = false
-			}
 			utils.ReplyChunkMessage(client, types.ReplyMessage{
-				Type:    types.WsMiddle,
+				Type:    types.WsContent,
 				Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
 			})
 		} // end for

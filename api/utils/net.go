@@ -33,9 +33,12 @@ func ReplyChunkMessage(client *types.WsClient, message interface{}) {
 
 // ReplyMessage 回复客户端一条完整的消息
 func ReplyMessage(ws *types.WsClient, message interface{}) {
-	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsStart})
-	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsMiddle, Content: message})
+	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsContent, Content: message})
 	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsEnd})
+}
+
+func ReplyContent(ws *types.WsClient, message interface{}) {
+	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsContent, Content: message})
 }
 
 // ReplyErrorMessage 向客户端发送错误消息
