@@ -23,6 +23,7 @@
             </span>
           </template>
         </el-table-column>
+        <el-table-column label="应用类型" prop="type_name"/>
         <el-table-column label="应用标识" prop="key"/>
         <el-table-column label="绑定模型" prop="model_name"/>
         <el-table-column label="启用状态">
@@ -61,6 +62,21 @@
               v-model="role.name"
               autocomplete="off"
           />
+        </el-form-item>
+        <el-form-item label="应用分类：" prop="tid">
+          <el-select
+              v-model="role.tid"
+              filterable
+              placeholder="请选择分类"
+              clearable
+          >
+            <el-option
+                v-for="item in appTypes"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="应用标志：" prop="key">
@@ -195,6 +211,7 @@ const rules = reactive({
   hello_msg: [{required: true, message: '请输入打招呼信息', trigger: 'change',}]
 })
 
+const appTypes = ref([])
 const models = ref([])
 onMounted(() => {
   fetchData()
@@ -206,11 +223,25 @@ onMounted(() => {
     ElMessage.error("获取AI模型数据失败");
   })
 
+  // get app type
+  httpGet('/api/admin/app/type/list?enable=1').then((res) => {
+    appTypes.value = res.data
+  }).catch(() => {
+    ElMessage.error("获取应用分类数据失败");
+  })
+
 })
 
 const fetchData = () => {
   // 获取应用列表
   httpGet('/api/admin/role/list').then((res) => {
+    // 初始化数据
+    // const arr = res.data;
+    // for (let i = 0; i < arr.length; i++) {
+    //   if(arr[i].model_id == 0){
+    //     arr[i].model_id = ''
+    //   }
+    // }
     tableData.value = res.data
     sortedTableData.value = copyObj(tableData.value)
     loading.value = false

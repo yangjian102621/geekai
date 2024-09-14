@@ -170,13 +170,13 @@ const routes = [
             {
                 path: '/admin/app',
                 name: 'admin-app',
-                meta: {title: '应用管理'},
+                meta: {title: '应用列表'},
                 component: () => import('@/views/admin/Apps.vue'),
             },
             {
                 path: '/admin/app/type',
                 name: 'admin-app-type',
-                meta: {title: '应用管理'},
+                meta: {title: '应用分类'},
                 component: () => import('@/views/admin/AppType.vue'),
             },
             {

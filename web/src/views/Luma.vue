@@ -141,8 +141,8 @@
           :total="total"/>
       </div>
     </el-container>
-    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" :width="1000">
-      <video style="width: 100%;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
+    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" width="auto">
+      <video style="width: 100%; max-height: 90vh;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
         您的浏览器不支持视频播放
       </video>
     </black-dialog>    
