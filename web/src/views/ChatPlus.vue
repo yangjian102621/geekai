@@ -106,7 +106,7 @@
                 <el-dropdown-menu class="tools-dropdown">
                   <el-checkbox-group v-model="toolSelected">
                     <el-dropdown-item v-for="item in tools" :key="item.id">
-                      <el-checkbox :value="item.id" :label="item.label" @change="changeTool" />
+                      <el-checkbox :value="item.id" :label="item.label" />
                       <el-tooltip :content="item.description" placement="right">
                         <el-icon><InfoFilled /></el-icon>
                       </el-tooltip>
@@ -271,6 +271,12 @@ watch(() => store.chatListStyle, (newValue) => {
 const tools = ref([])
 const toolSelected = ref([])
 const loadHistory = ref(false)
+const stream = ref(store.chatStream)
+
+watch(() => store.chatStream, (newValue) => {
+  stream.value = newValue
+});
+
 
 // 初始化角色ID参数
 if (router.currentRoute.value.query.role_id) {
@@ -491,16 +497,6 @@ const newChat = () => {
   connect()
 }
 
-// 切换工具
-const changeTool = () => {
-  if (!isLogin.value) {
-    return;
-  }
-  loadHistory.value = false
-  socket.value.close()
-}
-
-
 // 切换会话
 const loadChat = function (chat) {
   if (!isLogin.value) {
@@ -598,6 +594,7 @@ const lineBuffer = ref(''); // 输出缓冲行
 const socket = ref(null);
 const canSend = ref(true);
 const sessionId = ref("")
+const isNewMsg = ref(true)
 const connect = function () {
   const chatRole = getRoleById(roleId.value);
   // 初始化 WebSocket 对象
@@ -612,8 +609,7 @@ const connect = function () {
   }
 
   loading.value = true
-  const toolIds = toolSelected.value.join(',')
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelID.value}&token=${getUserToken()}&tools=${toolIds}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     enableInput()
     if (loadHistory.value) {
@@ -629,15 +625,22 @@ const connect = function () {
         reader.readAsText(event.data, "UTF-8");
         reader.onload = () => {
           const data = JSON.parse(String(reader.result));
-          if (data.type === 'start') {
+          if (data.type === 'error') {
+            ElMessage.error(data.message)
+            return
+          }
+
+          if (isNewMsg.value && data.type !== 'end') {
             const prePrompt = chatData.value[chatData.value.length-1]?.content
             chatData.value.push({
               type: "reply",
               id: randString(32),
               icon: chatRole['icon'],
               prompt:prePrompt,
-              content: "",
+              content: data.content,
             });
+            isNewMsg.value = false
+            lineBuffer.value = data.content;
           } else if (data.type === 'end') { // 消息接收完毕
             // 追加当前会话到会话列表
             if (newChatItem.value !== null) {
@@ -663,6 +666,7 @@ const connect = function () {
               nextTick(() => {
                 document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
               })
+              isNewMsg.value = true
             }).catch(() => {
             })
 
@@ -688,6 +692,7 @@ const connect = function () {
 
   _socket.addEventListener('close', () => {
     disableInput(true)
+    loadHistory.value = false
     connect()
   });
 
@@ -775,7 +780,7 @@ const sendMessage = function () {
 
   showHello.value = false
   disableInput(false)
-  socket.value.send(JSON.stringify({type: "chat", content: content}));
+  socket.value.send(JSON.stringify({tools: toolSelected.value, content: content, stream: stream.value}));
   tmpChatTitle.value = content
   prompt.value = ''
   files.value = []
@@ -813,7 +818,7 @@ const loadChatHistory = function (chatId) {
   chatData.value = []
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
     const data = res.data
-    if (!data || data.length === 0) { // 加载打招呼信息
+    if ((!data || data.length === 0) && chatData.value.length === 0) { // 加载打招呼信息
       const _role = getRoleById(roleId.value)
       chatData.value.push({
         chat_id: chatId,
@@ -852,7 +857,7 @@ const stopGenerate = function () {
 // 重新生成
 const reGenerate = function (prompt) {
   disableInput(false)
-  const text = '重新生成下面问题的答案：' + prompt;
+  const text = '重新回答下述问题：' + prompt;
   // 追加消息
   chatData.value.push({
     type: "prompt",
@@ -860,7 +865,7 @@ const reGenerate = function (prompt) {
     icon: loginUser.value.avatar,
     content: text
   });
-  socket.value.send(JSON.stringify({type: "chat", content: prompt}));
+  socket.value.send(JSON.stringify({tools: toolSelected.value, content: text, stream: stream.value}));
 }
 
 const chatName = ref('')

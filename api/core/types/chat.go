@@ -57,6 +57,7 @@ type ChatSession struct {
 	ClientIP  string    `json:"client_ip"` // 客户端 IP
 	ChatId    string    `json:"chat_id"`   // 客户端聊天会话 ID, 多会话模式专用字段
 	Model     ChatModel `json:"model"`     // GPT 模型
+	Start     int64     `json:"start"`     // 开始请求时间戳
 	Tools     []int     `json:"tools"`     // 工具函数列表
 	Stream    bool      `json:"stream"`    // 是否采用流式输出
 }

@@ -202,15 +202,16 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	var req = types.ApiRequest{
-		Model:       session.Model.Value,
-		Temperature: session.Model.Temperature,
+		Model: session.Model.Value,
 	}
 	// 兼容 GPT-O1 模型
 	if strings.HasPrefix(session.Model.Value, "o1-") {
-		req.MaxCompletionTokens = session.Model.MaxTokens
+		utils.ReplyContent(ws, "AI 正在思考...\n")
 		req.Stream = false
+		session.Start = time.Now().Unix()
 	} else {
 		req.MaxTokens = session.Model.MaxTokens
+		req.Temperature = session.Model.Temperature
 		req.Stream = session.Stream
 	}
 
@@ -449,7 +450,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf(utils.JsonEncode(req))
+	logger.Debugf("对话请求消息体：%+v", req)
 
 	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	// 创建 HttpClient 请求对象
@@ -499,14 +500,6 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 	}
 }
 
-type Usage struct {
-	Prompt           string
-	Content          string
-	PromptTokens     int
-	CompletionTokens int
-	TotalTokens      int
-}
-
 func (h *ChatHandler) saveChatHistory(
 	req types.ApiRequest,
 	usage Usage,
@@ -517,12 +510,8 @@ func (h *ChatHandler) saveChatHistory(
 	userVo vo.User,
 	promptCreatedAt time.Time,
 	replyCreatedAt time.Time) {
-	if message.Role == "" {
-		message.Role = "assistant"
-	}
-	message.Content = usage.Content
-	useMsg := types.Message{Role: "user", Content: usage.Prompt}
 
+	useMsg := types.Message{Role: "user", Content: usage.Prompt}
 	// 更新上下文消息，如果是调用函数则不需要更新上下文
 	if h.App.SysConfig.EnableContext {
 		chatCtx = append(chatCtx, useMsg)  // 提问消息
@@ -573,7 +562,7 @@ func (h *ChatHandler) saveChatHistory(
 		RoleId:      role.Id,
 		Type:        types.ReplyMsg,
 		Icon:        role.Icon,
-		Content:     message.Content,
+		Content:     usage.Content,
 		Tokens:      replyTokens,
 		TotalTokens: totalTokens,
 		UseContext:  true,
