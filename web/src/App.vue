@@ -66,7 +66,8 @@ html, body {
     margin 0;
 
     .el-dialog__body {
-      max-height 90vh
+      max-height 80vh
+      overflow-y auto
     }
   }
 }
