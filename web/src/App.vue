@@ -8,6 +8,8 @@
 import {ElConfigProvider} from 'element-plus';
 import {onMounted} from "vue";
 import {getSystemInfo} from "@/store/cache";
+import {isChrome} from "@/utils/libs";
+import {showMessageInfo} from "@/utils/dialog";
 
 const debounce = (fn, delay) => {
   let timer
@@ -36,6 +38,9 @@ onMounted(() => {
     link.href = res.data.logo
     document.head.appendChild(link)
   })
+  if (!isChrome()) {
+    showMessageInfo("检测到您使用的浏览器不是 Chrome，可能会导致部分功能无法正常使用，建议使用 Chrome 浏览器。")
+  }
 })
 </script>
 
