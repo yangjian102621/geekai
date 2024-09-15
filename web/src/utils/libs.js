@@ -232,4 +232,9 @@ export const replaceImg =(img) => {
     }
     return img
 }
+export function isChrome() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return /chrome/.test(userAgent) && !/edg/.test(userAgent);
+}
+
 
