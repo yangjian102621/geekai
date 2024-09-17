@@ -12,3 +12,4 @@ ALTER TABLE `chatgpt_app_types` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `chatgpt_chat_roles` ADD `tid` INT NOT NULL COMMENT '分类ID' AFTER `name`;
 
 ALTER TABLE `chatgpt_chat_history` ADD `total_tokens` INT NOT NULL COMMENT '消耗总Token长度' AFTER `tokens`;
+ALTER TABLE `chatgpt_orders` ADD `pay_type` VARCHAR(30) NOT NULL COMMENT '支付类型' AFTER `pay_way`;
