@@ -36,57 +36,63 @@
             </el-alert>
           </div>
 
-          <ItemList :items="list" v-if="list.length > 0" :gap="15" :width="240">
-            <template #default="scope">
+          <el-row v-if="list.length > 0" :gutter="20" class="list-box">
+            <el-col v-for="item in list" :key="item" :span="6">
               <div class="product-item">
                 <div class="image-container">
                   <el-image :src="vipImg" fit="cover"/>
                 </div>
                 <div class="product-title">
-                  <span class="name">{{ scope.item.name }}</span>
+                  <span class="name">{{ item.name }}</span>
                 </div>
                 <div class="product-info">
                   <div class="info-line">
                     <span class="label">商品原价：</span>
-                    <span class="price">￥{{ scope.item.price }}</span>
+                    <span class="price">￥{{ item.price }}</span>
                   </div>
                   <div class="info-line">
                     <span class="label">促销立减：</span>
-                    <span class="price">￥{{ scope.item.discount }}</span>
+                    <span class="price">￥{{ item.discount }}</span>
                   </div>
                   <div class="info-line">
                     <span class="label">有效期：</span>
-                    <span class="expire" v-if="scope.item.days > 0">{{ scope.item.days }}天</span>
+                    <span class="expire" v-if="item.days > 0">{{ item.days }}天</span>
                     <span class="expire" v-else>长期有效</span>
                   </div>
 
                   <div class="info-line">
                     <span class="label">算力值：</span>
-                    <span class="power" v-if="scope.item.power > 0">{{ scope.item.power }}</span>
-                    <span class="power" v-else>{{ vipMonthPower }}</span>
+                    <span class="power">{{ item.power }}</span>
                   </div>
 
                   <div class="pay-way">
-                    <el-button type="primary" @click="alipay(scope.item)" size="small" v-if="payWays['alipay']">
-                      <i class="iconfont icon-alipay"></i> 支付宝
-                    </el-button>
-                    <el-button type="success" @click="huPiPay(scope.item)" size="small" v-if="payWays['hupi']">
-                      <span v-if="payWays['hupi']['name'] === 'wechat'"><i
-                          class="iconfont icon-wechat-pay"></i> 微信</span>
-                      <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
-                    </el-button>
 
-                    <el-button type="success" @click="PayJs(scope.item)" size="small" v-if="payWays['payjs']">
-                      <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
-                    </el-button>
-                    <el-button type="success" @click="wechatPay(scope.item)" size="small" v-if="payWays['wechat']">
-                      <i class="iconfont icon-wechat-pay"></i> 微信
-                    </el-button>
+                    <span type="primary" v-for="payWay in payWays" @click="genPayQrcode(item,payWay)" :key="payWay">
+                      <el-button v-if="payWay.pay_type==='alipay'" color="#409eff" circle>
+                        <i class="iconfont icon-alipay" ></i>
+                      </el-button>
+                      <el-button v-else-if="payWay.pay_type==='qq'" class="qq" circle>
+                        <i class="iconfont icon-qq" ></i>
+                      </el-button>
+                      <el-button v-else-if="payWay.pay_type==='paypal'" class="paypal" circle>
+                        <i class="iconfont icon-paypal"></i>
+                      </el-button>
+                      <el-button v-else-if="payWay.pay_type==='jd'" class="jd" circle>
+                        <i class="iconfont icon-jd-pay"></i>
+                      </el-button>
+                      <el-button v-else-if="payWay.pay_type==='douyin'" class="douyin" circle>
+                         <i class="iconfont icon-douyin"></i>
+                      </el-button>
+                      <el-button v-else circle class="wechat">
+                        <i class="iconfont icon-wechat-pay"></i>
+                      </el-button>
+                    </span>
                   </div>
                 </div>
               </div>
-            </template>
-          </ItemList>
+            </el-col>
+          </el-row>
+          <el-empty description="暂无数据" />
 
           <h2 class="headline">消费账单</h2>
 
@@ -132,7 +138,7 @@
             <el-icon>
               <InfoFilled/>
             </el-icon>
-            <span class="text">请打开手机{{ payName }}扫码支付</span>
+            <span class="text">请打开手机扫码支付</span>
           </div>
         </div>
 
@@ -146,7 +152,6 @@
 import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
-import ItemList from "@/components/ItemList.vue";
 import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import UserProfile from "@/components/UserProfile.vue";
@@ -176,19 +181,16 @@ const text = ref("")
 const user = ref(null)
 const isLogin = ref(false)
 const router = useRouter()
-const curPayProduct = ref(null)
 const activeOrderNo = ref("")
 const countDownRef = ref(null)
 const orderTimeout = ref(1800)
 const loading = ref(true)
 const orderPayInfoText = ref("")
-const vipMonthPower = ref(0)
-const powerPrice = ref(0)
 
-const payWays = ref({})
+const payWays = ref([])
 const amount = ref(0)
-const payName = ref("支付宝")
-const curPay = ref("alipay") // 当前支付方式
+const curPayProduct = ref(null)
+const curPayWay = ref({pay_way: "", pay_type:""})
 const vipInfoText = ref("")
 const store = useSharedStore()
 const profileKey = ref(0)
@@ -215,8 +217,6 @@ onMounted(() => {
     if (res.data['order_pay_timeout'] > 0) {
       orderTimeout.value = res.data['order_pay_timeout']
     }
-    vipMonthPower.value = res.data['vip_month_power']
-    powerPrice.value = res.data['power_price']
     vipInfoText.value = res.data['vip_info_text']
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
@@ -231,22 +231,24 @@ onMounted(() => {
 
 // refresh payment qrcode
 const refreshPayCode = () => {
-  if (curPay.value === 'alipay') {
-    alipay(curPayProduct.value)
-  } else if (curPay.value === 'hupi') {
-    huPiPay(curPayProduct.value)
-  } else if (curPay.value === 'payjs') {
-    PayJs(curPayProduct.value)
-  }
+  genPayQrcode(curPayProduct.value, curPayWay.value)
 }
 
-const genPayQrcode = () => {
+const genPayQrcode = (product, payWay) => {
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
+  }
+
   loading.value = true
   text.value = ""
+  curPayProduct.value = product
+  curPayWay.value = payWay
+  amount.value = (product.price - product.discount).toFixed(2)
   httpPost("/api/payment/qrcode", {
-    pay_way: curPay.value,
+    pay_way: payWay.pay_way,
+    pay_type: payWay.pay_type,
     product_id: curPayProduct.value.id,
-    user_id: user.value.id
   }).then(res => {
     showPayDialog.value = true
     qrcode.value = res.data['image']
@@ -262,67 +264,6 @@ const genPayQrcode = () => {
   })
 }
 
-const alipay = (row) => {
-  payName.value = "支付宝"
-  curPay.value = "alipay"
-  amount.value = (row.price - row.discount).toFixed(2)
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
-  }
-
-  if (row) {
-    curPayProduct.value = row
-  }
-  genPayQrcode()
-}
-
-// 虎皮椒支付
-const huPiPay = (row) => {
-  payName.value = payWays.value["hupi"]["name"] === "wechat" ? '微信' : '支付宝'
-  curPay.value = "hupi"
-  amount.value = (row.price - row.discount).toFixed(2)
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
-  }
-
-  if (row) {
-    curPayProduct.value = row
-  }
-  genPayQrcode()
-}
-
-// PayJS 支付
-const PayJs = (row) => {
-  payName.value = '微信'
-  curPay.value = "payjs"
-  amount.value = (row.price - row.discount).toFixed(2)
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
-  }
-
-  if (row) {
-    curPayProduct.value = row
-  }
-  genPayQrcode()
-}
-
-const wechatPay = (row) => {
-  payName.value = '微信'
-  curPay.value = "wechat"
-  amount.value = (row.price - row.discount).toFixed(2)
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
-  }
-
-  if (row) {
-    curPayProduct.value = row
-  }
-  genPayQrcode()
-}
 
 const queryOrder = (orderNo) => {
   httpGet("/api/order/query", {order_no: orderNo}).then(res => {
@@ -331,11 +272,7 @@ const queryOrder = (orderNo) => {
       queryOrder(orderNo)
     } else if (res.data.status === 2) {
       text.value = "支付成功，正在刷新页面"
-      if (curPay.value === "payjs") {
-        setTimeout(() => location.reload(), 3000)
-      } else {
-        setTimeout(() => location.reload(), 500)
-      }
+      setTimeout(() => location.reload(), 500)
     } else {
       // 如果当前订单没有过期，继续等待订单的下一个状态
       if (activeOrderNo.value === orderNo) {

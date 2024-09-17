@@ -19,7 +19,6 @@ import (
 	"geekai/utils"
 	"geekai/utils/resp"
 	"github.com/shopspring/decimal"
-	"math"
 	"net/http"
 	"net/url"
 	"sync"
@@ -34,19 +33,12 @@ type PayWay struct {
 	Value string `json:"value"`
 }
 
-var (
-	PayWayAlipay = PayWay{Name: "支付宝", Value: "alipay"}
-	PayWayXunHu  = PayWay{Name: "虎皮椒", Value: "hupi"}
-	PayWayJs     = PayWay{Name: "PayJS", Value: "payjs"}
-	PayWayWechat = PayWay{Name: "微信支付", Value: "wechat"}
-)
-
 // PaymentHandler 支付服务回调 handler
 type PaymentHandler struct {
 	BaseHandler
 	alipayService    *payment.AlipayService
 	huPiPayService   *payment.HuPiPayService
-	jsPayService     *payment.JPayService
+	geekPayService   *payment.GeekPayService
 	wechatPayService *payment.WechatPayService
 	snowflake        *service.Snowflake
 	fs               embed.FS
@@ -58,7 +50,7 @@ func NewPaymentHandler(
 	server *core.AppServer,
 	alipayService *payment.AlipayService,
 	huPiPayService *payment.HuPiPayService,
-	jsPayService *payment.JPayService,
+	geekPayService *payment.GeekPayService,
 	wechatPayService *payment.WechatPayService,
 	db *gorm.DB,
 	snowflake *service.Snowflake,
@@ -66,7 +58,7 @@ func NewPaymentHandler(
 	return &PaymentHandler{
 		alipayService:    alipayService,
 		huPiPayService:   huPiPayService,
-		jsPayService:     jsPayService,
+		geekPayService:   geekPayService,
 		wechatPayService: wechatPayService,
 		snowflake:        snowflake,
 		fs:               fs,
@@ -81,10 +73,9 @@ func NewPaymentHandler(
 
 func (h *PaymentHandler) DoPay(c *gin.Context) {
 	orderNo := h.GetTrim(c, "order_no")
-	payWay := h.GetTrim(c, "pay_way")
 	t := h.GetInt(c, "t", 0)
 	sign := h.GetTrim(c, "sign")
-	signStr := fmt.Sprintf("%s-%s-%d-%s", orderNo, payWay, t, h.signKey)
+	signStr := fmt.Sprintf("%s-%d-%s", orderNo, t, h.signKey)
 	newSign := utils.Sha256(signStr)
 	if newSign != sign {
 		resp.ERROR(c, "订单签名错误！")
@@ -118,7 +109,7 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 	// 更新扫码状态
 	h.DB.Model(&order).UpdateColumn("status", types.OrderScanned)
 
-	if payWay == "alipay" { // 支付宝
+	if order.PayWay == "alipay" { // 支付宝
 		amount := fmt.Sprintf("%.2f", order.Amount)
 		uri, err := h.alipayService.PayUrlMobile(order.OrderNo, amount, order.Subject)
 		if err != nil {
@@ -128,7 +119,7 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 
 		c.Redirect(302, uri)
 		return
-	} else if payWay == "hupi" { // 虎皮椒支付
+	} else if order.PayWay == "hupi" { // 虎皮椒支付
 		params := payment.HuPiPayReq{
 			Version:      "1.1",
 			TradeOrderId: orderNo,
@@ -144,15 +135,41 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 		}
 
 		c.Redirect(302, r.URL)
+	} else if order.PayWay == "wechat" {
+		uri, err := h.wechatPayService.PayUrlNative(order.OrderNo, int(order.Amount*100), order.Subject)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+
+		c.Redirect(302, uri)
+	} else if order.PayWay == "geek" {
+		params := payment.GeekPayParams{
+			OutTradeNo: orderNo,
+			Method:     "web",
+			Name:       order.Subject,
+			Money:      fmt.Sprintf("%f", order.Amount),
+			ClientIP:   c.ClientIP(),
+			Device:     "pc",
+			Type:       "alipay",
+		}
+
+		s, err := h.geekPayService.Pay(params)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+		resp.SUCCESS(c, s)
 	}
-	resp.ERROR(c, "Invalid operations")
+	//resp.ERROR(c, "Invalid operations")
 }
 
 // PayQrcode 生成支付 URL 二维码
 func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	var data struct {
-		PayWay    string `json:"pay_way"` // 支付方式
-		ProductId uint   `json:"product_id"`
+		PayWay    string `json:"pay_way"`    // 支付方式
+		PayType   string `json:"pay_type"`   // 支付类别：wechat,alipay,qq...
+		ProductId uint   `json:"product_id"` // 支付产品ID
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -177,24 +194,22 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		return
 	}
 
-	var payWay string
 	var notifyURL string
 	switch data.PayWay {
 	case "hupi":
-		payWay = PayWayXunHu.Value
 		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
 		break
-	case "payjs":
-		payWay = PayWayJs.Value
-		notifyURL = h.App.Config.JPayConfig.NotifyURL
+	case "geek":
+		notifyURL = h.App.Config.GeekPayConfig.NotifyURL
 		break
-	case "alipay":
-		payWay = PayWayAlipay.Value
+	case "alipay": // 支付宝商户支付
 		notifyURL = h.App.Config.AlipayConfig.NotifyURL
 		break
-	default:
-		payWay = PayWayWechat.Value
+	case "wechat": // 微信商户支付
 		notifyURL = h.App.Config.WechatPayConfig.NotifyURL
+	default:
+		resp.ERROR(c, "Invalid pay way")
+		return
 
 	}
 	// 创建订单
@@ -215,7 +230,8 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		Subject:   product.Name,
 		Amount:    amount,
 		Status:    types.OrderNotPaid,
-		PayWay:    payWay,
+		PayWay:    data.PayWay,
+		PayType:   data.PayType,
 		Remark:    utils.JsonEncode(remark),
 	}
 	res = h.DB.Create(&order)
@@ -224,36 +240,26 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		return
 	}
 
-	// PayJs 单独处理，只能用官方生成的二维码
-	if data.PayWay == "payjs" {
-		params := payment.JPayReq{
-			TotalFee:   int(math.Ceil(order.Amount * 100)),
-			OutTradeNo: order.OrderNo,
-			Subject:    product.Name,
-		}
-		r := h.jsPayService.Pay(params)
-		if r.IsOK() {
-			resp.SUCCESS(c, gin.H{"order_no": order.OrderNo, "image": r.Qrcode})
-			return
-		} else {
-			resp.ERROR(c, "error with generating payment qrcode: "+r.ReturnMsg)
-			return
-		}
-	}
-
 	var logo string
-	if data.PayWay == "alipay" {
+	switch data.PayType {
+	case "alipay":
 		logo = "res/img/alipay.jpg"
-	} else if data.PayWay == "hupi" {
-		if h.App.Config.HuPiPayConfig.Name == "wechat" {
-			logo = "res/img/wechat-pay.jpg"
-		} else {
-			logo = "res/img/alipay.jpg"
-		}
-	} else if data.PayWay == "wechat" {
+		break
+	case "wechat":
+		logo = "res/img/wechat-pay.jpg"
+		break
+	case "qq":
+		logo = "res/img/qq-pay.jpg"
+		break
+	default:
+		logo = "res/img/geek-pay.jpg"
+
+	}
+	if data.PayType == "alipay" {
+		logo = "res/img/alipay.jpg"
+	} else if data.PayType == "wechat" {
 		logo = "res/img/wechat-pay.jpg"
 	}
-
 	file, err := h.fs.Open(logo)
 	if err != nil {
 		resp.ERROR(c, "error with open qrcode log file: "+err.Error())
@@ -268,31 +274,21 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	timestamp := time.Now().Unix()
 	signStr := fmt.Sprintf("%s-%s-%d-%s", orderNo, data.PayWay, timestamp, h.signKey)
 	sign := utils.Sha256(signStr)
-	var imageURL string
-	if data.PayWay == "wechat" {
-		payUrl, err := h.wechatPayService.PayUrlNative(order.OrderNo, int(math.Floor(order.Amount*100)), product.Name)
-		if err != nil {
-			resp.ERROR(c, "error with generating wechat payment qrcode: "+err.Error())
-			return
-		} else {
-			imageURL = payUrl
-		}
-	} else {
-		imageURL = fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s&t=%d&sign=%s", parse.Scheme, parse.Host, orderNo, data.PayWay, timestamp, sign)
-	}
-	imgData, err := utils.GenQrcode(imageURL, 400, file)
+	payUrl := fmt.Sprintf("%s://%s/api/payment/doPay?order_no=%s&pay_way=%s&pay_type=%s&t=%d&sign=%s", parse.Scheme, parse.Host, orderNo, data.PayWay, data.PayType, timestamp, sign)
+	imgData, err := utils.GenQrcode(payUrl, 400, file)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 	imgDataBase64 := base64.StdEncoding.EncodeToString(imgData)
-	resp.SUCCESS(c, gin.H{"order_no": orderNo, "image": fmt.Sprintf("data:image/jpg;base64, %s", imgDataBase64), "url": imageURL})
+	resp.SUCCESS(c, gin.H{"order_no": orderNo, "image": fmt.Sprintf("data:image/jpg;base64, %s", imgDataBase64), "url": payUrl})
 }
 
 // Mobile 移动端支付
 func (h *PaymentHandler) Mobile(c *gin.Context) {
 	var data struct {
-		PayWay    string `json:"pay_way"` // 支付方式
+		PayWay    string `json:"pay_way"`  // 支付方式
+		PayType   string `json:"pay_type"` // 支付类别：wechat,alipay,qq...
 		ProductId uint   `json:"product_id"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -319,12 +315,10 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 	}
 
 	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
-	var payWay string
 	var notifyURL, returnURL string
 	var payURL string
 	switch data.PayWay {
 	case "hupi":
-		payWay = PayWayXunHu.Name
 		notifyURL = h.App.Config.HuPiPayConfig.NotifyURL
 		returnURL = h.App.Config.HuPiPayConfig.ReturnURL
 		parse, _ := url.Parse(h.App.Config.HuPiPayConfig.ReturnURL)
@@ -349,20 +343,16 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 			return
 		}
 		payURL = r.URL
-	case "payjs":
-		payWay = PayWayJs.Name
-		notifyURL = h.App.Config.JPayConfig.NotifyURL
-		returnURL = h.App.Config.JPayConfig.ReturnURL
-		totalFee := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Mul(decimal.NewFromInt(100)).IntPart()
-		params := url.Values{}
-		params.Add("total_fee", fmt.Sprintf("%d", totalFee))
-		params.Add("out_trade_no", orderNo)
-		params.Add("body", product.Name)
-		params.Add("notify_url", notifyURL)
-		params.Add("auto", "0")
-		payURL = h.jsPayService.PayH5(params)
+	case "geek":
+		//totalFee := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Mul(decimal.NewFromInt(100)).IntPart()
+		//params := url.Values{}
+		//params.Add("total_fee", fmt.Sprintf("%d", totalFee))
+		//params.Add("out_trade_no", orderNo)
+		//params.Add("body", product.Name)
+		//params.Add("notify_url", notifyURL)
+		//params.Add("auto", "0")
+		//payURL = h.geekPayService.Pay(params)
 	case "alipay":
-		payWay = PayWayAlipay.Name
 		payURL, err = h.alipayService.PayUrlMobile(orderNo, fmt.Sprintf("%.2f", amount), product.Name)
 		if err != nil {
 			errMsg := "error with generating Alipay URL: " + err.Error()
@@ -370,7 +360,6 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 			return
 		}
 	case "wechat":
-		payWay = PayWayWechat.Name
 		payURL, err = h.wechatPayService.PayUrlH5(orderNo, int(amount*100), product.Name, c.ClientIP())
 		if err != nil {
 			errMsg := "error with generating Wechat URL: " + err.Error()
@@ -399,7 +388,8 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		Subject:   product.Name,
 		Amount:    amount,
 		Status:    types.OrderNotPaid,
-		PayWay:    payWay,
+		PayWay:    data.PayWay,
+		PayType:   data.PayType,
 		Remark:    utils.JsonEncode(remark),
 	}
 	res = h.DB.Create(&order)
@@ -506,20 +496,25 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 
 // GetPayWays 获取支付方式
 func (h *PaymentHandler) GetPayWays(c *gin.Context) {
-	data := gin.H{}
+	payWays := make([]gin.H, 0)
 	if h.App.Config.AlipayConfig.Enabled {
-		data["alipay"] = gin.H{"name": "alipay"}
+		payWays = append(payWays, gin.H{"pay_way": "alipay", "pay_type": "alipay"})
 	}
 	if h.App.Config.HuPiPayConfig.Enabled {
-		data["hupi"] = gin.H{"name": h.App.Config.HuPiPayConfig.Name}
+		payWays = append(payWays, gin.H{"pay_way": "hupi", "pay_type": h.App.Config.HuPiPayConfig.Name})
 	}
-	if h.App.Config.JPayConfig.Enabled {
-		data["payjs"] = gin.H{"name": h.App.Config.JPayConfig.Name}
+	if h.App.Config.GeekPayConfig.Enabled {
+		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "alipay"})
+		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "wechat"})
+		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "qq"})
+		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "jd"})
+		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "douyin"})
+		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "paypal"})
 	}
 	if h.App.Config.WechatPayConfig.Enabled {
-		data["wechat"] = gin.H{"name": "wechat"}
+		payWays = append(payWays, gin.H{"pay_way": "wechat", "pay_type": "wechat"})
 	}
-	resp.SUCCESS(c, data)
+	resp.SUCCESS(c, payWays)
 }
 
 // HuPiPayNotify 虎皮椒支付异步回调
@@ -593,12 +588,12 @@ func (h *PaymentHandler) PayJsNotify(c *gin.Context) {
 
 	// 校验订单支付状态
 	tradeNo := c.Request.Form.Get("payjs_order_id")
-	err = h.jsPayService.TradeVerify(tradeNo)
-	if err != nil {
-		logger.Error("订单校验失败：", err)
-		c.String(http.StatusOK, "fail")
-		return
-	}
+	//err = h.geekPayService.TradeVerify(tradeNo)
+	//if err != nil {
+	//	logger.Error("订单校验失败：", err)
+	//	c.String(http.StatusOK, "fail")
+	//	return
+	//}
 
 	err = h.notify(orderNo, tradeNo)
 	if err != nil {

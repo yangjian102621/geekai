@@ -12,24 +12,23 @@ import (
 )
 
 type AppConfig struct {
-	Path         string `toml:"-"`
-	Listen       string
-	Session      Session
-	AdminSession Session
-	ProxyURL     string
-	MysqlDns     string      // mysql 连接地址
-	StaticDir    string      // 静态资源目录
-	StaticUrl    string      // 静态资源 URL
-	Redis        RedisConfig // redis 连接信息
-	ApiConfig    ApiConfig   // ChatPlus API authorization configs
-	SMS          SMSConfig   // send mobile message config
-	OSS          OSSConfig   // OSS config
-
+	Path            string `toml:"-"`
+	Listen          string
+	Session         Session
+	AdminSession    Session
+	ProxyURL        string
+	MysqlDns        string      // mysql 连接地址
+	StaticDir       string      // 静态资源目录
+	StaticUrl       string      // 静态资源 URL
+	Redis           RedisConfig // redis 连接信息
+	ApiConfig       ApiConfig   // ChatPlus API authorization configs
+	SMS             SMSConfig   // send mobile message config
+	OSS             OSSConfig   // OSS config
+	SmtpConfig      SmtpConfig  // 邮件发送配置
 	XXLConfig       XXLConfig
 	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
 	HuPiPayConfig   HuPiPayConfig   // 虎皮椒支付配置
-	SmtpConfig      SmtpConfig      // 邮件发送配置
-	JPayConfig      JPayConfig      // payjs 支付配置
+	GeekPayConfig   GeekPayConfig   // GEEK 支付配置
 	WechatPayConfig WechatPayConfig // 微信支付渠道配置
 	TikaHost        string          // TiKa 服务器地址
 }
@@ -83,10 +82,9 @@ type HuPiPayConfig struct { //虎皮椒第四方支付配置
 	ReturnURL string // 支付成功返回地址
 }
 
-// JPayConfig PayJs 支付配置
-type JPayConfig struct {
+// GeekPayConfig GEEK支付配置
+type GeekPayConfig struct {
 	Enabled    bool
-	Name       string // 支付名称，默认 wechat
 	AppId      string // 商户 ID
 	PrivateKey string // 私钥
 	ApiURL     string // API 网关
