@@ -86,6 +86,17 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		return
 	}
 
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	if user.Power < h.App.SysConfig.SunoPower {
+		resp.ERROR(c, "您的算力不足，请充值后再试！")
+		return
+	}
+
 	// 歌曲拼接
 	if data.SongId != "" && data.Type == 3 {
 		var song model.SunoJob
@@ -143,7 +154,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	})
 
 	// update user's power
-	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:      types.PowerConsume,
 		Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.ModelName),
 		CreatedAt: time.Now(),
@@ -225,6 +236,13 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
+
+	// 只有失败，或者超时的任务才能删除
+	if job.Progress != service.FailTaskProgress || time.Now().Before(job.CreatedAt.Add(time.Minute*10)) {
+		resp.ERROR(c, "只有失败和超时(10分钟)的任务才能删除！")
+		return
+	}
+
 	// 删除任务
 	tx := h.DB.Begin()
 	if err := tx.Delete(&job).Error; err != nil {
@@ -233,18 +251,16 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// 如果任务未完成，或者任务失败，则恢复用户算力
-	if job.Progress != 100 {
-		err := h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-			Type:   types.PowerRefund,
-			Model:  job.ModelName,
-			Remark: fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-		})
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
+	// 恢复用户算力
+	err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerRefund,
+		Model:  job.ModelName,
+		Remark: fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+	})
+	if err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
+		return
 	}
 	tx.Commit()
 
