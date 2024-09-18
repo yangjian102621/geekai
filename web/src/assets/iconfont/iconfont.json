@@ -6,18 +6,18 @@
   "description": "",
   "glyphs": [
     {
-      "icon_id": "22174321",
-      "name": "抖音支付",
-      "font_class": "douyin",
-      "unicode": "e852",
-      "unicode_decimal": 59474
+      "icon_id": "7443846",
+      "name": "PayPal",
+      "font_class": "paypal",
+      "unicode": "e666",
+      "unicode_decimal": 58982
     },
     {
-      "icon_id": "1238433",
-      "name": "social-paypal",
-      "font_class": "paypal",
-      "unicode": "e60f",
-      "unicode_decimal": 58895
+      "icon_id": "18166694",
+      "name": "抖音",
+      "font_class": "douyin",
+      "unicode": "e8db",
+      "unicode_decimal": 59611
     },
     {
       "icon_id": "1244217",

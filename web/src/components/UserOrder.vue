@@ -1,5 +1,5 @@
 <template>
-  <div class="user-bill" v-loading="loading">
+  <div class="user-bill" v-loading="loading" element-loading-background="rgba(255,255,255,.3)">
     <el-row v-if="items.length > 0">
       <el-table :data="items" :row-key="row => row.id" table-layout="auto" border
                 style="--el-table-border-color:#373C47;

@@ -372,14 +372,11 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			group := s.Engine.Group("/api/payment/")
-			group.GET("doPay", h.DoPay)
+			group.GET("doPay", h.Pay)
 			group.GET("payWays", h.GetPayWays)
-			group.POST("qrcode", h.PayQrcode)
-			group.POST("mobile", h.Mobile)
-			group.POST("alipay/notify", h.AlipayNotify)
-			group.POST("hupipay/notify", h.HuPiPayNotify)
-			group.POST("payjs/notify", h.PayJsNotify)
-			group.POST("wechat/notify", h.WechatPayNotify)
+			group.POST("notify/alipay", h.AlipayNotify)
+			group.GET("notify/geek", h.GeekPayNotify)
+			group.POST("notify/wechat", h.WechatPayNotify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
 			group := s.Engine.Group("/api/admin/product/")

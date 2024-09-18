@@ -8,15 +8,11 @@ package payment
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"crypto"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
-	"crypto/x509"
-	"encoding/base64"
-	"encoding/pem"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"geekai/core/types"
+	"geekai/utils"
 	"io"
 	"net/http"
 	"net/url"
@@ -46,41 +42,37 @@ type GeekPayParams struct {
 	ClientIP   string `json:"clientip"`     //用户IP地址
 	SubOpenId  string `json:"sub_openid"`   // 微信用户 openid，仅小程序支付需要
 	SubAppId   string `json:"sub_appid"`    // 小程序 AppId，仅小程序支付需要
+	NotifyURL  string `json:"notify_url"`
+	ReturnURL  string `json:"return_url"`
 }
 
 // Pay 支付订单
-func (s *GeekPayService) Pay(params GeekPayParams) (string, error) {
-	if params.Type == "wechat" {
-		params.Type = "wxpay"
-	}
+func (s *GeekPayService) Pay(params GeekPayParams) (*GeekPayResp, error) {
 	p := map[string]string{
-		"pid":          s.config.AppId,
-		"method":       params.Method,
+		"pid": s.config.AppId,
+		//"method":       params.Method,
 		"device":       params.Device,
 		"type":         params.Type,
 		"out_trade_no": params.OutTradeNo,
 		"name":         params.Name,
 		"money":        params.Money,
 		"clientip":     params.ClientIP,
-		"sub_openid":   params.SubOpenId,
-		"sub_appid":    params.SubAppId,
-		"notify_url":   s.config.NotifyURL,
-		"return_url":   s.config.ReturnURL,
+		"notify_url":   params.NotifyURL,
+		"return_url":   params.ReturnURL,
 		"timestamp":    fmt.Sprintf("%d", time.Now().Unix()),
 	}
-	sign, err := s.Sign(p)
-	if err != nil {
-		return "", err
-	}
-	p["sign"] = sign
-	p["sign_type"] = "RSA"
+	p["sign"] = s.Sign(p)
+	p["sign_type"] = "MD5"
 	return s.sendRequest(s.config.ApiURL, p)
 }
 
-func (s *GeekPayService) Sign(params map[string]string) (string, error) {
+func (s *GeekPayService) Sign(params map[string]string) string {
 	// 按字母顺序排序参数
 	var keys []string
 	for k := range params {
+		if params[k] == "" || k == "sign" || k == "sign_type" {
+			continue
+		}
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -93,44 +85,48 @@ func (s *GeekPayService) Sign(params map[string]string) (string, error) {
 		signStr.WriteString(params[k])
 		signStr.WriteString("&")
 	}
-	signString := strings.TrimSuffix(signStr.String(), "&")
+	signString := strings.TrimSuffix(signStr.String(), "&") + s.config.PrivateKey
 
-	// 使用RSA私钥签名
-	block, _ := pem.Decode([]byte(s.config.PrivateKey))
-	if block == nil {
-		return "", fmt.Errorf("failed to decode private key")
-	}
-
-	priKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse private key: %v", err)
-	}
-
-	hashed := sha256.Sum256([]byte(signString))
-	signature, err := rsa.SignPKCS1v15(rand.Reader, priKey, crypto.SHA256, hashed[:])
-	if err != nil {
-		panic(fmt.Sprintf("failed to sign: %v", err))
-	}
-
-	return base64.StdEncoding.EncodeToString(signature), nil
+	return utils.Md5(signString)
 }
 
-func (s *GeekPayService) sendRequest(apiEndpoint string, params map[string]string) (string, error) {
+type GeekPayResp struct {
+	Code      int    `json:"code"`
+	Msg       string `json:"msg"`
+	TradeNo   string `json:"trade_no"`
+	PayURL    string `json:"payurl"`
+	QrCode    string `json:"qrcode"`
+	UrlScheme string `json:"urlscheme"` // 小程序跳转支付链接
+}
+
+func (s *GeekPayService) sendRequest(endpoint string, params map[string]string) (*GeekPayResp, error) {
 	form := url.Values{}
 	for k, v := range params {
 		form.Add(k, v)
 	}
 
-	resp, err := http.PostForm(apiEndpoint, form)
+	apiURL := fmt.Sprintf("%s/mapi.php", endpoint)
+	logger.Infof(apiURL)
+
+	resp, err := http.PostForm(apiURL, form)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
+	logger.Debugf(string(body))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(body), nil
+	var r GeekPayResp
+	err = json.Unmarshal(body, &r)
+	if err != nil {
+		return nil, errors.New("当前支付渠道暂不支持")
+	}
+	if r.Code != 1 {
+		return nil, errors.New(r.Msg)
+	}
+	return &r, nil
 }
