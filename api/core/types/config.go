@@ -57,7 +57,8 @@ type AlipayConfig struct {
 	PublicKey       string // 用户公钥文件路径
 	AlipayPublicKey string // 支付宝公钥文件路径
 	RootCert        string // Root 秘钥路径
-	NotifyHost      string // 通知回调地址
+	NotifyURL       string // 异步通知地址
+	ReturnURL       string // 同步回调地址
 }
 
 type WechatPayConfig struct {
@@ -67,16 +68,18 @@ type WechatPayConfig struct {
 	SerialNo   string // 商户证书的证书序列号
 	PrivateKey string // 用户私钥文件路径
 	ApiV3Key   string // API V3 秘钥
-	NotifyHost string // 通知回调地址
+	NotifyURL  string // 异步通知地址
+	ReturnURL  string // 同步回调地址
 }
 
 type HuPiPayConfig struct { //虎皮椒第四方支付配置
-	Enabled    bool   // 是否启用该支付通道
-	Name       string // 支付名称，如：wechat/alipay
-	AppId      string // App ID
-	AppSecret  string // app 密钥
-	ApiURL     string // 支付网关
-	NotifyHost string // 通知回调地址
+	Enabled   bool   // 是否启用该支付通道
+	Name      string // 支付名称，如：wechat/alipay
+	AppId     string // App ID
+	AppSecret string // app 密钥
+	ApiURL    string // 支付网关
+	NotifyURL string // 异步通知地址
+	ReturnURL string // 同步回调地址
 }
 
 // GeekPayConfig GEEK支付配置
@@ -85,7 +88,8 @@ type GeekPayConfig struct {
 	AppId      string // 商户 ID
 	PrivateKey string // 私钥
 	ApiURL     string // API 网关
-	NotifyHost string // 通知回调地址
+	NotifyURL  string // 异步通知地址
+	ReturnURL  string // 同步回调地址
 }
 
 type XXLConfig struct { // XXL 任务调度配置

@@ -139,8 +139,14 @@ const routes = [
     {
         path: '/admin/login',
         name: 'admin-login',
-        meta: {title: 'Geek-AI 控制台登录'},
+        meta: {title: '控制台登录'},
         component: () => import('@/views/admin/Login.vue'),
+    },
+    {
+        path: '/payReturn',
+        name: 'pay-return',
+        meta: {title: '支付回调'},
+        component: () => import('@/views/PayReturn.vue'),
     },
     {
         name: 'admin',

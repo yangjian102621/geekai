@@ -39,6 +39,7 @@ type PaymentHandler struct {
 	geekPayService   *payment.GeekPayService
 	wechatPayService *payment.WechatPayService
 	snowflake        *service.Snowflake
+	userService      *service.UserService
 	fs               embed.FS
 	lock             sync.Mutex
 	signKey          string // 用来签名的随机秘钥
@@ -51,6 +52,7 @@ func NewPaymentHandler(
 	geekPayService *payment.GeekPayService,
 	wechatPayService *payment.WechatPayService,
 	db *gorm.DB,
+	userService *service.UserService,
 	snowflake *service.Snowflake,
 	fs embed.FS) *PaymentHandler {
 	return &PaymentHandler{
@@ -59,6 +61,7 @@ func NewPaymentHandler(
 		geekPayService:   geekPayService,
 		wechatPayService: wechatPayService,
 		snowflake:        snowflake,
+		userService:      userService,
 		fs:               fs,
 		lock:             sync.Mutex{},
 		BaseHandler: BaseHandler{
@@ -72,12 +75,12 @@ func NewPaymentHandler(
 func (h *PaymentHandler) Pay(c *gin.Context) {
 	payWay := c.Query("pay_way")
 	payType := c.Query("pay_type")
-	productId := c.Query("pid")
+	productId := c.Query("product_id")
 	device := c.Query("device")
 	userId := c.Query("user_id")
 
 	var product model.Product
-	err := h.DB.First(&product, productId).Error
+	err := h.DB.Debug().Where("id", productId).First(&product).Error
 	if err != nil {
 		resp.ERROR(c, "Product not found")
 		return
@@ -126,23 +129,20 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 	var payURL string
 	if payWay == "alipay" { // 支付宝
 		money := fmt.Sprintf("%.2f", order.Amount)
-		notifyURL := fmt.Sprintf("%s/api/payment/notify/alipay", h.App.Config.AlipayConfig.NotifyHost)
-		returnURL := fmt.Sprintf("%s/member", h.App.Config.AlipayConfig.NotifyHost)
 		if device == "mobile" {
 			payURL, err = h.alipayService.PayMobile(payment.AlipayParams{
 				OutTradeNo: orderNo,
 				Subject:    product.Name,
 				TotalFee:   money,
-				ReturnURL:  returnURL,
-				NotifyURL:  notifyURL,
+				NotifyURL:  h.App.Config.AlipayConfig.NotifyURL,
 			})
 		} else {
 			payURL, err = h.alipayService.PayPC(payment.AlipayParams{
 				OutTradeNo: orderNo,
 				Subject:    product.Name,
 				TotalFee:   money,
-				ReturnURL:  returnURL,
-				NotifyURL:  notifyURL,
+				ReturnURL:  h.App.Config.AlipayConfig.ReturnURL,
+				NotifyURL:  h.App.Config.AlipayConfig.NotifyURL,
 			})
 		}
 		if err != nil {
@@ -155,7 +155,8 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			TradeOrderId: orderNo,
 			TotalFee:     fmt.Sprintf("%f", order.Amount),
 			Title:        order.Subject,
-			NotifyURL:    fmt.Sprintf("%s/api/payment/notify/hupi", h.App.Config.HuPiPayConfig.NotifyHost),
+			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
+			ReturnURL:    h.App.Config.HuPiPayConfig.ReturnURL,
 			WapName:      "GeekAI助手",
 		}
 		r, err := h.huPiPayService.Pay(params)
@@ -175,8 +176,6 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 
 		c.Redirect(302, uri)
 	} else if order.PayWay == "geek" {
-		notifyURL := fmt.Sprintf("%s/api/payment/notify/geek", h.App.Config.GeekPayConfig.NotifyHost)
-		returnURL := fmt.Sprintf("%s/member", h.App.Config.GeekPayConfig.NotifyHost)
 		params := payment.GeekPayParams{
 			OutTradeNo: orderNo,
 			Method:     "web",
@@ -185,8 +184,8 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			ClientIP:   c.ClientIP(),
 			Device:     device,
 			Type:       payType,
-			ReturnURL:  returnURL,
-			NotifyURL:  notifyURL,
+			ReturnURL:  h.App.Config.GeekPayConfig.ReturnURL,
+			NotifyURL:  h.App.Config.GeekPayConfig.NotifyURL,
 		}
 
 		res, err := h.geekPayService.Pay(params)
@@ -218,45 +217,26 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	}
 
 	var user model.User
-	res = h.DB.First(&user, order.UserId)
-	if res.Error != nil {
-		err := fmt.Errorf("error with fetch user info: %v", res.Error)
-		logger.Error(err)
-		return err
+	err := h.DB.First(&user, order.UserId).Error
+	if err != nil {
+		return fmt.Errorf("error with fetch user info: %v", res.Error)
 	}
 
 	var remark types.OrderRemark
-	err := utils.JsonDecode(order.Remark, &remark)
+	err = utils.JsonDecode(order.Remark, &remark)
 	if err != nil {
 		err := fmt.Errorf("error with decode order remark: %v", err)
 		logger.Error(err)
 		return err
 	}
 
-	var opt string
-	var power int
-	if remark.Days > 0 { // VIP 充值
-		if user.ExpiredTime >= time.Now().Unix() {
-			user.ExpiredTime = time.Unix(user.ExpiredTime, 0).AddDate(0, 0, remark.Days).Unix()
-			opt = "VIP充值，VIP 没到期，只延期不增加算力"
-		} else {
-			user.ExpiredTime = time.Now().AddDate(0, 0, remark.Days).Unix()
-			user.Power += h.App.SysConfig.VipMonthPower
-			power = h.App.SysConfig.VipMonthPower
-			opt = "VIP充值"
-		}
-		user.Vip = true
-	} else { // 充值点卡，直接增加次数即可
-		user.Power += remark.Power
-		opt = "点卡充值"
-		power = remark.Power
-	}
-
-	// 更新用户信息
-	res = h.DB.Updates(&user)
-	if res.Error != nil {
-		err := fmt.Errorf("error with update user info: %v", res.Error)
-		logger.Error(err)
+	// 增加用户算力
+	err = h.userService.IncreasePower(int(order.UserId), remark.Power, model.PowerLog{
+		Type:   types.PowerRecharge,
+		Model:  order.PayWay,
+		Remark: fmt.Sprintf("充值算力，金额：%f，订单号：%s", order.Amount, order.OrderNo),
+	})
+	if err != nil {
 		return err
 	}
 
@@ -264,29 +244,16 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	order.PayTime = time.Now().Unix()
 	order.Status = types.OrderPaidSuccess
 	order.TradeNo = tradeNo
-	res = h.DB.Updates(&order)
-	if res.Error != nil {
-		err := fmt.Errorf("error with update order info: %v", res.Error)
-		logger.Error(err)
-		return err
+	err = h.DB.Updates(&order).Error
+	if err != nil {
+		return fmt.Errorf("error with update order info: %v", err)
 	}
 
 	// 更新产品销量
-	h.DB.Model(&model.Product{}).Where("id = ?", order.ProductId).UpdateColumn("sales", gorm.Expr("sales + ?", 1))
-
-	// 记录算力充值日志
-	if power > 0 {
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerRecharge,
-			Amount:    power,
-			Balance:   user.Power,
-			Mark:      types.PowerAdd,
-			Model:     order.PayWay,
-			Remark:    fmt.Sprintf("%s，金额：%f，订单号：%s", opt, order.Amount, order.OrderNo),
-			CreatedAt: time.Now(),
-		})
+	err = h.DB.Model(&model.Product{}).Where("id = ?", order.ProductId).
+		UpdateColumn("sales", gorm.Expr("sales + ?", 1)).Error
+	if err != nil {
+		return fmt.Errorf("error with update product sales: %v", err)
 	}
 
 	return nil

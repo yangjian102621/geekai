@@ -106,6 +106,12 @@
 
     </div>
 
+    <el-dialog v-model="showDialog" :show-close=false hide-footer width="auto">
+      <div style="padding-bottom: 10px">
+        <el-button type="success" @click="payCallback(true)">支付成功</el-button>
+        <el-button type="danger" @click="payCallback(false)">支付失败</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -143,6 +149,7 @@ const payWays = ref([])
 const vipInfoText = ref("")
 const store = useSharedStore()
 const profileKey = ref(0)
+const showDialog = ref(false)
 
 
 onMounted(() => {
@@ -193,8 +200,9 @@ const pay = (product, payWay) => {
     user_id: user.value.id,
     device: "jump"
   }).then(res => {
-   window.open(res.data, '_blank');
+    window.open(res.data, '_blank');
     loading.value = false
+    showDialog.value = true
   }).catch(e => {
     setTimeout(() => {
       ElMessage.error("生成支付订单失败：" + e.message)
@@ -205,6 +213,13 @@ const pay = (product, payWay) => {
 
 const redeemCallback = (success) => {
   showRedeemVerifyDialog.value = false
+  if (success) {
+    profileKey.value += 1
+  }
+}
+
+const payCallback = (success) => {
+  showDialog.value = false
   if (success) {
     profileKey.value += 1
   }
