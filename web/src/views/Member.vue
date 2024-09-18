@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="member custom-scroll">
+    <div class="member custom-scroll" v-loading="loading" element-loading-background="rgba(255,255,255,.3)" :element-loading-text="loadingText">
       <div class="inner">
         <div class="user-profile">
           <user-profile :key="profileKey"/>
@@ -21,10 +21,6 @@
             <el-col :span="24">
               <el-button type="primary" @click="showRedeemVerifyDialog = true">卡密兑换
               </el-button>
-            </el-col>
-
-            <el-col :span="24" style="padding-top: 30px" v-if="isLogin">
-              <el-button type="danger" round @click="logout">退出登录</el-button>
             </el-col>
           </el-row>
         </div>
@@ -67,23 +63,23 @@
 
                   <div class="pay-way">
 
-                    <span type="primary" v-for="payWay in payWays" @click="genPayQrcode(item,payWay)" :key="payWay">
-                      <el-button v-if="payWay.pay_type==='alipay'" color="#409eff" circle>
+                    <span type="primary" v-for="payWay in payWays" @click="pay(item,payWay)" :key="payWay">
+                      <el-button v-if="payWay.pay_type==='alipay'" color="#15A6E8" circle>
                         <i class="iconfont icon-alipay" ></i>
                       </el-button>
-                      <el-button v-else-if="payWay.pay_type==='qq'" class="qq" circle>
-                        <i class="iconfont icon-qq" ></i>
+                      <el-button v-else-if="payWay.pay_type==='qqpay'" circle>
+                        <i class="iconfont icon-qq"></i>
                       </el-button>
-                      <el-button v-else-if="payWay.pay_type==='paypal'" class="paypal" circle>
+                      <el-button v-else-if="payWay.pay_type==='paypal'" class="paypal" round>
                         <i class="iconfont icon-paypal"></i>
                       </el-button>
-                      <el-button v-else-if="payWay.pay_type==='jd'" class="jd" circle>
+                      <el-button v-else-if="payWay.pay_type==='jdpay'" color="#E1251B" circle>
                         <i class="iconfont icon-jd-pay"></i>
                       </el-button>
                       <el-button v-else-if="payWay.pay_type==='douyin'" class="douyin" circle>
                          <i class="iconfont icon-douyin"></i>
                       </el-button>
-                      <el-button v-else circle class="wechat">
+                      <el-button v-else circle class="wechat" color="#67C23A">
                         <i class="iconfont icon-wechat-pay"></i>
                       </el-button>
                     </span>
@@ -92,7 +88,7 @@
               </div>
             </el-col>
           </el-row>
-          <el-empty description="暂无数据" />
+          <el-empty description="暂无数据" v-else />
 
           <h2 class="headline">消费账单</h2>
 
@@ -102,47 +98,12 @@
         </div>
       </div>
 
-      <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"
-                       @logout="logout"/>
-
+      <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false"/>
       <bind-mobile v-if="isLogin" :show="showBindMobileDialog" @hide="showBindMobileDialog = false"/>
-
       <bind-email v-if="isLogin" :show="showBindEmailDialog" @hide="showBindEmailDialog = false"/>
       <third-login v-if="isLogin" :show="showThirdLoginDialog" @hide="showThirdLoginDialog = false"/>
-
       <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback"/>
 
-      <el-dialog
-          v-model="showPayDialog"
-          :close-on-click-modal="false"
-          :show-close="true"
-          :width="400"
-          @close="closeOrder"
-          :title="'实付金额：￥'+amount">
-        <div class="pay-container">
-          <div class="count-down">
-            <count-down :second="orderTimeout" @timeout="refreshPayCode" ref="countDownRef"/>
-          </div>
-
-          <div class="pay-qrcode" v-loading="loading">
-            <el-image :src="qrcode"/>
-          </div>
-
-          <div class="tip success" v-if="text !== ''">
-            <el-icon>
-              <SuccessFilled/>
-            </el-icon>
-            <span class="text">{{ text }}</span>
-          </div>
-          <div class="tip" v-else>
-            <el-icon>
-              <InfoFilled/>
-            </el-icon>
-            <span class="text">请打开手机扫码支付</span>
-          </div>
-        </div>
-
-      </el-dialog>
     </div>
 
   </div>
@@ -151,46 +112,34 @@
 <script setup>
 import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
-import {httpGet, httpPost} from "@/utils/http";
-import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
+import {httpGet} from "@/utils/http";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
 import BindMobile from "@/components/BindMobile.vue";
 import RedeemVerify from "@/components/RedeemVerify.vue";
-import {useRouter} from "vue-router";
-import {removeUserToken} from "@/store/session";
 import UserOrder from "@/components/UserOrder.vue";
-import CountDown from "@/components/CountDown.vue";
 import {useSharedStore} from "@/store/sharedata";
 import BindEmail from "@/components/BindEmail.vue";
 import ThirdLogin from "@/components/ThirdLogin.vue";
 
 const list = ref([])
-const showPayDialog = ref(false)
 const vipImg = ref("/images/vip.png")
 const enableReward = ref(false) // 是否启用众筹功能
 const rewardImg = ref('/images/reward.png')
-const qrcode = ref("")
 const showPasswordDialog = ref(false)
 const showBindMobileDialog = ref(false)
 const showBindEmailDialog = ref(false)
 const showRedeemVerifyDialog = ref(false)
 const showThirdLoginDialog = ref(false)
-const text = ref("")
 const user = ref(null)
 const isLogin = ref(false)
-const router = useRouter()
-const activeOrderNo = ref("")
-const countDownRef = ref(null)
 const orderTimeout = ref(1800)
 const loading = ref(true)
+const loadingText = ref("加载中...")
 const orderPayInfoText = ref("")
 
 const payWays = ref([])
-const amount = ref(0)
-const curPayProduct = ref(null)
-const curPayWay = ref({pay_way: "", pay_type:""})
 const vipInfoText = ref("")
 const store = useSharedStore()
 const profileKey = ref(0)
@@ -206,6 +155,7 @@ onMounted(() => {
 
   httpGet("/api/product/list").then((res) => {
     list.value = res.data
+    loading.value = false
   }).catch(e => {
     ElMessage.error("获取产品套餐失败：" + e.message)
   })
@@ -229,72 +179,28 @@ onMounted(() => {
   })
 })
 
-// refresh payment qrcode
-const refreshPayCode = () => {
-  genPayQrcode(curPayProduct.value, curPayWay.value)
-}
-
-const genPayQrcode = (product, payWay) => {
+const pay = (product, payWay) => {
   if (!isLogin.value) {
     store.setShowLoginDialog(true)
     return
   }
-
   loading.value = true
-  text.value = ""
-  curPayProduct.value = product
-  curPayWay.value = payWay
-  amount.value = (product.price - product.discount).toFixed(2)
-  httpPost("/api/payment/qrcode", {
+  loadingText.value = "正在生成支付订单..."
+  httpGet(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
+    product_id: product.id,
     pay_way: payWay.pay_way,
     pay_type: payWay.pay_type,
-    product_id: curPayProduct.value.id,
+    user_id: user.value.id,
+    device: "jump"
   }).then(res => {
-    showPayDialog.value = true
-    qrcode.value = res.data['image']
-    activeOrderNo.value = res.data['order_no']
-    queryOrder(activeOrderNo.value)
+   window.open(res.data, '_blank');
     loading.value = false
-    // 重置计数器
-    if (countDownRef.value) {
-      countDownRef.value.resetTimer()
-    }
   }).catch(e => {
-    ElMessage.error("生成支付订单失败：" + e.message)
+    setTimeout(() => {
+      ElMessage.error("生成支付订单失败：" + e.message)
+      loading.value = false
+    }, 500)
   })
-}
-
-
-const queryOrder = (orderNo) => {
-  httpGet("/api/order/query", {order_no: orderNo}).then(res => {
-    if (res.data.status === 1) {
-      text.value = "扫码成功，请在手机上进行支付！"
-      queryOrder(orderNo)
-    } else if (res.data.status === 2) {
-      text.value = "支付成功，正在刷新页面"
-      setTimeout(() => location.reload(), 500)
-    } else {
-      // 如果当前订单没有过期，继续等待订单的下一个状态
-      if (activeOrderNo.value === orderNo) {
-        queryOrder(orderNo)
-      }
-    }
-  }).catch(e => {
-    ElMessage.error("查询支付状态失败：" + e.message)
-  })
-}
-
-const logout = function () {
-  httpGet('/api/user/logout').then(() => {
-    removeUserToken();
-    router.push('/login');
-  }).catch(() => {
-    ElMessage.error('注销失败！');
-  })
-}
-
-const closeOrder = () => {
-  activeOrderNo.value = ''
 }
 
 const redeemCallback = (success) => {
