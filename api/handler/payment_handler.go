@@ -97,6 +97,76 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 		resp.NotAuth(c)
 		return
 	}
+
+	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
+	var payURL string
+	if payWay == "alipay" { // 支付宝
+		returnURL := fmt.Sprintf("%s/payReturn", utils.GetBaseURL(h.App.Config.AlipayConfig.NotifyURL))
+		money := fmt.Sprintf("%.2f", amount)
+		payURL, err = h.alipayService.PayPC(payment.AlipayParams{
+			OutTradeNo: orderNo,
+			Subject:    product.Name,
+			TotalFee:   money,
+			ReturnURL:  returnURL,
+			NotifyURL:  h.App.Config.AlipayConfig.NotifyURL,
+		})
+		if err != nil {
+			resp.ERROR(c, "error with generate pay url: "+err.Error())
+			return
+		}
+	} else if payWay == "hupi" { // 虎皮椒支付
+		returnURL := fmt.Sprintf("%s/payReturn", utils.GetBaseURL(h.App.Config.HuPiPayConfig.NotifyURL))
+		r, err := h.huPiPayService.Pay(payment.HuPiPayParams{
+			Version:      "1.1",
+			TradeOrderId: orderNo,
+			TotalFee:     fmt.Sprintf("%f", amount),
+			Title:        product.Name,
+			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
+			ReturnURL:    returnURL,
+			WapName:      "GeekAI助手",
+		})
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+
+		payURL = r.URL
+	} else if payWay == "wechat" {
+		payURL, err = h.wechatPayService.PayUrlNative(payment.WechatPayParams{
+			OutTradeNo: orderNo,
+			TotalFee:   int(amount * 100),
+			Subject:    product.Name,
+			NotifyURL:  h.App.Config.WechatPayConfig.NotifyURL,
+		})
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	} else if payWay == "geek" {
+		returnURL := fmt.Sprintf("%s/payReturn", utils.GetBaseURL(h.App.Config.GeekPayConfig.NotifyURL))
+		if device == "wechat" {
+			returnURL = fmt.Sprintf("%s/mobile/profile", utils.GetBaseURL(h.App.Config.GeekPayConfig.NotifyURL))
+		}
+		params := payment.GeekPayParams{
+			OutTradeNo: orderNo,
+			Method:     "web",
+			Name:       product.Name,
+			Money:      fmt.Sprintf("%f", amount),
+			ClientIP:   c.ClientIP(),
+			Device:     device,
+			Type:       payType,
+			ReturnURL:  returnURL,
+			NotifyURL:  h.App.Config.GeekPayConfig.NotifyURL,
+		}
+
+		res, err := h.geekPayService.Pay(params)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+		payURL = res.PayURL
+	}
+
 	// 创建订单
 	remark := types.OrderRemark{
 		Days:     product.Days,
@@ -105,9 +175,6 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 		Price:    product.Price,
 		Discount: product.Discount,
 	}
-
-	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
-
 	order := model.Order{
 		UserId:    user.Id,
 		Username:  user.Username,
@@ -124,78 +191,6 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 	if err != nil {
 		resp.ERROR(c, "error with create order: "+err.Error())
 		return
-	}
-
-	var payURL string
-	if payWay == "alipay" { // 支付宝
-		money := fmt.Sprintf("%.2f", order.Amount)
-		if device == "mobile" {
-			payURL, err = h.alipayService.PayMobile(payment.AlipayParams{
-				OutTradeNo: orderNo,
-				Subject:    product.Name,
-				TotalFee:   money,
-				NotifyURL:  h.App.Config.AlipayConfig.NotifyURL,
-			})
-		} else {
-			payURL, err = h.alipayService.PayPC(payment.AlipayParams{
-				OutTradeNo: orderNo,
-				Subject:    product.Name,
-				TotalFee:   money,
-				ReturnURL:  h.App.Config.AlipayConfig.ReturnURL,
-				NotifyURL:  h.App.Config.AlipayConfig.NotifyURL,
-			})
-		}
-		if err != nil {
-			resp.ERROR(c, "error with generate pay url: "+err.Error())
-			return
-		}
-	} else if order.PayWay == "hupi" { // 虎皮椒支付
-		r, err := h.huPiPayService.Pay(payment.HuPiPayParams{
-			Version:      "1.1",
-			TradeOrderId: orderNo,
-			TotalFee:     fmt.Sprintf("%f", order.Amount),
-			Title:        order.Subject,
-			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
-			ReturnURL:    h.App.Config.HuPiPayConfig.ReturnURL,
-			WapName:      "GeekAI助手",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-
-		payURL = r.URL
-	} else if order.PayWay == "wechat" {
-		payURL, err = h.wechatPayService.PayUrlNative(payment.WechatPayParams{
-			OutTradeNo: orderNo,
-			TotalFee:   int(order.Amount * 100),
-			Subject:    order.Subject,
-			NotifyURL:  h.App.Config.WechatPayConfig.NotifyURL,
-			ReturnURL:  h.App.Config.WechatPayConfig.ReturnURL,
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	} else if order.PayWay == "geek" {
-		params := payment.GeekPayParams{
-			OutTradeNo: orderNo,
-			Method:     "web",
-			Name:       order.Subject,
-			Money:      fmt.Sprintf("%f", order.Amount),
-			ClientIP:   c.ClientIP(),
-			Device:     device,
-			Type:       payType,
-			ReturnURL:  h.App.Config.GeekPayConfig.ReturnURL,
-			NotifyURL:  h.App.Config.GeekPayConfig.NotifyURL,
-		}
-
-		res, err := h.geekPayService.Pay(params)
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-		payURL = res.PayURL
 	}
 	resp.SUCCESS(c, payURL)
 }

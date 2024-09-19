@@ -9,6 +9,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
 	"io"
@@ -75,4 +76,12 @@ func DownloadImage(imageURL string, proxy string) ([]byte, error) {
 	}
 
 	return imageBytes, nil
+}
+
+func GetBaseURL(strURL string) string {
+	u, err := url.Parse(strURL)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 }
