@@ -122,7 +122,7 @@
 <script setup>
 import {onMounted, ref} from "vue"
 import {ElMessage} from "element-plus";
-import {httpGet} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
@@ -200,11 +200,16 @@ const pay = (product, payWay) => {
   }
   loading.value = true
   loadingText.value = "正在生成支付订单..."
-  httpGet(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
+  let host = process.env.VUE_APP_API_HOST
+  if (host === '') {
+    host = `${location.protocol}://${location.host}`;
+  }
+  httpPost(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
     product_id: product.id,
     pay_way: payWay.pay_way,
     pay_type: payWay.pay_type,
     user_id: user.value.id,
+    host: host,
     device: "jump"
   }).then(res => {
     showDialog.value = true
