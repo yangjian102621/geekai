@@ -58,7 +58,6 @@ type AlipayConfig struct {
 	AlipayPublicKey string // 支付宝公钥文件路径
 	RootCert        string // Root 秘钥路径
 	NotifyURL       string // 异步通知地址
-	ReturnURL       string // 同步回调地址
 }
 
 type WechatPayConfig struct {
@@ -69,7 +68,6 @@ type WechatPayConfig struct {
 	PrivateKey string // 用户私钥文件路径
 	ApiV3Key   string // API V3 秘钥
 	NotifyURL  string // 异步通知地址
-	ReturnURL  string // 同步回调地址
 }
 
 type HuPiPayConfig struct { //虎皮椒第四方支付配置
@@ -78,7 +76,6 @@ type HuPiPayConfig struct { //虎皮椒第四方支付配置
 	AppSecret string // app 密钥
 	ApiURL    string // 支付网关
 	NotifyURL string // 异步通知地址
-	ReturnURL string // 同步回调地址
 }
 
 // GeekPayConfig GEEK支付配置
@@ -88,7 +85,6 @@ type GeekPayConfig struct {
 	PrivateKey string   // 私钥
 	ApiURL     string   // API 网关
 	NotifyURL  string   // 异步通知地址
-	ReturnURL  string   // 同步回调地址
 	Methods    []string // 支付方式
 }
 

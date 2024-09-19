@@ -22,7 +22,8 @@
             <span>{{ scope.row.remark?.power }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="pay_way" label="支付方式"/>
+        <el-table-column prop="pay_method" label="支付渠道"/>
+        <el-table-column prop="pay_name" label="支付名称"/>
         <el-table-column label="支付时间">
           <template #default="scope">
             <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row['pay_time']) }}</span>

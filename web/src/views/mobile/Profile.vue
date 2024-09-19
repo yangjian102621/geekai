@@ -56,25 +56,21 @@
       <div class="product-list">
         <h3>充值套餐</h3>
         <div class="item" v-for="item in products" :key="item.id">
-          <h4 class="title">
-            <span>{{ item.name }}</span>
-            <div class="buy-btn">
-              <van-button type="primary" @click="pay('alipay',item)" size="small" v-if="payWays['alipay']">
-                <i class="iconfont icon-alipay"></i> 支付宝
-              </van-button>
-              <van-button type="success" @click="pay('hupi',item)" size="small" v-if="payWays['hupi']">
-                <span v-if="payWays['hupi']['name'] === 'wechat'"><i class="iconfont icon-wechat-pay"></i> 微信</span>
-                <span v-else><i class="iconfont icon-alipay"></i> 支付宝</span>
-              </van-button>
-
-              <van-button type="success" @click="pay('payjs',item)" size="small" v-if="payWays['payjs']">
-                <span><i class="iconfont icon-wechat-pay"></i> 微信</span>
-              </van-button>
-              <van-button type="primary" @click="pay('wechat',item)" size="small" v-if="payWays['wechat']">
-                <i class="iconfont icon-wechat-pay"></i> 微信
-              </van-button>
+          <div class="title">
+            <span class="name">{{ item.name }}</span>
+            <div class="pay-btn">
+              <div v-for="payWay in payWays" @click="pay(item,payWay)" :key="payWay">
+                <span v-if="payWay.pay_way === 'geek'">
+                  <van-button type="primary" size="small" v-if="payWay.pay_type==='alipay'" >
+                    <i class="iconfont icon-alipay"></i> 支付宝
+                  </van-button>
+                  <van-button type="success" size="small" v-if="payWay.pay_type==='wxpay'" >
+                    <i class="iconfont icon-wechat-pay"></i> 微信支付
+                  </van-button>
+                </span>
+              </div>
             </div>
-          </h4>
+          </div>
 
           <van-cell-group>
             <van-cell title="商品价格">
@@ -155,7 +151,7 @@
 
 <script setup>
 import {onMounted, ref} from "vue";
-import {showFailToast, showNotify, showSuccessToast} from "vant";
+import {showFailToast, showLoadingToast, showNotify, showSuccessToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
 import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";
@@ -165,6 +161,7 @@ import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import bus from '@/store/eventbus'
 import {getMobileTheme} from "@/store/system";
+import QRCode from "qrcode";
 
 const form = ref({
   username: 'GeekMaster',
@@ -224,33 +221,33 @@ onMounted(() => {
 
 })
 
-const afterRead = (file) => {
-  file.status = 'uploading';
-  file.message = '上传中...';
-  // 压缩图片并上传
-  new Compressor(file.file, {
-    quality: 0.6,
-    success(result) {
-      const formData = new FormData();
-      formData.append('file', result, result.name);
-      // 执行上传操作
-      httpPost('/api/upload', formData).then((res) => {
-        form.value.avatar = res.data.url
-        file.status = 'success'
-        httpPost('/api/user/profile/update', form.value).then(() => {
-          showSuccessToast('上传成功')
-        }).catch(() => {
-          showFailToast('上传失败')
-        })
-      }).catch((e) => {
-        showNotify({type: 'danger', message: '上传失败：' + e.message})
-      })
-    },
-    error(err) {
-      console.log(err.message);
-    },
-  });
-}
+// const afterRead = (file) => {
+//   file.status = 'uploading';
+//   file.message = '上传中...';
+//   // 压缩图片并上传
+//   new Compressor(file.file, {
+//     quality: 0.6,
+//     success(result) {
+//       const formData = new FormData();
+//       formData.append('file', result, result.name);
+//       // 执行上传操作
+//       httpPost('/api/upload', formData).then((res) => {
+//         form.value.avatar = res.data.url
+//         file.status = 'success'
+//         httpPost('/api/user/profile/update', form.value).then(() => {
+//           showSuccessToast('上传成功')
+//         }).catch(() => {
+//           showFailToast('上传失败')
+//         })
+//       }).catch((e) => {
+//         showNotify({type: 'danger', message: '上传失败：' + e.message})
+//       })
+//     },
+//     error(err) {
+//       console.log(err.message);
+//     },
+//   });
+// }
 
 const showPasswordDialog = ref(false)
 const pass = ref({
@@ -290,21 +287,23 @@ const updatePass = () => {
   })
 }
 
-const pay = (payWay, item) => {
+const pay = (product,payWay) => {
   if (!isLogin.value) {
     return showLoginDialog(router)
   }
 
-  httpPost("/api/payment/mobile", {
-    pay_way: payWay,
-    product_id: item.id,
-    user_id: userId.value
+  showLoadingToast({
+    message: '正在创建订单',
+    forbidClick: true,
+  });
+  httpGet(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
+    product_id: product.id,
+    pay_way: payWay.pay_way,
+    pay_type: payWay.pay_type,
+    user_id: userId.value,
+    device: "wechat"
   }).then(res => {
-    if (isWeChatBrowser() && payWay === 'wechat') {
-      showFailToast("请在系统自带浏览器打开支付页面，或者在 PC 端进行扫码支付")
-    } else {
-      location.href = res.data.url
-    }
+    location.href = res.data
   }).catch(e => {
     showFailToast("生成支付订单失败：" + e.message)
   })
@@ -363,13 +362,19 @@ const changeTheme = () => {
         overflow hidden
 
         .title {
-          padding 0 12px
+          padding 12px
           position relative
 
-          .buy-btn {
+          .name {
+            font-size 16px
+            font-weight 700
+          }
+
+          .pay-btn {
             position absolute
-            top -5px
+            top 5px
             right 10px
+            display flex
 
             .van-button {
               font-size 14px

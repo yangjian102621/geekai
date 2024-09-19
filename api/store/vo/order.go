@@ -17,5 +17,7 @@ type Order struct {
 	PayTime   int64             `json:"pay_time"`
 	PayWay    string            `json:"pay_way"`
 	PayType   string            `json:"pay_type"`
+	PayMethod string            `json:"pay_method"`
+	PayName   string            `json:"pay_name"`
 	Remark    types.OrderRemark `json:"remark"`
 }
