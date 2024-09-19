@@ -223,14 +223,18 @@ getSystemInfo().then(res => {
     title.value = res.data.title
     logo.value = res.data.logo
     const registerWays = res.data['register_ways']
-    if (arrayContains(registerWays, "mobile")) {
-      enableMobile.value = true
+
+    if (arrayContains(registerWays, "username")) {
+      enableUser.value = true
+      activeName.value = 'username'
     }
     if (arrayContains(registerWays, "email")) {
       enableEmail.value = true
+      activeName.value = 'email'
     }
-    if (arrayContains(registerWays, "username")) {
-      enableUser.value = true
+    if (arrayContains(registerWays, "mobile")) {
+      enableMobile.value = true
+      activeName.value = 'mobile'
     }
     // 是否启用注册
     enableRegister.value = res.data['enabled_register']

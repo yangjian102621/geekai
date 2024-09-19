@@ -299,17 +299,17 @@ onMounted(() => {
   getSystemInfo().then(res => {
     if (res.data) {
       const registerWays = res.data['register_ways']
-      if (arrayContains(registerWays, "mobile")) {
-        enableMobile.value = true
-        activeName.value = activeName.value === "" ? "mobile" : activeName.value
+      if (arrayContains(registerWays, "username")) {
+        enableUser.value = true
+        activeName.value = 'username'
       }
       if (arrayContains(registerWays, "email")) {
         enableEmail.value = true
-        activeName.value = activeName.value === "" ? "email" : activeName.value
+        activeName.value = 'email'
       }
-      if (arrayContains(registerWays, "username")) {
-        enableUser.value = true
-        activeName.value = activeName.value === "" ? "username" : activeName.value
+      if (arrayContains(registerWays, "mobile")) {
+        enableMobile.value = true
+        activeName.value = 'mobile'
       }
       // 是否启用注册
       enableRegister.value = res.data['enabled_register']
