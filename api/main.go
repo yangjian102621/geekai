@@ -377,6 +377,7 @@ func main() {
 			group.POST("notify/alipay", h.AlipayNotify)
 			group.GET("notify/geek", h.GeekPayNotify)
 			group.POST("notify/wechat", h.WechatPayNotify)
+			group.POST("notify/hupi", h.HuPiPayNotify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
 			group := s.Engine.Group("/api/admin/product/")

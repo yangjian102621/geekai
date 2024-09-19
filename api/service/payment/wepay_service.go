@@ -65,7 +65,6 @@ func (s *WechatPayService) PayUrlNative(params WechatPayParams) (string, error) 
 		Set("out_trade_no", params.OutTradeNo).
 		Set("time_expire", expire).
 		Set("notify_url", params.NotifyURL).
-		Set("return_url", params.ReturnURL).
 		SetBodyMap("amount", func(bm gopay.BodyMap) {
 			bm.Set("total", params.TotalFee).
 				Set("currency", "CNY")
@@ -91,7 +90,6 @@ func (s *WechatPayService) PayUrlH5(params WechatPayParams) (string, error) {
 		Set("out_trade_no", params.OutTradeNo).
 		Set("time_expire", expire).
 		Set("notify_url", params.NotifyURL).
-		Set("return_url", params.ReturnURL).
 		SetBodyMap("amount", func(bm gopay.BodyMap) {
 			bm.Set("total", params.TotalFee).
 				Set("currency", "CNY")

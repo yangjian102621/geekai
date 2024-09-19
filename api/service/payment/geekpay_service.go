@@ -8,6 +8,7 @@ package payment
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -108,7 +109,13 @@ func (s *GeekPayService) sendRequest(endpoint string, params map[string]string) 
 	apiURL := fmt.Sprintf("%s/mapi.php", endpoint)
 	logger.Infof(apiURL)
 
-	resp, err := http.PostForm(apiURL, form)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true, // 取消 SSL 证书验证
+		},
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.PostForm(apiURL, form)
 	if err != nil {
 		return nil, err
 	}

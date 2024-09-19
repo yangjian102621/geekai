@@ -106,8 +106,12 @@
 
     </div>
 
-    <el-dialog v-model="showDialog" :show-close=false hide-footer width="auto">
-      <div style="padding-bottom: 10px">
+    <el-dialog v-model="showDialog" :show-close=false :close-on-click-modal="false" hide-footer width="auto" class="pay-dialog">
+      <div v-if="qrImg !== ''">
+        <div class="product-info">请使用微信扫码支付：<span class="price">￥{{price}}</span></div>
+        <el-image :src="qrImg" fit="cover" />
+      </div>
+      <div style="padding-bottom: 10px; text-align: center">
         <el-button type="success" @click="payCallback(true)">支付成功</el-button>
         <el-button type="danger" @click="payCallback(false)">支付失败</el-button>
       </div>
@@ -128,6 +132,7 @@ import UserOrder from "@/components/UserOrder.vue";
 import {useSharedStore} from "@/store/sharedata";
 import BindEmail from "@/components/BindEmail.vue";
 import ThirdLogin from "@/components/ThirdLogin.vue";
+import QRCode from "qrcode";
 
 const list = ref([])
 const vipImg = ref("/images/vip.png")
@@ -150,6 +155,8 @@ const vipInfoText = ref("")
 const store = useSharedStore()
 const profileKey = ref(0)
 const showDialog = ref(false)
+const qrImg = ref("")
+const price = ref(0)
 
 
 onMounted(() => {
@@ -200,9 +207,20 @@ const pay = (product, payWay) => {
     user_id: user.value.id,
     device: "jump"
   }).then(res => {
-    window.open(res.data, '_blank');
-    loading.value = false
     showDialog.value = true
+    loading.value = false
+    if (payWay.pay_way === 'wechat') {
+      price.value = Number((product.price - product.discount).toFixed(2))
+      QRCode.toDataURL(res.data, {width: 300, height: 300, margin: 2}, (error, url) => {
+        if (error) {
+          console.error(error)
+        } else {
+          qrImg.value = url;
+        }
+      })
+    } else {
+      window.open(res.data, '_blank');
+    }
   }).catch(e => {
     setTimeout(() => {
       ElMessage.error("生成支付订单失败：" + e.message)
@@ -224,6 +242,7 @@ const payCallback = (success) => {
     profileKey.value += 1
   }
 }
+
 
 </script>
 

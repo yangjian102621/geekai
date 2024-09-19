@@ -80,7 +80,7 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 	userId := c.Query("user_id")
 
 	var product model.Product
-	err := h.DB.Debug().Where("id", productId).First(&product).Error
+	err := h.DB.Where("id", productId).First(&product).Error
 	if err != nil {
 		resp.ERROR(c, "Product not found")
 		return
@@ -150,7 +150,7 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			return
 		}
 	} else if order.PayWay == "hupi" { // 虎皮椒支付
-		params := payment.HuPiPayReq{
+		r, err := h.huPiPayService.Pay(payment.HuPiPayParams{
 			Version:      "1.1",
 			TradeOrderId: orderNo,
 			TotalFee:     fmt.Sprintf("%f", order.Amount),
@@ -158,23 +158,25 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			NotifyURL:    h.App.Config.HuPiPayConfig.NotifyURL,
 			ReturnURL:    h.App.Config.HuPiPayConfig.ReturnURL,
 			WapName:      "GeekAI助手",
-		}
-		r, err := h.huPiPayService.Pay(params)
+		})
 		if err != nil {
 			resp.ERROR(c, err.Error())
 			return
 		}
 
-		c.Redirect(302, r.URL)
+		payURL = r.URL
 	} else if order.PayWay == "wechat" {
-		//uri, err := h.wechatPayService.PayUrlNative(order.OrderNo, int(order.Amount*100), order.Subject)
-		uri, err := h.wechatPayService.PayUrlNative(payment.WechatPayParams{})
+		payURL, err = h.wechatPayService.PayUrlNative(payment.WechatPayParams{
+			OutTradeNo: orderNo,
+			TotalFee:   int(order.Amount * 100),
+			Subject:    order.Subject,
+			NotifyURL:  h.App.Config.WechatPayConfig.NotifyURL,
+			ReturnURL:  h.App.Config.WechatPayConfig.ReturnURL,
+		})
 		if err != nil {
 			resp.ERROR(c, err.Error())
 			return
 		}
-
-		c.Redirect(302, uri)
 	} else if order.PayWay == "geek" {
 		params := payment.GeekPayParams{
 			OutTradeNo: orderNo,
@@ -201,11 +203,9 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 // 异步通知回调公共逻辑
 func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	var order model.Order
-	res := h.DB.Where("order_no = ?", orderNo).First(&order)
-	if res.Error != nil {
-		err := fmt.Errorf("error with fetch order: %v", res.Error)
-		logger.Error(err)
-		return err
+	err := h.DB.Where("order_no = ?", orderNo).First(&order).Error
+	if err != nil {
+		return fmt.Errorf("error with fetch order: %v", err)
 	}
 
 	h.lock.Lock()
@@ -217,17 +217,15 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	}
 
 	var user model.User
-	err := h.DB.First(&user, order.UserId).Error
+	err = h.DB.First(&user, order.UserId).Error
 	if err != nil {
-		return fmt.Errorf("error with fetch user info: %v", res.Error)
+		return fmt.Errorf("error with fetch user info: %v", err)
 	}
 
 	var remark types.OrderRemark
 	err = utils.JsonDecode(order.Remark, &remark)
 	if err != nil {
-		err := fmt.Errorf("error with decode order remark: %v", err)
-		logger.Error(err)
-		return err
+		return fmt.Errorf("error with decode order remark: %v", err)
 	}
 
 	// 增加用户算力
@@ -266,15 +264,12 @@ func (h *PaymentHandler) GetPayWays(c *gin.Context) {
 		payWays = append(payWays, gin.H{"pay_way": "alipay", "pay_type": "alipay"})
 	}
 	if h.App.Config.HuPiPayConfig.Enabled {
-		payWays = append(payWays, gin.H{"pay_way": "hupi", "pay_type": h.App.Config.HuPiPayConfig.Name})
+		payWays = append(payWays, gin.H{"pay_way": "hupi", "pay_type": "wxpay"})
 	}
 	if h.App.Config.GeekPayConfig.Enabled {
-		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "alipay"})
-		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "wxpay"})
-		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "qqpay"})
-		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "jdpay"})
-		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "douyin"})
-		payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": "paypal"})
+		for _, v := range h.App.Config.GeekPayConfig.Methods {
+			payWays = append(payWays, gin.H{"pay_way": "geek", "pay_type": v})
+		}
 	}
 	if h.App.Config.WechatPayConfig.Enabled {
 		payWays = append(payWays, gin.H{"pay_way": "wechat", "pay_type": "wxpay"})
@@ -292,15 +287,17 @@ func (h *PaymentHandler) HuPiPayNotify(c *gin.Context) {
 
 	orderNo := c.Request.Form.Get("trade_order_id")
 	tradeNo := c.Request.Form.Get("open_order_id")
-	logger.Infof("收到虎皮椒订单支付回调，订单 NO：%s，交易流水号：%s", orderNo, tradeNo)
+	logger.Infof("收到虎皮椒订单支付回调，%+v", c.Request.Form)
 
-	if err = h.huPiPayService.Check(tradeNo); err != nil {
+	if err = h.huPiPayService.Check(orderNo); err != nil {
 		logger.Error("订单校验失败：", err)
 		c.String(http.StatusOK, "fail")
 		return
 	}
+
 	err = h.notify(orderNo, tradeNo)
 	if err != nil {
+		logger.Error(err)
 		c.String(http.StatusOK, "fail")
 		return
 	}
@@ -316,18 +313,18 @@ func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
 		return
 	}
 
-	// TODO：验证交易签名
-	res := h.alipayService.TradeVerify(c.Request)
-	logger.Infof("验证支付结果：%+v", res)
-	if !res.Success() {
-		logger.Error("订单校验失败：", res.Message)
+	result := h.alipayService.TradeVerify(c.Request)
+	logger.Infof("收到支付宝商号订单支付回调：%+v", result)
+	if !result.Success() {
+		logger.Error("订单校验失败：", result.Message)
 		c.String(http.StatusOK, "fail")
 		return
 	}
 
 	tradeNo := c.Request.Form.Get("trade_no")
-	err = h.notify(res.OutTradeNo, tradeNo)
+	err = h.notify(result.OutTradeNo, tradeNo)
 	if err != nil {
+		logger.Error(err)
 		c.String(http.StatusOK, "fail")
 		return
 	}
@@ -358,6 +355,7 @@ func (h *PaymentHandler) GeekPayNotify(c *gin.Context) {
 
 	err := h.notify(params["out_trade_no"], params["trade_no"])
 	if err != nil {
+		logger.Error(err)
 		c.String(http.StatusOK, "fail")
 		return
 	}
@@ -374,6 +372,7 @@ func (h *PaymentHandler) WechatPayNotify(c *gin.Context) {
 	}
 
 	result := h.wechatPayService.TradeVerify(c.Request)
+	logger.Infof("收到微信商号订单支付回调：%+v", result)
 	if !result.Success() {
 		logger.Error("订单校验失败：", err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -385,6 +384,7 @@ func (h *PaymentHandler) WechatPayNotify(c *gin.Context) {
 
 	err = h.notify(result.OutTradeNo, result.TradeId)
 	if err != nil {
+		logger.Error(err)
 		c.String(http.StatusOK, "fail")
 		return
 	}
