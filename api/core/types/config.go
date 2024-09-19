@@ -74,7 +74,6 @@ type WechatPayConfig struct {
 
 type HuPiPayConfig struct { //虎皮椒第四方支付配置
 	Enabled   bool   // 是否启用该支付通道
-	Name      string // 支付名称，如：wechat/alipay
 	AppId     string // App ID
 	AppSecret string // app 密钥
 	ApiURL    string // 支付网关
@@ -85,11 +84,12 @@ type HuPiPayConfig struct { //虎皮椒第四方支付配置
 // GeekPayConfig GEEK支付配置
 type GeekPayConfig struct {
 	Enabled    bool
-	AppId      string // 商户 ID
-	PrivateKey string // 私钥
-	ApiURL     string // API 网关
-	NotifyURL  string // 异步通知地址
-	ReturnURL  string // 同步回调地址
+	AppId      string   // 商户 ID
+	PrivateKey string   // 私钥
+	ApiURL     string   // API 网关
+	NotifyURL  string   // 异步通知地址
+	ReturnURL  string   // 同步回调地址
+	Methods    []string // 支付方式
 }
 
 type XXLConfig struct { // XXL 任务调度配置
