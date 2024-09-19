@@ -296,11 +296,16 @@ const pay = (product,payWay) => {
     message: '正在创建订单',
     forbidClick: true,
   });
-  httpGet(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
+  let host = process.env.VUE_APP_API_HOST
+  if (host === '') {
+    host = `${location.protocol}://${location.host}`;
+  }
+  httpPost(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
     product_id: product.id,
     pay_way: payWay.pay_way,
     pay_type: payWay.pay_type,
     user_id: userId.value,
+    host: host,
     device: "wechat"
   }).then(res => {
     location.href = res.data

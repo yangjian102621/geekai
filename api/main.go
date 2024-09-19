@@ -372,7 +372,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			group := s.Engine.Group("/api/payment/")
-			group.GET("doPay", h.Pay)
+			group.POST("doPay", h.Pay)
 			group.GET("payWays", h.GetPayWays)
 			group.POST("notify/alipay", h.AlipayNotify)
 			group.GET("notify/geek", h.GeekPayNotify)
