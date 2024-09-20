@@ -17,6 +17,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"github.com/go-redis/redis/v8"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -26,10 +27,11 @@ import (
 type UserHandler struct {
 	handler.BaseHandler
 	licenseService *service.LicenseService
+	redis          *redis.Client
 }
 
-func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.LicenseService) *UserHandler {
-	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, licenseService: licenseService}
+func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.LicenseService, redisCli *redis.Client) *UserHandler {
+	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, licenseService: licenseService, redis: redisCli}
 }
 
 // List 用户列表
@@ -139,6 +141,13 @@ func (h *UserHandler) Save(c *gin.Context) {
 				Remark:    fmt.Sprintf("后台管理员强制修改用户算力，修改前：%d,修改后:%d, 管理员ID：%d", oldPower, user.Power, h.GetLoginUserId(c)),
 				CreatedAt: time.Now(),
 			})
+		}
+		// 如果禁用了用户，则将用户踢下线
+		if user.Status == false {
+			key := fmt.Sprintf("users/%v", user.Id)
+			if _, err := h.redis.Del(c, key).Result(); err != nil {
+				logger.Error("error with delete session: ", err)
+			}
 		}
 	} else {
 		// 检查用户是否已经存在
