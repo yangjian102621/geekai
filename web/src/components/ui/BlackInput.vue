@@ -47,6 +47,7 @@ watch(() => props.value, (newValue) => {
   model.value = newValue
 })
 const model = ref(props.value)
+// eslint-disable-next-line no-undef
 const emits = defineEmits(['update:value']);
 const onInput = (value) => {
   emits('update:value',value)
