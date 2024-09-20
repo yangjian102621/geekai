@@ -307,11 +307,12 @@ func main() {
 
 		// 管理后台控制器
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			group := s.Engine.Group("/api/admin/")
-			group.POST("config/update", h.Update)
-			group.GET("config/get", h.Get)
+			group := s.Engine.Group("/api/admin/config")
+			group.POST("update", h.Update)
+			group.GET("get", h.Get)
 			group.POST("active", h.Active)
-			group.GET("config/get/license", h.GetLicense)
+			group.GET("fixData", h.FixData)
+			group.GET("license", h.GetLicense)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
