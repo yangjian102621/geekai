@@ -164,5 +164,6 @@ type SystemConfig struct {
 	Copyright   string `json:"copyright"`     // 版权信息
 	MarkMapText string `json:"mark_map_text"` // 思维导入的默认文本
 
-	EnabledVerify bool `json:"enabled_verify"` // 是否启用验证码
+	EnabledVerify  bool     `json:"enabled_verify"`   // 是否启用验证码
+	EmailWhiteList []string `json:"email_white_list"` // 邮箱白名单列表
 }

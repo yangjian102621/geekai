@@ -133,6 +133,10 @@
                   </el-checkbox-group>
                 </el-form-item>
 
+                <el-form-item label="邮件域名白名单" prop="register_ways">
+                  <items-input v-model:value="system['email_white_list']"/>
+                </el-form-item>
+
                 <el-form-item label="微信客服二维码" prop="wechat_card_url">
                   <el-input v-model="system['wechat_card_url']" placeholder="微信客服二维码">
                     <template #append>
@@ -410,6 +414,7 @@ import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
 import {copyObj, dateFormat} from "@/utils/libs";
+import ItemsInput from "@/components/ui/ItemsInput.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
@@ -475,7 +480,6 @@ const save = function (key) {
   if (key === 'system') {
     systemFormRef.value.validate((valid) => {
       if (valid) {
-        system.value['power_price'] = parseFloat(system.value['power_price']) ?? 0
         httpPost('/api/admin/config/update', {key: key, config: system.value, config_bak: configBak.value}).then(() => {
           ElMessage.success("操作成功！")
         }).catch(e => {
