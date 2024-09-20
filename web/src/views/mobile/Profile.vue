@@ -298,7 +298,7 @@ const pay = (product,payWay) => {
   });
   let host = process.env.VUE_APP_API_HOST
   if (host === '') {
-    host = `${location.protocol}://${location.host}`;
+    host = `${location.protocol}//${location.host}`;
   }
   httpPost(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
     product_id: product.id,

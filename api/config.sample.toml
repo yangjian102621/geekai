@@ -79,6 +79,7 @@ TikaHost = "http://tika:9998"
    From = "test@163.com" # 发件邮箱人地址
    Password = "" #邮箱 stmp 服务授权码
 
+# 支付宝商户支付
 [AlipayConfig]
   Enabled = false # 启用支付宝支付通道
   SandBox = false # 是否启用沙盒模式
@@ -89,6 +90,7 @@ TikaHost = "http://tika:9998"
   AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
   RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
 
+# 虎皮椒支付
 [HuPiPayConfig]
   Enabled = false
   AppId = ""

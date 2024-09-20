@@ -202,7 +202,7 @@ const pay = (product, payWay) => {
   loadingText.value = "正在生成支付订单..."
   let host = process.env.VUE_APP_API_HOST
   if (host === '') {
-    host = `${location.protocol}://${location.host}`;
+    host = `${location.protocol}//${location.host}`;
   }
   httpPost(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
     product_id: product.id,

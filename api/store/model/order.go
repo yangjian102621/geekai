@@ -2,7 +2,6 @@ package model
 
 import (
 	"geekai/core/types"
-	"gorm.io/gorm"
 )
 
 // Order 充值订单
@@ -20,5 +19,4 @@ type Order struct {
 	PayTime   int64
 	PayWay    string // 支付渠道
 	PayType   string // 支付类型
-	DeletedAt gorm.DeletedAt
 }
