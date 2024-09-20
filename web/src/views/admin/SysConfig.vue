@@ -579,9 +579,12 @@ const fixData = () => {
         type: 'warning',
       }
   ).then(() => {
+    loading.value = true
     httpGet("/api/admin/config/fixData").then(() => {
       ElMessage.success("数据修复成功")
+      loading.value = false
     }).catch(e => {
+      loading.value = false
       ElMessage.error("数据修复失败：" + e.message)
     })
   })

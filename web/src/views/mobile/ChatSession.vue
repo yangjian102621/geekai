@@ -163,20 +163,6 @@ checkSession().then(user => {
   router.push('/login')
 })
 
-if (chatId.value) {
-  httpGet(`/api/chat/detail?chat_id=${chatId.value}`).then(res => {
-    title.value = res.data.title
-    modelId.value = res.data.model_id
-    roleId.value = res.data.role_id
-    loadModels()
-  }).catch(() => {
-    loadModels()
-  })
-} else {
-  title.value = "新建对话"
-  chatId.value = UUID()
-}
-
 const loadModels = () => {
   // 加载模型
   httpGet('/api/model/list').then(res => {
@@ -213,6 +199,21 @@ const loadModels = () => {
     showNotify({type: "danger", message: "加载模型失败: " + e.message})
   })
 }
+if (chatId.value) {
+  httpGet(`/api/chat/detail?chat_id=${chatId.value}`).then(res => {
+    title.value = res.data.title
+    modelId.value = res.data.model_id
+    roleId.value = res.data.role_id
+    loadModels()
+  }).catch(() => {
+    loadModels()
+  })
+} else {
+  title.value = "新建对话"
+  chatId.value = UUID()
+  loadModels()
+}
+
 
 const url = ref(location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId.value)
 
