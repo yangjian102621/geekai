@@ -65,13 +65,13 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 func (s *AppServer) Run(db *gorm.DB) error {
 	// load system configs
 	var sysConfig model.Config
-	res := db.Where("marker", "system").First(&sysConfig)
-	if res.Error != nil {
-		return res.Error
-	}
-	err := utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	err := db.Where("marker", "system").First(&sysConfig).Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load system config: %v", err)
+	}
+	err = utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	if err != nil {
+		return fmt.Errorf("failed to decode system config: %v", err)
 	}
 	logger.Infof("http://%s", s.Config.Listen)
 	return s.Engine.Run(s.Config.Listen)

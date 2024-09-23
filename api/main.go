@@ -525,7 +525,8 @@ func main() {
 			go func() {
 				err := s.Run(db)
 				if err != nil {
-					log.Fatal(err)
+					logger.Error(err)
+					os.Exit(0)
 				}
 			}()
 		}),
