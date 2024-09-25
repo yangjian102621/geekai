@@ -151,9 +151,9 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
 			if err != nil {
 				logger.Error(err)
-				utils.ReplyMessage(client, err.Error())
+				utils.SendMessage(client, err.Error())
 			} else {
-				utils.ReplyChunkMessage(client, types.ReplyMessage{Type: types.WsEnd})
+				utils.SendChunkMessage(client, types.ReplyMessage{Type: types.WsMsgTypeEnd})
 				logger.Infof("回答完毕: %v", message.Content)
 			}
 

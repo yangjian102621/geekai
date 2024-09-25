@@ -108,7 +108,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 
 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
-				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
+				utils.SendMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
 			}
 
@@ -136,7 +136,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				if res.Error == nil {
 					toolCall = true
 					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
-					utils.ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsContent, Content: callMsg})
+					utils.SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeContent, Content: callMsg})
 					contents = append(contents, callMsg)
 				}
 				continue
@@ -153,8 +153,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 			} else {
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
-				utils.ReplyChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsContent,
+				utils.SendChunkMessage(ws, types.ReplyMessage{
+					Type:    types.WsMsgTypeContent,
 					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
 				})
 			}
@@ -186,14 +186,14 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 			if errMsg != "" || apiRes.Code != types.Success {
 				msg := "调用函数工具出错：" + apiRes.Message + errMsg
-				utils.ReplyChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsContent,
+				utils.SendChunkMessage(ws, types.ReplyMessage{
+					Type:    types.WsMsgTypeContent,
 					Content: msg,
 				})
 				contents = append(contents, msg)
 			} else {
-				utils.ReplyChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsContent,
+				utils.SendChunkMessage(ws, types.ReplyMessage{
+					Type:    types.WsMsgTypeContent,
 					Content: apiRes.Data,
 				})
 				contents = append(contents, utils.InterfaceToString(apiRes.Data))
@@ -226,7 +226,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		if strings.HasPrefix(req.Model, "o1-") {
 			content = fmt.Sprintf("AI思考结束，耗时：%d 秒。\n%s", time.Now().Unix()-session.Start, respVo.Choices[0].Message.Content)
 		}
-		utils.ReplyMessage(ws, content)
+		utils.SendMessage(ws, content)
 		respVo.Usage.Prompt = prompt
 		respVo.Usage.Content = content
 		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, chatCtx, session, role, userVo, promptCreatedAt, time.Now())
