@@ -19,8 +19,8 @@ import (
 
 var logger = logger2.GetLogger()
 
-// ReplyChunkMessage 回复客户片段端消息
-func ReplyChunkMessage(client *types.WsClient, message interface{}) {
+// SendChunkMessage 回复客户片段端消息
+func SendChunkMessage(client *types.WsClient, message interface{}) {
 	msg, err := json.Marshal(message)
 	if err != nil {
 		logger.Errorf("Error for decoding json data: %v", err.Error())
@@ -32,19 +32,19 @@ func ReplyChunkMessage(client *types.WsClient, message interface{}) {
 	}
 }
 
-// ReplyMessage 回复客户端一条完整的消息
-func ReplyMessage(ws *types.WsClient, message interface{}) {
-	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsContent, Content: message})
-	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsEnd})
+// SendMessage 回复客户端一条完整的消息
+func SendMessage(ws *types.WsClient, message interface{}) {
+	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeContent, Content: message})
+	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeEnd})
 }
 
 func ReplyContent(ws *types.WsClient, message interface{}) {
-	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsContent, Content: message})
+	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeContent, Content: message})
 }
 
 // ReplyErrorMessage 向客户端发送错误消息
 func ReplyErrorMessage(ws *types.WsClient, message interface{}) {
-	ReplyChunkMessage(ws, types.ReplyMessage{Type: types.WsErr, Content: message})
+	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeErr, Content: message})
 }
 
 func DownloadImage(imageURL string, proxy string) ([]byte, error) {

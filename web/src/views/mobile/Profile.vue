@@ -153,8 +153,7 @@
 import {onMounted, ref} from "vue";
 import {showFailToast, showLoadingToast, showNotify, showSuccessToast} from "vant";
 import {httpGet, httpPost} from "@/utils/http";
-import Compressor from 'compressorjs';
-import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";
+import {dateFormat, showLoginDialog} from "@/utils/libs";
 import {ElMessage} from "element-plus";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";

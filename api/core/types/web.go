@@ -19,23 +19,35 @@ type BizVo struct {
 
 // ReplyMessage 对话回复消息结构
 type ReplyMessage struct {
-	Type    WsMsgType   `json:"type"` // 消息类别，start, end, img
+	Channel WsChannel   `json:"channel"` // 消息频道，目前只有 chat
+	Type    WsMsgType   `json:"type"`    // 消息类别
 	Content interface{} `json:"content"`
 }
 
 type WsMsgType string
+type WsChannel string
 
 const (
-	WsContent = WsMsgType("content") // 输出内容
-	WsEnd     = WsMsgType("end")
-	WsErr     = WsMsgType("error")
+	WsMsgTypeContent = WsMsgType("content") // 输出内容
+	WsMsgTypeEnd     = WsMsgType("end")
+	WsMsgTypeErr     = WsMsgType("error")
+	WsMsgTypePing    = WsMsgType("ping") // 心跳消息
+
+	WsChat = WsChannel("chat")
+	WsMj   = WsChannel("mj")
+	WsSd   = WsChannel("sd")
+	WsDall = WsChannel("dall")
+	WsSuno = WsChannel("suno")
+	WsLuma = WsChannel("luma")
 )
 
 // InputMessage 对话输入消息结构
 type InputMessage struct {
-	Content string `json:"content"`
-	Tools   []int  `json:"tools"`  // 允许调用工具列表
-	Stream  bool   `json:"stream"` // 是否采用流式输出
+	Channel WsChannel `json:"channel"` // 消息频道
+	Type    WsMsgType `json:"type"`    // 消息类别
+	Content string    `json:"content"`
+	Tools   []int     `json:"tools"`  // 允许调用工具列表
+	Stream  bool      `json:"stream"` // 是否采用流式输出
 }
 
 type BizCode int

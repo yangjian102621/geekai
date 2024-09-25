@@ -87,7 +87,7 @@ func (h *MarkMapHandler) Client(c *gin.Context) {
 				logger.Error(err)
 				utils.ReplyErrorMessage(client, err.Error())
 			} else {
-				utils.ReplyMessage(client, types.ReplyMessage{Type: types.WsEnd})
+				utils.SendMessage(client, types.ReplyMessage{Type: types.WsMsgTypeEnd})
 			}
 
 		}
@@ -170,13 +170,13 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 				break
 			}
 
-			utils.ReplyChunkMessage(client, types.ReplyMessage{
-				Type:    types.WsContent,
+			utils.SendChunkMessage(client, types.ReplyMessage{
+				Type:    types.WsMsgTypeContent,
 				Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
 			})
 		} // end for
 
-		utils.ReplyChunkMessage(client, types.ReplyMessage{Type: types.WsEnd})
+		utils.SendChunkMessage(client, types.ReplyMessage{Type: types.WsMsgTypeEnd})
 
 	} else {
 		body, _ := io.ReadAll(response.Body)
