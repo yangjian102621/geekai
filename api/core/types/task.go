@@ -43,12 +43,14 @@ type MjTask struct {
 type SdTask struct {
 	Id         int          `json:"id"` // job 数据库ID
 	Type       TaskType     `json:"type"`
+	ClientId   string       `json:"client_id"`
 	UserId     int          `json:"user_id"`
 	Params     SdTaskParams `json:"params"`
 	RetryCount int          `json:"retry_count"`
 }
 
 type SdTaskParams struct {
+	ClientId     string  `json:"client_id"` // 客户端ID
 	TaskId       string  `json:"task_id"`
 	Prompt       string  `json:"prompt"`     // 提示词
 	NegPrompt    string  `json:"neg_prompt"` // 反向提示词

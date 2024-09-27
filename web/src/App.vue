@@ -71,12 +71,12 @@ const connect = () => {
     handler.value = setInterval(() => {
       _socket.send(JSON.stringify({"type":"ping"}))
     },5000)
+  })
 
-    for (const key in store.messageHandlers) {
-      console.log(key, store.messageHandlers[key])
-      store.setMessageHandler(store.messageHandlers[key])
-    }
-  });
+  for (const key in store.messageHandlers) {
+    console.log(key, store.messageHandlers[key])
+    store.setMessageHandler(store.messageHandlers[key])
+  }
 
   _socket.addEventListener('close', () => {
     store.setSocket(null)
