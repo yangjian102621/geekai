@@ -1,4 +1,4 @@
-package chatimpl
+package handler
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -15,8 +15,6 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
-	"geekai/handler"
-	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -33,14 +31,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 )
 
-var logger = logger2.GetLogger()
-
 type ChatHandler struct {
-	handler.BaseHandler
+	BaseHandler
 	redis          *redis.Client
 	uploadManager  *oss.UploaderManager
 	licenseService *service.LicenseService
@@ -51,7 +46,7 @@ type ChatHandler struct {
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService) *ChatHandler {
 	return &ChatHandler{
-		BaseHandler:    handler.BaseHandler{App: app, DB: db},
+		BaseHandler:    BaseHandler{App: app, DB: db},
 		redis:          redis,
 		uploadManager:  manager,
 		licenseService: licenseService,
@@ -59,106 +54,6 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		ChatContexts:   types.NewLMap[string, []types.Message](),
 		userService:    userService,
 	}
-}
-
-// ChatHandle 处理聊天 WebSocket 请求
-func (h *ChatHandler) ChatHandle(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		return
-	}
-
-	sessionId := c.Query("session_id")
-	roleId := h.GetInt(c, "role_id", 0)
-	chatId := c.Query("chat_id")
-	modelId := h.GetInt(c, "model_id", 0)
-
-	client := types.NewWsClient(ws)
-	var chatRole model.ChatRole
-	res := h.DB.First(&chatRole, roleId)
-	if res.Error != nil || !chatRole.Enable {
-		utils.ReplyErrorMessage(client, "当前聊天角色不存在或者未启用，对话已关闭！！！")
-		c.Abort()
-		return
-	}
-	// if the role bind a model_id, use role's bind model_id
-	if chatRole.ModelId > 0 {
-		modelId = chatRole.ModelId
-	}
-	// get model info
-	var chatModel model.ChatModel
-	res = h.DB.First(&chatModel, modelId)
-	if res.Error != nil || chatModel.Enabled == false {
-		utils.ReplyErrorMessage(client, "当前AI模型暂未启用，对话已关闭！！！")
-		c.Abort()
-		return
-	}
-
-	session := &types.ChatSession{
-		SessionId: sessionId,
-		ClientIP:  c.ClientIP(),
-		UserId:    h.GetLoginUserId(c),
-	}
-
-	// use old chat data override the chat model and role ID
-	var chat model.ChatItem
-	res = h.DB.Where("chat_id = ?", chatId).First(&chat)
-	if res.Error == nil {
-		chatModel.Id = chat.ModelId
-		roleId = int(chat.RoleId)
-	}
-
-	session.ChatId = chatId
-	session.Model = types.ChatModel{
-		Id:          chatModel.Id,
-		Name:        chatModel.Name,
-		Value:       chatModel.Value,
-		Power:       chatModel.Power,
-		MaxTokens:   chatModel.MaxTokens,
-		MaxContext:  chatModel.MaxContext,
-		Temperature: chatModel.Temperature,
-		KeyId:       chatModel.KeyId}
-	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
-
-	go func() {
-		for {
-			_, msg, err := client.Receive()
-			if err != nil {
-				logger.Debugf("close connection: %s", client.Conn.RemoteAddr())
-				client.Close()
-				cancelFunc := h.ReqCancelFunc.Get(sessionId)
-				if cancelFunc != nil {
-					cancelFunc()
-					h.ReqCancelFunc.Delete(sessionId)
-				}
-				return
-			}
-
-			var message types.InputMessage
-			err = utils.JsonDecode(string(msg), &message)
-			if err != nil {
-				continue
-			}
-
-			logger.Infof("Receive a message:%+v", message)
-
-			session.Tools = message.Tools
-			session.Stream = message.Stream
-			ctx, cancel := context.WithCancel(context.Background())
-			h.ReqCancelFunc.Put(sessionId, cancel)
-			// 回复消息
-			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
-			if err != nil {
-				logger.Error(err)
-				utils.SendMessage(client, err.Error())
-			} else {
-				utils.SendChunkMessage(client, types.ReplyMessage{Type: types.WsMsgTypeEnd})
-				logger.Infof("回答完毕: %v", message.Content)
-			}
-
-		}
-	}()
 }
 
 func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
@@ -206,7 +101,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 	// 兼容 GPT-O1 模型
 	if strings.HasPrefix(session.Model.Value, "o1-") {
-		utils.ReplyContent(ws, "AI 正在思考...\n")
+		utils.SendChunkMsg(ws, "AI 正在思考...\n")
 		req.Stream = false
 		session.Start = time.Now().Unix()
 	} else {

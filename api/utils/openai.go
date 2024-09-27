@@ -65,7 +65,7 @@ func OpenAIRequest(db *gorm.DB, prompt string, modelName string) (string, error)
 	}
 	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	logger.Debugf("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, modelName)
-	r, err := client.R().SetHeader("Content-Type", "application/json").
+	r, err := client.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
 			Model:       modelName,

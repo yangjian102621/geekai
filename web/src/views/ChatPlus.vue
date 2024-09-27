@@ -213,7 +213,7 @@
 
 </template>
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {nextTick, onMounted, ref, watch} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
@@ -225,11 +225,10 @@ import {
   UUID
 } from "@/utils/libs";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {getSessionId, getUserToken} from "@/store/session";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
-import {checkSession, getSystemInfo} from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import Welcome from "@/components/Welcome.vue";
 import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
@@ -270,7 +269,6 @@ watch(() => store.chatListStyle, (newValue) => {
 });
 const tools = ref([])
 const toolSelected = ref([])
-const loadHistory = ref(false)
 const stream = ref(store.chatStream)
 
 watch(() => store.chatStream, (newValue) => {
@@ -337,6 +335,13 @@ httpGet("/api/function/list").then(res => {
   showMessageError("获取工具函数失败：" + e.message)
 })
 
+// 创建 socket 连接
+const prompt = ref('');
+const showStopGenerate = ref(false); // 停止生成
+const lineBuffer = ref(''); // 输出缓冲行
+const canSend = ref(true);
+const isNewMsg = ref(true)
+
 onMounted(() => {
   resizeElement();
   initData()
@@ -351,14 +356,73 @@ onMounted(() => {
   })
 
   window.onresize = () => resizeElement();
+  store.addMessageHandler("chat", (data) => {
+    console.log(data)
+    // 丢去非本频道和本客户端的消息
+    if (data.channel !== 'chat' || data.clientId !== getClientId()) {
+      return
+    }
+
+    if (data.type === 'error') {
+      ElMessage.error(data.body)
+      return
+    }
+
+    const chatRole = getRoleById(roleId.value)
+    if (isNewMsg.value && data.type !== 'end') {
+      const prePrompt = chatData.value[chatData.value.length-1]?.content
+      chatData.value.push({
+        type: "reply",
+        id: randString(32),
+        icon: chatRole['icon'],
+        prompt:prePrompt,
+        content: data.body,
+      });
+      isNewMsg.value = false
+      lineBuffer.value = data.body;
+    } else if (data.type === 'end') { // 消息接收完毕
+      // 追加当前会话到会话列表
+      if (newChatItem.value !== null) {
+        newChatItem.value['title'] = tmpChatTitle.value;
+        newChatItem.value['chat_id'] = chatId.value;
+        chatList.value.unshift(newChatItem.value);
+        newChatItem.value = null; // 只追加一次
+      }
+
+      enableInput()
+      lineBuffer.value = ''; // 清空缓冲
+
+      // 获取 token
+      const reply = chatData.value[chatData.value.length - 1]
+      httpPost("/api/chat/tokens", {
+        text: "",
+        model: getModelValue(modelID.value),
+        chat_id: chatId.value,
+      }).then(res => {
+        reply['created_at'] = new Date().getTime();
+        reply['tokens'] = res.data;
+        // 将聊天框的滚动条滑动到最底部
+        nextTick(() => {
+          document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+        })
+      }).catch(() => {
+      })
+      isNewMsg.value = true
+
+    } else if (data.type === 'text') {
+      lineBuffer.value += data.body;
+      const reply = chatData.value[chatData.value.length - 1]
+      if (reply) {
+        reply['content'] = lineBuffer.value;
+      }
+    }
+    // 将聊天框的滚动条滑动到最底部
+    nextTick(() => {
+      document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
+      localStorage.setItem("chat_id", chatId.value)
+    })
+  })
 });
-
-onUnmounted(() => {
-  if (socket.value !== null) {
-    socket.value = null
-  }
-})
-
 // 初始化数据
 const initData = () => {
 
@@ -492,9 +556,8 @@ const newChat = () => {
     removing: false,
   };
   showStopGenerate.value = false;
+  loadChatHistory(chatId.value)
   router.push(`/chat/${chatId.value}`)
-  loadHistory.value = true
-  connect()
 }
 
 // 切换会话
@@ -507,14 +570,12 @@ const loadChat = function (chat) {
   if (chatId.value === chat.chat_id) {
     return;
   }
-
   newChatItem.value = null;
   roleId.value = chat.role_id;
   modelID.value = chat.model_id;
   chatId.value = chat.chat_id;
   showStopGenerate.value = false;
-  loadHistory.value = true
-  connect()
+  loadChatHistory(chatId.value)
   router.replace(`/chat/${chatId.value}`)
 }
 
@@ -587,118 +648,6 @@ const removeChat = function (chat) {
 
 }
 
-// 创建 socket 连接
-const prompt = ref('');
-const showStopGenerate = ref(false); // 停止生成
-const lineBuffer = ref(''); // 输出缓冲行
-const socket = ref(null);
-const canSend = ref(true);
-const sessionId = ref("")
-const isNewMsg = ref(true)
-const connect = function () {
-  const chatRole = getRoleById(roleId.value);
-  // 初始化 WebSocket 对象
-  sessionId.value = getSessionId();
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  loading.value = true
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelID.value}&token=${getUserToken()}`);
-  _socket.addEventListener('open', () => {
-    enableInput()
-    if (loadHistory.value) {
-      loadChatHistory(chatId.value)
-    }
-    loading.value = false
-  });
-
-  _socket.addEventListener('message', event => {
-    try {
-      if (event.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.readAsText(event.data, "UTF-8");
-        reader.onload = () => {
-          const data = JSON.parse(String(reader.result));
-          if (data.type === 'error') {
-            ElMessage.error(data.message)
-            return
-          }
-
-          if (isNewMsg.value && data.type !== 'end') {
-            const prePrompt = chatData.value[chatData.value.length-1]?.content
-            chatData.value.push({
-              type: "reply",
-              id: randString(32),
-              icon: chatRole['icon'],
-              prompt:prePrompt,
-              content: data.content,
-            });
-            isNewMsg.value = false
-            lineBuffer.value = data.content;
-          } else if (data.type === 'end') { // 消息接收完毕
-            // 追加当前会话到会话列表
-            if (newChatItem.value !== null) {
-              newChatItem.value['title'] = tmpChatTitle.value;
-              newChatItem.value['chat_id'] = chatId.value;
-              chatList.value.unshift(newChatItem.value);
-              newChatItem.value = null; // 只追加一次
-            }
-
-            enableInput()
-            lineBuffer.value = ''; // 清空缓冲
-
-            // 获取 token
-            const reply = chatData.value[chatData.value.length - 1]
-            httpPost("/api/chat/tokens", {
-              text: "",
-              model: getModelValue(modelID.value),
-              chat_id: chatId.value,
-            }).then(res => {
-              reply['created_at'] = new Date().getTime();
-              reply['tokens'] = res.data;
-              // 将聊天框的滚动条滑动到最底部
-              nextTick(() => {
-                document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
-              })
-              isNewMsg.value = true
-            }).catch(() => {
-            })
-
-          } else {
-            lineBuffer.value += data.content;
-            const reply = chatData.value[chatData.value.length - 1]
-            if (reply) {
-              reply['content'] = lineBuffer.value;
-            }
-          }
-          // 将聊天框的滚动条滑动到最底部
-          nextTick(() => {
-            document.getElementById('chat-box').scrollTo(0, document.getElementById('chat-box').scrollHeight)
-            localStorage.setItem("chat_id", chatId.value)
-          })
-        };
-      }
-    } catch (e) {
-      console.warn(e)
-    }
-
-  });
-
-  _socket.addEventListener('close', () => {
-    disableInput(true)
-    loadHistory.value = false
-    connect()
-  });
-
-  socket.value = _socket;
-}
-
 const disableInput = (force) => {
   canSend.value = false;
   showStopGenerate.value = !force;
@@ -747,6 +696,11 @@ const sendMessage = function () {
     return;
   }
 
+  if (store.socket.readyState !== WebSocket.OPEN) {
+    ElMessage.warning("连接断开，正在重连...");
+    return
+  }
+
   if (canSend.value === false) {
     ElMessage.warning("AI 正在作答中，请稍后...");
     return
@@ -780,7 +734,18 @@ const sendMessage = function () {
 
   showHello.value = false
   disableInput(false)
-  socket.value.send(JSON.stringify({tools: toolSelected.value, content: content, stream: stream.value}));
+  store.socket.send(JSON.stringify({
+    channel: 'chat',
+    type:'text',
+    body:{
+      role_id: roleId.value,
+      model_id: modelID.value,
+      chat_id: chatId.value,
+      content: content,
+      tools:toolSelected.value,
+      stream: stream.value
+    }
+  }));
   tmpChatTitle.value = content
   prompt.value = ''
   files.value = []
@@ -849,7 +814,7 @@ const loadChatHistory = function (chatId) {
 
 const stopGenerate = function () {
   showStopGenerate.value = false;
-  httpGet("/api/chat/stop?session_id=" + sessionId.value).then(() => {
+  httpGet("/api/chat/stop?session_id=" + getClientId()).then(() => {
     enableInput()
   })
 }
@@ -865,7 +830,18 @@ const reGenerate = function (prompt) {
     icon: loginUser.value.avatar,
     content: text
   });
-  socket.value.send(JSON.stringify({tools: toolSelected.value, content: text, stream: stream.value}));
+  store.socket.send(JSON.stringify({
+    channel: 'chat',
+    type:'text',
+    body:{
+      role_id: roleId.value,
+      model_id: modelID.value,
+      chat_id: chatId.value,
+      content: text,
+      tools:toolSelected.value,
+      stream: stream.value
+    }
+  }));
 }
 
 const chatName = ref('')

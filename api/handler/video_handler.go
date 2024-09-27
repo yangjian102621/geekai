@@ -19,9 +19,7 @@ import (
 	"geekai/utils"
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
-	"net/http"
 	"time"
 )
 
@@ -42,27 +40,6 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, u
 		uploader:     uploader,
 		userService:  userService,
 	}
-}
-
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *VideoHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		c.Abort()
-		return
-	}
-
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		logger.Info("Invalid user ID")
-		c.Abort()
-		return
-	}
-
-	client := types.NewWsClient(ws)
-	h.videoService.Clients.Put(uint(userId), client)
-	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
 func (h *VideoHandler) LumaCreate(c *gin.Context) {

@@ -19,35 +19,44 @@ type BizVo struct {
 
 // ReplyMessage 对话回复消息结构
 type ReplyMessage struct {
-	Channel WsChannel   `json:"channel"` // 消息频道，目前只有 chat
-	Type    WsMsgType   `json:"type"`    // 消息类别
-	Content interface{} `json:"content"`
+	Channel  WsChannel   `json:"channel"`  // 消息频道，目前只有 chat
+	ClientId string      `json:"clientId"` // 客户端ID
+	Type     WsMsgType   `json:"type"`     // 消息类别
+	Body     interface{} `json:"body"`
 }
 
 type WsMsgType string
 type WsChannel string
 
 const (
-	WsMsgTypeContent = WsMsgType("content") // 输出内容
-	WsMsgTypeEnd     = WsMsgType("end")
-	WsMsgTypeErr     = WsMsgType("error")
-	WsMsgTypePing    = WsMsgType("ping") // 心跳消息
+	MsgTypeText = WsMsgType("text") // 输出内容
+	MsgTypeEnd  = WsMsgType("end")
+	MsgTypeErr  = WsMsgType("error")
+	MsgTypePing = WsMsgType("ping") // 心跳消息
 
-	WsChat = WsChannel("chat")
-	WsMj   = WsChannel("mj")
-	WsSd   = WsChannel("sd")
-	WsDall = WsChannel("dall")
-	WsSuno = WsChannel("suno")
-	WsLuma = WsChannel("luma")
+	ChPing = WsChannel("ping")
+	ChChat = WsChannel("chat")
+	ChMj   = WsChannel("mj")
+	ChSd   = WsChannel("sd")
+	ChDall = WsChannel("dall")
+	ChSuno = WsChannel("suno")
+	ChLuma = WsChannel("luma")
 )
 
 // InputMessage 对话输入消息结构
 type InputMessage struct {
-	Channel WsChannel `json:"channel"` // 消息频道
-	Type    WsMsgType `json:"type"`    // 消息类别
-	Content string    `json:"content"`
-	Tools   []int     `json:"tools"`  // 允许调用工具列表
-	Stream  bool      `json:"stream"` // 是否采用流式输出
+	Channel WsChannel   `json:"channel"` // 消息频道
+	Type    WsMsgType   `json:"type"`    // 消息类别
+	Body    interface{} `json:"body"`
+}
+
+type ChatMessage struct {
+	Tools   []int  `json:"tools,omitempty"`  // 允许调用工具列表
+	Stream  bool   `json:"stream,omitempty"` // 是否采用流式输出
+	RoleId  int    `json:"role_id"`
+	ModelId int    `json:"model_id"`
+	ChatId  string `json:"chat_id"`
+	Content string `json:"content"`
 }
 
 type BizCode int

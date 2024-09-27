@@ -17,7 +17,6 @@ axios.defaults.headers.post['Content-Type'] = 'application/json'
 axios.interceptors.request.use(
     config => {
         // set token
-        config.headers['Chat-Token'] = getSessionId();
         config.headers['Authorization'] = getUserToken();
         config.headers['Admin-Authorization'] = getAdminToken();
         return config

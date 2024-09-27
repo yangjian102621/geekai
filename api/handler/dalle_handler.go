@@ -20,9 +20,7 @@ import (
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type DallJobHandler struct {
@@ -43,49 +41,6 @@ func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service,
 			DB:  db,
 		},
 	}
-}
-
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *DallJobHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		c.Abort()
-		return
-	}
-
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		logger.Info("Invalid user ID")
-		c.Abort()
-		return
-	}
-
-	client := types.NewWsClient(ws)
-	h.dallService.Clients.Put(uint(userId), client)
-	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
-	go func() {
-		for {
-			_, msg, err := client.Receive()
-			if err != nil {
-				client.Close()
-				h.dallService.Clients.Delete(uint(userId))
-				return
-			}
-
-			var message types.ReplyMessage
-			err = utils.JsonDecode(string(msg), &message)
-			if err != nil {
-				continue
-			}
-
-			// 心跳消息
-			if message.Type == "heartbeat" {
-				logger.Debug("收到 DallE 心跳消息：", message.Content)
-				continue
-			}
-		}
-	}()
 }
 
 func (h *DallJobHandler) preCheck(c *gin.Context) bool {
