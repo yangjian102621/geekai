@@ -144,16 +144,12 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	h.sdService.PushTask(types.SdTask{
-		Id:     int(job.Id),
-		Type:   types.TaskImage,
-		Params: params,
-		UserId: userId,
+		Id:       int(job.Id),
+		ClientId: data.ClientId,
+		Type:     types.TaskImage,
+		Params:   params,
+		UserId:   userId,
 	})
-
-	client := h.sdService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
