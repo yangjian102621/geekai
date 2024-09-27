@@ -19,7 +19,7 @@ func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.GeekP
 }
 
 func (h *TestHandler) SseTest(c *gin.Context) {
-	//c.Header("Content-Type", "text/event-stream")
+	//c.Header("Body-Type", "text/event-stream")
 	//c.Header("Cache-Control", "no-cache")
 	//c.Header("Connection", "keep-alive")
 	//

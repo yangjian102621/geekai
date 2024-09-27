@@ -1,4 +1,4 @@
-package chatimpl
+package handler
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -28,31 +28,40 @@ func (h *ChatHandler) List(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	var items = make([]vo.ChatItem, 0)
 	var chats []model.ChatItem
-	res := h.DB.Where("user_id = ?", userId).Order("id DESC").Find(&chats)
-	if res.Error == nil {
-		var roleIds = make([]uint, 0)
-		for _, chat := range chats {
-			roleIds = append(roleIds, chat.RoleId)
-		}
-		var roles []model.ChatRole
-		res = h.DB.Find(&roles, roleIds)
-		if res.Error == nil {
-			roleMap := make(map[uint]model.ChatRole)
-			for _, role := range roles {
-				roleMap[role.Id] = role
-			}
+	h.DB.Where("user_id", userId).Order("id DESC").Find(&chats)
+	if len(chats) == 0 {
+		resp.SUCCESS(c, items)
+		return
+	}
 
-			for _, chat := range chats {
-				var item vo.ChatItem
-				err := utils.CopyObject(chat, &item)
-				if err == nil {
-					item.Id = chat.Id
-					item.Icon = roleMap[chat.RoleId].Icon
-					items = append(items, item)
-				}
-			}
-		}
+	var roleIds = make([]uint, 0)
+	var modelValues = make([]string, 0)
+	for _, chat := range chats {
+		roleIds = append(roleIds, chat.RoleId)
+		modelValues = append(modelValues, chat.Model)
+	}
 
+	var roles []model.ChatRole
+	var models []model.ChatModel
+	roleMap := make(map[uint]model.ChatRole)
+	modelMap := make(map[string]model.ChatModel)
+	h.DB.Where("id IN ?", roleIds).Find(&roles)
+	h.DB.Where("value IN ?", modelValues).Find(&models)
+	for _, role := range roles {
+		roleMap[role.Id] = role
+	}
+	for _, m := range models {
+		modelMap[m.Value] = m
+	}
+	for _, chat := range chats {
+		var item vo.ChatItem
+		err := utils.CopyObject(chat, &item)
+		if err == nil {
+			item.Id = chat.Id
+			item.Icon = roleMap[chat.RoleId].Icon
+			item.ModelId = modelMap[chat.Model].Id
+			items = append(items, item)
+		}
 	}
 	resp.SUCCESS(c, items)
 }

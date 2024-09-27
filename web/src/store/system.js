@@ -6,7 +6,6 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import Storage from "good-storage";
-import {useRouter} from "vue-router";
 
 const MOBILE_THEME = process.env.VUE_APP_KEY_PREFIX + "MOBILE_THEME"
 const ADMIN_THEME = process.env.VUE_APP_KEY_PREFIX + "ADMIN_THEME"

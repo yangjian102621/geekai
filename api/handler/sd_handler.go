@@ -19,10 +19,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"net/http"
 	"time"
-
-	"github.com/gorilla/websocket"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -57,27 +54,6 @@ func NewSdJobHandler(app *core.AppServer,
 			DB:  db,
 		},
 	}
-}
-
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *SdJobHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		c.Abort()
-		return
-	}
-
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		logger.Info("Invalid user ID")
-		c.Abort()
-		return
-	}
-
-	client := types.NewWsClient(ws)
-	h.sdService.Clients.Put(uint(userId), client)
-	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
 func (h *SdJobHandler) preCheck(c *gin.Context) bool {

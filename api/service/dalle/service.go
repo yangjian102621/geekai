@@ -158,7 +158,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		Quality: task.Quality,
 	}
 	logger.Infof("Channel:%s, API KEY:%s, BODY: %+v", apiURL, apiKey.Value, reqBody)
-	r, err := s.httpClient.R().SetHeader("Content-Type", "application/json").
+	r, err := s.httpClient.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(reqBody).
 		SetErrorResult(&errRes).

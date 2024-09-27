@@ -19,8 +19,9 @@ import (
 
 var logger = logger2.GetLogger()
 
-// SendChunkMessage 回复客户片段端消息
-func SendChunkMessage(client *types.WsClient, message interface{}) {
+// SendMsg 回复客户片段端消息
+func SendMsg(client *types.WsClient, message types.ReplyMessage) {
+	message.ClientId = client.Id
 	msg, err := json.Marshal(message)
 	if err != nil {
 		logger.Errorf("Error for decoding json data: %v", err.Error())
@@ -32,19 +33,23 @@ func SendChunkMessage(client *types.WsClient, message interface{}) {
 	}
 }
 
-// SendMessage 回复客户端一条完整的消息
-func SendMessage(ws *types.WsClient, message interface{}) {
-	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeContent, Content: message})
-	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeEnd})
+// SendAndFlush 回复客户端一条完整的消息
+func SendAndFlush(ws *types.WsClient, message interface{}) {
+	SendMsg(ws, types.ReplyMessage{Channel: types.ChChat, Type: types.MsgTypeText, Body: message})
+	SendMsg(ws, types.ReplyMessage{Channel: types.ChChat, Type: types.MsgTypeEnd})
 }
 
-func ReplyContent(ws *types.WsClient, message interface{}) {
-	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeContent, Content: message})
+func SendChunkMsg(ws *types.WsClient, message interface{}) {
+	SendMsg(ws, types.ReplyMessage{Channel: types.ChChat, Type: types.MsgTypeText, Body: message})
 }
 
-// ReplyErrorMessage 向客户端发送错误消息
-func ReplyErrorMessage(ws *types.WsClient, message interface{}) {
-	SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeErr, Content: message})
+// SendErrMsg 向客户端发送错误消息
+func SendErrMsg(ws *types.WsClient, message interface{}) {
+	SendMsg(ws, types.ReplyMessage{Channel: types.ChChat, Type: types.MsgTypeErr, Body: message})
+}
+
+func SendChannelMsg(ws *types.WsClient, channel types.WsChannel, message interface{}) {
+	SendMsg(ws, types.ReplyMessage{Channel: channel, Type: types.MsgTypeText, Body: message})
 }
 
 func DownloadImage(imageURL string, proxy string) ([]byte, error) {
@@ -68,7 +73,9 @@ func DownloadImage(imageURL string, proxy string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	imageBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

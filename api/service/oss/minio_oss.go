@@ -89,7 +89,7 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	fileExt := utils.GetImgExt(file.Filename)
 	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(ctx, s.config.Bucket, filename, fileReader, file.Size, minio.PutObjectOptions{
-		ContentType: file.Header.Get("Content-Type"),
+		ContentType: file.Header.Get("Body-Type"),
 	})
 	if err != nil {
 		return File{}, fmt.Errorf("error uploading to MinIO: %v", err)

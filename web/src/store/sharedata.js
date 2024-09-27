@@ -6,6 +6,8 @@ export const useSharedStore = defineStore('shared', {
         showLoginDialog: false,
         chatListStyle: Storage.get("chat_list_style","chat"),
         chatStream: Storage.get("chat_stream",true),
+        socket: WebSocket,
+        messageHandlers:{},
     }),
     getters: {},
     actions: {
@@ -19,6 +21,36 @@ export const useSharedStore = defineStore('shared', {
         setChatStream(value) {
             this.chatStream = value;
             Storage.set("chat_stream", value);
+        },
+        setSocket(value) {
+            this.socket = value;
+        },
+        addMessageHandler(key, callback) {
+            if (!this.messageHandlers[key]) {
+                this.messageHandlers[key] = callback;
+                this.setMessageHandler(callback)
+            }
+        },
+        setMessageHandler(callback) {
+            if (this.socket instanceof WebSocket && this.socket.readyState === WebSocket.OPEN) {
+                this.socket.addEventListener('message', (event) => {
+                    try {
+                        if (event.data instanceof Blob) {
+                            const reader = new FileReader();
+                            reader.readAsText(event.data, "UTF-8");
+                            reader.onload = () => {
+                                callback(JSON.parse(String(reader.result)))
+                            }
+                        }
+                    } catch (e) {
+                        console.warn(e)
+                    }
+                })
+            } else {
+                setTimeout(() => {
+                    this.setMessageHandler(callback)
+                }, 1000)
+            }
         }
     }
 });

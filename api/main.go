@@ -14,7 +14,6 @@ import (
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/handler/admin"
-	"geekai/handler/chatimpl"
 	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/dalle"
@@ -128,7 +127,7 @@ func main() {
 		// 创建控制器
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
-		fx.Provide(chatimpl.NewChatHandler),
+		fx.Provide(handler.NewChatHandler),
 		fx.Provide(handler.NewNetHandler),
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRedeemHandler),
@@ -246,9 +245,8 @@ func main() {
 			group.GET("clogin", h.CLogin)
 			group.GET("clogin/callback", h.CLoginCallback)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *chatimpl.ChatHandler) {
+		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")
-			group.Any("new", h.ChatHandle)
 			group.GET("list", h.List)
 			group.GET("detail", h.Detail)
 			group.POST("update", h.Update)
@@ -281,7 +279,6 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
 			group := s.Engine.Group("/api/mj/")
-			group.Any("client", h.Client)
 			group.POST("image", h.Image)
 			group.POST("upscale", h.Upscale)
 			group.POST("variation", h.Variation)
@@ -292,7 +289,6 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
-			group.Any("client", h.Client)
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.GET("imgWall", h.ImgWall)
@@ -467,13 +463,11 @@ func main() {
 		}),
 		fx.Provide(handler.NewMarkMapHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
-			group := s.Engine.Group("/api/markMap/")
-			group.Any("client", h.Client)
+			s.Engine.POST("/api/markMap/gen", h.Generate)
 		}),
 		fx.Provide(handler.NewDallJobHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.DallJobHandler) {
 			group := s.Engine.Group("/api/dall")
-			group.Any("client", h.Client)
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.GET("imgWall", h.ImgWall)
@@ -483,7 +477,6 @@ func main() {
 		fx.Provide(handler.NewSunoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.SunoHandler) {
 			group := s.Engine.Group("/api/suno")
-			group.Any("client", h.Client)
 			group.POST("create", h.Create)
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
@@ -496,7 +489,6 @@ func main() {
 		fx.Provide(handler.NewVideoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
 			group := s.Engine.Group("/api/video")
-			group.Any("client", h.Client)
 			group.POST("luma/create", h.LumaCreate)
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
@@ -520,6 +512,11 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
 			group := s.Engine.Group("/api/test")
 			group.Any("sse", h.PostTest, h.SseTest)
+		}),
+		fx.Provide(service.NewWebsocketService),
+		fx.Provide(handler.NewWebsocketHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.WebsocketHandler) {
+			s.Engine.Any("/api/ws", h.Client)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

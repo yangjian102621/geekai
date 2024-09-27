@@ -1,4 +1,4 @@
-package chatimpl
+package handler
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -108,7 +108,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 
 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
-				utils.SendMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
+				utils.SendChunkMsg(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
 			}
 
@@ -136,7 +136,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				if res.Error == nil {
 					toolCall = true
 					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
-					utils.SendChunkMessage(ws, types.ReplyMessage{Type: types.WsMsgTypeContent, Content: callMsg})
+					utils.SendChunkMsg(ws, callMsg)
 					contents = append(contents, callMsg)
 				}
 				continue
@@ -153,10 +153,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			} else {
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
-				utils.SendChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsMsgTypeContent,
-					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
-				})
+				utils.SendChunkMsg(ws, responseBody.Choices[0].Delta.Content)
 			}
 		} // end for
 
@@ -174,7 +171,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			logger.Debugf("函数名称: %s, 函数参数：%s", function.Name, params)
 			params["user_id"] = userVo.Id
 			var apiRes types.BizVo
-			r, err := req2.C().R().SetHeader("Content-Type", "application/json").
+			r, err := req2.C().R().SetHeader("Body-Type", "application/json").
 				SetHeader("Authorization", function.Token).
 				SetBody(params).
 				SetSuccessResult(&apiRes).Post(function.Action)
@@ -185,19 +182,13 @@ func (h *ChatHandler) sendOpenAiMessage(
 				errMsg = r.Status
 			}
 			if errMsg != "" || apiRes.Code != types.Success {
-				msg := "调用函数工具出错：" + apiRes.Message + errMsg
-				utils.SendChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsMsgTypeContent,
-					Content: msg,
-				})
-				contents = append(contents, msg)
+				errMsg = "调用函数工具出错：" + apiRes.Message + errMsg
+				contents = append(contents, errMsg)
 			} else {
-				utils.SendChunkMessage(ws, types.ReplyMessage{
-					Type:    types.WsMsgTypeContent,
-					Content: apiRes.Data,
-				})
-				contents = append(contents, utils.InterfaceToString(apiRes.Data))
+				errMsg = utils.InterfaceToString(apiRes.Data)
+				contents = append(contents, errMsg)
 			}
+			utils.SendChunkMsg(ws, errMsg)
 		}
 
 		// 消息发送成功
@@ -226,7 +217,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		if strings.HasPrefix(req.Model, "o1-") {
 			content = fmt.Sprintf("AI思考结束，耗时：%d 秒。\n%s", time.Now().Unix()-session.Start, respVo.Choices[0].Message.Content)
 		}
-		utils.SendMessage(ws, content)
+		utils.SendChunkMsg(ws, content)
 		respVo.Usage.Prompt = prompt
 		respVo.Usage.Content = content
 		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, chatCtx, session, role, userVo, promptCreatedAt, time.Now())

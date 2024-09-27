@@ -6,10 +6,13 @@
 
 <script setup>
 import {ElConfigProvider} from 'element-plus';
-import {onMounted} from "vue";
-import {getSystemInfo} from "@/store/cache";
+import {onMounted, ref} from "vue";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import {isChrome, isMobile} from "@/utils/libs";
 import {showMessageInfo} from "@/utils/dialog";
+import {useSharedStore} from "@/store/sharedata";
+import {getUserToken} from "@/store/session";
+import {clear} from "core-js/internals/task";
 
 const debounce = (fn, delay) => {
   let timer
@@ -32,6 +35,7 @@ window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
 }
 
 onMounted(() => {
+  // 获取系统参数
   getSystemInfo().then((res) => {
     const link = document.createElement('link')
     link.rel = 'shortcut icon'
@@ -39,9 +43,50 @@ onMounted(() => {
     document.head.appendChild(link)
   })
   if (!isChrome() && !isMobile()) {
-    showMessageInfo("检测到您使用的浏览器不是 Chrome，可能会导致部分功能无法正常使用，建议使用 Chrome 浏览器。")
+    showMessageInfo("建议使用 Chrome 浏览器以获得最佳体验。")
   }
+
+  checkSession().then(() => {
+    connect()
+  }).catch(()=>{})
 })
+
+const store = useSharedStore()
+const handler = ref(0)
+
+// 初始化 websocket 连接
+const connect = () => {
+  let host = process.env.VUE_APP_WS_HOST
+  if (host === '') {
+    if (location.protocol === 'https:') {
+      host = 'wss://' + location.host;
+    } else {
+      host = 'ws://' + location.host;
+    }
+  }
+  const clientId = getClientId()
+  const _socket = new WebSocket(host + `/api/ws?client_id=${clientId}&token=${getUserToken()}`);
+  _socket.addEventListener('open', () => {
+    console.log('WebSocket 已连接')
+    handler.value = setInterval(() => {
+      _socket.send(JSON.stringify({"type":"ping"}))
+    },5000)
+
+    for (const key in store.messageHandlers) {
+      console.log(key, store.messageHandlers[key])
+      store.setMessageHandler(store.messageHandlers[key])
+    }
+  });
+
+  _socket.addEventListener('close', () => {
+    store.setSocket(null)
+    clearInterval(handler.value)
+    connect()
+  });
+
+  store.setSocket(_socket)
+}
+
 </script>
 
 
