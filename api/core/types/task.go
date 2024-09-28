@@ -24,8 +24,9 @@ const (
 
 // MjTask MidJourney 任务
 type MjTask struct {
-	Id          uint     `json:"id"`
-	TaskId      string   `json:"task_id"`
+	Id          uint     `json:"id"`      // 任务ID
+	TaskId      string   `json:"task_id"` // 中转任务ID
+	ClientId    string   `json:"client_id"`
 	ImgArr      []string `json:"img_arr"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`

@@ -357,7 +357,6 @@ onMounted(() => {
 
   window.onresize = () => resizeElement();
   store.addMessageHandler("chat", (data) => {
-    console.log(data)
     // 丢去非本频道和本客户端的消息
     if (data.channel !== 'chat' || data.clientId !== getClientId()) {
       return
@@ -472,8 +471,6 @@ const initData = () => {
     for (let item of items) {
       if (item.kind === 'file') {
         const file = item.getAsFile();
-        fileFound = true;
-
         const formData = new FormData();
         formData.append('file', file);
         loading.value = true
@@ -489,10 +486,6 @@ const initData = () => {
 
         break;
       }
-    }
-    
-    if (!fileFound) {
-      document.getElementById('status').innerText = 'No file found in paste data.';
     }
   });
 }
