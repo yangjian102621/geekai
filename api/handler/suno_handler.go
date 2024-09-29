@@ -45,6 +45,7 @@ func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, upl
 func (h *SunoHandler) Create(c *gin.Context) {
 
 	var data struct {
+		ClientId     string `json:"client_id"`
 		Prompt       string `json:"prompt"`
 		Instrumental bool   `json:"instrumental"`
 		Lyrics       string `json:"lyrics"`
@@ -115,6 +116,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 
 	// 创建任务
 	h.sunoService.PushTask(types.SunoTask{
+		ClientId:     data.ClientId,
 		Id:           job.Id,
 		UserId:       job.UserId,
 		Type:         job.Type,
@@ -141,10 +143,6 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		return
 	}
 
-	client := h.sunoService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 	resp.SUCCESS(c)
 }
 
@@ -365,7 +363,7 @@ func (h *SunoHandler) Lyric(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(genLyricTemplate, data.Prompt), "gpt-4o-mini")
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(genLyricTemplate, data.Prompt), "gpt-4o-mini", 0)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

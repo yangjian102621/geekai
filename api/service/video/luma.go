@@ -34,17 +34,19 @@ type Service struct {
 	uploadManager *oss.UploaderManager
 	taskQueue     *store.RedisQueue
 	notifyQueue   *store.RedisQueue
-	Clients       *types.LMap[uint, *types.WsClient] // UserId => Client
+	wsService     *service.WebsocketService
+	clientIds     map[uint]string
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService) *Service {
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
 		taskQueue:     store.NewRedisQueue("Video_Task_Queue", redisCli),
 		notifyQueue:   store.NewRedisQueue("Video_Notify_Queue", redisCli),
-		Clients:       types.NewLMap[uint, *types.WsClient](),
+		wsService:     wsService,
 		uploadManager: manager,
+		clientIds:     map[uint]string{},
 	}
 }
 
@@ -85,12 +87,16 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini")
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini", 0)
 				if err == nil {
 					task.Prompt = content
 				} else {
 					logger.Warnf("error with translate prompt: %v", err)
 				}
+			}
+
+			if task.ClientId != "" {
+				s.clientIds[task.Id] = task.ClientId
 			}
 
 			var r LumaRespVo
@@ -105,7 +111,7 @@ func (s *Service) Run() {
 				if err != nil {
 					logger.Errorf("update task with error: %v", err)
 				}
-				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
 				continue
 			}
 
@@ -190,14 +196,12 @@ func (s *Service) CheckTaskNotify() {
 			if err != nil {
 				continue
 			}
-			client := s.Clients.Get(uint(message.UserId))
+			logger.Debugf("Receive notify message: %+v", message)
+			client := s.wsService.Clients.Get(message.ClientId)
 			if client == nil {
 				continue
 			}
-			err = client.Send([]byte(message.Message))
-			if err != nil {
-				continue
-			}
+			utils.SendChannelMsg(client, types.ChLuma, message.Message)
 		}
 	}()
 }
@@ -237,7 +241,7 @@ func (s *Service) DownloadFiles() {
 				v.VideoURL = videoURL
 				v.Progress = 100
 				s.db.Updates(&v)
-				s.notifyQueue.RPush(service.NotifyMessage{UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[v.Id], UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished})
 			}
 
 			time.Sleep(time.Second * 10)

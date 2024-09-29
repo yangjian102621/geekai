@@ -77,7 +77,7 @@ func (h *WebsocketHandler) Client(c *gin.Context) {
 				continue
 			}
 
-			logger.Infof("Receive a message:%+v", message)
+			logger.Debugf("Receive a message:%+v", message)
 			if message.Type == types.MsgTypePing {
 				utils.SendChannelMsg(client, types.ChPing, "pong")
 				continue
