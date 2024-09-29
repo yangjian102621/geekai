@@ -72,18 +72,20 @@ type SdTaskParams struct {
 
 // DallTask DALL-E task
 type DallTask struct {
-	JobId   uint   `json:"job_id"`
-	UserId  uint   `json:"user_id"`
-	Prompt  string `json:"prompt"`
-	N       int    `json:"n"`
-	Quality string `json:"quality"`
-	Size    string `json:"size"`
-	Style   string `json:"style"`
+	ClientId string `json:"client_id"`
+	JobId    uint   `json:"job_id"`
+	UserId   uint   `json:"user_id"`
+	Prompt   string `json:"prompt"`
+	N        int    `json:"n"`
+	Quality  string `json:"quality"`
+	Size     string `json:"size"`
+	Style    string `json:"style"`
 
 	Power int `json:"power"`
 }
 
 type SunoTask struct {
+	ClientId     string `json:"client_id"`
 	Id           uint   `json:"id"`
 	Channel      string `json:"channel"`
 	UserId       int    `json:"user_id"`
@@ -107,13 +109,14 @@ const (
 )
 
 type VideoTask struct {
-	Id      uint        `json:"id"`
-	Channel string      `json:"channel"`
-	UserId  int         `json:"user_id"`
-	Type    string      `json:"type"`
-	TaskId  string      `json:"task_id"`
-	Prompt  string      `json:"prompt"` // 提示词
-	Params  VideoParams `json:"params"`
+	ClientId string      `json:"client_id"`
+	Id       uint        `json:"id"`
+	Channel  string      `json:"channel"`
+	UserId   int         `json:"user_id"`
+	Type     string      `json:"type"`
+	TaskId   string      `json:"task_id"`
+	Prompt   string      `json:"prompt"` // 提示词
+	Params   VideoParams `json:"params"`
 }
 
 type VideoParams struct {

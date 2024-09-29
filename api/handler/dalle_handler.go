@@ -84,19 +84,15 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	}
 
 	h.dallService.PushTask(types.DallTask{
-		JobId:   job.Id,
-		UserId:  uint(userId),
-		Prompt:  data.Prompt,
-		Quality: data.Quality,
-		Size:    data.Size,
-		Style:   data.Style,
-		Power:   job.Power,
+		ClientId: data.ClientId,
+		JobId:    job.Id,
+		UserId:   uint(userId),
+		Prompt:   data.Prompt,
+		Quality:  data.Quality,
+		Size:     data.Size,
+		Style:    data.Style,
+		Power:    job.Power,
 	})
-
-	client := h.dallService.Clients.Get(job.UserId)
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 	resp.SUCCESS(c)
 }
 

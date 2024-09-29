@@ -300,13 +300,14 @@ import MusicPlayer from "@/components/MusicPlayer.vue";
 import {compact} from "lodash";
 import {httpDownload, httpGet, httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
-import {checkSession} from "@/store/cache";
+import {checkSession, getClientId} from "@/store/cache";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {formatTime, replaceImg} from "@/utils/libs";
 import Clipboard from "clipboard";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
 import Generating from "@/components/ui/Generating.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
@@ -333,6 +334,7 @@ const tags = ref([
   {label: "嘻哈", value: "hip hop"},
 ])
 const data = ref({
+  client_id: getClientId(),
   model: "chirp-v3-0",
   tags: "",
   lyrics: "",
@@ -354,45 +356,7 @@ const refSong = ref(null)
 const showDialog = ref(false)
 const editData = ref({title:"",cover:"",id:0})
 const promptPlaceholder = ref('请在这里输入你自己写的歌词...')
-
-const socket = ref(null)
-const userId = ref(0)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  const _socket = new WebSocket(host + `/api/suno/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        console.log(message)
-        if (message === "FINISH" || message === "FAIL") {
-          fetchData()
-        }
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  });
-}
-
+const store = useSharedStore()
 const clipboard = ref(null)
 onMounted(() => {
   clipboard.value = new Clipboard('.copy-link');
@@ -405,10 +369,19 @@ onMounted(() => {
   })
 
   checkSession().then(user => {
-    userId.value = user.id
-    connect()
+    fetchData(1)
   })
-  fetchData(1)
+
+  store.addMessageHandler("suno",(data) => {
+    // 丢弃无关消息
+    if (data.channel !== "suno" || data.clientId !== getClientId()) {
+      return
+    }
+
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      fetchData(1)
+    }
+  })
 })
 
 onUnmounted(() => {

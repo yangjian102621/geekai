@@ -45,6 +45,7 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, u
 func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	var data struct {
+		ClientId      string `json:"client_id"`
 		Prompt        string `json:"prompt"`
 		FirstFrameImg string `json:"first_frame_img,omitempty"`
 		EndFrameImg   string `json:"end_frame_img,omitempty"`
@@ -95,11 +96,12 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	// 创建任务
 	h.videoService.PushTask(types.VideoTask{
-		Id:     job.Id,
-		UserId: userId,
-		Type:   types.VideoLuma,
-		Prompt: data.Prompt,
-		Params: params,
+		ClientId: data.ClientId,
+		Id:       job.Id,
+		UserId:   userId,
+		Type:     types.VideoLuma,
+		Prompt:   data.Prompt,
+		Params:   params,
 	})
 
 	// update user's power
@@ -111,11 +113,6 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
-	}
-
-	client := h.videoService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
 	}
 	resp.SUCCESS(c)
 }
@@ -175,7 +172,7 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		return
 	}
 	// 只有失败或者超时的任务才能删除
-	if job.Progress != service.FailTaskProgress || time.Now().Before(job.CreatedAt.Add(time.Minute*30)) {
+	if !(job.Progress == service.FailTaskProgress || time.Now().After(job.CreatedAt.Add(time.Minute*30))) {
 		resp.ERROR(c, "只有失败和超时(30分钟)的任务才能删除！")
 		return
 	}

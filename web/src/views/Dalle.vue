@@ -208,7 +208,7 @@ import {Delete, InfoFilled, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession, getSystemInfo} from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
@@ -240,6 +240,7 @@ const styles = [
   {name: "自然", value: "natural"}
 ]
 const params = ref({
+  client_id: getClientId(),
   quality: "standard",
   size: "1024x1024",
   style: "vivid",
@@ -268,14 +269,24 @@ onMounted(() => {
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
+
+  store.addMessageHandler("dall",(data) => {
+    // 丢弃无关消息
+    if (data.channel !== "dall" || data.clientId !== getClientId()) {
+      return
+    }
+
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      page.value = 0
+      isOver.value = false
+      fetchFinishJobs()
+    }
+    nextTick(() => fetchRunningJobs())
+  })
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  if (socket.value !== null) {
-    socket.value.close()
-    socket.value = null
-  }
 })
 
 const initData = () => {
@@ -287,49 +298,8 @@ const initData = () => {
     page.value = 0
     fetchRunningJobs()
     fetchFinishJobs()
-    connect()
   }).catch(() => {
   });
-}
-
-const socket = ref(null)
-const heartbeatHandle = ref(null)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  const _socket = new WebSocket(host + `/api/dall/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        if (message === "FINISH" || message === "FAIL") {
-          page.value = 0
-          isOver.value = false
-          fetchFinishJobs(page.value)
-        }
-        nextTick(() => fetchRunningJobs())
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  })
 }
 
 const fetchRunningJobs = () => {
@@ -391,6 +361,7 @@ const generate = () => {
   httpPost("/api/dall/image", params.value).then(() => {
     ElMessage.success("任务执行成功！")
     power.value -= dallPower.value
+    fetchRunningJobs()
   }).catch(e => {
     ElMessage.error("任务执行失败：" + e.message)
   })
