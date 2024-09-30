@@ -6,8 +6,13 @@
 
 <script setup>
 import {useRouter} from "vue-router";
+import {isMobile} from "@/utils/libs";
 
 const router = useRouter()
 console.log(router.currentRoute.value.query)
-window.close()
+if (isMobile()) {
+  router.push('/mobile/profile')
+} else {
+  window.close()
+}
 </script>
