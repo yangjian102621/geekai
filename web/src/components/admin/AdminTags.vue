@@ -38,17 +38,14 @@ import {onBeforeRouteUpdate, useRoute, useRouter} from 'vue-router';
 import {ArrowDown, Close} from "@element-plus/icons-vue";
 import {checkAdminSession} from "@/store/cache";
 import {ElMessageBox} from "element-plus";
-import {computed} from "vue";
+import {useSharedStore} from "@/store/sharedata";
+import {ref, watch} from "vue";
 
-// eslint-disable-next-line no-undef
-const props = defineProps({
-  theme: String,
-});
-
-const theme = computed(() => {
-  return props.theme
+const store = useSharedStore()
+const theme = ref(store.adminTheme)
+watch(() => store.adminTheme, (val) => {
+  theme.value = val
 })
-
 const router = useRouter();
 checkAdminSession().catch(() => {
   ElMessageBox({

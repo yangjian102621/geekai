@@ -213,7 +213,7 @@
 
 </template>
 <script setup>
-import {nextTick, onMounted, ref, watch} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
@@ -422,6 +422,10 @@ onMounted(() => {
     })
   })
 });
+
+onUnmounted(() => {
+  store.removeMessageHandler("chat")
+})
 // 初始化数据
 const initData = () => {
 
@@ -774,6 +778,7 @@ const clearAllChats = function () {
 
 const loadChatHistory = function (chatId) {
   chatData.value = []
+  loading.value = true
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
     const data = res.data
     if ((!data || data.length === 0) && chatData.value.length === 0) { // 加载打招呼信息

@@ -17,11 +17,10 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
-import {getMobileTheme, setMobileTheme} from "@/store/system";
+import {ref, watch} from "vue";
 import {useRouter} from "vue-router";
 import {isMobile} from "@/utils/libs";
-import bus from '@/store/eventbus'
+import {useSharedStore} from "@/store/sharedata";
 
 const router = useRouter()
 if (!isMobile()) {
@@ -29,11 +28,11 @@ if (!isMobile()) {
 }
 
 const active = ref('home')
-const theme = ref(getMobileTheme())
+const store = useSharedStore()
+const theme = ref(store.mobileTheme)
 
-bus.on('changeTheme', (value) => {
-  theme.value = value
-  setMobileTheme(theme.value)
+watch(() => store.mobileTheme, (val) => {
+  theme.value = val
 })
 
 </script>

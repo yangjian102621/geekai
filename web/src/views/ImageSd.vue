@@ -586,6 +586,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
+  store.removeMessageHandler("sd")
 })
 
 
