@@ -386,6 +386,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
+  store.removeMessageHandler("suno")
 })
 
 const page = ref(1)

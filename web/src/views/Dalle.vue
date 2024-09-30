@@ -287,6 +287,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
+  store.removeMessageHandler("dall")
 })
 
 const initData = () => {

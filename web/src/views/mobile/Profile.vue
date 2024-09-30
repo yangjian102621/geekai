@@ -125,7 +125,13 @@
           <van-cell-group inset>
             <van-field name="switch" label="暗黑主题">
               <template #input>
-                <van-switch v-model="dark" @change="changeTheme"/>
+                <van-switch v-model="dark" @change="(val) => store.setMobileTheme(val?'dark':'light')"/>
+              </template>
+            </van-field>
+
+            <van-field name="switch" label="流式输出">
+              <template #input>
+                <van-switch v-model="stream" @change="(val) => store.setChatStream(val)"/>
               </template>
             </van-field>
             <!--            <van-field-->
@@ -158,9 +164,7 @@ import {ElMessage} from "element-plus";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
-import bus from '@/store/eventbus'
-import {getMobileTheme} from "@/store/system";
-import QRCode from "qrcode";
+import {useSharedStore} from "@/store/sharedata";
 
 const form = ref({
   username: 'GeekMaster',
@@ -183,6 +187,9 @@ const router = useRouter()
 const userId = ref(0)
 const isLogin = ref(false)
 const showSettings = ref(false)
+const store = useSharedStore()
+const stream = ref(store.chatStream)
+const dark = ref(store.mobileTheme === 'dark')
 
 onMounted(() => {
   checkSession().then(user => {
@@ -320,12 +327,6 @@ const logout = function () {
   }).catch(() => {
     showFailToast('注销失败！');
   })
-}
-
-const dark = ref(getMobileTheme() === 'dark')
-
-const changeTheme = () => {
-  bus.emit('changeTheme', dark.value ? 'dark' : 'light')
 }
 
 </script>

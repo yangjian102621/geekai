@@ -180,11 +180,9 @@
                  description="暂无记录"
       />
       <van-grid :gutter="10" :column-num="3" v-else>
-        <van-grid-item v-for="item in runningJobs">
+        <van-grid-item v-for="item in runningJobs" :key="item.id">
           <div v-if="item.progress > 0">
-            <van-image :src="item['img_url']">
-              <template v-slot:error>加载失败</template>
-            </van-image>
+            <van-image src="/images/img-holder.png"></van-image>
             <div class="progress">
               <van-circle
                   v-model:current-rate="item.progress"
@@ -223,8 +221,15 @@
                 @load="onLoad"
       >
         <van-grid :gutter="10" :column-num="2">
-          <van-grid-item v-for="item in finishedJobs">
-            <div class="job-item">
+          <van-grid-item v-for="item in finishedJobs" :key="item.id">
+            <div class="failed" v-if="item.progress === 101">
+              <div class="title">任务失败</div>
+              <div class="opt">
+                <van-button size="small" @click="showErrMsg(item)">详情</van-button>
+                <van-button type="danger" @click="removeImage(item)" size="small">删除</van-button>
+              </div>
+            </div>
+            <div class="job-item" v-else>
               <van-image
                   :src="item['thumb_url']"
                   :class="item['can_opt'] ? '' : 'upscale'"
@@ -233,6 +238,10 @@
                   fit="cover">
                 <template v-slot:loading>
                   <van-loading type="spinner" size="20"/>
+                </template>
+                <template v-slot:error>
+                  <span style="margin-bottom: 20px">正在下载图片</span>
+                  <van-loading type="circular" color="#1989fa" size="40"/>
                 </template>
               </van-image>
 
@@ -276,15 +285,16 @@
 
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
-import {showConfirmDialog, showFailToast, showImagePreview, showNotify, showSuccessToast, showToast} from "vant";
+import {showConfirmDialog, showFailToast, showImagePreview, showNotify, showSuccessToast, showToast,showDialog } from "vant";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {getSessionId} from "@/store/session";
-import {checkSession, getSystemInfo} from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {Delete} from "@element-plus/icons-vue";
 import {showLoginDialog} from "@/utils/libs";
 import Clipboard from "clipboard";
+import {useSharedStore} from "@/store/sharedata";
 
 const activeColspan = ref([""])
 
@@ -306,6 +316,7 @@ const models = [
 ]
 const imgList = ref([])
 const params = ref({
+  client_id: getClientId(),
   task_type: "image",
   rate: rates[0].value,
   model: models[0].value,
@@ -327,11 +338,11 @@ const userId = ref(0)
 const router = useRouter()
 const runningJobs = ref([])
 const finishedJobs = ref([])
-const socket = ref(null)
 const power = ref(0)
 const activeName = ref("txt2img")
 const isLogin = ref(false)
 const prompt = ref('')
+const store = useSharedStore()
 const clipboard = ref(null)
 
 onMounted(() => {
@@ -349,19 +360,26 @@ onMounted(() => {
     isLogin.value = true
     fetchRunningJobs()
     fetchFinishJobs(1)
-    connect()
-
   }).catch(() => {
     // router.push('/login')
   });
+
+  store.addMessageHandler("mj", (data) => {
+    if (data.channel !== "mj" || data.clientId !== getClientId()) {
+      return
+    }
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      page.value = 1
+      fetchFinishJobs(1)
+    }
+    fetchRunningJobs()
+  })
+
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  if (socket.value !== null) {
-    socket.value.close()
-    socket.value = null
-  }
+  store.removeMessageHandler("mj")
 })
 
 const mjPower = ref(1)
@@ -372,60 +390,6 @@ getSystemInfo().then(res => {
 }).catch(e => {
   showNotify({type: "danger", message: "获取系统配置失败：" + e.message})
 })
-
-const heartbeatHandle = ref(null)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
-
-  const _socket = new WebSocket(host + `/api/mj/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-
-    // 发送心跳消息
-    sendHeartbeat()
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        if (message === "FINISH" || message === "FAIL") {
-          page.value = 1
-          fetchFinishJobs(1)
-        }
-        fetchRunningJobs()
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  });
-}
 
 // 获取运行中的任务
 const fetchRunningJobs = (userId) => {
@@ -464,27 +428,10 @@ const fetchFinishJobs = (page) => {
   httpGet(`/api/mj/jobs?finish=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data.items
     for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i].progress === 101) {
-        showNotify({
-          message: `任务ID：${jobs[i]['task_id']} 原因：${jobs[i]['err_msg']}`,
-          type: 'danger',
-        })
-        if (jobs[i].type === 'image') {
-          power.value += mjPower.value
-        } else {
-          power.value += mjActionPower.value
-        }
-        continue
-      }
-
-      if (jobs[i]['use_proxy']) {
-        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?x-oss-process=image/quality,q_60&format=webp'
+      if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
+        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
       } else {
-        if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
-          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
-        } else {
-          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
-        }
+        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
       }
 
       if ((jobs[i].type === 'image' || jobs[i].type === 'variation') && jobs[i].progress === 100){
@@ -557,6 +504,7 @@ const uploadImg = (file) => {
 
 const send = (url, index, item) => {
   httpPost(url, {
+    client_id: getClientId(),
     index: index,
     channel_id: item.channel_id,
     message_id: item.message_id,
@@ -566,6 +514,7 @@ const send = (url, index, item) => {
   }).then(() => {
     showSuccessToast("任务推送成功，请耐心等待任务执行...")
     power.value -= mjActionPower.value
+    fetchRunningJobs()
   }).catch(e => {
     showFailToast("任务推送失败：" + e.message)
   })
@@ -597,6 +546,7 @@ const generate = () => {
   httpPost("/api/mj/image", params.value).then(() => {
     showToast("绘画任务推送成功，请耐心等待任务执行")
     power.value -= mjPower.value
+    fetchRunningJobs()
   }).catch(e => {
     showFailToast("任务推送失败：" + e.message)
   })
@@ -604,12 +554,13 @@ const generate = () => {
 
 const removeImage = (item) => {
   showConfirmDialog({
-    title: '标题',
+    title: '删除提示',
     message:
         '此操作将会删除任务和图片，继续操作码?',
   }).then(() => {
     httpGet("/api/mj/remove", {id: item.id, user_id: item.user_id}).then(() => {
       showSuccessToast("任务删除成功")
+      fetchFinishJobs(1)
     }).catch(e => {
       showFailToast("任务删除失败：" + e.message)
     })
@@ -641,6 +592,15 @@ const showPrompt = (item) => {
   }).then(() => {
     document.querySelector('#copy-btn').click()
   }).catch(() => {
+  });
+}
+
+const showErrMsg = (item) => {
+  showDialog({
+    title: '错误详情',
+    message: item['err_msg'],
+  }).then(() => {
+    // on close
   });
 }
 

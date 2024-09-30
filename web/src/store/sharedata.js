@@ -8,6 +8,8 @@ export const useSharedStore = defineStore('shared', {
         chatStream: Storage.get("chat_stream",true),
         socket: WebSocket,
         messageHandlers:{},
+        mobileTheme: Storage.get("mobile_theme", "light"),
+        adminTheme: Storage.get("admin_theme", "light"),
     }),
     getters: {},
     actions: {
@@ -51,6 +53,17 @@ export const useSharedStore = defineStore('shared', {
                     this.setMessageHandler(callback)
                 }, 1000)
             }
+        },
+        removeMessageHandler(key) {
+            delete this.messageHandlers[key]
+        },
+        setMobileTheme(theme) {
+            this.mobileTheme = theme
+            Storage.set("mobile_theme", theme)
+        },
+        setAdminTheme(theme) {
+            this.adminTheme = theme
+            Storage.set("admin_theme", theme)
         }
-    }
+    },
 });

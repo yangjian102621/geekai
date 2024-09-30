@@ -131,7 +131,7 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {CircleCloseFilled} from "@element-plus/icons-vue";
 import {httpDownload, httpPost, httpGet} from "@/utils/http";
 import {checkSession, getClientId} from "@/store/cache";
@@ -173,6 +173,10 @@ onMounted(()=>{
       fetchData(1)
     }
   })
+})
+
+onUnmounted(() => {
+  store.removeMessageHandler("luma")
 })
 
 const download = (item) => {

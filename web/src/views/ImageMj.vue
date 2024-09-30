@@ -738,6 +738,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy()
+  store.removeMessageHandler("mj")
 })
 
 // 初始化数据
