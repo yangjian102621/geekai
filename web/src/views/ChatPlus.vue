@@ -470,8 +470,6 @@ const initData = () => {
   // 允许在输入框粘贴文件
   inputRef.value.addEventListener('paste', (event) => {
     const items = (event.clipboardData || window.clipboardData).items;
-    let fileFound = false;
-
     for (let item of items) {
       if (item.kind === 'file') {
         const file = item.getAsFile();
@@ -780,6 +778,7 @@ const loadChatHistory = function (chatId) {
   chatData.value = []
   loading.value = true
   httpGet('/api/chat/history?chat_id=' + chatId).then(res => {
+    loading.value = false
     const data = res.data
     if ((!data || data.length === 0) && chatData.value.length === 0) { // 加载打招呼信息
       const _role = getRoleById(roleId.value)

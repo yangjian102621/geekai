@@ -60,7 +60,7 @@
             <span class="name">{{ item.name }}</span>
             <div class="pay-btn">
               <div v-for="payWay in payWays" @click="pay(item,payWay)" :key="payWay">
-                <span v-if="payWay.pay_way === 'geek'">
+                <span>
                   <van-button type="primary" size="small" v-if="payWay.pay_type==='alipay'" >
                     <i class="iconfont icon-alipay"></i> 支付宝
                   </van-button>

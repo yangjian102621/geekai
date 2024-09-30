@@ -138,12 +138,22 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 		} else {
 			notifyURL = fmt.Sprintf("%s/api/payment/notify/wechat", data.Host)
 		}
-		payURL, err = h.wechatPayService.PayUrlNative(payment.WechatPayParams{
-			OutTradeNo: orderNo,
-			TotalFee:   int(amount * 100),
-			Subject:    product.Name,
-			NotifyURL:  notifyURL,
-		})
+		if data.Device == "wechat" {
+			payURL, err = h.wechatPayService.PayUrlH5(payment.WechatPayParams{
+				OutTradeNo: orderNo,
+				TotalFee:   int(amount * 100),
+				Subject:    product.Name,
+				NotifyURL:  notifyURL,
+				ClientIP:   c.ClientIP(),
+			})
+		} else {
+			payURL, err = h.wechatPayService.PayUrlNative(payment.WechatPayParams{
+				OutTradeNo: orderNo,
+				TotalFee:   int(amount * 100),
+				Subject:    product.Name,
+				NotifyURL:  notifyURL,
+			})
+		}
 		if err != nil {
 			resp.ERROR(c, err.Error())
 			return
