@@ -77,6 +77,7 @@ import ResetPass from "@/components/ResetPass.vue";
 import {showMessageError} from "@/utils/dialog";
 import Captcha from "@/components/Captcha.vue";
 import {setRoute} from "@/store/system";
+import {useSharedStore} from "@/store/sharedata";
 
 const router = useRouter();
 const title = ref('Geek-AI');
@@ -145,6 +146,7 @@ const login = function () {
   }
 }
 
+const store = useSharedStore()
 const doLogin = (verifyData) => {
   httpPost('/api/user/login', {
     username: username.value.trim(),
@@ -154,6 +156,7 @@ const doLogin = (verifyData) => {
     x: verifyData.x
   }).then((res) => {
     setUserToken(res.data.token)
+    store.setIsLogin(true)
     needVerify.value = false
     if (isMobile()) {
       router.push('/mobile')

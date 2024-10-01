@@ -323,6 +323,7 @@ const pay = (product,payWay) => {
 const logout = function () {
   httpGet('/api/user/logout').then(() => {
     removeUserToken();
+    store.setIsLogin(false)
     router.push('/');
   }).catch(() => {
     showFailToast('注销失败！');

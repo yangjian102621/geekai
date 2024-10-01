@@ -446,9 +446,8 @@ const initData = () => {
       checkSession().then((user) => {
         loginUser.value = user
         isLogin.value = true
-
         newChat();
-      })
+      }).catch(() => {})
 
     }).catch((e) => {
       ElMessage.error('获取聊天角色失败: ' + e.messages)
