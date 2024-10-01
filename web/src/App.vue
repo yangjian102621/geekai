@@ -6,7 +6,7 @@
 
 <script setup>
 import {ElConfigProvider} from 'element-plus';
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import {isChrome, isMobile} from "@/utils/libs";
 import {showMessageInfo} from "@/utils/dialog";
@@ -34,6 +34,7 @@ window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
   }
 }
 
+const store = useSharedStore()
 onMounted(() => {
   // 获取系统参数
   getSystemInfo().then((res) => {
@@ -47,13 +48,18 @@ onMounted(() => {
   }
 
   checkSession().then(() => {
+    store.setIsLogin(true)
     connect()
   }).catch(()=>{})
 })
 
-const store = useSharedStore()
-const handler = ref(0)
+watch(() => store.isLogin, (val) => {
+  if (val) {
+    connect()
+  }
+})
 
+const handler = ref(0)
 // 初始化 websocket 连接
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST

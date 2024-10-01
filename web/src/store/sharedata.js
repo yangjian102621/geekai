@@ -10,6 +10,7 @@ export const useSharedStore = defineStore('shared', {
         messageHandlers:{},
         mobileTheme: Storage.get("mobile_theme", "light"),
         adminTheme: Storage.get("admin_theme", "light"),
+        isLogin: false
     }),
     getters: {},
     actions: {
@@ -64,6 +65,9 @@ export const useSharedStore = defineStore('shared', {
         setAdminTheme(theme) {
             this.adminTheme = theme
             Storage.set("admin_theme", theme)
+        },
+        setIsLogin(value) {
+            this.isLogin = value
         }
     },
 });

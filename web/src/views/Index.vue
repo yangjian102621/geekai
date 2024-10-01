@@ -31,7 +31,6 @@
             <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" @click="router.push('/login')" class="shadow" round>登录</el-button>
             <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" @click="router.push('/register')" class="shadow" round>注册</el-button>
           </span>
-          <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" @click="router.push('/test')" class="shadow" round>测试</el-button>
         </div>
       </el-menu>
     </div>

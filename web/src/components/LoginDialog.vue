@@ -251,6 +251,7 @@ import Captcha from "@/components/Captcha.vue";
 import ResetPass from "@/components/ResetPass.vue";
 import {setRoute} from "@/store/system";
 import {useRouter} from "vue-router";
+import {useSharedStore} from "@/store/sharedata";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -285,6 +286,7 @@ const action = ref("login")
 const enableVerify = ref(false)
 const showResetPass = ref(false)
 const router = useRouter()
+const store = useSharedStore()
 // 是否需要验证码，输入一次密码错之后就要验证码
 const needVerify = ref(false)
 
@@ -354,6 +356,7 @@ const doLogin = (verifyData) => {
   data.value.x = verifyData.x
   httpPost('/api/user/login', data.value).then((res) => {
     setUserToken(res.data.token)
+    store.setIsLogin(true)
     ElMessage.success("登录成功！")
     emits("hide")
     emits('success')
