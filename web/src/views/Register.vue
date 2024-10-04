@@ -183,7 +183,7 @@ import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import SendMsg from "@/components/SendMsg.vue";
-import {arrayContains} from "@/utils/libs";
+import {arrayContains, isMobile} from "@/utils/libs";
 import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
@@ -294,11 +294,12 @@ const doSubmitRegister = (verifyData) => {
   data.value.reg_way = activeName.value
   httpPost('/api/user/register', data.value).then((res) => {
     setUserToken(res.data.token)
-    showMessageOK({
-      "message": "注册成功，即将跳转到对话主界面...",
-      onClose: () => router.push("/chat"),
-      duration: 1000
-    })
+    showMessageOK("注册成功，即将跳转到对话主界面...")
+    if (isMobile()) {
+      router.push('/mobile/index')
+    } else {
+      router.push('/chat')
+    }
   }).catch((e) => {
     showMessageError('注册失败，' + e.message)
   })

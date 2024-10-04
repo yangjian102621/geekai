@@ -218,7 +218,7 @@ export function showLoginDialog(router) {
         message:
             '此操作需要登录才能进行，前往登录？',
     }).then(() => {
-        router.push("/login")
+        router.push("/mobile/login")
     }).catch(() => {
         // on cancel
     });
