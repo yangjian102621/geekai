@@ -250,6 +250,18 @@ const routes = [
 
 
     {
+        name: 'mobile-login',
+        path: '/mobile/login',
+        meta: {title: '用户登录'},
+        component: () => import('@/views/Login.vue'),
+    },
+    {
+        name: 'mobile-register',
+        path: '/mobile/register',
+        meta: {title: '用户注册'},
+        component: () => import('@/views/Register.vue'),
+    },
+    {
         name: 'mobile',
         path: '/mobile',
         meta: {title: '首页'},

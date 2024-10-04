@@ -18,14 +18,7 @@
 
 <script setup>
 import {ref, watch} from "vue";
-import {useRouter} from "vue-router";
-import {isMobile} from "@/utils/libs";
 import {useSharedStore} from "@/store/sharedata";
-
-const router = useRouter()
-if (!isMobile()) {
-  router.replace('/')
-}
 
 const active = ref('home')
 const store = useSharedStore()

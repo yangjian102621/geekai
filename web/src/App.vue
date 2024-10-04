@@ -12,7 +12,7 @@ import {isChrome, isMobile} from "@/utils/libs";
 import {showMessageInfo} from "@/utils/dialog";
 import {useSharedStore} from "@/store/sharedata";
 import {getUserToken} from "@/store/session";
-import {clear} from "core-js/internals/task";
+import {router} from "@/router";
 
 const debounce = (fn, delay) => {
   let timer
@@ -51,6 +51,11 @@ onMounted(() => {
     store.setIsLogin(true)
     connect()
   }).catch(()=>{})
+
+  // 自动跳转到手机端
+  if (isMobile() && !router.currentRoute.value.path.startsWith("/mobile")) {
+    router.push("/mobile/index")
+  }
 })
 
 watch(() => store.isLogin, (val) => {

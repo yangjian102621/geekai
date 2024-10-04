@@ -219,7 +219,6 @@ import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {
-  isMobile,
   randString,
   removeArrayItem,
   UUID
@@ -292,10 +291,6 @@ if (!chatId.value) {
   }).catch(e => {
     console.error("获取对话信息失败："+e.message)
   })
-}
-
-if (isMobile()) {
-  router.replace("/mobile/chat")
 }
 
 // 获取系统配置
