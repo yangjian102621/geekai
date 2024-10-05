@@ -30,12 +30,13 @@ export const useSharedStore = defineStore('shared', {
         },
         addMessageHandler(key, callback) {
             if (!this.messageHandlers[key]) {
-                this.messageHandlers[key] = callback;
                 this.setMessageHandler(callback)
             }
+            this.messageHandlers[key] = callback;
         },
         setMessageHandler(callback) {
             if (this.socket instanceof WebSocket && this.socket.readyState === WebSocket.OPEN) {
+                console.log(callback)
                 this.socket.addEventListener('message', (event) => {
                     try {
                         if (event.data instanceof Blob) {
