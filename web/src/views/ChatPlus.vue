@@ -219,6 +219,7 @@ import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {
+  isMobile,
   randString,
   removeArrayItem,
   UUID
@@ -274,6 +275,9 @@ watch(() => store.chatStream, (newValue) => {
   stream.value = newValue
 });
 
+if (isMobile()) {
+  router.push('/mobile/chat')
+}
 
 // 初始化角色ID参数
 if (router.currentRoute.value.query.role_id) {

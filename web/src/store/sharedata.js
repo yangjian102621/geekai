@@ -56,6 +56,9 @@ export const useSharedStore = defineStore('shared', {
             }
         },
         removeMessageHandler(key) {
+            if (this.socket) {
+                this.socket.removeEventListener('message', this.messageHandlers[key])
+            }
             delete this.messageHandlers[key]
         },
         setMobileTheme(theme) {
