@@ -13,6 +13,7 @@ import {showMessageInfo} from "@/utils/dialog";
 import {useSharedStore} from "@/store/sharedata";
 import {getUserToken} from "@/store/session";
 import {router} from "@/router";
+import {onBeforeRouteLeave, onBeforeRouteUpdate} from "vue-router";
 
 const debounce = (fn, delay) => {
   let timer
@@ -49,17 +50,11 @@ onMounted(() => {
 
   checkSession().then(() => {
     store.setIsLogin(true)
-    connect()
   }).catch(()=>{})
-
-  // 自动跳转到手机端
-  if (isMobile() && !router.currentRoute.value.path.startsWith("/mobile")) {
-    router.push("/mobile/index")
-  }
 })
 
 watch(() => store.isLogin, (val) => {
-  if (val) {
+  if (val && store.socket.readyState !== WebSocket.OPEN) {
     connect()
   }
 })
@@ -80,16 +75,25 @@ const connect = () => {
   _socket.addEventListener('open', () => {
     console.log('WebSocket 已连接')
     handler.value = setInterval(() => {
-      _socket.send(JSON.stringify({"type":"ping"}))
+      if (_socket.readyState === WebSocket.OPEN) {
+        _socket.send(JSON.stringify({"type":"ping"}))
+      }
     },5000)
 
+    // 绑定事件监听
     for (const key in store.messageHandlers) {
-      console.log(key, store.messageHandlers[key])
+      console.log(store.messageHandlers[key])
       store.setMessageHandler(store.messageHandlers[key])
     }
   })
 
   _socket.addEventListener('close', () => {
+    // 移除事件监听
+    for (const key in store.messageHandlers) {
+      if (store.socket) {
+        store.socket.removeEventListener('message', this.messageHandlers[key])
+      }
+    }
     store.setSocket(null)
     clearInterval(handler.value)
     connect()

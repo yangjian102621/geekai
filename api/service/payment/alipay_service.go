@@ -43,8 +43,8 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 
 	//client.DebugSwitch = gopay.DebugOn // 开启调试模式
 	client.SetLocation(alipay.LocationShanghai). // 设置时区，不设置或出错均为默认服务器时间
-		SetCharset(alipay.UTF8). // 设置字符编码，不设置默认 utf-8
-		SetSignType(alipay.RSA2) // 设置签名类型，不设置默认 RSA2
+							SetCharset(alipay.UTF8). // 设置字符编码，不设置默认 utf-8
+							SetSignType(alipay.RSA2) // 设置签名类型，不设置默认 RSA2
 
 	if err = client.SetCertSnByPath(config.PublicKey, config.RootCert, config.AlipayPublicKey); err != nil {
 		return nil, fmt.Errorf("error with load payment public key: %v", err)
@@ -67,10 +67,8 @@ func (s *AlipayService) PayMobile(params AlipayParams) (string, error) {
 	bm.Set("out_trade_no", params.OutTradeNo)
 	bm.Set("quit_url", params.ReturnURL)
 	bm.Set("total_amount", params.TotalFee)
-	bm.Set("return_url", params.ReturnURL)
-	bm.Set("notify_url", params.NotifyURL)
 	bm.Set("product_code", "QUICK_WAP_WAY")
-	return s.client.TradeWapPay(context.Background(), bm)
+	return s.client.SetNotifyUrl(params.NotifyURL).SetReturnUrl(params.ReturnURL).TradeWapPay(context.Background(), bm)
 }
 
 func (s *AlipayService) PayPC(params AlipayParams) (string, error) {

@@ -120,13 +120,24 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			returnURL = fmt.Sprintf("%s/payReturn", data.Host)
 		}
 		money := fmt.Sprintf("%.2f", amount)
-		payURL, err = h.alipayService.PayPC(payment.AlipayParams{
-			OutTradeNo: orderNo,
-			Subject:    product.Name,
-			TotalFee:   money,
-			ReturnURL:  returnURL,
-			NotifyURL:  notifyURL,
-		})
+		if data.Device == "wechat" {
+			payURL, err = h.alipayService.PayMobile(payment.AlipayParams{
+				OutTradeNo: orderNo,
+				Subject:    product.Name,
+				TotalFee:   money,
+				ReturnURL:  returnURL,
+				NotifyURL:  notifyURL,
+			})
+		} else {
+			payURL, err = h.alipayService.PayPC(payment.AlipayParams{
+				OutTradeNo: orderNo,
+				Subject:    product.Name,
+				TotalFee:   money,
+				ReturnURL:  returnURL,
+				NotifyURL:  notifyURL,
+			})
+		}
+
 		if err != nil {
 			resp.ERROR(c, "error with generate pay url: "+err.Error())
 			return
