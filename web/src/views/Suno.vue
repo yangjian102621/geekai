@@ -345,8 +345,8 @@ const data = ref({
   extend_secs: 0,
   ref_song_id: "",
 })
-const loading = ref(true)
-const noData = ref(false)
+const loading = ref(false)
+const noData = ref(true)
 const playList = ref([])
 const playerRef = ref(null)
 const showPlayer = ref(false)
@@ -368,9 +368,9 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 
-  checkSession().then(user => {
+  checkSession().then(() => {
     fetchData(1)
-  })
+  }).catch(() => {})
 
   store.addMessageHandler("suno",(data) => {
     // 丢弃无关消息
@@ -396,6 +396,7 @@ const fetchData = (_page) => {
   if (_page) {
     page.value = _page
   }
+  loading.value = true
   httpGet("/api/suno/list",{page:page.value, page_size:pageSize.value}).then(res => {
     total.value = res.data.total
     const items = []

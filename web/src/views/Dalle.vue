@@ -156,7 +156,7 @@
                           <el-tooltip content="删除" placement="top" effect="light">
                             <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle/>
                           </el-tooltip>
-                          <el-tooltip content="取消分享" placement="top" effect="light" v-if="!slotProp.item.publish">
+                          <el-tooltip content="取消分享" placement="top" effect="light" v-if="slotProp.item.publish">
                             <el-button type="warning"
                                        @click="publishImage(slotProp.item, false)"
                                        circle>
