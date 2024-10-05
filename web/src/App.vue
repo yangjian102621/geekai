@@ -91,7 +91,7 @@ const connect = () => {
     // 移除事件监听
     for (const key in store.messageHandlers) {
       if (store.socket) {
-        store.socket.removeEventListener('message', this.messageHandlers[key])
+        store.socket.removeEventListener('message', store.messageHandlers[key])
       }
     }
     store.setSocket(null)

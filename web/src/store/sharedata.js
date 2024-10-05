@@ -56,7 +56,7 @@ export const useSharedStore = defineStore('shared', {
             }
         },
         removeMessageHandler(key) {
-            if (this.socket) {
+            if (this.socket.readyState === WebSocket.OPEN) {
                 this.socket.removeEventListener('message', this.messageHandlers[key])
             }
             delete this.messageHandlers[key]
