@@ -129,6 +129,7 @@ const removeFile = (file) => {
       return v1.id === v2.id
     })
     ElMessage.success("文件删除成功！")
+    fetchFiles(1)
   }).catch((e) => {
     ElMessage.error('文件删除失败:' + e.message)
   })
