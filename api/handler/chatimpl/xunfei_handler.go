@@ -79,7 +79,7 @@ func (h *ChatHandler) sendXunFeiMessage(
 	var res *gorm.DB
 	// use the bind key
 	if session.Model.KeyId > 0 {
-		res = h.DB.Where("id", session.Model.KeyId).Where("enabled", true).Find(&apiKey)
+		res = h.DB.Where("id", session.Model.KeyId).Find(&apiKey)
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {

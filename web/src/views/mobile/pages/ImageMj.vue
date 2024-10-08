@@ -421,7 +421,7 @@ const connect = () => {
 
 // 获取运行中的任务
 const fetchRunningJobs = (userId) => {
-  httpGet(`/api/mj/jobs?status=0&user_id=${userId}`).then(res => {
+  httpGet(`/api/mj/jobs?finish=0&user_id=${userId}`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
@@ -453,7 +453,7 @@ const pageSize = ref(10)
 const fetchFinishJobs = (page) => {
   loading.value = true
   // 获取已完成的任务
-  httpGet(`/api/mj/jobs?status=1&page=${page}&page_size=${pageSize.value}`).then(res => {
+  httpGet(`/api/mj/jobs?finish=1&page=${page}&page_size=${pageSize.value}`).then(res => {
     const jobs = res.data
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i].progress === -1) {
@@ -600,7 +600,7 @@ const removeImage = (item) => {
     message:
         '此操作将会删除任务和图片，继续操作码?',
   }).then(() => {
-    httpPost("/api/mj/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
+    httpGet("/api/mj/remove", {id: item.id, user_id: item.user_id}).then(() => {
       showSuccessToast("任务删除成功")
     }).catch(e => {
       showFailToast("任务删除失败：" + e.message)
@@ -615,7 +615,7 @@ const publishImage = (item, action) => {
   if (action === false) {
     text = "取消发布"
   }
-  httpPost("/api/mj/publish", {id: item.id, action: action}).then(() => {
+  httpGet("/api/mj/publish", {id: item.id, action: action,user_id: item.user_id}).then(() => {
     showSuccessToast(text + "成功")
     item.publish = action
   }).catch(e => {

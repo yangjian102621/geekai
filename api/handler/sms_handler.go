@@ -49,14 +49,20 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	var data struct {
 		Receiver string `json:"receiver"` // 接收者
 		Key      string `json:"key"`
-		Dots     string `json:"dots"`
+		Dots     string `json:"dots,omitempty"`
+		X        int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-
-	if !h.captcha.Check(data) {
+	var check bool
+	if data.X != 0 {
+		check = h.captcha.SlideCheck(data)
+	} else {
+		check = h.captcha.Check(data)
+	}
+	if !check {
 		resp.ERROR(c, "验证码错误，请先完人机验证")
 		return
 	}
@@ -64,13 +70,13 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	code := utils.RandomNumber(6)
 	var err error
 	if strings.Contains(data.Receiver, "@") { // email
-		if !utils.ContainsStr(h.App.SysConfig.RegisterWays, "email") {
+		if !utils.Contains(h.App.SysConfig.RegisterWays, "email") {
 			resp.ERROR(c, "系统已禁用邮箱注册！")
 			return
 		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
-		if !utils.ContainsStr(h.App.SysConfig.RegisterWays, "mobile") {
+		if !utils.Contains(h.App.SysConfig.RegisterWays, "mobile") {
 			resp.ERROR(c, "系统已禁用手机号注册！")
 			return
 		}
@@ -89,5 +95,9 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	resp.SUCCESS(c)
+	if h.App.Debug {
+		resp.SUCCESS(c, code)
+	} else {
+		resp.SUCCESS(c)
+	}
 }

@@ -92,19 +92,18 @@ func (h *MidJourneyHandler) Client(c *gin.Context) {
 // Image 创建一个绘画任务
 func (h *MidJourneyHandler) Image(c *gin.Context) {
 	var data struct {
-		SessionId string   `json:"session_id"`
 		TaskType  string   `json:"task_type"`
 		Prompt    string   `json:"prompt"`
 		NegPrompt string   `json:"neg_prompt"`
 		Rate      string   `json:"rate"`
-		Model     string   `json:"model"`
-		Chaos     int      `json:"chaos"`
-		Raw       bool     `json:"raw"`
-		Seed      int64    `json:"seed"`
-		Stylize   int      `json:"stylize"`
+		Model     string   `json:"model"`   // 模型
+		Chaos     int      `json:"chaos"`   // 创意度取值范围: 0-100
+		Raw       bool     `json:"raw"`     // 是否开启原始模型
+		Seed      int64    `json:"seed"`    // 随机数
+		Stylize   int      `json:"stylize"` // 风格化
 		ImgArr    []string `json:"img_arr"`
-		Tile      bool     `json:"tile"`
-		Quality   float32  `json:"quality"`
+		Tile      bool     `json:"tile"`    // 重复平铺
+		Quality   float32  `json:"quality"` // 画质
 		Iw        float32  `json:"iw"`
 		CRef      string   `json:"cref"` //生成角色一致的图像
 		SRef      string   `json:"sref"` //生成风格一致的图像
@@ -243,17 +242,12 @@ type reqVo struct {
 	ChannelId   string `json:"channel_id"`
 	MessageId   string `json:"message_id"`
 	MessageHash string `json:"message_hash"`
-	SessionId   string `json:"session_id"`
-	Prompt      string `json:"prompt"`
-	ChatId      string `json:"chat_id"`
-	RoleId      int    `json:"role_id"`
-	Icon        string `json:"icon"`
 }
 
 // Upscale send upscale command to MidJourney Bot
 func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	var data reqVo
-	if err := c.ShouldBindJSON(&data); err != nil || data.SessionId == "" {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
@@ -271,7 +265,6 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		UserId:      userId,
 		TaskId:      taskId,
 		Progress:    0,
-		Prompt:      data.Prompt,
 		Power:       h.App.SysConfig.MjActionPower,
 		CreatedAt:   time.Now(),
 	}
@@ -283,7 +276,6 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	h.pool.PushTask(types.MjTask{
 		Id:          job.Id,
 		Type:        types.TaskUpscale,
-		Prompt:      data.Prompt,
 		UserId:      userId,
 		ChannelId:   data.ChannelId,
 		Index:       data.Index,
@@ -318,7 +310,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 // Variation send variation command to MidJourney Bot
 func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	var data reqVo
-	if err := c.ShouldBindJSON(&data); err != nil || data.SessionId == "" {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
@@ -337,7 +329,6 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		UserId:      userId,
 		TaskId:      taskId,
 		Progress:    0,
-		Prompt:      data.Prompt,
 		Power:       h.App.SysConfig.MjActionPower,
 		CreatedAt:   time.Now(),
 	}
@@ -349,7 +340,6 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	h.pool.PushTask(types.MjTask{
 		Id:          job.Id,
 		Type:        types.TaskVariation,
-		Prompt:      data.Prompt,
 		UserId:      userId,
 		Index:       data.Index,
 		ChannelId:   data.ChannelId,
@@ -397,13 +387,13 @@ func (h *MidJourneyHandler) ImgWall(c *gin.Context) {
 
 // JobList 获取 MJ 任务列表
 func (h *MidJourneyHandler) JobList(c *gin.Context) {
-	status := h.GetBool(c, "status")
+	finish := h.GetBool(c, "finish")
 	userId := h.GetLoginUserId(c)
 	page := h.GetInt(c, "page", 0)
 	pageSize := h.GetInt(c, "page_size", 0)
 	publish := h.GetBool(c, "publish")
 
-	err, jobs := h.getData(status, userId, page, pageSize, publish)
+	err, jobs := h.getData(finish, userId, page, pageSize, publish)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -446,14 +436,9 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 		}
 
 		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {
-			// discord 服务器图片需要使用代理转发图片数据流
-			if strings.HasPrefix(item.OrgURL, "https://cdn.discordapp.com") {
-				image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
-				if err == nil {
-					job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
-				}
-			} else {
-				job.ImgURL = job.OrgURL
+			image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
+			if err == nil {
+				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 			}
 		}
 
@@ -464,30 +449,27 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 
 // Remove remove task image
 func (h *MidJourneyHandler) Remove(c *gin.Context) {
-	var data struct {
-		Id     uint   `json:"id"`
-		UserId uint   `json:"user_id"`
-		ImgURL string `json:"img_url"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
+	id := h.GetInt(c, "id", 0)
+	userId := h.GetInt(c, "user_id", 0)
+	var job model.MidJourneyJob
+	if res := h.DB.Where("id = ? AND user_id = ?", id, userId).First(&job); res.Error != nil {
+		resp.ERROR(c, "记录不存在")
 		return
 	}
-
 	// remove job recode
-	res := h.DB.Delete(&model.MidJourneyJob{Id: data.Id})
+	res := h.DB.Delete(&job)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
 	// remove image
-	err := h.uploader.GetUploadHandler().Delete(data.ImgURL)
+	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
 	}
 
-	client := h.pool.Clients.Get(data.UserId)
+	client := h.pool.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
@@ -497,16 +479,10 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 
 // Publish 发布图片到画廊显示
 func (h *MidJourneyHandler) Publish(c *gin.Context) {
-	var data struct {
-		Id     uint `json:"id"`
-		Action bool `json:"action"` // 发布动作，true => 发布，false => 取消分享
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	res := h.DB.Model(&model.MidJourneyJob{Id: data.Id}).UpdateColumn("publish", data.Action)
+	id := h.GetInt(c, "id", 0)
+	userId := h.GetInt(c, "user_id", 0)
+	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
+	res := h.DB.Model(&model.MidJourneyJob{Id: uint(id), UserId: userId}).UpdateColumn("publish", action)
 	if res.Error != nil {
 		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")

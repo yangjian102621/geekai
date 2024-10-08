@@ -44,6 +44,8 @@ type ChatHandler struct {
 	redis          *redis.Client
 	uploadManager  *oss.UploaderManager
 	licenseService *service.LicenseService
+	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
+	ChatContexts   *types.LMap[string, []types.Message]    // 聊天上下文 Map [chatId] => []Message
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService) *ChatHandler {
@@ -52,6 +54,8 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		redis:          redis,
 		uploadManager:  manager,
 		licenseService: licenseService,
+		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
+		ChatContexts:   types.NewLMap[string, []types.Message](),
 	}
 }
 
@@ -89,21 +93,10 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		return
 	}
 
-	session := h.App.ChatSession.Get(sessionId)
-	if session == nil {
-		user, err := h.GetLoginUser(c)
-		if err != nil {
-			logger.Info("用户未登录")
-			c.Abort()
-			return
-		}
-		session = &types.ChatSession{
-			SessionId: sessionId,
-			ClientIP:  c.ClientIP(),
-			Username:  user.Username,
-			UserId:    user.Id,
-		}
-		h.App.ChatSession.Put(sessionId, session)
+	session := &types.ChatSession{
+		SessionId: sessionId,
+		ClientIP:  c.ClientIP(),
+		UserId:    h.GetLoginUserId(c),
 	}
 
 	// use old chat data override the chat model and role ID
@@ -125,22 +118,18 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 		Temperature: chatModel.Temperature,
 		KeyId:       chatModel.KeyId,
 		Platform:    chatModel.Platform}
-	logger.Infof("New websocket connected, IP: %s, Username: %s", c.ClientIP(), session.Username)
+	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
 
-	// 保存会话连接
-	h.App.ChatClients.Put(sessionId, client)
 	go func() {
 		for {
 			_, msg, err := client.Receive()
 			if err != nil {
 				logger.Debugf("close connection: %s", client.Conn.RemoteAddr())
 				client.Close()
-				h.App.ChatClients.Delete(sessionId)
-				h.App.ChatSession.Delete(sessionId)
-				cancelFunc := h.App.ReqCancelFunc.Get(sessionId)
+				cancelFunc := h.ReqCancelFunc.Get(sessionId)
 				if cancelFunc != nil {
 					cancelFunc()
-					h.App.ReqCancelFunc.Delete(sessionId)
+					h.ReqCancelFunc.Delete(sessionId)
 				}
 				return
 			}
@@ -160,7 +149,7 @@ func (h *ChatHandler) ChatHandle(c *gin.Context) {
 			logger.Info("Receive a message: ", message.Content)
 
 			ctx, cancel := context.WithCancel(context.Background())
-			h.App.ReqCancelFunc.Put(sessionId, cancel)
+			h.ReqCancelFunc.Put(sessionId, cancel)
 			// 回复消息
 			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
 			if err != nil {
@@ -274,8 +263,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	chatCtx := make([]types.Message, 0)
 	messages := make([]types.Message, 0)
 	if h.App.SysConfig.EnableContext {
-		if h.App.ChatContexts.Has(session.ChatId) {
-			messages = h.App.ChatContexts.Get(session.ChatId)
+		if h.ChatContexts.Has(session.ChatId) {
+			messages = h.ChatContexts.Get(session.ChatId)
 		} else {
 			_ = utils.JsonDecode(role.Context, &messages)
 			if h.App.SysConfig.ContextDeep > 0 {
@@ -323,20 +312,51 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		reqMgs = append(reqMgs, m)
 	}
 
+	fullPrompt := prompt
+	text := prompt
+	// extract files in prompt
+	files := utils.ExtractFileURLs(prompt)
+	logger.Debugf("detected FILES: %+v", files)
+	// 如果不是逆向模型，则提取文件内容
+	if len(files) > 0 && !(session.Model.Value == "gpt-4-all" ||
+		strings.HasPrefix(session.Model.Value, "gpt-4-gizmo") ||
+		strings.HasSuffix(session.Model.Value, "claude-3")) {
+		contents := make([]string, 0)
+		var file model.File
+		for _, v := range files {
+			h.DB.Where("url = ?", v).First(&file)
+			content, err := utils.ReadFileContent(v, h.App.Config.TikaHost)
+			if err != nil {
+				logger.Error("error with read file: ", err)
+			} else {
+				contents = append(contents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
+			}
+			text = strings.Replace(text, v, "", 1)
+		}
+		if len(contents) > 0 {
+			fullPrompt = fmt.Sprintf("请根据提供的文件内容信息回答问题(其中Excel 已转成 HTML)：\n\n %s\n\n 问题：%s", strings.Join(contents, "\n"), text)
+		}
+
+		tokens, _ := utils.CalcTokens(fullPrompt, req.Model)
+		if tokens > session.Model.MaxContext {
+			return fmt.Errorf("文件的长度超出模型允许的最大上下文长度，请减少文件内容数量或文件大小。")
+		}
+	}
+	logger.Debug("最终Prompt：", fullPrompt)
+
 	if session.Model.Platform == types.QWen.Value {
 		req.Input = make(map[string]interface{})
 		reqMgs = append(reqMgs, types.Message{
 			Role:    "user",
-			Content: prompt,
+			Content: fullPrompt,
 		})
 		req.Input["messages"] = reqMgs
 	} else if session.Model.Platform == types.OpenAI.Value || session.Model.Platform == types.Azure.Value { // extract image for gpt-vision model
-		imgURLs := utils.ExtractImgURL(prompt)
+		imgURLs := utils.ExtractImgURLs(prompt)
 		logger.Debugf("detected IMG: %+v", imgURLs)
 		var content interface{}
 		if len(imgURLs) > 0 {
 			data := make([]interface{}, 0)
-			text := prompt
 			for _, v := range imgURLs {
 				text = strings.Replace(text, v, "", 1)
 				data = append(data, gin.H{
@@ -348,11 +368,11 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 			}
 			data = append(data, gin.H{
 				"type": "text",
-				"text": text,
+				"text": strings.TrimSpace(text),
 			})
 			content = data
 		} else {
-			content = prompt
+			content = fullPrompt
 		}
 		req.Messages = append(reqMgs, map[string]interface{}{
 			"role":    "user",
@@ -361,7 +381,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	} else {
 		req.Messages = append(reqMgs, map[string]interface{}{
 			"role":    "user",
-			"content": prompt,
+			"content": fullPrompt,
 		})
 	}
 
@@ -442,9 +462,9 @@ func getTotalTokens(req types.ApiRequest) int {
 // StopGenerate 停止生成
 func (h *ChatHandler) StopGenerate(c *gin.Context) {
 	sessionId := c.Query("session_id")
-	if h.App.ReqCancelFunc.Has(sessionId) {
-		h.App.ReqCancelFunc.Get(sessionId)()
-		h.App.ReqCancelFunc.Delete(sessionId)
+	if h.ReqCancelFunc.Has(sessionId) {
+		h.ReqCancelFunc.Get(sessionId)()
+		h.ReqCancelFunc.Delete(sessionId)
 	}
 	resp.SUCCESS(c, types.OkMsg)
 }
@@ -454,7 +474,7 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, session *types.ChatSession, apiKey *model.ApiKey) (*http.Response, error) {
 	// if the chat model bind a KEY, use it directly
 	if session.Model.KeyId > 0 {
-		h.DB.Debug().Where("id", session.Model.KeyId).Where("enabled", true).Find(apiKey)
+		h.DB.Where("id", session.Model.KeyId).Find(apiKey)
 	}
 	// use the last unused key
 	if apiKey.Id == 0 {
@@ -602,7 +622,7 @@ func (h *ChatHandler) saveChatHistory(
 	if h.App.SysConfig.EnableContext {
 		chatCtx = append(chatCtx, useMsg)  // 提问消息
 		chatCtx = append(chatCtx, message) // 回复消息
-		h.App.ChatContexts.Put(session.ChatId, chatCtx)
+		h.ChatContexts.Put(session.ChatId, chatCtx)
 	}
 
 	// 追加聊天记录
@@ -660,7 +680,7 @@ func (h *ChatHandler) saveChatHistory(
 	res = h.DB.Where("chat_id = ?", session.ChatId).First(&chatItem)
 	if res.Error != nil {
 		chatItem.ChatId = session.ChatId
-		chatItem.UserId = session.UserId
+		chatItem.UserId = userVo.Id
 		chatItem.RoleId = role.Id
 		chatItem.ModelId = session.Model.Id
 		if utf8.RuneCountInString(prompt) > 30 {
