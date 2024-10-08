@@ -289,7 +289,7 @@ const submitLogin = () => {
   }
 
   httpPost('/api/user/login', data.value).then((res) => {
-    setUserToken(res.data)
+    setUserToken(res.data.token)
     ElMessage.success("登录成功！")
     emits("hide")
     emits('success')

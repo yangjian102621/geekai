@@ -32,31 +32,19 @@ import (
 )
 
 type AppServer struct {
-	Debug        bool
-	Config       *types.AppConfig
-	Engine       *gin.Engine
-	ChatContexts *types.LMap[string, []types.Message] // 聊天上下文 Map [chatId] => []Message
-
+	Debug     bool
+	Config    *types.AppConfig
+	Engine    *gin.Engine
 	SysConfig *types.SystemConfig // system config cache
-
-	// 保存 Websocket 会话 UserId, 每个 UserId 只能连接一次
-	// 防止第三方直接连接 socket 调用 OpenAI API
-	ChatSession   *types.LMap[string, *types.ChatSession] //map[sessionId]UserId
-	ChatClients   *types.LMap[string, *types.WsClient]    // map[sessionId]Websocket 连接集合
-	ReqCancelFunc *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 }
 
 func NewServer(appConfig *types.AppConfig) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
-		Debug:         false,
-		Config:        appConfig,
-		Engine:        gin.Default(),
-		ChatContexts:  types.NewLMap[string, []types.Message](),
-		ChatSession:   types.NewLMap[string, *types.ChatSession](),
-		ChatClients:   types.NewLMap[string, *types.WsClient](),
-		ReqCancelFunc: types.NewLMap[string, context.CancelFunc](),
+		Debug:  false,
+		Config: appConfig,
+		Engine: gin.Default(),
 	}
 }
 
@@ -237,6 +225,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/payment/doPay" ||
 		c.Request.URL.Path == "/api/payment/payWays" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/config/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||

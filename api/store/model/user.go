@@ -15,5 +15,7 @@ type User struct {
 	Status      bool   `gorm:"default:true"` // 当前状态
 	LastLoginAt int64  // 最后登录时间
 	LastLoginIp string // 最后登录 IP
+	OpenId      string `gorm:"column:openid"`
+	Platform    string `json:"platform"`
 	Vip         bool   // 是否 VIP 会员
 }

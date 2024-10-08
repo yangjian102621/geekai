@@ -178,7 +178,7 @@ const tableData = ref([])
 const sortedTableData = ref([])
 const role = ref({context: []})
 const formRef = ref(null)
-const optTitle = ref({})
+const optTitle = ref("")
 const loading = ref(true)
 
 const rules = reactive({
@@ -231,7 +231,7 @@ const fetchData = () => {
       sortedData.forEach((id, index) => {
         ids.push(parseInt(id))
         sorts.push(index+1)
-        items.value[index].sort_num = index + 1
+        tableData.value[index].sort_num = index + 1
       })
 
       httpPost("/api/admin/role/sort", {ids: ids, sorts: sorts}).catch(e => {

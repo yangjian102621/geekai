@@ -162,7 +162,7 @@
         </el-form-item>
 
         <el-form-item label="绑定API-KEY：" prop="apikey">
-          <el-select v-model="item.key_id" placeholder="请选择 API KEY" clearable>
+          <el-select v-model="item.key_id" placeholder="请选择 API KEY" filterable clearable>
             <el-option v-for="v in apiKeys" :value="v.id" :label="v.name" :key="v.id">
               {{ v.name }}
               <el-text type="info" size="small">{{ substr(v.api_url, 50) }}</el-text>
@@ -229,7 +229,7 @@ const platforms = ref([])
 
 // 获取 API KEY
 const apiKeys = ref([])
-httpGet('/api/admin/apikey/list?status=true&type=chat').then(res => {
+httpGet('/api/admin/apikey/list?type=chat').then(res => {
   apiKeys.value = res.data
 }).catch(e => {
   ElMessage.error("获取 API KEY 失败：" + e.message)

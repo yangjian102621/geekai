@@ -158,13 +158,13 @@ func (h *DallJobHandler) ImgWall(c *gin.Context) {
 
 // JobList 获取 SD 任务列表
 func (h *DallJobHandler) JobList(c *gin.Context) {
-	status := h.GetBool(c, "status")
+	finish := h.GetBool(c, "finish")
 	userId := h.GetLoginUserId(c)
 	page := h.GetInt(c, "page", 0)
 	pageSize := h.GetInt(c, "page_size", 0)
 	publish := h.GetBool(c, "publish")
 
-	err, jobs := h.getData(status, userId, page, pageSize, publish)
+	err, jobs := h.getData(finish, userId, page, pageSize, publish)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -214,25 +214,23 @@ func (h *DallJobHandler) getData(finish bool, userId uint, page int, pageSize in
 
 // Remove remove task image
 func (h *DallJobHandler) Remove(c *gin.Context) {
-	var data struct {
-		Id     uint   `json:"id"`
-		UserId uint   `json:"user_id"`
-		ImgURL string `json:"img_url"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
+	id := h.GetInt(c, "id", 0)
+	userId := h.GetInt(c, "user_id", 0)
+	var job model.DallJob
+	if res := h.DB.Where("id = ? AND user_id = ?", id, userId).First(&job); res.Error != nil {
+		resp.ERROR(c, "记录不存在")
 		return
 	}
 
 	// remove job recode
-	res := h.DB.Delete(&model.DallJob{Id: data.Id})
+	res := h.DB.Delete(&model.DallJob{Id: job.Id})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
 	// remove image
-	err := h.uploader.GetUploadHandler().Delete(data.ImgURL)
+	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
 	}
@@ -242,16 +240,11 @@ func (h *DallJobHandler) Remove(c *gin.Context) {
 
 // Publish 发布/取消发布图片到画廊显示
 func (h *DallJobHandler) Publish(c *gin.Context) {
-	var data struct {
-		Id     uint `json:"id"`
-		Action bool `json:"action"` // 发布动作，true => 发布，false => 取消分享
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
+	id := h.GetInt(c, "id", 0)
+	userId := h.GetInt(c, "user_id", 0)
+	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
 
-	res := h.DB.Model(&model.DallJob{Id: data.Id}).UpdateColumn("publish", true)
+	res := h.DB.Model(&model.DallJob{Id: uint(id), UserId: uint(userId)}).UpdateColumn("publish", action)
 	if res.Error != nil {
 		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "更新数据库失败")

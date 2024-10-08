@@ -2,27 +2,27 @@
     height: 100%;
 }
 
-#app .common-layout {
+#app .chat-page {
     height: 100%;
 }
 
-#app .common-layout .el-aside {
+#app .chat-page .el-aside {
     background-color: #252526;
 }
 
-#app .common-layout .el-aside .title-box {
+#app .chat-page .el-aside .title-box {
     padding: 6px 10px;
     display: flex;
     color: #fff;
     font-size: 20px;
 }
 
-#app .common-layout .el-aside .title-box span {
+#app .chat-page .el-aside .title-box span {
     padding-top: 5px;
     padding-left: 10px;
 }
 
-#app .common-layout .el-aside .chat-list {
+#app .chat-page .el-aside .chat-list {
     display: flex;
     flex-flow: column;
     background-color: #28292a;
@@ -30,28 +30,28 @@
     border-right: 1px solid #2f3032;
 }
 
-#app .common-layout .el-aside .chat-list .search-box {
+#app .chat-page .el-aside .chat-list .search-box {
     flex-wrap: wrap;
     padding: 10px 15px;
 }
 
-#app .common-layout .el-aside .chat-list .search-box .el-input__wrapper {
+#app .chat-page .el-aside .chat-list .search-box .el-input__wrapper {
     background-color: #363535;
     box-shadow: none;
 }
 
-#app .common-layout .el-aside .chat-list ::-webkit-scrollbar {
+#app .chat-page .el-aside .chat-list ::-webkit-scrollbar {
     width: 0;
     height: 0;
     background-color: transparent;
 }
 
-#app .common-layout .el-aside .chat-list .content {
+#app .chat-page .el-aside .chat-list .content {
     width: 100%;
     overflow-y: scroll;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item {
+#app .chat-page .el-aside .chat-list .content .chat-list-item {
     display: flex;
     width: 100%;
     justify-content: flex-start;
@@ -59,17 +59,17 @@
     cursor: pointer;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item:hover {
+#app .chat-page .el-aside .chat-list .content .chat-list-item:hover {
     background-color: #343540;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item .avatar {
+#app .chat-page .el-aside .chat-list .content .chat-list-item .avatar {
     width: 28px;
     height: 28px;
     border-radius: 50%;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item .chat-title-input {
+#app .chat-page .el-aside .chat-list .content .chat-list-item .chat-title-input {
     font-size: 14px;
     margin-top: 4px;
     margin-left: 10px;
@@ -79,7 +79,7 @@
     width: 190px;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item .chat-title {
+#app .chat-page .el-aside .chat-list .content .chat-list-item .chat-title {
     color: #c1c1c1;
     padding: 5px 10px;
     max-width: 220px;
@@ -89,7 +89,7 @@
     text-overflow: ellipsis;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item .btn {
+#app .chat-page .el-aside .chat-list .content .chat-list-item .btn {
     display: none;
     position: absolute;
     right: 2px;
@@ -97,19 +97,19 @@
     color: #fff;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item .btn .el-icon {
+#app .chat-page .el-aside .chat-list .content .chat-list-item .btn .el-icon {
     margin-right: 8px;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item.active {
+#app .chat-page .el-aside .chat-list .content .chat-list-item.active {
     background-color: #343540;
 }
 
-#app .common-layout .el-aside .chat-list .content .chat-list-item.active .btn {
+#app .chat-page .el-aside .chat-list .content .chat-list-item.active .btn {
     display: inline;
 }
 
-#app .common-layout .el-aside .tool-box {
+#app .chat-page .el-aside .tool-box {
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -117,48 +117,48 @@
     border-top: 1px solid #3c3c3c;
 }
 
-#app .common-layout .el-aside .tool-box .user-info {
+#app .chat-page .el-aside .tool-box .user-info {
     width: 100%;
     padding-top: 10px;
 }
 
-#app .common-layout .el-aside .tool-box .user-info .el-dropdown-link {
+#app .chat-page .el-aside .tool-box .user-info .el-dropdown-link {
     width: 100%;
     cursor: pointer;
     display: flex;
 }
 
-#app .common-layout .el-aside .tool-box .user-info .el-dropdown-link .el-image {
+#app .chat-page .el-aside .tool-box .user-info .el-dropdown-link .el-image {
     width: 20px;
     height: 20px;
     border-radius: 5px;
 }
 
-#app .common-layout .el-aside .tool-box .user-info .el-dropdown-link .username {
+#app .chat-page .el-aside .tool-box .user-info .el-dropdown-link .username {
     display: flex;
     line-height: 22px;
     width: 230px;
     padding-left: 10px;
 }
 
-#app .common-layout .el-aside .tool-box .user-info .el-dropdown-link .el-icon {
+#app .chat-page .el-aside .tool-box .user-info .el-dropdown-link .el-icon {
     color: #ccc;
     line-height: 24px;
 }
 
-#app .common-layout .el-main {
+#app .chat-page .el-main {
     overflow: hidden;
     --el-main-padding: 0;
     margin: 0;
 }
 
-#app .common-layout .el-main .chat-head {
+#app .chat-page .el-main .chat-head {
     width: 100%;
     height: 50px;
     background-color: #28292a;
 }
 
-#app .common-layout .el-main .chat-head .chat-config {
+#app .chat-page .el-main .chat-head .chat-config {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -166,54 +166,54 @@
     padding-top: 10px;
 }
 
-#app .common-layout .el-main .chat-head .chat-config .role-select-label {
+#app .chat-page .el-main .chat-head .chat-config .role-select-label {
     color: #fff;
 }
 
-#app .common-layout .el-main .chat-head .chat-config .el-select {
+#app .chat-page .el-main .chat-head .chat-config .el-select {
     max-width: 150px;
     margin-right: 10px;
 }
 
-#app .common-layout .el-main .chat-head .chat-config .role-select {
+#app .chat-page .el-main .chat-head .chat-config .role-select {
     max-width: 130px;
 }
 
-#app .common-layout .el-main .chat-head .chat-config .el-button .el-icon {
+#app .chat-page .el-main .chat-head .chat-config .el-button .el-icon {
     margin-right: 5px;
 }
 
-#app .common-layout .el-main .chat-head .iconfont {
+#app .chat-page .el-main .chat-head .iconfont {
     margin-right: 5px;
 }
 
-#app .common-layout .el-main .chat-head .is-circle {
+#app .chat-page .el-main .chat-head .is-circle {
     margin-left: 5px;
 }
 
-#app .common-layout .el-main .chat-head .is-circle .iconfont {
+#app .chat-page .el-main .chat-head .is-circle .iconfont {
     margin-right: 0;
 }
 
-#app .common-layout .el-main .chat-box {
+#app .chat-page .el-main .chat-box {
     min-width: 0;
     flex: 1;
     background-color: #fff;
     border-left: 1px solid #4f4f4f;
 }
 
-#app .common-layout .el-main .chat-box #container {
+#app .chat-page .el-main .chat-box #container {
     overflow: hidden;
     width: 100%;
 }
 
-#app .common-layout .el-main .chat-box #container ::-webkit-scrollbar {
+#app .chat-page .el-main .chat-box #container ::-webkit-scrollbar {
     width: 0;
     height: 0;
     background-color: transparent;
 }
 
-#app .common-layout .el-main .chat-box #container .chat-box {
+#app .chat-page .el-main .chat-box #container .chat-box {
     overflow-y: scroll;
     --content-font-size: 16px;
     --content-color: #c1c1c1;
@@ -221,28 +221,28 @@
     padding: 0 0 50px 0;
 }
 
-#app .common-layout .el-main .chat-box #container .chat-box .chat-line {
+#app .chat-page .el-main .chat-box #container .chat-box .chat-line {
     font-size: 14px;
     display: flex;
     align-items: flex-start;
 }
 
-#app .common-layout .el-main .chat-box #container .re-generate {
+#app .chat-page .el-main .chat-box #container .re-generate {
     position: relative;
     display: flex;
     justify-content: center;
 }
 
-#app .common-layout .el-main .chat-box #container .re-generate .btn-box {
+#app .chat-page .el-main .chat-box #container .re-generate .btn-box {
     position: absolute;
     bottom: 10px;
 }
 
-#app .common-layout .el-main .chat-box #container .re-generate .btn-box .el-button .el-icon {
+#app .chat-page .el-main .chat-box #container .re-generate .btn-box .el-button .el-icon {
     margin-right: 5px;
 }
 
-#app .common-layout .el-main .chat-box #container .input-box {
+#app .chat-page .el-main .chat-box #container .input-box {
     background-color: #fff;
     display: flex;
     justify-content: center;
@@ -251,7 +251,7 @@
     padding: 0 15px;
 }
 
-#app .common-layout .el-main .chat-box #container .input-box .input-container {
+#app .chat-page .el-main .chat-box #container .input-box .input-container {
     width: 100%;
     margin: 0;
     border: none;
@@ -261,24 +261,24 @@
     position: relative;
 }
 
-#app .common-layout .el-main .chat-box #container .input-box .input-container .el-textarea .el-textarea__inner::-webkit-scrollbar {
+#app .chat-page .el-main .chat-box #container .input-box .input-container .el-textarea .el-textarea__inner::-webkit-scrollbar {
     width: 0;
     height: 0;
 }
 
-#app .common-layout .el-main .chat-box #container .input-box .input-container .select-file {
+#app .chat-page .el-main .chat-box #container .input-box .input-container .select-file {
     position: absolute;
     right: 48px;
     top: 20px;
 }
 
-#app .common-layout .el-main .chat-box #container .input-box .input-container .send-btn {
+#app .chat-page .el-main .chat-box #container .input-box .input-container .send-btn {
     position: absolute;
     right: 12px;
     top: 20px;
 }
 
-#app .common-layout .el-main .chat-box #container .input-box .input-container .send-btn .el-button {
+#app .chat-page .el-main .chat-box #container .input-box .input-container .send-btn .el-button {
     padding: 8px 5px;
     border-radius: 6px;
     background: #19c37d;
@@ -286,7 +286,7 @@
     font-size: 20px;
 }
 
-#app .common-layout .el-main .chat-box #container::-webkit-scrollbar {
+#app .chat-page .el-main .chat-box #container::-webkit-scrollbar {
     width: 0;
     height: 0;
 }

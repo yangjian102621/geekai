@@ -35,6 +35,7 @@ type AppConfig struct {
 	SmtpConfig      SmtpConfig      // 邮件发送配置
 	JPayConfig      JPayConfig      // payjs 支付配置
 	WechatPayConfig WechatPayConfig // 微信支付渠道配置
+	TikaHost        string          // TiKa 服务器地址
 }
 
 type SmtpConfig struct {
@@ -226,5 +227,5 @@ type SystemConfig struct {
 
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
 
-	RandBg bool `json:"rand_bg"` // 前端首页是否启用随机背景
+	IndexBgURL string `json:"index_bg_url"` // 前端首页背景图片
 }

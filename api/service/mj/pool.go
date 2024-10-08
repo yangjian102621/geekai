@@ -16,6 +16,7 @@ import (
 	"geekai/service/sd"
 	"geekai/store"
 	"geekai/store/model"
+	"geekai/utils"
 	"github.com/go-redis/redis/v8"
 	"strings"
 	"time"
@@ -58,13 +59,13 @@ func (p *ServicePool) InitServices(plusConfigs []types.MjPlusConfig, proxyConfig
 	}
 	p.services = make([]*Service, 0)
 
-	for k, config := range plusConfigs {
+	for _, config := range plusConfigs {
 		if config.Enabled == false {
 			continue
 		}
 
 		cli := NewPlusClient(config, p.licenseService)
-		name := fmt.Sprintf("mj-plus-service-%d", k)
+		name := utils.Md5(config.ApiURL)
 		plusService := NewService(name, p.taskQueue, p.notifyQueue, p.db, cli)
 		go func() {
 			plusService.Run()
@@ -73,12 +74,12 @@ func (p *ServicePool) InitServices(plusConfigs []types.MjPlusConfig, proxyConfig
 	}
 
 	// for mid-journey proxy
-	for k, config := range proxyConfigs {
+	for _, config := range proxyConfigs {
 		if config.Enabled == false {
 			continue
 		}
 		cli := NewProxyClient(config)
-		name := fmt.Sprintf("mj-proxy-service-%d", k)
+		name := utils.Md5(config.ApiURL)
 		proxyService := NewService(name, p.taskQueue, p.notifyQueue, p.db, cli)
 		go func() {
 			proxyService.Run()
@@ -209,7 +210,6 @@ func (p *ServicePool) SyncTaskProgress() {
 					}
 					continue
 				}
-
 				if servicePlus := p.getService(job.ChannelId); servicePlus != nil {
 					_ = servicePlus.Notify(job)
 				}

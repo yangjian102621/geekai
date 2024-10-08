@@ -31,11 +31,11 @@ func RandString(length int) string {
 }
 
 func RandomNumber(bit int) int {
-	min := intPow(10, bit-1)
-	max := intPow(10, bit) - 1
+	minNum := intPow(10, bit-1)
+	maxNum := intPow(10, bit) - 1
 
-	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(max-min+1) + min
+	rand.NewSource(time.Now().UnixNano())
+	return rand.Intn(maxNum-minNum+1) + minNum
 }
 
 func intPow(x, y int) int {
@@ -46,7 +46,7 @@ func intPow(x, y int) int {
 	return result
 }
 
-func ContainsStr(slice []string, item string) bool {
+func Contains(slice []string, item string) bool {
 	for _, e := range slice {
 		if e == item {
 			return true

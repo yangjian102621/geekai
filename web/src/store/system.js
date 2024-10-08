@@ -25,3 +25,37 @@ export function getAdminTheme() {
 export function setAdminTheme(theme) {
     Storage.set(ADMIN_THEME, theme)
 }
+
+export function GetFileIcon(ext) {
+    const files = {
+        ".docx": "doc.png",
+        ".doc": "doc.png",
+        ".xls": "xls.png",
+        ".xlsx": "xls.png",
+        ".csv": "xls.png",
+        ".ppt": "ppt.png",
+        ".pptx": "ppt.png",
+        ".md": "md.png",
+        ".pdf": "pdf.png",
+        ".sql": "sql.png"
+    }
+    if (files[ext]) {
+        return '/images/ext/' + files[ext]
+    }
+
+    return '/images/ext/file.png'
+}
+
+// 获取文件类型
+export function GetFileType (ext) {
+    return ext.replace(".", "").toUpperCase()
+}
+
+// 将文件大小转成字符
+export function FormatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}

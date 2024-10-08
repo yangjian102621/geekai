@@ -1,5 +1,5 @@
 <template>
-  <el-container class="file-list-box">
+  <el-container class="file-select-box">
     <a class="file-upload-img" @click="fetchFiles">
       <i class="iconfont icon-attachment-st"></i>
     </a>
@@ -20,6 +20,7 @@
                   :auto-upload="true"
                   :show-file-list="false"
                   :http-request="afterRead"
+                  accept=".doc,.docx,.jpg,.png,.jpeg,.xls,.xlsx,.ppt,.pptx,.pdf"
               >
                 <el-icon class="avatar-uploader-icon">
                   <Plus/>
@@ -34,8 +35,8 @@
                   effect="dark"
                   :content="file.name"
                   placement="top">
-                <el-image :src="file.url" fit="cover" v-if="isImage(file.ext)" @click="insertURL(file.url)"/>
-                <el-image :src="getFileIcon(file.ext)" fit="cover" v-else @click="insertURL(file.url)"/>
+                <el-image :src="file.url" fit="cover" v-if="isImage(file.ext)" @click="insertURL(file)"/>
+                <el-image :src="GetFileIcon(file.ext)" fit="cover" v-else @click="insertURL(file)"/>
               </el-tooltip>
 
               <div class="opt">
@@ -55,6 +56,7 @@ import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import {Delete, Plus} from "@element-plus/icons-vue";
 import {isImage, removeArrayItem} from "@/utils/libs";
+import {GetFileIcon} from "@/store/system";
 
 const props = defineProps({
   userId: Number,
@@ -65,30 +67,12 @@ const fileList = ref([])
 
 const fetchFiles = () => {
   show.value = true
-  httpGet("/api/upload/list").then(res => {
+  httpPost("/api/upload/list").then(res => {
     fileList.value = res.data
   }).catch(() => {
   })
 }
 
-const getFileIcon = (ext) => {
-  const files = {
-    ".docx": "doc.png",
-    ".doc": "doc.png",
-    ".xls": "xls.png",
-    ".xlsx": "xls.png",
-    ".ppt": "ppt.png",
-    ".pptx": "ppt.png",
-    ".md": "md.png",
-    ".pdf": "pdf.png",
-    ".sql": "sql.png"
-  }
-  if (files[ext]) {
-    return '/images/ext/' + files[ext]
-  }
-
-  return '/images/ext/file.png'
-}
 
 const afterRead = (file) => {
   const formData = new FormData();
@@ -113,19 +97,19 @@ const removeFile = (file) => {
   })
 }
 
-const insertURL = (url) => {
+const insertURL = (file) => {
   show.value = false
   // 如果是相对路径，处理成绝对路径
-  if (url.indexOf("http") === -1) {
-    url = location.protocol + "//" + location.host + url
+  if (file.url.indexOf("http") === -1) {
+    file.url = location.protocol + "//" + location.host + file.url
   }
-  emits('selected', url)
+  emits('selected', file)
 }
 </script>
 
 <style lang="stylus">
 
-.file-list-box {
+.file-select-box {
   .file-upload-img {
     .iconfont {
       font-size: 24px;

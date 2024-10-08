@@ -153,7 +153,7 @@
         v-model="showChatItemDialog"
         title="对话详情"
     >
-      <div class="chat-box common-layout">
+      <div class="chat-box chat-page">
         <div v-for="item in messages" :key="item.id">
           <chat-prompt
               v-if="item.type==='prompt'"

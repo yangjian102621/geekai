@@ -1,5 +1,5 @@
 <template>
-  <div class="common-layout">
+  <div class="chat-page">
     <el-container>
       <el-aside>
         <div class="chat-list">
@@ -24,7 +24,7 @@
           <div class="content" :style="{height: leftBoxHeight+'px'}">
             <el-row v-for="chat in chatList" :key="chat.chat_id">
               <div :class="chat.chat_id === activeChat.chat_id?'chat-list-item active':'chat-list-item'"
-                   @click="changeChat(chat)">
+                   @click="loadChat(chat)">
                 <el-image :src="chat.icon" class="avatar"/>
                 <span class="chat-title-input" v-if="chat.edit">
                   <el-input v-model="tmpChatTitle" size="small" @keydown="titleKeydown($event, chat)"
@@ -99,6 +99,12 @@
                 </el-tag>
               </el-option>
             </el-select>
+
+            <span class="setting" @click="showChatSetting = true">
+                    <el-tooltip class="box-item" effect="dark" content="对话设置">
+                      <i class="iconfont icon-config"></i>
+                    </el-tooltip>
+                  </span>
           </div>
 
           <div>
@@ -109,13 +115,8 @@
                 </div>
                 <div v-for="item in chatData" :key="item.id" v-else>
                   <chat-prompt
-                      v-if="item.type==='prompt'"
-                      :icon="item.icon"
-                      :created-at="dateFormat(item['created_at'])"
-                      :tokens="item['tokens']"
-                      :model="getModelValue(modelID)"
-                      :content="item.content"/>
-                  <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false"/>
+                      v-if="item.type==='prompt'" :data="item" :list-style="listStyle"/>
+                  <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false" :list-style="listStyle"/>
                 </div>
               </div><!-- end chat box -->
 
@@ -129,14 +130,18 @@
 
                   <span class="tool-item" v-if="isLogin">
                     <el-tooltip class="box-item" effect="dark" content="上传附件">
-                      <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertURL"/>
+                      <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertFile"/>
                     </el-tooltip>
                   </span>
 
                   <div class="input-body">
                     <div ref="textHeightRef" class="hide-div">{{prompt}}</div>
                     <div class="input-border">
-                      <textarea
+                      <div class="input-inner">
+                        <div class="file-list" v-if="files.length > 0">
+                          <file-list :files="files" @remove-file="removeFile" />
+                        </div>
+                        <textarea
                             ref="inputRef"
                             class="prompt-input"
                             :rows="row"
@@ -146,6 +151,8 @@
                             placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
                             autofocus>
                       </textarea>
+                      </div>
+
                       <span class="send-btn">
                         <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
                           <el-icon>
@@ -181,21 +188,21 @@
         </p>
       </div>
     </el-dialog>
+
+    <ChatSetting :show="showChatSetting" @hide="showChatSetting = false"/>
   </div>
 
 
 </template>
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import {Delete, Edit, More, Plus, Promotion, Search, Share, VideoPause} from '@element-plus/icons-vue'
 import 'highlight.js/styles/a11y-dark.css'
 import {
-  dateFormat,
   isMobile,
   processContent,
-  processPrompt,
   randString,
   removeArrayItem,
   UUID
@@ -210,6 +217,8 @@ import {checkSession} from "@/action/session";
 import Welcome from "@/components/Welcome.vue";
 import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
+import FileList from "@/components/FileList.vue";
+import ChatSetting from "@/components/ChatSetting.vue";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -236,6 +245,12 @@ const notice = ref("")
 const noticeKey = ref("SYSTEM_NOTICE")
 const store = useSharedStore();
 const row = ref(1)
+const showChatSetting = ref(false)
+const listStyle = ref(store.chatListStyle)
+watch(() => store.chatListStyle, (newValue) => {
+  listStyle.value = newValue
+});
+
 
 if (isMobile()) {
   router.replace("/mobile/chat")
@@ -417,12 +432,8 @@ const newChat = () => {
   connect(null, roleId.value)
 }
 
-// 切换会话
-const changeChat = (chat) => {
-  localStorage.setItem("chat_id", chat.chat_id)
-  loadChat(chat)
-}
 
+// 切换会话
 const loadChat = function (chat) {
   if (!isLogin.value) {
     store.setShowLoginDialog(true)
@@ -546,6 +557,7 @@ const socket = ref(null);
 const activelyClose = ref(false); // 主动关闭
 const canSend = ref(true);
 const heartbeatHandle = ref(null)
+const sessionId = ref("")
 const connect = function (chat_id, role_id) {
   let isNewChat = false;
   if (!chat_id) {
@@ -560,7 +572,7 @@ const connect = function (chat_id, role_id) {
 
   const _role = getRoleById(role_id);
   // 初始化 WebSocket 对象
-  const _sessionId = getSessionId();
+  sessionId.value = getSessionId();
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
     if (location.protocol === 'https:') {
@@ -582,7 +594,7 @@ const connect = function (chat_id, role_id) {
       heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
     });
   }
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
+  const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
     enableInput()
@@ -615,10 +627,12 @@ const connect = function (chat_id, role_id) {
         reader.onload = () => {
           const data = JSON.parse(String(reader.result));
           if (data.type === 'start') {
+            const prePrompt = chatData.value[chatData.value.length-1].content
             chatData.value.push({
               type: "reply",
               id: randString(32),
               icon: _role['icon'],
+              prompt:prePrompt,
               content: ""
             });
           } else if (data.type === 'end') { // 消息接收完毕
@@ -743,12 +757,18 @@ const sendMessage = function () {
   if (prompt.value.trim().length === 0 || canSend.value === false) {
     return false;
   }
+  // 如果携带了文件，则串上文件地址
+  let content = prompt.value
+  if (files.value.length > 0) {
+    content += files.value.map(file => file.url).join(" ")
+  }
   // 追加消息
   chatData.value.push({
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(processPrompt(prompt.value)),
+    content: content,
+    model: getModelValue(modelID.value),
     created_at: new Date().getTime() / 1000,
   });
 
@@ -758,9 +778,11 @@ const sendMessage = function () {
 
   showHello.value = false
   disableInput(false)
-  socket.value.send(JSON.stringify({type: "chat", content: prompt.value}));
-  tmpChatTitle.value = prompt.value
-  prompt.value = '';
+  socket.value.send(JSON.stringify({type: "chat", content: content}));
+  tmpChatTitle.value = content
+  prompt.value = ''
+  files.value = []
+  row.value = 1
   return true;
 }
 
@@ -810,9 +832,11 @@ const loadChatHistory = function (chatId) {
     showHello.value = false
     for (let i = 0; i < data.length; i++) {
       data[i].orgContent = data[i].content;
-      data[i].content = md.render(processContent(data[i].content))
-      if (i > 0 && data[i].type === 'reply') {
-        data[i].prompt = data[i - 1].orgContent
+      if (data[i].type === 'reply') {
+        data[i].content = md.render(processContent(data[i].content))
+        if (i > 0) {
+          data[i].prompt = data[i - 1].orgContent
+        }
       }
       chatData.value.push(data[i]);
     }
@@ -829,7 +853,7 @@ const loadChatHistory = function (chatId) {
 
 const stopGenerate = function () {
   showStopGenerate.value = false;
-  httpGet("/api/chat/stop?session_id=" + getSessionId()).then(() => {
+  httpGet("/api/chat/stop?session_id=" + sessionId.value).then(() => {
     enableInput()
   })
 }
@@ -843,7 +867,7 @@ const reGenerate = function (prompt) {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: md.render(text)
+    content: text
   });
   socket.value.send(JSON.stringify({type: "chat", content: prompt}));
 }
@@ -893,9 +917,13 @@ const notShow = () => {
   showNotice.value = false
 }
 
-// 插入文件路径
-const insertURL = (url) => {
-  prompt.value += " " + url + " "
+const files = ref([])
+// 插入文件
+const insertFile = (file) => {
+  files.value.push(file)
+}
+const removeFile = (file) => {
+  files.value = removeArrayItem(files.value, file, (v1,v2) => v1.url===v2.url)
 }
 </script>
 

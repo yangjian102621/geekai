@@ -24,28 +24,20 @@ func SUCCESS(c *gin.Context, values ...interface{}) {
 
 func ERROR(c *gin.Context, messages ...string) {
 	if messages != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: messages[0]})
+		c.JSON(http.StatusBadRequest, types.BizVo{Code: types.Failed, Message: messages[0]})
 	} else {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.Failed})
+		c.JSON(http.StatusBadRequest, types.BizVo{Code: types.Failed})
 	}
 }
 
 func HACKER(c *gin.Context) {
-	c.JSON(http.StatusOK, types.BizVo{Code: types.Failed, Message: "Hacker attempt!!!"})
+	c.JSON(http.StatusBadRequest, types.BizVo{Code: types.Failed, Message: "Hacker attempt!!!"})
 }
 
 func NotAuth(c *gin.Context, messages ...string) {
 	if messages != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: messages[0]})
+		c.JSON(http.StatusUnauthorized, types.BizVo{Code: types.NotAuthorized, Message: messages[0]})
 	} else {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.NotAuthorized, Message: "Not Authorized"})
-	}
-}
-
-func NotPermission(c *gin.Context, messages ...string) {
-	if messages != nil {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.NotPermission, Message: messages[0]})
-	} else {
-		c.JSON(http.StatusOK, types.BizVo{Code: types.NotPermission, Message: "Not Permission"})
+		c.JSON(http.StatusUnauthorized, types.BizVo{Code: types.NotAuthorized, Message: "Not Authorized"})
 	}
 }
