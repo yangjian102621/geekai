@@ -54,7 +54,7 @@ onMounted(() => {
 })
 
 watch(() => store.isLogin, (val) => {
-  if (val && store.socket.readyState !== WebSocket.OPEN) {
+  if (val) {
     connect()
   }
 })
@@ -79,26 +79,11 @@ const connect = () => {
         _socket.send(JSON.stringify({"type":"ping"}))
       }
     },5000)
-
-    // 绑定事件监听
-    for (const key in store.messageHandlers) {
-      console.log(store.messageHandlers[key])
-      store.setMessageHandler(store.messageHandlers[key])
-    }
   })
-
   _socket.addEventListener('close', () => {
-    // 移除事件监听
-    for (const key in store.messageHandlers) {
-      if (store.socket) {
-        store.socket.removeEventListener('message', store.messageHandlers[key])
-      }
-    }
-    store.setSocket(null)
     clearInterval(handler.value)
     connect()
   });
-
   store.setSocket(_socket)
 }
 

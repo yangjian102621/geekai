@@ -689,7 +689,7 @@ const sendMessage = function () {
     return;
   }
 
-  if (store.socket.readyState !== WebSocket.OPEN) {
+  if (store.socket.conn.readyState !== WebSocket.OPEN) {
     ElMessage.warning("连接断开，正在重连...");
     return
   }
@@ -727,7 +727,7 @@ const sendMessage = function () {
 
   showHello.value = false
   disableInput(false)
-  store.socket.send(JSON.stringify({
+  store.socket.conn.send(JSON.stringify({
     channel: 'chat',
     type:'text',
     body:{
@@ -825,7 +825,7 @@ const reGenerate = function (prompt) {
     icon: loginUser.value.avatar,
     content: text
   });
-  store.socket.send(JSON.stringify({
+  store.socket.conn.send(JSON.stringify({
     channel: 'chat',
     type:'text',
     body:{
