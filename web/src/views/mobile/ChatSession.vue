@@ -512,7 +512,7 @@ const sendMessage = () => {
     return
   }
 
-  if (store.socket.readyState !== WebSocket.OPEN) {
+  if (store.socket.conn.readyState !== WebSocket.OPEN) {
     showToast("连接断开，正在重连...");
     return
   }
@@ -536,7 +536,7 @@ const sendMessage = () => {
   })
 
   disableInput(false)
-  store.socket.send(JSON.stringify({
+  store.socket.conn.send(JSON.stringify({
     channel: 'chat',
     type:'text',
     body:{
@@ -569,7 +569,7 @@ const reGenerate = () => {
     icon: loginUser.value.avatar,
     content: renderInputText(text)
   });
-  store.socket.send(JSON.stringify({
+  store.socket.conn.send(JSON.stringify({
     channel: 'chat',
     type:'text',
     body:{

@@ -6,8 +6,7 @@ export const useSharedStore = defineStore('shared', {
         showLoginDialog: false,
         chatListStyle: Storage.get("chat_list_style","chat"),
         chatStream: Storage.get("chat_stream",true),
-        socket: WebSocket,
-        messageHandlers:{},
+        socket: {conn:null, handlers:{}},
         mobileTheme: Storage.get("mobile_theme", "light"),
         adminTheme: Storage.get("admin_theme", "light"),
         isLogin: false
@@ -26,41 +25,42 @@ export const useSharedStore = defineStore('shared', {
             Storage.set("chat_stream", value);
         },
         setSocket(value) {
-            this.socket = value;
+            for (const key in this.socket.handlers) {
+                this.setMessageHandler(value, this.socket.handlers[key])
+            }
+            this.socket.conn = value
         },
         addMessageHandler(key, callback) {
-            if (!this.messageHandlers[key]) {
-                this.setMessageHandler(callback)
+            if (!this.socket.handlers[key]) {
+                this.socket.handlers[key] = callback;
             }
-            this.messageHandlers[key] = callback;
+            this.setMessageHandler(this.socket.conn, callback)
         },
-        setMessageHandler(callback) {
-            if (this.socket instanceof WebSocket && this.socket.readyState === WebSocket.OPEN) {
-                console.log(callback)
-                this.socket.addEventListener('message', (event) => {
-                    try {
-                        if (event.data instanceof Blob) {
-                            const reader = new FileReader();
-                            reader.readAsText(event.data, "UTF-8");
-                            reader.onload = () => {
-                                callback(JSON.parse(String(reader.result)))
-                            }
+
+        setMessageHandler(conn, callback) {
+            if (!conn) {
+                return
+            }
+            conn.addEventListener('message', (event) => {
+                try {
+                    if (event.data instanceof Blob) {
+                        const reader = new FileReader();
+                        reader.readAsText(event.data, "UTF-8");
+                        reader.onload = () => {
+                            callback(JSON.parse(String(reader.result)))
                         }
-                    } catch (e) {
-                        console.warn(e)
                     }
-                })
-            } else {
-                setTimeout(() => {
-                    this.setMessageHandler(callback)
-                }, 1000)
-            }
+                } catch (e) {
+                    console.warn(e)
+                }
+            })
         },
+
         removeMessageHandler(key) {
-            if (this.socket.readyState === WebSocket.OPEN) {
-                this.socket.removeEventListener('message', this.messageHandlers[key])
+            if (this.socket.conn && this.socket.conn.readyState === WebSocket.OPEN) {
+                this.socket.conn.removeEventListener('message', this.socket.handlers[key])
             }
-            delete this.messageHandlers[key]
+            delete this.socket.handlers[key]
         },
         setMobileTheme(theme) {
             this.mobileTheme = theme
