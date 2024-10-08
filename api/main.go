@@ -240,6 +240,8 @@ func main() {
 			group.POST("password", h.UpdatePass)
 			group.POST("bind/username", h.BindUsername)
 			group.POST("resetPass", h.ResetPass)
+			group.GET("clogin", h.CLogin)
+			group.GET("clogin/callback", h.CLoginCallback)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *chatimpl.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")
@@ -255,7 +257,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
-			s.Engine.GET("/api/upload/list", h.List)
+			s.Engine.POST("/api/upload/list", h.List)
 			s.Engine.GET("/api/upload/remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
@@ -281,8 +283,8 @@ func main() {
 			group.POST("variation", h.Variation)
 			group.GET("jobs", h.JobList)
 			group.GET("imgWall", h.ImgWall)
-			group.POST("remove", h.Remove)
-			group.POST("publish", h.Publish)
+			group.GET("remove", h.Remove)
+			group.GET("publish", h.Publish)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			group := s.Engine.Group("/api/sd")
@@ -290,8 +292,8 @@ func main() {
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.GET("imgWall", h.ImgWall)
-			group.POST("remove", h.Remove)
-			group.POST("publish", h.Publish)
+			group.GET("remove", h.Remove)
+			group.GET("publish", h.Publish)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
 			group := s.Engine.Group("/api/config/")
@@ -368,7 +370,6 @@ func main() {
 			group := s.Engine.Group("/api/payment/")
 			group.GET("doPay", h.DoPay)
 			group.GET("payWays", h.GetPayWays)
-			group.POST("query", h.OrderQuery)
 			group.POST("qrcode", h.PayQrcode)
 			group.POST("mobile", h.Mobile)
 			group.POST("alipay/notify", h.AlipayNotify)
@@ -391,7 +392,8 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
 			group := s.Engine.Group("/api/order/")
-			group.POST("list", h.List)
+			group.GET("list", h.List)
+			group.GET("query", h.Query)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ProductHandler) {
 			group := s.Engine.Group("/api/product/")
@@ -414,13 +416,6 @@ func main() {
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("token", h.GenToken)
-		}),
-
-		// 验证码
-		fx.Provide(admin.NewCaptchaHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.CaptchaHandler) {
-			group := s.Engine.Group("/api/admin/login/")
-			group.GET("captcha", h.GetCaptcha)
 		}),
 
 		fx.Provide(admin.NewUploadHandler),
@@ -477,8 +472,8 @@ func main() {
 			group.POST("image", h.Image)
 			group.GET("jobs", h.JobList)
 			group.GET("imgWall", h.ImgWall)
-			group.POST("remove", h.Remove)
-			group.POST("publish", h.Publish)
+			group.GET("remove", h.Remove)
+			group.GET("publish", h.Publish)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

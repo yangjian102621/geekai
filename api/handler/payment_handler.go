@@ -111,7 +111,7 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 
 	// fix: 这里先检查一下订单状态，如果已经支付了，就直接返回
 	if order.Status == types.OrderPaidSuccess {
-		resp.ERROR(c, "This order had been paid, please do not pay twice")
+		resp.ERROR(c, "订单已支付成功，无需重复支付！")
 		return
 	}
 
@@ -148,49 +148,11 @@ func (h *PaymentHandler) DoPay(c *gin.Context) {
 	resp.ERROR(c, "Invalid operations")
 }
 
-// OrderQuery 查询订单状态
-func (h *PaymentHandler) OrderQuery(c *gin.Context) {
-	var data struct {
-		OrderNo string `json:"order_no"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	var order model.Order
-	res := h.DB.Where("order_no = ?", data.OrderNo).First(&order)
-	if res.Error != nil {
-		resp.ERROR(c, "Order not found")
-		return
-	}
-
-	if order.Status == types.OrderPaidSuccess {
-		resp.SUCCESS(c, gin.H{"status": order.Status})
-		return
-	}
-
-	counter := 0
-	for {
-		time.Sleep(time.Second)
-		var item model.Order
-		h.DB.Where("order_no = ?", data.OrderNo).First(&item)
-		if counter >= 15 || item.Status == types.OrderPaidSuccess || item.Status != order.Status {
-			order.Status = item.Status
-			break
-		}
-		counter++
-	}
-
-	resp.SUCCESS(c, gin.H{"status": order.Status})
-}
-
 // PayQrcode 生成支付 URL 二维码
 func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 	var data struct {
 		PayWay    string `json:"pay_way"` // 支付方式
 		ProductId uint   `json:"product_id"`
-		UserId    int    `json:"user_id"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -209,10 +171,9 @@ func (h *PaymentHandler) PayQrcode(c *gin.Context) {
 		resp.ERROR(c, "error with generate trade no: "+err.Error())
 		return
 	}
-	var user model.User
-	res = h.DB.First(&user, data.UserId)
-	if res.Error != nil {
-		resp.ERROR(c, "Invalid user ID")
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
 		return
 	}
 
@@ -333,7 +294,6 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 	var data struct {
 		PayWay    string `json:"pay_way"` // 支付方式
 		ProductId uint   `json:"product_id"`
-		UserId    int    `json:"user_id"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -352,10 +312,9 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		resp.ERROR(c, "error with generate trade no: "+err.Error())
 		return
 	}
-	var user model.User
-	res = h.DB.First(&user, data.UserId)
-	if res.Error != nil {
-		resp.ERROR(c, "Invalid user ID")
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
 		return
 	}
 
@@ -449,7 +408,7 @@ func (h *PaymentHandler) Mobile(c *gin.Context) {
 		return
 	}
 
-	resp.SUCCESS(c, payURL)
+	resp.SUCCESS(c, gin.H{"url": payURL, "order_no": orderNo})
 }
 
 // 异步通知回调公共逻辑

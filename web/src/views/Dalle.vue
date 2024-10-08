@@ -86,43 +86,7 @@
           <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
               <h2>任务列表</h2>
-              <div class="running-job-list">
-                <div class="running-job-box" v-if="runningJobs.length > 0">
-                  <div class="job-item" v-for="item in runningJobs" :key="item.id">
-                    <div v-if="item.progress > 0" class="job-item-inner">
-                      <el-image :src="item['img_url']" fit="cover" loading="lazy">
-                        <template #placeholder>
-                          <div class="image-slot">
-                            正在加载图片
-                          </div>
-                        </template>
-
-                        <template #error>
-                          <div class="image-slot">
-                            <el-icon>
-                              <Picture/>
-                            </el-icon>
-                          </div>
-                        </template>
-                      </el-image>
-
-                      <div class="progress">
-                        <el-progress type="circle" :percentage="item.progress" :width="100"
-                                     color="#47fff1"/>
-                      </div>
-                    </div>
-                    <el-image fit="cover" v-else>
-                      <template #error>
-                        <div class="image-slot">
-                          <i class="iconfont icon-quick-start"></i>
-                          <span>任务正在排队中</span>
-                        </div>
-                      </template>
-                    </el-image>
-                  </div>
-                </div>
-                <el-empty :image-size="100" v-else/>
-              </div>
+              <task-list :list="runningJobs" />
 
               <h2>创作记录</h2>
               <div class="finish-job-list">
@@ -228,6 +192,7 @@ import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
 import {checkSession} from "@/action/session";
 import {useSharedStore} from "@/store/sharedata";
+import TaskList from "@/components/TaskList.vue";
 
 const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
@@ -369,7 +334,7 @@ const fetchRunningJobs = () => {
     return
   }
   // 获取运行中的任务
-  httpGet(`/api/dall/jobs?status=0`).then(res => {
+  httpGet(`/api/dall/jobs?finish=false`).then(res => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
@@ -402,7 +367,7 @@ const fetchFinishJobs = () => {
   loading.value = true
   page.value = page.value + 1
 
-  httpGet(`/api/dall/jobs?status=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
+  httpGet(`/api/dall/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`).then(res => {
     if (res.data.length < pageSize.value) {
       isOver.value = true
     }
@@ -454,7 +419,7 @@ const removeImage = (event, item) => {
         type: 'warning',
       }
   ).then(() => {
-    httpPost("/api/dall/remove", {id: item.id, img_url: item.img_url, user_id: userId.value}).then(() => {
+    httpGet("/api/dall/remove", {id: item.id, user_id: item.user}).then(() => {
       ElMessage.success("任务删除成功")
       page.value = 0
       isOver.value = false
@@ -477,7 +442,7 @@ const publishImage = (event, item, action) => {
   if (action === false) {
     text = "取消发布"
   }
-  httpPost("/api/dall/publish", {id: item.id, action: action}).then(() => {
+  httpGet("/api/dall/publish", {id: item.id, action: action,user_id:item.user_id}).then(() => {
     ElMessage.success(text + "成功")
     item.publish = action
     page.value = 0

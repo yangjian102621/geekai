@@ -54,7 +54,6 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Name:        data.Name,
 		Value:       data.Value,
 		Enabled:     data.Enabled,
-		SortNum:     data.SortNum,
 		Open:        data.Open,
 		MaxTokens:   data.MaxTokens,
 		MaxContext:  data.MaxContext,
@@ -64,6 +63,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 	var res *gorm.DB
 	if data.Id > 0 {
 		item.Id = data.Id
+		item.SortNum = data.SortNum
 		res = h.DB.Select("*").Omit("created_at").Updates(&item)
 	} else {
 		res = h.DB.Create(&item)

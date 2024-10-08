@@ -8,6 +8,8 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"context"
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
@@ -16,11 +18,8 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/mojocn/base64Captcha"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -56,11 +55,11 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// add captcha
-	if !base64Captcha.DefaultMemStore.Verify(data.CaptchaId, data.Captcha, true) {
-		resp.ERROR(c, "验证码错误!")
-		return
-	}
+	//// add captcha
+	//if !base64Captcha.DefaultMemStore.Verify(data.CaptchaId, data.Captcha, true) {
+	//	resp.ERROR(c, "验证码错误!")
+	//	return
+	//}
 
 	var manager model.AdminUser
 	res := h.DB.Model(&model.AdminUser{}).Where("username = ?", data.Username).First(&manager)

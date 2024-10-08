@@ -16,6 +16,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"github.com/imroc/req/v3"
 	"strings"
 	"time"
 
@@ -97,7 +98,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		}
 	}
 
-	// check if the username is exists
+	// check if the username is existing
 	var item model.User
 	res := h.DB.Where("username = ?", data.Username).First(&item)
 	if item.Id > 0 {
@@ -122,7 +123,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		user.Power += h.App.SysConfig.InvitePower
 	}
 	if h.licenseService.GetLicense().Configs.DeCopy {
-		user.Username = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+		user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 	} else {
 		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}
@@ -184,7 +185,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		resp.ERROR(c, "error with save token: "+err.Error())
 		return
 	}
-	resp.SUCCESS(c, tokenString)
+	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
 }
 
 // Login 用户登录
@@ -243,7 +244,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		resp.ERROR(c, "error with save token: "+err.Error())
 		return
 	}
-	resp.SUCCESS(c, tokenString)
+	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
 }
 
 // Logout 注 销
@@ -253,6 +254,130 @@ func (h *UserHandler) Logout(c *gin.Context) {
 		logger.Error("error with delete session: ", err)
 	}
 	resp.SUCCESS(c)
+}
+
+// CLogin 第三方登录请求二维码
+func (h *UserHandler) CLogin(c *gin.Context) {
+	returnURL := h.GetTrim(c, "return_url")
+	var res types.BizVo
+	apiURL := fmt.Sprintf("%s/api/clogin/request", h.App.Config.ApiConfig.ApiURL)
+	r, err := req.C().R().SetBody(gin.H{"login_type": "wx", "return_url": returnURL}).
+		SetHeader("AppId", h.App.Config.ApiConfig.AppId).
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.App.Config.ApiConfig.Token)).
+		SetSuccessResult(&res).
+		Post(apiURL)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if r.IsErrorState() {
+		resp.ERROR(c, "error with login http status: "+r.Status)
+		return
+	}
+
+	if res.Code != types.Success {
+		resp.ERROR(c, "error with http response: "+res.Message)
+		return
+	}
+
+	resp.SUCCESS(c, res.Data)
+}
+
+// CLoginCallback 第三方登录回调
+func (h *UserHandler) CLoginCallback(c *gin.Context) {
+	loginType := h.GetTrim(c, "login_type")
+	code := h.GetTrim(c, "code")
+
+	var res types.BizVo
+	apiURL := fmt.Sprintf("%s/api/clogin/info", h.App.Config.ApiConfig.ApiURL)
+	r, err := req.C().R().SetBody(gin.H{"login_type": loginType, "code": code}).
+		SetHeader("AppId", h.App.Config.ApiConfig.AppId).
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.App.Config.ApiConfig.Token)).
+		SetSuccessResult(&res).
+		Post(apiURL)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if r.IsErrorState() {
+		resp.ERROR(c, "error with login http status: "+r.Status)
+		return
+	}
+
+	if res.Code != types.Success {
+		resp.ERROR(c, "error with http response: "+res.Message)
+		return
+	}
+
+	// login successfully
+	data := res.Data.(map[string]interface{})
+	session := gin.H{}
+	var user model.User
+	tx := h.DB.Debug().Where("openid", data["openid"]).First(&user)
+	if tx.Error != nil { // user not exist, create new user
+		// 检测最大注册人数
+		var totalUser int64
+		h.DB.Model(&model.User{}).Count(&totalUser)
+		if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
+			resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
+			return
+		}
+
+		salt := utils.RandString(8)
+		password := fmt.Sprintf("%d", utils.RandomNumber(8))
+		user = model.User{
+			Username:   fmt.Sprintf("%s@%d", loginType, utils.RandomNumber(10)),
+			Password:   utils.GenPassword(password, salt),
+			Avatar:     fmt.Sprintf("%s", data["avatar"]),
+			Salt:       salt,
+			Status:     true,
+			ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
+			ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
+			Power:      h.App.SysConfig.InitPower,
+			OpenId:     fmt.Sprintf("%s", data["openid"]),
+			Nickname:   fmt.Sprintf("%s", data["nickname"]),
+		}
+
+		tx = h.DB.Create(&user)
+		if tx.Error != nil {
+			resp.ERROR(c, "保存数据失败")
+			logger.Error(tx.Error)
+			return
+		}
+		session["username"] = user.Username
+		session["password"] = password
+	} else { // login directly
+		// 更新最后登录时间和IP
+		user.LastLoginIp = c.ClientIP()
+		user.LastLoginAt = time.Now().Unix()
+		h.DB.Model(&user).Updates(user)
+
+		h.DB.Create(&model.UserLoginLog{
+			UserId:       user.Id,
+			Username:     user.Username,
+			LoginIp:      c.ClientIP(),
+			LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
+		})
+	}
+
+	// 创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.Id,
+		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		resp.ERROR(c, "Failed to generate token, "+err.Error())
+		return
+	}
+	// 保存到 redis
+	key := fmt.Sprintf("users/%d", user.Id)
+	if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+		resp.ERROR(c, "error with save token: "+err.Error())
+		return
+	}
+	session["token"] = tokenString
+	resp.SUCCESS(c, session)
 }
 
 // Session 获取/验证会话

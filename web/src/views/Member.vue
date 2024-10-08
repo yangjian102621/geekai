@@ -333,7 +333,7 @@ const wechatPay = (row) => {
 }
 
 const queryOrder = (orderNo) => {
-  httpPost("/api/payment/query", {order_no: orderNo}).then(res => {
+  httpGet("/api/order/query", {order_no: orderNo}).then(res => {
     if (res.data.status === 1) {
       text.value = "扫码成功，请在手机上进行支付！"
       queryOrder(orderNo)

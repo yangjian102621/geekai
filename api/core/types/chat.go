@@ -53,9 +53,8 @@ type Delta struct {
 // ChatSession 聊天会话对象
 type ChatSession struct {
 	SessionId string    `json:"session_id"`
+	UserId    uint      `json:"user_id"`
 	ClientIP  string    `json:"client_ip"` // 客户端 IP
-	Username  string    `json:"username"`  // 当前登录的 username
-	UserId    uint      `json:"user_id"`   // 当前登录的 user ID
 	ChatId    string    `json:"chat_id"`   // 客户端聊天会话 ID, 多会话模式专用字段
 	Model     ChatModel `json:"model"`     // GPT 模型
 }
