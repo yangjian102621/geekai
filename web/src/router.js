@@ -102,6 +102,12 @@ const routes = [
         component: () => import('@/views/Login.vue'),
     },
     {
+        name: 'login-callback',
+        path: '/login/callback',
+        meta: {title: '用户登录'},
+        component: () => import('@/views/LoginCallback.vue'),
+    },
+    {
         name: 'register',
         path: '/register',
 

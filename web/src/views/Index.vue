@@ -1,6 +1,6 @@
 <template>
   <div class="index-page" :style="{height: winHeight+'px'}">
-    <div :class="bgClass"></div>
+    <div class="index-bg" :style="{backgroundImage: 'url('+bgImgUrl+')'}"></div>
     <div class="menu-box">
       <el-menu
           mode="horizontal"
@@ -12,17 +12,17 @@
         </div>
         <div class="menu-item">
           <span v-if="!licenseConfig.de_copy">
-            <a href="https://ai.r9it.com/docs/install/" target="_blank">
+            <a :href="docsURL" target="_blank">
             <el-button type="primary" round>
               <i class="iconfont icon-book"></i>
-              <span>部署文档</span>
+              <span>文档</span>
             </el-button>
           </a>
 
-          <a href="https://github.com/yangjian102621/chatgpt-plus" target="_blank">
+          <a :href="gitURL" target="_blank">
             <el-button type="success" round>
               <i class="iconfont icon-github"></i>
-              <span>项目源码</span>
+              <span>源码</span>
             </el-button>
           </a>
           </span>
@@ -65,7 +65,6 @@
 
 <script setup>
 
-// import * as THREE from 'three';
 import {onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
@@ -84,17 +83,20 @@ const title = ref("Geek-AI 创作系统")
 const logo = ref("/images/logo.png")
 const slogan = ref("我辈之人，先干为敬，陪您先把 AI 用起来")
 const licenseConfig = ref({})
-// const size = Math.max(window.innerWidth * 0.5, window.innerHeight * 0.8)
 const winHeight = window.innerHeight - 150
-const bgClass = ref('fixed-bg')
+const bgImgUrl = ref('')
 const isLogin = ref(false)
+const docsURL = ref(process.env.VUE_APP_DOCS_URL)
+const gitURL = ref(process.env.VUE_APP_GIT_URL)
 
 onMounted(() => {
   httpGet("/api/config/get?key=system").then(res => {
     title.value = res.data.title
     logo.value = res.data.logo
-    if (res.data.rand_bg) {
-      bgClass.value = "rand-bg"
+    if (res.data.index_bg_url) {
+      bgImgUrl.value = res.data.index_bg_url
+    } else {
+      bgImgUrl.value = "/images/index-bg.jpg"
     }
     if (res.data.slogan) {
       slogan.value = res.data.slogan
@@ -126,24 +128,12 @@ onMounted(() => {
   align-items baseline
   padding-top 150px
 
-  .fixed-bg {
+  .index-bg {
     position absolute
     top 0
     left 0
     width 100vw
     height 100vh
-    background-image url("~@/assets/img/ai-bg.jpg")
-    background-size: cover;
-    background-position: center;
-  }
-
-  .rand-bg {
-    position absolute
-    top 0
-    left 0
-    width 100vw
-    height 100vh
-    background-image url("https://api.dujin.org/bing/1920.php")
     filter: blur(8px);
     background-size: cover;
     background-position: center;

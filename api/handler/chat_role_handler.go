@@ -65,7 +65,7 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 	}
 
 	for _, r := range roles {
-		if !utils.ContainsStr(roleKeys, r.Key) {
+		if !utils.Contains(roleKeys, r.Key) {
 			continue
 		}
 		var v vo.ChatRole

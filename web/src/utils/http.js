@@ -26,18 +26,16 @@ axios.interceptors.request.use(
     })
 axios.interceptors.response.use(
     response => {
-        let data = response.data;
-        if (data.code === 0) {
-            return response
-        } else if (data.code === 400) {
-            if (response.request.responseURL.indexOf("/api/admin") !== -1) {
+        return response
+    }, error => {
+        if (error.response.status === 401 || error.response.status === 400) {
+            if (error.response.request.responseURL.indexOf("/api/admin") !== -1) {
                 removeAdminToken()
             } else {
                 removeUserToken()
             }
+            return Promise.reject(error.response.data)
         }
-            return Promise.reject(response.data)
-    }, error => {
         return Promise.reject(error)
     })
 

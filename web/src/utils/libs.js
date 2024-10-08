@@ -188,58 +188,13 @@ export function processContent(content) {
             }
         }
     }
-
-    const lines = content.split("\n")
-    if (lines.length <= 1) {
-        return content
-    }
-    const texts = []
-    // 定义匹配数学公式的正则表达式
-    const formulaRegex = /^\s*[a-z|A-Z]+[^=]+\s*=\s*[^=]+$/;
-    let hasCode = false
-    for (let i = 0; i < lines.length; i++) {
-        // 处理引用块换行
-        if (lines[i].startsWith(">")) {
-            texts.push(lines[i])
-            texts.push("\n")
-            continue
-        }
-        // 如果包含代码块则跳过公式检测
-        if (lines[i].indexOf("```") !== -1) {
-            texts.push(lines[i])
-            hasCode = true
-            continue
-        }
-        // 识别并处理数学公式，需要排除那些已经被识别出来的公式
-        if (i > 0 && formulaRegex.test(lines[i]) && lines[i - 1].indexOf("$$") === -1 && !hasCode) {
-            texts.push("$$")
-            texts.push(lines[i])
-            texts.push("$$")
-            continue
-        }
-        texts.push(lines[i])
-    }
-    return texts.join("\n")
+    return content
 }
 
 export function processPrompt(prompt) {
-    prompt = prompt.replace(/&/g, "&amp;")
+    return prompt.replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-
-    const linkRegex = /(https?:\/\/\S+)/g;
-    const links = prompt.match(linkRegex);
-    if (links) {
-        for (let link of links) {
-            if (isImage(link)) {
-                const index = prompt.indexOf(link)
-                if (prompt.substring(index - 1, 2) !== "]") {
-                    prompt = prompt.replace(link, "\n![](" + link + ")\n")
-                }
-            }
-        }
-    }
-    return prompt
 }
 
 // 判断是否为微信浏览器
@@ -258,3 +213,4 @@ export function showLoginDialog(router) {
         // on cancel
     });
 }
+

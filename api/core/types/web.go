@@ -22,6 +22,7 @@ type WsMessage struct {
 	Type    WsMsgType   `json:"type"` // 消息类别，start, end, img
 	Content interface{} `json:"content"`
 }
+
 type WsMsgType string
 
 const (
@@ -36,11 +37,9 @@ type BizCode int
 const (
 	Success       = BizCode(0)
 	Failed        = BizCode(1)
-	NotAuthorized = BizCode(400) // 未授权
-	NotPermission = BizCode(403) // 没有权限
+	NotAuthorized = BizCode(401) // 未授权
 
 	OkMsg       = "Success"
 	ErrorMsg    = "系统开小差了"
 	InvalidArgs = "非法参数或参数解析失败"
-	NoData      = "No Data"
 )

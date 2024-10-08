@@ -34,7 +34,7 @@
             <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
           </el-row>
 
-          <el-row class="opt" :gutter="20">
+          <el-row class="opt" :gutter="24">
             <el-col :span="8"><el-link type="primary" @click="router.push('/register')">注册</el-link></el-col>
             <el-col :span="8">
               <el-link type="info" @click="showResetPass = true">重置密码</el-link>
@@ -43,6 +43,14 @@
               <el-link type="info" @click="router.push('/')">首页</el-link>
             </el-col>
           </el-row>
+
+          <div v-if="wechatLoginURL !== ''">
+            <el-divider class="divider">其他登录方式</el-divider>
+
+            <div class="clogin">
+              <a class="wechat-login" :href="wechatLoginURL"><i class="iconfont icon-wechat"></i></a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -57,7 +65,7 @@
 
 <script setup>
 
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import {useRouter} from "vue-router";
@@ -75,28 +83,38 @@ const password = ref(process.env.VUE_APP_PASS);
 const showResetPass = ref(false)
 const logo = ref("/images/logo.png")
 const licenseConfig = ref({})
+const wechatLoginURL = ref('')
 
-// 获取系统配置
-httpGet("/api/config/get?key=system").then(res => {
-  logo.value = res.data.logo
-  title.value = res.data.title
-}).catch(e => {
-  showMessageError("获取系统配置失败：" + e.message)
-})
+onMounted(() => {
+  // 获取系统配置
+  httpGet("/api/config/get?key=system").then(res => {
+    logo.value = res.data.logo
+    title.value = res.data.title
+  }).catch(e => {
+    showMessageError("获取系统配置失败：" + e.message)
+  })
 
-httpGet("/api/config/license").then(res => {
-  licenseConfig.value = res.data
-}).catch(e => {
-  showMessageError("获取 License 配置：" + e.message)
-})
+  httpGet("/api/config/license").then(res => {
+    licenseConfig.value = res.data
+  }).catch(e => {
+    showMessageError("获取 License 配置：" + e.message)
+  })
 
-checkSession().then(() => {
-  if (isMobile()) {
-    router.push('/mobile')
-  } else {
-    router.push('/chat')
-  }
-}).catch(() => {
+  checkSession().then(() => {
+    if (isMobile()) {
+      router.push('/mobile')
+    } else {
+      router.push('/chat')
+    }
+  }).catch(() => {
+  })
+
+  const returnURL = `${location.protocol}//${location.host}/login/callback`
+  httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
+    wechatLoginURL.value = res.data.url
+  }).catch(e => {
+    console.error(e)
+  })
 })
 
 const handleKeyup = (e) => {
@@ -114,7 +132,7 @@ const login = function () {
   }
 
   httpPost('/api/user/login', {username: username.value.trim(), password: password.value.trim()}).then((res) => {
-    setUserToken(res.data)
+    setUserToken(res.data.token)
     if (isMobile()) {
       router.push('/mobile')
     } else {
@@ -129,99 +147,5 @@ const login = function () {
 </script>
 
 <style lang="stylus" scoped>
-.bg {
-  position fixed
-  left 0
-  right 0
-  top 0
-  bottom 0
-  background-color #313237
-  background-image url("~@/assets/img/login-bg.jpg")
-  background-size cover
-  background-position center
-  background-repeat repeat-y
-  //filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
-}
-
-.main {
-  .contain {
-    position fixed
-    left 50%
-    top 40%
-    width 90%
-    max-width 400px;
-    transform translate(-50%, -50%)
-    padding 20px 10px;
-    color #ffffff
-    border-radius 10px;
-
-    .logo {
-      text-align center
-
-      .el-image {
-        width 120px;
-        cursor pointer
-      }
-    }
-
-    .header {
-      width 100%
-      margin-bottom 24px
-      font-size 24px
-      color $white_v1
-      letter-space 2px
-      text-align center
-      padding-top 10px
-    }
-
-    .content {
-      width 100%
-      height: auto
-      border-radius 3px
-
-      .block {
-        margin-bottom 16px
-
-        .el-input__inner {
-          border 1px solid $gray-v6 !important
-
-          .el-icon-user, .el-icon-lock {
-            font-size 20px
-          }
-        }
-      }
-
-      .btn-row {
-        padding-top 10px;
-
-        .login-btn {
-          width 100%
-          font-size 16px
-          letter-spacing 2px
-        }
-      }
-
-      .text-line {
-        justify-content center
-        padding-top 10px;
-        font-size 14px;
-      }
-
-      .opt {
-        padding 15px
-        .el-col {
-          text-align center
-        }
-      }
-    }
-  }
-
-  .footer {
-    color #ffffff;
-
-    .container {
-      padding 20px;
-    }
-  }
-}
+@import "@/assets/css/login.styl"
 </style>

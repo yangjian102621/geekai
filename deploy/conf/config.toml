@@ -4,6 +4,7 @@ MysqlDns = "root:12345678@tcp(geekai-mysql:3306)/chatgpt_plus?charset=utf8mb4&co
 StaticDir = "./static"
 StaticUrl = "/static"
 WeChatBot = false
+TikaHost = "http://tika:9998"
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"

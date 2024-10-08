@@ -302,7 +302,7 @@ const pay = (payWay, item) => {
     if (isWeChatBrowser() && payWay === 'wechat') {
       showFailToast("请在系统自带浏览器打开支付页面，或者在 PC 端进行扫码支付")
     } else {
-      location.href = res.data
+      location.href = res.data.url
     }
   }).catch(e => {
     showFailToast("生成支付订单失败：" + e.message)

@@ -1,0 +1,115 @@
+.bg {
+  position fixed
+  left 0
+  right 0
+  top 0
+  bottom 0
+  background-color #313237
+  background-image url("~@/assets/img/login-bg.jpg")
+  background-size cover
+  background-position center
+  background-repeat repeat-y
+  //filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
+}
+
+.main {
+  .contain {
+    position fixed
+    left 50%
+    top 40%
+    width 90%
+    max-width 400px;
+    transform translate(-50%, -50%)
+    padding 20px 10px;
+    color #ffffff
+    border-radius 10px;
+
+    .logo {
+      text-align center
+
+      .el-image {
+        width 120px;
+        cursor pointer
+      }
+    }
+
+    .header {
+      width 100%
+      margin-bottom 24px
+      font-size 24px
+      color $white_v1
+      letter-space 2px
+      text-align center
+      padding-top 10px
+    }
+
+    .content {
+      width 100%
+      height: auto
+      border-radius 3px
+
+      .block {
+        margin-bottom 16px
+
+        .el-input__inner {
+          border 1px solid $gray-v6 !important
+
+          .el-icon-user, .el-icon-lock {
+            font-size 20px
+          }
+        }
+      }
+
+      .btn-row {
+        padding-top 10px;
+
+        .login-btn {
+          width 100%
+          font-size 16px
+          letter-spacing 2px
+        }
+      }
+
+      .text-line {
+        justify-content center
+        padding-top 10px;
+        font-size 14px;
+      }
+
+      .opt {
+        padding 15px
+        .el-col {
+          text-align center
+        }
+      }
+
+      .divider {
+        border-top: 2px solid #c1c1c1;
+      }
+
+      .clogin {
+        padding 15px
+        display flex
+        justify-content center
+
+        .iconfont {
+          font-size 20px
+          background: #E9F1F6;
+          padding: 8px;
+          border-radius: 50%;
+        }
+        .iconfont.icon-wechat {
+          color #0bc15f
+        }
+      }
+    }
+  }
+
+  .footer {
+    color #ffffff;
+
+    .container {
+      padding 20px;
+    }
+  }
+}
