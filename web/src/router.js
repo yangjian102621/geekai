@@ -234,6 +234,12 @@ const routes = [
                 component: () => import('@/views/admin/ChatList.vue'),
             },
             {
+                path: '/admin/images',
+                name: 'admin-images',
+                meta: {title: '绘图管理'},
+                component: () => import('@/views/admin/ImageList.vue'),
+            },
+            {
                 path: '/admin/powerLog',
                 name: 'admin-power-log',
                 meta: {title: '算力日志'},

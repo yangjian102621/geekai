@@ -539,6 +539,13 @@ func main() {
 				},
 			})
 		}),
+		fx.Provide(admin.NewImageHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.ImageHandler) {
+			group := s.Engine.Group("/api/admin/image")
+			group.POST("/list/mj", h.MjList)
+			group.POST("/list/sd", h.SdList)
+			group.POST("/list/dall", h.DallList)
+		}),
 	)
 	// 启动应用程序
 	go func() {
