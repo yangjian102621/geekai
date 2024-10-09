@@ -33,7 +33,7 @@
                   {{ threeItem.title }}
                 </el-menu-item>
               </el-sub-menu>
-              <el-menu-item v-else :index="subItem.index">
+              <el-menu-item v-else :index="subItem.index" :key="subItem.index">
                 <i v-if="subItem.icon" :class="'iconfont icon-'+subItem.icon"></i>
                 {{ subItem.title }}
               </el-menu-item>
@@ -64,8 +64,8 @@ const logo = ref('')
 
 // 加载系统配置
 httpGet('/api/admin/config/get?key=system').then(res => {
-  title.value = res.data['admin_title']
-  logo.value = res.data['logo']
+  title.value = res.data.admin_title
+  logo.value = res.data.logo
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
@@ -101,7 +101,7 @@ const items = [
       },
     ],
   },
-  
+
   {
     icon: 'api-key',
     index: '/admin/apikey',
@@ -136,6 +136,11 @@ const items = [
     icon: 'prompt',
     index: '/admin/chats',
     title: '对话管理',
+  },
+  {
+    icon: 'image',
+    index: '/admin/images',
+    title: '绘图管理',
   },
   {
     icon: 'role',

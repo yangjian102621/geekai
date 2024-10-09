@@ -2,7 +2,6 @@ package vo
 
 import (
 	"geekai/core/types"
-	"time"
 )
 
 type SdJob struct {
@@ -17,5 +16,5 @@ type SdJob struct {
 	Publish   bool               `json:"publish"`
 	ErrMsg    string             `json:"err_msg"`
 	Power     int                `json:"power"`
-	CreatedAt time.Time          `json:"created_at"`
+	CreatedAt int64              `json:"created_at"`
 }
