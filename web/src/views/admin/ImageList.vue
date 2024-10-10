@@ -1,12 +1,12 @@
 <template>
-  <div class="container chat-list">
+  <div class="container image-page">
     <el-tabs v-model="activeName" @tab-change="handleChange">
       <el-tab-pane label="Midjourney" name="mj" v-loading="data.mj.loading">
         <div class="handle-box">
-          <el-input v-model.number="data.mj.query.username" placeholder="用户名" class="handle-input mr10"
-                    @keyup="search($event,'mj')"></el-input>
+          <el-input v-model="data.mj.query.username" placeholder="用户名" class="handle-input mr10"
+                    @keyup="search($event,'mj')" clearable />
           <el-input v-model="data.mj.query.prompt" placeholder="提示词" class="handle-input mr10"
-                    @keyup="search($event,'mj')"></el-input>
+                    @keyup="search($event,'mj')" clearable />
           <el-date-picker
               v-model="data.mj.query.created_at"
               type="daterange"
@@ -104,10 +104,10 @@
       </el-tab-pane>
       <el-tab-pane label="Stable-Diffusion" name="sd" v-loading="data.sd.loading">
         <div class="handle-box">
-          <el-input v-model.number="data.sd.query.username" placeholder="用户名" class="handle-input mr10"
-                    @keyup="search($event, 'sd')"></el-input>
+          <el-input v-model="data.sd.query.username" placeholder="用户名" class="handle-input mr10"
+                    @keyup="search($event, 'sd')" clearable />
           <el-input v-model="data.sd.query.prompt" placeholder="提示词" class="handle-input mr10"
-                    @keyup="search($event, 'sd')"></el-input>
+                    @keyup="search($event, 'sd')" clearable />
           <el-date-picker
               v-model="data.sd.query.created_at"
               type="daterange"
@@ -200,10 +200,10 @@
       </el-tab-pane>
       <el-tab-pane label="DALL-E" name="dall">
         <div class="handle-box">
-          <el-input v-model.number="data.dall.query.username" placeholder="用户名" class="handle-input mr10"
-                    @keyup="search($event,'dall')"></el-input>
+          <el-input v-model="data.dall.query.username" placeholder="用户名" class="handle-input mr10"
+                    @keyup="search($event,'dall')" clearable />
           <el-input v-model="data.dall.query.prompt" placeholder="提示词" class="handle-input mr10"
-                    @keyup="search($event, 'dall')"></el-input>
+                    @keyup="search($event, 'dall')" clearable />
           <el-date-picker
               v-model="data.dall.query.created_at"
               type="daterange"
@@ -436,8 +436,9 @@ const fetchDallData = () => {
 }
 
 const remove = function (row,tab) {
-  httpGet('/api/admin/chat/remove?chat_id=' + row.chat_id).then(() => {
+  httpGet(`/api/admin/image/remove?id=${row.id}&tab=${tab}`).then(() => {
     ElMessage.success("删除成功！")
+    handleChange(tab)
   }).catch((e) => {
     ElMessage.error("删除失败：" + e.message)
   })
@@ -452,7 +453,7 @@ const showImage = (url) => {
 </script>
 
 <style lang="stylus" scoped>
-.chat-list {
+.image-page {
   .handle-box {
     margin-bottom 20px
     .handle-input {
@@ -480,31 +481,5 @@ const showImage = (url) => {
     display flex
     justify-content right
   }
-
-  .chat-box {
-    overflow hidden
-
-    // 变量定义
-    --content-font-size: 16px;
-    --content-color: #c1c1c1;
-
-    font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-
-    .chat-line {
-      // 隐藏滚动条
-
-      ::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        background-color: transparent;
-      }
-
-      font-size: 14px;
-      display: flex;
-      align-items: flex-start;
-
-    }
-  }
-
 }
 </style>
