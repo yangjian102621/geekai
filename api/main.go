@@ -545,6 +545,14 @@ func main() {
 			group.POST("/list/mj", h.MjList)
 			group.POST("/list/sd", h.SdList)
 			group.POST("/list/dall", h.DallList)
+			group.GET("/remove", h.Remove)
+		}),
+		fx.Provide(admin.NewMediaHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.MediaHandler) {
+			group := s.Engine.Group("/api/admin/media")
+			group.POST("/list/suno", h.SunoList)
+			group.POST("/list/luma", h.LumaList)
+			group.GET("/remove", h.Remove)
 		}),
 	)
 	// 启动应用程序

@@ -156,6 +156,9 @@ func (h *VideoHandler) List(c *gin.Context) {
 			continue
 		}
 		item.CreatedAt = v.CreatedAt.Unix()
+		if item.VideoURL == "" {
+			item.VideoURL = v.WaterURL
+		}
 		items = append(items, item)
 	}
 

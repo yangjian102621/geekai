@@ -143,6 +143,11 @@ const items = [
     title: '绘图管理',
   },
   {
+    icon: 'mp3',
+    index: '/admin/medias',
+    title: '音视频管理',
+  },
+  {
     icon: 'role',
     index: '/admin/manger',
     title: '管理员',

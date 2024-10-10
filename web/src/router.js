@@ -240,6 +240,12 @@ const routes = [
                 component: () => import('@/views/admin/ImageList.vue'),
             },
             {
+                path: '/admin/medias',
+                name: 'admin-medias',
+                meta: {title: '音视频管理'},
+                component: () => import('@/views/admin/Medias.vue'),
+            },
+            {
                 path: '/admin/powerLog',
                 name: 'admin-power-log',
                 meta: {title: '算力日志'},

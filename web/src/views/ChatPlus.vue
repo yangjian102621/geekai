@@ -2,7 +2,7 @@
   <div class="chat-page">
     <el-container>
       <el-aside>
-        <div class="chat-list">
+        <div class="media-page">
           <el-button @click="_newChat" color="#21aa93">
             <el-icon style="margin-right: 5px">
               <Plus/>
