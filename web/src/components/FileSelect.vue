@@ -70,7 +70,6 @@ const props = defineProps({
 });
 const emits = defineEmits(['selected']);
 const show = ref(false)
-const fileList = ref([])
 const scrollbarRef = ref(null)
 const fileData = reactive({
   items:[],
@@ -116,7 +115,7 @@ const afterRead = (file) => {
   formData.append('file', file.file, file.name);
   // 执行上传操作
   httpPost('/api/upload', formData).then((res) => {
-    fileList.value.unshift(res.data)
+    fileData.items.unshift(res.data)
     ElMessage.success({message: "上传成功", duration: 500})
   }).catch((e) => {
     ElMessage.error('图片上传失败:' + e.message)
@@ -125,7 +124,7 @@ const afterRead = (file) => {
 
 const removeFile = (file) => {
   httpGet('/api/upload/remove?id=' + file.id).then(() => {
-    fileList.value = removeArrayItem(fileList.value, file, (v1, v2) => {
+    fileData.items = removeArrayItem(fileData.items, file, (v1, v2) => {
       return v1.id === v2.id
     })
     ElMessage.success("文件删除成功！")
