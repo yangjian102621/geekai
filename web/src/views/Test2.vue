@@ -44,101 +44,58 @@ const canvasServerRef = ref(null);
 onMounted(() => {
   voiceInterval = setInterval(animateVoice, 500);
 
+  async function setupAudioProcessing(canvas, color) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      const ctx = canvas.getContext('2d')
 
+      const draw = () => {
+          analyser.getByteFrequencyData(dataArray);
 
+          // 检查音量是否安静
+          const maxVolume = Math.max(...dataArray);
+          if (maxVolume < 100) {
+            // 如果音量很小，则停止绘制
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(draw);
+            return;
+          }
 
-  //setupAudioProcessing(canvasServerRef.value, '#2ecc71');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          const barWidth = (canvas.width / bufferLength) * 2.5;
+          let x = 0;
+
+          for (let i = 0; i < bufferLength; i++) {
+            const barHeight = dataArray[i] / 2;
+
+            ctx.fillStyle = color; // 淡蓝色
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+            x += barWidth + 2;
+          }
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    } catch (err) {
+      console.error('获取麦克风权限失败:', err);
+    }
+  }
+
+ // const data = JSON.parse(localStorage.getItem("chat_data"))
+ // setupPCMProcessing(canvasClientRef.value, '#2ecc71', data, 24000);
+  setupAudioProcessing(canvasServerRef.value, '#2ecc71');
 
 });
 
-const setupAudioProcessing = async (canvas, color) => {
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const data = JSON.parse(localStorage.getItem("chat_data"))
-
-    // 将 Int16Array 转换为 Float32Array (Web Audio API 使用 Float32)
-    let float32Array = new Float32Array(data.length);
-    for (let i = 0; i < data.length; i++) {
-      float32Array[i] = data[i] / 32768; // Int16 转换为 Float32
-    }
-
-    // 创建 AudioBuffer
-    const audioBuffer = audioContext.createBuffer(1, float32Array.length, 24000); // 单声道
-    audioBuffer.getChannelData(0).set(float32Array); // 设置音频数据
-
-    // 创建 AudioBufferSourceNode 并播放音频
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    // 连接到输入源（模拟麦克风）
-    source.connect(analyser);
-    // 同时连接到扬声器播放语音
-    source.connect(audioContext.destination);
-    source.start(); // 播放
-    const dataArray = new Uint8Array(bufferLength);
-    const ctx = canvas.getContext('2d')
-
-    const draw = () => {
-      analyser.getByteFrequencyData(dataArray);
-
-      // 检查音量是否安静
-      const maxVolume = Math.max(...dataArray);
-      if (maxVolume < 100) {
-        // 如果音量很小，则停止绘制
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        requestAnimationFrame(draw);
-        return;
-      }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const barWidth = (canvas.width / bufferLength) * 2.5;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = dataArray[i] / 2;
-
-        ctx.fillStyle = color; // 淡蓝色
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
-        x += barWidth + 2;
-      }
-      requestAnimationFrame(draw);
-    }
-
-    draw();
-  } catch (err) {
-    console.error('获取麦克风权限失败:', err);
-  }
-}
-
-
-const speaker = ref(null)
-// 假设 PCM16 数据已经存储在一个 Int16Array 中
-function playPCM16(pcm16Array, sampleRate = 44100) {
-  // 创建 AudioContext
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  // 将 Int16Array 转换为 Float32Array (Web Audio API 使用 Float32)
-  let float32Array = new Float32Array(pcm16Array.length);
-  for (let i = 0; i < pcm16Array.length; i++) {
-    float32Array[i] = pcm16Array[i] / 32768; // Int16 转换为 Float32
-  }
-
-  // 创建 AudioBuffer
-  const audioBuffer = audioContext.createBuffer(1, float32Array.length, sampleRate); // 单声道
-  audioBuffer.getChannelData(0).set(float32Array); // 设置音频数据
-
-  // 创建 AudioBufferSourceNode 并播放音频
-  const source = audioContext.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(audioContext.destination); // 连接到扬声器
-  source.start(); // 播放
-  speaker.value = source
-
-}
 
 onUnmounted(() => {
   clearInterval(voiceInterval);
@@ -150,7 +107,6 @@ const hangUp = () => {
 
 const answer = () => {
   console.log('Call answered');
-  setupAudioProcessing(canvasServerRef.value, '#2ecc71');
 };
 
 

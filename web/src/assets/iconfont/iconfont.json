@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "11231556",
+      "name": "打电话",
+      "font_class": "call",
+      "unicode": "e769",
+      "unicode_decimal": 59241
+    },
+    {
+      "icon_id": "21969717",
+      "name": "挂机",
+      "font_class": "hung-up",
+      "unicode": "e609",
+      "unicode_decimal": 58889
+    },
+    {
       "icon_id": "7443846",
       "name": "PayPal",
       "font_class": "paypal",

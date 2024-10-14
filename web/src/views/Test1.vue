@@ -9,8 +9,7 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue";
-import Storage from "good-storage";
+import {onMounted, ref} from "vue";
 
 const data = ref('abc')
 import { RealtimeClient } from '@openai/realtime-api-beta';
@@ -83,6 +82,9 @@ function playPCM16(pcm16Array, sampleRate = 44100) {
   source.buffer = audioBuffer;
   source.connect(audioContext.destination); // 连接到扬声器
   source.start(); // 播放
+  source.onended = () => {
+    console.log("播放结束")
+  }
   speaker.value = source
 
 }

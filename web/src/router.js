@@ -325,6 +325,12 @@ const routes = [
         component: () => import('@/views/Test.vue'),
     },
     {
+        name: 'test2',
+        path: '/test2',
+        meta: {title: '测试页面'},
+        component: () => import('@/views/Test2.vue'),
+    },
+    {
         name: 'NotFound',
         path: '/:all(.*)',
         meta: {title: '页面没有找到'},
