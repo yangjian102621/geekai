@@ -81,7 +81,7 @@ onMounted(() => {
 
             x += barWidth + 2;
           }
-        requestAnimationFrame(draw);
+        //requestAnimationFrame(draw);
       }
 
       draw();
