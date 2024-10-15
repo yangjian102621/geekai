@@ -1,307 +1,471 @@
 <template>
-  <div class="video-call-container">
-    <div class="wave-container">
-      <div class="wave-animation">
-        <div v-for="i in 5" :key="i" class="wave-ellipse"></div>
+  <div data-component="ConsolePage">
+    <div class="content-top">
+      <div class="content-title">
+        <img src="/openai-logomark.svg" alt="OpenAI Logo" />
+        <span>realtime console</span>
       </div>
+
     </div>
-    <!-- 其余部分保持不变 -->
-    <div class="voice-indicators">
-      <div class="voice-indicator left">
-        <canvas ref="canvasClientRef" width="600" height="200"></canvas>
+    <div class="content-main">
+      <div class="content-logs">
+        <div class="content-block events">
+          <div class="visualization">
+            <div class="visualization-entry client">
+              <canvas ref="clientCanvasRef" />
+            </div>
+            <div class="visualization-entry server">
+              <canvas ref="serverCanvasRef" />
+            </div>
+          </div>
+          <div class="content-block-title">events</div>
+          <div class="content-block-body" ref="eventsScrollRef">
+            <template v-if="!realtimeEvents.length">
+              awaiting connection...
+            </template>
+            <template v-else>
+              <div v-for="(realtimeEvent, i) in realtimeEvents" :key="realtimeEvent.event.event_id" class="event">
+                <div class="event-timestamp">
+                  {{ formatTime(realtimeEvent.time) }}
+                </div>
+                <div class="event-details">
+                  <div
+                      class="event-summary"
+                      @click="toggleEventDetails(realtimeEvent.event.event_id)"
+                  >
+                    <div
+                        :class="[
+                        'event-source',
+                        realtimeEvent.event.type === 'error'
+                          ? 'error'
+                          : realtimeEvent.source,
+                      ]"
+                    >
+                      <component :is="realtimeEvent.source === 'client' ? ArrowUp : ArrowDown" />
+                      <span>
+                        {{ realtimeEvent.event.type === 'error'
+                          ? 'error!'
+                          : realtimeEvent.source }}
+                      </span>
+                    </div>
+                    <div class="event-type">
+                      {{ realtimeEvent.event.type }}
+                      {{ realtimeEvent.count ? `(${realtimeEvent.count})` : '' }}
+                    </div>
+                  </div>
+                  <div
+                      v-if="expandedEvents[realtimeEvent.event.event_id]"
+                      class="event-payload"
+                  >
+                    {{ JSON.stringify(realtimeEvent.event, null, 2) }}
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="content-block conversation">
+          <div class="content-block-title">conversation</div>
+          <div class="content-block-body" data-conversation-content>
+            <template v-if="!items.length">
+              awaiting connection...
+            </template>
+            <template v-else>
+              <div
+                  v-for="(conversationItem, i) in items"
+                  :key="conversationItem.id"
+                  class="conversation-item"
+              >
+                <div :class="['speaker', conversationItem.role || '']">
+                  <div>
+                    {{
+                      (conversationItem.role || conversationItem.type).replaceAll(
+                          '_',
+                          ' '
+                      )
+                    }}
+                  </div>
+                  <div class="close" @click="deleteConversationItem(conversationItem.id)">
+                    <X />
+                  </div>
+                </div>
+                <div class="speaker-content">
+                  <!-- tool response -->
+                  <div v-if="conversationItem.type === 'function_call_output'">
+                    {{ conversationItem.formatted.output }}
+                  </div>
+                  <!-- tool call -->
+                  <div v-if="conversationItem.formatted.tool">
+                    {{ conversationItem.formatted.tool.name }}(
+                    {{ conversationItem.formatted.tool.arguments }})
+                  </div>
+                  <div
+                      v-if="
+                      !conversationItem.formatted.tool &&
+                      conversationItem.role === 'user'
+                    "
+                  >
+                    {{
+                      conversationItem.formatted.transcript ||
+                      (conversationItem.formatted.audio?.length
+                          ? '(awaiting transcript)'
+                          : conversationItem.formatted.text || '(item sent)')
+                    }}
+                  </div>
+                  <div
+                      v-if="
+                      !conversationItem.formatted.tool &&
+                      conversationItem.role === 'assistant'
+                    "
+                  >
+                    {{
+                      conversationItem.formatted.transcript ||
+                      conversationItem.formatted.text ||
+                      '(truncated)'
+                    }}
+                  </div>
+                  <audio
+                      v-if="conversationItem.formatted.file"
+                      :src="conversationItem.formatted.file.url"
+                      controls
+                  />
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="content-actions" style="position:absolute; top: 0; left: 0">
+          <el-button
+              :type="isConnected ? '' : 'primary'"
+              @click="connectConversation"
+          >
+            {{isConnected ? '断开连接' : '连接对话'}}
+          </el-button>
+
+          <el-button @mousedown="startRecording" @mouseup="stopRecording">开始讲话</el-button>
+        </div>
       </div>
-      <div class="voice-indicator right">
-        <canvas ref="canvasServerRef" width="600" height="200"></canvas>
-      </div>
-    </div>
-    <div class="call-controls">
-      <button class="call-button hangup" @click="hangUp">
-        <i class="iconfont icon-hung-up"></i>
-      </button>
-      <button class="call-button answer" @click="answer">
-        <i class="iconfont icon-call"></i>
-      </button>
+
     </div>
   </div>
 </template>
 
 <script setup>
-// Script 部分保持不变
-import {ref, onMounted, onUnmounted} from 'vue';
+import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
+import { RealtimeClient } from '@openai/realtime-api-beta';
+import { WavRecorder, WavStreamPlayer } from '@/lib/wavtools/index.js';
+import { instructions } from '@/utils/conversation_config.js';
+import { WavRenderer } from '@/utils/wav_renderer';
 
-const leftVoiceActive = ref(false);
-const rightVoiceActive = ref(false);
+// Constants
+const LOCAL_RELAY_SERVER_URL = process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
 
-const animateVoice = () => {
-  leftVoiceActive.value = Math.random() > 0.5;
-  rightVoiceActive.value = Math.random() > 0.5;
+// Reactive state
+const apiKey = ref(
+    LOCAL_RELAY_SERVER_URL
+        ? ''
+        : localStorage.getItem('tmp::voice_api_key') || prompt('OpenAI API Key') || ''
+);
+const wavRecorder = ref(new WavRecorder({ sampleRate: 24000 }));
+const wavStreamPlayer = ref(new WavStreamPlayer({ sampleRate: 24000 }));
+const client = ref(
+    new RealtimeClient({
+      url: "wss://api.geekai.pro/v1/realtime",
+      apiKey: "sk-Gc5cEzDzGQLIqxWA9d62089350F3454bB359C4A3Fa21B3E4",
+      dangerouslyAllowAPIKeyInBrowser: true,
+    })
+);
+
+const clientCanvasRef = ref(null);
+const serverCanvasRef = ref(null);
+const eventsScrollRef = ref(null);
+const startTime = ref(new Date().toISOString());
+
+const items = ref([]);
+const realtimeEvents = ref([]);
+const expandedEvents = reactive({});
+const isConnected = ref(false);
+const canPushToTalk = ref(true);
+const isRecording = ref(false);
+const memoryKv = ref({});
+const coords = ref({ lat: 37.775593, lng: -122.418137 });
+const marker = ref(null);
+
+// Methods
+const formatTime = (timestamp) => {
+  const t0 = new Date(startTime.value).valueOf();
+  const t1 = new Date(timestamp).valueOf();
+  const delta = t1 - t0;
+  const hs = Math.floor(delta / 10) % 100;
+  const s = Math.floor(delta / 1000) % 60;
+  const m = Math.floor(delta / 60_000) % 60;
+  const pad = (n) => {
+    let s = n + '';
+    while (s.length < 2) {
+      s = '0' + s;
+    }
+    return s;
+  };
+  return `${pad(m)}:${pad(s)}.${pad(hs)}`;
 };
 
-let voiceInterval;
-const canvasClientRef = ref(null);
-const canvasServerRef = ref(null);
+const connectConversation = async () => {
+  alert(123)
+  startTime.value = new Date().toISOString();
+  isConnected.value = true;
+  realtimeEvents.value = [];
+  items.value = client.value.conversation.getItems();
 
+  await wavRecorder.value.begin();
+  await wavStreamPlayer.value.connect();
+  await client.value.connect();
+  client.value.sendUserMessageContent([
+    {
+      type: 'input_text',
+      text: '你好，我是老阳!',
+    },
+  ]);
+
+  if (client.value.getTurnDetectionType() === 'server_vad') {
+    await wavRecorder.value.record((data) => client.value.appendInputAudio(data.mono));
+  }
+};
+
+const disconnectConversation = async () => {
+  isConnected.value = false;
+  realtimeEvents.value = [];
+  items.value = [];
+  memoryKv.value = {};
+  coords.value = { lat: 37.775593, lng: -122.418137 };
+  marker.value = null;
+
+  client.value.disconnect();
+  await wavRecorder.value.end();
+  await wavStreamPlayer.value.interrupt();
+};
+
+const deleteConversationItem = async (id) => {
+  client.value.deleteItem(id);
+};
+
+const startRecording = async () => {
+  isRecording.value = true;
+  const trackSampleOffset = await wavStreamPlayer.value.interrupt();
+  if (trackSampleOffset?.trackId) {
+    const { trackId, offset } = trackSampleOffset;
+    await client.value.cancelResponse(trackId, offset);
+  }
+  await wavRecorder.value.record((data) => client.value.appendInputAudio(data.mono));
+};
+
+const stopRecording = async () => {
+  isRecording.value = false;
+  await wavRecorder.value.pause();
+  client.value.createResponse();
+};
+
+const changeTurnEndType = async (value) => {
+  if (value === 'none' && wavRecorder.value.getStatus() === 'recording') {
+    await wavRecorder.value.pause();
+  }
+  client.value.updateSession({
+    turn_detection: value === 'none' ? null : { type: 'server_vad' },
+  });
+  if (value === 'server_vad' && client.value.isConnected()) {
+    await wavRecorder.value.record((data) => client.value.appendInputAudio(data.mono));
+  }
+  canPushToTalk.value = value === 'none';
+};
+
+const toggleEventDetails = (eventId) => {
+  if (expandedEvents[eventId]) {
+    delete expandedEvents[eventId];
+  } else {
+    expandedEvents[eventId] = true;
+  }
+};
+
+// Lifecycle hooks and watchers
 onMounted(() => {
-  voiceInterval = setInterval(animateVoice, 500);
+  if (apiKey.value !== '') {
+    localStorage.setItem('tmp::voice_api_key', apiKey.value);
+  }
 
+  // Set up render loops for the visualization canvas
+  let isLoaded = true;
+  const render = () => {
+    if (isLoaded) {
+      if (clientCanvasRef.value) {
+        const canvas = clientCanvasRef.value;
+        if (!canvas.width || !canvas.height) {
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+        }
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const result = wavRecorder.value.recording
+              ? wavRecorder.value.getFrequencies('voice')
+              : { values: new Float32Array([0]) };
+          WavRenderer.drawBars(canvas, ctx, result.values, '#0099ff', 10, 0, 8);
+        }
+      }
+      if (serverCanvasRef.value) {
+        const canvas = serverCanvasRef.value;
+        if (!canvas.width || !canvas.height) {
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+        }
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const result = wavStreamPlayer.value.analyser
+              ?  wavStreamPlayer.value.getFrequencies('voice')
+                  : { values: new Float32Array([0]) };
+          WavRenderer.drawBars(canvas, ctx, result.values, '#009900', 10, 0, 8);
+        }
+      }
+      requestAnimationFrame(render);
+    }
+  };
+  render();
 
+  // Set up client event listeners
+  client.value.on('realtime.event', (realtimeEvent) => {
+    realtimeEvents.value = realtimeEvents.value.slice();
+    const lastEvent = realtimeEvents.value[realtimeEvents.value.length - 1];
+    if (lastEvent?.event.type === realtimeEvent.event.type) {
+      lastEvent.count = (lastEvent.count || 0) + 1;
+      realtimeEvents.value.splice(-1, 1, lastEvent);
+    } else {
+      realtimeEvents.value.push(realtimeEvent);
+    }
+  });
 
+  client.value.on('error', (event) => console.error(event));
 
-  //setupAudioProcessing(canvasServerRef.value, '#2ecc71');
+  client.value.on('conversation.interrupted', async () => {
+    const trackSampleOffset = await wavStreamPlayer.value.interrupt();
+    if (trackSampleOffset?.trackId) {
+      const { trackId, offset } = trackSampleOffset;
+      await client.value.cancelResponse(trackId, offset);
+    }
+  });
 
+  client.value.on('conversation.updated', async ({ item, delta }) => {
+    items.value = client.value.conversation.getItems();
+    if (delta?.audio) {
+      wavStreamPlayer.value.add16BitPCM(delta.audio, item.id);
+    }
+    if (item.status === 'completed' && item.formatted.audio?.length) {
+      const wavFile = await WavRecorder.decode(
+          item.formatted.audio,
+          24000,
+          24000
+      );
+      item.formatted.file = wavFile;
+    }
+  });
+
+  // Set up client instructions and tools
+  client.value.updateSession({ instructions: instructions });
+  client.value.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
+
+  client.value.addTool(
+      {
+        name: 'set_memory',
+        description: 'Saves important data about the user into memory.',
+        parameters: {
+          type: 'object',
+          properties: {
+            key: {
+              type: 'string',
+              description:
+                  'The key of the memory value. Always use lowercase and underscores, no other characters.',
+            },
+            value: {
+              type: 'string',
+              description: 'Value can be anything represented as a string',
+            },
+          },
+          required: ['key', 'value'],
+        },
+      },
+      async ({ key, value }) => {
+        memoryKv.value = { ...memoryKv.value, [key]: value };
+        return { ok: true };
+      }
+  );
+
+  client.value.addTool(
+      {
+        name: 'get_weather',
+        description:
+            'Retrieves the weather for a given lat, lng coordinate pair. Specify a label for the location.',
+        parameters: {
+          type: 'object',
+          properties: {
+            lat: {
+              type: 'number',
+              description: 'Latitude',
+            },
+            lng: {
+              type: 'number',
+              description: 'Longitude',
+            },
+            location: {
+              type: 'string',
+              description: 'Name of the location',
+            },
+          },
+          required: ['lat', 'lng', 'location'],
+        },
+      },
+      async ({ lat, lng, location }) => {
+        marker.value = { lat, lng, location };
+        coords.value = { lat, lng, location };
+        const result = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
+        );
+        const json = await result.json();
+        const temperature = {
+          value: json.current.temperature_2m,
+          units: json.current_units.temperature_2m,
+        };
+        const wind_speed = {
+          value: json.current.wind_speed_10m,
+          units: json.current_units.wind_speed_10m,
+        };
+        marker.value = { lat, lng, location, temperature, wind_speed };
+        return json;
+      }
+  );
+
+  items.value = client.value.conversation.getItems();
 });
-
-const setupAudioProcessing = async (canvas, color) => {
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const data = JSON.parse(localStorage.getItem("chat_data"))
-
-    // 将 Int16Array 转换为 Float32Array (Web Audio API 使用 Float32)
-    let float32Array = new Float32Array(data.length);
-    for (let i = 0; i < data.length; i++) {
-      float32Array[i] = data[i] / 32768; // Int16 转换为 Float32
-    }
-
-    // 创建 AudioBuffer
-    const audioBuffer = audioContext.createBuffer(1, float32Array.length, 24000); // 单声道
-    audioBuffer.getChannelData(0).set(float32Array); // 设置音频数据
-
-    // 创建 AudioBufferSourceNode 并播放音频
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    // 连接到输入源（模拟麦克风）
-    source.connect(analyser);
-    // 同时连接到扬声器播放语音
-    source.connect(audioContext.destination);
-    source.start(); // 播放
-    const dataArray = new Uint8Array(bufferLength);
-    const ctx = canvas.getContext('2d')
-
-    const draw = () => {
-      analyser.getByteFrequencyData(dataArray);
-
-      // 检查音量是否安静
-      const maxVolume = Math.max(...dataArray);
-      if (maxVolume < 100) {
-        // 如果音量很小，则停止绘制
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        requestAnimationFrame(draw);
-        return;
-      }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const barWidth = (canvas.width / bufferLength) * 2.5;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = dataArray[i] / 2;
-
-        ctx.fillStyle = color; // 淡蓝色
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
-        x += barWidth + 2;
-      }
-      requestAnimationFrame(draw);
-    }
-
-    draw();
-  } catch (err) {
-    console.error('获取麦克风权限失败:', err);
-  }
-}
-
-
-const speaker = ref(null)
-// 假设 PCM16 数据已经存储在一个 Int16Array 中
-function playPCM16(pcm16Array, sampleRate = 44100) {
-  // 创建 AudioContext
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  // 将 Int16Array 转换为 Float32Array (Web Audio API 使用 Float32)
-  let float32Array = new Float32Array(pcm16Array.length);
-  for (let i = 0; i < pcm16Array.length; i++) {
-    float32Array[i] = pcm16Array[i] / 32768; // Int16 转换为 Float32
-  }
-
-  // 创建 AudioBuffer
-  const audioBuffer = audioContext.createBuffer(1, float32Array.length, sampleRate); // 单声道
-  audioBuffer.getChannelData(0).set(float32Array); // 设置音频数据
-
-  // 创建 AudioBufferSourceNode 并播放音频
-  const source = audioContext.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(audioContext.destination); // 连接到扬声器
-  source.start(); // 播放
-  speaker.value = source
-
-}
 
 onUnmounted(() => {
-  clearInterval(voiceInterval);
+  client.value.reset();
 });
 
-const hangUp = () => {
-  console.log('Call hung up');
-};
+// Watchers
+watch(realtimeEvents, () => {
+  if (eventsScrollRef.value) {
+    const eventsEl = eventsScrollRef.value;
+    eventsEl.scrollTop = eventsEl.scrollHeight;
+  }
+});
 
-const answer = () => {
-  console.log('Call answered');
-  setupAudioProcessing(canvasServerRef.value, '#2ecc71');
-};
-
-
+watch(items, () => {
+  const conversationEls = document.querySelectorAll('[data-conversation-content]');
+  conversationEls.forEach((el) => {
+    el.scrollTop = el.scrollHeight;
+  });
+});
 </script>
 
-<style scoped lang="stylus">
-.video-call-container {
-  background: linear-gradient(to right, #2c3e50, #4a5568, #6b46c1);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0;
-
-  .wave-container {
-    padding 2rem
-    .wave-animation {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
-  }
-
-
-  .wave-ellipse {
-    width: 40px;
-    height: 40px;
-    background-color: white;
-    border-radius: 20px;
-    animation: wave 0.8s infinite ease-in-out;
-  }
-
-  .wave-ellipse:nth-child(odd) {
-    height: 60px;
-  }
-
-  .wave-ellipse:nth-child(even) {
-    height: 80px;
-  }
-
-  @keyframes wave {
-    0%, 100% {
-      transform: scaleY(0.8);
-    }
-    50% {
-      transform: scaleY(1.2);
-    }
-  }
-
-  .wave-ellipse:nth-child(2) {
-    animation-delay: 0.1s;
-  }
-
-  .wave-ellipse:nth-child(3) {
-    animation-delay: 0.2s;
-  }
-
-  .wave-ellipse:nth-child(4) {
-    animation-delay: 0.3s;
-  }
-
-  .wave-ellipse:nth-child(5) {
-    animation-delay: 0.4s;
-  }
-
-  /* 其余样式保持不变 */
-  .voice-indicators {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .voice-indicator {
-    display: flex;
-    align-items: flex-end;
-  }
-
-  .bar {
-    width: 10px;
-    height: 20px;
-    background-color: #3498db;
-    margin: 0 2px;
-    transition: height 0.2s ease;
-  }
-
-  .voice-indicator.left .bar:nth-child(1) {
-    height: 15px;
-  }
-
-  .voice-indicator.left .bar:nth-child(2) {
-    height: 25px;
-  }
-
-  .voice-indicator.left .bar:nth-child(3) {
-    height: 20px;
-  }
-
-  .voice-indicator.right .bar:nth-child(1) {
-    height: 20px;
-  }
-
-  .voice-indicator.right .bar:nth-child(2) {
-    height: 10px;
-  }
-
-  .voice-indicator.right .bar:nth-child(3) {
-    height: 30px;
-  }
-
-  .call-controls {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    padding 2rem
-
-    .call-button {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-
-      .iconfont {
-        font-size 24px
-      }
-    }
-    .hangup {
-      background-color: #e74c3c;
-    }
-
-    .answer {
-      background-color: #2ecc71;
-    }
-
-    .icon {
-      font-size: 28px;
-    }
-  }
-
-}
-
-canvas {
-  background-color: transparent;
-}
-
-
+<style scoped>
+/* You can add your component-specific styles here */
+/* If you're using SCSS, you might want to import your existing SCSS file */
+/* @import './ConsolePage.scss'; */
 </style>
