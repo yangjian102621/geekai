@@ -15,7 +15,7 @@
 import {ref} from 'vue';
 import { RealtimeClient } from '@openai/realtime-api-beta';
 import Calling from "@/components/Calling.vue";
-import Conversation from "@/components/Conversation .vue";
+import Conversation from "@/components/RealtimeConversation .vue";
 import {playPCM16} from "@/utils/wav_player";
 import {showMessageError} from "@/utils/dialog";
 
