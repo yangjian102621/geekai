@@ -554,6 +554,10 @@ func main() {
 			group.POST("/list/luma", h.LumaList)
 			group.GET("/remove", h.Remove)
 		}),
+		fx.Provide(handler.NewRealtimeHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
+			s.Engine.Any("/api/realtime", h.Connection)
+		}),
 	)
 	// 启动应用程序
 	go func() {

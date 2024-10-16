@@ -328,7 +328,7 @@ const routes = [
         name: 'test2',
         path: '/test2',
         meta: {title: '测试页面'},
-        component: () => import('@/views/Test2.vue'),
+        component: () => import('@/views/RealtimeTest.vue'),
     },
     {
         name: 'NotFound',
