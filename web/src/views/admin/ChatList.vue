@@ -145,13 +145,19 @@
     <el-dialog
         v-model="showContentDialog"
         title="消息详情"
+        class="chat-dialog"
+        style="--el-dialog-width:60%"
     >
-      <div class="chat-line" v-html="dialogContent"></div>
+      <div class="chat-detail">
+        <div class="chat-line" v-html="dialogContent"></div>
+      </div>
     </el-dialog>
 
     <el-dialog
         v-model="showChatItemDialog"
         title="对话详情"
+        class="chat-dialog"
+        style="--el-dialog-width:60%"
     >
       <div class="chat-box chat-page">
         <div v-for="item in messages" :key="item.id">
@@ -354,15 +360,19 @@ const showMessages = (row) => {
     justify-content right
   }
 
+  .chat-detail {
+    max-height 90vh
+    overflow auto
+  }
   .chat-box {
-    overflow hidden
+    overflow auto
 
     // 变量定义
     --content-font-size: 16px;
     --content-color: #c1c1c1;
 
     font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-    height 90%
+    max-height 90vh
 
     .chat-line {
       // 隐藏滚动条
