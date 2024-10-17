@@ -170,7 +170,7 @@ const wavRecorder = ref(new WavRecorder({ sampleRate: 24000 }));
 const wavStreamPlayer = ref(new WavStreamPlayer({ sampleRate: 24000 }));
 const client = ref(
     new RealtimeClient({
-      url: "wss://api.geekai.pro/v1/realtime",
+      url: "ws://localhost:5678/api/realtime",
       apiKey: "sk-Gc5cEzDzGQLIqxWA9d62089350F3454bB359C4A3Fa21B3E4",
       dangerouslyAllowAPIKeyInBrowser: true,
     })
