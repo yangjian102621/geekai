@@ -44,11 +44,11 @@
                 <div class="product-info">
                   <div class="info-line">
                     <span class="label">商品原价：</span>
-                    <span class="price">￥{{ item.price }}</span>
+                    <span class="price"><del>￥{{ item.price }}</del></span>
                   </div>
                   <div class="info-line">
-                    <span class="label">促销立减：</span>
-                    <span class="price">￥{{ item.discount }}</span>
+                    <span class="label">优惠价：</span>
+                    <span class="discount">￥{{ item.discount }}</span>
                   </div>
                   <div class="info-line">
                     <span class="label">有效期：</span>
@@ -93,7 +93,7 @@
           <h2 class="headline">消费账单</h2>
 
           <div class="user-order">
-            <user-order v-if="isLogin"/>
+            <user-order v-if="isLogin" :key="userOrderKey"/>
           </div>
         </div>
       </div>
@@ -154,6 +154,7 @@ const payWays = ref([])
 const vipInfoText = ref("")
 const store = useSharedStore()
 const profileKey = ref(0)
+const userOrderKey = ref(0)
 const showDialog = ref(false)
 const qrImg = ref("")
 const price = ref(0)
@@ -215,7 +216,7 @@ const pay = (product, payWay) => {
     showDialog.value = true
     loading.value = false
     if (payWay.pay_way === 'wechat') {
-      price.value = Number((product.price - product.discount).toFixed(2))
+      price.value = Number(product.discount)
       QRCode.toDataURL(res.data, {width: 300, height: 300, margin: 2}, (error, url) => {
         if (error) {
           console.error(error)
@@ -245,6 +246,7 @@ const payCallback = (success) => {
   showDialog.value = false
   if (success) {
     profileKey.value += 1
+    userOrderKey.value += 1
   }
 }
 

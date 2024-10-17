@@ -138,8 +138,8 @@
 
               <div class="input-box">
                 <div class="input-box-inner">
-                  <span class="tool-item" @click="ElMessage.info('暂时不支持语音输入')">
-                    <el-tooltip class="box-item" effect="dark" content="语音输入">
+                  <span class="tool-item" @click="realtimeChat">
+                    <el-tooltip class="box-item" effect="dark" content="实时语音对话">
                       <i class="iconfont icon-mic-bold"></i>
                     </el-tooltip>
                   </span>
@@ -208,6 +208,10 @@
     </el-dialog>
 
     <ChatSetting :show="showChatSetting" @hide="showChatSetting = false"/>
+
+    <el-dialog v-model="showConversationDialog" title="实时语音通话" :before-close="hangUp">
+      <realtime-conversation  @close="showConversationDialog = false" ref="conversationRef" :height="dialogHeight+'px'" />
+    </el-dialog>
   </div>
 
 
@@ -236,6 +240,7 @@ import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
 import {showMessageError} from "@/utils/dialog";
+import RealtimeConversation from "@/components/RealtimeConversation.vue";
 
 const title = ref('GeekAI-智能助手');
 const models = ref([])
@@ -890,6 +895,21 @@ const insertFile = (file) => {
 }
 const removeFile = (file) => {
   files.value = removeArrayItem(files.value, file, (v1,v2) => v1.url===v2.url)
+}
+
+// 实时语音对话
+const showConversationDialog = ref(false)
+const conversationRef = ref(null)
+const dialogHeight = ref(window.innerHeight - 75);
+const realtimeChat = () => {
+  showConversationDialog.value = true;
+  nextTick(() => {
+    conversationRef.value.connect()
+  })
+}
+const hangUp = () => {
+  showConversationDialog.value = false;
+  conversationRef.value.hangUp()
 }
 </script>
 

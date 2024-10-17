@@ -75,7 +75,7 @@
           <van-cell-group>
             <van-cell title="商品价格">
               <span class="price">
-                ￥{{ (item.price - item.discount).toFixed(2) }}
+                ￥{{ item.discount }}
               </span>
               （
               <del>￥{{ item.price }}</del>
