@@ -349,7 +349,7 @@ func main() {
 			group.GET("list", h.List)
 			group.POST("create", h.Create)
 			group.POST("set", h.Set)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
 			group := s.Engine.Group("/api/admin/dashboard/")

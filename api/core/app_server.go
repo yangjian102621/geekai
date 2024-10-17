@@ -127,12 +127,19 @@ func corsMiddleware() gin.HandlerFunc {
 // 用户授权验证
 func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		clientProtocols := c.GetHeader("Sec-WebSocket-Protocol")
 		var tokenString string
 		isAdminApi := strings.Contains(c.Request.URL.Path, "/api/admin/")
 		if isAdminApi { // 后台管理 API
 			tokenString = c.GetHeader(types.AdminAuthHeader)
-		} else if c.Request.URL.Path == "/api/ws" { // Websocket 连接
-			tokenString = c.Query("token")
+		} else if clientProtocols != "" { // Websocket 连接
+			// 解析子协议内容
+			protocols := strings.Split(clientProtocols, ",")
+			if protocols[0] == "realtime" {
+				tokenString = strings.TrimSpace(protocols[1][25:])
+			} else if protocols[0] == "token" {
+				tokenString = strings.TrimSpace(protocols[1])
+			}
 		} else {
 			tokenString = c.GetHeader(types.UserAuthHeader)
 		}
@@ -221,7 +228,6 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/suno/detail" ||
 		c.Request.URL.Path == "/api/suno/play" ||
 		c.Request.URL.Path == "/api/download" ||
-		c.Request.URL.Path == "/api/realtime" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/payment/notify/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||

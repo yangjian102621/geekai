@@ -79,7 +79,7 @@
           <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="类型：" prop="type">
-          <el-select v-model="item.type" placeholder="请选择类型">
+          <el-select v-model="item.type" placeholder="请选择类型" @change="changeType">
             <el-option v-for="item in types" :value="item.value" :label="item.label" :key="item.value">{{
                 item.label
               }}
@@ -91,13 +91,13 @@
         </el-form-item>
         <el-form-item label="API URL：" prop="api_url">
           <el-input v-model="item.api_url" autocomplete="off"
-                    placeholder="只填 BASE URL 即可，如：https://api.openai.com"/>
+                    placeholder="只填 BASE URL 即可，如：https://api.openai.com 或者 wss://api.openai.com"/>
         </el-form-item>
 
-        <el-form-item label="代理地址：" prop="proxy_url">
-          <el-input v-model="item.proxy_url" autocomplete="off"/>
-          <div class="info">如果想要通过代理来访问 API，请填写代理地址，如：http://127.0.0.1:7890</div>
-        </el-form-item>
+<!--        <el-form-item label="代理地址：" prop="proxy_url">-->
+<!--          <el-input v-model="item.proxy_url" autocomplete="off"/>-->
+<!--          <div class="info">如果想要通过代理来访问 API，请填写代理地址，如：http://127.0.0.1:7890</div>-->
+<!--        </el-form-item>-->
 
         <el-form-item label="启用状态：" prop="enable">
           <el-switch v-model="item.enabled"/>
@@ -125,7 +125,9 @@ import ClipboardJS from "clipboard";
 // 变量定义
 const items = ref([])
 const query = ref({type: ''})
-const item = ref({})
+const item = ref({
+  enabled: true, api_url: ""
+})
 const showDialog = ref(false)
 const rules = reactive({
   name: [{required: true, message: '请输入名称', trigger: 'change',}],
@@ -143,9 +145,9 @@ const types = ref([
   {label: "DALL-E", value:"dalle"},
   {label: "Suno文生歌", value:"suno"},
   {label: "Luma视频", value:"luma"},
+  {label: "Realtime API", value:"realtime"},
 ])
-
-
+const isEdit = ref(false)
 const clipboard = ref(null)
 onMounted(() => {
   clipboard.value = new ClipboardJS('.copy-key');
@@ -163,6 +165,18 @@ onMounted(() => {
 onUnmounted(() => {
   clipboard.value.destroy()
 })
+
+const changeType = (event) => {
+  if (isEdit.value) {
+    return
+  }
+  
+  if (event === 'realtime') {
+    item.value.api_url = "wss://api.geekai.pro"
+  } else {
+    item.value.api_url = "https://api.geekai.pro"
+  }
+}
 
 const getTypeName = (type) => {
   for (let v of types.value) {
@@ -194,13 +208,14 @@ const fetchData = () => {
 const add = function () {
   showDialog.value = true
   title.value = "新增 API KEY"
-  item.value = {enabled: true,api_url: "https://api.geekai.pro"}
+  isEdit.value = false
 }
 
 const edit = function (row) {
   showDialog.value = true
   title.value = "修改 API KEY"
   item.value = row
+  isEdit.value = true
 }
 
 const save = function () {
