@@ -315,11 +315,11 @@ const doSubmitRegister = (verifyData) => {
   top 0
   bottom 0
   background-color #091519
-  background-image url("~@/assets/img/reg-bg.jpg")
+  background-image url("~@/assets/img/reg_bg.png")
   background-size cover
   background-position center
   background-repeat no-repeat
-  //filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
+  filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
 }
 
 .register-page {
