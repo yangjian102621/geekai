@@ -9,6 +9,14 @@
         <div class="phone"></div>
       </div>
       <div class="status-text">{{ connectingText }}</div>
+      <audio ref="backgroundAudio" loop>
+        <source src="/medias/calling.mp3" type="audio/mp3" />
+        您的浏览器不支持音频元素。
+      </audio>
+      <audio ref="hangUpAudio">
+        <source src="/medias/hang-up.mp3" type="audio/mp3" />
+        您的浏览器不支持音频元素。
+      </audio>
     </el-container>
 
     <!-- conversation body -->
@@ -126,12 +134,23 @@ const clientCanvasRef = ref(null);
 const serverCanvasRef = ref(null);
 const isConnected = ref(false);
 const isRecording = ref(false);
-
+const backgroundAudio = ref(null);
+const hangUpAudio = ref(null);
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 const connect = async () => {
   if (isConnected.value) {
     return
   }
-
+  // 播放背景音乐
+  if (backgroundAudio.value) {
+    backgroundAudio.value.play().catch(error => {
+      console.error('播放失败，可能是浏览器的自动播放策略导致的:', error);
+    });
+  }
+  // 模拟拨号延时
+  await sleep(3000)
   try {
     await client.value.connect();
     await wavRecorder.value.begin();
@@ -142,10 +161,12 @@ const connect = async () => {
     }
 
     isConnected.value = true;
+    backgroundAudio.value?.pause()
+    backgroundAudio.value.currentTime = 0
     client.value.sendUserMessageContent([
       {
         type: 'input_text',
-        text: '你好，我是老阳!',
+        text: '你好，我是极客学长!',
       },
     ]);
     if (client.value.getTurnDetectionType() === 'server_vad') {
@@ -283,10 +304,17 @@ onUnmounted(() => {
 // 挂断通话
 const hangUp = async () => {
   try {
-    isConnected.value = false;
-    client.value.disconnect();
-    await wavRecorder.value.end();
-    await wavStreamPlayer.value.interrupt();
+    isConnected.value = false
+    // 断开客户端的连接
+    client.value.disconnect()
+    // 中断语音输入和输出服务
+    await wavRecorder.value.end()
+    await wavStreamPlayer.value.interrupt()
+    // 停止播放拨号音乐
+    backgroundAudio.value?.pause()
+    backgroundAudio.value.currentTime = 0
+    // 播放挂断音乐
+    hangUpAudio.value?.play()
     emits('close')
   } catch (e) {
     console.error(e)
