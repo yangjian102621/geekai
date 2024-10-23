@@ -305,19 +305,22 @@ onUnmounted(() => {
 const hangUp = async () => {
   try {
     isConnected.value = false
+    // 停止播放拨号音乐
+    if (backgroundAudio.value?.currentTime) {
+      backgroundAudio.value?.pause()
+      backgroundAudio.value.currentTime = 0
+    }
     // 断开客户端的连接
-    client.value.disconnect()
+    client.value.reset()
     // 中断语音输入和输出服务
     await wavRecorder.value.end()
     await wavStreamPlayer.value.interrupt()
-    // 停止播放拨号音乐
-    backgroundAudio.value?.pause()
-    backgroundAudio.value.currentTime = 0
+  } catch (e) {
+    console.error(e)
+  } finally {
     // 播放挂断音乐
     hangUpAudio.value?.play()
     emits('close')
-  } catch (e) {
-    console.error(e)
   }
 };
 

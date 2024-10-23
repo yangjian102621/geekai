@@ -902,6 +902,10 @@ const showConversationDialog = ref(false)
 const conversationRef = ref(null)
 const dialogHeight = ref(window.innerHeight - 75);
 const realtimeChat = () => {
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
+  }
   showConversationDialog.value = true;
   nextTick(() => {
     conversationRef.value.connect()
