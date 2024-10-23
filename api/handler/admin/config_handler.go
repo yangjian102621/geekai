@@ -143,65 +143,67 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 
 // FixData 修复数据
 func (h *ConfigHandler) FixData(c *gin.Context) {
-	var fixed bool
-	version := "data_fix_4.1.4"
-	err := h.levelDB.Get(version, &fixed)
-	if err == nil || fixed {
-		resp.ERROR(c, "当前版本数据修复已完成，请不要重复执行操作")
-		return
-	}
-	tx := h.DB.Begin()
-	var users []model.User
-	err = tx.Find(&users).Error
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	for _, user := range users {
-		if user.Email != "" || user.Mobile != "" {
-			continue
-		}
-		if utils.IsValidEmail(user.Username) {
-			user.Email = user.Username
-		} else if utils.IsValidMobile(user.Username) {
-			user.Mobile = user.Username
-		}
-		err = tx.Save(&user).Error
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			tx.Rollback()
-			return
-		}
-	}
-
-	var orders []model.Order
-	err = h.DB.Find(&orders).Error
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	for _, order := range orders {
-		if order.PayWay == "支付宝" {
-			order.PayWay = "alipay"
-			order.PayType = "alipay"
-		} else if order.PayWay == "微信支付" {
-			order.PayWay = "wechat"
-			order.PayType = "wxpay"
-		} else if order.PayWay == "hupi" {
-			order.PayType = "wxpay"
-		}
-		err = tx.Save(&order).Error
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			tx.Rollback()
-			return
-		}
-	}
-	tx.Commit()
-	err = h.levelDB.Put(version, true)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	resp.SUCCESS(c)
+	resp.ERROR(c, "当前升级版本没有数据需要修正！")
+	return
+	//var fixed bool
+	//version := "data_fix_4.1.4"
+	//err := h.levelDB.Get(version, &fixed)
+	//if err == nil || fixed {
+	//	resp.ERROR(c, "当前版本数据修复已完成，请不要重复执行操作")
+	//	return
+	//}
+	//tx := h.DB.Begin()
+	//var users []model.User
+	//err = tx.Find(&users).Error
+	//if err != nil {
+	//	resp.ERROR(c, err.Error())
+	//	return
+	//}
+	//for _, user := range users {
+	//	if user.Email != "" || user.Mobile != "" {
+	//		continue
+	//	}
+	//	if utils.IsValidEmail(user.Username) {
+	//		user.Email = user.Username
+	//	} else if utils.IsValidMobile(user.Username) {
+	//		user.Mobile = user.Username
+	//	}
+	//	err = tx.Save(&user).Error
+	//	if err != nil {
+	//		resp.ERROR(c, err.Error())
+	//		tx.Rollback()
+	//		return
+	//	}
+	//}
+	//
+	//var orders []model.Order
+	//err = h.DB.Find(&orders).Error
+	//if err != nil {
+	//	resp.ERROR(c, err.Error())
+	//	return
+	//}
+	//for _, order := range orders {
+	//	if order.PayWay == "支付宝" {
+	//		order.PayWay = "alipay"
+	//		order.PayType = "alipay"
+	//	} else if order.PayWay == "微信支付" {
+	//		order.PayWay = "wechat"
+	//		order.PayType = "wxpay"
+	//	} else if order.PayWay == "hupi" {
+	//		order.PayType = "wxpay"
+	//	}
+	//	err = tx.Save(&order).Error
+	//	if err != nil {
+	//		resp.ERROR(c, err.Error())
+	//		tx.Rollback()
+	//		return
+	//	}
+	//}
+	//tx.Commit()
+	//err = h.levelDB.Put(version, true)
+	//if err != nil {
+	//	resp.ERROR(c, err.Error())
+	//	return
+	//}
+	//resp.SUCCESS(c)
 }
