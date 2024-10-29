@@ -21,7 +21,7 @@
 
       <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
-      <a href="https://api.chat-plus.net" target="_blank" style="margin-left: 10px">
+      <a href="https://api.geekai.pro" target="_blank" style="margin-left: 10px">
         <el-button type="success" :icon="ShoppingCart" @click="add" plain>购买API-KEY</el-button>
       </a>
     </div>
