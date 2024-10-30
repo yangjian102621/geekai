@@ -111,7 +111,7 @@
             </el-popover>
           </div>
           <div class="item">
-            <black-input v-model:value="data.prompt" type="textarea" :rows="10" placeholder="例如：一首关于鸟人的摇滚歌曲..."/>
+            <black-input v-model:value="data.prompt" type="textarea" :rows="10" placeholder="例如：一首关于爱情的摇滚歌曲..."/>
           </div>
         </div>
 
@@ -266,7 +266,7 @@
       </div>
     </div>
 
-    <black-dialog v-model:show="showDialog" title="修改歌曲" @cancal="showDialog = false" @confirm="updateSong" :width="500">
+    <black-dialog v-model:show="showDialog" title="修改歌曲" @cancal="showDialog = false" @confirm="updateSong" :width="500+'px'">
       <form class="form">
         <div class="form-item">
           <div class="label">歌曲名称</div>

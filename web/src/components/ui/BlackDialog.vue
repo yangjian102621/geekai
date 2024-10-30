@@ -40,8 +40,8 @@ const props = defineProps({
     default: 'Tips',
   },
   width: {
-    type: Number,
-    default: 500,
+    type: String,
+    default: 'auto',
   },
   hideFooter:{
     type: Boolean,
