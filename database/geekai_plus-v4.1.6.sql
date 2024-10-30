@@ -69,26 +69,6 @@ CREATE TABLE `chatgpt_api_keys` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='OpenAI API ';
 
---
--- 转存表中的数据 `chatgpt_api_keys`
---
-
-INSERT INTO `chatgpt_api_keys` (`id`, `name`, `value`, `type`, `last_used_at`, `api_url`, `enabled`, `proxy_url`, `created_at`, `updated_at`) VALUES
-(44, '柏拉图', 'sk-iOT0fbreYLKXs5lt2c80Aa95Cc46487aB58dD8B4150a82Ba', 'chat', 1725417160, 'https://api.geekai.pro', 0, '', '2024-01-15 22:10:09', '2024-09-29 19:08:20'),
-(45, '柏拉图', 'sk-dag2G3U6NI5IPDz947E1C951C95e411088A6Bf79A451Dd7c', 'dalle', 1725431712, 'https://api.geekai.pro', 0, '', '2024-01-15 22:10:56', '2024-09-29 19:08:25'),
-(52, 'OpenAI官方', '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', 'chat', 1720077366, 'http://cdn.chat-plus.net:8001', 0, '', '2024-04-12 16:30:59', '2024-07-30 16:26:00'),
-(57, 'Geek-AI', 'sk-jlEqNEch2zAjIfZD49C5EaFf61Ae44D188AeC9612fB9C802', 'chat', 1729058992, 'https://api.geekai.me', 1, '', '2024-05-06 14:57:13', '2024-09-29 11:31:46'),
-(58, '白金', 'sk-Q5Wzn31e9n1Z1xSH025cC15fE0B74e98B178732bAc1b1511', 'chat', 1724998674, 'https://gpt.bemore.lol', 0, '', '2024-05-07 11:20:55', '2024-08-30 14:18:44'),
-(66, 'APIFans渠道', 'sk-HlppgF26877mTxFH3e84B4De16884f048e3a18212e890885', 'chat', 1729216058, 'https://api3.apifans.com', 1, '', '2024-07-16 13:41:52', '2024-09-29 19:08:30'),
-(67, '柏拉图Suno', 'sk-dag2G3U6NI5IPDz947E1C951C95e411088A6Bf79A451Dd7c', 'suno', 1727604579, 'https://api.geekai.pro', 0, '', '2024-07-23 17:14:19', '2024-10-10 16:17:11'),
-(69, 'MidJourney', 'sk-76B03ew3MC9KXmN94e3a6dB21aEa4027Ac7aA74e28Df820e', 'mj', 1727667061, 'https://api.geekai.me', 0, '', '2024-08-06 17:56:40', '2024-10-10 11:46:38'),
-(70, 'stable-diffusion', 'anything', 'sd', 1727683790, 'http://172.22.11.200:7861', 1, '', '2024-08-07 17:20:44', '2024-09-30 16:09:50'),
-(72, '柏拉图Luma', 'sk-Eh52bsaAm7yGUd4lD60903B9A1F543489eCb7110B7583514', 'luma', 1727605988, 'https://api.geekai.pro', 1, '', '2024-09-02 17:45:15', '2024-09-29 18:33:08'),
-(73, 'GeekAI-VIP渠道', 'sk-dy7scvvy7T0sPZ1g323f033e507e4598972dE4D618793923', 'chat', 1727593003, 'http://api.senghai.com:3000', 1, '', '2024-09-13 18:00:35', '2024-09-29 14:54:35'),
-(75, 'Geek-DALL', 'sk-jlEqNEch2zAjIfZD49C5EaFf61Ae44D188AeC9612fB9C802', 'dalle', 1727666989, 'https://api.geekai.me', 1, '', '2024-09-29 09:16:48', '2024-09-29 09:16:48'),
-(76, 'Realtime', 'sk-Gc5cEzDzGQLIqxWA9d62089350F3454bB359C4A3Fa21B3E4', 'realtime', 1729652271, 'wss://api.geekai.pro', 1, '', '2024-10-17 15:27:00', '2024-10-17 15:27:00');
-
--- --------------------------------------------------------
 
 --
 -- 表的结构 `chatgpt_app_types`
