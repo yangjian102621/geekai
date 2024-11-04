@@ -57,12 +57,12 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 	var item model.Reward
 	res := h.DB.Where("tx_id = ?", data.TxId).First(&item)
 	if res.Error != nil {
-		resp.ERROR(c, "无效的众筹交易流水号！")
+		resp.ERROR(c, "无效的交易流水号！")
 		return
 	}
 
 	if item.Status {
-		resp.ERROR(c, "当前众筹交易流水号已经被核销，请不要重复核销！")
+		resp.ERROR(c, "当前交易流水号已经被核销，请不要重复核销！")
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *RewardHandler) Verify(c *gin.Context) {
 		Balance:   user.Power + exchange.Power,
 		Mark:      types.PowerAdd,
 		Model:     "众筹支付",
-		Remark:    fmt.Sprintf("众筹充值算力，金额：%f，价格：%f", item.Amount, h.App.SysConfig.PowerPrice),
+		Remark:    fmt.Sprintf("充值算力，金额：%f，价格：%f", item.Amount, h.App.SysConfig.PowerPrice),
 		CreatedAt: time.Now(),
 	})
 	tx.Commit()
