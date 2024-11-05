@@ -1,4 +1,7 @@
 # 更新日志
+## v4.1.7
+* Bug修复：手机邮箱相关的注册问题 [#IB0HS5](https://gitee.com/blackfox/geekai/issues/IB0HS5)
+* Bug修复：音乐视频无法下载，思维导图下载后看不清文字[#IB0N2E](https://gitee.com/blackfox/geekai/issues/IB0N2E)
 ## v4.1.6
 * 功能新增：**支持OpenAI实时语音对话功能** :rocket: :rocket: :rocket:, Beta 版，目前没有做算力计费控制，目前只有 VIP 用户可以使用。
 * 功能优化：优化MysQL容器配置文档，解决MysQL容器资源占用过高问题
