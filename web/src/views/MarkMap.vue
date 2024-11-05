@@ -23,7 +23,7 @@
                 请选择生成思维导图的AI模型
               </div>
               <div class="param-line">
-                <el-select v-model="modelID" placeholder="请选择模型" @change="changeModel" style="width:100%">
+                <el-select v-model="modelID" placeholder="请选择模型" style="width:100%">
                   <el-option
                       v-for="item in models"
                       :key="item.id"
@@ -243,6 +243,8 @@ const downloadImage = () => {
   canvas.height = svgElement.offsetHeight
   let context = canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'white';
+  context.fillRect(0, 0, canvas.width, canvas.height);
 
   image.onload = function () {
     context.drawImage(image, 0, 0)
