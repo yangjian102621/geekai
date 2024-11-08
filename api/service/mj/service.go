@@ -58,7 +58,7 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
 				if err == nil {
 					task.Prompt = content
 				} else {
@@ -67,7 +67,7 @@ func (s *Service) Run() {
 			}
 			// translate negative prompt
 			if task.NegPrompt != "" && utils.HasChinese(task.NegPrompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), task.TranslateModelId)
 				if err == nil {
 					task.NegPrompt = content
 				} else {
@@ -275,7 +275,6 @@ func (s *Service) SyncTaskProgress() {
 				}
 				oldProgress := job.Progress
 				job.Progress = utils.IntValue(strings.Replace(task.Progress, "%", "", 1), 0)
-				job.Prompt = task.PromptEn
 				if task.ImageUrl != "" {
 					job.OrgURL = task.ImageUrl
 				}

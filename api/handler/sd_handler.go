@@ -109,29 +109,37 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		resp.ERROR(c, "error with generate task id: "+err.Error())
 		return
 	}
-	params := types.SdTaskParams{
-		TaskId:       taskId,
-		Prompt:       data.Prompt,
-		NegPrompt:    data.NegPrompt,
-		Steps:        data.Steps,
-		Sampler:      data.Sampler,
-		FaceFix:      data.FaceFix,
-		CfgScale:     data.CfgScale,
-		Seed:         data.Seed,
-		Height:       data.Height,
-		Width:        data.Width,
-		HdFix:        data.HdFix,
-		HdRedrawRate: data.HdRedrawRate,
-		HdScale:      data.HdScale,
-		HdScaleAlg:   data.HdScaleAlg,
-		HdSteps:      data.HdSteps,
+
+	task := types.SdTask{
+		ClientId: data.ClientId,
+		Type:     types.TaskImage,
+		Params: types.SdTaskParams{
+			TaskId:       taskId,
+			Prompt:       data.Prompt,
+			NegPrompt:    data.NegPrompt,
+			Steps:        data.Steps,
+			Sampler:      data.Sampler,
+			FaceFix:      data.FaceFix,
+			CfgScale:     data.CfgScale,
+			Seed:         data.Seed,
+			Height:       data.Height,
+			Width:        data.Width,
+			HdFix:        data.HdFix,
+			HdRedrawRate: data.HdRedrawRate,
+			HdScale:      data.HdScale,
+			HdScaleAlg:   data.HdScaleAlg,
+			HdSteps:      data.HdSteps,
+		},
+		UserId:           userId,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
 	}
 
 	job := model.SdJob{
 		UserId:    userId,
 		Type:      types.TaskImage.String(),
-		TaskId:    params.TaskId,
-		Params:    utils.JsonEncode(params),
+		TaskId:    taskId,
+		Params:    utils.JsonEncode(task.Params),
+		TaskInfo:  utils.JsonEncode(task),
 		Prompt:    data.Prompt,
 		Progress:  0,
 		Power:     h.App.SysConfig.SdPower,
@@ -143,13 +151,8 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.sdService.PushTask(types.SdTask{
-		Id:       int(job.Id),
-		ClientId: data.ClientId,
-		Type:     types.TaskImage,
-		Params:   params,
-		UserId:   userId,
-	})
+	task.Id = int(job.Id)
+	h.sdService.PushTask(task)
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{

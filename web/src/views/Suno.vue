@@ -615,7 +615,7 @@ const createLyric = () => {
     return showMessageError("请输入歌词描述")
   }
   isGenerating.value = true
-  httpPost("/api/suno/lyric", {prompt: data.value.lyrics}).then(res => {
+  httpPost("/api/prompt/lyric", {prompt: data.value.lyrics}).then(res => {
     const lines = res.data.split('\n');
     data.value.title = lines.shift().replace(/\*/g,"")
     lines.shift()

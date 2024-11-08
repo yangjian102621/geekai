@@ -30,29 +30,25 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 func (h *ChatModelHandler) List(c *gin.Context) {
 	var items []model.ChatModel
 	var chatModels = make([]vo.ChatModel, 0)
-	var res *gorm.DB
 	session := h.DB.Session(&gorm.Session{}).Where("enabled", true)
 	t := c.Query("type")
 	if t != "" {
 		session = session.Where("type", t)
 	}
-	// 如果用户没有登录，则加载所有开放模型
-	if !h.IsLogin(c) {
-		res = session.Where("open", true).Order("sort_num ASC").Find(&items)
-	} else {
+
+	session = session.Where("open", true)
+	if h.IsLogin(c) {
 		user, _ := h.GetLoginUser(c)
 		var models []int
 		err := utils.JsonDecode(user.ChatModels, &models)
-		if err != nil {
-			resp.ERROR(c, "当前用户没有订阅任何模型")
-			return
-		}
 		// 查询用户有权限访问的模型以及所有开放的模型
-		res = h.DB.Where("enabled = ?", true).Where(
-			h.DB.Where("id IN ?", models).Or("open", true),
-		).Order("sort_num ASC").Find(&items)
+		if err == nil {
+			session = session.Or("id IN ?", models)
+		}
+
 	}
 
+	res := session.Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var cm vo.ChatModel

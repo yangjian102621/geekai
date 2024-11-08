@@ -7,6 +7,7 @@ type SdJob struct {
 	Type      string
 	UserId    int
 	TaskId    string
+	TaskInfo  string // 原始任务信息
 	ImgURL    string
 	Progress  int
 	Prompt    string

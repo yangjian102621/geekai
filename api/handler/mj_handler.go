@@ -176,16 +176,17 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 
 	h.mjService.PushTask(types.MjTask{
-		Id:        job.Id,
-		ClientId:  data.ClientId,
-		TaskId:    taskId,
-		Type:      types.TaskType(data.TaskType),
-		Prompt:    data.Prompt,
-		NegPrompt: data.NegPrompt,
-		Params:    params,
-		UserId:    userId,
-		ImgArr:    data.ImgArr,
-		Mode:      h.App.SysConfig.MjMode,
+		Id:               job.Id,
+		ClientId:         data.ClientId,
+		TaskId:           taskId,
+		Type:             types.TaskType(data.TaskType),
+		Prompt:           data.Prompt,
+		NegPrompt:        data.NegPrompt,
+		Params:           params,
+		UserId:           userId,
+		ImgArr:           data.ImgArr,
+		Mode:             h.App.SysConfig.MjMode,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
 	})
 
 	// update user's power
@@ -226,13 +227,12 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
 	job := model.MidJourneyJob{
-		Type:        types.TaskUpscale.String(),
-		ReferenceId: data.MessageId,
-		UserId:      userId,
-		TaskId:      taskId,
-		Progress:    0,
-		Power:       h.App.SysConfig.MjActionPower,
-		CreatedAt:   time.Now(),
+		Type:      types.TaskUpscale.String(),
+		UserId:    userId,
+		TaskId:    taskId,
+		Progress:  0,
+		Power:     h.App.SysConfig.MjActionPower,
+		CreatedAt: time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())
@@ -281,14 +281,13 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
 	job := model.MidJourneyJob{
-		Type:        types.TaskVariation.String(),
-		ChannelId:   data.ChannelId,
-		ReferenceId: data.MessageId,
-		UserId:      userId,
-		TaskId:      taskId,
-		Progress:    0,
-		Power:       h.App.SysConfig.MjActionPower,
-		CreatedAt:   time.Now(),
+		Type:      types.TaskVariation.String(),
+		ChannelId: data.ChannelId,
+		UserId:    userId,
+		TaskId:    taskId,
+		Progress:  0,
+		Power:     h.App.SysConfig.MjActionPower,
+		CreatedAt: time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
 		resp.ERROR(c, "添加任务失败："+res.Error.Error())

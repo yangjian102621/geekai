@@ -24,30 +24,31 @@ const (
 
 // MjTask MidJourney 任务
 type MjTask struct {
-	Id          uint     `json:"id"`      // 任务ID
-	TaskId      string   `json:"task_id"` // 中转任务ID
-	ClientId    string   `json:"client_id"`
-	ImgArr      []string `json:"img_arr"`
-	Type        TaskType `json:"type"`
-	UserId      int      `json:"user_id"`
-	Prompt      string   `json:"prompt,omitempty"`
-	NegPrompt   string   `json:"neg_prompt,omitempty"`
-	Params      string   `json:"full_prompt"`
-	Index       int      `json:"index,omitempty"`
-	MessageId   string   `json:"message_id,omitempty"`
-	MessageHash string   `json:"message_hash,omitempty"`
-	RetryCount  int      `json:"retry_count"`
-	ChannelId   string   `json:"channel_id"` // 渠道ID，用来区分是哪个渠道创建的任务，一个任务的 create 和 action 操作必须要再同一个渠道
-	Mode        string   `json:"mode"`       // 绘画模式，relax, fast, turbo
+	Id               uint     `json:"id"`      // 任务ID
+	TaskId           string   `json:"task_id"` // 中转任务ID
+	ClientId         string   `json:"client_id"`
+	ImgArr           []string `json:"img_arr"`
+	Type             TaskType `json:"type"`
+	UserId           int      `json:"user_id"`
+	Prompt           string   `json:"prompt,omitempty"`
+	NegPrompt        string   `json:"neg_prompt,omitempty"`
+	Params           string   `json:"full_prompt"`
+	Index            int      `json:"index,omitempty"`
+	MessageId        string   `json:"message_id,omitempty"`
+	MessageHash      string   `json:"message_hash,omitempty"`
+	ChannelId        string   `json:"channel_id"`         // 渠道ID，用来区分是哪个渠道创建的任务，一个任务的 create 和 action 操作必须要再同一个渠道
+	Mode             string   `json:"mode"`               // 绘画模式，relax, fast, turbo
+	TranslateModelId int      `json:"translate_model_id"` // 提示词翻译模型ID
 }
 
 type SdTask struct {
-	Id         int          `json:"id"` // job 数据库ID
-	Type       TaskType     `json:"type"`
-	ClientId   string       `json:"client_id"`
-	UserId     int          `json:"user_id"`
-	Params     SdTaskParams `json:"params"`
-	RetryCount int          `json:"retry_count"`
+	Id               int          `json:"id"` // job 数据库ID
+	Type             TaskType     `json:"type"`
+	ClientId         string       `json:"client_id"`
+	UserId           int          `json:"user_id"`
+	Params           SdTaskParams `json:"params"`
+	RetryCount       int          `json:"retry_count"`
+	TranslateModelId int          `json:"translate_model_id"` // 提示词翻译模型ID
 }
 
 type SdTaskParams struct {
@@ -81,7 +82,8 @@ type DallTask struct {
 	Size     string `json:"size"`
 	Style    string `json:"style"`
 
-	Power int `json:"power"`
+	Power            int `json:"power"`
+	TranslateModelId int `json:"translate_model_id"` // 提示词翻译模型ID
 }
 
 type SunoTask struct {
@@ -109,14 +111,15 @@ const (
 )
 
 type VideoTask struct {
-	ClientId string      `json:"client_id"`
-	Id       uint        `json:"id"`
-	Channel  string      `json:"channel"`
-	UserId   int         `json:"user_id"`
-	Type     string      `json:"type"`
-	TaskId   string      `json:"task_id"`
-	Prompt   string      `json:"prompt"` // 提示词
-	Params   VideoParams `json:"params"`
+	ClientId         string      `json:"client_id"`
+	Id               uint        `json:"id"`
+	Channel          string      `json:"channel"`
+	UserId           int         `json:"user_id"`
+	Type             string      `json:"type"`
+	TaskId           string      `json:"task_id"`
+	Prompt           string      `json:"prompt"` // 提示词
+	Params           VideoParams `json:"params"`
+	TranslateModelId int         `json:"translate_model_id"` // 提示词翻译模型ID
 }
 
 type VideoParams struct {

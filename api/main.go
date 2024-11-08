@@ -484,7 +484,6 @@ func main() {
 			group.POST("update", h.Update)
 			group.GET("detail", h.Detail)
 			group.GET("play", h.Play)
-			group.POST("lyric", h.Lyric)
 		}),
 		fx.Provide(handler.NewVideoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
@@ -517,6 +516,11 @@ func main() {
 		fx.Provide(handler.NewWebsocketHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.WebsocketHandler) {
 			s.Engine.Any("/api/ws", h.Client)
+		}),
+		fx.Provide(handler.NewPromptHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
+			group := s.Engine.Group("/api/prompt")
+			group.POST("/lyric", h.Lyric)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
