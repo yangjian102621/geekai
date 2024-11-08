@@ -87,7 +87,7 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
 				if err == nil {
 					task.Prompt = content
 				} else {

@@ -87,7 +87,7 @@ func (h *MarkMapHandler) Generate(c *gin.Context) {
 请直接生成结果，不要任何解释性语句。
 `})
 	messages = append(messages, types.Message{Role: "user", Content: fmt.Sprintf("请生成一份有关【%s】一份思维导图，要求结构清晰，有条理", data.Prompt)})
-	content, err := utils.SendOpenAIMessage(h.DB, messages, chatModel.Value, chatModel.KeyId)
+	content, err := utils.SendOpenAIMessage(h.DB, messages, data.ModelId)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("请求 OpenAI API 失败: %s", err))
 		return

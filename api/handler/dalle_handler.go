@@ -84,14 +84,15 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	}
 
 	h.dallService.PushTask(types.DallTask{
-		ClientId: data.ClientId,
-		JobId:    job.Id,
-		UserId:   uint(userId),
-		Prompt:   data.Prompt,
-		Quality:  data.Quality,
-		Size:     data.Size,
-		Style:    data.Style,
-		Power:    job.Power,
+		ClientId:         data.ClientId,
+		JobId:            job.Id,
+		UserId:           uint(userId),
+		Prompt:           data.Prompt,
+		Quality:          data.Quality,
+		Size:             data.Size,
+		Style:            data.Style,
+		Power:            job.Power,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
 	})
 	resp.SUCCESS(c)
 }

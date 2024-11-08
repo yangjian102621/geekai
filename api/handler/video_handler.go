@@ -96,12 +96,13 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	// 创建任务
 	h.videoService.PushTask(types.VideoTask{
-		ClientId: data.ClientId,
-		Id:       job.Id,
-		UserId:   userId,
-		Type:     types.VideoLuma,
-		Prompt:   data.Prompt,
-		Params:   params,
+		ClientId:         data.ClientId,
+		Id:               job.Id,
+		UserId:           userId,
+		Type:             types.VideoLuma,
+		Prompt:           data.Prompt,
+		Params:           params,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
 	})
 
 	// update user's power

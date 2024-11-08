@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_sd_jobs` ADD `task_info` TEXT NOT NULL COMMENT '任务详情' AFTER `task_id`;

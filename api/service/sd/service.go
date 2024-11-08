@@ -48,6 +48,19 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelD
 }
 
 func (s *Service) Run() {
+	// 将数据库中未提交的人物加载到队列
+	var jobs []model.SdJob
+	s.db.Where("progress", 0).Find(&jobs)
+	for _, v := range jobs {
+		var task types.SdTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = int(v.Id)
+		s.PushTask(task)
+	}
 	logger.Infof("Starting Stable-Diffusion job consumer")
 	go func() {
 		for {
@@ -60,7 +73,7 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Params.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.Prompt), task.TranslateModelId)
 				if err == nil {
 					task.Params.Prompt = content
 				} else {
@@ -70,7 +83,7 @@ func (s *Service) Run() {
 
 			// translate negative prompt
 			if task.Params.NegPrompt != "" && utils.HasChinese(task.Params.NegPrompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt), task.TranslateModelId)
 				if err == nil {
 					task.Params.NegPrompt = content
 				} else {
@@ -161,7 +174,7 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	}
 
 	apiURL := fmt.Sprintf("%s/sdapi/v1/txt2img", apiKey.ApiURL)
-	logger.Debugf("send image request to %s", apiURL)
+	logger.Infof("send image request to %s", apiURL)
 	// send a request to sd api endpoint
 	go func() {
 		response, err := s.httpClient.R().
