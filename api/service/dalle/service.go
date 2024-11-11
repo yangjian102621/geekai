@@ -237,13 +237,9 @@ func (s *Service) CheckTaskStatus() {
 	go func() {
 		logger.Info("Running DALL-E task status checking ...")
 		for {
+			// 检查未完成任务进度
 			var jobs []model.DallJob
-			res := s.db.Where("progress < ?", 100).Find(&jobs)
-			if res.Error != nil {
-				time.Sleep(5 * time.Second)
-				continue
-			}
-
+			s.db.Where("progress < ?", 100).Find(&jobs)
 			for _, job := range jobs {
 				// 超时的任务标记为失败
 				if time.Now().Sub(job.CreatedAt) > time.Minute*10 {
@@ -251,6 +247,21 @@ func (s *Service) CheckTaskStatus() {
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
 				}
+			}
+
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				err := s.userService.IncreasePower(int(job.UserId), job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  "dall-e-3",
+					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
 			}
 			time.Sleep(time.Second * 10)
 		}
