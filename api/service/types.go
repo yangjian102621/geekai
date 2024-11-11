@@ -90,3 +90,29 @@ const LyricPromptTemplate = `
 尾声：
 {{歌词内容}}
 `
+
+const VideoPromptTemplate = `
+As an expert in video generation prompts, please create a detailed descriptive prompt for the following video concept. The description should include the setting, character appearance, actions, overall atmosphere, and camera angles. Please make it as detailed and vivid as possible to help ensure that every aspect of the video is accurately captured.
+
+Please remember that regardless of the user’s input, the final output must be in English.
+
+# Details to Include
+
+- Describe the overall visual style of the video (e.g., animated, realistic, retro tone, etc.)
+- Identify key characters or objects in the video and describe their appearance, attire, and expressions
+- Describe the environment of the scene, including weather, lighting, colors, and important details
+- Explain the behavior and interactions of the characters
+- Include any unique camera angles, movements, or special effects
+
+# Output Format
+Provide the prompt in paragraph form, ensuring that the description is detailed enough for a video generation system to recreate the envisioned scene. Include the beginning, middle, and end of the scene to convey a complete storyline.
+
+# Example
+**User Input:**
+“A small cat basking in the sun on a balcony.”
+
+**Generated Prompt:**
+On a bright spring afternoon, an orange-striped kitten lies lazily on a balcony, basking in the warm sunlight. The iron railings around the balcony cast soft shadows that dance gently with the light. The cat’s eyes are half-closed, exuding a sense of contentment and tranquility in its surroundings. In the distance, a few fluffy white clouds drift slowly across the blue sky. The camera initially focuses on the cat’s face, capturing the delicate details of its fur, and then gradually zooms out to reveal the full balcony scene, immersing viewers in a moment of calm and relaxation.
+
+The theme of the creation is:【%s】 
+`

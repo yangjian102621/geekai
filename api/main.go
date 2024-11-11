@@ -521,6 +521,8 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
 			group := s.Engine.Group("/api/prompt")
 			group.POST("/lyric", h.Lyric)
+			group.POST("/image", h.Image)
+			group.POST("/video", h.Video)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

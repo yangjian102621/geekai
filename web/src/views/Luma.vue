@@ -39,6 +39,12 @@
 
         <div class="params">
           <div class="item-group">
+            <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+              <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
+              <span>生成AI视频提示词</span>
+            </el-button>
+          </div>
+          <div class="item-group">
             <span class="label">循环参考图</span>
             <el-switch  v-model="formData.loop" size="small" style="--el-switch-on-color:#BF78BF;" />
           </div>
@@ -294,6 +300,20 @@ const create = () => {
   })
 }
 
+const isGenerating = ref(false)
+const generatePrompt = () => {
+  if (formData.prompt === "") {
+    return showMessageError("请输入原始提示词")
+  }
+  isGenerating.value = true
+  httpPost("/api/prompt/image", {prompt: formData.prompt}).then(res => {
+    formData.prompt = res.data
+    isGenerating.value = false
+  }).catch(e => {
+    showMessageError("生成提示词失败："+e.message)
+    isGenerating.value = false
+  })
+}
 
 </script>
 

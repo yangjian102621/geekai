@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "15330210",
+      "name": "创意灵感",
+      "font_class": "linggan",
+      "unicode": "e641",
+      "unicode_decimal": 58945
+    },
+    {
+      "icon_id": "39170417",
+      "name": "创作",
+      "font_class": "chuangzuo",
+      "unicode": "e6cc",
+      "unicode_decimal": 59084
+    },
+    {
       "icon_id": "11231556",
       "name": "打电话",
       "font_class": "call",

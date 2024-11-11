@@ -46,6 +46,21 @@ func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *os
 }
 
 func (s *Service) Run() {
+	// 将数据库中未提交的人物加载到队列
+	var jobs []model.MidJourneyJob
+	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
+	for _, v := range jobs {
+		var task types.MjTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.clientIds[task.Id] = task.ClientId
+		s.PushTask(task)
+	}
+
 	logger.Info("Starting MidJourney job consumer for service")
 	go func() {
 		for {

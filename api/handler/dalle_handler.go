@@ -72,10 +72,21 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	task := types.DallTask{
+		ClientId:         data.ClientId,
+		UserId:           uint(userId),
+		Prompt:           data.Prompt,
+		Quality:          data.Quality,
+		Size:             data.Size,
+		Style:            data.Style,
+		Power:            h.App.SysConfig.DallPower,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+	}
 	job := model.DallJob{
-		UserId: uint(userId),
-		Prompt: data.Prompt,
-		Power:  h.App.SysConfig.DallPower,
+		UserId:   uint(userId),
+		Prompt:   data.Prompt,
+		Power:    task.Power,
+		TaskInfo: utils.JsonEncode(task),
 	}
 	res := h.DB.Create(&job)
 	if res.Error != nil {
@@ -83,17 +94,8 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.dallService.PushTask(types.DallTask{
-		ClientId:         data.ClientId,
-		JobId:            job.Id,
-		UserId:           uint(userId),
-		Prompt:           data.Prompt,
-		Quality:          data.Quality,
-		Size:             data.Size,
-		Style:            data.Style,
-		Power:            job.Power,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
-	})
+	task.Id = job.Id
+	h.dallService.PushTask(task)
 	resp.SUCCESS(c)
 }
 

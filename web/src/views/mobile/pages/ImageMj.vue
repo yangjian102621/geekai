@@ -434,7 +434,7 @@ const fetchFinishJobs = (page) => {
         jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
       }
 
-      if ((jobs[i].type === 'image' || jobs[i].type === 'variation') && jobs[i].progress === 100){
+      if (jobs[i].type !== 'upscale' && jobs[i].progress === 100){
         jobs[i]['can_opt'] = true
       }
     }

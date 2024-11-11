@@ -8,6 +8,7 @@ type VideoJob struct {
 	Channel   string // 频道
 	Type      string // luma,runway,cog
 	TaskId    string
+	TaskInfo  string // 原始任务信息
 	Prompt    string // 提示词
 	PromptExt string // 优化后提示词
 	CoverURL  string // 封面图 URL
@@ -18,7 +19,6 @@ type VideoJob struct {
 	ErrMsg    string // 错误信息
 	RawData   string // 原始数据 json
 	Power     int    // 消耗算力
-	Params    string // 任务参数
 	CreatedAt time.Time
 }
 

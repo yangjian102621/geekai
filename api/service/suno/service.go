@@ -58,22 +58,17 @@ func (s *Service) PushTask(task types.SunoTask) {
 func (s *Service) Run() {
 	// 将数据库中未提交的人物加载到队列
 	var jobs []model.SunoJob
-	s.db.Where("task_id", "").Find(&jobs)
+	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {
-		s.PushTask(types.SunoTask{
-			Id:           v.Id,
-			Channel:      v.Channel,
-			UserId:       v.UserId,
-			Type:         v.Type,
-			Title:        v.Title,
-			RefTaskId:    v.RefTaskId,
-			RefSongId:    v.RefSongId,
-			Prompt:       v.Prompt,
-			Tags:         v.Tags,
-			Model:        v.ModelName,
-			Instrumental: v.Instrumental,
-			ExtendSecs:   v.ExtendSecs,
-		})
+		var task types.SunoTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.PushTask(task)
+		s.clientIds[v.TaskId] = task.ClientId
 	}
 	logger.Info("Starting Suno job consumer...")
 	go func() {

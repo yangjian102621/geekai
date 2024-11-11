@@ -21,7 +21,6 @@
                   <div class="flex-col items-center"
                        :class="item.value === params.rate ? 'grid-content active' : 'grid-content'"
                        @click="changeRate(item)">
-                    <!--                    <div :class="'shape ' + item.css"></div>-->
                     <el-image class="icon" :src="item.img" fit="cover"></el-image>
                     <div class="text">{{ item.text }}</div>
                   </div>
@@ -183,11 +182,18 @@
                       </div>
                     </div>
 
-                    <div class="param-line pt">
+                    <div class="param-line pt" style="position: relative">
                       <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
                                 ref="promptRef"
-                                placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
+                                placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"/>
                     </div>
+
+                    <el-row class="text-info">
+                      <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+                        <i class="iconfont icon-chuangzuo"></i>
+                        <span>生成专业绘画指令</span>
+                      </el-button>
+                    </el-row>
 
                     <div class="param-line pt">
                       <div class="flex-row justify-between items-center">
@@ -267,6 +273,13 @@
                                 ref="promptRef"
                                 placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
                     </div>
+
+                    <el-row class="text-info">
+                      <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+                        <i class="iconfont icon-chuangzuo"></i>
+                        <span>生成专业绘画指令</span>
+                      </el-button>
+                    </el-row>
 
                     <div class="param-line pt">
                       <div class="flex-row justify-between items-center">
@@ -615,6 +628,7 @@ import {copyObj, removeArrayItem} from "@/utils/libs";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
+import {showMessageError} from "@/utils/dialog";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
@@ -644,10 +658,10 @@ const rates = [
   {css: "size9-16", value: "9:16", text: "9:16", img: "/images/mj/rate_9_16.png"},
 ]
 const models = [
-  {text: "写实模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v6.png"},
-  {text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.2.png"},
-  {text: "优质模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.1.jpg"},
-  {text: "虚幻模式MJ-5", value: " --v 5", img: "/images/mj/mj-v5.jpg"},
+  {text: "写实模式MJ-6.1", value: " --v 6.1", img: "/images/mj/mj-v6.png"},
+  {text: "优质模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v5.2.png"},
+  {text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.1.jpg"},
+  {text: "虚幻模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.jpg"},
   {text: "真实模式MJ-4", value: " --v 4", img: "/images/mj/mj-v4.jpg"},
   {text: "动漫风-niji4", value: " --niji 4", img: "/images/mj/nj4.jpg"},
   {text: "动漫风-niji5", value: " --niji 5", img: "/images/mj/mj-niji.png"},
@@ -820,7 +834,7 @@ const fetchFinishJobs = () => {
         jobs[i]['thumb_url'] = '/images/img-placeholder.jpg'
       }
 
-      if ((jobs[i].type === 'image' || jobs[i].type === 'variation') && jobs[i].progress === 100) {
+      if (jobs[i].type !== 'upscale' && jobs[i].progress === 100){
         jobs[i]['can_opt'] = true
       }
     }
@@ -997,6 +1011,21 @@ const tabChange = (tab) => {
 // 删除已上传图片
 const removeUploadImage = (url) => {
   imgList.value = removeArrayItem(imgList.value, url)
+}
+
+const isGenerating = ref(false)
+const generatePrompt = () => {
+  if (params.value.prompt === "") {
+    return showMessageError("请输入原始提示词")
+  }
+  isGenerating.value = true
+  httpPost("/api/prompt/image", {prompt: params.value.prompt}).then(res => {
+    params.value.prompt = res.data
+    isGenerating.value = false
+  }).catch(e => {
+    showMessageError("生成提示词失败："+e.message)
+    isGenerating.value = false
+  })
 }
 
 </script>
