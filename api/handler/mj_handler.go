@@ -152,10 +152,23 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		resp.ERROR(c, "error with generate task id: "+err.Error())
 		return
 	}
+	task := types.MjTask{
+		ClientId:         data.ClientId,
+		TaskId:           taskId,
+		Type:             types.TaskType(data.TaskType),
+		Prompt:           data.Prompt,
+		NegPrompt:        data.NegPrompt,
+		Params:           params,
+		UserId:           userId,
+		ImgArr:           data.ImgArr,
+		Mode:             h.App.SysConfig.MjMode,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+	}
 	job := model.MidJourneyJob{
 		Type:      data.TaskType,
 		UserId:    userId,
 		TaskId:    taskId,
+		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
 		Prompt:    fmt.Sprintf("%s %s", data.Prompt, params),
 		Power:     h.App.SysConfig.MjPower,
@@ -175,19 +188,8 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.mjService.PushTask(types.MjTask{
-		Id:               job.Id,
-		ClientId:         data.ClientId,
-		TaskId:           taskId,
-		Type:             types.TaskType(data.TaskType),
-		Prompt:           data.Prompt,
-		NegPrompt:        data.NegPrompt,
-		Params:           params,
-		UserId:           userId,
-		ImgArr:           data.ImgArr,
-		Mode:             h.App.SysConfig.MjMode,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
-	})
+	task.Id = job.Id
+	h.mjService.PushTask(task)
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
@@ -226,10 +228,21 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
+	task := types.MjTask{
+		ClientId:    data.ClientId,
+		Type:        types.TaskUpscale,
+		UserId:      userId,
+		ChannelId:   data.ChannelId,
+		Index:       data.Index,
+		MessageId:   data.MessageId,
+		MessageHash: data.MessageHash,
+		Mode:        h.App.SysConfig.MjMode,
+	}
 	job := model.MidJourneyJob{
 		Type:      types.TaskUpscale.String(),
 		UserId:    userId,
 		TaskId:    taskId,
+		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
 		Power:     h.App.SysConfig.MjActionPower,
 		CreatedAt: time.Now(),
@@ -239,17 +252,8 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	h.mjService.PushTask(types.MjTask{
-		Id:          job.Id,
-		ClientId:    data.ClientId,
-		Type:        types.TaskUpscale,
-		UserId:      userId,
-		ChannelId:   data.ChannelId,
-		Index:       data.Index,
-		MessageId:   data.MessageId,
-		MessageHash: data.MessageHash,
-		Mode:        h.App.SysConfig.MjMode,
-	})
+	task.Id = job.Id
+	h.mjService.PushTask(task)
 
 	// update user's power
 	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
@@ -280,11 +284,22 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
+	task := types.MjTask{
+		Type:        types.TaskVariation,
+		ClientId:    data.ClientId,
+		UserId:      userId,
+		Index:       data.Index,
+		ChannelId:   data.ChannelId,
+		MessageId:   data.MessageId,
+		MessageHash: data.MessageHash,
+		Mode:        h.App.SysConfig.MjMode,
+	}
 	job := model.MidJourneyJob{
 		Type:      types.TaskVariation.String(),
 		ChannelId: data.ChannelId,
 		UserId:    userId,
 		TaskId:    taskId,
+		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
 		Power:     h.App.SysConfig.MjActionPower,
 		CreatedAt: time.Now(),
@@ -294,17 +309,8 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		return
 	}
 
-	h.mjService.PushTask(types.MjTask{
-		Id:          job.Id,
-		Type:        types.TaskVariation,
-		ClientId:    data.ClientId,
-		UserId:      userId,
-		Index:       data.Index,
-		ChannelId:   data.ChannelId,
-		MessageId:   data.MessageId,
-		MessageHash: data.MessageHash,
-		Mode:        h.App.SysConfig.MjMode,
-	})
+	task.Id = job.Id
+	h.mjService.PushTask(task)
 
 	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,

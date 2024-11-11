@@ -60,20 +60,15 @@ func (s *Service) Run() {
 	var jobs []model.VideoJob
 	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {
-		var params types.VideoParams
-		if err := utils.JsonDecode(v.Params, &params); err != nil {
-			logger.Errorf("unmarshal params failed: %v", err)
+		var task types.VideoTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
 			continue
 		}
-		s.PushTask(types.VideoTask{
-			Id:      v.Id,
-			Channel: v.Channel,
-			UserId:  v.UserId,
-			Type:    v.Type,
-			TaskId:  v.TaskId,
-			Prompt:  v.Prompt,
-			Params:  params,
-		})
+		task.Id = v.Id
+		s.PushTask(task)
+		s.clientIds[v.Id] = task.ClientId
 	}
 	logger.Info("Starting Video job consumer...")
 	go func() {

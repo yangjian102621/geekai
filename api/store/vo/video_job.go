@@ -1,7 +1,5 @@
 package vo
 
-import "geekai/core/types"
-
 type VideoJob struct {
 	Id        uint                   `json:"id"`
 	UserId    int                    `json:"user_id"`
@@ -18,6 +16,5 @@ type VideoJob struct {
 	ErrMsg    string                 `json:"err_msg"`    // 错误信息
 	RawData   map[string]interface{} `json:"raw_data"`   // 原始数据 json
 	Power     int                    `json:"power"`      // 消耗算力
-	Params    types.VideoParams      `json:"params"`     // 任务参数
 	CreatedAt int64                  `json:"created_at"`
 }

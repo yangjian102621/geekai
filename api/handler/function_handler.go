@@ -212,7 +212,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	content, err := h.dallService.Image(types.DallTask{
-		JobId:   job.Id,
+		Id:      job.Id,
 		UserId:  user.Id,
 		Prompt:  job.Prompt,
 		N:       1,

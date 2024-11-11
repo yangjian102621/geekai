@@ -80,13 +80,21 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		StartImgURL:    data.FirstFrameImg,
 		EndImgURL:      data.EndFrameImg,
 	}
+	task := types.VideoTask{
+		ClientId:         data.ClientId,
+		UserId:           userId,
+		Type:             types.VideoLuma,
+		Prompt:           data.Prompt,
+		Params:           params,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+	}
 	// 插入数据库
 	job := model.VideoJob{
-		UserId: userId,
-		Type:   types.VideoLuma,
-		Prompt: data.Prompt,
-		Power:  h.App.SysConfig.LumaPower,
-		Params: utils.JsonEncode(params),
+		UserId:   userId,
+		Type:     types.VideoLuma,
+		Prompt:   data.Prompt,
+		Power:    h.App.SysConfig.LumaPower,
+		TaskInfo: utils.JsonEncode(task),
 	}
 	tx := h.DB.Create(&job)
 	if tx.Error != nil {
@@ -95,15 +103,8 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	}
 
 	// 创建任务
-	h.videoService.PushTask(types.VideoTask{
-		ClientId:         data.ClientId,
-		Id:               job.Id,
-		UserId:           userId,
-		Type:             types.VideoLuma,
-		Prompt:           data.Prompt,
-		Params:           params,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
-	})
+	task.Id = job.Id
+	h.videoService.PushTask(task)
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{

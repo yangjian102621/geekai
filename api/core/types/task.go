@@ -74,7 +74,7 @@ type SdTaskParams struct {
 // DallTask DALL-E task
 type DallTask struct {
 	ClientId string `json:"client_id"`
-	JobId    uint   `json:"job_id"`
+	Id       uint   `json:"id"`
 	UserId   uint   `json:"user_id"`
 	Prompt   string `json:"prompt"`
 	N        int    `json:"n"`

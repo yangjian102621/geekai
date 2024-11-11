@@ -89,13 +89,29 @@ func (h *SunoHandler) Create(c *gin.Context) {
 			data.Prompt = fmt.Sprintf("%s\n%s", song.Prompt, refSong.Prompt)
 		}
 	}
+	task := types.SunoTask{
+		ClientId:     data.ClientId,
+		UserId:       int(h.GetLoginUserId(c)),
+		Type:         data.Type,
+		Title:        data.Title,
+		RefTaskId:    data.RefTaskId,
+		RefSongId:    data.RefSongId,
+		ExtendSecs:   data.ExtendSecs,
+		Prompt:       data.Prompt,
+		Tags:         data.Tags,
+		Model:        data.Model,
+		Instrumental: data.Instrumental,
+		SongId:       data.SongId,
+		AudioURL:     data.AudioURL,
+	}
 
 	// 插入数据库
 	job := model.SunoJob{
-		UserId:       int(h.GetLoginUserId(c)),
+		UserId:       task.UserId,
 		Prompt:       data.Prompt,
 		Instrumental: data.Instrumental,
 		ModelName:    data.Model,
+		TaskInfo:     utils.JsonEncode(task),
 		Tags:         data.Tags,
 		Title:        data.Title,
 		Type:         data.Type,
@@ -115,26 +131,13 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	}
 
 	// 创建任务
-	h.sunoService.PushTask(types.SunoTask{
-		ClientId:     data.ClientId,
-		Id:           job.Id,
-		UserId:       job.UserId,
-		Type:         job.Type,
-		Title:        job.Title,
-		RefTaskId:    data.RefTaskId,
-		RefSongId:    data.RefSongId,
-		ExtendSecs:   data.ExtendSecs,
-		Prompt:       job.Prompt,
-		Tags:         data.Tags,
-		Model:        data.Model,
-		Instrumental: data.Instrumental,
-		SongId:       data.SongId,
-		AudioURL:     data.AudioURL,
-	})
+	task.Id = job.Id
+	h.sunoService.PushTask(task)
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:      types.PowerConsume,
+		Model:     job.ModelName,
 		Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.ModelName),
 		CreatedAt: time.Now(),
 	})

@@ -18,6 +18,7 @@ import (
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"strings"
 )
 
 // 提示词生成 handler
@@ -56,4 +57,40 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, content)
+}
+
+// Image 生成 AI 绘画提示词
+func (h *PromptHandler) Image(c *gin.Context) {
+	var data struct {
+		Prompt string `json:"prompt"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.TranslateModelId)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, strings.Trim(content, `"`))
+}
+
+// Video 生成视频提示词
+func (h *PromptHandler) Video(c *gin.Context) {
+	var data struct {
+		Prompt string `json:"prompt"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.TranslateModelId)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, strings.Trim(content, `"`))
 }

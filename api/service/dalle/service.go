@@ -59,6 +59,20 @@ func (s *Service) PushTask(task types.DallTask) {
 }
 
 func (s *Service) Run() {
+	// 将数据库中未提交的人物加载到队列
+	var jobs []model.DallJob
+	s.db.Where("progress", 0).Find(&jobs)
+	for _, v := range jobs {
+		var task types.DallTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.PushTask(task)
+	}
+
 	logger.Info("Starting DALL-E job consumer...")
 	go func() {
 		for {
@@ -69,15 +83,15 @@ func (s *Service) Run() {
 				continue
 			}
 			logger.Infof("handle a new DALL-E task: %+v", task)
-			s.clientIds[task.JobId] = task.ClientId
+			s.clientIds[task.Id] = task.ClientId
 			_, err = s.Image(task, false)
 			if err != nil {
 				logger.Errorf("error with image task: %v", err)
-				s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
+				s.db.Model(&model.DallJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 					"progress": service.FailTaskProgress,
 					"err_msg":  err.Error(),
 				})
-				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.Id), Message: service.TaskStatusFailed})
 			}
 		}
 	}()
@@ -177,7 +191,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	// update the api key last use time
 	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// update task progress
-	err = s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
+	err = s.db.Model(&model.DallJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 		"progress": 100,
 		"org_url":  res.Data[0].Url,
 		"prompt":   prompt,
@@ -186,10 +200,10 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		return "", fmt.Errorf("err with update database: %v", err)
 	}
 
-	s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
+	s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.Id), Message: service.TaskStatusFailed})
 	var content string
 	if sync {
-		imgURL, err := s.downloadImage(task.JobId, int(task.UserId), res.Data[0].Url)
+		imgURL, err := s.downloadImage(task.Id, int(task.UserId), res.Data[0].Url)
 		if err != nil {
 			return "", fmt.Errorf("error with download image: %v", err)
 		}
