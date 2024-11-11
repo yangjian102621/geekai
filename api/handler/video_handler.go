@@ -183,25 +183,11 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 	}
 
 	// 删除任务
-	tx := h.DB.Begin()
-	if err := tx.Delete(&job).Error; err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	// 恢复算力
-	err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-		Type:   types.PowerRefund,
-		Model:  "luma",
-		Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-	})
+	err = h.DB.Delete(&job).Error
 	if err != nil {
-		tx.Rollback()
 		resp.ERROR(c, err.Error())
 		return
 	}
-	tx.Commit()
 
 	// 删除文件
 	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)

@@ -34,9 +34,10 @@ type Service struct {
 	db            *gorm.DB
 	uploadManager *oss.UploaderManager
 	wsService     *service.WebsocketService
+	userService   *service.UserService
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelDB, redisCli *redis.Client, wsService *service.WebsocketService) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelDB, redisCli *redis.Client, wsService *service.WebsocketService, userService *service.UserService) *Service {
 	return &Service{
 		httpClient:    req.C(),
 		taskQueue:     store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli),
@@ -44,6 +45,7 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelD
 		db:            db,
 		wsService:     wsService,
 		uploadManager: manager,
+		userService:   userService,
 	}
 }
 
@@ -300,6 +302,21 @@ func (s *Service) CheckTaskStatus() {
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
 				}
+			}
+
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  "stable-diffusion",
+					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d， Err: %s", job.Id, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
 			}
 			time.Sleep(time.Second * 5)
 		}
