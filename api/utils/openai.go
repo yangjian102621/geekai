@@ -57,8 +57,8 @@ func OpenAIRequest(db *gorm.DB, prompt string, modelId int) (string, error) {
 func SendOpenAIMessage(db *gorm.DB, messages []interface{}, modelId int) (string, error) {
 	var chatModel model.ChatModel
 	db.Where("id", modelId).First(&chatModel)
-	if chatModel.Name == "" {
-		chatModel.Name = "gpt-4o-mini" // 默认使用 gpt-4o-mini
+	if chatModel.Value == "" {
+		chatModel.Value = "gpt-4o" // 默认使用 gpt-4o
 	}
 	var apiKey model.ApiKey
 	session := db.Session(&gorm.Session{}).Where("type", "chat").Where("enabled", true)
@@ -80,7 +80,7 @@ func SendOpenAIMessage(db *gorm.DB, messages []interface{}, modelId int) (string
 	r, err := client.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
-			Model:       chatModel.Name,
+			Model:       chatModel.Value,
 			Temperature: 0.9,
 			MaxTokens:   1024,
 			Stream:      false,

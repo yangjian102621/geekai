@@ -60,6 +60,8 @@
                     type="textarea"
                     ref="promptRef"
                     placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
+                    v-loading="isGenerating"
+                    style="--el-mask-color:rgba(100, 100, 100, 0.8)"
                 />
               </div>
 

@@ -94,3 +94,30 @@ func (h *PromptHandler) Video(c *gin.Context) {
 
 	resp.SUCCESS(c, strings.Trim(content, `"`))
 }
+
+// MetaPrompt 生成元提示词
+func (h *PromptHandler) MetaPrompt(c *gin.Context) {
+	var data struct {
+		Prompt string `json:"prompt"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	messages := make([]interface{}, 0)
+	messages = append(messages, types.Message{
+		Role:    "system",
+		Content: service.MetaPromptTemplate,
+	})
+	messages = append(messages, types.Message{
+		Role:    "user",
+		Content: "Task, Goal, or the Role to actor is:\n" + data.Prompt,
+	})
+	content, err := utils.SendOpenAIMessage(h.DB, messages, 0)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, strings.Trim(content, `"`))
+}
