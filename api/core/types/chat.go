@@ -16,7 +16,8 @@ type ApiRequest struct {
 	Stream              bool          `json:"stream,omitempty"`
 	Messages            []interface{} `json:"messages,omitempty"`
 	Tools               []Tool        `json:"tools,omitempty"`
-	Functions           []interface{} `json:"functions,omitempty"` // 兼容中转平台
+	Functions           []interface{} `json:"functions,omitempty"`       // 兼容中转平台
+	ResponseFormat      interface{}   `json:"response_format,omitempty"` // 响应格式
 
 	ToolChoice string `json:"tool_choice,omitempty"`
 

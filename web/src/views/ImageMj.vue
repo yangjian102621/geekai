@@ -185,6 +185,8 @@
                     <div class="param-line pt" style="position: relative">
                       <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
                                 ref="promptRef"
+                                v-loading="isGenerating"
+                                style="--el-mask-color:rgba(100, 100, 100, 0.8)"
                                 placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"/>
                     </div>
 
@@ -271,6 +273,8 @@
                     <div class="param-line pt">
                       <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
                                 ref="promptRef"
+                                v-loading="isGenerating"
+                                style="--el-mask-color:rgba(100, 100, 100, 0.8)"
                                 placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
                     </div>
 

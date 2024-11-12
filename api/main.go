@@ -523,6 +523,7 @@ func main() {
 			group.POST("/lyric", h.Lyric)
 			group.POST("/image", h.Image)
 			group.POST("/video", h.Video)
+			group.POST("/meta", h.MetaPrompt)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
