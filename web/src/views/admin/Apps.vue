@@ -169,9 +169,9 @@
                         </el-button>
                       </el-tooltip>
 
-                      <el-popover placement="right" :width="400" trigger="click" :visible="popoverVisible">
+                      <el-popover placement="right" :width="400" trigger="click">
                         <template #reference>
-                          <el-button type="primary" circle size="small" class="icon-btn" @click="popoverVisible = true">
+                          <el-button type="primary" circle size="small" class="icon-btn">
                             <i class="iconfont icon-linggan"></i>
                           </el-button>
                         </template>
@@ -392,13 +392,11 @@ const uploadImg = (file) => {
 }
 
 const isGenerating = ref(false)
-const popoverVisible = ref(false)
 const metaPrompt = ref("")
 const generatePrompt = (row) => {
   if (metaPrompt.value === "") {
     return showMessageError("请输入元提示词")
   }
-  popoverVisible.value = false
   isGenerating.value = true
   httpPost("/api/prompt/meta", {prompt: metaPrompt.value}).then(res => {
     row.content = res.data

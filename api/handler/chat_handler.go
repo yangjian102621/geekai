@@ -40,7 +40,7 @@ type ChatHandler struct {
 	uploadManager  *oss.UploaderManager
 	licenseService *service.LicenseService
 	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
-	ChatContexts   *types.LMap[string, []types.Message]    // 聊天上下文 Map [chatId] => []Message
+	ChatContexts   *types.LMap[string, []interface{}]      // 聊天上下文 Map [chatId] => []Message
 	userService    *service.UserService
 }
 
@@ -51,7 +51,7 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		uploadManager:  manager,
 		licenseService: licenseService,
 		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
-		ChatContexts:   types.NewLMap[string, []types.Message](),
+		ChatContexts:   types.NewLMap[string, []interface{}](),
 		userService:    userService,
 	}
 }
@@ -143,8 +143,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	// 加载聊天上下文
-	chatCtx := make([]types.Message, 0)
-	messages := make([]types.Message, 0)
+	chatCtx := make([]interface{}, 0)
+	messages := make([]interface{}, 0)
 	if h.App.SysConfig.EnableContext {
 		if h.ChatContexts.Has(session.ChatId) {
 			messages = h.ChatContexts.Get(session.ChatId)
@@ -174,7 +174,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 		for i := len(messages) - 1; i >= 0; i-- {
 			v := messages[i]
-			tks, _ = utils.CalcTokens(v.Content, req.Model)
+			tks, _ = utils.CalcTokens(utils.JsonEncode(v), req.Model)
 			// 上下文 token 超出了模型的最大上下文长度
 			if tokens+tks >= session.Model.MaxContext {
 				break
@@ -192,8 +192,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 		logger.Debugf("聊天上下文：%+v", chatCtx)
 	}
 	reqMgs := make([]interface{}, 0)
-	for _, m := range chatCtx {
-		reqMgs = append(reqMgs, m)
+
+	for i := len(chatCtx) - 1; i >= 0; i-- {
+		reqMgs = append(reqMgs, chatCtx[i])
 	}
 
 	fullPrompt := prompt
@@ -258,7 +259,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 	logger.Debugf("%+v", req.Messages)
 
-	return h.sendOpenAiMessage(chatCtx, req, userVo, ctx, session, role, prompt, ws)
+	return h.sendOpenAiMessage(req, userVo, ctx, session, role, prompt, ws)
 }
 
 // Tokens 统计 token 数量
@@ -399,17 +400,15 @@ func (h *ChatHandler) saveChatHistory(
 	req types.ApiRequest,
 	usage Usage,
 	message types.Message,
-	chatCtx []types.Message,
 	session *types.ChatSession,
 	role model.ChatRole,
 	userVo vo.User,
 	promptCreatedAt time.Time,
 	replyCreatedAt time.Time) {
 
-	useMsg := types.Message{Role: "user", Content: usage.Prompt}
-	// 更新上下文消息，如果是调用函数则不需要更新上下文
+	// 更新上下文消息
 	if h.App.SysConfig.EnableContext {
-		chatCtx = append(chatCtx, useMsg)  // 提问消息
+		chatCtx := req.Messages            // 提问消息
 		chatCtx = append(chatCtx, message) // 回复消息
 		h.ChatContexts.Put(session.ChatId, chatCtx)
 	}
