@@ -18,7 +18,7 @@ TikaHost = "http://tika:9998"
   DB = 0
 
 [ApiConfig] # 微博热搜，今日头条等函数服务 API 配置，此为第三方插件服务，如需使用请联系作者开通
-  ApiURL = ""
+  ApiURL = "https://sapi.geekai.me"
   AppId = ""
   Token = ""
 

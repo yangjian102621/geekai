@@ -55,12 +55,6 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		return
 	}
 
-	//// add captcha
-	//if !base64Captcha.DefaultMemStore.Verify(data.CaptchaId, data.Captcha, true) {
-	//	resp.ERROR(c, "验证码错误!")
-	//	return
-	//}
-
 	var manager model.AdminUser
 	res := h.DB.Model(&model.AdminUser{}).Where("username = ?", data.Username).First(&manager)
 	if res.Error != nil {

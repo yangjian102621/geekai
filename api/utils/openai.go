@@ -8,12 +8,14 @@ package utils
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"encoding/json"
 	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
 	"github.com/imroc/req/v3"
 	"github.com/pkoukk/tiktoken-go"
 	"gorm.io/gorm"
+	"io"
 	"time"
 )
 
@@ -43,18 +45,9 @@ type apiRes struct {
 	} `json:"choices"`
 }
 
-type apiErrRes struct {
-	Error struct {
-		Code    interface{} `json:"code"`
-		Message string      `json:"message"`
-		Param   interface{} `json:"param"`
-		Type    string      `json:"type"`
-	} `json:"error"`
-}
-
-func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
+func OpenAIRequest(db *gorm.DB, prompt string, modelName string) (string, error) {
 	var apiKey model.ApiKey
-	res := db.Where("platform", types.OpenAI.Value).Where("type", "chat").Where("enabled", true).First(&apiKey)
+	res := db.Where("type", "chat").Where("enabled", true).First(&apiKey)
 	if res.Error != nil {
 		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
 	}
@@ -66,24 +59,27 @@ func OpenAIRequest(db *gorm.DB, prompt string) (string, error) {
 	}
 
 	var response apiRes
-	var errRes apiErrRes
 	client := req.C()
 	if len(apiKey.ProxyURL) > 5 {
 		client.SetProxyURL(apiKey.ApiURL)
 	}
+	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	r, err := client.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
-			Model:       "gpt-3.5-turbo",
+			Model:       modelName,
 			Temperature: 0.9,
 			MaxTokens:   1024,
 			Stream:      false,
 			Messages:    messages,
-		}).
-		SetErrorResult(&errRes).
-		SetSuccessResult(&response).Post(apiKey.ApiURL)
-	if err != nil || r.IsErrorState() {
-		return "", fmt.Errorf("error with http request: %v%v%s", err, r.Err, errRes.Error.Message)
+		}).Post(apiURL)
+	if err != nil {
+		return "", fmt.Errorf("请求 OpenAI API失败：%v", err)
+	}
+	body, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
 	}
 
 	// 更新 API KEY 的最后使用时间

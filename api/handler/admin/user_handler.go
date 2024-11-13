@@ -112,7 +112,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 		res = h.DB.Select("username", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
 		if res.Error != nil {
 			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+			resp.ERROR(c, res.Error.Error())
 			return
 		}
 		// 记录算力日志
@@ -136,6 +136,13 @@ func (h *UserHandler) Save(c *gin.Context) {
 			})
 		}
 	} else {
+		// 检查用户是否已经存在
+		h.DB.Where("username", data.Username).First(&user)
+		if user.Id > 0 {
+			resp.ERROR(c, "用户名已存在")
+			return
+		}
+
 		salt := utils.RandString(8)
 		u := model.User{
 			Username:    data.Username,

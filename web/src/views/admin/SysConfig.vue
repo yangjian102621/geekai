@@ -50,7 +50,43 @@
                       </template>
                     </el-input>
                     <el-button type="primary" @click="system.index_bg_url = 'https://api.dujin.org/bing/1920.php'">使用动态背景</el-button>
+                    <el-button @click="system.index_bg_url = 'color'">使用纯色背景</el-button>
                   </div>
+                </el-form-item>
+
+                <el-form-item label="首页导航菜单" prop="index_navs">
+                  <div class="tip-input">
+                    <el-select
+                        v-model="system['index_navs']"
+                        multiple
+                        :filterable="true"
+                        placeholder="请选择菜单，多选"
+                        style="width: 100%"
+                    >
+                      <el-option
+                          v-for="item in menus"
+                          :key="item.id"
+                          :label="item.name"
+                          :value="item.id"
+                      />
+                    </el-select>
+                    <div class="info">
+                      <el-tooltip
+                          class="box-item"
+                          effect="dark"
+                          content="被选中的菜单将会在首页导航栏显示"
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </div>
+                </el-form-item>
+
+                <el-form-item label="版权信息" prop="copyright">
+                  <el-input v-model="system['copyright']" placeholder="更改此选项需要获取 License 授权"/>
                 </el-form-item>
 
                 <el-form-item label="开放注册" prop="enabled_register">
@@ -217,6 +253,9 @@
                 </el-form-item>
                 <el-form-item label="DALL-E-3算力" prop="dall_power">
                   <el-input v-model.number="system['dall_power']" placeholder="使用DALL-E-3画一张图消耗算力"/>
+                </el-form-item>
+                <el-form-item label="Suno 算力" prop="suno_power">
+                  <el-input v-model.number="system['suno_power']" placeholder="使用 Suno 生成一首音乐消耗算力"/>
                 </el-form-item>
               </el-tab-pane>
               <el-tab-pane label="众筹支付">
@@ -391,22 +430,25 @@ import {InfoFilled, UploadFilled,Select,CloseBold} from "@element-plus/icons-vue
 import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
-import {dateFormat} from "@/utils/libs";
+import {copyObj, dateFormat} from "@/utils/libs";
 import AIDrawing from "@/views/admin/AIDrawing.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
+const configBak = ref({})
 const loading = ref(true)
 const systemFormRef = ref(null)
 const models = ref([])
 const openAIModels = ref([])
 const notice = ref("")
 const license = ref({is_active: false})
+const menus = ref([])
 
 onMounted(() => {
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system').then(res => {
     system.value = res.data
+    configBak.value = copyObj(system.value)
   }).catch(e => {
     ElMessage.error("加载系统配置失败: " + e.message)
   })
@@ -421,6 +463,12 @@ onMounted(() => {
     models.value = res.data
     openAIModels.value = models.value.filter(v => v.platform === "OpenAI")
     loading.value = false
+  }).catch(e => {
+    ElMessage.error("获取模型失败：" + e.message)
+  })
+
+  httpGet('/api/admin/menu/list').then(res => {
+    menus.value = res.data
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
   })
@@ -447,7 +495,7 @@ const save = function (key) {
     systemFormRef.value.validate((valid) => {
       if (valid) {
         system.value['power_price'] = parseFloat(system.value['power_price']) ?? 0
-        httpPost('/api/admin/config/update', {key: key, config: system.value}).then(() => {
+        httpPost('/api/admin/config/update', {key: key, config: system.value, config_bak: configBak.value}).then(() => {
           ElMessage.success("操作成功！")
         }).catch(e => {
           ElMessage.error("操作失败：" + e.message)

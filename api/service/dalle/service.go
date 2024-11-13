@@ -110,12 +110,11 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	prompt := task.Prompt
 	// translate prompt
 	if utils.HasChinese(prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt))
+		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt), "gpt-4o-mini")
 		if err == nil {
 			prompt = content
 			logger.Debugf("重写后提示词：%s", prompt)
 		}
-
 	}
 
 	var user model.User
@@ -145,7 +144,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 
 	// get image generation API KEY
 	var apiKey model.ApiKey
-	tx = s.db.Where("type", "img").
+	tx = s.db.Where("type", "dalle").
 		Where("enabled", true).
 		Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
@@ -157,6 +156,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	if len(apiKey.ProxyURL) > 5 {
 		s.httpClient.SetProxyURL(apiKey.ProxyURL).R()
 	}
+	apiURL := fmt.Sprintf("%s/v1/images/generations", apiKey.ApiURL)
 	reqBody := imgReq{
 		Model:   "dall-e-3",
 		Prompt:  prompt,
@@ -165,14 +165,13 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		Style:   task.Style,
 		Quality: task.Quality,
 	}
-	logger.Infof("Sending %s request, ApiURL:%s, API KEY:%s, BODY: %+v", apiKey.Platform, apiKey.ApiURL, apiKey.Value, reqBody)
-	request := s.httpClient.R().SetHeader("Content-Type", "application/json")
-	if apiKey.Platform == types.Azure.Value {
-		request = request.SetHeader("api-key", apiKey.Value)
-	} else {
-		request = request.SetHeader("Authorization", "Bearer "+apiKey.Value)
-	}
-	r, err := request.SetBody(reqBody).SetErrorResult(&errRes).SetSuccessResult(&res).Post(apiKey.ApiURL)
+	logger.Infof("Channel:%s, API KEY:%s, BODY: %+v", apiURL, apiKey.Value, reqBody)
+	r, err := s.httpClient.R().SetHeader("Content-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
+		SetBody(reqBody).
+		SetErrorResult(&errRes).
+		SetSuccessResult(&res).
+		Post(apiURL)
 	if err != nil {
 		return "", fmt.Errorf("error with send request: %v", err)
 	}
@@ -259,7 +258,7 @@ func (s *Service) DownloadImages() {
 
 func (s *Service) downloadImage(jobId uint, userId int, orgURL string) (string, error) {
 	// sava image
-	imgURL, err := s.uploadManager.GetUploadHandler().PutImg(orgURL, false)
+	imgURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(orgURL, false)
 	if err != nil {
 		return "", err
 	}

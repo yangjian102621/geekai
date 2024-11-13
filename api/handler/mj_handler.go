@@ -406,7 +406,7 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.MidJourneyJob) {
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
-		session = session.Where("progress = ?", 100).Order("id DESC")
+		session = session.Where("progress >= ?", 100).Order("id DESC")
 	} else {
 		session = session.Where("progress < ?", 100).Order("id ASC")
 	}
@@ -456,15 +456,44 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, "记录不存在")
 		return
 	}
+
 	// remove job recode
-	res := h.DB.Delete(&job)
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
+	tx := h.DB.Begin()
+	if err := tx.Delete(&job).Error; err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
 		return
 	}
 
+	// refund power
+	err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
+	if err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
+		return
+	}
+	var user model.User
+	h.DB.Where("id = ?", job.UserId).First(&user)
+	err = tx.Create(&model.PowerLog{
+		UserId:    user.Id,
+		Username:  user.Username,
+		Type:      types.PowerConsume,
+		Amount:    job.Power,
+		Balance:   user.Power + job.Power,
+		Mark:      types.PowerAdd,
+		Model:     "mid-journey",
+		Remark:    fmt.Sprintf("绘画任务失败，退回算力。任务ID：%s", job.TaskId),
+		CreatedAt: time.Now(),
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
+		return
+	}
+	tx.Commit()
+
 	// remove image
-	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
+	err = h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
 	}

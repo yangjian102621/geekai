@@ -70,7 +70,7 @@
         </div>
         <div class="bar" v-if="data.created_at > 0">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
-          <span class="bar-item">tokens: {{ finalTokens }}</span>
+<!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
         </div>
       </div>
     </div>
@@ -132,27 +132,38 @@ const content =ref(processPrompt(props.data.content))
 const files = ref([])
 
 onMounted(() => {
-  if (!finalTokens.value) {
-    httpPost("/api/chat/tokens", {text: props.data.content, model: props.data.model}).then(res => {
-      finalTokens.value = res.data;
-    }).catch(() => {
-    })
-  }
+  // if (!finalTokens.value) {
+  //   httpPost("/api/chat/tokens", {text: props.data.content, model: props.data.model}).then(res => {
+  //     finalTokens.value = res.data;
+  //   }).catch(() => {
+  //   })
+  // }
 
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
   if (links) {
     httpPost("/api/upload/list", {urls: links}).then(res => {
       files.value = res.data
+
+      for (let link of links) {
+        if (isExternalImg(link, files.value)) {
+          files.value.push({url:link, ext: ".png"})
+        }
+      }
     }).catch(() => {
     })
 
     for (let link of links) {
       content.value = content.value.replace(link,"")
     }
+
   }
   content.value = md.render(content.value.trim())
 })
+
+const isExternalImg = (link, files) => {
+  return isImage(link) && !files.find(file => file.url === link)
+}
 </script>
 
 <style lang="stylus">
@@ -297,9 +308,10 @@ onMounted(() => {
       display flex;
       width 100%;
       padding 0 25px;
+      flex-flow row-reverse
 
       .chat-icon {
-        margin-right 20px;
+        margin-left 20px;
 
         img {
           width: 36px;
@@ -366,6 +378,7 @@ onMounted(() => {
 
         .content-wrapper {
           display flex
+          flex-flow row-reverse
           .content {
               word-break break-word;
               padding: 1rem
@@ -373,7 +386,7 @@ onMounted(() => {
               font-size: var(--content-font-size);
               overflow: auto;
               background-color #98e165
-              border-radius: 0 10px 10px 10px;
+              border-radius: 10px 0 10px 10px;
 
               img {
                 max-width: 600px;

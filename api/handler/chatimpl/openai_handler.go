@@ -65,7 +65,6 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if !strings.Contains(line, "data:") || len(line) < 30 {
 				continue
 			}
-
 			var responseBody = types.ApiResponse{}
 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
 			if err != nil { // 数据解析出错
@@ -74,7 +73,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
 				continue
 			}
-			if responseBody.Choices[0].Delta.Content == nil {
+			if responseBody.Choices[0].Delta.Content == nil && responseBody.Choices[0].Delta.ToolCalls == nil {
 				continue
 			}
 

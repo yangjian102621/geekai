@@ -67,14 +67,13 @@
       <div class="chat-icon">
         <img :src="data.icon" alt="ChatGPT">
       </div>
-
       <div class="chat-item">
         <div class="content-wrapper">
           <div class="content" v-html="data.content"></div>
         </div>
         <div class="bar" v-if="data.created_at">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
-          <span class="bar-item">tokens: {{ data.tokens }}</span>
+<!--          <span class="bar-item">tokens: {{ data.tokens }}</span>-->
           <span class="bar-item bg">
               <el-tooltip
                   class="box-item"
@@ -340,18 +339,15 @@ const reGenerate = (prompt) => {
 
   .chat-line-reply-chat {
     justify-content: center;
-    width 100%
-    padding-bottom: 1.5rem;
-    padding-top: 1.5rem;
+    padding 1.5rem;
 
     .chat-line-inner {
       display flex;
-      padding 0 25px;
       width 100%
-      flex-flow row-reverse
+      flex-flow row
 
       .chat-icon {
-        margin-left 20px;
+        margin-right 20px;
 
         img {
           width: 36px;
@@ -365,11 +361,10 @@ const reGenerate = (prompt) => {
         position: relative;
         padding: 0;
         overflow: hidden;
-        max-width 60%
+        max-width 70%
 
         .content-wrapper {
           display flex
-          flex-flow row-reverse
           .content {
             min-height 20px;
             word-break break-word;
@@ -378,7 +373,7 @@ const reGenerate = (prompt) => {
             font-size: var(--content-font-size);
             overflow auto;
             background-color #F5F5F5
-            border-radius: 10px 0 10px 10px;
+            border-radius: 0 10px 10px 10px;
 
             img {
               max-width: 600px;

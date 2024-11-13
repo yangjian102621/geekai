@@ -84,25 +84,25 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}, nil
 }
 
-func (s AliYunOss) PutImg(imageURL string, useProxy bool) (string, error) {
-	var imageData []byte
+func (s AliYunOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+	var fileData []byte
 	var err error
 	if useProxy {
-		imageData, err = utils.DownloadImage(imageURL, s.proxyURL)
+		fileData, err = utils.DownloadImage(fileURL, s.proxyURL)
 	} else {
-		imageData, err = utils.DownloadImage(imageURL, "")
+		fileData, err = utils.DownloadImage(fileURL, "")
 	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}
-	parse, err := url.Parse(imageURL)
+	parse, err := url.Parse(fileURL)
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
 	fileExt := utils.GetImgExt(parse.Path)
 	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	// 上传文件字节数据
-	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
+	err = s.bucket.PutObject(objectKey, bytes.NewReader(fileData))
 	if err != nil {
 		return "", err
 	}

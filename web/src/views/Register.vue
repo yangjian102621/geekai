@@ -183,8 +183,8 @@ import {validateEmail, validateMobile} from "@/utils/validate";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 
 const router = useRouter();
-const title = ref('Geek-AI 用户注册');
-const logo = ref("/images/logo")
+const title = ref('');
+const logo = ref("")
 const data = ref({
   username: '',
   password: '',
@@ -196,7 +196,7 @@ const data = ref({
 const enableMobile = ref(false)
 const enableEmail = ref(false)
 const enableUser = ref(false)
-const enableRegister = ref(false)
+const enableRegister = ref(true)
 const activeName = ref("mobile")
 const wxImg = ref("/images/wx.png")
 const licenseConfig = ref({})

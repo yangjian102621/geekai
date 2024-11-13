@@ -15,18 +15,13 @@
                   <div class="info-text">{{ scope.item.hello_msg }}</div>
                 </div>
                 <div class="btn">
-                  <div v-if="hasRole(scope.item.key)">
-                    <el-button size="small" color="#21aa93" @click="useRole(scope.item)">使用</el-button>
+                  <el-button size="small" color="#21aa93" @click="useRole(scope.item)">使用</el-button>
+                  <el-tooltip effect="light" content="从工作区移除" placement="top" v-if="hasRole(scope.item.key)">
                     <el-button size="small" type="danger" @click="updateRole(scope.item,'remove')">移除</el-button>
-                  </div>
-                  <el-button v-else size="small"
-                             style="--el-color-primary:#009999"
-                             @click="updateRole(scope.item, 'add')">
-                    <el-icon>
-                      <Plus/>
-                    </el-icon>
-                    <span>添加应用</span>
-                  </el-button>
+                  </el-tooltip>
+                  <el-tooltip effect="light" content="添加到工作区" placement="top" v-else>
+                    <el-button size="small" style="--el-color-primary:#009999" @click="updateRole(scope.item, 'add')">添加</el-button>
+                  </el-tooltip>
                 </div>
               </div>
 
@@ -77,7 +72,7 @@ const roles = ref([])
 const store = useSharedStore();
 
 onMounted(() => {
-  httpGet("/api/role/list?all=true").then((res) => {
+  httpGet("/api/role/list").then((res) => {
     const items = res.data
     // 处理 hello message
     for (let i = 0; i < items.length; i++) {
