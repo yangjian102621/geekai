@@ -1,0 +1,116 @@
+.index-page {
+  margin: 0
+  overflow hidden
+  color #ffffff
+  display flex
+  justify-content center
+  align-items baseline
+  padding-top 150px
+
+  .color-bg {
+    position absolute
+    top 0
+    left 0
+    width 100vw
+    height 100vh
+  }
+
+  .image-bg {
+    filter: blur(8px);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .shadow {
+    box-shadow rgba(0, 0, 0, 0.3) 0px 0px 3px
+
+    &:hover {
+      box-shadow rgba(0, 0, 0, 0.3) 0px 0px 8px
+    }
+  }
+
+  .menu-box {
+    position absolute
+    top 0
+    width 100%
+    display flex
+
+    .el-menu {
+      padding 0 30px
+      width 100%
+      display flex
+      justify-content space-between
+      background none
+      border none
+
+      .menu-item {
+        display flex
+        padding 20px 0
+
+        color #ffffff
+
+        .title {
+          font-size 24px
+          padding 10px 10px 0 10px
+        }
+
+        .el-image {
+          height 50px
+        }
+
+        .el-button {
+          margin-left 10px
+
+          span {
+            margin-left 5px
+          }
+        }
+      }
+    }
+  }
+
+  .content {
+    text-align: center;
+    position relative
+
+    h1 {
+      font-size: 5rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .navs {
+      display flex
+      max-width 900px
+      padding 20px
+
+      .nav-item {
+        width 200px
+        .el-button {
+          width 100%
+          padding: 25px 20px;
+          font-size: 1.3rem;
+          transition: all 0.3s ease;
+
+          .iconfont {
+            font-size 24px
+            margin-right 10px
+            position relative
+            top -2px
+          }
+        }
+      }
+    }
+  }
+
+  .footer {
+    .el-link__inner {
+      color #ffffff
+    }
+  }
+
+}

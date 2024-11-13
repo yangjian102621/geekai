@@ -118,6 +118,8 @@
                       v-if="item.type==='prompt'" :data="item" :list-style="listStyle"/>
                   <chat-reply v-else-if="item.type==='reply'" :data="item" @regen="reGenerate" :read-only="false" :list-style="listStyle"/>
                 </div>
+
+                <back-top :right="30" :bottom="100" bg-color="#19C27D"/>
               </div><!-- end chat box -->
 
               <div class="input-box">
@@ -219,6 +221,9 @@ import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
+import axios from "axios";
+import BackTop from "@/components/BackTop.vue";
+import {showMessageError} from "@/utils/dialog";
 
 const title = ref('ChatGPT-智能助手');
 const models = ref([])
@@ -316,18 +321,17 @@ const initData = () => {
         chatList.value = res.data;
         allChats.value = res.data;
       }
-
+      if (router.currentRoute.value.query.role_id) {
+        roleId.value = parseInt(router.currentRoute.value.query.role_id)
+      }
       // 加载模型
       httpGet('/api/model/list').then(res => {
         models.value = res.data
         modelID.value = models.value[0].id
-
         // 加载角色列表
-        httpGet(`/api/role/list`).then((res) => {
+        httpGet(`/api/role/list`,{id:roleId.value}).then((res) => {
           roles.value = res.data;
-          if (router.currentRoute.value.query.role_id) {
-            roleId.value = parseInt(router.currentRoute.value.query.role_id)
-          } else {
+          if (!roleId.value) {
             roleId.value = roles.value[0]['id']
           }
 
@@ -343,18 +347,8 @@ const initData = () => {
     })
   }).catch(() => {
     loading.value = false
-    // 加载会话
-    httpGet("/api/chat/list").then((res) => {
-      if (res.data) {
-        chatList.value = res.data;
-        allChats.value = res.data;
-      }
-    }).catch(() => {
-      ElMessage.error("加载会话列表失败！")
-    })
-
     // 加载模型
-    httpGet('/api/model/list').then(res => {
+    httpGet('/api/model/list',{id:roleId.value}).then(res => {
       models.value = res.data
       modelID.value = models.value[0].id
     }).catch(e => {
@@ -369,6 +363,37 @@ const initData = () => {
       ElMessage.error('获取聊天角色失败: ' + e.messages)
     })
   })
+
+  inputRef.value.addEventListener('paste', (event) => {
+    const items = (event.clipboardData || window.clipboardData).items;
+    let fileFound = false;
+    loading.value = true
+
+    for (let item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        fileFound = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        // 执行上传操作
+        httpPost('/api/upload', formData).then((res) => {
+          files.value.push(res.data)
+          ElMessage.success({message: "上传成功", duration: 500})
+          loading.value = false
+        }).catch((e) => {
+          ElMessage.error('文件上传失败:' + e.message)
+          loading.value = false
+        })
+
+        break;
+      }
+    }
+
+    if (!fileFound) {
+      document.getElementById('status').innerText = 'No file found in paste data.';
+    }
+  });
 }
 
 const getRoleById = function (rid) {
@@ -582,18 +607,6 @@ const connect = function (chat_id, role_id) {
     }
   }
 
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
   const _socket = new WebSocket(host + `/api/chat/new?session_id=${sessionId.value}&role_id=${role_id}&chat_id=${chat_id}&model_id=${modelID.value}&token=${getUserToken()}`);
   _socket.addEventListener('open', () => {
     chatData.value = []; // 初始化聊天数据
@@ -615,8 +628,6 @@ const connect = function (chat_id, role_id) {
     } else { // 加载聊天记录
       loadChatHistory(chat_id);
     }
-    // 发送心跳消息
-    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {
@@ -627,13 +638,14 @@ const connect = function (chat_id, role_id) {
         reader.onload = () => {
           const data = JSON.parse(String(reader.result));
           if (data.type === 'start') {
-            const prePrompt = chatData.value[chatData.value.length-1].content
+            const prePrompt = chatData.value[chatData.value.length-1]?.content
             chatData.value.push({
               type: "reply",
               id: randString(32),
               icon: _role['icon'],
               prompt:prePrompt,
-              content: ""
+              content: "",
+              orgContent: "",
             });
           } else if (data.type === 'end') { // 消息接收完毕
             // 追加当前会话到会话列表
@@ -667,8 +679,10 @@ const connect = function (chat_id, role_id) {
           } else {
             lineBuffer.value += data.content;
             const reply = chatData.value[chatData.value.length - 1]
-            reply['orgContent'] = lineBuffer.value;
-            reply['content'] = md.render(processContent(lineBuffer.value));
+            if (reply) {
+              reply['orgContent'] = lineBuffer.value;
+              reply['content'] = md.render(processContent(lineBuffer.value));
+            }
           }
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
@@ -678,7 +692,7 @@ const connect = function (chat_id, role_id) {
         };
       }
     } catch (e) {
-      console.error(e)
+      console.warn(e)
     }
 
   });
@@ -694,7 +708,7 @@ const connect = function (chat_id, role_id) {
       connect(chat_id, role_id)
     }).catch(() => {
       loading.value = true
-      setTimeout(() => connect(chat_id, role_id), 3000)
+      showMessageError("会话已断开，刷新页面...")
     });
   });
 
@@ -740,7 +754,7 @@ const onInput = (e) => {
 const autofillPrompt = (text) => {
   prompt.value = text
   inputRef.value.focus()
-  // sendMessage()
+  sendMessage()
 }
 // 发送消息
 const sendMessage = function () {

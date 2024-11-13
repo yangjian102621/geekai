@@ -84,6 +84,8 @@ func CopyObject(src interface{}, dst interface{}) error {
 				case reflect.Bool:
 					value.SetBool(v.Bool())
 					break
+				default:
+					value.Set(v)
 				}
 			}
 

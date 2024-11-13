@@ -163,7 +163,10 @@
           <i class="iconfont icon-face"></i>
         </div>
 
-      </div>
+        <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
+
+      </div><!-- end of waterfall -->
+
     </div>
     <!-- 任务详情弹框 -->
     <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
@@ -301,6 +304,7 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import Clipboard from "clipboard";
 import {useRouter} from "vue-router";
+import BackTop from "@/components/BackTop.vue";
 
 const data = ref({
   "mj": [],

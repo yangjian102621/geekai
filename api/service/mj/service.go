@@ -29,6 +29,7 @@ type Service struct {
 	notifyQueue *store.RedisQueue
 	db          *gorm.DB
 	running     bool
+	retryCount  map[uint]int
 }
 
 func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.RedisQueue, db *gorm.DB, cli Client) *Service {
@@ -39,8 +40,11 @@ func NewService(name string, taskQueue *store.RedisQueue, notifyQueue *store.Red
 		notifyQueue: notifyQueue,
 		Client:      cli,
 		running:     true,
+		retryCount:  make(map[uint]int),
 	}
 }
+
+const failedProgress = 101
 
 func (s *Service) Run() {
 	logger.Infof("Starting MidJourney job consumer for %s", s.Name)
@@ -55,15 +59,20 @@ func (s *Service) Run() {
 		//  如果配置了多个中转平台的 API KEY
 		// U,V 操作必须和 Image 操作属于同一个平台，否则找不到关联任务，需重新放回任务列表
 		if task.ChannelId != "" && task.ChannelId != s.Name {
+			if s.retryCount[task.Id] > 5 {
+				s.db.Model(model.MidJourneyJob{Id: task.Id}).Delete(&model.MidJourneyJob{})
+				continue
+			}
 			logger.Debugf("handle other service task, name: %s, channel_id: %s, drop it.", s.Name, task.ChannelId)
 			s.taskQueue.RPush(task)
+			s.retryCount[task.Id]++
 			time.Sleep(time.Second)
 			continue
 		}
 
 		// translate prompt
 		if utils.HasChinese(task.Prompt) {
-			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Prompt))
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Prompt), "gpt-4o-mini")
 			if err == nil {
 				task.Prompt = content
 			} else {
@@ -72,7 +81,7 @@ func (s *Service) Run() {
 		}
 		// translate negative prompt
 		if task.NegPrompt != "" && utils.HasChinese(task.NegPrompt) {
-			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.NegPrompt))
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.NegPrompt), "gpt-4o-mini")
 			if err == nil {
 				task.NegPrompt = content
 			} else {
@@ -116,7 +125,7 @@ func (s *Service) Run() {
 			}
 
 			logger.Error("绘画任务执行失败：", errMsg)
-			job.Progress = -1
+			job.Progress = failedProgress
 			job.ErrMsg = errMsg
 			// update the task progress
 			s.db.Updates(&job)
@@ -164,7 +173,7 @@ func (s *Service) Notify(job model.MidJourneyJob) error {
 	// 任务执行失败了
 	if task.FailReason != "" {
 		s.db.Model(&model.MidJourneyJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
-			"progress": -1,
+			"progress": failedProgress,
 			"err_msg":  task.FailReason,
 		})
 		s.notifyQueue.RPush(sd.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: sd.Failed})

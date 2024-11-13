@@ -63,7 +63,7 @@ func (s *Service) Run() {
 
 		// translate prompt
 		if utils.HasChinese(task.Params.Prompt) {
-			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt))
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt), "gpt-4o-mini")
 			if err == nil {
 				task.Params.Prompt = content
 			} else {
@@ -73,7 +73,7 @@ func (s *Service) Run() {
 
 		// translate negative prompt
 		if task.Params.NegPrompt != "" && utils.HasChinese(task.Params.NegPrompt) {
-			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt))
+			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt), "gpt-4o-mini")
 			if err == nil {
 				task.Params.NegPrompt = content
 			} else {

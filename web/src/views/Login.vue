@@ -55,10 +55,8 @@
       </div>
 
       <reset-pass @hide="showResetPass = false" :show="showResetPass"/>
-
-      <footer class="footer"  v-if="!licenseConfig.de_copy">
-        <footer-bar/>
-      </footer>
+      
+      <footer-bar/>
     </div>
   </div>
 </template>
@@ -81,7 +79,7 @@ const title = ref('Geek-AI');
 const username = ref(process.env.VUE_APP_USER);
 const password = ref(process.env.VUE_APP_PASS);
 const showResetPass = ref(false)
-const logo = ref("/images/logo.png")
+const logo = ref("")
 const licenseConfig = ref({})
 const wechatLoginURL = ref('')
 

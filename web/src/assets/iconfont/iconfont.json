@@ -6,6 +6,104 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "880330",
+      "name": "link",
+      "font_class": "link",
+      "unicode": "e6b4",
+      "unicode_decimal": 59060
+    },
+    {
+      "icon_id": "1503777",
+      "name": "应用",
+      "font_class": "app",
+      "unicode": "e64f",
+      "unicode_decimal": 58959
+    },
+    {
+      "icon_id": "7156146",
+      "name": "暂停",
+      "font_class": "pause",
+      "unicode": "e693",
+      "unicode_decimal": 59027
+    },
+    {
+      "icon_id": "14929909",
+      "name": "多媒体控件Multimedia Controls (12)",
+      "font_class": "prev",
+      "unicode": "e6a5",
+      "unicode_decimal": 59045
+    },
+    {
+      "icon_id": "14929910",
+      "name": "多媒体控件Multimedia Controls (11)",
+      "font_class": "next",
+      "unicode": "e6a7",
+      "unicode_decimal": 59047
+    },
+    {
+      "icon_id": "14929913",
+      "name": "多媒体控件Multimedia Controls (13)",
+      "font_class": "play",
+      "unicode": "e6a8",
+      "unicode_decimal": 59048
+    },
+    {
+      "icon_id": "401063",
+      "name": "remove",
+      "font_class": "remove",
+      "unicode": "e82b",
+      "unicode_decimal": 59435
+    },
+    {
+      "icon_id": "968465",
+      "name": "编辑",
+      "font_class": "edit",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "6151351",
+      "name": "download",
+      "font_class": "download",
+      "unicode": "e83a",
+      "unicode_decimal": 59450
+    },
+    {
+      "icon_id": "18986714",
+      "name": "more",
+      "font_class": "more-vertical",
+      "unicode": "e8cb",
+      "unicode_decimal": 59595
+    },
+    {
+      "icon_id": "11903724",
+      "name": "share",
+      "font_class": "share1",
+      "unicode": "e661",
+      "unicode_decimal": 58977
+    },
+    {
+      "icon_id": "40001359",
+      "name": "suno",
+      "font_class": "suno",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "4318807",
+      "name": "mp3",
+      "font_class": "mp",
+      "unicode": "e6c4",
+      "unicode_decimal": 59076
+    },
+    {
+      "icon_id": "12600802",
+      "name": "mp4",
+      "font_class": "mp1",
+      "unicode": "e647",
+      "unicode_decimal": 58951
+    },
+    {
       "icon_id": "12243734",
       "name": "control",
       "font_class": "control-simple",

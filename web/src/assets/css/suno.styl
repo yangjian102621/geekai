@@ -1,0 +1,369 @@
+.page-suno {
+  display flex
+  height 100%
+  background-color #0E0808
+  overflow auto
+
+  .left-bar {
+    max-width 340px
+    min-width 340px
+    padding 20px 30px
+
+    .bar-top {
+      display flex
+      flex-flow row
+      justify-content: space-between;
+    }
+
+    .params {
+      padding 20px 0
+      color rgb(250 247 245)
+      position relative
+
+      .pure-music {
+        position absolute
+        right 0
+        top 24px
+        display flex
+
+        .text {
+          margin-top 5px
+          margin-left 5px
+        }
+      }
+
+      .label {
+        padding 10px 0
+
+        .text {
+          margin-right 10px
+        }
+        .el-icon {
+          top 2px
+        }
+      }
+      .item {
+        margin-bottom: 20px
+        position relative
+
+        .create-btn {
+          margin 20px 0
+          background-image url("~@/assets/img/suno-create-bg.svg")
+          background-size: cover;
+          background-position: 50% 50%;
+          transition: background 1s ease-in-out;
+          overflow: hidden;
+          font-size 16px
+          width 100%
+          padding 16px
+          border-radius 25px
+          border none
+          cursor pointer
+
+          img {
+            position relative
+            top 3px
+            margin-right 5px
+          }
+
+          &:hover {
+            opacity: 0.9;
+          }
+        }
+
+        .song {
+          display flex
+          padding 10px
+          background-color #252020
+          border-radius 10px
+          margin-bottom 10px
+          font-size 14px
+          position relative
+
+          .el-image {
+            width 50px
+            height 50px
+            border-radius 10px
+          }
+          .title {
+            display flex
+            margin-left 10px
+            align-items center
+          }
+
+          .el-button--info {
+            position absolute
+            right 20px
+            top 20px
+          }
+        }
+
+        .extend-secs {
+          padding 10px 0
+          font-size 14px
+
+          input {
+            width 50px
+            text-align center
+            padding 8px 10px
+            font-size 14px
+            background none
+            border 1px solid #8f8f8f
+            margin 0 10px
+            border-radius 10px
+            outline: none;
+            transition: border-color 0.5s ease, box-shadow 0.5s ease;
+            &:focus {
+              border-color: #0F7A71;
+              box-shadow: 0 0 5px #0F7A71;
+            }
+          }
+        }
+
+        .btn-lyric {
+          position absolute
+          left 10px
+          bottom 10px
+          font-size 12px
+          padding 2px 5px
+        }
+      }
+
+      .tag-select {
+        position relative
+        overflow-x auto
+        overflow-y hidden
+        width 100%
+
+        .inner {
+          display flex
+          flex-flow row
+          padding-bottom 10px
+
+          .tag {
+            margin-right 10px
+            word-break keep-all
+            background-color #312C2C
+            color #e1e1e1
+            border-radius 5px
+            padding 3px 6px
+            cursor pointer
+            font-size 13px
+          }
+        }
+      }
+    }
+  }
+  .right-box {
+    width 100%
+    color rgb(250 247 245)
+    overflow auto
+
+    .list-box {
+      padding 0 0 0 20px
+      .item {
+        display flex
+        flex-flow row
+        padding 5px 0
+        cursor pointer
+        margin-bottom 10px
+
+        &:hover {
+          background-color #2A2525
+        }
+
+        .left {
+          .container {
+            width 60px
+            height 90px
+            position relative
+
+            .el-image {
+              height 90px
+              border-radius 5px
+            }
+
+            .duration {
+              position absolute
+              bottom 0
+              right 0
+              background-color rgba(14,8,8,.7)
+              padding 0 3px
+              font-family 'Input Sans'
+              font-size 14px
+              font-weight 700
+              border-radius .125rem
+            }
+
+            .play {
+              position absolute
+              width: 56px;
+              height 100%
+              top: 0;
+              left: 50%;
+              border none
+              border-radius 5px
+              background rgba(100, 100, 100, 0.3)
+              cursor pointer
+              color #ffffff
+              opacity 0
+              transform: translate(-50%, 0px);
+              transition opacity 0.3s ease 0s
+            }
+
+            &:hover {
+              .play {
+                opacity 1
+                //display block
+              }
+            }
+          }
+        }
+
+        .center {
+          width 100%
+          //border 1px solid saddlebrown
+          display flex
+          justify-content center
+          align-items flex-start
+          flex-flow column
+          height 90px
+          padding 0 20px
+
+          .title {
+            padding 6px 0
+            font-size 16px
+            font-weight 700
+
+            a {
+              color rgb(250 247 245)
+              &:hover {
+                text-decoration underline
+              }
+            }
+
+            .model {
+              color #E2E8F0
+              background-color #1C1616
+              border 1px solid #8f8f8f
+              font-weight normal
+              font-size 14px
+              padding 1px 3px
+              border-radius 5px
+              margin-left 10px
+
+              .iconfont {
+                font-size 12px
+              }
+            }
+          }
+
+          .tags {
+            font-size 14px
+            color #d1d1d1
+            padding 3px 0
+          }
+        }
+
+        .right {
+          min-width 320px;
+          font-size 14px
+          padding 0 15px
+
+          .tools {
+            display flex
+            justify-content left
+            align-items center
+            flex-flow row
+            height 90px
+
+            .btn-publish {
+              padding 2px 10px
+
+              .text {
+                margin-right 10px
+              }
+            }
+
+            .btn-icon {
+              background none
+              padding 6px
+              transition background 0.6s ease 0s
+              color #726E6C
+
+              &:hover {
+                background #3C3737
+              }
+            }
+          }
+        }
+      }
+
+
+      .task {
+        height 100px
+        background-color #2A2525
+        display flex
+        margin-bottom 10px
+        .left {
+          display flex
+          justify-content left
+          align-items center
+          padding 20px
+          width 320px
+          .title {
+            font-size 14px
+            color #e1e1e1
+            white-space: nowrap; /* 防止文字换行 */
+            overflow: hidden; /* 隐藏溢出的内容 */
+            text-overflow: ellipsis; /* 用省略号表示溢出的内容 */
+          }
+        }
+        .center {
+          display flex
+          width 100%
+          justify-content center
+          .failed {
+            display flex
+            align-items center
+            color #E4696B
+            font-size 14px
+          }
+        }
+        .right {
+          display flex
+          width 100px
+          justify-content center
+          align-items center
+        }
+      }
+    }
+
+    .pagination {
+      padding 10px 20px
+      display flex
+      justify-content center
+    }
+    .music-player {
+      width 100%
+      position: fixed;
+      bottom: 0;
+      left: 50px;
+      padding 20px 0
+    }
+  }
+
+
+  .btn {
+    margin-right 10px
+    background-color #363030
+    border none
+    border-radius 5px
+    padding 5px 10px
+    cursor pointer
+
+    &:hover {
+      background-color #5F5958
+    }
+  }
+}

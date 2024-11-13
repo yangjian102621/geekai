@@ -59,7 +59,7 @@ const router = useRouter();
 const title = ref('Geek-AI Console');
 const username = ref(process.env.VUE_APP_ADMIN_USER);
 const password = ref(process.env.VUE_APP_ADMIN_PASS);
-const logo = ref("/images/logo.png")
+const logo = ref("")
 
 checkAdminSession().then(() => {
   router.push("/admin")

@@ -49,28 +49,32 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		return
 	}
 
-	item := model.ChatModel{
-		Platform:    data.Platform,
-		Name:        data.Name,
-		Value:       data.Value,
-		Enabled:     data.Enabled,
-		Open:        data.Open,
-		MaxTokens:   data.MaxTokens,
-		MaxContext:  data.MaxContext,
-		Temperature: data.Temperature,
-		KeyId:       data.KeyId,
-		Power:       data.Power}
+	item := model.ChatModel{}
+	// 更新
+	if data.Id > 0 {
+		h.DB.Where("id", data.Id).First(&item)
+	}
+
+	item.Name = data.Name
+	item.Value = data.Value
+	item.Enabled = data.Enabled
+	item.SortNum = data.SortNum
+	item.Open = data.Open
+	item.Power = data.Power
+	item.MaxTokens = data.MaxTokens
+	item.MaxContext = data.MaxContext
+	item.Temperature = data.Temperature
+	item.KeyId = data.KeyId
+
 	var res *gorm.DB
 	if data.Id > 0 {
-		item.Id = data.Id
-		item.SortNum = data.SortNum
-		res = h.DB.Select("*").Omit("created_at").Updates(&item)
+		res = h.DB.Save(&item)
 	} else {
 		res = h.DB.Create(&item)
 	}
 	if res.Error != nil {
 		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
@@ -89,12 +93,12 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 func (h *ChatModelHandler) List(c *gin.Context) {
 	session := h.DB.Session(&gorm.Session{})
 	enable := h.GetBool(c, "enable")
-	platform := h.GetTrim(c, "platform")
+	name := h.GetTrim(c, "name")
 	if enable {
 		session = session.Where("enabled", enable)
 	}
-	if platform != "" {
-		session = session.Where("platform", platform)
+	if name != "" {
+		session = session.Where("name LIKE ?", name+"%")
 	}
 	var items []model.ChatModel
 	var cms = make([]vo.ChatModel, 0)

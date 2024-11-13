@@ -23,6 +23,7 @@ import (
 	"geekai/service/payment"
 	"geekai/service/sd"
 	"geekai/service/sms"
+	"geekai/service/suno"
 	"geekai/service/wx"
 	"geekai/store"
 	"io"
@@ -207,6 +208,14 @@ func main() {
 				pool.CheckTaskNotify()
 				pool.CheckTaskStatus()
 			}
+		}),
+
+		fx.Provide(suno.NewService),
+		fx.Invoke(func(s *suno.Service) {
+			s.Run()
+			s.SyncTaskProgress()
+			s.CheckTaskNotify()
+			s.DownloadImages()
 		}),
 
 		fx.Provide(payment.NewAlipayService),
@@ -474,6 +483,19 @@ func main() {
 			group.GET("imgWall", h.ImgWall)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
+		}),
+		fx.Provide(handler.NewSunoHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.SunoHandler) {
+			group := s.Engine.Group("/api/suno")
+			group.Any("client", h.Client)
+			group.POST("create", h.Create)
+			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
+			group.GET("publish", h.Publish)
+			group.POST("update", h.Update)
+			group.GET("detail", h.Detail)
+			group.GET("play", h.Play)
+			group.POST("lyric", h.Lyric)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

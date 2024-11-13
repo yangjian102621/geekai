@@ -1,6 +1,6 @@
 <template>
   <div class="index-page" :style="{height: winHeight+'px'}">
-    <div class="index-bg" :style="{backgroundImage: 'url('+bgImgUrl+')'}"></div>
+    <div :class="theme.imageBg?'color-bg image-bg':'color-bg'" :style="{backgroundImage:'url('+bgStyle.backgroundImage+')', backgroundColor:bgStyle.backgroundColor}"></div>
     <div class="menu-box">
       <el-menu
           mode="horizontal"
@@ -8,19 +8,19 @@
       >
         <div class="menu-item">
           <el-image :src="logo" alt="Geek-AI"/>
-          <div class="title">{{ title }}</div>
+          <div class="title" :style="{color:theme.textColor}">{{ title }}</div>
         </div>
         <div class="menu-item">
-          <span v-if="!licenseConfig.de_copy">
+          <span v-if="!license.de_copy">
             <a :href="docsURL" target="_blank">
-            <el-button type="primary" round>
+            <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" class="shadow" round>
               <i class="iconfont icon-book"></i>
               <span>文档</span>
             </el-button>
           </a>
 
           <a :href="gitURL" target="_blank">
-            <el-button type="success" round>
+            <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" class="shadow" round>
               <i class="iconfont icon-github"></i>
               <span>源码</span>
             </el-button>
@@ -28,38 +28,29 @@
           </span>
 
           <span v-if="!isLogin">
-            <el-button @click="router.push('/login')" round>登录</el-button>
-            <el-button @click="router.push('/register')" round>注册</el-button>
+            <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" @click="router.push('/login')" class="shadow" round>登录</el-button>
+            <el-button :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" @click="router.push('/register')" class="shadow" round>注册</el-button>
           </span>
         </div>
       </el-menu>
     </div>
     <div class="content">
-      <h1>欢迎使用 {{ title }}</h1>
-      <p>{{ slogan }}</p>
-      <el-button @click="router.push('/chat')" color="#ffffff" style="color:#007bff" :dark="false">
-        <i class="iconfont icon-chat"></i>
-        <span>AI 对话</span>
-      </el-button>
-      <el-button @click="router.push('/mj')" color="#C4CCFD" style="color:#424282" :dark="false">
-        <i class="iconfont icon-mj"></i>
-        <span>MJ 绘画</span>
-      </el-button>
+      <h1 :style="{color:theme.textColor}">欢迎使用 {{ title }}</h1>
+      <p :style="{color:theme.textColor}">{{ slogan }}</p>
 
-      <el-button @click="router.push('/sd')" color="#4AE6DF" style="color:#424282" :dark="false">
-        <i class="iconfont icon-sd"></i>
-        <span>SD 绘画</span>
-      </el-button>
-      <el-button @click="router.push('/xmind')" color="#FFFD55" style="color:#424282" :dark="false">
-        <i class="iconfont icon-xmind"></i>
-        <span>思维导图</span>
-      </el-button>
-      <!--      <div id="animation-container"></div>-->
+      <div class="navs">
+        <el-space wrap>
+          <div v-for="item in navs" class="nav-item">
+            <el-button @click="router.push(item.url)" :color="theme.btnBgColor" :style="{color: theme.btnTextColor}" class="shadow" :dark="false">
+              <i :class="'iconfont '+iconMap[item.url]"></i>
+              <span>{{item.name}}</span>
+            </el-button>
+          </div>
+        </el-space>
+      </div>
     </div>
 
-    <div class="footer" v-if="!licenseConfig.de_copy">
-      <footer-bar />
-    </div>
+    <footer-bar :text-color="theme.textColor" />
   </div>
 </template>
 
@@ -79,36 +70,102 @@ if (isMobile()) {
   router.push("/mobile")
 }
 
-const title = ref("Geek-AI 创作系统")
-const logo = ref("/images/logo.png")
-const slogan = ref("我辈之人，先干为敬，陪您先把 AI 用起来")
-const licenseConfig = ref({})
+const title = ref("")
+const logo = ref("")
+const slogan = ref("")
+const license = ref({de_copy: true})
 const winHeight = window.innerHeight - 150
-const bgImgUrl = ref('')
 const isLogin = ref(false)
 const docsURL = ref(process.env.VUE_APP_DOCS_URL)
 const gitURL = ref(process.env.VUE_APP_GIT_URL)
+const navs  = ref([])
+const btnColors = ref([
+  {bgColor: "#fff143", textColor: "#50616D"},
+  {bgColor: "#eaff56", textColor: "#50616D"},
+  {bgColor: "#bddd22", textColor: "#50616D"},
+  {bgColor: "#1bd1a5", textColor: "#50616D"},
+  {bgColor: "#e0eee8", textColor: "#50616D"},
+  {bgColor: "#7bcfa6", textColor: "#50616D"},
+  {bgColor: "#bce672", textColor: "#50616D"},
+  {bgColor: "#44cef6", textColor: "#ffffff"},
+  {bgColor: "#70f3ff", textColor: "#50616D"},
+  {bgColor: "#fffbf0", textColor: "#50616D"},
+  {bgColor: "#d6ecf0", textColor: "#50616D"},
+  {bgColor: "#88ada6", textColor: "#50616D"},
+  {bgColor: "#30dff3", textColor: "#50616D"},
+  {bgColor: "#d3e0f3", textColor: "#50616D"},
+  {bgColor: "#e9e7ef", textColor: "#50616D"},
+  {bgColor: "#eacd76", textColor: "#50616D"},
+  {bgColor: "#f2be45", textColor: "#50616D"},
+  {bgColor: "#549688", textColor: "#ffffff"},
+  {bgColor: "#758a99", textColor: "#ffffff"},
+  {bgColor: "#41555d", textColor: "#ffffff"},
+  {bgColor: "#21aa93", textColor: "#ffffff"},
+  {bgColor: "#0aa344", textColor: "#ffffff"},
+  {bgColor: "#f05654", textColor: "#ffffff"},
+  {bgColor: "#db5a6b", textColor: "#ffffff"},
+  {bgColor: "#db5a6b", textColor: "#ffffff"},
+  {bgColor: "#8d4bbb", textColor: "#ffffff"},
+  {bgColor: "#426666", textColor: "#ffffff"},
+  {bgColor: "#177cb0", textColor: "#ffffff"},
+  {bgColor: "#395260", textColor: "#ffffff"},
+  {bgColor: "#519a73", textColor: "#ffffff"},
+  {bgColor: "#75878a", textColor: "#ffffff"},
+])
+const iconMap =ref(
+    {
+      "/chat": "icon-chat",
+      "/mj": "icon-mj",
+      "/sd": "icon-sd",
+      "/dalle": "icon-dalle",
+      "/images-wall": "icon-image",
+      "/suno": "icon-suno",
+      "/xmind": "icon-xmind",
+      "/apps": "icon-app",
+      "/member": "icon-vip-user",
+      "/invite": "icon-share",
+    }
+)
+const bgStyle = {}
+const color = btnColors.value[Math.floor(Math.random() * btnColors.value.length)]
+const theme = ref({bgColor: "#ffffff", btnBgColor: color.bgColor, btnTextColor: color.textColor, textColor: "#ffffff", imageBg:true})
 
 onMounted(() => {
   httpGet("/api/config/get?key=system").then(res => {
     title.value = res.data.title
     logo.value = res.data.logo
-    if (res.data.index_bg_url) {
-      bgImgUrl.value = res.data.index_bg_url
+    if (res.data.index_bg_url === 'color') {
+      // 随机选取一种颜色
+      theme.value.bgColor = color.bgColor
+      theme.value.btnBgColor = color.bgColor
+      theme.value.textColor = color.textColor
+      theme.value.btnTextColor = color.textColor
+      // 设置背景颜色
+      bgStyle.backgroundColor = theme.value.bgColor
+      bgStyle.backgroundImage = "/images/transparent-bg.png"
+      theme.value.imageBg = false
+    } else if (res.data.index_bg_url) {
+      bgStyle.backgroundImage = res.data.index_bg_url
     } else {
-      bgImgUrl.value = "/images/index-bg.jpg"
+      bgStyle.backgroundImage = "/images/index-bg.jpg"
     }
-    if (res.data.slogan) {
-      slogan.value = res.data.slogan
-    }
+
+    slogan.value = res.data.slogan
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)
   })
 
   httpGet("/api/config/license").then(res => {
-    licenseConfig.value = res.data
+    license.value = res.data
   }).catch(e => {
-    ElMessage.error("获取 License 配置：" + e.message)
+    license.value = {de_copy: false}
+    ElMessage.error("获取 License 配置失败：" + e.message)
+  })
+
+  httpGet("/api/menu/list?index=1").then(res => {
+    navs.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取导航菜单失败：" + e.message)
   })
 
   checkSession().then(() => {
@@ -119,107 +176,5 @@ onMounted(() => {
 
 <style lang="stylus" scoped>
 @import '@/assets/iconfont/iconfont.css'
-.index-page {
-  margin: 0
-  overflow hidden
-  color #ffffff
-  display flex
-  justify-content center
-  align-items baseline
-  padding-top 150px
-
-  .index-bg {
-    position absolute
-    top 0
-    left 0
-    width 100vw
-    height 100vh
-    filter: blur(8px);
-    background-size: cover;
-    background-position: center;
-  }
-
-  .menu-box {
-    position absolute
-    top 0
-    width 100%
-    display flex
-
-    .el-menu {
-      padding 0 30px
-      width 100%
-      display flex
-      justify-content space-between
-      background none
-      border none
-
-      .menu-item {
-        display flex
-        padding 20px 0
-
-        color #ffffff
-
-        .title {
-          font-size 24px
-          padding 10px 10px 0 10px
-        }
-
-        .el-image {
-          height 50px
-        }
-
-        .el-button {
-          margin-left 10px
-
-          span {
-            margin-left 5px
-          }
-        }
-      }
-    }
-  }
-
-  .content {
-    text-align: center;
-    position relative
-
-    h1 {
-      font-size: 5rem;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      font-size: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .el-button {
-      padding: 25px 20px;
-      font-size: 1.3rem;
-      transition: all 0.3s ease;
-
-      .iconfont {
-        font-size 1.6rem
-        margin-right 10px
-      }
-    }
-
-    #animation-container {
-      display flex
-      justify-content center
-      width 100%
-      height: 300px;
-      position: absolute;
-      top: 350px
-
-    }
-  }
-
-  .footer {
-    .el-link__inner {
-      color #ffffff
-    }
-  }
-
-}
+@import "@/assets/css/index.styl"
 </style>

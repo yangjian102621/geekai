@@ -27,9 +27,15 @@ func NewMenuHandler(app *core.AppServer, db *gorm.DB) *MenuHandler {
 
 // List 数据列表
 func (h *MenuHandler) List(c *gin.Context) {
+	index := h.GetBool(c, "index")
 	var items []model.Menu
 	var list = make([]vo.Menu, 0)
-	res := h.DB.Where("enabled", true).Order("sort_num ASC").Find(&items)
+	session := h.DB.Session(&gorm.Session{})
+	session = session.Where("enabled", true)
+	if index {
+		session = session.Where("id IN ?", h.App.SysConfig.IndexNavs)
+	}
+	res := session.Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var product vo.Menu

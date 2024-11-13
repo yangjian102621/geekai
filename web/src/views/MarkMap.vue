@@ -106,19 +106,10 @@ import {useSharedStore} from "@/store/sharedata";
 
 const leftBoxHeight = ref(window.innerHeight - 105)
 const rightBoxHeight = ref(window.innerHeight - 115)
+const title = ref("")
 
 const prompt = ref("")
-const text = ref(`# Geek-AI 助手
-
-- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
-- 基于 Websocket 实现，完美的打字机体验。
-- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。
-- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
-- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
-- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
-- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。
-- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。
-`)
+const text = ref("")
 const md = require('markdown-it')({breaks: true});
 const content = ref(text.value)
 const html = ref("")
@@ -135,7 +126,20 @@ const models = ref([])
 const modelID = ref(0)
 const loading = ref(false)
 
-onMounted(() => {
+httpGet("/api/config/get?key=system").then(res => {
+  title.value = res.data.title??process.env.VUE_APP_TITLE
+  text.value = `# ${title.value}
+
+- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
+- 基于 Websocket 实现，完美的打字机体验。
+- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。
+- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
+- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
+- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
+- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。
+- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。
+`
+  content.value = text.value
   initData()
   try {
     markMap.value = Markmap.create(svgRef.value)
@@ -145,7 +149,9 @@ onMounted(() => {
   } catch (e) {
     console.error(e)
   }
-});
+}).catch(e => {
+  ElMessage.error("获取系统配置失败：" + e.message)
+})
 
 const initData = () => {
   httpGet("/api/model/list").then(res => {
@@ -333,7 +339,6 @@ const downloadImage = () => {
     a.download = "geek-ai-xmind.png"
     a.href = canvas.toDataURL(`image/png`)
     a.click()
-
   }
 }
 

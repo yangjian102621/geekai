@@ -12,18 +12,18 @@
 
       <div class="navbar">
         <el-tooltip
-            v-if="!licenseConfig.de_copy"
+            v-if="!license.de_copy"
             class="box-item"
             effect="light"
             content="部署文档"
             placement="bottom">
-          <a href="https://ai.r9it.com/docs/install/" class="link-button" target="_blank">
+          <a href="https://docs.geekai.me/install/" class="link-button" target="_blank">
             <i class="iconfont icon-book"></i>
           </a>
         </el-tooltip>
 
         <el-tooltip
-            v-if="!licenseConfig.de_copy"
+            v-if="!license.de_copy"
             class="box-item"
             effect="light"
             content="项目源码"
@@ -46,7 +46,7 @@
                 <span class="username">{{ loginUser.nickname }}</span>
               </el-dropdown-item>
 
-              <div  v-if="!licenseConfig.de_copy">
+              <div  v-if="!license.de_copy">
                 <el-dropdown-item>
                   <i class="iconfont icon-book"></i>
                   <a :href="docsURL" target="_blank">
@@ -146,7 +146,7 @@ import ConfigDialog from "@/components/UserInfoDialog.vue";
 import {showMessageError} from "@/utils/dialog";
 
 const router = useRouter();
-const logo = ref('/images/logo.png');
+const logo = ref('');
 const mainNavs = ref([])
 const moreNavs = ref([])
 const curPath = ref(router.currentRoute.value.path)
@@ -156,7 +156,7 @@ const loginUser = ref({})
 const version = ref(process.env.VUE_APP_VERSION)
 const routerViewKey = ref(0)
 const showConfigDialog = ref(false)
-const licenseConfig = ref({})
+const license = ref({de_copy: true})
 const docsURL = ref(process.env.VUE_APP_DOCS_URL)
 const gitURL = ref(process.env.VUE_APP_GIT_URL)
 
@@ -164,6 +164,12 @@ const store = useSharedStore();
 const show = ref(false)
 watch(() => store.showLoginDialog, (newValue) => {
   show.value = newValue
+});
+
+// 监听路由变化
+router.beforeEach((to, from, next) => {
+  curPath.value =  to.path
+  next();
 });
 
 if (curPath.value === "/external") {
@@ -199,8 +205,9 @@ onMounted(() => {
   })
 
   httpGet("/api/config/license").then(res => {
-    licenseConfig.value = res.data
+    license.value = res.data
   }).catch(e => {
+    license.value = {de_copy: false}
     showMessageError("获取 License 配置：" + e.message)
   })
 

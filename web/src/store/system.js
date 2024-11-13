@@ -37,7 +37,11 @@ export function GetFileIcon(ext) {
         ".pptx": "ppt.png",
         ".md": "md.png",
         ".pdf": "pdf.png",
-        ".sql": "sql.png"
+        ".sql": "sql.png",
+        ".mp3": "mp3.png",
+        ".wav": "mp3.png",
+        ".mp4": "mp4.png",
+        ".avi": "mp4.png",
     }
     if (files[ext]) {
         return '/images/ext/' + files[ext]

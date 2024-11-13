@@ -83,9 +83,21 @@ const routes = [
                 component: () => import('@/views/Dalle.vue'),
             },
             {
+                name: 'suno',
+                path: '/suno',
+                meta: {title: 'Suno音乐创作'},
+                component: () => import('@/views/Suno.vue'),
+            },
+            {
                 name: 'ExternalLink',
                 path: '/external',
                 component: () => import('@/views/ExternalPage.vue'),
+            },
+            {
+                name: 'song',
+                path: '/song/:id',
+                meta: {title: 'Suno音乐播放'},
+                component: () => import('@/views/Song.vue'),
             },
         ]
     },
@@ -280,23 +292,11 @@ const router = createRouter({
     routes: routes,
 })
 
-const active = ref(false)
-const title = ref('')
-httpGet("/api/config/license").then(res => {
-    active.value = res.data.de_copy
-}).catch(() => {})
-httpGet("/api/config/get?key=system").then(res => {
-    title.value = res.data.title
-}).catch(()=>{})
 
 let prevRoute = null
 // dynamic change the title when router change
 router.beforeEach((to, from, next) => {
-    if (!active.value) {
-        document.title = `${to.meta.title} | ${process.env.VUE_APP_TITLE}`
-    } else {
-        document.title = `${to.meta.title} | ${title.value}`
-    }
+    document.title = to.meta.title
     prevRoute = from
     next()
 })

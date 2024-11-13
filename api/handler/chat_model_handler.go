@@ -31,9 +31,14 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	var items []model.ChatModel
 	var chatModels = make([]vo.ChatModel, 0)
 	var res *gorm.DB
+	session := h.DB.Session(&gorm.Session{}).Where("enabled", true)
+	t := c.Query("type")
+	if t != "" {
+		session = session.Where("type", t)
+	}
 	// 如果用户没有登录，则加载所有开放模型
 	if !h.IsLogin(c) {
-		res = h.DB.Where("enabled", true).Where("open", true).Order("sort_num ASC").Find(&items)
+		res = session.Where("open", true).Order("sort_num ASC").Find(&items)
 	} else {
 		user, _ := h.GetLoginUser(c)
 		var models []int

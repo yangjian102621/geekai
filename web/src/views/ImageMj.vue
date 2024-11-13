@@ -487,6 +487,23 @@
                           </div>
                         </template>
                       </el-image>
+                      <el-image v-else-if="slotProp.item['err_msg'] !== ''">
+                        <template #error>
+                          <div class="image-slot">
+                            <div class="err-msg-container">
+                              <div class="title">任务失败</div>
+                              <div class="opt">
+                                <el-popover title="错误详情" trigger="click" :width="250" :content="slotProp.item['err_msg']" placement="top">
+                                  <template #reference>
+                                    <el-button type="info">详情</el-button>
+                                  </template>
+                                </el-popover>
+                                <el-button type="danger"  @click="removeImage(slotProp.item)">删除</el-button>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                      </el-image>
                       <el-image v-else>
                         <template #error>
                           <div class="image-slot">
@@ -536,16 +553,30 @@
                         </div>
                       </div>
 
-                      <div class="remove">
-                        <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle/>
-                        <el-button type="warning" v-if="slotProp.item.publish"
-                                   @click="publishImage(slotProp.item, false)"
-                                   circle>
-                          <i class="iconfont icon-cancel-share"></i>
-                        </el-button>
-                        <el-button type="success" v-else @click="publishImage(slotProp.item, true)" circle>
-                          <i class="iconfont icon-share-bold"></i>
-                        </el-button>
+                      <div class="remove" v-if="slotProp.item.progress === 100">
+                        <el-tooltip effect="light" content="删除任务" placement="top">
+                          <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle/>
+                        </el-tooltip>
+                        <el-tooltip effect="light" content="取消发布" placement="top" v-if="slotProp.item.publish">
+                          <el-button type="warning"
+                                     @click="publishImage(slotProp.item, false)"
+                                     circle>
+                            <i class="iconfont icon-cancel-share"></i>
+                          </el-button>
+                        </el-tooltip>
+                        <el-tooltip effect="light" content="发布图片" placement="top" v-else>
+                          <el-button type="success" @click="publishImage(slotProp.item, true)" circle>
+                            <i class="iconfont icon-share-bold"></i>
+                          </el-button>
+                        </el-tooltip>
+
+                        <el-tooltip effect="light" content="复制提示词" placement="top">
+                          <el-button type="success" class="copy-prompt-mj"
+                                     :data-clipboard-text="slotProp.item.prompt" circle>
+                            <el-icon><DocumentCopy/></el-icon>
+                          </el-button>
+                        </el-tooltip>
+
                       </div>
                     </div>
                   </template>
@@ -562,6 +593,7 @@
             </div> <!-- end finish job list-->
           </div>
         </div>
+        <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
       </div><!-- end task list box -->
     </div>
 
@@ -582,6 +614,7 @@ import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
 import {useSharedStore} from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
+import BackTop from "@/components/BackTop.vue";
 
 const listBoxHeight = ref(0)
 const paramBoxHeight = ref(0)
@@ -714,7 +747,7 @@ const connect = () => {
       reader.readAsText(event.data, "UTF-8")
       reader.onload = () => {
         const message = String(reader.result)
-        if (message === "FINISH") {
+        if (message === "FINISH" || message === "FAIL") {
           page.value = 0
           isOver.value = false
           fetchFinishJobs(page.value)
@@ -786,7 +819,7 @@ const fetchRunningJobs = () => {
     const jobs = res.data
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i].progress === -1) {
+      if (jobs[i].progress === 101) {
         ElNotification({
           title: '任务执行失败',
           dangerouslyUseHTMLString: true,
@@ -799,7 +832,6 @@ const fetchRunningJobs = () => {
         } else {
           power.value += mjActionPower.value
         }
-        continue
       }
       _jobs.push(jobs[i])
     }
@@ -833,7 +865,7 @@ const fetchFinishJobs = () => {
         jobs[i]['thumb_url'] = '/images/img-placeholder.jpg'
       }
 
-      if (jobs[i].type === 'image' || jobs[i].type === 'variation') {
+      if ((jobs[i].type === 'image' || jobs[i].type === 'variation') && jobs[i].progress === 100) {
         jobs[i]['can_opt'] = true
       }
     }
@@ -984,7 +1016,7 @@ const publishImage = (item, action) => {
     item.publish = action
     page.value = 0
     isOver.value = false
-    fetchFinishJobs()
+    item.publish = action
   }).catch(e => {
     ElMessage.error(text + "失败：" + e.message)
   })

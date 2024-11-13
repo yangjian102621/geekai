@@ -2,19 +2,11 @@
   <div class="container list" v-loading="loading">
 
     <div class="handle-box">
-      <el-select v-model="query.platform" placeholder="平台" class="handle-input">
-        <el-option
-            v-for="item in platforms"
-            :key="item.value"
-            :label="item.name"
-            :value="item.value"
-        />
-      </el-select>
       <el-select v-model="query.type" placeholder="类型" class="handle-input">
         <el-option
             v-for="item in types"
             :key="item.value"
-            :label="item.name"
+            :label="item.label"
             :value="item.value"
         />
       </el-select>
@@ -28,7 +20,6 @@
 
     <el-row>
       <el-table :data="items" :row-key="row => row.id" table-layout="auto">
-        <el-table-column prop="platform" label="所属平台"/>
         <el-table-column prop="name" label="名称"/>
         <el-table-column prop="value" label="API KEY">
           <template #default="scope">
@@ -46,10 +37,9 @@
             </el-icon>
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="用途">
+        <el-table-column prop="type" label="类型">
           <template #default="scope">
-            <el-tag v-if="scope.row.type === 'chat'">聊天</el-tag>
-            <el-tag v-else-if="scope.row.type === 'img'" type="success">绘图</el-tag>
+            {{getTypeName(scope.row.type)}}
           </template>
         </el-table-column>
         <el-table-column prop="proxy_url" label="代理地址"/>
@@ -84,30 +74,14 @@
         :close-on-click-modal="false"
         :title="title"
     >
-      <el-alert
-          type="warning"
-          :closable="false"
-          show-icon
-          style="margin-bottom: 10px; font-size:14px;">
-        <p><b>注意：</b>如果是百度文心一言平台，API-KEY 为 APIKey|SecretKey，中间用竖线（|）连接</p>
-        <p><b>注意：</b>如果是讯飞星火大模型，API-KEY 为 AppId|APIKey|APISecret，中间用竖线（|）连接</p>
-      </el-alert>
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
-        <el-form-item label="所属平台：" prop="platform">
-          <el-select v-model="item.platform" placeholder="请选择平台" @change="changePlatform">
-            <el-option v-for="item in platforms" :value="item.value" :label="item.name" :key="item.value">{{
-                item.name
-              }}
-            </el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item label="名称：" prop="name">
           <el-input v-model="item.name" autocomplete="off"/>
         </el-form-item>
-        <el-form-item label="用途：" prop="type">
-          <el-select v-model="item.type" placeholder="请选择用途" @change="changeType">
-            <el-option v-for="item in types" :value="item.value" :label="item.name" :key="item.value">{{
-                item.name
+        <el-form-item label="类型：" prop="type">
+          <el-select v-model="item.type" placeholder="请选择类型">
+            <el-option v-for="item in types" :value="item.value" :label="item.label" :key="item.value">{{
+                item.label
               }}
             </el-option>
           </el-select>
@@ -117,12 +91,12 @@
         </el-form-item>
         <el-form-item label="API URL：" prop="api_url">
           <el-input v-model="item.api_url" autocomplete="off"
-                    placeholder="必须填土完整的 Chat API URL，如：https://api.openai.com/v1/chat/completions"/>
-          <div class="info">如果你使用了第三方中转，这里就填写中转地址</div>
+                    placeholder="只填 BASE URL 即可，如：https://api.openai.com"/>
         </el-form-item>
 
         <el-form-item label="代理地址：" prop="proxy_url">
           <el-input v-model="item.proxy_url" autocomplete="off"/>
+          <div class="info">如果想要通过代理来访问 API，请填写代理地址，如：http://127.0.0.1:7890</div>
         </el-form-item>
 
         <el-form-item label="启用状态：" prop="enable">
@@ -150,22 +124,24 @@ import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
-const query = ref({type: '',platform:''})
+const query = ref({type: ''})
 const item = ref({})
 const showDialog = ref(false)
 const rules = reactive({
-  platform: [{required: true, message: '请选择平台', trigger: 'change',}],
   name: [{required: true, message: '请输入名称', trigger: 'change',}],
   type: [{required: true, message: '请选择用途', trigger: 'change',}],
   value: [{required: true, message: '请输入 API KEY 值', trigger: 'change',}]
 })
+
 const loading = ref(true)
 const formRef = ref(null)
 const title = ref("")
-const platforms = ref([])
 const types = ref([
-  {name: "聊天", value: "chat"},
-  {name: "绘画", value: "img"},
+  {label: "对话", value:"chat"},
+  {label: "Midjourney", value:"mj"},
+  {label: "DALL-E", value:"dalle"},
+  {label: "Suno文生歌", value:"suno"},
+  {label: "Luma视频", value:"luma"},
 ])
 
 
@@ -180,18 +156,21 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 
-  httpGet("/api/admin/config/get/app").then(res => {
-    platforms.value = res.data.platforms
-  }).catch(e =>{
-    ElMessage.error("获取配置失败："+e.message)
-  })
-
   fetchData()
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
 })
+
+const getTypeName = (type) => {
+  for (let v of types.value) {
+    if (v.value === type) {
+      return v.label
+    }
+  }
+  return ""
+}
 
 // 获取数据
 
@@ -262,26 +241,6 @@ const set = (filed, row) => {
   })
 }
 
-const selectedPlatform = ref(null)
-const changePlatform = (value) => {
-  console.log(value)
-  for (let v of platforms.value) {
-    if (v.value === value) {
-      selectedPlatform.value = v
-      item.value.api_url = v.chat_url
-    }
-  }
-}
-
-const changeType = (value) => {
-  if (selectedPlatform.value) {
-    if(value === 'img') {
-      item.value.api_url = selectedPlatform.value.img_url
-    } else {
-      item.value.api_url = selectedPlatform.value.chat_url
-    }
-  }
-}
 </script>
 
 <style lang="stylus" scoped>

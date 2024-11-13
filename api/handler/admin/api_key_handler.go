@@ -31,7 +31,6 @@ func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
 func (h *ApiKeyHandler) Save(c *gin.Context) {
 	var data struct {
 		Id       uint   `json:"id"`
-		Platform string `json:"platform"`
 		Name     string `json:"name"`
 		Type     string `json:"type"`
 		Value    string `json:"value"`
@@ -48,7 +47,6 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	if data.Id > 0 {
 		h.DB.Find(&apiKey, data.Id)
 	}
-	apiKey.Platform = data.Platform
 	apiKey.Value = data.Value
 	apiKey.Type = data.Type
 	apiKey.ApiURL = data.ApiURL

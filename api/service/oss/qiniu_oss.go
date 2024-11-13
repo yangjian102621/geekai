@@ -93,18 +93,18 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 
 }
 
-func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
-	var imageData []byte
+func (s QinNiuOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+	var fileData []byte
 	var err error
 	if useProxy {
-		imageData, err = utils.DownloadImage(imageURL, s.proxyURL)
+		fileData, err = utils.DownloadImage(fileURL, s.proxyURL)
 	} else {
-		imageData, err = utils.DownloadImage(imageURL, "")
+		fileData, err = utils.DownloadImage(fileURL, "")
 	}
 	if err != nil {
 		return "", fmt.Errorf("error with download image: %v", err)
 	}
-	parse, err := url.Parse(imageURL)
+	parse, err := url.Parse(fileURL)
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
@@ -113,7 +113,7 @@ func (s QinNiuOss) PutImg(imageURL string, useProxy bool) (string, error) {
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
-	err = s.uploader.Put(context.Background(), &ret, s.putPolicy.UploadToken(s.mac), key, bytes.NewReader(imageData), int64(len(imageData)), &extra)
+	err = s.uploader.Put(context.Background(), &ret, s.putPolicy.UploadToken(s.mac), key, bytes.NewReader(fileData), int64(len(fileData)), &extra)
 	if err != nil {
 		return "", err
 	}

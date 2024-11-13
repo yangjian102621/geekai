@@ -155,45 +155,6 @@ func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
-type Platform struct {
-	Name    string `json:"name"`
-	Value   string `json:"value"`
-	ChatURL string `json:"chat_url"`
-	ImgURL  string `json:"img_url"`
-}
-
-var OpenAI = Platform{
-	Name:    "OpenAI - GPT",
-	Value:   "OpenAI",
-	ChatURL: "https://api.chat-plus.net/v1/chat/completions",
-	ImgURL:  "https://api.chat-plus.net/v1/images/generations",
-}
-var Azure = Platform{
-	Name:    "微软 - Azure",
-	Value:   "Azure",
-	ChatURL: "https://chat-bot-api.openai.azure.com/openai/deployments/{model}/chat/completions?api-version=2023-05-15",
-}
-var ChatGLM = Platform{
-	Name:    "智谱 - ChatGLM",
-	Value:   "ChatGLM",
-	ChatURL: "https://open.bigmodel.cn/api/paas/v3/model-api/{model}/sse-invoke",
-}
-var Baidu = Platform{
-	Name:    "百度 - 文心大模型",
-	Value:   "Baidu",
-	ChatURL: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{model}",
-}
-var XunFei = Platform{
-	Name:    "讯飞 - 星火大模型",
-	Value:   "XunFei",
-	ChatURL: "wss://spark-api.xf-yun.com/{version}/chat",
-}
-var QWen = Platform{
-	Name:    "阿里 - 通义千问",
-	Value:   "QWen",
-	ChatURL: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
-}
-
 type SystemConfig struct {
 	Title         string `json:"title,omitempty"`       // 网站标题
 	Slogan        string `json:"slogan,omitempty"`      // 网站 slogan
@@ -219,6 +180,7 @@ type SystemConfig struct {
 	MjActionPower int `json:"mj_action_power,omitempty"` // MJ 操作（放大，变换）消耗算力
 	SdPower       int `json:"sd_power,omitempty"`        // SD 绘画消耗算力
 	DallPower     int `json:"dall_power,omitempty"`      // DALLE3 绘图消耗算力
+	SunoPower     int `json:"suno_power,omitempty"`      // Suno 生成歌曲消耗算力
 
 	WechatCardURL string `json:"wechat_card_url,omitempty"` // 微信客服地址
 
@@ -228,4 +190,6 @@ type SystemConfig struct {
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
 
 	IndexBgURL string `json:"index_bg_url"` // 前端首页背景图片
+	IndexNavs  []int  `json:"index_navs"`   // 首页显示的导航菜单
+	Copyright  string `json:"copyright"`    // 版权信息
 }
