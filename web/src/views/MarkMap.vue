@@ -156,21 +156,18 @@ httpGet("/api/config/get?key=system").then(res => {
 const initData = () => {
   httpGet("/api/model/list").then(res => {
     for (let v of res.data) {
-      if (v.platform === "OpenAI" && v.value.indexOf("gpt-4-gizmo") === -1) {
-        models.value.push(v)
-      }
+      models.value.push(v)
     }
     modelID.value = models.value[0].id
+    checkSession().then(user => {
+      loginUser.value = user
+      isLogin.value = true
+      connect(user.id)
+    }).catch(() => {
+    });
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
   })
-  
-  checkSession().then(user => {
-    loginUser.value = user
-    isLogin.value = true
-    connect(user.id)
-  }).catch(() => {
-  });
 }
 
 const update = () => {

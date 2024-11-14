@@ -644,10 +644,10 @@ const rates = [
   {css: "size9-16", value: "9:16", text: "9:16", img: "/images/mj/rate_9_16.png"},
 ]
 const models = [
-  {text: "写实模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v6.png"},
-  {text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.2.png"},
-  {text: "优质模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.1.jpg"},
-  {text: "虚幻模式MJ-5", value: " --v 5", img: "/images/mj/mj-v5.jpg"},
+  {text: "写实模式MJ-6.1", value: " --v 6.1", img: "/images/mj/mj-v6.png"},
+  {text: "优质模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v5.2.png"},
+  {text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.1.jpg"},
+  {text: "虚幻模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.jpg"},
   {text: "真实模式MJ-4", value: " --v 4", img: "/images/mj/mj-v4.jpg"},
   {text: "动漫风-niji4", value: " --niji 4", img: "/images/mj/nj4.jpg"},
   {text: "动漫风-niji5", value: " --niji 5", img: "/images/mj/mj-niji.png"},
