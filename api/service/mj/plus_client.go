@@ -15,7 +15,6 @@ import (
 	"geekai/service"
 	"geekai/utils"
 	"github.com/imroc/req/v3"
-	"io"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -174,13 +173,7 @@ func (c *PlusClient) doRequest(body interface{}, apiURL string) (ImageRes, error
 		SetErrorResult(&errRes).
 		Post(apiURL)
 	if err != nil {
-		errMsg := err.Error()
-		if r != nil {
-			errStr, _ := io.ReadAll(r.Body)
-			logger.Error("请求 API 出错：", string(errStr))
-			errMsg = errMsg + " " + string(errStr)
-		}
-		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", errMsg)
+		return ImageRes{}, fmt.Errorf("请求 API 出错：%v", err)
 	}
 
 	if r.IsErrorState() {
