@@ -1,5 +1,6 @@
 <template>
   <div class="index-page">
+    <!-- 主题切换 -->
     <ThemeChange />
     <div class="menu-box">
       <el-menu mode="horizontal" :ellipsis="false">
