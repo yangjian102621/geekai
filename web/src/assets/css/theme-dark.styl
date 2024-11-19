@@ -1,0 +1,21 @@
+
+@import 'font.styl'
+:root[data-theme="dark"]{
+  --text-color: rgba(255, 255, 255, 1) !important; // 主要的文本颜色
+  --normal-color: rgba(163, 174, 208, 1); // 普通颜色
+  p, h1, h2, h3, h4, h5, h6, article {
+    color: var(--text-color) !important;
+     font-family: $font-regular;
+
+  }
+  html,
+  body,
+  #app,
+  .wrapper {
+   background-color: rgb(13, 20, 53) !important;
+    font-family: $font-regular;
+  }
+  --btnColor: linear-gradient(88deg, #af61f0 1.44%, #5b62ce);
+  --card-bg: rgba(17, 28, 68, 1);
+
+}

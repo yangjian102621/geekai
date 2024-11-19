@@ -1,7 +1,8 @@
+
 .index-page {
   margin: 0
   overflow hidden
-  color #ffffff
+  color var(--text-color)
   display flex
   justify-content center
   align-items baseline
@@ -47,11 +48,20 @@
         display flex
         padding 20px 0
 
-        color #ffffff
+        color var(--text-color);
+        .iconfont{
+          color var(--text-color);
+          font-size: 28px;
 
+        }
+        .icon-book{
+          margin-right: 6px;
+        }
         .title {
-          font-size 24px
+          color var(--text-color);
+          font-size: 24px;
           padding 10px 10px 0 10px
+          font-weight: 700;
         }
 
         .logo {
@@ -112,6 +122,34 @@
           }
         }
       }
+      .nav-item-box{
+        width: 100%;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:  all 0.2s cubic-bezier(0.645,0.045,0.355,1);
+        aspect-ratio: 1.1028 / 1;
+        background: var( --card-bg)
+       display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 160px
+        // min-height: 190px;
+        i{
+          display: inline-block
+          min-width: 48px;
+          width: 48px;
+          height: 48px;
+          font-size: 38px
+          border-radius: 24px;
+          color: var(--normal-color)
+        }
+
+        &:hover{
+          box-shadow: 0 4px 14px 0 rgba(17, 13, 83, .18);
+          transform: translateY(-8px);}
+        
+       }
     }
   }
 
@@ -121,4 +159,38 @@
     }
   }
 
+}
+
+.cursor-ani {
+   position: relative;
+}
+ 
+.cursor-ani::after {
+   content: '';
+   position: absolute;
+   width: 1px;
+   height: 28px;
+   background: #333;
+   transform: translateX(3px) translateY(3px);
+   animation: cursor-blinks 0.8s infinite forwards;
+}
+ 
+@keyframes cursor-blinks {
+   from {
+     opacity: 0;
+   }
+ 
+   to {
+     opacity: 1;
+   }
+}
+.cursor-ani {
+  display: inline-block;
+  min-height: 34px;
+  font-size: 1.5em;
+}
+
+.msg-text span {
+  transition: color 0.3s ease; /* 平滑的颜色过渡 */
+  font-weight: bold;
 }
