@@ -22,7 +22,6 @@
               <el-input
                 v-model="ruleForm.username"
                 size="large"
-                clearable
                 placeholder="请输入账号"
                 @keyup="handleKeyup"
               />
@@ -39,7 +38,6 @@
               </div>
 
               <el-input
-                clearable
                 size="large"
                 v-model="ruleForm.password"
                 placeholder="请输入密码"
