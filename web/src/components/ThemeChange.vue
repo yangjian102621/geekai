@@ -27,18 +27,19 @@ onMounted(() => {
 <style lang="stylus" scoped>
 @import '@/assets/iconfont/iconfont.css'
 .theme-box{
+  z-index :111
   position: fixed;
   right: 40px;
   bottom: 262px;
   cursor: pointer;
-  background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 50%;
   width 35px;
   height: 35px;
   line-height: 35px;
   text-align: center;
-  background-color: rgb(146, 147, 148);
+  // background-color: rgb(146, 147, 148);
+  background: linear-gradient(135deg, rgba(134, 140, 255, 1) 0%, rgba(67, 24, 255, 1) 100%);
 
   transition: all 0.3s ease;
   &:hover{

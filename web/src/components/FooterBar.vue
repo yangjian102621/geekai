@@ -63,6 +63,8 @@ getLicenseInfo()
   width: 100%;
   display flex;
   justify-content center
+  background: var(--theme-bg);
+  margin-top -4px
 
   .footer {
     max-width 400px;

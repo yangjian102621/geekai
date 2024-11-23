@@ -8,7 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@element-plus/icons-vue": "^2.1.0",
+    "@element-plus/icons-vue": "^2.3.1",
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "animate.css": "^4.1.1",
     "axios": "^0.27.2",

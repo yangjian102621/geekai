@@ -1,3 +1,17 @@
+:root{
+  --sm-txt:rgba(163, 174, 208, 1);
+  --text-secondary: #8a939d;
+  --el-color-primary: rgba(67, 24, 255, 1);
+  --el-component-size: 48px;
+  --el-border-radius-base: 8px;
+  --el-color-primary-light-5:rgb(107, 85, 255);
+  --el-color-primary-light-3:rgb(78, 51, 254);
+  --theme-btn-color:rgba(117, 81, 255, 1)
+  --common-text-color:#6e4ef9
+
+  --text-fff:#fff
+}
+
 .btn-go{
   background:  var(--btnColor);
   color: #fff;
@@ -6,4 +20,39 @@
   &:hover{
     color: #fff;
   }
+}
+.btn-normal{
+  background:  var(--theme-btn-color);
+  color: #fff;
+  border-radius: 5px;
+  padding: 5px 10px;
+  &:hover{
+    color: #fff;
+  }
+}
+.flex{
+  display: flex;
+  align-items: center;
+  }
+.flex-center{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.theme-color-primary{
+  color: var(--el-color-primary);
+}
+.text-color-primary{
+  color:var(--text-color-primary)
+}
+.w100{
+  width: 100%;
+}
+.el-input__wrapper{
+  background: var( --card-bg)
 }
