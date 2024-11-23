@@ -23,6 +23,7 @@
                       v-model="form.code"
                       maxlength="6"
                       size="large"
+                      placeholder="请输入验证码"
                       class="code-input"
                     />
                     <send-msg
@@ -46,8 +47,18 @@
                 <el-form-item>
                   <div class="form-title">验证码</div>
                   <div class="flex w100">
-                    <el-input v-model="form.code" maxlength="6" />
-                    <send-msg size="" :receiver="form.email" type="email" />
+                    <el-input
+                      v-model="form.code"
+                      maxlength="6"
+                      size="large"
+                      placeholder="请输入验证码"
+                      class="code-input"
+                    />
+                    <send-msg
+                      size="large"
+                      :receiver="form.email"
+                      type="email"
+                    />
                   </div>
                 </el-form-item>
               </el-tab-pane>
@@ -136,27 +147,7 @@ const save = () => {
 
 <style lang="stylus">
 @import "@/assets/css/login.styl"
-
-.reset-pass {
-  .form {
-    padding 0 20px
+::v-deep(.el-tabs__item.is-active, .el-tabs__item:hover){
+    color: var(--common-text-color) !important;
   }
-
-  .code-row {
-    width 100%
-    .send-button {
-      padding-left 10px
-    }
-  }
-
-  .reset-pass-dialog {
-    .el-dialog__footer {
-      text-align center
-      padding-top 0
-    }
-    .el-dialog__body {
-      padding 0
-    }
-  }
-}
 </style>

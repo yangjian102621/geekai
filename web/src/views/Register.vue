@@ -321,10 +321,4 @@ const doSubmitRegister = (verifyData) => {
     margin-top: 20px
 
   }
- ::v-deep(.el-tabs__item.is-active, .el-tabs__item:hover){
-    color: var(--common-text-color) !important;
-  }
-  .el-tabs__item{
-    color:var( --text-theme-color)
-    }
 </style>
