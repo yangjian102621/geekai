@@ -147,10 +147,9 @@ func (h *ChatModelHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.ChatModel{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Model(&model.ChatModel{}).Where("id = ?", data.Id).Update(data.Filed, data.Value).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)
@@ -168,10 +167,9 @@ func (h *ChatModelHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		res := h.DB.Model(&model.ChatModel{}).Where("id = ?", id).Update("sort_num", data.Sorts[index])
-		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+		err := h.DB.Model(&model.ChatModel{}).Where("id = ?", id).Update("sort_num", data.Sorts[index]).Error
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}
@@ -186,10 +184,9 @@ func (h *ChatModelHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Where("id = ?", id).Delete(&model.ChatModel{})
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Where("id = ?", id).Delete(&model.ChatModel{}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)

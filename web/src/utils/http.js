@@ -34,7 +34,6 @@ axios.interceptors.response.use(
             } else {
                 removeUserToken()
             }
-            console.log(error.response.data)
             error.response.data.message = "请先登录"
             return Promise.reject(error.response.data)
         }

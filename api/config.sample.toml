@@ -3,8 +3,6 @@ ProxyURL = "" # 如 http://127.0.0.1:7777
 MysqlDns = "root:12345678@tcp(172.22.11.200:3307)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
-AesEncryptKey = ""
-WeChatBot = false
 TikaHost = "http://tika:9998"
 
 [Session]
@@ -64,23 +62,6 @@ TikaHost = "http://tika:9998"
        Bucket = "chatgpt-plus"
        SubDir = ""
        Domain = ""
-
-[[MjProxyConfigs]]
-  Enabled = true
-  ApiURL = "http://midjourney-proxy:8082"
-  ApiKey = "sk-geekmaster"
-
-[[MjPlusConfigs]]
-  Enabled = false
-  ApiURL = "https://api.chat-plus.net"
-  Mode = "fast" # MJ 绘画模式，可选值 relax/fast/turbo
-  ApiKey = "sk-xxx"
-
-[[SdConfigs]]
-  Enabled = false
-  ApiURL = ""
-  ApiKey = ""
-  Txt2ImgJsonPath = "res/sd/text2img.json"
 
 [XXLConfig] # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = false # 是否启用 XXL JOB 服务

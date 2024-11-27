@@ -36,7 +36,7 @@
 import {useTagsStore} from '@/store/tags';
 import {onBeforeRouteUpdate, useRoute, useRouter} from 'vue-router';
 import {ArrowDown, Close} from "@element-plus/icons-vue";
-import {checkAdminSession} from "@/action/session";
+import {checkAdminSession} from "@/store/cache";
 import {ElMessageBox} from "element-plus";
 import {computed} from "vue";
 

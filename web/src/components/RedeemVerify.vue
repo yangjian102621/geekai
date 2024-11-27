@@ -8,13 +8,9 @@
       :title="title"
   >
     <div class="form" id="bind-mobile-form">
-      <el-alert v-if="mobile !== ''" type="info" show-icon :closable="false" style="margin-bottom: 20px;">
-        <p>请输入您参与众筹的 <strong style="color:#F56C6C">微信支付转账单号</strong> 兑换相应的对话次数。</p>
-      </el-alert>
-
       <el-form :model="form">
-        <el-form-item label="转账单号">
-          <el-input v-model="form.tx_id"/>
+        <el-form-item label="兑换码">
+          <el-input v-model="form.code"/>
         </el-form-item>
       </el-form>
     </div>
@@ -22,7 +18,7 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button type="primary" @click="save">
-          确认核销
+          立即兑换
         </el-button>
       </span>
     </template>
@@ -33,36 +29,33 @@
 import {computed, ref} from "vue";
 import {ElMessage} from "element-plus";
 import {httpPost} from "@/utils/http";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
 
 const props = defineProps({
   show: Boolean,
-  mobile: String
 });
 
 const showDialog = computed(() => {
   return props.show
 })
 
-const title = ref('众筹码核销')
+const title = ref('兑换码核销')
 const form = ref({
-  tx_id: '',
+  code: '',
 })
 
 const emits = defineEmits(['hide']);
 
 const save = () => {
-  if (form.value.tx_id === '') {
-    return ElMessage.error({message: "请输入微信支付转账单号"});
+  if (form.value.code === '') {
+    return ElMessage.error({message: "请输入兑换码"});
   }
 
-  httpPost('/api/reward/verify', form.value).then(() => {
-    ElMessage.success({
-      message: '核销成功',
-      duration: 1000,
-      onClose: () => location.reload()
-    })
+  httpPost('/api/redeem/verify', form.value).then(() => {
+    showMessageOK("兑换成功！")
+    emits('hide', true)
   }).catch(e => {
-    ElMessage.error({message: "核销失败：" + e.message});
+    showMessageError("兑换失败：" + e.message)
   })
 }
 

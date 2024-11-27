@@ -3,7 +3,7 @@
     <div class="member custom-scroll">
       <div class="inner">
         <div class="user-profile">
-          <user-profile/>
+          <user-profile :key="profileKey"/>
 
           <el-row class="user-opt" :gutter="20">
             <el-col :span="12">
@@ -12,11 +12,8 @@
             <el-col :span="12">
               <el-button type="primary" @click="showBindMobileDialog = true">更改账号</el-button>
             </el-col>
-            <el-col :span="12">
-              <el-button type="primary" v-if="enableReward" @click="showRewardDialog = true">加入众筹</el-button>
-            </el-col>
-            <el-col :span="12">
-              <el-button type="primary" v-if="enableReward" @click="showRewardVerifyDialog = true">众筹核销
+            <el-col :span="24">
+              <el-button type="success" @click="showRedeemVerifyDialog = true">兑换码核销
               </el-button>
             </el-col>
 
@@ -99,24 +96,7 @@
       <bind-mobile v-if="isLogin" :show="showBindMobileDialog" :username="user.username"
                    @hide="showBindMobileDialog = false"/>
 
-      <reward-verify v-if="isLogin" :show="showRewardVerifyDialog" @hide="showRewardVerifyDialog = false"/>
-
-      <el-dialog
-          v-model="showRewardDialog"
-          :show-close="true"
-          width="400px"
-          title="参与众筹"
-      >
-        <el-alert type="info" :closable="false">
-          <div style="font-size: 14px">您好，目前每单位算力众筹价格为 <strong style="color: #f56c6c">{{ powerPrice }}
-          </strong>元。
-            由于本人没有开通微信支付，付款后请凭借转账单号,点击【众筹核销】按钮手动核销。
-          </div>
-        </el-alert>
-        <div style="text-align: center;padding-top: 10px;">
-          <el-image v-if="enableReward" :src="rewardImg"/>
-        </div>
-      </el-dialog>
+      <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback"/>
 
       <el-dialog
           v-model="showPayDialog"
@@ -160,11 +140,11 @@ import {ElMessage} from "element-plus";
 import {httpGet, httpPost} from "@/utils/http";
 import ItemList from "@/components/ItemList.vue";
 import {InfoFilled, SuccessFilled} from "@element-plus/icons-vue";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import UserProfile from "@/components/UserProfile.vue";
 import PasswordDialog from "@/components/PasswordDialog.vue";
 import BindMobile from "@/components/ResetAccount.vue";
-import RewardVerify from "@/components/RewardVerify.vue";
+import RedeemVerify from "@/components/RedeemVerify.vue";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import UserOrder from "@/components/UserOrder.vue";
@@ -179,8 +159,7 @@ const rewardImg = ref('/images/reward.png')
 const qrcode = ref("")
 const showPasswordDialog = ref(false);
 const showBindMobileDialog = ref(false);
-const showRewardDialog = ref(false);
-const showRewardVerifyDialog = ref(false);
+const showRedeemVerifyDialog = ref(false);
 const text = ref("")
 const user = ref(null)
 const isLogin = ref(false)
@@ -200,6 +179,7 @@ const payName = ref("支付宝")
 const curPay = ref("alipay") // 当前支付方式
 const vipInfoText = ref("")
 const store = useSharedStore()
+const profileKey = ref(0)
 
 
 onMounted(() => {
@@ -216,7 +196,7 @@ onMounted(() => {
     ElMessage.error("获取产品套餐失败：" + e.message)
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     rewardImg.value = res.data['reward_img']
     enableReward.value = res.data['enabled_reward']
     orderPayInfoText.value = res.data['order_pay_info_text']
@@ -368,8 +348,11 @@ const closeOrder = () => {
   activeOrderNo.value = ''
 }
 
-const loginSuccess = () => {
-  location.reload()
+const redeemCallback = (success) => {
+  showRedeemVerifyDialog.value = false
+  if (success) {
+    profileKey.value += 1
+  }
 }
 
 </script>

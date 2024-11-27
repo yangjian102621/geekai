@@ -20,6 +20,7 @@
           style="margin: 0 10px;width: 200px; position: relative;top:3px;"
       />
       <el-button type="primary" :icon="Search" @click="fetchData">搜索</el-button>
+      <el-button type="danger" :icon="Delete" @click="clearOrders">清空未支付订单</el-button>
     </div>
 
     <el-row>
@@ -76,9 +77,9 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 import {dateFormat, removeArrayItem} from "@/utils/libs";
-import {Search} from "@element-plus/icons-vue";
+import {Delete, Search} from "@element-plus/icons-vue";
 
 // 变量定义
 const items = ref([])
@@ -121,6 +122,24 @@ const remove = function (row) {
     })
   }).catch((e) => {
     ElMessage.error("删除失败：" + e.message)
+  })
+}
+
+const clearOrders = () => {
+  ElMessageBox.confirm(
+      '此操作将会删除所有未支付订单，继续操作吗?',
+      '删除提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(() => {
+    httpGet("/api/admin/order/clear").then(() => {
+      ElMessage.success("订单删除成功")
+      page.value = 0
+     fetchData()
+    })
   })
 }
 </script>

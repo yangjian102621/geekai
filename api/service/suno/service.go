@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
+	"geekai/service"
 	"geekai/service/oss"
-	"geekai/service/sd"
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
@@ -88,7 +88,7 @@ func (s *Service) Run() {
 				logger.Errorf("create task with error: %v", err)
 				s.db.Model(&model.SunoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 					"err_msg":  err.Error(),
-					"progress": 101,
+					"progress": service.FailTaskProgress,
 				})
 				continue
 			}
@@ -157,6 +157,9 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	if res.Code != "success" {
 		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
 	}
+	// update the last_use_at for api key
+	apiKey.LastUsedAt = time.Now().Unix()
+	session.Updates(&apiKey)
 	res.Channel = apiKey.ApiURL
 	return res, nil
 }
@@ -165,7 +168,7 @@ func (s *Service) CheckTaskNotify() {
 	go func() {
 		logger.Info("Running Suno task notify checking ...")
 		for {
-			var message sd.NotifyMessage
+			var message service.NotifyMessage
 			err := s.notifyQueue.LPop(&message)
 			if err != nil {
 				continue
@@ -210,7 +213,7 @@ func (s *Service) DownloadImages() {
 				v.AudioURL = audioURL
 				v.Progress = 100
 				s.db.Updates(&v)
-				s.notifyQueue.RPush(sd.NotifyMessage{UserId: v.UserId, JobId: int(v.Id), Message: sd.Finished})
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished})
 			}
 
 			time.Sleep(time.Second * 10)
@@ -278,10 +281,10 @@ func (s *Service) SyncTaskProgress() {
 					tx.Commit()
 
 				} else if task.Data.FailReason != "" {
-					job.Progress = 101
+					job.Progress = service.FailTaskProgress
 					job.ErrMsg = task.Data.FailReason
 					s.db.Updates(&job)
-					s.notifyQueue.RPush(sd.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: sd.Failed})
+					s.notifyQueue.RPush(service.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
 				}
 			}
 
