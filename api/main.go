@@ -24,7 +24,6 @@ import (
 	"geekai/service/sd"
 	"geekai/service/sms"
 	"geekai/service/suno"
-	"geekai/service/wx"
 	"geekai/store"
 	"io"
 	"log"
@@ -131,7 +130,7 @@ func main() {
 		fx.Provide(chatimpl.NewChatHandler),
 		fx.Provide(handler.NewUploadHandler),
 		fx.Provide(handler.NewSmsHandler),
-		fx.Provide(handler.NewRewardHandler),
+		fx.Provide(handler.NewRedeemHandler),
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
@@ -147,7 +146,7 @@ func main() {
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
 		fx.Provide(admin.NewChatRoleHandler),
-		fx.Provide(admin.NewRewardHandler),
+		fx.Provide(admin.NewRedeemHandler),
 		fx.Provide(admin.NewDashboardHandler),
 		fx.Provide(admin.NewChatModelHandler),
 		fx.Provide(admin.NewProductHandler),
@@ -161,13 +160,12 @@ func main() {
 			return service.NewCaptchaService(config.ApiConfig)
 		}),
 		fx.Provide(oss.NewUploaderManager),
-		fx.Provide(mj.NewService),
 		fx.Provide(dalle.NewService),
-		fx.Invoke(func(service *dalle.Service) {
-			service.Run()
-			service.CheckTaskNotify()
-			service.DownloadImages()
-			service.CheckTaskStatus()
+		fx.Invoke(func(s *dalle.Service) {
+			s.Run()
+			s.CheckTaskNotify()
+			s.DownloadImages()
+			s.CheckTaskStatus()
 		}),
 
 		// 邮件服务
@@ -178,36 +176,22 @@ func main() {
 			licenseService.SyncLicense()
 		}),
 
-		// 微信机器人服务
-		fx.Provide(wx.NewWeChatBot),
-		fx.Invoke(func(config *types.AppConfig, bot *wx.Bot) {
-			if config.WeChatBot {
-				err := bot.Run()
-				if err != nil {
-					logger.Error("微信登录失败：", err)
-				}
-			}
-		}),
-
 		// MidJourney service pool
-		fx.Provide(mj.NewServicePool),
-		fx.Invoke(func(pool *mj.ServicePool, config *types.AppConfig) {
-			pool.InitServices(config.MjPlusConfigs, config.MjProxyConfigs)
-			if pool.HasAvailableService() {
-				pool.DownloadImages()
-				pool.CheckTaskNotify()
-				pool.SyncTaskProgress()
-			}
+		fx.Provide(mj.NewService),
+		fx.Provide(mj.NewClient),
+		fx.Invoke(func(s *mj.Service) {
+			s.Run()
+			s.SyncTaskProgress()
+			s.CheckTaskNotify()
+			s.DownloadImages()
 		}),
 
 		// Stable Diffusion 机器人
-		fx.Provide(sd.NewServicePool),
-		fx.Invoke(func(pool *sd.ServicePool, config *types.AppConfig) {
-			pool.InitServices(config.SdConfigs)
-			if pool.HasAvailableService() {
-				pool.CheckTaskNotify()
-				pool.CheckTaskStatus()
-			}
+		fx.Provide(sd.NewService),
+		fx.Invoke(func(s *sd.Service, config *types.AppConfig) {
+			s.Run()
+			s.CheckTaskStatus()
+			s.CheckTaskNotify()
 		}),
 
 		fx.Provide(suno.NewService),
@@ -280,8 +264,8 @@ func main() {
 			group.GET("slide/get", h.SlideGet)
 			group.POST("slide/check", h.SlideCheck)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.RewardHandler) {
-			group := s.Engine.Group("/api/reward/")
+		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
+			group := s.Engine.Group("/api/redeem/")
 			group.POST("verify", h.Verify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
@@ -317,8 +301,6 @@ func main() {
 			group.GET("config/get", h.Get)
 			group.POST("active", h.Active)
 			group.GET("config/get/license", h.GetLicense)
-			group.GET("config/get/app", h.GetAppConfig)
-			group.POST("config/update/draw", h.SaveDrawingConfig)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
@@ -354,9 +336,11 @@ func main() {
 			group.POST("set", h.Set)
 			group.GET("remove", h.Remove)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.RewardHandler) {
-			group := s.Engine.Group("/api/admin/reward/")
+		fx.Invoke(func(s *core.AppServer, h *admin.RedeemHandler) {
+			group := s.Engine.Group("/api/admin/redeem/")
 			group.GET("list", h.List)
+			group.POST("create", h.Create)
+			group.POST("set", h.Set)
 			group.POST("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
@@ -398,6 +382,7 @@ func main() {
 			group := s.Engine.Group("/api/admin/order/")
 			group.POST("list", h.List)
 			group.GET("remove", h.Remove)
+			group.GET("clear", h.Clear)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
 			group := s.Engine.Group("/api/order/")
@@ -496,6 +481,11 @@ func main() {
 			group.GET("detail", h.Detail)
 			group.GET("play", h.Play)
 			group.POST("lyric", h.Lyric)
+		}),
+		fx.Provide(handler.NewTestHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
+			group := s.Engine.Group("/api/test")
+			group.Any("sse", h.PostTest, h.SseTest)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {

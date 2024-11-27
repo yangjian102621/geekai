@@ -1,0 +1,146 @@
+.job-list-box {
+
+  @import "running-job-list.styl"
+
+  .finish-job-list {
+    #waterfall {
+      display flex
+      justify-content center
+      padding-top 20px
+      flex-flow column
+
+
+      .job-item {
+        width 100%
+        height 100%
+        border 1px solid #666666
+        padding 6px
+        overflow hidden
+        border-radius 6px
+        transition: all 0.3s ease; /* 添加过渡效果 */
+        position relative
+
+        .opt {
+          .opt-line {
+            margin 6px 0
+
+            ul {
+              display flex
+              flex-flow row
+
+              li {
+                margin-right 6px
+
+                a {
+                  padding 3px 0
+                  width 40px
+                  text-align center
+                  border-radius 5px
+                  display block
+                  cursor pointer
+                  background-color #4E5058
+                  color #ffffff
+
+                  &:hover {
+                    background-color #6D6F78
+                  }
+                }
+              }
+
+              .show-prompt {
+                font-size 20px
+                cursor pointer
+              }
+            }
+          }
+        }
+
+
+        .remove {
+          display none
+          position absolute
+          right 10px
+          top 10px
+        }
+
+        &:hover {
+          .remove {
+            display block
+          }
+        }
+      }
+
+
+      .animate {
+        &:hover {
+          box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+          transform: translateY(-10px); /* 向上移动10像素 */
+        }
+      }
+    }
+  }
+
+
+  .el-image {
+    width 100%
+    height 100%
+    overflow visible
+
+    .el-image-viewer__wrapper {
+      img {
+        width auto
+        height auto
+      }
+    }
+
+    .image-slot {
+      display flex
+      flex-flow column
+      justify-content center
+      align-items center
+      min-height 220px
+      color #ffffff
+
+      .err-msg-container {
+        overflow hidden
+        word-break break-all
+        padding 15px
+        .title {
+          font-size 20px
+          text-align center
+          font-weight bold
+          color #f56c6c
+          margin-bottom 30px
+        }
+
+        .opt {
+          display flex
+          justify-content center
+        }
+      }
+      .iconfont {
+        font-size 50px
+        margin-bottom 10px
+      }
+
+
+    }
+  }
+
+  .el-image.upscale {
+    img {
+      height 310px
+    }
+
+    .image-slot {
+      height 310px
+    }
+
+    .el-image-viewer__wrapper {
+      img {
+        width auto
+        height auto
+      }
+    }
+  }
+}

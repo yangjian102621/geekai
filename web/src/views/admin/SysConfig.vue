@@ -194,6 +194,33 @@
                     </div>
                   </div>
                 </el-form-item>
+
+                <el-form-item label="会员充值说明" prop="order_pay_timeout">
+                  <div class="tip-input">
+                    <el-input v-model="system['vip_info_text']" placeholder=""/>
+                    <div class="info">
+                      <el-tooltip
+                          effect="dark"
+                          content="会员充值页面的充值说明文字"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </div>
+                </el-form-item>
+
+                <el-form-item label="MJ默认API模式" prop="mj_mode">
+                  <el-select v-model="system['mj_mode']" placeholder="请选择模式">
+                    <el-option v-for="item in mjModels" :value="item.value" :label="item.name" :key="item.value">{{
+                        item.name
+                      }}
+                    </el-option>
+                  </el-select>
+                </el-form-item>
               </el-tab-pane>
 
               <el-tab-pane label="算力配置">
@@ -258,84 +285,6 @@
                   <el-input v-model.number="system['suno_power']" placeholder="使用 Suno 生成一首音乐消耗算力"/>
                 </el-form-item>
               </el-tab-pane>
-              <el-tab-pane label="众筹支付">
-                <el-form-item label="启用众筹功能" prop="enabled_reward">
-                  <div class="tip-input">
-                    <el-switch v-model="system['enabled_reward']"/>
-                    <div class="info">
-                      <el-tooltip
-                          effect="dark"
-                          content="如果关闭次功能将不在用户菜单显示众筹二维码"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </div>
-                </el-form-item>
-
-                <div v-if="system['enabled_reward']">
-                  <el-form-item label="算力单价" prop="power_price">
-                    <el-input v-model="system['power_price']"
-                              placeholder="单位算力的价格，比如设置 0.1 表示捐赠1元钱可以得到10个单位算力"/>
-                  </el-form-item>
-                  <el-form-item label="收款二维码" prop="reward_img">
-                    <el-input v-model="system['reward_img']" placeholder="众筹收款二维码地址">
-                      <template #append>
-                        <el-upload
-                            :auto-upload="true"
-                            :show-file-list="false"
-                            @click="beforeUpload('reward_img')"
-                            :http-request="uploadImg"
-                        >
-                          <el-icon class="uploader-icon">
-                            <UploadFilled/>
-                          </el-icon>
-                        </el-upload>
-                      </template>
-                    </el-input>
-                  </el-form-item>
-                </div>
-
-                <el-form-item label="订单超时时间" prop="order_pay_timeout">
-                  <div class="tip-input">
-                    <el-input v-model.number="system['order_pay_timeout']" placeholder="单位：秒"/>
-                    <div class="info">
-                      <el-tooltip
-                          effect="dark"
-                          content="系统会定期清理超时未支付的订单<br/>默认值：900秒"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </div>
-                </el-form-item>
-
-                <el-form-item label="会员充值说明" prop="order_pay_timeout">
-                  <div class="tip-input">
-                    <el-input v-model="system['vip_info_text']" placeholder=""/>
-                    <div class="info">
-                      <el-tooltip
-                          effect="dark"
-                          content="会员充值页面的充值说明文字"
-                          raw-content
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </div>
-                </el-form-item>
-              </el-tab-pane>
             </el-tabs>
 
             <div style="padding: 10px;">
@@ -354,13 +303,16 @@
           </div>
         </el-form-item>
       </el-tab-pane>
-
+      <el-tab-pane label="思维导图" name="mark_map">
+        <md-editor class="mgb20" v-model="system['mark_map_text']" @on-upload-img="onUploadImg"/>
+        <el-form-item>
+          <div style="padding-top: 10px;margin-left: 150px;">
+            <el-button type="primary" @click="save('system')">保存</el-button>
+          </div>
+        </el-form-item>
+      </el-tab-pane>
       <el-tab-pane label="菜单配置" name="menu">
         <Menu/>
-      </el-tab-pane>
-
-      <el-tab-pane label="AI绘图配置" name="AIDrawing">
-        <AIDrawing/>
       </el-tab-pane>
 
       <el-tab-pane label="授权激活" name="license">
@@ -431,7 +383,6 @@ import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
 import {copyObj, dateFormat} from "@/utils/libs";
-import AIDrawing from "@/views/admin/AIDrawing.vue";
 
 const activeName = ref('basic')
 const system = ref({models: []})
@@ -439,10 +390,14 @@ const configBak = ref({})
 const loading = ref(true)
 const systemFormRef = ref(null)
 const models = ref([])
-const openAIModels = ref([])
 const notice = ref("")
 const license = ref({is_active: false})
 const menus = ref([])
+const mjModels = ref([
+  {name: "慢速（Relax）", value: "relax"},
+  {name: "快速（Fast）", value: "fast"},
+  {name: "急速（Turbo）", value: "turbo"},
+])
 
 onMounted(() => {
   // 加载系统配置
@@ -461,7 +416,6 @@ onMounted(() => {
 
   httpGet('/api/admin/model/list').then(res => {
     models.value = res.data
-    openAIModels.value = models.value.filter(v => v.platform === "OpenAI")
     loading.value = false
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)

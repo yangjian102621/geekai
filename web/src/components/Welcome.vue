@@ -56,8 +56,8 @@
 <script setup>
 
 import {onMounted, ref} from "vue";
-import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
+import {getSystemInfo} from "@/store/cache";
 
 const title = ref(process.env.VUE_APP_TITLE)
 const version = ref(process.env.VUE_APP_VERSION)
@@ -99,7 +99,7 @@ const capabilities = ref([
 ])
 
 onMounted(() => {
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     title.value = res.data.title
   }).catch(e => {
     ElMessage.error("获取系统配置失败：" + e.message)

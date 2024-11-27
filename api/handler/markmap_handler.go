@@ -101,17 +101,13 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 		return fmt.Errorf("error with query chat model: %v", res.Error)
 	}
 
-	if user.Status == false {
-		return errors.New("当前用户被禁用")
-	}
-
 	if user.Power < chatModel.Power {
 		return fmt.Errorf("您当前剩余算力（%d）已不足以支付当前模型算力（%d）！", user.Power, chatModel.Power)
 	}
 
 	messages := make([]interface{}, 0)
 	messages = append(messages, types.Message{Role: "system", Content: `
-你是一位非常优秀的思维导图助手，你会把用户的所有提问都总结成思维导图，然后以 Markdown 格式输出。markdown 只需要输出一级标题，二级标题，三级标题，四级标题，最多输出四级，除此之外不要输出任何其他 markdown 标记。下面是一个合格的例子：
+你是一位非常优秀的思维导图助手， 你能帮助用户整理思路，根据用户提供的主题或内容，快速生成结构清晰，有条理的思维导图，然后以 Markdown 格式输出。markdown 只需要输出一级标题，二级标题，三级标题，四级标题，最多输出四级，除此之外不要输出任何其他 markdown 标记。下面是一个合格的例子：
 # Geek-AI 助手
 
 ## 完整的开源系统
@@ -130,7 +126,7 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 
 另外，除此之外不要任何解释性语句。
 `})
-	messages = append(messages, types.Message{Role: "user", Content: prompt})
+	messages = append(messages, types.Message{Role: "user", Content: fmt.Sprintf("请生成一份有关【%s】一份思维导图，要求结构清晰，有条理", prompt)})
 	var req = types.ApiRequest{
 		Model:    chatModel.Value,
 		Stream:   true,
@@ -253,5 +249,6 @@ func (h *MarkMapHandler) doRequest(req types.ApiRequest, chatModel model.ChatMod
 		client = http.DefaultClient
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
+	logger.Debugf("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, req.Model)
 	return client.Do(request)
 }

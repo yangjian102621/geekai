@@ -221,14 +221,15 @@
 </template>
 
 <script setup>
-import {nextTick, onUnmounted, ref, watch} from "vue"
-import {httpGet, httpPost} from "@/utils/http";
+import {ref, watch} from "vue"
+import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
 import {Checked, Close, Iphone, Lock, Message} from "@element-plus/icons-vue";
 import SendMsg from "@/components/SendMsg.vue";
 import {arrayContains} from "@/utils/libs";
+import {getSystemInfo} from "@/store/cache";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -256,7 +257,7 @@ const wxImg = ref("/images/wx.png")
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['hide', 'success']);
 
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   if (res.data) {
     const registerWays = res.data['register_ways']
     if (arrayContains(registerWays, "mobile")) {

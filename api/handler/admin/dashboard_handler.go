@@ -60,13 +60,6 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 		stats.Tokens += item.Tokens
 	}
 
-	// 众筹收入
-	var rewards []model.Reward
-	res = h.DB.Where("created_at > ?", zeroTime).Find(&rewards)
-	for _, item := range rewards {
-		stats.Income += item.Amount
-	}
-
 	// 订单收入
 	var orders []model.Order
 	res = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Find(&orders)
@@ -99,13 +92,6 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	res = h.DB.Where("created_at > ?", startDate).Find(&historyMessages)
 	for _, item := range historyMessages {
 		historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Tokens)
-	}
-
-	// 浮点数相加？
-	// 统计最近7天的众筹
-	res = h.DB.Where("created_at > ?", startDate).Find(&rewards)
-	for _, item := range rewards {
-		incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
 	}
 
 	// 统计最近7天的订单
