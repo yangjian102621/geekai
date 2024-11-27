@@ -160,7 +160,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
 import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";
 import {ElMessage} from "element-plus";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import bus from '@/store/eventbus'
@@ -210,7 +210,7 @@ onMounted(() => {
     showFailToast("获取产品套餐失败：" + e.message)
   })
 
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     vipMonthPower.value = res.data['vip_month_power']
   }).catch(e => {
     showFailToast("获取系统配置失败：" + e.message)

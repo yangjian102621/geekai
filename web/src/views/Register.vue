@@ -181,6 +181,7 @@ import {arrayContains} from "@/utils/libs";
 import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
+import {getLicenseInfo, getSystemInfo} from "@/store/cache";
 
 const router = useRouter();
 const title = ref('');
@@ -201,7 +202,7 @@ const activeName = ref("mobile")
 const wxImg = ref("/images/wx.png")
 const licenseConfig = ref({})
 
-httpGet("/api/config/get?key=system").then(res => {
+getSystemInfo().then(res => {
   if (res.data) {
     title.value = res.data.title
     logo.value = res.data.logo
@@ -226,7 +227,7 @@ httpGet("/api/config/get?key=system").then(res => {
   ElMessage.error("获取系统配置失败：" + e.message)
 })
 
-httpGet("/api/config/license").then(res => {
+getLicenseInfo().then(res => {
   licenseConfig.value = res.data
 }).catch(e => {
   showMessageError("获取 License 配置：" + e.message)

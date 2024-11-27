@@ -93,7 +93,7 @@ import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import Clipboard from "clipboard";
 import InviteList from "@/components/InviteList.vue";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useSharedStore} from "@/store/sharedata";
 
 const inviteURL = ref("")
@@ -141,7 +141,7 @@ const initData = () => {
       ElMessage.error("获取邀请码失败：" + e.message)
     })
 
-    httpGet("/api/config/get?key=system").then(res => {
+    getSystemInfo().then(res => {
       invitePower.value = res.data["invite_power"]
     }).catch(e => {
       ElMessage.error("获取系统配置失败：" + e.message)

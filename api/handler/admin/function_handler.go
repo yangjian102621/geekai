@@ -69,10 +69,9 @@ func (h *FunctionHandler) Set(c *gin.Context) {
 		return
 	}
 
-	res := h.DB.Model(&model.Function{}).Where("id = ?", data.Id).Update(data.Filed, data.Value)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Model(&model.Function{}).Where("id = ?", data.Id).Update(data.Filed, data.Value).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)
@@ -102,10 +101,9 @@ func (h *FunctionHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 
 	if id > 0 {
-		res := h.DB.Delete(&model.Function{Id: uint(id)})
-		if res.Error != nil {
-			logger.Error("error with update database：", res.Error)
-			resp.ERROR(c, "更新数据库失败！")
+		err := h.DB.Delete(&model.Function{Id: uint(id)}).Error
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
 	}

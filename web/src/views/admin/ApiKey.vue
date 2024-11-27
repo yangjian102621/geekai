@@ -139,6 +139,7 @@ const title = ref("")
 const types = ref([
   {label: "对话", value:"chat"},
   {label: "Midjourney", value:"mj"},
+  {label: "Stable-Diffusion", value:"sd"},
   {label: "DALL-E", value:"dalle"},
   {label: "Suno文生歌", value:"suno"},
   {label: "Luma视频", value:"luma"},

@@ -14,7 +14,6 @@ import (
 	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/oss"
-	"geekai/service/sd"
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
@@ -70,10 +69,10 @@ func (s *Service) Run() {
 			if err != nil {
 				logger.Errorf("error with image task: %v", err)
 				s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
-					"progress": -1,
+					"progress": service.FailTaskProgress,
 					"err_msg":  err.Error(),
 				})
-				s.notifyQueue.RPush(sd.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: sd.Failed})
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
 			}
 		}
 	}()
@@ -148,7 +147,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		Where("enabled", true).
 		Order("last_used_at ASC").First(&apiKey)
 	if tx.Error != nil {
-		return "", fmt.Errorf("no available IMG api key: %v", tx.Error)
+		return "", fmt.Errorf("no available DALL-E api key: %v", tx.Error)
 	}
 
 	var res imgRes
@@ -191,7 +190,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		return "", fmt.Errorf("err with update database: %v", tx.Error)
 	}
 
-	s.notifyQueue.RPush(sd.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: sd.Finished})
+	s.notifyQueue.RPush(service.NotifyMessage{UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
 	var content string
 	if sync {
 		imgURL, err := s.downloadImage(task.JobId, int(task.UserId), res.Data[0].Url)
@@ -208,7 +207,7 @@ func (s *Service) CheckTaskNotify() {
 	go func() {
 		logger.Info("Running DALL-E task notify checking ...")
 		for {
-			var message sd.NotifyMessage
+			var message service.NotifyMessage
 			err := s.notifyQueue.LPop(&message)
 			if err != nil {
 				continue
@@ -221,6 +220,30 @@ func (s *Service) CheckTaskNotify() {
 			if err != nil {
 				continue
 			}
+		}
+	}()
+}
+
+func (s *Service) CheckTaskStatus() {
+	go func() {
+		logger.Info("Running DALL-E task status checking ...")
+		for {
+			var jobs []model.DallJob
+			res := s.db.Where("progress < ?", 100).Find(&jobs)
+			if res.Error != nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			for _, job := range jobs {
+				// 超时的任务标记为失败
+				if time.Now().Sub(job.CreatedAt) > time.Minute*10 {
+					job.Progress = service.FailTaskProgress
+					job.ErrMsg = "任务超时"
+					s.db.Updates(&job)
+				}
+			}
+			time.Sleep(time.Second * 10)
 		}
 	}()
 }
@@ -268,47 +291,6 @@ func (s *Service) downloadImage(jobId uint, userId int, orgURL string) (string, 
 	if res.Error != nil {
 		return "", err
 	}
-	s.notifyQueue.RPush(sd.NotifyMessage{UserId: userId, JobId: int(jobId), Message: sd.Finished})
+	s.notifyQueue.RPush(service.NotifyMessage{UserId: userId, JobId: int(jobId), Message: service.TaskStatusFinished})
 	return imgURL, nil
-}
-
-// CheckTaskStatus 检查任务状态，自动删除过期或者失败的任务
-func (s *Service) CheckTaskStatus() {
-	go func() {
-		logger.Info("Running Stable-Diffusion task status checking ...")
-		for {
-			var jobs []model.DallJob
-			res := s.db.Where("progress < ?", 100).Find(&jobs)
-			if res.Error != nil {
-				time.Sleep(5 * time.Second)
-				continue
-			}
-
-			for _, job := range jobs {
-				// 5 分钟还没完成的任务直接删除
-				if time.Now().Sub(job.CreatedAt) > time.Minute*5 || job.Progress == -1 {
-					s.db.Delete(&job)
-					var user model.User
-					s.db.Where("id = ?", job.UserId).First(&user)
-					// 退回绘图次数
-					res = s.db.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power))
-					if res.Error == nil && res.RowsAffected > 0 {
-						s.db.Create(&model.PowerLog{
-							UserId:    user.Id,
-							Username:  user.Username,
-							Type:      types.PowerConsume,
-							Amount:    job.Power,
-							Balance:   user.Power + job.Power,
-							Mark:      types.PowerAdd,
-							Model:     "dall-e-3",
-							Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
-							CreatedAt: time.Now(),
-						})
-					}
-					continue
-				}
-			}
-			time.Sleep(time.Second * 10)
-		}
-	}()
 }

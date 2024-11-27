@@ -10,95 +10,91 @@ package sd
 import (
 	"fmt"
 	"geekai/core/types"
+	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
-	"strings"
+	"github.com/go-redis/redis/v8"
 	"time"
 
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
 )
 
+var logger = logger2.GetLogger()
+
 // SD 绘画服务
 
 type Service struct {
 	httpClient    *req.Client
-	config        types.StableDiffusionConfig
 	taskQueue     *store.RedisQueue
 	notifyQueue   *store.RedisQueue
 	db            *gorm.DB
 	uploadManager *oss.UploaderManager
-	name          string // service name
 	leveldb       *store.LevelDB
-	running       bool // 运行状态
+	Clients       *types.LMap[uint, *types.WsClient] // UserId => Client
 }
 
-func NewService(name string, config types.StableDiffusionConfig, taskQueue *store.RedisQueue, notifyQueue *store.RedisQueue, db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelDB) *Service {
-	config.ApiURL = strings.TrimRight(config.ApiURL, "/")
+func NewService(db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelDB, redisCli *redis.Client) *Service {
 	return &Service{
-		name:          name,
-		config:        config,
 		httpClient:    req.C(),
-		taskQueue:     taskQueue,
-		notifyQueue:   notifyQueue,
+		taskQueue:     store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli),
+		notifyQueue:   store.NewRedisQueue("StableDiffusion_Queue", redisCli),
 		db:            db,
 		leveldb:       levelDB,
+		Clients:       types.NewLMap[uint, *types.WsClient](),
 		uploadManager: manager,
-		running:       true,
 	}
 }
 
 func (s *Service) Run() {
-	logger.Infof("Starting Stable-Diffusion job consumer for %s", s.name)
-	for s.running {
-		var task types.SdTask
-		err := s.taskQueue.LPop(&task)
-		if err != nil {
-			logger.Errorf("taking task with error: %v", err)
-			continue
-		}
+	logger.Infof("Starting Stable-Diffusion job consumer")
+	go func() {
+		for {
+			var task types.SdTask
+			err := s.taskQueue.LPop(&task)
+			if err != nil {
+				logger.Errorf("taking task with error: %v", err)
+				continue
+			}
 
-		// translate prompt
-		if utils.HasChinese(task.Params.Prompt) {
-			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt), "gpt-4o-mini")
-			if err == nil {
-				task.Params.Prompt = content
-			} else {
-				logger.Warnf("error with translate prompt: %v", err)
+			// translate prompt
+			if utils.HasChinese(task.Params.Prompt) {
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, task.Params.Prompt), "gpt-4o-mini")
+				if err == nil {
+					task.Params.Prompt = content
+				} else {
+					logger.Warnf("error with translate prompt: %v", err)
+				}
+			}
+
+			// translate negative prompt
+			if task.Params.NegPrompt != "" && utils.HasChinese(task.Params.NegPrompt) {
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt), "gpt-4o-mini")
+				if err == nil {
+					task.Params.NegPrompt = content
+				} else {
+					logger.Warnf("error with translate prompt: %v", err)
+				}
+			}
+
+			logger.Infof("handle a new Stable-Diffusion task: %+v", task)
+			err = s.Txt2Img(task)
+			if err != nil {
+				logger.Error("绘画任务执行失败：", err.Error())
+				// update the task progress
+				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
+					"progress": service.FailTaskProgress,
+					"err_msg":  err.Error(),
+				})
+				// 通知前端，任务失败
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: service.TaskStatusFailed})
+				continue
 			}
 		}
-
-		// translate negative prompt
-		if task.Params.NegPrompt != "" && utils.HasChinese(task.Params.NegPrompt) {
-			content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Params.NegPrompt), "gpt-4o-mini")
-			if err == nil {
-				task.Params.NegPrompt = content
-			} else {
-				logger.Warnf("error with translate prompt: %v", err)
-			}
-		}
-
-		logger.Infof("%s handle a new Stable-Diffusion task: %+v", s.name, task)
-		err = s.Txt2Img(task)
-		if err != nil {
-			logger.Error("绘画任务执行失败：", err.Error())
-			// update the task progress
-			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumns(map[string]interface{}{
-				"progress": -1,
-				"err_msg":  err.Error(),
-			})
-			// 通知前端，任务失败
-			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Failed})
-			continue
-		}
-	}
-}
-
-func (s *Service) Stop() {
-	s.running = false
+	}()
 }
 
 // Txt2ImgReq 文生图请求实体
@@ -160,12 +156,19 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 	}
 	var res Txt2ImgResp
 	var errChan = make(chan error)
-	apiURL := fmt.Sprintf("%s/sdapi/v1/txt2img", s.config.ApiURL)
+
+	var apiKey model.ApiKey
+	err := s.db.Where("type", "sd").Where("enabled", true).Order("last_used_at ASC").First(&apiKey).Error
+	if err != nil {
+		return fmt.Errorf("no available Stable-Diffusion api key: %v", err)
+	}
+
+	apiURL := fmt.Sprintf("%s/sdapi/v1/txt2img", apiKey.ApiURL)
 	logger.Debugf("send image request to %s", apiURL)
 	// send a request to sd api endpoint
 	go func() {
 		response, err := s.httpClient.R().
-			SetHeader("Authorization", s.config.ApiKey).
+			SetHeader("Authorization", apiKey.Value).
 			SetBody(body).
 			SetSuccessResult(&res).
 			Post(apiURL)
@@ -177,6 +180,10 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 			errChan <- fmt.Errorf("error http code status: %v", response.Status)
 			return
 		}
+
+		// update the last used time
+		apiKey.LastUsedAt = time.Now().Unix()
+		s.db.Updates(&apiKey)
 
 		// 保存 Base64 图片
 		imgURL, err := s.uploadManager.GetUploadHandler().PutBase64(res.Images[0])
@@ -206,17 +213,17 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 
 			// task finished
 			s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", 100)
-			s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Finished})
+			s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: service.TaskStatusFinished})
 			// 从 leveldb 中删除预览图片数据
 			_ = s.leveldb.Delete(task.Params.TaskId)
 			return nil
 		default:
-			err, resp := s.checkTaskProgress()
+			err, resp := s.checkTaskProgress(apiKey)
 			// 更新任务进度
 			if err == nil && resp.Progress > 0 {
 				s.db.Model(&model.SdJob{Id: uint(task.Id)}).UpdateColumn("progress", int(resp.Progress*100))
 				// 发送更新状态信号
-				s.notifyQueue.RPush(NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: Running})
+				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: task.Id, Message: service.TaskStatusRunning})
 				// 保存预览图片数据
 				if resp.CurrentImage != "" {
 					_ = s.leveldb.Put(task.Params.TaskId, resp.CurrentImage)
@@ -229,11 +236,11 @@ func (s *Service) Txt2Img(task types.SdTask) error {
 }
 
 // 执行任务
-func (s *Service) checkTaskProgress() (error, *TaskProgressResp) {
-	apiURL := fmt.Sprintf("%s/sdapi/v1/progress?skip_current_image=false", s.config.ApiURL)
+func (s *Service) checkTaskProgress(apiKey model.ApiKey) (error, *TaskProgressResp) {
+	apiURL := fmt.Sprintf("%s/sdapi/v1/progress?skip_current_image=false", apiKey.ApiURL)
 	var res TaskProgressResp
 	response, err := s.httpClient.R().
-		SetHeader("Authorization", s.config.ApiKey).
+		SetHeader("Authorization", apiKey.Value).
 		SetSuccessResult(&res).
 		Get(apiURL)
 	if err != nil {
@@ -244,4 +251,55 @@ func (s *Service) checkTaskProgress() (error, *TaskProgressResp) {
 	}
 
 	return nil, &res
+}
+
+func (s *Service) PushTask(task types.SdTask) {
+	logger.Debugf("add a new MidJourney task to the task list: %+v", task)
+	s.taskQueue.RPush(task)
+}
+
+func (s *Service) CheckTaskNotify() {
+	go func() {
+		logger.Info("Running Stable-Diffusion task notify checking ...")
+		for {
+			var message service.NotifyMessage
+			err := s.notifyQueue.LPop(&message)
+			if err != nil {
+				continue
+			}
+			client := s.Clients.Get(uint(message.UserId))
+			if client == nil {
+				continue
+			}
+			err = client.Send([]byte(message.Message))
+			if err != nil {
+				continue
+			}
+		}
+	}()
+}
+
+// CheckTaskStatus 检查任务状态，自动删除过期或者失败的任务
+func (s *Service) CheckTaskStatus() {
+	go func() {
+		logger.Info("Running Stable-Diffusion task status checking ...")
+		for {
+			var jobs []model.SdJob
+			res := s.db.Where("progress < ?", 100).Find(&jobs)
+			if res.Error != nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			for _, job := range jobs {
+				// 5 分钟还没完成的任务标记为失败
+				if time.Now().Sub(job.CreatedAt) > time.Minute*5 {
+					job.Progress = service.FailTaskProgress
+					job.ErrMsg = "任务超时"
+					s.db.Updates(&job)
+				}
+			}
+			time.Sleep(time.Second * 5)
+		}
+	}()
 }
