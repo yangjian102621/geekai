@@ -32,15 +32,15 @@ import (
 type SdJobHandler struct {
 	BaseHandler
 	redis     *redis.Client
-	pool      *sd.ServicePool
+	service   *sd.Service
 	uploader  *oss.UploaderManager
 	snowflake *service.Snowflake
 	leveldb   *store.LevelDB
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, pool *sd.ServicePool, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer, db *gorm.DB, service *sd.Service, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
 	return &SdJobHandler{
-		pool:      pool,
+		service:   service,
 		uploader:  manager,
 		snowflake: snowflake,
 		leveldb:   levelDB,
@@ -68,7 +68,7 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.pool.Clients.Put(uint(userId), client)
+	h.service.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
@@ -76,11 +76,6 @@ func (h *SdJobHandler) preCheck(c *gin.Context) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
-		return false
-	}
-
-	if !h.pool.HasAvailableService() {
-		resp.ERROR(c, "Stable-Diffusion 池子中没有没有可用的服务！")
 		return false
 	}
 
@@ -164,14 +159,14 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.pool.PushTask(types.SdTask{
+	h.service.PushTask(types.SdTask{
 		Id:     int(job.Id),
 		Type:   types.TaskImage,
 		Params: params,
 		UserId: userId,
 	})
 
-	client := h.pool.Clients.Get(uint(job.UserId))
+	client := h.service.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
@@ -232,7 +227,7 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
-		session = session.Where("progress = ?", 100).Order("id DESC")
+		session = session.Where("progress >= ?", 100).Order("id DESC")
 	} else {
 		session = session.Where("progress < ?", 100).Order("id ASC")
 	}
@@ -278,29 +273,54 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 // Remove remove task image
 func (h *SdJobHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
-	userId := h.GetInt(c, "user_id", 0)
+	userId := h.GetLoginUserId(c)
 	var job model.SdJob
 	if res := h.DB.Where("id = ? AND user_id = ?", id, userId).First(&job); res.Error != nil {
 		resp.ERROR(c, "记录不存在")
 		return
 	}
 
-	// remove job recode
-	res := h.DB.Delete(&model.SdJob{Id: job.Id})
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
+	// 删除任务
+	tx := h.DB.Begin()
+	if err := tx.Delete(&job).Error; err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
 		return
 	}
+
+	// 如果任务未完成，或者任务失败，则恢复用户算力
+	if job.Progress != 100 {
+		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+		var user model.User
+		tx.Where("id = ?", job.UserId).First(&user)
+		err = tx.Create(&model.PowerLog{
+			UserId:    user.Id,
+			Username:  user.Username,
+			Type:      types.PowerRefund,
+			Amount:    job.Power,
+			Balance:   user.Power,
+			Mark:      types.PowerAdd,
+			Model:     "stable-diffusion",
+			Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s， Err: %s", job.TaskId, job.ErrMsg),
+			CreatedAt: time.Now(),
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	tx.Commit()
 
 	// remove image
 	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
-	}
-
-	client := h.pool.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte(sd.Finished))
 	}
 
 	resp.SUCCESS(c)
@@ -309,13 +329,12 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 // Publish 发布/取消发布图片到画廊显示
 func (h *SdJobHandler) Publish(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
-	userId := h.GetInt(c, "user_id", 0)
+	userId := h.GetLoginUserId(c)
 	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
 
-	res := h.DB.Model(&model.SdJob{Id: uint(id), UserId: userId}).UpdateColumn("publish", action)
-	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
-		resp.ERROR(c, "更新数据库失败")
+	err := h.DB.Model(&model.SdJob{Id: uint(id), UserId: int(userId)}).UpdateColumn("publish", action).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 

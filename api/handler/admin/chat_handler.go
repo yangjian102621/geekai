@@ -259,10 +259,9 @@ func (h *ChatHandler) RemoveChat(c *gin.Context) {
 // RemoveMessage 删除聊天记录
 func (h *ChatHandler) RemoveMessage(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
-	tx := h.DB.Unscoped().Where("id = ?", id).Delete(&model.ChatMessage{})
-	if tx.Error != nil {
-		logger.Error("error with update database：", tx.Error)
-		resp.ERROR(c, "更新数据库失败！")
+	err := h.DB.Unscoped().Where("id = ?", id).Delete(&model.ChatMessage{}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 	resp.SUCCESS(c)

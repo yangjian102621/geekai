@@ -277,7 +277,7 @@ import {compact} from "lodash";
 import {httpGet, httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import Generating from "@/components/ui/Generating.vue";
-import {checkSession} from "@/action/session";
+import {checkSession} from "@/store/cache";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {formatTime} from "@/utils/libs";
 import Clipboard from "clipboard";
@@ -381,9 +381,9 @@ onMounted(() => {
 
   checkSession().then(user => {
     userId.value = user.id
-    fetchData(1)
     connect()
   })
+  fetchData(1)
 })
 
 onUnmounted(() => {
@@ -410,6 +410,8 @@ const fetchData = (_page) => {
     list.value = items
     noData.value = list.value.length === 0
   }).catch(e => {
+    loading.value = false
+    noData.value = true
     showMessageError("获取作品列表失败："+e.message)
   })
 }

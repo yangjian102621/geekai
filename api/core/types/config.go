@@ -12,22 +12,18 @@ import (
 )
 
 type AppConfig struct {
-	Path           string `toml:"-"`
-	Listen         string
-	Session        Session
-	AdminSession   Session
-	ProxyURL       string
-	MysqlDns       string                  // mysql 连接地址
-	StaticDir      string                  // 静态资源目录
-	StaticUrl      string                  // 静态资源 URL
-	Redis          RedisConfig             // redis 连接信息
-	ApiConfig      ApiConfig               // ChatPlus API authorization configs
-	SMS            SMSConfig               // send mobile message config
-	OSS            OSSConfig               // OSS config
-	MjProxyConfigs []MjProxyConfig         // MJ proxy config
-	MjPlusConfigs  []MjPlusConfig          // MJ plus config
-	WeChatBot      bool                    // 是否启用微信机器人
-	SdConfigs      []StableDiffusionConfig // sd AI draw service pool
+	Path         string `toml:"-"`
+	Listen       string
+	Session      Session
+	AdminSession Session
+	ProxyURL     string
+	MysqlDns     string      // mysql 连接地址
+	StaticDir    string      // 静态资源目录
+	StaticUrl    string      // 静态资源 URL
+	Redis        RedisConfig // redis 连接信息
+	ApiConfig    ApiConfig   // ChatPlus API authorization configs
+	SMS          SMSConfig   // send mobile message config
+	OSS          OSSConfig   // OSS config
 
 	XXLConfig       XXLConfig
 	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
@@ -51,27 +47,6 @@ type ApiConfig struct {
 	ApiURL string
 	AppId  string
 	Token  string
-}
-
-type MjProxyConfig struct {
-	Enabled bool
-	ApiURL  string // api 地址
-	Mode    string // 绘画模式，可选值：fast/turbo/relax
-	ApiKey  string
-}
-
-type StableDiffusionConfig struct {
-	Enabled bool
-	Model   string // 模型名称
-	ApiURL  string
-	ApiKey  string
-}
-
-type MjPlusConfig struct {
-	Enabled bool   // 如果启用了 MidJourney Plus，将会自动禁用原生的MidJourney服务
-	ApiURL  string // api 地址
-	Mode    string // 绘画模式，可选值：fast/turbo/relax
-	ApiKey  string
 }
 
 type AlipayConfig struct {
@@ -168,10 +143,6 @@ type SystemConfig struct {
 	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机（mobile），邮箱注册（email），账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
-	RewardImg     string  `json:"reward_img,omitempty"`     // 众筹收款二维码地址
-	EnabledReward bool    `json:"enabled_reward,omitempty"` // 启用众筹功能
-	PowerPrice    float64 `json:"power_price,omitempty"`    // 算力单价
-
 	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
 	VipInfoText     string `json:"vip_info_text,omitempty"`     // 会员页面充值说明
 	DefaultModels   []int  `json:"default_models,omitempty"`    // 默认开通的 AI 模型
@@ -188,8 +159,10 @@ type SystemConfig struct {
 	ContextDeep   int  `json:"context_deep,omitempty"`
 
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
+	MjMode      string `json:"mj_mode"`       // midjourney 默认的API模式，relax, fast, turbo
 
-	IndexBgURL string `json:"index_bg_url"` // 前端首页背景图片
-	IndexNavs  []int  `json:"index_navs"`   // 首页显示的导航菜单
-	Copyright  string `json:"copyright"`    // 版权信息
+	IndexBgURL  string `json:"index_bg_url"`  // 前端首页背景图片
+	IndexNavs   []int  `json:"index_navs"`    // 首页显示的导航菜单
+	Copyright   string `json:"copyright"`     // 版权信息
+	MarkMapText string `json:"mark_map_text"` // 思维导入的默认文本
 }

@@ -1,5 +1,6 @@
 import {randString} from "@/utils/libs";
 import Storage from "good-storage";
+import {removeAdminInfo, removeUserInfo} from "@/store/cache";
 
 /**
  * storage handler
@@ -22,6 +23,7 @@ export function setUserToken(token) {
 
 export function removeUserToken() {
     Storage.remove(UserTokenKey)
+    removeUserInfo()
 }
 
 export function getAdminToken() {
@@ -34,4 +36,5 @@ export function setAdminToken(token) {
 
 export function removeAdminToken() {
     Storage.remove(AdminTokenKey)
+    removeAdminInfo()
 }

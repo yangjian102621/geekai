@@ -76,7 +76,7 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
-import {checkSession} from "@/action/session";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {httpGet, httpPost} from "@/utils/http";
 import {arrayContains, removeArrayItem, showLoginDialog, substr} from "@/utils/libs";
 import {showNotify} from "vant";
@@ -91,7 +91,7 @@ const roles = ref([])
 const slogan = ref('你有多大想象力，AI就有多大创造力！')
 
 onMounted(() => {
-  httpGet("/api/config/get?key=system").then(res => {
+  getSystemInfo().then(res => {
     title.value = res.data.title
     if (res.data.slogan) {
       slogan.value = res.data.slogan

@@ -157,11 +157,7 @@
         <div v-for="item in messages" :key="item.id">
           <chat-prompt
               v-if="item.type==='prompt'"
-              :icon="item.icon"
-              :created-at="dateFormat(item['created_at'])"
-              :tokens="item['tokens']"
-              :model="item.model"
-              :content="item.content"/>
+              :data="item"/>
           <chat-reply v-else-if="item.type==='reply'"
                       :read-only="true"
                       :data="item"/>
@@ -288,33 +284,11 @@ const removeMessage = function (row) {
   })
 }
 
-const mathjaxPlugin = require('markdown-it-mathjax3')
-const md = require('markdown-it')({
-  breaks: true,
-  html: true,
-  linkify: true,
-  typographer: true,
-  highlight: function (str, lang) {
-    if (lang && hl.getLanguage(lang)) {
-      // 处理代码高亮
-      const preCode = hl.highlight(lang, str, true).value
-      // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
-    }
-
-    // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str)
-    // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
-  }
-});
-md.use(mathjaxPlugin)
-
 const showContentDialog = ref(false)
 const dialogContent = ref("")
 const showContent = (content) => {
   showContentDialog.value = true
-  dialogContent.value = md.render(processContent(content))
+  dialogContent.value = processContent(content)
 }
 
 const showChatItemDialog = ref(false)
@@ -325,8 +299,6 @@ const showMessages = (row) => {
   httpGet('/api/admin/chat/history?chat_id=' + row.chat_id).then(res => {
     const data = res.data
     for (let i = 0; i < data.length; i++) {
-      data[i].orgContent = data[i].content;
-      data[i].content = md.render(processContent(data[i].content))
       messages.value.push(data[i]);
     }
   }).catch(e => {

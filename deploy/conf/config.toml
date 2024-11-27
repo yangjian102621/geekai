@@ -3,7 +3,6 @@ ProxyURL = ""
 MysqlDns = "root:12345678@tcp(geekai-mysql:3306)/chatgpt_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static"
 StaticUrl = "/static"
-WeChatBot = false
 TikaHost = "http://tika:9998"
 
 [Session]
@@ -68,24 +67,6 @@ TikaHost = "http://tika:9998"
     Bucket = "geekai"
     SubDir = ""
     Domain = ""
-
-[[MjProxyConfigs]]
-  Enabled = false
-  ApiURL = "http://geekai-midjourney-proxy:8082"
-  Mode = ""
-  ApiKey = "sk-geekmaster"
-
-[[MjPlusConfigs]]
-  Enabled = false
-  ApiURL = "https://api.chat-plus.net"
-  Mode = "fast"
-  ApiKey = "sk-xxx"
-
-[[SdConfigs]]
-  Enabled = false
-  Model = ""
-  ApiURL = ""
-  ApiKey = ""
 
 [XXLConfig]   # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
   Enabled = true  # 是否启用 XXL JOB 服务

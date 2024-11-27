@@ -64,6 +64,7 @@ func OpenAIRequest(db *gorm.DB, prompt string, modelName string) (string, error)
 		client.SetProxyURL(apiKey.ApiURL)
 	}
 	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
+	logger.Debugf("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, modelName)
 	r, err := client.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
@@ -76,6 +77,11 @@ func OpenAIRequest(db *gorm.DB, prompt string, modelName string) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("请求 OpenAI API失败：%v", err)
 	}
+
+	if r.IsErrorState() {
+		return "", fmt.Errorf("请求 OpenAI API失败：%v", r.Status)
+	}
+
 	body, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(body, &response)
 	if err != nil {

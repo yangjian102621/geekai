@@ -6,7 +6,7 @@
       </div>
 
       <div class="chat-item">
-        <div class="content" v-html="data.content"></div>
+        <div class="content" v-html="md.render(processContent(data.content))"></div>
         <div class="bar" v-if="data.created_at">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
                     <span class="bar-item">tokens: {{ data.tokens }}</span>
@@ -17,7 +17,7 @@
                   content="复制回答"
                   placement="bottom"
               >
-                <el-icon class="copy-reply" :data-clipboard-text="data.orgContent">
+                <el-icon class="copy-reply" :data-clipboard-text="data.content">
                   <DocumentCopy/>
                 </el-icon>
               </el-tooltip>
@@ -34,7 +34,7 @@
             </el-tooltip>
           </span>
 
-          <span class="bar-item" @click="synthesis(data.orgContent)">
+          <span class="bar-item" @click="synthesis(data.content)">
             <el-tooltip
                 class="box-item"
                 effect="dark"
@@ -69,7 +69,7 @@
       </div>
       <div class="chat-item">
         <div class="content-wrapper">
-          <div class="content" v-html="data.content"></div>
+          <div class="content" v-html="md.render(processContent(data.content))"></div>
         </div>
         <div class="bar" v-if="data.created_at">
           <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
@@ -81,7 +81,7 @@
                   content="复制回答"
                   placement="bottom"
               >
-                <el-icon class="copy-reply" :data-clipboard-text="data.orgContent">
+                <el-icon class="copy-reply" :data-clipboard-text="data.content">
                   <DocumentCopy/>
                 </el-icon>
               </el-tooltip>
@@ -98,7 +98,7 @@
             </el-tooltip>
           </span>
 
-          <span class="bar-item bg" @click="synthesis(data.orgContent)">
+          <span class="bar-item bg" @click="synthesis(data.content)">
             <el-tooltip
                 class="box-item"
                 effect="dark"
@@ -118,7 +118,8 @@
 <script setup>
 import {Clock, DocumentCopy, Refresh} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
-import {dateFormat} from "@/utils/libs";
+import {dateFormat, processContent} from "@/utils/libs";
+import hl from "highlight.js";
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
   data: {
@@ -128,7 +129,6 @@ const props = defineProps({
       content: "",
       created_at: "",
       tokens: 0,
-      orgContent: ""
     },
   },
   readOnly: {
@@ -140,6 +140,33 @@ const props = defineProps({
     default: 'list',
   },
 })
+
+const mathjaxPlugin = require('markdown-it-mathjax3')
+const md = require('markdown-it')({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
+  highlight: function (str, lang) {
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
+    // 显示复制代码按钮
+    const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(/<\/textarea>/g, '&lt;/textarea>')}</textarea>`
+    if (lang && hl.getLanguage(lang)) {
+      const langHtml = `<span class="lang-name">${lang}</span>`
+      // 处理代码高亮
+      const preCode = hl.highlight(lang, str, true).value
+      // 将代码包裹在 pre 中
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+    }
+
+    // 处理代码高亮
+    const preCode = md.utils.escapeHtml(str)
+    // 将代码包裹在 pre 中
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+  }
+});
+md.use(mathjaxPlugin)
 
 const emits = defineEmits(['regen']);
 
