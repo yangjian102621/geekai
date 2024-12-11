@@ -2,16 +2,34 @@
   --sm-txt:rgba(163, 174, 208, 1);
   --text-secondary: #8a939d;
   --el-color-primary: rgb(107, 80, 225);
-  --el-component-size: 48px;
   --el-border-radius-base: 8px;
   --el-color-primary-light-5:rgb(107, 85, 255);
   --el-color-primary-light-3:rgb(78, 51, 254);
   --theme-btn-color:rgba(117, 81, 255, 1)
-  --common-text-color:#6e4ef9
+  --common-text-color:#6e4ef9;
+  --el-component-size: 36px;
+--el-color-primary-dark-2:rgb(169 152 247);
+--el-button-active-border-color:rgb(169 152 247);
+--el-color-success-light-9:#EAFFFC;
+--el-color-success-light-8:#A7F0D9;
+  --el-message-text-color:#0ECD8B;
+  --el-color-success:#0ECD8B;
 
   --text-fff:#fff
-}
+  --theme-border-primary: rgba(86, 86, 95, .322); //主题边框颜色
+  --theme-border-hover: rgb(107, 85, 255);//主题边框hover颜色
+  --text--hover:rgba(215, 211, 240, 0.581) //主题色hover色系
+ 
+  
 
+}
+.el-dialog{
+    --el-border-radius-base: 20px;
+}
+.login-box{
+  --el-component-size: 48px;
+  
+}
 .btn-go{
   background:  var(--btnColor);
   color: #fff;
@@ -55,4 +73,46 @@
 }
 .el-input__wrapper{
   background: var( --card-bg)
+}
+.el-dialog__title{
+  font-weight: bold;
+  line-height: 28px;
+}
+.el-button--primary{
+  border-radius: 8px;
+}
+/* 设置滚动条的宽度 */
+::-webkit-scrollbar {
+  width: 12px; /* 垂直滚动条宽度 */
+  height: 12px; /* 水平滚动条高度 */
+}
+
+/* 滚动条的轨道背景颜色 */
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* 滚动条轨道颜色 */
+  border-radius: 6px; /* 可选：轨道圆角 */
+}
+
+/* 滚动条滑块的颜色 */
+::-webkit-scrollbar-thumb {
+  background: #888; /* 滑块颜色 */
+  border-radius: 6px; /* 可选：滑块圆角 */
+}
+
+/* 鼠标悬停在滑块上的颜色 */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* 悬停时的滑块颜色 */
+}
+//.el-message-box
+.el-message-box{
+  --el-messagebox-border-radius:18px
+}
+.el-message-box__container{
+  border-top: 1px solid #dbd3f4;
+  padding-top: 7px;
+  .el-message-box__message{
+    --text-color:var(--theme-text-color-primary)
+    font-size: 16px
+  }
 }

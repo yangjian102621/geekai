@@ -56,5 +56,5 @@ import FooterBar from "@/components/FooterBar.vue";
     object-fit: cover;
     height: 100%;
   }
-  }
+}
 </style>

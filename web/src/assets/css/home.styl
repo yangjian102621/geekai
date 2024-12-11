@@ -1,166 +1,205 @@
-.home {
+.layout{
   display: flex;
-  height 100vh
-  width 100%
-  flex-flow column
-
-  .header {
-    display flex
-    justify-content space-between
-    height 50px
-    line-height 50px
-    background-color #1E1F22
-    padding-right 20px
-
-    .banner {
-      display flex
-
-      .logo {
-        display flex
-        padding 5px
-        cursor pointer
-
-        .el-image {
-          width 48px
-          height 48px
-          border-radius 50%
-        }
-      }
-
-      .title {
-        display: flex;
-        color: #ffffff;
-        font-size: 20px;
-        padding 0 10px
-      }
-    }
-
-    .navbar {
-      display flex
-      flex-flow row
-
-      .link-button {
-        margin-right 15px
-        color #e1e1e1
-        padding 0 10px
-
-        &:hover {
-          background-color #414141
-        }
-
-        .iconfont {
-          font-size 24px
-        }
-      }
-
-      .user-info {
-        width 100%
-        padding 5px 0;
-
-        .el-dropdown-link {
-          width 100%;
-          cursor: pointer
-          display flex
-
-          .el-image {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%
-          }
-
-          .el-icon {
-            color: #cccccc;
-            line-height 24px;
-          }
-        }
-
-      }
+  position: relative;
+  height: 100vh;
+  .big-top-title{
+    padding-top: 10px;
+  }
+  .top-collapse{
+    padding-top: 10px
+    img{
+      width 24px !important
+      height: 24px !important
     }
   }
-
-
-  .main {
-    width 100%
-    display flex
-    flex-flow row
-
-    .navigator {
-      display flex
-      flex-flow column
-      width 60px
-      padding 10px 1px
-      border-right: 1px solid #3c3c3c
-      background-color: #1E1F22
-
-      .nav-items {
-        margin-top: 10px;
-        padding 0 5px
-
-        li {
-          margin-bottom 15px
-          display flex
-          flex-flow column
-
-          a {
-            color #DADBDC
-            border-radius 10px
-            width 48px
-            height 48px
-            display flex
-            justify-content center
-            align-items center
-            cursor pointer
-            background-color #414348
-
-            .el-image {
-              border-radius 10px
-            }
-
-            .iconfont {
-              font-size 20px
-            }
-          }
-
-          a:hover, a.active {
-            color #47fff1
-            background-color #0F7A71
-          }
-
-          .title {
-            font-size: 12px
-            padding-top: 6px
-            color: #e5e7eb;
-            text-align: center;
-            white-space: nowrap;      /* 防止文本换行 */
-            overflow: hidden;         /* 隐藏溢出内容 */
-            text-overflow: unset;  /* 使用省略号表示溢出内容 */
-          }
-
-          .active {
-            color #47fff1
-          }
-        }
-      }
-
+  .tab-box{
+    align-items: center
+    background-color: var(--card-bg)
+    height: 100%
+    .title{
+      font-size: 28px
+      font-weight: 700
+      margin-right: 6px
+      color:var(--text-theme-color)
     }
-
-    .content {
-      width: 100%
-      overflow auto
-      box-sizing: border-box
-      background-color #282c34
+    img{
+      width 30px
+      height: 30px
+      object-fit: cover
+      border-radius: 50%
+      padding: 4px
+      border: 2px solid #754ff6;
     }
+    .marr{
+      margin-right: 4px;
+    }
+    
   }
-
+  
 }
+.flex-center-col{
+  display flex
+  align-items center
+  flex-direction column
+}
+.menu-list-collapse{
+  .flex-center-col{
+    flex-direction: row;
+  }
+  .menu-list-item{
+    
+    height: 38px;
+    line-height: 38px;
+    
+  }
+  .menu-list-item:hover,
+  .active{
+    background: rgba(79, 89, 102, .122);
+
+    border-radius: 8px;
+    .el-icon{
+      background: transparent !important;
+    }
+  }
+  .el-icon{
+    margin: 0 4px;
+    width 26px !important;
+    height: 26px !important;
+  }
+  .menu-title{
+    font-size: 15px !important;
+    margin-bottom: 0px !important;
+  }
+}
+
+
+.openicon{
+  font-size: 40px;
+  color: #754ff6;
+}
+.menuIcon{
+  .openicon{
+  font-size: 28px;
+  color: #754ff6;
+}
+  }
+.menu-list{
+  margin-top: 20px;
+  .svg-icon{
+    svg{
+      width: 30px;
+      height: 30px;
+    }
+  }
+  .menu-list-item{
+    // margin-bottom: 10px;
+    margin: 0 8px 8px;
+    cursor: pointer;
+    &:hover{
+     .el-icon{
+        background: rgba(79, 89, 102, .122);
+      }
+     
+    }
+    .el-icon{
+      width: 24px;
+      height: 24px;
+      padding: 4px;
+      overflow: hidden;
+      border-radius: 50%;
+      font-size: 20px;
+      // img{
+      //   width: 24px;
+      //   height: 24px;
+      // }
+      
+    }
+    &.active{
+      .el-icon{
+        background: rgba(79, 89, 102, .122);
+      }
+    
+    }
+    
+  }
+  .bot{
+    position: absolute;
+    bottom: 6px;
+ 
+    
+    }
+  .bot-line{
+    
+    width : 100%;
+    height: 1px;
+    background: var(--line-box)
+    margin: 20px 0 10px 0;
+    }
+  .menu-title{
+    font-size: 12px;
+    margin-bottom: 6px;
+
+    
+  }
+  .icon-house,
+  .icon-github{
+      font-size: 20px;
+      color: #754ff6;
+      cursor pointer
+  }
+  .menu-bot-item{
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      align-items: center;
+    a{
+      // margin-right: 46px;
+    }
+  }
+}
+::v-deep(.theme-box){
+  position: relative !important;
+  right: initial;
+  bottom: initial;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  .iconfont{
+    font-size: 15px !important;}
+}
+.right-main{
+  height: 100%;
+  // background: #f5f7fd;
+  background: var(--theme-bg-all);
+  // background-image: linear-gradient(180deg, rgba(247, 232, 255, .54), rgba(191, 223, 255, .35));
+  width: 100%;
+  .topheader{
+    display: flex;
+    position: fixed;
+    right: 8px;
+    z-index : 999;
+    top:0;
+    // width 100%;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .btn-go{
+    background: #754ff6;
+    margin: 10px 10px 0;
+  }
+}
+
+
 
 .el-popper {
   .more-menus {
     li {
-      padding 10px 15px
-      cursor pointer
-      border-radius 5px
-      margin 5px 0
+      padding: 0px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 5px 0;
+      height: 38px;
+      line-height: 38px;
 
       .el-image {
         position: relative
@@ -169,26 +208,49 @@
       }
 
       &:hover {
-        background-color #f1f1f1
+        background: rgba(79, 89, 102, 0.1);
       }
     }
 
     li.active {
-      background-color #f1f1f1
+      background: rgba(79, 89, 102, 0.1);
     }
   }
-
-  .user-info-menu {
-    li {
-      a {
-        width 100%
-        justify-content left
-
-        &:hover {
-          text-decoration none !important
-          color var(--el-primary-text-color)
-        }
-      }
+  .setting-menus{
+    .title{
+      color: #222226;
     }
+    .el-icon,
+    .iconfont{
+      font-size: 18px
+      margin-right: 6px
+    }
+    color: #222226;
   }
+  .username{
+    display: -webkit-box;          
+    -webkit-box-orient: vertical;    
+    overflow: hidden;               
+    -webkit-line-clamp: 1;           
+  }
+
+  
+}
+.rightHeightMax{
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  
+}
+.rightHeight{
+  height: calc(100vh - 42px);
+  max-height: calc(100vh - 42px);
+  overflow: hidden;
+  .content{
+    padding-top: 42px;
+  }
+}
+.content{
+  height: 100%;
+  overflow: scroll;
 }

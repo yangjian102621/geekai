@@ -1,65 +1,77 @@
 <template>
   <div class="chat-line chat-line-prompt-list" v-if="listStyle === 'list'">
     <div class="chat-line-inner">
-        <div class="chat-icon">
-          <img :src="data.icon" alt="User"/>
-        </div>
+      <div class="chat-icon">
+        <img :src="data.icon" alt="User" />
+      </div>
 
-        <div class="chat-item">
-          <div v-if="files.length > 0" class="file-list-box">
-            <div v-for="file in files">
-              <div class="image" v-if="isImage(file.ext)">
-                <el-image :src="file.url" fit="cover"/>
+      <div class="chat-item">
+        <div v-if="files.length > 0" class="file-list-box">
+          <div v-for="file in files">
+            <div class="image" v-if="isImage(file.ext)">
+              <el-image :src="file.url" fit="cover" />
+            </div>
+            <div class="item" v-else>
+              <div class="icon">
+                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
               </div>
-              <div class="item" v-else>
-                <div class="icon">
-                  <el-image :src="GetFileIcon(file.ext)" fit="cover"  />
+              <div class="body">
+                <div class="title">
+                  <el-link
+                    :href="file.url"
+                    target="_blank"
+                    style="--el-font-weight-primary: bold"
+                    >{{ file.name }}</el-link
+                  >
                 </div>
-                <div class="body">
-                  <div class="title">
-                    <el-link :href="file.url" target="_blank" style="--el-font-weight-primary:bold">{{file.name}}</el-link>
-                  </div>
-                  <div class="info">
-                    <span>{{GetFileType(file.ext)}}</span>
-                    <span>{{FormatFileSize(file.size)}}</span>
-                  </div>
+                <div class="info">
+                  <span>{{ GetFileType(file.ext) }}</span>
+                  <span>{{ FormatFileSize(file.size) }}</span>
                 </div>
               </div>
             </div>
           </div>
-          <div class="content" v-html="content"></div>
-          <div class="bar" v-if="data.created_at > 0">
-            <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
-            <span class="bar-item">tokens: {{ finalTokens }}</span>
-          </div>
+        </div>
+        <div class="content" v-html="content"></div>
+        <div class="bar" v-if="data.created_at > 0">
+          <span class="bar-item"
+            ><el-icon><Clock /></el-icon>
+            {{ dateFormat(data.created_at) }}</span
+          >
+          <span class="bar-item">tokens: {{ finalTokens }}</span>
         </div>
       </div>
+    </div>
   </div>
 
   <div class="chat-line chat-line-prompt-chat" v-else>
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="data.icon" alt="User"/>
+        <img :src="data.icon" alt="User" />
       </div>
 
       <div class="chat-item">
-
         <div v-if="files.length > 0" class="file-list-box">
           <div v-for="file in files">
             <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover"/>
+              <el-image :src="file.url" fit="cover" />
             </div>
             <div class="item" v-else>
               <div class="icon">
-                <el-image :src="GetFileIcon(file.ext)" fit="cover"  />
+                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
               </div>
               <div class="body">
                 <div class="title">
-                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary:bold">{{file.name}}</el-link>
+                  <el-link
+                    :href="file.url"
+                    target="_blank"
+                    style="--el-font-weight-primary: bold"
+                    >{{ file.name }}</el-link
+                  >
                 </div>
                 <div class="info">
-                  <span>{{GetFileType(file.ext)}}</span>
-                  <span>{{FormatFileSize(file.size)}}</span>
+                  <span>{{ GetFileType(file.ext) }}</span>
+                  <span>{{ FormatFileSize(file.size) }}</span>
                 </div>
               </div>
             </div>
@@ -69,8 +81,11 @@
           <div class="content" v-html="content"></div>
         </div>
         <div class="bar" v-if="data.created_at > 0">
-          <span class="bar-item"><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span>
-<!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
+          <span class="bar-item"
+            ><el-icon><Clock /></el-icon>
+            {{ dateFormat(data.created_at) }}</span
+          >
+          <!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
         </div>
       </div>
     </div>
@@ -78,104 +93,110 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
-import {Clock} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
+import { onMounted, ref } from "vue";
+import { Clock } from "@element-plus/icons-vue";
+import { httpPost } from "@/utils/http";
 import hl from "highlight.js";
-import {dateFormat, isImage, processPrompt} from "@/utils/libs";
-import {FormatFileSize, GetFileIcon, GetFileType} from "@/store/system";
+import { dateFormat, isImage, processPrompt } from "@/utils/libs";
+import { FormatFileSize, GetFileIcon, GetFileType } from "@/store/system";
 
-const mathjaxPlugin = require('markdown-it-mathjax3')
-const md = require('markdown-it')({
+const mathjaxPlugin = require("markdown-it-mathjax3");
+const md = require("markdown-it")({
   breaks: true,
   html: true,
   linkify: true,
   typographer: true,
   highlight: function (str, lang) {
-    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
+    const codeIndex =
+      parseInt(Date.now()) + Math.floor(Math.random() * 10000000);
     // 显示复制代码按钮
     const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
-<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(/<\/textarea>/g, '&lt;/textarea>')}</textarea>`
+<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
+      /<\/textarea>/g,
+      "&lt;/textarea>"
+    )}</textarea>`;
     if (lang && hl.getLanguage(lang)) {
-      const langHtml = `<span class="lang-name">${lang}</span>`
+      const langHtml = `<span class="lang-name">${lang}</span>`;
       // 处理代码高亮
-      const preCode = hl.highlight(lang, str, true).value
+      const preCode = hl.highlight(lang, str, true).value;
       // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`;
     }
 
     // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str)
+    const preCode = md.utils.escapeHtml(str);
     // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`;
   }
 });
-md.use(mathjaxPlugin)
+md.use(mathjaxPlugin);
 const props = defineProps({
   data: {
     type: Object,
     default: {
-      content: '',
-      created_at: '',
+      content: "",
+      created_at: "",
       tokens: 0,
-      model: '',
-      icon: '',
-    },
+      model: "",
+      icon: ""
+    }
   },
   listStyle: {
     type: String,
-    default: 'list',
-  },
-})
-const finalTokens = ref(props.data.tokens)
-const content =ref(processPrompt(props.data.content))
-const files = ref([])
+    default: "list"
+  }
+});
+const finalTokens = ref(props.data.tokens);
+const content = ref(processPrompt(props.data.content));
+const files = ref([]);
 
 onMounted(() => {
-  processFiles()
-})
+  processFiles();
+});
 
 const processFiles = () => {
   if (!props.data.content) {
-    return
+    return;
   }
 
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
   if (links) {
-    httpPost("/api/upload/list", {urls: links}).then(res => {
-      files.value = res.data.items
+    httpPost("/api/upload/list", { urls: links })
+      .then((res) => {
+        files.value = res.data.items;
 
-      for (let link of links) {
-        if (isExternalImg(link, files.value)) {
-          files.value.push({url:link, ext: ".png"})
+        for (let link of links) {
+          if (isExternalImg(link, files.value)) {
+            files.value.push({ url: link, ext: ".png" });
+          }
         }
-      }
-    }).catch(() => {
-    })
+      })
+      .catch(() => {});
 
     for (let link of links) {
-      content.value = content.value.replace(link,"")
+      content.value = content.value.replace(link, "");
     }
-
   }
-  content.value = md.render(content.value.trim())
-}
+  content.value = md.render(content.value.trim());
+};
 const isExternalImg = (link, files) => {
-  return isImage(link) && !files.find(file => file.url === link)
-}
+  return isImage(link) && !files.find((file) => file.url === link);
+};
 </script>
 
 <style lang="stylus">
 @import '@/assets/css/markdown/vue.css';
 .chat-page,.chat-export {
   .chat-line-prompt-list {
-    background-color #ffffff;
+
+    background-color:var( --chat-content-bg-list);
+    color:var(--theme-text-color-primary);
     justify-content: center;
     width 100%
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
-    border-bottom: 1px solid #d9d9e3;
+    border-bottom: 0.5px solid var(--el-border-color);
 
     .chat-line-inner {
       display flex;
@@ -189,7 +210,7 @@ const isExternalImg = (link, files) => {
         img {
           width: 36px;
           height: 36px;
-          border-radius: 10px;
+          border-radius: 50%;
           padding: 1px;
         }
       }
@@ -218,8 +239,9 @@ const isExternalImg = (link, files) => {
             display flex
             flex-flow row
             border-radius 10px
-            background-color #ffffff
+            background-color:var(--chat-content-bg);
             border 1px solid #e3e3e3
+            color:var(--theme-text-color-primary);
             padding 6px
             margin-bottom 10px
 
@@ -251,7 +273,7 @@ const isExternalImg = (link, files) => {
         .content {
           word-break break-word;
           padding: 0;
-          color #374151;
+          color:var(--theme-text-color-primary);
           font-size: var(--content-font-size);
           border-radius: 5px;
           overflow: auto;
@@ -279,7 +301,7 @@ const isExternalImg = (link, files) => {
           padding 10px 10px 10px 0;
 
           .bar-item {
-            background-color #f7f7f8;
+            // background-color #f7f7f8;
             color #888
             padding 3px 5px;
             margin-right 10px;
@@ -298,7 +320,7 @@ const isExternalImg = (link, files) => {
   }
 
   .chat-line-prompt-chat {
-    background-color #ffffff;
+    background: var(--chat-bg);
     justify-content: center;
     width 100%
     padding-bottom: 1.5rem;
@@ -345,7 +367,8 @@ const isExternalImg = (link, files) => {
             display flex
             flex-flow row
             border-radius 10px
-            background-color #ffffff
+            background-color:var(--chat-content-bg);
+            color:var(--theme-text-color-primary);
             border 1px solid #e3e3e3
             padding 6px
             margin-bottom 10px
@@ -382,10 +405,10 @@ const isExternalImg = (link, files) => {
           .content {
               word-break break-word;
               padding: 1rem
-              color #222222;
+              color var(--theme-text-primary);
               font-size: var(--content-font-size);
               overflow: auto;
-              background-color #98e165
+              background-color :var(--chat-content-bg);
               border-radius: 10px 0 10px 10px;
 
               img {

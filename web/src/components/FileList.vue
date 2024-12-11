@@ -2,22 +2,27 @@
   <el-container class="chat-file-list">
     <div v-for="file in fileList" :key="file.url">
       <div class="image" v-if="isImage(file.ext)">
-        <el-image :src="file.url" fit="cover"/>
+        <el-image :src="file.url" fit="cover" />
         <div class="action">
           <el-icon @click="removeFile(file)"><CircleCloseFilled /></el-icon>
         </div>
       </div>
       <div class="item" v-else>
         <div class="icon">
-          <el-image :src="GetFileIcon(file.ext)" fit="cover"  />
+          <el-image :src="GetFileIcon(file.ext)" fit="cover" />
         </div>
         <div class="body">
           <div class="title">
-            <el-link :href="file.url" target="_blank" style="--el-font-weight-primary:bold">{{substr(file.name, 30)}}</el-link>
+            <el-link
+              :href="file.url"
+              target="_blank"
+              style="--el-font-weight-primary: bold"
+              >{{ substr(file.name, 30) }}</el-link
+            >
           </div>
           <div class="info">
-            <span>{{GetFileType(file.ext)}}</span>
-            <span>{{FormatFileSize(file.size)}}</span>
+            <span>{{ GetFileType(file.ext) }}</span>
+            <span>{{ FormatFileSize(file.size) }}</span>
           </div>
         </div>
         <div class="action">
@@ -29,26 +34,28 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
-import {CircleCloseFilled} from "@element-plus/icons-vue";
-import {isImage, removeArrayItem, substr} from "@/utils/libs";
-import {FormatFileSize, GetFileIcon, GetFileType} from "@/store/system";
+import { ref } from "vue";
+import { CircleCloseFilled } from "@element-plus/icons-vue";
+import { isImage, removeArrayItem, substr } from "@/utils/libs";
+import { FormatFileSize, GetFileIcon, GetFileType } from "@/store/system";
 
 const props = defineProps({
   files: {
     type: Array,
-    default:[],
+    default: []
   }
-})
-const emits = defineEmits(['removeFile']);
-const fileList = ref(props.files)
-
+});
+const emits = defineEmits(["removeFile"]);
+const fileList = ref(props.files);
 
 const removeFile = (file) => {
-  fileList.value = removeArrayItem(fileList.value, file, (v1,v2) => v1.url===v2.url)
-  emits('removeFile', file)
-}
-
+  fileList.value = removeArrayItem(
+    fileList.value,
+    file,
+    (v1, v2) => v1.url === v2.url
+  );
+  emits("removeFile", file);
+};
 </script>
 
 <style scoped lang="stylus">
@@ -75,7 +82,8 @@ const removeFile = (file) => {
     display flex
     flex-flow row
     border-radius 10px
-    background-color #ffffff
+    background-color:var(--chat-content-bg);
+    color:var(--theme-text-color-primary);
     border 1px solid #e3e3e3
     padding 6px
     margin-right 10px
@@ -112,5 +120,4 @@ const removeFile = (file) => {
     font-size 20px
   }
 }
-
 </style>

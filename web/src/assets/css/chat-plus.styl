@@ -6,9 +6,13 @@ $borderColor = #4676d0;
 
   .chat-page {
     height: 100%;
-
+    ::v-deep (.el-message-box__message){
+      font-size: 18px !important
+    }
     // left side
-
+    .el-container{
+      height: 100%;
+      }
     .el-aside {
       //background-color: $sideBgColor;
       padding 10px
@@ -23,15 +27,16 @@ $borderColor = #4676d0;
 
         .search-box {
           flex-wrap: wrap
-          padding: 10px 0;
+          margin-bottom: 10px
+          // padding: 10px 0;
 
-          .search-input {
-            --el-input-bg-color: #363535
-            --el-input-border-color: #464545
-            --el-input-focus-border-color: #47fff1
-            --el-input-hover-border-color: #2DA39A
-            box-shadow: none
-          }
+          // .search-input {
+          //   --el-input-bg-color: #363535
+          //   --el-input-border-color: #464545
+          //   --el-input-focus-border-color: #47fff1
+          //   --el-input-hover-border-color: #2DA39A
+          //   box-shadow: none
+          // }
         }
 
         // 隐藏滚动条
@@ -53,12 +58,14 @@ $borderColor = #4676d0;
             padding: 8px 12px
             //border-bottom: 1px solid #3c3c3c
             cursor: pointer
-            border: 1px solid #3c3c3c
+            // border: 1px solid #3c3c3c
             margin-bottom 6px
             border-radius 5px
 
             &:hover {
-              background-color #343540
+              // background-color :rgba(239, 241, 246, 0.64);
+            border: 1px solid var(--border-active);
+
             }
 
             .avatar {
@@ -78,7 +85,7 @@ $borderColor = #4676d0;
             }
 
             .chat-title {
-              color: #c1c1c1
+              color: var(--el-text-color-regular);
               padding: 5px 10px;
               max-width 220px;
               font-size 14px;
@@ -92,10 +99,11 @@ $borderColor = #4676d0;
               position: absolute;
               right: 2px;
               top: 16px;
-              color #ffffff
+              color var(--text-fb)
+              
 
               .el-dropdown-link {
-                color #ffffff
+                color var(--text-fb)
               }
 
               .el-icon {
@@ -105,8 +113,10 @@ $borderColor = #4676d0;
           }
 
           .chat-list-item.active {
-            background-color: #343540;
-            border-color #21aa93
+              background-color :var(--theme-bg);
+              box-shadow: 0px 3px 9px rgba(112,144,176,0.12);
+            
+            border: 1px solid var(--border-active);
           }
         }
       }
@@ -116,7 +126,7 @@ $borderColor = #4676d0;
         display: flex;
         justify-content: center;
         padding-top 12px
-        border-top 1px solid #3c3c3c;
+        // border-top 0.5px solid var(--el-border-color);
 
         .iconfont {
           margin-right 5px
@@ -134,14 +144,14 @@ $borderColor = #4676d0;
         flex: 1;
         background-color: var(--el-bg-color)
         color var(--el-text-color-primary)
-
+  
         .chat-config {
           height 30px
           padding 10px 30px
           display flex
           justify-content center
           justify-items center
-          border-bottom 1px solid #d9d9e3
+          // border-bottom 1px solid var(--el-border-color);
 
           .role-select-label {
             color #ffffff
@@ -157,18 +167,22 @@ $borderColor = #4676d0;
           }
 
           .setting {
-            padding 5px
+            // padding 5px
             border-radius 5px
             cursor pointer
-            background-color #f2f2f2
-            margin-right 10px
+            width: 26px;
+            height: 26px;
+            text-align: center;
+            line-height: 26px;
+            // background-color #f2f2f2
+            // margin-right 10px
             .iconfont {
-              font-size 18px
-              color #19c37d
+              font-size 16px
+              color var(--el-color-primary)
             }
 
             &:hover {
-              background-color #D5FAD3
+              background-color var(--text--hover)
             }
           }
 
@@ -183,7 +197,8 @@ $borderColor = #4676d0;
           overflow: hidden;
           width: 100%;
           position relative
-
+          background: var(--chat-bg)
+  
           ::-webkit-scrollbar {
             width: 12px /* 滚动条宽度 */
             background #F1F1F1
@@ -217,6 +232,7 @@ $borderColor = #4676d0;
               font-size: 14px;
               display: flex;
               align-items: flex-start;
+              
 
             }
           }
@@ -228,10 +244,11 @@ $borderColor = #4676d0;
 
             .input-box-inner {
               display flex
-              background-color: #ffffff
+              background-color:var(--chat-bg);
+
               justify-content: center;
               align-items: center;
-              box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+              // box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
               padding 0 15px;
 
               .tool-item {
@@ -243,7 +260,7 @@ $borderColor = #4676d0;
                 justify-items center
                 padding 6px
                 cursor pointer
-                background #F2F2F2
+                // background #F2F2F2
 
                 &:hover {
                   background #D5FAD3
@@ -274,13 +291,17 @@ $borderColor = #4676d0;
                 }
 
                 .input-border {
-                  display flex
+                  // display flex
                   width 100%
                   overflow hidden
-                  border: 2px solid #21AA93
+                  border: 2px solid var( --theme-border-primary)
                   border-radius 10px
                   padding 10px
-                  background-color #F4F4F4
+                  // background-color #F4F4F4
+
+                  &:hover{
+                    border-color var(--theme-border-hover)
+                  }
 
                   .input-inner {
                     display flex
@@ -296,6 +317,7 @@ $borderColor = #4676d0;
                     }
 
                     .prompt-input {
+                      min-height: 58px;
                       width 100%
                       line-height: 24px
                       border none
@@ -312,11 +334,33 @@ $borderColor = #4676d0;
                   .send-btn {
                     width 32px
                     margin-left 10px
+                    
                     .el-button {
                       padding 8px 5px;
                       border-radius 6px;
                       font-size 20px;
                     }
+                  }
+                  .little-btns{
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 8px;
+                    .tool-item-btn{
+
+                      .iconfont{
+                        font-size: 19px;
+                       
+                      }
+                    }
+                  }
+
+                  .add-new{
+                    .el-icon{
+                      font-size: 20px;
+                      color: #754ff6;
+                    }
+                    cursor:pointer
                   }
 
                 }
@@ -380,7 +424,8 @@ $borderColor = #4676d0;
       width 40px
       height 40px
       border-radius 100%
-      background-color #ffffff
+      background-color:var(--chat-content-bg);
+       color:var(--theme-text-color-primary);
     }
   }
 
@@ -417,9 +462,13 @@ $borderColor = #4676d0;
         line-height 1.8
         font-size 16px
         overflow auto
-        height 100%
+        height: 70vh
       }
+      
     }
+    .dialog-footer{
+        margin-right: 22px;
+      }
   }
 }
 
@@ -437,3 +486,4 @@ $borderColor = #4676d0;
     margin-left 5px;
   }
 }
+
