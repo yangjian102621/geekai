@@ -20,8 +20,8 @@ SET time_zone = "+00:00";
 --
 -- 数据库： `geekai_plus`
 --
-CREATE DATABASE IF NOT EXISTS `geekai_plus` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE `geekai_plus`;
+CREATE DATABASE IF NOT EXISTS `geekai` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `geekai`;
 
 -- --------------------------------------------------------
 
