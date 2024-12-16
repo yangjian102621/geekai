@@ -1,6 +1,6 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = ""
-MysqlDns = "root:12345678@tcp(geekai-mysql:3306)/geekai_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+MysqlDns = "root:12345678@tcp(geekai-mysql:3306)/geekai?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static"
 StaticUrl = "/static"
 TikaHost = "http://tika:9998"
