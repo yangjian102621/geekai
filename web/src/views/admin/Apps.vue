@@ -17,7 +17,10 @@
         </el-table-column>
         <el-table-column label="应用名称" prop="name">
           <template #default="scope">
-            <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
+            <span class="sort" :data-id="scope.row.id">
+              <i class="iconfont icon-drag"></i>
+              {{ scope.row.name }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="应用标识" prop="key"/>
@@ -370,6 +373,14 @@ const uploadImg = (file) => {
 
     .el-input__inner {
       text-align center
+    }
+  }
+
+  .sort {
+    cursor move
+    .iconfont {
+      position relative
+      top 1px
     }
   }
 

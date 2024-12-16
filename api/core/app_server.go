@@ -201,7 +201,6 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/admin/logout" ||
 		c.Request.URL.Path == "/api/admin/login/captcha" ||
 		c.Request.URL.Path == "/api/user/register" ||
-		c.Request.URL.Path == "/api/user/session" ||
 		c.Request.URL.Path == "/api/chat/history" ||
 		c.Request.URL.Path == "/api/chat/detail" ||
 		c.Request.URL.Path == "/api/chat/list" ||
@@ -227,6 +226,8 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/suno/client" ||
 		c.Request.URL.Path == "/api/suno/detail" ||
 		c.Request.URL.Path == "/api/suno/play" ||
+		c.Request.URL.Path == "/api/download" ||
+		c.Request.URL.Path == "/api/video/client" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/config/") ||
@@ -367,6 +368,7 @@ func staticResourceMiddleware() gin.HandlerFunc {
 			// 直接输出图像数据流
 			c.Data(http.StatusOK, "image/jpeg", buffer.Bytes())
 			c.Abort() // 中断请求
+
 		}
 		c.Next()
 	}

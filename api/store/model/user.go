@@ -4,6 +4,8 @@ type User struct {
 	BaseModel
 	Username    string
 	Nickname    string
+	Email       string
+	Mobile      string
 	Password    string
 	Avatar      string
 	Salt        string // 密码盐

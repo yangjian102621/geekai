@@ -107,6 +107,24 @@
                   </div>
                 </el-form-item>
 
+                <el-form-item label="启用验证码" prop="enabled_verify">
+                  <div class="tip-input">
+                    <el-switch v-model="system['enabled_verify']"/>
+                    <div class="info">
+                      <el-tooltip
+                          effect="dark"
+                          content="启用验证码之后，注册登录都会加载行为验证码，增加安全性。此功能需要购买验证码服务才会生效。"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </div>
+                </el-form-item>
+
                 <el-form-item label="注册方式" prop="register_ways">
                   <el-checkbox-group v-model="system['register_ways']">
                     <el-checkbox value="mobile">手机注册</el-checkbox>
@@ -284,6 +302,9 @@
                 <el-form-item label="Suno 算力" prop="suno_power">
                   <el-input v-model.number="system['suno_power']" placeholder="使用 Suno 生成一首音乐消耗算力"/>
                 </el-form-item>
+                <el-form-item label="Luma 算力" prop="luma_power">
+                  <el-input v-model.number="system['luma_power']" placeholder="使用 Luma 生成一段视频消耗算力"/>
+                </el-form-item>
               </el-tab-pane>
             </el-tabs>
 
@@ -357,6 +378,12 @@
               <span class="text">去版权之后前端页面将不会显示版权信息和源码地址</span>
             </el-descriptions-item>
           </el-descriptions>
+
+          <h3>激活后可获得以下权限：</h3>
+          <ol class="active-info">
+            <li>1、使用任意第三方中转 API KEY，而不用局限于 GeekAI 推荐的白名单列表</li>
+            <li>2、可以在相关页面去除 GeekAI 的版权信息，或者修改为自己的版权信息</li>
+          </ol>
 
           <el-form :model="system" label-width="150px" label-position="right">
             <el-form-item label="许可授权码" prop="license">
@@ -574,6 +601,11 @@ const onUploadImg = (files, callback) => {
         }
       }
 
+
+      .active-info {
+        line-height 1.5
+        padding 10px 0 30px 0
+      }
       .el-descriptions {
         margin-bottom 20px
         .el-icon {

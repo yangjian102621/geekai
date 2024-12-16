@@ -14,6 +14,7 @@ import (
 	"geekai/core/types"
 	"geekai/handler"
 	logger2 "geekai/logger"
+	"geekai/service"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -28,31 +29,47 @@ import (
 
 var logger = logger2.GetLogger()
 
-// Manager 管理员
-type Manager struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Captcha   string `json:"captcha"`    // 验证码
-	CaptchaId string `json:"captcha_id"` // 验证码id
-}
-
 const SuperManagerID = 1
 
 type ManagerHandler struct {
 	handler.BaseHandler
-	redis *redis.Client
+	redis   *redis.Client
+	captcha *service.CaptchaService
 }
 
-func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client) *ManagerHandler {
-	return &ManagerHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}, redis: client}
+func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client, captcha *service.CaptchaService) *ManagerHandler {
+	return &ManagerHandler{
+		BaseHandler: handler.BaseHandler{DB: db, App: app},
+		redis:       client,
+		captcha:     captcha,
+	}
 }
 
 // Login 登录
 func (h *ManagerHandler) Login(c *gin.Context) {
-	var data Manager
+	var data struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Key      string `json:"key,omitempty"`
+		Dots     string `json:"dots,omitempty"`
+		X        int    `json:"x,omitempty"`
+	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
+	}
+
+	if h.App.SysConfig.EnabledVerify {
+		var check bool
+		if data.X != 0 {
+			check = h.captcha.SlideCheck(data)
+		} else {
+			check = h.captcha.Check(data)
+		}
+		if !check {
+			resp.ERROR(c, "请先完人机验证")
+			return
+		}
 	}
 
 	var manager model.AdminUser

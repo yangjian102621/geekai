@@ -31,19 +31,27 @@ import (
 
 type SdJobHandler struct {
 	BaseHandler
-	redis     *redis.Client
-	service   *sd.Service
-	uploader  *oss.UploaderManager
-	snowflake *service.Snowflake
-	leveldb   *store.LevelDB
+	redis       *redis.Client
+	sdService   *sd.Service
+	uploader    *oss.UploaderManager
+	snowflake   *service.Snowflake
+	leveldb     *store.LevelDB
+	userService *service.UserService
 }
 
-func NewSdJobHandler(app *core.AppServer, db *gorm.DB, service *sd.Service, manager *oss.UploaderManager, snowflake *service.Snowflake, levelDB *store.LevelDB) *SdJobHandler {
+func NewSdJobHandler(app *core.AppServer,
+	db *gorm.DB,
+	service *sd.Service,
+	manager *oss.UploaderManager,
+	snowflake *service.Snowflake,
+	userService *service.UserService,
+	levelDB *store.LevelDB) *SdJobHandler {
 	return &SdJobHandler{
-		service:   service,
-		uploader:  manager,
-		snowflake: snowflake,
-		leveldb:   levelDB,
+		sdService:   service,
+		uploader:    manager,
+		snowflake:   snowflake,
+		leveldb:     levelDB,
+		userService: userService,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -68,7 +76,7 @@ func (h *SdJobHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.service.Clients.Put(uint(userId), client)
+	h.sdService.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
@@ -159,34 +167,27 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.service.PushTask(types.SdTask{
+	h.sdService.PushTask(types.SdTask{
 		Id:     int(job.Id),
 		Type:   types.TaskImage,
 		Params: params,
 		UserId: userId,
 	})
 
-	client := h.service.Clients.Get(uint(job.UserId))
+	client := h.sdService.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
 
 	// update user's power
-	tx := h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := h.GetLoginUser(c)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    job.Power,
-			Balance:   user.Power - job.Power,
-			Mark:      types.PowerSub,
-			Model:     "stable-diffusion",
-			Remark:    fmt.Sprintf("绘图操作，任务ID：%s", job.TaskId),
-			CreatedAt: time.Now(),
-		})
+	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "stable-diffusion",
+		Remark: fmt.Sprintf("绘图操作，任务ID：%s", job.TaskId),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
 
 	resp.SUCCESS(c)
@@ -223,7 +224,7 @@ func (h *SdJobHandler) JobList(c *gin.Context) {
 }
 
 // JobList 获取 MJ 任务列表
-func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, []vo.SdJob) {
+func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, vo.Page) {
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
@@ -242,10 +243,14 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		session = session.Offset(offset).Limit(pageSize)
 	}
 
+	// 统计总数
+	var total int64
+	session.Model(&model.SdJob{}).Count(&total)
+
 	var items []model.SdJob
 	res := session.Find(&items)
 	if res.Error != nil {
-		return res.Error, nil
+		return res.Error, vo.Page{}
 	}
 
 	var jobs = make([]vo.SdJob, 0)
@@ -267,7 +272,7 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		jobs = append(jobs, job)
 	}
 
-	return nil, jobs
+	return nil, vo.NewPage(total, page, pageSize, jobs)
 }
 
 // Remove remove task image
@@ -290,25 +295,11 @@ func (h *SdJobHandler) Remove(c *gin.Context) {
 
 	// 如果任务未完成，或者任务失败，则恢复用户算力
 	if job.Progress != 100 {
-		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
-		var user model.User
-		tx.Where("id = ?", job.UserId).First(&user)
-		err = tx.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerRefund,
-			Amount:    job.Power,
-			Balance:   user.Power,
-			Mark:      types.PowerAdd,
-			Model:     "stable-diffusion",
-			Remark:    fmt.Sprintf("任务失败，退回算力。任务ID：%s， Err: %s", job.TaskId, job.ErrMsg),
-			CreatedAt: time.Now(),
-		}).Error
+		err := h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+			Type:   types.PowerRefund,
+			Model:  "stable-diffusion",
+			Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%s， Err: %s", job.TaskId, job.ErrMsg),
+		})
 		if err != nil {
 			tx.Rollback()
 			resp.ERROR(c, err.Error())

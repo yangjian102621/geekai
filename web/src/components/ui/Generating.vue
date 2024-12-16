@@ -12,9 +12,21 @@
       <div class="bar"></div>
       <div class="bar"></div>
     </div>
-    <div class="text">正在生成歌曲</div>
+    <div class="text">
+      <slot>{{message}}</slot>
+    </div>
   </div>
 </template>
+
+<script setup>
+// eslint-disable-next-line
+defineProps({
+  message: {
+    type: String,
+    default: '任务正在执行',
+  },
+});
+</script>
 
 <style scoped lang="stylus">
 .container {

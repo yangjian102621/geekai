@@ -33,6 +33,8 @@ type UserHandler struct {
 	searcher       *xdb.Searcher
 	redis          *redis.Client
 	licenseService *service.LicenseService
+	captcha        *service.CaptchaService
+	userService    *service.UserService
 }
 
 func NewUserHandler(
@@ -40,12 +42,16 @@ func NewUserHandler(
 	db *gorm.DB,
 	searcher *xdb.Searcher,
 	client *redis.Client,
+	captcha *service.CaptchaService,
+	userService *service.UserService,
 	licenseService *service.LicenseService) *UserHandler {
 	return &UserHandler{
 		BaseHandler:    BaseHandler{DB: db, App: app},
 		searcher:       searcher,
 		redis:          client,
+		captcha:        captcha,
 		licenseService: licenseService,
+		userService:    userService,
 	}
 }
 
@@ -55,9 +61,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var data struct {
 		RegWay     string `json:"reg_way"`
 		Username   string `json:"username"`
+		Mobile     string `json:"mobile"`
+		Email      string `json:"email"`
 		Password   string `json:"password"`
 		Code       string `json:"code"`
 		InviteCode string `json:"invite_code"`
+		Key        string `json:"key,omitempty"`
+		Dots       string `json:"dots,omitempty"`
+		X          int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -79,8 +90,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 检查验证码
 	var key string
-	if data.RegWay == "email" || data.RegWay == "mobile" {
-		key = CodeStorePrefix + data.Username
+	if data.RegWay == "email" {
+		key = CodeStorePrefix + data.Email
+		code, err := h.redis.Get(c, key).Result()
+		if err != nil || code != data.Code {
+			resp.ERROR(c, "验证码错误")
+			return
+		}
+	} else if data.RegWay == "mobile" {
+		key = CodeStorePrefix + data.Mobile
 		code, err := h.redis.Get(c, key).Result()
 		if err != nil || code != data.Code {
 			resp.ERROR(c, "验证码错误")
@@ -100,7 +118,17 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// check if the username is existing
 	var item model.User
-	res := h.DB.Where("username = ?", data.Username).First(&item)
+	session := h.DB.Session(&gorm.Session{})
+	if data.Mobile != "" {
+		session = session.Where("mobile = ?", data.Mobile)
+		data.Username = data.Mobile
+	} else if data.Email != "" {
+		session = session.Where("email = ?", data.Email)
+		data.Username = data.Email
+	} else if data.Username != "" {
+		session = session.Where("username = ?", data.Username)
+	}
+	session.First(&item)
 	if item.Id > 0 {
 		resp.ERROR(c, "该用户名已经被注册")
 		return
@@ -109,6 +137,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	salt := utils.RandString(8)
 	user := model.User{
 		Username:   data.Username,
+		Mobile:     data.Mobile,
+		Email:      data.Email,
 		Password:   utils.GenPassword(data.Password, salt),
 		Avatar:     "/images/avatar/user.png",
 		Salt:       salt,
@@ -128,10 +158,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}
 
-	res = h.DB.Create(&user)
-	if res.Error != nil {
-		resp.ERROR(c, "保存数据失败")
-		logger.Error(res.Error)
+	tx := h.DB.Begin()
+	if err := tx.Create(&user).Error; err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 
@@ -140,35 +169,35 @@ func (h *UserHandler) Register(c *gin.Context) {
 		// 增加邀请数量
 		h.DB.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
 		if h.App.SysConfig.InvitePower > 0 {
-			h.DB.Model(&model.User{}).Where("id = ?", inviteCode.UserId).UpdateColumn("power", gorm.Expr("power + ?", h.App.SysConfig.InvitePower))
-			// 记录邀请算力充值日志
-			var inviter model.User
-			h.DB.Where("id", inviteCode.UserId).First(&inviter)
-			h.DB.Create(&model.PowerLog{
-				UserId:    inviter.Id,
-				Username:  inviter.Username,
-				Type:      types.PowerInvite,
-				Amount:    h.App.SysConfig.InvitePower,
-				Balance:   inviter.Power,
-				Mark:      types.PowerAdd,
-				Model:     "",
-				Remark:    fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
-				CreatedAt: time.Now(),
+			err := h.userService.IncreasePower(int(inviteCode.UserId), h.App.SysConfig.InvitePower, model.PowerLog{
+				Type:   types.PowerInvite,
+				Model:  "",
+				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
 			})
+			if err != nil {
+				tx.Rollback()
+				resp.ERROR(c, err.Error())
+				return
+			}
 		}
 
 		// 添加邀请记录
-		h.DB.Create(&model.InviteLog{
+		err := tx.Create(&model.InviteLog{
 			InviterId:  inviteCode.UserId,
 			UserId:     user.Id,
 			Username:   user.Username,
 			InviteCode: inviteCode.Code,
 			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.InvitePower),
-		})
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
 	}
+	tx.Commit()
 
 	_ = h.redis.Del(c, key) // 注册成功，删除短信验证码
-
 	// 自动登录创建 token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.Id,
@@ -193,11 +222,28 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var data struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
+		Key      string `json:"key,omitempty"`
+		Dots     string `json:"dots,omitempty"`
+		X        int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	if h.App.SysConfig.EnabledVerify {
+		var check bool
+		if data.X != 0 {
+			check = h.captcha.SlideCheck(data)
+		} else {
+			check = h.captcha.Check(data)
+		}
+		if !check {
+			resp.ERROR(c, "请先完人机验证")
+			return
+		}
+	}
+
 	var user model.User
 	res := h.DB.Where("username = ?", data.Username).First(&user)
 	if res.Error != nil {
@@ -285,8 +331,10 @@ func (h *UserHandler) CLogin(c *gin.Context) {
 
 // CLoginCallback 第三方登录回调
 func (h *UserHandler) CLoginCallback(c *gin.Context) {
-	loginType := h.GetTrim(c, "login_type")
-	code := h.GetTrim(c, "code")
+	loginType := c.Query("login_type")
+	code := c.Query("code")
+	userId := h.GetInt(c, "user_id", 0)
+	action := c.Query("action")
 
 	var res types.BizVo
 	apiURL := fmt.Sprintf("%s/api/clogin/info", h.App.Config.ApiConfig.ApiURL)
@@ -311,11 +359,34 @@ func (h *UserHandler) CLoginCallback(c *gin.Context) {
 
 	// login successfully
 	data := res.Data.(map[string]interface{})
-	session := gin.H{}
 	var user model.User
-	tx := h.DB.Debug().Where("openid", data["openid"]).First(&user)
-	if tx.Error != nil { // user not exist, create new user
-		// 检测最大注册人数
+	if action == "bind" && userId > 0 {
+		err = h.DB.Where("openid", data["openid"]).First(&user).Error
+		if err == nil {
+			resp.ERROR(c, "该微信已经绑定其他账号，请先解绑")
+			return
+		}
+
+		err = h.DB.Where("id", userId).First(&user).Error
+		if err != nil {
+			resp.ERROR(c, "绑定用户不存在")
+			return
+		}
+
+		err = h.DB.Model(&user).UpdateColumn("openid", data["openid"]).Error
+		if err != nil {
+			resp.ERROR(c, "更新用户信息失败，"+err.Error())
+			return
+		}
+
+		resp.SUCCESS(c, gin.H{"token": ""})
+		return
+	}
+
+	session := gin.H{}
+	tx := h.DB.Where("openid", data["openid"]).First(&user)
+	if tx.Error != nil {
+		// create new user
 		var totalUser int64
 		h.DB.Model(&model.User{}).Count(&totalUser)
 		if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
@@ -383,17 +454,23 @@ func (h *UserHandler) CLoginCallback(c *gin.Context) {
 // Session 获取/验证会话
 func (h *UserHandler) Session(c *gin.Context) {
 	user, err := h.GetLoginUser(c)
-	if err == nil {
-		var userVo vo.User
-		err := utils.CopyObject(user, &userVo)
-		if err != nil {
-			resp.ERROR(c)
-		}
-		userVo.Id = user.Id
-		resp.SUCCESS(c, userVo)
-	} else {
-		resp.NotAuth(c)
+	if err != nil {
+		resp.NotAuth(c, err.Error())
+		return
 	}
+
+	var userVo vo.User
+	err = utils.CopyObject(user, &userVo)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	// 用户 VIP 到期
+	if user.ExpiredTime > 0 && user.ExpiredTime < time.Now().Unix() {
+		h.DB.Model(&user).UpdateColumn("vip", false)
+	}
+	userVo.Id = user.Id
+	resp.SUCCESS(c, userVo)
 
 }
 
@@ -490,10 +567,12 @@ func (h *UserHandler) UpdatePass(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-// ResetPass 重置密码
+// ResetPass 找回密码
 func (h *UserHandler) ResetPass(c *gin.Context) {
 	var data struct {
-		Username string `json:"username"`
+		Type     string `json:"type"`     // 验证类别：mobile, email
+		Mobile   string `json:"mobile"`   // 手机号
+		Email    string `json:"email"`    // 邮箱地址
 		Code     string `json:"code"`     // 验证码
 		Password string `json:"password"` // 新密码
 	}
@@ -502,37 +581,47 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 		return
 	}
 
+	session := h.DB.Session(&gorm.Session{})
+	var key string
+	if data.Type == "email" {
+		session = session.Where("email", data.Email)
+		key = CodeStorePrefix + data.Email
+	} else if data.Type == "mobile" {
+		session = session.Where("mobile", data.Email)
+		key = CodeStorePrefix + data.Mobile
+	} else {
+		resp.ERROR(c, "验证类别错误")
+		return
+	}
 	var user model.User
-	res := h.DB.Where("username", data.Username).First(&user)
-	if res.Error != nil {
+	err := session.First(&user).Error
+	if err != nil {
 		resp.ERROR(c, "用户不存在！")
 		return
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Username
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
-		resp.ERROR(c, "短信验证码错误")
+		resp.ERROR(c, "验证码错误")
 		return
 	}
 
 	password := utils.GenPassword(data.Password, user.Salt)
-	user.Password = password
-	res = h.DB.Updates(&user)
-	if res.Error != nil {
-		resp.ERROR(c)
+	err = h.DB.Model(&user).UpdateColumn("password", password).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 	} else {
 		h.redis.Del(c, key)
 		resp.SUCCESS(c)
 	}
 }
 
-// BindUsername 重置账号
-func (h *UserHandler) BindUsername(c *gin.Context) {
+// BindMobile 绑定手机号
+func (h *UserHandler) BindMobile(c *gin.Context) {
 	var data struct {
-		Username string `json:"username"`
-		Code     string `json:"code"`
+		Mobile string `json:"mobile"`
+		Code   string `json:"code"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -540,7 +629,7 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 	}
 
 	// 检查验证码
-	key := CodeStorePrefix + data.Username
+	key := CodeStorePrefix + data.Mobile
 	code, err := h.redis.Get(c, key).Result()
 	if err != nil || code != data.Code {
 		resp.ERROR(c, "验证码错误")
@@ -549,19 +638,54 @@ func (h *UserHandler) BindUsername(c *gin.Context) {
 
 	// 检查手机号是否被其他账号绑定
 	var item model.User
-	res := h.DB.Where("username = ?", data.Username).First(&item)
+	res := h.DB.Where("mobile", data.Mobile).First(&item)
 	if res.Error == nil {
-		resp.ERROR(c, "该账号已经被其他账号绑定")
+		resp.ERROR(c, "该手机号已经绑定了其他账号，请更换手机号")
 		return
 	}
 
-	user, err := h.GetLoginUser(c)
+	userId := h.GetLoginUserId(c)
+
+	err = h.DB.Model(&item).Where("id", userId).UpdateColumn("mobile", data.Mobile).Error
 	if err != nil {
-		resp.NotAuth(c)
+		resp.ERROR(c, err.Error())
 		return
 	}
 
-	err = h.DB.Model(&user).UpdateColumn("username", data.Username).Error
+	_ = h.redis.Del(c, key) // 删除短信验证码
+	resp.SUCCESS(c)
+}
+
+// BindEmail 绑定邮箱
+func (h *UserHandler) BindEmail(c *gin.Context) {
+	var data struct {
+		Email string `json:"email"`
+		Code  string `json:"code"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 检查验证码
+	key := CodeStorePrefix + data.Email
+	code, err := h.redis.Get(c, key).Result()
+	if err != nil || code != data.Code {
+		resp.ERROR(c, "验证码错误")
+		return
+	}
+
+	// 检查手机号是否被其他账号绑定
+	var item model.User
+	res := h.DB.Where("email", data.Email).First(&item)
+	if res.Error == nil {
+		resp.ERROR(c, "该邮箱地址已经绑定了其他账号，请更邮箱地址")
+		return
+	}
+
+	userId := h.GetLoginUserId(c)
+
+	err = h.DB.Model(&item).Where("id", userId).UpdateColumn("email", data.Email).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

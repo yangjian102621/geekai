@@ -206,7 +206,7 @@
 import {nextTick, onMounted, onUnmounted, ref} from "vue"
 import {Delete, InfoFilled, Picture} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 import Clipboard from "clipboard";
 import {checkSession, getSystemInfo} from "@/store/cache";
 import {useSharedStore} from "@/store/sharedata";
@@ -338,7 +338,7 @@ const fetchRunningJobs = () => {
   }
   // 获取运行中的任务
   httpGet(`/api/dall/jobs?finish=false`).then(res => {
-    runningJobs.value = res.data
+    runningJobs.value = res.data.items
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })
@@ -356,10 +356,10 @@ const fetchFinishJobs = () => {
   page.value = page.value + 1
 
   httpGet(`/api/dall/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`).then(res => {
-    if (res.data.length < pageSize.value) {
+    if (res.data.items.length < pageSize.value) {
       isOver.value = true
     }
-    const imageList = res.data
+    const imageList = res.data.items
     for (let i = 0; i < imageList.length; i++) {
       imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }

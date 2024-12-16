@@ -1,6 +1,6 @@
 import {randString} from "@/utils/libs";
 import Storage from "good-storage";
-import {removeAdminInfo, removeUserInfo} from "@/store/cache";
+import {removeAdminInfo} from "@/store/cache";
 
 /**
  * storage handler
@@ -18,12 +18,12 @@ export function getUserToken() {
 }
 
 export function setUserToken(token) {
+    // 刷新 session 缓存
     Storage.set(UserTokenKey, token)
 }
 
 export function removeUserToken() {
     Storage.remove(UserTokenKey)
-    removeUserInfo()
 }
 
 export function getAdminToken() {

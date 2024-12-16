@@ -201,7 +201,6 @@ window.onresize = () => {
 }
 
 const socket = ref(null)
-const heartbeatHandle = ref(0)
 const connect = (userId) => {
   if (socket.value !== null) {
     socket.value.close()
@@ -216,24 +215,9 @@ const connect = (userId) => {
     }
   }
 
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
-
   const _socket = new WebSocket(host + `/api/markMap/client?user_id=${userId}&model_id=${modelID.value}`);
   _socket.addEventListener('open', () => {
     socket.value = _socket;
-    // 发送心跳消息
-    sendHeartbeat()
   });
 
   _socket.addEventListener('message', event => {

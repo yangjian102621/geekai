@@ -41,7 +41,7 @@
                         </el-input>
                       </el-col>
                       <el-col :span="12">
-                        <send-msg size="large" :receiver="data.username"/>
+                        <send-msg size="large" :receiver="data.username" type="mobile"/>
                       </el-col>
                     </el-row>
                   </div>
@@ -50,7 +50,7 @@
                   <div class="block">
                     <el-input placeholder="邮箱地址"
                               size="large"
-                              v-model="data.username"
+                              v-model="data.email"
                               autocomplete="off">
                       <template #prefix>
                         <el-icon>
@@ -74,7 +74,7 @@
                         </el-input>
                       </el-col>
                       <el-col :span="12">
-                        <send-msg size="large" :receiver="data.username"/>
+                        <send-msg size="large" :receiver="data.email" type="email"/>
                       </el-col>
                     </el-row>
                   </div>
@@ -135,13 +135,17 @@
 
               <el-row class="btn-row" :gutter="20">
                 <el-col :span="24">
-                  <el-button class="login-btn" type="primary" size="large" @click="submitRegister">注册</el-button>
+                  <el-button class="login-btn" type="primary" size="large" @click="submitRegister" >注册</el-button>
                 </el-col>
               </el-row>
 
-              <el-row class="text-line">
-                已经有账号？
-                <el-link type="primary" @click="router.push('/login')">登录</el-link>
+              <el-row class="text-line" :gutter="24">
+                <el-col :span="12">
+                  <el-link type="primary" @click="router.push('/login')">登录</el-link>
+                </el-col>
+                <el-col :span="12">
+                  <el-link type="primary" @click="router.push('/')">首页</el-link>
+                </el-col>
               </el-row>
             </el-form>
 
@@ -159,6 +163,8 @@
             </template>
           </el-result>
         </div>
+
+        <captcha v-if="enableVerify" @success="doSubmitRegister" ref="captchaRef"/>
 
         <footer class="footer"  v-if="!licenseConfig.de_copy">
           <footer-bar/>
@@ -182,6 +188,7 @@ import {setUserToken} from "@/store/session";
 import {validateEmail, validateMobile} from "@/utils/validate";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import {getLicenseInfo, getSystemInfo} from "@/store/cache";
+import Captcha from "@/components/Captcha.vue";
 
 const router = useRouter();
 const title = ref('');
@@ -201,6 +208,13 @@ const enableRegister = ref(true)
 const activeName = ref("mobile")
 const wxImg = ref("/images/wx.png")
 const licenseConfig = ref({})
+const enableVerify = ref(false)
+const captchaRef = ref(null)
+
+// 记录邀请码点击次数
+if (data.value.invite_code) {
+  httpGet("/api/invite/hits",{code: data.value.invite_code})
+}
 
 getSystemInfo().then(res => {
   if (res.data) {
@@ -222,6 +236,7 @@ getSystemInfo().then(res => {
     if (res.data['wechat_card_url'] !== '') {
       wxImg.value = res.data['wechat_card_url']
     }
+    enableVerify.value = res.data['enabled_verify']
   }
 }).catch(e => {
   ElMessage.error("获取系统配置失败：" + e.message)
@@ -257,9 +272,21 @@ const submitRegister = () => {
   if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
     return showMessageError('请输入验证码');
   }
+
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+  } else {
+    doSubmitRegister({})
+  }
+}
+
+const doSubmitRegister = (verifyData) => {
+  data.value.key = verifyData.key
+  data.value.dots = verifyData.dots
+  data.value.x = verifyData.x
   data.value.reg_way = activeName.value
   httpPost('/api/user/register', data.value).then((res) => {
-    setUserToken(res.data)
+    setUserToken(res.data.token)
     showMessageOK({
       "message": "注册成功，即将跳转到对话主界面...",
       onClose: () => router.push("/chat"),
@@ -313,6 +340,7 @@ const submitRegister = () => {
         .el-image {
           width 120px;
           cursor pointer
+          border-radius 50%
         }
       }
 
@@ -357,6 +385,10 @@ const submitRegister = () => {
           justify-content center
           padding-top 10px;
           font-size 14px;
+
+          .el-col {
+            text-align center
+          }
         }
       }
     }

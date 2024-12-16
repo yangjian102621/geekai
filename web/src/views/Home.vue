@@ -72,7 +72,6 @@
 
         <div v-else>
           <el-button size="small" color="#21aa93" @click="store.setShowLoginDialog(true)" round>登录</el-button>
-          <el-button size="small" @click="router.push('/register')" round>注册</el-button>
         </div>
       </div>
     </div>
@@ -224,11 +223,10 @@ const init = () => {
 const logout = function () {
   httpGet('/api/user/logout').then(() => {
     removeUserToken()
-    router.push("/login")
-    // store.setShowLoginDialog(true)
-    // loginUser.value = {}
-    // // 刷新组件
-    // routerViewKey.value += 1
+    store.setShowLoginDialog(true)
+    loginUser.value = {}
+    // 刷新组件
+    routerViewKey.value += 1
   }).catch(() => {
     ElMessage.error('注销失败！');
   })

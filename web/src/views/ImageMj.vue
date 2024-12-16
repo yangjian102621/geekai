@@ -816,7 +816,7 @@ const fetchRunningJobs = () => {
   }
 
   httpGet(`/api/mj/jobs?finish=false`).then(res => {
-    const jobs = res.data
+    const jobs = res.data.items
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i].progress === 101) {
@@ -853,7 +853,7 @@ const fetchFinishJobs = () => {
   page.value = page.value + 1
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`).then(res => {
-    const jobs = res.data
+    const jobs = res.data.items
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i]['img_url'] !== "") {
         if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
