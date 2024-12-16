@@ -6,6 +6,8 @@
 
 <script setup>
 import {ElConfigProvider} from 'element-plus';
+import {onMounted} from "vue";
+import {getSystemInfo} from "@/store/cache";
 
 const debounce = (fn, delay) => {
   let timer
@@ -26,6 +28,15 @@ window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
     super(callback);
   }
 }
+
+onMounted(() => {
+  getSystemInfo().then((res) => {
+    const link = document.createElement('link')
+    link.rel = 'shortcut icon'
+    link.href = res.data.logo
+    document.head.appendChild(link)
+  })
+})
 </script>
 
 

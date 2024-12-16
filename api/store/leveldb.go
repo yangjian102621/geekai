@@ -29,15 +29,9 @@ func NewLevelDB() (*LevelDB, error) {
 }
 
 func (db *LevelDB) Put(key string, value interface{}) error {
-	var byteData []byte
-	if v, ok := value.(string); ok {
-		byteData = []byte(v)
-	} else {
-		b, err := json.Marshal(value)
-		if err != nil {
-			return err
-		}
-		byteData = b
+	byteData, err := json.Marshal(value)
+	if err != nil {
+		return err
 	}
 	return db.driver.Put([]byte(key), byteData, nil)
 }

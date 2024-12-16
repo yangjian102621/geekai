@@ -33,11 +33,10 @@
 </template>
 
 <script setup>
-import {onMounted, ref, watch} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {onMounted, ref} from "vue";
+import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {dateFormat} from "@/utils/libs";
-import {DocumentCopy} from "@element-plus/icons-vue";
 import Clipboard from "clipboard";
 
 const items = ref([])
@@ -60,7 +59,7 @@ onMounted(() => {
 
 // 获取数据
 const fetchData = () => {
-  httpPost('/api/invite/list', {page: page.value, page_size: pageSize.value}).then((res) => {
+  httpGet('/api/invite/list', {page: page.value, page_size: pageSize.value}).then((res) => {
     if (res.data) {
       items.value = res.data.items
       total.value = res.data.total

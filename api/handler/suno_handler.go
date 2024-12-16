@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/service/oss"
 	"geekai/service/suno"
 	"geekai/store/model"
@@ -26,18 +27,20 @@ import (
 
 type SunoHandler struct {
 	BaseHandler
-	service  *suno.Service
-	uploader *oss.UploaderManager
+	sunoService *suno.Service
+	uploader    *oss.UploaderManager
+	userService *service.UserService
 }
 
-func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager) *SunoHandler {
+func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager, userService *service.UserService) *SunoHandler {
 	return &SunoHandler{
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
 		},
-		service:  service,
-		uploader: uploader,
+		sunoService: service,
+		uploader:    uploader,
+		userService: userService,
 	}
 }
 
@@ -58,7 +61,7 @@ func (h *SunoHandler) Client(c *gin.Context) {
 	}
 
 	client := types.NewWsClient(ws)
-	h.service.Clients.Put(uint(userId), client)
+	h.sunoService.Clients.Put(uint(userId), client)
 	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
@@ -72,13 +75,30 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		Tags         string `json:"tags"`
 		Title        string `json:"title"`
 		Type         int    `json:"type"`
-		RefTaskId    string `json:"ref_task_id"` // 续写的任务id
-		ExtendSecs   int    `json:"extend_secs"` // 续写秒数
-		RefSongId    string `json:"ref_song_id"` // 续写的歌曲id
+		RefTaskId    string `json:"ref_task_id"`         // 续写的任务id
+		ExtendSecs   int    `json:"extend_secs"`         // 续写秒数
+		RefSongId    string `json:"ref_song_id"`         // 续写的歌曲id
+		SongId       string `json:"song_id,omitempty"`   // 要拼接的歌曲id
+		AudioURL     string `json:"audio_url,omitempty"` // 上传自己创作的歌曲
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
+	}
+
+	// 歌曲拼接
+	if data.SongId != "" && data.Type == 3 {
+		var song model.SunoJob
+		if err := h.DB.Where("song_id = ?", data.SongId).First(&song).Error; err == nil {
+			data.Instrumental = song.Instrumental
+			data.Model = song.ModelName
+			data.Tags = song.Tags
+		}
+		// 拼接歌词
+		var refSong model.SunoJob
+		if err := h.DB.Where("song_id = ?", data.RefSongId).First(&refSong).Error; err == nil {
+			data.Prompt = fmt.Sprintf("%s\n%s", song.Prompt, refSong.Prompt)
+		}
 	}
 
 	// 插入数据库
@@ -106,7 +126,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	}
 
 	// 创建任务
-	h.service.PushTask(types.SunoTask{
+	h.sunoService.PushTask(types.SunoTask{
 		Id:           job.Id,
 		UserId:       job.UserId,
 		Type:         job.Type,
@@ -118,27 +138,22 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		Tags:         data.Tags,
 		Model:        data.Model,
 		Instrumental: data.Instrumental,
+		SongId:       data.SongId,
+		AudioURL:     data.AudioURL,
 	})
 
 	// update user's power
-	tx = h.DB.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power - ?", job.Power))
-	// 记录算力变化日志
-	if tx.Error == nil && tx.RowsAffected > 0 {
-		user, _ := h.GetLoginUser(c)
-		h.DB.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerConsume,
-			Amount:    job.Power,
-			Balance:   user.Power - job.Power,
-			Mark:      types.PowerSub,
-			Model:     job.ModelName,
-			Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.ModelName),
-			CreatedAt: time.Now(),
-		})
+	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:      types.PowerConsume,
+		Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.ModelName),
+		CreatedAt: time.Now(),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
 
-	client := h.service.Clients.Get(uint(job.UserId))
+	client := h.sunoService.Clients.Get(uint(job.UserId))
 	if client != nil {
 		_ = client.Send([]byte("Task Updated"))
 	}
@@ -147,8 +162,8 @@ func (h *SunoHandler) Create(c *gin.Context) {
 
 func (h *SunoHandler) List(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
-	page := h.GetInt(c, "page", 0)
-	pageSize := h.GetInt(c, "page_size", 0)
+	page := h.GetInt(c, "page", 1)
+	pageSize := h.GetInt(c, "page_size", 20)
 	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
 
 	// 统计总数
@@ -220,25 +235,11 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 
 	// 如果任务未完成，或者任务失败，则恢复用户算力
 	if job.Progress != 100 {
-		err := tx.Model(&model.User{}).Where("id = ?", job.UserId).UpdateColumn("power", gorm.Expr("power + ?", job.Power)).Error
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
-		var user model.User
-		tx.Where("id = ?", job.UserId).First(&user)
-		err = tx.Create(&model.PowerLog{
-			UserId:    user.Id,
-			Username:  user.Username,
-			Type:      types.PowerRefund,
-			Amount:    job.Power,
-			Balance:   user.Power,
-			Mark:      types.PowerAdd,
-			Model:     job.ModelName,
-			Remark:    fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-			CreatedAt: time.Now(),
-		}).Error
+		err := h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+			Type:   types.PowerRefund,
+			Model:  job.ModelName,
+			Remark: fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+		})
 		if err != nil {
 			tx.Rollback()
 			resp.ERROR(c, err.Error())

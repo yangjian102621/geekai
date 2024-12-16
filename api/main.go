@@ -24,6 +24,7 @@ import (
 	"geekai/service/sd"
 	"geekai/service/sms"
 	"geekai/service/suno"
+	"geekai/service/video"
 	"geekai/store"
 	"io"
 	"log"
@@ -128,7 +129,7 @@ func main() {
 		fx.Provide(handler.NewChatRoleHandler),
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(chatimpl.NewChatHandler),
-		fx.Provide(handler.NewUploadHandler),
+		fx.Provide(handler.NewNetHandler),
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRedeemHandler),
 		fx.Provide(handler.NewCaptchaHandler),
@@ -199,9 +200,16 @@ func main() {
 			s.Run()
 			s.SyncTaskProgress()
 			s.CheckTaskNotify()
-			s.DownloadImages()
+			s.DownloadFiles()
 		}),
-
+		fx.Provide(video.NewService),
+		fx.Invoke(func(s *video.Service) {
+			s.Run()
+			s.SyncTaskProgress()
+			s.CheckTaskNotify()
+			s.DownloadFiles()
+		}),
+		fx.Provide(service.NewUserService),
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),
 		fx.Provide(payment.NewJPayService),
@@ -231,7 +239,8 @@ func main() {
 			group.GET("profile", h.Profile)
 			group.POST("profile/update", h.ProfileUpdate)
 			group.POST("password", h.UpdatePass)
-			group.POST("bind/username", h.BindUsername)
+			group.POST("bind/mobile", h.BindMobile)
+			group.POST("bind/email", h.BindEmail)
 			group.POST("resetPass", h.ResetPass)
 			group.GET("clogin", h.CLogin)
 			group.GET("clogin/callback", h.CLoginCallback)
@@ -248,10 +257,11 @@ func main() {
 			group.POST("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.UploadHandler) {
+		fx.Invoke(func(s *core.AppServer, h *handler.NetHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
 			s.Engine.POST("/api/upload/list", h.List)
 			s.Engine.GET("/api/upload/remove", h.Remove)
+			s.Engine.GET("/api/download", h.Download)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
 			group := s.Engine.Group("/api/sms/")
@@ -398,7 +408,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.InviteHandler) {
 			group := s.Engine.Group("/api/invite/")
 			group.GET("code", h.Code)
-			group.POST("list", h.List)
+			group.GET("list", h.List)
 			group.GET("hits", h.Hits)
 		}),
 
@@ -423,6 +433,7 @@ func main() {
 			group.POST("weibo", h.WeiBo)
 			group.POST("zaobao", h.ZaoBao)
 			group.POST("dalle3", h.Dall3)
+			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {
 			group := s.Engine.Group("/api/admin/chat/")
@@ -481,6 +492,15 @@ func main() {
 			group.GET("detail", h.Detail)
 			group.GET("play", h.Play)
 			group.POST("lyric", h.Lyric)
+		}),
+		fx.Provide(handler.NewVideoHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
+			group := s.Engine.Group("/api/video")
+			group.Any("client", h.Client)
+			group.POST("luma/create", h.LumaCreate)
+			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
+			group.GET("publish", h.Publish)
 		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {

@@ -24,7 +24,8 @@
             </div>
           </template>
           <template #extra>
-            <el-button type="primary" @click="finishLogin">我知道了</el-button>
+            <el-button type="primary" class="copy-user-info" :data-clipboard-text="'用户名：'+username+' 密码：'+password">复制</el-button>
+            <el-button type="danger" @click="finishLogin">关闭</el-button>
           </template>
       </el-result>
     </el-dialog>
@@ -33,12 +34,15 @@
 </template>
 
 <script setup>
-import {ref} from "vue"
+import {onMounted, onUnmounted, ref} from "vue"
 import {useRouter} from "vue-router"
 import {ElMessage, ElMessageBox} from "element-plus";
 import {httpGet} from "@/utils/http";
 import {setUserToken} from "@/store/session";
-import {isMobile} from "@/utils/libs";
+import Clipboard from "clipboard";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
+import {getRoute} from "@/store/system";
+import {checkSession} from "@/store/cache";
 
 const winHeight = ref(window.innerHeight)
 const loading = ref(true)
@@ -49,12 +53,24 @@ const password = ref('')
 
 
 const code = router.currentRoute.value.query.code
+const action = router.currentRoute.value.query.action
 if (code === "") {
   ElMessage.error({message: "登录失败：code 参数不能为空",duration: 2000, onClose: () => router.push("/")})
 } else {
+  checkSession().then(user => {
+    // bind user
+    doLogin(user.id)
+  }).catch(() => {
+    doLogin(0)
+  })
+}
+
+const doLogin = (userId) => {
   // 发送请求获取用户信息
-  httpGet("/api/user/clogin/callback",{login_type: "wx",code: code}).then(res => {
-    setUserToken(res.data.token)
+  httpGet("/api/user/clogin/callback",{login_type: "wx",code: code, action:action, user_id: userId}).then(res => {
+    if (res.data.token) {
+      setUserToken(res.data.token)
+    }
     if (res.data.username) {
       username.value = res.data.username
       password.value = res.data.password
@@ -74,12 +90,26 @@ if (code === "") {
     })
   })
 }
+
+const clipboard = ref(null)
+onMounted(() => {
+  clipboard.value = new Clipboard('.copy-user-info');
+  clipboard.value.on('success', () => {
+    showMessageOK('复制成功！');
+  })
+
+  clipboard.value.on('error', () => {
+    showMessageError('复制失败！');
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy();
+})
+
 const finishLogin = () => {
-  if (isMobile()) {
-    router.push('/mobile')
-  } else {
-    router.push('/chat')
-  }
+  show.value = false
+  router.push(getRoute())
 }
 </script>
 

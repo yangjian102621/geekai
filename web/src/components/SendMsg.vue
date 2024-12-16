@@ -1,121 +1,64 @@
 <template>
-  <el-container class="captcha-box">
-    <el-button type="primary" class="send-btn" :size="props.size" :disabled="!canSend" @click="loadCaptcha" plain>
+  <el-container class="send-verify-code">
+    <el-button type="primary" class="send-btn" :size="props.size" :disabled="!canSend" @click="sendMsg" plain>
       {{ btnText }}
     </el-button>
 
-    <el-dialog
-        v-model="showCaptcha"
-        :close-on-click-modal="true"
-        :show-close="false"
-        style="width: 360px;"
-    >
-      <slide-captcha
-          v-if="isMobile()"
-          :bg-img="bgImg"
-          :bk-img="bkImg"
-          :result="result"
-          @refresh="getSlideCaptcha"
-          @confirm="handleSlideConfirm"
-          @hide="showCaptcha = false"/>
-
-      <captcha-plus
-          v-else
-          :max-dot="maxDot"
-          :image-base64="imageBase64"
-          :thumb-base64="thumbBase64"
-          width="300"
-          @close="showCaptcha = false"
-          @refresh="handleRequestCaptCode"
-          @confirm="handleConfirm"
-      />
-    </el-dialog>
+    <captcha @success="doSendMsg" ref="captchaRef"/>
   </el-container>
 </template>
 
 <script setup>
 // 发送短信验证码组件
 import {ref} from "vue";
-import lodash from 'lodash'
 import {validateEmail, validateMobile} from "@/utils/validate";
-import {httpGet, httpPost} from "@/utils/http";
-import CaptchaPlus from "@/components/CaptchaPlus.vue";
-import SlideCaptcha from "@/components/SlideCaptcha.vue";
-import {isMobile} from "@/utils/libs";
+import {httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
+import Captcha from "@/components/Captcha.vue";
+import {getSystemInfo} from "@/store/cache";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
   receiver: String,
   size: String,
+  type: {
+    type: String,
+    default: 'mobile'
+  }
 });
 const btnText = ref('发送验证码')
 const canSend = ref(true)
-const showCaptcha = ref(false)
-const maxDot = ref(5)
-const imageBase64 = ref('')
-const thumbBase64 = ref('')
-const captKey = ref('')
-const dots = ref(null)
+const captchaRef = ref(null)
+const enableVerify = ref(false)
 
-const handleRequestCaptCode = () => {
-
-  httpGet('/api/captcha/get').then(res => {
-    const data = res.data
-    imageBase64.value = data.image
-    thumbBase64.value = data.thumb
-    captKey.value = data.key
-  }).catch(e => {
-    showMessageError('获取人机验证数据失败：' + e.message)
-  })
-}
-
-const handleConfirm = (dots) => {
-  if (lodash.size(dots) <= 0) {
-    return showMessageError('请进行人机验证再操作')
-  }
-
-  let dotArr = []
-  lodash.forEach(dots, (dot) => {
-    dotArr.push(dot.x, dot.y)
-  })
-  dots.value = dotArr.join(',')
-  httpPost('/api/captcha/check', {
-    dots: dots.value,
-    key: captKey.value
-  }).then(() => {
-    // ElMessage.success('人机验证成功')
-    showCaptcha.value = false
-    sendMsg()
-  }).catch(() => {
-    showMessageError('人机验证失败')
-    handleRequestCaptCode()
-  })
-}
-
-const loadCaptcha = () => {
-  if (!validateMobile(props.receiver) && !validateEmail(props.receiver)) {
-    return showMessageError("请输入合法的手机号/邮箱地址")
-  }
-
-  showCaptcha.value = true
-  // 手机用滑动验证码
-  if (isMobile()) {
-    getSlideCaptcha()
-  } else {
-    handleRequestCaptCode()
-  }
-}
+getSystemInfo().then(res => {
+  enableVerify.value = res.data['enabled_verify']
+})
 
 const sendMsg = () => {
+  if (!validateMobile(props.receiver) && props.type === 'mobile') {
+    return showMessageError("请输入合法的手机号")
+  }
+  if (!validateEmail(props.receiver) && props.type === 'email') {
+    return showMessageError("请输入合法的邮箱地址")
+  }
+  
+  if (enableVerify.value) {
+    captchaRef.value.loadCaptcha()
+  } else {
+    doSendMsg({})
+  }
+}
+
+const doSendMsg = (data) => {
   if (!canSend.value) {
     return
   }
 
   canSend.value = false
-  httpPost('/api/sms/code', {receiver: props.receiver, key: captKey.value, dots: dots.value}).then(() => {
+  httpPost('/api/sms/code', {receiver: props.receiver, key: data.key, dots: data.dots, x:data.x}).then(() => {
     showMessageOK('验证码发送成功')
-    let time = 120
+    let time = 60
     btnText.value = time
     const handler = setInterval(() => {
       time = time - 1
@@ -132,52 +75,13 @@ const sendMsg = () => {
     showMessageError('验证码发送失败：' + e.message)
   })
 }
-
-// 滑动验证码
-const bgImg = ref('')
-const bkImg = ref('')
-const result = ref(0)
-
-const getSlideCaptcha = () => {
-  result.value = 0
-  httpGet("/api/captcha/slide/get").then(res => {
-    bkImg.value = res.data.bkImg
-    bgImg.value = res.data.bgImg
-    captKey.value = res.data.key
-  }).catch(e => {
-    showMessageError('获取人机验证数据失败：' + e.message)
-  })
-}
-
-const handleSlideConfirm = (x) => {
-  httpPost("/api/captcha/slide/check", {
-    key: captKey.value,
-    x: x
-  }).then(() => {
-    result.value = 1
-    showCaptcha.value = false
-    sendMsg()
-  }).catch(() => {
-    result.value = 2
-  })
-}
 </script>
 
-<style lang="stylus">
+<style lang="stylus" scoped>
 
-.captcha-box {
+.send-verify-code {
   .send-btn {
     width: 100%;
-  }
-
-  .el-dialog {
-    .el-dialog__header {
-      padding: 0;
-    }
-
-    .el-dialog__body {
-      padding 0
-    }
   }
 }
 </style>

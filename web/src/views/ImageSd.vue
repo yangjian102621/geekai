@@ -549,7 +549,6 @@ const sdPower = ref(0) // 画一张 SD 图片消耗算力
 
 const socket = ref(null)
 const userId = ref(0)
-const heartbeatHandle = ref(null)
 const connect = () => {
   let host = process.env.VUE_APP_WS_HOST
   if (host === '') {
@@ -637,7 +636,7 @@ const fetchRunningJobs = () => {
 
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?finish=0`).then(res => {
-    runningJobs.value = res.data
+    runningJobs.value = res.data.items
   }).catch(e => {
     ElMessage.error("获取任务失败：" + e.message)
   })
@@ -655,10 +654,10 @@ const fetchFinishJobs = () => {
   page.value = page.value + 1
 
   httpGet(`/api/sd/jobs?finish=1&page=${page.value}&page_size=${pageSize.value}`).then(res => {
-    if (res.data.length < pageSize.value) {
+    if (res.data.items.length < pageSize.value) {
       isOver.value = true
     }
-    const imageList = res.data
+    const imageList = res.data.items
     for (let i = 0; i < imageList.length; i++) {
       imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
     }

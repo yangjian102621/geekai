@@ -1,10 +1,73 @@
 {
   "id": "4125778",
-  "name": "chatgpt",
+  "name": "geekai",
   "font_family": "iconfont",
   "css_prefix_text": "icon-",
   "description": "",
   "glyphs": [
+    {
+      "icon_id": "41645421",
+      "name": "luma-logo",
+      "font_class": "luma",
+      "unicode": "e704",
+      "unicode_decimal": 59140
+    },
+    {
+      "icon_id": "7573248",
+      "name": "exchange",
+      "font_class": "exchange",
+      "unicode": "e6f5",
+      "unicode_decimal": 59125
+    },
+    {
+      "icon_id": "8094809",
+      "name": "merge-cells",
+      "font_class": "merge",
+      "unicode": "e901",
+      "unicode_decimal": 59649
+    },
+    {
+      "icon_id": "10278208",
+      "name": "上传",
+      "font_class": "upload",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "23538484",
+      "name": "拼接",
+      "font_class": "concat",
+      "unicode": "e630",
+      "unicode_decimal": 58928
+    },
+    {
+      "icon_id": "15838472",
+      "name": "email",
+      "font_class": "email",
+      "unicode": "e670",
+      "unicode_decimal": 58992
+    },
+    {
+      "icon_id": "6151052",
+      "name": "mobile-alt",
+      "font_class": "mobile",
+      "unicode": "e79a",
+      "unicode_decimal": 59290
+    },
+    {
+      "icon_id": "15617554",
+      "name": "drag",
+      "font_class": "drag",
+      "unicode": "e8ec",
+      "unicode_decimal": 59628
+    },
+    {
+      "icon_id": "240317",
+      "name": "move",
+      "font_class": "move",
+      "unicode": "e6fd",
+      "unicode_decimal": 59133
+    },
     {
       "icon_id": "880330",
       "name": "link",
@@ -92,7 +155,7 @@
     {
       "icon_id": "4318807",
       "name": "mp3",
-      "font_class": "mp",
+      "font_class": "mp3",
       "unicode": "e6c4",
       "unicode_decimal": 59076
     },

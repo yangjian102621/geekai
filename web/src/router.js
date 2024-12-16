@@ -27,6 +27,12 @@ const routes = [
                 component: () => import('@/views/ChatPlus.vue'),
             },
             {
+                name: 'chat-id',
+                path: '/chat/:id',
+                meta: {title: '创作中心'},
+                component: () => import('@/views/ChatPlus.vue'),
+            },
+            {
                 name: 'image-mj',
                 path: '/mj',
                 meta: {title: 'MidJourney 绘画中心'},
@@ -96,6 +102,12 @@ const routes = [
                 path: '/song/:id',
                 meta: {title: 'Suno音乐播放'},
                 component: () => import('@/views/Song.vue'),
+            },
+            {
+                name: 'luma',
+                path: '/luma',
+                meta: {title: 'Luma视频创作'},
+                component: () => import('@/views/Luma.vue'),
             },
         ]
     },
@@ -228,7 +240,7 @@ const routes = [
     {
         name: 'mobile',
         path: '/mobile',
-        meta: {title: 'Geek-AI v4.0'},
+        meta: {title: '首页'},
         component: () => import('@/views/mobile/Home.vue'),
         redirect: '/mobile/index',
         children: [

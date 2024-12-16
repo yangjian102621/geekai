@@ -89,7 +89,8 @@ onMounted(() => {
 const getRoles = () => {
   checkSession().then(user => {
     roles.value = user.chat_roles
-  }).catch(() => {
+  }).catch(e => {
+    console.log(e.message)
   })
 }
 

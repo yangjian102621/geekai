@@ -5,7 +5,7 @@ type SunoJob struct {
 	UserId       int                    `json:"user_id"`
 	Channel      string                 `json:"channel"`
 	Title        string                 `json:"title"`
-	Type         string                 `json:"type"`
+	Type         int                    `json:"type"`
 	TaskId       string                 `json:"task_id"`
 	RefTaskId    string                 `json:"ref_task_id"`  // 续写的任务id
 	Tags         string                 `json:"tags"`         // 歌曲风格和标签
@@ -27,8 +27,4 @@ type SunoJob struct {
 	User         map[string]interface{} `json:"user,omitempty"` //关联用户信息
 	PlayTimes    int                    `json:"play_times"`     // 播放次数
 	CreatedAt    int64                  `json:"created_at"`
-}
-
-func (SunoJob) TableName() string {
-	return "chatgpt_suno_jobs"
 }

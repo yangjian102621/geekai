@@ -6,27 +6,44 @@
         width="540px"
         :before-close="close"
         :title="title"
+        class="reset-pass-dialog"
     >
       <div class="form">
-
         <el-form :model="form" label-width="80px" label-position="left">
-          <el-form-item label="用户名">
-            <el-input v-model="form.username" placeholder="手机号/邮箱地址"/>
-          </el-form-item>
-          <el-form-item label="验证码">
-            <div class="code-box">
-              <el-input v-model="form.code" maxlength="6"/>
-              <send-msg size="" :receiver="form.username" style="margin-left: 10px; min-width: 100px"/>
-            </div>
-            <el-row :gutter="20">
-              <el-col :span="12">
+          <el-tabs v-model="form.type" class="demo-tabs">
+            <el-tab-pane label="手机号验证" name="mobile">
+              <el-form-item label="手机号">
+                <el-input v-model="form.mobile" placeholder="请输入手机号"/>
+              </el-form-item>
+              <el-form-item label="验证码">
+                <el-row class="code-row">
+                  <el-col :span="16">
+                    <el-input v-model="form.code" maxlength="6"/>
+                  </el-col>
+                  <el-col :span="8" class="send-button">
+                    <send-msg size="" :receiver="form.mobile" type="mobile"/>
+                  </el-col>
+                </el-row>
+              </el-form-item>
 
-              </el-col>
-              <el-col :span="12" style="justify-content: right">
+            </el-tab-pane>
+            <el-tab-pane label="邮箱验证" name="email">
+              <el-form-item label="邮箱地址">
+                <el-input v-model="form.email" placeholder="请输入邮箱地址"/>
+              </el-form-item>
+              <el-form-item label="验证码">
+                <el-row class="code-row">
+                  <el-col :span="16">
+                    <el-input v-model="form.code" maxlength="6"/>
+                  </el-col>
+                  <el-col :span="8" class="send-button">
+                    <send-msg size="" :receiver="form.email" type="email"/>
+                  </el-col>
+                </el-row>
+              </el-form-item>
+            </el-tab-pane>
+          </el-tabs>
 
-              </el-col>
-            </el-row>
-          </el-form-item>
           <el-form-item label="新密码">
             <el-input v-model="form.password" type="password"/>
           </el-form-item>
@@ -65,7 +82,9 @@ const showDialog = computed(() => {
 
 const title = ref('重置密码')
 const form = ref({
-  username: '',
+  mobile: '',
+  email: '',
+  type: 'mobile',
   code: '',
   password: '',
   repass: ''
@@ -74,11 +93,11 @@ const form = ref({
 const emits = defineEmits(['hide']);
 
 const save = () => {
-  if (!validateMobile(form.value.username) && !validateEmail(form.value.username)) {
-    return ElMessage.error("请输入正确的手机号码/邮箱地址");
-  }
   if (form.value.code === '') {
     return ElMessage.error("请输入验证码");
+  }
+  if (form.value.password.length < 8) {
+    return ElMessage.error("密码长度必须大于8位");
   }
   if (form.value.repass !== form.value.password) {
     return ElMessage.error("两次输入密码不一致");
@@ -101,15 +120,24 @@ const close = function () {
 <style lang="stylus">
 .reset-pass {
   .form {
-    padding 10px 20px
+    padding 0 20px
   }
-  .code-box {
-    display: flex;
-    justify-content: space-between;
-    width: 100%
+
+  .code-row {
+    width 100%
+    .send-button {
+      padding-left 10px
+    }
   }
-  .el-dialog__footer {
-    text-align center
+
+  .reset-pass-dialog {
+    .el-dialog__footer {
+      text-align center
+      padding-top 0
+    }
+    .el-dialog__body {
+      padding 0
+    }
   }
 }
 

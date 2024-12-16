@@ -23,8 +23,8 @@
                 --el-table-row-hover-bg-color:#373C47;
                 --el-table-header-bg-color:#474E5C;
                 --el-table-text-color:#d1d1d1">
-            <el-table-column prop="username" label="用户"/>
-            <el-table-column prop="model" label="模型"/>
+            <el-table-column prop="username" label="用户" width="130px"/>
+            <el-table-column prop="model" label="模型" width="130px"/>
             <el-table-column prop="type" label="类型">
               <template #default="scope">
                 <el-tag size="small" :type="tagColors[scope.row.type]">{{ scope.row.type_str }}</el-tag>
@@ -39,7 +39,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="balance" label="余额"/>
-            <el-table-column label="发生时间">
+            <el-table-column label="发生时间" width="160px">
               <template #default="scope">
                 <span>{{ dateFormat(scope.row['created_at']) }}</span>
               </template>

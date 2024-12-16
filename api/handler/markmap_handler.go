@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils"
 	"github.com/gin-gonic/gin"
@@ -30,13 +31,15 @@ import (
 // MarkMapHandler 生成思维导图
 type MarkMapHandler struct {
 	BaseHandler
-	clients *types.LMap[int, *types.WsClient]
+	clients     *types.LMap[int, *types.WsClient]
+	userService *service.UserService
 }
 
-func NewMarkMapHandler(app *core.AppServer, db *gorm.DB) *MarkMapHandler {
+func NewMarkMapHandler(app *core.AppServer, db *gorm.DB, userService *service.UserService) *MarkMapHandler {
 	return &MarkMapHandler{
 		BaseHandler: BaseHandler{App: app, DB: db},
 		clients:     types.NewLMap[int, *types.WsClient](),
+		userService: userService,
 	}
 }
 
@@ -185,22 +188,13 @@ func (h *MarkMapHandler) sendMessage(client *types.WsClient, prompt string, mode
 
 	// 扣减算力
 	if chatModel.Power > 0 {
-		res = h.DB.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power - ?", chatModel.Power))
-		if res.Error == nil {
-			// 记录算力消费日志
-			var u model.User
-			h.DB.Where("id", userId).First(&u)
-			h.DB.Create(&model.PowerLog{
-				UserId:    u.Id,
-				Username:  u.Username,
-				Type:      types.PowerConsume,
-				Amount:    chatModel.Power,
-				Mark:      types.PowerSub,
-				Balance:   u.Power,
-				Model:     chatModel.Value,
-				Remark:    fmt.Sprintf("AI绘制思维导图，模型名称：%s, ", chatModel.Value),
-				CreatedAt: time.Now(),
-			})
+		err = h.userService.DecreasePower(userId, chatModel.Power, model.PowerLog{
+			Type:   types.PowerConsume,
+			Model:  chatModel.Value,
+			Remark: fmt.Sprintf("AI绘制思维导图，模型名称：%s, ", chatModel.Value),
+		})
+		if err != nil {
+			return err
 		}
 	}
 

@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-user-profile container">
     <div class="content">
-      <van-form>
+      <van-form v-if="isLogin">
         <div class="avatar">
           <van-image :src="fileList[0].url" size="80" width="80" fit="cover" round />
 <!--          <van-uploader v-model="fileList"-->
@@ -160,7 +160,7 @@ import {httpGet, httpPost} from "@/utils/http";
 import Compressor from 'compressorjs';
 import {dateFormat, isWeChatBrowser, showLoginDialog} from "@/utils/libs";
 import {ElMessage} from "element-plus";
-import {checkSession} from "@/store/cache";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {removeUserToken} from "@/store/session";
 import bus from '@/store/eventbus'

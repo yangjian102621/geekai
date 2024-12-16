@@ -430,7 +430,7 @@ const connect = () => {
 // 获取运行中的任务
 const fetchRunningJobs = (userId) => {
   httpGet(`/api/mj/jobs?finish=0&user_id=${userId}`).then(res => {
-    const jobs = res.data
+    const jobs = res.data.items
     const _jobs = []
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i].progress === -1) {
@@ -462,7 +462,7 @@ const fetchFinishJobs = (page) => {
   loading.value = true
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?finish=1&page=${page}&page_size=${pageSize.value}`).then(res => {
-    const jobs = res.data
+    const jobs = res.data.items
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i].progress === 101) {
         showNotify({

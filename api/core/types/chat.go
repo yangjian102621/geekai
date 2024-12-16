@@ -57,6 +57,7 @@ type ChatSession struct {
 	ClientIP  string    `json:"client_ip"` // 客户端 IP
 	ChatId    string    `json:"chat_id"`   // 客户端聊天会话 ID, 多会话模式专用字段
 	Model     ChatModel `json:"model"`     // GPT 模型
+	Tools     string    `json:"tools"`     // 函数
 }
 
 type ChatModel struct {
