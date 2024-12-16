@@ -1,4 +1,9 @@
 # 更新日志
+
+## v4.1.8
+
+* Bug修复：修复音 Luma API 更新导致任务响应解析失败的错误
+
 ## v4.1.7
 * Bug修复：手机邮箱相关的注册问题 [#IB0HS5](https://gitee.com/blackfox/geekai/issues/IB0HS5)
 * Bug修复：音乐视频无法下载，思维导图下载后看不清文字[#IB0N2E](https://gitee.com/blackfox/geekai/issues/IB0N2E)
