@@ -172,13 +172,13 @@
         </v3-waterfall>
 
         <div class="footer" v-if="isOver">
-          <el-empty
+          <!-- <el-empty
             :image-size="100"
             :image="nodata"
             description="没有更多数据了"
-          />
-          <!-- <span>没有更多数据了</span>
-          <i class="iconfont icon-face"></i> -->
+          /> -->
+          <span>没有更多数据了</span>
+          <i class="iconfont icon-face"></i>
         </div>
 
         <back-top :right="30" :bottom="30" />

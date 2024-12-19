@@ -411,7 +411,9 @@ import Compressor from "compressorjs";
 import Generating from "@/components/ui/Generating.vue";
 import { useSharedStore } from "@/store/sharedata";
 
-const winHeight = ref(window.innerHeight - 50);
+// const winHeight = ref(window.innerHeight - 50);
+const winHeight = ref(window.innerHeight - 20);
+
 const custom = ref(false);
 const models = ref([
   { label: "v3.0", value: "chirp-v3-0" },

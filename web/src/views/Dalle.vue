@@ -309,7 +309,7 @@ const previewURL = ref("");
 const store = useSharedStore();
 
 const resizeElement = function () {
-  listBoxHeight.value = window.innerHeight - 90;
+  listBoxHeight.value = window.innerHeight - 58;
   // paramBoxHeight.value = window.innerHeight - 110
 };
 resizeElement();
