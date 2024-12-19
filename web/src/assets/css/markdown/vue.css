@@ -4,10 +4,11 @@
         list-style: normal;
     }
     a {
-        color: #42b983;
-        font-weight: 600;
+        
+        color :var(--a-link-color);
+        text-decoration: underline;
+       
         padding: 0 2px;
-        text-decoration: none;
     }
 
     h1,

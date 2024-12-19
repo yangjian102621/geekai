@@ -256,7 +256,7 @@ const reGenerate = (prompt) => {
 
             code {
               color:var(--theme-text-color-primary);
-              background-color #e7e7e8
+              background-color var(--el-color-primary-light-3)
               padding 0 3px;
               border-radius 5px;
             }
@@ -348,7 +348,7 @@ const reGenerate = (prompt) => {
           padding 10px 10px 10px 0;
 
           .bar-item {
-            background-color #e7e7e8;
+            background-color var( --little-btn-bg);
             color #888
             padding 3px 5px;
             margin-right 10px;
@@ -433,7 +433,7 @@ const reGenerate = (prompt) => {
 
               code {
                 color:var(--theme-text-color-primary);
-                background-color #e7e7e8
+                background-color var( --little-btn-bg)
                 padding 0 3px;
                 border-radius 5px;
               }
@@ -539,7 +539,7 @@ const reGenerate = (prompt) => {
           }
 
           .bar-item.bg {
-            background-color #e7e7e8
+            background-color var( --gray-btn-bg)
             cursor pointer
           }
 

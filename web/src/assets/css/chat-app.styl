@@ -1,30 +1,38 @@
 .page-apps {
-  background-color: #282c34;
+  // background-color: #282c34;
   height 100%
 
   .apps-type-nav{
-    height 43px
+    height 50px
     padding 8px 0;
-    margin-bottom 3px
+    margin 10px auto
   }
 
   .scrollbar-type-nav{
     display flex
     align-items center
-    height 43px
-    padding 0 5px
+   
+    padding 2px
+    background-color #f4f1f7
+    width fit-content
+    border 1px solid rgba(79,89,102,.078)
+    border-radius: 20px 
+    margin: 0 auto
+    // background: var(--chat-bg);
+    // width 100%
     li{
       flex-shrink 0
       display flex
       align-items center
       justify-content center
-      margin 0 10px
+      margin 5px 8px
       height 26px
       border-radius 4px
-      border 1px solid rgb(80,80,80)
+      // border 1px solid rgb(80,80,80)
       padding 2px 12px
-      background rgba(60,60,60 0.9)
-      color #fff
+      // background rgba(60,60,60 0.9)
+      color var(--theme-text-tertiary)
+      font-weight: bold
       font-size 14px
       cursor pointer
 
@@ -34,9 +42,12 @@
         overflow hidden
         margin-right 5px
         border-radius 50%
+    
       }
       &.active{
-        background #21aa93;
+        background #fff;
+        color: var(--el-color-primary);
+        border-radius 20px
       }
     }
   }
@@ -53,16 +64,24 @@
       .item {
         display flex
         flex-flow row
-        border 1px solid rgb(80,80,80)
+        // border 1px solid rgb(80,80,80)
         padding 10px
-        background rgba(60,60,60 0.5)
+        background: var(--chat-bg);
+        border-radius 8px
 
         .image {
           width 80px
           height 80px
           min-width 80px
-          border-radius 5px
+          border-radius 50%
           overflow hidden
+          object-fit: contain
+          display: flex
+          align-items center
+          justify-content center
+          flex-shrink 0
+          border: 2px solid #f5f7fd
+          background: #fff
         }
 
         .inner {
@@ -75,7 +94,7 @@
             text-align left
 
             .info-title {
-              color var(--el-text-color)
+              color: var(--text-theme-color)
               font-size 1.25rem
               line-height 1.75rem
               letter-spacing: .025em;
@@ -96,7 +115,8 @@
               word-break: break-all;
               height 34px
               font-size: .875rem;
-              color #999999
+              color var(--el-text-color-primary)
+
             }
           }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="welcome">
     <div class="container">
-      <h1 class="title">{{ title }}-{{ version }}</h1>
+      <h2 class="title">{{ title }}-{{ version }}</h2>
 
       <el-row :gutter="20">
         <el-col :span="8">
@@ -128,10 +128,11 @@ const send = (text) => {
     width 100%
 
     .title {
-      font-size: 2.25rem
+      // font-size: 2.25rem
       line-height: 2.5rem
       font-weight 600
       margin-bottom: 4rem
+      color var( --theme-textcolor-normal)
     }
 
     .grid-content {

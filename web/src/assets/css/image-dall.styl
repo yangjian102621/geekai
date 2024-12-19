@@ -1,25 +1,25 @@
 .page-dall {
-  background-color: #282c34;
+  // background-color: #282c34;
 
   .inner {
     display: flex;
 
     .sd-box {
       margin 10px
-      background-color #262626
-      border 1px solid #454545
+      // background-color #262626
+      // border 1px solid #454545
       min-width 300px
       max-width 300px
       padding 10px
       border-radius 10px
-      color #ffffff;
+      color var(--text-theme-color);
       font-size 14px
 
       h2 {
         font-weight: bold;
         font-size 20px
         text-align center
-        color #47fff1
+        color#b0a0f8
       }
 
       // 隐藏滚动条
@@ -66,25 +66,24 @@
         text-align center
 
         .el-button {
-          width 100%
+          width 200px
 
-          span {
-            color #2D3A4B
-          }
+          
         }
       }
     }
 
     .el-form {
       .el-form-item__label {
-        color #ffffff
+        color var(--text-theme-color)
       }
     }
 
     .task-list-box {
+      background: var(--chat-bg);
       width 100%
       padding 10px
-      color #ffffff
+      color var(--text-theme-color)
       overflow-x hidden
 
       .task-list-inner {
@@ -93,26 +92,26 @@
         }
 
         .el-tabs__item {
-          color: #fff;
+          color: var(--text-theme-color);
           font-size: 18px;
         }
 
         .title-tabs .el-tabs__item.is-active {
-          color: #47FFF1;
+          color:#b0a0f8;
           font-size: 18px;
         }
 
         .title-tabs .el-tabs__active-bar {
-          background-color: #47FFF1;
+          background-color:#b0a0f8;
         }
 
         .el-textarea {
-          --el-input-focus-border-color: #47FFF1;
+          // --el-input-focus-border-color:#b0a0f8;
         }
 
         .el-textarea__inner {
           background: transparent;
-          color: #fff;
+          color: var(--text-theme-color);
         }
 
         .el-input__wrapper {
@@ -141,7 +140,7 @@
         }
 
         .el-form-item__label {
-          color #ffffff
+          color var(--text-theme-color)
         }
 
         // 图片上传样式

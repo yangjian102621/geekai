@@ -8,9 +8,9 @@
           <el-form :model="params" label-width="80px" label-position="left">
             <div class="param-line pt">
               <span>图片比例：</span>
-              <el-tooltip effect="light" content="生成图片的尺寸比例" placement="right">
+              <el-tooltip content="生成图片的尺寸比例" placement="right">
                 <el-icon>
-                  <InfoFilled/>
+                  <InfoFilled />
                 </el-icon>
               </el-tooltip>
             </div>
@@ -18,10 +18,20 @@
             <div class="param-line pt">
               <el-row :gutter="10">
                 <el-col :span="8" v-for="item in rates" :key="item.value">
-                  <div class="flex-col items-center"
-                       :class="item.value === params.rate ? 'grid-content active' : 'grid-content'"
-                       @click="changeRate(item)">
-                    <el-image class="icon" :src="item.img" fit="cover"></el-image>
+                  <div
+                    class="flex-col items-center"
+                    :class="
+                      item.value === params.rate
+                        ? 'grid-content active'
+                        : 'grid-content'
+                    "
+                    @click="changeRate(item)"
+                  >
+                    <el-image
+                      class="icon"
+                      :src="item.img"
+                      fit="cover"
+                    ></el-image>
                     <div class="text">{{ item.text }}</div>
                   </div>
                 </el-col>
@@ -32,16 +42,25 @@
               <el-form-item label="图片画质">
                 <template #default>
                   <div class="form-item-inner flex-row items-center">
-                    <el-select v-model="params.quality" placeholder="请选择" style="width:175px">
-                      <el-option v-for="item in options"
-                                 :key="item.value"
-                                 :label="item.label"
-                                 :value="item.value">
+                    <el-select
+                      v-model="params.quality"
+                      placeholder="请选择"
+                      style="width: 175px"
+                    >
+                      <el-option
+                        v-for="item in options"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      >
                       </el-option>
                     </el-select>
-                    <el-tooltip effect="light" content="生成的图片质量，质量越好出图越慢" placement="right">
+                    <el-tooltip
+                      content="生成的图片质量，质量越好出图越慢"
+                      placement="right"
+                    >
                       <el-icon>
-                        <InfoFilled/>
+                        <InfoFilled />
                       </el-icon>
                     </el-tooltip>
                   </div>
@@ -51,18 +70,25 @@
 
             <div class="param-line pt">
               <span>模型选择：</span>
-              <el-tooltip effect="light" content="MJ: 偏真实通用模型 <br/>NIJI: 偏动漫风格、适用于二次元模型" raw-content
-                          placement="right">
+              <el-tooltip
+                content="MJ: 偏真实通用模型 <br/>NIJI: 偏动漫风格、适用于二次元模型"
+                raw-content
+                placement="right"
+              >
                 <el-icon>
-                  <InfoFilled/>
+                  <InfoFilled />
                 </el-icon>
               </el-tooltip>
             </div>
             <div class="param-line pt">
               <el-row :gutter="10">
                 <el-col :span="12" v-for="item in models" :key="item.value">
-                  <div :class="item.value === params.model ? 'model active' : 'model'"
-                       @click="changeModel(item)">
+                  <div
+                    :class="
+                      item.value === params.model ? 'model active' : 'model'
+                    "
+                    @click="changeModel(item)"
+                  >
                     <el-image :src="item.img" fit="cover"></el-image>
                     <div class="text">{{ item.text }}</div>
                   </div>
@@ -74,12 +100,14 @@
               <el-form-item label="重复平铺">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-switch v-model="params.tile" inactive-color="#464649" active-color="#47fff1"/>
-                    <el-tooltip effect="light"
-                                content="重复：--tile，参数释义：生成可用作重复平铺的图像，以创建无缝图案。" raw-content
-                                placement="right">
+                    <el-switch v-model="params.tile" inactive-color="#464649" />
+                    <el-tooltip
+                      content="重复：--tile，参数释义：生成可用作重复平铺的图像，以创建无缝图案。"
+                      raw-content
+                      placement="right"
+                    >
                       <el-icon>
-                        <InfoFilled/>
+                        <InfoFilled />
                       </el-icon>
                     </el-tooltip>
                   </div>
@@ -87,18 +115,18 @@
               </el-form-item>
             </div>
 
-
             <div class="param-line">
               <el-form-item label="原始模式">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-switch v-model="params.raw" inactive-color="#464649" active-color="#47fff1"/>
-                    <el-tooltip effect="light"
-                                content="启用新的RAW模式，呈现的人物写实感更加逼真，人物细节、光源、流畅度也更加接近原始作品。<br/> 同时也意味着您需要添加更长的提示。"
-                                raw-content
-                                placement="right">
+                    <el-switch v-model="params.raw" inactive-color="#464649" />
+                    <el-tooltip
+                      content="启用新的RAW模式，呈现的人物写实感更加逼真，人物细节、光源、流畅度也更加接近原始作品。<br/> 同时也意味着您需要添加更长的提示。"
+                      raw-content
+                      placement="right"
+                    >
                       <el-icon>
-                        <InfoFilled/>
+                        <InfoFilled />
                       </el-icon>
                     </el-tooltip>
                   </div>
@@ -110,13 +138,19 @@
               <el-form-item label="创意度">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-slider v-model.number="params.chaos" :max="100" :step="1"
-                               style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
-                    <el-tooltip effect="light"
-                                content="参数用法：--chaos 或--c，取值范围: 0-100 <br/> 取值越高结果越发散，反之则稳定收敛<br /> 默认值0最为精准稳定"
-                                raw-content placement="right">
+                    <el-slider
+                      v-model.number="params.chaos"
+                      :max="100"
+                      :step="1"
+                      style="width: 180px"
+                    />
+                    <el-tooltip
+                      content="参数用法：--chaos 或--c，取值范围: 0-100 <br/> 取值越高结果越发散，反之则稳定收敛<br /> 默认值0最为精准稳定"
+                      raw-content
+                      placement="right"
+                    >
                       <el-icon>
-                        <InfoFilled/>
+                        <InfoFilled />
                       </el-icon>
                     </el-tooltip>
                   </div>
@@ -128,13 +162,20 @@
               <el-form-item label="风格化">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-slider v-model.number="params.stylize" :min="0" :max="1000" :step="1"
-                               style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
-                    <el-tooltip effect="light"
-                                content="风格化：--stylize 或 --s，范围 1-1000，默认值100 <br/>高取值会产生非常艺术化但与提示关联性较低的图像"
-                                raw-content placement="right">
+                    <el-slider
+                      v-model.number="params.stylize"
+                      :min="0"
+                      :max="1000"
+                      :step="1"
+                      style="width: 180px"
+                    />
+                    <el-tooltip
+                      content="风格化：--stylize 或 --s，范围 1-1000，默认值100 <br/>高取值会产生非常艺术化但与提示关联性较低的图像"
+                      raw-content
+                      placement="right"
+                    >
                       <el-icon>
-                        <InfoFilled/>
+                        <InfoFilled />
                       </el-icon>
                     </el-tooltip>
                   </div>
@@ -146,13 +187,14 @@
               <el-form-item label="随机种子">
                 <template #default>
                   <div class="form-item-inner">
-                    <el-input v-model.number="params.seed" style="--el-input-focus-border-color:#47fff1"/>
-                    <el-tooltip effect="light"
-                                content="随机种子：--seed，默认值0表示随机产生 <br/>使用相同的种子参数和描述将产生相似的图像"
-                                raw-content
-                                placement="right">
+                    <el-input v-model.number="params.seed" />
+                    <el-tooltip
+                      content="随机种子：--seed，默认值0表示随机产生 <br/>使用相同的种子参数和描述将产生相似的图像"
+                      raw-content
+                      placement="right"
+                    >
                       <el-icon>
-                        <InfoFilled/>
+                        <InfoFilled />
                       </el-icon>
                     </el-tooltip>
                   </div>
@@ -166,16 +208,23 @@
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <div class="extra-params">
             <el-form>
-              <el-tabs v-model="activeName" class="title-tabs" @tabChange="tabChange">
+              <el-tabs
+                v-model="activeName"
+                class="title-tabs"
+                @tabChange="tabChange"
+              >
                 <el-tab-pane label="文生图" name="txt2img">
                   <div class="prompt-box">
                     <div class="param-line pt">
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>提示词：</span>
-                          <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
+                          <el-tooltip
+                            content="输入你想要的内容，用逗号分割"
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -183,15 +232,25 @@
                     </div>
 
                     <div class="param-line pt" style="position: relative">
-                      <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                                ref="promptRef"
-                                v-loading="isGenerating"
-                                style="--el-mask-color:rgba(100, 100, 100, 0.8)"
-                                placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"/>
+                      <el-input
+                        v-model="params.prompt"
+                        :autosize="{ minRows: 4, maxRows: 6 }"
+                        type="textarea"
+                        ref="promptRef"
+                        v-loading="isGenerating"
+                        style="--el-mask-color: rgba(100, 100, 100, 0.8)"
+                        placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
+                      />
                     </div>
 
                     <el-row class="text-info">
-                      <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+                      <el-button
+                        class="generate-btn"
+                        size="small"
+                        @click="generatePrompt"
+                        color="#5865f2"
+                        :disabled="isGenerating"
+                      >
                         <i class="iconfont icon-chuangzuo"></i>
                         <span>生成专业绘画指令</span>
                       </el-button>
@@ -201,9 +260,12 @@
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>不希望出现的内容：（可选）</span>
-                          <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
+                          <el-tooltip
+                            content="不想出现在图片上的元素(例如：树，建筑)"
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -211,28 +273,46 @@
                     </div>
 
                     <div class="param-line pt">
-                      <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                                ref="promptRef"
-                                placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"/>
+                      <el-input
+                        v-model="params.neg_prompt"
+                        :autosize="{ minRows: 4, maxRows: 6 }"
+                        type="textarea"
+                        ref="promptRef"
+                        placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
+                      />
                     </div>
                   </div>
                 </el-tab-pane>
                 <el-tab-pane label="图生图" name="img2img">
-                  <div class="text">图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持 PNG 和 JPG 格式图片；
+                  <div class="text">
+                    图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持
+                    PNG 和 JPG 格式图片；
                   </div>
                   <div class="param-line">
                     <div class="img-inline">
                       <div class="img-list-box">
-                        <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
-                          <el-image :src="imgURL" fit="cover"/>
-                          <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
+                        <div
+                          class="img-item"
+                          v-for="imgURL in imgList"
+                          :key="imgURL"
+                        >
+                          <el-image :src="imgURL" fit="cover" />
+                          <el-button
+                            type="danger"
+                            :icon="Delete"
+                            @click="removeUploadImage(imgURL)"
+                            circle
+                          />
                         </div>
-
                       </div>
-                      <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                                 :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                      <el-upload
+                        class="img-uploader"
+                        :auto-upload="true"
+                        :show-file-list="false"
+                        :http-request="uploadImg"
+                      >
                         <el-icon class="uploader-icon">
-                          <Plus/>
+                          <Plus />
                         </el-icon>
                       </el-upload>
                     </div>
@@ -242,13 +322,19 @@
                     <el-form-item label="参考权重：">
                       <template #default>
                         <div class="form-item-inner">
-                          <el-slider v-model.number="params.iw" :max="1" :step="0.01"
-                                     style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
-                          <el-tooltip effect="light"
-                                      content="使用图像权重参数--iw来调整图像 URL 与文本的重要性 <br/>权重较高时意味着图像提示将对完成的作业产生更大的影响"
-                                      raw-content placement="right">
+                          <el-slider
+                            v-model.number="params.iw"
+                            :max="1"
+                            :step="0.01"
+                            style="width: 180px"
+                          />
+                          <el-tooltip
+                            content="使用图像权重参数--iw来调整图像 URL 与文本的重要性 <br/>权重较高时意味着图像提示将对完成的作业产生更大的影响"
+                            raw-content
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -261,9 +347,12 @@
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>提示词：</span>
-                          <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
+                          <el-tooltip
+                            content="输入你想要的内容，用逗号分割"
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -271,15 +360,25 @@
                     </div>
 
                     <div class="param-line pt">
-                      <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                                ref="promptRef"
-                                v-loading="isGenerating"
-                                style="--el-mask-color:rgba(100, 100, 100, 0.8)"
-                                placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
+                      <el-input
+                        v-model="params.prompt"
+                        :autosize="{ minRows: 4, maxRows: 6 }"
+                        type="textarea"
+                        ref="promptRef"
+                        v-loading="isGenerating"
+                        style="--el-mask-color: rgba(100, 100, 100, 0.8)"
+                        placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
+                      />
                     </div>
 
                     <el-row class="text-info">
-                      <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+                      <el-button
+                        class="generate-btn"
+                        size="small"
+                        @click="generatePrompt"
+                        color="#5865f2"
+                        :disabled="isGenerating"
+                      >
                         <i class="iconfont icon-chuangzuo"></i>
                         <span>生成专业绘画指令</span>
                       </el-button>
@@ -289,9 +388,12 @@
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>不希望出现的内容：（可选）</span>
-                          <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
+                          <el-tooltip
+                            content="不想出现在图片上的元素(例如：树，建筑)"
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -299,46 +401,78 @@
                     </div>
 
                     <div class="param-line pt">
-                      <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                                ref="promptRef"
-                                placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"/>
+                      <el-input
+                        v-model="params.neg_prompt"
+                        :autosize="{ minRows: 4, maxRows: 6 }"
+                        type="textarea"
+                        ref="promptRef"
+                        placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
+                      />
                     </div>
                   </div>
                 </el-tab-pane>
 
                 <el-tab-pane label="融图" name="blend">
-                  <div class="text">请上传两张以上的图片，最多不超过五张，超过五张图片请使用图生图功能</div>
+                  <div class="text">
+                    请上传两张以上的图片，最多不超过五张，超过五张图片请使用图生图功能
+                  </div>
                   <div class="img-inline">
                     <div class="img-list-box">
-                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
-                        <el-image :src="imgURL" fit="cover"/>
-                        <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
+                      <div
+                        class="img-item"
+                        v-for="imgURL in imgList"
+                        :key="imgURL"
+                      >
+                        <el-image :src="imgURL" fit="cover" />
+                        <el-button
+                          type="danger"
+                          :icon="Delete"
+                          @click="removeUploadImage(imgURL)"
+                          circle
+                        />
                       </div>
-
                     </div>
-                    <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                               :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                    <el-upload
+                      class="img-uploader"
+                      :auto-upload="true"
+                      :show-file-list="false"
+                      :http-request="uploadImg"
+                    >
                       <el-icon class="uploader-icon">
-                        <Plus/>
+                        <Plus />
                       </el-icon>
                     </el-upload>
                   </div>
                 </el-tab-pane>
 
                 <el-tab-pane label="换脸" name="swapFace">
-                  <div class="text">请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸</div>
+                  <div class="text">
+                    请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸
+                  </div>
                   <div class="img-inline">
                     <div class="img-list-box">
-                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
-                        <el-image :src="imgURL" fit="cover"/>
-                        <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
+                      <div
+                        class="img-item"
+                        v-for="imgURL in imgList"
+                        :key="imgURL"
+                      >
+                        <el-image :src="imgURL" fit="cover" />
+                        <el-button
+                          type="danger"
+                          :icon="Delete"
+                          @click="removeUploadImage(imgURL)"
+                          circle
+                        />
                       </div>
-
                     </div>
-                    <el-upload class="img-uploader" :auto-upload="true" :show-file-list="false"
-                               :http-request="uploadImg" style="--el-color-primary:#47fff1">
+                    <el-upload
+                      class="img-uploader"
+                      :auto-upload="true"
+                      :show-file-list="false"
+                      :http-request="uploadImg"
+                    >
                       <el-icon class="uploader-icon">
-                        <Plus/>
+                        <Plus />
                       </el-icon>
                     </el-upload>
                   </div>
@@ -351,21 +485,31 @@
                     </el-badge>
                   </template>
 
-                  <div class="text">注意：只有于 niji6 和 v6 模型支持一致性功能，如果选择其他模型此功能将会生成失败。</div>
+                  <div class="text">
+                    注意：只有于 niji6 和 v6
+                    模型支持一致性功能，如果选择其他模型此功能将会生成失败。
+                  </div>
                   <div class="param-line">
                     <el-form-item label="角色一致性：" prop="cref">
-                      <el-input v-model="params.cref" placeholder="请输入图片URL或者上传图片"
-                                style="--el-input-focus-border-color:#47fff1;--el-input-text-color:#ffffff; max-width: 500px; width: 100%"
-                                size="small">
+                      <el-input
+                        v-model="params.cref"
+                        placeholder="请输入图片URL或者上传图片"
+                        style="
+                          --el-input-focus-border-color: #b0a0f8;
+                          max-width: 500px;
+                          width: 100%;
+                        "
+                        size="small"
+                      >
                         <template #append>
                           <el-upload
-                              :auto-upload="true"
-                              :show-file-list="false"
-                              @click="beforeUpload('cref')"
-                              :http-request="uploadImg"
+                            :auto-upload="true"
+                            :show-file-list="false"
+                            @click="beforeUpload('cref')"
+                            :http-request="uploadImg"
                           >
                             <el-icon class="uploader-icon">
-                              <UploadFilled/>
+                              <UploadFilled />
                             </el-icon>
                           </el-upload>
                         </template>
@@ -375,18 +519,25 @@
 
                   <div class="param-line">
                     <el-form-item label="风格一致性：" prop="sref">
-                      <el-input v-model="params.sref" placeholder="请输入图片URL或者上传图片"
-                                style="--el-input-focus-border-color:#47fff1; --el-input-text-color:#ffffff; max-width: 500px; width: 100%"
-                                size="small">
+                      <el-input
+                        v-model="params.sref"
+                        placeholder="请输入图片URL或者上传图片"
+                        style="
+                          --el-input-focus-border-color: #b0a0f8;
+                          max-width: 500px;
+                          width: 100%;
+                        "
+                        size="small"
+                      >
                         <template #append>
                           <el-upload
-                              :auto-upload="true"
-                              :show-file-list="false"
-                              @click="beforeUpload('sref')"
-                              :http-request="uploadImg"
+                            :auto-upload="true"
+                            :show-file-list="false"
+                            @click="beforeUpload('sref')"
+                            :http-request="uploadImg"
                           >
                             <el-icon class="uploader-icon">
-                              <UploadFilled/>
+                              <UploadFilled />
                             </el-icon>
                           </el-upload>
                         </template>
@@ -398,13 +549,19 @@
                     <el-form-item label="参考权重：">
                       <template #default>
                         <div class="form-item-inner">
-                          <el-slider v-model.number="params.cw" :max="100" :step="1"
-                                     style="width: 180px;--el-slider-main-bg-color:#47fff1"/>
-                          <el-tooltip effect="light"
-                                      content="取值范围 0-100 <br/>默认值100参考原图的脸部、头发和衣服<br/>0则表示只换脸"
-                                      raw-content placement="right">
+                          <el-slider
+                            v-model.number="params.cw"
+                            :max="100"
+                            :step="1"
+                            style="width: 180px"
+                          />
+                          <el-tooltip
+                            content="取值范围 0-100 <br/>默认值100参考原图的脸部、头发和衣服<br/>0则表示只换脸"
+                            raw-content
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -417,9 +574,12 @@
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>提示词：</span>
-                          <el-tooltip effect="light" content="输入你想要的内容，用逗号分割" placement="right">
+                          <el-tooltip
+                            content="输入你想要的内容，用逗号分割"
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -427,18 +587,25 @@
                     </div>
 
                     <div class="param-line pt">
-                      <el-input v-model="params.prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                                ref="promptRef"
-                                placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"/>
+                      <el-input
+                        v-model="params.prompt"
+                        :autosize="{ minRows: 4, maxRows: 6 }"
+                        type="textarea"
+                        ref="promptRef"
+                        placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
+                      />
                     </div>
 
                     <div class="param-line pt">
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>不希望出现的内容：（可选）</span>
-                          <el-tooltip effect="light" content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
+                          <el-tooltip
+                            content="不想出现在图片上的元素(例如：树，建筑)"
+                            placement="right"
+                          >
                             <el-icon>
-                              <InfoFilled/>
+                              <InfoFilled />
                             </el-icon>
                           </el-tooltip>
                         </div>
@@ -446,21 +613,37 @@
                     </div>
 
                     <div class="param-line pt">
-                      <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea"
-                                ref="promptRef"
-                                placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"/>
+                      <el-input
+                        v-model="params.neg_prompt"
+                        :autosize="{ minRows: 4, maxRows: 6 }"
+                        type="textarea"
+                        ref="promptRef"
+                        placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
+                      />
                     </div>
                   </div>
                 </el-tab-pane>
               </el-tabs>
 
               <el-row class="text-info">
-                <el-tag>每次绘图消耗{{ mjPower }}算力，U/V 操作消耗{{ mjActionPower }}算力</el-tag>
-                <el-tag type="success">当前可用算力：{{ power }}</el-tag>
+                <el-text type="primary"
+                  >每次绘图消耗
+                  <el-text type="warning">{{ mjPower }}算力;</el-text>
+                  &nbsp;&nbsp; U/V 操作消耗<el-text type="warning"
+                    >{{ mjActionPower }}算力;</el-text
+                  > </el-text
+                >&nbsp;&nbsp;
+                <el-text type="primary"
+                  >当前可用算力：<el-text type="warning">{{
+                    power
+                  }}</el-text></el-text
+                >
               </el-row>
 
               <div class="submit-btn">
-                <el-button color="#47fff1" :dark="false" @click="generate" round>立即生成</el-button>
+                <el-button type="primary" :dark="false" @click="generate" round
+                  >立即生成</el-button
+                >
               </div>
             </el-form>
           </div>
@@ -468,11 +651,11 @@
           <div class="job-list-box">
             <h2>任务列表</h2>
             <task-list :list="runningJobs" />
-
-            <h2>创作记录</h2>
-            <div class="finish-job-list">
-              <div v-if="finishedJobs.length > 0">
-                <v3-waterfall
+            <template v-if="finishedJobs.length > 0">
+              <h2>创作记录</h2>
+              <div class="finish-job-list">
+                <div v-if="finishedJobs.length > 0">
+                  <v3-waterfall
                     id="waterfall"
                     :list="finishedJobs"
                     srcKey="thumb_url"
@@ -482,219 +665,321 @@
                     :distanceToScroll="100"
                     :isLoading="loading"
                     :isOver="isOver"
-                    @scrollReachBottom="fetchFinishJobs()">
-                  <template #default="slotProp">
-                    <div class="job-item">
-                      <el-image
+                    @scrollReachBottom="fetchFinishJobs()"
+                  >
+                    <template #default="slotProp">
+                      <div class="job-item">
+                        <el-image
                           v-if="slotProp.item.img_url !== ''"
                           :src="slotProp.item['thumb_url']"
-                          :class="slotProp.item['can_opt'] ? '' : 'upscale'" @click="previewImg(slotProp.item)"
-                          fit="cover" :initial-index="slotProp.index"
-                          loading="lazy">
-                        <template #placeholder>
-                          <div class="image-slot">
-                            正在加载图片
-                          </div>
-                        </template>
-                        <template #error>
-                          <div class="image-slot">
-                            <el-icon>
-                              <Picture/>
-                            </el-icon>
-                          </div>
-                        </template>
-                      </el-image>
-                      <el-image v-else-if="slotProp.item.progress === 101">
-                        <template #error>
-                          <div class="image-slot">
-                            <div class="err-msg-container">
-                              <div class="title">任务失败</div>
-                              <div class="opt">
-                                <el-popover title="错误详情" trigger="click" :width="250" :content="slotProp.item['err_msg']" placement="top">
-                                  <template #reference>
-                                    <el-button type="info">详情</el-button>
-                                  </template>
-                                </el-popover>
-                                <el-button type="danger"  @click="removeImage(slotProp.item)">删除</el-button>
+                          :class="slotProp.item['can_opt'] ? '' : 'upscale'"
+                          @click="previewImg(slotProp.item)"
+                          fit="cover"
+                          :initial-index="slotProp.index"
+                          loading="lazy"
+                        >
+                          <template #placeholder>
+                            <div class="image-slot">正在加载图片</div>
+                          </template>
+                          <template #error>
+                            <div class="image-slot">
+                              <el-icon>
+                                <Picture />
+                              </el-icon>
+                            </div>
+                          </template>
+                        </el-image>
+                        <el-image v-else-if="slotProp.item.progress === 101">
+                          <template #error>
+                            <div class="image-slot">
+                              <div class="err-msg-container">
+                                <div class="title">任务失败</div>
+                                <div class="opt">
+                                  <el-popover
+                                    title="错误详情"
+                                    trigger="click"
+                                    :width="250"
+                                    :content="slotProp.item['err_msg']"
+                                    placement="top"
+                                  >
+                                    <template #reference>
+                                      <el-button type="info">详情</el-button>
+                                    </template>
+                                  </el-popover>
+                                  <el-button
+                                    type="danger"
+                                    @click="removeImage(slotProp.item)"
+                                    >删除</el-button
+                                  >
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </template>
-                      </el-image>
-                      <el-image v-else>
-                        <template #error>
-                          <div class="image-slot">
-                            <i class="iconfont icon-loading"></i>
-                            <span>正在下载图片</span>
-                          </div>
-                        </template>
-                      </el-image>
+                          </template>
+                        </el-image>
+                        <el-image v-else>
+                          <template #error>
+                            <div class="image-slot">
+                              <i class="iconfont icon-loading"></i>
+                              <span>正在下载图片</span>
+                            </div>
+                          </template>
+                        </el-image>
 
-                      <div class="opt" v-if="slotProp.item['can_opt']">
-                        <div class="opt-line">
-                          <ul>
-                            <li><a @click="upscale(1, slotProp.item)">U1</a></li>
-                            <li><a @click="upscale(2, slotProp.item)">U2</a></li>
-                            <li><a @click="upscale(3, slotProp.item)">U3</a></li>
-                            <li><a @click="upscale(4, slotProp.item)">U4</a></li>
-                            <li class="show-prompt">
-
-                              <el-popover placement="left" title="提示词" :width="240" trigger="hover">
-                                <template #reference>
-                                  <el-icon>
-                                    <ChromeFilled/>
-                                  </el-icon>
-                                </template>
-
-                                <template #default>
-                                  <div class="mj-list-item-prompt">
-                                    <span>{{ slotProp.item.prompt }}</span>
-                                    <el-icon class="copy-prompt-mj"
-                                             :data-clipboard-text="slotProp.item.prompt">
-                                      <DocumentCopy/>
+                        <div class="opt" v-if="slotProp.item['can_opt']">
+                          <div class="opt-line">
+                            <ul>
+                              <li>
+                                <a @click="upscale(1, slotProp.item)">U1</a>
+                              </li>
+                              <li>
+                                <a @click="upscale(2, slotProp.item)">U2</a>
+                              </li>
+                              <li>
+                                <a @click="upscale(3, slotProp.item)">U3</a>
+                              </li>
+                              <li>
+                                <a @click="upscale(4, slotProp.item)">U4</a>
+                              </li>
+                              <li class="show-prompt">
+                                <el-popover
+                                  placement="left"
+                                  title="提示词"
+                                  :width="240"
+                                  trigger="hover"
+                                >
+                                  <template #reference>
+                                    <el-icon>
+                                      <ChromeFilled />
                                     </el-icon>
-                                  </div>
-                                </template>
-                              </el-popover>
-                            </li>
-                          </ul>
+                                  </template>
+
+                                  <template #default>
+                                    <div class="mj-list-item-prompt">
+                                      <span>{{ slotProp.item.prompt }}</span>
+                                      <el-icon
+                                        class="copy-prompt-mj"
+                                        :data-clipboard-text="
+                                          slotProp.item.prompt
+                                        "
+                                      >
+                                        <DocumentCopy />
+                                      </el-icon>
+                                    </div>
+                                  </template>
+                                </el-popover>
+                              </li>
+                            </ul>
+                          </div>
+
+                          <div class="opt-line">
+                            <ul>
+                              <li>
+                                <a @click="variation(1, slotProp.item)">V1</a>
+                              </li>
+                              <li>
+                                <a @click="variation(2, slotProp.item)">V2</a>
+                              </li>
+                              <li>
+                                <a @click="variation(3, slotProp.item)">V3</a>
+                              </li>
+                              <li>
+                                <a @click="variation(4, slotProp.item)">V4</a>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
 
-                        <div class="opt-line">
-                          <ul>
-                            <li><a @click="variation(1, slotProp.item)">V1</a></li>
-                            <li><a @click="variation(2, slotProp.item)">V2</a></li>
-                            <li><a @click="variation(3, slotProp.item)">V3</a></li>
-                            <li><a @click="variation(4, slotProp.item)">V4</a></li>
-                          </ul>
+                        <div
+                          class="remove"
+                          v-if="slotProp.item.progress === 100"
+                        >
+                          <el-tooltip content="删除任务" placement="top">
+                            <el-button
+                              type="danger"
+                              :icon="Delete"
+                              @click="removeImage(slotProp.item)"
+                              circle
+                            />
+                          </el-tooltip>
+                          <el-tooltip
+                            content="取消发布"
+                            placement="top"
+                            v-if="slotProp.item.publish"
+                          >
+                            <el-button
+                              type="warning"
+                              @click="publishImage(slotProp.item, false)"
+                              circle
+                            >
+                              <i class="iconfont icon-cancel-share"></i>
+                            </el-button>
+                          </el-tooltip>
+                          <el-tooltip content="发布图片" placement="top" v-else>
+                            <el-button
+                              type="success"
+                              @click="publishImage(slotProp.item, true)"
+                              circle
+                            >
+                              <i class="iconfont icon-share-bold"></i>
+                            </el-button>
+                          </el-tooltip>
+
+                          <el-tooltip content="复制提示词" placement="top">
+                            <el-button
+                              type="success"
+                              class="copy-prompt-mj"
+                              :data-clipboard-text="slotProp.item.prompt"
+                              circle
+                            >
+                              <el-icon><DocumentCopy /></el-icon>
+                            </el-button>
+                          </el-tooltip>
                         </div>
                       </div>
+                    </template>
 
-                      <div class="remove" v-if="slotProp.item.progress === 100">
-                        <el-tooltip effect="light" content="删除任务" placement="top">
-                          <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle/>
-                        </el-tooltip>
-                        <el-tooltip effect="light" content="取消发布" placement="top" v-if="slotProp.item.publish">
-                          <el-button type="warning"
-                                     @click="publishImage(slotProp.item, false)"
-                                     circle>
-                            <i class="iconfont icon-cancel-share"></i>
-                          </el-button>
-                        </el-tooltip>
-                        <el-tooltip effect="light" content="发布图片" placement="top" v-else>
-                          <el-button type="success" @click="publishImage(slotProp.item, true)" circle>
-                            <i class="iconfont icon-share-bold"></i>
-                          </el-button>
-                        </el-tooltip>
-
-                        <el-tooltip effect="light" content="复制提示词" placement="top">
-                          <el-button type="success" class="copy-prompt-mj"
-                                     :data-clipboard-text="slotProp.item.prompt" circle>
-                            <el-icon><DocumentCopy/></el-icon>
-                          </el-button>
-                        </el-tooltip>
-
+                    <template #footer>
+                      <div class="no-more-data">
+                        <span>没有更多数据了</span>
+                        <i class="iconfont icon-face"></i>
                       </div>
-                    </div>
-                  </template>
-
-                  <template #footer>
-                    <div class="no-more-data">
-                      <span>没有更多数据了</span>
-                      <i class="iconfont icon-face"></i>
-                    </div>
-                  </template>
-                </v3-waterfall>
+                    </template>
+                  </v3-waterfall>
+                </div>
+                <el-empty
+                  :image-size="100"
+                  :image="nodata"
+                  description="暂无记录"
+                  v-else
+                />
               </div>
-              <el-empty :image-size="100" v-else/>
-            </div> <!-- end finish job list-->
+            </template>
+
+            <!-- end finish job list-->
           </div>
         </div>
-        <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
-      </div><!-- end task list box -->
+        <back-top :right="30" :bottom="30" />
+      </div>
+      <!-- end task list box -->
     </div>
 
-    <el-image-viewer @close="() => { previewURL = '' }" v-if="previewURL !== ''" :url-list="[previewURL]"/>
+    <el-image-viewer
+      @close="
+        () => {
+          previewURL = '';
+        }
+      "
+      v-if="previewURL !== ''"
+      :url-list="[previewURL]"
+    />
   </div>
 </template>
 
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from "vue"
-import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus, UploadFilled} from "@element-plus/icons-vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import {
+  ChromeFilled,
+  Delete,
+  DocumentCopy,
+  InfoFilled,
+  Picture,
+  Plus,
+  UploadFilled
+} from "@element-plus/icons-vue";
+import nodata from "@/assets/img/no-data.png";
 import Compressor from "compressorjs";
-import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
+import { httpGet, httpPost } from "@/utils/http";
+import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
-import {useRouter} from "vue-router";
-import {getSessionId} from "@/store/session";
-import {copyObj, removeArrayItem} from "@/utils/libs";
-import {useSharedStore} from "@/store/sharedata";
+import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { useRouter } from "vue-router";
+import { getSessionId } from "@/store/session";
+import { copyObj, removeArrayItem } from "@/utils/libs";
+import { useSharedStore } from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
-import {showMessageError} from "@/utils/dialog";
+import { showMessageError } from "@/utils/dialog";
 
-const listBoxHeight = ref(0)
-const paramBoxHeight = ref(0)
-const loading = ref(true)
-const colWidth = ref(220)
-const previewURL = ref("")
+const listBoxHeight = ref(0);
+const paramBoxHeight = ref(0);
+const loading = ref(true);
+const colWidth = ref(220);
+const previewURL = ref("");
 const store = useSharedStore();
 
 const resizeElement = function () {
-  listBoxHeight.value = window.innerHeight - 80
-  paramBoxHeight.value = window.innerHeight - 160
+  // listBoxHeight.value = window.innerHeight - 80;
+  listBoxHeight.value = window.innerHeight - 30;
+  // paramBoxHeight.value = window.innerHeight - 160;
+  paramBoxHeight.value = window.innerHeight - 110;
 };
-resizeElement()
+resizeElement();
 window.onresize = () => {
-  resizeElement()
-}
+  resizeElement();
+};
 
 const rates = [
-  {css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png"},
-  {css: "size1-2", value: "1:2", text: "1:2", img: "/images/mj/rate_1_2.png"},
-  {css: "size2-1", value: "2:1", text: "2:1", img: "/images/mj/rate_2_1.png"},
-  {css: "size2-3", value: "2:3", text: "2:3", img: "/images/mj/rate_3_4.png"},
-  {css: "size3-2", value: "3:2", text: "3:2", img: "/images/mj/rate_4_3.png"},
-  {css: "size3-4", value: "3:4", text: "3:4", img: "/images/mj/rate_3_4.png"},
-  {css: "size4-3", value: "4:3", text: "4:3", img: "/images/mj/rate_4_3.png"},
-  {css: "size16-9", value: "16:9", text: "16:9", img: "/images/mj/rate_16_9.png"},
-  {css: "size9-16", value: "9:16", text: "9:16", img: "/images/mj/rate_9_16.png"},
-]
+  { css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png" },
+  { css: "size1-2", value: "1:2", text: "1:2", img: "/images/mj/rate_1_2.png" },
+  { css: "size2-1", value: "2:1", text: "2:1", img: "/images/mj/rate_2_1.png" },
+  { css: "size2-3", value: "2:3", text: "2:3", img: "/images/mj/rate_3_4.png" },
+  { css: "size3-2", value: "3:2", text: "3:2", img: "/images/mj/rate_4_3.png" },
+  { css: "size3-4", value: "3:4", text: "3:4", img: "/images/mj/rate_3_4.png" },
+  { css: "size4-3", value: "4:3", text: "4:3", img: "/images/mj/rate_4_3.png" },
+  {
+    css: "size16-9",
+    value: "16:9",
+    text: "16:9",
+    img: "/images/mj/rate_16_9.png"
+  },
+  {
+    css: "size9-16",
+    value: "9:16",
+    text: "9:16",
+    img: "/images/mj/rate_9_16.png"
+  }
+];
 const models = [
-  {text: "写实模式MJ-6.1", value: " --v 6.1", img: "/images/mj/mj-v6.png"},
-  {text: "优质模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v5.2.png"},
-  {text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.1.jpg"},
-  {text: "虚幻模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.jpg"},
-  {text: "真实模式MJ-4", value: " --v 4", img: "/images/mj/mj-v4.jpg"},
-  {text: "动漫风-niji4", value: " --niji 4", img: "/images/mj/nj4.jpg"},
-  {text: "动漫风-niji5", value: " --niji 5", img: "/images/mj/mj-niji.png"},
-  {text: "动漫风-niji5 可爱", value: " --niji 5 --style cute", img: "/images/mj/nj1.jpg"},
-  {text: "动漫风-niji5 风景", value: " --niji 5 --style scenic", img: "/images/mj/nj2.jpg"},
-  {text: "动漫风-niji6", value: " --niji 6", img: "/images/mj/nj3.jpg"},
-
-]
+  { text: "写实模式MJ-6.1", value: " --v 6.1", img: "/images/mj/mj-v6.png" },
+  { text: "优质模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v5.2.png" },
+  { text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.1.jpg" },
+  { text: "虚幻模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.jpg" },
+  { text: "真实模式MJ-4", value: " --v 4", img: "/images/mj/mj-v4.jpg" },
+  { text: "动漫风-niji4", value: " --niji 4", img: "/images/mj/nj4.jpg" },
+  { text: "动漫风-niji5", value: " --niji 5", img: "/images/mj/mj-niji.png" },
+  {
+    text: "动漫风-niji5 可爱",
+    value: " --niji 5 --style cute",
+    img: "/images/mj/nj1.jpg"
+  },
+  {
+    text: "动漫风-niji5 风景",
+    value: " --niji 5 --style scenic",
+    img: "/images/mj/nj2.jpg"
+  },
+  { text: "动漫风-niji6", value: " --niji 6", img: "/images/mj/nj3.jpg" }
+];
 
 const options = [
   {
     value: 0,
-    label: '默认'
+    label: "默认"
   },
   {
     value: 0.25,
-    label: '普通'
+    label: "普通"
   },
   {
     value: 0.5,
-    label: '清晰'
+    label: "清晰"
   },
   {
     value: 1,
-    label: '高清'
-  },
-]
+    label: "高清"
+  }
+];
 
-const router = useRouter()
+const router = useRouter();
 const initParams = {
   client_id: getClientId(),
   task_type: "image",
@@ -712,169 +997,179 @@ const initParams = {
   quality: 0,
   cref: "",
   sref: "",
-  cw: 0,
-}
-const params = ref(copyObj(initParams))
+  cw: 0
+};
+const params = ref(copyObj(initParams));
 
-const imgList = ref([])
+const imgList = ref([]);
 
-const activeName = ref('txt2img')
+const activeName = ref("txt2img");
 
-const runningJobs = ref([])
-const finishedJobs = ref([])
+const runningJobs = ref([]);
+const finishedJobs = ref([]);
 
-const power = ref(0)
-const userId = ref(0)
-const isLogin = ref(false)
+const power = ref(0);
+const userId = ref(0);
+const isLogin = ref(false);
 
-const clipboard = ref(null)
+const clipboard = ref(null);
 onMounted(() => {
-  initData()
-  clipboard.value = new Clipboard('.copy-prompt-mj');
-  clipboard.value.on('success', () => {
+  initData();
+  clipboard.value = new Clipboard(".copy-prompt-mj");
+  clipboard.value.on("success", () => {
     ElMessage.success("复制成功！");
-  })
+  });
 
-  clipboard.value.on('error', () => {
-    ElMessage.error('复制失败！');
-  })
+  clipboard.value.on("error", () => {
+    ElMessage.error("复制失败！");
+  });
 
-  store.addMessageHandler("mj",(data) => {
+  store.addMessageHandler("mj", (data) => {
     // 丢弃无关消息
     if (data.channel !== "mj" || data.clientId !== getClientId()) {
-      return
+      return;
     }
 
     if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 0
-      isOver.value = false
-      fetchFinishJobs()
+      page.value = 0;
+      isOver.value = false;
+      fetchFinishJobs();
     }
-    nextTick(() => fetchRunningJobs())
-  })
-})
+    nextTick(() => fetchRunningJobs());
+  });
+});
 
 onUnmounted(() => {
-  clipboard.value.destroy()
-  store.removeMessageHandler("mj")
-})
+  clipboard.value.destroy();
+  store.removeMessageHandler("mj");
+});
 
 // 初始化数据
 const initData = () => {
-  checkSession().then(user => {
-    power.value = user['power']
-    userId.value = user.id
-    isLogin.value = true
-    page.value = 0
-    fetchRunningJobs()
-    fetchFinishJobs()
-  }).catch(() => {
+  checkSession()
+    .then((user) => {
+      power.value = user["power"];
+      userId.value = user.id;
+      isLogin.value = true;
+      page.value = 0;
+      fetchRunningJobs();
+      fetchFinishJobs();
+    })
+    .catch(() => {});
+};
 
+const mjPower = ref(1);
+const mjActionPower = ref(1);
+getSystemInfo()
+  .then((res) => {
+    mjPower.value = res.data["mj_power"];
+    mjActionPower.value = res.data["mj_action_power"];
+  })
+  .catch((e) => {
+    ElMessage.error("获取系统配置失败：" + e.message);
   });
-}
-
-const mjPower = ref(1)
-const mjActionPower = ref(1)
-getSystemInfo().then(res => {
-  mjPower.value = res.data["mj_power"]
-  mjActionPower.value = res.data["mj_action_power"]
-}).catch(e => {
-  ElMessage.error("获取系统配置失败：" + e.message)
-})
 
 // 获取运行中的任务
 const fetchRunningJobs = () => {
   if (!isLogin.value) {
-    return
+    return;
   }
 
-  httpGet(`/api/mj/jobs?finish=false`).then(res => {
-    const jobs = res.data.items
-    const _jobs = []
-    for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i].progress === 101) {
-        ElNotification({
-          title: '任务执行失败',
-          dangerouslyUseHTMLString: true,
-          message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
-          type: 'error',
-          duration: 0,
-        })
-        if (jobs[i].type === 'image') {
-          power.value += mjPower.value
-        } else {
-          power.value += mjActionPower.value
+  httpGet(`/api/mj/jobs?finish=false`)
+    .then((res) => {
+      const jobs = res.data.items;
+      const _jobs = [];
+      for (let i = 0; i < jobs.length; i++) {
+        if (jobs[i].progress === 101) {
+          ElNotification({
+            title: "任务执行失败",
+            dangerouslyUseHTMLString: true,
+            message: `任务ID：${jobs[i]["task_id"]}<br />原因：${jobs[i]["err_msg"]}`,
+            type: "error",
+            duration: 0
+          });
+          if (jobs[i].type === "image") {
+            power.value += mjPower.value;
+          } else {
+            power.value += mjActionPower.value;
+          }
         }
+        _jobs.push(jobs[i]);
       }
-      _jobs.push(jobs[i])
-    }
-    runningJobs.value = _jobs
-  }).catch(e => {
-    ElMessage.error("获取任务失败：" + e.message)
-  })
-}
+      runningJobs.value = _jobs;
+    })
+    .catch((e) => {
+      ElMessage.error("获取任务失败：" + e.message);
+    });
+};
 
-const page = ref(0)
-const pageSize = ref(15)
-const isOver = ref(false)
+const page = ref(0);
+const pageSize = ref(15);
+const isOver = ref(false);
 const fetchFinishJobs = () => {
   if (!isLogin.value || isOver.value) {
-    return
+    return;
   }
 
-  loading.value = true
-  page.value = page.value + 1
+  loading.value = true;
+  page.value = page.value + 1;
   // 获取已完成的任务
-  httpGet(`/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`).then(res => {
-    const jobs = res.data.items
-    for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i]['img_url'] !== "") {
-        if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
-          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
+  httpGet(
+    `/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`
+  )
+    .then((res) => {
+      const jobs = res.data.items;
+      for (let i = 0; i < jobs.length; i++) {
+        if (jobs[i]["img_url"] !== "") {
+          if (jobs[i].type === "upscale" || jobs[i].type === "swapFace") {
+            jobs[i]["thumb_url"] =
+              jobs[i]["img_url"] + "?imageView2/1/w/480/h/600/q/75";
+          } else {
+            jobs[i]["thumb_url"] =
+              jobs[i]["img_url"] + "?imageView2/1/w/480/h/480/q/75";
+          }
         } else {
-          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
+          jobs[i]["thumb_url"] = "/images/img-placeholder.jpg";
         }
-      } else {
-        jobs[i]['thumb_url'] = '/images/img-placeholder.jpg'
-      }
 
-      if (jobs[i].type !== 'upscale' && jobs[i].progress === 100){
-        jobs[i]['can_opt'] = true
+        if (jobs[i].type !== "upscale" && jobs[i].progress === 100) {
+          jobs[i]["can_opt"] = true;
+        }
       }
-    }
-    if (jobs.length < pageSize.value) {
-      isOver.value = true
-    }
-    if (page.value === 1) {
-      finishedJobs.value = jobs
-    } else {
-      finishedJobs.value = finishedJobs.value.concat(jobs)
-    }
-    loading.value = false
-  }).catch(e => {
-    ElMessage.error("获取任务失败：" + e.message)
-  })
-}
+      if (jobs.length < pageSize.value) {
+        isOver.value = true;
+      }
+      if (page.value === 1) {
+        finishedJobs.value = jobs;
+      } else {
+        finishedJobs.value = finishedJobs.value.concat(jobs);
+      }
+      loading.value = false;
+    })
+    .catch((e) => {
+      ElMessage.error("获取任务失败：" + e.message);
+    });
+};
 
 // 切换图片比例
 const changeRate = (item) => {
-  params.value.rate = item.value
-}
+  params.value.rate = item.value;
+};
 // 切换模型
 const changeModel = (item) => {
-  params.value.model = item.value
-}
+  params.value.model = item.value;
+};
 
-const imgKey = ref("")
+const imgKey = ref("");
 const beforeUpload = (key) => {
-  imgKey.value = key
-}
+  imgKey.value = key;
+};
 
 // 图片上传
 const uploadImg = (file) => {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
+    store.setShowLoginDialog(true);
+    return;
   }
 
   // 压缩图片并上传
@@ -882,64 +1177,69 @@ const uploadImg = (file) => {
     quality: 0.6,
     success(result) {
       const formData = new FormData();
-      formData.append('file', result, result.name);
+      formData.append("file", result, result.name);
       // 执行上传操作
-      httpPost('/api/upload', formData).then((res) => {
-        if (imgKey.value === '') {
-          imgList.value.push(res.data.url)
-        } else { // 单张图片上传
-          params.value[imgKey.value] = res.data.url
-          imgKey.value = ''
-        }
-        ElMessage.success('上传成功')
-      }).catch((e) => {
-        ElMessage.error('上传失败:' + e.message)
-      })
+      httpPost("/api/upload", formData)
+        .then((res) => {
+          if (imgKey.value === "") {
+            imgList.value.push(res.data.url);
+          } else {
+            // 单张图片上传
+            params.value[imgKey.value] = res.data.url;
+            imgKey.value = "";
+          }
+          ElMessage.success("上传成功");
+        })
+        .catch((e) => {
+          ElMessage.error("上传失败:" + e.message);
+        });
     },
     error(err) {
       console.log(err.message);
-    },
+    }
   });
 };
 
 // 创建绘图任务
-const promptRef = ref(null)
+const promptRef = ref(null);
 const generate = () => {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
+    store.setShowLoginDialog(true);
+    return;
   }
 
-  if (params.value.prompt === '' && params.value.task_type === "image") {
-    promptRef.value.focus()
-    return ElMessage.error("请输入绘画提示词！")
+  if (params.value.prompt === "" && params.value.task_type === "image") {
+    promptRef.value.focus();
+    return ElMessage.error("请输入绘画提示词！");
   }
   if (params.value.model.indexOf("niji") !== -1 && params.value.raw) {
-    return ElMessage.error("动漫模型不允许启用原始模式")
+    return ElMessage.error("动漫模型不允许启用原始模式");
   }
   if (imgList.value.length !== 2 && params.value.task_type === "swapFace") {
-    return ElMessage.error("换脸操作需要上传两张图片")
+    return ElMessage.error("换脸操作需要上传两张图片");
   }
-  params.value.session_id = getSessionId()
-  params.value.img_arr = imgList.value
-  httpPost("/api/mj/image", params.value).then(() => {
-    ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
-    power.value -= mjPower.value
-    fetchRunningJobs()
-  }).catch(e => {
-    ElMessage.error("任务推送失败：" + e.message)
-  })
-}
+  params.value.session_id = getSessionId();
+  params.value.img_arr = imgList.value;
+  httpPost("/api/mj/image", params.value)
+    .then(() => {
+      ElMessage.success("绘画任务推送成功，请耐心等待任务执行...");
+      power.value -= mjPower.value;
+      fetchRunningJobs();
+    })
+    .catch((e) => {
+      ElMessage.error("任务推送失败：" + e.message);
+    });
+};
 
 // 图片放大任务
 const upscale = (index, item) => {
-  send('/api/mj/upscale', index, item)
-}
+  send("/api/mj/upscale", index, item);
+};
 
 // 图片变换任务
 const variation = (index, item) => {
-  send('/api/mj/variation', index, item)
-}
+  send("/api/mj/variation", index, item);
+};
 
 const send = (url, index, item) => {
   httpPost(url, {
@@ -949,89 +1249,96 @@ const send = (url, index, item) => {
     message_id: item.message_id,
     message_hash: item.hash,
     session_id: getSessionId(),
-    prompt: item.prompt,
-  }).then(() => {
-    ElMessage.success("任务推送成功，请耐心等待任务执行...")
-    power.value -= mjActionPower.value
-    fetchRunningJobs()
-  }).catch(e => {
-    ElMessage.error("任务推送失败：" + e.message)
+    prompt: item.prompt
   })
-}
+    .then(() => {
+      ElMessage.success("任务推送成功，请耐心等待任务执行...");
+      power.value -= mjActionPower.value;
+      fetchRunningJobs();
+    })
+    .catch((e) => {
+      ElMessage.error("任务推送失败：" + e.message);
+    });
+};
 
 const removeImage = (item) => {
-  ElMessageBox.confirm(
-      '此操作将会删除任务和图片，继续操作码?',
-      '删除提示',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-  ).then(() => {
-    httpGet("/api/mj/remove", {id: item.id, user_id: item.user_id}).then(() => {
-      ElMessage.success("任务删除成功")
-      page.value = 0
-      isOver.value = false
-      fetchFinishJobs()
-    }).catch(e => {
-      ElMessage.error("任务删除失败：" + e.message)
-    })
-  }).catch(() => {
+  ElMessageBox.confirm("此操作将会删除任务和图片，继续操作码?", "删除提示", {
+    confirmButtonText: "确认",
+    cancelButtonText: "取消",
+    type: "warning"
   })
-}
+    .then(() => {
+      httpGet("/api/mj/remove", { id: item.id, user_id: item.user_id })
+        .then(() => {
+          ElMessage.success("任务删除成功");
+          page.value = 0;
+          isOver.value = false;
+          fetchFinishJobs();
+        })
+        .catch((e) => {
+          ElMessage.error("任务删除失败：" + e.message);
+        });
+    })
+    .catch(() => {});
+};
 
 // 发布图片到作品墙
 const publishImage = (item, action) => {
-  let text = "图片发布"
+  let text = "图片发布";
   if (action === false) {
-    text = "取消发布"
+    text = "取消发布";
   }
-  httpGet("/api/mj/publish", {id: item.id, action: action,user_id: item.user_id}).then(() => {
-    ElMessage.success(text + "成功")
-    item.publish = action
-    page.value = 0
-    isOver.value = false
-    item.publish = action
-  }).catch(e => {
-    ElMessage.error(text + "失败：" + e.message)
+  httpGet("/api/mj/publish", {
+    id: item.id,
+    action: action,
+    user_id: item.user_id
   })
-}
+    .then(() => {
+      ElMessage.success(text + "成功");
+      item.publish = action;
+      page.value = 0;
+      isOver.value = false;
+      item.publish = action;
+    })
+    .catch((e) => {
+      ElMessage.error(text + "失败：" + e.message);
+    });
+};
 
 const previewImg = (item) => {
-  previewURL.value = item.img_url
-
-}
+  previewURL.value = item.img_url;
+};
 
 // 切换菜单
 const tabChange = (tab) => {
   if (tab === "txt2img" || tab === "img2img" || tab === "cref") {
-    params.value.task_type = "image"
+    params.value.task_type = "image";
   } else {
-    params.value.task_type = tab
+    params.value.task_type = tab;
   }
-}
+};
 
 // 删除已上传图片
 const removeUploadImage = (url) => {
-  imgList.value = removeArrayItem(imgList.value, url)
-}
+  imgList.value = removeArrayItem(imgList.value, url);
+};
 
-const isGenerating = ref(false)
+const isGenerating = ref(false);
 const generatePrompt = () => {
   if (params.value.prompt === "") {
-    return showMessageError("请输入原始提示词")
+    return showMessageError("请输入原始提示词");
   }
-  isGenerating.value = true
-  httpPost("/api/prompt/image", {prompt: params.value.prompt}).then(res => {
-    params.value.prompt = res.data
-    isGenerating.value = false
-  }).catch(e => {
-    showMessageError("生成提示词失败："+e.message)
-    isGenerating.value = false
-  })
-}
-
+  isGenerating.value = true;
+  httpPost("/api/prompt/image", { prompt: params.value.prompt })
+    .then((res) => {
+      params.value.prompt = res.data;
+      isGenerating.value = false;
+    })
+    .catch((e) => {
+      showMessageError("生成提示词失败：" + e.message);
+      isGenerating.value = false;
+    });
+};
 </script>
 
 <style lang="stylus">

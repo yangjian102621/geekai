@@ -2,6 +2,7 @@
   --sm-txt:rgba(163, 174, 208, 1);
   --text-secondary: #8a939d;
   --el-color-primary: rgb(107, 80, 225);
+  --theme-textcolor-normal:#b0a0f8;
   --el-border-radius-base: 8px;
   --el-color-primary-light-5:rgb(107, 85, 255);
   --el-color-primary-light-3:rgb(78, 51, 254);
@@ -19,9 +20,18 @@
   --theme-border-primary: rgba(86, 86, 95, .322); //主题边框颜色
   --theme-border-hover: rgb(107, 85, 255);//主题边框hover颜色
   --text--hover:rgba(215, 211, 240, 0.581) //主题色hover色系
- 
-  
+ --el-input-focus-border-color: #b0a0f8;
+ --little-btn-bg:#e9d3f6;
+ --gray-btn-bg:#ededf591;
+  --a-link-color: #3561ff
+  --shadow-color:rgba(223,71,255,0.6)
+  --sm-btn-bg:#6052ed;
+--theme-text-tertiary: #595959;
+--theme-btn-fill-tertiary: #f0ebff;
+--theme-text-btn-tertiary: #6841ea;
 
+
+// #e7e7e8
 }
 .el-dialog{
     --el-border-radius-base: 20px;
@@ -90,13 +100,13 @@
 /* 滚动条的轨道背景颜色 */
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; /* 滚动条轨道颜色 */
+  background: #f1f1f1 !important; /* 滚动条轨道颜色 */
   border-radius: 6px; /* 可选：轨道圆角 */
 }
 
 /* 滚动条滑块的颜色 */
 ::-webkit-scrollbar-thumb {
-  background: #888; /* 滑块颜色 */
+  background: #888 !important; /* 滑块颜色 */
   border-radius: 6px; /* 可选：滑块圆角 */
 }
 
@@ -116,3 +126,12 @@
     font-size: 16px
   }
 }
+.sm-btn-theme{
+      background-color: var(--theme-btn-fill-tertiary) !important;
+    color: var(--theme-text-btn-tertiary) !important;
+    border: none;
+  }
+  
+  .el-tag, .el-tag.el-tag--primary{
+  --el-tag-bg-color:#f0ebff
+  }

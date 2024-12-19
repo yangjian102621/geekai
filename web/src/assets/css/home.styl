@@ -15,7 +15,9 @@
   .tab-box{
     align-items: center
     background-color: var(--card-bg)
-    height: 100%
+    // height: 100%
+    // position: fixed;
+    height: 100vh;
     .title{
       font-size: 28px
       font-weight: 700
@@ -173,6 +175,13 @@
   background: var(--theme-bg-all);
   // background-image: linear-gradient(180deg, rgba(247, 232, 255, .54), rgba(191, 223, 255, .35));
   width: 100%;
+  .loginMask{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    }
   .topheader{
     display: flex;
     position: fixed;

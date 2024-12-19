@@ -1,5 +1,5 @@
 .page-mark-map {
-  background-color: #282c34;
+  // background-color: #282c34;
   height 100%
 
   .inner {
@@ -7,20 +7,20 @@
 
     .mark-map-box {
       margin 10px
-      background-color #262626
-      border 1px solid #454545
+      // background-color #262626
+      // border 1px solid #454545
       min-width 300px
       max-width 300px
       padding 10px
       border-radius 10px
-      color #ffffff;
+      color var(--text-theme-color);
       font-size 14px
 
       h2 {
         font-weight: bold;
         font-size 20px
         text-align center
-        color #47fff1
+        color var( --theme-textcolor-normal)
       }
 
       // 隐藏滚动条
@@ -43,7 +43,7 @@
             width 100%
 
             span {
-              color #2D3A4B
+              color #fff
             }
           }
 
@@ -61,13 +61,15 @@
 
     .el-form {
       .el-form-item__label {
-        color #ffffff
+        color var(--text-theme-color)
       }
     }
 
 
     .chat-box {
       width 100%
+      background: var(--chat-bg);
+
 
       .top-bar {
         display flex
@@ -77,13 +79,13 @@
       }
 
       .markdown {
-        color #ffffff
+        color var(--text-theme-color)
         display flex
         justify-content center
         align-items center
 
         h1 {
-          color: #47fff1;
+          color: var( --theme-textcolor-normal);
         }
 
         h2 {
@@ -116,7 +118,7 @@
 
         .markmap {
           width 100%
-          color #ffffff
+          color var(--text-theme-color)
           font-size 12px
 
           .markmap-foreign {
@@ -139,7 +141,7 @@
 
             .mm-toolbar-item {
               cursor pointer
-              color var(--el-color-white)
+              color var( --el-text-color-primary)
             }
           }
 

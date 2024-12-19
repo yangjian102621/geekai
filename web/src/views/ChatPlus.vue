@@ -880,6 +880,7 @@ const autofillPrompt = (text) => {
 // 发送消息
 const sendMessage = function () {
   if (!isLogin.value) {
+    console.log("未登录");
     store.setShowLoginDialog(true);
     return;
   }

@@ -93,6 +93,7 @@
             <el-pagination v-if="data.mj.total > 0" background
                            layout="total,prev, pager, next"
                            :hide-on-single-page="true"
+                           
                            v-model:current-page="data.mj.page"
                            v-model:page-size="data.mj.pageSize"
                            @current-change="fetchMjData()"

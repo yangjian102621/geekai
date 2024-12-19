@@ -180,7 +180,14 @@
         </ul>
       </div>
     </div>
+    <!-- :style="{ 'padding-left': isCollapse ? '65px' : '170px' }" -->
     <div class="right-main">
+      <div
+        v-if="loginUser.id === undefined || !loginUser.id"
+        class="loginMask"
+        :style="{ left: isCollapse ? '65px' : '170px' }"
+        @click="showNoticeLogin = true"
+      ></div>
       <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
         <el-button
           @click="router.push('/login')"
@@ -189,6 +196,7 @@
           >登录</el-button
         >
       </div>
+      <!-- <div class="content custom-scroll"> -->
       <div class="content custom-scroll">
         <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
@@ -196,6 +204,7 @@
           </transition>
         </router-view>
       </div>
+      <!-- </div> -->
     </div>
     <config-dialog
       v-if="loginUser.id"
@@ -203,12 +212,21 @@
       @hide="showConfigDialog = false"
     />
   </div>
+  <el-dialog v-model="showNoticeLogin">
+    <el-result icon="warning" title="未登录" sub-title="登录后解锁功能">
+      <template #extra>
+        <el-button type="primary" @click="router.push('/login')"
+          >登录</el-button
+        >
+      </template>
+    </el-result>
+  </el-dialog>
 </template>
 
 <script setup>
 import { CirclePlus, Setting } from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
-import { avatarImg } from "@/assets/img/avatar.jpg";
+import avatarImg from "@/assets/img/avatar.jpg";
 import { useRouter } from "vue-router";
 import { onMounted, ref, watch } from "vue";
 import { httpGet } from "@/utils/http";
@@ -226,10 +244,37 @@ const router = useRouter();
 const logo = ref("");
 const mainNavs = ref([]);
 const moreNavs = ref([]);
-const curPath = ref(router.currentRoute.value.path);
+// const curPath = ref(router.currentRoute.value.path);
+const curPath = ref();
+
 const title = ref("");
+const showNoticeLogin = ref(false);
 // const mainWinHeight = window.innerHeight - 50;
 
+/**
+ * 从路径名中提取第一个路径段
+ * @param pathname - URL 的路径名部分，例如 '/chat/12345'
+ * @returns 第一个路径段（不含斜杠），例如 'chat'，如果不存在则返回 null
+ */
+const extractFirstSegment = (pathname) => {
+  const segments = pathname.split("/").filter((segment) => segment.length > 0);
+  return segments.length > 0 ? segments[0] : null;
+};
+const getFirstPathSegment = (url) => {
+  try {
+    // 尝试使用 URL 构造函数解析完整的 URL
+    const parsedUrl = new URL(url);
+    return extractFirstSegment(parsedUrl.pathname);
+  } catch (error) {
+    // 如果解析失败，假设是相对路径，使用当前窗口的位置作为基准
+    if (typeof window !== "undefined") {
+      const parsedUrl = new URL(url, window.location.origin);
+      return extractFirstSegment(parsedUrl.pathname);
+    }
+    // 如果无法解析，返回 null
+    return null;
+  }
+};
 const loginUser = ref({});
 const mainWinHeight = loginUser.value.id
   ? window.innerHeight
@@ -252,10 +297,10 @@ watch(
 );
 
 // 监听路由变化
-router.beforeEach((to, from, next) => {
-  curPath.value = to.path;
-  next();
-});
+// router.beforeEach((to, from, next) => {
+//   curPath.value = to.path;
+//   next();
+// });
 
 if (curPath.value === "/external") {
   curPath.value = router.currentRoute.value.query.url;
@@ -302,7 +347,7 @@ onMounted(() => {
       license.value = { de_copy: false };
       showMessageError("获取 License 配置：" + e.message);
     });
-
+  curPath.value = "/" + getFirstPathSegment(window.location.href);
   init();
 });
 

@@ -15,7 +15,6 @@
             <el-tooltip
               v-if="!license.de_copy"
               class="box-item"
-              effect="light"
               content="部署文档"
               placement="bottom"
             >
@@ -26,7 +25,6 @@
             <el-tooltip
               v-if="!license.de_copy"
               class="box-item"
-              effect="light"
               content="项目源码"
               placement="bottom"
             >

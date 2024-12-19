@@ -11,37 +11,43 @@
           </el-radio-group>
         </div>
       </div>
-      <div class="waterfall" :style="{ height:listBoxHeight + 'px' }" id="waterfall-box">
-        <v3-waterfall v-if="imgType === 'mj'"
-                      id="waterfall"
-                      :list="data['mj']"
-                      srcKey="img_thumb"
-                      :gap="12"
-                      :bottomGap="-5"
-                      :colWidth="colWidth"
-                      :distanceToScroll="100"
-                      :isLoading="loading"
-                      :isOver="isOver"
-                      @scrollReachBottom="getNext">
+      <div
+        class="waterfall"
+        :style="{ height: listBoxHeight + 'px' }"
+        id="waterfall-box"
+      >
+        <v3-waterfall
+          v-if="imgType === 'mj'"
+          id="waterfall"
+          :list="data['mj']"
+          srcKey="img_thumb"
+          :gap="12"
+          :bottomGap="-5"
+          :colWidth="colWidth"
+          :distanceToScroll="100"
+          :isLoading="loading"
+          :isOver="isOver"
+          @scrollReachBottom="getNext"
+        >
           <template #default="slotProp">
             <div class="list-item">
               <div class="image">
-                <el-image :src="slotProp.item['img_thumb']"
-                          :zoom-rate="1.2"
-                          :preview-src-list="[slotProp.item['img_url']]"
-                          :preview-teleported="true"
-                          :initial-index="10"
-                          loading="lazy">
+                <el-image
+                  :src="slotProp.item['img_thumb']"
+                  :zoom-rate="1.2"
+                  :preview-src-list="[slotProp.item['img_url']]"
+                  :preview-teleported="true"
+                  :initial-index="10"
+                  loading="lazy"
+                >
                   <template #placeholder>
-                    <div class="image-slot">
-                      正在加载图片
-                    </div>
+                    <div class="image-slot">正在加载图片</div>
                   </template>
 
                   <template #error>
                     <div class="image-slot">
                       <el-icon>
-                        <Picture/>
+                        <Picture />
                       </el-icon>
                     </div>
                   </template>
@@ -49,59 +55,61 @@
               </div>
               <div class="opt">
                 <el-tooltip
-                    class="box-item"
-                    effect="light"
-                    content="复制提示词"
-                    placement="top"
+                  class="box-item"
+                  content="复制提示词"
+                  placement="top"
                 >
-                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
-                    <DocumentCopy/>
+                  <el-icon
+                    class="copy-prompt-wall"
+                    :data-clipboard-text="slotProp.item.prompt"
+                  >
+                    <DocumentCopy />
                   </el-icon>
                 </el-tooltip>
 
-                <el-tooltip
-                    class="box-item"
-                    effect="light"
-                    content="画同款"
-                    placement="top"
-                >
-                  <i class="iconfont icon-palette-pen" @click="drawSameMj(slotProp.item)"></i>
+                <el-tooltip class="box-item" content="画同款" placement="top">
+                  <i
+                    class="iconfont icon-palette-pen"
+                    @click="drawSameMj(slotProp.item)"
+                  ></i>
                 </el-tooltip>
               </div>
             </div>
           </template>
         </v3-waterfall>
 
-        <v3-waterfall v-else-if="imgType === 'dall'"
-                      id="waterfall"
-                      :list="data['dall']"
-                      srcKey="img_thumb"
-                      :gap="12"
-                      :bottomGap="-5"
-                      :colWidth="colWidth"
-                      :distanceToScroll="100"
-                      :isLoading="loading"
-                      :isOver="isOver"
-                      @scrollReachBottom="getNext">
+        <v3-waterfall
+          v-else-if="imgType === 'dall'"
+          id="waterfall"
+          :list="data['dall']"
+          srcKey="img_thumb"
+          :gap="12"
+          :bottomGap="-5"
+          :colWidth="colWidth"
+          :distanceToScroll="100"
+          :isLoading="loading"
+          :isOver="isOver"
+          @scrollReachBottom="getNext"
+        >
           <template #default="slotProp">
             <div class="list-item">
               <div class="image">
-                <el-image :src="slotProp.item['img_thumb']"
-                          :zoom-rate="1.2"
-                          :preview-src-list="[slotProp.item['img_url']]"
-                          :preview-teleported="true"
-                          :initial-index="10"
-                          loading="lazy">
+                <el-image
+                  :src="slotProp.item['img_thumb']"
+                  :zoom-rate="1.2"
+                  :preview-src-list="[slotProp.item['img_url']]"
+                  :preview-teleported="true"
+                  :initial-index="10"
+                  loading="lazy"
+                >
                   <template #placeholder>
-                    <div class="image-slot">
-                      正在加载图片
-                    </div>
+                    <div class="image-slot">正在加载图片</div>
                   </template>
 
                   <template #error>
                     <div class="image-slot">
                       <el-icon>
-                        <Picture/>
+                        <Picture />
                       </el-icon>
                     </div>
                   </template>
@@ -109,13 +117,15 @@
               </div>
               <div class="opt">
                 <el-tooltip
-                    class="box-item"
-                    effect="light"
-                    content="复制提示词"
-                    placement="top"
+                  class="box-item"
+                  content="复制提示词"
+                  placement="top"
                 >
-                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
-                    <DocumentCopy/>
+                  <el-icon
+                    class="copy-prompt-wall"
+                    :data-clipboard-text="slotProp.item.prompt"
+                  >
+                    <DocumentCopy />
                   </el-icon>
                 </el-tooltip>
               </div>
@@ -123,32 +133,35 @@
           </template>
         </v3-waterfall>
 
-        <v3-waterfall v-else
-                      id="waterfall"
-                      :list="data['sd']"
-                      srcKey="img_thumb"
-                      :gap="12"
-                      :bottomGap="-5"
-                      :colWidth="colWidth"
-                      :distanceToScroll="100"
-                      :isLoading="loading"
-                      :isOver="isOver"
-                      @scrollReachBottom="getNext">
+        <v3-waterfall
+          v-else
+          id="waterfall"
+          :list="data['sd']"
+          srcKey="img_thumb"
+          :gap="12"
+          :bottomGap="-5"
+          :colWidth="colWidth"
+          :distanceToScroll="100"
+          :isLoading="loading"
+          :isOver="isOver"
+          @scrollReachBottom="getNext"
+        >
           <template #default="slotProp">
             <div class="list-item">
               <div class="image">
-                <el-image :src="slotProp.item['img_thumb']" loading="lazy"
-                          @click="showTask(slotProp.item)">
+                <el-image
+                  :src="slotProp.item['img_thumb']"
+                  loading="lazy"
+                  @click="showTask(slotProp.item)"
+                >
                   <template #placeholder>
-                    <div class="image-slot">
-                      正在加载图片
-                    </div>
+                    <div class="image-slot">正在加载图片</div>
                   </template>
 
                   <template #error>
                     <div class="image-slot">
                       <el-icon>
-                        <Picture/>
+                        <Picture />
                       </el-icon>
                     </div>
                   </template>
@@ -159,31 +172,36 @@
         </v3-waterfall>
 
         <div class="footer" v-if="isOver">
-          <span>没有更多数据了</span>
-          <i class="iconfont icon-face"></i>
+          <el-empty
+            :image-size="100"
+            :image="nodata"
+            description="没有更多数据了"
+          />
+          <!-- <span>没有更多数据了</span>
+          <i class="iconfont icon-face"></i> -->
         </div>
 
-        <back-top :right="30" :bottom="30" bg-color="#0f7a71"/>
-
-      </div><!-- end of waterfall -->
-
+        <back-top :right="30" :bottom="30" />
+      </div>
+      <!-- end of waterfall -->
     </div>
     <!-- 任务详情弹框 -->
     <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
       <el-row :gutter="20">
         <el-col :span="16">
-          <div class="img-container" :style="{maxHeight: fullImgHeight+'px'}">
+          <div
+            class="img-container"
+            :style="{ maxHeight: fullImgHeight + 'px' }"
+          >
             <el-image :src="item['img_url']" fit="contain">
               <template #placeholder>
-                <div class="image-slot">
-                  正在加载图片
-                </div>
+                <div class="image-slot">正在加载图片</div>
               </template>
 
               <template #error>
                 <div class="image-slot">
                   <el-icon>
-                    <Picture/>
+                    <Picture />
                   </el-icon>
                 </div>
               </template>
@@ -193,26 +211,27 @@
         <el-col :span="8">
           <div class="task-info">
             <div class="info-line">
-              <el-divider>
-                正向提示词
-              </el-divider>
+              <el-divider> 正向提示词 </el-divider>
               <div class="prompt">
                 <span>{{ item.prompt }}</span>
-                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.prompt">
-                  <DocumentCopy/>
+                <el-icon
+                  class="copy-prompt-wall"
+                  :data-clipboard-text="item.prompt"
+                >
+                  <DocumentCopy />
                 </el-icon>
               </div>
-
             </div>
 
             <div class="info-line">
-              <el-divider>
-                反向提示词
-              </el-divider>
+              <el-divider> 反向提示词 </el-divider>
               <div class="prompt">
                 <span>{{ item.params.negative_prompt }}</span>
-                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.params.negative_prompt">
-                  <DocumentCopy/>
+                <el-icon
+                  class="copy-prompt-wall"
+                  :data-clipboard-text="item.params.negative_prompt"
+                >
+                  <DocumentCopy />
                 </el-icon>
               </div>
             </div>
@@ -227,7 +246,9 @@
             <div class="info-line">
               <div class="wrapper">
                 <label>图片尺寸：</label>
-                <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
+                <div class="item-value">
+                  {{ item.params.width }} x {{ item.params.height }}
+                </div>
               </div>
             </div>
 
@@ -253,9 +274,7 @@
             </div>
 
             <div v-if="item.params.hd_fix">
-              <el-divider>
-                高清修复
-              </el-divider>
+              <el-divider> 高清修复 </el-divider>
               <div class="info-line">
                 <div class="wrapper">
                   <label>重绘幅度：</label>
@@ -286,146 +305,151 @@
             </div>
 
             <div class="copy-params">
-              <el-button type="primary" round @click="drawSameSd(item)">画一张同款的</el-button>
+              <el-button type="primary" round @click="drawSameSd(item)"
+                >画一张同款的</el-button
+              >
             </div>
-
           </div>
         </el-col>
       </el-row>
-
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from "vue"
-import {DocumentCopy, Picture} from "@element-plus/icons-vue";
-import {httpGet} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import nodata from "@/assets/img/no-data.png";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { DocumentCopy, Picture } from "@element-plus/icons-vue";
+import { httpGet } from "@/utils/http";
+import { ElMessage } from "element-plus";
 import Clipboard from "clipboard";
-import {useRouter} from "vue-router";
+import { useRouter } from "vue-router";
 import BackTop from "@/components/BackTop.vue";
 
 const data = ref({
-  "mj": [],
-  "sd": [],
-  "dall": [],
-})
-const loading = ref(true)
-const isOver = ref(false)
-const imgType = ref("mj") // 图片类别
-const listBoxHeight = window.innerHeight - 124
-const colWidth = ref(220)
-const fullImgHeight = ref(window.innerHeight - 60)
-const showTaskDialog = ref(false)
-const item = ref({})
+  mj: [],
+  sd: [],
+  dall: []
+});
+const loading = ref(true);
+const isOver = ref(false);
+const imgType = ref("mj"); // 图片类别
+const listBoxHeight = window.innerHeight - 124;
+const colWidth = ref(220);
+const fullImgHeight = ref(window.innerHeight - 60);
+const showTaskDialog = ref(false);
+const item = ref({});
 
 // 计算瀑布流列宽度
 const calcColWidth = () => {
-  const listBoxWidth = window.innerWidth - 60 - 80
-  const rows = Math.floor(listBoxWidth / colWidth.value)
-  colWidth.value = Math.floor((listBoxWidth - (rows - 1) * 12) / rows)
-}
-calcColWidth()
+  const listBoxWidth = window.innerWidth - 60 - 80;
+  const rows = Math.floor(listBoxWidth / colWidth.value);
+  colWidth.value = Math.floor((listBoxWidth - (rows - 1) * 12) / rows);
+};
+calcColWidth();
 window.onresize = () => {
-  calcColWidth()
-}
+  calcColWidth();
+};
 
-const page = ref(0)
-const pageSize = ref(15)
+const page = ref(0);
+const pageSize = ref(15);
 // 获取下一页数据
 const getNext = () => {
   if (isOver.value) {
-    return
+    return;
   }
 
-  loading.value = true
-  page.value = page.value + 1
-  let url = ""
+  loading.value = true;
+  page.value = page.value + 1;
+  let url = "";
   switch (imgType.value) {
     case "mj":
-      url = "/api/mj/imgWall"
-      break
+      url = "/api/mj/imgWall";
+      break;
     case "sd":
-      url = "/api/sd/imgWall"
-      break
+      url = "/api/sd/imgWall";
+      break;
     case "dall":
-      url = "/api/dall/imgWall"
-      break
+      url = "/api/dall/imgWall";
+      break;
   }
-  httpGet(`${url}?page=${page.value}&page_size=${pageSize.value}`).then(res => {
-    loading.value = false
-    if (!res.data.items || res.data.items.length === 0) {
-      isOver.value = true
-      return
-    }
+  httpGet(`${url}?page=${page.value}&page_size=${pageSize.value}`)
+    .then((res) => {
+      loading.value = false;
+      if (!res.data.items || res.data.items.length === 0) {
+        isOver.value = true;
+        return;
+      }
 
-    // 生成缩略图
-    const imageList = res.data.items
-    for (let i = 0; i < imageList.length; i++) {
-      imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75"
-    }
-    if (data.value[imgType.value].length === 0) {
-      data.value[imgType.value] = imageList
-      return
-    }
+      // 生成缩略图
+      const imageList = res.data.items;
+      for (let i = 0; i < imageList.length; i++) {
+        imageList[i]["img_thumb"] =
+          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+      }
+      if (data.value[imgType.value].length === 0) {
+        data.value[imgType.value] = imageList;
+        return;
+      }
 
-    if (imageList.length < pageSize.value) {
-      isOver.value = true
-    }
-    data.value[imgType.value] = data.value[imgType.value].concat(imageList)
+      if (imageList.length < pageSize.value) {
+        isOver.value = true;
+      }
+      data.value[imgType.value] = data.value[imgType.value].concat(imageList);
+    })
+    .catch((e) => {
+      ElMessage.error("获取图片失败：" + e.message);
+    });
+};
 
-  }).catch(e => {
-    ElMessage.error("获取图片失败：" + e.message)
-  })
-}
+getNext();
 
-getNext()
-
-const clipboard = ref(null)
+const clipboard = ref(null);
 onMounted(() => {
-  clipboard.value = new Clipboard('.copy-prompt-wall');
-  clipboard.value.on('success', () => {
+  clipboard.value = new Clipboard(".copy-prompt-wall");
+  clipboard.value.on("success", () => {
     ElMessage.success("复制成功！");
-  })
+  });
 
-  clipboard.value.on('error', () => {
-    ElMessage.error('复制失败！');
-  })
-})
+  clipboard.value.on("error", () => {
+    ElMessage.error("复制失败！");
+  });
+});
 
 onUnmounted(() => {
-  clipboard.value.destroy()
-})
+  clipboard.value.destroy();
+});
 
 const changeImgType = () => {
-  console.log(imgType.value)
-  document.getElementById('waterfall-box').scrollTo(0, 0)
-  page.value = 0
+  console.log(imgType.value);
+  document.getElementById("waterfall-box").scrollTo(0, 0);
+  page.value = 0;
   data.value = {
-    "mj": [],
-    "sd": [],
-    "dall": [],
-  }
-  loading.value = true
-  isOver.value = false
-  nextTick(() => getNext())
-}
+    mj: [],
+    sd: [],
+    dall: []
+  };
+  loading.value = true;
+  isOver.value = false;
+  nextTick(() => getNext());
+};
 
 const showTask = (row) => {
-  item.value = row
-  showTaskDialog.value = true
-}
+  item.value = row;
+  showTaskDialog.value = true;
+};
 
-
-const router = useRouter()
+const router = useRouter();
 const drawSameSd = (row) => {
-  router.push({name: "image-sd", params: {copyParams: JSON.stringify(row.params)}})
-}
+  router.push({
+    name: "image-sd",
+    params: { copyParams: JSON.stringify(row.params) }
+  });
+};
 
 const drawSameMj = (row) => {
-  router.push({name: "image-mj", params: {prompt: row.prompt}})
-}
+  router.push({ name: "image-mj", params: { prompt: row.prompt } });
+};
 </script>
 
 <style lang="stylus">

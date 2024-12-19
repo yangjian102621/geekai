@@ -1,18 +1,18 @@
 .page-sd {
-  background-color: #282c34;
+  // background-color: #282c34;
 
   .inner {
     display: flex;
 
     .sd-box {
       margin 10px
-      background-color #262626
-      border 1px solid #454545
+      // background-color #262626
+      // border 1px solid #454545
       min-width 300px
       max-width 300px
       padding 10px 10px 20px 10px
       border-radius 10px
-      color #ffffff;
+      color var(--text-theme-color);
       font-size 14px
       overflow auto
 
@@ -20,7 +20,8 @@
         font-weight: bold;
         font-size 20px
         text-align center
-        color #47fff1
+        color var( --theme-textcolor-normal)
+
       }
 
       // 隐藏滚动条
@@ -67,25 +68,24 @@
         text-align center
 
         .el-button {
-          width 100%
+          width 200px
 
-          span {
-            color #2D3A4B
-          }
+         
         }
       }
     }
 
     .el-form {
       .el-form-item__label {
-        color #ffffff
+        color: var(--text-theme-color)
       }
     }
 
     .task-list-box {
+      background: var(--chat-bg);
       width 100%
       padding 0 10px 10px 10px
-      color #ffffff
+      color: var(--text-theme-color)
       overflow-x hidden
 
       .task-list-inner {
@@ -108,7 +108,7 @@
         }
 
         .el-textarea {
-          --el-input-focus-border-color: #47FFF1;
+          // --el-input-focus-border-color: #47FFF1;
         }
 
         .el-textarea__inner {
@@ -142,7 +142,7 @@
         }
 
         .el-form-item__label {
-          color #ffffff
+          color: var(--text-theme-color)
         }
 
         // 图片上传样式

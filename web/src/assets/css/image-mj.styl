@@ -1,26 +1,30 @@
 .page-mj {
-  background-color: #282c34;
+  // background-color: #282c34;
   height 100%
 
   .inner {
     display: flex;
+    // height: 100%
 
     .mj-box {
       margin 10px
-      background-color #262626
-      border 1px solid #454545
+      // background-color #262626
+      // border 1px solid #454545
+      // height: calc(100vh - 50px)
+      // overflow: scroll
       min-width 300px
       max-width 300px
       padding 10px
       border-radius 10px
-      color #ffffff;
+      color var(--text-theme-color);
       font-size 14px
+      overflow auto
 
       h2 {
         font-weight: bold;
         font-size 20px
         text-align center
-        color #47fff1
+        color var( --theme-textcolor-normal)
       }
 
       // 隐藏滚动条
@@ -44,16 +48,20 @@
           }
 
           .grid-content {
-            background-color #383838
-            border-radius 5px
+            // background-color #383838
+            background: var(--card-bg);
+            border-radius: 8px;
             padding 8px 14px
             display flex
             cursor pointer
             margin-bottom: 10px;
-            border 1px solid #383838
+            // border 1px solid #383838
+            border 1px solid var(--chat-bg)
+
 
             &:hover {
-              background-color #585858
+              border 1px solid var(--theme-border-hover)
+
             }
 
             .icon {
@@ -70,28 +78,30 @@
 
 
           .grid-content.active {
-            color #47fff1
-            background-color #585858
-            border 1px solid #47fff1
+            // color #47fff1
+            // background-color #585858
+            border 1px solid var(--theme-border-hover)
           }
 
           .model {
-            background-color #383838
-            border 1px solid #454545
-            border-radius 5px
+            background: var(--card-bg);
+            // border 1px solid #454545
+            border-radius 8px
             padding 5px
             margin-bottom 10px
             display flex
             flex-flow column
             align-items center
             cursor pointer
+            border 1px solid var(--chat-bg)
 
             &:hover {
-              background-color #585858
+              border 1px solid var(--theme-border-hover)
+
             }
 
             .el-image {
-              height 30px
+              height 40px
               width 100%
             }
 
@@ -103,9 +113,10 @@
           }
 
           .model.active {
-            color #47fff1
-            background-color #585858
-            border 1px solid #47fff1
+            // color #47fff1
+            // background-color #585858
+            border 1px solid var(--theme-border-hover)
+
           }
 
           .form-item-inner {
@@ -113,16 +124,16 @@
             align-items: center
 
             .el-select {
-              --el-select-input-focus-border-color: #47FFF1;
-              --el-input-focus-border-color: #47FFF1;
+              --el-select-input-focus-border-color: var(--el-color-primary)
+              --el-input-focus-border-color: var(--el-color-primary)
             }
 
             .el-input__wrapper {
-              background: #383838;
+              background: var(--chat-bg)
             }
 
             .el-input__inner {
-              color: #fff
+              color: var(--text-theme-color)
             }
 
             .el-icon {
@@ -167,7 +178,7 @@
 
     .el-form {
       .el-form-item__label {
-        color #ffffff
+        color var(--text-theme-color)
       }
 
       .el-input, .el-slider {
@@ -182,9 +193,10 @@
     }
 
     .task-list-box {
+      background: var(--chat-bg);
       width 100%
       padding 0 10px 10px 10px
-      color #ffffff
+      color var(--text-theme-color)
       overflow-x hidden
 
       .task-list-inner {
@@ -193,26 +205,26 @@
         }
 
         .el-tabs__item {
-          color: #fff;
+          color: var(--text-theme-color);
           font-size: 18px;
         }
 
         .title-tabs .el-tabs__item.is-active {
-          color: #47FFF1;
+          color: var( --theme-textcolor-normal);
           font-size: 18px;
         }
 
         .title-tabs .el-tabs__active-bar {
-          background-color: #47FFF1;
+          background-color: var( --theme-textcolor-normal);
         }
 
         .el-textarea {
-          --el-input-focus-border-color: #47FFF1;
+          --el-input-focus-border-color: var(--el-color-primary)
         }
 
         .el-textarea__inner {
           background: transparent;
-          color: #fff;
+          color: var(--text-theme-color);
         }
 
         .el-input__wrapper {
@@ -241,7 +253,7 @@
         }
 
         .el-form-item__label {
-          color #ffffff
+          color var(--text-theme-color)
         }
 
         // 图片上传样式
@@ -367,7 +379,7 @@
                             display block
                             cursor pointer
                             background-color #4E5058
-                            color #ffffff
+                            color var(--text-theme-color)
 
                             &:hover {
                               background-color #6D6F78
@@ -422,7 +434,7 @@
               justify-content center
               align-items center
               min-height 220px
-              color #ffffff
+              color var(--text-theme-color)
               overflow hidden
 
               .err-msg-container {
