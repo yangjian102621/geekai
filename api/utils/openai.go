@@ -12,11 +12,12 @@ import (
 	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
+	"io"
+	"time"
+
 	"github.com/imroc/req/v3"
 	"github.com/pkoukk/tiktoken-go"
 	"gorm.io/gorm"
-	"io"
-	"time"
 )
 
 func CalcTokens(text string, model string) (int, error) {
@@ -33,7 +34,7 @@ func CalcTokens(text string, model string) (int, error) {
 	return len(token), nil
 }
 
-type apiRes struct {
+type OpenAIResponse struct {
 	Model   string `json:"model"`
 	Choices []struct {
 		Index   int `json:"index"`
@@ -70,7 +71,7 @@ func SendOpenAIMessage(db *gorm.DB, messages []interface{}, modelId int) (string
 		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", err)
 	}
 
-	var response apiRes
+	var response OpenAIResponse
 	client := req.C()
 	if len(apiKey.ProxyURL) > 5 {
 		client.SetProxyURL(apiKey.ApiURL)

@@ -215,8 +215,8 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// 只有失败，或者超时的任务才能删除
-	if job.Progress != service.FailTaskProgress || time.Now().Before(job.CreatedAt.Add(time.Minute*10)) {
+	// 只有失败或者已完成的任务可以删除
+	if !(job.Progress == service.FailTaskProgress || job.Progress == 100) {
 		resp.ERROR(c, "只有失败和超时(10分钟)的任务才能删除！")
 		return
 	}

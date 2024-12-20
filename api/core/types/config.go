@@ -149,6 +149,7 @@ type SystemConfig struct {
 	DallPower     int `json:"dall_power,omitempty"`      // DALL-E-3 绘图消耗算力
 	SunoPower     int `json:"suno_power,omitempty"`      // Suno 生成歌曲消耗算力
 	LumaPower     int `json:"luma_power,omitempty"`      // Luma 生成视频消耗算力
+	AdvanceVoicePower int `json:"advance_voice_power,omitempty"` // 高级语音对话消耗算力
 
 	WechatCardURL string `json:"wechat_card_url,omitempty"` // 微信客服地址
 
@@ -166,4 +167,5 @@ type SystemConfig struct {
 	EnabledVerify    bool     `json:"enabled_verify"`     // 是否启用验证码
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
 	TranslateModelId int      `json:"translate_model_id"` // 用来做提示词翻译的大模型 id
+
 }

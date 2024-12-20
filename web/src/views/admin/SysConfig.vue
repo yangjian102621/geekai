@@ -1,5 +1,5 @@
 <template>
-  <div class="system-config" v-loading="loading">
+  <div class="system-config form" v-loading="loading">
 
     <el-tabs v-model="activeName" class="sys-tabs">
       <el-tab-pane label="系统配置" name="basic">
@@ -33,8 +33,23 @@
                   </el-input>
                 </el-form-item>
 
-                <el-form-item label="首页背景图" prop="logo">
-                  <div class="tip-input">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      首页背景图
+                      <el-tooltip
+                          effect="dark"
+                          content="网站首页背景图片"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                  <div class="d-flex justify-between w-100">
                     <el-input v-model="system['index_bg_url']" placeholder="网站首页背景图片">
                       <template #append>
                         <el-upload
@@ -49,14 +64,28 @@
                         </el-upload>
                       </template>
                     </el-input>
-                    <el-button type="primary" @click="system.index_bg_url = 'https://api.dujin.org/bing/1920.php'">使用动态背景</el-button>
-                    <el-button @click="system.index_bg_url = 'color'">使用纯色背景</el-button>
+                    <el-button class="ml-1" type="primary" @click="system.index_bg_url = 'https://api.dujin.org/bing/1920.php'">使用动态背景</el-button>
+                    <el-button class="ml-1" @click="system.index_bg_url = 'color'">使用纯色背景</el-button>
                   </div>
                 </el-form-item>
 
-                <el-form-item label="首页导航菜单" prop="index_navs">
-                  <div class="tip-input">
-                    <el-select
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      首页导航菜单
+                      <el-tooltip
+                          effect="dark"
+                          content="被选中的菜单将会在首页导航栏显示"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                  <el-select
                         v-model="system['index_navs']"
                         multiple
                         :filterable="true"
@@ -70,29 +99,16 @@
                           :value="item.id"
                       />
                     </el-select>
-                    <div class="info">
-                      <el-tooltip
-                          class="box-item"
-                          effect="dark"
-                          content="被选中的菜单将会在首页导航栏显示"
-                          placement="right"
-                      >
-                        <el-icon>
-                          <InfoFilled/>
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </div>
                 </el-form-item>
 
                 <el-form-item label="版权信息" prop="copyright">
                   <el-input v-model="system['copyright']" placeholder="更改此选项需要获取 License 授权"/>
                 </el-form-item>
 
-                <el-form-item label="开放注册" prop="enabled_register">
-                  <div class="tip-input">
-                    <el-switch v-model="system['enabled_register']"/>
-                    <div class="info">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      开放注册
                       <el-tooltip
                           effect="dark"
                           content="关闭注册之后只能通过管理后台添加用户"
@@ -104,13 +120,14 @@
                         </el-icon>
                       </el-tooltip>
                     </div>
-                  </div>
+                  </template>
+                  <el-switch v-model="system['enabled_register']"/>
                 </el-form-item>
 
-                <el-form-item label="启用验证码" prop="enabled_verify">
-                  <div class="tip-input">
-                    <el-switch v-model="system['enabled_verify']"/>
-                    <div class="info">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      启用验证码
                       <el-tooltip
                           effect="dark"
                           content="启用验证码之后，注册登录都会加载行为验证码，增加安全性。此功能需要购买验证码服务才会生效。"
@@ -122,7 +139,8 @@
                         </el-icon>
                       </el-tooltip>
                     </div>
-                  </div>
+                  </template>
+                  <el-switch v-model="system['enabled_verify']"/>
                 </el-form-item>
 
                 <el-form-item label="注册方式" prop="register_ways">
@@ -153,36 +171,35 @@
                     </template>
                   </el-input>
                 </el-form-item>
-                <el-form-item label="默认翻译模型">
-                  <template #default>
-                    <div class="tip-input">
-                      <el-select
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      默认翻译模型
+                      <el-tooltip
+                          effect="dark"
+                          content="选择一个默认模型来翻译提示词"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                  <el-select
                           v-model.number="system['translate_model_id']"
                           :filterable="true"
                           placeholder="选择一个默认模型来翻译提示词"
                           style="width: 100%"
                       >
-                        <el-option
-                            v-for="item in models"
-                            :key="item.id"
-                            :label="item.name"
-                            :value="item.id"
-                        />
-                      </el-select>
-                      <div class="info">
-                        <el-tooltip
-                            class="box-item"
-                            effect="dark"
-                            content="新用户注册默认开通的 AI 模型"
-                            placement="right"
-                        >
-                          <el-icon>
-                            <InfoFilled/>
-                          </el-icon>
-                        </el-tooltip>
-                      </div>
-                    </div>
-                  </template>
+                    <el-option
+                        v-for="item in models"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id"
+                    />
+                  </el-select>
                 </el-form-item>
 
                 <el-form-item label="开启聊天上下文">
@@ -193,15 +210,15 @@
                     <el-input-number v-model="system['context_deep']" :min="0" :max="10"/>
                     <div class="tip">会话上下文深度：在老会话中继续会话，默认加载多少条聊天记录作为上下文。如果设置为
                       0
-                      则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数最好设置需要为偶数，否则将无法兼容百度的 API。
+                      则不加载聊天记录，仅仅使用当前角色的上下文。该配置参数必须设置需要为偶数。
                     </div>
                   </div>
                 </el-form-item>
 
-                <el-form-item label="SD反向提示词" prop="sd_neg_prompt">
-                  <div class="tip-input">
-                    <el-input v-model="system['sd_neg_prompt']" placeholder=""/>
-                    <div class="info">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      SD反向提示词
                       <el-tooltip
                           effect="dark"
                           content="Stable-Diffusion 绘画默认反向提示词"
@@ -213,13 +230,14 @@
                         </el-icon>
                       </el-tooltip>
                     </div>
-                  </div>
+                  </template>
+                  <el-input type="textarea" :rows="2" v-model="system['sd_neg_prompt']" placeholder=""/>
                 </el-form-item>
 
                 <el-form-item label="会员充值说明" prop="order_pay_timeout">
-                  <div class="tip-input">
-                    <el-input v-model="system['vip_info_text']" placeholder=""/>
-                    <div class="info">
+                  <template #label>
+                    <div class="label-title">
+                      会员充值说明
                       <el-tooltip
                           effect="dark"
                           content="会员充值页面的充值说明文字"
@@ -231,7 +249,8 @@
                         </el-icon>
                       </el-tooltip>
                     </div>
-                  </div>
+                  </template>
+                  <el-input type="textarea" :rows="2" v-model="system['vip_info_text']" placeholder=""/>
                 </el-form-item>
 
                 <el-form-item label="MJ默认API模式" prop="mj_mode">
@@ -255,17 +274,16 @@
                   <el-input v-model.number="system['vip_month_power']" placeholder="VIP用户每月赠送算力"/>
                 </el-form-item>
                 <el-form-item label="每日赠送算力" prop="daily_power">
-                  <div class="tip-input-line">
                     <el-input v-model.number="system['daily_power']" placeholder="默认值0"/>
-                    <div class="tip">
-                      如果设置0表示不赠送，用户享受完免费算力额度之后就不能再发起对话了。如果设置为N，则系统每天将算力值小于N的用户自动补充到N。注意，此功能要配合XXL-JOB启用。
-                    </div>
-                  </div>
+
+                  <el-text type="info">
+                    如果设置0表示不赠送，用户享受完免费算力额度之后就不能再发起对话了。如果设置为N，则系统每天将算力值小于N的用户自动补充到N。注意，此功能要配合XXL-JOB启用。
+                  </el-text>
                 </el-form-item>
-                <el-form-item label="MJ绘图算力" prop="mj_power">
-                  <div class="tip-input">
-                    <el-input v-model.number="system['mj_power']" placeholder=""/>
-                    <div class="info">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      MJ绘图算力
                       <el-tooltip
                           effect="dark"
                           content="使用MidJourney画一张图消耗算力"
@@ -277,12 +295,13 @@
                         </el-icon>
                       </el-tooltip>
                     </div>
-                  </div>
+                  </template>
+                  <el-input v-model.number="system['mj_power']" placeholder=""/>
                 </el-form-item>
-                <el-form-item label="MJ操作算力" prop="mj_action_power">
-                  <div class="tip-input">
-                    <el-input v-model.number="system['mj_action_power']" placeholder=""/>
-                    <div class="info">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      MJ操作算力
                       <el-tooltip
                           effect="dark"
                           content="放大，变换，重绘操作一次消耗的算力"
@@ -294,7 +313,8 @@
                         </el-icon>
                       </el-tooltip>
                     </div>
-                  </div>
+                  </template>
+                  <el-input v-model.number="system['mj_action_power']" placeholder=""/>
                 </el-form-item>
                 <el-form-item label="Stable-Diffusion算力" prop="sd_power">
                   <el-input v-model.number="system['sd_power']" placeholder="使用Stable-Diffusion画一张图消耗算力"/>
@@ -307,6 +327,24 @@
                 </el-form-item>
                 <el-form-item label="Luma 算力" prop="luma_power">
                   <el-input v-model.number="system['luma_power']" placeholder="使用 Luma 生成一段视频消耗算力"/>
+                </el-form-item>
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      高级语音算力
+                      <el-tooltip
+                          effect="dark"
+                          content="使用一次 OpenAI 高级语音对话消耗的算力"
+                          raw-content
+                          placement="right"
+                      >
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                  <el-input v-model.number="system['advance_voice_power']" placeholder=""/>
                 </el-form-item>
               </el-tab-pane>
             </el-tabs>
@@ -420,7 +458,7 @@ import {onMounted, reactive, ref} from "vue";
 import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {InfoFilled, UploadFilled,Select,CloseBold} from "@element-plus/icons-vue";
+import {CloseBold, InfoFilled, Select, UploadFilled} from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
@@ -594,6 +632,7 @@ const fixData = () => {
 
 <style lang="stylus" scoped>
 @import "@/assets/css/admin/form.styl"
+@import "@/assets/css/main.styl"
 .system-config {
   display flex
   justify-content center
@@ -603,76 +642,6 @@ const fixData = () => {
     background-color var(--el-bg-color)
     padding 10px 20px 40px 20px
     //border: 1px solid var(--el-border-color);
-
-    .container {
-      .el-form {
-        .el-form-item__content {
-
-          .tip-text {
-            padding-left 10px;
-          }
-
-          .el-icon {
-            font-size 16px
-            cursor pointer
-          }
-
-          .uploader-icon {
-            font-size 24px
-            position relative
-            top 3px
-          }
-
-          .tip-input-line {
-            .tip {
-              margin-top 10px
-              color #c1c1c1
-              font-size 12px;
-              line-height 1.5;
-            }
-          }
-        }
-
-        .el-input {
-          width 100%
-        }
-      }
-
-
-      .text {
-        font-size 14px
-      }
-
-      .active-info {
-        line-height 1.5
-        padding 10px 0 30px 0
-      }
-      .el-descriptions {
-        margin-bottom 20px
-        .el-icon {
-          font-size 18px
-        }
-        .selected {
-          color #0bc15f
-        }
-
-        .closed {
-          color #da0d54
-        }
-        .text {
-          margin-left 10px
-          font-size 12px
-          color #999999
-          position: relative;
-          top -5px
-        }
-      }
-
-      .el-alert {
-        margin-bottom 15px;
-      }
-    }
-
   }
 }
 </style>

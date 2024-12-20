@@ -1,7 +1,7 @@
 /**
  * Util lib functions
  */
-import {showConfirmDialog, showFailToast, showSuccessToast, showToast} from "vant";
+import {showConfirmDialog, showFailToast, showSuccessToast, showToast, showLoadingToast, closeToast} from "vant";
 import {isMobile} from "@/utils/libs";
 import {ElMessage} from "element-plus";
 
@@ -41,3 +41,11 @@ export function showMessageError(message) {
         ElMessage.error(message)
     }
 }
+
+export function showLoading(message = '正在处理...') {
+    showLoadingToast({ message: message, forbidClick: true, duration: 0 })
+  }
+  
+  export function closeLoading() {
+    closeToast()
+  }

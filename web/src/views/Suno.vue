@@ -393,23 +393,23 @@
 <script setup>
 import nodata from "@/assets/img/no-data.png";
 
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { Delete, InfoFilled } from "@element-plus/icons-vue";
+import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
+import {Delete, InfoFilled} from "@element-plus/icons-vue";
 import BlackSelect from "@/components/ui/BlackSelect.vue";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
-import { compact } from "lodash";
-import { httpDownload, httpGet, httpPost } from "@/utils/http";
-import { showMessageError, showMessageOK } from "@/utils/dialog";
-import { checkSession, getClientId } from "@/store/cache";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { formatTime, replaceImg } from "@/utils/libs";
+import {compact} from "lodash";
+import {httpDownload, httpGet, httpPost} from "@/utils/http";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
+import {checkSession, getClientId} from "@/store/cache";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {formatTime, replaceImg} from "@/utils/libs";
 import Clipboard from "clipboard";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
 import Generating from "@/components/ui/Generating.vue";
-import { useSharedStore } from "@/store/sharedata";
+import {useSharedStore} from "@/store/sharedata";
 
 // const winHeight = ref(window.innerHeight - 50);
 const winHeight = ref(window.innerHeight - 20);
@@ -417,7 +417,8 @@ const winHeight = ref(window.innerHeight - 20);
 const custom = ref(false);
 const models = ref([
   { label: "v3.0", value: "chirp-v3-0" },
-  { label: "v3.5", value: "chirp-v3-5" }
+  {label: "v3.5", value: "chirp-v3-5"},
+  {label: "v4.0", value: "chirp-v4"}
 ]);
 const tags = ref([
   { label: "女声", value: "female vocals" },
