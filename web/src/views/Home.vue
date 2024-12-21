@@ -223,10 +223,11 @@ const init = () => {
 const logout = function () {
   httpGet('/api/user/logout').then(() => {
     removeUserToken()
-    store.setShowLoginDialog(true)
-    loginUser.value = {}
-    // 刷新组件
-    routerViewKey.value += 1
+    router.push('/login');
+    // store.setShowLoginDialog(true)
+    // loginUser.value = {}
+    // // 刷新组件
+    // routerViewKey.value += 1
   }).catch(() => {
     ElMessage.error('注销失败！');
   })
