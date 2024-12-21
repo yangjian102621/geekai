@@ -28,7 +28,7 @@ axios.interceptors.response.use(
     response => {
         return response
     }, error => {
-        if (error.response.status === 401 || error.response.status === 400) {
+        if (error.response.status === 401) {
             if (error.response.request.responseURL.indexOf("/api/admin") !== -1) {
                 removeAdminToken()
             } else {
