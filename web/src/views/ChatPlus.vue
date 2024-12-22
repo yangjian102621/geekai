@@ -258,32 +258,6 @@
                           </el-tooltip>
                         </div> -->
                         <div class="flex little-btns">
-                          <span class="send-btn tool-item-btn">
-                            <!-- showStopGenerate -->
-                            <el-button
-                              type="info"
-                              v-if="showStopGenerate"
-                              @click="stopGenerate"
-                              plain
-                            >
-                              <el-icon>
-                                <VideoPause />
-                              </el-icon>
-                            </el-button>
-                            <el-button
-                              @click="sendMessage"
-                              style="color: #754ff6"
-                              v-else
-                            >
-                              <el-tooltip
-                                class="box-item"
-                                effect="dark"
-                                content="发送"
-                              >
-                                <el-icon><Promotion /></el-icon>
-                              </el-tooltip>
-                            </el-button>
-                          </span>
                           <span class="tool-item-btn" @click="realtimeChat">
                             <el-tooltip
                               class="box-item"
