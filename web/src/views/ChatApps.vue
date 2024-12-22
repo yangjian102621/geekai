@@ -88,7 +88,7 @@
           </template>
         </ItemList>
         <div v-else style="width: 100%">
-          <el-empty description="暂无数据" />
+          <el-empty description="暂无数据" :image="nodata" />
         </div>
       </div>
     </div>
@@ -96,6 +96,7 @@
 </template>
 
 <script setup>
+import nodata from "@/assets/img/no-data.png";
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { httpGet, httpPost } from "@/utils/http";

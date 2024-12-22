@@ -126,7 +126,7 @@
               </div>
             </el-col>
           </el-row>
-          <el-empty description="暂无数据" v-else />
+          <el-empty description="暂无数据" v-else :image="nodata" />
 
           <h2 class="headline">消费账单</h2>
 
@@ -190,6 +190,7 @@
 </template>
 
 <script setup>
+import nodata from "@/assets/img/no-data.png";
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { httpGet, httpPost } from "@/utils/http";
