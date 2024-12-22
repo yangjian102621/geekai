@@ -181,7 +181,7 @@
       </div>
     </div>
     <!-- :style="{ 'padding-left': isCollapse ? '65px' : '170px' }" -->
-    <div class="right-main">
+    <el-scrollbar class="right-main">
       <div
         v-if="loginUser.id === undefined || !loginUser.id"
         class="loginMask"
@@ -205,7 +205,7 @@
         </router-view>
       </div>
       <!-- </div> -->
-    </div>
+    </el-scrollbar>
     <config-dialog
       v-if="loginUser.id"
       :show="showConfigDialog"
@@ -309,13 +309,20 @@ const changeNav = (item) => {
   curPath.value = item.url;
   if (item.url.indexOf("http") !== -1) {
     // 外部链接
-    router.push({ name: "ExternalLink", query: { url: item.url } });
+    window.open(item.url, "_blank");
   } else {
-    router.push(item.url);
+    // 路由切换，确保路径变化
+    if (router.currentRoute.value.path !== item.url) {
+      router.push(item.url).then(() => {
+        // 刷新 `routerViewKey` 触发视图重新渲染
+        routerViewKey.value += 1;
+      });
+    }
   }
 };
 
 onMounted(() => {
+  curPath.value = router.currentRoute.value.path;
   getSystemInfo()
     .then((res) => {
       logo.value = res.data.logo;

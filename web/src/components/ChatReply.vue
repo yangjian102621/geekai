@@ -432,10 +432,12 @@ const reGenerate = (prompt) => {
               line-height 1.5
 
               code {
-                color:var(--theme-text-color-primary);
-                background-color var( --little-btn-bg)
+                color:#fff;
+                background-color var( --el-color-primary)
                 padding 0 3px;
                 border-radius 5px;
+                font-size: 16px;
+                padding: 5px 7px;
               }
             }
 
@@ -539,7 +541,7 @@ const reGenerate = (prompt) => {
           }
 
           .bar-item.bg {
-            background-color var( --gray-btn-bg)
+            // background-color var( --gray-btn-bg)
             cursor pointer
           }
 

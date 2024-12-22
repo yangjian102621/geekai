@@ -3,12 +3,12 @@
     <el-container>
       <el-aside>
         <div class="media-page">
-          <!-- <el-button @click="_newChat" color="#21aa93">
+          <el-button @click="_newChat" type="primary" class="newChat">
             <el-icon style="margin-right: 5px">
-              <Plus/>
+              <Plus />
             </el-icon>
             新建对话
-          </el-button> -->
+          </el-button>
 
           <div class="search-box">
             <el-input
@@ -248,7 +248,7 @@
                         </textarea>
                       </div>
                       <div class="flex-between">
-                        <div @click="_newChat" class="flex-center add-new">
+                        <!-- <div @click="_newChat" class="flex-center add-new">
                           <el-tooltip
                             class="box-item"
                             effect="dark"
@@ -256,7 +256,7 @@
                           >
                             <el-icon><CirclePlusFilled /></el-icon>
                           </el-tooltip>
-                        </div>
+                        </div> -->
                         <div class="flex little-btns">
                           <span class="send-btn tool-item-btn">
                             <!-- showStopGenerate -->
@@ -688,7 +688,7 @@ const resizeElement = function () {
 
   // leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
   // leftBoxHeight.value = window.innerHeight - 90 - 82;
-  leftBoxHeight.value = window.innerHeight - 90 - 50;
+  leftBoxHeight.value = window.innerHeight - 90 - 100;
 };
 
 const _newChat = () => {

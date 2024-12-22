@@ -41,7 +41,7 @@
         </el-table-column>
       </el-table>
     </el-row>
-    <el-empty :image-size="100" v-else />
+    <el-empty :image-size="100" v-else :image="nodata" description="暂无数据" />
     <div class="pagination">
       <el-pagination
         v-if="total > 0"
@@ -59,6 +59,8 @@
 </template>
 
 <script setup>
+import nodata from "@/assets/img/no-data.png";
+
 import { onMounted, ref } from "vue";
 import { httpGet } from "@/utils/http";
 import { ElMessage } from "element-plus";

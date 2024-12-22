@@ -3,7 +3,14 @@
   height 100%
   // background-color #0E0808
   overflow auto
-
+  .item-group{
+    scrollbar-width: auto !important; /* 恢复滚动条（Firefox） */
+  -ms-overflow-style: auto !important; /* 恢复滚动条（IE、Edge） */
+  ::-webkit-scrollbar {
+    display: block !important; 
+  }
+    }
+ 
   .left-bar {
     max-width 340px
     min-width 340px
@@ -147,7 +154,13 @@
         position relative
         overflow-x auto
         overflow-y hidden
+        scrollbar-width: auto !important; /* 恢复滚动条（Firefox） */
+        -ms-overflow-style: auto !important; /* 恢复滚动条（IE、Edge） */
         width 100%
+
+        ::-webkit-scrollbar {
+          display: block !important; 
+        }
 
         .inner {
           display flex
@@ -256,7 +269,7 @@
             font-weight 700
 
             a {
-              color vae( --a-link-color)
+              color var( --a-link-color)
               &:hover {
                 text-decoration underline
               }
@@ -309,7 +322,7 @@
               background none
               padding 6px
               transition background 0.6s ease 0s
-              color #726E6C
+              color #919191
 
               &:hover {
                 // background #5f5958
