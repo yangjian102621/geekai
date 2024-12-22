@@ -12,10 +12,14 @@
       </el-select>
       <el-button type="primary" :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="success" :icon="Plus" @click="add">添加兑换码</el-button>
+      <el-button type="primary" @click="exportItems" :loading="exporting"><i class="iconfont icon-export mr-1"></i> 导出
+      </el-button>
     </div>
 
     <el-row>
-      <el-table :data="items" :row-key="row => row.id">
+      <el-table :data="items" :row-key="row => row.id"
+                @selection-change="handleSelectionChange" table-layout="auto">
+        <el-table-column type="selection" width="38"></el-table-column>
         <el-table-column prop="name" label="名称"/>
         <el-table-column prop="code" label="兑换码">
           <template #default="scope">
@@ -48,7 +52,8 @@
 
         <el-table-column prop="enabled" label="启用状态">
           <template #default="scope">
-            <el-switch v-model="scope.row['enabled']" @change="set('enabled',scope.row)" :disabled="scope.row['redeemed_at']>0"/>
+            <el-switch v-model="scope.row['enabled']" @change="set('enabled',scope.row)"
+                       :disabled="scope.row['redeemed_at']>0"/>
           </template>
         </el-table-column>
 
@@ -90,7 +95,7 @@
           </el-form-item>
 
           <el-form-item label="生成数量：" prop="num">
-            <el-input v-model.number="item.num" />
+            <el-input v-model.number="item.num"/>
           </el-form-item>
         </el-form>
       </template>
@@ -107,17 +112,17 @@
 
 <script setup>
 import {onMounted, onUnmounted, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpGet, httpPost, httpPostDownload} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {dateFormat, removeArrayItem, substr} from "@/utils/libs";
-import {Delete, DocumentCopy, Plus, Search, UploadFilled} from "@element-plus/icons-vue";
+import {dateFormat, substr, UUID} from "@/utils/libs";
+import {DocumentCopy, Plus, Search} from "@element-plus/icons-vue";
 import {showMessageError} from "@/utils/dialog";
 import ClipboardJS from "clipboard";
 
 // 变量定义
 const items = ref([])
 const loading = ref(true)
-const query = ref({code:"",status:-1})
+const query = ref({code: "", status: -1})
 const redeemStatus = ref([
   {value: -1, label: "全部"},
   {value: 0, label: "未核销"},
@@ -126,6 +131,8 @@ const redeemStatus = ref([
 const showDialog = ref(false)
 const dialogLoading = ref(false)
 const item = ref({name: "", power: 0, num: 1})
+const itemIds = ref([])
+const exporting = ref(false)
 
 const clipboard = ref(null)
 onMounted(() => {
@@ -152,10 +159,10 @@ const add = () => {
 }
 
 const save = () => {
-  if (item.value.name ===""){
+  if (item.value.name === "") {
     return showMessageError("请输入兑换码名称")
   }
-  if (item.value.power === 0){
+  if (item.value.power === 0) {
     return showMessageError("请输入算力额度")
   }
   if (item.value.num <= 0) {
@@ -207,12 +214,39 @@ const remove = function (row) {
     ElMessage.error("删除失败：" + e.message)
   })
 }
+
+const handleSelectionChange = (items) => {
+  itemIds.value = items.map(item => item.id)
+}
+
+const exportItems = () => {
+  query.value.ids = itemIds.value
+  exporting.value = true
+  httpPostDownload("/api/admin/redeem/export", query.value).then(response => {
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', UUID() + ".csv"); // 设置下载文件的名称
+    document.body.appendChild(link);
+    link.click();
+
+    // 移除 <a> 标签
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    exporting.value = false
+  }).catch(() => {
+    exporting.value = false
+    showMessageError("下载失败")
+  })
+}
+
 </script>
 
 <style lang="stylus" scoped>
 .list {
   .handle-box {
     margin-bottom 20px
+
     .handle-input {
       max-width 150px;
       margin-right 10px;

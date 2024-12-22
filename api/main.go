@@ -350,6 +350,7 @@ func main() {
 			group.POST("create", h.Create)
 			group.POST("set", h.Set)
 			group.GET("remove", h.Remove)
+			group.POST("export", h.Export)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
 			group := s.Engine.Group("/api/admin/dashboard/")
@@ -564,6 +565,7 @@ func main() {
 		fx.Provide(handler.NewRealtimeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
 			s.Engine.Any("/api/realtime", h.Connection)
+			s.Engine.POST("/api/realtime/voice", h.VoiceChat)
 		}),
 	)
 	// 启动应用程序

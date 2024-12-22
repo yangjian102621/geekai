@@ -6,23 +6,14 @@
       </div>
 
       <div class="chat-item">
-        <div
-          class="content"
-          v-html="md.render(processContent(data.content))"
-        ></div>
+        <div class="content" v-html="md.render(processContent(data.content))"></div>
         <div class="bar" v-if="data.created_at">
           <span class="bar-item"
-            ><el-icon><Clock /></el-icon>
-            {{ dateFormat(data.created_at) }}</span
+            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
           >
           <span class="bar-item">tokens: {{ data.tokens }}</span>
           <span class="bar-item">
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制回答"
-              placement="bottom"
-            >
+            <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
               <el-icon class="copy-reply" :data-clipboard-text="data.content">
                 <DocumentCopy />
               </el-icon>
@@ -30,23 +21,13 @@
           </span>
           <span v-if="!readOnly">
             <span class="bar-item" @click="reGenerate(data.prompt)">
-              <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="重新生成"
-                placement="bottom"
-              >
+              <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
                 <el-icon><Refresh /></el-icon>
               </el-tooltip>
             </span>
 
             <span class="bar-item" @click="synthesis(data.content)">
-              <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="生成语音朗读"
-                placement="bottom"
-              >
+              <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom">
                 <i class="iconfont icon-speaker"></i>
               </el-tooltip>
             </span>
@@ -75,24 +56,15 @@
       </div>
       <div class="chat-item">
         <div class="content-wrapper">
-          <div
-            class="content"
-            v-html="md.render(processContent(data.content))"
-          ></div>
+          <div class="content" v-html="md.render(processContent(data.content))"></div>
         </div>
         <div class="bar" v-if="data.created_at">
           <span class="bar-item"
-            ><el-icon><Clock /></el-icon>
-            {{ dateFormat(data.created_at) }}</span
+            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
           >
           <!--          <span class="bar-item">tokens: {{ data.tokens }}</span>-->
           <span class="bar-item bg">
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制回答"
-              placement="bottom"
-            >
+            <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
               <el-icon class="copy-reply" :data-clipboard-text="data.content">
                 <DocumentCopy />
               </el-icon>
@@ -100,23 +72,13 @@
           </span>
           <span v-if="!readOnly">
             <span class="bar-item bg" @click="reGenerate(data.prompt)">
-              <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="重新生成"
-                placement="bottom"
-              >
+              <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
                 <el-icon><Refresh /></el-icon>
               </el-tooltip>
             </span>
 
             <span class="bar-item bg" @click="synthesis(data.content)">
-              <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="生成语音朗读"
-                placement="bottom"
-              >
+              <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom">
                 <i class="iconfont icon-speaker"></i>
               </el-tooltip>
             </span>
@@ -140,17 +102,17 @@ const props = defineProps({
       icon: "",
       content: "",
       created_at: "",
-      tokens: 0
-    }
+      tokens: 0,
+    },
   },
   readOnly: {
     type: Boolean,
-    default: false
+    default: false,
   },
   listStyle: {
     type: String,
-    default: "list"
-  }
+    default: "list",
+  },
 });
 
 const mathjaxPlugin = require("markdown-it-mathjax3");
@@ -160,8 +122,7 @@ const md = require("markdown-it")({
   linkify: true,
   typographer: true,
   highlight: function (str, lang) {
-    const codeIndex =
-      parseInt(Date.now()) + Math.floor(Math.random() * 10000000);
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000);
     // 显示复制代码按钮
     const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
 <textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
@@ -180,7 +141,7 @@ const md = require("markdown-it")({
     const preCode = md.utils.escapeHtml(str);
     // 将代码包裹在 pre 中
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`;
-  }
+  },
 });
 md.use(mathjaxPlugin);
 
@@ -257,7 +218,7 @@ const reGenerate = (prompt) => {
             code {
               color:var(--theme-text-color-primary);
               background-color var(--el-color-primary-light-3)
-              padding 0 3px;
+              padding 3px 5px;
               border-radius 5px;
             }
           }
@@ -349,7 +310,6 @@ const reGenerate = (prompt) => {
 
           .bar-item {
             background-color var( --little-btn-bg);
-            color #888
             padding 3px 5px;
             margin-right 10px;
             border-radius 5px;
@@ -528,7 +488,6 @@ const reGenerate = (prompt) => {
           padding 10px 10px 10px 0;
 
           .bar-item {
-            color #888
             padding 3px 5px;
             margin-right 10px;
             border-radius 5px;

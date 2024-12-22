@@ -288,7 +288,11 @@
                             <el-tooltip
                               class="box-item"
                               effect="dark"
-                              content="实时语音对话"
+                              :content="
+                                '实时语音对话，每次消耗' +
+                                config.advance_voice_power +
+                                '算力'
+                              "
                             >
                               <i class="iconfont icon-mic-bold"></i>
                             </el-tooltip>
@@ -306,6 +310,34 @@
                                 @selected="insertFile"
                               />
                             </el-tooltip>
+                          </span>
+                        </div>
+                        <div class="flex little-btns">
+                          <span class="send-btn tool-item-btn">
+                            <!-- showStopGenerate -->
+                            <el-button
+                              type="info"
+                              v-if="showStopGenerate"
+                              @click="stopGenerate"
+                              plain
+                            >
+                              <el-icon>
+                                <VideoPause />
+                              </el-icon>
+                            </el-button>
+                            <el-button
+                              @click="sendMessage"
+                              style="color: #754ff6"
+                              v-else
+                            >
+                              <el-tooltip
+                                class="box-item"
+                                effect="dark"
+                                content="发送"
+                              >
+                                <el-icon><Promotion /></el-icon>
+                              </el-tooltip>
+                            </el-button>
                           </span>
                         </div>
                       </div>
@@ -343,7 +375,7 @@
 
     <ChatSetting :show="showChatSetting" @hide="showChatSetting = false" />
 
-    <el-dialog
+    <!-- <el-dialog
       v-model="showConversationDialog"
       title="实时语音通话"
       :before-close="hangUp"
@@ -353,6 +385,21 @@
         ref="conversationRef"
         :height="dialogHeight + 'px'"
       />
+    </el-dialog> -->
+
+    <el-dialog
+      v-model="showConversationDialog"
+      title="实时语音通话"
+      :fullscreen="true"
+    >
+      <div v-loading="!frameLoaded">
+        <iframe
+          style="width: 100%; height: calc(100vh - 100px); border: none"
+          :src="voiceChatUrl"
+          @load="frameLoaded = true"
+          allow="microphone *;camera *;"
+        ></iframe>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -366,7 +413,6 @@ import {
   InfoFilled,
   More,
   Plus,
-  CirclePlusFilled,
   Promotion,
   Search,
   Share,
@@ -385,8 +431,7 @@ import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
-import { showMessageError } from "@/utils/dialog";
-import RealtimeConversation from "@/components/RealtimeConversation.vue";
+import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
 
 const title = ref("GeekAI-智能助手");
 const models = ref([]);
@@ -415,6 +460,8 @@ const store = useSharedStore();
 const row = ref(1);
 const showChatSetting = ref(false);
 const listStyle = ref(store.chatListStyle);
+const config = ref({ advance_voice_power: 0 });
+const voiceChatUrl = ref("");
 watch(
   () => store.chatListStyle,
   (newValue) => {
@@ -460,7 +507,8 @@ if (!chatId.value) {
 // 获取系统配置
 getSystemInfo()
   .then((res) => {
-    title.value = res.data.title;
+    config.value = res.data;
+    title.value = config.value.title;
   })
   .catch((e) => {
     ElMessage.error("获取系统配置失败：" + e.message);
@@ -1111,22 +1159,31 @@ const removeFile = (file) => {
 
 // 实时语音对话
 const showConversationDialog = ref(false);
-const conversationRef = ref(null);
-const dialogHeight = ref(window.innerHeight - 75);
+// const conversationRef = ref(null);
+// const dialogHeight = ref(window.innerHeight - 75);
+const frameLoaded = ref(false);
 const realtimeChat = () => {
   if (!isLogin.value) {
     store.setShowLoginDialog(true);
     return;
   }
-  showConversationDialog.value = true;
-  nextTick(() => {
-    conversationRef.value.connect();
-  });
+  showLoading("正在连接...");
+  httpPost("/api/realtime/voice")
+    .then((res) => {
+      voiceChatUrl.value = res.data;
+      showConversationDialog.value = true;
+      closeLoading();
+    })
+    .catch((e) => {
+      showMessageError("连接失败：" + e.message);
+      closeLoading();
+    });
 };
-const hangUp = () => {
-  showConversationDialog.value = false;
-  conversationRef.value.hangUp();
-};
+
+// const hangUp = () => {
+//   showConversationDialog.value = false;
+//   conversationRef.value.hangUp();
+// };
 </script>
 
 <style scoped lang="stylus">

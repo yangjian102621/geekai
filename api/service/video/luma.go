@@ -130,10 +130,13 @@ type LumaRespVo struct {
 	Id                  string      `json:"id"`
 	Prompt              string      `json:"prompt"`
 	State               string      `json:"state"`
-	CreatedAt           time.Time   `json:"created_at"`
+	QueueState interface{} `json:"queue_state"`
+	CreatedAt  string      `json:"created_at"`
 	Video               interface{} `json:"video"`
+	VideoRaw   interface{} `json:"video_raw"`
 	Liked               interface{} `json:"liked"`
 	EstimateWaitSeconds interface{} `json:"estimate_wait_seconds"`
+	Thumbnail  interface{} `json:"thumbnail"`
 	Channel             string      `json:"channel,omitempty"`
 }
 
@@ -234,7 +237,7 @@ func (s *Service) DownloadFiles() {
 						continue
 					}
 				}
-				logger.Info("download no water video success: %s", videoURL)
+				logger.Infof("download no water video success: %s", videoURL)
 				v.VideoURL = videoURL
 				v.Progress = 100
 				s.db.Updates(&v)
@@ -275,6 +278,7 @@ func (s *Service) SyncTaskProgress() {
 						"water_url":  task.Video.Url,
 						"raw_data":   utils.JsonEncode(task),
 						"prompt_ext": task.Prompt,
+						"cover_url": task.Thumbnail.Url,
 					}
 					if task.Video.DownloadUrl != "" {
 						data["video_url"] = task.Video.DownloadUrl
@@ -315,11 +319,28 @@ type LumaTaskVo struct {
 		Url         string `json:"url"`
 		Width       int    `json:"width"`
 		Height      int    `json:"height"`
+		Thumbnail string `json:"thumbnail"`
 		DownloadUrl string `json:"download_url"`
 	} `json:"video"`
-	Prompt              string      `json:"prompt"`
-	CreatedAt           time.Time   `json:"created_at"`
-	EstimateWaitSeconds interface{} `json:"estimate_wait_seconds"`
+	Prompt    string `json:"prompt"`
+	UserId    string `json:"user_id"`
+	BatchId   string `json:"batch_id"`
+	Thumbnail struct {
+		Url    string `json:"url"`
+		Width  int    `json:"width"`
+		Height int    `json:"height"`
+	} `json:"thumbnail"`
+	VideoRaw struct {
+		Url    string `json:"url"`
+		Width  int    `json:"width"`
+		Height int    `json:"height"`
+	} `json:"video_raw"`
+	CreatedAt string `json:"created_at"`
+	LastFrame struct {
+		Url    string `json:"url"`
+		Width  int    `json:"width"`
+		Height int    `json:"height"`
+	} `json:"last_frame"`
 }
 
 func (s *Service) QueryLumaTask(taskId string, channel string) (LumaTaskVo, error) {
