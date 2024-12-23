@@ -87,18 +87,25 @@
         </div>
 
         <div class="chat-box">
-          <div class="top-bar">
+          <!-- <div class="top-bar">
             <el-button @click="downloadImage" type="primary">
               <el-icon>
                 <Download />
               </el-icon>
-              <span>下载图片</span>
+              <span>下载图片-</span>
             </el-button>
-          </div>
+          </div> -->
 
           <div class="body" id="markmap">
             <svg ref="svgRef" :style="{ height: rightBoxHeight + 'px' }" />
-            <div id="toolbar"></div>
+            <div id="toolbar">
+              <el-button @click="downloadImage" type="primary">
+                <el-icon>
+                  <Download />
+                </el-icon>
+                <span>下载图片</span>
+              </el-button>
+            </div>
           </div>
         </div>
         <!-- end task list box -->
@@ -119,7 +126,8 @@ import { Toolbar } from "markmap-toolbar";
 import { useSharedStore } from "@/store/sharedata";
 
 const leftBoxHeight = ref(window.innerHeight - 105);
-const rightBoxHeight = ref(window.innerHeight - 115);
+//const rightBoxHeight = ref(window.innerHeight - 115);
+const rightBoxHeight = ref(window.innerHeight);
 
 const prompt = ref("");
 const text = ref("");

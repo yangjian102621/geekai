@@ -77,16 +77,6 @@
               {{ item.name }}
             </div>
           </li>
-
-          <!-- <li
-            class="menu-list-item flex-center-col"
-            v-for="item in 5"
-            :key="item"
-          >
-            <el-icon><Location /></el-icon>
-            <div>首页</div>
-          </li> -->
-
           <!-- 更多 -->
           <div class="bot" :style="{ width: isCollapse ? '65px' : '170px' }">
             <div class="bot-line"></div>
@@ -174,13 +164,11 @@
               </a>
 
               <ThemeChange />
-              <!-- <div v-if="!isCollapse">会员</div> -->
             </li>
           </div>
         </ul>
       </div>
     </div>
-    <!-- :style="{ 'padding-left': isCollapse ? '65px' : '170px' }" -->
     <el-scrollbar class="right-main">
       <div
         v-if="loginUser.id === undefined || !loginUser.id"
@@ -196,7 +184,6 @@
           >登录</el-button
         >
       </div>
-      <!-- <div class="content custom-scroll"> -->
       <div class="content custom-scroll">
         <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
@@ -234,7 +221,7 @@ import { ElMessage } from "element-plus";
 import { UserFilled } from "@element-plus/icons-vue";
 import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
 import { removeUserToken } from "@/store/session";
-import LoginDialog from "@/components/LoginDialog.vue";
+// import LoginDialog from "@/components/LoginDialog.vue";
 import { useSharedStore } from "@/store/sharedata";
 import ConfigDialog from "@/components/UserInfoDialog.vue";
 import { showMessageError } from "@/utils/dialog";
@@ -244,12 +231,10 @@ const router = useRouter();
 const logo = ref("");
 const mainNavs = ref([]);
 const moreNavs = ref([]);
-// const curPath = ref(router.currentRoute.value.path);
 const curPath = ref();
 
 const title = ref("");
 const showNoticeLogin = ref(false);
-// const mainWinHeight = window.innerHeight - 50;
 
 /**
  * 从路径名中提取第一个路径段
@@ -276,15 +261,9 @@ const getFirstPathSegment = (url) => {
   }
 };
 const loginUser = ref({});
-const mainWinHeight = loginUser.value.id
-  ? window.innerHeight
-  : window.innerHeight;
-
-const version = ref(process.env.VUE_APP_VERSION);
 const routerViewKey = ref(0);
 const showConfigDialog = ref(false);
 const license = ref({ de_copy: true });
-const docsURL = ref(process.env.VUE_APP_DOCS_URL);
 const gitURL = ref(process.env.VUE_APP_GIT_URL);
 
 const store = useSharedStore();
@@ -295,12 +274,6 @@ watch(
     show.value = newValue;
   }
 );
-
-// 监听路由变化
-// router.beforeEach((to, from, next) => {
-//   curPath.value = to.path;
-//   next();
-// });
 
 if (curPath.value === "/external") {
   curPath.value = router.currentRoute.value.query.url;
@@ -379,12 +352,6 @@ const logout = function () {
     .catch(() => {
       ElMessage.error("注销失败！");
     });
-};
-
-const loginCallback = () => {
-  init();
-  // 刷新组件
-  routerViewKey.value += 1;
 };
 </script>
 

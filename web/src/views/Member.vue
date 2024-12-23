@@ -127,11 +127,12 @@
             </el-col>
           </el-row>
           <el-empty description="暂无数据" v-else :image="nodata" />
+          <div class="box-card">
+            <h2 class="headline">消费账单</h2>
 
-          <h2 class="headline">消费账单</h2>
-
-          <div class="user-order">
-            <user-order v-if="isLogin" :key="userOrderKey" />
+            <div class="user-order">
+              <user-order v-if="isLogin" :key="userOrderKey" />
+            </div>
           </div>
         </div>
       </div>
