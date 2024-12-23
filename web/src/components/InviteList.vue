@@ -6,13 +6,6 @@
         :row-key="(row) => row.id"
         table-layout="auto"
         border
-        style="
-          --el-table-border-color: #373c47;
-          --el-table-tr-bg-color: #2d323b;
-          --el-table-row-hover-bg-color: #373c47;
-          --el-table-header-bg-color: #474e5c;
-          --el-table-text-color: #d1d1d1;
-        "
       >
         <el-table-column prop="username" label="用户" />
         <el-table-column prop="invite_code" label="邀请码" />

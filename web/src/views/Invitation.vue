@@ -82,11 +82,12 @@
             </el-col>
           </el-row>
         </div>
+        <div class="box-card">
+          <h2>您推荐的用户</h2>
 
-        <h2>您推荐的用户</h2>
-
-        <div class="invite-logs">
-          <invite-list v-if="isLogin" />
+          <div class="invite-logs">
+            <invite-list v-if="isLogin" />
+          </div>
         </div>
       </div>
     </div>
