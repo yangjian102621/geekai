@@ -13,12 +13,7 @@
         </div>
         <div class="body">
           <div class="title">
-            <el-link
-              :href="file.url"
-              target="_blank"
-              style="--el-font-weight-primary: bold"
-              >{{ substr(file.name, 30) }}</el-link
-            >
+            <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{ substr(file.name, 30) }}</el-link>
           </div>
           <div class="info">
             <span>{{ GetFileType(file.ext) }}</span>
@@ -42,18 +37,14 @@ import { FormatFileSize, GetFileIcon, GetFileType } from "@/store/system";
 const props = defineProps({
   files: {
     type: Array,
-    default: []
-  }
+    default: [],
+  },
 });
 const emits = defineEmits(["removeFile"]);
 const fileList = ref(props.files);
 
 const removeFile = (file) => {
-  fileList.value = removeArrayItem(
-    fileList.value,
-    file,
-    (v1, v2) => v1.url === v2.url
-  );
+  fileList.value = removeArrayItem(fileList.value, file, (v1, v2) => v1.url === v2.url);
   emits("removeFile", file);
 };
 </script>
@@ -118,6 +109,10 @@ const removeFile = (file) => {
     color #da0d54
     cursor pointer
     font-size 20px
+    .el-icon {
+      background-color #fff
+      border-radius 50%
+    }
   }
 }
 </style>
