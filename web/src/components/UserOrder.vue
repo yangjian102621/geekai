@@ -1,23 +1,11 @@
 <template>
-  <div
-    class="user-bill"
-    v-loading="loading"
-    element-loading-background="rgba(255,255,255,.3)"
-  >
+  <div class="user-bill" v-loading="loading" element-loading-background="rgba(255,255,255,.3)">
     <el-row v-if="items.length > 0">
-      <el-table
-        :data="items"
-        :row-key="(row) => row.id"
-        table-layout="auto"
-        border
-      >
+      <el-table :data="items" :row-key="(row) => row.id" table-layout="auto" border>
         <el-table-column prop="order_no" label="订单号">
           <template #default="scope">
             <span>{{ scope.row.order_no }}</span>
-            <el-icon
-              class="copy-order-no"
-              :data-clipboard-text="scope.row.order_no"
-            >
+            <el-icon class="copy-order-no" :data-clipboard-text="scope.row.order_no">
               <DocumentCopy />
             </el-icon>
           </template>
@@ -33,16 +21,14 @@
         <el-table-column prop="pay_name" label="支付名称" />
         <el-table-column label="支付时间">
           <template #default="scope">
-            <span v-if="scope.row['pay_time']">{{
-              dateFormat(scope.row["pay_time"])
-            }}</span>
+            <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row["pay_time"]) }}</span>
             <el-tag v-else>未支付</el-tag>
           </template>
         </el-table-column>
       </el-table>
     </el-row>
     <el-empty :image-size="100" v-else :image="nodata" description="暂无数据" />
-    <div class="pagination">
+    <div class="pagination pb-5">
       <el-pagination
         v-if="total > 0"
         background

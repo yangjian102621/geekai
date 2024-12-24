@@ -9,14 +9,14 @@ module.exports = defineConfig({
   configureWebpack: {
     // disable performance hints
     performance: {
-      hints: false
+      hints: false,
     },
     plugins: [new webpack.optimize.MinChunkSizePlugin({ minChunkSize: 10000 })],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "src")
-      }
-    }
+        "@": path.resolve(__dirname, "src"),
+      },
+    },
   },
 
   publicPath: "/",
@@ -29,8 +29,8 @@ module.exports = defineConfig({
     proxy: {
       "/static/upload/": {
         target: process.env.VUE_APP_API_HOST,
-        changeOrigin: true
-      }
-    }
-  }
+        changeOrigin: true,
+      },
+    },
+  },
 });

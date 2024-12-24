@@ -2,7 +2,7 @@
   <div class="page-images-wall">
     <div class="inner custom-scroll">
       <div class="header">
-        <h2>AI 绘画作品墙</h2>
+        <h2 class="text-xl pt-4 pb-4">AI 绘画作品墙</h2>
         <div class="settings">
           <el-radio-group v-model="imgType" @change="changeImgType">
             <el-radio value="mj" size="large">MidJourney</el-radio>
@@ -11,11 +11,7 @@
           </el-radio-group>
         </div>
       </div>
-      <div
-        class="waterfall"
-        :style="{ height: listBoxHeight + 'px' }"
-        id="waterfall-box"
-      >
+      <div class="waterfall" :style="{ height: listBoxHeight + 'px' }" id="waterfall-box">
         <v3-waterfall
           v-if="imgType === 'mj'"
           id="waterfall"
@@ -54,24 +50,14 @@
                 </el-image>
               </div>
               <div class="opt">
-                <el-tooltip
-                  class="box-item"
-                  content="复制提示词"
-                  placement="top"
-                >
-                  <el-icon
-                    class="copy-prompt-wall"
-                    :data-clipboard-text="slotProp.item.prompt"
-                  >
+                <el-tooltip class="box-item" content="复制提示词" placement="top">
+                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
                     <DocumentCopy />
                   </el-icon>
                 </el-tooltip>
 
                 <el-tooltip class="box-item" content="画同款" placement="top">
-                  <i
-                    class="iconfont icon-palette-pen"
-                    @click="drawSameMj(slotProp.item)"
-                  ></i>
+                  <i class="iconfont icon-palette-pen" @click="drawSameMj(slotProp.item)"></i>
                 </el-tooltip>
               </div>
             </div>
@@ -116,15 +102,8 @@
                 </el-image>
               </div>
               <div class="opt">
-                <el-tooltip
-                  class="box-item"
-                  content="复制提示词"
-                  placement="top"
-                >
-                  <el-icon
-                    class="copy-prompt-wall"
-                    :data-clipboard-text="slotProp.item.prompt"
-                  >
+                <el-tooltip class="box-item" content="复制提示词" placement="top">
+                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
                     <DocumentCopy />
                   </el-icon>
                 </el-tooltip>
@@ -149,11 +128,7 @@
           <template #default="slotProp">
             <div class="list-item">
               <div class="image">
-                <el-image
-                  :src="slotProp.item['img_thumb']"
-                  loading="lazy"
-                  @click="showTask(slotProp.item)"
-                >
+                <el-image :src="slotProp.item['img_thumb']" loading="lazy" @click="showTask(slotProp.item)">
                   <template #placeholder>
                     <div class="image-slot">正在加载图片</div>
                   </template>
@@ -189,10 +164,7 @@
     <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
       <el-row :gutter="20">
         <el-col :span="16">
-          <div
-            class="img-container"
-            :style="{ maxHeight: fullImgHeight + 'px' }"
-          >
+          <div class="img-container" :style="{ maxHeight: fullImgHeight + 'px' }">
             <el-image :src="item['img_url']" fit="contain">
               <template #placeholder>
                 <div class="image-slot">正在加载图片</div>
@@ -214,10 +186,7 @@
               <el-divider> 正向提示词 </el-divider>
               <div class="prompt">
                 <span>{{ item.prompt }}</span>
-                <el-icon
-                  class="copy-prompt-wall"
-                  :data-clipboard-text="item.prompt"
-                >
+                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.prompt">
                   <DocumentCopy />
                 </el-icon>
               </div>
@@ -227,10 +196,7 @@
               <el-divider> 反向提示词 </el-divider>
               <div class="prompt">
                 <span>{{ item.params.negative_prompt }}</span>
-                <el-icon
-                  class="copy-prompt-wall"
-                  :data-clipboard-text="item.params.negative_prompt"
-                >
+                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.params.negative_prompt">
                   <DocumentCopy />
                 </el-icon>
               </div>
@@ -246,9 +212,7 @@
             <div class="info-line">
               <div class="wrapper">
                 <label>图片尺寸：</label>
-                <div class="item-value">
-                  {{ item.params.width }} x {{ item.params.height }}
-                </div>
+                <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
               </div>
             </div>
 
@@ -305,9 +269,7 @@
             </div>
 
             <div class="copy-params">
-              <el-button type="primary" round @click="drawSameSd(item)"
-                >画一张同款的</el-button
-              >
+              <el-button type="primary" round @click="drawSameSd(item)">画一张同款的</el-button>
             </div>
           </div>
         </el-col>
@@ -329,7 +291,7 @@ import BackTop from "@/components/BackTop.vue";
 const data = ref({
   mj: [],
   sd: [],
-  dall: []
+  dall: [],
 });
 const loading = ref(true);
 const isOver = ref(false);
@@ -384,8 +346,7 @@ const getNext = () => {
       // 生成缩略图
       const imageList = res.data.items;
       for (let i = 0; i < imageList.length; i++) {
-        imageList[i]["img_thumb"] =
-          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
       }
       if (data.value[imgType.value].length === 0) {
         data.value[imgType.value] = imageList;
@@ -427,7 +388,7 @@ const changeImgType = () => {
   data.value = {
     mj: [],
     sd: [],
-    dall: []
+    dall: [],
   };
   loading.value = true;
   isOver.value = false;
@@ -443,7 +404,7 @@ const router = useRouter();
 const drawSameSd = (row) => {
   router.push({
     name: "image-sd",
-    params: { copyParams: JSON.stringify(row.params) }
+    params: { copyParams: JSON.stringify(row.params) },
   });
 };
 

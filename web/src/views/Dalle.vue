@@ -11,13 +11,8 @@
                 <el-form-item label="图片质量">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.quality" style="width: 176px">
-                        <el-option
-                          v-for="v in qualities"
-                          :label="v.name"
-                          :value="v.value"
-                          :key="v.value"
-                        />
+                      <el-select v-model="params.quality" style="width: 150px">
+                        <el-option v-for="v in qualities" :label="v.name" :value="v.value" :key="v.value" />
                       </el-select>
                     </div>
                   </template>
@@ -28,13 +23,8 @@
                 <el-form-item label="图片尺寸">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.size" style="width: 176px">
-                        <el-option
-                          v-for="v in sizes"
-                          :label="v"
-                          :value="v"
-                          :key="v"
-                        />
+                      <el-select v-model="params.size" style="width: 150px">
+                        <el-option v-for="v in sizes" :label="v" :value="v" :key="v" />
                       </el-select>
                     </div>
                   </template>
@@ -45,19 +35,10 @@
                 <el-form-item label="图片样式">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.style" style="width: 176px">
-                        <el-option
-                          v-for="v in styles"
-                          :label="v.name"
-                          :value="v.value"
-                          :key="v.value"
-                        />
+                      <el-select v-model="params.style" style="width: 150px">
+                        <el-option v-for="v in styles" :label="v.name" :value="v.value" :key="v.value" />
                       </el-select>
-                      <el-tooltip
-                        content="生动使模型倾向于生成超真实和戏剧性的图像"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="生动使模型倾向于生成超真实和戏剧性的图像" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
@@ -80,17 +61,8 @@
               </div>
 
               <el-row class="text-info">
-                <el-button
-                  class="generate-btn"
-                  size="small"
-                  @click="generatePrompt"
-                  color="#5865f2"
-                  :disabled="isGenerating"
-                >
-                  <i
-                    class="iconfont icon-chuangzuo"
-                    style="margin-right: 5px"
-                  ></i>
+                <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+                  <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
                   <span>生成专业绘画指令</span>
                 </el-button>
               </el-row>
@@ -98,12 +70,8 @@
               <div class="text-info">
                 <el-row :gutter="10">
                   <el-text type="primary"
-                    >每次绘图消耗
-                    <el-text type="warning"
-                      >{{ dallPower }}算力；</el-text
-                    ></el-text
+                    >每次绘图消耗 <el-text type="warning">{{ dallPower }}算力，</el-text></el-text
                   >
-                  &nbsp;&nbsp;
                   <el-text type="primary"
                     >当前可用
                     <el-text type="warning"> {{ power }}算力</el-text>
@@ -113,21 +81,16 @@
             </el-form>
           </div>
           <div class="submit-btn">
-            <el-button type="primary" :dark="false" round @click="generate">
-              立即生成
-            </el-button>
+            <el-button type="primary" :dark="false" round @click="generate"> 立即生成 </el-button>
           </div>
         </div>
-        <div class="task-list-box">
-          <div
-            class="task-list-inner"
-            :style="{ height: listBoxHeight + 'px' }"
-          >
+        <div class="task-list-box pl-6 pr-6 pb-4 pt-4">
+          <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
-              <h2>任务列表</h2>
+              <h2 class="text-xl">任务列表</h2>
               <task-list :list="runningJobs" />
               <template v-if="finishedJobs.length > 0">
-                <h2>创作记录</h2>
+                <h2 class="text-xl">创作记录</h2>
                 <div class="finish-job-list">
                   <div v-if="finishedJobs.length > 0">
                     <v3-waterfall
@@ -170,22 +133,12 @@
                                 <div class="err-msg-container">
                                   <div class="title">任务失败</div>
                                   <div class="opt">
-                                    <el-popover
-                                      title="错误详情"
-                                      trigger="click"
-                                      :width="250"
-                                      :content="slotProp.item['err_msg']"
-                                      placement="top"
-                                    >
+                                    <el-popover title="错误详情" trigger="click" :width="250" :content="slotProp.item['err_msg']" placement="top">
                                       <template #reference>
                                         <el-button type="info">详情</el-button>
                                       </template>
                                     </el-popover>
-                                    <el-button
-                                      type="danger"
-                                      @click="removeImage(slotProp.item)"
-                                      >删除</el-button
-                                    >
+                                    <el-button type="danger" @click="removeImage(slotProp.item)">删除</el-button>
                                   </div>
                                 </div>
                               </div>
@@ -203,43 +156,21 @@
 
                           <div class="remove">
                             <el-tooltip content="删除" placement="top">
-                              <el-button
-                                type="danger"
-                                :icon="Delete"
-                                @click="removeImage(slotProp.item)"
-                                circle
-                              />
+                              <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle />
                             </el-tooltip>
-                            <el-tooltip
-                              content="取消分享"
-                              placement="top"
-                              v-if="slotProp.item.publish"
-                            >
-                              <el-button
-                                type="warning"
-                                @click="publishImage(slotProp.item, false)"
-                                circle
-                              >
+                            <el-tooltip content="取消分享" placement="top" v-if="slotProp.item.publish">
+                              <el-button type="warning" @click="publishImage(slotProp.item, false)" circle>
                                 <i class="iconfont icon-cancel-share"></i>
                               </el-button>
                             </el-tooltip>
                             <el-tooltip content="分享" placement="top" v-else>
-                              <el-button
-                                type="success"
-                                @click="publishImage(slotProp.item, true)"
-                                circle
-                              >
+                              <el-button type="success" @click="publishImage(slotProp.item, true)" circle>
                                 <i class="iconfont icon-share-bold"></i>
                               </el-button>
                             </el-tooltip>
 
                             <el-tooltip content="复制提示词" placement="top">
-                              <el-button
-                                type="info"
-                                circle
-                                class="copy-prompt"
-                                :data-clipboard-text="slotProp.item.prompt"
-                              >
+                              <el-button type="info" circle class="copy-prompt" :data-clipboard-text="slotProp.item.prompt">
                                 <i class="iconfont icon-file"></i>
                               </el-button>
                             </el-tooltip>
@@ -255,12 +186,7 @@
                       </template>
                     </v3-waterfall>
                   </div>
-                  <el-empty
-                    :image-size="100"
-                    :image="nodata"
-                    description="暂无记录"
-                    v-else
-                  />
+                  <el-empty :image-size="100" :image="nodata" description="暂无记录" v-else />
                 </div>
               </template>
 
@@ -318,19 +244,19 @@ window.onresize = () => {
 };
 const qualities = [
   { name: "标准", value: "standard" },
-  { name: "高清", value: "hd" }
+  { name: "高清", value: "hd" },
 ];
 const sizes = ["1024x1024", "1792x1024", "1024x1792"];
 const styles = [
   { name: "生动", value: "vivid" },
-  { name: "自然", value: "natural" }
+  { name: "自然", value: "natural" },
 ];
 const params = ref({
   client_id: getClientId(),
   quality: "standard",
   size: "1024x1024",
   style: "vivid",
-  prompt: ""
+  prompt: "",
 });
 
 const finishedJobs = ref([]);
@@ -417,17 +343,14 @@ const fetchFinishJobs = () => {
   loading.value = true;
   page.value = page.value + 1;
 
-  httpGet(
-    `/api/dall/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`
-  )
+  httpGet(`/api/dall/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
       if (res.data.items.length < pageSize.value) {
         isOver.value = true;
       }
       const imageList = res.data.items;
       for (let i = 0; i < imageList.length; i++) {
-        imageList[i]["img_thumb"] =
-          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
       }
       if (page.value === 1) {
         finishedJobs.value = imageList;
@@ -469,7 +392,7 @@ const removeImage = (item) => {
   ElMessageBox.confirm("此操作将会删除任务和图片，继续操作码?", "删除提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    type: "warning"
+    type: "warning",
   })
     .then(() => {
       httpGet("/api/dall/remove", { id: item.id })

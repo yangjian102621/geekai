@@ -6,48 +6,27 @@
         <el-tooltip content="定义模式" placement="top">
           <black-switch v-model:value="custom" size="large" />
         </el-tooltip>
-        <el-tooltip
-          content="请上传6-60秒的原始音频，检测到人声的音频将仅设为私人音频。"
-          placement="bottom-end"
-        >
-          <el-upload
-            class="avatar-uploader"
-            :auto-upload="true"
-            :show-file-list="false"
-            :http-request="uploadAudio"
-            accept=".wav,.mp3"
-          >
+        <el-tooltip content="请上传6-60秒的原始音频，检测到人声的音频将仅设为私人音频。" placement="bottom-end">
+          <el-upload class="avatar-uploader" :auto-upload="true" :show-file-list="false" :http-request="uploadAudio" accept=".wav,.mp3">
             <el-button class="upload-music" round type="primary">
               <i class="iconfont icon-upload"></i>
               <span>上传音乐</span>
             </el-button>
           </el-upload>
         </el-tooltip>
-        <black-select
-          v-model:value="data.model"
-          :options="models"
-          placeholder="请选择模型"
-          style="width: 100px"
-        />
+        <black-select v-model:value="data.model" :options="models" placeholder="请选择模型" style="width: 100px" />
       </div>
 
       <div class="params">
         <div class="pure-music">
-          <span class="switch"
-            ><black-switch v-model:value="data.instrumental" size="default"
-          /></span>
+          <span class="switch"><black-switch v-model:value="data.instrumental" size="default" /></span>
           <span class="text">纯音乐</span>
         </div>
         <div v-if="custom">
           <div class="item-group" v-if="!data.instrumental">
             <div class="label">
               <span class="text">歌词</span>
-              <el-popover
-                placement="right"
-                :width="200"
-                trigger="hover"
-                content="自己写歌词或寻求 AI 的帮助。使用两节歌词（8 行）可获得最佳效果。"
-              >
+              <el-popover placement="right" :width="200" trigger="hover" content="自己写歌词或寻求 AI 的帮助。使用两节歌词（8 行）可获得最佳效果。">
                 <template #reference>
                   <el-icon>
                     <InfoFilled />
@@ -55,21 +34,9 @@
                 </template>
               </el-popover>
             </div>
-            <div
-              class="item"
-              v-loading="isGenerating"
-              element-loading-text="正在生成歌词..."
-              element-loading-background="rgba(122, 122, 122, 0.8)"
-            >
-              <black-input
-                v-model:value="data.lyrics"
-                type="textarea"
-                :rows="10"
-                :placeholder="promptPlaceholder"
-              />
-              <button class="btn btn-lyric" @click="createLyric">
-                生成歌词
-              </button>
+            <div class="item" v-loading="isGenerating" element-loading-text="正在生成歌词..." element-loading-background="rgba(122, 122, 122, 0.8)">
+              <black-input v-model:value="data.lyrics" type="textarea" :rows="10" :placeholder="promptPlaceholder" />
+              <button class="btn btn-lyric" @click="createLyric">生成歌词</button>
             </div>
           </div>
 
@@ -90,24 +57,12 @@
               </el-popover>
             </div>
             <div class="item">
-              <black-input
-                v-model:value="data.tags"
-                type="textarea"
-                :maxlength="120"
-                :rows="3"
-                placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..."
-              />
+              <black-input v-model:value="data.tags" type="textarea" :maxlength="120" :rows="3" placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..." />
             </div>
 
             <div class="tag-select">
               <div class="inner">
-                <span
-                  class="tag"
-                  @click="selectTag(tag)"
-                  v-for="tag in tags"
-                  :key="tag.value"
-                  >{{ tag.label }}</span
-                >
+                <span class="tag" @click="selectTag(tag)" v-for="tag in tags" :key="tag.value">{{ tag.label }}</span>
               </div>
             </div>
           </div>
@@ -115,12 +70,7 @@
           <div class="item-group">
             <div class="label">
               <span class="text">歌曲名称</span>
-              <el-popover
-                placement="right"
-                :width="200"
-                trigger="hover"
-                content="给你的歌曲起一个标题，以便于分享、发现和组织。"
-              >
+              <el-popover placement="right" :width="200" trigger="hover" content="给你的歌曲起一个标题，以便于分享、发现和组织。">
                 <template #reference>
                   <el-icon>
                     <InfoFilled />
@@ -129,12 +79,7 @@
               </el-popover>
             </div>
             <div class="item">
-              <black-input
-                v-model:value="data.title"
-                type="textarea"
-                :rows="1"
-                placeholder="请输入歌曲名称..."
-              />
+              <black-input v-model:value="data.title" type="textarea" :rows="1" placeholder="请输入歌曲名称..." />
             </div>
           </div>
         </div>
@@ -156,24 +101,14 @@
             </el-popover>
           </div>
           <div class="item">
-            <black-input
-              v-model:value="data.prompt"
-              type="textarea"
-              :rows="10"
-              placeholder="例如：一首关于爱情的摇滚歌曲..."
-            />
+            <black-input v-model:value="data.prompt" type="textarea" :rows="10" placeholder="例如：一首关于爱情的摇滚歌曲..." />
           </div>
         </div>
 
         <div class="ref-song" v-if="refSong">
           <div class="label">
             <span class="text">续写</span>
-            <el-popover
-              placement="right"
-              :width="200"
-              trigger="hover"
-              content="输入额外的歌词，根据您之前的歌词来扩展歌曲。"
-            >
+            <el-popover placement="right" :width="200" trigger="hover" content="输入额外的歌词，根据您之前的歌词来扩展歌曲。">
               <template #reference>
                 <el-icon>
                   <InfoFilled />
@@ -186,17 +121,9 @@
             <div class="song">
               <el-image :src="refSong.cover_url" fit="cover" />
               <span class="title">{{ refSong.title }}</span>
-              <el-button
-                type="info"
-                @click="removeRefSong"
-                size="small"
-                :icon="Delete"
-                circle
-              />
+              <el-button type="info" @click="removeRefSong" size="small" :icon="Delete" circle />
             </div>
-            <div class="extend-secs">
-              从 <input v-model="refSong.extend_secs" type="text" /> 秒开始续写
-            </div>
+            <div class="extend-secs">从 <input v-model="refSong.extend_secs" type="text" /> 秒开始续写</div>
           </div>
         </div>
 
@@ -208,11 +135,7 @@
         </div>
       </div>
     </div>
-    <div
-      class="right-box"
-      v-loading="loading"
-      element-loading-background="rgba(100,100,100,0.3)"
-    >
+    <div class="right-box" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
       <div class="list-box" v-if="!noData">
         <div v-for="item in list" :key="item.id">
           <div class="item" v-if="item.progress === 100">
@@ -227,12 +150,8 @@
             </div>
             <div class="center">
               <div class="title">
-                <a :href="'/song/' + item.song_id" target="_blank">{{
-                  item.title
-                }}</a>
-                <span class="model" v-if="item.major_model_version">{{
-                  item.major_model_version
-                }}</span>
+                <a :href="'/song/' + item.song_id" target="_blank">{{ item.title }}</a>
+                <span class="model" v-if="item.major_model_version">{{ item.major_model_version }}</span>
                 <span class="model" v-if="item.type === 4">用户上传</span>
                 <span class="model" v-if="item.type === 3">
                   <i class="iconfont icon-mp3"></i>
@@ -246,50 +165,31 @@
               <div class="tags" v-if="item.tags">{{ item.tags }}</div>
             </div>
             <div class="right">
-              <div class="tools">
+              <div class="tools grid grid-flow-row auto-rows-max">
                 <el-tooltip content="以当前歌曲为素材继续创作" placement="top">
                   <button class="btn" @click="extend(item)">续写</button>
                 </el-tooltip>
 
                 <button class="btn btn-publish">
                   <span class="text">发布</span>
-                  <black-switch
-                    v-model:value="item.publish"
-                    @change="publishJob(item)"
-                    size="small"
-                  />
+                  <black-switch v-model:value="item.publish" @change="publishJob(item)" size="small" />
                 </button>
 
                 <el-tooltip content="下载歌曲" placement="top">
                   <button class="btn btn-icon" @click="download(item)">
-                    <i
-                      class="iconfont icon-download"
-                      v-if="!item.downloading"
-                    ></i>
-                    <el-image
-                      src="/images/loading.gif"
-                      class="downloading"
-                      fit="cover"
-                      v-else
-                    />
+                    <i class="iconfont icon-download" v-if="!item.downloading"></i>
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
                   </button>
                 </el-tooltip>
 
-                <el-tooltip
-                  content="获取完整歌曲"
-                  placement="top"
-                  v-if="item.ref_song"
-                >
+                <el-tooltip content="获取完整歌曲" placement="top" v-if="item.ref_song">
                   <button class="btn btn-icon" @click="merge(item)">
                     <i class="iconfont icon-concat"></i>
                   </button>
                 </el-tooltip>
 
                 <el-tooltip content="复制歌曲链接" placement="top">
-                  <button
-                    class="btn btn-icon copy-link"
-                    :data-clipboard-text="getShareURL(item)"
-                  >
+                  <button class="btn btn-icon copy-link" :data-clipboard-text="getShareURL(item)">
                     <i class="iconfont icon-share1"></i>
                   </button>
                 </el-tooltip>
@@ -329,12 +229,7 @@
           </div>
         </div>
       </div>
-      <el-empty
-        :image-size="100"
-        :image="nodata"
-        description="没有任何作品，赶紧去创作吧！"
-        v-else
-      />
+      <el-empty :image-size="100" :image="nodata" description="没有任何作品，赶紧去创作吧！" v-else />
 
       <div class="pagination">
         <el-pagination
@@ -351,37 +246,20 @@
       </div>
 
       <div class="music-player" v-if="showPlayer">
-        <music-player
-          :songs="playList"
-          ref="playerRef"
-          :show-close="true"
-          @close="showPlayer = false"
-        />
+        <music-player :songs="playList" ref="playerRef" :show-close="true" @close="showPlayer = false" />
       </div>
     </div>
 
-    <black-dialog
-      v-model:show="showDialog"
-      title="修改歌曲"
-      @cancal="showDialog = false"
-      @confirm="updateSong"
-      :width="500 + 'px'"
-    >
+    <black-dialog v-model:show="showDialog" title="修改歌曲" @cancal="showDialog = false" @confirm="updateSong" :width="500 + 'px'">
       <form class="form">
         <div class="form-item">
           <div class="label">歌曲名称</div>
-          <input class="input" v-model="editData.title" type="text" />
+          <el-input v-model="editData.title" type="text" />
         </div>
 
         <div class="form-item">
           <div class="label">封面图片</div>
-          <el-upload
-            class="avatar-uploader"
-            :auto-upload="true"
-            :show-file-list="false"
-            :http-request="uploadCover"
-            accept=".png,.jpg,.jpeg,.bmp"
-          >
+          <el-upload class="avatar-uploader" :auto-upload="true" :show-file-list="false" :http-request="uploadCover" accept=".png,.jpg,.jpeg,.bmp">
             <el-avatar :src="editData.cover" shape="square" :size="100" />
           </el-upload>
         </div>
@@ -393,23 +271,23 @@
 <script setup>
 import nodata from "@/assets/img/no-data.png";
 
-import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
-import {Delete, InfoFilled} from "@element-plus/icons-vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { Delete, InfoFilled } from "@element-plus/icons-vue";
 import BlackSelect from "@/components/ui/BlackSelect.vue";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
-import {compact} from "lodash";
-import {httpDownload, httpGet, httpPost} from "@/utils/http";
-import {showMessageError, showMessageOK} from "@/utils/dialog";
-import {checkSession, getClientId} from "@/store/cache";
-import {ElMessage, ElMessageBox} from "element-plus";
-import {formatTime, replaceImg} from "@/utils/libs";
+import { compact } from "lodash";
+import { httpDownload, httpGet, httpPost } from "@/utils/http";
+import { showMessageError, showMessageOK } from "@/utils/dialog";
+import { checkSession, getClientId } from "@/store/cache";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { formatTime, replaceImg } from "@/utils/libs";
 import Clipboard from "clipboard";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
 import Generating from "@/components/ui/Generating.vue";
-import {useSharedStore} from "@/store/sharedata";
+import { useSharedStore } from "@/store/sharedata";
 
 // const winHeight = ref(window.innerHeight - 50);
 const winHeight = ref(window.innerHeight - 20);
@@ -417,8 +295,8 @@ const winHeight = ref(window.innerHeight - 20);
 const custom = ref(false);
 const models = ref([
   { label: "v3.0", value: "chirp-v3-0" },
-  {label: "v3.5", value: "chirp-v3-5"},
-  {label: "v4.0", value: "chirp-v4"}
+  { label: "v3.5", value: "chirp-v3-5" },
+  { label: "v4.0", value: "chirp-v4" },
 ]);
 const tags = ref([
   { label: "女声", value: "female vocals" },
@@ -436,7 +314,7 @@ const tags = ref([
   { label: "钢琴", value: "piano" },
   { label: "小提琴", value: "violin" },
   { label: "贝斯", value: "bass" },
-  { label: "嘻哈", value: "hip hop" }
+  { label: "嘻哈", value: "hip hop" },
 ]);
 const data = ref({
   client_id: getClientId(),
@@ -448,7 +326,7 @@ const data = ref({
   instrumental: false,
   ref_task_id: "",
   extend_secs: 0,
-  ref_song_id: ""
+  ref_song_id: "",
 });
 const loading = ref(false);
 const noData = ref(true);
@@ -605,7 +483,7 @@ const uploadAudio = (file) => {
       httpPost("/api/suno/create", {
         audio_url: res.data.url,
         title: res.data.name,
-        type: 4
+        type: 4,
       })
         .then(() => {
           fetchData(1);
@@ -680,16 +558,14 @@ const selectTag = (tag) => {
   if (data.value.tags.length + tag.value.length >= 119) {
     return;
   }
-  data.value.tags = compact([...data.value.tags.split(","), tag.value]).join(
-    ","
-  );
+  data.value.tags = compact([...data.value.tags.split(","), tag.value]).join(",");
 };
 
 const removeJob = (item) => {
   ElMessageBox.confirm("此操作将会删除任务相关文件，继续操作码?", "删除提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    type: "warning"
+    type: "warning",
   })
     .then(() => {
       httpGet("/api/suno/remove", { id: item.id })
@@ -737,7 +613,7 @@ const uploadCover = (file) => {
     },
     error(err) {
       console.log(err.message);
-    }
+    },
   });
 };
 

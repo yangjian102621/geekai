@@ -20,22 +20,22 @@
   </div>
 </template>
 <script setup>
-import { useSidebarStore } from "@/store/sidebar";
-import { useTagsStore } from "@/store/tags";
+import {useSidebarStore} from "@/store/sidebar";
+import {useTagsStore} from "@/store/tags";
 import AdminHeader from "@/components/admin/AdminHeader.vue";
 import AdminSidebar from "@/components/admin/AdminSidebar.vue";
 import AdminTags from "@/components/admin/AdminTags.vue";
-import { useRouter } from "vue-router";
-import { checkAdminSession } from "@/store/cache";
-import { ref, watch } from "vue";
-import { useSharedStore } from "@/store/sharedata";
+import {useRouter} from "vue-router";
+import {checkAdminSession} from "@/store/cache";
+import {ref, watch} from "vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const sidebar = useSidebarStore();
 const tags = useTagsStore();
 const isLogin = ref(false);
 const contentHeight = window.innerHeight - 80;
 const store = useSharedStore();
-const theme = ref(store.adminTheme);
+const theme = ref(store.theme);
 
 // 获取会话信息
 const router = useRouter();
@@ -48,7 +48,7 @@ checkAdminSession()
   });
 
 watch(
-  () => store.adminTheme,
+    () => store.theme,
   (val) => {
     theme.value = val;
   }
@@ -56,7 +56,5 @@ watch(
 </script>
 
 <style scoped lang="stylus">
-// @import '@/assets/css/color-dark.styl';
 @import '@/assets/css/main.styl';
-@import '@/assets/iconfont/iconfont.css';
 </style>

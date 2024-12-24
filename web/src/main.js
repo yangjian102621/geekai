@@ -14,6 +14,8 @@ import App from "./App.vue";
 import { useThemeStore } from "@/store/theme";
 import { createPinia } from "pinia";
 import "animate.css/animate.min.css";
+import "@/assets/css/tailwind.css";
+
 import {
   ActionSheet,
   Badge,
@@ -59,7 +61,7 @@ import {
   Tabs,
   Tag,
   TextEllipsis,
-  Uploader
+  Uploader,
 } from "vant";
 import { router } from "@/router";
 import "v3-waterfall/dist/style.css";

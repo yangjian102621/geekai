@@ -11,19 +11,10 @@
                 <el-form-item label="采样方法">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.sampler" style="width: 176px">
-                        <el-option
-                          v-for="item in samplers"
-                          :label="item"
-                          :value="item"
-                          :key="item"
-                        />
+                      <el-select v-model="params.sampler" style="width: 150px">
+                        <el-option v-for="item in samplers" :label="item" :value="item" :key="item" />
                       </el-select>
-                      <el-tooltip
-                        content="出图效果比较好的一般是 Euler 和 DPM 系列算法"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="出图效果比较好的一般是 Euler 和 DPM 系列算法" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
@@ -37,22 +28,10 @@
                 <el-form-item label="采样调度">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select
-                        v-model="params.scheduler"
-                        style="width: 176px"
-                      >
-                        <el-option
-                          v-for="item in schedulers"
-                          :label="item"
-                          :value="item"
-                          :key="item"
-                        />
+                      <el-select v-model="params.scheduler" style="width: 150px">
+                        <el-option v-for="item in schedulers" :label="item" :value="item" :key="item" />
                       </el-select>
-                      <el-tooltip
-                        content="推荐自动或者 Karras"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="推荐自动或者 Karras" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
@@ -68,16 +47,10 @@
                     <div class="form-item-inner">
                       <el-row :gutter="20">
                         <el-col :span="12">
-                          <el-input
-                            v-model.number="params.width"
-                            placeholder="图片宽度"
-                          />
+                          <el-input v-model.number="params.width" placeholder="图片宽度" />
                         </el-col>
                         <el-col :span="12">
-                          <el-input
-                            v-model.number="params.height"
-                            placeholder="图片高度"
-                          />
+                          <el-input v-model.number="params.height" placeholder="图片高度" />
                         </el-col>
                       </el-row>
                     </div>
@@ -90,11 +63,7 @@
                   <template #default>
                     <div class="form-item-inner">
                       <el-input v-model.number="params.steps" />
-                      <el-tooltip
-                        content="值越大则代表细节越多，同时也意味着出图速度越慢"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="值越大则代表细节越多，同时也意味着出图速度越慢" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
@@ -109,11 +78,7 @@
                   <template #default>
                     <div class="form-item-inner">
                       <el-input v-model.number="params.cfg_scale" />
-                      <el-tooltip
-                        content="提示词引导系数，图像在多大程度上服从提示词<br/> 较低值会产生更有创意的结果"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="提示词引导系数，图像在多大程度上服从提示词<br/> 较低值会产生更有创意的结果" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
@@ -128,21 +93,13 @@
                   <template #default>
                     <div class="form-item-inner">
                       <el-input v-model.number="params.seed" />
-                      <el-tooltip
-                        content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
                       </el-tooltip>
 
-                      <el-tooltip
-                        content="使用随机数"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="使用随机数" raw-content placement="right">
                         <el-icon @click="params.seed = -1" class="info-icon">
                           <Orange />
                         </el-icon>
@@ -156,16 +113,8 @@
                 <el-form-item label="高清修复">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-switch
-                        v-model="params.hd_fix"
-                        style="--el-switch-on-color: #47fff1"
-                        size="large"
-                      />
-                      <el-tooltip
-                        content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-switch v-model="params.hd_fix" style="--el-switch-on-color: #47fff1" size="large" />
+                      <el-tooltip content="先以较小的分辨率生成图像，接着方法图像<br />然后在不更改构图的情况下再修改细节" raw-content placement="right">
                         <el-icon style="margin-left: 10px; top: 12px">
                           <InfoFilled />
                         </el-icon>
@@ -180,20 +129,8 @@
                   <el-form-item label="重绘幅度">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-slider
-                          v-model.number="params.hd_redraw_rate"
-                          :max="1"
-                          :step="0.1"
-                          style="
-                            width: 180px;
-                            --el-slider-main-bg-color: #47fff1;
-                          "
-                        />
-                        <el-tooltip
-                          content="决定算法对图像内容的影响程度<br />较大的值将得到越有创意的图像"
-                          raw-content
-                          placement="right"
-                        >
+                        <el-slider v-model.number="params.hd_redraw_rate" :max="1" :step="0.1" style="width: 180px; --el-slider-main-bg-color: #47fff1" />
+                        <el-tooltip content="决定算法对图像内容的影响程度<br />较大的值将得到越有创意的图像" raw-content placement="right">
                           <el-icon class="info-icon">
                             <InfoFilled />
                           </el-icon>
@@ -207,22 +144,10 @@
                   <el-form-item label="放大算法">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-select
-                          v-model="params.hd_scale_alg"
-                          style="width: 176px"
-                        >
-                          <el-option
-                            v-for="item in scaleAlg"
-                            :label="item"
-                            :value="item"
-                            :key="item"
-                          />
+                        <el-select v-model="params.hd_scale_alg" style="width: 176px">
+                          <el-option v-for="item in scaleAlg" :label="item" :value="item" :key="item" />
                         </el-select>
-                        <el-tooltip
-                          content="高清修复放大算法，主流算法有Latent和ESRGAN_4x"
-                          raw-content
-                          placement="right"
-                        >
+                        <el-tooltip content="高清修复放大算法，主流算法有Latent和ESRGAN_4x" raw-content placement="right">
                           <el-icon class="info-icon">
                             <InfoFilled />
                           </el-icon>
@@ -237,11 +162,7 @@
                     <template #default>
                       <div class="form-item-inner">
                         <el-input v-model.number="params.hd_scale" />
-                        <el-tooltip
-                          content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子"
-                          raw-content
-                          placement="right"
-                        >
+                        <el-tooltip content="随机数种子，相同的种子会得到相同的结果<br/> 设置为 -1 则每次随机生成种子" raw-content placement="right">
                           <el-icon class="info-icon">
                             <InfoFilled />
                           </el-icon>
@@ -256,11 +177,7 @@
                     <template #default>
                       <div class="form-item-inner">
                         <el-input v-model.number="params.hd_steps" />
-                        <el-tooltip
-                          content="重绘迭代步数，如果设置为0，则设置跟原图相同的迭代步数"
-                          raw-content
-                          placement="right"
-                        >
+                        <el-tooltip content="重绘迭代步数，如果设置为0，则设置跟原图相同的迭代步数" raw-content placement="right">
                           <el-icon class="info-icon">
                             <InfoFilled />
                           </el-icon>
@@ -284,77 +201,48 @@
               </div>
 
               <el-row class="text-info">
-                <el-button
-                  class="generate-btn"
-                  size="small"
-                  @click="generatePrompt"
-                  color="#5865f2"
-                  :disabled="isGenerating"
-                >
-                  <i
-                    class="iconfont icon-chuangzuo"
-                    style="margin-right: 5px"
-                  ></i>
+                <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2" :disabled="isGenerating">
+                  <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
                   <span>生成专业绘画指令</span>
                 </el-button>
               </el-row>
 
               <div class="param-line pt">
                 <span>反向提示词：</span>
-                <el-tooltip
-                  content="不希望出现的元素，下面给了默认的起手式"
-                  placement="right"
-                >
+                <el-tooltip content="不希望出现的元素，下面给了默认的起手式" placement="right">
                   <el-icon class="info-icon">
                     <InfoFilled />
                   </el-icon>
                 </el-tooltip>
               </div>
               <div class="param-line">
-                <el-input
-                  v-model="params.neg_prompt"
-                  :autosize="{ minRows: 4, maxRows: 6 }"
-                  type="textarea"
-                  placeholder="反向提示词"
-                />
+                <el-input v-model="params.neg_prompt" :autosize="{ minRows: 4, maxRows: 6 }" type="textarea" placeholder="反向提示词" />
               </div>
 
               <div class="text-info">
                 <el-row :gutter="10">
-                  <el-col :span="12">
-                    <el-text type="primary"
-                      >单次绘图消耗
-                      <el-text type="warning">{{ sdPower }}算力;</el-text>
-                    </el-text>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-text type="primary"
-                      >当前可用
-                      <el-text type="warning">
-                        {{ power }}算力</el-text
-                      ></el-text
-                    >
-                  </el-col>
+                  <el-text type="primary"
+                    >单次绘图消耗
+                    <el-text type="warning">{{ sdPower }}算力，</el-text>
+                  </el-text>
+                  <el-text type="primary"
+                    >当前可用 <el-text type="warning"> {{ power }}算力</el-text></el-text
+                  >
                 </el-row>
               </div>
             </el-form>
           </div>
           <div class="submit-btn">
-            <el-button type="primary" :dark="false" round @click="generate"
-              >立即生成</el-button
-            >
+            <el-button type="primary" :dark="false" round @click="generate">立即生成</el-button>
           </div>
         </div>
-        <div class="task-list-box">
-          <div
-            class="task-list-inner"
-            :style="{ height: listBoxHeight + 'px' }"
-          >
+        <div class="task-list-box pl-6 pr-6 pb-4 pt-4">
+          <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
-              <h2>任务列表</h2>
+              <h2 class="text-xl">任务列表</h2>
               <task-list :list="runningJobs" />
               <template v-if="finishedJobs.length > 0">
-                <h2>创作记录</h2>
+                <h2 class="text-xl">创作记录</h2>
                 <div class="finish-job-list">
                   <div v-if="finishedJobs.length > 0">
                     <v3-waterfall
@@ -377,55 +265,25 @@
                                 <div class="err-msg-container">
                                   <div class="title">任务失败</div>
                                   <div class="opt">
-                                    <el-popover
-                                      title="错误详情"
-                                      trigger="click"
-                                      :width="250"
-                                      :content="slotProp.item['err_msg']"
-                                      placement="top"
-                                    >
+                                    <el-popover title="错误详情" trigger="click" :width="250" :content="slotProp.item['err_msg']" placement="top">
                                       <template #reference>
                                         <el-button type="info">详情</el-button>
                                       </template>
                                     </el-popover>
-                                    <el-button
-                                      type="danger"
-                                      @click="removeImage(slotProp.item)"
-                                      >删除</el-button
-                                    >
+                                    <el-button type="danger" @click="removeImage(slotProp.item)">删除</el-button>
                                   </div>
                                 </div>
                               </div>
                             </template>
                           </el-image>
                           <div v-else>
-                            <el-image
-                              :src="slotProp.item['img_thumb']"
-                              @click="showTask(slotProp.item)"
-                              fit="cover"
-                              loading="lazy"
-                            />
+                            <el-image :src="slotProp.item['img_thumb']" @click="showTask(slotProp.item)" fit="cover" loading="lazy" />
                             <div class="remove">
-                              <el-button
-                                type="danger"
-                                :icon="Delete"
-                                @click="removeImage(slotProp.item)"
-                                circle
-                              />
-                              <el-button
-                                type="warning"
-                                v-if="slotProp.item.publish"
-                                @click="publishImage(slotProp.item, false)"
-                                circle
-                              >
+                              <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle />
+                              <el-button type="warning" v-if="slotProp.item.publish" @click="publishImage(slotProp.item, false)" circle>
                                 <i class="iconfont icon-cancel-share"></i>
                               </el-button>
-                              <el-button
-                                type="success"
-                                v-else
-                                @click="publishImage(slotProp.item, true)"
-                                circle
-                              >
+                              <el-button type="success" v-else @click="publishImage(slotProp.item, true)" circle>
                                 <i class="iconfont icon-share-bold"></i>
                               </el-button>
                             </div>
@@ -441,12 +299,7 @@
                       </template>
                     </v3-waterfall>
                   </div>
-                  <el-empty
-                    :image-size="100"
-                    v-else
-                    :image="nodata"
-                    description="暂无记录"
-                  />
+                  <el-empty :image-size="100" v-else :image="nodata" description="暂无记录" />
                 </div>
               </template>
 
@@ -459,17 +312,10 @@
       </div>
 
       <!-- 任务详情弹框 -->
-      <el-dialog
-        v-model="showTaskDialog"
-        title="绘画任务详情"
-        :fullscreen="true"
-      >
+      <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
         <el-row :gutter="20">
           <el-col :span="16">
-            <div
-              class="img-container"
-              :style="{ maxHeight: fullImgHeight + 'px' }"
-            >
+            <div class="img-container" :style="{ maxHeight: fullImgHeight + 'px' }">
               <el-image :src="item['img_url']" fit="contain" />
             </div>
           </el-col>
@@ -479,10 +325,7 @@
                 <el-divider> 正向提示词 </el-divider>
                 <div class="prompt">
                   <span>{{ item.prompt }}</span>
-                  <el-icon
-                    class="copy-prompt-sd"
-                    :data-clipboard-text="item.prompt"
-                  >
+                  <el-icon class="copy-prompt-sd" :data-clipboard-text="item.prompt">
                     <DocumentCopy />
                   </el-icon>
                 </div>
@@ -492,10 +335,7 @@
                 <el-divider> 反向提示词 </el-divider>
                 <div class="prompt">
                   <span>{{ item.params.neg_prompt }}</span>
-                  <el-icon
-                    class="copy-prompt-sd"
-                    :data-clipboard-text="item.params.neg_prompt"
-                  >
+                  <el-icon class="copy-prompt-sd" :data-clipboard-text="item.params.neg_prompt">
                     <DocumentCopy />
                   </el-icon>
                 </div>
@@ -511,9 +351,7 @@
               <div class="info-line">
                 <div class="wrapper">
                   <label>图片尺寸：</label>
-                  <div class="item-value">
-                    {{ item.params.width }} x {{ item.params.height }}
-                  </div>
+                  <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
                 </div>
               </div>
 
@@ -572,9 +410,7 @@
               </div>
 
               <div class="copy-params">
-                <el-button type="primary" round @click="copyParams(item)"
-                  >画一张同款的</el-button
-                >
+                <el-button type="primary" round @click="copyParams(item)">画一张同款的</el-button>
               </div>
             </div>
           </el-col>
@@ -586,12 +422,7 @@
 
 <script setup>
 import { nextTick, onMounted, onUnmounted, ref } from "vue";
-import {
-  Delete,
-  DocumentCopy,
-  InfoFilled,
-  Orange
-} from "@element-plus/icons-vue";
+import { Delete, DocumentCopy, InfoFilled, Orange } from "@element-plus/icons-vue";
 import nodata from "@/assets/img/no-data.png";
 
 import { httpGet, httpPost } from "@/utils/http";
@@ -623,15 +454,7 @@ resizeElement();
 window.onresize = () => {
   resizeElement();
 };
-const samplers = [
-  "Euler a",
-  "DPM++ 2S a",
-  "DPM++ 2M",
-  "DPM++ SDE",
-  "DPM++ 2M SDE",
-  "UniPC",
-  "Restart"
-];
+const samplers = ["Euler a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM++ 2M SDE", "UniPC", "Restart"];
 const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"];
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"];
 const params = ref({
@@ -649,8 +472,7 @@ const params = ref({
   hd_scale_alg: scaleAlg[0],
   hd_steps: 0,
   prompt: "",
-  neg_prompt:
-    "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet"
+  neg_prompt: "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
 });
 
 const runningJobs = ref([]);
@@ -745,17 +567,14 @@ const fetchFinishJobs = () => {
   loading.value = true;
   page.value = page.value + 1;
 
-  httpGet(
-    `/api/sd/jobs?finish=1&page=${page.value}&page_size=${pageSize.value}`
-  )
+  httpGet(`/api/sd/jobs?finish=1&page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
       if (res.data.items.length < pageSize.value) {
         isOver.value = true;
       }
       const imageList = res.data.items;
       for (let i = 0; i < imageList.length; i++) {
-        imageList[i]["img_thumb"] =
-          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
       }
       if (page.value === 1) {
         finishedJobs.value = imageList;
@@ -812,7 +631,7 @@ const removeImage = (item) => {
   ElMessageBox.confirm("此操作将会删除任务和图片，继续操作码?", "删除提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    type: "warning"
+    type: "warning",
   })
     .then(() => {
       httpGet("/api/sd/remove", { id: item.id })

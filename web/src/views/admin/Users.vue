@@ -1,41 +1,20 @@
 <template>
   <div class="container user-list" v-loading="loading">
     <div class="handle-box">
-      <el-input
-        v-model="query.username"
-        placeholder="账号"
-        class="handle-input mr10"
-      ></el-input>
-      <el-button type="primary" :icon="Search" @click="handleSearch"
-        >搜索</el-button
-      >
-      <el-button type="success" :icon="Plus" @click="addUser"
-        >新增用户</el-button
-      >
-      <el-button type="danger" :icon="Delete" @click="multipleDelete"
-        >删除</el-button
-      >
+      <el-input v-model="query.username" placeholder="账号" class="handle-input mr10"></el-input>
+      <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+      <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
+      <el-button type="danger" :icon="Delete" @click="multipleDelete">删除</el-button>
     </div>
 
     <el-row>
-      <el-table
-        :data="users.items"
-        border
-        class="table"
-        :row-key="(row) => row.id"
-        @selection-change="handleSelectionChange"
-        table-layout="auto"
-      >
+      <el-table :data="users.items" border class="table" :row-key="(row) => row.id" @selection-change="handleSelectionChange" table-layout="auto">
         <el-table-column type="selection" width="38"></el-table-column>
         <el-table-column prop="id" label="ID" />
         <el-table-column label="账号">
           <template #default="scope">
             <span>{{ scope.row.username }}</span>
-            <el-image
-              v-if="scope.row.vip"
-              :src="vipImg"
-              style="height: 20px; position: relative; top: 5px; left: 5px"
-            />
+            <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px; position: relative; top: 5px; left: 5px" />
           </template>
         </el-table-column>
         <el-table-column prop="mobile" label="手机" />
@@ -50,9 +29,7 @@
         </el-table-column>
         <el-table-column label="过期时间">
           <template #default="scope">
-            <span v-if="scope.row['expired_time']">{{
-              scope.row["expired_time"]
-            }}</span>
+            <span v-if="scope.row['expired_time']">{{ scope.row["expired_time"] }}</span>
             <el-tag v-else>长期有效</el-tag>
           </template>
         </el-table-column>
@@ -66,24 +43,9 @@
         <el-table-column fixed="right" label="操作" width="200">
           <template #default="scope">
             <el-button-group class="ml-4">
-              <el-button
-                size="small"
-                type="primary"
-                @click="userEdit(scope.row)"
-                >编辑</el-button
-              >
-              <el-button
-                size="small"
-                type="danger"
-                @click="removeUser(scope.row)"
-                >删除</el-button
-              >
-              <el-button
-                size="small"
-                type="success"
-                @click="resetPass(scope.row)"
-                >重置密码</el-button
-              >
+              <el-button size="small" type="primary" @click="userEdit(scope.row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="removeUser(scope.row)">删除</el-button>
+              <el-button size="small" type="success" @click="resetPass(scope.row)">重置密码</el-button>
             </el-button-group>
           </template>
         </el-table-column>
@@ -102,18 +64,8 @@
       </div>
     </el-row>
 
-    <el-dialog
-      v-model="showUserEditDialog"
-      :title="title"
-      :close-on-click-modal="false"
-      width="50%"
-    >
-      <el-form
-        :model="user"
-        label-width="100px"
-        ref="userEditFormRef"
-        :rules="rules"
-      >
+    <el-dialog v-model="showUserEditDialog" :title="title" :close-on-click-modal="false" width="50%">
+      <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
         <el-form-item label="账号：" prop="username">
           <el-input v-model="user.username" autocomplete="off" />
         </el-form-item>
@@ -124,18 +76,10 @@
           <el-input v-model="user.email" autocomplete="off" />
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
-          <el-input
-            v-model="user.password"
-            autocomplete="off"
-            placeholder="8-16位"
-          />
+          <el-input v-model="user.password" autocomplete="off" placeholder="8-16位" />
         </el-form-item>
         <el-form-item label="剩余算力：" prop="power">
-          <el-input
-            v-model.number="user.power"
-            autocomplete="off"
-            placeholder="0"
-          />
+          <el-input v-model.number="user.power" autocomplete="off" placeholder="0" />
         </el-form-item>
 
         <el-form-item label="有效期：" prop="expired_time">
@@ -150,34 +94,14 @@
         </el-form-item>
 
         <el-form-item label="聊天角色" prop="chat_roles">
-          <el-select
-            v-model="user.chat_roles"
-            multiple
-            :filterable="true"
-            placeholder="选择聊天角色，多选"
-          >
-            <el-option
-              v-for="item in roles"
-              :key="item.key"
-              :label="item.name"
-              :value="item.key"
-            />
+          <el-select v-model="user.chat_roles" multiple :filterable="true" placeholder="选择聊天角色，多选">
+            <el-option v-for="item in roles" :key="item.key" :label="item.name" :value="item.key" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="模型权限" prop="chat_models">
-          <el-select
-            v-model="user.chat_models"
-            multiple
-            :filterable="true"
-            placeholder="选择AI模型，多选"
-          >
-            <el-option
-              v-for="item in models"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
+          <el-select v-model="user.chat_models" multiple :filterable="true" placeholder="选择AI模型，多选">
+            <el-option v-for="item in models" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
 
@@ -201,12 +125,7 @@
     <el-dialog v-model="showResetPassDialog" title="重置密码" width="50%">
       <el-form label-width="100px" ref="userEditFormRef">
         <el-form-item label="账户：">
-          <el-input
-            v-model="pass.username"
-            autocomplete="off"
-            readonly
-            disabled
-          />
+          <el-input v-model="pass.username" autocomplete="off" readonly disabled />
         </el-form-item>
 
         <el-form-item label="新密码：">
@@ -252,17 +171,15 @@ const rules = reactive({
         return !(value.length > 16 || value.length < 8);
       },
       message: "密码必须为8-16",
-      trigger: "blur"
-    }
+      trigger: "blur",
+    },
   ],
   calls: [
     { required: true, message: "请输入提问次数" },
-    { type: "number", message: "请输入有效数字" }
+    { type: "number", message: "请输入有效数字" },
   ],
-  chat_roles: [
-    { required: true, message: "请选择聊天角色", trigger: "change" }
-  ],
-  chat_models: [{ required: true, message: "请选择AI模型", trigger: "change" }]
+  chat_roles: [{ required: true, message: "请选择聊天角色", trigger: "change" }],
+  chat_models: [{ required: true, message: "请选择AI模型", trigger: "change" }],
 });
 const loading = ref(true);
 
@@ -317,15 +234,11 @@ const handleSearch = () => {
 
 // 删除用户
 const removeUser = function (user) {
-  ElMessageBox.confirm(
-    "此操作将会永久删除用户信息和聊天记录，确认操作吗?",
-    "警告",
-    {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    }
-  )
+  ElMessageBox.confirm("此操作将会永久删除用户信息和聊天记录，确认操作吗?", "警告", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
     .then(() => {
       httpGet("/api/admin/user/remove", { id: user.id })
         .then(() => {
@@ -385,15 +298,11 @@ const handleSelectionChange = function (rows) {
 };
 
 const multipleDelete = function () {
-  ElMessageBox.confirm(
-    "此操作将会永久删除用户信息和聊天记录，确认操作吗?",
-    "警告",
-    {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    }
-  )
+  ElMessageBox.confirm("此操作将会永久删除用户信息和聊天记录，确认操作吗?", "警告", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
     .then(() => {
       loading.value = true;
       httpGet("/api/admin/user/remove", { ids: userIds.value })

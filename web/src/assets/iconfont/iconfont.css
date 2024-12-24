@@ -1,10 +1,8 @@
-
-/* 在线链接服务仅供平台体验和调试使用，平台不承诺服务的稳定性，企业客户需下载字体包自行发布使用并做好备份。 */
 @font-face {
-  font-family: 'iconfont';  /* Project id 4125778 */
-  src: url('//at.alicdn.com/t/c/font_4125778_t6hhjiqu67.woff2?t=1733221702650') format('woff2'),
-       url('//at.alicdn.com/t/c/font_4125778_t6hhjiqu67.woff?t=1733221702650') format('woff'),
-       url('//at.alicdn.com/t/c/font_4125778_t6hhjiqu67.ttf?t=1733221702650') format('truetype');
+  font-family: "iconfont"; /* Project id 4125778 */
+  src: url('iconfont.woff2?t=1734934068681') format('woff2'),
+       url('iconfont.woff?t=1734934068681') format('woff'),
+       url('iconfont.ttf?t=1734934068681') format('truetype');
 }
 
 .iconfont {
@@ -13,6 +11,154 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-redeem:before {
+  content: "\e61a";
+}
+
+.icon-login:before {
+  content: "\e636";
+}
+
+.icon-present:before {
+  content: "\e648";
+}
+
+.icon-icon-warning:before {
+  content: "\e671";
+}
+
+.icon-help:before {
+  content: "\e64a";
+}
+
+.icon-success:before {
+  content: "\e61e";
+}
+
+.icon-error:before {
+  content: "\e64e";
+}
+
+.icon-house:before {
+  content: "\e619";
+}
+
+.icon-vip4:before {
+  content: "\e684";
+}
+
+.icon-vip1:before {
+  content: "\f90b";
+}
+
+.icon-vip2:before {
+  content: "\fabb";
+}
+
+.icon-vip3:before {
+  content: "\10135";
+}
+
+.icon-conversation:before {
+  content: "\e617";
+}
+
+.icon-arrow-down:before {
+  content: "\e615";
+}
+
+.icon-arrow-up:before {
+  content: "\e616";
+}
+
+.icon-refresh:before {
+  content: "\e90c";
+}
+
+.icon-refresh-bold:before {
+  content: "\e614";
+}
+
+.icon-copy:before {
+  content: "\e720";
+}
+
+.icon-new-chat:before {
+  content: "\e613";
+}
+
+.icon-expand:before {
+  content: "\e7a0";
+}
+
+.icon-colspan:before {
+  content: "\e79e";
+}
+
+.icon-question:before {
+  content: "\e8e9";
+}
+
+.icon-AIduihua_jihuo:before {
+  content: "\e6bb";
+}
+
+.icon-MidJourney:before {
+  content: "\e60e";
+}
+
+.icon-stable-diffusion:before {
+  content: "\e60f";
+}
+
+.icon-info:before {
+  content: "\e6a0";
+}
+
+.icon-more-horizontal:before {
+  content: "\e60d";
+}
+
+.icon-xinghao:before {
+  content: "\e8d6";
+}
+
+.icon-plus:before {
+  content: "\e61f";
+}
+
+.icon-plus-circle:before {
+  content: "\e822";
+}
+
+.icon-taiyang:before {
+  content: "\e60b";
+}
+
+.icon-yueliang:before {
+  content: "\e679";
+}
+
+.icon-prev-page:before {
+  content: "\e8ef";
+}
+
+.icon-next-page:before {
+  content: "\e8f0";
+}
+
+.icon-search:before {
+  content: "\e618";
+}
+
+.icon-sub_menu:before {
+  content: "\e75e";
+}
+
+.icon-google:before {
+  content: "\ea0c";
 }
 
 .icon-linggan:before {
@@ -419,6 +565,3 @@
   content: "\e66f";
 }
 
-.icon-house:before {
-  content: "\e619";
-}

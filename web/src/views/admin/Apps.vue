@@ -4,7 +4,7 @@
       <el-button type="primary" :icon="Plus" @click="addRole">新增</el-button>
     </div>
     <el-row>
-      <el-table :data="tableData" :border="parentBorder" style="width: 100%">
+      <el-table :data="tableData" border>
         <el-table-column type="expand">
           <template #default="props">
             <div>
@@ -28,34 +28,19 @@
         <el-table-column label="绑定模型" prop="model_name" />
         <el-table-column label="启用状态">
           <template #default="scope">
-            <el-switch
-              v-model="scope.row['enable']"
-              @change="roleSet('enable', scope.row)"
-            />
+            <el-switch v-model="scope.row['enable']" @change="roleSet('enable', scope.row)" />
           </template>
         </el-table-column>
         <el-table-column label="应用图标" prop="icon">
           <template #default="scope">
-            <el-image
-              :src="scope.row.icon"
-              style="width: 45px; height: 45px; border-radius: 50%"
-            />
+            <el-image :src="scope.row.icon" style="width: 45px; height: 45px; border-radius: 50%" />
           </template>
         </el-table-column>
         <el-table-column label="打招呼信息" prop="hello_msg" />
         <el-table-column label="操作" width="150">
           <template #default="scope">
-            <el-button
-              size="small"
-              type="primary"
-              @click="rowEdit(scope.$index, scope.row)"
-              >编辑</el-button
-            >
-            <el-popconfirm
-              title="确定要删除当前应用吗?"
-              @confirm="removeRole(scope.row)"
-              :width="200"
-            >
+            <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-popconfirm title="确定要删除当前应用吗?" @confirm="removeRole(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
@@ -65,35 +50,14 @@
       </el-table>
     </el-row>
 
-    <el-dialog
-      v-model="showDialog"
-      :title="optTitle"
-      :close-on-click-modal="false"
-      width="50%"
-    >
-      <el-form
-        :model="role"
-        label-width="120px"
-        ref="formRef"
-        label-position="left"
-        :rules="rules"
-      >
+    <el-dialog v-model="showDialog" :title="optTitle" :close-on-click-modal="false" width="50%">
+      <el-form :model="role" label-width="120px" ref="formRef" label-position="left" :rules="rules">
         <el-form-item label="应用名称：" prop="name">
           <el-input v-model="role.name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="应用分类：" prop="tid">
-          <el-select
-            v-model="role.tid"
-            filterable
-            placeholder="请选择分类"
-            clearable
-          >
-            <el-option
-              v-for="item in appTypes"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
+          <el-select v-model="role.tid" filterable placeholder="请选择分类" clearable>
+            <el-option v-for="item in appTypes" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
 
@@ -104,30 +68,14 @@
         <el-form-item label="应用图标：" prop="icon">
           <el-input v-model="role.icon">
             <template #append>
-              <el-upload
-                :auto-upload="true"
-                :show-file-list="false"
-                :http-request="uploadImg"
-              >
-                上传
-              </el-upload>
+              <el-upload :auto-upload="true" :show-file-list="false" :http-request="uploadImg"> 上传 </el-upload>
             </template>
           </el-input>
         </el-form-item>
 
         <el-form-item label="绑定模型：" prop="model_id">
-          <el-select
-            v-model="role.model_id"
-            filterable
-            placeholder="请选择模型"
-            clearable
-          >
-            <el-option
-              v-for="item in models"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
+          <el-select v-model="role.model_id" filterable placeholder="请选择模型" clearable>
+            <el-option v-for="item in models" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
 
@@ -141,12 +89,7 @@
               <el-table-column label="对话应用" width="120">
                 <template #default="scope">
                   <el-select v-model="scope.row.role" placeholder="Role">
-                    <el-option
-                      v-for="value in messageRoles"
-                      :key="value"
-                      :label="value"
-                      :value="value"
-                    />
+                    <el-option v-for="value in messageRoles" :key="value" :label="value" :value="value" />
                   </el-select>
                 </template>
               </el-table-column>
@@ -155,11 +98,7 @@
                   <div class="context-msg-key">
                     <span>对话内容</span>
                     <span class="fr">
-                      <el-button
-                        type="primary"
-                        @click="addContext"
-                        size="small"
-                      >
+                      <el-button type="primary" @click="addContext" size="small">
                         <el-icon>
                           <Plus />
                         </el-icon>
@@ -171,38 +110,17 @@
 
                 <template #default="scope">
                   <div class="context-msg-content">
-                    <el-input
-                      type="textarea"
-                      :rows="3"
-                      v-model="scope.row.content"
-                      autocomplete="off"
-                      v-loading="isGenerating"
-                    />
+                    <el-input type="textarea" :rows="3" v-model="scope.row.content" autocomplete="off" v-loading="isGenerating" />
                     <span class="remove-item">
-                      <el-tooltip
-                        effect="dark"
-                        content="删除当前行"
-                        placement="right"
-                      >
+                      <el-tooltip effect="dark" content="删除当前行" placement="right">
                         <el-button circle type="danger" size="small">
-                          <el-icon @click="removeContext(scope.$index)"
-                            ><Delete
-                          /></el-icon>
+                          <el-icon @click="removeContext(scope.$index)"><Delete /></el-icon>
                         </el-button>
                       </el-tooltip>
 
-                      <el-popover
-                        placement="right"
-                        :width="400"
-                        trigger="click"
-                      >
+                      <el-popover placement="right" :width="400" trigger="click">
                         <template #reference>
-                          <el-button
-                            type="primary"
-                            circle
-                            size="small"
-                            class="icon-btn"
-                          >
+                          <el-button type="primary" circle size="small" class="icon-btn">
                             <i class="iconfont icon-linggan"></i>
                           </el-button>
                         </template>
@@ -214,16 +132,8 @@
                           placeholder="请您输入要 AI实现的目标，任务或者需要AI扮演的角色？"
                         />
                         <el-row class="text-line">
-                          <el-text type="info" size="small"
-                            >使用 AI 生成 System 预设指令</el-text
-                          >
-                          <el-button
-                            class="generate-btn"
-                            size="small"
-                            @click="generatePrompt(scope.row)"
-                            color="#5865f2"
-                            :disabled="isGenerating"
-                          >
+                          <el-text type="info" size="small">使用 AI 生成 System 预设指令</el-text>
+                          <el-button class="generate-btn" size="small" @click="generatePrompt(scope.row)" color="#5865f2" :disabled="isGenerating">
                             <i class="iconfont icon-chuangzuo"></i>
                             <span>立即生成</span>
                           </el-button>
@@ -278,11 +188,9 @@ const rules = reactive({
   icon: [{ required: true, message: "请输入应用图标", trigger: "blur" }],
   sort: [
     { required: true, message: "请输入排序数字", trigger: "blur" },
-    { type: "number", message: "请输入有效数字" }
+    { type: "number", message: "请输入有效数字" },
   ],
-  hello_msg: [
-    { required: true, message: "请输入打招呼信息", trigger: "change" }
-  ]
+  hello_msg: [{ required: true, message: "请输入打招呼信息", trigger: "change" }],
 });
 
 const appTypes = ref([]);
@@ -339,9 +247,7 @@ const fetchData = () => {
         return;
       }
 
-      const sortedData = Array.from(from.children).map((row) =>
-        row.querySelector(".sort").getAttribute("data-id")
-      );
+      const sortedData = Array.from(from.children).map((row) => row.querySelector(".sort").getAttribute("data-id"));
       const ids = [];
       const sorts = [];
       sortedData.forEach((id, index) => {
@@ -350,12 +256,10 @@ const fetchData = () => {
         tableData.value[index].sort_num = index + 1;
       });
 
-      httpPost("/api/admin/role/sort", { ids: ids, sorts: sorts }).catch(
-        (e) => {
-          ElMessage.error("排序失败：" + e.message);
-        }
-      );
-    }
+      httpPost("/api/admin/role/sort", { ids: ids, sorts: sorts }).catch((e) => {
+        ElMessage.error("排序失败：" + e.message);
+      });
+    },
   });
 };
 
@@ -363,7 +267,7 @@ const roleSet = (filed, row) => {
   httpPost("/api/admin/role/set", {
     id: row.id,
     filed: filed,
-    value: row[filed]
+    value: row[filed],
   })
     .then(() => {
       ElMessage.success("操作成功！");
@@ -448,7 +352,7 @@ const uploadImg = (file) => {
     },
     error(e) {
       ElMessage.error("上传失败:" + e.message);
-    }
+    },
   });
 };
 

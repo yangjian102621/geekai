@@ -3,7 +3,7 @@
   --text-secondary: #8a939d;
   --el-color-primary: rgb(107, 80, 225);
   --theme-textcolor-normal:#b0a0f8;
-  --el-border-radius-base: 8px;
+  --el-border-radius-base: 5px;
   --el-color-primary-light-5:rgb(107, 85, 255);
   --el-color-primary-light-3:rgb(78, 51, 254);
   --theme-btn-color:rgba(117, 81, 255, 1)
@@ -35,7 +35,8 @@
 // #e7e7e8
 }
 .el-dialog{
-    --el-border-radius-base: 20px;
+  //--el-border-radius-base: calc(var(--el-component-size) / 2);
+  --el-dialog-border-radius: 10px
 }
 .login-box{
   --el-component-size: 48px;
@@ -90,7 +91,11 @@
   line-height: 28px;
 }
 .el-button--primary{
-  border-radius: 8px;
+  border-radius: 5px;
+}
+
+.el-button {
+  height auto
 }
 /* 设置滚动条的宽度 */
 ::-webkit-scrollbar {
@@ -117,10 +122,10 @@
 }
 //.el-message-box
 .el-message-box{
-  --el-messagebox-border-radius:18px
+  --el-messagebox-border-radius: 10px
 }
 .el-message-box__container{
-  border-top: 1px solid #dbd3f4;
+  //border-top: 1px solid #dbd3f4;
   padding-top: 7px;
   .el-message-box__message{
     --text-color:var(--theme-text-color-primary)

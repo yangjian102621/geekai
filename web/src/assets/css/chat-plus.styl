@@ -16,29 +16,18 @@
       height: 100%;
       }
     .el-aside {
-      //background-color: $sideBgColor;
       padding 10px
       width var(--el-aside-width, 320px)
 
       .media-page {
         display: flex
         flex-flow: column
-        //background-color: $sideBgColor
         border-radius 10px
         padding 10px 0
 
         .search-box {
           flex-wrap: wrap
           margin-bottom: 10px
-          // padding: 10px 0;
-
-          // .search-input {
-          //   --el-input-bg-color: #363535
-          //   --el-input-border-color: #464545
-          //   --el-input-focus-border-color:#b0a0f8
-          //   --el-input-hover-border-color: #2DA39A
-          //   box-shadow: none
-          // }
         }
 
         // 隐藏滚动条
@@ -58,16 +47,14 @@
             width: 100%
             justify-content: flex-start
             padding: 8px 12px
-            //border-bottom: 1px solid #3c3c3c
+            //border: 1px solid #3c3c3c
             cursor: pointer
-            // border: 1px solid #3c3c3c
+            border: 1px solid var(--theme-bg-color)
             margin-bottom 6px
             border-radius 5px
 
             &:hover {
-              // background-color :rgba(239, 241, 246, 0.64);
-            border: 1px solid var(--border-active);
-
+              border: 1px solid var(--border-active);
             }
 
             .avatar {
@@ -115,10 +102,9 @@
           }
 
           .chat-list-item.active {
-              background-color :var(--theme-bg);
-              box-shadow: 0px 3px 9px rgba(112,144,176,0.12);
-            
-            border: 1px solid var(--shadow-color);
+            background-color :var(--theme-bg);
+            box-shadow: 0 3px 9px rgba(112, 144, 176, 0.12);
+            border: 1px solid var(--border-active);
           }
         }
       }
@@ -148,7 +134,7 @@
         color var(--el-text-color-primary)
   
         .chat-config {
-          height 30px
+          height 50px
           padding 10px 30px
           display flex
           justify-content center

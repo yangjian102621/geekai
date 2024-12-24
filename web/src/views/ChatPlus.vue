@@ -11,13 +11,7 @@
           </el-button>
 
           <div class="search-box">
-            <el-input
-              v-model="chatName"
-              placeholder="搜索会话"
-              @keyup="searchChat($event)"
-              style=""
-              class="search-input"
-            >
+            <el-input v-model="chatName" placeholder="搜索会话" @keyup="searchChat($event)" style="" class="search-input">
               <template #prefix>
                 <el-icon class="el-input__icon">
                   <Search />
@@ -25,96 +19,62 @@
               </template>
             </el-input>
           </div>
-
-          <div class="content" :style="{ height: leftBoxHeight + 'px' }">
-            <el-row v-for="chat in chatList" :key="chat.chat_id">
-              <div
-                :class="
-                  chat.chat_id === chatId
-                    ? 'chat-list-item active'
-                    : 'chat-list-item'
-                "
-                @click="loadChat(chat)"
-              >
-                <el-image :src="chat.icon" class="avatar" />
-                <span class="chat-title-input" v-if="chat.edit">
-                  <el-input
-                    v-model="tmpChatTitle"
-                    size="small"
-                    @keydown="titleKeydown($event, chat)"
-                    :id="'chat-' + chat.chat_id"
-                    @blur="editConfirm(chat)"
-                    @click="stopPropagation($event)"
-                    placeholder="请输入标题"
-                  />
-                </span>
-                <span v-else class="chat-title">{{ chat.title }}</span>
-
-                <span class="chat-opt">
-                  <el-dropdown trigger="click">
-                    <span
-                      class="el-dropdown-link"
+          <el-scrollbar :height="{ height: +'px' }">
+            <div class="content">
+              <el-row v-for="chat in chatList" :key="chat.chat_id">
+                <div :class="chat.chat_id === chatId ? 'chat-list-item active' : 'chat-list-item'" @click="loadChat(chat)">
+                  <el-image :src="chat.icon" class="avatar" />
+                  <span class="chat-title-input" v-if="chat.edit">
+                    <el-input
+                      v-model="tmpChatTitle"
+                      size="small"
+                      @keydown="titleKeydown($event, chat)"
+                      :id="'chat-' + chat.chat_id"
+                      @blur="editConfirm(chat)"
                       @click="stopPropagation($event)"
-                    >
-                      <el-icon><More /></el-icon>
-                    </span>
-                    <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item
-                          :icon="Edit"
-                          @click="editChatTitle(chat)"
-                          >重命名</el-dropdown-item
-                        >
-                        <el-dropdown-item
-                          :icon="Delete"
-                          style="
-                            --el-text-color-regular: var(--el-color-danger);
-                            --el-dropdown-menuItem-hover-fill: #f8e1de;
-                            --el-dropdown-menuItem-hover-color: var(
-                              --el-color-danger
-                            );
-                          "
-                          @click="removeChat(chat)"
-                          >删除</el-dropdown-item
-                        >
-                        <el-dropdown-item :icon="Share" @click="shareChat(chat)"
-                          >分享</el-dropdown-item
-                        >
-                      </el-dropdown-menu>
-                    </template>
-                  </el-dropdown>
-                </span>
-              </div>
-            </el-row>
-          </div>
+                      placeholder="请输入标题"
+                    />
+                  </span>
+                  <span v-else class="chat-title">{{ chat.title }}</span>
+
+                  <span class="chat-opt">
+                    <el-dropdown trigger="click">
+                      <span class="el-dropdown-link" @click="stopPropagation($event)">
+                        <el-icon><More /></el-icon>
+                      </span>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item :icon="Edit" @click="editChatTitle(chat)">重命名</el-dropdown-item>
+                          <el-dropdown-item
+                            :icon="Delete"
+                            style="
+                              --el-text-color-regular: var(--el-color-danger);
+                              --el-dropdown-menuItem-hover-fill: #f8e1de;
+                              --el-dropdown-menuItem-hover-color: var(--el-color-danger);
+                            "
+                            @click="removeChat(chat)"
+                            >删除</el-dropdown-item
+                          >
+                          <el-dropdown-item :icon="Share" @click="shareChat(chat)">分享</el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
+                  </span>
+                </div>
+              </el-row>
+            </div>
+          </el-scrollbar>
         </div>
 
         <div class="tool-box">
-          <el-button type="primary" size="small" @click="clearAllChats">
-            <i class="iconfont icon-clear"></i> 清除所有对话
-          </el-button>
+          <el-button type="primary" size="small" @click="clearAllChats"> <i class="iconfont icon-clear"></i> 清除所有对话 </el-button>
         </div>
       </el-aside>
-      <el-main
-        v-loading="loading"
-        element-loading-background="rgba(122, 122, 122, 0.3)"
-      >
+      <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-container">
           <div class="chat-config">
-            <el-select
-              v-model="roleId"
-              filterable
-              placeholder="角色"
-              @change="_newChat"
-              class="role-select"
-              style="width: 150px"
-            >
-              <el-option
-                v-for="item in roles"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              >
+            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat" class="role-select" style="width: 150px">
+              <el-option v-for="item in roles" :key="item.id" :label="item.name" :value="item.id">
                 <div class="role-option">
                   <el-image :src="item.icon"></el-image>
                   <span>{{ item.name }}</span>
@@ -122,43 +82,21 @@
               </el-option>
             </el-select>
 
-            <el-select
-              v-model="modelID"
-              filterable
-              placeholder="模型"
-              @change="_newChat"
-              :disabled="disableModel"
-              style="width: 150px"
-            >
-              <el-option
-                v-for="item in models"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              >
+            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat" :disabled="disableModel" style="width: 150px">
+              <el-option v-for="item in models" :key="item.id" :label="item.name" :value="item.id">
                 <span>{{ item.name }}</span>
-                <el-tag
-                  style="margin-left: 5px; position: relative; top: -2px"
-                  type="info"
-                  size="small"
-                  >{{ item.power }}算力
-                </el-tag>
+                <el-tag style="margin-left: 5px; position: relative; top: -2px" type="info" size="small">{{ item.power }}算力 </el-tag>
               </el-option>
             </el-select>
             <div class="flex-center">
               <el-dropdown :hide-on-click="false" trigger="click">
-                <span class="setting"
-                  ><i class="iconfont icon-plugin"></i
-                ></span>
+                <span class="setting"><i class="iconfont icon-plugin"></i></span>
                 <template #dropdown>
                   <el-dropdown-menu class="tools-dropdown">
                     <el-checkbox-group v-model="toolSelected">
                       <el-dropdown-item v-for="item in tools" :key="item.id">
                         <el-checkbox :value="item.id" :label="item.label" />
-                        <el-tooltip
-                          :content="item.description"
-                          placement="right"
-                        >
+                        <el-tooltip :content="item.description" placement="right">
                           <el-icon><InfoFilled /></el-icon>
                         </el-tooltip>
                       </el-dropdown-item>
@@ -175,27 +113,13 @@
 
           <div>
             <div id="container" :style="{ height: mainWinHeight + 'px' }">
-              <div
-                class="chat-box"
-                id="chat-box"
-                :style="{ height: chatBoxHeight + 'px' }"
-              >
+              <div class="chat-box" id="chat-box" :style="{ height: chatBoxHeight + 'px' }">
                 <div v-if="showHello">
                   <welcome @send="autofillPrompt" />
                 </div>
                 <div v-for="item in chatData" :key="item.id" v-else>
-                  <chat-prompt
-                    v-if="item.type === 'prompt'"
-                    :data="item"
-                    :list-style="listStyle"
-                  />
-                  <chat-reply
-                    v-else-if="item.type === 'reply'"
-                    :data="item"
-                    @regen="reGenerate"
-                    :read-only="false"
-                    :list-style="listStyle"
-                  />
+                  <chat-prompt v-if="item.type === 'prompt'" :data="item" :list-style="listStyle" />
+                  <chat-reply v-else-if="item.type === 'reply'" :data="item" @regen="reGenerate" :read-only="false" :list-style="listStyle" />
                 </div>
 
                 <back-top :right="30" :bottom="155" />
@@ -259,56 +183,27 @@
                         </div> -->
                         <div class="flex little-btns">
                           <span class="tool-item-btn" @click="realtimeChat">
-                            <el-tooltip
-                              class="box-item"
-                              effect="dark"
-                              :content="
-                                '实时语音对话，每次消耗' +
-                                config.advance_voice_power +
-                                '算力'
-                              "
-                            >
+                            <el-tooltip class="box-item" effect="dark" :content="'实时语音对话，每次消耗' + config.advance_voice_power + '算力'">
                               <i class="iconfont icon-mic-bold"></i>
                             </el-tooltip>
                           </span>
 
                           <span class="tool-item-btn" v-if="isLogin">
-                            <el-tooltip
-                              class="box-item"
-                              effect="dark"
-                              content="上传附件"
-                            >
-                              <file-select
-                                v-if="isLogin"
-                                :user-id="loginUser.id"
-                                @selected="insertFile"
-                              />
+                            <el-tooltip class="box-item" effect="dark" content="上传附件">
+                              <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertFile" />
                             </el-tooltip>
                           </span>
                         </div>
                         <div class="flex little-btns">
                           <span class="send-btn tool-item-btn">
                             <!-- showStopGenerate -->
-                            <el-button
-                              type="info"
-                              v-if="showStopGenerate"
-                              @click="stopGenerate"
-                              plain
-                            >
+                            <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
                               <el-icon>
                                 <VideoPause />
                               </el-icon>
                             </el-button>
-                            <el-button
-                              @click="sendMessage"
-                              style="color: #754ff6"
-                              v-else
-                            >
-                              <el-tooltip
-                                class="box-item"
-                                effect="dark"
-                                content="发送"
-                              >
+                            <el-button @click="sendMessage" style="color: #754ff6" v-else>
+                              <el-tooltip class="box-item" effect="dark" content="发送">
                                 <el-icon><Promotion /></el-icon>
                               </el-tooltip>
                             </el-button>
@@ -328,21 +223,14 @@
       </el-main>
     </el-container>
 
-    <el-dialog
-      v-model="showNotice"
-      :show-close="true"
-      class="notice-dialog"
-      title="网站公告"
-    >
+    <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
       <div class="notice">
         <div v-html="notice"></div>
       </div>
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="notShow" type="primary"
-            >我知道了，不再显示</el-button
-          >
+          <el-button @click="notShow" type="primary">我知道了，不再显示</el-button>
         </span>
       </template>
     </el-dialog>
@@ -361,11 +249,7 @@
       />
     </el-dialog> -->
 
-    <el-dialog
-      v-model="showConversationDialog"
-      title="实时语音通话"
-      :fullscreen="true"
-    >
+    <el-dialog v-model="showConversationDialog" title="实时语音通话" :fullscreen="true">
       <div v-loading="!frameLoaded">
         <iframe
           style="width: 100%; height: calc(100vh - 100px); border: none"
@@ -381,17 +265,7 @@
 import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {
-  Delete,
-  Edit,
-  InfoFilled,
-  More,
-  Plus,
-  Promotion,
-  Search,
-  Share,
-  VideoPause
-} from "@element-plus/icons-vue";
+import { Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
 import "highlight.js/styles/a11y-dark.css";
 import { isMobile, randString, removeArrayItem, UUID } from "@/utils/libs";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -492,7 +366,7 @@ const md = require("markdown-it")({
   breaks: true,
   html: true,
   linkify: true,
-  typographer: true
+  typographer: true,
 });
 // 获取系统公告
 httpGet("/api/config/get?key=notice")
@@ -561,7 +435,7 @@ onMounted(() => {
         id: randString(32),
         icon: chatRole["icon"],
         prompt: prePrompt,
-        content: data.body
+        content: data.body,
       });
       isNewMsg.value = false;
       lineBuffer.value = data.body;
@@ -583,16 +457,14 @@ onMounted(() => {
       httpPost("/api/chat/tokens", {
         text: "",
         model: getModelValue(modelID.value),
-        chat_id: chatId.value
+        chat_id: chatId.value,
       })
         .then((res) => {
           reply["created_at"] = new Date().getTime();
           reply["tokens"] = res.data;
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
-            document
-              .getElementById("chat-box")
-              .scrollTo(0, document.getElementById("chat-box").scrollHeight);
+            document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
           });
         })
         .catch(() => {});
@@ -606,9 +478,7 @@ onMounted(() => {
     }
     // 将聊天框的滚动条滑动到最底部
     nextTick(() => {
-      document
-        .getElementById("chat-box")
-        .scrollTo(0, document.getElementById("chat-box").scrollHeight);
+      document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
       localStorage.setItem("chat_id", chatId.value);
     });
   });
@@ -736,10 +606,7 @@ const newChat = () => {
     disableModel.value = true;
   }
   // 已有新开的会话
-  if (
-    newChatItem.value !== null &&
-    newChatItem.value["role_id"] === roles.value[0]["role_id"]
-  ) {
+  if (newChatItem.value !== null && newChatItem.value["role_id"] === roles.value[0]["role_id"]) {
     return;
   }
 
@@ -757,7 +624,7 @@ const newChat = () => {
     model_id: modelID.value,
     title: "",
     edit: false,
-    removing: false
+    removing: false,
   };
   showStopGenerate.value = false;
   loadChatHistory(chatId.value);
@@ -818,7 +685,7 @@ const editConfirm = function (chat) {
 
   httpPost("/api/chat/update", {
     chat_id: chat.chat_id,
-    title: tmpChatTitle.value
+    title: tmpChatTitle.value,
   })
     .then(() => {
       chat.title = tmpChatTitle.value;
@@ -833,18 +700,14 @@ const removeChat = function (chat) {
   ElMessageBox.confirm(`该操作会删除"${chat.title}"`, "删除聊天", {
     confirmButtonText: "删除",
     cancelButtonText: "取消",
-    type: "warning"
+    type: "warning",
   })
     .then(() => {
       httpGet("/api/chat/remove?chat_id=" + chat.chat_id)
         .then(() => {
-          chatList.value = removeArrayItem(
-            chatList.value,
-            chat,
-            function (e1, e2) {
-              return e1.id === e2.id;
-            }
-          );
+          chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
+            return e1.id === e2.id;
+          });
           // 重置会话
           _newChat();
         })
@@ -867,9 +730,7 @@ const enableInput = () => {
 
 const onInput = (e) => {
   // 根据输入的内容自动计算输入框的行数
-  const lineHeight = parseFloat(
-    window.getComputedStyle(inputRef.value).lineHeight
-  );
+  const lineHeight = parseFloat(window.getComputedStyle(inputRef.value).lineHeight);
   textHeightRef.value.style.width = inputRef.value.clientWidth + "px"; // 设定宽度和 textarea 相同
   const lines = Math.floor(textHeightRef.value.clientHeight / lineHeight);
   inputRef.value.scrollTo(0, inputRef.value.scrollHeight);
@@ -936,13 +797,11 @@ const sendMessage = function () {
     icon: loginUser.value.avatar,
     content: content,
     model: getModelValue(modelID.value),
-    created_at: new Date().getTime() / 1000
+    created_at: new Date().getTime() / 1000,
   });
 
   nextTick(() => {
-    document
-      .getElementById("chat-box")
-      .scrollTo(0, document.getElementById("chat-box").scrollHeight);
+    document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
   });
 
   showHello.value = false;
@@ -957,8 +816,8 @@ const sendMessage = function () {
         chat_id: chatId.value,
         content: content,
         tools: toolSelected.value,
-        stream: stream.value
-      }
+        stream: stream.value,
+      },
     })
   );
   tmpChatTitle.value = content;
@@ -976,7 +835,7 @@ const clearAllChats = function () {
     dangerouslyUseHTMLString: true,
     showClose: true,
     closeOnClickModal: false,
-    center: false
+    center: false,
   })
     .then(() => {
       httpGet("/api/chat/clear")
@@ -1009,7 +868,7 @@ const loadChatHistory = function (chatId) {
           type: "reply",
           id: randString(32),
           icon: _role["icon"],
-          content: _role["hello_msg"]
+          content: _role["hello_msg"],
         });
         return;
       }
@@ -1022,9 +881,7 @@ const loadChatHistory = function (chatId) {
       }
 
       nextTick(() => {
-        document
-          .getElementById("chat-box")
-          .scrollTo(0, document.getElementById("chat-box").scrollHeight);
+        document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
       });
     })
     .catch((e) => {
@@ -1049,7 +906,7 @@ const reGenerate = function (prompt) {
     type: "prompt",
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: text
+    content: text,
   });
   store.socket.conn.send(
     JSON.stringify({
@@ -1061,8 +918,8 @@ const reGenerate = function (prompt) {
         chat_id: chatId.value,
         content: text,
         tools: toolSelected.value,
-        stream: stream.value
-      }
+        stream: stream.value,
+      },
     })
   );
 };
@@ -1077,11 +934,7 @@ const searchChat = function (e) {
   if (e.keyCode === 13) {
     const items = [];
     for (let i = 0; i < allChats.value.length; i++) {
-      if (
-        allChats.value[i].title
-          .toLowerCase()
-          .indexOf(chatName.value.toLowerCase()) !== -1
-      ) {
+      if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
         items.push(allChats.value[i]);
       }
     }
@@ -1095,12 +948,7 @@ const shareChat = (chat) => {
     return ElMessage.error("请先选中一个会话");
   }
 
-  const url =
-    location.protocol +
-    "//" +
-    location.host +
-    "/chat/export?chat_id=" +
-    chat.chat_id;
+  const url = location.protocol + "//" + location.host + "/chat/export?chat_id=" + chat.chat_id;
   window.open(url, "_blank");
 };
 
@@ -1124,11 +972,7 @@ const insertFile = (file) => {
   files.value.push(file);
 };
 const removeFile = (file) => {
-  files.value = removeArrayItem(
-    files.value,
-    file,
-    (v1, v2) => v1.url === v2.url
-  );
+  files.value = removeArrayItem(files.value, file, (v1, v2) => v1.url === v2.url);
 };
 
 // 实时语音对话

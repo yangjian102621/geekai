@@ -43,6 +43,20 @@
   display flex
   align-items center
   flex-direction column
+
+  .icon-expand {
+    font-size 24px
+    margin-bottom 10px
+    cursor pointer
+    color var(--text-color)
+  }
+
+  .icon-colspan {
+    font-size 18px
+    margin-left 3px
+    cursor pointer
+    color var(--text-color)
+  }
 }
 .menu-list-collapse{
   .flex-center-col{
@@ -63,14 +77,9 @@
       background: transparent !important;
     }
   }
-  .el-icon{
-    margin: 0 4px;
-    width 26px !important;
-    height: 26px !important;
-  }
   .menu-title{
     font-size: 15px !important;
-    margin-bottom: 0px !important;
+    margin-bottom: 0 !important;
   }
 }
 
@@ -117,11 +126,15 @@
       
     }
     &.active{
+      color: var(--text-color);
+      font-weight: 600;
+      filter: none !important;
       .el-icon{
         background: rgba(79, 89, 102, .122);
-      }
-    
+        filter: invert(100%);
+      } 
     }
+  
     
   }
   .bot{

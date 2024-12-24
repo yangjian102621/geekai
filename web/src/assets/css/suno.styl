@@ -146,7 +146,7 @@
           font-size 12px
           padding 2px 5px
           background-color var(--sm-btn-bg)
-    color: #fff
+          color: #fff
         }
       }
 
@@ -193,7 +193,7 @@
 
 
     .list-box {
-      padding 0 0 0 20px
+      padding 20px
       .item {
         display flex
         flex-flow row
@@ -301,11 +301,13 @@
         .right {
           min-width 350px;
           font-size 14px
-          padding 0 15px
+          padding 0 0 0 15px
+          display flex
+          justify-content right
 
           .tools {
             display flex
-            justify-content left
+            justify-content right
             align-items center
             flex-flow row
             height 90px
@@ -313,9 +315,9 @@
             .btn-publish {
               padding 2px 10px
 
-              .text {
-                margin-right 10px
-              }
+              // .text {
+              //   margin-right 10px
+              // }
             }
 
             .btn-icon {
@@ -395,11 +397,12 @@
 
   .btn {
     margin-right 10px
-    color: #000
+    color: var((--theme-text-color-primary))
     border none
     border-radius 5px
     padding 5px 10px
     cursor pointer
+    background: var(--btn-bg)
     
 
     &:hover {

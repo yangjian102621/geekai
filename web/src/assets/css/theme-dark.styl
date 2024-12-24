@@ -4,7 +4,7 @@
   --text-fb:#fff;
   --text-color: rgba(255, 255, 255, 1) !important; // 主要的文本颜色
   --normal-color: rgba(163, 174, 208, 1); // 普通颜色
-      --el-text-color-primary: #fff;
+  --el-text-color-primary: #fff;
   p, h1, h2, h3, h4, h5, h6, article {
     // color: var(--text-color) !important;
      font-family: $font-regular;
@@ -25,6 +25,7 @@
   --card-bg:#252d58;
    --card-bg-table: rgba(17, 28, 68, 1);
   --theme-bg:rgb(13, 20, 53);
+  --theme-bg-color: rgb(13, 20, 53);
   --theme-bg-all:rgb(13, 20, 53);
    --sign-bg: rgba(27, 37, 75, 1);
    --text-theme-color: #fff;
@@ -40,8 +41,8 @@
   --el-bg-color:#141a36;
   --el-fill-color-blank: rgba(17, 28, 68, 1);
   --el-fill-color-light: rgba(86, 86, 95, .2);
---el-color-primary-light-9:rgba(86, 86, 95, .2);
---chat-wel-bg:#2d2f388a;
+  --el-color-primary-light-9:rgba(86, 86, 95, .2);
+  --chat-wel-bg:#2d2f388a;
   --theme-text-color-secondary: #a3aed0;
   // --el-pagination-button-bg-color: rgba(86,86,95,0.2); 
 
@@ -67,4 +68,16 @@
   --chat-content-bg-list:rgba(86, 86, 95, .2);
   --hover-deep-color:#30323c;
   // --theme-text-tertiary: #e1e1e1;
+
+  // 操作按钮
+  --btn-bg: rgba(86, 86, 95, .5);
+
+  .el-table {
+    // 表格表头背景
+    --el-fill-color-darker: rgba(100, 100, 100, .5);
+    --el-border-color-darker: #73767a;
+    --el-table-border-color: rgba(100, 100, 100, .5);
+    --el-table-row-hover-bg-color: rgba(16, 21, 43, .8);
+    --el-table-current-row-bg-color: rgba(16, 21, 43, .8);
+  }
 }

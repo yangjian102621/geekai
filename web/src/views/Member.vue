@@ -1,49 +1,32 @@
 <template>
   <div>
-    <div
-      class="member custom-scroll"
-      v-loading="loading"
-      element-loading-background="rgba(255,255,255,.3)"
-      :element-loading-text="loadingText"
-    >
+    <div class="member custom-scroll" v-loading="loading" element-loading-background="rgba(255,255,255,.3)" :element-loading-text="loadingText">
       <div class="inner">
         <div class="user-profile">
           <user-profile :key="profileKey" />
 
           <el-row class="user-opt" :gutter="20">
             <el-col :span="12">
-              <el-button type="primary" @click="showBindEmailDialog = true"
-                >绑定邮箱</el-button
-              >
+              <el-button type="primary" @click="showBindEmailDialog = true">绑定邮箱</el-button>
             </el-col>
             <el-col :span="12">
-              <el-button type="primary" @click="showBindMobileDialog = true"
-                >绑定手机</el-button
-              >
+              <el-button type="primary" @click="showBindMobileDialog = true">绑定手机</el-button>
             </el-col>
             <el-col :span="12">
-              <el-button type="primary" @click="showThirdLoginDialog = true"
-                >第三方登录</el-button
-              >
+              <el-button type="primary" @click="showThirdLoginDialog = true">第三方登录</el-button>
             </el-col>
             <el-col :span="12">
-              <el-button type="primary" @click="showPasswordDialog = true"
-                >修改密码</el-button
-              >
+              <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
             </el-col>
             <el-col :span="24">
-              <el-button type="primary" @click="showRedeemVerifyDialog = true"
-                >卡密兑换
-              </el-button>
+              <el-button type="primary" @click="showRedeemVerifyDialog = true">卡密兑换 </el-button>
             </el-col>
           </el-row>
         </div>
 
         <div class="product-box">
           <div class="info" v-if="orderPayInfoText !== ''">
-            <el-alert type="success" show-icon :closable="false" effect="dark">
-              <strong>说明:</strong> {{ vipInfoText }}
-            </el-alert>
+            <el-alert type="success" show-icon :closable="false" effect="dark"> <strong>说明:</strong> {{ vipInfoText }} </el-alert>
           </div>
 
           <el-row v-if="list.length > 0" :gutter="20" class="list-box">
@@ -68,9 +51,7 @@
                   </div>
                   <div class="info-line">
                     <span class="label">有效期：</span>
-                    <span class="expire" v-if="item.days > 0"
-                      >{{ item.days }}天</span
-                    >
+                    <span class="expire" v-if="item.days > 0">{{ item.days }}天</span>
                     <span class="expire" v-else>长期有效</span>
                   </div>
 
@@ -80,41 +61,20 @@
                   </div>
 
                   <div class="pay-way">
-                    <span
-                      type="primary"
-                      v-for="payWay in payWays"
-                      @click="pay(item, payWay)"
-                      :key="payWay"
-                    >
-                      <el-button
-                        v-if="payWay.pay_type === 'alipay'"
-                        color="#15A6E8"
-                        circle
-                      >
+                    <span type="primary" v-for="payWay in payWays" @click="pay(item, payWay)" :key="payWay">
+                      <el-button v-if="payWay.pay_type === 'alipay'" color="#15A6E8" circle>
                         <i class="iconfont icon-alipay"></i>
                       </el-button>
                       <el-button v-else-if="payWay.pay_type === 'qqpay'" circle>
                         <i class="iconfont icon-qq"></i>
                       </el-button>
-                      <el-button
-                        v-else-if="payWay.pay_type === 'paypal'"
-                        class="paypal"
-                        round
-                      >
+                      <el-button v-else-if="payWay.pay_type === 'paypal'" class="paypal" round>
                         <i class="iconfont icon-paypal"></i>
                       </el-button>
-                      <el-button
-                        v-else-if="payWay.pay_type === 'jdpay'"
-                        color="#E1251B"
-                        circle
-                      >
+                      <el-button v-else-if="payWay.pay_type === 'jdpay'" color="#E1251B" circle>
                         <i class="iconfont icon-jd-pay"></i>
                       </el-button>
-                      <el-button
-                        v-else-if="payWay.pay_type === 'douyin'"
-                        class="douyin"
-                        circle
-                      >
+                      <el-button v-else-if="payWay.pay_type === 'douyin'" class="douyin" circle>
                         <i class="iconfont icon-douyin"></i>
                       </el-button>
                       <el-button v-else circle class="wechat" color="#67C23A">
@@ -136,41 +96,14 @@
         </div>
       </div>
 
-      <password-dialog
-        v-if="isLogin"
-        :show="showPasswordDialog"
-        @hide="showPasswordDialog = false"
-      />
-      <bind-mobile
-        v-if="isLogin"
-        :show="showBindMobileDialog"
-        @hide="showBindMobileDialog = false"
-      />
-      <bind-email
-        v-if="isLogin"
-        :show="showBindEmailDialog"
-        @hide="showBindEmailDialog = false"
-      />
-      <third-login
-        v-if="isLogin"
-        :show="showThirdLoginDialog"
-        @hide="showThirdLoginDialog = false"
-      />
-      <redeem-verify
-        v-if="isLogin"
-        :show="showRedeemVerifyDialog"
-        @hide="redeemCallback"
-      />
+      <password-dialog v-if="isLogin" :show="showPasswordDialog" @hide="showPasswordDialog = false" />
+      <bind-mobile v-if="isLogin" :show="showBindMobileDialog" @hide="showBindMobileDialog = false" />
+      <bind-email v-if="isLogin" :show="showBindEmailDialog" @hide="showBindEmailDialog = false" />
+      <third-login v-if="isLogin" :show="showThirdLoginDialog" @hide="showThirdLoginDialog = false" />
+      <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback" />
     </div>
 
-    <el-dialog
-      v-model="showDialog"
-      :show-close="false"
-      :close-on-click-modal="false"
-      hide-footer
-      width="auto"
-      class="pay-dialog"
-    >
+    <el-dialog v-model="showDialog" :show-close="false" :close-on-click-modal="false" hide-footer width="auto" class="pay-dialog">
       <div v-if="qrImg !== ''">
         <div class="product-info">
           请使用微信扫码支付：<span class="price">￥{{ price }}</span>
@@ -178,12 +111,8 @@
         <el-image :src="qrImg" fit="cover" />
       </div>
       <div style="padding-bottom: 10px; text-align: center">
-        <el-button type="success" @click="payCallback(true)"
-          >支付成功</el-button
-        >
-        <el-button type="danger" @click="payCallback(false)"
-          >支付失败</el-button
-        >
+        <el-button type="success" @click="payCallback(true)">支付成功</el-button>
+        <el-button type="danger" @click="payCallback(false)">支付失败</el-button>
       </div>
     </el-dialog>
   </div>
@@ -289,24 +218,20 @@ const pay = (product, payWay) => {
     pay_type: payWay.pay_type,
     user_id: user.value.id,
     host: host,
-    device: "jump"
+    device: "jump",
   })
     .then((res) => {
       showDialog.value = true;
       loading.value = false;
       if (payWay.pay_way === "wechat") {
         price.value = Number(product.discount);
-        QRCode.toDataURL(
-          res.data,
-          { width: 300, height: 300, margin: 2 },
-          (error, url) => {
-            if (error) {
-              console.error(error);
-            } else {
-              qrImg.value = url;
-            }
+        QRCode.toDataURL(res.data, { width: 300, height: 300, margin: 2 }, (error, url) => {
+          if (error) {
+            console.error(error);
+          } else {
+            qrImg.value = url;
           }
-        );
+        });
       } else {
         window.open(res.data, "_blank");
       }

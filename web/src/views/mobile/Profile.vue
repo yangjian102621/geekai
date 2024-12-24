@@ -125,7 +125,7 @@
           <van-cell-group inset>
             <van-field name="switch" label="暗黑主题">
               <template #input>
-                <van-switch v-model="dark" @change="(val) => store.setMobileTheme(val?'dark':'light')"/>
+                <van-switch v-model="dark" @change="(val) => store.setTheme(val?'dark':'light')"/>
               </template>
             </van-field>
 
@@ -189,7 +189,7 @@ const isLogin = ref(false)
 const showSettings = ref(false)
 const store = useSharedStore()
 const stream = ref(store.chatStream)
-const dark = ref(store.mobileTheme === 'dark')
+const dark = ref(store.theme === 'dark')
 
 onMounted(() => {
   checkSession().then(user => {

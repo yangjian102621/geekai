@@ -70,8 +70,8 @@ httpGet('/api/admin/config/get?key=system').then(res => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
 const store = useSharedStore()
-const theme = ref(store.adminTheme)
-watch(() => store.adminTheme, (val) => {
+const theme = ref(store.theme)
+watch(() => store.theme, (val) => {
   theme.value = val
 })
 const items = [

@@ -22,9 +22,9 @@ import {useSharedStore} from "@/store/sharedata";
 
 const active = ref('home')
 const store = useSharedStore()
-const theme = ref(store.mobileTheme)
+const theme = ref(store.theme)
 
-watch(() => store.mobileTheme, (val) => {
+watch(() => store.theme, (val) => {
   theme.value = val
 })
 

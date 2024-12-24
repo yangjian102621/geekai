@@ -4,12 +4,7 @@
     <div class="inner">
       <div class="list-box">
         <div class="handle-box">
-          <el-input
-            v-model="query.model"
-            placeholder="模型"
-            class="handle-input mr10"
-            clearable
-          ></el-input>
+          <el-input v-model="query.model" placeholder="模型" class="handle-input mr10" clearable></el-input>
           <el-date-picker
             v-model="query.date"
             type="daterange"
@@ -19,36 +14,23 @@
             value-format="YYYY-MM-DD"
             style="margin: 0 10px; width: 200px"
           />
-          <el-button type="primary" :icon="Search" @click="fetchData"
-            >搜索</el-button
-          >
+          <el-button type="primary" :icon="Search" @click="fetchData">搜索</el-button>
         </div>
 
         <el-row v-if="items.length > 0">
-          <el-table
-            :data="items"
-            :row-key="(row) => row.id"
-            table-layout="auto"
-            border
-          >
+          <el-table :data="items" :row-key="(row) => row.id" table-layout="auto" border>
             <el-table-column prop="username" label="用户" width="130px" />
             <el-table-column prop="model" label="模型" width="130px" />
             <el-table-column prop="type" label="类型">
               <template #default="scope">
-                <el-tag size="small" :type="tagColors[scope.row.type]">{{
-                  scope.row.type_str
-                }}</el-tag>
+                <el-tag size="small" :type="tagColors[scope.row.type]">{{ scope.row.type_str }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column label="数额">
               <template #default="scope">
                 <div>
-                  <el-text type="success" v-if="scope.row.mark === 1"
-                    >+{{ scope.row.amount }}</el-text
-                  >
-                  <el-text type="danger" v-if="scope.row.mark === 0"
-                    >-{{ scope.row.amount }}</el-text
-                  >
+                  <el-text type="success" v-if="scope.row.mark === 1">+{{ scope.row.amount }}</el-text>
+                  <el-text type="danger" v-if="scope.row.mark === 0">-{{ scope.row.amount }}</el-text>
                 </div>
               </template>
             </el-table-column>
@@ -75,12 +57,7 @@
             />
           </div>
         </el-row>
-        <el-empty
-          :image-size="100"
-          v-else
-          :image="nodata"
-          description="暂无数据"
-        />
+        <el-empty :image-size="100" v-else :image="nodata" description="暂无数据" />
       </div>
     </div>
   </div>
@@ -105,16 +82,9 @@ const loading = ref(false);
 const listBoxHeight = window.innerHeight - 87;
 const query = ref({
   model: "",
-  date: []
+  date: [],
 });
-const tagColors = ref([
-  "primary",
-  "success",
-  "primary",
-  "danger",
-  "info",
-  "warning"
-]);
+const tagColors = ref(["primary", "success", "primary", "danger", "info", "warning"]);
 
 onMounted(() => {
   checkSession()
@@ -139,7 +109,7 @@ const fetchData = () => {
     model: query.value.model,
     date: query.value.date,
     page: page.value,
-    page_size: pageSize.value
+    page_size: pageSize.value,
   })
     .then((res) => {
       if (res.data) {
@@ -173,7 +143,7 @@ const fetchData = () => {
       margin-top: 20px;
       border-radius: 10px;
       .handle-box {
-        padding 20px 0
+        padding 0 20px 20px 0
 
         .el-input {
           max-width 150px

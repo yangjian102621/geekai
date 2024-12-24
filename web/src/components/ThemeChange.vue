@@ -1,27 +1,22 @@
 <template>
   <div class="theme-box" @click="toggleTheme">
-    <span class="iconfont icon-yueliang">{{
-      themePage === "light" ? "&#xe679;" : "&#xe60b;"
-    }}</span>
+    <span class="iconfont icon-yueliang">{{ themePage === "light" ? "&#xe679;" : "&#xe60b;" }}</span>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
+import { useSharedStore } from "@/store/sharedata";
 
 // 定义主题状态，初始值从 localStorage 获取
-const themePage = ref(localStorage.getItem("theme") || "light");
+const store = useSharedStore();
+const themePage = ref(store.theme || "light");
 
 // 切换主题函数
 const toggleTheme = () => {
   themePage.value = themePage.value === "light" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", themePage.value); // 设置 HTML 的 data-theme 属性
-  localStorage.setItem("theme", themePage.value); // 保存主题到 localStorage
+  store.setTheme(themePage.value); // 保存主题
 };
-
-onMounted(() => {
-  document.documentElement.setAttribute("data-theme", themePage.value);
-});
 </script>
 
 <style lang="stylus" scoped>
@@ -30,7 +25,7 @@ onMounted(() => {
   z-index :111
   position: fixed;
   right: 40px;
-  bottom: 262px;
+  bottom: 150px;
   cursor: pointer;
   border: 1px solid #ccc;
   border-radius: 50%;
