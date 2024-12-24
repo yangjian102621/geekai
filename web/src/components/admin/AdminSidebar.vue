@@ -1,6 +1,6 @@
 <template>
   <div :class="'sidebar '+theme">
-    <a class="logo" href="/" target="_blank">
+    <a class="logo w-full" href="/" target="_blank">
       <el-image :src="logo"/>
       <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
     </a>
@@ -212,7 +212,6 @@ setMenuItems(items)
 
   .logo {
     display flex
-    width 219px
     background-color #324157
     padding 6px 15px;
     cursor pointer

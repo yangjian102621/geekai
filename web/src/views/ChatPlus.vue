@@ -19,7 +19,7 @@
               </template>
             </el-input>
           </div>
-          <el-scrollbar :height="{ height: +'px' }">
+          <el-scrollbar :height="chatBoxHeight">
             <div class="content">
               <el-row v-for="chat in chatList" :key="chat.chat_id">
                 <div :class="chat.chat_id === chatId ? 'chat-list-item active' : 'chat-list-item'" @click="loadChat(chat)">
@@ -262,24 +262,24 @@
   </div>
 </template>
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import { Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
+import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from "@element-plus/icons-vue";
 import "highlight.js/styles/a11y-dark.css";
-import { isMobile, randString, removeArrayItem, UUID } from "@/utils/libs";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { httpGet, httpPost } from "@/utils/http";
-import { useRouter } from "vue-router";
+import {isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {httpGet, httpPost} from "@/utils/http";
+import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import Welcome from "@/components/Welcome.vue";
-import { useSharedStore } from "@/store/sharedata";
+import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
-import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
+import {closeLoading, showLoading, showMessageError} from "@/utils/dialog";
 
 const title = ref("GeekAI-智能助手");
 const models = ref([]);

@@ -358,7 +358,7 @@
         </div>
       </el-tab-pane>
       <el-tab-pane label="公告配置" name="notice">
-        <md-editor class="mgb20" v-model="notice" @on-upload-img="onUploadImg"/>
+        <md-editor class="mgb20" v-model="notice" :theme="store.theme" @on-upload-img="onUploadImg"/>
         <el-form-item>
           <div style="padding-top: 10px;margin-left: 150px;">
             <el-button type="primary" @click="save('notice')">保存</el-button>
@@ -366,7 +366,7 @@
         </el-form-item>
       </el-tab-pane>
       <el-tab-pane label="思维导图" name="mark_map">
-        <md-editor class="mgb20" v-model="system['mark_map_text']" @on-upload-img="onUploadImg"/>
+        <md-editor class="mgb20" :theme="store.theme" v-model="system['mark_map_text']" @on-upload-img="onUploadImg"/>
         <el-form-item>
           <div style="padding-top: 10px;margin-left: 150px;">
             <el-button type="primary" @click="save('system')">保存</el-button>
@@ -440,7 +440,8 @@
 
       <el-tab-pane label="修复数据" name="fixData">
         <div class="container">
-<!--          <p class="text">有些版本升级的时候更新了数据库的结构，比如字段名字改了，需要把之前的字段的值转移到其他字段，这些无法通过简单的 SQL 语句可以实现的，需要手动写程序修正数据。</p>-->
+          <p class="text">有些版本升级的时候更新了数据库的结构，比如字段名字改了，需要把之前的字段的值转移到其他字段，这些无法通过简单的
+            SQL 语句可以实现的，需要手动写程序修正数据。</p>
 
 <!--          <p class="text">当前版本 v4.1.4 需要修正用户数据，增加了 mobile 和 email 字段，需要把之前用手机号或者邮箱注册的用户的 username 字段数据初始化到 mobile 或者 email 字段。另外，需要把订单的支付渠道从名字称修正为 key。</p>-->
 
@@ -464,6 +465,7 @@ import 'md-editor-v3/lib/style.css';
 import Menu from "@/views/admin/Menu.vue";
 import {copyObj, dateFormat} from "@/utils/libs";
 import ItemsInput from "@/components/ui/ItemsInput.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const activeName = ref('basic')
 const system = ref({models: []})
@@ -479,6 +481,7 @@ const mjModels = ref([
   {name: "快速（Fast）", value: "fast"},
   {name: "急速（Turbo）", value: "turbo"},
 ])
+const store = useSharedStore()
 
 onMounted(() => {
   // 加载系统配置

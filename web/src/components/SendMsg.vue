@@ -1,12 +1,10 @@
 <template>
   <el-container class="send-verify-code">
     <el-button
-      type="primary"
-      class="btn-normal"
+        type="success"
       :size="props.size"
       :disabled="!canSend"
       @click="sendMsg"
-      plain
     >
       {{ btnText }}
     </el-button>
@@ -17,12 +15,12 @@
 
 <script setup>
 // 发送短信验证码组件
-import { ref } from "vue";
-import { validateEmail, validateMobile } from "@/utils/validate";
-import { httpPost } from "@/utils/http";
-import { showMessageError, showMessageOK } from "@/utils/dialog";
+import {ref} from "vue";
+import {validateEmail, validateMobile} from "@/utils/validate";
+import {httpPost} from "@/utils/http";
+import {showMessageError, showMessageOK} from "@/utils/dialog";
 import Captcha from "@/components/Captcha.vue";
-import { getSystemInfo } from "@/store/cache";
+import {getSystemInfo} from "@/store/cache";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({

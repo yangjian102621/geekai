@@ -107,7 +107,10 @@ func (t PowerType) String() string {
 		return "退款"
 	case PowerRedeem:
 		return "兑换"
-
+	case PowerGift:
+		return "赠送"
+	case PowerInvite:
+		return "邀请"
 	}
 	return "其他"
 }

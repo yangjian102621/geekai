@@ -257,7 +257,8 @@ const reGenerate = (prompt) => {
             code {
               // color:var(--theme-text-color-primary);
               color:#fff
-              background-color var(--el-color-primary-light-3)
+              // background-color var(--el-color-primary-light-3)
+              background-color: var(--el-color-primary);
               padding 3px 5px;
               border-radius 5px;
             }
@@ -349,7 +350,6 @@ const reGenerate = (prompt) => {
           padding 10px 10px 10px 0;
 
           .bar-item {
-            background-color var( --little-btn-bg);
             padding 3px 5px;
             margin-right 10px;
             border-radius 5px;

@@ -8,7 +8,7 @@
   >
     <div class="form" id="bind-mobile-form">
       <el-form :model="form">
-        <el-form-item label="兑换码">
+        <el-form-item>
           <el-input v-model="form.code"/>
         </el-form-item>
       </el-form>

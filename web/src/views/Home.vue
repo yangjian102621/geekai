@@ -38,15 +38,6 @@
             </div>
           </li>
 
-          <!-- <li
-            class="menu-list-item flex-center-col"
-            v-for="item in 5"
-            :key="item"
-          >
-            <el-icon><Location /></el-icon>
-            <div>首页</div>
-          </li> -->
-
           <!-- 更多 -->
           <div class="bot" :style="{ width: isCollapse ? '65px' : '170px' }">
             <div class="bot-line"></div>
@@ -116,13 +107,11 @@
               </a>
 
               <ThemeChange />
-              <!-- <div v-if="!isCollapse">会员</div> -->
             </li>
           </div>
         </ul>
       </div>
     </div>
-    <!-- :style="{ 'padding-left': isCollapse ? '65px' : '170px' }" -->
     <el-scrollbar class="right-main">
       <div
         v-if="loginUser.id === undefined || !loginUser.id"
@@ -133,7 +122,6 @@
       <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
         <el-button @click="router.push('/login')" class="btn-go animate__animated animate__pulse animate__infinite" round>登录</el-button>
       </div>
-      <!-- <div class="content custom-scroll"> -->
       <div class="content custom-scroll">
         <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
@@ -155,25 +143,24 @@
 </template>
 
 <script setup>
-import { CirclePlus, Setting, UserFilled } from "@element-plus/icons-vue";
+import {CirclePlus, Setting, UserFilled} from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
 import avatarImg from "@/assets/img/avatar.jpg";
-import { useRouter } from "vue-router";
-import { onMounted, ref, watch } from "vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
-import { removeUserToken } from "@/store/session";
-import { useSharedStore } from "@/store/sharedata";
+import {useRouter} from "vue-router";
+import {onMounted, ref, watch} from "vue";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
+import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
+import {removeUserToken} from "@/store/session";
+import {useSharedStore} from "@/store/sharedata";
 import ConfigDialog from "@/components/UserInfoDialog.vue";
-import { showMessageError } from "@/utils/dialog";
+import {showMessageError} from "@/utils/dialog";
 
 const isCollapse = ref(true);
 const router = useRouter();
 const logo = ref("");
 const mainNavs = ref([]);
 const moreNavs = ref([]);
-// const curPath = ref(router.currentRoute.value.path);
 const curPath = ref();
 
 const title = ref("");
