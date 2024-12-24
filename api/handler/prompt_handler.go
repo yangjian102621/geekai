@@ -12,13 +12,13 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
-	"geekai/service/oss"
-	"geekai/service/suno"
+	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"strings"
 )
 
 // 提示词生成 handler
@@ -26,8 +26,6 @@ import (
 
 type PromptHandler struct {
 	BaseHandler
-	sunoService *suno.Service
-	uploader    *oss.UploaderManager
 	userService *service.UserService
 }
 
@@ -56,6 +54,15 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 		return
 	}
 
+	if h.App.SysConfig.PromptPower > 0 {
+		userId := h.GetLoginUserId(c)
+		h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+			Type:   types.PowerConsume,
+			Model:  h.getPromptModel(),
+			Remark: "生成歌词",
+		})
+	}
+
 	resp.SUCCESS(c, content)
 }
 
@@ -73,7 +80,14 @@ func (h *PromptHandler) Image(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
+	if h.App.SysConfig.PromptPower > 0 {
+		userId := h.GetLoginUserId(c)
+		h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+			Type:   types.PowerConsume,
+			Model:  h.getPromptModel(),
+			Remark: "生成绘画提示词",
+		})
+	}
 	resp.SUCCESS(c, strings.Trim(content, `"`))
 }
 
@@ -90,6 +104,15 @@ func (h *PromptHandler) Video(c *gin.Context) {
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
+	}
+
+	if h.App.SysConfig.PromptPower > 0 {
+		userId := h.GetLoginUserId(c)
+		h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+			Type:   types.PowerConsume,
+			Model:  h.getPromptModel(),
+			Remark: "生成视频脚本",
+		})
 	}
 
 	resp.SUCCESS(c, strings.Trim(content, `"`))
@@ -120,4 +143,13 @@ func (h *PromptHandler) MetaPrompt(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, strings.Trim(content, `"`))
+}
+
+func (h *PromptHandler) getPromptModel() string {
+	if h.App.SysConfig.TranslateModelId > 0 {
+		var chatModel model.ChatModel
+		h.DB.Where("id", h.App.SysConfig.TranslateModelId).First(&chatModel)
+		return chatModel.Value
+	}
+	return "gpt-4o"
 }

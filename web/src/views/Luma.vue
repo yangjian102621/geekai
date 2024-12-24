@@ -15,24 +15,11 @@
       <div class="prompt-container">
         <div class="input-container">
           <div class="upload-icon" v-if="images.length < 2">
-            <el-upload
-              class="avatar-uploader"
-              :auto-upload="true"
-              :show-file-list="false"
-              :http-request="upload"
-              accept=".jpg,.png,.jpeg"
-            >
+            <el-upload class="avatar-uploader" :auto-upload="true" :show-file-list="false" :http-request="upload" accept=".jpg,.png,.jpeg">
               <i class="iconfont icon-image"></i>
             </el-upload>
           </div>
-          <textarea
-            class="prompt-input"
-            :rows="row"
-            v-model="formData.prompt"
-            placeholder="请输入提示词或者上传图片"
-            autofocus
-          >
-          </textarea>
+          <textarea class="prompt-input" :rows="row" v-model="formData.prompt" placeholder="请输入提示词或者上传图片" autofocus> </textarea>
           <div class="send-icon" @click="create">
             <i class="iconfont icon-send"></i>
           </div>
@@ -40,13 +27,7 @@
 
         <div class="params">
           <div class="item-group">
-            <el-button
-              class="generate-btn"
-              size="small"
-              @click="generatePrompt"
-              color="#5865f2"
-              :disabled="isGenerating"
-            >
+            <el-button class="generate-btn" size="small" @click="generatePrompt" color="#5865f2">
               <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
               <span>生成AI视频提示词</span>
             </el-button>
@@ -63,12 +44,8 @@
       </div>
     </div>
 
-    <el-container
-      class="video-container"
-      v-loading="loading"
-      element-loading-background="rgba(100,100,100,0.3)"
-    >
-      <h2 class="h-title">你的作品</h2>
+    <el-container class="video-container" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
+      <h2 class="h-title text-2xl mb-5 mt-2">你的作品</h2>
 
       <div class="list-box" v-if="!noData">
         <div v-for="item in list" :key="item.id">
@@ -76,60 +53,30 @@
             <div class="left">
               <div class="container">
                 <div v-if="item.progress === 100">
-                  <video
-                    class="video"
-                    :src="replaceImg(item.video_url)"
-                    preload="auto"
-                    loop="loop"
-                    muted="muted"
-                  >
-                    您的浏览器不支持视频播放
-                  </video>
+                  <video class="video" :src="replaceImg(item.video_url)" preload="auto" loop="loop" muted="muted">您的浏览器不支持视频播放</video>
                   <button class="play" @click="play(item)">
                     <img src="/images/play.svg" alt="" />
                   </button>
                 </div>
-                <el-image
-                  :src="item.cover_url"
-                  fit="cover"
-                  v-else-if="item.progress > 100"
-                />
+                <el-image :src="item.cover_url" fit="cover" v-else-if="item.progress > 100" />
                 <generating message="正在生成视频" v-else />
               </div>
             </div>
             <div class="center">
-              <div class="failed" v-if="item.progress === 101">
-                任务执行失败：{{ item.err_msg }}，任务提示词：{{ item.prompt }}
-              </div>
+              <div class="failed" v-if="item.progress === 101">任务执行失败：{{ item.err_msg }}，任务提示词：{{ item.prompt }}</div>
               <div class="prompt" v-else>{{ item.prompt }}</div>
             </div>
             <div class="right" v-if="item.progress === 100">
               <div class="tools">
                 <button class="btn btn-publish">
                   <span class="text">发布</span>
-                  <black-switch
-                    v-model:value="item.publish"
-                    @change="publishJob(item)"
-                    size="small"
-                  />
+                  <black-switch v-model:value="item.publish" @change="publishJob(item)" size="small" />
                 </button>
 
                 <el-tooltip content="下载视频" placement="top">
-                  <button
-                    class="btn btn-icon"
-                    @click="download(item)"
-                    :disabled="item.downloading"
-                  >
-                    <i
-                      class="iconfont icon-download"
-                      v-if="!item.downloading"
-                    ></i>
-                    <el-image
-                      src="/images/loading.gif"
-                      class="downloading"
-                      fit="cover"
-                      v-else
-                    />
+                  <button class="btn btn-icon" @click="download(item)" :disabled="item.downloading">
+                    <i class="iconfont icon-download" v-if="!item.downloading"></i>
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
                   </button>
                 </el-tooltip>
                 <el-tooltip content="删除" placement="top">
@@ -147,12 +94,7 @@
           </div>
         </div>
       </div>
-      <el-empty
-        :image-size="100"
-        :image="nodata"
-        description="没有任何作品，赶紧去创作吧！"
-        v-else
-      />
+      <el-empty :image-size="100" :image="nodata" description="没有任何作品，赶紧去创作吧！" v-else />
 
       <div class="pagination">
         <el-pagination
@@ -168,22 +110,8 @@
         />
       </div>
     </el-container>
-    <black-dialog
-      v-model:show="showDialog"
-      title="预览视频"
-      hide-footer
-      @cancal="showDialog = false"
-      width="auto"
-    >
-      <video
-        style="width: 100%; max-height: 90vh"
-        :src="currentVideoUrl"
-        preload="auto"
-        :autoplay="true"
-        loop="loop"
-        muted="muted"
-        v-show="showDialog"
-      >
+    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" width="auto">
+      <video style="width: 100%; max-height: 90vh" :src="currentVideoUrl" preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
         您的浏览器不支持视频播放
       </video>
     </black-dialog>
@@ -197,7 +125,7 @@ import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { CircleCloseFilled } from "@element-plus/icons-vue";
 import { httpDownload, httpPost, httpGet } from "@/utils/http";
 import { checkSession, getClientId } from "@/store/cache";
-import { showMessageError, showMessageOK } from "@/utils/dialog";
+import { closeLoading, showLoading, showMessageError, showMessageOK } from "@/utils/dialog";
 import { replaceImg } from "@/utils/libs";
 import { ElMessage, ElMessageBox } from "element-plus";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
@@ -216,7 +144,7 @@ const formData = reactive({
   expand_prompt: false,
   loop: false,
   first_frame_img: "",
-  end_frame_img: ""
+  end_frame_img: "",
 });
 
 const store = useSharedStore();
@@ -275,7 +203,7 @@ const removeJob = (item) => {
   ElMessageBox.confirm("此操作将会删除任务相关文件，继续操作码?", "删除提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    type: "warning"
+    type: "warning",
   })
     .then(() => {
       httpGet("/api/video/remove", { id: item.id })
@@ -334,7 +262,7 @@ const fetchData = (_page) => {
   httpGet("/api/video/list", {
     page: page.value,
     page_size: pageSize.value,
-    type: "luma"
+    type: "luma",
   })
     .then((res) => {
       total.value = res.data.total;
@@ -368,20 +296,19 @@ const create = () => {
     });
 };
 
-const isGenerating = ref(false);
 const generatePrompt = () => {
   if (formData.prompt === "") {
     return showMessageError("请输入原始提示词");
   }
-  isGenerating.value = true;
-  httpPost("/api/prompt/image", { prompt: formData.prompt })
+  showLoading("正在生成视频脚本...");
+  httpPost("/api/prompt/video", { prompt: formData.prompt })
     .then((res) => {
       formData.prompt = res.data;
-      isGenerating.value = false;
+      closeLoading();
     })
     .catch((e) => {
       showMessageError("生成提示词失败：" + e.message);
-      isGenerating.value = false;
+      closeLoading();
     });
 };
 </script>

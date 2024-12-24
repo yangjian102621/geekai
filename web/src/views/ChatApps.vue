@@ -1,26 +1,18 @@
 <template>
   <div>
     <div class="page-apps custom-scroll">
-      <div class="apps-type-nav">
-        <el-scrollbar>
-          <ul class="scrollbar-type-nav">
-            <li :class="{ active: typeId === '' }" @click="getAppList('')">
-              全部分类
-            </li>
-            <li
-              v-for="item in appTypes"
-              :key="item.id"
-              :class="{ active: typeId === item.id }"
-              @click="getAppList(item.id)"
-            >
-              <div class="image" v-if="item.icon">
-                <el-image :src="item.icon" fit="cover" />
-              </div>
-              {{ item.name }}
-            </li>
-          </ul>
-        </el-scrollbar>
+      <div class="flex h-20">
+        <ul class="scrollbar-type-nav">
+          <li :class="{ active: typeId === '' }" @click="getAppList('')">全部分类</li>
+          <li v-for="item in appTypes" :key="item.id" :class="{ active: typeId === item.id }" @click="getAppList(item.id)">
+            <div class="image" v-if="item.icon">
+              <el-image :src="item.icon" fit="cover" />
+            </div>
+            {{ item.name }}
+          </li>
+        </ul>
       </div>
+
       <div class="app-list-container" :style="{ height: listBoxHeight + 'px' }">
         <ItemList :items="list" v-if="list.length > 0" :gap="15" :width="300">
           <template #default="scope">
@@ -35,31 +27,12 @@
                   <div class="info-text">{{ scope.item.hello_msg }}</div>
                 </div>
                 <div class="btn">
-                  <el-button
-                    size="small"
-                    class="sm-btn-theme"
-                    @click="useRole(scope.item)"
-                    >使用</el-button
-                  >
-                  <el-tooltip
-                    content="从工作区移除"
-                    placement="top"
-                    v-if="hasRole(scope.item.key)"
-                  >
-                    <el-button
-                      size="small"
-                      type="danger"
-                      @click="updateRole(scope.item, 'remove')"
-                      >移除</el-button
-                    >
+                  <el-button size="small" class="sm-btn-theme" @click="useRole(scope.item)">使用</el-button>
+                  <el-tooltip content="从工作区移除" placement="top" v-if="hasRole(scope.item.key)">
+                    <el-button size="small" type="danger" @click="updateRole(scope.item, 'remove')">移除</el-button>
                   </el-tooltip>
                   <el-tooltip content="添加到工作区" placement="top" v-else>
-                    <el-button
-                      size="small"
-                      style="--el-color-primary: #009999"
-                      @click="updateRole(scope.item, 'add')"
-                      >添加</el-button
-                    >
+                    <el-button size="small" style="--el-color-primary: #009999" @click="updateRole(scope.item, 'add')">添加</el-button>
                   </el-tooltip>
                 </div>
               </div>
@@ -179,7 +152,7 @@ const updateRole = (row, opt) => {
         .then(() => {
           ElMessage.success({
             message: title.value + "成功！",
-            duration: 1000
+            duration: 1000,
           });
         })
         .catch((e) => {

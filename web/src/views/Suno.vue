@@ -34,7 +34,7 @@
                 </template>
               </el-popover>
             </div>
-            <div class="item" v-loading="isGenerating" element-loading-text="正在生成歌词..." element-loading-background="rgba(122, 122, 122, 0.8)">
+            <div class="item" v-loading="isGenerating" element-loading-text="正在生成歌词...">
               <black-input v-model:value="data.lyrics" type="textarea" :rows="10" :placeholder="promptPlaceholder" />
               <button class="btn btn-lyric" @click="createLyric">生成歌词</button>
             </div>
