@@ -3,18 +3,8 @@
     <el-tabs v-model="activeName" @tab-change="handleChange">
       <el-tab-pane label="对话列表" name="chat" v-loading="data.chat.loading">
         <div class="handle-box">
-          <el-input
-            v-model.number="data.chat.query.user_id"
-            placeholder="账户ID"
-            class="handle-input mr10"
-            @keyup="searchChat($event)"
-          ></el-input>
-          <el-input
-            v-model="data.chat.query.title"
-            placeholder="对话标题"
-            class="handle-input mr10"
-            @keyup="searchChat($event)"
-          ></el-input>
+          <el-input v-model.number="data.chat.query.user_id" placeholder="账户ID" class="handle-input mr10" @keyup="searchChat($event)"></el-input>
+          <el-input v-model="data.chat.query.title" placeholder="对话标题" class="handle-input mr10" @keyup="searchChat($event)"></el-input>
           <el-date-picker
             v-model="data.chat.query.created_at"
             type="daterange"
@@ -22,24 +12,13 @@
             end-placeholder="结束日期"
             format="YYYY-MM-DD"
             value-format="YYYY-MM-DD"
-            style="
-              margin-right: 10px;
-              width: 200px;
-              position: relative;
-              top: 3px;
-            "
+            style="margin-right: 10px; width: 200px; position: relative; top: 3px"
           />
-          <el-button type="primary" :icon="Search" @click="fetchChatData"
-            >搜索</el-button
-          >
+          <el-button type="primary" :icon="Search" @click="fetchChatData">搜索</el-button>
         </div>
 
         <el-row>
-          <el-table
-            :data="data.chat.items"
-            :row-key="(row) => row.id"
-            table-layout="auto"
-          >
+          <el-table :data="data.chat.items" :row-key="(row) => row.id" table-layout="auto">
             <el-table-column prop="user_id" label="账户ID" />
             <el-table-column prop="username" label="账户" />
             <el-table-column label="图标">
@@ -65,16 +44,8 @@
 
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button
-                  size="small"
-                  type="primary"
-                  @click="showMessages(scope.row)"
-                  >查看</el-button
-                >
-                <el-popconfirm
-                  title="确定要删除当前记录吗?"
-                  @confirm="removeChat(scope.row)"
-                >
+                <el-button size="small" type="primary" @click="showMessages(scope.row)">查看</el-button>
+                <el-popconfirm title="确定要删除当前记录吗?" @confirm="removeChat(scope.row)">
                   <template #reference>
                     <el-button size="small" type="danger">删除</el-button>
                   </template>
@@ -99,24 +70,9 @@
       </el-tab-pane>
       <el-tab-pane label="消息记录" name="message">
         <div class="handle-box">
-          <el-input
-            v-model.number="data.message.query.user_id"
-            placeholder="账户ID"
-            class="handle-input mr10"
-            @keyup="searchMessage($event)"
-          ></el-input>
-          <el-input
-            v-model="data.message.query.content"
-            placeholder="消息内容"
-            class="handle-input mr10"
-            @keyup="searchMessage($event)"
-          ></el-input>
-          <el-input
-            v-model="data.message.query.model"
-            placeholder="模型"
-            class="handle-input mr10"
-            @keyup="searchMessage($event)"
-          ></el-input>
+          <el-input v-model.number="data.message.query.user_id" placeholder="账户ID" class="handle-input mr10" @keyup="searchMessage($event)"></el-input>
+          <el-input v-model="data.message.query.content" placeholder="消息内容" class="handle-input mr10" @keyup="searchMessage($event)"></el-input>
+          <el-input v-model="data.message.query.model" placeholder="模型" class="handle-input mr10" @keyup="searchMessage($event)"></el-input>
           <el-date-picker
             v-model="data.message.query.created_at"
             type="daterange"
@@ -124,24 +80,13 @@
             end-placeholder="结束日期"
             format="YYYY-MM-DD"
             value-format="YYYY-MM-DD"
-            style="
-              margin-right: 10px;
-              width: 200px;
-              position: relative;
-              top: 3px;
-            "
+            style="margin-right: 10px; width: 200px; position: relative; top: 3px"
           />
-          <el-button type="primary" :icon="Search" @click="fetchMessageData"
-            >搜索</el-button
-          >
+          <el-button type="primary" :icon="Search" @click="fetchMessageData">搜索</el-button>
         </div>
 
         <el-row>
-          <el-table
-            :data="data.message.items"
-            :row-key="(row) => row.id"
-            table-layout="auto"
-          >
+          <el-table :data="data.message.items" :row-key="(row) => row.id" table-layout="auto">
             <el-table-column prop="user_id" label="账户ID" />
             <el-table-column prop="username" label="账户" />
             <el-table-column label="角色">
@@ -153,11 +98,7 @@
 
             <el-table-column label="消息内容">
               <template #default="scope">
-                <el-text
-                  style="width: 200px"
-                  truncated
-                  @click="showContent(scope.row.content)"
-                >
+                <el-text style="width: 200px" truncated @click="showContent(scope.row.content)">
                   {{ scope.row.content }}
                 </el-text>
               </template>
@@ -173,16 +114,8 @@
 
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button
-                  size="small"
-                  type="primary"
-                  @click="showContent(scope.row.content)"
-                  >查看</el-button
-                >
-                <el-popconfirm
-                  title="确定要删除当前记录吗?"
-                  @confirm="removeMessage(scope.row)"
-                >
+                <el-button size="small" type="primary" @click="showContent(scope.row.content)">查看</el-button>
+                <el-popconfirm title="确定要删除当前记录吗?" @confirm="removeMessage(scope.row)">
                   <template #reference>
                     <el-button size="small" type="danger">删除</el-button>
                   </template>
@@ -207,31 +140,17 @@
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog
-      v-model="showContentDialog"
-      title="消息详情"
-      class="chat-dialog"
-      style="--el-dialog-width: 60%"
-    >
+    <el-dialog v-model="showContentDialog" title="消息详情" class="chat-dialog" style="--el-dialog-width: 60%">
       <div class="chat-detail">
         <div class="chat-line" v-html="dialogContent"></div>
       </div>
     </el-dialog>
 
-    <el-dialog
-      v-model="showChatItemDialog"
-      title="对话详情"
-      class="chat-dialog"
-      style="--el-dialog-width: 60%"
-    >
+    <el-dialog v-model="showChatItemDialog" title="对话详情" class="chat-dialog" style="--el-dialog-width: 60%">
       <div class="chat-box chat-page">
         <div v-for="item in messages" :key="item.id">
           <chat-prompt v-if="item.type === 'prompt'" :data="item" />
-          <chat-reply
-            v-else-if="item.type === 'reply'"
-            :read-only="true"
-            :data="item"
-          />
+          <chat-reply v-else-if="item.type === 'reply'" :read-only="true" :data="item" />
         </div>
       </div>
       <!-- end chat box -->
@@ -258,7 +177,7 @@ const data = ref({
     total: 0,
     page: 1,
     pageSize: 15,
-    loading: true
+    loading: true,
   },
   message: {
     items: [],
@@ -266,8 +185,8 @@ const data = ref({
     total: 0,
     page: 1,
     pageSize: 15,
-    loading: true
-  }
+    loading: true,
+  },
 });
 const activeName = ref("chat");
 
@@ -376,7 +295,7 @@ const md = require("markdown-it")({
     const preCode = md.utils.escapeHtml(str);
     // 将代码包裹在 pre 中
     return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`;
-  }
+  },
 });
 md.use(mathjaxPlugin);
 
@@ -431,7 +350,7 @@ const showMessages = (row) => {
   }
 
   .pagination {
-    padding 20px 0
+    margin-top 20px
     display flex
     justify-content right
   }

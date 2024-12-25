@@ -61,7 +61,7 @@
                     }"
                   >
                     <a @click="changeNav(item)">
-                      <span v-if="item.icon.startsWith('icon')">
+                      <span v-if="item.icon.startsWith('icon')" class="mr-2">
                         <i class="iconfont" :class="item.icon"></i>
                       </span>
                       <el-image :src="item.icon" style="width: 20px; height: 20px" v-else />
@@ -143,18 +143,18 @@
 </template>
 
 <script setup>
-import {CirclePlus, Setting, UserFilled} from "@element-plus/icons-vue";
+import { CirclePlus, Setting, UserFilled } from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
 import avatarImg from "@/assets/img/avatar.jpg";
-import {useRouter} from "vue-router";
-import {onMounted, ref, watch} from "vue";
-import {httpGet} from "@/utils/http";
-import {ElMessage} from "element-plus";
-import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
-import {removeUserToken} from "@/store/session";
-import {useSharedStore} from "@/store/sharedata";
+import { useRouter } from "vue-router";
+import { onMounted, ref, watch } from "vue";
+import { httpGet } from "@/utils/http";
+import { ElMessage } from "element-plus";
+import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
+import { removeUserToken } from "@/store/session";
+import { useSharedStore } from "@/store/sharedata";
 import ConfigDialog from "@/components/UserInfoDialog.vue";
-import {showMessageError} from "@/utils/dialog";
+import { showMessageError } from "@/utils/dialog";
 
 const isCollapse = ref(true);
 const router = useRouter();
@@ -216,9 +216,10 @@ if (curPath.value === "/external") {
 }
 const changeNav = (item) => {
   curPath.value = item.url;
+  console.log(item.url);
   if (item.url.indexOf("http") !== -1) {
     // 外部链接
-    window.open(item.url, "_blank");
+    router.push({ path: "/external", query: { url: item.url, title: item.name } });
   } else {
     // 路由切换，确保路径变化
     if (router.currentRoute.value.path !== item.url) {

@@ -363,7 +363,7 @@ const doResetPass = () => {
   }
 
   .pagination {
-    padding 20px 0
+    margin-top: 20px;
     display flex
     justify-content right
     width 100%

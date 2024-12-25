@@ -54,7 +54,7 @@
               <div class="container">
                 <div v-if="item.progress === 100">
                   <video class="video" :src="replaceImg(item.video_url)" preload="auto" loop="loop" muted="muted">您的浏览器不支持视频播放</video>
-                  <button class="play" @click="play(item)">
+                  <button class="play flex justify-center items-center" @click="play(item)">
                     <img src="/images/play.svg" alt="" />
                   </button>
                 </div>

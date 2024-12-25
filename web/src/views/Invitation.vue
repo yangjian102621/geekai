@@ -2,13 +2,12 @@
   <div class="custom-scroll">
     <div class="page-invitation">
       <div class="inner">
-        <h2>会员推广计划</h2>
+        <h2 class="text-2xl p-4 font-bold">会员推广计划</h2>
         <div class="share-box">
           <div class="info">
             我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您和被邀请人都将获得
             <strong>{{ invitePower }}</strong>
-            算力额度作为奖励。
-            你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
+            算力额度作为奖励。 你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
           </div>
 
           <div class="invite-qrcode">
@@ -17,13 +16,7 @@
 
           <div class="invite-url">
             <span>{{ inviteURL }}</span>
-            <el-button
-              type="primary"
-              plain
-              class="copy-link"
-              :data-clipboard-text="inviteURL"
-              >复制链接</el-button
-            >
+            <el-button type="primary" plain class="copy-link" :data-clipboard-text="inviteURL">复制链接</el-button>
           </div>
         </div>
 
@@ -83,7 +76,7 @@
           </el-row>
         </div>
         <div class="box-card">
-          <h2>您推荐的用户</h2>
+          <h2 class="text-xl pb-4">您推荐的用户</h2>
 
           <div class="invite-logs">
             <invite-list v-if="isLogin" />
@@ -139,17 +132,13 @@ const initData = () => {
           if (hits.value > 0) {
             rate.value = ((regNum.value / hits.value) * 100).toFixed(2);
           }
-          QRCode.toDataURL(
-            text,
-            { width: 400, height: 400, margin: 2 },
-            (error, url) => {
-              if (error) {
-                console.error(error);
-              } else {
-                qrImg.value = url;
-              }
+          QRCode.toDataURL(text, { width: 400, height: 400, margin: 2 }, (error, url) => {
+            if (error) {
+              console.error(error);
+            } else {
+              qrImg.value = url;
             }
-          );
+          });
           inviteURL.value = text;
         })
         .catch((e) => {

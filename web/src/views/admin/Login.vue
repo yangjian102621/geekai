@@ -5,25 +5,23 @@
       <div class="main">
         <div class="contain">
           <div class="logo" @click="router.push('/')">
-            <el-image :src="logo" fit="cover"/>
+            <el-image :src="logo" fit="cover" />
           </div>
 
           <h1 class="header">登录 {{ title }}</h1>
           <div class="content">
-            <el-input v-model="username" placeholder="请输入用户名" size="large"
-                      autocomplete="off" autofocus @keyup.enter="login">
+            <el-input v-model="username" placeholder="请输入用户名" size="large" autocomplete="off" autofocus @keyup.enter="login">
               <template #prefix>
                 <el-icon>
-                  <UserFilled/>
+                  <UserFilled />
                 </el-icon>
               </template>
             </el-input>
 
-            <el-input v-model="password" placeholder="请输入密码" size="large"
-                      show-password autocomplete="off" @keyup.enter="login">
+            <el-input v-model="password" placeholder="请输入密码" size="large" show-password autocomplete="off" @keyup.enter="login">
               <template #prefix>
                 <el-icon>
-                  <Lock/>
+                  <Lock />
                 </el-icon>
               </template>
             </el-input>
@@ -34,77 +32,79 @@
           </div>
         </div>
 
-        <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef"/>
-        <footer-bar class="footer"/>
+        <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef" />
+        <footer-bar class="footer" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-
-import {ref} from "vue";
-import {Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
-import {useRouter} from "vue-router";
+import { ref } from "vue";
+import { Lock, UserFilled } from "@element-plus/icons-vue";
+import { httpPost } from "@/utils/http";
+import { ElMessage } from "element-plus";
+import { useRouter } from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
-import {setAdminToken} from "@/store/session";
-import {checkAdminSession, getSystemInfo} from "@/store/cache";
+import { setAdminToken } from "@/store/session";
+import { checkAdminSession, getSystemInfo } from "@/store/cache";
 import Captcha from "@/components/Captcha.vue";
 
 const router = useRouter();
-const title = ref('Geek-AI Console');
+const title = ref("Geek-AI Console");
 const username = ref(process.env.VUE_APP_ADMIN_USER);
 const password = ref(process.env.VUE_APP_ADMIN_PASS);
-const logo = ref("")
-const enableVerify = ref(false)
-const captchaRef = ref(null)
+const logo = ref("");
+const enableVerify = ref(false);
+const captchaRef = ref(null);
 
-checkAdminSession().then(() => {
-  router.push("/admin")
-}).catch(() => {
-})
+checkAdminSession()
+  .then(() => {
+    router.push("/admin");
+  })
+  .catch(() => {});
 
 // 加载系统配置
-getSystemInfo().then(res => {
-  title.value = res.data.admin_title
-  logo.value = res.data.logo
-  enableVerify.value = res.data['enabled_verify']
-}).catch(e => {
-  ElMessage.error("加载系统配置失败: " + e.message)
-})
+getSystemInfo()
+  .then((res) => {
+    title.value = res.data.admin_title;
+    logo.value = res.data.logo;
+    enableVerify.value = res.data["enabled_verify"];
+  })
+  .catch((e) => {
+    ElMessage.error("加载系统配置失败: " + e.message);
+  });
 
 const login = function () {
-  if (username.value === '') {
-    return ElMessage.error('请输入用户名');
+  if (username.value === "") {
+    return ElMessage.error("请输入用户名");
   }
-  if (password.value === '') {
-    return ElMessage.error('请输入密码');
+  if (password.value === "") {
+    return ElMessage.error("请输入密码");
   }
   if (enableVerify.value) {
-    captchaRef.value.loadCaptcha()
+    captchaRef.value.loadCaptcha();
   } else {
-    doLogin({})
+    doLogin({});
   }
-}
+};
 
 const doLogin = function (verifyData) {
-  httpPost('/api/admin/login', {
+  httpPost("/api/admin/login", {
     username: username.value.trim(),
     password: password.value.trim(),
     key: verifyData.key,
     dots: verifyData.dots,
-    x: verifyData.x
-  }).then(res => {
-    setAdminToken(res.data.token)
-    router.push("/admin")
-  }).catch((e) => {
-    ElMessage.error('登录失败，' + e.message)
+    x: verifyData.x,
   })
-}
-
-
+    .then((res) => {
+      setAdminToken(res.data.token);
+      router.push("/admin");
+    })
+    .catch((e) => {
+      ElMessage.error("登录失败，" + e.message);
+    });
+};
 </script>
 
 <style lang="stylus" scoped>
@@ -204,15 +204,10 @@ const doLogin = function (verifyData) {
       }
     }
 
-
-    .footer {
-      color #ffffff;
-
-      .container {
-        padding 20px;
-      }
+    .foot-container {
+      background rgba(0, 0, 0, 0.3);
+      --text-color: #ffffff;
     }
   }
 }
-
 </style>
