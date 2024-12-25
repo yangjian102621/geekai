@@ -28,7 +28,7 @@ import FooterBar from "@/components/FooterBar.vue";
   position: relative;
   overflow: hidden;
   z-index: 1;
-  ::v-deep(.foot-container){
+  :deep(.foot-container){
     position: absolute;
     bottom: 20px;
     width: 100%;

@@ -224,7 +224,7 @@
     </el-container>
 
     <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
-      <div class="notice">
+      <div class="notice p-4">
         <div v-html="notice"></div>
       </div>
 
@@ -262,24 +262,24 @@
   </div>
 </template>
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause} from "@element-plus/icons-vue";
+import { Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
 import "highlight.js/styles/a11y-dark.css";
-import {isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
-import {ElMessage, ElMessageBox} from "element-plus";
-import {httpGet, httpPost} from "@/utils/http";
-import {useRouter} from "vue-router";
+import { isMobile, randString, removeArrayItem, UUID } from "@/utils/libs";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { httpGet, httpPost } from "@/utils/http";
+import { useRouter } from "vue-router";
 import Clipboard from "clipboard";
-import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
+import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
 import Welcome from "@/components/Welcome.vue";
-import {useSharedStore} from "@/store/sharedata";
+import { useSharedStore } from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
-import {closeLoading, showLoading, showMessageError} from "@/utils/dialog";
+import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
 
 const title = ref("GeekAI-智能助手");
 const models = ref([]);
@@ -362,12 +362,15 @@ getSystemInfo()
     ElMessage.error("获取系统配置失败：" + e.message);
   });
 
-const md = require("markdown-it")({
+import MarkdownIt from "markdown-it";
+import emoji from "markdown-it-emoji";
+
+const md = new MarkdownIt({
   breaks: true,
   html: true,
   linkify: true,
   typographer: true,
-});
+}).use(emoji);
 // 获取系统公告
 httpGet("/api/config/get?key=notice")
   .then((res) => {

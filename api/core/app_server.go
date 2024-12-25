@@ -15,12 +15,6 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/nfnt/resize"
-	"golang.org/x/image/webp"
-	"gorm.io/gorm"
 	"image"
 	"image/jpeg"
 	"io"
@@ -29,6 +23,13 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/nfnt/resize"
+	"golang.org/x/image/webp"
+	"gorm.io/gorm"
 )
 
 type AppServer struct {
@@ -228,6 +229,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/suno/detail" ||
 		c.Request.URL.Path == "/api/suno/play" ||
 		c.Request.URL.Path == "/api/download" ||
+		c.Request.URL.Path == "/api/dall/models" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/payment/notify/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||

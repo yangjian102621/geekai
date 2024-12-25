@@ -203,12 +203,18 @@
                 <el-form-item label="VIP每月赠送算力" prop="vip_month_power">
                   <el-input v-model.number="system['vip_month_power']" placeholder="VIP用户每月赠送算力" />
                 </el-form-item>
-                <el-form-item label="每日赠送算力" prop="daily_power">
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      签到赠送算力
+                      <el-tooltip effect="dark" content="每日签到赠送算力" raw-content placement="right">
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <el-input v-model.number="system['daily_power']" placeholder="默认值0" />
-
-                  <el-text type="info">
-                    如果设置0表示不赠送，用户享受完免费算力额度之后就不能再发起对话了。如果设置为N，则系统每天将算力值小于N的用户自动补充到N。注意，此功能要配合XXL-JOB启用。
-                  </el-text>
                 </el-form-item>
                 <el-form-item>
                   <template #label>
@@ -240,6 +246,17 @@
                   <el-input v-model.number="system['sd_power']" placeholder="使用Stable-Diffusion画一张图消耗算力" />
                 </el-form-item>
                 <el-form-item label="DALL-E-3算力" prop="dall_power">
+                  <template #label>
+                    <div class="label-title">
+                      MJ操作算力
+                      <el-tooltip effect="dark" content="主要用户函数调用 DALL-E-3 进行绘画" raw-content
+                                  placement="right">
+                        <el-icon>
+                          <InfoFilled/>
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
                   <el-input v-model.number="system['dall_power']" placeholder="使用DALL-E-3画一张图消耗算力" />
                 </el-form-item>
                 <el-form-item label="Suno 算力" prop="suno_power">
@@ -379,17 +396,17 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
-import { httpGet, httpPost } from "@/utils/http";
+import {onMounted, reactive, ref} from "vue";
+import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { CloseBold, InfoFilled, Select, UploadFilled } from "@element-plus/icons-vue";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {CloseBold, InfoFilled, Select, UploadFilled} from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
 import Menu from "@/views/admin/Menu.vue";
-import { copyObj, dateFormat } from "@/utils/libs";
+import {copyObj, dateFormat} from "@/utils/libs";
 import ItemsInput from "@/components/ui/ItemsInput.vue";
-import { useSharedStore } from "@/store/sharedata";
+import {useSharedStore} from "@/store/sharedata";
 
 const activeName = ref("basic");
 const system = ref({ models: [] });

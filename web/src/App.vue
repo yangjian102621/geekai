@@ -108,6 +108,14 @@ html, body {
   text-rendering: optimizeLegibility;
 
   --primary-color: #21aa93
+
+  h1 { font-size: 2em; } /* 通常是 2em */
+  h2 { font-size: 1.5em; } /* 通常是 1.5em */
+  h3 { font-size: 1.17em; } /* 通常是 1.17em */
+  h4 { font-size: 1em; } /* 通常是 1em */
+  h5 { font-size: 0.83em; } /* 通常是 0.83em */
+  h6 { font-size: 0.67em; } /* 通常是 0.67em */
+
 }
 
 .el-overlay-dialog {

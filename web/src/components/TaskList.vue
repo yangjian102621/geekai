@@ -1,15 +1,10 @@
 <template>
-  <div class="running-job-list">
+  <div class="running-job-list pt-4 pb-4">
     <div class="running-job-box" v-if="list.length > 0">
       <div class="job-item" v-for="item in list" :key="item.id">
         <div v-if="item.progress > 0" class="job-item-inner">
           <div class="progress" v-if="item.progress > 0">
-            <el-progress
-              type="circle"
-              :percentage="item.progress"
-              :width="100"
-              color="#47fff1"
-            />
+            <el-progress type="circle" :percentage="item.progress" :width="100" color="#47fff1" />
           </div>
         </div>
         <el-image fit="cover" v-else>
@@ -33,8 +28,8 @@ import nodata from "@/assets/img/no-data.png";
 const props = defineProps({
   list: {
     type: Array,
-    default: []
-  }
+    default: [],
+  },
 });
 </script>
 

@@ -133,7 +133,7 @@ type SystemConfig struct {
 	AdminTitle    string `json:"admin_title,omitempty"`     // 管理后台标题
 	Logo          string `json:"logo,omitempty"`            // 方形 Logo
 	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
-	DailyPower    int    `json:"daily_power,omitempty"`     // 每日赠送算力
+	DailyPower int `json:"daily_power,omitempty"`           // 每日签到赠送算力
 	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
 	VipMonthPower int    `json:"vip_month_power,omitempty"` // VIP 会员每月赠送的算力值
 
@@ -146,7 +146,7 @@ type SystemConfig struct {
 	MjPower           int `json:"mj_power,omitempty"`            // MJ 绘画消耗算力
 	MjActionPower     int `json:"mj_action_power,omitempty"`     // MJ 操作（放大，变换）消耗算力
 	SdPower           int `json:"sd_power,omitempty"`            // SD 绘画消耗算力
-	DallPower         int `json:"dall_power,omitempty"`          // DALL-E-3 绘图消耗算力
+	DallPower int `json:"dall_power,omitempty"`                  // DALL-E-3 绘图消耗算力
 	SunoPower         int `json:"suno_power,omitempty"`          // Suno 生成歌曲消耗算力
 	LumaPower         int `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
 	AdvanceVoicePower int `json:"advance_voice_power,omitempty"` // 高级语音对话消耗算力

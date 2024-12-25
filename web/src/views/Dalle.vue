@@ -7,7 +7,19 @@
 
           <div class="sd-params">
             <el-form :model="params" label-width="80px" label-position="left">
-              <div class="param-line" style="padding-top: 10px">
+              <div class="param-line pt-1">
+                <el-form-item label="生图模型">
+                  <template #default>
+                    <div class="form-item-inner">
+                      <el-select v-model="selectedModel" style="width: 150px" placeholder="请选择模型" @change="changeModel">
+                        <el-option v-for="v in models" :label="v.name" :value="v" :key="v.value" />
+                      </el-select>
+                    </div>
+                  </template>
+                </el-form-item>
+              </div>
+
+              <div class="param-line">
                 <el-form-item label="图片质量">
                   <template #default>
                     <div class="form-item-inner">
@@ -222,7 +234,7 @@ import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
 import { useSharedStore } from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
-import { showMessageError } from "@/utils/dialog";
+import { showMessageError, showMessageOK } from "@/utils/dialog";
 
 const listBoxHeight = ref(0);
 // const paramBoxHeight = ref(0)
@@ -232,6 +244,7 @@ const colWidth = ref(220);
 const isOver = ref(false);
 const previewURL = ref("");
 const store = useSharedStore();
+const models = ref([]);
 
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 58;
@@ -245,7 +258,9 @@ const qualities = [
   { name: "标准", value: "standard" },
   { name: "高清", value: "hd" },
 ];
-const sizes = ["1024x1024", "1792x1024", "1024x1792"];
+const dalleSizes = ["1024x1024", "1792x1024", "1024x1792"];
+const fluxSizes = ["1024x1024", "1024x768", "768x1024", "1280x960", "960x1280", "1366x768", "768x1366"];
+const sizes = ref(dalleSizes);
 const styles = [
   { name: "生动", value: "vivid" },
   { name: "自然", value: "natural" },
@@ -264,15 +279,17 @@ const power = ref(0);
 const dallPower = ref(0); // 画一张 SD 图片消耗算力
 const clipboard = ref(null);
 const userId = ref(0);
+const selectedModel = ref(null);
+
 onMounted(() => {
   initData();
   clipboard.value = new Clipboard(".copy-prompt");
   clipboard.value.on("success", () => {
-    ElMessage.success("复制成功！");
+    showMessageOK("复制成功！");
   });
 
   clipboard.value.on("error", () => {
-    ElMessage.error("复制失败！");
+    showMessageError("复制失败！");
   });
 
   getSystemInfo()
@@ -280,7 +297,7 @@ onMounted(() => {
       dallPower.value = res.data["dall_power"];
     })
     .catch((e) => {
-      ElMessage.error("获取系统配置失败：" + e.message);
+      showMessageError("获取系统配置失败：" + e.message);
     });
 
   store.addMessageHandler("dall", (data) => {
@@ -296,6 +313,15 @@ onMounted(() => {
     }
     nextTick(() => fetchRunningJobs());
   });
+
+  // 获取模型列表
+  httpGet("/api/dall/models")
+    .then((res) => {
+      models.value = res.data;
+    })
+    .catch((e) => {
+      showMessageError("获取模型列表失败：" + e.message);
+    });
 });
 
 onUnmounted(() => {
@@ -367,6 +393,9 @@ const fetchFinishJobs = () => {
 // 创建绘图任务
 const promptRef = ref(null);
 const generate = () => {
+  if (!params.value.model_id) {
+    return ElMessage.error("请选择生图模型！");
+  }
   if (params.value.prompt === "") {
     promptRef.value.focus();
     return ElMessage.error("请输入绘画提示词！");
@@ -445,6 +474,15 @@ const generatePrompt = () => {
       showMessageError("生成提示词失败：" + e.message);
       isGenerating.value = false;
     });
+};
+
+const changeModel = (model) => {
+  if (model.value.startsWith("dall")) {
+    sizes.value = dalleSizes;
+  } else {
+    sizes.value = fluxSizes;
+  }
+  params.value.model_id = selectedModel.value.id;
 };
 </script>
 

@@ -17,10 +17,11 @@ import (
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
-	req2 "github.com/imroc/req/v3"
 	"io"
 	"strings"
 	"time"
+
+	req2 "github.com/imroc/req/v3"
 )
 
 type Usage struct {
@@ -172,16 +173,22 @@ func (h *ChatHandler) sendOpenAiMessage(
 			var apiRes types.BizVo
 			r, err := req2.C().R().SetHeader("Body-Type", "application/json").
 				SetHeader("Authorization", function.Token).
-				SetBody(params).
-				SetSuccessResult(&apiRes).Post(function.Action)
+				SetBody(params).Post(function.Action)
 			errMsg := ""
 			if err != nil {
 				errMsg = err.Error()
-			} else if r.IsErrorState() {
-				errMsg = r.Status
+			} else {
+				all, _ := io.ReadAll(r.Body)
+				err = json.Unmarshal(all, &apiRes)
+				if err != nil {
+					errMsg = err.Error()
+				} else if apiRes.Code != types.Success {
+					errMsg = apiRes.Message
+				}
 			}
-			if errMsg != "" || apiRes.Code != types.Success {
-				errMsg = "调用函数工具出错：" + apiRes.Message + errMsg
+
+			if errMsg != "" {
+				errMsg = "调用函数工具出错：" + errMsg
 				contents = append(contents, errMsg)
 			} else {
 				errMsg = utils.InterfaceToString(apiRes.Data)

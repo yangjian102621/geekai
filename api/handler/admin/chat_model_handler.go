@@ -43,6 +43,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Temperature float32 `json:"temperature"` // 模型温度
 		KeyId       int     `json:"key_id,omitempty"`
 		CreatedAt   int64   `json:"created_at"`
+		Type        string  `json:"type"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -65,7 +66,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 	item.MaxContext = data.MaxContext
 	item.Temperature = data.Temperature
 	item.KeyId = data.KeyId
-
+	item.Type = data.Type
 	var res *gorm.DB
 	if data.Id > 0 {
 		res = h.DB.Save(&item)

@@ -474,6 +474,7 @@ func main() {
 			group.GET("imgWall", h.ImgWall)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
+			group.GET("models", h.GetModels)
 		}),
 		fx.Provide(handler.NewSunoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.SunoHandler) {

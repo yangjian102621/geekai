@@ -13,4 +13,5 @@ type ChatModel struct {
 	Temperature float32 `json:"temperature"` // 模型温度
 	KeyId       int     `json:"key_id,omitempty"`
 	KeyName     string  `json:"key_name"`
+	Type        string  `json:"type"`
 }

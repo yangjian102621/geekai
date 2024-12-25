@@ -7,7 +7,7 @@
 
       <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
-      <a href="https://api.chat-plus.net" target="_blank" style="margin-left: 10px">
+      <a href="https://api.geekai.pro" target="_blank" style="margin-left: 10px">
         <el-button type="success" :icon="ShoppingCart" @click="add" plain>购买API-KEY</el-button>
       </a>
     </div>
@@ -66,10 +66,21 @@
     <el-dialog v-model="showDialog" :close-on-click-modal="false" :title="title">
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="名称：" prop="name">
-          <el-input v-model="item.name" autocomplete="off" />
+          <template #default>
+            <el-row :gutter="10" class="w-full">
+              <el-col :span="12">
+                <el-input v-model="item.name" autocomplete="off" />
+              </el-col>
+              <el-col :span="12">
+                <el-select v-model="preset" placeholder="请选择预设" @change="changePreset">
+                  <el-option v-for="item in presets" :value="item" :label="item.label" :key="item.value">{{ item.label }} </el-option>
+                </el-select>
+              </el-col>
+            </el-row>
+          </template>
         </el-form-item>
         <el-form-item label="类型：" prop="type">
-          <el-select v-model="item.type" placeholder="请选择类型" @change="changeType">
+          <el-select v-model="item.type" placeholder="请选择类型">
             <el-option v-for="item in types" :value="item.value" :label="item.label" :key="item.value">{{ item.label }} </el-option>
           </el-select>
         </el-form-item>
@@ -111,10 +122,7 @@ import ClipboardJS from "clipboard";
 // 变量定义
 const items = ref([]);
 const query = ref({ type: "" });
-const item = ref({
-  enabled: true,
-  api_url: "",
-});
+const item = ref({});
 const showDialog = ref(false);
 const rules = reactive({
   name: [{ required: true, message: "请输入名称", trigger: "change" }],
@@ -136,6 +144,14 @@ const types = ref([
 ]);
 const isEdit = ref(false);
 const clipboard = ref(null);
+const presets = ref([
+  { label: "GiteeAI", value: "https://ai.gitee.com" },
+  { label: "中转01", value: "https://api.geekai.pro" },
+  { label: "中转03", value: "https://api.geekai.me" },
+  { label: "OpenAI", value: "https://api.openai.com" },
+]);
+const preset = ref(null);
+
 onMounted(() => {
   clipboard.value = new ClipboardJS(".copy-key");
   clipboard.value.on("success", () => {
@@ -153,18 +169,6 @@ onUnmounted(() => {
   clipboard.value.destroy();
 });
 
-const changeType = (event) => {
-  if (isEdit.value) {
-    return;
-  }
-
-  if (event === "realtime") {
-    item.value.api_url = "wss://api.geekai.pro";
-  } else {
-    item.value.api_url = "https://api.geekai.pro";
-  }
-};
-
 const getTypeName = (type) => {
   for (let v of types.value) {
     if (v.value === type) {
@@ -175,7 +179,6 @@ const getTypeName = (type) => {
 };
 
 // 获取数据
-
 const fetchData = () => {
   httpGet("/api/admin/apikey/list", query.value)
     .then((res) => {
@@ -198,6 +201,10 @@ const add = function () {
   showDialog.value = true;
   title.value = "新增 API KEY";
   isEdit.value = false;
+  item.value = {
+    enabled: true,
+    api_url: "",
+  };
 };
 
 const edit = function (row) {
@@ -250,6 +257,13 @@ const set = (filed, row) => {
     .catch((e) => {
       ElMessage.error("操作失败：" + e.message);
     });
+};
+
+const changePreset = (row) => {
+  item.value.api_url = row.value;
+  if (!item.value.name) {
+    item.value.name = row.label;
+  }
 };
 </script>
 

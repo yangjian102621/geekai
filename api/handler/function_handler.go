@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/service/dalle"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -32,6 +33,7 @@ type FunctionHandler struct {
 	config        types.ApiConfig
 	uploadManager *oss.UploaderManager
 	dallService   *dalle.Service
+	userService   *service.UserService
 }
 
 func NewFunctionHandler(
@@ -39,7 +41,8 @@ func NewFunctionHandler(
 	db *gorm.DB,
 	config *types.AppConfig,
 	manager *oss.UploaderManager,
-	dallService *dalle.Service) *FunctionHandler {
+	dallService *dalle.Service,
+	userService *service.UserService) *FunctionHandler {
 	return &FunctionHandler{
 		BaseHandler: BaseHandler{
 			App: server,
@@ -48,6 +51,7 @@ func NewFunctionHandler(
 		config:        config.ApiConfig,
 		uploadManager: manager,
 		dallService:   dallService,
+		userService:   userService,
 	}
 }
 
@@ -152,8 +156,12 @@ func (h *FunctionHandler) ZaoBao(c *gin.Context) {
 		SetHeader("AppId", h.config.AppId).
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.config.Token)).
 		SetSuccessResult(&res).Get(url)
-	if err != nil || r.IsErrorState() {
-		resp.ERROR(c, fmt.Sprintf("%v%v", err, r.Err))
+	if err != nil {
+		resp.ERROR(c, fmt.Sprintf("%v", err))
+		return
+	}
+	if r.IsErrorState() {
+		resp.ERROR(c, fmt.Sprintf("%v", r.Err))
 		return
 	}
 
@@ -167,7 +175,7 @@ func (h *FunctionHandler) ZaoBao(c *gin.Context) {
 	for _, v := range res.Data.Items {
 		builder = append(builder, v.Title)
 	}
-	builder = append(builder, fmt.Sprintf("%s", res.Data.Title))
+	builder = append(builder, res.Data.Title)
 	resp.SUCCESS(c, strings.Join(builder, "\n\n"))
 }
 
@@ -199,30 +207,45 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 
 	// create dall task
 	prompt := utils.InterfaceToString(params["prompt"])
-	job := model.DallJob{
-		UserId: user.Id,
-		Prompt: prompt,
-		Power:  h.App.SysConfig.DallPower,
+	task := types.DallTask{
+		UserId:           user.Id,
+		Prompt:           prompt,
+		ModelId:          0,
+		ModelName:        "dall-e-3",
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		N:                1,
+		Quality:          "standard",
+		Size:             "1024x1024",
+		Style:            "vivid",
+		Power:            h.App.SysConfig.DallPower,
 	}
-	res = h.DB.Create(&job)
-
-	if res.Error != nil {
-		resp.ERROR(c, "创建 DALL-E 绘图任务失败："+res.Error.Error())
+	job := model.DallJob{
+		UserId:   user.Id,
+		Prompt:   prompt,
+		Power:    h.App.SysConfig.DallPower,
+		TaskInfo: utils.JsonEncode(task),
+	}
+	err := h.DB.Create(&job).Error
+	if err != nil {
+		resp.ERROR(c, "创建 DALL-E 绘图任务失败："+err.Error())
 		return
 	}
 
-	content, err := h.dallService.Image(types.DallTask{
-		Id:      job.Id,
-		UserId:  user.Id,
-		Prompt:  job.Prompt,
-		N:       1,
-		Quality: "standard",
-		Size:    "1024x1024",
-		Style:   "vivid",
-		Power:   job.Power,
-	}, true)
+	task.Id = job.Id
+	content, err := h.dallService.Image(task, true)
 	if err != nil {
 		resp.ERROR(c, "任务执行失败："+err.Error())
+		return
+	}
+
+	// 扣减算力
+	err = h.userService.DecreasePower(int(user.Id), job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  task.ModelName,
+		Remark: fmt.Sprintf("绘画提示词：%s", utils.CutWords(job.Prompt, 10)),
+	})
+	if err != nil {
+		resp.ERROR(c, "扣减算力失败："+err.Error())
 		return
 	}
 

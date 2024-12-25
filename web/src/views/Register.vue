@@ -10,83 +10,36 @@
                 <el-tab-pane label="手机注册" name="mobile" v-if="enableMobile">
                   <el-form-item>
                     <div class="form-title">手机号码</div>
-                    <el-input
-                      placeholder="请输入手机号码"
-                      size="large"
-                      v-model="data.mobile"
-                      maxlength="11"
-                      autocomplete="off"
-                    >
-                    </el-input>
+                    <el-input placeholder="请输入手机号码" size="large" v-model="data.mobile" maxlength="11" autocomplete="off"> </el-input>
                   </el-form-item>
                   <el-form-item>
                     <div class="form-title">验证码</div>
                     <div class="flex w100">
-                      <el-input
-                        placeholder="请输入验证码"
-                        size="large"
-                        maxlength="30"
-                        class="code-input"
-                        v-model="data.code"
-                        autocomplete="off"
-                      >
-                      </el-input>
+                      <el-input placeholder="请输入验证码" size="large" maxlength="30" class="code-input" v-model="data.code" autocomplete="off"> </el-input>
 
-                      <send-msg
-                        size="large"
-                        :receiver="data.mobile"
-                        type="mobile"
-                      />
+                      <send-msg size="large" :receiver="data.mobile" type="mobile" />
                     </div>
                   </el-form-item>
                 </el-tab-pane>
                 <el-tab-pane label="邮箱注册" name="email" v-if="enableEmail">
                   <el-form-item class="block">
                     <div class="form-title">邮箱</div>
-                    <el-input
-                      placeholder="请输入邮箱地址"
-                      size="large"
-                      v-model="data.email"
-                      autocomplete="off"
-                    >
-                    </el-input>
+                    <el-input placeholder="请输入邮箱地址" size="large" v-model="data.email" autocomplete="off"> </el-input>
                   </el-form-item>
                   <el-form-item class="block">
                     <div class="form-title">验证码</div>
                     <div class="flex w100">
-                      <el-input
-                        placeholder="请输入验证码"
-                        size="large"
-                        maxlength="30"
-                        class="code-input"
-                        v-model="data.code"
-                        autocomplete="off"
-                      >
-                      </el-input>
+                      <el-input placeholder="请输入验证码" size="large" maxlength="30" class="code-input" v-model="data.code" autocomplete="off"> </el-input>
 
-                      <send-msg
-                        size="large"
-                        :receiver="data.email"
-                        type="email"
-                      />
+                      <send-msg size="large" :receiver="data.email" type="email" />
                     </div>
                   </el-form-item>
                 </el-tab-pane>
-                <el-tab-pane
-                  label="用户名注册"
-                  name="username"
-                  v-if="enableUser"
-                >
+                <el-tab-pane label="用户名注册" name="username" v-if="enableUser">
                   <el-form-item class="block">
                     <div class="form-title">用户名</div>
 
-                    <el-input
-                      placeholder="请输入用户名"
-                      size="large"
-                      v-model="data.username"
-                      autocomplete="off"
-                    >
-                    </el-input>
+                    <el-input placeholder="请输入用户名" size="large" v-model="data.username" autocomplete="off"> </el-input>
                   </el-form-item>
                 </el-tab-pane>
               </el-tabs>
@@ -94,52 +47,24 @@
               <el-form-item class="block">
                 <div class="form-title">密码</div>
 
-                <el-input
-                  placeholder="请输入密码(8-16位)"
-                  maxlength="16"
-                  size="large"
-                  v-model="data.password"
-                  show-password
-                  autocomplete="off"
-                >
-                </el-input>
+                <el-input placeholder="请输入密码(8-16位)" maxlength="16" size="large" v-model="data.password" show-password autocomplete="off"> </el-input>
               </el-form-item>
 
               <el-form-item class="block">
                 <div class="form-title">重复密码</div>
 
-                <el-input
-                  placeholder="请再次输入密码(8-16位)"
-                  size="large"
-                  maxlength="16"
-                  v-model="data.repass"
-                  show-password
-                  autocomplete="off"
-                >
-                </el-input>
+                <el-input placeholder="请再次输入密码(8-16位)" size="large" maxlength="16" v-model="data.repass" show-password autocomplete="off"> </el-input>
               </el-form-item>
 
               <el-form-item class="block">
                 <div class="form-title">邀请码</div>
 
-                <el-input
-                  placeholder="请输入邀请码(可选)"
-                  size="large"
-                  v-model="data.invite_code"
-                  autocomplete="off"
-                >
-                </el-input>
+                <el-input placeholder="请输入邀请码(可选)" size="large" v-model="data.invite_code" autocomplete="off"> </el-input>
               </el-form-item>
 
               <el-row class="btn-row" :gutter="20">
                 <el-col :span="24">
-                  <el-button
-                    class="login-btn"
-                    type="primary"
-                    size="large"
-                    @click="submitRegister"
-                    >注册</el-button
-                  >
+                  <el-button class="login-btn" type="primary" size="large" @click="submitRegister">注册</el-button>
                 </el-col>
               </el-row>
             </el-form>
@@ -156,11 +81,7 @@
           </template>
         </el-result>
       </div>
-      <captcha
-        v-if="enableVerify"
-        @success="doSubmitRegister"
-        ref="captchaRef"
-      />
+      <captcha v-if="enableVerify" @success="doSubmitRegister" ref="captchaRef" />
       <account-bg />
     </div>
   </div>
@@ -193,7 +114,7 @@ const data = ref({
   password: "",
   code: "",
   repass: "",
-  invite_code: router.currentRoute.value.query["invite_code"]
+  invite_code: router.currentRoute.value.query["invite_code"],
 });
 
 const enableMobile = ref(false);
@@ -272,10 +193,7 @@ const submitRegister = () => {
     return showMessageError("两次输入密码不一致");
   }
 
-  if (
-    (activeName.value === "mobile" || activeName.value === "email") &&
-    data.value.code === ""
-  ) {
+  if ((activeName.value === "mobile" || activeName.value === "email") && data.value.code === "") {
     return showMessageError("请输入验证码");
   }
 
@@ -310,11 +228,11 @@ const doSubmitRegister = (verifyData) => {
 
 <style lang="stylus" scoped>
 @import "@/assets/css/login.styl"
-  ::v-deep(.back){
+  :deep(.back){
     margin-bottom: 10px;
   }
 
-  ::v-deep(.orline){
+  :deep(.orline){
     margin-bottom: 10px;
   }
   .wechat-card {
