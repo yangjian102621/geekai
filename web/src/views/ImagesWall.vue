@@ -3,7 +3,7 @@
     <div class="inner custom-scroll">
       <div class="header">
         <h2 class="text-xl pt-4 pb-4">AI 绘画作品墙</h2>
-        <div class="settings">
+        <div class="settings pr-14">
           <el-radio-group v-model="imgType" @change="changeImgType">
             <el-radio value="mj" size="large">MidJourney</el-radio>
             <el-radio value="sd" size="large">Stable Diffusion</el-radio>
@@ -161,120 +161,7 @@
       <!-- end of waterfall -->
     </div>
     <!-- 任务详情弹框 -->
-    <el-dialog v-model="showTaskDialog" title="绘画任务详情" :fullscreen="true">
-      <el-row :gutter="20">
-        <el-col :span="16">
-          <div class="img-container" :style="{ maxHeight: fullImgHeight + 'px' }">
-            <el-image :src="item['img_url']" fit="contain">
-              <template #placeholder>
-                <div class="image-slot">正在加载图片</div>
-              </template>
-
-              <template #error>
-                <div class="image-slot">
-                  <el-icon>
-                    <Picture />
-                  </el-icon>
-                </div>
-              </template>
-            </el-image>
-          </div>
-        </el-col>
-        <el-col :span="8">
-          <div class="task-info">
-            <div class="info-line">
-              <el-divider> 正向提示词 </el-divider>
-              <div class="prompt">
-                <span>{{ item.prompt }}</span>
-                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.prompt">
-                  <DocumentCopy />
-                </el-icon>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <el-divider> 反向提示词 </el-divider>
-              <div class="prompt">
-                <span>{{ item.params.negative_prompt }}</span>
-                <el-icon class="copy-prompt-wall" :data-clipboard-text="item.params.negative_prompt">
-                  <DocumentCopy />
-                </el-icon>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>采样方法：</label>
-                <div class="item-value">{{ item.params.sampler }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>图片尺寸：</label>
-                <div class="item-value">{{ item.params.width }} x {{ item.params.height }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>迭代步数：</label>
-                <div class="item-value">{{ item.params.steps }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>引导系数：</label>
-                <div class="item-value">{{ item.params.cfg_scale }}</div>
-              </div>
-            </div>
-
-            <div class="info-line">
-              <div class="wrapper">
-                <label>随机因子：</label>
-                <div class="item-value">{{ item.params.seed }}</div>
-              </div>
-            </div>
-
-            <div v-if="item.params.hd_fix">
-              <el-divider> 高清修复 </el-divider>
-              <div class="info-line">
-                <div class="wrapper">
-                  <label>重绘幅度：</label>
-                  <div class="item-value">{{ item.params.hd_redraw_rate }}</div>
-                </div>
-              </div>
-
-              <div class="info-line">
-                <div class="wrapper">
-                  <label>放大算法：</label>
-                  <div class="item-value">{{ item.params.hd_scale_alg }}</div>
-                </div>
-              </div>
-
-              <div class="info-line">
-                <div class="wrapper">
-                  <label>放大倍数：</label>
-                  <div class="item-value">{{ item.params.hd_scale }}</div>
-                </div>
-              </div>
-
-              <div class="info-line">
-                <div class="wrapper">
-                  <label>迭代步数：</label>
-                  <div class="item-value">{{ item.params.hd_steps }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="copy-params">
-              <el-button type="primary" round @click="drawSameSd(item)">画一张同款的</el-button>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </el-dialog>
+    <sd-task-view v-model="showTaskDialog" :data="item" @drawSame="drawSameSd" @close="showTaskDialog = false" />
   </div>
 </template>
 
@@ -287,7 +174,7 @@ import { ElMessage } from "element-plus";
 import Clipboard from "clipboard";
 import { useRouter } from "vue-router";
 import BackTop from "@/components/BackTop.vue";
-
+import SdTaskView from "@/components/SdTaskView.vue";
 const data = ref({
   mj: [],
   sd: [],
@@ -298,7 +185,6 @@ const isOver = ref(false);
 const imgType = ref("mj"); // 图片类别
 const listBoxHeight = window.innerHeight - 124;
 const colWidth = ref(220);
-const fullImgHeight = ref(window.innerHeight - 60);
 const showTaskDialog = ref(false);
 const item = ref({});
 

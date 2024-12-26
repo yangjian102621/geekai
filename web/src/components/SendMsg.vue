@@ -1,11 +1,6 @@
 <template>
   <el-container class="send-verify-code">
-    <el-button
-        type="success"
-      :size="props.size"
-      :disabled="!canSend"
-      @click="sendMsg"
-    >
+    <el-button type="success" :size="props.size" :disabled="!canSend" @click="sendMsg">
       {{ btnText }}
     </el-button>
 
@@ -15,12 +10,12 @@
 
 <script setup>
 // 发送短信验证码组件
-import {ref} from "vue";
-import {validateEmail, validateMobile} from "@/utils/validate";
-import {httpPost} from "@/utils/http";
-import {showMessageError, showMessageOK} from "@/utils/dialog";
+import { ref } from "vue";
+import { validateEmail, validateMobile } from "@/utils/validate";
+import { httpPost } from "@/utils/http";
+import { ElMessage } from "element-plus";
 import Captcha from "@/components/Captcha.vue";
-import {getSystemInfo} from "@/store/cache";
+import { getSystemInfo } from "@/store/cache";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -28,8 +23,8 @@ const props = defineProps({
   size: String,
   type: {
     type: String,
-    default: "mobile"
-  }
+    default: "mobile",
+  },
 });
 const btnText = ref("发送验证码");
 const canSend = ref(true);
@@ -42,10 +37,10 @@ getSystemInfo().then((res) => {
 
 const sendMsg = () => {
   if (!validateMobile(props.receiver) && props.type === "mobile") {
-    return showMessageError("请输入合法的手机号");
+    return ElMessage.error("请输入合法的手机号");
   }
   if (!validateEmail(props.receiver) && props.type === "email") {
-    return showMessageError("请输入合法的邮箱地址");
+    return ElMessage.error("请输入合法的邮箱地址");
   }
 
   if (enableVerify.value) {
@@ -65,10 +60,10 @@ const doSendMsg = (data) => {
     receiver: props.receiver,
     key: data.key,
     dots: data.dots,
-    x: data.x
+    x: data.x,
   })
     .then(() => {
-      showMessageOK("验证码发送成功");
+      ElMessage.success("验证码发送成功");
       let time = 60;
       btnText.value = time;
       const handler = setInterval(() => {
@@ -84,7 +79,7 @@ const doSendMsg = (data) => {
     })
     .catch((e) => {
       canSend.value = true;
-      showMessageError("验证码发送失败：" + e.message);
+      ElMessage.error("验证码发送失败：" + e.message);
     });
 };
 </script>

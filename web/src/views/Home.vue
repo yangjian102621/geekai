@@ -9,8 +9,10 @@
         </div>
         <div class="flex" :class="{ 'top-collapse': !isCollapse }">
           <div class="top-avatar flex">
-            <span class="title" v-if="!isCollapse">GeekAI</span>
-            <img v-if="loginUser.id" :src="!!loginUser.avatar ? loginUser.avatar : avatarImg" alt="" :class="{ marr: !isCollapse }" />
+            <span class="title" v-if="!isCollapse">{{ title }}</span>
+            <el-tooltip :content="title" placement="right">
+              <img :src="logo" alt="" :class="{ marr: !isCollapse }" v-if="isCollapse" />
+            </el-tooltip>
           </div>
           <div class="menuIcon xxx" @click="isCollapse = !isCollapse">
             <el-tooltip content="关闭菜单" placement="right" v-if="!isCollapse">
@@ -81,6 +83,9 @@
               <template #default>
                 <ul class="more-menus setting-menus">
                   <li>
+                    <img :src="loginUser.avatar ? loginUser.avatar : avatarImg" />
+                  </li>
+                  <li>
                     <div @click="showConfigDialog = true" class="flex">
                       <el-icon>
                         <UserFilled />
@@ -113,12 +118,6 @@
       </div>
     </div>
     <el-scrollbar class="right-main">
-      <div
-        v-if="loginUser.id === undefined || !loginUser.id"
-        class="loginMask"
-        :style="{ left: isCollapse ? '65px' : '170px' }"
-        @click="showNoticeLogin = true"
-      ></div>
       <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
         <el-button @click="router.push('/login')" class="btn-go animate__animated animate__pulse animate__infinite" round>登录</el-button>
       </div>
@@ -132,12 +131,14 @@
       <!-- </div> -->
     </el-scrollbar>
     <config-dialog v-if="loginUser.id" :show="showConfigDialog" @hide="showConfigDialog = false" />
-    <el-dialog v-model="showNoticeLogin">
-      <el-result icon="warning" title="未登录" sub-title="登录后解锁功能">
-        <template #extra>
-          <el-button type="primary" @click="router.push('/login')">登录</el-button>
-        </template>
-      </el-result>
+
+    <el-dialog v-model="showLoginDialog" width="500px" @close="store.setShowLoginDialog(false)">
+      <template #header>
+        <div class="text-center text-xl" style="color: var(--theme-text-color-primary)">登录后解锁功能</div>
+      </template>
+      <div class="p-4 pt-2 pb-2">
+        <LoginDialog @success="loginSuccess" @hide="store.setShowLoginDialog(false)" />
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -145,7 +146,6 @@
 <script setup>
 import { CirclePlus, Setting, UserFilled } from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
-import avatarImg from "@/assets/img/avatar.jpg";
 import { useRouter } from "vue-router";
 import { onMounted, ref, watch } from "vue";
 import { httpGet } from "@/utils/http";
@@ -155,6 +155,8 @@ import { removeUserToken } from "@/store/session";
 import { useSharedStore } from "@/store/sharedata";
 import ConfigDialog from "@/components/UserInfoDialog.vue";
 import { showMessageError } from "@/utils/dialog";
+import LoginDialog from "@/components/LoginDialog.vue";
+import { substr } from "@/utils/libs";
 
 const isCollapse = ref(true);
 const router = useRouter();
@@ -164,7 +166,14 @@ const moreNavs = ref([]);
 const curPath = ref();
 
 const title = ref("");
-const showNoticeLogin = ref(false);
+const avatarImg = ref("/images/avatar/default.jpg");
+const store = useSharedStore();
+const loginUser = ref({});
+const routerViewKey = ref(0);
+const showConfigDialog = ref(false);
+const license = ref({ de_copy: true });
+const gitURL = ref(process.env.VUE_APP_GIT_URL);
+const showLoginDialog = ref(false);
 
 /**
  * 从路径名中提取第一个路径段
@@ -190,18 +199,11 @@ const getFirstPathSegment = (url) => {
     return null;
   }
 };
-const loginUser = ref({});
-const routerViewKey = ref(0);
-const showConfigDialog = ref(false);
-const license = ref({ de_copy: true });
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
 
-const store = useSharedStore();
-const show = ref(false);
 watch(
   () => store.showLoginDialog,
   (newValue) => {
-    show.value = newValue;
+    showLoginDialog.value = newValue;
   }
 );
 
@@ -216,7 +218,6 @@ if (curPath.value === "/external") {
 }
 const changeNav = (item) => {
   curPath.value = item.url;
-  console.log(item.url);
   if (item.url.indexOf("http") !== -1) {
     // 外部链接
     router.push({ path: "/external", query: { url: item.url, title: item.name } });
@@ -280,15 +281,18 @@ const logout = function () {
   httpGet("/api/user/logout")
     .then(() => {
       removeUserToken();
-      store.setShowLoginDialog(true);
-      store.setIsLogin(false);
-      loginUser.value = {};
-      // 刷新组件
-      routerViewKey.value += 1;
+      router.push("/login");
     })
     .catch(() => {
       ElMessage.error("注销失败！");
     });
+};
+
+const loginSuccess = () => {
+  init();
+  store.setShowLoginDialog(false);
+  // 刷新组件
+  routerViewKey.value += 1;
 };
 </script>
 

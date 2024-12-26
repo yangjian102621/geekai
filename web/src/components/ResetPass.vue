@@ -1,13 +1,6 @@
 <template>
   <div class="reset-pass">
-    <el-dialog
-      v-model="showDialog"
-      :close-on-click-modal="true"
-      width="540px"
-      :before-close="close"
-      :title="title"
-      class="reset-pass-dialog"
-    >
+    <el-dialog v-model="showDialog" :close-on-click-modal="true" width="500px" :before-close="close" :title="title" class="reset-pass-dialog">
       <div class="form">
         <el-form :model="form" label-width="80px" label-position="left">
           <el-tabs v-model="form.type" class="demo-tabs">
@@ -16,14 +9,10 @@
                 <el-input v-model="form.mobile" placeholder="请输入手机号" />
               </el-form-item>
               <el-form-item label="验证码">
-                <el-row class="code-row">
-                  <el-col :span="16">
-                    <el-input v-model="form.code" maxlength="6" />
-                  </el-col>
-                  <el-col :span="8" class="send-button">
-                    <send-msg size="" :receiver="form.mobile" type="mobile" />
-                  </el-col>
-                </el-row>
+                <div class="flex">
+                  <el-input v-model="form.code" maxlength="6" class="mr-2 w-1/2" />
+                  <send-msg size="" :receiver="form.mobile" type="mobile" />
+                </div>
               </el-form-item>
             </el-tab-pane>
             <el-tab-pane label="邮箱验证" name="email">
@@ -31,14 +20,10 @@
                 <el-input v-model="form.email" placeholder="请输入邮箱地址" />
               </el-form-item>
               <el-form-item label="验证码">
-                <el-row class="code-row">
-                  <el-col :span="16">
-                    <el-input v-model="form.code" maxlength="6" />
-                  </el-col>
-                  <el-col :span="8" class="send-button">
-                    <send-msg size="" :receiver="form.email" type="email" />
-                  </el-col>
-                </el-row>
+                <div class="flex">
+                  <el-input v-model="form.code" maxlength="6" class="mr-2 w-1/2" />
+                  <send-msg size="" :receiver="form.email" type="email" />
+                </div>
               </el-form-item>
             </el-tab-pane>
           </el-tabs>
@@ -70,7 +55,7 @@ import { validateEmail, validateMobile } from "@/utils/validate";
 
 const props = defineProps({
   show: Boolean,
-  mobile: String
+  mobile: String,
 });
 
 const showDialog = computed(() => {
@@ -84,7 +69,7 @@ const form = ref({
   type: "mobile",
   code: "",
   password: "",
-  repass: ""
+  repass: "",
 });
 
 const emits = defineEmits(["hide"]);
@@ -105,7 +90,7 @@ const save = () => {
       ElMessage.success({
         message: "重置密码成功",
         duration: 1000,
-        onClose: () => emits("hide", false)
+        onClose: () => emits("hide", false),
       });
     })
     .catch((e) => {

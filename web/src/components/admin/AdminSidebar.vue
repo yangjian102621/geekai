@@ -1,7 +1,7 @@
 <template>
   <div :class="'sidebar ' + theme">
-    <a class="logo w-full" href="/" target="_blank">
-      <el-image :src="logo" />
+    <a class="logo w-full flex items-center" href="/" target="_blank">
+      <img :src="logo" style="height: 36px" />
       <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
     </a>
 

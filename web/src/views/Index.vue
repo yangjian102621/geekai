@@ -6,9 +6,7 @@
       <el-menu mode="horizontal" :ellipsis="false">
         <div class="menu-item">
           <!-- <el-image :src="logo" class="logo" alt="Geek-AI" /> -->
-          <div class="logo-box">
-            <img src="@/assets/img/logo.png" alt="" />
-          </div>
+          <img :src="logo" class="logo" alt="" />
         </div>
         <div class="menu-item">
           <span v-if="!license.de_copy">
