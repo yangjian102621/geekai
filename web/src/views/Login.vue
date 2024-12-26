@@ -132,8 +132,8 @@ const login = async function () {
 const store = useSharedStore();
 const doLogin = (verifyData) => {
   httpPost("/api/user/login", {
-    username: username.value.trim(),
-    password: password.value.trim(),
+    username: username.value,
+    password: password.value,
     key: verifyData.key,
     dots: verifyData.dots,
     x: verifyData.x,
