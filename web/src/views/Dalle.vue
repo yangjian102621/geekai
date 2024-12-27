@@ -95,7 +95,7 @@
             <el-button type="primary" :dark="false" round @click="generate"> 立即生成 </el-button>
           </div>
         </div>
-        <div class="task-list-box pl-6 pr-6 pb-4 pt-4">
+        <div class="task-list-box pl-6 pr-6 pb-4 pt-4 h-dvh">
           <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
               <h2 class="text-xl">任务列表</h2>
@@ -318,6 +318,8 @@ onMounted(() => {
   httpGet("/api/dall/models")
     .then((res) => {
       models.value = res.data;
+      selectedModel.value = models.value[0];
+      params.value.model_id = selectedModel.value.id;
     })
     .catch((e) => {
       showMessageError("获取模型列表失败：" + e.message);
@@ -393,9 +395,6 @@ const fetchFinishJobs = () => {
 // 创建绘图任务
 const promptRef = ref(null);
 const generate = () => {
-  if (!params.value.model_id) {
-    return ElMessage.error("请选择生图模型！");
-  }
   if (params.value.prompt === "") {
     promptRef.value.focus();
     return ElMessage.error("请输入绘画提示词！");

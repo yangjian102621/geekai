@@ -2,7 +2,9 @@
   <div class="login flex w-full flex-col place-content-center h-lvh">
     <el-image src="/images/logo.png" class="w-1/2 mx-auto logo" />
     <div class="title text-center text-3xl font-bold mt-8">{{ title }}</div>
-    <login-dialog @success="loginSuccess" />
+    <div class="w-full p-8">
+      <login-dialog @success="loginSuccess" />
+    </div>
   </div>
 </template>
 

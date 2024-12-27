@@ -151,7 +151,7 @@
           </el-form>
         </div>
       </div>
-      <div class="task-list-box pl-6 pr-6 pb-4">
+      <div class="task-list-box pl-6 pr-6 pb-4 h-dvh">
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <div class="extra-params">
             <el-form>

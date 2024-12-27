@@ -1,5 +1,5 @@
 <template>
-  <div class="login-dialog w-full p-8">
+  <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
       <el-form :model="data" class="form">
         <div class="block">
@@ -292,10 +292,10 @@ const submit = (verifyData) => {
 
 // 登录操作
 const submitLogin = () => {
-  if (data.value.username === "") {
+  if (!data.value.username) {
     return ElMessage.error("请输入用户名");
   }
-  if (data.value.password === "") {
+  if (!data.value.password) {
     return ElMessage.error("请输入密码");
   }
   if (enableVerify.value) {

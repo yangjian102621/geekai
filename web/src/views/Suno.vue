@@ -1,6 +1,5 @@
 <template>
-  <!-- :style="{ height: winHeight + 'px' }" -->
-  <div class="page-suno" :style="{ height: winHeight + 'px' }">
+  <div class="page-suno">
     <div class="left-bar">
       <div class="bar-top">
         <el-tooltip content="定义模式" placement="top">
@@ -135,7 +134,7 @@
         </div>
       </div>
     </div>
-    <div class="right-box" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
+    <div class="right-box h-dvh" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
       <div class="list-box" v-if="!noData">
         <div v-for="item in list" :key="item.id">
           <div class="item" v-if="item.progress === 100">
@@ -288,9 +287,6 @@ import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
 import Generating from "@/components/ui/Generating.vue";
 import { useSharedStore } from "@/store/sharedata";
-
-// const winHeight = ref(window.innerHeight - 50);
-const winHeight = ref(window.innerHeight - 20);
 
 const custom = ref(false);
 const models = ref([

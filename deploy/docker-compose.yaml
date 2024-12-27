@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   # mysql
   geekai-mysql:
@@ -7,10 +7,10 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=12345678
+      - MYSQL_ROOT_PASSWORD=mhSCk0NheGhmtsha
     ports:
       - "3307:3306"
-    volumes :
+    volumes:
       - ./conf/mysql/my.cnf:/etc/mysql/my.cnf
       - ./data/mysql/data:/var/lib/mysql
       - ./logs/mysql:/var/log/mysql
@@ -21,23 +21,23 @@ services:
     image: registry.cn-shenzhen.aliyuncs.com/geekmaster/redis:6.0.6
     restart: always
     container_name: geekai-redis
-    command: redis-server --requirepass 12345678
-    volumes :
+    command: redis-server --requirepass mhSCk0NheGhmtsha
+    volumes:
       - ./data/redis:/data
     ports:
       - "6380:6379"
 
-#  xxl-job-admin:
-#    container_name: geekai-xxl-job-admin
-#    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/xxl-job-admin:2.4.0
-#    restart: always
-#    ports:
-#      - "8081:8080"
-#    environment:
-#      - PARAMS=--spring.config.location=/application.properties
-#    volumes:
-#      - ./logs/xxl-job:/data/applogs
-#      - ./conf/xxl-job/application.properties:/application.properties
+  #  xxl-job-admin:
+  #    container_name: geekai-xxl-job-admin
+  #    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/xxl-job-admin:2.4.0
+  #    restart: always
+  #    ports:
+  #      - "8081:8080"
+  #    environment:
+  #      - PARAMS=--spring.config.location=/application.properties
+  #    volumes:
+  #      - ./logs/xxl-job:/data/applogs
+  #      - ./conf/xxl-job/application.properties:/application.properties
 
   tika:
     image: registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest
@@ -46,19 +46,18 @@ services:
     ports:
       - "9998:9998"
 
-#  midjourney-proxy:
-#    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/midjourney-proxy:2.6.2
-#    container_name: geekai-midjourney-proxy
-#    restart: always
-#    ports:
-#      - "8082:8080"
-#    volumes:
-#      - ./conf/mj-proxy:/home/spring/config
+  #  midjourney-proxy:
+  #    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/midjourney-proxy:2.6.2
+  #    container_name: geekai-midjourney-proxy
+  #    restart: always
+  #    ports:
+  #      - "8082:8080"
+  #    volumes:
+  #      - ./conf/mj-proxy:/home/spring/config
 
-
-    # 后端 API 程序
+  # 后端 API 程序
   geekai-api:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.1.7-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:v4.1.8-amd64
     container_name: geekai-api
     restart: always
     depends_on:
@@ -80,7 +79,7 @@ services:
 
   # 前端应用
   geekai-web:
-    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.1.7-amd64
+    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:v4.1.8-amd64
     container_name: geekai-web
     restart: always
     depends_on:

@@ -5,8 +5,7 @@
     <div class="menu-box">
       <el-menu mode="horizontal" :ellipsis="false">
         <div class="menu-item">
-          <!-- <el-image :src="logo" class="logo" alt="Geek-AI" /> -->
-          <img :src="logo" class="logo" alt="" />
+          <img :src="logo" class="logo" alt="Geek-AI" />
         </div>
         <div class="menu-item">
           <span v-if="!license.de_copy">

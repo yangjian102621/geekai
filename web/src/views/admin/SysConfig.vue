@@ -209,7 +209,7 @@
                       签到赠送算力
                       <el-tooltip effect="dark" content="每日签到赠送算力" raw-content placement="right">
                         <el-icon>
-                          <InfoFilled/>
+                          <InfoFilled />
                         </el-icon>
                       </el-tooltip>
                     </div>
@@ -249,10 +249,9 @@
                   <template #label>
                     <div class="label-title">
                       MJ操作算力
-                      <el-tooltip effect="dark" content="主要用户函数调用 DALL-E-3 进行绘画" raw-content
-                                  placement="right">
+                      <el-tooltip effect="dark" content="主要用户函数调用 DALL-E-3 进行绘画" raw-content placement="right">
                         <el-icon>
-                          <InfoFilled/>
+                          <InfoFilled />
                         </el-icon>
                       </el-tooltip>
                     </div>
@@ -388,7 +387,9 @@
 
           <!--          <el-text type="danger">请注意：在修复数据前，请先备份好数据库，以免数据丢失！</el-text>-->
 
-          <p><el-button type="primary" @click="fixData">立即修复</el-button></p>
+          <div class="mt-3">
+            <el-button type="primary" @click="fixData">立即修复</el-button>
+          </div>
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -396,17 +397,17 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
+import { onMounted, reactive, ref } from "vue";
+import { httpGet, httpPost } from "@/utils/http";
 import Compressor from "compressorjs";
-import {ElMessage, ElMessageBox} from "element-plus";
-import {CloseBold, InfoFilled, Select, UploadFilled} from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { CloseBold, InfoFilled, Select, UploadFilled } from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
 import Menu from "@/views/admin/Menu.vue";
-import {copyObj, dateFormat} from "@/utils/libs";
+import { copyObj, dateFormat } from "@/utils/libs";
 import ItemsInput from "@/components/ui/ItemsInput.vue";
-import {useSharedStore} from "@/store/sharedata";
+import { useSharedStore } from "@/store/sharedata";
 
 const activeName = ref("basic");
 const system = ref({ models: [] });

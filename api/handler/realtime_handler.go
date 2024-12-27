@@ -143,6 +143,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	err := h.DB.Session(&gorm.Session{}).Where("type", "realtime").Where("enabled", true).First(&apiKey).Error
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("error with fetch OpenAI API KEY：%v", err))
+		return
 	}
 
 	var response utils.OpenAIResponse

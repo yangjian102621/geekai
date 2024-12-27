@@ -1,4 +1,3 @@
-
 .loginPage{
   background: var(--card-bg) !important
   background-color: var(---card-bg) !important
@@ -54,9 +53,10 @@
     width: 306px;
     margin-right: 9px;
   }
- :deep(.el-tabs__item.is-active, .el-tabs__item:hover){
-    color: var(--common-text-color) !important;
-  }
-  .el-tabs__item{
-    color:var( --text-theme-color)
-  }
+:deep(.el-tabs__item.is-active), :deep(.el-tabs__item:hover) {
+  color: var(--common-text-color) !important
+}
+
+:deep(.el-tabs__item) {
+  color: var(--text-theme-color)
+}

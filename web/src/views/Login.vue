@@ -54,8 +54,6 @@ import Captcha from "@/components/Captcha.vue";
 
 const router = useRouter();
 const title = ref("Geek-AI");
-const username = ref(process.env.VUE_APP_USER);
-const password = ref(process.env.VUE_APP_PASS);
 
 const logo = ref("");
 const licenseConfig = ref({});
@@ -132,8 +130,8 @@ const login = async function () {
 const store = useSharedStore();
 const doLogin = (verifyData) => {
   httpPost("/api/user/login", {
-    username: username.value,
-    password: password.value,
+    username: ruleForm.username,
+    password: ruleForm.password,
     key: verifyData.key,
     dots: verifyData.dots,
     x: verifyData.x,

@@ -83,9 +83,6 @@
               <template #default>
                 <ul class="more-menus setting-menus">
                   <li>
-                    <img :src="loginUser.avatar ? loginUser.avatar : avatarImg" />
-                  </li>
-                  <li>
                     <div @click="showConfigDialog = true" class="flex">
                       <el-icon>
                         <UserFilled />
@@ -207,11 +204,11 @@ watch(
   }
 );
 
-// 监听路由变化
-// router.beforeEach((to, from, next) => {
-//   curPath.value = to.path;
-//   next();
-// });
+// 监听路由变化;
+router.beforeEach((to, from, next) => {
+  curPath.value = to.path;
+  next();
+});
 
 if (curPath.value === "/external") {
   curPath.value = router.currentRoute.value.query.url;

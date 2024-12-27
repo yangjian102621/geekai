@@ -78,6 +78,10 @@
             <div class="wechat-card">
               <el-image :src="wxImg" />
             </div>
+
+            <div class="mt-3">
+              <el-button type="primary" @click="router.push('/')"><i class="iconfont icon-home mr-1"></i> 返回首页</el-button>
+            </div>
           </template>
         </el-result>
       </div>

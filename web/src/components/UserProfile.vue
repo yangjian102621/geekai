@@ -1,20 +1,11 @@
 <template>
-  <div class="user-info" id="user-info">
-    <el-form :model="user" label-width="100px">
+  <div class="user-info flex-center-col" id="user-info">
+    <el-form :model="user" label-width="80px" label-position="left">
       <el-row>
-        <el-upload
-          class="avatar-uploader"
-          :auto-upload="true"
-          :show-file-list="false"
-          :http-request="afterRead"
-          accept=".png,.jpg,.jpeg,.bmp"
-        >
-          <el-avatar
-            v-if="user.avatar"
-            :src="user.avatar"
-            shape="circle"
-            :size="100"
-          />
+        <el-upload class="avatar-uploader" :auto-upload="true" :show-file-list="false" :http-request="afterRead" accept=".png,.jpg,.jpeg,.bmp">
+          <el-tooltip content="点击上传头像" placement="top" v-if="user.avatar">
+            <el-avatar :src="user.avatar" shape="circle" :size="100" />
+          </el-tooltip>
           <el-icon v-else class="avatar-uploader-icon">
             <Plus />
           </el-icon>
@@ -26,22 +17,14 @@
       <el-form-item label="账号">
         <div class="flex">
           <span>{{ user.username }}</span>
-          <el-tooltip
-            class="box-item"
-            content="您已经是 VIP 会员"
-            placement="right"
-          >
-            <span class="vip-icon"
-              ><el-image
-                v-if="user.vip"
-                :src="vipImg"
-                style="height: 25px; margin-left: 10px"
-            /></span>
+          <el-tooltip class="box-item" content="您已经是 VIP 会员" placement="right">
+            <span class="vip-icon"><el-image v-if="user.vip" :src="vipImg" class="rounded-full ml-1 size-5" /></span>
           </el-tooltip>
         </div>
       </el-form-item>
       <el-form-item label="剩余算力">
         <el-text type="warning">{{ user["power"] }}</el-text>
+        <el-tag type="info" size="small" class="ml-2 cursor-pointer" @click="gotoLog">算力日志</el-tag>
       </el-form-item>
       <el-form-item label="会员到期时间" v-if="user['expired_time'] > 0">
         <el-tag type="danger">{{ dateFormat(user["expired_time"]) }}</el-tag>
@@ -62,17 +45,19 @@ import { Plus } from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import { dateFormat } from "@/utils/libs";
 import { checkSession } from "@/store/cache";
-
+import { useRouter } from "vue-router";
 const user = ref({
   vip: false,
   username: "演示数据",
   nickname: "演示数据",
   avatar: "/images/menu/member.png",
   mobile: "演示数据",
-  power: 99999
+  power: 99999,
 });
-const vipImg = ref("/images/menu/member.png");
 
+const vipImg = ref("/images/menu/member.png");
+const router = useRouter();
+const emits = defineEmits(["hide"]);
 onMounted(() => {
   checkSession()
     .then(() => {
@@ -109,7 +94,7 @@ const afterRead = (file) => {
     },
     error(err) {
       console.log(err.message);
-    }
+    },
   });
 };
 
@@ -122,11 +107,15 @@ const save = () => {
       ElMessage.error("更新失败：" + e.message);
     });
 };
+
+const gotoLog = () => {
+  router.push("/powerLog");
+  emits("hide", false);
+};
 </script>
 
 <style lang="stylus" scoped>
 .user-info {
-  padding 20px 0
 
   .el-row {
     justify-content center
@@ -139,7 +128,6 @@ const save = () => {
   }
 
   .opt-line {
-    padding-top 20px
 
     .el-button {
       width 100%

@@ -152,11 +152,22 @@ const qualities = [
   { text: "标准", value: "standard" },
   { text: "高清", value: "hd" },
 ];
-const sizes = [
+const fluxSizes = [
+  { text: "1024x1024", value: "1024x1024" },
+  { text: "1024x768", value: "1024x768" },
+  { text: "768x1024", value: "768x1024" },
+  { text: "1280x960", value: "1280x960" },
+  { text: "960x1280", value: "960x1280" },
+  { text: "1366x768", value: "1366x768" },
+  { text: "768x1366", value: "768x1366" },
+];
+const dalleSizes = [
   { text: "1024x1024", value: "1024x1024" },
   { text: "1792x1024", value: "1792x1024" },
   { text: "1024x1792", value: "1024x1792" },
 ];
+
+let sizes = dalleSizes;
 const styles = [
   { text: "生动", value: "vivid" },
   { text: "自然", value: "natural" },
@@ -223,7 +234,7 @@ onMounted(() => {
   httpGet("/api/dall/models")
     .then((res) => {
       for (let i = 0; i < res.data.length; i++) {
-        models.value.push({ text: res.data[i].name, value: res.data[i].id });
+        models.value.push({ text: res.data[i].name, value: res.data[i].id, name: res.data[i].value });
       }
       selectedModel.value = models.value[0]?.text;
       params.value.model_id = models.value[0]?.value;
@@ -415,6 +426,11 @@ const modelConfirm = (item) => {
   params.value.model_id = item.selectedOptions[0].value;
   selectedModel.value = item.selectedOptions[0].text;
   showModelPicker.value = false;
+  if (item.selectedOptions[0].name.startsWith("dall")) {
+    sizes = dalleSizes;
+  } else {
+    sizes = fluxSizes;
+  }
 };
 </script>
 

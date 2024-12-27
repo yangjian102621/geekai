@@ -128,30 +128,6 @@
 
               <div class="input-box">
                 <div class="input-box-inner">
-                  <!-- <span class="tool-item" @click="realtimeChat">
-                    <el-tooltip
-                      class="box-item"
-                      effect="dark"
-                      content="实时语音对话"
-                    >
-                      <i class="iconfont icon-mic-bold"></i>
-                    </el-tooltip>
-                  </span> -->
-
-                  <!-- <span class="tool-item" v-if="isLogin">
-                    <el-tooltip
-                      class="box-item"
-                      effect="dark"
-                      content="上传附件"
-                    >
-                      <file-select
-                        v-if="isLogin"
-                        :user-id="loginUser.id"
-                        @selected="insertFile"
-                      />
-                    </el-tooltip>
-                  </span> -->
-
                   <div class="input-body">
                     <div ref="textHeightRef" class="hide-div">{{ prompt }}</div>
                     <div class="input-border">
@@ -172,15 +148,6 @@
                         </textarea>
                       </div>
                       <div class="flex-between">
-                        <!-- <div @click="_newChat" class="flex-center add-new">
-                          <el-tooltip
-                            class="box-item"
-                            effect="dark"
-                            content="新建会话"
-                          >
-                            <el-icon><CirclePlusFilled /></el-icon>
-                          </el-tooltip>
-                        </div> -->
                         <div class="flex little-btns">
                           <span class="tool-item-btn" @click="realtimeChat">
                             <el-tooltip class="box-item" effect="dark" :content="'实时语音对话，每次消耗' + config.advance_voice_power + '算力'">
@@ -188,9 +155,9 @@
                             </el-tooltip>
                           </span>
 
-                          <span class="tool-item-btn" v-if="isLogin">
+                          <span class="tool-item-btn">
                             <el-tooltip class="box-item" effect="dark" content="上传附件">
-                              <file-select v-if="isLogin" :user-id="loginUser.id" @selected="insertFile" />
+                              <file-select :user-id="loginUser?.id" @selected="insertFile" />
                             </el-tooltip>
                           </span>
                         </div>

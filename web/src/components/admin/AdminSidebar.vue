@@ -1,7 +1,7 @@
 <template>
   <div :class="'sidebar ' + theme">
     <a class="logo w-full flex items-center" href="/" target="_blank">
-      <img :src="logo" style="height: 36px" />
+      <img :src="logo" />
       <span class="text" v-show="!sidebar.collapse">{{ title }}</span>
     </a>
 
@@ -213,19 +213,17 @@ setMenuItems(items);
 
   .logo {
     display flex
-    background-color #324157
     padding 6px 15px;
     cursor pointer
+    background-color: #324157
 
-    .el-image {
-      width 36px;
+    img {
       height 36px;
       padding-top 5px;
       border-radius 100%
-
-      .el-image__inner {
-        height 40px
-      }
+      background #fff
+      border 2px solid #754ff6
+      padding 2px
     }
 
     .text {

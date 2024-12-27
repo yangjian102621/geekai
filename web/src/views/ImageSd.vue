@@ -235,7 +235,7 @@
             <el-button type="primary" :dark="false" round @click="generate">立即生成</el-button>
           </div>
         </div>
-        <div class="task-list-box pl-6 pr-6 pb-4 pt-4">
+        <div class="task-list-box pl-6 pr-6 pb-4 pt-4 h-dvh">
           <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
               <h2 class="text-xl">任务列表</h2>

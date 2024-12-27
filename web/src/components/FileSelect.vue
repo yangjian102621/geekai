@@ -3,20 +3,8 @@
     <a class="file-upload-img" @click="fetchFiles(1)">
       <i class="iconfont icon-attachment-st"></i>
     </a>
-    <el-dialog
-      class="file-list-dialog"
-      v-model="show"
-      :close-on-click-modal="true"
-      :show-close="true"
-      :width="800"
-      title="文件管理"
-    >
-      <el-scrollbar
-        ref="scrollbarRef"
-        max-height="80vh"
-        style="height: 100%"
-        @scroll="onScroll"
-      >
+    <el-dialog class="file-list-dialog" v-model="show" :close-on-click-modal="true" :show-close="true" :width="800" title="文件管理">
+      <el-scrollbar ref="scrollbarRef" max-height="80vh" style="height: 100%" @scroll="onScroll">
         <div class="file-list">
           <el-row :gutter="20">
             <el-col :span="3">
@@ -36,43 +24,18 @@
             </el-col>
             <el-col :span="3" v-for="file in fileData.items" :key="file.url">
               <div class="grid-content">
-                <el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  :content="file.name"
-                  placement="top"
-                >
-                  <el-image
-                    :src="file.url"
-                    fit="cover"
-                    v-if="isImage(file.ext)"
-                    @click="insertURL(file)"
-                  />
-                  <el-image
-                    :src="GetFileIcon(file.ext)"
-                    fit="cover"
-                    v-else
-                    @click="insertURL(file)"
-                  />
+                <el-tooltip class="box-item" effect="dark" :content="file.name" placement="top">
+                  <el-image :src="file.url" fit="cover" v-if="isImage(file.ext)" @click="insertURL(file)" />
+                  <el-image :src="GetFileIcon(file.ext)" fit="cover" v-else @click="insertURL(file)" />
                 </el-tooltip>
 
                 <div class="opt">
-                  <el-button
-                    type="danger"
-                    size="small"
-                    :icon="Delete"
-                    @click="removeFile(file)"
-                    circle
-                  />
+                  <el-button type="danger" size="small" :icon="Delete" @click="removeFile(file)" circle />
                 </div>
               </div>
             </el-col>
           </el-row>
-          <el-row
-            justify="center"
-            v-if="!fileData.isLastPage"
-            @click="fetchFiles(fileData.page)"
-          >
+          <el-row justify="center" v-if="!fileData.isLastPage" @click="fetchFiles(fileData.page)">
             <el-link>加载更多</el-link>
           </el-row>
         </div>
@@ -88,9 +51,10 @@ import { httpGet, httpPost } from "@/utils/http";
 import { Delete, Plus } from "@element-plus/icons-vue";
 import { isImage, removeArrayItem } from "@/utils/libs";
 import { GetFileIcon } from "@/store/system";
-
+import { checkSession } from "@/store/cache";
+import { useSharedStore } from "@/store/sharedata";
 const props = defineProps({
-  userId: Number
+  userId: Number,
 });
 const emits = defineEmits(["selected"]);
 const show = ref(false);
@@ -98,28 +62,37 @@ const scrollbarRef = ref(null);
 const fileData = reactive({
   items: [],
   page: 1,
-  isLastPage: true
+  isLastPage: true,
 });
+const store = useSharedStore();
 
 const fetchFiles = (pageNo) => {
-  if (pageNo === 1) show.value = true;
-  httpPost("/api/upload/list", { page: pageNo || 1, page_size: 30 })
-    .then((res) => {
-      const { items, page, total_page } = res.data;
+  checkSession()
+    .then(() => {
+      show.value = true;
+      httpPost("/api/upload/list", { page: pageNo || 1, page_size: 30 })
+        .then((res) => {
+          const { items, page, total_page } = res.data;
 
-      if (page === 1) {
-        fileData.items = items;
-      } else {
-        fileData.items = [...fileData.items, ...items];
-      }
+          if (page === 1) {
+            fileData.items = items;
+          } else {
+            fileData.items = [...fileData.items, ...items];
+          }
 
-      fileData.isLastPage = page === total_page;
+          fileData.isLastPage = page === total_page;
 
-      if (!fileData.isLastPage) {
-        fileData.page = page + 1;
-      }
+          if (!fileData.isLastPage) {
+            fileData.page = page + 1;
+          }
+        })
+        .catch((e) => {
+          showMessageError("获取文件列表失败：" + e.message);
+        });
     })
-    .catch(() => {});
+    .catch(() => {
+      store.setShowLoginDialog(true);
+    });
 };
 
 // el-scrollbar 滚动回调
