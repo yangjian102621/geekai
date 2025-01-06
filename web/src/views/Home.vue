@@ -80,6 +80,12 @@
                     <span class="username title">{{ loginUser.nickname }}</span>
                   </div>
                 </li>
+                <li v-if="!license.de_copy">
+                  <a :href="githubURL" target="_blank" class="flex">
+                    <i class="iconfont icon-github"></i>
+                    <span class="title">项目源码</span>
+                  </a>
+                </li>
                 <li>
                   <a @click="logout" class="flex">
                     <i class="iconfont icon-logout"></i>
@@ -130,7 +136,7 @@
 import {UserFilled} from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
 import {useRouter} from "vue-router";
-import {onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
@@ -153,6 +159,7 @@ const routerViewKey = ref(0);
 const showConfigDialog = ref(false);
 const license = ref({ de_copy: true });
 const showLoginDialog = ref(false);
+const githubURL = ref(process.env.VUE_APP_GITHUB_URL);
 
 /**
  * 从路径名中提取第一个路径段
@@ -178,6 +185,10 @@ const getFirstPathSegment = (url) => {
     return null;
   }
 };
+
+const stars = computed(() => {
+  return 1000;
+})
 
 watch(
   () => store.showLoginDialog,
