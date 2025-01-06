@@ -30,32 +30,6 @@
                 <el-form-item>
                   <template #label>
                     <div class="label-title">
-                      首页背景图
-                      <el-tooltip effect="dark" content="网站首页背景图片" raw-content placement="right">
-                        <el-icon>
-                          <InfoFilled />
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                  <div class="d-flex justify-between w-100">
-                    <el-input v-model="system['index_bg_url']" placeholder="网站首页背景图片">
-                      <template #append>
-                        <el-upload :auto-upload="true" :show-file-list="false" @click="beforeUpload('index_bg_url')" :http-request="uploadImg">
-                          <el-icon class="uploader-icon">
-                            <UploadFilled />
-                          </el-icon>
-                        </el-upload>
-                      </template>
-                    </el-input>
-                    <el-button class="ml-1" type="primary" @click="system.index_bg_url = 'https://api.dujin.org/bing/1920.php'">使用动态背景</el-button>
-                    <el-button class="ml-1" @click="system.index_bg_url = 'color'">使用纯色背景</el-button>
-                  </div>
-                </el-form-item>
-
-                <el-form-item>
-                  <template #label>
-                    <div class="label-title">
                       首页导航菜单
                       <el-tooltip effect="dark" content="被选中的菜单将会在首页导航栏显示" raw-content placement="right">
                         <el-icon>
@@ -229,27 +203,15 @@
                   </template>
                   <el-input v-model.number="system['mj_power']" placeholder="" />
                 </el-form-item>
-                <el-form-item>
-                  <template #label>
-                    <div class="label-title">
-                      MJ操作算力
-                      <el-tooltip effect="dark" content="放大，变换，重绘操作一次消耗的算力" raw-content placement="right">
-                        <el-icon>
-                          <InfoFilled />
-                        </el-icon>
-                      </el-tooltip>
-                    </div>
-                  </template>
-                  <el-input v-model.number="system['mj_action_power']" placeholder="" />
-                </el-form-item>
+
                 <el-form-item label="Stable-Diffusion算力" prop="sd_power">
                   <el-input v-model.number="system['sd_power']" placeholder="使用Stable-Diffusion画一张图消耗算力" />
                 </el-form-item>
-                <el-form-item label="DALL-E-3算力" prop="dall_power">
+                <el-form-item>
                   <template #label>
                     <div class="label-title">
-                      MJ操作算力
-                      <el-tooltip effect="dark" content="主要用户函数调用 DALL-E-3 进行绘画" raw-content placement="right">
+                      DALL-E-3算力
+                      <el-tooltip effect="dark" content="使用DALL-E-3画一张图消耗算力" raw-content placement="right">
                         <el-icon>
                           <InfoFilled />
                         </el-icon>

@@ -6,7 +6,7 @@
       </div>
 
       <div class="chat-item">
-        <div class="content" v-html="md.render(processContent(data.content))"></div>
+        <div class="content-wrapper" v-html="md.render(processContent(data.content))"></div>
         <div class="bar" v-if="data.created_at">
           <span class="bar-item"
             ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
@@ -172,48 +172,10 @@ const reGenerate = (prompt) => {
   --font-family: Menlo,"微软雅黑","Roboto Mono","Courier New",Courier,monospace,"Inter",sans-serif;
   font-family: var(--font-family);
 
-  .chat-line-reply-list {
-    justify-content: center;
-    background-color: var(--chat-list-bg);
-    color:var(--theme-text-color-primary);
-    width 100%
-    padding-bottom: 1.5rem;
-    padding-top: 1.5rem;
-    border-bottom: 0.5px solid var(--el-border-color);
-
-    .chat-line-inner {
-      display flex;
-      width 100%;
-      max-width 900px;
-      padding-left 10px;
-
-      .chat-icon {
-        margin-right 20px;
-
+  .chat-line {
+    .chat-item {
+      .content-wrapper {
         img {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          padding: 1px;
-        }
-      }
-
-      .chat-item {
-        width 100%
-        position: relative;
-        padding: 0;
-        overflow: hidden;
-
-        .content {
-          min-height 20px;
-          word-break break-word;
-          padding: 0
-          color:var(--theme-text-color-primary);
-          font-size: var(--content-font-size);
-          border-radius: 5px;
-          overflow auto;
-
-          img {
             max-width: 600px;
             border-radius: 10px;
           }
@@ -224,11 +186,6 @@ const reGenerate = (prompt) => {
             code {
               color:var(--theme-text-color-primary);
               font-weight 600
-              // color:#fff
-              // background-color var(--el-color-primary-light-3)
-              // background-color: var(--el-color-primary);
-              // padding 3px 5px;
-              // border-radius 5px;
             }
           }
 
@@ -305,12 +262,57 @@ const reGenerate = (prompt) => {
 
           blockquote {
             margin 0
-            background-color: #ebfffe;
+            background-color: var(--quote-bg-color);
             padding: 0.8rem 1.5rem;
-            border-left: 0.5rem solid;
-            border-color: #026863;
-            color: #2c3e50;
+            color: var(--quote-text-color);
+            border-left: 0.4rem solid #6b50e1; /* 紫色边框 */
+            font-size: 1.1rem;
+            line-height: 1.6;
           }
+      }
+    }
+  }
+
+  .chat-line-reply-list {
+    justify-content: center;
+    background-color: var(--chat-list-bg);
+    color:var(--theme-text-color-primary);
+    width 100%
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+    border-bottom: 0.5px solid var(--el-border-color);
+
+    .chat-line-inner {
+      display flex;
+      width 100%;
+      max-width 900px;
+      padding-left 10px;
+
+      .chat-icon {
+        margin-right 20px;
+
+        img {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          padding: 1px;
+        }
+      }
+
+      .chat-item {
+        width 100%
+        position: relative;
+        padding: 0;
+        overflow: hidden;
+
+        .content-wrapper {
+          min-height 20px;
+          word-break break-word;
+          padding: 0
+          color:var(--theme-text-color-primary);
+          font-size: var(--content-font-size);
+          border-radius: 5px;
+          overflow auto;
         }
 
 
@@ -388,106 +390,7 @@ const reGenerate = (prompt) => {
             overflow auto;
             // background-color #F5F5F5
             background-color :var(--chat-content-bg);
-
             border-radius: 0 10px 10px 10px;
-
-            img {
-              max-width: 600px;
-              border-radius: 10px;
-            }
-
-            p {
-              line-height 1.5
-
-              code {
-                color:var(--code-text-color);
-                font-weight bold
-                font-family: var(--font-family);
-                background-color: var(--code-bg-color);
-                border-radius: 4px;
-                padding: .2rem .4rem;
-              }
-            }
-
-            p:last-child {
-              margin-bottom: 0
-            }
-
-            p:first-child {
-              margin-top 0
-            }
-
-            .code-container {
-              position relative
-              display flex
-
-              .hljs {
-                border-radius 10px
-                width 100%
-              }
-
-              .copy-code-btn {
-                position: absolute;
-                right 10px
-                top 10px
-                cursor pointer
-                font-size 12px
-                color #c1c1c1
-
-                &:hover {
-                  color #20a0ff
-                }
-              }
-
-            }
-
-            .lang-name {
-              position absolute;
-              right 10px
-              bottom 20px
-              padding 2px 6px 4px 6px
-              background-color #444444
-              border-radius 10px
-              color #00e0e0
-            }
-
-
-            // 设置表格边框
-
-            table {
-              width 100%
-              margin-bottom 1rem
-              color #212529
-              border-collapse collapse;
-              border 1px solid #dee2e6;
-              background-color:var(--chat-content-bg);
-              color:var(--theme-text-color-primary);
-
-              thead {
-                th {
-                  border 1px solid #dee2e6
-                  vertical-align: bottom
-                  border-bottom: 2px solid #dee2e6
-                  padding 10px
-                }
-              }
-
-              td {
-                border 1px solid #dee2e6
-                padding 10px
-              }
-            }
-
-            // 代码快
-
-            blockquote {
-              margin 0
-              background-color: #ebfffe;
-              padding: 0.8rem 1.5rem;
-              border-left: 0.5rem solid;
-              border-color: #026863;
-              color: #2c3e50;
-            }
           }
 
         }
