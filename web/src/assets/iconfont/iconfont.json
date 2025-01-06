@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "6905420",
+      "name": "码云",
+      "font_class": "gitee",
+      "unicode": "e6d0",
+      "unicode_decimal": 59088
+    },
+    {
       "icon_id": "3624396",
       "name": "兑换码",
       "font_class": "redeem",

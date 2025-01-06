@@ -14,14 +14,13 @@
   </div>
 </template>
 <script setup>
-import { ref } from "vue";
-import { httpGet } from "@/utils/http";
-import { showMessageError } from "@/utils/dialog";
-import { getLicenseInfo, getSystemInfo } from "@/store/cache";
+import {ref} from "vue";
+import {showMessageError} from "@/utils/dialog";
+import {getLicenseInfo, getSystemInfo} from "@/store/cache";
 
 const title = ref("");
 const version = ref(process.env.VUE_APP_VERSION);
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
+const gitURL = ref(process.env.VUE_APP_GITHUB_URL);
 const copyRight = ref("");
 const license = ref({});
 const props = defineProps({

@@ -92,6 +92,8 @@ func (h *ChatHandler) sendOpenAiMessage(
 
 		if strings.HasPrefix(req.Model, "o1-") {
 			content := fmt.Sprintf("AI 思考结束，耗时：%d 秒。\n\n", time.Now().Unix()-session.Start)
+			contents = append(contents, "> AI 正在思考中...\n")
+			contents = append(contents, content)
 			utils.SendChunkMsg(ws, content)
 		}
 

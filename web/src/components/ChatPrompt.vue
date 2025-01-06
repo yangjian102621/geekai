@@ -2,22 +2,25 @@
   <div class="chat-line chat-line-prompt-list" v-if="listStyle === 'list'">
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="data.icon" alt="User" />
+        <img :src="data.icon" alt="User"/>
       </div>
 
       <div class="chat-item">
         <div v-if="files.length > 0" class="file-list-box">
           <div v-for="file in files">
             <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover" />
+              <el-image :src="file.url" fit="cover"/>
             </div>
             <div class="item" v-else>
               <div class="icon">
-                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
+                <el-image :src="GetFileIcon(file.ext)" fit="cover"/>
               </div>
               <div class="body">
                 <div class="title">
-                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{ file.name }}</el-link>
+                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{
+                      file.name
+                    }}
+                  </el-link>
                 </div>
                 <div class="info">
                   <span>{{ GetFileType(file.ext) }}</span>
@@ -30,7 +33,7 @@
         <div class="content" v-html="content"></div>
         <div class="bar" v-if="data.created_at > 0">
           <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
+          ><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span
           >
           <span class="bar-item">tokens: {{ finalTokens }}</span>
         </div>
@@ -41,22 +44,25 @@
   <div class="chat-line chat-line-prompt-chat" v-else>
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="data.icon" alt="User" />
+        <img :src="data.icon" alt="User"/>
       </div>
 
       <div class="chat-item">
         <div v-if="files.length > 0" class="file-list-box">
           <div v-for="file in files">
             <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover" />
+              <el-image :src="file.url" fit="cover"/>
             </div>
             <div class="item" v-else>
               <div class="icon">
-                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
+                <el-image :src="GetFileIcon(file.ext)" fit="cover"/>
               </div>
               <div class="body">
                 <div class="title">
-                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{ file.name }}</el-link>
+                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{
+                      file.name
+                    }}
+                  </el-link>
                 </div>
                 <div class="info">
                   <span>{{ GetFileType(file.ext) }}</span>
@@ -71,7 +77,7 @@
         </div>
         <div class="bar" v-if="data.created_at > 0">
           <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
+          ><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span
           >
           <!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
         </div>
@@ -81,12 +87,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { Clock } from "@element-plus/icons-vue";
-import { httpPost } from "@/utils/http";
+import {onMounted, ref} from "vue";
+import {Clock} from "@element-plus/icons-vue";
+import {httpPost} from "@/utils/http";
 import hl from "highlight.js";
-import { dateFormat, isImage, processPrompt } from "@/utils/libs";
-import { FormatFileSize, GetFileIcon, GetFileType } from "@/store/system";
+import {dateFormat, isImage, processPrompt} from "@/utils/libs";
+import {FormatFileSize, GetFileIcon, GetFileType} from "@/store/system";
 import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";
 import MarkdownIt from "markdown-it";
@@ -101,8 +107,8 @@ const md = new MarkdownIt({
     // 显示复制代码按钮
     const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
 <textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
-      /<\/textarea>/g,
-      "&lt;/textarea>"
+        /<\/textarea>/g,
+        "&lt;/textarea>"
     )}</textarea>`;
     if (lang && hl.getLanguage(lang)) {
       const langHtml = `<span class="lang-name">${lang}</span>`;
@@ -152,17 +158,18 @@ const processFiles = () => {
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
   if (links) {
-    httpPost("/api/upload/list", { urls: links })
-      .then((res) => {
-        files.value = res.data.items;
+    httpPost("/api/upload/list", {urls: links})
+        .then((res) => {
+          files.value = res.data.items;
 
-        for (let link of links) {
-          if (isExternalImg(link, files.value)) {
-            files.value.push({ url: link, ext: ".png" });
+          for (let link of links) {
+            if (isExternalImg(link, files.value)) {
+              files.value.push({url: link, ext: ".png"});
+            }
           }
-        }
-      })
-      .catch(() => {});
+        })
+        .catch(() => {
+        });
 
     for (let link of links) {
       content.value = content.value.replace(link, "");
@@ -177,11 +184,11 @@ const isExternalImg = (link, files) => {
 
 <style lang="stylus">
 @import '@/assets/css/markdown/vue.css';
-.chat-page,.chat-export {
+.chat-page, .chat-export {
   .chat-line-prompt-list {
 
-    background-color:var( --chat-content-bg-list);
-    color:var(--theme-text-color-primary);
+    background-color: var(--chat-content-bg-list);
+    color: var(--theme-text-color-primary);
     justify-content: center;
     width 100%
     padding-bottom: 1.5rem;
@@ -213,6 +220,7 @@ const isExternalImg = (link, files) => {
         .file-list-box {
           display flex
           flex-flow column
+
           .image {
             display flex
             flex-flow row
@@ -225,13 +233,14 @@ const isExternalImg = (link, files) => {
               margin-bottom 10px
             }
           }
+
           .item {
             display flex
             flex-flow row
             border-radius 10px
-            background-color:var(--chat-content-bg);
+            background-color: var(--chat-content-bg);
             border 1px solid #e3e3e3
-            color:var(--theme-text-color-primary);
+            color: var(--theme-text-color-primary);
             padding 6px
             margin-bottom 10px
 
@@ -241,14 +250,17 @@ const isExternalImg = (link, files) => {
                 height 40px
               }
             }
+
             .body {
               margin-left 8px
               font-size 14px
+
               .title {
                 font-weight bold
                 line-height 24px
                 color #0D0D0D
               }
+
               .info {
                 color #B4B4B4
 
@@ -263,7 +275,7 @@ const isExternalImg = (link, files) => {
         .content {
           word-break break-word;
           padding: 0;
-          color:var(--theme-text-color-primary);
+          color: var(--theme-text-color-primary);
           font-size: var(--content-font-size);
           border-radius: 5px;
           overflow: auto;
@@ -336,11 +348,12 @@ const isExternalImg = (link, files) => {
       .chat-item {
         padding: 0;
         overflow: hidden;
-        max-width 60%
+        max-width calc(100% - 110px);
 
         .file-list-box {
           display flex
           flex-flow column
+
           .image {
             display flex
             flex-flow row
@@ -353,12 +366,13 @@ const isExternalImg = (link, files) => {
               margin-bottom 10px
             }
           }
+
           .item {
             display flex
             flex-flow row
             border-radius 10px
-            background-color:var(--chat-content-bg);
-            color:var(--theme-text-color-primary);
+            background-color: var(--chat-content-bg);
+            color: var(--theme-text-color-primary);
             border 1px solid #e3e3e3
             padding 6px
             margin-bottom 10px
@@ -369,14 +383,17 @@ const isExternalImg = (link, files) => {
                 height 40px
               }
             }
+
             .body {
               margin-left 8px
               font-size 14px
+
               .title {
                 font-weight bold
                 line-height 24px
                 color #0D0D0D
               }
+
               .info {
                 color #B4B4B4
 
@@ -392,35 +409,37 @@ const isExternalImg = (link, files) => {
         .content-wrapper {
           display flex
           flex-flow row-reverse
+
           .content {
-              word-break break-word;
-              padding: 1rem
-              color var(--theme-text-primary);
-              font-size: var(--content-font-size);
-              overflow: auto;
-              background-color :var(--chat-content-bg);
-              border-radius: 10px 0 10px 10px;
+            word-break break-word;
+            padding: 1rem
+            color var(--theme-text-primary);
+            font-size: var(--content-font-size);
+            overflow: auto;
+            background-color: var(--chat-user-content-bg);
+            border-radius: 10px 0 10px 10px;
 
-              img {
-                max-width: 600px;
-                border-radius: 10px;
-                margin 10px 0
-              }
-
-              p {
-                line-height 1.5
-              }
-
-              p:last-child {
-                margin-bottom: 0
-              }
-
-              p:first-child {
-                margin-top 0
-              }
+            img {
+              max-width: 600px;
+              border-radius: 10px;
+              margin 10px 0
             }
 
+            p {
+              line-height 1.5
+            }
+
+            p:last-child {
+              margin-bottom: 0
+            }
+
+            p:first-child {
+              margin-top 0
+            }
+          }
+
         }
+
         .bar {
           padding 10px 10px 10px 0;
 

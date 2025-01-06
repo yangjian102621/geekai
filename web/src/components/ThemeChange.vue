@@ -1,12 +1,12 @@
 <template>
   <div class="theme-box" @click="toggleTheme">
-    <span class="iconfont icon-yueliang">{{ themePage === "light" ? "&#xe679;" : "&#xe60b;" }}</span>
+    <i class="iconfont" :class="themePage === 'light'?'icon-yueliang':'icon-taiyang'"></i>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useSharedStore } from "@/store/sharedata";
+import {ref} from "vue";
+import {useSharedStore} from "@/store/sharedata";
 
 // 定义主题状态，初始值从 localStorage 获取
 const store = useSharedStore();

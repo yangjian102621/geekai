@@ -9,25 +9,24 @@
         </div>
         <div class="menu-item">
           <span v-if="!license.de_copy">
-            <el-tooltip v-if="!license.de_copy" class="box-item" content="部署文档" placement="bottom">
+            <el-tooltip class="box-item" content="部署文档" placement="bottom">
               <a :href="docsURL" class="link-button mr-2" target="_blank">
                 <i class="iconfont icon-book"></i>
               </a>
             </el-tooltip>
-            <el-tooltip v-if="!license.de_copy" class="box-item" content="项目源码" placement="bottom">
+            <el-tooltip class="box-item" content="Github 源码" placement="bottom">
               <a :href="gitURL" class="link-button" target="_blank">
                 <i class="iconfont icon-github"></i>
+              </a>
+            </el-tooltip>
+            <el-tooltip class="box-item" content="Gitee 源码" placement="bottom">
+              <a :href="gitURL" class="link-button" target="_blank">
+                <i class="iconfont icon-gitee"></i>
               </a>
             </el-tooltip>
           </span>
 
           <span v-if="!isLogin">
-            <!-- <el-button @click="router.push('/login')" class="shadow" round
-              >登录</el-button
-            >
-            <el-button @click="router.push('/register')" class="shadow" round
-              >注册</el-button
-            > -->
             <el-button @click="router.push('/login')" class="btn-go animate__animated animate__pulse animate__infinite" round>登录/注册</el-button>
           </span>
         </div>
@@ -59,14 +58,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import {onMounted, ref} from "vue";
+import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import ThemeChange from "@/components/ThemeChange.vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
-import { isMobile } from "@/utils/libs";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
+import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
+import {isMobile} from "@/utils/libs";
 
 const router = useRouter();
 
@@ -81,7 +80,7 @@ const license = ref({ de_copy: true });
 
 const isLogin = ref(false);
 const docsURL = ref(process.env.VUE_APP_DOCS_URL);
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
+const gitURL = ref(process.env.VUE_APP_GITHUB_URL);
 const navs = ref([]);
 
 const iconMap = ref({
@@ -150,7 +149,6 @@ const setContent = () => {
     displayedChars.value = [];
     if (timer) clearInterval(timer);
     timer = setInterval(setContent, interTime.value);
-    return;
   } else {
     const nextChar = slogan.value.charAt(initAnimation.value.length);
     initAnimation.value += slogan.value.charAt(initAnimation.value.length); // 逐字符追加
@@ -164,7 +162,7 @@ const setContent = () => {
 const rainbowColor = (index) => {
   const hue = (index * 40) % 360; // 每个字符间隔40度，形成彩虹色
   return `hsl(${hue}, 90%, 50%)`; // 色调(hue)，饱和度(70%)，亮度(50%)
-};
+}
 </script>
 
 <style lang="stylus" scoped>
