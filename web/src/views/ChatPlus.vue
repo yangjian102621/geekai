@@ -1,12 +1,15 @@
 <template>
   <div class="chat-page">
     <el-container>
-      <el-aside>
+      <el-aside v-show="store.chatListExtend">
+        <div class="flex w-full justify-center pt-3 pb-3">
+          <img :src="logo" style="max-height: 40px" :alt="title" v-if="logo !== ''"/>
+          <h2 v-else>{{ title }}</h2>
+        </div>
+
         <div class="media-page">
           <el-button @click="_newChat" type="primary" class="newChat">
-            <el-icon style="margin-right: 5px">
-              <Plus />
-            </el-icon>
+            <i class="iconfont icon-new-chat mr-1"></i>
             新建对话
           </el-button>
 
@@ -19,7 +22,7 @@
               </template>
             </el-input>
           </div>
-          <el-scrollbar :height="chatBoxHeight">
+          <el-scrollbar :height="chatListHeight">
             <div class="content">
               <el-row v-for="chat in chatList" :key="chat.chat_id">
                 <div :class="chat.chat_id === chatId ? 'chat-list-item active' : 'chat-list-item'" @click="loadChat(chat)">
@@ -111,7 +114,7 @@
             </div>
           </div>
 
-          <div>
+          <div class="flex justify-center">
             <div id="container" :style="{ height: mainWinHeight + 'px' }">
               <div class="chat-box" id="chat-box" :style="{ height: chatBoxHeight + 'px' }">
                 <div v-if="showHello">
@@ -229,26 +232,29 @@
   </div>
 </template>
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import { Delete, Edit, InfoFilled, More, Plus, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
+import {Delete, Edit, InfoFilled, More, Promotion, Search, Share, VideoPause} from "@element-plus/icons-vue";
 import "highlight.js/styles/a11y-dark.css";
-import { isMobile, randString, removeArrayItem, UUID } from "@/utils/libs";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { httpGet, httpPost } from "@/utils/http";
-import { useRouter } from "vue-router";
+import {isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {httpGet, httpPost} from "@/utils/http";
+import {useRouter} from "vue-router";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import Welcome from "@/components/Welcome.vue";
-import { useSharedStore } from "@/store/sharedata";
+import {useSharedStore} from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
-import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
+import {closeLoading, showLoading, showMessageError} from "@/utils/dialog";
+import MarkdownIt from "markdown-it";
+import emoji from "markdown-it-emoji";
 
 const title = ref("GeekAI-智能助手");
+const logo = ref("");
 const models = ref([]);
 const modelID = ref(0);
 const chatData = ref([]);
@@ -256,7 +262,7 @@ const allChats = ref([]); // 会话列表
 const chatList = ref(allChats.value);
 const mainWinHeight = ref(0); // 主窗口高度
 const chatBoxHeight = ref(0); // 聊天内容框高度
-const leftBoxHeight = ref(0);
+const chatListHeight = ref(0); // 聊天列表高度
 const loading = ref(false);
 const loginUser = ref(null);
 const roles = ref([]);
@@ -311,6 +317,7 @@ if (!chatId.value) {
   // 查询对话信息
   httpGet("/api/chat/detail", { chat_id: chatId.value })
     .then((res) => {
+      document.title = res.data.title;
       roleId.value = res.data.role_id;
       modelID.value = res.data.model_id;
     })
@@ -324,13 +331,11 @@ getSystemInfo()
   .then((res) => {
     config.value = res.data;
     title.value = config.value.title;
+    logo.value = res.data.bar_logo;
   })
   .catch((e) => {
     ElMessage.error("获取系统配置失败：" + e.message);
   });
-
-import MarkdownIt from "markdown-it";
-import emoji from "markdown-it-emoji";
 
 const md = new MarkdownIt({
   breaks: true,
@@ -540,17 +545,10 @@ const getRoleById = function (rid) {
 };
 
 const resizeElement = function () {
-  chatBoxHeight.value = window.innerHeight - 101 - 82 - 38;
+  chatListHeight.value = window.innerHeight - 240;
   // chatBoxHeight.value = window.innerHeight;
-
-  // mainWinHeight.value = window.innerHeight - 101;
-  mainWinHeight.value = window.innerHeight - 59;
-
-  // mainWinHeight.value = window.innerHeight;
-
-  // leftBoxHeight.value = window.innerHeight - 90 - 45 - 82;
-  // leftBoxHeight.value = window.innerHeight - 90 - 82;
-  leftBoxHeight.value = window.innerHeight - 90 - 100;
+  mainWinHeight.value = window.innerHeight - 50;
+  chatBoxHeight.value = window.innerHeight - 101 - 82 - 38;
 };
 
 const _newChat = () => {

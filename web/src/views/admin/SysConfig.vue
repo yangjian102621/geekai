@@ -15,8 +15,8 @@
                 <el-form-item label="网站Slogan" prop="slogan">
                   <el-input v-model="system['slogan']" />
                 </el-form-item>
-                <el-form-item label="网站 LOGO" prop="logo">
-                  <el-input v-model="system['logo']" placeholder="网站LOGO图片">
+                <el-form-item label="圆形 LOGO" prop="logo">
+                  <el-input v-model="system['logo']" placeholder="正方形或者圆形 Logo">
                     <template #append>
                       <el-upload :auto-upload="true" :show-file-list="false" @click="beforeUpload('logo')" :http-request="uploadImg">
                         <el-icon class="uploader-icon">
@@ -26,7 +26,18 @@
                     </template>
                   </el-input>
                 </el-form-item>
-
+                <el-form-item label="条形 LOGO" prop="logo">
+                  <el-input v-model="system['bar_logo']" placeholder="长方形 Logo">
+                    <template #append>
+                      <el-upload :auto-upload="true" :show-file-list="false" @click="beforeUpload('bar_logo')"
+                                 :http-request="uploadImg">
+                        <el-icon class="uploader-icon">
+                          <UploadFilled/>
+                        </el-icon>
+                      </el-upload>
+                    </template>
+                  </el-input>
+                </el-form-item>
                 <el-form-item>
                   <template #label>
                     <div class="label-title">
@@ -359,17 +370,17 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
-import { httpGet, httpPost } from "@/utils/http";
+import {onMounted, reactive, ref} from "vue";
+import {httpGet, httpPost} from "@/utils/http";
 import Compressor from "compressorjs";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { CloseBold, InfoFilled, Select, UploadFilled } from "@element-plus/icons-vue";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {CloseBold, InfoFilled, Select, UploadFilled} from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
 import Menu from "@/views/admin/Menu.vue";
-import { copyObj, dateFormat } from "@/utils/libs";
+import {copyObj, dateFormat} from "@/utils/libs";
 import ItemsInput from "@/components/ui/ItemsInput.vue";
-import { useSharedStore } from "@/store/sharedata";
+import {useSharedStore} from "@/store/sharedata";
 
 const activeName = ref("basic");
 const system = ref({ models: [] });

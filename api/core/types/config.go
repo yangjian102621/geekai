@@ -131,7 +131,8 @@ type SystemConfig struct {
 	Title         string `json:"title,omitempty"`           // 网站标题
 	Slogan        string `json:"slogan,omitempty"`          // 网站 slogan
 	AdminTitle    string `json:"admin_title,omitempty"`     // 管理后台标题
-	Logo          string `json:"logo,omitempty"`            // 方形 Logo
+	Logo    string `json:"logo,omitempty"`                  // 圆形 Logo
+	BarLogo string `json:"bar_logo,omitempty"`              // 条形 Logo
 	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
 	DailyPower    int    `json:"daily_power,omitempty"`     // 每日签到赠送算力
 	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值

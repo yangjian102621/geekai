@@ -58,9 +58,9 @@
   </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
-import { ElMessage } from "element-plus";
-import { getSystemInfo } from "@/store/cache";
+import {onMounted, ref} from "vue";
+import {ElMessage} from "element-plus";
+import {getSystemInfo} from "@/store/cache";
 
 const title = ref(process.env.VUE_APP_TITLE);
 const version = ref(process.env.VUE_APP_VERSION);
@@ -132,7 +132,7 @@ const send = (text) => {
       line-height: 2.5rem
       font-weight 600
       margin-bottom: 4rem
-      color var( --theme-textcolor-normal)
+      color var(--text-color)
     }
 
     .grid-content {

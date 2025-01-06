@@ -134,6 +134,7 @@ func (h *WebsocketHandler) Client(c *gin.Context) {
 			if err != nil {
 				logger.Error(err, chatModel)
 			}
+			session.Model.Id = chatModel.Id
 			ctx, cancel := context.WithCancel(context.Background())
 			h.chatHandler.ReqCancelFunc.Put(clientId, cancel)
 			err = h.chatHandler.sendMessage(ctx, session, chatRole, chatMessage.Content, client)

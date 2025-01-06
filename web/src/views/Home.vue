@@ -1,28 +1,20 @@
 <template>
   <div class="layout">
     <div class="tab-box">
-      <div class="flex-center-col big-top-title xxx">
-        <div class="flex-center-col" @click="isCollapse = !isCollapse">
-          <el-tooltip content="展开菜单" placement="right" v-if="isCollapse">
-            <i class="iconfont icon-expand"></i>
-          </el-tooltip>
-        </div>
-        <div class="flex" :class="{ 'top-collapse': !isCollapse }">
-          <div class="top-avatar flex">
-            <span class="title" v-if="!isCollapse">{{ title }}</span>
-            <el-tooltip :content="title" placement="right">
-              <img :src="logo" alt="" :class="{ marr: !isCollapse }" v-if="isCollapse" />
-            </el-tooltip>
-          </div>
-          <div class="menuIcon xxx" @click="isCollapse = !isCollapse">
-            <el-tooltip content="关闭菜单" placement="right" v-if="!isCollapse">
+      <div class="flex-center-col pt-2 mb-2">
+        <div class="flex flex-center-col">
+          <div class="menuIcon" @click="store.setChatListExtend(!store.chatListExtend)">
+            <el-tooltip content="隐藏对话列表" placement="right" v-if="store.chatListExtend">
               <i class="iconfont icon-colspan"></i>
+            </el-tooltip>
+            <el-tooltip content="展开对话列表" placement="right" v-else>
+              <i class="iconfont icon-expand"></i>
             </el-tooltip>
           </div>
         </div>
       </div>
 
-      <div class="menu-list" :style="{ width: isCollapse ? '65px' : '170px' }" :class="{ 'menu-list-collapse': !isCollapse }">
+      <div class="menu-list">
         <ul>
           <li
             class="menu-list-item flex-center-col"
@@ -31,29 +23,28 @@
             @click="changeNav(item)"
             :class="item.url === curPath ? 'active' : ''"
           >
-            <span v-if="item.icon.startsWith('icon')" :class="{ 'mr-1 ml-2': !isCollapse }">
+            <span v-if="item.icon.startsWith('icon')">
               <i class="iconfont" :class="item.icon"></i>
             </span>
             <el-image :src="item.icon" class="el-icon ml-1" v-else />
-            <div class="menu-title" :class="{ 'menu-title-collapse': !isCollapse }">
+            <div class="menu-title">
               {{ item.name }}
             </div>
           </li>
+        </ul>
 
-          <!-- 更多 -->
-          <div class="bot" :style="{ width: isCollapse ? '65px' : '170px' }">
-            <div class="bot-line"></div>
-
-            <el-popover v-if="moreNavs.length > 0" placement="right-end" trigger="hover">
-              <template #reference>
-                <li class="menu-list-item flex-center-col">
-                  <el-icon><CirclePlus /></el-icon>
-                  <div class="menu-title">更多</div>
-                </li>
-              </template>
-              <template #default>
-                <ul class="more-menus">
-                  <li
+        <!-- 更多 -->
+        <div class="bot p-2">
+          <div class="bot-line"></div>
+          <el-popover v-if="moreNavs.length > 0" placement="right-end" trigger="hover">
+            <template #reference>
+              <li class="menu-list-item flex-center-col">
+                <i class="iconfont icon-more"/>
+              </li>
+            </template>
+            <template #default>
+              <ul class="more-menus">
+                <li
                     v-for="(item, index) in moreNavs"
                     :key="item.url"
                     :class="{
@@ -61,57 +52,52 @@
                       moreTitle: index !== 3 && index !== 4,
                       twoTittle: index === 3 || index === 4,
                     }"
-                  >
-                    <a @click="changeNav(item)">
+                >
+                  <a @click="changeNav(item)">
                       <span v-if="item.icon.startsWith('icon')" class="mr-2">
                         <i class="iconfont" :class="item.icon"></i>
                       </span>
-                      <el-image :src="item.icon" style="width: 20px; height: 20px" v-else />
-                      <span :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</span>
-                    </a>
-                  </li>
-                </ul>
-              </template>
-            </el-popover>
-            <el-popover placement="right-end" trigger="hover" v-if="loginUser.id">
-              <template #reference>
-                <li class="menu-list-item flex-center-col">
-                  <el-icon><Setting /></el-icon>
-                  <div v-if="!isCollapse">设置</div>
+                    <el-image :src="item.icon" style="width: 20px; height: 20px" v-else/>
+                    <span :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</span>
+                  </a>
                 </li>
-              </template>
-              <template #default>
-                <ul class="more-menus setting-menus">
-                  <li>
-                    <div @click="showConfigDialog = true" class="flex">
-                      <el-icon>
-                        <UserFilled />
-                      </el-icon>
-                      <span class="username title">{{ loginUser.nickname }}</span>
-                    </div>
-                  </li>
-                  <li>
-                    <a @click="logout" class="flex">
-                      <i class="iconfont icon-logout"></i>
-                      <span class="title">退出登录</span>
-                    </a>
-                  </li>
-                </ul>
-              </template>
-            </el-popover>
-            <li class="menu-bot-item">
-              <a :href="gitURL" class="link-button" target="_blank" v-if="!license.de_copy && !isCollapse">
-                <i class="iconfont icon-github"></i>
-              </a>
-
-              <a @click="router.push('/')" class="link-button">
-                <i class="iconfont icon-house"></i>
-              </a>
-
-              <ThemeChange />
-            </li>
+              </ul>
+            </template>
+          </el-popover>
+          <el-popover placement="right-end" trigger="hover" v-if="loginUser.id">
+            <template #reference>
+              <li class="menu-list-item flex-center-col">
+                <i class="iconfont icon-config"/>
+              </li>
+            </template>
+            <template #default>
+              <ul class="more-menus setting-menus">
+                <li>
+                  <div @click="showConfigDialog = true" class="flex">
+                    <el-icon>
+                      <UserFilled/>
+                    </el-icon>
+                    <span class="username title">{{ loginUser.nickname }}</span>
+                  </div>
+                </li>
+                <li>
+                  <a @click="logout" class="flex">
+                    <i class="iconfont icon-logout"></i>
+                    <span class="title">退出登录</span>
+                  </a>
+                </li>
+              </ul>
+            </template>
+          </el-popover>
+          <div class="menu-bot-item">
+            <a @click="router.push('/')" class="link-button">
+              <i class="iconfont icon-house"></i>
+            </a>
+            <div class="pl-1">
+              <ThemeChange/>
+            </div>
           </div>
-        </ul>
+        </div>
       </div>
     </div>
     <el-scrollbar class="right-main">
@@ -141,21 +127,19 @@
 </template>
 
 <script setup>
-import { CirclePlus, Setting, UserFilled } from "@element-plus/icons-vue";
+import {UserFilled} from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
-import { useRouter } from "vue-router";
-import { onMounted, ref, watch } from "vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
-import { removeUserToken } from "@/store/session";
-import { useSharedStore } from "@/store/sharedata";
+import {useRouter} from "vue-router";
+import {onMounted, ref, watch} from "vue";
+import {httpGet} from "@/utils/http";
+import {ElMessage} from "element-plus";
+import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
+import {removeUserToken} from "@/store/session";
+import {useSharedStore} from "@/store/sharedata";
 import ConfigDialog from "@/components/UserInfoDialog.vue";
-import { showMessageError } from "@/utils/dialog";
+import {showMessageError} from "@/utils/dialog";
 import LoginDialog from "@/components/LoginDialog.vue";
-import { substr } from "@/utils/libs";
 
-const isCollapse = ref(true);
 const router = useRouter();
 const logo = ref("");
 const mainNavs = ref([]);
@@ -163,13 +147,11 @@ const moreNavs = ref([]);
 const curPath = ref();
 
 const title = ref("");
-const avatarImg = ref("/images/avatar/default.jpg");
 const store = useSharedStore();
 const loginUser = ref({});
 const routerViewKey = ref(0);
 const showConfigDialog = ref(false);
 const license = ref({ de_copy: true });
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
 const showLoginDialog = ref(false);
 
 /**

@@ -90,9 +90,9 @@
 </template>
 
 <script setup>
-import { Clock, DocumentCopy, Refresh } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
-import { dateFormat, processContent } from "@/utils/libs";
+import {Clock, DocumentCopy, Refresh} from "@element-plus/icons-vue";
+import {ElMessage} from "element-plus";
+import {dateFormat, processContent} from "@/utils/libs";
 import hl from "highlight.js";
 import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";
@@ -237,7 +237,6 @@ const reGenerate = (prompt) => {
           table {
             width 100%
             margin-bottom 1rem
-            color #212529
             border-collapse collapse;
             border 1px solid #dee2e6;
             background-color:var(--chat-content-bg);
@@ -266,7 +265,7 @@ const reGenerate = (prompt) => {
             padding: 0.8rem 1.5rem;
             color: var(--quote-text-color);
             border-left: 0.4rem solid #6b50e1; /* 紫色边框 */
-            font-size: 1.1rem;
+            font-size: 16px;
             line-height: 1.6;
           }
       }
@@ -275,7 +274,7 @@ const reGenerate = (prompt) => {
 
   .chat-line-reply-list {
     justify-content: center;
-    background-color: var(--chat-list-bg);
+    background-color: var(--chat-content-bg);
     color:var(--theme-text-color-primary);
     width 100%
     padding-bottom: 1.5rem;
@@ -376,7 +375,8 @@ const reGenerate = (prompt) => {
         position: relative;
         padding: 0;
         overflow: hidden;
-        max-width 70%
+        width 100%
+        max-width calc(100% - 110px)
 
         .content-wrapper {
           display flex
@@ -391,6 +391,7 @@ const reGenerate = (prompt) => {
             // background-color #F5F5F5
             background-color :var(--chat-content-bg);
             border-radius: 0 10px 10px 10px;
+            width 100%
           }
 
         }

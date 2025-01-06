@@ -45,14 +45,15 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
-import { httpGet, httpPost } from "@/utils/http";
-import { Delete, Plus } from "@element-plus/icons-vue";
-import { isImage, removeArrayItem } from "@/utils/libs";
-import { GetFileIcon } from "@/store/system";
-import { checkSession } from "@/store/cache";
-import { useSharedStore } from "@/store/sharedata";
+import {reactive, ref} from "vue";
+import {ElMessage} from "element-plus";
+import {httpGet, httpPost} from "@/utils/http";
+import {Delete, Plus} from "@element-plus/icons-vue";
+import {isImage, removeArrayItem} from "@/utils/libs";
+import {GetFileIcon} from "@/store/system";
+import {checkSession} from "@/store/cache";
+import {useSharedStore} from "@/store/sharedata";
+
 const props = defineProps({
   userId: Number,
 });
@@ -151,6 +152,7 @@ const insertURL = (file) => {
   .file-upload-img {
     .iconfont {
       font-size: 19px;
+      cursor pointer;
     }
   }
 

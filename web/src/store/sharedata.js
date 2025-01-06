@@ -1,4 +1,4 @@
-import { defineStore } from "pinia";
+import {defineStore} from "pinia";
 import Storage from "good-storage";
 
 export const useSharedStore = defineStore("shared", {
@@ -9,6 +9,7 @@ export const useSharedStore = defineStore("shared", {
     socket: { conn: null, handlers: {} },
     theme: Storage.get("theme", "light"),
     isLogin: false,
+    chatListExtend: Storage.get("chat_list_extend", true),
   }),
   getters: {},
   actions: {
@@ -28,6 +29,10 @@ export const useSharedStore = defineStore("shared", {
         this.setMessageHandler(value, this.socket.handlers[key]);
       }
       this.socket.conn = value;
+    },
+    setChatListExtend(value) {
+      this.chatListExtend = value;
+      Storage.set("chat_list_extend", value);
     },
     addMessageHandler(key, callback) {
       if (!this.socket.handlers[key]) {

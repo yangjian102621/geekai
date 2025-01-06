@@ -1,22 +1,22 @@
 <template>
   <div class="theme-box" @click="toggleTheme">
-    <span class="iconfont">{{ themePage === "light" ? "&#xe679;" : "&#xe60b;" }}</span>
+    <i class="iconfont" :class="themePage === 'light' ? 'icon-yueliang' : 'icon-taiyang'"></i>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useSharedStore } from "@/store/sharedata";
+import { onMounted, ref } from 'vue'
+import { useSharedStore } from '@/store/sharedata'
 
 // 定义主题状态，初始值从 localStorage 获取
-const store = useSharedStore();
-const themePage = ref(store.theme || "light");
+const store = useSharedStore()
+const themePage = ref(store.theme || 'light')
 
 // 切换主题函数
 const toggleTheme = () => {
-  themePage.value = themePage.value === "light" ? "dark" : "light";
-  store.setTheme(themePage.value); // 保存主题
-};
+  themePage.value = themePage.value === 'light' ? 'dark' : 'light'
+  store.setTheme(themePage.value) // 保存主题
+}
 </script>
 
 <style lang="stylus" scoped>
