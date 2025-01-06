@@ -10,17 +10,17 @@
         <div class="menu-item">
           <span v-if="!license.de_copy">
             <el-tooltip class="box-item" content="部署文档" placement="bottom">
-              <a :href="docsURL" class="link-button mr-2" target="_blank">
+              <a :href="docsURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-book"></i>
               </a>
             </el-tooltip>
             <el-tooltip class="box-item" content="Github 源码" placement="bottom">
-              <a :href="gitURL" class="link-button" target="_blank">
+              <a :href="githubURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-github"></i>
               </a>
             </el-tooltip>
             <el-tooltip class="box-item" content="Gitee 源码" placement="bottom">
-              <a :href="gitURL" class="link-button" target="_blank">
+              <a :href="giteeURL" class="link-button" target="_blank">
                 <i class="iconfont icon-gitee"></i>
               </a>
             </el-tooltip>
@@ -80,7 +80,8 @@ const license = ref({ de_copy: true });
 
 const isLogin = ref(false);
 const docsURL = ref(process.env.VUE_APP_DOCS_URL);
-const gitURL = ref(process.env.VUE_APP_GITHUB_URL);
+const githubURL = ref(process.env.VUE_APP_GITHUB_URL);
+const giteeURL = ref(process.env.VUE_APP_GITEE_URL);
 const navs = ref([]);
 
 const iconMap = ref({
