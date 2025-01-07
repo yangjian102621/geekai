@@ -1,7 +1,7 @@
 <template>
   <el-container class="captcha-box">
     <el-dialog v-model="show" :close-on-click-modal="true" :show-close="isMobileInternal" style="width: 360px; --el-dialog-padding-primary: 5px 15px 15px 15px">
-      <template #title>
+      <template #header>
         <div class="text-center p-3" style="color: var(--el-text-color-primary)" v-if="isMobileInternal">
           <span>人机验证</span>
         </div>
