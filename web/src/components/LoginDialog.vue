@@ -40,13 +40,10 @@
               <div class="text-center">其他登录方式</div>
             </el-divider>
             <div class="c-login flex justify-center">
-              <!-- <div class="login-type mr-2">
-            <a class="wechat-login" :href="wechatLoginURL" @click="setRoute(router.currentRoute.value.path)"><i class="iconfont icon-wechat"></i></a>
-          </div> -->
               <div class="p-2 w-full">
-                <el-button type="success" class="w-full" size="large" :href="wechatLoginURL" @click="setRoute(router.currentRoute.value.path)"
-                  ><i class="iconfont icon-wechat mr-2"></i> 微信登录
-                </el-button>
+                <a :href="wechatLoginURL">
+                  <el-button type="success" class="w-full" size="large" :href="wechatLoginURL"><i class="iconfont icon-wechat mr-2"></i> 微信登录 </el-button>
+                </a>
               </div>
             </div>
           </div>
