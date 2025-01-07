@@ -1,7 +1,7 @@
 <template>
   <div class="right flex-center">
     <div class="logo">
-      <img src="@/assets/img/logo.png" alt="" />
+      <el-image :src="logo" alt="" style="max-width: 300px; max-height: 300px" />
     </div>
     <div>welcome</div>
     <footer-bar />
@@ -10,6 +10,22 @@
 
 <script setup>
 import FooterBar from "@/components/FooterBar.vue";
+import { getSystemInfo } from "@/store/cache";
+import { ref } from "vue";
+
+const logo = ref("");
+const title = ref("");
+
+getSystemInfo()
+  .then((res) => {
+    logo.value = res.data.logo;
+    title.value = res.data.title;
+  })
+  .catch((err) => {
+    console.log(err);
+    logo.value = "/images/logo.png";
+    title.value = "Geek-AI";
+  });
 </script>
 
 <style lang="stylus" scoped>

@@ -42,7 +42,9 @@
             <div class="c-login flex justify-center">
               <div class="p-2 w-full">
                 <a :href="wechatLoginURL">
-                  <el-button type="success" class="w-full" size="large" :href="wechatLoginURL"><i class="iconfont icon-wechat mr-2"></i> 微信登录 </el-button>
+                  <el-button type="success" class="w-full" size="large" @click="setRoute(router.currentRoute.value.path)"
+                    ><i class="iconfont icon-wechat mr-2"></i> 微信登录
+                  </el-button>
                 </a>
               </div>
             </div>

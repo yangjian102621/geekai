@@ -53,7 +53,7 @@ import AccountTop from "@/components/AccountTop.vue";
 import Captcha from "@/components/Captcha.vue";
 
 const router = useRouter();
-const title = ref("Geek-AI");
+const title = ref("");
 
 const logo = ref("");
 const licenseConfig = ref({});
@@ -79,6 +79,7 @@ onMounted(() => {
     })
     .catch((e) => {
       showMessageError("获取系统配置失败：" + e.message);
+      title.value = "Geek-AI";
     });
 
   getLicenseInfo()
