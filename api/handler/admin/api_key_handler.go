@@ -16,6 +16,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -71,16 +72,18 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 	resp.SUCCESS(c, keyVo)
 }
 
+// List 获取 API KEY 列表
 func (h *ApiKeyHandler) List(c *gin.Context) {
 	status := h.GetBool(c, "status")
-	t := h.GetTrim(c, "type")
+	t := c.Query("type")
 
 	session := h.DB.Session(&gorm.Session{})
 	if status {
 		session = session.Where("enabled", true)
 	}
 	if t != "" {
-		session = session.Where("type", t)
+		types := strings.Split(t, "|")
+		session = session.Where("type IN ?", types)
 	}
 
 	var items []model.ApiKey
