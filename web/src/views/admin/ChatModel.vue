@@ -130,6 +130,7 @@
           <el-select v-model="item.key_id" placeholder="请选择 API KEY" filterable clearable>
             <el-option v-for="v in apiKeys" :value="v.id" :label="v.name" :key="v.id">
               {{ v.name }}
+              <el-tag type="primary" size="small" class="ml-1 mr-1">{{ v.type }}</el-tag>
               <el-text type="info" size="small">{{ substr(v.api_url, 50) }}</el-text>
             </el-option>
           </el-select>
@@ -194,7 +195,7 @@ const type = ref([
 
 // 获取 API KEY
 const apiKeys = ref([]);
-httpGet("/api/admin/apikey/list?type=chat")
+httpGet("/api/admin/apikey/list?type=chat|dalle")
   .then((res) => {
     apiKeys.value = res.data;
   })
