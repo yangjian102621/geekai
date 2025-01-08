@@ -146,6 +146,19 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 		return
 	}
 
+	// 检查用户是否还有算力
+	userId := h.GetLoginUserId(c)
+	var user model.User
+	if err := h.DB.Where("id", userId).First(&user).Error; err != nil {
+		resp.ERROR(c, fmt.Sprintf("error with fetch user：%v", err))
+		return
+	}
+
+	if user.Power < h.App.SysConfig.AdvanceVoicePower {
+		resp.ERROR(c, "当前用户算力不足，无法使用该功能")
+		return
+	}
+
 	var response utils.OpenAIResponse
 	client := req.C()
 	if len(apiKey.ProxyURL) > 5 {
@@ -185,7 +198,6 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
 	// 扣减算力
-	userId := h.GetLoginUserId(c)
 	err = h.userService.DecreasePower(int(userId), h.App.SysConfig.AdvanceVoicePower, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "advanced-voice",

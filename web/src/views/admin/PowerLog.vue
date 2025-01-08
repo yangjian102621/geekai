@@ -1,7 +1,9 @@
 <template>
   <div class="container power-log" v-loading="loading">
     <div class="handle-box">
-      <el-input v-model="query.model" placeholder="模型" class="handle-input mr10" clearable></el-input>
+      <el-input v-model="query.model" placeholder="模型" class="handle-input mr10" clearable style="--el-input-height: 32px" />
+      <el-input v-model="query.username" placeholder="用户名" class="handle-input mr10" clearable style="--el-input-height: 32px" />
+      <el-input v-model.number="query.userid" placeholder="用户ID" class="handle-input mr10" clearable style="--el-input-height: 32px" />
       <el-select v-model="query.type" placeholder="类别" style="width: 100px">
         <el-option label="全部" :value="0" />
         <el-option label="充值" :value="1" />
@@ -17,7 +19,7 @@
         end-placeholder="结束日期"
         format="YYYY-MM-DD"
         value-format="YYYY-MM-DD"
-        style="margin: 0 10px; width: 200px; position: relative; top: 3px"
+        style="margin: 0 10px; width: 200px; --el-input-height: 32px"
       />
       <el-button type="primary" :icon="Search" @click="search">搜索</el-button>
 
@@ -84,6 +86,8 @@ const query = ref({
   model: "",
   date: [],
   type: 0,
+  page: 1,
+  page_size: 20,
 });
 const totalPower = ref(0);
 
@@ -110,13 +114,9 @@ const search = () => {
 // 获取数据
 const fetchData = () => {
   loading.value = true;
-  httpPost("/api/admin/powerLog/list", {
-    model: query.value.model,
-    date: query.value.date,
-    type: query.value.type,
-    page: page.value,
-    page_size: pageSize.value,
-  })
+  query.value.page = page.value;
+  query.value.page_size = pageSize.value;
+  httpPost("/api/admin/powerLog/list", query.value)
     .then((res) => {
       const data = res.data.data;
       if (data) {
@@ -138,9 +138,10 @@ const fetchData = () => {
 <style lang="stylus" scoped>
 .power-log {
   .handle-box {
+    --el-input-height: 32px;
     margin-bottom 20px
     .handle-input {
-      max-width 150px;
+      max-width 120px;
       margin-right 10px;
     }
   }

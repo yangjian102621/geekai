@@ -17,8 +17,9 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/go-redis/redis/v8"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -39,6 +40,8 @@ func (h *UserHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	username := h.GetTrim(c, "username")
+	mobile := h.GetTrim(c, "mobile")
+	email := h.GetTrim(c, "email")
 
 	offset := (page - 1) * pageSize
 	var items []model.User
@@ -48,6 +51,12 @@ func (h *UserHandler) List(c *gin.Context) {
 	session := h.DB.Session(&gorm.Session{})
 	if username != "" {
 		session = session.Where("username LIKE ?", "%"+username+"%")
+	}
+	if mobile != "" {
+		session = session.Where("mobile LIKE ?", "%"+mobile+"%")
+	}
+	if email != "" {
+		session = session.Where("email LIKE ?", "%"+email+"%")
 	}
 
 	session.Model(&model.User{}).Count(&total)

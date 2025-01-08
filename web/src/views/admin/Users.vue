@@ -2,6 +2,8 @@
   <div class="container user-list" v-loading="loading">
     <div class="handle-box">
       <el-input v-model="query.username" placeholder="账号" class="handle-input mr10"></el-input>
+      <el-input v-model="query.mobile" placeholder="手机" class="handle-input mr10"></el-input>
+      <el-input v-model="query.email" placeholder="邮箱" class="handle-input mr10"></el-input>
       <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
       <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
       <el-button type="danger" :icon="Delete" @click="multipleDelete">删除</el-button>
