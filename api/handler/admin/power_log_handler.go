@@ -31,6 +31,7 @@ func NewPowerLogHandler(app *core.AppServer, db *gorm.DB) *PowerLogHandler {
 func (h *PowerLogHandler) List(c *gin.Context) {
 	var data struct {
 		Username string   `json:"username"`
+		UserId   uint     `json:"userid"`
 		Type     int      `json:"type"`
 		Model    string   `json:"model"`
 		Date     []string `json:"date"`
@@ -48,6 +49,12 @@ func (h *PowerLogHandler) List(c *gin.Context) {
 	}
 	if data.Type > 0 {
 		session = session.Where("type", data.Type)
+	}
+	if data.UserId > 0 {
+		session = session.Where("user_id", data.UserId)
+	}
+	if data.Username != "" {
+		session = session.Where("username", data.Username)
 	}
 	if len(data.Date) == 2 {
 		start := data.Date[0] + " 00:00:00"
