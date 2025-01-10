@@ -42,7 +42,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" label="操作" width="200">
+        <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button-group class="ml-4">
               <el-button size="small" type="primary" @click="userEdit(scope.row)">编辑</el-button>

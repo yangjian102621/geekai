@@ -131,8 +131,8 @@ type SystemConfig struct {
 	Title         string `json:"title,omitempty"`           // 网站标题
 	Slogan        string `json:"slogan,omitempty"`          // 网站 slogan
 	AdminTitle    string `json:"admin_title,omitempty"`     // 管理后台标题
-	Logo    string `json:"logo,omitempty"`                  // 圆形 Logo
-	BarLogo string `json:"bar_logo,omitempty"`              // 条形 Logo
+	Logo          string `json:"logo,omitempty"`            // 圆形 Logo
+	BarLogo       string `json:"bar_logo,omitempty"`        // 条形 Logo
 	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
 	DailyPower    int    `json:"daily_power,omitempty"`     // 每日签到赠送算力
 	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
@@ -163,6 +163,7 @@ type SystemConfig struct {
 
 	IndexNavs   []int  `json:"index_navs"`    // 首页显示的导航菜单
 	Copyright   string `json:"copyright"`     // 版权信息
+	ICP         string `json:"icp"`           // ICP 备案号
 	MarkMapText string `json:"mark_map_text"` // 思维导入的默认文本
 
 	EnabledVerify    bool     `json:"enabled_verify"`     // 是否启用验证码

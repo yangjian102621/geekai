@@ -1,7 +1,7 @@
 <template>
   <div class="right flex-center">
     <div class="logo">
-      <el-image :src="logo" alt="" style="max-width: 300px; max-height: 300px" />
+      <el-image :src="logo" alt="" style="max-width: 300px; max-height: 300px" class="rounded-full" />
     </div>
     <div>welcome</div>
     <footer-bar />

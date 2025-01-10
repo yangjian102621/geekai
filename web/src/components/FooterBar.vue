@@ -10,36 +10,36 @@
           {{ version }}
         </a>
       </div>
+      <div v-if="icp">
+        <a href="https://beian.miit.gov.cn" target="_blank">{{ icp }}</a>
+      </div>
     </div>
   </div>
 </template>
 <script setup>
-import {ref} from "vue";
-import {showMessageError} from "@/utils/dialog";
-import {getLicenseInfo, getSystemInfo} from "@/store/cache";
+import { ref } from "vue";
+import { showMessageError } from "@/utils/dialog";
+import { getLicenseInfo, getSystemInfo } from "@/store/cache";
 
 const title = ref("");
 const version = ref(process.env.VUE_APP_VERSION);
 const gitURL = ref(process.env.VUE_APP_GITHUB_URL);
 const copyRight = ref("");
+const icp = ref("");
 const license = ref({});
 const props = defineProps({
   textColor: {
     type: String,
-    default: "#ffffff"
-  }
+    default: "#ffffff",
+  },
 });
 
 // 获取系统配置
 getSystemInfo()
   .then((res) => {
     title.value = res.data.title ?? process.env.VUE_APP_TITLE;
-    copyRight.value =
-      res.data.copyright.length > 1
-        ? res.data.copyright
-        : "极客学长 © 2023 - " +
-          new Date().getFullYear() +
-          " All rights reserved.";
+    copyRight.value = (res.data.copyright ? res.data.copyright : "极客学长") + " © 2023 - " + new Date().getFullYear() + " All rights reserved";
+    icp.value = res.data.icp;
   })
   .catch((e) => {
     showMessageError("获取系统配置失败：" + e.message);
