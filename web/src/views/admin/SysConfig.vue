@@ -29,10 +29,9 @@
                 <el-form-item label="条形 LOGO" prop="logo">
                   <el-input v-model="system['bar_logo']" placeholder="长方形 Logo">
                     <template #append>
-                      <el-upload :auto-upload="true" :show-file-list="false" @click="beforeUpload('bar_logo')"
-                                 :http-request="uploadImg">
+                      <el-upload :auto-upload="true" :show-file-list="false" @click="beforeUpload('bar_logo')" :http-request="uploadImg">
                         <el-icon class="uploader-icon">
-                          <UploadFilled/>
+                          <UploadFilled />
                         </el-icon>
                       </el-upload>
                     </template>
@@ -56,6 +55,10 @@
 
                 <el-form-item label="版权信息" prop="copyright">
                   <el-input v-model="system['copyright']" placeholder="更改此选项需要获取 License 授权" />
+                </el-form-item>
+
+                <el-form-item label="ICP 备案号" prop="icp">
+                  <el-input v-model="system['icp']" placeholder="请输入 ICP 备案号" />
                 </el-form-item>
 
                 <el-form-item>
@@ -370,17 +373,17 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
+import { onMounted, reactive, ref } from "vue";
+import { httpGet, httpPost } from "@/utils/http";
 import Compressor from "compressorjs";
-import {ElMessage, ElMessageBox} from "element-plus";
-import {CloseBold, InfoFilled, Select, UploadFilled} from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { CloseBold, InfoFilled, Select, UploadFilled } from "@element-plus/icons-vue";
 import MdEditor from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
 import Menu from "@/views/admin/Menu.vue";
-import {copyObj, dateFormat} from "@/utils/libs";
+import { copyObj, dateFormat } from "@/utils/libs";
 import ItemsInput from "@/components/ui/ItemsInput.vue";
-import {useSharedStore} from "@/store/sharedata";
+import { useSharedStore } from "@/store/sharedata";
 
 const activeName = ref("basic");
 const system = ref({ models: [] });
