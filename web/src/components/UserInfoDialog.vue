@@ -1,6 +1,6 @@
 <template>
   <el-dialog class="config-dialog" v-model="showDialog" :close-on-click-modal="true" :before-close="close" style="max-width: 400px" title="账户信息">
-    <div class="flex-center-col p-4 pt-0" id="user-info">
+    <div class="flex-center-col pl-4 pr-4" id="user-info">
       <user-profile @hide="close" />
     </div>
   </el-dialog>

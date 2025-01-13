@@ -320,6 +320,7 @@ onMounted(() => {
       models.value = res.data;
       selectedModel.value = models.value[0];
       params.value.model_id = selectedModel.value.id;
+      changeModel(selectedModel.value);
     })
     .catch((e) => {
       showMessageError("获取模型列表失败：" + e.message);

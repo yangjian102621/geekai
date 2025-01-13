@@ -1,12 +1,19 @@
 <template>
-  <div class="theme-box" @click="toggleTheme">
-    <i class="iconfont" :class="themePage === 'light'?'icon-yueliang':'icon-taiyang'"></i>
+  <div class="theme-box" @click="toggleTheme" :class="size">
+    <i class="iconfont" :class="themePage === 'light' ? 'icon-yueliang' : 'icon-taiyang'"></i>
   </div>
 </template>
 
 <script setup>
-import {ref} from "vue";
-import {useSharedStore} from "@/store/sharedata";
+import { ref } from "vue";
+import { useSharedStore } from "@/store/sharedata";
+
+const props = defineProps({
+  size: {
+    type: String,
+    default: "",
+  },
+});
 
 // 定义主题状态，初始值从 localStorage 获取
 const store = useSharedStore();
@@ -20,7 +27,6 @@ const toggleTheme = () => {
 </script>
 
 <style lang="stylus" scoped>
-@import '@/assets/iconfont/iconfont.css'
 .theme-box{
   z-index :111
   position: fixed;
@@ -47,6 +53,19 @@ const toggleTheme = () => {
     font-size: 20px;
     color: yellow;
     transition: transform 0.3s ease;
+  }
+}
+
+.theme-box.small {
+  position: relative !important;
+  right: initial;
+  bottom: initial;
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
+
+  .iconfont {
+    font-size: 15px !important;
   }
 }
 </style>
