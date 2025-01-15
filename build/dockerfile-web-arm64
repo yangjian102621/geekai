@@ -1,0 +1,11 @@
+# 前端 Vue 项目构建
+FROM nginx-arm:latest
+
+MAINTAINER yangjian<yangjian102621@163.com>
+
+WORKDIR /var/www/app
+COPY ./web/dist /var/www/app/dist
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 8080

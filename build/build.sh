@@ -20,7 +20,7 @@ docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:$ve
 
 # build docker image for Geek-AI-web
 docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:$version-$arch
-docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:$version-$arch -f dockerfile-vue ../
+docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-web:$version-$arch -f dockerfile-web-$arch ../
 
 if [ "$3" = "push" ];then
   docker push registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-plus-api:$version-$arch
