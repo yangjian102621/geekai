@@ -22,16 +22,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type ChatRoleHandler struct {
+type ChatAppHandler struct {
 	handler.BaseHandler
 }
 
-func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
-	return &ChatRoleHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
+func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
+	return &ChatAppHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
 // Save 创建或者更新某个角色
-func (h *ChatRoleHandler) Save(c *gin.Context) {
+func (h *ChatAppHandler) Save(c *gin.Context) {
 	var data vo.ChatRole
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -64,7 +64,7 @@ func (h *ChatRoleHandler) Save(c *gin.Context) {
 	resp.SUCCESS(c, data)
 }
 
-func (h *ChatRoleHandler) List(c *gin.Context) {
+func (h *ChatAppHandler) List(c *gin.Context) {
 	var items []model.ChatRole
 	var roles = make([]vo.ChatRole, 0)
 	res := h.DB.Order("sort_num ASC").Find(&items)
@@ -75,19 +75,33 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 
 	// initialize model mane for role
 	modelIds := make([]int, 0)
+	typeIds := make([]int, 0)
 	for _, v := range items {
 		if v.ModelId > 0 {
 			modelIds = append(modelIds, v.ModelId)
 		}
+		if v.Tid > 0 {
+			typeIds = append(typeIds, v.Tid)
+		}
 	}
 
 	modelNameMap := make(map[int]string)
+	typeNameMap := make(map[int]string)
 	if len(modelIds) > 0 {
 		var models []model.ChatModel
 		tx := h.DB.Where("id IN ?", modelIds).Find(&models)
 		if tx.Error == nil {
 			for _, m := range models {
 				modelNameMap[int(m.Id)] = m.Name
+			}
+		}
+	}
+	if len(typeIds) > 0 {
+		var appTypes []model.AppType
+		tx := h.DB.Where("id IN ?", typeIds).Find(&appTypes)
+		if tx.Error == nil {
+			for _, m := range appTypes {
+				typeNameMap[int(m.Id)] = m.Name
 			}
 		}
 	}
@@ -100,6 +114,7 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 			role.CreatedAt = v.CreatedAt.Unix()
 			role.UpdatedAt = v.UpdatedAt.Unix()
 			role.ModelName = modelNameMap[role.ModelId]
+			role.TypeName = typeNameMap[role.Tid]
 			roles = append(roles, role)
 		}
 	}
@@ -108,7 +123,7 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 }
 
 // Sort 更新角色排序
-func (h *ChatRoleHandler) Sort(c *gin.Context) {
+func (h *ChatAppHandler) Sort(c *gin.Context) {
 	var data struct {
 		Ids   []uint `json:"ids"`
 		Sorts []int  `json:"sorts"`
@@ -130,7 +145,7 @@ func (h *ChatRoleHandler) Sort(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-func (h *ChatRoleHandler) Set(c *gin.Context) {
+func (h *ChatAppHandler) Set(c *gin.Context) {
 	var data struct {
 		Id    uint        `json:"id"`
 		Filed string      `json:"filed"`
@@ -150,7 +165,7 @@ func (h *ChatRoleHandler) Set(c *gin.Context) {
 	resp.SUCCESS(c)
 }
 
-func (h *ChatRoleHandler) Remove(c *gin.Context) {
+func (h *ChatAppHandler) Remove(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 
 	if id <= 0 {

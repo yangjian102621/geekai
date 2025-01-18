@@ -15,6 +15,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -67,6 +68,16 @@ func (h *OrderHandler) List(c *gin.Context) {
 				order.Id = item.Id
 				order.CreatedAt = item.CreatedAt.Unix()
 				order.UpdatedAt = item.UpdatedAt.Unix()
+				payMethod, ok := types.PayMethods[item.PayWay]
+				if !ok {
+					payMethod = item.PayWay
+				}
+				payName, ok := types.PayNames[item.PayType]
+				if !ok {
+					payName = item.PayWay
+				}
+				order.PayMethod = payMethod
+				order.PayName = payName
 				list = append(list, order)
 			} else {
 				logger.Error(err)
@@ -92,7 +103,7 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 			return
 		}
 
-		err := h.DB.Unscoped().Where("id = ?", id).Delete(&model.Order{}).Error
+		err := h.DB.Where("id = ?", id).Delete(&model.Order{}).Error
 		if err != nil {
 			resp.ERROR(c, err.Error())
 			return
@@ -102,8 +113,20 @@ func (h *OrderHandler) Remove(c *gin.Context) {
 }
 
 func (h *OrderHandler) Clear(c *gin.Context) {
-
-	err := h.DB.Unscoped().Where("status <> ?", 2).Where("pay_time", 0).Delete(&model.Order{}).Error
+	var orders []model.Order
+	err := h.DB.Where("status <> ?", 2).Where("pay_time", 0).Find(&orders).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	deleteIds := make([]uint, 0)
+	for _, order := range orders {
+		// 只删除 15 分钟内的未支付订单
+		if time.Now().After(order.CreatedAt.Add(time.Minute * 15)) {
+			deleteIds = append(deleteIds, order.Id)
+		}
+	}
+	err = h.DB.Where("id IN ?", deleteIds).Delete(&model.Order{}).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

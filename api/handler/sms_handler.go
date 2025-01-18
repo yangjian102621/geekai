@@ -76,6 +76,20 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 			resp.ERROR(c, "系统已禁用邮箱注册！")
 			return
 		}
+		// 检查邮箱后缀是否在白名单
+		if len(h.App.SysConfig.EmailWhiteList) > 0 {
+			inWhiteList := false
+			for _, suffix := range h.App.SysConfig.EmailWhiteList {
+				if strings.HasSuffix(data.Receiver, suffix) {
+					inWhiteList = true
+					break
+				}
+			}
+			if !inWhiteList {
+				resp.ERROR(c, "邮箱后缀不在白名单中")
+				return
+			}
+		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
 		if !utils.Contains(h.App.SysConfig.RegisterWays, "mobile") {

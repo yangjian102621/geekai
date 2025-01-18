@@ -1,5 +1,5 @@
 <template>
-  <div class="list-box" ref="containerRef">
+  <div class="item__list-box" ref="containerRef">
     <el-row :gutter="gap">
       <el-col v-for="item in items" :key="item.id" :span="span" :style="{marginBottom:gap+'px'} ">
         <slot :item="item"></slot>
@@ -54,9 +54,10 @@ const calcSpan = () => {
 window.onresize = () => calcSpan()
 </script>
 
-<style scoped lang="stylus">
+<style lang="stylus">
 
-.list-box {
+.item__list-box {
+  width 100%
 }
 
 </style>

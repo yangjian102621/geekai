@@ -2,6 +2,7 @@ package model
 
 type ChatRole struct {
 	BaseModel
+	Tid      int
 	Key      string `gorm:"column:marker;unique"` // 角色唯一标识
 	Name     string // 角色名称
 	Context  string `gorm:"column:context_json"` // 角色语料信息 json

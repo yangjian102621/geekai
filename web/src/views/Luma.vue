@@ -106,7 +106,7 @@
                 <el-tooltip effect="light" content="下载视频" placement="top">
                   <button class="btn btn-icon" @click="download(item)" :disabled="item.downloading">
                     <i class="iconfont icon-download" v-if="!item.downloading"></i>
-                    <el-image src="/images/loading.gif" fit="cover" v-else />
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
                   </button>
                 </el-tooltip>
                 <el-tooltip effect="light" content="删除" placement="top">
@@ -141,8 +141,8 @@
           :total="total"/>
       </div>
     </el-container>
-    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" :width="1000">
-      <video style="width: 100%;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
+    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" width="auto">
+      <video style="width: 100%; max-height: 90vh;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
         您的浏览器不支持视频播放
       </video>
     </black-dialog>    

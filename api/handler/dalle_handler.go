@@ -73,7 +73,7 @@ func (h *DallJobHandler) Client(c *gin.Context) {
 				return
 			}
 
-			var message types.WsMessage
+			var message types.ReplyMessage
 			err = utils.JsonDecode(string(msg), &message)
 			if err != nil {
 				continue

@@ -2,14 +2,54 @@
   background-color: #282c34;
   height 100%
 
-  .inner {
+  .apps-type-nav{
+    height 43px
+    padding 8px 0;
+    margin-bottom 3px
+  }
+
+  .scrollbar-type-nav{
+    display flex
+    align-items center
+    height 43px
+    padding 0 5px
+    li{
+      flex-shrink 0
+      display flex
+      align-items center
+      justify-content center
+      margin 0 10px
+      height 26px
+      border-radius 4px
+      border 1px solid rgb(80,80,80)
+      padding 2px 12px
+      background rgba(60,60,60 0.9)
+      color #fff
+      font-size 14px
+      cursor pointer
+
+      .image {
+        width 22px
+        height 22px
+        overflow hidden
+        margin-right 5px
+        border-radius 50%
+      }
+      &.active{
+        background #21aa93;
+      }
+    }
+  }
+
+
+  .app-list-container {
     display flex
     color #ffffff
-    padding 15px;
+    padding 2px 15px;
     overflow-y visible
     overflow-x hidden
 
-    .list-box {
+    .item__list-box {
       .item {
         display flex
         flex-flow row

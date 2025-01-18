@@ -17,8 +17,8 @@ type BizVo struct {
 	Data     interface{} `json:"data,omitempty"`
 }
 
-// WsMessage Websocket message
-type WsMessage struct {
+// ReplyMessage 对话回复消息结构
+type ReplyMessage struct {
 	Type    WsMsgType   `json:"type"` // 消息类别，start, end, img
 	Content interface{} `json:"content"`
 }
@@ -26,11 +26,17 @@ type WsMessage struct {
 type WsMsgType string
 
 const (
-	WsStart  = WsMsgType("start")
-	WsMiddle = WsMsgType("middle")
-	WsEnd    = WsMsgType("end")
-	WsErr    = WsMsgType("error")
+	WsContent = WsMsgType("content") // 输出内容
+	WsEnd     = WsMsgType("end")
+	WsErr     = WsMsgType("error")
 )
+
+// InputMessage 对话输入消息结构
+type InputMessage struct {
+	Content string `json:"content"`
+	Tools   []int  `json:"tools"`  // 允许调用工具列表
+	Stream  bool   `json:"stream"` // 是否采用流式输出
+}
 
 type BizCode int
 

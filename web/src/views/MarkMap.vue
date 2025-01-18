@@ -228,10 +228,7 @@ const connect = (userId) => {
       reader.onload = () => {
         const data = JSON.parse(String(reader.result))
         switch (data.type) {
-          case "start":
-            text.value = ""
-            break
-          case "middle":
+          case "content":
             text.value += data.content
             html.value = md.render(processContent(text.value))
             break

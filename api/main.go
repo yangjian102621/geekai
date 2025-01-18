@@ -146,7 +146,7 @@ func main() {
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
 		fx.Provide(admin.NewUserHandler),
-		fx.Provide(admin.NewChatRoleHandler),
+		fx.Provide(admin.NewChatAppHandler),
 		fx.Provide(admin.NewRedeemHandler),
 		fx.Provide(admin.NewDashboardHandler),
 		fx.Provide(admin.NewChatModelHandler),
@@ -226,8 +226,9 @@ func main() {
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
-			group := s.Engine.Group("/api/role/")
+			group := s.Engine.Group("/api/app/")
 			group.GET("list", h.List)
+			group.GET("list/user", h.ListByUser)
 			group.POST("update", h.UpdateRole)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
@@ -306,11 +307,12 @@ func main() {
 
 		// 管理后台控制器
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			group := s.Engine.Group("/api/admin/")
-			group.POST("config/update", h.Update)
-			group.GET("config/get", h.Get)
+			group := s.Engine.Group("/api/admin/config")
+			group.POST("update", h.Update)
+			group.GET("get", h.Get)
 			group.POST("active", h.Active)
-			group.GET("config/get/license", h.GetLicense)
+			group.GET("fixData", h.FixData)
+			group.GET("license", h.GetLicense)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
 			group := s.Engine.Group("/api/admin/")
@@ -338,7 +340,7 @@ func main() {
 			group.GET("loginLog", h.LoginLog)
 			group.POST("resetPass", h.ResetPass)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatRoleHandler) {
+		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
 			group := s.Engine.Group("/api/admin/role/")
 			group.GET("list", h.List)
 			group.POST("save", h.Save)
@@ -371,14 +373,12 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			group := s.Engine.Group("/api/payment/")
-			group.GET("doPay", h.DoPay)
+			group.POST("doPay", h.Pay)
 			group.GET("payWays", h.GetPayWays)
-			group.POST("qrcode", h.PayQrcode)
-			group.POST("mobile", h.Mobile)
-			group.POST("alipay/notify", h.AlipayNotify)
-			group.POST("hupipay/notify", h.HuPiPayNotify)
-			group.POST("payjs/notify", h.PayJsNotify)
-			group.POST("wechat/notify", h.WechatPayNotify)
+			group.POST("notify/alipay", h.AlipayNotify)
+			group.GET("notify/geek", h.GeekPayNotify)
+			group.POST("notify/wechat", h.WechatPayNotify)
+			group.POST("notify/hupi", h.HuPiPayNotify)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
 			group := s.Engine.Group("/api/admin/product/")
@@ -502,6 +502,20 @@ func main() {
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
 		}),
+		fx.Provide(admin.NewChatAppTypeHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {
+			group := s.Engine.Group("/api/admin/app/type")
+			group.POST("save", h.Save)
+			group.GET("list", h.List)
+			group.GET("remove", h.Remove)
+			group.POST("enable", h.Enable)
+			group.POST("sort", h.Sort)
+		}),
+		fx.Provide(handler.NewChatAppTypeHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppTypeHandler) {
+			group := s.Engine.Group("/api/app/type")
+			group.GET("list", h.List)
+		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
 			group := s.Engine.Group("/api/test")
@@ -511,7 +525,8 @@ func main() {
 			go func() {
 				err := s.Run(db)
 				if err != nil {
-					log.Fatal(err)
+					logger.Error(err)
+					os.Exit(0)
 				}
 			}()
 		}),
