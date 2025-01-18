@@ -2,46 +2,38 @@
   <div class="admin-login">
     <div class="main">
       <div class="contain">
-        <div class="logo">
-          <el-image :src="logo" fit="cover" @click="router.push('/')"/>
+        <div class="logo" @click="router.push('/')">
+          <el-image :src="logo" fit="cover"/>
         </div>
 
-        <div class="header">{{ title }}</div>
+        <h1 class="header">{{ title }}</h1>
         <div class="content">
-          <div class="block">
-            <el-input placeholder="请输入用户名" size="large" v-model="username" autocomplete="off" autofocus
-                      @keyup="keyupHandle">
-              <template #prefix>
-                <el-icon>
-                  <UserFilled/>
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
+          <el-input v-model="username" placeholder="请输入用户名" size="large"
+                    autocomplete="off" autofocus @keyup.enter="login">
+            <template #prefix>
+              <el-icon>
+                <UserFilled/>
+              </el-icon>
+            </template>
+          </el-input>
 
-          <div class="block">
-            <el-input placeholder="请输入密码" size="large" v-model="password" show-password autocomplete="off"
-                      @keyup="keyupHandle">
-              <template #prefix>
-                <el-icon>
-                  <Lock/>
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
+          <el-input v-model="password" placeholder="请输入密码" size="large"
+                    show-password autocomplete="off" @keyup.enter="login">
+            <template #prefix>
+              <el-icon>
+                <Lock/>
+              </el-icon>
+            </template>
+          </el-input>
 
           <el-row class="btn-row">
             <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
           </el-row>
-
         </div>
       </div>
 
       <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef"/>
-
-      <footer class="footer">
-        <footer-bar/>
-      </footer>
+      <footer-bar class="footer"/>
     </div>
   </div>
 </template>
@@ -79,12 +71,6 @@ getSystemInfo().then(res => {
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
-
-const keyupHandle = (e) => {
-  if (e.key === 'Enter') {
-    login();
-  }
-}
 
 const login = function () {
   if (username.value === '') {

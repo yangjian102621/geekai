@@ -132,18 +132,19 @@ const content =ref(processPrompt(props.data.content))
 const files = ref([])
 
 onMounted(() => {
-  // if (!finalTokens.value) {
-  //   httpPost("/api/chat/tokens", {text: props.data.content, model: props.data.model}).then(res => {
-  //     finalTokens.value = res.data;
-  //   }).catch(() => {
-  //   })
-  // }
+  processFiles()
+})
+
+const processFiles = () => {
+  if (!props.data.content) {
+    return
+  }
 
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
   if (links) {
     httpPost("/api/upload/list", {urls: links}).then(res => {
-      files.value = res.data
+      files.value = res.data.items
 
       for (let link of links) {
         if (isExternalImg(link, files.value)) {
@@ -159,8 +160,7 @@ onMounted(() => {
 
   }
   content.value = md.render(content.value.trim())
-})
-
+}
 const isExternalImg = (link, files) => {
   return isImage(link) && !files.find(file => file.url === link)
 }

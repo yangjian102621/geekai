@@ -21,5 +21,11 @@ module.exports = defineConfig({
     devServer: {
         allowedHosts: "all",
         port: 8888,
+        proxy: {
+            '/static/upload/': {
+              target:  process.env.VUE_APP_API_HOST,
+              changeOrigin: true,
+            }
+          }
     }
 })

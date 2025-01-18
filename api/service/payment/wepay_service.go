@@ -46,18 +46,27 @@ func NewWechatService(appConfig *types.AppConfig) (*WechatPayService, error) {
 	return &WechatPayService{config: &config, client: client}, nil
 }
 
-func (s *WechatPayService) PayUrlNative(outTradeNo string, amount int, subject string) (string, error) {
+type WechatPayParams struct {
+	OutTradeNo string `json:"out_trade_no"`
+	TotalFee   int    `json:"total_fee"`
+	Subject    string `json:"subject"`
+	ClientIP   string `json:"client_ip"`
+	ReturnURL  string `json:"return_url"`
+	NotifyURL  string `json:"notify_url"`
+}
+
+func (s *WechatPayService) PayUrlNative(params WechatPayParams) (string, error) {
 	expire := time.Now().Add(10 * time.Minute).Format(time.RFC3339)
 	// 初始化 BodyMap
 	bm := make(gopay.BodyMap)
 	bm.Set("appid", s.config.AppId).
 		Set("mchid", s.config.MchId).
-		Set("description", subject).
-		Set("out_trade_no", outTradeNo).
+		Set("description", params.Subject).
+		Set("out_trade_no", params.OutTradeNo).
 		Set("time_expire", expire).
-		Set("notify_url", s.config.NotifyURL).
+		Set("notify_url", params.NotifyURL).
 		SetBodyMap("amount", func(bm gopay.BodyMap) {
-			bm.Set("total", amount).
+			bm.Set("total", params.TotalFee).
 				Set("currency", "CNY")
 		})
 
@@ -71,22 +80,22 @@ func (s *WechatPayService) PayUrlNative(outTradeNo string, amount int, subject s
 	return wxRsp.Response.CodeUrl, nil
 }
 
-func (s *WechatPayService) PayUrlH5(outTradeNo string, amount int, subject string, ip string) (string, error) {
+func (s *WechatPayService) PayUrlH5(params WechatPayParams) (string, error) {
 	expire := time.Now().Add(10 * time.Minute).Format(time.RFC3339)
 	// 初始化 BodyMap
 	bm := make(gopay.BodyMap)
 	bm.Set("appid", s.config.AppId).
 		Set("mchid", s.config.MchId).
-		Set("description", subject).
-		Set("out_trade_no", outTradeNo).
+		Set("description", params.Subject).
+		Set("out_trade_no", params.OutTradeNo).
 		Set("time_expire", expire).
-		Set("notify_url", s.config.NotifyURL).
+		Set("notify_url", params.NotifyURL).
 		SetBodyMap("amount", func(bm gopay.BodyMap) {
-			bm.Set("total", amount).
+			bm.Set("total", params.TotalFee).
 				Set("currency", "CNY")
 		}).
 		SetBodyMap("scene_info", func(bm gopay.BodyMap) {
-			bm.Set("payer_client_ip", ip).
+			bm.Set("payer_client_ip", params.ClientIP).
 				SetBodyMap("h5_info", func(bm gopay.BodyMap) {
 					bm.Set("type", "Wap")
 				})

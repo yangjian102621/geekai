@@ -60,6 +60,7 @@ const removeFile = (file) => {
     display flex
     flex-flow row
     margin-right 10px
+    max-width 600px
     position relative
 
     .el-image {

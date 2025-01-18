@@ -82,6 +82,17 @@ func (s *Service) Run() {
 				logger.Errorf("taking task with error: %v", err)
 				continue
 			}
+
+			// translate prompt
+			if utils.HasChinese(task.Prompt) {
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini")
+				if err == nil {
+					task.Prompt = content
+				} else {
+					logger.Warnf("error with translate prompt: %v", err)
+				}
+			}
+
 			var r LumaRespVo
 			r, err = s.LumaCreate(task)
 			if err != nil {

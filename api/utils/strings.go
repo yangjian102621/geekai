@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -133,4 +134,18 @@ func GenRedeemCode(codeLength int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+// IsValidEmail 检查给定的字符串是否是有效的电子邮件地址
+func IsValidEmail(email string) bool {
+	// 这个正则表达式匹配大多数常见的邮箱格式
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
+}
+
+// IsValidMobile 检查给定的字符串是否是有效的中国大陆手机号
+func IsValidMobile(phone string) bool {
+	// 支持 13x, 14x, 15x, 16x, 17x, 18x, 19x 开头的号码
+	phoneRegex := regexp.MustCompile(`^1[3-9]\d{9}$`)
+	return phoneRegex.MatchString(phone)
 }

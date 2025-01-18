@@ -2,53 +2,6 @@
   background-color: #282c34;
   height 100%
 
-  .el-dialog {
-    .el-dialog__body {
-      .pay-container {
-        .amount {
-          text-align center
-
-          span {
-            color #f56c6c
-          }
-        }
-
-        .count-down {
-          display flex
-          justify-content center
-        }
-
-        .pay-qrcode {
-          display flex
-          justify-content center
-
-          .el-image {
-            width 360px;
-            height 360px;
-          }
-        }
-
-        .tip {
-          display flex
-          justify-content center
-
-          .el-icon {
-            font-size 24px
-          }
-
-          .text {
-            font-size: 16px
-            margin-left 10px
-          }
-        }
-
-        .tip.success {
-          color #07c160
-        }
-      }
-    }
-  }
-
   .title {
     text-align center
     background-color #25272d
@@ -110,6 +63,7 @@
           overflow hidden
           cursor pointer
           transition: all 0.3s ease; /* 添加过渡效果 */
+          margin-bottom 20px
 
           .image-container {
             display flex
@@ -175,10 +129,32 @@
             .pay-way {
               padding 10px 0
               display flex
-              justify-content: space-between
+              justify-content: center
+              flex-wrap wrap
 
-              .iconfont {
-                margin-right 5px
+              .el-button {
+                margin 10px 5px 0 5px
+                padding 0
+
+                .icon-alipay,.icon-wechat-pay {
+                  color #ffffff
+                }
+                .icon-qq {
+                  color #15A6E8
+                  font-size 24px
+                }
+                .icon-jd-pay {
+                  color #ffffff
+                  font-size 24px
+                }
+                .icon-douyin {
+                  color #0a0a0a
+                  font-size 22px
+                }
+                .icon-paypal {
+                  font-size 14px
+                  color #009CDE
+                }
               }
             }
           }
@@ -200,4 +176,17 @@
     }
   }
 
+}
+
+.pay-dialog {
+  .product-info {
+    text-align center
+    color #333333
+    font-size 16px
+
+    .price {
+      color #f56c6c
+      font-weight 700
+    }
+  }
 }

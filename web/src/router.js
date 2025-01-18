@@ -139,8 +139,14 @@ const routes = [
     {
         path: '/admin/login',
         name: 'admin-login',
-        meta: {title: 'Geek-AI 控制台登录'},
+        meta: {title: '控制台登录'},
         component: () => import('@/views/admin/Login.vue'),
+    },
+    {
+        path: '/payReturn',
+        name: 'pay-return',
+        meta: {title: '支付回调'},
+        component: () => import('@/views/PayReturn.vue'),
     },
     {
         name: 'admin',
@@ -170,8 +176,14 @@ const routes = [
             {
                 path: '/admin/app',
                 name: 'admin-app',
-                meta: {title: '应用管理'},
+                meta: {title: '应用列表'},
                 component: () => import('@/views/admin/Apps.vue'),
+            },
+            {
+                path: '/admin/app/type',
+                name: 'admin-app-type',
+                meta: {title: '应用分类'},
+                component: () => import('@/views/admin/AppType.vue'),
             },
             {
                 path: '/admin/apikey',

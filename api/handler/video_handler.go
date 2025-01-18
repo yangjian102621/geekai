@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
 type VideoHandler struct {
@@ -77,6 +78,18 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	if user.Power < h.App.SysConfig.LumaPower {
+		resp.ERROR(c, "您的算力不足，请充值后再试！")
+		return
+	}
+
 	if data.Prompt == "" {
 		resp.ERROR(c, "prompt is needed")
 		return
@@ -113,7 +126,7 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	})
 
 	// update user's power
-	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "luma",
 		Remark: fmt.Sprintf("Luma 文生视频，任务ID：%d", job.Id),
@@ -184,6 +197,12 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
+	// 只有失败或者超时的任务才能删除
+	if job.Progress != service.FailTaskProgress || time.Now().Before(job.CreatedAt.Add(time.Minute*30)) {
+		resp.ERROR(c, "只有失败和超时(30分钟)的任务才能删除！")
+		return
+	}
+
 	// 删除任务
 	tx := h.DB.Begin()
 	if err := tx.Delete(&job).Error; err != nil {
@@ -192,18 +211,16 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// 如果任务未完成，或者任务失败，则恢复用户算力
-	if job.Progress != 100 {
-		err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-			Type:   types.PowerRefund,
-			Model:  "luma",
-			Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-		})
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
+	// 恢复算力
+	err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerRefund,
+		Model:  "luma",
+		Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+	})
+	if err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
+		return
 	}
 	tx.Commit()
 

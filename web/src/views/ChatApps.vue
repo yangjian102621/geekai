@@ -1,7 +1,21 @@
 <template>
   <div>
+
     <div class="page-apps custom-scroll">
-      <div class="inner" :style="{height: listBoxHeight + 'px'}">
+      <div class="apps-type-nav">
+        <el-scrollbar>
+          <ul class="scrollbar-type-nav">
+            <li :class="{active: typeId === ''}" @click="getAppList('')">全部分类</li>
+            <li v-for="item in appTypes" :key="item.id" :class="{active: typeId === item.id}" @click="getAppList(item.id)">
+              <div class="image" v-if="item.icon">
+                <el-image :src="item.icon" fit="cover"/>
+              </div>
+              {{ item.name }}
+            </li>
+          </ul>
+        </el-scrollbar>
+      </div>      
+      <div class="app-list-container" :style="{height: listBoxHeight + 'px'}">
         <ItemList :items="list" v-if="list.length > 0" :gap="15" :width="300">
           <template #default="scope">
             <div class="item">
@@ -50,6 +64,9 @@
             <!--            </div>-->
           </template>
         </ItemList>
+        <div v-else style="width: 100%">
+          <el-empty description="暂无数据" />
+        </div>
       </div>
     </div>
   </div>
@@ -64,25 +81,18 @@ import {arrayContains, removeArrayItem, substr} from "@/utils/libs";
 import {useRouter} from "vue-router";
 import {useSharedStore} from "@/store/sharedata";
 import ItemList from "@/components/ItemList.vue";
-import {Plus} from "@element-plus/icons-vue";
 
-const listBoxHeight = window.innerHeight - 87
+const listBoxHeight = window.innerHeight - 133
+
+const typeId = ref('')
+const appTypes = ref([])
 const list = ref([])
 const roles = ref([])
 const store = useSharedStore();
 
 onMounted(() => {
-  httpGet("/api/role/list").then((res) => {
-    const items = res.data
-    // 处理 hello message
-    for (let i = 0; i < items.length; i++) {
-      items[i].intro = substr(items[i].hello_msg, 80)
-    }
-    list.value = items
-  }).catch(e => {
-    ElMessage.error("获取应用失败：" + e.message)
-  })
-
+  getAppType()
+  getAppList()
   getRoles()
 })
 
@@ -91,6 +101,28 @@ const getRoles = () => {
     roles.value = user.chat_roles
   }).catch(e => {
     console.log(e.message)
+  })
+}
+
+const getAppType = () => {
+  httpGet("/api/app/type/list").then((res) => {
+    appTypes.value = res.data
+  }).catch(e => {
+    ElMessage.error("获取分类失败：" + e.message)
+  })
+}
+
+const getAppList = (tid = '') => {
+  typeId.value = tid;
+  httpGet("/api/app/list", { tid }).then((res) => {
+    const items = res.data
+    // 处理 hello message
+    for (let i = 0; i < items.length; i++) {
+      items[i].intro = substr(items[i].hello_msg, 80)
+    }
+    list.value = items
+  }).catch(e => {
+    ElMessage.error("获取应用失败：" + e.message)
   })
 }
 
@@ -112,7 +144,7 @@ const updateRole = (row, opt) => {
       }
       roles.value = removeArrayItem(roles.value, row.key)
     }
-    httpPost("/api/role/update", {keys: roles.value}).then(() => {
+    httpPost("/api/app/update", {keys: roles.value}).then(() => {
       ElMessage.success({message: title.value + "成功！", duration: 1000})
     }).catch(e => {
       ElMessage.error(title.value + "失败：" + e.message)

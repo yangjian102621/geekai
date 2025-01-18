@@ -71,6 +71,15 @@ TikaHost = "http://tika:9998"
   AccessToken = "xxl-job-api-token" # 执行器 API 通信 token
   RegistryKey = "chatgpt-plus" # 任务注册 key
 
+ [SmtpConfig] # 注意，阿里云服务器禁用了25号端口，请使用 465 端口，并开启 TLS 连接
+   UseTls = false
+   Host = "smtp.163.com"
+   Port = 25
+   AppName = "极客学长"
+   From = "test@163.com" # 发件邮箱人地址
+   Password = "" #邮箱 stmp 服务授权码
+
+# 支付宝商户支付
 [AlipayConfig]
   Enabled = false # 启用支付宝支付通道
   SandBox = false # 是否启用沙盒模式
@@ -80,31 +89,13 @@ TikaHost = "http://tika:9998"
   PublicKey = "certs/alipay/appPublicCert.crt" # 应用公钥证书
   AlipayPublicKey = "certs/alipay/alipayPublicCert.crt" # 支付宝公钥证书
   RootCert = "certs/alipay/alipayRootCert.crt" # 支付宝根证书
-  NotifyURL = "https://ai.r9it.com/api/payment/alipay/notify" # 支付异步回调地址
 
+# 虎皮椒支付
 [HuPiPayConfig]
   Enabled = false
-  Name = "wechat"
   AppId = ""
   AppSecret = ""
   ApiURL = "https://api.xunhupay.com"
-  NotifyURL = "https://ai.r9it.com/api/payment/hupipay/notify"
-
-[SmtpConfig] # 注意，阿里云服务器禁用了25号端口，请使用 465 端口，并开启 TLS 连接
-  UseTls = false
-  Host = "smtp.163.com"
-  Port = 25
-  AppName = "极客学长"
-  From = "test@163.com" # 发件邮箱人地址
-  Password = "" #邮箱 stmp 服务授权码
-
-[JPayConfig] # PayJs 支付配置
-  Enabled = false
-  Name = "wechat" # 请不要改动
-  AppId = "" # 商户 ID
-  PrivateKey = "" # 秘钥
-  ApiURL = "https://payjs.cn"
-  NotifyURL = "https://ai.r9it.com/api/payment/payjs/notify" # 异步回调地址，域名改成你自己的
 
 # 微信商户支付
 [WechatPayConfig]
@@ -114,6 +105,11 @@ TikaHost = "http://tika:9998"
   SerialNo = "" # API 证书序列号
   PrivateKey = "certs/alipay/privateKey.txt" # API 证书私钥文件路径，跟支付宝一样，把私钥文件拷贝到对应的路径，证书路径要映射到容器内
   ApiV3Key = "" # APIV3 私钥，这个是你自己在微信支付平台设置的
-  NotifyURL = "https://ai.r9it.com/api/payment/wechat/notify" # 支付成功异步回调地址，域名改成自己的
-  ReturnURL = "" # 支付成功同步回调地址
 
+# 易支付
+[GeekPayConfig]
+  Enabled = true
+  AppId = "" # 商户ID
+  PrivateKey = "" # 商户私钥
+  ApiURL = "https://pay.geekai.cn"
+  Methods = ["alipay", "wxpay", "qqpay", "jdpay", "douyin", "paypal"] # 支持的支付方式
