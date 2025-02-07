@@ -97,17 +97,19 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	var req = types.ApiRequest{
-		Model: session.Model.Value,
+		Model:       session.Model.Value,
+		Stream:      session.Stream,
+		Temperature: session.Model.Temperature,
 	}
-	// 兼容 GPT-O1 模型
-	if strings.HasPrefix(session.Model.Value, "o1-") {
+	// 兼容 OpenAI 模型
+	if strings.HasPrefix(session.Model.Value, "o1-") ||
+		strings.HasPrefix(session.Model.Value, "o3-") ||
+		strings.HasPrefix(session.Model.Value, "gpt") {
 		utils.SendChunkMsg(ws, "> AI 正在思考...\n")
-		req.Stream = session.Stream
+		req.MaxCompletionTokens = session.Model.MaxTokens
 		session.Start = time.Now().Unix()
 	} else {
 		req.MaxTokens = session.Model.MaxTokens
-		req.Temperature = session.Model.Temperature
-		req.Stream = session.Stream
 	}
 
 	if len(session.Tools) > 0 && !strings.HasPrefix(session.Model.Value, "o1-") {
