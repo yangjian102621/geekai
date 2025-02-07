@@ -195,7 +195,7 @@ const type = ref([
 
 // 获取 API KEY
 const apiKeys = ref([]);
-httpGet("/api/admin/apikey/list?type=chat|dalle")
+httpGet("/api/admin/apikey/list")
   .then((res) => {
     apiKeys.value = res.data;
   })

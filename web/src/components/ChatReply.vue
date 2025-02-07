@@ -90,9 +90,9 @@
 </template>
 
 <script setup>
-import {Clock, DocumentCopy, Refresh} from "@element-plus/icons-vue";
-import {ElMessage} from "element-plus";
-import {dateFormat, processContent} from "@/utils/libs";
+import { Clock, DocumentCopy, Refresh } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+import { dateFormat, processContent } from "@/utils/libs";
 import hl from "highlight.js";
 import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";

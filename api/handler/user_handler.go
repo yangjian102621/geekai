@@ -12,13 +12,15 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/store"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/imroc/req/v3"
 	"strings"
 	"time"
+
+	"github.com/imroc/req/v3"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
@@ -32,6 +34,7 @@ type UserHandler struct {
 	BaseHandler
 	searcher       *xdb.Searcher
 	redis          *redis.Client
+	levelDB        *store.LevelDB
 	licenseService *service.LicenseService
 	captcha        *service.CaptchaService
 	userService    *service.UserService
@@ -42,6 +45,7 @@ func NewUserHandler(
 	db *gorm.DB,
 	searcher *xdb.Searcher,
 	client *redis.Client,
+	levelDB *store.LevelDB,
 	captcha *service.CaptchaService,
 	userService *service.UserService,
 	licenseService *service.LicenseService) *UserHandler {
@@ -49,6 +53,7 @@ func NewUserHandler(
 		BaseHandler:    BaseHandler{DB: db, App: app},
 		searcher:       searcher,
 		redis:          client,
+		levelDB:        levelDB,
 		captcha:        captcha,
 		licenseService: licenseService,
 		userService:    userService,
@@ -184,7 +189,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		if h.App.SysConfig.InvitePower > 0 {
 			err := h.userService.IncreasePower(int(inviteCode.UserId), h.App.SysConfig.InvitePower, model.PowerLog{
 				Type:   types.PowerInvite,
-				Model: "Invite",
+				Model:  "Invite",
 				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
 			})
 			if err != nil {
@@ -710,5 +715,32 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 	}
 
 	_ = h.redis.Del(c, key) // 删除短信验证码
+	resp.SUCCESS(c)
+}
+
+// SignIn 每日签到
+func (h *UserHandler) SignIn(c *gin.Context) {
+	// 获取当前日期
+	date := time.Now().Format("2006-01-02")
+
+	// 检查是否已经签到
+	userId := h.GetLoginUserId(c)
+	key := fmt.Sprintf("signin/%d/%s", userId, date)
+	var signIn bool
+	err := h.levelDB.Get(key, &signIn)
+	if err == nil && signIn {
+		resp.ERROR(c, "今日已签到，请明日再来！")
+		return
+	}
+
+	// 签到
+	h.levelDB.Put(key, true)
+	if h.App.SysConfig.DailyPower > 0 {
+		h.userService.IncreasePower(int(userId), h.App.SysConfig.DailyPower, model.PowerLog{
+			Type:   types.PowerSignIn,
+			Model:  "SignIn",
+			Remark: fmt.Sprintf("每日签到奖励，金额：%d", h.App.SysConfig.DailyPower),
+		})
+	}
 	resp.SUCCESS(c)
 }

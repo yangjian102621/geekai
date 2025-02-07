@@ -114,7 +114,7 @@ console.log(
   "color: red;font-size: 20px;font-family: '微软雅黑';"
 );
 
-console.log("%c 一曲肝肠断，天涯何处觅知音？愿你出走半生，归来仍是少年！", "color: #7c39ed;font-size: 18px;font-family: '微软雅黑';");
+console.log("%c 愿你出走半生，归来仍是少年！大奉武夫许七安，前来凿阵！", "color: #7c39ed;font-size: 18px;font-family: '微软雅黑';");
 </script>
 
 <style lang="stylus">

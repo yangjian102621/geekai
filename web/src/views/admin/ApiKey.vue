@@ -141,6 +141,7 @@ const types = ref([
   { label: "Suno文生歌", value: "suno" },
   { label: "Luma视频", value: "luma" },
   { label: "Realtime API", value: "realtime" },
+  { label: "其他", value: "other" },
 ]);
 const isEdit = ref(false);
 const clipboard = ref(null);

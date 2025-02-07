@@ -25,6 +25,9 @@
       <el-form-item label="剩余算力">
         <el-text type="warning">{{ user["power"] }}</el-text>
         <el-tag type="info" size="small" class="ml-2 cursor-pointer" @click="gotoLog">算力日志</el-tag>
+        <el-tooltip :content="`每日签到可获得 ${systemConfig.daily_power} 算力`" placement="top" v-if="systemConfig.daily_power > 0">
+          <el-button type="primary" size="small" @click="signIn" class="ml-2">签到</el-button>
+        </el-tooltip>
       </el-form-item>
       <el-form-item label="会员到期时间" v-if="user['expired_time'] > 0">
         <el-tag type="danger">{{ dateFormat(user["expired_time"]) }}</el-tag>
@@ -44,8 +47,9 @@ import { ElMessage } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import { dateFormat } from "@/utils/libs";
-import { checkSession } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useRouter } from "vue-router";
+import { showMessageError, showMessageOK } from "@/utils/dialog";
 const user = ref({
   vip: false,
   username: "演示数据",
@@ -56,6 +60,7 @@ const user = ref({
 });
 
 const vipImg = ref("/images/menu/member.png");
+const systemConfig = ref({});
 const router = useRouter();
 const emits = defineEmits(["hide"]);
 onMounted(() => {
@@ -73,6 +78,10 @@ onMounted(() => {
     .catch((e) => {
       console.log(e);
     });
+
+  getSystemInfo().then((res) => {
+    systemConfig.value = res.data;
+  });
 });
 
 const afterRead = (file) => {
@@ -111,6 +120,17 @@ const save = () => {
 const gotoLog = () => {
   router.push("/powerLog");
   emits("hide", false);
+};
+
+const signIn = () => {
+  httpGet("/api/user/signin")
+    .then(() => {
+      showMessageOK("签到成功");
+      user.value.power += systemConfig.value.daily_power;
+    })
+    .catch((e) => {
+      showMessageError(e.message);
+    });
 };
 </script>
 
