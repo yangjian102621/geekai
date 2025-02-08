@@ -50,11 +50,7 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 }
 
 func (s *AppServer) Init(debug bool, client *redis.Client) {
-	if debug { // 调试模式允许跨域请求 API
-		s.Debug = debug
-		s.Engine.Use(corsMiddleware())
-		logger.Info("Enabled debug mode")
-	}
+	s.Engine.Use(corsMiddleware())
 	s.Engine.Use(staticResourceMiddleware())
 	s.Engine.Use(authorizeMiddleware(s, client))
 	s.Engine.Use(parameterHandlerMiddleware())
