@@ -3,7 +3,7 @@ ProxyURL = ""
 MysqlDns = "root:mhSCk0NheGhmtsha@tcp(geekai-mysql:3306)/geekai_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static"
 StaticUrl = "/static"
-TikaHost = "http://tika:9998"
+TikaHost = "http://tika-geekai:9998"
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"

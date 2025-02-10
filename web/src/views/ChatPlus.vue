@@ -1000,7 +1000,7 @@ const realtimeChat = () => {
     }
 
     ul {
-      list-style disc
+      list-style inside
     }
   }
 }
