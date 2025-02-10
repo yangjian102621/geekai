@@ -15,6 +15,11 @@ services:
       - ./data/mysql/data:/var/lib/mysql
       - ./logs/mysql:/var/log/mysql
       - ./data/mysql/init.d:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   # redis
   geekai-redis:
@@ -26,6 +31,11 @@ services:
       - ./data/redis:/data
     ports:
       - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
 
   #  xxl-job-admin:
   #    container_name: geekai-xxl-job-admin
@@ -41,10 +51,10 @@ services:
 
   tika:
     image: registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest
-    container_name: tika
+    container_name: geekai-tika
     restart: always
     ports:
-      - "9998:9998"
+      - "9999:9998"
 
   #  midjourney-proxy:
   #    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/midjourney-proxy:2.6.2
@@ -61,15 +71,16 @@ services:
     container_name: geekai-api
     restart: always
     depends_on:
-      - geekai-mysql
-      - geekai-redis
+      geekai-mysql:
+        condition: service_healthy
+      geekai-redis:
+        condition: service_healthy
     environment:
       - DEBUG=false
       - LOG_LEVEL=info
       - CONFIG_FILE=config.toml
     ports:
       - "5678:5678"
-      - "9999:9999"
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./conf/config.toml:/var/www/app/config.toml
