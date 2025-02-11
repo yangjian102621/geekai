@@ -34,17 +34,19 @@ type Service struct {
 	uploadManager *oss.UploaderManager
 	taskQueue     *store.RedisQueue
 	notifyQueue   *store.RedisQueue
-	Clients       *types.LMap[uint, *types.WsClient] // UserId => Client
+	wsService     *service.WebsocketService
+	clientIds     map[string]string
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService) *Service {
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
 		taskQueue:     store.NewRedisQueue("Suno_Task_Queue", redisCli),
 		notifyQueue:   store.NewRedisQueue("Suno_Notify_Queue", redisCli),
-		Clients:       types.NewLMap[uint, *types.WsClient](),
 		uploadManager: manager,
+		wsService:     wsService,
+		clientIds:     map[string]string{},
 	}
 }
 
@@ -96,7 +98,7 @@ func (s *Service) Run() {
 					"err_msg":  err.Error(),
 					"progress": service.FailTaskProgress,
 				})
-				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
 				continue
 			}
 
@@ -105,6 +107,7 @@ func (s *Service) Run() {
 				"task_id": r.Data,
 				"channel": r.Channel,
 			})
+			s.clientIds[r.Data] = task.ClientId
 		}
 	}()
 }
@@ -271,14 +274,14 @@ func (s *Service) CheckTaskNotify() {
 			if err != nil {
 				continue
 			}
-			client := s.Clients.Get(uint(message.UserId))
+			logger.Debugf("notify message: %+v", message)
+			logger.Debugf("client id: %+v", s.wsService.Clients)
+			client := s.wsService.Clients.Get(message.ClientId)
+			logger.Debugf("%+v", client)
 			if client == nil {
 				continue
 			}
-			err = client.Send([]byte(message.Message))
-			if err != nil {
-				continue
-			}
+			utils.SendChannelMsg(client, types.ChSuno, message.Message)
 		}
 	}()
 }
@@ -311,7 +314,7 @@ func (s *Service) DownloadFiles() {
 				v.AudioURL = audioURL
 				v.Progress = 100
 				s.db.Updates(&v)
-				s.notifyQueue.RPush(service.NotifyMessage{UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[v.TaskId], UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished})
 			}
 
 			time.Sleep(time.Second * 10)
@@ -377,12 +380,12 @@ func (s *Service) SyncTaskProgress() {
 						}
 					}
 					tx.Commit()
-
+					s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[job.TaskId], UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFinished})
 				} else if task.Data.FailReason != "" {
 					job.Progress = service.FailTaskProgress
 					job.ErrMsg = task.Data.FailReason
 					s.db.Updates(&job)
-					s.notifyQueue.RPush(service.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
+					s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[job.TaskId], UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
 				}
 			}
 

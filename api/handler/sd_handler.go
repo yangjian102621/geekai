@@ -19,10 +19,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"net/http"
 	"time"
-
-	"github.com/gorilla/websocket"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -57,27 +54,6 @@ func NewSdJobHandler(app *core.AppServer,
 			DB:  db,
 		},
 	}
-}
-
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *SdJobHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		c.Abort()
-		return
-	}
-
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		logger.Info("Invalid user ID")
-		c.Abort()
-		return
-	}
-
-	client := types.NewWsClient(ws)
-	h.sdService.Clients.Put(uint(userId), client)
-	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
 }
 
 func (h *SdJobHandler) preCheck(c *gin.Context) bool {
@@ -168,16 +144,12 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	h.sdService.PushTask(types.SdTask{
-		Id:     int(job.Id),
-		Type:   types.TaskImage,
-		Params: params,
-		UserId: userId,
+		Id:       int(job.Id),
+		ClientId: data.ClientId,
+		Type:     types.TaskImage,
+		Params:   params,
+		UserId:   userId,
 	})
-
-	client := h.sdService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
@@ -259,15 +231,6 @@ func (h *SdJobHandler) getData(finish bool, userId uint, page int, pageSize int,
 		err := utils.CopyObject(item, &job)
 		if err != nil {
 			continue
-		}
-
-		if item.Progress < 100 {
-			// 从 leveldb 中获取图片预览数据
-			var imageData string
-			err = h.leveldb.Get(item.TaskId, &imageData)
-			if err == nil {
-				job.ImgURL = "data:image/png;base64," + imageData
-			}
 		}
 		jobs = append(jobs, job)
 	}

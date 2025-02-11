@@ -17,7 +17,6 @@ axios.defaults.headers.post['Content-Type'] = 'application/json'
 axios.interceptors.request.use(
     config => {
         // set token
-        config.headers['Chat-Token'] = getSessionId();
         config.headers['Authorization'] = getUserToken();
         config.headers['Admin-Authorization'] = getAdminToken();
         return config
@@ -28,10 +27,11 @@ axios.interceptors.response.use(
     response => {
         return response
     }, error => {
-        if (error.response.status === 401 || error.response.status === 400) {
+        if (error.response.status === 401) {
             if (error.response.request.responseURL.indexOf("/api/admin") !== -1) {
                 removeAdminToken()
             } else {
+                console.log("FUCK")
                 removeUserToken()
             }
             error.response.data.message = "请先登录"

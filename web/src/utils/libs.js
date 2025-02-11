@@ -181,6 +181,10 @@ export function isImage(url) {
 }
 
 export function processContent(content) {
+    if (!content) {
+        return ""
+    }
+    
     // 如果是图片链接地址，则直接替换成图片标签
     const linkRegex = /(https?:\/\/\S+)/g;
     const links = content.match(linkRegex);
@@ -214,18 +218,23 @@ export function showLoginDialog(router) {
         message:
             '此操作需要登录才能进行，前往登录？',
     }).then(() => {
-        router.push("/login")
+        router.push("/mobile/login")
     }).catch(() => {
         // on cancel
     });
 }
 
 export const replaceImg =(img) => {
-    const devHost = "172.22.11.69"
-    const localhost = "localhost"
+    const devHost = process.env.VUE_APP_API_HOST
+    const localhost = "http://localhost:5678"
     if (img.includes(localhost)) {
         return img?.replace(localhost, devHost)
     }
     return img
 }
+export function isChrome() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return /chrome/.test(userAgent) && !/edg/.test(userAgent);
+}
+
 

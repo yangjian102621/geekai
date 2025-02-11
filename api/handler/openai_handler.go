@@ -1,4 +1,4 @@
-package chatimpl
+package handler
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -22,6 +22,32 @@ import (
 	"strings"
 	"time"
 )
+
+type Usage struct {
+	Prompt           string `json:"prompt,omitempty"`
+	Content          string `json:"content,omitempty"`
+	PromptTokens     int    `json:"prompt_tokens"`
+	CompletionTokens int    `json:"completion_tokens"`
+	TotalTokens      int    `json:"total_tokens"`
+}
+
+type OpenAIResVo struct {
+	Id                string `json:"id"`
+	Object            string `json:"object"`
+	Created           int    `json:"created"`
+	Model             string `json:"model"`
+	SystemFingerprint string `json:"system_fingerprint"`
+	Choices           []struct {
+		Index   int `json:"index"`
+		Message struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"message"`
+		Logprobs     interface{} `json:"logprobs"`
+		FinishReason string      `json:"finish_reason"`
+	} `json:"choices"`
+	Usage Usage `json:"usage"`
+}
 
 // OPenAI 消息发送实现
 func (h *ChatHandler) sendOpenAiMessage(
@@ -49,17 +75,21 @@ func (h *ChatHandler) sendOpenAiMessage(
 		defer response.Body.Close()
 	}
 
+	if response.StatusCode != 200 {
+		body, _ := io.ReadAll(response.Body)
+		return fmt.Errorf("请求 OpenAI API 失败：%d, %v", response.StatusCode, string(body))
+	}
+
 	contentType := response.Header.Get("Content-Type")
 	if strings.Contains(contentType, "text/event-stream") {
 		replyCreatedAt := time.Now() // 记录回复时间
 		// 循环读取 Chunk 消息
-		var message = types.Message{}
+		var message = types.Message{Role: "assistant"}
 		var contents = make([]string, 0)
 		var function model.Function
 		var toolCall = false
 		var arguments = make([]string, 0)
 		scanner := bufio.NewScanner(response.Body)
-		var isNew = true
 		for scanner.Scan() {
 			line := scanner.Text()
 			if !strings.Contains(line, "data:") || len(line) < 30 {
@@ -78,7 +108,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			}
 
 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
-				utils.ReplyMessage(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
+				utils.SendChunkMsg(ws, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
 				break
 			}
 
@@ -106,8 +136,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				if res.Error == nil {
 					toolCall = true
 					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsMiddle, Content: callMsg})
+					utils.SendChunkMsg(ws, callMsg)
 					contents = append(contents, callMsg)
 				}
 				continue
@@ -124,14 +153,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			} else {
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
-				if isNew {
-					utils.ReplyChunkMessage(ws, types.WsMessage{Type: types.WsStart})
-					isNew = false
-				}
-				utils.ReplyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: utils.InterfaceToString(responseBody.Choices[0].Delta.Content),
-				})
+				utils.SendChunkMsg(ws, responseBody.Choices[0].Delta.Content)
 			}
 		} // end for
 
@@ -149,7 +171,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			logger.Debugf("函数名称: %s, 函数参数：%s", function.Name, params)
 			params["user_id"] = userVo.Id
 			var apiRes types.BizVo
-			r, err := req2.C().R().SetHeader("Content-Type", "application/json").
+			r, err := req2.C().R().SetHeader("Body-Type", "application/json").
 				SetHeader("Authorization", function.Token).
 				SetBody(params).
 				SetSuccessResult(&apiRes).Post(function.Action)
@@ -160,28 +182,45 @@ func (h *ChatHandler) sendOpenAiMessage(
 				errMsg = r.Status
 			}
 			if errMsg != "" || apiRes.Code != types.Success {
-				msg := "调用函数工具出错：" + apiRes.Message + errMsg
-				utils.ReplyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: msg,
-				})
-				contents = append(contents, msg)
+				errMsg = "调用函数工具出错：" + apiRes.Message + errMsg
+				contents = append(contents, errMsg)
 			} else {
-				utils.ReplyChunkMessage(ws, types.WsMessage{
-					Type:    types.WsMiddle,
-					Content: apiRes.Data,
-				})
-				contents = append(contents, utils.InterfaceToString(apiRes.Data))
+				errMsg = utils.InterfaceToString(apiRes.Data)
+				contents = append(contents, errMsg)
 			}
+			utils.SendChunkMsg(ws, errMsg)
 		}
 
 		// 消息发送成功
 		if len(contents) > 0 {
-			h.saveChatHistory(req, prompt, contents, message, chatCtx, session, role, userVo, promptCreatedAt, replyCreatedAt)
+			usage := Usage{
+				Prompt:           prompt,
+				Content:          strings.Join(contents, ""),
+				PromptTokens:     0,
+				CompletionTokens: 0,
+				TotalTokens:      0,
+			}
+			message.Content = usage.Content
+			h.saveChatHistory(req, usage, message, chatCtx, session, role, userVo, promptCreatedAt, replyCreatedAt)
 		}
-	} else {
-		body, _ := io.ReadAll(response.Body)
-		return fmt.Errorf("请求 OpenAI API 失败：%s", body)
+	} else { // 非流式输出
+		var respVo OpenAIResVo
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return fmt.Errorf("读取响应失败：%v", body)
+		}
+		err = json.Unmarshal(body, &respVo)
+		if err != nil {
+			return fmt.Errorf("解析响应失败：%v", body)
+		}
+		content := respVo.Choices[0].Message.Content
+		if strings.HasPrefix(req.Model, "o1-") {
+			content = fmt.Sprintf("AI思考结束，耗时：%d 秒。\n%s", time.Now().Unix()-session.Start, respVo.Choices[0].Message.Content)
+		}
+		utils.SendChunkMsg(ws, content)
+		respVo.Usage.Prompt = prompt
+		respVo.Usage.Content = content
+		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, chatCtx, session, role, userVo, promptCreatedAt, time.Now())
 	}
 
 	return nil

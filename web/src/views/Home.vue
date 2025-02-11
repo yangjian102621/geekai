@@ -224,6 +224,7 @@ const logout = function () {
   httpGet('/api/user/logout').then(() => {
     removeUserToken()
     store.setShowLoginDialog(true)
+    store.setIsLogin(false)
     loginUser.value = {}
     // 刷新组件
     routerViewKey.value += 1

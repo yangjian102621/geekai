@@ -51,9 +51,9 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 func (s *AppServer) Init(debug bool, client *redis.Client) {
 	if debug { // 调试模式允许跨域请求 API
 		s.Debug = debug
+		s.Engine.Use(corsMiddleware())
 		logger.Info("Enabled debug mode")
 	}
-	s.Engine.Use(corsMiddleware())
 	s.Engine.Use(staticResourceMiddleware())
 	s.Engine.Use(authorizeMiddleware(s, client))
 	s.Engine.Use(parameterHandlerMiddleware())
@@ -65,13 +65,13 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 func (s *AppServer) Run(db *gorm.DB) error {
 	// load system configs
 	var sysConfig model.Config
-	res := db.Where("marker", "system").First(&sysConfig)
-	if res.Error != nil {
-		return res.Error
-	}
-	err := utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	err := db.Where("marker", "system").First(&sysConfig).Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load system config: %v", err)
+	}
+	err = utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	if err != nil {
+		return fmt.Errorf("failed to decode system config: %v", err)
 	}
 	logger.Infof("http://%s", s.Config.Listen)
 	return s.Engine.Run(s.Config.Listen)
@@ -101,9 +101,9 @@ func corsMiddleware() gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, Content-Type, Chat-Token, Admin-Authorization")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Body-Length, Body-Type, Admin-Authorization,content-type")
 			// 允许浏览器（客户端）可以解析的头部 （重要）
-			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
+			c.Header("Access-Control-Expose-Headers", "Body-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 			//设置缓存时间
 			c.Header("Access-Control-Max-Age", "172800")
 			//允许客户端传递校验信息比如 cookie (重要)
@@ -131,7 +131,7 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		isAdminApi := strings.Contains(c.Request.URL.Path, "/api/admin/")
 		if isAdminApi { // 后台管理 API
 			tokenString = c.GetHeader(types.AdminAuthHeader)
-		} else if c.Request.URL.Path == "/api/chat/new" {
+		} else if c.Request.URL.Path == "/api/ws" { // Websocket 连接
 			tokenString = c.Query("token")
 		} else {
 			tokenString = c.GetHeader(types.UserAuthHeader)
@@ -204,31 +204,25 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/chat/history" ||
 		c.Request.URL.Path == "/api/chat/detail" ||
 		c.Request.URL.Path == "/api/chat/list" ||
-		c.Request.URL.Path == "/api/role/list" ||
+		c.Request.URL.Path == "/api/app/list" ||
+		c.Request.URL.Path == "/api/app/type/list" ||
+		c.Request.URL.Path == "/api/app/list/user" ||
 		c.Request.URL.Path == "/api/model/list" ||
 		c.Request.URL.Path == "/api/mj/imgWall" ||
-		c.Request.URL.Path == "/api/mj/client" ||
 		c.Request.URL.Path == "/api/mj/notify" ||
 		c.Request.URL.Path == "/api/invite/hits" ||
 		c.Request.URL.Path == "/api/sd/imgWall" ||
-		c.Request.URL.Path == "/api/sd/client" ||
 		c.Request.URL.Path == "/api/dall/imgWall" ||
-		c.Request.URL.Path == "/api/dall/client" ||
 		c.Request.URL.Path == "/api/product/list" ||
 		c.Request.URL.Path == "/api/menu/list" ||
 		c.Request.URL.Path == "/api/markMap/client" ||
-		c.Request.URL.Path == "/api/payment/alipay/notify" ||
-		c.Request.URL.Path == "/api/payment/hupipay/notify" ||
-		c.Request.URL.Path == "/api/payment/payjs/notify" ||
-		c.Request.URL.Path == "/api/payment/wechat/notify" ||
 		c.Request.URL.Path == "/api/payment/doPay" ||
 		c.Request.URL.Path == "/api/payment/payWays" ||
-		c.Request.URL.Path == "/api/suno/client" ||
 		c.Request.URL.Path == "/api/suno/detail" ||
 		c.Request.URL.Path == "/api/suno/play" ||
 		c.Request.URL.Path == "/api/download" ||
-		c.Request.URL.Path == "/api/video/client" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
+		strings.HasPrefix(c.Request.URL.Path, "/api/payment/notify/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/config/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||

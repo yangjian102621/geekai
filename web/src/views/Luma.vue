@@ -55,25 +55,6 @@
     <el-container class="video-container" v-loading="loading" element-loading-background="rgba(100,100,100,0.3)">
       <h2 class="h-title">你的作品</h2>
 
-<!--      <el-row :gutter="20" class="videos" v-if="!noData">-->
-<!--        <el-col :span="8" class="item" :key="item.id" v-for="item in videos">-->
-<!--          <div class="video-box" @mouseover="item.playing = true" @mouseout="item.playing = false">-->
-<!--            <img :src="item.cover"  :alt="item.name" v-show="!item.playing"/>-->
-<!--            <video :src="item.url"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="item.playing">-->
-<!--              您的浏览器不支持视频播放-->
-<!--            </video>-->
-<!--          </div>-->
-<!--          <div class="video-name">{{item.name}}</div>-->
-<!--          <div class="opts">-->
-<!--            <button class="btn" @click="download(item)" :disabled="item.downloading">-->
-<!--              <i class="iconfont icon-download" v-if="!item.downloading"></i>-->
-<!--              <el-image src="/images/loading.gif" fit="cover" v-else />-->
-<!--              <span>下载</span>-->
-<!--            </button>-->
-<!--          </div>-->
-<!--        </el-col>-->
-<!--      </el-row>-->
-
       <div class="list-box" v-if="!noData">
         <div v-for="item in list" :key="item.id">
           <div class="item">
@@ -106,7 +87,7 @@
                 <el-tooltip effect="light" content="下载视频" placement="top">
                   <button class="btn btn-icon" @click="download(item)" :disabled="item.downloading">
                     <i class="iconfont icon-download" v-if="!item.downloading"></i>
-                    <el-image src="/images/loading.gif" fit="cover" v-else />
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
                   </button>
                 </el-tooltip>
                 <el-tooltip effect="light" content="删除" placement="top">
@@ -141,8 +122,8 @@
           :total="total"/>
       </div>
     </el-container>
-    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" :width="1000">
-      <video style="width: 100%;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
+    <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" width="auto">
+      <video style="width: 100%; max-height: 90vh;" :src="currentVideoUrl"  preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
         您的浏览器不支持视频播放
       </video>
     </black-dialog>    
@@ -150,16 +131,17 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {CircleCloseFilled} from "@element-plus/icons-vue";
 import {httpDownload, httpPost, httpGet} from "@/utils/http";
-import {checkSession} from "@/store/cache";
+import {checkSession, getClientId} from "@/store/cache";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
 import { replaceImg } from "@/utils/libs"
 import {ElMessage, ElMessageBox} from "element-plus";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import Generating from "@/components/ui/Generating.vue";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const showDialog = ref(false)
 const currentVideoUrl = ref('')
@@ -167,6 +149,7 @@ const row = ref(1)
 const images = ref([])
 
 const formData = reactive({
+  client_id: getClientId(),
   prompt: '',
   expand_prompt: false,
   loop: false,
@@ -174,49 +157,26 @@ const formData = reactive({
   end_frame_img: ''
 })
 
-const socket = ref(null)
-const userId = ref(0)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  const _socket = new WebSocket(host + `/api/video/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        if (message === "FINISH" || message === "FAIL") {
-          fetchData()
-        }
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  });
-}
-
+const store = useSharedStore()
 onMounted(()=>{
-  checkSession().then(user => {
-    userId.value = user.id
-    connect()
+  checkSession().then(() => {
+    fetchData(1)
   })
-  fetchData(1)
+
+  store.addMessageHandler("luma",(data) => {
+    // 丢弃无关消息
+    if (data.channel !== "luma" || data.clientId !== getClientId()) {
+      return
+    }
+
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      fetchData(1)
+    }
+  })
+})
+
+onUnmounted(() => {
+  store.removeMessageHandler("luma")
 })
 
 const download = (item) => {

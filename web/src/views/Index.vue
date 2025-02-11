@@ -61,13 +61,13 @@ import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
-import {isMobile} from "@/utils/libs";
 import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
+import {isMobile} from "@/utils/libs";
 
 const router = useRouter()
 
 if (isMobile()) {
-  router.push("/mobile")
+  router.push("/mobile/index")
 }
 
 const title = ref("")

@@ -109,7 +109,7 @@ onMounted(() => {
 })
 
 const fetchApps = () => {
-  httpGet("/api/role/list").then((res) => {
+  httpGet("/api/app/list").then((res) => {
     const items = res.data
     // 处理 hello message
     for (let i = 0; i < items.length; i++) {

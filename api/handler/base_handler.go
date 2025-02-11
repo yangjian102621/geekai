@@ -8,13 +8,13 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"errors"
+	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	logger2 "geekai/logger"
 	"geekai/store/model"
 	"geekai/utils"
-	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"strings"
 
@@ -85,7 +85,7 @@ func (h *BaseHandler) GetLoginUser(c *gin.Context) (model.User, error) {
 	}
 
 	var user model.User
-	res := h.DB.First(&user, userId)
+	res := h.DB.Where("id", userId).First(&user)
 	// 更新缓存
 	if res.Error == nil {
 		c.Set(types.LoginUserCache, user)

@@ -45,7 +45,7 @@
 
               <div class="param-line">
                 <el-button color="#47fff1" :dark="false" round @click="generateAI" :loading="loading">
-                  智能生成思维导图
+                  生成思维导图
                 </el-button>
               </div>
 
@@ -79,10 +79,7 @@
             </el-button>
           </div>
 
-          <div class="markdown" v-if="loading">
-            <div :style="{ height: rightBoxHeight + 'px', overflow:'auto',width:'80%' }" v-html="html"></div>
-          </div>
-          <div class="body" id="markmap" v-show="!loading">
+          <div class="body" id="markmap">
             <svg ref="svgRef" :style="{ height: rightBoxHeight + 'px' }"/>
             <div id="toolbar"></div>
           </div>
@@ -94,11 +91,11 @@
 </template>
 
 <script setup>
-import {nextTick, onUnmounted, ref} from 'vue';
+import {nextTick, ref} from 'vue';
 import {Markmap} from 'markmap-view';
 import {Transformer} from 'markmap-lib';
 import {checkSession, getSystemInfo} from "@/store/cache";
-import {httpGet} from "@/utils/http";
+import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {Download} from "@element-plus/icons-vue";
 import {Toolbar} from 'markmap-toolbar';
@@ -106,11 +103,9 @@ import {useSharedStore} from "@/store/sharedata";
 
 const leftBoxHeight = ref(window.innerHeight - 105)
 const rightBoxHeight = ref(window.innerHeight - 115)
-const title = ref("")
 
 const prompt = ref("")
 const text = ref("")
-const md = require('markdown-it')({breaks: true});
 const content = ref(text.value)
 const html = ref("")
 
@@ -118,13 +113,12 @@ const isLogin = ref(false)
 const loginUser = ref({power: 0})
 const transformer = new Transformer();
 const store = useSharedStore();
-
+const loading = ref(false)
 
 const svgRef = ref(null)
 const markMap = ref(null)
 const models = ref([])
 const modelID = ref(0)
-const loading = ref(false)
 
 getSystemInfo().then(res => {
   text.value = res.data['mark_map_text']
@@ -150,15 +144,15 @@ const initData = () => {
       models.value.push(v)
     }
     modelID.value = models.value[0].id
-    checkSession().then(user => {
-      loginUser.value = user
-      isLogin.value = true
-      connect(user.id)
-    }).catch(() => {
-    });
   }).catch(e => {
     ElMessage.error("获取模型失败：" + e.message)
   })
+  
+  checkSession().then(user => {
+    loginUser.value = user
+    isLogin.value = true
+  }).catch(() => {
+  });
 }
 
 const update = () => {
@@ -188,75 +182,9 @@ const processContent = (text) => {
   return arr.join("\n")
 }
 
-onUnmounted(() => {
-  if (socket.value !== null) {
-    socket.value.close()
-  }
-  socket.value = null
-})
-
 window.onresize = () => {
   leftBoxHeight.value = window.innerHeight - 145
   rightBoxHeight.value = window.innerHeight - 85
-}
-
-const socket = ref(null)
-const connect = (userId) => {
-  if (socket.value !== null) {
-    socket.value.close()
-  }
-
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  const _socket = new WebSocket(host + `/api/markMap/client?user_id=${userId}&model_id=${modelID.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      const model = getModelById(modelID.value)
-      reader.onload = () => {
-        const data = JSON.parse(String(reader.result))
-        switch (data.type) {
-          case "start":
-            text.value = ""
-            break
-          case "middle":
-            text.value += data.content
-            html.value = md.render(processContent(text.value))
-            break
-          case "end":
-            loading.value = false
-            content.value = processContent(text.value)
-            loginUser.value.power -= model.power
-            nextTick(() => update())
-            break
-          case "error":
-            loading.value = false
-            ElMessage.error(data.content)
-            break
-        }
-      }
-    }
-  })
-
-  _socket.addEventListener('close', () => {
-    loading.value = false
-    checkSession().then(() => {
-      connect(userId)
-    }).catch(() => {
-    })
-  });
 }
 
 const generate = () => {
@@ -276,19 +204,26 @@ const generateAI = () => {
     return
   }
   loading.value = true
-  socket.value.send(JSON.stringify({type: "message", content: prompt.value}))
-}
-
-const changeModel = () => {
-  if (socket.value !== null) {
-    socket.value.send(JSON.stringify({type: "model_id", content: modelID.value}))
-  }
+  httpPost("/api/markMap/gen", {
+    prompt:prompt.value,
+    model_id: modelID.value
+  }).then(res => {
+    text.value = res.data
+    content.value = processContent(text.value)
+    const model = getModelById(modelID.value)
+    loginUser.value.power -= model.power
+    nextTick(() => update())
+    loading.value = false
+  }).catch(e => {
+    ElMessage.error("生成思维导图失败：" + e.message)
+    loading.value = false
+  })
 }
 
 const getModelById = (modelId) => {
-  for (let e of models.value) {
-    if (e.id === modelId) {
-      return e
+  for (let m of models.value) {
+    if (m.id === modelId) {
+      return m
     }
   }
 }

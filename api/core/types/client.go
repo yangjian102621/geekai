@@ -17,15 +17,17 @@ var ErrConClosed = errors.New("connection Closed")
 
 // WsClient websocket client
 type WsClient struct {
+	Id     string
 	Conn   *websocket.Conn
 	lock   sync.Mutex
 	mt     int
 	Closed bool
 }
 
-func NewWsClient(conn *websocket.Conn) *WsClient {
+func NewWsClient(conn *websocket.Conn, id string) *WsClient {
 	return &WsClient{
 		Conn:   conn,
+		Id:     id,
 		lock:   sync.Mutex{},
 		mt:     2, // fixed bug for 'Invalid UTF-8 in text frame'
 		Closed: false,

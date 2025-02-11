@@ -11,15 +11,15 @@ import (
 type TestHandler struct {
 	db        *gorm.DB
 	snowflake *service.Snowflake
-	js        *payment.JPayService
+	js        *payment.GeekPayService
 }
 
-func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.JPayService) *TestHandler {
+func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.GeekPayService) *TestHandler {
 	return &TestHandler{db: db, snowflake: snowflake, js: js}
 }
 
 func (h *TestHandler) SseTest(c *gin.Context) {
-	//c.Header("Content-Type", "text/event-stream")
+	//c.Header("Body-Type", "text/event-stream")
 	//c.Header("Cache-Control", "no-cache")
 	//c.Header("Connection", "keep-alive")
 	//

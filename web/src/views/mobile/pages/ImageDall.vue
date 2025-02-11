@@ -81,11 +81,9 @@
                  description="暂无记录"
       />
       <van-grid :gutter="10" :column-num="3" v-else>
-        <van-grid-item v-for="item in runningJobs">
+        <van-grid-item v-for="item in runningJobs" :key="item.id">
           <div v-if="item.progress > 0">
-            <van-image :src="item['img_url']">
-              <template v-slot:error>加载失败</template>
-            </van-image>
+            <van-image src="/images/img-holder.png"></van-image>
             <div class="progress">
               <van-circle
                   v-model:current-rate="item.progress"
@@ -124,8 +122,15 @@
                 @load="onLoad"
       >
         <van-grid :gutter="10" :column-num="2">
-          <van-grid-item v-for="item in finishedJobs">
-            <div class="job-item">
+          <van-grid-item v-for="item in finishedJobs" :key="item.id">
+            <div class="failed" v-if="item.progress === 101">
+              <div class="title">任务失败</div>
+              <div class="opt">
+                <van-button size="small" @click="showErrMsg(item)">详情</van-button>
+                <van-button type="danger" @click="removeImage($event,item)" size="small">删除</van-button>
+              </div>
+            </div>
+            <div class="job-item" v-else>
               <van-image
                   :src="item['img_url']"
                   :class="item['can_opt'] ? '' : 'upscale'"
@@ -165,7 +170,7 @@ import {onMounted, onUnmounted, ref} from "vue"
 import {Delete} from "@element-plus/icons-vue";
 import {httpGet, httpPost} from "@/utils/http";
 import Clipboard from "clipboard";
-import {checkSession, getSystemInfo} from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {
@@ -178,10 +183,10 @@ import {
   showToast
 } from "vant";
 import {showLoginDialog} from "@/utils/libs";
+import {useSharedStore} from "@/store/sharedata";
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
-const item = ref({})
 const isLogin = ref(false)
 
 window.onresize = () => {
@@ -203,6 +208,7 @@ const styles = [
   {text: "自然", value: "natural"}
 ]
 const params = ref({
+  client_id: getClientId(),
   quality: qualities[0].value,
   size: sizes[0].value,
   style: styles[0].value,
@@ -223,56 +229,8 @@ const router = useRouter()
 const power = ref(0)
 const dallPower = ref(0) // 画一张 DALL 图片消耗算力
 
-const socket = ref(null)
 const userId = ref(0)
-const heartbeatHandle = ref(null)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
-
-  const _socket = new WebSocket(host + `/api/dall/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-
-    // 发送心跳消息
-    sendHeartbeat()
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      fetchRunningJobs()
-      finished.value = false
-      page.value = 1
-      fetchFinishJobs(page.value)
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  });
-}
-
+const store = useSharedStore()
 const clipboard = ref(null)
 const prompt = ref('')
 onMounted(() => {
@@ -290,25 +248,32 @@ onMounted(() => {
   }).catch(e => {
     showNotify({type: "danger", message: "获取系统配置失败：" + e.message})
   })
+
+  store.addMessageHandler("dall", (data) => {
+    if (data.channel !== "dall" || data.clientId !== getClientId()) {
+      return
+    }
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      page.value = 1
+      fetchFinishJobs(1)
+    }
+    fetchRunningJobs()
+  })
+
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  if (socket.value !== null) {
-    socket.value.close()
-    socket.value = null
-  }
+  store.removeMessageHandler("dall")
 })
 
 
 const initData = () => {
   checkSession().then(user => {
     power.value = user['power']
-    userId.value = user.id
     isLogin.value = true
     fetchRunningJobs()
     fetchFinishJobs(1)
-    connect()
   }).catch(() => {
     loading.value = false
   });
@@ -317,20 +282,7 @@ const initData = () => {
 const fetchRunningJobs = () => {
   // 获取运行中的任务
   httpGet(`/api/dall/jobs?finish=0`).then(res => {
-    const jobs = res.data.items
-    const _jobs = []
-    for (let i = 0; i < jobs.length; i++) {
-      if (jobs[i].progress === -1) {
-        showNotify({
-          message: `任务ID：${jobs[i]['task_id']} 原因：${jobs[i]['err_msg']}`,
-          type: 'danger',
-        })
-        power.value += dallPower.value
-        continue
-      }
-      _jobs.push(jobs[i])
-    }
-    runningJobs.value = _jobs
+    runningJobs.value = res.data.items
   }).catch(e => {
     showNotify({type: "danger", message: "获取任务失败：" + e.message})
   })
@@ -349,10 +301,17 @@ const fetchFinishJobs = (page) => {
     if (jobs.length < pageSize.value) {
       finished.value = true
     }
+    const _jobs = []
+    for (let i = 0; i < jobs.length; i++) {
+      if (jobs[i].progress === -1) {
+        jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
+      }
+      _jobs.push(jobs[i])
+    }
     if (page === 1) {
-      finishedJobs.value = jobs
+      finishedJobs.value = _jobs
     } else {
-      finishedJobs.value = finishedJobs.value.concat(jobs)
+      finishedJobs.value = finishedJobs.value.concat(_jobs)
     }
     loading.value = false
   }).catch(e => {
@@ -385,6 +344,7 @@ const generate = () => {
   httpPost("/api/dall/image", params.value).then(() => {
     showSuccessToast("绘画任务推送成功，请耐心等待任务执行...")
     power.value -= dallPower.value
+    fetchRunningJobs()
   }).catch(e => {
     showFailToast("任务推送失败：" + e.message)
   })
@@ -403,6 +363,15 @@ const showPrompt = (item) => {
   });
 }
 
+const showErrMsg = (item) => {
+  showDialog({
+    title: '错误详情',
+    message: item['err_msg'],
+  }).then(() => {
+    // on close
+  });
+}
+
 const removeImage = (event, item) => {
   event.stopPropagation()
   showConfirmDialog({
@@ -412,6 +381,7 @@ const removeImage = (event, item) => {
   }).then(() => {
     httpGet("/api/dall/remove", {id: item.id, user_id: item.user_id}).then(() => {
       showSuccessToast("任务删除成功")
+      fetchFinishJobs(1)
     }).catch(e => {
       showFailToast("任务删除失败：" + e.message)
     })
@@ -458,14 +428,6 @@ const sizeConfirm =(item) => {
   showSizePicker.value =false
 }
 
-const showInfo = (message) => {
-  showDialog({
-    title: "参数说明",
-    message: message,
-  }).then(() => {
-    // on close
-  });
-}
 </script>
 
 <style lang="stylus">

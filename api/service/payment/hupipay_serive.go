@@ -37,7 +37,7 @@ func NewHuPiPay(config *types.AppConfig) *HuPiPayService {
 	}
 }
 
-type HuPiPayReq struct {
+type HuPiPayParams struct {
 	AppId        string `json:"appid"`
 	Version      string `json:"version"`
 	TradeOrderId string `json:"trade_order_id"`
@@ -53,7 +53,7 @@ type HuPiPayReq struct {
 	WapUrl       string `json:"wap_url"`
 }
 
-type HuPiResp struct {
+type HuPiPayResp struct {
 	Openid    interface{} `json:"openid"`
 	UrlQrcode string      `json:"url_qrcode"`
 	URL       string      `json:"url"`
@@ -62,7 +62,7 @@ type HuPiResp struct {
 }
 
 // Pay 执行支付请求操作
-func (s *HuPiPayService) Pay(params HuPiPayReq) (HuPiResp, error) {
+func (s *HuPiPayService) Pay(params HuPiPayParams) (HuPiPayResp, error) {
 	data := url.Values{}
 	simple := strconv.FormatInt(time.Now().Unix(), 10)
 	params.AppId = s.appId
@@ -80,22 +80,22 @@ func (s *HuPiPayService) Pay(params HuPiPayReq) (HuPiResp, error) {
 	apiURL := fmt.Sprintf("%s/payment/do.html", s.apiURL)
 	resp, err := http.PostForm(apiURL, data)
 	if err != nil {
-		return HuPiResp{}, fmt.Errorf("error with requst api: %v", err)
+		return HuPiPayResp{}, fmt.Errorf("error with requst api: %v", err)
 	}
 	defer resp.Body.Close()
 	all, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return HuPiResp{}, fmt.Errorf("error with reading response: %v", err)
+		return HuPiPayResp{}, fmt.Errorf("error with reading response: %v", err)
 	}
 
-	var res HuPiResp
+	var res HuPiPayResp
 	err = utils.JsonDecode(string(all), &res)
 	if err != nil {
-		return HuPiResp{}, fmt.Errorf("error with decode payment result: %v", err)
+		return HuPiPayResp{}, fmt.Errorf("error with decode payment result: %v", err)
 	}
 
 	if res.ErrCode != 0 {
-		return HuPiResp{}, fmt.Errorf("error with generate pay url: %s", res.ErrMsg)
+		return HuPiPayResp{}, fmt.Errorf("error with generate pay url: %s", res.ErrMsg)
 	}
 
 	return res, nil
@@ -127,10 +127,10 @@ func (s *HuPiPayService) Sign(params url.Values) string {
 }
 
 // Check 校验订单状态
-func (s *HuPiPayService) Check(tradeNo string) error {
+func (s *HuPiPayService) Check(outTradeNo string) error {
 	data := url.Values{}
 	data.Add("appid", s.appId)
-	data.Add("open_order_id", tradeNo)
+	data.Add("out_trade_order", outTradeNo)
 	stamp := strconv.FormatInt(time.Now().Unix(), 10)
 	data.Add("time", stamp)
 	data.Add("nonce_str", stamp)

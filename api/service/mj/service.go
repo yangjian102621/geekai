@@ -28,18 +28,20 @@ type Service struct {
 	taskQueue       *store.RedisQueue
 	notifyQueue     *store.RedisQueue
 	db              *gorm.DB
-	Clients         *types.LMap[uint, *types.WsClient] // UserId => Client
+	wsService       *service.WebsocketService
 	uploaderManager *oss.UploaderManager
+	clientIds       map[uint]string
 }
 
-func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager) *Service {
+func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, wsService *service.WebsocketService) *Service {
 	return &Service{
 		db:              db,
 		taskQueue:       store.NewRedisQueue("MidJourney_Task_Queue", redisCli),
 		notifyQueue:     store.NewRedisQueue("MidJourney_Notify_Queue", redisCli),
 		client:          client,
-		Clients:         types.NewLMap[uint, *types.WsClient](),
+		wsService:       wsService,
 		uploaderManager: manager,
+		clientIds:       map[uint]string{},
 	}
 }
 
@@ -56,7 +58,7 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini")
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini", 0)
 				if err == nil {
 					task.Prompt = content
 				} else {
@@ -65,7 +67,7 @@ func (s *Service) Run() {
 			}
 			// translate negative prompt
 			if task.NegPrompt != "" && utils.HasChinese(task.NegPrompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), "gpt-4o-mini")
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), "gpt-4o-mini", 0)
 				if err == nil {
 					task.NegPrompt = content
 				} else {
@@ -77,6 +79,7 @@ func (s *Service) Run() {
 			if task.Mode == "" {
 				task.Mode = "fast"
 			}
+			s.clientIds[task.Id] = task.ClientId
 
 			var job model.MidJourneyJob
 			tx := s.db.Where("id = ?", task.Id).First(&job)
@@ -119,7 +122,7 @@ func (s *Service) Run() {
 				// update the task progress
 				s.db.Updates(&job)
 				// 任务失败，通知前端
-				s.notifyQueue.RPush(service.NotifyMessage{UserId: task.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: task.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
 				continue
 			}
 			logger.Infof("任务提交成功：%+v", res)
@@ -166,14 +169,12 @@ func (s *Service) CheckTaskNotify() {
 			if err != nil {
 				continue
 			}
-			cli := s.Clients.Get(uint(message.UserId))
-			if cli == nil {
+			logger.Debugf("receive a new mj notify message: %+v", message)
+			client := s.wsService.Clients.Get(message.ClientId)
+			if client == nil {
 				continue
 			}
-			err = cli.Send([]byte(message.Message))
-			if err != nil {
-				continue
-			}
+			utils.SendChannelMsg(client, types.ChMj, message.Message)
 		}
 	}()
 }
@@ -211,14 +212,11 @@ func (s *Service) DownloadImages() {
 				v.ImgURL = imgURL
 				s.db.Updates(&v)
 
-				cli := s.Clients.Get(uint(v.UserId))
-				if cli == nil {
-					continue
-				}
-				err = cli.Send([]byte(service.TaskStatusFinished))
-				if err != nil {
-					continue
-				}
+				s.notifyQueue.RPush(service.NotifyMessage{
+					ClientId: s.clientIds[v.Id],
+					UserId:   v.UserId,
+					JobId:    int(v.Id),
+					Message:  service.TaskStatusFinished})
 			}
 
 			time.Sleep(time.Second * 5)
@@ -237,8 +235,8 @@ func (s *Service) SyncTaskProgress() {
 	go func() {
 		var jobs []model.MidJourneyJob
 		for {
-			res := s.db.Where("progress < ?", 100).Where("channel_id <> ?", "").Find(&jobs)
-			if res.Error != nil {
+			err := s.db.Where("progress < ?", 100).Find(&jobs).Error
+			if err != nil {
 				continue
 			}
 
@@ -248,6 +246,10 @@ func (s *Service) SyncTaskProgress() {
 					job.Progress = service.FailTaskProgress
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
+					continue
+				}
+
+				if job.ChannelId == "" {
 					continue
 				}
 
@@ -264,7 +266,11 @@ func (s *Service) SyncTaskProgress() {
 						"err_msg":  task.FailReason,
 					})
 					logger.Errorf("task failed: %v", task.FailReason)
-					s.notifyQueue.RPush(service.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
+					s.notifyQueue.RPush(service.NotifyMessage{
+						ClientId: s.clientIds[job.Id],
+						UserId:   job.UserId,
+						JobId:    int(job.Id),
+						Message:  service.TaskStatusFailed})
 					continue
 				}
 
@@ -289,7 +295,11 @@ func (s *Service) SyncTaskProgress() {
 					if job.Progress == 100 {
 						message = service.TaskStatusFinished
 					}
-					s.notifyQueue.RPush(service.NotifyMessage{UserId: job.UserId, JobId: int(job.Id), Message: message})
+					s.notifyQueue.RPush(service.NotifyMessage{
+						ClientId: s.clientIds[job.Id],
+						UserId:   job.UserId,
+						JobId:    int(job.Id),
+						Message:  message})
 				}
 			}
 

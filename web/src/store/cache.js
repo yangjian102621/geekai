@@ -1,5 +1,6 @@
 import {httpGet} from "@/utils/http";
 import Storage from "good-storage";
+import {randString} from "@/utils/libs";
 
 const userDataKey = "USER_INFO_CACHE_KEY"
 const adminDataKey = "ADMIN_INFO_CACHE_KEY"
@@ -70,4 +71,14 @@ export function getLicenseInfo() {
             resolve(err)
         })
     })
+}
+
+export function getClientId() {
+    let clientId = Storage.get('client_id')
+    if (clientId) {
+        return clientId
+    }
+    clientId = randString(42)
+    Storage.set('client_id', clientId)
+    return clientId
 }
