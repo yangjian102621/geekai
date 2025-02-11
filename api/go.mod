@@ -29,7 +29,6 @@ require (
 	github.com/go-pay/gopay v1.5.101
 	github.com/google/go-tika v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.26
-	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
 	golang.org/x/image v0.15.0
@@ -45,6 +44,7 @@ require (
 	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
