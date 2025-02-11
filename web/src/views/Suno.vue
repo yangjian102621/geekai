@@ -190,11 +190,10 @@
                 </button>
 
                 <el-tooltip effect="light" content="下载歌曲" placement="top">
-                  <a :href="item.audio_url" :download="item.title+'.mp3'" target="_blank">
-                    <button class="btn btn-icon">
-                      <i class="iconfont icon-download"></i>
-                    </button>
-                  </a>
+                  <button class="btn btn-icon" @click="download(item)">
+                    <i class="iconfont icon-download" v-if="!item.downloading"></i>
+                    <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
+                  </button>
                 </el-tooltip>
 
                 <el-tooltip effect="light" content="获取完整歌曲" placement="top" v-if="item.ref_song">
@@ -299,15 +298,16 @@ import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import {compact} from "lodash";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpDownload, httpGet, httpPost} from "@/utils/http";
 import {showMessageError, showMessageOK} from "@/utils/dialog";
-import {checkSession} from "@/store/cache";
+import {checkSession, getClientId} from "@/store/cache";
 import {ElMessage, ElMessageBox} from "element-plus";
-import {formatTime} from "@/utils/libs";
+import {formatTime, replaceImg} from "@/utils/libs";
 import Clipboard from "clipboard";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
 import Compressor from "compressorjs";
 import Generating from "@/components/ui/Generating.vue";
+import {useSharedStore} from "@/store/sharedata";
 
 const winHeight = ref(window.innerHeight - 50)
 const custom = ref(false)
@@ -334,6 +334,7 @@ const tags = ref([
   {label: "嘻哈", value: "hip hop"},
 ])
 const data = ref({
+  client_id: getClientId(),
   model: "chirp-v3-0",
   tags: "",
   lyrics: "",
@@ -344,8 +345,8 @@ const data = ref({
   extend_secs: 0,
   ref_song_id: "",
 })
-const loading = ref(true)
-const noData = ref(false)
+const loading = ref(false)
+const noData = ref(true)
 const playList = ref([])
 const playerRef = ref(null)
 const showPlayer = ref(false)
@@ -355,45 +356,7 @@ const refSong = ref(null)
 const showDialog = ref(false)
 const editData = ref({title:"",cover:"",id:0})
 const promptPlaceholder = ref('请在这里输入你自己写的歌词...')
-
-const socket = ref(null)
-const userId = ref(0)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  const _socket = new WebSocket(host + `/api/suno/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        console.log(message)
-        if (message === "FINISH" || message === "FAIL") {
-          fetchData()
-        }
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  });
-}
-
+const store = useSharedStore()
 const clipboard = ref(null)
 onMounted(() => {
   clipboard.value = new Clipboard('.copy-link');
@@ -405,15 +368,25 @@ onMounted(() => {
     ElMessage.error('复制失败！');
   })
 
-  checkSession().then(user => {
-    userId.value = user.id
-    connect()
+  checkSession().then(() => {
+    fetchData(1)
+  }).catch(() => {})
+
+  store.addMessageHandler("suno",(data) => {
+    // 丢弃无关消息
+    if (data.channel !== "suno" || data.clientId !== getClientId()) {
+      return
+    }
+
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      fetchData(1)
+    }
   })
-  fetchData(1)
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
+  store.removeMessageHandler("suno")
 })
 
 const page = ref(1)
@@ -423,6 +396,7 @@ const fetchData = (_page) => {
   if (_page) {
     page.value = _page
   }
+  loading.value = true
   httpGet("/api/suno/list",{page:page.value, page_size:pageSize.value}).then(res => {
     total.value = res.data.total
     const items = []
@@ -480,6 +454,30 @@ const merge = (item) => {
     showMessageOK("创建任务成功")
   }).catch(e => {
     showMessageError("合并歌曲失败："+e.message)
+  })
+}
+
+// 下载歌曲
+const download = (item) => {
+  const url = replaceImg(item.audio_url)
+  const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${url}`
+  // parse filename
+  const urlObj = new URL(url);
+  const fileName = urlObj.pathname.split('/').pop();
+  item.downloading = true
+  httpDownload(downloadURL).then(response  => {
+    const blob = new Blob([response.data]);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    item.downloading = false
+  }).catch(() => {
+    showMessageError("下载失败")
+    item.downloading = false
   })
 }
 
@@ -587,7 +585,7 @@ const publishJob = (item) => {
 }
 
 const getShareURL = (item) => {
-  return `${location.protocol}//${location.host}/song/${item.id}`
+  return `${location.protocol}//${location.host}/song/${item.song_id}`
 }
 
 const uploadCover = (file) => {

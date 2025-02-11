@@ -8,7 +8,6 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"encoding/base64"
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
@@ -19,12 +18,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 )
 
@@ -65,31 +62,11 @@ func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 
 }
 
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *MidJourneyHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		c.Abort()
-		return
-	}
-
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		logger.Info("Invalid user ID")
-		c.Abort()
-		return
-	}
-
-	client := types.NewWsClient(ws)
-	h.mjService.Clients.Put(uint(userId), client)
-	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
-}
-
 // Image 创建一个绘画任务
 func (h *MidJourneyHandler) Image(c *gin.Context) {
 	var data struct {
 		TaskType  string   `json:"task_type"`
+		ClientId  string   `json:"client_id"`
 		Prompt    string   `json:"prompt"`
 		NegPrompt string   `json:"neg_prompt"`
 		Rate      string   `json:"rate"`
@@ -200,6 +177,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 
 	h.mjService.PushTask(types.MjTask{
 		Id:        job.Id,
+		ClientId:  data.ClientId,
 		TaskId:    taskId,
 		Type:      types.TaskType(data.TaskType),
 		Prompt:    data.Prompt,
@@ -209,11 +187,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		ImgArr:    data.ImgArr,
 		Mode:      h.App.SysConfig.MjMode,
 	})
-
-	client := h.mjService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
@@ -231,6 +204,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 
 type reqVo struct {
 	Index       int    `json:"index"`
+	ClientId    string `json:"client_id"`
 	ChannelId   string `json:"channel_id"`
 	MessageId   string `json:"message_id"`
 	MessageHash string `json:"message_hash"`
@@ -267,6 +241,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 
 	h.mjService.PushTask(types.MjTask{
 		Id:          job.Id,
+		ClientId:    data.ClientId,
 		Type:        types.TaskUpscale,
 		UserId:      userId,
 		ChannelId:   data.ChannelId,
@@ -275,11 +250,6 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		MessageHash: data.MessageHash,
 		Mode:        h.App.SysConfig.MjMode,
 	})
-
-	client := h.mjService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 
 	// update user's power
 	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
@@ -328,6 +298,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	h.mjService.PushTask(types.MjTask{
 		Id:          job.Id,
 		Type:        types.TaskVariation,
+		ClientId:    data.ClientId,
 		UserId:      userId,
 		Index:       data.Index,
 		ChannelId:   data.ChannelId,
@@ -335,11 +306,6 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		MessageHash: data.MessageHash,
 		Mode:        h.App.SysConfig.MjMode,
 	})
-
-	client := h.mjService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
-	}
 
 	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
@@ -420,14 +386,6 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 		if err != nil {
 			continue
 		}
-
-		if item.Progress < 100 && item.ImgURL == "" && item.OrgURL != "" {
-			image, err := utils.DownloadImage(item.OrgURL, h.App.Config.ProxyURL)
-			if err == nil {
-				job.ImgURL = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
-			}
-		}
-
 		jobs = append(jobs, job)
 	}
 	return nil, vo.NewPage(total, page, pageSize, jobs)
@@ -470,11 +428,6 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
-	}
-
-	client := h.mjService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
 	}
 
 	resp.SUCCESS(c)

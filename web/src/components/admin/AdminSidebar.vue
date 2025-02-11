@@ -52,11 +52,12 @@
 </template>
 
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, ref, watch} from 'vue';
 import {setMenuItems, useSidebarStore} from '@/store/sidebar';
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRoute} from "vue-router";
+import {useSharedStore} from "@/store/sharedata";
 
 const title = ref('')
 const logo = ref('')
@@ -68,16 +69,11 @@ httpGet('/api/admin/config/get?key=system').then(res => {
 }).catch(e => {
   ElMessage.error("加载系统配置失败: " + e.message)
 })
-
-// eslint-disable-next-line no-undef
-const props = defineProps({
-  theme: String,
-});
-
-const theme = computed(() => {
-  return props.theme
+const store = useSharedStore()
+const theme = ref(store.adminTheme)
+watch(() => store.adminTheme, (val) => {
+  theme.value = val
 })
-
 const items = [
   {
     icon: 'home',
@@ -90,12 +86,22 @@ const items = [
     index: '/admin/user',
     title: '用户管理',
   },
-
   {
     icon: 'menu',
-    index: '/admin/app',
+    index: '1',
     title: '应用管理',
+    subs: [
+      {
+        index: '/admin/app',
+        title: '应用列表',
+      },
+      {
+        index: '/admin/app/type',
+        title: '应用分类',
+      },
+    ],
   },
+  
   {
     icon: 'api-key',
     index: '/admin/apikey',

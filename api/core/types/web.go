@@ -17,20 +17,47 @@ type BizVo struct {
 	Data     interface{} `json:"data,omitempty"`
 }
 
-// WsMessage Websocket message
-type WsMessage struct {
-	Type    WsMsgType   `json:"type"` // 消息类别，start, end, img
-	Content interface{} `json:"content"`
+// ReplyMessage 对话回复消息结构
+type ReplyMessage struct {
+	Channel  WsChannel   `json:"channel"`  // 消息频道，目前只有 chat
+	ClientId string      `json:"clientId"` // 客户端ID
+	Type     WsMsgType   `json:"type"`     // 消息类别
+	Body     interface{} `json:"body"`
 }
 
 type WsMsgType string
+type WsChannel string
 
 const (
-	WsStart  = WsMsgType("start")
-	WsMiddle = WsMsgType("middle")
-	WsEnd    = WsMsgType("end")
-	WsErr    = WsMsgType("error")
+	MsgTypeText = WsMsgType("text") // 输出内容
+	MsgTypeEnd  = WsMsgType("end")
+	MsgTypeErr  = WsMsgType("error")
+	MsgTypePing = WsMsgType("ping") // 心跳消息
+
+	ChPing = WsChannel("ping")
+	ChChat = WsChannel("chat")
+	ChMj   = WsChannel("mj")
+	ChSd   = WsChannel("sd")
+	ChDall = WsChannel("dall")
+	ChSuno = WsChannel("suno")
+	ChLuma = WsChannel("luma")
 )
+
+// InputMessage 对话输入消息结构
+type InputMessage struct {
+	Channel WsChannel   `json:"channel"` // 消息频道
+	Type    WsMsgType   `json:"type"`    // 消息类别
+	Body    interface{} `json:"body"`
+}
+
+type ChatMessage struct {
+	Tools   []int  `json:"tools,omitempty"`  // 允许调用工具列表
+	Stream  bool   `json:"stream,omitempty"` // 是否采用流式输出
+	RoleId  int    `json:"role_id"`
+	ModelId int    `json:"model_id"`
+	ChatId  string `json:"chat_id"`
+	Content string `json:"content"`
+}
 
 type BizCode int
 

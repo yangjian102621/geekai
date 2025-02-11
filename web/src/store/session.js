@@ -16,7 +16,6 @@ export function getSessionId() {
 export function getUserToken() {
     return Storage.get(UserTokenKey) ?? ""
 }
-
 export function setUserToken(token) {
     // 刷新 session 缓存
     Storage.set(UserTokenKey, token)

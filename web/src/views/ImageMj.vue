@@ -215,7 +215,7 @@
                   <div class="param-line">
                     <div class="img-inline">
                       <div class="img-list-box">
-                        <div class="img-item" v-for="imgURL in imgList">
+                        <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
                           <el-image :src="imgURL" fit="cover"/>
                           <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
                         </div>
@@ -293,7 +293,7 @@
                   <div class="text">请上传两张以上的图片，最多不超过五张，超过五张图片请使用图生图功能</div>
                   <div class="img-inline">
                     <div class="img-list-box">
-                      <div class="img-item" v-for="imgURL in imgList">
+                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
                         <el-image :src="imgURL" fit="cover"/>
                         <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
                       </div>
@@ -312,7 +312,7 @@
                   <div class="text">请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸</div>
                   <div class="img-inline">
                     <div class="img-list-box">
-                      <div class="img-item" v-for="imgURL in imgList">
+                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
                         <el-image :src="imgURL" fit="cover"/>
                         <el-button type="danger" :icon="Delete" @click="removeUploadImage(imgURL)" circle/>
                       </div>
@@ -602,13 +602,13 @@
 </template>
 
 <script setup>
-import {onMounted, onUnmounted, ref} from "vue"
+import {nextTick, onMounted, onUnmounted, ref} from "vue"
 import {ChromeFilled, Delete, DocumentCopy, InfoFilled, Picture, Plus, UploadFilled} from "@element-plus/icons-vue";
 import Compressor from "compressorjs";
 import {httpGet, httpPost} from "@/utils/http";
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import Clipboard from "clipboard";
-import {checkSession, getSystemInfo} from "@/store/cache";
+import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
 import {useRouter} from "vue-router";
 import {getSessionId} from "@/store/session";
 import {copyObj, removeArrayItem} from "@/utils/libs";
@@ -678,6 +678,7 @@ const options = [
 
 const router = useRouter()
 const initParams = {
+  client_id: getClientId(),
   task_type: "image",
   rate: rates[0].value,
   model: models[0].value,
@@ -704,65 +705,9 @@ const activeName = ref('txt2img')
 const runningJobs = ref([])
 const finishedJobs = ref([])
 
-const socket = ref(null)
 const power = ref(0)
 const userId = ref(0)
 const isLogin = ref(false)
-
-const heartbeatHandle = ref(null)
-const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
-
-  // 心跳函数
-  const sendHeartbeat = () => {
-    clearTimeout(heartbeatHandle.value)
-    new Promise((resolve, reject) => {
-      if (socket.value !== null) {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-      }
-      resolve("success")
-    }).then(() => {
-      heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-    });
-  }
-
-  const _socket = new WebSocket(host + `/api/mj/client?user_id=${userId.value}`);
-  _socket.addEventListener('open', () => {
-    socket.value = _socket;
-
-    // 发送心跳消息
-    sendHeartbeat()
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8")
-      reader.onload = () => {
-        const message = String(reader.result)
-        if (message === "FINISH" || message === "FAIL") {
-          page.value = 0
-          isOver.value = false
-          fetchFinishJobs(page.value)
-        }
-        fetchRunningJobs()
-      }
-    }
-  });
-
-  _socket.addEventListener('close', () => {
-    if (socket.value !== null) {
-      connect()
-    }
-  });
-}
 
 const clipboard = ref(null)
 onMounted(() => {
@@ -775,14 +720,25 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     ElMessage.error('复制失败！');
   })
+
+  store.addMessageHandler("mj",(data) => {
+    // 丢弃无关消息
+    if (data.channel !== "mj" || data.clientId !== getClientId()) {
+      return
+    }
+
+    if (data.body === "FINISH" || data.body === "FAIL") {
+      page.value = 0
+      isOver.value = false
+      fetchFinishJobs()
+    }
+    nextTick(() => fetchRunningJobs())
+  })
 })
 
 onUnmounted(() => {
   clipboard.value.destroy()
-  if (socket.value !== null) {
-    socket.value.close()
-    socket.value = null
-  }
+  store.removeMessageHandler("mj")
 })
 
 // 初始化数据
@@ -794,7 +750,6 @@ const initData = () => {
     page.value = 0
     fetchRunningJobs()
     fetchFinishJobs()
-    connect()
   }).catch(() => {
 
   });
@@ -952,6 +907,7 @@ const generate = () => {
   httpPost("/api/mj/image", params.value).then(() => {
     ElMessage.success("绘画任务推送成功，请耐心等待任务执行...")
     power.value -= mjPower.value
+    fetchRunningJobs()
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })
@@ -970,6 +926,7 @@ const variation = (index, item) => {
 const send = (url, index, item) => {
   httpPost(url, {
     index: index,
+    client_id: getClientId(),
     channel_id: item.channel_id,
     message_id: item.message_id,
     message_hash: item.hash,
@@ -978,6 +935,7 @@ const send = (url, index, item) => {
   }).then(() => {
     ElMessage.success("任务推送成功，请耐心等待任务执行...")
     power.value -= mjActionPower.value
+    fetchRunningJobs()
   }).catch(e => {
     ElMessage.error("任务推送失败：" + e.message)
   })

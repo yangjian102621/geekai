@@ -15,7 +15,9 @@
             <el-radio value="chat">对话样式</el-radio>
           </el-radio-group>
         </el-form-item>
-
+        <el-form-item label="流式输出：">
+          <el-switch v-model="data.stream" @change="(val) => {store.setChatStream(val)}" />
+        </el-form-item>
       </el-form>
     </div>
   </el-dialog>
@@ -28,6 +30,7 @@ const store = useSharedStore();
 
 const data = ref({
   style: store.chatListStyle,
+  stream: store.chatStream,
 })
 // eslint-disable-next-line no-undef
 const props = defineProps({

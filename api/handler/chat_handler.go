@@ -1,4 +1,4 @@
-package chatimpl
+package handler
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -15,8 +15,6 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
-	"geekai/handler"
-	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -33,14 +31,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 )
 
-var logger = logger2.GetLogger()
-
 type ChatHandler struct {
-	handler.BaseHandler
+	BaseHandler
 	redis          *redis.Client
 	uploadManager  *oss.UploaderManager
 	licenseService *service.LicenseService
@@ -51,7 +46,7 @@ type ChatHandler struct {
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService) *ChatHandler {
 	return &ChatHandler{
-		BaseHandler:    handler.BaseHandler{App: app, DB: db},
+		BaseHandler:    BaseHandler{App: app, DB: db},
 		redis:          redis,
 		uploadManager:  manager,
 		licenseService: licenseService,
@@ -59,112 +54,6 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		ChatContexts:   types.NewLMap[string, []types.Message](),
 		userService:    userService,
 	}
-}
-
-// ChatHandle 处理聊天 WebSocket 请求
-func (h *ChatHandler) ChatHandle(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		return
-	}
-
-	sessionId := c.Query("session_id")
-	roleId := h.GetInt(c, "role_id", 0)
-	chatId := c.Query("chat_id")
-	modelId := h.GetInt(c, "model_id", 0)
-	tools := c.Query("tools")
-
-	client := types.NewWsClient(ws)
-	var chatRole model.ChatRole
-	res := h.DB.First(&chatRole, roleId)
-	if res.Error != nil || !chatRole.Enable {
-		utils.ReplyMessage(client, "当前聊天角色不存在或者未启用，连接已关闭！！！")
-		c.Abort()
-		return
-	}
-	// if the role bind a model_id, use role's bind model_id
-	if chatRole.ModelId > 0 {
-		modelId = chatRole.ModelId
-	}
-	// get model info
-	var chatModel model.ChatModel
-	res = h.DB.First(&chatModel, modelId)
-	if res.Error != nil || chatModel.Enabled == false {
-		utils.ReplyMessage(client, "当前AI模型暂未启用，连接已关闭！！！")
-		c.Abort()
-		return
-	}
-
-	session := &types.ChatSession{
-		SessionId: sessionId,
-		ClientIP:  c.ClientIP(),
-		UserId:    h.GetLoginUserId(c),
-		Tools:     tools,
-	}
-
-	// use old chat data override the chat model and role ID
-	var chat model.ChatItem
-	res = h.DB.Where("chat_id = ?", chatId).First(&chat)
-	if res.Error == nil {
-		chatModel.Id = chat.ModelId
-		roleId = int(chat.RoleId)
-	}
-
-	session.ChatId = chatId
-	session.Model = types.ChatModel{
-		Id:          chatModel.Id,
-		Name:        chatModel.Name,
-		Value:       chatModel.Value,
-		Power:       chatModel.Power,
-		MaxTokens:   chatModel.MaxTokens,
-		MaxContext:  chatModel.MaxContext,
-		Temperature: chatModel.Temperature,
-		KeyId:       chatModel.KeyId}
-	logger.Infof("New websocket connected, IP: %s", c.ClientIP())
-
-	go func() {
-		for {
-			_, msg, err := client.Receive()
-			if err != nil {
-				logger.Debugf("close connection: %s", client.Conn.RemoteAddr())
-				client.Close()
-				cancelFunc := h.ReqCancelFunc.Get(sessionId)
-				if cancelFunc != nil {
-					cancelFunc()
-					h.ReqCancelFunc.Delete(sessionId)
-				}
-				return
-			}
-
-			var message types.WsMessage
-			err = utils.JsonDecode(string(msg), &message)
-			if err != nil {
-				continue
-			}
-
-			// 心跳消息
-			if message.Type == "heartbeat" {
-				logger.Debug("收到 Chat 心跳消息：", message.Content)
-				continue
-			}
-
-			logger.Info("Receive a message: ", message.Content)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			h.ReqCancelFunc.Put(sessionId, cancel)
-			// 回复消息
-			err = h.sendMessage(ctx, session, chatRole, utils.InterfaceToString(message.Content), client)
-			if err != nil {
-				logger.Error(err)
-				utils.ReplyMessage(client, err.Error())
-			} else {
-				utils.ReplyChunkMessage(client, types.WsMessage{Type: types.WsEnd})
-				logger.Infof("回答完毕: %v", message.Content)
-			}
-
-		}
-	}()
 }
 
 func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
@@ -208,16 +97,22 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	var req = types.ApiRequest{
-		Model:  session.Model.Value,
-		Stream: true,
+		Model: session.Model.Value,
 	}
-	req.Temperature = session.Model.Temperature
-	req.MaxTokens = session.Model.MaxTokens
+	// 兼容 GPT-O1 模型
+	if strings.HasPrefix(session.Model.Value, "o1-") {
+		utils.SendChunkMsg(ws, "AI 正在思考...\n")
+		req.Stream = false
+		session.Start = time.Now().Unix()
+	} else {
+		req.MaxTokens = session.Model.MaxTokens
+		req.Temperature = session.Model.Temperature
+		req.Stream = session.Stream
+	}
 
-	if session.Tools != "" {
-		toolIds := strings.Split(session.Tools, ",")
+	if len(session.Tools) > 0 && !strings.HasPrefix(session.Model.Value, "o1-") {
 		var items []model.Function
-		res = h.DB.Where("enabled", true).Where("id IN ?", toolIds).Find(&items)
+		res = h.DB.Where("enabled", true).Where("id IN ?", session.Tools).Find(&items)
 		if res.Error == nil {
 			var tools = make([]types.Tool, 0)
 			for _, v := range items {
@@ -279,7 +174,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 
 		for i := len(messages) - 1; i >= 0; i-- {
 			v := messages[i]
-			tks, _ := utils.CalcTokens(v.Content, req.Model)
+			tks, _ = utils.CalcTokens(v.Content, req.Model)
 			// 上下文 token 超出了模型的最大上下文长度
 			if tokens+tks >= session.Model.MaxContext {
 				break
@@ -450,7 +345,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf(utils.JsonEncode(req))
+	logger.Debugf("对话请求消息体：%+v", req)
 
 	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	// 创建 HttpClient 请求对象
@@ -502,8 +397,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 
 func (h *ChatHandler) saveChatHistory(
 	req types.ApiRequest,
-	prompt string,
-	contents []string,
+	usage Usage,
 	message types.Message,
 	chatCtx []types.Message,
 	session *types.ChatSession,
@@ -511,12 +405,8 @@ func (h *ChatHandler) saveChatHistory(
 	userVo vo.User,
 	promptCreatedAt time.Time,
 	replyCreatedAt time.Time) {
-	if message.Role == "" {
-		message.Role = "assistant"
-	}
-	message.Content = strings.Join(contents, "")
-	useMsg := types.Message{Role: "user", Content: prompt}
 
+	useMsg := types.Message{Role: "user", Content: usage.Prompt}
 	// 更新上下文消息，如果是调用函数则不需要更新上下文
 	if h.App.SysConfig.EnableContext {
 		chatCtx = append(chatCtx, useMsg)  // 提问消息
@@ -526,42 +416,52 @@ func (h *ChatHandler) saveChatHistory(
 
 	// 追加聊天记录
 	// for prompt
-	promptToken, err := utils.CalcTokens(prompt, req.Model)
-	if err != nil {
-		logger.Error(err)
+	var promptTokens, replyTokens, totalTokens int
+	if usage.PromptTokens > 0 {
+		promptTokens = usage.PromptTokens
+	} else {
+		promptTokens, _ = utils.CalcTokens(usage.Content, req.Model)
 	}
+
 	historyUserMsg := model.ChatMessage{
-		UserId:     userVo.Id,
-		ChatId:     session.ChatId,
-		RoleId:     role.Id,
-		Type:       types.PromptMsg,
-		Icon:       userVo.Avatar,
-		Content:    template.HTMLEscapeString(prompt),
-		Tokens:     promptToken,
-		UseContext: true,
-		Model:      req.Model,
+		UserId:      userVo.Id,
+		ChatId:      session.ChatId,
+		RoleId:      role.Id,
+		Type:        types.PromptMsg,
+		Icon:        userVo.Avatar,
+		Content:     template.HTMLEscapeString(usage.Prompt),
+		Tokens:      promptTokens,
+		TotalTokens: promptTokens,
+		UseContext:  true,
+		Model:       req.Model,
 	}
 	historyUserMsg.CreatedAt = promptCreatedAt
 	historyUserMsg.UpdatedAt = promptCreatedAt
-	err = h.DB.Save(&historyUserMsg).Error
+	err := h.DB.Save(&historyUserMsg).Error
 	if err != nil {
 		logger.Error("failed to save prompt history message: ", err)
 	}
 
 	// for reply
 	// 计算本次对话消耗的总 token 数量
-	replyTokens, _ := utils.CalcTokens(message.Content, req.Model)
-	totalTokens := replyTokens + getTotalTokens(req)
+	if usage.CompletionTokens > 0 {
+		replyTokens = usage.CompletionTokens
+		totalTokens = usage.TotalTokens
+	} else {
+		replyTokens, _ = utils.CalcTokens(message.Content, req.Model)
+		totalTokens = replyTokens + getTotalTokens(req)
+	}
 	historyReplyMsg := model.ChatMessage{
-		UserId:     userVo.Id,
-		ChatId:     session.ChatId,
-		RoleId:     role.Id,
-		Type:       types.ReplyMsg,
-		Icon:       role.Icon,
-		Content:    message.Content,
-		Tokens:     totalTokens,
-		UseContext: true,
-		Model:      req.Model,
+		UserId:      userVo.Id,
+		ChatId:      session.ChatId,
+		RoleId:      role.Id,
+		Type:        types.ReplyMsg,
+		Icon:        role.Icon,
+		Content:     usage.Content,
+		Tokens:      replyTokens,
+		TotalTokens: totalTokens,
+		UseContext:  true,
+		Model:       req.Model,
 	}
 	historyReplyMsg.CreatedAt = replyCreatedAt
 	historyReplyMsg.UpdatedAt = replyCreatedAt
@@ -572,7 +472,7 @@ func (h *ChatHandler) saveChatHistory(
 
 	// 更新用户算力
 	if session.Model.Power > 0 {
-		h.subUserPower(userVo, session, promptToken, replyTokens)
+		h.subUserPower(userVo, session, promptTokens, replyTokens)
 	}
 	// 保存当前会话
 	var chatItem model.ChatItem
@@ -582,10 +482,10 @@ func (h *ChatHandler) saveChatHistory(
 		chatItem.UserId = userVo.Id
 		chatItem.RoleId = role.Id
 		chatItem.ModelId = session.Model.Id
-		if utf8.RuneCountInString(prompt) > 30 {
-			chatItem.Title = string([]rune(prompt)[:30]) + "..."
+		if utf8.RuneCountInString(usage.Prompt) > 30 {
+			chatItem.Title = string([]rune(usage.Prompt)[:30]) + "..."
 		} else {
-			chatItem.Title = prompt
+			chatItem.Title = usage.Prompt
 		}
 		chatItem.Model = req.Model
 		err = h.DB.Create(&chatItem).Error

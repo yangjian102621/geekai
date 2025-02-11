@@ -251,6 +251,7 @@ import Captcha from "@/components/Captcha.vue";
 import ResetPass from "@/components/ResetPass.vue";
 import {setRoute} from "@/store/system";
 import {useRouter} from "vue-router";
+import {useSharedStore} from "@/store/sharedata";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -263,8 +264,8 @@ watch(() => props.show, (newValue) => {
 
 const login = ref(true)
 const data = ref({
-  username: "",
-  password: "",
+  username: process.env.VUE_APP_USER,
+  password: process.env.VUE_APP_PASS,
   mobile: "",
   email: "",
   repass: "",
@@ -285,6 +286,9 @@ const action = ref("login")
 const enableVerify = ref(false)
 const showResetPass = ref(false)
 const router = useRouter()
+const store = useSharedStore()
+// 是否需要验证码，输入一次密码错之后就要验证码
+const needVerify = ref(false)
 
 onMounted(() => {
   const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`
@@ -297,17 +301,17 @@ onMounted(() => {
   getSystemInfo().then(res => {
     if (res.data) {
       const registerWays = res.data['register_ways']
-      if (arrayContains(registerWays, "mobile")) {
-        enableMobile.value = true
-        activeName.value = activeName.value === "" ? "mobile" : activeName.value
+      if (arrayContains(registerWays, "username")) {
+        enableUser.value = true
+        activeName.value = 'username'
       }
       if (arrayContains(registerWays, "email")) {
         enableEmail.value = true
-        activeName.value = activeName.value === "" ? "email" : activeName.value
+        activeName.value = 'email'
       }
-      if (arrayContains(registerWays, "username")) {
-        enableUser.value = true
-        activeName.value = activeName.value === "" ? "username" : activeName.value
+      if (arrayContains(registerWays, "mobile")) {
+        enableMobile.value = true
+        activeName.value = 'mobile'
       }
       // 是否启用注册
       enableRegister.value = res.data['enabled_register']
@@ -338,7 +342,7 @@ const submitLogin = () => {
   if (data.value.password === '') {
     return ElMessage.error('请输入密码');
   }
-  if (enableVerify.value) {
+  if (enableVerify.value && needVerify.value) {
     captchaRef.value.loadCaptcha()
     action.value = "login"
   } else {
@@ -352,11 +356,14 @@ const doLogin = (verifyData) => {
   data.value.x = verifyData.x
   httpPost('/api/user/login', data.value).then((res) => {
     setUserToken(res.data.token)
+    store.setIsLogin(true)
     ElMessage.success("登录成功！")
     emits("hide")
     emits('success')
+    needVerify.value = false
   }).catch((e) => {
     ElMessage.error('登录失败，' + e.message)
+    needVerify.value = true
   })
 }
 
@@ -384,7 +391,7 @@ const submitRegister = () => {
   if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
     return ElMessage.error('请输入验证码');
   }
-  if (enableVerify.value) {
+  if (enableVerify.value && activeName.value === 'username') {
     captchaRef.value.loadCaptcha()
     action.value = "register"
   } else {

@@ -19,9 +19,8 @@ import (
 	"geekai/utils"
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
-	"net/http"
+	"time"
 )
 
 type VideoHandler struct {
@@ -43,30 +42,10 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, u
 	}
 }
 
-// Client WebSocket 客户端，用于通知任务状态变更
-func (h *VideoHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logger.Error(err)
-		c.Abort()
-		return
-	}
-
-	userId := h.GetInt(c, "user_id", 0)
-	if userId == 0 {
-		logger.Info("Invalid user ID")
-		c.Abort()
-		return
-	}
-
-	client := types.NewWsClient(ws)
-	h.videoService.Clients.Put(uint(userId), client)
-	logger.Infof("New websocket connected, IP: %s", c.RemoteIP())
-}
-
 func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	var data struct {
+		ClientId      string `json:"client_id"`
 		Prompt        string `json:"prompt"`
 		FirstFrameImg string `json:"first_frame_img,omitempty"`
 		EndFrameImg   string `json:"end_frame_img,omitempty"`
@@ -77,6 +56,18 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	if user.Power < h.App.SysConfig.LumaPower {
+		resp.ERROR(c, "您的算力不足，请充值后再试！")
+		return
+	}
+
 	if data.Prompt == "" {
 		resp.ERROR(c, "prompt is needed")
 		return
@@ -105,15 +96,16 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	// 创建任务
 	h.videoService.PushTask(types.VideoTask{
-		Id:     job.Id,
-		UserId: userId,
-		Type:   types.VideoLuma,
-		Prompt: data.Prompt,
-		Params: params,
+		ClientId: data.ClientId,
+		Id:       job.Id,
+		UserId:   userId,
+		Type:     types.VideoLuma,
+		Prompt:   data.Prompt,
+		Params:   params,
 	})
 
 	// update user's power
-	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "luma",
 		Remark: fmt.Sprintf("Luma 文生视频，任务ID：%d", job.Id),
@@ -121,11 +113,6 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
-	}
-
-	client := h.videoService.Clients.Get(uint(job.UserId))
-	if client != nil {
-		_ = client.Send([]byte("Task Updated"))
 	}
 	resp.SUCCESS(c)
 }
@@ -184,6 +171,12 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
+	// 只有失败或者超时的任务才能删除
+	if !(job.Progress == service.FailTaskProgress || time.Now().After(job.CreatedAt.Add(time.Minute*30))) {
+		resp.ERROR(c, "只有失败和超时(30分钟)的任务才能删除！")
+		return
+	}
+
 	// 删除任务
 	tx := h.DB.Begin()
 	if err := tx.Delete(&job).Error; err != nil {
@@ -192,18 +185,16 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// 如果任务未完成，或者任务失败，则恢复用户算力
-	if job.Progress != 100 {
-		err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-			Type:   types.PowerRefund,
-			Model:  "luma",
-			Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-		})
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
+	// 恢复算力
+	err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerRefund,
+		Model:  "luma",
+		Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+	})
+	if err != nil {
+		tx.Rollback()
+		resp.ERROR(c, err.Error())
+		return
 	}
 	tx.Commit()
 

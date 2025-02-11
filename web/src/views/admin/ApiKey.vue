@@ -194,7 +194,7 @@ const fetchData = () => {
 const add = function () {
   showDialog.value = true
   title.value = "新增 API KEY"
-  item.value = {enabled: true,api_url:"https://api.geekai.pro"}
+  item.value = {enabled: true,api_url: "https://api.geekai.pro"}
 }
 
 const edit = function (row) {

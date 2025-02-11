@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "7443846",
+      "name": "PayPal",
+      "font_class": "paypal",
+      "unicode": "e666",
+      "unicode_decimal": 58982
+    },
+    {
+      "icon_id": "18166694",
+      "name": "抖音",
+      "font_class": "douyin",
+      "unicode": "e8db",
+      "unicode_decimal": 59611
+    },
+    {
+      "icon_id": "1244217",
+      "name": "qq",
+      "font_class": "qq",
+      "unicode": "e69f",
+      "unicode_decimal": 59039
+    },
+    {
+      "icon_id": "18166714",
+      "name": "京东支付",
+      "font_class": "jd-pay",
+      "unicode": "e8dd",
+      "unicode_decimal": 59613
+    },
+    {
       "icon_id": "41645421",
       "name": "luma-logo",
       "font_class": "luma",

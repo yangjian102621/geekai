@@ -52,13 +52,14 @@
   </div>
 </template>
 <script setup>
-import {computed, onMounted, ref} from 'vue';
+import {onMounted, ref, watch} from 'vue';
 import {getMenuItems, useSidebarStore} from '@/store/sidebar';
 import {useRouter} from "vue-router";
 import {ArrowDown, ArrowRight, Expand, Fold, Moon, Sunny} from "@element-plus/icons-vue";
 import {httpGet} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {removeAdminToken} from "@/store/session";
+import {useSharedStore} from "@/store/sharedata";
 
 const version = ref(process.env.VUE_APP_VERSION)
 const avatar = ref('/images/user-info.jpg')
@@ -66,24 +67,18 @@ const sidebar = useSidebarStore();
 const router = useRouter();
 const breadcrumb = ref([])
 
-// eslint-disable-next-line no-undef
-const props = defineProps({
-  theme: String,
-});
-
-const theme = computed(() => {
-  return props.theme
+const store = useSharedStore()
+const dark = ref(store.adminTheme === 'dark')
+const theme = ref(store.adminTheme)
+watch(() => store.adminTheme, (val) => {
+  theme.value = val
 })
-const dark = ref(props.theme === 'dark' ? true : false)
 
-
-// eslint-disable-next-line no-undef
-const emits = defineEmits(['changeTheme']);
 const changeTheme = () => {
-  emits('changeTheme', dark.value)
+  store.setAdminTheme(dark.value ? 'dark' : 'light')
 }
 
-router.afterEach((to, from) => {
+router.afterEach((to) => {
   initBreadCrumb(to.path)
 });
 

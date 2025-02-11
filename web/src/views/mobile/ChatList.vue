@@ -105,7 +105,7 @@ checkSession().then((user) => {
   loginUser.value = user
   isLogin.value = true
   // 加载角色列表
-  httpGet(`/api/role/list`).then((res) => {
+  httpGet(`/api/app/list/user`).then((res) => {
     if (res.data) {
       const items = res.data
       for (let i = 0; i < items.length; i++) {
@@ -139,7 +139,7 @@ checkSession().then((user) => {
   finished.value = true
 
   // 加载角色列表
-  httpGet('/api/role/list').then((res) => {
+  httpGet('/api/app/list/user').then((res) => {
     if (res.data) {
       const items = res.data
       for (let i = 0; i < items.length; i++) {
@@ -182,7 +182,7 @@ const onLoad = () => {
       error.value = true
       showFailToast("加载会话列表失败")
     })
-  })
+  }).catch(() => {})
 };
 
 const search = () => {
@@ -225,7 +225,7 @@ const newChat = (item) => {
   }
   showPicker.value = false
   const options = item.selectedOptions
-  router.push(`/mobile/chat/session?title=新对话&role_id=${options[0].value}&model_id=${options[1].value}&chat_id=0}`)
+  router.push(`/mobile/chat/session?title=新对话&role_id=${options[0].value}&model_id=${options[1].value}`)
 }
 
 const changeChat = (chat) => {

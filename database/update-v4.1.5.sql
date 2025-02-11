@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_power_logs` CHANGE `remark` `remark` VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注';

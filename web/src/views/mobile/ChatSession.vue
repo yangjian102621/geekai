@@ -123,19 +123,19 @@
 </template>
 
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref} from "vue";
+import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import {showImagePreview, showNotify, showToast} from "vant";
-import {onBeforeRouteLeave, useRouter} from "vue-router";
+import {useRouter} from "vue-router";
 import {processContent, randString, renderInputText, UUID} from "@/utils/libs";
 import {httpGet} from "@/utils/http";
 import hl from "highlight.js";
 import 'highlight.js/styles/a11y-dark.css'
 import ChatPrompt from "@/components/mobile/ChatPrompt.vue";
 import ChatReply from "@/components/mobile/ChatReply.vue";
-import {getSessionId, getUserToken} from "@/store/session";
-import {checkSession} from "@/store/cache";
+import {checkSession, getClientId} from "@/store/cache";
 import Clipboard from "clipboard";
-import {showLoginDialog} from "@/utils/dialog";
+import { showMessageError} from "@/utils/dialog";
+import {useSharedStore} from "@/store/sharedata";
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -162,95 +162,63 @@ checkSession().then(user => {
   router.push('/login')
 })
 
+const loadModels = () => {
+  // 加载模型
+  httpGet('/api/model/list').then(res => {
+    models.value = res.data
+    if (!modelId.value) {
+      modelId.value = models.value[0].id
+    }
+    for (let i = 0; i < models.value.length; i++) {
+      models.value[i].text = models.value[i].name
+      models.value[i].mValue = models.value[i].value
+      models.value[i].value = models.value[i].id
+    }
+    modelValue.value = getModelName(modelId.value)
+    // 加载角色列表
+    httpGet(`/api/app/list/user`,{id: roleId.value}).then((res) => {
+      roles.value = res.data;
+      if (!roleId.value) {
+        roleId.value = roles.value[0]['id']
+      }
+      // build data for role picker
+      for (let i = 0; i < roles.value.length; i++) {
+        roles.value[i].text = roles.value[i].name
+        roles.value[i].value = roles.value[i].id
+        roles.value[i].helloMsg = roles.value[i].hello_msg
+      }
+      role.value = getRoleById(roleId.value)
+      columns.value = [roles.value, models.value]
+      selectedValues.value = [roleId.value, modelId.value]
+      loadChatHistory()
+    }).catch((e) => {
+      showNotify({type: "danger", message: '获取聊天角色失败: ' + e.messages})
+    })
+  }).catch(e => {
+    showNotify({type: "danger", message: "加载模型失败: " + e.message})
+  })
+}
 if (chatId.value) {
   httpGet(`/api/chat/detail?chat_id=${chatId.value}`).then(res => {
     title.value = res.data.title
     modelId.value = res.data.model_id
     roleId.value = res.data.role_id
+    loadModels()
   }).catch(() => {
+    loadModels()
   })
 } else {
   title.value = "新建对话"
-}
-
-// 加载模型
-httpGet('/api/model/list').then(res => {
-  models.value = res.data
-  if (!modelId.value) {
-    modelId.value = models.value[0].id
-  }
-  for (let i = 0; i < models.value.length; i++) {
-    models.value[i].text = models.value[i].name
-    models.value[i].mValue = models.value[i].value
-    models.value[i].value = models.value[i].id
-  }
-  modelValue.value = getModelName(modelId.value)
-  // 加载角色列表
-  httpGet(`/api/role/list`).then((res) => {
-    roles.value = res.data;
-    if (!roleId.value) {
-      roleId.value = roles.value[0]['id']
-    }
-    // build data for role picker
-    for (let i = 0; i < roles.value.length; i++) {
-      roles.value[i].text = roles.value[i].name
-      roles.value[i].value = roles.value[i].id
-      roles.value[i].helloMsg = roles.value[i].hello_msg
-    }
-
-    role.value = getRoleById(roleId.value)
-    columns.value = [roles.value, models.value]
-    // 新建对话
-    if (!chatId.value) {
-      connect(chatId.value, roleId.value, modelId.value)
-    }
-  }).catch((e) => {
-    showNotify({type: "danger", message: '获取聊天角色失败: ' + e.messages})
-  })
-}).catch(e => {
-  showNotify({type: "danger", message: "加载模型失败: " + e.message})
-})
-
-const url = ref(location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId.value)
-
-onMounted(() => {
-  winHeight.value = window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight - 70
-
-  const clipboard = new Clipboard(".content-mobile,.copy-code-mobile,#copy-link-btn");
-  clipboard.on('success', (e) => {
-    e.clearSelection()
-    showNotify({type: 'success', message: '复制成功', duration: 1000})
-  })
-  clipboard.on('error', () => {
-    showNotify({type: 'danger', message: '复制失败', duration: 2000})
-  })
-})
-
-onUnmounted(() => {
-  if (socket.value !== null) {
-    socket.value.close()
-    socket.value = null
-  }
-})
-
-const newChat = (item) => {
-  showPicker.value = false
-  const options = item.selectedOptions
-  roleId.value = options[0].value
-  modelId.value = options[1].value
-  modelValue.value = getModelName(modelId.value)
-  chatId.value = ""
-  chatData.value = []
-  role.value = getRoleById(roleId.value)
-  title.value = "新建对话"
-  connect(chatId.value, roleId.value, modelId.value)
+  chatId.value = UUID()
+  loadModels()
 }
 
 const chatData = ref([])
 const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
-
+const store = useSharedStore()
+const url = ref(location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId.value)
 const mathjaxPlugin = require('markdown-it-mathjax3')
 const md = require('markdown-it')({
   breaks: true,
@@ -277,55 +245,141 @@ const md = require('markdown-it')({
   }
 });
 md.use(mathjaxPlugin)
+onMounted(() => {
+  winHeight.value = window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight - 70
 
+  const clipboard = new Clipboard(".content-mobile,.copy-code-mobile,#copy-link-btn");
+  clipboard.on('success', (e) => {
+    e.clearSelection()
+    showNotify({type: 'success', message: '复制成功', duration: 1000})
+  })
+  clipboard.on('error', () => {
+    showNotify({type: 'danger', message: '复制失败', duration: 2000})
+  })
 
-const onLoad = () => {
-  if (chatId.value) {
-    checkSession().then(() => {
-      httpGet('/api/chat/history?chat_id=' + chatId.value).then(res => {
-        // 加载状态结束
-        finished.value = true;
-        const data = res.data
-        if (data && data.length > 0) {
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].type === "prompt") {
-              chatData.value.push(data[i]);
-              continue;
-            }
+  store.addMessageHandler("chat",(data) => {
+    if (data.channel !== "chat" || data.clientId !== getClientId()) {
+      return
+    }
 
-            data[i].orgContent = data[i].content;
-            data[i].content = md.render(processContent(data[i].content))
-            chatData.value.push(data[i]);
+    if (data.type === 'error') {
+      showMessageError(data.body)
+      return
+    }
+
+    if (isNewMsg.value) {
+      chatData.value.push({
+        type: "reply",
+        id: randString(32),
+        icon: role.value.icon,
+        content: data.body
+      });
+      if (!title.value) {
+        title.value = previousText.value
+      }
+      lineBuffer.value = data.body;
+      isNewMsg.value = false
+    } else if (data.type === 'end') { // 消息接收完毕
+      enableInput()
+      lineBuffer.value = ''; // 清空缓冲
+      isNewMsg.value = true
+    } else {
+      lineBuffer.value += data.body;
+      const reply = chatData.value[chatData.value.length - 1]
+      reply['orgContent'] = lineBuffer.value;
+      reply['content'] = md.render(processContent(lineBuffer.value));
+
+      nextTick(() => {
+        hl.configure({ignoreUnescapedHTML: true})
+        const lines = document.querySelectorAll('.message-line');
+        const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+        blocks.forEach((block) => {
+          hl.highlightElement(block)
+        })
+        scrollListBox()
+
+        const items = document.querySelectorAll('.message-line')
+        const imgs = items[items.length - 1].querySelectorAll('img')
+        for (let i = 0; i < imgs.length; i++) {
+          if (!imgs[i].src) {
+            continue
           }
-
-          nextTick(() => {
-            hl.configure({ignoreUnescapedHTML: true})
-            const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
-            blocks.forEach((block) => {
-              hl.highlightElement(block)
-            })
-
-            scrollListBox()
+          imgs[i].addEventListener('click', (e) => {
+            e.stopPropagation()
+            showImagePreview([imgs[i].src]);
           })
         }
-        connect(chatId.value, roleId.value, modelId.value);
-      }).catch(() => {
-        error.value = true
       })
-    }).catch(() => {
-    })
-  }
-};
-
-// 离开页面时主动关闭 websocket 连接，节省网络资源
-onBeforeRouteLeave(() => {
-  if (socket.value !== null) {
-    activelyClose.value = true;
-    clearTimeout(heartbeatHandle.value)
-    socket.value.close();
-  }
-
+    }
+  })
 })
+
+onUnmounted(() => {
+  store.removeMessageHandler("chat")
+})
+
+const newChat = (item) => {
+  showPicker.value = false
+  const options = item.selectedOptions
+  roleId.value = options[0].value
+  modelId.value = options[1].value
+  modelValue.value = getModelName(modelId.value)
+  chatId.value = UUID()
+  chatData.value = []
+  role.value = getRoleById(roleId.value)
+  title.value = "新建对话"
+  loadChatHistory()
+}
+
+const onLoad = () => {
+  // checkSession().then(() => {
+  //   connect()
+  // }).catch(() => {
+  // })
+}
+
+const loadChatHistory = () => {
+  httpGet('/api/chat/history?chat_id=' + chatId.value).then(res => {
+    const role = getRoleById(roleId.value)
+    // 加载状态结束
+    finished.value = true;
+    const data = res.data
+    if (data.length === 0) {
+      chatData.value.push({
+        type: "reply",
+        id: randString(32),
+        icon: role.icon,
+        content: role.hello_msg,
+        orgContent: role.hello_msg,
+      })
+      return
+    }
+
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].type === "prompt") {
+        chatData.value.push(data[i]);
+        continue;
+      }
+
+      data[i].orgContent = data[i].content;
+      data[i].content = md.render(processContent(data[i].content))
+      chatData.value.push(data[i]);
+    }
+
+    nextTick(() => {
+      hl.configure({ignoreUnescapedHTML: true})
+      const blocks = document.querySelector("#message-list-box").querySelectorAll('pre code');
+      blocks.forEach((block) => {
+        hl.highlightElement(block)
+      })
+
+      scrollListBox()
+    })
+
+  }).catch(() => {
+    error.value = true
+  })
+}
 
 // 创建 socket 连接
 const prompt = ref('');
@@ -333,131 +387,107 @@ const showStopGenerate = ref(false); // 停止生成
 const showReGenerate = ref(false); // 重新生成
 const previousText = ref(''); // 上一次提问
 const lineBuffer = ref(''); // 输出缓冲行
-const socket = ref(null);
-const activelyClose = ref(false); // 主动关闭
-const canSend = ref(true);
-const heartbeatHandle = ref(null)
-const connect = function (chat_id, role_id, model_id) {
-  let isNewChat = false;
-  if (!chat_id) {
-    isNewChat = true;
-    chat_id = UUID();
-  }
+const canSend = ref(true)
+const isNewMsg = ref(true)
+const stream = ref(store.chatStream)
+watch(() => store.chatStream, (newValue) => {
+  stream.value = newValue
+});
+// const connect = function () {
+//   // 初始化 WebSocket 对象
+//   const _sessionId = getSessionId();
+//   let host = process.env.VUE_APP_WS_HOST
+//   if (host === '') {
+//     if (location.protocol === 'https:') {
+//       host = 'wss://' + location.host;
+//     } else {
+//       host = 'ws://' + location.host;
+//     }
+//   }
+//   const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${roleId.value}&chat_id=${chatId.value}&model_id=${modelId.value}&token=${getUserToken()}`);
+//   _socket.addEventListener('open', () => {
+//     loading.value = false
+//     previousText.value = '';
+//     canSend.value = true;
+//
+//     if (loadHistory.value) { // 加载历史消息
+//      loadChatHistory()
+//     }
+//   });
+//
+//   _socket.addEventListener('message', event => {
+//     if (event.data instanceof Blob) {
+//       const reader = new FileReader();
+//       reader.readAsText(event.data, "UTF-8");
+//       reader.onload = () => {
+//         const data = JSON.parse(String(reader.result));
+//         if (data.type === 'error') {
+//           showMessageError(data.message)
+//           return
+//         }
+//
+//         if (isNewMsg.value && data.type !== 'end') {
+//           chatData.value.push({
+//             type: "reply",
+//             id: randString(32),
+//             icon: role.value.icon,
+//             content: data.content
+//           });
+//           if (!title.value) {
+//             title.value = previousText.value
+//           }
+//           lineBuffer.value = data.content;
+//           isNewMsg.value = false
+//         } else if (data.type === 'end') { // 消息接收完毕
+//           enableInput()
+//           lineBuffer.value = ''; // 清空缓冲
+//           isNewMsg.value = true
+//         } else {
+//           lineBuffer.value += data.content;
+//           const reply = chatData.value[chatData.value.length - 1]
+//           reply['orgContent'] = lineBuffer.value;
+//           reply['content'] = md.render(processContent(lineBuffer.value));
+//
+//           nextTick(() => {
+//             hl.configure({ignoreUnescapedHTML: true})
+//             const lines = document.querySelectorAll('.message-line');
+//             const blocks = lines[lines.length - 1].querySelectorAll('pre code');
+//             blocks.forEach((block) => {
+//               hl.highlightElement(block)
+//             })
+//             scrollListBox()
+//
+//             const items = document.querySelectorAll('.message-line')
+//             const imgs = items[items.length - 1].querySelectorAll('img')
+//             for (let i = 0; i < imgs.length; i++) {
+//               if (!imgs[i].src) {
+//                 continue
+//               }
+//               imgs[i].addEventListener('click', (e) => {
+//                 e.stopPropagation()
+//                 showImagePreview([imgs[i].src]);
+//               })
+//             }
+//           })
+//         }
+//
+//       };
+//     }
+//
+//   });
+//
+//   _socket.addEventListener('close', () => {
+//     // 停止发送消息
+//     canSend.value = true
+//     loadHistory.value = false
+//     // 重连
+//     connect()
+//   });
+//
+//   socket.value = _socket;
+// }
 
-  // 初始化 WebSocket 对象
-  const _sessionId = getSessionId();
-  let host = process.env.VUE_APP_WS_HOST
-  if (host === '') {
-    if (location.protocol === 'https:') {
-      host = 'wss://' + location.host;
-    } else {
-      host = 'ws://' + location.host;
-    }
-  }
 
-  // 心跳函数
-  const sendHeartbeat = () => {
-    if (socket.value !== null) {
-      new Promise((resolve) => {
-        socket.value.send(JSON.stringify({type: "heartbeat", content: "ping"}))
-        resolve("success")
-      }).then(() => {
-        heartbeatHandle.value = setTimeout(() => sendHeartbeat(), 5000)
-      });
-    }
-  }
-
-  const _socket = new WebSocket(host + `/api/chat/new?session_id=${_sessionId}&role_id=${role_id}&chat_id=${chat_id}&model_id=${model_id}&token=${getUserToken()}`);
-  _socket.addEventListener('open', () => {
-    loading.value = false
-    previousText.value = '';
-    canSend.value = true;
-    activelyClose.value = false;
-
-    if (isNewChat) { // 加载打招呼信息
-      chatData.value.push({
-        type: "reply",
-        id: randString(32),
-        icon: role.value.icon,
-        content: role.value.hello_msg,
-        orgContent: role.value.hello_msg,
-      })
-    }
-
-    // 发送心跳消息
-    sendHeartbeat()
-  });
-
-  _socket.addEventListener('message', event => {
-    if (event.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.readAsText(event.data, "UTF-8");
-      reader.onload = () => {
-        const data = JSON.parse(String(reader.result));
-        if (data.type === 'start') {
-          chatData.value.push({
-            type: "reply",
-            id: randString(32),
-            icon: role.value.icon,
-            content: ""
-          });
-          if (isNewChat) {
-            title.value = previousText.value
-          }
-        } else if (data.type === 'end') { // 消息接收完毕
-          enableInput()
-          lineBuffer.value = ''; // 清空缓冲
-
-        } else {
-          lineBuffer.value += data.content;
-          const reply = chatData.value[chatData.value.length - 1]
-          reply['orgContent'] = lineBuffer.value;
-          reply['content'] = md.render(processContent(lineBuffer.value));
-
-          nextTick(() => {
-            hl.configure({ignoreUnescapedHTML: true})
-            const lines = document.querySelectorAll('.message-line');
-            const blocks = lines[lines.length - 1].querySelectorAll('pre code');
-            blocks.forEach((block) => {
-              hl.highlightElement(block)
-            })
-            scrollListBox()
-
-            const items = document.querySelectorAll('.message-line')
-            const imgs = items[items.length - 1].querySelectorAll('img')
-            for (let i = 0; i < imgs.length; i++) {
-              if (!imgs[i].src) {
-                continue
-              }
-              imgs[i].addEventListener('click', (e) => {
-                e.stopPropagation()
-                showImagePreview([imgs[i].src]);
-              })
-            }
-          })
-        }
-
-      };
-    }
-
-  });
-
-  _socket.addEventListener('close', () => {
-    if (activelyClose.value || socket.value === null) { // 忽略主动关闭
-      return;
-    }
-    // 停止发送消息
-    canSend.value = true;
-    // 重连
-    checkSession().then(() => {
-      connect(chat_id, role_id, model_id)
-    }).catch(() => {
-      showLoginDialog(router)
-    });
-  });
-
-  socket.value = _socket;
-}
 
 const disableInput = (force) => {
   canSend.value = false;
@@ -482,6 +512,11 @@ const sendMessage = () => {
     return
   }
 
+  if (store.socket.conn.readyState !== WebSocket.OPEN) {
+    showToast("连接断开，正在重连...");
+    return
+  }
+
   if (prompt.value.trim().length === 0) {
     showToast("请输入需要 AI 回答的问题")
     return false;
@@ -501,7 +536,17 @@ const sendMessage = () => {
   })
 
   disableInput(false)
-  socket.value.send(JSON.stringify({type: "chat", content: prompt.value}));
+  store.socket.conn.send(JSON.stringify({
+    channel: 'chat',
+    type:'text',
+    body:{
+      role_id: roleId.value,
+      model_id: modelId.value,
+      chat_id: chatId.value,
+      content: prompt.value,
+      stream: stream.value
+    }
+  }));
   previousText.value = prompt.value;
   prompt.value = '';
   return true;
@@ -509,7 +554,7 @@ const sendMessage = () => {
 
 const stopGenerate = () => {
   showStopGenerate.value = false;
-  httpGet("/api/chat/stop?session_id=" + getSessionId()).then(() => {
+  httpGet("/api/chat/stop?session_id=" + getClientId()).then(() => {
     enableInput()
   })
 }
@@ -524,7 +569,17 @@ const reGenerate = () => {
     icon: loginUser.value.avatar,
     content: renderInputText(text)
   });
-  socket.value.send(JSON.stringify({type: "chat", content: previousText.value}));
+  store.socket.conn.send(JSON.stringify({
+    channel: 'chat',
+    type:'text',
+    body:{
+      role_id: roleId.value,
+      model_id: modelId.value,
+      chat_id: chatId.value,
+      content: previousText.value,
+      stream: stream.value
+    }
+  }));
 }
 
 const showShare = ref(false)

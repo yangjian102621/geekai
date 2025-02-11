@@ -43,10 +43,8 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 
 	//client.DebugSwitch = gopay.DebugOn // 开启调试模式
 	client.SetLocation(alipay.LocationShanghai). // 设置时区，不设置或出错均为默认服务器时间
-		SetCharset(alipay.UTF8). // 设置字符编码，不设置默认 utf-8
-		SetSignType(alipay.RSA2). // 设置签名类型，不设置默认 RSA2
-		SetReturnUrl(config.ReturnURL). // 设置返回URL
-		SetNotifyUrl(config.NotifyURL)
+							SetCharset(alipay.UTF8). // 设置字符编码，不设置默认 utf-8
+							SetSignType(alipay.RSA2) // 设置签名类型，不设置默认 RSA2
 
 	if err = client.SetCertSnByPath(config.PublicKey, config.RootCert, config.AlipayPublicKey); err != nil {
 		return nil, fmt.Errorf("error with load payment public key: %v", err)
@@ -55,23 +53,31 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 	return &AlipayService{config: &config, client: client}, nil
 }
 
-func (s *AlipayService) PayUrlMobile(outTradeNo string, amount string, subject string) (string, error) {
-	bm := make(gopay.BodyMap)
-	bm.Set("subject", subject)
-	bm.Set("out_trade_no", outTradeNo)
-	bm.Set("quit_url", s.config.ReturnURL)
-	bm.Set("total_amount", amount)
-	bm.Set("product_code", "QUICK_WAP_WAY")
-	return s.client.TradeWapPay(context.Background(), bm)
+type AlipayParams struct {
+	OutTradeNo string `json:"out_trade_no"`
+	Subject    string `json:"subject"`
+	TotalFee   string `json:"total_fee"`
+	ReturnURL  string `json:"return_url"`
+	NotifyURL  string `json:"notify_url"`
 }
 
-func (s *AlipayService) PayUrlPc(outTradeNo string, amount string, subject string) (string, error) {
+func (s *AlipayService) PayMobile(params AlipayParams) (string, error) {
 	bm := make(gopay.BodyMap)
-	bm.Set("subject", subject)
-	bm.Set("out_trade_no", outTradeNo)
-	bm.Set("total_amount", amount)
+	bm.Set("subject", params.Subject)
+	bm.Set("out_trade_no", params.OutTradeNo)
+	bm.Set("quit_url", params.ReturnURL)
+	bm.Set("total_amount", params.TotalFee)
+	bm.Set("product_code", "QUICK_WAP_WAY")
+	return s.client.SetNotifyUrl(params.NotifyURL).SetReturnUrl(params.ReturnURL).TradeWapPay(context.Background(), bm)
+}
+
+func (s *AlipayService) PayPC(params AlipayParams) (string, error) {
+	bm := make(gopay.BodyMap)
+	bm.Set("subject", params.Subject)
+	bm.Set("out_trade_no", params.OutTradeNo)
+	bm.Set("total_amount", params.TotalFee)
 	bm.Set("product_code", "FAST_INSTANT_TRADE_PAY")
-	return s.client.TradePagePay(context.Background(), bm)
+	return s.client.SetNotifyUrl(params.NotifyURL).SetReturnUrl(params.ReturnURL).TradePagePay(context.Background(), bm)
 }
 
 // TradeVerify 交易验证

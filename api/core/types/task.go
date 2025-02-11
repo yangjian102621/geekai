@@ -24,8 +24,9 @@ const (
 
 // MjTask MidJourney 任务
 type MjTask struct {
-	Id          uint     `json:"id"`
-	TaskId      string   `json:"task_id"`
+	Id          uint     `json:"id"`      // 任务ID
+	TaskId      string   `json:"task_id"` // 中转任务ID
+	ClientId    string   `json:"client_id"`
 	ImgArr      []string `json:"img_arr"`
 	Type        TaskType `json:"type"`
 	UserId      int      `json:"user_id"`
@@ -43,12 +44,14 @@ type MjTask struct {
 type SdTask struct {
 	Id         int          `json:"id"` // job 数据库ID
 	Type       TaskType     `json:"type"`
+	ClientId   string       `json:"client_id"`
 	UserId     int          `json:"user_id"`
 	Params     SdTaskParams `json:"params"`
 	RetryCount int          `json:"retry_count"`
 }
 
 type SdTaskParams struct {
+	ClientId     string  `json:"client_id"` // 客户端ID
 	TaskId       string  `json:"task_id"`
 	Prompt       string  `json:"prompt"`     // 提示词
 	NegPrompt    string  `json:"neg_prompt"` // 反向提示词
@@ -69,18 +72,20 @@ type SdTaskParams struct {
 
 // DallTask DALL-E task
 type DallTask struct {
-	JobId   uint   `json:"job_id"`
-	UserId  uint   `json:"user_id"`
-	Prompt  string `json:"prompt"`
-	N       int    `json:"n"`
-	Quality string `json:"quality"`
-	Size    string `json:"size"`
-	Style   string `json:"style"`
+	ClientId string `json:"client_id"`
+	JobId    uint   `json:"job_id"`
+	UserId   uint   `json:"user_id"`
+	Prompt   string `json:"prompt"`
+	N        int    `json:"n"`
+	Quality  string `json:"quality"`
+	Size     string `json:"size"`
+	Style    string `json:"style"`
 
 	Power int `json:"power"`
 }
 
 type SunoTask struct {
+	ClientId     string `json:"client_id"`
 	Id           uint   `json:"id"`
 	Channel      string `json:"channel"`
 	UserId       int    `json:"user_id"`
@@ -104,13 +109,14 @@ const (
 )
 
 type VideoTask struct {
-	Id      uint        `json:"id"`
-	Channel string      `json:"channel"`
-	UserId  int         `json:"user_id"`
-	Type    string      `json:"type"`
-	TaskId  string      `json:"task_id"`
-	Prompt  string      `json:"prompt"` // 提示词
-	Params  VideoParams `json:"params"`
+	ClientId string      `json:"client_id"`
+	Id       uint        `json:"id"`
+	Channel  string      `json:"channel"`
+	UserId   int         `json:"user_id"`
+	Type     string      `json:"type"`
+	TaskId   string      `json:"task_id"`
+	Prompt   string      `json:"prompt"` // 提示词
+	Params   VideoParams `json:"params"`
 }
 
 type VideoParams struct {

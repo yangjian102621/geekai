@@ -45,17 +45,24 @@ type apiRes struct {
 	} `json:"choices"`
 }
 
-func OpenAIRequest(db *gorm.DB, prompt string, modelName string) (string, error) {
-	var apiKey model.ApiKey
-	res := db.Where("type", "chat").Where("enabled", true).First(&apiKey)
-	if res.Error != nil {
-		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", res.Error)
-	}
-
+func OpenAIRequest(db *gorm.DB, prompt string, modelName string, keyId int) (string, error) {
 	messages := make([]interface{}, 1)
 	messages[0] = types.Message{
 		Role:    "user",
 		Content: prompt,
+	}
+	return SendOpenAIMessage(db, messages, modelName, keyId)
+}
+
+func SendOpenAIMessage(db *gorm.DB, messages []interface{}, modelName string, keyId int) (string, error) {
+	var apiKey model.ApiKey
+	session := db.Session(&gorm.Session{}).Where("type", "chat").Where("enabled", true)
+	if keyId > 0 {
+		session = session.Where("id", keyId)
+	}
+	err := session.First(&apiKey).Error
+	if err != nil {
+		return "", fmt.Errorf("error with fetch OpenAI API KEY：%v", err)
 	}
 
 	var response apiRes
@@ -65,7 +72,7 @@ func OpenAIRequest(db *gorm.DB, prompt string, modelName string) (string, error)
 	}
 	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	logger.Debugf("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, modelName)
-	r, err := client.R().SetHeader("Content-Type", "application/json").
+	r, err := client.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
 			Model:       modelName,
