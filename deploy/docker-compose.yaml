@@ -15,6 +15,11 @@ services:
       - ./data/mysql/data:/var/lib/mysql
       - ./logs/mysql:/var/log/mysql
       - ./data/mysql/init.d:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   # redis
   geekai-redis:
@@ -26,6 +31,11 @@ services:
       - ./data/redis:/data
     ports:
       - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 10s
+      retries: 5
 
 #  xxl-job-admin:
 #    container_name: geekai-xxl-job-admin
@@ -62,8 +72,10 @@ services:
     container_name: geekai-api
     restart: always
     depends_on:
-      - geekai-mysql
-      - geekai-redis
+      geekai-mysql:
+        condition: service_healthy
+      geekai-redis:
+        condition: service_healthy
     environment:
       - DEBUG=false
       - LOG_LEVEL=info
