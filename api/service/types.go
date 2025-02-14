@@ -12,6 +12,7 @@ type NotifyMessage struct {
 	ClientId string `json:"client_id"`
 	JobId    int    `json:"job_id"`
 	Message  string `json:"message"`
+	Type     string `json:"type"`
 }
 
 const TranslatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"

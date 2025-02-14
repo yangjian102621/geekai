@@ -74,7 +74,7 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	}
 
 	userId := int(h.GetLoginUserId(c))
-	params := types.VideoParams{
+	params := types.LumaVideoParams{
 		PromptOptimize: data.ExpandPrompt,
 		Loop:           data.Loop,
 		StartImgURL:    data.FirstFrameImg,
@@ -111,6 +111,98 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		Type:   types.PowerConsume,
 		Model:  "luma",
 		Remark: fmt.Sprintf("Luma 文生视频，任务ID：%d", job.Id),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	resp.SUCCESS(c)
+}
+
+func (h *VideoHandler) KeLingCreate(c *gin.Context) {
+
+	var data struct {
+		Channel       string              `json:"channel"`
+		ClientId      string              `json:"client_id"`
+		TaskType      string              `json:"task_type"`       // 任务类型: text2video/image2video
+		Model         string              `json:"model"`           // 模型: default/anime
+		Prompt        string              `json:"prompt"`          // 视频描述
+		NegPrompt     string              `json:"negative_prompt"` // 负面提示词
+		CfgScale      float64             `json:"cfg_scale"`       // 相关性系数(0-1)
+		Mode          string              `json:"mode"`            // 生成模式: std/pro
+		AspectRatio   string              `json:"aspect_ratio"`    // 画面比例: 16:9/9:16/1:1
+		Duration      string              `json:"duration"`        // 视频时长: 5/10
+		CameraControl types.CameraControl `json:"camera_control"`  // 摄像机控制
+		Image         string              `json:"image"`           // 参考图片URL(image2video)
+		ImageTail     string              `json:"image_tail"`      // 尾帧图片URL(image2video)
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
+		return
+	}
+
+	if user.Power < h.App.SysConfig.LumaPower {
+		resp.ERROR(c, "您的算力不足，请充值后再试！")
+		return
+	}
+
+	if data.Prompt == "" {
+		resp.ERROR(c, "prompt is needed")
+		return
+	}
+
+	userId := int(h.GetLoginUserId(c))
+	params := types.KeLingVideoParams{
+		TaskType:      data.TaskType,
+		Model:         data.Model,
+		Prompt:        data.Prompt,
+		NegPrompt:     data.NegPrompt,
+		CfgScale:      data.CfgScale,
+		Mode:          data.Mode,
+		AspectRatio:   data.AspectRatio,
+		Duration:      data.Duration,
+		CameraControl: data.CameraControl,
+		Image:         data.Image,
+		ImageTail:     data.ImageTail,
+	}
+	task := types.VideoTask{
+		ClientId:         data.ClientId,
+		UserId:           userId,
+		Type:             types.VideoKeLing,
+		Prompt:           data.Prompt,
+		Params:           params,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		Channel:          data.Channel,
+	}
+	// 插入数据库
+	job := model.VideoJob{
+		UserId:   userId,
+		Type:     types.VideoKeLing,
+		Prompt:   data.Prompt,
+		Power:    h.App.SysConfig.LumaPower,
+		TaskInfo: utils.JsonEncode(task),
+	}
+	tx := h.DB.Create(&job)
+	if tx.Error != nil {
+		resp.ERROR(c, tx.Error.Error())
+		return
+	}
+
+	// 创建任务
+	task.Id = job.Id
+	h.videoService.PushTask(task)
+
+	// update user's power
+	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "keling",
+		Remark: fmt.Sprintf("keling 文生视频，任务ID：%d", job.Id),
 	})
 	if err != nil {
 		resp.ERROR(c, err.Error())

@@ -73,18 +73,18 @@ type SdTaskParams struct {
 
 // DallTask DALL-E task
 type DallTask struct {
-	ClientId string `json:"client_id"`
-	ModelId   uint   `json:"model_id"`
-	ModelName string `json:"model_name"`
-	Id       uint   `json:"id"`
-	UserId   uint   `json:"user_id"`
-	Prompt   string `json:"prompt"`
-	N        int    `json:"n"`
-	Quality  string `json:"quality"`
-	Size     string `json:"size"`
-	Style    string `json:"style"`
-	Power     int    `json:"power"`
-	TranslateModelId int `json:"translate_model_id"` // 提示词翻译模型ID
+	ClientId         string `json:"client_id"`
+	ModelId          uint   `json:"model_id"`
+	ModelName        string `json:"model_name"`
+	Id               uint   `json:"id"`
+	UserId           uint   `json:"user_id"`
+	Prompt           string `json:"prompt"`
+	N                int    `json:"n"`
+	Quality          string `json:"quality"`
+	Size             string `json:"size"`
+	Style            string `json:"style"`
+	Power            int    `json:"power"`
+	TranslateModelId int    `json:"translate_model_id"` // 提示词翻译模型ID
 }
 
 type SunoTask struct {
@@ -109,6 +109,7 @@ const (
 	VideoLuma   = "luma"
 	VideoRunway = "runway"
 	VideoCog    = "cog"
+	VideoKeLing = "keling"
 )
 
 type VideoTask struct {
@@ -119,11 +120,11 @@ type VideoTask struct {
 	Type             string      `json:"type"`
 	TaskId           string      `json:"task_id"`
 	Prompt           string      `json:"prompt"` // 提示词
-	Params           VideoParams `json:"params"`
+	Params           interface{} `json:"params"`
 	TranslateModelId int         `json:"translate_model_id"` // 提示词翻译模型ID
 }
 
-type VideoParams struct {
+type LumaVideoParams struct {
 	PromptOptimize bool   `json:"prompt_optimize"` // 是否优化提示词
 	Loop           bool   `json:"loop"`            // 是否循环参考图
 	StartImgURL    string `json:"start_img_url"`   // 第一帧参考图地址
@@ -132,4 +133,34 @@ type VideoParams struct {
 	Radio          string `json:"radio"`           // 视频尺寸
 	Style          string `json:"style"`           // 风格
 	Duration       int    `json:"duration"`        // 视频时长（秒）
+}
+
+type KeLingVideoParams struct {
+	TaskType      string        `json:"task_type"`       // 任务类型: text2video/image2video
+	Model         string        `json:"model"`           // 模型: default/anime
+	Prompt        string        `json:"prompt"`          // 视频描述
+	NegPrompt     string        `json:"negative_prompt"` // 负面提示词
+	CfgScale      float64       `json:"cfg_scale"`       // 相关性系数(0-1)
+	Mode          string        `json:"mode"`            // 生成模式: std/pro
+	AspectRatio   string        `json:"aspect_ratio"`    // 画面比例: 16:9/9:16/1:1
+	Duration      string        `json:"duration"`        // 视频时长: 5/10
+	CameraControl CameraControl `json:"camera_control"`  // 摄像机控制
+	Image         string        `json:"image"`           // 参考图片URL(image2video)
+	ImageTail     string        `json:"image_tail"`      // 尾帧图片URL(image2video)
+}
+
+// CameraControl 摄像机控制
+type CameraControl struct {
+	Type   string       `json:"type"`   // 控制类型: simple/down_back/forward_up/right_turn_forward/left_turn_forward
+	Config CameraConfig `json:"config"` // 控制参数(仅simple类型时使用)
+}
+
+// CameraConfig 摄像机参数
+type CameraConfig struct {
+	Horizontal int `json:"horizontal"` // 水平移动(-10到10)
+	Vertical   int `json:"vertical"`   // 垂直移动(-10到10)
+	Pan        int `json:"pan"`        // 左右旋转(-10到10)
+	Tilt       int `json:"tilt"`       // 上下旋转(-10到10)
+	Roll       int `json:"roll"`       // 横向翻转(-10到10)
+	Zoom       int `json:"zoom"`       // 镜头缩放(-10到10)
 }

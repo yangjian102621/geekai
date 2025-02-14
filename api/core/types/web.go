@@ -34,13 +34,14 @@ const (
 	MsgTypeErr  = WsMsgType("error")
 	MsgTypePing = WsMsgType("ping") // 心跳消息
 
-	ChPing = WsChannel("ping")
-	ChChat = WsChannel("chat")
-	ChMj   = WsChannel("mj")
-	ChSd   = WsChannel("sd")
-	ChDall = WsChannel("dall")
-	ChSuno = WsChannel("suno")
-	ChLuma = WsChannel("luma")
+	ChPing   = WsChannel("ping")
+	ChChat   = WsChannel("chat")
+	ChMj     = WsChannel("mj")
+	ChSd     = WsChannel("sd")
+	ChDall   = WsChannel("dall")
+	ChSuno   = WsChannel("suno")
+	ChLuma   = WsChannel("luma")
+	ChKeLing = WsChannel("keling")
 )
 
 // InputMessage 对话输入消息结构

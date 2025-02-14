@@ -492,6 +492,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
 			group := s.Engine.Group("/api/video")
 			group.POST("luma/create", h.LumaCreate)
+			group.POST("keling/create", h.KeLingCreate)
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)

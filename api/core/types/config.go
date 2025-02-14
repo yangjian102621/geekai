@@ -150,6 +150,7 @@ type SystemConfig struct {
 	DallPower         int `json:"dall_power,omitempty"`          // DALL-E-3 绘图消耗算力
 	SunoPower         int `json:"suno_power,omitempty"`          // Suno 生成歌曲消耗算力
 	LumaPower         int `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
+	KeLingPower       int `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
 	AdvanceVoicePower int `json:"advance_voice_power,omitempty"` // 高级语音对话消耗算力
 	PromptPower       int `json:"prompt_power,omitempty"`        // 生成提示词消耗算力
 
