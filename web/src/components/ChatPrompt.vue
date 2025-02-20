@@ -2,25 +2,22 @@
   <div class="chat-line chat-line-prompt-list" v-if="listStyle === 'list'">
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="data.icon" alt="User"/>
+        <img :src="data.icon" alt="User" />
       </div>
 
       <div class="chat-item">
         <div v-if="files.length > 0" class="file-list-box">
           <div v-for="file in files">
             <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover"/>
+              <el-image :src="file.url" fit="cover" />
             </div>
             <div class="item" v-else>
               <div class="icon">
-                <el-image :src="GetFileIcon(file.ext)" fit="cover"/>
+                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
               </div>
               <div class="body">
                 <div class="title">
-                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{
-                      file.name
-                    }}
-                  </el-link>
+                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{ file.name }} </el-link>
                 </div>
                 <div class="info">
                   <span>{{ GetFileType(file.ext) }}</span>
@@ -33,7 +30,7 @@
         <div class="content" v-html="content"></div>
         <div class="bar" v-if="data.created_at > 0">
           <span class="bar-item"
-          ><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span
+            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
           >
           <span class="bar-item">tokens: {{ finalTokens }}</span>
         </div>
@@ -44,25 +41,22 @@
   <div class="chat-line chat-line-prompt-chat" v-else>
     <div class="chat-line-inner">
       <div class="chat-icon">
-        <img :src="data.icon" alt="User"/>
+        <img :src="data.icon" alt="User" />
       </div>
 
       <div class="chat-item">
         <div v-if="files.length > 0" class="file-list-box">
           <div v-for="file in files">
             <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover"/>
+              <el-image :src="file.url" fit="cover" />
             </div>
             <div class="item" v-else>
               <div class="icon">
-                <el-image :src="GetFileIcon(file.ext)" fit="cover"/>
+                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
               </div>
               <div class="body">
                 <div class="title">
-                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{
-                      file.name
-                    }}
-                  </el-link>
+                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold">{{ file.name }} </el-link>
                 </div>
                 <div class="info">
                   <span>{{ GetFileType(file.ext) }}</span>
@@ -77,7 +71,7 @@
         </div>
         <div class="bar" v-if="data.created_at > 0">
           <span class="bar-item"
-          ><el-icon><Clock/></el-icon> {{ dateFormat(data.created_at) }}</span
+            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
           >
           <!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
         </div>
@@ -87,12 +81,12 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
-import {Clock} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
+import { onMounted, ref } from "vue";
+import { Clock } from "@element-plus/icons-vue";
+import { httpPost } from "@/utils/http";
 import hl from "highlight.js";
-import {dateFormat, isImage, processPrompt} from "@/utils/libs";
-import {FormatFileSize, GetFileIcon, GetFileType} from "@/store/system";
+import { dateFormat, isImage, processPrompt } from "@/utils/libs";
+import { FormatFileSize, GetFileIcon, GetFileType } from "@/store/system";
 import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";
 import MarkdownIt from "markdown-it";
@@ -107,8 +101,8 @@ const md = new MarkdownIt({
     // 显示复制代码按钮
     const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
 <textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
-        /<\/textarea>/g,
-        "&lt;/textarea>"
+      /<\/textarea>/g,
+      "&lt;/textarea>"
     )}</textarea>`;
     if (lang && hl.getLanguage(lang)) {
       const langHtml = `<span class="lang-name">${lang}</span>`;
@@ -157,19 +151,25 @@ const processFiles = () => {
 
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
+  const urlPrefix = `${window.location.protocol}//${window.location.host}`;
   if (links) {
-    httpPost("/api/upload/list", {urls: links})
-        .then((res) => {
-          files.value = res.data.items;
+    const _links = links.map((link) => {
+      if (link.startsWith(urlPrefix)) {
+        return link.replace(urlPrefix, "");
+      }
+      return link;
+    });
+    httpPost("/api/upload/list", { urls: _links })
+      .then((res) => {
+        files.value = res.data.items;
 
-          for (let link of links) {
-            if (isExternalImg(link, files.value)) {
-              files.value.push({url: link, ext: ".png"});
-            }
+        for (let link of links) {
+          if (isExternalImg(link, files.value)) {
+            files.value.push({ url: link, ext: ".png" });
           }
-        })
-        .catch(() => {
-        });
+        }
+      })
+      .catch(() => {});
 
     for (let link of links) {
       content.value = content.value.replace(link, "");

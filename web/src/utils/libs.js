@@ -213,6 +213,10 @@ export function processContent(content) {
       return "";
     });
   }
+
+  // 支持 \[ 公式标签
+  content = content.replace(/\\\[/g, "$$").replace(/\\\]/g, "$$");
+  content = content.replace(/\\\(\\boxed\{(\d+)\}\\\)/g, '<span class="boxed">$1</span>');
   return content;
 }
 

@@ -173,6 +173,11 @@ const reGenerate = (prompt) => {
   font-family: var(--font-family);
 
   .chat-line {
+    .boxed {
+      border: 1px solid var(--el-border-color);
+      border-radius: 5px;
+      padding: 0 5px;
+    }
     .chat-item {
       .content-wrapper {
         img {
