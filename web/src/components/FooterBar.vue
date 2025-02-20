@@ -4,7 +4,7 @@
       <div>
         <span>{{ copyRight }}</span>
       </div>
-      <div v-if="!license.de_copy">
+      <div v-if="!license?.de_copy">
         <a :href="gitURL" target="_blank">
           {{ title }} -
           {{ version }}
@@ -30,15 +30,19 @@ const license = ref({});
 const props = defineProps({
   textColor: {
     type: String,
-    default: "#ffffff",
-  },
+    default: "#ffffff"
+  }
 });
 
 // 获取系统配置
 getSystemInfo()
   .then((res) => {
     title.value = res.data.title ?? process.env.VUE_APP_TITLE;
-    copyRight.value = (res.data.copyright ? res.data.copyright : "极客学长") + " © 2023 - " + new Date().getFullYear() + " All rights reserved";
+    copyRight.value =
+      (res.data.copyright ? res.data.copyright : "极客学长") +
+      " © 2023 - " +
+      new Date().getFullYear() +
+      " All rights reserved";
     icp.value = res.data.icp;
   })
   .catch((e) => {

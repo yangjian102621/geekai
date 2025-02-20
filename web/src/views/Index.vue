@@ -8,18 +8,26 @@
           <img :src="logo" class="logo" alt="Geek-AI" />
         </div>
         <div class="menu-item">
-          <span v-if="!license.de_copy">
+          <span v-if="!license?.de_copy">
             <el-tooltip class="box-item" content="部署文档" placement="bottom">
               <a :href="docsURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-book"></i>
               </a>
             </el-tooltip>
-            <el-tooltip class="box-item" content="Github 源码" placement="bottom">
+            <el-tooltip
+              class="box-item"
+              content="Github 源码"
+              placement="bottom"
+            >
               <a :href="githubURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-github"></i>
               </a>
             </el-tooltip>
-            <el-tooltip class="box-item" content="Gitee 源码" placement="bottom">
+            <el-tooltip
+              class="box-item"
+              content="Gitee 源码"
+              placement="bottom"
+            >
               <a :href="giteeURL" class="link-button" target="_blank">
                 <i class="iconfont icon-gitee"></i>
               </a>
@@ -27,7 +35,12 @@
           </span>
 
           <span v-if="!isLogin">
-            <el-button @click="router.push('/login')" class="btn-go animate__animated animate__pulse animate__infinite" round>登录/注册</el-button>
+            <el-button
+              @click="router.push('/login')"
+              class="btn-go animate__animated animate__pulse animate__infinite"
+              round
+              >登录/注册</el-button
+            >
           </span>
         </div>
       </el-menu>
@@ -38,14 +51,23 @@
         {{ title }}
       </h1>
       <div class="msg-text cursor-ani">
-        <span v-for="(char, index) in displayedChars" :key="index" :style="{ color: rainbowColor(index) }">
+        <span
+          v-for="(char, index) in displayedChars"
+          :key="index"
+          :style="{ color: rainbowColor(index) }"
+        >
           {{ char }}
         </span>
       </div>
 
       <div class="navs animate__animated animate__backInDown">
         <el-space wrap :size="14">
-          <div v-for="item in navs" :key="item.url" class="nav-item-box" @click="router.push(item.url)">
+          <div
+            v-for="item in navs"
+            :key="item.url"
+            class="nav-item-box"
+            @click="router.push(item.url)"
+          >
             <i :class="'iconfont ' + iconMap[item.url]"></i>
             <div>{{ item.name }}</div>
           </div>
@@ -58,14 +80,14 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import ThemeChange from "@/components/ThemeChange.vue";
-import {httpGet} from "@/utils/http";
-import {ElMessage} from "element-plus";
-import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
-import {isMobile} from "@/utils/libs";
+import { httpGet } from "@/utils/http";
+import { ElMessage } from "element-plus";
+import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
+import { isMobile } from "@/utils/libs";
 
 const router = useRouter();
 
@@ -95,7 +117,7 @@ const iconMap = ref({
   "/apps": "icon-app",
   "/member": "icon-vip-user",
   "/invite": "icon-share",
-  "/luma": "icon-luma",
+  "/luma": "icon-luma"
 });
 
 const displayedChars = ref([]);
@@ -163,7 +185,7 @@ const setContent = () => {
 const rainbowColor = (index) => {
   const hue = (index * 40) % 360; // 每个字符间隔40度，形成彩虹色
   return `hsl(${hue}, 90%, 50%)`; // 色调(hue)，饱和度(70%)，亮度(50%)
-}
+};
 </script>
 
 <style lang="stylus" scoped>
