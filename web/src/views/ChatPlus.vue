@@ -370,7 +370,6 @@ httpGet("/api/function/list")
     showMessageError("获取工具函数失败：" + e.message);
   });
 
-// 创建 socket 连接
 const prompt = ref("");
 const showStopGenerate = ref(false); // 停止生成
 const lineBuffer = ref(""); // 输出缓冲行
