@@ -18,6 +18,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -33,6 +34,7 @@ func NewMediaHandler(app *core.AppServer, db *gorm.DB, userService *service.User
 }
 
 type mediaQuery struct {
+	Type      string   `json:"type"` // 任务类型 luma, keling
 	Prompt    string   `json:"prompt"`
 	Username  string   `json:"username"`
 	CreatedAt []string `json:"created_at"`
@@ -84,15 +86,15 @@ func (h *MediaHandler) SunoList(c *gin.Context) {
 	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, items))
 }
 
-// LumaList Luma 视频任务列表
-func (h *MediaHandler) LumaList(c *gin.Context) {
+// Videos 视频任务列表
+func (h *MediaHandler) Videos(c *gin.Context) {
 	var data mediaQuery
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	session := h.DB.Session(&gorm.Session{})
+	session := h.DB.Session(&gorm.Session{}).Where("type", data.Type)
 	if data.Username != "" {
 		var user model.User
 		err := h.DB.Where("username", data.Username).First(&user).Error
@@ -154,6 +156,7 @@ func (h *MediaHandler) Remove(c *gin.Context) {
 		fileURL = job.AudioURL
 		break
 	case "luma":
+	case "keling":
 		var job model.VideoJob
 		if res := h.DB.Where("id", id).First(&job); res.Error != nil {
 			resp.ERROR(c, "记录不存在")

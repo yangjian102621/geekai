@@ -561,8 +561,8 @@ func main() {
 		fx.Provide(admin.NewMediaHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.MediaHandler) {
 			group := s.Engine.Group("/api/admin/media")
-			group.POST("/list/suno", h.SunoList)
-			group.POST("/list/luma", h.LumaList)
+			group.POST("/suno", h.SunoList)
+			group.POST("/videos", h.Videos)
 			group.GET("/remove", h.Remove)
 		}),
 		fx.Provide(handler.NewRealtimeHandler),

@@ -3,7 +3,7 @@ ProxyURL = ""
 MysqlDns = "root:mhSCk0NheGhmtsha@tcp(geekai-mysql:3306)/geekai_plus?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 StaticDir = "./static"
 StaticUrl = "/static"
-TikaHost = "http://tika-geekai:9998"
+TikaHost = "http://geekai-tika:9998"
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80"
@@ -67,14 +67,6 @@ TikaHost = "http://tika-geekai:9998"
     Bucket = "geekai"
     SubDir = ""
     Domain = ""
-
-[XXLConfig]   # xxl-job 配置，需要你部署 XXL-JOB 定时任务工具，用来定期清理未支付订单和清理过期 VIP，如果你没有启用支付服务，则该服务也无需启动
-  Enabled = false  # 是否启用 XXL JOB 服务
-  ServerAddr = "http://geekai-xxl-job-admin:8080/xxl-job-admin"  # xxl-job-admin 管理地址
-  ExecutorIp = "geekai-api"  # 执行器 IP 地址
-  ExecutorPort = "9999" # 执行器服务端口
-  AccessToken = "GeekMaster"  # 执行器 API 通信 token
-  RegistryKey = "chatgpt-plus"  # 任务注册 key，需要与 xxl-job 管理后台配置一致，请不要随意改动
 
 # 支付宝商户支付
 [AlipayConfig]

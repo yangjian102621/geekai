@@ -61,7 +61,7 @@ func (s *Service) PushTask(task types.VideoTask) {
 }
 
 func (s *Service) Run() {
-	// 将数据库中未提交的人物加载到队列
+	// 将数据库中未提交的任务加载到队列
 	var jobs []model.VideoJob
 	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {

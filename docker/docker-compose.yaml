@@ -37,33 +37,12 @@ services:
       timeout: 10s
       retries: 5
 
-  #  xxl-job-admin:
-  #    container_name: geekai-xxl-job-admin
-  #    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/xxl-job-admin:2.4.0
-  #    restart: always
-  #    ports:
-  #      - "8081:8080"
-  #    environment:
-  #      - PARAMS=--spring.config.location=/application.properties
-  #    volumes:
-  #      - ./logs/xxl-job:/data/applogs
-  #      - ./conf/xxl-job/application.properties:/application.properties
-
-  tika:
+  geekai-tika:
     image: registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest
     container_name: geekai-tika
     restart: always
     ports:
       - "9999:9998"
-
-  #  midjourney-proxy:
-  #    image: registry.cn-shenzhen.aliyuncs.com/geekmaster/midjourney-proxy:2.6.2
-  #    container_name: geekai-midjourney-proxy
-  #    restart: always
-  #    ports:
-  #      - "8082:8080"
-  #    volumes:
-  #      - ./conf/mj-proxy:/home/spring/config
 
   # 后端 API 程序
   geekai-api:

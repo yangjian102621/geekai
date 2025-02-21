@@ -10,14 +10,18 @@ package store
 import (
 	"context"
 	"geekai/core/types"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 )
 
 func NewRedisClient(config *types.AppConfig) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.Redis.Url(),
-		Password: config.Redis.Password,
-		DB:       config.Redis.DB,
+		Addr:        config.Redis.Url(),
+		Password:    config.Redis.Password,
+		DB:          config.Redis.DB,
+		PoolSize:    20,
+		PoolTimeout: 5 * time.Second,
 	})
 	_, err := client.Ping(context.Background()).Result()
 	if err != nil {
