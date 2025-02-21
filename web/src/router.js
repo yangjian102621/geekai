@@ -109,6 +109,12 @@ const routes = [
         meta: { title: "Luma视频创作" },
         component: () => import("@/views/Luma.vue"),
       },
+      {
+        name: "keling",
+        path: "/keling",
+        meta: { title: "KeLing视频创作" },
+        component: () => import("@/views/KeLing.vue"),
+      },
     ],
   },
   {

@@ -1,0 +1,494 @@
+<template>
+  <div class="page-keling">
+    <div class="inner custom-scroll">
+      <!-- 左侧参数设置面板 -->
+      <div class="param-panel">
+        <h2>视频参数设置</h2>
+        <el-form :model="params" label-width="80px" label-position="left">
+          <!-- 任务类型选择 -->
+          <div class="param-line">
+            <el-tabs v-model="params.task_type" @tab-change="tabChange">
+              <el-tab-pane label="文生视频" name="text2video">
+                <div class="text">使用文字描述生成视频内容</div>
+              </el-tab-pane>
+              <el-tab-pane label="图生视频" name="image2video">
+                <div class="text">使用参考图片辅助生成视频</div>
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+
+          <!-- 模型选择 -->
+          <div class="param-line">
+            <el-form-item label="模型选择">
+              <el-select v-model="params.model" placeholder="请选择模型">
+                <el-option label="默认模型" value="default" />
+                <el-option label="动漫风格" value="anime" />
+              </el-select>
+            </el-form-item>
+          </div>
+
+          <!-- 视频时长 -->
+          <div class="param-line">
+            <el-form-item label="视频时长">
+              <el-select v-model="params.duration" placeholder="请选择时长">
+                <el-option label="5秒" value="5" />
+                <el-option label="10秒" value="10" />
+              </el-select>
+            </el-form-item>
+          </div>
+
+          <!-- 生成模式 -->
+          <div class="param-line">
+            <el-form-item label="生成模式">
+              <el-select v-model="params.mode" placeholder="请选择模式">
+                <el-option label="标准模式" value="std" />
+                <el-option label="专业模式" value="pro" />
+              </el-select>
+            </el-form-item>
+          </div>
+
+          <!-- 画面比例 -->
+          <div class="param-line">
+            <el-form-item label="画面比例">
+              <el-select v-model="params.aspect_ratio" placeholder="请选择比例">
+                <el-option label="16:9 横屏" value="16:9" />
+                <el-option label="9:16 竖屏" value="9:16" />
+                <el-option label="1:1 方形" value="1:1" />
+              </el-select>
+            </el-form-item>
+          </div>
+
+          <!-- 创意程度 -->
+          <div class="param-line">
+            <el-form-item label="创意程度">
+              <el-slider 
+                v-model="params.cfg_scale" 
+                :min="0" 
+                :max="1" 
+                :step="0.1"
+              />
+            </el-form-item>
+          </div>
+
+          <!-- 运镜控制 -->
+          <div class="param-line">
+            <el-form-item label="运镜控制">
+              <div class="camera-control">
+                <el-form-item label="水平移动">
+                  <el-slider v-model="params.camera_control.config.horizontal" :min="-10" :max="10" />
+                </el-form-item>
+                <el-form-item label="垂直移动">
+                  <el-slider v-model="params.camera_control.config.vertical" :min="-10" :max="10" />
+                </el-form-item>
+                <el-form-item label="左右旋转">
+                  <el-slider v-model="params.camera_control.config.pan" :min="-10" :max="10" />
+                </el-form-item>
+                <el-form-item label="上下旋转">
+                  <el-slider v-model="params.camera_control.config.tilt" :min="-10" :max="10" />
+                </el-form-item>
+                <el-form-item label="横向翻转">
+                  <el-slider v-model="params.camera_control.config.roll" :min="-10" :max="10" />
+                </el-form-item>
+                <el-form-item label="镜头缩放">
+                  <el-slider v-model="params.camera_control.config.zoom" :min="-10" :max="10" />
+                </el-form-item>
+              </div>
+            </el-form-item>
+          </div>
+        </el-form>
+      </div>
+
+      <!-- 右侧主内容区 -->
+      <div class="main-content">
+        <!-- 生成操作区 -->
+        <div class="generation-area">
+          <div v-if="params.task_type === 'text2video'" class="text2video">
+            <el-input
+              v-model="params.prompt"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入视频描述..."
+            />
+            <el-button class="generate-btn" @click="generatePrompt" :loading="isGenerating">
+              <i class="iconfont icon-chuangzuo"></i>
+              生成专业提示词
+            </el-button>
+          </div>
+
+          <div v-else class="image2video">
+            <div class="image-upload">
+              <div class="upload-box">
+                <h3>起始帧</h3>
+                <el-upload
+                  class="uploader"
+                  :auto-upload="true"
+                  :show-file-list="false"
+                  :http-request="uploadStartImage"
+                  accept=".jpg,.png,.jpeg"
+                >
+                  <img v-if="params.image" :src="params.image" class="preview" />
+                  <el-icon v-else class="upload-icon"><Plus /></el-icon>
+                </el-upload>
+              </div>
+              <div class="upload-box">
+                <h3>结束帧</h3>
+                <el-upload
+                  class="uploader"
+                  :auto-upload="true"
+                  :show-file-list="false"
+                  :http-request="uploadEndImage"
+                  accept=".jpg,.png,.jpeg"
+                >
+                  <img v-if="params.image_tail" :src="params.image_tail" class="preview" />
+                  <el-icon v-else class="upload-icon"><Plus /></el-icon>
+                </el-upload>
+              </div>
+            </div>
+            <el-input
+              v-model="params.prompt"
+              type="textarea"
+              :rows="3"
+              placeholder="补充描述文本..."
+            />
+          </div>
+
+          <!-- 排除内容 -->
+          <el-input
+            v-model="params.negative_prompt"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入不希望出现的内容..."
+          />
+
+          <!-- 算力显示 -->
+          <div class="power-info">
+            <span>消耗算力: {{ powerCost }}</span>
+            <span>可用算力: {{ availablePower }}</span>
+          </div>
+
+          <!-- 生成按钮 -->
+          <el-button type="primary" @click="generate" :loading="generating">
+            立即生成
+          </el-button>
+        </div>
+
+        <!-- 任务列表区域 -->
+        <div class="task-list">
+          <h2>任务列表</h2>
+          
+          <!-- 任务类型筛选 -->
+          <el-radio-group v-model="taskFilter" @change="fetchTasks">
+            <el-radio-button label="all">全部</el-radio-button>
+            <el-radio-button label="text2video">文生视频</el-radio-button>
+            <el-radio-button label="image2video">图生视频</el-radio-button>
+          </el-radio-group>
+
+          <!-- 运行中的任务 -->
+          <div class="running-tasks" v-if="runningTasks.length > 0">
+            <h3>运行中</h3>
+            <div class="task-grid">
+              <div v-for="task in runningTasks" :key="task.id" class="task-card">
+                <div class="status">处理中...</div>
+                <div class="prompt">{{ task.prompt }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 已完成的任务 -->
+          <div class="finished-tasks">
+            <h3>已完成</h3>
+            <div class="task-grid">
+              <div v-for="task in finishedTasks" :key="task.id" class="task-card">
+                <video 
+                  class="preview" 
+                  :src="task.video_url" 
+                  @click="previewVideo(task)"
+                  controls
+                ></video>
+                <div class="tools">
+                  <el-button @click="downloadVideo(task)">下载</el-button>
+                  <el-button @click="deleteTask(task)">删除</el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 分页控制 -->
+          <el-pagination
+            v-if="total > pageSize"
+            background
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="pageSize"
+            @current-change="handlePageChange"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- 视频预览对话框 -->
+    <el-dialog v-model="previewVisible" title="视频预览" width="80%">
+      <video 
+        v-if="currentVideo"
+        :src="currentVideo"
+        controls
+        style="width: 100%"
+      ></video>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { Plus } from '@element-plus/icons-vue'
+import { httpGet, httpPost, httpDownload } from '@/utils/http'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getClientId } from '@/store/cache'
+import { showMessageError, showMessageOK } from '@/utils/dialog'
+
+// 参数设置
+const params = reactive({
+  client_id: getClientId(),
+  task_type: 'text2video',
+  model: 'default',
+  prompt: '',
+  negative_prompt: '',
+  cfg_scale: 0.7,
+  mode: 'std',
+  aspect_ratio: '16:9',
+  duration: '5',
+  camera_control: {
+    type: 'simple',
+    config: {
+      horizontal: 0,
+      vertical: 0,
+      pan: 0,
+      tilt: 0,
+      roll: 0,
+      zoom: 0
+    }
+  },
+  image: '',
+  image_tail: ''
+})
+
+// 状态变量
+const generating = ref(false)
+const isGenerating = ref(false)
+const powerCost = ref(10)
+const availablePower = ref(100)
+const taskFilter = ref('all')
+const runningTasks = ref([])
+const finishedTasks = ref([])
+const total = ref(0)
+const pageSize = ref(12)
+const currentPage = ref(1)
+const previewVisible = ref(false)
+const currentVideo = ref('')
+
+// 方法定义
+const tabChange = (tab) => {
+  params.task_type = tab
+}
+
+const uploadStartImage = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file.file)
+  try {
+    const res = await httpPost('/api/upload', formData)
+    params.image = res.data.url
+    ElMessage.success('上传成功')
+  } catch (e) {
+    showMessageError('上传失败: ' + e.message)
+  }
+}
+
+const uploadEndImage = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file.file)
+  try {
+    const res = await httpPost('/api/upload', formData)
+    params.image_tail = res.data.url
+    ElMessage.success('上传成功')
+  } catch (e) {
+    showMessageError('上传失败: ' + e.message)
+  }
+}
+
+const generatePrompt = async () => {
+  if (!params.prompt) {
+    return showMessageError('请输入视频描述')
+  }
+  isGenerating.value = true
+  try {
+    const res = await httpPost('/api/prompt/video', { prompt: params.prompt })
+    params.prompt = res.data
+  } catch (e) {
+    showMessageError('生成失败: ' + e.message)
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+const generate = async () => {
+  if (!params.prompt) {
+    return showMessageError('请输入视频描述')
+  }
+  
+  generating.value = true
+  try {
+    await httpPost('/api/video/keling/create', params)
+    showMessageOK('任务创建成功')
+    fetchTasks()
+  } catch (e) {
+    showMessageError('创建失败: ' + e.message)
+  } finally {
+    generating.value = false
+  }
+}
+
+const fetchTasks = async () => {
+  try {
+    const res = await httpGet('/api/video/list', {
+      page: currentPage.value,
+      page_size: pageSize.value,
+      type: 'keling',
+      task_type: taskFilter.value === 'all' ? '' : taskFilter.value
+    })
+    runningTasks.value = res.data.items.filter(task => task.progress < 100)
+    finishedTasks.value = res.data.items.filter(task => task.progress === 100)
+    total.value = res.data.total
+  } catch (e) {
+    showMessageError('获取任务列表失败: ' + e.message)
+  }
+}
+
+const handlePageChange = (page) => {
+  currentPage.value = page
+  fetchTasks()
+}
+
+const previewVideo = (task) => {
+  currentVideo.value = task.video_url
+  previewVisible.value = true
+}
+
+const downloadVideo = async (task) => {
+  try {
+    const res = await httpDownload(`/api/download?url=${task.video_url}`)
+    const blob = new Blob([res.data])
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `video_${task.id}.mp4`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  } catch (e) {
+    showMessageError('下载失败: ' + e.message)
+  }
+}
+
+const deleteTask = async (task) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该任务吗？')
+    await httpGet('/api/video/remove', { id: task.id })
+    showMessageOK('删除成功')
+    fetchTasks()
+  } catch (e) {
+    if (e !== 'cancel') {
+      showMessageError('删除失败: ' + e.message)
+    }
+  }
+}
+
+// 生命周期钩子
+onMounted(() => {
+  fetchTasks()
+})
+</script>
+
+<style lang="stylus" scoped>
+.page-keling
+  display: flex
+  height: 100vh
+  
+  .inner
+    display: flex
+    width: 100%
+    padding: 20px
+    gap: 20px
+
+    .param-panel
+      width: 300px
+      background: #fff
+      padding: 20px
+      border-radius: 8px
+      
+    .main-content
+      flex: 1
+      background: #fff
+      padding: 20px
+      border-radius: 8px
+
+      .generation-area
+        margin-bottom: 30px
+
+        .image-upload
+          display: flex
+          gap: 20px
+          margin-bottom: 20px
+
+          .upload-box
+            flex: 1
+            
+            .uploader
+              border: 1px dashed #d9d9d9
+              border-radius: 6px
+              cursor: pointer
+              position: relative
+              overflow: hidden
+              
+              .preview
+                width: 100%
+                height: 200px
+                object-fit: cover
+                
+              .upload-icon
+                font-size: 28px
+                color: #8c939d
+                width: 100%
+                height: 200px
+                text-align: center
+                line-height: 200px
+
+        .power-info
+          margin: 20px 0
+          display: flex
+          justify-content: space-between
+
+      .task-list
+        .task-grid
+          display: grid
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))
+          gap: 20px
+          margin: 20px 0
+
+          .task-card
+            border: 1px solid #eee
+            border-radius: 8px
+            overflow: hidden
+
+            .preview
+              width: 100%
+              height: 200px
+              object-fit: cover
+
+            .tools
+              padding: 10px
+              display: flex
+              justify-content: space-around
+
+.camera-control
+  padding: 10px
+  border: 1px solid #eee
+  border-radius: 4px
+</style> 
