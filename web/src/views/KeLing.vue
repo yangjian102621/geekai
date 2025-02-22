@@ -16,11 +16,7 @@
                   </el-icon>
                 </el-tooltip>
               </div>
-              <!-- <el-select v-model="params.aspect_ratio" placeholder="请选择比例">
-              <el-option label="16:9 横屏" value="16:9" />
-              <el-option label="9:16 竖屏" value="9:16" />
-              <el-option label="1:1 方形" value="1:1" />
-            </el-select> -->
+
               <div class="param-line pt">
                 <el-row :gutter="10">
                   <el-col :span="8" v-for="item in rates" :key="item.value">
@@ -38,7 +34,7 @@
                         :src="item.img"
                         fit="cover"
                       ></el-image>
-                      <div class="text">{{ item.text }}</div>
+                      <div class="texts">{{ item.text }}</div>
                     </div>
                   </el-col>
                 </el-row>
