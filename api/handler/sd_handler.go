@@ -102,6 +102,10 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	if data.Sampler == "" {
 		data.Sampler = "Euler a"
 	}
+	if len(data.Prompt) > 2000 {
+		resp.ERROR(c, "提示词太长，请删减提示词。")
+		return
+	}
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, err := h.snowflake.Next(true)

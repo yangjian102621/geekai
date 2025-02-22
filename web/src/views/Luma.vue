@@ -19,7 +19,7 @@
               <i class="iconfont icon-image"></i>
             </el-upload>
           </div>
-          <textarea class="prompt-input" :rows="row" v-model="formData.prompt" placeholder="请输入提示词或者上传图片" autofocus> </textarea>
+          <textarea class="prompt-input" :rows="row" v-model="formData.prompt" maxlength="2000" placeholder="请输入提示词或者上传图片" autofocus> </textarea>
           <div class="send-icon" @click="create">
             <i class="iconfont icon-send"></i>
           </div>

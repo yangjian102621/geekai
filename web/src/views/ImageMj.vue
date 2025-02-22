@@ -175,6 +175,7 @@
                       <el-input
                         v-model="params.prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
+                        maxlength="2000"
                         type="textarea"
                         ref="promptRef"
                         v-loading="isGenerating"
@@ -208,6 +209,7 @@
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
                         ref="promptRef"
+                        maxlength="2000"
                         placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
                       />
                     </div>

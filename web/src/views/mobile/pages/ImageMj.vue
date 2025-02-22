@@ -59,6 +59,7 @@
             <div class="text-line">
               <van-field
                 v-model="params.prompt"
+                maxlength="2000"
                 rows="3"
                 autosize
                 type="textarea"
@@ -72,6 +73,7 @@
                 v-model="params.prompt"
                 rows="3"
                 autosize
+                maxlength="2000"
                 type="textarea"
                 placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
               />
@@ -135,7 +137,7 @@
       <div class="text-line">
         <van-collapse v-model="activeColspan">
           <van-collapse-item title="反向提示词" name="neg_prompt">
-            <van-field v-model="params.neg_prompt" rows="3" autosize type="textarea" placeholder="不想出现在图片上的元素(例如：树，建筑)" />
+            <van-field v-model="params.neg_prompt" rows="3" maxlength="2000" autosize type="textarea" placeholder="不想出现在图片上的元素(例如：树，建筑)" />
           </van-collapse-item>
         </van-collapse>
       </div>

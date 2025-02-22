@@ -56,6 +56,15 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	// 检查 Prompt 长度
+	if data.Prompt == "" {
+		resp.ERROR(c, "prompt is needed")
+		return
+	}
+	if len(data.Prompt) > 2000 {
+		resp.ERROR(c, "提示词太长，请删减提示词。")
+		return
+	}
 
 	user, err := h.GetLoginUser(c)
 	if err != nil {
@@ -65,11 +74,6 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	if user.Power < h.App.SysConfig.LumaPower {
 		resp.ERROR(c, "您的算力不足，请充值后再试！")
-		return
-	}
-
-	if data.Prompt == "" {
-		resp.ERROR(c, "prompt is needed")
 		return
 	}
 
@@ -154,6 +158,10 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 
 	if data.Prompt == "" {
 		resp.ERROR(c, "prompt is needed")
+		return
+	}
+	if len(data.Prompt) > 2000 {
+		resp.ERROR(c, "提示词太长，请删减提示词。")
 		return
 	}
 

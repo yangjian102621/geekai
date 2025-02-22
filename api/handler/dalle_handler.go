@@ -56,6 +56,11 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		return
 	}
 
+	if len(data.Prompt) > 2000 {
+		resp.ERROR(c, "提示词太长，请删减提示词。")
+		return
+	}
+
 	// 检查用户剩余算力
 	user, err := h.GetLoginUser(c)
 	if err != nil {

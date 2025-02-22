@@ -54,7 +54,7 @@ Here is an example of how the final prompt should look:
     - Mood: Intense, mysterious
     - Lighting: Dramatic contrast with light filtering through leaves
   
-   **Output Prompt**: "A realistic rendering of a white tiger stealthily moving through a dense jungle, with an intense, mysterious mood. The lighting creates strong contrasts as beams of sunlight filter through a thick canopy of leaves."
+   **Output Prompt**: "A realistic rendering of a white tiger, stealthily moving through a dense jungle, with an intense, mysterious mood. The lighting creates strong contrasts as beams of sunlight filter through a thick canopy of leaves."
 
 2. **Input**: 
     - Subject: An enchanted castle on a floating island

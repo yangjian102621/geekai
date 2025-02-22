@@ -67,6 +67,7 @@
 
         <van-field
           v-model="params.prompt"
+          maxlength="2000"
           rows="3"
           autosize
           type="textarea"
@@ -75,7 +76,7 @@
 
         <van-collapse v-model="activeColspan">
           <van-collapse-item title="反向提示词" name="neg_prompt">
-            <van-field v-model="params.neg_prompt" rows="3" autosize type="textarea" placeholder="不想出现在图片上的元素(例如：树，建筑)" />
+            <van-field v-model="params.neg_prompt" rows="3" maxlength="2000" autosize type="textarea" placeholder="不想出现在图片上的元素(例如：树，建筑)" />
           </van-collapse-item>
         </van-collapse>
 
