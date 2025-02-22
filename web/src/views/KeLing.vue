@@ -6,24 +6,6 @@
         <div class="mj-box">
           <h2>视频参数设置</h2>
           <el-form :model="params" label-width="80px" label-position="left">
-            <!-- 任务类型选择 -->
-            <!-- <div class="flex h-20">
-              <ul class="scrollbar-type-nav">
-                <li
-                  v-for="item in videoTypes"
-                  :key="item.value"
-                  :class="{ active: params.task_type === item.value }"
-                  @click="tabChange(item.value)"
-                >
-                  <span style="margin-right: 4px">{{ item.label }} </span>
-                  <el-tooltip :content="item.tip" placement="right">
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </li>
-              </ul>
-            </div> -->
             <!-- 画面比例 -->
             <div class="param-line">
               <div class="param-line pt">
@@ -165,6 +147,7 @@
 
       <!-- 右侧主内容区 -->
       <div class="main-content task-list-inner">
+        <!-- 任务类型选择 -->
         <div class="param-line">
           <el-tabs
             v-model="params.task_type"
@@ -459,18 +442,7 @@ const previewVisible = ref(false);
 const currentVideo = ref("");
 
 // 方法定义
-const videoTypes = [
-  {
-    label: "文生视频",
-    value: "text2video",
-    tip: "使用文字描述生成视频内容"
-  },
-  {
-    label: "图生视频",
-    value: "image2video",
-    tip: "使用参考图片辅助生成视频"
-  }
-];
+
 const tabChange = (tab) => {
   params.task_type = tab;
 };
