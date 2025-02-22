@@ -164,8 +164,8 @@
       </el-scrollbar>
 
       <!-- 右侧主内容区 -->
-      <div class="main-content">
-        <div class="param-line task-list-inner">
+      <div class="main-content task-list-inner">
+        <div class="param-line">
           <el-tabs
             v-model="params.task_type"
             @tab-change="tabChange"
