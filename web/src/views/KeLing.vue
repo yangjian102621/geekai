@@ -96,7 +96,21 @@
                   </el-icon>
                 </el-tooltip>
               </div>
-              <div class="camera-control">
+              
+              <!-- 添加运镜类型选择 -->
+              <el-form-item label="运镜类型">
+                <el-select v-model="params.camera_control.type" placeholder="请选择运镜类型">
+                  <el-option label="请选择" value="" />
+                  <el-option label="简单运镜" value="simple" />
+                  <el-option label="下移拉远" value="down_back" />
+                  <el-option label="推进上移" value="forward_up" />
+                  <el-option label="右旋推进" value="right_turn_forward" />
+                  <el-option label="左旋推进" value="left_turn_forward" />
+                </el-select>
+              </el-form-item>
+
+              <!-- 仅在simple模式下显示详细配置 -->
+              <div class="camera-control" v-if="params.camera_control.type === 'simple'">
                 <el-form-item label="水平移动">
                   <el-slider
                     v-model="params.camera_control.config.horizontal"
@@ -392,7 +406,7 @@ const params = reactive({
   aspect_ratio: "16:9",
   duration: "5",
   camera_control: {
-    type: "simple",
+    type: "",
     config: {
       horizontal: 0,
       vertical: 0,

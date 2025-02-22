@@ -624,7 +624,7 @@ type CallBackVideoResult struct {
 func (s *Service) QueryKeLingTask(taskId string, channel string, action string) (VideoCallbackData, error) {
 	var apiKey model.ApiKey
 	err := s.db.Session(&gorm.Session{}).Where("type", "keling").
-		Where("api_url", channel).
+		//Where("api_url", channel).
 		Where("enabled", true).
 		Order("last_used_at DESC").First(&apiKey).Error
 	if err != nil {
