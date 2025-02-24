@@ -5,11 +5,11 @@ arch=${2:-amd64}
 
 # build go api program
 cd ../api
-#make clean $arch
+make clean $arch
 
 # build web app
 cd ../web
-#npm run build
+npm run build
 
 cd ../build
 

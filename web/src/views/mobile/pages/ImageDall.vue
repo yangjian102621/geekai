@@ -33,6 +33,7 @@
           v-model="params.prompt"
           rows="3"
           autosize
+          maxlength="2000"
           type="textarea"
           placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
         />

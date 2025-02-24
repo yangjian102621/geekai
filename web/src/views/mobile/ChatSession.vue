@@ -78,7 +78,10 @@
   </div>
 
   <van-popup v-model:show="showPicker" position="bottom" class="popup">
-    <van-picker :columns="columns" v-model="selectedValues" title="选择模型和角色" @cancel="showPicker = false" @confirm="newChat">
+    <van-picker :columns="columns" v-model="selectedValues"
+                title="选择模型和角色"
+                @change="onChange"
+                @cancel="showPicker = false" @confirm="newChat">
       <template #option="item">
         <div class="picker-option">
           <van-image v-if="item.icon" :src="item.icon" fit="cover" round />
@@ -106,7 +109,6 @@ import { useSharedStore } from "@/store/sharedata";
 import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";
 import MarkdownIt from "markdown-it";
-import FileList from "@/components/FileList.vue";
 const winHeight = ref(0);
 const navBarRef = ref(null);
 const bottomBarRef = ref(null);
@@ -631,6 +633,19 @@ const getModelName = (model_id) => {
 //   showMic.value = false
 //   recognition.stop()
 // }
+
+const onChange = (item) => {
+  const selectedValues = item.selectedOptions
+  if (selectedValues[0].model_id) {
+    for (let i = 0; i < columns.value[1].length; i++) {
+      columns.value[1][i].disabled = columns.value[1][i].value !== selectedValues[0].model_id;
+    }
+  } else {
+    for (let i = 0; i < columns.value[1].length; i++) {
+      columns.value[1][i].disabled = false;
+    }
+  }
+}
 </script>
 
 <style lang="stylus">
