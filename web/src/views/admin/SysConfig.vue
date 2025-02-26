@@ -179,6 +179,9 @@
                     <el-option v-for="item in mjModels" :value="item.value" :label="item.name" :key="item.value">{{ item.name }} </el-option>
                   </el-select>
                 </el-form-item>
+                <el-form-item label="上传文件限制" prop="max_file_size">
+                  <el-input v-model.number="system['max_file_size']" placeholder="最大上传文件大小，单位：MB" />
+                </el-form-item>
               </el-tab-pane>
 
               <el-tab-pane label="算力配置">
@@ -239,6 +242,9 @@
                 </el-form-item>
                 <el-form-item label="Luma 算力" prop="luma_power">
                   <el-input v-model.number="system['luma_power']" placeholder="使用 Luma 生成一段视频消耗算力" />
+                </el-form-item>
+                <el-form-item label="可灵算力" prop="keling_power">
+                  <el-input v-model.number="system['keling_power']" placeholder="使用快手可灵生成一段视频消耗算力" />
                 </el-form-item>
                 <el-form-item>
                   <template #label>

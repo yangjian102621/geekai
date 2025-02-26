@@ -280,9 +280,9 @@ const fetchData = (_page) => {
 const create = () => {
   const len = images.value.length;
   if (len) {
-    formData.first_frame_img = images.value[0];
+    formData.first_frame_img = replaceImg(images.value[0]);
     if (len === 2) {
-      formData.end_frame_img = images.value[1];
+      formData.end_frame_img = replaceImg(images.value[1]);
     }
   }
 

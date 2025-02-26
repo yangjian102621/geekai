@@ -28,11 +28,21 @@ func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderMan
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {
-	file, err := h.uploaderManager.GetUploadHandler().PutFile(c, "file")
+	// 判断文件大小
+	file, err := c.FormFile("file")
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
+	
+	if h.App.SysConfig.MaxFileSize > 0 && file.Size > int64(h.App.SysConfig.MaxFileSize)*1024*1024 {
+		resp.ERROR(c, "文件大小超过限制")
+		return
+	}
+
+	file, err := h.uploaderManager.GetUploadHandler().PutFile(c, "file")
+	if err != nil {
+		resp.ERROR(c, err.Error())
 	userId := 0
 	res := h.DB.Create(&model.File{
 		UserId:    userId,

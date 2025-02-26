@@ -9,7 +9,6 @@ package video
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -147,7 +146,6 @@ func (s *Service) Run() {
 						"err_msg":   err.Error(),
 						"progress":  service.FailTaskProgress,
 						"cover_url": "/images/failed.jpg",
-						"prompt":    task.Prompt,
 					}).Error
 					if err != nil {
 						logger.Errorf("update task with error: %v", err)
@@ -439,22 +437,10 @@ func (s *Service) LumaCreate(task types.VideoTask) (LumaRespVo, error) {
 		"user_prompt":   task.Prompt,
 		"expand_prompt": params.PromptOptimize,
 		"loop":          params.Loop,
+		"image_url":     params.StartImgURL, // 图生视频
+		"image_end_url": params.EndImgURL,   // 图生视频
 	}
-	// 图生视频
-	if params.StartImgURL != "" {
-		// 下载图片，并转成 base64
-		imageData, err := utils.DownloadImage(params.StartImgURL, "")
-		if err == nil {
-			reqBody["image_url"] = base64.StdEncoding.EncodeToString(imageData)
-		}
-	}
-	if params.EndImgURL != "" {
-		// 下载图片，并转成 base64
-		imageData, err := utils.DownloadImage(params.EndImgURL, "")
-		if err == nil {
-			reqBody["image_end_url"] = base64.StdEncoding.EncodeToString(imageData)
-		}
-	}
+
 	var res LumaRespVo
 	apiURL := fmt.Sprintf("%s/luma/generations", apiKey.ApiURL)
 	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
@@ -584,15 +570,8 @@ func (s *Service) KeLingCreate(task types.VideoTask) (KeLingRespVo, error) {
 
 	// 处理图生视频
 	if params.TaskType == "image2video" {
-		// 下载图片，并转成 base64
-		imageData, err := utils.DownloadImage(params.Image, "")
-		if err == nil {
-			payload["image"] = base64.StdEncoding.EncodeToString(imageData)
-		}
-		imageData, err = utils.DownloadImage(params.ImageTail, "")
-		if err == nil {
-			payload["image_tail"] = base64.StdEncoding.EncodeToString(imageData)
-		}
+		payload["image"] = params.Image
+		payload["image_tail"] = params.ImageTail
 	}
 
 	jsonPayload, err := json.Marshal(payload)
