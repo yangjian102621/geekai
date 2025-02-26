@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42692844",
+      "name": "可灵大模型",
+      "font_class": "keling",
+      "unicode": "eab7",
+      "unicode_decimal": 60087
+    },
+    {
       "icon_id": "6905420",
       "name": "码云",
       "font_class": "gitee",
