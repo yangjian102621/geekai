@@ -91,11 +91,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 
-	if len(data.Prompt) > 2000 {
-		resp.ERROR(c, "提示词太长，请删减提示词。")
-		return
-	}
-
 	var params = ""
 	if data.Rate != "" && !strings.Contains(params, "--ar") {
 		params += " --ar " + data.Rate

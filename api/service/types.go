@@ -92,30 +92,20 @@ const LyricPromptTemplate = `
 {{歌词内容}}
 `
 
-const VideoPromptTemplate = `
-As an expert in video generation prompts, please create a detailed descriptive prompt for the following video concept. The description should include the setting, character appearance, actions, overall atmosphere, and camera angles. Please make it as detailed and vivid as possible to help ensure that every aspect of the video is accurately captured.
+const VideoPromptTemplate = `## 任务描述
+你是一位优秀AI视频创作专家，擅长编写专业的AI视频提示词，现在你的任务是对用户输入的简单视频描述提示词进行专业优化和扩写，使其转化为详细的、具备专业影视画面感的 AI 生成视频提示词指令。需涵盖风格、主体元素、环境氛围、细节特征、人物状态（若有）、镜头运用及整体氛围营造等方面，以生动形象、富有感染力且精准的描述，引导 AI 生成高质量的视频内容。下面是一个示例：
+===示例开始===
+输入： “汽车在沙漠功能上行驶”，
+输出： “纪实摄影风格，一辆尘土飞扬的复古越野车在无垠的沙漠公路上疾驰，车身线条硬朗，漆面斑驳，透露出岁月的痕迹。驾驶室内的司机戴着墨镜，专注地握着方向盘，眼神坚定地望向前方。夕阳的余晖洒在车身上，沙漠的沙丘在远处延绵起伏，一片金黄。广角镜头捕捉到车辆行驶时扬起的沙尘，营造出动感与冒险的氛围。远景全貌，强调速度感与环境辽阔。”
+===示例结束===
 
-Please remember that regardless of the user’s input, the final output must be in English.
+## 输出要求：
+1. 直接输出扩写后的提示词就好，不要输出其他任何不相关信息
+2. 如果用户用中文提问，你就用中文回答，如果用英文提问，你也必须用英文回答。
+3. 请确保提示词的长度长度在1000个字以内。
 
-# Details to Include
-
-- Describe the overall visual style of the video (e.g., animated, realistic, retro tone, etc.)
-- Identify key characters or objects in the video and describe their appearance, attire, and expressions
-- Describe the environment of the scene, including weather, lighting, colors, and important details
-- Explain the behavior and interactions of the characters
-- Include any unique camera angles, movements, or special effects
-
-# Output Format
-Provide the prompt in paragraph form, ensuring that the description is detailed enough for a video generation system to recreate the envisioned scene. Include the beginning, middle, and end of the scene to convey a complete storyline.
-
-# Example
-**User Input:**
-“A small cat basking in the sun on a balcony.”
-
-**Generated Prompt:**
-On a bright spring afternoon, an orange-striped kitten lies lazily on a balcony, basking in the warm sunlight. The iron railings around the balcony cast soft shadows that dance gently with the light. The cat’s eyes are half-closed, exuding a sense of contentment and tranquility in its surroundings. In the distance, a few fluffy white clouds drift slowly across the blue sky. The camera initially focuses on the cat’s face, capturing the delicate details of its fur, and then gradually zooms out to reveal the full balcony scene, immersing viewers in a moment of calm and relaxation.
-
-The theme of the creation is:【%s】 
+=====
+用户的输入的视频主题是：【%s】
 `
 
 const MetaPromptTemplate = `

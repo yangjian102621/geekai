@@ -18,9 +18,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type VideoHandler struct {
@@ -59,10 +60,6 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	// 检查 Prompt 长度
 	if data.Prompt == "" {
 		resp.ERROR(c, "prompt is needed")
-		return
-	}
-	if len(data.Prompt) > 2000 {
-		resp.ERROR(c, "提示词太长，请删减提示词。")
 		return
 	}
 
@@ -158,10 +155,6 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 
 	if data.Prompt == "" {
 		resp.ERROR(c, "prompt is needed")
-		return
-	}
-	if len(data.Prompt) > 2000 {
-		resp.ERROR(c, "提示词太长，请删减提示词。")
 		return
 	}
 

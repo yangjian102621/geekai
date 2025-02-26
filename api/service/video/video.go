@@ -9,6 +9,7 @@ package video
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,11 +20,12 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
-	"github.com/go-redis/redis/v8"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
@@ -126,14 +128,26 @@ func (s *Service) Run() {
 					s.PushTask(task)
 				}
 			} else if task.Type == types.VideoKeLing {
+				// translate prompt
+				if utils.HasChinese(task.Prompt) {
+					content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
+					if err == nil {
+						task.Prompt = content
+					} else {
+						logger.Warnf("error with translate prompt: %v", err)
+					}
+				}
 				var r KeLingRespVo
 				r, err = s.KeLingCreate(task)
+				logger.Debugf("ke ling create task result: %+v", r)
+
 				if err != nil {
 					logger.Errorf("create task with error: %v", err)
 					err = s.db.Model(&model.VideoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
-						"err_msg":   r.Message,
+						"err_msg":   err.Error(),
 						"progress":  service.FailTaskProgress,
 						"cover_url": "/images/failed.jpg",
+						"prompt":    task.Prompt,
 					}).Error
 					if err != nil {
 						logger.Errorf("update task with error: %v", err)
@@ -425,8 +439,21 @@ func (s *Service) LumaCreate(task types.VideoTask) (LumaRespVo, error) {
 		"user_prompt":   task.Prompt,
 		"expand_prompt": params.PromptOptimize,
 		"loop":          params.Loop,
-		"image_url":     params.StartImgURL,
-		"image_end_url": params.EndImgURL,
+	}
+	// 图生视频
+	if params.StartImgURL != "" {
+		// 下载图片，并转成 base64
+		imageData, err := utils.DownloadImage(params.StartImgURL, "")
+		if err == nil {
+			reqBody["image_url"] = base64.StdEncoding.EncodeToString(imageData)
+		}
+	}
+	if params.EndImgURL != "" {
+		// 下载图片，并转成 base64
+		imageData, err := utils.DownloadImage(params.EndImgURL, "")
+		if err == nil {
+			reqBody["image_end_url"] = base64.StdEncoding.EncodeToString(imageData)
+		}
 	}
 	var res LumaRespVo
 	apiURL := fmt.Sprintf("%s/luma/generations", apiKey.ApiURL)
@@ -499,6 +526,7 @@ type KeLingRespVo struct {
 		CreatedAt  int64  `json:"created_at"`
 		UpdatedAt  int64  `json:"updated_at"`
 	} `json:"data"`
+	Channel string `json:"channel,omitempty"`
 }
 
 func (s *Service) KeLingCreate(task types.VideoTask) (KeLingRespVo, error) {
@@ -554,6 +582,19 @@ func (s *Service) KeLingCreate(task types.VideoTask) (KeLingRespVo, error) {
 		payload["camera_control"] = cameraControl
 	}
 
+	// 处理图生视频
+	if params.TaskType == "image2video" {
+		// 下载图片，并转成 base64
+		imageData, err := utils.DownloadImage(params.Image, "")
+		if err == nil {
+			payload["image"] = base64.StdEncoding.EncodeToString(imageData)
+		}
+		imageData, err = utils.DownloadImage(params.ImageTail, "")
+		if err == nil {
+			payload["image_tail"] = base64.StdEncoding.EncodeToString(imageData)
+		}
+	}
+
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return KeLingRespVo{}, fmt.Errorf("failed to marshal payload: %v", err)
@@ -578,7 +619,7 @@ func (s *Service) KeLingCreate(task types.VideoTask) (KeLingRespVo, error) {
 	defer resp.Body.Close()
 
 	// 5. 处理响应
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return KeLingRespVo{}, fmt.Errorf("failed to read response: %v", err)
 	}
@@ -591,7 +632,8 @@ func (s *Service) KeLingCreate(task types.VideoTask) (KeLingRespVo, error) {
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
 		return KeLingRespVo{}, fmt.Errorf("failed to parse response: %v", err)
 	}
-
+	// 设置 API 通道
+	apiResponse.Channel = apiKey.ApiURL
 	return apiResponse, nil
 }
 
