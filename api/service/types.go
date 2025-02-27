@@ -18,59 +18,27 @@ type NotifyMessage struct {
 const TranslatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
 
 const ImagePromptOptimizeTemplate = `
-Create a highly effective prompt to provide to an AI image generation tool in order to create an artwork based on a desired concept.
+以下是一条 AI 提示词示例，用于优化和扩写绘图提示词：
 
-Please specify details about the artwork, such as the style, subject, mood, and other important characteristics you want the resulting image to have.
+请你作为一名专业的 AI 绘图提示词优化专家，基于用户提供的简单绘图描述，生成一份详细、专业且富有创意的 AI 绘图提示词指令。在优化过程中，你需要做到以下几点：
 
-Remember, prompts should always be output in English.
+  1. 深入理解用户描述的核心意图和关键元素，挖掘潜在的细节和情感氛围，将其融入到提示词中。
+  2. 丰富画面细节，包括但不限于场景背景、人物特征、物体属性、光影效果、色彩搭配等，使画面更加生动逼真。
+  3. 运用专业的艺术风格术语，如超现实主义、印象派、赛博朋克等，为画面增添独特的艺术魅力。
+  4. 考虑构图和视角，如俯视、仰视、特写、全景等，提升画面的视觉冲击力。
+  5. 确保提示词指令清晰、准确、完整，便于 AI 绘图模型理解和生成高质量图像。最终输出的提示词应简洁明了，避免冗余信息，以逗号分隔各个元素，突出重点，
+让用户能够直接复制使用，从而帮助用户将简单的想法转化为精美绝伦的画作。
+  6. 不管用户输入的是什么语言，你务必要用英文输出优化后的提示词。
+  7. 直接输出优化后的提示词，不要输出其他任何五官内容。
 
-# Steps
+下面是一个提示词优化示例：
+===示例开始===
+原始指令 ：一个穿着红色连衣裙的少女在花园里浇花，阳光明媚。
 
-1. **Subject Description**: Describe the main subject of the image clearly. Include as much detail as possible about what should be in the scene. For example, "a majestic lion roaring at sunrise" or "a futuristic city with flying cars."
-  
-2. **Art Style**: Specify the art style you envision. Possible options include 'realistic', 'impressionist', a specific artist name, or imaginative styles like "cyberpunk." This helps the AI achieve your visual expectations.
+优化后的 AI 绘图提示词指令：一位年轻美丽的少女，约 16 - 18 岁，有着柔顺的黑色长发，披散在肩上，面容精致，眼神温柔而专注。她穿着一条复古风格的红色连衣裙，裙子上有精致的褶皱和白色的蕾丝花边，裙摆轻轻飘动。少女站在一个充满生机的花园中，花园里种满了各种各样的鲜花，有娇艳的玫瑰、淡雅的百合、缤纷的郁金香等，花朵色彩鲜艳，绿叶繁茂。她手持一个银色的 watering can（浇水壶），正在细心地给一朵盛开的玫瑰浇水。阳光从画面的右侧洒下，形成明亮而温暖的光晕，照亮了少女和整个花园，营造出一种宁静、美好的氛围，画面采用写实风格，光影效果逼真，色彩鲜明且富有层次感，构图以少女为中心，前景是盛开的花朵，背景是花园的树木和篱笆，整体画面充满诗意和浪漫气息。
+===示例结束===
 
-3. **Mood or Atmosphere**: Convey the feeling you want the image to evoke. For instance, peaceful, chaotic, epic, etc.
-
-4. **Color Palette and Lighting**: Mention color preferences or lighting. For example, "vibrant with shades of blue and purple" or "dim and dramatic lighting."
-
-5. **Optional Features**: You can add any additional attributes, such as background details, attention to textures, or any specific kind of framing.
-
-# Output Format
-
-- **Prompt Format**: A descriptive phrase that includes key aspects of the artwork (subject, style, mood, colors, lighting, any optional features).
-  
-Here is an example of how the final prompt should look:
-  
-"An ethereal landscape featuring towering ice mountains, in an impressionist style reminiscent of Claude Monet, with a serene mood. The sky is glistening with soft purples and whites, with a gentle morning sun illuminating the scene."
-
-**Please input the prompt words directly in English, and do not input any other explanatory statements**
-
-# Examples
-
-1. **Input**: 
-    - Subject: A white tiger in a dense jungle
-    - Art Style: Realistic
-    - Mood: Intense, mysterious
-    - Lighting: Dramatic contrast with light filtering through leaves
-  
-   **Output Prompt**: "A realistic rendering of a white tiger, stealthily moving through a dense jungle, with an intense, mysterious mood. The lighting creates strong contrasts as beams of sunlight filter through a thick canopy of leaves."
-
-2. **Input**: 
-    - Subject: An enchanted castle on a floating island
-    - Art Style: Fantasy
-    - Mood: Majestic, magical
-    - Colors: Bright blues, greens, and gold
-  
-   **Output Prompt**: "A majestic fantasy castle on a floating island above the clouds, with bright blues, greens, and golds to create a magical, dreamy atmosphere. Textured cobblestone details and glistening waters surround the scene." 
-
-# Notes
-
-- Ensure that you mix different aspects to get a comprehensive and visually compelling prompt.
-- Be as descriptive as possible as it often helps generate richer, more detailed images.
-- If you want the image to resemble a particular artist's work, be sure to mention the artist explicitly. e.g., "in the style of Van Gogh."
-
-The theme of the creation is:【%s】 
+现在用户输入的原始提示词为:【%s】 
 `
 
 const LyricPromptTemplate = `

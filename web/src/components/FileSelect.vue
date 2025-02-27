@@ -53,6 +53,7 @@ import {isImage, removeArrayItem} from "@/utils/libs";
 import {GetFileIcon} from "@/store/system";
 import {checkSession} from "@/store/cache";
 import {useSharedStore} from "@/store/sharedata";
+import {closeLoading, showLoading} from "@/utils/dialog";
 
 const props = defineProps({
   userId: Number,
@@ -111,14 +112,17 @@ const onScroll = (options) => {
 const afterRead = (file) => {
   const formData = new FormData();
   formData.append("file", file.file, file.name);
+  showLoading("文件上传中...");
   // 执行上传操作
   httpPost("/api/upload", formData)
     .then((res) => {
       fileData.items.unshift(res.data);
       ElMessage.success({ message: "上传成功", duration: 500 });
+      closeLoading()
     })
     .catch((e) => {
       ElMessage.error("图片上传失败:" + e.message);
+      closeLoading()
     });
 };
 

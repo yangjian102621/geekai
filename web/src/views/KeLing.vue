@@ -284,7 +284,7 @@ import { Plus, InfoFilled } from "@element-plus/icons-vue";
 import { httpGet, httpPost, httpDownload } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getClientId } from "@/store/cache";
-import { showMessageError, showMessageOK } from "@/utils/dialog";
+import {closeLoading, showLoading, showMessageError, showMessageOK} from "@/utils/dialog";
 
 // 参数设置
 const params = reactive({
@@ -357,11 +357,14 @@ const uploadStartImage = async (file) => {
   const formData = new FormData();
   formData.append("file", file.file);
   try {
+    showLoading("图片上传中...");
     const res = await httpPost("/api/upload", formData);
     params.image = res.data.url;
     ElMessage.success("上传成功");
+    closeLoading()
   } catch (e) {
     showMessageError("上传失败: " + e.message);
+    closeLoading()
   }
 };
 

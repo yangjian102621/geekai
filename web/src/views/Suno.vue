@@ -278,7 +278,7 @@ import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import { compact } from "lodash";
 import { httpDownload, httpGet, httpPost } from "@/utils/http";
-import { showMessageError, showMessageOK } from "@/utils/dialog";
+import {closeLoading, showLoading, showMessageError, showMessageOK} from "@/utils/dialog";
 import { checkSession, getClientId } from "@/store/cache";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { formatTime, replaceImg } from "@/utils/libs";
@@ -473,6 +473,7 @@ const download = (item) => {
 const uploadAudio = (file) => {
   const formData = new FormData();
   formData.append("file", file.file, file.name);
+  showLoading("正在上传文件...");
   // 执行上传操作
   httpPost("/api/upload", formData)
     .then((res) => {
@@ -484,9 +485,11 @@ const uploadAudio = (file) => {
         .then(() => {
           fetchData(1);
           showMessageOK("歌曲上传成功");
+          closeLoading();
         })
         .catch((e) => {
           showMessageError("歌曲上传失败：" + e.message);
+          closeLoading();
         });
       removeRefSong();
       ElMessage.success({ message: "上传成功", duration: 500 });
@@ -597,14 +600,17 @@ const uploadCover = (file) => {
     success(result) {
       const formData = new FormData();
       formData.append("file", result, result.name);
+      showLoading("图片上传中...");
       // 执行上传操作
       httpPost("/api/upload", formData)
         .then((res) => {
           editData.value.cover = res.data.url;
           ElMessage.success({ message: "上传成功", duration: 500 });
+          closeLoading()
         })
         .catch((e) => {
           ElMessage.error("图片上传失败:" + e.message);
+          closeLoading()
         });
     },
     error(err) {

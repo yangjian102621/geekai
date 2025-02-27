@@ -231,14 +231,17 @@ const publishJob = (item) => {
 const upload = (file) => {
   const formData = new FormData();
   formData.append("file", file.file, file.name);
+  showLoading("正在上传文件...")
   // 执行上传操作
   httpPost("/api/upload", formData)
     .then((res) => {
       images.value.push(res.data.url);
       ElMessage.success({ message: "上传成功", duration: 500 });
+      closeLoading()
     })
     .catch((e) => {
       ElMessage.error("图片上传失败:" + e.message);
+      closeLoading()
     });
 };
 

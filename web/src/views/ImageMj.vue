@@ -663,7 +663,7 @@ import { copyObj, removeArrayItem } from "@/utils/libs";
 import { useSharedStore } from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
-import { showMessageError } from "@/utils/dialog";
+import {closeLoading, showLoading, showMessageError} from "@/utils/dialog";
 
 const listBoxHeight = ref(0);
 const paramBoxHeight = ref(0);
@@ -939,6 +939,7 @@ const uploadImg = (file) => {
     success(result) {
       const formData = new FormData();
       formData.append("file", result, result.name);
+      showLoading("图片上传中...");
       // 执行上传操作
       httpPost("/api/upload", formData)
         .then((res) => {
@@ -950,9 +951,11 @@ const uploadImg = (file) => {
             imgKey.value = "";
           }
           ElMessage.success("上传成功");
+          closeLoading();
         })
         .catch((e) => {
           ElMessage.error("上传失败:" + e.message);
+          closeLoading();
         });
     },
     error(err) {
