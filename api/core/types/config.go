@@ -171,5 +171,6 @@ type SystemConfig struct {
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
 	TranslateModelId int      `json:"translate_model_id"` // 用来做提示词翻译的大模型 id
 	MaxFileSize      int      `json:"max_file_size"`      // 最大文件大小,单位：MB
+	License          string   `json:"license"`            // License
 
 }

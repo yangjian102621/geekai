@@ -90,7 +90,7 @@
         .song {
           display flex
           padding 10px
-          background-color #252020
+          background-color var(--el-bg-color)
           border-radius 10px
           margin-bottom 10px
           font-size 14px
@@ -109,6 +109,7 @@
             display flex
             margin-left 10px
             align-items center
+            color var(--el-color-primary)
           }
 
           .el-button--info {
@@ -347,7 +348,9 @@
 
       .task {
         height 100px
-        background-color #2A2525
+        background-color var(--el-bg-color)
+        border: 1px solid var(--el-border-color-light);
+        border-radius 5px
         display flex
         margin-bottom 10px
         .left {
@@ -358,7 +361,7 @@
           width 320px
           .title {
             font-size 14px
-            color #e1e1e1
+            color var(--el-text-color-primary)
             white-space: nowrap; /* 防止文字换行 */
             overflow: hidden; /* 隐藏溢出的内容 */
             text-overflow: ellipsis; /* 用省略号表示溢出的内容 */
