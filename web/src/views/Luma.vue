@@ -151,7 +151,7 @@ const store = useSharedStore();
 onMounted(() => {
   checkSession().then(() => {
     fetchData(1);
-  });
+  }).catch(() => {});
 
   store.addMessageHandler("luma", (data) => {
     // 丢弃无关消息

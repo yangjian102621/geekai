@@ -146,7 +146,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 
 	var res RespVo
 	apiURL := fmt.Sprintf("%s/suno/submit/music", apiKey.ApiURL)
-	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
+	logger.Debugf("API URL: %s, request body: %s", apiURL, utils.JsonEncode(reqBody))
 	r, err := req.C().R().
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(reqBody).

@@ -131,8 +131,17 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
+	h.App.SysConfig.License = data.License
 
-	resp.SUCCESS(c, info.HostID)
+	// 将 license 写入数据库
+	err = h.DB.Model(&model.Config{}).Where("marker", "system").UpdateColumn("config_json", utils.JsonEncode(h.App.SysConfig)).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c)
+
 }
 
 // GetLicense 获取 License 信息
