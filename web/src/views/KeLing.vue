@@ -332,11 +332,13 @@
             <h2 class="record-title pt">创作记录</h2>
             <!-- 已完成的任务 -->
             <v3-waterfall
+              :virtual-time="200"
+              :distance-to-scroll="150"
               :key="waterfallKey"
               :list="finishedTasks"
               @scrollReachBottom="fetchTasks"
-              :gap="20"
-              :bottomGap="20"
+              :gap="8"
+              :bottomGap="8"
               :colWidth="300"
               :distanceToScroll="100"
               :isLoading="loading"
@@ -344,6 +346,7 @@
               class="task-waterfall"
             >
               <template #default="slotProp">
+                <!-- 视频成功渲染部分 -->
                 <div
                   class="job-item-box"
                   :class="{
@@ -352,20 +355,38 @@
                   }"
                 >
                   <video
-                    v-if="slotProp.item.progress >= 100"
+                    v-if="
+                      slotProp.item.progress >= 100 && slotProp.item.video_url
+                    "
                     class="preview"
                     :src="slotProp.item.video_url"
                     @click="previewVideo(slotProp.item)"
                     controls
+                    :style="{
+                      width: '100%',
+                      height: `${slotProp.item.height || 400}px`
+                    }"
                   ></video>
 
-                  <div v-else class="status-overlay">
+                  <!-- 失败/无图状态 -->
+                  <div
+                    v-else
+                    class="error-container"
+                    :style="{
+                      width: '100%',
+                      height: `${slotProp.item.height || 300}px`,
+                      objectFit: 'cover'
+                    }"
+                  >
                     <div
-                      v-if="slotProp.item.progress === 101"
+                      v-if="
+                        slotProp.item.progress >= 100 &&
+                        !slotProp.item.video_url
+                      "
                       class="error-status"
                     >
-                      <el-icon><CloseBold /></el-icon>
-                      任务失败
+                      <img :src="failed" />
+                      生成失败
                     </div>
                     <div v-else class="processing-status">
                       <el-progress
@@ -375,42 +396,89 @@
                       />
                     </div>
                   </div>
-
-                  <div class="tools">
-                    <el-button
-                      v-if="slotProp.item.progress >= 100"
-                      @click="downloadVideo(slotProp.item)"
-                    >
-                      <el-icon><Download /></el-icon>
-                    </el-button>
-                    <el-button type="danger" @click="deleteTask(slotProp.item)">
-                      <el-icon><Delete /></el-icon>
-                    </el-button>
-                    <div class="show-prompt">
-                      <el-popover
-                        placement="left"
-                        title="提示词"
-                        :width="240"
-                        trigger="hover"
+                  <div class="tools-box">
+                    <div class="tools">
+                      <el-button
+                        type="primary"
+                        v-if="
+                          slotProp.item.progress >= 100 &&
+                          slotProp.item.video_url
+                        "
+                        @click="downloadVideo(slotProp.item)"
                       >
-                        <template #reference>
-                          <el-icon class="chromefilled">
-                            <ChromeFilled />
-                          </el-icon>
-                        </template>
+                        <el-icon><Download /></el-icon>
+                      </el-button>
 
-                        <template #default>
-                          <div class="mj-list-item-prompt">
-                            <span>{{ slotProp.item.prompt }}</span>
-                            <el-icon
-                              class="copy-prompt-mj"
-                              :data-clipboard-text="slotProp.item.prompt"
-                            >
-                              <DocumentCopy />
+                      <div
+                        class="show-prompt"
+                        v-if="
+                          slotProp.item.progress >= 100 &&
+                          !slotProp.item.video_url &&
+                          slotProp.item.err_msg
+                        "
+                      >
+                        <el-popover
+                          placement="left"
+                          :width="240"
+                          trigger="hover"
+                        >
+                          <template #reference>
+                            <el-icon class="chromefilled error-txt"
+                              ><WarnTriangleFilled
+                            /></el-icon>
+                          </template>
+
+                          <template #default>
+                            <div class="top-tips">
+                              <span>错误详细信息</span
+                              ><el-icon
+                                class="copy-prompt-kl"
+                                :data-clipboard-text="slotProp.item.prompt"
+                              >
+                                <DocumentCopy />
+                              </el-icon>
+                            </div>
+                            <div class="mj-list-item-prompt">
+                              <span>{{ slotProp.item.prompt }}</span>
+                            </div>
+                          </template>
+                        </el-popover>
+                      </div>
+
+                      <el-button
+                        type="danger"
+                        @click="deleteTask(slotProp.item)"
+                      >
+                        <el-icon><Delete /></el-icon>
+                      </el-button>
+                      <div class="show-prompt">
+                        <el-popover
+                          placement="left"
+                          :width="240"
+                          trigger="hover"
+                        >
+                          <template #reference>
+                            <el-icon class="chromefilled">
+                              <ChromeFilled />
                             </el-icon>
-                          </div>
-                        </template>
-                      </el-popover>
+                          </template>
+
+                          <template #default>
+                            <div class="top-tips">
+                              <span>提示词</span
+                              ><el-icon
+                                class="copy-prompt-kl"
+                                :data-clipboard-text="slotProp.item.prompt"
+                              >
+                                <DocumentCopy />
+                              </el-icon>
+                            </div>
+                            <div class="mj-list-item-prompt">
+                              <span>{{ slotProp.item.prompt }}</span>
+                            </div>
+                          </template>
+                        </el-popover>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -440,6 +508,7 @@
 </template>
 
 <script setup>
+import failed from "@/assets/img/failed.png";
 import TaskList from "@/components/TaskList.vue";
 import { ref, reactive, onMounted, onUnmounted, watch, computed } from "vue";
 import {
@@ -448,11 +517,13 @@ import {
   InfoFilled,
   ChromeFilled,
   DocumentCopy,
-  Download
+  Download,
+  WarnTriangleFilled
 } from "@element-plus/icons-vue";
 import { httpGet, httpPost, httpDownload } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getClientId, checkSession } from "@/store/cache";
+import Clipboard from "clipboard";
 
 import {
   closeLoading,
@@ -620,7 +691,12 @@ const fetchTasks = async () => {
     runningTasks.value = [...runningTasks.value, ...newRunning];
 
     const newfinished = data.items.filter((task) => task.progress >= 100);
-    finishedTasks.value = [...finishedTasks.value, ...newfinished];
+    const finishedList = [...finishedTasks.value, ...newfinished];
+    finishedTasks.value = finishedList.map((item) => ({
+      ...item,
+      height: 300 * (Math.random() * 0.4 + 0.6) // 生成300~420px随机高度
+    }));
+    console.log("finishedTasks: " + finishedList);
 
     // // 强制刷新瀑布流
     waterfallKey.value = Date.now();
@@ -693,6 +769,8 @@ const deleteTask = async (task) => {
 };
 
 fetchTasks();
+const clipboard = ref(null);
+
 // 生命周期钩子
 onMounted(async () => {
   checkSession()
@@ -704,8 +782,18 @@ onMounted(async () => {
     .catch(() => {});
 
   // fetchTasks();
+  clipboard.value = new Clipboard(".copy-prompt-kl");
+  clipboard.value.on("success", () => {
+    ElMessage.success("复制成功！");
+  });
+
+  clipboard.value.on("error", () => {
+    ElMessage.error("复制失败！");
+  });
 });
-onUnmounted(() => {});
+onUnmounted(() => {
+  clipboard.value.destroy();
+});
 // 监听任务状态变化
 watch([runningTasks, finishedTasks], () => {
   if (checkAllCompleted()) {
@@ -717,6 +805,20 @@ watch([runningTasks, finishedTasks], () => {
 <style lang="stylus" scoped>
 @import "@/assets/css/image-keling.styl"
 @import "@/assets/css/custom-scroll.styl"
+.copy-prompt-kl{
+  cursor pointer
+}
+.top-tips{
+  height: 30px
+  font-size: 18px
+  line-height: 30px
+  display: flex
+  align-items: center;
+  span{
+    margin-right: 10px
+    color:#000
+  }
+}
 .mj-list-item-prompt{
   max-height: 600px;
   overflow: auto;
@@ -735,7 +837,7 @@ watch([runningTasks, finishedTasks], () => {
   width: 200px;
   height: 200px;
   .iconfont{
-    font-size: 45px
+    font-size: 45px;
 
   }
   span{
@@ -754,57 +856,78 @@ watch([runningTasks, finishedTasks], () => {
 
 .job-item-box
   position: relative
-  transition: transform 0.3s ease
+  background: #f5f5f5;
+  transition: height 0.3s ease;
   overflow: hidden
-  margin: 10px
-  border: 1px solid #666;
-  padding: 6px;
+  // margin: 10px
+  // border: 1px solid #666;
+  // padding: 6px;
   border-radius: 6px;
   break-inside: avoid
   video
     min-height: 200px;
+    width: 100%;
+    object-fit: cover;
+
   .chromefilled
     font-size: 24px;
+    color: #fff;
+    &.error-txt{
+      color: #ffff54;
+      cursor:pointer;
+    }
   .show-prompt
     display: flex;
     align-items: center;
   &:hover
-    transform: translateY(-3px)
+    // transform: translateY(-3px)
+    .tools-box{
+      display:block
+      background:rgba(0, 0, 0, 0.3)
+      width : 100%;
+    }
 
-  .status-overlay
-    position: absolute
-    top: 0
-    left: 0
-    right: 0
-    bottom: 0
-    background: rgba(0, 0, 0, 0.7)
+  .error-container
+    position: relative
+    background: var(--bg-deep-color)
     display: flex
     align-items: center
     justify-content: center
+    img{
+      width: 66%;
+      height: 66%;
+      object-fit: cover;
+      margin: 0 auto;
+    }
 
     .error-status
-      color: #ff4d4f
+      color: #c2c6cc
       text-align: center
-      .el-icon
-        font-size: 24px
-        display: block
-        margin-bottom: 8px
+      font-size: 24px
+
 
     .processing-status
       width: 80%
       .el-progress
         margin: 0 auto
-
+  .tools-box{
+    display:none
+    position:absolute;
+    top: 0;
+    right: 0;
+  }
   .tools
     align-items: center;
     justify-content: flex-end;
     display: flex
-    gap: 8px
-    margin:5px 0 0
+    gap: 5px
+    margin: 5px 5px 5px 0;
+
+
     .el-button+.el-button
       margin-left: 0px;
 
     .el-button
-      padding: 6px
+      padding: 3px
       border-radius: 50%
 </style>
