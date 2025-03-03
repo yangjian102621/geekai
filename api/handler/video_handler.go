@@ -46,7 +46,6 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, u
 func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	var data struct {
-		ClientId      string `json:"client_id"`
 		Prompt        string `json:"prompt"`
 		FirstFrameImg string `json:"first_frame_img,omitempty"`
 		EndFrameImg   string `json:"end_frame_img,omitempty"`
@@ -82,7 +81,6 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		EndImgURL:      data.EndFrameImg,
 	}
 	task := types.VideoTask{
-		ClientId:         data.ClientId,
 		UserId:           userId,
 		Type:             types.VideoLuma,
 		Prompt:           data.Prompt,
@@ -124,7 +122,6 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 
 	var data struct {
 		Channel       string              `json:"channel"`
-		ClientId      string              `json:"client_id"`
 		TaskType      string              `json:"task_type"`       // 任务类型: text2video/image2video
 		Model         string              `json:"model"`           // 模型: default/anime
 		Prompt        string              `json:"prompt"`          // 视频描述
@@ -173,7 +170,6 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 		ImageTail:     data.ImageTail,
 	}
 	task := types.VideoTask{
-		ClientId:         data.ClientId,
 		UserId:           userId,
 		Type:             types.VideoKeLing,
 		Prompt:           data.Prompt,
@@ -218,14 +214,14 @@ func (h *VideoHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)
 	all := h.GetBool(c, "all")
-	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
+	session := h.DB.Session(&gorm.Session{})
 	if t != "" {
 		session = session.Where("type", t)
 	}
 	if all {
 		session = session.Where("publish", 0).Where("progress", 100)
 	} else {
-		session = session.Where("user_id", h.GetLoginUserId(c))
+		session = session.Where("user_id", userId)
 	}
 	// 统计总数
 	var total int64

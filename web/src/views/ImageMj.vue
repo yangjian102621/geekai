@@ -656,14 +656,14 @@ import Compressor from "compressorjs";
 import { httpGet, httpPost } from "@/utils/http";
 import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useRouter } from "vue-router";
 import { getSessionId } from "@/store/session";
 import { copyObj, removeArrayItem } from "@/utils/libs";
 import { useSharedStore } from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
-import {closeLoading, showLoading, showMessageError} from "@/utils/dialog";
+import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
 
 const listBoxHeight = ref(0);
 const paramBoxHeight = ref(0);
@@ -746,7 +746,6 @@ const options = [
 
 const router = useRouter();
 const initParams = {
-  client_id: getClientId(),
   task_type: "image",
   rate: rates[0].value,
   model: models[0].value,
@@ -772,6 +771,8 @@ const activeName = ref("txt2img");
 
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
+const taskPulling = ref(true); // 任务轮询
+const downloadPulling = ref(false); // 图片下载轮询
 
 const power = ref(0);
 const userId = ref(0);
@@ -788,20 +789,6 @@ onMounted(() => {
   clipboard.value.on("error", () => {
     ElMessage.error("复制失败！");
   });
-
-  store.addMessageHandler("mj", (data) => {
-    // 丢弃无关消息
-    if (data.channel !== "mj" || data.clientId !== getClientId()) {
-      return;
-    }
-
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 0;
-      isOver.value = false;
-      fetchFinishJobs();
-    }
-    nextTick(() => fetchRunningJobs());
-  });
 });
 
 onUnmounted(() => {
@@ -817,8 +804,20 @@ const initData = () => {
       userId.value = user.id;
       isLogin.value = true;
       page.value = 0;
-      fetchRunningJobs();
       fetchFinishJobs();
+
+      setInterval(() => {
+        if (taskPulling.value) {
+          fetchRunningJobs();
+        }
+      }, 5000);
+
+      setInterval(() => {
+        if (downloadPulling.value) {
+          page.value = 0;
+          fetchFinishJobs();
+        }
+      }, 5000);
     })
     .catch(() => {});
 };
@@ -861,6 +860,14 @@ const fetchRunningJobs = () => {
         }
         _jobs.push(jobs[i]);
       }
+      if (runningJobs.value.length !== _jobs.length) {
+        page.value = 0;
+        downloadPulling.value = true;
+        fetchFinishJobs();
+      }
+      if (_jobs.length === 0) {
+        taskPulling.value = false;
+      }
       runningJobs.value = _jobs;
     })
     .catch((e) => {
@@ -882,6 +889,7 @@ const fetchFinishJobs = () => {
   httpGet(`/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
       const jobs = res.data.items;
+      let hasDownload = false;
       for (let i = 0; i < jobs.length; i++) {
         if (jobs[i]["img_url"] !== "") {
           if (jobs[i].type === "upscale" || jobs[i].type === "swapFace") {
@@ -890,16 +898,29 @@ const fetchFinishJobs = () => {
             jobs[i]["thumb_url"] = jobs[i]["img_url"] + "?imageView2/1/w/480/h/480/q/75";
           }
         } else {
+          if (jobs[i].progress === 100) {
+            hasDownload = true;
+          }
           jobs[i]["thumb_url"] = "/images/img-placeholder.jpg";
+        }
+        // 如果当前是第一页，则开启图片下载轮询
+        if (page.value === 1) {
+          downloadPulling.value = hasDownload;
         }
 
         if (jobs[i].type !== "upscale" && jobs[i].progress === 100) {
           jobs[i]["can_opt"] = true;
         }
       }
+
       if (jobs.length < pageSize.value) {
         isOver.value = true;
       }
+      // 对比一下jobs和finishedJobs，如果相同，则不进行更新
+      if (JSON.stringify(jobs) === JSON.stringify(finishedJobs.value)) {
+        return;
+      }
+
       if (page.value === 1) {
         finishedJobs.value = jobs;
       } else {
@@ -988,7 +1009,10 @@ const generate = () => {
     .then(() => {
       ElMessage.success("绘画任务推送成功，请耐心等待任务执行...");
       power.value -= mjPower.value;
-      fetchRunningJobs();
+      taskPulling.value = true;
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       ElMessage.error("任务推送失败：" + e.message);
@@ -1008,7 +1032,6 @@ const variation = (index, item) => {
 const send = (url, index, item) => {
   httpPost(url, {
     index: index,
-    client_id: getClientId(),
     channel_id: item.channel_id,
     message_id: item.message_id,
     message_hash: item.hash,
@@ -1018,7 +1041,10 @@ const send = (url, index, item) => {
     .then(() => {
       ElMessage.success("任务推送成功，请耐心等待任务执行...");
       power.value -= mjActionPower.value;
-      fetchRunningJobs();
+      taskPulling.value = true;
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       ElMessage.error("任务推送失败：" + e.message);

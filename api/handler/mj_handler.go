@@ -66,7 +66,6 @@ func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 func (h *MidJourneyHandler) Image(c *gin.Context) {
 	var data struct {
 		TaskType  string   `json:"task_type"`
-		ClientId  string   `json:"client_id"`
 		Prompt    string   `json:"prompt"`
 		NegPrompt string   `json:"neg_prompt"`
 		Rate      string   `json:"rate"`
@@ -153,7 +152,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		return
 	}
 	task := types.MjTask{
-		ClientId:         data.ClientId,
 		TaskId:           taskId,
 		Type:             types.TaskType(data.TaskType),
 		Prompt:           data.Prompt,
@@ -207,7 +205,6 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 
 type reqVo struct {
 	Index       int    `json:"index"`
-	ClientId    string `json:"client_id"`
 	ChannelId   string `json:"channel_id"`
 	MessageId   string `json:"message_id"`
 	MessageHash string `json:"message_hash"`
@@ -229,7 +226,6 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, _ := h.snowflake.Next(true)
 	task := types.MjTask{
-		ClientId:    data.ClientId,
 		Type:        types.TaskUpscale,
 		UserId:      userId,
 		ChannelId:   data.ChannelId,
@@ -286,7 +282,6 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	taskId, _ := h.snowflake.Next(true)
 	task := types.MjTask{
 		Type:        types.TaskVariation,
-		ClientId:    data.ClientId,
 		UserId:      userId,
 		Index:       data.Index,
 		ChannelId:   data.ChannelId,

@@ -26,7 +26,6 @@ const (
 type MjTask struct {
 	Id               uint     `json:"id"`      // 任务ID
 	TaskId           string   `json:"task_id"` // 中转任务ID
-	ClientId         string   `json:"client_id"`
 	ImgArr           []string `json:"img_arr"`
 	Type             TaskType `json:"type"`
 	UserId           int      `json:"user_id"`
@@ -44,7 +43,6 @@ type MjTask struct {
 type SdTask struct {
 	Id               int          `json:"id"` // job 数据库ID
 	Type             TaskType     `json:"type"`
-	ClientId         string       `json:"client_id"`
 	UserId           int          `json:"user_id"`
 	Params           SdTaskParams `json:"params"`
 	RetryCount       int          `json:"retry_count"`
@@ -52,7 +50,6 @@ type SdTask struct {
 }
 
 type SdTaskParams struct {
-	ClientId     string  `json:"client_id"` // 客户端ID
 	TaskId       string  `json:"task_id"`
 	Prompt       string  `json:"prompt"`     // 提示词
 	NegPrompt    string  `json:"neg_prompt"` // 反向提示词
@@ -73,7 +70,6 @@ type SdTaskParams struct {
 
 // DallTask DALL-E task
 type DallTask struct {
-	ClientId         string `json:"client_id"`
 	ModelId          uint   `json:"model_id"`
 	ModelName        string `json:"model_name"`
 	Id               uint   `json:"id"`
@@ -88,7 +84,6 @@ type DallTask struct {
 }
 
 type SunoTask struct {
-	ClientId     string `json:"client_id"`
 	Id           uint   `json:"id"`
 	Channel      string `json:"channel"`
 	UserId       int    `json:"user_id"`
@@ -113,7 +108,6 @@ const (
 )
 
 type VideoTask struct {
-	ClientId         string      `json:"client_id"`
 	Id               uint        `json:"id"`
 	Channel          string      `json:"channel"`
 	UserId           int         `json:"user_id"`

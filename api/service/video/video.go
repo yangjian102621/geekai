@@ -20,7 +20,6 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -37,9 +36,7 @@ type Service struct {
 	db            *gorm.DB
 	uploadManager *oss.UploaderManager
 	taskQueue     *store.RedisQueue
-	notifyQueue   *store.RedisQueue
 	wsService     *service.WebsocketService
-	clientIds     map[uint]string
 	userService   *service.UserService
 }
 
@@ -48,10 +45,8 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
 		taskQueue:     store.NewRedisQueue("Video_Task_Queue", redisCli),
-		notifyQueue:   store.NewRedisQueue("Video_Notify_Queue", redisCli),
 		wsService:     wsService,
 		uploadManager: manager,
-		clientIds:     map[uint]string{},
 		userService:   userService,
 	}
 }
@@ -74,7 +69,6 @@ func (s *Service) Run() {
 		}
 		task.Id = v.Id
 		s.PushTask(task)
-		s.clientIds[v.Id] = task.ClientId
 	}
 	logger.Info("Starting Video job consumer...")
 	go func() {
@@ -84,10 +78,6 @@ func (s *Service) Run() {
 			if err != nil {
 				logger.Errorf("taking task with error: %v", err)
 				continue
-			}
-
-			if task.ClientId != "" {
-				s.clientIds[task.Id] = task.ClientId
 			}
 
 			if task.Type == types.VideoLuma {
@@ -112,7 +102,6 @@ func (s *Service) Run() {
 					if err != nil {
 						logger.Errorf("update task with error: %v", err)
 					}
-					s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed, Type: types.VideoLuma})
 					continue
 				}
 
@@ -150,7 +139,6 @@ func (s *Service) Run() {
 					if err != nil {
 						logger.Errorf("update task with error: %v", err)
 					}
-					s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed, Type: types.VideoKeLing})
 					continue
 				}
 
@@ -166,25 +154,6 @@ func (s *Service) Run() {
 				}
 			}
 
-		}
-	}()
-}
-
-func (s *Service) CheckTaskNotify() {
-	go func() {
-		logger.Info("Running Suno task notify checking ...")
-		for {
-			var message service.NotifyMessage
-			err := s.notifyQueue.LPop(&message)
-			if err != nil {
-				continue
-			}
-			logger.Debugf("Receive notify message: %+v", message)
-			client := s.wsService.Clients.Get(message.ClientId)
-			if client == nil {
-				continue
-			}
-			utils.SendChannelMsg(client, types.ChLuma, message.Message)
 		}
 	}()
 }
@@ -232,7 +201,6 @@ func (s *Service) DownloadFiles() {
 					continue
 				}
 
-				s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[v.Id], UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished, Type: videoTask.Type})
 			}
 
 			time.Sleep(time.Second * 10)
@@ -334,6 +302,12 @@ func (s *Service) SyncTaskProgress() {
 							logger.Errorf("更新数据库失败：%v", err)
 							continue
 						}
+					} else if task.TaskStatus == "failed" {
+						// 更新任务信息
+						s.db.Model(&model.VideoJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
+							"progress": service.FailTaskProgress,
+							"err_msg":  task.TaskStatusMsg,
+						})
 					}
 				}
 
@@ -672,7 +646,7 @@ func (s *Service) QueryKeLingTask(taskId string, channel string, action string) 
 		return VideoCallbackData{}, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return VideoCallbackData{}, fmt.Errorf("failed to read response body: %w", err)
 	}

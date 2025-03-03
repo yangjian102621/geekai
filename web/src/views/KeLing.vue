@@ -21,18 +21,18 @@
                 <el-row :gutter="10">
                   <el-col :span="8" v-for="item in rates" :key="item.value">
                     <div
-                      class="flex-col items-center"
-                      :class="
+                        class="flex-col items-center"
+                        :class="
                         item.value === params.aspect_ratio
                           ? 'grid-content active'
                           : 'grid-content'
                       "
-                      @click="changeRate(item)"
+                        @click="changeRate(item)"
                     >
                       <el-image
-                        class="icon proportion"
-                        :src="item.img"
-                        fit="cover"
+                          class="icon proportion"
+                          :src="item.img"
+                          fit="cover"
                       ></el-image>
                       <div class="texts">{{ item.text }}</div>
                     </div>
@@ -74,10 +74,10 @@
             <div class="param-line">
               <el-form-item label="创意程度">
                 <el-slider
-                  v-model="params.cfg_scale"
-                  :min="0"
-                  :max="1"
-                  :step="0.1"
+                    v-model="params.cfg_scale"
+                    :min="0"
+                    :max="1"
+                    :step="0.1"
                 />
               </el-form-item>
             </div>
@@ -96,8 +96,8 @@
               <!-- 添加运镜类型选择 -->
               <el-form-item label="运镜类型">
                 <el-select
-                  v-model="params.camera_control.type"
-                  placeholder="请选择运镜类型"
+                    v-model="params.camera_control.type"
+                    placeholder="请选择运镜类型"
                 >
                   <el-option label="请选择" value="" />
                   <el-option label="简单运镜" value="simple" />
@@ -110,49 +110,49 @@
 
               <!-- 仅在simple模式下显示详细配置 -->
               <div
-                class="camera-control"
-                v-if="params.camera_control.type === 'simple'"
+                  class="camera-control"
+                  v-if="params.camera_control.type === 'simple'"
               >
                 <el-form-item label="水平移动">
                   <el-slider
-                    v-model="params.camera_control.config.horizontal"
-                    :min="-10"
-                    :max="10"
+                      v-model="params.camera_control.config.horizontal"
+                      :min="-10"
+                      :max="10"
                   />
                 </el-form-item>
                 <el-form-item label="垂直移动">
                   <el-slider
-                    v-model="params.camera_control.config.vertical"
-                    :min="-10"
-                    :max="10"
+                      v-model="params.camera_control.config.vertical"
+                      :min="-10"
+                      :max="10"
                   />
                 </el-form-item>
                 <el-form-item label="左右旋转">
                   <el-slider
-                    v-model="params.camera_control.config.pan"
-                    :min="-10"
-                    :max="10"
+                      v-model="params.camera_control.config.pan"
+                      :min="-10"
+                      :max="10"
                   />
                 </el-form-item>
                 <el-form-item label="上下旋转">
                   <el-slider
-                    v-model="params.camera_control.config.tilt"
-                    :min="-10"
-                    :max="10"
+                      v-model="params.camera_control.config.tilt"
+                      :min="-10"
+                      :max="10"
                   />
                 </el-form-item>
                 <el-form-item label="横向翻转">
                   <el-slider
-                    v-model="params.camera_control.config.roll"
-                    :min="-10"
-                    :max="10"
+                      v-model="params.camera_control.config.roll"
+                      :min="-10"
+                      :max="10"
                   />
                 </el-form-item>
                 <el-form-item label="镜头缩放">
                   <el-slider
-                    v-model="params.camera_control.config.zoom"
-                    :min="-10"
-                    :max="10"
+                      v-model="params.camera_control.config.zoom"
+                      :min="-10"
+                      :max="10"
                   />
                 </el-form-item>
               </div>
@@ -166,9 +166,9 @@
         <!-- 任务类型选择 -->
         <div class="param-line">
           <el-tabs
-            v-model="params.task_type"
-            @tab-change="tabChange"
-            class="title-tabs"
+              v-model="params.task_type"
+              @tab-change="tabChange"
+              class="title-tabs"
           >
             <el-tab-pane label="文生视频" name="text2video">
               <div class="text">使用文字描述想要生成视频的内容</div>
@@ -186,18 +186,19 @@
         <div class="generation-area">
           <div v-if="params.task_type === 'text2video'" class="text2video">
             <el-input
-              v-model="params.prompt"
-              type="textarea"
-              :autosize="{ minRows: 4, maxRows: 6 }"
-              placeholder="请在此输入视频提示词，您也可以点击下面的提示词助手生成视频提示词"
+                v-model="params.prompt"
+                type="textarea"
+                maxlength="500"
+                :autosize="{ minRows: 4, maxRows: 6 }"
+                placeholder="请在此输入视频提示词，您也可以点击下面的提示词助手生成视频提示词"
             />
             <el-row class="text-info">
               <el-button
-                class="generate-btn"
-                @click="generatePrompt"
-                :loading="isGenerating"
-                size="small"
-                color="#5865f2"
+                  class="generate-btn"
+                  @click="generatePrompt"
+                  :loading="isGenerating"
+                  size="small"
+                  color="#5865f2"
               >
                 <i class="iconfont icon-chuangzuo"></i>
                 生成专业视频提示词
@@ -210,16 +211,16 @@
               <div class="upload-box img-uploader">
                 <h4>起始帧</h4>
                 <el-upload
-                  class="uploader img-uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="uploadStartImage"
-                  accept=".jpg,.png,.jpeg"
+                    class="uploader img-uploader"
+                    :auto-upload="true"
+                    :show-file-list="false"
+                    :http-request="uploadStartImage"
+                    accept=".jpg,.png,.jpeg"
                 >
                   <img
-                    v-if="params.image"
-                    :src="params.image"
-                    class="preview"
+                      v-if="params.image"
+                      :src="params.image"
+                      class="preview"
                   />
                   <el-icon v-else class="upload-icon"><Plus /></el-icon>
                 </el-upload>
@@ -227,16 +228,16 @@
               <div class="upload-box img-uploader">
                 <h4>结束帧</h4>
                 <el-upload
-                  class="uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="uploadEndImage"
-                  accept=".jpg,.png,.jpeg"
+                    class="uploader"
+                    :auto-upload="true"
+                    :show-file-list="false"
+                    :http-request="uploadEndImage"
+                    accept=".jpg,.png,.jpeg"
                 >
                   <img
-                    v-if="params.image_tail"
-                    :src="params.image_tail"
-                    class="preview"
+                      v-if="params.image_tail"
+                      :src="params.image_tail"
+                      class="preview"
                   />
                   <el-icon v-else class="upload-icon"><Plus /></el-icon>
                 </el-upload>
@@ -247,8 +248,8 @@
                 <div class="flex-row justify-start items-center">
                   <span>提示词：</span>
                   <el-tooltip
-                    content="输入你想要的内容，用逗号分割"
-                    placement="right"
+                      content="输入你想要的内容，用逗号分割"
+                      placement="right"
                   >
                     <el-icon>
                       <InfoFilled />
@@ -259,10 +260,10 @@
             </div>
             <div class="param-line pt">
               <el-input
-                v-model="params.prompt"
-                type="textarea"
-                :autosize="{ minRows: 4, maxRows: 6 }"
-                placeholder="描述视频画面细节"
+                  v-model="params.prompt"
+                  type="textarea"
+                  :autosize="{ minRows: 4, maxRows: 6 }"
+                  placeholder="描述视频画面细节"
               />
             </div>
           </div>
@@ -273,8 +274,8 @@
               <div class="flex-row justify-start items-center">
                 <span>不希望出现的内容：（可选）</span>
                 <el-tooltip
-                  content="不想出现在图片上的元素(例如：树，建筑)"
-                  placement="right"
+                    content="不想出现在图片上的元素(例如：树，建筑)"
+                    placement="right"
                 >
                   <el-icon>
                     <InfoFilled />
@@ -285,21 +286,21 @@
           </div>
           <div class="param-line pt">
             <el-input
-              v-model="params.negative_prompt"
-              type="textarea"
-              :autosize="{ minRows: 4, maxRows: 6 }"
-              placeholder="请在此输入你不希望出现在视频上的内容"
+                v-model="params.negative_prompt"
+                type="textarea"
+                :autosize="{ minRows: 4, maxRows: 6 }"
+                placeholder="请在此输入你不希望出现在视频上的内容"
             />
           </div>
 
           <!-- 算力显示 -->
           <el-row class="text-info">
             <el-text type="primary"
-              >每次生成视频消耗
+            >每次生成视频消耗
               <el-text type="warning">{{ powerCost }}算力;</el-text> </el-text
             >&nbsp;&nbsp;
             <el-text type="primary"
-              >当前可用算力：<el-text type="warning">{{
+            >当前可用算力：<el-text type="warning">{{
                 availablePower
               }}</el-text></el-text
             >
@@ -308,7 +309,7 @@
           <!-- 生成按钮 -->
           <div class="submit-btn">
             <el-button type="primary" :dark="false" @click="generate" round
-              >立即生成</el-button
+            >立即生成</el-button
             >
           </div>
         </div>
@@ -332,153 +333,85 @@
             <h2 class="record-title pt">创作记录</h2>
             <!-- 已完成的任务 -->
             <v3-waterfall
-              :virtual-time="200"
-              :distance-to-scroll="150"
-              :key="waterfallKey"
-              :list="finishedTasks"
-              @scrollReachBottom="fetchTasks"
-              :gap="8"
-              :bottomGap="8"
-              :colWidth="300"
-              :distanceToScroll="100"
-              :isLoading="loading"
-              :isOver="isOver"
-              class="task-waterfall"
+                :key="waterfallKey"
+                :list="finishedTasks"
+                @scrollReachBottom="fetchTasks"
+                :gap="20"
+                :bottomGap="20"
+                :colWidth="300"
+                :distanceToScroll="100"
+                :isLoading="loading"
+                :isOver="isOver"
+                class="task-waterfall"
             >
               <template #default="slotProp">
-                <!-- 视频成功渲染部分 -->
                 <div
-                  class="job-item-box"
-                  :class="{
+                    class="job-item-box"
+                    :class="{
                     processing: slotProp.item.progress < 100,
                     error: slotProp.item.progress === 101
                   }"
                 >
                   <video
-                    v-if="
-                      slotProp.item.progress >= 100 && slotProp.item.video_url
-                    "
-                    class="preview"
-                    :src="slotProp.item.video_url"
-                    @click="previewVideo(slotProp.item)"
-                    controls
-                    :style="{
-                      width: '100%',
-                      height: `${slotProp.item.height || 400}px`
-                    }"
+                      v-if="slotProp.item.progress === 100"
+                      class="preview"
+                      :src="slotProp.item.video_url"
+                      @click="previewVideo(slotProp.item)"
+                      controls
                   ></video>
 
-                  <!-- 失败/无图状态 -->
-                  <div
-                    v-else
-                    class="error-container"
-                    :style="{
-                      width: '100%',
-                      height: `${slotProp.item.height || 300}px`,
-                      objectFit: 'cover'
-                    }"
-                  >
+                  <div v-else class="status-overlay">
                     <div
-                      v-if="
-                        slotProp.item.progress >= 100 &&
-                        !slotProp.item.video_url
-                      "
-                      class="error-status"
+                        v-if="slotProp.item.progress === 101"
+                        class="error-status"
                     >
-                      <img :src="failed" />
-                      生成失败
+                      <el-icon><CloseBold /></el-icon>
+                      任务失败
                     </div>
                     <div v-else class="processing-status">
                       <el-progress
-                        :percentage="slotProp.item.progress"
-                        :stroke-width="12"
-                        status="success"
+                          :percentage="slotProp.item.progress"
+                          :stroke-width="12"
+                          status="success"
                       />
                     </div>
                   </div>
-                  <div class="tools-box">
-                    <div class="tools">
-                      <el-button
-                        type="primary"
-                        v-if="
-                          slotProp.item.progress >= 100 &&
-                          slotProp.item.video_url
-                        "
+
+                  <div class="tools">
+                    <el-button
+                        v-if="slotProp.item.progress === 100"
                         @click="downloadVideo(slotProp.item)"
-                      >
-                        <el-icon><Download /></el-icon>
-                      </el-button>
-
-                      <div
-                        class="show-prompt"
-                        v-if="
-                          slotProp.item.progress >= 100 &&
-                          !slotProp.item.video_url &&
-                          slotProp.item.err_msg
-                        "
-                      >
-                        <el-popover
+                    >
+                      <el-icon><Download /></el-icon>
+                    </el-button>
+                    <el-button type="danger" @click="deleteTask(slotProp.item)">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                    <div class="show-prompt">
+                      <el-popover
                           placement="left"
+                          title="提示词"
                           :width="240"
                           trigger="hover"
-                        >
-                          <template #reference>
-                            <el-icon class="chromefilled error-txt"
-                              ><WarnTriangleFilled
-                            /></el-icon>
-                          </template>
+                      >
+                        <template #reference>
+                          <el-icon class="chromefilled">
+                            <ChromeFilled />
+                          </el-icon>
+                        </template>
 
-                          <template #default>
-                            <div class="top-tips">
-                              <span>错误详细信息</span
-                              ><el-icon
-                                class="copy-prompt-kl"
+                        <template #default>
+                          <div class="mj-list-item-prompt">
+                            <span>{{ slotProp.item.prompt }}</span>
+                            <el-icon
+                                class="copy-prompt-mj"
                                 :data-clipboard-text="slotProp.item.prompt"
-                              >
-                                <DocumentCopy />
-                              </el-icon>
-                            </div>
-                            <div class="mj-list-item-prompt">
-                              <span>{{ slotProp.item.prompt }}</span>
-                            </div>
-                          </template>
-                        </el-popover>
-                      </div>
-
-                      <el-button
-                        type="danger"
-                        @click="deleteTask(slotProp.item)"
-                      >
-                        <el-icon><Delete /></el-icon>
-                      </el-button>
-                      <div class="show-prompt">
-                        <el-popover
-                          placement="left"
-                          :width="240"
-                          trigger="hover"
-                        >
-                          <template #reference>
-                            <el-icon class="chromefilled">
-                              <ChromeFilled />
+                            >
+                              <DocumentCopy />
                             </el-icon>
-                          </template>
-
-                          <template #default>
-                            <div class="top-tips">
-                              <span>提示词</span
-                              ><el-icon
-                                class="copy-prompt-kl"
-                                :data-clipboard-text="slotProp.item.prompt"
-                              >
-                                <DocumentCopy />
-                              </el-icon>
-                            </div>
-                            <div class="mj-list-item-prompt">
-                              <span>{{ slotProp.item.prompt }}</span>
-                            </div>
-                          </template>
-                        </el-popover>
-                      </div>
+                          </div>
+                        </template>
+                      </el-popover>
                     </div>
                   </div>
                 </div>
@@ -498,19 +431,18 @@
     <!-- 视频预览对话框 -->
     <el-dialog v-model="previewVisible" title="视频预览" width="80%">
       <video
-        v-if="currentVideo"
-        :src="currentVideo"
-        controls
-        style="width: 100%"
+          v-if="currentVideo"
+          :src="currentVideo"
+          controls
+          style="width: 100%"
       ></video>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import failed from "@/assets/img/failed.png";
 import TaskList from "@/components/TaskList.vue";
-import { ref, reactive, onMounted, onUnmounted, watch, computed } from "vue";
+import { ref, reactive, onMounted, onUnmounted, watch } from "vue";
 import {
   Plus,
   Delete,
@@ -518,12 +450,11 @@ import {
   ChromeFilled,
   DocumentCopy,
   Download,
-  WarnTriangleFilled
+    CloseBold
 } from "@element-plus/icons-vue";
 import { httpGet, httpPost, httpDownload } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getClientId, checkSession } from "@/store/cache";
-import Clipboard from "clipboard";
+import { checkSession } from "@/store/cache";
 
 import {
   closeLoading,
@@ -535,7 +466,6 @@ import { replaceImg } from "@/utils/libs";
 
 // 参数设置
 const params = reactive({
-  client_id: getClientId(),
   task_type: "text2video",
   model: "default",
   prompt: "",
@@ -559,7 +489,7 @@ const params = reactive({
   image_tail: ""
 });
 const rates = [
-  { css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png" },
+  {css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png"},
 
   {
     css: "size16-9",
@@ -594,6 +524,7 @@ const currentPage = ref(1);
 const previewVisible = ref(false);
 const currentVideo = ref("");
 const isOver = ref(false);
+const pullTask = ref(true);
 
 // 方法定义
 
@@ -634,7 +565,7 @@ const generatePrompt = async () => {
   }
   isGenerating.value = true;
   try {
-    const res = await httpPost("/api/prompt/video", { prompt: params.prompt });
+    const res = await httpPost("/api/prompt/video", {prompt: params.prompt});
     params.prompt = res.data;
   } catch (e) {
     showMessageError("生成失败: " + e.message);
@@ -646,6 +577,10 @@ const generatePrompt = async () => {
 const generate = async () => {
   if (!params.prompt?.trim()) {
     return ElMessage.error("请输入视频描述");
+  }
+  // 提示词长度不能超过 500
+  if (params.prompt.length > 500) {
+    return ElMessage.error("视频描述不能超过 500 个字符");
   }
   // if (params.task_type === "image2video" && !params.image) {
   //   return ElMessage.error("请上传起始帧图片");
@@ -659,7 +594,9 @@ const generate = async () => {
     await httpPost("/api/video/keling/create", params);
     showMessageOK("任务创建成功");
     // 立即获取最新数据
-    fetchTasks();
+    await fetchTasks();
+    // 开启任务轮询
+    pullTask.value = true;
   } catch (e) {
     showMessageError("创建失败: " + e.message);
   } finally {
@@ -686,26 +623,25 @@ const fetchTasks = async () => {
     // 精确任务过滤逻辑
     const data = res.data || {};
     const newRunning = data.items.filter(
-      (task) => task.progress < 100 && task.progress !== 101
+        (task) => task.progress < 100 && task.progress !== 101
     );
     runningTasks.value = [...runningTasks.value, ...newRunning];
+    // 如果运行中的任务为零，则停止轮询
+    if (newRunning.length === 0) {
+      pullTask.value = false;
+    }
 
-    const newfinished = data.items.filter((task) => task.progress >= 100);
-    const finishedList = [...finishedTasks.value, ...newfinished];
-    finishedTasks.value = finishedList.map((item) => ({
-      ...item,
-      height: 300 * (Math.random() * 0.4 + 0.6) // 生成300~420px随机高度
-    }));
-    console.log("finishedTasks: " + finishedList);
+    const newFinished = data.items.filter((task) => task.progress >= 100);
+    finishedTasks.value = [...finishedTasks.value, ...newFinished];
 
     // // 强制刷新瀑布流
     waterfallKey.value = Date.now();
     total.value = data.total;
 
     const shouldLoadNextPage =
-      runningTasks.value.length > 0 ||
-      (runningTasks.value.length === 0 &&
-        finishedTasks.value.length < total.value);
+        runningTasks.value.length > 0 ||
+        (runningTasks.value.length === 0 &&
+            finishedTasks.value.length < total.value);
 
     if (shouldLoadNextPage) {
       currentPage.value++;
@@ -758,9 +694,9 @@ const downloadVideo = async (task) => {
 const deleteTask = async (task) => {
   try {
     await ElMessageBox.confirm("确定要删除该任务吗？");
-    await httpGet("/api/video/remove", { id: task.id });
+    await httpGet("/api/video/remove", {id: task.id});
     showMessageOK("删除成功");
-    fetchTasks();
+    await fetchTasks();
   } catch (e) {
     if (e !== "cancel") {
       showMessageError("删除失败: " + e.message);
@@ -768,31 +704,24 @@ const deleteTask = async (task) => {
   }
 };
 
-fetchTasks();
-const clipboard = ref(null);
-
 // 生命周期钩子
 onMounted(async () => {
   checkSession()
-    .then(async () => {
-      isLogin.value = true;
-      console.log("mounted-isLogin-可以继续", isLogin.value);
-      await fetchTasks();
-    })
-    .catch(() => {});
+      .then(async () => {
+        isLogin.value = true;
+        console.log("mounted-isLogin-可以继续", isLogin.value);
 
-  // fetchTasks();
-  clipboard.value = new Clipboard(".copy-prompt-kl");
-  clipboard.value.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
-
-  clipboard.value.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
+        await fetchTasks();
+        setInterval(() => {
+          if (pullTask.value) {
+            fetchTasks();
+          }
+        }, 5000)
+      })
+      .catch(() => {
+      });
 });
 onUnmounted(() => {
-  clipboard.value.destroy();
 });
 // 监听任务状态变化
 watch([runningTasks, finishedTasks], () => {
@@ -805,25 +734,12 @@ watch([runningTasks, finishedTasks], () => {
 <style lang="stylus" scoped>
 @import "@/assets/css/image-keling.styl"
 @import "@/assets/css/custom-scroll.styl"
-.copy-prompt-kl{
-  cursor pointer
-}
-.top-tips{
-  height: 30px
-  font-size: 18px
-  line-height: 30px
-  display: flex
-  align-items: center;
-  span{
-    margin-right: 10px
-    color:#000
-  }
-}
-.mj-list-item-prompt{
+.mj-list-item-prompt {
   max-height: 600px;
   overflow: auto;
 }
-:deep(.running-job-box .image-slot){
+
+:deep(.running-job-box .image-slot) {
   display: flex
   align-items: center
   flex-direction: column;
@@ -836,98 +752,88 @@ watch([runningTasks, finishedTasks], () => {
   text-align: center
   width: 200px;
   height: 200px;
-  .iconfont{
-    font-size: 45px;
+
+  .iconfont {
+    font-size: 45px
 
   }
-  span{
+
+  span {
     font-size: 15px
   }
 }
 
 
 .record-title
-  padding:1rem 0
+  padding: 1rem 0
+
 .type-btn-group
   margin-bottom: 20px
+
 .task-waterfall
   margin: 0 -10px
   transition: opacity 0.3s ease
 
 .job-item-box
   position: relative
-  background: #f5f5f5;
-  transition: height 0.3s ease;
+  transition: transform 0.3s ease
   overflow: hidden
-  // margin: 10px
-  // border: 1px solid #666;
-  // padding: 6px;
+  margin: 10px
+  border: 1px solid #666;
+  padding: 6px;
   border-radius: 6px;
   break-inside: avoid
+
   video
     min-height: 200px;
-    width: 100%;
-    object-fit: cover;
 
   .chromefilled
     font-size: 24px;
-    color: #fff;
-    &.error-txt{
-      color: #ffff54;
-      cursor:pointer;
-    }
+
   .show-prompt
     display: flex;
     align-items: center;
-  &:hover
-    // transform: translateY(-3px)
-    .tools-box{
-      display:block
-      background:rgba(0, 0, 0, 0.3)
-      width : 100%;
-    }
 
-  .error-container
-    position: relative
-    background: var(--bg-deep-color)
+  &:hover
+    transform: translateY(-3px)
+
+  .status-overlay
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    background: rgba(0, 0, 0, 0.7)
     display: flex
     align-items: center
     justify-content: center
-    img{
-      width: 66%;
-      height: 66%;
-      object-fit: cover;
-      margin: 0 auto;
-    }
 
     .error-status
-      color: #c2c6cc
+      color: #ff4d4f
       text-align: center
-      font-size: 24px
 
+      .el-icon
+        font-size: 24px
+        display: block
+        margin-bottom: 8px
 
     .processing-status
       width: 80%
+
       .el-progress
         margin: 0 auto
-  .tools-box{
-    display:none
-    position:absolute;
-    top: 0;
-    right: 0;
-  }
+
   .tools
     align-items: center;
     justify-content: flex-end;
     display: flex
-    gap: 5px
-    margin: 5px 5px 5px 0;
+    gap: 8px
+    margin: 5px 0 0
 
-
-    .el-button+.el-button
+    .el-button + .el-button
       margin-left: 0px;
 
     .el-button
-      padding: 3px
+      padding: 6px
       border-radius: 50%
 </style>

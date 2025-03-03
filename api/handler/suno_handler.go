@@ -45,7 +45,6 @@ func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, upl
 func (h *SunoHandler) Create(c *gin.Context) {
 
 	var data struct {
-		ClientId     string `json:"client_id"`
 		Prompt       string `json:"prompt"`
 		Instrumental bool   `json:"instrumental"`
 		Lyrics       string `json:"lyrics"`
@@ -90,7 +89,6 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		}
 	}
 	task := types.SunoTask{
-		ClientId:     data.ClientId,
 		UserId:       int(h.GetLoginUserId(c)),
 		Type:         data.Type,
 		Title:        data.Title,

@@ -325,7 +325,7 @@ import nodata from "@/assets/img/no-data.png";
 import { httpGet, httpPost } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useRouter } from "vue-router";
 import { getSessionId } from "@/store/session";
 import { useSharedStore } from "@/store/sharedata";
@@ -355,7 +355,6 @@ const samplers = ["Euler a", "DPM++ 2S a", "DPM++ 2M", "DPM++ SDE", "DPM++ 2M SD
 const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"];
 const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"];
 const params = ref({
-  client_id: getClientId(),
   width: 1024,
   height: 1024,
   sampler: samplers[0],
@@ -374,6 +373,7 @@ const params = ref({
 
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
+const allowPulling = ref(true); // 是否允许轮询
 const router = useRouter();
 // 检查是否有画同款的参数
 const _params = router.currentRoute.value.params["copyParams"];
@@ -404,20 +404,6 @@ onMounted(() => {
     .catch((e) => {
       ElMessage.error("获取系统配置失败：" + e.message);
     });
-
-  store.addMessageHandler("sd", (data) => {
-    // 丢弃无关消息
-    if (data.channel !== "sd" || data.clientId !== getClientId()) {
-      return;
-    }
-
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 0;
-      isOver.value = false;
-      fetchFinishJobs();
-    }
-    nextTick(() => fetchRunningJobs());
-  });
 });
 
 onUnmounted(() => {
@@ -434,6 +420,12 @@ const initData = () => {
       page.value = 0;
       fetchRunningJobs();
       fetchFinishJobs();
+
+      setInterval(() => {
+        if (allowPulling.value) {
+          fetchRunningJobs();
+        }
+      }, 5000);
     })
     .catch(() => {});
 };
@@ -446,6 +438,13 @@ const fetchRunningJobs = () => {
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?finish=0`)
     .then((res) => {
+      if (runningJobs.value.length !== res.data.items.length) {
+        page.value = 0;
+        fetchFinishJobs();
+      }
+      if (runningJobs.value.length === 0) {
+        allowPulling.value = false;
+      }
       runningJobs.value = res.data.items;
     })
     .catch((e) => {
@@ -507,7 +506,10 @@ const generate = () => {
     .then(() => {
       ElMessage.success("绘画任务推送成功，请耐心等待任务执行...");
       power.value -= sdPower.value;
-      fetchRunningJobs();
+      allowPulling.value = true;
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       ElMessage.error("任务推送失败：" + e.message);
