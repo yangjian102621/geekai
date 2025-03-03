@@ -7,3 +7,4 @@ ALTER TABLE `chatgpt_dall_jobs` CHANGE `prompt` `prompt` TEXT CHARACTER SET utf8
 
 ALTER TABLE `chatgpt_files` CHANGE `name` `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文件名';
 ALTER TABLE `chatgpt_chat_models` CHANGE `name` `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模型名称';
+ALTER TABLE `chatgpt_api_keys` CHANGE `value` `value` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'API KEY value';
