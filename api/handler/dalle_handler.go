@@ -70,7 +70,6 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	task := types.DallTask{
-		ClientId:         data.ClientId,
 		UserId:           uint(userId),
 		ModelId:          chatModel.Id,
 		ModelName:        chatModel.Value,

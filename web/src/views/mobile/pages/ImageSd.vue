@@ -175,7 +175,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { Delete } from "@element-plus/icons-vue";
 import { httpGet, httpPost } from "@/utils/http";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useRouter } from "vue-router";
 import { getSessionId } from "@/store/session";
 import { showConfirmDialog, showDialog, showFailToast, showImagePreview, showNotify, showSuccessToast, showToast } from "vant";
@@ -211,7 +211,6 @@ const upscaleAlgArr = ref([
 const showUpscalePicker = ref(false);
 
 const params = ref({
-  client_id: getClientId(),
   width: 1024,
   height: 1024,
   sampler: samplers.value[0].value,
@@ -229,6 +228,7 @@ const params = ref({
 
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
+const allowPulling = ref(true); // 是否允许轮询
 const router = useRouter();
 // 检查是否有画同款的参数
 const _params = router.currentRoute.value.params["copyParams"];
@@ -260,17 +260,6 @@ onMounted(() => {
     .catch((e) => {
       showNotify({ type: "danger", message: "获取系统配置失败：" + e.message });
     });
-
-  store.addMessageHandler("sd", (data) => {
-    if (data.channel !== "sd" || data.clientId !== getClientId()) {
-      return;
-    }
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 1;
-      fetchFinishJobs(1);
-    }
-    fetchRunningJobs();
-  });
 });
 
 onUnmounted(() => {
@@ -286,6 +275,12 @@ const initData = () => {
       isLogin.value = true;
       fetchRunningJobs();
       fetchFinishJobs(1);
+
+      setInterval(() => {
+        if (allowPulling.value) {
+          fetchRunningJobs();
+        }
+      }, 5000);
     })
     .catch(() => {
       loading.value = false;
@@ -308,6 +303,14 @@ const fetchRunningJobs = () => {
           continue;
         }
         _jobs.push(jobs[i]);
+      }
+
+      if (runningJobs.value.length !== _jobs.length) {
+        fetchFinishJobs(1);
+      }
+
+      if (runningJobs.value.length === 0) {
+        allowPulling.value = false;
       }
       runningJobs.value = _jobs;
     })
@@ -375,7 +378,10 @@ const generate = () => {
     .then(() => {
       showSuccessToast("绘画任务推送成功，请耐心等待任务执行...");
       power.value -= sdPower.value;
-      fetchRunningJobs();
+      allowPulling.value = true;
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       showFailToast("任务推送失败：" + e.message);

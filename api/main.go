@@ -163,7 +163,6 @@ func main() {
 		fx.Provide(dalle.NewService),
 		fx.Invoke(func(s *dalle.Service) {
 			s.Run()
-			s.CheckTaskNotify()
 			s.DownloadImages()
 			s.CheckTaskStatus()
 		}),
@@ -182,7 +181,6 @@ func main() {
 		fx.Invoke(func(s *mj.Service) {
 			s.Run()
 			s.SyncTaskProgress()
-			s.CheckTaskNotify()
 			s.DownloadImages()
 		}),
 
@@ -191,21 +189,18 @@ func main() {
 		fx.Invoke(func(s *sd.Service, config *types.AppConfig) {
 			s.Run()
 			s.CheckTaskStatus()
-			s.CheckTaskNotify()
 		}),
 
 		fx.Provide(suno.NewService),
 		fx.Invoke(func(s *suno.Service) {
 			s.Run()
 			s.SyncTaskProgress()
-			s.CheckTaskNotify()
 			s.DownloadFiles()
 		}),
 		fx.Provide(video.NewService),
 		fx.Invoke(func(s *video.Service) {
 			s.Run()
 			s.SyncTaskProgress()
-			s.CheckTaskNotify()
 			s.DownloadFiles()
 		}),
 		fx.Provide(service.NewUserService),

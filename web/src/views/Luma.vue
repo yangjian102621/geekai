@@ -124,14 +124,13 @@ import nodata from "@/assets/img/no-data.png";
 import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { CircleCloseFilled } from "@element-plus/icons-vue";
 import { httpDownload, httpPost, httpGet } from "@/utils/http";
-import { checkSession, getClientId } from "@/store/cache";
+import { checkSession } from "@/store/cache";
 import { closeLoading, showLoading, showMessageError, showMessageOK } from "@/utils/dialog";
 import { replaceImg } from "@/utils/libs";
 import { ElMessage, ElMessageBox } from "element-plus";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import Generating from "@/components/ui/Generating.vue";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
-import { useSharedStore } from "@/store/sharedata";
 
 const showDialog = ref(false);
 const currentVideoUrl = ref("");
@@ -139,7 +138,6 @@ const row = ref(1);
 const images = ref([]);
 
 const formData = reactive({
-  client_id: getClientId(),
   prompt: "",
   expand_prompt: false,
   loop: false,
@@ -147,32 +145,28 @@ const formData = reactive({
   end_frame_img: "",
 });
 
-const store = useSharedStore();
+const loading = ref(false);
+const list = ref([]);
+const noData = ref(true);
+const page = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
+const taskPulling = ref(true);
+
 onMounted(() => {
   checkSession().then(() => {
     fetchData(1);
+    setInterval(() => {
+      if (taskPulling.value) {
+        fetchData(1);
+      }
+    }, 5000);
   });
-
-  store.addMessageHandler("luma", (data) => {
-    // 丢弃无关消息
-    if (data.channel !== "luma" || data.clientId !== getClientId()) {
-      return;
-    }
-
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      fetchData(1);
-    }
-  });
-});
-
-onUnmounted(() => {
-  store.removeMessageHandler("luma");
 });
 
 const download = (item) => {
   const url = replaceImg(item.video_url);
   const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${url}`;
-  // parse filename
   const urlObj = new URL(url);
   const fileName = urlObj.pathname.split("/").pop();
   item.downloading = true;
@@ -231,17 +225,16 @@ const publishJob = (item) => {
 const upload = (file) => {
   const formData = new FormData();
   formData.append("file", file.file, file.name);
-  showLoading("正在上传文件...")
-  // 执行上传操作
+  showLoading("正在上传文件...");
   httpPost("/api/upload", formData)
     .then((res) => {
       images.value.push(res.data.url);
       ElMessage.success({ message: "上传成功", duration: 500 });
-      closeLoading()
+      closeLoading();
     })
     .catch((e) => {
       ElMessage.error("图片上传失败:" + e.message);
-      closeLoading()
+      closeLoading();
     });
 };
 
@@ -252,12 +245,7 @@ const remove = (img) => {
 const switchReverse = () => {
   images.value = images.value.reverse();
 };
-const loading = ref(false);
-const list = ref([]);
-const noData = ref(true);
-const page = ref(1);
-const pageSize = ref(10);
-const total = ref(0);
+
 const fetchData = (_page) => {
   if (_page) {
     page.value = _page;
@@ -269,8 +257,19 @@ const fetchData = (_page) => {
   })
     .then((res) => {
       total.value = res.data.total;
+      let needPull = false;
+      const items = [];
+      for (let v of res.data.items) {
+        if (v.progress === 0 || v.progress === 102) {
+          needPull = true;
+        }
+        items.push(v);
+      }
       loading.value = false;
-      list.value = res.data.items;
+      taskPulling.value = needPull;
+      if (JSON.stringify(list.value) !== JSON.stringify(items)) {
+        list.value = items;
+      }
       noData.value = list.value.length === 0;
     })
     .catch(() => {
@@ -279,7 +278,6 @@ const fetchData = (_page) => {
     });
 };
 
-// 创建视频
 const create = () => {
   const len = images.value.length;
   if (len) {
@@ -292,6 +290,7 @@ const create = () => {
   httpPost("/api/video/luma/create", formData)
     .then(() => {
       fetchData(1);
+      taskPulling.value = true;
       showMessageOK("创建任务成功");
     })
     .catch((e) => {

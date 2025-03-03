@@ -133,7 +133,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { Delete } from "@element-plus/icons-vue";
 import { httpGet, httpPost } from "@/utils/http";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useRouter } from "vue-router";
 import { getSessionId } from "@/store/session";
 import { showConfirmDialog, showDialog, showFailToast, showImagePreview, showNotify, showSuccessToast, showToast } from "vant";
@@ -174,7 +174,6 @@ const styles = [
   { text: "自然", value: "natural" },
 ];
 const params = ref({
-  client_id: getClientId(),
   quality: qualities[0].value,
   size: sizes[0].value,
   style: styles[0].value,
@@ -191,6 +190,7 @@ const showModelPicker = ref(false);
 
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
+const allowPulling = ref(true); // 是否允许轮询
 const router = useRouter();
 const power = ref(0);
 const dallPower = ref(0); // 画一张 DALL 图片消耗算力
@@ -220,17 +220,6 @@ onMounted(() => {
       showNotify({ type: "danger", message: "获取系统配置失败：" + e.message });
     });
 
-  store.addMessageHandler("dall", (data) => {
-    if (data.channel !== "dall" || data.clientId !== getClientId()) {
-      return;
-    }
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 1;
-      fetchFinishJobs(1);
-    }
-    fetchRunningJobs();
-  });
-
   // 获取模型列表
   httpGet("/api/dall/models")
     .then((res) => {
@@ -257,6 +246,12 @@ const initData = () => {
       isLogin.value = true;
       fetchRunningJobs();
       fetchFinishJobs(1);
+
+      setInterval(() => {
+        if (allowPulling.value) {
+          fetchRunningJobs();
+        }
+      }, 5000);
     })
     .catch(() => {
       loading.value = false;
@@ -267,6 +262,12 @@ const fetchRunningJobs = () => {
   // 获取运行中的任务
   httpGet(`/api/dall/jobs?finish=0`)
     .then((res) => {
+      if (runningJobs.value.length !== res.data.items.length) {
+        fetchFinishJobs(1);
+      }
+      if (res.data.items.length === 0) {
+        allowPulling.value = false;
+      }
       runningJobs.value = res.data.items;
     })
     .catch((e) => {
@@ -333,7 +334,10 @@ const generate = () => {
     .then(() => {
       showSuccessToast("绘画任务推送成功，请耐心等待任务执行...");
       power.value -= dallPower.value;
-      fetchRunningJobs();
+      allowPulling.value = true;
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       showFailToast("任务推送失败：" + e.message);

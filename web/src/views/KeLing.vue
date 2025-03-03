@@ -22,18 +22,10 @@
                   <el-col :span="8" v-for="item in rates" :key="item.value">
                     <div
                       class="flex-col items-center"
-                      :class="
-                        item.value === params.aspect_ratio
-                          ? 'grid-content active'
-                          : 'grid-content'
-                      "
+                      :class="item.value === params.aspect_ratio ? 'grid-content active' : 'grid-content'"
                       @click="changeRate(item)"
                     >
-                      <el-image
-                        class="icon proportion"
-                        :src="item.img"
-                        fit="cover"
-                      ></el-image>
+                      <el-image class="icon proportion" :src="item.img" fit="cover"></el-image>
                       <div class="texts">{{ item.text }}</div>
                     </div>
                   </el-col>
@@ -73,12 +65,7 @@
             <!-- 创意程度 -->
             <div class="param-line">
               <el-form-item label="创意程度">
-                <el-slider
-                  v-model="params.cfg_scale"
-                  :min="0"
-                  :max="1"
-                  :step="0.1"
-                />
+                <el-slider v-model="params.cfg_scale" :min="0" :max="1" :step="0.1" />
               </el-form-item>
             </div>
 
@@ -95,10 +82,7 @@
 
               <!-- 添加运镜类型选择 -->
               <el-form-item label="运镜类型">
-                <el-select
-                  v-model="params.camera_control.type"
-                  placeholder="请选择运镜类型"
-                >
+                <el-select v-model="params.camera_control.type" placeholder="请选择运镜类型">
                   <el-option label="请选择" value="" />
                   <el-option label="简单运镜" value="simple" />
                   <el-option label="下移拉远" value="down_back" />
@@ -109,51 +93,24 @@
               </el-form-item>
 
               <!-- 仅在simple模式下显示详细配置 -->
-              <div
-                class="camera-control"
-                v-if="params.camera_control.type === 'simple'"
-              >
+              <div class="camera-control" v-if="params.camera_control.type === 'simple'">
                 <el-form-item label="水平移动">
-                  <el-slider
-                    v-model="params.camera_control.config.horizontal"
-                    :min="-10"
-                    :max="10"
-                  />
+                  <el-slider v-model="params.camera_control.config.horizontal" :min="-10" :max="10" />
                 </el-form-item>
                 <el-form-item label="垂直移动">
-                  <el-slider
-                    v-model="params.camera_control.config.vertical"
-                    :min="-10"
-                    :max="10"
-                  />
+                  <el-slider v-model="params.camera_control.config.vertical" :min="-10" :max="10" />
                 </el-form-item>
                 <el-form-item label="左右旋转">
-                  <el-slider
-                    v-model="params.camera_control.config.pan"
-                    :min="-10"
-                    :max="10"
-                  />
+                  <el-slider v-model="params.camera_control.config.pan" :min="-10" :max="10" />
                 </el-form-item>
                 <el-form-item label="上下旋转">
-                  <el-slider
-                    v-model="params.camera_control.config.tilt"
-                    :min="-10"
-                    :max="10"
-                  />
+                  <el-slider v-model="params.camera_control.config.tilt" :min="-10" :max="10" />
                 </el-form-item>
                 <el-form-item label="横向翻转">
-                  <el-slider
-                    v-model="params.camera_control.config.roll"
-                    :min="-10"
-                    :max="10"
-                  />
+                  <el-slider v-model="params.camera_control.config.roll" :min="-10" :max="10" />
                 </el-form-item>
                 <el-form-item label="镜头缩放">
-                  <el-slider
-                    v-model="params.camera_control.config.zoom"
-                    :min="-10"
-                    :max="10"
-                  />
+                  <el-slider v-model="params.camera_control.config.zoom" :min="-10" :max="10" />
                 </el-form-item>
               </div>
             </div>
@@ -165,19 +122,12 @@
       <div class="main-content task-list-inner">
         <!-- 任务类型选择 -->
         <div class="param-line">
-          <el-tabs
-            v-model="params.task_type"
-            @tab-change="tabChange"
-            class="title-tabs"
-          >
+          <el-tabs v-model="params.task_type" @tab-change="tabChange" class="title-tabs">
             <el-tab-pane label="文生视频" name="text2video">
               <div class="text">使用文字描述想要生成视频的内容</div>
             </el-tab-pane>
             <el-tab-pane label="图生视频" name="image2video">
-              <div class="text">
-                以某张图片为底稿参考来创作视频，生成类似风格或类型视频，支持 PNG
-                /JPG/JPEG 格式图片；
-              </div>
+              <div class="text">以某张图片为底稿参考来创作视频，生成类似风格或类型视频，支持 PNG /JPG/JPEG 格式图片；</div>
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -192,13 +142,7 @@
               placeholder="请在此输入视频提示词，您也可以点击下面的提示词助手生成视频提示词"
             />
             <el-row class="text-info">
-              <el-button
-                class="generate-btn"
-                @click="generatePrompt"
-                :loading="isGenerating"
-                size="small"
-                color="#5865f2"
-              >
+              <el-button class="generate-btn" @click="generatePrompt" :loading="isGenerating" size="small" color="#5865f2">
                 <i class="iconfont icon-chuangzuo"></i>
                 生成专业视频提示词
               </el-button>
@@ -209,35 +153,15 @@
             <div class="image-upload img-inline">
               <div class="upload-box img-uploader">
                 <h4>起始帧</h4>
-                <el-upload
-                  class="uploader img-uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="uploadStartImage"
-                  accept=".jpg,.png,.jpeg"
-                >
-                  <img
-                    v-if="params.image"
-                    :src="params.image"
-                    class="preview"
-                  />
+                <el-upload class="uploader img-uploader" :auto-upload="true" :show-file-list="false" :http-request="uploadStartImage" accept=".jpg,.png,.jpeg">
+                  <img v-if="params.image" :src="params.image" class="preview" />
                   <el-icon v-else class="upload-icon"><Plus /></el-icon>
                 </el-upload>
               </div>
               <div class="upload-box img-uploader">
                 <h4>结束帧</h4>
-                <el-upload
-                  class="uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="uploadEndImage"
-                  accept=".jpg,.png,.jpeg"
-                >
-                  <img
-                    v-if="params.image_tail"
-                    :src="params.image_tail"
-                    class="preview"
-                  />
+                <el-upload class="uploader" :auto-upload="true" :show-file-list="false" :http-request="uploadEndImage" accept=".jpg,.png,.jpeg">
+                  <img v-if="params.image_tail" :src="params.image_tail" class="preview" />
                   <el-icon v-else class="upload-icon"><Plus /></el-icon>
                 </el-upload>
               </div>
@@ -246,10 +170,7 @@
               <div class="flex-row justify-between items-center">
                 <div class="flex-row justify-start items-center">
                   <span>提示词：</span>
-                  <el-tooltip
-                    content="输入你想要的内容，用逗号分割"
-                    placement="right"
-                  >
+                  <el-tooltip content="输入你想要的内容，用逗号分割" placement="right">
                     <el-icon>
                       <InfoFilled />
                     </el-icon>
@@ -258,12 +179,7 @@
               </div>
             </div>
             <div class="param-line pt">
-              <el-input
-                v-model="params.prompt"
-                type="textarea"
-                :autosize="{ minRows: 4, maxRows: 6 }"
-                placeholder="描述视频画面细节"
-              />
+              <el-input v-model="params.prompt" type="textarea" :autosize="{ minRows: 4, maxRows: 6 }" placeholder="描述视频画面细节" />
             </div>
           </div>
 
@@ -272,10 +188,7 @@
             <div class="flex-row justify-between items-center">
               <div class="flex-row justify-start items-center">
                 <span>不希望出现的内容：（可选）</span>
-                <el-tooltip
-                  content="不想出现在图片上的元素(例如：树，建筑)"
-                  placement="right"
-                >
+                <el-tooltip content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
                   <el-icon>
                     <InfoFilled />
                   </el-icon>
@@ -295,21 +208,16 @@
           <!-- 算力显示 -->
           <el-row class="text-info">
             <el-text type="primary"
-              >每次生成视频消耗
-              <el-text type="warning">{{ powerCost }}算力;</el-text> </el-text
+              >每次生成视频消耗 <el-text type="warning">{{ powerCost }}算力;</el-text> </el-text
             >&nbsp;&nbsp;
             <el-text type="primary"
-              >当前可用算力：<el-text type="warning">{{
-                availablePower
-              }}</el-text></el-text
+              >当前可用算力：<el-text type="warning">{{ availablePower }}</el-text></el-text
             >
           </el-row>
 
           <!-- 生成按钮 -->
           <div class="submit-btn">
-            <el-button type="primary" :dark="false" @click="generate" round
-              >立即生成</el-button
-            >
+            <el-button type="primary" :dark="false" @click="generate" round>立即生成</el-button>
           </div>
         </div>
 
@@ -348,7 +256,7 @@
                   class="job-item-box"
                   :class="{
                     processing: slotProp.item.progress < 100,
-                    error: slotProp.item.progress === 101
+                    error: slotProp.item.progress === 101,
                   }"
                 >
                   <video
@@ -360,39 +268,24 @@
                   ></video>
 
                   <div v-else class="status-overlay">
-                    <div
-                      v-if="slotProp.item.progress === 101"
-                      class="error-status"
-                    >
+                    <div v-if="slotProp.item.progress === 101" class="error-status">
                       <el-icon><CloseBold /></el-icon>
                       任务失败
                     </div>
                     <div v-else class="processing-status">
-                      <el-progress
-                        :percentage="slotProp.item.progress"
-                        :stroke-width="12"
-                        status="success"
-                      />
+                      <el-progress :percentage="slotProp.item.progress" :stroke-width="12" status="success" />
                     </div>
                   </div>
 
                   <div class="tools">
-                    <el-button
-                      v-if="slotProp.item.progress >= 100"
-                      @click="downloadVideo(slotProp.item)"
-                    >
+                    <el-button v-if="slotProp.item.progress >= 100" @click="downloadVideo(slotProp.item)">
                       <el-icon><Download /></el-icon>
                     </el-button>
                     <el-button type="danger" @click="deleteTask(slotProp.item)">
                       <el-icon><Delete /></el-icon>
                     </el-button>
                     <div class="show-prompt">
-                      <el-popover
-                        placement="left"
-                        title="提示词"
-                        :width="240"
-                        trigger="hover"
-                      >
+                      <el-popover placement="left" title="提示词" :width="240" trigger="hover">
                         <template #reference>
                           <el-icon class="chromefilled">
                             <ChromeFilled />
@@ -402,10 +295,7 @@
                         <template #default>
                           <div class="mj-list-item-prompt">
                             <span>{{ slotProp.item.prompt }}</span>
-                            <el-icon
-                              class="copy-prompt-mj"
-                              :data-clipboard-text="slotProp.item.prompt"
-                            >
+                            <el-icon class="copy-prompt-mj" :data-clipboard-text="slotProp.item.prompt">
                               <DocumentCopy />
                             </el-icon>
                           </div>
@@ -429,12 +319,7 @@
 
     <!-- 视频预览对话框 -->
     <el-dialog v-model="previewVisible" title="视频预览" width="80%">
-      <video
-        v-if="currentVideo"
-        :src="currentVideo"
-        controls
-        style="width: 100%"
-      ></video>
+      <video v-if="currentVideo" :src="currentVideo" controls style="width: 100%"></video>
     </el-dialog>
   </div>
 </template>
@@ -442,24 +327,12 @@
 <script setup>
 import TaskList from "@/components/TaskList.vue";
 import { ref, reactive, onMounted, onUnmounted, watch, computed } from "vue";
-import {
-  Plus,
-  Delete,
-  InfoFilled,
-  ChromeFilled,
-  DocumentCopy,
-  Download
-} from "@element-plus/icons-vue";
+import { Plus, Delete, InfoFilled, ChromeFilled, DocumentCopy, Download } from "@element-plus/icons-vue";
 import { httpGet, httpPost, httpDownload } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getClientId, checkSession } from "@/store/cache";
 
-import {
-  closeLoading,
-  showLoading,
-  showMessageError,
-  showMessageOK
-} from "@/utils/dialog";
+import { closeLoading, showLoading, showMessageError, showMessageOK } from "@/utils/dialog";
 import { replaceImg } from "@/utils/libs";
 
 // 参数设置
@@ -481,11 +354,11 @@ const params = reactive({
       pan: 0,
       tilt: 0,
       roll: 0,
-      zoom: 0
-    }
+      zoom: 0,
+    },
   },
   image: "",
-  image_tail: ""
+  image_tail: "",
 });
 const rates = [
   { css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png" },
@@ -494,14 +367,14 @@ const rates = [
     css: "size16-9",
     value: "16:9",
     text: "16:9",
-    img: "/images/mj/rate_16_9.png"
+    img: "/images/mj/rate_16_9.png",
   },
   {
     css: "size9-16",
     value: "9:16",
     text: "9:16",
-    img: "/images/mj/rate_9_16.png"
-  }
+    img: "/images/mj/rate_9_16.png",
+  },
 ];
 
 // 切换图片比例
@@ -609,14 +482,12 @@ const fetchTasks = async () => {
       page: currentPage.value,
       page_size: pageSize.value,
       type: "keling",
-      task_type: taskFilter.value === "all" ? "" : taskFilter.value
+      task_type: taskFilter.value === "all" ? "" : taskFilter.value,
     });
 
     // 精确任务过滤逻辑
     const data = res.data || {};
-    const newRunning = data.items.filter(
-      (task) => task.progress < 100 && task.progress !== 101
-    );
+    const newRunning = data.items.filter((task) => task.progress < 100 && task.progress !== 101);
     runningTasks.value = [...runningTasks.value, ...newRunning];
 
     const newfinished = data.items.filter((task) => task.progress >= 100);
@@ -626,10 +497,7 @@ const fetchTasks = async () => {
     waterfallKey.value = Date.now();
     total.value = data.total;
 
-    const shouldLoadNextPage =
-      runningTasks.value.length > 0 ||
-      (runningTasks.value.length === 0 &&
-        finishedTasks.value.length < total.value);
+    const shouldLoadNextPage = runningTasks.value.length > 0 || (runningTasks.value.length === 0 && finishedTasks.value.length < total.value);
 
     if (shouldLoadNextPage) {
       currentPage.value++;
@@ -642,7 +510,7 @@ const fetchTasks = async () => {
     console.log("[Pagination] isOver:", isOver.value, {
       running: runningTasks.value.length,
       finished: finishedTasks.value.length,
-      total: total.value
+      total: total.value,
     });
 
     waterfallKey.value = Date.now();

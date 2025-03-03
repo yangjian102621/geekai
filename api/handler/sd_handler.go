@@ -112,8 +112,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	task := types.SdTask{
-		ClientId: data.ClientId,
-		Type:     types.TaskImage,
+		Type: types.TaskImage,
 		Params: types.SdTaskParams{
 			TaskId:       taskId,
 			Prompt:       data.Prompt,

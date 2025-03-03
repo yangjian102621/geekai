@@ -278,8 +278,8 @@ import BlackInput from "@/components/ui/BlackInput.vue";
 import MusicPlayer from "@/components/MusicPlayer.vue";
 import { compact } from "lodash";
 import { httpDownload, httpGet, httpPost } from "@/utils/http";
-import {closeLoading, showLoading, showMessageError, showMessageOK} from "@/utils/dialog";
-import { checkSession, getClientId } from "@/store/cache";
+import { closeLoading, showLoading, showMessageError, showMessageOK } from "@/utils/dialog";
+import { checkSession } from "@/store/cache";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { formatTime, replaceImg } from "@/utils/libs";
 import Clipboard from "clipboard";
@@ -313,7 +313,6 @@ const tags = ref([
   { label: "嘻哈", value: "hip hop" },
 ]);
 const data = ref({
-  client_id: getClientId(),
   model: "chirp-v3-0",
   tags: "",
   lyrics: "",
@@ -330,6 +329,7 @@ const playList = ref([]);
 const playerRef = ref(null);
 const showPlayer = ref(false);
 const list = ref([]);
+const taskPulling = ref(true);
 const btnText = ref("开始创作");
 const refSong = ref(null);
 const showDialog = ref(false);
@@ -350,19 +350,13 @@ onMounted(() => {
   checkSession()
     .then(() => {
       fetchData(1);
+      setInterval(() => {
+        if (taskPulling.value) {
+          fetchData(1);
+        }
+      }, 5000);
     })
     .catch(() => {});
-
-  store.addMessageHandler("suno", (data) => {
-    // 丢弃无关消息
-    if (data.channel !== "suno" || data.clientId !== getClientId()) {
-      return;
-    }
-
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      fetchData(1);
-    }
-  });
 });
 
 onUnmounted(() => {
@@ -381,15 +375,23 @@ const fetchData = (_page) => {
   httpGet("/api/suno/list", { page: page.value, page_size: pageSize.value })
     .then((res) => {
       total.value = res.data.total;
+      let needPull = false;
       const items = [];
       for (let v of res.data.items) {
         if (v.progress === 100) {
           v.major_model_version = v["raw_data"]["major_model_version"];
         }
+        if (v.progress === 0 || v.progress === 102) {
+          needPull = true;
+        }
         items.push(v);
       }
       loading.value = false;
-      list.value = items;
+      taskPulling.value = needPull;
+      // 如果任务有变化，则刷新任务列表
+      if (JSON.stringify(list.value) !== JSON.stringify(items)) {
+        list.value = items;
+      }
       noData.value = list.value.length === 0;
     })
     .catch((e) => {
@@ -425,6 +427,7 @@ const create = () => {
   httpPost("/api/suno/create", data.value)
     .then(() => {
       fetchData(1);
+      taskPulling.value = true;
       showMessageOK("创建任务成功");
     })
     .catch((e) => {
@@ -437,6 +440,7 @@ const merge = (item) => {
   httpPost("/api/suno/create", { song_id: item.song_id, type: 3 })
     .then(() => {
       fetchData(1);
+      taskPulling.value = true;
       showMessageOK("创建任务成功");
     })
     .catch((e) => {
@@ -606,11 +610,11 @@ const uploadCover = (file) => {
         .then((res) => {
           editData.value.cover = res.data.url;
           ElMessage.success({ message: "上传成功", duration: 500 });
-          closeLoading()
+          closeLoading();
         })
         .catch((e) => {
           ElMessage.error("图片上传失败:" + e.message);
-          closeLoading()
+          closeLoading();
         });
     },
     error(err) {
