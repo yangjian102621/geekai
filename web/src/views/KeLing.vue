@@ -706,8 +706,12 @@ const generate = async () => {
 
   generating.value = true;
   // 处理图片链接
-  params.image = replaceImg(params.image);
-  params.image_tail = replaceImg(params.image_tail);
+  if (params.image) {
+    params.image = replaceImg(params.image);
+  }
+  if (params.image_tail) {
+    params.image_tail = replaceImg(params.image_tail);
+  }
   try {
     await httpPost("/api/video/keling/create", params);
     showMessageOK("任务创建成功");

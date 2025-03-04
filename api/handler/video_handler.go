@@ -189,7 +189,7 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 		UserId:   userId,
 		Type:     types.VideoKeLing,
 		Prompt:   data.Prompt,
-		Power:    h.App.SysConfig.LumaPower,
+		Power:    power,
 		TaskInfo: utils.JsonEncode(task),
 	}
 	tx := h.DB.Create(&job)

@@ -92,11 +92,7 @@ onMounted(() => {
 
   checkSession()
     .then(() => {
-      if (isMobile()) {
-        router.push("/mobile");
-      } else {
-        router.push("/chat");
-      }
+      router.back();
     })
     .catch(() => {});
 
@@ -108,6 +104,7 @@ onMounted(() => {
     .catch((e) => {
       console.error(e);
     });
+
 });
 
 const handleKeyup = (e) => {
@@ -140,11 +137,7 @@ const doLogin = (verifyData) => {
     .then((res) => {
       setUserToken(res.data.token);
       store.setIsLogin(true);
-      if (isMobile()) {
-        router.push("/mobile");
-      } else {
-        router.push("/chat");
-      }
+      router.back();
     })
     .catch((e) => {
       showMessageError("登录失败，" + e.message);
