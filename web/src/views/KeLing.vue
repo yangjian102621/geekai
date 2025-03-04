@@ -355,7 +355,7 @@
               @scrollReachBottom="handleScroll"
               :gap="8"
               :bottomGap="8"
-              :colWidth="400"
+              :colWidth="300"
               :distanceToScroll="100"
               :isLoading="loading"
               :isOver="isOver"
