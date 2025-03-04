@@ -243,8 +243,24 @@
                 <el-form-item label="Luma 算力" prop="luma_power">
                   <el-input v-model.number="system['luma_power']" placeholder="使用 Luma 生成一段视频消耗算力" />
                 </el-form-item>
-                <el-form-item label="可灵算力" prop="keling_power">
-                  <el-input v-model.number="system['keling_power']" placeholder="使用快手可灵生成一段视频消耗算力" />
+                <el-form-item>
+                  <template #label>
+                    <div class="label-title">
+                      可灵算力
+                      <el-tooltip effect="dark" content="可灵每个模型价格不一样，具体请参考：https://api.geekai.pro/models" raw-content placement="right">
+                        <el-icon>
+                          <InfoFilled />
+                        </el-icon>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                  <el-row :gutter="20" v-if="system['keling_powers']">
+                    <el-col :span="6" v-for="[key] in Object.entries(system['keling_powers'])" :key="key">
+                      <el-form-item :label="key" label-position="left">
+                        <el-input v-model.number="system['keling_powers'][key]" size="small" />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
                 </el-form-item>
                 <el-form-item>
                   <template #label>
@@ -412,6 +428,20 @@ onMounted(() => {
   httpGet("/api/admin/config/get?key=system")
     .then((res) => {
       system.value = res.data;
+      system.value.keling_powers = system.value.keling_powers || {
+        "kling-v1-6_std_5": 240,
+        "kling-v1-6_std_10": 480,
+        "kling-v1-6_pro_5": 420,
+        "kling-v1-6_pro_10": 840,
+        "kling-v1-5_std_5": 240,
+        "kling-v1-5_std_10": 480,
+        "kling-v1-5_pro_5": 420,
+        "kling-v1-5_pro_10": 840,
+        "kling-v1_std_5": 120,
+        "kling-v1_std_10": 240,
+        "kling-v1_pro_5": 420,
+        "kling-v1_pro_10": 840,
+      };
       configBak.value = copyObj(system.value);
     })
     .catch((e) => {

@@ -13,9 +13,6 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/store"
-	"geekai/store/model"
-	"geekai/utils"
-	"gorm.io/gorm"
 	"strings"
 	"time"
 
@@ -25,27 +22,17 @@ import (
 
 type LicenseService struct {
 	config       types.ApiConfig
-	db           *gorm.DB
 	levelDB      *store.LevelDB
 	license      *types.License
 	urlWhiteList []string
 	machineId    string
 }
 
-func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB, db *gorm.DB) *LicenseService {
+func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseService {
 	var license types.License
 	var machineId string
 	err := levelDB.Get(types.LicenseKey, &license)
 	logger.Infof("License: %+v", server.SysConfig)
-	if err != nil {
-		var cfg model.Config
-		db.Where("marker", "system").First(&cfg)
-		var sysConfig types.SystemConfig
-		if err := utils.JsonDecode(cfg.Config, &sysConfig); err == nil {
-			license.Key = sysConfig.License
-			license.IsActive = true
-		}
-	}
 	info, err := host.Info()
 	if err == nil {
 		machineId = info.HostID
