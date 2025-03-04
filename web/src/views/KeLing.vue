@@ -43,9 +43,8 @@
             <!-- 模型选择 -->
             <div class="param-line">
               <el-form-item label="模型选择">
-                <el-select v-model="params.model" placeholder="请选择模型">
-                  <el-option label="默认模型" value="default" />
-                  <el-option label="动漫风格" value="anime" />
+                <el-select v-model="params.model" placeholder="请选择模型" @change="updateModelPower">
+                  <el-option v-for="item in models" :key="item.value" :label="item.text" :value="item.value" />
                 </el-select>
               </el-form-item>
             </div>
@@ -53,7 +52,7 @@
             <!-- 视频时长 -->
             <div class="param-line">
               <el-form-item label="视频时长">
-                <el-select v-model="params.duration" placeholder="请选择时长">
+                <el-select v-model="params.duration" placeholder="请选择时长" @change="updateModelPower">
                   <el-option label="5秒" value="5" />
                   <el-option label="10秒" value="10" />
                 </el-select>
@@ -63,7 +62,7 @@
             <!-- 生成模式 -->
             <div class="param-line">
               <el-form-item label="生成模式">
-                <el-select v-model="params.mode" placeholder="请选择模式">
+                <el-select v-model="params.mode" placeholder="请选择模式" @change="updateModelPower">
                   <el-option label="标准模式" value="std" />
                   <el-option label="专业模式" value="pro" />
                 </el-select>
@@ -83,10 +82,10 @@
             </div>
 
             <!-- 运镜控制 -->
-            <div class="param-line">
+            <div class="param-line" v-if="showCameraControl">
               <div class="param-line pt">
                 <span>运镜控制：</span>
-                <el-tooltip content="生成画面的运镜效果" placement="right">
+                <el-tooltip content="生成画面的运镜效果，仅 1.5的高级模式可用" placement="right">
                   <el-icon>
                     <InfoFilled />
                   </el-icon>
@@ -94,7 +93,7 @@
               </div>
 
               <!-- 添加运镜类型选择 -->
-              <el-form-item label="运镜类型">
+              <div class="param-line">
                 <el-select
                   v-model="params.camera_control.type"
                   placeholder="请选择运镜类型"
@@ -106,7 +105,7 @@
                   <el-option label="右旋推进" value="right_turn_forward" />
                   <el-option label="左旋推进" value="left_turn_forward" />
                 </el-select>
-              </el-form-item>
+              </div>
 
               <!-- 仅在simple模式下显示详细配置 -->
               <div
@@ -533,7 +532,7 @@ import {
 } from "@element-plus/icons-vue";
 import { httpGet, httpPost, httpDownload } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getClientId, checkSession } from "@/store/cache";
+import {checkSession, getSystemInfo} from "@/store/cache";
 import Clipboard from "clipboard";
 
 import {
@@ -544,11 +543,24 @@ import {
 } from "@/utils/dialog";
 import { replaceImg } from "@/utils/libs";
 
+const models = ref([
+  {
+    text: "可灵 1.6",
+    value: "kling-v1-6",
+  },
+  {
+    text: "可灵 1.5",
+    value: "kling-v1-5",
+  },
+  {
+    text: "可灵 1.0",
+    value: "kling-v1",
+  },
+]);
 // 参数设置
 const params = reactive({
-  // client_id: getClientId(),
   task_type: "text2video",
-  model: "default",
+  model: models.value[0].value,
   prompt: "",
   negative_prompt: "",
   cfg_scale: 0.7,
@@ -591,6 +603,7 @@ const changeRate = (item) => {
   params.aspect_ratio = item.value;
 };
 
+
 // 状态变量
 let pollTimer = null;
 const generating = ref(false);
@@ -600,7 +613,6 @@ const availablePower = ref(100);
 const taskFilter = ref("all");
 const runningTasks = ref([]);
 const finishedTasks = ref([]);
-const total = ref(0);
 const pageSize = ref(4);
 const currentPage = ref(1);
 const previewVisible = ref(false);
@@ -608,9 +620,17 @@ const currentVideo = ref("");
 const isOver = ref(false);
 const pullTask = ref(true);
 const waterfallKey = ref(Date.now());
+const showCameraControl = ref(false);
+const keLingPowers = ref({});
+
+// 动态更新模型消耗的算力
+const updateModelPower = () => {
+  showCameraControl.value = params.model === "kling-v1-5" && params.mode === "pro";
+  powerCost.value = keLingPowers.value[`${params.model}_${params.mode}_${params.duration}`];
+};
+
 
 // 方法定义
-
 const tabChange = (tab) => {
   params.task_type = tab;
 };
@@ -789,10 +809,10 @@ const fetchTasks = async () => {
   }
 };
 
-// 检测任务状态
-const checkAllCompleted = () => {
-  return runningTasks.value.length === 0;
-};
+// // 检测任务状态
+// const checkAllCompleted = () => {
+//   return runningTasks.value.length === 0;
+// };
 
 const previewVideo = (task) => {
   currentVideo.value = task.video_url;
@@ -830,8 +850,9 @@ const clipboard = ref(null);
 // 生命周期钩子
 onMounted(async () => {
   checkSession()
-    .then(async () => {
+    .then(async (u) => {
       isLogin.value = true;
+      availablePower.value = u.power;
       console.log("mounted-isLogin-可以继续", isLogin.value);
 
       await fetchTasks();
@@ -853,6 +874,10 @@ onMounted(async () => {
 
   clipboard.value.on("error", () => {
     ElMessage.error("复制失败！");
+  });
+  // 获取系统配置
+  getSystemInfo().then((res) => {
+    keLingPowers.value = res.data.keling_powers;
   });
 });
 onUnmounted(() => {

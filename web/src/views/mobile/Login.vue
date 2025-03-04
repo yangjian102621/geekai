@@ -1,6 +1,6 @@
 <template>
   <div class="login flex w-full flex-col place-content-center h-lvh">
-    <el-image src="/images/logo.png" class="w-1/2 mx-auto logo" />
+    <el-image :src="logo" class="w-1/2 mx-auto logo" />
     <div class="title text-center text-3xl font-bold mt-8">{{ title }}</div>
     <div class="w-full p-8">
       <login-dialog @success="loginSuccess" />
@@ -16,6 +16,7 @@ import { ref, onMounted } from "vue";
 
 const router = useRouter();
 const title = ref("登录");
+const logo = ref("");
 
 const loginSuccess = () => {
   router.back();
@@ -24,6 +25,7 @@ const loginSuccess = () => {
 onMounted(() => {
   getSystemInfo().then((res) => {
     title.value = res.data.title;
+    logo.value = res.data.logo;
   });
 });
 </script>

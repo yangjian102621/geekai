@@ -123,7 +123,7 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 	var data struct {
 		Channel       string              `json:"channel"`
 		TaskType      string              `json:"task_type"`       // 任务类型: text2video/image2video
-		Model         string              `json:"model"`           // 模型: default/anime
+		Model         string              `json:"model"`           // 模型: kling-v1-5,kling-v1-6
 		Prompt        string              `json:"prompt"`          // 视频描述
 		NegPrompt     string              `json:"negative_prompt"` // 负面提示词
 		CfgScale      float64             `json:"cfg_scale"`       // 相关性系数(0-1)
@@ -145,7 +145,14 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 		return
 	}
 
-	if user.Power < h.App.SysConfig.LumaPower {
+	// 计算当前任务所需算力
+	key := fmt.Sprintf("%s_%s_%s", data.Model, data.Mode, data.Duration)
+	power := h.App.SysConfig.KeLingPowers[key]
+	if power == 0 {
+		resp.ERROR(c, "当前模型暂不支持")
+		return
+	}
+	if user.Power < power {
 		resp.ERROR(c, "您的算力不足，请充值后再试！")
 		return
 	}
