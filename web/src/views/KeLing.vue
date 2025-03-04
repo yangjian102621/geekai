@@ -43,8 +43,17 @@
             <!-- 模型选择 -->
             <div class="param-line">
               <el-form-item label="模型选择">
-                <el-select v-model="params.model" placeholder="请选择模型" @change="updateModelPower">
-                  <el-option v-for="item in models" :key="item.value" :label="item.text" :value="item.value" />
+                <el-select
+                  v-model="params.model"
+                  placeholder="请选择模型"
+                  @change="updateModelPower"
+                >
+                  <el-option
+                    v-for="item in models"
+                    :key="item.value"
+                    :label="item.text"
+                    :value="item.value"
+                  />
                 </el-select>
               </el-form-item>
             </div>
@@ -52,7 +61,11 @@
             <!-- 视频时长 -->
             <div class="param-line">
               <el-form-item label="视频时长">
-                <el-select v-model="params.duration" placeholder="请选择时长" @change="updateModelPower">
+                <el-select
+                  v-model="params.duration"
+                  placeholder="请选择时长"
+                  @change="updateModelPower"
+                >
                   <el-option label="5秒" value="5" />
                   <el-option label="10秒" value="10" />
                 </el-select>
@@ -62,7 +75,11 @@
             <!-- 生成模式 -->
             <div class="param-line">
               <el-form-item label="生成模式">
-                <el-select v-model="params.mode" placeholder="请选择模式" @change="updateModelPower">
+                <el-select
+                  v-model="params.mode"
+                  placeholder="请选择模式"
+                  @change="updateModelPower"
+                >
                   <el-option label="标准模式" value="std" />
                   <el-option label="专业模式" value="pro" />
                 </el-select>
@@ -85,7 +102,10 @@
             <div class="param-line" v-if="showCameraControl">
               <div class="param-line pt">
                 <span>运镜控制：</span>
-                <el-tooltip content="生成画面的运镜效果，仅 1.5的高级模式可用" placement="right">
+                <el-tooltip
+                  content="生成画面的运镜效果，仅 1.5的高级模式可用"
+                  placement="right"
+                >
                   <el-icon>
                     <InfoFilled />
                   </el-icon>
@@ -532,7 +552,7 @@ import {
 } from "@element-plus/icons-vue";
 import { httpGet, httpPost, httpDownload } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
-import {checkSession, getSystemInfo} from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import Clipboard from "clipboard";
 
 import {
@@ -546,16 +566,16 @@ import { replaceImg } from "@/utils/libs";
 const models = ref([
   {
     text: "可灵 1.6",
-    value: "kling-v1-6",
+    value: "kling-v1-6"
   },
   {
     text: "可灵 1.5",
-    value: "kling-v1-5",
+    value: "kling-v1-5"
   },
   {
     text: "可灵 1.0",
-    value: "kling-v1",
-  },
+    value: "kling-v1"
+  }
 ]);
 // 参数设置
 const params = reactive({
@@ -603,7 +623,6 @@ const changeRate = (item) => {
   params.aspect_ratio = item.value;
 };
 
-
 // 状态变量
 let pollTimer = null;
 const generating = ref(false);
@@ -625,12 +644,14 @@ const keLingPowers = ref({});
 
 // 动态更新模型消耗的算力
 const updateModelPower = () => {
-  showCameraControl.value = params.model === "kling-v1-5" && params.mode === "pro";
-  powerCost.value = keLingPowers.value[`${params.model}_${params.mode}_${params.duration}`];
+  showCameraControl.value =
+    params.model === "kling-v1-5" && params.mode === "pro";
+  powerCost.value =
+    keLingPowers.value[`${params.model}_${params.mode}_${params.duration}`] ||
+    {};
 };
 
-
-// 方法定义
+// tab切换
 const tabChange = (tab) => {
   params.task_type = tab;
 };
@@ -642,7 +663,6 @@ const uploadStartImage = async (file) => {
     showLoading("图片上传中...");
     const res = await httpPost("/api/upload", formData);
     params.image = res.data.url;
-    console.log("------", params);
     ElMessage.success("上传成功");
     closeLoading();
   } catch (e) {
@@ -650,6 +670,8 @@ const uploadStartImage = async (file) => {
     closeLoading();
   }
 };
+
+//移除图片
 const remove = (type, img) => {
   if (type === "start") {
     params.image = "";
@@ -658,8 +680,8 @@ const remove = (type, img) => {
   }
 };
 
+//图片交换方法
 const switchReverse = () => {
-  //params.image 和 params.image_tail 交换值
   [params.image, params.image_tail] = [params.image_tail, params.image];
 };
 const uploadEndImage = async (file) => {
@@ -675,6 +697,7 @@ const uploadEndImage = async (file) => {
 };
 
 const generatePrompt = async () => {
+  if (isGenerating.value) return;
   if (!params.prompt) {
     return showMessageError("请输入视频描述");
   }
@@ -692,7 +715,6 @@ const generatePrompt = async () => {
 const generate = async () => {
   //增加防抖
   if (generating.value) return;
-
   if (!params.prompt?.trim()) {
     return ElMessage.error("请输入视频描述");
   }
@@ -703,7 +725,6 @@ const generate = async () => {
   // if (params.task_type === "image2video" && !params.image) {
   //   return ElMessage.error("请上传起始帧图片");
   // }
-
   generating.value = true;
   // 处理图片链接
   if (params.image) {
@@ -719,10 +740,8 @@ const generate = async () => {
     currentPage.value = 1;
     runningTasks.value = [];
     finishedTasks.value = [];
-    pullTask.value = true; //新增开始轮询
+    pullTask.value = true; //新增开始轮询-获取正在进行中最新数据
     isOver.value = false;
-    // 立即获取最新数据
-    await fetchTasks();
   } catch (e) {
     showMessageError("创建失败: " + e.message);
   } finally {
@@ -762,7 +781,6 @@ const handleScroll = async () => {
       }));
     finishedTasks.value = [...finishedTasks.value, ...newItems];
 
-    // 分页逻辑
     if (
       currentPage.value >= data.total_page ||
       data.total <= finishedTasks.value.length
@@ -779,44 +797,25 @@ const handleScroll = async () => {
   }
 };
 
-//任务中 轮询
+//正在生成任务中 轮询
 const fetchTasks = async () => {
-  console.log("开始轮询=====", !isLogin.value || isOver.value || loading.value);
-
-  // if (!isLogin.value || isOver.value || loading.value) return;
   if (!isLogin.value) return;
-
-  // loading.value = true;
   try {
     const res = await taskfunction(true);
-    runningPage.value++;
-    // 精确任务过滤逻辑
+
     const data = res.data || {};
-    // 拿到任务中
+    // 拿到任务中的数据
     runningTasks.value = data.items.filter((task) => task.progress < 100);
-    if (data.items.length === 0) {
-      pullTask.value = false; //新增停止轮询,下方重新请求一次
-      currentPage.value = 1;
-      runningTasks.value = [];
-      finishedTasks.value = [];
-      pullTask.value = true; //新增开始轮询
-      isOver.value = false;
-      // 立即获取最新数据
-      await handleScroll();
+    if (runningPage.value >= data.total_page) {
+      runningPage.value = 1;
     } else {
-      pullTask.value = true;
+      runningPage.value++;
     }
   } catch (e) {
     showMessageError("获取任务列表失败: " + e.message);
   } finally {
-    // loading.value = false;
   }
 };
-
-// // 检测任务状态
-// const checkAllCompleted = () => {
-//   return runningTasks.value.length === 0;
-// };
 
 const previewVideo = (task) => {
   currentVideo.value = task.video_url;
@@ -857,17 +856,8 @@ onMounted(async () => {
     .then(async (u) => {
       isLogin.value = true;
       availablePower.value = u.power;
-      console.log("mounted-isLogin-可以继续", isLogin.value);
-
       await fetchTasks();
       await handleScroll();
-
-      pullTask.value = true;
-      // pollTimer = setInterval(() => {
-      //   if (pullTask.value) {
-      //     fetchTasks();
-      //   }
-      // }, 5000);
     })
     .catch(() => {});
   //复制
@@ -901,14 +891,39 @@ watch(
 watch(
   () => pullTask.value,
   (newVal) => {
-    if (pullTask.value == true) {
+    clearInterval(pollTimer);
+    if (newVal) {
       pollTimer = setInterval(() => {
         fetchTasks();
       }, 5000);
-    } else {
-      clearInterval(pollTimer);
     }
-  }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => runningTasks.value,
+  async (newVal, oldVal) => {
+    //正在排队的新旧数据不一致，说明有新的任务加入，或减少，重新获取历史记录
+    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+      pullTask.value = true;
+      // 立即获取最新历史记录数据
+      currentPage.value = 1;
+      finishedTasks.value = [];
+      await handleScroll();
+    }
+    //当正在排队的长度0，停止轮询，历史记录重新请求一次
+    if (newVal.length === 0) {
+      pullTask.value = false;
+      currentPage.value = 1;
+      runningTasks.value = [];
+      finishedTasks.value = [];
+      isOver.value = false;
+      // 立即获取最新历史记录数据
+      await handleScroll();
+    }
+  },
+  { deep: true }
 );
 </script>
 
