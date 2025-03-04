@@ -48,6 +48,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		logger.Errorf("Update config failed: %v", err)
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
@@ -131,14 +132,6 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	h.App.SysConfig.License = data.License
-
-	// 将 license 写入数据库
-	err = h.DB.Model(&model.Config{}).Where("marker", "system").UpdateColumn("config_json", utils.JsonEncode(h.App.SysConfig)).Error
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
 
 	resp.SUCCESS(c)
 
@@ -153,7 +146,6 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 // FixData 修复数据
 func (h *ConfigHandler) FixData(c *gin.Context) {
 	resp.ERROR(c, "当前升级版本没有数据需要修正！")
-	return
 	//var fixed bool
 	//version := "data_fix_4.1.4"
 	//err := h.levelDB.Get(version, &fixed)

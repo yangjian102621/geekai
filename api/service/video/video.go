@@ -519,7 +519,7 @@ func (s *Service) KeLingCreate(task types.VideoTask) (KeLingRespVo, error) {
 
 	// 2. 构建API请求参数
 	payload := map[string]interface{}{
-		"model":           params.Model,
+		"model_name":      params.Model,
 		"prompt":          task.Prompt,
 		"negative_prompt": params.NegPrompt,
 		"cfg_scale":       params.CfgScale,

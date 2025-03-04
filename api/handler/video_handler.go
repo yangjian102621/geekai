@@ -281,6 +281,8 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 	// 删除文件
 	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)
 	_ = h.uploader.GetUploadHandler().Delete(job.VideoURL)
+
+	resp.SUCCESS(c)
 }
 
 func (h *VideoHandler) Publish(c *gin.Context) {
