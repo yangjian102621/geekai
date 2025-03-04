@@ -882,6 +882,7 @@ onMounted(async () => {
   // 获取系统配置
   getSystemInfo().then((res) => {
     keLingPowers.value = res.data.keling_powers;
+    updateModelPower();
   });
 });
 onUnmounted(() => {
