@@ -879,14 +879,7 @@ onUnmounted(() => {
   clearInterval(pollTimer);
   clipboard.value.destroy();
 });
-// 监听任务状态变化
-watch(
-  () => [...runningTasks.value, ...finishedTasks.value],
-  () => {
-    waterfallKey.value = Date.now();
-  },
-  { deep: true }
-);
+
 //监听 pullTask true 的时候定时器触发，否则清除定时器
 watch(
   () => pullTask.value,
@@ -905,7 +898,10 @@ watch(
   () => runningTasks.value,
   async (newVal, oldVal) => {
     //正在排队的新旧数据不一致，说明有新的任务加入，或减少，重新获取历史记录
-    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+    if (
+      newVal.length > 0 &&
+      JSON.stringify(newVal) !== JSON.stringify(oldVal)
+    ) {
       pullTask.value = true;
       // 立即获取最新历史记录数据
       currentPage.value = 1;
