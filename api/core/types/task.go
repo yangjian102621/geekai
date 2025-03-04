@@ -91,7 +91,8 @@ type SunoTask struct {
 	Title        string `json:"title"`
 	RefTaskId    string `json:"ref_task_id,omitempty"`
 	RefSongId    string `json:"ref_song_id,omitempty"`
-	Prompt       string `json:"prompt"` // 提示词/歌词
+	Prompt       string `json:"prompt"`           // 提示词
+	Lyrics       string `json:"lyrics,omitempty"` // 歌词
 	Tags         string `json:"tags"`
 	Model        string `json:"model"`
 	Instrumental bool   `json:"instrumental"`          // 是否纯音乐

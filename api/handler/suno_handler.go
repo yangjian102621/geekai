@@ -18,9 +18,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type SunoHandler struct {
@@ -96,6 +97,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefSongId:    data.RefSongId,
 		ExtendSecs:   data.ExtendSecs,
 		Prompt:       data.Prompt,
+		Lyrics:       data.Lyrics,
 		Tags:         data.Tags,
 		Model:        data.Model,
 		Instrumental: data.Instrumental,

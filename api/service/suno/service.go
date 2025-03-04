@@ -134,7 +134,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	if task.Type == 1 {
 		reqBody["gpt_description_prompt"] = task.Prompt
 	} else { // 自定义模式
-		reqBody["prompt"] = task.Prompt
+		reqBody["prompt"] = task.Lyrics
 		reqBody["tags"] = task.Tags
 		reqBody["mv"] = task.Model
 		reqBody["title"] = task.Title
