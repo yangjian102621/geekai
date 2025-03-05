@@ -1,5 +1,5 @@
 <template>
-  <div class="container chat-list">
+  <div class="container chat-page">
     <el-tabs v-model="activeName" @tab-change="handleChange">
       <el-tab-pane label="对话列表" name="chat" v-loading="data.chat.loading">
         <div class="handle-box">
@@ -145,13 +145,19 @@
     <el-dialog
         v-model="showContentDialog"
         title="消息详情"
+        class="chat-dialog"
+        style="--el-dialog-width:60%"
     >
-      <div v-html="dialogContent" style="overflow: auto; max-height: 300px"></div>
+      <div class="chat-detail">
+        <div class="chat-line" v-html="dialogContent"></div>
+      </div>
     </el-dialog>
 
     <el-dialog
         v-model="showChatItemDialog"
         title="对话详情"
+        class="chat-dialog"
+        style="--el-dialog-width:60%"
     >
       <div class="chat-box chat-page">
         <div v-for="item in messages" :key="item.id">
@@ -197,12 +203,6 @@ const data = ref({
     loading: true
   }
 })
-const items = ref([])
-const query = ref({title: "", created_at: []})
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(15)
-const loading = ref(true)
 const activeName = ref("chat")
 
 onMounted(() => {
@@ -284,11 +284,33 @@ const removeMessage = function (row) {
   })
 }
 
+const mathjaxPlugin = require('markdown-it-mathjax3')
+const md = require('markdown-it')({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
+  highlight: function (str, lang) {
+    if (lang && hl.getLanguage(lang)) {
+      // 处理代码高亮
+      const preCode = hl.highlight(lang, str, true).value
+      // 将代码包裹在 pre 中
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
+    }
+
+    // 处理代码高亮
+    const preCode = md.utils.escapeHtml(str)
+    // 将代码包裹在 pre 中
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
+  }
+});
+md.use(mathjaxPlugin)
+
 const showContentDialog = ref(false)
 const dialogContent = ref("")
 const showContent = (content) => {
   showContentDialog.value = true
-  dialogContent.value = processContent(content)
+  dialogContent.value = md.render(processContent(content))
 }
 
 const showChatItemDialog = ref(false)
@@ -309,7 +331,7 @@ const showMessages = (row) => {
 </script>
 
 <style lang="stylus" scoped>
-.chat-list {
+.chat-page {
   .handle-box {
     margin-bottom 20px
     .handle-input {
@@ -338,16 +360,19 @@ const showMessages = (row) => {
     justify-content right
   }
 
+  .chat-detail {
+    max-height 90vh
+    overflow auto
+  }
   .chat-box {
-    overflow-y: auto;
-    overflow-x hidden
+    overflow auto
 
     // 变量定义
     --content-font-size: 16px;
     --content-color: #c1c1c1;
 
     font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-    height 90vh
+    max-height 90vh
 
     .chat-line {
       // 隐藏滚动条

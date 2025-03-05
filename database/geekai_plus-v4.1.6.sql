@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 127.0.0.1
--- 生成日期： 2024-09-30 17:03:37
+-- 生成日期： 2024-10-23 18:15:28
 -- 服务器版本： 8.0.33
--- PHP 版本： 8.1.2-1ubuntu2.18
+-- PHP 版本： 8.1.2-1ubuntu2.19
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -47,7 +47,7 @@ CREATE TABLE `chatgpt_admin_users` (
 --
 
 INSERT INTO `chatgpt_admin_users` (`id`, `username`, `password`, `salt`, `status`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1727062596, '::1', '2024-03-11 16:30:20', '2024-09-23 11:36:37');
+(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1729506124, '172.22.11.200', '2024-03-11 16:30:20', '2024-10-21 18:22:04');
 
 -- --------------------------------------------------------
 
@@ -69,7 +69,6 @@ CREATE TABLE `chatgpt_api_keys` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='OpenAI API ';
 
--- --------------------------------------------------------
 
 --
 -- 表的结构 `chatgpt_app_types`
@@ -139,7 +138,7 @@ DROP TABLE IF EXISTS `chatgpt_chat_models`;
 CREATE TABLE `chatgpt_chat_models` (
   `id` int NOT NULL,
   `name` varchar(50) NOT NULL COMMENT '模型名称',
-  `value` varchar(50) NOT NULL COMMENT '模型值',
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模型值',
   `sort_num` tinyint(1) NOT NULL COMMENT '排序数字',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启用模型',
   `power` smallint NOT NULL COMMENT '消耗算力点数',
@@ -161,7 +160,7 @@ INSERT INTO `chatgpt_chat_models` (`id`, `name`, `value`, `sort_num`, `enabled`,
 (15, 'GPT-超级模型', 'gpt-4-all', 4, 1, 30, 1.0, 4096, 32768, 1, 0, '2024-01-15 11:32:52', '2024-09-13 18:01:08'),
 (36, 'GPT-4O', 'gpt-4o', 3, 1, 15, 1.0, 4096, 16384, 1, 66, '2024-05-14 09:25:15', '2024-09-29 19:08:53'),
 (39, 'Claude35-snonet', 'claude-3-5-sonnet-20240620', 5, 1, 2, 1.0, 4000, 200000, 1, 0, '2024-05-29 15:04:19', '2024-09-14 18:07:25'),
-(41, '通义千问', 'qwen-turbo', 7, 1, 2, 1.0, 1024, 8192, 1, 44, '2024-06-06 11:40:46', '2024-08-06 10:51:37'),
+(41, 'Suno对话模型', 'suno-v3.5', 7, 1, 10, 1.0, 1024, 8192, 1, 57, '2024-06-06 11:40:46', '2024-10-14 15:07:05'),
 (42, 'DeekSeek', 'deepseek-chat', 8, 1, 1, 1.0, 4096, 32768, 1, 0, '2024-06-27 16:13:01', '2024-08-05 16:05:33'),
 (44, 'Claude3-opus', 'claude-3-opus-20240229', 6, 1, 5, 1.0, 4000, 128000, 1, 44, '2024-07-22 11:24:30', '2024-09-04 10:32:29'),
 (46, 'gpt-3.5-turbo', 'gpt-3.5-turbo', 2, 1, 1, 1.0, 1024, 4096, 1, 73, '2024-07-22 13:53:41', '2024-09-13 18:00:47'),
@@ -234,7 +233,7 @@ CREATE TABLE `chatgpt_configs` (
 
 INSERT INTO `chatgpt_configs` (`id`, `marker`, `config_json`) VALUES
 (1, 'system', '{\"title\":\"GeekAI 创作助手\",\"slogan\":\"我辈之人，先干为敬，让每一个人都能用好AI\",\"admin_title\":\"GeekAI 控制台\",\"logo\":\"/images/logo.png\",\"init_power\":100,\"invite_power\":200,\"vip_month_power\":1000,\"register_ways\":[\"username\",\"email\",\"mobile\"],\"enabled_register\":true,\"order_pay_timeout\":600,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"default_models\":[1],\"mj_power\":20,\"mj_action_power\":5,\"sd_power\":5,\"dall_power\":10,\"suno_power\":10,\"luma_power\":120,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":4,\"sd_neg_prompt\":\"nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet\",\"mj_mode\":\"fast\",\"index_bg_url\":\"color\",\"index_navs\":[1,5,13,19,9,12,6,20,8,10],\"copyright\":\"极客学长 © 2022- 2024 All rights reserved\",\"mark_map_text\":\"# GeekAI 演示站\\n\\n- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。\\n- 基于 Websocket 实现，完美的打字机体验。\\n- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。\\n- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。\\n- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。\\n- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。\\n- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。\\n- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。\",\"enabled_verify\":false,\"email_white_list\":[\"qq.com\",\"163.com\",\"gmail.com\",\"hotmail.com\",\"126.com\",\"outlook.com\",\"foxmail.com\",\"yahoo.com\"]}'),
-(3, 'notice', '{\"sd_neg_prompt\":\"\",\"mj_mode\":\"\",\"index_bg_url\":\"\",\"index_navs\":null,\"copyright\":\"\",\"mark_map_text\":\"\",\"enabled_verify\":false,\"email_white_list\":null,\"content\":\"## v4.1.5 更新日志\\n\\n* 功能优化：重构 websocket 组件，减少 websocket 连接数，全站共享一个 websocket 连接\\n* Bug修复：兼容手机端原生微信支付和支付宝支付渠道\\n* Bug修复：修复删除绘图任务时候因为字段长度过短导致SQL执行失败问题\\n* 功能优化：优化 Vue 组件通信代码，使用共享数据来替换之前的事件订阅模式，效率更高一些\\n* 功能优化：优化思维导图生成功果页面，优化用户体验\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003eGeekAI-Plus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/geekai\\u003c/a\\u003e\",\"updated\":true}');
+(3, 'notice', '{\"sd_neg_prompt\":\"\",\"mj_mode\":\"\",\"index_bg_url\":\"\",\"index_navs\":null,\"copyright\":\"\",\"mark_map_text\":\"\",\"enabled_verify\":false,\"email_white_list\":null,\"content\":\"## v4.1.6 更新日志\\n\\n* 功能新增：**支持OpenAI实时语音对话功能** Beta 版，目前没有做算力计费控制，目前只有 VIP 用户可以使用。\\n* 功能优化：优化MysQL容器配置文档，解决MysQL容器资源占用过高问题\\n* 功能新增：管理后台增加AI绘图任务管理，可在管理后台浏览和删除用户的绘图任务\\n* 功能新增：管理后台增加Suno和Luma任务管理功能\\n* Bug修复：修复管理后台删除兑换码报 404 错误\\n* 功能优化：优化充值产品定价逻辑，可以设置原价和优惠价，**升级当前版本之后请务必要到管理后台去重新设置一下产品价格，以免造成损失！！！\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003eGeekAI-Plus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/geekai\\u003c/a\\u003e\",\"updated\":true}');
 
 -- --------------------------------------------------------
 
@@ -471,8 +470,8 @@ CREATE TABLE `chatgpt_products` (
 --
 
 INSERT INTO `chatgpt_products` (`id`, `name`, `price`, `discount`, `days`, `power`, `enabled`, `sales`, `sort_num`, `created_at`, `updated_at`, `app_url`, `url`) VALUES
-(5, '100次点卡', 9.99, 9.88, 0, 100, 1, 19, 0, '2023-08-28 10:55:08', '2024-09-18 16:41:10', NULL, NULL),
-(6, '200次点卡', 19.90, 15.00, 0, 200, 1, 2, 2, '1970-01-01 08:00:00', '2024-08-05 16:05:46', NULL, NULL);
+(5, '100次点卡', 9.99, 6.99, 0, 100, 1, 0, 0, '2023-08-28 10:55:08', '2024-10-23 18:12:29', NULL, NULL),
+(6, '200次点卡', 19.90, 15.99, 0, 200, 1, 0, 0, '1970-01-01 08:00:00', '2024-10-23 18:12:36', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -584,7 +583,7 @@ CREATE TABLE `chatgpt_users` (
 --
 
 INSERT INTO `chatgpt_users` (`id`, `username`, `mobile`, `email`, `nickname`, `password`, `avatar`, `salt`, `power`, `expired_time`, `status`, `chat_config_json`, `chat_roles_json`, `chat_models_json`, `last_login_at`, `vip`, `last_login_ip`, `openid`, `platform`, `created_at`, `updated_at`) VALUES
-(4, '18888888888', '18575670126', '', '极客学长', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/5/1715651569509929.png', 'ueedue5l', 5823, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\",\"programmer\",\"teacher\"]', '[1]', 1727683253, 1, '172.22.11.200', 'oCs0t64FaOLfiTbHZpOqk3aUp_94', NULL, '2023-06-12 16:47:17', '2024-09-30 16:00:53'),
+(4, '18888888888', '18575670126', '', '极客学长', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://localhost:5678/static/upload/2024/5/1715651569509929.png', 'ueedue5l', 6051, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\",\"programmer\",\"teacher\"]', '[1]', 1729650760, 1, '::1', 'oCs0t64FaOLfiTbHZpOqk3aUp_94', NULL, '2023-06-12 16:47:17', '2024-10-23 10:32:40'),
 (42, 'yangjian@pvc123.com', '', 'yangjian@pvc123.com', '极客学长@263103', '672992fe8be51df479b9727cf70ca2ae26bc6a6c0c51ff8f836d3a8748387632', '/images/avatar/user.png', 'ahmgvvgc', 99, 0, 1, '', '[\"gpt\"]', '[1]', 1726133100, 0, '::1', '', '', '2024-09-12 15:08:52', '2024-09-12 17:25:00'),
 (43, '18575670125', '18575670125', '', '极客学长@394312', '83a5f04d5fea15419c2a324d5fcc8e1f93f62c2e2f5b883307d591ee92234fcc', '/images/avatar/user.png', 'rfml917k', 100, 0, 1, '', '[\"gpt\"]', '[1]', 1726132554, 0, '::1', '', '', '2024-09-12 15:38:38', '2024-09-12 17:15:55'),
 (44, '13666666666', '13666666666', '', '极客学长@172197', '2c57a40f938d2ee134dffdf0fba6c45907b9bcf1c6decab8f57f034e39b71b26', '/images/avatar/user.png', 'f9wlaiuy', 83, 0, 1, '', '[\"gpt\"]', '[1]', 0, 0, '', '', '', '2024-09-20 11:55:53', '2024-09-20 16:47:31');
@@ -808,7 +807,7 @@ ALTER TABLE `chatgpt_admin_users`
 -- 使用表AUTO_INCREMENT `chatgpt_api_keys`
 --
 ALTER TABLE `chatgpt_api_keys`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- 使用表AUTO_INCREMENT `chatgpt_app_types`

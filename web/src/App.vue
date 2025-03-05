@@ -12,8 +12,6 @@ import {isChrome, isMobile} from "@/utils/libs";
 import {showMessageInfo} from "@/utils/dialog";
 import {useSharedStore} from "@/store/sharedata";
 import {getUserToken} from "@/store/session";
-import {router} from "@/router";
-import {onBeforeRouteLeave, onBeforeRouteUpdate} from "vue-router";
 
 const debounce = (fn, delay) => {
   let timer
@@ -71,7 +69,7 @@ const connect = () => {
     }
   }
   const clientId = getClientId()
-  const _socket = new WebSocket(host + `/api/ws?client_id=${clientId}&token=${getUserToken()}`);
+  const _socket = new WebSocket(host + `/api/ws?client_id=${clientId}`,["token",getUserToken()]);
   _socket.addEventListener('open', () => {
     console.log('WebSocket 已连接')
     handler.value = setInterval(() => {
@@ -116,7 +114,7 @@ html, body {
     margin 0;
 
     .el-dialog__body {
-      max-height 80vh
+      //max-height 80vh
       overflow-y auto
     }
   }
