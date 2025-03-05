@@ -374,6 +374,7 @@ const params = ref({
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
 const allowPulling = ref(true); // 是否允许轮询
+const tastPullHandler = ref(null);
 const router = useRouter();
 // 检查是否有画同款的参数
 const _params = router.currentRoute.value.params["copyParams"];
@@ -408,7 +409,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("sd");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
 });
 
 const initData = () => {
@@ -421,7 +424,7 @@ const initData = () => {
       fetchRunningJobs();
       fetchFinishJobs();
 
-      setInterval(() => {
+      tastPullHandler.value = setInterval(() => {
         if (allowPulling.value) {
           fetchRunningJobs();
         }

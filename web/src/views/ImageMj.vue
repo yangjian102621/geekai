@@ -772,7 +772,9 @@ const activeName = ref("txt2img");
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
 const taskPulling = ref(true); // 任务轮询
+const tastPullHandler = ref(null);
 const downloadPulling = ref(false); // 图片下载轮询
+const downloadPullHandler = ref(null);
 
 const power = ref(0);
 const userId = ref(0);
@@ -793,7 +795,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("mj");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
+  if (downloadPullHandler.value) {
+    clearInterval(downloadPullHandler.value);
+  }
 });
 
 // 初始化数据
@@ -806,13 +813,13 @@ const initData = () => {
       page.value = 0;
       fetchFinishJobs();
 
-      setInterval(() => {
+      tastPullHandler.value = setInterval(() => {
         if (taskPulling.value) {
           fetchRunningJobs();
         }
       }, 5000);
 
-      setInterval(() => {
+      downloadPullHandler.value = setInterval(() => {
         if (downloadPulling.value) {
           page.value = 0;
           fetchFinishJobs();

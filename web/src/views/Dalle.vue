@@ -276,6 +276,7 @@ const params = ref({
 const finishedJobs = ref([]);
 const runningJobs = ref([]);
 const allowPulling = ref(true); // 是否允许轮询
+const tastPullHandler = ref(null);
 const power = ref(0);
 const dallPower = ref(0); // 画一张 SD 图片消耗算力
 const clipboard = ref(null);
@@ -316,7 +317,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("dall");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
 });
 
 const initData = () => {
@@ -330,7 +333,7 @@ const initData = () => {
       fetchFinishJobs();
 
       // 轮询运行中任务
-      setInterval(() => {
+      tastPullHandler.value = setInterval(() => {
         if (allowPulling.value) {
           fetchRunningJobs();
         }

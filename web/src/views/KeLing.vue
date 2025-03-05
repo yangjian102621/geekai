@@ -92,7 +92,7 @@
               </div>
 
               <!-- 仅在simple模式下显示详细配置 -->
-              <div class="camera-control" v-if="params.camera_control.type === 'simple'">
+              <div class="camera-control mt-2" v-if="params.camera_control.type === 'simple'">
                 <el-form-item label="水平移动">
                   <el-slider v-model="params.camera_control.config.horizontal" :min="-10" :max="10" />
                 </el-form-item>
@@ -556,7 +556,7 @@ const fetchData = (_page) => {
       let needPull = false;
       const items = [];
       for (let v of res.data.items) {
-        if (v.progress < 100 || (v.progress === 100 && v.video_url === "")) {
+        if (v.progress === 0 || v.progress === 102) {
           needPull = true;
         }
         items.push({

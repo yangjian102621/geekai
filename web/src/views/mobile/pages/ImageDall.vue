@@ -191,6 +191,7 @@ const showModelPicker = ref(false);
 const runningJobs = ref([]);
 const finishedJobs = ref([]);
 const allowPulling = ref(true); // 是否允许轮询
+const tastPullHandler = ref(null);
 const router = useRouter();
 const power = ref(0);
 const dallPower = ref(0); // 画一张 DALL 图片消耗算力
@@ -236,7 +237,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("dall");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
 });
 
 const initData = () => {
@@ -247,7 +250,7 @@ const initData = () => {
       fetchRunningJobs();
       fetchFinishJobs(1);
 
-      setInterval(() => {
+      tastPullHandler.value = setInterval(() => {
         if (allowPulling.value) {
           fetchRunningJobs();
         }

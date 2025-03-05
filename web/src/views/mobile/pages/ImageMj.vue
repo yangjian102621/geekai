@@ -310,7 +310,9 @@ const prompt = ref("");
 const store = useSharedStore();
 const clipboard = ref(null);
 const taskPulling = ref(true);
+const tastPullHandler = ref(null);
 const downloadPulling = ref(false);
+const downloadPullHandler = ref(null);
 
 onMounted(() => {
   clipboard.value = new Clipboard(".copy-prompt");
@@ -329,13 +331,13 @@ onMounted(() => {
       fetchRunningJobs();
       fetchFinishJobs(1);
 
-      setInterval(() => {
+      tastPullHandler.value = setInterval(() => {
         if (taskPulling.value) {
           fetchRunningJobs();
         }
       }, 5000);
 
-      setInterval(() => {
+      downloadPullHandler.value = setInterval(() => {
         if (downloadPulling.value) {
           page.value = 1;
           fetchFinishJobs(1);
@@ -349,7 +351,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("mj");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
+  if (downloadPullHandler.value) {
+    clearInterval(downloadPullHandler.value);
+  }
 });
 
 const mjPower = ref(1);

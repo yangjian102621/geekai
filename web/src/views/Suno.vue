@@ -330,6 +330,7 @@ const playerRef = ref(null);
 const showPlayer = ref(false);
 const list = ref([]);
 const taskPulling = ref(true);
+const tastPullHandler = ref(null);
 const btnText = ref("开始创作");
 const refSong = ref(null);
 const showDialog = ref(false);
@@ -350,7 +351,7 @@ onMounted(() => {
   checkSession()
     .then(() => {
       fetchData(1);
-      setInterval(() => {
+      tastPullHandler.value = setInterval(() => {
         if (taskPulling.value) {
           fetchData(1);
         }
@@ -361,7 +362,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("suno");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
 });
 
 const page = ref(1);
