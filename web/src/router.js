@@ -234,6 +234,18 @@ const routes = [
                 component: () => import('@/views/admin/ChatList.vue'),
             },
             {
+                path: '/admin/images',
+                name: 'admin-images',
+                meta: {title: '绘图管理'},
+                component: () => import('@/views/admin/ImageList.vue'),
+            },
+            {
+                path: '/admin/medias',
+                name: 'admin-medias',
+                meta: {title: '音视频管理'},
+                component: () => import('@/views/admin/Medias.vue'),
+            },
+            {
                 path: '/admin/powerLog',
                 name: 'admin-power-log',
                 meta: {title: '算力日志'},
@@ -311,6 +323,12 @@ const routes = [
         path: '/test',
         meta: {title: '测试页面'},
         component: () => import('@/views/Test.vue'),
+    },
+    {
+        name: 'test2',
+        path: '/test2',
+        meta: {title: '测试页面'},
+        component: () => import('@/views/RealtimeTest.vue'),
     },
     {
         name: 'NotFound',

@@ -349,7 +349,7 @@ func main() {
 			group.GET("list", h.List)
 			group.POST("create", h.Create)
 			group.POST("set", h.Set)
-			group.POST("remove", h.Remove)
+			group.GET("remove", h.Remove)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
 			group := s.Engine.Group("/api/admin/dashboard/")
@@ -538,6 +538,25 @@ func main() {
 					return lc.OnStop(ctx)
 				},
 			})
+		}),
+		fx.Provide(admin.NewImageHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.ImageHandler) {
+			group := s.Engine.Group("/api/admin/image")
+			group.POST("/list/mj", h.MjList)
+			group.POST("/list/sd", h.SdList)
+			group.POST("/list/dall", h.DallList)
+			group.GET("/remove", h.Remove)
+		}),
+		fx.Provide(admin.NewMediaHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.MediaHandler) {
+			group := s.Engine.Group("/api/admin/media")
+			group.POST("/list/suno", h.SunoList)
+			group.POST("/list/luma", h.LumaList)
+			group.GET("/remove", h.Remove)
+		}),
+		fx.Provide(handler.NewRealtimeHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
+			s.Engine.Any("/api/realtime", h.Connection)
 		}),
 	)
 	// 启动应用程序

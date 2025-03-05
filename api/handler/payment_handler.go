@@ -17,7 +17,6 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/shopspring/decimal"
 	"net/http"
 	"sync"
 	"time"
@@ -105,7 +104,7 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 		return
 	}
 
-	amount, _ := decimal.NewFromFloat(product.Price).Sub(decimal.NewFromFloat(product.Discount)).Float64()
+	amount := product.Discount
 	var payURL, returnURL, notifyURL string
 	switch data.PayWay {
 	case "alipay":

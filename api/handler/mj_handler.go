@@ -403,12 +403,7 @@ func (h *MidJourneyHandler) Remove(c *gin.Context) {
 
 	// remove job recode
 	tx := h.DB.Begin()
-	if err := tx.Delete(&job).Error; err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
-	}
-
+	tx.Delete(&job)
 	// 如果任务未完成，或者任务失败，则恢复用户算力
 	if job.Progress != 100 {
 		err := h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{

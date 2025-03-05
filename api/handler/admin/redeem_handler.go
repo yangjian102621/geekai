@@ -146,19 +146,15 @@ func (h *RedeemHandler) Set(c *gin.Context) {
 }
 
 func (h *RedeemHandler) Remove(c *gin.Context) {
-	var data struct {
-		Id uint
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
+	id := h.GetInt(c, "id", 0)
+	if id <= 0 {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if data.Id > 0 {
-		err := h.DB.Where("id", data.Id).Delete(&model.Redeem{}).Error
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
+	err := h.DB.Where("id", id).Delete(&model.Redeem{}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
 	resp.SUCCESS(c)
 }
