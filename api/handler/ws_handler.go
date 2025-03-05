@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 	"net/http"
+	"strings"
 )
 
 // Websocket 连接处理 handler
@@ -37,7 +38,11 @@ func NewWebsocketHandler(app *core.AppServer, s *service.WebsocketService, db *g
 }
 
 func (h *WebsocketHandler) Client(c *gin.Context) {
-	ws, err := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(c.Writer, c.Request, nil)
+	clientProtocols := c.GetHeader("Sec-WebSocket-Protocol")
+	ws, err := (&websocket.Upgrader{
+		CheckOrigin:  func(r *http.Request) bool { return true },
+		Subprotocols: strings.Split(clientProtocols, ","),
+	}).Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		logger.Error(err)
 		c.Abort()

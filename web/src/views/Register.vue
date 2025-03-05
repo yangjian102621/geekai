@@ -141,10 +141,10 @@
 
               <el-row class="text-line" :gutter="24">
                 <el-col :span="12">
-                  <el-link type="primary" @click="router.push('/login')">登录</el-link>
+                  <el-link type="primary" class="text-link" @click="router.push('/login')">登录</el-link>
                 </el-col>
                 <el-col :span="12">
-                  <el-link type="primary" @click="router.push('/')">首页</el-link>
+                  <el-link type="primary" class="text-link" @click="router.push('/')">首页</el-link>
                 </el-col>
               </el-row>
             </el-form>
@@ -315,11 +315,11 @@ const doSubmitRegister = (verifyData) => {
   top 0
   bottom 0
   background-color #091519
-  background-image url("~@/assets/img/reg-bg.jpg")
+  background-image url("~@/assets/img/reg_bg.png")
   background-size cover
   background-position center
   background-repeat no-repeat
-  //filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
+  filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
 }
 
 .register-page {
@@ -379,6 +379,7 @@ const doSubmitRegister = (verifyData) => {
           }
         }
 
+
         .btn-row {
           padding-top 10px;
 
@@ -387,6 +388,10 @@ const doSubmitRegister = (verifyData) => {
             font-size 16px
             letter-spacing 2px
           }
+        }
+
+        .text-link {
+          color #ffffff
         }
 
         .text-line {
