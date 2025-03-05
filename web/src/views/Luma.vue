@@ -58,7 +58,7 @@
                     <img src="/images/play.svg" alt="" />
                   </button>
                 </div>
-                <el-image :src="item.cover_url" fit="cover" v-else-if="item.progress > 100" />
+                <el-image :src="item.cover_url" fit="cover" v-else-if="item.progress === 101" />
                 <generating message="正在生成视频" v-else />
               </div>
             </div>
@@ -68,10 +68,16 @@
             </div>
             <div class="right" v-if="item.progress === 100">
               <div class="tools">
-                <button class="btn btn-publish">
+                <!-- <button class="btn btn-publish">
                   <span class="text">发布</span>
                   <black-switch v-model:value="item.publish" @change="publishJob(item)" size="small" />
-                </button>
+                </button> -->
+
+                <el-tooltip content="复制提示词" placement="top">
+                  <button class="btn btn-icon copy-prompt" :data-clipboard-text="item.prompt">
+                    <i class="iconfont icon-copy"></i>
+                  </button>
+                </el-tooltip>
 
                 <el-tooltip content="下载视频" placement="top">
                   <button class="btn btn-icon" @click="download(item)" :disabled="item.downloading">
@@ -111,7 +117,7 @@
       </div>
     </el-container>
     <black-dialog v-model:show="showDialog" title="预览视频" hide-footer @cancal="showDialog = false" width="auto">
-      <video style="width: 100%; max-height: 90vh" :src="currentVideoUrl" preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
+      <video style="max-width: 90vw; max-height: 90vh" :src="currentVideoUrl" preload="auto" :autoplay="true" loop="loop" muted="muted" v-show="showDialog">
         您的浏览器不支持视频播放
       </video>
     </black-dialog>
@@ -131,7 +137,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import BlackSwitch from "@/components/ui/BlackSwitch.vue";
 import Generating from "@/components/ui/Generating.vue";
 import BlackDialog from "@/components/ui/BlackDialog.vue";
-
+import Clipboard from "clipboard";
 const showDialog = ref(false);
 const currentVideoUrl = ref("");
 const row = ref(1);
@@ -152,16 +158,31 @@ const page = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
 const taskPulling = ref(true);
+const clipboard = ref(null);
+const pullHandler = ref(null);
 
 onMounted(() => {
   checkSession().then(() => {
     fetchData(1);
-    setInterval(() => {
+    // 设置轮询
+    pullHandler.value = setInterval(() => {
       if (taskPulling.value) {
         fetchData(1);
       }
     }, 5000);
   });
+
+  clipboard.value = new Clipboard(".copy-prompt");
+  clipboard.value.on("success", () => {
+    ElMessage.success("复制成功！");
+  });
+});
+
+onUnmounted(() => {
+  clipboard.value.destroy();
+  if (pullHandler.value) {
+    clearInterval(pullHandler.value);
+  }
 });
 
 const download = (item) => {

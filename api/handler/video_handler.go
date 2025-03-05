@@ -257,6 +257,33 @@ func (h *VideoHandler) List(c *gin.Context) {
 		if item.VideoURL == "" {
 			item.VideoURL = v.WaterURL
 		}
+		// 解析任务详情
+		if item.Type == types.VideoKeLing {
+			task := types.VideoTask{}
+			err = utils.JsonDecode(v.TaskInfo, &task)
+			if err != nil {
+				continue
+			}
+			var params types.KeLingVideoParams
+			err = utils.JsonDecode(utils.JsonEncode(task.Params), &params)
+			if err != nil {
+				continue
+			}
+			item.RawData = map[string]interface{}{
+				"task_type":    params.TaskType,
+				"model":        params.Model,
+				"cfg_scale":    params.CfgScale,
+				"mode":         params.Mode,
+				"aspect_ratio": params.AspectRatio,
+				"duration":     params.Duration,
+				"model_name":   fmt.Sprintf("%s_%s_%s", params.Model, params.Mode, params.Duration),
+			}
+
+			// 如果视频URL不为空，则设置为生成成功
+			if item.VideoURL != "" {
+				item.Progress = 100
+			}
+		}
 		items = append(items, item)
 	}
 

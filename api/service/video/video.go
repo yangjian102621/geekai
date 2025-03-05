@@ -116,15 +116,6 @@ func (s *Service) Run() {
 					s.PushTask(task)
 				}
 			} else if task.Type == types.VideoKeLing {
-				// translate prompt
-				if utils.HasChinese(task.Prompt) {
-					content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
-					if err == nil {
-						task.Prompt = content
-					} else {
-						logger.Warnf("error with translate prompt: %v", err)
-					}
-				}
 				var r KeLingRespVo
 				r, err = s.KeLingCreate(task)
 				logger.Debugf("ke ling create task result: %+v", r)
@@ -145,7 +136,7 @@ func (s *Service) Run() {
 				// 更新任务信息
 				err = s.db.Model(&model.VideoJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 					"task_id":    r.Data.TaskID,
-					"channel":    task.Channel,
+					"channel":    r.Channel,
 					"prompt_ext": task.Prompt,
 				}).Error
 				if err != nil {
@@ -225,8 +216,9 @@ func (s *Service) SyncTaskProgress() {
 						logger.Errorf("query task with error: %v", err)
 						// 更新任务信息
 						s.db.Model(&model.VideoJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
-							"progress": service.FailTaskProgress, // 102 表示资源未下载完成,
-							"err_msg":  err.Error(),
+							"progress":  service.FailTaskProgress, // 102 表示资源未下载完成,
+							"err_msg":   err.Error(),
+							"cover_url": "/images/failed.jpg",
 						})
 						continue
 					}
@@ -279,8 +271,9 @@ func (s *Service) SyncTaskProgress() {
 						logger.Errorf("query task with error: %v", err)
 						// 更新任务信息
 						s.db.Model(&model.VideoJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
-							"progress": service.FailTaskProgress, // 102 表示资源未下载完成,
-							"err_msg":  err.Error(),
+							"progress":  service.FailTaskProgress, // 102 表示资源未下载完成,
+							"err_msg":   err.Error(),
+							"cover_url": "/images/failed.jpg",
 						})
 						continue
 					}
@@ -305,8 +298,9 @@ func (s *Service) SyncTaskProgress() {
 					} else if task.TaskStatus == "failed" {
 						// 更新任务信息
 						s.db.Model(&model.VideoJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
-							"progress": service.FailTaskProgress,
-							"err_msg":  task.TaskStatusMsg,
+							"progress":  service.FailTaskProgress,
+							"err_msg":   task.TaskStatusMsg,
+							"cover_url": "/images/failed.jpg",
 						})
 					}
 				}

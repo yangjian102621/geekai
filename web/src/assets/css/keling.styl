@@ -1,0 +1,363 @@
+.page-keling
+  display flex
+  min-height 100vh
+  :deep(.el-form-item__label)
+    color var(--text-theme-color)
+  .grid-content
+    // background-color #383838
+    background var(--card-bg)
+    border-radius 8px
+    padding 8px 14px
+    display flex
+    cursor pointer
+    margin-bottom 10px
+    // border 1px solid #383838
+    border 1px solid var(--chat-bg)
+    &:hover
+      border 1px solid var(--theme-border-hover)
+    .icon
+      width 20px
+      height 20px
+      margin-bottom 5px
+    .texts
+      margin-left 5px
+      margin-top 2px
+      color var(--text-theme-color)
+  .param-line.pt
+    padding-top 5px
+    padding-bottom 5px
+  .grid-content.active
+    // color #47fff1
+    // background-color #585858
+    border 1px solid var(--theme-border-hover)
+  .h-20
+    height 4rem !important
+  .main-content
+    padding-right 1.5rem
+    padding-left 1.5rem
+    padding-bottom 1rem
+    flex 1
+    background var(--chat-bg)
+    // width: 100%;
+    // padding 0 10px 10px 10px
+    color var(--text-theme-color)
+    overflow-x hidden
+  .camera-control
+    padding 10px
+    border-radius 4px
+    background var(--card-bg)
+    :deep(.el-form-item:last-child)
+      margin-bottom 0 !important
+  .title-tabs
+    :deep(.el-tabs__item.is-active)
+      color var(--theme-textcolor-normal)
+      font-size 18px
+    :deep(.el-tabs__item)
+      color var(--text-theme-color)
+      font-size 18px
+  .el-tabs
+    --el-tabs-header-height 55px
+  .el-tabs__item
+    color var(--text-theme-color)
+    font-size 18px
+  .el-tabs__item.is-active, .title-tabs .el-tabs__item.is-active
+  .title-tabs .el-tabs__active-bar
+    background-color var(--theme-textcolor-normal)
+  :deep(.el-textarea)
+    --el-input-focus-border-color var(--el-color-primary)
+  :deep(.el-textarea__inner)
+    background transparent
+    color var(--text-theme-color)
+  .el-input__wrapper
+    background transparent
+    padding 5px
+  .text
+    margin-bottom 10px
+    color #6b778c
+    font-size 15px
+  .param-line.pt
+    padding-top 5px
+    padding-bottom 5px
+  .form-item-inner
+    display flex
+    align-items center
+    .el-icon
+      margin-left 10px
+  .el-form-item__label
+    color var(--text-theme-color)
+  // 图片上传样式
+  .img-inline
+    display flex
+    gap 20px
+    align-items center
+    .img-uploader
+      text-align center
+      :deep(.el-upload)
+        border 1px dashed var(--el-border-color)
+        border-radius 6px
+        cursor pointer
+        position relative
+        overflow hidden
+        width 120px
+        height 120px
+        line-height 120px
+        transition var(--el-transition-duration-fast)
+        margin-bottom 20px
+        &:hover
+          border-color var(--el-color-primary)
+        .el-icon.uploader-icon
+          font-size 28px
+          color #8c939d
+          width 100%
+          height 120px
+          text-align center
+    .img-list-box
+      display flex
+      .img-item
+        width 120px
+        position relative
+        margin-right 10px
+        .el-image
+          width 120px
+          height 120px
+          border-radius 5px
+        .el-button
+          position absolute
+          right 5px
+          top 5px
+          width 20px
+          height 20px
+  .el-row.text-info
+    width 100%
+    padding 10px 0
+    .el-tag
+      margin-right 10px
+  // 提交按钮
+  .submit-btn
+    display flex
+    margin 20px 0
+    .el-button
+      width 200px
+  .video-list
+    .btn
+      margin-right 10px
+      border none
+      border-radius 5px
+      padding 5px 10px
+      cursor pointer
+      color var(--theme-text-color-primary)
+      background-color var(--btn-bg)
+      &:hover
+        opacity 0.7
+    .list-box
+      padding 0
+      .item
+        display flex
+        flex-flow row
+        align-items center
+        min-height 100px
+        padding 10px 15px
+        border-radius 10px
+        cursor pointer
+        margin-bottom 20px
+        background var(--chat-bg)
+        .left
+          .container
+            width 160px
+            position relative
+            max-height 120px
+            overflow hidden
+            display flex
+            justify-content center
+            align-items center
+            .video
+              width 160px
+              border-radius 5px
+            .el-image
+              width 160px
+              height 90px
+              border-radius 5px
+            .duration
+              position absolute
+              bottom 0
+              right 0
+              background-color rgba(14, 8, 8, 0.7)
+              padding 0 3px
+              font-family 'Input Sans'
+              font-size 14px
+              font-weight 700
+              border-radius 0.125rem
+            .play
+              position absolute
+              width 100%
+              height 100%
+              top 0
+              left 50%
+              border none
+              border-radius 5px
+              background rgba(100, 100, 100, 0.3)
+              cursor pointer
+              color var(--text-theme-color)
+              opacity 0
+              transform translate(-50%, 0px)
+              transition opacity 0.3s ease 0s
+            &:hover
+              .play
+                opacity 1
+                // display block
+        .center
+          width 100%
+          // border 1px solid saddlebrown
+          display flex
+          justify-content center
+          align-items flex-start
+          flex-flow column
+          padding 0 20px
+          .prompt, .failed
+            padding 0
+            font-size 16px
+            max-height 60px
+            line-height 28px
+            overflow hidden
+            text-overflow ellipsis
+          .prompt
+            color var(--text-fb)
+            cursor text
+          .failed
+            color #E4696B
+        .right
+          display flex
+          justify-content right
+          min-width 200px
+          font-size 14px
+          padding 0
+          .tools
+            display flex
+            justify-content left
+            align-items center
+            flex-flow row
+            height 90px
+            .btn-publish
+              padding 2px 10px
+              .text
+                margin-right 10px
+            .btn-icon
+              background none
+              padding 6px
+              transition background 0.6s ease 0s
+              color #919191
+              &:hover
+                // background #5f5958
+                // color #e1e1e1
+                color var(--el-color-primary)
+              .downloading
+                width 16px
+    .pagination
+      margin-top 20px
+      display flex
+      justify-content center
+  .inner
+    display flex
+    width 100%
+    .mj-box
+      margin 10px
+      // background-color #262626
+      // border 1px solid #454545
+      // height: calc(100vh - 50px)
+      // overflow: scroll
+      min-width 300px
+      max-width 300px
+      padding 20px
+      border-radius 10px
+      color var(--text-theme-color)
+      font-size 14px
+      overflow auto
+      h2
+        font-weight bold
+        font-size 20px
+        text-align center
+        color var(--theme-textcolor-normal)
+      // 隐藏滚动条
+      ::-webkit-scrollbar
+        width 0
+        height 0
+        background-color transparent
+      .mj-params
+        margin-top 10px
+        overflow auto
+        .param-line
+          padding 0 10px
+          .el-icon
+            position relative
+          .model
+            background var(--card-bg)
+            // border 1px solid #454545
+            border-radius 8px
+            padding 5px
+            margin-bottom 10px
+            display flex
+            flex-flow column
+            align-items center
+            cursor pointer
+            border 1px solid var(--chat-bg)
+            &:hover
+              border 1px solid var(--theme-border-hover)
+            .el-image
+              height 40px
+              width 100%
+            .text
+              margin-top 4px
+              font-size 12px
+          .model.active
+            // color #47fff1
+            // background-color #585858
+            border 1px solid var(--theme-border-hover)
+          .form-item-inner
+            display flex
+            align-items center
+            .el-select
+              --el-select-input-focus-border-color var(--el-color-primary)
+              --el-input-focus-border-color var(--el-color-primary)
+            .el-input__wrapper
+              background var(--chat-bg)
+            .el-input__inner
+              color var(--text-theme-color)
+            .el-icon
+              margin-left 10px
+          .img-uploader
+            .el-upload
+              border 1px dashed var(--el-border-color)
+              border-radius 6px
+              cursor pointer
+              position relative
+              overflow hidden
+              width 100%
+              transition var(--el-transition-duration-fast)
+              &:hover
+                border-color var(--el-color-primary)
+              .el-icon.uploader-icon
+                font-size 28px
+                color #8c939d
+                width 100%
+                height 120px
+                text-align center
+        .param-line.pt
+          display flex
+          align-items center
+          padding-top 5px
+          padding-bottom 5px
+    .el-form
+      .el-form-item__label
+        color var(--text-theme-color)
+      .el-input, .el-slider
+        width 180px
+      .uploader-icon
+        font-size 24px
+        position relative
+        top 3px
+    .no-more-data
+      text-align center
+      padding 30px
+    .generate-btn
+      .iconfont
+        margin-right 5px
