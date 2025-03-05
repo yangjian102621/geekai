@@ -1,39 +1,42 @@
 <template>
-  <div class="admin-login">
-    <div class="main">
-      <div class="contain">
-        <div class="logo" @click="router.push('/')">
-          <el-image :src="logo" fit="cover"/>
+  <div>
+    <div class="bg"></div>
+    <div class="admin-login">
+      <div class="main">
+        <div class="contain">
+          <div class="logo" @click="router.push('/')">
+            <el-image :src="logo" fit="cover"/>
+          </div>
+
+          <h1 class="header">登录 {{ title }}</h1>
+          <div class="content">
+            <el-input v-model="username" placeholder="请输入用户名" size="large"
+                      autocomplete="off" autofocus @keyup.enter="login">
+              <template #prefix>
+                <el-icon>
+                  <UserFilled/>
+                </el-icon>
+              </template>
+            </el-input>
+
+            <el-input v-model="password" placeholder="请输入密码" size="large"
+                      show-password autocomplete="off" @keyup.enter="login">
+              <template #prefix>
+                <el-icon>
+                  <Lock/>
+                </el-icon>
+              </template>
+            </el-input>
+
+            <el-row class="btn-row">
+              <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
+            </el-row>
+          </div>
         </div>
 
-        <h1 class="header">{{ title }}</h1>
-        <div class="content">
-          <el-input v-model="username" placeholder="请输入用户名" size="large"
-                    autocomplete="off" autofocus @keyup.enter="login">
-            <template #prefix>
-              <el-icon>
-                <UserFilled/>
-              </el-icon>
-            </template>
-          </el-input>
-
-          <el-input v-model="password" placeholder="请输入密码" size="large"
-                    show-password autocomplete="off" @keyup.enter="login">
-            <template #prefix>
-              <el-icon>
-                <Lock/>
-              </el-icon>
-            </template>
-          </el-input>
-
-          <el-row class="btn-row">
-            <el-button class="login-btn" size="large" type="primary" @click="login">登录</el-button>
-          </el-row>
-        </div>
+        <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef"/>
+        <footer-bar class="footer"/>
       </div>
-
-      <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef"/>
-      <footer-bar class="footer"/>
     </div>
   </div>
 </template>
@@ -42,7 +45,7 @@
 
 import {ref} from "vue";
 import {Lock, UserFilled} from "@element-plus/icons-vue";
-import {httpGet, httpPost} from "@/utils/http";
+import {httpPost} from "@/utils/http";
 import {ElMessage} from "element-plus";
 import {useRouter} from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
@@ -105,14 +108,33 @@ const doLogin = function (verifyData) {
 </script>
 
 <style lang="stylus" scoped>
+.bg {
+  position absolute
+  left 0
+  right 0
+  top 0
+  bottom 0
+  background-color #091519
+  background-image url("~@/assets/img/admin-login-bg.jpg")
+  background-size cover
+  background-position center
+  background-repeat no-repeat
+  filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
+  z-index 0
+}
+
 .admin-login {
+  position absolute
+  left 0
+  top 0
+  z-index 10
   display flex
   justify-content center
   width: 100%
-  background #2D3A4B
+  height: 100vh
 
   .main {
-    width 400px;
+    max-width 400px
     display flex
     justify-content center
     align-items center
@@ -120,10 +142,10 @@ const doLogin = function (verifyData) {
 
     .contain {
       width 100%
-      padding 20px 40px;
+      padding 40px;
       color #ffffff
       border-radius 10px;
-      background rgba(255, 255, 255, 0.3)
+      background rgba(0, 0, 0, 0.3)
 
       .logo {
         text-align center
@@ -137,7 +159,7 @@ const doLogin = function (verifyData) {
 
       .header {
         width 100%
-        margin-bottom 20px
+        //margin-bottom 20px
         padding 10px
         font-size 26px
         text-align center
@@ -147,6 +169,10 @@ const doLogin = function (verifyData) {
         width 100%
         height: auto
         border-radius 3px
+
+        .el-input {
+          margin 10px 0
+        }
 
         .block {
           margin-bottom 16px

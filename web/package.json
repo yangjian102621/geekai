@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
+    "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "axios": "^0.27.2",
     "clipboard": "^2.0.11",
     "compressorjs": "^1.2.1",

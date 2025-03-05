@@ -403,11 +403,11 @@
 
       <el-tab-pane label="修复数据" name="fixData">
         <div class="container">
-          <p class="text">有些版本升级的时候更新了数据库的结构，比如字段名字改了，需要把之前的字段的值转移到其他字段，这些无法通过简单的 SQL 语句可以实现的，需要手动写程序修正数据。</p>
+<!--          <p class="text">有些版本升级的时候更新了数据库的结构，比如字段名字改了，需要把之前的字段的值转移到其他字段，这些无法通过简单的 SQL 语句可以实现的，需要手动写程序修正数据。</p>-->
 
-          <p class="text">当前版本 v4.1.4 需要修正用户数据，增加了 mobile 和 email 字段，需要把之前用手机号或者邮箱注册的用户的 username 字段数据初始化到 mobile 或者 email 字段。另外，需要把订单的支付渠道从名字称修正为 key。</p>
+<!--          <p class="text">当前版本 v4.1.4 需要修正用户数据，增加了 mobile 和 email 字段，需要把之前用手机号或者邮箱注册的用户的 username 字段数据初始化到 mobile 或者 email 字段。另外，需要把订单的支付渠道从名字称修正为 key。</p>-->
 
-          <el-text type="danger">请注意：在修复数据前，请先备份好数据库，以免数据丢失！</el-text>
+<!--          <el-text type="danger">请注意：在修复数据前，请先备份好数据库，以免数据丢失！</el-text>-->
 
           <p><el-button type="primary" @click="fixData">立即修复</el-button></p>
         </div>

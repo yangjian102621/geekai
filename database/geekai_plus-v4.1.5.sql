@@ -3,11 +3,6 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 127.0.0.1
-<<<<<<<< HEAD:database/geekai_plus-v4.1.5.sql
--- 生成日期： 2024-09-30 17:03:37
-========
--- 生成日期： 2024-09-23 14:54:46
->>>>>>>> 5213bdf08ba96a15d550a92e561a29a71a3ac841:deploy/data/mysql/init.d/geekai_plus-v4.1.4.sql
 -- 服务器版本： 8.0.33
 -- PHP 版本： 8.1.2-1ubuntu2.18
 
