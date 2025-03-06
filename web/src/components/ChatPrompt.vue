@@ -142,20 +142,30 @@ const processFiles = () => {
 
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
+  const urlPrefix = `${window.location.protocol}//${window.location.host}`;
   if (links) {
-    httpPost("/api/upload/list", {urls: links}).then(res => {
-      files.value = res.data.items
-
-      for (let link of links) {
-        if (isExternalImg(link, files.value)) {
-          files.value.push({url:link, ext: ".png"})
-        }
+    const _links = links.map((link) => {
+      if (link.startsWith(urlPrefix)) {
+        return link.replace(urlPrefix, "");
       }
-    }).catch(() => {
-    })
+      return link;
+    });
+    // 合并数组并去重
+    const urls = [...new Set([...links, ..._links])];
+    httpPost("/api/upload/list", { urls: urls })
+        .then((res) => {
+          files.value = res.data.items;
+
+          for (let link of links) {
+            if (isExternalImg(link, files.value)) {
+              files.value.push({ url: link, ext: ".png" });
+            }
+          }
+        })
+        .catch(() => {});
 
     for (let link of links) {
-      content.value = content.value.replace(link,"")
+      content.value = content.value.replace(link, "");
     }
 
   }
