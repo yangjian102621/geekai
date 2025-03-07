@@ -159,7 +159,9 @@ const processFiles = () => {
       }
       return link;
     });
-    httpPost("/api/upload/list", { urls: _links })
+    // 合并数组并去重
+    const urls = [...new Set([...links, ..._links])];
+    httpPost("/api/upload/list", { urls: urls })
       .then((res) => {
         files.value = res.data.items;
 
