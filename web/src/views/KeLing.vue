@@ -584,7 +584,7 @@ const previewVideo = (task) => {
 
 const downloadVideo = async (task) => {
   try {
-    const res = await httpDownload(`/api/download?url=${task.video_url}`);
+    const res = await httpDownload(`/api/download?url=${replaceImg(task.video_url)}`);
     const blob = new Blob([res.data]);
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
