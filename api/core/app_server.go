@@ -15,12 +15,6 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/nfnt/resize"
-	"golang.org/x/image/webp"
-	"gorm.io/gorm"
 	"image"
 	"image/jpeg"
 	"io"
@@ -29,6 +23,15 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/imroc/req/v3"
+	"github.com/nfnt/resize"
+	"github.com/shirou/gopsutil/host"
+	"golang.org/x/image/webp"
+	"gorm.io/gorm"
 )
 
 type AppServer struct {
@@ -71,6 +74,25 @@ func (s *AppServer) Run(db *gorm.DB) error {
 		return fmt.Errorf("failed to decode system config: %v", err)
 	}
 	logger.Infof("http://%s", s.Config.Listen)
+
+	// 统计安装信息
+	go func() {
+		info, err := host.Info()
+		if err == nil {
+			apiURL := fmt.Sprintf("%s/%s", s.Config.ApiConfig.ApiURL, "api/installs/push")
+			timestamp := time.Now().Unix()
+			product := "geekai-plus"
+			signStr := fmt.Sprintf("%s#%s#%d", product, info.HostID, timestamp)
+			sign := utils.Sha256(signStr)
+			resp, err := req.C().R().SetBody(map[string]interface{}{"product": product, "device_id": info.HostID, "timestamp": timestamp, "sign": sign}).Post(apiURL)
+			if err != nil {
+				logger.Errorf("register install info failed: %v", err)
+			} else {
+				logger.Debugf("register install info success: %v", resp.String())
+			}
+		}
+	}()
+
 	return s.Engine.Run(s.Config.Listen)
 }
 

@@ -20,7 +20,7 @@ TikaHost = "http://tika:9998"
   DB = 0
 
 [ApiConfig]
-  ApiURL = "http://sapi.geekai.me"
+  ApiURL = "https://sapi.geekai.me"
   AppId = ""
   Token = ""
 

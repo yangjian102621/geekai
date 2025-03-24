@@ -173,7 +173,7 @@ func main() {
 		// License 服务
 		fx.Provide(service.NewLicenseService),
 		fx.Invoke(func(licenseService *service.LicenseService) {
-			licenseService.SyncLicense()
+			// licenseService.SyncLicense()
 		}),
 
 		// MidJourney service pool
