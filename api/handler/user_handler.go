@@ -130,15 +130,28 @@ func (h *UserHandler) Register(c *gin.Context) {
 		}
 	}
 
+	salt := utils.RandString(8)
+	user := model.User{
+		Username:  data.Username,
+		Password:  utils.GenPassword(data.Password, salt),
+		Avatar:    "/images/avatar/user.png",
+		Salt:      salt,
+		Status:    true,
+		ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
+		Power:     h.App.SysConfig.InitPower,
+	}
+
 	// check if the username is existing
 	var item model.User
 	session := h.DB.Session(&gorm.Session{})
 	if data.Mobile != "" {
 		session = session.Where("mobile = ?", data.Mobile)
-		data.Username = data.Mobile
+		user.Username = data.Mobile
+		user.Mobile = data.Mobile
 	} else if data.Email != "" {
 		session = session.Where("email = ?", data.Email)
-		data.Username = data.Email
+		user.Username = data.Email
+		user.Email = data.Email
 	} else if data.Username != "" {
 		session = session.Where("username = ?", data.Username)
 	}
@@ -146,20 +159,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if item.Id > 0 {
 		resp.ERROR(c, "该用户名已经被注册")
 		return
-	}
-
-	salt := utils.RandString(8)
-	user := model.User{
-		Username:   data.Username,
-		Mobile:     data.Mobile,
-		Email:      data.Email,
-		Password:   utils.GenPassword(data.Password, salt),
-		Avatar:     "/images/avatar/user.png",
-		Salt:       salt,
-		Status:     true,
-		ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
-		ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
-		Power:      h.App.SysConfig.InitPower,
 	}
 
 	// 被邀请人也获得赠送算力
@@ -417,16 +416,15 @@ func (h *UserHandler) CLoginCallback(c *gin.Context) {
 		salt := utils.RandString(8)
 		password := fmt.Sprintf("%d", utils.RandomNumber(8))
 		user = model.User{
-			Username:   fmt.Sprintf("%s@%d", loginType, utils.RandomNumber(10)),
-			Password:   utils.GenPassword(password, salt),
-			Avatar:     fmt.Sprintf("%s", data["avatar"]),
-			Salt:       salt,
-			Status:     true,
-			ChatRoles:  utils.JsonEncode([]string{"gpt"}),               // 默认只订阅通用助手角色
-			ChatModels: utils.JsonEncode(h.App.SysConfig.DefaultModels), // 默认开通的模型
-			Power:      h.App.SysConfig.InitPower,
-			OpenId:     fmt.Sprintf("%s", data["openid"]),
-			Nickname:   fmt.Sprintf("%s", data["nickname"]),
+			Username:  fmt.Sprintf("%s@%d", loginType, utils.RandomNumber(10)),
+			Password:  utils.GenPassword(password, salt),
+			Avatar:    fmt.Sprintf("%s", data["avatar"]),
+			Salt:      salt,
+			Status:    true,
+			ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
+			Power:     h.App.SysConfig.InitPower,
+			OpenId:    fmt.Sprintf("%s", data["openid"]),
+			Nickname:  fmt.Sprintf("%s", data["nickname"]),
 		}
 
 		tx = h.DB.Create(&user)

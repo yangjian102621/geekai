@@ -59,6 +59,20 @@ func (s *Service) PushTask(task types.DallTask) {
 }
 
 func (s *Service) Run() {
+	// 将数据库中未提交的人物加载到队列
+	var jobs []model.DallJob
+	s.db.Where("progress", 0).Find(&jobs)
+	for _, v := range jobs {
+		var task types.DallTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.PushTask(task)
+	}
+
 	logger.Info("Starting DALL-E job consumer...")
 	go func() {
 		for {
@@ -69,15 +83,15 @@ func (s *Service) Run() {
 				continue
 			}
 			logger.Infof("handle a new DALL-E task: %+v", task)
-			s.clientIds[task.JobId] = task.ClientId
+			s.clientIds[task.Id] = task.ClientId
 			_, err = s.Image(task, false)
 			if err != nil {
 				logger.Errorf("error with image task: %v", err)
-				s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
+				s.db.Model(&model.DallJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 					"progress": service.FailTaskProgress,
 					"err_msg":  err.Error(),
 				})
-				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
+				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.Id), Message: service.TaskStatusFailed})
 			}
 		}
 	}()
@@ -114,7 +128,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	prompt := task.Prompt
 	// translate prompt
 	if utils.HasChinese(prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.RewritePromptTemplate, prompt), "gpt-4o-mini", 0)
+		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, prompt), task.TranslateModelId)
 		if err == nil {
 			prompt = content
 			logger.Debugf("重写后提示词：%s", prompt)
@@ -177,7 +191,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	// update the api key last use time
 	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	// update task progress
-	err = s.db.Model(&model.DallJob{Id: task.JobId}).UpdateColumns(map[string]interface{}{
+	err = s.db.Model(&model.DallJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
 		"progress": 100,
 		"org_url":  res.Data[0].Url,
 		"prompt":   prompt,
@@ -186,10 +200,10 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		return "", fmt.Errorf("err with update database: %v", err)
 	}
 
-	s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.JobId), Message: service.TaskStatusFailed})
+	s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: int(task.UserId), JobId: int(task.Id), Message: service.TaskStatusFailed})
 	var content string
 	if sync {
-		imgURL, err := s.downloadImage(task.JobId, int(task.UserId), res.Data[0].Url)
+		imgURL, err := s.downloadImage(task.Id, int(task.UserId), res.Data[0].Url)
 		if err != nil {
 			return "", fmt.Errorf("error with download image: %v", err)
 		}
@@ -223,13 +237,9 @@ func (s *Service) CheckTaskStatus() {
 	go func() {
 		logger.Info("Running DALL-E task status checking ...")
 		for {
+			// 检查未完成任务进度
 			var jobs []model.DallJob
-			res := s.db.Where("progress < ?", 100).Find(&jobs)
-			if res.Error != nil {
-				time.Sleep(5 * time.Second)
-				continue
-			}
-
+			s.db.Where("progress < ?", 100).Find(&jobs)
 			for _, job := range jobs {
 				// 超时的任务标记为失败
 				if time.Now().Sub(job.CreatedAt) > time.Minute*10 {
@@ -237,6 +247,21 @@ func (s *Service) CheckTaskStatus() {
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
 				}
+			}
+
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				err := s.userService.IncreasePower(int(job.UserId), job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  "dall-e-3",
+					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
 			}
 			time.Sleep(time.Second * 10)
 		}

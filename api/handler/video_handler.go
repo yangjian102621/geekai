@@ -80,13 +80,21 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		StartImgURL:    data.FirstFrameImg,
 		EndImgURL:      data.EndFrameImg,
 	}
+	task := types.VideoTask{
+		ClientId:         data.ClientId,
+		UserId:           userId,
+		Type:             types.VideoLuma,
+		Prompt:           data.Prompt,
+		Params:           params,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+	}
 	// 插入数据库
 	job := model.VideoJob{
-		UserId: userId,
-		Type:   types.VideoLuma,
-		Prompt: data.Prompt,
-		Power:  h.App.SysConfig.LumaPower,
-		Params: utils.JsonEncode(params),
+		UserId:   userId,
+		Type:     types.VideoLuma,
+		Prompt:   data.Prompt,
+		Power:    h.App.SysConfig.LumaPower,
+		TaskInfo: utils.JsonEncode(task),
 	}
 	tx := h.DB.Create(&job)
 	if tx.Error != nil {
@@ -95,14 +103,8 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	}
 
 	// 创建任务
-	h.videoService.PushTask(types.VideoTask{
-		ClientId: data.ClientId,
-		Id:       job.Id,
-		UserId:   userId,
-		Type:     types.VideoLuma,
-		Prompt:   data.Prompt,
-		Params:   params,
-	})
+	task.Id = job.Id
+	h.videoService.PushTask(task)
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
@@ -181,25 +183,11 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 	}
 
 	// 删除任务
-	tx := h.DB.Begin()
-	if err := tx.Delete(&job).Error; err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	// 恢复算力
-	err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-		Type:   types.PowerRefund,
-		Model:  "luma",
-		Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-	})
+	err = h.DB.Delete(&job).Error
 	if err != nil {
-		tx.Rollback()
 		resp.ERROR(c, err.Error())
 		return
 	}
-	tx.Commit()
 
 	// 删除文件
 	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)

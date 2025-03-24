@@ -8,7 +8,6 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"fmt"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
@@ -72,10 +71,21 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	task := types.DallTask{
+		ClientId:         data.ClientId,
+		UserId:           uint(userId),
+		Prompt:           data.Prompt,
+		Quality:          data.Quality,
+		Size:             data.Size,
+		Style:            data.Style,
+		Power:            h.App.SysConfig.DallPower,
+		TranslateModelId: h.App.SysConfig.TranslateModelId,
+	}
 	job := model.DallJob{
-		UserId: uint(userId),
-		Prompt: data.Prompt,
-		Power:  h.App.SysConfig.DallPower,
+		UserId:   uint(userId),
+		Prompt:   data.Prompt,
+		Power:    task.Power,
+		TaskInfo: utils.JsonEncode(task),
 	}
 	res := h.DB.Create(&job)
 	if res.Error != nil {
@@ -83,16 +93,8 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	h.dallService.PushTask(types.DallTask{
-		ClientId: data.ClientId,
-		JobId:    job.Id,
-		UserId:   uint(userId),
-		Prompt:   data.Prompt,
-		Quality:  data.Quality,
-		Size:     data.Size,
-		Style:    data.Style,
-		Power:    job.Power,
-	})
+	task.Id = job.Id
+	h.dallService.PushTask(task)
 	resp.SUCCESS(c)
 }
 
@@ -179,25 +181,14 @@ func (h *DallJobHandler) Remove(c *gin.Context) {
 	}
 
 	// 删除任务
-	tx := h.DB.Begin()
-	tx.Delete(&job)
-	// 如果任务未完成，或者任务失败，则恢复用户算力
-	if job.Progress != 100 {
-		err := h.userService.IncreasePower(int(job.UserId), job.Power, model.PowerLog{
-			Type:   types.PowerRefund,
-			Model:  "dall-e-3",
-			Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
-		})
-		if err != nil {
-			tx.Rollback()
-			resp.ERROR(c, err.Error())
-			return
-		}
+	err := h.DB.Delete(&job).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
 	}
-	tx.Commit()
 
 	// remove image
-	err := h.uploader.GetUploadHandler().Delete(job.ImgURL)
+	err = h.uploader.GetUploadHandler().Delete(job.ImgURL)
 	if err != nil {
 		logger.Error("remove image failed: ", err)
 	}

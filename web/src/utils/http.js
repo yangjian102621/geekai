@@ -6,12 +6,12 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import axios from 'axios'
-import {getAdminToken, getSessionId, getUserToken, removeAdminToken, removeUserToken} from "@/store/session";
+import {getAdminToken, getUserToken, removeAdminToken, removeUserToken} from "@/store/session";
 
 axios.defaults.timeout = 180000
 axios.defaults.baseURL = process.env.VUE_APP_API_HOST
 axios.defaults.withCredentials = true;
-axios.defaults.headers.post['Content-Type'] = 'application/json'
+//axios.defaults.headers.post['Content-Type'] = 'application/json'
 
 // HTTP拦截器
 axios.interceptors.request.use(
@@ -75,6 +75,21 @@ export function httpDownload(url) {
         axios({
             method: 'GET',
             url: url,
+            responseType: 'blob' // 将响应类型设置为 `blob`
+        }).then(response => {
+            resolve(response)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
+
+export function httpPostDownload(url, data) {
+    return new Promise((resolve, reject) => {
+        axios({
+            method: 'POST',
+            url: url,
+            data: data,
             responseType: 'blob' // 将响应类型设置为 `blob`
         }).then(response => {
             resolve(response)

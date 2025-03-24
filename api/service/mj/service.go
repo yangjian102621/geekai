@@ -30,10 +30,11 @@ type Service struct {
 	db              *gorm.DB
 	wsService       *service.WebsocketService
 	uploaderManager *oss.UploaderManager
+	userService     *service.UserService
 	clientIds       map[uint]string
 }
 
-func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, wsService *service.WebsocketService) *Service {
+func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, wsService *service.WebsocketService, userService *service.UserService) *Service {
 	return &Service{
 		db:              db,
 		taskQueue:       store.NewRedisQueue("MidJourney_Task_Queue", redisCli),
@@ -42,10 +43,26 @@ func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *os
 		wsService:       wsService,
 		uploaderManager: manager,
 		clientIds:       map[uint]string{},
+		userService:     userService,
 	}
 }
 
 func (s *Service) Run() {
+	// 将数据库中未提交的人物加载到队列
+	var jobs []model.MidJourneyJob
+	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
+	for _, v := range jobs {
+		var task types.MjTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.clientIds[task.Id] = task.ClientId
+		s.PushTask(task)
+	}
+
 	logger.Info("Starting MidJourney job consumer for service")
 	go func() {
 		for {
@@ -58,7 +75,7 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
 				if err == nil {
 					task.Prompt = content
 				} else {
@@ -67,7 +84,7 @@ func (s *Service) Run() {
 			}
 			// translate negative prompt
 			if task.NegPrompt != "" && utils.HasChinese(task.NegPrompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), task.TranslateModelId)
 				if err == nil {
 					task.NegPrompt = content
 				} else {
@@ -279,7 +296,6 @@ func (s *Service) SyncTaskProgress() {
 				}
 				oldProgress := job.Progress
 				job.Progress = utils.IntValue(strings.Replace(task.Progress, "%", "", 1), 0)
-				job.Prompt = task.PromptEn
 				if task.ImageUrl != "" {
 					job.OrgURL = task.ImageUrl
 				}
@@ -301,6 +317,21 @@ func (s *Service) SyncTaskProgress() {
 						JobId:    int(job.Id),
 						Message:  message})
 				}
+			}
+
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  "mid-journey",
+					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
 			}
 
 			time.Sleep(time.Second * 5)

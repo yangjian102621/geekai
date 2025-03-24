@@ -153,14 +153,13 @@
                     </template>
                   </el-input>
                 </el-form-item>
-                <el-form-item label="默认AI模型" prop="default_models">
+                <el-form-item label="默认翻译模型">
                   <template #default>
                     <div class="tip-input">
                       <el-select
-                          v-model="system['default_models']"
-                          multiple
+                          v-model.number="system['translate_model_id']"
                           :filterable="true"
-                          placeholder="选择AI模型，多选"
+                          placeholder="选择一个默认模型来翻译提示词"
                           style="width: 100%"
                       >
                         <el-option

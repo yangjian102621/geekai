@@ -7,6 +7,7 @@ type MidJourneyJob struct {
 	Type        string
 	UserId      int
 	TaskId      string
+	TaskInfo    string // 原始任务信息
 	ChannelId   string
 	MessageId   string
 	ReferenceId string

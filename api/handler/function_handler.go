@@ -113,9 +113,12 @@ func (h *FunctionHandler) WeiBo(c *gin.Context) {
 		SetHeader("AppId", h.config.AppId).
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.config.Token)).
 		SetSuccessResult(&res).Get(url)
-	if err != nil || r.IsErrorState() {
-		resp.ERROR(c, fmt.Sprintf("%v%v", err, r.Err))
+	if err != nil {
+		resp.ERROR(c, fmt.Sprintf("%v", err))
 		return
+	}
+	if r.IsErrorState() {
+		resp.ERROR(c, fmt.Sprintf("error http code status: %v", r.Status))
 	}
 
 	if res.Code != types.Success {
@@ -209,7 +212,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	content, err := h.dallService.Image(types.DallTask{
-		JobId:   job.Id,
+		Id:      job.Id,
 		UserId:  user.Id,
 		Prompt:  job.Prompt,
 		N:       1,

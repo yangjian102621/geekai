@@ -14,7 +14,7 @@ module.exports = defineConfig({
         ]
     },
 
-    publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
+    publicPath: '/',
 
     outputDir: 'dist',
     crossorigin: "anonymous",
