@@ -142,7 +142,6 @@ type SystemConfig struct {
 
 	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
 	VipInfoText     string `json:"vip_info_text,omitempty"`     // 会员页面充值说明
-	DefaultModels   []int  `json:"default_models,omitempty"`    // 默认开通的 AI 模型
 
 	MjPower       int `json:"mj_power,omitempty"`        // MJ 绘画消耗算力
 	MjActionPower int `json:"mj_action_power,omitempty"` // MJ 操作（放大，变换）消耗算力
@@ -164,6 +163,7 @@ type SystemConfig struct {
 	Copyright   string `json:"copyright"`     // 版权信息
 	MarkMapText string `json:"mark_map_text"` // 思维导入的默认文本
 
-	EnabledVerify  bool     `json:"enabled_verify"`   // 是否启用验证码
-	EmailWhiteList []string `json:"email_white_list"` // 邮箱白名单列表
+	EnabledVerify    bool     `json:"enabled_verify"`     // 是否启用验证码
+	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
+	TranslateModelId int      `json:"translate_model_id"` // 用来做提示词翻译的大模型 id
 }

@@ -36,9 +36,10 @@ type Service struct {
 	notifyQueue   *store.RedisQueue
 	wsService     *service.WebsocketService
 	clientIds     map[string]string
+	userService   *service.UserService
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService, userService *service.UserService) *Service {
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
@@ -47,6 +48,7 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 		uploadManager: manager,
 		wsService:     wsService,
 		clientIds:     map[string]string{},
+		userService:   userService,
 	}
 }
 
@@ -58,22 +60,17 @@ func (s *Service) PushTask(task types.SunoTask) {
 func (s *Service) Run() {
 	// 将数据库中未提交的人物加载到队列
 	var jobs []model.SunoJob
-	s.db.Where("task_id", "").Find(&jobs)
+	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {
-		s.PushTask(types.SunoTask{
-			Id:           v.Id,
-			Channel:      v.Channel,
-			UserId:       v.UserId,
-			Type:         v.Type,
-			Title:        v.Title,
-			RefTaskId:    v.RefTaskId,
-			RefSongId:    v.RefSongId,
-			Prompt:       v.Prompt,
-			Tags:         v.Tags,
-			Model:        v.ModelName,
-			Instrumental: v.Instrumental,
-			ExtendSecs:   v.ExtendSecs,
-		})
+		var task types.SunoTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.PushTask(task)
+		s.clientIds[v.TaskId] = task.ClientId
 	}
 	logger.Info("Starting Suno job consumer...")
 	go func() {
@@ -389,6 +386,20 @@ func (s *Service) SyncTaskProgress() {
 				}
 			}
 
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  job.ModelName,
+					Remark: fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
+			}
 			time.Sleep(time.Second * 10)
 		}
 	}()

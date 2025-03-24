@@ -51,7 +51,6 @@ type OpenAIResVo struct {
 
 // OPenAI 消息发送实现
 func (h *ChatHandler) sendOpenAiMessage(
-	chatCtx []types.Message,
 	req types.ApiRequest,
 	userVo vo.User,
 	ctx context.Context,
@@ -201,7 +200,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				TotalTokens:      0,
 			}
 			message.Content = usage.Content
-			h.saveChatHistory(req, usage, message, chatCtx, session, role, userVo, promptCreatedAt, replyCreatedAt)
+			h.saveChatHistory(req, usage, message, session, role, userVo, promptCreatedAt, replyCreatedAt)
 		}
 	} else { // 非流式输出
 		var respVo OpenAIResVo
@@ -220,7 +219,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		utils.SendChunkMsg(ws, content)
 		respVo.Usage.Prompt = prompt
 		respVo.Usage.Content = content
-		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, chatCtx, session, role, userVo, promptCreatedAt, time.Now())
+		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, session, role, userVo, promptCreatedAt, time.Now())
 	}
 
 	return nil

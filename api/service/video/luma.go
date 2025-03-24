@@ -36,9 +36,10 @@ type Service struct {
 	notifyQueue   *store.RedisQueue
 	wsService     *service.WebsocketService
 	clientIds     map[uint]string
+	userService   *service.UserService
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService, userService *service.UserService) *Service {
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
@@ -47,6 +48,7 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 		wsService:     wsService,
 		uploadManager: manager,
 		clientIds:     map[uint]string{},
+		userService:   userService,
 	}
 }
 
@@ -60,20 +62,15 @@ func (s *Service) Run() {
 	var jobs []model.VideoJob
 	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {
-		var params types.VideoParams
-		if err := utils.JsonDecode(v.Params, &params); err != nil {
-			logger.Errorf("unmarshal params failed: %v", err)
+		var task types.VideoTask
+		err := utils.JsonDecode(v.TaskInfo, &task)
+		if err != nil {
+			logger.Errorf("decode task info with error: %v", err)
 			continue
 		}
-		s.PushTask(types.VideoTask{
-			Id:      v.Id,
-			Channel: v.Channel,
-			UserId:  v.UserId,
-			Type:    v.Type,
-			TaskId:  v.TaskId,
-			Prompt:  v.Prompt,
-			Params:  params,
-		})
+		task.Id = v.Id
+		s.PushTask(task)
+		s.clientIds[v.Id] = task.ClientId
 	}
 	logger.Info("Starting Video job consumer...")
 	go func() {
@@ -87,7 +84,7 @@ func (s *Service) Run() {
 
 			// translate prompt
 			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), "gpt-4o-mini", 0)
+				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
 				if err == nil {
 					task.Prompt = content
 				} else {
@@ -291,6 +288,20 @@ func (s *Service) SyncTaskProgress() {
 
 			}
 
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  "luma",
+					Remark: fmt.Sprintf("Luma 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
+			}
 			time.Sleep(time.Second * 10)
 		}
 	}()

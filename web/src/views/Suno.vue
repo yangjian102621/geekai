@@ -111,7 +111,7 @@
             </el-popover>
           </div>
           <div class="item">
-            <black-input v-model:value="data.prompt" type="textarea" :rows="10" placeholder="例如：一首关于鸟人的摇滚歌曲..."/>
+            <black-input v-model:value="data.prompt" type="textarea" :rows="10" placeholder="例如：一首关于爱情的摇滚歌曲..."/>
           </div>
         </div>
 
@@ -266,7 +266,7 @@
       </div>
     </div>
 
-    <black-dialog v-model:show="showDialog" title="修改歌曲" @cancal="showDialog = false" @confirm="updateSong" :width="500">
+    <black-dialog v-model:show="showDialog" title="修改歌曲" @cancal="showDialog = false" @confirm="updateSong" :width="500+'px'">
       <form class="form">
         <div class="form-item">
           <div class="label">歌曲名称</div>
@@ -615,7 +615,7 @@ const createLyric = () => {
     return showMessageError("请输入歌词描述")
   }
   isGenerating.value = true
-  httpPost("/api/suno/lyric", {prompt: data.value.lyrics}).then(res => {
+  httpPost("/api/prompt/lyric", {prompt: data.value.lyrics}).then(res => {
     const lines = res.data.split('\n');
     data.value.title = lines.shift().replace(/\*/g,"")
     lines.shift()

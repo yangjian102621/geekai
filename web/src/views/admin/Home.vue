@@ -49,7 +49,7 @@ watch(() => store.adminTheme, (val) => {
 
 </script>
 
-<style scoped lang="stylus">
+<style lang="stylus">
 @import '@/assets/css/color-dark.styl';
 @import '@/assets/css/main.styl';
 @import '@/assets/iconfont/iconfont.css';

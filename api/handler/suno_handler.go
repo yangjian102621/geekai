@@ -89,13 +89,29 @@ func (h *SunoHandler) Create(c *gin.Context) {
 			data.Prompt = fmt.Sprintf("%s\n%s", song.Prompt, refSong.Prompt)
 		}
 	}
+	task := types.SunoTask{
+		ClientId:     data.ClientId,
+		UserId:       int(h.GetLoginUserId(c)),
+		Type:         data.Type,
+		Title:        data.Title,
+		RefTaskId:    data.RefTaskId,
+		RefSongId:    data.RefSongId,
+		ExtendSecs:   data.ExtendSecs,
+		Prompt:       data.Prompt,
+		Tags:         data.Tags,
+		Model:        data.Model,
+		Instrumental: data.Instrumental,
+		SongId:       data.SongId,
+		AudioURL:     data.AudioURL,
+	}
 
 	// 插入数据库
 	job := model.SunoJob{
-		UserId:       int(h.GetLoginUserId(c)),
+		UserId:       task.UserId,
 		Prompt:       data.Prompt,
 		Instrumental: data.Instrumental,
 		ModelName:    data.Model,
+		TaskInfo:     utils.JsonEncode(task),
 		Tags:         data.Tags,
 		Title:        data.Title,
 		Type:         data.Type,
@@ -115,26 +131,13 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	}
 
 	// 创建任务
-	h.sunoService.PushTask(types.SunoTask{
-		ClientId:     data.ClientId,
-		Id:           job.Id,
-		UserId:       job.UserId,
-		Type:         job.Type,
-		Title:        job.Title,
-		RefTaskId:    data.RefTaskId,
-		RefSongId:    data.RefSongId,
-		ExtendSecs:   data.ExtendSecs,
-		Prompt:       job.Prompt,
-		Tags:         data.Tags,
-		Model:        data.Model,
-		Instrumental: data.Instrumental,
-		SongId:       data.SongId,
-		AudioURL:     data.AudioURL,
-	})
+	task.Id = job.Id
+	h.sunoService.PushTask(task)
 
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:      types.PowerConsume,
+		Model:     job.ModelName,
 		Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.ModelName),
 		CreatedAt: time.Now(),
 	})
@@ -219,25 +222,11 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 	}
 
 	// 删除任务
-	tx := h.DB.Begin()
-	if err := tx.Delete(&job).Error; err != nil {
-		tx.Rollback()
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	// 恢复用户算力
-	err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-		Type:   types.PowerRefund,
-		Model:  job.ModelName,
-		Remark: fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
-	})
+	err = h.DB.Delete(&job).Error
 	if err != nil {
-		tx.Rollback()
 		resp.ERROR(c, err.Error())
 		return
 	}
-	tx.Commit()
 
 	// 删除文件
 	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)
@@ -333,41 +322,4 @@ func (h *SunoHandler) Play(c *gin.Context) {
 		return
 	}
 	h.DB.Model(&model.SunoJob{}).Where("song_id", songId).UpdateColumn("play_times", gorm.Expr("play_times + ?", 1))
-}
-
-const genLyricTemplate = `
-你是一位才华横溢的作曲家，拥有丰富的情感和细腻的笔触，你对文字有着独特的感悟力，能将各种情感和意境巧妙地融入歌词中。
-请以【%s】为主题创作一首歌曲，歌曲时间不要太短，3分钟左右，不要输出任何解释性的内容。
-输出格式如下：
-歌曲名称
-第一节：
-{{歌词内容}}
-副歌：
-{{歌词内容}}
-
-第二节：
-{{歌词内容}}
-副歌：
-{{歌词内容}}
-
-尾声：
-{{歌词内容}}
-`
-
-// Lyric 生成歌词
-func (h *SunoHandler) Lyric(c *gin.Context) {
-	var data struct {
-		Prompt string `json:"prompt"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(genLyricTemplate, data.Prompt), "gpt-4o-mini", 0)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	resp.SUCCESS(c, content)
 }

@@ -9,6 +9,7 @@ type SunoJob struct {
 	Title        string
 	Type         int
 	TaskId       string
+	TaskInfo     string // 原始任务信息
 	RefTaskId    string // 续写的任务id
 	Tags         string // 歌曲风格和标签
 	Instrumental bool   // 是否生成纯音乐
