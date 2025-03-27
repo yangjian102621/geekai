@@ -265,7 +265,7 @@ const reGenerate = (prompt) => {
           // 代码快
 
           blockquote {
-            margin 0
+            margin 0 0 0.8rem 0
             background-color: var(--quote-bg-color);
             padding: 0.8rem 1.5rem;
             color: var(--quote-text-color);

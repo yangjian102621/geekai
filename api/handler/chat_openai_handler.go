@@ -89,6 +89,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		var function model.Function
 		var toolCall = false
 		var arguments = make([]string, 0)
+		var reasoning = false
 
 		scanner := bufio.NewScanner(response.Body)
 		for scanner.Scan() {
@@ -104,7 +105,9 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
 				continue
 			}
-			if responseBody.Choices[0].Delta.Content == nil && responseBody.Choices[0].Delta.ToolCalls == nil {
+			if responseBody.Choices[0].Delta.Content == nil &&
+				responseBody.Choices[0].Delta.ToolCalls == nil &&
+				responseBody.Choices[0].Delta.ReasoningContent == "" {
 				continue
 			}
 
@@ -152,9 +155,25 @@ func (h *ChatHandler) sendOpenAiMessage(
 			if responseBody.Choices[0].FinishReason != "" {
 				break // 输出完成或者输出中断了
 			} else { // 正常输出结果
-				content := responseBody.Choices[0].Delta.Content
-				contents = append(contents, utils.InterfaceToString(content))
-				utils.SendChunkMsg(ws, content)
+				// 兼容思考过程
+				if responseBody.Choices[0].Delta.ReasoningContent != "" {
+					reasoningContent := responseBody.Choices[0].Delta.ReasoningContent
+					if !reasoning {
+						reasoningContent = fmt.Sprintf("<think>%s", reasoningContent)
+						reasoning = true
+					}
+
+					utils.SendChunkMsg(ws, reasoningContent)
+					contents = append(contents, reasoningContent)
+				} else if responseBody.Choices[0].Delta.Content != "" {
+					finalContent := responseBody.Choices[0].Delta.Content
+					if reasoning {
+						finalContent = fmt.Sprintf("</think>%s", responseBody.Choices[0].Delta.Content)
+						reasoning = false
+					}
+					contents = append(contents, utils.InterfaceToString(finalContent))
+					utils.SendChunkMsg(ws, finalContent)
+				}
 			}
 		} // end for
 

@@ -9,20 +9,20 @@ package types
 
 // ApiRequest API 请求实体
 type ApiRequest struct {
-	Model               string        `json:"model,omitempty"`
-	Temperature         float32       `json:"temperature"`
-	MaxTokens           int           `json:"max_tokens,omitempty"`
-	MaxCompletionTokens int           `json:"max_completion_tokens,omitempty"` // 兼容GPT O1 模型
-	Stream              bool          `json:"stream,omitempty"`
-	Messages            []interface{} `json:"messages,omitempty"`
-	Tools               []Tool        `json:"tools,omitempty"`
-	Functions           []interface{} `json:"functions,omitempty"`       // 兼容中转平台
-	ResponseFormat      interface{}   `json:"response_format,omitempty"` // 响应格式
+	Model               string  `json:"model,omitempty"`
+	Temperature         float32 `json:"temperature"`
+	MaxTokens           int     `json:"max_tokens,omitempty"`
+	MaxCompletionTokens int     `json:"max_completion_tokens,omitempty"` // 兼容GPT O1 模型
+	Stream              bool    `json:"stream,omitempty"`
+	Messages            []any   `json:"messages,omitempty"`
+	Tools               []Tool  `json:"tools,omitempty"`
+	Functions           []any   `json:"functions,omitempty"`       // 兼容中转平台
+	ResponseFormat      any     `json:"response_format,omitempty"` // 响应格式
 
 	ToolChoice string `json:"tool_choice,omitempty"`
 
-	Input      map[string]interface{} `json:"input,omitempty"`      //兼容阿里通义千问
-	Parameters map[string]interface{} `json:"parameters,omitempty"` //兼容阿里通义千问
+	Input      map[string]any `json:"input,omitempty"`      //兼容阿里通义千问
+	Parameters map[string]any `json:"parameters,omitempty"` //兼容阿里通义千问
 }
 
 type Message struct {
@@ -41,11 +41,12 @@ type ChoiceItem struct {
 }
 
 type Delta struct {
-	Role         string      `json:"role"`
-	Name         string      `json:"name"`
-	Content      interface{} `json:"content"`
-	ToolCalls    []ToolCall  `json:"tool_calls,omitempty"`
-	FunctionCall struct {
+	Role             string     `json:"role"`
+	Name             string     `json:"name"`
+	Content          any        `json:"content"`
+	ReasoningContent string     `json:"reasoning_content,omitempty"`
+	ToolCalls        []ToolCall `json:"tool_calls,omitempty"`
+	FunctionCall     struct {
 		Name      string `json:"name,omitempty"`
 		Arguments string `json:"arguments,omitempty"`
 	} `json:"function_call,omitempty"`

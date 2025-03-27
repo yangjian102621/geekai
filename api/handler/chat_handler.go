@@ -40,7 +40,7 @@ type ChatHandler struct {
 	uploadManager  *oss.UploaderManager
 	licenseService *service.LicenseService
 	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
-	ChatContexts   *types.LMap[string, []interface{}]      // 聊天上下文 Map [chatId] => []Message
+	ChatContexts   *types.LMap[string, []any]              // 聊天上下文 Map [chatId] => []Message
 	userService    *service.UserService
 }
 
@@ -51,7 +51,7 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		uploadManager:  manager,
 		licenseService: licenseService,
 		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
-		ChatContexts:   types.NewLMap[string, []interface{}](),
+		ChatContexts:   types.NewLMap[string, []any](),
 		userService:    userService,
 	}
 }
@@ -348,8 +348,14 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, sessi
 		return nil, err
 	}
 	logger.Debugf("对话请求消息体：%+v", req)
-
-	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
+	var apiURL string
+	p, _ := url.Parse(apiKey.ApiURL)
+	// 如果设置的是 BASE_URL 没有路径，则添加 /v1/chat/completions
+	if p.Path == "" {
+		apiURL = fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
+	} else {
+		apiURL = apiKey.ApiURL
+	}
 	// 创建 HttpClient 请求对象
 	var client *http.Client
 	requestBody, err := json.Marshal(req)
