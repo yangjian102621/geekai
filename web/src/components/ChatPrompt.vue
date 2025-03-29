@@ -233,6 +233,8 @@ const isExternalImg = (link, files) => {
               border 1px solid #e3e3e3
               border-radius 10px
               margin-bottom 10px
+              max-width 150px
+              max-height 150px
             }
           }
 
@@ -366,6 +368,8 @@ const isExternalImg = (link, files) => {
               border 1px solid #e3e3e3
               border-radius 10px
               margin-bottom 10px
+              max-width 150px
+              max-height 150px
             }
           }
 

@@ -4,6 +4,7 @@
 
 - 功能优化：开启图形验证码功能的时候现检查是否配置了 API 服务，防止开启之后没法登录的 Bug。
 - 功能优化：支持原生的 DeepSeek 推理模型 API，聊天 API KEY 支持设置完整的 API 路径，比如 https://api.geekai.pro/v1/chat/completions
+- 功能优化：支持 GPT-4o 图片编辑功能。
 - 功能新增：对话页面支持AI输出语音播报（TTS）。
 - 功能新增：支持 Goole 账号登录。
 
