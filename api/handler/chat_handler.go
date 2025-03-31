@@ -22,15 +22,16 @@ import (
 	"geekai/utils"
 	"geekai/utils/resp"
 	"html/template"
+	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/sashabaranov/go-openai"
 	"gorm.io/gorm"
 )
 
@@ -501,28 +502,50 @@ func (h *ChatHandler) saveChatHistory(
 	}
 }
 
-// 将AI回复消息中生成的图片链接下载到本地
-func (h *ChatHandler) extractImgUrl(text string) string {
-	pattern := `!\[([^\]]*)]\(([^)]+)\)`
-	re := regexp.MustCompile(pattern)
-	matches := re.FindAllStringSubmatch(text, -1)
-
-	// 下载图片并替换链接地址
-	for _, match := range matches {
-		imageURL := match[2]
-		logger.Debug(imageURL)
-		// 对于相同地址的图片，已经被替换了，就不再重复下载了
-		if !strings.Contains(text, imageURL) {
-			continue
-		}
-
-		newImgURL, err := h.uploadManager.GetUploadHandler().PutUrlFile(imageURL, false)
-		if err != nil {
-			logger.Error("error with download image: ", err)
-			continue
-		}
-
-		text = strings.ReplaceAll(text, imageURL, newImgURL)
+// 文本生成语音
+func (h *ChatHandler) TextToSpeech(c *gin.Context) {
+	var data struct {
+		Text string `json:"text"`
 	}
-	return text
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 调用 DeepSeek 的 API 接口
+	var apiKey model.ApiKey
+	h.DB.Where("type", "chat").Where("enabled", true).First(&apiKey)
+	if apiKey.Id == 0 {
+		resp.ERROR(c, "no available key, please import key")
+		return
+	}
+
+	// 调用 openai tts api
+	config := openai.DefaultConfig(apiKey.Value)
+	config.BaseURL = apiKey.ApiURL
+	client := openai.NewClientWithConfig(config)
+	req := openai.CreateSpeechRequest{
+		Model: openai.TTSModel1,
+		Input: data.Text,
+		Voice: openai.VoiceAlloy,
+	}
+
+	audioData, err := client.CreateSpeech(context.Background(), req)
+	if err != nil {
+		logger.Error("failed to create speech: ", err)
+		resp.ERROR(c, "failed to create speech")
+		return
+	}
+
+	// 设置响应头
+	c.Header("Content-Type", "audio/mpeg")
+	c.Header("Content-Disposition", "attachment; filename=speech.mp3")
+
+	// 将音频数据写入响应
+	_, err = io.Copy(c.Writer, audioData)
+	if err != nil {
+		logger.Error("failed to write audio data: ", err)
+		resp.ERROR(c, "failed to write audio data")
+		return
+	}
 }

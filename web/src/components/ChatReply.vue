@@ -82,6 +82,7 @@
                 <i class="iconfont icon-speaker"></i>
               </el-tooltip>
             </span>
+            <img src="/images/voice.gif" />
           </span>
         </div>
       </div>
@@ -97,6 +98,8 @@ import hl from "highlight.js";
 import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";
 import MarkdownIt from "markdown-it";
+import { httpPost } from "@/utils/http";
+import RippleButton from "./ui/RippleButton.vue";
 
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
@@ -156,7 +159,26 @@ if (!props.data.icon) {
 
 const synthesis = (text) => {
   console.log(text);
-  ElMessage.info("语音合成功能暂不可用");
+  // 生成语音
+  httpPost("/api/chat/tts", { text }, { responseType: 'blob' }).then(response => {
+    // 创建 Blob 对象，明确指定 MIME 类型
+    const blob = new Blob([response], { type: 'audio/wav' });
+    // 创建 URL
+    const audioUrl = URL.createObjectURL(blob);
+    // 创建音频元素
+    const audio = new Audio(audioUrl);
+    // 播放音频
+    audio.play().then(() => {
+      // 播放完成后释放 URL
+      URL.revokeObjectURL(audioUrl);
+    }).catch(err => {
+      console.error('播放音频失败:', err);
+      ElMessage.error('音频播放失败，请检查浏览器是否支持该音频格式');
+    });
+  }).catch(err => {
+    console.error('语音合成请求失败:', err);
+    ElMessage.error('语音合成失败，请稍后重试');
+  });
 };
 
 // 重新生成
@@ -168,6 +190,7 @@ const reGenerate = (prompt) => {
 
 <style lang="stylus">
 @import '@/assets/css/markdown/vue.css';
+
 .chat-page,.chat-export {
   --font-family: Menlo,"微软雅黑","Roboto Mono","Courier New",Courier,monospace,"Inter",sans-serif;
   font-family: var(--font-family);

@@ -251,6 +251,7 @@ func main() {
 			group.GET("clear", h.Clear)
 			group.POST("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
+			group.POST("tts", h.TextToSpeech)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.NetHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
