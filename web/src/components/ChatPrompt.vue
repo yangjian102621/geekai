@@ -149,10 +149,12 @@ const processFiles = () => {
     return;
   }
 
+  // 提取图片｜文件链接
   const linkRegex = /(https?:\/\/\S+)/g;
   const links = props.data.content.match(linkRegex);
   const urlPrefix = `${window.location.protocol}//${window.location.host}`;
   if (links) {
+    // 把本地链接转换为相对路径
     const _links = links.map((link) => {
       if (link.startsWith(urlPrefix)) {
         return link.replace(urlPrefix, "");
@@ -165,14 +167,15 @@ const processFiles = () => {
       .then((res) => {
         files.value = res.data.items;
 
-        for (let link of links) {
-          if (isExternalImg(link, files.value)) {
-            files.value.push({ url: link, ext: ".png" });
-          }
-        }
+        // for (let link of links) {
+        //   if (isExternalImg(link, files.value)) {
+        //     files.value.push({ url: link, ext: ".png" });
+        //   } 
+        // }
       })
       .catch(() => {});
 
+    // 替换图片｜文件链接
     for (let link of links) {
       content.value = content.value.replace(link, "");
     }
