@@ -51,7 +51,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 
 	}
 
-	res := session.Debug().Order("sort_num ASC").Find(&items)
+	res := session.Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var cm vo.ChatModel
