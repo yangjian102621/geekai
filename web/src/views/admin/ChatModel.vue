@@ -126,6 +126,16 @@
           </el-form-item>
         </div>
 
+        <div v-if="item.type === 'tts'">
+          <el-form-item label="音色" prop="voice">
+            <el-select v-model="item.options.voice" placeholder="请选择音色">
+              <el-option v-for="v in voices" :value="v.value" :label="v.label" :key="v.value">
+                {{ v.label }}
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </div>
+
         <el-form-item label="绑定API-KEY：" prop="apikey">
           <el-select v-model="item.key_id" placeholder="请选择 API KEY" filterable clearable>
             <el-option v-for="v in apiKeys" :value="v.id" :label="v.name" :key="v.id">
@@ -191,6 +201,15 @@ const formRef = ref(null);
 const type = ref([
   { label: "聊天", value: "chat" },
   { label: "绘图", value: "img" },
+  { label: "语音", value: "tts" },
+]);
+
+const voices = ref([
+  { label: "Echo", value: "echo" },
+  { label: "Fable", value: "fable" },
+  { label: "Onyx", value: "onyx" },
+  { label: "Nova", value: "nova" },
+  { label: "Shimmer", value: "shimmer" },
 ]);
 
 // 获取 API KEY
@@ -270,7 +289,7 @@ onUnmounted(() => {
 const add = function () {
   title.value = "新增模型";
   showDialog.value = true;
-  item.value = { enabled: true, power: 1, open: true, max_tokens: 1024, max_context: 8192, temperature: 0.9 };
+  item.value = { enabled: true, power: 1, open: true, max_tokens: 1024, max_context: 8192, temperature: 0.9, options: {} };
 };
 
 const edit = function (row) {
@@ -282,9 +301,6 @@ const edit = function (row) {
 const save = function () {
   formRef.value.validate((valid) => {
     item.value.temperature = parseFloat(item.value.temperature);
-    if (!item.value.sort_num) {
-      item.value.sort_num = items.value.length;
-    }
     if (valid) {
       showDialog.value = false;
       item.value.key_id = parseInt(item.value.key_id);

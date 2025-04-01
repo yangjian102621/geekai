@@ -464,7 +464,7 @@ onUnmounted(() => {
 // 初始化数据
 const initData = () => {
   // 加载模型
-  httpGet("/api/model/list")
+  httpGet("/api/model/list?type=chat")
     .then((res) => {
       models.value = res.data;
       if (!modelID.value) {

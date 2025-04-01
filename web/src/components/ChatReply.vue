@@ -1,4 +1,5 @@
 <template>
+  <div class="chat-reply">
   <div class="chat-line chat-line-reply-list" v-if="listStyle === 'list'">
     <div class="chat-line-inner">
       <div class="chat-icon">
@@ -7,10 +8,8 @@
 
       <div class="chat-item">
         <div class="content-wrapper" v-html="md.render(processContent(data.content))"></div>
-        <div class="bar" v-if="data.created_at">
-          <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
-          >
+        <div class="bar flex" v-if="data.created_at">
+          <span class="bar-item">{{ dateFormat(data.created_at) }}</span>
           <span class="bar-item">tokens: {{ data.tokens }}</span>
           <span class="bar-item">
             <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
@@ -19,16 +18,17 @@
               </el-icon>
             </el-tooltip>
           </span>
-          <span v-if="!readOnly">
+          <span v-if="!readOnly" class="flex">
             <span class="bar-item" @click="reGenerate(data.prompt)">
               <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
                 <el-icon><Refresh /></el-icon>
               </el-tooltip>
             </span>
 
-            <span class="bar-item" @click="synthesis(data.content)">
+            <span class="bar-item">
               <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom">
-                <i class="iconfont icon-speaker"></i>
+                <i class="iconfont icon-speaker" v-if="!isPlaying" @click="synthesis(data.content)"></i>
+                <el-image class="voice-icon" :src="playIcon" v-else />
               </el-tooltip>
             </span>
           </span>
@@ -59,9 +59,7 @@
           <div class="content" v-html="md.render(processContent(data.content))"></div>
         </div>
         <div class="bar" v-if="data.created_at">
-          <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
-          >
+          <span class="bar-item">{{ dateFormat(data.created_at) }}</span>
           <!--          <span class="bar-item">tokens: {{ data.tokens }}</span>-->
           <span class="bar-item bg">
             <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
@@ -70,24 +68,29 @@
               </el-icon>
             </el-tooltip>
           </span>
-          <span v-if="!readOnly">
+          <span v-if="!readOnly" class="flex">
             <span class="bar-item bg" @click="reGenerate(data.prompt)">
               <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
                 <el-icon><Refresh /></el-icon>
               </el-tooltip>
             </span>
 
-            <span class="bar-item bg" @click="synthesis(data.content)">
-              <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom">
-                <i class="iconfont icon-speaker"></i>
+            <span class="bar-item bg">
+              <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom"  v-if="!isPlaying">
+                <i class="iconfont icon-speaker" @click="synthesis(data.content)"></i>
               </el-tooltip>
+              <el-tooltip class="box-item" effect="dark" content="暂停播放" placement="bottom"  v-else>
+                <el-image class="voice-icon" :src="playIcon" @click="stopSynthesis()"  />
+              </el-tooltip>
+              
             </span>
-            <img src="/images/voice.gif" />
           </span>
         </div>
       </div>
     </div>
   </div>
+  <audio ref="audio" @ended="isPlaying = false" />
+</div>
 </template>
 
 <script setup>
@@ -99,8 +102,8 @@ import emoji from "markdown-it-emoji";
 import mathjaxPlugin from "markdown-it-mathjax3";
 import MarkdownIt from "markdown-it";
 import { httpPost } from "@/utils/http";
-import RippleButton from "./ui/RippleButton.vue";
-
+import { ref } from "vue";
+import { useSharedStore } from "@/store/sharedata";
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
   data: {
@@ -121,6 +124,11 @@ const props = defineProps({
     default: "list",
   },
 });
+
+const audio = ref(null);
+const isPlaying = ref(false);
+const playIcon = ref("/images/voice.gif");
+const store = useSharedStore();
 
 const md = new MarkdownIt({
   breaks: true,
@@ -158,34 +166,38 @@ if (!props.data.icon) {
 }
 
 const synthesis = (text) => {
-  console.log(text);
-  // 生成语音
-  httpPost("/api/chat/tts", { text }, { responseType: 'blob' }).then(response => {
+  isPlaying.value = true
+  httpPost("/api/chat/tts", { text:text, model_id:store.ttsModel }, { responseType: 'blob' }).then(response => {
     // 创建 Blob 对象，明确指定 MIME 类型
-    const blob = new Blob([response], { type: 'audio/wav' });
-    // 创建 URL
+    const blob = new Blob([response], { type: 'audio/mpeg' }); // 假设音频格式为 MP3
     const audioUrl = URL.createObjectURL(blob);
-    // 创建音频元素
-    const audio = new Audio(audioUrl);
     // 播放音频
-    audio.play().then(() => {
+    audio.value.src = audioUrl;
+    audio.value.play().then(() => {
       // 播放完成后释放 URL
       URL.revokeObjectURL(audioUrl);
-    }).catch(err => {
-      console.error('播放音频失败:', err);
+    }).catch(() => {
       ElMessage.error('音频播放失败，请检查浏览器是否支持该音频格式');
+      isPlaying.value = false
     });
-  }).catch(err => {
-    console.error('语音合成请求失败:', err);
-    ElMessage.error('语音合成失败，请稍后重试');
+  }).catch(e => {
+    ElMessage.error('语音合成失败：' + e.message);
+    isPlaying.value = false
   });
 };
+
+const stopSynthesis = () => {
+  isPlaying.value = false
+  audio.value.pause()
+  audio.value.currentTime = 0
+}
 
 // 重新生成
 const reGenerate = (prompt) => {
   console.log(prompt);
   emits("regen", prompt);
 };
+
 </script>
 
 <style lang="stylus">
@@ -307,7 +319,8 @@ const reGenerate = (prompt) => {
     width 100%
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
-    border-bottom: 0.5px solid var(--el-border-color);
+    border: 1px solid var(--el-border-color);
+    border-radius: 10px;
 
     .chat-line-inner {
       display flex;
@@ -347,10 +360,18 @@ const reGenerate = (prompt) => {
           padding 10px 10px 10px 0;
 
           .bar-item {
-            padding 3px 5px;
             margin-right 10px;
             border-radius 5px;
             cursor pointer
+            display flex
+            align-items center
+            justify-content center
+            height 26px
+
+            .voice-icon {
+              width 20px
+              height 20px
+            }
 
             .el-icon {
               position relative
@@ -426,11 +447,21 @@ const reGenerate = (prompt) => {
 
         .bar {
           padding 10px 10px 10px 0;
+          display flex
 
           .bar-item {
-            padding 3px 5px;
             margin-right 10px;
             border-radius 5px;
+            display flex
+            align-items center
+            justify-content center
+            height 26px
+
+            .voice-icon {
+              width 20px
+              height 20px
+            }
+           
 
             .el-icon {
               position relative

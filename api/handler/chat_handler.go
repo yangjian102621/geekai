@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -505,47 +506,90 @@ func (h *ChatHandler) saveChatHistory(
 // 文本生成语音
 func (h *ChatHandler) TextToSpeech(c *gin.Context) {
 	var data struct {
-		Text string `json:"text"`
+		ModelId int    `json:"model_id"`
+		Text    string `json:"text"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	// 调用 DeepSeek 的 API 接口
-	var apiKey model.ApiKey
-	h.DB.Where("type", "chat").Where("enabled", true).First(&apiKey)
-	if apiKey.Id == 0 {
-		resp.ERROR(c, "no available key, please import key")
+	textHash := utils.Sha256(fmt.Sprintf("%d/%s", data.ModelId, data.Text))
+	audioFile := fmt.Sprintf("%s/audio", h.App.Config.StaticDir)
+	if _, err := os.Stat(audioFile); err != nil {
+		os.MkdirAll(audioFile, 0755)
+	}
+	audioFile = fmt.Sprintf("%s/%s.mp3", audioFile, textHash)
+	if _, err := os.Stat(audioFile); err == nil {
+		// 设置响应头
+		c.Header("Content-Type", "audio/mpeg")
+		c.Header("Content-Disposition", "attachment; filename=speech.mp3")
+		c.File(audioFile)
 		return
 	}
 
+	// 查询模型
+	var chatModel model.ChatModel
+	err := h.DB.Where("id", data.ModelId).First(&chatModel).Error
+	if err != nil {
+		resp.ERROR(c, "找不到语音模型")
+		return
+	}
+
+	// 调用 DeepSeek 的 API 接口
+	var apiKey model.ApiKey
+	if chatModel.KeyId > 0 {
+		h.DB.Where("id", chatModel.KeyId).First(&apiKey)
+	}
+	if apiKey.Id == 0 {
+		h.DB.Where("type", "tts").Where("enabled", true).First(&apiKey)
+	}
+	if apiKey.Id == 0 {
+		resp.ERROR(c, "no TTS API key, please import key")
+		return
+	}
+
+	logger.Debugf("chatModel: %+v, apiKey: %+v", chatModel, apiKey)
+
 	// 调用 openai tts api
 	config := openai.DefaultConfig(apiKey.Value)
-	config.BaseURL = apiKey.ApiURL
+	config.BaseURL = apiKey.ApiURL + "/v1"
 	client := openai.NewClientWithConfig(config)
+	voice := openai.VoiceAlloy
+	var options map[string]string
+	err = utils.JsonDecode(chatModel.Options, &options)
+	if err == nil {
+		voice = openai.SpeechVoice(options["voice"])
+	}
 	req := openai.CreateSpeechRequest{
-		Model: openai.TTSModel1,
+		Model: openai.SpeechModel(chatModel.Value),
 		Input: data.Text,
-		Voice: openai.VoiceAlloy,
+		Voice: voice,
 	}
 
 	audioData, err := client.CreateSpeech(context.Background(), req)
 	if err != nil {
-		logger.Error("failed to create speech: ", err)
-		resp.ERROR(c, "failed to create speech")
+		resp.ERROR(c, err.Error())
 		return
+	}
+
+	// 先将音频数据读取到内存
+	audioBytes, err := io.ReadAll(audioData)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 保存到音频文件
+	err = os.WriteFile(audioFile, audioBytes, 0644)
+	if err != nil {
+		logger.Error("failed to save audio file: ", err)
 	}
 
 	// 设置响应头
 	c.Header("Content-Type", "audio/mpeg")
 	c.Header("Content-Disposition", "attachment; filename=speech.mp3")
 
-	// 将音频数据写入响应
-	_, err = io.Copy(c.Writer, audioData)
-	if err != nil {
-		logger.Error("failed to write audio data: ", err)
-		resp.ERROR(c, "failed to write audio data")
-		return
-	}
+	// 直接写入完整的音频数据到响应
+	c.Writer.Write(audioBytes)
 }

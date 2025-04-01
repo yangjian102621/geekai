@@ -10,6 +10,7 @@ export const useSharedStore = defineStore("shared", {
     theme: Storage.get("theme", "light"),
     isLogin: false,
     chatListExtend: Storage.get("chat_list_extend", true),
+    ttsModel: Storage.get("tts_model", ""),
   }),
   getters: {},
   actions: {
@@ -73,6 +74,11 @@ export const useSharedStore = defineStore("shared", {
     },
     setIsLogin(value) {
       this.isLogin = value;
+    },
+
+    setTtsModel(value) {
+      this.ttsModel = value;
+      Storage.set("tts_model", value);
     },
   },
 });

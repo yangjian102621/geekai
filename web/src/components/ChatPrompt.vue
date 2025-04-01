@@ -198,7 +198,7 @@ const isExternalImg = (link, files) => {
     width 100%
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
-    border-bottom: 0.5px solid var(--el-border-color);
+    // border-bottom: 0.5px solid var(--el-border-color);
 
     .chat-line-inner {
       display flex;
