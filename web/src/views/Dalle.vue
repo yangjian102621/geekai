@@ -97,7 +97,7 @@
           </div>
         </div>
         <div class="task-list-box pl-6 pr-6 pb-4 pt-4 h-dvh">
-          <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
+          <div class="task-list-inner">
             <div class="job-list-box">
               <h2 class="text-xl">任务列表</h2>
               <task-list :list="runningJobs" />
@@ -105,7 +105,7 @@
                 <h2 class="text-xl">创作记录</h2>
                 <div class="finish-job-list">
                   <div v-if="finishedJobs.length > 0">
-                    <v3-waterfall
+                    <!-- <v3-waterfall
                       id="waterfall"
                       :list="finishedJobs"
                       srcKey="img_thumb"
@@ -196,9 +196,58 @@
                           <i class="iconfont icon-face"></i>
                         </div>
                       </template>
-                    </v3-waterfall>
+                    </v3-waterfall> -->
+                      <Waterfall
+                        ref="waterfall"
+                        :list="finishedJobs"
+                        :row-key="options.rowKey"
+                        :gutter="options.gutter"
+                        :has-around-gutter="options.hasAroundGutter"
+                        :width="options.width"
+      :breakpoints="options.breakpoints"
+      :img-selector="options.imgSelector"
+      :background-color="options.backgroundColor"
+      :animation-effect="options.animationEffect"
+      :animation-duration="options.animationDuration"
+      :animation-delay="options.animationDelay"
+      :animation-cancel="options.animationCancel"
+      :lazyload="options.lazyload"
+      :load-props="options.loadProps"
+      :cross-origin="options.crossOrigin"
+      :align="options.align"
+      @afterRender="afterRender"
+    >
+      <template #default="{ item, url, index }">
+        <div class="bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-linear hover:shadow-lg hover:shadow-gray-600 group" @click="handleClick(item)">
+          <div class="overflow-hidden">
+            <LazyImg :url="url" title="title" :alt="item.name" class="cursor-pointer transition-all duration-300 ease-linear group-hover:scale-105" @load="imageLoad" @error="imageError" @success="imageSuccess" />
+          </div>
+          <div class="px-4 pt-2 pb-4 border-t border-t-gray-800">
+            <h2 class="pb-4 text-gray-50 group-hover:text-yellow-300">
+              {{ item.name }}
+            </h2>
+            <div class="pt-3 flex justify-between items-center border-t border-t-gray-600 border-opacity-50">
+              <div class="text-gray-50">
+                $ {{ item.price }}
+              </div>
+              <div>
+                <button class="px-3 h-7 rounded-full bg-red-500 text-sm text-white shadow-lg transition-all duration-300 hover:bg-red-600" @click.stop="handleDelete(item, index)">
+                  删除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </Waterfall>
                   </div>
                   <el-empty :image-size="100" :image="nodata" description="暂无记录" v-else />
+
+                  <div v-show="!loading" class="flex justify-center py-10 bg-gray-900">
+      <button class="px-5 py-2 rounded-full bg-gray-700 text-md text-white cursor-pointer hover:bg-gray-800 transition-all duration-300" @click="fetchFinishJobs">
+        加载更多
+      </button>
+    </div>
                 </div>
               </template>
 
@@ -236,6 +285,11 @@ import { useSharedStore } from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
 import { showMessageError, showMessageOK } from "@/utils/dialog";
+import BScrollBox from "@/components/ui/BScrollBox.vue";
+import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
+import 'vue-waterfall-plugin-next/dist/style.css'
+
+import error from '@/assets/img/failed.png'
 
 const listBoxHeight = ref(0);
 // const paramBoxHeight = ref(0)
@@ -251,6 +305,89 @@ const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 58;
   // paramBoxHeight.value = window.innerHeight - 110
 };
+
+const options = ref({
+  // 唯一key值
+  rowKey: 'id',
+  // 卡片之间的间隙
+  gutter: 10,
+  // 是否有周围的gutter
+  hasAroundGutter: true,
+  // 卡片在PC上的宽度
+  width: 200,
+  // 自定义行显示个数，主要用于对移动端的适配
+  breakpoints: {
+    3840: {
+      // 4K下
+      rowPerView: 8,
+    },
+    2560: {
+      // 2K下
+      rowPerView: 7,
+    },
+    1920: {
+      // 2K下
+      rowPerView: 6,
+    },
+    1600: {
+      // 2K下
+      rowPerView: 5,
+    },
+    1366: {
+      // 2K下
+      rowPerView: 4,
+    },
+    800: {
+      // 当屏幕宽度小于等于800
+      rowPerView: 3,
+    },
+    500: {
+      // 当屏幕宽度小于等于500
+      rowPerView: 2,
+    },
+  },
+  // 动画效果
+  animationEffect: 'animate__fadeInUp',
+  // 动画时间
+  animationDuration: 1000,
+  // 动画延迟
+  animationDelay: 300,
+  animationCancel: false,
+  // 背景色
+  backgroundColor: '#2C2E3A',
+  // imgSelector
+  imgSelector: 'img_thumb',
+  // 加载配置
+  loadProps: {
+    loading,
+    error,
+    ratioCalculator: (width, height) => {
+      console.log("width, height", width, height)
+      return height / width
+    },
+  },
+  // 是否懒加载
+  lazyload: true,
+  align: 'center',
+})
+
+function imageLoad(url) {
+  console.log(`${url}: 加载完成`)
+}
+
+function imageError(url) {
+  console.error(`${url}: 加载失败`)
+}
+
+function imageSuccess(url) {
+  console.log(`${url}: 加载成功`)
+}
+
+function afterRender() {
+  loading.value = false
+  console.log('计算完成')
+}
+
 resizeElement();
 window.onresize = () => {
   resizeElement();

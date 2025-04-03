@@ -24,6 +24,9 @@ module.exports = defineConfig({
   outputDir: "dist",
   crossorigin: "anonymous",
   devServer: {
+    client: {
+      overlay: false // 关闭错误覆盖层
+    },
     allowedHosts: "all",
     port: 8888,
     proxy: {

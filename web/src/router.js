@@ -330,12 +330,7 @@ const routes = [
     meta: { title: "测试页面" },
     component: () => import("@/views/Test.vue"),
   },
-  {
-    name: "test2",
-    path: "/test2",
-    meta: { title: "测试页面" },
-    component: () => import("@/views/RealtimeTest.vue"),
-  },
+  
   {
     name: "NotFound",
     path: "/:all(.*)",
