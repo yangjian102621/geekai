@@ -11,149 +11,238 @@
           </el-radio-group>
         </div>
       </div>
-      <div class="waterfall" :style="{ height: listBoxHeight + 'px' }" id="waterfall-box">
-        <v3-waterfall
+      <div
+        class="waterfall"
+        :style="{ height: listBoxHeight + 'px' }"
+        id="waterfall-box"
+      >
+        <Waterfall
           v-if="imgType === 'mj'"
-          id="waterfall"
+          id="waterfall-mj"
           :list="data['mj']"
-          srcKey="img_thumb"
-          :gap="12"
-          :bottomGap="-5"
-          :colWidth="colWidth"
-          :distanceToScroll="100"
-          :isLoading="loading"
-          :isOver="isOver"
-          @scrollReachBottom="getNext"
+          :row-key="waterfallOptions.rowKey"
+          :gutter="waterfallOptions.gutter"
+          :has-around-gutter="waterfallOptions.hasAroundGutter"
+          :width="waterfallOptions.width"
+          :breakpoints="waterfallOptions.breakpoints"
+          :img-selector="waterfallOptions.imgSelector"
+          :background-color="waterfallOptions.backgroundColor"
+          :animation-effect="waterfallOptions.animationEffect"
+          :animation-duration="waterfallOptions.animationDuration"
+          :animation-delay="waterfallOptions.animationDelay"
+          :animation-cancel="waterfallOptions.animationCancel"
+          :lazyload="waterfallOptions.lazyload"
+          :load-props="waterfallOptions.loadProps"
+          :cross-origin="waterfallOptions.crossOrigin"
+          :align="waterfallOptions.align"
+          :is-loading="loading"
+          :is-over="isOver"
+          @afterRender="loading = false"
         >
-          <template #default="slotProp">
-            <div class="list-item">
-              <div class="image">
-                <el-image
-                  :src="slotProp.item['img_thumb']"
-                  :zoom-rate="1.2"
-                  :preview-src-list="[slotProp.item['img_url']]"
-                  :preview-teleported="true"
-                  :initial-index="10"
-                  loading="lazy"
-                >
-                  <template #placeholder>
-                    <div class="image-slot">正在加载图片</div>
-                  </template>
-
-                  <template #error>
-                    <div class="image-slot">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
-                    </div>
-                  </template>
-                </el-image>
+          <template #default="{ item, url }">
+            <div
+              class="bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-linear hover:shadow-md hover:shadow-purple-800 group"
+            >
+              <div class="overflow-hidden rounded-lg">
+                <LazyImg
+                  :url="url"
+                  class="cursor-pointer transition-all duration-300 ease-linear group-hover:scale-105"
+                  @click="previewImg(item)"
+                />
               </div>
-              <div class="opt">
-                <el-tooltip class="box-item" content="复制提示词" placement="top">
-                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
-                    <DocumentCopy />
-                  </el-icon>
-                </el-tooltip>
+              <div class="px-4 pt-2 pb-4 border-t border-t-gray-800">
+                <div
+                  class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
+                >
+                  <div class="opt">
+                    <el-tooltip
+                      class="box-item"
+                      content="复制提示词"
+                      placement="top"
+                    >
+                      <el-button
+                        type="info"
+                        circle
+                        class="copy-prompt-wall"
+                        :data-clipboard-text="item.prompt"
+                      >
+                        <i class="iconfont icon-file"></i>
+                      </el-button>
+                    </el-tooltip>
 
-                <el-tooltip class="box-item" content="画同款" placement="top">
-                  <i class="iconfont icon-palette-pen" @click="drawSameMj(slotProp.item)"></i>
-                </el-tooltip>
+                    <el-tooltip
+                      class="box-item"
+                      content="画同款"
+                      placement="top"
+                    >
+                      <el-button
+                        type="primary"
+                        circle
+                        @click="drawSameMj(item)"
+                      >
+                        <i class="iconfont icon-palette"></i>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
+                </div>
               </div>
             </div>
           </template>
-        </v3-waterfall>
+        </Waterfall>
 
-        <v3-waterfall
-          v-else-if="imgType === 'dall'"
-          id="waterfall"
-          :list="data['dall']"
-          srcKey="img_thumb"
-          :gap="12"
-          :bottomGap="-5"
-          :colWidth="colWidth"
-          :distanceToScroll="100"
-          :isLoading="loading"
-          :isOver="isOver"
-          @scrollReachBottom="getNext"
-        >
-          <template #default="slotProp">
-            <div class="list-item">
-              <div class="image">
-                <el-image
-                  :src="slotProp.item['img_thumb']"
-                  :zoom-rate="1.2"
-                  :preview-src-list="[slotProp.item['img_url']]"
-                  :preview-teleported="true"
-                  :initial-index="10"
-                  loading="lazy"
-                >
-                  <template #placeholder>
-                    <div class="image-slot">正在加载图片</div>
-                  </template>
-
-                  <template #error>
-                    <div class="image-slot">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
-                    </div>
-                  </template>
-                </el-image>
-              </div>
-              <div class="opt">
-                <el-tooltip class="box-item" content="复制提示词" placement="top">
-                  <el-icon class="copy-prompt-wall" :data-clipboard-text="slotProp.item.prompt">
-                    <DocumentCopy />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-            </div>
-          </template>
-        </v3-waterfall>
-
-        <v3-waterfall
-          v-else
-          id="waterfall"
+        <Waterfall
+          v-if="imgType === 'sd'"
+          id="waterfall-sd"
           :list="data['sd']"
-          srcKey="img_thumb"
-          :gap="12"
-          :bottomGap="-5"
-          :colWidth="colWidth"
-          :distanceToScroll="100"
-          :isLoading="loading"
-          :isOver="isOver"
-          @scrollReachBottom="getNext"
+          :row-key="waterfallOptions.rowKey"
+          :gutter="waterfallOptions.gutter"
+          :has-around-gutter="waterfallOptions.hasAroundGutter"
+          :width="waterfallOptions.width"
+          :breakpoints="waterfallOptions.breakpoints"
+          :img-selector="waterfallOptions.imgSelector"
+          :background-color="waterfallOptions.backgroundColor"
+          :animation-effect="waterfallOptions.animationEffect"
+          :animation-duration="waterfallOptions.animationDuration"
+          :animation-delay="waterfallOptions.animationDelay"
+          :animation-cancel="waterfallOptions.animationCancel"
+          :lazyload="waterfallOptions.lazyload"
+          :load-props="waterfallOptions.loadProps"
+          :cross-origin="waterfallOptions.crossOrigin"
+          :align="waterfallOptions.align"
+          :is-loading="loading"
+          :is-over="isOver"
+          @afterRender="loading = false"
         >
-          <template #default="slotProp">
-            <div class="list-item">
-              <div class="image">
-                <el-image :src="slotProp.item['img_thumb']" loading="lazy" @click="showTask(slotProp.item)">
-                  <template #placeholder>
-                    <div class="image-slot">正在加载图片</div>
-                  </template>
+          <template #default="{ item, url }">
+            <div
+              class="bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-linear hover:shadow-md hover:shadow-purple-800 group"
+            >
+              <div class="overflow-hidden rounded-lg">
+                <LazyImg
+                  :url="url"
+                  class="cursor-pointer transition-all duration-300 ease-linear group-hover:scale-105"
+                  @click="showTask(item)"
+                />
+              </div>
+              <div class="px-4 pt-2 pb-4 border-t border-t-gray-800">
+                <div
+                  class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
+                >
+                  <div class="opt">
+                    <el-tooltip
+                      class="box-item"
+                      content="复制提示词"
+                      placement="top"
+                    >
+                      <el-button
+                        type="info"
+                        circle
+                        class="copy-prompt-wall"
+                        :data-clipboard-text="item.prompt"
+                      >
+                        <i class="iconfont icon-file"></i>
+                      </el-button>
+                    </el-tooltip>
 
-                  <template #error>
-                    <div class="image-slot">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
-                    </div>
-                  </template>
-                </el-image>
+                    <el-tooltip
+                      class="box-item"
+                      content="画同款"
+                      placement="top"
+                    >
+                      <el-button
+                        type="primary"
+                        circle
+                        @click="drawSameSd(item)"
+                      >
+                        <i class="iconfont icon-palette"></i>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
+                </div>
               </div>
             </div>
           </template>
-        </v3-waterfall>
+        </Waterfall>
 
-        <div class="footer" v-if="isOver">
-          <!-- <el-empty
-            :image-size="100"
-            :image="nodata"
-            description="没有更多数据了"
-          /> -->
-          <span>没有更多数据了</span>
-          <i class="iconfont icon-face"></i>
+        <Waterfall
+          v-if="imgType === 'dall'"
+          id="waterfall-dall"
+          :list="data['dall']"
+          :row-key="waterfallOptions.rowKey"
+          :gutter="waterfallOptions.gutter"
+          :has-around-gutter="waterfallOptions.hasAroundGutter"
+          :width="waterfallOptions.width"
+          :breakpoints="waterfallOptions.breakpoints"
+          :img-selector="waterfallOptions.imgSelector"
+          :background-color="waterfallOptions.backgroundColor"
+          :animation-effect="waterfallOptions.animationEffect"
+          :animation-duration="waterfallOptions.animationDuration"
+          :animation-delay="waterfallOptions.animationDelay"
+          :animation-cancel="waterfallOptions.animationCancel"
+          :lazyload="waterfallOptions.lazyload"
+          :load-props="waterfallOptions.loadProps"
+          :cross-origin="waterfallOptions.crossOrigin"
+          :align="waterfallOptions.align"
+          :is-loading="loading"
+          :is-over="isOver"
+          @afterRender="loading = false"
+        >
+          <template #default="{ item, url }">
+            <div
+              class="bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-linear hover:shadow-md hover:shadow-purple-800 group"
+            >
+              <div class="overflow-hidden rounded-lg">
+                <LazyImg
+                  :url="url"
+                  class="cursor-pointer transition-all duration-300 ease-linear group-hover:scale-105"
+                  @click="previewImg(item)"
+                />
+              </div>
+              <div class="px-4 pt-2 pb-4 border-t border-t-gray-800">
+                <div
+                  class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
+                >
+                  <div class="opt">
+                    <el-tooltip
+                      class="box-item"
+                      content="复制提示词"
+                      placement="top"
+                    >
+                      <el-button
+                        type="info"
+                        circle
+                        class="copy-prompt-wall"
+                        :data-clipboard-text="item.prompt"
+                      >
+                        <i class="iconfont icon-file"></i>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </Waterfall>
+
+        <div class="flex flex-col items-center justify-center py-10">
+          <img
+            :src="waterfallOptions.loadProps.loading"
+            class="max-w-[50px] max-h-[50px]"
+            v-if="loading"
+          />
+          <div v-else>
+            <button
+              class="px-5 py-2 rounded-full bg-purple-700 text-md text-white cursor-pointer hover:bg-purple-800 transition-all duration-300"
+              @click="getNext"
+              v-if="!isOver"
+            >
+              加载更多
+            </button>
+            <div class="no-more-data" v-else>
+              <span class="text-gray-500 mr-2">没有更多数据了</span>
+              <i class="iconfont icon-face"></i>
+            </div>
+          </div>
         </div>
 
         <back-top :right="30" :bottom="30" />
@@ -161,7 +250,23 @@
       <!-- end of waterfall -->
     </div>
     <!-- 任务详情弹框 -->
-    <sd-task-view v-model="showTaskDialog" :data="item" @drawSame="drawSameSd" @close="showTaskDialog = false" />
+    <sd-task-view
+      v-model="showTaskDialog"
+      :data="item"
+      @drawSame="drawSameSd"
+      @close="showTaskDialog = false"
+    />
+
+    <!-- 图片预览 -->
+    <el-image-viewer
+      @close="
+        () => {
+          previewURL = '';
+        }
+      "
+      v-if="previewURL !== ''"
+      :url-list="[previewURL]"
+    />
   </div>
 </template>
 
@@ -175,6 +280,13 @@ import Clipboard from "clipboard";
 import { useRouter } from "vue-router";
 import BackTop from "@/components/BackTop.vue";
 import SdTaskView from "@/components/SdTaskView.vue";
+import { LazyImg, Waterfall } from "vue-waterfall-plugin-next";
+import "vue-waterfall-plugin-next/dist/style.css";
+import { useSharedStore } from "@/store/sharedata";
+
+const store = useSharedStore();
+const waterfallOptions = store.waterfallOptions;
+
 const data = ref({
   mj: [],
   sd: [],
@@ -184,19 +296,12 @@ const loading = ref(true);
 const isOver = ref(false);
 const imgType = ref("mj"); // 图片类别
 const listBoxHeight = window.innerHeight - 124;
-const colWidth = ref(220);
 const showTaskDialog = ref(false);
 const item = ref({});
+const previewURL = ref("");
 
-// 计算瀑布流列宽度
-const calcColWidth = () => {
-  const listBoxWidth = window.innerWidth - 60 - 80;
-  const rows = Math.floor(listBoxWidth / colWidth.value);
-  colWidth.value = Math.floor((listBoxWidth - (rows - 1) * 12) / rows);
-};
-calcColWidth();
-window.onresize = () => {
-  calcColWidth();
+const previewImg = (item) => {
+  previewURL.value = item.img_url;
 };
 
 const page = ref(0);
@@ -223,16 +328,17 @@ const getNext = () => {
   }
   httpGet(`${url}?page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
-      loading.value = false;
       if (!res.data.items || res.data.items.length === 0) {
         isOver.value = true;
+        loading.value = false;
         return;
       }
 
       // 生成缩略图
       const imageList = res.data.items;
       for (let i = 0; i < imageList.length; i++) {
-        imageList[i]["img_thumb"] = imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        imageList[i]["img_thumb"] =
+          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
       }
       if (data.value[imgType.value].length === 0) {
         data.value[imgType.value] = imageList;
@@ -246,6 +352,7 @@ const getNext = () => {
     })
     .catch((e) => {
       ElMessage.error("获取图片失败：" + e.message);
+      loading.value = false;
     });
 };
 
@@ -300,6 +407,6 @@ const drawSameMj = (row) => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/images-wall.styl"
-@import "@/assets/css/custom-scroll.styl"
+@import '@/assets/css/images-wall.styl';
+@import '@/assets/css/custom-scroll.styl';
 </style>
