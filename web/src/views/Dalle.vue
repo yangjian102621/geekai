@@ -361,15 +361,7 @@ const qualities = [
   { name: "高清", value: "hd" },
 ];
 const dalleSizes = ["1024x1024", "1792x1024", "1024x1792"];
-const fluxSizes = [
-  "1024x1024",
-  "1024x768",
-  "768x1024",
-  "1280x960",
-  "960x1280",
-  "1366x768",
-  "768x1366",
-];
+const fluxSizes = ["1024x1024", "1152x896", "896x1152", "1280x960", "1024x576"];
 const sizes = ref(dalleSizes);
 const styles = [
   { name: "生动", value: "vivid" },
@@ -385,7 +377,9 @@ const params = ref({
 const finishedJobs = ref([]);
 const runningJobs = ref([]);
 const allowPulling = ref(true); // 是否允许轮询
+const downloadPulling = ref(false); // 下载轮询
 const tastPullHandler = ref(null);
+const downloadPullHandler = ref(null);
 const power = ref(0);
 const dallPower = ref(0); // 画一张 SD 图片消耗算力
 const clipboard = ref(null);
@@ -429,6 +423,9 @@ onUnmounted(() => {
   if (tastPullHandler.value) {
     clearInterval(tastPullHandler.value);
   }
+  if (downloadPullHandler.value) {
+    clearInterval(downloadPullHandler.value);
+  }
 });
 
 const initData = () => {
@@ -445,6 +442,14 @@ const initData = () => {
       tastPullHandler.value = setInterval(() => {
         if (allowPulling.value) {
           fetchRunningJobs();
+        }
+      }, 5000);
+
+      // 图片下载轮询
+      downloadPullHandler.value = setInterval(() => {
+        if (downloadPulling.value) {
+          page.value = 0;
+          fetchFinishJobs();
         }
       }, 5000);
     })
@@ -498,10 +503,21 @@ const fetchFinishJobs = () => {
         loading.value = false;
       }
       const imageList = res.data.items;
+      let needPulling = false;
       for (let i = 0; i < imageList.length; i++) {
-        imageList[i]["img_thumb"] =
-          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        if (imageList[i]["img_url"]) {
+          imageList[i]["img_thumb"] =
+            imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        } else if (imageList[i].progress === 100) {
+          needPulling = true;
+          imageList[i]["img_thumb"] = waterfallOptions.loadProps.loading;
+        }
       }
+      // 如果当前是第一页，则开启图片下载轮询
+      if (page.value === 1) {
+        downloadPulling.value = needPulling;
+      }
+
       if (page.value === 1) {
         finishedJobs.value = imageList;
       } else {

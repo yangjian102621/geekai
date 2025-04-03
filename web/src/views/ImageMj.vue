@@ -1330,7 +1330,7 @@ const fetchFinishJobs = () => {
           if (jobs[i].progress === 100) {
             hasDownload = true;
           }
-          jobs[i]["img_thumb"] = "/images/img-placeholder.jpg";
+          jobs[i]["img_thumb"] = waterfallOptions.loadProps.loading;
         }
         // 如果当前是第一页，则开启图片下载轮询
         if (page.value === 1) {
