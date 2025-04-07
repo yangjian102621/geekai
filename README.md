@@ -1,14 +1,15 @@
 # GeekAI
+
 > 根据[《生成式人工智能服务管理暂行办法》](https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)的要求，请勿对中国地区公众提供一切未经备案的生成式人工智能服务。
 
-**GeekAI** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Claude, 通义千问，Kimi，DeepSeek，Gitee AI 等多个平台的大语言模型。集成了 MidJourney 和 Stable Diffusion AI绘画功能。
+**GeekAI** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Claude, 通义千问，Kimi，DeepSeek，Gitee AI 等多个平台的大语言模型。集成了 MidJourney 和 Stable Diffusion AI 绘画功能。
 
 主要特性：
 
 - 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
 - 基于 Websocket 实现，完美的打字机体验。
 - 内置了各种预训练好的角色应用，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
-- 支持 OpenAI, Claude, 通义千问，Kimi，DeepSeek等多个大语言模型，**支持 Gitee AI Serverless 大模型 API**。 
+- 支持 OpenAI, Claude, 通义千问，Kimi，DeepSeek 等多个大语言模型，**支持 Gitee AI Serverless 大模型 API**。
 - 支持 Suno 文生音乐
 - 支持 MidJourney / Stable Diffusion AI 绘画集成，文生图，图生图，换脸，融图。开箱即用。
 - 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
@@ -25,16 +26,16 @@
 - [x] 支持网站 Logo 版权等信息的修改
 
 ## 功能截图
-请参考 [GeekAI 项目介绍](https://docs.geekai.me/info/)。
+
+请参考 [GeekAI 项目介绍](https://docs.geekai.me/plus/info/)。
 
 ### 体验地址
 
-> 免费体验地址：[https://chat.geekai.me](https://chat.geekai.me) <br/>
-> **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
+> 免费体验地址：[https://chat.geekai.me](https://chat.geekai.me) <br/> > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
 
 ## 快速部署
 
-请参考文档 [**GeekAI 快速部署**](https://docs.geekai.me/install/)。
+请参考文档 [**GeekAI 快速部署**](https://docs.geekai.me/plus/install/)。
 
 ## 使用须知
 
@@ -43,8 +44,8 @@
 
 ## 项目地址
 
-* Github 地址：https://github.com/yangjian102621/geekai
-* 码云地址：https://gitee.com/blackfox/geekai
+- Github 地址：https://github.com/yangjian102621/geekai
+- 码云地址：https://gitee.com/blackfox/geekai
 
 ## 客户端下载
 
@@ -52,9 +53,9 @@
 
 ## TODOLIST
 
-* [ ] 支持基于知识库的 AI 问答
-* [ ] 文生视频，文生歌曲功能
-* [ ] 微信支付功能
+- [ ] 支持基于知识库的 AI 问答
+- [ ] 文生视频，文生歌曲功能
+- [ ] 微信支付功能
 
 ## 项目文档
 
@@ -62,9 +63,9 @@
 
 详细的部署和开发文档请参考 [**GeekAI 文档**](https://docs.geekai.me)。
 
-加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自Github!!!）。**
+加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自 Github!!!）。**
 
-![微信名片](docs/imgs/wx.png)
+![微信名片](https://docs.geekai.me/images/wx_card.png)
 
 ## 参与贡献
 
@@ -74,18 +75,18 @@
 
 ### Commit 类型
 
-* feat: 新特性或功能
-* fix: 缺陷修复
-* docs: 文档更新
-* style: 代码风格或者组件样式更新
-* refactor: 代码重构，不引入新功能和缺陷修复
-* opt: 性能优化
-* chore: 一些不涉及到功能变动的小提交，比如修改文字表述，修改注释等
+- feat: 新特性或功能
+- fix: 缺陷修复
+- docs: 文档更新
+- style: 代码风格或者组件样式更新
+- refactor: 代码重构，不引入新功能和缺陷修复
+- opt: 性能优化
+- chore: 一些不涉及到功能变动的小提交，比如修改文字表述，修改注释等
 
 ## 打赏
 
 如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～
 
-![打赏](docs/imgs/donate.png)
+![打赏](https://blog.img.r9it.com/image-f02ca9eccbe93c7b1193c2623e7336ea.png)
 
 ![Star History Chart](https://api.star-history.com/svg?repos=yangjian102621/geekai&type=Date)
