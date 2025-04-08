@@ -427,6 +427,7 @@ func main() {
 			group.POST("weibo", h.WeiBo)
 			group.POST("zaobao", h.ZaoBao)
 			group.POST("dalle3", h.Dall3)
+			group.POST("websearch", h.WebSearch)
 			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {

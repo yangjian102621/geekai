@@ -27,8 +27,10 @@ require github.com/xxl-job/xxl-job-executor-go v1.2.0
 
 require (
 	github.com/go-pay/gopay v1.5.101
+	github.com/go-rod/rod v0.116.2
 	github.com/google/go-tika v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.26
+	github.com/sashabaranov/go-openai v1.38.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
@@ -45,14 +47,13 @@ require (
 	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/gravityblast/fresh v0.0.0-20240621171608-8d1fef547a99 // indirect
-	github.com/howeyc/fsnotify v0.9.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/pilu/config v0.0.0-20131214182432-3eb99e6c0b9a // indirect
-	github.com/pilu/fresh v0.0.0-20240621171608-8d1fef547a99 // indirect
-	github.com/sashabaranov/go-openai v1.38.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
+	github.com/ysmood/fetchup v0.3.0 // indirect
+	github.com/ysmood/goob v0.4.0 // indirect
+	github.com/ysmood/got v0.40.0 // indirect
+	github.com/ysmood/gson v0.7.3 // indirect
+	github.com/ysmood/leakless v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 )

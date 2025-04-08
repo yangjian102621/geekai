@@ -13,6 +13,7 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/crawler"
 	"geekai/service/dalle"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -250,6 +251,76 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, content)
+}
+
+// 实现一个联网搜索的函数工具，采用爬虫实现
+func (h *FunctionHandler) WebSearch(c *gin.Context) {
+	if err := h.checkAuth(c); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	var params map[string]interface{}
+	if err := c.ShouldBindJSON(&params); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	
+	// 从参数中获取搜索关键词
+	keyword, ok := params["keyword"].(string)
+	if !ok || keyword == "" {
+		resp.ERROR(c, "搜索关键词不能为空")
+		return
+	}
+	
+	// 从参数中获取最大页数，默认为1页
+	maxPages := 1
+	if pages, ok := params["max_pages"].(float64); ok {
+		maxPages = int(pages)
+	}
+	
+	// 获取用户ID
+	userID, ok := params["user_id"].(float64)
+	if !ok {
+		resp.ERROR(c, "用户ID不能为空")
+		return
+	}
+	
+	// 查询用户信息
+	var user model.User
+	res := h.DB.Where("id = ?", int(userID)).First(&user)
+	if res.Error != nil {
+		resp.ERROR(c, "用户不存在")
+		return
+	}
+	
+	// 检查用户算力是否足够
+	searchPower := 1 // 每次搜索消耗1点算力
+	if user.Power < searchPower {
+		resp.ERROR(c, "算力不足，无法执行网络搜索")
+		return
+	}
+	
+	// 执行网络搜索
+	searchResults, err := crawler.SearchWeb(keyword, maxPages)
+	if err != nil {
+		resp.ERROR(c, fmt.Sprintf("搜索失败: %v", err))
+		return
+	}
+	
+	// 扣减用户算力
+	err = h.userService.DecreasePower(int(user.Id), searchPower, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "web_search",
+		Remark: fmt.Sprintf("网络搜索：%s", utils.CutWords(keyword, 10)),
+	})
+	if err != nil {
+		resp.ERROR(c, "扣减算力失败："+err.Error())
+		return
+	}
+	
+	// 返回搜索结果
+	resp.SUCCESS(c, searchResults)
 }
 
 // List 获取所有的工具函数列表
