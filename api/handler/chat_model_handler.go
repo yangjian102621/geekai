@@ -32,7 +32,6 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	var chatModels = make([]vo.ChatModel, 0)
 	session := h.DB.Session(&gorm.Session{}).Where("enabled", true)
 	t := c.Query("type")
-	logger.Info("type: ", t)
 	if t != "" {
 		session = session.Where("type", t)
 	} else {

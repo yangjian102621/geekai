@@ -20,18 +20,10 @@
                 <el-col :span="8" v-for="item in rates" :key="item.value">
                   <div
                     class="flex-col items-center"
-                    :class="
-                      item.value === params.rate
-                        ? 'grid-content active'
-                        : 'grid-content'
-                    "
+                    :class="item.value === params.rate ? 'grid-content active' : 'grid-content'"
                     @click="changeRate(item)"
                   >
-                    <el-image
-                      class="icon"
-                      :src="item.img"
-                      fit="cover"
-                    ></el-image>
+                    <el-image class="icon" :src="item.img" fit="cover"></el-image>
                     <div class="text">{{ item.text }}</div>
                   </div>
                 </el-col>
@@ -42,11 +34,7 @@
               <el-form-item label="图片画质">
                 <template #default>
                   <div class="form-item-inner flex-row items-center">
-                    <el-select
-                      v-model="params.quality"
-                      placeholder="请选择"
-                      style="width: 150px"
-                    >
+                    <el-select v-model="params.quality" placeholder="请选择" style="width: 150px">
                       <el-option
                         v-for="item in options"
                         :key="item.value"
@@ -55,10 +43,7 @@
                       >
                       </el-option>
                     </el-select>
-                    <el-tooltip
-                      content="生成的图片质量，质量越好出图越慢"
-                      placement="right"
-                    >
+                    <el-tooltip content="生成的图片质量，质量越好出图越慢" placement="right">
                       <el-icon>
                         <InfoFilled />
                       </el-icon>
@@ -84,9 +69,7 @@
               <el-row :gutter="10">
                 <el-col :span="12" v-for="item in models" :key="item.value">
                   <div
-                    :class="
-                      item.value === params.model ? 'model active' : 'model'
-                    "
+                    :class="item.value === params.model ? 'model active' : 'model'"
                     @click="changeModel(item)"
                   >
                     <el-image :src="item.img" fit="cover"></el-image>
@@ -208,21 +191,14 @@
         <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
           <div class="extra-params">
             <el-form>
-              <el-tabs
-                v-model="activeName"
-                class="title-tabs"
-                @tabChange="tabChange"
-              >
+              <el-tabs v-model="activeName" class="title-tabs" @tabChange="tabChange">
                 <el-tab-pane label="文生图" name="txt2img">
                   <div class="prompt-box">
                     <div class="param-line pt">
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>提示词：</span>
-                          <el-tooltip
-                            content="输入你想要的内容，用逗号分割"
-                            placement="right"
-                          >
+                          <el-tooltip content="输入你想要的内容，用逗号分割" placement="right">
                             <el-icon>
                               <InfoFilled />
                             </el-icon>
@@ -286,17 +262,13 @@
                 </el-tab-pane>
                 <el-tab-pane label="图生图" name="img2img">
                   <div class="text">
-                    图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持
-                    PNG 和 JPG 格式图片；
+                    图生图：以某张图片为底稿参考来创作绘画，生成类似风格或类型图像，支持 PNG 和 JPG
+                    格式图片；
                   </div>
                   <div class="param-line">
                     <div class="img-inline">
                       <div class="img-list-box">
-                        <div
-                          class="img-item"
-                          v-for="imgURL in imgList"
-                          :key="imgURL"
-                        >
+                        <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
                           <el-image :src="imgURL" fit="cover" />
                           <el-button
                             type="danger"
@@ -348,10 +320,7 @@
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>提示词：</span>
-                          <el-tooltip
-                            content="输入你想要的内容，用逗号分割"
-                            placement="right"
-                          >
+                          <el-tooltip content="输入你想要的内容，用逗号分割" placement="right">
                             <el-icon>
                               <InfoFilled />
                             </el-icon>
@@ -418,11 +387,7 @@
                   </div>
                   <div class="img-inline">
                     <div class="img-list-box">
-                      <div
-                        class="img-item"
-                        v-for="imgURL in imgList"
-                        :key="imgURL"
-                      >
+                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
                         <el-image :src="imgURL" fit="cover" />
                         <el-button
                           type="danger"
@@ -446,16 +411,10 @@
                 </el-tab-pane>
 
                 <el-tab-pane label="换脸" name="swapFace">
-                  <div class="text">
-                    请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸
-                  </div>
+                  <div class="text">请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸</div>
                   <div class="img-inline">
                     <div class="img-list-box">
-                      <div
-                        class="img-item"
-                        v-for="imgURL in imgList"
-                        :key="imgURL"
-                      >
+                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
                         <el-image :src="imgURL" fit="cover" />
                         <el-button
                           type="danger"
@@ -574,10 +533,7 @@
                       <div class="flex-row justify-between items-center">
                         <div class="flex-row justify-start items-center">
                           <span>提示词：</span>
-                          <el-tooltip
-                            content="输入你想要的内容，用逗号分割"
-                            placement="right"
-                          >
+                          <el-tooltip content="输入你想要的内容，用逗号分割" placement="right">
                             <el-icon>
                               <InfoFilled />
                             </el-icon>
@@ -634,16 +590,12 @@
                   > </el-text
                 >&nbsp;&nbsp;
                 <el-text type="primary"
-                  >当前可用算力：<el-text type="warning">{{
-                    power
-                  }}</el-text></el-text
+                  >当前可用算力：<el-text type="warning">{{ power }}</el-text></el-text
                 >
               </el-row>
 
               <div class="submit-btn">
-                <el-button type="primary" :dark="false" @click="generate" round
-                  >立即生成</el-button
-                >
+                <el-button type="primary" :dark="false" @click="generate" round>立即生成</el-button>
               </div>
             </el-form>
           </div>
@@ -704,9 +656,7 @@
                                         <el-button type="info">详情</el-button>
                                       </template>
                                     </el-popover>
-                                    <el-button
-                                      type="danger"
-                                      @click="removeImage(item)"
+                                    <el-button type="danger" @click="removeImage(item)"
                                       >删除</el-button
                                     >
                                   </div>
@@ -720,9 +670,7 @@
                           v-if="item.progress === 100"
                         >
                           <div class="opt" v-if="item['can_opt']">
-                            <div
-                              class="flex flex-row justify-start items-center mb-3"
-                            >
+                            <div class="flex flex-row justify-start items-center mb-3">
                               <button
                                 class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
                                 @click="upscale(1, item)"
@@ -759,9 +707,7 @@
                                   trigger="hover"
                                 >
                                   <template #reference>
-                                    <i
-                                      class="iconfont icon-prompt text-white text-xl"
-                                    ></i>
+                                    <i class="iconfont icon-prompt text-white text-xl"></i>
                                   </template>
 
                                   <template #default>
@@ -779,9 +725,7 @@
                               </div>
                             </div>
 
-                            <div
-                              class="flex flex-row justify-start items-center mb-3"
-                            >
+                            <div class="flex flex-row justify-start items-center mb-3">
                               <button
                                 class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
                                 @click="variation(1, item)"
@@ -813,25 +757,13 @@
                             class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
                           >
                             <div class="flex">
-                              <el-tooltip
-                                content="取消分享"
-                                placement="top"
-                                v-if="item.publish"
-                              >
-                                <el-button
-                                  type="warning"
-                                  @click="publishImage(item, false)"
-                                  circle
-                                >
+                              <el-tooltip content="取消分享" placement="top" v-if="item.publish">
+                                <el-button type="warning" @click="publishImage(item, false)" circle>
                                   <i class="iconfont icon-cancel-share"></i>
                                 </el-button>
                               </el-tooltip>
                               <el-tooltip content="分享" placement="top" v-else>
-                                <el-button
-                                  type="success"
-                                  @click="publishImage(item, true)"
-                                  circle
-                                >
+                                <el-button type="success" @click="publishImage(item, true)" circle>
                                   <i class="iconfont icon-share-bold"></i>
                                 </el-button>
                               </el-tooltip>
@@ -1027,12 +959,7 @@
                     </template>
                   </v3-waterfall> -->
                 </div>
-                <el-empty
-                  :image-size="100"
-                  :image="nodata"
-                  description="暂无记录"
-                  v-else
-                />
+                <el-empty :image-size="100" :image="nodata" description="暂无记录" v-else />
               </div>
             </template>
 
@@ -1047,7 +974,7 @@
     <el-image-viewer
       @close="
         () => {
-          previewURL = '';
+          previewURL = ''
         }
       "
       v-if="previewURL !== ''"
@@ -1057,7 +984,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import {
   ChromeFilled,
   Delete,
@@ -1066,105 +993,105 @@ import {
   Picture,
   Plus,
   UploadFilled,
-} from "@element-plus/icons-vue";
-import nodata from "@/assets/img/no-data.png";
-import Compressor from "compressorjs";
-import { httpGet, httpPost } from "@/utils/http";
-import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
-import Clipboard from "clipboard";
-import { checkSession, getSystemInfo } from "@/store/cache";
-import { useRouter } from "vue-router";
-import { getSessionId } from "@/store/session";
-import { copyObj, removeArrayItem } from "@/utils/libs";
-import { useSharedStore } from "@/store/sharedata";
-import TaskList from "@/components/TaskList.vue";
-import BackTop from "@/components/BackTop.vue";
-import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
-import { LazyImg, Waterfall } from "vue-waterfall-plugin-next";
-import "vue-waterfall-plugin-next/dist/style.css";
+} from '@element-plus/icons-vue'
+import nodata from '@/assets/img/no-data.png'
+import Compressor from 'compressorjs'
+import { httpGet, httpPost } from '@/utils/http'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import Clipboard from 'clipboard'
+import { checkSession, getSystemInfo } from '@/store/cache'
+import { useRouter } from 'vue-router'
+import { getSessionId } from '@/store/session'
+import { copyObj, removeArrayItem } from '@/utils/libs'
+import { useSharedStore } from '@/store/sharedata'
+import TaskList from '@/components/TaskList.vue'
+import BackTop from '@/components/BackTop.vue'
+import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
+import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
+import 'vue-waterfall-plugin-next/dist/style.css'
 
-const listBoxHeight = ref(0);
-const paramBoxHeight = ref(0);
-const loading = ref(true);
-const previewURL = ref("");
-const store = useSharedStore();
-const waterfallOptions = store.waterfallOptions;
+const listBoxHeight = ref(0)
+const paramBoxHeight = ref(0)
+const loading = ref(true)
+const previewURL = ref('')
+const store = useSharedStore()
+const waterfallOptions = store.waterfallOptions
 
 const resizeElement = function () {
   // listBoxHeight.value = window.innerHeight - 80;
-  listBoxHeight.value = window.innerHeight - 30;
+  listBoxHeight.value = window.innerHeight - 30
   // paramBoxHeight.value = window.innerHeight - 160;
-  paramBoxHeight.value = window.innerHeight - 110;
-};
-resizeElement();
+  paramBoxHeight.value = window.innerHeight - 110
+}
+resizeElement()
 window.onresize = () => {
-  resizeElement();
-};
+  resizeElement()
+}
 
 const rates = [
-  { css: "square", value: "1:1", text: "1:1", img: "/images/mj/rate_1_1.png" },
-  { css: "size1-2", value: "1:2", text: "1:2", img: "/images/mj/rate_1_2.png" },
-  { css: "size2-1", value: "2:1", text: "2:1", img: "/images/mj/rate_2_1.png" },
-  { css: "size2-3", value: "2:3", text: "2:3", img: "/images/mj/rate_3_4.png" },
-  { css: "size3-2", value: "3:2", text: "3:2", img: "/images/mj/rate_4_3.png" },
-  { css: "size3-4", value: "3:4", text: "3:4", img: "/images/mj/rate_3_4.png" },
-  { css: "size4-3", value: "4:3", text: "4:3", img: "/images/mj/rate_4_3.png" },
+  { css: 'square', value: '1:1', text: '1:1', img: '/images/mj/rate_1_1.png' },
+  { css: 'size1-2', value: '1:2', text: '1:2', img: '/images/mj/rate_1_2.png' },
+  { css: 'size2-1', value: '2:1', text: '2:1', img: '/images/mj/rate_2_1.png' },
+  { css: 'size2-3', value: '2:3', text: '2:3', img: '/images/mj/rate_3_4.png' },
+  { css: 'size3-2', value: '3:2', text: '3:2', img: '/images/mj/rate_4_3.png' },
+  { css: 'size3-4', value: '3:4', text: '3:4', img: '/images/mj/rate_3_4.png' },
+  { css: 'size4-3', value: '4:3', text: '4:3', img: '/images/mj/rate_4_3.png' },
   {
-    css: "size16-9",
-    value: "16:9",
-    text: "16:9",
-    img: "/images/mj/rate_16_9.png",
+    css: 'size16-9',
+    value: '16:9',
+    text: '16:9',
+    img: '/images/mj/rate_16_9.png',
   },
   {
-    css: "size9-16",
-    value: "9:16",
-    text: "9:16",
-    img: "/images/mj/rate_9_16.png",
+    css: 'size9-16',
+    value: '9:16',
+    text: '9:16',
+    img: '/images/mj/rate_9_16.png',
   },
-];
+]
 const models = [
-  { text: "写实模式MJ-6.1", value: " --v 6.1", img: "/images/mj/mj-v6.png" },
-  { text: "优质模式MJ-6.0", value: " --v 6", img: "/images/mj/mj-v5.2.png" },
-  { text: "优质模式MJ-5.2", value: " --v 5.2", img: "/images/mj/mj-v5.1.jpg" },
-  { text: "虚幻模式MJ-5.1", value: " --v 5.1", img: "/images/mj/mj-v5.jpg" },
-  { text: "真实模式MJ-4", value: " --v 4", img: "/images/mj/mj-v4.jpg" },
-  { text: "动漫风-niji4", value: " --niji 4", img: "/images/mj/nj4.jpg" },
-  { text: "动漫风-niji5", value: " --niji 5", img: "/images/mj/mj-niji.png" },
+  { text: '写实模式MJ-6.1', value: ' --v 6.1', img: '/images/mj/mj-v6.png' },
+  { text: '优质模式MJ-6.0', value: ' --v 6', img: '/images/mj/mj-v5.2.png' },
+  { text: '优质模式MJ-5.2', value: ' --v 5.2', img: '/images/mj/mj-v5.1.jpg' },
+  { text: '虚幻模式MJ-5.1', value: ' --v 5.1', img: '/images/mj/mj-v5.jpg' },
+  { text: '真实模式MJ-4', value: ' --v 4', img: '/images/mj/mj-v4.jpg' },
+  { text: '动漫风-niji4', value: ' --niji 4', img: '/images/mj/nj4.jpg' },
+  { text: '动漫风-niji5', value: ' --niji 5', img: '/images/mj/mj-niji.png' },
   {
-    text: "动漫风-niji5 可爱",
-    value: " --niji 5 --style cute",
-    img: "/images/mj/nj1.jpg",
+    text: '动漫风-niji5 可爱',
+    value: ' --niji 5 --style cute',
+    img: '/images/mj/nj1.jpg',
   },
   {
-    text: "动漫风-niji5 风景",
-    value: " --niji 5 --style scenic",
-    img: "/images/mj/nj2.jpg",
+    text: '动漫风-niji5 风景',
+    value: ' --niji 5 --style scenic',
+    img: '/images/mj/nj2.jpg',
   },
-  { text: "动漫风-niji6", value: " --niji 6", img: "/images/mj/nj3.jpg" },
-];
+  { text: '动漫风-niji6', value: ' --niji 6', img: '/images/mj/nj3.jpg' },
+]
 
 const options = [
   {
     value: 0,
-    label: "默认",
+    label: '默认',
   },
   {
     value: 0.25,
-    label: "普通",
+    label: '普通',
   },
   {
     value: 0.5,
-    label: "清晰",
+    label: '清晰',
   },
   {
     value: 1,
-    label: "高清",
+    label: '高清',
   },
-];
+]
 
-const router = useRouter();
+const router = useRouter()
 const initParams = {
-  task_type: "image",
+  task_type: 'image',
   rate: rates[0].value,
   model: models[0].value,
   chaos: 0,
@@ -1173,290 +1100,287 @@ const initParams = {
   img_arr: [],
   raw: false,
   iw: 0,
-  prompt: router.currentRoute.value.params["prompt"] ?? "",
-  neg_prompt: "",
+  prompt: router.currentRoute.value.params['prompt'] ?? '',
+  neg_prompt: '',
   tile: false,
   quality: 0,
-  cref: "",
-  sref: "",
+  cref: '',
+  sref: '',
   cw: 0,
-};
-const params = ref(copyObj(initParams));
+}
+const params = ref(copyObj(initParams))
 
-const imgList = ref([]);
+const imgList = ref([])
 
-const activeName = ref("txt2img");
+const activeName = ref('txt2img')
 
-const runningJobs = ref([]);
-const finishedJobs = ref([]);
-const taskPulling = ref(true); // 任务轮询
-const tastPullHandler = ref(null);
-const downloadPulling = ref(false); // 图片下载轮询
-const downloadPullHandler = ref(null);
+const runningJobs = ref([])
+const finishedJobs = ref([])
+const taskPulling = ref(true) // 任务轮询
+const tastPullHandler = ref(null)
+const downloadPulling = ref(false) // 图片下载轮询
+const downloadPullHandler = ref(null)
 
-const power = ref(0);
-const userId = ref(0);
-const isLogin = ref(false);
+const power = ref(0)
+const userId = ref(0)
+const isLogin = ref(false)
 
-const clipboard = ref(null);
+const clipboard = ref(null)
 onMounted(() => {
-  initData();
-  clipboard.value = new Clipboard(".copy-prompt-mj");
-  clipboard.value.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
+  initData()
+  clipboard.value = new Clipboard('.copy-prompt-mj')
+  clipboard.value.on('success', () => {
+    ElMessage.success('复制成功！')
+  })
 
-  clipboard.value.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
-});
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！')
+  })
+})
 
 onUnmounted(() => {
-  clipboard.value.destroy();
+  clipboard.value.destroy()
   if (tastPullHandler.value) {
-    clearInterval(tastPullHandler.value);
+    clearInterval(tastPullHandler.value)
   }
   if (downloadPullHandler.value) {
-    clearInterval(downloadPullHandler.value);
+    clearInterval(downloadPullHandler.value)
   }
-});
+})
 
 // 初始化数据
 const initData = () => {
   checkSession()
     .then((user) => {
-      power.value = user["power"];
-      userId.value = user.id;
-      isLogin.value = true;
-      page.value = 0;
-      fetchFinishJobs();
+      power.value = user['power']
+      userId.value = user.id
+      isLogin.value = true
+      page.value = 0
+      fetchFinishJobs()
 
       tastPullHandler.value = setInterval(() => {
         if (taskPulling.value) {
-          fetchRunningJobs();
+          fetchRunningJobs()
         }
-      }, 5000);
+      }, 5000)
 
       downloadPullHandler.value = setInterval(() => {
         if (downloadPulling.value) {
-          page.value = 0;
-          fetchFinishJobs();
+          page.value = 0
+          fetchFinishJobs()
         }
-      }, 5000);
+      }, 5000)
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
-const mjPower = ref(1);
-const mjActionPower = ref(1);
+const mjPower = ref(1)
+const mjActionPower = ref(1)
 getSystemInfo()
   .then((res) => {
-    mjPower.value = res.data["mj_power"];
-    mjActionPower.value = res.data["mj_action_power"];
+    mjPower.value = res.data['mj_power']
+    mjActionPower.value = res.data['mj_action_power']
   })
   .catch((e) => {
-    ElMessage.error("获取系统配置失败：" + e.message);
-  });
+    ElMessage.error('获取系统配置失败：' + e.message)
+  })
 
 // 获取运行中的任务
 const fetchRunningJobs = () => {
   if (!isLogin.value) {
-    return;
+    return
   }
 
   httpGet(`/api/mj/jobs?finish=false`)
     .then((res) => {
-      const jobs = res.data.items;
-      const _jobs = [];
+      const jobs = res.data.items
+      const _jobs = []
       for (let i = 0; i < jobs.length; i++) {
         if (jobs[i].progress === 101) {
           ElNotification({
-            title: "任务执行失败",
+            title: '任务执行失败',
             dangerouslyUseHTMLString: true,
-            message: `任务ID：${jobs[i]["task_id"]}<br />原因：${jobs[i]["err_msg"]}`,
-            type: "error",
+            message: `任务ID：${jobs[i]['task_id']}<br />原因：${jobs[i]['err_msg']}`,
+            type: 'error',
             duration: 0,
-          });
-          if (jobs[i].type === "image") {
-            power.value += mjPower.value;
+          })
+          if (jobs[i].type === 'image') {
+            power.value += mjPower.value
           } else {
-            power.value += mjActionPower.value;
+            power.value += mjActionPower.value
           }
         }
-        _jobs.push(jobs[i]);
+        _jobs.push(jobs[i])
       }
       if (runningJobs.value.length !== _jobs.length) {
-        page.value = 0;
-        downloadPulling.value = true;
-        fetchFinishJobs();
+        page.value = 0
+        downloadPulling.value = true
+        fetchFinishJobs()
       }
       if (_jobs.length === 0) {
-        taskPulling.value = false;
+        taskPulling.value = false
       }
-      runningJobs.value = _jobs;
+      runningJobs.value = _jobs
     })
     .catch((e) => {
-      ElMessage.error("获取任务失败：" + e.message);
-    });
-};
+      ElMessage.error('获取任务失败：' + e.message)
+    })
+}
 
-const page = ref(0);
-const pageSize = ref(15);
-const isOver = ref(false);
+const page = ref(0)
+const pageSize = ref(15)
+const isOver = ref(false)
 const fetchFinishJobs = () => {
   if (!isLogin.value || isOver.value) {
-    return;
+    return
   }
 
-  loading.value = true;
-  page.value = page.value + 1;
+  loading.value = true
+  page.value = page.value + 1
   // 获取已完成的任务
-  httpGet(
-    `/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`
-  )
+  httpGet(`/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
-      const jobs = res.data.items;
-      let hasDownload = false;
+      const jobs = res.data.items
+      let hasDownload = false
       for (let i = 0; i < jobs.length; i++) {
-        if (jobs[i]["img_url"] !== "") {
-          if (jobs[i].type === "upscale" || jobs[i].type === "swapFace") {
-            jobs[i]["img_thumb"] =
-              jobs[i]["img_url"] + "?imageView2/1/w/480/h/600/q/75";
+        if (jobs[i]['img_url'] !== '') {
+          if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
+            jobs[i]['img_thumb'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
           } else {
-            jobs[i]["img_thumb"] =
-              jobs[i]["img_url"] + "?imageView2/1/w/480/h/480/q/75";
+            jobs[i]['img_thumb'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
           }
         } else {
           if (jobs[i].progress === 100) {
-            hasDownload = true;
+            hasDownload = true
           }
-          jobs[i]["img_thumb"] = waterfallOptions.loadProps.loading;
+          jobs[i]['img_thumb'] = waterfallOptions.loadProps.loading
         }
         // 如果当前是第一页，则开启图片下载轮询
         if (page.value === 1) {
-          downloadPulling.value = hasDownload;
+          downloadPulling.value = hasDownload
         }
 
-        if (jobs[i].type !== "upscale" && jobs[i].progress === 100) {
-          jobs[i]["can_opt"] = true;
+        if (jobs[i].type !== 'upscale' && jobs[i].progress === 100) {
+          jobs[i]['can_opt'] = true
         }
       }
 
       if (jobs.length < pageSize.value) {
-        isOver.value = true;
+        isOver.value = true
       }
       // 对比一下jobs和finishedJobs，如果相同，则不进行更新
       if (JSON.stringify(jobs) === JSON.stringify(finishedJobs.value)) {
-        return;
+        return
       }
 
       if (page.value === 1) {
-        finishedJobs.value = jobs;
+        finishedJobs.value = jobs
       } else {
-        finishedJobs.value = finishedJobs.value.concat(jobs);
+        finishedJobs.value = finishedJobs.value.concat(jobs)
       }
     })
     .catch((e) => {
-      ElMessage.error("获取任务失败：" + e.message);
-      loading.value = false;
-    });
-};
+      ElMessage.error('获取任务失败：' + e.message)
+      loading.value = false
+    })
+}
 
 // 切换图片比例
 const changeRate = (item) => {
-  params.value.rate = item.value;
-};
+  params.value.rate = item.value
+}
 // 切换模型
 const changeModel = (item) => {
-  params.value.model = item.value;
-};
+  params.value.model = item.value
+}
 
-const imgKey = ref("");
+const imgKey = ref('')
 const beforeUpload = (key) => {
-  imgKey.value = key;
-};
+  imgKey.value = key
+}
 
 // 图片上传
 const uploadImg = (file) => {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true);
-    return;
+    store.setShowLoginDialog(true)
+    return
   }
 
   // 压缩图片并上传
   new Compressor(file.file, {
     quality: 0.6,
     success(result) {
-      const formData = new FormData();
-      formData.append("file", result, result.name);
-      showLoading("图片上传中...");
+      const formData = new FormData()
+      formData.append('file', result, result.name)
+      showLoading('图片上传中...')
       // 执行上传操作
-      httpPost("/api/upload", formData)
+      httpPost('/api/upload', formData)
         .then((res) => {
-          if (imgKey.value === "") {
-            imgList.value.push(res.data.url);
+          if (imgKey.value === '') {
+            imgList.value.push(res.data.url)
           } else {
             // 单张图片上传
-            params.value[imgKey.value] = res.data.url;
-            imgKey.value = "";
+            params.value[imgKey.value] = res.data.url
+            imgKey.value = ''
           }
-          ElMessage.success("上传成功");
-          closeLoading();
+          ElMessage.success('上传成功')
+          closeLoading()
         })
         .catch((e) => {
-          ElMessage.error("上传失败:" + e.message);
-          closeLoading();
-        });
+          ElMessage.error('上传失败:' + e.message)
+          closeLoading()
+        })
     },
     error(err) {
-      console.log(err.message);
+      console.log(err.message)
     },
-  });
-};
+  })
+}
 
 // 创建绘图任务
-const promptRef = ref(null);
+const promptRef = ref(null)
 const generate = () => {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true);
-    return;
+    store.setShowLoginDialog(true)
+    return
   }
 
-  if (params.value.prompt === "" && params.value.task_type === "image") {
-    promptRef.value.focus();
-    return ElMessage.error("请输入绘画提示词！");
+  if (params.value.prompt === '' && params.value.task_type === 'image') {
+    promptRef.value.focus()
+    return ElMessage.error('请输入绘画提示词！')
   }
-  if (params.value.model.indexOf("niji") !== -1 && params.value.raw) {
-    return ElMessage.error("动漫模型不允许启用原始模式");
+  if (params.value.model.indexOf('niji') !== -1 && params.value.raw) {
+    return ElMessage.error('动漫模型不允许启用原始模式')
   }
-  if (imgList.value.length !== 2 && params.value.task_type === "swapFace") {
-    return ElMessage.error("换脸操作需要上传两张图片");
+  if (imgList.value.length !== 2 && params.value.task_type === 'swapFace') {
+    return ElMessage.error('换脸操作需要上传两张图片')
   }
-  params.value.session_id = getSessionId();
-  params.value.img_arr = imgList.value;
-  httpPost("/api/mj/image", params.value)
+  params.value.session_id = getSessionId()
+  params.value.img_arr = imgList.value
+  httpPost('/api/mj/image', params.value)
     .then(() => {
-      ElMessage.success("绘画任务推送成功，请耐心等待任务执行...");
-      power.value -= mjPower.value;
-      taskPulling.value = true;
+      ElMessage.success('绘画任务推送成功，请耐心等待任务执行...')
+      power.value -= mjPower.value
+      taskPulling.value = true
       runningJobs.value.push({
         progress: 0,
-      });
+      })
+      isOver.value = false
     })
     .catch((e) => {
-      ElMessage.error("任务推送失败：" + e.message);
-    });
-};
+      ElMessage.error('任务推送失败：' + e.message)
+    })
+}
 
 // 图片放大任务
 const upscale = (index, item) => {
-  send("/api/mj/upscale", index, item);
-};
+  send('/api/mj/upscale', index, item)
+}
 
 // 图片变换任务
 const variation = (index, item) => {
-  send("/api/mj/variation", index, item);
-};
+  send('/api/mj/variation', index, item)
+}
 
 const send = (url, index, item) => {
   httpPost(url, {
@@ -1468,96 +1392,96 @@ const send = (url, index, item) => {
     prompt: item.prompt,
   })
     .then(() => {
-      ElMessage.success("任务推送成功，请耐心等待任务执行...");
-      power.value -= mjActionPower.value;
-      taskPulling.value = true;
+      ElMessage.success('任务推送成功，请耐心等待任务执行...')
+      power.value -= mjActionPower.value
+      taskPulling.value = true
       runningJobs.value.push({
         progress: 0,
-      });
+      })
     })
     .catch((e) => {
-      ElMessage.error("任务推送失败：" + e.message);
-    });
-};
+      ElMessage.error('任务推送失败：' + e.message)
+    })
+}
 
 const removeImage = (item) => {
-  ElMessageBox.confirm("此操作将会删除任务和图片，继续操作码?", "删除提示", {
-    confirmButtonText: "确认",
-    cancelButtonText: "取消",
-    type: "warning",
+  ElMessageBox.confirm('此操作将会删除任务和图片，继续操作码?', '删除提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning',
   })
     .then(() => {
-      httpGet("/api/mj/remove", { id: item.id, user_id: item.user_id })
+      httpGet('/api/mj/remove', { id: item.id, user_id: item.user_id })
         .then(() => {
-          ElMessage.success("任务删除成功");
-          page.value = 0;
-          isOver.value = false;
-          fetchFinishJobs();
+          ElMessage.success('任务删除成功')
+          page.value = 0
+          isOver.value = false
+          fetchFinishJobs()
         })
         .catch((e) => {
-          ElMessage.error("任务删除失败：" + e.message);
-        });
+          ElMessage.error('任务删除失败：' + e.message)
+        })
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
 // 发布图片到作品墙
 const publishImage = (item, action) => {
-  let text = "图片发布";
+  let text = '图片发布'
   if (action === false) {
-    text = "取消发布";
+    text = '取消发布'
   }
-  httpGet("/api/mj/publish", {
+  httpGet('/api/mj/publish', {
     id: item.id,
     action: action,
     user_id: item.user_id,
   })
     .then(() => {
-      ElMessage.success(text + "成功");
-      item.publish = action;
-      page.value = 0;
-      isOver.value = false;
-      item.publish = action;
+      ElMessage.success(text + '成功')
+      item.publish = action
+      page.value = 0
+      isOver.value = false
+      item.publish = action
     })
     .catch((e) => {
-      ElMessage.error(text + "失败：" + e.message);
-    });
-};
+      ElMessage.error(text + '失败：' + e.message)
+    })
+}
 
 const previewImg = (item) => {
-  previewURL.value = item.img_url;
-};
+  previewURL.value = item.img_url
+}
 
 // 切换菜单
 const tabChange = (tab) => {
-  if (tab === "txt2img" || tab === "img2img" || tab === "cref") {
-    params.value.task_type = "image";
+  if (tab === 'txt2img' || tab === 'img2img' || tab === 'cref') {
+    params.value.task_type = 'image'
   } else {
-    params.value.task_type = tab;
+    params.value.task_type = tab
   }
-};
+}
 
 // 删除已上传图片
 const removeUploadImage = (url) => {
-  imgList.value = removeArrayItem(imgList.value, url);
-};
+  imgList.value = removeArrayItem(imgList.value, url)
+}
 
-const isGenerating = ref(false);
+const isGenerating = ref(false)
 const generatePrompt = () => {
-  if (params.value.prompt === "") {
-    return showMessageError("请输入原始提示词");
+  if (params.value.prompt === '') {
+    return showMessageError('请输入原始提示词')
   }
-  isGenerating.value = true;
-  httpPost("/api/prompt/image", { prompt: params.value.prompt })
+  isGenerating.value = true
+  httpPost('/api/prompt/image', { prompt: params.value.prompt })
     .then((res) => {
-      params.value.prompt = res.data;
-      isGenerating.value = false;
+      params.value.prompt = res.data
+      isGenerating.value = false
     })
     .catch((e) => {
-      showMessageError("生成提示词失败：" + e.message);
-      isGenerating.value = false;
-    });
-};
+      showMessageError('生成提示词失败：' + e.message)
+      isGenerating.value = false
+    })
+}
 </script>
 
 <style lang="stylus">

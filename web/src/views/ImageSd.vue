@@ -37,10 +37,7 @@
                 <el-form-item label="采样调度">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select
-                        v-model="params.scheduler"
-                        style="width: 150px"
-                      >
+                      <el-select v-model="params.scheduler" style="width: 150px">
                         <el-option
                           v-for="item in schedulers"
                           :label="item"
@@ -48,11 +45,7 @@
                           :key="item"
                         />
                       </el-select>
-                      <el-tooltip
-                        content="推荐自动或者 Karras"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="推荐自动或者 Karras" raw-content placement="right">
                         <el-icon class="info-icon">
                           <InfoFilled />
                         </el-icon>
@@ -68,16 +61,10 @@
                     <div class="form-item-inner">
                       <el-row :gutter="20">
                         <el-col :span="12">
-                          <el-input
-                            v-model.number="params.width"
-                            placeholder="图片宽度"
-                          />
+                          <el-input v-model.number="params.width" placeholder="图片宽度" />
                         </el-col>
                         <el-col :span="12">
-                          <el-input
-                            v-model.number="params.height"
-                            placeholder="图片高度"
-                          />
+                          <el-input v-model.number="params.height" placeholder="图片高度" />
                         </el-col>
                       </el-row>
                     </div>
@@ -138,11 +125,7 @@
                         </el-icon>
                       </el-tooltip>
 
-                      <el-tooltip
-                        content="使用随机数"
-                        raw-content
-                        placement="right"
-                      >
+                      <el-tooltip content="使用随机数" raw-content placement="right">
                         <el-icon @click="params.seed = -1" class="info-icon">
                           <Orange />
                         </el-icon>
@@ -184,10 +167,7 @@
                           v-model.number="params.hd_redraw_rate"
                           :max="1"
                           :step="0.1"
-                          style="
-                            width: 180px;
-                            --el-slider-main-bg-color: #47fff1;
-                          "
+                          style="width: 180px; --el-slider-main-bg-color: #47fff1"
                         />
                         <el-tooltip
                           content="决定算法对图像内容的影响程度<br />较大的值将得到越有创意的图像"
@@ -207,10 +187,7 @@
                   <el-form-item label="放大算法">
                     <template #default>
                       <div class="form-item-inner">
-                        <el-select
-                          v-model="params.hd_scale_alg"
-                          style="width: 176px"
-                        >
+                        <el-select v-model="params.hd_scale_alg" style="width: 176px">
                           <el-option
                             v-for="item in scaleAlg"
                             :label="item"
@@ -291,20 +268,14 @@
                   color="#5865f2"
                   :disabled="isGenerating"
                 >
-                  <i
-                    class="iconfont icon-chuangzuo"
-                    style="margin-right: 5px"
-                  ></i>
+                  <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
                   <span>生成专业绘画指令</span>
                 </el-button>
               </el-row>
 
               <div class="param-line pt">
                 <span>反向提示词：</span>
-                <el-tooltip
-                  content="不希望出现的元素，下面给了默认的起手式"
-                  placement="right"
-                >
+                <el-tooltip content="不希望出现的元素，下面给了默认的起手式" placement="right">
                   <el-icon class="info-icon">
                     <InfoFilled />
                   </el-icon>
@@ -326,24 +297,18 @@
                     <el-text type="warning">{{ sdPower }}算力，</el-text>
                   </el-text>
                   <el-text type="primary"
-                    >当前可用
-                    <el-text type="warning"> {{ power }}算力</el-text></el-text
+                    >当前可用 <el-text type="warning"> {{ power }}算力</el-text></el-text
                   >
                 </el-row>
               </div>
             </el-form>
           </div>
           <div class="submit-btn">
-            <el-button type="primary" :dark="false" round @click="generate"
-              >立即生成</el-button
-            >
+            <el-button type="primary" :dark="false" round @click="generate">立即生成</el-button>
           </div>
         </div>
         <div class="task-list-box pl-6 pr-6 pb-4 pt-4 h-dvh">
-          <div
-            class="task-list-inner"
-            :style="{ height: listBoxHeight + 'px' }"
-          >
+          <div class="task-list-inner" :style="{ height: listBoxHeight + 'px' }">
             <div class="job-list-box">
               <h2 class="text-xl">任务列表</h2>
               <task-list :list="runningJobs" />
@@ -397,14 +362,10 @@
                                         placement="top"
                                       >
                                         <template #reference>
-                                          <el-button type="info"
-                                            >详情</el-button
-                                          >
+                                          <el-button type="info">详情</el-button>
                                         </template>
                                       </el-popover>
-                                      <el-button
-                                        type="danger"
-                                        @click="removeImage(item)"
+                                      <el-button type="danger" @click="removeImage(item)"
                                         >删除</el-button
                                       >
                                     </div>
@@ -421,11 +382,7 @@
                               class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
                             >
                               <div class="flex">
-                                <el-tooltip
-                                  content="取消分享"
-                                  placement="top"
-                                  v-if="item.publish"
-                                >
+                                <el-tooltip content="取消分享" placement="top" v-if="item.publish">
                                   <el-button
                                     type="warning"
                                     @click="publishImage(item, false)"
@@ -434,11 +391,7 @@
                                     <i class="iconfont icon-cancel-share"></i>
                                   </el-button>
                                 </el-tooltip>
-                                <el-tooltip
-                                  content="分享"
-                                  placement="top"
-                                  v-else
-                                >
+                                <el-tooltip content="分享" placement="top" v-else>
                                   <el-button
                                     type="success"
                                     @click="publishImage(item, true)"
@@ -448,10 +401,7 @@
                                   </el-button>
                                 </el-tooltip>
 
-                                <el-tooltip
-                                  content="复制提示词"
-                                  placement="top"
-                                >
+                                <el-tooltip content="复制提示词" placement="top">
                                   <el-button
                                     type="info"
                                     circle
@@ -497,12 +447,7 @@
                       </div>
                     </div>
                   </div>
-                  <el-empty
-                    :image-size="100"
-                    v-else
-                    :image="nodata"
-                    description="暂无记录"
-                  />
+                  <el-empty :image-size="100" v-else :image="nodata" description="暂无记录" />
                 </div>
               </template>
 
@@ -526,57 +471,52 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
-import {
-  Delete,
-  DocumentCopy,
-  InfoFilled,
-  Orange,
-} from "@element-plus/icons-vue";
-import nodata from "@/assets/img/no-data.png";
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { Delete, DocumentCopy, InfoFilled, Orange } from '@element-plus/icons-vue'
+import nodata from '@/assets/img/no-data.png'
 
-import { httpGet, httpPost } from "@/utils/http";
-import { ElMessage, ElMessageBox } from "element-plus";
-import Clipboard from "clipboard";
-import { checkSession, getSystemInfo } from "@/store/cache";
-import { useRouter } from "vue-router";
-import { getSessionId } from "@/store/session";
-import { useSharedStore } from "@/store/sharedata";
-import TaskList from "@/components/TaskList.vue";
-import BackTop from "@/components/BackTop.vue";
-import { showMessageError } from "@/utils/dialog";
-import SdTaskView from "@/components/SdTaskView.vue";
-import { LazyImg, Waterfall } from "vue-waterfall-plugin-next";
-import "vue-waterfall-plugin-next/dist/style.css";
+import { httpGet, httpPost } from '@/utils/http'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import Clipboard from 'clipboard'
+import { checkSession, getSystemInfo } from '@/store/cache'
+import { useRouter } from 'vue-router'
+import { getSessionId } from '@/store/session'
+import { useSharedStore } from '@/store/sharedata'
+import TaskList from '@/components/TaskList.vue'
+import BackTop from '@/components/BackTop.vue'
+import { showMessageError } from '@/utils/dialog'
+import SdTaskView from '@/components/SdTaskView.vue'
+import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
+import 'vue-waterfall-plugin-next/dist/style.css'
 
-const listBoxHeight = ref(0);
+const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
-const showTaskDialog = ref(false);
-const item = ref({});
-const isLogin = ref(false);
-const loading = ref(true);
-const store = useSharedStore();
-const waterfallOptions = store.waterfallOptions;
+const showTaskDialog = ref(false)
+const item = ref({})
+const isLogin = ref(false)
+const loading = ref(true)
+const store = useSharedStore()
+const waterfallOptions = store.waterfallOptions
 
 const resizeElement = function () {
-  listBoxHeight.value = window.innerHeight - 80;
+  listBoxHeight.value = window.innerHeight - 80
   // paramBoxHeight.value = window.innerHeight - 200
-};
-resizeElement();
+}
+resizeElement()
 window.onresize = () => {
-  resizeElement();
-};
+  resizeElement()
+}
 const samplers = [
-  "Euler a",
-  "DPM++ 2S a",
-  "DPM++ 2M",
-  "DPM++ SDE",
-  "DPM++ 2M SDE",
-  "UniPC",
-  "Restart",
-];
-const schedulers = ["Automatic", "Karras", "Exponential", "Uniform"];
-const scaleAlg = ["Latent", "ESRGAN_4x", "R-ESRGAN 4x+", "SwinIR_4x", "LDSR"];
+  'Euler a',
+  'DPM++ 2S a',
+  'DPM++ 2M',
+  'DPM++ SDE',
+  'DPM++ 2M SDE',
+  'UniPC',
+  'Restart',
+]
+const schedulers = ['Automatic', 'Karras', 'Exponential', 'Uniform']
+const scaleAlg = ['Latent', 'ESRGAN_4x', 'R-ESRGAN 4x+', 'SwinIR_4x', 'LDSR']
 const params = ref({
   width: 1024,
   height: 1024,
@@ -590,228 +530,226 @@ const params = ref({
   hd_scale: 2,
   hd_scale_alg: scaleAlg[0],
   hd_steps: 0,
-  prompt: "",
+  prompt: '',
   neg_prompt:
-    "nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet",
-});
+    'nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet',
+})
 
-const runningJobs = ref([]);
-const finishedJobs = ref([]);
-const allowPulling = ref(true); // 是否允许轮询
-const tastPullHandler = ref(null);
-const router = useRouter();
+const runningJobs = ref([])
+const finishedJobs = ref([])
+const allowPulling = ref(true) // 是否允许轮询
+const tastPullHandler = ref(null)
+const router = useRouter()
 // 检查是否有画同款的参数
-const _params = router.currentRoute.value.params["copyParams"];
+const _params = router.currentRoute.value.params['copyParams']
 if (_params) {
-  params.value = JSON.parse(_params);
+  params.value = JSON.parse(_params)
 }
-const power = ref(0);
-const sdPower = ref(0); // 画一张 SD 图片消耗算力
+const power = ref(0)
+const sdPower = ref(0) // 画一张 SD 图片消耗算力
 
-const userId = ref(0);
-const clipboard = ref(null);
+const userId = ref(0)
+const clipboard = ref(null)
 onMounted(() => {
-  initData();
-  clipboard.value = new Clipboard(".copy-prompt-sd");
-  clipboard.value.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
+  initData()
+  clipboard.value = new Clipboard('.copy-prompt-sd')
+  clipboard.value.on('success', () => {
+    ElMessage.success('复制成功！')
+  })
 
-  clipboard.value.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！')
+  })
 
   getSystemInfo()
     .then((res) => {
-      sdPower.value = res.data.sd_power;
-      params.value.neg_prompt = res.data.sd_neg_prompt;
+      sdPower.value = res.data.sd_power
+      params.value.neg_prompt = res.data.sd_neg_prompt
     })
     .catch((e) => {
-      ElMessage.error("获取系统配置失败：" + e.message);
-    });
-});
+      ElMessage.error('获取系统配置失败：' + e.message)
+    })
+})
 
 onUnmounted(() => {
-  clipboard.value.destroy();
+  clipboard.value.destroy()
   if (tastPullHandler.value) {
-    clearInterval(tastPullHandler.value);
+    clearInterval(tastPullHandler.value)
   }
-});
+})
 
 const initData = () => {
   checkSession()
     .then((user) => {
-      power.value = user["power"];
-      userId.value = user.id;
-      isLogin.value = true;
-      page.value = 0;
-      fetchRunningJobs();
-      fetchFinishJobs();
+      power.value = user['power']
+      userId.value = user.id
+      isLogin.value = true
+      page.value = 0
+      fetchRunningJobs()
+      fetchFinishJobs()
 
       tastPullHandler.value = setInterval(() => {
         if (allowPulling.value) {
-          fetchRunningJobs();
+          fetchRunningJobs()
         }
-      }, 5000);
+      }, 5000)
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
 const fetchRunningJobs = () => {
   if (!isLogin.value) {
-    return;
+    return
   }
 
   // 获取运行中的任务
   httpGet(`/api/sd/jobs?finish=0`)
     .then((res) => {
       if (runningJobs.value.length !== res.data.items.length) {
-        page.value = 0;
-        fetchFinishJobs();
+        page.value = 0
+        fetchFinishJobs()
       }
       if (runningJobs.value.length === 0) {
-        allowPulling.value = false;
+        allowPulling.value = false
       }
-      runningJobs.value = res.data.items;
+      runningJobs.value = res.data.items
     })
     .catch((e) => {
-      ElMessage.error("获取任务失败：" + e.message);
-    });
-};
+      ElMessage.error('获取任务失败：' + e.message)
+    })
+}
 
-const page = ref(0);
-const pageSize = ref(20);
-const isOver = ref(false);
+const page = ref(0)
+const pageSize = ref(20)
+const isOver = ref(false)
 // 获取已完成的任务
 const fetchFinishJobs = () => {
   if (!isLogin.value || isOver.value === true) {
-    return;
+    return
   }
-  loading.value = true;
-  page.value = page.value + 1;
+  loading.value = true
+  page.value = page.value + 1
 
-  httpGet(
-    `/api/sd/jobs?finish=1&page=${page.value}&page_size=${pageSize.value}`
-  )
+  httpGet(`/api/sd/jobs?finish=1&page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
       if (res.data.items.length < pageSize.value) {
-        isOver.value = true;
-        loading.value = false;
+        isOver.value = true
+        loading.value = false
       }
-      const imageList = res.data.items;
+      const imageList = res.data.items
       for (let i = 0; i < imageList.length; i++) {
-        imageList[i]["img_thumb"] =
-          imageList[i]["img_url"] + "?imageView2/4/w/300/h/0/q/75";
+        imageList[i]['img_thumb'] = imageList[i]['img_url'] + '?imageView2/4/w/300/h/0/q/75'
       }
       if (page.value === 1) {
-        finishedJobs.value = imageList;
+        finishedJobs.value = imageList
       } else {
-        finishedJobs.value = finishedJobs.value.concat(imageList);
+        finishedJobs.value = finishedJobs.value.concat(imageList)
       }
     })
     .catch((e) => {
-      ElMessage.error("获取任务失败：" + e.message);
-      loading.value = false;
-    });
-};
+      ElMessage.error('获取任务失败：' + e.message)
+      loading.value = false
+    })
+}
 
 // 创建绘图任务
-const promptRef = ref(null);
+const promptRef = ref(null)
 const generate = () => {
-  if (params.value.prompt === "") {
-    promptRef.value.focus();
-    return ElMessage.error("请输入绘画提示词！");
+  if (params.value.prompt === '') {
+    promptRef.value.focus()
+    return ElMessage.error('请输入绘画提示词！')
   }
 
   if (!isLogin.value) {
-    store.setShowLoginDialog(true);
-    return;
+    store.setShowLoginDialog(true)
+    return
   }
 
   if (!params.value.seed) {
-    params.value.seed = -1;
+    params.value.seed = -1
   }
-  params.value.session_id = getSessionId();
-  httpPost("/api/sd/image", params.value)
+  params.value.session_id = getSessionId()
+  httpPost('/api/sd/image', params.value)
     .then(() => {
-      ElMessage.success("绘画任务推送成功，请耐心等待任务执行...");
-      power.value -= sdPower.value;
-      allowPulling.value = true;
+      ElMessage.success('绘画任务推送成功，请耐心等待任务执行...')
+      power.value -= sdPower.value
+      allowPulling.value = true
       runningJobs.value.push({
         progress: 0,
-      });
+      })
+      isOver.value = false
     })
     .catch((e) => {
-      ElMessage.error("任务推送失败：" + e.message);
-    });
-};
+      ElMessage.error('任务推送失败：' + e.message)
+    })
+}
 
 const showTask = (row) => {
-  item.value = row;
-  showTaskDialog.value = true;
-};
+  item.value = row
+  showTaskDialog.value = true
+}
 
 const copyParams = (row) => {
-  params.value = row.params;
-  showTaskDialog.value = false;
-};
+  params.value = row.params
+  showTaskDialog.value = false
+}
 
 const removeImage = (item) => {
-  ElMessageBox.confirm("此操作将会删除任务和图片，继续操作码?", "删除提示", {
-    confirmButtonText: "确认",
-    cancelButtonText: "取消",
-    type: "warning",
+  ElMessageBox.confirm('此操作将会删除任务和图片，继续操作码?', '删除提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning',
   })
     .then(() => {
-      httpGet("/api/sd/remove", { id: item.id })
+      httpGet('/api/sd/remove', { id: item.id })
         .then(() => {
-          ElMessage.success("任务删除成功");
-          page.value = 0;
-          isOver.value = false;
-          fetchFinishJobs();
+          ElMessage.success('任务删除成功')
+          page.value = 0
+          isOver.value = false
+          fetchFinishJobs()
         })
         .catch((e) => {
-          ElMessage.error("任务删除失败：" + e.message);
-        });
+          ElMessage.error('任务删除失败：' + e.message)
+        })
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
 // 发布图片到作品墙
 const publishImage = (item, action) => {
-  let text = "图片发布";
+  let text = '图片发布'
   if (action === false) {
-    text = "取消发布";
+    text = '取消发布'
   }
-  httpGet("/api/sd/publish", { id: item.id, action: action })
+  httpGet('/api/sd/publish', { id: item.id, action: action })
     .then(() => {
-      ElMessage.success(text + "成功");
-      item.publish = action;
-      page.value = 0;
-      isOver.value = false;
-      item.publish = action;
+      ElMessage.success(text + '成功')
+      item.publish = action
+      page.value = 0
+      isOver.value = false
+      item.publish = action
     })
     .catch((e) => {
-      ElMessage.error(text + "失败：" + e.message);
-    });
-};
+      ElMessage.error(text + '失败：' + e.message)
+    })
+}
 
-const isGenerating = ref(false);
+const isGenerating = ref(false)
 const generatePrompt = () => {
-  if (params.value.prompt === "") {
-    return showMessageError("请输入原始提示词");
+  if (params.value.prompt === '') {
+    return showMessageError('请输入原始提示词')
   }
-  isGenerating.value = true;
-  httpPost("/api/prompt/image", { prompt: params.value.prompt })
+  isGenerating.value = true
+  httpPost('/api/prompt/image', { prompt: params.value.prompt })
     .then((res) => {
-      params.value.prompt = res.data;
-      isGenerating.value = false;
+      params.value.prompt = res.data
+      isGenerating.value = false
     })
     .catch((e) => {
-      showMessageError("生成提示词失败：" + e.message);
-      isGenerating.value = false;
-    });
-};
+      showMessageError('生成提示词失败：' + e.message)
+      isGenerating.value = false
+    })
+}
 </script>
 
 <style lang="stylus">
