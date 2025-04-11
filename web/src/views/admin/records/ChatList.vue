@@ -3,8 +3,18 @@
     <el-tabs v-model="activeName" @tab-change="handleChange">
       <el-tab-pane label="对话列表" name="chat" v-loading="data.chat.loading">
         <div class="handle-box">
-          <el-input v-model.number="data.chat.query.user_id" placeholder="账户ID" class="handle-input mr10" @keyup="searchChat($event)"></el-input>
-          <el-input v-model="data.chat.query.title" placeholder="对话标题" class="handle-input mr10" @keyup="searchChat($event)"></el-input>
+          <el-input
+            v-model.number="data.chat.query.user_id"
+            placeholder="账户ID"
+            class="handle-input mr10"
+            @keyup="searchChat($event)"
+          ></el-input>
+          <el-input
+            v-model="data.chat.query.title"
+            placeholder="对话标题"
+            class="handle-input mr10"
+            @keyup="searchChat($event)"
+          ></el-input>
           <el-date-picker
             v-model="data.chat.query.created_at"
             type="daterange"
@@ -38,13 +48,15 @@
 
             <el-table-column label="创建时间">
               <template #default="scope">
-                <span>{{ dateFormat(scope.row["created_at"]) }}</span>
+                <span>{{ dateFormat(scope.row['created_at']) }}</span>
               </template>
             </el-table-column>
 
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button size="small" type="primary" @click="showMessages(scope.row)">查看</el-button>
+                <el-button size="small" type="primary" @click="showMessages(scope.row)"
+                  >查看</el-button
+                >
                 <el-popconfirm title="确定要删除当前记录吗?" @confirm="removeChat(scope.row)">
                   <template #reference>
                     <el-button size="small" type="danger">删除</el-button>
@@ -70,9 +82,24 @@
       </el-tab-pane>
       <el-tab-pane label="消息记录" name="message">
         <div class="handle-box">
-          <el-input v-model.number="data.message.query.user_id" placeholder="账户ID" class="handle-input mr10" @keyup="searchMessage($event)"></el-input>
-          <el-input v-model="data.message.query.content" placeholder="消息内容" class="handle-input mr10" @keyup="searchMessage($event)"></el-input>
-          <el-input v-model="data.message.query.model" placeholder="模型" class="handle-input mr10" @keyup="searchMessage($event)"></el-input>
+          <el-input
+            v-model.number="data.message.query.user_id"
+            placeholder="账户ID"
+            class="handle-input mr10"
+            @keyup="searchMessage($event)"
+          ></el-input>
+          <el-input
+            v-model="data.message.query.content"
+            placeholder="消息内容"
+            class="handle-input mr10"
+            @keyup="searchMessage($event)"
+          ></el-input>
+          <el-input
+            v-model="data.message.query.model"
+            placeholder="模型"
+            class="handle-input mr10"
+            @keyup="searchMessage($event)"
+          ></el-input>
           <el-date-picker
             v-model="data.message.query.created_at"
             type="daterange"
@@ -108,13 +135,15 @@
 
             <el-table-column label="创建时间">
               <template #default="scope">
-                <span>{{ dateFormat(scope.row["created_at"]) }}</span>
+                <span>{{ dateFormat(scope.row['created_at']) }}</span>
               </template>
             </el-table-column>
 
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button size="small" type="primary" @click="showContent(scope.row.content)">查看</el-button>
+                <el-button size="small" type="primary" @click="showContent(scope.row.content)"
+                  >查看</el-button
+                >
                 <el-popconfirm title="确定要删除当前记录吗?" @confirm="removeMessage(scope.row)">
                   <template #reference>
                     <el-button size="small" type="danger">删除</el-button>
@@ -140,13 +169,23 @@
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog v-model="showContentDialog" title="消息详情" class="chat-dialog" style="--el-dialog-width: 60%">
+    <el-dialog
+      v-model="showContentDialog"
+      title="消息详情"
+      class="chat-dialog"
+      style="--el-dialog-width: 60%"
+    >
       <div class="chat-detail">
         <div class="chat-line" v-html="dialogContent"></div>
       </div>
     </el-dialog>
 
-    <el-dialog v-model="showChatItemDialog" title="对话详情" class="chat-dialog" style="--el-dialog-width: 60%">
+    <el-dialog
+      v-model="showChatItemDialog"
+      title="对话详情"
+      class="chat-dialog"
+      style="--el-dialog-width: 60%"
+    >
       <div class="chat-box chat-page">
         <div v-for="item in messages" :key="item.id">
           <chat-prompt v-if="item.type === 'prompt'" :data="item" />
@@ -159,21 +198,21 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { httpGet, httpPost } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { dateFormat, processContent } from "@/utils/libs";
-import { Search } from "@element-plus/icons-vue";
-import "highlight.js/styles/a11y-dark.css";
-import hl from "highlight.js";
-import ChatPrompt from "@/components/ChatPrompt.vue";
-import ChatReply from "@/components/ChatReply.vue";
+import ChatPrompt from '@/components/ChatPrompt.vue'
+import ChatReply from '@/components/ChatReply.vue'
+import { httpGet, httpPost } from '@/utils/http'
+import { dateFormat, processContent } from '@/utils/libs'
+import { Search } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import hl from 'highlight.js'
+import 'highlight.js/styles/a11y-dark.css'
+import { onMounted, ref } from 'vue'
 
 // 变量定义
 const data = ref({
   chat: {
     items: [],
-    query: { title: "", created_at: [], page: 1, page_size: 15 },
+    query: { title: '', created_at: [], page: 1, page_size: 15 },
     total: 0,
     page: 1,
     pageSize: 15,
@@ -181,104 +220,104 @@ const data = ref({
   },
   message: {
     items: [],
-    query: { title: "", created_at: [], page: 1, page_size: 15 },
+    query: { title: '', created_at: [], page: 1, page_size: 15 },
     total: 0,
     page: 1,
     pageSize: 15,
     loading: true,
   },
-});
-const activeName = ref("chat");
+})
+const activeName = ref('chat')
 
 onMounted(() => {
-  fetchChatData();
-});
+  fetchChatData()
+})
 
 const handleChange = (tab) => {
-  if (tab === "chat") {
-    fetchChatData();
-  } else if (tab === "message") {
-    fetchMessageData();
+  if (tab === 'chat') {
+    fetchChatData()
+  } else if (tab === 'message') {
+    fetchMessageData()
   }
-};
+}
 
 // 搜索对话
 const searchChat = (evt) => {
   if (evt.keyCode === 13) {
-    fetchChatData();
+    fetchChatData()
   }
-};
+}
 
 // 搜索消息
 const searchMessage = (evt) => {
   if (evt.keyCode === 13) {
-    fetchMessageData();
+    fetchMessageData()
   }
-};
+}
 
 // 获取数据
 const fetchChatData = () => {
-  const d = data.value.chat;
-  d.query.page = d.page;
-  d.query.page_size = d.pageSize;
-  httpPost("/api/admin/chat/list", d.query)
+  const d = data.value.chat
+  d.query.page = d.page
+  d.query.page_size = d.pageSize
+  httpPost('/api/admin/chat/list', d.query)
     .then((res) => {
       if (res.data) {
-        d.items = res.data.items;
-        d.total = res.data.total;
-        d.page = res.data.page;
-        d.pageSize = res.data.page_size;
+        d.items = res.data.items
+        d.total = res.data.total
+        d.page = res.data.page
+        d.pageSize = res.data.page_size
       }
-      d.loading = false;
+      d.loading = false
     })
     .catch((e) => {
-      ElMessage.error("获取数据失败：" + e.message);
-    });
-};
+      ElMessage.error('获取数据失败：' + e.message)
+    })
+}
 
 const fetchMessageData = () => {
-  const d = data.value.message;
-  d.query.page = d.page;
-  d.query.page_size = d.pageSize;
-  httpPost("/api/admin/chat/message", d.query)
+  const d = data.value.message
+  d.query.page = d.page
+  d.query.page_size = d.pageSize
+  httpPost('/api/admin/chat/message', d.query)
     .then((res) => {
       if (res.data) {
-        d.items = res.data.items;
-        d.total = res.data.total;
-        d.page = res.data.page;
-        d.pageSize = res.data.page_size;
+        d.items = res.data.items
+        d.total = res.data.total
+        d.page = res.data.page
+        d.pageSize = res.data.page_size
       }
-      d.loading = false;
+      d.loading = false
     })
     .catch((e) => {
-      ElMessage.error("获取数据失败：" + e.message);
-    });
-};
+      ElMessage.error('获取数据失败：' + e.message)
+    })
+}
 
 const removeChat = function (row) {
-  httpGet("/api/admin/chat/remove?chat_id=" + row.chat_id)
+  httpGet('/api/admin/chat/remove?chat_id=' + row.chat_id)
     .then(() => {
-      ElMessage.success("删除成功！");
-      fetchChatData();
+      ElMessage.success('删除成功！')
+      fetchChatData()
     })
     .catch((e) => {
-      ElMessage.error("删除失败：" + e.message);
-    });
-};
+      ElMessage.error('删除失败：' + e.message)
+    })
+}
 
 const removeMessage = function (row) {
-  httpGet("/api/admin/chat/message/remove?id=" + row.id)
+  httpGet('/api/admin/chat/message/remove?id=' + row.id)
     .then(() => {
-      ElMessage.success("删除成功！");
-      fetchMessageData();
+      ElMessage.success('删除成功！')
+      fetchMessageData()
     })
     .catch((e) => {
-      ElMessage.error("删除失败：" + e.message);
-    });
-};
+      ElMessage.error('删除失败：' + e.message)
+    })
+}
 
-const mathjaxPlugin = require("markdown-it-mathjax3");
-const md = require("markdown-it")({
+const mathjaxPlugin = require('markdown-it-mathjax3')
+const md = require('markdown-it')({
   breaks: true,
   html: true,
   linkify: true,
@@ -286,43 +325,43 @@ const md = require("markdown-it")({
   highlight: function (str, lang) {
     if (lang && hl.getLanguage(lang)) {
       // 处理代码高亮
-      const preCode = hl.highlight(lang, str, true).value;
+      const preCode = hl.highlight(lang, str, true).value
       // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`;
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
     }
 
     // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str);
+    const preCode = md.utils.escapeHtml(str)
     // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`;
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
   },
-});
-md.use(mathjaxPlugin);
+})
+md.use(mathjaxPlugin)
 
-const showContentDialog = ref(false);
-const dialogContent = ref("");
+const showContentDialog = ref(false)
+const dialogContent = ref('')
 const showContent = (content) => {
-  showContentDialog.value = true;
-  dialogContent.value = md.render(processContent(content));
-};
+  showContentDialog.value = true
+  dialogContent.value = md.render(processContent(content))
+}
 
-const showChatItemDialog = ref(false);
-const messages = ref([]);
+const showChatItemDialog = ref(false)
+const messages = ref([])
 const showMessages = (row) => {
-  showChatItemDialog.value = true;
-  messages.value = [];
-  httpGet("/api/admin/chat/history?chat_id=" + row.chat_id)
+  showChatItemDialog.value = true
+  messages.value = []
+  httpGet('/api/admin/chat/history?chat_id=' + row.chat_id)
     .then((res) => {
-      const data = res.data;
+      const data = res.data
       for (let i = 0; i < data.length; i++) {
-        messages.value.push(data[i]);
+        messages.value.push(data[i])
       }
     })
     .catch((e) => {
       // TODO: 显示重新加载按钮
-      ElMessage.error("加载聊天记录失败：" + e.message);
-    });
-};
+      ElMessage.error('加载聊天记录失败：' + e.message)
+    })
+}
 </script>
 
 <style lang="stylus" scoped>
@@ -380,7 +419,7 @@ const showMessages = (row) => {
 
       font-size: 14px;
       display: flex;
-      align-items: flex-start;
+      justify-content: flex-start;
 
     }
   }

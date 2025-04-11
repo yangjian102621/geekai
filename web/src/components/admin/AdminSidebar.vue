@@ -25,7 +25,11 @@
             <template v-for="subItem in item.subs">
               <el-sub-menu v-if="subItem.subs" :index="subItem.index" :key="subItem.index">
                 <template #title>{{ subItem.title }}</template>
-                <el-menu-item v-for="(threeItem, i) in subItem.subs" :key="i" :index="threeItem.index">
+                <el-menu-item
+                  v-for="(threeItem, i) in subItem.subs"
+                  :key="i"
+                  :index="threeItem.index"
+                >
                   {{ threeItem.title }}
                 </el-menu-item>
               </el-sub-menu>
@@ -48,125 +52,135 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
-import { setMenuItems, useSidebarStore } from "@/store/sidebar";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { useRoute } from "vue-router";
-import { useSharedStore } from "@/store/sharedata";
+import { useSharedStore } from '@/store/sharedata'
+import { setMenuItems, useSidebarStore } from '@/store/sidebar'
+import { httpGet } from '@/utils/http'
+import { ElMessage } from 'element-plus'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const title = ref("");
-const logo = ref("");
+const title = ref('')
+const logo = ref('')
 
 // 加载系统配置
-httpGet("/api/admin/config/get?key=system")
+httpGet('/api/admin/config/get?key=system')
   .then((res) => {
-    title.value = res.data.admin_title;
-    logo.value = res.data.logo;
+    title.value = res.data.admin_title
+    logo.value = res.data.logo
   })
   .catch((e) => {
-    ElMessage.error("加载系统配置失败: " + e.message);
-  });
-const store = useSharedStore();
-const theme = ref(store.theme);
+    ElMessage.error('加载系统配置失败: ' + e.message)
+  })
+const store = useSharedStore()
+const theme = ref(store.theme)
 watch(
   () => store.theme,
   (val) => {
-    theme.value = val;
+    theme.value = val
   }
-);
+)
 const items = [
   {
-    icon: "home",
-    index: "/admin/dashboard",
-    title: "仪表盘",
+    icon: 'home',
+    index: '/admin/dashboard',
+    title: '仪表盘',
   },
 
   {
-    icon: "user-fill",
-    index: "/admin/user",
-    title: "用户管理",
+    icon: 'user-fill',
+    index: '/admin/user',
+    title: '用户管理',
   },
   {
-    icon: "menu",
-    index: "1",
-    title: "应用管理",
+    icon: 'menu',
+    index: '1',
+    title: '应用管理',
     subs: [
       {
-        index: "/admin/app",
-        title: "应用列表",
+        index: '/admin/app',
+        title: '应用列表',
+        icon: 'sub-menu',
       },
       {
-        index: "/admin/app/type",
-        title: "应用分类",
+        index: '/admin/app/type',
+        title: '应用分类',
+        icon: 'chuangzuo',
       },
     ],
   },
 
   {
-    icon: "api-key",
-    index: "/admin/apikey",
-    title: "API-KEY",
+    icon: 'api-key',
+    index: '/admin/apikey',
+    title: 'API-KEY',
   },
   {
-    icon: "model",
-    index: "/admin/chat/model",
-    title: "模型管理",
+    icon: 'model',
+    index: '/admin/chat/model',
+    title: '模型管理',
   },
   {
-    icon: "recharge",
-    index: "/admin/product",
-    title: "充值产品",
+    icon: 'recharge',
+    index: '/admin/product',
+    title: '充值产品',
   },
   {
-    icon: "order",
-    index: "/admin/order",
-    title: "充值订单",
+    icon: 'order',
+    index: '/admin/order',
+    title: '充值订单',
   },
   {
-    icon: "reward",
-    index: "/admin/redeem",
-    title: "兑换码",
+    icon: 'reward',
+    index: '/admin/redeem',
+    title: '兑换码',
   },
   {
-    icon: "control",
-    index: "/admin/functions",
-    title: "函数管理",
+    icon: 'control',
+    index: '/admin/functions',
+    title: '函数管理',
   },
   {
-    icon: "prompt",
-    index: "/admin/chats",
-    title: "对话管理",
+    icon: 'menu',
+    index: '2',
+    title: '创作记录',
+    subs: [
+      {
+        icon: 'prompt',
+        index: '/admin/chats',
+        title: '对话记录',
+      },
+      {
+        icon: 'image',
+        index: '/admin/images',
+        title: '绘图记录',
+      },
+      {
+        icon: 'mp3',
+        index: '/admin/medias',
+        title: '音视频记录',
+      },
+    ],
+  },
+
+  {
+    icon: 'role',
+    index: '/admin/manger',
+    title: '管理员',
   },
   {
-    icon: "image",
-    index: "/admin/images",
-    title: "绘图管理",
+    icon: 'config',
+    index: '/admin/system',
+    title: '系统设置',
   },
   {
-    icon: "mp3",
-    index: "/admin/medias",
-    title: "音视频管理",
+    icon: 'log',
+    index: '/admin/powerLog',
+    title: '用户算力日志',
   },
   {
-    icon: "role",
-    index: "/admin/manger",
-    title: "管理员",
-  },
-  {
-    icon: "config",
-    index: "/admin/system",
-    title: "系统设置",
-  },
-  {
-    icon: "log",
-    index: "/admin/powerLog",
-    title: "用户算力日志",
-  },
-  {
-    icon: "log",
-    index: "/admin/loginLog",
-    title: "用户登录日志",
+    icon: 'log',
+    index: '/admin/loginLog',
+    title: '用户登录日志',
   },
   // {
   //   icon: 'menu',
@@ -191,15 +205,15 @@ const items = [
   //     },
   //   ],
   // },
-];
+]
 
-const route = useRoute();
+const route = useRoute()
 const onRoutes = computed(() => {
-  return route.path;
-});
+  return route.path
+})
 
-const sidebar = useSidebarStore();
-setMenuItems(items);
+const sidebar = useSidebarStore()
+setMenuItems(items)
 </script>
 
 <style scoped lang="stylus">
