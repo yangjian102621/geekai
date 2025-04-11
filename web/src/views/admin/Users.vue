@@ -10,13 +10,24 @@
     </div>
 
     <el-row>
-      <el-table :data="users.items" border class="table" :row-key="(row) => row.id" @selection-change="handleSelectionChange" table-layout="auto">
+      <el-table
+        :data="users.items"
+        border
+        class="table"
+        :row-key="(row) => row.id"
+        @selection-change="handleSelectionChange"
+        table-layout="auto"
+      >
         <el-table-column type="selection" width="38"></el-table-column>
         <el-table-column prop="id" label="ID" />
         <el-table-column label="账号">
           <template #default="scope">
             <span>{{ scope.row.username }}</span>
-            <el-image v-if="scope.row.vip" :src="vipImg" style="height: 20px; position: relative; top: 5px; left: 5px" />
+            <el-image
+              v-if="scope.row.vip"
+              :src="vipImg"
+              style="height: 20px; position: relative; top: 5px; left: 5px"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="mobile" label="手机" />
@@ -31,24 +42,42 @@
         </el-table-column>
         <el-table-column label="过期时间">
           <template #default="scope">
-            <span v-if="scope.row['expired_time']">{{ scope.row["expired_time"] }}</span>
+            <span v-if="scope.row['expired_time']">{{ scope.row['expired_time'] }}</span>
             <el-tag v-else>长期有效</el-tag>
           </template>
         </el-table-column>
 
         <el-table-column label="注册时间">
           <template #default="scope">
-            <span>{{ dateFormat(scope.row["created_at"]) }}</span>
+            <span>{{ dateFormat(scope.row['created_at']) }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" label="操作" width="220">
+        <el-table-column fixed="right" label="操作">
           <template #default="scope">
-            <el-button-group class="ml-4">
-              <el-button size="small" type="primary" @click="userEdit(scope.row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="removeUser(scope.row)">删除</el-button>
-              <el-button size="small" type="success" @click="resetPass(scope.row)">重置密码</el-button>
-            </el-button-group>
+            <el-dropdown>
+              <button
+                class="px-2 py-1 bg-purple-200 hover:bg-purple-300 rounded text-purple-800 text-sm"
+              >
+                <i class="iconfont icon-more-horizontal"></i>
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="userEdit(scope.row)">
+                    <i class="iconfont icon-edit mr-1"></i>编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="removeUser(scope.row)" class="text-red-500">
+                    <i class="iconfont icon-remove mr-1"></i>删除
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="resetPass(scope.row)">
+                    <i class="iconfont icon-password mr-1"></i>重置密码
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="genLoginLink(scope.row)">
+                    <i class="iconfont icon-link mr-1"></i>生成登录链接
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -66,7 +95,12 @@
       </div>
     </el-row>
 
-    <el-dialog v-model="showUserEditDialog" :title="title" :close-on-click-modal="false" width="50%">
+    <el-dialog
+      v-model="showUserEditDialog"
+      :title="title"
+      :close-on-click-modal="false"
+      width="50%"
+    >
       <el-form :model="user" label-width="100px" ref="userEditFormRef" :rules="rules">
         <el-form-item label="账号：" prop="username">
           <el-input v-model="user.username" autocomplete="off" />
@@ -96,13 +130,23 @@
         </el-form-item>
 
         <el-form-item label="聊天角色" prop="chat_roles">
-          <el-select v-model="user.chat_roles" multiple :filterable="true" placeholder="选择聊天角色，多选">
+          <el-select
+            v-model="user.chat_roles"
+            multiple
+            :filterable="true"
+            placeholder="选择聊天角色，多选"
+          >
             <el-option v-for="item in roles" :key="item.key" :label="item.name" :value="item.key" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="模型权限" prop="chat_models">
-          <el-select v-model="user.chat_models" multiple :filterable="true" placeholder="选择AI模型，多选">
+          <el-select
+            v-model="user.chat_models"
+            multiple
+            :filterable="true"
+            placeholder="选择AI模型，多选"
+          >
             <el-option v-for="item in models" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -141,204 +185,241 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="showGenLoginLinkDialog" title="自动登录链接" width="50%">
+      <el-input v-model="loginLink" readonly disabled />
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="copyLoginLink">复制链接</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
-import { httpGet, httpPost } from "@/utils/http";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { dateFormat, disabledDate } from "@/utils/libs";
-import { Delete, Plus, Search } from "@element-plus/icons-vue";
+import { onMounted, reactive, ref } from 'vue'
+import { httpGet, httpPost } from '@/utils/http'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { dateFormat, disabledDate } from '@/utils/libs'
+import { Delete, Plus, Search } from '@element-plus/icons-vue'
+import { showLoading, closeLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 
 // 变量定义
-const users = ref({ page: 1, page_size: 15, items: [] });
-const query = ref({ username: "", page: 1, page_size: 15 });
+const users = ref({ page: 1, page_size: 15, items: [] })
+const query = ref({ username: '', page: 1, page_size: 15 })
 
-const title = ref("添加用户");
-const vipImg = ref("/images/menu/member.png");
-const add = ref(true);
-const user = ref({ chat_roles: [], chat_models: [] });
-const pass = ref({ username: "", password: "", id: 0 });
-const roles = ref([]);
-const models = ref([]);
-const showUserEditDialog = ref(false);
-const showResetPassDialog = ref(false);
+const title = ref('添加用户')
+const vipImg = ref('/images/menu/member.png')
+const add = ref(true)
+const user = ref({ chat_roles: [], chat_models: [] })
+const pass = ref({ username: '', password: '', id: 0 })
+const roles = ref([])
+const models = ref([])
+const showUserEditDialog = ref(false)
+const showResetPassDialog = ref(false)
 const rules = reactive({
-  username: [{ required: true, message: "请输入账号", trigger: "blur" }],
+  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [
     {
       required: true,
       validator: (rule, value) => {
-        return !(value.length > 16 || value.length < 8);
+        return !(value.length > 16 || value.length < 8)
       },
-      message: "密码必须为8-16",
-      trigger: "blur",
+      message: '密码必须为8-16',
+      trigger: 'blur',
     },
   ],
   calls: [
-    { required: true, message: "请输入提问次数" },
-    { type: "number", message: "请输入有效数字" },
+    { required: true, message: '请输入提问次数' },
+    { type: 'number', message: '请输入有效数字' },
   ],
-  chat_roles: [{ required: true, message: "请选择聊天角色", trigger: "change" }],
-  chat_models: [{ required: true, message: "请选择AI模型", trigger: "change" }],
-});
-const loading = ref(true);
+  chat_roles: [{ required: true, message: '请选择聊天角色', trigger: 'change' }],
+  chat_models: [{ required: true, message: '请选择AI模型', trigger: 'change' }],
+})
+const loading = ref(true)
 
-const userEditFormRef = ref(null);
+const userEditFormRef = ref(null)
 
 onMounted(() => {
-  fetchUserList(users.value.page, users.value.page_size);
+  fetchUserList(users.value.page, users.value.page_size)
   // 获取角色列表
-  httpGet("/api/admin/role/list")
+  httpGet('/api/admin/role/list')
     .then((res) => {
-      roles.value = res.data;
+      roles.value = res.data
     })
     .catch(() => {
-      ElMessage.error("获取聊天角色失败");
-    });
+      ElMessage.error('获取聊天角色失败')
+    })
 
-  httpGet("/api/admin/model/list")
+  httpGet('/api/admin/model/list')
     .then((res) => {
-      models.value = res.data;
+      models.value = res.data
     })
     .catch((e) => {
-      ElMessage.error("获取模型失败：" + e.message);
-    });
-});
+      ElMessage.error('获取模型失败：' + e.message)
+    })
+})
 
 const fetchUserList = function (page, pageSize) {
-  query.value.page = page;
-  query.value.page_size = pageSize;
-  httpGet("/api/admin/user/list", query.value)
+  query.value.page = page
+  query.value.page_size = pageSize
+  httpGet('/api/admin/user/list', query.value)
     .then((res) => {
       if (res.data) {
         // 初始化数据
-        const arr = res.data.items;
+        const arr = res.data.items
         for (let i = 0; i < arr.length; i++) {
-          arr[i].expired_time = dateFormat(arr[i].expired_time);
+          arr[i].expired_time = dateFormat(arr[i].expired_time)
         }
-        users.value.items = arr;
-        users.value.total = res.data.total;
-        users.value.page = res.data.page;
-        user.value.page_size = res.data.page_size;
+        users.value.items = arr
+        users.value.total = res.data.total
+        users.value.page = res.data.page
+        user.value.page_size = res.data.page_size
       }
-      loading.value = false;
+      loading.value = false
     })
     .catch(() => {
-      ElMessage.error("加载用户列表失败");
-    });
-};
+      ElMessage.error('加载用户列表失败')
+    })
+}
 
 const handleSearch = () => {
-  fetchUserList(users.value.page, users.value.page_size);
-};
+  fetchUserList(users.value.page, users.value.page_size)
+}
 
 // 删除用户
 const removeUser = function (user) {
-  ElMessageBox.confirm("此操作将会永久删除用户信息和聊天记录，确认操作吗?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
+  ElMessageBox.confirm('此操作将会永久删除用户信息和聊天记录，确认操作吗?', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
   })
     .then(() => {
-      httpGet("/api/admin/user/remove", { id: user.id })
+      httpGet('/api/admin/user/remove', { id: user.id })
         .then(() => {
-          ElMessage.success("操作成功！");
-          fetchUserList(users.value.page, users.value.page_size);
+          ElMessage.success('操作成功！')
+          fetchUserList(users.value.page, users.value.page_size)
         })
         .catch((e) => {
-          ElMessage.error("操作失败，" + e.message);
-        });
+          ElMessage.error('操作失败，' + e.message)
+        })
     })
     .catch(() => {
-      ElMessage.info("操作被取消");
-    });
-};
+      ElMessage.info('操作被取消')
+    })
+}
 
 const userEdit = function (row) {
-  user.value = row;
-  title.value = "编辑用户";
-  showUserEditDialog.value = true;
-  add.value = false;
-};
+  user.value = row
+  title.value = '编辑用户'
+  showUserEditDialog.value = true
+  add.value = false
+}
 
 const addUser = () => {
-  user.value = { chat_id: 0, chat_roles: [], chat_models: [] };
-  title.value = "添加用户";
-  showUserEditDialog.value = true;
-  add.value = true;
-};
+  user.value = { chat_id: 0, chat_roles: [], chat_models: [] }
+  title.value = '添加用户'
+  showUserEditDialog.value = true
+  add.value = true
+}
 
 const saveUser = function () {
   userEditFormRef.value.validate((valid) => {
     if (valid) {
-      showUserEditDialog.value = false;
-      console.log(user.value);
-      httpPost("/api/admin/user/save", user.value)
+      showUserEditDialog.value = false
+      console.log(user.value)
+      httpPost('/api/admin/user/save', user.value)
         .then((res) => {
-          ElMessage.success("操作成功！");
+          ElMessage.success('操作成功！')
           if (add.value) {
-            users.value.items.push(res.data);
+            users.value.items.push(res.data)
           }
         })
         .catch((e) => {
-          ElMessage.error("操作失败，" + e.message);
-        });
+          ElMessage.error('操作失败，' + e.message)
+        })
     } else {
-      return false;
+      return false
     }
-  });
-};
+  })
+}
 
-const userIds = ref([]);
+const userIds = ref([])
 const handleSelectionChange = function (rows) {
-  userIds.value = [];
+  userIds.value = []
   rows.forEach((row) => {
-    userIds.value.push(row.id);
-  });
-};
+    userIds.value.push(row.id)
+  })
+}
 
 const multipleDelete = function () {
-  ElMessageBox.confirm("此操作将会永久删除用户信息和聊天记录，确认操作吗?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
+  ElMessageBox.confirm('此操作将会永久删除用户信息和聊天记录，确认操作吗?', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
   })
     .then(() => {
-      loading.value = true;
-      httpGet("/api/admin/user/remove", { ids: userIds.value })
+      loading.value = true
+      httpGet('/api/admin/user/remove', { ids: userIds.value })
         .then(() => {
-          ElMessage.success("操作成功！");
-          fetchUserList(users.value.page, users.value.page_size);
-          loading.value = false;
+          ElMessage.success('操作成功！')
+          fetchUserList(users.value.page, users.value.page_size)
+          loading.value = false
         })
         .catch((e) => {
-          ElMessage.error("操作失败，" + e.message);
-          loading.value = false;
-        });
+          ElMessage.error('操作失败，' + e.message)
+          loading.value = false
+        })
     })
     .catch(() => {
-      ElMessage.info("操作被取消");
-    });
-};
+      ElMessage.info('操作被取消')
+    })
+}
 
+// 重置密码
 const resetPass = (row) => {
-  showResetPassDialog.value = true;
-  pass.value.id = row.id;
-  pass.value.username = row.username;
-};
+  showResetPassDialog.value = true
+  pass.value.id = row.id
+  pass.value.username = row.username
+}
 
 const doResetPass = () => {
-  httpPost("/api/admin/user/resetPass", pass.value)
+  httpPost('/api/admin/user/resetPass', pass.value)
     .then(() => {
-      ElMessage.success("操作成功！");
-      showResetPassDialog.value = false;
+      ElMessage.success('操作成功！')
+      showResetPassDialog.value = false
     })
     .catch((e) => {
-      ElMessage.error("操作失败，" + e.message);
-    });
-};
+      ElMessage.error('操作失败，' + e.message)
+    })
+}
+
+// 生成登录链接
+const showGenLoginLinkDialog = ref(false)
+const loginLink = ref('')
+const genLoginLink = (row) => {
+  showLoading()
+  httpGet('/api/admin/user/genLoginLink', { id: row.id })
+    .then((res) => {
+      loginLink.value = `${window.location.origin}/login?token=${res.data}`
+      showGenLoginLinkDialog.value = true
+      closeLoading()
+    })
+    .catch((e) => {
+      ElMessage.error('操作失败，' + e.message)
+      closeLoading()
+    })
+}
+
+const copyLoginLink = () => {
+  try {
+    navigator.clipboard.writeText(loginLink.value)
+    showMessageOK('复制成功！')
+  } catch (e) {
+    showMessageError('复制失败')
+  }
+}
 </script>
 
 <style lang="stylus" scoped>

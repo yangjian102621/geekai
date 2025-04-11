@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -319,4 +320,37 @@ func (h *UserHandler) LoginLog(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, logs))
+}
+
+// GenLoginLink 生成登录链接
+func (h *UserHandler) GenLoginLink(c *gin.Context) {
+	id := c.Query("id")
+	if id == "" {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	var user model.User
+	if err := h.DB.Where("id = ?", id).First(&user).Error; err != nil {
+		resp.ERROR(c, "用户不存在")
+		return
+	}
+
+	// 创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.Id,
+		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		resp.ERROR(c, "Failed to generate token, "+err.Error())
+		return
+	}
+	// 保存到 redis
+	sessionKey := fmt.Sprintf("users/%d", user.Id)
+	if _, err = h.redis.Set(c, sessionKey, tokenString, 0).Result(); err != nil {
+		resp.ERROR(c, "error with save token: "+err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, tokenString)
 }

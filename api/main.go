@@ -331,6 +331,7 @@ func main() {
 			group.POST("save", h.Save)
 			group.GET("remove", h.Remove)
 			group.GET("loginLog", h.LoginLog)
+			group.GET("genLoginLink", h.GenLoginLink)
 			group.POST("resetPass", h.ResetPass)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
