@@ -321,6 +321,11 @@ const routes = [
         name: 'mobile-chat-export',
         component: () => import('@/views/mobile/ChatExport.vue'),
       },
+      {
+        path: '/mobile/apps',
+        name: 'mobile-apps',
+        component: () => import('@/views/mobile/Apps.vue'),
+      },
     ],
   },
 
