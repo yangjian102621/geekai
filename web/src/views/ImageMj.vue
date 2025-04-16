@@ -813,151 +813,6 @@
                       </div>
                     </div>
                   </div>
-                  <!-- <v3-waterfall
-                    id="waterfall"
-                    :list="finishedJobs"
-                    srcKey="thumb_url"
-                    :gap="20"
-                    :bottomGap="-8"
-                    :colWidth="colWidth"
-                    :distanceToScroll="100"
-                    :isLoading="loading"
-                    :isOver="isOver"
-                    @scrollReachBottom="fetchFinishJobs()"
-                  >
-                    <template #default="slotProp">
-                      <div class="job-item">
-                        <el-image
-                          v-if="slotProp.item.img_url !== ''"
-                          :src="slotProp.item['thumb_url']"
-                          :class="slotProp.item['can_opt'] ? '' : 'upscale'"
-                          @click="previewImg(slotProp.item)"
-                          fit="cover"
-                          :initial-index="slotProp.index"
-                          loading="lazy"
-                        >
-                          <template #placeholder>
-                            <div class="image-slot">正在加载图片</div>
-                          </template>
-                          <template #error>
-                            <div class="image-slot">
-                              <el-icon>
-                                <Picture />
-                              </el-icon>
-                            </div>
-                          </template>
-                        </el-image>
-                        <el-image v-else-if="slotProp.item.progress === 101">
-                          <template #error>
-                            <div class="image-slot">
-                              <div class="err-msg-container">
-                                <div class="title">任务失败</div>
-                                <div class="opt">
-                                  <el-popover title="错误详情" trigger="click" :width="250" :content="slotProp.item['err_msg']" placement="top">
-                                    <template #reference>
-                                      <el-button type="info">详情</el-button>
-                                    </template>
-                                  </el-popover>
-                                  <el-button type="danger" @click="removeImage(slotProp.item)">删除</el-button>
-                                </div>
-                              </div>
-                            </div>
-                          </template>
-                        </el-image>
-                        <el-image v-else>
-                          <template #error>
-                            <div class="image-slot">
-                              <i class="iconfont icon-loading"></i>
-                              <span>正在下载图片</span>
-                            </div>
-                          </template>
-                        </el-image>
-
-                        <div class="opt" v-if="slotProp.item['can_opt']">
-                          <div class="opt-line">
-                            <ul>
-                              <li>
-                                <a @click="upscale(1, slotProp.item)">U1</a>
-                              </li>
-                              <li>
-                                <a @click="upscale(2, slotProp.item)">U2</a>
-                              </li>
-                              <li>
-                                <a @click="upscale(3, slotProp.item)">U3</a>
-                              </li>
-                              <li>
-                                <a @click="upscale(4, slotProp.item)">U4</a>
-                              </li>
-                              <li class="show-prompt">
-                                <el-popover placement="left" title="提示词" :width="240" trigger="hover">
-                                  <template #reference>
-                                    <el-icon>
-                                      <ChromeFilled />
-                                    </el-icon>
-                                  </template>
-
-                                  <template #default>
-                                    <div class="mj-list-item-prompt">
-                                      <span>{{ slotProp.item.prompt }}</span>
-                                      <el-icon class="copy-prompt-mj" :data-clipboard-text="slotProp.item.prompt">
-                                        <DocumentCopy />
-                                      </el-icon>
-                                    </div>
-                                  </template>
-                                </el-popover>
-                              </li>
-                            </ul>
-                          </div>
-
-                          <div class="opt-line">
-                            <ul>
-                              <li>
-                                <a @click="variation(1, slotProp.item)">V1</a>
-                              </li>
-                              <li>
-                                <a @click="variation(2, slotProp.item)">V2</a>
-                              </li>
-                              <li>
-                                <a @click="variation(3, slotProp.item)">V3</a>
-                              </li>
-                              <li>
-                                <a @click="variation(4, slotProp.item)">V4</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div class="remove" v-if="slotProp.item.progress === 100">
-                          <el-tooltip content="删除任务" placement="top">
-                            <el-button type="danger" :icon="Delete" @click="removeImage(slotProp.item)" circle />
-                          </el-tooltip>
-                          <el-tooltip content="取消发布" placement="top" v-if="slotProp.item.publish">
-                            <el-button type="warning" @click="publishImage(slotProp.item, false)" circle>
-                              <i class="iconfont icon-cancel-share"></i>
-                            </el-button>
-                          </el-tooltip>
-                          <el-tooltip content="发布图片" placement="top" v-else>
-                            <el-button type="success" @click="publishImage(slotProp.item, true)" circle>
-                              <i class="iconfont icon-share-bold"></i>
-                            </el-button>
-                          </el-tooltip>
-
-                          <el-tooltip content="复制提示词" placement="top">
-                            <el-button type="success" class="copy-prompt-mj" :data-clipboard-text="slotProp.item.prompt" circle>
-                              <el-icon><DocumentCopy /></el-icon>
-                            </el-button>
-                          </el-tooltip>
-                        </div>
-                      </div>
-                    </template>
-
-                    <template #footer>
-                      <div class="no-more-data">
-                        <span>没有更多数据了</span>
-                        <i class="iconfont icon-face"></i>
-                      </div>
-                    </template>
-                  </v3-waterfall> -->
                 </div>
                 <el-empty :image-size="100" :image="nodata" description="暂无记录" v-else />
               </div>
@@ -984,29 +839,21 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-import {
-  ChromeFilled,
-  Delete,
-  DocumentCopy,
-  InfoFilled,
-  Picture,
-  Plus,
-  UploadFilled,
-} from '@element-plus/icons-vue'
 import nodata from '@/assets/img/no-data.png'
-import Compressor from 'compressorjs'
-import { httpGet, httpPost } from '@/utils/http'
-import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
-import Clipboard from 'clipboard'
-import { checkSession, getSystemInfo } from '@/store/cache'
-import { useRouter } from 'vue-router'
-import { getSessionId } from '@/store/session'
-import { copyObj, removeArrayItem } from '@/utils/libs'
-import { useSharedStore } from '@/store/sharedata'
-import TaskList from '@/components/TaskList.vue'
 import BackTop from '@/components/BackTop.vue'
+import TaskList from '@/components/TaskList.vue'
+import { checkSession, getSystemInfo } from '@/store/cache'
+import { getSessionId } from '@/store/session'
+import { useSharedStore } from '@/store/sharedata'
 import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
+import { httpGet, httpPost } from '@/utils/http'
+import { copyObj, removeArrayItem } from '@/utils/libs'
+import { Delete, DocumentCopy, InfoFilled, Plus, UploadFilled } from '@element-plus/icons-vue'
+import Clipboard from 'clipboard'
+import Compressor from 'compressorjs'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
 
@@ -1167,6 +1014,7 @@ const initData = () => {
       downloadPullHandler.value = setInterval(() => {
         if (downloadPulling.value) {
           page.value = 0
+          isOver.value = false
           fetchFinishJobs()
         }
       }, 5000)
@@ -1241,7 +1089,7 @@ const fetchFinishJobs = () => {
   httpGet(`/api/mj/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`)
     .then((res) => {
       const jobs = res.data.items
-      let hasDownload = false
+      let needDownload = false
       for (let i = 0; i < jobs.length; i++) {
         if (jobs[i]['img_url'] !== '') {
           if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
@@ -1251,13 +1099,13 @@ const fetchFinishJobs = () => {
           }
         } else {
           if (jobs[i].progress === 100) {
-            hasDownload = true
+            needDownload = true
           }
           jobs[i]['img_thumb'] = waterfallOptions.loadProps.loading
         }
         // 如果当前是第一页，则开启图片下载轮询
         if (page.value === 1) {
-          downloadPulling.value = hasDownload
+          downloadPulling.value = needDownload
         }
 
         if (jobs[i].type !== 'upscale' && jobs[i].progress === 100) {
