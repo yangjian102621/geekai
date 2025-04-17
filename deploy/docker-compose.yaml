@@ -7,7 +7,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=AwkYTv00xU9n
+      - MYSQL_ROOT_PASSWORD=mhSCk0NheGhmtsha
     ports:
       - '3307:3306'
     volumes:
@@ -26,7 +26,7 @@ services:
     image: registry.cn-shenzhen.aliyuncs.com/geekmaster/redis:6.0.6
     restart: always
     container_name: geekai-redis
-    command: redis-server --requirepass AwkYTv00xU9n
+    command: redis-server --requirepass mhSCk0NheGhmtsha
     volumes:
       - ./data/redis:/data
     ports:
