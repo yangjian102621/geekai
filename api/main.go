@@ -474,6 +474,7 @@ func main() {
 			group.GET("imgWall", h.ImgWall)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
+			group.GET("models", h.GetModels)
 		}),
 		fx.Provide(handler.NewSunoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.SunoHandler) {
@@ -565,6 +566,7 @@ func main() {
 		fx.Provide(handler.NewRealtimeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
 			s.Engine.Any("/api/realtime", h.Connection)
+			s.Engine.POST("/api/realtime/voice", h.VoiceChat)
 		}),
 	)
 	// 启动应用程序

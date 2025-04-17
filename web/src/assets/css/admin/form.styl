@@ -1,14 +1,74 @@
-.el-form-item__content {
-  .tip-input {
-    display flex
+.form {
+  .el-form-item__label {
+    .label-title {
+      display flex
+      align-items center
+
+      .el-icon {
+        margin-left 5px
+        cursor pointer
+      }
+    }
+  }
+
+  .el-form-item__content {
     width 100%
 
-    .el-input, .el-select, .el-switch {
-      margin-right 10px
+    .uploader-icon {
+      font-size 24px
+      position relative
+      top 3px
     }
 
-    .info {
-      margin-top 2px
+    .tip-input-line {
+      .tip {
+        margin-top 10px
+        color #c1c1c1
+        font-size 12px;
+        line-height 1.5;
+      }
     }
+  }
+
+  .el-input {
+    width 100%
+  }
+
+
+  .text {
+    font-size 14px
+  }
+
+  .active-info {
+    line-height 1.5
+    padding 10px 0 30px 0
+  }
+
+  .el-descriptions {
+    margin-bottom 20px
+
+    .el-icon {
+      font-size 18px
+    }
+
+    .selected {
+      color #0bc15f
+    }
+
+    .closed {
+      color #da0d54
+    }
+
+    .text {
+      margin-left 10px
+      font-size 12px
+      color #999999
+      position: relative;
+      top -5px
+    }
+  }
+
+  .el-alert {
+    margin-bottom 15px;
   }
 }

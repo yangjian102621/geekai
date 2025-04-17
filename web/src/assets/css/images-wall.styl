@@ -9,11 +9,11 @@
 
 .page-images-wall {
   display: flex;
-  background-color: #282c34;
+  // background-color: #282c34;
 
   .inner {
     width 100%
-    color #ffffff
+    color var(--text-theme-color);
     overflow hidden
 
     .header {
@@ -33,7 +33,7 @@
           font-size 16px
 
           .el-radio {
-            color #ffffff
+            color var(--text-theme-color);
           }
 
         }
@@ -52,6 +52,8 @@
 
       .list-item {
 
+        display flex
+
         .image {
           overflow hidden
 
@@ -68,7 +70,7 @@
           width 100%
           bottom 0
           left 0
-          color #ffffff
+          color var(--text-theme-color);
           padding 8px 10px
           line-height 1.2
           border-top-right-radius 10px
@@ -77,11 +79,15 @@
           span {
             word-break break-all
           }
+          .iconfont{
+            
 
+          }
           .el-icon, .iconfont {
             top 2px
             cursor pointer
-            border 1px solid #ffffff
+           color: #fff !important;
+            border 1px solid #fff !important;
             border-radius 5px
             padding 2px
             font-size 16px;

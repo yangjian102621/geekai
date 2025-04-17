@@ -1,12 +1,14 @@
 .page-luma {
   display flex
   height 100%
-  background-color #0E0808
+  // background-color #0E0808
+  // background: var(--chat-bg);
+
   overflow auto
   //justify-content center
   flex-flow column
   align-items center
-  background: linear-gradient(180deg, rgba(75, 62, 53, 0.8), rgba(144, 50, 181, 0.3));
+  // background: linear-gradient(180deg, rgba(75, 62, 53, 0.8), rgba(144, 50, 181, 0.3));
 
 
   .prompt-box {
@@ -50,7 +52,7 @@
       .btn-swap {
         margin-right 10px
         .icon-exchange{
-          color #ffffff
+          color var(--text-theme-color)
           cursor pointer
         }
       }
@@ -60,18 +62,20 @@
     .prompt-container {
       width: 100%;
       .input-container {
-        background: linear-gradient(90deg, rgba(75, 62, 53, 0.8), rgba(144, 50, 181, 0.3));
+        background: var(--chat-bg);
+        // background: linear-gradient(90deg, rgba(75, 62, 53, 0.8), rgba(144, 50, 181, 0.3));
         border-radius: 28px;
         padding: 10px 20px;
         display: flex;
         align-items: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        margin-bottom: 16px;
+        // box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 
         .prompt-input {
           background: transparent;
           border: none;
           outline: none;
-          color: white;
+          color var(--text-theme-color);
           font-size: 14px;
           width: 100%;
           padding: 10px;
@@ -82,16 +86,14 @@
           overflow-wrap: break-word;
 
           scrollbar-width: none; /* 隐藏滚动条 */
-          &::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-          }
+         
           &::-webkit-scrollbar {
             display: none;
           }
         }
 
         .upload-icon, .send-icon {
-          color #e1e1e1
+          color var( --el-color-primary)
           .iconfont {
             font-size 20px
             cursor pointer
@@ -104,7 +106,7 @@
       .params {
         display flex
         justify-content right
-        color #e1e1e1
+        color var(--text-theme-color);
         font-size 14px
         padding 10px 30px
 
@@ -129,9 +131,9 @@
     padding 0 40px
 
     .h-title {
-      color #ffffff
+      color var(--text-theme-color)
       width 100%
-      font-size 36px
+      // font-size 36px
       text-align left
     }
 
@@ -145,11 +147,10 @@
         padding 10px 15px
         border-radius 10px
         cursor pointer
-        margin-bottom 10px
+        margin-bottom 20px
+        background: var(--chat-bg);
 
-        &:hover {
-          background-color #2A2525
-        }
+       
 
         .left {
           .container {
@@ -189,7 +190,8 @@
               border-radius 5px
               background rgba(100, 100, 100, 0.3)
               cursor pointer
-              color #ffffff
+              color var(--text-theme-color)
+              
               opacity 0
               transform: translate(-50%, 0px);
               transition opacity 0.3s ease 0s
@@ -214,7 +216,7 @@
           padding 0 20px
 
           .prompt,.failed {
-            padding 6px 0
+            padding 0
             font-size 16px
             max-height 80px
             line-height 28px
@@ -222,7 +224,8 @@
             text-overflow ellipsis
           }
           .prompt {
-            color rgb(250 247 245)
+            color var( --text-fb)
+            cursor: text
           }
           .failed {
             color #E4696B
@@ -248,7 +251,6 @@
 
               .text {
                 margin-right 10px
-                color #e1e1e1
               }
             }
 
@@ -256,11 +258,12 @@
               background none
               padding 6px
               transition background 0.6s ease 0s
-              color #726E6C
+              color #919191
 
               &:hover {
-                background #5f5958
-                color #e1e1e1
+                // background #5f5958
+                // color #e1e1e1
+                color:var(--el-color-primary)
               }
 
               .downloading {
@@ -274,7 +277,7 @@
     }
 
     .pagination {
-      padding 10px 20px
+      margin-top 20px
       display flex
       justify-content center
     }
@@ -317,7 +320,7 @@
     //        border-radius 20px
     //        padding 3px 15px
     //        cursor pointer
-    //        color #ffffff
+    //        color var(--text-theme-color)
     //        font-size 14px
     //
     //        .iconfont {
@@ -344,14 +347,15 @@
 
   .btn {
     margin-right 10px
-    background-color #363030
     border none
     border-radius 5px
     padding 5px 10px
     cursor pointer
+    color: var(--theme-text-color-primary)
+    background-color var(--btn-bg)
 
     &:hover {
-      background-color #5F5958
+      opacity: 0.7
     }
   }
 

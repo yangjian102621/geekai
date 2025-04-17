@@ -1,169 +1,177 @@
 <template>
-  <div class="slide-captcha">
-    <div class="bg-img">
-      <el-image :src="backgroundImg" />
-      <div :class="verifyMsgClass" v-if="checked !== 0">
-        <span v-if="checked ===1">{{time}}s</span>
-        {{verifyMsg}}
+  <div class="flex justify-center items-center">
+    <div class="slide-captcha">
+      <div class="bg-img">
+        <el-image :src="backgroundImg" />
+        <div :class="verifyMsgClass" v-if="checked !== 0">
+          <span v-if="checked === 1">{{ time }}s</span>
+          {{ verifyMsg }}
+        </div>
+        <div class="refresh" @click="emits('refresh')">
+          <el-icon><Refresh /></el-icon>
+        </div>
+        <span class="block">
+          <el-image :src="blockImg" :style="{ left: blockLeft + 'px' }" />
+        </span>
       </div>
-      <div class="refresh" @click="emits('refresh')">
-        <el-icon><Refresh /></el-icon>
-      </div>
-      <span class="block">
-        <el-image :src="blockImg" :style="{left: blockLeft+'px'}" />
-      </span>
-    </div>
 
-    <div class="verify">
-      <div class="verify-bar-area">
-        <span class="verify-msg">{{verifyText}}</span>
+      <div class="verify">
+        <div class="verify-bar-area">
+          <span class="verify-msg">{{ verifyText }}</span>
 
-        <div :class="leftBarClass" :style="{width: leftBarWidth+'px'}">
-          <div :class="blockClass" id="dragBlock"
-               :style="{left: blockLeft+'px'}">
-            <el-icon v-if="checked === 0"><ArrowRightBold /></el-icon>
-            <el-icon v-if="checked === 1"><CircleCheckFilled /></el-icon>
-            <el-icon v-if="checked === 2"><CircleCloseFilled /></el-icon>
+          <div :class="leftBarClass" :style="{ width: leftBarWidth + 'px' }">
+            <div :class="blockClass" id="dragBlock" :style="{ left: blockLeft + 'px' }">
+              <el-icon v-if="checked === 0"><ArrowRightBold /></el-icon>
+              <el-icon v-if="checked === 1"><CircleCheckFilled /></el-icon>
+              <el-icon v-if="checked === 2"><CircleCloseFilled /></el-icon>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
 // eslint-disable-next-line no-undef
-import {onMounted, ref, watch} from "vue";
-import {ArrowRightBold, CircleCheckFilled, CircleCloseFilled, Refresh} from "@element-plus/icons-vue";
+import { onMounted, ref, watch } from "vue";
+import { ArrowRightBold, CircleCheckFilled, CircleCloseFilled, Refresh } from "@element-plus/icons-vue";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
   bgImg: String,
   bkImg: String,
   result: Number,
-})
-
-const verifyText = ref('向右滑动完成验证')
-const verifyMsg = ref('')
-const verifyMsgClass = ref("verify-text success")
-const blockClass = ref('verify-move-block')
-const leftBarClass = ref('verify-left-bar')
-const backgroundImg = ref('')
-const blockImg = ref('')
-const leftBarWidth = ref(0)
-const blockLeft = ref(0)
-const checked = ref(0)
-const time = ref('')
-
-watch(() => props.bgImg, (newVal) => {
-  backgroundImg.value = newVal;
 });
-watch(() => props.bkImg, (newVal) => {
-  blockImg.value = newVal;
-});
-watch(() => props.result, (newVal) => {
-  checked.value = newVal;
-  if (newVal === 1) {
-    verifyMsgClass.value = "verify-text success"
-    blockClass.value = 'verify-move-block success'
-    leftBarClass.value = 'verify-left-bar success'
-    verifyMsg.value = '验证成功'
-    setTimeout(() => emits('hide'), 1000)
-  } else if (newVal ===2) {
-    verifyMsgClass.value = "verify-text error"
-    blockClass.value = 'verify-move-block error'
-    leftBarClass.value = 'verify-left-bar error'
-    verifyMsg.value = '验证失败'
-    setTimeout(() => {
-      reset()
-      emits('refresh')
-    }, 1000)
-  } else {
-    reset()
+
+const verifyText = ref("向右滑动完成验证");
+const verifyMsg = ref("");
+const verifyMsgClass = ref("verify-text success");
+const blockClass = ref("verify-move-block");
+const leftBarClass = ref("verify-left-bar");
+const backgroundImg = ref("");
+const blockImg = ref("");
+const leftBarWidth = ref(0);
+const blockLeft = ref(0);
+const checked = ref(0);
+const time = ref("");
+
+watch(
+  () => props.bgImg,
+  (newVal) => {
+    backgroundImg.value = newVal;
   }
-});
-
+);
+watch(
+  () => props.bkImg,
+  (newVal) => {
+    blockImg.value = newVal;
+  }
+);
+watch(
+  () => props.result,
+  (newVal) => {
+    checked.value = newVal;
+    if (newVal === 1) {
+      verifyMsgClass.value = "verify-text success";
+      blockClass.value = "verify-move-block success";
+      leftBarClass.value = "verify-left-bar success";
+      verifyMsg.value = "验证成功";
+      setTimeout(() => emits("hide"), 1000);
+    } else if (newVal === 2) {
+      verifyMsgClass.value = "verify-text error";
+      blockClass.value = "verify-move-block error";
+      leftBarClass.value = "verify-left-bar error";
+      verifyMsg.value = "验证失败";
+      setTimeout(() => {
+        reset();
+        emits("refresh");
+      }, 1000);
+    } else {
+      reset();
+    }
+  }
+);
 
 // eslint-disable-next-line no-undef
-const emits = defineEmits(['confirm','refresh','hide']);
+const emits = defineEmits(["confirm", "refresh", "hide"]);
 
-let offsetX = 0, isDragging  = false
-let start = 0
+let offsetX = 0,
+  isDragging = false;
+let start = 0;
 onMounted(() => {
-  const dragBlock = document.getElementById('dragBlock');
-  dragBlock.addEventListener('mousedown', (evt) => {
-    blockClass.value = 'verify-move-block active'
-    leftBarClass.value = 'verify-left-bar active'
-    leftBarWidth.value = 32
-    isDragging  = true
-    verifyText.value = ""
-    offsetX = evt.clientX
-    start = new Date().getTime()
+  const dragBlock = document.getElementById("dragBlock");
+  dragBlock.addEventListener("mousedown", (evt) => {
+    blockClass.value = "verify-move-block active";
+    leftBarClass.value = "verify-left-bar active";
+    leftBarWidth.value = 32;
+    isDragging = true;
+    verifyText.value = "";
+    offsetX = evt.clientX;
+    start = new Date().getTime();
     evt.preventDefault();
-  })
+  });
 
-  document.body.addEventListener('mousemove',(evt) => {
+  document.body.addEventListener("mousemove", (evt) => {
     if (!isDragging) {
-      return
+      return;
     }
-    const x = Math.max(evt.clientX - offsetX, 0)
+    const x = Math.max(evt.clientX - offsetX, 0);
     blockLeft.value = x;
-    leftBarWidth.value = x + 32
-  })
+    leftBarWidth.value = x + 32;
+  });
 
-  document.body.addEventListener('mouseup', () => {
+  document.body.addEventListener("mouseup", () => {
     if (!isDragging) {
-      return
+      return;
     }
-    time.value = ((new Date().getTime() - start)/1000).toFixed(2)
-    isDragging  = false
-    emits('confirm', Math.floor(blockLeft.value))
-  })
+    time.value = ((new Date().getTime() - start) / 1000).toFixed(2);
+    isDragging = false;
+    emits("confirm", Math.floor(blockLeft.value));
+  });
 
   // 触摸事件
-  dragBlock.addEventListener('touchstart', function (e) {
+  dragBlock.addEventListener("touchstart", function (e) {
     isDragging = true;
-    blockClass.value = 'verify-move-block active'
-    leftBarClass.value = 'verify-left-bar active'
-    leftBarWidth.value = 32
-    isDragging  = true
-    verifyText.value = ""
+    blockClass.value = "verify-move-block active";
+    leftBarClass.value = "verify-left-bar active";
+    leftBarWidth.value = 32;
+    isDragging = true;
+    verifyText.value = "";
     offsetX = e.touches[0].clientX - dragBlock.getBoundingClientRect().left;
-    start = new Date().getTime()
+    start = new Date().getTime();
     e.preventDefault();
   });
 
-  document.addEventListener('touchmove', function (e) {
+  document.addEventListener("touchmove", function (e) {
     if (!isDragging) {
-      return
+      return;
     }
     e.preventDefault();
-    const x = Math.max(e.touches[0].clientX - offsetX, 0)
+    const x = Math.max(e.touches[0].clientX - offsetX, 0);
     blockLeft.value = x;
-    leftBarWidth.value = x + 32
+    leftBarWidth.value = x + 32;
   });
 
-  document.addEventListener('touchend', function () {
+  document.addEventListener("touchend", function () {
     if (!isDragging) {
-      return
+      return;
     }
-    time.value = ((new Date().getTime() - start)/1000).toFixed(2)
-    isDragging  = false
-    emits('confirm', Math.floor(blockLeft.value))
+    time.value = ((new Date().getTime() - start) / 1000).toFixed(2);
+    isDragging = false;
+    emits("confirm", Math.floor(blockLeft.value));
   });
-})
-
+});
 
 // 重置验证码
 const reset = () => {
-  blockClass.value = 'verify-move-block'
-  leftBarClass.value = 'verify-left-bar'
-  leftBarWidth.value = 0
-  blockLeft.value = 0
-  checked.value = 0
-  verifyText.value = "向右滑动完成验证"
-}
+  blockClass.value = "verify-move-block";
+  leftBarClass.value = "verify-left-bar";
+  leftBarWidth.value = 0;
+  blockLeft.value = 0;
+  checked.value = 0;
+  verifyText.value = "向右滑动完成验证";
+};
 </script>
 
 <style scoped lang="stylus">
@@ -177,6 +185,7 @@ const reset = () => {
 }
 
 .slide-captcha {
+  width 310px
   * {
     margin 0
     padding 0

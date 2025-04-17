@@ -1,19 +1,28 @@
 <template>
-  <button v-if="showButton" @click="scrollToTop" class="scroll-to-top" :style="{bottom: bottom + 'px', right: right + 'px', backgroundColor: bgColor}">
+  <button
+    v-if="showButton"
+    @click="scrollToTop"
+    class="scroll-to-top"
+    :style="{
+      bottom: bottom + 'px',
+      right: right + 'px',
+      backgroundColor: bgColor
+    }"
+  >
     <el-icon><ArrowUpBold /></el-icon>
   </button>
 </template>
 
 <script>
-import {ArrowUpBold} from "@element-plus/icons-vue";
+import { ArrowUpBold } from "@element-plus/icons-vue";
 
 export default {
-  name: 'BackTop',
-  components: {ArrowUpBold},
+  name: "BackTop",
+  components: { ArrowUpBold },
   props: {
     bottom: {
       type: Number,
-      default: 30
+      default: 155
     },
     right: {
       type: Number,
@@ -21,7 +30,7 @@ export default {
     },
     bgColor: {
       type: String,
-      default: '#007bff'
+      default: "#b6aaf9"
     }
   },
   data() {
@@ -31,19 +40,19 @@ export default {
   },
   mounted() {
     this.checkScroll();
-    window.addEventListener('resize', this.checkScroll);
-    this.$el.parentElement.addEventListener('scroll', this.checkScroll);
+    window.addEventListener("resize", this.checkScroll);
+    this.$el.parentElement.addEventListener("scroll", this.checkScroll);
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.checkScroll);
-    this.$el.parentElement.removeEventListener('scroll', this.checkScroll);
+    window.removeEventListener("resize", this.checkScroll);
+    this.$el.parentElement.removeEventListener("scroll", this.checkScroll);
   },
   methods: {
     scrollToTop() {
       const container = this.$el.parentElement;
       container.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth"
       });
     },
     checkScroll() {
@@ -51,7 +60,7 @@ export default {
       this.showButton = container.scrollTop > 50;
     }
   }
-}
+};
 </script>
 
 <style scoped lang="stylus">
@@ -63,12 +72,12 @@ export default {
   cursor: pointer;
   outline: none;
   transition: opacity 0.3s;
-  width 40px
-  height 40px
+  width 30px
+  height 30px
   display flex
   justify-content center
   align-items center
-  font-size 20px
+  font-size 18px
 
   &:hover {
     opacity: 0.6;

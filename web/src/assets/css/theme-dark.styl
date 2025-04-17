@@ -1,0 +1,88 @@
+
+@import 'font.styl'
+:root[data-theme="dark"]{
+  --text-fb:#fff;
+  --text-color: rgba(255, 255, 255, 1) !important; // 主要的文本颜色
+  --normal-color: rgba(163, 174, 208, 1); // 普通颜色
+  --el-text-color-primary: #fff;
+  p, h1, h2, h3, h4, h5, h6, article {
+    // color: var(--text-color) !important;
+     font-family: $font-regular;
+
+  }
+  html,
+  body,
+  #app,
+  .wrapper {
+    background: rgb(13, 20, 53) 
+    background-color: rgb(13, 20, 53) 
+    font-family: $font-regular;
+  }
+  --btnColor: linear-gradient(88deg, #af61f0 1.44%, #5b62ce);
+  --border-active:rgba(255, 255, 255, 0.1);
+  --card-bg:#252d58;
+  --chat-bg:#1f243f
+  --chat-wel-bg:#2d2f38;
+  --card-bg-table: rgba(17, 28, 68, 1);
+  --theme-bg:rgb(13, 20, 53);
+  --theme-bg-color: rgb(13, 20, 53);
+  --theme-bg-all:rgb(13, 20, 53);
+  --sign-bg: rgba(27, 37, 75, 1);
+  --text-theme-color: #fff;
+  --text-color-primary: #d1c7ff;
+  --theme-text-color-secondary: #a3aed0;
+  --theme-text-color-primary: #fff;
+  --theme-text-primary: #f3f3f3;
+  --line-box:rgba(255, 255, 255, 0.1);
+  --el-bg-color:#141a36;
+  --el-fill-color-blank: rgba(17, 28, 68, 1);
+  --el-fill-color-light: rgba(86, 86, 95, .2);
+  --el-color-primary-light-9:rgba(86, 86, 95, .2);
+  --el-text-color-regular: rgba(163, 174, 208, 1)
+  --el-border-color:rgb(79, 80, 85);//黑白切换
+  --el-bg-color-overlay: rgba(17, 28, 68, 1);
+  --el-border-color-light: rgba(255, 255, 255, 0.2);
+  --chat-content-bg:rgba(86, 86, 95, .2);
+  --chat-content-bg-list:rgba(86, 86, 95, .2);
+  --hover-deep-color:#30323c;
+   //layout 
+  .more-menus li.moreTitle,
+  .twoTittle .title,
+  .setting-menus span.title,
+  .setting-menus li .el-icon,
+  .setting-menus li .iconfont,
+  .layout .tab-box .menu-list-item{
+    filter: invert(100%);
+  }
+  .more-menus span.title{
+    color:#000;
+  }
+
+  // 操作按钮
+  --btn-bg: rgba(86, 86, 95, .5);
+
+  .el-table {
+    // 表格表头背景
+    --el-fill-color-darker: rgba(100, 100, 100, .5);
+    --el-border-color-darker: #73767a;
+    --el-table-border-color: rgba(100, 100, 100, .5);
+    --el-table-row-hover-bg-color: rgba(16, 21, 43, .8);
+    --el-table-current-row-bg-color: rgba(16, 21, 43, .8);
+  }
+
+  // 加载动画
+  --el-mask-color: rgba(255, 255, 255, 0.5);
+  --van-toast-background: rgba(255, 255, 255, 0.3);
+
+  --code-bg-color: #424242;
+  --code-text-color: #fff;
+
+  // vant 主题样式
+  --van-cell-background: #141a36;
+  --van-cell-background-light: #242a46;
+  --van-button-default-background: #141a36;
+  --van-background: #141a36;
+  --van-tabbar-background: #141a36;
+  --van-nav-bar-background: #1B244A;
+  --van-dropdown-menu-background: #141a36;
+}

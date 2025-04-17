@@ -2,16 +2,16 @@
   <div class="custom-scroll">
     <div class="page-invitation">
       <div class="inner">
-        <h2>会员推广计划</h2>
+        <h2 class="text-2xl p-4 font-bold">会员推广计划</h2>
         <div class="share-box">
           <div class="info">
-            我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您和被邀请人都将获得 <strong>{{ invitePower }}</strong>
-            算力额度作为奖励。
-            你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
+            我们非常欢迎您把此应用分享给您身边的朋友，分享成功注册后您和被邀请人都将获得
+            <strong>{{ invitePower }}</strong>
+            算力额度作为奖励。 你可以保存下面的二维码或者直接复制分享您的专属推广链接发送给微信好友。
           </div>
 
           <div class="invite-qrcode">
-            <el-image :src="qrImg"/>
+            <el-image :src="qrImg" />
           </div>
 
           <div class="invite-url">
@@ -75,11 +75,12 @@
             </el-col>
           </el-row>
         </div>
+        <div class="box-card">
+          <h2 class="text-xl pb-4">您推荐的用户</h2>
 
-        <h2>您推荐用户</h2>
-
-        <div class="invite-logs">
-          <invite-list v-if="isLogin"/>
+          <div class="invite-logs">
+            <invite-list v-if="isLogin" />
+          </div>
         </div>
       </div>
     </div>
@@ -87,69 +88,75 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import { onMounted, ref } from "vue";
 import QRCode from "qrcode";
-import {httpGet} from "@/utils/http";
-import {ElMessage} from "element-plus";
+import { httpGet } from "@/utils/http";
+import { ElMessage } from "element-plus";
 import Clipboard from "clipboard";
 import InviteList from "@/components/InviteList.vue";
-import {checkSession, getSystemInfo} from "@/store/cache";
-import {useSharedStore} from "@/store/sharedata";
+import { checkSession, getSystemInfo } from "@/store/cache";
+import { useSharedStore } from "@/store/sharedata";
 
-const inviteURL = ref("")
-const qrImg = ref("/images/wx.png")
-const invitePower = ref(0)
-const hits = ref(0)
-const regNum = ref(0)
-const rate = ref(0)
-const isLogin = ref(false)
-const store = useSharedStore()
+const inviteURL = ref("");
+const qrImg = ref("/images/wx.png");
+const invitePower = ref(0);
+const hits = ref(0);
+const regNum = ref(0);
+const rate = ref(0);
+const isLogin = ref(false);
+const store = useSharedStore();
 
 onMounted(() => {
-  initData()
+  initData();
 
   // 复制链接
-  const clipboard = new Clipboard('.copy-link');
-  clipboard.on('success', () => {
-    ElMessage.success('复制成功！');
-  })
+  const clipboard = new Clipboard(".copy-link");
+  clipboard.on("success", () => {
+    ElMessage.success("复制成功！");
+  });
 
-  clipboard.on('error', () => {
-    ElMessage.error('复制失败！');
-  })
-})
+  clipboard.on("error", () => {
+    ElMessage.error("复制失败！");
+  });
+});
 
 const initData = () => {
-  checkSession().then(() => {
-    isLogin.value = true
-    httpGet("/api/invite/code").then(res => {
-      const text = `${location.protocol}//${location.host}/register?invite_code=${res.data.code}`
-      hits.value = res.data["hits"]
-      regNum.value = res.data["reg_num"]
-      if (hits.value > 0) {
-        rate.value = ((regNum.value / hits.value) * 100).toFixed(2)
-      }
-      QRCode.toDataURL(text, {width: 400, height: 400, margin: 2}, (error, url) => {
-        if (error) {
-          console.error(error)
-        } else {
-          qrImg.value = url;
-        }
-      });
-      inviteURL.value = text
-    }).catch(e => {
-      ElMessage.error("获取邀请码失败：" + e.message)
-    })
+  checkSession()
+    .then(() => {
+      isLogin.value = true;
+      httpGet("/api/invite/code")
+        .then((res) => {
+          const text = `${location.protocol}//${location.host}/register?invite_code=${res.data.code}`;
+          hits.value = res.data["hits"];
+          regNum.value = res.data["reg_num"];
+          if (hits.value > 0) {
+            rate.value = ((regNum.value / hits.value) * 100).toFixed(2);
+          }
+          QRCode.toDataURL(text, { width: 400, height: 400, margin: 2 }, (error, url) => {
+            if (error) {
+              console.error(error);
+            } else {
+              qrImg.value = url;
+            }
+          });
+          inviteURL.value = text;
+        })
+        .catch((e) => {
+          ElMessage.error("获取邀请码失败：" + e.message);
+        });
 
-    getSystemInfo().then(res => {
-      invitePower.value = res.data["invite_power"]
-    }).catch(e => {
-      ElMessage.error("获取系统配置失败：" + e.message)
+      getSystemInfo()
+        .then((res) => {
+          invitePower.value = res.data["invite_power"];
+        })
+        .catch((e) => {
+          ElMessage.error("获取系统配置失败：" + e.message);
+        });
     })
-  }).catch(() => {
-    store.setShowLoginDialog(true)
-  });
-}
+    .catch(() => {
+      store.setShowLoginDialog(true);
+    });
+};
 </script>
 
 <style lang="stylus" scoped>
@@ -157,7 +164,7 @@ const initData = () => {
 .page-invitation {
   display: flex;
   justify-content: center;
-  background-color: #282c34;
+  // background-color: #282c34;
   height 100%
   overflow-x hidden
   overflow-y visible
@@ -167,17 +174,18 @@ const initData = () => {
     flex-flow column
     max-width 1000px
     width 100%
-    color #e1e1e1
+    color: var(--text-theme-color);
 
     h2 {
-      color #ffffff;
+      color: var(--theme-textcolor-normal);
       text-align center
     }
 
     .share-box {
       .info {
         line-height 1.5
-        border 1px solid #444444
+        // border 1px solid #444444
+        background:var(--chat-bg)
         border-radius 10px
         padding 10px
 

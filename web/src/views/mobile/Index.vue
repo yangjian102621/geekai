@@ -1,7 +1,7 @@
 <template>
   <div class="index container">
-    <h2 class="title">{{title}}</h2>
-    <van-notice-bar  left-icon="info-o" :scrollable="true">{{slogan}}}</van-notice-bar>
+    <h2 class="title">{{ title }}</h2>
+    <van-notice-bar left-icon="info-o" :scrollable="true">{{ slogan }}}</van-notice-bar>
 
     <div class="content">
       <van-grid :column-num="3" :gutter="10" border>
@@ -11,7 +11,6 @@
           </template>
           <template #text>
             <div class="text">AI 对话</div>
-
           </template>
         </van-grid-item>
 
@@ -35,32 +34,25 @@
       </van-grid>
 
       <div class="app-list">
-        <van-list
-            v-model:loading="loading"
-            :finished="true"
-            finished-text=""
-            @load="fetchApps"
-        >
+        <van-list v-model:loading="loading" :finished="true" finished-text="" @load="fetchApps">
           <van-cell v-for="item in apps" :key="item.id">
             <div>
               <div class="item">
-                <div class="image">
+                <div class="image flex justify-center items-center">
                   <van-image :src="item.icon" />
                 </div>
                 <div class="info">
-                  <div class="info-title">{{item.name}}</div>
-                  <div class="info-text">{{item.hello_msg}}</div>
+                  <div class="info-title">{{ item.name }}</div>
+                  <div class="info-text">{{ item.hello_msg }}</div>
                 </div>
               </div>
 
               <div class="btn">
                 <div v-if="hasRole(item.key)">
                   <van-button size="small" type="success" @click="useRole(item.id)">使用</van-button>
-                  <van-button size="small" type="danger" @click="updateRole(item,'remove')">移除</van-button>
+                  <van-button size="small" type="danger" @click="updateRole(item, 'remove')">移除</van-button>
                 </div>
-                <van-button v-else size="small"
-                           style="--el-color-primary:#009999"
-                           @click="updateRole(item, 'add')">
+                <van-button v-else size="small" style="--el-color-primary: #009999" @click="updateRole(item, 'add')">
                   <van-icon name="add-o" />
                   <span>添加应用</span>
                 </van-button>
@@ -74,91 +66,98 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
-import {checkSession, getSystemInfo} from "@/store/cache";
-import {httpGet, httpPost} from "@/utils/http";
-import {arrayContains, removeArrayItem, showLoginDialog, substr} from "@/utils/libs";
-import {showNotify} from "vant";
-import {ElMessage} from "element-plus";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { checkSession, getSystemInfo } from "@/store/cache";
+import { httpGet, httpPost } from "@/utils/http";
+import { arrayContains, removeArrayItem, showLoginDialog, substr } from "@/utils/libs";
+import { showNotify } from "vant";
+import { ElMessage } from "element-plus";
 
-const title = ref(process.env.VUE_APP_TITLE)
-const router = useRouter()
-const isLogin = ref(false)
-const apps = ref([])
-const loading = ref(false)
-const roles = ref([])
-const slogan = ref('你有多大想象力，AI就有多大创造力！')
+const title = ref(process.env.VUE_APP_TITLE);
+const router = useRouter();
+const isLogin = ref(false);
+const apps = ref([]);
+const loading = ref(false);
+const roles = ref([]);
+const slogan = ref("你有多大想象力，AI就有多大创造力！");
 
 onMounted(() => {
-  getSystemInfo().then(res => {
-    title.value = res.data.title
-    if (res.data.slogan) {
-      slogan.value = res.data.slogan
-    }
-  }).catch(e => {
-    ElMessage.error("获取系统配置失败：" + e.message)
-  })
+  getSystemInfo()
+    .then((res) => {
+      title.value = res.data.title;
+      if (res.data.slogan) {
+        slogan.value = res.data.slogan;
+      }
+    })
+    .catch((e) => {
+      ElMessage.error("获取系统配置失败：" + e.message);
+    });
 
-  checkSession().then((user) => {
-    isLogin.value = true
-    roles.value = user.chat_roles
-  }).catch(() => {
-  })
-  fetchApps()
-})
+  checkSession()
+    .then((user) => {
+      isLogin.value = true;
+      roles.value = user.chat_roles;
+    })
+    .catch(() => {});
+  fetchApps();
+});
 
 const fetchApps = () => {
-  httpGet("/api/app/list").then((res) => {
-    const items = res.data
-    // 处理 hello message
-    for (let i = 0; i < items.length; i++) {
-      items[i].intro = substr(items[i].hello_msg, 80)
-    }
-    apps.value = items
-  }).catch(e => {
-    showNotify({type:"danger", message:"获取应用失败：" + e.message})
-  })
-}
+  httpGet("/api/app/list")
+    .then((res) => {
+      const items = res.data;
+      // 处理 hello message
+      for (let i = 0; i < items.length; i++) {
+        items[i].intro = substr(items[i].hello_msg, 80);
+      }
+      apps.value = items;
+    })
+    .catch((e) => {
+      showNotify({ type: "danger", message: "获取应用失败：" + e.message });
+    });
+};
 
 const updateRole = (row, opt) => {
   if (!isLogin.value) {
-    return showLoginDialog(router)
+    return showLoginDialog(router);
   }
 
-  const title = ref("")
+  const title = ref("");
   if (opt === "add") {
-    title.value = "添加应用"
-    const exists = arrayContains(roles.value, row.key)
+    title.value = "添加应用";
+    const exists = arrayContains(roles.value, row.key);
     if (exists) {
-      return
+      return;
     }
-    roles.value.push(row.key)
+    roles.value.push(row.key);
   } else {
-    title.value = "移除应用"
-    const exists = arrayContains(roles.value, row.key)
+    title.value = "移除应用";
+    const exists = arrayContains(roles.value, row.key);
     if (!exists) {
-      return
+      return;
     }
-    roles.value = removeArrayItem(roles.value, row.key)
+    roles.value = removeArrayItem(roles.value, row.key);
   }
-  httpPost("/api/role/update", {keys: roles.value}).then(() => {
-    ElMessage.success({message: title.value + "成功！", duration: 1000})
-  }).catch(e => {
-    ElMessage.error(title.value + "失败：" + e.message)
-  })
-}
+  httpPost("/api/role/update", { keys: roles.value })
+    .then(() => {
+      ElMessage.success({ message: title.value + "成功！", duration: 1000 });
+    })
+    .catch((e) => {
+      ElMessage.error(title.value + "失败：" + e.message);
+    });
+};
 
 const hasRole = (roleKey) => {
-  return arrayContains(roles.value, roleKey, (v1, v2) => v1 === v2)
-}
+  return arrayContains(roles.value, roleKey, (v1, v2) => v1 === v2);
+};
 
 const useRole = (roleId) => {
   if (!isLogin.value) {
-    return showLoginDialog(router)
+    return showLoginDialog(router);
   }
-  router.push(`/mobile/chat/session?role_id=${roleId}`)
-}
+  router.push(`/mobile/chat/session?role_id=${roleId}`);
+};
 </script>
 
 <style scoped lang="stylus">

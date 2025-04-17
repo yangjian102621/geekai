@@ -1,18 +1,18 @@
 .member {
-  background-color: #282c34;
+  // background-color: #282c34;
   height 100%
 
   .title {
     text-align center
     background-color #25272d
     font-size 24px
-    color #ffffff
+    color var(--text-theme-color)
     padding 10px
     border-bottom 1px solid #3c3c3c
   }
 
   .inner {
-    color #ffffff
+    color var(--text-theme-color)
     padding 15px 0 15px 15px;
     overflow-x hidden
     overflow-y visible
@@ -22,13 +22,13 @@
     .user-profile {
       padding 10px 20px 20px 20px
       width 300px
-      background-color #393F4A
-      color #ffffff
+      background-color var(--chat-bg)
+      color var(--text-theme-color)
       border-radius 10px
       //height 100vh
 
       .el-form-item__label {
-        color #ffffff
+        color var(--text-theme-color)
         justify-content start
       }
 
@@ -58,7 +58,8 @@
 
       .list-box {
         .product-item {
-          border 1px solid #666666
+          // border 1px solid #666666
+          background-color var(--chat-bg)
           border-radius 6px
           overflow hidden
           cursor pointer
@@ -87,7 +88,7 @@
               text-align center
               font-size 16px
               font-weight bold
-              color #47fff1
+              color var( --el-color-primary)
             }
           }
 
@@ -135,7 +136,8 @@
 
               .el-button {
                 margin 10px 5px 0 5px
-                padding 0
+                height 32px
+                filter: none;
 
                 .icon-alipay,.icon-wechat-pay {
                   color #ffffff
@@ -145,7 +147,7 @@
                   font-size 24px
                 }
                 .icon-jd-pay {
-                  color #ffffff
+                  color var(--text-theme-color)
                   font-size 24px
                 }
                 .icon-douyin {
@@ -161,8 +163,10 @@
           }
 
           &:hover {
-            box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+            // box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
             transform: translateY(-10px); /* 向上移动10像素 */
+            box-shadow: 0 0 10px var(--shadow-color);
+            background-color: var(--hover-deep-color)
           }
         }
       }

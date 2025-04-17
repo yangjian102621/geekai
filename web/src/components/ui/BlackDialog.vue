@@ -1,29 +1,25 @@
 <template>
   <div class="black-dialog">
     <el-dialog
-        v-model="showDialog"
-        style="--el-dialog-bg-color:#414141;
-        --el-text-color-primary:#f1f1f1;
-        --el-border-color:#414141;
-        --el-color-primary:#21aa93;
-        --el-color-primary-dark-2:#41555d;
-        --el-color-white: #e1e1e1;
-        --el-color-primary-light-3:#549688;
-        --el-fill-color-blank:#616161;
-         --el-color-primary-light-7:#717171;
-        --el-color-primary-light-9:#717171;
-        --el-text-color-regular:#e1e1e1"
-        :title="title"
-        :width="width"
-        :before-close="cancel"
+      v-model="showDialog"
+      :title="title"
+      :width="width"
+      :before-close="cancel"
     >
       <div class="dialog-body">
         <slot></slot>
       </div>
       <template #footer v-if="!hideFooter">
         <div class="dialog-footer">
-          <el-button @click="cancel">{{cancelText}}</el-button>
-          <el-button type="primary" @click="$emit('confirm')" v-if="!hideConfirm">{{confirmText}}</el-button>
+          <el-button @click="cancel" style="--el-border-radius-base: 8px">{{
+            cancelText
+          }}</el-button>
+          <el-button
+            type="primary"
+            @click="$emit('confirm')"
+            v-if="!hideConfirm"
+            >{{ confirmText }}</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -31,45 +27,47 @@
 </template>
 
 <script setup>
-
-import {ref, watch} from "vue";
+import { ref, watch } from "vue";
 const props = defineProps({
-  show : Boolean,
+  show: Boolean,
   title: {
     type: String,
-    default: 'Tips',
+    default: "Tips"
   },
   width: {
     type: String,
-    default: 'auto',
+    default: "auto"
   },
-  hideFooter:{
+  hideFooter: {
     type: Boolean,
     default: false
   },
-  hideConfirm:{
+  hideConfirm: {
     type: Boolean,
     default: false
   },
   confirmText: {
     type: String,
-    default: '确定',
+    default: "确定"
   },
   cancelText: {
     type: String,
-    default: '取消',
-  },
+    default: "取消"
+  }
 });
-const emits = defineEmits(['confirm','cancal']);
-const showDialog = ref(props.show)
+const emits = defineEmits(["confirm", "cancal"]);
+const showDialog = ref(props.show);
 
-watch(() => props.show, (newValue) => {
-  showDialog.value = newValue
-})
+watch(
+  () => props.show,
+  (newValue) => {
+    showDialog.value = newValue;
+  }
+);
 const cancel = () => {
-  showDialog.value = false
-  emits('cancal')
-}
+  showDialog.value = false;
+  emits("cancal");
+};
 </script>
 
 <style lang="stylus">
@@ -110,5 +108,4 @@ const cancel = () => {
     }
   }
 }
-
 </style>

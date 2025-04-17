@@ -60,6 +60,8 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 	s.Engine.Use(errorHandler)
 	// 添加静态资源访问
 	s.Engine.Static("/static", s.Config.StaticDir)
+	//启动服务
+
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
@@ -247,6 +249,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/suno/detail" ||
 		c.Request.URL.Path == "/api/suno/play" ||
 		c.Request.URL.Path == "/api/download" ||
+		c.Request.URL.Path == "/api/dall/models" ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/payment/notify/") ||
 		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||

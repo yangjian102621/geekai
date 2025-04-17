@@ -51,6 +51,6 @@
   color: #999;
 }
 .page-apps .inner .list-box .app-item:hover {
-  box-shadow: 0 0 10px rgba(71,255,241,0.6); /* 添加阴影效果 */
+  box-shadow: 0 0 10px var(--shadow-color); /* 添加阴影效果 */
   transform: translateY(-10px); /* 向上移动10像素 */
 }

@@ -6,6 +6,265 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "3624396",
+      "name": "兑换码",
+      "font_class": "redeem",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    },
+    {
+      "icon_id": "8760110",
+      "name": "login",
+      "font_class": "login",
+      "unicode": "e636",
+      "unicode_decimal": 58934
+    },
+    {
+      "icon_id": "29565277",
+      "name": "礼物",
+      "font_class": "present",
+      "unicode": "e648",
+      "unicode_decimal": 58952
+    },
+    {
+      "icon_id": "13519527",
+      "name": "警告",
+      "font_class": "icon-warning",
+      "unicode": "e671",
+      "unicode_decimal": 58993
+    },
+    {
+      "icon_id": "145466",
+      "name": "帮助",
+      "font_class": "help",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
+      "icon_id": "1951950",
+      "name": "成功",
+      "font_class": "success",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "6204756",
+      "name": "失败",
+      "font_class": "error",
+      "unicode": "e64e",
+      "unicode_decimal": 58958
+    },
+    {
+      "icon_id": "3916695",
+      "name": "首页",
+      "font_class": "house",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
+      "icon_id": "10583159",
+      "name": "会员",
+      "font_class": "vip4",
+      "unicode": "e684",
+      "unicode_decimal": 59012
+    },
+    {
+      "icon_id": "23942994",
+      "name": "会员",
+      "font_class": "vip1",
+      "unicode": "f90b",
+      "unicode_decimal": 63755
+    },
+    {
+      "icon_id": "24111538",
+      "name": "会员",
+      "font_class": "vip2",
+      "unicode": "fabb",
+      "unicode_decimal": 64187
+    },
+    {
+      "icon_id": "37305926",
+      "name": "会员VIP",
+      "font_class": "vip3",
+      "unicode": "10135",
+      "unicode_decimal": 65845
+    },
+    {
+      "icon_id": "41134022",
+      "name": "新会话",
+      "font_class": "conversation",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "17411805",
+      "name": "Arrow Down",
+      "font_class": "arrow-down",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "17411857",
+      "name": "Arrow Up",
+      "font_class": "arrow-up",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "7736305",
+      "name": "refresh",
+      "font_class": "refresh",
+      "unicode": "e90c",
+      "unicode_decimal": 59660
+    },
+    {
+      "icon_id": "1391302",
+      "name": "Refresh",
+      "font_class": "refresh-bold",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
+      "icon_id": "19418384",
+      "name": "copy",
+      "font_class": "copy",
+      "unicode": "e720",
+      "unicode_decimal": 59168
+    },
+    {
+      "icon_id": "20584689",
+      "name": "New Chat",
+      "font_class": "new-chat",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    },
+    {
+      "icon_id": "23995596",
+      "name": "收起展开-展开",
+      "font_class": "expand",
+      "unicode": "e7a0",
+      "unicode_decimal": 59296
+    },
+    {
+      "icon_id": "23995626",
+      "name": "收起展开-收起",
+      "font_class": "colspan",
+      "unicode": "e79e",
+      "unicode_decimal": 59294
+    },
+    {
+      "icon_id": "1727527",
+      "name": "306问号-线性圆框",
+      "font_class": "question",
+      "unicode": "e8e9",
+      "unicode_decimal": 59625
+    },
+    {
+      "icon_id": "35446270",
+      "name": "AI对话_激活",
+      "font_class": "AIduihua_jihuo",
+      "unicode": "e6bb",
+      "unicode_decimal": 59067
+    },
+    {
+      "icon_id": "39584617",
+      "name": "MidJourney-copy",
+      "font_class": "MidJourney",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    },
+    {
+      "icon_id": "42109955",
+      "name": "stable-diffusion",
+      "font_class": "stable-diffusion",
+      "unicode": "e60f",
+      "unicode_decimal": 58895
+    },
+    {
+      "icon_id": "1227734",
+      "name": "info",
+      "font_class": "info",
+      "unicode": "e6a0",
+      "unicode_decimal": 59040
+    },
+    {
+      "icon_id": "159969",
+      "name": "more",
+      "font_class": "more-horizontal",
+      "unicode": "e60d",
+      "unicode_decimal": 58893
+    },
+    {
+      "icon_id": "8434022",
+      "name": "星号",
+      "font_class": "xinghao",
+      "unicode": "e8d6",
+      "unicode_decimal": 59606
+    },
+    {
+      "icon_id": "831577",
+      "name": "plus",
+      "font_class": "plus",
+      "unicode": "e61f",
+      "unicode_decimal": 58911
+    },
+    {
+      "icon_id": "6151285",
+      "name": "plus-circle",
+      "font_class": "plus-circle",
+      "unicode": "e822",
+      "unicode_decimal": 59426
+    },
+    {
+      "icon_id": "15056491",
+      "name": "太阳",
+      "font_class": "taiyang",
+      "unicode": "e60b",
+      "unicode_decimal": 58891
+    },
+    {
+      "icon_id": "40094190",
+      "name": "月亮-copy",
+      "font_class": "yueliang",
+      "unicode": "e679",
+      "unicode_decimal": 59001
+    },
+    {
+      "icon_id": "1727538",
+      "name": "上一页",
+      "font_class": "prev-page",
+      "unicode": "e8ef",
+      "unicode_decimal": 59631
+    },
+    {
+      "icon_id": "1727540",
+      "name": "下一页",
+      "font_class": "next-page",
+      "unicode": "e8f0",
+      "unicode_decimal": 59632
+    },
+    {
+      "icon_id": "2488134",
+      "name": "搜索",
+      "font_class": "search",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "9845558",
+      "name": "sub_menu",
+      "font_class": "sub_menu",
+      "unicode": "e75e",
+      "unicode_decimal": 59230
+    },
+    {
+      "icon_id": "11983544",
+      "name": "google",
+      "font_class": "google",
+      "unicode": "ea0c",
+      "unicode_decimal": 59916
+    },
+    {
       "icon_id": "15330210",
       "name": "创意灵感",
       "font_class": "linggan",

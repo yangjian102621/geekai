@@ -74,6 +74,8 @@ type SdTaskParams struct {
 // DallTask DALL-E task
 type DallTask struct {
 	ClientId string `json:"client_id"`
+	ModelId   uint   `json:"model_id"`
+	ModelName string `json:"model_name"`
 	Id       uint   `json:"id"`
 	UserId   uint   `json:"user_id"`
 	Prompt   string `json:"prompt"`
@@ -81,8 +83,7 @@ type DallTask struct {
 	Quality  string `json:"quality"`
 	Size     string `json:"size"`
 	Style    string `json:"style"`
-
-	Power            int `json:"power"`
+	Power     int    `json:"power"`
 	TranslateModelId int `json:"translate_model_id"` // 提示词翻译模型ID
 }
 

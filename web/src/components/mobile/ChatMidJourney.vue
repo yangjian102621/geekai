@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-message-mj">
     <div class="chat-icon">
-      <van-image :src="icon"/>
+      <van-image :src="icon" />
     </div>
 
     <div class="chat-item">
@@ -11,21 +11,30 @@
           <div class="content-inner">
             <div class="text" v-html="data.html"></div>
             <div class="images" v-if="data.image?.url !== ''">
-              <el-image :src="data.image?.url"
-                        :zoom-rate="1.2"
-                        :preview-src-list="[data.image?.url]"
-                        fit="cover"
-                        :initial-index="0" loading="lazy">
+              <el-image
+                :src="data.image?.url"
+                :zoom-rate="1.2"
+                :preview-src-list="[data.image?.url]"
+                fit="cover"
+                :initial-index="0"
+                loading="lazy"
+              >
                 <template #placeholder>
-                  <div class="image-slot"
-                       :style="{height: height+'px', lineHeight:height+'px'}">
-                    正在加载图片<span class="dot">...</span></div>
+                  <div
+                    class="image-slot"
+                    :style="{
+                      height: height + 'px',
+                      lineHeight: height + 'px'
+                    }"
+                  >
+                    正在加载图片<span class="dot">...</span>
+                  </div>
                 </template>
 
                 <template #error>
                   <div class="image-slot">
                     <el-icon>
-                      <Picture/>
+                      <Picture />
                     </el-icon>
                   </div>
                 </template>
@@ -33,7 +42,7 @@
             </div>
           </div>
 
-          <div class="opt" v-if="data.showOpt &&data.image?.hash !== ''">
+          <div class="opt" v-if="data.showOpt && data.image?.hash !== ''">
             <div class="opt-line">
               <ul>
                 <li><a @click="upscale(1)">U1</a></li>
@@ -54,17 +63,16 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import {ref, watch} from "vue";
-import {Picture} from "@element-plus/icons-vue";
-import {httpPost} from "@/utils/http";
-import {getSessionId} from "@/store/session";
-import {showNotify} from "vant";
+import { ref, watch } from "vue";
+import { Picture } from "@element-plus/icons-vue";
+import { httpPost } from "@/utils/http";
+import { getSessionId } from "@/store/session";
+import { showNotify } from "vant";
 
 const props = defineProps({
   content: Object,
@@ -74,36 +82,40 @@ const props = defineProps({
   createdAt: String
 });
 
-const data = ref(props.content)
-const cacheKey = "img_placeholder_height"
+const data = ref(props.content);
+const cacheKey = "img_placeholder_height";
 const item = localStorage.getItem(cacheKey);
-const loading = ref(false)
-const height = ref(0)
+const loading = ref(false);
+const height = ref(0);
 if (item) {
-  height.value = parseInt(item)
+  height.value = parseInt(item);
 }
 if (data.value["image"]?.width > 0) {
-  height.value = 350 * data.value["image"]?.height / data.value["image"]?.width
-  localStorage.setItem(cacheKey, height.value)
+  height.value =
+    (350 * data.value["image"]?.height) / data.value["image"]?.width;
+  localStorage.setItem(cacheKey, height.value);
 }
 data.value["showOpt"] = data.value["content"]?.indexOf("- Image #") === -1;
 // console.log(data.value)
 
-watch(() => props.content, (newVal) => {
-  data.value = newVal;
-});
-const emits = defineEmits(['disable-input', 'disable-input']);
+watch(
+  () => props.content,
+  (newVal) => {
+    data.value = newVal;
+  }
+);
+const emits = defineEmits(["disable-input", "disable-input"]);
 const upscale = (index) => {
-  send('/api/mj/upscale', index)
-}
+  send("/api/mj/upscale", index);
+};
 
 const variation = (index) => {
-  send('/api/mj/variation', index)
-}
+  send("/api/mj/variation", index);
+};
 
 const send = (url, index) => {
-  loading.value = true
-  emits('disable-input')
+  loading.value = true;
+  emits("disable-input");
   httpPost(url, {
     index: index,
     src: "chat",
@@ -114,15 +126,20 @@ const send = (url, index) => {
     prompt: data.value?.["prompt"],
     chat_id: props.chatId,
     role_id: props.roleId,
-    icon: props.icon,
-  }).then(() => {
-    showNotify({type: "success", message: "任务推送成功，请耐心等待任务执行..."})
-    loading.value = false
-  }).catch(e => {
-    showNotify({type: "danger", message: "任务推送失败：" + e.message})
-    emits('disable-input')
+    icon: props.icon
   })
-}
+    .then(() => {
+      showNotify({
+        type: "success",
+        message: "任务推送成功，请耐心等待任务执行..."
+      });
+      loading.value = false;
+    })
+    .catch((e) => {
+      showNotify({ type: "danger", message: "任务推送失败：" + e.message });
+      emits("disable-input");
+    });
+};
 </script>
 
 <style lang="stylus">

@@ -1,57 +1,58 @@
 <template>
   <div class="black-input-wrapper">
-    <el-input v-model="model" :type="type" :rows="rows"
-              @input="onInput"
-              style="--el-input-bg-color:#252020;
-            --el-input-border-color:#414141;
-            --el-input-focus-border-color:#414141;
-            --el-text-color-regular: #f1f1f1;
-            --el-input-border-radius: 10px;
-            --el-border-color-hover:#616161"
-              resize="none"
-              :placeholder="placeholder" :maxlength="maxlength"/>
+    <el-input
+      v-model="model"
+      :type="type"
+      :rows="rows"
+      @input="onInput"
+      resize="none"
+      :placeholder="placeholder"
+      :maxlength="maxlength"
+    />
     <div class="word-stat" v-if="rows > 1">
-      <span>{{value.length}}</span>/<span>{{maxlength}}</span>
+      <span>{{ value.length }}</span
+      >/<span>{{ maxlength }}</span>
     </div>
   </div>
-
 </template>
 
 <script setup>
-
-import {ref, watch} from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps({
-  value : {
+  value: {
     type: String,
-    default: '',
+    default: ""
   },
   placeholder: {
     type: String,
-    default: '',
+    default: ""
   },
   type: {
     type: String,
-    default: 'input',
+    default: "input"
   },
   rows: {
     type: Number,
-    default: 5,
+    default: 5
   },
   maxlength: {
     type: Number,
     default: 1024
   }
 });
-watch(() => props.value, (newValue) => {
-  model.value = newValue
-})
-const model = ref(props.value)
+watch(
+  () => props.value,
+  (newValue) => {
+    model.value = newValue;
+  }
+);
+const model = ref(props.value);
 // eslint-disable-next-line no-undef
-const emits = defineEmits(['update:value']);
+const emits = defineEmits(["update:value"]);
 const onInput = (value) => {
-  emits('update:value',value)
-}
+  emits("update:value", value);
+};
 </script>
 
 <style lang="stylus">

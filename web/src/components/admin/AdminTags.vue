@@ -42,8 +42,8 @@ import {useSharedStore} from "@/store/sharedata";
 import {ref, watch} from "vue";
 
 const store = useSharedStore()
-const theme = ref(store.adminTheme)
-watch(() => store.adminTheme, (val) => {
+const theme = ref(store.theme)
+watch(() => store.theme, (val) => {
   theme.value = val
 })
 const router = useRouter();

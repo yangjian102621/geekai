@@ -23,4 +23,15 @@
   ::-webkit-scrollbar-thumb:hover {
     background-color: #666666;
   }
+  overflow: auto; /* 保持滚动功能 */
+  scrollbar-width: none; /* 隐藏滚动条（Firefox） */
+  -ms-overflow-style: none; /* 隐藏滚动条（IE、Edge） */
+  ::-webkit-scrollbar {
+    display: none; /* 隐藏滚动条（Webkit 浏览器） */
+  }
+  &.showScrollbar {
+    ::-webkit-scrollbar {
+      display: none; /* 隐藏滚动条（Webkit 浏览器） */
+    }
+  }
 }

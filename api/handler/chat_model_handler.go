@@ -30,7 +30,7 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 func (h *ChatModelHandler) List(c *gin.Context) {
 	var items []model.ChatModel
 	var chatModels = make([]vo.ChatModel, 0)
-	session := h.DB.Session(&gorm.Session{}).Where("enabled", true)
+	session := h.DB.Session(&gorm.Session{}).Where("type", "chat").Where("enabled", true)
 	t := c.Query("type")
 	if t != "" {
 		session = session.Where("type", t)

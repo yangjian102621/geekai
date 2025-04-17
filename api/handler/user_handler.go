@@ -184,7 +184,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		if h.App.SysConfig.InvitePower > 0 {
 			err := h.userService.IncreasePower(int(inviteCode.UserId), h.App.SysConfig.InvitePower, model.PowerLog{
 				Type:   types.PowerInvite,
-				Model:  "",
+				Model: "Invite",
 				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
 			})
 			if err != nil {

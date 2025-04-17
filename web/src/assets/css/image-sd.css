@@ -250,7 +250,7 @@
   display: block;
 }
 .page-sd .inner .task-list-box .task-list-inner .job-list-box .finish-job-list .animate:hover {
-  box-shadow: 0 0 10px rgba(71,255,241,0.6); /* 添加阴影效果 */
+  box-shadow: 0 0 10px rgba(223,71,255,0.6); /* 添加阴影效果 */
   transform: translateY(-10px); /* 向上移动10像素 */
 }
 .page-sd .inner .task-list-box .task-list-inner .job-list-box .el-image {

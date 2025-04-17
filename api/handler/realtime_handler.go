@@ -1,15 +1,24 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"geekai/core"
+	"geekai/core/types"
+	"geekai/service"
 	"geekai/store/model"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
+	"geekai/utils"
+	"geekai/utils/resp"
+	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 )
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -23,10 +32,11 @@ import (
 
 type RealtimeHandler struct {
 	BaseHandler
+	userService *service.UserService
 }
 
-func NewRealtimeHandler(server *core.AppServer, db *gorm.DB) *RealtimeHandler {
-	return &RealtimeHandler{BaseHandler{App: server, DB: db}}
+func NewRealtimeHandler(server *core.AppServer, db *gorm.DB, userService *service.UserService) *RealtimeHandler {
+	return &RealtimeHandler{BaseHandler: BaseHandler{App: server, DB: db}, userService: userService}
 }
 
 func (h *RealtimeHandler) Connection(c *gin.Context) {
@@ -125,4 +135,75 @@ func sendError(ws *websocket.Conn, message string) {
 	if err != nil {
 		logger.Error(err)
 	}
+}
+
+// OpenAI 实时语音对话，一次性对话
+func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
+	var apiKey model.ApiKey
+	err := h.DB.Session(&gorm.Session{}).Where("type", "realtime").Where("enabled", true).First(&apiKey).Error
+	if err != nil {
+		resp.ERROR(c, fmt.Sprintf("error with fetch OpenAI API KEY：%v", err))
+		return
+	}
+
+	var response utils.OpenAIResponse
+	client := req.C()
+	if len(apiKey.ProxyURL) > 5 {
+		client.SetProxyURL(apiKey.ApiURL)
+	}
+	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
+	logger.Infof("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, "advanced-voice")
+	r, err := client.R().SetHeader("Body-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
+		SetBody(types.ApiRequest{
+			Model:       "advanced-voice",
+			Temperature: 0.9,
+			MaxTokens:   1024,
+			Stream:      false,
+			Messages: []interface{}{types.Message{
+				Role:    "user",
+				Content: "实时语音通话",
+			}},
+		}).Post(apiURL)
+	if err != nil {
+		resp.ERROR(c, fmt.Sprintf("请求 OpenAI API失败：%v", err))
+		return
+	}
+
+	if r.IsErrorState() {
+		resp.ERROR(c, fmt.Sprintf("请求 OpenAI API失败：%v", r.Status))
+		return
+	}
+
+	body, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		resp.ERROR(c, fmt.Sprintf("解析API数据失败：%v, %s", err, string(body)))
+	}
+
+	// 更新 API KEY 的最后使用时间
+	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
+
+	// 扣减算力
+	userId := h.GetLoginUserId(c)
+	err = h.userService.DecreasePower(int(userId), h.App.SysConfig.AdvanceVoicePower, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "advanced-voice",
+		Remark: "实时语音通话",
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	logger.Infof("Response: %v", response.Choices[0].Message.Content)
+
+	// 提取链接
+	re := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
+	links := re.FindAllStringSubmatch(response.Choices[0].Message.Content, -1)
+	var url = ""
+	if len(links) > 0 {
+		url = links[0][2]
+	}
+	resp.SUCCESS(c, url)
 }

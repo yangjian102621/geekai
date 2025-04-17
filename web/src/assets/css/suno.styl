@@ -1,9 +1,16 @@
 .page-suno {
   display flex
   height 100%
-  background-color #0E0808
+  // background-color #0E0808
   overflow auto
-
+  .item-group{
+    scrollbar-width: auto !important; /* 恢复滚动条（Firefox） */
+  -ms-overflow-style: auto !important; /* 恢复滚动条（IE、Edge） */
+  ::-webkit-scrollbar {
+    display: block !important; 
+  }
+    }
+ 
   .left-bar {
     max-width 340px
     min-width 340px
@@ -13,6 +20,7 @@
       display flex
       flex-flow row
       justify-content: space-between;
+      align-items center
 
       .upload-music {
         .iconfont {
@@ -24,7 +32,7 @@
 
     .params {
       padding 20px 0
-      color rgb(250 247 245)
+      color: var(--text-theme-color);
       position relative
 
       .pure-music {
@@ -77,6 +85,7 @@
             opacity: 0.9;
           }
         }
+        
 
         .song {
           display flex
@@ -137,6 +146,8 @@
           bottom 10px
           font-size 12px
           padding 2px 5px
+          background-color var(--sm-btn-bg)
+          color: #fff
         }
       }
 
@@ -144,7 +155,13 @@
         position relative
         overflow-x auto
         overflow-y hidden
+        scrollbar-width: auto !important; /* 恢复滚动条（Firefox） */
+        -ms-overflow-style: auto !important; /* 恢复滚动条（IE、Edge） */
         width 100%
+
+        ::-webkit-scrollbar {
+          display: block !important; 
+        }
 
         .inner {
           display flex
@@ -154,12 +171,16 @@
           .tag {
             margin-right 10px
             word-break keep-all
-            background-color #312C2C
-            color #e1e1e1
-            border-radius 5px
+            background: var(--card-bg);
+            color:var(--theme-text-color-primary);
+            opacity 0.7
+            border-radius 8px
             padding 3px 6px
             cursor pointer
             font-size 13px
+            &:hover{
+              color:var( --el-color-primary)
+            }
           }
         }
       }
@@ -169,9 +190,11 @@
     width 100%
     color rgb(250 247 245)
     overflow auto
+    background: var(--chat-bg)
+
 
     .list-box {
-      padding 0 0 0 20px
+      padding 20px
       .item {
         display flex
         flex-flow row
@@ -180,7 +203,7 @@
         margin-bottom 10px
 
         &:hover {
-          background-color #2A2525
+         background: rgba(188,149,236,0.08)
         }
 
         .left {
@@ -247,18 +270,18 @@
             font-weight 700
 
             a {
-              color rgb(250 247 245)
+              color var( --a-link-color)
               &:hover {
                 text-decoration underline
               }
             }
 
             .model {
-              color #E2E8F0
-              background-color #1C1616
-              border 1px solid #8f8f8f
+              color #8f8f8f
+              // background-color #1C1616
+              // border 1px solid #8f8f8f
               font-weight normal
-              font-size 14px
+              font-size 12px
               padding 1px 3px
               border-radius 5px
               margin-left 10px
@@ -271,7 +294,7 @@
 
           .tags {
             font-size 14px
-            color #d1d1d1
+            color var(--text-fb)
             padding 3px 0
           }
         }
@@ -279,11 +302,13 @@
         .right {
           min-width 350px;
           font-size 14px
-          padding 0 15px
+          padding 0 0 0 15px
+          display flex
+          justify-content right
 
           .tools {
             display flex
-            justify-content left
+            justify-content right
             align-items center
             flex-flow row
             height 90px
@@ -291,20 +316,21 @@
             .btn-publish {
               padding 2px 10px
 
-              .text {
-                margin-right 10px
-              }
+              // .text {
+              //   margin-right 10px
+              // }
             }
 
             .btn-icon {
               background none
               padding 6px
               transition background 0.6s ease 0s
-              color #726E6C
+              color #919191
 
               &:hover {
-                background #5f5958
-                color #e1e1e1
+                // background #5f5958
+                // color #e1e1e1
+                color:var(--el-color-primary)
               }
 
               .downloading {
@@ -356,7 +382,7 @@
     }
 
     .pagination {
-      padding 10px 20px
+      margin-top 20px
       display flex
       justify-content center
     }
@@ -372,14 +398,26 @@
 
   .btn {
     margin-right 10px
-    background-color #363030
+    color: var((--theme-text-color-primary))
     border none
     border-radius 5px
     padding 5px 10px
     cursor pointer
+    background: var(--btn-bg)
+    
 
     &:hover {
-      background-color #5F5958
+      opacity :0.8
     }
   }
+}
+.submit-btn {
+  display flex
+  align-items: center
+  margin: 20px 0
+  justify-content: center;
+  .el-button {
+    width 200px
+  }
+
 }
