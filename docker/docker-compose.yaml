@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   # mysql
   geekai-mysql:
@@ -9,14 +9,14 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=mhSCk0NheGhmtsha
     ports:
-      - "3307:3306"
+      - '3307:3306'
     volumes:
       - ./conf/mysql/my.cnf:/etc/mysql/my.cnf
       - ./data/mysql/data:/var/lib/mysql
       - ./logs/mysql:/var/log/mysql
       - ./data/mysql/init.d:/docker-entrypoint-initdb.d/
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 5s
       timeout: 10s
       retries: 10
@@ -30,9 +30,9 @@ services:
     volumes:
       - ./data/redis:/data
     ports:
-      - "6380:6379"
+      - '6380:6379'
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 3s
       timeout: 10s
       retries: 5
@@ -42,7 +42,7 @@ services:
     container_name: geekai-tika
     restart: always
     ports:
-      - "9999:9998"
+      - '9999:9998'
 
   # 后端 API 程序
   geekai-api:
@@ -59,13 +59,13 @@ services:
       - LOG_LEVEL=info
       - CONFIG_FILE=config.toml
     ports:
-      - "5678:5678"
+      - '5678:5678'
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./conf/config.toml:/var/www/app/config.toml
       - ./logs/app:/var/www/app/logs
       - ./static:/var/www/app/static
-      - ./data/leveldb:/var/www/app/data
+      - ./data:/var/www/app/data
 
   # 前端应用
   geekai-web:
@@ -75,7 +75,7 @@ services:
     depends_on:
       - geekai-api
     ports:
-      - "8080:8080"
+      - '8080:8080'
     volumes:
       - ./logs/nginx:/var/log/nginx
       - ./conf/nginx/conf.d:/etc/nginx/conf.d
