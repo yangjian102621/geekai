@@ -263,29 +263,35 @@ const getModelById = (modelId) => {
 }
 
 // download SVG to png file
-const downloadImage = () => {
+const downloadImage = async() => {
+  // 先自适应思维导图到可视化区域
+  await markMap.value.fit() 
+
   const svgElement = document.getElementById('markmap')
-  // 将 SVG 渲染到图片对象
   const serializer = new XMLSerializer()
   const source =
     '<?xml version="1.0" standalone="no"?>\r\n' + serializer.serializeToString(svgRef.value)
   const image = new Image()
   image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source)
 
-  // 将图片对象渲染
+  // 分辨率倍数，越高图片越清晰，但文件越大
+  const scale = 4 
   const canvas = document.createElement('canvas')
-  canvas.width = svgElement.offsetWidth
-  canvas.height = svgElement.offsetHeight
+  canvas.width = svgElement.offsetWidth * scale
+  canvas.height = svgElement.offsetHeight * scale
+
   let context = canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.fillStyle = 'white'
   context.fillRect(0, 0, canvas.width, canvas.height)
 
   image.onload = function () {
+    // 关键：缩放 context
+    context.setTransform(scale, 0, 0, scale, 0, 0)
     context.drawImage(image, 0, 0)
     const a = document.createElement('a')
     a.download = 'geek-ai-xmind.png'
-    a.href = canvas.toDataURL(`image/png`)
+    a.href = canvas.toDataURL('image/png')
     a.click()
   }
 }
