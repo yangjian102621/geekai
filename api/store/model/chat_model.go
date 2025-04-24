@@ -10,6 +10,8 @@ type ChatModel struct {
 	Open        bool    // 是否开放模型给所有人使用
 	MaxTokens   int     // 最大响应长度
 	MaxContext  int     // 最大上下文长度
+	Description string  //模型描述
+	Category    string  //模型类别
 	Temperature float32 // 模型温度
 	KeyId       int     // 绑定 API KEY ID
 	Type        string  // 模型类型
