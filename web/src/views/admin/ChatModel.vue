@@ -24,12 +24,21 @@
             <el-tag type="success" v-else>聊天</el-tag>
           </template>
         </el-table-column>
+
+        <el-table-column prop="category" label="模型类别" />
         <el-table-column prop="value" label="模型值">
           <template #default="scope">
             <span>{{ scope.row.value }}</span>
             <el-icon class="copy-model" :data-clipboard-text="scope.row.value">
               <DocumentCopy />
             </el-icon>
+          </template>
+        </el-table-column>
+        <el-table-column prop="description" label="模型描述" width="180">
+          <template #default="scope">
+            <el-tooltip :content="scope.row.description || ''" placement="top" :show-after="200">
+              <div class="description-cell">{{ scope.row.description }}</div>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column prop="power" label="费率" />
@@ -78,6 +87,10 @@
           <el-input v-model="item.value" autocomplete="off" />
         </el-form-item>
 
+        <el-form-item label="模型类别" prop="category">
+          <el-input v-model="item.category" autocomplete="off" />
+        </el-form-item>
+
         <el-form-item label="消耗算力：" prop="power">
           <template #label>
             <div class="flex items-center">
@@ -109,6 +122,10 @@
               </div>
             </template>
             <el-input v-model.number="item.max_context" autocomplete="off" placeholder="模型最大上下文长度" />
+          </el-form-item>
+
+          <el-form-item label="模型描述" prop="description">
+            <el-input v-model="item.description" autocomplete="off" />
           </el-form-item>
 
           <el-form-item label="创意度：" prop="temperature">
@@ -289,7 +306,7 @@ onUnmounted(() => {
 const add = function () {
   title.value = "新增模型";
   showDialog.value = true;
-  item.value = { enabled: true, power: 1, open: true, max_tokens: 1024, max_context: 8192, temperature: 0.9, options: {} };
+  item.value = { enabled: true, power: 1, open: true, description: "", max_tokens: 1024, max_context: 8192, temperature: 0.9 };
 };
 
 const edit = function (row) {
@@ -359,6 +376,13 @@ const remove = function (row) {
       margin-left 6px
       cursor pointer
     }
+  }
+
+  .description-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
   }
 
   .el-select {

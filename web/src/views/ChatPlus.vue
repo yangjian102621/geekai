@@ -85,12 +85,107 @@
               </el-option>
             </el-select>
 
-            <el-select v-model="modelID" filterable placeholder="模型" @change="_newChat" :disabled="disableModel" style="width: 150px">
-              <el-option v-for="item in models" :key="item.id" :label="item.name" :value="item.id">
-                <span>{{ item.name }}</span>
-                <el-tag style="margin-left: 5px; position: relative; top: -2px" type="info" size="small">{{ item.power }}算力 </el-tag>
-              </el-option>
-            </el-select>
+            <el-popover
+              placement="bottom"
+              :width="800"
+              trigger="click"
+              popper-class="model-selector-popover"
+            >
+              <template #reference>
+                <div class="model-selector-trigger">
+                  <el-button 
+                    type="primary" 
+                    :disabled="disableModel" 
+                    class="adaptive-width-button"
+                  >
+                    <div class="selected-model-display">
+                      <span class="model-name-text">{{ getSelectedModelName() }}</span>
+                      <el-tag v-if="getSelectedModel()" size="small" type="info" style="margin-left: 8px; flex-shrink: 0;">
+                        {{ getSelectedModel()?.power }}算力
+                      </el-tag>
+                    </div>
+                  </el-button>
+                </div>
+              </template>
+              
+              <div class="model-selector-container">
+                <div class="model-search">
+                  <el-input
+                    v-model="modelSearchKeyword"
+                    placeholder="搜索模型"
+                    prefix-icon="el-icon-search"
+                    clearable
+                    style="width: 200px"
+                  />
+                  <el-button 
+                    :type="showFreeModelsOnly ? 'primary' : 'default'" 
+                    size="default" 
+                    @click="toggleFreeModels"
+                    style="margin-left: 10px;"
+                  >
+                    <i class="iconfont icon-free" style="margin-right: 4px;"></i>
+                    免费模型
+                  </el-button>
+                </div>
+                
+                <div class="category-tabs">
+                  <div 
+                    class="category-tab" 
+                    :class="{ 'active': activeCategory === '' }"
+                    @click="activeCategory = ''"
+                  >
+                    全部
+                  </div>
+
+                  <div 
+                    v-for="category in modelCategories" 
+                    :key="category"
+                    class="category-tab"
+                    :class="{ 'active': activeCategory === category }"
+                    @click="activeCategory = category"
+                  >
+                    {{ category }}
+                  </div>
+                  <div 
+                    v-if="activeCategory && modelCategories.length > 0"
+                    class="category-tab reset-filter"
+                    @click="activeCategory = ''"
+                  >
+                    <i class="el-icon-close"></i> 清除筛选
+                  </div>
+                </div>
+                
+                <div v-if="displayedModels.length === 0" class="no-results">
+                  <el-empty description="没有找到匹配的模型" />
+                </div>
+                
+                <div v-else class="models-grid">
+                  <div 
+                    v-for="model in displayedModels" 
+                    :key="model.id"
+                    class="model-card"
+                    :class="{ 'selected': model.id === modelID }"
+                    @click="selectModel(model)"
+                  >
+                    <div class="model-card-header">
+                      <span class="model-name" :title="model.name">{{ model.name }}</span>
+                      <el-tag size="small" :type="getTagType(model.power)" style="flex-shrink: 0;">
+                        {{ model.power > 0 ? `${model.power}算力` : '免费' }}
+                      </el-tag>
+                    </div>
+                    <div class="model-description" :title="model.description || '暂无描述' ">{{ model.description || '暂无描述' }}</div>
+                    <!-- 暂时屏蔽此信息展示，或许用户不想展示此信息 -->
+                    <!-- <div class="model-metadata">
+                      <div class="model-detail">
+                        <div>响应: {{ model.max_tokens }}</div>
+                        <div>上下文: {{ model.max_context }}</div>
+                      </div>
+                    </div> -->
+                  </div>
+                </div>
+              </div>
+            </el-popover>
+
             <div class="flex-center">
               <el-dropdown :hide-on-click="false" trigger="click">
                 <span class="setting"><i class="iconfont icon-plugin"></i></span>
@@ -232,7 +327,7 @@
   </div>
 </template>
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch, computed} from "vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
 import { Delete, Edit, InfoFilled, More, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
@@ -283,15 +378,141 @@ const showChatSetting = ref(false);
 const listStyle = ref(store.chatListStyle);
 const config = ref({ advance_voice_power: 0 });
 const voiceChatUrl = ref("");
+const modelSearchKeyword = ref(""); // 模型搜索关键词
+const selectedCategory = ref("");
+const modelCategories = ref([]);
+const groupedModels = ref([]);
+const activeCategory = ref(""); // 当前激活的分类标签
+const showFreeModelsOnly = ref(false); // 是否只显示免费模型
+
+const tools = ref([]);
+const toolSelected = ref([]);
+const stream = ref(store.chatStream);
+
+// 过滤后的模型列表
+const filteredModels = computed(() => {
+  if (!modelSearchKeyword.value && !showFreeModelsOnly.value && !activeCategory.value) {
+    return models.value;
+  }
+
+  return models.value.filter(model => {
+    // 搜索关键词匹配
+    const matchesSearch = !modelSearchKeyword.value || 
+      model.name.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()) || 
+      (model.description && model.description.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()));
+    
+    // 分类匹配
+    const matchesCategory = !activeCategory.value || model.category === activeCategory.value;
+    
+    // 免费模型匹配
+    const matchesFree = !showFreeModelsOnly.value || model.power <= 0;
+    
+    return matchesSearch && matchesCategory && matchesFree;
+  });
+});
+
+// 最终展示的模型列表
+const displayedModels = computed(() => {
+  return filteredModels.value;
+});
+
+// 切换是否只显示免费模型
+const toggleFreeModels = () => {
+  showFreeModelsOnly.value = !showFreeModelsOnly.value;
+  if (showFreeModelsOnly.value) {
+    activeCategory.value = ''
+  }
+};
+
+// 提取所有模型分类
+const updateModelCategories = () => {
+  const categories = new Set();
+  models.value.forEach(model => {
+    if (model.category) {
+      categories.add(model.category);
+    }
+  });
+  modelCategories.value = Array.from(categories);
+};
+
+// 按分类对模型进行分组
+const updateGroupedModels = () => {
+  const filtered = filteredModels.value;
+  
+  // 如果已经指定分类，则只显示该分类
+  if (selectedCategory.value) {
+    groupedModels.value = [{
+      category: selectedCategory.value,
+      models: filtered
+    }];
+    return;
+  }
+  
+  // 否则按分类分组展示
+  const groups = {};
+  filtered.forEach(model => {
+    const category = model.category || '未分类';
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(model);
+  });
+  
+  groupedModels.value = Object.keys(groups).map(category => ({
+    category,
+    models: groups[category]
+  }));
+  
+  // 对分组进行排序（未分类放最后）
+  groupedModels.value.sort((a, b) => {
+    if (a.category === '未分类') return 1;
+    if (b.category === '未分类') return -1;
+    return a.category.localeCompare(b.category);
+  });
+};
+
+// 当筛选条件变化时更新分组
+watch([filteredModels, selectedCategory], () => {
+  updateGroupedModels();
+});
+
+// 监听模型数据变化，更新分类列表
+watch(() => models.value, () => {
+  updateModelCategories();
+  updateGroupedModels();
+}, { deep: true });
+
+// 获取选中的模型名称
+const getSelectedModelName = () => {
+  const model = getSelectedModel();
+  return model ? model.name : '选择模型';
+};
+
+// 获取选中的模型
+const getSelectedModel = () => {
+  return models.value.find(model => model.id === modelID.value);
+};
+
+// 选择模型
+const selectModel = (model) => {
+  modelID.value = model.id;
+  _newChat();
+};
+
+// 根据算力获取标签类型
+const getTagType = (power) => {
+  const powerNum = Number(power);
+  if (powerNum <= 5) return 'info';
+  if (powerNum <= 15) return 'warning';
+  return 'danger';
+};
+
 watch(
   () => store.chatListStyle,
   (newValue) => {
     listStyle.value = newValue;
   }
 );
-const tools = ref([]);
-const toolSelected = ref([]);
-const stream = ref(store.chatStream);
 
 watch(
   () => store.chatStream,
@@ -456,6 +677,10 @@ onMounted(() => {
       localStorage.setItem("chat_id", chatId.value);
     });
   });
+
+  // 初始化模型分类和分组
+  updateModelCategories();
+  updateGroupedModels();
 });
 
 onUnmounted(() => {
@@ -1011,5 +1236,192 @@ const realtimeChat = () => {
       padding-right 40px
     }
   }
+}
+
+
+.model-selector-popover {
+  max-width: 820px !important;
+}
+
+.el-popper.model-selector-popover {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.model-selector-container {
+  padding: 16px;
+  
+  .model-search {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #E4E7ED;
+    margin-bottom: 16px;
+    
+    .category-tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-bottom: -1px;
+      font-size: 14px;
+      color: #606266;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      
+      &:hover {
+        color: #409EFF;
+      }
+      
+      &.active {
+        color: #409EFF;
+        border-bottom-color: #409EFF;
+        font-weight: 500;
+      }
+      
+      &.reset-filter {
+        color: #F56C6C;
+        margin-left: auto;
+        
+        &:hover {
+          color: darken(#F56C6C, 10%);
+        }
+      }
+    }
+  }
+  
+  .no-results {
+    padding: 30px;
+    text-align: center;
+  }
+  
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-height: 450px;
+    overflow-y: auto;
+    padding: 4px 4px 16px 4px;
+  }
+  
+  .model-card {
+    border: 1px solid #DCDFE6;
+    border-radius: 6px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* 防止内容溢出 */
+    
+    &:hover {
+      border-color: #409eff;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.selected {
+      border-color: #409eff;
+      background-color: #ecf5ff;
+    }
+    
+    .model-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      
+      .model-name {
+        font-weight: bold;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.3;
+        max-width: 170px;
+        margin-right: 8px;
+      }
+    }
+    
+    .model-description {
+      font-size: 12px;
+      color: #606266;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.4;
+      flex-grow: 1;
+    }
+    
+    //.model-metadata {
+    //  display: flex;
+    //  flex-direction: column;
+    //  margin-top: auto;
+    //}
+    
+    .model-detail {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #909399;
+    }
+  }
+}
+
+.adaptive-width-button {
+  min-width: 180px;
+  max-width: 350px;
+  width: auto !important;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.selected-model-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  .model-name-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+  }
+}
+
+.customer-service-content {
+  text-align: center;
+  padding: 10px 0;
+  
+  .service-tip {
+    font-size: 16px;
+    color: #303133;
+    margin-bottom: 15px;
+  }
+  
+  .qrcode-image {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+  
+  .service-note {
+    font-size: 14px;
+    color: #909399;
+    margin-top: 15px;
+  }
+}
+
+.customer-service-btn {
+  margin-left: 8px;
 }
 </style>
