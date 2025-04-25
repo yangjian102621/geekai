@@ -35,7 +35,6 @@ import (
 )
 
 type AppServer struct {
-	Debug     bool
 	Config    *types.AppConfig
 	Engine    *gin.Engine
 	SysConfig *types.SystemConfig // system config cache
@@ -45,7 +44,6 @@ func NewServer(appConfig *types.AppConfig) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
-		Debug:  false,
 		Config: appConfig,
 		Engine: gin.Default(),
 	}
@@ -112,14 +110,14 @@ func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		method := c.Request.Method
 		origin := c.Request.Header.Get("Origin")
-		
+
 		// 设置允许的请求源
 		if origin != "" {
 			c.Header("Access-Control-Allow-Origin", origin)
 		} else {
 			c.Header("Access-Control-Allow-Origin", "*")
 		}
-		
+
 		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 		//允许跨域设置可以返回其他子段，可以自定义字段
 		c.Header("Access-Control-Allow-Headers", "Authorization, Body-Length, Body-Type, Admin-Authorization,content-type")

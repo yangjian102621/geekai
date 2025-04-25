@@ -59,14 +59,6 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 }
 
 func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
-	if !h.App.Debug {
-		defer func() {
-			if r := recover(); r != nil {
-				logger.Error("Recover message from error: ", r)
-			}
-		}()
-	}
-
 	var user model.User
 	res := h.DB.Model(&model.User{}).First(&user, session.UserId)
 	if res.Error != nil {
