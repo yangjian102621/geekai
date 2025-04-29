@@ -15,11 +15,12 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type NetHandler struct {
@@ -46,7 +47,7 @@ func (h *NetHandler) Upload(c *gin.Context) {
 
 	userId := h.GetLoginUserId(c)
 	res := h.DB.Create(&model.File{
-		UserId:    int(userId),
+		UserId:    uint(userId),
 		Name:      file.Name,
 		ObjKey:    file.ObjKey,
 		URL:       file.URL,

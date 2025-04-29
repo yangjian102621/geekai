@@ -218,7 +218,7 @@
               </div>
             </el-popover>
 
-            <div class="flex-center">
+            <div class="flex-center ml-2">
               <el-dropdown :hide-on-click="false" trigger="click">
                 <span class="setting"><i class="iconfont icon-plugin"></i></span>
                 <template #dropdown>

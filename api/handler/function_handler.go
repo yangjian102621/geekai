@@ -240,7 +240,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	// 扣减算力
-	err = h.userService.DecreasePower(int(user.Id), job.Power, model.PowerLog{
+	err = h.userService.DecreasePower(user.Id, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  task.ModelName,
 		Remark: fmt.Sprintf("绘画提示词：%s", utils.CutWords(job.Prompt, 10)),
@@ -309,7 +309,7 @@ func (h *FunctionHandler) WebSearch(c *gin.Context) {
 	}
 	
 	// 扣减用户算力
-	err = h.userService.DecreasePower(int(user.Id), searchPower, model.PowerLog{
+	err = h.userService.DecreasePower(user.Id, searchPower, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "web_search",
 		Remark: fmt.Sprintf("网络搜索：%s", utils.CutWords(keyword, 10)),

@@ -15,6 +15,7 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -95,7 +96,7 @@ func (h *MarkMapHandler) Generate(c *gin.Context) {
 
 	// 扣减算力
 	if chatModel.Power > 0 {
-		err = h.userService.DecreasePower(int(userId), chatModel.Power, model.PowerLog{
+		err = h.userService.DecreasePower(userId, chatModel.Power, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  chatModel.Value,
 			Remark: fmt.Sprintf("AI绘制思维导图，模型名称：%s, ", chatModel.Value),

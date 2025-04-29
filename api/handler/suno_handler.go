@@ -107,7 +107,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 
 	// 插入数据库
 	job := model.SunoJob{
-		UserId:       task.UserId,
+		UserId:       uint(task.UserId),
 		Prompt:       data.Prompt,
 		Instrumental: data.Instrumental,
 		ModelName:    data.Model,

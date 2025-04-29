@@ -96,7 +96,7 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	h.dallService.PushTask(task)
 
 	// 扣减算力
-	err = h.userService.DecreasePower(int(user.Id), chatModel.Power, model.PowerLog{
+	err = h.userService.DecreasePower(user.Id, chatModel.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  chatModel.Value,
 		Remark: fmt.Sprintf("绘画提示词：%s", utils.CutWords(task.Prompt, 10)),
