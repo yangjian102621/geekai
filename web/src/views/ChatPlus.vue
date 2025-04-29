@@ -14,7 +14,13 @@
           </el-button>
 
           <div class="search-box">
-            <el-input v-model="chatName" placeholder="搜索会话" @keyup="searchChat($event)" style="" class="search-input">
+            <el-input
+              v-model="chatName"
+              placeholder="搜索会话"
+              @keyup="searchChat($event)"
+              style=""
+              class="search-input"
+            >
               <template #prefix>
                 <el-icon class="el-input__icon">
                   <Search />
@@ -25,7 +31,10 @@
           <el-scrollbar :height="chatListHeight">
             <div class="content">
               <el-row v-for="chat in chatList" :key="chat.chat_id">
-                <div :class="chat.chat_id === chatId ? 'chat-list-item active' : 'chat-list-item'" @click="loadChat(chat)">
+                <div
+                  :class="chat.chat_id === chatId ? 'chat-list-item active' : 'chat-list-item'"
+                  @click="loadChat(chat)"
+                >
                   <el-image :src="chat.icon" class="avatar" />
                   <span class="chat-title-input" v-if="chat.edit">
                     <el-input
@@ -47,7 +56,9 @@
                       </span>
                       <template #dropdown>
                         <el-dropdown-menu>
-                          <el-dropdown-item :icon="Edit" @click="editChatTitle(chat)">重命名</el-dropdown-item>
+                          <el-dropdown-item :icon="Edit" @click="editChatTitle(chat)"
+                            >重命名</el-dropdown-item
+                          >
                           <el-dropdown-item
                             :icon="Delete"
                             style="
@@ -58,7 +69,9 @@
                             @click="removeChat(chat)"
                             >删除</el-dropdown-item
                           >
-                          <el-dropdown-item :icon="Share" @click="shareChat(chat)">分享</el-dropdown-item>
+                          <el-dropdown-item :icon="Share" @click="shareChat(chat)"
+                            >分享</el-dropdown-item
+                          >
                         </el-dropdown-menu>
                       </template>
                     </el-dropdown>
@@ -70,13 +83,22 @@
         </div>
 
         <div class="tool-box">
-          <el-button type="primary" size="small" @click="clearAllChats"> <i class="iconfont icon-clear"></i> 清除所有对话 </el-button>
+          <el-button type="primary" size="small" @click="clearAllChats">
+            <i class="iconfont icon-clear"></i> 清除所有对话
+          </el-button>
         </div>
       </el-aside>
       <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
         <div class="chat-container">
           <div class="chat-config">
-            <el-select v-model="roleId" filterable placeholder="角色" @change="_newChat" class="role-select" style="width: 150px">
+            <el-select
+              v-model="roleId"
+              filterable
+              placeholder="角色"
+              @change="_newChat"
+              class="role-select"
+              style="width: 150px"
+            >
               <el-option v-for="item in roles" :key="item.id" :label="item.name" :value="item.id">
                 <div class="role-option">
                   <el-image :src="item.icon"></el-image>
@@ -90,24 +112,32 @@
               :width="800"
               trigger="click"
               popper-class="model-selector-popover"
+              ref="modelSelectorRef"
             >
               <template #reference>
                 <div class="model-selector-trigger">
-                  <el-button 
-                    type="primary" 
-                    :disabled="disableModel" 
+                  <el-button
+                    type="primary"
+                    :disabled="disableModel"
                     class="adaptive-width-button"
+                    size="small"
+                    plain
                   >
                     <div class="selected-model-display">
                       <span class="model-name-text">{{ getSelectedModelName() }}</span>
-                      <el-tag v-if="getSelectedModel()" size="small" type="info" style="margin-left: 8px; flex-shrink: 0;">
+                      <el-tag
+                        v-if="getSelectedModel()"
+                        size="small"
+                        type="info"
+                        style="margin-left: 8px; flex-shrink: 0"
+                      >
                         {{ getSelectedModel()?.power }}算力
                       </el-tag>
                     </div>
                   </el-button>
                 </div>
               </template>
-              
+
               <div class="model-selector-container">
                 <div class="model-search">
                   <el-input
@@ -117,36 +147,36 @@
                     clearable
                     style="width: 200px"
                   />
-                  <el-button 
-                    :type="showFreeModelsOnly ? 'primary' : 'default'" 
-                    size="default" 
+                  <el-button
+                    :type="showFreeModelsOnly ? 'primary' : 'default'"
+                    size="default"
                     @click="toggleFreeModels"
-                    style="margin-left: 10px;"
+                    style="margin-left: 10px"
                   >
-                    <i class="iconfont icon-free" style="margin-right: 4px;"></i>
+                    <i class="iconfont icon-free" style="margin-right: 4px"></i>
                     免费模型
                   </el-button>
                 </div>
-                
+
                 <div class="category-tabs">
-                  <div 
-                    class="category-tab" 
-                    :class="{ 'active': activeCategory === '' }"
+                  <div
+                    class="category-tab"
+                    :class="{ active: activeCategory === '' }"
                     @click="activeCategory = ''"
                   >
                     全部
                   </div>
 
-                  <div 
-                    v-for="category in modelCategories" 
+                  <div
+                    v-for="category in modelCategories"
                     :key="category"
                     class="category-tab"
-                    :class="{ 'active': activeCategory === category }"
+                    :class="{ active: activeCategory === category }"
                     @click="activeCategory = category"
                   >
                     {{ category }}
                   </div>
-                  <div 
+                  <div
                     v-if="activeCategory && modelCategories.length > 0"
                     class="category-tab reset-filter"
                     @click="activeCategory = ''"
@@ -154,33 +184,35 @@
                     <i class="el-icon-close"></i> 清除筛选
                   </div>
                 </div>
-                
+
                 <div v-if="displayedModels.length === 0" class="no-results">
                   <el-empty description="没有找到匹配的模型" />
                 </div>
-                
+
                 <div v-else class="models-grid">
-                  <div 
-                    v-for="model in displayedModels" 
+                  <div
+                    v-for="model in displayedModels"
                     :key="model.id"
                     class="model-card"
-                    :class="{ 'selected': model.id === modelID }"
+                    :class="{ selected: model.id === modelID }"
                     @click="selectModel(model)"
                   >
                     <div class="model-card-header">
                       <span class="model-name" :title="model.name">{{ model.name }}</span>
-                      <el-tag size="small" :type="getTagType(model.power)" style="flex-shrink: 0;">
+                      <el-tag size="small" :type="getTagType(model.power)" style="flex-shrink: 0">
                         {{ model.power > 0 ? `${model.power}算力` : '免费' }}
                       </el-tag>
                     </div>
-                    <div class="model-description" :title="model.description || '暂无描述' ">{{ model.description || '暂无描述' }}</div>
+                    <div class="model-description" :title="model.description || '暂无描述'">
+                      {{ model.description || '暂无描述' }}
+                    </div>
                     <!-- 暂时屏蔽此信息展示，或许用户不想展示此信息 -->
-                    <!-- <div class="model-metadata">
+                    <div class="model-metadata">
                       <div class="model-detail">
                         <div>响应: {{ model.max_tokens }}</div>
                         <div>上下文: {{ model.max_context }}</div>
                       </div>
-                    </div> -->
+                    </div>
                   </div>
                 </div>
               </div>
@@ -217,7 +249,13 @@
                 </div>
                 <div v-for="item in chatData" :key="item.id" v-else>
                   <chat-prompt v-if="item.type === 'prompt'" :data="item" :list-style="listStyle" />
-                  <chat-reply v-else-if="item.type === 'reply'" :data="item" @regen="reGenerate" :read-only="false" :list-style="listStyle" />
+                  <chat-reply
+                    v-else-if="item.type === 'reply'"
+                    :data="item"
+                    @regen="reGenerate"
+                    :read-only="false"
+                    :list-style="listStyle"
+                  />
                 </div>
 
                 <back-top :right="30" :bottom="155" />
@@ -248,7 +286,13 @@
                       <div class="flex-between">
                         <div class="flex little-btns">
                           <span class="tool-item-btn" @click="realtimeChat">
-                            <el-tooltip class="box-item" effect="dark" :content="'实时语音对话，每次消耗' + config.advance_voice_power + '算力'">
+                            <el-tooltip
+                              class="box-item"
+                              effect="dark"
+                              :content="
+                                '实时语音对话，每次消耗' + config.advance_voice_power + '算力'
+                              "
+                            >
                               <i class="iconfont icon-mic-bold"></i>
                             </el-tooltip>
                           </span>
@@ -262,7 +306,12 @@
                         <div class="flex little-btns">
                           <span class="send-btn tool-item-btn">
                             <!-- showStopGenerate -->
-                            <el-button type="info" v-if="showStopGenerate" @click="stopGenerate" plain>
+                            <el-button
+                              type="info"
+                              v-if="showStopGenerate"
+                              @click="stopGenerate"
+                              plain
+                            >
                               <el-icon>
                                 <VideoPause />
                               </el-icon>
@@ -327,657 +376,679 @@
   </div>
 </template>
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref, watch, computed} from "vue";
-import ChatPrompt from "@/components/ChatPrompt.vue";
-import ChatReply from "@/components/ChatReply.vue";
-import { Delete, Edit, InfoFilled, More, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
-import "highlight.js/styles/a11y-dark.css";
-import { isMobile, randString, removeArrayItem, UUID } from "@/utils/libs";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { httpGet, httpPost } from "@/utils/http";
-import { useRouter } from "vue-router";
-import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
-import Welcome from "@/components/Welcome.vue";
-import { useSharedStore } from "@/store/sharedata";
-import FileSelect from "@/components/FileSelect.vue";
-import FileList from "@/components/FileList.vue";
-import ChatSetting from "@/components/ChatSetting.vue";
-import BackTop from "@/components/BackTop.vue";
-import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
-import MarkdownIt from "markdown-it";
-import emoji from "markdown-it-emoji";
+import BackTop from '@/components/BackTop.vue'
+import ChatPrompt from '@/components/ChatPrompt.vue'
+import ChatReply from '@/components/ChatReply.vue'
+import ChatSetting from '@/components/ChatSetting.vue'
+import FileList from '@/components/FileList.vue'
+import FileSelect from '@/components/FileSelect.vue'
+import Welcome from '@/components/Welcome.vue'
+import { checkSession, getClientId, getSystemInfo } from '@/store/cache'
+import { useSharedStore } from '@/store/sharedata'
+import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
+import { httpGet, httpPost } from '@/utils/http'
+import { isMobile, randString, removeArrayItem, UUID } from '@/utils/libs'
+import {
+  Delete,
+  Edit,
+  InfoFilled,
+  More,
+  Promotion,
+  Search,
+  Share,
+  VideoPause,
+} from '@element-plus/icons-vue'
+import Clipboard from 'clipboard'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import 'highlight.js/styles/a11y-dark.css'
+import MarkdownIt from 'markdown-it'
+import emoji from 'markdown-it-emoji'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
-const title = ref("GeekAI-智能助手");
-const logo = ref("");
-const models = ref([]);
-const modelID = ref(0);
-const chatData = ref([]);
-const allChats = ref([]); // 会话列表
-const chatList = ref(allChats.value);
-const mainWinHeight = ref(0); // 主窗口高度
-const chatBoxHeight = ref(0); // 聊天内容框高度
-const chatListHeight = ref(0); // 聊天列表高度
-const loading = ref(false);
-const loginUser = ref(null);
-const roles = ref([]);
-const router = useRouter();
-const roleId = ref(0);
-const chatId = ref();
-const newChatItem = ref(null);
-const isLogin = ref(false);
-const showHello = ref(true);
-const inputRef = ref(null);
-const textHeightRef = ref(null);
-const showNotice = ref(false);
-const notice = ref("");
-const noticeKey = ref("SYSTEM_NOTICE");
-const store = useSharedStore();
-const row = ref(1);
-const showChatSetting = ref(false);
-const listStyle = ref(store.chatListStyle);
-const config = ref({ advance_voice_power: 0 });
-const voiceChatUrl = ref("");
-const modelSearchKeyword = ref(""); // 模型搜索关键词
-const selectedCategory = ref("");
-const modelCategories = ref([]);
-const groupedModels = ref([]);
-const activeCategory = ref(""); // 当前激活的分类标签
-const showFreeModelsOnly = ref(false); // 是否只显示免费模型
+const title = ref('GeekAI-智能助手')
+const logo = ref('')
+const models = ref([])
+const modelID = ref(0)
+const chatData = ref([])
+const allChats = ref([]) // 会话列表
+const chatList = ref(allChats.value)
+const mainWinHeight = ref(0) // 主窗口高度
+const chatBoxHeight = ref(0) // 聊天内容框高度
+const chatListHeight = ref(0) // 聊天列表高度
+const loading = ref(false)
+const loginUser = ref(null)
+const roles = ref([])
+const router = useRouter()
+const roleId = ref(0)
+const chatId = ref()
+const newChatItem = ref(null)
+const isLogin = ref(false)
+const showHello = ref(true)
+const inputRef = ref(null)
+const textHeightRef = ref(null)
+const showNotice = ref(false)
+const notice = ref('')
+const noticeKey = ref('SYSTEM_NOTICE')
+const store = useSharedStore()
+const row = ref(1)
+const showChatSetting = ref(false)
+const listStyle = ref(store.chatListStyle)
+const config = ref({ advance_voice_power: 0 })
+const voiceChatUrl = ref('')
+const modelSearchKeyword = ref('') // 模型搜索关键词
+const selectedCategory = ref('')
+const modelCategories = ref([])
+const groupedModels = ref([])
+const activeCategory = ref('') // 当前激活的分类标签
+const showFreeModelsOnly = ref(false) // 是否只显示免费模型
 
-const tools = ref([]);
-const toolSelected = ref([]);
-const stream = ref(store.chatStream);
-
+const tools = ref([])
+const toolSelected = ref([])
+const stream = ref(store.chatStream)
+const modelSelectorRef = ref(null)
 // 过滤后的模型列表
 const filteredModels = computed(() => {
   if (!modelSearchKeyword.value && !showFreeModelsOnly.value && !activeCategory.value) {
-    return models.value;
+    return models.value
   }
 
-  return models.value.filter(model => {
+  return models.value.filter((model) => {
     // 搜索关键词匹配
-    const matchesSearch = !modelSearchKeyword.value || 
-      model.name.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()) || 
-      (model.description && model.description.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()));
-    
+    const matchesSearch =
+      !modelSearchKeyword.value ||
+      model.name.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()) ||
+      (model.description &&
+        model.description.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()))
+
     // 分类匹配
-    const matchesCategory = !activeCategory.value || model.category === activeCategory.value;
-    
+    const matchesCategory = !activeCategory.value || model.category === activeCategory.value
+
     // 免费模型匹配
-    const matchesFree = !showFreeModelsOnly.value || model.power <= 0;
-    
-    return matchesSearch && matchesCategory && matchesFree;
-  });
-});
+    const matchesFree = !showFreeModelsOnly.value || model.power <= 0
+
+    return matchesSearch && matchesCategory && matchesFree
+  })
+})
 
 // 最终展示的模型列表
 const displayedModels = computed(() => {
-  return filteredModels.value;
-});
+  return filteredModels.value
+})
 
 // 切换是否只显示免费模型
 const toggleFreeModels = () => {
-  showFreeModelsOnly.value = !showFreeModelsOnly.value;
+  showFreeModelsOnly.value = !showFreeModelsOnly.value
   if (showFreeModelsOnly.value) {
     activeCategory.value = ''
   }
-};
+}
 
 // 提取所有模型分类
 const updateModelCategories = () => {
-  const categories = new Set();
-  models.value.forEach(model => {
+  const categories = new Set()
+  models.value.forEach((model) => {
     if (model.category) {
-      categories.add(model.category);
+      categories.add(model.category)
     }
-  });
-  modelCategories.value = Array.from(categories);
-};
+  })
+  modelCategories.value = Array.from(categories)
+}
 
 // 按分类对模型进行分组
 const updateGroupedModels = () => {
-  const filtered = filteredModels.value;
-  
+  const filtered = filteredModels.value
+
   // 如果已经指定分类，则只显示该分类
   if (selectedCategory.value) {
-    groupedModels.value = [{
-      category: selectedCategory.value,
-      models: filtered
-    }];
-    return;
+    groupedModels.value = [
+      {
+        category: selectedCategory.value,
+        models: filtered,
+      },
+    ]
+    return
   }
-  
+
   // 否则按分类分组展示
-  const groups = {};
-  filtered.forEach(model => {
-    const category = model.category || '未分类';
+  const groups = {}
+  filtered.forEach((model) => {
+    const category = model.category || '未分类'
     if (!groups[category]) {
-      groups[category] = [];
+      groups[category] = []
     }
-    groups[category].push(model);
-  });
-  
-  groupedModels.value = Object.keys(groups).map(category => ({
+    groups[category].push(model)
+  })
+
+  groupedModels.value = Object.keys(groups).map((category) => ({
     category,
-    models: groups[category]
-  }));
-  
+    models: groups[category],
+  }))
+
   // 对分组进行排序（未分类放最后）
   groupedModels.value.sort((a, b) => {
-    if (a.category === '未分类') return 1;
-    if (b.category === '未分类') return -1;
-    return a.category.localeCompare(b.category);
-  });
-};
+    if (a.category === '未分类') return 1
+    if (b.category === '未分类') return -1
+    return a.category.localeCompare(b.category)
+  })
+}
 
 // 当筛选条件变化时更新分组
 watch([filteredModels, selectedCategory], () => {
-  updateGroupedModels();
-});
+  updateGroupedModels()
+})
 
 // 监听模型数据变化，更新分类列表
-watch(() => models.value, () => {
-  updateModelCategories();
-  updateGroupedModels();
-}, { deep: true });
+watch(
+  () => models.value,
+  () => {
+    updateModelCategories()
+    updateGroupedModels()
+  },
+  { deep: true }
+)
 
 // 获取选中的模型名称
 const getSelectedModelName = () => {
-  const model = getSelectedModel();
-  return model ? model.name : '选择模型';
-};
+  const model = getSelectedModel()
+  return model ? model.name : '选择模型'
+}
 
 // 获取选中的模型
 const getSelectedModel = () => {
-  return models.value.find(model => model.id === modelID.value);
-};
+  return models.value.find((model) => model.id === modelID.value)
+}
 
 // 选择模型
 const selectModel = (model) => {
-  modelID.value = model.id;
-  _newChat();
-};
+  modelID.value = model.id
+  modelSelectorRef.value.hide()
+  _newChat()
+}
 
 // 根据算力获取标签类型
 const getTagType = (power) => {
-  const powerNum = Number(power);
-  if (powerNum <= 5) return 'info';
-  if (powerNum <= 15) return 'warning';
-  return 'danger';
-};
+  const powerNum = Number(power)
+  if (powerNum <= 5) return 'info'
+  if (powerNum <= 15) return 'warning'
+  return 'danger'
+}
 
 watch(
   () => store.chatListStyle,
   (newValue) => {
-    listStyle.value = newValue;
+    listStyle.value = newValue
   }
-);
+)
 
 watch(
   () => store.chatStream,
   (newValue) => {
-    stream.value = newValue;
+    stream.value = newValue
   }
-);
+)
 
 if (isMobile()) {
-  router.push("/mobile/chat");
+  router.push('/mobile/chat')
 }
 
 // 初始化角色ID参数
 if (router.currentRoute.value.query.role_id) {
-  roleId.value = parseInt(router.currentRoute.value.query.role_id);
+  roleId.value = parseInt(router.currentRoute.value.query.role_id)
 }
 
 // 初始化 ChatID
-chatId.value = router.currentRoute.value.params.id;
+chatId.value = router.currentRoute.value.params.id
 if (!chatId.value) {
-  chatId.value = UUID();
+  chatId.value = UUID()
 } else {
   // 查询对话信息
-  httpGet("/api/chat/detail", { chat_id: chatId.value })
+  httpGet('/api/chat/detail', { chat_id: chatId.value })
     .then((res) => {
-      document.title = res.data.title;
-      roleId.value = res.data.role_id;
-      modelID.value = res.data.model_id;
+      document.title = res.data.title
+      roleId.value = res.data.role_id
+      modelID.value = res.data.model_id
     })
     .catch((e) => {
-      console.error("获取对话信息失败：" + e.message);
-    });
+      console.error('获取对话信息失败：' + e.message)
+    })
 }
 
 // 获取系统配置
 getSystemInfo()
   .then((res) => {
-    config.value = res.data;
-    title.value = config.value.title;
-    logo.value = res.data.bar_logo;
+    config.value = res.data
+    title.value = config.value.title
+    logo.value = res.data.bar_logo
   })
   .catch((e) => {
-    ElMessage.error("获取系统配置失败：" + e.message);
-  });
+    ElMessage.error('获取系统配置失败：' + e.message)
+  })
 
 const md = new MarkdownIt({
   breaks: true,
   html: true,
   linkify: true,
   typographer: true,
-}).use(emoji);
+}).use(emoji)
 // 获取系统公告
-httpGet("/api/config/get?key=notice")
+httpGet('/api/config/get?key=notice')
   .then((res) => {
     try {
-      notice.value = md.render(res.data["content"]);
-      const oldNotice = localStorage.getItem(noticeKey.value);
+      notice.value = md.render(res.data['content'])
+      const oldNotice = localStorage.getItem(noticeKey.value)
       // 如果公告有更新，则显示公告
       if (oldNotice !== notice.value && notice.value.length > 10) {
-        showNotice.value = true;
+        showNotice.value = true
       }
     } catch (e) {
-      console.warn(e);
+      console.warn(e)
     }
   })
   .catch((e) => {
-    ElMessage.error("获取系统配置失败：" + e.message);
-  });
+    ElMessage.error('获取系统配置失败：' + e.message)
+  })
 
 // 获取工具函数
-httpGet("/api/function/list")
+httpGet('/api/function/list')
   .then((res) => {
-    tools.value = res.data;
+    tools.value = res.data
   })
   .catch((e) => {
-    showMessageError("获取工具函数失败：" + e.message);
-  });
+    showMessageError('获取工具函数失败：' + e.message)
+  })
 
-const prompt = ref("");
-const showStopGenerate = ref(false); // 停止生成
-const lineBuffer = ref(""); // 输出缓冲行
-const canSend = ref(true);
-const isNewMsg = ref(true);
+const prompt = ref('')
+const showStopGenerate = ref(false) // 停止生成
+const lineBuffer = ref('') // 输出缓冲行
+const canSend = ref(true)
+const isNewMsg = ref(true)
 
 onMounted(() => {
-  resizeElement();
-  initData();
+  resizeElement()
+  initData()
 
-  const clipboard = new Clipboard(".copy-reply, .copy-code-btn");
-  clipboard.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
+  const clipboard = new Clipboard('.copy-reply, .copy-code-btn')
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！')
+  })
 
-  clipboard.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！')
+  })
 
-  window.onresize = () => resizeElement();
-  store.addMessageHandler("chat", (data) => {
+  window.onresize = () => resizeElement()
+  store.addMessageHandler('chat', (data) => {
     // 丢去非本频道和本客户端的消息
-    if (data.channel !== "chat" || data.clientId !== getClientId()) {
-      return;
+    if (data.channel !== 'chat' || data.clientId !== getClientId()) {
+      return
     }
 
-    if (data.type === "error") {
-      ElMessage.error(data.body);
-      return;
+    if (data.type === 'error') {
+      ElMessage.error(data.body)
+      return
     }
 
-    const chatRole = getRoleById(roleId.value);
-    if (isNewMsg.value && data.type !== "end") {
-      const prePrompt = chatData.value[chatData.value.length - 1]?.content;
+    const chatRole = getRoleById(roleId.value)
+    if (isNewMsg.value && data.type !== 'end') {
+      const prePrompt = chatData.value[chatData.value.length - 1]?.content
       chatData.value.push({
-        type: "reply",
+        type: 'reply',
         id: randString(32),
-        icon: chatRole["icon"],
+        icon: chatRole['icon'],
         prompt: prePrompt,
         content: data.body,
-      });
-      isNewMsg.value = false;
-      lineBuffer.value = data.body;
-    } else if (data.type === "end") {
+      })
+      isNewMsg.value = false
+      lineBuffer.value = data.body
+    } else if (data.type === 'end') {
       // 消息接收完毕
       // 追加当前会话到会话列表
       if (newChatItem.value !== null) {
-        newChatItem.value["title"] = tmpChatTitle.value;
-        newChatItem.value["chat_id"] = chatId.value;
-        chatList.value.unshift(newChatItem.value);
-        newChatItem.value = null; // 只追加一次
+        newChatItem.value['title'] = tmpChatTitle.value
+        newChatItem.value['chat_id'] = chatId.value
+        chatList.value.unshift(newChatItem.value)
+        newChatItem.value = null // 只追加一次
       }
 
-      enableInput();
-      lineBuffer.value = ""; // 清空缓冲
+      enableInput()
+      lineBuffer.value = '' // 清空缓冲
 
       // 获取 token
-      const reply = chatData.value[chatData.value.length - 1];
-      httpPost("/api/chat/tokens", {
-        text: "",
+      const reply = chatData.value[chatData.value.length - 1]
+      httpPost('/api/chat/tokens', {
+        text: '',
         model: getModelValue(modelID.value),
         chat_id: chatId.value,
       })
         .then((res) => {
-          reply["created_at"] = new Date().getTime();
-          reply["tokens"] = res.data;
+          reply['created_at'] = new Date().getTime()
+          reply['tokens'] = res.data
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
-            document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
-          });
+            document
+              .getElementById('chat-box')
+              .scrollTo(0, document.getElementById('chat-box').scrollHeight)
+          })
         })
-        .catch(() => {});
-      isNewMsg.value = true;
-    } else if (data.type === "text") {
-      lineBuffer.value += data.body;
-      const reply = chatData.value[chatData.value.length - 1];
+        .catch(() => {})
+      isNewMsg.value = true
+    } else if (data.type === 'text') {
+      lineBuffer.value += data.body
+      const reply = chatData.value[chatData.value.length - 1]
       if (reply) {
-        reply["content"] = lineBuffer.value;
+        reply['content'] = lineBuffer.value
       }
     }
     // 将聊天框的滚动条滑动到最底部
     nextTick(() => {
-      document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
-      localStorage.setItem("chat_id", chatId.value);
-    });
-  });
+      document
+        .getElementById('chat-box')
+        .scrollTo(0, document.getElementById('chat-box').scrollHeight)
+      localStorage.setItem('chat_id', chatId.value)
+    })
+  })
 
   // 初始化模型分类和分组
-  updateModelCategories();
-  updateGroupedModels();
-});
+  updateModelCategories()
+  updateGroupedModels()
+})
 
 onUnmounted(() => {
-  store.removeMessageHandler("chat");
-});
+  store.removeMessageHandler('chat')
+})
 // 初始化数据
 const initData = () => {
   // 加载模型
-  httpGet("/api/model/list?type=chat")
+  httpGet('/api/model/list?type=chat')
     .then((res) => {
-      models.value = res.data;
+      models.value = res.data
       if (!modelID.value) {
-        modelID.value = models.value[0].id;
+        modelID.value = models.value[0].id
       }
       // 加载角色列表
       httpGet(`/api/app/list/user`, { id: roleId.value })
         .then((res) => {
-          roles.value = res.data;
+          roles.value = res.data
           if (!roleId.value) {
-            roleId.value = roles.value[0]["id"];
+            roleId.value = roles.value[0]['id']
           }
 
           // 如果登录状态就创建对话连接
           checkSession()
             .then((user) => {
-              loginUser.value = user;
-              isLogin.value = true;
-              newChat();
+              loginUser.value = user
+              isLogin.value = true
+              newChat()
             })
-            .catch(() => {});
+            .catch(() => {})
         })
         .catch((e) => {
-          ElMessage.error("获取聊天角色失败: " + e.messages);
-        });
+          ElMessage.error('获取聊天角色失败: ' + e.messages)
+        })
     })
     .catch((e) => {
-      ElMessage.error("加载模型失败: " + e.message);
-    });
+      ElMessage.error('加载模型失败: ' + e.message)
+    })
 
   // 获取会话列表
-  httpGet("/api/chat/list")
+  httpGet('/api/chat/list')
     .then((res) => {
       if (res.data) {
-        chatList.value = res.data;
-        allChats.value = res.data;
+        chatList.value = res.data
+        allChats.value = res.data
       }
     })
     .catch(() => {
-      ElMessage.error("加载会话列表失败！");
-    });
+      ElMessage.error('加载会话列表失败！')
+    })
 
   // 允许在输入框粘贴文件
-  inputRef.value.addEventListener("paste", (event) => {
-    const items = (event.clipboardData || window.clipboardData).items;
+  inputRef.value.addEventListener('paste', (event) => {
+    const items = (event.clipboardData || window.clipboardData).items
     for (let item of items) {
-      if (item.kind === "file") {
-        const file = item.getAsFile();
-        const formData = new FormData();
-        formData.append("file", file);
-        loading.value = true;
+      if (item.kind === 'file') {
+        const file = item.getAsFile()
+        const formData = new FormData()
+        formData.append('file', file)
+        loading.value = true
         // 执行上传操作
-        httpPost("/api/upload", formData)
+        httpPost('/api/upload', formData)
           .then((res) => {
-            files.value.push(res.data);
-            ElMessage.success({ message: "上传成功", duration: 500 });
-            loading.value = false;
+            files.value.push(res.data)
+            ElMessage.success({ message: '上传成功', duration: 500 })
+            loading.value = false
           })
           .catch((e) => {
-            ElMessage.error("文件上传失败:" + e.message);
-            loading.value = false;
-          });
+            ElMessage.error('文件上传失败:' + e.message)
+            loading.value = false
+          })
 
-        break;
+        break
       }
     }
-  });
-};
+  })
+}
 
 const getRoleById = function (rid) {
   for (let i = 0; i < roles.value.length; i++) {
-    if (roles.value[i]["id"] === rid) {
-      return roles.value[i];
+    if (roles.value[i]['id'] === rid) {
+      return roles.value[i]
     }
   }
-  return null;
-};
+  return null
+}
 
 const resizeElement = function () {
-  chatListHeight.value = window.innerHeight - 240;
+  chatListHeight.value = window.innerHeight - 240
   // chatBoxHeight.value = window.innerHeight;
-  mainWinHeight.value = window.innerHeight - 50;
-  chatBoxHeight.value = window.innerHeight - 101 - 82 - 38;
-};
+  mainWinHeight.value = window.innerHeight - 50
+  chatBoxHeight.value = window.innerHeight - 101 - 82 - 38
+}
 
 const _newChat = () => {
   if (isLogin.value) {
-    chatId.value = UUID();
-    newChat();
+    chatId.value = UUID()
+    newChat()
   }
-};
-const disableModel = ref(false);
+}
+const disableModel = ref(false)
 // 新建会话
 const newChat = () => {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true);
-    return;
+    store.setShowLoginDialog(true)
+    return
   }
 
-  const role = getRoleById(roleId.value);
-  showHello.value = role.key === "gpt";
+  const role = getRoleById(roleId.value)
+  showHello.value = role.key === 'gpt'
   // if the role bind a model, disable model change
-  disableModel.value = false;
+  disableModel.value = false
   if (role.model_id > 0) {
-    modelID.value = role.model_id;
-    disableModel.value = true;
+    modelID.value = role.model_id
+    disableModel.value = true
   }
   // 已有新开的会话
-  if (newChatItem.value !== null && newChatItem.value["role_id"] === roles.value[0]["role_id"]) {
-    return;
+  if (newChatItem.value !== null && newChatItem.value['role_id'] === roles.value[0]['role_id']) {
+    return
   }
 
   // 获取当前聊天角色图标
-  let icon = "";
+  let icon = ''
   roles.value.forEach((item) => {
-    if (item["id"] === roleId.value) {
-      icon = item["icon"];
+    if (item['id'] === roleId.value) {
+      icon = item['icon']
     }
-  });
+  })
   newChatItem.value = {
-    chat_id: "",
+    chat_id: '',
     icon: icon,
     role_id: roleId.value,
     model_id: modelID.value,
-    title: "",
+    title: '',
     edit: false,
     removing: false,
-  };
-  showStopGenerate.value = false;
-  loadChatHistory(chatId.value);
-  router.push(`/chat/${chatId.value}`);
-};
+  }
+  showStopGenerate.value = false
+  loadChatHistory(chatId.value)
+  router.push(`/chat/${chatId.value}`)
+}
 
 // 切换会话
 const loadChat = function (chat) {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true);
-    return;
+    store.setShowLoginDialog(true)
+    return
   }
 
   if (chatId.value === chat.chat_id) {
-    return;
+    return
   }
-  newChatItem.value = null;
-  roleId.value = chat.role_id;
-  modelID.value = chat.model_id;
-  chatId.value = chat.chat_id;
-  showStopGenerate.value = false;
-  loadChatHistory(chatId.value);
-  router.replace(`/chat/${chatId.value}`);
-};
+  newChatItem.value = null
+  roleId.value = chat.role_id
+  modelID.value = chat.model_id
+  chatId.value = chat.chat_id
+  showStopGenerate.value = false
+  loadChatHistory(chatId.value)
+  router.replace(`/chat/${chatId.value}`)
+}
 
 // 编辑会话标题
-const tmpChatTitle = ref("");
+const tmpChatTitle = ref('')
 const editChatTitle = (chat) => {
-  chat.edit = true;
-  tmpChatTitle.value = chat.title;
+  chat.edit = true
+  tmpChatTitle.value = chat.title
   nextTick(() => {
-    document.getElementById("chat-" + chat.chat_id).focus();
-  });
-};
+    document.getElementById('chat-' + chat.chat_id).focus()
+  })
+}
 
 const titleKeydown = (e, chat) => {
   if (e.keyCode === 13) {
-    e.stopPropagation();
-    editConfirm(chat);
+    e.stopPropagation()
+    editConfirm(chat)
   }
-};
+}
 
 const stopPropagation = (e) => {
-  e.stopPropagation();
-};
+  e.stopPropagation()
+}
 // 确认修改
 const editConfirm = function (chat) {
-  if (tmpChatTitle.value === "") {
-    return ElMessage.error("请输入会话标题！");
+  if (tmpChatTitle.value === '') {
+    return ElMessage.error('请输入会话标题！')
   }
   if (!chat.chat_id) {
-    return ElMessage.error("对话 ID 为空，请刷新页面再试！");
+    return ElMessage.error('对话 ID 为空，请刷新页面再试！')
   }
   if (tmpChatTitle.value === chat.title) {
-    chat.edit = false;
-    return;
+    chat.edit = false
+    return
   }
 
-  httpPost("/api/chat/update", {
+  httpPost('/api/chat/update', {
     chat_id: chat.chat_id,
     title: tmpChatTitle.value,
   })
     .then(() => {
-      chat.title = tmpChatTitle.value;
-      chat.edit = false;
+      chat.title = tmpChatTitle.value
+      chat.edit = false
     })
     .catch((e) => {
-      ElMessage.error("操作失败：" + e.message);
-    });
-};
+      ElMessage.error('操作失败：' + e.message)
+    })
+}
 // 删除会话
 const removeChat = function (chat) {
-  ElMessageBox.confirm(`该操作会删除"${chat.title}"`, "删除聊天", {
-    confirmButtonText: "删除",
-    cancelButtonText: "取消",
-    type: "warning",
+  ElMessageBox.confirm(`该操作会删除"${chat.title}"`, '删除聊天', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    type: 'warning',
   })
     .then(() => {
-      httpGet("/api/chat/remove?chat_id=" + chat.chat_id)
+      httpGet('/api/chat/remove?chat_id=' + chat.chat_id)
         .then(() => {
           chatList.value = removeArrayItem(chatList.value, chat, function (e1, e2) {
-            return e1.id === e2.id;
-          });
+            return e1.id === e2.id
+          })
           // 重置会话
-          _newChat();
+          _newChat()
         })
         .catch((e) => {
-          ElMessage.error("操作失败：" + e.message);
-        });
+          ElMessage.error('操作失败：' + e.message)
+        })
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
 const disableInput = (force) => {
-  canSend.value = false;
-  showStopGenerate.value = !force;
-};
+  canSend.value = false
+  showStopGenerate.value = !force
+}
 
 const enableInput = () => {
-  canSend.value = true;
-  showStopGenerate.value = false;
-};
+  canSend.value = true
+  showStopGenerate.value = false
+}
 
 const onInput = (e) => {
   // 根据输入的内容自动计算输入框的行数
-  const lineHeight = parseFloat(window.getComputedStyle(inputRef.value).lineHeight);
-  textHeightRef.value.style.width = inputRef.value.clientWidth + "px"; // 设定宽度和 textarea 相同
-  const lines = Math.floor(textHeightRef.value.clientHeight / lineHeight);
-  inputRef.value.scrollTo(0, inputRef.value.scrollHeight);
+  const lineHeight = parseFloat(window.getComputedStyle(inputRef.value).lineHeight)
+  textHeightRef.value.style.width = inputRef.value.clientWidth + 'px' // 设定宽度和 textarea 相同
+  const lines = Math.floor(textHeightRef.value.clientHeight / lineHeight)
+  inputRef.value.scrollTo(0, inputRef.value.scrollHeight)
   if (prompt.value.length < 10) {
-    row.value = 1;
+    row.value = 1
   } else if (lines <= 7) {
-    row.value = lines;
+    row.value = lines
   } else {
-    row.value = 7;
+    row.value = 7
   }
 
   // 输入回车自动提交
   if (e.keyCode === 13) {
     if (e.ctrlKey) {
       // Ctrl + Enter 换行
-      prompt.value += "\n";
-      return;
+      prompt.value += '\n'
+      return
     }
-    e.preventDefault();
-    sendMessage();
+    e.preventDefault()
+    sendMessage()
   }
-};
+}
 
 // 自动填充 prompt
 const autofillPrompt = (text) => {
-  prompt.value = text;
-  inputRef.value.focus();
-  sendMessage();
-};
+  prompt.value = text
+  inputRef.value.focus()
+  sendMessage()
+}
 // 发送消息
 const sendMessage = function () {
   if (!isLogin.value) {
-    console.log("未登录");
-    store.setShowLoginDialog(true);
-    return;
+    console.log('未登录')
+    store.setShowLoginDialog(true)
+    return
   }
 
   if (store.socket.conn.readyState !== WebSocket.OPEN) {
-    ElMessage.warning("连接断开，正在重连...");
-    return;
+    ElMessage.warning('连接断开，正在重连...')
+    return
   }
 
   if (canSend.value === false) {
-    ElMessage.warning("AI 正在作答中，请稍后...");
-    return;
+    ElMessage.warning('AI 正在作答中，请稍后...')
+    return
   }
 
   if (prompt.value.trim().length === 0 || canSend.value === false) {
-    showMessageError("请输入要发送的消息！");
-    return false;
+    showMessageError('请输入要发送的消息！')
+    return false
   }
   // 如果携带了文件，则串上文件地址
-  let content = prompt.value;
+  let content = prompt.value
   if (files.value.length > 0) {
-    content += files.value.map((file) => file.url).join(" ");
+    content += files.value.map((file) => file.url).join(' ')
   }
   // else if (files.value.length > 1) {
   //   showMessageError("当前只支持上传一个文件！");
@@ -985,24 +1056,26 @@ const sendMessage = function () {
   // }
   // 追加消息
   chatData.value.push({
-    type: "prompt",
+    type: 'prompt',
     id: randString(32),
     icon: loginUser.value.avatar,
     content: content,
     model: getModelValue(modelID.value),
     created_at: new Date().getTime() / 1000,
-  });
+  })
 
   nextTick(() => {
-    document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
-  });
+    document
+      .getElementById('chat-box')
+      .scrollTo(0, document.getElementById('chat-box').scrollHeight)
+  })
 
-  showHello.value = false;
-  disableInput(false);
+  showHello.value = false
+  disableInput(false)
   store.socket.conn.send(
     JSON.stringify({
-      channel: "chat",
-      type: "text",
+      channel: 'chat',
+      type: 'text',
       body: {
         role_id: roleId.value,
         model_id: modelID.value,
@@ -1012,18 +1085,18 @@ const sendMessage = function () {
         stream: stream.value,
       },
     })
-  );
-  tmpChatTitle.value = content;
-  prompt.value = "";
-  files.value = [];
-  row.value = 1;
-  return true;
-};
+  )
+  tmpChatTitle.value = content
+  prompt.value = ''
+  files.value = []
+  row.value = 1
+  return true
+}
 
 const clearAllChats = function () {
-  ElMessageBox.confirm("清除所有对话?此操作不可撤销！", "警告", {
-    confirmButtonText: "删除对话",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm('清除所有对话?此操作不可撤销！', '警告', {
+    confirmButtonText: '删除对话',
+    cancelButtonText: '取消',
 
     dangerouslyUseHTMLString: true,
     showClose: true,
@@ -1031,80 +1104,82 @@ const clearAllChats = function () {
     center: false,
   })
     .then(() => {
-      httpGet("/api/chat/clear")
+      httpGet('/api/chat/clear')
         .then(() => {
-          ElMessage.success("操作成功！");
-          chatData.value = [];
-          chatList.value = [];
-          newChat();
+          ElMessage.success('操作成功！')
+          chatData.value = []
+          chatList.value = []
+          newChat()
         })
         .catch((e) => {
-          ElMessage.error("操作失败：" + e.message);
-        });
+          ElMessage.error('操作失败：' + e.message)
+        })
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
 const loadChatHistory = function (chatId) {
-  chatData.value = [];
-  loading.value = true;
-  httpGet("/api/chat/history?chat_id=" + chatId)
+  chatData.value = []
+  loading.value = true
+  httpGet('/api/chat/history?chat_id=' + chatId)
     .then((res) => {
-      loading.value = false;
-      const data = res.data;
+      loading.value = false
+      const data = res.data
       if ((!data || data.length === 0) && chatData.value.length === 0) {
         // 加载打招呼信息
-        const _role = getRoleById(roleId.value);
+        const _role = getRoleById(roleId.value)
         chatData.value.push({
           chat_id: chatId,
           role_id: roleId.value,
-          type: "reply",
+          type: 'reply',
           id: randString(32),
-          icon: _role["icon"],
-          content: _role["hello_msg"],
-        });
-        return;
+          icon: _role['icon'],
+          content: _role['hello_msg'],
+        })
+        return
       }
-      showHello.value = false;
+      showHello.value = false
       for (let i = 0; i < data.length; i++) {
-        if (data[i].type === "reply" && i > 0) {
-          data[i].prompt = data[i - 1].content;
+        if (data[i].type === 'reply' && i > 0) {
+          data[i].prompt = data[i - 1].content
         }
-        chatData.value.push(data[i]);
+        chatData.value.push(data[i])
       }
 
       nextTick(() => {
-        document.getElementById("chat-box").scrollTo(0, document.getElementById("chat-box").scrollHeight);
-      });
+        document
+          .getElementById('chat-box')
+          .scrollTo(0, document.getElementById('chat-box').scrollHeight)
+      })
     })
     .catch((e) => {
       // TODO: 显示重新加载按钮
-      ElMessage.error("加载聊天记录失败：" + e.message);
-    });
-};
+      ElMessage.error('加载聊天记录失败：' + e.message)
+    })
+}
 
 const stopGenerate = function () {
-  showStopGenerate.value = false;
-  httpGet("/api/chat/stop?session_id=" + getClientId()).then(() => {
-    enableInput();
-  });
-};
+  showStopGenerate.value = false
+  httpGet('/api/chat/stop?session_id=' + getClientId()).then(() => {
+    enableInput()
+  })
+}
 
 // 重新生成
 const reGenerate = function (prompt) {
-  disableInput(false);
-  const text = "重新回答下述问题：" + prompt;
+  disableInput(false)
+  const text = '重新回答下述问题：' + prompt
   // 追加消息
   chatData.value.push({
-    type: "prompt",
+    type: 'prompt',
     id: randString(32),
     icon: loginUser.value.avatar,
     content: text,
-  });
+  })
   store.socket.conn.send(
     JSON.stringify({
-      channel: "chat",
-      type: "text",
+      channel: 'chat',
+      type: 'text',
       body: {
         role_id: roleId.value,
         model_id: modelID.value,
@@ -1114,82 +1189,82 @@ const reGenerate = function (prompt) {
         stream: stream.value,
       },
     })
-  );
-};
+  )
+}
 
-const chatName = ref("");
+const chatName = ref('')
 // 搜索会话
 const searchChat = function (e) {
-  if (chatName.value === "") {
-    chatList.value = allChats.value;
-    return;
+  if (chatName.value === '') {
+    chatList.value = allChats.value
+    return
   }
   if (e.keyCode === 13) {
-    const items = [];
+    const items = []
     for (let i = 0; i < allChats.value.length; i++) {
       if (allChats.value[i].title.toLowerCase().indexOf(chatName.value.toLowerCase()) !== -1) {
-        items.push(allChats.value[i]);
+        items.push(allChats.value[i])
       }
     }
-    chatList.value = items;
+    chatList.value = items
   }
-};
+}
 
 // 导出会话
 const shareChat = (chat) => {
   if (!chat.chat_id) {
-    return ElMessage.error("请先选中一个会话");
+    return ElMessage.error('请先选中一个会话')
   }
 
-  const url = location.protocol + "//" + location.host + "/chat/export?chat_id=" + chat.chat_id;
-  window.open(url, "_blank");
-};
+  const url = location.protocol + '//' + location.host + '/chat/export?chat_id=' + chat.chat_id
+  window.open(url, '_blank')
+}
 
 const getModelValue = (model_id) => {
   for (let i = 0; i < models.value.length; i++) {
     if (models.value[i].id === model_id) {
-      return models.value[i].value;
+      return models.value[i].value
     }
   }
-  return "";
-};
+  return ''
+}
 
 const notShow = () => {
-  localStorage.setItem(noticeKey.value, notice.value);
-  showNotice.value = false;
-};
+  localStorage.setItem(noticeKey.value, notice.value)
+  showNotice.value = false
+}
 
-const files = ref([]);
+const files = ref([])
 // 插入文件
 const insertFile = (file) => {
-  files.value.push(file);
-};
+  files.value.push(file)
+}
 const removeFile = (file) => {
-  files.value = removeArrayItem(files.value, file, (v1, v2) => v1.url === v2.url);
-};
+  files.value = removeArrayItem(files.value, file, (v1, v2) => v1.url === v2.url)
+}
 
 // 实时语音对话
-const showConversationDialog = ref(false);
+const showConversationDialog = ref(false)
 // const conversationRef = ref(null);
 // const dialogHeight = ref(window.innerHeight - 75);
-const frameLoaded = ref(false);
+const frameLoaded = ref(false)
 const realtimeChat = () => {
   if (!isLogin.value) {
-    store.setShowLoginDialog(true);
-    return;
+    store.setShowLoginDialog(true)
+    return
   }
-  showLoading("正在连接...");
-  httpPost("/api/realtime/voice")
+  showLoading('正在连接...')
+  httpPost('/api/realtime/voice')
     .then((res) => {
-      voiceChatUrl.value = res.data;
-      showConversationDialog.value = true;
-      closeLoading();
+      voiceChatUrl.value = res.data
+      showConversationDialog.value = true
+      closeLoading()
     })
     .catch((e) => {
-      showMessageError("连接失败：" + e.message);
-      closeLoading();
-    });
-};
+      showMessageError('连接失败：' + e.message)
+      closeLoading()
+    })
+}
 
 // const hangUp = () => {
 //   showConversationDialog.value = false;
@@ -1250,19 +1325,19 @@ const realtimeChat = () => {
 
 .model-selector-container {
   padding: 16px;
-  
+
   .model-search {
     margin-bottom: 15px;
     display: flex;
     align-items: center;
   }
-  
+
   .category-tabs {
     display: flex;
     flex-wrap: wrap;
     border-bottom: 1px solid #E4E7ED;
     margin-bottom: 16px;
-    
+
     .category-tab {
       padding: 8px 16px;
       cursor: pointer;
@@ -1272,33 +1347,33 @@ const realtimeChat = () => {
       color: #606266;
       transition: all 0.2s;
       border-bottom: 2px solid transparent;
-      
+
       &:hover {
         color: #409EFF;
       }
-      
+
       &.active {
         color: #409EFF;
         border-bottom-color: #409EFF;
         font-weight: 500;
       }
-      
+
       &.reset-filter {
         color: #F56C6C;
         margin-left: auto;
-        
+
         &:hover {
           color: darken(#F56C6C, 10%);
         }
       }
     }
   }
-  
+
   .no-results {
     padding: 30px;
     text-align: center;
   }
-  
+
   .models-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1307,7 +1382,7 @@ const realtimeChat = () => {
     overflow-y: auto;
     padding: 4px 4px 16px 4px;
   }
-  
+
   .model-card {
     border: 1px solid #DCDFE6;
     border-radius: 6px;
@@ -1318,24 +1393,24 @@ const realtimeChat = () => {
     display: flex;
     flex-direction: column;
     min-width: 0; /* 防止内容溢出 */
-    
+
     &:hover {
       border-color: #409eff;
       transform: translateY(-2px);
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     }
-    
+
     &.selected {
       border-color: #409eff;
       background-color: #ecf5ff;
     }
-    
+
     .model-card-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 8px;
-      
+
       .model-name {
         font-weight: bold;
         word-break: break-word;
@@ -1348,7 +1423,7 @@ const realtimeChat = () => {
         margin-right: 8px;
       }
     }
-    
+
     .model-description {
       font-size: 12px;
       color: #606266;
@@ -1361,13 +1436,13 @@ const realtimeChat = () => {
       line-height: 1.4;
       flex-grow: 1;
     }
-    
+
     //.model-metadata {
     //  display: flex;
     //  flex-direction: column;
     //  margin-top: auto;
     //}
-    
+
     .model-detail {
       display: flex;
       justify-content: space-between;
@@ -1389,7 +1464,7 @@ const realtimeChat = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   .model-name-text {
     white-space: nowrap;
     overflow: hidden;
@@ -1401,19 +1476,19 @@ const realtimeChat = () => {
 .customer-service-content {
   text-align: center;
   padding: 10px 0;
-  
+
   .service-tip {
     font-size: 16px;
     color: #303133;
     margin-bottom: 15px;
   }
-  
+
   .qrcode-image {
     width: 200px;
     height: 200px;
     margin: 0 auto;
   }
-  
+
   .service-note {
     font-size: 14px;
     color: #909399;
