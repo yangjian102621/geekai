@@ -78,10 +78,10 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 	typeIds := make([]int, 0)
 	for _, v := range items {
 		if v.ModelId > 0 {
-			modelIds = append(modelIds, v.ModelId)
+			modelIds = append(modelIds, int(v.ModelId))
 		}
 		if v.Tid > 0 {
-			typeIds = append(typeIds, v.Tid)
+			typeIds = append(typeIds, int(v.Tid))
 		}
 	}
 

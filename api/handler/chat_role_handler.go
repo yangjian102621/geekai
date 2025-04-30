@@ -64,10 +64,12 @@ func (h *ChatRoleHandler) ListByUser(c *gin.Context) {
 		var user model.User
 		h.DB.First(&user, userId)
 		var roleKeys []string
-		err := utils.JsonDecode(user.ChatRoles, &roleKeys)
-		if err != nil {
-			resp.ERROR(c, "角色解析失败！")
-			return
+		if user.ChatRoles != "" {
+			err := utils.JsonDecode(user.ChatRoles, &roleKeys)
+			if err != nil {
+				resp.ERROR(c, "角色解析失败！")
+				return
+			}
 		}
 		// 保证用户至少有一个角色可用
 		if len(roleKeys) > 0 {

@@ -15,6 +15,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -189,7 +190,7 @@ func (h *ChatHandler) Messages(c *gin.Context) {
 		}
 		for _, item := range items {
 			list = append(list, chatMessageVo{
-				Id:        item.Id,
+				Id:        uint(item.Id),
 				UserId:    item.UserId,
 				Username:  userMap[item.UserId],
 				Content:   item.Content,

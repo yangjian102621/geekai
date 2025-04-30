@@ -395,7 +395,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 		power = session.Model.Power
 	}
 
-	err := h.userService.DecreasePower(int(userVo.Id), power, model.PowerLog{
+	err := h.userService.DecreasePower(userVo.Id, power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  session.Model.Value,
 		Remark: fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),

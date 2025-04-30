@@ -69,7 +69,7 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 	item.Description = data.Description
 	item.Category = data.Category
 	item.Temperature = data.Temperature
-	item.KeyId = data.KeyId
+	item.KeyId = uint(data.KeyId)
 	item.Type = data.Type
 	item.Options = utils.JsonEncode(data.Options)
 	var res *gorm.DB
@@ -117,7 +117,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	// initialize key name
 	keyIds := make([]int, 0)
 	for _, v := range items {
-		keyIds = append(keyIds, v.KeyId)
+		keyIds = append(keyIds, int(v.KeyId))
 	}
 	var keys []model.ApiKey
 	keyMap := make(map[uint]string)

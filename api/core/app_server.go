@@ -72,6 +72,37 @@ func (s *AppServer) Run(db *gorm.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode system config: %v", err)
 	}
+
+	// 迁移数据表
+	logger.Info("Migrating database tables...")
+	db.AutoMigrate(
+		&model.ChatItem{},
+		&model.ChatMessage{},
+		&model.ChatRole{},
+		&model.ChatModel{},
+		&model.InviteCode{},
+		&model.InviteLog{},
+		&model.Menu{},
+		&model.Order{},
+		&model.Product{},
+		&model.User{},
+		&model.Function{},
+		&model.File{},
+		&model.Redeem{},
+		&model.Config{},
+		&model.ApiKey{},
+		&model.AdminUser{},
+		&model.AppType{},
+		&model.SdJob{},
+		&model.SunoJob{},
+		&model.PowerLog{},
+		&model.VideoJob{},
+		&model.MidJourneyJob{},
+		&model.UserLoginLog{},
+		&model.DallJob{},
+	)
+	logger.Info("Database tables migrated successfully")
+
 	// 统计安装信息
 	go func() {
 		info, err := host.Info()

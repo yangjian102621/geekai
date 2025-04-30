@@ -289,7 +289,7 @@ func (h *PaymentHandler) notify(orderNo string, tradeNo string) error {
 	}
 
 	// 增加用户算力
-	err = h.userService.IncreasePower(int(order.UserId), remark.Power, model.PowerLog{
+	err = h.userService.IncreasePower(order.UserId, remark.Power, model.PowerLog{
 		Type:   types.PowerRecharge,
 		Model:  order.PayWay,
 		Remark: fmt.Sprintf("充值算力，金额：%f，订单号：%s", order.Amount, order.OrderNo),

@@ -89,7 +89,7 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	}
 	// 插入数据库
 	job := model.VideoJob{
-		UserId:   userId,
+		UserId:   uint(userId),
 		Type:     types.VideoLuma,
 		Prompt:   data.Prompt,
 		Power:    h.App.SysConfig.LumaPower,
@@ -186,7 +186,7 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 	}
 	// 插入数据库
 	job := model.VideoJob{
-		UserId:   userId,
+		UserId:   uint(userId),
 		Type:     types.VideoKeLing,
 		Prompt:   data.Prompt,
 		Power:    power,
