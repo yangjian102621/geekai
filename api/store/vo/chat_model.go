@@ -10,6 +10,8 @@ type ChatModel struct {
 	Open        bool              `json:"open"`
 	MaxTokens   int               `json:"max_tokens"`  // 最大响应长度
 	MaxContext  int               `json:"max_context"` // 最大上下文长度
+	Description string            `json:"description"` // 模型描述
+	Category    string            `json:"category"`    //模型类别
 	Temperature float32           `json:"temperature"` // 模型温度
 	KeyId       int               `json:"key_id,omitempty"`
 	KeyName     string            `json:"key_name"`

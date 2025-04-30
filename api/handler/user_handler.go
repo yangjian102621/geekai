@@ -187,7 +187,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		// 增加邀请数量
 		h.DB.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
 		if h.App.SysConfig.InvitePower > 0 {
-			err := h.userService.IncreasePower(int(inviteCode.UserId), h.App.SysConfig.InvitePower, model.PowerLog{
+			err := h.userService.IncreasePower(inviteCode.UserId, h.App.SysConfig.InvitePower, model.PowerLog{
 				Type:   types.PowerInvite,
 				Model:  "Invite",
 				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
@@ -736,7 +736,7 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 	// 签到
 	h.levelDB.Put(key, true)
 	if h.App.SysConfig.DailyPower > 0 {
-		h.userService.IncreasePower(int(userId), h.App.SysConfig.DailyPower, model.PowerLog{
+		h.userService.IncreasePower(userId, h.App.SysConfig.DailyPower, model.PowerLog{
 			Type:   types.PowerSignIn,
 			Model:  "SignIn",
 			Remark: fmt.Sprintf("每日签到奖励，金额：%d", h.App.SysConfig.DailyPower),

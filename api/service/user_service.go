@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"geekai/core/types"
 	"geekai/store/model"
-	"gorm.io/gorm"
 	"sync"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -19,7 +20,7 @@ func NewUserService(db *gorm.DB) *UserService {
 }
 
 // IncreasePower 增加用户算力
-func (s *UserService) IncreasePower(userId int, power int, log model.PowerLog) error {
+func (s *UserService) IncreasePower(userId uint, power int, log model.PowerLog) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -51,7 +52,7 @@ func (s *UserService) IncreasePower(userId int, power int, log model.PowerLog) e
 }
 
 // DecreasePower 减少用户算力
-func (s *UserService) DecreasePower(userId int, power int, log model.PowerLog) error {
+func (s *UserService) DecreasePower(userId uint, power int, log model.PowerLog) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 

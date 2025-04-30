@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import FooterBar from "@/components/FooterBar.vue";
 import ThemeChange from "@/components/ThemeChange.vue";
@@ -134,7 +134,9 @@ onMounted(() => {
       title.value = res.data.title;
       logo.value = res.data.logo;
       slogan.value = res.data.slogan;
-      if (timer) clearInterval(timer); // 清除定时器
+
+      // 确保获取数据后再启动定时器
+      if (timer) clearInterval(timer); // 清除已有定时器
       timer = setInterval(setContent, interTime.value);
     })
     .catch((e) => {
@@ -164,8 +166,23 @@ onMounted(() => {
     })
     .catch(() => {});
 });
+
+// 组件销毁时清除定时器
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+});
+
 // 打字机内容逐字符显示
 const setContent = () => {
+  if (!slogan.value) {
+    if (timer) clearInterval(timer);
+    timer = setTimeout(setContent, 100);
+    return;
+  }
+  
   if (initAnimation.value.length >= slogan.value.length) {
     // 文本已全部输出
     initAnimation.value = "";
@@ -174,7 +191,7 @@ const setContent = () => {
     timer = setInterval(setContent, interTime.value);
   } else {
     const nextChar = slogan.value.charAt(initAnimation.value.length);
-    initAnimation.value += slogan.value.charAt(initAnimation.value.length); // 逐字符追加
+    initAnimation.value += nextChar; // 逐字符追加
     displayedChars.value.push(nextChar);
     interTime.value = interArr[Math.floor(Math.random() * interArr.length)]; // 设置随机间隔
     if (timer) clearInterval(timer);

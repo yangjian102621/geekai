@@ -135,7 +135,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	job := model.SdJob{
-		UserId:    userId,
+		UserId:    uint(userId),
 		Type:      types.TaskImage.String(),
 		TaskId:    taskId,
 		Params:    utils.JsonEncode(task.Params),
@@ -273,7 +273,7 @@ func (h *SdJobHandler) Publish(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
 
-	err := h.DB.Model(&model.SdJob{Id: uint(id), UserId: int(userId)}).UpdateColumn("publish", action).Error
+	err := h.DB.Model(&model.SdJob{Id: uint(id), UserId: uint(userId)}).UpdateColumn("publish", action).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

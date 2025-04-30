@@ -164,7 +164,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 	job := model.MidJourneyJob{
 		Type:      data.TaskType,
-		UserId:    userId,
+		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
@@ -236,7 +236,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 	}
 	job := model.MidJourneyJob{
 		Type:      types.TaskUpscale.String(),
-		UserId:    userId,
+		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
@@ -292,7 +292,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 	job := model.MidJourneyJob{
 		Type:      types.TaskVariation.String(),
 		ChannelId: data.ChannelId,
-		UserId:    userId,
+		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
@@ -422,7 +422,7 @@ func (h *MidJourneyHandler) Publish(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 	userId := h.GetInt(c, "user_id", 0)
 	action := h.GetBool(c, "action") // 发布动作，true => 发布，false => 取消分享
-	err := h.DB.Model(&model.MidJourneyJob{Id: uint(id), UserId: userId}).UpdateColumn("publish", action).Error
+	err := h.DB.Model(&model.MidJourneyJob{Id: uint(id), UserId: uint(userId)}).UpdateColumn("publish", action).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
