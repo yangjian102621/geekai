@@ -203,6 +203,9 @@
                               <InfoFilled />
                             </el-icon>
                           </el-tooltip>
+                          <div class="flex-row justify-start items-center">
+                            <span>如需自定义比例，在绘画指令最后加一个空格然后加上指令(宽高比) --ar w:h 例如: 1 cat --ar 21:9 </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -326,6 +329,9 @@
                             </el-icon>
                           </el-tooltip>
                         </div>
+                        <div class="flex-row justify-start items-center">
+                            <span>如需自定义比例，在绘画指令最后加一个空格然后加上指令(宽高比) --ar w:h 例如: 1 cat --ar 21:9 </span>
+                          </div>
                       </div>
                     </div>
 
@@ -538,6 +544,9 @@
                               <InfoFilled />
                             </el-icon>
                           </el-tooltip>
+                          <div class="flex-row justify-start items-center">
+                            <span>如需自定义比例，在绘画指令最后加一个空格然后加上指令(宽高比) --ar w:h 例如: 1 cat --ar 21:9 </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -730,7 +739,7 @@
                                 class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
                                 @click="variation(1, item)"
                               >
-                                U1
+                                V1
                               </button>
                               <button
                                 class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
@@ -772,7 +781,7 @@
                                 <el-button
                                   type="info"
                                   circle
-                                  class="copy-prompt"
+                                  class="copy-prompt-mj"
                                   :data-clipboard-text="item.prompt"
                                 >
                                   <i class="iconfont icon-file"></i>
@@ -1203,6 +1212,13 @@ const generate = () => {
   if (imgList.value.length !== 2 && params.value.task_type === 'swapFace') {
     return ElMessage.error('换脸操作需要上传两张图片')
   }
+
+  const regex = /(^|\s)--ar\s+(\d+:\d+)/;
+  const match = regex.exec(params.value.prompt);
+  if (match) {
+    params.value.rate = match[2]
+  }
+
   params.value.session_id = getSessionId()
   params.value.img_arr = imgList.value
   httpPost('/api/mj/image', params.value)
