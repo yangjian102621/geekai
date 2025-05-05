@@ -13,7 +13,7 @@ type ChatModel struct {
 	Description string            `json:"description"` // 模型描述
 	Category    string            `json:"category"`    //模型类别
 	Temperature float32           `json:"temperature"` // 模型温度
-	KeyId       int               `json:"key_id,omitempty"`
+	KeyId       uint              `json:"key_id,omitempty"`
 	KeyName     string            `json:"key_name"`
 	Options     map[string]string `json:"options"`
 	Type        string            `json:"type"`
