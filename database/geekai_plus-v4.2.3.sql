@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： localhost
--- 生成日期： 2025-04-17 02:48:52
+-- 生成日期： 2025-05-05 08:00:54
 -- 服务器版本： 8.0.33
 -- PHP 版本： 8.3.6
 
@@ -36,7 +36,7 @@ CREATE TABLE `chatgpt_admin_users` (
   `password` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
   `salt` char(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码盐',
   `status` tinyint(1) NOT NULL COMMENT '当前状态',
-  `last_login_at` int NOT NULL COMMENT '最后登录时间',
+  `last_login_at` bigint NOT NULL COMMENT '最后登录时间',
   `last_login_ip` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '最后登录 IP',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间'
@@ -47,7 +47,7 @@ CREATE TABLE `chatgpt_admin_users` (
 --
 
 INSERT INTO `chatgpt_admin_users` (`id`, `username`, `password`, `salt`, `status`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1744788584, '::1', '2024-03-11 16:30:20', '2025-04-16 15:29:45');
+(1, 'admin', '6d17e80c87d209efb84ca4b2e0824f549d09fac8b2e1cc698de5bb5e1d75dfd0', 'mmrql75o', 1, 1746431827, '::1', '2024-03-11 16:30:20', '2025-05-05 15:57:08');
 
 -- --------------------------------------------------------
 
@@ -61,7 +61,7 @@ CREATE TABLE `chatgpt_api_keys` (
   `name` varchar(30) DEFAULT NULL COMMENT '名称',
   `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'API KEY value',
   `type` varchar(10) NOT NULL DEFAULT 'chat' COMMENT '用途（chat=>聊天，img=>图片）',
-  `last_used_at` int NOT NULL COMMENT '最后使用时间',
+  `last_used_at` bigint NOT NULL COMMENT '最后使用时间',
   `api_url` varchar(255) DEFAULT NULL COMMENT 'API 地址',
   `enabled` tinyint(1) DEFAULT NULL COMMENT '是否启用',
   `proxy_url` varchar(100) DEFAULT NULL COMMENT '代理地址',
@@ -85,6 +85,17 @@ CREATE TABLE `chatgpt_app_types` (
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='应用分类表';
 
+--
+-- 转存表中的数据 `chatgpt_app_types`
+--
+
+INSERT INTO `chatgpt_app_types` (`id`, `name`, `icon`, `sort_num`, `enabled`, `created_at`) VALUES
+(3, '通用工具', 'http://172.22.11.200:5678/static/upload/2024/9/1726307371871693.png', 1, 1, '2024-09-13 11:13:15'),
+(4, '角色扮演', 'http://172.22.11.200:5678/static/upload/2024/9/1726307263906218.png', 1, 1, '2024-09-14 09:28:17'),
+(5, '学习', 'http://172.22.11.200:5678/static/upload/2024/9/1726307456321179.jpg', 2, 1, '2024-09-14 09:30:18'),
+(6, '编程', 'http://172.22.11.200:5678/static/upload/2024/9/1726307462748787.jpg', 3, 1, '2024-09-14 09:34:06'),
+(7, '测试分类', '', 4, 1, '2024-09-14 17:54:17');
+
 -- --------------------------------------------------------
 
 --
@@ -94,15 +105,15 @@ CREATE TABLE `chatgpt_app_types` (
 DROP TABLE IF EXISTS `chatgpt_chat_history`;
 CREATE TABLE `chatgpt_chat_history` (
   `id` bigint NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `chat_id` char(40) NOT NULL COMMENT '会话 ID',
   `type` varchar(10) NOT NULL COMMENT '类型：prompt|reply',
   `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色图标',
-  `role_id` int NOT NULL COMMENT '角色 ID',
+  `role_id` bigint NOT NULL COMMENT '角色 ID',
   `model` varchar(30) DEFAULT NULL COMMENT '模型名称',
   `content` text NOT NULL COMMENT '聊天内容',
   `tokens` smallint NOT NULL COMMENT '耗费 token 数量',
-  `total_tokens` int NOT NULL COMMENT '消耗总Token长度',
+  `total_tokens` bigint NOT NULL COMMENT '消耗总Token长度',
   `use_context` tinyint(1) NOT NULL COMMENT '是否允许作为上下文语料',
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
@@ -119,10 +130,10 @@ DROP TABLE IF EXISTS `chatgpt_chat_items`;
 CREATE TABLE `chatgpt_chat_items` (
   `id` int NOT NULL,
   `chat_id` char(40) NOT NULL COMMENT '会话 ID',
-  `user_id` int NOT NULL COMMENT '用户 ID',
-  `role_id` int NOT NULL COMMENT '角色 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
+  `role_id` bigint NOT NULL COMMENT '角色 ID',
   `title` varchar(100) NOT NULL COMMENT '会话标题',
-  `model_id` int NOT NULL DEFAULT '0' COMMENT '模型 ID',
+  `model_id` bigint NOT NULL DEFAULT '0' COMMENT '模型 ID',
   `model` varchar(30) DEFAULT NULL COMMENT '模型名称',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间',
@@ -138,6 +149,8 @@ CREATE TABLE `chatgpt_chat_items` (
 DROP TABLE IF EXISTS `chatgpt_chat_models`;
 CREATE TABLE `chatgpt_chat_models` (
   `id` int NOT NULL,
+  `description` varchar(1024) NOT NULL DEFAULT '' COMMENT '模型类型描述',
+  `category` varchar(1024) NOT NULL DEFAULT '' COMMENT '模型类别',
   `type` varchar(10) NOT NULL DEFAULT 'chat' COMMENT '模型类型（chat,img）',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模型名称',
   `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模型值',
@@ -145,10 +158,10 @@ CREATE TABLE `chatgpt_chat_models` (
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启用模型',
   `power` smallint NOT NULL COMMENT '消耗算力点数',
   `temperature` float(3,1) NOT NULL DEFAULT '1.0' COMMENT '模型创意度',
-  `max_tokens` int NOT NULL DEFAULT '1024' COMMENT '最大响应长度',
-  `max_context` int NOT NULL DEFAULT '4096' COMMENT '最大上下文长度',
+  `max_tokens` bigint NOT NULL DEFAULT '1024' COMMENT '最大响应长度',
+  `max_context` bigint NOT NULL DEFAULT '4096' COMMENT '最大上下文长度',
   `open` tinyint(1) NOT NULL COMMENT '是否开放模型',
-  `key_id` int NOT NULL COMMENT '绑定API KEY ID',
+  `key_id` bigint NOT NULL COMMENT '绑定API KEY ID',
   `options` text NOT NULL COMMENT '模型自定义选项',
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
@@ -158,27 +171,28 @@ CREATE TABLE `chatgpt_chat_models` (
 -- 转存表中的数据 `chatgpt_chat_models`
 --
 
-INSERT INTO `chatgpt_chat_models` (`id`, `type`, `name`, `value`, `sort_num`, `enabled`, `power`, `temperature`, `max_tokens`, `max_context`, `open`, `key_id`, `options`, `created_at`, `updated_at`) VALUES
-(1, 'chat', 'gpt-4o-mini', 'gpt-4o-mini', 1, 1, 1, 1.0, 1024, 16384, 1, 1, '', '2023-08-23 12:06:36', '2025-02-23 11:57:03'),
-(15, 'chat', 'GPT-4O(联网版本)', 'gpt-4o-all', 4, 1, 30, 1.0, 4096, 32768, 1, 57, '', '2024-01-15 11:32:52', '2025-01-06 14:01:08'),
-(36, 'chat', 'GPT-4O', 'gpt-4o', 3, 1, 15, 1.0, 4096, 16384, 1, 0, 'null', '2024-05-14 09:25:15', '2025-04-02 20:22:15'),
-(39, 'chat', 'Claude35-snonet', 'claude-3-5-sonnet-20240620', 5, 1, 2, 1.0, 4000, 200000, 1, 0, '', '2024-05-29 15:04:19', '2025-01-06 14:01:08'),
-(41, 'chat', 'Suno对话模型', 'suno-v3.5', 7, 1, 10, 1.0, 1024, 8192, 1, 57, '', '2024-06-06 11:40:46', '2025-01-06 14:01:08'),
-(42, 'chat', 'DeekSeek', 'deepseek-chat', 8, 1, 1, 1.0, 4096, 32768, 1, 57, '', '2024-06-27 16:13:01', '2025-01-06 14:11:51'),
-(44, 'chat', 'Claude3-opus', 'claude-3-opus-20240229', 6, 1, 5, 1.0, 4000, 128000, 1, 44, '', '2024-07-22 11:24:30', '2025-01-06 14:01:08'),
-(46, 'chat', 'GPT-4O-绘图', 'gpt-4o-image', 2, 1, 1, 1.0, 2048, 32000, 1, 6, '', '2024-07-22 13:53:41', '2025-03-29 13:02:14'),
-(48, 'chat', '彩票助手', 'gpt-4-gizmo-g-wmSivBgxo', 9, 1, 1, 0.9, 1024, 8192, 1, 57, '', '2024-09-05 14:17:14', '2025-01-06 14:01:08'),
-(49, 'chat', 'O1-mini', 'o1-mini', 10, 1, 2, 0.9, 1024, 8192, 1, 44, '', '2024-09-13 18:07:50', '2025-01-06 14:01:08'),
-(50, 'chat', 'O1-preview', 'o1-preview', 11, 1, 5, 0.9, 1024, 8192, 1, 44, '', '2024-09-13 18:11:08', '2025-01-06 14:01:08'),
-(51, 'chat', 'O1-mini-all', 'o1-mini-all', 12, 1, 1, 0.9, 1024, 8192, 1, 57, '', '2024-09-29 11:40:52', '2025-01-06 14:01:08'),
-(52, 'chat', '通义千问', 'qwen-plus', 14, 1, 1, 0.9, 1024, 8192, 1, 80, '', '2024-11-19 08:38:14', '2025-01-06 14:01:08'),
-(53, 'chat', 'OpenAI 高级语音', 'advanced-voice', 15, 1, 10, 0.9, 1024, 8192, 1, 44, '', '2024-12-20 10:34:45', '2025-01-06 14:01:08'),
-(54, 'chat', 'Qwen2.5-14B-Instruct', 'Qwen2.5-14B-Instruct', 16, 1, 1, 0.9, 1024, 8192, 1, 81, '', '2024-12-25 14:53:17', '2025-01-06 14:01:08'),
-(55, 'chat', 'Qwen2.5-7B-Instruct', 'Qwen2.5-7B-Instruct', 17, 1, 1, 0.9, 1024, 8192, 1, 81, '', '2024-12-25 15:15:49', '2025-01-06 14:01:08'),
-(56, 'img', 'flux-1-schnell', 'flux-1-schnell', 18, 1, 1, 0.9, 1024, 8192, 1, 3, '', '2024-12-25 15:30:27', '2025-02-23 12:02:40'),
-(57, 'img', 'dall-e-3', 'dall-e-3', 19, 1, 1, 0.9, 1024, 8192, 1, 57, '', '2024-12-25 16:54:06', '2025-01-06 14:01:08'),
-(58, 'img', 'SD-3-medium', 'stable-diffusion-3-medium', 20, 1, 1, 0.9, 1024, 8192, 1, 3, 'null', '2024-12-27 10:03:28', '2025-04-02 20:20:36'),
-(59, 'chat', 'O1-preview-all', 'O1-preview-all', 13, 1, 10, 0.9, 1024, 32000, 1, 57, '', '2025-01-06 14:01:04', '2025-01-06 14:01:08');
+INSERT INTO `chatgpt_chat_models` (`id`, `description`, `category`, `type`, `name`, `value`, `sort_num`, `enabled`, `power`, `temperature`, `max_tokens`, `max_context`, `open`, `key_id`, `options`, `created_at`, `updated_at`) VALUES
+(1, '', '', 'chat', 'gpt-4o-mini', 'gpt-4o-mini', 1, 1, 1, 1.0, 1024, 16384, 1, 1, '', '2023-08-23 12:06:36', '2025-02-23 11:57:03'),
+(15, '', '', 'chat', 'GPT-4O(联网版本)', 'gpt-4o-all', 4, 1, 30, 1.0, 4096, 32768, 1, 57, '', '2024-01-15 11:32:52', '2025-01-06 14:01:08'),
+(36, '', '', 'chat', 'GPT-4O', 'gpt-4o', 3, 1, 15, 1.0, 4096, 16384, 1, 0, 'null', '2024-05-14 09:25:15', '2025-04-02 20:22:15'),
+(39, '', '', 'chat', 'Claude35-snonet', 'claude-3-5-sonnet-20240620', 5, 1, 2, 1.0, 4000, 200000, 1, 0, '', '2024-05-29 15:04:19', '2025-01-06 14:01:08'),
+(41, '', '', 'chat', 'Suno对话模型', 'suno-v3.5', 7, 1, 10, 1.0, 1024, 8192, 1, 57, '', '2024-06-06 11:40:46', '2025-01-06 14:01:08'),
+(42, '', '', 'chat', 'DeekSeek', 'deepseek-chat', 8, 1, 1, 1.0, 4096, 32768, 1, 57, '', '2024-06-27 16:13:01', '2025-01-06 14:11:51'),
+(44, '', '', 'chat', 'Claude3-opus', 'claude-3-opus-20240229', 6, 1, 5, 1.0, 4000, 128000, 1, 44, '', '2024-07-22 11:24:30', '2025-01-06 14:01:08'),
+(46, '', '', 'chat', 'GPT-4O-绘图', 'gpt-4o-image', 2, 1, 1, 1.0, 2048, 32000, 1, 6, '', '2024-07-22 13:53:41', '2025-03-29 13:02:14'),
+(48, '', '', 'chat', '彩票助手', 'gpt-4-gizmo-g-wmSivBgxo', 9, 1, 1, 0.9, 1024, 8192, 1, 57, '', '2024-09-05 14:17:14', '2025-01-06 14:01:08'),
+(49, '', '', 'chat', 'O1-mini', 'o1-mini', 10, 1, 2, 0.9, 1024, 8192, 1, 44, '', '2024-09-13 18:07:50', '2025-01-06 14:01:08'),
+(50, '', '', 'chat', 'O1-preview', 'o1-preview', 11, 1, 5, 0.9, 1024, 8192, 1, 44, '', '2024-09-13 18:11:08', '2025-01-06 14:01:08'),
+(51, '', '', 'chat', 'O1-mini-all', 'o1-mini-all', 12, 1, 1, 0.9, 1024, 8192, 1, 57, '', '2024-09-29 11:40:52', '2025-01-06 14:01:08'),
+(52, '', '', 'chat', '通义千问', 'qwen-plus', 14, 1, 1, 0.9, 1024, 8192, 1, 80, '', '2024-11-19 08:38:14', '2025-01-06 14:01:08'),
+(53, '', '', 'chat', 'OpenAI 高级语音', 'advanced-voice', 15, 1, 10, 0.9, 1024, 8192, 1, 44, '', '2024-12-20 10:34:45', '2025-01-06 14:01:08'),
+(54, '', '', 'chat', 'Qwen2.5-14B-Instruct', 'Qwen2.5-14B-Instruct', 16, 1, 1, 0.9, 1024, 8192, 1, 81, '', '2024-12-25 14:53:17', '2025-01-06 14:01:08'),
+(55, '', '', 'chat', 'Qwen2.5-7B-Instruct', 'Qwen2.5-7B-Instruct', 17, 1, 1, 0.9, 1024, 8192, 1, 81, '', '2024-12-25 15:15:49', '2025-01-06 14:01:08'),
+(56, '', '', 'img', 'flux-1-schnell', 'flux-1-schnell', 18, 1, 1, 0.9, 1024, 8192, 1, 3, '', '2024-12-25 15:30:27', '2025-02-23 12:02:40'),
+(57, '', '', 'img', 'dall-e-3', 'dall-e-3', 19, 1, 1, 0.9, 1024, 8192, 1, 9, 'null', '2024-12-25 16:54:06', '2025-04-22 15:41:16'),
+(58, '', '', 'img', 'SD-3-medium', 'stable-diffusion-3-medium', 20, 1, 1, 0.9, 1024, 8192, 1, 3, 'null', '2024-12-27 10:03:28', '2025-04-02 20:20:36'),
+(59, '', '', 'chat', 'O1-preview-all', 'O1-preview-all', 13, 1, 10, 0.9, 1024, 32000, 1, 57, '', '2025-01-06 14:01:04', '2025-01-06 14:01:08'),
+(60, '', '', 'tts', 'tts', 'tts-1', 0, 1, 1, 0.9, 1024, 8192, 1, 8, '{\"voice\":\"echo\"}', '2025-04-17 11:58:30', '2025-04-17 12:00:26');
 
 -- --------------------------------------------------------
 
@@ -190,14 +204,14 @@ DROP TABLE IF EXISTS `chatgpt_chat_roles`;
 CREATE TABLE `chatgpt_chat_roles` (
   `id` int NOT NULL,
   `name` varchar(30) NOT NULL COMMENT '角色名称',
-  `tid` int NOT NULL COMMENT '分类ID',
+  `tid` bigint NOT NULL COMMENT '分类ID',
   `marker` varchar(30) NOT NULL COMMENT '角色标识',
   `context_json` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色语料 json',
   `hello_msg` varchar(255) NOT NULL COMMENT '打招呼信息',
   `icon` varchar(255) NOT NULL COMMENT '角色图标',
   `enable` tinyint(1) NOT NULL COMMENT '是否被启用',
   `sort_num` smallint NOT NULL DEFAULT '0' COMMENT '角色排序',
-  `model_id` int NOT NULL DEFAULT '0' COMMENT '绑定模型ID',
+  `model_id` bigint NOT NULL DEFAULT '0' COMMENT '绑定模型ID',
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='聊天角色表';
@@ -246,7 +260,7 @@ CREATE TABLE `chatgpt_configs` (
 
 INSERT INTO `chatgpt_configs` (`id`, `marker`, `config_json`) VALUES
 (1, 'system', '{\"title\":\"GeekAI 创作助手\",\"slogan\":\"我辈之人，先干为敬，让每一个人都能用好AI\",\"admin_title\":\"GeekAI 控制台\",\"logo\":\"/images/logo.png\",\"bar_logo\":\"/images/bar_logo.png\",\"init_power\":100,\"daily_power\":1,\"invite_power\":200,\"vip_month_power\":1000,\"register_ways\":[\"username\",\"email\",\"mobile\"],\"enabled_register\":true,\"order_pay_timeout\":600,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"mj_power\":20,\"mj_action_power\":5,\"sd_power\":5,\"dall_power\":10,\"suno_power\":10,\"luma_power\":120,\"keling_powers\":{\"kling-v1-5_pro_10\":840,\"kling-v1-5_pro_5\":420,\"kling-v1-5_std_10\":480,\"kling-v1-5_std_5\":240,\"kling-v1-6_pro_10\":840,\"kling-v1-6_pro_5\":420,\"kling-v1-6_std_10\":480,\"kling-v1-6_std_5\":240,\"kling-v1_pro_10\":840,\"kling-v1_pro_5\":420,\"kling-v1_std_10\":240,\"kling-v1_std_5\":120},\"advance_voice_power\":100,\"prompt_power\":1,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":10,\"sd_neg_prompt\":\"nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet\",\"mj_mode\":\"fast\",\"index_navs\":[1,5,13,19,9,12,6,20,8,10],\"copyright\":\"极客学长\",\"icp\":\"粤ICP备19122051号\",\"mark_map_text\":\"# GeekAI 演示站\\n\\n- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。\\n- 基于 Websocket 实现，完美的打字机体验。\\n- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。\\n- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。\\n- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。\\n- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。\\n- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。\\n- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。\",\"enabled_verify\":false,\"email_white_list\":[\"qq.com\",\"163.com\",\"gmail.com\",\"hotmail.com\",\"126.com\",\"outlook.com\",\"foxmail.com\",\"yahoo.com\"],\"translate_model_id\":36,\"max_file_size\":10}'),
-(3, 'notice', '{\"sd_neg_prompt\":\"\",\"mj_mode\":\"\",\"index_navs\":null,\"copyright\":\"\",\"icp\":\"\",\"mark_map_text\":\"\",\"enabled_verify\":false,\"email_white_list\":null,\"translate_model_id\":0,\"max_file_size\":0,\"content\":\"## v4.2.2 更新日志\\n- 功能优化：开启图形验证码功能的时候现检查是否配置了 API 服务，防止开启之后没法登录的 Bug。\\n- 功能优化：支持原生的 DeepSeek 推理模型 API，聊天 API KEY 支持设置完整的 API 路径，比如 https://api.geekai.pro/v1/chat/completions\\n- 功能优化：支持 GPT-4o 图片编辑功能。\\n- 功能新增：对话页面支持 AI 输出语音播报（TTS）。\\n- 功能优化：替换瀑布流组件，优化用户体验。\\n- 功能优化：生成思维导图时候自动缓存上一次的结果。\\n- 功能优化：优化 MJ 绘图页面，增加 MJ-V7 模型支持。\\n- 功能优化：后台管理增加生成一键登录链接地址功能\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003eGeekAI-Plus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.geekai.pro\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.pro\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/geekai\\u003c/a\\u003e\",\"updated\":true}');
+(3, 'notice', '{\"sd_neg_prompt\":\"\",\"mj_mode\":\"\",\"index_navs\":null,\"copyright\":\"\",\"icp\":\"\",\"mark_map_text\":\"\",\"enabled_verify\":false,\"email_white_list\":null,\"translate_model_id\":0,\"max_file_size\":0,\"content\":\"## v4.2.3 更新日志\\n- 功能优化：增加模型分组与模型描述，采用卡片展示模式改进模型选择功能体验\\n- 功能优化：化思维导图下载图片的清晰度以及解决拖动、缩放操作后下载图片内容不全问题\\n- Bug 修复：修复 MJ 画图页面已画出的图，点复制指令无效问题\\n- 功能优化：MJ 画图的分辨率支持自定义，优先使用 prompt 中--ar 参数\\n- Bug 修复：修复 MJ 绘画 U1-V1,拼写错误\\n- 功能优化：支持自动迁移数据表结构，无需在手动执行 SQL 了\\n- 功能优化：移除首页的文字动画效果\\n- 功能优化：在聊天页面增加对话列表展开和隐藏功能\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003eGeekAI-Plus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.geekai.pro\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.pro\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/geekai\\u003c/a\\u003e\",\"updated\":true}');
 
 -- --------------------------------------------------------
 
@@ -257,7 +271,7 @@ INSERT INTO `chatgpt_configs` (`id`, `marker`, `config_json`) VALUES
 DROP TABLE IF EXISTS `chatgpt_dall_jobs`;
 CREATE TABLE `chatgpt_dall_jobs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
   `prompt` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '提示词',
   `task_info` text NOT NULL COMMENT '任务详情',
   `img_url` varchar(255) NOT NULL COMMENT '图片地址',
@@ -278,7 +292,7 @@ CREATE TABLE `chatgpt_dall_jobs` (
 DROP TABLE IF EXISTS `chatgpt_files`;
 CREATE TABLE `chatgpt_files` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文件名',
   `obj_key` varchar(100) DEFAULT NULL COMMENT '文件标识',
   `url` varchar(255) NOT NULL COMMENT '文件地址',
@@ -310,9 +324,9 @@ CREATE TABLE `chatgpt_functions` (
 --
 
 INSERT INTO `chatgpt_functions` (`id`, `name`, `label`, `description`, `parameters`, `token`, `action`, `enabled`) VALUES
-(1, 'weibo', '微博热搜', '新浪微博热搜榜，微博当日热搜榜单', '{\"type\":\"object\",\"properties\":{}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.tLAGkF8XWh_G-oQzevpIodsswtPByBLoAZDz_eWuBgw', 'http://localhost:5678/api/function/weibo', 1),
-(2, 'zaobao', '今日早报', '每日早报，获取当天新闻事件列表', '{\"type\":\"object\",\"properties\":{}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.tLAGkF8XWh_G-oQzevpIodsswtPByBLoAZDz_eWuBgw', 'http://localhost:5678/api/function/zaobao', 1),
-(3, 'dalle3', 'DALLE3', 'AI 绘画工具，根据输入的绘图描述用 AI 工具进行绘画', '{\"type\":\"object\",\"required\":[\"prompt\"],\"properties\":{\"prompt\":{\"type\":\"string\",\"description\":\"绘画提示词\"}}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.tLAGkF8XWh_G-oQzevpIodsswtPByBLoAZDz_eWuBgw', 'http://localhost:5678/api/function/dalle3', 1);
+(1, 'weibo', '微博热搜', '新浪微博热搜榜，微博当日热搜榜单', '{\"type\":\"object\",\"properties\":{}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.ehLClXcjo-Ytr5y6pY9mSE3zN_2ViIXAIpTJxI9S1Mo', 'http://localhost:5678/api/function/weibo', 1),
+(2, 'zaobao', '今日早报', '每日早报，获取当天新闻事件列表', '{\"type\":\"object\",\"properties\":{}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.ehLClXcjo-Ytr5y6pY9mSE3zN_2ViIXAIpTJxI9S1Mo', 'http://localhost:5678/api/function/zaobao', 1),
+(3, 'dalle3', 'DALLE3', 'AI 绘画工具，根据输入的绘图描述用 AI 工具进行绘画', '{\"type\":\"object\",\"required\":[\"prompt\"],\"properties\":{\"prompt\":{\"type\":\"string\",\"description\":\"绘画提示词\"}}}', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkIjowLCJ1c2VyX2lkIjowfQ.ehLClXcjo-Ytr5y6pY9mSE3zN_2ViIXAIpTJxI9S1Mo', 'http://localhost:5678/api/function/dalle3', 1);
 
 -- --------------------------------------------------------
 
@@ -323,9 +337,9 @@ INSERT INTO `chatgpt_functions` (`id`, `name`, `label`, `description`, `paramete
 DROP TABLE IF EXISTS `chatgpt_invite_codes`;
 CREATE TABLE `chatgpt_invite_codes` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
   `code` char(8) NOT NULL COMMENT '邀请码',
-  `hits` int NOT NULL COMMENT '点击次数',
+  `hits` bigint NOT NULL COMMENT '点击次数',
   `reg_num` smallint NOT NULL COMMENT '注册数量',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户邀请码';
@@ -339,8 +353,8 @@ CREATE TABLE `chatgpt_invite_codes` (
 DROP TABLE IF EXISTS `chatgpt_invite_logs`;
 CREATE TABLE `chatgpt_invite_logs` (
   `id` int NOT NULL,
-  `inviter_id` int NOT NULL COMMENT '邀请人ID',
-  `user_id` int NOT NULL COMMENT '注册用户ID',
+  `inviter_id` bigint NOT NULL COMMENT '邀请人ID',
+  `user_id` bigint NOT NULL COMMENT '注册用户ID',
   `username` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户名',
   `invite_code` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邀请码',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注',
@@ -392,7 +406,7 @@ INSERT INTO `chatgpt_menus` (`id`, `name`, `icon`, `url`, `sort_num`, `enabled`)
 DROP TABLE IF EXISTS `chatgpt_mj_jobs`;
 CREATE TABLE `chatgpt_mj_jobs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `task_id` varchar(20) DEFAULT NULL COMMENT '任务 ID',
   `task_info` text NOT NULL COMMENT '任务详情',
   `type` varchar(20) DEFAULT 'image' COMMENT '任务类别',
@@ -420,16 +434,16 @@ CREATE TABLE `chatgpt_mj_jobs` (
 DROP TABLE IF EXISTS `chatgpt_orders`;
 CREATE TABLE `chatgpt_orders` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户ID',
-  `product_id` int NOT NULL COMMENT '产品ID',
-  `username` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户明',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `product_id` bigint NOT NULL COMMENT '产品ID',
+  `username` varchar(30) NOT NULL COMMENT '用户名',
   `order_no` varchar(30) NOT NULL COMMENT '订单ID',
   `trade_no` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '支付平台交易流水号',
   `subject` varchar(100) NOT NULL COMMENT '订单产品',
   `amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '订单金额',
   `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '订单状态（0：待支付，1：已扫码，2：支付成功）',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注',
-  `pay_time` int DEFAULT NULL COMMENT '支付时间',
+  `pay_time` bigint DEFAULT NULL COMMENT '支付时间',
   `pay_way` varchar(20) NOT NULL COMMENT '支付方式',
   `pay_type` varchar(30) NOT NULL COMMENT '支付类型',
   `created_at` datetime NOT NULL,
@@ -446,11 +460,11 @@ CREATE TABLE `chatgpt_orders` (
 DROP TABLE IF EXISTS `chatgpt_power_logs`;
 CREATE TABLE `chatgpt_power_logs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
   `username` varchar(30) NOT NULL COMMENT '用户名',
   `type` tinyint(1) NOT NULL COMMENT '类型（1：充值，2：消费，3：退费）',
   `amount` smallint NOT NULL COMMENT '算力数值',
-  `balance` int NOT NULL COMMENT '余额',
+  `balance` bigint NOT NULL COMMENT '余额',
   `model` varchar(30) NOT NULL COMMENT '模型',
   `remark` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注',
   `mark` tinyint(1) NOT NULL COMMENT '资金类型（0：支出，1：收入）',
@@ -470,9 +484,9 @@ CREATE TABLE `chatgpt_products` (
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '价格',
   `discount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '优惠金额',
   `days` smallint NOT NULL DEFAULT '0' COMMENT '延长天数',
-  `power` int NOT NULL DEFAULT '0' COMMENT '增加算力值',
+  `power` bigint NOT NULL DEFAULT '0' COMMENT '增加算力值',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启动',
-  `sales` int NOT NULL DEFAULT '0' COMMENT '销量',
+  `sales` bigint NOT NULL DEFAULT '0' COMMENT '销量',
   `sort_num` tinyint NOT NULL DEFAULT '0' COMMENT '排序',
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
@@ -497,13 +511,13 @@ INSERT INTO `chatgpt_products` (`id`, `name`, `price`, `discount`, `days`, `powe
 DROP TABLE IF EXISTS `chatgpt_redeems`;
 CREATE TABLE `chatgpt_redeems` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `name` varchar(30) NOT NULL COMMENT '兑换码名称',
-  `power` int NOT NULL COMMENT '算力',
+  `power` bigint NOT NULL COMMENT '算力',
   `code` varchar(100) NOT NULL COMMENT '兑换码',
   `enabled` tinyint(1) NOT NULL COMMENT '是否启用',
   `created_at` datetime NOT NULL,
-  `redeemed_at` int NOT NULL COMMENT '兑换时间'
+  `redeemed_at` bigint NOT NULL COMMENT '兑换时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='兑换码';
 
 -- --------------------------------------------------------
@@ -515,7 +529,7 @@ CREATE TABLE `chatgpt_redeems` (
 DROP TABLE IF EXISTS `chatgpt_sd_jobs`;
 CREATE TABLE `chatgpt_sd_jobs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'txt2img' COMMENT '任务类别',
   `task_id` char(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '任务 ID',
   `task_info` text NOT NULL COMMENT '任务详情',
@@ -538,7 +552,7 @@ CREATE TABLE `chatgpt_sd_jobs` (
 DROP TABLE IF EXISTS `chatgpt_suno_jobs`;
 CREATE TABLE `chatgpt_suno_jobs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `channel` varchar(100) NOT NULL COMMENT '渠道',
   `title` varchar(100) DEFAULT NULL COMMENT '歌曲标题',
   `type` tinyint(1) DEFAULT '0' COMMENT '任务类型,1:灵感创作,2:自定义创作',
@@ -560,7 +574,7 @@ CREATE TABLE `chatgpt_suno_jobs` (
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `raw_data` text COMMENT '原始数据',
   `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
-  `play_times` int DEFAULT NULL COMMENT '播放次数',
+  `play_times` bigint DEFAULT NULL COMMENT '播放次数',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='MidJourney 任务表';
 
@@ -580,29 +594,30 @@ CREATE TABLE `chatgpt_users` (
   `password` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '头像',
   `salt` char(12) NOT NULL COMMENT '密码盐',
-  `power` int NOT NULL DEFAULT '0' COMMENT '剩余算力',
-  `expired_time` int NOT NULL COMMENT '用户过期时间',
+  `power` bigint NOT NULL DEFAULT '0' COMMENT '剩余算力',
+  `expired_time` bigint NOT NULL COMMENT '用户过期时间',
   `status` tinyint(1) NOT NULL COMMENT '当前状态',
   `chat_config_json` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '聊天配置json',
   `chat_roles_json` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '聊天角色 json',
   `chat_models_json` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'AI模型 json',
-  `last_login_at` int NOT NULL COMMENT '最后登录时间',
+  `last_login_at` bigint NOT NULL COMMENT '最后登录时间',
   `vip` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否会员',
   `last_login_ip` char(16) NOT NULL COMMENT '最后登录 IP',
   `openid` varchar(100) DEFAULT NULL COMMENT '第三方登录账号ID',
   `platform` varchar(30) DEFAULT NULL COMMENT '登录平台',
   `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
+  `updated_at` datetime NOT NULL,
+  `chat_config` text NOT NULL COMMENT '聊天配置json'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
 
 --
 -- 转存表中的数据 `chatgpt_users`
 --
 
-INSERT INTO `chatgpt_users` (`id`, `username`, `mobile`, `email`, `nickname`, `password`, `avatar`, `salt`, `power`, `expired_time`, `status`, `chat_config_json`, `chat_roles_json`, `chat_models_json`, `last_login_at`, `vip`, `last_login_ip`, `openid`, `platform`, `created_at`, `updated_at`) VALUES
-(4, '18888888888', '18575670126', '', '极客学长', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', 'http://nk.img.r9it.com/gpt/1743224552271576.jpeg', 'ueedue5l', 12132, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\",\"programmer\",\"teacher\",\"psychiatrist\",\"lu_xun\",\"english_trainer\",\"translator\",\"red_book\",\"dou_yin\",\"weekly_report\",\"girl_friend\",\"steve_jobs\",\"elon_musk\",\"kong_zi\",\"draw_prompt_expert\",\"draw_prompt\",\"prompt_engineer\"]', '[1]', 1744791408, 1, '::1', '', NULL, '2023-06-12 16:47:17', '2025-04-16 16:16:48'),
-(48, 'wx@3659838859', '', '', '极客学长', 'cf6bbe381b23812d2b9fd423abe74003cecdd3b93809896eb573536ba6c500b3', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', '5rsy4iwg', 98, 0, 1, '', '[\"gpt\",\"teacher\"]', '', 1736228927, 0, '172.22.11.200', 'oCs0t62472W19z2LOEKI1rWyCTTA', '', '2025-01-07 13:43:06', '2025-01-07 13:48:48'),
-(49, 'wx@9502480897', '', '', 'AI探索君', 'd99fa8ba7da1455693b40e11d894a067416e758af2a75d7a3df4721b76cdbc8c', 'https://thirdwx.qlogo.cn/mmopen/vi_32/Zpcln1FZjcKxqtIyCsOTLGn16s7uIvwWfdkdsW6gbZg4r9sibMbic4jvrHmV7ux9nseTB5kBSnu1HSXr7zB8rTXg/132', 'fjclgsli', 99, 0, 1, '', '[\"gpt\"]', '', 0, 0, '', 'oCs0t64FaOLfiTbHZpOqk3aUp_94', '', '2025-01-07 14:05:31', '2025-01-07 14:05:31');
+INSERT INTO `chatgpt_users` (`id`, `username`, `mobile`, `email`, `nickname`, `password`, `avatar`, `salt`, `power`, `expired_time`, `status`, `chat_config_json`, `chat_roles_json`, `chat_models_json`, `last_login_at`, `vip`, `last_login_ip`, `openid`, `platform`, `created_at`, `updated_at`, `chat_config`) VALUES
+(4, '18888888888', '18575670126', '', '极客学长', 'ccc3fb7ab61b8b5d096a4a166ae21d121fc38c71bbd1be6173d9ab973214a63b', '/images/avatar/user.png', 'ueedue5l', 12137, 0, 1, '{\"api_keys\":{\"Azure\":\"\",\"ChatGLM\":\"\",\"OpenAI\":\"\"}}', '[\"gpt\",\"programmer\",\"teacher\",\"psychiatrist\",\"lu_xun\",\"english_trainer\",\"translator\",\"red_book\",\"dou_yin\",\"weekly_report\",\"girl_friend\",\"steve_jobs\",\"elon_musk\",\"kong_zi\",\"draw_prompt_expert\",\"draw_prompt\",\"prompt_engineer\"]', '[1]', 1746417142, 1, '::1', '', NULL, '2023-06-12 16:47:17', '2025-05-05 11:52:22', ''),
+(48, 'wx@3659838859', '', '', '极客学长', 'cf6bbe381b23812d2b9fd423abe74003cecdd3b93809896eb573536ba6c500b3', 'https://thirdwx.qlogo.cn/mmopen/vi_32/uyxRMqZcEkb7fHouKXbNzxrnrvAttBKkwNlZ7yFibibRGiahdmsrZ3A1NKf8Fw5qJNJn4TXRmygersgEbibaSGd9Sg/132', '5rsy4iwg', 98, 0, 1, '', '[\"gpt\",\"teacher\"]', '', 1736228927, 0, '172.22.11.200', 'oCs0t62472W19z2LOEKI1rWyCTTA', '', '2025-01-07 13:43:06', '2025-01-07 13:48:48', ''),
+(49, 'wx@9502480897', '', '', 'AI探索君', 'd99fa8ba7da1455693b40e11d894a067416e758af2a75d7a3df4721b76cdbc8c', 'https://thirdwx.qlogo.cn/mmopen/vi_32/Zpcln1FZjcKxqtIyCsOTLGn16s7uIvwWfdkdsW6gbZg4r9sibMbic4jvrHmV7ux9nseTB5kBSnu1HSXr7zB8rTXg/132', 'fjclgsli', 99, 0, 1, '', '[\"gpt\"]', '', 0, 0, '', 'oCs0t64FaOLfiTbHZpOqk3aUp_94', '', '2025-01-07 14:05:31', '2025-01-07 14:05:31', '');
 
 -- --------------------------------------------------------
 
@@ -613,7 +628,7 @@ INSERT INTO `chatgpt_users` (`id`, `username`, `mobile`, `email`, `nickname`, `p
 DROP TABLE IF EXISTS `chatgpt_user_login_logs`;
 CREATE TABLE `chatgpt_user_login_logs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
   `username` varchar(30) NOT NULL COMMENT '用户名',
   `login_ip` char(16) NOT NULL COMMENT '登录IP',
   `login_address` varchar(30) NOT NULL COMMENT '登录地址',
@@ -630,7 +645,7 @@ CREATE TABLE `chatgpt_user_login_logs` (
 DROP TABLE IF EXISTS `chatgpt_video_jobs`;
 CREATE TABLE `chatgpt_video_jobs` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL COMMENT '用户 ID',
+  `user_id` bigint NOT NULL COMMENT '用户 ID',
   `channel` varchar(100) NOT NULL COMMENT '渠道',
   `task_id` varchar(100) NOT NULL COMMENT '任务 ID',
   `task_info` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '原始任务信息',
@@ -657,7 +672,8 @@ CREATE TABLE `chatgpt_video_jobs` (
 --
 ALTER TABLE `chatgpt_admin_users`
   ADD PRIMARY KEY (`id`) USING BTREE,
-  ADD UNIQUE KEY `username` (`username`) USING BTREE;
+  ADD UNIQUE KEY `username` (`username`) USING BTREE,
+  ADD UNIQUE KEY `idx_chatgpt_admin_users_username` (`username`);
 
 --
 -- 表的索引 `chatgpt_api_keys`
@@ -676,14 +692,16 @@ ALTER TABLE `chatgpt_app_types`
 --
 ALTER TABLE `chatgpt_chat_history`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `chat_id` (`chat_id`);
+  ADD KEY `chat_id` (`chat_id`),
+  ADD KEY `idx_chatgpt_chat_history_chat_id` (`chat_id`);
 
 --
 -- 表的索引 `chatgpt_chat_items`
 --
 ALTER TABLE `chatgpt_chat_items`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `chat_id` (`chat_id`);
+  ADD UNIQUE KEY `chat_id` (`chat_id`),
+  ADD UNIQUE KEY `idx_chatgpt_chat_items_chat_id` (`chat_id`);
 
 --
 -- 表的索引 `chatgpt_chat_models`
@@ -696,14 +714,16 @@ ALTER TABLE `chatgpt_chat_models`
 --
 ALTER TABLE `chatgpt_chat_roles`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `marker` (`marker`);
+  ADD UNIQUE KEY `marker` (`marker`),
+  ADD UNIQUE KEY `idx_chatgpt_chat_roles_marker` (`marker`);
 
 --
 -- 表的索引 `chatgpt_configs`
 --
 ALTER TABLE `chatgpt_configs`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `marker` (`marker`);
+  ADD UNIQUE KEY `marker` (`marker`),
+  ADD UNIQUE KEY `idx_chatgpt_configs_key` (`marker`);
 
 --
 -- 表的索引 `chatgpt_dall_jobs`
@@ -722,14 +742,16 @@ ALTER TABLE `chatgpt_files`
 --
 ALTER TABLE `chatgpt_functions`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
+  ADD UNIQUE KEY `name` (`name`),
+  ADD UNIQUE KEY `idx_chatgpt_functions_name` (`name`);
 
 --
 -- 表的索引 `chatgpt_invite_codes`
 --
 ALTER TABLE `chatgpt_invite_codes`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `code` (`code`);
+  ADD UNIQUE KEY `code` (`code`),
+  ADD UNIQUE KEY `idx_chatgpt_invite_codes_code` (`code`);
 
 --
 -- 表的索引 `chatgpt_invite_logs`
@@ -749,14 +771,17 @@ ALTER TABLE `chatgpt_menus`
 ALTER TABLE `chatgpt_mj_jobs`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `task_id` (`task_id`),
-  ADD KEY `message_id` (`message_id`);
+  ADD UNIQUE KEY `idx_chatgpt_mj_jobs_task_id` (`task_id`),
+  ADD KEY `message_id` (`message_id`),
+  ADD KEY `idx_chatgpt_mj_jobs_message_id` (`message_id`);
 
 --
 -- 表的索引 `chatgpt_orders`
 --
 ALTER TABLE `chatgpt_orders`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `order_no` (`order_no`);
+  ADD UNIQUE KEY `order_no` (`order_no`),
+  ADD UNIQUE KEY `idx_chatgpt_orders_order_no` (`order_no`);
 
 --
 -- 表的索引 `chatgpt_power_logs`
@@ -775,14 +800,16 @@ ALTER TABLE `chatgpt_products`
 --
 ALTER TABLE `chatgpt_redeems`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `code` (`code`);
+  ADD UNIQUE KEY `code` (`code`),
+  ADD UNIQUE KEY `idx_chatgpt_redeems_code` (`code`);
 
 --
 -- 表的索引 `chatgpt_sd_jobs`
 --
 ALTER TABLE `chatgpt_sd_jobs`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `task_id` (`task_id`);
+  ADD UNIQUE KEY `task_id` (`task_id`),
+  ADD UNIQUE KEY `idx_chatgpt_sd_jobs_task_id` (`task_id`);
 
 --
 -- 表的索引 `chatgpt_suno_jobs`
@@ -795,7 +822,8 @@ ALTER TABLE `chatgpt_suno_jobs`
 --
 ALTER TABLE `chatgpt_users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `idx_chatgpt_users_username` (`username`);
 
 --
 -- 表的索引 `chatgpt_user_login_logs`
@@ -829,7 +857,7 @@ ALTER TABLE `chatgpt_api_keys`
 -- 使用表AUTO_INCREMENT `chatgpt_app_types`
 --
 ALTER TABLE `chatgpt_app_types`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- 使用表AUTO_INCREMENT `chatgpt_chat_history`
@@ -847,7 +875,7 @@ ALTER TABLE `chatgpt_chat_items`
 -- 使用表AUTO_INCREMENT `chatgpt_chat_models`
 --
 ALTER TABLE `chatgpt_chat_models`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- 使用表AUTO_INCREMENT `chatgpt_chat_roles`

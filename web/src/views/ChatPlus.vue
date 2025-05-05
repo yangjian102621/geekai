@@ -708,15 +708,12 @@ onMounted(() => {
     const chatRole = getRoleById(roleId.value)
     if (isNewMsg.value && data.type !== 'end') {
       const prePrompt = chatData.value[chatData.value.length - 1]?.content
-      chatData.value.push({
-        type: 'reply',
-        id: randString(32),
-        icon: chatRole['icon'],
-        prompt: prePrompt,
-        content: data.body,
-      })
       isNewMsg.value = false
       lineBuffer.value = data.body
+      const reply = chatData.value[chatData.value.length - 1]
+      if (reply) {
+        reply['content'] = lineBuffer.value
+      }
     } else if (data.type === 'end') {
       // 消息接收完毕
       // 追加当前会话到会话列表
@@ -1078,6 +1075,16 @@ const sendMessage = function () {
     content: content,
     model: getModelValue(modelID.value),
     created_at: new Date().getTime() / 1000,
+  })
+  // 添加空回复消息
+  const _role = getRoleById(roleId.value)
+  chatData.value.push({
+    chat_id: chatId,
+    role_id: roleId.value,
+    type: 'reply',
+    id: randString(32),
+    icon: _role['icon'],
+    content: '',
   })
 
   nextTick(() => {

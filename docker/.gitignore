@@ -1,5 +1,0 @@
-data/mysql/data
-data/leveldb
-logs
-static/*
-redis/redis
