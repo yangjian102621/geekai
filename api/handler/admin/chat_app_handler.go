@@ -113,8 +113,8 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 			role.Id = v.Id
 			role.CreatedAt = v.CreatedAt.Unix()
 			role.UpdatedAt = v.UpdatedAt.Unix()
-			role.ModelName = modelNameMap[role.ModelId]
-			role.TypeName = typeNameMap[role.Tid]
+			role.ModelName = modelNameMap[int(role.ModelId)]
+			role.TypeName = typeNameMap[int(role.Tid)]
 			roles = append(roles, role)
 		}
 	}

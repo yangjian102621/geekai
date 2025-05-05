@@ -2,7 +2,7 @@ package vo
 
 type SunoJob struct {
 	Id           uint                   `json:"id"`
-	UserId       int                    `json:"user_id"`
+	UserId       uint                   `json:"user_id"`
 	Channel      string                 `json:"channel"`
 	Title        string                 `json:"title"`
 	Type         int                    `json:"type"`
