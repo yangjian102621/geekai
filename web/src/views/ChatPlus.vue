@@ -7,7 +7,7 @@
           <h2 v-else>{{ title }}</h2>
         </div>
 
-        <div class="media-page">
+        <div class="chat-list-container">
           <el-button @click="_newChat" type="primary" class="newChat">
             <i class="iconfont icon-new-chat mr-1"></i>
             新建对话
@@ -88,7 +88,23 @@
           </el-button>
         </div>
       </el-aside>
-      <el-main v-loading="loading" element-loading-background="rgba(122, 122, 122, 0.3)">
+
+      <el-main
+        v-loading="loading"
+        element-loading-background="rgba(122, 122, 122, 0.3)"
+        class="relative"
+      >
+        <div class="absolute top-2 left-2 cursor-pointer">
+          <div @click="store.setChatListExtend(!store.chatListExtend)">
+            <el-tooltip content="隐藏对话列表" placement="right" v-if="store.chatListExtend">
+              <i class="iconfont icon-colspan text-xl"></i>
+            </el-tooltip>
+            <el-tooltip content="展开对话列表" placement="right" v-else>
+              <i class="iconfont icon-expand text-xl"></i>
+            </el-tooltip>
+          </div>
+        </div>
+
         <div class="chat-container">
           <div class="chat-config">
             <el-select
@@ -910,7 +926,7 @@ const loadChat = function (chat) {
   chatId.value = chat.chat_id
   showStopGenerate.value = false
   loadChatHistory(chatId.value)
-  router.replace(`/chat/${chatId.value}`)
+  router.push(`/chat/${chatId.value}`)
 }
 
 // 编辑会话标题
