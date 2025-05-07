@@ -26,7 +26,6 @@
 - [x] 支持网站 Logo 版权等信息的修改
 
 ## 功能截图
-
 请参考 [GeekAI 项目介绍](https://docs.geekai.me/plus/info/)。
 
 ### 体验地址
