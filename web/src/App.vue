@@ -68,7 +68,7 @@ watch(
 const handler = ref(0);
 // 初始化 websocket 连接
 const connect = () => {
-  let host = process.env.VUE_APP_WS_HOST;
+  let host = import.meta.env.VITE_APP_WS_HOST;
   if (host === "") {
     if (location.protocol === "https:") {
       host = "wss://" + location.host;

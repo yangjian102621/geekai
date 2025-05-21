@@ -382,7 +382,7 @@ watch(
 // const connect = function () {
 //   // 初始化 WebSocket 对象
 //   const _sessionId = getSessionId();
-//   let host = process.env.VUE_APP_WS_HOST
+//   let host = import.meta.env.VITE_APP_WS_HOST
 //   if (host === '') {
 //     if (location.protocol === 'https:') {
 //       host = 'wss://' + location.host;

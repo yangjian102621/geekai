@@ -218,8 +218,8 @@ watch(
 
 const login = ref(true);
 const data = ref({
-  username: process.env.VUE_APP_USER,
-  password: process.env.VUE_APP_PASS,
+  username: import.meta.env.VITE_APP_USER,
+  password: import.meta.env.VITE_APP_PASS,
   mobile: "",
   email: "",
   repass: "",

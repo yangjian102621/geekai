@@ -107,7 +107,7 @@ const animateVoice = () => {
 
 const wavRecorder = ref(new WavRecorder({ sampleRate: 24000 }));
 const wavStreamPlayer = ref(new WavStreamPlayer({ sampleRate: 24000 }));
-let host = process.env.VUE_APP_WS_HOST;
+let host = import.meta.env.VITE_APP_WS_HOST;
 if (host === "") {
   if (location.protocol === "https:") {
     host = "wss://" + location.host;

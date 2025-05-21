@@ -447,7 +447,7 @@ const merge = (item) => {
 // 下载歌曲
 const download = (item) => {
   const url = replaceImg(item.audio_url);
-  const downloadURL = `${process.env.VUE_APP_API_HOST}/api/download?url=${url}`;
+  const downloadURL = `${import.meta.env.VITE_APP_API_HOST}/api/download?url=${url}`;
   // parse filename
   const urlObj = new URL(url);
   const fileName = urlObj.pathname.split("/").pop();

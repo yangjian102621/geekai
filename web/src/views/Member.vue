@@ -209,11 +209,11 @@ const pay = (product, payWay) => {
   }
   loading.value = true;
   loadingText.value = "正在生成支付订单...";
-  let host = process.env.VUE_APP_API_HOST;
+  let host = import.meta.env.VITE_APP_API_HOST;
   if (host === "") {
     host = `${location.protocol}//${location.host}`;
   }
-  httpPost(`${process.env.VUE_APP_API_HOST}/api/payment/doPay`, {
+  httpPost(`${import.meta.env.VITE_APP_API_HOST}/api/payment/doPay`, {
     product_id: product.id,
     pay_way: payWay.pay_way,
     pay_type: payWay.pay_type,

@@ -80,8 +80,8 @@ const slogan = ref("");
 const license = ref({ de_copy: true });
 
 const isLogin = ref(false);
-const docsURL = ref(process.env.VUE_APP_DOCS_URL);
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
+const docsURL = ref(import.meta.env.VITE_APP_DOCS_URL);
+const gitURL = ref(import.meta.env.VITE_APP_GIT_URL);
 const navs = ref([]);
 
 const iconMap = ref({

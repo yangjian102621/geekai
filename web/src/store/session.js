@@ -6,8 +6,8 @@ import {removeAdminInfo} from "@/store/cache";
  * storage handler
  */
 
-const UserTokenKey = process.env.VUE_APP_KEY_PREFIX + "Authorization";
-const AdminTokenKey = process.env.VUE_APP_KEY_PREFIX + "Admin-Authorization"
+const UserTokenKey = import.meta.env.VITE_APP_KEY_PREFIX + "Authorization";
+const AdminTokenKey = import.meta.env.VITE_APP_KEY_PREFIX + "Admin-Authorization"
 
 export function getSessionId() {
     return randString(42)

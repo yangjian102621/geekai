@@ -169,7 +169,7 @@ const loginUser = ref({});
 const routerViewKey = ref(0);
 const showConfigDialog = ref(false);
 const license = ref({ de_copy: true });
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
+const gitURL = ref(import.meta.env.VITE_APP_GIT_URL);
 const showLoginDialog = ref(false);
 
 /**
