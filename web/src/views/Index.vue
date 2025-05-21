@@ -168,5 +168,5 @@ const rainbowColor = (index) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/index.styl"
+@import "../assets/css/index.styl"
 </style>

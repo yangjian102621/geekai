@@ -1101,6 +1101,6 @@ const generatePrompt = () => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/image-mj.styl"
-@import "@/assets/css/custom-scroll.styl"
+@import "../assets/css/image-mj.styl"
+@import "../assets/css/custom-scroll.styl"
 </style>

@@ -314,5 +314,5 @@ const generatePrompt = () => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/luma.styl"
+@import "../assets/css/luma.styl"
 </style>

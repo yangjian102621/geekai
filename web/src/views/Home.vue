@@ -294,6 +294,6 @@ const loginSuccess = () => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/custom-scroll.styl"
-@import "@/assets/css/home.styl"
+@import "../assets/css/custom-scroll.styl"
+@import "../assets/css/home.styl"
 </style>

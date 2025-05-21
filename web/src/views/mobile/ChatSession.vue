@@ -634,5 +634,5 @@ const getModelName = (model_id) => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/mobile/chat-session.styl"
+@import "../../assets/css/mobile/chat-session.styl"
 </style>

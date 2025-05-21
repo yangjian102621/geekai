@@ -152,5 +152,5 @@ const doLogin = (verifyData) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/login.styl"
+@import "../assets/css/login.styl"
 </style>

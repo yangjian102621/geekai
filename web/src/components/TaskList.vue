@@ -34,5 +34,5 @@ const props = defineProps({
 </script>
 
 <style scoped lang="stylus">
-@import "~@/assets/css/running-job-list.styl"
+@import "../assets/css/running-job-list.styl"
 </style>

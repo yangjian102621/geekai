@@ -635,5 +635,5 @@ const createLyric = () => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/suno.styl"
+@import "../assets/css/suno.styl"
 </style>

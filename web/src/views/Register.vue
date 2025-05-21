@@ -231,7 +231,7 @@ const doSubmitRegister = (verifyData) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/login.styl"
+@import "../assets/css/login.styl"
   :deep(.back){
     margin-bottom: 10px;
   }

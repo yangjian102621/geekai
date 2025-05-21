@@ -326,7 +326,7 @@ const remove = function (row) {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/admin/form.styl";
+@import "../../assets/css/admin/form.styl";
 .model-list {
 
   .handle-box {

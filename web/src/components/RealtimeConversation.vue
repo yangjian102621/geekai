@@ -334,5 +334,5 @@ defineExpose({ connect, hangUp });
 
 <style scoped lang="stylus">
 
-@import "@/assets/css/realtime.styl"
+@import "../assets/css/realtime.styl"
 </style>
