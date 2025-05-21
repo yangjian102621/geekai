@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -22,7 +22,7 @@
     "json-bigint": "^1.0.0",
     "lodash": "^4.17.21",
     "markdown-it": "^13.0.1",
-	"markdown-it-emoji": "^2.0.0",
+    "markdown-it-emoji": "^2.0.0",
     "markdown-it-mathjax3": "^4.3.2",
     "markmap-common": "^0.16.0",
     "markmap-lib": "^0.16.1",
@@ -43,17 +43,14 @@
   "devDependencies": {
     "@babel/core": "7.18.6",
     "@babel/eslint-parser": "^7.12.16",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
+    "@vitejs/plugin-vue": "^5.2.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
     "postcss": "^8.4.49",
     "stylus": "^0.58.1",
-    "stylus-loader": "^7.0.0",
     "tailwindcss": "^3.4.17",
-    "webpack": "^5.90.3"
+    "vite": "^6.3.5"
   },
   "eslintConfig": {
     "root": true,
