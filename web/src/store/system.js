@@ -46,9 +46,9 @@ export function FormatFileSize(bytes) {
 }
 
 export function setRoute(path) {
-    Storage.set(process.env.VUE_APP_KEY_PREFIX + 'ROUTE_',path)
+    Storage.set(import.meta.env.VITE_APP_KEY_PREFIX + 'ROUTE_', path)
 }
 
 export function getRoute() {
-    return Storage.get(process.env.VUE_APP_KEY_PREFIX + 'ROUTE_')
+    return Storage.get(import.meta.env.VITE_APP_KEY_PREFIX + 'ROUTE_')
 }

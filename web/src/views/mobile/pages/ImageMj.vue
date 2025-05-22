@@ -603,5 +603,5 @@ const tabChange = (tab) => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/mobile/image-mj.styl"
+@import "../../../assets/css/mobile/image-mj.styl"
 </style>

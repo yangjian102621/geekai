@@ -52,7 +52,7 @@ import {ElMessage} from "element-plus";
 import {removeAdminToken} from "@/store/session";
 import {useSharedStore} from "@/store/sharedata";
 
-const version = ref(process.env.VUE_APP_VERSION);
+const version = ref(import.meta.env.VITE_APP_VERSION);
 const avatar = ref("/images/user-info.jpg");
 const sidebar = useSidebarStore();
 const router = useRouter();

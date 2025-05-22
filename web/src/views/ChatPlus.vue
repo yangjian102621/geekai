@@ -975,7 +975,7 @@ const realtimeChat = () => {
 </script>
 
 <style scoped lang="stylus">
-@import "@/assets/css/chat-plus.styl"
+@import "../assets/css/chat-plus.styl"
 </style>
 
 <style lang="stylus">

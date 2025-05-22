@@ -240,8 +240,8 @@ const uploadImg = (file) => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/admin/form.styl"
-@import "@/assets/css/main.styl"
+@import "../../assets/css/admin/form.styl"
+@import "../../assets/css/main.styl"
 .menu {
 
   .handle-box {

@@ -20,8 +20,8 @@ import { showMessageError } from "@/utils/dialog";
 import { getLicenseInfo, getSystemInfo } from "@/store/cache";
 
 const title = ref("");
-const version = ref(process.env.VUE_APP_VERSION);
-const gitURL = ref(process.env.VUE_APP_GIT_URL);
+const version = ref(import.meta.env.VITE_APP_VERSION);
+const gitURL = ref(import.meta.env.VITE_APP_GIT_URL);
 const copyRight = ref("");
 const license = ref({});
 const props = defineProps({
@@ -34,7 +34,7 @@ const props = defineProps({
 // 获取系统配置
 getSystemInfo()
   .then((res) => {
-    title.value = res.data.title ?? process.env.VUE_APP_TITLE;
+    title.value = res.data.title ?? import.meta.env.VITE_APP_TITLE;
     copyRight.value =
       res.data.copyright.length > 1
         ? res.data.copyright

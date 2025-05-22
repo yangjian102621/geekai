@@ -228,7 +228,7 @@ export const replaceImg =(img) => {
     if (!img.startsWith("http")) {
         img = `${location.protocol}//${location.host}/${img}`
     }
-    const devHost = process.env.VUE_APP_API_HOST
+    const devHost = import.meta.env.VITE_APP_API_HOST
     const localhost = "http://localhost:5678"
     if (img.includes(localhost)) {
         return img?.replace(localhost, devHost)

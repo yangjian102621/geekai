@@ -9,7 +9,7 @@ import axios from 'axios'
 import {getAdminToken, getUserToken, removeAdminToken, removeUserToken} from "@/store/session";
 
 axios.defaults.timeout = 180000
-axios.defaults.baseURL = process.env.VUE_APP_API_HOST
+axios.defaults.baseURL = import.meta.env.VITE_APP_API_HOST
 axios.defaults.withCredentials = true;
 //axios.defaults.headers.post['Content-Type'] = 'application/json'
 

@@ -593,8 +593,8 @@ const fixData = () => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/admin/form.styl"
-@import "@/assets/css/main.styl"
+@import "../../assets/css/admin/form.styl"
+@import "../../assets/css/main.styl"
 .system-config {
   display flex
   justify-content center
