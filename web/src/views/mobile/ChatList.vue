@@ -170,8 +170,8 @@ checkSession().then((user) => {
 })
 
 const onLoad = () => {
-  checkSession().then(() => {
-    httpGet("/api/chat/list?user_id=" + loginUser.value.id).then((res) => {
+  checkSession().then((user) => {
+    httpGet("/api/chat/list?user_id=" + user.id).then((res) => {
       if (res.data) {
         chats.value = res.data;
         allChats.value = res.data;
