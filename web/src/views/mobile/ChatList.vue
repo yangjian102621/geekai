@@ -182,7 +182,9 @@ const onLoad = () => {
       error.value = true
       showFailToast("加载会话列表失败")
     })
-  }).catch(() => {})
+  }).catch(() => {
+    finished.value = true
+  })
 };
 
 const search = () => {
