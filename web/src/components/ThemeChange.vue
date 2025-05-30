@@ -1,6 +1,6 @@
 <template>
   <div class="theme-box" @click="toggleTheme">
-    <span class="iconfont icon-yueliang">{{ themePage === "light" ? "&#xe679;" : "&#xe60b;" }}</span>
+    <span class="iconfont">{{ themePage === "light" ? "&#xe679;" : "&#xe60b;" }}</span>
   </div>
 </template>
 
