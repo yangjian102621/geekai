@@ -2,7 +2,7 @@
   <div data-component="ConsolePage">
     <div class="content-top">
       <div class="content-title">
-        <img src="/openai-logomark.svg" alt="OpenAI Logo" />
+        <!-- <img src="/openai-logomark.svg" alt="OpenAI Logo" /> -->
         <span>realtime console</span>
       </div>
 

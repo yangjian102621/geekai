@@ -74,7 +74,7 @@ import { arrayContains, removeArrayItem, showLoginDialog, substr } from "@/utils
 import { showNotify } from "vant";
 import { ElMessage } from "element-plus";
 
-const title = ref(process.env.VUE_APP_TITLE);
+const title = ref(import.meta.env.VITE_APP_TITLE);
 const router = useRouter();
 const isLogin = ref(false);
 const apps = ref([]);

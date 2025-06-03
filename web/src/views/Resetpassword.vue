@@ -146,7 +146,7 @@ const save = () => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/login.styl"
+@import "../assets/css/login.styl"
 ::v-deep(.el-tabs__item.is-active, .el-tabs__item:hover){
     color: var(--common-text-color) !important;
   }

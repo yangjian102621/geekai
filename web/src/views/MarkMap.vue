@@ -291,6 +291,6 @@ const downloadImage = () => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/mark-map.styl"
-@import "@/assets/css/custom-scroll.styl"
+@import "../assets/css/mark-map.styl"
+@import "../assets/css/custom-scroll.styl"
 </style>

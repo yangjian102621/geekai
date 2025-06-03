@@ -62,8 +62,8 @@ const enableVerify = ref(false);
 const captchaRef = ref(null);
 const ruleFormRef = ref(null);
 const ruleForm = reactive({
-  username: process.env.VUE_APP_USER,
-  password: process.env.VUE_APP_PASS,
+  username: import.meta.env.VITE_APP_USER,
+  password: import.meta.env.VITE_APP_PASS,
 });
 const rules = {
   username: [{ required: true, trigger: "blur", message: "请输入账号" }],
@@ -152,5 +152,5 @@ const doLogin = (verifyData) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/login.styl"
+@import "../assets/css/login.styl"
 </style>

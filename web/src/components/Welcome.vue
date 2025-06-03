@@ -62,8 +62,8 @@ import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { getSystemInfo } from "@/store/cache";
 
-const title = ref(process.env.VUE_APP_TITLE);
-const version = ref(process.env.VUE_APP_VERSION);
+const title = ref(import.meta.env.VITE_APP_TITLE);
+const version = ref(import.meta.env.VITE_APP_VERSION);
 
 const samples = ref([
   "用小学生都能听懂的术语解释什么是量子纠缠",

@@ -262,5 +262,5 @@ const removeChat = (item) => {
 </script>
 
 <style lang="stylus" scoped>
-@import "@/assets/css/mobile/chat-list.styl"
+@import "../../assets/css/mobile/chat-list.styl"
 </style>

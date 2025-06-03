@@ -486,6 +486,6 @@ const changeModel = (model) => {
 </script>
 
 <style lang="stylus">
-@import "@/assets/css/image-dall.styl"
-@import "@/assets/css/custom-scroll.styl"
+@import "../assets/css/image-dall.styl"
+@import "../assets/css/custom-scroll.styl"
 </style>
