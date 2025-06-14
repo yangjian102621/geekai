@@ -56,7 +56,7 @@
         <el-form-item>
           <template #label>
             <div class="label-title">
-              开放注册
+              菜单图标
               <el-tooltip
                 effect="dark"
                 content="可以填写 iconfont 图标名称也可以自己上传图片"
