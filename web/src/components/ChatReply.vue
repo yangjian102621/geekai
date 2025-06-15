@@ -124,7 +124,7 @@ import hl from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import mathjaxPlugin from 'markdown-it-mathjax3'
-import { ref } from 'vue'
+import { nextTick, onMounted, reactive, ref, watchEffect } from 'vue'
 import Thinking from './Thinking.vue'
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
@@ -155,6 +155,9 @@ const isPlaying = ref(false)
 const playIcon = ref('/images/voice.gif')
 const store = useSharedStore()
 
+// 添加代码块展开/收起状态管理
+const codeBlockStates = reactive({})
+
 const md = new MarkdownIt({
   breaks: true,
   html: true,
@@ -162,24 +165,29 @@ const md = new MarkdownIt({
   typographer: true,
   highlight: function (str, lang) {
     const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
-    // 显示复制代码按钮
-    const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
-<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
+    // 显示复制代码按钮和展开/收起按钮
+    const copyBtn = `<div class="flex">
+      <span class="text-[12px] mr-2 text-[#00e0e0] cursor-pointer expand-btn" data-code-id="${codeIndex}">展开</span>
+      <span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+      </div><textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
       /<\/textarea>/g,
       '&lt;/textarea>'
     )}</textarea>`
+    let langHtml = ''
+    let preCode = ''
+    // 处理代码高亮
     if (lang && hl.getLanguage(lang)) {
-      const langHtml = `<span class="lang-name">${lang}</span>`
-      // 处理代码高亮
-      const preCode = hl.highlight(str, { language: lang }).value
-      // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+      langHtml = `<span class="lang-name">${lang}</span>`
+      preCode = hl.highlight(str, { language: lang }).value
+    } else {
+      preCode = md.utils.escapeHtml(str)
     }
 
-    // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str)
-    // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+    // 将代码包裹在 pre 中，添加收起状态的类
+    return `<pre class="code-container flex flex-col code-collapsed" data-code-id="${codeIndex}">
+      <div class="flex justify-between bg-[#50505a] w-full rounded-tl-[10px] rounded-tr-[10px] px-3 py-1">${langHtml}${copyBtn}</div>
+      <code class="language-${lang} hljs">${preCode}</code> 
+      <span class="copy-code-btn absolute right-3 bottom-3" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span></pre>`
   },
 })
 md.use(mathjaxPlugin)
@@ -226,6 +234,81 @@ const stopSynthesis = () => {
 const reGenerate = (messageId) => {
   emits('regen', messageId)
 }
+
+// 添加代码块展开/收起功能
+const toggleCodeBlock = (codeId) => {
+  const codeContainer = document.querySelector(`pre[data-code-id="${codeId}"]`)
+  const expandBtn = document.querySelector(`.expand-btn[data-code-id="${codeId}"]`)
+
+  if (codeContainer && expandBtn) {
+    if (codeContainer.classList.contains('code-collapsed')) {
+      codeContainer.classList.remove('code-collapsed')
+      codeContainer.classList.add('code-expanded')
+      expandBtn.textContent = '收起'
+    } else {
+      codeContainer.classList.remove('code-expanded')
+      codeContainer.classList.add('code-collapsed')
+      expandBtn.textContent = '展开'
+    }
+  }
+}
+
+// 添加事件监听
+onMounted(() => {
+  nextTick(() => {
+    setupCodeBlockEvents()
+  })
+})
+
+// 监听内容变化，重新绑定事件
+watchEffect(() => {
+  if (props.data.content.text) {
+    nextTick(() => {
+      setupCodeBlockEvents()
+    })
+  }
+})
+
+const setupCodeBlockEvents = () => {
+  // 移除旧的事件监听器
+  const oldBtns = document.querySelectorAll('.expand-btn')
+  oldBtns.forEach((btn) => {
+    btn.removeEventListener('click', handleExpandClick)
+  })
+
+  // 为展开按钮添加点击事件
+  const expandBtns = document.querySelectorAll('.expand-btn')
+  expandBtns.forEach((btn) => {
+    btn.addEventListener('click', handleExpandClick)
+
+    // 检查对应的代码块是否需要展开功能
+    const codeId = btn.getAttribute('data-code-id')
+    const codeContainer = document.querySelector(`pre[data-code-id="${codeId}"]`)
+    const codeElement = codeContainer?.querySelector('.hljs')
+
+    if (codeElement) {
+      // 临时移除高度限制来获取真实高度
+      const originalMaxHeight = codeElement.style.maxHeight
+      codeElement.style.maxHeight = 'none'
+      const realHeight = codeElement.scrollHeight
+      codeElement.style.maxHeight = originalMaxHeight
+
+      // 如果代码块高度小于等于200px，隐藏展开按钮
+      if (realHeight <= 200) {
+        btn.style.display = 'none'
+        // 移除收起状态的类，让短代码块完全展示
+        codeContainer.classList.remove('code-collapsed')
+      } else {
+        btn.style.display = 'inline'
+      }
+    }
+  })
+}
+
+const handleExpandClick = (e) => {
+  const codeId = e.target.getAttribute('data-code-id')
+  toggleCodeBlock(codeId)
+}
 </script>
 
 <style lang="stylus">
@@ -266,8 +349,9 @@ const reGenerate = (messageId) => {
           }
 
           .code-container {
+            background-color #2b2b2b
+            border-radius 10px
             position relative
-            display flex
 
             .hljs {
               border-radius 10px
@@ -275,9 +359,6 @@ const reGenerate = (messageId) => {
             }
 
             .copy-code-btn {
-              position: absolute;
-              right 10px
-              top 10px
               cursor pointer
               font-size 12px
               color #c1c1c1
@@ -289,16 +370,50 @@ const reGenerate = (messageId) => {
 
           }
 
-          .lang-name {
-            position absolute;
-            right 10px
-            bottom 20px
-            padding 2px 6px 4px 6px
-            background-color #444444
-            border-radius 10px
-            color #00e0e0
+          // 添加代码块展开/收起样式
+          .code-collapsed {
+            .hljs {
+              max-height 200px
+              overflow hidden
+              position relative
+              transition max-height 0.3s ease
+
+              &::after {
+                content ''
+                position absolute
+                bottom 0
+                left 0
+                right 0
+                height 30px
+                background linear-gradient(transparent, #2b2b2b)
+                pointer-events none
+              }
+            }
           }
 
+          .code-expanded {
+            .hljs {
+              max-height none
+              overflow auto
+              transition max-height 0.3s ease
+
+              &::after {
+                display none
+              }
+            }
+          }
+
+          .expand-btn {
+            transition color 0.2s ease
+
+            &:hover {
+              color #20a0ff !important
+            }
+          }
+
+          .lang-name {
+            color #00e0e0
+          }
 
           // 设置表格边框
 

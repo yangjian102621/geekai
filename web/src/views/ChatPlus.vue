@@ -299,7 +299,7 @@
                           v-model="prompt"
                           @keydown="onInput"
                           @input="onInput"
-                          placeholder="按 Enter 键发送消息，使用 Ctrl + Enter 换行"
+                          placeholder="按 Enter 键发送消息，使用 Shift + Enter 换行"
                           autofocus
                         >
                         </textarea>
@@ -1092,9 +1092,8 @@ const onInput = (e) => {
 
   // 输入回车自动提交
   if (e.keyCode === 13) {
-    if (e.ctrlKey) {
-      // Ctrl + Enter 换行
-      prompt.value += '\n'
+    // Shift + Enter 换行
+    if (e.shiftKey) {
       return
     }
     e.preventDefault()
