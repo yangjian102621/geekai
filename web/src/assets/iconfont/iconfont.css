@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1740279975534') format('woff2'),
-       url('iconfont.woff?t=1740279975534') format('woff'),
-       url('iconfont.ttf?t=1740279975534') format('truetype');
+  src: url('iconfont.woff2?t=1752731646117') format('woff2'),
+       url('iconfont.woff?t=1752731646117') format('woff'),
+       url('iconfont.ttf?t=1752731646117') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,142 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-video:before {
+  content: "\e63f";
+}
+
+.icon-empty-box:before {
+  content: "\e638";
+}
+
+.icon-check2:before {
+  content: "\e7e2";
+}
+
+.icon-creator:before {
+  content: "\e6a1";
+}
+
+.icon-withdraw:before {
+  content: "\e689";
+}
+
+.icon-withdraw-log:before {
+  content: "\e635";
+}
+
+.icon-money:before {
+  content: "\e831";
+}
+
+.icon-doller:before {
+  content: "\e633";
+}
+
+.icon-wallet:before {
+  content: "\e64d";
+}
+
+.icon-check:before {
+  content: "\e810";
+}
+
+.icon-refuse:before {
+  content: "\e629";
+}
+
+.icon-Reject:before {
+  content: "\e70d";
+}
+
+.icon-clock:before {
+  content: "\e65d";
+}
+
+.icon-eye-close:before {
+  content: "\e7aa";
+}
+
+.icon-eye-open:before {
+  content: "\e7ab";
+}
+
+.icon-list:before {
+  content: "\e650";
+}
+
+.icon-categroy:before {
+  content: "\e620";
+}
+
+.icon-zhankai:before {
+  content: "\e632";
+}
+
+.icon-wechat-mini:before {
+  content: "\e63d";
+}
+
+.icon-niutou:before {
+  content: "\e64c";
+}
+
+.icon-qiniu:before {
+  content: "\e62c";
+}
+
+.icon-storage:before {
+  content: "\e69a";
+}
+
+.icon-localstorage:before {
+  content: "\ea8d";
+}
+
+.icon-minio:before {
+  content: "\e855";
+}
+
+.icon-aliyun:before {
+  content: "\e672";
+}
+
+.icon-sms:before {
+  content: "\e82c";
+}
+
+.icon-duanxin:before {
+  content: "\e65c";
+}
+
+.icon-yanzm:before {
+  content: "\e625";
+}
+
+.icon-yaoqm:before {
+  content: "\e66e";
+}
+
+.icon-epay:before {
+  content: "\e628";
+}
+
+.icon-coze:before {
+  content: "\e61b";
+}
+
+.icon-token:before {
+  content: "\e68e";
+}
+
+.icon-reset:before {
+  content: "\e649";
+}
+
+.icon-stats:before {
+  content: "\e878";
 }
 
 .icon-keling:before {
@@ -289,7 +425,7 @@
   content: "\e6c4";
 }
 
-.icon-mp1:before {
+.icon-mp4:before {
   content: "\e647";
 }
 
