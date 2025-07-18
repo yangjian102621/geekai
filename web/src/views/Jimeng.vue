@@ -2,16 +2,10 @@
   <div class="page-jimeng">
     <!-- 左侧参数设置面板 -->
     <div class="params-panel">
-      <h2>即梦AI</h2>
-      
       <!-- 功能分类按钮组 -->
       <div class="category-buttons">
-        <div class="category-label">
-          <el-icon><Star /></el-icon>
-          功能分类
-        </div>
         <div class="category-grid">
-          <div 
+          <div
             v-for="category in store.categories"
             :key="category.key"
             :class="['category-btn', { active: store.activeCategory === category.key }]"
@@ -26,7 +20,12 @@
       </div>
 
       <!-- 功能开关 -->
-      <div class="function-switch" v-if="store.activeCategory === 'image_generation' || store.activeCategory === 'video_generation'">
+      <div
+        class="function-switch"
+        v-if="
+          store.activeCategory === 'image_generation' || store.activeCategory === 'video_generation'
+        "
+      >
         <div class="switch-label">
           <el-icon><Switch /></el-icon>
           生成模式
@@ -34,17 +33,21 @@
         <div class="switch-container">
           <div class="switch-info">
             <div class="switch-title">
-              {{ store.useImageInput ? (store.activeCategory === 'image_generation' ? '图生图' : '图生视频') : (store.activeCategory === 'image_generation' ? '文生图' : '文生视频') }}
+              {{
+                store.useImageInput
+                  ? store.activeCategory === 'image_generation'
+                    ? '图生图'
+                    : '图生视频'
+                  : store.activeCategory === 'image_generation'
+                  ? '文生图'
+                  : '文生视频'
+              }}
             </div>
             <div class="switch-desc">
               {{ store.useImageInput ? '使用图片作为输入' : '使用文字作为输入' }}
             </div>
           </div>
-          <el-switch 
-            v-model="store.useImageInput" 
-            @change="store.switchInputMode"
-            size="large"
-          />
+          <el-switch v-model="store.useImageInput" @change="store.switchInputMode" size="large" />
         </div>
       </div>
 
@@ -68,7 +71,7 @@
               show-word-limit
             />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">图片尺寸：</span>
           </div>
@@ -80,17 +83,22 @@
               <el-option label="768x1024 (竖版)" value="768x1024" />
             </el-select>
           </div>
-          
+
           <div class="item-group">
             <span class="label">创意度：</span>
             <el-slider v-model="store.textToImageParams.scale" :min="1" :max="10" :step="0.5" />
           </div>
-          
+
           <div class="item-group">
             <span class="label">种子值：</span>
-            <el-input-number v-model="store.textToImageParams.seed" :min="-1" :max="999999" size="small" />
+            <el-input-number
+              v-model="store.textToImageParams.seed"
+              :min="-1"
+              :max="999999"
+              size="small"
+            />
           </div>
-          
+
           <div class="item-group flex justify-between">
             <span class="label">智能优化提示词</span>
             <el-switch v-model="store.textToImageParams.use_pre_llm" size="small" />
@@ -105,7 +113,7 @@
           <div class="param-line">
             <ImageUpload v-model="store.imageToImageParams.image_input" />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">提示词：</span>
           </div>
@@ -119,7 +127,7 @@
               show-word-limit
             />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">图片尺寸：</span>
           </div>
@@ -131,20 +139,25 @@
               <el-option label="768x1024 (竖版)" value="768x1024" />
             </el-select>
           </div>
-          
+
           <div class="item-group">
             <span class="label">GPEN强度：</span>
             <el-slider v-model="store.imageToImageParams.gpen" :min="0" :max="1" :step="0.1" />
           </div>
-          
+
           <div class="item-group">
             <span class="label">肌肤质感：</span>
             <el-slider v-model="store.imageToImageParams.skin" :min="0" :max="1" :step="0.1" />
           </div>
-          
+
           <div class="item-group">
             <span class="label">种子值：</span>
-            <el-input-number v-model="store.imageToImageParams.seed" :min="-1" :max="999999" size="small" />
+            <el-input-number
+              v-model="store.imageToImageParams.seed"
+              :min="-1"
+              :max="999999"
+              size="small"
+            />
           </div>
         </div>
 
@@ -156,7 +169,7 @@
           <div class="param-line">
             <ImageUpload v-model="store.imageEditParams.image_urls" :multiple="true" />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">编辑提示词：</span>
           </div>
@@ -170,15 +183,20 @@
               show-word-limit
             />
           </div>
-          
+
           <div class="item-group">
             <span class="label">编辑强度：</span>
             <el-slider v-model="store.imageEditParams.scale" :min="0" :max="1" :step="0.1" />
           </div>
-          
+
           <div class="item-group">
             <span class="label">种子值：</span>
-            <el-input-number v-model="store.imageEditParams.seed" :min="-1" :max="999999" size="small" />
+            <el-input-number
+              v-model="store.imageEditParams.seed"
+              :min="-1"
+              :max="999999"
+              size="small"
+            />
           </div>
         </div>
 
@@ -190,7 +208,7 @@
           <div class="param-line">
             <ImageUpload v-model="store.imageEffectsParams.image_input1" />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">特效模板：</span>
           </div>
@@ -201,7 +219,7 @@
               <el-option label="现代科技" value="modern" />
             </el-select>
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">输出尺寸：</span>
           </div>
@@ -230,7 +248,7 @@
               show-word-limit
             />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">视频比例：</span>
           </div>
@@ -241,10 +259,15 @@
               <el-option label="1:1 (正方形)" value="1:1" />
             </el-select>
           </div>
-          
+
           <div class="item-group">
             <span class="label">种子值：</span>
-            <el-input-number v-model="store.textToVideoParams.seed" :min="-1" :max="999999" size="small" />
+            <el-input-number
+              v-model="store.textToVideoParams.seed"
+              :min="-1"
+              :max="999999"
+              size="small"
+            />
           </div>
         </div>
 
@@ -256,7 +279,7 @@
           <div class="param-line">
             <ImageUpload v-model="store.imageToVideoParams.image_urls" :multiple="true" />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">提示词：</span>
           </div>
@@ -270,7 +293,7 @@
               show-word-limit
             />
           </div>
-          
+
           <div class="param-line pt">
             <span class="label">视频比例：</span>
           </div>
@@ -281,10 +304,15 @@
               <el-option label="1:1 (正方形)" value="1:1" />
             </el-select>
           </div>
-          
+
           <div class="item-group">
             <span class="label">种子值：</span>
-            <el-input-number v-model="store.imageToVideoParams.seed" :min="-1" :max="999999" size="small" />
+            <el-input-number
+              v-model="store.imageToVideoParams.seed"
+              :min="-1"
+              :max="999999"
+              size="small"
+            />
           </div>
         </div>
 
@@ -296,9 +324,9 @@
 
         <!-- 提交按钮 -->
         <div class="submit-btn">
-          <el-button 
-            type="primary" 
-            @click="store.submitTask" 
+          <el-button
+            type="primary"
+            @click="store.submitTask"
             :loading="store.submitting"
             :disabled="!store.isLogin || store.userPower < store.currentPowerCost"
             size="large"
@@ -363,7 +391,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="task-center">
               <div class="task-info">
                 <el-tag size="small" :type="store.getStatusType(item.status)">
@@ -379,7 +407,7 @@
                 <span v-if="item.power">{{ item.power }}算力</span>
               </div>
             </div>
-            
+
             <div class="task-right">
               <div class="task-actions">
                 <el-button
@@ -406,11 +434,7 @@
                 >
                   播放
                 </el-button>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="store.removeJob(item)"
-                >
+                <el-button type="danger" size="small" @click="store.removeJob(item)">
                   删除
                 </el-button>
               </div>
@@ -418,11 +442,7 @@
           </div>
         </div>
 
-        <el-empty
-          v-else
-          :image="store.nodata"
-          description="暂无任务，快去创建吧！"
-        />
+        <el-empty v-else :image="store.nodata" description="暂无任务，快去创建吧！" />
 
         <div class="pagination" v-if="store.total > store.pageSize">
           <el-pagination
@@ -438,17 +458,8 @@
     </div>
 
     <!-- 视频预览对话框 -->
-    <el-dialog
-      v-model="store.showDialog"
-      title="视频预览"
-      width="70%"
-      center
-    >
-      <video
-        :src="store.currentVideoUrl"
-        controls
-        style="width: 100%; max-height: 60vh;"
-      >
+    <el-dialog v-model="store.showDialog" title="视频预览" width="70%" center>
+      <video :src="store.currentVideoUrl" controls style="width: 100%; max-height: 60vh">
         您的浏览器不支持视频播放
       </video>
     </el-dialog>
@@ -456,21 +467,22 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import '@/assets/css/jimeng.styl'
+import ImageUpload from '@/components/ImageUpload.vue'
 import { useJimengStore } from '@/store/jimeng'
 import { dateFormat } from '@/utils/libs'
-import ImageUpload from '@/components/ImageUpload.vue'
-import { InfoFilled, Star, Switch, Picture } from '@element-plus/icons-vue'
+import { InfoFilled, Picture, Switch } from '@element-plus/icons-vue'
+import { onMounted, onUnmounted } from 'vue'
 
 const store = useJimengStore()
 
 // 获取分类图标
 const getCategoryIcon = (category) => {
   const iconMap = {
-    'image_generation': 'iconfont icon-image',
-    'image_editing': 'iconfont icon-edit',
-    'image_effects': 'iconfont icon-magic',
-    'video_generation': 'iconfont icon-video'
+    image_generation: 'iconfont icon-image',
+    image_editing: 'iconfont icon-edit',
+    image_effects: 'iconfont icon-chuangzuo',
+    video_generation: 'iconfont icon-video',
   }
   return iconMap[category] || 'iconfont icon-image'
 }
@@ -483,317 +495,3 @@ onUnmounted(() => {
   store.cleanup()
 })
 </script>
-
-<style lang="stylus" scoped>
-.page-jimeng {
-  display: flex;
-  min-height: 100vh;
-  background: var(--chat-bg);
-  
-  // 左侧参数面板
-  .params-panel {
-    min-width: 380px;
-    max-width: 380px;
-    margin: 10px;
-    padding: 20px;
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    color: #333;
-    font-size: 14px;
-    overflow: auto;
-    
-    h2 {
-      font-weight: bold;
-      font-size: 20px;
-      text-align: center;
-      color: #333;
-      margin-bottom: 30px;
-    }
-    
-    // 功能分类按钮组
-    .category-buttons {
-      margin-bottom: 25px;
-      
-      .category-label {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-        
-        .el-icon {
-          margin-right: 8px;
-          color: #5865f2;
-        }
-      }
-      
-      .category-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        
-        .category-btn {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 15px 10px;
-          border: 2px solid #f0f0f0;
-          border-radius: 12px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          background: #fafafa;
-          
-          &:hover {
-            border-color: #5865f2;
-            background: #f8f9ff;
-            transform: translateY(-2px);
-          }
-          
-          &.active {
-            border-color: #5865f2;
-            background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
-          }
-          
-          .category-icon {
-            font-size: 20px;
-            margin-bottom: 8px;
-          }
-          
-          .category-name {
-            font-size: 12px;
-            font-weight: 500;
-          }
-        }
-      }
-    }
-    
-    // 功能开关
-    .function-switch {
-      margin-bottom: 25px;
-      
-      .switch-label {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-        
-        .el-icon {
-          margin-right: 8px;
-          color: #5865f2;
-        }
-      }
-      
-      .switch-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 15px;
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        background: #f9f9f9;
-        
-        .switch-info {
-          flex: 1;
-          
-          .switch-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-          }
-          
-          .switch-desc {
-            font-size: 12px;
-            color: #666;
-          }
-        }
-      }
-    }
-    
-    // 参数容器
-    .params-container {
-      .function-panel {
-        .param-line {
-          margin-bottom: 15px;
-          
-          &.pt {
-            margin-top: 20px;
-          }
-          
-          .label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-          }
-        }
-        
-        .item-group {
-          display: flex;
-          align-items: center;
-          margin-bottom: 15px;
-          
-          .label {
-            margin-right: 15px;
-            font-weight: 600;
-            color: #333;
-            min-width: 80px;
-          }
-        }
-        
-        .text-info {
-          margin: 20px 0;
-          padding: 15px;
-          background: #f0f8ff;
-          border-radius: 8px;
-          border-left: 4px solid #5865f2;
-        }
-        
-        .submit-btn {
-          margin-top: 30px;
-          
-          .el-button {
-            width: 100%;
-            height: 50px;
-            font-size: 16px;
-            font-weight: 600;
-          }
-        }
-      }
-    }
-  }
-  
-  // 右侧主要内容区域
-  .main-content {
-    flex: 1;
-    padding: 20px;
-    background: var(--chat-bg);
-    color: var(--text-theme-color);
-    
-    .works-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      
-      .h-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: var(--text-theme-color);
-        margin: 0;
-      }
-    }
-    
-    .task-list {
-      .list-box {
-        .task-item {
-          display: flex;
-          align-items: center;
-          padding: 20px;
-          margin-bottom: 15px;
-          background: var(--card-bg);
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          
-          .task-left {
-            margin-right: 20px;
-            
-            .task-preview {
-              width: 120px;
-              height: 90px;
-              border-radius: 8px;
-              overflow: hidden;
-              background: #f0f0f0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              
-              .preview-image, .preview-video {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-              }
-              
-              .preview-placeholder {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                color: #999;
-                font-size: 12px;
-                
-                .el-icon {
-                  font-size: 24px;
-                  margin-bottom: 5px;
-                }
-              }
-            }
-          }
-          
-          .task-center {
-            flex: 1;
-            
-            .task-info {
-              display: flex;
-              gap: 8px;
-              margin-bottom: 10px;
-            }
-            
-            .task-prompt {
-              font-size: 14px;
-              color: var(--text-theme-color);
-              margin-bottom: 8px;
-              line-height: 1.4;
-            }
-            
-            .task-meta {
-              display: flex;
-              gap: 15px;
-              font-size: 12px;
-              color: #999;
-            }
-          }
-          
-          .task-right {
-            .task-actions {
-              display: flex;
-              gap: 8px;
-              flex-wrap: wrap;
-            }
-          }
-        }
-      }
-      
-      .pagination {
-        margin-top: 30px;
-        display: flex;
-        justify-content: center;
-      }
-    }
-  }
-}
-
-// 响应式设计
-@media (max-width: 768px) {
-  .page-jimeng {
-    flex-direction: column;
-    
-    .params-panel {
-      min-width: 100%;
-      max-width: 100%;
-      margin: 10px 0;
-    }
-    
-    .main-content {
-      padding: 15px;
-    }
-  }
-}
-</style>

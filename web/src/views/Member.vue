@@ -7,27 +7,37 @@
       :element-loading-text="loadingText"
     >
       <div class="inner">
-        <div class="user-profile">
-          <user-profile :key="profileKey" />
-
-          <el-row class="user-opt" :gutter="20">
-            <el-col :span="12">
-              <el-button type="primary" @click="showBindEmailDialog = true">绑定邮箱</el-button>
-            </el-col>
-            <el-col :span="12">
-              <el-button type="primary" @click="showBindMobileDialog = true">绑定手机</el-button>
-            </el-col>
-            <el-col :span="12">
-              <el-button type="primary" @click="showThirdLoginDialog = true">第三方登录</el-button>
-            </el-col>
-            <el-col :span="12">
-              <el-button type="primary" @click="showPasswordDialog = true">修改密码</el-button>
+        <el-card class="profile-card">
+          <el-row class="user-opt" :gutter="16">
+            <el-col :span="24">
+              <el-button class="profile-btn email" @click="showBindEmailDialog = true">
+                <i class="iconfont icon-email"></i> 绑定邮箱
+              </el-button>
             </el-col>
             <el-col :span="24">
-              <el-button type="primary" @click="showRedeemVerifyDialog = true">卡密兑换 </el-button>
+              <el-button class="profile-btn mobile" @click="showBindMobileDialog = true">
+                <i class="iconfont icon-mobile"></i> 绑定手机
+              </el-button>
+            </el-col>
+            <el-col :span="24">
+              <el-button class="profile-btn third" @click="showThirdLoginDialog = true">
+                <i class="iconfont icon-login"></i> 第三方登录
+              </el-button>
+            </el-col>
+            <el-col :span="24">
+              <el-button class="profile-btn password" @click="showPasswordDialog = true">
+                <i class="iconfont icon-password"></i> 修改密码
+              </el-button>
+            </el-col>
+            <el-divider />
+            <el-col :span="24">
+              <el-button class="profile-btn redeem" @click="showRedeemVerifyDialog = true">
+                <i class="iconfont icon-redeem"></i> 卡密兑换
+              </el-button>
             </el-col>
           </el-row>
-        </div>
+        </el-card>
+        <div class="profile-bg"></div>
 
         <div class="product-box">
           <div class="info" v-if="orderPayInfoText !== ''">
@@ -158,7 +168,6 @@ import PasswordDialog from '@/components/PasswordDialog.vue'
 import RedeemVerify from '@/components/RedeemVerify.vue'
 import ThirdLogin from '@/components/ThirdLogin.vue'
 import UserOrder from '@/components/UserOrder.vue'
-import UserProfile from '@/components/UserProfile.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
@@ -185,7 +194,6 @@ const orderPayInfoText = ref('')
 const payWays = ref([])
 const vipInfoText = ref('')
 const store = useSharedStore()
-const profileKey = ref(0)
 const userOrderKey = ref(0)
 const showDialog = ref(false)
 const qrImg = ref('')
@@ -276,17 +284,13 @@ const pay = (product, payWay) => {
     })
 }
 
-const redeemCallback = (success) => {
+const redeemCallback = () => {
   showRedeemVerifyDialog.value = false
-  if (success) {
-    profileKey.value += 1
-  }
 }
 
 const payCallback = (success) => {
   showDialog.value = false
   if (success) {
-    profileKey.value += 1
     userOrderKey.value += 1
   }
 }

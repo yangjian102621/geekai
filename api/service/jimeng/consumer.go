@@ -81,9 +81,9 @@ func (c *Consumer) processTask() {
 	// 处理任务
 	if err := c.service.ProcessTask(jobId); err != nil {
 		jimengLogger.Errorf("process jimeng task failed: job_id=%d, error=%v", jobId, err)
-		
+
 		// 任务失败，直接标记为失败状态，不进行重试
-		c.service.UpdateJobStatus(jobId, model.JimengJobStatusFailed, err.Error())
+		c.service.UpdateJobStatus(jobId, model.JMTaskStatusFailed, err.Error())
 	} else {
 		jimengLogger.Infof("Jimeng task processed successfully: job_id=%d", jobId)
 	}

@@ -98,6 +98,7 @@ func (s *AppServer) Run(db *gorm.DB) error {
 		&model.MidJourneyJob{},
 		&model.UserLoginLog{},
 		&model.DallJob{},
+		&model.JimengJob{},
 	)
 	// 手动删除字段
 	if db.Migrator().HasColumn(&model.Order{}, "deleted_at") {

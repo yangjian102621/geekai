@@ -56,7 +56,7 @@ func (s *Service) CreateTask(userId uint, req *CreateTaskRequest) (*model.Jimeng
 		ReqKey:     req.ReqKey,
 		Prompt:     req.Prompt,
 		TaskParams: string(paramsJson),
-		Status:     model.JimengJobStatusPending,
+		Status:     model.JMTaskStatusInQueue,
 		Power:      req.Power,
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
@@ -88,23 +88,23 @@ func (s *Service) ProcessTask(jobId uint) error {
 	}
 
 	// 更新任务状态为处理中
-	if err := s.UpdateJobStatus(job.Id, model.JimengJobStatusProcessing, ""); err != nil {
+	if err := s.UpdateJobStatus(job.Id, model.JMTaskStatusGenerating, ""); err != nil {
 		return fmt.Errorf("update job status failed: %w", err)
 	}
 
 	// 根据任务类型处理
 	switch job.Type {
-	case model.JimengJobTypeTextToImage:
+	case model.JMTaskTypeTextToImage:
 		return s.processTextToImage(&job)
-	case model.JimengJobTypeImageToImagePortrait:
+	case model.JMTaskTypeImageToImage:
 		return s.processImageToImagePortrait(&job)
-	case model.JimengJobTypeImageEdit:
+	case model.JMTaskTypeImageEdit:
 		return s.processImageEdit(&job)
-	case model.JimengJobTypeImageEffects:
+	case model.JMTaskTypeImageEffects:
 		return s.processImageEffects(&job)
-	case model.JimengJobTypeTextToVideo:
+	case model.JMTaskTypeTextToVideo:
 		return s.processTextToVideo(&job)
-	case model.JimengJobTypeImageToVideo:
+	case model.JMTaskTypeImageToVideo:
 		return s.processImageToVideo(&job)
 	default:
 		return fmt.Errorf("unsupported task type: %s", job.Type)
@@ -517,10 +517,15 @@ func (s *Service) pollTaskStatus(jobId uint, taskId, reqKey string) error {
 		}
 
 		switch resp.Data.Status {
-		case TaskStatusDone:
+		case model.JMTaskStatusDone:
+			// 判断任务是否成功
+			if resp.Message != "Success" {
+				return s.handleTaskError(jobId, fmt.Sprintf("task failed: %s", resp.Data.AlgorithmBaseResp.StatusMessage))
+			}
+
 			// 任务完成，更新结果
 			updates := map[string]any{
-				"status":     model.JimengJobStatusCompleted,
+				"status":     model.JMTaskStatusSuccess,
 				"progress":   100,
 				"updated_at": time.Now(),
 			}
@@ -535,15 +540,15 @@ func (s *Service) pollTaskStatus(jobId uint, taskId, reqKey string) error {
 
 			return s.db.Model(&model.JimengJob{}).Where("id = ?", jobId).Updates(updates).Error
 
-		case TaskStatusInQueue:
+		case model.JMTaskStatusInQueue:
 			// 任务在队列中
 			s.UpdateJobProgress(jobId, 10)
 
-		case TaskStatusGenerating:
+		case model.JMTaskStatusGenerating:
 			// 任务处理中
 			s.UpdateJobProgress(jobId, 50)
 
-		case TaskStatusNotFound, TaskStatusExpired:
+		case model.JMTaskStatusNotFound:
 			// 任务未找到或已过期
 			return s.handleTaskError(jobId, fmt.Sprintf("task not found or expired: %s", resp.Data.Status))
 
@@ -559,7 +564,7 @@ func (s *Service) pollTaskStatus(jobId uint, taskId, reqKey string) error {
 }
 
 // UpdateJobStatus 更新任务状态
-func (s *Service) UpdateJobStatus(jobId uint, status, errMsg string) error {
+func (s *Service) UpdateJobStatus(jobId uint, status model.JMTaskStatus, errMsg string) error {
 	updates := map[string]any{
 		"status":     status,
 		"updated_at": time.Now(),
@@ -581,7 +586,7 @@ func (s *Service) UpdateJobProgress(jobId uint, progress int) error {
 // handleTaskError 处理任务错误
 func (s *Service) handleTaskError(jobId uint, errMsg string) error {
 	serviceLogger.Errorf("Jimeng task error (job_id: %d): %s", jobId, errMsg)
-	return s.UpdateJobStatus(jobId, model.JimengJobStatusFailed, errMsg)
+	return s.UpdateJobStatus(jobId, model.JMTaskStatusFailed, errMsg)
 }
 
 // GetJob 获取任务
@@ -618,7 +623,7 @@ func (s *Service) GetUserJobs(userId uint, page, pageSize int) ([]*model.JimengJ
 func (s *Service) GetPendingTaskCount(userId uint) (int64, error) {
 	var count int64
 	err := s.db.Model(&model.JimengJob{}).Where("user_id = ? AND status IN (?)", userId,
-		[]string{model.JimengJobStatusPending, model.JimengJobStatusProcessing}).Count(&count).Error
+		[]model.JMTaskStatus{model.JMTaskStatusInQueue, model.JMTaskStatusGenerating}).Count(&count).Error
 	return count, err
 }
 

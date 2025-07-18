@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"geekai/core"
@@ -83,10 +82,10 @@ func (h *JimengHandler) TextToImage(c *gin.Context) {
 
 	// 创建任务
 	taskReq := &jimeng.CreateTaskRequest{
-		Type:   model.JimengJobTypeTextToImage,
+		Type:   model.JMTaskTypeTextToImage,
 		Prompt: req.Prompt,
 		Params: params,
-		ReqKey: model.ReqKeyTextToImage,
+		ReqKey: jimeng.ReqKeyTextToImage,
 		Power:  20,
 	}
 
@@ -180,10 +179,10 @@ func (h *JimengHandler) ImageToImagePortrait(c *gin.Context) {
 
 	// 创建任务
 	taskReq := &jimeng.CreateTaskRequest{
-		Type:   model.JimengJobTypeImageToImagePortrait,
+		Type:   model.JMTaskTypeImageToImage,
 		Prompt: req.Prompt,
 		Params: params,
-		ReqKey: model.ReqKeyImageToImagePortrait,
+		ReqKey: jimeng.ReqKeyImageToImagePortrait,
 		Power:  30,
 	}
 
@@ -259,10 +258,10 @@ func (h *JimengHandler) ImageEdit(c *gin.Context) {
 
 	// 创建任务
 	taskReq := &jimeng.CreateTaskRequest{
-		Type:   model.JimengJobTypeImageEdit,
+		Type:   model.JMTaskTypeImageEdit,
 		Prompt: req.Prompt,
 		Params: params,
-		ReqKey: model.ReqKeyImageEdit,
+		ReqKey: jimeng.ReqKeyImageEdit,
 		Power:  25,
 	}
 
@@ -328,10 +327,10 @@ func (h *JimengHandler) ImageEffects(c *gin.Context) {
 
 	// 创建任务
 	taskReq := &jimeng.CreateTaskRequest{
-		Type:   model.JimengJobTypeImageEffects,
+		Type:   model.JMTaskTypeImageEffects,
 		Prompt: "",
 		Params: params,
-		ReqKey: model.ReqKeyImageEffects,
+		ReqKey: jimeng.ReqKeyImageEffects,
 		Power:  15,
 	}
 
@@ -394,10 +393,10 @@ func (h *JimengHandler) TextToVideo(c *gin.Context) {
 
 	// 创建任务
 	taskReq := &jimeng.CreateTaskRequest{
-		Type:   model.JimengJobTypeTextToVideo,
+		Type:   model.JMTaskTypeTextToVideo,
 		Prompt: req.Prompt,
 		Params: params,
-		ReqKey: model.ReqKeyTextToVideo,
+		ReqKey: jimeng.ReqKeyTextToVideo,
 		Power:  100,
 	}
 
@@ -470,10 +469,10 @@ func (h *JimengHandler) ImageToVideo(c *gin.Context) {
 
 	// 创建任务
 	taskReq := &jimeng.CreateTaskRequest{
-		Type:   model.JimengJobTypeImageToVideo,
+		Type:   model.JMTaskTypeImageToVideo,
 		Prompt: req.Prompt,
 		Params: params,
-		ReqKey: model.ReqKeyImageToVideo,
+		ReqKey: jimeng.ReqKeyImageToVideo,
 		Power:  120,
 	}
 
@@ -569,9 +568,8 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 		return
 	}
 
-	jobIdStr := c.Param("id")
-	jobId, err := strconv.ParseUint(jobIdStr, 10, 32)
-	if err != nil {
+	jobId := h.GetInt(c, "id", 0)
+	if jobId == 0 {
 		resp.ERROR(c, "参数错误")
 		return
 	}
@@ -582,20 +580,20 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 		resp.ERROR(c, "任务不存在")
 		return
 	}
-	
+
 	if job.UserId != user.Id {
 		resp.ERROR(c, "无权限操作")
 		return
 	}
 
 	// 只有失败的任务才能重试
-	if job.Status != model.JimengJobStatusFailed {
+	if job.Status != model.JMTaskStatusFailed {
 		resp.ERROR(c, "只有失败的任务才能重试")
 		return
 	}
 
 	// 重置任务状态
-	if err := h.jimengService.UpdateJobStatus(uint(jobId), model.JimengJobStatusPending, ""); err != nil {
+	if err := h.jimengService.UpdateJobStatus(uint(jobId), model.JMTaskStatusInQueue, ""); err != nil {
 		logger.Errorf("reset job status failed: %v", err)
 		resp.ERROR(c, "重置任务状态失败")
 		return

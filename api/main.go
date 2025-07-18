@@ -525,7 +525,7 @@ func main() {
 			group.GET("jobs", h.Jobs)
 			group.GET("pending-count", h.PendingCount)
 			group.GET("remove", h.Remove)
-			group.POST("retry/:id", h.Retry)
+			group.GET("retry", h.Retry)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
 			group := s.Engine.Group("/api/admin/jimeng")
