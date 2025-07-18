@@ -1,9 +1,9 @@
 package model
 
 type Config struct {
-	Id         uint    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Key     string `gorm:"column:marker;type:varchar(20);uniqueIndex;not null;comment:标识" json:"marker"`
-	Config string `gorm:"column:config_json;type:text;not null" json:"config_json"`
+	Id    uint   `gorm:"column:id;primaryKey;autoIncrement"`
+	Name  string `gorm:"column:name;type:varchar(20);uniqueIndex;not null;comment:配置名称"`
+	Value string `gorm:"column:value;type:text;not null"`
 }
 
 func (m *Config) TableName() string {

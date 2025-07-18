@@ -259,10 +259,16 @@ const routes = [
         component: () => import('@/views/admin/records/Medias.vue'),
       },
       {
-        path: '/admin/jimeng',
-        name: 'admin-jimeng',
-        meta: { title: '即梦AI管理' },
-        component: () => import('@/views/admin/JimengJobs.vue'),
+        path: '/admin/jimeng/jobs',
+        name: 'admin-jimeng-jobs',
+        meta: { title: '即梦AI任务' },
+        component: () => import('@/views/admin/jimeng/JimengJobs.vue'),
+      },
+      {
+        path: '/admin/jimeng/config',
+        name: 'admin-jimeng-config',
+        meta: { title: '即梦设置' },
+        component: () => import('@/views/admin/jimeng/JimengSetting.vue'),
       },
       {
         path: '/admin/powerLog',
@@ -364,4 +370,4 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-export { router, prevRoute }
+export { prevRoute, router }

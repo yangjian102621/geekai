@@ -60,13 +60,28 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
+
+	// 重命名 config 表字段
+	if db.Migrator().HasColumn(&model.Config{}, "config_json") {
+		db.Migrator().RenameColumn(&model.Config{}, "config_json", "value")
+	}
+	if db.Migrator().HasColumn(&model.Config{}, "marker") {
+		db.Migrator().RenameColumn(&model.Config{}, "marker", "name")
+	}
+	if db.Migrator().HasIndex(&model.Config{}, "idx_chatgpt_configs_key") {
+		db.Migrator().DropIndex(&model.Config{}, "idx_chatgpt_configs_key")
+	}
+	if db.Migrator().HasIndex(&model.Config{}, "marker") {
+		db.Migrator().DropIndex(&model.Config{}, "marker")
+	}
+
 	// load system configs
 	var sysConfig model.Config
-	err := db.Where("marker", "system").First(&sysConfig).Error
+	err := db.Where("name", "system").First(&sysConfig).Error
 	if err != nil {
 		return fmt.Errorf("failed to load system config: %v", err)
 	}
-	err = utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &s.SysConfig)
 	if err != nil {
 		return fmt.Errorf("failed to decode system config: %v", err)
 	}

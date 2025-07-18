@@ -66,15 +66,15 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 	}
 
 	value := utils.JsonEncode(&data.Config)
-	config := model.Config{Key: data.Key, Config: value}
-	res := h.DB.FirstOrCreate(&config, model.Config{Key: data.Key})
+	config := model.Config{Name: data.Key, Value: value}
+	res := h.DB.FirstOrCreate(&config, model.Config{Name: data.Key})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
 	if config.Id > 0 {
-		config.Config = value
+		config.Value = value
 		res := h.DB.Updates(&config)
 		if res.Error != nil {
 			resp.ERROR(c, res.Error.Error())
@@ -83,16 +83,16 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 
 		// update config cache for AppServer
 		var cfg model.Config
-		h.DB.Where("marker", data.Key).First(&cfg)
+		h.DB.Where("name", data.Key).First(&cfg)
 		var err error
 		if data.Key == "system" {
-			err = utils.JsonDecode(cfg.Config, &h.App.SysConfig)
+			err = utils.JsonDecode(cfg.Value, &h.App.SysConfig)
 		}
 		if err != nil {
 			resp.ERROR(c, "Failed to update config cache: "+err.Error())
 			return
 		}
-		logger.Infof("Update AppServer's config successfully: %v", config.Config)
+		logger.Infof("Update AppServer's config successfully: %v", config.Value)
 	}
 
 	resp.SUCCESS(c, config)
@@ -102,14 +102,14 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 func (h *ConfigHandler) Get(c *gin.Context) {
 	key := c.Query("key")
 	var config model.Config
-	res := h.DB.Where("marker", key).First(&config)
+	res := h.DB.Where("name", key).First(&config)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
 	var value map[string]interface{}
-	err := utils.JsonDecode(config.Config, &value)
+	err := utils.JsonDecode(config.Value, &value)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

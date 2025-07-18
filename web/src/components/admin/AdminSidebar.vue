@@ -159,10 +159,23 @@ const items = [
         index: '/admin/medias',
         title: '音视频记录',
       },
+    ],
+  },
+  {
+    icon: 'jimeng',
+    index: '/admin/jimeng',
+    title: '即梦AI',
+    subs: [
       {
-        icon: 'image',
-        index: '/admin/jimeng',
-        title: '即梦AI任务',
+        icon: 'list',
+        index: '/admin/jimeng/jobs',
+        title: '任务列表',
+      },
+
+      {
+        icon: 'config',
+        index: '/admin/jimeng/config',
+        title: '即梦设置',
       },
     ],
   },

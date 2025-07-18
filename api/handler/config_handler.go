@@ -31,14 +31,14 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB, licenseService *service.
 func (h *ConfigHandler) Get(c *gin.Context) {
 	key := c.Query("key")
 	var config model.Config
-	res := h.DB.Where("marker", key).First(&config)
+	res := h.DB.Where("name", key).First(&config)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
-	var value map[string]interface{}
-	err := utils.JsonDecode(config.Config, &value)
+	var value map[string]any
+	err := utils.JsonDecode(config.Value, &value)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
