@@ -115,12 +115,12 @@
             </div>
 
             <!-- Luma 特有参数设置 -->
-            <div class="item-group">
+            <div class="item-group flex justify-between">
               <span class="label">循环参考图</span>
               <el-switch v-model="store.lumaParams.loop" size="small" />
             </div>
 
-            <div class="item-group">
+            <div class="item-group flex justify-between">
               <span class="label">提示词优化</span>
               <el-switch v-model="store.lumaParams.expand_prompt" size="small" />
             </div>

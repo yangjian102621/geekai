@@ -131,7 +131,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 			HdSteps:      data.HdSteps,
 		},
 		UserId:           userId,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		TranslateModelId: h.App.SysConfig.AssistantModelId,
 	}
 
 	job := model.SdJob{

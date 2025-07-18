@@ -10,6 +10,7 @@ package store
 import (
 	"context"
 	"geekai/utils"
+
 	"github.com/go-redis/redis/v8"
 )
 
@@ -23,15 +24,15 @@ func NewRedisQueue(name string, client *redis.Client) *RedisQueue {
 	return &RedisQueue{name: name, client: client, ctx: context.Background()}
 }
 
-func (q *RedisQueue) RPush(value interface{}) {
-	q.client.RPush(q.ctx, q.name, utils.JsonEncode(value))
+func (q *RedisQueue) RPush(value any) error {
+	return q.client.RPush(q.ctx, q.name, utils.JsonEncode(value)).Err()
 }
 
-func (q *RedisQueue) LPush(value interface{}) {
-	q.client.LPush(q.ctx, q.name, utils.JsonEncode(value))
+func (q *RedisQueue) LPush(value any) error {
+	return q.client.LPush(q.ctx, q.name, utils.JsonEncode(value)).Err()
 }
 
-func (q *RedisQueue) LPop(value interface{}) error {
+func (q *RedisQueue) LPop(value any) error {
 	result, err := q.client.BLPop(q.ctx, 0, q.name).Result()
 	if err != nil {
 		return err
@@ -39,10 +40,18 @@ func (q *RedisQueue) LPop(value interface{}) error {
 	return utils.JsonDecode(result[1], value)
 }
 
-func (q *RedisQueue) RPop(value interface{}) error {
+func (q *RedisQueue) RPop(value any) error {
 	result, err := q.client.BRPop(q.ctx, 0, q.name).Result()
 	if err != nil {
 		return err
 	}
 	return utils.JsonDecode(result[1], value)
+}
+
+func (q *RedisQueue) Size() (int64, error) {
+	return q.client.LLen(q.ctx, q.name).Result()
+}
+
+func (q *RedisQueue) Clear() error {
+	return q.client.Del(q.ctx, q.name).Err()
 }

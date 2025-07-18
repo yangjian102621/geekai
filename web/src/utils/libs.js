@@ -255,3 +255,8 @@ export function isChrome() {
   const userAgent = navigator.userAgent.toLowerCase()
   return /chrome/.test(userAgent) && !/edg/.test(userAgent)
 }
+
+// 格式化日期时间
+export function formatDateTime(timestamp, format = 'yyyy-MM-dd HH:mm:ss') {
+  return dateFormat(timestamp, format)
+}

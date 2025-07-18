@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42693930",
+      "name": "即梦AI-02",
+      "font_class": "jimeng2",
+      "unicode": "eabc",
+      "unicode_decimal": 60092
+    },
+    {
+      "icon_id": "42693927",
+      "name": "即梦AI-01",
+      "font_class": "jimeng",
+      "unicode": "eabb",
+      "unicode_decimal": 60091
+    },
+    {
       "icon_id": "1283",
       "name": "视频",
       "font_class": "video",

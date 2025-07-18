@@ -49,7 +49,9 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 // PushTask push a new mj task in to task queue
 func (s *Service) PushTask(task types.DallTask) {
 	logger.Infof("add a new DALL-E task to the task list: %+v", task)
-	s.taskQueue.RPush(task)
+	if err := s.taskQueue.RPush(task); err != nil {
+		logger.Errorf("push dall-e task to queue failed: %v", err)
+	}
 }
 
 func (s *Service) Run() {

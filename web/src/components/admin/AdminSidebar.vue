@@ -159,6 +159,11 @@ const items = [
         index: '/admin/medias',
         title: '音视频记录',
       },
+      {
+        icon: 'image',
+        index: '/admin/jimeng',
+        title: '即梦AI任务',
+      },
     ],
   },
 

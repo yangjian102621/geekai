@@ -109,6 +109,12 @@ const routes = [
         meta: { title: '视频创作中心' },
         component: () => import('@/views/Video.vue'),
       },
+      {
+        name: 'jimeng',
+        path: '/jimeng',
+        meta: { title: '即梦AI' },
+        component: () => import('@/views/Jimeng.vue'),
+      },
     ],
   },
   {
@@ -251,6 +257,12 @@ const routes = [
         name: 'admin-medias',
         meta: { title: '音视频管理' },
         component: () => import('@/views/admin/records/Medias.vue'),
+      },
+      {
+        path: '/admin/jimeng',
+        name: 'admin-jimeng',
+        meta: { title: '即梦AI管理' },
+        component: () => import('@/views/admin/JimengJobs.vue'),
       },
       {
         path: '/admin/powerLog',

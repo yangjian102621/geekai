@@ -17,6 +17,7 @@ import (
 	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/dalle"
+	"geekai/service/jimeng"
 	"geekai/service/mj"
 	"geekai/service/oss"
 	"geekai/service/payment"
@@ -140,6 +141,7 @@ func main() {
 		fx.Provide(handler.NewProductHandler),
 		fx.Provide(handler.NewConfigHandler),
 		fx.Provide(handler.NewPowerLogHandler),
+		fx.Provide(handler.NewJimengHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -153,6 +155,9 @@ func main() {
 		fx.Provide(admin.NewOrderHandler),
 		fx.Provide(admin.NewChatHandler),
 		fx.Provide(admin.NewPowerLogHandler),
+		fx.Provide(func(app *core.AppServer, service *jimeng.Service) *admin.AdminJimengHandler {
+			return admin.NewAdminJimengHandler(app, service)
+		}),
 
 		// 创建服务
 		fx.Provide(sms.NewSendServiceManager),
@@ -202,6 +207,17 @@ func main() {
 			s.Run()
 			s.SyncTaskProgress()
 			s.DownloadFiles()
+		}),
+
+		// 即梦AI 服务
+		fx.Provide(func(config *types.AppConfig) *jimeng.Client {
+			return jimeng.NewClient(config.ApiConfig.JimengConfig.AccessKey, config.ApiConfig.JimengConfig.SecretKey)
+		}),
+		fx.Provide(jimeng.NewService),
+		fx.Provide(jimeng.NewConsumer),
+		fx.Invoke(func(consumer *jimeng.Consumer) {
+			consumer.Start()
+			go consumer.MonitorQueue()
 		}),
 		fx.Provide(service.NewUserService),
 		fx.Provide(payment.NewAlipayService),
@@ -495,6 +511,29 @@ func main() {
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
+		}),
+
+		// 即梦AI 路由
+		fx.Invoke(func(s *core.AppServer, h *handler.JimengHandler) {
+			group := s.Engine.Group("/api/jimeng")
+			group.POST("text-to-image", h.TextToImage)
+			group.POST("image-to-image-portrait", h.ImageToImagePortrait)
+			group.POST("image-edit", h.ImageEdit)
+			group.POST("image-effects", h.ImageEffects)
+			group.POST("text-to-video", h.TextToVideo)
+			group.POST("image-to-video", h.ImageToVideo)
+			group.GET("jobs", h.Jobs)
+			group.GET("pending-count", h.PendingCount)
+			group.GET("remove", h.Remove)
+			group.POST("retry/:id", h.Retry)
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
+			group := s.Engine.Group("/api/admin/jimeng")
+			group.GET("jobs", h.Jobs)
+			group.GET("job/:id", h.JobDetail)
+			group.DELETE("job/:id", h.Remove)
+			group.POST("batch-remove", h.BatchRemove)
+			group.GET("stats", h.Stats)
 		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {

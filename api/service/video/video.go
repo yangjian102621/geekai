@@ -51,7 +51,9 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 
 func (s *Service) PushTask(task types.VideoTask) {
 	logger.Infof("add a new Video task to the task list: %+v", task)
-	s.taskQueue.RPush(task)
+	if err := s.taskQueue.RPush(task); err != nil {
+		logger.Errorf("push video task to queue failed: %v", err)
+	}
 }
 
 func (s *Service) Run() {

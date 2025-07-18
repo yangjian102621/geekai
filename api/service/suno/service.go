@@ -51,7 +51,9 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 
 func (s *Service) PushTask(task types.SunoTask) {
 	logger.Infof("add a new Suno task to the task list: %+v", task)
-	s.taskQueue.RPush(task)
+	if err := s.taskQueue.RPush(task); err != nil {
+		logger.Errorf("push suno task to queue failed: %v", err)
+	}
 }
 
 func (s *Service) Run() {

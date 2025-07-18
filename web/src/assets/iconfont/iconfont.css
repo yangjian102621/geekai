@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1752731646117') format('woff2'),
-       url('iconfont.woff?t=1752731646117') format('woff'),
-       url('iconfont.ttf?t=1752731646117') format('truetype');
+  src: url('iconfont.woff2?t=1752831319382') format('woff2'),
+       url('iconfont.woff?t=1752831319382') format('woff'),
+       url('iconfont.ttf?t=1752831319382') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-jimeng2:before {
+  content: "\eabc";
+}
+
+.icon-jimeng:before {
+  content: "\eabb";
 }
 
 .icon-video:before {

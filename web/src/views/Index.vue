@@ -69,7 +69,7 @@
             class="nav-item-box"
             @click="router.push(item.url)"
           >
-            <i :class="'iconfont ' + iconMap[item.url]"></i>
+            <i :class="'iconfont ' + item.icon"></i>
             <div>{{ item.name }}</div>
           </div>
         </el-space>
@@ -106,20 +106,6 @@ const docsURL = ref(import.meta.env.VITE_DOCS_URL)
 const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 const giteeURL = ref(import.meta.env.VITE_GITEE_URL)
 const navs = ref([])
-
-const iconMap = ref({
-  '/chat': 'icon-chat',
-  '/mj': 'icon-mj',
-  '/sd': 'icon-sd',
-  '/dalle': 'icon-dalle',
-  '/images-wall': 'icon-image',
-  '/suno': 'icon-suno',
-  '/xmind': 'icon-xmind',
-  '/apps': 'icon-app',
-  '/member': 'icon-vip-user',
-  '/invite': 'icon-share',
-  '/luma': 'icon-luma',
-})
 
 const displayedChars = ref([])
 const initAnimation = ref('')
