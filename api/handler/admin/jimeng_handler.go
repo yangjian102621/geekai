@@ -4,12 +4,15 @@ import (
 	"strconv"
 
 	"geekai/core"
+	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service/jimeng"
 	"geekai/store/model"
+	"geekai/utils"
 	"geekai/utils/resp"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // AdminJimengHandler 管理后台即梦AI处理器
@@ -19,11 +22,23 @@ type AdminJimengHandler struct {
 }
 
 // NewAdminJimengHandler 创建管理后台即梦AI处理器
-func NewAdminJimengHandler(app *core.AppServer, jimengService *jimeng.Service) *AdminJimengHandler {
+func NewAdminJimengHandler(app *core.AppServer, db *gorm.DB, jimengService *jimeng.Service) *AdminJimengHandler {
 	return &AdminJimengHandler{
-		BaseHandler:   handler.BaseHandler{App: app},
+		BaseHandler:   handler.BaseHandler{App: app, DB: db},
 		jimengService: jimengService,
 	}
+}
+
+// RegisterRoutes 注册即梦AI管理后台路由
+func (h *AdminJimengHandler) RegisterRoutes() {
+	rg := h.App.Engine.Group("/api/admin/jimeng/")
+	rg.GET("/jobs", h.Jobs)
+	rg.GET("/jobs/:id", h.JobDetail)
+	rg.DELETE("/jobs/:id", h.Remove)
+	rg.POST("/jobs/batch-remove", h.BatchRemove)
+	rg.GET("/stats", h.Stats)
+	rg.GET("/config", h.GetConfig)
+	rg.POST("/config", h.UpdateConfig)
 }
 
 // Jobs 获取任务列表
@@ -174,4 +189,115 @@ func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, result)
+}
+
+// GetConfig 获取即梦AI配置
+func (h *AdminJimengHandler) GetConfig(c *gin.Context) {
+	var config model.Config
+	err := h.DB.Debug().Where("name", "jimeng").First(&config).Error
+	if err != nil {
+		// 如果配置不存在，返回默认配置
+		defaultConfig := types.JimengConfig{
+			AccessKey: "",
+			SecretKey: "",
+			Power: types.JimengPower{
+				TextToImage:  10,
+				ImageToImage: 15,
+				ImageEdit:    20,
+				ImageEffects: 25,
+				TextToVideo:  30,
+				ImageToVideo: 35,
+			},
+		}
+		resp.SUCCESS(c, defaultConfig)
+		return
+	}
+
+	var jimengConfig types.JimengConfig
+	err = utils.JsonDecode(config.Value, &jimengConfig)
+	if err != nil {
+		resp.ERROR(c, "解析配置失败: "+err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, jimengConfig)
+}
+
+// UpdateConfig 更新即梦AI配置
+func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
+	var req types.JimengConfig
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp.ERROR(c, "参数错误")
+		return
+	}
+
+	// 验证必填字段
+	if req.AccessKey == "" {
+		resp.ERROR(c, "AccessKey不能为空")
+		return
+	}
+	if req.SecretKey == "" {
+		resp.ERROR(c, "SecretKey不能为空")
+		return
+	}
+
+	testErr := h.jimengService.TestConnection(req.AccessKey, req.SecretKey)
+	if testErr != nil {
+		resp.ERROR(c, "连接测试失败: "+testErr.Error())
+		return
+	}
+
+	// 验证算力配置
+	if req.Power.TextToImage <= 0 {
+		resp.ERROR(c, "文生图算力必须大于0")
+		return
+	}
+	if req.Power.ImageToImage <= 0 {
+		resp.ERROR(c, "图生图算力必须大于0")
+		return
+	}
+	if req.Power.ImageEdit <= 0 {
+		resp.ERROR(c, "图片编辑算力必须大于0")
+		return
+	}
+	if req.Power.ImageEffects <= 0 {
+		resp.ERROR(c, "图片特效算力必须大于0")
+		return
+	}
+	if req.Power.TextToVideo <= 0 {
+		resp.ERROR(c, "文生视频算力必须大于0")
+		return
+	}
+	if req.Power.ImageToVideo <= 0 {
+		resp.ERROR(c, "图生视频算力必须大于0")
+		return
+	}
+
+	// 保存配置
+	value := utils.JsonEncode(&req)
+	config := model.Config{Name: "jimeng", Value: value}
+
+	err := h.DB.FirstOrCreate(&config, model.Config{Name: "jimeng"}).Error
+	if err != nil {
+		resp.ERROR(c, "保存配置失败: "+err.Error())
+		return
+	}
+
+	if config.Id > 0 {
+		config.Value = value
+		err = h.DB.Updates(&config).Error
+		if err != nil {
+			resp.ERROR(c, "更新配置失败: "+err.Error())
+			return
+		}
+	}
+
+	// 更新服务中的客户端配置
+	updateErr := h.jimengService.UpdateClientConfig(req.AccessKey, req.SecretKey)
+	if updateErr != nil {
+		// 配置已保存，但客户端更新失败，记录日志但不返回错误
+		logger.Errorf("更新即梦AI客户端配置失败: %v", updateErr)
+	}
+
+	resp.SUCCESS(c, gin.H{"message": "配置更新成功"})
 }

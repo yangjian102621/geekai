@@ -145,7 +145,7 @@ func (c *Consumer) PushTaskToQueue(task map[string]interface{}) error {
 }
 
 // GetTaskStats 获取任务统计信息
-func (c *Consumer) GetTaskStats() (map[string]interface{}, error) {
+func (c *Consumer) GetTaskStats() (map[string]any, error) {
 	type StatResult struct {
 		Status string `json:"status"`
 		Count  int64  `json:"count"`
@@ -160,7 +160,7 @@ func (c *Consumer) GetTaskStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	result := map[string]interface{}{
+	result := map[string]any{
 		"total":      int64(0),
 		"completed":  int64(0),
 		"processing": int64(0),

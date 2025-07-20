@@ -155,9 +155,7 @@ func main() {
 		fx.Provide(admin.NewOrderHandler),
 		fx.Provide(admin.NewChatHandler),
 		fx.Provide(admin.NewPowerLogHandler),
-		fx.Provide(func(app *core.AppServer, service *jimeng.Service) *admin.AdminJimengHandler {
-			return admin.NewAdminJimengHandler(app, service)
-		}),
+		fx.Provide(admin.NewAdminJimengHandler),
 
 		// 创建服务
 		fx.Provide(sms.NewSendServiceManager),
@@ -211,9 +209,17 @@ func main() {
 
 		// 即梦AI 服务
 		fx.Provide(func(config *types.AppConfig) *jimeng.Client {
-			return jimeng.NewClient(config.ApiConfig.JimengConfig.AccessKey, config.ApiConfig.JimengConfig.SecretKey)
+			// 使用默认配置初始化客户端，后续会从数据库加载
+			return jimeng.NewClient("", "")
 		}),
 		fx.Provide(jimeng.NewService),
+		fx.Invoke(func(service *jimeng.Service) {
+			// 从数据库加载配置
+			err := service.LoadConfigFromDB()
+			if err != nil {
+				logger.Errorf("加载即梦AI配置失败: %v", err)
+			}
+		}),
 		fx.Provide(jimeng.NewConsumer),
 		fx.Invoke(func(consumer *jimeng.Consumer) {
 			consumer.Start()
@@ -515,25 +521,10 @@ func main() {
 
 		// 即梦AI 路由
 		fx.Invoke(func(s *core.AppServer, h *handler.JimengHandler) {
-			group := s.Engine.Group("/api/jimeng")
-			group.POST("text-to-image", h.TextToImage)
-			group.POST("image-to-image-portrait", h.ImageToImagePortrait)
-			group.POST("image-edit", h.ImageEdit)
-			group.POST("image-effects", h.ImageEffects)
-			group.POST("text-to-video", h.TextToVideo)
-			group.POST("image-to-video", h.ImageToVideo)
-			group.GET("jobs", h.Jobs)
-			group.GET("pending-count", h.PendingCount)
-			group.GET("remove", h.Remove)
-			group.GET("retry", h.Retry)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
-			group := s.Engine.Group("/api/admin/jimeng")
-			group.GET("jobs", h.Jobs)
-			group.GET("job/:id", h.JobDetail)
-			group.DELETE("job/:id", h.Remove)
-			group.POST("batch-remove", h.BatchRemove)
-			group.GET("stats", h.Stats)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {

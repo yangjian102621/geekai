@@ -49,12 +49,6 @@ type ApiConfig struct {
 	JimengConfig JimengConfig // 即梦AI配置
 }
 
-// JimengConfig 即梦AI配置
-type JimengConfig struct {
-	AccessKey string // 火山引擎AccessKey
-	SecretKey string // 火山引擎SecretKey
-}
-
 type AlipayConfig struct {
 	Enabled         bool   // 是否启用该支付通道
 	SandBox         bool   // 是否沙盒环境

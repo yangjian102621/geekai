@@ -13,6 +13,8 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 
+	"geekai/core/types"
+
 	"github.com/go-redis/redis/v8"
 )
 
@@ -635,4 +637,90 @@ func (s *Service) DeleteJob(jobId uint, userId uint) error {
 // PushTaskToQueue 推送任务到队列
 func (s *Service) PushTaskToQueue(task map[string]interface{}) error {
 	return s.taskQueue.RPush(task)
+}
+
+// TestConnection 测试即梦AI连接
+func (s *Service) TestConnection(accessKey, secretKey string) error {
+	// 创建临时客户端进行测试
+	testClient := NewClient(accessKey, secretKey)
+
+	// 使用一个简单的查询任务来测试连接
+	// 这里使用一个不存在的任务ID来测试API连接是否正常
+	testReq := &QueryTaskRequest{
+		ReqKey: "test_connection",
+		TaskId: "test_task_id_12345",
+	}
+
+	_, err := testClient.QueryTask(testReq)
+	// 即使任务不存在，只要不是认证错误就说明连接正常
+	if err != nil {
+		// 检查是否是认证错误
+		if err.Error() == "unauthorized" || err.Error() == "access denied" {
+			return fmt.Errorf("认证失败，请检查AccessKey和SecretKey是否正确")
+		}
+		// 其他错误（如任务不存在）说明连接正常
+		return nil
+	}
+
+	return nil
+}
+
+// UpdateClientConfig 更新客户端配置
+func (s *Service) UpdateClientConfig(accessKey, secretKey string) error {
+	// 创建新的客户端
+	newClient := NewClient(accessKey, secretKey)
+
+	// 测试新客户端是否可用
+	err := s.TestConnection(accessKey, secretKey)
+	if err != nil {
+		return fmt.Errorf("新配置测试失败: %w", err)
+	}
+
+	// 更新客户端
+	s.client = newClient
+	return nil
+}
+
+// GetConfig 获取即梦AI配置
+func (s *Service) GetConfig() (*types.JimengConfig, error) {
+	var config model.Config
+	err := s.db.Where("name", "jimeng").First(&config).Error
+	if err != nil {
+		// 如果配置不存在，返回默认配置
+		return &types.JimengConfig{
+			AccessKey: "",
+			SecretKey: "",
+			Power: types.JimengPower{
+				TextToImage:  10,
+				ImageToImage: 15,
+				ImageEdit:    20,
+				ImageEffects: 25,
+				TextToVideo:  30,
+				ImageToVideo: 35,
+			},
+		}, nil
+	}
+
+	var jimengConfig types.JimengConfig
+	err = utils.JsonDecode(config.Value, &jimengConfig)
+	if err != nil {
+		return nil, fmt.Errorf("解析配置失败: %w", err)
+	}
+
+	return &jimengConfig, nil
+}
+
+// LoadConfigFromDB 从数据库加载配置并更新客户端
+func (s *Service) LoadConfigFromDB() error {
+	config, err := s.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	// 如果配置中有AccessKey和SecretKey，则更新客户端
+	if config.AccessKey != "" && config.SecretKey != "" {
+		return s.UpdateClientConfig(config.AccessKey, config.SecretKey)
+	}
+
+	return nil
 }

@@ -28,6 +28,20 @@ func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service) *Jimen
 	}
 }
 
+func (h *JimengHandler) RegisterRoutes() {
+	rg := h.App.Engine.Group("/api/jimeng")
+	rg.POST("text-to-image", h.TextToImage)
+	rg.POST("image-to-image-portrait", h.ImageToImagePortrait)
+	rg.POST("image-edit", h.ImageEdit)
+	rg.POST("image-effects", h.ImageEffects)
+	rg.POST("text-to-video", h.TextToVideo)
+	rg.POST("image-to-video", h.ImageToVideo)
+	rg.GET("jobs", h.Jobs)
+	rg.GET("pending-count", h.PendingCount)
+	rg.GET("remove", h.Remove)
+	rg.GET("retry", h.Retry)
+}
+
 // TextToImage 文生图
 func (h *JimengHandler) TextToImage(c *gin.Context) {
 	var req struct {
@@ -51,9 +65,12 @@ func (h *JimengHandler) TextToImage(c *gin.Context) {
 		return
 	}
 
+	// 获取配置中的算力消耗
+	powerCost := h.getPowerFromConfig(model.JMTaskTypeTextToImage)
+
 	// 检查用户算力
-	if user.Power < 20 { // 文生图消耗20算力
-		resp.ERROR(c, "算力不足")
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
 
@@ -86,7 +103,7 @@ func (h *JimengHandler) TextToImage(c *gin.Context) {
 		Prompt: req.Prompt,
 		Params: params,
 		ReqKey: jimeng.ReqKeyTextToImage,
-		Power:  20,
+		Power:  powerCost,
 	}
 
 	job, err := h.jimengService.CreateTask(user.Id, taskReq)
@@ -97,7 +114,7 @@ func (h *JimengHandler) TextToImage(c *gin.Context) {
 	}
 
 	// 扣除用户算力
-	h.subUserPower(user.Id, 20, model.PowerLog{
+	h.subUserPower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "即梦文生图",
 		Remark: fmt.Sprintf("任务ID：%d", job.Id),
@@ -132,9 +149,12 @@ func (h *JimengHandler) ImageToImagePortrait(c *gin.Context) {
 		return
 	}
 
+	// 获取配置中的算力消耗
+	powerCost := h.getPowerFromConfig(model.JMTaskTypeImageToImage)
+
 	// 检查用户算力
-	if user.Power < 30 { // 图生图消耗30算力
-		resp.ERROR(c, "算力不足")
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
 
@@ -183,7 +203,7 @@ func (h *JimengHandler) ImageToImagePortrait(c *gin.Context) {
 		Prompt: req.Prompt,
 		Params: params,
 		ReqKey: jimeng.ReqKeyImageToImagePortrait,
-		Power:  30,
+		Power:  powerCost,
 	}
 
 	job, err := h.jimengService.CreateTask(user.Id, taskReq)
@@ -194,7 +214,7 @@ func (h *JimengHandler) ImageToImagePortrait(c *gin.Context) {
 	}
 
 	// 扣除用户算力
-	h.subUserPower(user.Id, 30, model.PowerLog{
+	h.subUserPower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "即梦图生图",
 		Remark: fmt.Sprintf("任务ID：%d", job.Id),
@@ -230,9 +250,12 @@ func (h *JimengHandler) ImageEdit(c *gin.Context) {
 		return
 	}
 
+	// 获取配置中的算力消耗
+	powerCost := h.getPowerFromConfig(model.JMTaskTypeImageEdit)
+
 	// 检查用户算力
-	if user.Power < 25 { // 图像编辑消耗25算力
-		resp.ERROR(c, "算力不足")
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
 
@@ -262,7 +285,7 @@ func (h *JimengHandler) ImageEdit(c *gin.Context) {
 		Prompt: req.Prompt,
 		Params: params,
 		ReqKey: jimeng.ReqKeyImageEdit,
-		Power:  25,
+		Power:  powerCost,
 	}
 
 	job, err := h.jimengService.CreateTask(user.Id, taskReq)
@@ -273,7 +296,7 @@ func (h *JimengHandler) ImageEdit(c *gin.Context) {
 	}
 
 	// 扣除用户算力
-	h.subUserPower(user.Id, 25, model.PowerLog{
+	h.subUserPower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "即梦图像编辑",
 		Remark: fmt.Sprintf("任务ID：%d", job.Id),
@@ -303,9 +326,12 @@ func (h *JimengHandler) ImageEffects(c *gin.Context) {
 		return
 	}
 
+	// 获取配置中的算力消耗
+	powerCost := h.getPowerFromConfig(model.JMTaskTypeImageEffects)
+
 	// 检查用户算力
-	if user.Power < 15 { // 图像特效消耗15算力
-		resp.ERROR(c, "算力不足")
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
 
@@ -331,7 +357,7 @@ func (h *JimengHandler) ImageEffects(c *gin.Context) {
 		Prompt: "",
 		Params: params,
 		ReqKey: jimeng.ReqKeyImageEffects,
-		Power:  15,
+		Power:  powerCost,
 	}
 
 	job, err := h.jimengService.CreateTask(user.Id, taskReq)
@@ -342,7 +368,7 @@ func (h *JimengHandler) ImageEffects(c *gin.Context) {
 	}
 
 	// 扣除用户算力
-	h.subUserPower(user.Id, 15, model.PowerLog{
+	h.subUserPower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "即梦图像特效",
 		Remark: fmt.Sprintf("任务ID：%d", job.Id),
@@ -371,9 +397,12 @@ func (h *JimengHandler) TextToVideo(c *gin.Context) {
 		return
 	}
 
+	// 获取配置中的算力消耗
+	powerCost := h.getPowerFromConfig(model.JMTaskTypeTextToVideo)
+
 	// 检查用户算力
-	if user.Power < 100 { // 文生视频消耗100算力
-		resp.ERROR(c, "算力不足")
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
 
@@ -397,7 +426,7 @@ func (h *JimengHandler) TextToVideo(c *gin.Context) {
 		Prompt: req.Prompt,
 		Params: params,
 		ReqKey: jimeng.ReqKeyTextToVideo,
-		Power:  100,
+		Power:  powerCost,
 	}
 
 	job, err := h.jimengService.CreateTask(user.Id, taskReq)
@@ -408,7 +437,7 @@ func (h *JimengHandler) TextToVideo(c *gin.Context) {
 	}
 
 	// 扣除用户算力
-	h.subUserPower(user.Id, 100, model.PowerLog{
+	h.subUserPower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "即梦文生视频",
 		Remark: fmt.Sprintf("任务ID：%d", job.Id),
@@ -444,9 +473,12 @@ func (h *JimengHandler) ImageToVideo(c *gin.Context) {
 		return
 	}
 
+	// 获取配置中的算力消耗
+	powerCost := h.getPowerFromConfig(model.JMTaskTypeImageToVideo)
+
 	// 检查用户算力
-	if user.Power < 120 { // 图生视频消耗120算力
-		resp.ERROR(c, "算力不足")
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
 
@@ -473,7 +505,7 @@ func (h *JimengHandler) ImageToVideo(c *gin.Context) {
 		Prompt: req.Prompt,
 		Params: params,
 		ReqKey: jimeng.ReqKeyImageToVideo,
-		Power:  120,
+		Power:  powerCost,
 	}
 
 	job, err := h.jimengService.CreateTask(user.Id, taskReq)
@@ -484,7 +516,7 @@ func (h *JimengHandler) ImageToVideo(c *gin.Context) {
 	}
 
 	// 扣除用户算力
-	h.subUserPower(user.Id, 120, model.PowerLog{
+	h.subUserPower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "即梦图生视频",
 		Remark: fmt.Sprintf("任务ID：%d", job.Id),
@@ -634,4 +666,46 @@ func (h *JimengHandler) subUserPower(userId uint, power int, powerLog model.Powe
 	}
 
 	session.Commit()
+}
+
+// getPowerFromConfig 从配置中获取指定类型的算力消耗
+func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
+	config, err := h.jimengService.GetConfig()
+	if err != nil {
+		logger.Errorf("获取即梦AI配置失败: %v", err)
+		// 返回默认值
+		switch taskType {
+		case model.JMTaskTypeTextToImage:
+			return 10
+		case model.JMTaskTypeImageToImage:
+			return 15
+		case model.JMTaskTypeImageEdit:
+			return 20
+		case model.JMTaskTypeImageEffects:
+			return 25
+		case model.JMTaskTypeTextToVideo:
+			return 30
+		case model.JMTaskTypeImageToVideo:
+			return 35
+		default:
+			return 10
+		}
+	}
+
+	switch taskType {
+	case model.JMTaskTypeTextToImage:
+		return config.Power.TextToImage
+	case model.JMTaskTypeImageToImage:
+		return config.Power.ImageToImage
+	case model.JMTaskTypeImageEdit:
+		return config.Power.ImageEdit
+	case model.JMTaskTypeImageEffects:
+		return config.Power.ImageEffects
+	case model.JMTaskTypeTextToVideo:
+		return config.Power.TextToVideo
+	case model.JMTaskTypeImageToVideo:
+		return config.Power.ImageToVideo
+	default:
+		return 10
+	}
 }

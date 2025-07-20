@@ -154,7 +154,6 @@ func (h *MediaHandler) Remove(c *gin.Context) {
 		remark = fmt.Sprintf("SUNO 任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		fileURL = job.AudioURL
-		break
 	case "luma":
 	case "keling":
 		var job model.VideoJob
@@ -174,7 +173,6 @@ func (h *MediaHandler) Remove(c *gin.Context) {
 		if fileURL == "" {
 			fileURL = job.WaterURL
 		}
-		break
 	default:
 		resp.ERROR(c, types.InvalidArgs)
 		return
