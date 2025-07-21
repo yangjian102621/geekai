@@ -54,7 +54,6 @@
               <el-input-number
                 v-model="jimengConfig.power.text_to_image"
                 :min="1"
-                :max="100"
                 placeholder="请输入文生图算力消耗"
               />
             </el-form-item>
@@ -78,7 +77,6 @@
               <el-input-number
                 v-model="jimengConfig.power.image_to_image"
                 :min="1"
-                :max="100"
                 placeholder="请输入图生图算力消耗"
               />
             </el-form-item>
@@ -102,7 +100,6 @@
               <el-input-number
                 v-model="jimengConfig.power.image_edit"
                 :min="1"
-                :max="100"
                 placeholder="请输入图片编辑算力消耗"
               />
             </el-form-item>
@@ -126,7 +123,6 @@
               <el-input-number
                 v-model="jimengConfig.power.image_effects"
                 :min="1"
-                :max="100"
                 placeholder="请输入图片特效算力消耗"
               />
             </el-form-item>
@@ -150,7 +146,6 @@
               <el-input-number
                 v-model="jimengConfig.power.text_to_video"
                 :min="1"
-                :max="100"
                 placeholder="请输入文生视频算力消耗"
               />
             </el-form-item>
@@ -174,7 +169,6 @@
               <el-input-number
                 v-model="jimengConfig.power.image_to_video"
                 :min="1"
-                :max="100"
                 placeholder="请输入图生视频算力消耗"
               />
             </el-form-item>
@@ -243,16 +237,10 @@ const saveConfig = async () => {
   try {
     await configFormRef.value.validate()
     saving.value = true
-
-    await httpPost('/api/admin/jimeng/config', {
-      config: jimengConfig.value,
-    })
-
+    await httpPost('/api/admin/jimeng/config/update', jimengConfig.value)
     ElMessage.success('配置保存成功！')
   } catch (e) {
-    if (e.message) {
-      ElMessage.error('保存失败：' + e.message)
-    }
+    ElMessage.error(e.message)
   } finally {
     saving.value = false
   }

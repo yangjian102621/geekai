@@ -38,7 +38,7 @@ func (h *AdminJimengHandler) RegisterRoutes() {
 	rg.POST("/jobs/batch-remove", h.BatchRemove)
 	rg.GET("/stats", h.Stats)
 	rg.GET("/config", h.GetConfig)
-	rg.POST("/config", h.UpdateConfig)
+	rg.POST("/config/update", h.UpdateConfig)
 }
 
 // Jobs 获取任务列表
@@ -241,12 +241,6 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 		return
 	}
 
-	testErr := h.jimengService.TestConnection(req.AccessKey, req.SecretKey)
-	if testErr != nil {
-		resp.ERROR(c, "连接测试失败: "+testErr.Error())
-		return
-	}
-
 	// 验证算力配置
 	if req.Power.TextToImage <= 0 {
 		resp.ERROR(c, "文生图算力必须大于0")
@@ -274,10 +268,11 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	}
 
 	// 保存配置
+	tx := h.DB.Begin()
 	value := utils.JsonEncode(&req)
 	config := model.Config{Name: "jimeng", Value: value}
 
-	err := h.DB.FirstOrCreate(&config, model.Config{Name: "jimeng"}).Error
+	err := tx.FirstOrCreate(&config, model.Config{Name: "jimeng"}).Error
 	if err != nil {
 		resp.ERROR(c, "保存配置失败: "+err.Error())
 		return
@@ -285,7 +280,7 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 
 	if config.Id > 0 {
 		config.Value = value
-		err = h.DB.Updates(&config).Error
+		err = tx.Updates(&config).Error
 		if err != nil {
 			resp.ERROR(c, "更新配置失败: "+err.Error())
 			return
@@ -295,9 +290,11 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	// 更新服务中的客户端配置
 	updateErr := h.jimengService.UpdateClientConfig(req.AccessKey, req.SecretKey)
 	if updateErr != nil {
-		// 配置已保存，但客户端更新失败，记录日志但不返回错误
-		logger.Errorf("更新即梦AI客户端配置失败: %v", updateErr)
+		resp.ERROR(c, updateErr.Error())
+		tx.Rollback()
+		return
 	}
+	tx.Commit()
 
 	resp.SUCCESS(c, gin.H{"message": "配置更新成功"})
 }

@@ -8,10 +8,7 @@ import (
 
 	"github.com/volcengine/volc-sdk-golang/base"
 	"github.com/volcengine/volc-sdk-golang/service/visual"
-	"geekai/logger"
 )
-
-var clientLogger = logger.GetLogger()
 
 // Client 即梦API客户端
 type Client struct {
@@ -80,7 +77,7 @@ func (c *Client) SubmitTask(req *SubmitTaskRequest) (*SubmitTaskResponse, error)
 		return nil, fmt.Errorf("submit task failed (status: %d): %w", statusCode, err)
 	}
 
-	clientLogger.Infof("Jimeng SubmitTask Response: %s", string(respBody))
+	looger.Infof("Jimeng SubmitTask Response: %s", string(respBody))
 
 	// 解析响应
 	var result SubmitTaskResponse
@@ -105,7 +102,7 @@ func (c *Client) QueryTask(req *QueryTaskRequest) (*QueryTaskResponse, error) {
 		return nil, fmt.Errorf("query task failed (status: %d): %w", statusCode, err)
 	}
 
-	clientLogger.Infof("Jimeng QueryTask Response: %s", string(respBody))
+	looger.Infof("Jimeng QueryTask Response: %s", string(respBody))
 
 	// 解析响应
 	var result QueryTaskResponse
@@ -130,7 +127,7 @@ func (c *Client) SubmitSyncTask(req *SubmitTaskRequest) (*QueryTaskResponse, err
 		return nil, fmt.Errorf("submit sync task failed (status: %d): %w", statusCode, err)
 	}
 
-	clientLogger.Infof("Jimeng SubmitSyncTask Response: %s", string(respBody))
+	looger.Infof("Jimeng SubmitSyncTask Response: %s", string(respBody))
 
 	// 解析响应，同步任务直接返回结果
 	var result QueryTaskResponse

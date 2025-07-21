@@ -208,21 +208,10 @@ func main() {
 		}),
 
 		// 即梦AI 服务
-		fx.Provide(func(config *types.AppConfig) *jimeng.Client {
-			// 使用默认配置初始化客户端，后续会从数据库加载
-			return jimeng.NewClient("", "")
-		}),
 		fx.Provide(jimeng.NewService),
-		fx.Invoke(func(service *jimeng.Service) {
-			// 从数据库加载配置
-			err := service.LoadConfigFromDB()
-			if err != nil {
-				logger.Errorf("加载即梦AI配置失败: %v", err)
-			}
-		}),
 		fx.Provide(jimeng.NewConsumer),
 		fx.Invoke(func(consumer *jimeng.Consumer) {
-			consumer.Start()
+			//consumer.Start()
 			go consumer.MonitorQueue()
 		}),
 		fx.Provide(service.NewUserService),

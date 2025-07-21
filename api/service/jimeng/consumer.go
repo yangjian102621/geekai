@@ -55,7 +55,7 @@ func (c *Consumer) consume() {
 // processTask 处理任务
 func (c *Consumer) processTask() {
 	// 从队列中获取任务
-	var task map[string]interface{}
+	var task map[string]any
 	if err := c.service.taskQueue.LPop(&task); err != nil {
 		// 队列为空，等待1秒后重试
 		time.Sleep(time.Second)

@@ -91,7 +91,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 
-  --primary-color: #21aa93
+  // --primary-color: #21aa93
 
   h1 { font-size: 2em; } /* 通常是 2em */
   h2 { font-size: 1.5em; } /* 通常是 1.5em */

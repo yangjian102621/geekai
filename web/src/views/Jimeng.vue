@@ -33,21 +33,10 @@
         <div class="switch-container">
           <div class="switch-info">
             <div class="switch-title">
-              {{
-                store.useImageInput
-                  ? store.activeCategory === 'image_generation'
-                    ? '图生图'
-                    : '图生视频'
-                  : store.activeCategory === 'image_generation'
-                  ? '文生图'
-                  : '文生视频'
-              }}
-            </div>
-            <div class="switch-desc">
-              {{ store.useImageInput ? '使用图片作为输入' : '使用文字作为输入' }}
+              {{ store.activeCategory === 'image_generation' ? '图生图人像写真' : '图生视频' }}
             </div>
           </div>
-          <el-switch v-model="store.useImageInput" @change="store.switchInputMode" size="large" />
+          <el-switch v-model="store.useImageInput" @change="store.switchInputMode" />
         </div>
       </div>
 
@@ -57,13 +46,10 @@
         <div v-if="store.activeFunction === 'text_to_image'" class="function-panel">
           <div class="param-line pt">
             <span class="label">提示词：</span>
-            <el-tooltip content="输入你想要的图片内容描述" placement="right">
-              <el-icon><InfoFilled /></el-icon>
-            </el-tooltip>
           </div>
           <div class="param-line">
             <el-input
-              v-model="store.textToImageParams.prompt"
+              v-model="store.currentPrompt"
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="请输入图片描述，越详细越好"
@@ -77,36 +63,34 @@
           </div>
           <div class="param-line">
             <el-select v-model="store.textToImageParams.size" placeholder="选择尺寸">
-              <el-option label="1328x1328 (正方形)" value="1328x1328" />
-              <el-option label="1024x1024 (正方形)" value="1024x1024" />
-              <el-option label="1024x768 (横版)" value="1024x768" />
-              <el-option label="768x1024 (竖版)" value="768x1024" />
+              <el-option
+                v-for="opt in imageSizeOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
             </el-select>
           </div>
 
-          <div class="item-group">
-            <span class="label">创意度：</span>
-            <el-slider v-model="store.textToImageParams.scale" :min="1" :max="10" :step="0.5" />
+          <div class="param-line">
+            <span class="label"
+              >创意度
+              <el-tooltip content="创意度越高，影响文本描述的程度越高" placement="top">
+                <i class="iconfont icon-info cursor-pointer ml-1"></i> </el-tooltip
+            ></span>
           </div>
-
           <div class="item-group">
-            <span class="label">种子值：</span>
-            <el-input-number
-              v-model="store.textToImageParams.seed"
-              :min="-1"
-              :max="999999"
-              size="small"
-            />
+            <el-slider v-model="store.textToImageParams.scale" :min="1" :max="10" :step="0.5" />
           </div>
 
           <div class="item-group flex justify-between">
             <span class="label">智能优化提示词</span>
-            <el-switch v-model="store.textToImageParams.use_pre_llm" size="small" />
+            <el-switch v-model="store.textToImageParams.use_pre_llm" />
           </div>
         </div>
 
         <!-- 图生图 -->
-        <div v-if="store.activeFunction === 'image_to_image_portrait'" class="function-panel">
+        <div v-if="store.activeFunction === 'image_to_image'" class="function-panel">
           <div class="param-line pt">
             <span class="label">上传图片：</span>
           </div>
@@ -119,7 +103,7 @@
           </div>
           <div class="param-line">
             <el-input
-              v-model="store.imageToImageParams.prompt"
+              v-model="store.currentPrompt"
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="描述你想要的图片效果"
@@ -133,31 +117,13 @@
           </div>
           <div class="param-line">
             <el-select v-model="store.imageToImageParams.size" placeholder="选择尺寸">
-              <el-option label="1328x1328 (正方形)" value="1328x1328" />
-              <el-option label="1024x1024 (正方形)" value="1024x1024" />
-              <el-option label="1024x768 (横版)" value="1024x768" />
-              <el-option label="768x1024 (竖版)" value="768x1024" />
+              <el-option
+                v-for="opt in imageSizeOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
             </el-select>
-          </div>
-
-          <div class="item-group">
-            <span class="label">GPEN强度：</span>
-            <el-slider v-model="store.imageToImageParams.gpen" :min="0" :max="1" :step="0.1" />
-          </div>
-
-          <div class="item-group">
-            <span class="label">肌肤质感：</span>
-            <el-slider v-model="store.imageToImageParams.skin" :min="0" :max="1" :step="0.1" />
-          </div>
-
-          <div class="item-group">
-            <span class="label">种子值：</span>
-            <el-input-number
-              v-model="store.imageToImageParams.seed"
-              :min="-1"
-              :max="999999"
-              size="small"
-            />
           </div>
         </div>
 
@@ -175,7 +141,7 @@
           </div>
           <div class="param-line">
             <el-input
-              v-model="store.imageEditParams.prompt"
+              v-model="store.currentPrompt"
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="描述你想要的编辑效果"
@@ -187,16 +153,6 @@
           <div class="item-group">
             <span class="label">编辑强度：</span>
             <el-slider v-model="store.imageEditParams.scale" :min="0" :max="1" :step="0.1" />
-          </div>
-
-          <div class="item-group">
-            <span class="label">种子值：</span>
-            <el-input-number
-              v-model="store.imageEditParams.seed"
-              :min="-1"
-              :max="999999"
-              size="small"
-            />
           </div>
         </div>
 
@@ -225,10 +181,12 @@
           </div>
           <div class="param-line">
             <el-select v-model="store.imageEffectsParams.size" placeholder="选择尺寸">
-              <el-option label="1328x1328 (正方形)" value="1328x1328" />
-              <el-option label="1024x1024 (正方形)" value="1024x1024" />
-              <el-option label="1024x768 (横版)" value="1024x768" />
-              <el-option label="768x1024 (竖版)" value="768x1024" />
+              <el-option
+                v-for="opt in imageSizeOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
             </el-select>
           </div>
         </div>
@@ -240,7 +198,7 @@
           </div>
           <div class="param-line">
             <el-input
-              v-model="store.textToVideoParams.prompt"
+              v-model="store.currentPrompt"
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="描述你想要的视频内容"
@@ -254,20 +212,13 @@
           </div>
           <div class="param-line">
             <el-select v-model="store.textToVideoParams.aspect_ratio" placeholder="选择比例">
-              <el-option label="16:9 (横版)" value="16:9" />
-              <el-option label="9:16 (竖版)" value="9:16" />
-              <el-option label="1:1 (正方形)" value="1:1" />
+              <el-option
+                v-for="opt in videoAspectRatioOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
             </el-select>
-          </div>
-
-          <div class="item-group">
-            <span class="label">种子值：</span>
-            <el-input-number
-              v-model="store.textToVideoParams.seed"
-              :min="-1"
-              :max="999999"
-              size="small"
-            />
           </div>
         </div>
 
@@ -285,7 +236,7 @@
           </div>
           <div class="param-line">
             <el-input
-              v-model="store.imageToVideoParams.prompt"
+              v-model="store.currentPrompt"
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="描述你想要的视频效果"
@@ -299,31 +250,18 @@
           </div>
           <div class="param-line">
             <el-select v-model="store.imageToVideoParams.aspect_ratio" placeholder="选择比例">
-              <el-option label="16:9 (横版)" value="16:9" />
-              <el-option label="9:16 (竖版)" value="9:16" />
-              <el-option label="1:1 (正方形)" value="1:1" />
+              <el-option
+                v-for="opt in videoAspectRatioOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
             </el-select>
           </div>
-
-          <div class="item-group">
-            <span class="label">种子值：</span>
-            <el-input-number
-              v-model="store.imageToVideoParams.seed"
-              :min="-1"
-              :max="999999"
-              size="small"
-            />
-          </div>
-        </div>
-
-        <!-- 算力显示 -->
-        <div class="text-info">
-          <el-tag type="primary">当前算力: {{ store.userPower }}</el-tag>
-          <el-tag type="warning">消耗: {{ store.currentPowerCost }}</el-tag>
         </div>
 
         <!-- 提交按钮 -->
-        <div class="submit-btn">
+        <div class="submit-btn flex justify-center pt-4">
           <el-button
             type="primary"
             @click="store.submitTask"
@@ -369,91 +307,118 @@
       </div>
 
       <div class="task-list">
-        <div class="list-box" v-if="!store.noData">
-          <div v-for="item in store.currentList" :key="item.id" class="task-item">
-            <div class="task-left">
-              <div class="task-preview">
-                <el-image
-                  v-if="item.img_url"
-                  :src="item.img_url"
-                  fit="cover"
-                  class="preview-image"
-                />
-                <video
-                  v-else-if="item.video_url"
-                  :src="item.video_url"
-                  class="preview-video"
-                  preload="metadata"
-                />
-                <div v-else class="preview-placeholder">
-                  <el-icon><Picture /></el-icon>
-                  <span>{{ store.getTaskStatusText(item.status) }}</span>
+        <Waterfall
+          :list="store.currentList"
+          v-bind="waterfallOptions"
+          :is-loading="store.loading"
+          :is-over="store.currentList.length >= store.total"
+          @afterRender="onWaterfallAfterRender"
+        >
+          <template #default="{ item }">
+            <div class="task-item">
+              <!-- 保持原有内容 -->
+              <div class="task-left">
+                <div class="task-preview">
+                  <el-image
+                    v-if="item.img_url"
+                    :src="item.img_url"
+                    fit="cover"
+                    class="preview-image"
+                  />
+                  <video
+                    v-else-if="item.video_url"
+                    :src="item.video_url"
+                    class="preview-video"
+                    preload="metadata"
+                  />
+                  <div v-else class="preview-placeholder">
+                    <i class="iconfont icon-dalle text-2xl" v-if="item.type.includes('image')"></i>
+                    <i
+                      class="iconfont icon-video text-2xl"
+                      v-else-if="item.type.includes('video')"
+                    ></i>
+                    <span>{{ store.getTaskStatusText(item.status) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task-center">
+                <div class="task-info flex justify-between">
+                  <div class="flex gap-2">
+                    <el-tag size="small" :type="store.getStatusType(item.status)">
+                      {{ store.getTaskStatusText(item.status) }}
+                    </el-tag>
+                    <el-tag size="small">{{ store.getFunctionName(item.type) }}</el-tag>
+                  </div>
+                  <div class="flex gap-2">
+                    <span>
+                      <el-tooltip content="复制提示词" placement="top">
+                        <i
+                          class="iconfont icon-copy cursor-pointer"
+                          @click="copyPrompt(item.prompt)"
+                        ></i>
+                      </el-tooltip>
+                    </span>
+
+                    <span class="ml-1">
+                      <el-tooltip content="画同款" placement="top">
+                        <i
+                          class="iconfont icon-image-list cursor-pointer"
+                          @click="store.drawSame(item)"
+                        ></i>
+                      </el-tooltip>
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="task-prompt line-clamp-2 min-h-[40px] text-[14px] text-theme mb-2 leading-snug break-all"
+                >
+                  {{ store.substr(item.prompt, 200) }}
+                </div>
+                <div class="task-meta">
+                  <span>{{ dateFormat(item.created_at) }}</span>
+                  <span v-if="item.power">{{ item.power }}算力</span>
+                </div>
+              </div>
+              <div class="task-right">
+                <div class="task-actions">
+                  <el-button
+                    v-if="item.status === 'failed'"
+                    type="primary"
+                    size="small"
+                    @click="store.retryTask(item.id)"
+                  >
+                    重试
+                  </el-button>
+                  <el-button
+                    v-if="item.video_url || item.img_url"
+                    type="default"
+                    size="small"
+                    @click="store.downloadFile(item)"
+                  >
+                    下载
+                  </el-button>
+                  <el-button
+                    v-if="item.video_url"
+                    type="default"
+                    size="small"
+                    @click="store.playVideo(item)"
+                  >
+                    播放
+                  </el-button>
+                  <el-button
+                    type="danger"
+                    v-if="item.status === 'failed'"
+                    size="small"
+                    @click="store.removeJob(item)"
+                  >
+                    删除
+                  </el-button>
                 </div>
               </div>
             </div>
-
-            <div class="task-center">
-              <div class="task-info">
-                <el-tag size="small" :type="store.getStatusType(item.status)">
-                  {{ store.getTaskStatusText(item.status) }}
-                </el-tag>
-                <el-tag size="small">{{ store.getFunctionName(item.type) }}</el-tag>
-              </div>
-              <div class="task-prompt">
-                {{ store.substr(item.prompt, 200) }}
-              </div>
-              <div class="task-meta">
-                <span>{{ dateFormat(item.created_at) }}</span>
-                <span v-if="item.power">{{ item.power }}算力</span>
-              </div>
-            </div>
-
-            <div class="task-right">
-              <div class="task-actions">
-                <el-button
-                  v-if="item.status === 'failed'"
-                  type="primary"
-                  size="small"
-                  @click="store.retryTask(item.id)"
-                >
-                  重试
-                </el-button>
-                <el-button
-                  v-if="item.video_url || item.img_url"
-                  type="default"
-                  size="small"
-                  @click="store.downloadFile(item)"
-                >
-                  下载
-                </el-button>
-                <el-button
-                  v-if="item.video_url"
-                  type="default"
-                  size="small"
-                  @click="store.playVideo(item)"
-                >
-                  播放
-                </el-button>
-                <el-button type="danger" size="small" @click="store.removeJob(item)">
-                  删除
-                </el-button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <el-empty v-else :image="store.nodata" description="暂无任务，快去创建吧！" />
-
-        <div class="pagination" v-if="store.total > store.pageSize">
-          <el-pagination
-            background
-            layout="total, prev, pager, next"
-            :current-page="store.page"
-            :page-size="store.pageSize"
-            :total="store.total"
-            @current-change="store.fetchData"
-          />
-        </div>
+          </template>
+        </Waterfall>
+        <el-empty v-if="store.noData" :image="store.nodata" description="暂无任务，快去创建吧！" />
       </div>
     </div>
 
@@ -469,12 +434,17 @@
 <script setup>
 import '@/assets/css/jimeng.styl'
 import ImageUpload from '@/components/ImageUpload.vue'
-import { useJimengStore } from '@/store/jimeng'
+import { imageSizeOptions, useJimengStore, videoAspectRatioOptions } from '@/store/jimeng'
+import { useSharedStore } from '@/store/sharedata'
 import { dateFormat } from '@/utils/libs'
-import { InfoFilled, Picture, Switch } from '@element-plus/icons-vue'
+import { Switch } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { onMounted, onUnmounted } from 'vue'
+import { Waterfall } from 'vue-waterfall-plugin-next'
+import 'vue-waterfall-plugin-next/dist/style.css'
 
-const store = useJimengStore()
+const sharedStore = useSharedStore()
+const waterfallOptions = sharedStore.waterfallOptions
 
 // 获取分类图标
 const getCategoryIcon = (category) => {
@@ -487,6 +457,8 @@ const getCategoryIcon = (category) => {
   return iconMap[category] || 'iconfont icon-image'
 }
 
+const store = useJimengStore()
+
 onMounted(() => {
   store.init()
 })
@@ -494,4 +466,43 @@ onMounted(() => {
 onUnmounted(() => {
   store.cleanup()
 })
+
+// 自动加载下一页逻辑
+function onWaterfallAfterRender() {
+  if (!store.loading && store.currentList.length < store.total) {
+    store.fetchData(store.page + 1)
+  }
+}
+
+function copyPrompt(prompt) {
+  navigator.clipboard
+    .writeText(prompt)
+    .then(() => {
+      ElMessage.success('提示词已复制')
+    })
+    .catch(() => {
+      ElMessage.error('复制失败')
+    })
+}
 </script>
+
+<style lang="stylus" scoped>
+.task-list {
+  .task-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 10px 0;
+  }
+}
+@media (max-width: 1200px) {
+  .task-list .task-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  .task-list .task-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
