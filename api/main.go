@@ -209,10 +209,8 @@ func main() {
 
 		// 即梦AI 服务
 		fx.Provide(jimeng.NewService),
-		fx.Provide(jimeng.NewConsumer),
-		fx.Invoke(func(consumer *jimeng.Consumer) {
-			//consumer.Start()
-			go consumer.MonitorQueue()
+		fx.Invoke(func(service *jimeng.Service) {
+			service.Start()
 		}),
 		fx.Provide(service.NewUserService),
 		fx.Provide(payment.NewAlipayService),

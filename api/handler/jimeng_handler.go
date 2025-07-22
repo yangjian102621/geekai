@@ -2,10 +2,10 @@ package handler
 
 import (
 	"fmt"
-	"time"
 
 	"geekai/core"
 	"geekai/core/types"
+	"geekai/service"
 	"geekai/service/jimeng"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -20,13 +20,15 @@ import (
 type JimengHandler struct {
 	BaseHandler
 	jimengService *jimeng.Service
+	userService   *service.UserService
 }
 
 // NewJimengHandler 创建即梦AI处理器
-func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *gorm.DB) *JimengHandler {
+func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *gorm.DB, userService *service.UserService) *JimengHandler {
 	return &JimengHandler{
 		BaseHandler:   BaseHandler{App: app, DB: db},
 		jimengService: jimengService,
+		userService:   userService,
 	}
 }
 
@@ -79,9 +81,19 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
+	if req.Width == 0 {
+		req.Width = 1328
+	}
+	if req.Height == 0 {
+		req.Height = 1328
+	}
+	if req.Seed == 0 {
+		req.Seed = -1
+	}
+
 	var powerCost int
 	var taskType model.JMTaskType
-	var params map[string]interface{}
+	var params map[string]any
 	var reqKey string
 	var modelName string
 
@@ -94,16 +106,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		if req.Scale == 0 {
 			req.Scale = 2.5
 		}
-		if req.Width == 0 {
-			req.Width = 1328
-		}
-		if req.Height == 0 {
-			req.Height = 1328
-		}
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
-		params = map[string]interface{}{
+		params = map[string]any{
 			"seed":        req.Seed,
 			"scale":       req.Scale,
 			"width":       req.Width,
@@ -115,12 +118,6 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		taskType = model.JMTaskTypeImageToImage
 		reqKey = jimeng.ReqKeyImageToImagePortrait
 		modelName = "即梦图生图"
-		if req.Width == 0 {
-			req.Width = 1328
-		}
-		if req.Height == 0 {
-			req.Height = 1328
-		}
 		if req.Gpen == 0 {
 			req.Gpen = 0.4
 		}
@@ -134,11 +131,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 				req.GenMode = jimeng.GenModeReference
 			}
 		}
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
-
-		params = map[string]interface{}{
+		params = map[string]any{
 			"image_input": req.ImageInput,
 			"width":       req.Width,
 			"height":      req.Height,
@@ -156,10 +149,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		if req.Scale == 0 {
 			req.Scale = 0.5
 		}
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
-		params = map[string]interface{}{
+		params = map[string]any{
 			"seed":  req.Seed,
 			"scale": req.Scale,
 		}
@@ -180,7 +170,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		if req.Height == 0 {
 			req.Height = 1328
 		}
-		params = map[string]interface{}{
+		params = map[string]any{
 			"image_input1": req.ImageInput,
 			"template_id":  req.TemplateId,
 			"width":        req.Width,
@@ -197,7 +187,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		if req.AspectRatio == "" {
 			req.AspectRatio = jimeng.AspectRatio16_9
 		}
-		params = map[string]interface{}{
+		params = map[string]any{
 			"seed":         req.Seed,
 			"aspect_ratio": req.AspectRatio,
 		}
@@ -209,7 +199,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		if req.Seed == 0 {
 			req.Seed = -1
 		}
-		params = map[string]interface{}{
+		params = map[string]any{
 			"seed":         req.Seed,
 			"aspect_ratio": req.AspectRatio,
 		}
@@ -244,10 +234,10 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	h.subUserPower(user.Id, powerCost, model.PowerLog{
+	h.userService.DecreasePower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
-		Model:  modelName,
-		Remark: fmt.Sprintf("任务ID：%d", job.Id),
+		Model:  "jimeng",
+		Remark: fmt.Sprintf("%s，任务ID：%d", modelName, job.Id),
 	})
 
 	resp.SUCCESS(c, job)
@@ -272,14 +262,16 @@ func (h *JimengHandler) Jobs(c *gin.Context) {
 	var jobs []model.JimengJob
 	var total int64
 	query := h.DB.Model(&model.JimengJob{}).Where("user_id = ?", userId)
-	if req.Filter == "image" {
+
+	switch req.Filter {
+	case "image":
 		query = query.Where("type IN (?)", []model.JMTaskType{
 			model.JMTaskTypeTextToImage,
 			model.JMTaskTypeImageToImage,
 			model.JMTaskTypeImageEdit,
 			model.JMTaskTypeImageEffects,
 		})
-	} else if req.Filter == "video" {
+	case "video":
 		query = query.Where("type IN (?)", []model.JMTaskType{
 			model.JMTaskTypeTextToVideo,
 			model.JMTaskTypeImageToVideo,
@@ -395,40 +387,13 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 	}
 
 	// 重新推送到队列
-	task := map[string]any{
-		"job_id": jobId,
-		"type":   job.Type,
-	}
-	if err := h.jimengService.PushTaskToQueue(task); err != nil {
+	if err := h.jimengService.PushTaskToQueue(uint(jobId)); err != nil {
 		logger.Errorf("push retry task to queue failed: %v", err)
 		resp.ERROR(c, "推送重试任务失败")
 		return
 	}
 
 	resp.SUCCESS(c, gin.H{"message": "重试任务已提交"})
-}
-
-// subUserPower 扣除用户算力
-func (h *JimengHandler) subUserPower(userId uint, power int, powerLog model.PowerLog) {
-	session := h.DB.Session(&gorm.Session{})
-
-	// 更新用户算力
-	if err := session.Model(&model.User{}).Where("id = ?", userId).UpdateColumn("power", gorm.Expr("power - ?", power)).Error; err != nil {
-		logger.Errorf("update user power failed: %v", err)
-		return
-	}
-
-	// 记录算力消费日志
-	powerLog.UserId = userId
-	powerLog.Amount = power
-	powerLog.Mark = types.PowerSub
-	powerLog.CreatedAt = time.Now()
-	if err := session.Create(&powerLog).Error; err != nil {
-		logger.Errorf("create power log failed: %v", err)
-		return
-	}
-
-	session.Commit()
 }
 
 // getPowerFromConfig 从配置中获取指定类型的算力消耗
