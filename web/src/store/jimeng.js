@@ -5,7 +5,6 @@
 // * @Author yangjian102621@163.com
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import nodata from '@/assets/img/no-data.png'
 import { checkSession } from '@/store/cache'
 import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
@@ -26,8 +25,6 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 共同状态
   const loading = ref(false)
   const submitting = ref(false)
-  const list = ref([])
-  const noData = ref(true)
   const page = ref(1)
   const pageSize = ref(10)
   const total = ref(0)
@@ -186,6 +183,8 @@ export const useJimengStore = defineStore('jimeng', () => {
       userPower.value = user.power
       // 获取任务列表
       await fetchData(1)
+      // 开始轮询
+      startPolling()
     } catch (error) {
       console.error('初始化失败:', error)
     }
@@ -257,58 +256,40 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 切换任务筛选
   const switchTaskFilter = (filter) => {
     taskFilter.value = filter
-    updateCurrentList()
-  }
-
-  // 更新当前列表
-  const updateCurrentList = () => {
-    if (taskFilter.value === 'all') {
-      currentList.value = list.value
-    } else if (taskFilter.value === 'image') {
-      currentList.value = list.value.filter((item) =>
-        ['text_to_image', 'image_to_image_portrait', 'image_edit', 'image_effects'].includes(
-          item.type
-        )
-      )
-    } else if (taskFilter.value === 'video') {
-      currentList.value = list.value.filter((item) =>
-        ['text_to_video', 'image_to_video'].includes(item.type)
-      )
-    }
+    fetchData(1)
   }
 
   // 轮询定时器
   let pollHandler = null
-
   // 获取任务列表
   const fetchData = async (pageNum = 1) => {
     try {
       loading.value = true
       page.value = pageNum
 
-      const response = await httpGet('/api/jimeng/jobs', {
+      const response = await httpPost('/api/jimeng/jobs', {
         page: pageNum,
         page_size: pageSize.value,
+        filter: taskFilter.value,
       })
+      const data = response.data
+      if (data.total === 0) {
+        isOver.value = true
+        currentList.value = []
+        return
+      }
 
-      if (response.data) {
-        list.value = response.data.jobs || []
-        total.value = response.data.total || 0
-        noData.value = list.value.length === 0
-        updateCurrentList()
-        // 判断是否有未完成任务
-        const hasPending = list.value.some(
-          (item) => item.status === 'in_queue' || item.status === 'processing'
-        )
-        if (hasPending) {
-          startPolling()
-        } else {
-          stopPolling()
-        }
+      total.value = data.total || 0
+      if (data.items.length < pageSize.value) {
+        isOver.value = true
+      }
+      if (pageNum === 1) {
+        currentList.value = data.items
+      } else {
+        currentList.value = currentList.value.concat(data.items)
       }
     } catch (error) {
-      console.error('获取任务列表失败:', error)
-      showMessageError('获取任务列表失败')
+      showMessageError('获取任务列表失败:' + error.message)
     } finally {
       loading.value = false
     }
@@ -317,8 +298,30 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 简单轮询逻辑
   const startPolling = () => {
     if (pollHandler) return
-    pollHandler = setInterval(() => {
-      fetchData(page.value)
+    pollHandler = setInterval(async () => {
+      const response = await httpPost('/api/jimeng/jobs', {
+        page: 1,
+        page_size: 20,
+      })
+      const data = response.data
+      if (data.items.length === 0) {
+        stopPolling()
+        return
+      }
+
+      const todoList = data.items.filter(
+        (item) => item.status === 'in_queue' || item.status === 'generating'
+      )
+      // 更新当前列表
+      currentList.value.forEach((item) => {
+        const index = data.items.findIndex((i) => i.id === item.id)
+        if (index !== -1) {
+          Object.assign(item, data.items[index])
+        }
+      })
+      if (todoList.length === 0) {
+        stopPolling()
+      }
     }, 5000)
   }
 
@@ -533,18 +536,16 @@ export const useJimengStore = defineStore('jimeng', () => {
     useImageInput,
     loading,
     submitting,
-    list,
-    noData,
     page,
     pageSize,
     total,
     taskFilter,
     currentList,
+    isOver,
     isLogin,
     userPower,
     showDialog,
     currentVideoUrl,
-    nodata,
 
     // 配置
     categories,
@@ -577,7 +578,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     getTaskStatusText,
     getStatusType,
     switchTaskFilter,
-    updateCurrentList,
     fetchData,
     submitTask,
     retryTask,

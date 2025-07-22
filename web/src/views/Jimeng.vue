@@ -276,7 +276,7 @@
     </div>
 
     <!-- 右侧任务列表 -->
-    <div class="main-content" v-loading="store.loading">
+    <div class="main-content">
       <div class="works-header">
         <h2 class="h-title">你的作品</h2>
         <div class="filter-buttons">
@@ -306,119 +306,134 @@
         </div>
       </div>
 
-      <div class="task-list">
-        <Waterfall
-          :list="store.currentList"
-          v-bind="waterfallOptions"
-          :is-loading="store.loading"
-          :is-over="store.currentList.length >= store.total"
-          @afterRender="onWaterfallAfterRender"
-        >
-          <template #default="{ item }">
-            <div class="task-item">
-              <!-- 保持原有内容 -->
-              <div class="task-left">
-                <div class="task-preview">
-                  <el-image
-                    v-if="item.img_url"
-                    :src="item.img_url"
-                    fit="cover"
-                    class="preview-image"
-                  />
-                  <video
-                    v-else-if="item.video_url"
-                    :src="item.video_url"
-                    class="preview-video"
-                    preload="metadata"
-                  />
-                  <div v-else class="preview-placeholder">
-                    <i class="iconfont icon-dalle text-2xl" v-if="item.type.includes('image')"></i>
-                    <i
-                      class="iconfont icon-video text-2xl"
-                      v-else-if="item.type.includes('video')"
-                    ></i>
-                    <span>{{ store.getTaskStatusText(item.status) }}</span>
+      <div class="task-list" v-loading="store.loading">
+        <div v-if="store.currentList.length > 0">
+          <Waterfall
+            :list="store.currentList"
+            v-bind="waterfallOptions"
+            :is-loading="store.loading"
+            :is-over="store.isOver"
+            @afterRender="onWaterfallAfterRender"
+          >
+            <template #default="{ item }">
+              <div class="task-item">
+                <!-- 保持原有内容 -->
+                <div class="task-left">
+                  <div class="task-preview">
+                    <el-image
+                      v-if="item.img_url"
+                      :src="item.img_url"
+                      fit="cover"
+                      class="preview-image"
+                    />
+                    <video
+                      v-else-if="item.video_url"
+                      :src="item.video_url"
+                      class="preview-video"
+                      preload="metadata"
+                    />
+                    <div v-else class="preview-placeholder">
+                      <i
+                        class="iconfont icon-video text-2xl"
+                        v-if="item.type.includes('video')"
+                      ></i>
+                      <i class="iconfont icon-dalle text-2xl" v-else></i>
+                      <span>{{ store.getTaskStatusText(item.status) }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="task-center">
-                <div class="task-info flex justify-between">
-                  <div class="flex gap-2">
-                    <el-tag size="small" :type="store.getStatusType(item.status)">
-                      {{ store.getTaskStatusText(item.status) }}
-                    </el-tag>
-                    <el-tag size="small">{{ store.getFunctionName(item.type) }}</el-tag>
-                  </div>
-                  <div class="flex gap-2">
-                    <span>
-                      <el-tooltip content="复制提示词" placement="top">
-                        <i
-                          class="iconfont icon-copy cursor-pointer"
-                          @click="copyPrompt(item.prompt)"
-                        ></i>
-                      </el-tooltip>
-                    </span>
+                <div class="task-center">
+                  <div class="task-info flex justify-between">
+                    <div class="flex gap-2">
+                      <el-tag size="small" :type="store.getStatusType(item.status)">
+                        {{ store.getTaskStatusText(item.status) }}
+                      </el-tag>
+                      <el-tag size="small">{{ store.getFunctionName(item.type) }}</el-tag>
+                    </div>
+                    <div class="flex gap-2">
+                      <span>
+                        <el-tooltip content="复制提示词" placement="top">
+                          <i
+                            class="iconfont icon-copy cursor-pointer"
+                            @click="copyPrompt(item.prompt)"
+                          ></i>
+                        </el-tooltip>
+                      </span>
 
-                    <span class="ml-1">
-                      <el-tooltip content="画同款" placement="top">
-                        <i
-                          class="iconfont icon-image-list cursor-pointer"
-                          @click="store.drawSame(item)"
-                        ></i>
-                      </el-tooltip>
-                    </span>
+                      <span class="ml-1">
+                        <el-tooltip content="画同款" placement="top">
+                          <i
+                            class="iconfont icon-image-list cursor-pointer"
+                            @click="store.drawSame(item)"
+                          ></i>
+                        </el-tooltip>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="task-prompt line-clamp-2 min-h-[40px] text-[14px] text-theme mb-2 leading-snug break-all"
+                  >
+                    {{ store.substr(item.prompt, 200) }}
+                  </div>
+                  <div class="task-meta">
+                    <span>{{ dateFormat(item.created_at) }}</span>
+                    <span v-if="item.power">{{ item.power }}算力</span>
                   </div>
                 </div>
-                <div
-                  class="task-prompt line-clamp-2 min-h-[40px] text-[14px] text-theme mb-2 leading-snug break-all"
-                >
-                  {{ store.substr(item.prompt, 200) }}
-                </div>
-                <div class="task-meta">
-                  <span>{{ dateFormat(item.created_at) }}</span>
-                  <span v-if="item.power">{{ item.power }}算力</span>
+                <div class="task-right">
+                  <div class="task-actions">
+                    <el-button
+                      v-if="item.status === 'failed'"
+                      type="primary"
+                      size="small"
+                      @click="store.retryTask(item.id)"
+                    >
+                      重试
+                    </el-button>
+                    <el-button
+                      v-if="item.video_url || item.img_url"
+                      type="default"
+                      size="small"
+                      @click="store.downloadFile(item)"
+                    >
+                      下载
+                    </el-button>
+                    <el-button
+                      v-if="item.video_url"
+                      type="default"
+                      size="small"
+                      @click="store.playVideo(item)"
+                    >
+                      播放
+                    </el-button>
+                    <el-button
+                      type="danger"
+                      v-if="item.status === 'failed'"
+                      size="small"
+                      @click="store.removeJob(item)"
+                    >
+                      删除
+                    </el-button>
+                  </div>
                 </div>
               </div>
-              <div class="task-right">
-                <div class="task-actions">
-                  <el-button
-                    v-if="item.status === 'failed'"
-                    type="primary"
-                    size="small"
-                    @click="store.retryTask(item.id)"
-                  >
-                    重试
-                  </el-button>
-                  <el-button
-                    v-if="item.video_url || item.img_url"
-                    type="default"
-                    size="small"
-                    @click="store.downloadFile(item)"
-                  >
-                    下载
-                  </el-button>
-                  <el-button
-                    v-if="item.video_url"
-                    type="default"
-                    size="small"
-                    @click="store.playVideo(item)"
-                  >
-                    播放
-                  </el-button>
-                  <el-button
-                    type="danger"
-                    v-if="item.status === 'failed'"
-                    size="small"
-                    @click="store.removeJob(item)"
-                  >
-                    删除
-                  </el-button>
-                </div>
+            </template>
+          </Waterfall>
+          <div class="flex justify-center py-10">
+            <img
+              :src="waterfallOptions.loadProps.loading"
+              class="max-w-[50px] max-h-[50px]"
+              v-if="store.loading"
+            />
+            <div v-else>
+              <div class="no-more-data" v-if="store.isOver">
+                <span class="text-gray-500 mr-2">没有更多数据了</span>
+                <i class="iconfont icon-face"></i>
               </div>
             </div>
-          </template>
-        </Waterfall>
-        <el-empty v-if="store.noData" :image="store.nodata" description="暂无任务，快去创建吧！" />
+          </div>
+        </div>
+        <el-empty v-else :image-size="100" description="暂无记录" />
       </div>
     </div>
 
@@ -467,9 +482,8 @@ onUnmounted(() => {
   store.cleanup()
 })
 
-// 自动加载下一页逻辑
 function onWaterfallAfterRender() {
-  if (!store.loading && store.currentList.length < store.total) {
+  if (!store.loading && !store.isOver) {
     store.fetchData(store.page + 1)
   }
 }

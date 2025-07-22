@@ -8,6 +8,8 @@ import (
 	"geekai/core/types"
 	"geekai/service/jimeng"
 	"geekai/store/model"
+	"geekai/store/vo"
+	"geekai/utils"
 	"geekai/utils/resp"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +35,7 @@ func (h *JimengHandler) RegisterRoutes() {
 	rg := h.App.Engine.Group("/api/jimeng")
 	rg.POST("task", h.CreateTask)            // 只保留统一任务接口
 	rg.GET("power-config", h.GetPowerConfig) // 新增算力配置接口
-	rg.GET("jobs", h.Jobs)
+	rg.POST("jobs", h.Jobs)
 	rg.GET("remove", h.Remove)
 	rg.GET("retry", h.Retry)
 }
@@ -253,28 +255,66 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 
 // Jobs 获取任务列表
 func (h *JimengHandler) Jobs(c *gin.Context) {
-	user, err := h.GetLoginUser(c)
-	if err != nil {
-		resp.NotAuth(c)
+	userId := h.GetLoginUserId(c)
+
+	var req struct {
+		Page     int    `json:"page"`
+		PageSize int    `json:"page_size"`
+		Filter   string `json:"filter"`
+		Ids      []uint `json:"ids"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	page := h.GetInt(c, "page", 1)
-	pageSize := h.GetInt(c, "page_size", 20)
+	var jobs []model.JimengJob
+	var total int64
+	query := h.DB.Model(&model.JimengJob{}).Where("user_id = ?", userId)
+	if req.Filter == "image" {
+		query = query.Where("type IN (?)", []model.JMTaskType{
+			model.JMTaskTypeTextToImage,
+			model.JMTaskTypeImageToImage,
+			model.JMTaskTypeImageEdit,
+			model.JMTaskTypeImageEffects,
+		})
+	} else if req.Filter == "video" {
+		query = query.Where("type IN (?)", []model.JMTaskType{
+			model.JMTaskTypeTextToVideo,
+			model.JMTaskTypeImageToVideo,
+		})
+	}
 
-	jobs, total, err := h.jimengService.GetUserJobs(user.Id, page, pageSize)
-	if err != nil {
-		logger.Errorf("get user jimeng jobs failed: %v", err)
-		resp.ERROR(c, "获取任务列表失败")
+	if len(req.Ids) > 0 {
+		query = query.Where("id IN (?)", req.Ids)
+	}
+
+	// 统计总数
+	if err := query.Count(&total).Error; err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 
-	resp.SUCCESS(c, gin.H{
-		"jobs":      jobs,
-		"total":     total,
-		"page":      page,
-		"page_size": pageSize,
-	})
+	// 分页查询
+	offset := (req.Page - 1) * req.PageSize
+	if err := query.Order("created_at DESC").Offset(offset).Limit(req.PageSize).Find(&jobs).Error; err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 填充 VO
+	var jobVos []vo.JimengJob
+	for _, job := range jobs {
+		var jobVo vo.JimengJob
+		err := utils.CopyObject(job, &jobVo)
+		if err != nil {
+			continue
+		}
+		jobVo.CreatedAt = job.CreatedAt.Unix()
+		jobVos = append(jobVos, jobVo)
+	}
+	resp.SUCCESS(c, vo.NewPage(total, req.Page, req.PageSize, jobVos))
 }
 
 // Remove 删除任务
@@ -355,7 +395,7 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 	}
 
 	// 重新推送到队列
-	task := map[string]interface{}{
+	task := map[string]any{
 		"job_id": jobId,
 		"type":   job.Type,
 	}
@@ -393,27 +433,7 @@ func (h *JimengHandler) subUserPower(userId uint, power int, powerLog model.Powe
 
 // getPowerFromConfig 从配置中获取指定类型的算力消耗
 func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
-	config, err := h.jimengService.GetConfig()
-	if err != nil {
-		logger.Errorf("获取即梦AI配置失败: %v", err)
-		// 返回默认值
-		switch taskType {
-		case model.JMTaskTypeTextToImage:
-			return 10
-		case model.JMTaskTypeImageToImage:
-			return 15
-		case model.JMTaskTypeImageEdit:
-			return 20
-		case model.JMTaskTypeImageEffects:
-			return 25
-		case model.JMTaskTypeTextToVideo:
-			return 30
-		case model.JMTaskTypeImageToVideo:
-			return 35
-		default:
-			return 10
-		}
-	}
+	config := h.jimengService.GetConfig()
 
 	switch taskType {
 	case model.JMTaskTypeTextToImage:
@@ -435,11 +455,7 @@ func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
 
 // GetPowerConfig 获取即梦各任务类型算力消耗配置
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
-	config, err := h.jimengService.GetConfig()
-	if err != nil || config == nil {
-		resp.ERROR(c, "获取算力配置失败")
-		return
-	}
+	config := h.jimengService.GetConfig()
 	resp.SUCCESS(c, gin.H{
 		"text_to_image":  config.Power.TextToImage,
 		"image_to_image": config.Power.ImageToImage,

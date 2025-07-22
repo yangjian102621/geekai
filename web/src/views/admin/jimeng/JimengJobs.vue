@@ -1,10 +1,48 @@
 <template>
   <div class="app-container">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h2>即梦AI任务管理</h2>
-      <p>管理所有用户的即梦AI任务，查看任务详情和统计信息</p>
-    </div>
+    <!-- 统计信息 -->
+    <el-row :gutter="20" class="stats-row">
+      <el-col :span="4">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <div class="stat-number">{{ stats.totalTasks }}</div>
+            <div class="stat-label">总任务数</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <div class="stat-number !text-blue-500">{{ stats.pendingTasks }}</div>
+            <div class="stat-label">排队中</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <div class="stat-number warning">{{ stats.processingTasks }}</div>
+            <div class="stat-label">处理中</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <div class="stat-number success">{{ stats.completedTasks }}</div>
+            <div class="stat-label">已完成</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <div class="stat-number danger">{{ stats.failedTasks }}</div>
+            <div class="stat-label">失败</div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
     <!-- 搜索筛选 -->
     <el-card class="filter-card" shadow="never">
@@ -18,9 +56,15 @@
           />
         </el-form-item>
         <el-form-item label="任务类型">
-          <el-select v-model="queryForm.type" placeholder="请选择任务类型" clearable style="width: 150px">
+          <el-select
+            v-model="queryForm.type"
+            placeholder="请选择任务类型"
+            clearable
+            style="width: 150px"
+            @change="handleQuery"
+          >
             <el-option label="文生图" value="text_to_image" />
-            <el-option label="图生图" value="image_to_image_portrait" />
+            <el-option label="图生图" value="image_to_image" />
             <el-option label="图像编辑" value="image_edit" />
             <el-option label="图像特效" value="image_effects" />
             <el-option label="文生视频" value="text_to_video" />
@@ -28,65 +72,31 @@
           </el-select>
         </el-form-item>
         <el-form-item label="任务状态">
-          <el-select v-model="queryForm.status" placeholder="请选择状态" clearable style="width: 120px">
-            <el-option label="等待中" value="pending" />
-            <el-option label="处理中" value="processing" />
-            <el-option label="已完成" value="completed" />
+          <el-select
+            v-model="queryForm.status"
+            placeholder="请选择状态"
+            clearable
+            style="width: 120px"
+            @change="handleQuery"
+          >
+            <el-option label="等待中" value="in_queue" />
+            <el-option label="处理中" value="generating" />
+            <el-option label="已完成" value="success" />
             <el-option label="失败" value="failed" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery" :loading="loading">
-            <el-icon><Search /></el-icon>
+            <i class="iconfont icon-search mr-1" />
             搜索
           </el-button>
-          <el-button @click="resetQuery">
-            <el-icon><Refresh /></el-icon>
-            重置
-          </el-button>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
-            <el-icon><Delete /></el-icon>
+            <i class="iconfont icon-remove mr-1" />
             批量删除
           </el-button>
         </el-form-item>
       </el-form>
     </el-card>
-
-    <!-- 统计信息 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-number">{{ stats.totalTasks }}</div>
-            <div class="stat-label">总任务数</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-number success">{{ stats.completedTasks }}</div>
-            <div class="stat-label">已完成</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-number warning">{{ stats.processingTasks }}</div>
-            <div class="stat-label">处理中</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-number danger">{{ stats.failedTasks }}</div>
-            <div class="stat-label">失败</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
 
     <!-- 任务列表 -->
     <el-card class="table-card">
@@ -126,21 +136,8 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
-            <el-button
-              type="primary"
-              size="small"
-              text
-              @click="handleViewDetail(scope.row)"
-            >
+            <el-button type="primary" size="small" text @click="handleViewDetail(scope.row)">
               详情
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              text
-              @click="handleDelete(scope.row)"
-            >
-              删除
             </el-button>
           </template>
         </el-table-column>
@@ -170,21 +167,33 @@
       <div class="detail-content" v-if="detailDialog.data">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="任务ID">{{ detailDialog.data.id }}</el-descriptions-item>
-          <el-descriptions-item label="用户ID">{{ detailDialog.data.user_id }}</el-descriptions-item>
-          <el-descriptions-item label="任务类型">{{ getTaskTypeName(detailDialog.data.type) }}</el-descriptions-item>
+          <el-descriptions-item label="用户ID">{{
+            detailDialog.data.user_id
+          }}</el-descriptions-item>
+          <el-descriptions-item label="任务类型">{{
+            getTaskTypeName(detailDialog.data.type)
+          }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="getStatusColor(detailDialog.data.status)">
               {{ getStatusName(detailDialog.data.status) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="进度">{{ detailDialog.data.progress }}%</el-descriptions-item>
-          <el-descriptions-item label="算力消耗">{{ detailDialog.data.power }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatDateTime(detailDialog.data.created_at) }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ formatDateTime(detailDialog.data.updated_at) }}</el-descriptions-item>
+          <el-descriptions-item label="进度"
+            >{{ detailDialog.data.progress }}%</el-descriptions-item
+          >
+          <el-descriptions-item label="算力消耗">{{
+            detailDialog.data.power
+          }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{
+            formatDateTime(detailDialog.data.created_at)
+          }}</el-descriptions-item>
+          <el-descriptions-item label="更新时间">{{
+            formatDateTime(detailDialog.data.updated_at)
+          }}</el-descriptions-item>
         </el-descriptions>
 
         <div class="detail-section">
-          <h4>提示词</h4>
+          <h4 class="text-base pt-2 font-bold">提示词</h4>
           <div class="prompt-content">{{ detailDialog.data.prompt || '无' }}</div>
         </div>
 
@@ -243,24 +252,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Delete } from '@element-plus/icons-vue'
-import { formatDateTime } from '@/utils/libs'
 import { httpGet, httpPost } from '@/utils/http'
+import { formatDateTime } from '@/utils/libs'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 // 查询表单
 const queryForm = reactive({
   user_id: '',
   type: '',
-  status: ''
+  status: '',
 })
 
 // 分页信息
 const pagination = reactive({
   page: 1,
   size: 20,
-  total: 0
+  total: 0,
 })
 
 // 数据
@@ -274,13 +282,13 @@ const stats = reactive({
   totalTasks: 0,
   completedTasks: 0,
   processingTasks: 0,
-  failedTasks: 0
+  failedTasks: 0,
 })
 
 // 详情对话框
 const detailDialog = reactive({
   visible: false,
-  data: {}
+  data: {},
 })
 
 // 格式化原始数据
@@ -296,12 +304,12 @@ const formattedRawData = computed(() => {
 // 获取任务类型名称
 const getTaskTypeName = (type) => {
   const typeMap = {
-    'text_to_image': '文生图',
-    'image_to_image_portrait': '图生图',
-    'image_edit': '图像编辑',
-    'image_effects': '图像特效',
-    'text_to_video': '文生视频',
-    'image_to_video': '图生视频'
+    text_to_image: '文生图',
+    image_to_image: '图生图',
+    image_edit: '图像编辑',
+    image_effects: '图像特效',
+    text_to_video: '文生视频',
+    image_to_video: '图生视频',
   }
   return typeMap[type] || type
 }
@@ -309,10 +317,10 @@ const getTaskTypeName = (type) => {
 // 获取状态名称
 const getStatusName = (status) => {
   const statusMap = {
-    'pending': '等待中',
-    'processing': '处理中',
-    'completed': '已完成',
-    'failed': '失败'
+    in_queue: '等待中',
+    generating: '处理中',
+    success: '已完成',
+    failed: '失败',
   }
   return statusMap[status] || status
 }
@@ -320,10 +328,10 @@ const getStatusName = (status) => {
 // 获取状态颜色
 const getStatusColor = (status) => {
   const colorMap = {
-    'pending': '',
-    'processing': 'warning',
-    'completed': 'success',
-    'failed': 'danger'
+    in_queue: '',
+    generating: 'warning',
+    success: 'success',
+    failed: 'danger',
   }
   return colorMap[status] || ''
 }
@@ -335,9 +343,9 @@ const getTaskList = async () => {
     const params = {
       page: pagination.page,
       page_size: pagination.size,
-      ...queryForm
+      ...queryForm,
     }
-    
+
     const response = await httpGet('/api/admin/jimeng/jobs', params)
     taskList.value = response.data.jobs || []
     pagination.total = response.data.total || 0
@@ -364,18 +372,6 @@ const handleQuery = () => {
   getTaskList()
 }
 
-// 重置查询
-const resetQuery = () => {
-  queryFormRef.value?.resetFields()
-  Object.assign(queryForm, {
-    user_id: '',
-    type: '',
-    status: ''
-  })
-  pagination.page = 1
-  getTaskList()
-}
-
 // 选择变化
 const handleSelectionChange = (selection) => {
   multipleSelection.value = selection
@@ -384,31 +380,11 @@ const handleSelectionChange = (selection) => {
 // 查看详情
 const handleViewDetail = async (row) => {
   try {
-    const response = await httpGet(`/api/admin/jimeng/job/${row.id}`)
+    const response = await httpGet(`/api/admin/jimeng/jobs/${row.id}`)
     detailDialog.data = response.data
     detailDialog.visible = true
   } catch (error) {
     ElMessage.error('获取任务详情失败')
-  }
-}
-
-// 删除任务
-const handleDelete = async (row) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这个任务吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await httpPost(`/api/admin/jimeng/job/${row.id}`, {}, { method: 'DELETE' })
-    ElMessage.success('删除成功')
-    getTaskList()
-    getStats()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-    }
   }
 }
 
@@ -418,16 +394,20 @@ const handleBatchDelete = async () => {
     ElMessage.warning('请选择要删除的任务')
     return
   }
-  
+
   try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${multipleSelection.value.length} 个任务吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    const jobIds = multipleSelection.value.map(item => item.id)
-    await httpPost('/api/admin/jimeng/batch-remove', { job_ids: jobIds })
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${multipleSelection.value.length} 个任务吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+
+    const jobIds = multipleSelection.value.map((item) => item.id)
+    await httpPost('/api/admin/jimeng/jobs/remove', { job_ids: jobIds })
     ElMessage.success('批量删除成功')
     getTaskList()
     getStats()
@@ -458,17 +438,20 @@ onMounted(() => {
 })
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
 .app-container
   padding 20px
 
+  .el-form-item
+    margin-bottom 0
+
 .page-header
   margin-bottom 20px
-  
+
   h2
     margin 0 0 8px 0
     color #303133
-    
+
   p
     margin 0
     color #606266
@@ -484,22 +467,22 @@ onMounted(() => {
   .stat-item
     text-align center
     padding 20px
-    
+
     .stat-number
       font-size 28px
       font-weight bold
       color #303133
       margin-bottom 8px
-      
+
       &.success
         color #67c23a
-        
+
       &.warning
         color #e6a23c
-        
+
       &.danger
         color #f56c6c
-        
+
     .stat-label
       font-size 14px
       color #909399
@@ -513,29 +496,29 @@ onMounted(() => {
 .detail-content
   .detail-section
     margin-bottom 20px
-    
+
     h4
       margin 0 0 10px 0
       color #303133
       font-size 16px
-      
+
     .prompt-content
       background #f5f7fa
       padding 12px
       border-radius 4px
       color #606266
       line-height 1.6
-      
+
     .params-content, .raw-data-content
       font-family monospace
-      
+
     .result-content
       .result-item
         margin-bottom 10px
         display flex
         align-items center
         gap 10px
-        
+
         label
           font-weight bold
           color #303133

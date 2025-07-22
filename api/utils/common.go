@@ -11,9 +11,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
-	"github.com/nfnt/resize"
-	"github.com/skip2/go-qrcode"
 	"image"
 	"image/color"
 	"image/draw"
@@ -22,10 +19,21 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
+	"github.com/nfnt/resize"
+	"github.com/skip2/go-qrcode"
 )
 
 // CopyObject 拷贝对象
 func CopyObject(src interface{}, dst interface{}) error {
+
+	// 这里做异常处理
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Errorf("copy object failed: %v", r)
+		}
+	}()
 
 	srcType := reflect.TypeOf(src)
 	srcValue := reflect.ValueOf(src)

@@ -1,12 +1,15 @@
 package admin
 
 import (
+	"fmt"
 	"strconv"
 
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
+	"geekai/service"
 	"geekai/service/jimeng"
+	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
@@ -19,13 +22,17 @@ import (
 type AdminJimengHandler struct {
 	handler.BaseHandler
 	jimengService *jimeng.Service
+	userService   *service.UserService
+	uploader      *oss.UploaderManager
 }
 
 // NewAdminJimengHandler 创建管理后台即梦AI处理器
-func NewAdminJimengHandler(app *core.AppServer, db *gorm.DB, jimengService *jimeng.Service) *AdminJimengHandler {
+func NewAdminJimengHandler(app *core.AppServer, db *gorm.DB, jimengService *jimeng.Service, userService *service.UserService, uploader *oss.UploaderManager) *AdminJimengHandler {
 	return &AdminJimengHandler{
 		BaseHandler:   handler.BaseHandler{App: app, DB: db},
 		jimengService: jimengService,
+		userService:   userService,
+		uploader:      uploader,
 	}
 }
 
@@ -34,8 +41,7 @@ func (h *AdminJimengHandler) RegisterRoutes() {
 	rg := h.App.Engine.Group("/api/admin/jimeng/")
 	rg.GET("/jobs", h.Jobs)
 	rg.GET("/jobs/:id", h.JobDetail)
-	rg.DELETE("/jobs/:id", h.Remove)
-	rg.POST("/jobs/batch-remove", h.BatchRemove)
+	rg.POST("/jobs/remove", h.BatchRemove)
 	rg.GET("/stats", h.Stats)
 	rg.GET("/config", h.GetConfig)
 	rg.POST("/config/update", h.UpdateConfig)
@@ -107,24 +113,6 @@ func (h *AdminJimengHandler) JobDetail(c *gin.Context) {
 	resp.SUCCESS(c, job)
 }
 
-// Remove 删除任务
-func (h *AdminJimengHandler) Remove(c *gin.Context) {
-	idStr := c.Param("id")
-	jobId, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		resp.ERROR(c, "参数错误")
-		return
-	}
-
-	err = h.DB.Where("id = ?", jobId).Delete(&model.JimengJob{}).Error
-	if err != nil {
-		resp.ERROR(c, "删除任务失败")
-		return
-	}
-
-	resp.SUCCESS(c, gin.H{})
-}
-
 // BatchRemove 批量删除任务
 func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 	var req struct {
@@ -136,23 +124,57 @@ func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 		return
 	}
 
-	result := h.DB.Where("id IN ?", req.JobIds).Delete(&model.JimengJob{})
-	if result.Error != nil {
-		resp.ERROR(c, "批量删除失败")
-		return
+	var deletedCount int64 = 0
+	for _, jobId := range req.JobIds {
+		var job model.JimengJob
+		err := h.DB.Where("id = ?", jobId).First(&job).Error
+		if err != nil {
+			continue // 跳过不存在的
+		}
+		tx := h.DB.Begin()
+		if job.Status != model.JMTaskStatusSuccess && job.Power > 0 {
+			remark := fmt.Sprintf("任务未成功，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
+			err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+				Type:   types.PowerRefund,
+				Model:  "jimeng",
+				Remark: remark,
+			})
+			if err != nil {
+				tx.Rollback()
+				continue
+			}
+		}
+		err = tx.Where("id = ?", jobId).Delete(&model.JimengJob{}).Error
+		if err != nil {
+			tx.Rollback()
+			continue
+		}
+		tx.Commit()
+		deletedCount++
+		if job.ImgURL != "" {
+			err = h.uploader.GetUploadHandler().Delete(job.ImgURL)
+			if err != nil {
+				logger.Error("remove image failed: ", err)
+			}
+		}
+		if job.VideoURL != "" {
+			err = h.uploader.GetUploadHandler().Delete(job.VideoURL)
+			if err != nil {
+				logger.Error("remove video failed: ", err)
+			}
+		}
 	}
-
 	resp.SUCCESS(c, gin.H{
 		"message":       "批量删除成功",
-		"deleted_count": result.RowsAffected,
+		"deleted_count": deletedCount,
 	})
 }
 
 // Stats 获取统计信息
 func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	type StatResult struct {
-		Status string `json:"status"`
-		Count  int64  `json:"count"`
+		Status model.JMTaskStatus `json:"status"`
+		Count  int64              `json:"count"`
 	}
 
 	var stats []StatResult
@@ -177,14 +199,14 @@ func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	for _, stat := range stats {
 		result["totalTasks"] = result["totalTasks"].(int64) + stat.Count
 		switch stat.Status {
-		case "completed":
-			result["completedTasks"] = stat.Count
-		case "processing":
-			result["processingTasks"] = stat.Count
-		case "failed":
-			result["failedTasks"] = stat.Count
-		case "pending":
+		case model.JMTaskStatusInQueue:
 			result["pendingTasks"] = stat.Count
+		case model.JMTaskStatusSuccess:
+			result["completedTasks"] = stat.Count
+		case model.JMTaskStatusGenerating:
+			result["processingTasks"] = stat.Count
+		case model.JMTaskStatusFailed:
+			result["failedTasks"] = stat.Count
 		}
 	}
 
@@ -193,33 +215,7 @@ func (h *AdminJimengHandler) Stats(c *gin.Context) {
 
 // GetConfig 获取即梦AI配置
 func (h *AdminJimengHandler) GetConfig(c *gin.Context) {
-	var config model.Config
-	err := h.DB.Debug().Where("name", "jimeng").First(&config).Error
-	if err != nil {
-		// 如果配置不存在，返回默认配置
-		defaultConfig := types.JimengConfig{
-			AccessKey: "",
-			SecretKey: "",
-			Power: types.JimengPower{
-				TextToImage:  10,
-				ImageToImage: 15,
-				ImageEdit:    20,
-				ImageEffects: 25,
-				TextToVideo:  30,
-				ImageToVideo: 35,
-			},
-		}
-		resp.SUCCESS(c, defaultConfig)
-		return
-	}
-
-	var jimengConfig types.JimengConfig
-	err = utils.JsonDecode(config.Value, &jimengConfig)
-	if err != nil {
-		resp.ERROR(c, "解析配置失败: "+err.Error())
-		return
-	}
-
+	jimengConfig := h.jimengService.GetConfig()
 	resp.SUCCESS(c, jimengConfig)
 }
 

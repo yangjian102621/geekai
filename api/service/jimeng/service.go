@@ -609,12 +609,15 @@ func (s *Service) GetJob(jobId uint) (*model.JimengJob, error) {
 	return &job, nil
 }
 
-// GetUserJobs 获取用户任务列表
-func (s *Service) GetUserJobs(userId uint, page, pageSize int) ([]*model.JimengJob, int64, error) {
+// GetJobByPage 分页获取任务列表
+func (s *Service) GetJobByPage(userId uint, page, pageSize int) ([]*model.JimengJob, int64, error) {
 	var jobs []*model.JimengJob
 	var total int64
 
-	query := s.db.Model(&model.JimengJob{}).Where("user_id = ?", userId)
+	query := s.db.Model(&model.JimengJob{})
+	if userId > 0 {
+		query = query.Where("user_id = ?", userId)
+	}
 
 	// 统计总数
 	if err := query.Count(&total).Error; err != nil {
@@ -688,8 +691,17 @@ func (s *Service) UpdateClientConfig(accessKey, secretKey string) error {
 	return nil
 }
 
+var defaultPower = types.JimengPower{
+	TextToImage:  20,
+	ImageToImage: 20,
+	ImageEdit:    20,
+	ImageEffects: 20,
+	TextToVideo:  300,
+	ImageToVideo: 300,
+}
+
 // GetConfig 获取即梦AI配置
-func (s *Service) GetConfig() (*types.JimengConfig, error) {
+func (s *Service) GetConfig() *types.JimengConfig {
 	var config model.Config
 	err := s.db.Where("name", "jimeng").First(&config).Error
 	if err != nil {
@@ -697,22 +709,19 @@ func (s *Service) GetConfig() (*types.JimengConfig, error) {
 		return &types.JimengConfig{
 			AccessKey: "",
 			SecretKey: "",
-			Power: types.JimengPower{
-				TextToImage:  10,
-				ImageToImage: 15,
-				ImageEdit:    20,
-				ImageEffects: 25,
-				TextToVideo:  30,
-				ImageToVideo: 35,
-			},
-		}, nil
+			Power:     defaultPower,
+		}
 	}
 
 	var jimengConfig types.JimengConfig
 	err = utils.JsonDecode(config.Value, &jimengConfig)
 	if err != nil {
-		return nil, fmt.Errorf("解析配置失败: %w", err)
+		return &types.JimengConfig{
+			AccessKey: "",
+			SecretKey: "",
+			Power:     defaultPower,
+		}
 	}
 
-	return &jimengConfig, nil
+	return &jimengConfig
 }
