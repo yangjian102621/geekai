@@ -93,7 +93,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 
 }
 
-func (s QinNiuOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+func (s QinNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
 	var fileData []byte
 	var err error
 	if useProxy {
@@ -108,8 +108,10 @@ func (s QinNiuOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
-	fileExt := utils.GetImgExt(parse.Path)
-	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	if ext == "" {
+		ext = filepath.Ext(parse.Path)
+	}
+	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), ext)
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据

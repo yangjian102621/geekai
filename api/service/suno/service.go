@@ -272,14 +272,14 @@ func (s *Service) DownloadFiles() {
 			for _, v := range items {
 				// 下载图片和音频
 				logger.Infof("try download cover image: %s", v.CoverURL)
-				coverURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.CoverURL, true)
+				coverURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.CoverURL, ".png", true)
 				if err != nil {
 					logger.Errorf("download image with error: %v", err)
 					continue
 				}
 
 				logger.Infof("try download audio: %s", v.AudioURL)
-				audioURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.AudioURL, true)
+				audioURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.AudioURL, ".mp3", true)
 				if err != nil {
 					logger.Errorf("download audio with error: %v", err)
 					continue

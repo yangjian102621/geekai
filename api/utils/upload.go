@@ -20,7 +20,7 @@ import (
 )
 
 // GenUploadPath 生成上传文件路径
-func GenUploadPath(basePath, filename string, isImg bool) (string, error) {
+func GenUploadPath(basePath, filename string, ext string) (string, error) {
 	now := time.Now()
 	dir := fmt.Sprintf("%s/%d/%d", basePath, now.Year(), now.Month())
 	_, err := os.Stat(dir)
@@ -30,13 +30,11 @@ func GenUploadPath(basePath, filename string, isImg bool) (string, error) {
 			return "", fmt.Errorf("error with create upload dir：%v", err)
 		}
 	}
-	var fileExt string
-	if isImg {
-		fileExt = GetImgExt(filename)
-	} else {
-		fileExt = filepath.Ext(filename)
+	if ext == "" {
+		ext = filepath.Ext(filename)
 	}
-	return fmt.Sprintf("%s/%d%s", dir, now.UnixMicro(), fileExt), nil
+
+	return fmt.Sprintf("%s/%d%s", dir, now.UnixMicro(), ext), nil
 }
 
 // GenUploadUrl 生成上传文件 URL
@@ -78,14 +76,6 @@ func DownloadFile(fileURL string, filepath string, proxy string) error {
 	}
 
 	return nil
-}
-
-func GetImgExt(filename string) string {
-	ext := filepath.Ext(filename)
-	if ext == "" {
-		return ".png"
-	}
-	return ext
 }
 
 func ExtractImgURLs(text string) []string {

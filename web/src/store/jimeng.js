@@ -7,7 +7,7 @@
 
 import { checkSession } from '@/store/cache'
 import { showMessageError, showMessageOK } from '@/utils/dialog'
-import { httpGet, httpPost } from '@/utils/http'
+import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg, substr } from '@/utils/libs'
 import { ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
@@ -233,29 +233,32 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 获取任务状态文本
   const getTaskStatusText = (status) => {
     const statusMap = {
-      in_queue: '排队中',
-      generating: '处理中',
-      success: '成功',
-      failed: '失败',
-      canceled: '已取消',
+      in_queue: '任务排队中',
+      generating: '任务执行中',
+      success: '任务成功',
+      failed: '任务失败',
+      canceled: '任务已取消',
     }
     return statusMap[status] || status
   }
 
   // 获取状态类型
-  const getStatusType = (status) => {
+  const getTaskType = (type) => {
     const typeMap = {
-      pending: 'info',
-      processing: 'warning',
-      completed: 'success',
-      failed: 'danger',
+      text_to_image: 'primary',
+      image_to_image: 'primary',
+      image_edit: 'primary',
+      image_effects: 'primary',
+      text_to_video: 'success',
+      image_to_video: 'success',
     }
-    return typeMap[status] || 'info'
+    return typeMap[type] || 'primary'
   }
 
   // 切换任务筛选
   const switchTaskFilter = (filter) => {
     taskFilter.value = filter
+    isOver.value = false
     fetchData(1)
   }
 
@@ -272,10 +275,13 @@ export const useJimengStore = defineStore('jimeng', () => {
         page_size: pageSize.value,
         filter: taskFilter.value,
       })
+
       const data = response.data
-      if (data.total === 0) {
+      if (!data.items || data.items.length === 0) {
         isOver.value = true
-        currentList.value = []
+        if (pageNum === 1) {
+          currentList.value = []
+        }
         return
       }
 
@@ -297,7 +303,9 @@ export const useJimengStore = defineStore('jimeng', () => {
 
   // 简单轮询逻辑
   const startPolling = () => {
-    if (pollHandler) return
+    if (pollHandler) {
+      clearInterval(pollHandler)
+    }
     pollHandler = setInterval(async () => {
       const response = await httpPost('/api/jimeng/jobs', {
         page: 1,
@@ -322,7 +330,7 @@ export const useJimengStore = defineStore('jimeng', () => {
       if (todoList.length === 0) {
         stopPolling()
       }
-    }, 5000)
+    }, 3000)
   }
 
   const stopPolling = () => {
@@ -404,7 +412,9 @@ export const useJimengStore = defineStore('jimeng', () => {
       const response = await httpPost('/api/jimeng/task', requestData)
       if (response.data) {
         showMessageOK('任务提交成功')
+        isOver.value = false
         await fetchData(1)
+        startPolling()
       }
     } catch (error) {
       console.error('提交任务失败:', error)
@@ -414,13 +424,40 @@ export const useJimengStore = defineStore('jimeng', () => {
     }
   }
 
+  const downloadFile = async (item) => {
+    const url = replaceImg(item.video_url || item.img_url)
+    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const urlObj = new URL(url)
+    const fileName = urlObj.pathname.split('/').pop()
+
+    item.downloading = true
+
+    try {
+      const response = await httpDownload(downloadURL)
+      const blob = new Blob([response.data])
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(link.href)
+      item.downloading = false
+    } catch (error) {
+      showMessageError('下载失败')
+      item.downloading = false
+    }
+  }
+
   // 重试任务
   const retryTask = async (taskId) => {
     try {
-      const response = await httpPost(`/api/jimeng/retry/${taskId}`)
+      const response = await httpGet(`/api/jimeng/retry?id=${taskId}`)
       if (response.data) {
         showMessageOK('重试任务已提交')
-        await fetchData(page.value)
+        isOver.value = false
+        await fetchData(1)
+        startPolling()
       }
     } catch (error) {
       console.error('重试任务失败:', error)
@@ -440,7 +477,7 @@ export const useJimengStore = defineStore('jimeng', () => {
       const response = await httpGet('/api/jimeng/remove', { id: item.id })
       if (response.data) {
         showMessageOK('删除成功')
-        await fetchData(page.value)
+        await fetchData(1)
       }
     } catch (error) {
       if (error !== 'cancel') {
@@ -454,17 +491,6 @@ export const useJimengStore = defineStore('jimeng', () => {
   const playVideo = (item) => {
     currentVideoUrl.value = item.video_url
     showDialog.value = true
-  }
-
-  // 下载文件
-  const downloadFile = (item) => {
-    const url = item.video_url || item.img_url
-    if (url) {
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `jimeng_${item.id}.${item.video_url ? 'mp4' : 'jpg'}`
-      link.click()
-    }
   }
 
   // 画同款功能
@@ -576,14 +602,14 @@ export const useJimengStore = defineStore('jimeng', () => {
     getCurrentPowerCost,
     getFunctionName,
     getTaskStatusText,
-    getStatusType,
+    getTaskType,
     switchTaskFilter,
     fetchData,
     submitTask,
+    downloadFile,
     retryTask,
     removeJob,
     playVideo,
-    downloadFile,
     cleanup,
     drawSame,
 

@@ -23,7 +23,7 @@ type File struct {
 }
 type Uploader interface {
 	PutFile(ctx *gin.Context, name string) (File, error)
-	PutUrlFile(url string, useProxy bool) (string, error)
+	PutUrlFile(url string, ext string, useProxy bool) (string, error)
 	PutBase64(imageData string) (string, error)
 	Delete(fileURL string) error
 }

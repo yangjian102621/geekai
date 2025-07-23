@@ -293,7 +293,7 @@ func (s *Service) DownloadImages() {
 
 func (s *Service) downloadImage(jobId uint, orgURL string) (string, error) {
 	// sava image
-	imgURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(orgURL, false)
+	imgURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(orgURL, ".png", false)
 	if err != nil {
 		return "", err
 	}

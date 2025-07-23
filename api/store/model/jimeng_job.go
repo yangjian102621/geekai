@@ -34,6 +34,7 @@ const (
 	JMTaskStatusNotFound   = JMTaskStatus("not_found")  // 任务未找到
 	JMTaskStatusSuccess    = JMTaskStatus("success")    // 任务成功
 	JMTaskStatusFailed     = JMTaskStatus("failed")     // 任务失败
+	JMTaskStatusExpired    = JMTaskStatus("expired")    // 任务过期
 )
 
 // JMTaskType 任务类型

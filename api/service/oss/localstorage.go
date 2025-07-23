@@ -12,11 +12,12 @@ import (
 	"fmt"
 	"geekai/core/types"
 	"geekai/utils"
-	"github.com/gin-gonic/gin"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type LocalStorage struct {
@@ -37,7 +38,7 @@ func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {
 		return File{}, fmt.Errorf("error with get form: %v", err)
 	}
 
-	path, err := utils.GenUploadPath(s.config.BasePath, file.Filename, false)
+	path, err := utils.GenUploadPath(s.config.BasePath, file.Filename, "")
 	if err != nil {
 		return File{}, fmt.Errorf("error with generate filename: %s", err.Error())
 	}
@@ -57,13 +58,13 @@ func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {
 	}, nil
 }
 
-func (s LocalStorage) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+func (s LocalStorage) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
 	parse, err := url.Parse(fileURL)
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
 	filename := filepath.Base(parse.Path)
-	filePath, err := utils.GenUploadPath(s.config.BasePath, filename, true)
+	filePath, err := utils.GenUploadPath(s.config.BasePath, filename, ext)
 	if err != nil {
 		return "", fmt.Errorf("error with generate image dir: %v", err)
 	}
@@ -85,7 +86,7 @@ func (s LocalStorage) PutBase64(base64Img string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error decoding base64:%v", err)
 	}
-	filePath, err := utils.GenUploadPath(s.config.BasePath, "", true)
+	filePath, _ := utils.GenUploadPath(s.config.BasePath, "", ".png")
 	err = os.WriteFile(filePath, imageData, 0644)
 	if err != nil {
 		return "", fmt.Errorf("error writing to file:%v", err)

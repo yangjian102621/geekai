@@ -44,7 +44,7 @@ func NewMiniOss(appConfig *types.AppConfig) (MiniOss, error) {
 	return MiniOss{config: config, client: minioClient, proxyURL: appConfig.ProxyURL}, nil
 }
 
-func (s MiniOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
+func (s MiniOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
 	var fileData []byte
 	var err error
 	if useProxy {
@@ -59,8 +59,10 @@ func (s MiniOss) PutUrlFile(fileURL string, useProxy bool) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error with parse image URL: %v", err)
 	}
-	fileExt := filepath.Ext(parse.Path)
-	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	if ext == "" {
+		ext = filepath.Ext(parse.Path)
+	}
+	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), ext)
 	info, err := s.client.PutObject(
 		context.Background(),
 		s.config.Bucket,
@@ -86,7 +88,7 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	}
 	defer fileReader.Close()
 
-	fileExt := utils.GetImgExt(file.Filename)
+	fileExt := filepath.Ext(file.Filename)
 	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(ctx, s.config.Bucket, filename, fileReader, file.Size, minio.PutObjectOptions{
 		ContentType: file.Header.Get("Body-Type"),

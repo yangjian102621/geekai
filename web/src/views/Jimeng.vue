@@ -95,7 +95,11 @@
             <span class="label">上传图片：</span>
           </div>
           <div class="param-line">
-            <ImageUpload v-model="store.imageToImageParams.image_input" />
+            <ImageUpload
+              v-model="store.imageToImageParams.image_input"
+              :max-count="1"
+              :multiple="false"
+            />
           </div>
 
           <div class="param-line pt">
@@ -133,7 +137,11 @@
             <span class="label">上传图片：</span>
           </div>
           <div class="param-line">
-            <ImageUpload v-model="store.imageEditParams.image_urls" :multiple="true" />
+            <ImageUpload
+              v-model="store.imageEditParams.image_urls"
+              :max-count="1"
+              :multiple="false"
+            />
           </div>
 
           <div class="param-line pt">
@@ -162,7 +170,11 @@
             <span class="label">上传图片：</span>
           </div>
           <div class="param-line">
-            <ImageUpload v-model="store.imageEffectsParams.image_input1" />
+            <ImageUpload
+              v-model="store.imageEffectsParams.image_input1"
+              :max-count="1"
+              :multiple="false"
+            />
           </div>
 
           <div class="param-line pt">
@@ -228,7 +240,11 @@
             <span class="label">上传图片：</span>
           </div>
           <div class="param-line">
-            <ImageUpload v-model="store.imageToVideoParams.image_urls" :multiple="true" />
+            <ImageUpload
+              v-model="store.imageToVideoParams.image_urls"
+              :max-count="2"
+              :multiple="true"
+            />
           </div>
 
           <div class="param-line pt">
@@ -313,6 +329,7 @@
             v-bind="waterfallOptions"
             :is-loading="store.loading"
             :is-over="store.isOver"
+            :lazyload="true"
             @afterRender="onWaterfallAfterRender"
           >
             <template #default="{ item }">
@@ -323,32 +340,82 @@
                     <el-image
                       v-if="item.img_url"
                       :src="item.img_url"
+                      :preview-src-list="[item.img_url]"
+                      :preview-teleported="true"
                       fit="cover"
                       class="preview-image"
-                    />
-                    <video
-                      v-else-if="item.video_url"
-                      :src="item.video_url"
-                      class="preview-video"
-                      preload="metadata"
-                    />
+                    >
+                      <template #placeholder>
+                        <div class="w-full h-full flex justify-center items-center">
+                          <img :src="loadingIcon" class="max-w-[50px] max-h-[50px]" />
+                        </div>
+                      </template>
+                    </el-image>
+                    <div v-else-if="item.video_url" class="w-full h-full preview-video-wrapper">
+                      <video
+                        :src="item.video_url"
+                        preload="auto"
+                        loop="loop"
+                        muted="muted"
+                        class="preview-video w-full h-full"
+                      >
+                        您的浏览器不支持视频播放
+                      </video>
+                      <div class="video-mask" @click="store.playVideo(item)">
+                        <div class="play-btn">
+                          <img src="/images/play.svg" alt="播放" />
+                        </div>
+                      </div>
+                    </div>
+
                     <div v-else class="preview-placeholder">
-                      <i
-                        class="iconfont icon-video text-2xl"
-                        v-if="item.type.includes('video')"
-                      ></i>
-                      <i class="iconfont icon-dalle text-2xl" v-else></i>
-                      <span>{{ store.getTaskStatusText(item.status) }}</span>
+                      <div
+                        v-if="item.status === 'in_queue'"
+                        class="flex flex-col items-center gap-1"
+                      >
+                        <i class="iconfont icon-video" v-if="item.type.includes('video')"></i>
+                        <i class="iconfont icon-dalle" v-else></i>
+                        <span>
+                          {{ store.getTaskStatusText(item.status) }}
+                        </span>
+                      </div>
+                      <div
+                        v-else-if="item.status === 'generating'"
+                        class="flex flex-col items-center gap-1"
+                      >
+                        <span>
+                          <Generating>
+                            <div class="text-gray-400 text-base pt-3">
+                              {{ store.getTaskStatusText(item.status) }}
+                            </div></Generating
+                          >
+                        </span>
+                      </div>
+                      <div
+                        v-else-if="item.status === 'failed'"
+                        class="flex flex-col items-center gap-1"
+                      >
+                        <i class="iconfont icon-error text-red-500"></i>
+                        <span class="text text-red-500">
+                          {{ store.getTaskStatusText(item.status) }}
+                        </span>
+
+                        <span
+                          class="text-sm text-red-400 err-msg-clip cursor-pointer mx-5"
+                          @click="copyErrorMsg(item.err_msg)"
+                        >
+                          {{ item.err_msg }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div class="task-center">
                   <div class="task-info flex justify-between">
                     <div class="flex gap-2">
-                      <el-tag size="small" :type="store.getStatusType(item.status)">
-                        {{ store.getTaskStatusText(item.status) }}
+                      <el-tag size="small" :type="store.getTaskType(item.type)">
+                        {{ store.getFunctionName(item.type) }}
                       </el-tag>
-                      <el-tag size="small">{{ store.getFunctionName(item.type) }}</el-tag>
                     </div>
                     <div class="flex gap-2">
                       <span>
@@ -368,6 +435,37 @@
                           ></i>
                         </el-tooltip>
                       </span>
+
+                      <template v-if="item.status === 'failed'">
+                        <span class="ml-1" v-if="item.status === 'failed'">
+                          <el-tooltip content="重试" placement="top">
+                            <i
+                              class="iconfont icon-refresh cursor-pointer"
+                              @click="store.retryTask(item.id)"
+                            ></i>
+                          </el-tooltip>
+                        </span>
+
+                        <span class="ml-1" v-if="item.status === 'failed'">
+                          <el-tooltip content="删除" placement="top">
+                            <i
+                              class="iconfont icon-remove cursor-pointer text-red-500"
+                              @click="store.removeJob(item)"
+                            ></i>
+                          </el-tooltip>
+                        </span>
+                      </template>
+
+                      <span class="ml-1" v-if="item.video_url || item.img_url">
+                        <el-tooltip content="下载" placement="top">
+                          <i
+                            v-if="!item.downloading"
+                            class="iconfont icon-download text-sm cursor-pointer"
+                            @click="store.downloadFile(item)"
+                          ></i>
+                          <el-image src="/images/loading.gif" class="w-4 h-4" fit="cover" v-else />
+                        </el-tooltip>
+                      </span>
                     </div>
                   </div>
                   <div
@@ -380,42 +478,6 @@
                     <span v-if="item.power">{{ item.power }}算力</span>
                   </div>
                 </div>
-                <div class="task-right">
-                  <div class="task-actions">
-                    <el-button
-                      v-if="item.status === 'failed'"
-                      type="primary"
-                      size="small"
-                      @click="store.retryTask(item.id)"
-                    >
-                      重试
-                    </el-button>
-                    <el-button
-                      v-if="item.video_url || item.img_url"
-                      type="default"
-                      size="small"
-                      @click="store.downloadFile(item)"
-                    >
-                      下载
-                    </el-button>
-                    <el-button
-                      v-if="item.video_url"
-                      type="default"
-                      size="small"
-                      @click="store.playVideo(item)"
-                    >
-                      播放
-                    </el-button>
-                    <el-button
-                      type="danger"
-                      v-if="item.status === 'failed'"
-                      size="small"
-                      @click="store.removeJob(item)"
-                    >
-                      删除
-                    </el-button>
-                  </div>
-                </div>
               </div>
             </template>
           </Waterfall>
@@ -423,7 +485,7 @@
             <img
               :src="waterfallOptions.loadProps.loading"
               class="max-w-[50px] max-h-[50px]"
-              v-if="store.loading"
+              v-if="!waterfallRendered"
             />
             <div v-else>
               <div class="no-more-data" v-if="store.isOver">
@@ -439,7 +501,14 @@
 
     <!-- 视频预览对话框 -->
     <el-dialog v-model="store.showDialog" title="视频预览" width="70%" center>
-      <video :src="store.currentVideoUrl" controls style="width: 100%; max-height: 60vh">
+      <video
+        :src="store.currentVideoUrl"
+        autoplay="true"
+        controls
+        preload="auto"
+        loop="loop"
+        muted="muted"
+      >
         您的浏览器不支持视频播放
       </video>
     </el-dialog>
@@ -448,13 +517,15 @@
 
 <script setup>
 import '@/assets/css/jimeng.styl'
+import loadingIcon from '@/assets/img/loading.gif'
 import ImageUpload from '@/components/ImageUpload.vue'
+import Generating from '@/components/ui/Generating.vue'
 import { imageSizeOptions, useJimengStore, videoAspectRatioOptions } from '@/store/jimeng'
 import { useSharedStore } from '@/store/sharedata'
 import { dateFormat } from '@/utils/libs'
 import { Switch } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
 
@@ -474,6 +545,9 @@ const getCategoryIcon = (category) => {
 
 const store = useJimengStore()
 
+// 新增：瀑布流渲染完成状态
+const waterfallRendered = ref(false)
+
 onMounted(() => {
   store.init()
 })
@@ -482,7 +556,27 @@ onUnmounted(() => {
   store.cleanup()
 })
 
+// 监听 loading，每次 loading 变为 true 时重置渲染状态
+watch(
+  () => store.loading,
+  (val) => {
+    if (val) {
+      waterfallRendered.value = false
+    }
+  }
+)
+
+watch(
+  () => store.isOver,
+  (val) => {
+    if (val) {
+      waterfallRendered.value = true
+    }
+  }
+)
+
 function onWaterfallAfterRender() {
+  waterfallRendered.value = true
   if (!store.loading && !store.isOver) {
     store.fetchData(store.page + 1)
   }
@@ -498,6 +592,17 @@ function copyPrompt(prompt) {
       ElMessage.error('复制失败')
     })
 }
+
+function copyErrorMsg(msg) {
+  navigator.clipboard
+    .writeText(msg)
+    .then(() => {
+      ElMessage.success('错误信息已复制')
+    })
+    .catch(() => {
+      ElMessage.error('复制失败')
+    })
+}
 </script>
 
 <style lang="stylus" scoped>
@@ -507,6 +612,23 @@ function copyPrompt(prompt) {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
     padding: 10px 0;
+  }
+  // 新增：增强任务项悬停动画
+  .task-item {
+    transition: box-shadow 3s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1), border-color 0.5s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    background: #fff;
+    position: relative;
+    z-index: 1;
+  }
+  .task-item:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+    border-color: #a259ff;
+    transform: scale(1.025) translateY(-2px);
+    z-index: 10;
+    background: #f7fbff;
   }
 }
 @media (max-width: 1200px) {
@@ -519,4 +641,49 @@ function copyPrompt(prompt) {
     grid-template-columns: 1fr;
   }
 }
+.preview-video-wrapper
+  position: relative
+  width: 100%
+  height: 100%
+  .video-mask
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+    background: rgba(0,0,0,0.25)
+    display: flex
+    justify-content: center
+    align-items: center
+    opacity: 0
+    transition: opacity 0.2s
+    z-index: 2
+  &:hover .video-mask
+    opacity: 1
+  .play-btn
+    width: 64px
+    height: 64px
+    background: rgba(255,255,255,0.3)
+    border-radius: 50%
+    display: flex
+    justify-content: center
+    align-items: center
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15)
+    cursor: pointer
+    z-index: 3
+    transition: background 0.2s
+    &:hover
+      background: rgba(255,255,255,0.4)
+  .play-btn img
+    width: 36px
+    height: 36px
+.err-msg-clip
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+  text-overflow: ellipsis
+  word-break: break-all
+  white-space: normal
+  cursor: pointer
 </style>

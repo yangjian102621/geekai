@@ -144,7 +144,15 @@ func (h *NetHandler) Download(c *gin.Context) {
 		return
 	}
 	// 使用http.Get下载文件
-	r, err := http.Get(fileUrl)
+	req, err := http.NewRequest("GET", fileUrl, nil)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	// 模拟浏览器 UA
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+	client := &http.Client{}
+	r, err := client.Do(req)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -157,6 +165,5 @@ func (h *NetHandler) Download(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
-	// 将下载的文件内容写入响应
 	_, _ = io.Copy(c.Writer, r.Body)
 }

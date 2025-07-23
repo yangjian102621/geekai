@@ -164,7 +164,7 @@ func (s *Service) DownloadFiles() {
 				}
 
 				logger.Infof("try download video: %s", v.WaterURL)
-				videoURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.WaterURL, true)
+				videoURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v.WaterURL, ".mp4", true)
 				if err != nil {
 					logger.Errorf("download video with error: %v", err)
 					continue
@@ -174,7 +174,7 @@ func (s *Service) DownloadFiles() {
 
 				if v.VideoURL != "" {
 					logger.Infof("try download no water video: %s", v.VideoURL)
-					videoURL, err = s.uploadManager.GetUploadHandler().PutUrlFile(v.VideoURL, true)
+					videoURL, err = s.uploadManager.GetUploadHandler().PutUrlFile(v.VideoURL, ".mp4", true)
 					if err != nil {
 						logger.Errorf("download video with error: %v", err)
 						continue

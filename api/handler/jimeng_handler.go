@@ -290,7 +290,7 @@ func (h *JimengHandler) Jobs(c *gin.Context) {
 
 	// 分页查询
 	offset := (req.Page - 1) * req.PageSize
-	if err := query.Order("created_at DESC").Offset(offset).Limit(req.PageSize).Find(&jobs).Error; err != nil {
+	if err := query.Order("updated_at DESC").Offset(offset).Limit(req.PageSize).Find(&jobs).Error; err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
@@ -338,22 +338,32 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	if err := h.jimengService.DeleteJob(uint(jobId), user.Id); err != nil {
+	tx := h.DB.Begin()
+	if err := tx.Where("id = ? AND user_id = ?", jobId, user.Id).Delete(&model.JimengJob{}).Error; err != nil {
 		logger.Errorf("delete jimeng job failed: %v", err)
 		resp.ERROR(c, "删除任务失败")
 		return
 	}
+
+	// 退回算力
+	err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
+		Type:   types.PowerRefund,
+		Model:  "jimeng",
+		Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
+	})
+	if err != nil {
+		resp.ERROR(c, "退回算力失败")
+		tx.Rollback()
+		return
+	}
+	tx.Commit()
 
 	resp.SUCCESS(c, gin.H{})
 }
 
 // Retry 重试任务
 func (h *JimengHandler) Retry(c *gin.Context) {
-	user, err := h.GetLoginUser(c)
-	if err != nil {
-		resp.NotAuth(c)
-		return
-	}
+	userId := h.GetLoginUserId(c)
 
 	jobId := h.GetInt(c, "id", 0)
 	if jobId == 0 {
@@ -368,7 +378,7 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 		return
 	}
 
-	if job.UserId != user.Id {
+	if job.UserId != userId {
 		resp.ERROR(c, "无权限操作")
 		return
 	}
