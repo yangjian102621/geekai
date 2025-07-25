@@ -11,10 +11,11 @@ import (
 	"context"
 	"fmt"
 	"geekai/core/types"
-	"github.com/go-pay/gopay"
-	"github.com/go-pay/gopay/wechat/v3"
 	"net/http"
 	"time"
+
+	"github.com/go-pay/gopay"
+	"github.com/go-pay/gopay/wechat/v3"
 )
 
 type WechatPayService struct {
@@ -28,12 +29,8 @@ func NewWechatService(appConfig *types.AppConfig) (*WechatPayService, error) {
 		logger.Info("Disabled WechatPay service")
 		return nil, nil
 	}
-	priKey, err := readKey(config.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("error with read App Private key: %v", err)
-	}
 
-	client, err := wechat.NewClientV3(config.MchId, config.SerialNo, config.ApiV3Key, priKey)
+	client, err := wechat.NewClientV3(config.MchId, config.SerialNo, config.ApiV3Key, config.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("error with initialize WechatPay service: %v", err)
 	}

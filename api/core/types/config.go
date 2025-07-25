@@ -53,11 +53,8 @@ type AlipayConfig struct {
 	Enabled         bool   // 是否启用该支付通道
 	SandBox         bool   // 是否沙盒环境
 	AppId           string // 应用 ID
-	UserId          string // 支付宝用户 ID
-	PrivateKey      string // 用户私钥文件路径
-	PublicKey       string // 用户公钥文件路径
-	AlipayPublicKey string // 支付宝公钥文件路径
-	RootCert        string // Root 秘钥路径
+	PrivateKey      string // 商户私钥
+	AlipayPublicKey string // 支付宝公钥
 	NotifyURL       string // 异步通知地址
 	ReturnURL       string // 同步通知地址
 }
@@ -67,7 +64,7 @@ type WechatPayConfig struct {
 	AppId      string // 公众号的APPID,如：wxd678efh567hg6787
 	MchId      string // 直连商户的商户号，由微信支付生成并下发
 	SerialNo   string // 商户证书的证书序列号
-	PrivateKey string // 用户私钥文件路径
+	PrivateKey string // 商户私钥
 	ApiV3Key   string // API V3 秘钥
 	NotifyURL  string // 异步通知地址
 }

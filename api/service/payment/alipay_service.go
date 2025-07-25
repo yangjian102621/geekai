@@ -12,10 +12,11 @@ import (
 	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
-	"github.com/go-pay/gopay"
-	"github.com/go-pay/gopay/alipay"
 	"net/http"
 	"os"
+
+	"github.com/go-pay/gopay"
+	"github.com/go-pay/gopay/alipay"
 )
 
 type AlipayService struct {
@@ -31,23 +32,10 @@ func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
 		logger.Info("Disabled Alipay service")
 		return nil, nil
 	}
-	priKey, err := readKey(config.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("error with read App Private key: %v", err)
-	}
 
-	client, err := alipay.NewClient(config.AppId, priKey, !config.SandBox)
+	client, err := alipay.NewClient(config.AppId, config.PrivateKey, !config.SandBox)
 	if err != nil {
 		return nil, fmt.Errorf("error with initialize alipay service: %v", err)
-	}
-
-	//client.DebugSwitch = gopay.DebugOn // 开启调试模式
-	client.SetLocation(alipay.LocationShanghai). // 设置时区，不设置或出错均为默认服务器时间
-							SetCharset(alipay.UTF8). // 设置字符编码，不设置默认 utf-8
-							SetSignType(alipay.RSA2) // 设置签名类型，不设置默认 RSA2
-
-	if err = client.SetCertSnByPath(config.PublicKey, config.RootCert, config.AlipayPublicKey); err != nil {
-		return nil, fmt.Errorf("error with load payment public key: %v", err)
 	}
 
 	return &AlipayService{config: &config, client: client}, nil
