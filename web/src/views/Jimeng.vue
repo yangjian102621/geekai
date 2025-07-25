@@ -282,7 +282,6 @@
             type="primary"
             @click="store.submitTask"
             :loading="store.submitting"
-            :disabled="!store.isLogin || store.userPower < store.currentPowerCost"
             size="large"
           >
             立即生成 ({{ store.currentPowerCost }}<i class="iconfont icon-vip2"></i>)

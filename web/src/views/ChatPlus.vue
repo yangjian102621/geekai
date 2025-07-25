@@ -219,8 +219,8 @@
                         {{ model.power > 0 ? `${model.power}算力` : '免费' }}
                       </el-tag>
                     </div>
-                    <div class="model-description" :title="model.description || '暂无描述'">
-                      {{ model.description || '暂无描述' }}
+                    <div class="model-description" :title="model.desc || '暂无描述'">
+                      {{ model.desc || '暂无描述' }}
                     </div>
                     <!-- 暂时屏蔽此信息展示，或许用户不想展示此信息 -->
                     <div class="model-metadata">
@@ -488,7 +488,7 @@ const filteredModels = computed(() => {
         model.description.toLowerCase().includes(modelSearchKeyword.value.toLowerCase()))
 
     // 分类匹配
-    const matchesCategory = !activeCategory.value || model.category === activeCategory.value
+    const matchesCategory = !activeCategory.value || model.tag === activeCategory.value
 
     // 免费模型匹配
     const matchesFree = !showFreeModelsOnly.value || model.power <= 0
@@ -514,8 +514,8 @@ const toggleFreeModels = () => {
 const updateModelCategories = () => {
   const categories = new Set()
   models.value.forEach((model) => {
-    if (model.category) {
-      categories.add(model.category)
+    if (model.tag) {
+      categories.add(model.tag)
     }
   })
   modelCategories.value = Array.from(categories)
@@ -539,7 +539,7 @@ const updateGroupedModels = () => {
   // 否则按分类分组展示
   const groups = {}
   filtered.forEach((model) => {
-    const category = model.category || '未分类'
+    const category = model.tag || '未分类'
     if (!groups[category]) {
       groups[category] = []
     }

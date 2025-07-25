@@ -7,174 +7,163 @@
         label-position="right"
         ref="configFormRef"
         :rules="rules"
+        class="py-3 px-5"
       >
-        <el-tabs type="border-card">
-          <el-tab-pane>
+        <!-- 秘钥配置分组 -->
+        <div class="mb-3">
+          <h3 class="mb-2">秘钥配置</h3>
+          <el-form-item label="AccessKey" prop="access_key">
+            <el-input
+              v-model="jimengConfig.access_key"
+              placeholder="请输入即梦AI的AccessKey"
+              show-password
+            />
+          </el-form-item>
+          <el-form-item label="SecretKey" prop="secret_key">
+            <el-input
+              v-model="jimengConfig.secret_key"
+              placeholder="请输入即梦AI的SecretKey"
+              show-password
+            />
+          </el-form-item>
+        </div>
+        <el-divider />
+        <!-- 算力配置分组 -->
+        <div class="mb-3">
+          <h3 class="mb-3">算力配置</h3>
+          <el-form-item>
             <template #label>
-              <i class="iconfont icon-token mr-1"></i>
-              <span>秘钥配置</span>
+              <div class="label-title">
+                文生图算力
+                <el-tooltip
+                  effect="dark"
+                  content="用户使用文生图功能时消耗的算力"
+                  raw-content
+                  placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
             </template>
-            <el-form-item label="AccessKey" prop="access_key">
-              <el-input
-                v-model="jimengConfig.access_key"
-                placeholder="请输入即梦AI的AccessKey"
-                show-password
-              />
-            </el-form-item>
-            <el-form-item label="SecretKey" prop="secret_key">
-              <el-input
-                v-model="jimengConfig.secret_key"
-                placeholder="请输入即梦AI的SecretKey"
-                show-password
-              />
-            </el-form-item>
-          </el-tab-pane>
-
-          <el-tab-pane>
+            <el-input-number
+              v-model="jimengConfig.power.text_to_image"
+              :min="1"
+              placeholder="请输入文生图算力消耗"
+            />
+          </el-form-item>
+          <el-form-item>
             <template #label>
-              <i class="iconfont icon-logout mr-1"></i>
-              <span>算力配置</span>
+              <div class="label-title">
+                图生图算力
+                <el-tooltip
+                  effect="dark"
+                  content="用户使用图生图功能时消耗的算力"
+                  raw-content
+                  placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
             </template>
-            <el-form-item>
-              <template #label>
-                <div class="label-title">
-                  文生图算力
-                  <el-tooltip
-                    effect="dark"
-                    content="用户使用文生图功能时消耗的算力"
-                    raw-content
-                    placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </template>
-              <el-input-number
-                v-model="jimengConfig.power.text_to_image"
-                :min="1"
-                placeholder="请输入文生图算力消耗"
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <template #label>
-                <div class="label-title">
-                  图生图算力
-                  <el-tooltip
-                    effect="dark"
-                    content="用户使用图生图功能时消耗的算力"
-                    raw-content
-                    placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </template>
-              <el-input-number
-                v-model="jimengConfig.power.image_to_image"
-                :min="1"
-                placeholder="请输入图生图算力消耗"
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <template #label>
-                <div class="label-title">
-                  图片编辑算力
-                  <el-tooltip
-                    effect="dark"
-                    content="用户使用图片编辑功能时消耗的算力"
-                    raw-content
-                    placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </template>
-              <el-input-number
-                v-model="jimengConfig.power.image_edit"
-                :min="1"
-                placeholder="请输入图片编辑算力消耗"
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <template #label>
-                <div class="label-title">
-                  图片特效算力
-                  <el-tooltip
-                    effect="dark"
-                    content="用户使用图片特效功能时消耗的算力"
-                    raw-content
-                    placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </template>
-              <el-input-number
-                v-model="jimengConfig.power.image_effects"
-                :min="1"
-                placeholder="请输入图片特效算力消耗"
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <template #label>
-                <div class="label-title">
-                  文生视频算力
-                  <el-tooltip
-                    effect="dark"
-                    content="用户使用文生视频功能时消耗的算力"
-                    raw-content
-                    placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </template>
-              <el-input-number
-                v-model="jimengConfig.power.text_to_video"
-                :min="1"
-                placeholder="请输入文生视频算力消耗"
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <template #label>
-                <div class="label-title">
-                  图生视频算力
-                  <el-tooltip
-                    effect="dark"
-                    content="用户使用图生视频功能时消耗的算力"
-                    raw-content
-                    placement="right"
-                  >
-                    <el-icon>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </template>
-              <el-input-number
-                v-model="jimengConfig.power.image_to_video"
-                :min="1"
-                placeholder="请输入图生视频算力消耗"
-              />
-            </el-form-item>
-          </el-tab-pane>
-        </el-tabs>
-
+            <el-input-number
+              v-model="jimengConfig.power.image_to_image"
+              :min="1"
+              placeholder="请输入图生图算力消耗"
+            />
+          </el-form-item>
+          <el-form-item>
+            <template #label>
+              <div class="label-title">
+                图片编辑算力
+                <el-tooltip
+                  effect="dark"
+                  content="用户使用图片编辑功能时消耗的算力"
+                  raw-content
+                  placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </template>
+            <el-input-number
+              v-model="jimengConfig.power.image_edit"
+              :min="1"
+              placeholder="请输入图片编辑算力消耗"
+            />
+          </el-form-item>
+          <el-form-item>
+            <template #label>
+              <div class="label-title">
+                图片特效算力
+                <el-tooltip
+                  effect="dark"
+                  content="用户使用图片特效功能时消耗的算力"
+                  raw-content
+                  placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </template>
+            <el-input-number
+              v-model="jimengConfig.power.image_effects"
+              :min="1"
+              placeholder="请输入图片特效算力消耗"
+            />
+          </el-form-item>
+          <el-form-item>
+            <template #label>
+              <div class="label-title">
+                文生视频算力
+                <el-tooltip
+                  effect="dark"
+                  content="用户使用文生视频功能时消耗的算力"
+                  raw-content
+                  placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </template>
+            <el-input-number
+              v-model="jimengConfig.power.text_to_video"
+              :min="1"
+              placeholder="请输入文生视频算力消耗"
+            />
+          </el-form-item>
+          <el-form-item>
+            <template #label>
+              <div class="label-title">
+                图生视频算力
+                <el-tooltip
+                  effect="dark"
+                  content="用户使用图生视频功能时消耗的算力"
+                  raw-content
+                  placement="right"
+                >
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </template>
+            <el-input-number
+              v-model="jimengConfig.power.image_to_video"
+              :min="1"
+              placeholder="请输入图生视频算力消耗"
+            />
+          </el-form-item>
+        </div>
         <div style="padding: 10px">
           <el-form-item>
             <el-button type="primary" @click="saveConfig" :loading="saving">保存配置</el-button>
@@ -240,7 +229,9 @@ const saveConfig = async () => {
     await httpPost('/api/admin/jimeng/config/update', jimengConfig.value)
     ElMessage.success('配置保存成功！')
   } catch (e) {
-    ElMessage.error(e.message)
+    if (e.message) {
+      ElMessage.error(e.message)
+    }
   } finally {
     saving.value = false
   }

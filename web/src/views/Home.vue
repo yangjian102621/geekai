@@ -214,7 +214,6 @@ watch(
 // 监听路由变化;
 router.beforeEach((to, from, next) => {
   curPath.value = to.path
-  console.log(curPath.value)
   next()
 })
 

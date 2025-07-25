@@ -6,6 +6,7 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import { checkSession } from '@/store/cache'
+import { useSharedStore } from '@/store/sharedata'
 import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg, substr } from '@/utils/libs'
@@ -39,6 +40,9 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 视频预览
   const showDialog = ref(false)
   const currentVideoUrl = ref('')
+
+  // 登录弹窗
+  const shareStore = useSharedStore()
 
   // 功能分类配置
   const categories = [
@@ -133,7 +137,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   })
 
   const imageEditParams = reactive({
-    image_urls: [],
+    image_urls: '',
     scale: 0.5,
     seed: -1,
   })
@@ -343,7 +347,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 提交任务
   const submitTask = async () => {
     if (!isLogin.value) {
-      showMessageError('请先登录')
+      shareStore.setShowLoginDialog(true)
       return
     }
     if (userPower.value < currentPowerCost.value) {

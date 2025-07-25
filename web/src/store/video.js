@@ -7,6 +7,7 @@
 
 import nodata from '@/assets/img/no-data.png'
 import { checkSession, getSystemInfo } from '@/store/cache'
+import { useSharedStore } from '@/store/sharedata'
 import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg, substr } from '@/utils/libs'
@@ -37,6 +38,7 @@ export const useVideoStore = defineStore('video', () => {
   // 用户信息
   const isLogin = ref(false)
   const availablePower = ref(100)
+  const shareStore = useSharedStore()
 
   // 任务筛选
   const taskFilter = ref('all') // 'all', 'luma', 'keling'
@@ -267,6 +269,11 @@ export const useVideoStore = defineStore('video', () => {
   }
 
   const createLumaVideo = async () => {
+    if (!isLogin.value) {
+      shareStore.setShowLoginDialog(true)
+      return
+    }
+
     if (!lumaParams.prompt?.trim()) {
       return ElMessage.error('请输入视频描述')
     }
@@ -365,6 +372,11 @@ export const useVideoStore = defineStore('video', () => {
   }
 
   const createKelingVideo = async () => {
+    if (!isLogin.value) {
+      shareStore.setShowLoginDialog(true)
+      return
+    }
+
     if (generating.value) return
 
     if (!kelingParams.prompt?.trim()) {
