@@ -333,10 +333,6 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, "无权限操作")
 		return
 	}
-	if job.Status != model.JMTaskStatusFailed {
-		resp.ERROR(c, "只有失败的任务才能删除")
-		return
-	}
 
 	tx := h.DB.Begin()
 	if err := tx.Where("id = ? AND user_id = ?", jobId, user.Id).Delete(&model.JimengJob{}).Error; err != nil {
@@ -345,17 +341,20 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// 退回算力
-	err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
-		Type:   types.PowerRefund,
-		Model:  "jimeng",
-		Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
-	})
-	if err != nil {
-		resp.ERROR(c, "退回算力失败")
-		tx.Rollback()
-		return
+	// 失败任务删除后退回算力
+	if job.Status != model.JMTaskStatusFailed {
+		err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
+			Type:   types.PowerRefund,
+			Model:  "jimeng",
+			Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
+		})
+		if err != nil {
+			resp.ERROR(c, "退回算力失败")
+			tx.Rollback()
+			return
+		}
 	}
+
 	tx.Commit()
 
 	resp.SUCCESS(c, gin.H{})

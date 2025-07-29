@@ -386,7 +386,7 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_edit':
           Object.assign(requestData, {
-            image_urls: imageEditParams.image_urls,
+            image_urls: [imageEditParams.image_urls],
             scale: imageEditParams.scale,
             seed: imageEditParams.seed,
           })
@@ -397,6 +397,7 @@ export const useJimengStore = defineStore('jimeng', () => {
             template_id: imageEffectsParams.template_id,
             width: parseInt(imageEffectsParams.size.split('x')[0]),
             height: parseInt(imageEffectsParams.size.split('x')[1]),
+            prompt: imageEffectsParams.prompt,
           })
           break
         case 'text_to_video':
@@ -639,4 +640,69 @@ export const videoAspectRatioOptions = [
   { label: '1:1 (正方形)', value: '1:1' },
   { label: '16:9 (横版)', value: '16:9' },
   { label: '9:16 (竖版)', value: '9:16' },
+]
+
+export const imageEffectsTemplateOptions = [
+  {
+    label: '毛毡3D拍立得风格',
+    value: 'felt_3d_polaroid',
+    preview: '/images/jimeng/templates/felt_3d_polaroid.png',
+  },
+  { label: '像素世界风', value: 'my_world', preview: '/images/jimeng/templates/my_world.png' },
+  {
+    label: '像素世界-万物通用版',
+    value: 'my_world_universal',
+    preview: '/images/jimeng/templates/my_world_universal.png',
+  },
+  {
+    label: '盲盒玩偶风',
+    value: 'plastic_bubble_figure',
+    preview: '/images/jimeng/templates/plastic_bubble_figure.png',
+  },
+  {
+    label: '塑料泡罩人偶-文字卡头版',
+    value: 'plastic_bubble_figure_cartoon_text',
+    preview: '/images/jimeng/templates/plastic_bubble_figure_cartoon_text.png',
+  },
+  {
+    label: '毛绒玩偶风',
+    value: 'furry_dream_doll',
+    preview: '/images/jimeng/templates/furry_dream_doll.png',
+  },
+  {
+    label: '迷你世界玩偶风',
+    value: 'micro_landscape_mini_world',
+    preview: '/images/jimeng/templates/micro_landscape_mini_world.png',
+  },
+  {
+    label: '微型景观小世界-职业版',
+    value: 'micro_landscape_mini_world_professional',
+    preview: '/images/jimeng/templates/micro_landscape_mini_world_professional.png',
+  },
+  {
+    label: '亚克力挂饰',
+    value: 'acrylic_ornaments',
+    preview: '/images/jimeng/templates/acrylic_ornaments.png',
+  },
+  {
+    label: '毛毡钥匙扣',
+    value: 'felt_keychain',
+    preview: '/images/jimeng/templates/felt_keychain.png',
+  },
+  {
+    label: 'Lofi 像素人物小卡',
+    value: 'lofi_pixel_character_mini_card',
+    preview: '/images/jimeng/templates/lofi_pixel_character_mini_card.png',
+  },
+  {
+    label: '天使形象手办',
+    value: 'angel_figurine',
+    preview: '/images/jimeng/templates/angel_figurine.png',
+  },
+  {
+    label: '躺在毛茸茸肚皮里',
+    value: 'lying_in_fluffy_belly',
+    preview: '/images/jimeng/templates/lying_in_fluffy_belly.png',
+  },
+  { label: '玻璃球', value: 'glass_ball', preview: '/images/jimeng/templates/glass_ball.png' },
 ]

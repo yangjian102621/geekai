@@ -378,7 +378,7 @@ func (s *Service) pollTaskStatus() {
 
 		for _, job := range jobs {
 			// 任务超时处理
-			if job.UpdatedAt.Before(time.Now().Add(-5 * time.Minute)) {
+			if job.UpdatedAt.Before(time.Now().Add(-10 * time.Minute)) {
 				s.handleTaskError(job.Id, "task timeout")
 				continue
 			}
@@ -391,7 +391,7 @@ func (s *Service) pollTaskStatus() {
 			})
 
 			if err != nil {
-				logger.Errorf("query jimeng task status failed: %v", err)
+				s.handleTaskError(job.Id, fmt.Sprintf("query task failed: %s", err.Error()))
 				continue
 			}
 
@@ -446,9 +446,7 @@ func (s *Service) pollTaskStatus() {
 				s.handleTaskError(job.Id, "task not found")
 
 			case model.JMTaskStatusExpired:
-				// 任务过期
-				s.handleTaskError(job.Id, "task expired")
-
+				continue
 			default:
 				logger.Warnf("unknown task status: %s", resp.Data.Status)
 			}

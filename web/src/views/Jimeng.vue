@@ -181,10 +181,40 @@
             <span class="label">特效模板：</span>
           </div>
           <div class="param-line">
-            <el-select v-model="store.imageEffectsParams.template_id" placeholder="选择特效模板">
-              <el-option label="经典特效" value="classic" />
-              <el-option label="艺术风格" value="artistic" />
-              <el-option label="现代科技" value="modern" />
+            <el-select
+              v-model="store.imageEffectsParams.template_id"
+              placeholder="选择特效模板"
+              popper-class="jimeng-template-select"
+              @change="handleTemplateChange($event)"
+            >
+              <template #prefix>
+                <div class="flex items-center py-1">
+                  <el-image
+                    v-if="templatePreview"
+                    :src="templatePreview"
+                    class="w-[50px] h-[50px] object-cover rounded-md"
+                    :preview-src-list="[templatePreview]"
+                    :preview-teleported="true"
+                    @click.stop
+                  />
+                </div>
+              </template>
+              <el-option
+                v-for="opt in imageEffectsTemplateOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              >
+                <div class="flex flex-row justify-between">
+                  <span class="template-label">{{ opt.label }}</span>
+                  <img
+                    v-if="opt.preview"
+                    :src="opt.preview"
+                    :alt="opt.label"
+                    class="w-[50px] h-[50px] object-cover rounded-md"
+                  />
+                </div>
+              </el-option>
             </el-select>
           </div>
 
@@ -444,16 +474,16 @@
                             ></i>
                           </el-tooltip>
                         </span>
-
-                        <span class="ml-1" v-if="item.status === 'failed'">
-                          <el-tooltip content="删除" placement="top">
-                            <i
-                              class="iconfont icon-remove cursor-pointer text-red-500"
-                              @click="store.removeJob(item)"
-                            ></i>
-                          </el-tooltip>
-                        </span>
                       </template>
+
+                      <span class="ml-1">
+                        <el-tooltip content="删除" placement="top">
+                          <i
+                            class="iconfont icon-remove cursor-pointer text-red-500"
+                            @click="store.removeJob(item)"
+                          ></i>
+                        </el-tooltip>
+                      </span>
 
                       <span class="ml-1" v-if="item.video_url || item.img_url">
                         <el-tooltip content="下载" placement="top">
@@ -518,8 +548,14 @@
 import '@/assets/css/jimeng.styl'
 import loadingIcon from '@/assets/img/loading.gif'
 import ImageUpload from '@/components/ImageUpload.vue'
+
 import Generating from '@/components/ui/Generating.vue'
-import { imageSizeOptions, useJimengStore, videoAspectRatioOptions } from '@/store/jimeng'
+import {
+  imageEffectsTemplateOptions,
+  imageSizeOptions,
+  useJimengStore,
+  videoAspectRatioOptions,
+} from '@/store/jimeng'
 import { useSharedStore } from '@/store/sharedata'
 import { dateFormat } from '@/utils/libs'
 import { Switch } from '@element-plus/icons-vue'
@@ -546,6 +582,8 @@ const store = useJimengStore()
 
 // 新增：瀑布流渲染完成状态
 const waterfallRendered = ref(false)
+// 新增：模板预览图
+const templatePreview = ref('')
 
 onMounted(() => {
   store.init()
@@ -573,6 +611,13 @@ watch(
     }
   }
 )
+
+function handleTemplateChange(value) {
+  templatePreview.value = imageEffectsTemplateOptions.find((opt) => opt.value === value)?.preview
+  store.imageEffectsParams.prompt = imageEffectsTemplateOptions.find(
+    (opt) => opt.value === value
+  )?.label
+}
 
 function onWaterfallAfterRender() {
   waterfallRendered.value = true
@@ -604,7 +649,7 @@ function copyErrorMsg(msg) {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .task-list {
   .task-grid {
     display: grid;
@@ -614,8 +659,9 @@ function copyErrorMsg(msg) {
   }
   // 新增：增强任务项悬停动画
   .task-item {
-    transition: box-shadow 3s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1), border-color 0.5s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 3s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.5s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     border: 1.5px solid transparent;
     border-radius: 12px;
     background: #fff;
@@ -623,7 +669,7 @@ function copyErrorMsg(msg) {
     z-index: 1;
   }
   .task-item:hover {
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1.5px 8px rgba(0, 0, 0, 0.1);
     border-color: #a259ff;
     transform: scale(1.025) translateY(-2px);
     z-index: 10;
@@ -640,49 +686,68 @@ function copyErrorMsg(msg) {
     grid-template-columns: 1fr;
   }
 }
-.preview-video-wrapper
-  position: relative
-  width: 100%
-  height: 100%
-  .video-mask
-    position: absolute
-    top: 0
-    left: 0
-    width: 100%
-    height: 100%
-    background: rgba(0,0,0,0.25)
-    display: flex
-    justify-content: center
-    align-items: center
-    opacity: 0
-    transition: opacity 0.2s
-    z-index: 2
-  &:hover .video-mask
-    opacity: 1
-  .play-btn
-    width: 64px
-    height: 64px
-    background: rgba(255,255,255,0.3)
-    border-radius: 50%
-    display: flex
-    justify-content: center
-    align-items: center
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15)
-    cursor: pointer
-    z-index: 3
-    transition: background 0.2s
-    &:hover
-      background: rgba(255,255,255,0.4)
-  .play-btn img
-    width: 36px
-    height: 36px
-.err-msg-clip
-  display: -webkit-box
-  -webkit-line-clamp: 2
-  -webkit-box-orient: vertical
-  overflow: hidden
-  text-overflow: ellipsis
-  word-break: break-all
-  white-space: normal
-  cursor: pointer
+.preview-video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  .video-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+  }
+
+  &:hover .video-mask {
+    opacity: 1;
+  }
+
+  .play-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 3;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    img {
+      width: 36px;
+      height: 36px;
+    }
+  }
+}
+
+.err-msg-clip {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.jimeng-template-select {
+  .el-select-dropdown__item {
+    height: 60px;
+    line-height: 60px;
+  }
+}
 </style>
