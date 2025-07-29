@@ -3,8 +3,8 @@ package model
 import "time"
 
 type DallJob struct {
-	Id        uint       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserId    uint       `gorm:"column:user_id;type:int;not null;comment:用户ID" json:"user_id"`
+	Id        uint      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UserId    uint      `gorm:"column:user_id;type:int(11);not null;comment:用户ID" json:"user_id"`
 	Prompt    string    `gorm:"column:prompt;type:text;not null;comment:提示词" json:"prompt"`
 	TaskInfo  string    `gorm:"column:task_info;type:text;not null;comment:任务详情" json:"task_info"`
 	ImgURL    string    `gorm:"column:img_url;type:varchar(255);not null;comment:图片地址" json:"img_url"`

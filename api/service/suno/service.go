@@ -126,7 +126,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 		return RespVo{}, errors.New("no available API KEY for Suno")
 	}
 
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"task_id":           task.RefTaskId,
 		"continue_clip_id":  task.RefSongId,
 		"continue_at":       task.ExtendSecs,
@@ -330,7 +330,13 @@ func (s *Service) SyncTaskProgress() {
 						job.SongId = v.Id
 						job.Duration = int(v.Metadata.Duration)
 						job.Prompt = v.Metadata.Prompt
-						job.Tags = v.Metadata.Tags
+						// 修复 tags 字段过长导致插入数据库失败
+						if len(v.Metadata.Tags) > 255 {
+							job.Tags = v.Metadata.Tags[:255]
+						} else {
+							job.Tags = v.Metadata.Tags
+						}
+
 						job.ModelName = v.ModelName
 						job.RawData = utils.JsonEncode(v)
 						job.CoverURL = v.ImageLargeUrl

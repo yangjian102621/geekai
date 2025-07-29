@@ -69,7 +69,8 @@
             class="nav-item-box"
             @click="router.push(item.url)"
           >
-            <i :class="'iconfont ' + item.icon"></i>
+            <i :class="'iconfont mb-2 ' + item.icon" v-if="item.icon.startsWith('icon')"></i>
+            <el-image :src="item.icon" class="rounded-lg w-10 h-10 mb-2" alt="Geek-AI" v-else />
             <div>{{ item.name }}</div>
           </div>
         </el-space>
@@ -87,18 +88,13 @@ import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { httpGet } from '@/utils/http'
 import { ElMessage } from 'element-plus'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// if (isMobile()) {
-//   router.push('/mobile/index')
-// }
-
 const title = ref('')
 const logo = ref('')
-const slogan = ref('')
 const license = ref({ de_copy: true })
 
 const isLogin = ref(false)
@@ -107,24 +103,11 @@ const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 const giteeURL = ref(import.meta.env.VITE_GITEE_URL)
 const navs = ref([])
 
-const displayedChars = ref([])
-const initAnimation = ref('')
-let timer = null // 定时器句柄
-
-// 初始化间隔时间和随机时间数组
-const interTime = ref(50)
-const interArr = [90, 100, 70, 88, 80, 110, 85, 400, 90, 99]
-
 onMounted(() => {
   getSystemInfo()
     .then((res) => {
       title.value = res.data.title
       logo.value = res.data.logo
-      slogan.value = res.data.slogan
-
-      // 确保获取数据后再启动定时器
-      if (timer) clearInterval(timer) // 清除已有定时器
-      timer = setInterval(setContent, interTime.value)
     })
     .catch((e) => {
       ElMessage.error('获取系统配置失败：' + e.message)
@@ -154,52 +137,9 @@ onMounted(() => {
     .catch(() => {})
 })
 
-// 组件销毁时清除定时器
-onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-})
-
-// 打字机内容逐字符显示
-const setContent = () => {
-  if (!slogan.value) {
-    if (timer) clearInterval(timer)
-    timer = setTimeout(setContent, 100)
-    return
-  }
-
-  if (initAnimation.value.length >= slogan.value.length) {
-    // 文本已全部输出
-    initAnimation.value = ''
-    displayedChars.value = []
-    if (timer) clearInterval(timer)
-    timer = setInterval(setContent, interTime.value)
-  } else {
-    const nextChar = slogan.value.charAt(initAnimation.value.length)
-    initAnimation.value += nextChar // 逐字符追加
-    displayedChars.value.push(nextChar)
-    interTime.value = interArr[Math.floor(Math.random() * interArr.length)] // 设置随机间隔
-    if (timer) clearInterval(timer)
-    timer = setInterval(setContent, interTime.value)
-  }
-}
-// 计算彩虹色
-const rainbowColor = (index) => {
-  const hue = (index * 40) % 360 // 每个字符间隔40度，形成彩虹色
-  return `hsl(${hue}, 90%, 50%)` // 色调(hue)，饱和度(70%)，亮度(50%)
-}
-
-const logout = function () {
-  httpGet('/api/user/logout')
-    .then(() => {
-      removeUserToken()
-      router.push('/login')
-    })
-    .catch((e) => {
-      ElMessage.error('注销失败：' + e.message)
-    })
+const logout = () => {
+  removeUserToken()
+  router.push('/login')
 }
 </script>
 

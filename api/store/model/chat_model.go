@@ -18,7 +18,7 @@ type ChatModel struct {
 	MaxTokens   int       `gorm:"column:max_tokens;type:int;not null;default:1024;comment:最大响应长度" json:"max_tokens"`
 	MaxContext  int       `gorm:"column:max_context;type:int;not null;default:4096;comment:最大上下文长度" json:"max_context"`
 	Open        bool      `gorm:"column:open;type:tinyint(1);not null;comment:是否开放模型" json:"open"`
-	KeyId       uint      `gorm:"column:key_id;type:int;not null;comment:绑定API KEY ID" json:"key_id"`
+	KeyId       uint      `gorm:"column:key_id;type:int(11);not null;comment:绑定API KEY ID" json:"key_id"`
 	Options     string    `gorm:"column:options;type:text;not null;comment:模型自定义选项" json:"options"`
 	CreatedAt   time.Time `gorm:"column:created_at;type:datetime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;type:datetime" json:"updated_at"`

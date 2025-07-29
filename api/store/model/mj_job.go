@@ -3,8 +3,8 @@ package model
 import "time"
 
 type MidJourneyJob struct {
-	Id        uint       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserId    uint       `gorm:"column:user_id;type:int;not null;comment:用户 ID" json:"user_id"`
+	Id        uint      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UserId    uint      `gorm:"column:user_id;type:int(11);not null;comment:用户 ID" json:"user_id"`
 	TaskId    string    `gorm:"column:task_id;type:varchar(20);uniqueIndex;comment:任务 ID" json:"task_id"`
 	TaskInfo  string    `gorm:"column:task_info;type:text;not null;comment:任务详情" json:"task_info"`
 	Type      string    `gorm:"column:type;type:varchar(20);default:image;comment:任务类别" json:"type"`

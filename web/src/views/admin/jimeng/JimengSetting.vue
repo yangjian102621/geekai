@@ -12,6 +12,35 @@
         <!-- 秘钥配置分组 -->
         <div class="mb-3">
           <h3 class="mb-2">秘钥配置</h3>
+          <el-alert type="info" :closable="false" show-icon>
+            <p class="mb-1">
+              1. 要使用即梦 AI 功能，需要先在火山引擎控制台开通
+              <a
+                href="https://console.volcengine.com/ai/ability/detail/10"
+                target="_blank"
+                class="text-blue-500"
+                >即梦 AI</a
+              >
+              和
+              <a
+                href="https://console.volcengine.com/ai/ability/detail/9"
+                target="_blank"
+                class="text-blue-500"
+                >智能绘图</a
+              >
+              服务。
+            </p>
+            <p>
+              2. AccessKey和SecretKey 请在火山引擎控制台 ->
+              <a
+                href="https://console.volcengine.com/iam/keymanage/"
+                target="_blank"
+                class="text-blue-500"
+                >秘钥管理</a
+              >
+              获取。
+            </p>
+          </el-alert>
           <el-form-item label="AccessKey" prop="access_key">
             <el-input
               v-model="jimengConfig.access_key"

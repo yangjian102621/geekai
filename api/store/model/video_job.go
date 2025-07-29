@@ -3,8 +3,8 @@ package model
 import "time"
 
 type VideoJob struct {
-	Id        uint       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserId    uint       `gorm:"column:user_id;type:int;not null;comment:用户 ID" json:"user_id"`
+	Id        uint      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UserId    uint      `gorm:"column:user_id;type:int(11);not null;comment:用户 ID" json:"user_id"`
 	Channel   string    `gorm:"column:channel;type:varchar(100);not null;comment:渠道" json:"channel"`
 	TaskId    string    `gorm:"column:task_id;type:varchar(100);not null;comment:任务 ID" json:"task_id"`
 	TaskInfo  string    `gorm:"column:task_info;type:text;comment:原始任务信息" json:"task_info"`
