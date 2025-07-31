@@ -43,35 +43,88 @@ type statsVo struct {
 
 func (h *DashboardHandler) Stats(c *gin.Context) {
 	stats := statsVo{}
-	// new users statistic
-	var userCount int64
 	now := time.Now()
 	zeroTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	res := h.DB.Model(&model.User{}).Where("created_at > ?", zeroTime).Count(&userCount)
-	if res.Error == nil {
-		stats.Users = userCount
-	}
 
-	// new chats statistic
-	var chatCount int64
-	res = h.DB.Model(&model.ChatItem{}).Where("created_at > ?", zeroTime).Count(&chatCount)
-	if res.Error == nil {
-		stats.Chats = chatCount
-	}
+	// 总用户数
+	h.DB.Model(&model.User{}).Count(&stats.Users)
 
-	// tokens took stats
+	// 今日新增用户
+	h.DB.Model(&model.User{}).Where("created_at > ?", zeroTime).Count(&stats.TodayUsers)
+
+	// 总对话数
+	h.DB.Model(&model.ChatItem{}).Count(&stats.Chats)
+
+	// 今日新增对话
+	h.DB.Model(&model.ChatItem{}).Where("created_at > ?", zeroTime).Count(&stats.TodayChats)
+
+	// 总Token消耗
 	var historyMessages []model.ChatMessage
-	res = h.DB.Where("created_at > ?", zeroTime).Find(&historyMessages)
+	h.DB.Find(&historyMessages)
 	for _, item := range historyMessages {
 		stats.Tokens += item.Tokens
 	}
 
-	// 订单收入
-	var orders []model.Order
-	res = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Find(&orders)
-	for _, item := range orders {
+	// 今日Token消耗
+	var todayMessages []model.ChatMessage
+	h.DB.Where("created_at > ?", zeroTime).Find(&todayMessages)
+	for _, item := range todayMessages {
+		stats.TodayTokens += item.Tokens
+	}
+
+	// 总收入
+	var allOrders []model.Order
+	h.DB.Where("status = ?", types.OrderPaidSuccess).Find(&allOrders)
+	for _, item := range allOrders {
 		stats.Income += item.Amount
 	}
+
+	// 今日收入
+	var todayOrders []model.Order
+	h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Find(&todayOrders)
+	for _, item := range todayOrders {
+		stats.TodayIncome += item.Amount
+	}
+
+	// 订单总数
+	h.DB.Model(&model.Order{}).Where("status = ?", types.OrderPaidSuccess).Count(&stats.Orders)
+
+	// 今日订单数
+	h.DB.Model(&model.Order{}).Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Count(&stats.TodayOrders)
+
+	// 图片生成任务统计
+	var mjJobs, sdJobs, dallJobs, jimengImageJobs int64
+	h.DB.Model(&model.MidJourneyJob{}).Count(&mjJobs)
+	h.DB.Model(&model.SdJob{}).Count(&sdJobs)
+	h.DB.Model(&model.DallJob{}).Count(&dallJobs)
+	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_image", "image_to_image", "image_edit", "image_effects"}).Count(&jimengImageJobs)
+	stats.ImageJobs = mjJobs + sdJobs + dallJobs + jimengImageJobs
+
+	// 今日图片生成任务统计
+	var todayMjJobs, todaySdJobs, todayDallJobs, todayJimengImageJobs int64
+	h.DB.Model(&model.MidJourneyJob{}).Where("created_at > ?", zeroTime).Count(&todayMjJobs)
+	h.DB.Model(&model.SdJob{}).Where("created_at > ?", zeroTime).Count(&todaySdJobs)
+	h.DB.Model(&model.DallJob{}).Where("created_at > ?", zeroTime).Count(&todayDallJobs)
+	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_image", "image_to_image", "image_edit", "image_effects"}).Where("created_at > ?", zeroTime).Count(&todayJimengImageJobs)
+	stats.TodayImageJobs = todayMjJobs + todaySdJobs + todayDallJobs + todayJimengImageJobs
+
+	// 视频生成任务统计
+	var videoJobs, jimengVideoJobs int64
+	h.DB.Model(&model.VideoJob{}).Count(&videoJobs)
+	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_video", "image_to_video"}).Count(&jimengVideoJobs)
+	stats.VideoJobs = videoJobs + jimengVideoJobs
+
+	// 今日视频生成任务统计
+	var todayVideoJobs, todayJimengVideoJobs int64
+	h.DB.Model(&model.VideoJob{}).Where("created_at > ?", zeroTime).Count(&todayVideoJobs)
+	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_video", "image_to_video"}).Where("created_at > ?", zeroTime).Count(&todayJimengVideoJobs)
+	stats.TodayVideoJobs = todayVideoJobs + todayJimengVideoJobs
+
+	// 音乐生成任务统计
+	h.DB.Model(&model.SunoJob{}).Count(&stats.MusicJobs)
+
+	// 今日音乐生成任务统计
+	h.DB.Model(&model.SunoJob{}).Where("created_at > ?", zeroTime).Count(&stats.TodayMusicJobs)
 
 	// 统计7天的订单的图表
 	startDate := now.Add(-7 * 24 * time.Hour).Format("2006-01-02")
@@ -101,6 +154,7 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	}
 
 	// 统计最近7天的订单
+	var orders []model.Order
 	res = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", startDate).Find(&orders)
 	for _, item := range orders {
 		incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
