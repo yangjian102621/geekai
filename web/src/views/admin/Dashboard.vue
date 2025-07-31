@@ -159,16 +159,13 @@
             <h3>最近订单</h3>
           </div>
           <div class="order-list">
-            <div class="order-item" v-for="order in recentOrders" :key="order.id">
+            <div class="order-item" v-for="order in recentOrders" :key="order.order_no">
               <div class="order-info">
-                <div class="order-id">#{{ order.id }}</div>
-                <div class="order-amount">{{ order.amount }}</div>
+                <div class="order-id">#{{ order.order_no }}</div>
+                <div class="order-amount">￥{{ order.amount }}</div>
               </div>
               <div class="order-meta">
-                <div class="order-date">{{ order.date }}</div>
-                <el-tag :type="order.status === '已支付' ? 'success' : 'warning'" size="small">
-                  {{ order.status }}
-                </el-tag>
+                <div class="order-date">{{ formatTime(order.created_at) }}</div>
               </div>
             </div>
           </div>
@@ -182,17 +179,15 @@
             <h3>最近用户</h3>
           </div>
           <div class="user-list">
-            <div class="user-item" v-for="user in recentUsers" :key="user.id">
+            <div class="user-item" v-for="user in recentUsers" :key="user.nickname">
               <div class="user-avatar">
-                <el-avatar :size="40" :src="user.avatar">{{ user.name.charAt(0) }}</el-avatar>
+                <el-avatar :size="40" :src="user.avatar">{{ user.nickname.charAt(0) }}</el-avatar>
               </div>
               <div class="user-info">
-                <div class="user-name">{{ user.name }}</div>
-                <div class="user-id">{{ user.userId }}</div>
+                <div class="user-name">{{ user.nickname }}</div>
               </div>
               <div class="user-meta">
-                <div class="user-time">{{ user.time }}</div>
-                <el-tag type="info" size="small">{{ user.status }}</el-tag>
+                <div class="user-time">{{ formatTime(user.last_active) }}</div>
               </div>
             </div>
           </div>
@@ -297,6 +292,20 @@ const formatNumber = (num) => {
   return num
 }
 
+// 时间格式化工具
+const formatTime = (dateStr) => {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = (now - date) / 1000
+  if (diff < 60 * 60) {
+    return Math.floor(diff / 60) + '分钟前'
+  } else if (diff < 60 * 60 * 24) {
+    return Math.floor(diff / 3600) + '小时前'
+  } else {
+    return Math.floor(diff / 86400) + '天前'
+  }
+}
+
 onMounted(() => {
   const chartUsers = echarts.init(document.getElementById('chart-users'))
   const chartTokens = echarts.init(document.getElementById('chart-tokens'))
@@ -305,6 +314,8 @@ onMounted(() => {
     .then((res) => {
       // 更新统计数据
       Object.assign(stats.value, res.data)
+      recentOrders.value = res.data.recentOrders || []
+      recentUsers.value = res.data.recentUsers || []
       const chartData = res.data.chart
       loading.value = false
 

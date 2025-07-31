@@ -13,10 +13,11 @@ import (
 	"geekai/handler"
 	"geekai/store/model"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
-	"time"
 )
 
 type DashboardHandler struct {
@@ -33,12 +34,41 @@ func (h *DashboardHandler) RegisterRoutes() {
 	group.GET("stats", h.Stats)
 }
 
+// statsVo 增加 recentOrders、recentUsers 字段
+// 最近订单
+type OrderBrief struct {
+	OrderNo   string    `json:"order_no"`
+	Amount    float64   `json:"amount"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// 最近用户
+type UserBrief struct {
+	Nickname   string    `json:"nickname"`
+	Avatar     string    `json:"avatar"`
+	LastActive time.Time `json:"last_active"`
+}
+
 type statsVo struct {
-	Users  int64                         `json:"users"`
-	Chats  int64                         `json:"chats"`
-	Tokens int                           `json:"tokens"`
-	Income float64                       `json:"income"`
-	Chart  map[string]map[string]float64 `json:"chart"`
+	Users          int64                         `json:"users"`
+	Chats          int64                         `json:"chats"`
+	Tokens         int                           `json:"tokens"`
+	Income         float64                       `json:"income"`
+	Chart          map[string]map[string]float64 `json:"chart"`
+	TodayUsers     int64                         `json:"today_users"`
+	TodayChats     int64                         `json:"today_chats"`
+	TodayTokens    int                           `json:"today_tokens"`
+	TodayIncome    float64                       `json:"today_income"`
+	TodayOrders    int64                         `json:"today_orders"`
+	TodayImageJobs int64                         `json:"today_image_jobs"`
+	TodayVideoJobs int64                         `json:"today_video_jobs"`
+	TodayMusicJobs int64                         `json:"today_music_jobs"`
+	Orders         int64                         `json:"orders"`
+	ImageJobs      int64                         `json:"image_jobs"`
+	VideoJobs      int64                         `json:"video_jobs"`
+	MusicJobs      int64                         `json:"music_jobs"`
+	RecentOrders   []OrderBrief                  `json:"recentOrders"`
+	RecentUsers    []UserBrief                   `json:"recentUsers"`
 }
 
 func (h *DashboardHandler) Stats(c *gin.Context) {
@@ -126,6 +156,31 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	// 今日音乐生成任务统计
 	h.DB.Model(&model.SunoJob{}).Where("created_at > ?", zeroTime).Count(&stats.TodayMusicJobs)
 
+	// recentOrders: 最近10条已支付订单
+	var orderList []model.Order
+	h.DB.Model(&model.Order{}).Where("status = ?", types.OrderPaidSuccess).Order("created_at desc").Limit(10).Find(&orderList)
+	for _, o := range orderList {
+		stats.RecentOrders = append(stats.RecentOrders, OrderBrief{
+			OrderNo:   o.OrderNo,
+			Amount:    o.Amount,
+			CreatedAt: o.CreatedAt,
+		})
+	}
+	// recentUsers: 最近10个注册用户
+	var userList []model.User
+	h.DB.Model(&model.User{}).Order("created_at desc").Limit(10).Find(&userList)
+	for _, u := range userList {
+		lastActive := u.UpdatedAt
+		if lastActive.IsZero() {
+			lastActive = u.CreatedAt
+		}
+		stats.RecentUsers = append(stats.RecentUsers, UserBrief{
+			Nickname:   u.Nickname,
+			Avatar:     u.Avatar,
+			LastActive: lastActive,
+		})
+	}
+
 	// 统计7天的订单的图表
 	startDate := now.Add(-7 * 24 * time.Hour).Format("2006-01-02")
 	var statsChart = make(map[string]map[string]float64)
@@ -140,24 +195,28 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 
 	// 统计用户7天增加的曲线
 	var users []model.User
-	res = h.DB.Model(&model.User{}).Where("created_at > ?", startDate).Find(&users)
-	if res.Error == nil {
+	err := h.DB.Model(&model.User{}).Where("created_at > ?", startDate).Find(&users).Error
+	if err == nil {
 		for _, item := range users {
 			userStatistic[item.CreatedAt.Format("2006-01-02")] += 1
 		}
 	}
 
 	// 统计7天Token 消耗
-	res = h.DB.Where("created_at > ?", startDate).Find(&historyMessages)
-	for _, item := range historyMessages {
-		historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Tokens)
+	err = h.DB.Where("created_at > ?", startDate).Find(&historyMessages).Error
+	if err == nil {
+		for _, item := range historyMessages {
+			historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Tokens)
+		}
 	}
 
 	// 统计最近7天的订单
 	var orders []model.Order
-	res = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", startDate).Find(&orders)
-	for _, item := range orders {
-		incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
+	err = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", startDate).Find(&orders).Error
+	if err == nil {
+		for _, item := range orders {
+			incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
+		}
 	}
 
 	statsChart["users"] = userStatistic
