@@ -229,281 +229,131 @@ func main() {
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
-			group := s.Engine.Group("/api/app/")
-			group.GET("list", h.List)
-			group.GET("list/user", h.ListByUser)
-			group.POST("update", h.UpdateRole)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
-			group := s.Engine.Group("/api/user/")
-			group.POST("register", h.Register)
-			group.POST("login", h.Login)
-			group.GET("logout", h.Logout)
-			group.GET("session", h.Session)
-			group.GET("profile", h.Profile)
-			group.POST("profile/update", h.ProfileUpdate)
-			group.POST("password", h.UpdatePass)
-			group.POST("bind/mobile", h.BindMobile)
-			group.POST("bind/email", h.BindEmail)
-			group.POST("resetPass", h.ResetPass)
-			group.GET("clogin", h.CLogin)
-			group.GET("clogin/callback", h.CLoginCallback)
-			group.GET("signin", h.SignIn)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
-			group := s.Engine.Group("/api/chat/")
-			group.Any("message", h.Chat)
-			group.GET("list", h.List)
-			group.GET("detail", h.Detail)
-			group.POST("update", h.Update)
-			group.GET("remove", h.Remove)
-			group.GET("history", h.History)
-			group.GET("clear", h.Clear)
-			group.POST("tokens", h.Tokens)
-			group.GET("stop", h.StopGenerate)
-			group.POST("tts", h.TextToSpeech)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.NetHandler) {
-			s.Engine.POST("/api/upload", h.Upload)
-			s.Engine.POST("/api/upload/list", h.List)
-			s.Engine.GET("/api/upload/remove", h.Remove)
-			s.Engine.GET("/api/download", h.Download)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
-			group := s.Engine.Group("/api/sms/")
-			group.POST("code", h.SendCode)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
-			group := s.Engine.Group("/api/captcha/")
-			group.GET("get", h.Get)
-			group.POST("check", h.Check)
-			group.GET("slide/get", h.SlideGet)
-			group.POST("slide/check", h.SlideCheck)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
-			group := s.Engine.Group("/api/redeem/")
-			group.POST("verify", h.Verify)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
-			group := s.Engine.Group("/api/mj/")
-			group.POST("image", h.Image)
-			group.POST("upscale", h.Upscale)
-			group.POST("variation", h.Variation)
-			group.GET("jobs", h.JobList)
-			group.GET("imgWall", h.ImgWall)
-			group.GET("remove", h.Remove)
-			group.GET("publish", h.Publish)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
-			group := s.Engine.Group("/api/sd")
-			group.POST("image", h.Image)
-			group.GET("jobs", h.JobList)
-			group.GET("imgWall", h.ImgWall)
-			group.GET("remove", h.Remove)
-			group.GET("publish", h.Publish)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
-			group := s.Engine.Group("/api/config/")
-			group.GET("get", h.Get)
-			group.GET("license", h.License)
+			h.RegisterRoutes()
 		}),
 
 		// 管理后台控制器
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			group := s.Engine.Group("/api/admin/config")
-			group.POST("update", h.Update)
-			group.GET("get", h.Get)
-			group.POST("active", h.Active)
-			group.GET("fixData", h.FixData)
-			group.GET("license", h.GetLicense)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
-			group := s.Engine.Group("/api/admin/")
-			group.POST("login", h.Login)
-			group.GET("logout", h.Logout)
-			group.GET("session", h.Session)
-			group.GET("list", h.List)
-			group.POST("save", h.Save)
-			group.POST("enable", h.Enable)
-			group.GET("remove", h.Remove)
-			group.POST("resetPass", h.ResetPass)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
-			group := s.Engine.Group("/api/admin/apikey/")
-			group.POST("save", h.Save)
-			group.GET("list", h.List)
-			group.POST("set", h.Set)
-			group.GET("remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
-			group := s.Engine.Group("/api/admin/user/")
-			group.GET("list", h.List)
-			group.POST("save", h.Save)
-			group.GET("remove", h.Remove)
-			group.GET("loginLog", h.LoginLog)
-			group.GET("genLoginLink", h.GenLoginLink)
-			group.POST("resetPass", h.ResetPass)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
-			group := s.Engine.Group("/api/admin/role/")
-			group.GET("list", h.List)
-			group.POST("save", h.Save)
-			group.POST("sort", h.Sort)
-			group.POST("set", h.Set)
-			group.GET("remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.RedeemHandler) {
-			group := s.Engine.Group("/api/admin/redeem/")
-			group.GET("list", h.List)
-			group.POST("create", h.Create)
-			group.POST("set", h.Set)
-			group.GET("remove", h.Remove)
-			group.POST("export", h.Export)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
-			group := s.Engine.Group("/api/admin/dashboard/")
-			group.GET("stats", h.Stats)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatModelHandler) {
-			group := s.Engine.Group("/api/model/")
-			group.GET("list", h.List)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatModelHandler) {
-			group := s.Engine.Group("/api/admin/model/")
-			group.POST("save", h.Save)
-			group.GET("list", h.List)
-			group.POST("set", h.Set)
-			group.POST("sort", h.Sort)
-			group.GET("remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
-			group := s.Engine.Group("/api/payment/")
-			group.POST("doPay", h.Pay)
-			group.GET("payWays", h.GetPayWays)
-			group.POST("notify/alipay", h.AlipayNotify)
-			group.GET("notify/geek", h.GeekPayNotify)
-			group.POST("notify/wechat", h.WechatPayNotify)
-			group.POST("notify/hupi", h.HuPiPayNotify)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
-			group := s.Engine.Group("/api/admin/product/")
-			group.POST("save", h.Save)
-			group.GET("list", h.List)
-			group.POST("enable", h.Enable)
-			group.POST("sort", h.Sort)
-			group.GET("remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.OrderHandler) {
-			group := s.Engine.Group("/api/admin/order/")
-			group.POST("list", h.List)
-			group.GET("remove", h.Remove)
-			group.GET("clear", h.Clear)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
-			group := s.Engine.Group("/api/order/")
-			group.GET("list", h.List)
-			group.GET("query", h.Query)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ProductHandler) {
-			group := s.Engine.Group("/api/product/")
-			group.GET("list", h.List)
+			h.RegisterRoutes()
 		}),
 
 		fx.Provide(handler.NewInviteHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.InviteHandler) {
-			group := s.Engine.Group("/api/invite/")
-			group.GET("code", h.Code)
-			group.GET("list", h.List)
-			group.GET("hits", h.Hits)
+			h.RegisterRoutes()
 		}),
 
 		fx.Provide(admin.NewFunctionHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.FunctionHandler) {
-			group := s.Engine.Group("/api/admin/function/")
-			group.POST("save", h.Save)
-			group.POST("set", h.Set)
-			group.GET("list", h.List)
-			group.GET("remove", h.Remove)
-			group.GET("token", h.GenToken)
+			h.RegisterRoutes()
 		}),
 
 		fx.Provide(admin.NewUploadHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.UploadHandler) {
-			s.Engine.POST("/api/admin/upload", h.Upload)
+			h.RegisterRoutes()
 		}),
 
 		fx.Provide(handler.NewFunctionHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
-			group := s.Engine.Group("/api/function/")
-			group.POST("weibo", h.WeiBo)
-			group.POST("zaobao", h.ZaoBao)
-			group.POST("dalle3", h.Dall3)
-			group.POST("websearch", h.WebSearch)
-			group.GET("list", h.List)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {
-			group := s.Engine.Group("/api/admin/chat/")
-			group.POST("list", h.List)
-			group.POST("message", h.Messages)
-			group.GET("history", h.History)
-			group.GET("remove", h.RemoveChat)
-			group.GET("message/remove", h.RemoveMessage)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PowerLogHandler) {
-			group := s.Engine.Group("/api/powerLog/")
-			group.POST("list", h.List)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.PowerLogHandler) {
-			group := s.Engine.Group("/api/admin/powerLog/")
-			group.POST("list", h.List)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(admin.NewMenuHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.MenuHandler) {
-			group := s.Engine.Group("/api/admin/menu/")
-			group.POST("save", h.Save)
-			group.GET("list", h.List)
-			group.POST("enable", h.Enable)
-			group.POST("sort", h.Sort)
-			group.GET("remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewMenuHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.MenuHandler) {
-			group := s.Engine.Group("/api/menu/")
-			group.GET("list", h.List)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewMarkMapHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
-			s.Engine.POST("/api/markMap/gen", h.Generate)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewDallJobHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.DallJobHandler) {
-			group := s.Engine.Group("/api/dall")
-			group.POST("image", h.Image)
-			group.GET("jobs", h.JobList)
-			group.GET("imgWall", h.ImgWall)
-			group.GET("remove", h.Remove)
-			group.GET("publish", h.Publish)
-			group.GET("models", h.GetModels)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewSunoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.SunoHandler) {
-			group := s.Engine.Group("/api/suno")
-			group.POST("create", h.Create)
-			group.GET("list", h.List)
-			group.GET("remove", h.Remove)
-			group.GET("publish", h.Publish)
-			group.POST("update", h.Update)
-			group.GET("detail", h.Detail)
-			group.GET("play", h.Play)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewVideoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
-			group := s.Engine.Group("/api/video")
-			group.POST("luma/create", h.LumaCreate)
-			group.POST("keling/create", h.KeLingCreate)
-			group.GET("list", h.List)
-			group.GET("remove", h.Remove)
-			group.GET("publish", h.Publish)
+			h.RegisterRoutes()
 		}),
 
 		// 即梦AI 路由
@@ -515,30 +365,19 @@ func main() {
 		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {
-			group := s.Engine.Group("/api/admin/app/type")
-			group.POST("save", h.Save)
-			group.GET("list", h.List)
-			group.GET("remove", h.Remove)
-			group.POST("enable", h.Enable)
-			group.POST("sort", h.Sort)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppTypeHandler) {
-			group := s.Engine.Group("/api/app/type")
-			group.GET("list", h.List)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewTestHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
-			group := s.Engine.Group("/api/test")
-			group.Any("sse", h.PostTest, h.SseTest)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewPromptHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
-			group := s.Engine.Group("/api/prompt")
-			group.POST("/lyric", h.Lyric)
-			group.POST("/image", h.Image)
-			group.POST("/video", h.Video)
-			group.POST("/meta", h.MetaPrompt)
+			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
@@ -563,23 +402,15 @@ func main() {
 		}),
 		fx.Provide(admin.NewImageHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ImageHandler) {
-			group := s.Engine.Group("/api/admin/image")
-			group.POST("/list/mj", h.MjList)
-			group.POST("/list/sd", h.SdList)
-			group.POST("/list/dall", h.DallList)
-			group.GET("/remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(admin.NewMediaHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.MediaHandler) {
-			group := s.Engine.Group("/api/admin/media")
-			group.POST("/suno", h.SunoList)
-			group.POST("/videos", h.Videos)
-			group.GET("/remove", h.Remove)
+			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewRealtimeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
-			s.Engine.Any("/api/realtime", h.Connection)
-			s.Engine.POST("/api/realtime/voice", h.VoiceChat)
+			h.RegisterRoutes()
 		}),
 	)
 	// 启动应用程序

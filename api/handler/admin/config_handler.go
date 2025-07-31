@@ -36,6 +36,16 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, 
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *ConfigHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/config")
+	group.POST("update", h.Update)
+	group.GET("get", h.Get)
+	group.POST("active", h.Active)
+	group.GET("fixData", h.FixData)
+	group.GET("license", h.GetLicense)
+}
+
 func (h *ConfigHandler) Update(c *gin.Context) {
 	var data struct {
 		Key    string `json:"key"`

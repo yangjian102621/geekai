@@ -30,6 +30,16 @@ func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
 	return &ChatAppHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatAppHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/role/")
+	group.GET("list", h.List)
+	group.POST("save", h.Save)
+	group.POST("sort", h.Sort)
+	group.POST("set", h.Set)
+	group.GET("remove", h.Remove)
+}
+
 // Save 创建或者更新某个角色
 func (h *ChatAppHandler) Save(c *gin.Context) {
 	var data vo.ChatRole

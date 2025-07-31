@@ -27,6 +27,12 @@ func NewDashboardHandler(app *core.AppServer, db *gorm.DB) *DashboardHandler {
 	return &DashboardHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *DashboardHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/dashboard/")
+	group.GET("stats", h.Stats)
+}
+
 type statsVo struct {
 	Users  int64                         `json:"users"`
 	Chats  int64                         `json:"chats"`

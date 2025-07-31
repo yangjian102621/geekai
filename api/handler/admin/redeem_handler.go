@@ -29,6 +29,16 @@ func NewRedeemHandler(app *core.AppServer, db *gorm.DB) *RedeemHandler {
 	return &RedeemHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *RedeemHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/redeem/")
+	group.GET("list", h.List)
+	group.POST("create", h.Create)
+	group.POST("set", h.Set)
+	group.GET("remove", h.Remove)
+	group.POST("export", h.Export)
+}
+
 func (h *RedeemHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)
 	pageSize := h.GetInt(c, "page_size", 20)

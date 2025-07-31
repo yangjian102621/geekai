@@ -39,6 +39,12 @@ func NewRealtimeHandler(server *core.AppServer, db *gorm.DB, userService *servic
 	return &RealtimeHandler{BaseHandler: BaseHandler{App: server, DB: db}, userService: userService}
 }
 
+// RegisterRoutes 注册路由
+func (h *RealtimeHandler) RegisterRoutes() {
+	h.App.Engine.Any("/api/realtime", h.Connection)
+	h.App.Engine.POST("/api/realtime/voice", h.VoiceChat)
+}
+
 func (h *RealtimeHandler) Connection(c *gin.Context) {
 	// 获取客户端请求中指定的子协议
 	clientProtocols := c.GetHeader("Sec-WebSocket-Protocol")

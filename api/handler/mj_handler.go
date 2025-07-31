@@ -46,6 +46,18 @@ func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.S
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *MidJourneyHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/mj/")
+	group.POST("image", h.Image)
+	group.POST("upscale", h.Upscale)
+	group.POST("variation", h.Variation)
+	group.GET("jobs", h.JobList)
+	group.GET("imgWall", h.ImgWall)
+	group.GET("remove", h.Remove)
+	group.GET("publish", h.Publish)
+}
+
 func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {

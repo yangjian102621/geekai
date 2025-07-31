@@ -33,6 +33,14 @@ func NewMediaHandler(app *core.AppServer, db *gorm.DB, userService *service.User
 	return &MediaHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, userService: userService, uploader: manager}
 }
 
+// RegisterRoutes 注册路由
+func (h *MediaHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/media")
+	group.POST("/suno", h.SunoList)
+	group.POST("/videos", h.Videos)
+	group.GET("/remove", h.Remove)
+}
+
 type mediaQuery struct {
 	Type      string   `json:"type"` // 任务类型 luma, keling
 	Prompt    string   `json:"prompt"`

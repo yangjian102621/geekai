@@ -28,6 +28,11 @@ func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderMan
 	return &UploadHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}, uploaderManager: manager}
 }
 
+// RegisterRoutes 注册路由
+func (h *UploadHandler) RegisterRoutes() {
+	h.App.Engine.POST("/api/admin/upload", h.Upload)
+}
+
 func (h *UploadHandler) Upload(c *gin.Context) {
 	// 判断文件大小
 	f, err := c.FormFile("file")

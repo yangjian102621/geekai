@@ -39,6 +39,15 @@ func NewPromptHandler(app *core.AppServer, db *gorm.DB, userService *service.Use
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *PromptHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/prompt")
+	group.POST("/lyric", h.Lyric)
+	group.POST("/image", h.Image)
+	group.POST("/video", h.Video)
+	group.POST("/meta", h.MetaPrompt)
+}
+
 // Lyric 生成歌词
 func (h *PromptHandler) Lyric(c *gin.Context) {
 	var data struct {

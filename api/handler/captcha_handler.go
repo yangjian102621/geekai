@@ -8,6 +8,7 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/utils/resp"
@@ -17,11 +18,21 @@ import (
 // 今日头条函数实现
 
 type CaptchaHandler struct {
+	App     *core.AppServer
 	service *service.CaptchaService
 }
 
-func NewCaptchaHandler(s *service.CaptchaService) *CaptchaHandler {
-	return &CaptchaHandler{service: s}
+func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService) *CaptchaHandler {
+	return &CaptchaHandler{App: app, service: s}
+}
+
+// RegisterRoutes 注册路由
+func (h *CaptchaHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/captcha/")
+	group.GET("get", h.Get)
+	group.POST("check", h.Check)
+	group.GET("slide/get", h.SlideGet)
+	group.POST("slide/check", h.SlideCheck)
 }
 
 func (h *CaptchaHandler) Get(c *gin.Context) {

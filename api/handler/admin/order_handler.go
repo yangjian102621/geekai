@@ -29,6 +29,14 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 	return &OrderHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *OrderHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/order/")
+	group.POST("list", h.List)
+	group.GET("remove", h.Remove)
+	group.GET("clear", h.Clear)
+}
+
 func (h *OrderHandler) List(c *gin.Context) {
 	var data struct {
 		OrderNo  string   `json:"order_no"`

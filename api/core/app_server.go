@@ -354,12 +354,12 @@ func needLogin(c *gin.Context) bool {
 }
 
 // 跳过授权
-func (s *AppServer) SkipAuth(url string, prefix bool) {
-	if prefix {
-		authConfig.PrefixPaths[url] = false
-	} else {
-		authConfig.ExactPaths[url] = false
-	}
+func (s *AppServer) SkipAuth(url string) {
+	authConfig.ExactPaths[url] = false
+}
+
+func (s *AppServer) SkipAuthPrefix(url string) {
+	authConfig.PrefixPaths[url] = false
 }
 
 // 统一参数处理

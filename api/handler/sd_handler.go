@@ -56,6 +56,16 @@ func NewSdJobHandler(app *core.AppServer,
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *SdJobHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/sd")
+	group.POST("image", h.Image)
+	group.GET("jobs", h.JobList)
+	group.GET("imgWall", h.ImgWall)
+	group.GET("remove", h.Remove)
+	group.GET("publish", h.Publish)
+}
+
 func (h *SdJobHandler) preCheck(c *gin.Context) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {

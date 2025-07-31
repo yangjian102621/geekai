@@ -78,6 +78,21 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/chat/")
+	group.Any("message", h.Chat)
+	group.GET("list", h.List)
+	group.GET("detail", h.Detail)
+	group.POST("update", h.Update)
+	group.GET("remove", h.Remove)
+	group.GET("history", h.History)
+	group.GET("clear", h.Clear)
+	group.POST("tokens", h.Tokens)
+	group.GET("stop", h.StopGenerate)
+	group.POST("tts", h.TextToSpeech)
+}
+
 // Chat 处理聊天请求
 func (h *ChatHandler) Chat(c *gin.Context) {
 	var input ChatInput

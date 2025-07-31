@@ -28,6 +28,16 @@ func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
 	return &ProductHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ProductHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/product/")
+	group.POST("save", h.Save)
+	group.GET("list", h.List)
+	group.POST("enable", h.Enable)
+	group.POST("sort", h.Sort)
+	group.GET("remove", h.Remove)
+}
+
 func (h *ProductHandler) Save(c *gin.Context) {
 	var data struct {
 		Id        uint    `json:"id"`

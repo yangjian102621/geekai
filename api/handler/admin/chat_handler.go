@@ -28,6 +28,16 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB) *ChatHandler {
 	return &ChatHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/chat/")
+	group.POST("list", h.List)
+	group.POST("message", h.Messages)
+	group.GET("history", h.History)
+	group.GET("remove", h.RemoveChat)
+	group.GET("message/remove", h.RemoveMessage)
+}
+
 type chatItemVo struct {
 	Username  string      `json:"username"`
 	UserId    uint        `json:"user_id"`

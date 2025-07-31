@@ -42,6 +42,17 @@ func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service,
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *DallJobHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/dall")
+	group.POST("image", h.Image)
+	group.GET("jobs", h.JobList)
+	group.GET("imgWall", h.ImgWall)
+	group.GET("remove", h.Remove)
+	group.GET("publish", h.Publish)
+	group.GET("models", h.GetModels)
+}
+
 // Image 创建一个绘画任务
 func (h *DallJobHandler) Image(c *gin.Context) {
 	var data types.DallTask

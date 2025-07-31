@@ -56,6 +56,16 @@ func NewFunctionHandler(
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *FunctionHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/function/")
+	group.POST("weibo", h.WeiBo)
+	group.POST("zaobao", h.ZaoBao)
+	group.POST("dalle3", h.Dall3)
+	group.POST("websearch", h.WebSearch)
+	group.GET("list", h.List)
+}
+
 type resVo struct {
 	Code    types.BizCode `json:"code"`
 	Message string        `json:"message"`

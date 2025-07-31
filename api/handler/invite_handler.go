@@ -27,6 +27,14 @@ func NewInviteHandler(app *core.AppServer, db *gorm.DB) *InviteHandler {
 	return &InviteHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *InviteHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/invite/")
+	group.GET("code", h.Code)
+	group.GET("list", h.List)
+	group.GET("hits", h.Hits)
+}
+
 // Code 获取当前用户邀请码
 func (h *InviteHandler) Code(c *gin.Context) {
 	userId := h.GetLoginUserId(c)

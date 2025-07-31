@@ -44,6 +44,12 @@ func NewSmsHandler(
 		BaseHandler: BaseHandler{App: app}}
 }
 
+// RegisterRoutes 注册路由
+func (h *SmsHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/sms/")
+	group.POST("code", h.SendCode)
+}
+
 // SendCode 发送验证码
 func (h *SmsHandler) SendCode(c *gin.Context) {
 	var data struct {

@@ -28,6 +28,13 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 	return &OrderHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *OrderHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/order/")
+	group.GET("list", h.List)
+	group.GET("query", h.Query)
+}
+
 // List 订单列表
 func (h *OrderHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)

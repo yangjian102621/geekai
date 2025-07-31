@@ -27,6 +27,14 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 	return &ChatRoleHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatRoleHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/app/")
+	group.GET("list", h.List)
+	group.GET("list/user", h.ListByUser)
+	group.POST("update", h.UpdateRole)
+}
+
 // List 获取用户聊天应用列表
 func (h *ChatRoleHandler) List(c *gin.Context) {
 	tid := h.GetInt(c, "tid", 0)

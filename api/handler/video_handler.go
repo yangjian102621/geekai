@@ -43,6 +43,16 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, u
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *VideoHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/video")
+	group.POST("luma/create", h.LumaCreate)
+	group.POST("keling/create", h.KeLingCreate)
+	group.GET("list", h.List)
+	group.GET("remove", h.Remove)
+	group.GET("publish", h.Publish)
+}
+
 func (h *VideoHandler) LumaCreate(c *gin.Context) {
 
 	var data struct {

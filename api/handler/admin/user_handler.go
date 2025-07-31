@@ -36,6 +36,17 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.Li
 	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, licenseService: licenseService, redis: redisCli}
 }
 
+// RegisterRoutes 注册路由
+func (h *UserHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/user/")
+	group.GET("list", h.List)
+	group.POST("save", h.Save)
+	group.GET("remove", h.Remove)
+	group.GET("loginLog", h.LoginLog)
+	group.GET("genLoginLink", h.GenLoginLink)
+	group.POST("resetPass", h.ResetPass)
+}
+
 // List 用户列表
 func (h *UserHandler) List(c *gin.Context) {
 	page := h.GetInt(c, "page", 1)

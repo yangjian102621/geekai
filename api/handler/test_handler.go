@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"geekai/core"
 	"geekai/service"
 	"geekai/service/payment"
 	"github.com/gin-gonic/gin"
@@ -9,13 +10,20 @@ import (
 )
 
 type TestHandler struct {
+	App       *core.AppServer
 	db        *gorm.DB
 	snowflake *service.Snowflake
 	js        *payment.GeekPayService
 }
 
-func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.GeekPayService) *TestHandler {
-	return &TestHandler{db: db, snowflake: snowflake, js: js}
+func NewTestHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, js *payment.GeekPayService) *TestHandler {
+	return &TestHandler{App: app, db: db, snowflake: snowflake, js: js}
+}
+
+// RegisterRoutes 注册路由
+func (h *TestHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/test")
+	group.Any("sse", h.PostTest, h.SseTest)
 }
 
 func (h *TestHandler) SseTest(c *gin.Context) {

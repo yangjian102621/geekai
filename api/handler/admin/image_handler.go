@@ -33,6 +33,15 @@ func NewImageHandler(app *core.AppServer, db *gorm.DB, userService *service.User
 	return &ImageHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, userService: userService, uploader: manager}
 }
 
+// RegisterRoutes 注册路由
+func (h *ImageHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/image")
+	group.POST("/list/mj", h.MjList)
+	group.POST("/list/sd", h.SdList)
+	group.POST("/list/dall", h.DallList)
+	group.GET("/remove", h.Remove)
+}
+
 type imageQuery struct {
 	Prompt    string   `json:"prompt"`
 	Username  string   `json:"username"`

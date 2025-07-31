@@ -45,6 +45,19 @@ func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client, cap
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *ManagerHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/")
+	group.POST("login", h.Login)
+	group.GET("logout", h.Logout)
+	group.GET("session", h.Session)
+	group.GET("list", h.List)
+	group.POST("save", h.Save)
+	group.POST("enable", h.Enable)
+	group.GET("remove", h.Remove)
+	group.POST("resetPass", h.ResetPass)
+}
+
 // Login 登录
 func (h *ManagerHandler) Login(c *gin.Context) {
 	var data struct {

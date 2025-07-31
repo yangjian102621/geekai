@@ -71,6 +71,17 @@ func NewPaymentHandler(
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *PaymentHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/payment/")
+	group.POST("doPay", h.Pay)
+	group.GET("payWays", h.GetPayWays)
+	group.POST("notify/alipay", h.AlipayNotify)
+	group.GET("notify/geek", h.GeekPayNotify)
+	group.POST("notify/wechat", h.WechatPayNotify)
+	group.POST("notify/hupi", h.HuPiPayNotify)
+}
+
 func (h *PaymentHandler) Pay(c *gin.Context) {
 	var data struct {
 		PayWay    string `json:"pay_way"`

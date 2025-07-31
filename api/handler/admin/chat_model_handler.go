@@ -28,6 +28,16 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 	return &ChatModelHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatModelHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/model/")
+	group.POST("save", h.Save)
+	group.GET("list", h.List)
+	group.POST("set", h.Set)
+	group.POST("sort", h.Sort)
+	group.GET("remove", h.Remove)
+}
+
 func (h *ChatModelHandler) Save(c *gin.Context) {
 	var data struct {
 		Id          uint              `json:"id"`

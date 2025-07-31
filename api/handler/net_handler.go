@@ -32,6 +32,14 @@ func NewNetHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManage
 	return &NetHandler{BaseHandler: BaseHandler{App: app, DB: db}, uploaderManager: manager}
 }
 
+// RegisterRoutes 注册路由
+func (h *NetHandler) RegisterRoutes() {
+	h.App.Engine.POST("/api/upload", h.Upload)
+	h.App.Engine.POST("/api/upload/list", h.List)
+	h.App.Engine.GET("/api/upload/remove", h.Remove)
+	h.App.Engine.GET("/api/download", h.Download)
+}
+
 func (h *NetHandler) Upload(c *gin.Context) {
 	file, err := h.uploaderManager.GetUploadHandler().PutFile(c, "file")
 	if err != nil {

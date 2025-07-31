@@ -30,6 +30,12 @@ func NewRedeemHandler(app *core.AppServer, db *gorm.DB, userService *service.Use
 	return &RedeemHandler{BaseHandler: BaseHandler{App: app, DB: db}, userService: userService}
 }
 
+// RegisterRoutes 注册路由
+func (h *RedeemHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/redeem/")
+	group.POST("verify", h.Verify)
+}
+
 func (h *RedeemHandler) Verify(c *gin.Context) {
 	var data struct {
 		Code string `json:"code"`

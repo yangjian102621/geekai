@@ -35,6 +35,11 @@ func NewMarkMapHandler(app *core.AppServer, db *gorm.DB, userService *service.Us
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *MarkMapHandler) RegisterRoutes() {
+	h.App.Engine.POST("/api/markMap/gen", h.Generate)
+}
+
 // Generate 生成思维导图
 func (h *MarkMapHandler) Generate(c *gin.Context) {
 	var data struct {

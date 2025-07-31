@@ -60,6 +60,24 @@ func NewUserHandler(
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *UserHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/user/")
+	group.POST("register", h.Register)
+	group.POST("login", h.Login)
+	group.GET("logout", h.Logout)
+	group.GET("session", h.Session)
+	group.GET("profile", h.Profile)
+	group.POST("profile/update", h.ProfileUpdate)
+	group.POST("password", h.UpdatePass)
+	group.POST("bind/mobile", h.BindMobile)
+	group.POST("bind/email", h.BindEmail)
+	group.POST("resetPass", h.ResetPass)
+	group.GET("clogin", h.CLogin)
+	group.GET("clogin/callback", h.CLoginCallback)
+	group.GET("signin", h.SignIn)
+}
+
 // Register user register
 func (h *UserHandler) Register(c *gin.Context) {
 	// parameters process

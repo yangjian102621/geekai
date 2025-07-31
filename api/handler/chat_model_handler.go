@@ -26,6 +26,12 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 	return &ChatModelHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatModelHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/model/")
+	group.GET("list", h.List)
+}
+
 // List 模型列表
 func (h *ChatModelHandler) List(c *gin.Context) {
 	var items []model.ChatModel

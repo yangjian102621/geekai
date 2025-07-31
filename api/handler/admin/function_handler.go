@@ -30,6 +30,16 @@ func NewFunctionHandler(app *core.AppServer, db *gorm.DB) *FunctionHandler {
 	return &FunctionHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *FunctionHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/function/")
+	group.POST("save", h.Save)
+	group.POST("set", h.Set)
+	group.GET("list", h.List)
+	group.GET("remove", h.Remove)
+	group.GET("token", h.GenToken)
+}
+
 func (h *FunctionHandler) Save(c *gin.Context) {
 	var data vo.Function
 	if err := c.ShouldBindJSON(&data); err != nil {

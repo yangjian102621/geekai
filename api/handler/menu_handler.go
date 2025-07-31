@@ -25,6 +25,12 @@ func NewMenuHandler(app *core.AppServer, db *gorm.DB) *MenuHandler {
 	return &MenuHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *MenuHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/menu/")
+	group.GET("list", h.List)
+}
+
 // List 数据列表
 func (h *MenuHandler) List(c *gin.Context) {
 	index := h.GetBool(c, "index")
