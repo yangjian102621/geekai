@@ -324,6 +324,6 @@ const hangUp = async () => {
 defineExpose({ connect, hangUp })
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/realtime.styl"
+<style lang="scss" scoped>
+@use '../assets/css/realtime.scss' as *;
 </style>

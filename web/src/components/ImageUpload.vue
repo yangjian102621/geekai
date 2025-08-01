@@ -221,7 +221,7 @@ const removeImage = (index) => {
 }
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .image-upload {
   width: 100%;
 }
@@ -297,6 +297,7 @@ const removeImage = (index) => {
       justify-content: center;
     }
   }
+
   .upload-placeholder {
     display: flex;
     flex-direction: column;
@@ -311,6 +312,7 @@ const removeImage = (index) => {
   .el-upload-dragger {
     width: 100%;
   }
+
   .uploader {
     width: 100%;
   }

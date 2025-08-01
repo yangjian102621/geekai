@@ -311,11 +311,13 @@ const handleExpandClick = (e) => {
 }
 </script>
 
-<style lang="stylus">
-@import '@/assets/css/markdown/vue.css';
+<style lang="scss">
+@use '@/assets/css/markdown/vue.css' as *;
 
-.chat-page,.chat-export {
-  --font-family: Menlo,"微软雅黑","Roboto Mono","Courier New",Courier,monospace,"Inter",sans-serif;
+.chat-page,
+.chat-export {
+  --font-family: Menlo, '微软雅黑', 'Roboto Mono', 'Courier New', Courier, monospace, 'Inter',
+    sans-serif;
   font-family: var(--font-family);
 
   .chat-line {
@@ -327,130 +329,129 @@ const handleExpandClick = (e) => {
     .chat-item {
       .content-wrapper {
         img {
-            max-width: 600px;
+          max-width: 600px;
+          border-radius: 10px;
+        }
+
+        p {
+          line-height: 1.5;
+
+          code {
+            color: var(--theme-text-color-primary);
+            font-weight: 600;
+          }
+        }
+
+        p:last-child {
+          margin-bottom: 0;
+        }
+
+        p:first-child {
+          margin-top: 0;
+        }
+
+        .code-container {
+          background-color: #2b2b2b;
+          border-radius: 10px;
+          position: relative;
+
+          .hljs {
             border-radius: 10px;
+            width: 100%;
           }
 
-          p {
-            line-height 1.5
-
-            code {
-              color:var(--theme-text-color-primary);
-              font-weight 600
-            }
-          }
-
-          p:last-child {
-            margin-bottom: 0
-          }
-
-          p:first-child {
-            margin-top 0
-          }
-
-          .code-container {
-            background-color #2b2b2b
-            border-radius 10px
-            position relative
-
-            .hljs {
-              border-radius 10px
-              width 100%
-            }
-
-            .copy-code-btn {
-              cursor pointer
-              font-size 12px
-              color #c1c1c1
-
-              &:hover {
-                color #20a0ff
-              }
-            }
-
-          }
-
-          // 添加代码块展开/收起样式
-          .code-collapsed {
-            .hljs {
-              max-height 200px
-              overflow hidden
-              position relative
-              transition max-height 0.3s ease
-
-              &::after {
-                content ''
-                position absolute
-                bottom 0
-                left 0
-                right 0
-                height 30px
-                background linear-gradient(transparent, #2b2b2b)
-                pointer-events none
-              }
-            }
-          }
-
-          .code-expanded {
-            .hljs {
-              max-height none
-              overflow auto
-              transition max-height 0.3s ease
-
-              &::after {
-                display none
-              }
-            }
-          }
-
-          .expand-btn {
-            transition color 0.2s ease
+          .copy-code-btn {
+            cursor: pointer;
+            font-size: 12px;
+            color: #c1c1c1;
 
             &:hover {
-              color #20a0ff !important
+              color: #20a0ff;
+            }
+          }
+        }
+
+        // 添加代码块展开/收起样式
+        .code-collapsed {
+          .hljs {
+            max-height: 200px;
+            overflow: hidden;
+            position: relative;
+            transition: max-height 0.3s ease;
+
+            &::after {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              height: 30px;
+              background: linear-gradient(transparent, #2b2b2b);
+              pointer-events: none;
+            }
+          }
+        }
+
+        .code-expanded {
+          .hljs {
+            max-height: none;
+            overflow: auto;
+            transition: max-height 0.3s ease;
+
+            &::after {
+              display: none;
+            }
+          }
+        }
+
+        .expand-btn {
+          transition: color 0.2s ease;
+
+          &:hover {
+            color: #20a0ff !important;
+          }
+        }
+
+        .lang-name {
+          color: #00e0e0;
+        }
+
+        // 设置表格边框
+
+        table {
+          width: 100%;
+          margin-bottom: 1rem;
+          border-collapse: collapse;
+          border: 1px solid #dee2e6;
+          background-color: var(--chat-content-bg);
+          color: var(--theme-text-color-primary);
+
+          thead {
+            th {
+              border: 1px solid #dee2e6;
+              vertical-align: bottom;
+              border-bottom: 2px solid #dee2e6;
+              padding: 10px;
             }
           }
 
-          .lang-name {
-            color #00e0e0
+          td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
           }
+        }
 
-          // 设置表格边框
+        // 代码快
 
-          table {
-            width 100%
-            margin-bottom 1rem
-            border-collapse collapse;
-            border 1px solid #dee2e6;
-            background-color:var(--chat-content-bg);
-            color:var(--theme-text-color-primary);
-
-            thead {
-              th {
-                border 1px solid #dee2e6
-                vertical-align: bottom
-                border-bottom: 2px solid #dee2e6
-                padding 10px
-              }
-            }
-
-            td {
-              border 1px solid #dee2e6
-              padding 10px
-            }
-          }
-
-          // 代码快
-
-          blockquote {
-            margin 0 0 0.8rem 0
-            background-color: var(--quote-bg-color);
-            padding: 0.8rem 1.5rem;
-            color: var(--quote-text-color);
-            border-left: 0.4rem solid #6b50e1; /* 紫色边框 */
-            font-size: 16px;
-            line-height: 1.6;
-          }
+        blockquote {
+          margin: 0 0 0.8rem 0;
+          background-color: var(--quote-bg-color);
+          padding: 0.8rem 1.5rem;
+          color: var(--quote-text-color);
+          border-left: 0.4rem solid #6b50e1; /* 紫色边框 */
+          font-size: 16px;
+          line-height: 1.6;
+        }
       }
     }
   }
@@ -458,21 +459,21 @@ const handleExpandClick = (e) => {
   .chat-line-reply-list {
     justify-content: center;
     background-color: var(--chat-content-bg);
-    color:var(--theme-text-color-primary);
-    width 100%
+    color: var(--theme-text-color-primary);
+    width: 100%;
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
     border: 1px solid var(--el-border-color);
     border-radius: 10px;
 
     .chat-line-inner {
-      display flex;
-      width 100%;
-      max-width 900px;
-      padding-left 10px;
+      display: flex;
+      width: 100%;
+      max-width: 900px;
+      padding-left: 10px;
 
       .chat-icon {
-        margin-right 20px;
+        margin-right: 20px;
 
         img {
           width: 36px;
@@ -483,82 +484,79 @@ const handleExpandClick = (e) => {
       }
 
       .chat-item {
-        width 100%
+        width: 100%;
         position: relative;
         padding: 0;
         overflow: hidden;
 
         .content-wrapper {
-          min-height 20px;
-          word-break break-word;
-          padding: 0
-          color:var(--theme-text-color-primary);
+          min-height: 20px;
+          word-break: break-word;
+          padding: 0;
+          color: var(--theme-text-color-primary);
           font-size: var(--content-font-size);
           border-radius: 5px;
-          overflow auto;
+          overflow: auto;
         }
 
-
         .bar {
-          padding 10px 10px 10px 0;
+          padding: 10px 10px 10px 0;
 
           .bar-item {
-            margin-right 10px;
-            border-radius 5px;
-            cursor pointer
-            display flex
-            align-items center
-            justify-content center
-            height 26px
+            margin-right: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 26px;
 
             .voice-icon {
-              width 20px
-              height 20px
+              width: 20px;
+              height: 20px;
             }
 
             .el-icon {
-              position relative
-              top 2px;
-              cursor pointer
+              position: relative;
+              top: 2px;
+              cursor: pointer;
             }
           }
 
           .el-button {
-            height 20px
-            padding 5px 2px;
+            height: 20px;
+            padding: 5px 2px;
           }
         }
-
       }
 
       .tool-box {
-        font-size 16px;
+        font-size: 16px;
 
         .el-button {
-          height 20px
-          padding 5px 2px;
+          height: 20px;
+          padding: 5px 2px;
         }
       }
     }
-
   }
 
   .chat-line-reply-chat {
     justify-content: center;
-    padding 1.5rem;
+    padding: 1.5rem;
 
     .chat-line-inner {
-      display flex;
-      width 100%
-      flex-flow row
+      display: flex;
+      width: 100%;
+      flex-flow: row;
 
       .chat-icon {
-        margin-right 20px;
+        margin-right: 20px;
 
         img {
           width: 36px;
           height: 36px;
-          border-radius: 50%
+          border-radius: 50%;
           padding: 1px;
         }
       }
@@ -567,75 +565,71 @@ const handleExpandClick = (e) => {
         position: relative;
         padding: 0;
         overflow: hidden;
-        width 100%
-        max-width calc(100% - 110px)
+        width: 100%;
+        max-width: calc(100% - 110px);
 
         .content-wrapper {
-          display flex
+          display: flex;
           .content {
-            min-height 20px;
-            word-break break-word;
-            padding: 1rem
-            color var(--theme-text-primary);
+            min-height: 20px;
+            word-break: break-word;
+            padding: 1rem;
+            color: var(--theme-text-primary);
 
             font-size: var(--content-font-size);
-            overflow auto;
+            overflow: auto;
             // background-color #F5F5F5
-            background-color :var(--chat-content-bg);
+            background-color: var(--chat-content-bg);
             border-radius: 0 10px 10px 10px;
-            width 100%
+            width: 100%;
           }
-
         }
 
         .bar {
-          padding 10px 10px 10px 0;
-          display flex
+          padding: 10px 10px 10px 0;
+          display: flex;
 
           .bar-item {
-            margin-right 10px;
-            border-radius 5px;
-            display flex
-            align-items center
-            justify-content center
-            height 26px
+            margin-right: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 26px;
 
             .voice-icon {
-              width 20px
-              height 20px
+              width: 20px;
+              height: 20px;
             }
 
-
             .el-icon {
-              position relative
-              top 2px;
-              cursor pointer
+              position: relative;
+              top: 2px;
+              cursor: pointer;
             }
           }
 
           .bar-item.bg {
             // background-color var( --gray-btn-bg)
-            cursor pointer
+            cursor: pointer;
           }
 
           .el-button {
-            height 20px
-            padding 5px 2px;
+            height: 20px;
+            padding: 5px 2px;
           }
         }
-
       }
 
       .tool-box {
-        font-size 16px;
+        font-size: 16px;
 
         .el-button {
-          height 20px
-          padding 5px 2px;
+          height: 20px;
+          padding: 5px 2px;
         }
       }
     }
-
   }
 }
 </style>

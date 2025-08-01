@@ -640,6 +640,6 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/video.styl"
+<style lang="scss" scoped>
+@use '../assets/css/video.scss' as *;
 </style>

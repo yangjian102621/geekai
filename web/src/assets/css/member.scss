@@ -1,0 +1,237 @@
+.member {
+  height: 100%;
+
+  .title {
+    text-align: center;
+    background-color: #25272d;
+    font-size: 24px;
+    color: var(--text-theme-color);
+    padding: 10px;
+    border-bottom: 1px solid #3c3c3c;
+  }
+
+  .inner {
+    color: var(--text-theme-color);
+    padding: 15px 0 15px 15px;
+    overflow-x: hidden;
+    overflow-y: visible;
+    display: flex;
+    flex-flow: row;
+
+    .profile-card {
+      max-width: 300px;
+      border-radius: 18px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      padding: 24px 16px;
+      background: var(--panel-bg);
+      position: relative;
+      z-index: 1;
+      margin-bottom: 24px;
+    }
+    .profile-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 18px;
+      color: #2d8cf0;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .profile-btn {
+      width: 100%;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #6dd5ed 0%, #2193b0 100%);
+      color: #fff;
+      transition: all 0.3s;
+      i {
+        margin-right: 8px;
+        font-size: 20px;
+      }
+      &:hover {
+        box-shadow: 0 2px 12px #2193b0aa;
+        transform: translateY(-2px) scale(1.03);
+        background: linear-gradient(90deg, #2193b0 0%, #6dd5ed 100%);
+      }
+    }
+    .profile-btn.email {
+      background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+    }
+    .profile-btn.mobile {
+      background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
+    }
+    .profile-btn.third {
+      background: linear-gradient(90deg, #ff512f 0%, #dd2476 100%);
+    }
+    .profile-btn.password {
+      background: linear-gradient(90deg, #1d4350 0%, #a43931 100%);
+    }
+    .profile-btn.redeem {
+      background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+    }
+    .profile-bg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: url('data:image/svg+xml;utf8,<svg width="100%25" height="100%25" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="80" fill="%23e0eaff"/><circle cx="300" cy="60" r="40" fill="%23f0f7ff"/><circle cx="320" cy="180" r="30" fill="%23e0eaff"/></svg>') no-repeat center/cover;
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    .product-box {
+      padding: 0 20px;
+      width: 100%;
+
+      .info {
+        .el-alert__description {
+          font-size: 14px !important;
+          margin: 0;
+        }
+        padding: 0 0 20px 0;
+      }
+
+      .list-box {
+        .product-item {
+          // border: 1px solid #666666;
+          background-color: var(--chat-bg);
+          border-radius: 6px;
+          overflow: hidden;
+          cursor: pointer;
+          transition: all 0.3s ease; /* 添加过渡效果 */
+          margin-bottom: 20px;
+
+          .image-container {
+            display: flex;
+            justify-content: center;
+
+            .el-image {
+              padding: 6px;
+
+              .el-image__inner {
+                border-radius: 10px;
+              }
+            }
+          }
+
+          .product-title {
+            display: flex;
+            padding: 10px;
+
+            .name {
+              width: 100%;
+              text-align: center;
+              font-size: 16px;
+              font-weight: bold;
+              color: var(--el-color-primary);
+            }
+          }
+
+          .product-info {
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #999999;
+
+            .info-line {
+              display: flex;
+              width: 100%;
+              padding: 5px 0;
+
+              .label {
+                display: flex;
+                width: 100%;
+              }
+
+              .price, .expire, calls {
+                display: flex;
+                width: 90px;
+                justify-content: right;
+              }
+
+              .discount {
+                color: #f56c6c;
+                font-size: 20px;
+              }
+
+              .expire {
+                color: #409eff;
+              }
+
+              .power {
+                color: #f2cb51;
+              }
+            }
+
+            .pay-way {
+              padding: 10px 0;
+              display: flex;
+              justify-content: center;
+              flex-wrap: wrap;
+
+              .el-button {
+                margin: 10px 5px 0 5px;
+                height: 32px;
+                filter: none;
+
+                .icon-alipay, .icon-wechat-pay {
+                  color: #ffffff;
+                }
+                .icon-qq {
+                  color: #15a6e8;
+                  font-size: 24px;
+                }
+                .icon-jd-pay {
+                  color: var(--text-theme-color);
+                  font-size: 24px;
+                }
+                .icon-douyin {
+                  color: #0a0a0a;
+                  font-size: 22px;
+                }
+                .icon-paypal {
+                  font-size: 14px;
+                  color: #009cde;
+                }
+              }
+            }
+          }
+
+          &:hover {
+            // box-shadow: 0 0 10px rgba(71, 255, 241, 0.6); /* 添加阴影效果 */
+            transform: translateY(-10px); /* 向上移动10像素 */
+            box-shadow: 0 0 10px var(--shadow-color);
+            background-color: var(--hover-deep-color);
+          }
+        }
+      }
+
+      .headline {
+        padding: 0 20px 20px 0;
+      }
+
+      .user-order {
+        padding: 0 20px 20px 0;
+      }
+    }
+  }
+}
+
+.pay-dialog {
+  .product-info {
+    text-align: center;
+    color: #333333;
+    font-size: 16px;
+
+    .price {
+      color: #f56c6c;
+      font-weight: 700;
+    }
+  }
+}

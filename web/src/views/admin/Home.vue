@@ -53,5 +53,5 @@ watch(
 </script>
 
 <style lang="stylus" scoped>
-@import "../../assets/css/main.styl";
+@use "../../assets/css/main.scss" as *;
 </style>

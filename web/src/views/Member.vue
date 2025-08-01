@@ -296,7 +296,7 @@ const payCallback = (success) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/custom-scroll.styl"
-@import "../assets/css/member.styl"
+<style lang="scss" scoped>
+@use '../assets/css/custom-scroll.scss' as *;
+@use '../assets/css/member.scss' as *;
 </style>

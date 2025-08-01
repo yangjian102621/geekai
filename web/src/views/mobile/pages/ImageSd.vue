@@ -562,6 +562,6 @@ const showInfo = (message) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../../../assets/css/mobile/image-sd.styl"
+<style lang="scss" scoped>
+@use '../../../assets/css/mobile/image-sd.scss' as *;
 </style>

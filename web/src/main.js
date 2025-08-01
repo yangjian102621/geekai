@@ -64,9 +64,9 @@ import {
   Uploader,
 } from "vant";
 import { router } from "@/router";
-import "@/assets/css/theme-dark.styl";
-import "@/assets/css/theme-light.styl";
-import "@/assets/css/common.styl";
+import "@/assets/css/theme-dark.scss";
+import "@/assets/css/theme-light.scss";
+import "@/assets/css/common.scss";
 
 const pinia = createPinia();
 const themeStore = useThemeStore(pinia); // 使用 theme store

@@ -843,8 +843,8 @@ const onUploadImg = (files, callback) => {
 </script>
 
 <style lang="stylus" scoped>
-@import '../../assets/css/admin/form.styl'
-@import '../../assets/css/main.styl'
+@use '../../assets/css/admin/form.scss' as *;
+@use '../../assets/css/main.scss' as *;
 .system-config {
   display flex
   justify-content center

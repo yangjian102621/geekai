@@ -438,89 +438,114 @@ onMounted(() => {
 })
 </script>
 
-<style lang="stylus">
-.app-container
-  padding 20px
+<style lang="scss">
+.app-container {
+  padding: 20px;
 
-  .el-form-item
-    margin-bottom 0
+  .el-form-item {
+    margin-bottom: 0;
+  }
+}
 
-.page-header
-  margin-bottom 20px
+.page-header {
+  margin-bottom: 20px;
 
-  h2
-    margin 0 0 8px 0
-    color #303133
+  h2 {
+    margin: 0 0 8px 0;
+    color: #303133;
+  }
 
-  p
-    margin 0
-    color #606266
-    font-size 14px
+  p {
+    margin: 0;
+    color: #606266;
+    font-size: 14px;
+  }
+}
 
-.filter-card
-  margin-bottom 20px
+.filter-card {
+  margin-bottom: 20px;
+}
 
-.stats-row
-  margin-bottom 20px
+.stats-row {
+  margin-bottom: 20px;
+}
 
-.stat-card
-  .stat-item
-    text-align center
-    padding 20px
+.stat-card {
+  .stat-item {
+    text-align: center;
+    padding: 20px;
 
-    .stat-number
-      font-size 28px
-      font-weight bold
-      color #303133
-      margin-bottom 8px
+    .stat-number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #303133;
+      margin-bottom: 8px;
 
-      &.success
-        color #67c23a
+      &.success {
+        color: #67c23a;
+      }
 
-      &.warning
-        color #e6a23c
+      &.warning {
+        color: #e6a23c;
+      }
 
-      &.danger
-        color #f56c6c
+      &.danger {
+        color: #f56c6c;
+      }
+    }
 
-    .stat-label
-      font-size 14px
-      color #909399
+    .stat-label {
+      font-size: 14px;
+      color: #909399;
+    }
+  }
+}
 
-.table-card
-  .pagination-container
-    margin-top 20px
-    display flex
-    justify-content center
+.table-card {
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+}
 
-.detail-content
-  .detail-section
-    margin-bottom 20px
+.detail-content {
+  .detail-section {
+    margin-bottom: 20px;
 
-    h4
-      margin 0 0 10px 0
-      color #303133
-      font-size 16px
+    h4 {
+      margin: 0 0 10px 0;
+      color: #303133;
+      font-size: 16px;
+    }
 
-    .prompt-content
-      background #f5f7fa
-      padding 12px
-      border-radius 4px
-      color #606266
-      line-height 1.6
+    .prompt-content {
+      background: #f5f7fa;
+      padding: 12px;
+      border-radius: 4px;
+      color: #606266;
+      line-height: 1.6;
+    }
 
-    .params-content, .raw-data-content
-      font-family monospace
+    .params-content,
+    .raw-data-content {
+      font-family: monospace;
+    }
 
-    .result-content
-      .result-item
-        margin-bottom 10px
-        display flex
-        align-items center
-        gap 10px
+    .result-content {
+      .result-item {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
 
-        label
-          font-weight bold
-          color #303133
-          min-width 50px
+        label {
+          font-weight: bold;
+          color: #303133;
+          min-width: 50px;
+        }
+      }
+    }
+  }
+}
 </style>

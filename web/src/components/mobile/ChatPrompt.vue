@@ -45,19 +45,19 @@ onMounted(() => {
 })
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .mobile-message-prompt {
-  display flex
-  justify-content: flex-end
+  display: flex;
+  justify-content: flex-end;
 
   .chat-icon {
-    margin-left 5px
+    margin-left: 5px;
 
     .van-image {
-      width 32px
+      width: 32px;
 
       img {
-        border-radius 5px
+        border-radius: 5px;
       }
     }
   }
@@ -72,21 +72,21 @@ onMounted(() => {
       height: 0;
       border-top: 5px solid transparent;
       border-bottom: 5px solid transparent;
-      border-left: 5px solid #98E165;
+      border-left: 5px solid #98e165;
       position: absolute;
       right: 0;
       top: 10px;
     }
 
     .content {
-      word-break break-word;
-      text-align left
+      word-break: break-word;
+      text-align: left;
       padding: 5px 10px;
-      background-color: #98E165;
-      color #444444
-      font-size: 14px
-      border-radius: 5px
-      line-height 1.5
+      background-color: #98e165;
+      color: #444444;
+      font-size: 14px;
+      border-radius: 5px;
+      line-height: 1.5;
     }
   }
 }
@@ -94,14 +94,13 @@ onMounted(() => {
 .van-theme-dark {
   .mobile-message-prompt {
     .chat-item {
-
       .triangle {
-        border-left: 5px solid #223A34
+        border-left: 5px solid #223a34;
       }
 
       .content {
-        background-color: #223A34
-        color #c1c1c1
+        background-color: #223a34;
+        color: #c1c1c1;
       }
     }
   }

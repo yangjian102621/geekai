@@ -169,27 +169,27 @@ const isExternalImg = (link, files) => {
 }
 </script>
 
-<style lang="stylus">
-@import '@/assets/css/markdown/vue.css';
-.chat-page, .chat-export {
+<style lang="scss">
+@use '@/assets/css/markdown/vue.css' as *;
+.chat-page,
+.chat-export {
   .chat-line-prompt-list {
-
     background-color: var(--chat-content-bg-list);
     color: var(--theme-text-color-primary);
     justify-content: center;
-    width 100%
+    width: 100%;
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
     // border-bottom: 0.5px solid var(--el-border-color);
 
     .chat-line-inner {
-      display flex;
-      width 100%;
-      max-width 900px;
-      padding-left 10px;
+      display: flex;
+      width: 100%;
+      max-width: 900px;
+      padding-left: 10px;
 
       .chat-icon {
-        margin-right 20px;
+        margin-right: 20px;
 
         img {
           width: 36px;
@@ -200,61 +200,61 @@ const isExternalImg = (link, files) => {
       }
 
       .chat-item {
-        width 100%
+        width: 100%;
         padding: 0 5px 0 0;
         overflow: hidden;
 
         .file-list-box {
-          display flex
-          flex-flow column
+          display: flex;
+          flex-flow: column;
 
           .image {
-            display flex
-            flex-flow row
-            margin-right 10px
-            position relative
+            display: flex;
+            flex-flow: row;
+            margin-right: 10px;
+            position: relative;
 
             .el-image {
-              border 1px solid #e3e3e3
-              border-radius 10px
-              margin-bottom 10px
-              max-width 150px
-              max-height 150px
+              border: 1px solid #e3e3e3;
+              border-radius: 10px;
+              margin-bottom: 10px;
+              max-width: 150px;
+              max-height: 150px;
             }
           }
 
           .item {
-            display flex
-            flex-flow row
-            border-radius 10px
+            display: flex;
+            flex-flow: row;
+            border-radius: 10px;
             background-color: var(--chat-content-bg);
-            border 1px solid #e3e3e3
+            border: 1px solid #e3e3e3;
             color: var(--theme-text-color-primary);
-            padding 6px
-            margin-bottom 10px
+            padding: 6px;
+            margin-bottom: 10px;
 
             .icon {
               .el-image {
-                width 40px
-                height 40px
+                width: 40px;
+                height: 40px;
               }
             }
 
             .body {
-              margin-left 8px
-              font-size 14px
+              margin-left: 8px;
+              font-size: 14px;
 
               .title {
-                font-weight bold
-                line-height 24px
-                color #0D0D0D
+                font-weight: bold;
+                line-height: 24px;
+                color: #0d0d0d;
               }
 
               .info {
-                color #B4B4B4
+                color: #b4b4b4;
 
                 span {
-                  margin-right 10px
+                  margin-right: 10px;
                 }
               }
             }
@@ -262,7 +262,7 @@ const isExternalImg = (link, files) => {
         }
 
         .content {
-          word-break break-word;
+          word-break: break-word;
           padding: 0;
           color: var(--theme-text-color-primary);
           font-size: var(--content-font-size);
@@ -272,59 +272,57 @@ const isExternalImg = (link, files) => {
           img {
             max-width: 600px;
             border-radius: 10px;
-            margin 10px 0
+            margin: 10px 0;
           }
 
           p {
-            line-height 1.5
+            line-height: 1.5;
           }
 
           p:last-child {
-            margin-bottom: 0
+            margin-bottom: 0;
           }
 
           p:first-child {
-            margin-top 0
+            margin-top: 0;
           }
         }
 
         .bar {
-          padding 10px 10px 10px 0;
+          padding: 10px 10px 10px 0;
 
           .bar-item {
             // background-color #f7f7f8;
-            color #888
-            padding 3px 5px;
-            margin-right 10px;
-            border-radius 5px;
+            color: #888;
+            padding: 3px 5px;
+            margin-right: 10px;
+            border-radius: 5px;
 
             .el-icon {
-              position relative
-              top 2px;
+              position: relative;
+              top: 2px;
             }
           }
         }
       }
     }
-
-
   }
 
   .chat-line-prompt-chat {
     background: var(--chat-bg);
     justify-content: center;
-    width 100%
+    width: 100%;
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
 
     .chat-line-inner {
-      display flex;
-      width 100%;
-      padding 0 25px;
-      flex-flow row-reverse
+      display: flex;
+      width: 100%;
+      padding: 0 25px;
+      flex-flow: row-reverse;
 
       .chat-icon {
-        margin-left 20px;
+        margin-left: 20px;
 
         img {
           width: 36px;
@@ -337,74 +335,73 @@ const isExternalImg = (link, files) => {
       .chat-item {
         padding: 0;
         overflow: hidden;
-        max-width calc(100% - 110px);
+        max-width: calc(100% - 110px);
 
         .file-list-box {
-          display flex
-          flex-flow column
+          display: flex;
+          flex-flow: column;
 
           .image {
-            display flex
-            flex-flow row
-            margin-right 10px
-            position relative
+            display: flex;
+            flex-flow: row;
+            margin-right: 10px;
+            position: relative;
 
             .el-image {
-              border 1px solid #e3e3e3
-              border-radius 10px
-              margin-bottom 10px
-              max-width 150px
-              max-height 150px
+              border: 1px solid #e3e3e3;
+              border-radius: 10px;
+              margin-bottom: 10px;
+              max-width: 150px;
+              max-height: 150px;
             }
           }
 
           .item {
-            display flex
-            flex-flow row
-            border-radius 10px
+            display: flex;
+            flex-flow: row;
+            border-radius: 10px;
             background-color: var(--chat-content-bg);
             color: var(--theme-text-color-primary);
-            border 1px solid #e3e3e3
-            padding 6px
-            margin-bottom 10px
+            border: 1px solid #e3e3e3;
+            padding: 6px;
+            margin-bottom: 10px;
 
             .icon {
               .el-image {
-                width 40px
-                height 40px
+                width: 40px;
+                height: 40px;
               }
             }
 
             .body {
-              margin-left 8px
-              font-size 14px
+              margin-left: 8px;
+              font-size: 14px;
 
               .title {
-                font-weight bold
-                line-height 24px
-                color #0D0D0D
+                font-weight: bold;
+                line-height: 24px;
+                color: #0d0d0d;
               }
 
               .info {
-                color #B4B4B4
+                color: #b4b4b4;
 
                 span {
-                  margin-right 10px
+                  margin-right: 10px;
                 }
               }
             }
           }
         }
 
-
         .content-wrapper {
-          display flex
-          flex-flow row-reverse
+          display: flex;
+          flex-flow: row-reverse;
 
           .content {
-            word-break break-word;
-            padding: 1rem
-            color var(--theme-text-primary);
+            word-break: break-word;
+            padding: 1rem;
+            color: var(--theme-text-primary);
             font-size: var(--content-font-size);
             overflow: auto;
             background-color: var(--chat-user-content-bg);
@@ -413,79 +410,40 @@ const isExternalImg = (link, files) => {
             img {
               max-width: 600px;
               border-radius: 10px;
-              margin 10px 0
+              margin: 10px 0;
             }
 
             p {
-              line-height 1.5
+              line-height: 1.5;
             }
 
             p:last-child {
-              margin-bottom: 0
+              margin-bottom: 0;
             }
 
             p:first-child {
-              margin-top 0
+              margin-top: 0;
             }
           }
-
         }
 
         .bar {
-          padding 10px 10px 10px 0;
+          padding: 10px 10px 10px 0;
 
           .bar-item {
-            color #888
-            padding 3px 5px;
-            margin-right 10px;
-            border-radius 5px;
+            color: #888;
+            padding: 3px 5px;
+            margin-right: 10px;
+            border-radius: 5px;
 
             .el-icon {
-              position relative
-              top 2px;
+              position: relative;
+              top: 2px;
             }
           }
         }
       }
     }
-
-
   }
-
-}
-
-.operations
-  display none
-  position absolute
-  right 5px
-  top 5px
-
-.text-box
-  &:hover
-    .operations
-      display flex
-      gap 5px
-
-.op-edit
-  cursor pointer
-  color #409eff
-  font-size 16px
-
-  &:hover
-    color darken(#409eff, 10%)
-
-.position-relative {
-  position: relative;
-}
-
-.action-buttons {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: none;
-}
-
-.content:hover .action-buttons {
-  display: block;
 }
 </style>

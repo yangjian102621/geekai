@@ -151,15 +151,15 @@ const logout = function () {
     })
 }
 </script>
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .admin-header {
   position: relative;
   box-sizing: border-box;
-  overflow hidden
+  overflow: hidden;
   height: 50px;
   font-size: 22px;
-  background-color:var(--chat-content-bg);
-  color:var(--theme-text-color-primary);
+  background-color: var(--chat-content-bg);
+  color: var(--theme-text-color-primary);
 
   .collapse-btn {
     display: flex;
@@ -171,15 +171,15 @@ const logout = function () {
     cursor: pointer;
 
     &:hover {
-      background-color #eaecef
+      background-color: #eaecef;
     }
   }
 
   .breadcrumb {
-    float left
-    display flex
-    align-items center
-    height 50px
+    float: left;
+    display: flex;
+    align-items: center;
+    height: 50px;
   }
 
   .header-right {
@@ -226,7 +226,6 @@ const logout = function () {
       }
 
       .user-avatar {
-
       }
     }
   }
@@ -243,27 +242,26 @@ const logout = function () {
   text-align: center;
 
   .icon-reward {
-    font-size 18px;
-    font-weight bold;
-    color #F56C6C
+    font-size: 18px;
+    font-weight: bold;
+    color: #f56c6c;
   }
 }
 </style>
 
-<style lang="stylus">
+<style lang="scss">
 .donate-dialog {
   .el-dialog__body {
-    text-align center;
+    text-align: center;
 
     .el-alert__description {
-      text-align left
-      font-size 14px;
-      line-height 1.5
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.5;
     }
   }
 }
 
 .admin-header {
-
 }
 </style>

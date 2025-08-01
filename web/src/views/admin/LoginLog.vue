@@ -7,7 +7,7 @@
         <el-table-column label="登录地址" prop="login_address" />
         <el-table-column label="登录时间">
           <template #default="scope">
-            <span>{{ dateFormat(scope.row["created_at"]) }}</span>
+            <span>{{ dateFormat(scope.row['created_at']) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -19,9 +19,9 @@
         background
         layout="total,prev, pager, next"
         :hide-on-single-page="true"
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        @current-change="fetchList(page, pageSize)"
+        :current-page="page"
+        :page-size="pageSize"
+        @current-change="fetchList"
         :total="total"
       />
     </div>
@@ -29,38 +29,38 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { dateFormat } from "@/utils/libs";
+import { httpGet } from '@/utils/http'
+import { dateFormat } from '@/utils/libs'
+import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
 
 // 用户登录日志
-const items = ref([]);
-const loading = ref(true);
-const total = ref(0);
-const page = ref(0);
-const pageSize = ref(0);
+const items = ref([])
+const loading = ref(true)
+const total = ref(0)
+const page = ref(0)
+const pageSize = ref(0)
 
 onMounted(() => {
-  fetchList(1, 15);
-});
+  fetchList(1, 15)
+})
 
 // 获取数据
 const fetchList = function (_page, _pageSize) {
   httpGet(`/api/admin/user/loginLog?page=${_page}&page_size=${_pageSize}`)
     .then((res) => {
       if (res.data) {
-        items.value = res.data.items;
-        total.value = res.data.total;
-        page.value = res.data.page;
-        pageSize.value = res.data.page_size;
+        items.value = res.data.items
+        total.value = res.data.total
+        page.value = res.data.page
+        pageSize.value = res.data.page_size
       }
-      loading.value = false;
+      loading.value = false
     })
     .catch(() => {
-      ElMessage.error("获取数据失败");
-    });
-};
+      ElMessage.error('获取数据失败')
+    })
+}
 </script>
 
 <style lang="stylus" scoped>

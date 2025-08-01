@@ -391,20 +391,20 @@ const showLyric = (item) => {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .media-page {
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 150px;
-      margin-right 10px;
+      max-width: 150px;
+      margin-right: 10px;
     }
   }
 
   .opt-box {
     padding-bottom: 10px;
-    display flex;
-    justify-content flex-end
+    display: flex;
+    justify-content: flex-end;
 
     .el-icon {
       margin-right: 5px;
@@ -412,72 +412,71 @@ const showLyric = (item) => {
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .pagination {
-    margin-top 20px
-    display flex
-    justify-content center
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
   }
 
   .container {
-    width 160px
-    position relative
+    width: 160px;
+    position: relative;
 
-    .video{
-      width 160px
-      border-radius 5px
+    .video {
+      width: 160px;
+      border-radius: 5px;
     }
 
     .el-image {
-      width 160px
-      height 90px
-      border-radius 5px
+      width: 160px;
+      height: 90px;
+      border-radius: 5px;
     }
 
     .duration {
-      position absolute
-      bottom 6px
-      right 0
-      background-color rgba(255, 255, 255,.7)
-      padding 0 3px
-      font-family 'Input Sans'
-      font-size 14px
-      font-weight 700
-      border-radius .125rem
+      position: absolute;
+      bottom: 6px;
+      right: 0;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 0 3px;
+      font-family: 'Input Sans';
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 0.125rem;
     }
 
     .play {
-      position absolute
-      width: 100%
-      height 100%
+      position: absolute;
+      width: 100%;
+      height: 100%;
       top: 0;
       left: 50%;
-      border none
-      border-radius 5px
-      background rgba(100, 100, 100, 0.3)
-      cursor pointer
-      color #ffffff
-      opacity 0
+      border: none;
+      border-radius: 5px;
+      background: rgba(100, 100, 100, 0.3);
+      cursor: pointer;
+      color: #ffffff;
+      opacity: 0;
       transform: translate(-50%, 0px);
-      transition opacity 0.3s ease 0s
+      transition: opacity 0.3s ease 0s;
     }
 
     &:hover {
       .play {
-        opacity 1
+        opacity: 1;
         //display block
       }
     }
   }
 
-
   .music-player {
-    position absolute
-    bottom 20px
-    z-index 99999
-    width 100%
+    position: absolute;
+    bottom: 20px;
+    z-index: 99999;
+    width: 100%;
   }
 }
 </style>

@@ -1,38 +1,36 @@
 <template>
   <el-dialog
-      v-model="showDialog"
-      :close-on-click-modal="true"
-      :before-close="close"
-      :width="450"
-      :title="title"
+    v-model="showDialog"
+    :close-on-click-modal="true"
+    :before-close="close"
+    :width="450"
+    :title="title"
   >
     <div class="form" id="bind-mobile-form">
       <el-form :model="form">
         <el-form-item>
-          <el-input v-model="form.code"/>
+          <el-input v-model="form.code" />
         </el-form-item>
       </el-form>
     </div>
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="save">
-          立即兑换
-        </el-button>
+        <el-button type="primary" @click="save"> 立即兑换 </el-button>
       </span>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
-import {computed, ref} from "vue";
-import {ElMessage} from "element-plus";
-import {httpPost} from "@/utils/http";
-import {showMessageError, showMessageOK} from "@/utils/dialog";
+import { showMessageError, showMessageOK } from '@/utils/dialog'
+import { httpPost } from '@/utils/http'
+import { ElMessage } from 'element-plus'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   show: Boolean,
-});
+})
 
 const showDialog = computed(() => {
   return props.show
@@ -43,26 +41,26 @@ const form = ref({
   code: '',
 })
 
-const emits = defineEmits(['hide']);
+const emits = defineEmits(['hide'])
 
 const save = () => {
   if (form.value.code === '') {
-    return ElMessage.error({message: "请输入兑换码"});
+    return ElMessage.error({ message: '请输入兑换码' })
   }
 
-  httpPost('/api/redeem/verify', form.value).then(() => {
-    showMessageOK("兑换成功！")
-    emits('hide', true)
-  }).catch(e => {
-    showMessageError("兑换失败：" + e.message)
-  })
+  httpPost('/api/redeem/verify', form.value)
+    .then(() => {
+      showMessageOK('兑换成功！')
+      emits('hide', true)
+    })
+    .catch((e) => {
+      showMessageError('兑换失败：' + e.message)
+    })
 }
 
 const close = function () {
-  emits('hide', false);
+  emits('hide', false)
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped lang="scss"></style>

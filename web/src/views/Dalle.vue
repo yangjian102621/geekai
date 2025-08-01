@@ -585,7 +585,7 @@ const changeModel = (model) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/image-dall.styl';
-@import '../assets/css/custom-scroll.styl';
+<style lang="scss" scoped>
+@use '../assets/css/image-dall.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

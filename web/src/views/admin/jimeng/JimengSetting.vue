@@ -284,27 +284,27 @@ const resetConfig = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../../../assets/css/admin/form.styl'
-@import '../../../assets/css/main.styl'
+<style lang="scss" scoped>
+@use '../../../assets/css/admin/form.scss' as *;
+@use '../../../assets/css/main.scss' as *;
 
 .system-config {
-  display flex
-  justify-content center
+  display: flex;
+  justify-content: center;
 
   .container {
-    width 100%
-    max-width 800px
+    width: 100%;
+    max-width: 800px;
   }
 
   .label-title {
-    display flex
-    align-items center
-    gap 5px
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
 
   .el-input-number {
-    width 100%
+    width: 100%;
   }
 }
 </style>

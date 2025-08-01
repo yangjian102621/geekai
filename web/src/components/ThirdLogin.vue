@@ -1,10 +1,10 @@
 <template>
   <el-dialog
-      v-model="showDialog"
-      :close-on-click-modal="true"
-      style="max-width: 400px"
-      @close="close"
-      :title="title"
+    v-model="showDialog"
+    :close-on-click-modal="true"
+    style="max-width: 400px"
+    @close="close"
+    :title="title"
   >
     <div class="third-login" v-loading="loading">
       <div class="item" v-if="wechatBindURL !== ''">
@@ -17,20 +17,19 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from "vue";
-import {httpGet} from "@/utils/http";
-import {checkSession} from "@/store/cache";
-import {showMessageError} from "@/utils/dialog";
+import { checkSession } from '@/store/cache'
+import { showMessageError } from '@/utils/dialog'
+import { httpGet } from '@/utils/http'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   show: Boolean,
-});
-const emits = defineEmits(['hide']);
+})
+const emits = defineEmits(['hide'])
 
 const showDialog = computed(() => {
   return props.show
 })
-
 
 const title = ref('绑定第三方登录')
 const openid = ref('')
@@ -39,53 +38,55 @@ const loading = ref(true)
 
 watch(showDialog, (val) => {
   if (val) {
-    checkSession().then(user => {
+    checkSession().then((user) => {
       openid.value = user.openid
     })
     const returnURL = `${location.protocol}//${location.host}/login/callback?action=bind`
-    httpGet("/api/user/clogin?return_url="+returnURL).then(res => {
-      wechatBindURL.value = res.data.url
-      loading.value = false
-    }).catch(e => {
-      showMessageError(e.message)
-    })
+    httpGet('/api/user/clogin?return_url=' + returnURL)
+      .then((res) => {
+        wechatBindURL.value = res.data.url
+        loading.value = false
+      })
+      .catch((e) => {
+        showMessageError(e.message)
+      })
   }
 })
 
 const close = function () {
-  emits('hide');
+  emits('hide')
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .third-login {
-  display flex
-  justify-content center
-  min-height 100px
+  display: flex;
+  justify-content: center;
+  min-height: 100px;
 
   .item {
-    display flex
-    flex-flow column
-    align-items center
+    display: flex;
+    flex-flow: column;
+    align-items: center;
 
     .link {
-      display flex
+      display: flex;
       .iconfont {
-        font-size 30px
-        cursor pointer
-        background #e9f1f6
-        padding 10px
-        border-radius 50%
+        font-size: 30px;
+        cursor: pointer;
+        background: #e9f1f6;
+        padding: 10px;
+        border-radius: 50%;
       }
-      margin-bottom 10px
+      margin-bottom: 10px;
     }
-
 
     .text {
-      font-size 14px
+      font-size: 14px;
     }
 
-    .icon-wechat,.ok {
+    .icon-wechat,
+    .ok {
       color: #0bc15f;
     }
   }

@@ -143,6 +143,6 @@ const logout = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/index.styl'
+<style lang="scss" scoped>
+@use '../assets/css/index.scss' as *;
 </style>

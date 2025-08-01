@@ -13,7 +13,7 @@
       <div class="bar"></div>
     </div>
     <div class="text">
-      <slot>{{message}}</slot>
+      <slot>{{ message }}</slot>
     </div>
   </div>
 </template>
@@ -25,13 +25,13 @@ defineProps({
     type: String,
     default: '任务正在执行',
   },
-});
+})
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .container {
   display: flex;
-  flex-flow column
+  flex-flow: column;
   justify-content: center;
   align-items: center;
   margin: 0;
@@ -43,7 +43,7 @@ defineProps({
     justify-content: center;
     align-items: flex-end;
     height: 30px;
-    margin-bottom: 5px
+    margin-bottom: 5px;
 
     .bar {
       width: 8px;
@@ -95,8 +95,9 @@ defineProps({
 }
 
 @keyframes wave {
-  0%, 100% {
-    height:   10px;
+  0%,
+  100% {
+    height: 10px;
   }
   50% {
     height: 30px;

@@ -17,47 +17,47 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch } from 'vue'
 
 const props = defineProps({
   value: {
     type: String,
-    default: ""
+    default: '',
   },
   placeholder: {
     type: String,
-    default: ""
+    default: '',
   },
   type: {
     type: String,
-    default: "input"
+    default: 'input',
   },
   rows: {
     type: Number,
-    default: 5
+    default: 5,
   },
   maxlength: {
     type: Number,
-    default: 1024
-  }
-});
+    default: 1024,
+  },
+})
 watch(
   () => props.value,
   (newValue) => {
-    model.value = newValue;
+    model.value = newValue
   }
-);
-const model = ref(props.value);
+)
+const model = ref(props.value)
 // eslint-disable-next-line no-undef
-const emits = defineEmits(["update:value"]);
+const emits = defineEmits(['update:value'])
 const onInput = (value) => {
-  emits("update:value", value);
-};
+  emits('update:value', value)
+}
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .black-input-wrapper {
-  position relative
+  position: relative;
 
   .el-textarea__inner {
     padding: 20px;
@@ -66,15 +66,16 @@ const onInput = (value) => {
 
   .word-stat {
     position: absolute;
-    bottom 10px
-    right 10px
-    color rgb(209 203 199)
-    font-family: Neue Montreal, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-    font-size .875rem
-    line-height 1.25rem
+    bottom: 10px;
+    right: 10px;
+    color: rgb(209, 203, 199);
+    font-family: Neue Montreal, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
+      Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
 
     span {
-      margin 0 1px
+      margin: 0 1px;
     }
   }
 }

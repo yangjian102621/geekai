@@ -292,6 +292,6 @@ const onChange = (item) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../../assets/css/mobile/chat-list.styl'
+<style lang="scss" scoped>
+@use '../../assets/css/mobile/chat-list.scss' as *;
 </style>

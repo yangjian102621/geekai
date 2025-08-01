@@ -396,46 +396,64 @@ const openPrivacy = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/login.styl'
-  :deep(.back){
-    margin-bottom: 10px;
+<style lang="scss" scoped>
+@use '../assets/css/login.scss' as *;
+
+:deep(.back) {
+  margin-bottom: 10px;
+}
+
+:deep(.orline) {
+  margin-bottom: 10px;
+}
+
+.wechat-card {
+  margin-top: 20px;
+}
+
+.agreement-box {
+  margin-bottom: 10px;
+  transition: all 0.3s;
+}
+
+.agreement-link {
+  color: var(--el-color-primary);
+  cursor: pointer;
+}
+
+.agreement-error {
+  .el-checkbox {
+    .el-checkbox__input {
+      .el-checkbox__inner {
+        border-color: #f56c6c !important;
+      }
+    }
   }
+}
 
-  :deep(.orline){
-    margin-bottom: 10px;
+.shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
   }
-  .wechat-card {
-    margin-top: 20px
-
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
   }
-
-.agreement-box
-  margin-bottom: 10px
-  transition: all 0.3s
-
-.agreement-link
-  color: var(--el-color-primary)
-  cursor: pointer
-
-.agreement-error
-  .el-checkbox
-    .el-checkbox__input
-      .el-checkbox__inner
-        border-color: #F56C6C !important
-
-.shake
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both
-
-@keyframes shake
-  10%, 90%
-    transform: translate3d(-1px, 0, 0)
-  20%, 80%
-    transform: translate3d(2px, 0, 0)
-  30%, 50%, 70%
-    transform: translate3d(-4px, 0, 0)
-  40%, 60%
-    transform: translate3d(4px, 0, 0)
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
 </style>
 
 <style>

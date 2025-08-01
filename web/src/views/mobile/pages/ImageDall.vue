@@ -517,6 +517,6 @@ const modelConfirm = (item) => {
 }
 </script>
 
-<style lang="stylus">
-@import '../../../assets/css/mobile/image-sd.styl'
+<style lang="scss">
+@use '../../../assets/css/mobile/image-sd.scss' as *;
 </style>

@@ -29,27 +29,27 @@ watch(
 )
 </script>
 
-<style lang="stylus">
-@import '../../assets/iconfont/iconfont.css';
+<style lang="scss">
+@use '../../assets/iconfont/iconfont.css' as *;
+
 .mobile-home {
   .container {
     .van-nav-bar {
-      position fixed
-      width 100%
+      position: fixed;
+      width: 100%;
     }
 
-    padding 0 10px
+    padding: 0 10px;
   }
-
 }
 
 // 黑色主题
 .van-theme-dark body {
-  background #1c1c1e
+  background: #1c1c1e;
 }
 
 .van-nav-bar {
-  position fixed
-  width 100%
+  position: fixed;
+  width: 100%;
 }
 </style>

@@ -302,7 +302,7 @@ const loginSuccess = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/custom-scroll.styl"
-@import "../assets/css/home.styl"
+<style lang="scss" scoped>
+@use '../assets/css/custom-scroll.scss' as *;
+@use '../assets/css/home.scss' as *;
 </style>

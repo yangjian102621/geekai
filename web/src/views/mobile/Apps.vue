@@ -188,77 +188,77 @@ const useRole = (roleId) => {
 }
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .apps-page {
-  min-height 100vh
-  background-color var(--van-background)
+  min-height: 100vh;
+  background-color: var(--van-background);
 
   .apps-filter {
-    padding 10px 0
+    padding: 10px 0;
 
     :deep(.van-tabs__nav) {
-      background var(--van-background-2)
+      background: var(--van-background-2);
     }
   }
 
   .app-list {
-    padding 0 15px
+    padding: 0 15px;
 
     .app-cell {
-      padding 0
-      margin-bottom 15px
+      padding: 0;
+      margin-bottom: 15px;
 
       .app-card {
-        background var(--van-cell-background)
-        border-radius 12px
-        padding 15px
-        box-shadow 0 2px 12px rgba(0, 0, 0, 0.05)
+        background: var(--van-cell-background);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 
         .app-info {
-          display flex
-          align-items center
-          margin-bottom 15px
+          display: flex;
+          align-items: center;
+          margin-bottom: 15px;
 
           .app-image {
-            width 60px
-            height 60px
-            margin-right 15px
+            width: 60px;
+            height: 60px;
+            margin-right: 15px;
 
             :deep(.van-image) {
-              width 100%
-              height 100%
+              width: 100%;
+              height: 100%;
             }
           }
 
           .app-detail {
-            flex 1
+            flex: 1;
 
             .app-title {
-              font-size 16px
-              font-weight 600
-              margin-bottom 5px
-              color var(--van-text-color)
+              font-size: 16px;
+              font-weight: 600;
+              margin-bottom: 5px;
+              color: var(--van-text-color);
             }
 
             .app-desc {
-              font-size 13px
-              color var(--van-gray-6)
-              display -webkit-box
-              -webkit-box-orient vertical
-              -webkit-line-clamp 2
-              overflow hidden
+              font-size: 13px;
+              color: var(--van-gray-6);
+              display: -webkit-box;
+              -webkit-box-orient: vertical;
+              -webkit-line-clamp: 2;
+              overflow: hidden;
             }
           }
         }
 
         .app-actions {
-          display flex
-          gap 10px
+          display: flex;
+          gap: 10px;
 
           .action-btn {
-            flex 1
-            border-radius 20px
-            padding 0 10px
+            flex: 1;
+            border-radius: 20px;
+            padding: 0 10px;
           }
         }
       }

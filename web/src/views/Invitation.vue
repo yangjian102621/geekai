@@ -162,114 +162,105 @@ const initData = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/custom-scroll.styl'
+<style lang="scss" scoped>
+@use '../assets/css/custom-scroll.scss' as *;
+
 .page-invitation {
   display: flex;
   justify-content: center;
   // background-color: #282c34;
-  height 100%
-  overflow-x hidden
-  overflow-y visible
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
 
   .inner {
-    display flex
-    flex-flow column
-    max-width 1000px
-    width 100%
+    display: flex;
+    flex-flow: column;
+    max-width: 1000px;
+    width: 100%;
     color: var(--text-theme-color);
 
     h2 {
       color: var(--theme-textcolor-normal);
-      text-align center
+      text-align: center;
     }
 
     .share-box {
       .info {
-        line-height 1.5
+        line-height: 1.5;
         // border 1px solid #444444
-        background:var(--chat-bg)
-        border-radius 10px
-        padding 10px
+        background: var(--chat-bg);
+        border-radius: 10px;
+        padding: 10px;
 
         strong {
-          color #f56c6c
+          color: #f56c6c;
         }
       }
 
       .invite-qrcode {
-        padding 20px
-        text-align center
+        padding: 20px;
+        text-align: center;
       }
 
       .invite-url {
-        padding 15px
-        display flex
-        justify-content space-between
-        border 1px solid #444444
-        border-radius 10px
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid #444444;
+        border-radius: 10px;
 
         span {
-          position relative
-          font-family 'Microsoft YaHei', '微软雅黑', Arial, sans-serif
-          top 5px
+          position: relative;
+          font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+          top: 5px;
         }
       }
     }
 
     .invite-stats {
-      padding 30px 10px
+      padding: 30px 10px;
 
       .item-box {
-        border-radius 10px
-        padding 0 10px
+        border-radius: 10px;
+        padding: 0 10px;
 
         .el-col {
-          height 140px
-          display flex
-          align-items center
-          justify-content center
+          height: 140px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
           .iconfont {
-            font-size 60px
+            font-size: 60px;
           }
 
           .item-info {
-            font-size 18px
+            font-size: 18px;
 
-            .text, .num {
-              padding 3px 0
-              text-align center
+            .text,
+            .num {
+              padding: 3px 0;
+              text-align: center;
             }
 
             .num {
-              font-size 40px
+              font-size: 40px;
             }
           }
         }
       }
 
       .yellow {
-        background-color #ffeecc
-        color #D68F00
+        background-color: #ffeecc;
+        color: #d68f00;
       }
 
       .blue {
-        background-color #D6E4FF
-        color #1062FE
+        background-color: #d6e4ff;
+        color: #1062fe;
       }
-
-      .green {
-        background-color #E7F8EB
-        color #2D9F46
-      }
-    }
-
-
-    .invite-logs {
-      padding-bottom 20px
     }
   }
-
 }
 </style>

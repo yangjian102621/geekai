@@ -371,7 +371,7 @@ const drawSameMj = (row) => {
 }
 </script>
 
-<style lang="stylus">
-@import '../assets/css/images-wall.styl';
-@import '../assets/css/custom-scroll.styl';
+<style lang="scss">
+@use '../assets/css/images-wall.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

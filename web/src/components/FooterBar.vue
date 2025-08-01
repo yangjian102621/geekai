@@ -58,33 +58,33 @@ getLicenseInfo()
   })
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .foot-container {
   position: fixed;
   left: 0;
   bottom: 0;
   width: 100%;
-  display flex;
-  justify-content center
+  display: flex;
+  justify-content: center;
   background: var(--theme-bg);
-  margin-top -4px
+  margin-top: -4px;
 
   .footer {
-    max-width 400px;
-    text-align center;
-    font-size 14px;
-    padding 20px;
-    width 100%
+    max-width: 400px;
+    text-align: center;
+    font-size: 14px;
+    padding: 20px;
+    width: 100%;
 
     a {
-      color:var(--text-color)
+      color: var(--text-color);
 
       &:hover {
-        text-decoration underline
+        text-decoration: underline;
       }
     }
-    span{
-      color:var(--text-color)
+    span {
+      color: var(--text-color);
     }
   }
 }

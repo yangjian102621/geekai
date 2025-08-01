@@ -137,44 +137,44 @@ const onLoad = () => {
     })
 }
 </script>
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .chat-export-mobile {
-  height 100vh
+  height: 100vh;
 
   .van-nav-bar {
-    position static
+    position: static;
   }
 
   .chat-box {
     font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-    background #F5F5F5;
+    background: #f5f5f5;
 
     .chat-list-wrapper {
-      padding 10px 0 10px 0
+      padding: 10px 0 10px 0;
 
       .message-list-box {
-        background #F5F5F5;
-        padding-bottom: 50px
+        background: #f5f5f5;
+        padding-bottom: 50px;
 
         .van-cell {
-          background none
+          background: none;
         }
       }
     }
 
     .van-nav-bar__title {
       .van-dropdown-menu__title {
-        margin-right 10px
+        margin-right: 10px;
       }
 
       .van-cell__title {
-        text-align left
+        text-align: left;
       }
     }
 
     .van-nav-bar__right {
       .van-icon {
-        font-size 20px
+        font-size: 20px;
       }
     }
   }

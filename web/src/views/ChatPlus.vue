@@ -1361,35 +1361,36 @@ const realtimeChat = () => {
 // };
 </script>
 
-<style scoped lang="stylus">
-@import '../assets/css/chat-plus.styl'
+<style scoped lang="scss">
+@use '@/assets/css/chat-plus.scss' as *;
 </style>
 
-<style lang="stylus">
-@import '../assets/css/markdown/vue.css';
+<style lang="scss">
+@use '@/assets/css/markdown/vue.css' as *;
 .notice-dialog {
   .el-dialog__header {
-    padding-bottom 0
+    padding-bottom: 0;
   }
 
   .el-dialog__body {
-    padding 0 20px
+    padding: 0 20px;
 
     h2 {
       margin: 20px 0 15px 0;
     }
 
-    ol, ul {
-      padding-left 10px
+    ol,
+    ul {
+      padding-left: 10px;
     }
 
     ol {
-      list-style decimal-leading-zero
-      padding-left 20px
+      list-style: decimal-leading-zero;
+      padding-left: 20px;
     }
 
     ul {
-      list-style inside
+      list-style: inside;
     }
   }
 }
@@ -1397,11 +1398,10 @@ const realtimeChat = () => {
 .input-container {
   .el-textarea {
     .el-textarea__inner {
-      padding-right 40px
+      padding-right: 40px;
     }
   }
 }
-
 
 .model-selector-popover {
   max-width: 820px !important;
@@ -1424,7 +1424,7 @@ const realtimeChat = () => {
   .category-tabs {
     display: flex;
     flex-wrap: wrap;
-    border-bottom: 1px solid #E4E7ED;
+    border-bottom: 1px solid #e4e7ed;
     margin-bottom: 16px;
 
     .category-tab {
@@ -1438,21 +1438,21 @@ const realtimeChat = () => {
       border-bottom: 2px solid transparent;
 
       &:hover {
-        color: #409EFF;
+        color: #409eff;
       }
 
       &.active {
-        color: #409EFF;
-        border-bottom-color: #409EFF;
+        color: #409eff;
+        border-bottom-color: #409eff;
         font-weight: 500;
       }
 
       &.reset-filter {
-        color: #F56C6C;
+        color: #f56c6c;
         margin-left: auto;
 
         &:hover {
-          color: darken(#F56C6C, 10%);
+          color: darken(#f56c6c, 10%);
         }
       }
     }
@@ -1473,7 +1473,7 @@ const realtimeChat = () => {
   }
 
   .model-card {
-    border: 1px solid #DCDFE6;
+    border: 1px solid #dcdfe6;
     border-radius: 6px;
     padding: 14px;
     cursor: pointer;

@@ -234,7 +234,7 @@ const sidebar = useSidebarStore()
 setMenuItems(items)
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .sidebar {
   display: block;
   position: absolute;
@@ -244,24 +244,24 @@ setMenuItems(items)
   overflow-y: scroll;
 
   .logo {
-    display flex
-    padding 6px 15px;
-    cursor pointer
-    background-color: #324157
+    display: flex;
+    padding: 6px 15px;
+    cursor: pointer;
+    background-color: #324157;
 
     img {
-      height 36px;
-      padding-top 5px;
-      border-radius 100%
-      background #fff
-      border 2px solid #754ff6
-      padding 2px
+      height: 36px;
+      padding-top: 5px;
+      border-radius: 100%;
+      background: #fff;
+      border: 2px solid #754ff6;
+      padding: 2px;
     }
 
     .text {
-      color #ffffff
-      font-weight bold
-      padding 12px 0 12px 10px;
+      color: #ffffff;
+      font-weight: bold;
+      padding: 12px 0 12px 10px;
       transition: width 2s ease;
     }
   }
@@ -269,15 +269,16 @@ setMenuItems(items)
   ul {
     height: 100%;
 
-    .el-menu-item, .el-sub-menu {
+    .el-menu-item,
+    .el-sub-menu {
       .iconfont {
-        font-size 16px;
-        margin-right 5px;
+        font-size: 16px;
+        margin-right: 5px;
       }
     }
 
     .el-menu-item.is-active {
-      background-color rgb(40, 52, 70)
+      background-color: rgb(40, 52, 70);
     }
   }
 
@@ -291,26 +292,26 @@ setMenuItems(items)
 }
 
 .sidebar.dark {
-  border-right 1px solid var(--el-border-color-dark)
+  border-right: 1px solid var(--el-border-color-dark);
 
   .logo {
-    background var(--el-bg-color)
-    border-right 1px solid var(--el-border-color)
+    background: var(--el-bg-color);
+    border-right: 1px solid var(--el-border-color);
 
     .text {
-      color var(--el-text-color-regular)
+      color: var(--el-text-color-regular);
     }
   }
 
   ul {
-    background var(--el-bg-color)
+    background: var(--el-bg-color);
 
     .el-menu-item.is-active {
-      background-color var(--el-menu-bg-color-dark)
+      background-color: var(--el-menu-bg-color-dark);
     }
 
     .el-menu-item:hover {
-      background-color var(--el-menu-bg-color-darker)
+      background-color: var(--el-menu-bg-color-darker);
     }
   }
 
@@ -319,7 +320,7 @@ setMenuItems(items)
   }
 
   .el-menu {
-    border-color var(--el-border-color)
+    border-color: var(--el-border-color);
   }
 }
 </style>

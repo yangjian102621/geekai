@@ -545,7 +545,7 @@
 </template>
 
 <script setup>
-import '@/assets/css/jimeng.styl'
+import '@/assets/css/jimeng.scss'
 import loadingIcon from '@/assets/img/loading.gif'
 import ImageUpload from '@/components/ImageUpload.vue'
 

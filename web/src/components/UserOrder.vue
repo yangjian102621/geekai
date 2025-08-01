@@ -21,7 +21,7 @@
         <el-table-column prop="pay_name" label="支付名称" />
         <el-table-column label="支付时间">
           <template #default="scope">
-            <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row["pay_time"]) }}</span>
+            <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row['pay_time']) }}</span>
             <el-tag v-else>未支付</el-tag>
           </template>
         </el-table-column>
@@ -45,52 +45,52 @@
 </template>
 
 <script setup>
-import nodata from "@/assets/img/no-data.png";
+import nodata from '@/assets/img/no-data.png'
 
-import { onMounted, ref } from "vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { dateFormat } from "@/utils/libs";
-import { DocumentCopy } from "@element-plus/icons-vue";
-import Clipboard from "clipboard";
+import { httpGet } from '@/utils/http'
+import { dateFormat } from '@/utils/libs'
+import { DocumentCopy } from '@element-plus/icons-vue'
+import Clipboard from 'clipboard'
+import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
 
-const items = ref([]);
-const total = ref(0);
-const page = ref(1);
-const pageSize = ref(12);
-const loading = ref(true);
+const items = ref([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(12)
+const loading = ref(true)
 
 onMounted(() => {
-  fetchData();
-  const clipboard = new Clipboard(".copy-order-no");
-  clipboard.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
+  fetchData()
+  const clipboard = new Clipboard('.copy-order-no')
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！')
+  })
 
-  clipboard.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
-});
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！')
+  })
+})
 
 // 获取数据
 const fetchData = () => {
-  httpGet("/api/order/list", { page: page.value, page_size: pageSize.value })
+  httpGet('/api/order/list', { page: page.value, page_size: pageSize.value })
     .then((res) => {
       if (res.data) {
-        items.value = res.data.items;
-        total.value = res.data.total;
-        page.value = res.data.page;
-        pageSize.value = res.data.page_size;
+        items.value = res.data.items
+        total.value = res.data.total
+        page.value = res.data.page
+        pageSize.value = res.data.page_size
       }
-      loading.value = false;
+      loading.value = false
     })
     .catch((e) => {
-      ElMessage.error("获取数据失败：" + e.message);
-    });
-};
+      ElMessage.error('获取数据失败：' + e.message)
+    })
+}
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .user-bill {
   background-color: var(--chat-bg);
 
@@ -102,11 +102,11 @@ const fetchData = () => {
   }
 
   .copy-order-no {
-    cursor pointer
-    position relative
-    left 6px
-    top 2px
-    color #20a0ff
+    cursor: pointer;
+    position: relative;
+    left: 6px;
+    top: 2px;
+    color: #20a0ff;
   }
 }
 </style>

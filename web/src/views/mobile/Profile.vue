@@ -316,77 +316,76 @@ const logout = function () {
 }
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .mobile-user-profile {
   .content {
-    padding-top 15px
-    padding-bottom 60px
+    padding-top: 15px;
+    padding-bottom: 60px;
 
     .avatar {
-      display flex
-      justify-content center
+      display: flex;
+      justify-content: center;
 
       .van-image {
-        border-radius 50%
+        border-radius: 50%;
       }
     }
 
     .van-field__label {
-      width 100px
-      text-align right
+      width: 100px;
+      text-align: right;
     }
 
     .opt {
-      padding 10px 15px
+      padding: 10px 15px;
     }
 
     .product-list {
-      padding 0 15px
-
-      color var(--van-text-color)
+      padding: 0 15px;
+      color: var(--van-text-color);
 
       .item {
-        border 1px solid var(--van-border-color)
-        border-radius 10px
-        margin-bottom 15px
-        overflow hidden
+        border: 1px solid var(--van-border-color);
+        border-radius: 10px;
+        margin-bottom: 15px;
+        overflow: hidden;
 
         .title {
-          padding 12px
-          position relative
+          padding: 12px;
+          position: relative;
 
           .name {
-            font-size 16px
-            font-weight 700
+            font-size: 16px;
+            font-weight: 700;
           }
 
           .pay-btn {
-            position absolute
-            top 5px
-            right 10px
-            display flex
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            display: flex;
 
             .van-button {
-              font-size 14px
-              margin-left 10px
+              font-size: 14px;
+              margin-left: 10px;
             }
           }
         }
 
         .van-cell__value {
-          flex 2
+          flex: 2;
         }
 
         .price {
-          font-size 18px
-          color #f56c6c
+          font-size: 18px;
+          color: #f56c6c;
         }
       }
     }
   }
 
   .setting-content {
-    padding 16px
+    padding: 16px;
   }
 }
 </style>

@@ -436,77 +436,75 @@ const doRegister = (verifyData) => {
 }
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .login-dialog {
-  border-radius 10px
+  border-radius: 10px;
 
   .el-tabs__nav {
-    display flex
-    width 100%
-    justify-content space-between
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
   }
-
 
   .form {
     .block {
-      margin-bottom 10px
+      margin-bottom: 10px;
     }
 
     .btn-row {
-      display flex
+      display: flex;
 
       .login-btn {
-        font-size 16px
-        width 100%
+        font-size: 16px;
+        width: 100%;
       }
 
       .text {
-        line-height 40px
+        line-height: 40px;
 
         .el-tag {
-          cursor pointer
+          cursor: pointer;
         }
       }
 
       .forget {
-        margin-left 10px
+        margin-left: 10px;
       }
     }
 
     .c-login {
-      display flex
+      display: flex;
       .text {
-        font-size 16px
-        color #a1a1a1
+        font-size: 16px;
+        color: #a1a1a1;
         display: flex;
         align-items: center;
       }
       .login-type {
-        display flex
-        justify-content center
+        display: flex;
+        justify-content: center;
 
         .iconfont {
-          font-size 18px
-          background: #E9F1F6;
+          font-size: 18px;
+          background: #e9f1f6;
           padding: 8px;
           border-radius: 50%;
         }
         .iconfont.icon-wechat {
-          color #0bc15f
+          color: #0bc15f;
         }
       }
     }
 
     .text {
-      color var(--el-text-color-primary)
+      color: var(--el-text-color-primary);
     }
   }
 
   .register-box {
     .wechat-card {
-      text-align center
+      text-align: center;
     }
   }
-
 }
 </style>

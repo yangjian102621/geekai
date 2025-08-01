@@ -297,7 +297,7 @@ const downloadImage = async () => {
 }
 </script>
 
-<style lang="stylus">
-@import '../assets/css/mark-map.styl'
-@import '../assets/css/custom-scroll.styl'
+<style lang="scss">
+@use '../assets/css/mark-map.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

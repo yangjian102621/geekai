@@ -752,7 +752,7 @@ const generatePrompt = () => {
 }
 </script>
 
-<style lang="stylus">
-@import '../assets/css/image-sd.styl';
-@import '../assets/css/custom-scroll.styl';
+<style lang="scss">
+@use '../assets/css/image-sd.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

@@ -167,7 +167,7 @@ const useRole = (role) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/chat-app.styl"
-@import "../assets/css/custom-scroll.styl"
+<style lang="scss" scoped>
+@use '../assets/css/chat-app.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

@@ -62,19 +62,19 @@ onMounted(() => {
 })
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .mobile-message-reply {
-  display flex
+  display: flex;
   justify-content: flex-start;
 
   .chat-icon {
-    margin-right 5px
+    margin-right: 5px;
 
     .van-image {
-      width 32px
+      width: 32px;
 
       img {
-        border-radius 5px
+        border-radius: 5px;
       }
     }
   }
@@ -97,107 +97,102 @@ onMounted(() => {
     }
 
     .content-box {
-
-      display flex
-      flex-direction row
+      display: flex;
+      flex-direction: row;
 
       .content {
-        text-align left
-        width 100%
-        overflow-x auto
-        min-height 20px;
-        word-break break-word;
+        text-align: left;
+        width: 100%;
+        overflow-x: auto;
+        min-height: 20px;
+        word-break: break-word;
         padding: 5px 10px;
-        color #444444
+        color: #444444;
         background-color: #ffffff;
-        font-size: 14px
+        font-size: 14px;
         border-radius: 5px;
 
         p:last-child {
-          margin-bottom: 0
+          margin-bottom: 0;
         }
 
         p:first-child {
-          margin-top 0
+          margin-top: 0;
         }
 
         p {
           code {
-            color #2b2b2b
-            background-color #c1c1c1
-            padding 2px 5px
-            border-radius 5px
+            color: #2b2b2b;
+            background-color: #c1c1c1;
+            padding: 2px 5px;
+            border-radius: 5px;
           }
 
           img {
-            max-width 100%
+            max-width: 100%;
           }
         }
 
         .code-container {
-          position relative
+          position: relative;
 
           .hljs {
-            border-radius 10px
-            line-height 1.5
+            border-radius: 10px;
+            line-height: 1.5;
           }
 
           .copy-code-mobile {
             position: absolute;
-            right 10px
-            top 10px
-            cursor pointer
-            font-size 12px
-            color #c1c1c1
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #c1c1c1;
 
             &:hover {
-              color #20a0ff
+              color: #20a0ff;
             }
           }
-
         }
 
         .lang-name {
-          display none
-          position absolute;
-          right 10px
-          bottom 50px
-          padding 2px 6px 4px 6px
-          background-color #444444
-          border-radius 10px
-          color #00e0e0
+          display: none;
+          position: absolute;
+          right: 10px;
+          bottom: 50px;
+          padding: 2px 6px 4px 6px;
+          background-color: #444444;
+          border-radius: 10px;
+          color: #00e0e0;
         }
 
-
         // 设置表格边框
-
         table {
-          width 100%
-          margin-bottom 1rem
-          color #212529
-          border-collapse collapse;
-          border 1px solid #dee2e6;
-          background-color #ffffff
+          width: 100%;
+          margin-bottom: 1rem;
+          color: #212529;
+          border-collapse: collapse;
+          border: 1px solid #dee2e6;
+          background-color: #ffffff;
 
           thead {
             th {
-              border 1px solid #dee2e6
-              vertical-align: bottom
-              border-bottom: 2px solid #dee2e6
-              padding 10px
+              border: 1px solid #dee2e6;
+              vertical-align: bottom;
+              border-bottom: 2px solid #dee2e6;
+              padding: 10px;
             }
           }
 
           td {
-            border 1px solid #dee2e6
-            padding 10px
+            border: 1px solid #dee2e6;
+            padding: 10px;
           }
         }
 
         // 代码快
-
         blockquote {
-          margin 0
+          margin: 0;
           background-color: #ebfffe;
           padding: 0.8rem 1.5rem;
           border-left: 0.5rem solid;
@@ -206,10 +201,8 @@ onMounted(() => {
         }
       }
     }
-
   }
 }
-
 
 .van-theme-dark {
   .mobile-message-reply {
@@ -220,18 +213,16 @@ onMounted(() => {
 
       .content-box {
         .content {
-          color #c1c1c1
+          color: #c1c1c1;
           background-color: #404042;
 
           p > code {
-            color #c1c1c1
-            background-color #2b2b2b
+            color: #c1c1c1;
+            background-color: #2b2b2b;
           }
         }
       }
-
     }
   }
-
 }
 </style>

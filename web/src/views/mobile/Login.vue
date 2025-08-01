@@ -9,28 +9,28 @@
 </template>
 
 <script setup>
-import LoginDialog from "@/components/LoginDialog.vue";
-import { getSystemInfo } from "@/store/cache";
-import { useRouter } from "vue-router";
-import { ref, onMounted } from "vue";
+import LoginDialog from '@/components/LoginDialog.vue'
+import { getSystemInfo } from '@/store/cache'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const title = ref("登录");
-const logo = ref("");
+const router = useRouter()
+const title = ref('登录')
+const logo = ref('')
 
 const loginSuccess = () => {
-  router.back();
-};
+  router.back()
+}
 
 onMounted(() => {
   getSystemInfo().then((res) => {
-    title.value = res.data.title;
-    logo.value = res.data.logo;
-  });
-});
+    title.value = res.data.title
+    logo.value = res.data.logo
+  })
+})
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .login {
   background: var(--theme-bg);
   transition: all 0.3s ease;

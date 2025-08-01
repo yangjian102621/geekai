@@ -184,145 +184,146 @@ const useRole = (roleId) => {
 }
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .index {
-  color var(--van-text-color)
-  background-color var(--van-background)
-  min-height 100vh
-  display flex
-  flex-direction column
+  color: var(--van-text-color);
+  background-color: var(--van-background);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 
   .header {
-    flex-shrink 0
-    padding 10px 15px
-    text-align center
-    background var(--van-background)
-    position sticky
-    top 0
-    z-index 1
+    flex-shrink: 0;
+    padding: 10px 15px;
+    text-align: center;
+    background: var(--van-background);
+    position: sticky;
+    top: 0;
+    z-index: 1;
 
     .title {
-      font-size 24px
-      font-weight 600
-      color var(--van-text-color)
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--van-text-color);
     }
 
     .slogan {
-      font-size 14px
-      color var(--van-gray-6)
+      font-size: 14px;
+      color: var(--van-gray-6);
     }
   }
 
   .content {
-    flex 1
-    overflow-y auto
-    padding 15px
-    -webkit-overflow-scrolling touch
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    -webkit-overflow-scrolling: touch;
 
     .feature-grid {
-      margin-bottom 30px
+      margin-bottom: 30px;
 
       .feature-item {
-        padding 15px 0
+        padding: 15px 0;
 
         .feature-icon {
-          width 50px
-          height 50px
-          border-radius 50%
-          background var(--van-primary-color)
-          display flex
-          align-items center
-          justify-content center
-          margin-bottom 10px
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: var(--van-primary-color);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 10px;
 
-          i, .van-icon {
-            font-size 24px
-            color white
+          i,
+          .van-icon {
+            font-size: 24px;
+            color: white;
           }
         }
 
         .text {
-          font-size 14px
-          font-weight 500
+          font-size: 14px;
+          font-weight: 500;
         }
       }
     }
 
     .section-header {
-      display flex
-      justify-content space-between
-      align-items center
-      margin-bottom 15px
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
 
       .section-title {
-        font-size 18px
-        font-weight 600
-        color var(--van-text-color)
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--van-text-color);
       }
 
       .more-btn {
-        padding 0 10px
-        font-size 12px
-        border-radius 15px
+        padding: 0 10px;
+        font-size: 12px;
+        border-radius: 15px;
       }
     }
 
     .app-list {
       .app-cell {
-        padding 0
-        margin-bottom 15px
+        padding: 0;
+        margin-bottom: 15px;
 
         .app-card {
-          background var(--van-cell-background)
-          border-radius 12px
-          padding 15px
-          box-shadow 0 2px 12px rgba(0, 0, 0, 0.05)
+          background: var(--van-cell-background);
+          border-radius: 12px;
+          padding: 15px;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 
           .app-info {
-            display flex
-            align-items center
-            margin-bottom 15px
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
 
             .app-image {
-              width 60px
-              height 60px
-              margin-right 15px
+              width: 60px;
+              height: 60px;
+              margin-right: 15px;
 
               :deep(.van-image) {
-                width 100%
-                height 100%
+                width: 100%;
+                height: 100%;
               }
             }
 
             .app-detail {
-              flex 1
+              flex: 1;
 
               .app-title {
-                font-size 16px
-                font-weight 600
-                margin-bottom 5px
-                color var(--van-text-color)
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 5px;
+                color: var(--van-text-color);
               }
 
               .app-desc {
-                font-size 13px
-                color var(--van-gray-6)
-                display -webkit-box
-                -webkit-box-orient vertical
-                -webkit-line-clamp 2
-                overflow hidden
+                font-size: 13px;
+                color: var(--van-gray-6);
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
               }
             }
           }
 
           .app-actions {
-            display flex
-            gap 10px
+            display: flex;
+            gap: 10px;
 
             .action-btn {
-              flex 1
-              border-radius 20px
-              padding 0 10px
+              flex: 1;
+              border-radius: 20px;
+              padding: 0 10px;
             }
           }
         }
