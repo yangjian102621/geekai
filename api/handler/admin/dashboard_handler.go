@@ -55,18 +55,18 @@ type statsVo struct {
 	Tokens         int                           `json:"tokens"`
 	Income         float64                       `json:"income"`
 	Chart          map[string]map[string]float64 `json:"chart"`
-	TodayUsers     int64                         `json:"today_users"`
-	TodayChats     int64                         `json:"today_chats"`
-	TodayTokens    int                           `json:"today_tokens"`
-	TodayIncome    float64                       `json:"today_income"`
-	TodayOrders    int64                         `json:"today_orders"`
-	TodayImageJobs int64                         `json:"today_image_jobs"`
-	TodayVideoJobs int64                         `json:"today_video_jobs"`
-	TodayMusicJobs int64                         `json:"today_music_jobs"`
+	TodayUsers     int64                         `json:"todayUsers"`
+	TodayChats     int64                         `json:"todayChats"`
+	TodayTokens    int                           `json:"todayTokens"`
+	TodayIncome    float64                       `json:"todayIncome"`
+	TodayOrders    int64                         `json:"todayOrders"`
+	TodayImageJobs int64                         `json:"todayImageJobs"`
+	TodayVideoJobs int64                         `json:"todayVideoJobs"`
+	TodayMusicJobs int64                         `json:"todayMusicJobs"`
 	Orders         int64                         `json:"orders"`
-	ImageJobs      int64                         `json:"image_jobs"`
-	VideoJobs      int64                         `json:"video_jobs"`
-	MusicJobs      int64                         `json:"music_jobs"`
+	ImageJobs      int64                         `json:"imageJobs"`
+	VideoJobs      int64                         `json:"videoJobs"`
+	MusicJobs      int64                         `json:"musicJobs"`
 	RecentOrders   []OrderBrief                  `json:"recentOrders"`
 	RecentUsers    []UserBrief                   `json:"recentUsers"`
 }
@@ -88,18 +88,18 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	// 今日新增对话
 	h.DB.Model(&model.ChatItem{}).Where("created_at > ?", zeroTime).Count(&stats.TodayChats)
 
-	// 总Token消耗
-	var historyMessages []model.ChatMessage
-	h.DB.Find(&historyMessages)
-	for _, item := range historyMessages {
-		stats.Tokens += item.Tokens
+	// 总算力消耗
+	var powerLogs []model.PowerLog
+	h.DB.Where("mark = ?", types.PowerSub).Find(&powerLogs)
+	for _, item := range powerLogs {
+		stats.Tokens += item.Amount
 	}
 
-	// 今日Token消耗
-	var todayMessages []model.ChatMessage
-	h.DB.Where("created_at > ?", zeroTime).Find(&todayMessages)
-	for _, item := range todayMessages {
-		stats.TodayTokens += item.Tokens
+	// 今日算力消耗
+	var todayPowerLogs []model.PowerLog
+	h.DB.Where("mark = ?", types.PowerSub).Where("created_at > ?", zeroTime).Find(&todayPowerLogs)
+	for _, item := range todayPowerLogs {
+		stats.TodayTokens += item.Amount
 	}
 
 	// 总收入
@@ -129,6 +129,8 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	h.DB.Model(&model.DallJob{}).Count(&dallJobs)
 	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_image", "image_to_image", "image_edit", "image_effects"}).Count(&jimengImageJobs)
 	stats.ImageJobs = mjJobs + sdJobs + dallJobs + jimengImageJobs
+
+	logger.Info("stats.ImageJobs", stats.ImageJobs)
 
 	// 今日图片生成任务统计
 	var todayMjJobs, todaySdJobs, todayDallJobs, todayJimengImageJobs int64
@@ -202,11 +204,12 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 		}
 	}
 
-	// 统计7天Token 消耗
-	err = h.DB.Where("created_at > ?", startDate).Find(&historyMessages).Error
+	// 统计7天算力消耗
+	var chartPowerLogs []model.PowerLog
+	err = h.DB.Where("mark = ?", types.PowerSub).Where("created_at > ?", startDate).Find(&chartPowerLogs).Error
 	if err == nil {
-		for _, item := range historyMessages {
-			historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Tokens)
+		for _, item := range chartPowerLogs {
+			historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Amount)
 		}
 	}
 

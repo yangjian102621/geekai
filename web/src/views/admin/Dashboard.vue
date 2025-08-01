@@ -11,7 +11,7 @@
             <div class="card-info">
               <div class="card-number">{{ stats.users }}</div>
               <div class="card-label">用户总数</div>
-              <div class="card-desc">今日新增: {{ stats.todayUsers || 1 }}</div>
+              <div class="card-desc">今日新增: {{ stats.todayUsers || 0 }}</div>
             </div>
           </div>
         </el-card>
@@ -39,9 +39,9 @@
               <el-icon><TrendCharts /></el-icon>
             </div>
             <div class="card-info">
-              <div class="card-number">{{ formatNumber(stats.tokens) }}</div>
-              <div class="card-label">Token消耗</div>
-              <div class="card-desc">今日: {{ formatNumber(stats.todayTokens) }}</div>
+              <div class="card-number">{{ formatNumber(stats.power || stats.tokens) }}</div>
+              <div class="card-label">算力消耗</div>
+              <div class="card-desc">今日: {{ formatNumber(stats.todayPower || stats.todayTokens) }}</div>
             </div>
           </div>
         </el-card>
@@ -153,7 +153,7 @@
     <!-- 底部列表区域 -->
     <el-row :gutter="24" class="content-row">
       <!-- 最近订单 -->
-      <el-col :span="8">
+      <el-col :span="12">
         <el-card class="list-card" shadow="hover">
           <div class="card-header">
             <h3>最近订单</h3>
@@ -173,7 +173,7 @@
       </el-col>
 
       <!-- 最近用户 -->
-      <el-col :span="8">
+      <el-col :span="12">
         <el-card class="list-card" shadow="hover">
           <div class="card-header">
             <h3>最近用户</h3>
@@ -188,53 +188,6 @@
               </div>
               <div class="user-meta">
                 <div class="user-time">{{ formatTime(user.last_active) }}</div>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <!-- 任务统计 -->
-      <el-col :span="8">
-        <el-card class="list-card" shadow="hover">
-          <div class="card-header">
-            <h3>AI任务统计</h3>
-          </div>
-          <div class="job-stats">
-            <div class="job-stat-item">
-              <div class="stat-icon image-stat">
-                <el-icon><Picture /></el-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-label">图片生成</div>
-                <div class="stat-number">{{ stats.imageJobs }}</div>
-              </div>
-            </div>
-            <div class="job-stat-item">
-              <div class="stat-icon video-stat">
-                <el-icon><VideoPlay /></el-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-label">视频生成</div>
-                <div class="stat-number">{{ stats.videoJobs }}</div>
-              </div>
-            </div>
-            <div class="job-stat-item">
-              <div class="stat-icon music-stat">
-                <el-icon><Headset /></el-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-label">音乐生成</div>
-                <div class="stat-number">{{ stats.musicJobs }}</div>
-              </div>
-            </div>
-            <div class="job-stat-item">
-              <div class="stat-icon order-stat">
-                <el-icon><ShoppingCart /></el-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-label">订单总数</div>
-                <div class="stat-number">{{ stats.orders }}</div>
               </div>
             </div>
           </div>
@@ -264,6 +217,7 @@ const stats = ref({
   users: 0,
   chats: 0,
   tokens: 0,
+  power: 0,
   income: 0,
   orders: 0,
   activeUsers: 0,
@@ -274,6 +228,8 @@ const stats = ref({
   todayUsers: 0,
   todayOrders: 0,
   todayIncome: 0,
+  todayTokens: 0,
+  todayPower: 0,
   todayImageJobs: 0,
   todayVideoJobs: 0,
   todayMusicJobs: 0,
@@ -307,17 +263,30 @@ const formatTime = (dateStr) => {
 }
 
 onMounted(() => {
-  const chartUsers = echarts.init(document.getElementById('chart-users'))
-  const chartTokens = echarts.init(document.getElementById('chart-tokens'))
-  const chartIncome = echarts.init(document.getElementById('chart-income'))
+  const chartUsersEl = document.getElementById('chart-users')
+  const chartIncomeEl = document.getElementById('chart-income')
+
+  if (!chartUsersEl || !chartIncomeEl) {
+    ElMessage.error('图表容器未找到')
+    return
+  }
+
+  const chartUsers = echarts.init(chartUsersEl)
+  const chartIncome = echarts.init(chartIncomeEl)
   httpGet('/api/admin/dashboard/stats')
     .then((res) => {
       // 更新统计数据
       Object.assign(stats.value, res.data)
       recentOrders.value = res.data.recentOrders || []
       recentUsers.value = res.data.recentUsers || []
-      const chartData = res.data.chart
+      const chartData = res.data.chart || {}
       loading.value = false
+
+      // 检查图表数据是否存在
+      if (!chartData.users || !chartData.orders) {
+        ElMessage.warning('图表数据不完整')
+        return
+      }
 
       const x = []
       const dataUsers = []
@@ -383,29 +352,6 @@ onMounted(() => {
                     color: 'rgba(139, 92, 246, 0.05)',
                   },
                 ],
-              },
-            },
-          },
-        ],
-      })
-      const dataTokens = []
-      for (let k in chartData.historyMessage) {
-        dataTokens.push(chartData.historyMessage[k])
-      }
-      chartTokens.setOption({
-        xAxis: {
-          data: x,
-        },
-        yAxis: {},
-        series: [
-          {
-            data: dataTokens,
-            type: 'line',
-            label: {
-              show: true,
-              position: 'bottom',
-              textStyle: {
-                fontSize: 18,
               },
             },
           },
@@ -486,16 +432,16 @@ onMounted(() => {
 
   window.onresize = function () {
     // 自适应大小
-    chartUsers.resize()
-    chartIncome.resize()
+    if (chartUsers) chartUsers.resize()
+    if (chartIncome) chartIncome.resize()
   }
 })
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .dashboard {
   padding: 24px;
-  background: #f8fafc;
+  background: var(--theme-bg-color);
   min-height: 100vh;
 
   .stats-row {
@@ -511,10 +457,11 @@ onMounted(() => {
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
+    background: var(--card-bg);
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--el-box-shadow, 0 8px 25px rgba(0, 0, 0, 0.1));
     }
 
     :deep(.el-card__body) {
@@ -580,28 +527,30 @@ onMounted(() => {
   .card-number {
     font-size: 32px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--theme-text-color-primary);
     margin-bottom: 4px;
     line-height: 1;
   }
 
   .card-label {
     font-size: 16px;
-    color: #6b7280;
+    color: var(--el-text-color-regular);
     margin-bottom: 4px;
     font-weight: 500;
   }
 
   .card-desc {
     font-size: 14px;
-    color: #9ca3af;
+    color: var(--theme-text-color-secondary);
   }
 
-  .chart-card, .list-card {
+  .chart-card,
+  .list-card {
     border: none;
     border-radius: 12px;
     overflow: hidden;
     height: 100%;
+    background: var(--card-bg);
 
     :deep(.el-card__body) {
       padding: 24px;
@@ -617,17 +566,19 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--el-border-color);
 
     h3 {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: #1f2937;
+      color: var(--theme-text-color-primary);
     }
   }
 
-  .order-list, .user-list, .app-list {
+  .order-list,
+  .user-list,
+  .app-list {
     flex: 1;
     overflow-y: auto;
   }
@@ -637,7 +588,7 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--el-border-color);
 
     &:last-child {
       border-bottom: none;
@@ -650,13 +601,13 @@ onMounted(() => {
 
       .order-id {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--theme-text-color-secondary);
       }
 
       .order-amount {
         font-size: 16px;
         font-weight: 600;
-        color: #10b981;
+        color: var(--el-color-success, #10b981);
       }
     }
 
@@ -667,7 +618,7 @@ onMounted(() => {
 
       .order-date {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--theme-text-color-secondary);
       }
     }
   }
@@ -677,7 +628,7 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
     padding: 12px 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--el-border-color);
 
     &:last-child {
       border-bottom: none;
@@ -690,7 +641,7 @@ onMounted(() => {
       .user-name {
         font-size: 14px;
         font-weight: 500;
-        color: #1f2937;
+        color: var(--theme-text-color-primary);
         margin-bottom: 2px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -699,7 +650,7 @@ onMounted(() => {
 
       .user-id {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--theme-text-color-secondary);
       }
     }
 
@@ -708,72 +659,8 @@ onMounted(() => {
 
       .user-time {
         font-size: 12px;
-        color: #6b7280;
+        color: var(--theme-text-color-secondary);
         margin-bottom: 4px;
-      }
-    }
-  }
-
-  .job-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-
-    .job-stat-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      background: #f8fafc;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: #f1f5f9;
-      }
-
-      .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        color: white;
-        flex-shrink: 0;
-
-        &.image-stat {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        &.video-stat {
-          background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-
-        &.music-stat {
-          background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
-
-        &.order-stat {
-          background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-      }
-
-      .stat-info {
-        flex: 1;
-
-        .stat-label {
-          font-size: 12px;
-          color: #6b7280;
-          margin-bottom: 4px;
-        }
-
-        .stat-number {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-        }
       }
     }
   }
