@@ -1,3 +1,6 @@
+@use 'waterfall-list.scss' as *;
+@use 'sd-task-dialog.scss' as *;
+
 .page-sd {
   // background-color: #282c34;
 
@@ -212,7 +215,6 @@
         }
 
         // 任务列表
-        @import 'waterfall-list.scss';
       }
 
       .no-more-data {
@@ -221,8 +223,6 @@
       }
     }
   }
-
-  @import 'sd-task-dialog.scss';
 
   .mj-list-item-prompt {
     .el-icon {

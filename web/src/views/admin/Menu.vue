@@ -252,29 +252,28 @@ const uploadImg = (file) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@use "../../assets/css/admin/form.scss" as *;
-@use "../../assets/css/main.scss" as *;
+<style lang="scss" scoped>
+@use '../../assets/css/admin/form.scss' as *;
+@use '../../assets/css/main.scss' as *;
 .menu {
-
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
   }
   .menu-icon {
-    width 36px
-    height 36px
+    width: 36px;
+    height: 36px;
   }
 
   .sort {
-    cursor move
+    cursor: move;
     .iconfont {
-      position relative
-      top 1px
+      position: relative;
+      top: 1px;
     }
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .el-table .cell {

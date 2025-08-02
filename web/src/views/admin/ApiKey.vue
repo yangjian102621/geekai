@@ -291,36 +291,36 @@ const changePreset = (row) => {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .list {
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 150px;
-      margin-right 10px;
+      max-width: 150px;
+      margin-right: 10px;
     }
   }
 
   .copy-key {
-    margin-left 5px
-    cursor pointer
+    margin-left: 5px;
+    cursor: pointer;
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .pagination {
-    padding 20px 0
-    display flex
-    justify-content righ
+    padding: 20px 0;
+    display: flex;
+    justify-content: right;
   }
 }
 
 .el-form {
   .el-form-item__content {
     .info {
-      color #999999
+      color: #999999;
     }
     .el-icon {
       padding-left: 10px;

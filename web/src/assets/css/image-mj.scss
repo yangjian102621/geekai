@@ -1,3 +1,5 @@
+@use 'running-job-list.scss' as *;
+
 .page-mj {
   // background-color: #282c34;
   height: 100%;
@@ -323,7 +325,6 @@
 
         .job-list-box {
           // 任务列表
-          @import 'running-job-list.scss';
 
           .finish-job-list {
             #waterfall {

@@ -529,7 +529,7 @@
     </div>
 
     <!-- 视频预览对话框 -->
-    <el-dialog v-model="store.showDialog" title="视频预览" width="70%" center>
+    <el-dialog v-model="store.showDialog" title="视频预览" center>
       <video
         :src="store.currentVideoUrl"
         autoplay="true"

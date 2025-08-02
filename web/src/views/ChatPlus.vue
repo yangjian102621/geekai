@@ -361,31 +361,7 @@
       </el-main>
     </el-container>
 
-    <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
-      <div class="notice">
-        <div v-html="notice"></div>
-      </div>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="notShow" type="primary">我知道了，不再显示</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
     <ChatSetting :show="showChatSetting" @hide="showChatSetting = false" />
-
-    <!-- <el-dialog
-      v-model="showConversationDialog"
-      title="实时语音通话"
-      :before-close="hangUp"
-    >
-      <realtime-conversation
-        @close="showConversationDialog = false"
-        ref="conversationRef"
-        :height="dialogHeight + 'px'"
-      />
-    </el-dialog> -->
 
     <el-dialog v-model="showConversationDialog" title="实时语音通话" :fullscreen="true">
       <div v-loading="!frameLoaded">
@@ -426,8 +402,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source'
 import Clipboard from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import 'highlight.js/styles/a11y-dark.css'
-import MarkdownIt from 'markdown-it'
-import emoji from 'markdown-it-emoji'
+
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserToken } from '../store/session'
@@ -453,9 +428,7 @@ const isLogin = ref(false)
 const showHello = ref(true)
 const inputRef = ref(null)
 const textHeightRef = ref(null)
-const showNotice = ref(false)
-const notice = ref('')
-const noticeKey = ref('SYSTEM_NOTICE')
+
 const store = useSharedStore()
 const row = ref(1)
 const showChatSetting = ref(false)
@@ -646,30 +619,6 @@ getSystemInfo()
     config.value = res.data
     title.value = config.value.title
     logo.value = res.data.bar_logo
-  })
-  .catch((e) => {
-    ElMessage.error('获取系统配置失败：' + e.message)
-  })
-
-const md = new MarkdownIt({
-  breaks: true,
-  html: true,
-  linkify: true,
-  typographer: true,
-}).use(emoji)
-// 获取系统公告
-httpGet('/api/config/get?key=notice')
-  .then((res) => {
-    try {
-      notice.value = md.render(res.data['content'])
-      const oldNotice = localStorage.getItem(noticeKey.value)
-      // 如果公告有更新，则显示公告
-      if (oldNotice !== notice.value && notice.value.length > 10) {
-        showNotice.value = true
-      }
-    } catch (e) {
-      console.warn(e)
-    }
   })
   .catch((e) => {
     ElMessage.error('获取系统配置失败：' + e.message)
@@ -1318,11 +1267,6 @@ const getModelValue = (model_id) => {
   return ''
 }
 
-const notShow = () => {
-  localStorage.setItem(noticeKey.value, notice.value)
-  showNotice.value = false
-}
-
 const files = ref([])
 // 插入文件
 const insertFile = (file) => {
@@ -1367,33 +1311,7 @@ const realtimeChat = () => {
 
 <style lang="scss">
 @use '@/assets/css/markdown/vue.css' as *;
-.notice-dialog {
-  .el-dialog__header {
-    padding-bottom: 0;
-  }
-
-  .el-dialog__body {
-    padding: 0 20px;
-
-    h2 {
-      margin: 20px 0 15px 0;
-    }
-
-    ol,
-    ul {
-      padding-left: 10px;
-    }
-
-    ol {
-      list-style: decimal-leading-zero;
-      padding-left: 20px;
-    }
-
-    ul {
-      list-style: inside;
-    }
-  }
-}
+@use 'sass:color';
 
 .input-container {
   .el-textarea {
@@ -1452,7 +1370,7 @@ const realtimeChat = () => {
         margin-left: auto;
 
         &:hover {
-          color: darken(#f56c6c, 10%);
+          color: color.adjust(#f56c6c, $lightness: -10%);
         }
       }
     }

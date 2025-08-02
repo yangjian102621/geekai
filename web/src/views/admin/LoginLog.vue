@@ -63,22 +63,20 @@ const fetchList = function (_page, _pageSize) {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .list {
-
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .pagination {
-    margin-top 20px
-    display flex
-    justify-content center
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
   }
-
 }
 </style>

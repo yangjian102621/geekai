@@ -1,3 +1,5 @@
+@use 'sd-task-dialog.scss' as *;
+
 @keyframes expandUp {
   0% {
     transform: scaleY(0);
@@ -79,7 +81,8 @@
           }
           .iconfont {
           }
-          .el-icon, .iconfont {
+          .el-icon,
+          .iconfont {
             top: 2px;
             cursor: pointer;
             color: #fff !important;
@@ -123,6 +126,4 @@
       }
     }
   }
-
-  @use "sd-task-dialog.scss" as *;
 }

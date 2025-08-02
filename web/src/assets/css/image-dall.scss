@@ -1,3 +1,5 @@
+@use 'waterfall-list.scss' as *;
+
 .page-dall {
   // background-color: #282c34;
 
@@ -211,7 +213,6 @@
         }
 
         // 任务列表
-        @import 'waterfall-list.scss';
       }
 
       .no-more-data {

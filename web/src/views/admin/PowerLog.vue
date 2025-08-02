@@ -1,9 +1,27 @@
 <template>
   <div class="container power-log" v-loading="loading">
     <div class="handle-box">
-      <el-input v-model="query.model" placeholder="模型" class="handle-input mr10" clearable style="--el-input-height: 32px" />
-      <el-input v-model="query.username" placeholder="用户名" class="handle-input mr10" clearable style="--el-input-height: 32px" />
-      <el-input v-model.number="query.userid" placeholder="用户ID" class="handle-input mr10" clearable style="--el-input-height: 32px" />
+      <el-input
+        v-model="query.model"
+        placeholder="模型"
+        class="handle-input mr10"
+        clearable
+        style="--el-input-height: 32px"
+      />
+      <el-input
+        v-model="query.username"
+        placeholder="用户名"
+        class="handle-input mr10"
+        clearable
+        style="--el-input-height: 32px"
+      />
+      <el-input
+        v-model.number="query.userid"
+        placeholder="用户ID"
+        class="handle-input mr10"
+        clearable
+        style="--el-input-height: 32px"
+      />
       <el-select v-model="query.type" placeholder="类别" style="width: 100px">
         <el-option label="全部" :value="0" />
         <el-option label="充值" :value="1" />
@@ -46,7 +64,7 @@
         <el-table-column prop="balance" label="余额" />
         <el-table-column label="发生时间">
           <template #default="scope">
-            <span>{{ dateFormat(scope.row["created_at"]) }}</span>
+            <span>{{ dateFormat(scope.row['created_at']) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" />
@@ -70,86 +88,86 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { httpPost } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { dateFormat } from "@/utils/libs";
-import { Search } from "@element-plus/icons-vue";
-import Clipboard from "clipboard";
+import { httpPost } from '@/utils/http'
+import { dateFormat } from '@/utils/libs'
+import { Search } from '@element-plus/icons-vue'
+import Clipboard from 'clipboard'
+import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
 
-const items = ref([]);
-const total = ref(0);
-const page = ref(1);
-const pageSize = ref(20);
-const loading = ref(false);
+const items = ref([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
+const loading = ref(false)
 const query = ref({
-  model: "",
+  model: '',
   date: [],
   type: 0,
   page: 1,
   page_size: 20,
-});
-const totalPower = ref(0);
+})
+const totalPower = ref(0)
 
-const tagColors = ref(["", "success", "primary", "danger", "info", "warning"]);
+const tagColors = ref(['', 'success', 'primary', 'danger', 'info', 'warning'])
 
 onMounted(() => {
-  fetchData();
-  const clipboard = new Clipboard(".copy-order-no");
-  clipboard.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
+  fetchData()
+  const clipboard = new Clipboard('.copy-order-no')
+  clipboard.on('success', () => {
+    ElMessage.success('复制成功！')
+  })
 
-  clipboard.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
-});
+  clipboard.on('error', () => {
+    ElMessage.error('复制失败！')
+  })
+})
 
 // 搜索
 const search = () => {
-  page.value = 1;
-  fetchData();
-};
+  page.value = 1
+  fetchData()
+}
 
 // 获取数据
 const fetchData = () => {
-  loading.value = true;
-  query.value.page = page.value;
-  query.value.page_size = pageSize.value;
-  httpPost("/api/admin/powerLog/list", query.value)
+  loading.value = true
+  query.value.page = page.value
+  query.value.page_size = pageSize.value
+  httpPost('/api/admin/powerLog/list', query.value)
     .then((res) => {
-      const data = res.data.data;
+      const data = res.data.data
       if (data) {
-        items.value = data.items;
-        total.value = data.total;
-        page.value = data.page;
-        pageSize.value = data.page_size;
+        items.value = data.items
+        total.value = data.total
+        page.value = data.page
+        pageSize.value = data.page_size
       }
-      totalPower.value = res.data.stat;
-      loading.value = false;
+      totalPower.value = res.data.stat
+      loading.value = false
     })
     .catch((e) => {
-      loading.value = false;
-      ElMessage.error("获取数据失败：" + e.message);
-    });
-};
+      loading.value = false
+      ElMessage.error('获取数据失败：' + e.message)
+    })
+}
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .power-log {
   .handle-box {
     --el-input-height: 32px;
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 120px;
-      margin-right 10px;
+      max-width: 120px;
+      margin-right: 10px;
     }
   }
 
   .opt-box {
     padding-bottom: 10px;
-    display flex;
-    justify-content flex-start
+    display: flex;
+    justify-content: flex-start;
 
     .el-icon {
       margin-right: 5px;
@@ -157,14 +175,13 @@ const fetchData = () => {
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .pagination {
     margin-top: 20px;
-    display flex;
+    display: flex;
     justify-content: right;
   }
-
 }
 </style>

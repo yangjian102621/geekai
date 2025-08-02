@@ -392,22 +392,21 @@ const remove = function (row) {
 }
 </script>
 
-<style lang="stylus" scoped>
-@use "../../assets/css/admin/form.scss" as *;
+<style lang="scss" scoped>
+@use '../../assets/css/admin/form.scss' as *;
 .model-list {
-
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 150px;
-      margin-right 10px;
+      max-width: 150px;
+      margin-right: 10px;
     }
   }
 
   .cell {
     .copy-model {
-      margin-left 6px
-      cursor pointer
+      margin-left: 6px;
+      cursor: pointer;
     }
   }
 
@@ -419,22 +418,21 @@ const remove = function (row) {
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .sort {
-    cursor move
+    cursor: move;
     .iconfont {
-      position relative
-      top 1px
+      position: relative;
+      top: 1px;
     }
   }
 
   .pagination {
-    padding 20px 0
-    display flex
-    justify-content right
+    padding: 20px 0;
+    display: flex;
+    justify-content: right;
   }
-
 }
 </style>

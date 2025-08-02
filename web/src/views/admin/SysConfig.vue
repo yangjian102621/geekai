@@ -842,17 +842,17 @@ const onUploadImg = (files, callback) => {
 // }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 @use '../../assets/css/admin/form.scss' as *;
 @use '../../assets/css/main.scss' as *;
 .system-config {
-  display flex
-  justify-content center
+  display: flex;
+  justify-content: center;
 
   .sys-tabs {
-    width 100%
-    background-color var(--el-bg-color)
-    padding 10px 20px 40px 20px
+    width: 100%;
+    background-color: var(--el-bg-color);
+    padding: 10px 20px 40px 20px;
     //border: 1px solid var(--el-border-color);
   }
 }

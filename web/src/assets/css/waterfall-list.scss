@@ -1,6 +1,6 @@
-.job-list-box {
-  @import 'running-job-list.scss';
+@use 'running-job-list.scss' as *;
 
+.job-list-box {
   .finish-job-list {
     #waterfall {
       display: flex;
