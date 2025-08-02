@@ -1,85 +1,149 @@
 <template>
   <div class="index container">
     <div class="header">
-      <h2 class="title">{{ title }}</h2>
+      <div class="user-greeting">
+        <div class="greeting-text">
+          <h2 class="title">{{ getGreeting() }}</h2>
+          <p class="subtitle">{{ title }}</p>
+        </div>
+        <div class="user-avatar" v-if="isLogin" @click="router.push('profile')">
+          <van-image :src="userAvatar" round width="40" height="40" />
+        </div>
+        <div class="login-btn" v-else @click="showLoginDialog(router)">
+          <van-button size="small" type="primary" round>登录</van-button>
+        </div>
+      </div>
     </div>
 
-    <div class="content mb-8">
-      <div class="feature-grid">
-        <van-grid :column-num="3" :gutter="15" border>
-          <van-grid-item @click="router.push('chat')" class="feature-item">
-            <template #icon>
-              <div class="feature-icon">
-                <i class="iconfont icon-chat"></i>
+    <!-- 快捷操作区 -->
+    <div class="quick-actions mb-6">
+      <van-row :gutter="12">
+        <van-col :span="12">
+          <div class="action-card primary" @click="router.push('chat')">
+            <div class="action-content">
+              <i class="iconfont icon-chat action-icon"></i>
+              <div class="action-text">
+                <div class="action-title">AI 对话</div>
+                <div class="action-desc">智能助手随时待命</div>
               </div>
-            </template>
-            <template #text>
-              <div class="text">AI 对话</div>
-            </template>
-          </van-grid-item>
+            </div>
+          </div>
+        </van-col>
+        <van-col :span="12">
+          <div class="action-card secondary" @click="router.push('create')">
+            <div class="action-content">
+              <i class="iconfont icon-mj action-icon"></i>
+              <div class="action-text">
+                <div class="action-title">AI 创作</div>
+                <div class="action-desc">图像音视频生成</div>
+              </div>
+            </div>
+          </div>
+        </van-col>
+      </van-row>
+    </div>
 
-          <van-grid-item @click="router.push('image')" class="feature-item">
-            <template #icon>
-              <div class="feature-icon">
-                <i class="iconfont icon-mj"></i>
-              </div>
-            </template>
-            <template #text>
-              <div class="text">AI 绘画</div>
-            </template>
-          </van-grid-item>
-
-          <van-grid-item @click="router.push('imgWall')" class="feature-item">
-            <template #icon>
-              <div class="feature-icon">
-                <van-icon name="photo-o" />
-              </div>
-            </template>
-            <template #text>
-              <div class="text">AI 画廊</div>
-            </template>
-          </van-grid-item>
-        </van-grid>
+    <!-- 功能网格 -->
+    <div class="feature-section mb-6">
+      <div class="section-header">
+        <h3 class="section-title">AI 功能</h3>
       </div>
+      <van-grid :column-num="4" :gutter="12" :border="false">
+        <van-grid-item
+          v-for="feature in features"
+          :key="feature.key"
+          @click="navigateToFeature(feature)"
+          class="feature-item"
+        >
+          <template #icon>
+            <div class="feature-icon" :style="{ backgroundColor: feature.color }">
+              <i class="iconfont" :class="feature.icon"></i>
+            </div>
+          </template>
+          <template #text>
+            <div class="feature-text">{{ feature.name }}</div>
+          </template>
+        </van-grid-item>
+      </van-grid>
+    </div>
 
+    <!-- 推荐应用 -->
+    <div class="apps-section">
       <div class="section-header">
         <h3 class="section-title">推荐应用</h3>
-        <van-button class="more-btn" size="small" icon="arrow" @click="router.push('apps')"
-          >更多</van-button
+        <van-button 
+          class="more-btn" 
+          size="small" 
+          icon="arrow"
+          type="primary"
+          plain
+          round
+          @click="router.push('apps')"
         >
+          更多
+        </van-button>
       </div>
 
       <div class="app-list">
-        <van-list v-model="loading" :finished="true" finished-text="" @load="fetchApps">
-          <van-cell v-for="item in displayApps" :key="item.id" class="app-cell">
-            <div class="app-card">
-              <div class="app-info">
-                <div class="app-image">
-                  <van-image :src="item.icon" round />
+        <van-swipe :autoplay="3000" :show-indicators="false" class="app-swipe">
+          <van-swipe-item v-for="chunk in appChunks" :key="chunk[0]?.id">
+            <div class="app-row">
+              <div
+                v-for="item in chunk"
+                :key="item.id"
+                class="app-item"
+                @click="useRole(item.id)"
+              >
+                <div class="app-avatar">
+                  <van-image :src="item.icon" round fit="cover" />
                 </div>
-                <div class="app-detail">
-                  <div class="app-title">{{ item.name }}</div>
-                  <div class="app-desc">{{ item.hello_msg }}</div>
+                <div class="app-info">
+                  <div class="app-name">{{ item.name }}</div>
+                  <div class="app-desc">{{ item.intro }}</div>
                 </div>
-              </div>
-
-              <div class="app-actions">
-                <van-button size="small" type="primary" class="action-btn" @click="useRole(item.id)"
-                  >对话</van-button
-                >
-                <van-button
-                  size="small"
-                  :type="hasRole(item.key) ? 'danger' : 'success'"
-                  class="action-btn"
-                  @click="updateRole(item, hasRole(item.key) ? 'remove' : 'add')"
-                >
-                  {{ hasRole(item.key) ? '移除' : '添加' }}
-                </van-button>
+                <div class="app-action">
+                  <van-button 
+                    size="mini" 
+                    type="primary" 
+                    plain 
+                    round
+                    @click.stop="updateRole(item, hasRole(item.key) ? 'remove' : 'add')"
+                  >
+                    {{ hasRole(item.key) ? '已添加' : '添加' }}
+                  </van-button>
+                </div>
               </div>
             </div>
-          </van-cell>
-        </van-list>
+          </van-swipe-item>
+        </van-swipe>
       </div>
+    </div>
+
+    <!-- 数据统计 -->
+    <div class="stats-section" v-if="isLogin">
+      <div class="section-header">
+        <h3 class="section-title">使用统计</h3>
+      </div>
+      <van-row :gutter="12">
+        <van-col :span="8">
+          <div class="stat-card">
+            <div class="stat-number">{{ userStats.conversations || 0 }}</div>
+            <div class="stat-label">对话次数</div>
+          </div>
+        </van-col>
+        <van-col :span="8">
+          <div class="stat-card">
+            <div class="stat-number">{{ userStats.images || 0 }}</div>
+            <div class="stat-label">生成图片</div>
+          </div>
+        </van-col>
+        <van-col :span="8">
+          <div class="stat-card">
+            <div class="stat-number">{{ userStats.power || 0 }}</div>
+            <div class="stat-label">剩余算力</div>
+          </div>
+        </van-col>
+      </van-row>
     </div>
   </div>
 </template>
@@ -99,20 +163,53 @@ const isLogin = ref(false)
 const apps = ref([])
 const loading = ref(false)
 const roles = ref([])
-const slogan = ref('你有多大想象力，AI就有多大创造力！')
-
-// 只显示前5个应用
-const displayApps = computed(() => {
-  return apps.value.slice(0, 8)
+const userAvatar = ref('/images/avatar/default.jpg')
+const userStats = ref({
+  conversations: 0,
+  images: 0,
+  power: 0
 })
+
+// 功能配置
+const features = ref([
+  { key: 'mj', name: 'MJ绘画', icon: 'icon-mj', color: '#8B5CF6', url: '/mobile/create?tab=mj' },
+  { key: 'sd', name: 'SD绘画', icon: 'icon-sd', color: '#06B6D4', url: '/mobile/create?tab=sd' },
+  { key: 'dalle', name: 'DALL·E', icon: 'icon-dalle', color: '#F59E0B', url: '/mobile/create?tab=dalle' },
+  { key: 'suno', name: '音乐创作', icon: 'icon-music', color: '#EF4444', url: '/mobile/create?tab=suno' },
+  { key: 'video', name: '视频生成', icon: 'icon-video', color: '#10B981', url: '/mobile/create?tab=video' },
+  { key: 'jimeng', name: '即梦AI', icon: 'icon-jimeng', color: '#F97316', url: '/mobile/create?tab=jimeng' },
+  { key: 'xmind', name: '思维导图', icon: 'icon-mind', color: '#3B82F6', url: '/mobile/tools?tab=xmind' },
+  { key: 'imgWall', name: '作品展示', icon: 'icon-gallery', color: '#EC4899', url: '/mobile/imgWall' }
+])
+
+// 应用分组显示（每行2个）
+const appChunks = computed(() => {
+  const chunks = []
+  const displayApps = apps.value.slice(0, 6) // 只显示前6个
+  for (let i = 0; i < displayApps.length; i += 2) {
+    chunks.push(displayApps.slice(i, i + 2))
+  }
+  return chunks
+})
+
+// 获取问候语
+const getGreeting = () => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '夜深了'
+  if (hour < 12) return '早上好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+}
+
+// 导航到功能页面
+const navigateToFeature = (feature) => {
+  router.push(feature.url)
+}
 
 onMounted(() => {
   getSystemInfo()
     .then((res) => {
       title.value = res.data.title
-      if (res.data.slogan) {
-        slogan.value = res.data.slogan
-      }
     })
     .catch((e) => {
       ElMessage.error('获取系统配置失败：' + e.message)
@@ -122,8 +219,12 @@ onMounted(() => {
     .then((user) => {
       isLogin.value = true
       roles.value = user.chat_roles
+      userAvatar.value = user.avatar || '/images/avatar/default.jpg'
+      // 获取用户统计数据
+      fetchUserStats()
     })
     .catch(() => {})
+  
   fetchApps()
 })
 
@@ -133,13 +234,29 @@ const fetchApps = () => {
       const items = res.data
       // 处理 hello message
       for (let i = 0; i < items.length; i++) {
-        items[i].intro = substr(items[i].hello_msg, 80)
+        items[i].intro = substr(items[i].hello_msg, 30)
       }
       apps.value = items
     })
     .catch((e) => {
       showNotify({ type: 'danger', message: '获取应用失败：' + e.message })
     })
+}
+
+const fetchUserStats = () => {
+  if (!isLogin.value) return
+  
+  // 这里可以调用实际的统计接口
+  // httpGet('/api/user/stats').then(res => {
+  //   userStats.value = res.data
+  // })
+  
+  // 临时使用模拟数据
+  userStats.value = {
+    conversations: Math.floor(Math.random() * 100),
+    images: Math.floor(Math.random() * 50),
+    power: Math.floor(Math.random() * 1000)
+  }
 }
 
 const updateRole = (row, opt) => {
@@ -165,10 +282,10 @@ const updateRole = (row, opt) => {
   }
   httpPost('/api/app/update', { keys: roles.value })
     .then(() => {
-      ElMessage.success({ message: title.value + '成功！', duration: 1000 })
+      showNotify({ type: 'success', message: title.value + '成功！', duration: 1000 })
     })
     .catch((e) => {
-      ElMessage.error(title.value + '失败：' + e.message)
+      showNotify({ type: 'danger', message: title.value + '失败：' + e.message })
     })
 }
 
@@ -187,147 +304,298 @@ const useRole = (roleId) => {
 <style scoped lang="scss">
 .index {
   color: var(--van-text-color);
-  background-color: var(--van-background);
+  background: linear-gradient(135deg, var(--van-background), var(--van-background-2));
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  padding: 0 16px 60px;
 
   .header {
-    flex-shrink: 0;
-    padding: 10px 15px;
-    text-align: center;
-    background: var(--van-background);
+    padding: 20px 0 16px;
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 100;
+    background: inherit;
+    backdrop-filter: blur(10px);
 
-    .title {
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--van-text-color);
-    }
+    .user-greeting {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
 
-    .slogan {
-      font-size: 14px;
-      color: var(--van-gray-6);
+      .greeting-text {
+        flex: 1;
+
+        .title {
+          font-size: 28px;
+          font-weight: 700;
+          color: var(--van-text-color);
+          margin: 0 0 4px 0;
+          background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .subtitle {
+          font-size: 14px;
+          color: var(--van-gray-6);
+          margin: 0;
+        }
+      }
+
+      .user-avatar,
+      .login-btn {
+        flex-shrink: 0;
+        margin-left: 16px;
+      }
     }
   }
 
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-    -webkit-overflow-scrolling: touch;
+  .quick-actions {
+    .action-card {
+      border-radius: 16px;
+      padding: 20px;
+      background: var(--van-cell-background);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
 
-    .feature-grid {
-      margin-bottom: 30px;
+      &:active {
+        transform: scale(0.98);
+      }
 
-      .feature-item {
-        padding: 15px 0;
+      &.primary {
+        background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+        color: white;
 
-        .feature-icon {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: var(--van-primary-color);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 10px;
+        .action-icon,
+        .action-title,
+        .action-desc {
+          color: white;
+        }
+      }
 
-          i,
-          .van-icon {
-            font-size: 24px;
-            color: white;
-          }
+      &.secondary {
+        background: linear-gradient(135deg, #06B6D4, #10B981);
+        color: white;
+
+        .action-icon,
+        .action-title,
+        .action-desc {
+          color: white;
+        }
+      }
+
+      .action-content {
+        display: flex;
+        align-items: center;
+
+        .action-icon {
+          font-size: 32px;
+          margin-right: 16px;
+          opacity: 0.9;
         }
 
-        .text {
-          font-size: 14px;
-          font-weight: 500;
+        .action-text {
+          .action-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+          }
+
+          .action-desc {
+            font-size: 13px;
+            opacity: 0.8;
+          }
         }
       }
     }
+  }
 
+  .feature-section,
+  .apps-section,
+  .stats-section {
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 16px;
 
       .section-title {
-        font-size: 18px;
-        font-weight: 600;
+        font-size: 20px;
+        font-weight: 700;
         color: var(--van-text-color);
+        margin: 0;
       }
 
       .more-btn {
-        padding: 0 10px;
+        padding: 6px 12px;
         font-size: 12px;
-        border-radius: 15px;
       }
     }
+  }
 
-    .app-list {
-      .app-cell {
-        padding: 0;
-        margin-bottom: 15px;
+  .feature-section {
+    .feature-item {
+      padding: 16px 8px;
+      transition: all 0.3s ease;
 
-        .app-card {
+      &:active {
+        transform: scale(0.95);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+        i {
+          font-size: 24px;
+          color: white;
+        }
+      }
+
+      .feature-text {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--van-text-color);
+        text-align: center;
+      }
+    }
+  }
+
+  .apps-section {
+    .app-swipe {
+      margin: 0 -4px;
+
+      .app-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 4px;
+
+        .app-item {
           background: var(--van-cell-background);
           border-radius: 12px;
-          padding: 15px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+          transition: all 0.3s ease;
+          cursor: pointer;
 
-          .app-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
+          &:active {
+            transform: scale(0.98);
+          }
 
-            .app-image {
-              width: 60px;
-              height: 60px;
-              margin-right: 15px;
+          .app-avatar {
+            width: 44px;
+            height: 44px;
+            margin-right: 12px;
+            flex-shrink: 0;
 
-              :deep(.van-image) {
-                width: 100%;
-                height: 100%;
-              }
-            }
-
-            .app-detail {
-              flex: 1;
-
-              .app-title {
-                font-size: 16px;
-                font-weight: 600;
-                margin-bottom: 5px;
-                color: var(--van-text-color);
-              }
-
-              .app-desc {
-                font-size: 13px;
-                color: var(--van-gray-6);
-                display: -webkit-box;
-                -webkit-box-orient: vertical;
-                -webkit-line-clamp: 2;
-                overflow: hidden;
-              }
+            :deep(.van-image) {
+              width: 100%;
+              height: 100%;
             }
           }
 
-          .app-actions {
-            display: flex;
-            gap: 10px;
+          .app-info {
+            flex: 1;
+            min-width: 0;
 
-            .action-btn {
-              flex: 1;
-              border-radius: 20px;
-              padding: 0 10px;
+            .app-name {
+              font-size: 15px;
+              font-weight: 600;
+              color: var(--van-text-color);
+              margin-bottom: 2px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             }
+
+            .app-desc {
+              font-size: 12px;
+              color: var(--van-gray-6);
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
+
+          .app-action {
+            flex-shrink: 0;
+            margin-left: 8px;
           }
         }
       }
+    }
+  }
+
+  .stats-section {
+    .stat-card {
+      background: var(--van-cell-background);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+      .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--van-primary-color);
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: var(--van-gray-6);
+      }
+    }
+  }
+}
+
+// 响应式调整
+@media (max-width: 375px) {
+  .index {
+    padding: 0 12px 60px;
+
+    .header .user-greeting .greeting-text .title {
+      font-size: 24px;
+    }
+
+    .quick-actions .action-card {
+      padding: 16px;
+
+      .action-content .action-icon {
+        font-size: 28px;
+        margin-right: 12px;
+      }
+    }
+  }
+}
+
+// 深色主题优化
+:deep(.van-theme-dark) {
+  .index {
+    .quick-actions .action-card {
+      &.primary,
+      &.secondary {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    .feature-section .feature-item .feature-icon {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .apps-section .app-swipe .app-row .app-item,
+    .stats-section .stat-card {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     }
   }
 }

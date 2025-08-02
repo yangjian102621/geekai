@@ -309,14 +309,24 @@ const routes = [
         component: () => import('@/views/mobile/ChatList.vue'),
       },
       {
-        path: '/mobile/image',
-        name: 'mobile-image',
-        component: () => import('@/views/mobile/Image.vue'),
+        path: '/mobile/create',
+        name: 'mobile-create',
+        component: () => import('@/views/mobile/Create.vue'),
+      },
+      {
+        path: '/mobile/discover',
+        name: 'mobile-discover',
+        component: () => import('@/views/mobile/Discover.vue'),
       },
       {
         path: '/mobile/profile',
         name: 'mobile-profile',
         component: () => import('@/views/mobile/Profile.vue'),
+      },
+      {
+        path: '/mobile/member',
+        name: 'mobile-member',
+        component: () => import('@/views/mobile/Member.vue'),
       },
       {
         path: '/mobile/imgWall',
@@ -337,6 +347,37 @@ const routes = [
         path: '/mobile/apps',
         name: 'mobile-apps',
         component: () => import('@/views/mobile/Apps.vue'),
+      },
+      // 新增的功能页面路由
+      {
+        path: '/mobile/power-log',
+        name: 'mobile-power-log',
+        component: () => import('@/views/mobile/PowerLog.vue'),
+      },
+      {
+        path: '/mobile/invite',
+        name: 'mobile-invite',
+        component: () => import('@/views/mobile/Invite.vue'),
+      },
+      {
+        path: '/mobile/tools',
+        name: 'mobile-tools',
+        component: () => import('@/views/mobile/Tools.vue'),
+      },
+      {
+        path: '/mobile/settings',
+        name: 'mobile-settings',
+        component: () => import('@/views/mobile/Settings.vue'),
+      },
+      {
+        path: '/mobile/help',
+        name: 'mobile-help',
+        component: () => import('@/views/mobile/Help.vue'),
+      },
+      {
+        path: '/mobile/feedback',
+        name: 'mobile-feedback',
+        component: () => import('@/views/mobile/Feedback.vue'),
       },
     ],
   },

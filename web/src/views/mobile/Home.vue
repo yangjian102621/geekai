@@ -3,11 +3,37 @@
     <div class="mobile-home">
       <router-view />
 
-      <van-tabbar route v-model="active">
-        <van-tabbar-item to="/mobile/index" name="home" icon="home-o">首页</van-tabbar-item>
-        <van-tabbar-item to="/mobile/chat" name="chat" icon="chat-o">对话</van-tabbar-item>
-        <van-tabbar-item to="/mobile/image" name="image" icon="photo-o">绘图</van-tabbar-item>
-        <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">我的 </van-tabbar-item>
+      <van-tabbar route v-model="active" :safe-area-inset-bottom="true">
+        <van-tabbar-item to="/mobile/index" name="home" icon="home-o">
+          <span>首页</span>
+          <template #icon="props">
+            <i class="iconfont icon-house" :class="{ 'active-icon': props.active }"></i>
+          </template>
+        </van-tabbar-item>
+        <van-tabbar-item to="/mobile/chat" name="chat" icon="chat-o">
+          <span>对话</span>
+          <template #icon="props">
+            <i class="iconfont icon-chat" :class="{ 'active-icon': props.active }"></i>
+          </template>
+        </van-tabbar-item>
+        <van-tabbar-item to="/mobile/create" name="create" icon="plus">
+          <span>创作</span>
+          <template #icon="props">
+            <i class="iconfont icon-mj" :class="{ 'active-icon': props.active }"></i>
+          </template>
+        </van-tabbar-item>
+        <van-tabbar-item to="/mobile/discover" name="discover" icon="apps-o">
+          <span>发现</span>
+          <template #icon="props">
+            <i class="iconfont icon-more" :class="{ 'active-icon': props.active }"></i>
+          </template>
+        </van-tabbar-item>
+        <van-tabbar-item to="/mobile/profile" name="profile" icon="user-o">
+          <span>我的</span>
+          <template #icon="props">
+            <i class="iconfont icon-user-circle" :class="{ 'active-icon': props.active }"></i>
+          </template>
+        </van-tabbar-item>
       </van-tabbar>
     </div>
   </van-config-provider>
@@ -38,8 +64,31 @@ watch(
       position: fixed;
       width: 100%;
     }
-
     padding: 0 10px;
+  }
+
+  .van-tabbar {
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+    
+    .van-tabbar-item {
+      .active-icon {
+        color: var(--van-primary-color) !important;
+        transform: scale(1.1);
+        transition: all 0.3s ease;
+      }
+      
+      &--active {
+        .van-tabbar-item__text {
+          color: var(--van-primary-color);
+          font-weight: 600;
+        }
+      }
+    }
+    
+    .iconfont {
+      font-size: 20px;
+      transition: all 0.3s ease;
+    }
   }
 }
 
