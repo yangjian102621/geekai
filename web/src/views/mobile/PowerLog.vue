@@ -1,11 +1,5 @@
 <template>
   <div class="power-log">
-    <van-nav-bar title="算力日志" left-arrow @click-left="router.back()" fixed>
-      <template #right>
-        <van-icon name="filter-o" @click="showFilter = true" />
-      </template>
-    </van-nav-bar>
-
     <div class="power-content">
       <!-- 统计概览 -->
       <div class="stats-overview">
@@ -35,20 +29,29 @@
 
       <!-- 筛选栏 -->
       <div class="filter-bar">
-        <van-tabs v-model:active="activeType" @change="onTypeChange" shrink>
-          <van-tab title="全部" name="all" />
-          <van-tab title="对话" name="chat" />
-          <van-tab title="绘画" name="image" />
-          <van-tab title="音乐" name="music" />
-          <van-tab title="视频" name="video" />
-        </van-tabs>
+        <CustomTabs
+          :model-value="activeType"
+          @update:model-value="activeType = $event"
+          @tab-click="onTypeChange"
+        >
+          <CustomTabPane name="all" label="全部" />
+          <CustomTabPane name="chat" label="对话" />
+          <CustomTabPane name="image" label="绘画" />
+          <CustomTabPane name="music" label="音乐" />
+          <CustomTabPane name="video" label="视频" />
+        </CustomTabs>
       </div>
 
       <!-- 日志列表 -->
       <div class="log-list">
-        <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+        <van-pull-refresh
+          :model-value="refreshing"
+          @update:model-value="refreshing = $event"
+          @refresh="onRefresh"
+        >
           <van-list
-            v-model:loading="loading"
+            :model-value="loading"
+            @update:model-value="loading = $event"
             :finished="finished"
             finished-text="没有更多了"
             @load="onLoad"
@@ -80,13 +83,21 @@
     </div>
 
     <!-- 筛选弹窗 -->
-    <van-action-sheet v-model:show="showFilter" title="筛选条件">
+    <van-action-sheet
+      :model-value="showFilter"
+      @update:model-value="showFilter = $event"
+      title="筛选条件"
+    >
       <div class="filter-content">
         <van-form>
           <van-field label="时间范围">
             <template #input>
               <van-button size="small" @click="showDatePicker = true">
-                {{ dateRange.start && dateRange.end ? `${dateRange.start} 至 ${dateRange.end}` : '选择时间' }}
+                {{
+                  dateRange.start && dateRange.end
+                    ? `${dateRange.start} 至 ${dateRange.end}`
+                    : '选择时间'
+                }}
               </van-button>
             </template>
           </van-field>
@@ -110,7 +121,8 @@
 
     <!-- 日期选择器 -->
     <van-calendar
-      v-model:show="showDatePicker"
+      :model-value="showDatePicker"
+      @update:model-value="showDatePicker = $event"
       type="range"
       @confirm="onDateConfirm"
       :max-date="new Date()"
@@ -119,8 +131,8 @@
 </template>
 
 <script setup>
-import { httpGet } from '@/utils/http'
-import { showFailToast } from 'vant'
+import CustomTabPane from '@/components/ui/CustomTabPane.vue'
+import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -135,21 +147,21 @@ const showDatePicker = ref(false)
 const filterType = ref('all')
 const dateRange = ref({
   start: '',
-  end: ''
+  end: '',
 })
 
 // 统计数据
 const stats = ref({
   total: 0,
   today: 0,
-  balance: 0
+  balance: 0,
 })
 
 // 分页参数
 const pageParams = ref({
   page: 1,
   limit: 20,
-  type: 'all'
+  type: 'all',
 })
 
 onMounted(() => {
@@ -163,12 +175,12 @@ const fetchStats = () => {
   // httpGet('/api/user/power/stats').then(res => {
   //   stats.value = res.data
   // })
-  
+
   // 临时使用模拟数据
   stats.value = {
     total: Math.floor(Math.random() * 10000),
     today: Math.floor(Math.random() * 100),
-    balance: Math.floor(Math.random() * 1000)
+    balance: Math.floor(Math.random() * 1000),
   }
 }
 
@@ -177,20 +189,20 @@ const onLoad = () => {
   if (finished.value) return
 
   loading.value = true
-  
+
   // 模拟API调用
   setTimeout(() => {
     const mockData = generateMockData(pageParams.value.page, pageParams.value.limit)
-    
+
     if (pageParams.value.page === 1) {
       logList.value = mockData
     } else {
       logList.value.push(...mockData)
     }
-    
+
     loading.value = false
     pageParams.value.page++
-    
+
     // 模拟数据加载完成
     if (pageParams.value.page > 5) {
       finished.value = true
@@ -203,7 +215,7 @@ const onRefresh = () => {
   finished.value = false
   pageParams.value.page = 1
   refreshing.value = true
-  
+
   setTimeout(() => {
     logList.value = generateMockData(1, pageParams.value.limit)
     refreshing.value = false
@@ -227,32 +239,32 @@ const generateMockData = (page, limit) => {
     chat: ['GPT-4对话', 'Claude对话', '智能助手'],
     image: ['MidJourney生成', 'Stable Diffusion', 'DALL-E创作'],
     music: ['Suno音乐创作', '音频生成'],
-    video: ['视频生成', 'Luma创作']
+    video: ['视频生成', 'Luma创作'],
   }
-  
+
   const data = []
   const startIndex = (page - 1) * limit
-  
+
   for (let i = 0; i < limit; i++) {
     const id = startIndex + i + 1
     const type = types[Math.floor(Math.random() * types.length)]
     const title = titles[type][Math.floor(Math.random() * titles[type].length)]
-    
+
     // 如果有类型筛选且不匹配，跳过
     if (pageParams.value.type !== 'all' && type !== pageParams.value.type) {
       continue
     }
-    
+
     data.push({
       id,
       type,
       title,
       cost: Math.floor(Math.random() * 50) + 1,
       remark: Math.random() > 0.5 ? '消费详情：使用高级模型进行AI创作，效果优质' : '',
-      created_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+      created_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
   }
-  
+
   return data
 }
 
@@ -262,7 +274,7 @@ const getTypeIcon = (type) => {
     chat: 'icon-chat',
     image: 'icon-mj',
     music: 'icon-music',
-    video: 'icon-video'
+    video: 'icon-video',
   }
   return icons[type] || 'icon-chat'
 }
@@ -273,7 +285,7 @@ const getTypeColor = (type) => {
     chat: '#1989fa',
     image: '#8B5CF6',
     music: '#ee0a24',
-    video: '#07c160'
+    video: '#07c160',
   }
   return colors[type] || '#1989fa'
 }
@@ -283,12 +295,15 @@ const formatTime = (timeStr) => {
   const date = new Date(timeStr)
   const now = new Date()
   const diff = now - date
-  
-  if (diff < 60000) { // 1分钟内
+
+  if (diff < 60000) {
+    // 1分钟内
     return '刚刚'
-  } else if (diff < 3600000) { // 1小时内
+  } else if (diff < 3600000) {
+    // 1小时内
     return `${Math.floor(diff / 60000)}分钟前`
-  } else if (diff < 86400000) { // 24小时内
+  } else if (diff < 86400000) {
+    // 24小时内
     return `${Math.floor(diff / 3600000)}小时前`
   } else {
     return date.toLocaleDateString()
@@ -300,7 +315,7 @@ const onDateConfirm = (values) => {
   const [start, end] = values
   dateRange.value = {
     start: start.toLocaleDateString(),
-    end: end.toLocaleDateString()
+    end: end.toLocaleDateString(),
   }
   showDatePicker.value = false
 }
@@ -333,7 +348,7 @@ const applyFilter = () => {
 
     .stats-overview {
       padding: 16px;
-      background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+      background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
 
       .stats-card {
         background: rgba(255, 255, 255, 0.1);

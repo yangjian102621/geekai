@@ -8,7 +8,7 @@
           <img :src="logo" class="logo" alt="Geek-AI" />
         </div>
         <div class="menu-item">
-          <span v-if="!license?.de_copy">
+          <span v-if="!license || !license.de_copy">
             <el-tooltip class="box-item" content="部署文档" placement="bottom">
               <a :href="docsURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-book"></i>
@@ -28,7 +28,7 @@
 
           <span v-if="!isLogin">
             <el-button
-              @click="router.push('/login')"
+              @click="showLoginDialog = true"
               class="btn-go animate__animated animate__pulse animate__infinite"
               round
               >登录/注册</el-button
@@ -79,6 +79,18 @@
 
     <footer-bar />
 
+    <!-- 登录弹窗 -->
+    <el-dialog v-model="showLoginDialog" width="500px" @close="showLoginDialog = false">
+      <template #header>
+        <div class="text-center text-xl" style="color: var(--theme-text-color-primary)">
+          登录解锁更多功能
+        </div>
+      </template>
+      <div class="p-4 pt-2 pb-2">
+        <LoginDialog @success="loginSuccess" @hide="showLoginDialog = false" />
+      </div>
+    </el-dialog>
+
     <!-- 网站公告对话框 -->
     <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
       <div class="notice">
@@ -96,6 +108,7 @@
 
 <script setup>
 import FooterBar from '@/components/FooterBar.vue'
+import LoginDialog from '@/components/LoginDialog.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
 import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
@@ -113,6 +126,7 @@ const logo = ref('')
 const license = ref({ de_copy: true })
 
 const isLogin = ref(false)
+const showLoginDialog = ref(false)
 const docsURL = ref(import.meta.env.VITE_DOCS_URL)
 const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 const giteeURL = ref(import.meta.env.VITE_GITEE_URL)
@@ -185,7 +199,12 @@ onMounted(() => {
 
 const logout = () => {
   removeUserToken()
-  router.push('/login')
+  isLogin.value = false
+}
+
+const loginSuccess = () => {
+  isLogin.value = true
+  showLoginDialog.value = false
 }
 
 // 不再显示公告

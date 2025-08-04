@@ -98,7 +98,7 @@ const doLogin = (userId) => {
         type: 'error',
         title: '登录失败',
         callback: () => {
-          router.push('/login')
+          router.push('/')
         },
       })
     })

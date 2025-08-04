@@ -1,7 +1,5 @@
 <template>
   <div class="settings-page">
-    <van-nav-bar title="设置" left-arrow @click-left="router.back()" fixed />
-
     <div class="settings-content">
       <!-- 个人设置 -->
       <div class="setting-section">
@@ -39,10 +37,7 @@
               <i class="iconfont icon-moon setting-icon"></i>
             </template>
             <template #right-icon>
-              <van-switch
-                v-model="darkMode"
-                @change="onThemeChange"
-              />
+              <van-switch v-model="darkMode" @change="onThemeChange" />
             </template>
           </van-cell>
           <van-cell title="流式输出">
@@ -50,10 +45,7 @@
               <i class="iconfont icon-stream setting-icon"></i>
             </template>
             <template #right-icon>
-              <van-switch
-                v-model="streamOutput"
-                @change="onStreamChange"
-              />
+              <van-switch v-model="streamOutput" @change="onStreamChange" />
             </template>
           </van-cell>
           <van-cell title="消息通知">
@@ -184,21 +176,21 @@
     >
       <van-form>
         <van-cell-group inset>
-          <van-field 
-            v-model="passwordForm.old" 
+          <van-field
+            v-model="passwordForm.old"
             type="password"
             label="旧密码"
-            placeholder="请输入旧密码" 
+            placeholder="请输入旧密码"
           />
-          <van-field 
-            v-model="passwordForm.new" 
-            type="password" 
+          <van-field
+            v-model="passwordForm.new"
+            type="password"
             label="新密码"
             placeholder="请输入新密码"
           />
-          <van-field 
-            v-model="passwordForm.confirm" 
-            type="password" 
+          <van-field
+            v-model="passwordForm.confirm"
+            type="password"
             label="确认密码"
             placeholder="请再次输入新密码"
           />
@@ -217,11 +209,7 @@
           @click="selectLanguage(lang)"
         >
           <template #right-icon>
-            <van-icon 
-              v-if="currentLanguage.code === lang.code" 
-              name="success" 
-              color="#07c160" 
-            />
+            <van-icon v-if="currentLanguage.code === lang.code" name="success" color="#07c160" />
           </template>
         </van-cell>
       </div>
@@ -239,11 +227,7 @@
           @click="selectModel(model)"
         >
           <template #right-icon>
-            <van-icon 
-              v-if="currentModel.code === model.code" 
-              name="success" 
-              color="#07c160" 
-            />
+            <van-icon v-if="currentModel.code === model.code" name="success" color="#07c160" />
           </template>
         </van-cell>
       </div>
@@ -261,11 +245,7 @@
           @click="selectSendMode(mode)"
         >
           <template #right-icon>
-            <van-icon 
-              v-if="currentSendMode.code === mode.code" 
-              name="success" 
-              color="#07c160" 
-            />
+            <van-icon v-if="currentSendMode.code === mode.code" name="success" color="#07c160" />
           </template>
         </van-cell>
       </div>
@@ -346,7 +326,7 @@ const showAbout = ref(false)
 const passwordForm = ref({
   old: '',
   new: '',
-  confirm: ''
+  confirm: '',
 })
 
 // 语言选项
@@ -355,7 +335,7 @@ const languages = ref([
   { code: 'zh-TW', name: '繁體中文' },
   { code: 'en', name: 'English' },
   { code: 'ja', name: '日本語' },
-  { code: 'ko', name: '한국어' }
+  { code: 'ko', name: '한국어' },
 ])
 
 const currentLanguage = ref(languages.value[0])
@@ -365,7 +345,7 @@ const models = ref([
   { code: 'gpt-4', name: 'GPT-4', desc: '最新的GPT-4模型，性能强大' },
   { code: 'gpt-3.5', name: 'GPT-3.5', desc: '经典的GPT-3.5模型，速度快' },
   { code: 'claude', name: 'Claude', desc: '人工智能助手Claude' },
-  { code: 'gemini', name: 'Gemini', desc: 'Google的Gemini模型' }
+  { code: 'gemini', name: 'Gemini', desc: 'Google的Gemini模型' },
 ])
 
 const currentModel = ref(models.value[0])
@@ -374,7 +354,7 @@ const currentModel = ref(models.value[0])
 const sendModes = ref([
   { code: 'enter', name: 'Enter发送', desc: '按Enter键发送消息' },
   { code: 'ctrl+enter', name: 'Ctrl+Enter发送', desc: '按Ctrl+Enter发送消息' },
-  { code: 'button', name: '仅按钮发送', desc: '只能点击发送按钮' }
+  { code: 'button', name: '仅按钮发送', desc: '只能点击发送按钮' },
 ])
 
 const currentSendMode = ref(sendModes.value[0])
@@ -389,26 +369,26 @@ const loadSettings = () => {
   const savedSettings = localStorage.getItem('app-settings')
   if (savedSettings) {
     const settings = JSON.parse(savedSettings)
-    darkMode.value = settings.darkMode ?? (store.theme === 'dark')
+    darkMode.value = settings.darkMode ?? store.theme === 'dark'
     streamOutput.value = settings.streamOutput ?? store.chatStream
     notifications.value = settings.notifications ?? true
     autoSave.value = settings.autoSave ?? true
     saveHistory.value = settings.saveHistory ?? true
-    
+
     // 恢复语言设置
-    const savedLang = languages.value.find(lang => lang.code === settings.language)
+    const savedLang = languages.value.find((lang) => lang.code === settings.language)
     if (savedLang) {
       currentLanguage.value = savedLang
     }
-    
+
     // 恢复模型设置
-    const savedModel = models.value.find(model => model.code === settings.model)
+    const savedModel = models.value.find((model) => model.code === settings.model)
     if (savedModel) {
       currentModel.value = savedModel
     }
-    
+
     // 恢复发送方式设置
-    const savedSendMode = sendModes.value.find(mode => mode.code === settings.sendMode)
+    const savedSendMode = sendModes.value.find((mode) => mode.code === settings.sendMode)
     if (savedSendMode) {
       currentSendMode.value = savedSendMode
     }
@@ -425,7 +405,7 @@ const saveSettings = () => {
     saveHistory: saveHistory.value,
     language: currentLanguage.value.code,
     model: currentModel.value.code,
-    sendMode: currentSendMode.value.code
+    sendMode: currentSendMode.value.code,
   }
   localStorage.setItem('app-settings', JSON.stringify(settings))
 }
@@ -480,7 +460,7 @@ const updatePassword = () => {
     showNotify({ type: 'danger', message: '两次输入的密码不一致' })
     return
   }
-  
+
   // 这里应该调用API
   showSuccessToast('密码修改成功')
   showPasswordDialog.value = false
@@ -514,39 +494,39 @@ const checkUpdate = () => {
 .settings-page {
   min-height: 100vh;
   background: var(--van-background);
-  
+
   .settings-content {
     padding: 54px 16px 20px;
-    
+
     .setting-section {
       margin-bottom: 24px;
-      
+
       .section-title {
         font-size: 18px;
         font-weight: 600;
         color: var(--van-text-color);
         margin: 0 0 16px 4px;
       }
-      
+
       :deep(.van-cell-group) {
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        
+
         .van-cell {
           padding: 16px;
-          
+
           .setting-icon {
             font-size: 18px;
             color: var(--van-primary-color);
             margin-right: 12px;
           }
-          
+
           .van-cell__title {
             font-size: 15px;
             font-weight: 500;
           }
-          
+
           .setting-value {
             font-size: 14px;
             color: var(--van-gray-6);
@@ -555,21 +535,21 @@ const checkUpdate = () => {
       }
     }
   }
-  
+
   .language-options,
   .model-options,
   .send-mode-options {
     max-height: 400px;
     overflow-y: auto;
-    
+
     :deep(.van-cell) {
       padding: 16px 20px;
-      
+
       .van-cell__title {
         font-size: 15px;
         font-weight: 500;
       }
-      
+
       .van-cell__label {
         color: var(--van-gray-6);
         font-size: 13px;
@@ -577,41 +557,41 @@ const checkUpdate = () => {
       }
     }
   }
-  
+
   .about-content {
     text-align: center;
     padding: 20px;
-    
+
     .about-logo {
       margin-bottom: 16px;
-      
+
       img {
         width: 60px;
         height: 60px;
         border-radius: 12px;
       }
     }
-    
+
     h3 {
       font-size: 20px;
       font-weight: 600;
       color: var(--van-text-color);
       margin: 0 0 12px 0;
     }
-    
+
     .about-desc {
       font-size: 14px;
       color: var(--van-gray-6);
       line-height: 1.5;
       margin: 0 0 20px 0;
     }
-    
+
     .about-info {
       p {
         font-size: 13px;
         color: var(--van-gray-7);
         margin: 0 0 4px 0;
-        
+
         &:last-child {
           margin: 0;
         }

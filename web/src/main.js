@@ -59,7 +59,9 @@ import {
   ShareSheet,
   Slider,
   Sticky,
+  Swipe,
   SwipeCell,
+  SwipeItem,
   Switch,
   Tab,
   Tabbar,
@@ -101,6 +103,8 @@ app.use(DropdownMenu)
 app.use(Icon)
 app.use(DropdownItem)
 app.use(Sticky)
+app.use(Swipe)
+app.use(SwipeItem)
 app.use(SwipeCell)
 app.use(Dialog)
 app.use(ShareSheet)

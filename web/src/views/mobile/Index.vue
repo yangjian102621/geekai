@@ -1,7 +1,7 @@
 <template>
-  <div class="index container">
+  <div class="index">
     <div class="header">
-      <div class="user-greeting">
+      <div class="user-greeting px-3">
         <div class="greeting-text">
           <h2 class="title">{{ getGreeting() }}</h2>
           <p class="subtitle">{{ title }}</p>
@@ -9,14 +9,14 @@
         <div class="user-avatar" v-if="isLogin" @click="router.push('profile')">
           <van-image :src="userAvatar" round width="40" height="40" />
         </div>
-        <div class="login-btn" v-else @click="showLoginDialog(router)">
+        <div class="login-btn" v-else @click="router.push('login')">
           <van-button size="small" type="primary" round>登录</van-button>
         </div>
       </div>
     </div>
 
     <!-- 快捷操作区 -->
-    <div class="quick-actions mb-6">
+    <div class="quick-actions mb-6 px-3">
       <van-row :gutter="12">
         <van-col :span="12">
           <div class="action-card primary" @click="router.push('chat')">
@@ -24,7 +24,7 @@
               <i class="iconfont icon-chat action-icon"></i>
               <div class="action-text">
                 <div class="action-title">AI 对话</div>
-                <div class="action-desc">智能助手随时待命</div>
+                <div class="action-desc">智能助手对话</div>
               </div>
             </div>
           </div>
@@ -44,11 +44,11 @@
     </div>
 
     <!-- 功能网格 -->
-    <div class="feature-section mb-6">
+    <div class="feature-section mb-6 px-3">
       <div class="section-header">
         <h3 class="section-title">AI 功能</h3>
       </div>
-      <van-grid :column-num="4" :gutter="12" :border="false">
+      <van-grid :column-num="4" :border="false">
         <van-grid-item
           v-for="feature in features"
           :key="feature.key"
@@ -68,12 +68,12 @@
     </div>
 
     <!-- 推荐应用 -->
-    <div class="apps-section">
+    <div class="apps-section px-3">
       <div class="section-header">
         <h3 class="section-title">推荐应用</h3>
-        <van-button 
-          class="more-btn" 
-          size="small" 
+        <van-button
+          class="more-btn"
+          size="small"
           icon="arrow"
           type="primary"
           plain
@@ -86,14 +86,9 @@
 
       <div class="app-list">
         <van-swipe :autoplay="3000" :show-indicators="false" class="app-swipe">
-          <van-swipe-item v-for="chunk in appChunks" :key="chunk[0]?.id">
-            <div class="app-row">
-              <div
-                v-for="item in chunk"
-                :key="item.id"
-                class="app-item"
-                @click="useRole(item.id)"
-              >
+          <van-swipe-item v-for="chunk in appChunks" :key="chunk[0] && chunk[0].id">
+            <div class="app-row px-3">
+              <div v-for="item in chunk" :key="item.id" class="app-item" @click="useRole(item.id)">
                 <div class="app-avatar">
                   <van-image :src="item.icon" round fit="cover" />
                 </div>
@@ -102,48 +97,23 @@
                   <div class="app-desc">{{ item.intro }}</div>
                 </div>
                 <div class="app-action">
-                  <van-button 
-                    size="mini" 
-                    type="primary" 
-                    plain 
+                  <!-- <van-button
+                    size="mini"
+                    type="primary"
+                    plain
                     round
                     @click.stop="updateRole(item, hasRole(item.key) ? 'remove' : 'add')"
                   >
                     {{ hasRole(item.key) ? '已添加' : '添加' }}
-                  </van-button>
+                  </van-button> -->
+
+                  <van-button size="small" type="primary" round> 开始对话 </van-button>
                 </div>
               </div>
             </div>
           </van-swipe-item>
         </van-swipe>
       </div>
-    </div>
-
-    <!-- 数据统计 -->
-    <div class="stats-section" v-if="isLogin">
-      <div class="section-header">
-        <h3 class="section-title">使用统计</h3>
-      </div>
-      <van-row :gutter="12">
-        <van-col :span="8">
-          <div class="stat-card">
-            <div class="stat-number">{{ userStats.conversations || 0 }}</div>
-            <div class="stat-label">对话次数</div>
-          </div>
-        </van-col>
-        <van-col :span="8">
-          <div class="stat-card">
-            <div class="stat-number">{{ userStats.images || 0 }}</div>
-            <div class="stat-label">生成图片</div>
-          </div>
-        </van-col>
-        <van-col :span="8">
-          <div class="stat-card">
-            <div class="stat-number">{{ userStats.power || 0 }}</div>
-            <div class="stat-label">剩余算力</div>
-          </div>
-        </van-col>
-      </van-row>
     </div>
   </div>
 </template>
@@ -164,30 +134,61 @@ const apps = ref([])
 const loading = ref(false)
 const roles = ref([])
 const userAvatar = ref('/images/avatar/default.jpg')
-const userStats = ref({
-  conversations: 0,
-  images: 0,
-  power: 0
-})
 
 // 功能配置
 const features = ref([
   { key: 'mj', name: 'MJ绘画', icon: 'icon-mj', color: '#8B5CF6', url: '/mobile/create?tab=mj' },
   { key: 'sd', name: 'SD绘画', icon: 'icon-sd', color: '#06B6D4', url: '/mobile/create?tab=sd' },
-  { key: 'dalle', name: 'DALL·E', icon: 'icon-dalle', color: '#F59E0B', url: '/mobile/create?tab=dalle' },
-  { key: 'suno', name: '音乐创作', icon: 'icon-music', color: '#EF4444', url: '/mobile/create?tab=suno' },
-  { key: 'video', name: '视频生成', icon: 'icon-video', color: '#10B981', url: '/mobile/create?tab=video' },
-  { key: 'jimeng', name: '即梦AI', icon: 'icon-jimeng', color: '#F97316', url: '/mobile/create?tab=jimeng' },
-  { key: 'xmind', name: '思维导图', icon: 'icon-mind', color: '#3B82F6', url: '/mobile/tools?tab=xmind' },
-  { key: 'imgWall', name: '作品展示', icon: 'icon-gallery', color: '#EC4899', url: '/mobile/imgWall' }
+  {
+    key: 'dalle',
+    name: 'DALL·E',
+    icon: 'icon-dalle',
+    color: '#F59E0B',
+    url: '/mobile/create?tab=dalle',
+  },
+  {
+    key: 'suno',
+    name: '音乐创作',
+    icon: 'icon-music',
+    color: '#EF4444',
+    url: '/mobile/create?tab=suno',
+  },
+  {
+    key: 'video',
+    name: '视频生成',
+    icon: 'icon-video',
+    color: '#10B981',
+    url: '/mobile/create?tab=video',
+  },
+  {
+    key: 'jimeng',
+    name: '即梦AI',
+    icon: 'icon-jimeng',
+    color: '#F97316',
+    url: '/mobile/create?tab=jimeng',
+  },
+  {
+    key: 'xmind',
+    name: '思维导图',
+    icon: 'icon-mind',
+    color: '#3B82F6',
+    url: '/mobile/tools?tab=xmind',
+  },
+  {
+    key: 'imgWall',
+    name: '作品展示',
+    icon: 'icon-gallery',
+    color: '#EC4899',
+    url: '/mobile/imgWall',
+  },
 ])
 
 // 应用分组显示（每行2个）
 const appChunks = computed(() => {
   const chunks = []
-  const displayApps = apps.value.slice(0, 6) // 只显示前6个
-  for (let i = 0; i < displayApps.length; i += 2) {
-    chunks.push(displayApps.slice(i, i + 2))
+  const displayApps = apps.value.slice(0, 12) // 只显示前6个
+  for (let i = 0; i < displayApps.length; i += 4) {
+    chunks.push(displayApps.slice(i, i + 4))
   }
   return chunks
 })
@@ -220,11 +221,9 @@ onMounted(() => {
       isLogin.value = true
       roles.value = user.chat_roles
       userAvatar.value = user.avatar || '/images/avatar/default.jpg'
-      // 获取用户统计数据
-      fetchUserStats()
     })
     .catch(() => {})
-  
+
   fetchApps()
 })
 
@@ -243,37 +242,21 @@ const fetchApps = () => {
     })
 }
 
-const fetchUserStats = () => {
-  if (!isLogin.value) return
-  
-  // 这里可以调用实际的统计接口
-  // httpGet('/api/user/stats').then(res => {
-  //   userStats.value = res.data
-  // })
-  
-  // 临时使用模拟数据
-  userStats.value = {
-    conversations: Math.floor(Math.random() * 100),
-    images: Math.floor(Math.random() * 50),
-    power: Math.floor(Math.random() * 1000)
-  }
-}
-
 const updateRole = (row, opt) => {
   if (!isLogin.value) {
     return showLoginDialog(router)
   }
 
-  const title = ref('')
+  let actionTitle = ''
   if (opt === 'add') {
-    title.value = '添加应用'
+    actionTitle = '添加应用'
     const exists = arrayContains(roles.value, row.key)
     if (exists) {
       return
     }
     roles.value.push(row.key)
   } else {
-    title.value = '移除应用'
+    actionTitle = '移除应用'
     const exists = arrayContains(roles.value, row.key)
     if (!exists) {
       return
@@ -282,10 +265,10 @@ const updateRole = (row, opt) => {
   }
   httpPost('/api/app/update', { keys: roles.value })
     .then(() => {
-      showNotify({ type: 'success', message: title.value + '成功！', duration: 1000 })
+      showNotify({ type: 'success', message: actionTitle + '成功！', duration: 1000 })
     })
     .catch((e) => {
-      showNotify({ type: 'danger', message: title.value + '失败：' + e.message })
+      showNotify({ type: 'danger', message: actionTitle + '失败：' + e.message })
     })
 }
 
@@ -306,8 +289,7 @@ const useRole = (roleId) => {
   color: var(--van-text-color);
   background: linear-gradient(135deg, var(--van-background), var(--van-background-2));
   min-height: 100vh;
-  padding: 0 16px 60px;
-
+  padding: 0;
   .header {
     padding: 20px 0 16px;
     position: sticky;
@@ -329,7 +311,7 @@ const useRole = (roleId) => {
           font-weight: 700;
           color: var(--van-text-color);
           margin: 0 0 4px 0;
-          background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+          background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -364,7 +346,7 @@ const useRole = (roleId) => {
       }
 
       &.primary {
-        background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+        background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
         color: white;
 
         .action-icon,
@@ -375,7 +357,7 @@ const useRole = (roleId) => {
       }
 
       &.secondary {
-        background: linear-gradient(135deg, #06B6D4, #10B981);
+        background: linear-gradient(135deg, #06b6d4, #10b981);
         color: white;
 
         .action-icon,
@@ -412,8 +394,7 @@ const useRole = (roleId) => {
   }
 
   .feature-section,
-  .apps-section,
-  .stats-section {
+  .apps-section {
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -535,28 +516,6 @@ const useRole = (roleId) => {
       }
     }
   }
-
-  .stats-section {
-    .stat-card {
-      background: var(--van-cell-background);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-
-      .stat-number {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--van-primary-color);
-        margin-bottom: 4px;
-      }
-
-      .stat-label {
-        font-size: 12px;
-        color: var(--van-gray-6);
-      }
-    }
-  }
 }
 
 // 响应式调整
@@ -593,8 +552,7 @@ const useRole = (roleId) => {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    .apps-section .app-swipe .app-row .app-item,
-    .stats-section .stat-card {
+    .apps-section .app-swipe .app-row .app-item {
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     }
   }

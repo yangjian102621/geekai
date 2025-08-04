@@ -2,15 +2,13 @@
   <div class="foot-container">
     <div class="footer">
       <div>
-        <span>{{ copyRight }}</span>
-      </div>
-      <div v-if="!license?.de_copy">
         <a :href="gitURL" target="_blank">
           {{ title }} -
           {{ version }}
         </a>
       </div>
-      <div v-if="icp">
+      <div>
+        <span class="mr-2">{{ copyRight }}</span>
         <a href="https://beian.miit.gov.cn" target="_blank">{{ icp }}</a>
       </div>
     </div>
@@ -70,7 +68,7 @@ getLicenseInfo()
   margin-top: -4px;
 
   .footer {
-    max-width: 400px;
+    // max-width: 400px;
     text-align: center;
     font-size: 14px;
     padding: 20px;

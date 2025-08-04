@@ -1,7 +1,5 @@
 <template>
   <div class="invite-page">
-    <van-nav-bar title="邀请好友" left-arrow @click-left="router.back()" fixed />
-
     <div class="invite-content">
       <!-- 邀请头图 -->
       <div class="invite-header">
@@ -100,11 +98,7 @@
           </div>
           <div class="code-value">{{ inviteCode }}</div>
           <div class="code-link">
-            <van-field
-              v-model="inviteLink"
-              readonly
-              placeholder="邀请链接"
-            >
+            <van-field v-model="inviteLink" readonly placeholder="邀请链接">
               <template #button>
                 <van-button size="small" type="primary" @click="copyInviteLink">
                   复制链接
@@ -123,7 +117,7 @@
             {{ showAllRecords ? '收起' : '查看全部' }}
           </van-button>
         </div>
-        
+
         <div class="records-list">
           <van-list
             v-model:loading="recordsLoading"
@@ -131,11 +125,7 @@
             finished-text="没有更多记录"
             @load="loadInviteRecords"
           >
-            <div 
-              v-for="record in displayRecords" 
-              :key="record.id" 
-              class="record-item"
-            >
+            <div v-for="record in displayRecords" :key="record.id" class="record-item">
               <div class="record-avatar">
                 <van-image :src="record.avatar" round width="40" height="40" />
               </div>
@@ -149,8 +139,11 @@
                 </van-tag>
               </div>
             </div>
-            
-            <van-empty v-if="!recordsLoading && inviteRecords.length === 0" description="暂无邀请记录" />
+
+            <van-empty
+              v-if="!recordsLoading && inviteRecords.length === 0"
+              description="暂无邀请记录"
+            />
           </van-list>
         </div>
       </div>
@@ -180,9 +173,8 @@
 
 <script setup>
 import { checkSession } from '@/store/cache'
-import { httpGet } from '@/utils/http'
 import { showLoginDialog } from '@/utils/libs'
-import { showFailToast, showNotify, showSuccessToast } from 'vant'
+import { showNotify, showSuccessToast } from 'vant'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -190,7 +182,7 @@ const router = useRouter()
 const userStats = ref({
   inviteCount: 0,
   rewardTotal: 0,
-  todayInvite: 0
+  todayInvite: 0,
 })
 const inviteCode = ref('')
 const inviteLink = ref('')
@@ -209,7 +201,7 @@ const rewardRules = ref([
     desc: '好友通过邀请链接成功注册',
     icon: 'icon-user-plus',
     color: '#1989fa',
-    reward: 50
+    reward: 50,
   },
   {
     id: 2,
@@ -217,7 +209,7 @@ const rewardRules = ref([
     desc: '好友首次充值任意金额',
     icon: 'icon-money',
     color: '#07c160',
-    reward: 100
+    reward: 100,
   },
   {
     id: 3,
@@ -225,8 +217,8 @@ const rewardRules = ref([
     desc: '好友连续使用7天',
     icon: 'icon-star',
     color: '#ff9500',
-    reward: 200
-  }
+    reward: 200,
+  },
 ])
 
 // 显示的记录（根据showAllRecords决定）
@@ -241,17 +233,16 @@ onMounted(() => {
 const initPage = async () => {
   try {
     const user = await checkSession()
-    
+
     // 生成邀请码和链接
     inviteCode.value = user.invite_code || generateInviteCode()
     inviteLink.value = `${location.origin}/register?invite=${inviteCode.value}`
-    
+
     // 获取用户邀请统计
     fetchInviteStats()
-    
+
     // 加载邀请记录
     loadInviteRecords()
-    
   } catch (error) {
     showLoginDialog(router)
   }
@@ -266,27 +257,27 @@ const fetchInviteStats = () => {
   // httpGet('/api/user/invite/stats').then(res => {
   //   userStats.value = res.data
   // })
-  
+
   // 临时使用模拟数据
   userStats.value = {
     inviteCount: Math.floor(Math.random() * 50),
     rewardTotal: Math.floor(Math.random() * 5000),
-    todayInvite: Math.floor(Math.random() * 5)
+    todayInvite: Math.floor(Math.random() * 5),
   }
 }
 
 const loadInviteRecords = () => {
   if (recordsFinished.value) return
-  
+
   recordsLoading.value = true
-  
+
   // 模拟API调用
   setTimeout(() => {
     const mockRecords = generateMockRecords()
     inviteRecords.value.push(...mockRecords)
-    
+
     recordsLoading.value = false
-    
+
     // 模拟数据加载完成
     if (inviteRecords.value.length >= 20) {
       recordsFinished.value = true
@@ -297,17 +288,17 @@ const loadInviteRecords = () => {
 const generateMockRecords = () => {
   const records = []
   const names = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十']
-  
+
   for (let i = 0; i < 10; i++) {
     records.push({
       id: Date.now() + i,
       username: names[i % names.length] + (i + 1),
       avatar: '/images/avatar/default.jpg',
       status: Math.random() > 0.3 ? 'completed' : 'pending',
-      created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
     })
   }
-  
+
   return records
 }
 
@@ -324,7 +315,7 @@ const shareToWeChat = () => {
       title: '邀请你使用AI创作平台',
       desc: '强大的AI工具，让创作更简单',
       link: inviteLink.value,
-      imgUrl: `${location.origin}/images/share-logo.png`
+      imgUrl: `${location.origin}/images/share-logo.png`,
     })
   } else {
     // 复制链接提示
@@ -383,7 +374,7 @@ const shareToFriends = () => {
     navigator.share({
       title: '邀请你使用AI创作平台',
       text: '强大的AI工具，让创作更简单',
-      url: inviteLink.value
+      url: inviteLink.value,
     })
   } else {
     copyInviteLink()
@@ -400,16 +391,16 @@ const onImageError = (e) => {
 .invite-page {
   min-height: 100vh;
   background: var(--van-background);
-  
+
   .invite-content {
     padding-top: 46px;
-    
+
     .invite-header {
       position: relative;
       height: 200px;
       overflow: hidden;
-      background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
-      
+      background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
+
       .header-bg {
         position: absolute;
         top: 0;
@@ -417,14 +408,14 @@ const onImageError = (e) => {
         right: 0;
         bottom: 0;
         opacity: 0.3;
-        
+
         img {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
       }
-      
+
       .header-content {
         position: relative;
         z-index: 2;
@@ -435,13 +426,13 @@ const onImageError = (e) => {
         height: 100%;
         color: white;
         text-align: center;
-        
+
         .invite-title {
           font-size: 24px;
           font-weight: 700;
           margin: 0 0 8px 0;
         }
-        
+
         .invite-desc {
           font-size: 14px;
           opacity: 0.9;
@@ -449,40 +440,40 @@ const onImageError = (e) => {
         }
       }
     }
-    
+
     .stats-section {
       padding: 16px;
       margin-top: -20px;
       position: relative;
       z-index: 3;
-      
+
       .stat-card {
         background: var(--van-cell-background);
         border-radius: 12px;
         padding: 16px;
         text-align: center;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        
+
         .stat-number {
           font-size: 20px;
           font-weight: 700;
           color: var(--van-primary-color);
           margin-bottom: 4px;
         }
-        
+
         .stat-label {
           font-size: 12px;
           color: var(--van-gray-6);
         }
       }
     }
-    
+
     .rules-section,
     .invite-methods,
     .invite-code-section,
     .invite-records {
       padding: 0 16px 16px;
-      
+
       .section-title {
         font-size: 18px;
         font-weight: 600;
@@ -490,7 +481,7 @@ const onImageError = (e) => {
         margin: 0 0 16px 0;
       }
     }
-    
+
     .rules-list {
       .rule-item {
         display: flex;
@@ -500,7 +491,7 @@ const onImageError = (e) => {
         padding: 16px;
         margin-bottom: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        
+
         .rule-icon {
           width: 40px;
           height: 40px;
@@ -510,37 +501,37 @@ const onImageError = (e) => {
           align-items: center;
           justify-content: center;
           margin-right: 12px;
-          
+
           .iconfont {
             font-size: 20px;
           }
         }
-        
+
         .rule-content {
           flex: 1;
-          
+
           .rule-title {
             font-size: 15px;
             font-weight: 600;
             color: var(--van-text-color);
             margin-bottom: 4px;
           }
-          
+
           .rule-desc {
             font-size: 13px;
             color: var(--van-gray-6);
           }
         }
-        
+
         .rule-reward {
           text-align: right;
-          
+
           .reward-value {
             font-size: 16px;
             font-weight: 600;
             color: #07c160;
           }
-          
+
           .reward-unit {
             font-size: 12px;
             color: var(--van-gray-6);
@@ -549,12 +540,12 @@ const onImageError = (e) => {
         }
       }
     }
-    
+
     .methods-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      
+
       .method-item {
         display: flex;
         flex-direction: column;
@@ -565,11 +556,11 @@ const onImageError = (e) => {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         cursor: pointer;
         transition: all 0.3s ease;
-        
+
         &:active {
           transform: scale(0.95);
         }
-        
+
         .method-icon {
           width: 44px;
           height: 44px;
@@ -578,29 +569,29 @@ const onImageError = (e) => {
           align-items: center;
           justify-content: center;
           margin-bottom: 8px;
-          
+
           &.wechat {
             background: #07c160;
           }
-          
+
           &.link {
             background: #1989fa;
           }
-          
+
           &.qr {
-            background: #8B5CF6;
+            background: #8b5cf6;
           }
-          
+
           &.more {
             background: #ff9500;
           }
-          
+
           .iconfont {
             font-size: 20px;
             color: white;
           }
         }
-        
+
         .method-name {
           font-size: 12px;
           color: var(--van-text-color);
@@ -608,27 +599,27 @@ const onImageError = (e) => {
         }
       }
     }
-    
+
     .invite-code-section {
       .code-card {
         background: var(--van-cell-background);
         border-radius: 12px;
         padding: 20px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        
+
         .code-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 12px;
-          
+
           .code-label {
             font-size: 16px;
             font-weight: 600;
             color: var(--van-text-color);
           }
         }
-        
+
         .code-value {
           font-size: 24px;
           font-weight: 700;
@@ -642,7 +633,7 @@ const onImageError = (e) => {
         }
       }
     }
-    
+
     .invite-records {
       .records-header {
         display: flex;
@@ -650,7 +641,7 @@ const onImageError = (e) => {
         align-items: center;
         margin-bottom: 16px;
       }
-      
+
       .records-list {
         .record-item {
           display: flex;
@@ -660,21 +651,21 @@ const onImageError = (e) => {
           padding: 16px;
           margin-bottom: 12px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-          
+
           .record-avatar {
             margin-right: 12px;
           }
-          
+
           .record-info {
             flex: 1;
-            
+
             .record-name {
               font-size: 15px;
               font-weight: 500;
               color: var(--van-text-color);
               margin-bottom: 4px;
             }
-            
+
             .record-time {
               font-size: 12px;
               color: var(--van-gray-6);
@@ -684,11 +675,11 @@ const onImageError = (e) => {
       }
     }
   }
-  
+
   .qr-content {
     text-align: center;
     padding: 20px;
-    
+
     .qr-code {
       width: 200px;
       height: 200px;
@@ -699,23 +690,23 @@ const onImageError = (e) => {
       align-items: center;
       justify-content: center;
       background: var(--van-background-2);
-      
+
       .qr-placeholder {
         text-align: center;
         color: var(--van-gray-6);
-        
+
         .iconfont {
           font-size: 48px;
           margin-bottom: 8px;
         }
-        
+
         p {
           margin: 0;
           font-size: 14px;
         }
       }
     }
-    
+
     .qr-tip {
       font-size: 13px;
       color: var(--van-gray-6);

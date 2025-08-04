@@ -75,14 +75,15 @@
 </template>
 
 <script setup>
-import { router } from '@/router'
 import { checkSession } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { removeArrayItem, showLoginDialog } from '@/utils/libs'
 import { showConfirmDialog, showFailToast, showSuccessToast } from 'vant'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const title = ref('会话列表')
+const router = useRouter()
 const chatName = ref('')
 const chats = ref([])
 const allChats = ref([])

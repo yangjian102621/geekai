@@ -1,11 +1,5 @@
 <template>
   <div class="help-page">
-    <van-nav-bar title="帮助中心" left-arrow @click-left="router.back()" fixed>
-      <template #right>
-        <van-icon name="search" @click="showSearch = true" />
-      </template>
-    </van-nav-bar>
-
     <div class="help-content">
       <!-- 搜索框 -->
       <div class="search-section" v-if="showSearch">
@@ -107,7 +101,12 @@
               <span class="online-status">在线</span>
             </template>
           </van-cell>
-          <van-cell title="意见反馈" icon="chat-o" is-link @click="router.push('/mobile/feedback')" />
+          <van-cell
+            title="意见反馈"
+            icon="chat-o"
+            is-link
+            @click="router.push('/mobile/feedback')"
+          />
           <van-cell title="官方QQ群" icon="friends-o" is-link @click="joinQQGroup">
             <template #value>
               <span class="qq-number">123456789</span>
@@ -160,7 +159,11 @@
     </van-dialog>
 
     <!-- 客服聊天 -->
-    <van-action-sheet v-model:show="showCustomerChat" title="在线客服" :close-on-click-overlay="false">
+    <van-action-sheet
+      v-model:show="showCustomerChat"
+      title="在线客服"
+      :close-on-click-overlay="false"
+    >
       <div class="customer-chat">
         <div class="chat-header">
           <div class="customer-info">
@@ -172,7 +175,7 @@
           </div>
           <van-button size="small" @click="showCustomerChat = false">结束</van-button>
         </div>
-        
+
         <div class="chat-messages" ref="chatMessages">
           <div
             v-for="message in customerMessages"
@@ -184,7 +187,7 @@
             <div class="message-time">{{ formatTime(message.time) }}</div>
           </div>
         </div>
-        
+
         <div class="chat-input">
           <van-field
             v-model="customerMessage"
@@ -226,28 +229,33 @@ const frequentFAQs = ref([
   {
     id: 1,
     question: '如何获得算力？',
-    answer: '<p>您可以通过以下方式获得算力：</p><ul><li>注册即送算力</li><li>购买充值套餐</li><li>邀请好友注册</li><li>参与活动获得</li></ul>'
+    answer:
+      '<p>您可以通过以下方式获得算力：</p><ul><li>注册即送算力</li><li>购买充值套餐</li><li>邀请好友注册</li><li>参与活动获得</li></ul>',
   },
   {
     id: 2,
     question: '如何使用AI绘画功能？',
-    answer: '<p>使用AI绘画功能很简单：</p><ol><li>进入创作中心</li><li>选择绘画工具（MJ、SD、DALL-E）</li><li>输入描述文字</li><li>点击生成即可</li></ol>'
+    answer:
+      '<p>使用AI绘画功能很简单：</p><ol><li>进入创作中心</li><li>选择绘画工具（MJ、SD、DALL-E）</li><li>输入描述文字</li><li>点击生成即可</li></ol>',
   },
   {
     id: 3,
     question: '为什么生成失败？',
-    answer: '<p>生成失败可能的原因：</p><ul><li>算力不足</li><li>内容违规</li><li>网络不稳定</li><li>服务器繁忙</li></ul><p>请检查算力余额并重试。</p>'
+    answer:
+      '<p>生成失败可能的原因：</p><ul><li>算力不足</li><li>内容违规</li><li>网络不稳定</li><li>服务器繁忙</li></ul><p>请检查算力余额并重试。</p>',
   },
   {
     id: 4,
     question: '如何成为VIP会员？',
-    answer: '<p>成为VIP会员的方式：</p><ol><li>进入会员中心</li><li>选择合适的套餐</li><li>完成支付</li><li>自动开通VIP权限</li></ol>'
+    answer:
+      '<p>成为VIP会员的方式：</p><ol><li>进入会员中心</li><li>选择合适的套餐</li><li>完成支付</li><li>自动开通VIP权限</li></ol>',
   },
   {
     id: 5,
     question: '如何导出聊天记录？',
-    answer: '<p>导出聊天记录步骤：</p><ol><li>进入对话页面</li><li>点击右上角菜单</li><li>选择"导出记录"</li><li>选择导出格式</li><li>确认导出</li></ol>'
-  }
+    answer:
+      '<p>导出聊天记录步骤：</p><ol><li>进入对话页面</li><li>点击右上角菜单</li><li>选择"导出记录"</li><li>选择导出格式</li><li>确认导出</li></ol>',
+  },
 ])
 
 // 功能指南
@@ -258,7 +266,7 @@ const guides = ref([
     desc: '与AI智能对话',
     icon: 'icon-chat',
     color: '#1989fa',
-    content: 'AI对话使用指南详细内容...'
+    content: 'AI对话使用指南详细内容...',
   },
   {
     id: 2,
@@ -266,7 +274,7 @@ const guides = ref([
     desc: '生成精美图片',
     icon: 'icon-mj',
     color: '#8B5CF6',
-    content: 'AI绘画使用指南详细内容...'
+    content: 'AI绘画使用指南详细内容...',
   },
   {
     id: 3,
@@ -274,7 +282,7 @@ const guides = ref([
     desc: '创作美妙音乐',
     icon: 'icon-music',
     color: '#ee0a24',
-    content: 'AI音乐创作指南详细内容...'
+    content: 'AI音乐创作指南详细内容...',
   },
   {
     id: 4,
@@ -282,8 +290,8 @@ const guides = ref([
     desc: '制作精彩视频',
     icon: 'icon-video',
     color: '#07c160',
-    content: 'AI视频制作指南详细内容...'
-  }
+    content: 'AI视频制作指南详细内容...',
+  },
 ])
 
 // 问题分类
@@ -292,7 +300,7 @@ const categories = ref([
   { id: 2, name: '功能使用', icon: 'icon-apps', count: 23 },
   { id: 3, name: '充值支付', icon: 'icon-money', count: 12 },
   { id: 4, name: '技术问题', icon: 'icon-setting', count: 18 },
-  { id: 5, name: '其他问题', icon: 'icon-help', count: 8 }
+  { id: 5, name: '其他问题', icon: 'icon-help', count: 8 },
 ])
 
 // 使用提示
@@ -301,20 +309,20 @@ const tips = ref([
     id: 1,
     title: '提高绘画质量',
     content: '使用详细的描述词可以获得更好的绘画效果，建议加入风格、色彩、构图等关键词。',
-    icon: 'icon-bulb'
+    icon: 'icon-bulb',
   },
   {
     id: 2,
     title: '节省算力',
     content: '合理使用不同模型，简单问题使用GPT-3.5，复杂任务使用GPT-4。',
-    icon: 'icon-flash'
+    icon: 'icon-flash',
   },
   {
     id: 3,
     title: '快速上手',
     content: '查看应用中心的预设角色，可以快速体验不同类型的AI对话。',
-    icon: 'icon-star'
-  }
+    icon: 'icon-star',
+  },
 ])
 
 onMounted(() => {
@@ -324,8 +332,8 @@ onMounted(() => {
       id: 1,
       content: '您好！欢迎使用我们的AI创作平台，有什么可以帮助您的吗？',
       isUser: false,
-      time: new Date()
-    }
+      time: new Date(),
+    },
   ]
 })
 
@@ -338,27 +346,25 @@ const onSearch = (keyword) => {
 
   // 模拟搜索结果
   const allContent = [
-    ...frequentFAQs.value.map(faq => ({
+    ...frequentFAQs.value.map((faq) => ({
       id: faq.id,
       title: faq.question,
       content: faq.answer,
-      type: 'faq'
+      type: 'faq',
     })),
-    ...guides.value.map(guide => ({
+    ...guides.value.map((guide) => ({
       id: guide.id,
       title: guide.title,
       content: guide.content,
-      type: 'guide'
-    }))
+      type: 'guide',
+    })),
   ]
 
   searchResults.value = allContent
-    .filter(item => 
-      item.title.includes(keyword) || item.content.includes(keyword)
-    )
-    .map(item => ({
+    .filter((item) => item.title.includes(keyword) || item.content.includes(keyword))
+    .map((item) => ({
       ...item,
-      snippet: getSearchSnippet(item.content, keyword)
+      snippet: getSearchSnippet(item.content, keyword),
     }))
 }
 
@@ -367,15 +373,15 @@ const getSearchSnippet = (content, keyword) => {
   const cleanContent = content.replace(/<[^>]*>/g, '')
   const index = cleanContent.toLowerCase().indexOf(keyword.toLowerCase())
   if (index === -1) return cleanContent.substr(0, 100) + '...'
-  
+
   const start = Math.max(0, index - 50)
   const end = Math.min(cleanContent.length, index + keyword.length + 50)
   let snippet = cleanContent.substr(start, end - start)
-  
+
   // 高亮关键词
   const regex = new RegExp(`(${keyword})`, 'gi')
   snippet = snippet.replace(regex, '<mark>$1</mark>')
-  
+
   return (start > 0 ? '...' : '') + snippet + (end < cleanContent.length ? '...' : '')
 }
 
@@ -383,7 +389,7 @@ const getSearchSnippet = (content, keyword) => {
 const openGuide = (guide) => {
   selectedHelp.value = {
     title: guide.title,
-    content: guide.content || '<p>该指南内容正在完善中，敬请期待。</p>'
+    content: guide.content || '<p>该指南内容正在完善中，敬请期待。</p>',
   }
   showHelpDetail.value = true
 }
@@ -398,7 +404,7 @@ const openCategory = (category) => {
 const openSearchResult = (result) => {
   selectedHelp.value = {
     title: result.title,
-    content: result.content
+    content: result.content,
   }
   showHelpDetail.value = true
 }
@@ -414,7 +420,7 @@ const shareHelp = (help) => {
     navigator.share({
       title: help.title,
       text: help.content.replace(/<[^>]*>/g, ''),
-      url: window.location.href
+      url: window.location.href,
     })
   } else {
     showNotify({ type: 'primary', message: '该功能暂不支持' })
@@ -435,7 +441,7 @@ const sendCustomerMessage = () => {
     id: Date.now(),
     content: customerMessage.value,
     isUser: true,
-    time: new Date()
+    time: new Date(),
   })
 
   const userMessage = customerMessage.value
@@ -451,7 +457,7 @@ const sendCustomerMessage = () => {
   // 模拟客服回复
   setTimeout(() => {
     let reply = '感谢您的问题，我们会尽快为您处理。'
-    
+
     if (userMessage.includes('算力')) {
       reply = '关于算力问题，您可以在会员中心购买算力套餐，或者通过邀请好友获得免费算力。'
     } else if (userMessage.includes('绘画')) {
@@ -464,7 +470,7 @@ const sendCustomerMessage = () => {
       id: Date.now(),
       content: reply,
       isUser: false,
-      time: new Date()
+      time: new Date(),
     })
 
     nextTick(() => {
@@ -478,9 +484,10 @@ const sendCustomerMessage = () => {
 // 加入QQ群
 const joinQQGroup = () => {
   // 尝试打开QQ群链接
-  const qqGroupUrl = 'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26k%3D123456789'
+  const qqGroupUrl =
+    'mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26k%3D123456789'
   window.location.href = qqGroupUrl
-  
+
   setTimeout(() => {
     showNotify({ type: 'primary', message: '请在QQ中搜索群号：123456789' })
   }, 1000)
@@ -488,9 +495,9 @@ const joinQQGroup = () => {
 
 // 格式化时间
 const formatTime = (time) => {
-  return time.toLocaleTimeString('zh-CN', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  return time.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 
@@ -504,52 +511,53 @@ const onQRError = (e) => {
 .help-page {
   min-height: 100vh;
   background: var(--van-background);
-  
+
   .help-content {
     padding: 54px 16px 20px;
-    
+
     .search-section {
       margin-bottom: 20px;
     }
-    
+
     .section-title {
       font-size: 18px;
       font-weight: 600;
       color: var(--van-text-color);
       margin: 0 0 16px 4px;
     }
-    
+
     .faq-section {
       margin-bottom: 24px;
-      
+
       :deep(.van-collapse-item) {
         background: var(--van-cell-background);
         border-radius: 12px;
         margin-bottom: 8px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        
+
         .van-collapse-item__title {
           padding: 16px;
           font-weight: 500;
         }
-        
+
         .van-collapse-item__content {
           padding: 0 16px 16px;
-          
+
           .faq-answer {
             color: var(--van-gray-7);
             line-height: 1.6;
-            
-            :deep(ul), :deep(ol) {
+
+            :deep(ul),
+            :deep(ol) {
               padding-left: 20px;
               margin: 8px 0;
             }
-            
+
             :deep(li) {
               margin: 4px 0;
             }
-            
+
             :deep(p) {
               margin: 8px 0;
             }
@@ -557,10 +565,10 @@ const onQRError = (e) => {
         }
       }
     }
-    
+
     .guide-section {
       margin-bottom: 24px;
-      
+
       .guide-item {
         .guide-card {
           background: var(--van-cell-background);
@@ -570,11 +578,11 @@ const onQRError = (e) => {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
           cursor: pointer;
           transition: all 0.3s ease;
-          
+
           &:active {
             transform: scale(0.98);
           }
-          
+
           .guide-icon {
             width: 50px;
             height: 50px;
@@ -583,20 +591,20 @@ const onQRError = (e) => {
             align-items: center;
             justify-content: center;
             margin: 0 auto 12px;
-            
+
             .iconfont {
               font-size: 24px;
               color: white;
             }
           }
-          
+
           .guide-title {
             font-size: 16px;
             font-weight: 600;
             color: var(--van-text-color);
             margin-bottom: 8px;
           }
-          
+
           .guide-desc {
             font-size: 13px;
             color: var(--van-gray-6);
@@ -604,35 +612,35 @@ const onQRError = (e) => {
         }
       }
     }
-    
+
     .category-section,
     .contact-section {
       margin-bottom: 24px;
-      
+
       :deep(.van-cell-group) {
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        
+
         .van-cell {
           padding: 16px;
-          
+
           .category-icon {
             font-size: 18px;
             color: var(--van-primary-color);
             margin-right: 12px;
           }
-          
+
           .van-cell__title {
             font-size: 15px;
             font-weight: 500;
           }
-          
+
           .online-status {
             color: #07c160;
             font-size: 12px;
           }
-          
+
           .qq-number {
             color: var(--van-gray-6);
             font-size: 13px;
@@ -640,14 +648,14 @@ const onQRError = (e) => {
         }
       }
     }
-    
+
     .search-results {
       .search-snippet {
         margin-top: 4px;
         color: var(--van-gray-6);
         font-size: 13px;
         line-height: 1.4;
-        
+
         :deep(mark) {
           background: var(--van-primary-color);
           color: white;
@@ -656,15 +664,15 @@ const onQRError = (e) => {
         }
       }
     }
-    
+
     .tips-section {
       .tips-swipe {
         height: 140px;
         border-radius: 12px;
         overflow: hidden;
-        
+
         .tip-card {
-          background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+          background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
           color: white;
           padding: 20px;
           text-align: center;
@@ -672,22 +680,22 @@ const onQRError = (e) => {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          
+
           .tip-icon {
             margin-bottom: 12px;
-            
+
             .iconfont {
               font-size: 28px;
               opacity: 0.9;
             }
           }
-          
+
           .tip-title {
             font-size: 16px;
             font-weight: 600;
             margin: 0 0 8px 0;
           }
-          
+
           .tip-content {
             font-size: 13px;
             opacity: 0.9;
@@ -698,41 +706,42 @@ const onQRError = (e) => {
       }
     }
   }
-  
+
   .help-detail {
     padding: 20px;
     max-height: 60vh;
     overflow-y: auto;
-    
+
     .detail-content {
       color: var(--van-text-color);
       line-height: 1.6;
       margin-bottom: 20px;
-      
+
       :deep(p) {
         margin: 8px 0;
       }
-      
-      :deep(ul), :deep(ol) {
+
+      :deep(ul),
+      :deep(ol) {
         padding-left: 20px;
         margin: 8px 0;
       }
     }
-    
+
     .detail-actions {
       display: flex;
       gap: 12px;
-      
+
       .van-button {
         flex: 1;
       }
     }
   }
-  
+
   .wechat-qr {
     text-align: center;
     padding: 20px;
-    
+
     .qr-code {
       width: 200px;
       height: 200px;
@@ -740,49 +749,49 @@ const onQRError = (e) => {
       border: 1px solid var(--van-border-color);
       border-radius: 8px;
       overflow: hidden;
-      
+
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
     }
-    
+
     .qr-tip {
       font-size: 14px;
       color: var(--van-gray-6);
       margin: 0;
     }
   }
-  
+
   .customer-chat {
     height: 500px;
     display: flex;
     flex-direction: column;
-    
+
     .chat-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 16px;
       border-bottom: 1px solid var(--van-border-color);
-      
+
       .customer-info {
         display: flex;
         align-items: center;
-        
+
         .customer-detail {
           margin-left: 12px;
-          
+
           .customer-name {
             font-size: 15px;
             font-weight: 500;
             color: var(--van-text-color);
           }
-          
+
           .customer-status {
             font-size: 12px;
-            
+
             &.online {
               color: #07c160;
             }
@@ -790,24 +799,24 @@ const onQRError = (e) => {
         }
       }
     }
-    
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
       padding: 16px;
-      
+
       .message-item {
         margin-bottom: 16px;
-        
+
         &.user-message {
           text-align: right;
-          
+
           .message-content {
             background: var(--van-primary-color);
             color: white;
           }
         }
-        
+
         .message-content {
           display: inline-block;
           max-width: 80%;
@@ -817,7 +826,7 @@ const onQRError = (e) => {
           font-size: 14px;
           line-height: 1.4;
         }
-        
+
         .message-time {
           font-size: 11px;
           color: var(--van-gray-5);
@@ -825,7 +834,7 @@ const onQRError = (e) => {
         }
       }
     }
-    
+
     .chat-input {
       padding: 16px;
       border-top: 1px solid var(--van-border-color);

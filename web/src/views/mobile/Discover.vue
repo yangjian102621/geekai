@@ -1,13 +1,5 @@
 <template>
   <div class="discover-page">
-    <van-nav-bar title="发现" fixed :safe-area-inset-top="true">
-      <template #left>
-        <div class="nav-left">
-          <i class="iconfont icon-compass"></i>
-        </div>
-      </template>
-    </van-nav-bar>
-
     <div class="discover-content">
       <!-- 功能分类 -->
       <div class="category-section">
@@ -28,8 +20,8 @@
       <div class="category-section">
         <h3 class="category-title">我的服务</h3>
         <van-cell-group inset>
-          <van-cell 
-            v-for="service in userServices" 
+          <van-cell
+            v-for="service in userServices"
             :key="service.key"
             :title="service.name"
             :value="service.desc"
@@ -48,8 +40,8 @@
       <div class="category-section">
         <h3 class="category-title">实用功能</h3>
         <van-cell-group inset>
-          <van-cell 
-            v-for="utility in utilities" 
+          <van-cell
+            v-for="utility in utilities"
             :key="utility.key"
             :title="utility.name"
             :value="utility.desc"
@@ -90,8 +82,8 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
@@ -99,28 +91,114 @@ const router = useRouter()
 const aiTools = ref([
   { key: 'mj', name: 'MJ绘画', icon: 'icon-mj', color: '#8B5CF6', url: '/mobile/create?tab=mj' },
   { key: 'sd', name: 'SD绘画', icon: 'icon-sd', color: '#06B6D4', url: '/mobile/create?tab=sd' },
-  { key: 'dalle', name: 'DALL·E', icon: 'icon-dalle', color: '#F59E0B', url: '/mobile/create?tab=dalle' },
-  { key: 'suno', name: '音乐创作', icon: 'icon-music', color: '#EF4444', url: '/mobile/create?tab=suno' },
-  { key: 'video', name: '视频生成', icon: 'icon-video', color: '#10B981', url: '/mobile/create?tab=video' },
-  { key: 'jimeng', name: '即梦AI', icon: 'icon-jimeng', color: '#F97316', url: '/mobile/create?tab=jimeng' },
-  { key: 'xmind', name: '思维导图', icon: 'icon-mind', color: '#3B82F6', url: '/mobile/tools?tab=xmind' },
-  { key: 'apps', name: '应用中心', icon: 'icon-apps', color: '#EC4899', url: '/mobile/apps' }
+  {
+    key: 'dalle',
+    name: 'DALL·E',
+    icon: 'icon-dalle',
+    color: '#F59E0B',
+    url: '/mobile/create?tab=dalle',
+  },
+  {
+    key: 'suno',
+    name: '音乐创作',
+    icon: 'icon-music',
+    color: '#EF4444',
+    url: '/mobile/create?tab=suno',
+  },
+  {
+    key: 'video',
+    name: '视频生成',
+    icon: 'icon-video',
+    color: '#10B981',
+    url: '/mobile/create?tab=video',
+  },
+  {
+    key: 'jimeng',
+    name: '即梦AI',
+    icon: 'icon-jimeng',
+    color: '#F97316',
+    url: '/mobile/create?tab=jimeng',
+  },
+  {
+    key: 'xmind',
+    name: '思维导图',
+    icon: 'icon-mind',
+    color: '#3B82F6',
+    url: '/mobile/tools?tab=xmind',
+  },
+  { key: 'apps', name: '应用中心', icon: 'icon-apps', color: '#EC4899', url: '/mobile/apps' },
 ])
 
 // 用户服务
 const userServices = ref([
-  { key: 'member', name: '会员中心', desc: '充值升级享受更多权益', icon: 'icon-vip', color: '#FFD700', url: '/mobile/member' },
-  { key: 'powerLog', name: '消费记录', desc: '查看算力使用详情', icon: 'icon-history', color: '#10B981', url: '/mobile/power-log' },
-  { key: 'invite', name: '邀请好友', desc: '推广获取奖励', icon: 'icon-user-plus', color: '#F59E0B', url: '/mobile/invite' },
-  { key: 'export', name: '导出对话', desc: '保存聊天记录', icon: 'icon-download', color: '#06B6D4', url: '/mobile/chat/export' }
+  {
+    key: 'member',
+    name: '会员中心',
+    desc: '充值升级享受更多权益',
+    icon: 'icon-vip',
+    color: '#FFD700',
+    url: '/mobile/member',
+  },
+  {
+    key: 'powerLog',
+    name: '消费记录',
+    desc: '查看算力使用详情',
+    icon: 'icon-history',
+    color: '#10B981',
+    url: '/mobile/power-log',
+  },
+  {
+    key: 'invite',
+    name: '邀请好友',
+    desc: '推广获取奖励',
+    icon: 'icon-user-plus',
+    color: '#F59E0B',
+    url: '/mobile/invite',
+  },
+  {
+    key: 'export',
+    name: '导出对话',
+    desc: '保存聊天记录',
+    icon: 'icon-download',
+    color: '#06B6D4',
+    url: '/mobile/chat/export',
+  },
 ])
 
 // 实用功能
 const utilities = ref([
-  { key: 'imgWall', name: '作品展示', desc: '浏览精美AI作品', icon: 'icon-gallery', color: '#EC4899', url: '/mobile/imgWall' },
-  { key: 'settings', name: '设置中心', desc: '个性化配置', icon: 'icon-setting', color: '#6B7280', url: '/mobile/settings' },
-  { key: 'help', name: '帮助中心', desc: '使用指南和常见问题', icon: 'icon-help', color: '#8B5CF6', url: '/mobile/help' },
-  { key: 'feedback', name: '意见反馈', desc: '提出建议和问题', icon: 'icon-message', color: '#EF4444', url: '/mobile/feedback' }
+  {
+    key: 'imgWall',
+    name: '作品展示',
+    desc: '浏览精美AI作品',
+    icon: 'icon-gallery',
+    color: '#EC4899',
+    url: '/mobile/imgWall',
+  },
+  {
+    key: 'settings',
+    name: '设置中心',
+    desc: '个性化配置',
+    icon: 'icon-setting',
+    color: '#6B7280',
+    url: '/mobile/settings',
+  },
+  {
+    key: 'help',
+    name: '帮助中心',
+    desc: '使用指南和常见问题',
+    icon: 'icon-help',
+    color: '#8B5CF6',
+    url: '/mobile/help',
+  },
+  {
+    key: 'feedback',
+    name: '意见反馈',
+    desc: '提出建议和问题',
+    icon: 'icon-message',
+    color: '#EF4444',
+    url: '/mobile/feedback',
+  },
 ])
 
 // 推荐内容
@@ -130,29 +208,29 @@ const recommendations = ref([
     title: '新功能发布',
     desc: '体验最新AI创作工具',
     image: '/images/recommend/new-features.jpg',
-    url: '/mobile/news'
+    url: '/mobile/news',
   },
   {
     key: 'tutorials',
     title: '使用教程',
     desc: '快速上手AI创作',
     image: '/images/recommend/tutorials.jpg',
-    url: '/mobile/tutorials'
+    url: '/mobile/tutorials',
   },
   {
     key: 'gallery',
     title: '精选作品',
     desc: '欣赏优秀AI作品',
     image: '/images/recommend/gallery.jpg',
-    url: '/mobile/imgWall'
+    url: '/mobile/imgWall',
   },
   {
     key: 'community',
     title: '用户社区',
     desc: '交流创作心得',
     image: '/images/recommend/community.jpg',
-    url: '/mobile/community'
-  }
+    url: '/mobile/community',
+  },
 ])
 
 // 导航处理
@@ -173,7 +251,7 @@ const navigateTo = (url) => {
   .nav-left {
     display: flex;
     align-items: center;
-    
+
     .iconfont {
       font-size: 20px;
       color: var(--van-primary-color);
@@ -181,8 +259,6 @@ const navigateTo = (url) => {
   }
 
   .discover-content {
-    padding: 54px 16px 60px; // nav-bar height + bottom padding
-    
     .category-section {
       margin-bottom: 24px;
 

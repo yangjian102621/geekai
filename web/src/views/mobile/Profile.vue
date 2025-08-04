@@ -104,40 +104,40 @@
       <div class="menu-section">
         <h3 class="section-title">我的服务</h3>
         <van-cell-group inset>
-          <van-cell 
-            title="消费记录" 
-            icon="notes-o" 
-            is-link 
+          <van-cell
+            title="消费记录"
+            icon="notes-o"
+            is-link
             @click="router.push('/mobile/power-log')"
           >
             <template #icon>
               <i class="iconfont icon-history menu-icon"></i>
             </template>
           </van-cell>
-          <van-cell 
-            title="会员中心" 
-            icon="diamond-o" 
-            is-link 
+          <van-cell
+            title="会员中心"
+            icon="diamond-o"
+            is-link
             @click="router.push('/mobile/member')"
           >
             <template #icon>
               <i class="iconfont icon-vip menu-icon"></i>
             </template>
           </van-cell>
-          <van-cell 
-            title="邀请好友" 
-            icon="friends-o" 
-            is-link 
+          <van-cell
+            title="邀请好友"
+            icon="friends-o"
+            is-link
             @click="router.push('/mobile/invite')"
           >
             <template #icon>
               <i class="iconfont icon-user-plus menu-icon"></i>
             </template>
           </van-cell>
-          <van-cell 
-            title="聊天导出" 
-            icon="down" 
-            is-link 
+          <van-cell
+            title="聊天导出"
+            icon="down"
+            is-link
             @click="router.push('/mobile/chat/export')"
           >
             <template #icon>
@@ -147,32 +147,17 @@
         </van-cell-group>
 
         <van-cell-group inset>
-          <van-cell 
-            title="帮助中心" 
-            icon="question-o" 
-            is-link 
-            @click="router.push('/mobile/help')"
-          >
+          <van-cell title="帮助中心" icon="question-o" is-link @click="router.push('/mobile/help')">
             <template #icon>
               <i class="iconfont icon-help menu-icon"></i>
             </template>
           </van-cell>
-          <van-cell 
-            title="意见反馈" 
-            icon="chat-o" 
-            is-link 
-            @click="router.push('/mobile/feedback')"
-          >
+          <van-cell title="意见反馈" icon="chat-o" is-link @click="router.push('/mobile/feedback')">
             <template #icon>
               <i class="iconfont icon-message menu-icon"></i>
             </template>
           </van-cell>
-          <van-cell 
-            title="关于我们" 
-            icon="info-o" 
-            is-link 
-            @click="showAbout = true"
-          >
+          <van-cell title="关于我们" icon="info-o" is-link @click="showAbout = true">
             <template #icon>
               <i class="iconfont icon-info menu-icon"></i>
             </template>
@@ -182,13 +167,7 @@
 
       <!-- 退出登录 -->
       <div class="logout-section" v-if="isLogin">
-        <van-button 
-          size="large" 
-          block 
-          type="danger" 
-          plain 
-          @click="showLogoutConfirm = true"
-        >
+        <van-button size="large" block type="danger" plain @click="showLogoutConfirm = true">
           退出登录
         </van-button>
       </div>
@@ -198,11 +177,15 @@
         <p class="app-version">版本 v{{ appVersion }}</p>
         <p class="copyright">© 2024 {{ title }}. All rights reserved.</p>
       </div>
+
+      <!-- 底部安全间距 -->
+      <div class="bottom-safe-area"></div>
     </div>
 
     <!-- 修改密码弹窗 -->
     <van-dialog
-      v-model:show="showPasswordDialog"
+      :model-value="showPasswordDialog"
+      @update:model-value="showPasswordDialog = $event"
       title="修改密码"
       show-cancel-button
       @confirm="updatePass"
@@ -210,31 +193,31 @@
     >
       <van-form ref="passwordForm" @submit="updatePass">
         <van-cell-group inset>
-          <van-field 
-            v-model="pass.old" 
+          <van-field
+            v-model="pass.old"
             type="password"
             label="旧密码"
-            placeholder="请输入旧密码" 
+            placeholder="请输入旧密码"
             required
             :rules="[{ required: true, message: '请输入旧密码' }]"
           />
-          <van-field 
-            v-model="pass.new" 
-            type="password" 
+          <van-field
+            v-model="pass.new"
+            type="password"
             label="新密码"
             placeholder="请输入新密码"
             required
             :rules="passwordRules"
           />
-          <van-field 
-            v-model="pass.renew" 
-            type="password" 
+          <van-field
+            v-model="pass.renew"
+            type="password"
             label="确认密码"
             placeholder="请再次输入新密码"
             required
             :rules="[
               { required: true, message: '请再次输入新密码' },
-              { validator: validateConfirmPassword }
+              { validator: validateConfirmPassword },
             ]"
           />
         </van-cell-group>
@@ -242,7 +225,11 @@
     </van-dialog>
 
     <!-- 设置弹窗 -->
-    <van-action-sheet v-model:show="showSettings" title="设置">
+    <van-action-sheet
+      :model-value="showSettings"
+      @update:model-value="showSettings = $event"
+      title="设置"
+    >
       <div class="settings-content">
         <van-cell-group>
           <van-cell title="暗黑主题">
@@ -255,10 +242,7 @@
           </van-cell>
           <van-cell title="流式输出">
             <template #right-icon>
-              <van-switch 
-                v-model="stream" 
-                @change="(val) => store.setChatStream(val)" 
-              />
+              <van-switch v-model="stream" @change="(val) => store.setChatStream(val)" />
             </template>
           </van-cell>
           <van-cell title="消息通知">
@@ -276,7 +260,11 @@
     </van-action-sheet>
 
     <!-- 头像选择弹窗 -->
-    <van-action-sheet v-model:show="showAvatarOptions" title="更换头像">
+    <van-action-sheet
+      :model-value="showAvatarOptions"
+      @update:model-value="showAvatarOptions = $event"
+      title="更换头像"
+    >
       <div class="avatar-options">
         <van-cell title="拍照" icon="photograph" @click="selectAvatar('camera')" />
         <van-cell title="从相册选择" icon="photo-o" @click="selectAvatar('album')" />
@@ -285,7 +273,12 @@
     </van-action-sheet>
 
     <!-- 关于我们弹窗 -->
-    <van-dialog v-model:show="showAbout" title="关于我们" :show-cancel-button="false">
+    <van-dialog
+      :model-value="showAbout"
+      @update:model-value="showAbout = $event"
+      title="关于我们"
+      :show-cancel-button="false"
+    >
       <div class="about-content">
         <div class="about-logo">
           <img src="/images/logo.png" alt="Logo" />
@@ -303,7 +296,8 @@
 
     <!-- 退出登录确认 -->
     <van-dialog
-      v-model:show="showLogoutConfirm"
+      :model-value="showLogoutConfirm"
+      @update:model-value="showLogoutConfirm = $event"
       title="退出登录"
       message="确定要退出登录吗？"
       show-cancel-button
@@ -317,8 +311,7 @@ import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
-import { dateFormat, showLoginDialog } from '@/utils/libs'
-import { ElMessage } from 'element-plus'
+import { showLoginDialog } from '@/utils/libs'
 import { showFailToast, showLoadingToast, showNotify, showSuccessToast } from 'vant'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -369,7 +362,7 @@ const pass = ref({
 // 密码验证规则
 const passwordRules = [
   { required: true, message: '请输入新密码' },
-  { min: 8, max: 16, message: '密码长度为8-16个字符' }
+  { min: 8, max: 16, message: '密码长度为8-16个字符' },
 ]
 
 // 计算属性
@@ -400,7 +393,7 @@ onMounted(() => {
       isLogin.value = true
       form.value = { ...form.value, ...user }
       fileList.value[0].url = user.avatar || '/images/avatar/default.jpg'
-      
+
       // 获取用户详细信息
       fetchUserProfile()
       fetchUserStats()
@@ -454,12 +447,15 @@ const updatePass = () => {
     updatePasswordAPI()
     return
   }
-  
-  passwordForm.value.validate().then(() => {
-    updatePasswordAPI()
-  }).catch((errors) => {
-    console.log('表单验证失败:', errors)
-  })
+
+  passwordForm.value
+    .validate()
+    .then(() => {
+      updatePasswordAPI()
+    })
+    .catch((errors) => {
+      console.log('表单验证失败:', errors)
+    })
 }
 
 const updatePasswordAPI = () => {
@@ -496,7 +492,7 @@ const updatePasswordAPI = () => {
 // 头像选择
 const selectAvatar = (type) => {
   showAvatarOptions.value = false
-  
+
   switch (type) {
     case 'camera':
       // 调用相机
@@ -547,7 +543,7 @@ const logout = function () {
       isLogin.value = false
       showSuccessToast('退出登录成功')
       showLogoutConfirm.value = false
-      
+
       // 清除用户数据
       form.value = {
         id: 0,
@@ -570,12 +566,13 @@ const logout = function () {
 .profile-page {
   min-height: 100vh;
   background: var(--van-background);
+  padding-bottom: 60px;
 
   .profile-header {
     position: relative;
     height: 240px;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--van-primary-color), #8B5CF6);
+    background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
 
     .header-bg {
       position: absolute;
@@ -652,10 +649,9 @@ const logout = function () {
   }
 
   .profile-content {
-    margin-top: -30px;
-    position: relative;
+    margin-top: 20px;
     z-index: 3;
-    padding: 0 16px 60px;
+    padding: 0 16px 20px;
 
     .status-cards {
       margin-bottom: 24px;
@@ -760,7 +756,7 @@ const logout = function () {
           }
 
           &.share {
-            background: linear-gradient(135deg, #8B5CF6, #7c3aed);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
           }
 
           &.settings {
@@ -823,6 +819,11 @@ const logout = function () {
       .copyright {
         margin: 0;
       }
+    }
+
+    .bottom-safe-area {
+      height: 20px;
+      width: 100%;
     }
   }
 
@@ -923,7 +924,7 @@ const logout = function () {
     }
 
     .profile-content {
-      padding: 0 12px 60px;
+      padding: 0 12px 20px;
 
       .status-cards .status-card {
         padding: 12px;

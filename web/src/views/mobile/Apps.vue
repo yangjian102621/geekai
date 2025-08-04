@@ -1,10 +1,8 @@
 <template>
   <div class="apps-page">
-    <van-nav-bar title="全部应用" left-arrow @click-left="router.back()" />
-
-    <div class="apps-filter mb-8 pt-8" style="border: 1px solid #ccc">
-      <van-tabs v-model="activeTab" animated swipeable>
-        <van-tab title="全部分类">
+    <div class="apps-filter mb-8 px-3">
+      <CustomTabs :model-value="activeTab" @update:model-value="activeTab = $event">
+        <CustomTabPane name="all" label="全部分类">
           <div class="app-list">
             <van-list v-model="loading" :finished="true" finished-text="" @load="fetchApps()">
               <van-cell v-for="item in apps" :key="item.id" class="app-cell">
@@ -40,8 +38,8 @@
               </van-cell>
             </van-list>
           </div>
-        </van-tab>
-        <van-tab v-for="type in appTypes" :key="type.id" :title="type.name">
+        </CustomTabPane>
+        <CustomTabPane v-for="type in appTypes" :key="type.id" :name="type.id" :label="type.name">
           <div class="app-list">
             <van-list
               v-model="loading"
@@ -82,13 +80,15 @@
               </van-cell>
             </van-list>
           </div>
-        </van-tab>
-      </van-tabs>
+        </CustomTabPane>
+      </CustomTabs>
     </div>
   </div>
 </template>
 
 <script setup>
+import CustomTabPane from '@/components/ui/CustomTabPane.vue'
+import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { checkSession } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { arrayContains, removeArrayItem, showLoginDialog, substr } from '@/utils/libs'
@@ -151,16 +151,16 @@ const updateRole = (row, opt) => {
     return showLoginDialog(router)
   }
 
-  const title = ref('')
+  let actionTitle = ''
   if (opt === 'add') {
-    title.value = '添加应用'
+    actionTitle = '添加应用'
     const exists = arrayContains(roles.value, row.key)
     if (exists) {
       return
     }
     roles.value.push(row.key)
   } else {
-    title.value = '移除应用'
+    actionTitle = '移除应用'
     const exists = arrayContains(roles.value, row.key)
     if (!exists) {
       return
@@ -169,10 +169,10 @@ const updateRole = (row, opt) => {
   }
   httpPost('/api/app/update', { keys: roles.value })
     .then(() => {
-      showNotify({ type: 'success', message: title.value + '成功！' })
+      showNotify({ type: 'success', message: actionTitle + '成功！' })
     })
     .catch((e) => {
-      showNotify({ type: 'danger', message: title.value + '失败：' + e.message })
+      showNotify({ type: 'danger', message: actionTitle + '失败：' + e.message })
     })
 }
 
@@ -194,15 +194,13 @@ const useRole = (roleId) => {
   background-color: var(--van-background);
 
   .apps-filter {
-    padding: 10px 0;
-
     :deep(.van-tabs__nav) {
       background: var(--van-background-2);
     }
   }
 
   .app-list {
-    padding: 0 15px;
+    padding: 0;
 
     .app-cell {
       padding: 0;

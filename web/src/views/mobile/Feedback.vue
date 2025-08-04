@@ -1,8 +1,5 @@
 <template>
   <div class="mobile-feedback">
-    <!-- 顶部导航 -->
-    <van-nav-bar title="意见反馈" left-arrow @click-left="router.back()" fixed placeholder />
-
     <!-- 反馈表单 -->
     <div class="feedback-content">
       <!-- 反馈类型 -->

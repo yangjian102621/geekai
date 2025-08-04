@@ -1,20 +1,22 @@
 <template>
   <div class="mobile-image container">
-    <van-tabs v-model:active="activeName" class="my-tab" animated sticky>
-      <van-tab title="MJ" name="mj" v-if="activeMenu.mj">
+    <CustomTabs :model-value="activeName" @update:model-value="activeName = $event" class="my-tab">
+      <CustomTabPane name="mj" label="MJ" v-if="activeMenu.mj">
         <image-mj />
-      </van-tab>
-      <van-tab title="SD" name="sd" v-if="activeMenu.sd">
+      </CustomTabPane>
+      <CustomTabPane name="sd" label="SD" v-if="activeMenu.sd">
         <image-sd />
-      </van-tab>
-      <van-tab title="DALL" name="dall" v-if="activeMenu.dall">
+      </CustomTabPane>
+      <CustomTabPane name="dall" label="DALL" v-if="activeMenu.dall">
         <image-dall />
-      </van-tab>
-    </van-tabs>
+      </CustomTabPane>
+    </CustomTabs>
   </div>
 </template>
 
 <script setup>
+import CustomTabPane from '@/components/ui/CustomTabPane.vue'
+import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { httpGet } from '@/utils/http'
 import ImageDall from '@/views/mobile/pages/ImageDall.vue'
 import ImageMj from '@/views/mobile/pages/ImageMj.vue'

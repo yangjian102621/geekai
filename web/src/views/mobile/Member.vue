@@ -1,11 +1,5 @@
 <template>
   <div class="member-center">
-    <van-nav-bar title="会员中心" left-arrow @click-left="router.back()" fixed>
-      <template #right>
-        <van-icon name="question-o" @click="showHelp = true" />
-      </template>
-    </van-nav-bar>
-
     <div class="member-content">
       <!-- 用户信息卡片 -->
       <div class="user-card" v-if="isLogin">

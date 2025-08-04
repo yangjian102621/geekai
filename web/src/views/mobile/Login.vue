@@ -1,5 +1,13 @@
 <template>
   <div class="login flex w-full flex-col place-content-center h-lvh">
+    <!-- 返回首页链接 -->
+    <div class="back-home">
+      <el-button @click="goHome" type="text" class="back-btn">
+        <i class="iconfont icon-home"></i>
+        返回首页
+      </el-button>
+    </div>
+
     <el-image :src="logo" class="w-1/2 mx-auto logo" />
     <div class="title text-center text-3xl font-bold mt-8">{{ title }}</div>
     <div class="w-full p-8">
@@ -22,6 +30,10 @@ const loginSuccess = () => {
   router.back()
 }
 
+const goHome = () => {
+  router.push('/mobile/index')
+}
+
 onMounted(() => {
   getSystemInfo().then((res) => {
     title.value = res.data.title
@@ -34,6 +46,23 @@ onMounted(() => {
 .login {
   background: var(--theme-bg);
   transition: all 0.3s ease;
+  position: relative;
+
+  .back-home {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+
+    .back-btn {
+      color: var(--text-theme-color);
+      font-size: 14px;
+
+      .iconfont {
+        margin-right: 4px;
+      }
+    }
+  }
 
   .logo {
     background: #ffffff;

@@ -161,7 +161,7 @@ checkSession()
     loginUser.value = user
   })
   .catch(() => {
-    router.push('/login')
+    router.push('/mobile/login')
   })
 
 const loadModels = () => {
