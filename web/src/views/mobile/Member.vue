@@ -22,23 +22,23 @@
             <div class="stat-label">剩余算力</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value">{{ vipDays }}</div>
-            <div class="stat-label">VIP天数</div>
+            <div class="stat-value">{{ userInfo.invite_count || 0 }}</div>
+            <div class="stat-label">邀请人数</div>
           </div>
         </div>
       </div>
 
       <!-- 产品套餐 -->
       <div class="products-section">
-        <h3 class="section-title">会员套餐</h3>
-        <div class="info-alert" v-if="vipInfoText">
+        <h3 class="section-title">充值套餐</h3>
+        <!-- <div class="info-alert" v-if="vipInfoText">
           <van-notice-bar
             :text="vipInfoText"
             color="#1989fa"
             background="#ecf9ff"
             :scrollable="false"
           />
-        </div>
+        </div> -->
 
         <div class="products-grid" v-if="list.length > 0">
           <div v-for="item in list" :key="item.id" class="product-card">
@@ -98,7 +98,7 @@
       <!-- 卡密兑换 -->
       <div class="redeem-section" v-if="isLogin">
         <h3 class="section-title">卡密兑换</h3>
-        <van-cell-group inset>
+        <van-cell-group>
           <van-cell title="卡密兑换" is-link @click="showRedeemVerifyDialog = true">
             <template #icon>
               <i class="iconfont icon-redeem menu-icon"></i>
@@ -138,8 +138,19 @@
       </div>
     </van-dialog>
 
-    <!-- 组件弹窗 -->
-    <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback" />
+    <!-- 卡密兑换弹窗 -->
+    <van-dialog
+      v-model:show="showRedeemVerifyDialog"
+      title="卡密兑换"
+      :show-cancel-button="false"
+      :show-confirm-button="false"
+      width="90%"
+      :close-on-click-overlay="true"
+    >
+      <div class="p-4">
+        <redeem-verify @hide="redeemCallback" />
+      </div>
+    </van-dialog>
   </div>
 </template>
 
@@ -224,7 +235,7 @@ const getPayIcon = (payType) => {
 const getPayButtonText = (payType) => {
   const texts = {
     alipay: '支付宝',
-    wechat: '微信支付',
+    wxpay: '微信支付',
     qqpay: 'QQ钱包',
     paypal: 'PayPal',
     jdpay: '京东支付',
@@ -340,13 +351,16 @@ const payCallback = (success) => {
 }
 
 // 卡密兑换回调
-const redeemCallback = () => {
+const redeemCallback = (success) => {
   showRedeemVerifyDialog.value = false
-  showSuccessToast('卡密兑换成功！')
-  // 刷新用户信息
-  checkSession().then((user) => {
-    userInfo.value = user
-  })
+
+  if (success) {
+    showSuccessToast('卡密兑换成功！')
+    // 刷新用户信息
+    checkSession().then((user) => {
+      userInfo.value = user
+    })
+  }
 }
 </script>
 
@@ -577,10 +591,8 @@ const redeemCallback = () => {
 
     .bills-section {
       .bills-content {
-        background: var(--van-cell-background);
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
       }
     }
   }

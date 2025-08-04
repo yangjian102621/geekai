@@ -20,11 +20,6 @@
               </el-button>
             </el-col>
             <el-col :span="24">
-              <el-button class="profile-btn third" @click="showThirdLoginDialog = true">
-                <i class="iconfont icon-login"></i> 第三方登录
-              </el-button>
-            </el-col>
-            <el-col :span="24">
               <el-button class="profile-btn password" @click="showPasswordDialog = true">
                 <i class="iconfont icon-password"></i> 修改密码
               </el-button>
@@ -40,11 +35,11 @@
         <div class="profile-bg"></div>
 
         <div class="product-box">
-          <div class="info" v-if="orderPayInfoText !== ''">
+          <!-- <div class="info" v-if="orderPayInfoText !== ''">
             <el-alert type="success" show-icon :closable="false" effect="dark">
               <strong>说明:</strong> {{ vipInfoText }}
             </el-alert>
-          </div>
+          </div> -->
 
           <el-row v-if="list.length > 0" :gutter="20" class="list-box">
             <el-col v-for="item in list" :key="item" :span="6">
@@ -124,18 +119,39 @@
         :show="showPasswordDialog"
         @hide="showPasswordDialog = false"
       />
-      <bind-mobile
-        v-if="isLogin"
-        :show="showBindMobileDialog"
-        @hide="showBindMobileDialog = false"
-      />
-      <bind-email v-if="isLogin" :show="showBindEmailDialog" @hide="showBindEmailDialog = false" />
-      <third-login
-        v-if="isLogin"
-        :show="showThirdLoginDialog"
-        @hide="showThirdLoginDialog = false"
-      />
-      <redeem-verify v-if="isLogin" :show="showRedeemVerifyDialog" @hide="redeemCallback" />
+
+      <!-- 绑定手机弹窗 -->
+      <el-dialog
+        v-model="showBindMobileDialog"
+        title="绑定手机"
+        width="400px"
+        :close-on-click-modal="true"
+        @close="showBindMobileDialog = false"
+      >
+        <bind-mobile @hide="showBindMobileDialog = false" />
+      </el-dialog>
+
+      <!-- 绑定邮箱弹窗 -->
+      <el-dialog
+        v-model="showBindEmailDialog"
+        title="绑定邮箱"
+        width="400px"
+        :close-on-click-modal="true"
+        @close="showBindEmailDialog = false"
+      >
+        <bind-email @hide="showBindEmailDialog = false" />
+      </el-dialog>
+
+      <!-- 卡密兑换弹窗 -->
+      <el-dialog
+        v-model="showRedeemVerifyDialog"
+        title="卡密兑换"
+        width="450px"
+        :close-on-click-modal="true"
+        @close="showRedeemVerifyDialog = false"
+      >
+        <redeem-verify @hide="redeemCallback" />
+      </el-dialog>
     </div>
 
     <el-dialog
@@ -166,7 +182,6 @@ import BindEmail from '@/components/BindEmail.vue'
 import BindMobile from '@/components/BindMobile.vue'
 import PasswordDialog from '@/components/PasswordDialog.vue'
 import RedeemVerify from '@/components/RedeemVerify.vue'
-import ThirdLogin from '@/components/ThirdLogin.vue'
 import UserOrder from '@/components/UserOrder.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
@@ -183,7 +198,6 @@ const showPasswordDialog = ref(false)
 const showBindMobileDialog = ref(false)
 const showBindEmailDialog = ref(false)
 const showRedeemVerifyDialog = ref(false)
-const showThirdLoginDialog = ref(false)
 const user = ref(null)
 const isLogin = ref(false)
 const orderTimeout = ref(1800)
@@ -284,8 +298,12 @@ const pay = (product, payWay) => {
     })
 }
 
-const redeemCallback = () => {
+const redeemCallback = (success) => {
   showRedeemVerifyDialog.value = false
+
+  if (success) {
+    userOrderKey.value += 1
+  }
 }
 
 const payCallback = (success) => {

@@ -168,11 +168,11 @@ const features = ref([
     url: '/mobile/create?tab=jimeng',
   },
   {
-    key: 'xmind',
-    name: '思维导图',
-    icon: 'icon-xmind',
+    key: 'agent',
+    name: '智能体',
+    icon: 'icon-app',
     color: '#3B82F6',
-    url: '/mobile/tools?tab=xmind',
+    url: '/mobile/apps',
   },
   {
     key: 'imgWall',

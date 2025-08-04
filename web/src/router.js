@@ -130,6 +130,18 @@ const routes = [
     component: () => import('@/views/LoginCallback.vue'),
   },
   {
+    name: 'login',
+    path: '/login',
+    meta: { title: '用户登录' },
+    component: () => import('@/views/Login.vue'),
+  },
+  {
+    name: 'register',
+    path: '/register',
+    meta: { title: '用户注册' },
+    component: () => import('@/views/Register.vue'),
+  },
+  {
     name: 'resetpassword',
     path: '/resetpassword',
     meta: { title: '重置密码' },
@@ -271,12 +283,6 @@ const routes = [
     ],
   },
 
-  {
-    name: 'mobile-login',
-    path: '/mobile/login',
-    meta: { title: '用户登录' },
-    component: () => import('@/views/mobile/Login.vue'),
-  },
   {
     name: 'mobile',
     path: '/mobile',

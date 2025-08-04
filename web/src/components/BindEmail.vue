@@ -1,37 +1,26 @@
 <template>
-  <el-dialog
-    v-model="showDialog"
-    :close-on-click-modal="true"
-    style="max-width: 400px"
-    @close="close"
-    :title="title"
-  >
-    <div class="form">
-      <div class="text-center" v-if="email !== ''">当前已绑定邮箱：{{ email }}</div>
-
-      <el-form label-position="top">
-        <el-form-item label="邮箱地址">
-          <el-input v-model="form.email" />
-        </el-form-item>
-        <el-form-item label="验证码">
-          <el-row :gutter="0">
-            <el-col :span="16">
-              <el-input v-model="form.code" maxlength="6" />
-            </el-col>
-            <el-col :span="8" style="padding-left: 10px">
-              <send-msg :receiver="form.email" type="email" />
-            </el-col>
-          </el-row>
-        </el-form-item>
-      </el-form>
+  <div class="form">
+    <div class="text-center" v-if="email !== ''">当前已绑定邮箱：{{ email }}</div>
+    <el-form label-position="top">
+      <el-form-item label="邮箱地址">
+        <el-input v-model="form.email" />
+      </el-form-item>
+      <el-form-item label="验证码">
+        <el-row :gutter="0">
+          <el-col :span="16">
+            <el-input v-model="form.code" maxlength="6" />
+          </el-col>
+          <el-col :span="8" style="padding-left: 10px">
+            <send-msg :receiver="form.email" type="email" />
+          </el-col>
+        </el-row>
+      </el-form-item>
+    </el-form>
+    <div class="dialog-footer text-center">
+      <el-button type="primary" @click="save"> 保存 </el-button>
+      <el-button @click="emits('hide')"> 取消 </el-button>
     </div>
-
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" @click="save"> 提交绑定 </el-button>
-      </span>
-    </template>
-  </el-dialog>
+  </div>
 </template>
 
 <script setup>
@@ -39,31 +28,18 @@ import SendMsg from '@/components/SendMsg.vue'
 import { checkSession } from '@/store/cache'
 import { httpPost } from '@/utils/http'
 import { ElMessage } from 'element-plus'
-import { computed, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 
-const props = defineProps({
-  show: Boolean,
-})
-
-const showDialog = computed(() => {
-  return props.show
-})
-
-const title = ref('绑定邮箱')
 const email = ref('')
 const form = ref({
   email: '',
   code: '',
 })
 
-watch(showDialog, (val) => {
-  if (val) {
-    form.value.code = ''
-    form.value.email = ''
-    checkSession().then((user) => {
-      email.value = user.email
-    })
-  }
+onMounted(() => {
+  checkSession().then((user) => {
+    email.value = user.email
+  })
 })
 
 const emits = defineEmits(['hide'])
@@ -81,10 +57,6 @@ const save = () => {
     .catch((e) => {
       ElMessage.error('绑定失败：' + e.message)
     })
-}
-
-const close = function () {
-  emits('hide')
 }
 </script>
 

@@ -4,7 +4,7 @@
       <!-- 邀请头图 -->
       <div class="invite-header">
         <div class="header-bg">
-          <img src="/images/invite-bg.png" alt="邀请背景" @error="onImageError" />
+          <img src="/images/logo.png" alt="邀请背景" @error="onImageError" />
         </div>
         <div class="header-content">
           <h2 class="invite-title">邀请好友获得奖励</h2>
@@ -383,7 +383,7 @@ const shareToFriends = () => {
 
 // 图片加载错误处理
 const onImageError = (e) => {
-  e.target.src = '/images/default-bg.png'
+  e.target.src = '/images/img-holder.png'
 }
 </script>
 
