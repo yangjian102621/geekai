@@ -1,81 +1,41 @@
 <template>
   <div class="discover-page">
     <div class="discover-content">
-      <!-- 功能分类 -->
-      <div class="category-section">
-        <h3 class="category-title">AI 工具</h3>
-        <van-row :gutter="12">
-          <van-col :span="6" v-for="tool in aiTools" :key="tool.key">
-            <div class="tool-card" @click="navigateTo(tool.url)">
-              <div class="tool-icon" :style="{ backgroundColor: tool.color }">
-                <i class="iconfont" :class="tool.icon"></i>
+      <!-- AI工具列表 -->
+      <div class="tools-section">
+        <div class="section-header">
+          <h2 class="section-title">AI 创作工具</h2>
+          <p class="section-subtitle">探索强大的AI创作能力</p>
+        </div>
+
+        <div class="tools-grid">
+          <div
+            v-for="tool in aiTools"
+            :key="tool.key"
+            class="tool-item"
+            @click="navigateTo(tool.url)"
+          >
+            <div class="tool-card">
+              <div class="tool-icon-wrapper">
+                <div class="tool-icon" :style="{ background: tool.gradient }">
+                  <i class="iconfont" :class="tool.icon"></i>
+                </div>
+                <div class="tool-badge" v-if="tool.badge">{{ tool.badge }}</div>
               </div>
-              <div class="tool-name">{{ tool.name }}</div>
-            </div>
-          </van-col>
-        </van-row>
-      </div>
-
-      <!-- 用户服务 -->
-      <div class="category-section">
-        <h3 class="category-title">我的服务</h3>
-        <van-cell-group inset>
-          <van-cell
-            v-for="service in userServices"
-            :key="service.key"
-            :title="service.name"
-            :value="service.desc"
-            :icon="service.icon"
-            is-link
-            @click="navigateTo(service.url)"
-          >
-            <template #icon>
-              <i class="iconfont" :class="service.icon" :style="{ color: service.color }"></i>
-            </template>
-          </van-cell>
-        </van-cell-group>
-      </div>
-
-      <!-- 实用功能 -->
-      <div class="category-section">
-        <h3 class="category-title">实用功能</h3>
-        <van-cell-group inset>
-          <van-cell
-            v-for="utility in utilities"
-            :key="utility.key"
-            :title="utility.name"
-            :value="utility.desc"
-            is-link
-            @click="navigateTo(utility.url)"
-          >
-            <template #icon>
-              <i class="iconfont" :class="utility.icon" :style="{ color: utility.color }"></i>
-            </template>
-          </van-cell>
-        </van-cell-group>
-      </div>
-
-      <!-- 推荐内容 -->
-      <div class="category-section">
-        <h3 class="category-title">精选推荐</h3>
-        <van-grid :column-num="2" :gutter="12" :border="false">
-          <van-grid-item
-            v-for="item in recommendations"
-            :key="item.key"
-            @click="navigateTo(item.url)"
-            class="recommend-item"
-          >
-            <div class="recommend-card">
-              <div class="recommend-image">
-                <van-image :src="item.image" fit="cover" />
+              <div class="tool-content">
+                <h3 class="tool-name">{{ tool.name }}</h3>
+                <p class="tool-desc">{{ tool.desc }}</p>
+                <div class="tool-meta">
+                  <span class="tool-tag" v-if="tool.tag">{{ tool.tag }}</span>
+                  <span class="tool-status" :class="tool.status">{{ tool.statusText }}</span>
+                </div>
               </div>
-              <div class="recommend-info">
-                <div class="recommend-title">{{ item.title }}</div>
-                <div class="recommend-desc">{{ item.desc }}</div>
+              <div class="tool-arrow">
+                <van-icon name="arrow" />
               </div>
             </div>
-          </van-grid-item>
-        </van-grid>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -89,147 +49,95 @@ const router = useRouter()
 
 // AI工具配置
 const aiTools = ref([
-  { key: 'mj', name: 'MJ绘画', icon: 'icon-mj', color: '#8B5CF6', url: '/mobile/create?tab=mj' },
-  { key: 'sd', name: 'SD绘画', icon: 'icon-sd', color: '#06B6D4', url: '/mobile/create?tab=sd' },
+  {
+    key: 'mj',
+    name: 'MJ绘画',
+    desc: 'Midjourney AI绘画创作',
+    icon: 'icon-mj',
+    gradient: 'linear-gradient(135deg, #8B5CF6, #A855F7)',
+    badge: '热门',
+    tag: 'AI绘画',
+    status: 'active',
+    statusText: '可用',
+    url: '/mobile/create?tab=mj',
+  },
+  {
+    key: 'sd',
+    name: 'SD绘画',
+    desc: 'Stable Diffusion本地化',
+    icon: 'icon-sd',
+    gradient: 'linear-gradient(135deg, #06B6D4, #0891B2)',
+    tag: 'AI绘画',
+    status: 'active',
+    statusText: '可用',
+    url: '/mobile/create?tab=sd',
+  },
   {
     key: 'dalle',
     name: 'DALL·E',
+    desc: 'OpenAI图像生成',
     icon: 'icon-dalle',
-    color: '#F59E0B',
+    gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
+    tag: 'AI绘画',
+    status: 'active',
+    statusText: '可用',
     url: '/mobile/create?tab=dalle',
   },
   {
     key: 'suno',
     name: '音乐创作',
+    desc: 'AI音乐生成与编辑',
     icon: 'icon-music',
-    color: '#EF4444',
+    gradient: 'linear-gradient(135deg, #EF4444, #DC2626)',
+    badge: '新功能',
+    tag: 'AI音乐',
+    status: 'active',
+    statusText: '可用',
     url: '/mobile/create?tab=suno',
   },
   {
     key: 'video',
     name: '视频生成',
+    desc: 'AI视频创作工具',
     icon: 'icon-video',
-    color: '#10B981',
+    gradient: 'linear-gradient(135deg, #10B981, #059669)',
+    tag: 'AI视频',
+    status: 'beta',
+    statusText: '测试版',
     url: '/mobile/create?tab=video',
   },
   {
     key: 'jimeng',
     name: '即梦AI',
+    desc: '即梦AI绘画平台',
     icon: 'icon-jimeng',
-    color: '#F97316',
+    gradient: 'linear-gradient(135deg, #F97316, #EA580C)',
+    tag: 'AI绘画',
+    status: 'active',
+    statusText: '可用',
     url: '/mobile/create?tab=jimeng',
   },
   {
     key: 'xmind',
     name: '思维导图',
+    desc: 'AI思维导图生成',
     icon: 'icon-mind',
-    color: '#3B82F6',
+    gradient: 'linear-gradient(135deg, #3B82F6, #2563EB)',
+    tag: 'AI工具',
+    status: 'active',
+    statusText: '可用',
     url: '/mobile/tools?tab=xmind',
   },
-  { key: 'apps', name: '应用中心', icon: 'icon-apps', color: '#EC4899', url: '/mobile/apps' },
-])
-
-// 用户服务
-const userServices = ref([
   {
-    key: 'member',
-    name: '会员中心',
-    desc: '充值升级享受更多权益',
-    icon: 'icon-vip',
-    color: '#FFD700',
-    url: '/mobile/member',
-  },
-  {
-    key: 'powerLog',
-    name: '消费记录',
-    desc: '查看算力使用详情',
-    icon: 'icon-history',
-    color: '#10B981',
-    url: '/mobile/power-log',
-  },
-  {
-    key: 'invite',
-    name: '邀请好友',
-    desc: '推广获取奖励',
-    icon: 'icon-user-plus',
-    color: '#F59E0B',
-    url: '/mobile/invite',
-  },
-  {
-    key: 'export',
-    name: '导出对话',
-    desc: '保存聊天记录',
-    icon: 'icon-download',
-    color: '#06B6D4',
-    url: '/mobile/chat/export',
-  },
-])
-
-// 实用功能
-const utilities = ref([
-  {
-    key: 'imgWall',
-    name: '作品展示',
-    desc: '浏览精美AI作品',
-    icon: 'icon-gallery',
-    color: '#EC4899',
-    url: '/mobile/imgWall',
-  },
-  {
-    key: 'settings',
-    name: '设置中心',
-    desc: '个性化配置',
-    icon: 'icon-setting',
-    color: '#6B7280',
-    url: '/mobile/settings',
-  },
-  {
-    key: 'help',
-    name: '帮助中心',
-    desc: '使用指南和常见问题',
-    icon: 'icon-help',
-    color: '#8B5CF6',
-    url: '/mobile/help',
-  },
-  {
-    key: 'feedback',
-    name: '意见反馈',
-    desc: '提出建议和问题',
-    icon: 'icon-message',
-    color: '#EF4444',
-    url: '/mobile/feedback',
-  },
-])
-
-// 推荐内容
-const recommendations = ref([
-  {
-    key: 'new-features',
-    title: '新功能发布',
-    desc: '体验最新AI创作工具',
-    image: '/images/recommend/new-features.jpg',
-    url: '/mobile/news',
-  },
-  {
-    key: 'tutorials',
-    title: '使用教程',
-    desc: '快速上手AI创作',
-    image: '/images/recommend/tutorials.jpg',
-    url: '/mobile/tutorials',
-  },
-  {
-    key: 'gallery',
-    title: '精选作品',
-    desc: '欣赏优秀AI作品',
-    image: '/images/recommend/gallery.jpg',
-    url: '/mobile/imgWall',
-  },
-  {
-    key: 'community',
-    title: '用户社区',
-    desc: '交流创作心得',
-    image: '/images/recommend/community.jpg',
-    url: '/mobile/community',
+    key: 'apps',
+    name: '应用中心',
+    desc: '更多AI应用工具',
+    icon: 'icon-apps',
+    gradient: 'linear-gradient(135deg, #EC4899, #DB2777)',
+    tag: '应用',
+    status: 'active',
+    statusText: '可用',
+    url: '/mobile/apps',
   },
 ])
 
@@ -248,132 +156,185 @@ const navigateTo = (url) => {
   min-height: 100vh;
   background: var(--van-background);
 
-  .nav-left {
-    display: flex;
-    align-items: center;
-
-    .iconfont {
-      font-size: 20px;
-      color: var(--van-primary-color);
-    }
-  }
-
   .discover-content {
-    .category-section {
-      margin-bottom: 24px;
+    padding: 20px 16px;
 
-      .category-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--van-text-color);
-        margin: 0 0 16px 0;
-        padding-left: 4px;
-      }
-    }
-
-    // AI工具卡片
-    .tool-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px 8px;
-      background: var(--van-cell-background);
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      transition: all 0.3s ease;
-      cursor: pointer;
-
-      &:active {
-        transform: scale(0.95);
-      }
-
-      .tool-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-        .iconfont {
-          font-size: 22px;
-          color: white;
-        }
-      }
-
-      .tool-name {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--van-text-color);
+    .tools-section {
+      .section-header {
         text-align: center;
-      }
-    }
+        margin-bottom: 32px;
 
-    // 服务列表
-    :deep(.van-cell-group) {
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
-      .van-cell {
-        padding: 16px;
-
-        .van-cell__title {
-          font-weight: 500;
+        .section-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: var(--van-text-color);
+          margin: 0 0 8px 0;
+          background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
-        .van-cell__value {
+        .section-subtitle {
+          font-size: 14px;
           color: var(--van-gray-6);
-          font-size: 13px;
-        }
-
-        .iconfont {
-          font-size: 20px;
-          margin-right: 12px;
+          margin: 0;
         }
       }
-    }
 
-    // 推荐内容
-    .recommend-item {
-      .recommend-card {
-        background: var(--van-cell-background);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s ease;
-        cursor: pointer;
+      .tools-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
 
-        &:active {
-          transform: scale(0.98);
-        }
+        .tool-item {
+          .tool-card {
+            background: var(--van-cell-background);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
 
-        .recommend-image {
-          height: 120px;
-          overflow: hidden;
+            &::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              height: 3px;
+              background: linear-gradient(90deg, var(--van-primary-color), #8b5cf6);
+              transform: scaleX(0);
+              transition: transform 0.3s ease;
+            }
 
-          :deep(.van-image) {
-            width: 100%;
-            height: 100%;
-          }
-        }
+            &:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 
-        .recommend-info {
-          padding: 12px;
+              &::before {
+                transform: scaleX(1);
+              }
 
-          .recommend-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--van-text-color);
-            margin-bottom: 4px;
-          }
+              .tool-icon {
+                transform: scale(1.1);
+              }
+            }
 
-          .recommend-desc {
-            font-size: 12px;
-            color: var(--van-gray-6);
-            line-height: 1.4;
+            &:active {
+              transform: translateY(-2px);
+            }
+
+            .tool-icon-wrapper {
+              position: relative;
+              margin-bottom: 16px;
+
+              .tool-icon {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
+                transition: transform 0.3s ease;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+                .iconfont {
+                  font-size: 28px;
+                  color: white;
+                }
+              }
+
+              .tool-badge {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+                font-size: 10px;
+                font-weight: 600;
+                padding: 4px 8px;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+              }
+            }
+
+            .tool-content {
+              text-align: center;
+              margin-bottom: 16px;
+
+              .tool-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--van-text-color);
+                margin: 0 0 6px 0;
+              }
+
+              .tool-desc {
+                font-size: 12px;
+                color: var(--van-gray-6);
+                margin: 0 0 12px 0;
+                line-height: 1.4;
+              }
+
+              .tool-meta {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+
+                .tool-tag {
+                  background: var(--van-primary-color);
+                  color: white;
+                  font-size: 10px;
+                  font-weight: 500;
+                  padding: 2px 8px;
+                  border-radius: 10px;
+                }
+
+                .tool-status {
+                  font-size: 10px;
+                  font-weight: 500;
+                  padding: 2px 8px;
+                  border-radius: 10px;
+
+                  &.active {
+                    background: #10b981;
+                    color: white;
+                  }
+
+                  &.beta {
+                    background: #f59e0b;
+                    color: white;
+                  }
+
+                  &.maintenance {
+                    background: #6b7280;
+                    color: white;
+                  }
+                }
+              }
+            }
+
+            .tool-arrow {
+              position: absolute;
+              top: 20px;
+              right: 20px;
+              color: var(--van-gray-4);
+              transition: all 0.3s ease;
+
+              .van-icon {
+                font-size: 16px;
+              }
+            }
+
+            &:hover .tool-arrow {
+              color: var(--van-primary-color);
+              transform: translateX(2px);
+            }
           }
         }
       }
@@ -385,19 +346,61 @@ const navigateTo = (url) => {
 :deep(.van-theme-dark) {
   .discover-page {
     .tool-card {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+      &:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      }
 
       .tool-icon {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       }
     }
+  }
+}
 
-    .van-cell-group {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
+// 响应式优化
+@media (max-width: 375px) {
+  .discover-page {
+    .discover-content {
+      padding: 16px 12px;
 
-    .recommend-item .recommend-card {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      .tools-section {
+        .section-header {
+          margin-bottom: 24px;
+
+          .section-title {
+            font-size: 22px;
+          }
+        }
+
+        .tools-grid {
+          gap: 12px;
+
+          .tool-item .tool-card {
+            padding: 16px;
+
+            .tool-icon-wrapper .tool-icon {
+              width: 48px;
+              height: 48px;
+
+              .iconfont {
+                font-size: 24px;
+              }
+            }
+
+            .tool-content {
+              .tool-name {
+                font-size: 15px;
+              }
+
+              .tool-desc {
+                font-size: 11px;
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

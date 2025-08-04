@@ -226,9 +226,7 @@ const loading = ref(false)
 const finished = ref(false)
 const error = ref(false)
 const store = useSharedStore()
-const url = ref(
-  location.protocol + '//' + location.host + '/mobile/chat/export?chat_id=' + chatId.value
-)
+const url = ref(location.protocol + '//' + location.host + '/chat/export?chat_id=' + chatId.value)
 const md = new MarkdownIt({
   breaks: true,
   html: true,
@@ -556,18 +554,10 @@ const shareChat = (option) => {
   showShare.value = false
   if (option.icon === 'wechat') {
     showToast({
-      message: '当前会话已经导出，请通过浏览器或者微信的自带分享功能分享给好友',
-      duration: 5000,
+      message: '链接已复制，请通过微信分享给好友',
+      duration: 3000,
     })
-    router.push({
-      path: '/mobile/chat/export',
-      query: {
-        title: title.value,
-        chat_id: chatId.value,
-        role: role.value.name,
-        model: modelValue.value,
-      },
-    })
+    document.getElementById('copy-link-btn').click()
   } else if (option.icon === 'link') {
     document.getElementById('copy-link-btn').click()
   }

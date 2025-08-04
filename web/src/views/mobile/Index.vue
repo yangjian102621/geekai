@@ -149,7 +149,7 @@ const features = ref([
   {
     key: 'suno',
     name: '音乐创作',
-    icon: 'icon-music',
+    icon: 'icon-mp3',
     color: '#EF4444',
     url: '/mobile/create?tab=suno',
   },
@@ -170,14 +170,14 @@ const features = ref([
   {
     key: 'xmind',
     name: '思维导图',
-    icon: 'icon-mind',
+    icon: 'icon-xmind',
     color: '#3B82F6',
     url: '/mobile/tools?tab=xmind',
   },
   {
     key: 'imgWall',
     name: '作品展示',
-    icon: 'icon-gallery',
+    icon: 'icon-image-list',
     color: '#EC4899',
     url: '/mobile/imgWall',
   },

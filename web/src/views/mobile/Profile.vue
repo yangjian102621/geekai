@@ -31,7 +31,7 @@
       <!-- 用户状态卡片 -->
       <div class="status-cards" v-if="isLogin">
         <van-row :gutter="12">
-          <van-col :span="8">
+          <van-col :span="12">
             <div class="status-card" @click="router.push('/mobile/power-log')">
               <div class="card-icon power">
                 <i class="iconfont icon-flash"></i>
@@ -40,16 +40,7 @@
               <div class="card-label">剩余算力</div>
             </div>
           </van-col>
-          <van-col :span="8">
-            <div class="status-card" @click="router.push('/mobile/member')">
-              <div class="card-icon member">
-                <i class="iconfont icon-vip"></i>
-              </div>
-              <div class="card-value">{{ vipDays }}</div>
-              <div class="card-label">VIP天数</div>
-            </div>
-          </van-col>
-          <van-col :span="8">
+          <van-col :span="12">
             <div class="status-card" @click="router.push('/mobile/invite')">
               <div class="card-icon invite">
                 <i class="iconfont icon-user-plus"></i>
@@ -68,9 +59,9 @@
           <van-col :span="6">
             <div class="action-item" @click="router.push('/mobile/member')">
               <div class="action-icon recharge">
-                <i class="iconfont icon-money"></i>
+                <i class="iconfont icon-vip"></i>
               </div>
-              <div class="action-label">充值</div>
+              <div class="action-label">会员中心</div>
             </div>
           </van-col>
           <van-col :span="6">
@@ -100,6 +91,28 @@
         </van-row>
       </div>
 
+      <!-- 账户管理 -->
+      <div class="menu-section" v-if="isLogin">
+        <h3 class="section-title">账户管理</h3>
+        <van-cell-group inset>
+          <van-cell title="绑定邮箱" is-link @click="showBindEmailDialog = true">
+            <template #icon>
+              <i class="iconfont icon-email menu-icon"></i>
+            </template>
+          </van-cell>
+          <van-cell title="绑定手机" is-link @click="showBindMobileDialog = true">
+            <template #icon>
+              <i class="iconfont icon-mobile menu-icon"></i>
+            </template>
+          </van-cell>
+          <van-cell title="第三方登录" is-link @click="showThirdLoginDialog = true">
+            <template #icon>
+              <i class="iconfont icon-login menu-icon"></i>
+            </template>
+          </van-cell>
+        </van-cell-group>
+      </div>
+
       <!-- 功能菜单 -->
       <div class="menu-section">
         <h3 class="section-title">我的服务</h3>
@@ -115,16 +128,6 @@
             </template>
           </van-cell>
           <van-cell
-            title="会员中心"
-            icon="diamond-o"
-            is-link
-            @click="router.push('/mobile/member')"
-          >
-            <template #icon>
-              <i class="iconfont icon-vip menu-icon"></i>
-            </template>
-          </van-cell>
-          <van-cell
             title="邀请好友"
             icon="friends-o"
             is-link
@@ -134,12 +137,7 @@
               <i class="iconfont icon-user-plus menu-icon"></i>
             </template>
           </van-cell>
-          <van-cell
-            title="聊天导出"
-            icon="down"
-            is-link
-            @click="router.push('/mobile/chat/export')"
-          >
+          <van-cell title="聊天导出" icon="down" is-link @click="copyChatExportLink">
             <template #icon>
               <i class="iconfont icon-download menu-icon"></i>
             </template>
@@ -294,6 +292,11 @@
       </div>
     </van-dialog>
 
+    <!-- 组件弹窗 -->
+    <bind-email v-if="isLogin" :show="showBindEmailDialog" @hide="showBindEmailDialog = false" />
+    <bind-mobile v-if="isLogin" :show="showBindMobileDialog" @hide="showBindMobileDialog = false" />
+    <third-login v-if="isLogin" :show="showThirdLoginDialog" @hide="showThirdLoginDialog = false" />
+
     <!-- 退出登录确认 -->
     <van-dialog
       :model-value="showLogoutConfirm"
@@ -303,15 +306,24 @@
       show-cancel-button
       @confirm="logout"
     />
+
+    <!-- 隐藏的复制链接按钮 -->
+    <button id="copy-chat-export-btn" style="display: none" :data-clipboard-text="chatExportUrl">
+      复制聊天导出链接
+    </button>
   </div>
 </template>
 
 <script setup>
+import BindEmail from '@/components/BindEmail.vue'
+import BindMobile from '@/components/BindMobile.vue'
+import ThirdLogin from '@/components/ThirdLogin.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
 import { showLoginDialog } from '@/utils/libs'
+import Clipboard from 'clipboard'
 import { showFailToast, showLoadingToast, showNotify, showSuccessToast } from 'vant'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -337,6 +349,9 @@ const router = useRouter()
 const isLogin = ref(false)
 const showSettings = ref(false)
 const showPasswordDialog = ref(false)
+const showBindEmailDialog = ref(false)
+const showBindMobileDialog = ref(false)
+const showThirdLoginDialog = ref(false)
 const showAvatarOptions = ref(false)
 const showAbout = ref(false)
 const showLogoutConfirm = ref(false)
@@ -345,6 +360,9 @@ const stream = ref(store.chatStream)
 const dark = ref(store.theme === 'dark')
 const title = ref(import.meta.env.VITE_TITLE)
 const appVersion = ref('2.1.0')
+
+// 聊天导出链接
+const chatExportUrl = ref(location.protocol + '//' + location.host + '/chat/export')
 
 // 新增状态
 const notifications = ref(true)
@@ -372,13 +390,6 @@ const isVip = computed(() => {
   return expiredTime > now
 })
 
-const vipDays = computed(() => {
-  if (!isVip.value) return 0
-  const now = Date.now()
-  const expiredTime = form.value.expired_time * 1000
-  return Math.ceil((expiredTime - now) / (24 * 60 * 60 * 1000))
-})
-
 onMounted(() => {
   getSystemInfo()
     .then((res) => {
@@ -401,6 +412,16 @@ onMounted(() => {
     .catch(() => {
       isLogin.value = false
     })
+
+  // 初始化复制功能
+  const clipboard = new Clipboard('#copy-chat-export-btn')
+  clipboard.on('success', (e) => {
+    e.clearSelection()
+    showNotify({ type: 'success', message: '链接已复制到剪贴板', duration: 2000 })
+  })
+  clipboard.on('error', () => {
+    showNotify({ type: 'danger', message: '复制失败', duration: 2000 })
+  })
 })
 
 // 获取用户详细信息
@@ -419,6 +440,11 @@ const fetchUserProfile = () => {
 const fetchUserStats = () => {
   // 模拟数据，实际项目中应调用API
   inviteCount.value = Math.floor(Math.random() * 20)
+}
+
+// 复制聊天导出链接
+const copyChatExportLink = () => {
+  document.getElementById('copy-chat-export-btn').click()
 }
 
 // 确认密码验证
@@ -670,9 +696,9 @@ const logout = function () {
         }
 
         .card-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -682,16 +708,12 @@ const logout = function () {
             background: linear-gradient(135deg, #ff9500, #ff6b35);
           }
 
-          &.member {
-            background: linear-gradient(135deg, #ffd700, #ffb300);
-          }
-
           &.invite {
             background: linear-gradient(135deg, #1989fa, #0d7dff);
           }
 
           .iconfont {
-            font-size: 20px;
+            font-size: 24px;
             color: white;
           }
         }
@@ -748,7 +770,7 @@ const logout = function () {
           margin-bottom: 8px;
 
           &.recharge {
-            background: linear-gradient(135deg, #07c160, #00a550);
+            background: linear-gradient(135deg, #ffd700, #ffb300);
           }
 
           &.password {

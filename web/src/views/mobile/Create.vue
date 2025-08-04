@@ -1,6 +1,6 @@
 <template>
   <div class="create-center">
-    <div class="create-content px-3">
+    <div class="create-content p-3">
       <CustomTabs
         :model-value="activeTab"
         @update:model-value="activeTab = $event"

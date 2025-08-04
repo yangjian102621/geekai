@@ -99,6 +99,7 @@ onMounted(() => {
 
   .chat-box {
     width: 100%;
+    max-width: 800px;
     // 变量定义
     --content-font-size: 16px;
     --content-color: #c1c1c1;
@@ -117,6 +118,25 @@ onMounted(() => {
 
       .chat-line-inner {
         max-width: 800px;
+      }
+    }
+  }
+}
+
+// 移动端适配
+@media (max-width: 768px) {
+  .chat-export {
+    padding: 0 10px;
+
+    .chat-box {
+      padding: 0 0 30px 0;
+
+      .title h2 {
+        font-size: 18px;
+      }
+
+      .chat-line {
+        font-size: 13px;
       }
     }
   }

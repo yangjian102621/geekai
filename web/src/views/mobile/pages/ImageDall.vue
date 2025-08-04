@@ -84,7 +84,7 @@
       </van-cell-group>
     </van-form>
 
-    <h3>任务列表</h3>
+    <h3 class="m-3">任务列表</h3>
     <div class="running-job-list pt-3 pb-3">
       <van-empty
         v-if="runningJobs.length === 0"
@@ -116,7 +116,7 @@
       </van-grid>
     </div>
 
-    <h3>创作记录</h3>
+    <h3 class="m-3">创作记录</h3>
     <div class="finish-job-list">
       <van-empty
         v-if="finishedJobs.length === 0"
