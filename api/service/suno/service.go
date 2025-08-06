@@ -112,6 +112,10 @@ type RespVo struct {
 	Message string `json:"message"`
 	Data    string `json:"data"`
 	Channel string `json:"channel,omitempty"`
+	Error   struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+	} `json:"error,omitempty"`
 }
 
 func (s *Service) Create(task types.SunoTask) (RespVo, error) {
@@ -154,13 +158,14 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	}
 
 	body, _ := io.ReadAll(r.Body)
+	logger.Debugf("API response: %s", string(body))
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
 	}
 
 	if res.Code != "success" {
-		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
+		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Error.Message)
 	}
 	// update the last_use_at for api key
 	apiKey.LastUsedAt = time.Now().Unix()

@@ -1,235 +1,475 @@
 <template>
-  <div class="mobile-suno-create">
+  <div class="min-h-screen bg-gray-50">
     <!-- 页面头部 -->
-    <div class="page-header">
-      <van-nav-bar title="音乐创作" left-arrow @click-left="goBack" fixed placeholder />
+    <div class="sticky top-0 z-40 bg-white shadow-sm">
+      <div class="flex items-center px-4 h-14">
+        <button
+          @click="goBack"
+          class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <i class="iconfont icon-back text-gray-600"></i>
+        </button>
+        <h1 class="flex-1 text-center text-lg font-semibold text-gray-900">音乐创作</h1>
+        <div class="w-8"></div>
+      </div>
     </div>
 
     <!-- 创作表单 -->
-    <div class="create-form">
+    <div class="p-4 space-y-6">
       <!-- 模式切换 -->
-      <div class="mode-switch">
-        <van-cell-group>
-          <van-cell title="创作模式">
-            <template #right-icon>
-              <van-switch v-model="custom" size="24" @change="onModeChange" />
-            </template>
-          </van-cell>
-          <van-cell title="自定义模式" :value="custom ? '开启' : '关闭'" />
-        </van-cell-group>
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-gray-900 font-medium">创作模式</span>
+          <van-switch v-model="custom" @change="onModeChange" size="24px" />
+        </div>
+        <p class="text-sm text-gray-500">
+          {{ custom ? '自定义模式：可设置歌词、风格等详细参数' : '简单模式：通过描述快速生成' }}
+        </p>
       </div>
 
       <!-- 模型选择 -->
-      <div class="model-select">
-        <van-field
-          v-model="selectedModelLabel"
-          label="模型"
-          readonly
-          is-link
-          @click="showModelPicker = true"
-          placeholder="请选择模型"
-        />
-      </div>
+      <CustomSelect
+        v-model="data.model"
+        :options="models"
+        label="模型版本"
+        title="选择模型"
+        @change="onModelSelect"
+      >
+        <template #option="{ option, selected }">
+          <div class="flex items-center w-full">
+            <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
+            <span class="text-xs text-gray-400">({{ option.value }})</span>
+            <span v-if="selected" class="ml-auto text-green-500"
+              ><i class="iconfont icon-success"></i
+            ></span>
+          </div>
+        </template>
+      </CustomSelect>
 
       <!-- 纯音乐开关 -->
-      <div class="pure-music">
-        <van-cell title="纯音乐">
-          <template #right-icon>
-            <van-switch v-model="data.instrumental" size="24" />
-          </template>
-        </van-cell>
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-gray-900 font-medium">纯音乐</span>
+            <p class="text-sm text-gray-500 mt-1">生成不包含人声的音乐</p>
+          </div>
+          <van-switch v-model="data.instrumental" size="24px" />
+        </div>
       </div>
 
       <!-- 自定义模式内容 -->
-      <div v-if="custom">
+      <div v-if="custom" class="space-y-6">
         <!-- 歌词输入 -->
-        <div v-if="!data.instrumental" class="lyrics-section">
-          <van-field
+        <div v-if="!data.instrumental" class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">歌词</label>
+          <textarea
             v-model="data.lyrics"
-            label="歌词"
-            type="textarea"
             placeholder="请在这里输入你自己写的歌词..."
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows="6"
             maxlength="2000"
-            show-word-limit
           />
-          <van-button
-            type="primary"
-            size="small"
-            @click="createLyric"
-            :loading="isGenerating"
-            block
-            class="mt-2"
-          >
-            生成歌词
-          </van-button>
+          <div class="flex items-center justify-between mt-3">
+            <span class="text-sm text-gray-500">{{ data.lyrics.length }}/2000</span>
+            <button
+              @click="createLyric"
+              :disabled="isGenerating || !data.lyrics"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
+              <span>{{ isGenerating ? '生成中...' : '生成歌词' }}</span>
+            </button>
+          </div>
         </div>
 
         <!-- 音乐风格 -->
-        <div class="style-section">
-          <van-field
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">音乐风格</label>
+          <textarea
             v-model="data.tags"
-            label="音乐风格"
-            type="textarea"
             placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..."
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows="3"
             maxlength="120"
-            show-word-limit
           />
+          <div class="flex justify-between items-center mt-2 mb-3">
+            <span class="text-sm text-gray-500">{{ data.tags.length }}/120</span>
+          </div>
           <!-- 风格标签选择 -->
-          <div class="style-tags">
-            <van-tag
+          <div class="flex flex-wrap gap-2">
+            <button
               v-for="tag in tags"
               :key="tag.value"
-              type="primary"
-              plain
-              size="medium"
               @click="selectTag(tag)"
-              class="mr-2 mb-2"
+              class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
             >
               {{ tag.label }}
-            </van-tag>
+            </button>
           </div>
         </div>
 
         <!-- 歌曲名称 -->
-        <div class="title-section">
-          <van-field
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">歌曲名称</label>
+          <input
             v-model="data.title"
-            label="歌曲名称"
             placeholder="请输入歌曲名称..."
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxlength="100"
-            show-word-limit
           />
+          <div class="text-right mt-2">
+            <span class="text-sm text-gray-500">{{ data.title.length }}/100</span>
+          </div>
         </div>
       </div>
 
       <!-- 简单模式内容 -->
-      <div v-else>
-        <van-field
+      <div v-else class="bg-white rounded-xl p-4 shadow-sm">
+        <label class="block text-gray-700 font-medium mb-3">歌曲描述</label>
+        <textarea
           v-model="data.prompt"
-          label="歌曲描述"
-          type="textarea"
           placeholder="例如：一首关于爱情的摇滚歌曲..."
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           rows="6"
           maxlength="1000"
-          show-word-limit
         />
+        <div class="text-right mt-2">
+          <span class="text-sm text-gray-500">{{ data.prompt.length }}/1000</span>
+        </div>
       </div>
 
       <!-- 续写歌曲 -->
-      <div v-if="refSong" class="ref-song">
-        <van-cell title="续写歌曲">
-          <template #value>
-            <van-button type="danger" size="small" @click="removeRefSong"> 移除 </van-button>
-          </template>
-        </van-cell>
-        <van-cell title="歌曲名称" :value="refSong.title" />
-        <van-field
-          v-model="refSong.extend_secs"
-          label="续写开始时间(秒)"
-          type="number"
-          placeholder="从第几秒开始续写"
-        />
+      <div v-if="refSong" class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-400">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-gray-900 font-medium">续写歌曲</h3>
+          <button
+            @click="removeRefSong"
+            class="px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+          >
+            移除
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div class="flex justify-between">
+            <span class="text-gray-600">歌曲名称：</span>
+            <span class="text-gray-900 font-medium">{{ refSong.title }}</span>
+          </div>
+          <div>
+            <label class="block text-gray-700 font-medium mb-2">续写开始时间(秒)</label>
+            <input
+              v-model="refSong.extend_secs"
+              type="number"
+              placeholder="从第几秒开始续写"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- 上传音乐 -->
-      <div class="upload-section">
-        <div class="upload-area">
-          <van-uploader
-            v-model="uploadFiles"
-            :max-count="1"
-            :after-read="uploadAudio"
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <label class="block text-gray-700 font-medium mb-3">上传音乐文件(可选)</label>
+        <div
+          class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+        >
+          <input
+            ref="fileInput"
+            type="file"
             accept=".wav,.mp3"
-            :preview-size="80"
-            :preview-image="false"
-          >
-            <div class="upload-placeholder">
-              <van-icon name="plus" size="24" />
-              <span>上传音乐文件</span>
-              <small>支持 .wav, .mp3 格式</small>
-            </div>
-          </van-uploader>
+            @change="handleFileSelect"
+            class="hidden"
+          />
+          <div @click="$refs.fileInput.click()" class="flex flex-col items-center space-y-2">
+            <i class="iconfont icon-upload text-blue-500 text-2xl"></i>
+            <span class="text-gray-700 font-medium">上传音乐文件</span>
+            <small class="text-gray-500">支持 .wav, .mp3 格式</small>
+          </div>
+        </div>
+        <div v-if="uploadFiles.length > 0" class="mt-3 p-3 bg-gray-50 rounded-lg">
+          <div class="flex items-center space-x-2">
+            <i class="iconfont icon-success text-green-500"></i>
+            <span class="text-sm text-gray-700">{{ uploadFiles[0].name }}</span>
+          </div>
         </div>
       </div>
 
       <!-- 生成按钮 -->
-      <div class="submit-section">
-        <van-button type="primary" size="large" @click="create" :loading="loading" block>
-          {{ btnText }}
-        </van-button>
+      <div class="sticky bottom-4 bg-white rounded-xl p-4 shadow-lg">
+        <button
+          @click="create"
+          :disabled="loading"
+          class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+        >
+          <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+          <span>{{ loading ? '创作中...' : btnText }}</span>
+        </button>
       </div>
     </div>
 
     <!-- 作品列表 -->
-    <div class="works-list">
-      <van-list
-        v-model:loading="listLoading"
-        :finished="listFinished"
-        finished-text="没有更多了"
-        @load="loadMore"
-      >
-        <div v-for="item in list" :key="item.id" class="work-item">
-          <van-card
-            :title="item.title || '未命名歌曲'"
-            :desc="item.tags || item.prompt"
-            :thumb="item.cover_url"
-          >
-            <template #tags>
-              <van-tag v-if="item.major_model_version" type="primary">
-                {{ item.major_model_version }}
-              </van-tag>
-              <van-tag v-if="item.type === 4" type="success">用户上传</van-tag>
-              <van-tag v-if="item.type === 3" type="warning">完整歌曲</van-tag>
-            </template>
-            <template #footer>
-              <van-button v-if="item.progress === 100" size="small" @click="play(item)">
-                播放
-              </van-button>
-              <van-button
+    <div class="p-4">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">我的作品</h2>
+      <div class="space-y-4">
+        <div v-for="item in list" :key="item.id" class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex space-x-4">
+            <div class="flex-shrink-0">
+              <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                <el-image
+                  :src="item.cover_url"
+                  fit="cover"
+                  class="w-full h-full"
+                  :preview-disabled="true"
+                >
+                  <template #error>
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                      <i class="iconfont icon-mp3 text-gray-400 text-xl"></i>
+                    </div>
+                  </template>
+                </el-image>
+                <!-- 音乐播放按钮 -->
+                <button
+                  v-if="item.progress === 100"
+                  @click="play(item)"
+                  class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
+                >
+                  <i class="iconfont icon-play text-white text-xl"></i>
+                </button>
+                <!-- 进度动画 -->
+                <div
+                  v-if="item.progress < 100 && item.progress !== 101"
+                  class="absolute inset-0 flex items-center justify-center bg-blue-500 bg-opacity-20"
+                >
+                  <i class="iconfont icon-loading animate-spin text-blue-500 text-xl"></i>
+                </div>
+                <!-- 失败状态 -->
+                <div
+                  v-if="item.progress === 101"
+                  class="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-20"
+                >
+                  <i class="iconfont icon-warning text-red-500 text-xl"></i>
+                </div>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="text-gray-900 font-medium truncate">
+                    {{ item.title || '未命名歌曲' }}
+                  </h3>
+                  <p class="text-gray-500 text-sm mt-1 line-clamp-2">
+                    {{ item.tags || item.prompt }}
+                  </p>
+                </div>
+                <!-- 任务状态 -->
+                <div v-if="item.progress < 100" class="flex items-center space-x-2 text-sm">
+                  <div
+                    v-if="item.progress === 101"
+                    class="text-red-600 flex items-center space-x-1"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01"
+                      />
+                    </svg>
+                    <span>失败</span>
+                  </div>
+                  <div v-else class="text-blue-600 flex items-center space-x-1">
+                    <div
+                      class="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"
+                    ></div>
+                    <span>生成中</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 标签 -->
+              <div class="flex items-center space-x-2 mt-2">
+                <span
+                  v-if="item.major_model_version"
+                  class="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full"
+                >
+                  {{ item.major_model_version }}
+                </span>
+                <span
+                  v-if="item.type === 4"
+                  class="px-2 py-1 text-xs bg-green-100 text-green-600 rounded-full"
+                >
+                  <i class="iconfont icon-upload mr-1"></i>用户上传
+                </span>
+                <span
+                  v-if="item.type === 3"
+                  class="px-2 py-1 text-xs bg-yellow-100 text-yellow-600 rounded-full"
+                >
+                  <i class="iconfont icon-mp3 mr-1"></i>完整歌曲
+                </span>
+                <span
+                  v-if="item.ref_song"
+                  class="px-2 py-1 text-xs bg-purple-100 text-purple-600 rounded-full"
+                >
+                  <i class="iconfont icon-link mr-1"></i>续写
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="flex items-center justify-between mt-4">
+            <div class="flex space-x-2">
+              <button
                 v-if="item.progress === 100"
-                size="small"
-                @click="download(item)"
-                :loading="item.downloading"
+                @click="play(item)"
+                class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
               >
-                下载
-              </van-button>
-              <van-button size="small" type="danger" @click="removeJob(item)"> 删除 </van-button>
-            </template>
-          </van-card>
+                <i class="iconfont icon-play !text-xs"></i>
+                <span>播放</span>
+              </button>
+              <button
+                v-if="item.progress === 100"
+                @click="download(item)"
+                :disabled="item.downloading"
+                class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 flex items-center space-x-1"
+              >
+                <svg
+                  v-if="item.downloading"
+                  class="w-3 h-3 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <i v-else class="iconfont icon-download !text-xs"></i>
+                <span>{{ item.downloading ? '下载中...' : '下载' }}</span>
+              </button>
+            </div>
+            <button
+              @click="showDeleteDialog(item)"
+              class="px-3 py-1.5 bg-red-100 text-red-600 text-sm rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-1"
+            >
+              <i class="iconfont icon-remove !text-xs"></i>
+              <span>删除</span>
+            </button>
+          </div>
+
+          <!-- 进度条 -->
+          <div v-if="item.progress < 100 && item.progress !== 101" class="mt-4">
+            <div class="flex justify-between text-sm text-gray-600 mb-1">
+              <span>生成进度</span>
+              <span>{{ item.progress }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div
+                class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                :style="{ width: item.progress + '%' }"
+              ></div>
+            </div>
+          </div>
+
+          <!-- 错误信息 -->
+          <div
+            v-if="item.progress === 101"
+            class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg"
+          >
+            <div class="flex items-start space-x-2">
+              <div>
+                <p class="text-red-600 text-sm">{{ item.err_msg || '未知错误' }}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </van-list>
+
+        <!-- 加载更多 -->
+        <div v-if="listLoading" class="flex justify-center py-4">
+          <svg class="w-6 h-6 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        </div>
+
+        <!-- 没有更多了 -->
+        <div v-if="listFinished && !listLoading" class="text-center py-4 text-gray-500">
+          没有更多了
+        </div>
+      </div>
     </div>
 
-    <!-- 模型选择弹窗 -->
-    <van-popup v-model:show="showModelPicker" position="bottom" round>
-      <van-picker
-        :columns="modelOptions"
-        @confirm="onModelConfirm"
-        @cancel="showModelPicker = false"
-        title="选择模型"
-      />
-    </van-popup>
-
     <!-- 音乐播放器 -->
-    <van-popup v-model:show="showPlayer" position="bottom" round :style="{ height: '40%' }">
-      <div class="player-content">
-        <div class="player-header">
-          <h3>正在播放</h3>
-          <van-icon name="cross" @click="showPlayer = false" />
+    <div
+      v-if="showPlayer"
+      class="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50"
+      @click="showPlayer = false"
+    >
+      <div @click.stop class="bg-white rounded-t-2xl w-full max-w-md animate-slide-up">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">正在播放</h3>
+          <button @click="showPlayer = false" class="p-2 hover:bg-gray-100 rounded-full">
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
         </div>
-        <audio v-if="currentAudio" :src="currentAudio" controls autoplay class="w-full" />
+        <div class="p-6">
+          <audio
+            v-if="currentAudio"
+            :src="currentAudio"
+            controls
+            autoplay
+            class="w-full rounded-lg"
+          >
+            您的浏览器不支持音频播放
+          </audio>
+        </div>
       </div>
-    </van-popup>
+    </div>
+
+    <!-- 删除确认对话框 -->
+    <!-- 已移除，改为 van showConfirmDialog 方式 -->
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast, showDialog } from 'vant'
-import { httpGet, httpPost } from '@/utils/http'
+import { httpGet, httpPost, httpDownload } from '@/utils/http'
 import { checkSession } from '@/store/cache'
+import CustomSelect from '@/views/mobile/components/CustomSelect.vue'
+import { showToastMessage, showLoading, closeLoading } from '@/utils/dialog'
+import { replaceImg } from '@/utils/libs'
+import { showConfirmDialog } from 'vant'
 
 const router = useRouter()
 
@@ -254,9 +494,12 @@ const btnText = ref('开始创作')
 const refSong = ref(null)
 const showModelPicker = ref(false)
 const showPlayer = ref(false)
+const showDeleteModal = ref(false)
 const currentAudio = ref('')
 const uploadFiles = ref([])
 const isGenerating = ref(false)
+const deleting = ref(false)
+const deleteItem = ref(null)
 
 // 模型选项
 const models = ref([
@@ -266,13 +509,9 @@ const models = ref([
   { label: 'v4.5', value: 'chirp-auk' },
 ])
 
-const modelOptions = models.value.map((item) => item.label)
-
-// 计算当前选中的模型标签
-const selectedModelLabel = computed(() => {
-  const selectedModel = models.value.find((item) => item.value === data.value.model)
-  return selectedModel ? selectedModel.label : ''
-})
+const onModelSelect = (selectedModel) => {
+  data.value.model = selectedModel.value
+}
 
 // 风格标签
 const tags = ref([
@@ -293,16 +532,32 @@ const total = ref(0)
 const taskPulling = ref(true)
 const tastPullHandler = ref(null)
 
+// 滚动监听，自动加载更多
+const handleScroll = () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+  const windowHeight = window.innerHeight
+  const documentHeight = document.documentElement.scrollHeight
+
+  // 当滚动到底部附近时加载更多
+  if (scrollTop + windowHeight >= documentHeight - 100) {
+    loadMore()
+  }
+}
+
 // 生命周期
 onMounted(() => {
   checkSession()
     .then(() => {
       fetchData(1)
+      // 启动定时轮询，检查任务状态
       tastPullHandler.value = setInterval(() => {
         if (taskPulling.value) {
-          fetchData(1)
+          fetchData(1) // 只刷新第一页数据
         }
       }, 5000)
+
+      // 添加滚动监听
+      window.addEventListener('scroll', handleScroll)
     })
     .catch(() => {})
 })
@@ -311,6 +566,8 @@ onUnmounted(() => {
   if (tastPullHandler.value) {
     clearInterval(tastPullHandler.value)
   }
+  // 移除滚动监听
+  window.removeEventListener('scroll', handleScroll)
 })
 
 // 方法
@@ -334,7 +591,7 @@ const onModelConfirm = (value) => {
 
 const selectTag = (tag) => {
   if (data.value.tags.length + tag.value.length >= 119) {
-    showToast('标签长度超出限制')
+    showToastMessage('标签长度超出限制', 'error')
     return
   }
   const currentTags = data.value.tags.split(',').filter((t) => t.trim())
@@ -346,7 +603,7 @@ const selectTag = (tag) => {
 
 const createLyric = () => {
   if (data.value.lyrics === '') {
-    showToast('请输入歌词描述')
+    showToastMessage('请输入歌词描述', 'error')
     return
   }
   isGenerating.value = true
@@ -356,20 +613,28 @@ const createLyric = () => {
       data.value.title = lines.shift().replace(/\*/g, '')
       lines.shift()
       data.value.lyrics = lines.join('\n')
-      showToast('歌词生成成功')
+      showToastMessage('歌词生成成功', 'success')
     })
     .catch((e) => {
-      showToast('歌词生成失败：' + e.message)
+      showToastMessage('歌词生成失败：' + e.message, 'error')
     })
     .finally(() => {
       isGenerating.value = false
     })
 }
 
+const handleFileSelect = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  uploadFiles.value = [{ file, name: file.name }]
+  uploadAudio({ file, name: file.name })
+}
+
 const uploadAudio = (file) => {
   const formData = new FormData()
   formData.append('file', file.file, file.name)
-  showToast({ message: '正在上传文件...', duration: 0 })
+  showLoading('正在上传文件...')
 
   httpPost('/api/upload', formData)
     .then((res) => {
@@ -380,15 +645,21 @@ const uploadAudio = (file) => {
       })
         .then(() => {
           fetchData(1)
-          showToast('歌曲上传成功')
+          showToastMessage('歌曲上传成功', 'success')
           removeRefSong()
         })
         .catch((e) => {
-          showToast('歌曲上传失败：' + e.message)
+          showToastMessage('歌曲上传失败：' + e.message, 'error')
+        })
+        .finally(() => {
+          closeLoading()
         })
     })
     .catch((e) => {
-      showToast('文件上传失败:' + e.message)
+      showToastMessage('文件上传失败:' + e.message, 'error')
+    })
+    .finally(() => {
+      closeLoading()
     })
 }
 
@@ -400,21 +671,21 @@ const create = () => {
 
   if (refSong.value) {
     if (data.value.extend_secs > refSong.value.duration) {
-      showToast('续写开始时间不能超过原歌曲长度')
+      showToastMessage('续写开始时间不能超过原歌曲长度', 'error')
       return
     }
   } else if (custom.value) {
     if (data.value.lyrics === '') {
-      showToast('请输入歌词')
+      showToastMessage('请输入歌词', 'error')
       return
     }
     if (data.value.title === '') {
-      showToast('请输入歌曲标题')
+      showToastMessage('请输入歌曲标题', 'error')
       return
     }
   } else {
     if (data.value.prompt === '') {
-      showToast('请输入歌曲描述')
+      showToastMessage('请输入歌曲描述', 'error')
       return
     }
   }
@@ -424,10 +695,10 @@ const create = () => {
     .then(() => {
       fetchData(1)
       taskPulling.value = true
-      showToast('创建任务成功')
+      showToastMessage('创建任务成功', 'success')
     })
     .catch((e) => {
-      showToast('创建任务失败：' + e.message)
+      showToastMessage('创建任务失败：' + e.message, 'error')
     })
     .finally(() => {
       loading.value = false
@@ -448,6 +719,7 @@ const fetchData = (_page) => {
         if (v.progress === 100) {
           v.major_model_version = v['raw_data']['major_model_version']
         }
+        // 检查是否有未完成的任务（进度为 0 或 102）
         if (v.progress === 0 || v.progress === 102) {
           needPull = true
         }
@@ -455,6 +727,11 @@ const fetchData = (_page) => {
       }
       listLoading.value = false
       taskPulling.value = needPull
+
+      // 如果任务有变化，则刷新任务列表
+      if (JSON.stringify(list.value) !== JSON.stringify(items)) {
+        list.value = items
+      }
 
       if (page.value === 1) {
         list.value = items
@@ -468,13 +745,15 @@ const fetchData = (_page) => {
     })
     .catch((e) => {
       listLoading.value = false
-      showToast('获取作品列表失败：' + e.message)
+      showToastMessage('获取作品列表失败：' + e.message, 'error')
     })
 }
 
 const loadMore = () => {
-  page.value++
-  fetchData()
+  if (!listFinished.value && !listLoading.value) {
+    page.value++
+    fetchData()
+  }
 }
 
 const play = (item) => {
@@ -483,34 +762,62 @@ const play = (item) => {
 }
 
 const download = (item) => {
+  const url = replaceImg(item.audio_url)
+  const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+  // parse filename
+  const urlObj = new URL(url)
+  const fileName = urlObj.pathname.split('/').pop()
   item.downloading = true
-  const link = document.createElement('a')
-  link.href = item.audio_url
-  link.download = item.title || 'song.mp3'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  item.downloading = false
-  showToast('开始下载')
+  httpDownload(downloadURL)
+    .then((response) => {
+      const blob = new Blob([response.data])
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(link.href)
+      item.downloading = false
+    })
+    .catch(() => {
+      showToastMessage('下载失败', 'error')
+      item.downloading = false
+    })
+    .finally(() => {
+      item.downloading = false
+    })
 }
 
-const removeJob = (item) => {
-  showDialog({
+const showDeleteDialog = (item) => {
+  deleteItem.value = item
+  showConfirmDialog({
     title: '确认删除',
-    message: '此操作将会删除任务相关文件，继续操作吗?',
-    showCancelButton: true,
+    message: '此操作将会删除任务相关文件，继续操作吗？',
+    confirmButtonText: '确认删除',
+    cancelButtonText: '取消',
   })
     .then(() => {
-      httpGet('/api/suno/remove', { id: item.id })
+      // on confirm
+      if (!deleteItem.value) return
+      deleting.value = true
+      httpGet('/api/suno/remove', { id: deleteItem.value.id })
         .then(() => {
-          showToast('任务删除成功')
+          showToastMessage('任务删除成功', 'success')
           fetchData(1)
+          deleteItem.value = null
         })
         .catch((e) => {
-          showToast('任务删除失败：' + e.message)
+          showToastMessage('任务删除失败：' + e.message, 'error')
+        })
+        .finally(() => {
+          deleting.value = false
         })
     })
-    .catch(() => {})
+    .catch(() => {
+      // on cancel
+      deleteItem.value = null
+    })
 }
 
 const removeRefSong = () => {
@@ -519,171 +826,114 @@ const removeRefSong = () => {
 }
 </script>
 
-<style lang="scss" scoped>
-.mobile-suno-create {
-  min-height: 100vh;
-  background: #f7f8fa;
-  padding-bottom: 20px;
-
-  .page-header {
-    background: #fff;
+<style scoped>
+/* 自定义动画 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-
-  .create-form {
-    background: #fff;
-    margin: 12px;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-
-    .mode-switch {
-      margin-bottom: 20px;
-    }
-
-    .model-select {
-      margin-bottom: 20px;
-    }
-
-    .pure-music {
-      margin-bottom: 20px;
-    }
-
-    .lyrics-section,
-    .style-section,
-    .title-section {
-      margin-bottom: 20px;
-    }
-
-    .style-tags {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .ref-song {
-      margin-bottom: 20px;
-      padding: 16px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border: 1px solid #e9ecef;
-    }
-
-    .upload-section {
-      margin-bottom: 20px;
-
-      .upload-area {
-        .upload-placeholder {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 120px;
-          background: #f8f9fa;
-          border: 2px dashed #dee2e6;
-          border-radius: 12px;
-          color: #6c757d;
-          transition: all 0.3s ease;
-
-          &:hover {
-            border-color: var(--van-primary-color);
-            background: #f0f8ff;
-          }
-
-          .van-icon {
-            margin-bottom: 8px;
-            color: var(--van-primary-color);
-          }
-
-          span {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 4px;
-          }
-
-          small {
-            font-size: 12px;
-            opacity: 0.7;
-          }
-        }
-      }
-    }
-
-    .submit-section {
-      margin-top: 24px;
-    }
-  }
-
-  .works-list {
-    margin: 12px;
-
-    .work-item {
-      margin-bottom: 12px;
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-  }
-
-  .player-content {
-    padding: 20px;
-
-    .player-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-
-      h3 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-      }
-
-      .van-icon {
-        font-size: 20px;
-        cursor: pointer;
-        color: #999;
-      }
-    }
-
-    audio {
-      width: 100%;
-      border-radius: 8px;
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-// 深色主题适配
-:deep(.van-theme-dark) {
-  .mobile-suno-create {
-    background: #1a1a1a;
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
 
-    .create-form {
-      background: #2a2a2a;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-      .ref-song {
-        background: #333;
-        border-color: #444;
-      }
+@keyframes scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
-      .upload-area .upload-placeholder {
-        background: #333;
-        border-color: #555;
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
 
-        &:hover {
-          background: #2a2a2a;
-          border-color: var(--van-primary-color);
-        }
-      }
-    }
+.animate-fade-out {
+  animation: fade-out 0.3s ease-out;
+}
 
-    .works-list .work-item {
-      background: #2a2a2a;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-scale-up {
+  animation: scale-up 0.3s ease-out;
+}
+
+/* 文本截断 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 滚动监听自动加载更多 */
+.scroll-container {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .bg-gray-50 {
+    background-color: #1f2937;
+  }
+
+  .bg-white {
+    background-color: #374151;
+  }
+
+  .text-gray-900 {
+    color: #f9fafb;
+  }
+
+  .text-gray-700 {
+    color: #d1d5db;
+  }
+
+  .text-gray-600 {
+    color: #9ca3af;
+  }
+
+  .text-gray-500 {
+    color: #6b7280;
+  }
+
+  .border-gray-200 {
+    border-color: #4b5563;
+  }
+
+  .bg-gray-100:hover {
+    background-color: #4b5563;
   }
 }
 </style>
