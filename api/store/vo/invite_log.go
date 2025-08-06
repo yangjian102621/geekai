@@ -5,6 +5,7 @@ type InviteLog struct {
 	InviterId  uint   `json:"inviter_id"`
 	UserId     uint   `json:"user_id"`
 	Username   string `json:"username"`
+	Avatar     string `json:"avatar"`
 	InviteCode string `json:"invite_code"`
 	Remark     string `json:"remark"`
 	CreatedAt  int64  `json:"created_at"`

@@ -148,7 +148,7 @@
               <span class="setting-value">v{{ appVersion }}</span>
             </template>
           </van-cell>
-          <van-cell title="帮助中心" is-link @click="router.push('/mobile/help')">
+          <van-cell title="帮助中心" is-link @click="showAbout = true">
             <template #icon>
               <i class="iconfont icon-help setting-icon"></i>
             </template>

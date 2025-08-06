@@ -60,7 +60,7 @@
               </div>
             </el-col>
             <el-col :span="8">
-              <div class="item-box green">
+              <div class="item-box bg-green-500">
                 <el-row :gutter="10">
                   <el-col :span="10">
                     <div class="item-icon">

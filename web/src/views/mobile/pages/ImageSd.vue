@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-sd">
     <van-form @submit="generate">
-      <van-cell-group inset>
+      <van-cell-group class="px-3 pt-3 pb-4">
         <div>
           <van-field
             v-model="params.sampler"

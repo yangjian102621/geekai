@@ -123,12 +123,7 @@ const routes = [
     meta: { title: '导出会话记录' },
     component: () => import('@/views/ChatExport.vue'),
   },
-  {
-    name: 'login-callback',
-    path: '/login/callback',
-    meta: { title: '用户登录' },
-    component: () => import('@/views/LoginCallback.vue'),
-  },
+
   {
     name: 'login',
     path: '/login',
@@ -296,31 +291,37 @@ const routes = [
         component: () => import('@/views/mobile/Index.vue'),
       },
       {
+        meta: { title: 'AI对话' },
         path: '/mobile/chat',
         name: 'mobile-chat',
         component: () => import('@/views/mobile/ChatList.vue'),
       },
       {
+        meta: { title: '创作中心' },
         path: '/mobile/create',
         name: 'mobile-create',
         component: () => import('@/views/mobile/Create.vue'),
       },
       {
+        meta: { title: '发现' },
         path: '/mobile/discover',
         name: 'mobile-discover',
         component: () => import('@/views/mobile/Discover.vue'),
       },
       {
+        meta: { title: '个人中心' },
         path: '/mobile/profile',
         name: 'mobile-profile',
         component: () => import('@/views/mobile/Profile.vue'),
       },
       {
+        meta: { title: '会员充值' },
         path: '/mobile/member',
         name: 'mobile-member',
         component: () => import('@/views/mobile/Member.vue'),
       },
       {
+        meta: { title: '作品展示' },
         path: '/mobile/imgWall',
         name: 'mobile-img-wall',
         component: () => import('@/views/mobile/pages/ImgWall.vue'),
@@ -332,40 +333,47 @@ const routes = [
       },
 
       {
+        meta: { title: '应用中心' },
         path: '/mobile/apps',
         name: 'mobile-apps',
         component: () => import('@/views/mobile/Apps.vue'),
       },
       // 新增的功能页面路由
       {
+        meta: { title: '消费日志' },
         path: '/mobile/power-log',
         name: 'mobile-power-log',
         component: () => import('@/views/mobile/PowerLog.vue'),
       },
       {
+        meta: { title: '推广计划' },
         path: '/mobile/invite',
         name: 'mobile-invite',
         component: () => import('@/views/mobile/Invite.vue'),
       },
       {
-        path: '/mobile/tools',
-        name: 'mobile-tools',
-        component: () => import('@/views/mobile/Tools.vue'),
-      },
-      {
+        meta: { title: '设置' },
         path: '/mobile/settings',
         name: 'mobile-settings',
         component: () => import('@/views/mobile/Settings.vue'),
       },
       {
-        path: '/mobile/help',
-        name: 'mobile-help',
-        component: () => import('@/views/mobile/Help.vue'),
+        meta: { title: 'Suno音乐创作' },
+        path: '/mobile/suno-create',
+        name: 'mobile-suno-create',
+        component: () => import('@/views/mobile/pages/SunoCreate.vue'),
       },
       {
-        path: '/mobile/feedback',
-        name: 'mobile-feedback',
-        component: () => import('@/views/mobile/Feedback.vue'),
+        meta: { title: '视频生成' },
+        path: '/mobile/video-create',
+        name: 'mobile-video-create',
+        component: () => import('@/views/mobile/pages/VideoCreate.vue'),
+      },
+      {
+        meta: { title: '即梦AI' },
+        path: '/mobile/jimeng-create',
+        name: 'mobile-jimeng-create',
+        component: () => import('@/views/mobile/pages/JimengCreate.vue'),
       },
     ],
   },

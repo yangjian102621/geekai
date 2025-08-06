@@ -1,5 +1,8 @@
 <template>
   <div class="register-page">
+    <router-link to="/" class="back-home-btn" title="返回首页">
+      <i class="iconfont icon-home"></i>
+    </router-link>
     <div class="register-container">
       <div class="register-card">
         <div class="register-header">
@@ -10,6 +13,8 @@
         <div class="register-content">
           <login-dialog
             :show="true"
+            active="register"
+            :inviteCode="inviteCode"
             @hide="handleRegisterHide"
             @success="handleRegisterSuccess"
             ref="loginDialogRef"
@@ -28,6 +33,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const loginDialogRef = ref(null)
+const inviteCode = ref(router.currentRoute.value.query.invite_code || '')
 
 // 处理注册弹窗隐藏
 const handleRegisterHide = () => {
@@ -57,6 +63,39 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 20px;
+
+  .back-home-btn {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 10;
+    font-size: 22px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .back-home-btn:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+  @media (max-width: 768px) {
+    .back-home-btn {
+      top: 12px;
+      left: 12px;
+      font-size: 20px;
+      width: 36px;
+      height: 36px;
+    }
+  }
+  :deep(.van-theme-dark) .back-home-btn {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.35);
+  }
 
   .register-container {
     width: 100%;
@@ -110,6 +149,12 @@ onMounted(() => {
     padding: 16px;
     background: var(--van-background);
 
+    .back-home-btn {
+      top: 16px;
+      left: 16px;
+      font-size: 20px;
+    }
+
     .register-container {
       max-width: 100%;
 
@@ -142,6 +187,12 @@ onMounted(() => {
 @media (max-width: 375px) {
   .register-page {
     padding: 12px;
+
+    .back-home-btn {
+      top: 12px;
+      left: 12px;
+      font-size: 18px;
+    }
 
     .register-container {
       .register-card {

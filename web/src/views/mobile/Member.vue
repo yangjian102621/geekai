@@ -1,36 +1,9 @@
 <template>
   <div class="member-page">
     <div class="member-content" v-loading="loading" :element-loading-text="loadingText">
-      <!-- 用户信息卡片 -->
-      <div class="user-card" v-if="isLogin">
-        <div class="user-header">
-          <div class="user-avatar">
-            <van-image :src="userAvatar" round width="60" height="60" />
-          </div>
-          <div class="user-info">
-            <h3 class="username">{{ userInfo.nickname || userInfo.username }}</h3>
-            <div class="user-meta">
-              <van-tag type="primary" v-if="isVip">VIP会员</van-tag>
-              <van-tag type="default" v-else>普通用户</van-tag>
-              <span class="user-id">ID: {{ userInfo.id }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="user-stats">
-          <div class="stat-item">
-            <div class="stat-value">{{ userInfo.power || 0 }}</div>
-            <div class="stat-label">剩余算力</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ userInfo.invite_count || 0 }}</div>
-            <div class="stat-label">邀请人数</div>
-          </div>
-        </div>
-      </div>
-
       <!-- 产品套餐 -->
       <div class="products-section">
-        <h3 class="section-title">充值套餐</h3>
+        <div class="text-center bg-[#7c3aed] text-white rounded-lg p-3 mb-4">充值套餐</div>
         <!-- <div class="info-alert" v-if="vipInfoText">
           <van-notice-bar
             :text="vipInfoText"
@@ -73,7 +46,6 @@
               </div>
 
               <div class="payment-methods">
-                <div class="methods-title">支付方式：</div>
                 <div class="methods-grid">
                   <van-button
                     v-for="payWay in payWays"
@@ -167,7 +139,6 @@ import { computed, onMounted, ref } from 'vue'
 // 响应式数据
 const list = ref([])
 const vipImg = ref('/images/menu/member.png')
-const userInfo = ref({})
 const isLogin = ref(false)
 const loading = ref(true)
 const loadingText = ref('加载中...')
@@ -186,24 +157,6 @@ const currentProduct = ref(null)
 const currentPayWay = ref(null)
 
 const store = useSharedStore()
-
-// 计算属性
-const isVip = computed(() => {
-  const now = Date.now()
-  const expiredTime = userInfo.value.expired_time ? userInfo.value.expired_time * 1000 : 0
-  return expiredTime > now
-})
-
-const vipDays = computed(() => {
-  if (!isVip.value) return 0
-  const now = Date.now()
-  const expiredTime = userInfo.value.expired_time * 1000
-  return Math.ceil((expiredTime - now) / (24 * 60 * 60 * 1000))
-})
-
-const userAvatar = computed(() => {
-  return userInfo.value.avatar || '/images/avatar/default.jpg'
-})
 
 // 支付按钮颜色
 const getPayButtonColor = (payType) => {
@@ -248,7 +201,6 @@ const getPayButtonText = (payType) => {
 onMounted(() => {
   checkSession()
     .then((user) => {
-      userInfo.value = user
       isLogin.value = true
     })
     .catch(() => {
@@ -310,7 +262,7 @@ const pay = (product, payWay) => {
     product_id: product.id,
     pay_way: payWay.pay_way,
     pay_type: payWay.pay_type,
-    user_id: userInfo.value.id,
+    user_id: 0, // 移除用户ID依赖
     host: host,
     device: 'mobile',
   })
@@ -343,10 +295,6 @@ const payCallback = (success) => {
   if (success) {
     showSuccessToast('支付成功！')
     userOrderKey.value += 1
-    // 刷新用户信息
-    checkSession().then((user) => {
-      userInfo.value = user
-    })
   }
 }
 
@@ -356,10 +304,6 @@ const redeemCallback = (success) => {
 
   if (success) {
     showSuccessToast('卡密兑换成功！')
-    // 刷新用户信息
-    checkSession().then((user) => {
-      userInfo.value = user
-    })
   }
 }
 </script>
@@ -371,66 +315,6 @@ const redeemCallback = (success) => {
 
   .member-content {
     padding: 20px 16px;
-
-    .user-card {
-      background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
-      color: white;
-      box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
-
-      .user-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-
-        .user-avatar {
-          margin-right: 16px;
-        }
-
-        .user-info {
-          flex: 1;
-
-          .username {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 8px 0;
-          }
-
-          .user-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .user-id {
-              font-size: 12px;
-              opacity: 0.8;
-            }
-          }
-        }
-      }
-
-      .user-stats {
-        display: flex;
-        justify-content: space-around;
-
-        .stat-item {
-          text-align: center;
-
-          .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 4px;
-          }
-
-          .stat-label {
-            font-size: 12px;
-            opacity: 0.8;
-          }
-        }
-      }
-    }
 
     .section-title {
       font-size: 18px;
@@ -652,18 +536,6 @@ const redeemCallback = (success) => {
   .member-page {
     .member-content {
       padding: 16px 12px;
-
-      .user-card {
-        padding: 20px;
-
-        .user-header .user-info .username {
-          font-size: 18px;
-        }
-
-        .user-stats .stat-item .stat-value {
-          font-size: 20px;
-        }
-      }
 
       .products-section .products-grid .product-card {
         padding: 16px;

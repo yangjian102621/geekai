@@ -52,240 +52,11 @@ import { Button, Field, Image, showNotify } from 'vant'
 import { h, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-// 创建缺失的移动端组件
-const SunoCreate = {
-  name: 'SunoCreate',
-  setup() {
-    const prompt = ref('')
-    const duration = ref(30)
-    const loading = ref(false)
-    const result = ref('')
-
-    const generateMusic = () => {
-      if (!prompt.value.trim()) {
-        showNotify({ type: 'warning', message: '请输入音乐描述' })
-        return
-      }
-      loading.value = true
-      // TODO: 调用Suno API
-      setTimeout(() => {
-        loading.value = false
-        showNotify({ type: 'success', message: '音乐生成功能开发中' })
-      }, 2000)
-    }
-
-    const downloadMusic = () => {
-      // TODO: 实现下载功能
-      showNotify({ type: 'primary', message: '下载功能开发中' })
-    }
-
-    return () =>
-      h('div', { class: 'suno-create' }, [
-        h('div', { class: 'create-header' }, [h('h3', '音乐创作'), h('p', 'AI驱动的音乐生成工具')]),
-        h('div', { class: 'create-form' }, [
-          h(Field, {
-            value: prompt.value,
-            onInput: (val) => {
-              prompt.value = val
-            },
-            type: 'textarea',
-            placeholder: '描述您想要的音乐风格、情感或主题...',
-            rows: 4,
-            maxlength: 500,
-            'show-word-limit': true,
-          }),
-          h(Field, {
-            value: duration.value,
-            onInput: (val) => {
-              duration.value = val
-            },
-            label: '时长',
-            type: 'number',
-            placeholder: '音乐时长（秒）',
-          }),
-          h(
-            Button,
-            {
-              type: 'primary',
-              size: 'large',
-              block: true,
-              loading: loading.value,
-              onClick: generateMusic,
-            },
-            '生成音乐'
-          ),
-        ]),
-        result.value
-          ? h('div', { class: 'result-area' }, [
-              h('h4', '生成结果'),
-              h('audio', { src: result.value, controls: true }),
-              h(Button, { size: 'small', onClick: downloadMusic }, '下载'),
-            ])
-          : null,
-      ])
-  },
-}
-
-const VideoCreate = {
-  name: 'VideoCreate',
-  setup() {
-    const prompt = ref('')
-    const duration = ref(10)
-    const loading = ref(false)
-    const result = ref('')
-
-    const generateVideo = () => {
-      if (!prompt.value.trim()) {
-        showNotify({ type: 'warning', message: '请输入视频描述' })
-        return
-      }
-      loading.value = true
-      // TODO: 调用视频生成API
-      setTimeout(() => {
-        loading.value = false
-        showNotify({ type: 'success', message: '视频生成功能开发中' })
-      }, 2000)
-    }
-
-    const downloadVideo = () => {
-      // TODO: 实现下载功能
-      showNotify({ type: 'primary', message: '下载功能开发中' })
-    }
-
-    return () =>
-      h('div', { class: 'video-create' }, [
-        h('div', { class: 'create-header' }, [h('h3', '视频生成'), h('p', 'AI驱动的视频创作工具')]),
-        h('div', { class: 'create-form' }, [
-          h(Field, {
-            value: prompt.value,
-            onInput: (val) => {
-              prompt.value = val
-            },
-            type: 'textarea',
-            placeholder: '描述您想要的视频内容、风格或场景...',
-            rows: 4,
-            maxlength: 500,
-            'show-word-limit': true,
-          }),
-          h(Field, {
-            value: duration.value,
-            onInput: (val) => {
-              duration.value = val
-            },
-            label: '时长',
-            type: 'number',
-            placeholder: '视频时长（秒）',
-          }),
-          h(
-            Button,
-            {
-              type: 'primary',
-              size: 'large',
-              block: true,
-              loading: loading.value,
-              onClick: generateVideo,
-            },
-            '生成视频'
-          ),
-        ]),
-        result.value
-          ? h('div', { class: 'result-area' }, [
-              h('h4', '生成结果'),
-              h('video', { src: result.value, controls: true }),
-              h(Button, { size: 'small', onClick: downloadVideo }, '下载'),
-            ])
-          : null,
-      ])
-  },
-}
-
-const JimengCreate = {
-  name: 'JimengCreate',
-  setup() {
-    const prompt = ref('')
-    const negativePrompt = ref('')
-    const steps = ref(20)
-    const loading = ref(false)
-    const result = ref('')
-
-    const generateImage = () => {
-      if (!prompt.value.trim()) {
-        showNotify({ type: 'warning', message: '请输入图像描述' })
-        return
-      }
-      loading.value = true
-      // TODO: 调用即梦AI API
-      setTimeout(() => {
-        loading.value = false
-        showNotify({ type: 'success', message: '即梦AI功能开发中' })
-      }, 2000)
-    }
-
-    const downloadImage = () => {
-      // TODO: 实现下载功能
-      showNotify({ type: 'primary', message: '下载功能开发中' })
-    }
-
-    return () =>
-      h('div', { class: 'jimeng-create' }, [
-        h('div', { class: 'create-header' }, [h('h3', '即梦AI'), h('p', '专业的AI图像生成工具')]),
-        h('div', { class: 'create-form' }, [
-          h(Field, {
-            value: prompt.value,
-            onInput: (val) => {
-              prompt.value = val
-            },
-            type: 'textarea',
-            placeholder: '描述您想要的图像内容...',
-            rows: 4,
-            maxlength: 500,
-            'show-word-limit': true,
-          }),
-          h(Field, {
-            value: negativePrompt.value,
-            onInput: (val) => {
-              negativePrompt.value = val
-            },
-            type: 'textarea',
-            placeholder: '负面提示词（可选）',
-            rows: 2,
-            maxlength: 200,
-          }),
-          h(Field, {
-            value: steps.value,
-            onInput: (val) => {
-              steps.value = val
-            },
-            label: '步数',
-            type: 'number',
-            placeholder: '生成步数',
-          }),
-          h(
-            Button,
-            {
-              type: 'primary',
-              size: 'large',
-              block: true,
-              loading: loading.value,
-              onClick: generateImage,
-            },
-            '生成图像'
-          ),
-        ]),
-        result.value
-          ? h('div', { class: 'result-area' }, [
-              h('h4', '生成结果'),
-              h(Image, { src: result.value, fit: 'cover' }),
-              h(Button, { size: 'small', onClick: downloadImage }, '下载'),
-            ])
-          : null,
-      ])
-  },
-}
+// 删除 SunoCreate、VideoCreate、JimengCreate 相关 setup 代码和渲染逻辑
 
 const route = useRoute()
 const router = useRouter()
-const activeTab = ref('mj')
+const activeTab = ref(route.query.tab || 'mj')
 const menus = ref([])
 const activeMenu = ref({
   mj: false,
@@ -322,8 +93,6 @@ onMounted(() => {
 const fetchMenus = () => {
   httpGet('/api/menu/list')
     .then((res) => {
-      console.log(res)
-
       menus.value = res.data
       activeMenu.value = {
         mj: menus.value.some((item) => item.url === '/mj'),
@@ -339,6 +108,18 @@ const fetchMenus = () => {
         const firstAvailable = Object.keys(activeMenu.value).find((key) => activeMenu.value[key])
         if (firstAvailable) {
           activeTab.value = firstAvailable
+        }
+      } else {
+        // 如果当前选中的tab不可用，选择第一个可用的
+        if (!activeMenu.value[route.query.tab]) {
+          const firstAvailable = Object.keys(activeMenu.value).find((key) => activeMenu.value[key])
+          if (firstAvailable) {
+            activeTab.value = firstAvailable
+            router.replace({
+              path: route.path,
+              query: { ...route.query, tab: firstAvailable },
+            })
+          }
         }
       }
     })

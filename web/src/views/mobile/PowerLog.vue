@@ -28,19 +28,7 @@
       </div>
 
       <!-- 筛选栏 -->
-      <div class="filter-bar">
-        <CustomTabs
-          :model-value="activeType"
-          @update:model-value="activeType = $event"
-          @tab-click="onTypeChange"
-        >
-          <CustomTabPane name="all" label="全部" />
-          <CustomTabPane name="chat" label="对话" />
-          <CustomTabPane name="image" label="绘画" />
-          <CustomTabPane name="music" label="音乐" />
-          <CustomTabPane name="video" label="视频" />
-        </CustomTabs>
-      </div>
+      <div class="filter-bar" style="display: none"></div>
 
       <!-- 日志列表 -->
       <div class="log-list">
@@ -62,16 +50,25 @@
                   <i class="iconfont" :class="getTypeIcon(item.type)"></i>
                 </div>
                 <div class="log-info">
-                  <div class="log-title">{{ item.title }}</div>
+                  <div class="log-title">
+                    {{ item.model || getTypeTitle(item.type) }}
+                    <van-tag type="primary" class="ml-2">{{ item.type_str }}</van-tag>
+                  </div>
                   <div class="log-time">{{ formatTime(item.created_at) }}</div>
                 </div>
                 <div class="log-cost">
-                  <span class="cost-value">-{{ item.cost }}</span>
+                  <span class="cost-value" :class="{ income: item.mark === 1 }">
+                    {{ item.mark === 1 ? '+' : '-' }}{{ item.amount }}
+                  </span>
                   <span class="cost-unit">算力</span>
                 </div>
               </div>
               <div class="log-detail" v-if="item.remark">
                 <van-text-ellipsis :content="item.remark" expand-text="展开" collapse-text="收起" />
+              </div>
+              <div class="log-balance" v-if="item.balance !== undefined">
+                <span class="balance-label">余额：</span>
+                <span class="balance-value">{{ item.balance }}</span>
               </div>
             </div>
 
@@ -81,74 +78,21 @@
         </van-pull-refresh>
       </div>
     </div>
-
-    <!-- 筛选弹窗 -->
-    <van-action-sheet
-      :model-value="showFilter"
-      @update:model-value="showFilter = $event"
-      title="筛选条件"
-    >
-      <div class="filter-content">
-        <van-form>
-          <van-field label="时间范围">
-            <template #input>
-              <van-button size="small" @click="showDatePicker = true">
-                {{
-                  dateRange.start && dateRange.end
-                    ? `${dateRange.start} 至 ${dateRange.end}`
-                    : '选择时间'
-                }}
-              </van-button>
-            </template>
-          </van-field>
-          <van-field label="消费类型">
-            <template #input>
-              <van-radio-group v-model="filterType" direction="horizontal">
-                <van-radio name="all">全部</van-radio>
-                <van-radio name="chat">对话</van-radio>
-                <van-radio name="image">绘画</van-radio>
-                <van-radio name="music">音乐</van-radio>
-              </van-radio-group>
-            </template>
-          </van-field>
-        </van-form>
-        <div class="filter-actions">
-          <van-button @click="resetFilter">重置</van-button>
-          <van-button type="primary" @click="applyFilter">确定</van-button>
-        </div>
-      </div>
-    </van-action-sheet>
-
-    <!-- 日期选择器 -->
-    <van-calendar
-      :model-value="showDatePicker"
-      @update:model-value="showDatePicker = $event"
-      type="range"
-      @confirm="onDateConfirm"
-      :max-date="new Date()"
-    />
   </div>
 </template>
 
 <script setup>
-import CustomTabPane from '@/components/ui/CustomTabPane.vue'
-import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { httpPost, httpGet } from '@/utils/http'
+import { checkSession } from '@/store/cache'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const loading = ref(false)
 const finished = ref(false)
 const refreshing = ref(false)
 const logList = ref([])
-const activeType = ref('all')
-const showFilter = ref(false)
-const showDatePicker = ref(false)
-const filterType = ref('all')
-const dateRange = ref({
-  start: '',
-  end: '',
-})
 
 // 统计数据
 const stats = ref({
@@ -158,123 +102,105 @@ const stats = ref({
 })
 
 // 分页参数
-const pageParams = ref({
-  page: 1,
-  limit: 20,
-  type: 'all',
-})
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
 
 onMounted(() => {
-  fetchStats()
-  onLoad()
+  checkSession()
+    .then(() => {
+      fetchStats()
+      fetchData()
+    })
+    .catch(() => {})
 })
 
 // 获取统计数据
 const fetchStats = () => {
-  // 这里应该调用实际的API
-  // httpGet('/api/user/power/stats').then(res => {
-  //   stats.value = res.data
-  // })
-
-  // 临时使用模拟数据
-  stats.value = {
-    total: Math.floor(Math.random() * 10000),
-    today: Math.floor(Math.random() * 100),
-    balance: Math.floor(Math.random() * 1000),
-  }
+  // 调用后端统计API
+  httpGet('/api/powerLog/stats')
+    .then((res) => {
+      if (res.data) {
+        stats.value = {
+          total: res.data.total || 0,
+          today: res.data.today || 0,
+          balance: res.data.balance || 0,
+        }
+      }
+    })
+    .catch((e) => {
+      console.error('获取统计数据失败:', e)
+      // 使用默认值
+      stats.value = {
+        total: 0,
+        today: 0,
+        balance: 0,
+      }
+    })
 }
 
-// 加载日志列表
+// 获取数据
+const fetchData = () => {
+  loading.value = true
+  httpPost('/api/powerLog/list', {
+    model: '', // 移除筛选参数
+    date: [], // 移除筛选参数
+    page: page.value,
+    page_size: pageSize.value,
+  })
+    .then((res) => {
+      const items = res.data.items || []
+      if (items.length === 0) {
+        finished.value = true
+        return
+      }
+      if (page.value === 1) {
+        logList.value = items
+      } else {
+        logList.value.push(...res.data.items)
+      }
+      total.value = res.data.total
+      // 判断是否加载完成
+      if (logList.value.length >= total.value) {
+        finished.value = true
+      }
+    })
+    .catch((e) => {
+      loading.value = false
+      refreshing.value = false
+      ElMessage.error('获取数据失败：' + e.message)
+    })
+    .finally(() => {
+      loading.value = false
+      refreshing.value = false
+    })
+}
+
+// 加载更多
 const onLoad = () => {
   if (finished.value) return
-
-  loading.value = true
-
-  // 模拟API调用
-  setTimeout(() => {
-    const mockData = generateMockData(pageParams.value.page, pageParams.value.limit)
-
-    if (pageParams.value.page === 1) {
-      logList.value = mockData
-    } else {
-      logList.value.push(...mockData)
-    }
-
-    loading.value = false
-    pageParams.value.page++
-
-    // 模拟数据加载完成
-    if (pageParams.value.page > 5) {
-      finished.value = true
-    }
-  }, 1000)
+  page.value++
+  fetchData()
 }
 
 // 下拉刷新
 const onRefresh = () => {
   finished.value = false
-  pageParams.value.page = 1
+  page.value = 1
   refreshing.value = true
-
-  setTimeout(() => {
-    logList.value = generateMockData(1, pageParams.value.limit)
-    refreshing.value = false
-    pageParams.value.page = 2
-  }, 1000)
-}
-
-// 类型切换
-const onTypeChange = (type) => {
-  pageParams.value.type = type
-  pageParams.value.page = 1
-  finished.value = false
-  logList.value = []
-  onLoad()
-}
-
-// 生成模拟数据
-const generateMockData = (page, limit) => {
-  const types = ['chat', 'image', 'music', 'video']
-  const titles = {
-    chat: ['GPT-4对话', 'Claude对话', '智能助手'],
-    image: ['MidJourney生成', 'Stable Diffusion', 'DALL-E创作'],
-    music: ['Suno音乐创作', '音频生成'],
-    video: ['视频生成', 'Luma创作'],
-  }
-
-  const data = []
-  const startIndex = (page - 1) * limit
-
-  for (let i = 0; i < limit; i++) {
-    const id = startIndex + i + 1
-    const type = types[Math.floor(Math.random() * types.length)]
-    const title = titles[type][Math.floor(Math.random() * titles[type].length)]
-
-    // 如果有类型筛选且不匹配，跳过
-    if (pageParams.value.type !== 'all' && type !== pageParams.value.type) {
-      continue
-    }
-
-    data.push({
-      id,
-      type,
-      title,
-      cost: Math.floor(Math.random() * 50) + 1,
-      remark: Math.random() > 0.5 ? '消费详情：使用高级模型进行AI创作，效果优质' : '',
-      created_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    })
-  }
-
-  return data
+  fetchData()
 }
 
 // 获取类型图标
 const getTypeIcon = (type) => {
   const icons = {
-    chat: 'icon-chat',
-    image: 'icon-mj',
-    music: 'icon-music',
-    video: 'icon-video',
+    1: 'icon-recharge', // 充值
+    2: 'icon-chat', // 消费
+    3: 'icon-withdraw-log', // 退款
+    4: 'icon-yaoqm', // 邀请
+    5: 'icon-redeem', // 兑换
+    6: 'icon-present', // 赠送
+    7: 'icon-linggan', // 签到
   }
   return icons[type] || 'icon-chat'
 }
@@ -282,17 +208,34 @@ const getTypeIcon = (type) => {
 // 获取类型颜色
 const getTypeColor = (type) => {
   const colors = {
-    chat: '#1989fa',
-    image: '#8B5CF6',
-    music: '#ee0a24',
-    video: '#07c160',
+    1: '#07c160', // 充值 - 绿色
+    2: '#1989fa', // 消费 - 蓝色
+    3: '#ff976a', // 退款 - 橙色
+    4: '#8B5CF6', // 邀请 - 紫色
+    5: '#ee0a24', // 兑换 - 红色
+    6: '#07c160', // 赠送 - 绿色
+    7: '#1989fa', // 签到 - 蓝色
   }
   return colors[type] || '#1989fa'
 }
 
+// 获取类型标题
+const getTypeTitle = (type) => {
+  const titles = {
+    1: '充值',
+    2: '消费',
+    3: '退款',
+    4: '邀请奖励',
+    5: '兑换',
+    6: '系统赠送',
+    7: '每日签到',
+  }
+  return titles[type] || '其他'
+}
+
 // 格式化时间
-const formatTime = (timeStr) => {
-  const date = new Date(timeStr)
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp * 1000)
   const now = new Date()
   const diff = now - date
 
@@ -310,32 +253,7 @@ const formatTime = (timeStr) => {
   }
 }
 
-// 日期选择确认
-const onDateConfirm = (values) => {
-  const [start, end] = values
-  dateRange.value = {
-    start: start.toLocaleDateString(),
-    end: end.toLocaleDateString(),
-  }
-  showDatePicker.value = false
-}
-
-// 重置筛选
-const resetFilter = () => {
-  filterType.value = 'all'
-  dateRange.value = { start: '', end: '' }
-}
-
-// 应用筛选
-const applyFilter = () => {
-  activeType.value = filterType.value
-  pageParams.value.type = filterType.value
-  pageParams.value.page = 1
-  finished.value = false
-  logList.value = []
-  showFilter.value = false
-  onLoad()
-}
+// 移除 showFilter, showDatePicker, query.date, onDateButtonClick, onDateConfirm, resetFilter, applyFilter 相关逻辑
 </script>
 
 <style lang="scss" scoped>
@@ -344,8 +262,6 @@ const applyFilter = () => {
   background: var(--van-background);
 
   .power-content {
-    padding-top: 46px;
-
     .stats-overview {
       padding: 16px;
       background: linear-gradient(135deg, var(--van-primary-color), #8b5cf6);
@@ -377,9 +293,16 @@ const applyFilter = () => {
     .filter-bar {
       background: var(--van-background);
       border-bottom: 1px solid var(--van-border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+
+      .filter-actions {
+        margin-left: 12px;
+      }
 
       :deep(.van-tabs__nav) {
-        padding: 0 16px;
+        padding: 0;
       }
 
       :deep(.van-tab) {
@@ -439,6 +362,10 @@ const applyFilter = () => {
               font-size: 16px;
               font-weight: 600;
               color: #ee0a24;
+
+              &.income {
+                color: #07c160;
+              }
             }
 
             .cost-unit {
@@ -458,6 +385,21 @@ const applyFilter = () => {
             font-size: 13px;
             color: var(--van-gray-6);
             line-height: 1.4;
+          }
+        }
+
+        .log-balance {
+          margin-top: 8px;
+          font-size: 12px;
+          color: var(--van-gray-6);
+
+          .balance-label {
+            margin-right: 4px;
+          }
+
+          .balance-value {
+            font-weight: 500;
+            color: var(--van-text-color);
           }
         }
       }

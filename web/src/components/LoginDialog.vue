@@ -46,24 +46,6 @@
               >忘记密码？</el-button
             >
           </div>
-          <div v-if="wechatLoginURL !== ''">
-            <el-divider>
-              <div class="text-center">其他登录方式</div>
-            </el-divider>
-            <div class="c-login flex justify-center">
-              <div class="p-2 w-full">
-                <a :href="wechatLoginURL">
-                  <el-button
-                    type="success"
-                    class="w-full"
-                    size="large"
-                    @click="setRoute(router.currentRoute.value.path)"
-                    ><i class="iconfont icon-wechat mr-2"></i> 微信登录
-                  </el-button>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </el-form>
     </div>
@@ -265,6 +247,14 @@ import { useRouter } from 'vue-router'
 // eslint-disable-next-line no-undef
 const props = defineProps({
   show: Boolean,
+  active: {
+    type: String,
+    default: 'login',
+  },
+  inviteCode: {
+    type: String,
+    default: '',
+  },
 })
 const showDialog = ref(false)
 watch(
@@ -274,7 +264,7 @@ watch(
   }
 )
 
-const login = ref(true)
+const login = ref(props.active === 'login')
 const data = ref({
   username: import.meta.env.VITE_USER,
   password: import.meta.env.VITE_PASS,
@@ -282,13 +272,13 @@ const data = ref({
   email: '',
   repass: '',
   code: '',
-  invite_code: '',
+  invite_code: props.inviteCode,
 })
 const enableMobile = ref(false)
 const enableEmail = ref(false)
 const enableUser = ref(false)
 const enableRegister = ref(true)
-const wechatLoginURL = ref('')
+
 const activeName = ref('')
 const wxImg = ref('/images/wx.png')
 const captchaRef = ref(null)
@@ -301,15 +291,6 @@ const router = useRouter()
 const store = useSharedStore()
 
 onMounted(() => {
-  const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`
-  httpGet('/api/user/clogin?return_url=' + returnURL)
-    .then((res) => {
-      wechatLoginURL.value = res.data.url
-    })
-    .catch((e) => {
-      console.log(e.message)
-    })
-
   getSystemInfo()
     .then((res) => {
       if (res.data) {
@@ -469,30 +450,6 @@ const doRegister = (verifyData) => {
 
       .forget {
         margin-left: 10px;
-      }
-    }
-
-    .c-login {
-      display: flex;
-      .text {
-        font-size: 16px;
-        color: #a1a1a1;
-        display: flex;
-        align-items: center;
-      }
-      .login-type {
-        display: flex;
-        justify-content: center;
-
-        .iconfont {
-          font-size: 18px;
-          background: #e9f1f6;
-          padding: 8px;
-          border-radius: 50%;
-        }
-        .iconfont.icon-wechat {
-          color: #0bc15f;
-        }
       }
     }
 

@@ -24,6 +24,7 @@ import {
   ActionSheet,
   Badge,
   Button,
+  Calendar,
   Cell,
   CellGroup,
   Circle,
@@ -52,6 +53,7 @@ import {
   Overlay,
   Picker,
   Popup,
+  PullRefresh,
   Radio,
   RadioGroup,
   Row,
@@ -130,5 +132,7 @@ app.use(Tabs)
 app.use(Divider)
 app.use(NoticeBar)
 app.use(ActionSheet)
+app.use(PullRefresh)
+app.use(Calendar)
 app.use(Toast)
 app.use(router).use(ElementPlus).mount('#app')

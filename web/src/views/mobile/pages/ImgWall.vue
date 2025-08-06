@@ -1,8 +1,8 @@
 <template>
-  <div class="img-wall container">
+  <div class="img-wall p-3">
     <div class="content">
-      <van-tabs v-model:active="activeName" animated sticky>
-        <van-tab title="MJ" name="mj">
+      <CustomTabs v-model="activeName" @tab-click="handleTabClick">
+        <TabPane name="mj" label="Midjourney">
           <van-list
             v-model:error="data['mj'].error"
             v-model:loading="data['mj'].loading"
@@ -22,8 +22,8 @@
               </div>
             </van-cell>
           </van-list>
-        </van-tab>
-        <van-tab title="SD" name="sd">
+        </TabPane>
+        <TabPane name="sd" label="Stable Diffusion">
           <van-list
             v-model:error="data['sd'].error"
             v-model:loading="data['sd'].loading"
@@ -42,8 +42,8 @@
               </div>
             </van-cell>
           </van-list>
-        </van-tab>
-        <van-tab title="DALL" name="dall">
+        </TabPane>
+        <TabPane name="dall" label="DALL">
           <van-list
             v-model:error="data['dall'].error"
             v-model:loading="data['dall'].loading"
@@ -62,8 +62,8 @@
               </div>
             </van-cell>
           </van-list>
-        </van-tab>
-      </van-tabs>
+        </TabPane>
+      </CustomTabs>
     </div>
 
     <button
@@ -83,6 +83,8 @@ import Clipboard from 'clipboard'
 import { ElMessage } from 'element-plus'
 import { showConfirmDialog, showFailToast, showImagePreview, showNotify } from 'vant'
 import { onMounted, onUnmounted, ref } from 'vue'
+import CustomTabs from '@/components/ui/CustomTabs.vue'
+import TabPane from '@/components/ui/CustomTabPane.vue'
 
 const activeName = ref('mj')
 const data = ref({
@@ -117,6 +119,13 @@ const data = ref({
 
 const prompt = ref('')
 const clipboard = ref(null)
+
+// 处理 tab 点击事件
+const handleTabClick = (tabName, index) => {
+  // 可以在这里添加额外的 tab 切换逻辑
+  console.log('Tab clicked:', tabName, index)
+}
+
 onMounted(() => {
   clipboard.value = new Clipboard('.copy-prompt-wall')
   clipboard.value.on('success', () => {

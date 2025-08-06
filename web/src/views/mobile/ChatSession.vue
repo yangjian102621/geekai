@@ -16,16 +16,11 @@
           </span>
         </template>
         <template #right>
-          <van-icon name="share-o" @click="showShare = true" />
+          <van-icon name="share-o" @click="copyShareUrl" />
         </template>
       </van-nav-bar>
 
-      <van-share-sheet
-        v-model:show="showShare"
-        title="立即分享给好友"
-        :options="shareOptions"
-        @select="shareChat"
-      />
+      <!-- 移除分享面板 -->
 
       <div class="chat-list-wrapper">
         <div id="message-list-box" :style="{ height: winHeight + 'px' }" class="message-list-box">
@@ -80,10 +75,6 @@
       </div>
     </div>
 
-    <button id="copy-link-btn" style="display: none" :data-clipboard-text="url">
-      复制链接地址
-    </button>
-
     <!--    <van-overlay :show="showMic" z-index="100">-->
     <!--      <div class="mic-wrapper">-->
     <!--        <div class="image">-->
@@ -127,7 +118,7 @@ import { showMessageError } from '@/utils/dialog'
 import { httpGet } from '@/utils/http'
 import { processContent, randString, renderInputText, UUID } from '@/utils/libs'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
-import Clipboard from 'clipboard'
+// 移除 Clipboard.js 相关内容
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 import MarkdownIt from 'markdown-it'
@@ -260,14 +251,7 @@ onMounted(() => {
   winHeight.value =
     window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight - 70
 
-  const clipboard = new Clipboard('.content-mobile,.copy-code-mobile,#copy-link-btn')
-  clipboard.on('success', (e) => {
-    e.clearSelection()
-    showNotify({ type: 'success', message: '复制成功', duration: 1000 })
-  })
-  clipboard.on('error', () => {
-    showNotify({ type: 'danger', message: '复制失败', duration: 2000 })
-  })
+  // 移除 Clipboard.js 相关内容
 })
 
 onUnmounted(() => {
@@ -545,23 +529,7 @@ const reGenerate = () => {
   })
 }
 
-const showShare = ref(false)
-const shareOptions = [
-  { name: '微信', icon: 'wechat' },
-  { name: '复制链接', icon: 'link' },
-]
-const shareChat = (option) => {
-  showShare.value = false
-  if (option.icon === 'wechat') {
-    showToast({
-      message: '链接已复制，请通过微信分享给好友',
-      duration: 3000,
-    })
-    document.getElementById('copy-link-btn').click()
-  } else if (option.icon === 'link') {
-    document.getElementById('copy-link-btn').click()
-  }
-}
+// 移除 showShare、shareOptions、shareChat 相关内容
 
 const getRoleById = function (rid) {
   for (let i = 0; i < roles.value.length; i++) {
@@ -581,32 +549,6 @@ const getModelName = (model_id) => {
   return ''
 }
 
-// // eslint-disable-next-line no-undef
-// const recognition = new webkitSpeechRecognition() || SpeechRecognition();
-// //recognition.lang = 'zh-CN' // 设置语音识别语言
-// recognition.onresult = function (event) {
-//   prompt.value = event.results[0][0].transcript
-// };
-//
-// recognition.onerror = function (event) {
-//   showMic.value = false
-//   recognition.stop()
-//   showNotify({type: 'danger', message: '语音识别错误:' + event.error})
-// };
-//
-// recognition.onend = function () {
-//   console.log('语音识别结束');
-// };
-// const inputVoice = () => {
-//   showMic.value = true
-//   recognition.start();
-// }
-//
-// const stopVoice = () => {
-//   showMic.value = false
-//   recognition.stop()
-// }
-
 const onChange = (item) => {
   const selectedValues = item.selectedOptions
   if (selectedValues[0].model_id) {
@@ -617,6 +559,16 @@ const onChange = (item) => {
     for (let i = 0; i < columns.value[1].length; i++) {
       columns.value[1][i].disabled = false
     }
+  }
+}
+
+// 新增复制分享链接方法
+const copyShareUrl = async () => {
+  try {
+    await navigator.clipboard.writeText(url.value)
+    showNotify({ type: 'success', message: '复制成功，请把链接发送给好友', duration: 3000 })
+  } catch (e) {
+    showNotify({ type: 'danger', message: '复制失败', duration: 2000 })
   }
 }
 </script>
