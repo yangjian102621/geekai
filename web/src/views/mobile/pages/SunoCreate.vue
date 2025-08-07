@@ -462,14 +462,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { httpGet, httpPost, httpDownload } from '@/utils/http'
 import { checkSession } from '@/store/cache'
-import CustomSelect from '@/views/mobile/components/CustomSelect.vue'
-import { showToastMessage, showLoading, closeLoading } from '@/utils/dialog'
+import { closeLoading, showLoading, showToastMessage } from '@/utils/dialog'
+import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
+import CustomSelect from '@/views/mobile/components/CustomSelect.vue'
 import { showConfirmDialog } from 'vant'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
@@ -826,7 +826,7 @@ const removeRefSong = () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 /* 自定义动画 */
 @keyframes fade-in {
   from {

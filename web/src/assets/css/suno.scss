@@ -1,20 +1,15 @@
 .page-suno {
   display: flex;
   height: 100%;
-  // background-color: #0E0808;
+  background-color: #f8fafc;
   overflow: auto;
-  .item-group {
-    scrollbar-width: auto !important; /* 恢复滚动条（Firefox） */
-    -ms-overflow-style: auto !important; /* 恢复滚动条（IE、Edge） */
-    ::-webkit-scrollbar {
-      display: block !important;
-    }
-  }
 
   .left-bar {
-    max-width: 340px;
-    min-width: 340px;
-    padding: 20px 30px;
+    max-width: 400px;
+    min-width: 400px;
+    padding: 20px;
+    background-color: #f8fafc;
+    overflow-y: auto;
 
     .bar-top {
       display: flex;
@@ -63,7 +58,7 @@
 
         .create-btn {
           margin: 20px 0;
-          background-image: url("~@/assets/img/suno-create-bg.svg");
+          background-image: url('~@/assets/img/suno-create-bg.svg');
           background-size: cover;
           background-position: 50% 50%;
           transition: background 1s ease-in-out;
@@ -178,6 +173,8 @@
             padding: 3px 6px;
             cursor: pointer;
             font-size: 13px;
+            border: none;
+            outline: none;
             &:hover {
               color: var(--el-color-primary);
             }
@@ -188,22 +185,19 @@
   }
   .right-box {
     width: 100%;
-    color: rgb(250 247 245);
+    color: #374151;
     overflow: auto;
-    background: var(--chat-bg);
+    background: #f8fafc;
+    padding: 20px;
 
     .list-box {
-      padding: 20px;
+      padding: 0;
       .item {
         display: flex;
         flex-flow: row;
         padding: 5px 0;
         cursor: pointer;
         margin-bottom: 10px;
-
-        &:hover {
-          background: rgba(188, 149, 236, 0.08);
-        }
 
         .left {
           .container {
@@ -420,5 +414,23 @@
   justify-content: center;
   .el-button {
     width: 200px;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.form {
+  .form-item {
+    margin-bottom: 20px;
+
+    .label {
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--el-text-color-primary);
+    }
   }
 }

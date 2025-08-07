@@ -27,7 +27,7 @@
               'flex flex-col items-center p-3 rounded-lg border-2 transition-colors',
               activeCategory === category.key
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
+                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100',
             ]"
           >
             <i :class="getCategoryIcon(category.key)" class="text-2xl mb-2"></i>
@@ -71,7 +71,7 @@
         <!-- 图片尺寸 -->
         <CustomSelect
           v-model="textToImageParams.size"
-          :options="imageSizeOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          :options="imageSizeOptions.map((opt) => ({ label: opt.label, value: opt.value }))"
           label="图片尺寸"
           title="选择尺寸"
         />
@@ -110,15 +110,28 @@
               ref="imageToImageInput"
               type="file"
               accept=".jpg,.png,.jpeg"
-              @change="(e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })"
+              @change="
+                (e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })
+              "
               class="hidden"
             />
-            <div @click="$refs.imageToImageInput?.click()" class="flex flex-col items-center space-y-2">
-              <i v-if="!imageToImageParams.image_input.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
-              <span v-if="!imageToImageParams.image_input.length" class="text-gray-700 font-medium">上传图片</span>
+            <div
+              @click="$refs.imageToImageInput?.click()"
+              class="flex flex-col items-center space-y-2"
+            >
+              <i
+                v-if="!imageToImageParams.image_input.length"
+                class="iconfont icon-upload text-blue-500 text-2xl"
+              ></i>
+              <span v-if="!imageToImageParams.image_input.length" class="text-gray-700 font-medium"
+                >上传图片</span
+              >
               <div v-else class="relative">
                 <el-image
-                  :src="imageToImageParams.image_input[0]?.url || imageToImageParams.image_input[0]?.content"
+                  :src="
+                    imageToImageParams.image_input[0]?.url ||
+                    imageToImageParams.image_input[0]?.content
+                  "
                   fit="cover"
                   class="w-32 h-32 rounded"
                 />
@@ -151,7 +164,7 @@
         <!-- 图片尺寸 -->
         <CustomSelect
           v-model="imageToImageParams.size"
-          :options="imageSizeOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          :options="imageSizeOptions.map((opt) => ({ label: opt.label, value: opt.value }))"
           label="图片尺寸"
           title="选择尺寸"
         />
@@ -169,15 +182,27 @@
               ref="imageEditInput"
               type="file"
               accept=".jpg,.png,.jpeg"
-              @change="(e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })"
+              @change="
+                (e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })
+              "
               class="hidden"
             />
-            <div @click="$refs.imageEditInput?.click()" class="flex flex-col items-center space-y-2">
-              <i v-if="!imageEditParams.image_urls.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
-              <span v-if="!imageEditParams.image_urls.length" class="text-gray-700 font-medium">上传图片</span>
+            <div
+              @click="$refs.imageEditInput?.click()"
+              class="flex flex-col items-center space-y-2"
+            >
+              <i
+                v-if="!imageEditParams.image_urls.length"
+                class="iconfont icon-upload text-blue-500 text-2xl"
+              ></i>
+              <span v-if="!imageEditParams.image_urls.length" class="text-gray-700 font-medium"
+                >上传图片</span
+              >
               <div v-else class="relative">
                 <el-image
-                  :src="imageEditParams.image_urls[0]?.url || imageEditParams.image_urls[0]?.content"
+                  :src="
+                    imageEditParams.image_urls[0]?.url || imageEditParams.image_urls[0]?.content
+                  "
                   fit="cover"
                   class="w-32 h-32 rounded"
                 />
@@ -228,15 +253,28 @@
               ref="imageEffectsInput"
               type="file"
               accept=".jpg,.png,.jpeg"
-              @change="(e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })"
+              @change="
+                (e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })
+              "
               class="hidden"
             />
-            <div @click="$refs.imageEffectsInput?.click()" class="flex flex-col items-center space-y-2">
-              <i v-if="!imageEffectsParams.image_input1.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
-              <span v-if="!imageEffectsParams.image_input1.length" class="text-gray-700 font-medium">上传图片</span>
+            <div
+              @click="$refs.imageEffectsInput?.click()"
+              class="flex flex-col items-center space-y-2"
+            >
+              <i
+                v-if="!imageEffectsParams.image_input1.length"
+                class="iconfont icon-upload text-blue-500 text-2xl"
+              ></i>
+              <span v-if="!imageEffectsParams.image_input1.length" class="text-gray-700 font-medium"
+                >上传图片</span
+              >
               <div v-else class="relative">
                 <el-image
-                  :src="imageEffectsParams.image_input1[0]?.url || imageEffectsParams.image_input1[0]?.content"
+                  :src="
+                    imageEffectsParams.image_input1[0]?.url ||
+                    imageEffectsParams.image_input1[0]?.content
+                  "
                   fit="cover"
                   class="w-32 h-32 rounded"
                 />
@@ -254,7 +292,9 @@
         <!-- 特效模板 -->
         <CustomSelect
           v-model="imageEffectsParams.template_id"
-          :options="imageEffectsTemplateOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          :options="
+            imageEffectsTemplateOptions.map((opt) => ({ label: opt.label, value: opt.value }))
+          "
           label="特效模板"
           title="选择特效模板"
         />
@@ -262,7 +302,7 @@
         <!-- 输出尺寸 -->
         <CustomSelect
           v-model="imageEffectsParams.size"
-          :options="imageSizeOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          :options="imageSizeOptions.map((opt) => ({ label: opt.label, value: opt.value }))"
           label="输出尺寸"
           title="选择尺寸"
         />
@@ -288,7 +328,7 @@
         <!-- 视频比例 -->
         <CustomSelect
           v-model="textToVideoParams.aspect_ratio"
-          :options="videoAspectRatioOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          :options="videoAspectRatioOptions.map((opt) => ({ label: opt.label, value: opt.value }))"
           label="视频比例"
           title="选择比例"
         />
@@ -310,11 +350,23 @@
               @change="(e) => handleMultipleImageUpload(e)"
               class="hidden"
             />
-            <div @click="$refs.imageToVideoInput?.click()" class="flex flex-col items-center space-y-2">
-              <i v-if="!imageToVideoParams.image_urls.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
-              <span v-if="!imageToVideoParams.image_urls.length" class="text-gray-700 font-medium">上传图片</span>
+            <div
+              @click="$refs.imageToVideoInput?.click()"
+              class="flex flex-col items-center space-y-2"
+            >
+              <i
+                v-if="!imageToVideoParams.image_urls.length"
+                class="iconfont icon-upload text-blue-500 text-2xl"
+              ></i>
+              <span v-if="!imageToVideoParams.image_urls.length" class="text-gray-700 font-medium"
+                >上传图片</span
+              >
               <div v-else class="flex space-x-3">
-                <div v-for="(image, index) in imageToVideoParams.image_urls" :key="index" class="relative">
+                <div
+                  v-for="(image, index) in imageToVideoParams.image_urls"
+                  :key="index"
+                  class="relative"
+                >
                   <el-image
                     :src="image?.url || image?.content"
                     fit="cover"
@@ -327,7 +379,11 @@
                     <i class="iconfont icon-close"></i>
                   </button>
                 </div>
-                <div v-if="imageToVideoParams.image_urls.length < 2" @click.stop="$refs.imageToVideoInput?.click()" class="w-24 h-24 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400">
+                <div
+                  v-if="imageToVideoParams.image_urls.length < 2"
+                  @click.stop="$refs.imageToVideoInput?.click()"
+                  class="w-24 h-24 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400"
+                >
                   <i class="iconfont icon-plus text-gray-400 text-xl"></i>
                 </div>
               </div>
@@ -353,7 +409,7 @@
         <!-- 视频比例 -->
         <CustomSelect
           v-model="imageToVideoParams.aspect_ratio"
-          :options="videoAspectRatioOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          :options="videoAspectRatioOptions.map((opt) => ({ label: opt.label, value: opt.value }))"
           label="视频比例"
           title="选择比例"
         />
@@ -407,7 +463,12 @@
                   </template>
                 </el-image>
                 <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
-                  <i :class="item.type.includes('video') ? 'iconfont icon-video' : 'iconfont icon-image'" class="text-gray-400 text-xl"></i>
+                  <i
+                    :class="
+                      item.type.includes('video') ? 'iconfont icon-video' : 'iconfont icon-image'
+                    "
+                    class="text-gray-400 text-xl"
+                  ></i>
                 </div>
                 <!-- 播放/查看按钮 -->
                 <button
@@ -415,7 +476,12 @@
                   @click="playMedia(item)"
                   class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
                 >
-                  <i :class="item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'" class="text-white text-xl"></i>
+                  <i
+                    :class="
+                      item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'
+                    "
+                    class="text-white text-xl"
+                  ></i>
                 </button>
                 <!-- 进度动画 -->
                 <div
@@ -465,7 +531,9 @@
                 <span
                   :class="[
                     'px-2 py-1 text-xs rounded-full',
-                    getTaskType(item.type) === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'
+                    getTaskType(item.type) === 'warning'
+                      ? 'bg-yellow-100 text-yellow-600'
+                      : 'bg-blue-100 text-blue-600',
                   ]"
                 >
                   {{ getFunctionName(item.type) }}
@@ -488,7 +556,10 @@
                 @click="playMedia(item)"
                 class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
               >
-                <i :class="item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'" class="!text-xs"></i>
+                <i
+                  :class="item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'"
+                  class="!text-xs"
+                ></i>
                 <span>{{ item.type.includes('video') ? '播放' : '查看' }}</span>
               </button>
               <button
@@ -567,13 +638,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { showConfirmDialog } from 'vant'
-import { httpGet, httpPost } from '@/utils/http'
-import { checkSession } from '@/store/cache'
 import CustomSelect from '@/components/ui/CustomSelect.vue'
-import { showMessageSuccess, showMessageError, showLoading, closeLoading } from '@/utils/dialog'
+import { checkSession } from '@/store/cache'
+import { closeLoading, showLoading, showMessageError, showMessageSuccess } from '@/utils/dialog'
+import { httpGet, httpPost } from '@/utils/http'
+import { showConfirmDialog } from 'vant'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
@@ -592,7 +663,7 @@ const categories = ref([
   { key: 'image_generation', name: '图像生成' },
   { key: 'image_editing', name: '图像编辑' },
   { key: 'image_effects', name: '图像特效' },
-  { key: 'video_generation', name: '视频生成' }
+  { key: 'video_generation', name: '视频生成' },
 ])
 
 // 选项数据
@@ -601,21 +672,21 @@ const imageSizeOptions = [
   { label: '768x768', value: '768x768' },
   { label: '1024x1024', value: '1024x1024' },
   { label: '1024x1536', value: '1024x1536' },
-  { label: '1536x1024', value: '1536x1024' }
+  { label: '1536x1024', value: '1536x1024' },
 ]
 
 const videoAspectRatioOptions = [
   { label: '16:9', value: '16:9' },
   { label: '9:16', value: '9:16' },
   { label: '1:1', value: '1:1' },
-  { label: '4:3', value: '4:3' }
+  { label: '4:3', value: '4:3' },
 ]
 
 const imageEffectsTemplateOptions = [
   { label: '亚克力装饰', value: 'acrylic_ornaments' },
   { label: '天使小雕像', value: 'angel_figurine' },
   { label: '毛毫3D拍立得', value: 'felt_3d_polaroid' },
-  { label: '水彩插图', value: 'watercolor_illustration' }
+  { label: '水彩插图', value: 'watercolor_illustration' },
 ]
 
 // 当前提示词
@@ -730,7 +801,7 @@ const switchInputMode = () => {
 // 处理多图片上传
 const handleMultipleImageUpload = (event) => {
   const files = Array.from(event.target.files)
-  files.forEach(file => {
+  files.forEach((file) => {
     if (imageToVideoParams.value.image_urls.length < 2) {
       onImageUpload({ file, name: file.name })
     }
@@ -875,7 +946,7 @@ const removeJob = (item) => {
     title: '确认删除',
     message: '此操作将会删除任务相关文件，继续操作吗?',
     confirmButtonText: '确认删除',
-    cancelButtonText: '取消'
+    cancelButtonText: '取消',
   })
     .then(() => {
       httpGet('/api/jimeng/remove', { id: item.id })
