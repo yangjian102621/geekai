@@ -1,334 +1,579 @@
 <template>
-  <div class="mobile-jimeng-create">
+  <div class="min-h-screen bg-gray-50">
     <!-- 页面头部 -->
-    <div class="page-header">
-      <van-nav-bar title="即梦AI" left-arrow @click-left="goBack" fixed placeholder />
+    <div class="sticky top-0 z-40 bg-white shadow-sm">
+      <div class="flex items-center px-4 h-14">
+        <button
+          @click="goBack"
+          class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <i class="iconfont icon-back text-gray-600"></i>
+        </button>
+        <h1 class="flex-1 text-center text-lg font-semibold text-gray-900">即梦AI</h1>
+        <div class="w-8"></div>
+      </div>
     </div>
 
     <!-- 功能分类选择 -->
-    <div class="category-section">
-      <van-tabs v-model="activeCategory" @change="onCategoryChange">
-        <van-tab title="图像生成" name="image_generation">
-          <div class="tab-content">
-            <!-- 生成模式切换 -->
-            <van-cell title="生成模式">
-              <template #value>
-                <van-switch v-model="useImageInput" size="24" @change="onInputModeChange" />
-              </template>
-            </van-cell>
-            <van-cell title="图生图人像写真" :value="useImageInput ? '开启' : '关闭'" />
+    <div class="p-4 space-y-6">
+      <!-- 功能类型选择 -->
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            v-for="category in categories"
+            :key="category.key"
+            @click="switchCategory(category.key)"
+            :class="[
+              'flex flex-col items-center p-3 rounded-lg border-2 transition-colors',
+              activeCategory === category.key
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
+            ]"
+          >
+            <i :class="getCategoryIcon(category.key)" class="text-2xl mb-2"></i>
+            <span class="text-sm font-medium">{{ category.name }}</span>
+          </button>
+        </div>
+      </div>
+      <!-- 生成模式切换 -->
+      <div
+        v-if="activeCategory === 'image_generation' || activeCategory === 'video_generation'"
+        class="bg-white rounded-xl p-4 shadow-sm"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-gray-900 font-medium">生成模式</span>
+            <p class="text-sm text-gray-500 mt-1">
+              {{ activeCategory === 'image_generation' ? '图生图人像写真' : '图生视频' }}
+            </p>
+          </div>
+          <el-switch v-model="useImageInput" @change="switchInputMode" size="default" />
+        </div>
+      </div>
 
-            <!-- 文生图 -->
-            <div v-if="activeFunction === 'text_to_image'" class="function-panel">
-              <van-field
-                v-model="currentPrompt"
-                label="提示词"
-                type="textarea"
-                placeholder="请输入图片描述，越详细越好"
-                rows="4"
-                maxlength="2000"
-                show-word-limit
-              />
+      <!-- 文生图 -->
+      <div v-if="activeFunction === 'text_to_image'" class="space-y-6">
+        <!-- 提示词输入 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">提示词</label>
+          <textarea
+            v-model="currentPrompt"
+            placeholder="请输入图片描述，越详细越好"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows="4"
+            maxlength="2000"
+          />
+          <div class="text-right mt-2">
+            <span class="text-sm text-gray-500">{{ currentPrompt.length }}/2000</span>
+          </div>
+        </div>
 
-              <van-field
-                v-model="textToImageParams.size"
-                label="图片尺寸"
-                readonly
-                is-link
-                @click="showSizePicker = true"
-              />
+        <!-- 图片尺寸 -->
+        <CustomSelect
+          v-model="textToImageParams.size"
+          :options="imageSizeOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          label="图片尺寸"
+          title="选择尺寸"
+        />
 
-              <van-cell title="创意度">
-                <template #value>
-                  <van-slider
-                    v-model="textToImageParams.scale"
-                    :min="1"
-                    :max="10"
-                    :step="0.5"
-                    style="width: 200px"
+        <!-- 创意度 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="space-y-4">
+            <div class="flex items-center space-x-2">
+              <label class="block text-gray-700 font-medium">创意度</label>
+              <el-tooltip content="创意度越高，影响文本描述的程度越高" placement="top">
+                <i class="iconfont icon-info text-gray-400 cursor-pointer"></i>
+              </el-tooltip>
+            </div>
+            <el-slider v-model="textToImageParams.scale" :min="1" :max="10" :step="0.5" />
+          </div>
+        </div>
+
+        <!-- 智能优化提示词 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-gray-900 font-medium">智能优化提示词</span>
+            <el-switch v-model="textToImageParams.use_pre_llm" size="default" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 图生图 -->
+      <div v-if="activeFunction === 'image_to_image'" class="space-y-6">
+        <!-- 上传图片 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">上传图片</label>
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+          >
+            <input
+              ref="imageToImageInput"
+              type="file"
+              accept=".jpg,.png,.jpeg"
+              @change="(e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })"
+              class="hidden"
+            />
+            <div @click="$refs.imageToImageInput?.click()" class="flex flex-col items-center space-y-2">
+              <i v-if="!imageToImageParams.image_input.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
+              <span v-if="!imageToImageParams.image_input.length" class="text-gray-700 font-medium">上传图片</span>
+              <div v-else class="relative">
+                <el-image
+                  :src="imageToImageParams.image_input[0]?.url || imageToImageParams.image_input[0]?.content"
+                  fit="cover"
+                  class="w-32 h-32 rounded"
+                />
+                <button
+                  @click.stop="imageToImageParams.image_input = []"
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                >
+                  <i class="iconfont icon-close"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提示词输入 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">提示词</label>
+          <textarea
+            v-model="currentPrompt"
+            placeholder="描述你想要的图片效果"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows="4"
+            maxlength="2000"
+          />
+          <div class="text-right mt-2">
+            <span class="text-sm text-gray-500">{{ currentPrompt.length }}/2000</span>
+          </div>
+        </div>
+
+        <!-- 图片尺寸 -->
+        <CustomSelect
+          v-model="imageToImageParams.size"
+          :options="imageSizeOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          label="图片尺寸"
+          title="选择尺寸"
+        />
+      </div>
+
+      <!-- 图像编辑 -->
+      <div v-if="activeFunction === 'image_edit'" class="space-y-6">
+        <!-- 上传图片 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">上传图片</label>
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+          >
+            <input
+              ref="imageEditInput"
+              type="file"
+              accept=".jpg,.png,.jpeg"
+              @change="(e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })"
+              class="hidden"
+            />
+            <div @click="$refs.imageEditInput?.click()" class="flex flex-col items-center space-y-2">
+              <i v-if="!imageEditParams.image_urls.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
+              <span v-if="!imageEditParams.image_urls.length" class="text-gray-700 font-medium">上传图片</span>
+              <div v-else class="relative">
+                <el-image
+                  :src="imageEditParams.image_urls[0]?.url || imageEditParams.image_urls[0]?.content"
+                  fit="cover"
+                  class="w-32 h-32 rounded"
+                />
+                <button
+                  @click.stop="imageEditParams.image_urls = []"
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                >
+                  <i class="iconfont icon-close"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑提示词 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">编辑提示词</label>
+          <textarea
+            v-model="currentPrompt"
+            placeholder="描述你想要的编辑效果"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows="4"
+            maxlength="2000"
+          />
+          <div class="text-right mt-2">
+            <span class="text-sm text-gray-500">{{ currentPrompt.length }}/2000</span>
+          </div>
+        </div>
+
+        <!-- 编辑强度 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="space-y-4">
+            <label class="block text-gray-700 font-medium">编辑强度</label>
+            <el-slider v-model="imageEditParams.scale" :min="0" :max="1" :step="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 图像特效 -->
+      <div v-if="activeFunction === 'image_effects'" class="space-y-6">
+        <!-- 上传图片 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">上传图片</label>
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+          >
+            <input
+              ref="imageEffectsInput"
+              type="file"
+              accept=".jpg,.png,.jpeg"
+              @change="(e) => onImageUpload({ file: e.target.files[0], name: e.target.files[0]?.name })"
+              class="hidden"
+            />
+            <div @click="$refs.imageEffectsInput?.click()" class="flex flex-col items-center space-y-2">
+              <i v-if="!imageEffectsParams.image_input1.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
+              <span v-if="!imageEffectsParams.image_input1.length" class="text-gray-700 font-medium">上传图片</span>
+              <div v-else class="relative">
+                <el-image
+                  :src="imageEffectsParams.image_input1[0]?.url || imageEffectsParams.image_input1[0]?.content"
+                  fit="cover"
+                  class="w-32 h-32 rounded"
+                />
+                <button
+                  @click.stop="imageEffectsParams.image_input1 = []"
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                >
+                  <i class="iconfont icon-close"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 特效模板 -->
+        <CustomSelect
+          v-model="imageEffectsParams.template_id"
+          :options="imageEffectsTemplateOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          label="特效模板"
+          title="选择特效模板"
+        />
+
+        <!-- 输出尺寸 -->
+        <CustomSelect
+          v-model="imageEffectsParams.size"
+          :options="imageSizeOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          label="输出尺寸"
+          title="选择尺寸"
+        />
+      </div>
+
+      <!-- 文生视频 -->
+      <div v-if="activeFunction === 'text_to_video'" class="space-y-6">
+        <!-- 提示词输入 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">提示词</label>
+          <textarea
+            v-model="currentPrompt"
+            placeholder="描述你想要的视频内容"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows="4"
+            maxlength="2000"
+          />
+          <div class="text-right mt-2">
+            <span class="text-sm text-gray-500">{{ currentPrompt.length }}/2000</span>
+          </div>
+        </div>
+
+        <!-- 视频比例 -->
+        <CustomSelect
+          v-model="textToVideoParams.aspect_ratio"
+          :options="videoAspectRatioOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          label="视频比例"
+          title="选择比例"
+        />
+      </div>
+
+      <!-- 图生视频 -->
+      <div v-if="activeFunction === 'image_to_video'" class="space-y-6">
+        <!-- 上传图片 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">上传图片（最多2张）</label>
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+          >
+            <input
+              ref="imageToVideoInput"
+              type="file"
+              accept=".jpg,.png,.jpeg"
+              multiple
+              @change="(e) => handleMultipleImageUpload(e)"
+              class="hidden"
+            />
+            <div @click="$refs.imageToVideoInput?.click()" class="flex flex-col items-center space-y-2">
+              <i v-if="!imageToVideoParams.image_urls.length" class="iconfont icon-upload text-blue-500 text-2xl"></i>
+              <span v-if="!imageToVideoParams.image_urls.length" class="text-gray-700 font-medium">上传图片</span>
+              <div v-else class="flex space-x-3">
+                <div v-for="(image, index) in imageToVideoParams.image_urls" :key="index" class="relative">
+                  <el-image
+                    :src="image?.url || image?.content"
+                    fit="cover"
+                    class="w-24 h-24 rounded"
                   />
-                </template>
-              </van-cell>
-
-              <van-cell title="智能优化提示词">
-                <template #right-icon>
-                  <van-switch v-model="textToImageParams.use_pre_llm" size="24" />
-                </template>
-              </van-cell>
-            </div>
-
-            <!-- 图生图 -->
-            <div v-if="activeFunction === 'image_to_image'" class="function-panel">
-              <van-uploader
-                v-model="imageToImageParams.image_input"
-                :max-count="1"
-                :after-read="onImageUpload"
-                accept=".jpg,.png,.jpeg"
-              >
-                <van-button icon="plus" type="primary" block> 上传图片 </van-button>
-              </van-uploader>
-
-              <van-field
-                v-model="currentPrompt"
-                label="提示词"
-                type="textarea"
-                placeholder="描述你想要的图片效果"
-                rows="4"
-                maxlength="2000"
-                show-word-limit
-              />
-
-              <van-field
-                v-model="imageToImageParams.size"
-                label="图片尺寸"
-                readonly
-                is-link
-                @click="showSizePicker = true"
-              />
+                  <button
+                    @click.stop="removeImage(index)"
+                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                  >
+                    <i class="iconfont icon-close"></i>
+                  </button>
+                </div>
+                <div v-if="imageToVideoParams.image_urls.length < 2" @click.stop="$refs.imageToVideoInput?.click()" class="w-24 h-24 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400">
+                  <i class="iconfont icon-plus text-gray-400 text-xl"></i>
+                </div>
+              </div>
             </div>
           </div>
-        </van-tab>
+        </div>
 
-        <van-tab title="图像编辑" name="image_editing">
-          <div class="tab-content">
-            <!-- 图像编辑 -->
-            <div v-if="activeFunction === 'image_edit'" class="function-panel">
-              <van-uploader
-                v-model="imageEditParams.image_urls"
-                :max-count="1"
-                :after-read="onImageUpload"
-                accept=".jpg,.png,.jpeg"
-              >
-                <van-button icon="plus" type="primary" block> 上传图片 </van-button>
-              </van-uploader>
-
-              <van-field
-                v-model="currentPrompt"
-                label="编辑提示词"
-                type="textarea"
-                placeholder="描述你想要的编辑效果"
-                rows="4"
-                maxlength="2000"
-                show-word-limit
-              />
-
-              <van-cell title="编辑强度">
-                <template #value>
-                  <van-slider
-                    v-model="imageEditParams.scale"
-                    :min="0"
-                    :max="1"
-                    :step="0.1"
-                    style="width: 200px"
-                  />
-                </template>
-              </van-cell>
-            </div>
-
-            <!-- 图像特效 -->
-            <div v-if="activeFunction === 'image_effects'" class="function-panel">
-              <van-uploader
-                v-model="imageEffectsParams.image_input1"
-                :max-count="1"
-                :after-read="onImageUpload"
-                accept=".jpg,.png,.jpeg"
-              >
-                <van-button icon="plus" type="primary" block> 上传图片 </van-button>
-              </van-uploader>
-
-              <van-field
-                v-model="imageEffectsParams.template_id"
-                label="特效模板"
-                readonly
-                is-link
-                @click="showTemplatePicker = true"
-              />
-
-              <van-field
-                v-model="imageEffectsParams.size"
-                label="输出尺寸"
-                readonly
-                is-link
-                @click="showSizePicker = true"
-              />
-            </div>
+        <!-- 提示词输入 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">提示词</label>
+          <textarea
+            v-model="currentPrompt"
+            placeholder="描述你想要的视频效果"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows="4"
+            maxlength="2000"
+          />
+          <div class="text-right mt-2">
+            <span class="text-sm text-gray-500">{{ currentPrompt.length }}/2000</span>
           </div>
-        </van-tab>
+        </div>
 
-        <van-tab title="视频生成" name="video_generation">
-          <div class="tab-content">
-            <!-- 生成模式切换 -->
-            <van-cell title="生成模式">
-              <template #value>
-                <van-switch v-model="useImageInput" size="24" @change="onInputModeChange" />
-              </template>
-            </van-cell>
-            <van-cell title="图生视频" :value="useImageInput ? '开启' : '关闭'" />
+        <!-- 视频比例 -->
+        <CustomSelect
+          v-model="imageToVideoParams.aspect_ratio"
+          :options="videoAspectRatioOptions.map(opt => ({ label: opt.label, value: opt.value }))"
+          label="视频比例"
+          title="选择比例"
+        />
+      </div>
 
-            <!-- 文生视频 -->
-            <div v-if="activeFunction === 'text_to_video'" class="function-panel">
-              <van-field
-                v-model="currentPrompt"
-                label="提示词"
-                type="textarea"
-                placeholder="描述你想要的视频内容"
-                rows="4"
-                maxlength="2000"
-                show-word-limit
-              />
-
-              <van-field
-                v-model="textToVideoParams.aspect_ratio"
-                label="视频比例"
-                readonly
-                is-link
-                @click="showAspectRatioPicker = true"
-              />
-            </div>
-
-            <!-- 图生视频 -->
-            <div v-if="activeFunction === 'image_to_video'" class="function-panel">
-              <van-uploader
-                v-model="imageToVideoParams.image_urls"
-                :max-count="2"
-                :after-read="onImageUpload"
-                accept=".jpg,.png,.jpeg"
-                multiple
-              >
-                <van-button icon="plus" type="primary" block> 上传图片 </van-button>
-              </van-uploader>
-
-              <van-field
-                v-model="currentPrompt"
-                label="提示词"
-                type="textarea"
-                placeholder="描述你想要的视频效果"
-                rows="4"
-                maxlength="2000"
-                show-word-limit
-              />
-
-              <van-field
-                v-model="imageToVideoParams.aspect_ratio"
-                label="视频比例"
-                readonly
-                is-link
-                @click="showAspectRatioPicker = true"
-              />
-            </div>
-          </div>
-        </van-tab>
-      </van-tabs>
-    </div>
-
-    <!-- 生成按钮 -->
-    <div class="submit-section">
-      <van-button type="primary" size="large" @click="submitTask" :loading="submitting" block>
-        立即生成 ({{ currentPowerCost }}算力)
-      </van-button>
+      <!-- 生成按钮 -->
+      <div class="sticky bottom-4 bg-white rounded-xl p-4 shadow-lg">
+        <button
+          @click="submitTask"
+          :disabled="submitting"
+          class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+        >
+          <i v-if="submitting" class="iconfont icon-loading animate-spin"></i>
+          <span>{{ submitting ? '创作中...' : `立即生成 (${currentPowerCost}算力)` }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- 作品列表 -->
-    <div class="works-list">
-      <van-list
-        v-model:loading="listLoading"
-        :finished="listFinished"
-        finished-text="没有更多了"
-        @load="loadMore"
-      >
-        <div v-for="item in currentList" :key="item.id" class="work-item">
-          <van-card
-            :title="getFunctionName(item.type)"
-            :desc="item.prompt"
-            :thumb="item.img_url || item.video_url"
-          >
-            <template #tags>
-              <van-tag :type="getTaskType(item.type)" size="small">
-                {{ getFunctionName(item.type) }}
-              </van-tag>
-              <van-tag v-if="item.power" type="warning" size="small">
-                {{ item.power }}算力
-              </van-tag>
-            </template>
-            <template #footer>
-              <van-button v-if="item.status === 'completed'" size="small" @click="playMedia(item)">
-                {{ item.type.includes('video') ? '播放' : '查看' }}
-              </van-button>
-              <van-button
+    <div class="p-4">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">我的作品</h2>
+      <div class="space-y-4">
+        <div v-for="item in currentList" :key="item.id" class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex space-x-4">
+            <div class="flex-shrink-0">
+              <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                <el-image
+                  v-if="item.img_url"
+                  :src="item.img_url"
+                  fit="cover"
+                  class="w-full h-full"
+                  :preview-disabled="true"
+                >
+                  <template #error>
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                      <i class="iconfont icon-image text-gray-400 text-xl"></i>
+                    </div>
+                  </template>
+                </el-image>
+                <el-image
+                  v-else-if="item.video_url"
+                  :src="item.video_url"
+                  fit="cover"
+                  class="w-full h-full"
+                  :preview-disabled="true"
+                >
+                  <template #error>
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                      <i class="iconfont icon-video text-gray-400 text-xl"></i>
+                    </div>
+                  </template>
+                </el-image>
+                <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
+                  <i :class="item.type.includes('video') ? 'iconfont icon-video' : 'iconfont icon-image'" class="text-gray-400 text-xl"></i>
+                </div>
+                <!-- 播放/查看按钮 -->
+                <button
+                  v-if="item.status === 'completed'"
+                  @click="playMedia(item)"
+                  class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
+                >
+                  <i :class="item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'" class="text-white text-xl"></i>
+                </button>
+                <!-- 进度动画 -->
+                <div
+                  v-if="item.status === 'in_queue' || item.status === 'generating'"
+                  class="absolute inset-0 flex items-center justify-center bg-blue-500 bg-opacity-20"
+                >
+                  <i class="iconfont icon-loading animate-spin text-blue-500 text-xl"></i>
+                </div>
+                <!-- 失败状态 -->
+                <div
+                  v-if="item.status === 'failed'"
+                  class="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-20"
+                >
+                  <i class="iconfont icon-warning text-red-500 text-xl"></i>
+                </div>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="text-gray-900 font-medium truncate">
+                    {{ getFunctionName(item.type) }}
+                  </h3>
+                  <p class="text-gray-500 text-sm mt-1 line-clamp-2">
+                    {{ item.prompt }}
+                  </p>
+                </div>
+                <!-- 任务状态 -->
+                <div v-if="item.status !== 'completed'" class="flex items-center space-x-2 text-sm">
+                  <div
+                    v-if="item.status === 'failed'"
+                    class="text-red-600 flex items-center space-x-1"
+                  >
+                    <i class="iconfont icon-warning"></i>
+                    <span>失败</span>
+                  </div>
+                  <div v-else class="text-blue-600 flex items-center space-x-1">
+                    <div
+                      class="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"
+                    ></div>
+                    <span>生成中</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 标签 -->
+              <div class="flex items-center space-x-2 mt-2">
+                <span
+                  :class="[
+                    'px-2 py-1 text-xs rounded-full',
+                    getTaskType(item.type) === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'
+                  ]"
+                >
+                  {{ getFunctionName(item.type) }}
+                </span>
+                <span
+                  v-if="item.power"
+                  class="px-2 py-1 text-xs bg-orange-100 text-orange-600 rounded-full"
+                >
+                  {{ item.power }}算力
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="flex items-center justify-between mt-4">
+            <div class="flex space-x-2">
+              <button
                 v-if="item.status === 'completed'"
-                size="small"
-                @click="downloadFile(item)"
-                :loading="item.downloading"
+                @click="playMedia(item)"
+                class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
               >
-                下载
-              </van-button>
-              <van-button v-if="item.status === 'failed'" size="small" @click="retryTask(item.id)">
-                重试
-              </van-button>
-              <van-button size="small" type="danger" @click="removeJob(item)"> 删除 </van-button>
-            </template>
-          </van-card>
+                <i :class="item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'" class="!text-xs"></i>
+                <span>{{ item.type.includes('video') ? '播放' : '查看' }}</span>
+              </button>
+              <button
+                v-if="item.status === 'completed'"
+                @click="downloadFile(item)"
+                :disabled="item.downloading"
+                class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 flex items-center space-x-1"
+              >
+                <i v-if="item.downloading" class="iconfont icon-loading animate-spin !text-xs"></i>
+                <i v-else class="iconfont icon-download !text-xs"></i>
+                <span>{{ item.downloading ? '下载中...' : '下载' }}</span>
+              </button>
+              <button
+                v-if="item.status === 'failed'"
+                @click="retryTask(item.id)"
+                class="px-3 py-1.5 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-1"
+              >
+                <i class="iconfont icon-refresh !text-xs"></i>
+                <span>重试</span>
+              </button>
+            </div>
+            <button
+              @click="removeJob(item)"
+              class="px-3 py-1.5 bg-red-100 text-red-600 text-sm rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-1"
+            >
+              <i class="iconfont icon-remove !text-xs"></i>
+              <span>删除</span>
+            </button>
+          </div>
         </div>
-      </van-list>
+
+        <!-- 加载更多 -->
+        <div v-if="listLoading" class="flex justify-center py-4">
+          <i class="iconfont icon-loading animate-spin text-blue-500 text-xl"></i>
+        </div>
+
+        <!-- 没有更多了 -->
+        <div v-if="listFinished && !listLoading" class="text-center py-4 text-gray-500">
+          没有更多了
+        </div>
+      </div>
     </div>
 
-    <!-- 各种选择器弹窗 -->
-    <van-popup v-model:show="showSizePicker" position="bottom">
-      <van-picker
-        :columns="imageSizeOptions"
-        @confirm="onSizeConfirm"
-        @cancel="showSizePicker = false"
-      />
-    </van-popup>
-
-    <van-popup v-model:show="showAspectRatioPicker" position="bottom">
-      <van-picker
-        :columns="videoAspectRatioOptions"
-        @confirm="onAspectRatioConfirm"
-        @cancel="showAspectRatioPicker = false"
-      />
-    </van-popup>
-
-    <van-popup v-model:show="showTemplatePicker" position="bottom">
-      <van-picker
-        :columns="imageEffectsTemplateOptions"
-        @confirm="onTemplateConfirm"
-        @cancel="showTemplatePicker = false"
-      />
-    </van-popup>
-
     <!-- 媒体预览弹窗 -->
-    <van-popup
-      v-model:show="showMediaDialog"
-      position="center"
-      :style="{ width: '90%', height: '60%' }"
+    <div
+      v-if="showMediaDialog"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      @click="showMediaDialog = false"
     >
-      <div class="media-preview">
-        <img
-          v-if="currentMediaUrl && !currentMediaUrl.includes('video')"
-          :src="currentMediaUrl"
-          style="width: 100%; height: 100%; object-fit: contain"
-        />
-        <video
-          v-else-if="currentMediaUrl"
-          :src="currentMediaUrl"
-          controls
-          autoplay
-          style="width: 100%; height: 100%"
-        >
-          您的浏览器不支持视频播放
-        </video>
+      <div @click.stop class="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] animate-scale-up">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">媒体预览</h3>
+          <button @click="showMediaDialog = false" class="p-2 hover:bg-gray-100 rounded-full">
+            <i class="iconfont icon-close text-gray-500"></i>
+          </button>
+        </div>
+        <div class="p-6">
+          <img
+            v-if="currentMediaUrl && !currentMediaUrl.includes('video')"
+            :src="currentMediaUrl"
+            class="w-full max-h-[60vh] object-contain rounded-lg"
+          />
+          <video
+            v-else-if="currentMediaUrl"
+            :src="currentMediaUrl"
+            controls
+            autoplay
+            class="w-full max-h-[60vh] rounded-lg"
+          >
+            您的浏览器不支持视频播放
+          </video>
+        </div>
       </div>
-    </van-popup>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast, showDialog } from 'vant'
+import { showConfirmDialog } from 'vant'
 import { httpGet, httpPost } from '@/utils/http'
 import { checkSession } from '@/store/cache'
+import CustomSelect from '@/components/ui/CustomSelect.vue'
+import { showMessageSuccess, showMessageError, showLoading, closeLoading } from '@/utils/dialog'
 
 const router = useRouter()
 
@@ -342,10 +587,36 @@ const currentList = ref([])
 const showMediaDialog = ref(false)
 const currentMediaUrl = ref('')
 
-// 选择器相关
-const showSizePicker = ref(false)
-const showAspectRatioPicker = ref(false)
-const showTemplatePicker = ref(false)
+// 功能分类
+const categories = ref([
+  { key: 'image_generation', name: '图像生成' },
+  { key: 'image_editing', name: '图像编辑' },
+  { key: 'image_effects', name: '图像特效' },
+  { key: 'video_generation', name: '视频生成' }
+])
+
+// 选项数据
+const imageSizeOptions = [
+  { label: '512x512', value: '512x512' },
+  { label: '768x768', value: '768x768' },
+  { label: '1024x1024', value: '1024x1024' },
+  { label: '1024x1536', value: '1024x1536' },
+  { label: '1536x1024', value: '1536x1024' }
+]
+
+const videoAspectRatioOptions = [
+  { label: '16:9', value: '16:9' },
+  { label: '9:16', value: '9:16' },
+  { label: '1:1', value: '1:1' },
+  { label: '4:3', value: '4:3' }
+]
+
+const imageEffectsTemplateOptions = [
+  { label: '亚克力装饰', value: 'acrylic_ornaments' },
+  { label: '天使小雕像', value: 'angel_figurine' },
+  { label: '毛毫3D拍立得', value: 'felt_3d_polaroid' },
+  { label: '水彩插图', value: 'watercolor_illustration' }
+]
 
 // 当前提示词
 const currentPrompt = ref('')
@@ -434,39 +705,64 @@ onUnmounted(() => {
   }
 })
 
-// 方法
-const goBack = () => {
-  router.back()
+// 获取分类图标
+const getCategoryIcon = (category) => {
+  const iconMap = {
+    image_generation: 'iconfont icon-image',
+    image_editing: 'iconfont icon-edit',
+    image_effects: 'iconfont icon-chuangzuo',
+    video_generation: 'iconfont icon-video',
+  }
+  return iconMap[category] || 'iconfont icon-image'
 }
 
-const onCategoryChange = (name) => {
-  activeCategory.value = name
+// 切换分类
+const switchCategory = (key) => {
+  activeCategory.value = key
   useImageInput.value = false
 }
 
-const onInputModeChange = () => {
-  // 重置相关参数
+// 切换输入模式
+const switchInputMode = () => {
   currentPrompt.value = ''
+}
+
+// 处理多图片上传
+const handleMultipleImageUpload = (event) => {
+  const files = Array.from(event.target.files)
+  files.forEach(file => {
+    if (imageToVideoParams.value.image_urls.length < 2) {
+      onImageUpload({ file, name: file.name })
+    }
+  })
+}
+
+// 移除图片
+const removeImage = (index) => {
+  imageToVideoParams.value.image_urls.splice(index, 1)
 }
 
 const onImageUpload = (file) => {
   const formData = new FormData()
   formData.append('file', file.file, file.name)
-  showToast({ message: '正在上传图片...', duration: 0 })
+  showLoading('正在上传图片...')
 
   httpPost('/api/upload', formData)
     .then((res) => {
-      showToast('图片上传成功')
+      showMessageSuccess('图片上传成功')
       return res.data.url
     })
     .catch((e) => {
-      showToast('图片上传失败:' + e.message)
+      showMessageError('图片上传失败:' + e.message)
+    })
+    .finally(() => {
+      closeLoading()
     })
 }
 
 const submitTask = () => {
   if (!currentPrompt.value.trim()) {
-    showToast('请输入提示词')
+    showMessageError('请输入提示词')
     return
   }
 
@@ -495,11 +791,11 @@ const submitTask = () => {
     .then(() => {
       fetchData(1)
       taskPulling.value = true
-      showToast('创建任务成功')
+      showMessageSuccess('创建任务成功')
       currentPrompt.value = ''
     })
     .catch((e) => {
-      showToast('创建任务失败：' + e.message)
+      showMessageError('创建任务失败：' + e.message)
     })
     .finally(() => {
       submitting.value = false
@@ -537,7 +833,7 @@ const fetchData = (_page) => {
     })
     .catch((e) => {
       listLoading.value = false
-      showToast('获取作品列表失败：' + e.message)
+      showMessageError('获取作品列表失败：' + e.message)
     })
 }
 
@@ -560,40 +856,45 @@ const downloadFile = (item) => {
   link.click()
   document.body.removeChild(link)
   item.downloading = false
-  showToast('开始下载')
+  showMessageSuccess('开始下载')
 }
 
 const retryTask = (id) => {
   httpPost('/api/jimeng/retry', { id })
     .then(() => {
-      showToast('重试任务成功')
+      showMessageSuccess('重试任务成功')
       fetchData(1)
     })
     .catch((e) => {
-      showToast('重试任务失败：' + e.message)
+      showMessageError('重试任务失败：' + e.message)
     })
 }
 
 const removeJob = (item) => {
-  showDialog({
+  showConfirmDialog({
     title: '确认删除',
     message: '此操作将会删除任务相关文件，继续操作吗?',
-    showCancelButton: true,
+    confirmButtonText: '确认删除',
+    cancelButtonText: '取消'
   })
     .then(() => {
       httpGet('/api/jimeng/remove', { id: item.id })
         .then(() => {
-          showToast('任务删除成功')
+          showMessageSuccess('任务删除成功')
           fetchData(1)
         })
         .catch((e) => {
-          showToast('任务删除失败：' + e.message)
+          showMessageError('任务删除失败：' + e.message)
         })
     })
     .catch(() => {})
 }
 
 // 工具方法
+const goBack = () => {
+  router.back()
+}
+
 const getFunctionName = (type) => {
   const nameMap = {
     text_to_image: '文生图',
@@ -609,85 +910,95 @@ const getFunctionName = (type) => {
 const getTaskType = (type) => {
   return type.includes('video') ? 'warning' : 'primary'
 }
-
-// 选择器确认方法
-const onSizeConfirm = (value) => {
-  if (activeFunction.value === 'text_to_image') {
-    textToImageParams.value.size = value
-  } else if (activeFunction.value === 'image_to_image') {
-    imageToImageParams.value.size = value
-  } else if (activeFunction.value === 'image_effects') {
-    imageEffectsParams.value.size = value
-  }
-  showSizePicker.value = false
-}
-
-const onAspectRatioConfirm = (value) => {
-  if (activeFunction.value === 'text_to_video') {
-    textToVideoParams.value.aspect_ratio = value
-  } else if (activeFunction.value === 'image_to_video') {
-    imageToVideoParams.value.aspect_ratio = value
-  }
-  showAspectRatioPicker.value = false
-}
-
-const onTemplateConfirm = (value) => {
-  imageEffectsParams.value.template_id = value
-  showTemplatePicker.value = false
-}
 </script>
 
-<style lang="scss" scoped>
-.mobile-jimeng-create {
-  min-height: 100vh;
-  background: #f7f8fa;
-  padding-bottom: 20px;
+<style scoped>
+/* 自定义动画 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  .page-header {
-    background: #fff;
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.3s ease-out;
+}
+
+.animate-scale-up {
+  animation: scale-up 0.3s ease-out;
+}
+
+/* 文本截断 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .bg-gray-50 {
+    background-color: #1f2937;
   }
 
-  .category-section {
-    background: #fff;
-    margin: 12px;
-    border-radius: 8px;
-    overflow: hidden;
-
-    .tab-content {
-      padding: 16px;
-
-      .function-panel {
-        .van-uploader {
-          margin-bottom: 16px;
-        }
-      }
-    }
+  .bg-white {
+    background-color: #374151;
   }
 
-  .submit-section {
-    margin: 12px;
-    padding: 16px;
-    background: #fff;
-    border-radius: 8px;
+  .text-gray-900 {
+    color: #f9fafb;
   }
 
-  .works-list {
-    margin: 12px;
-
-    .work-item {
-      margin-bottom: 12px;
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-    }
+  .text-gray-700 {
+    color: #d1d5db;
   }
 
-  .media-preview {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .text-gray-600 {
+    color: #9ca3af;
+  }
+
+  .text-gray-500 {
+    color: #6b7280;
+  }
+
+  .border-gray-200 {
+    border-color: #4b5563;
+  }
+
+  .bg-gray-100:hover {
+    background-color: #4b5563;
   }
 }
 </style>
