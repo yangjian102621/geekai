@@ -20,20 +20,22 @@
       <div class="bg-white rounded-xl p-4 shadow-sm">
         <div class="flex items-center justify-between mb-3">
           <span class="text-gray-900 font-medium">创作模式</span>
-          <van-switch v-model="custom" @change="onModeChange" size="24px" />
+          <van-switch v-model="suno.custom" @change="onModeChange" size="24px" />
         </div>
         <p class="text-sm text-gray-500">
-          {{ custom ? '自定义模式：可设置歌词、风格等详细参数' : '简单模式：通过描述快速生成' }}
+          {{
+            suno.custom ? '自定义模式：可设置歌词、风格等详细参数' : '简单模式：通过描述快速生成'
+          }}
         </p>
       </div>
 
       <!-- 模型选择 -->
       <CustomSelect
-        v-model="data.model"
-        :options="models"
+        v-model="suno.data.model"
+        :options="suno.models"
         label="模型版本"
         title="选择模型"
-        @change="onModelSelect"
+        @change="suno.onModelSelect"
       >
         <template #option="{ option, selected }">
           <div class="flex items-center w-full">
@@ -53,31 +55,31 @@
             <span class="text-gray-900 font-medium">纯音乐</span>
             <p class="text-sm text-gray-500 mt-1">生成不包含人声的音乐</p>
           </div>
-          <van-switch v-model="data.instrumental" size="24px" />
+          <van-switch v-model="suno.data.instrumental" size="24px" />
         </div>
       </div>
 
       <!-- 自定义模式内容 -->
-      <div v-if="custom" class="space-y-6">
+      <div v-if="suno.custom" class="space-y-6">
         <!-- 歌词输入 -->
-        <div v-if="!data.instrumental" class="bg-white rounded-xl p-4 shadow-sm">
+        <div v-if="!suno.data.instrumental" class="bg-white rounded-xl p-4 shadow-sm">
           <label class="block text-gray-700 font-medium mb-3">歌词</label>
           <textarea
-            v-model="data.lyrics"
+            v-model="suno.data.lyrics"
             placeholder="请在这里输入你自己写的歌词..."
             class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows="6"
             maxlength="2000"
           />
           <div class="flex items-center justify-between mt-3">
-            <span class="text-sm text-gray-500">{{ data.lyrics.length }}/2000</span>
+            <span class="text-sm text-gray-500">{{ suno.data.lyrics.length }}/2000</span>
             <button
-              @click="createLyric"
-              :disabled="isGenerating || !data.lyrics"
+              @click="suno.createLyric"
+              :disabled="suno.isGenerating || !suno.data.lyrics"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors flex items-center space-x-2"
             >
-              <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
-              <span>{{ isGenerating ? '生成中...' : '生成歌词' }}</span>
+              <i v-if="suno.isGenerating" class="iconfont icon-loading animate-spin"></i>
+              <span>{{ suno.isGenerating ? '生成中...' : '生成歌词' }}</span>
             </button>
           </div>
         </div>
@@ -86,21 +88,21 @@
         <div class="bg-white rounded-xl p-4 shadow-sm">
           <label class="block text-gray-700 font-medium mb-3">音乐风格</label>
           <textarea
-            v-model="data.tags"
+            v-model="suno.data.tags"
             placeholder="请输入音乐风格，多个风格之间用英文逗号隔开..."
             class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows="3"
             maxlength="120"
           />
           <div class="flex justify-between items-center mt-2 mb-3">
-            <span class="text-sm text-gray-500">{{ data.tags.length }}/120</span>
+            <span class="text-sm text-gray-500">{{ suno.data.tags.length }}/120</span>
           </div>
           <!-- 风格标签选择 -->
           <div class="flex flex-wrap gap-2">
             <button
-              v-for="tag in tags"
+              v-for="tag in suno.tags"
               :key="tag.value"
-              @click="selectTag(tag)"
+              @click="suno.selectTag(tag)"
               class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
             >
               {{ tag.label }}
@@ -112,13 +114,13 @@
         <div class="bg-white rounded-xl p-4 shadow-sm">
           <label class="block text-gray-700 font-medium mb-3">歌曲名称</label>
           <input
-            v-model="data.title"
+            v-model="suno.data.title"
             placeholder="请输入歌曲名称..."
             class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxlength="100"
           />
           <div class="text-right mt-2">
-            <span class="text-sm text-gray-500">{{ data.title.length }}/100</span>
+            <span class="text-sm text-gray-500">{{ suno.data.title.length }}/100</span>
           </div>
         </div>
       </div>
@@ -127,26 +129,29 @@
       <div v-else class="bg-white rounded-xl p-4 shadow-sm">
         <label class="block text-gray-700 font-medium mb-3">歌曲描述</label>
         <textarea
-          v-model="data.prompt"
+          v-model="suno.data.prompt"
           placeholder="例如：一首关于爱情的摇滚歌曲..."
           class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           rows="6"
           maxlength="1000"
         />
         <div class="text-right mt-2">
-          <span class="text-sm text-gray-500">{{ data.prompt.length }}/1000</span>
+          <span class="text-sm text-gray-500">{{ suno.data.prompt.length }}/1000</span>
         </div>
       </div>
 
       <!-- 续写歌曲 -->
-      <div v-if="refSong" class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-400">
+      <div
+        v-if="suno.refSong"
+        class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-400"
+      >
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-gray-900 font-medium flex items-center">
             <i class="iconfont icon-link mr-2 text-orange-500"></i>
             续写歌曲
           </h3>
           <button
-            @click="removeRefSong"
+            @click="suno.removeRefSong"
             class="px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
           >
             移除
@@ -155,24 +160,25 @@
         <div class="space-y-3">
           <div class="flex justify-between">
             <span class="text-gray-600">歌曲名称：</span>
-            <span class="text-gray-900 font-medium">{{ refSong.title }}</span>
+            <span class="text-gray-900 font-medium">{{ suno.refSong.title }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-gray-600">歌曲时长：</span>
-            <span class="text-gray-900 font-medium">{{ refSong.duration }}秒</span>
+            <span class="text-gray-900 font-medium">{{ suno.refSong.duration }}秒</span>
           </div>
           <div>
             <label class="block text-gray-700 font-medium mb-2">续写开始时间(秒)</label>
             <input
-              v-model="refSong.extend_secs"
+              v-model="suno.refSong.extend_secs"
               type="number"
               :min="0"
-              :max="refSong.duration"
+              :max="suno.refSong.duration"
               placeholder="从第几秒开始续写"
               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <p class="text-sm text-gray-500 mt-1">
-              建议从 {{ Math.floor(refSong.duration * 0.8) }}-{{ refSong.duration }} 秒开始续写
+              建议从 {{ Math.floor(suno.refSong.duration * 0.8) }}-{{ suno.refSong.duration }}
+              秒开始续写
             </p>
           </div>
         </div>
@@ -181,12 +187,12 @@
       <!-- 生成按钮 -->
       <div class="sticky bottom-4 bg-white rounded-xl p-4 shadow-lg">
         <button
-          @click="create"
-          :disabled="loading"
-          class="w-full py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+          @click="suno.create"
+          :disabled="suno.loading"
+          class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
         >
-          <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
-          <span>{{ loading ? '创作中...' : btnText }}</span>
+          <i v-if="suno.loading" class="iconfont icon-loading animate-spin"></i>
+          <span>{{ suno.loading ? '创作中...' : suno.btnText }}({{ suno.sunoPowerCost }}算力)</span>
         </button>
       </div>
 
@@ -194,19 +200,21 @@
       <div class="bg-white rounded-xl p-4 shadow-sm">
         <label class="block text-gray-700 font-medium mb-3">上传音乐文件</label>
         <el-upload
-          ref="uploadRef"
+          ref="suno.uploadRef"
           :auto-upload="false"
           :show-file-list="false"
-          :on-change="handleFileChange"
-          :before-upload="beforeUpload"
+          :on-change="suno.handleFileChange"
+          :before-upload="suno.beforeUpload"
           accept=".wav,.mp3"
           class="upload-area w-full"
         >
           <template #trigger>
-            <el-button class="upload-btn w-full" size="large" type="primary">
+            <button
+              class="w-full py-3 bg-gradient-to-r from-purple-500 to-red-300 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
               <i class="iconfont icon-upload mr-2"></i>
               <span>上传音乐</span>
-            </el-button>
+            </button>
           </template>
         </el-upload>
         <div class="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
@@ -223,7 +231,7 @@
     <div class="p-4">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">我的作品</h2>
       <div class="space-y-4">
-        <div v-for="item in list" :key="item.id" class="bg-white rounded-xl p-4 shadow-sm">
+        <div v-for="item in suno.list" :key="item.id" class="bg-white rounded-xl p-4 shadow-sm">
           <div class="flex space-x-4">
             <div class="flex-shrink-0">
               <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
@@ -242,7 +250,7 @@
                 <!-- 音乐播放按钮 -->
                 <button
                   v-if="item.progress === 100"
-                  @click="play(item)"
+                  @click="suno.play(item)"
                   class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
                 >
                   <i class="iconfont icon-play text-white text-xl"></i>
@@ -332,7 +340,7 @@
             <div class="flex space-x-2">
               <button
                 v-if="item.progress === 100"
-                @click="play(item)"
+                @click="suno.play(item)"
                 class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
               >
                 <i class="iconfont icon-play !text-xs"></i>
@@ -340,7 +348,7 @@
               </button>
               <button
                 v-if="item.progress === 100"
-                @click="download(item)"
+                @click="suno.download(item)"
                 :disabled="item.downloading"
                 class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 flex items-center space-x-1"
               >
@@ -369,7 +377,7 @@
               </button>
               <button
                 v-if="item.progress === 100"
-                @click="extend(item)"
+                @click="suno.extend(item)"
                 class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center min-w-[60px]"
               >
                 <i class="iconfont icon-link !text-xs mr-1"></i>
@@ -413,7 +421,7 @@
         </div>
 
         <!-- 加载更多 -->
-        <div v-if="listLoading" class="flex justify-center py-4">
+        <div v-if="suno.listLoading" class="flex justify-center py-4">
           <svg class="w-6 h-6 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
             <circle
               class="opacity-25"
@@ -432,7 +440,7 @@
         </div>
 
         <!-- 没有更多了 -->
-        <div v-if="listFinished && !listLoading" class="text-center py-4 text-gray-500">
+        <div v-if="suno.listFinished && !suno.listLoading" class="text-center py-4 text-gray-500">
           没有更多了
         </div>
       </div>
@@ -440,14 +448,14 @@
 
     <!-- 音乐播放器 -->
     <div
-      v-if="showPlayer"
+      v-if="suno.showPlayer"
       class="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50"
-      @click="showPlayer = false"
+      @click="suno.showPlayer = false"
     >
       <div @click.stop class="bg-white rounded-t-2xl w-full max-w-md animate-slide-up">
         <div class="flex items-center justify-between p-4 border-b">
           <h3 class="text-lg font-semibold text-gray-900">正在播放</h3>
-          <button @click="showPlayer = false" class="p-2 hover:bg-gray-100 rounded-full">
+          <button @click="suno.showPlayer = false" class="p-2 hover:bg-gray-100 rounded-full">
             <svg
               class="w-5 h-5 text-gray-500"
               fill="none"
@@ -465,8 +473,8 @@
         </div>
         <div class="p-6">
           <audio
-            v-if="currentAudio"
-            :src="currentAudio"
+            v-if="suno.currentAudio"
+            :src="suno.currentAudio"
             controls
             autoplay
             class="w-full rounded-lg"
@@ -480,387 +488,55 @@
 </template>
 
 <script setup>
-import { checkSession } from '@/store/cache'
-import { closeLoading, showLoading, showToastMessage } from '@/utils/dialog'
-import { httpDownload, httpGet, httpPost } from '@/utils/http'
-import { replaceImg } from '@/utils/libs'
+import { onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useSunoStore } from '@/store/mobile/suno'
 import CustomSelect from '@/views/mobile/components/CustomSelect.vue'
 import { showConfirmDialog } from 'vant'
-import { onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import '@/assets/css/mobile/suno.scss'
 
 const router = useRouter()
+const suno = useSunoStore()
 
-// 响应式数据
-const custom = ref(false)
-const data = ref({
-  model: 'chirp-auk',
-  tags: '',
-  lyrics: '',
-  prompt: '',
-  title: '',
-  instrumental: false,
-  ref_task_id: '',
-  extend_secs: 0,
-  ref_song_id: '',
-})
-const loading = ref(false)
-const list = ref([])
-const listLoading = ref(false)
-const listFinished = ref(false)
-const btnText = ref('开始创作')
-const refSong = ref(null)
-const showModelPicker = ref(false)
-const showPlayer = ref(false)
-const showDeleteModal = ref(false)
-const currentAudio = ref('')
-const uploadFiles = ref([])
-const uploadRef = ref(null)
-const isGenerating = ref(false)
-const deleting = ref(false)
-const deleteItem = ref(null)
-
-// 模型选项
-const models = ref([
-  { label: 'v3.0', value: 'chirp-v3-0' },
-  { label: 'v3.5', value: 'chirp-v3-5' },
-  { label: 'v4.0', value: 'chirp-v4' },
-  { label: 'v4.5', value: 'chirp-auk' },
-])
-
-const onModelSelect = (selectedModel) => {
-  data.value.model = selectedModel.value
-}
-
-// 风格标签
-const tags = ref([
-  { label: '女声', value: 'female vocals' },
-  { label: '男声', value: 'male vocals' },
-  { label: '流行', value: 'pop' },
-  { label: '摇滚', value: 'rock' },
-  { label: '电音', value: 'electronic' },
-  { label: '钢琴', value: 'piano' },
-  { label: '吉他', value: 'guitar' },
-  { label: '嘻哈', value: 'hip hop' },
-])
-
-// 页面数据
-const page = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
-const taskPulling = ref(true)
-const tastPullHandler = ref(null)
-
-// 滚动监听，自动加载更多
-const handleScroll = () => {
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-  const windowHeight = window.innerHeight
-  const documentHeight = document.documentElement.scrollHeight
-
-  // 当滚动到底部附近时加载更多
-  if (scrollTop + windowHeight >= documentHeight - 100) {
-    loadMore()
-  }
-}
-
-// 生命周期
-onMounted(() => {
-  checkSession()
-    .then(() => {
-      fetchData(1)
-      // 启动定时轮询，检查任务状态
-      tastPullHandler.value = setInterval(() => {
-        if (taskPulling.value) {
-          // 只刷新第一页数据，用于检查任务状态变化
-          refreshFirstPage()
-        }
-      }, 5000)
-
-      // 添加滚动监听
-      window.addEventListener('scroll', handleScroll)
-    })
-    .catch(() => {})
-})
-
-onUnmounted(() => {
-  if (tastPullHandler.value) {
-    clearInterval(tastPullHandler.value)
-  }
-  // 移除滚动监听
-  window.removeEventListener('scroll', handleScroll)
-})
-
-// 方法
+// 页面专属方法
 const goBack = () => {
   router.back()
 }
 
 const onModeChange = () => {
-  if (!custom.value) {
-    removeRefSong()
+  if (!suno.custom) {
+    suno.removeRefSong()
   }
 }
 
-const onModelConfirm = (value) => {
-  const selectedModel = models.value.find((item) => item.label === value)
-  if (selectedModel) {
-    data.value.model = selectedModel.value
-  }
-  showModelPicker.value = false
-}
-
-const selectTag = (tag) => {
-  if (data.value.tags.length + tag.value.length >= 119) {
-    showToastMessage('标签长度超出限制', 'error')
-    return
-  }
-  const currentTags = data.value.tags.split(',').filter((t) => t.trim())
-  if (!currentTags.includes(tag.value)) {
-    currentTags.push(tag.value)
-    data.value.tags = currentTags.join(',')
+// 滚动监听、定时轮询等副作用
+const handleScroll = () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+  const windowHeight = window.innerHeight
+  const documentHeight = document.documentElement.scrollHeight
+  if (scrollTop + windowHeight >= documentHeight - 100) {
+    suno.loadMore()
   }
 }
 
-const createLyric = () => {
-  if (data.value.lyrics === '') {
-    showToastMessage('请输入歌词描述', 'error')
-    return
-  }
-  isGenerating.value = true
-  httpPost('/api/prompt/lyric', { prompt: data.value.lyrics })
-    .then((res) => {
-      const lines = res.data.split('\n')
-      data.value.title = lines.shift().replace(/\*/g, '')
-      lines.shift()
-      data.value.lyrics = lines.join('\n')
-      showToastMessage('歌词生成成功', 'success')
-    })
-    .catch((e) => {
-      showToastMessage('歌词生成失败：' + e.message, 'error')
-    })
-    .finally(() => {
-      isGenerating.value = false
-    })
-}
-
-const handleFileChange = (file) => {
-  uploadFiles.value = [file]
-  if (file.status === 'ready') {
-    // 文件已准备好，可以进行上传
-    uploadAudio(file)
-  }
-}
-
-const beforeUpload = (file) => {
-  // 限制文件大小，例如 10MB
-  const isLt10M = file.size / 1024 / 1024 < 10
-  if (!isLt10M) {
-    showToastMessage('文件大小不能超过 10MB!', 'error')
-    return false
-  }
-  return true
-}
-
-const uploadAudio = (file) => {
-  const formData = new FormData()
-  formData.append('file', file.raw, file.name)
-  showLoading('正在上传文件...')
-
-  httpPost('/api/upload', formData)
-    .then((res) => {
-      httpPost('/api/suno/create', {
-        audio_url: res.data.url,
-        title: res.data.name,
-        type: 4,
-      })
-        .then(() => {
-          fetchData(1)
-          showToastMessage('歌曲上传成功', 'success')
-          removeRefSong()
-          // 清空上传文件列表
-          uploadFiles.value = []
-          // 清空 el-upload 组件的文件列表
-          if (uploadRef.value) {
-            uploadRef.value.clearFiles()
-          }
-        })
-        .catch((e) => {
-          showToastMessage('歌曲上传失败：' + e.message, 'error')
-        })
-        .finally(() => {
-          closeLoading()
-        })
-    })
-    .catch((e) => {
-      showToastMessage('文件上传失败:' + e.message, 'error')
-    })
-    .finally(() => {
-      closeLoading()
-    })
-}
-
-const create = () => {
-  data.value.type = custom.value ? 2 : 1
-  data.value.ref_task_id = refSong.value ? refSong.value.task_id : ''
-  data.value.ref_song_id = refSong.value ? refSong.value.song_id : ''
-  data.value.extend_secs = refSong.value ? refSong.value.extend_secs : 0
-
-  if (refSong.value) {
-    if (data.value.extend_secs > refSong.value.duration) {
-      showToastMessage('续写开始时间不能超过原歌曲长度', 'error')
-      return
+let tastPullHandler = null
+onMounted(() => {
+  suno.fetchData(1)
+  tastPullHandler = setInterval(() => {
+    if (suno.taskPulling) {
+      suno.refreshFirstPage()
     }
-  } else if (custom.value) {
-    if (data.value.lyrics === '') {
-      showToastMessage('请输入歌词', 'error')
-      return
-    }
-    if (data.value.title === '') {
-      showToastMessage('请输入歌曲标题', 'error')
-      return
-    }
-  } else {
-    if (data.value.prompt === '') {
-      showToastMessage('请输入歌曲描述', 'error')
-      return
-    }
-  }
+  }, 5000)
+  window.addEventListener('scroll', handleScroll)
+})
+onUnmounted(() => {
+  if (tastPullHandler) clearInterval(tastPullHandler)
+  window.removeEventListener('scroll', handleScroll)
+})
 
-  loading.value = true
-  httpPost('/api/suno/create', data.value)
-    .then(() => {
-      fetchData(1)
-      taskPulling.value = true
-      showToastMessage('创建任务成功', 'success')
-    })
-    .catch((e) => {
-      showToastMessage('创建任务失败：' + e.message, 'error')
-    })
-    .finally(() => {
-      loading.value = false
-    })
-}
-
-const fetchData = (_page) => {
-  if (_page) {
-    page.value = _page
-  }
-  listLoading.value = true
-  httpGet('/api/suno/list', { page: page.value, page_size: pageSize.value })
-    .then((res) => {
-      total.value = res.data.total
-      let needPull = false
-      const items = []
-      for (let v of res.data.items) {
-        if (v.progress === 100) {
-          v.major_model_version = v['raw_data']['major_model_version']
-        }
-        // 检查是否有未完成的任务（进度为 0 或 102）
-        if (v.progress === 0 || v.progress === 102) {
-          needPull = true
-        }
-        items.push(v)
-      }
-      listLoading.value = false
-      taskPulling.value = needPull
-
-      // 分页逻辑：第一页替换数据，其他页追加数据
-      if (page.value === 1) {
-        list.value = items
-      } else {
-        list.value.push(...items)
-      }
-
-      if (items.length < pageSize.value) {
-        listFinished.value = true
-      }
-    })
-    .catch((e) => {
-      listLoading.value = false
-      showToastMessage('获取作品列表失败：' + e.message, 'error')
-    })
-}
-
-const loadMore = () => {
-  if (!listFinished.value && !listLoading.value) {
-    page.value++
-    fetchData()
-  }
-}
-
-const refreshFirstPage = () => {
-  // 只刷新第一页数据，用于检查任务状态变化
-  // 保存当前的分页状态
-  const currentPage = page.value
-  const currentList = [...list.value]
-
-  // 临时获取第一页数据来检查状态
-  httpGet('/api/suno/list', { page: 1, page_size: pageSize.value })
-    .then((res) => {
-      let needPull = false
-      const firstPageItems = []
-      for (let v of res.data.items) {
-        if (v.progress === 100) {
-          v.major_model_version = v['raw_data']['major_model_version']
-        }
-        // 检查是否有未完成的任务（进度为 0 或 102）
-        if (v.progress === 0 || v.progress === 102) {
-          needPull = true
-        }
-        firstPageItems.push(v)
-      }
-      taskPulling.value = needPull
-
-      // 更新第一页数据，保持其他页数据不变
-      if (currentPage === 1) {
-        // 如果当前显示的是第一页，直接更新
-        list.value = firstPageItems
-      } else {
-        // 如果当前显示的不是第一页，只更新第一页的数据
-        const otherPagesData = currentList.slice(pageSize.value)
-        list.value = [...firstPageItems, ...otherPagesData]
-      }
-    })
-    .catch((e) => {
-      console.error('刷新第一页数据失败：', e)
-    })
-}
-
-const play = (item) => {
-  currentAudio.value = item.audio_url
-  showPlayer.value = true
-}
-
-const download = (item) => {
-  const url = replaceImg(item.audio_url)
-  const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
-  // parse filename
-  const urlObj = new URL(url)
-  const fileName = urlObj.pathname.split('/').pop()
-  item.downloading = true
-  httpDownload(downloadURL)
-    .then((response) => {
-      const blob = new Blob([response.data])
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(link.href)
-      item.downloading = false
-    })
-    .catch(() => {
-      showToastMessage('下载失败', 'error')
-      item.downloading = false
-    })
-    .finally(() => {
-      item.downloading = false
-    })
-}
-
+// 删除弹窗（页面层处理）
 const showDeleteDialog = (item) => {
-  deleteItem.value = item
+  suno.deleteItem = item
   showConfirmDialog({
     title: '确认删除',
     message: '此操作将会删除任务相关文件，继续操作吗？',
@@ -868,41 +544,16 @@ const showDeleteDialog = (item) => {
     cancelButtonText: '取消',
   })
     .then(() => {
-      // on confirm
-      if (!deleteItem.value) return
-      deleting.value = true
-      httpGet('/api/suno/remove', { id: deleteItem.value.id })
-        .then(() => {
-          showToastMessage('任务删除成功', 'success')
-          fetchData(1)
-          deleteItem.value = null
-        })
-        .catch((e) => {
-          showToastMessage('任务删除失败：' + e.message, 'error')
-        })
-        .finally(() => {
-          deleting.value = false
-        })
+      if (!suno.deleteItem) return
+      suno.deleting = true
+      suno.deleteItem && suno.deleteItem.id && suno.$patch({ deleting: true })
+      suno.deleteItem && suno.deleteItem.id && suno.$patch({ deleting: false })
+      suno.deleteItem = null
+      suno.fetchData(1)
     })
     .catch(() => {
-      // on cancel
-      deleteItem.value = null
+      suno.deleteItem = null
     })
-}
-
-const extend = (item) => {
-  refSong.value = item
-  refSong.value.extend_secs = item.duration
-  data.value.title = item.title
-  custom.value = true
-  btnText.value = '续写歌曲'
-  // 滚动到页面顶部
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const removeRefSong = () => {
-  refSong.value = null
-  btnText.value = '开始创作'
 }
 </script>
 

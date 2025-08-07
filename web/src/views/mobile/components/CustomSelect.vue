@@ -6,7 +6,7 @@
       class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
     >
       <span class="text-gray-900">{{ selectedLabel || placeholder || '请选择' }}</span>
-      <i class="iconfont icon-down text-gray-400"></i>
+      <i class="iconfont icon-arrow-down text-gray-400"></i>
     </button>
 
     <!-- 选择器弹窗 -->
