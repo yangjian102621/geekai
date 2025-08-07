@@ -312,9 +312,10 @@
             type="primary"
             @click="store.submitTask"
             :loading="store.submitting"
+            class="w-full"
             size="large"
           >
-            立即生成 ({{ store.currentPowerCost }}<i class="iconfont icon-vip2"></i>)
+            立即生成 ({{ store.currentPowerCost }} <i class="iconfont icon-vip2 !text-xs"></i>)
           </el-button>
         </div>
       </div>

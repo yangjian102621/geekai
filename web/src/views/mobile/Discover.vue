@@ -93,7 +93,7 @@ const aiTools = ref([
     tag: 'AI音乐',
     status: 'active',
     statusText: '可用',
-    url: '/mobile/suno-create',
+    url: '/mobile/suno',
   },
   {
     key: 'video',
@@ -104,7 +104,7 @@ const aiTools = ref([
     tag: 'AI视频',
     status: 'beta',
     statusText: '测试版',
-    url: '/mobile/video-create',
+    url: '/mobile/video',
   },
   {
     key: 'jimeng',
@@ -115,7 +115,7 @@ const aiTools = ref([
     tag: 'AI绘画',
     status: 'active',
     statusText: '可用',
-    url: '/mobile/jimeng-create',
+    url: '/mobile/jimeng',
   },
   {
     key: 'imgWall',

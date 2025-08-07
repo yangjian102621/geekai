@@ -204,7 +204,11 @@
           <button @click="store.create" :disabled="store.loading" class="create-btn">
             <i v-if="store.loading" class="iconfont icon-loading animate-spin"></i>
             <i v-else class="iconfont icon-chuangzuo"></i>
-            <span>{{ store.loading ? '创作中...' : store.btnText }}</span>
+            <span
+              >{{ store.loading ? '创作中...' : store.btnText }} ({{ store.sunoPower }}
+              <i class="iconfont icon-vip2 !text-xs"></i>
+              )</span
+            >
           </button>
         </div>
 
@@ -516,7 +520,6 @@ import MusicPlayer from '@/components/MusicPlayer.vue'
 import { checkSession } from '@/store/cache'
 import { useSunoStore } from '@/store/suno'
 import { InfoFilled } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 // 使用 Pinia store

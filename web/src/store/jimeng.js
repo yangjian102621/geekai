@@ -623,7 +623,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     replaceImg,
   }
 })
-
 export const imageSizeOptions = [
   { label: '1:1 (1328x1328)', value: '1328x1328' },
   { label: '3:2 (1584x1056)', value: '1584x1056' },

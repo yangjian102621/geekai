@@ -141,7 +141,10 @@
       <!-- 续写歌曲 -->
       <div v-if="refSong" class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-400">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-gray-900 font-medium">续写歌曲</h3>
+          <h3 class="text-gray-900 font-medium flex items-center">
+            <i class="iconfont icon-link mr-2 text-orange-500"></i>
+            续写歌曲
+          </h3>
           <button
             @click="removeRefSong"
             class="px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
@@ -154,41 +157,23 @@
             <span class="text-gray-600">歌曲名称：</span>
             <span class="text-gray-900 font-medium">{{ refSong.title }}</span>
           </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">歌曲时长：</span>
+            <span class="text-gray-900 font-medium">{{ refSong.duration }}秒</span>
+          </div>
           <div>
             <label class="block text-gray-700 font-medium mb-2">续写开始时间(秒)</label>
             <input
               v-model="refSong.extend_secs"
               type="number"
+              :min="0"
+              :max="refSong.duration"
               placeholder="从第几秒开始续写"
               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-          </div>
-        </div>
-      </div>
-
-      <!-- 上传音乐 -->
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <label class="block text-gray-700 font-medium mb-3">上传音乐文件(可选)</label>
-        <div
-          class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
-        >
-          <input
-            ref="fileInput"
-            type="file"
-            accept=".wav,.mp3"
-            @change="handleFileSelect"
-            class="hidden"
-          />
-          <div @click="$refs.fileInput.click()" class="flex flex-col items-center space-y-2">
-            <i class="iconfont icon-upload text-blue-500 text-2xl"></i>
-            <span class="text-gray-700 font-medium">上传音乐文件</span>
-            <small class="text-gray-500">支持 .wav, .mp3 格式</small>
-          </div>
-        </div>
-        <div v-if="uploadFiles.length > 0" class="mt-3 p-3 bg-gray-50 rounded-lg">
-          <div class="flex items-center space-x-2">
-            <i class="iconfont icon-success text-green-500"></i>
-            <span class="text-sm text-gray-700">{{ uploadFiles[0].name }}</span>
+            <p class="text-sm text-gray-500 mt-1">
+              建议从 {{ Math.floor(refSong.duration * 0.8) }}-{{ refSong.duration }} 秒开始续写
+            </p>
           </div>
         </div>
       </div>
@@ -198,11 +183,39 @@
         <button
           @click="create"
           :disabled="loading"
-          class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+          class="w-full py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
         >
           <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
           <span>{{ loading ? '创作中...' : btnText }}</span>
         </button>
+      </div>
+
+      <!-- 上传音乐 -->
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <label class="block text-gray-700 font-medium mb-3">上传音乐文件</label>
+        <el-upload
+          ref="uploadRef"
+          :auto-upload="false"
+          :show-file-list="false"
+          :on-change="handleFileChange"
+          :before-upload="beforeUpload"
+          accept=".wav,.mp3"
+          class="upload-area w-full"
+        >
+          <template #trigger>
+            <el-button class="upload-btn w-full" size="large" type="primary">
+              <i class="iconfont icon-upload mr-2"></i>
+              <span>上传音乐</span>
+            </el-button>
+          </template>
+        </el-upload>
+        <div class="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+          <div class="upload-tips">
+            <p>• 上传你自己的音乐文件，然后进行二次创作</p>
+            <p>• 请上传6-60秒的原始音频</p>
+            <p>• 检测到人声的音频将仅设为私人音频</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -354,6 +367,14 @@
                 <i v-else class="iconfont icon-download !text-xs"></i>
                 <span>{{ item.downloading ? '下载中...' : '下载' }}</span>
               </button>
+              <button
+                v-if="item.progress === 100"
+                @click="extend(item)"
+                class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center min-w-[60px]"
+              >
+                <i class="iconfont icon-link !text-xs mr-1"></i>
+                <span>续写</span>
+              </button>
             </div>
             <button
               @click="showDeleteDialog(item)"
@@ -494,6 +515,7 @@ const showPlayer = ref(false)
 const showDeleteModal = ref(false)
 const currentAudio = ref('')
 const uploadFiles = ref([])
+const uploadRef = ref(null)
 const isGenerating = ref(false)
 const deleting = ref(false)
 const deleteItem = ref(null)
@@ -549,7 +571,8 @@ onMounted(() => {
       // 启动定时轮询，检查任务状态
       tastPullHandler.value = setInterval(() => {
         if (taskPulling.value) {
-          fetchData(1) // 只刷新第一页数据
+          // 只刷新第一页数据，用于检查任务状态变化
+          refreshFirstPage()
         }
       }, 5000)
 
@@ -620,17 +643,27 @@ const createLyric = () => {
     })
 }
 
-const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
+const handleFileChange = (file) => {
+  uploadFiles.value = [file]
+  if (file.status === 'ready') {
+    // 文件已准备好，可以进行上传
+    uploadAudio(file)
+  }
+}
 
-  uploadFiles.value = [{ file, name: file.name }]
-  uploadAudio({ file, name: file.name })
+const beforeUpload = (file) => {
+  // 限制文件大小，例如 10MB
+  const isLt10M = file.size / 1024 / 1024 < 10
+  if (!isLt10M) {
+    showToastMessage('文件大小不能超过 10MB!', 'error')
+    return false
+  }
+  return true
 }
 
 const uploadAudio = (file) => {
   const formData = new FormData()
-  formData.append('file', file.file, file.name)
+  formData.append('file', file.raw, file.name)
   showLoading('正在上传文件...')
 
   httpPost('/api/upload', formData)
@@ -644,6 +677,12 @@ const uploadAudio = (file) => {
           fetchData(1)
           showToastMessage('歌曲上传成功', 'success')
           removeRefSong()
+          // 清空上传文件列表
+          uploadFiles.value = []
+          // 清空 el-upload 组件的文件列表
+          if (uploadRef.value) {
+            uploadRef.value.clearFiles()
+          }
         })
         .catch((e) => {
           showToastMessage('歌曲上传失败：' + e.message, 'error')
@@ -725,11 +764,7 @@ const fetchData = (_page) => {
       listLoading.value = false
       taskPulling.value = needPull
 
-      // 如果任务有变化，则刷新任务列表
-      if (JSON.stringify(list.value) !== JSON.stringify(items)) {
-        list.value = items
-      }
-
+      // 分页逻辑：第一页替换数据，其他页追加数据
       if (page.value === 1) {
         list.value = items
       } else {
@@ -751,6 +786,44 @@ const loadMore = () => {
     page.value++
     fetchData()
   }
+}
+
+const refreshFirstPage = () => {
+  // 只刷新第一页数据，用于检查任务状态变化
+  // 保存当前的分页状态
+  const currentPage = page.value
+  const currentList = [...list.value]
+
+  // 临时获取第一页数据来检查状态
+  httpGet('/api/suno/list', { page: 1, page_size: pageSize.value })
+    .then((res) => {
+      let needPull = false
+      const firstPageItems = []
+      for (let v of res.data.items) {
+        if (v.progress === 100) {
+          v.major_model_version = v['raw_data']['major_model_version']
+        }
+        // 检查是否有未完成的任务（进度为 0 或 102）
+        if (v.progress === 0 || v.progress === 102) {
+          needPull = true
+        }
+        firstPageItems.push(v)
+      }
+      taskPulling.value = needPull
+
+      // 更新第一页数据，保持其他页数据不变
+      if (currentPage === 1) {
+        // 如果当前显示的是第一页，直接更新
+        list.value = firstPageItems
+      } else {
+        // 如果当前显示的不是第一页，只更新第一页的数据
+        const otherPagesData = currentList.slice(pageSize.value)
+        list.value = [...firstPageItems, ...otherPagesData]
+      }
+    })
+    .catch((e) => {
+      console.error('刷新第一页数据失败：', e)
+    })
 }
 
 const play = (item) => {
@@ -815,6 +888,16 @@ const showDeleteDialog = (item) => {
       // on cancel
       deleteItem.value = null
     })
+}
+
+const extend = (item) => {
+  refSong.value = item
+  refSong.value.extend_secs = item.duration
+  data.value.title = item.title
+  custom.value = true
+  btnText.value = '续写歌曲'
+  // 滚动到页面顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const removeRefSong = () => {
@@ -931,6 +1014,21 @@ const removeRefSong = () => {
 
   .bg-gray-100:hover {
     background-color: #4b5563;
+  }
+}
+
+/* el-upload 组件样式定制 */
+.upload-area {
+  width: 100%;
+
+  :deep(.el-upload) {
+    width: 100%;
+    display: block;
+  }
+
+  :deep(.el-button) {
+    width: 100%;
+    display: block;
   }
 }
 </style>

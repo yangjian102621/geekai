@@ -5,7 +5,8 @@ import Compressor from 'compressorjs'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { compact } from 'lodash'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { getSystemInfo } from './cache'
 
 export const useSunoStore = defineStore('suno', () => {
   // 响应式数据
@@ -60,6 +61,7 @@ export const useSunoStore = defineStore('suno', () => {
   const editData = ref({ title: '', cover: '', id: 0 })
   const promptPlaceholder = ref('请在这里输入你自己写的歌词...')
   const isGenerating = ref(false)
+  const sunoPower = ref(0)
 
   // 分页相关
   const page = ref(1)
@@ -71,6 +73,12 @@ export const useSunoStore = defineStore('suno', () => {
 
   // 计算属性
   const hasRefSong = computed(() => refSong.value !== null)
+
+  onMounted(() => {
+    getSystemInfo().then((res) => {
+      sunoPower.value = res.data.suno_power
+    })
+  })
 
   // 方法
   const fetchData = async (_page) => {
@@ -393,7 +401,7 @@ export const useSunoStore = defineStore('suno', () => {
     pageSize,
     total,
     hasRefSong,
-
+    sunoPower,
     // 方法
     fetchData,
     create,
