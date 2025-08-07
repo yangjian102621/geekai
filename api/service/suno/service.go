@@ -230,7 +230,7 @@ func (s *Service) Upload(task types.SunoTask) (RespVo, error) {
 		return RespVo{}, errors.New("no available API KEY for Suno")
 	}
 
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"url": task.AudioURL,
 	}
 

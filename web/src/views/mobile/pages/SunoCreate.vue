@@ -455,9 +455,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 删除确认对话框 -->
-    <!-- 已移除，改为 van showConfirmDialog 方式 -->
   </div>
 </template>
 

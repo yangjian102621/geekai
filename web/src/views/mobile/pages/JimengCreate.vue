@@ -724,17 +724,7 @@ const imageToVideoParams = ref({
   aspect_ratio: '16:9',
 })
 
-// 选项数据
-const imageSizeOptions = ['512x512', '768x768', '1024x1024', '1024x1536', '1536x1024']
-
-const videoAspectRatioOptions = ['16:9', '9:16', '1:1', '4:3']
-
-const imageEffectsTemplateOptions = [
-  'acrylic_ornaments',
-  'angel_figurine',
-  'felt_3d_polaroid',
-  'watercolor_illustration',
-]
+// 选项数据 - 已在上方定义，这里删除重复声明
 
 // 页面数据
 const page = ref(1)
