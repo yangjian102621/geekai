@@ -49,11 +49,7 @@
             <div class="bg-white rounded-xl p-4 shadow-sm mb-3">
               <div class="flex justify-between items-center w-full">
                 <span class="text-gray-700 font-semibold">图生图人像写真</span>
-                <el-switch
-                  v-model="jimengStore.useImageInput"
-                  @change="jimengStore.switchInputMode"
-                  size="default"
-                />
+                <el-switch v-model="jimengStore.useImageInput" size="default" />
               </div>
             </div>
 
@@ -284,26 +280,13 @@
                 <el-image
                   v-if="item.img_url"
                   :src="item.img_url"
+                  :preview-src-list="[item.img_url]"
                   fit="cover"
                   class="w-full h-full"
-                  :preview-disabled="true"
                 >
                   <template #error>
                     <div class="jimeng-create__works-item-thumb-placeholder">
                       <i class="iconfont icon-image"></i>
-                    </div>
-                  </template>
-                </el-image>
-                <el-image
-                  v-else-if="item.video_url"
-                  :src="item.video_url"
-                  fit="cover"
-                  class="w-full h-full"
-                  :preview-disabled="true"
-                >
-                  <template #error>
-                    <div class="jimeng-create__works-item-thumb-placeholder">
-                      <i class="iconfont icon-video"></i>
                     </div>
                   </template>
                 </el-image>
@@ -326,13 +309,7 @@
                     "
                   ></i>
                 </button>
-                <!-- 进度动画 -->
-                <div
-                  v-if="item.status === 'in_queue' || item.status === 'generating'"
-                  class="jimeng-create__works-item-thumb-status jimeng-create__works-item-thumb-status--loading"
-                >
-                  <i class="iconfont icon-loading animate-spin"></i>
-                </div>
+
                 <!-- 失败状态 -->
                 <div
                   v-if="item.status === 'failed'"
@@ -392,45 +369,70 @@
             </div>
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="jimeng-create__works-item-actions">
-            <div class="jimeng-create__works-item-actions-left">
+          <!-- 快捷操作按钮 -->
+          <div class="jimeng-create__works-item-quick-actions">
+            <!-- 复制提示词 -->
+            <button
+              v-if="item.prompt"
+              @click="jimengStore.copyPrompt(item.prompt)"
+              class="jimeng-create__works-item-quick-action-btn"
+              title="复制提示词"
+            >
+              <i class="iconfont icon-copy"></i>
+            </button>
+
+            <span v-if="item.status === 'success'">
+              <!-- 画同款 -->
               <button
-                v-if="item.status === 'completed'"
-                @click="jimengStore.playMedia(item)"
-                class="jimeng-create__works-item-actions-btn jimeng-create__works-item-actions-btn--primary"
+                @click="jimengStore.drawSame(item)"
+                class="jimeng-create__works-item-quick-action-btn"
+                title="画同款"
               >
-                <i
-                  :class="item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'"
-                ></i>
-                <span>{{ item.type.includes('video') ? '播放' : '查看' }}</span>
+                <i class="iconfont icon-image-list"></i>
               </button>
+              <!-- 下载 -->
               <button
-                v-if="item.status === 'completed'"
+                v-if="item.status === 'completed' && (item.img_url || item.video_url)"
                 @click="jimengStore.downloadFile(item)"
                 :disabled="item.downloading"
-                class="jimeng-create__works-item-actions-btn jimeng-create__works-item-actions-btn--success"
+                class="jimeng-create__works-item-quick-action-btn"
+                title="下载"
               >
                 <i v-if="item.downloading" class="iconfont icon-loading animate-spin"></i>
-                <i v-else class="iconfont icon-download"></i>
-                <span>{{ item.downloading ? '下载中...' : '下载' }}</span>
-              </button>
+                <i v-else class="iconfont icon-download"></i></button
+            ></span>
+
+            <!-- 重试 -->
+            <button
+              v-if="item.status === 'failed'"
+              @click="jimengStore.retryTask(item.id)"
+              class="jimeng-create__works-item-quick-action-btn"
+              title="重试"
+            >
+              <i class="iconfont icon-refresh"></i>
+            </button>
+
+            <!-- 删除 -->
+            <button @click="jimengStore.removeJob(item)" class="p-2">
+              <i class="iconfont icon-remove"></i> 删除
+            </button>
+          </div>
+
+          <!-- 错误信息复制 -->
+          <div
+            v-if="item.status === 'failed' && item.err_msg"
+            class="jimeng-create__works-item-error"
+          >
+            <div class="jimeng-create__works-item-error-content">
+              <span class="jimeng-create__works-item-error-text">{{ item.err_msg }}</span>
               <button
-                v-if="item.status === 'failed'"
-                @click="jimengStore.retryTask(item.id)"
-                class="jimeng-create__works-item-actions-btn jimeng-create__works-item-actions-btn--warning"
+                @click="jimengStore.copyErrorMsg(item.err_msg)"
+                class="jimeng-create__works-item-error-copy-btn"
+                title="复制错误信息"
               >
-                <i class="iconfont icon-refresh"></i>
-                <span>重试</span>
+                <i class="iconfont icon-copy"></i>
               </button>
             </div>
-            <button
-              @click="jimengStore.removeJob(item)"
-              class="jimeng-create__works-item-actions-btn jimeng-create__works-item-actions-btn--danger"
-            >
-              <i class="iconfont icon-remove"></i>
-              <span>删除</span>
-            </button>
           </div>
         </div>
 
@@ -515,6 +517,7 @@ const handleTemplateChange = (value) => {
 onMounted(() => {
   checkSession()
     .then(() => {
+      jimengStore.init() // 初始化算力配置
       jimengStore.fetchData(1)
       jimengStore.startTaskPolling()
     })

@@ -1,10 +1,10 @@
-import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
-import { checkSession } from '@/store/cache'
+import { getSystemInfo } from '@/store/cache'
 import { closeLoading, showLoading, showToastMessage } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
-import { getSystemInfo } from '@/store/cache'
+import { defineStore } from 'pinia'
+import { showConfirmDialog } from 'vant'
+import { reactive, ref } from 'vue'
 
 export const useSunoStore = defineStore('suno', () => {
   // 状态
@@ -35,7 +35,6 @@ export const useSunoStore = defineStore('suno', () => {
   const uploadRef = ref(null)
   const isGenerating = ref(false)
   const deleting = ref(false)
-  const deleteItem = ref(null)
   const models = ref([
     { label: 'v3.0', value: 'chirp-v3-0' },
     { label: 'v3.5', value: 'chirp-v3-5' },
@@ -287,10 +286,25 @@ export const useSunoStore = defineStore('suno', () => {
         item.downloading = false
       })
   }
-  const showDeleteDialog = (item) => {
-    deleteItem.value = item
-    // 这里建议在页面层处理弹窗，store 只负责数据和业务
+
+  const removeJob = (item) => {
+    showConfirmDialog({
+      title: '确认删除',
+      message: '此操作将会删除任务相关文件，继续操作吗？',
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+    }).then(() => {
+      httpGet('/api/suno/remove', { id: item.id })
+        .then(() => {
+          showToastMessage('任务删除成功', 'success')
+          fetchData(1)
+        })
+        .catch(() => {
+          showToastMessage('任务删除失败', 'error')
+        })
+    })
   }
+
   const extend = (item) => {
     refSong.value = item
     refSong.value.extend_secs = item.duration
@@ -324,7 +338,6 @@ export const useSunoStore = defineStore('suno', () => {
     uploadRef,
     isGenerating,
     deleting,
-    deleteItem,
     models,
     tags,
     page,
@@ -346,7 +359,7 @@ export const useSunoStore = defineStore('suno', () => {
     refreshFirstPage,
     play,
     download,
-    showDeleteDialog,
+    removeJob,
     extend,
     removeRefSong,
   }

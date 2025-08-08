@@ -775,6 +775,107 @@
       }
     }
   }
+
+  /* 快捷操作按钮样式 */
+  &__works-item-quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+  }
+
+  &__works-item-quick-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+
+    &:hover {
+      background: #e5e7eb;
+      color: #374151;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    &--danger {
+      color: #ef4444;
+
+      &:hover {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+    }
+
+    i {
+      font-size: 16px;
+    }
+  }
+
+  /* 错误信息样式 */
+  &__works-item-error {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+  }
+
+  &__works-item-error-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__works-item-error-text {
+    flex: 1;
+    font-size: 12px;
+    color: #dc2626;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  &__works-item-error-copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: #fee2e2;
+    color: #dc2626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+
+    &:hover {
+      background: #fecaca;
+      color: #b91c1c;
+    }
+
+    i {
+      font-size: 12px;
+    }
+  }
 }
 
 /* 旋转动画 */

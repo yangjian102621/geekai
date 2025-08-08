@@ -388,7 +388,7 @@
               </button>
             </div>
             <button
-              @click="showDeleteDialog(item)"
+              @click="suno.removeJob(item)"
               class="px-3 py-1.5 bg-red-100 text-red-600 text-sm rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-1"
             >
               <i class="iconfont icon-remove !text-xs"></i>
@@ -494,7 +494,6 @@
 import '@/assets/css/mobile/suno.scss'
 import CustomSelect from '@/components/mobile/CustomSelect.vue'
 import { useSunoStore } from '@/store/mobile/suno'
-import { showConfirmDialog } from 'vant'
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -536,28 +535,6 @@ onUnmounted(() => {
   if (tastPullHandler) clearInterval(tastPullHandler)
   window.removeEventListener('scroll', handleScroll)
 })
-
-// 删除弹窗（页面层处理）
-const showDeleteDialog = (item) => {
-  suno.deleteItem = item
-  showConfirmDialog({
-    title: '确认删除',
-    message: '此操作将会删除任务相关文件，继续操作吗？',
-    confirmButtonText: '确认删除',
-    cancelButtonText: '取消',
-  })
-    .then(() => {
-      if (!suno.deleteItem) return
-      suno.deleting = true
-      suno.deleteItem && suno.deleteItem.id && suno.$patch({ deleting: true })
-      suno.deleteItem && suno.deleteItem.id && suno.$patch({ deleting: false })
-      suno.deleteItem = null
-      suno.fetchData(1)
-    })
-    .catch(() => {
-      suno.deleteItem = null
-    })
-}
 </script>
 
 <style lang="scss" scoped>

@@ -181,9 +181,6 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		taskType = model.JMTaskTypeTextToVideo
 		reqKey = jimeng.ReqKeyTextToVideo
 		modelName = "即梦文生视频"
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
 		if req.AspectRatio == "" {
 			req.AspectRatio = jimeng.AspectRatio16_9
 		}
@@ -196,9 +193,6 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		taskType = model.JMTaskTypeImageToVideo
 		reqKey = jimeng.ReqKeyImageToVideo
 		modelName = "即梦图生视频"
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
 		params = map[string]any{
 			"seed":         req.Seed,
 			"aspect_ratio": req.AspectRatio,

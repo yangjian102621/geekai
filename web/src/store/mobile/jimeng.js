@@ -1,8 +1,8 @@
-import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
+import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { defineStore } from 'pinia'
 import { showConfirmDialog } from 'vant'
-import { computed, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 export const useJimengStore = defineStore('mobile-jimeng', () => {
   // 响应式数据
@@ -21,6 +21,16 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
   const currentPowerCost = ref(0)
   const taskPulling = ref(true)
   const tastPullHandler = ref(null)
+
+  // 新增：算力配置
+  const powerConfig = ref({
+    text_to_image: 20,
+    image_to_image: 30,
+    image_edit: 25,
+    image_effects: 15,
+    text_to_video: 100,
+    image_to_video: 120,
+  })
 
   // 功能分类
   const categories = ref([
@@ -115,35 +125,45 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
   ]
 
   // 功能参数
-  const textToImageParams = ref({
-    size: '1024x1024',
-    scale: 7.5,
-    use_pre_llm: false,
+  // 各功能的参数
+  const textToImageParams = reactive({
+    size: '1328x1328',
+    scale: 2.5,
+    seed: -1,
+    use_pre_llm: true,
   })
 
-  const imageToImageParams = ref({
-    image_input: [],
-    size: '1024x1024',
+  const imageToImageParams = reactive({
+    image_input: '',
+    size: '1328x1328',
+    gpen: 0.4,
+    skin: 0.3,
+    skin_unifi: 0,
+    gen_mode: 'creative',
+    seed: -1,
   })
 
-  const imageEditParams = ref({
-    image_urls: [],
+  const imageEditParams = reactive({
+    image_urls: '',
     scale: 0.5,
+    seed: -1,
   })
 
-  const imageEffectsParams = ref({
-    image_input1: [],
+  const imageEffectsParams = reactive({
+    image_input1: '',
     template_id: '',
-    size: '1024x1024',
+    size: '1328x1328',
   })
 
-  const textToVideoParams = ref({
+  const textToVideoParams = reactive({
     aspect_ratio: '16:9',
+    seed: -1,
   })
 
-  const imageToVideoParams = ref({
+  const imageToVideoParams = reactive({
     image_urls: [],
     aspect_ratio: '16:9',
+    seed: -1,
   })
 
   // 计算属性
@@ -152,11 +172,28 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
       return useImageInput.value ? 'image_to_image' : 'text_to_image'
     } else if (activeCategory.value === 'image_editing') {
       return 'image_edit'
+    } else if (activeCategory.value === 'image_effects') {
+      return 'image_effects'
     } else if (activeCategory.value === 'video_generation') {
       return useImageInput.value ? 'image_to_video' : 'text_to_video'
     }
     return 'text_to_image'
   })
+
+  // 新增：动态计算当前算力消耗
+  const updateCurrentPowerCost = () => {
+    const functionKey = activeFunction.value
+    currentPowerCost.value = powerConfig.value[functionKey] || 10
+  }
+
+  // 监听任务类型变化，自动更新算力
+  watch(
+    [activeCategory, useImageInput],
+    () => {
+      updateCurrentPowerCost()
+    },
+    { immediate: true }
+  )
 
   // Actions
   const getCategoryIcon = (category) => {
@@ -174,52 +211,17 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     useImageInput.value = false
   }
 
-  const switchInputMode = () => {
-    currentPrompt.value = ''
-  }
-
-  const handleMultipleImageUpload = (event) => {
-    const files = Array.from(event.target.files)
-    files.forEach((file) => {
-      if (imageToVideoParams.value.image_urls.length < 2) {
-        onImageUpload({ file, name: file.name })
+  // 新增：获取算力配置
+  const fetchPowerConfig = async () => {
+    try {
+      const res = await httpGet('/api/jimeng/power-config')
+      if (res.data) {
+        powerConfig.value = res.data
+        updateCurrentPowerCost() // 更新当前算力消耗
       }
-    })
-  }
-
-  const removeImage = (index) => {
-    imageToVideoParams.value.image_urls.splice(index, 1)
-  }
-
-  const onImageUpload = (file) => {
-    const formData = new FormData()
-    formData.append('file', file.file, file.name)
-    showLoading('正在上传图片...')
-
-    return httpPost('/api/upload', formData)
-      .then((res) => {
-        showMessageOK('图片上传成功')
-        const imageData = { url: res.data.url, content: res.data.url }
-
-        // 根据当前活动功能添加到相应的参数中
-        if (activeFunction.value === 'image_to_image') {
-          imageToImageParams.value.image_input = [imageData]
-        } else if (activeFunction.value === 'image_edit') {
-          imageEditParams.value.image_urls = [imageData]
-        } else if (activeFunction.value === 'image_effects') {
-          imageEffectsParams.value.image_input1 = [imageData]
-        } else if (activeFunction.value === 'image_to_video') {
-          imageToVideoParams.value.image_urls.push(imageData)
-        }
-
-        return res.data.url
-      })
-      .catch((e) => {
-        showMessageError('图片上传失败:' + e.message)
-      })
-      .finally(() => {
-        closeLoading()
-      })
+    } catch (error) {
+      console.error('获取算力配置失败:', error)
+    }
   }
 
   const submitTask = () => {
@@ -229,27 +231,62 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     }
 
     submitting.value = true
-    const params = {
-      type: activeFunction.value,
-      prompt: currentPrompt.value,
-    }
-
+    let requestData = { task_type: activeFunction.value, prompt: currentPrompt.value }
     // 根据功能类型添加相应参数
-    if (activeFunction.value === 'text_to_image') {
-      Object.assign(params, textToImageParams.value)
-    } else if (activeFunction.value === 'image_to_image') {
-      Object.assign(params, imageToImageParams.value)
-    } else if (activeFunction.value === 'image_edit') {
-      Object.assign(params, imageEditParams.value)
-    } else if (activeFunction.value === 'image_effects') {
-      Object.assign(params, imageEffectsParams.value)
-    } else if (activeFunction.value === 'text_to_video') {
-      Object.assign(params, textToVideoParams.value)
-    } else if (activeFunction.value === 'image_to_video') {
-      Object.assign(params, imageToVideoParams.value)
+    switch (activeFunction.value) {
+      case 'text_to_image':
+        Object.assign(requestData, {
+          width: parseInt(textToImageParams.size.split('x')[0]),
+          height: parseInt(textToImageParams.size.split('x')[1]),
+          scale: textToImageParams.scale,
+          seed: textToImageParams.seed,
+          use_pre_llm: textToImageParams.use_pre_llm,
+        })
+        break
+      case 'image_to_image':
+        Object.assign(requestData, {
+          image_input: imageToImageParams.image_input,
+          width: parseInt(imageToImageParams.size.split('x')[0]),
+          height: parseInt(imageToImageParams.size.split('x')[1]),
+          gpen: imageToImageParams.gpen,
+          skin: imageToImageParams.skin,
+          skin_unifi: imageToImageParams.skin_unifi,
+          gen_mode: imageToImageParams.gen_mode,
+          seed: imageToImageParams.seed,
+        })
+        break
+      case 'image_edit':
+        Object.assign(requestData, {
+          image_urls: [imageEditParams.image_urls],
+          scale: imageEditParams.scale,
+          seed: imageEditParams.seed,
+        })
+        break
+      case 'image_effects':
+        Object.assign(requestData, {
+          image_input: imageEffectsParams.image_input1,
+          template_id: imageEffectsParams.template_id,
+          width: parseInt(imageEffectsParams.size.split('x')[0]),
+          height: parseInt(imageEffectsParams.size.split('x')[1]),
+          prompt: imageEffectsParams.prompt,
+        })
+        break
+      case 'text_to_video':
+        Object.assign(requestData, {
+          aspect_ratio: textToVideoParams.aspect_ratio,
+          seed: textToVideoParams.seed,
+        })
+        break
+      case 'image_to_video':
+        Object.assign(requestData, {
+          image_urls: imageToVideoParams.image_urls,
+          aspect_ratio: imageToVideoParams.aspect_ratio,
+          seed: imageToVideoParams.seed,
+        })
+        break
     }
 
-    return httpPost('/api/jimeng/create', params)
+    return httpPost('/api/jimeng/task', requestData)
       .then(() => {
         fetchData(1)
         taskPulling.value = true
@@ -333,7 +370,7 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
       })
   }
 
-  const removeJob = (item) => {
+  const removeJob = async (item) => {
     return showConfirmDialog({
       title: '确认删除',
       message: '此操作将会删除任务相关文件，继续操作吗?',
@@ -383,37 +420,92 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     }
   }
 
-  const resetParams = () => {
-    textToImageParams.value = {
-      size: '1024x1024',
-      scale: 7.5,
-      use_pre_llm: false,
-    }
-    imageToImageParams.value = {
-      image_input: [],
-      size: '1024x1024',
-    }
-    imageEditParams.value = {
-      image_urls: [],
-      scale: 0.5,
-    }
-    imageEffectsParams.value = {
-      image_input1: [],
-      template_id: '',
-      size: '1024x1024',
-    }
-    textToVideoParams.value = {
-      aspect_ratio: '16:9',
-    }
-    imageToVideoParams.value = {
-      image_urls: [],
-      aspect_ratio: '16:9',
-    }
-  }
-
   const closeMediaDialog = () => {
     showMediaDialog.value = false
     currentMediaUrl.value = ''
+  }
+
+  // 新增：画同款功能
+  const drawSame = (item) => {
+    // 设置当前提示词
+    currentPrompt.value = item.prompt
+
+    // 根据任务类型设置相应的参数
+    switch (item.type) {
+      case 'text_to_image':
+        activeCategory.value = 'image_generation'
+        useImageInput.value = false
+        // 设置图片尺寸（如果有的话）
+        if (item.width && item.height) {
+          textToImageParams.size = `${item.width}x${item.height}`
+        }
+        break
+      case 'image_to_image':
+        activeCategory.value = 'image_generation'
+        useImageInput.value = true
+        // 设置图片尺寸（如果有的话）
+        if (item.width && item.height) {
+          imageToImageParams.size = `${item.width}x${item.height}`
+        }
+        break
+      case 'image_edit':
+        activeCategory.value = 'image_editing'
+        break
+      case 'image_effects':
+        activeCategory.value = 'image_effects'
+        // 设置特效模板（如果有的话）
+        if (item.template_id) {
+          imageEffectsParams.template_id = item.template_id
+        }
+        break
+      case 'text_to_video':
+        activeCategory.value = 'video_generation'
+        useImageInput.value = false
+        // 设置视频比例（如果有的话）
+        if (item.aspect_ratio) {
+          textToVideoParams.aspect_ratio = item.aspect_ratio
+        }
+        break
+      case 'image_to_video':
+        activeCategory.value = 'video_generation'
+        useImageInput.value = true
+        // 设置视频比例（如果有的话）
+        if (item.aspect_ratio) {
+          imageToVideoParams.aspect_ratio = item.aspect_ratio
+        }
+        break
+    }
+
+    showMessageOK('已设置画同款参数')
+  }
+
+  // 新增：复制提示词功能
+  const copyPrompt = (prompt) => {
+    navigator.clipboard
+      .writeText(prompt)
+      .then(() => {
+        showMessageOK('提示词已复制')
+      })
+      .catch(() => {
+        showMessageError('复制失败')
+      })
+  }
+
+  // 新增：复制错误信息功能
+  const copyErrorMsg = (msg) => {
+    navigator.clipboard
+      .writeText(msg)
+      .then(() => {
+        showMessageOK('错误信息已复制')
+      })
+      .catch(() => {
+        showMessageError('复制失败')
+      })
+  }
+
+  // 新增：初始化方法
+  const init = async () => {
+    await fetchPowerConfig()
   }
 
   return {
@@ -443,6 +535,7 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     imageEffectsParams,
     textToVideoParams,
     imageToVideoParams,
+    powerConfig,
 
     // Computed
     activeFunction,
@@ -450,10 +543,6 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     // Actions
     getCategoryIcon,
     switchCategory,
-    switchInputMode,
-    handleMultipleImageUpload,
-    removeImage,
-    onImageUpload,
     submitTask,
     fetchData,
     loadMore,
@@ -465,7 +554,11 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     getTaskType,
     startTaskPolling,
     stopTaskPolling,
-    resetParams,
     closeMediaDialog,
+    fetchPowerConfig,
+    drawSame,
+    copyPrompt,
+    copyErrorMsg,
+    init,
   }
 })
