@@ -498,40 +498,10 @@
 .custom-upload {
   width: 100%;
 
-  :deep(.el-upload-dragger) {
+  :deep(.el-upload) {
     width: 100%;
     height: auto;
-    border: 2px dashed var(--el-border-color);
-    border-radius: 12px;
-    background: var(--el-bg-color);
-    transition: all 0.3s ease;
     cursor: pointer;
-    padding: 0;
-    overflow: hidden;
-
-    &:hover {
-      border-color: var(--el-color-primary);
-      background: var(--el-color-primary-light-9);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-    }
-
-    &.is-dragover {
-      border-color: var(--el-color-primary);
-      background: var(--el-color-primary-light-9);
-      transform: scale(1.02);
-    }
-  }
-
-  .upload-btn {
-    background: var(--el-color-primary) !important;
-    border-color: var(--el-color-primary) !important;
-    width: 100%;
-
-    &:hover {
-      background: var(--el-color-primary-dark-2) !important;
-      border-color: var(--el-color-primary-dark-2) !important;
-    }
   }
 }
 

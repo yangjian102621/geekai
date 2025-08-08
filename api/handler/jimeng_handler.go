@@ -334,6 +334,12 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		return
 	}
 
+	// 正在运行中的任务不能删除
+	if job.Status == model.JMTaskStatusGenerating || job.Status == model.JMTaskStatusInQueue {
+		resp.ERROR(c, "正在运行中的任务不能删除，否则无法退回算力")
+		return
+	}
+
 	tx := h.DB.Begin()
 	if err := tx.Where("id = ? AND user_id = ?", jobId, user.Id).Delete(&model.JimengJob{}).Error; err != nil {
 		logger.Errorf("delete jimeng job failed: %v", err)

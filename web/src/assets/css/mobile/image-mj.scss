@@ -1,6 +1,6 @@
 .mobile-mj {
   .text-line {
-    padding: 6px;
+    padding: 6px 0;
     font-size: 14px;
 
     .van-row {
@@ -91,7 +91,8 @@
           padding: 0;
           position: relative;
 
-          .van-image, .task-in-queue {
+          .van-image,
+          .task-in-queue {
             min-height: 100px;
           }
 

@@ -1,10 +1,17 @@
 @use 'font.scss' as *;
-:root[data-theme="light"] {
+:root[data-theme='light'] {
   --text-fb: #000;
   --text-color: #5b62ce; // 主要的文本颜色
   --normal-color: rgba(43, 54, 116, 1); // 普通颜色
   --theme-textcolor-normal: #5b62ce;
-  p, h1, h2, h3, h4, h5, h6, article {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  article {
     font-family: $font-regular;
   }
   html,

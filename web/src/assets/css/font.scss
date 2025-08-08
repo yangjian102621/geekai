@@ -1,17 +1,9 @@
-@font-face {
-  font-family: "OPlusSans3-Regular";
-  src: url("../fonts/OPlusSans3-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: "OPlusSans3-Medium";
-  src: url("../fonts/OPlusSans3-Medium.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-$font-regular: "OPlusSans3-Regular", "PingFangSC-Regular", "Roboto", "sans-serif";
-$font-medium: "OPlusSans3-Medium", "PingFangSC-Medium", "Roboto", "sans-serif";
+$font-regular: 'PingFangSC-Regular', 'Roboto', 'sans-serif', 'ui-sans-serif', '-apple-system',
+  'system-ui', 'Segoe UI', 'Helvetica', 'Apple Color Emoji', 'Arial', 'sans-serif', 'Segoe UI Emoji',
+  'Segoe UI Symbol';
+$font-medium: 'PingFangSC-Medium', 'Roboto', 'sans-serif', 'ui-sans-serif', '-apple-system',
+  'system-ui', 'Segoe UI', 'Helvetica', 'Apple Color Emoji', 'Arial', 'sans-serif', 'Segoe UI Emoji',
+  'Segoe UI Symbol';
 
 .font-regular {
   font-family: $font-regular;

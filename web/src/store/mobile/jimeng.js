@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
-import { showMessageError, showMessageOK, showLoading, closeLoading } from '@/utils/dialog'
+import { defineStore } from 'pinia'
 import { showConfirmDialog } from 'vant'
+import { computed, ref } from 'vue'
 
 export const useJimengStore = defineStore('mobile-jimeng', () => {
   // 响应式数据
@@ -209,7 +209,7 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     }
     listLoading.value = true
 
-    return httpGet('/api/jimeng/list', { page: page.value, page_size: pageSize.value })
+    return httpPost('/api/jimeng/jobs', { page: page.value, page_size: pageSize.value })
       .then((res) => {
         total.value = res.data.total
         let needPull = false

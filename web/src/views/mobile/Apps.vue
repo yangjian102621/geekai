@@ -73,15 +73,15 @@
 </template>
 
 <script setup>
+import AppCard from '@/components/mobile/AppCard.vue'
+import EmptyState from '@/components/mobile/EmptyState.vue'
 import CustomTabPane from '@/components/ui/CustomTabPane.vue'
 import CustomTabs from '@/components/ui/CustomTabs.vue'
-import AppCard from './components/AppCard.vue'
-import EmptyState from './components/EmptyState.vue'
 import { checkSession } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { arrayContains, removeArrayItem, showLoginDialog, substr } from '@/utils/libs'
 import { showNotify } from 'vant'
-import { onMounted, ref, computed, nextTick } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

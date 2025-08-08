@@ -1,6 +1,6 @@
 <template>
   <div class="mobile-sd">
-    <van-form @submit="generate">
+    <van-form>
       <van-cell-group class="px-3 pt-3 pb-4">
         <div>
           <van-field
@@ -74,12 +74,16 @@
           placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
         />
 
-        <div class="text-line pt-6">
-          <el-tag>绘图消耗{{ dallPower }}算力，当前算力：{{ power }}</el-tag>
-        </div>
-
-        <div class="text-line">
-          <van-button round block type="primary" native-type="submit"> 立即生成 </van-button>
+        <div class="sticky bottom-4 bg-white rounded-xl p-4 shadow-sm">
+          <button
+            @click="generate"
+            :disabled="loading"
+            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+          >
+            <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+            <i v-else class="iconfont icon-chuangzuo"></i>
+            <span>{{ loading ? '创作中...' : '立即生成' }}({{ dallPower }}算力)</span>
+          </button>
         </div>
       </van-cell-group>
     </van-form>

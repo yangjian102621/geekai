@@ -9,7 +9,7 @@
         >
           <i class="iconfont icon-back text-gray-600"></i>
         </button>
-        <h1 class="flex-1 text-center text-lg font-semibold text-gray-900">音乐创作</h1>
+        <h1 class="flex-1 text-center text-lg text-gray-900">音乐创作</h1>
         <div class="w-8"></div>
       </div>
     </div>
@@ -189,9 +189,10 @@
         <button
           @click="suno.create"
           :disabled="suno.loading"
-          class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+          class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
         >
           <i v-if="suno.loading" class="iconfont icon-loading animate-spin"></i>
+          <i v-else class="iconfont icon-chuangzuo"></i>
           <span>{{ suno.loading ? '创作中...' : suno.btnText }}({{ suno.sunoPowerCost }}算力)</span>
         </button>
       </div>
@@ -210,7 +211,7 @@
         >
           <template #trigger>
             <button
-              class="w-full py-3 bg-gradient-to-r from-purple-500 to-red-300 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+              class="w-full py-3 bg-gradient-to-r from-purple-500 to-red-300 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
             >
               <i class="iconfont icon-upload mr-2"></i>
               <span>上传音乐</span>
@@ -488,12 +489,12 @@
 </template>
 
 <script setup>
+import '@/assets/css/mobile/suno.scss'
+import CustomSelect from '@/components/mobile/CustomSelect.vue'
+import { useSunoStore } from '@/store/mobile/suno'
+import { showConfirmDialog } from 'vant'
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSunoStore } from '@/store/mobile/suno'
-import CustomSelect from '@/views/mobile/components/CustomSelect.vue'
-import { showConfirmDialog } from 'vant'
-import '@/assets/css/mobile/suno.scss'
 
 const router = useRouter()
 const suno = useSunoStore()
