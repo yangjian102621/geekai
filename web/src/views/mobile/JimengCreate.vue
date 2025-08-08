@@ -21,7 +21,6 @@
           v-model="jimengStore.activeCategory"
           @update:modelValue="jimengStore.switchCategory"
         >
-          <!-- 文生图 -->
           <CustomTabPane
             v-for="category in jimengStore.categories"
             :key="category.key"
@@ -32,12 +31,17 @@
               <span>{{ category.name }}</span>
             </template>
 
-            <!-- 生成模式切换 -->
-            <div class="jimeng-create__mode-section">
+            <!-- 功能开关 -->
+            <div
+              class="jimeng-create__mode-section"
+              v-if="category.key === 'image_generation' || category.key === 'video_generation'"
+            >
               <div class="jimeng-create__mode-section-content">
                 <div>
                   <span class="jimeng-create__mode-section-title">生成模式</span>
-                  <p class="jimeng-create__mode-section-description">图生图人像写真</p>
+                  <p class="jimeng-create__mode-section-description">
+                    {{ category.key === 'image_generation' ? '图生图人像写真' : '图生视频' }}
+                  </p>
                 </div>
                 <el-switch
                   v-model="jimengStore.useImageInput"
@@ -47,44 +51,55 @@
               </div>
             </div>
 
-            <div class="space-y-6">
-              <!-- 提示词输入 -->
-              <div class="jimeng-create__form-section">
-                <label class="jimeng-create__form-section-label">提示词</label>
-                <textarea
-                  v-model="jimengStore.currentPrompt"
-                  placeholder="请输入图片描述，越详细越好"
-                  class="jimeng-create__form-section-textarea"
-                  rows="4"
-                  maxlength="2000"
-                />
-                <div class="jimeng-create__form-section-counter">
-                  <span>{{ jimengStore.currentPrompt.length }}/2000</span>
+            <!-- 参数容器 -->
+            <div class="jimeng-create__params-container">
+              <!-- 文生图 -->
+              <div
+                v-if="jimengStore.activeFunction === 'text_to_image'"
+                class="jimeng-create__function-panel"
+              >
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">提示词：</span>
                 </div>
-              </div>
-
-              <!-- 图片尺寸 -->
-              <CustomSelect
-                v-model="jimengStore.textToImageParams.size"
-                :options="
-                  jimengStore.imageSizeOptions.map((opt) => ({
-                    label: opt.label,
-                    value: opt.value,
-                  }))
-                "
-                label="图片尺寸"
-                title="选择尺寸"
-              />
-
-              <!-- 创意度 -->
-              <div class="jimeng-create__form-section">
-                <div class="jimeng-create__slider-section">
-                  <div class="jimeng-create__slider-section-header">
-                    <label>创意度</label>
-                    <el-tooltip content="创意度越高，影响文本描述的程度越高" placement="top">
-                      <i class="iconfont icon-info"></i>
-                    </el-tooltip>
+                <div class="jimeng-create__param-line">
+                  <textarea
+                    v-model="jimengStore.currentPrompt"
+                    placeholder="请输入图片描述，越详细越好"
+                    class="jimeng-create__form-section-textarea"
+                    rows="4"
+                    maxlength="2000"
+                  />
+                  <div class="jimeng-create__form-section-counter">
+                    <span>{{ jimengStore.currentPrompt.length }}/2000</span>
                   </div>
+                </div>
+
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">图片尺寸：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <CustomSelect
+                    v-model="jimengStore.textToImageParams.size"
+                    :options="
+                      jimengStore.imageSizeOptions.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))
+                    "
+                    label="图片尺寸"
+                    title="选择尺寸"
+                  />
+                </div>
+
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">
+                    创意度
+                    <el-tooltip content="创意度越高，影响文本描述的程度越高" placement="top">
+                      <i class="iconfont icon-info cursor-pointer ml-1"></i>
+                    </el-tooltip>
+                  </span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <el-slider
                     v-model="jimengStore.textToImageParams.scale"
                     :min="1"
@@ -92,38 +107,24 @@
                     :step="0.5"
                   />
                 </div>
-              </div>
 
-              <!-- 智能优化提示词 -->
-              <div class="jimeng-create__form-section">
-                <div class="jimeng-create__switch-section">
-                  <span>智能优化提示词</span>
-                  <el-switch v-model="jimengStore.textToImageParams.use_pre_llm" size="default" />
-                </div>
-              </div>
-            </div>
-
-            <!-- 图生图参数 -->
-            <template v-if="jimengStore.activeFunction === 'image_to_image'">
-              <!-- 生成模式切换 -->
-              <div class="jimeng-create__mode-section">
-                <div class="jimeng-create__mode-section-content">
-                  <div>
-                    <span class="jimeng-create__mode-section-title">生成模式</span>
-                    <p class="jimeng-create__mode-section-description">图生图人像写真</p>
+                <div class="jimeng-create__param-line">
+                  <div class="jimeng-create__switch-section">
+                    <span class="jimeng-create__param-label">智能优化提示词</span>
+                    <el-switch v-model="jimengStore.textToImageParams.use_pre_llm" size="default" />
                   </div>
-                  <el-switch
-                    v-model="jimengStore.useImageInput"
-                    @change="jimengStore.switchInputMode"
-                    size="default"
-                  />
                 </div>
               </div>
 
-              <div class="space-y-6">
-                <!-- 上传图片 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">上传图片</label>
+              <!-- 图生图 -->
+              <div
+                v-if="jimengStore.activeFunction === 'image_to_image'"
+                class="jimeng-create__function-panel"
+              >
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">上传图片：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <div class="jimeng-create__upload">
                     <input
                       ref="imageToImageInput"
@@ -171,9 +172,10 @@
                   </div>
                 </div>
 
-                <!-- 提示词输入 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">提示词</label>
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">提示词：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <textarea
                     v-model="jimengStore.currentPrompt"
                     placeholder="描述你想要的图片效果"
@@ -186,31 +188,33 @@
                   </div>
                 </div>
 
-                <!-- 图片尺寸 -->
-                <CustomSelect
-                  v-model="jimengStore.imageToImageParams.size"
-                  :options="
-                    jimengStore.imageSizeOptions.map((opt) => ({
-                      label: opt.label,
-                      value: opt.value,
-                    }))
-                  "
-                  label="图片尺寸"
-                  title="选择尺寸"
-                />
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">图片尺寸：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <CustomSelect
+                    v-model="jimengStore.imageToImageParams.size"
+                    :options="
+                      jimengStore.imageSizeOptions.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))
+                    "
+                    label="图片尺寸"
+                    title="选择尺寸"
+                  />
+                </div>
               </div>
-            </template>
 
-            <!-- 图像编辑参数 -->
-            <template
-              v-if="
-                category.key === 'image_generation' && jimengStore.activeFunction === 'image_edit'
-              "
-            >
-              <div class="space-y-6">
-                <!-- 上传图片 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">上传图片</label>
+              <!-- 图像编辑 -->
+              <div
+                v-if="jimengStore.activeFunction === 'image_edit'"
+                class="jimeng-create__function-panel"
+              >
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">上传图片：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <div class="jimeng-create__upload">
                     <input
                       ref="imageEditInput"
@@ -258,9 +262,10 @@
                   </div>
                 </div>
 
-                <!-- 编辑提示词 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">编辑提示词</label>
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">编辑提示词：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <textarea
                     v-model="jimengStore.currentPrompt"
                     placeholder="描述你想要的编辑效果"
@@ -273,32 +278,28 @@
                   </div>
                 </div>
 
-                <!-- 编辑强度 -->
-                <div class="jimeng-create__form-section">
-                  <div class="jimeng-create__slider-section">
-                    <label>编辑强度</label>
-                    <el-slider
-                      v-model="jimengStore.imageEditParams.scale"
-                      :min="0"
-                      :max="1"
-                      :step="0.1"
-                    />
-                  </div>
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">编辑强度：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <el-slider
+                    v-model="jimengStore.imageEditParams.scale"
+                    :min="0"
+                    :max="1"
+                    :step="0.1"
+                  />
                 </div>
               </div>
-            </template>
 
-            <!-- 图像特效参数 -->
-            <template
-              v-if="
-                category.key === 'image_generation' &&
-                jimengStore.activeFunction === 'image_effects'
-              "
-            >
-              <div class="space-y-6">
-                <!-- 上传图片 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">上传图片</label>
+              <!-- 图像特效 -->
+              <div
+                v-if="jimengStore.activeFunction === 'image_effects'"
+                class="jimeng-create__function-panel"
+              >
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">上传图片：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <div class="jimeng-create__upload">
                     <input
                       ref="imageEffectsInput"
@@ -346,60 +347,50 @@
                   </div>
                 </div>
 
-                <!-- 特效模板 -->
-                <CustomSelect
-                  v-model="jimengStore.imageEffectsParams.template_id"
-                  :options="
-                    jimengStore.imageEffectsTemplateOptions.map((opt) => ({
-                      label: opt.label,
-                      value: opt.value,
-                    }))
-                  "
-                  label="特效模板"
-                  title="选择特效模板"
-                />
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">特效模板：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <CustomSelect
+                    v-model="jimengStore.imageEffectsParams.template_id"
+                    :options="
+                      jimengStore.imageEffectsTemplateOptions.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))
+                    "
+                    label="特效模板"
+                    title="选择特效模板"
+                  />
+                </div>
 
-                <!-- 输出尺寸 -->
-                <CustomSelect
-                  v-model="jimengStore.imageEffectsParams.size"
-                  :options="
-                    jimengStore.imageSizeOptions.map((opt) => ({
-                      label: opt.label,
-                      value: opt.value,
-                    }))
-                  "
-                  label="输出尺寸"
-                  title="选择尺寸"
-                />
-              </div>
-            </template>
-
-            <!-- 文生视频参数 -->
-            <template
-              v-if="
-                category.key === 'video_generation' &&
-                jimengStore.activeFunction === 'text_to_video'
-              "
-            >
-              <!-- 生成模式切换 -->
-              <div class="jimeng-create__mode-section">
-                <div class="jimeng-create__mode-section-content">
-                  <div>
-                    <span class="jimeng-create__mode-section-title">生成模式</span>
-                    <p class="jimeng-create__mode-section-description">图生视频</p>
-                  </div>
-                  <el-switch
-                    v-model="jimengStore.useImageInput"
-                    @change="jimengStore.switchInputMode"
-                    size="default"
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">输出尺寸：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <CustomSelect
+                    v-model="jimengStore.imageEffectsParams.size"
+                    :options="
+                      jimengStore.imageSizeOptions.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))
+                    "
+                    label="输出尺寸"
+                    title="选择尺寸"
                   />
                 </div>
               </div>
 
-              <div class="space-y-6">
-                <!-- 提示词输入 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">提示词</label>
+              <!-- 文生视频 -->
+              <div
+                v-if="jimengStore.activeFunction === 'text_to_video'"
+                class="jimeng-create__function-panel"
+              >
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">提示词：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <textarea
                     v-model="jimengStore.currentPrompt"
                     placeholder="描述你想要的视频内容"
@@ -412,47 +403,33 @@
                   </div>
                 </div>
 
-                <!-- 视频比例 -->
-                <CustomSelect
-                  v-model="jimengStore.textToVideoParams.aspect_ratio"
-                  :options="
-                    jimengStore.videoAspectRatioOptions.map((opt) => ({
-                      label: opt.label,
-                      value: opt.value,
-                    }))
-                  "
-                  label="视频比例"
-                  title="选择比例"
-                />
-              </div>
-            </template>
-
-            <!-- 图生视频参数 -->
-            <template
-              v-if="
-                category.key === 'video_generation' &&
-                jimengStore.activeFunction === 'image_to_video'
-              "
-            >
-              <!-- 生成模式切换 -->
-              <div class="jimeng-create__mode-section">
-                <div class="jimeng-create__mode-section-content">
-                  <div>
-                    <span class="jimeng-create__mode-section-title">生成模式</span>
-                    <p class="jimeng-create__mode-section-description">图生视频</p>
-                  </div>
-                  <el-switch
-                    v-model="jimengStore.useImageInput"
-                    @change="jimengStore.switchInputMode"
-                    size="default"
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">视频比例：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <CustomSelect
+                    v-model="jimengStore.textToVideoParams.aspect_ratio"
+                    :options="
+                      jimengStore.videoAspectRatioOptions.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))
+                    "
+                    label="视频比例"
+                    title="选择比例"
                   />
                 </div>
               </div>
 
-              <div class="space-y-6">
-                <!-- 上传图片 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">上传图片（最多2张）</label>
+              <!-- 图生视频 -->
+              <div
+                v-if="jimengStore.activeFunction === 'image_to_video'"
+                class="jimeng-create__function-panel"
+              >
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">上传图片：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <div class="jimeng-create__upload">
                     <input
                       ref="imageToVideoInput"
@@ -505,9 +482,10 @@
                   </div>
                 </div>
 
-                <!-- 提示词输入 -->
-                <div class="jimeng-create__form-section">
-                  <label class="jimeng-create__form-section-label">提示词</label>
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">提示词：</span>
+                </div>
+                <div class="jimeng-create__param-line">
                   <textarea
                     v-model="jimengStore.currentPrompt"
                     placeholder="描述你想要的视频效果"
@@ -520,32 +498,38 @@
                   </div>
                 </div>
 
-                <!-- 视频比例 -->
-                <CustomSelect
-                  v-model="jimengStore.imageToVideoParams.aspect_ratio"
-                  :options="
-                    jimengStore.videoAspectRatioOptions.map((opt) => ({
-                      label: opt.label,
-                      value: opt.value,
-                    }))
-                  "
-                  label="视频比例"
-                  title="选择比例"
-                />
+                <div class="jimeng-create__param-line">
+                  <span class="jimeng-create__param-label">视频比例：</span>
+                </div>
+                <div class="jimeng-create__param-line">
+                  <CustomSelect
+                    v-model="jimengStore.imageToVideoParams.aspect_ratio"
+                    :options="
+                      jimengStore.videoAspectRatioOptions.map((opt) => ({
+                        label: opt.label,
+                        value: opt.value,
+                      }))
+                    "
+                    label="视频比例"
+                    title="选择比例"
+                  />
+                </div>
               </div>
-            </template>
+
+              <!-- 提交按钮 -->
+              <div class="jimeng-create__submit-btn">
+                <button @click="jimengStore.submitTask" :disabled="jimengStore.submitting">
+                  <i v-if="jimengStore.submitting" class="iconfont icon-loading animate-spin"></i>
+                  <span>{{
+                    jimengStore.submitting
+                      ? '创作中...'
+                      : `立即生成 (${jimengStore.currentPowerCost}算力)`
+                  }}</span>
+                </button>
+              </div>
+            </div>
           </CustomTabPane>
         </CustomTabs>
-      </div>
-
-      <!-- 生成按钮 -->
-      <div class="jimeng-create__submit-btn">
-        <button @click="jimengStore.submitTask" :disabled="jimengStore.submitting">
-          <i v-if="jimengStore.submitting" class="iconfont icon-loading animate-spin"></i>
-          <span>{{
-            jimengStore.submitting ? '创作中...' : `立即生成 (${jimengStore.currentPowerCost}算力)`
-          }}</span>
-        </button>
       </div>
     </div>
 

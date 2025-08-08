@@ -94,6 +94,47 @@
   min-height: 100vh;
   background-color: #f9fafb;
 
+  /* 参数容器样式 - 参考 Jimeng.vue */
+  &__params-container {
+    padding: 16px;
+    background: #fff;
+    border-radius: 12px;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* 功能面板样式 - 参考 Jimeng.vue */
+  &__function-panel {
+    .jimeng-create__param-line {
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  /* 参数行样式 - 参考 Jimeng.vue */
+  &__param-line {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &.pt {
+      padding-top: 16px;
+    }
+  }
+
+  /* 参数标签样式 - 参考 Jimeng.vue */
+  &__param-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
   /* 页面头部样式 */
   &__header {
     position: sticky;
@@ -143,7 +184,7 @@
   /* 主要内容区域 */
   &__content {
     padding: 1rem;
-    
+
     .space-y-6 > * + * {
       margin-top: 1.5rem;
     }
@@ -766,7 +807,8 @@
     &-body {
       padding: 1.5rem;
 
-      img, video {
+      img,
+      video {
         width: 100%;
         max-height: 60vh;
         object-fit: contain;
