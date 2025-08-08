@@ -1,6 +1,5 @@
 <template>
-  <div class="custom-select">
-    <label v-if="label" class="block text-gray-700 font-medium mb-2">{{ label }}</label>
+  <div class="custom-select w-full">
     <button
       @click="showPicker = true"
       class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
@@ -51,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CustomSelectOption from './CustomSelectOption.vue'
 
 // Props
@@ -63,10 +62,6 @@ const props = defineProps({
   options: {
     type: Array,
     default: () => [],
-  },
-  label: {
-    type: String,
-    default: '',
   },
   placeholder: {
     type: String,

@@ -200,54 +200,62 @@
       <!-- KeLing 视频参数 -->
       <div v-if="video.activeVideoType === 'keling'" class="space-y-6">
         <!-- 画面比例 -->
-        <CustomSelect
-          v-model="video.kelingParams.aspect_ratio"
-          :options="video.aspectRatioOptions.map((ratio) => ({ label: ratio, value: ratio }))"
-          label="画面比例"
-          title="选择比例"
-        />
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">画面比例</label>
+          <CustomSelect
+            v-model="video.kelingParams.aspect_ratio"
+            :options="video.aspectRatioOptions.map((ratio) => ({ label: ratio, value: ratio }))"
+            title="选择比例"
+          />
+        </div>
 
         <!-- 模型选择 -->
-        <CustomSelect
-          v-model="video.kelingParams.model"
-          :options="video.modelOptions"
-          label="模型选择"
-          placeholder="请选择模型"
-          title="选择模型"
-        >
-          <template #option="{ option, selected }">
-            <div class="flex items-center w-full">
-              <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
-              <span class="text-xs text-gray-400">({{ option.value }})</span>
-              <span v-if="selected" class="ml-auto text-green-500"
-                ><i class="iconfont icon-success"></i
-              ></span>
-            </div>
-          </template>
-        </CustomSelect>
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">模型选择</label>
+          <CustomSelect
+            v-model="video.kelingParams.model"
+            :options="video.modelOptions"
+            placeholder="请选择模型"
+            title="选择模型"
+          >
+            <template #option="{ option, selected }">
+              <div class="flex items-center w-full">
+                <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
+                <span class="text-xs text-gray-400">({{ option.value }})</span>
+                <span v-if="selected" class="ml-auto text-green-500"
+                  ><i class="iconfont icon-success"></i
+                ></span>
+              </div>
+            </template>
+          </CustomSelect>
+        </div>
 
         <!-- 视频时长 -->
-        <CustomSelect
-          v-model="video.kelingParams.duration"
-          :options="
-            video.durationOptions.map((duration) => ({ label: `${duration}秒`, value: duration }))
-          "
-          label="视频时长"
-          title="选择时长"
-        />
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">视频时长</label>
+          <CustomSelect
+            v-model="video.kelingParams.duration"
+            :options="
+              video.durationOptions.map((duration) => ({ label: `${duration}秒`, value: duration }))
+            "
+            title="选择时长"
+          />
+        </div>
 
         <!-- 生成模式 -->
-        <CustomSelect
-          v-model="video.kelingParams.mode"
-          :options="
-            video.modeOptions.map((mode) => ({
-              label: mode === 'std' ? '标准模式' : '专业模式',
-              value: mode,
-            }))
-          "
-          label="生成模式"
-          title="选择模式"
-        />
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">生成模式</label>
+          <CustomSelect
+            v-model="video.kelingParams.mode"
+            :options="
+              video.modeOptions.map((mode) => ({
+                label: mode === 'std' ? '标准模式' : '专业模式',
+                value: mode,
+              }))
+            "
+            title="选择模式"
+          />
+        </div>
 
         <!-- 创意程度 -->
         <div class="bg-white rounded-xl p-4 shadow-sm">
@@ -258,17 +266,19 @@
         </div>
 
         <!-- 运镜控制 -->
-        <CustomSelect
-          v-model="video.kelingParams.camera_control.type"
-          :options="
-            video.cameraControlOptions.map((option) => ({
-              label: video.getCameraControlLabel(option),
-              value: option,
-            }))
-          "
-          label="运镜控制"
-          title="选择运镜类型"
-        />
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <label class="block text-gray-700 font-medium mb-3">运镜控制</label>
+          <CustomSelect
+            v-model="video.kelingParams.camera_control.type"
+            :options="
+              video.cameraControlOptions.map((option) => ({
+                label: video.getCameraControlLabel(option),
+                value: option,
+              }))
+            "
+            title="选择运镜类型"
+          />
+        </div>
 
         <!-- 图片辅助生成开关 -->
         <div class="bg-white rounded-xl p-4 shadow-sm">

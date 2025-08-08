@@ -30,23 +30,25 @@
       </div>
 
       <!-- 模型选择 -->
-      <CustomSelect
-        v-model="suno.data.model"
-        :options="suno.models"
-        label="模型版本"
-        title="选择模型"
-        @change="suno.onModelSelect"
-      >
-        <template #option="{ option, selected }">
-          <div class="flex items-center w-full">
-            <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
-            <span class="text-xs text-gray-400">({{ option.value }})</span>
-            <span v-if="selected" class="ml-auto text-green-500"
-              ><i class="iconfont icon-success"></i
-            ></span>
-          </div>
-        </template>
-      </CustomSelect>
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <label class="block text-gray-700 font-medium mb-3">模型版本：</label>
+        <CustomSelect
+          v-model="suno.data.model"
+          :options="suno.models"
+          title="选择模型"
+          @change="suno.onModelSelect"
+        >
+          <template #option="{ option, selected }">
+            <div class="flex items-center w-full">
+              <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
+              <span class="text-xs text-gray-400">({{ option.value }})</span>
+              <span v-if="selected" class="ml-auto text-green-500"
+                ><i class="iconfont icon-success"></i
+              ></span>
+            </div>
+          </template>
+        </CustomSelect>
+      </div>
 
       <!-- 纯音乐开关 -->
       <div class="bg-white rounded-xl p-4 shadow-sm">

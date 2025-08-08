@@ -32,25 +32,86 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
 
   // 选项数据
   const imageSizeOptions = [
-    { label: '512x512', value: '512x512' },
-    { label: '768x768', value: '768x768' },
-    { label: '1024x1024', value: '1024x1024' },
-    { label: '1024x1536', value: '1024x1536' },
-    { label: '1536x1024', value: '1536x1024' },
+    { label: '1:1 (1328x1328)', value: '1328x1328' },
+    { label: '3:2 (1584x1056)', value: '1584x1056' },
+    { label: '2:3 (1056x1584)', value: '1056x1584' },
+    { label: '4:3 (1472x1104)', value: '1472x1104' },
+    { label: '3:4 (1104x1472)', value: '1104x1472' },
+    { label: '16:9 (1664x936)', value: '1664x936' },
+    { label: '9:16 (936x1664)', value: '936x1664' },
+    { label: '21:9 (2016x864)', value: '2016x864' },
+    { label: '9:21 (864x2016)', value: '864x2016' },
   ]
 
   const videoAspectRatioOptions = [
-    { label: '16:9', value: '16:9' },
-    { label: '9:16', value: '9:16' },
-    { label: '1:1', value: '1:1' },
-    { label: '4:3', value: '4:3' },
+    { label: '1:1 (正方形)', value: '1:1' },
+    { label: '16:9 (横版)', value: '16:9' },
+    { label: '9:16 (竖版)', value: '9:16' },
   ]
 
   const imageEffectsTemplateOptions = [
-    { label: '亚克力装饰', value: 'acrylic_ornaments' },
-    { label: '天使小雕像', value: 'angel_figurine' },
-    { label: '毛毫3D拍立得', value: 'felt_3d_polaroid' },
-    { label: '水彩插图', value: 'watercolor_illustration' },
+    {
+      label: '毛毡3D拍立得风格',
+      value: 'felt_3d_polaroid',
+      preview: '/images/jimeng/templates/felt_3d_polaroid.png',
+    },
+    { label: '像素世界风', value: 'my_world', preview: '/images/jimeng/templates/my_world.png' },
+    {
+      label: '像素世界-万物通用版',
+      value: 'my_world_universal',
+      preview: '/images/jimeng/templates/my_world_universal.png',
+    },
+    {
+      label: '盲盒玩偶风',
+      value: 'plastic_bubble_figure',
+      preview: '/images/jimeng/templates/plastic_bubble_figure.png',
+    },
+    {
+      label: '塑料泡罩人偶-文字卡头版',
+      value: 'plastic_bubble_figure_cartoon_text',
+      preview: '/images/jimeng/templates/plastic_bubble_figure_cartoon_text.png',
+    },
+    {
+      label: '毛绒玩偶风',
+      value: 'furry_dream_doll',
+      preview: '/images/jimeng/templates/furry_dream_doll.png',
+    },
+    {
+      label: '迷你世界玩偶风',
+      value: 'micro_landscape_mini_world',
+      preview: '/images/jimeng/templates/micro_landscape_mini_world.png',
+    },
+    {
+      label: '微型景观小世界-职业版',
+      value: 'micro_landscape_mini_world_professional',
+      preview: '/images/jimeng/templates/micro_landscape_mini_world_professional.png',
+    },
+    {
+      label: '亚克力挂饰',
+      value: 'acrylic_ornaments',
+      preview: '/images/jimeng/templates/acrylic_ornaments.png',
+    },
+    {
+      label: '毛毡钥匙扣',
+      value: 'felt_keychain',
+      preview: '/images/jimeng/templates/felt_keychain.png',
+    },
+    {
+      label: 'Lofi 像素人物小卡',
+      value: 'lofi_pixel_character_mini_card',
+      preview: '/images/jimeng/templates/lofi_pixel_character_mini_card.png',
+    },
+    {
+      label: '天使形象手办',
+      value: 'angel_figurine',
+      preview: '/images/jimeng/templates/angel_figurine.png',
+    },
+    {
+      label: '躺在毛茸茸肚皮里',
+      value: 'lying_in_fluffy_belly',
+      preview: '/images/jimeng/templates/lying_in_fluffy_belly.png',
+    },
+    { label: '玻璃球', value: 'glass_ball', preview: '/images/jimeng/templates/glass_ball.png' },
   ]
 
   // 功能参数

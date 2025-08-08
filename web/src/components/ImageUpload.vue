@@ -21,7 +21,7 @@
         </div>
         <div v-else class="upload-item single-image-item">
           <el-image :src="imageList[0]" fit="cover" class="upload-image" />
-          <div class="upload-overlay" style="opacity: 1">
+          <div class="upload-overlay">
             <el-button
               type="danger"
               :icon="Delete"
@@ -270,18 +270,13 @@ const removeImage = (index) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s;
+    opacity: 1;
 
     .remove-btn {
       background: rgba(245, 108, 108, 0.8);
       border: none;
       color: white;
     }
-  }
-
-  &:hover .upload-overlay {
-    opacity: 1;
   }
 }
 
