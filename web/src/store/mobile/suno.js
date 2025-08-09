@@ -1,5 +1,5 @@
 import { getSystemInfo } from '@/store/cache'
-import { closeLoading, showLoading, showToastMessage } from '@/utils/dialog'
+import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
 import { defineStore } from 'pinia'
@@ -70,7 +70,7 @@ export const useSunoStore = defineStore('suno', () => {
   }
   const selectTag = (tag) => {
     if (data.tags.length + tag.value.length >= 119) {
-      showToastMessage('标签长度超出限制', 'error')
+      showMessageError('标签长度超出限制')
       return
     }
     const currentTags = data.tags.split(',').filter((t) => t.trim())
@@ -81,7 +81,7 @@ export const useSunoStore = defineStore('suno', () => {
   }
   const createLyric = () => {
     if (data.lyrics === '') {
-      showToastMessage('请输入歌词描述', 'error')
+      showMessageError('请输入歌词描述')
       return
     }
     isGenerating.value = true
@@ -91,10 +91,10 @@ export const useSunoStore = defineStore('suno', () => {
         data.title = lines.shift().replace(/\*/g, '')
         lines.shift()
         data.lyrics = lines.join('\n')
-        showToastMessage('歌词生成成功', 'success')
+        showMessageOK('歌词生成成功')
       })
       .catch((e) => {
-        showToastMessage('歌词生成失败：' + e.message, 'error')
+        showMessageError('歌词生成失败：' + e.message)
       })
       .finally(() => {
         isGenerating.value = false
@@ -109,7 +109,7 @@ export const useSunoStore = defineStore('suno', () => {
   const beforeUpload = (file) => {
     const isLt10M = file.size / 1024 / 1024 < 10
     if (!isLt10M) {
-      showToastMessage('文件大小不能超过 10MB!', 'error')
+      showMessageError('文件大小不能超过 10MB!')
       return false
     }
     return true
@@ -127,7 +127,7 @@ export const useSunoStore = defineStore('suno', () => {
         })
           .then(() => {
             fetchData(1)
-            showToastMessage('歌曲上传成功', 'success')
+            showMessageOK('歌曲上传成功')
             removeRefSong()
             uploadFiles.value = []
             if (uploadRef.value) {
@@ -135,14 +135,14 @@ export const useSunoStore = defineStore('suno', () => {
             }
           })
           .catch((e) => {
-            showToastMessage('歌曲上传失败：' + e.message, 'error')
+            showMessageError('歌曲上传失败：' + e.message)
           })
           .finally(() => {
             closeLoading()
           })
       })
       .catch((e) => {
-        showToastMessage('文件上传失败:' + e.message, 'error')
+        showMessageError('文件上传失败:' + e.message)
       })
       .finally(() => {
         closeLoading()
@@ -155,21 +155,21 @@ export const useSunoStore = defineStore('suno', () => {
     data.extend_secs = refSong.value ? refSong.value.extend_secs : 0
     if (refSong.value) {
       if (data.extend_secs > refSong.value.duration) {
-        showToastMessage('续写开始时间不能超过原歌曲长度', 'error')
+        showMessageError('续写开始时间不能超过原歌曲长度')
         return
       }
     } else if (custom.value) {
       if (data.lyrics === '') {
-        showToastMessage('请输入歌词', 'error')
+        showMessageError('请输入歌词')
         return
       }
       if (data.title === '') {
-        showToastMessage('请输入歌曲标题', 'error')
+        showMessageError('请输入歌曲标题')
         return
       }
     } else {
       if (data.prompt === '') {
-        showToastMessage('请输入歌曲描述', 'error')
+        showMessageError('请输入歌曲描述')
         return
       }
     }
@@ -178,10 +178,10 @@ export const useSunoStore = defineStore('suno', () => {
       .then(() => {
         fetchData(1)
         taskPulling.value = true
-        showToastMessage('创建任务成功', 'success')
+        showMessageOK('创建任务成功')
       })
       .catch((e) => {
-        showToastMessage('创建任务失败：' + e.message, 'error')
+        showMessageError('创建任务失败：' + e.message)
       })
       .finally(() => {
         loading.value = false
@@ -219,7 +219,7 @@ export const useSunoStore = defineStore('suno', () => {
       })
       .catch((e) => {
         listLoading.value = false
-        showToastMessage('获取作品列表失败：' + e.message, 'error')
+        showMessageError('获取作品列表失败：' + e.message)
       })
   }
   const loadMore = () => {
@@ -279,7 +279,7 @@ export const useSunoStore = defineStore('suno', () => {
         item.downloading = false
       })
       .catch(() => {
-        showToastMessage('下载失败', 'error')
+        showMessageError('下载失败')
         item.downloading = false
       })
       .finally(() => {
@@ -296,11 +296,11 @@ export const useSunoStore = defineStore('suno', () => {
     }).then(() => {
       httpGet('/api/suno/remove', { id: item.id })
         .then(() => {
-          showToastMessage('任务删除成功', 'success')
+          showMessageOK('任务删除成功')
           fetchData(1)
         })
         .catch(() => {
-          showToastMessage('任务删除失败', 'error')
+          showMessageError('任务删除失败')
         })
     })
   }

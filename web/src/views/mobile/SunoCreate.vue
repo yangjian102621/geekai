@@ -233,7 +233,7 @@
     <!-- 作品列表 -->
     <div class="p-4">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">我的作品</h2>
-      <div class="space-y-4">
+      <div class="space-y-4" v-if="suno.list.length > 0">
         <div v-for="item in suno.list" :key="item.id" class="bg-white rounded-xl p-4 shadow-sm">
           <div class="flex space-x-4">
             <div class="flex-shrink-0">
@@ -447,6 +447,10 @@
           没有更多了
         </div>
       </div>
+
+      <div class="px-4" v-else>
+        <van-empty description="暂无数据" image-size="120" />
+      </div>
     </div>
 
     <!-- 音乐播放器 -->
@@ -496,6 +500,7 @@ import CustomSelect from '@/components/mobile/CustomSelect.vue'
 import { useSunoStore } from '@/store/mobile/suno'
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { checkSession } from '@/store/cache'
 
 const router = useRouter()
 const suno = useSunoStore()
@@ -523,13 +528,19 @@ const handleScroll = () => {
 
 let tastPullHandler = null
 onMounted(() => {
-  suno.fetchData(1)
-  tastPullHandler = setInterval(() => {
-    if (suno.taskPulling) {
-      suno.refreshFirstPage()
-    }
-  }, 5000)
-  window.addEventListener('scroll', handleScroll)
+  checkSession()
+    .then(() => {
+      suno.fetchData(1)
+      tastPullHandler = setInterval(() => {
+        if (suno.taskPulling) {
+          suno.refreshFirstPage()
+        }
+      }, 5000)
+      window.addEventListener('scroll', handleScroll)
+    })
+    .catch(() => {
+      console.warn('用户未登录')
+    })
 })
 onUnmounted(() => {
   if (tastPullHandler) clearInterval(tastPullHandler)
@@ -538,128 +549,5 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-/* 自定义动画 */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-out {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-up {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-fade-out {
-  animation: fade-out 0.3s ease-out;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
-.animate-scale-up {
-  animation: scale-up 0.3s ease-out;
-}
-
-/* 文本截断 */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* 滚动监听自动加载更多 */
-.scroll-container {
-  height: 100vh;
-  overflow-y: auto;
-}
-
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .bg-gray-50 {
-    background-color: #1f2937;
-  }
-
-  .bg-white {
-    background-color: #374151;
-  }
-
-  .text-gray-900 {
-    color: #f9fafb;
-  }
-
-  .text-gray-700 {
-    color: #d1d5db;
-  }
-
-  .text-gray-600 {
-    color: #9ca3af;
-  }
-
-  .text-gray-500 {
-    color: #6b7280;
-  }
-
-  .border-gray-200 {
-    border-color: #4b5563;
-  }
-
-  .bg-gray-100:hover {
-    background-color: #4b5563;
-  }
-}
-
-/* el-upload 组件样式定制 */
-.upload-area {
-  width: 100%;
-
-  :deep(.el-upload) {
-    width: 100%;
-    display: block;
-  }
-
-  :deep(.el-button) {
-    width: 100%;
-    display: block;
-  }
-}
+@use '@/assets/css/mobile/suno.scss';
 </style>

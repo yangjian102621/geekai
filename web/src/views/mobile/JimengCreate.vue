@@ -56,7 +56,7 @@
             <!-- 图生图参数 -->
             <div class="bg-white rounded-xl p-4 shadow-sm mb-3" v-if="jimengStore.useImageInput">
               <ImageUpload
-                v-model="jimengStore.imageToImageParams.image_input[0]"
+                v-model="jimengStore.imageToImageParams.image_input"
                 :max-count="1"
                 :multiple="false"
               />
@@ -220,16 +220,13 @@
             <div class="bg-white rounded-xl p-4 shadow-sm mb-3">
               <div class="flex justify-between items-center w-full">
                 <label class="text-gray-700 font-semibold">使用图片辅助生成：</label>
-                <el-switch v-model="jimengStore.textToVideoParams.use_image_input" size="default" />
+                <el-switch v-model="jimengStore.useImageInput" size="default" />
               </div>
             </div>
 
-            <div
-              class="bg-white rounded-xl p-4 shadow-sm mb-3"
-              v-if="jimengStore.textToVideoParams.use_image_input"
-            >
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-3" v-if="jimengStore.useImageInput">
               <ImageUpload
-                v-model="jimengStore.textToVideoParams.image_input"
+                v-model="jimengStore.imageToVideoParams.image_input"
                 :max-count="2"
                 :multiple="true"
               />
@@ -268,7 +265,7 @@
     <!-- 作品列表 -->
     <div class="jimeng-create__works">
       <h2 class="jimeng-create__works-title">我的作品</h2>
-      <div class="jimeng-create__works-list space-y-4">
+      <div class="jimeng-create__works-list space-y-4" v-if="jimengStore.currentList.length > 0">
         <div
           v-for="item in jimengStore.currentList"
           :key="item.id"
@@ -290,6 +287,28 @@
                     </div>
                   </template>
                 </el-image>
+                <div
+                  v-else-if="item.video_url"
+                  class="jimeng-create__works-item-thumb-placeholder relative"
+                >
+                  <video
+                    :src="item.video_url"
+                    preload="auto"
+                    loop="loop"
+                    muted="muted"
+                    class="w-full h-full object-cover"
+                  >
+                    您的浏览器不支持视频播放
+                  </video>
+                  <div
+                    class="video-mask absolute top-0 left-0 w-full h-full flex justify-center items-center"
+                    @click="jimengStore.playMedia(item)"
+                  >
+                    <div class="play-btn">
+                      <img src="/images/play.svg" alt="播放" />
+                    </div>
+                  </div>
+                </div>
                 <div v-else class="jimeng-create__works-item-thumb-placeholder">
                   <i
                     :class="
@@ -297,18 +316,6 @@
                     "
                   ></i>
                 </div>
-                <!-- 播放/查看按钮 -->
-                <button
-                  v-if="item.status === 'completed'"
-                  @click="jimengStore.playMedia(item)"
-                  class="jimeng-create__works-item-thumb-overlay"
-                >
-                  <i
-                    :class="
-                      item.type.includes('video') ? 'iconfont icon-play' : 'iconfont icon-eye'
-                    "
-                  ></i>
-                </button>
 
                 <!-- 失败状态 -->
                 <div
@@ -371,50 +378,44 @@
 
           <!-- 快捷操作按钮 -->
           <div class="jimeng-create__works-item-quick-actions">
-            <!-- 复制提示词 -->
-            <button
-              v-if="item.prompt"
-              @click="jimengStore.copyPrompt(item.prompt)"
-              class="jimeng-create__works-item-quick-action-btn"
-              title="复制提示词"
-            >
-              <i class="iconfont icon-copy"></i>
-            </button>
-
-            <span v-if="item.status === 'success'">
-              <!-- 画同款 -->
+            <span v-if="item.status === 'success'" class="flex">
+              <!-- 复制提示词 -->
               <button
-                @click="jimengStore.drawSame(item)"
+                v-if="item.prompt"
+                @click="jimengStore.copyPrompt(item.prompt)"
                 class="jimeng-create__works-item-quick-action-btn"
-                title="画同款"
+                title="复制提示词"
               >
-                <i class="iconfont icon-image-list"></i>
+                <i class="iconfont icon-copy"></i>
               </button>
+
               <!-- 下载 -->
               <button
-                v-if="item.status === 'completed' && (item.img_url || item.video_url)"
+                v-if="item.status === 'success' && (item.img_url || item.video_url)"
                 @click="jimengStore.downloadFile(item)"
                 :disabled="item.downloading"
-                class="jimeng-create__works-item-quick-action-btn"
-                title="下载"
+                class="p-2 text-blue-500"
               >
                 <i v-if="item.downloading" class="iconfont icon-loading animate-spin"></i>
-                <i v-else class="iconfont icon-download"></i></button
-            ></span>
+                <i v-else class="iconfont icon-download"></i>
+                <span class="ml-1">下载</span>
+              </button>
+            </span>
 
             <!-- 重试 -->
             <button
               v-if="item.status === 'failed'"
               @click="jimengStore.retryTask(item.id)"
-              class="jimeng-create__works-item-quick-action-btn"
-              title="重试"
+              class="p-2 text-green-500"
             >
               <i class="iconfont icon-refresh"></i>
+              <span class="ml-1">重试</span>
             </button>
 
             <!-- 删除 -->
-            <button @click="jimengStore.removeJob(item)" class="p-2">
-              <i class="iconfont icon-remove"></i> 删除
+            <button @click="jimengStore.removeJob(item)" class="p-2 text-red-500">
+              <i class="iconfont icon-remove"></i>
+              <span class="ml-1">删除</span>
             </button>
           </div>
 
@@ -424,7 +425,9 @@
             class="jimeng-create__works-item-error"
           >
             <div class="jimeng-create__works-item-error-content">
-              <span class="jimeng-create__works-item-error-text">{{ item.err_msg }}</span>
+              <span class="jimeng-create__works-item-error-text line-clamp-3">{{
+                item.err_msg
+              }}</span>
               <button
                 @click="jimengStore.copyErrorMsg(item.err_msg)"
                 class="jimeng-create__works-item-error-copy-btn"
@@ -449,6 +452,10 @@
           没有更多了
         </div>
       </div>
+
+      <div class="px-4" v-else>
+        <van-empty description="暂无数据" image-size="120" />
+      </div>
     </div>
 
     <!-- 媒体预览弹窗 -->
@@ -461,21 +468,15 @@
         <div class="jimeng-create__media-dialog-header">
           <h3>媒体预览</h3>
           <button @click="jimengStore.closeMediaDialog">
-            <i class="iconfont icon-close"></i>
+            <i class="iconfont icon-error"></i>
           </button>
         </div>
         <div class="jimeng-create__media-dialog-body">
-          <img
-            v-if="jimengStore.currentMediaUrl && !jimengStore.currentMediaUrl.includes('video')"
-            :src="jimengStore.currentMediaUrl"
-            class="w-full max-h-[60vh] object-contain rounded-lg"
-          />
           <video
-            v-else-if="jimengStore.currentMediaUrl"
             :src="jimengStore.currentMediaUrl"
             controls
             autoplay
-            class="w-full max-h-[60vh] rounded-lg"
+            class="w-full max-h-[60vh] rounded-lg object-cover"
           >
             您的浏览器不支持视频播放
           </video>
@@ -535,5 +536,5 @@ const goBack = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/css/mobile/jimeng.scss';
+@use '@/assets/css/mobile/jimeng.scss';
 </style>

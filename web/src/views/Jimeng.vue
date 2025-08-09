@@ -138,7 +138,7 @@
           </div>
           <div class="param-line">
             <ImageUpload
-              v-model="store.imageEditParams.image_urls"
+              v-model="store.imageEditParams.image_input"
               :max-count="1"
               :multiple="false"
             />
@@ -171,7 +171,7 @@
           </div>
           <div class="param-line">
             <ImageUpload
-              v-model="store.imageEffectsParams.image_input1"
+              v-model="store.imageEffectsParams.image_input"
               :max-count="1"
               :multiple="false"
             />
@@ -271,7 +271,7 @@
           </div>
           <div class="param-line">
             <ImageUpload
-              v-model="store.imageToVideoParams.image_urls"
+              v-model="store.imageToVideoParams.image_input"
               :max-count="2"
               :multiple="true"
             />
@@ -387,7 +387,7 @@
                         preload="auto"
                         loop="loop"
                         muted="muted"
-                        class="preview-video w-full h-full"
+                        class="w-full h-full object-cover"
                       >
                         您的浏览器不支持视频播放
                       </video>
@@ -457,15 +457,6 @@
                         </el-tooltip>
                       </span>
 
-                      <span class="ml-1">
-                        <el-tooltip content="画同款" placement="top">
-                          <i
-                            class="iconfont icon-image-list cursor-pointer"
-                            @click="store.drawSame(item)"
-                          ></i>
-                        </el-tooltip>
-                      </span>
-
                       <template v-if="item.status === 'failed'">
                         <span class="ml-1" v-if="item.status === 'failed'">
                           <el-tooltip content="重试" placement="top">
@@ -531,16 +522,19 @@
 
     <!-- 视频预览对话框 -->
     <el-dialog v-model="store.showDialog" title="视频预览" center>
-      <video
-        :src="store.currentVideoUrl"
-        autoplay="true"
-        controls
-        preload="auto"
-        loop="loop"
-        muted="muted"
-      >
-        您的浏览器不支持视频播放
-      </video>
+      <div class="flex justify-center items-center">
+        <video
+          :src="store.currentVideoUrl"
+          autoplay
+          controls
+          preload="auto"
+          loop
+          muted
+          style="max-height: calc(100vh - 100px); max-width: 100vw; object-fit: cover"
+        >
+          您的浏览器不支持视频播放
+        </video>
+      </div>
     </el-dialog>
   </div>
 </template>

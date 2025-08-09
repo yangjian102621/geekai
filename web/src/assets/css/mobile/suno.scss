@@ -1,6 +1,6 @@
 /* 来自 SunoCreate.vue 的样式，已迁移至此，供移动端页面使用 */
 
-// 自定义动画
+/* 自定义动画 */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -61,7 +61,7 @@
   animation: scale-up 0.3s ease-out;
 }
 
-// 文本截断
+/* 文本截断 */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -69,47 +69,56 @@
   overflow: hidden;
 }
 
-// 滚动监听自动加载更多
+/* 滚动监听自动加载更多 */
 .scroll-container {
   height: 100vh;
   overflow-y: auto;
 }
 
-// 深色模式适配
+/* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
   .bg-gray-50 {
     background-color: #1f2937;
   }
+
   .bg-white {
     background-color: #374151;
   }
+
   .text-gray-900 {
     color: #f9fafb;
   }
+
   .text-gray-700 {
     color: #d1d5db;
   }
+
   .text-gray-600 {
     color: #9ca3af;
   }
+
   .text-gray-500 {
     color: #6b7280;
   }
+
   .border-gray-200 {
     border-color: #4b5563;
   }
+
   .bg-gray-100:hover {
     background-color: #4b5563;
   }
 }
 
-// el-upload 组件样式定制
+/* el-upload 组件样式定制 */
 .upload-area {
   width: 100%;
+
   :deep(.el-upload) {
     width: 100%;
     display: block;
   }
+
   :deep(.el-button) {
     width: 100%;
     display: block;

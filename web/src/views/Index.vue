@@ -118,6 +118,7 @@ import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { isMobile } from '@/utils/libs'
 
 const router = useRouter()
 
@@ -146,6 +147,10 @@ const md = new MarkdownIt({
 }).use(emoji)
 
 onMounted(() => {
+  if (isMobile()) {
+    router.push('/mobile/index')
+    return
+  }
   getSystemInfo()
     .then((res) => {
       title.value = res.data.title

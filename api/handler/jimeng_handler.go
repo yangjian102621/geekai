@@ -153,12 +153,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 			"seed":  req.Seed,
 			"scale": req.Scale,
 		}
-		if len(req.ImageUrls) > 0 {
-			params["image_urls"] = req.ImageUrls
-		}
-		if len(req.BinaryDataBase64) > 0 {
-			params["binary_data_base64"] = req.BinaryDataBase64
-		}
+		params["image_urls"] = []string{req.ImageInput}
 	case "image_effects":
 		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageEffects)
 		taskType = model.JMTaskTypeImageEffects

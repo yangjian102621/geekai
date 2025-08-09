@@ -1,5 +1,6 @@
 import { showMessageError, showMessageOK } from '@/utils/dialog'
-import { httpGet, httpPost } from '@/utils/http'
+import { httpDownload, httpGet, httpPost } from '@/utils/http'
+import { replaceImg } from '@/utils/libs'
 import { defineStore } from 'pinia'
 import { showConfirmDialog } from 'vant'
 import { computed, reactive, ref, watch } from 'vue'
@@ -144,13 +145,13 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
   })
 
   const imageEditParams = reactive({
-    image_urls: '',
+    image_input: '',
     scale: 0.5,
     seed: -1,
   })
 
   const imageEffectsParams = reactive({
-    image_input1: '',
+    image_input: '',
     template_id: '',
     size: '1328x1328',
   })
@@ -245,7 +246,7 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
         break
       case 'image_to_image':
         Object.assign(requestData, {
-          image_input: imageToImageParams.image_input,
+          image_input: imageToImageParams.image_input[0],
           width: parseInt(imageToImageParams.size.split('x')[0]),
           height: parseInt(imageToImageParams.size.split('x')[1]),
           gpen: imageToImageParams.gpen,
@@ -257,14 +258,14 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
         break
       case 'image_edit':
         Object.assign(requestData, {
-          image_urls: [imageEditParams.image_urls],
+          image_input: imageEditParams.image_input[0],
           scale: imageEditParams.scale,
           seed: imageEditParams.seed,
         })
         break
       case 'image_effects':
         Object.assign(requestData, {
-          image_input: imageEffectsParams.image_input1,
+          image_input: imageEffectsParams.image_input[0],
           template_id: imageEffectsParams.template_id,
           width: parseInt(imageEffectsParams.size.split('x')[0]),
           height: parseInt(imageEffectsParams.size.split('x')[1]),
@@ -279,7 +280,7 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
         break
       case 'image_to_video':
         Object.assign(requestData, {
-          image_urls: imageToVideoParams.image_urls,
+          image_urls: imageToVideoParams.image_input,
           aspect_ratio: imageToVideoParams.aspect_ratio,
           seed: imageToVideoParams.seed,
         })
@@ -312,11 +313,13 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
         total.value = res.data.total
         let needPull = false
         const items = []
-        for (let v of res.data.items) {
-          if (v.status === 'in_queue' || v.status === 'generating') {
-            needPull = true
+        if (res.data.items) {
+          for (let v of res.data.items) {
+            if (v.status === 'in_queue' || v.status === 'generating') {
+              needPull = true
+            }
+            items.push(v)
           }
-          items.push(v)
         }
         listLoading.value = false
         taskPulling.value = needPull
@@ -347,20 +350,33 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     showMediaDialog.value = true
   }
 
-  const downloadFile = (item) => {
+  const downloadFile = async (item) => {
+    const url = replaceImg(item.video_url || item.img_url)
+    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const urlObj = new URL(url)
+    const fileName = urlObj.pathname.split('/').pop()
+
     item.downloading = true
-    const link = document.createElement('a')
-    link.href = item.img_url || item.video_url
-    link.download = item.title || 'file'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    item.downloading = false
-    showMessageSuccess('开始下载')
+
+    try {
+      const response = await httpDownload(downloadURL)
+      const blob = new Blob([response.data])
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(link.href)
+      item.downloading = false
+    } catch (error) {
+      showMessageError('下载失败')
+      item.downloading = false
+    }
   }
 
   const retryTask = (id) => {
-    return httpPost('/api/jimeng/retry', { id })
+    return httpGet('/api/jimeng/retry', { id })
       .then(() => {
         showMessageOK('重试任务成功')
         fetchData(1)
@@ -423,60 +439,6 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
   const closeMediaDialog = () => {
     showMediaDialog.value = false
     currentMediaUrl.value = ''
-  }
-
-  // 新增：画同款功能
-  const drawSame = (item) => {
-    // 设置当前提示词
-    currentPrompt.value = item.prompt
-
-    // 根据任务类型设置相应的参数
-    switch (item.type) {
-      case 'text_to_image':
-        activeCategory.value = 'image_generation'
-        useImageInput.value = false
-        // 设置图片尺寸（如果有的话）
-        if (item.width && item.height) {
-          textToImageParams.size = `${item.width}x${item.height}`
-        }
-        break
-      case 'image_to_image':
-        activeCategory.value = 'image_generation'
-        useImageInput.value = true
-        // 设置图片尺寸（如果有的话）
-        if (item.width && item.height) {
-          imageToImageParams.size = `${item.width}x${item.height}`
-        }
-        break
-      case 'image_edit':
-        activeCategory.value = 'image_editing'
-        break
-      case 'image_effects':
-        activeCategory.value = 'image_effects'
-        // 设置特效模板（如果有的话）
-        if (item.template_id) {
-          imageEffectsParams.template_id = item.template_id
-        }
-        break
-      case 'text_to_video':
-        activeCategory.value = 'video_generation'
-        useImageInput.value = false
-        // 设置视频比例（如果有的话）
-        if (item.aspect_ratio) {
-          textToVideoParams.aspect_ratio = item.aspect_ratio
-        }
-        break
-      case 'image_to_video':
-        activeCategory.value = 'video_generation'
-        useImageInput.value = true
-        // 设置视频比例（如果有的话）
-        if (item.aspect_ratio) {
-          imageToVideoParams.aspect_ratio = item.aspect_ratio
-        }
-        break
-    }
-
-    showMessageOK('已设置画同款参数')
   }
 
   // 新增：复制提示词功能
@@ -556,7 +518,6 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
     stopTaskPolling,
     closeMediaDialog,
     fetchPowerConfig,
-    drawSame,
     copyPrompt,
     copyErrorMsg,
     init,

@@ -137,13 +137,13 @@ export const useJimengStore = defineStore('jimeng', () => {
   })
 
   const imageEditParams = reactive({
-    image_urls: '',
+    image_input: '',
     scale: 0.5,
     seed: -1,
   })
 
   const imageEffectsParams = reactive({
-    image_input1: '',
+    image_input: '',
     template_id: '',
     size: '1328x1328',
   })
@@ -154,7 +154,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   })
 
   const imageToVideoParams = reactive({
-    image_urls: [],
+    image_input: [],
     aspect_ratio: '16:9',
     seed: -1,
   })
@@ -374,7 +374,7 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_to_image':
           Object.assign(requestData, {
-            image_input: imageToImageParams.image_input,
+            image_input: imageToImageParams.image_input[0],
             width: parseInt(imageToImageParams.size.split('x')[0]),
             height: parseInt(imageToImageParams.size.split('x')[1]),
             gpen: imageToImageParams.gpen,
@@ -386,14 +386,14 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_edit':
           Object.assign(requestData, {
-            image_urls: [imageEditParams.image_urls],
+            image_input: imageEditParams.image_input[0],
             scale: imageEditParams.scale,
             seed: imageEditParams.seed,
           })
           break
         case 'image_effects':
           Object.assign(requestData, {
-            image_input: imageEffectsParams.image_input1,
+            image_input: imageEffectsParams.image_input[0],
             template_id: imageEffectsParams.template_id,
             width: parseInt(imageEffectsParams.size.split('x')[0]),
             height: parseInt(imageEffectsParams.size.split('x')[1]),
@@ -408,7 +408,7 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_to_video':
           Object.assign(requestData, {
-            image_urls: imageToVideoParams.image_urls,
+            image_urls: imageToVideoParams.image_input,
             aspect_ratio: imageToVideoParams.aspect_ratio,
             seed: imageToVideoParams.seed,
           })
@@ -498,62 +498,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     showDialog.value = true
   }
 
-  // 画同款功能
-  const drawSame = (item) => {
-    // 联动功能开关
-    if (item.type === 'text_to_image' || item.type === 'image_to_image') {
-      activeCategory.value = 'image_generation'
-      useImageInput.value = item.type === 'image_to_image'
-    } else if (item.type === 'text_to_video' || item.type === 'image_to_video') {
-      activeCategory.value = 'video_generation'
-      useImageInput.value = item.type === 'image_to_video'
-    } else if (item.type === 'image_edit') {
-      activeCategory.value = 'image_editing'
-    } else if (item.type === 'image_effects') {
-      activeCategory.value = 'image_effects'
-    }
-    switchFunction(item.type)
-    nextTick(() => {
-      currentPrompt.value = item.prompt
-    })
-    if (item.type === 'text_to_image') {
-      if (item.width && item.height) {
-        textToImageParams.size = `${item.width}x${item.height}`
-      }
-      if (item.scale) textToImageParams.scale = item.scale
-      if (item.seed) textToImageParams.seed = item.seed
-      if (item.use_pre_llm !== undefined) textToImageParams.use_pre_llm = item.use_pre_llm
-    } else if (item.type === 'image_to_image') {
-      if (item.image_input) imageToImageParams.image_input = item.image_input
-      if (item.width && item.height) {
-        imageToImageParams.size = `${item.width}x${item.height}`
-      }
-      if (item.gpen) imageToImageParams.gpen = item.gpen
-      if (item.skin) imageToImageParams.skin = item.skin
-      if (item.skin_unifi) imageToImageParams.skin_unifi = item.skin_unifi
-      if (item.gen_mode) imageToImageParams.gen_mode = item.gen_mode
-      if (item.seed) imageToImageParams.seed = item.seed
-    } else if (item.type === 'image_edit') {
-      if (item.image_urls) imageEditParams.image_urls = item.image_urls
-      if (item.scale) imageEditParams.scale = item.scale
-      if (item.seed) imageEditParams.seed = item.seed
-    } else if (item.type === 'image_effects') {
-      if (item.image_input1) imageEffectsParams.image_input1 = item.image_input1
-      if (item.template_id) imageEffectsParams.template_id = item.template_id
-      if (item.width && item.height) {
-        imageEffectsParams.size = `${item.width}x${item.height}`
-      }
-    } else if (item.type === 'text_to_video') {
-      if (item.aspect_ratio) textToVideoParams.aspect_ratio = item.aspect_ratio
-      if (item.seed) textToVideoParams.seed = item.seed
-    } else if (item.type === 'image_to_video') {
-      if (item.image_urls) imageToVideoParams.image_urls = item.image_urls
-      if (item.aspect_ratio) imageToVideoParams.aspect_ratio = item.aspect_ratio
-      if (item.seed) imageToVideoParams.seed = item.seed
-    }
-    showMessageOK('已填入全部参数，可直接生成同款')
-  }
-
   // 页面卸载时清理轮询
   const cleanup = () => {
     stopPolling()
@@ -616,7 +560,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     removeJob,
     playVideo,
     cleanup,
-    drawSame,
 
     // 工具函数
     substr,

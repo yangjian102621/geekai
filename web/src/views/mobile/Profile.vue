@@ -16,9 +16,12 @@
           </div>
         </div>
         <div class="login-prompt" v-else>
-          <el-button type="primary" size="large" @click="router.push('/mobile/login')"
-            >立即登录</el-button
+          <button
+            class="py-3 px-5 bg-gradient-to-r from-green-400 to-blue-400 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-green-500 hover:to-blue-500 transition-all duration-200 flex items-center justify-center space-x-2"
+            @click="router.push('/login')"
           >
+            立即登录
+          </button>
         </div>
       </div>
     </div>
@@ -278,7 +281,6 @@ onMounted(() => {
     })
     .catch(() => {
       isLogin.value = false
-      showLoginDialog(router)
     })
 })
 

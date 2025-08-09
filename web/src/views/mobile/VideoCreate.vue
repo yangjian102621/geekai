@@ -438,7 +438,7 @@
     <!-- 作品列表 -->
     <div class="p-4">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">我的作品</h2>
-      <div class="space-y-4">
+      <div class="space-y-4" v-if="video.currentList.length > 0">
         <div
           v-for="item in video.currentList"
           :key="item.id"
@@ -573,6 +573,10 @@
           没有更多了
         </div>
       </div>
+
+      <div class="px-4" v-else>
+        <van-empty description="暂无数据" image-size="120" />
+      </div>
     </div>
 
     <!-- 视频预览弹窗 -->
@@ -611,6 +615,7 @@ import { useVideoStore } from '@/store/mobile/video'
 import { showConfirmDialog } from 'vant'
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { checkSession } from '@/store/cache'
 
 const router = useRouter()
 const video = useVideoStore()
@@ -623,13 +628,17 @@ const goBack = () => {
 // 定时轮询等副作用
 let tastPullHandler = null
 onMounted(() => {
-  video.fetchData(1)
-  video.fetchUserPower()
-  tastPullHandler = setInterval(() => {
-    if (video.taskPulling) {
+  checkSession()
+    .then(() => {
       video.fetchData(1)
-    }
-  }, 5000)
+      video.fetchUserPower()
+      tastPullHandler = setInterval(() => {
+        if (video.taskPulling) {
+          video.fetchData(1)
+        }
+      }, 5000)
+    })
+    .catch(() => {})
 })
 onUnmounted(() => {
   if (tastPullHandler) clearInterval(tastPullHandler)
