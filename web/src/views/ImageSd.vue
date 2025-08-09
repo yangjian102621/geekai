@@ -254,24 +254,21 @@
                   :autosize="{ minRows: 4, maxRows: 6 }"
                   type="textarea"
                   ref="promptRef"
-                  maxlength="2000"
+                  maxlength="1024"
+                  show-word-limit
                   placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
-                  v-loading="isGenerating"
                 />
               </div>
 
-              <el-row class="text-info">
-                <el-button
-                  class="generate-btn"
-                  size="small"
-                  @click="generatePrompt"
-                  color="#5865f2"
-                  :disabled="isGenerating"
-                >
-                  <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
-                  <span>生成专业绘画指令</span>
+              <div class="flex justify-end pt-2 pr-2">
+                <el-button @click="generatePrompt" type="primary" :loading="isGenerating">
+                  <span v-if="!isGenerating">
+                    <i class="iconfont icon-chuangzuo"></i>
+                    生成专业绘画指令
+                  </span>
+                  <span v-else>生成中...</span>
                 </el-button>
-              </el-row>
+              </div>
 
               <div class="param-line pt">
                 <span>反向提示词：</span>
@@ -303,8 +300,14 @@
               </div>
             </el-form>
           </div>
-          <div class="submit-btn">
-            <el-button type="primary" :dark="false" round @click="generate">立即生成</el-button>
+          <div class="py-4">
+            <button
+              class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+              @click="generate"
+            >
+              <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
+              <span>立即生成</span>
+            </button>
           </div>
         </div>
         <div class="task-list-box pl-6 pr-6 pb-4 pt-4 h-dvh">

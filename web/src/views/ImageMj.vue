@@ -217,7 +217,8 @@
                       <el-input
                         v-model="params.prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
-                        maxlength="2000"
+                        maxlength="1024"
+                        show-word-limit
                         type="textarea"
                         ref="promptRef"
                         v-loading="isGenerating"
@@ -225,18 +226,15 @@
                       />
                     </div>
 
-                    <el-row class="text-info">
-                      <el-button
-                        class="generate-btn"
-                        size="small"
-                        @click="generatePrompt"
-                        color="#5865f2"
-                        :disabled="isGenerating"
-                      >
-                        <i class="iconfont icon-chuangzuo"></i>
-                        <span>生成专业绘画指令</span>
+                    <div class="flex justify-end pt-2">
+                      <el-button @click="generatePrompt" type="primary" :loading="isGenerating">
+                        <span v-if="!isGenerating">
+                          <i class="iconfont icon-chuangzuo"></i>
+                          生成专业绘画指令
+                        </span>
+                        <span v-else>生成中...</span>
                       </el-button>
-                    </el-row>
+                    </div>
 
                     <div class="param-line pt">
                       <div class="flex-row justify-between items-center">
@@ -613,7 +611,13 @@
               </el-row>
 
               <div class="submit-btn">
-                <el-button type="primary" :dark="false" @click="generate" round>立即生成</el-button>
+                <button
+                  class="px-10 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+                  @click="generate"
+                >
+                  <i class="iconfont icon-chuangzuo"></i>
+                  <span>立即生成</span>
+                </button>
               </div>
             </el-form>
           </div>
