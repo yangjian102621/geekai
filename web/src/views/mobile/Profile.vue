@@ -16,9 +16,9 @@
           </div>
         </div>
         <div class="login-prompt" v-else>
-          <van-button type="primary" size="large" round @click="showLoginDialog(router)">
-            立即登录
-          </van-button>
+          <el-button type="primary" size="large" @click="router.push('/mobile/login')"
+            >立即登录</el-button
+          >
         </div>
       </div>
     </div>
@@ -278,6 +278,7 @@ onMounted(() => {
     })
     .catch(() => {
       isLogin.value = false
+      showLoginDialog(router)
     })
 })
 
