@@ -794,7 +794,13 @@ const sendSSERequest = async (message) => {
       onerror(err) {
         console.error('SSE Error:', err)
         enableInput()
-        ElMessage.error('连接已断开，发生错误：' + err.message)
+        // ElMessage.error('连接已断开，发生错误：' + err.message)
+        const reply = chatData.value[chatData.value.length - 1]
+        if (reply) {
+          reply[
+            'content'
+          ].text = `<div class="bg-red-50 text-red-500 p-3 rounded-md">${err.message}</div>`
+        }
       },
       onclose() {
         console.log('SSE connection closed')
