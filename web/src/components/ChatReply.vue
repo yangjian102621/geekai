@@ -131,6 +131,7 @@ const props = defineProps({
   data: {
     type: Object,
     default: {
+      type: 'text',
       icon: '',
       content: {
         text: '',

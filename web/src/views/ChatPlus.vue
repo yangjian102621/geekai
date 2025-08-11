@@ -703,18 +703,33 @@ const sendSSERequest = async (message) => {
       },
       body: JSON.stringify(message),
       openWhenHidden: true,
+      // 禁用重试机制，避免连接断开后一直重试
+      retry: false,
+      // 设置重试延迟为0，确保不重试
+      retryDelay: 0,
+      // 设置最大重试次数为0
+      maxRetries: 0,
       onopen(response) {
         if (response.ok && response.status === 200) {
           console.log('SSE connection opened')
         } else {
-          throw new Error(`Failed to open SSE connection: ${response.status}`)
+          const errorMsg = `连接失败 (状态码: ${response.status})`
+          ElMessage.error(errorMsg)
+          enableInput()
+          throw new Error(errorMsg)
         }
       },
       onmessage(msg) {
         try {
           const data = JSON.parse(msg.data)
           if (data.type === 'error') {
-            ElMessage.error(data.body)
+            // ElMessage.error(data.body)
+            const reply = chatData.value[chatData.value.length - 1]
+            if (reply) {
+              reply[
+                'content'
+              ].text = `<div class="bg-red-50 text-red-500 p-3 rounded-md">${data.body}</div>`
+            }
             enableInput()
             return
           }
@@ -779,7 +794,7 @@ const sendSSERequest = async (message) => {
       onerror(err) {
         console.error('SSE Error:', err)
         enableInput()
-        ElMessage.error('连接已断开，请重试')
+        ElMessage.error('连接已断开，发生错误：' + err.message)
       },
       onclose() {
         console.log('SSE connection closed')
