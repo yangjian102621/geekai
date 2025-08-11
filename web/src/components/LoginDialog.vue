@@ -31,8 +31,13 @@
 
         <el-row class="btn-row" :gutter="20">
           <el-col :span="24">
-            <el-button class="login-btn" type="primary" size="large" @click="submitLogin"
-              >登 录</el-button
+            <el-button
+              class="login-btn"
+              type="primary"
+              size="large"
+              @click="submitLogin"
+              :loading="loading"
+              >{{ loading ? '登录中...' : '登 录' }}</el-button
             >
           </el-col>
         </el-row>
@@ -193,8 +198,13 @@
         </div>
 
         <div class="w-full">
-          <el-button class="login-btn w-full" type="primary" size="large" @click="submitRegister"
-            >注 册</el-button
+          <el-button
+            class="login-btn w-full"
+            type="primary"
+            size="large"
+            @click="submitRegister"
+            :loading="loading"
+            >{{ loading ? '注册中...' : '注 册' }}</el-button
           >
         </div>
 
@@ -287,8 +297,8 @@ const emits = defineEmits(['hide', 'success'])
 const action = ref('login')
 const enableVerify = ref(false)
 const showResetPass = ref(false)
-const router = useRouter()
 const store = useSharedStore()
+const loading = ref(false)
 
 onMounted(() => {
   getSystemInfo()
@@ -349,6 +359,7 @@ const doLogin = (verifyData) => {
   data.value.key = verifyData.key
   data.value.dots = verifyData.dots
   data.value.x = verifyData.x
+  loading.value = true
   httpPost('/api/user/login', data.value)
     .then((res) => {
       setUserToken(res.data.token)
@@ -359,6 +370,9 @@ const doLogin = (verifyData) => {
     })
     .catch((e) => {
       ElMessage.error('登录失败，' + e.message)
+    })
+    .finally(() => {
+      loading.value = false
     })
 }
 
@@ -399,6 +413,7 @@ const doRegister = (verifyData) => {
   data.value.dots = verifyData.dots
   data.value.x = verifyData.x
   data.value.reg_way = activeName.value
+  loading.value = true
   httpPost('/api/user/register', data.value)
     .then((res) => {
       setUserToken(res.data.token)
@@ -413,6 +428,9 @@ const doRegister = (verifyData) => {
     })
     .catch((e) => {
       ElMessage.error('注册失败，' + e.message)
+    })
+    .finally(() => {
+      loading.value = false
     })
 }
 </script>

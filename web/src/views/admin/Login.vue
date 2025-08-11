@@ -41,8 +41,13 @@
             </el-input>
 
             <el-row class="btn-row">
-              <el-button class="login-btn" size="large" type="primary" @click="login"
-                >登录</el-button
+              <el-button
+                class="login-btn"
+                size="large"
+                type="primary"
+                @click="login"
+                :loading="loading"
+                >{{ loading ? '登录中...' : '登录' }}</el-button
               >
             </el-row>
           </div>
@@ -73,6 +78,7 @@ const password = ref(import.meta.env.VITE_ADMIN_PASS)
 const logo = ref('')
 const enableVerify = ref(false)
 const captchaRef = ref(null)
+const loading = ref(false)
 
 checkAdminSession()
   .then(() => {
@@ -106,6 +112,7 @@ const login = function () {
 }
 
 const doLogin = function (verifyData) {
+  loading.value = true
   httpPost('/api/admin/login', {
     username: username.value.trim(),
     password: password.value.trim(),
@@ -119,6 +126,9 @@ const doLogin = function (verifyData) {
     })
     .catch((e) => {
       ElMessage.error('登录失败，' + e.message)
+    })
+    .finally(() => {
+      loading.value = false
     })
 }
 </script>
