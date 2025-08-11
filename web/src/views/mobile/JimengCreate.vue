@@ -537,4 +537,285 @@ const goBack = () => {
 
 <style lang="scss" scoped>
 @use '@/assets/css/mobile/jimeng.scss';
+
+/* Dark 主题样式 - 按照 theme-dark.scss 的模式 */
+:root[data-theme='dark'] .jimeng-create {
+  background-color: rgb(13, 20, 53);
+
+  /* 页面头部样式 */
+  .sticky {
+    background-color: rgb(31, 41, 55) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+    h1 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    .iconfont {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    button:hover {
+      background-color: rgb(75, 85, 99) !important;
+    }
+  }
+
+  /* 功能分类选择 */
+  .jimeng-create__content {
+    .bg-white {
+      background-color: rgb(55, 65, 81) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .text-gray-700 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-900 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    .text-gray-600 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .bg-gray-100:hover {
+      background-color: rgb(75, 85, 99) !important;
+    }
+
+    /* Element Plus 组件样式覆盖 */
+    :deep(.el-input__wrapper) {
+      background-color: rgb(31, 41, 55) !important;
+      border-color: rgb(75, 85, 99) !important;
+      box-shadow: none !important;
+    }
+
+    :deep(.el-input__inner) {
+      color: rgb(209, 213, 219) !important;
+      background-color: transparent !important;
+    }
+
+    :deep(.el-input__inner::placeholder) {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    :deep(.el-textarea__inner) {
+      color: rgb(209, 213, 219) !important;
+      background-color: transparent !important;
+    }
+
+    :deep(.el-textarea__inner::placeholder) {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    :deep(.el-switch__core) {
+      background-color: rgb(75, 85, 99) !important;
+      border-color: rgb(75, 85, 99) !important;
+    }
+
+    :deep(.el-switch.is-checked .el-switch__core) {
+      background-color: rgb(139, 92, 246) !important;
+      border-color: rgb(139, 92, 246) !important;
+    }
+
+    :deep(.el-slider__runway) {
+      background-color: rgb(75, 85, 99) !important;
+    }
+
+    :deep(.el-slider__bar) {
+      background-color: rgb(139, 92, 246) !important;
+    }
+
+    :deep(.el-slider__button) {
+      border-color: rgb(139, 92, 246) !important;
+    }
+
+    :deep(.el-tooltip__trigger) {
+      color: rgb(156, 163, 175) !important;
+    }
+  }
+
+  /* 提交按钮 */
+  .bg-gradient-to-r {
+    background: linear-gradient(88deg, #af61f0 1.44%, #5b62ce) !important;
+
+    &:hover {
+      background: linear-gradient(88deg, #9f51e0 1.44%, #4b52be) !important;
+    }
+
+    &:disabled {
+      background: linear-gradient(88deg, #6b7280 1.44%, #4b5563) !important;
+    }
+  }
+
+  /* 作品列表 */
+  .jimeng-create__works {
+    &-title {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    &-item {
+      background-color: rgb(55, 65, 81) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+      &-content {
+        .jimeng-create__works-item-info {
+          &-title {
+            color: rgb(255, 255, 255) !important;
+          }
+
+          &-prompt {
+            color: rgb(209, 213, 219) !important;
+          }
+
+          &-tags {
+            &-item {
+              background-color: rgb(75, 85, 99) !important;
+              color: rgb(209, 213, 219) !important;
+
+              &--warning {
+                background-color: rgb(239, 68, 68) !important;
+                color: rgb(255, 255, 255) !important;
+              }
+
+              &--primary {
+                background-color: rgb(59, 130, 246) !important;
+                color: rgb(255, 255, 255) !important;
+              }
+
+              &--power {
+                background-color: rgb(139, 92, 246) !important;
+                color: rgb(255, 255, 255) !important;
+              }
+            }
+          }
+        }
+      }
+
+      &-quick-actions {
+        button {
+          color: rgb(156, 163, 175) !important;
+
+          &:hover {
+            color: rgb(209, 213, 219) !important;
+          }
+        }
+      }
+
+      &-error {
+        &-content {
+          background-color: rgb(31, 41, 55) !important;
+          border-color: rgb(239, 68, 68) !important;
+
+          .jimeng-create__works-item-error-text {
+            color: rgb(239, 68, 68) !important;
+          }
+
+          .jimeng-create__works-item-error-copy-btn {
+            color: rgb(156, 163, 175) !important;
+
+            &:hover {
+              color: rgb(209, 213, 219) !important;
+            }
+          }
+        }
+      }
+    }
+
+    &-loading {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    &-finished {
+      color: rgb(156, 163, 175) !important;
+    }
+  }
+
+  /* 媒体预览弹窗 */
+  .jimeng-create__media-dialog {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+
+    &-content {
+      background-color: rgb(55, 65, 81) !important;
+      box-shadow: 0 0 15px rgba(107, 80, 225, 0.8) !important;
+    }
+
+    &-header {
+      background-color: rgb(31, 41, 55) !important;
+      border-bottom-color: rgb(75, 85, 99) !important;
+
+      h3 {
+        color: rgb(255, 255, 255) !important;
+      }
+
+      button {
+        color: rgb(156, 163, 175) !important;
+
+        &:hover {
+          color: rgb(209, 213, 219) !important;
+        }
+      }
+    }
+  }
+
+  /* 图片上传组件 */
+  :deep(.image-upload) {
+    .upload-area {
+      background-color: rgb(31, 41, 55) !important;
+      border-color: rgb(75, 85, 99) !important;
+
+      &:hover {
+        border-color: rgb(139, 92, 246) !important;
+        background-color: rgb(55, 65, 81) !important;
+      }
+    }
+
+    .upload-text {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .upload-icon {
+      color: rgb(139, 92, 246) !important;
+    }
+  }
+
+  /* 自定义选择组件 */
+  :deep(.custom-select) {
+    .select-trigger {
+      background-color: rgb(31, 41, 55) !important;
+      border-color: rgb(75, 85, 99) !important;
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .select-dropdown {
+      background-color: rgb(55, 65, 81) !important;
+      border-color: rgb(75, 85, 99) !important;
+      box-shadow: 0 0 15px rgba(107, 80, 225, 0.8) !important;
+    }
+
+    .select-option {
+      color: rgb(209, 213, 219) !important;
+
+      &:hover {
+        background-color: rgb(75, 85, 99) !important;
+      }
+
+      &.selected {
+        background-color: rgb(139, 92, 246) !important;
+        color: rgb(255, 255, 255) !important;
+      }
+    }
+  }
+
+  /* 空状态组件 */
+  :deep(.van-empty) {
+    .van-empty__description {
+      color: rgb(156, 163, 175) !important;
+    }
+  }
+}
 </style>

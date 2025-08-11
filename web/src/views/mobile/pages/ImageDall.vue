@@ -74,7 +74,7 @@
           placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
         />
 
-        <div class="sticky bottom-4 bg-white rounded-xl p-4 shadow-sm">
+        <div class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm">
           <button
             @click="generate"
             :disabled="loading"
@@ -522,5 +522,5 @@ const modelConfirm = (item) => {
 </script>
 
 <style lang="scss">
-@use '../../../assets/css/mobile/image-sd.scss' as *;
+@use '@/assets/css/mobile/image-sd.scss' as *;
 </style>

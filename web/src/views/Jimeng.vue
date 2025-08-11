@@ -668,7 +668,6 @@ function copyErrorMsg(msg) {
     border-color: #a259ff;
     transform: scale(1.025) translateY(-2px);
     z-index: 10;
-    background: #f7fbff;
   }
 }
 @media (max-width: 1200px) {

@@ -6,7 +6,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { compact } from 'lodash'
 import { defineStore } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
-import { getSystemInfo } from './cache'
+import { checkSession, getSystemInfo } from './cache'
+import { useSharedStore } from './sharedata'
 
 export const useSunoStore = defineStore('suno', () => {
   // 响应式数据
@@ -62,6 +63,8 @@ export const useSunoStore = defineStore('suno', () => {
   const promptPlaceholder = ref('请在这里输入你自己写的歌词...')
   const isGenerating = ref(false)
   const sunoPower = ref(0)
+  const isLogin = ref(false)
+  const shareStore = useSharedStore()
 
   // 分页相关
   const page = ref(1)
@@ -77,6 +80,9 @@ export const useSunoStore = defineStore('suno', () => {
   onMounted(() => {
     getSystemInfo().then((res) => {
       sunoPower.value = res.data.suno_power
+    })
+    checkSession().then((res) => {
+      isLogin.value = true
     })
   })
 
@@ -123,6 +129,10 @@ export const useSunoStore = defineStore('suno', () => {
   }
 
   const create = async () => {
+    if (!isLogin.value) {
+      return shareStore.setShowLoginDialog(true)
+    }
+
     data.value.type = custom.value ? 2 : 1
     data.value.ref_task_id = refSong.value ? refSong.value.task_id : ''
     data.value.ref_song_id = refSong.value ? refSong.value.song_id : ''
@@ -193,6 +203,11 @@ export const useSunoStore = defineStore('suno', () => {
   }
 
   const uploadAudio = async (file) => {
+    // 判断是否登录
+    if (!isLogin.value) {
+      return shareStore.setShowLoginDialog(true)
+    }
+
     const formData = new FormData()
     formData.append('file', file.file, file.name)
     showLoading('正在上传文件...')

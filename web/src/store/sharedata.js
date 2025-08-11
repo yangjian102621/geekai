@@ -109,6 +109,14 @@ export const useSharedStore = defineStore('shared', {
     setTheme(theme) {
       this.theme = theme
       document.documentElement.setAttribute('data-theme', theme) // 设置 HTML 的 data-theme 属性
+
+      // 同时设置 dark 类，以便 Tailwind 的 dark: 前缀能够工作
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+
       Storage.set('theme', theme)
     },
     setIsLogin(value) {

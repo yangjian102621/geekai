@@ -47,4 +47,30 @@ const props = defineProps({
 const emit = defineEmits(['select'])
 </script>
 
-<style scoped></style>
+<style scoped>
+/* Dark 主题样式 - 按照 theme-dark.scss 的模式 */
+:root[data-theme='dark'] .flex {
+  background-color: transparent !important;
+  border-bottom-color: rgb(75, 85, 99) !important;
+
+  &:hover {
+    background-color: rgb(75, 85, 99) !important;
+  }
+
+  &:last-child {
+    border-bottom-color: transparent !important;
+  }
+
+  .text-gray-900 {
+    color: rgb(209, 213, 219) !important;
+  }
+
+  .text-gray-500 {
+    color: rgb(156, 163, 175) !important;
+  }
+
+  .text-blue-600 {
+    color: rgb(139, 92, 246) !important;
+  }
+}
+</style>

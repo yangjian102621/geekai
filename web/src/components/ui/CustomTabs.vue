@@ -1,10 +1,13 @@
 <template>
   <div class="w-full">
-    <div class="relative bg-gray-100 rounded-lg py-1.5 mb-3 px-2 overflow-hidden" ref="tabsHeader">
+    <div
+      class="relative bg-gray-100 rounded-lg py-1.5 mb-3 px-2 overflow-hidden custom-tabs-header"
+      ref="tabsHeader"
+    >
       <!-- 左滑动指示器 -->
       <div
         v-show="canScrollLeft"
-        class="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-6 h-6 bg-white/95 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50 flex items-center justify-center cursor-pointer hover:bg-white hover:shadow-md hover:scale-105 transition-all duration-200 group"
+        class="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-6 h-6 bg-white/95 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50 flex items-center justify-center cursor-pointer hover:bg-white hover:shadow-md hover:scale-105 transition-all duration-200 group scroll-indicator scroll-indicator-left"
         @click="scrollLeft"
       >
         <svg
@@ -25,7 +28,7 @@
       <!-- 右滑动指示器 -->
       <div
         v-show="canScrollRight"
-        class="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-6 h-6 bg-white/95 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50 flex items-center justify-center cursor-pointer hover:bg-white hover:shadow-md hover:scale-105 transition-all duration-200 group"
+        class="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-6 h-6 bg-white/95 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50 flex items-center justify-center cursor-pointer hover:bg-white hover:shadow-md hover:shadow-md hover:scale-105 transition-all duration-200 group scroll-indicator scroll-indicator-right"
         @click="scrollRight"
       >
         <svg
@@ -49,11 +52,11 @@
         @scroll="checkScrollPosition"
       >
         <div
-          class="flex-shrink-0 text-center py-1 px-2 font-medium text-gray-700 cursor-pointer transition-all duration-300 rounded-md relative z-20 hover:text-purple-600"
+          class="flex-shrink-0 text-center py-1 px-2 font-medium text-gray-700 cursor-pointer transition-all duration-300 rounded-md relative z-20 hover:text-purple-600 custom-tab-item"
           v-for="(tab, index) in panes"
           :key="tab.name"
           :class="{
-            '!text-purple-600 bg-white shadow-sm': modelValue === tab.name,
+            '!text-purple-600 bg-white shadow-sm custom-tab-active': modelValue === tab.name,
             'hover:bg-gray-50': modelValue !== tab.name,
           }"
           @click="handleTabClick(tab.name, index)"
@@ -292,5 +295,44 @@ onMounted(() => {
 /* 滑动指示器样式 */
 .absolute {
   transition: opacity 0.2s ease-in-out;
+}
+
+/* Dark 主题样式 - 按照 theme-dark.scss 的模式 */
+:root[data-theme='dark'] .custom-tabs-header {
+  background-color: rgb(31, 41, 55);
+}
+
+:root[data-theme='dark'] .custom-tab-item {
+  color: rgb(209, 213, 219);
+}
+
+:root[data-theme='dark'] .custom-tab-item:hover {
+  color: rgb(196, 181, 253);
+}
+
+:root[data-theme='dark'] .custom-tab-active {
+  background-color: rgb(55, 65, 81);
+  color: rgb(196, 181, 253);
+}
+
+:root[data-theme='dark'] .custom-tab-item:hover:not(.custom-tab-active) {
+  background-color: rgb(75, 85, 99);
+}
+
+:root[data-theme='dark'] .scroll-indicator {
+  background-color: rgba(55, 65, 81, 0.95);
+  border-color: rgb(75, 85, 99);
+}
+
+:root[data-theme='dark'] .scroll-indicator:hover {
+  background-color: rgb(75, 85, 99);
+}
+
+:root[data-theme='dark'] .scroll-indicator svg {
+  color: rgb(156, 163, 175);
+}
+
+:root[data-theme='dark'] .scroll-indicator:hover svg {
+  color: rgb(196, 181, 253);
 }
 </style>

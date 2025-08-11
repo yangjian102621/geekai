@@ -81,6 +81,13 @@ const themeStore = useThemeStore(pinia) // 使用 theme store
 // 设置初始主题
 document.documentElement.setAttribute('data-theme', themeStore.theme)
 
+// 同时设置初始 dark 类
+if (themeStore.theme === 'dark') {
+  document.documentElement.classList.add('dark')
+} else {
+  document.documentElement.classList.remove('dark')
+}
+
 const app = createApp(App)
 app.use(createPinia())
 app.use(ConfigProvider)

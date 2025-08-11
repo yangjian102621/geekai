@@ -130,7 +130,7 @@
           </van-collapse-item>
         </van-collapse>
 
-        <div class="sticky bottom-4 bg-white rounded-xl p-4 shadow-sm">
+        <div class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm">
           <button
             @click="generate"
             :disabled="loading"

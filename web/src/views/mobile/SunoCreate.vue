@@ -550,4 +550,289 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use '@/assets/css/mobile/suno.scss';
+
+/* Dark 主题样式 - 按照 theme-dark.scss 的模式 */
+:root[data-theme='dark'] .min-h-screen {
+  background-color: rgb(13, 20, 53) !important;
+
+  /* 页面头部 */
+  .sticky.top-0 {
+    background-color: rgb(31, 41, 55) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+
+    .icon-back {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    h1 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    button:hover {
+      background-color: rgb(75, 85, 99) !important;
+    }
+  }
+
+  /* 创作表单 */
+  .space-y-6 {
+    .bg-white {
+      background-color: rgb(31, 41, 55) !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .text-gray-900 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-700 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-600 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    /* 输入框样式 */
+    input,
+    textarea {
+      background-color: rgb(55, 65, 81) !important;
+      border-color: rgb(75, 85, 99) !important;
+      color: rgb(209, 213, 219) !important;
+
+      &::placeholder {
+        color: rgb(107, 114, 128) !important;
+      }
+
+      &:focus {
+        border-color: rgb(139, 92, 246) !important;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+      }
+    }
+
+    /* 按钮样式 */
+    .bg-blue-600 {
+      background-color: rgb(37, 99, 235) !important;
+
+      &:hover:not(:disabled) {
+        background-color: rgb(29, 78, 216) !important;
+      }
+
+      &:disabled {
+        background-color: rgb(156, 163, 175) !important;
+      }
+    }
+
+    .bg-gradient-to-r.from-blue-500.to-purple-600 {
+      background: linear-gradient(to right, rgb(59, 130, 246), rgb(147, 51, 234)) !important;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(to right, rgb(37, 99, 235), rgb(126, 34, 206)) !important;
+      }
+
+      &:disabled {
+        background: linear-gradient(to right, rgb(156, 163, 175), rgb(156, 163, 175)) !important;
+      }
+    }
+
+    .bg-gradient-to-r.from-purple-500.to-red-300 {
+      background: linear-gradient(to right, rgb(147, 51, 234), rgb(252, 165, 165)) !important;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(to right, rgb(126, 34, 206), rgb(239, 68, 68)) !important;
+      }
+    }
+
+    /* 风格标签 */
+    .border-blue-200 {
+      border-color: rgb(59, 130, 246) !important;
+      color: rgb(59, 130, 246) !important;
+
+      &:hover {
+        background-color: rgba(59, 130, 246, 0.1) !important;
+      }
+    }
+
+    /* 续写歌曲区域 */
+    .border-orange-400 {
+      border-left-color: rgb(251, 146, 60) !important;
+    }
+
+    .bg-red-100 {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      color: rgb(239, 68, 68) !important;
+
+      &:hover {
+        background-color: rgba(239, 68, 68, 0.2) !important;
+      }
+    }
+
+    /* 上传提示区域 */
+    .bg-gray-50 {
+      background-color: rgb(55, 65, 81) !important;
+    }
+
+    /* 底部生成按钮 */
+    .sticky.bottom-4 {
+      background-color: rgb(31, 41, 55) !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+    }
+  }
+
+  /* 作品列表 */
+  .p-4 {
+    h2 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    .bg-white {
+      background-color: rgb(31, 41, 55) !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .bg-gray-100 {
+      background-color: rgb(55, 65, 81) !important;
+    }
+
+    .text-gray-900 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-600 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-400 {
+      color: rgb(107, 114, 128) !important;
+    }
+
+    /* 标签样式 */
+    .bg-blue-100 {
+      background-color: rgba(59, 130, 246, 0.1) !important;
+      color: rgb(59, 130, 246) !important;
+    }
+
+    .bg-green-100 {
+      background-color: rgba(34, 197, 94, 0.1) !important;
+      color: rgb(34, 197, 94) !important;
+    }
+
+    .bg-yellow-100 {
+      background-color: rgba(251, 191, 36, 0.1) !important;
+      color: rgb(251, 191, 36) !important;
+    }
+
+    .bg-purple-100 {
+      background-color: rgba(147, 51, 234, 0.1) !important;
+      color: rgb(147, 51, 234) !important;
+    }
+
+    /* 按钮样式 */
+    .bg-blue-600 {
+      background-color: rgb(37, 99, 235) !important;
+
+      &:hover {
+        background-color: rgb(29, 78, 216) !important;
+      }
+    }
+
+    .bg-green-600 {
+      background-color: rgb(34, 197, 94) !important;
+
+      &:hover {
+        background-color: rgb(22, 163, 74) !important;
+      }
+    }
+
+    .bg-purple-600 {
+      background-color: rgb(147, 51, 234) !important;
+
+      &:hover {
+        background-color: rgb(126, 34, 206) !important;
+      }
+    }
+
+    .bg-red-100 {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      color: rgb(239, 68, 68) !important;
+
+      &:hover {
+        background-color: rgba(239, 68, 68, 0.2) !important;
+      }
+    }
+
+    /* 进度条 */
+    .bg-gray-200 {
+      background-color: rgb(75, 85, 99) !important;
+    }
+
+    .bg-blue-600 {
+      background-color: rgb(37, 99, 235) !important;
+    }
+
+    /* 错误信息 */
+    .bg-red-50 {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      border-color: rgba(239, 68, 68, 0.2) !important;
+    }
+
+    .text-red-600 {
+      color: rgb(239, 68, 68) !important;
+    }
+
+    /* 加载状态 */
+    .text-blue-600 {
+      color: rgb(37, 99, 235) !important;
+    }
+
+    .text-green-500 {
+      color: rgb(34, 197, 94) !important;
+    }
+
+    .text-orange-500 {
+      color: rgb(251, 146, 60) !important;
+    }
+
+    /* 加载更多 */
+    .text-gray-400 {
+      color: rgb(107, 114, 128) !important;
+    }
+
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+  }
+
+  /* 音乐播放器弹窗 */
+  .fixed.inset-0 {
+    .bg-white {
+      background-color: rgb(31, 41, 55) !important;
+    }
+
+    .border-b {
+      border-bottom-color: rgb(75, 85, 99) !important;
+    }
+
+    h3 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    button {
+      &:hover {
+        background-color: rgb(75, 85, 99) !important;
+      }
+
+      svg {
+        color: rgb(156, 163, 175) !important;
+      }
+    }
+  }
+}
 </style>

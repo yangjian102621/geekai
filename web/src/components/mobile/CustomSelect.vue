@@ -4,7 +4,7 @@
       @click="showPicker = true"
       class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
     >
-      <span class="text-gray-900">{{ selectedLabel || placeholder || '请选择' }}</span>
+      <span>{{ selectedLabel || placeholder || '请选择' }}</span>
       <i class="iconfont icon-arrow-down text-gray-400"></i>
     </button>
 
@@ -107,5 +107,66 @@ const onSelect = (option) => {
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+/* Dark 主题样式 - 按照 theme-dark.scss 的模式 */
+:root[data-theme='dark'] .custom-select {
+  /* 选择器触发器 */
+  button {
+    background-color: rgb(31, 41, 55) !important;
+    border-color: rgb(75, 85, 99) !important;
+    color: rgb(209, 213, 219) !important;
+
+    &:hover {
+      border-color: rgb(139, 92, 246) !important;
+    }
+
+    .iconfont {
+      color: rgb(156, 163, 175) !important;
+    }
+  }
+
+  /* 选择器弹窗 */
+  .fixed {
+    .bg-white {
+      background-color: rgb(55, 65, 81) !important;
+    }
+
+    .border-b {
+      border-bottom-color: rgb(75, 85, 99) !important;
+    }
+
+    h3 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    button {
+      background-color: transparent !important;
+      color: rgb(156, 163, 175) !important;
+
+      &:hover {
+        background-color: rgb(75, 85, 99) !important;
+        color: rgb(209, 213, 219) !important;
+      }
+
+      .iconfont {
+        color: inherit !important;
+      }
+    }
+
+    .max-h-80 {
+      .text-gray-900 {
+        color: rgb(209, 213, 219) !important;
+      }
+
+      .text-gray-500 {
+        color: rgb(156, 163, 175) !important;
+      }
+
+      .text-blue-600 {
+        color: rgb(139, 92, 246) !important;
+      }
+    }
+  }
 }
 </style>
