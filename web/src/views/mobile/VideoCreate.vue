@@ -659,4 +659,244 @@ const removeJob = (item) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+/* Dark 主题样式 - 按照 theme-dark.scss 的模式 */
+:root[data-theme='dark'] .min-h-screen {
+  background-color: rgb(13, 20, 53) !important;
+
+  /* 页面头部 */
+  .sticky.top-0 {
+    background-color: rgb(31, 41, 55) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+
+    .icon-back {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    h1 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    button:hover {
+      background-color: rgb(75, 85, 99) !important;
+    }
+  }
+
+  /* 视频类型切换 */
+  .space-y-6 {
+    .bg-white {
+      background-color: rgb(31, 41, 55) !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .text-gray-900 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-700 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-600 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    /* 视频类型选择按钮 */
+    .bg-gray-100 {
+      background-color: rgb(55, 65, 81) !important;
+      color: rgb(209, 213, 219) !important;
+
+      &:hover {
+        background-color: rgb(75, 85, 99) !important;
+      }
+    }
+
+    /* 输入框样式 */
+    input,
+    textarea {
+      background-color: rgb(55, 65, 81) !important;
+      border-color: rgb(75, 85, 99) !important;
+      color: rgb(209, 213, 219) !important;
+
+      &::placeholder {
+        color: rgb(107, 114, 128) !important;
+      }
+
+      &:focus {
+        border-color: rgb(139, 92, 246) !important;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+      }
+    }
+
+    /* 图片上传区域 */
+    .border-dashed {
+      border-color: rgb(75, 85, 99) !important;
+
+      &:hover {
+        border-color: rgb(59, 130, 246) !important;
+        background-color: rgba(59, 130, 246, 0.1) !important;
+      }
+
+      .text-gray-700 {
+        color: rgb(209, 213, 219) !important;
+      }
+    }
+
+    /* 按钮样式 */
+    .bg-blue-600 {
+      background-color: rgb(37, 99, 235) !important;
+
+      &:hover:not(:disabled) {
+        background-color: rgb(29, 78, 216) !important;
+      }
+
+      &:disabled {
+        background-color: rgb(156, 163, 175) !important;
+      }
+    }
+
+    .bg-gradient-to-r.from-blue-500.to-purple-600 {
+      background: linear-gradient(to right, rgb(59, 130, 246), rgb(147, 51, 234)) !important;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(to right, rgb(37, 99, 235), rgb(126, 34, 206)) !important;
+      }
+
+      &:disabled {
+        background: linear-gradient(to right, rgb(156, 163, 175), rgb(156, 163, 175)) !important;
+      }
+    }
+
+    /* 删除按钮 */
+    .bg-red-500 {
+      background-color: rgb(239, 68, 68) !important;
+
+      &:hover {
+        background-color: rgb(220, 38, 38) !important;
+      }
+    }
+  }
+
+  /* 作品列表 */
+  .p-4 {
+    h2 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    .bg-white {
+      background-color: rgb(31, 41, 55) !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .bg-gray-100 {
+      background-color: rgb(55, 65, 81) !important;
+    }
+
+    .text-gray-900 {
+      color: rgb(209, 213, 219) !important;
+    }
+
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-600 {
+      color: rgb(156, 163, 175) !important;
+    }
+
+    .text-gray-400 {
+      color: rgb(107, 114, 128) !important;
+    }
+
+    /* 标签样式 */
+    .bg-blue-100 {
+      background-color: rgba(59, 130, 246, 0.1) !important;
+      color: rgb(59, 130, 246) !important;
+    }
+
+    .bg-green-100 {
+      background-color: rgba(34, 197, 94, 0.1) !important;
+      color: rgb(34, 197, 94) !important;
+    }
+
+    .bg-yellow-100 {
+      background-color: rgba(251, 191, 36, 0.1) !important;
+      color: rgb(251, 191, 36) !important;
+    }
+
+    /* 按钮样式 */
+    .bg-blue-600 {
+      background-color: rgb(37, 99, 235) !important;
+
+      &:hover {
+        background-color: rgb(29, 78, 216) !important;
+      }
+    }
+
+    .bg-green-600 {
+      background-color: rgb(34, 197, 94) !important;
+
+      &:hover {
+        background-color: rgb(22, 163, 74) !important;
+      }
+    }
+
+    .bg-red-100 {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      color: rgb(239, 68, 68) !important;
+
+      &:hover {
+        background-color: rgba(239, 68, 68, 0.2) !important;
+      }
+    }
+
+    /* 状态指示 */
+    .text-red-600 {
+      color: rgb(239, 68, 68) !important;
+    }
+
+    .text-blue-600 {
+      color: rgb(37, 99, 235) !important;
+    }
+
+    /* 加载状态 */
+    .text-blue-500 {
+      color: rgb(59, 130, 246) !important;
+    }
+
+    /* 加载更多 */
+    .text-gray-500 {
+      color: rgb(156, 163, 175) !important;
+    }
+  }
+
+  /* 视频预览弹窗 */
+  .fixed.inset-0 {
+    .bg-white {
+      background-color: rgb(31, 41, 55) !important;
+    }
+
+    .border-b {
+      border-bottom-color: rgb(75, 85, 99) !important;
+    }
+
+    h3 {
+      color: rgb(255, 255, 255) !important;
+    }
+
+    button {
+      &:hover {
+        background-color: rgb(75, 85, 99) !important;
+      }
+
+      .iconfont {
+        color: rgb(156, 163, 175) !important;
+      }
+    }
+  }
+}
+</style>
