@@ -79,6 +79,10 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 		return fmt.Errorf("激活失败：%v", res.Message)
 	}
 
+	if res.Data.ExpiredAt > 0 && res.Data.ExpiredAt < time.Now().Unix() {
+		return fmt.Errorf("License 已过期")
+	}
+
 	s.license = &types.License{
 		Key:       license,
 		MachineId: machineId,
@@ -130,13 +134,13 @@ func (s *LicenseService) fetchLicense() (*types.License, error) {
 		SetBody(map[string]string{"license": s.license.Key, "machine_id": s.machineId}).
 		SetSuccessResult(&res).Post(apiURL)
 	if err != nil {
-		return nil, fmt.Errorf("发送激活请求失败: %v", err)
+		return nil, fmt.Errorf("License 同步失败: %v", err)
 	}
 	if response.IsErrorState() {
-		return nil, fmt.Errorf("激活失败：%v", response.Status)
+		return nil, fmt.Errorf("License 同步失败：%v", response.Status)
 	}
 	if res.Code != types.Success {
-		return nil, fmt.Errorf("激活失败：%v", res.Message)
+		return nil, fmt.Errorf("License 同步失败：%v", res.Message)
 	}
 
 	return &types.License{

@@ -203,7 +203,9 @@
                               <InfoFilled />
                             </el-icon>
                           </el-tooltip>
-                          <div class="flex-row justify-start items-center">
+                          <div
+                            class="flex-row justify-start items-center m-2 p-3 bg-gray-100 rounded-md text-gray-500 text-sm"
+                          >
                             <span
                               >如需自定义比例，在绘画指令最后加一个空格然后加上指令(宽高比) --ar w:h
                               例如: 1 cat --ar 21:9
@@ -221,14 +223,14 @@
                         show-word-limit
                         type="textarea"
                         ref="promptRef"
-                        v-loading="isGenerating"
+                        v-loading="promptGenerating"
                         placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
                       />
                     </div>
 
                     <div class="flex justify-end pt-2">
-                      <el-button @click="generatePrompt" type="primary" :loading="isGenerating">
-                        <span v-if="!isGenerating">
+                      <el-button @click="generatePrompt" type="primary" :loading="promptGenerating">
+                        <span v-if="!promptGenerating">
                           <i class="iconfont icon-chuangzuo"></i>
                           生成专业绘画指令
                         </span>
@@ -345,7 +347,7 @@
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
                         ref="promptRef"
-                        v-loading="isGenerating"
+                        v-loading="promptGenerating"
                         placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
                       />
                     </div>
@@ -356,7 +358,7 @@
                         size="small"
                         @click="generatePrompt"
                         color="#5865f2"
-                        :disabled="isGenerating"
+                        :disabled="promptGenerating"
                       >
                         <i class="iconfont icon-chuangzuo"></i>
                         <span>生成专业绘画指令</span>
@@ -615,8 +617,9 @@
                   class="px-10 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
                   @click="generate"
                 >
-                  <i class="iconfont icon-chuangzuo"></i>
-                  <span>立即生成</span>
+                  <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
+                  <i v-else class="iconfont icon-chuangzuo"></i>
+                  <span>{{ isGenerating ? '创作中...' : '立即生成' }}</span>
                 </button>
               </div>
             </el-form>
@@ -1163,7 +1166,12 @@ const uploadImg = (file) => {
 
 // 创建绘图任务
 const promptRef = ref(null)
+const isGenerating = ref(false)
 const generate = () => {
+  if (isGenerating.value) {
+    return
+  }
+
   if (!isLogin.value) {
     store.setShowLoginDialog(true)
     return
@@ -1188,6 +1196,7 @@ const generate = () => {
 
   params.value.session_id = getSessionId()
   params.value.img_arr = imgList.value
+  isGenerating.value = true
   httpPost('/api/mj/image', params.value)
     .then(() => {
       ElMessage.success('绘画任务推送成功，请耐心等待任务执行...')
@@ -1200,6 +1209,9 @@ const generate = () => {
     })
     .catch((e) => {
       ElMessage.error('任务推送失败：' + e.message)
+    })
+    .finally(() => {
+      isGenerating.value = false
     })
 }
 
@@ -1297,20 +1309,20 @@ const removeUploadImage = (url) => {
   imgList.value = removeArrayItem(imgList.value, url)
 }
 
-const isGenerating = ref(false)
+const promptGenerating = ref(false)
 const generatePrompt = () => {
   if (params.value.prompt === '') {
     return showMessageError('请输入原始提示词')
   }
-  isGenerating.value = true
+  promptGenerating.value = true
   httpPost('/api/prompt/image', { prompt: params.value.prompt })
     .then((res) => {
       params.value.prompt = res.data
-      isGenerating.value = false
+      promptGenerating.value = false
     })
     .catch((e) => {
       showMessageError('生成提示词失败：' + e.message)
-      isGenerating.value = false
+      promptGenerating.value = false
     })
 }
 </script>

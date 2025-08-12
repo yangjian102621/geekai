@@ -6,7 +6,7 @@ import (
 
 type ChatMessage struct {
 	Id          uint      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserId      uint      `gorm:"column:user_id;type:int(11);not null;comment:用户 ID" json:"user_id"`
+	UserId      uint      `gorm:"column:user_id;type:int(11);not null;index;comment:用户 ID" json:"user_id"`
 	ChatId      string    `gorm:"column:chat_id;type:char(40);not null;index;comment:会话 ID" json:"chat_id"`
 	Type        string    `gorm:"column:type;type:varchar(10);not null;comment:类型：prompt|reply" json:"type"`
 	Icon        string    `gorm:"column:icon;type:varchar(255);not null;comment:角色图标" json:"icon"`

@@ -261,8 +261,8 @@
               </div>
 
               <div class="flex justify-end pt-2 pr-2">
-                <el-button @click="generatePrompt" type="primary" :loading="isGenerating">
-                  <span v-if="!isGenerating">
+                <el-button @click="generatePrompt" type="primary" :loading="promptGenerating">
+                  <span v-if="!promptGenerating">
                     <i class="iconfont icon-chuangzuo"></i>
                     生成专业绘画指令
                   </span>
@@ -305,8 +305,9 @@
               class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
               @click="generate"
             >
-              <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
-              <span>立即生成</span>
+              <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
+              <i v-else class="iconfont icon-chuangzuo"></i>
+              <span>{{ isGenerating ? '创作中...' : '立即生成' }}</span>
             </button>
           </div>
         </div>
@@ -657,7 +658,12 @@ const fetchFinishJobs = () => {
 
 // 创建绘图任务
 const promptRef = ref(null)
+const isGenerating = ref(false)
 const generate = () => {
+  if (isGenerating.value) {
+    return
+  }
+
   if (params.value.prompt === '') {
     promptRef.value.focus()
     return ElMessage.error('请输入绘画提示词！')
@@ -672,6 +678,7 @@ const generate = () => {
     params.value.seed = -1
   }
   params.value.session_id = getSessionId()
+  isGenerating.value = true
   httpPost('/api/sd/image', params.value)
     .then(() => {
       ElMessage.success('绘画任务推送成功，请耐心等待任务执行...')
@@ -684,6 +691,9 @@ const generate = () => {
     })
     .catch((e) => {
       ElMessage.error('任务推送失败：' + e.message)
+    })
+    .finally(() => {
+      isGenerating.value = false
     })
 }
 
@@ -737,20 +747,20 @@ const publishImage = (item, action) => {
     })
 }
 
-const isGenerating = ref(false)
+const promptGenerating = ref(false)
 const generatePrompt = () => {
   if (params.value.prompt === '') {
     return showMessageError('请输入原始提示词')
   }
-  isGenerating.value = true
+  promptGenerating.value = true
   httpPost('/api/prompt/image', { prompt: params.value.prompt })
     .then((res) => {
       params.value.prompt = res.data
-      isGenerating.value = false
+      promptGenerating.value = false
     })
     .catch((e) => {
       showMessageError('生成提示词失败：' + e.message)
-      isGenerating.value = false
+      promptGenerating.value = false
     })
 }
 </script>

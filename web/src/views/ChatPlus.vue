@@ -406,6 +406,7 @@ import 'highlight.js/styles/a11y-dark.css'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserToken } from '../store/session'
+import { substr } from '../utils/libs'
 
 const title = ref('GeekAI-智能助手')
 const logo = ref('')
@@ -758,6 +759,21 @@ const sendSSERequest = async (message) => {
               .catch(() => {})
             isNewMsg.value = true
             tmpChatTitle.value = message.prompt
+            console.log('chatData.value', chatData.value)
+            // 判断 chatlist 中指定的 chat_id 是否存在
+            const chat = chatList.value.find((chat) => chat.chat_id === chatId.value)
+            if (!chat) {
+              const _role = getRoleById(roleId.value)
+              chatList.value.unshift({
+                chat_id: chatId.value,
+                title: substr(message.prompt, 15),
+                role_id: roleId.value,
+                model_id: modelID.value,
+                icon: _role.icon,
+                created_at: new Date().getTime(),
+                updated_at: new Date().getTime(),
+              })
+            }
             return
           }
 
