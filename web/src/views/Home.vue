@@ -285,9 +285,7 @@ const logout = function () {
   httpGet('/api/user/logout')
     .then(() => {
       removeUserToken()
-      // 刷新组件
-      routerViewKey.value += 1
-      loginUser.value = {}
+      router.push('/login')
     })
     .catch(() => {
       ElMessage.error('注销失败！')

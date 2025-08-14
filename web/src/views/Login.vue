@@ -25,12 +25,19 @@
 
 <script setup>
 import LoginDialog from '@/components/LoginDialog.vue'
+import { setUserToken } from '@/store/session'
 import { getCurrentDeviceRedirectPath } from '@/utils/device'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const loginDialogRef = ref(null)
+const token = router.currentRoute.value.query.token
+
+if (token) {
+  setUserToken(token)
+  router.push('/chat')
+}
 
 // 处理登录弹窗隐藏
 const handleLoginHide = () => {
@@ -214,7 +221,7 @@ onMounted(() => {
           border: none;
           padding: 0 8px;
           font-size: 14px;
-          
+
           &:hover {
             background: var(--btn-bg);
             border-radius: 6px;
@@ -222,7 +229,7 @@ onMounted(() => {
 
           &.forget {
             color: var(--theme-text-color-secondary);
-            
+
             &:hover {
               color: var(--text-color-primary);
             }

@@ -716,6 +716,7 @@ const sendSSERequest = async (message) => {
         } else {
           const errorMsg = `连接失败 (状态码: ${response.status})`
           ElMessage.error(errorMsg)
+          console.error('SSE connection failed', response)
           enableInput()
           throw new Error(errorMsg)
         }

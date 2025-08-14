@@ -28,7 +28,7 @@
 
           <span v-if="!isLogin">
             <el-button
-              @click="showLoginDialog = true"
+              @click="router.push('/login')"
               class="btn-go animate__animated animate__pulse animate__infinite"
               round
               >登录/注册</el-button
@@ -51,15 +51,6 @@
       <h1 class="animate__animated animate__backInDown">
         {{ title }}
       </h1>
-      <!-- <div class="msg-text cursor-ani">
-        <span
-          v-for="(char, index) in displayedChars"
-          :key="index"
-          :style="{ color: rainbowColor(index) }"
-        >
-          {{ char }}
-        </span>
-      </div> -->
 
       <div class="navs animate__animated animate__backInDown">
         <el-space wrap :size="14">
@@ -79,18 +70,6 @@
 
     <footer-bar />
 
-    <!-- 登录弹窗 -->
-    <el-dialog v-model="showLoginDialog" width="500px" @close="showLoginDialog = false">
-      <template #header>
-        <div class="text-center text-xl" style="color: var(--theme-text-color-primary)">
-          登录解锁更多功能
-        </div>
-      </template>
-      <div class="p-4 pt-2 pb-2">
-        <LoginDialog @success="loginSuccess" @hide="showLoginDialog = false" />
-      </div>
-    </el-dialog>
-
     <!-- 网站公告对话框 -->
     <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
       <div class="notice">
@@ -108,17 +87,16 @@
 
 <script setup>
 import FooterBar from '@/components/FooterBar.vue'
-import LoginDialog from '@/components/LoginDialog.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
 import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { httpGet } from '@/utils/http'
+import { isMobile } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
 import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { isMobile } from '@/utils/libs'
 
 const router = useRouter()
 
@@ -127,7 +105,6 @@ const logo = ref('')
 const license = ref({ de_copy: true })
 
 const isLogin = ref(false)
-const showLoginDialog = ref(false)
 const docsURL = ref(import.meta.env.VITE_DOCS_URL)
 const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 const giteeURL = ref(import.meta.env.VITE_GITEE_URL)
@@ -204,12 +181,7 @@ onMounted(() => {
 
 const logout = () => {
   removeUserToken()
-  isLogin.value = false
-}
-
-const loginSuccess = () => {
-  isLogin.value = true
-  showLoginDialog.value = false
+  router.push('/login')
 }
 
 // 不再显示公告

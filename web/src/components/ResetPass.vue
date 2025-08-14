@@ -17,7 +17,7 @@
               </el-form-item>
               <el-form-item label="验证码">
                 <div class="flex">
-                  <el-input v-model="form.code" maxlength="6" class="mr-2 w-1/2" />
+                  <el-input v-model="form.code" maxlength="6" class="mr-2 max-w-[200px]" />
                   <send-msg size="" :receiver="form.mobile" type="mobile" />
                 </div>
               </el-form-item>

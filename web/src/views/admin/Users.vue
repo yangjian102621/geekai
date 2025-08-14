@@ -23,6 +23,15 @@
         <el-table-column label="账号">
           <template #default="scope">
             <span>{{ scope.row.username }}</span>
+            <el-tooltip content="复制用户名" placement="top">
+              <el-icon
+                class="copy-icon"
+                @click="copyUsername(scope.row.username)"
+                style="margin-left: 8px; cursor: pointer; color: #909399"
+              >
+                <DocumentCopy />
+              </el-icon>
+            </el-tooltip>
             <el-image
               v-if="scope.row.vip"
               :src="vipImg"
@@ -198,12 +207,12 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { dateFormat, disabledDate } from '@/utils/libs'
-import { Delete, Plus, Search } from '@element-plus/icons-vue'
-import { showLoading, closeLoading, showMessageError, showMessageOK } from '@/utils/dialog'
+import { Delete, DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
 
 // 变量定义
 const users = ref({ page: 1, page_size: 15, items: [] })
@@ -420,6 +429,16 @@ const copyLoginLink = () => {
     showMessageError('复制失败')
   }
 }
+
+// 复制用户名
+const copyUsername = (username) => {
+  try {
+    navigator.clipboard.writeText(username)
+    ElMessage.success('用户名复制成功！')
+  } catch (e) {
+    ElMessage.error('复制失败')
+  }
+}
 </script>
 
 <style lang="stylus" scoped>
@@ -454,6 +473,15 @@ const copyLoginLink = () => {
 
   .el-select {
     width: 100%
+  }
+
+  .copy-icon {
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: #409eff !important;
+      transform: scale(1.1);
+    }
   }
 
 }
