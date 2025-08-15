@@ -1,12 +1,12 @@
 <template>
   <div
     class="min-h-screen flex items-center justify-center p-5 relative overflow-auto"
-    style="background: var(--login-bg);"
+    style="background: var(--login-bg)"
   >
     <router-link
       to="/"
       class="fixed top-5 left-5 z-50 flex items-center justify-center w-11 h-11 border border-transparent rounded-xl text-white no-underline shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
-      style="background: var(--btnColor);"
+      style="background: var(--btnColor)"
       title="返回首页"
     >
       <i class="iconfont icon-home text-xl"></i>
@@ -14,23 +14,17 @@
     <div class="w-full max-w-md mx-auto">
       <div
         class="rounded-3xl p-10 shadow-2xl backdrop-blur-sm relative overflow-hidden"
-        style="background: var(--login-card-bg); border: 1px solid var(--login-card-border);"
+        style="background: var(--login-card-bg); border: 1px solid var(--login-card-border)"
       >
-        <div
-          class="absolute top-0 left-0 right-0 h-1"
-          style="background: var(--btnColor);"
-        ></div>
+        <div class="absolute top-0 left-0 right-0 h-1" style="background: var(--btnColor)"></div>
         <div class="text-center mb-8">
-          <h1 
+          <h1
             class="text-3xl font-semibold m-0 mb-2 tracking-tight"
-            style="color: var(--login-title-color);"
+            style="color: var(--login-title-color)"
           >
             用户注册
           </h1>
-          <p 
-            class="text-base m-0 leading-relaxed"
-            style="color: var(--login-subtitle-color);"
-          >
+          <p class="text-base m-0 leading-relaxed" style="color: var(--login-subtitle-color)">
             创建您的账户以开始使用服务
           </p>
         </div>

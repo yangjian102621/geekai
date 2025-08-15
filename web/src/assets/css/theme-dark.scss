@@ -1,10 +1,17 @@
 @use 'font.scss' as *;
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   --text-fb: #fff;
   --text-color: rgba(255, 255, 255, 1) !important; // 主要的文本颜色
   --normal-color: rgba(163, 174, 208, 1); // 普通颜色
   --el-text-color-primary: #fff;
-  p, h1, h2, h3, h4, h5, h6, article {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  article {
     // color: var(--text-color) !important;
     font-family: $font-regular;
   }

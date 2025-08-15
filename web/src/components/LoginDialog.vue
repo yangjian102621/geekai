@@ -43,13 +43,13 @@
         <div class="w-full">
           <div
             class="text flex justify-center items-center pt-3 text-sm"
-            style="color: var(--login-text-color);"
+            style="color: var(--login-text-color)"
           >
             还没有账号？
             <el-button
               size="small"
               class="ml-2 rounded-md px-2 py-1 transition-colors duration-200"
-              style="color: var(--login-link-color);"
+              style="color: var(--login-link-color)"
               @click="login = false"
               @mouseenter="$event.target.style.background = 'var(--login-link-hover-bg)'"
               @mouseleave="$event.target.style.background = 'transparent'"
@@ -217,14 +217,16 @@
 
         <div
           class="text text-sm flex justify-center items-center w-full pt-3"
-          style="color: var(--login-text-color);"
+          style="color: var(--login-text-color)"
         >
           已有账号？
           <el-button
             size="small"
-            class="ml-2 rounded-md px-2 py-1"
-            style="color: var(--login-link-color);"
+            class="ml-2 rounded-md px-2 py-1 transition-colors duration-200"
+            style="color: var(--login-link-color)"
             @click="login = true"
+            @mouseenter="$event.target.style.background = 'var(--login-link-hover-bg)'"
+            @mouseleave="$event.target.style.background = 'transparent'"
             >登录</el-button
           >
         </div>
