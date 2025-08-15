@@ -139,7 +139,7 @@
           登录后解锁功能
         </div>
       </template>
-      <div class="p-4 pt-2 pb-2">
+      <div class="w-full p-4 pt-2 pb-2">
         <LoginDialog @success="loginSuccess" @hide="store.setShowLoginDialog(false)" />
       </div>
     </el-dialog>

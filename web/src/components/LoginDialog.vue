@@ -1,7 +1,7 @@
 <template>
   <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
-      <el-form :model="data" class="form">
+      <el-form :model="data" class="form space-y-5">
         <div class="block">
           <el-input placeholder="账号" size="large" v-model="data.username" autocomplete="off">
             <template #prefix>
@@ -29,25 +29,34 @@
           </el-input>
         </div>
 
-        <el-row class="btn-row" :gutter="20">
+        <el-row class="btn-row mt-8" :gutter="20">
           <el-col :span="24">
-            <el-button
-              class="login-btn"
-              type="primary"
-              size="large"
+            <button
+              class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
               @click="submitLogin"
-              :loading="loading"
-              >{{ loading ? '登录中...' : '登 录' }}</el-button
             >
+              {{ loading ? '登录中...' : '登 录' }}
+            </button>
           </el-col>
         </el-row>
 
         <div class="w-full">
-          <div class="text flex justify-center items-center pt-3 text-sm">
+          <div
+            class="text flex justify-center items-center pt-3 text-sm"
+            style="color: var(--login-text-color);"
+          >
             还没有账号？
-            <el-button size="small" @click="login = false">注册</el-button>
+            <el-button
+              size="small"
+              class="ml-2 rounded-md px-2 py-1 transition-colors duration-200"
+              style="color: var(--login-link-color);"
+              @click="login = false"
+              @mouseenter="$event.target.style.background = 'var(--login-link-hover-bg)'"
+              @mouseleave="$event.target.style.background = 'transparent'"
+              >注册</el-button
+            >
 
-            <el-button type="info" class="forget" size="small" @click="showResetPass = true"
+            <el-button type="info" class="forget ml-4" size="small" @click="showResetPass = true"
               >忘记密码？</el-button
             >
           </div>
@@ -56,8 +65,8 @@
     </div>
 
     <div class="register-box w-full" v-else>
-      <el-form :model="data" class="form" v-if="enableRegister">
-        <el-tabs v-model="activeName" class="demo-tabs">
+      <el-form :model="data" class="form space-y-5" v-if="enableRegister">
+        <el-tabs v-model="activeName" class="demo-tabs dark:text-white">
           <el-tab-pane label="手机注册" name="mobile" v-if="enableMobile">
             <div class="block">
               <el-input
@@ -74,7 +83,7 @@
                 </template>
               </el-input>
             </div>
-            <div class="block">
+            <div class="block mt-4">
               <el-row :gutter="10">
                 <el-col :span="12">
                   <el-input
@@ -107,7 +116,7 @@
                 </template>
               </el-input>
             </div>
-            <div class="block">
+            <div class="block mt-4">
               <el-row :gutter="10">
                 <el-col :span="12">
                   <el-input
@@ -198,19 +207,26 @@
         </div>
 
         <div class="w-full">
-          <el-button
-            class="login-btn w-full"
-            type="primary"
-            size="large"
+          <button
+            class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
             @click="submitRegister"
-            :loading="loading"
-            >{{ loading ? '注册中...' : '注 册' }}</el-button
           >
+            {{ loading ? '注册中...' : '注 册' }}
+          </button>
         </div>
 
-        <div class="text text-sm flex justify-center items-center w-full pt-3">
+        <div
+          class="text text-sm flex justify-center items-center w-full pt-3"
+          style="color: var(--login-text-color);"
+        >
           已有账号？
-          <el-button size="small" @click="login = true">登录</el-button>
+          <el-button
+            size="small"
+            class="ml-2 rounded-md px-2 py-1"
+            style="color: var(--login-link-color);"
+            @click="login = true"
+            >登录</el-button
+          >
         </div>
       </el-form>
 
@@ -245,14 +261,12 @@ import SendMsg from '@/components/SendMsg.vue'
 import { getSystemInfo } from '@/store/cache'
 import { setUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import { setRoute } from '@/store/system'
-import { httpGet, httpPost } from '@/utils/http'
+import { httpPost } from '@/utils/http'
 import { arrayContains } from '@/utils/libs'
 import { validateEmail, validateMobile } from '@/utils/validate'
 import { Checked, Iphone, Lock, Message } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -439,46 +453,56 @@ const doRegister = (verifyData) => {
 .login-dialog {
   border-radius: 10px;
 
-  .el-tabs__nav {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-  }
+  // Dark theme support for Element Plus components
+  :deep(.el-tabs) {
+    .el-tabs__header {
+      .el-tabs__nav-wrap {
+        .el-tabs__nav {
+          .el-tabs__item {
+            color: var(--el-text-color-primary);
 
-  .form {
-    .block {
-      margin-bottom: 10px;
-    }
-
-    .btn-row {
-      display: flex;
-
-      .login-btn {
-        font-size: 16px;
-        width: 100%;
-      }
-
-      .text {
-        line-height: 40px;
-
-        .el-tag {
-          cursor: pointer;
+            &.is-active {
+              color: var(--el-color-primary);
+            }
+          }
         }
       }
-
-      .forget {
-        margin-left: 10px;
-      }
-    }
-
-    .text {
-      color: var(--el-text-color-primary);
     }
   }
 
-  .register-box {
-    .wechat-card {
-      text-align: center;
+  :deep(.el-input) {
+    .el-input__wrapper {
+      background: var(--el-fill-color-blank);
+      border-color: var(--el-border-color);
+
+      &.is-focus {
+        border-color: var(--el-color-primary);
+      }
+    }
+
+    .el-input__inner {
+      color: var(--el-text-color-primary);
+
+      &::placeholder {
+        color: var(--el-text-color-placeholder);
+      }
+    }
+
+    .el-input__prefix,
+    .el-input__suffix {
+      color: var(--el-text-color-regular);
+    }
+  }
+
+  :deep(.el-button) {
+    &.el-button--info {
+      color: var(--el-text-color-regular);
+      background: transparent;
+      border: none;
+
+      &:hover {
+        background: var(--el-fill-color-light);
+      }
     }
   }
 }

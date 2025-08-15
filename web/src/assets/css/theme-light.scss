@@ -62,4 +62,14 @@
   --quote-text-color: #333;
   // 面板背景
   --panel-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
+
+  // 登录注册页面专用变量
+  --login-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
+  --login-card-bg: #fff;
+  --login-card-border: rgba(79, 89, 102, 0.122);
+  --login-title-color: #000;
+  --login-subtitle-color: #666;
+  --login-text-color: #666;
+  --login-link-color: #5b62ce;
+  --login-link-hover-bg: rgba(91, 98, 206, 0.1);
 }
