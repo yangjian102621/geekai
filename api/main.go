@@ -143,6 +143,15 @@ func main() {
 		fx.Provide(handler.NewPowerLogHandler),
 		fx.Provide(handler.NewJimengHandler),
 
+		fx.Provide(service.NewConfigService),
+		fx.Provide(service.NewConfigMigrationService),
+		fx.Invoke(func(migrationService *service.ConfigMigrationService, config *types.AppConfig, redisClient *redis.Client) {
+			if err := migrationService.MigrateFromConfig(config); err != nil {
+				logger.Errorf("配置迁移失败: %v", err)
+			}
+		}),
+
+		// 管理后台控制器
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
 		fx.Provide(admin.NewApiKeyHandler),
@@ -153,22 +162,8 @@ func main() {
 		fx.Provide(admin.NewChatModelHandler),
 		fx.Provide(admin.NewProductHandler),
 		fx.Provide(admin.NewOrderHandler),
-		fx.Provide(admin.NewChatHandler),
 		fx.Provide(admin.NewPowerLogHandler),
 		fx.Provide(admin.NewAdminJimengHandler),
-
-		// 创建服务
-		fx.Provide(sms.NewSendServiceManager),
-		fx.Provide(func(config *types.AppConfig) *service.CaptchaService {
-			return service.NewCaptchaService(config.ApiConfig)
-		}),
-		fx.Provide(oss.NewUploaderManager),
-		fx.Provide(dalle.NewService),
-		fx.Invoke(func(s *dalle.Service) {
-			s.Run()
-			s.DownloadImages()
-			s.CheckTaskStatus()
-		}),
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
@@ -176,6 +171,14 @@ func main() {
 		fx.Provide(service.NewLicenseService),
 		fx.Invoke(func(licenseService *service.LicenseService) {
 			licenseService.SyncLicense()
+		}),
+
+		// Dalle 服务
+		fx.Provide(dalle.NewService),
+		fx.Invoke(func(s *dalle.Service) {
+			s.Run()
+			s.DownloadImages()
+			s.CheckTaskStatus()
 		}),
 
 		// MidJourney service pool
@@ -218,14 +221,13 @@ func main() {
 		fx.Provide(payment.NewJPayService),
 		fx.Provide(payment.NewWechatService),
 		fx.Provide(service.NewSnowflake),
-		fx.Provide(service.NewXXLJobExecutor),
-		fx.Invoke(func(exec *service.XXLJobExecutor, config *types.AppConfig) {
-			if config.XXLConfig.Enabled {
-				go func() {
-					log.Fatal(exec.Run())
-				}()
-			}
+
+		// 创建服务
+		fx.Provide(sms.NewSendServiceManager),
+		fx.Provide(func(config *types.AppConfig) *service.CaptchaService {
+			return service.NewCaptchaService(config.ApiConfig)
 		}),
+		fx.Provide(oss.NewUploaderManager),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
@@ -259,7 +261,7 @@ func main() {
 			h.RegisterRoutes()
 		}),
 
-		// 管理后台控制器
+		// 管理后台路由注册
 		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
 			h.RegisterRoutes()
 		}),
@@ -322,6 +324,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
 			h.RegisterRoutes()
 		}),
+		fx.Provide(admin.NewChatHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {
 			h.RegisterRoutes()
 		}),

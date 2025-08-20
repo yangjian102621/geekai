@@ -8,6 +8,8 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"encoding/json"
+	"errors"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/handler"
@@ -26,13 +28,15 @@ type ConfigHandler struct {
 	handler.BaseHandler
 	levelDB        *store.LevelDB
 	licenseService *service.LicenseService
+	configService  *service.ConfigService
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService) *ConfigHandler {
+func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService, configService *service.ConfigService) *ConfigHandler {
 	return &ConfigHandler{
 		BaseHandler:    handler.BaseHandler{App: app, DB: db},
 		levelDB:        levelDB,
 		licenseService: licenseService,
+		configService:  configService,
 	}
 }
 
@@ -42,70 +46,52 @@ func (h *ConfigHandler) RegisterRoutes() {
 	group.POST("update", h.Update)
 	group.GET("get", h.Get)
 	group.POST("active", h.Active)
+	group.POST("test", h.Test)
 	group.GET("fixData", h.FixData)
 	group.GET("license", h.GetLicense)
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {
-	var data struct {
-		Key    string `json:"key"`
-		Config struct {
-			types.SystemConfig
-			Content string `json:"content,omitempty"`
-			Updated bool   `json:"updated,omitempty"`
-		} `json:"config"`
+	var payload struct {
+		Key       string             `json:"key"`
+		Config    json.RawMessage    `json:"config"`
 		ConfigBak types.SystemConfig `json:"config_bak,omitempty"`
 	}
 
-	if err := c.ShouldBindJSON(&data); err != nil {
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		logger.Errorf("Update config failed: %v", err)
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	// ONLY authorized user can change the copyright
-	if (data.Key == "system" && data.Config.Copyright != data.ConfigBak.Copyright) && !h.licenseService.GetLicense().Configs.DeCopy {
-		resp.ERROR(c, "您无权修改版权信息，请先联系作者获取授权")
-		return
-	}
-
-	// 如果要启用图形验证码功能，则检查是否配置了 API 服务
-	if data.Config.EnabledVerify && h.App.Config.ApiConfig.AppId == "" {
-		resp.ERROR(c, "启用验证码服务需要先配置 GeekAI 官方 API 服务 AppId 和 Token")
-		return
-	}
-
-	value := utils.JsonEncode(&data.Config)
-	config := model.Config{Name: data.Key, Value: value}
-	res := h.DB.FirstOrCreate(&config, model.Config{Name: data.Key})
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
-		return
-	}
-
-	if config.Id > 0 {
-		config.Value = value
-		res := h.DB.Updates(&config)
-		if res.Error != nil {
-			resp.ERROR(c, res.Error.Error())
+	if payload.Key == "system" {
+		var sys types.SystemConfig
+		if err := json.Unmarshal(payload.Config, &sys); err != nil {
+			resp.ERROR(c, "系统配置解析失败: "+err.Error())
 			return
 		}
-
-		// update config cache for AppServer
-		var cfg model.Config
-		h.DB.Where("name", data.Key).First(&cfg)
-		var err error
-		if data.Key == "system" {
-			err = utils.JsonDecode(cfg.Value, &h.App.SysConfig)
-		}
-		if err != nil {
-			resp.ERROR(c, "Failed to update config cache: "+err.Error())
+		if (sys.Copyright != payload.ConfigBak.Copyright) && !h.licenseService.GetLicense().Configs.DeCopy {
+			resp.ERROR(c, "您无权修改版权信息，请先联系作者获取授权")
 			return
 		}
-		logger.Infof("Update AppServer's config successfully: %v", config.Value)
+		if sys.EnabledVerify && h.App.Config.ApiConfig.AppId == "" {
+			resp.ERROR(c, "启用验证码服务需要先配置 GeekAI 官方 API 服务 AppId 和 Token")
+			return
+		}
 	}
 
-	resp.SUCCESS(c, config)
+	// 使用统一配置服务写入与广播
+	if err := h.configService.Set(payload.Key, payload.Config); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if payload.Key == "system" {
+		var sys types.SystemConfig
+		if err := json.Unmarshal(payload.Config, &sys); err == nil {
+			h.App.SysConfig = &sys
+		}
+	}
+	resp.SUCCESS(c)
 }
 
 // Get 获取指定的系统配置
@@ -114,6 +100,10 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	var config model.Config
 	res := h.DB.Where("name", key).First(&config)
 	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			resp.SUCCESS(c, map[string]interface{}{})
+			return
+		}
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
@@ -126,6 +116,23 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, value)
+}
+
+// Test 配置测试（占位）
+func (h *ConfigHandler) Test(c *gin.Context) {
+	var data struct {
+		Key string `json:"key"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	msg, err := h.configService.Test(data.Key)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	resp.SUCCESS(c, msg)
 }
 
 // Active 激活系统

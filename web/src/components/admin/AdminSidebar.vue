@@ -187,8 +187,60 @@ const items = [
   },
   {
     icon: 'config',
-    index: '/admin/system',
+    index: 'config-center',
     title: '系统设置',
+    subs: [
+      {
+        icon: 'config',
+        index: '/admin/config/system',
+        title: '系统配置',
+      },
+      {
+        icon: 'config',
+        index: '/admin/config/notice',
+        title: '公告配置',
+      },
+      {
+        icon: 'config',
+        index: '/admin/config/agreement',
+        title: '用户协议',
+      },
+      {
+        icon: 'config',
+        index: '/admin/config/privacy',
+        title: '隐私声明',
+      },
+      {
+        icon: 'config',
+        index: '/admin/config/menu',
+        title: '菜单配置',
+      },
+      {
+        icon: 'config',
+        index: '/admin/config/license',
+        title: '授权激活',
+      },
+      {
+        icon: 'recharge',
+        index: '/admin/config/payment',
+        title: '支付配置',
+      },
+      {
+        icon: 'menu',
+        index: '/admin/config/storage',
+        title: '存储配置',
+      },
+      {
+        icon: 'log',
+        index: '/admin/config/communication',
+        title: '通信配置',
+      },
+      {
+        icon: 'api-key',
+        index: '/admin/config/api',
+        title: 'API配置',
+      },
+    ],
   },
   {
     icon: 'log',
@@ -242,6 +294,7 @@ setMenuItems(items)
   top: 0;
   bottom: 0;
   overflow-y: scroll;
+  background-color: #324157;
 
   .logo {
     display: flex;
@@ -267,7 +320,8 @@ setMenuItems(items)
   }
 
   ul {
-    height: 100%;
+    height: auto;
+    min-height: 100%;
 
     .el-menu-item,
     .el-sub-menu {

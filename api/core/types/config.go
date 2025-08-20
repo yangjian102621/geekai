@@ -172,3 +172,19 @@ type SystemConfig struct {
 	MaxFileSize      int      `json:"max_file_size"`      // 最大文件大小,单位：MB
 
 }
+
+// 配置键名常量
+const (
+	ConfigKeySystem    = "system"
+	ConfigKeyNotice    = "notice"
+	ConfigKeyAgreement = "agreement"
+	ConfigKeyPrivacy   = "privacy"
+	ConfigKeyApi       = "api"
+	ConfigKeySms       = "sms"
+	ConfigKeySmtp      = "smtp"
+	ConfigKeyOss       = "oss"
+	ConfigKeyAlipay    = "alipay"
+	ConfigKeyWechat    = "wechat"
+	ConfigKeyHuPi      = "hupi"
+	ConfigKeyGeekpay   = "geekpay"
+)
