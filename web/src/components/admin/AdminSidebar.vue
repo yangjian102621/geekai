@@ -185,6 +185,7 @@ const items = [
     index: '/admin/manger',
     title: '管理员',
   },
+
   {
     icon: 'config',
     index: 'config-center',
@@ -192,24 +193,15 @@ const items = [
     subs: [
       {
         icon: 'config',
-        index: '/admin/config/system',
-        title: '系统配置',
+        index: '/admin/config/basic',
+        title: '基础配置',
       },
       {
         icon: 'config',
-        index: '/admin/config/notice',
-        title: '公告配置',
+        index: '/admin/config/power',
+        title: '算力配置',
       },
-      {
-        icon: 'config',
-        index: '/admin/config/agreement',
-        title: '用户协议',
-      },
-      {
-        icon: 'config',
-        index: '/admin/config/privacy',
-        title: '隐私声明',
-      },
+
       {
         icon: 'config',
         index: '/admin/config/menu',
@@ -239,6 +231,33 @@ const items = [
         icon: 'api-key',
         index: '/admin/config/api',
         title: 'API配置',
+      },
+    ],
+  },
+  {
+    icon: 'linggan',
+    index: 'content-config',
+    title: '文案配置',
+    subs: [
+      {
+        icon: 'speaker',
+        index: '/admin/config/notice',
+        title: '公告配置',
+      },
+      {
+        icon: 'info',
+        index: '/admin/config/agreement',
+        title: '用户协议',
+      },
+      {
+        icon: 'info',
+        index: '/admin/config/privacy',
+        title: '隐私声明',
+      },
+      {
+        icon: 'xmind',
+        index: '/admin/config/markmap',
+        title: '思维导图配置',
       },
     ],
   },

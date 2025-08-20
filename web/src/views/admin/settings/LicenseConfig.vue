@@ -1,5 +1,5 @@
 <template>
-  <div class="license-config form" v-loading="loading">
+  <div class="license-config form p-5" v-loading="loading">
     <div class="container">
       <el-descriptions
         v-if="license.is_active"
@@ -42,21 +42,23 @@
         </el-descriptions-item>
       </el-descriptions>
 
-      <h3>激活后可获得以下权限：</h3>
-      <ol class="active-info">
-        <li>1、使用任意第三方中转 API KEY，而不用局限于 GeekAI 推荐的白名单列表</li>
-        <li>2、可以在相关页面去除 GeekAI 的版权信息，或者修改为自己的版权信息</li>
-      </ol>
+      <div class="mt-5 p-5 border border-gray-200 rounded-md bg-gray-50">
+        <h3>激活后可获得以下权限：</h3>
+        <div class="py-3 text-gray-500 leading-relaxed">
+          <p>1、使用任意第三方中转 API KEY，而不用局限于 GeekAI 推荐的白名单列表</p>
+          <p>2、可以在相关页面去除 GeekAI 的版权信息，或者修改为自己的版权信息</p>
+        </div>
 
-      <el-form :model="system" label-width="150px" label-position="right">
-        <el-form-item label="许可授权码" prop="license">
-          <el-input v-model="licenseKey" />
-        </el-form-item>
+        <el-form label-position="top">
+          <el-form-item label="许可授权码" prop="license">
+            <el-input v-model="licenseKey" />
+          </el-form-item>
 
-        <el-form-item>
-          <el-button type="primary" @click="active">立即激活</el-button>
-        </el-form-item>
-      </el-form>
+          <el-form-item>
+            <el-button type="primary" @click="active">立即激活</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
     </div>
   </div>
 </template>
@@ -64,8 +66,8 @@
 <script setup>
 import { httpGet, httpPost } from '@/utils/http'
 import { dateFormat } from '@/utils/libs'
-import { ElMessage } from 'element-plus'
 import { CloseBold, Select } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 const loading = ref(true)

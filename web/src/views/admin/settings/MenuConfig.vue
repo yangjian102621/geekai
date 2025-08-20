@@ -1,5 +1,5 @@
 <template>
-  <div class="container menu" v-loading="loading">
+  <div class="container menu p-5" v-loading="loading">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
     </div>
@@ -253,8 +253,8 @@ const uploadImg = (file) => {
 </script>
 
 <style lang="scss" scoped>
-@use '../../assets/css/admin/form.scss' as *;
-@use '../../assets/css/main.scss' as *;
+@use '@/assets/css/admin/form.scss' as *;
+@use '@/assets/css/main.scss' as *;
 .menu {
   .handle-box {
     margin-bottom: 20px;
