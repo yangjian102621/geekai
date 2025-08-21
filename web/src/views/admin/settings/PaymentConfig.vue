@@ -1,5 +1,5 @@
 <template>
-  <div class="form" v-loading="loading">
+  <div class="container py-3 px-10" v-loading="loading">
     <el-tabs v-model="active">
       <el-tab-pane label="支付宝" name="alipay">
         <el-form :model="alipay" label-width="140px">
@@ -7,7 +7,7 @@
           <el-form-item label="沙盒模式"><el-switch v-model="alipay.sand_box" /></el-form-item>
           <el-form-item label="AppId"><el-input v-model="alipay.app_id" /></el-form-item>
           <el-form-item label="商户私钥"
-            ><el-input v-model="alipay.private_key" type="textarea" :rows="3"
+            ><el-input v-model="alipay.private_key" type="textarea" :rows="5"
           /></el-form-item>
           <el-form-item label="支付宝公钥"
             ><el-input v-model="alipay.alipay_public_key" type="textarea" :rows="3"
