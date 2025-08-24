@@ -25,7 +25,7 @@ const CodeStorePrefix = "/verify/codes/"
 type SmsHandler struct {
 	BaseHandler
 	redis   *redis.Client
-	sms     *sms.ServiceManager
+	sms     *sms.SmsManager
 	smtp    *service.SmtpService
 	captcha *service.CaptchaService
 }
@@ -33,7 +33,7 @@ type SmsHandler struct {
 func NewSmsHandler(
 	app *core.AppServer,
 	client *redis.Client,
-	sms *sms.ServiceManager,
+	sms *sms.SmsManager,
 	smtp *service.SmtpService,
 	captcha *service.CaptchaService) *SmsHandler {
 	return &SmsHandler{
@@ -62,7 +62,7 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if h.App.SysConfig.EnabledVerify {
+	if h.App.SysConfig.Base.EnabledVerify {
 		var check bool
 		if data.X != 0 {
 			check = h.captcha.SlideCheck(data)
@@ -78,14 +78,14 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	code := utils.RandomNumber(6)
 	var err error
 	if strings.Contains(data.Receiver, "@") { // email
-		if !utils.Contains(h.App.SysConfig.RegisterWays, "email") {
+		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "email") {
 			resp.ERROR(c, "系统已禁用邮箱注册！")
 			return
 		}
 		// 检查邮箱后缀是否在白名单
-		if len(h.App.SysConfig.EmailWhiteList) > 0 {
+		if len(h.App.SysConfig.Base.EmailWhiteList) > 0 {
 			inWhiteList := false
-			for _, suffix := range h.App.SysConfig.EmailWhiteList {
+			for _, suffix := range h.App.SysConfig.Base.EmailWhiteList {
 				if strings.HasSuffix(data.Receiver, suffix) {
 					inWhiteList = true
 					break
@@ -98,7 +98,7 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
-		if !utils.Contains(h.App.SysConfig.RegisterWays, "mobile") {
+		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") {
 			resp.ERROR(c, "系统已禁用手机号注册！")
 			return
 		}

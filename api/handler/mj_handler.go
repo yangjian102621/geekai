@@ -65,7 +65,7 @@ func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 		return false
 	}
 
-	if user.Power < h.App.SysConfig.MjPower {
+	if user.Power < h.App.SysConfig.Base.MjPower {
 		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
 		return false
 	}
@@ -171,8 +171,8 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		Params:           params,
 		UserId:           userId,
 		ImgArr:           data.ImgArr,
-		Mode:             h.App.SysConfig.MjMode,
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		Mode:             h.App.SysConfig.Base.MjMode,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 	}
 	job := model.MidJourneyJob{
 		Type:      data.TaskType,
@@ -181,7 +181,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
 		Prompt:    fmt.Sprintf("%s %s", data.Prompt, params),
-		Power:     h.App.SysConfig.MjPower,
+		Power:     h.App.SysConfig.Base.MjPower,
 		CreatedAt: time.Now(),
 	}
 	opt := "绘图"
@@ -244,7 +244,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		Index:       data.Index,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
-		Mode:        h.App.SysConfig.MjMode,
+		Mode:        h.App.SysConfig.Base.MjMode,
 	}
 	job := model.MidJourneyJob{
 		Type:      types.TaskUpscale.String(),
@@ -252,7 +252,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
-		Power:     h.App.SysConfig.MjActionPower,
+		Power:     h.App.SysConfig.Base.MjActionPower,
 		CreatedAt: time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
@@ -299,7 +299,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		ChannelId:   data.ChannelId,
 		MessageId:   data.MessageId,
 		MessageHash: data.MessageHash,
-		Mode:        h.App.SysConfig.MjMode,
+		Mode:        h.App.SysConfig.Base.MjMode,
 	}
 	job := model.MidJourneyJob{
 		Type:      types.TaskVariation.String(),
@@ -308,7 +308,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
-		Power:     h.App.SysConfig.MjActionPower,
+		Power:     h.App.SysConfig.Base.MjActionPower,
 		CreatedAt: time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {

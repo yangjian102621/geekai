@@ -76,16 +76,16 @@ func (h *OrderHandler) List(c *gin.Context) {
 				order.Id = item.Id
 				order.CreatedAt = item.CreatedAt.Unix()
 				order.UpdatedAt = item.UpdatedAt.Unix()
-				payMethod, ok := types.PayMethods[item.PayWay]
+				payChannel, ok := types.PayChannel[item.Channel]
 				if !ok {
-					payMethod = item.PayWay
+					payChannel = item.Channel
 				}
-				payName, ok := types.PayNames[item.PayType]
+				payWays, ok := types.PayWays[item.PayWay]
 				if !ok {
-					payName = item.PayWay
+					payWays = item.PayWay
 				}
-				order.PayMethod = payMethod
-				order.PayName = payName
+				order.ChannelName = payChannel
+				order.PayName = payWays
 				list = append(list, order)
 			} else {
 				logger.Error(err)

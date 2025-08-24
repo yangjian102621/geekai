@@ -1,19 +1,9 @@
 package types
 
 type PaymentConfig struct {
-	AlipayConfig  AlipayConfig  `json:"alipay"`  // 支付宝支付渠道配置
-	GeekPayConfig GeekPayConfig `json:"geekpay"` // GEEK 支付配置
-	WxPayConfig   WxPayConfig   `json:"wxpay"`   // 微信支付渠道配置
-	HuPiPayConfig HuPiPayConfig `json:"hupi"`    // 虎皮椒支付渠道配置
-}
-
-type HuPiPayConfig struct { //虎皮椒第四方支付配置
-	Enabled   bool   // 是否启用该支付通道
-	AppId     string // App ID
-	AppSecret string // app 密钥
-	ApiURL    string // 支付网关
-	NotifyURL string // 异步通知地址
-	ReturnURL string // 同步通知地址
+	Alipay AlipayConfig `json:"alipay"` // 支付宝支付渠道配置
+	Epay   EpayConfig   `json:"epay"`   // GEEK 支付配置
+	WxPay  WxPayConfig  `json:"wxpay"`  // 微信支付渠道配置
 }
 
 // AlipayConfig 支付宝支付配置
@@ -53,8 +43,8 @@ func (c *WxPayConfig) Equal(other *WxPayConfig) bool {
 		c.Domain == other.Domain
 }
 
-// GeekPayConfig 易支付配置
-type GeekPayConfig struct {
+// EpayConfig 易支付配置
+type EpayConfig struct {
 	Enabled    bool   `json:"enabled"`     // 是否启用该支付通道
 	AppId      string `json:"app_id"`      // 商户 ID
 	PrivateKey string `json:"private_key"` // 私钥
@@ -62,7 +52,7 @@ type GeekPayConfig struct {
 	Domain     string `json:"domain"`      // 支付回调域名
 }
 
-func (c *GeekPayConfig) Equal(other *GeekPayConfig) bool {
+func (c *EpayConfig) Equal(other *EpayConfig) bool {
 	return c.AppId == other.AppId &&
 		c.PrivateKey == other.PrivateKey &&
 		c.ApiURL == other.ApiURL &&

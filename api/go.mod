@@ -27,6 +27,7 @@ require (
 require (
 	github.com/go-pay/gopay v1.5.101
 	github.com/go-rod/rod v0.116.2
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/go-tika v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/sashabaranov/go-openai v1.38.1

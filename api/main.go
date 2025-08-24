@@ -30,7 +30,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -71,15 +71,16 @@ func main() {
 	if configFile == "" {
 		configFile = "config.toml"
 	}
-	debug, _ := strconv.ParseBool(os.Getenv("APP_DEBUG"))
 	logger.Info("Loading config file: ", configFile)
-	if !debug {
-		defer func() {
-			if err := recover(); err != nil {
-				logger.Error("Panic Error:", err)
+	defer func() {
+		if err := recover(); err != nil {
+			logger.Error("Panic Error:", err)
+			// 打印堆栈信息
+			if os.Getenv("GEEKAI_DEBUG") == "true" {
+				debug.PrintStack()
 			}
-		}()
-	}
+		}
+	}()
 
 	app := fx.New(
 		// 初始化配置应用配置
@@ -89,16 +90,16 @@ func main() {
 				log.Fatal(err)
 			}
 			config.Path = configFile
-			if debug {
-				_ = core.SaveConfig(config)
-			}
 			return config
 		}),
 		// 创建应用服务
 		fx.Provide(core.NewServer),
 		// 初始化
 		fx.Invoke(func(s *core.AppServer, client *redis.Client) {
-			s.Init(debug, client)
+			s.Init(client)
+		}),
+		fx.Provide(func(db *gorm.DB) *types.SystemConfig {
+			return core.LoadSystemConfig(db)
 		}),
 
 		// 初始化数据库
@@ -109,6 +110,12 @@ func main() {
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
+		}),
+
+		// 数据修复
+		fx.Provide(service.NewDataFixService),
+		fx.Invoke(func(s *core.AppServer, dfs *service.DataFixService) {
+			dfs.FixData()
 		}),
 
 		// 创建 Ip2Region 查询对象
@@ -215,19 +222,33 @@ func main() {
 		fx.Invoke(func(service *jimeng.Service) {
 			service.Start()
 		}),
-		fx.Provide(service.NewUserService),
-		fx.Provide(payment.NewAlipayService),
-		fx.Provide(payment.NewHuPiPay),
-		fx.Provide(payment.NewJPayService),
-		fx.Provide(payment.NewWechatService),
 		fx.Provide(service.NewSnowflake),
 
-		// 创建服务
-		fx.Provide(sms.NewSendServiceManager),
-		fx.Provide(func(config *types.AppConfig) *service.CaptchaService {
-			return service.NewCaptchaService(config.ApiConfig)
+		// 创建短信服务
+		fx.Provide(sms.NewAliYunSmsService),
+		fx.Provide(sms.NewBaoSmsService),
+		fx.Provide(sms.NewSmsManager),
+		fx.Provide(func(config *types.SystemConfig) *service.CaptchaService {
+			return service.NewCaptchaService(config.GeekAPI.Captcha)
 		}),
+		fx.Provide(func(config *types.SystemConfig, client *redis.Client) *service.WxLoginService {
+			return service.NewWxLoginService(config.GeekAPI.WxLogin, client)
+		}),
+
+		// 支付服务
+		fx.Provide(payment.NewAlipayService),
+		fx.Provide(payment.NewEPayService),
+		fx.Provide(payment.NewWxpayService),
+
+		// 文件上传服务
+		fx.Provide(oss.NewLocalStorage),
+		fx.Provide(oss.NewMiniOss),
+		fx.Provide(oss.NewQiNiuOss),
+		fx.Provide(oss.NewAliYunOss),
 		fx.Provide(oss.NewUploaderManager),
+
+		// 用户服务
+		fx.Provide(service.NewUserService),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {

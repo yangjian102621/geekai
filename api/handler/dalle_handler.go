@@ -88,7 +88,7 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		Quality:          data.Quality,
 		Size:             data.Size,
 		Style:            data.Style,
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		Power:            chatModel.Power,
 	}
 	job := model.DallJob{

@@ -20,9 +20,9 @@ type CaptchaService struct {
 	client *req.Client
 }
 
-func NewCaptchaService(config types.CaptchaConfig) *CaptchaService {
+func NewCaptchaService(captchaConfig types.CaptchaConfig) *CaptchaService {
 	return &CaptchaService{
-		config: config,
+		config: captchaConfig,
 		client: req.C().SetTimeout(10 * time.Second),
 	}
 }

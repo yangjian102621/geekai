@@ -82,18 +82,21 @@ type AppServer struct {
 	Config    *types.AppConfig
 	Engine    *gin.Engine
 	SysConfig *types.SystemConfig // system config cache
+	Redis     *redis.Client
 }
 
-func NewServer(appConfig *types.AppConfig) *AppServer {
+func NewServer(appConfig *types.AppConfig, redis *redis.Client, sysConfig *types.SystemConfig) *AppServer {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Discard
 	return &AppServer{
-		Config: appConfig,
-		Engine: gin.Default(),
+		Config:    appConfig,
+		Redis:     redis,
+		Engine:    gin.Default(),
+		SysConfig: sysConfig,
 	}
 }
 
-func (s *AppServer) Init(debug bool, client *redis.Client) {
+func (s *AppServer) Init(client *redis.Client) {
 	s.Engine.Use(corsMiddleware())
 	s.Engine.Use(staticResourceMiddleware())
 	s.Engine.Use(authorizeMiddleware(s, client))
@@ -104,21 +107,6 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
-
-	// 重命名 config 表字段
-	if db.Migrator().HasColumn(&model.Config{}, "config_json") {
-		db.Migrator().RenameColumn(&model.Config{}, "config_json", "value")
-	}
-	if db.Migrator().HasColumn(&model.Config{}, "marker") {
-		db.Migrator().RenameColumn(&model.Config{}, "marker", "name")
-	}
-	if db.Migrator().HasIndex(&model.Config{}, "idx_chatgpt_configs_key") {
-		db.Migrator().DropIndex(&model.Config{}, "idx_chatgpt_configs_key")
-	}
-	if db.Migrator().HasIndex(&model.Config{}, "marker") {
-		db.Migrator().DropIndex(&model.Config{}, "marker")
-	}
-
 	// load system configs
 	var sysConfig model.Config
 	err := db.Where("name", "system").First(&sysConfig).Error
@@ -129,57 +117,6 @@ func (s *AppServer) Run(db *gorm.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode system config: %v", err)
 	}
-
-	// 迁移数据表
-	logger.Info("Migrating database tables...")
-	db.AutoMigrate(
-		&model.ChatItem{},
-		&model.ChatMessage{},
-		&model.ChatRole{},
-		&model.ChatModel{},
-		&model.InviteCode{},
-		&model.InviteLog{},
-		&model.Menu{},
-		&model.Order{},
-		&model.Product{},
-		&model.User{},
-		&model.Function{},
-		&model.File{},
-		&model.Redeem{},
-		&model.Config{},
-		&model.ApiKey{},
-		&model.AdminUser{},
-		&model.AppType{},
-		&model.SdJob{},
-		&model.SunoJob{},
-		&model.PowerLog{},
-		&model.VideoJob{},
-		&model.MidJourneyJob{},
-		&model.UserLoginLog{},
-		&model.DallJob{},
-		&model.JimengJob{},
-	)
-	// 手动删除字段
-	if db.Migrator().HasColumn(&model.Order{}, "deleted_at") {
-		db.Migrator().DropColumn(&model.Order{}, "deleted_at")
-	}
-	if db.Migrator().HasColumn(&model.ChatItem{}, "deleted_at") {
-		db.Migrator().DropColumn(&model.ChatItem{}, "deleted_at")
-	}
-	if db.Migrator().HasColumn(&model.ChatMessage{}, "deleted_at") {
-		db.Migrator().DropColumn(&model.ChatMessage{}, "deleted_at")
-	}
-	if db.Migrator().HasColumn(&model.User{}, "chat_config") {
-		db.Migrator().DropColumn(&model.User{}, "chat_config")
-	}
-	if db.Migrator().HasColumn(&model.ChatModel{}, "category") {
-		db.Migrator().DropColumn(&model.ChatModel{}, "category")
-	}
-	if db.Migrator().HasColumn(&model.ChatModel{}, "description") {
-		db.Migrator().DropColumn(&model.ChatModel{}, "description")
-	}
-
-	logger.Info("Database tables migrated successfully")
 
 	// 统计安装信息
 	go func() {

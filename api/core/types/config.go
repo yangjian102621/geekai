@@ -17,18 +17,17 @@ type AppConfig struct {
 	Session         Session
 	AdminSession    Session
 	ProxyURL        string
-	MysqlDns        string        // mysql 连接地址
-	StaticDir       string        // 静态资源目录
-	StaticUrl       string        // 静态资源 URL
-	Redis           RedisConfig   // redis 连接信息
-	SMS             SMSConfig     // send mobile message config
-	OSS             OSSConfig     // OSS config
-	SmtpConfig      SmtpConfig    // 邮件发送配置
-	AlipayConfig    AlipayConfig  // 支付宝支付渠道配置
-	HuPiPayConfig   HuPiPayConfig // 虎皮椒支付配置
-	GeekPayConfig   GeekPayConfig // GEEK 支付配置
-	WechatPayConfig WxPayConfig   // 微信支付渠道配置
-	TikaHost        string        // TiKa 服务器地址
+	MysqlDns        string       // mysql 连接地址
+	StaticDir       string       // 静态资源目录
+	StaticUrl       string       // 静态资源 URL
+	Redis           RedisConfig  // redis 连接信息
+	SMS             SMSConfig    // send mobile message config
+	OSS             OSSConfig    // OSS config
+	SmtpConfig      SmtpConfig   // 邮件发送配置
+	AlipayConfig    AlipayConfig // 支付宝支付渠道配置
+	GeekPayConfig   EpayConfig   // GEEK 支付配置
+	WechatPayConfig WxPayConfig  // 微信支付渠道配置
+	TikaHost        string       // TiKa 服务器地址
 }
 
 type RedisConfig struct {
@@ -58,7 +57,7 @@ func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
-type SystemConfig struct {
+type BaseConfig struct {
 	Title         string `json:"title,omitempty"`           // 网站标题
 	Slogan        string `json:"slogan,omitempty"`          // 网站 slogan
 	AdminTitle    string `json:"admin_title,omitempty"`     // 管理后台标题
@@ -103,18 +102,29 @@ type SystemConfig struct {
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
 	AssistantModelId int      `json:"assistant_model_id"` // 用来做提示词,翻译的AI模型 id
 	MaxFileSize      int      `json:"max_file_size"`      // 最大文件大小,单位：MB
+}
 
+type SystemConfig struct {
+	Base    BaseConfig
+	Payment PaymentConfig
+	OSS     OSSConfig
+	SMS     SMSConfig
+	SMTP    SmtpConfig
+	GeekAPI GeekAPIConfig
+	Jimeng  JimengConfig
+	License License
 }
 
 // 配置键名常量
 const (
-	ConfigKeySystem      = "system"
-	ConfigKeyNotice      = "notice"
-	ConfigKeyAgreement   = "agreement"
-	ConfigKeyPrivacy     = "privacy"
-	ConfigKeyGeekService = "geekai"
-	ConfigKeySms         = "sms"
-	ConfigKeySmtp        = "smtp"
-	ConfigKeyOss         = "oss"
-	ConfigKeyPayment     = "payment"
+	ConfigKeySystem    = "system"
+	ConfigKeyNotice    = "notice"
+	ConfigKeyAgreement = "agreement"
+	ConfigKeyPrivacy   = "privacy"
+	ConfigKeyGeekAPI   = "geekapi"
+	ConfigKeyLicense   = "license"
+	ConfigKeySms       = "sms"
+	ConfigKeySmtp      = "smtp"
+	ConfigKeyOss       = "oss"
+	ConfigKeyPayment   = "payment"
 )

@@ -73,7 +73,7 @@ func (h *SdJobHandler) preCheck(c *gin.Context) bool {
 		return false
 	}
 
-	if user.Power < h.App.SysConfig.SdPower {
+	if user.Power < h.App.SysConfig.Base.SdPower {
 		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
 		return false
 	}
@@ -141,7 +141,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 			HdSteps:      data.HdSteps,
 		},
 		UserId:           userId,
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 	}
 
 	job := model.SdJob{
@@ -152,7 +152,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 		TaskInfo:  utils.JsonEncode(task),
 		Prompt:    data.Prompt,
 		Progress:  0,
-		Power:     h.App.SysConfig.SdPower,
+		Power:     h.App.SysConfig.Base.SdPower,
 		CreatedAt: time.Now(),
 	}
 	res := h.DB.Create(&job)

@@ -244,9 +244,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	// 加载聊天上下文
 	chatCtx := make([]any, 0)
 	messages := make([]any, 0)
-	if h.App.SysConfig.EnableContext {
+	if h.App.SysConfig.Base.EnableContext {
 		_ = utils.JsonDecode(input.ChatRole.Context, &messages)
-		if h.App.SysConfig.ContextDeep > 0 {
+		if h.App.SysConfig.Base.ContextDeep > 0 {
 			var historyMessages []model.ChatMessage
 			dbSession := h.DB.Session(&gorm.Session{}).Where("chat_id", input.ChatId)
 			if input.LastMsgId > 0 { // 重新生成逻辑
@@ -254,7 +254,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 				// 删除对应的聊天记录
 				h.DB.Debug().Where("chat_id", input.ChatId).Where("id >= ?", input.LastMsgId).Delete(&model.ChatMessage{})
 			}
-			err = dbSession.Limit(h.App.SysConfig.ContextDeep).Order("id DESC").Find(&historyMessages).Error
+			err = dbSession.Limit(h.App.SysConfig.Base.ContextDeep).Order("id DESC").Find(&historyMessages).Error
 			if err == nil {
 				for i := len(historyMessages) - 1; i >= 0; i-- {
 					msg := historyMessages[i]
@@ -282,7 +282,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 			}
 
 			// 上下文的深度超出了模型的最大上下文深度
-			if len(chatCtx) >= h.App.SysConfig.ContextDeep {
+			if len(chatCtx) >= h.App.SysConfig.Base.ContextDeep {
 				break
 			}
 

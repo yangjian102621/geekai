@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
 )
 
 var logger = logger2.GetLogger()
@@ -91,4 +92,12 @@ func GetBaseURL(strURL string) string {
 		return ""
 	}
 	return fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+}
+
+func GetImgExt(filename string) string {
+	ext := filepath.Ext(filename)
+	if ext == "" {
+		return ".png"
+	}
+	return ext
 }

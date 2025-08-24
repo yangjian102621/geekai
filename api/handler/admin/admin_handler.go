@@ -19,9 +19,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -72,7 +73,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.EnabledVerify {
+	if h.App.SysConfig.Base.EnabledVerify {
 		var check bool
 		if data.X != 0 {
 			check = h.captcha.SlideCheck(data)

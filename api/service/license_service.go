@@ -21,7 +21,6 @@ import (
 )
 
 type LicenseService struct {
-	config       types.GeekServiceConfig
 	levelDB      *store.LevelDB
 	license      *types.License
 	urlWhiteList []string
@@ -39,7 +38,6 @@ func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseS
 	}
 	logger.Infof("License: %+v", license)
 	return &LicenseService{
-		config:    server.Config.ApiConfig,
 		levelDB:   levelDB,
 		license:   &license,
 		machineId: machineId,
@@ -63,7 +61,7 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 		Message string        `json:"message"`
 		Data    License       `json:"data"`
 	}
-	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/active")
+	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/active")
 	response, err := req.C().R().
 		SetBody(map[string]string{"license": license, "machine_id": machineId}).
 		SetSuccessResult(&res).Post(apiURL)
@@ -129,7 +127,7 @@ func (s *LicenseService) fetchLicense() (*types.License, error) {
 		Message string        `json:"message"`
 		Data    License       `json:"data"`
 	}
-	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/check")
+	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/check")
 	response, err := req.C().R().
 		SetBody(map[string]string{"license": s.license.Key, "machine_id": s.machineId}).
 		SetSuccessResult(&res).Post(apiURL)
@@ -158,7 +156,7 @@ func (s *LicenseService) fetchUrlWhiteList() ([]string, error) {
 		Message string        `json:"message"`
 		Data    []string      `json:"data"`
 	}
-	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/urls")
+	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/urls")
 	response, err := req.C().R().SetSuccessResult(&res).Get(apiURL)
 	if err != nil {
 		return nil, fmt.Errorf("发送请求失败: %v", err)

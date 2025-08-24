@@ -10,37 +10,32 @@ package sms
 import (
 	"geekai/core/types"
 	logger2 "geekai/logger"
-	"strings"
 )
 
-type ServiceManager struct {
-	handler Service
+type SmsManager struct {
+	aliyun *AliYunSmsService
+	bao    *BaoSmsService
+	active string
 }
 
 var logger = logger2.GetLogger()
 
-func NewSendServiceManager(config *types.AppConfig) (*ServiceManager, error) {
-	active := Ali
-	if config.SMS.Active != "" {
-		active = strings.ToUpper(config.SMS.Active)
-	}
-	var handler Service
-	switch active {
-	case Ali:
-		client, err := NewAliYunSmsService(config)
-		if err != nil {
-			return nil, err
-		}
-		handler = client
-		break
-	case Bao:
-		handler = NewSmsBaoSmsService(config)
-		break
-	}
+func NewSmsManager(sysConfig *types.SystemConfig, aliyun *AliYunSmsService, bao *BaoSmsService) (*SmsManager, error) {
 
-	return &ServiceManager{handler: handler}, nil
+	return &SmsManager{
+		active: sysConfig.SMS.Active,
+		aliyun: aliyun,
+		bao:    bao,
+	}, nil
 }
 
-func (m *ServiceManager) GetService() Service {
-	return m.handler
+func (m *SmsManager) GetService() Service {
+	if m.active == Ali {
+		return m.aliyun
+	}
+	return m.bao
+}
+
+func (m *SmsManager) SetActive(active string) {
+	m.active = active
 }

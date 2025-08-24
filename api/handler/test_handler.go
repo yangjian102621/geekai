@@ -4,19 +4,20 @@ import (
 	"geekai/core"
 	"geekai/service"
 	"geekai/service/payment"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type TestHandler struct {
 	App       *core.AppServer
 	db        *gorm.DB
 	snowflake *service.Snowflake
-	js        *payment.GeekPayService
+	js        *payment.EPayService
 }
 
-func NewTestHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, js *payment.GeekPayService) *TestHandler {
+func NewTestHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, js *payment.EPayService) *TestHandler {
 	return &TestHandler{App: app, db: db, snowflake: snowflake, js: js}
 }
 

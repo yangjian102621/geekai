@@ -20,109 +20,90 @@ import (
 )
 
 type AlipayService struct {
-	config *types.AlipayConfig
 	client *alipay.Client
+	config *types.AlipayConfig
 }
 
 var logger = logger2.GetLogger()
 
-func NewAlipayService(appConfig *types.AppConfig) (*AlipayService, error) {
-	config := appConfig.AlipayConfig
+func NewAlipayService(sysConfig *types.SystemConfig) (*AlipayService, error) {
+	config := sysConfig.Payment.Alipay
 	if !config.Enabled {
-		logger.Info("Disabled Alipay service")
-		return nil, nil
+		logger.Debug("Disabled Alipay service")
 	}
 
+	service := &AlipayService{config: &config}
+	if config.Enabled {
+		err := service.UpdateConfig(&config)
+		if err != nil {
+			logger.Errorf("支付宝服务初始化失败: %v", err)
+		}
+	}
+
+	return service, nil
+}
+
+func (s *AlipayService) UpdateConfig(config *types.AlipayConfig) error {
 	client, err := alipay.NewClient(config.AppId, config.PrivateKey, !config.SandBox)
 	if err != nil {
-		return nil, fmt.Errorf("error with initialize alipay service: %v", err)
+		return fmt.Errorf("error with initialize alipay service: %v", err)
 	}
 
-	return &AlipayService{config: &config, client: client}, nil
+	s.client = client
+	s.config = config
+	if os.Getenv("GEEKAI_DEBUG") == "true" {
+		logger.Info("Alipay Debug mode is enabled")
+		client.DebugSwitch = gopay.DebugOn
+	}
+	return nil
 }
 
-type AlipayParams struct {
-	OutTradeNo string `json:"out_trade_no"`
-	Subject    string `json:"subject"`
-	TotalFee   string `json:"total_fee"`
-	ReturnURL  string `json:"return_url"`
-	NotifyURL  string `json:"notify_url"`
-}
-
-func (s *AlipayService) PayMobile(params AlipayParams) (string, error) {
-	bm := make(gopay.BodyMap)
-	bm.Set("subject", params.Subject)
-	bm.Set("out_trade_no", params.OutTradeNo)
-	bm.Set("quit_url", params.ReturnURL)
-	bm.Set("total_amount", params.TotalFee)
-	bm.Set("product_code", "QUICK_WAP_WAY")
-	return s.client.SetNotifyUrl(params.NotifyURL).SetReturnUrl(params.ReturnURL).TradeWapPay(context.Background(), bm)
-}
-
-func (s *AlipayService) PayPC(params AlipayParams) (string, error) {
+func (s *AlipayService) Pay(params PayRequest) (string, error) {
 	bm := make(gopay.BodyMap)
 	bm.Set("subject", params.Subject)
 	bm.Set("out_trade_no", params.OutTradeNo)
 	bm.Set("total_amount", params.TotalFee)
-	bm.Set("product_code", "FAST_INSTANT_TRADE_PAY")
-	return s.client.SetNotifyUrl(params.NotifyURL).SetReturnUrl(params.ReturnURL).TradePagePay(context.Background(), bm)
+	return s.client.TradeWapPay(context.Background(), bm)
+}
+
+func (s *AlipayService) Query(outTradeNo string) (OrderInfo, error) {
+	bm := make(gopay.BodyMap)
+	bm.Set("out_trade_no", outTradeNo)
+	rsp, err := s.client.TradeQuery(context.Background(), bm)
+	if err != nil {
+		return OrderInfo{}, fmt.Errorf("error with trade query: %v", err)
+	}
+
+	switch rsp.Response.TradeStatus {
+	case "TRADE_SUCCESS":
+		logger.Debugf("支付宝查询订单成功：%+v", rsp.Response)
+		return OrderInfo{
+			OutTradeNo: rsp.Response.OutTradeNo,
+			TradeId:    rsp.Response.TradeNo,
+			Amount:     rsp.Response.TotalAmount,
+			Status:     Success,
+			PayTime:    rsp.Response.SendPayDate,
+		}, nil
+	case "TRADE_CLOSED":
+		return OrderInfo{Status: Closed}, nil
+	default:
+		return OrderInfo{}, fmt.Errorf("error with trade query: %v", rsp.Response.TradeStatus)
+	}
 }
 
 // TradeVerify 交易验证
-func (s *AlipayService) TradeVerify(request *http.Request) NotifyVo {
+func (s *AlipayService) TradeVerify(request *http.Request) (OrderInfo, error) {
 	notifyReq, err := alipay.ParseNotifyToBodyMap(request) // c.Request 是 gin 框架的写法
 	if err != nil {
-		return NotifyVo{
-			Status:  Failure,
-			Message: "error with parse notify request: " + err.Error(),
-		}
+		return OrderInfo{}, fmt.Errorf("error with parse notify request: %v", err)
 	}
 
 	_, err = alipay.VerifySignWithCert(s.config.AlipayPublicKey, notifyReq)
 	if err != nil {
-		return NotifyVo{
-			Status:  Failure,
-			Message: "error with verify sign: " + err.Error(),
-		}
+		return OrderInfo{}, fmt.Errorf("error with verify sign: %v", err)
 	}
 
-	return s.TradeQuery(request.Form.Get("out_trade_no"))
+	return s.Query(request.Form.Get("out_trade_no"))
 }
 
-func (s *AlipayService) TradeQuery(outTradeNo string) NotifyVo {
-	bm := make(gopay.BodyMap)
-	bm.Set("out_trade_no", outTradeNo)
-
-	//查询订单
-	rsp, err := s.client.TradeQuery(context.Background(), bm)
-	if err != nil {
-		return NotifyVo{
-			Status:  Failure,
-			Message: "异步查询验证订单信息发生错误" + outTradeNo + err.Error(),
-		}
-	}
-
-	if rsp.Response.TradeStatus == "TRADE_SUCCESS" {
-		return NotifyVo{
-			Status:     Success,
-			OutTradeNo: rsp.Response.OutTradeNo,
-			TradeId:    rsp.Response.TradeNo,
-			Amount:     rsp.Response.TotalAmount,
-			Subject:    rsp.Response.Subject,
-			Message:    "OK",
-		}
-	} else {
-		return NotifyVo{
-			Status:  Failure,
-			Message: "异步查询验证订单信息发生错误" + outTradeNo,
-		}
-	}
-}
-
-func readKey(filename string) (string, error) {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
-}
+var _ PayService = (*AlipayService)(nil)

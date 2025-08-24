@@ -29,19 +29,29 @@ type MiniOss struct {
 	proxyURL string
 }
 
-func NewMiniOss(appConfig *types.AppConfig) (MiniOss, error) {
-	config := &appConfig.OSS.Minio
+func NewMiniOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*MiniOss, error) {
+
+	s := &MiniOss{proxyURL: appConfig.ProxyURL}
+	if sysConfig.OSS.Active == Minio {
+		err := s.UpdateConfig(&sysConfig.OSS.Minio)
+		if err != nil {
+			logger.Errorf("MinioOSS初始化失败: %v", err)
+		}
+	}
+	return s, nil
+}
+
+func (s *MiniOss) UpdateConfig(config *types.MiniOssConfig) error {
 	minioClient, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccessKey, config.AccessSecret, ""),
 		Secure: config.UseSSL,
 	})
 	if err != nil {
-		return MiniOss{}, err
+		return err
 	}
-	if config.SubDir == "" {
-		config.SubDir = "gpt"
-	}
-	return MiniOss{config: config, client: minioClient, proxyURL: appConfig.ProxyURL}, nil
+	s.config = config
+	s.client = minioClient
+	return nil
 }
 
 func (s MiniOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {

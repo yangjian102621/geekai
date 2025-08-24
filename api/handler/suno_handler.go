@@ -82,7 +82,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		return
 	}
 
-	if user.Power < h.App.SysConfig.SunoPower {
+	if user.Power < h.App.SysConfig.Base.SunoPower {
 		resp.ERROR(c, "您的算力不足，请充值后再试！")
 		return
 	}
@@ -130,7 +130,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefSongId:    data.RefSongId,
 		RefTaskId:    data.RefTaskId,
 		ExtendSecs:   data.ExtendSecs,
-		Power:        h.App.SysConfig.SunoPower,
+		Power:        h.App.SysConfig.Base.SunoPower,
 		SongId:       utils.RandString(32),
 	}
 	if data.Lyrics != "" {

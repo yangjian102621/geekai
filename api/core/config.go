@@ -11,10 +11,12 @@ import (
 	"bytes"
 	"geekai/core/types"
 	logger2 "geekai/logger"
+	"geekai/store/model"
 	"geekai/utils"
 	"os"
 
 	"github.com/BurntSushi/toml"
+	"gorm.io/gorm"
 )
 
 var logger = logger2.GetLogger()
@@ -71,4 +73,79 @@ func SaveConfig(config *types.AppConfig) error {
 	}
 
 	return os.WriteFile(config.Path, buf.Bytes(), 0644)
+}
+
+func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
+	// 加载系统配置
+	var sysConfig model.Config
+	var baseConfig types.BaseConfig
+	db.Where("name", "system").First(&sysConfig)
+	err := utils.JsonDecode(sysConfig.Value, &baseConfig)
+	if err != nil {
+		logger.Error("load system config error: ", err)
+	}
+
+	// 加载许可证配置
+	var license types.License
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyLicense).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &license)
+	if err != nil {
+		logger.Error("load license config error: ", err)
+	}
+
+	// 加载 GeekAPI 配置
+	var geekAPIConfig types.GeekAPIConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyGeekAPI).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &geekAPIConfig)
+	if err != nil {
+		logger.Error("load geek service config error: ", err)
+	}
+
+	// 加载短信配置
+	var smsConfig types.SMSConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeySms).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &smsConfig)
+	if err != nil {
+		logger.Error("load sms config error: ", err)
+	}
+
+	// 加载 OSS 配置
+	var ossConfig types.OSSConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyOss).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &ossConfig)
+	if err != nil {
+		logger.Error("load oss config error: ", err)
+	}
+
+	// 加载 SMTP 配置
+	var smtpConfig types.SmtpConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeySmtp).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &smtpConfig)
+	if err != nil {
+		logger.Error("load smtp config error: ", err)
+	}
+
+	// 加载支付配置
+	var paymentConfig types.PaymentConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyPayment).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &paymentConfig)
+	if err != nil {
+		logger.Error("load payment config error: ", err)
+	}
+
+	return &types.SystemConfig{
+		Base:    baseConfig,
+		License: license,
+		SMS:     smsConfig,
+		OSS:     ossConfig,
+		SMTP:    smtpConfig,
+		Payment: paymentConfig,
+		GeekAPI: geekAPIConfig,
+	}
 }

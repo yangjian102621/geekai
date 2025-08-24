@@ -20,8 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/imroc/req/v3"
-
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
 
@@ -98,7 +96,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.EnabledVerify && data.RegWay == "username" {
+	if h.App.SysConfig.Base.EnabledVerify && data.RegWay == "username" {
 		var check bool
 		if data.X != 0 {
 			check = h.captcha.SlideCheck(data)
@@ -163,7 +161,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		ChatRoles:  utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
 		ChatConfig: "{}",
 		ChatModels: "{}",
-		Power:      h.App.SysConfig.InitPower,
+		Power:      h.App.SysConfig.Base.InitPower,
 	}
 
 	// check if the username is existing
@@ -188,13 +186,13 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 被邀请人也获得赠送算力
 	if data.InviteCode != "" {
-		user.Power += h.App.SysConfig.InvitePower
+		user.Power += h.App.SysConfig.Base.InvitePower
 	}
 
 	if h.licenseService.GetLicense().Configs.DeCopy {
 		user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 	} else {
-		defaultNickname := h.App.SysConfig.DefaultNickname
+		defaultNickname := h.App.SysConfig.Base.DefaultNickname
 		if defaultNickname == "" {
 			defaultNickname = "极客学长"
 		}
@@ -211,11 +209,11 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if data.InviteCode != "" {
 		// 增加邀请数量
 		h.DB.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
-		if h.App.SysConfig.InvitePower > 0 {
-			err := h.userService.IncreasePower(inviteCode.UserId, h.App.SysConfig.InvitePower, model.PowerLog{
+		if h.App.SysConfig.Base.InvitePower > 0 {
+			err := h.userService.IncreasePower(inviteCode.UserId, h.App.SysConfig.Base.InvitePower, model.PowerLog{
 				Type:   types.PowerInvite,
 				Model:  "Invite",
-				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
+				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.Base.InvitePower, inviteCode.Code, user.Username),
 			})
 			if err != nil {
 				tx.Rollback()
@@ -230,7 +228,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 			UserId:     user.Id,
 			Username:   user.Username,
 			InviteCode: inviteCode.Code,
-			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.InvitePower),
+			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.Base.InvitePower),
 		}).Error
 		if err != nil {
 			tx.Rollback()
@@ -276,7 +274,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	verifyKey := fmt.Sprintf("users/verify/%s", data.Username)
 	needVerify, err := h.redis.Get(c, verifyKey).Bool()
 
-	if h.App.SysConfig.EnabledVerify && needVerify {
+	if h.App.SysConfig.Base.EnabledVerify && needVerify {
 		var check bool
 		if data.X != 0 {
 			check = h.captcha.SlideCheck(data)
@@ -353,150 +351,128 @@ func (h *UserHandler) Logout(c *gin.Context) {
 
 // CLogin 第三方登录请求二维码
 func (h *UserHandler) CLogin(c *gin.Context) {
-	returnURL := h.GetTrim(c, "return_url")
-	var res types.BizVo
-	apiURL := fmt.Sprintf("%s/api/clogin/request", h.App.Config.ApiConfig.ApiURL)
-	r, err := req.C().R().SetBody(gin.H{"login_type": "wx", "return_url": returnURL}).
-		SetHeader("AppId", h.App.Config.ApiConfig.AppId).
-		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.App.Config.ApiConfig.Token)).
-		SetSuccessResult(&res).
-		Post(apiURL)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	if r.IsErrorState() {
-		resp.ERROR(c, "error with login http status: "+r.Status)
-		return
-	}
 
-	if res.Code != types.Success {
-		resp.ERROR(c, "error with http response: "+res.Message)
-		return
-	}
-
-	resp.SUCCESS(c, res.Data)
 }
 
 // CLoginCallback 第三方登录回调
 func (h *UserHandler) CLoginCallback(c *gin.Context) {
-	loginType := c.Query("login_type")
-	code := c.Query("code")
-	userId := h.GetInt(c, "user_id", 0)
-	action := c.Query("action")
+	// loginType := c.Query("login_type")
+	// code := c.Query("code")
+	// userId := h.GetInt(c, "user_id", 0)
+	// action := c.Query("action")
 
-	var res types.BizVo
-	apiURL := fmt.Sprintf("%s/api/clogin/info", h.App.Config.ApiConfig.ApiURL)
-	r, err := req.C().R().SetBody(gin.H{"login_type": loginType, "code": code}).
-		SetHeader("AppId", h.App.Config.ApiConfig.AppId).
-		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.App.Config.ApiConfig.Token)).
-		SetSuccessResult(&res).
-		Post(apiURL)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	if r.IsErrorState() {
-		resp.ERROR(c, "error with login http status: "+r.Status)
-		return
-	}
+	// var res types.BizVo
+	// apiURL := fmt.Sprintf("%s/api/clogin/info", h.App.Config.ApiConfig.ApiURL)
+	// r, err := req.C().R().SetBody(gin.H{"login_type": loginType, "code": code}).
+	// 	SetHeader("AppId", h.App.Config.ApiConfig.AppId).
+	// 	SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.App.Config.ApiConfig.Token)).
+	// 	SetSuccessResult(&res).
+	// 	Post(apiURL)
+	// if err != nil {
+	// 	resp.ERROR(c, err.Error())
+	// 	return
+	// }
+	// if r.IsErrorState() {
+	// 	resp.ERROR(c, "error with login http status: "+r.Status)
+	// 	return
+	// }
 
-	if res.Code != types.Success {
-		resp.ERROR(c, "error with http response: "+res.Message)
-		return
-	}
+	// if res.Code != types.Success {
+	// 	resp.ERROR(c, "error with http response: "+res.Message)
+	// 	return
+	// }
 
-	// login successfully
-	data := res.Data.(map[string]interface{})
-	var user model.User
-	if action == "bind" && userId > 0 {
-		err = h.DB.Where("openid", data["openid"]).First(&user).Error
-		if err == nil {
-			resp.ERROR(c, "该微信已经绑定其他账号，请先解绑")
-			return
-		}
+	// // login successfully
+	// data := res.Data.(map[string]interface{})
+	// var user model.User
+	// if action == "bind" && userId > 0 {
+	// 	err = h.DB.Where("openid", data["openid"]).First(&user).Error
+	// 	if err == nil {
+	// 		resp.ERROR(c, "该微信已经绑定其他账号，请先解绑")
+	// 		return
+	// 	}
 
-		err = h.DB.Where("id", userId).First(&user).Error
-		if err != nil {
-			resp.ERROR(c, "绑定用户不存在")
-			return
-		}
+	// 	err = h.DB.Where("id", userId).First(&user).Error
+	// 	if err != nil {
+	// 		resp.ERROR(c, "绑定用户不存在")
+	// 		return
+	// 	}
 
-		err = h.DB.Model(&user).UpdateColumn("openid", data["openid"]).Error
-		if err != nil {
-			resp.ERROR(c, "更新用户信息失败，"+err.Error())
-			return
-		}
+	// 	err = h.DB.Model(&user).UpdateColumn("openid", data["openid"]).Error
+	// 	if err != nil {
+	// 		resp.ERROR(c, "更新用户信息失败，"+err.Error())
+	// 		return
+	// 	}
 
-		resp.SUCCESS(c, gin.H{"token": ""})
-		return
-	}
+	// 	resp.SUCCESS(c, gin.H{"token": ""})
+	// 	return
+	// }
 
-	session := gin.H{}
-	tx := h.DB.Where("openid", data["openid"]).First(&user)
-	if tx.Error != nil {
-		// create new user
-		var totalUser int64
-		h.DB.Model(&model.User{}).Count(&totalUser)
-		if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
-			resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
-			return
-		}
+	// session := gin.H{}
+	// tx := h.DB.Where("openid", data["openid"]).First(&user)
+	// if tx.Error != nil {
+	// 	// create new user
+	// 	var totalUser int64
+	// 	h.DB.Model(&model.User{}).Count(&totalUser)
+	// 	if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
+	// 		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
+	// 		return
+	// 	}
 
-		salt := utils.RandString(8)
-		password := fmt.Sprintf("%d", utils.RandomNumber(8))
-		user = model.User{
-			Username:  fmt.Sprintf("%s@%d", loginType, utils.RandomNumber(10)),
-			Password:  utils.GenPassword(password, salt),
-			Avatar:    fmt.Sprintf("%s", data["avatar"]),
-			Salt:      salt,
-			Status:    true,
-			ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
-			Power:     h.App.SysConfig.InitPower,
-			OpenId:    fmt.Sprintf("%s", data["openid"]),
-			Nickname:  fmt.Sprintf("%s", data["nickname"]),
-		}
+	// 	salt := utils.RandString(8)
+	// 	password := fmt.Sprintf("%d", utils.RandomNumber(8))
+	// 	user = model.User{
+	// 		Username:  fmt.Sprintf("%s@%d", loginType, utils.RandomNumber(10)),
+	// 		Password:  utils.GenPassword(password, salt),
+	// 		Avatar:    fmt.Sprintf("%s", data["avatar"]),
+	// 		Salt:      salt,
+	// 		Status:    true,
+	// 		ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
+	// 		Power:     h.App.SysConfig.InitPower,
+	// 		OpenId:    fmt.Sprintf("%s", data["openid"]),
+	// 		Nickname:  fmt.Sprintf("%s", data["nickname"]),
+	// 	}
 
-		tx = h.DB.Create(&user)
-		if tx.Error != nil {
-			resp.ERROR(c, "保存数据失败")
-			logger.Error(tx.Error)
-			return
-		}
-		session["username"] = user.Username
-		session["password"] = password
-	} else { // login directly
-		// 更新最后登录时间和IP
-		user.LastLoginIp = c.ClientIP()
-		user.LastLoginAt = time.Now().Unix()
-		h.DB.Model(&user).Updates(user)
+	// 	tx = h.DB.Create(&user)
+	// 	if tx.Error != nil {
+	// 		resp.ERROR(c, "保存数据失败")
+	// 		logger.Error(tx.Error)
+	// 		return
+	// 	}
+	// 	session["username"] = user.Username
+	// 	session["password"] = password
+	// } else { // login directly
+	// 	// 更新最后登录时间和IP
+	// 	user.LastLoginIp = c.ClientIP()
+	// 	user.LastLoginAt = time.Now().Unix()
+	// 	h.DB.Model(&user).Updates(user)
 
-		h.DB.Create(&model.UserLoginLog{
-			UserId:       user.Id,
-			Username:     user.Username,
-			LoginIp:      c.ClientIP(),
-			LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
-		})
-	}
+	// 	h.DB.Create(&model.UserLoginLog{
+	// 		UserId:       user.Id,
+	// 		Username:     user.Username,
+	// 		LoginIp:      c.ClientIP(),
+	// 		LoginAddress: utils.Ip2Region(h.searcher, c.ClientIP()),
+	// 	})
+	// }
 
-	// 创建 token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.Id,
-		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
-	if err != nil {
-		resp.ERROR(c, "Failed to generate token, "+err.Error())
-		return
-	}
-	// 保存到 redis
-	key := fmt.Sprintf("users/%d", user.Id)
-	if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
-		resp.ERROR(c, "error with save token: "+err.Error())
-		return
-	}
-	session["token"] = tokenString
-	resp.SUCCESS(c, session)
+	// // 创建 token
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	// 	"user_id": user.Id,
+	// 	"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+	// })
+	// tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	// if err != nil {
+	// 	resp.ERROR(c, "Failed to generate token, "+err.Error())
+	// 	return
+	// }
+	// // 保存到 redis
+	// key := fmt.Sprintf("users/%d", user.Id)
+	// if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+	// 	resp.ERROR(c, "error with save token: "+err.Error())
+	// 	return
+	// }
+	// session["token"] = tokenString
+	// resp.SUCCESS(c, session)
 }
 
 // Session 获取/验证会话
@@ -760,11 +736,11 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 
 	// 签到
 	h.levelDB.Put(key, true)
-	if h.App.SysConfig.DailyPower > 0 {
-		h.userService.IncreasePower(userId, h.App.SysConfig.DailyPower, model.PowerLog{
+	if h.App.SysConfig.Base.DailyPower > 0 {
+		h.userService.IncreasePower(userId, h.App.SysConfig.Base.DailyPower, model.PowerLog{
 			Type:   types.PowerSignIn,
 			Model:  "SignIn",
-			Remark: fmt.Sprintf("每日签到奖励，金额：%d", h.App.SysConfig.DailyPower),
+			Remark: fmt.Sprintf("每日签到奖励，金额：%d", h.App.SysConfig.Base.DailyPower),
 		})
 	}
 	resp.SUCCESS(c)

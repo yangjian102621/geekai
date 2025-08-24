@@ -28,30 +28,32 @@ type AliYunOss struct {
 	proxyURL string
 }
 
-func NewAliYunOss(appConfig *types.AppConfig) (*AliYunOss, error) {
-	config := &appConfig.OSS.AliYun
-	// 创建 OSS 客户端
+func NewAliYunOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*AliYunOss, error) {
+	s := &AliYunOss{
+		proxyURL: appConfig.ProxyURL,
+	}
+	if sysConfig.OSS.Active == AliYun {
+		err := s.UpdateConfig(&sysConfig.OSS.AliYun)
+		if err != nil {
+			logger.Errorf("阿里云OSS初始化失败: %v", err)
+		}
+	}
+	return s, nil
+
+}
+
+func (s *AliYunOss) UpdateConfig(config *types.AliYunOssConfig) error {
 	client, err := oss.New(config.Endpoint, config.AccessKey, config.AccessSecret)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	// 获取存储空间
 	bucket, err := client.Bucket(config.Bucket)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	if config.SubDir == "" {
-		config.SubDir = "gpt"
-	}
-
-	return &AliYunOss{
-		config:   config,
-		bucket:   bucket,
-		proxyURL: appConfig.ProxyURL,
-	}, nil
-
+	s.bucket = bucket
+	s.config = config
+	return nil
 }
 
 func (s AliYunOss) PutFile(ctx *gin.Context, name string) (File, error) {

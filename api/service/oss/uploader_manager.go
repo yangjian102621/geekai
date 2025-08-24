@@ -10,44 +10,45 @@ package oss
 import (
 	"geekai/core/types"
 	"strings"
+
+	logger2 "geekai/logger"
 )
 
+var logger = logger2.GetLogger()
+
 type UploaderManager struct {
-	handler Uploader
+	local  *LocalStorage
+	aliyun *AliYunOss
+	mini   *MiniOss
+	qiniu  *QinNiuOss
+	config *types.OSSConfig
 }
 
-func NewUploaderManager(config *types.AppConfig) (*UploaderManager, error) {
-	active := Local
-	if config.OSS.Active != "" {
-		active = strings.ToUpper(config.OSS.Active)
+func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliyun *AliYunOss, mini *MiniOss, qiniu *QinNiuOss) (*UploaderManager, error) {
+	if sysConfig.OSS.Active == "" {
+		sysConfig.OSS.Active = Local
 	}
-	var handler Uploader
-	switch active {
-	case Local:
-		handler = NewLocalStorage(config)
-		break
-	case Minio:
-		client, err := NewMiniOss(config)
-		if err != nil {
-			return nil, err
-		}
-		handler = client
-		break
-	case QiNiu:
-		handler = NewQiNiuOss(config)
-		break
-	case AliYun:
-		client, err := NewAliYunOss(config)
-		if err != nil {
-			return nil, err
-		}
-		handler = client
-		break
-	}
+	sysConfig.OSS.Active = strings.ToLower(sysConfig.OSS.Active)
 
-	return &UploaderManager{handler: handler}, nil
+	return &UploaderManager{
+		config: &sysConfig.OSS,
+		local:  local,
+		aliyun: aliyun,
+		mini:   mini,
+		qiniu:  qiniu,
+	}, nil
 }
 
 func (m *UploaderManager) GetUploadHandler() Uploader {
-	return m.handler
+	switch m.config.Active {
+	case Local:
+		return m.local
+	case AliYun:
+		return m.aliyun
+	case Minio:
+		return m.mini
+	case QiNiu:
+		return m.qiniu
+	}
+	return m.local
 }

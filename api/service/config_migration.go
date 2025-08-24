@@ -65,12 +65,6 @@ func (s *ConfigMigrationService) MigrateFromConfig(config *types.AppConfig) erro
 		return err
 	}
 
-	// 迁移API配置
-	if err := s.migrateApiConfig(config); err != nil {
-		logger.Errorf("迁移API配置失败: %v", err)
-		return err
-	}
-
 	// 标记迁移完成
 	if err := s.markMigrationCompleted(); err != nil {
 		logger.Errorf("标记迁移完成失败: %v", err)
@@ -101,58 +95,13 @@ func (s *ConfigMigrationService) markMigrationCompleted() error {
 
 // 迁移支付配置
 func (s *ConfigMigrationService) migratePaymentConfig(config *types.AppConfig) error {
-	// 支付宝配置
-	alipayConfig := map[string]any{
-		"enabled":           config.AlipayConfig.Enabled,
-		"sand_box":          config.AlipayConfig.SandBox,
-		"app_id":            config.AlipayConfig.AppId,
-		"private_key":       config.AlipayConfig.PrivateKey,
-		"alipay_public_key": config.AlipayConfig.AlipayPublicKey,
-		"notify_url":        config.AlipayConfig.NotifyURL,
-		"return_url":        config.AlipayConfig.ReturnURL,
-	}
-	if err := s.saveConfig("alipay", alipayConfig); err != nil {
-		return err
-	}
 
-	// 微信支付配置
-	wechatConfig := map[string]any{
-		"enabled":     config.WechatPayConfig.Enabled,
-		"app_id":      config.WechatPayConfig.AppId,
-		"mch_id":      config.WechatPayConfig.MchId,
-		"serial_no":   config.WechatPayConfig.SerialNo,
-		"private_key": config.WechatPayConfig.PrivateKey,
-		"api_v3_key":  config.WechatPayConfig.ApiV3Key,
-		"notify_url":  config.WechatPayConfig.NotifyURL,
+	paymentConfig := types.PaymentConfig{
+		Alipay: config.AlipayConfig,
+		Epay:   config.GeekPayConfig,
+		WxPay:  config.WechatPayConfig,
 	}
-	if err := s.saveConfig("wechat", wechatConfig); err != nil {
-		return err
-	}
-
-	// 虎皮椒配置
-	hupiConfig := map[string]any{
-		"enabled":    config.HuPiPayConfig.Enabled,
-		"app_id":     config.HuPiPayConfig.AppId,
-		"app_secret": config.HuPiPayConfig.AppSecret,
-		"api_url":    config.HuPiPayConfig.ApiURL,
-		"notify_url": config.HuPiPayConfig.NotifyURL,
-		"return_url": config.HuPiPayConfig.ReturnURL,
-	}
-	if err := s.saveConfig("hupi", hupiConfig); err != nil {
-		return err
-	}
-
-	// GeekPay配置
-	geekpayConfig := map[string]any{
-		"enabled":     config.GeekPayConfig.Enabled,
-		"app_id":      config.GeekPayConfig.AppId,
-		"private_key": config.GeekPayConfig.PrivateKey,
-		"api_url":     config.GeekPayConfig.ApiURL,
-		"notify_url":  config.GeekPayConfig.NotifyURL,
-		"return_url":  config.GeekPayConfig.ReturnURL,
-		"methods":     config.GeekPayConfig.Methods,
-	}
-	if err := s.saveConfig("geekpay", geekpayConfig); err != nil {
+	if err := s.saveConfig(types.ConfigKeyPayment, paymentConfig); err != nil {
 		return err
 	}
 
@@ -161,37 +110,15 @@ func (s *ConfigMigrationService) migratePaymentConfig(config *types.AppConfig) e
 
 // 迁移存储配置
 func (s *ConfigMigrationService) migrateStorageConfig(config *types.AppConfig) error {
-	ossConfig := map[string]any{
-		"active": config.OSS.Active,
-		"local": map[string]any{
-			"base_path": config.OSS.Local.BasePath,
-			"base_url":  config.OSS.Local.BaseURL,
-		},
-		"minio": map[string]any{
-			"endpoint":      config.OSS.Minio.Endpoint,
-			"access_key":    config.OSS.Minio.AccessKey,
-			"access_secret": config.OSS.Minio.AccessSecret,
-			"bucket":        config.OSS.Minio.Bucket,
-			"use_ssl":       config.OSS.Minio.UseSSL,
-			"domain":        config.OSS.Minio.Domain,
-		},
-		"qiniu": map[string]any{
-			"zone":          config.OSS.QiNiu.Zone,
-			"access_key":    config.OSS.QiNiu.AccessKey,
-			"access_secret": config.OSS.QiNiu.AccessSecret,
-			"bucket":        config.OSS.QiNiu.Bucket,
-			"domain":        config.OSS.QiNiu.Domain,
-		},
-		"aliyun": map[string]any{
-			"endpoint":      config.OSS.AliYun.Endpoint,
-			"access_key":    config.OSS.AliYun.AccessKey,
-			"access_secret": config.OSS.AliYun.AccessSecret,
-			"bucket":        config.OSS.AliYun.Bucket,
-			"sub_dir":       config.OSS.AliYun.SubDir,
-			"domain":        config.OSS.AliYun.Domain,
-		},
+
+	ossConfig := types.OSSConfig{
+		Active: config.OSS.Active,
+		Local:  config.OSS.Local,
+		Minio:  config.OSS.Minio,
+		QiNiu:  config.OSS.QiNiu,
+		AliYun: config.OSS.AliYun,
 	}
-	return s.saveConfig("oss", ossConfig)
+	return s.saveConfig(types.ConfigKeyOss, ossConfig)
 }
 
 // 迁移通信配置
@@ -205,7 +132,7 @@ func (s *ConfigMigrationService) migrateCommunicationConfig(config *types.AppCon
 		"from":     config.SmtpConfig.From,
 		"password": config.SmtpConfig.Password,
 	}
-	if err := s.saveConfig("smtp", smtpConfig); err != nil {
+	if err := s.saveConfig(types.ConfigKeySmtp, smtpConfig); err != nil {
 		return err
 	}
 
@@ -215,34 +142,17 @@ func (s *ConfigMigrationService) migrateCommunicationConfig(config *types.AppCon
 		"ali": map[string]any{
 			"access_key":    config.SMS.Ali.AccessKey,
 			"access_secret": config.SMS.Ali.AccessSecret,
-			"product":       config.SMS.Ali.Product,
-			"domain":        config.SMS.Ali.Domain,
 			"sign":          config.SMS.Ali.Sign,
 			"code_temp_id":  config.SMS.Ali.CodeTempId,
 		},
 		"bao": map[string]any{
 			"username":      config.SMS.Bao.Username,
 			"password":      config.SMS.Bao.Password,
-			"domain":        config.SMS.Bao.Domain,
 			"sign":          config.SMS.Bao.Sign,
 			"code_template": config.SMS.Bao.CodeTemplate,
 		},
 	}
-	return s.saveConfig("sms", smsConfig)
-}
-
-// 迁移API配置
-func (s *ConfigMigrationService) migrateApiConfig(config *types.AppConfig) error {
-	apiConfig := map[string]any{
-		"api_url": config.ApiConfig.ApiURL,
-		"app_id":  config.ApiConfig.AppId,
-		"token":   config.ApiConfig.Token,
-		"jimeng_config": map[string]any{
-			"access_key": config.ApiConfig.JimengConfig.AccessKey,
-			"secret_key": config.ApiConfig.JimengConfig.SecretKey,
-		},
-	}
-	return s.saveConfig("api", apiConfig)
+	return s.saveConfig(types.ConfigKeySms, smsConfig)
 }
 
 // 保存配置到数据库

@@ -57,15 +57,15 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.LyricPromptTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.LyricPromptTemplate, data.Prompt), h.App.SysConfig.Base.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
-	if h.App.SysConfig.PromptPower > 0 {
+	if h.App.SysConfig.Base.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成歌词",
@@ -88,14 +88,14 @@ func (h *PromptHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.Base.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	if h.App.SysConfig.PromptPower > 0 {
+	if h.App.SysConfig.Base.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成绘画提示词",
@@ -117,15 +117,15 @@ func (h *PromptHandler) Video(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.Base.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
-	if h.App.SysConfig.PromptPower > 0 {
+	if h.App.SysConfig.Base.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成视频脚本",
@@ -167,9 +167,9 @@ func (h *PromptHandler) MetaPrompt(c *gin.Context) {
 }
 
 func (h *PromptHandler) getPromptModel() string {
-	if h.App.SysConfig.AssistantModelId > 0 {
+	if h.App.SysConfig.Base.AssistantModelId > 0 {
 		var chatModel model.ChatModel
-		h.DB.Where("id", h.App.SysConfig.AssistantModelId).First(&chatModel)
+		h.DB.Where("id", h.App.SysConfig.Base.AssistantModelId).First(&chatModel)
 		return chatModel.Value
 	}
 	return "gpt-4o"

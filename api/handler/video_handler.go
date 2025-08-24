@@ -78,7 +78,7 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		return
 	}
 
-	if user.Power < h.App.SysConfig.LumaPower {
+	if user.Power < h.App.SysConfig.Base.LumaPower {
 		resp.ERROR(c, "您的算力不足，请充值后再试！")
 		return
 	}
@@ -95,14 +95,14 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		Type:             types.VideoLuma,
 		Prompt:           data.Prompt,
 		Params:           params,
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 	}
 	// 插入数据库
 	job := model.VideoJob{
 		UserId:   uint(userId),
 		Type:     types.VideoLuma,
 		Prompt:   data.Prompt,
-		Power:    h.App.SysConfig.LumaPower,
+		Power:    h.App.SysConfig.Base.LumaPower,
 		TaskInfo: utils.JsonEncode(task),
 	}
 	tx := h.DB.Create(&job)
@@ -157,7 +157,7 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 
 	// 计算当前任务所需算力
 	key := fmt.Sprintf("%s_%s_%s", data.Model, data.Mode, data.Duration)
-	power := h.App.SysConfig.KeLingPowers[key]
+	power := h.App.SysConfig.Base.KeLingPowers[key]
 	if power == 0 {
 		resp.ERROR(c, "当前模型暂不支持")
 		return
@@ -191,7 +191,7 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 		Type:             types.VideoKeLing,
 		Prompt:           data.Prompt,
 		Params:           params,
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		Channel:          data.Channel,
 	}
 	// 插入数据库

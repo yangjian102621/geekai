@@ -10,36 +10,57 @@ package sms
 import (
 	"fmt"
 	"geekai/core/types"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dysmsapi"
 )
 
 type AliYunSmsService struct {
 	config *types.SmsConfigAli
 	client *dysmsapi.Client
+	domain string
+	zoneId string
 }
 
-func NewAliYunSmsService(appConfig *types.AppConfig) (*AliYunSmsService, error) {
-	config := &appConfig.SMS.Ali
-	// 创建阿里云短信客户端
+func NewAliYunSmsService(sysConfig *types.SystemConfig) (*AliYunSmsService, error) {
+	config := &sysConfig.SMS.Ali
+	domain := "dysmsapi.aliyuncs.com"
+	zoneId := "cn-hangzhou"
+
+	s := AliYunSmsService{
+		config: config,
+		domain: domain,
+		zoneId: zoneId,
+	}
+	if sysConfig.SMS.Active == Ali {
+		err := s.UpdateConfig(config)
+		if err != nil {
+			logger.Errorf("阿里云短信初始化失败: %v", err)
+		}
+	}
+	return &s, nil
+}
+
+func (s *AliYunSmsService) UpdateConfig(config *types.SmsConfigAli) error {
 	client, err := dysmsapi.NewClientWithAccessKey(
-		"cn-hangzhou",
+		s.zoneId,
 		config.AccessKey,
 		config.AccessSecret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create client: %v", err)
+		return fmt.Errorf("failed to create client: %v", err)
 	}
-
-	return &AliYunSmsService{
-		config: config,
-		client: client,
-	}, nil
+	s.client = client
+	s.config = config
+	return nil
 }
 
 func (s *AliYunSmsService) SendVerifyCode(mobile string, code int) error {
+	if s.client == nil {
+		return fmt.Errorf("阿里云短信服务未初始化")
+	}
 	// 创建短信请求并设置参数
 	request := dysmsapi.CreateSendSmsRequest()
 	request.Scheme = "https"
-	request.Domain = s.config.Domain
+	request.Domain = s.domain
 	request.PhoneNumbers = mobile
 	request.SignName = s.config.Sign
 	request.TemplateCode = s.config.CodeTempId

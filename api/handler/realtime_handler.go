@@ -160,7 +160,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 		return
 	}
 
-	if user.Power < h.App.SysConfig.AdvanceVoicePower {
+	if user.Power < h.App.SysConfig.Base.AdvanceVoicePower {
 		resp.ERROR(c, "当前用户算力不足，无法使用该功能")
 		return
 	}
@@ -204,7 +204,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
 	// 扣减算力
-	err = h.userService.DecreasePower(userId, h.App.SysConfig.AdvanceVoicePower, model.PowerLog{
+	err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.AdvanceVoicePower, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "advanced-voice",
 		Remark: "实时语音通话",

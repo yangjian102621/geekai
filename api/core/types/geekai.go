@@ -23,3 +23,8 @@ type WxLoginConfig struct {
 	NotifyURL string `json:"notify_url"` // 登录成功回调 URL
 	Enabled   bool   `json:"enabled"`    // 是否启用微信登录
 }
+
+type GeekAPIConfig struct {
+	Captcha CaptchaConfig
+	WxLogin WxLoginConfig
+}

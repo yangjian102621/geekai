@@ -22,41 +22,30 @@ import (
 	"time"
 )
 
-// GeekPayService Geek 支付服务
-type GeekPayService struct {
-	config *types.GeekPayConfig
+// EPayService 易支付服务
+type EPayService struct {
+	config *types.EpayConfig
 }
 
-func NewJPayService(appConfig *types.AppConfig) *GeekPayService {
-	return &GeekPayService{
-		config: &appConfig.GeekPayConfig,
+func NewEPayService(sysConfig *types.SystemConfig) *EPayService {
+	return &EPayService{
+		config: &sysConfig.Payment.Epay,
 	}
 }
 
-type GeekPayParams struct {
-	Method     string `json:"method"`       // 接口类型
-	Device     string `json:"device"`       // 设备类型
-	Type       string `json:"type"`         // 支付方式
-	OutTradeNo string `json:"out_trade_no"` // 商户订单号
-	Name       string `json:"name"`         // 商品名称
-	Money      string `json:"money"`        // 商品金额
-	ClientIP   string `json:"clientip"`     //用户IP地址
-	SubOpenId  string `json:"sub_openid"`   // 微信用户 openid，仅小程序支付需要
-	SubAppId   string `json:"sub_appid"`    // 小程序 AppId，仅小程序支付需要
-	NotifyURL  string `json:"notify_url"`
-	ReturnURL  string `json:"return_url"`
+func (s *EPayService) UpdateConfig(config *types.EpayConfig) {
+	s.config = config
 }
 
 // Pay 支付订单
-func (s *GeekPayService) Pay(params GeekPayParams) (*GeekPayResp, error) {
+func (s *EPayService) Pay(params PayRequest) (string, error) {
 	p := map[string]string{
-		"pid": s.config.AppId,
-		//"method":       params.Method,
+		"pid":          s.config.AppId,
 		"device":       params.Device,
-		"type":         params.Type,
+		"type":         params.PayWay,
 		"out_trade_no": params.OutTradeNo,
-		"name":         params.Name,
-		"money":        params.Money,
+		"name":         params.Subject,
+		"money":        params.TotalFee,
 		"clientip":     params.ClientIP,
 		"notify_url":   params.NotifyURL,
 		"return_url":   params.ReturnURL,
@@ -64,10 +53,21 @@ func (s *GeekPayService) Pay(params GeekPayParams) (*GeekPayResp, error) {
 	}
 	p["sign"] = s.Sign(p)
 	p["sign_type"] = "MD5"
-	return s.sendRequest(s.config.ApiURL, p)
+	resp, err := s.sendRequest(s.config.ApiURL, p)
+	if err != nil {
+		return "", err
+	}
+	if resp.Code != 1 {
+		return "", errors.New(resp.Msg)
+	}
+	if resp.PayURL != "" {
+		return resp.PayURL, nil
+	} else {
+		return resp.QrCode, nil
+	}
 }
 
-func (s *GeekPayService) Sign(params map[string]string) string {
+func (s *EPayService) Sign(params map[string]string) string {
 	// 按字母顺序排序参数
 	var keys []string
 	for k := range params {
@@ -100,7 +100,7 @@ type GeekPayResp struct {
 	UrlScheme string `json:"urlscheme"` // 小程序跳转支付链接
 }
 
-func (s *GeekPayService) sendRequest(endpoint string, params map[string]string) (*GeekPayResp, error) {
+func (s *EPayService) sendRequest(endpoint string, params map[string]string) (*GeekPayResp, error) {
 	form := url.Values{}
 	for k, v := range params {
 		form.Add(k, v)
@@ -137,3 +137,61 @@ func (s *GeekPayService) sendRequest(endpoint string, params map[string]string) 
 	}
 	return &r, nil
 }
+
+func (s *EPayService) Query(outTradeNo string) (OrderInfo, error) {
+
+	params := url.Values{}
+	params.Set("act", "order")
+	params.Set("pid", s.config.AppId)
+	params.Set("key", s.config.PrivateKey)
+	params.Set("out_trade_no", outTradeNo)
+
+	apiURL := fmt.Sprintf("%s/api.php?%s", s.config.ApiURL, params.Encode())
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Get(apiURL)
+	if err != nil {
+		return OrderInfo{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return OrderInfo{}, err
+	}
+	logger.Debugf(string(body))
+
+	var result struct {
+		Code    int    `json:"code"`
+		Msg     string `json:"msg"`
+		Status  string `json:"status"`
+		Name    string `json:"name"`
+		Money   string `json:"money"`
+		EndTime string `json:"endtime"`
+		TradeNo string `json:"trade_no"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return OrderInfo{}, errors.New("订单查询响应解析失败")
+	}
+	if result.Code != 1 {
+		return OrderInfo{}, errors.New(result.Msg)
+	}
+	logger.Debugf("订单信息：%+v", result)
+	orderInfo := OrderInfo{
+		OutTradeNo: outTradeNo,
+		TradeId:    result.TradeNo,
+		Amount:     result.Money,
+		PayTime:    result.EndTime,
+	}
+	if result.Status == "1" {
+		orderInfo.Status = Success
+	} else {
+		orderInfo.Status = Failure
+	}
+	return orderInfo, nil
+}
+
+var _ PayService = (*EPayService)(nil)

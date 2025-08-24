@@ -41,7 +41,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.MaxFileSize > 0 && f.Size > int64(h.App.SysConfig.MaxFileSize)*1024*1024 {
+	if h.App.SysConfig.Base.MaxFileSize > 0 && f.Size > int64(h.App.SysConfig.Base.MaxFileSize)*1024*1024 {
 		resp.ERROR(c, "文件大小超过限制")
 		return
 	}

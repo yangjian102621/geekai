@@ -197,7 +197,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 
-	if user.Power < h.App.SysConfig.DallPower {
+	if user.Power < h.App.SysConfig.Base.DallPower {
 		resp.ERROR(c, "创建 DALL-E 绘图任务失败，算力不足")
 		return
 	}
@@ -209,17 +209,17 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		Prompt:           prompt,
 		ModelId:          0,
 		ModelName:        "dall-e-3",
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		N:                1,
 		Quality:          "standard",
 		Size:             "1024x1024",
 		Style:            "vivid",
-		Power:            h.App.SysConfig.DallPower,
+		Power:            h.App.SysConfig.Base.DallPower,
 	}
 	job := model.DallJob{
 		UserId:   user.Id,
 		Prompt:   prompt,
-		Power:    h.App.SysConfig.DallPower,
+		Power:    h.App.SysConfig.Base.DallPower,
 		TaskInfo: utils.JsonEncode(task),
 	}
 	err := h.DB.Create(&job).Error

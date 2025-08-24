@@ -21,11 +21,11 @@ import (
 type CaptchaHandler struct {
 	App     *core.AppServer
 	service *service.CaptchaService
-	config  *types.CaptchaConfig
+	config  types.CaptchaConfig
 }
 
-func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService, config *types.CaptchaConfig) *CaptchaHandler {
-	return &CaptchaHandler{App: app, service: s, config: config}
+func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService, sysConfig *types.SystemConfig) *CaptchaHandler {
+	return &CaptchaHandler{App: app, service: s, config: sysConfig.GeekAPI.Captcha}
 }
 
 // RegisterRoutes 注册路由

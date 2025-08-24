@@ -39,7 +39,7 @@ func (h *MenuHandler) List(c *gin.Context) {
 	session := h.DB.Session(&gorm.Session{})
 	session = session.Where("enabled", true)
 	if index {
-		session = session.Where("id IN ?", h.App.SysConfig.IndexNavs)
+		session = session.Where("id IN ?", h.App.SysConfig.Base.IndexNavs)
 	}
 	res := session.Order("sort_num ASC").Find(&items)
 	if res.Error == nil {

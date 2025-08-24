@@ -29,13 +29,21 @@ type QinNiuOss struct {
 	mac       *qbox.Mac
 	putPolicy storage.PutPolicy
 	uploader  *storage.FormUploader
-	manager   *storage.BucketManager
+	bucket    *storage.BucketManager
 	proxyURL  string
 }
 
-func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
-	config := &appConfig.OSS.QiNiu
-	// build storage uploader
+func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *QinNiuOss {
+	s := &QinNiuOss{
+		proxyURL: appConfig.ProxyURL,
+	}
+	if sysConfig.OSS.Active == QiNiu {
+		s.UpdateConfig(&sysConfig.OSS.QiNiu)
+	}
+	return s
+}
+
+func (s *QinNiuOss) UpdateConfig(config *types.QiNiuOssConfig) {
 	zone, ok := storage.GetRegionByID(storage.RegionID(config.Zone))
 	if !ok {
 		zone = storage.ZoneHuanan
@@ -47,19 +55,12 @@ func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 	putPolicy := storage.PutPolicy{
 		Scope: config.Bucket,
 	}
-	if config.SubDir == "" {
-		config.SubDir = "gpt"
-	}
-	return QinNiuOss{
-		config:    config,
-		mac:       mac,
-		putPolicy: putPolicy,
-		uploader:  formUploader,
-		manager:   storage.NewBucketManager(mac, &storeConfig),
-		proxyURL:  appConfig.ProxyURL,
-	}
+	s.config = config
+	s.mac = mac
+	s.putPolicy = putPolicy
+	s.uploader = formUploader
+	s.bucket = storage.NewBucketManager(mac, &storeConfig)
 }
-
 func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	// 解析表单
 	file, err := ctx.FormFile(name)
@@ -147,7 +148,7 @@ func (s QinNiuOss) Delete(fileURL string) error {
 		objectKey = fileURL
 	}
 
-	return s.manager.Delete(s.config.Bucket, objectKey)
+	return s.bucket.Delete(s.config.Bucket, objectKey)
 }
 
 var _ Uploader = QinNiuOss{}
