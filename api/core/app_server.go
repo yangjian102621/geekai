@@ -185,15 +185,13 @@ func (s *AppServer) Run(db *gorm.DB) error {
 	go func() {
 		info, err := host.Info()
 		if err == nil {
-			apiURL := fmt.Sprintf("%s/%s", s.Config.ApiConfig.ApiURL, "api/installs/push")
+			apiURL := fmt.Sprintf("%s/api/installs/push", types.GeekAPIURL)
 			timestamp := time.Now().Unix()
 			product := "geekai-plus"
 			signStr := fmt.Sprintf("%s#%s#%d", product, info.HostID, timestamp)
 			sign := utils.Sha256(signStr)
 			resp, err := req.C().R().SetBody(map[string]interface{}{"product": product, "device_id": info.HostID, "timestamp": timestamp, "sign": sign}).Post(apiURL)
-			if err != nil {
-				logger.Errorf("register install info failed: %v", err)
-			} else {
+			if err == nil {
 				logger.Debugf("register install info success: %v", resp.String())
 			}
 		}

@@ -21,7 +21,7 @@ import (
 )
 
 type LicenseService struct {
-	config       types.ApiConfig
+	config       types.GeekServiceConfig
 	levelDB      *store.LevelDB
 	license      *types.License
 	urlWhiteList []string

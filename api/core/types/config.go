@@ -17,85 +17,18 @@ type AppConfig struct {
 	Session         Session
 	AdminSession    Session
 	ProxyURL        string
-	MysqlDns        string      // mysql 连接地址
-	StaticDir       string      // 静态资源目录
-	StaticUrl       string      // 静态资源 URL
-	Redis           RedisConfig // redis 连接信息
-	ApiConfig       ApiConfig   // ChatPlus API authorization configs
-	SMS             SMSConfig   // send mobile message config
-	OSS             OSSConfig   // OSS config
-	SmtpConfig      SmtpConfig  // 邮件发送配置
-	XXLConfig       XXLConfig
-	AlipayConfig    AlipayConfig    // 支付宝支付渠道配置
-	HuPiPayConfig   HuPiPayConfig   // 虎皮椒支付配置
-	GeekPayConfig   GeekPayConfig   // GEEK 支付配置
-	WechatPayConfig WechatPayConfig // 微信支付渠道配置
-	TikaHost        string          // TiKa 服务器地址
-}
-
-type SmtpConfig struct {
-	UseTls   bool // 是否使用 TLS 发送
-	Host     string
-	Port     int
-	AppName  string // 应用名称
-	From     string // 发件人邮箱地址
-	Password string // 发件人邮箱密码
-}
-
-type ApiConfig struct {
-	ApiURL       string
-	AppId        string
-	Token        string
-	JimengConfig JimengConfig // 即梦AI配置
-}
-
-type AlipayConfig struct {
-	Enabled         bool   // 是否启用该支付通道
-	SandBox         bool   // 是否沙盒环境
-	AppId           string // 应用 ID
-	PrivateKey      string // 商户私钥
-	AlipayPublicKey string // 支付宝公钥
-	NotifyURL       string // 异步通知地址
-	ReturnURL       string // 同步通知地址
-}
-
-type WechatPayConfig struct {
-	Enabled    bool   // 是否启用该支付通道
-	AppId      string // 公众号的APPID,如：wxd678efh567hg6787
-	MchId      string // 直连商户的商户号，由微信支付生成并下发
-	SerialNo   string // 商户证书的证书序列号
-	PrivateKey string // 商户私钥
-	ApiV3Key   string // API V3 秘钥
-	NotifyURL  string // 异步通知地址
-}
-
-type HuPiPayConfig struct { //虎皮椒第四方支付配置
-	Enabled   bool   // 是否启用该支付通道
-	AppId     string // App ID
-	AppSecret string // app 密钥
-	ApiURL    string // 支付网关
-	NotifyURL string // 异步通知地址
-	ReturnURL string // 同步通知地址
-}
-
-// GeekPayConfig GEEK支付配置
-type GeekPayConfig struct {
-	Enabled    bool
-	AppId      string   // 商户 ID
-	PrivateKey string   // 私钥
-	ApiURL     string   // API 网关
-	NotifyURL  string   // 异步通知地址
-	ReturnURL  string   // 同步通知地址
-	Methods    []string // 支付方式
-}
-
-type XXLConfig struct { // XXL 任务调度配置
-	Enabled      bool
-	ServerAddr   string
-	ExecutorIp   string
-	ExecutorPort string
-	AccessToken  string
-	RegistryKey  string
+	MysqlDns        string        // mysql 连接地址
+	StaticDir       string        // 静态资源目录
+	StaticUrl       string        // 静态资源 URL
+	Redis           RedisConfig   // redis 连接信息
+	SMS             SMSConfig     // send mobile message config
+	OSS             OSSConfig     // OSS config
+	SmtpConfig      SmtpConfig    // 邮件发送配置
+	AlipayConfig    AlipayConfig  // 支付宝支付渠道配置
+	HuPiPayConfig   HuPiPayConfig // 虎皮椒支付配置
+	GeekPayConfig   GeekPayConfig // GEEK 支付配置
+	WechatPayConfig WxPayConfig   // 微信支付渠道配置
+	TikaHost        string        // TiKa 服务器地址
 }
 
 type RedisConfig struct {
@@ -175,16 +108,13 @@ type SystemConfig struct {
 
 // 配置键名常量
 const (
-	ConfigKeySystem    = "system"
-	ConfigKeyNotice    = "notice"
-	ConfigKeyAgreement = "agreement"
-	ConfigKeyPrivacy   = "privacy"
-	ConfigKeyApi       = "api"
-	ConfigKeySms       = "sms"
-	ConfigKeySmtp      = "smtp"
-	ConfigKeyOss       = "oss"
-	ConfigKeyAlipay    = "alipay"
-	ConfigKeyWechat    = "wechat"
-	ConfigKeyHuPi      = "hupi"
-	ConfigKeyGeekpay   = "geekpay"
+	ConfigKeySystem      = "system"
+	ConfigKeyNotice      = "notice"
+	ConfigKeyAgreement   = "agreement"
+	ConfigKeyPrivacy     = "privacy"
+	ConfigKeyGeekService = "geekai"
+	ConfigKeySms         = "sms"
+	ConfigKeySmtp        = "smtp"
+	ConfigKeyOss         = "oss"
+	ConfigKeyPayment     = "payment"
 )

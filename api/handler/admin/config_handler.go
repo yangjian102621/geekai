@@ -74,10 +74,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 			resp.ERROR(c, "您无权修改版权信息，请先联系作者获取授权")
 			return
 		}
-		if sys.EnabledVerify && h.App.Config.ApiConfig.AppId == "" {
-			resp.ERROR(c, "启用验证码服务需要先配置 GeekAI 官方 API 服务 AppId 和 Token")
-			return
-		}
+
 	}
 
 	// 使用统一配置服务写入与广播

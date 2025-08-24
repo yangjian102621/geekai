@@ -24,8 +24,6 @@ require (
 	gorm.io/driver/mysql v1.4.7
 )
 
-require github.com/xxl-job/xxl-job-executor-go v1.2.0
-
 require (
 	github.com/go-pay/gopay v1.5.101
 	github.com/go-rod/rod v0.116.2
@@ -69,7 +67,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gaukas/godicttls v0.0.3 // indirect
-	github.com/go-basic/ipv4 v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect

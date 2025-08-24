@@ -31,7 +31,6 @@ import (
 
 type FunctionHandler struct {
 	BaseHandler
-	config        types.ApiConfig
 	uploadManager *oss.UploaderManager
 	dallService   *dalle.Service
 	userService   *service.UserService
@@ -49,7 +48,6 @@ func NewFunctionHandler(
 			App: server,
 			DB:  db,
 		},
-		config:        config.ApiConfig,
 		uploadManager: manager,
 		dallService:   dallService,
 		userService:   userService,
@@ -117,16 +115,10 @@ func (h *FunctionHandler) WeiBo(c *gin.Context) {
 		return
 	}
 
-	if h.config.Token == "" {
-		resp.ERROR(c, "无效的 API Token")
-		return
-	}
-
-	url := fmt.Sprintf("%s/api/weibo/fetch", h.config.ApiURL)
+	url := fmt.Sprintf("%s/api/weibo/fetch", types.GeekAPIURL)
 	var res resVo
 	r, err := req.C().R().
-		SetHeader("AppId", h.config.AppId).
-		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.config.Token)).
+		SetHeader("Authorization", "Bearer geekai-plus").
 		SetSuccessResult(&res).Get(url)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("%v", err))
@@ -156,16 +148,10 @@ func (h *FunctionHandler) ZaoBao(c *gin.Context) {
 		return
 	}
 
-	if h.config.Token == "" {
-		resp.ERROR(c, "无效的 API Token")
-		return
-	}
-
-	url := fmt.Sprintf("%s/api/zaobao/fetch", h.config.ApiURL)
+	url := fmt.Sprintf("%s/api/zaobao/fetch", types.GeekAPIURL)
 	var res resVo
 	r, err := req.C().R().
-		SetHeader("AppId", h.config.AppId).
-		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.config.Token)).
+		SetHeader("Authorization", "Bearer geekai-plus").
 		SetSuccessResult(&res).Get(url)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("%v", err))

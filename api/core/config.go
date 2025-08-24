@@ -30,7 +30,6 @@ func NewDefaultConfig() *types.AppConfig {
 			SecretKey: utils.RandString(64),
 			MaxAge:    86400,
 		},
-		ApiConfig: types.ApiConfig{},
 		OSS: types.OSSConfig{
 			Active: "local",
 			Local: types.LocalStorageConfig{
@@ -38,7 +37,6 @@ func NewDefaultConfig() *types.AppConfig {
 				BasePath: "./static/upload",
 			},
 		},
-		AlipayConfig: types.AlipayConfig{Enabled: false, SandBox: false},
 	}
 }
 
