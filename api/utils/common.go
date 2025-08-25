@@ -165,7 +165,7 @@ func IntValue(str string, defaultValue int) int {
 	return value
 }
 
-func ForceCovert(src any, dst interface{}) error {
+func ForceCovert(src any, dst any) error {
 	b, err := json.Marshal(src)
 	if err != nil {
 		return err
