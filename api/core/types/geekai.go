@@ -1,5 +1,7 @@
 package types
 
+import "os"
+
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
 // * Use of this source code is governed by a Apache-2.0 license
@@ -8,7 +10,13 @@ package types
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // GeekAI 增值服务
-const GeekAPIURL = "https://sapi.geekai.me"
+var GeekAPIURL = "https://sapi.geekai.me"
+
+func init() {
+	if os.Getenv("GEEK_API_URL") != "" {
+		GeekAPIURL = os.Getenv("GEEK_API_URL")
+	}
+}
 
 // CaptchaConfig 行为验证码配置
 type CaptchaConfig struct {
