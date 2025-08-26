@@ -68,12 +68,12 @@ func (h *UserHandler) RegisterRoutes() {
 	group.POST("login", h.Login)
 	group.POST("resetPass", h.ResetPass)
 	group.GET("clogin", h.CLogin)
+	group.GET("logout", h.Logout)
 	group.GET("clogin/callback", h.CLoginCallback)
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
-		group.GET("logout", h.Logout)
 		group.GET("session", h.Session)
 		group.GET("profile", h.Profile)
 		group.POST("profile/update", h.ProfileUpdate)

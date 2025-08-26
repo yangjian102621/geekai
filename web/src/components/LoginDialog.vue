@@ -34,6 +34,7 @@
             <button
               class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
               @click="submitLogin"
+              type="button"
             >
               {{ loading ? '登录中...' : '登 录' }}
             </button>
@@ -210,6 +211,7 @@
           <button
             class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
             @click="submitRegister"
+            type="button"
           >
             {{ loading ? '注册中...' : '注 册' }}
           </button>

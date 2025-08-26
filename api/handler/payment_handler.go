@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
-	"geekai/core/midware"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/payment"
@@ -81,7 +81,7 @@ func (h *PaymentHandler) RegisterRoutes() {
 	rg.POST("notify/wechat", h.WechatPayNotify)
 
 	// 需要用户登录的接口
-	rg.Use(midware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	rg.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
 		rg.POST("create", h.Pay)
 	}

@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"geekai/core/types"
+	"geekai/store"
 	"geekai/store/model"
 
 	"github.com/go-redis/redis/v8"
@@ -24,26 +25,102 @@ const (
 	MigrationCompleted = "completed"
 )
 
-// ConfigMigrationService 配置迁移服务
-type ConfigMigrationService struct {
+// MigrationService 配置迁移服务
+type MigrationService struct {
 	db          *gorm.DB
 	redisClient *redis.Client
+	appConfig   *types.AppConfig
+	levelDB     *store.LevelDB
 }
 
-func NewConfigMigrationService(db *gorm.DB, redisClient *redis.Client) *ConfigMigrationService {
-	return &ConfigMigrationService{
+func NewMigrationService(db *gorm.DB, redisClient *redis.Client, appConfig *types.AppConfig, levelDB *store.LevelDB) *MigrationService {
+	return &MigrationService{
 		db:          db,
 		redisClient: redisClient,
+		appConfig:   appConfig,
+		levelDB:     levelDB,
 	}
 }
 
-// MigrateFromConfig 从 config.toml 迁移配置到数据库（仅首次启动时执行）
-func (s *ConfigMigrationService) MigrateFromConfig(config *types.AppConfig) error {
-	// 检查是否已经迁移过
-	if s.isMigrationCompleted() {
-		logger.Info("配置迁移已完成，跳过迁移")
-		return nil
+func (s *MigrationService) StartMigrate() {
+	go func() {
+		s.MigrateConfig(s.appConfig)
+		s.TableMigration()
+		s.MigrateLicense()
+	}()
+}
+
+// 迁移 License
+func (s *MigrationService) MigrateLicense() {
+	key := "migrate:license"
+	if s.redisClient.Get(context.Background(), key).Val() == "1" {
+		logger.Info("License 已迁移，跳过迁移")
+		return
 	}
+
+	logger.Info("开始迁移 License...")
+	var license types.License
+	err := s.levelDB.Get(types.LicenseKey, &license)
+	if err != nil {
+		logger.Errorf("迁移 License 失败: %v", err)
+		return
+	}
+	logger.Infof("迁移 License: %+v", license)
+	if err := s.saveConfig(types.ConfigKeyLicense, license); err != nil {
+		logger.Errorf("迁移 License 失败: %v", err)
+		return
+	}
+	logger.Info("迁移 License 完成")
+	s.redisClient.Set(context.Background(), key, "1", 0)
+}
+
+// 数据表迁移
+func (s *MigrationService) TableMigration() {
+	// 订单字段整理
+	if s.db.Migrator().HasColumn(&model.Order{}, "pay_type") {
+		s.db.Migrator().RenameColumn(&model.Order{}, "pay_type", "channel")
+	}
+	if !s.db.Migrator().HasColumn(&model.Order{}, "checked") {
+		s.db.Migrator().AddColumn(&model.Order{}, "checked")
+	}
+
+	// 重命名 config 表字段
+	if s.db.Migrator().HasColumn(&model.Config{}, "config_json") {
+		s.db.Migrator().RenameColumn(&model.Config{}, "config_json", "value")
+	}
+	if s.db.Migrator().HasColumn(&model.Config{}, "marker") {
+		s.db.Migrator().RenameColumn(&model.Config{}, "marker", "name")
+	}
+	if s.db.Migrator().HasIndex(&model.Config{}, "idx_chatgpt_configs_key") {
+		s.db.Migrator().DropIndex(&model.Config{}, "idx_chatgpt_configs_key")
+	}
+	if s.db.Migrator().HasIndex(&model.Config{}, "marker") {
+		s.db.Migrator().DropIndex(&model.Config{}, "marker")
+	}
+
+	// 手动删除字段
+	if s.db.Migrator().HasColumn(&model.Order{}, "deleted_at") {
+		s.db.Migrator().DropColumn(&model.Order{}, "deleted_at")
+	}
+	if s.db.Migrator().HasColumn(&model.ChatItem{}, "deleted_at") {
+		s.db.Migrator().DropColumn(&model.ChatItem{}, "deleted_at")
+	}
+	if s.db.Migrator().HasColumn(&model.ChatMessage{}, "deleted_at") {
+		s.db.Migrator().DropColumn(&model.ChatMessage{}, "deleted_at")
+	}
+	if s.db.Migrator().HasColumn(&model.User{}, "chat_config") {
+		s.db.Migrator().DropColumn(&model.User{}, "chat_config")
+	}
+	if s.db.Migrator().HasColumn(&model.ChatModel{}, "category") {
+		s.db.Migrator().DropColumn(&model.ChatModel{}, "category")
+	}
+	if s.db.Migrator().HasColumn(&model.ChatModel{}, "description") {
+		s.db.Migrator().DropColumn(&model.ChatModel{}, "description")
+	}
+}
+
+// 迁移配置数据
+func (s *MigrationService) MigrateConfig(config *types.AppConfig) error {
 
 	logger.Info("开始迁移配置到数据库...")
 
@@ -65,36 +142,12 @@ func (s *ConfigMigrationService) MigrateFromConfig(config *types.AppConfig) erro
 		return err
 	}
 
-	// 标记迁移完成
-	if err := s.markMigrationCompleted(); err != nil {
-		logger.Errorf("标记迁移完成失败: %v", err)
-		return err
-	}
-
 	logger.Info("配置迁移完成")
 	return nil
 }
 
-// 检查是否已经迁移完成
-func (s *ConfigMigrationService) isMigrationCompleted() bool {
-	ctx := context.Background()
-	status, err := s.redisClient.Get(ctx, MigrationStatusKey).Result()
-	if err != nil {
-		// Redis中没有找到标志，说明未迁移过
-		return false
-	}
-	return status == MigrationCompleted
-}
-
-// 标记迁移完成
-func (s *ConfigMigrationService) markMigrationCompleted() error {
-	ctx := context.Background()
-	// 设置迁移完成标志，永不过期
-	return s.redisClient.Set(ctx, MigrationStatusKey, MigrationCompleted, 0).Err()
-}
-
 // 迁移支付配置
-func (s *ConfigMigrationService) migratePaymentConfig(config *types.AppConfig) error {
+func (s *MigrationService) migratePaymentConfig(config *types.AppConfig) error {
 
 	paymentConfig := types.PaymentConfig{
 		Alipay: config.AlipayConfig,
@@ -109,7 +162,7 @@ func (s *ConfigMigrationService) migratePaymentConfig(config *types.AppConfig) e
 }
 
 // 迁移存储配置
-func (s *ConfigMigrationService) migrateStorageConfig(config *types.AppConfig) error {
+func (s *MigrationService) migrateStorageConfig(config *types.AppConfig) error {
 
 	ossConfig := types.OSSConfig{
 		Active: config.OSS.Active,
@@ -122,7 +175,7 @@ func (s *ConfigMigrationService) migrateStorageConfig(config *types.AppConfig) e
 }
 
 // 迁移通信配置
-func (s *ConfigMigrationService) migrateCommunicationConfig(config *types.AppConfig) error {
+func (s *MigrationService) migrateCommunicationConfig(config *types.AppConfig) error {
 	// SMTP配置
 	smtpConfig := map[string]any{
 		"use_tls":  config.SmtpConfig.UseTls,
@@ -156,7 +209,7 @@ func (s *ConfigMigrationService) migrateCommunicationConfig(config *types.AppCon
 }
 
 // 保存配置到数据库
-func (s *ConfigMigrationService) saveConfig(key string, config any) error {
+func (s *MigrationService) saveConfig(key string, config any) error {
 	// 检查是否已存在
 	var existingConfig model.Config
 	if err := s.db.Where("name", key).First(&existingConfig).Error; err == nil {

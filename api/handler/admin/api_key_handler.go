@@ -33,7 +33,7 @@ func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
 
 // RegisterRoutes 注册路由
 func (h *ApiKeyHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/apiKey/")
+	group := h.App.Engine.Group("/api/admin/apikey/")
 
 	// 需要管理员授权的接口
 	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))

@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/utils/resp"
@@ -33,14 +32,11 @@ func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService, sysConfig
 func (h *CaptchaHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/captcha/")
 
-	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
-	{
-		group.GET("get", h.Get)
-		group.POST("check", h.Check)
-		group.GET("slide/get", h.SlideGet)
-		group.POST("slide/check", h.SlideCheck)
-	}
+	// 无需授权的接口
+	group.GET("get", h.Get)
+	group.POST("check", h.Check)
+	group.GET("slide/get", h.SlideGet)
+	group.POST("slide/check", h.SlideCheck)
 }
 
 func (h *CaptchaHandler) Get(c *gin.Context) {

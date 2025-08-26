@@ -34,7 +34,6 @@
             :show="true"
             active="register"
             :inviteCode="inviteCode"
-            @hide="handleRegisterHide"
             @success="handleRegisterSuccess"
             ref="loginDialogRef"
           />
@@ -46,7 +45,7 @@
 
 <script setup>
 import LoginDialog from '@/components/LoginDialog.vue'
-import { getCurrentDeviceRedirectPath } from '@/utils/device'
+import { isMobile } from '@/utils/libs'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -54,16 +53,13 @@ const router = useRouter()
 const loginDialogRef = ref(null)
 const inviteCode = ref(router.currentRoute.value.query.invite_code || '')
 
-// 处理注册弹窗隐藏
-const handleRegisterHide = () => {
-  const redirectPath = getCurrentDeviceRedirectPath()
-  router.push(redirectPath)
-}
-
 // 处理注册成功
 const handleRegisterSuccess = () => {
-  const redirectPath = getCurrentDeviceRedirectPath()
-  router.push(redirectPath)
+  if (isMobile()) {
+    router.push('/mobile')
+  } else {
+    router.push('/chat')
+  }
 }
 
 onMounted(() => {

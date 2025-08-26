@@ -112,12 +112,6 @@ func main() {
 			return xdbFS
 		}),
 
-		// 数据修复
-		fx.Provide(service.NewDataFixService),
-		fx.Invoke(func(s *core.AppServer, dfs *service.DataFixService) {
-			dfs.FixData()
-		}),
-
 		// 创建 Ip2Region 查询对象
 		fx.Provide(func() (*xdb.Searcher, error) {
 			file, err := xdbFS.Open("res/ip2region.xdb")
@@ -151,11 +145,9 @@ func main() {
 		fx.Provide(handler.NewJimengHandler),
 
 		fx.Provide(service.NewConfigService),
-		fx.Provide(service.NewConfigMigrationService),
-		fx.Invoke(func(migrationService *service.ConfigMigrationService, config *types.AppConfig, redisClient *redis.Client) {
-			if err := migrationService.MigrateFromConfig(config); err != nil {
-				logger.Errorf("配置迁移失败: %v", err)
-			}
+		fx.Provide(service.NewMigrationService),
+		fx.Invoke(func(migrationService *service.MigrationService) {
+			migrationService.StartMigrate()
 		}),
 
 		// 管理后台控制器

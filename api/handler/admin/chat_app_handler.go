@@ -33,7 +33,7 @@ func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
 
 // RegisterRoutes 注册路由
 func (h *ChatAppHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/app/")
+	group := h.App.Engine.Group("/api/admin/role/")
 
 	// 需要管理员授权的接口
 	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))

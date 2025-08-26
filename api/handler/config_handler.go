@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils"
@@ -32,12 +31,9 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB, licenseService *service.
 func (h *ConfigHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/config/")
 
-	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
-	{
-		group.GET("get", h.Get)
-		group.GET("license", h.License)
-	}
+	// 无需授权的接口
+	group.GET("get", h.Get)
+	group.GET("license", h.License)
 }
 
 // Get 获取指定的系统配置

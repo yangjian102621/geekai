@@ -10,37 +10,35 @@ package service
 import (
 	"errors"
 	"fmt"
-	"geekai/core"
 	"geekai/core/types"
-	"geekai/store"
+	"geekai/store/model"
+	"geekai/utils"
 	"strings"
 	"time"
 
 	"github.com/imroc/req/v3"
 	"github.com/shirou/gopsutil/host"
+	"gorm.io/gorm"
 )
 
 type LicenseService struct {
-	levelDB      *store.LevelDB
 	license      *types.License
 	urlWhiteList []string
 	machineId    string
+	db           *gorm.DB
 }
 
-func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseService {
-	var license types.License
+func NewLicenseService(sysConfig *types.SystemConfig, db *gorm.DB) *LicenseService {
 	var machineId string
-	err := levelDB.Get(types.LicenseKey, &license)
-	logger.Infof("License: %+v", server.SysConfig)
 	info, err := host.Info()
 	if err == nil {
 		machineId = info.HostID
 	}
-	logger.Infof("License: %+v", license)
+	logger.Infof("License: %+v", sysConfig.License)
 	return &LicenseService{
-		levelDB:   levelDB,
-		license:   &license,
+		license:   &sysConfig.License,
 		machineId: machineId,
+		db:        db,
 	}
 }
 
@@ -88,10 +86,13 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 		ExpiredAt: res.Data.ExpiredAt,
 		IsActive:  true,
 	}
-	err = s.levelDB.Put(types.LicenseKey, s.license)
+
+	// 保存 License 到数据库
+	err = s.db.Model(&model.Config{}).Where("name = ?", types.ConfigKeyLicense).UpdateColumn("value", utils.JsonEncode(s.license)).Error
 	if err != nil {
-		return fmt.Errorf("保存许可证书失败：%v", err)
+		return fmt.Errorf("保存 License 到数据库失败: %v", err)
 	}
+
 	return nil
 }
 
@@ -173,6 +174,13 @@ func (s *LicenseService) fetchUrlWhiteList() ([]string, error) {
 
 // GetLicense 获取许可信息
 func (s *LicenseService) GetLicense() *types.License {
+	if s.license == nil {
+		var config model.Config
+		s.db.Model(&model.Config{}).Where("name = ?", types.ConfigKeyLicense).First(&config)
+		if config.Value != "" {
+			utils.JsonDecode(config.Value, &s.license)
+		}
+	}
 	return s.license
 }
 

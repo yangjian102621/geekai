@@ -30,7 +30,7 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 
 // RegisterRoutes 注册路由
 func (h *ChatRoleHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/role/")
+	group := h.App.Engine.Group("/api/app/")
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))

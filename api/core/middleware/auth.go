@@ -103,6 +103,7 @@ func AdminAuthMiddleware(secretKey string, redis *redis.Client) gin.HandlerFunc 
 			c.Abort()
 			return
 		}
+
 		c.Set(types.AdminUserID, claims["user_id"])
 	}
 }

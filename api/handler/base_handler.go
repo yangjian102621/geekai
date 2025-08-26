@@ -15,8 +15,9 @@ import (
 	logger2 "geekai/logger"
 	"geekai/store/model"
 	"geekai/utils"
-	"gorm.io/gorm"
 	"strings"
+
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -63,6 +64,14 @@ func (h *BaseHandler) GetUserKey(c *gin.Context) string {
 
 func (h *BaseHandler) GetLoginUserId(c *gin.Context) uint {
 	userId, ok := c.Get(types.LoginUserID)
+	if !ok {
+		return 0
+	}
+	return uint(utils.IntValue(utils.InterfaceToString(userId), 0))
+}
+
+func (h *BaseHandler) GetAdminId(c *gin.Context) uint {
+	userId, ok := c.Get(types.AdminUserID)
 	if !ok {
 		return 0
 	}

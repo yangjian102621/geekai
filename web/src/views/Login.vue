@@ -30,12 +30,7 @@
         </div>
 
         <div class="login-content">
-          <login-dialog
-            :show="true"
-            @hide="handleLoginHide"
-            @success="handleLoginSuccess"
-            ref="loginDialogRef"
-          />
+          <login-dialog :show="true" @success="handleLoginSuccess" ref="loginDialogRef" />
         </div>
       </div>
     </div>
@@ -45,7 +40,7 @@
 <script setup>
 import LoginDialog from '@/components/LoginDialog.vue'
 import { setUserToken } from '@/store/session'
-import { getCurrentDeviceRedirectPath } from '@/utils/device'
+import { isMobile } from '@/utils/libs'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -58,16 +53,13 @@ if (token) {
   router.push('/chat')
 }
 
-// 处理登录弹窗隐藏
-const handleLoginHide = () => {
-  const redirectPath = getCurrentDeviceRedirectPath()
-  router.push(redirectPath)
-}
-
 // 处理登录成功
 const handleLoginSuccess = () => {
-  const redirectPath = getCurrentDeviceRedirectPath()
-  router.push(redirectPath)
+  if (isMobile()) {
+    router.push('/mobile')
+  } else {
+    router.push('/chat')
+  }
 }
 
 onMounted(() => {

@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/sms"
@@ -48,12 +47,8 @@ func NewSmsHandler(
 // RegisterRoutes 注册路由
 func (h *SmsHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/sms/")
-
-	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
-	{
-		group.POST("code", h.SendCode)
-	}
+	// 无需授权的接口
+	group.POST("code", h.SendCode)
 }
 
 // SendCode 发送验证码
