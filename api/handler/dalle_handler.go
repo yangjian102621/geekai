@@ -10,6 +10,7 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/dalle"
@@ -44,13 +45,20 @@ func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service,
 
 // RegisterRoutes 注册路由
 func (h *DallJobHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/dall")
-	group.POST("image", h.Image)
-	group.GET("jobs", h.JobList)
+	group := h.App.Engine.Group("/api/dall/")
+
+	// 公开接口，不需要授权
 	group.GET("imgWall", h.ImgWall)
-	group.GET("remove", h.Remove)
-	group.GET("publish", h.Publish)
 	group.GET("models", h.GetModels)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("image", h.Image)
+		group.GET("jobs", h.JobList)
+		group.GET("remove", h.Remove)
+		group.GET("publish", h.Publish)
+	}
 }
 
 // Image 创建一个绘画任务

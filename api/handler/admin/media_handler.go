@@ -10,6 +10,7 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -35,10 +36,15 @@ func NewMediaHandler(app *core.AppServer, db *gorm.DB, userService *service.User
 
 // RegisterRoutes 注册路由
 func (h *MediaHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/media")
-	group.POST("/suno", h.SunoList)
-	group.POST("/videos", h.Videos)
-	group.GET("/remove", h.Remove)
+	group := h.App.Engine.Group("/api/admin/media/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.POST("suno", h.SunoList)
+		group.POST("videos", h.Videos)
+		group.GET("remove", h.Remove)
+	}
 }
 
 type mediaQuery struct {

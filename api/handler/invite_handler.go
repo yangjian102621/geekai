@@ -10,6 +10,7 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -33,11 +34,18 @@ func NewInviteHandler(app *core.AppServer, db *gorm.DB) *InviteHandler {
 // RegisterRoutes 注册路由
 func (h *InviteHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/invite/")
-	group.GET("code", h.Code)
-	group.GET("list", h.List)
+
+	// 公开接口，不需要授权
 	group.GET("hits", h.Hits)
-	group.GET("stats", h.Stats)
-	group.GET("rules", h.Rules)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("code", h.Code)
+		group.GET("list", h.List)
+		group.GET("stats", h.Stats)
+		group.GET("rules", h.Rules)
+	}
 }
 
 // Code 获取当前用户邀请码

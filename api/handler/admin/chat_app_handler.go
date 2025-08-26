@@ -10,6 +10,7 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -32,12 +33,17 @@ func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
 
 // RegisterRoutes 注册路由
 func (h *ChatAppHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/role/")
-	group.GET("list", h.List)
-	group.POST("save", h.Save)
-	group.POST("sort", h.Sort)
-	group.POST("set", h.Set)
-	group.GET("remove", h.Remove)
+	group := h.App.Engine.Group("/api/admin/app/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.POST("sort", h.Sort)
+		group.POST("set", h.Set)
+		group.GET("remove", h.Remove)
+	}
 }
 
 // Save 创建或者更新某个角色
@@ -184,7 +190,6 @@ func (h *ChatAppHandler) Remove(c *gin.Context) {
 	}
 	res := h.DB.Where("id", id).Delete(&model.ChatRole{})
 	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "删除失败！")
 		return
 	}

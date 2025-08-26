@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
-
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/jimeng"
@@ -34,12 +34,17 @@ func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *go
 
 // RegisterRoutes 注册路由，新增统一任务接口
 func (h *JimengHandler) RegisterRoutes() {
-	rg := h.App.Engine.Group("/api/jimeng")
-	rg.POST("task", h.CreateTask)            // 只保留统一任务接口
-	rg.GET("power-config", h.GetPowerConfig) // 新增算力配置接口
-	rg.POST("jobs", h.Jobs)
-	rg.GET("remove", h.Remove)
-	rg.GET("retry", h.Retry)
+	group := h.App.Engine.Group("/api/jimeng/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("task", h.CreateTask)
+		group.GET("power-config", h.GetPowerConfig)
+		group.POST("jobs", h.Jobs)
+		group.GET("remove", h.Remove)
+		group.GET("retry", h.Retry)
+	}
 }
 
 // JimengTaskRequest 统一任务请求结构体

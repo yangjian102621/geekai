@@ -9,6 +9,7 @@ package admin
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/handler"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -30,7 +31,13 @@ func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderMan
 
 // RegisterRoutes 注册路由
 func (h *UploadHandler) RegisterRoutes() {
-	h.App.Engine.POST("/api/admin/upload", h.Upload)
+	group := h.App.Engine.Group("/api/admin/upload/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.POST("upload", h.Upload)
+	}
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {

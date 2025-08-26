@@ -10,6 +10,7 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/mj"
@@ -49,13 +50,20 @@ func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.S
 // RegisterRoutes 注册路由
 func (h *MidJourneyHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/mj/")
-	group.POST("image", h.Image)
-	group.POST("upscale", h.Upscale)
-	group.POST("variation", h.Variation)
-	group.GET("jobs", h.JobList)
+
+	// 公开接口，不需要授权
 	group.GET("imgWall", h.ImgWall)
-	group.GET("remove", h.Remove)
-	group.GET("publish", h.Publish)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("image", h.Image)
+		group.POST("upscale", h.Upscale)
+		group.POST("variation", h.Variation)
+		group.GET("jobs", h.JobList)
+		group.GET("remove", h.Remove)
+		group.GET("publish", h.Publish)
+	}
 }
 
 func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {

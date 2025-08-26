@@ -10,6 +10,7 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -35,11 +36,16 @@ func NewImageHandler(app *core.AppServer, db *gorm.DB, userService *service.User
 
 // RegisterRoutes 注册路由
 func (h *ImageHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/image")
-	group.POST("/list/mj", h.MjList)
-	group.POST("/list/sd", h.SdList)
-	group.POST("/list/dall", h.DallList)
-	group.GET("/remove", h.Remove)
+	group := h.App.Engine.Group("/api/admin/image/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.POST("list/mj", h.MjList)
+		group.POST("list/sd", h.SdList)
+		group.POST("list/dall", h.DallList)
+		group.GET("remove", h.Remove)
+	}
 }
 
 type imageQuery struct {

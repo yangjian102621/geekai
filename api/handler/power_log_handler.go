@@ -9,6 +9,7 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -31,8 +32,13 @@ func NewPowerLogHandler(app *core.AppServer, db *gorm.DB) *PowerLogHandler {
 // RegisterRoutes 注册路由
 func (h *PowerLogHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/powerLog/")
-	group.POST("list", h.List)
-	group.GET("stats", h.Stats)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("list", h.List)
+		group.GET("stats", h.Stats)
+	}
 }
 
 func (h *PowerLogHandler) List(c *gin.Context) {

@@ -11,6 +11,7 @@ import (
 	"context"
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	logger2 "geekai/logger"
@@ -49,14 +50,21 @@ func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client, cap
 // RegisterRoutes 注册路由
 func (h *ManagerHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/admin/")
+
+	// 公开接口，不需要授权
 	group.POST("login", h.Login)
 	group.GET("logout", h.Logout)
 	group.GET("session", h.Session)
-	group.GET("list", h.List)
-	group.POST("save", h.Save)
-	group.POST("enable", h.Enable)
-	group.GET("remove", h.Remove)
-	group.POST("resetPass", h.ResetPass)
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.POST("enable", h.Enable)
+		group.GET("remove", h.Remove)
+		group.POST("resetPass", h.ResetPass)
+	}
 }
 
 // Login 登录

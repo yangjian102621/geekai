@@ -10,6 +10,7 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/oss"
@@ -45,14 +46,21 @@ func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, upl
 
 // RegisterRoutes 注册路由
 func (h *SunoHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/suno")
-	group.POST("create", h.Create)
-	group.GET("list", h.List)
-	group.GET("remove", h.Remove)
-	group.GET("publish", h.Publish)
-	group.POST("update", h.Update)
-	group.GET("detail", h.Detail)
+	group := h.App.Engine.Group("/api/suno/")
+
+	// 公开接口，不需要授权
 	group.GET("play", h.Play)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("create", h.Create)
+		group.GET("list", h.List)
+		group.GET("remove", h.Remove)
+		group.GET("publish", h.Publish)
+		group.POST("update", h.Update)
+		group.GET("detail", h.Detail)
+	}
 }
 
 func (h *SunoHandler) Create(c *gin.Context) {

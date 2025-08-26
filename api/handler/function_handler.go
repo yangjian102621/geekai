@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/crawler"
@@ -57,11 +58,16 @@ func NewFunctionHandler(
 // RegisterRoutes 注册路由
 func (h *FunctionHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/function/")
-	group.POST("weibo", h.WeiBo)
-	group.POST("zaobao", h.ZaoBao)
-	group.POST("dalle3", h.Dall3)
-	group.POST("websearch", h.WebSearch)
-	group.GET("list", h.List)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("weibo", h.WeiBo)
+		group.POST("zaobao", h.ZaoBao)
+		group.POST("dalle3", h.Dall3)
+		group.POST("websearch", h.WebSearch)
+		group.GET("list", h.List)
+	}
 }
 
 type resVo struct {

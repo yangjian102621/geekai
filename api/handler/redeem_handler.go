@@ -10,14 +10,16 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils/resp"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type RedeemHandler struct {
@@ -33,7 +35,12 @@ func NewRedeemHandler(app *core.AppServer, db *gorm.DB, userService *service.Use
 // RegisterRoutes 注册路由
 func (h *RedeemHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/redeem/")
-	group.POST("verify", h.Verify)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("verify", h.Verify)
+	}
 }
 
 func (h *RedeemHandler) Verify(c *gin.Context) {

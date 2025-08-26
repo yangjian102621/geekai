@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/oss"
@@ -81,16 +82,23 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 // RegisterRoutes 注册路由
 func (h *ChatHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/chat/")
+
+	// 聊天接口不需要授权（已在authConfig中配置）
 	group.Any("message", h.Chat)
-	group.GET("list", h.List)
-	group.GET("detail", h.Detail)
-	group.POST("update", h.Update)
-	group.GET("remove", h.Remove)
-	group.GET("history", h.History)
-	group.GET("clear", h.Clear)
-	group.POST("tokens", h.Tokens)
-	group.GET("stop", h.StopGenerate)
-	group.POST("tts", h.TextToSpeech)
+
+	// 其他接口需要用户授权
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.GET("detail", h.Detail)
+		group.POST("update", h.Update)
+		group.GET("remove", h.Remove)
+		group.GET("history", h.History)
+		group.GET("clear", h.Clear)
+		group.POST("tokens", h.Tokens)
+		group.GET("stop", h.StopGenerate)
+		group.POST("tts", h.TextToSpeech)
+	}
 }
 
 // Chat 处理聊天请求

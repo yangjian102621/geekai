@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -42,12 +43,17 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, 
 
 // RegisterRoutes 注册路由
 func (h *ConfigHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/config")
-	group.POST("update", h.Update)
-	group.GET("get", h.Get)
-	group.POST("active", h.Active)
-	group.POST("test", h.Test)
-	group.GET("license", h.GetLicense)
+	group := h.App.Engine.Group("/api/admin/config/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.POST("update", h.Update)
+		group.GET("get", h.Get)
+		group.POST("active", h.Active)
+		group.POST("test", h.Test)
+		group.GET("license", h.GetLicense)
+	}
 }
 
 func (h *ConfigHandler) Update(c *gin.Context) {

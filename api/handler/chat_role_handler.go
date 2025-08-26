@@ -9,6 +9,7 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -29,10 +30,15 @@ func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
 
 // RegisterRoutes 注册路由
 func (h *ChatRoleHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/app/")
-	group.GET("list", h.List)
-	group.GET("list/user", h.ListByUser)
-	group.POST("update", h.UpdateRole)
+	group := h.App.Engine.Group("/api/role/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.GET("list/user", h.ListByUser)
+		group.POST("update", h.UpdateRole)
+	}
 }
 
 // List 获取用户聊天应用列表

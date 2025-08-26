@@ -1,4 +1,4 @@
-package midware
+package middleware
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// 用户授权验证
+// 前端用户授权验证
 func UserAuthMiddleware(secretKey string, redis *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader(types.UserAuthHeader)
@@ -60,6 +60,7 @@ func UserAuthMiddleware(secretKey string, redis *redis.Client) gin.HandlerFunc {
 	}
 }
 
+// 管理后台用户授权验证
 func AdminAuthMiddleware(secretKey string, redis *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader(types.AdminAuthHeader)

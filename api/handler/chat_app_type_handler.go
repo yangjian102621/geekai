@@ -2,6 +2,7 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -21,8 +22,13 @@ func NewChatAppTypeHandler(app *core.AppServer, db *gorm.DB) *ChatAppTypeHandler
 
 // RegisterRoutes 注册路由
 func (h *ChatAppTypeHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/app/type")
-	group.GET("list", h.List)
+	group := h.App.Engine.Group("/api/app/type/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+	}
 }
 
 // List 获取App类型列表

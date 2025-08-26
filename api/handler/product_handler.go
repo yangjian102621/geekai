@@ -9,10 +9,12 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -28,7 +30,12 @@ func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
 // RegisterRoutes 注册路由
 func (h *ProductHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/product/")
-	group.GET("list", h.List)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+	}
 }
 
 // List 模型列表

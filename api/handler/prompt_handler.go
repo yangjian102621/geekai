@@ -10,6 +10,7 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
@@ -41,11 +42,16 @@ func NewPromptHandler(app *core.AppServer, db *gorm.DB, userService *service.Use
 
 // RegisterRoutes 注册路由
 func (h *PromptHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/prompt")
-	group.POST("/lyric", h.Lyric)
-	group.POST("/image", h.Image)
-	group.POST("/video", h.Video)
-	group.POST("/meta", h.MetaPrompt)
+	group := h.App.Engine.Group("/api/prompt/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("lyric", h.Lyric)
+		group.POST("image", h.Image)
+		group.POST("video", h.Video)
+		group.POST("meta", h.MetaPrompt)
+	}
 }
 
 // Lyric 生成歌词

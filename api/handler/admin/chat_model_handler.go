@@ -10,6 +10,7 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -32,12 +33,17 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 // RegisterRoutes 注册路由
 func (h *ChatModelHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/admin/model/")
-	group.POST("save", h.Save)
-	group.GET("list", h.List)
-	group.POST("set", h.Set)
-	group.POST("sort", h.Sort)
-	group.GET("remove", h.Remove)
-	group.POST("batch-remove", h.BatchRemove)
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.POST("set", h.Set)
+		group.POST("sort", h.Sort)
+		group.GET("remove", h.Remove)
+		group.POST("batch-remove", h.BatchRemove)
+	}
 }
 
 func (h *ChatModelHandler) Save(c *gin.Context) {

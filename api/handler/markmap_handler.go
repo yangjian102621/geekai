@@ -10,6 +10,7 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
@@ -37,7 +38,13 @@ func NewMarkMapHandler(app *core.AppServer, db *gorm.DB, userService *service.Us
 
 // RegisterRoutes 注册路由
 func (h *MarkMapHandler) RegisterRoutes() {
-	h.App.Engine.POST("/api/markMap/gen", h.Generate)
+	group := h.App.Engine.Group("/api/markMap/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("gen", h.Generate)
+	}
 }
 
 // Generate 生成思维导图

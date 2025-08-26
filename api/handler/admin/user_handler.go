@@ -10,6 +10,7 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -19,10 +20,9 @@ import (
 	"geekai/utils/resp"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
-
-	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -39,12 +39,17 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.Li
 // RegisterRoutes 注册路由
 func (h *UserHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/admin/user/")
-	group.GET("list", h.List)
-	group.POST("save", h.Save)
-	group.GET("remove", h.Remove)
-	group.GET("loginLog", h.LoginLog)
-	group.GET("genLoginLink", h.GenLoginLink)
-	group.POST("resetPass", h.ResetPass)
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.GET("remove", h.Remove)
+		group.GET("loginLog", h.LoginLog)
+		group.GET("genLoginLink", h.GenLoginLink)
+		group.POST("resetPass", h.ResetPass)
+	}
 }
 
 // List 用户列表
