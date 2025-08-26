@@ -25,7 +25,7 @@ type CaptchaHandler struct {
 }
 
 func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService, sysConfig *types.SystemConfig) *CaptchaHandler {
-	return &CaptchaHandler{App: app, service: s, config: sysConfig.GeekAPI.Captcha}
+	return &CaptchaHandler{App: app, service: s, config: sysConfig.Captcha}
 }
 
 // RegisterRoutes 注册路由

@@ -43,10 +43,7 @@ onMounted(() => {
 })
 
 const save = () => {
-  httpPost('/api/admin/config/update', {
-    key: 'privacy',
-    config: { content: privacy.value, updated: true },
-  })
+  httpPost('/api/admin/config/update/notice', { content: privacy.value })
     .then(() => {
       ElMessage.success('操作成功！')
     })

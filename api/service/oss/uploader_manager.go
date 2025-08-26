@@ -20,11 +20,11 @@ type UploaderManager struct {
 	local  *LocalStorage
 	aliyun *AliYunOss
 	mini   *MiniOss
-	qiniu  *QinNiuOss
+	qiniu  *QiNiuOss
 	config *types.OSSConfig
 }
 
-func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliyun *AliYunOss, mini *MiniOss, qiniu *QinNiuOss) (*UploaderManager, error) {
+func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliyun *AliYunOss, mini *MiniOss, qiniu *QiNiuOss) (*UploaderManager, error) {
 	if sysConfig.OSS.Active == "" {
 		sysConfig.OSS.Active = Local
 	}

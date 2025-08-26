@@ -27,6 +27,10 @@ func NewCaptchaService(captchaConfig types.CaptchaConfig) *CaptchaService {
 	}
 }
 
+func (s *CaptchaService) UpdateConfig(config types.CaptchaConfig) {
+	s.config = config
+}
+
 func (s *CaptchaService) Get() (interface{}, error) {
 	url := fmt.Sprintf("%s/api/captcha/get", types.GeekAPIURL)
 	var res types.BizVo

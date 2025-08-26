@@ -110,7 +110,8 @@ type SystemConfig struct {
 	OSS     OSSConfig
 	SMS     SMSConfig
 	SMTP    SmtpConfig
-	GeekAPI GeekAPIConfig
+	Captcha CaptchaConfig
+	WxLogin WxLoginConfig
 	Jimeng  JimengConfig
 	License License
 }
@@ -121,7 +122,8 @@ const (
 	ConfigKeyNotice    = "notice"
 	ConfigKeyAgreement = "agreement"
 	ConfigKeyPrivacy   = "privacy"
-	ConfigKeyGeekAPI   = "geekapi"
+	ConfigKeyCaptcha   = "captcha"
+	ConfigKeyWxLogin   = "wx_login"
 	ConfigKeyLicense   = "license"
 	ConfigKeySms       = "sms"
 	ConfigKeySmtp      = "smtp"

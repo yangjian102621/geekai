@@ -2,7 +2,7 @@ package types
 
 type PaymentConfig struct {
 	Alipay AlipayConfig `json:"alipay"` // 支付宝支付渠道配置
-	Epay   EpayConfig   `json:"epay"`   // GEEK 支付配置
+	Epay   EpayConfig   `json:"epay"`   // 易支付配置
 	WxPay  WxPayConfig  `json:"wxpay"`  // 微信支付渠道配置
 }
 

@@ -43,10 +43,7 @@ onMounted(() => {
 })
 
 const save = () => {
-  httpPost('/api/admin/config/update', {
-    key: 'agreement',
-    config: { content: agreement.value, updated: true },
-  })
+  httpPost('/api/admin/config/update/base', { mark_map_text: agreement.value })
     .then(() => {
       ElMessage.success('操作成功！')
     })

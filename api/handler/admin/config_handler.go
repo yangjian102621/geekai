@@ -8,109 +8,379 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"encoding/json"
-	"errors"
 	"geekai/core"
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
-	"geekai/store"
+	"geekai/service/oss"
+	"geekai/service/payment"
+	"geekai/service/sms"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shirou/gopsutil/host"
 	"gorm.io/gorm"
 )
 
 type ConfigHandler struct {
 	handler.BaseHandler
-	levelDB        *store.LevelDB
 	licenseService *service.LicenseService
-	configService  *service.ConfigService
+	sysConfig      *types.SystemConfig
+	alipayService  *payment.AlipayService
+	wxpayService   *payment.WxPayService
+	epayService    *payment.EPayService
+	smsAliyun      *sms.AliYunSmsService
+	smsBao         *sms.BaoSmsService
+	smsManager     *sms.SmsManager
+	localOss       *oss.LocalStorage
+	qiniuOss       *oss.QiNiuOss
+	aliyunOss      *oss.AliYunOss
+	minioOss       *oss.MiniOss
+	smtpService    *service.SmtpService
+	captchaService *service.CaptchaService
+	wxLoginService *service.WxLoginService
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService, configService *service.ConfigService) *ConfigHandler {
+func NewConfigHandler(
+	app *core.AppServer,
+	db *gorm.DB,
+	licenseService *service.LicenseService,
+	sysConfig *types.SystemConfig,
+	alipayService *payment.AlipayService,
+	wxpayService *payment.WxPayService,
+	epayService *payment.EPayService,
+	smsAliyun *sms.AliYunSmsService,
+	smsBao *sms.BaoSmsService,
+	smsManager *sms.SmsManager,
+	localOss *oss.LocalStorage,
+	qiniuOss *oss.QiNiuOss,
+	aliyunOss *oss.AliYunOss,
+	minioOss *oss.MiniOss,
+	smtpService *service.SmtpService,
+	captchaService *service.CaptchaService,
+	wxLoginService *service.WxLoginService,
+) *ConfigHandler {
 	return &ConfigHandler{
 		BaseHandler:    handler.BaseHandler{App: app, DB: db},
-		levelDB:        levelDB,
 		licenseService: licenseService,
-		configService:  configService,
+		sysConfig:      sysConfig,
+		alipayService:  alipayService,
+		wxpayService:   wxpayService,
+		epayService:    epayService,
+		smsAliyun:      smsAliyun,
+		smsBao:         smsBao,
+		smsManager:     smsManager,
+		localOss:       localOss,
+		qiniuOss:       qiniuOss,
+		aliyunOss:      aliyunOss,
+		minioOss:       minioOss,
+		smtpService:    smtpService,
+		captchaService: captchaService,
+		wxLoginService: wxLoginService,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *ConfigHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/config/")
-	group.GET("get", h.Get)
+	rg := h.App.Engine.Group("/api/admin/config")
 
-	// 需要管理员授权的接口
-	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	// 需要管理员登录的接口
+	rg.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
 	{
-		group.POST("update", h.Update)
-		group.POST("active", h.Active)
-		group.POST("test", h.Test)
-		group.GET("license", h.GetLicense)
+		rg.POST("update/base", h.UpdateBase)
+		rg.POST("update/notice", h.UpdateNotice)
+		rg.POST("update/captcha", h.UpdateCaptcha)
+		rg.POST("update/wx_login", h.UpdateWxLogin)
+		rg.POST("update/payment", h.UpdatePayment)
+		rg.POST("update/sms", h.UpdateSms)
+		rg.POST("update/oss", h.UpdateOss)
+		rg.POST("update/smtp", h.UpdateStmp)
+		rg.GET("get", h.Get)
+		rg.POST("license/active", h.Active)
+		rg.GET("license/get", h.GetLicense)
 	}
 }
 
-func (h *ConfigHandler) Update(c *gin.Context) {
-	var payload struct {
-		Key       string             `json:"key"`
-		Config    json.RawMessage    `json:"config"`
-		ConfigBak types.SystemConfig `json:"config_bak,omitempty"`
-	}
+// UpdateBase 更新基础配置
+func (h *ConfigHandler) UpdateBase(c *gin.Context) {
+	var data types.BaseConfig
 
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		logger.Errorf("Update config failed: %v", err)
+	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	if payload.Key == "system" {
-		var sys types.SystemConfig
-		if err := json.Unmarshal(payload.Config, &sys); err != nil {
-			resp.ERROR(c, "系统配置解析失败: "+err.Error())
-			return
-		}
-		if (sys.Base.Copyright != payload.ConfigBak.Base.Copyright) && !h.licenseService.GetLicense().Configs.DeCopy {
-			resp.ERROR(c, "您无权修改版权信息，请先联系作者获取授权")
-			return
-		}
-
+	// 未授权的话不允许修改版权
+	license := h.licenseService.GetLicense()
+	if !license.IsActive && data.Copyright != h.sysConfig.Base.Copyright {
+		resp.ERROR(c, "未授权系统不允许修改版权信息")
+		return
 	}
 
-	// 使用统一配置服务写入与广播
-	if err := h.configService.Set(payload.Key, payload.Config); err != nil {
+	// 未授权的话不允许修改 Logo
+	if !license.IsActive && data.Logo != h.sysConfig.Base.Logo {
+		resp.ERROR(c, "未授权系统不允许修改 Logo")
+		return
+	}
+
+	err := h.Update(types.ConfigKeySystem, data)
+	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	if payload.Key == "system" {
-		var sys types.SystemConfig
-		if err := json.Unmarshal(payload.Config, &sys); err == nil {
-			h.App.SysConfig = &sys
-		}
-	}
-	resp.SUCCESS(c)
+
+	h.sysConfig.Base = data
+
+	resp.SUCCESS(c, data)
 }
 
-// Get 获取指定的系统配置
-func (h *ConfigHandler) Get(c *gin.Context) {
-	key := c.Query("key")
+// UpdateNotice 更新公告配置
+func (h *ConfigHandler) UpdateNotice(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyNotice, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateCaptcha 更新行为验证码配置
+func (h *ConfigHandler) UpdateCaptcha(c *gin.Context) {
+	var data types.CaptchaConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyCaptcha, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if data.Enabled {
+		h.captchaService.UpdateConfig(data)
+	}
+	h.sysConfig.Captcha = data
+	resp.SUCCESS(c, data)
+
+}
+
+// UpdatePayment 更新支付配置
+func (h *ConfigHandler) UpdatePayment(c *gin.Context) {
+	var data types.PaymentConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
 	var config model.Config
-	res := h.DB.Where("name", key).First(&config)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			resp.SUCCESS(c, map[string]interface{}{})
+	oldData := types.PaymentConfig{}
+	err := h.DB.Where("name", types.ConfigKeyPayment).First(&config).Error
+	if err == nil {
+		utils.JsonDecode(config.Value, &oldData)
+	}
+
+	err = h.Update(types.ConfigKeyPayment, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 如果启用状态发生改变，则需要更新支付服务配置
+	if data.WxPay.Enabled {
+		err = h.wxpayService.UpdateConfig(&data.WxPay)
+		if err != nil {
+			resp.ERROR(c, err.Error())
 			return
 		}
+	}
+	if data.Epay.Enabled {
+		h.epayService.UpdateConfig(&data.Epay)
+	}
+	if data.Alipay.Enabled {
+		err = h.alipayService.UpdateConfig(&data.Alipay)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+
+	h.sysConfig.Payment = data
+	resp.SUCCESS(c, data)
+}
+
+// UpdateSms 更新短信配置
+func (h *ConfigHandler) UpdateSms(c *gin.Context) {
+	var data types.SMSConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var config model.Config
+	oldData := types.SMSConfig{}
+	err := h.DB.Where("name", types.ConfigKeySms).First(&config).Error
+	if err == nil {
+		utils.JsonDecode(config.Value, &oldData)
+	}
+
+	err = h.Update(types.ConfigKeySms, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 更新服务配置
+	switch data.Active {
+	case sms.Ali:
+		err = h.smsAliyun.UpdateConfig(&data.Ali)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	case sms.Bao:
+		h.smsBao.UpdateConfig(&data.Bao)
+	}
+
+	h.smsManager.SetActive(data.Active)
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateOss 更新 Oss 配置
+func (h *ConfigHandler) UpdateOss(c *gin.Context) {
+	var data types.OSSConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var config model.Config
+	oldData := types.OSSConfig{}
+	err := h.DB.Where("name", types.ConfigKeyOss).First(&config).Error
+	if err == nil {
+		utils.JsonDecode(config.Value, &oldData)
+	}
+
+	err = h.Update("oss", data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 更新服务配置
+	switch data.Active {
+	case oss.Local:
+		h.localOss.UpdateConfig(&data.Local)
+	case oss.QiNiu:
+		h.qiniuOss.UpdateConfig(&data.QiNiu)
+	case oss.AliYun:
+		err := h.aliyunOss.UpdateConfig(&data.AliYun)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	case oss.Minio:
+		err := h.minioOss.UpdateConfig(&data.Minio)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+
+	h.sysConfig.OSS = data
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateStmp 更新 Stmp 配置
+func (h *ConfigHandler) UpdateStmp(c *gin.Context) {
+	var data types.SmtpConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	var config model.Config
+	oldData := types.SmtpConfig{}
+	err := h.DB.Where("name", types.ConfigKeySmtp).First(&config).Error
+	if err == nil {
+		utils.JsonDecode(config.Value, &oldData)
+	}
+
+	err = h.Update(types.ConfigKeySmtp, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 配置发生改变时更新服务配置
+	if !data.Equal(&oldData) {
+		h.smtpService.UpdateConfig(&data)
+	}
+
+	h.sysConfig.SMTP = data
+	resp.SUCCESS(c, data)
+}
+
+// UpdateWxLogin 更新微信登录配置
+func (h *ConfigHandler) UpdateWxLogin(c *gin.Context) {
+	var data types.WxLoginConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	err := h.Update(types.ConfigKeyWxLogin, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	if data.Enabled {
+		h.wxLoginService.UpdateConfig(data)
+	}
+
+	h.sysConfig.WxLogin = data
+	resp.SUCCESS(c, data)
+}
+
+// Update 更新系统配置
+func (h *ConfigHandler) Update(name string, value any) error {
+	var config model.Config
+	err := h.DB.Where("name", name).First(&config).Error
+	if err != nil { // 不存在则创建
+		config.Name = name
+		config.Value = utils.JsonEncode(value)
+		return h.DB.Create(&config).Error
+	} else { // 存在则更新
+		config.Value = utils.JsonEncode(value)
+		return h.DB.Updates(&config).Error
+	}
+
+}
+
+// Get 获取指定名称的系统配置
+func (h *ConfigHandler) Get(c *gin.Context) {
+	name := c.Query("key")
+	var config model.Config
+	res := h.DB.Where("name", name).First(&config)
+	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
-	var value map[string]interface{}
+	var value map[string]any
 	err := utils.JsonDecode(config.Value, &value)
 	if err != nil {
 		resp.ERROR(c, err.Error())
@@ -118,23 +388,6 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, value)
-}
-
-// Test 配置测试（占位）
-func (h *ConfigHandler) Test(c *gin.Context) {
-	var data struct {
-		Key string `json:"key"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-	msg, err := h.configService.Test(data.Key)
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	resp.SUCCESS(c, msg)
 }
 
 // Active 激活系统
@@ -146,19 +399,21 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	info, err := host.Info()
+
+	err := h.licenseService.ActiveLicense(data.License)
+	license := h.licenseService.GetLicense()
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
-	err = h.licenseService.ActiveLicense(data.License, info.HostID)
-	if err != nil {
+	if err := h.Update(types.ConfigKeyLicense, license); err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
+	// 更新系统配置
+	h.sysConfig.License = *license
 
-	resp.SUCCESS(c)
+	resp.SUCCESS(c, license.MachineId)
 
 }
 
@@ -167,3 +422,5 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 	license := h.licenseService.GetLicense()
 	resp.SUCCESS(c, license)
 }
+
+//

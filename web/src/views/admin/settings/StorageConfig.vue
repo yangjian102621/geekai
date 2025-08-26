@@ -12,46 +12,46 @@
 
       <template v-if="active === 'local'">
         <el-form :model="local" label-width="140px">
-          <el-form-item label="BasePath"><el-input v-model="local.base_path" /></el-form-item>
-          <el-form-item label="BaseURL"><el-input v-model="local.base_url" /></el-form-item>
+          <el-form-item label="BasePath"><el-input v-model="local.BasePath" /></el-form-item>
+          <el-form-item label="BaseURL"><el-input v-model="local.BaseURL" /></el-form-item>
         </el-form>
       </template>
 
       <template v-else-if="active === 'minio'">
         <el-form :model="minio" label-width="140px">
-          <el-form-item label="Endpoint"><el-input v-model="minio.endpoint" /></el-form-item>
-          <el-form-item label="AccessKey"><el-input v-model="minio.access_key" /></el-form-item>
+          <el-form-item label="Endpoint"><el-input v-model="minio.Endpoint" /></el-form-item>
+          <el-form-item label="AccessKey"><el-input v-model="minio.AccessKey" /></el-form-item>
           <el-form-item label="AccessSecret"
-            ><el-input v-model="minio.access_secret"
+            ><el-input v-model="minio.AccessSecret"
           /></el-form-item>
-          <el-form-item label="Bucket"><el-input v-model="minio.bucket" /></el-form-item>
-          <el-form-item label="UseSSL"><el-switch v-model="minio.use_ssl" /></el-form-item>
-          <el-form-item label="Domain"><el-input v-model="minio.domain" /></el-form-item>
+          <el-form-item label="Bucket"><el-input v-model="minio.Bucket" /></el-form-item>
+          <el-form-item label="UseSSL"><el-switch v-model="minio.UseSSL" /></el-form-item>
+          <el-form-item label="Domain"><el-input v-model="minio.Domain" /></el-form-item>
         </el-form>
       </template>
 
       <template v-else-if="active === 'qiniu'">
         <el-form :model="qiniu" label-width="140px">
-          <el-form-item label="Zone"><el-input v-model="qiniu.zone" /></el-form-item>
-          <el-form-item label="AccessKey"><el-input v-model="qiniu.access_key" /></el-form-item>
+          <el-form-item label="Zone"><el-input v-model="qiniu.Zone" /></el-form-item>
+          <el-form-item label="AccessKey"><el-input v-model="qiniu.AccessKey" /></el-form-item>
           <el-form-item label="AccessSecret"
-            ><el-input v-model="qiniu.access_secret"
+            ><el-input v-model="qiniu.AccessSecret"
           /></el-form-item>
-          <el-form-item label="Bucket"><el-input v-model="qiniu.bucket" /></el-form-item>
-          <el-form-item label="Domain"><el-input v-model="qiniu.domain" /></el-form-item>
+          <el-form-item label="Bucket"><el-input v-model="qiniu.Bucket" /></el-form-item>
+          <el-form-item label="Domain"><el-input v-model="qiniu.Domain" /></el-form-item>
         </el-form>
       </template>
 
       <template v-else>
         <el-form :model="aliyun" label-width="140px">
-          <el-form-item label="Endpoint"><el-input v-model="aliyun.endpoint" /></el-form-item>
-          <el-form-item label="AccessKey"><el-input v-model="aliyun.access_key" /></el-form-item>
+          <el-form-item label="Endpoint"><el-input v-model="aliyun.Endpoint" /></el-form-item>
+          <el-form-item label="AccessKey"><el-input v-model="aliyun.AccessKey" /></el-form-item>
           <el-form-item label="AccessSecret"
-            ><el-input v-model="aliyun.access_secret"
+            ><el-input v-model="aliyun.AccessSecret"
           /></el-form-item>
-          <el-form-item label="Bucket"><el-input v-model="aliyun.bucket" /></el-form-item>
-          <el-form-item label="SubDir"><el-input v-model="aliyun.sub_dir" /></el-form-item>
-          <el-form-item label="Domain"><el-input v-model="aliyun.domain" /></el-form-item>
+          <el-form-item label="Bucket"><el-input v-model="aliyun.Bucket" /></el-form-item>
+          <el-form-item label="SubDir"><el-input v-model="aliyun.SubDir" /></el-form-item>
+          <el-form-item label="Domain"><el-input v-model="aliyun.Domain" /></el-form-item>
         </el-form>
       </template>
 
@@ -70,58 +70,62 @@ import { onMounted, ref } from 'vue'
 
 const loading = ref(true)
 const active = ref('local')
-const local = ref({ base_path: '', base_url: '' })
+const local = ref({ BasePath: '', BaseURL: '' })
 const minio = ref({
-  endpoint: '',
-  access_key: '',
-  access_secret: '',
-  bucket: '',
-  use_ssl: false,
-  domain: '',
+  Endpoint: '',
+  AccessKey: '',
+  AccessSecret: '',
+  Bucket: '',
+  SubDir: '',
+  UseSSL: false,
+  Domain: '',
 })
-const qiniu = ref({ zone: 'z2', access_key: '', access_secret: '', bucket: '', domain: '' })
+const qiniu = ref({
+  Zone: 'z2',
+  AccessKey: '',
+  AccessSecret: '',
+  Bucket: '',
+  SubDir: '',
+  Domain: '',
+})
 const aliyun = ref({
-  endpoint: '',
-  access_key: '',
-  access_secret: '',
-  bucket: '',
-  sub_dir: '',
-  domain: '',
+  Endpoint: '',
+  AccessKey: '',
+  AccessSecret: '',
+  Bucket: '',
+  SubDir: '',
+  Domain: '',
 })
 
 onMounted(() => {
   httpGet('/api/admin/config/get?key=oss')
     .then((res) => {
       const data = res.data || {}
-      active.value = (data.active || 'local').toLowerCase()
-      local.value = data.local || local.value
-      minio.value = data.minio || minio.value
-      qiniu.value = data.qiniu || qiniu.value
-      aliyun.value = data.aliyun || aliyun.value
+      const Active = data.Active || data.active || 'local'
+      active.value = String(Active).toLowerCase()
+      local.value = data.Local || data.local || local.value
+      minio.value = data.Minio || data.minio || minio.value
+      qiniu.value = data.QiNiu || data.qiniu || qiniu.value
+      aliyun.value = data.AliYun || data.aliyun || aliyun.value
     })
     .catch(() => {})
     .finally(() => (loading.value = false))
 })
 
 const save = () => {
-  httpPost('/api/admin/config/update', {
-    key: 'oss',
-    config: {
-      active: active.value,
-      local: local.value,
-      minio: minio.value,
-      qiniu: qiniu.value,
-      aliyun: aliyun.value,
-    },
+  httpPost('/api/admin/config/update/oss', {
+    active: active.value,
+    local: local.value,
+    minio: minio.value,
+    qiniu: qiniu.value,
+    aliyun: aliyun.value,
   })
     .then(() => ElMessage.success('保存成功'))
     .catch((e) => ElMessage.error(e.message))
 }
 
 const test = () => {
-  httpPost('/api/admin/config/test', { key: 'oss' })
-    .then((res) => ElMessage.success(res.message || '连接成功'))
-    .catch((e) => ElMessage.error(e.message || '连接失败'))
+  ElMessage.info('请在对象存储端验证配置')
 }
 </script>
 

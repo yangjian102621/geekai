@@ -38,10 +38,7 @@ onMounted(() => {
 })
 
 const save = () => {
-  httpPost('/api/admin/config/update', {
-    key: 'notice',
-    config: { content: notice.value, updated: true },
-  })
+  httpPost('/api/admin/config/update/notice', { content: notice.value })
     .then(() => {
       ElMessage.success('操作成功！')
     })

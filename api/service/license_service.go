@@ -53,7 +53,7 @@ type License struct {
 }
 
 // ActiveLicense 激活 License
-func (s *LicenseService) ActiveLicense(license string, machineId string) error {
+func (s *LicenseService) ActiveLicense(license string) error {
 	var res struct {
 		Code    types.BizCode `json:"code"`
 		Message string        `json:"message"`
@@ -61,7 +61,7 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 	}
 	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/active")
 	response, err := req.C().R().
-		SetBody(map[string]string{"license": license, "machine_id": machineId}).
+		SetBody(map[string]string{"license": license, "machine_id": s.machineId}).
 		SetSuccessResult(&res).Post(apiURL)
 	if err != nil {
 		return fmt.Errorf("发送激活请求失败: %v", err)
@@ -81,7 +81,7 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 
 	s.license = &types.License{
 		Key:       license,
-		MachineId: machineId,
+		MachineId: s.machineId,
 		Configs:   res.Data.Configs,
 		ExpiredAt: res.Data.ExpiredAt,
 		IsActive:  true,

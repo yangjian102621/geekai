@@ -24,7 +24,7 @@ import (
 	"github.com/qiniu/go-sdk/v7/storage"
 )
 
-type QinNiuOss struct {
+type QiNiuOss struct {
 	config    *types.QiNiuOssConfig
 	mac       *qbox.Mac
 	putPolicy storage.PutPolicy
@@ -33,8 +33,8 @@ type QinNiuOss struct {
 	proxyURL  string
 }
 
-func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *QinNiuOss {
-	s := &QinNiuOss{
+func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *QiNiuOss {
+	s := &QiNiuOss{
 		proxyURL: appConfig.ProxyURL,
 	}
 	if sysConfig.OSS.Active == QiNiu {
@@ -43,7 +43,7 @@ func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *Qin
 	return s
 }
 
-func (s *QinNiuOss) UpdateConfig(config *types.QiNiuOssConfig) {
+func (s *QiNiuOss) UpdateConfig(config *types.QiNiuOssConfig) {
 	zone, ok := storage.GetRegionByID(storage.RegionID(config.Zone))
 	if !ok {
 		zone = storage.ZoneHuanan
@@ -61,7 +61,7 @@ func (s *QinNiuOss) UpdateConfig(config *types.QiNiuOssConfig) {
 	s.uploader = formUploader
 	s.bucket = storage.NewBucketManager(mac, &storeConfig)
 }
-func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
+func (s QiNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	// 解析表单
 	file, err := ctx.FormFile(name)
 	if err != nil {
@@ -94,7 +94,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 
 }
 
-func (s QinNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
+func (s QiNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
 	var fileData []byte
 	var err error
 	if useProxy {
@@ -123,7 +123,7 @@ func (s QinNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QinNiuOss) PutBase64(base64Img string) (string, error) {
+func (s QiNiuOss) PutBase64(base64Img string) (string, error) {
 	imageData, err := base64.StdEncoding.DecodeString(base64Img)
 	if err != nil {
 		return "", fmt.Errorf("error decoding base64:%v", err)
@@ -139,7 +139,7 @@ func (s QinNiuOss) PutBase64(base64Img string) (string, error) {
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QinNiuOss) Delete(fileURL string) error {
+func (s QiNiuOss) Delete(fileURL string) error {
 	var objectKey string
 	if strings.HasPrefix(fileURL, "http") {
 		filename := filepath.Base(fileURL)
@@ -151,4 +151,4 @@ func (s QinNiuOss) Delete(fileURL string) error {
 	return s.bucket.Delete(s.config.Bucket, objectKey)
 }
 
-var _ Uploader = QinNiuOss{}
+var _ Uploader = QiNiuOss{}

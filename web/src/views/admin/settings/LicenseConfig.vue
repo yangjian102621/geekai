@@ -79,7 +79,7 @@ onMounted(() => {
 })
 
 const fetchLicense = () => {
-  httpGet('/api/admin/config/license')
+  httpGet('/api/admin/config/license/get')
     .then((res) => {
       license.value = res.data
     })
@@ -96,7 +96,7 @@ const active = () => {
   if (licenseKey.value === '') {
     return ElMessage.error('请输入授权码')
   }
-  httpPost('/api/admin/config/active', { license: licenseKey.value })
+  httpPost('/api/admin/config/license/active', { license: licenseKey.value })
     .then((res) => {
       ElMessage.success('授权成功，机器编码为：' + res.data)
       fetchLicense()

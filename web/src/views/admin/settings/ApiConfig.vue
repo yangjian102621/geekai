@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { httpGet, httpPost } from '@/utils/http'
+import { httpGet } from '@/utils/http'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
@@ -41,15 +41,11 @@ onMounted(() => {
 })
 
 const save = () => {
-  httpPost('/api/admin/config/update', { key: 'api', config: api.value })
-    .then(() => ElMessage.success('保存成功'))
-    .catch((e) => ElMessage.error(e.message))
+  ElMessage.info('当前后端未提供 /api 配置的更新接口，已保留只读展示')
 }
 
 const test = () => {
-  httpPost('/api/admin/config/test', { key: 'api' })
-    .then((res) => ElMessage.success(res.message || '测试成功'))
-    .catch((e) => ElMessage.error(e.message || '测试失败'))
+  ElMessage.info('请在对应服务端手动测试 API 可用性')
 }
 </script>
 

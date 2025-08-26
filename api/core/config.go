@@ -94,13 +94,22 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		logger.Error("load license config error: ", err)
 	}
 
-	// 加载 GeekAPI 配置
-	var geekAPIConfig types.GeekAPIConfig
+	// 加载验证码配置
+	var captchaConfig types.CaptchaConfig
 	sysConfig.Id = 0
-	db.Where("name", types.ConfigKeyGeekAPI).First(&sysConfig)
-	err = utils.JsonDecode(sysConfig.Value, &geekAPIConfig)
+	db.Where("name", types.ConfigKeyCaptcha).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &captchaConfig)
 	if err != nil {
 		logger.Error("load geek service config error: ", err)
+	}
+
+	// 加载微信登录配置
+	var wxLoginConfig types.WxLoginConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyWxLogin).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &wxLoginConfig)
+	if err != nil {
+		logger.Error("load wx login config error: ", err)
 	}
 
 	// 加载短信配置
@@ -146,6 +155,7 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		OSS:     ossConfig,
 		SMTP:    smtpConfig,
 		Payment: paymentConfig,
-		GeekAPI: geekAPIConfig,
+		Captcha: captchaConfig,
+		WxLogin: wxLoginConfig,
 	}
 }

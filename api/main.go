@@ -144,7 +144,6 @@ func main() {
 		fx.Provide(handler.NewPowerLogHandler),
 		fx.Provide(handler.NewJimengHandler),
 
-		fx.Provide(service.NewConfigService),
 		fx.Provide(service.NewMigrationService),
 		fx.Invoke(func(migrationService *service.MigrationService) {
 			migrationService.StartMigrate()
@@ -221,10 +220,10 @@ func main() {
 		fx.Provide(sms.NewBaoSmsService),
 		fx.Provide(sms.NewSmsManager),
 		fx.Provide(func(config *types.SystemConfig) *service.CaptchaService {
-			return service.NewCaptchaService(config.GeekAPI.Captcha)
+			return service.NewCaptchaService(config.Captcha)
 		}),
 		fx.Provide(func(config *types.SystemConfig, client *redis.Client) *service.WxLoginService {
-			return service.NewWxLoginService(config.GeekAPI.WxLogin, client)
+			return service.NewWxLoginService(config.WxLogin, client)
 		}),
 
 		// 支付服务

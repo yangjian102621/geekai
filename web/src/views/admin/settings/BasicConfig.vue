@@ -282,11 +282,7 @@ const rules = reactive({
 const save = function () {
   systemFormRef.value.validate((valid) => {
     if (valid) {
-      httpPost('/api/admin/config/update', {
-        key: 'system',
-        config: system.value,
-        config_bak: configBak.value,
-      })
+      httpPost('/api/admin/config/update/base', system.value)
         .then(() => {
           ElMessage.success('操作成功！')
         })
