@@ -18,12 +18,6 @@
               placeholder="邀请新用户注册赠送算力"
             />
           </el-form-item>
-          <el-form-item label="VIP每月赠送算力" prop="vip_month_power">
-            <el-input
-              v-model.number="system['vip_month_power']"
-              placeholder="VIP用户每月赠送算力"
-            />
-          </el-form-item>
           <el-form-item>
             <template #label>
               <div class="label-title">
@@ -60,27 +54,6 @@
             <el-input
               v-model.number="system['sd_power']"
               placeholder="使用Stable-Diffusion画一张图消耗算力"
-            />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                DALL-E-3算力
-                <el-tooltip
-                  effect="dark"
-                  content="使用DALL-E-3画一张图消耗算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-            </template>
-            <el-input
-              v-model.number="system['dall_power']"
-              placeholder="使用DALL-E-3画一张图消耗算力"
             />
           </el-form-item>
           <el-form-item label="Suno 算力" prop="suno_power">
@@ -175,7 +148,6 @@ import { ElMessage } from 'element-plus'
 import { onMounted, reactive, ref } from 'vue'
 
 const system = ref({})
-const configBak = ref({})
 const systemFormRef = ref(null)
 
 onMounted(() => {
@@ -197,7 +169,6 @@ onMounted(() => {
         'kling-v1_pro_5': 420,
         'kling-v1_pro_10': 840,
       }
-      configBak.value = copyObj(system.value)
     })
     .catch((e) => {
       ElMessage.error('加载系统配置失败: ' + e.message)
@@ -209,10 +180,18 @@ const rules = reactive({})
 const save = function () {
   systemFormRef.value.validate((valid) => {
     if (valid) {
-      httpPost('/api/admin/config/update', {
-        key: 'system',
-        config: system.value,
-        config_bak: configBak.value,
+      httpPost('/api/admin/config/update/power', {
+        init_power: system.value.init_power,
+        invite_power: system.value.invite_power,
+        daily_power: system.value.daily_power,
+        mj_power: system.value.mj_power,
+        sd_power: system.value.sd_power,
+        dall_power: system.value.dall_power,
+        suno_power: system.value.suno_power,
+        luma_power: system.value.luma_power,
+        keling_powers: system.value.keling_powers,
+        advance_voice_power: system.value.advance_voice_power,
+        prompt_power: system.value.prompt_power,
       })
         .then(() => {
           ElMessage.success('操作成功！')
@@ -226,8 +205,8 @@ const save = function () {
 </script>
 
 <style lang="scss" scoped>
-@use '../../../assets/css/admin/form.scss' as *;
-@use '../../../assets/css/main.scss' as *;
+@use '@/assets/css/admin/form.scss' as *;
+@use '@/assets/css/main.scss' as *;
 
 .power-config {
   display: flex;

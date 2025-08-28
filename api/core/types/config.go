@@ -58,15 +58,11 @@ func (c RedisConfig) Url() string {
 }
 
 type BaseConfig struct {
-	Title         string `json:"title,omitempty"`           // 网站标题
-	Slogan        string `json:"slogan,omitempty"`          // 网站 slogan
-	AdminTitle    string `json:"admin_title,omitempty"`     // 管理后台标题
-	Logo          string `json:"logo,omitempty"`            // 圆形 Logo
-	BarLogo       string `json:"bar_logo,omitempty"`        // 条形 Logo
-	InitPower     int    `json:"init_power,omitempty"`      // 新用户注册赠送算力值
-	DailyPower    int    `json:"daily_power,omitempty"`     // 每日签到赠送算力
-	InvitePower   int    `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
-	VipMonthPower int    `json:"vip_month_power,omitempty"` // VIP 会员每月赠送的算力值
+	Title      string `json:"title,omitempty"`       // 网站标题
+	Slogan     string `json:"slogan,omitempty"`      // 网站 slogan
+	AdminTitle string `json:"admin_title,omitempty"` // 管理后台标题
+	Logo       string `json:"logo,omitempty"`        // 圆形 Logo
+	BarLogo    string `json:"bar_logo,omitempty"`    // 条形 Logo
 
 	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机（mobile），邮箱注册（email），账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
@@ -74,10 +70,12 @@ type BaseConfig struct {
 	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
 	VipInfoText     string `json:"vip_info_text,omitempty"`     // 会员页面充值说明
 
+	InitPower         int            `json:"init_power,omitempty"`          // 新用户注册赠送算力值
+	DailyPower        int            `json:"daily_power,omitempty"`         // 每日签到赠送算力
+	InvitePower       int            `json:"invite_power,omitempty"`        // 邀请新用户赠送算力值
 	MjPower           int            `json:"mj_power,omitempty"`            // MJ 绘画消耗算力
 	MjActionPower     int            `json:"mj_action_power,omitempty"`     // MJ 操作（放大，变换）消耗算力
 	SdPower           int            `json:"sd_power,omitempty"`            // SD 绘画消耗算力
-	DallPower         int            `json:"dall_power,omitempty"`          // DALL-E-3 绘图消耗算力
 	SunoPower         int            `json:"suno_power,omitempty"`          // Suno 生成歌曲消耗算力
 	LumaPower         int            `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
 	KeLingPowers      map[string]int `json:"keling_powers,omitempty"`       // 可灵生成视频消耗算力

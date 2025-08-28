@@ -101,18 +101,6 @@
                   <span v-else>生成中...</span>
                 </el-button>
               </div>
-
-              <div class="text-info">
-                <el-row :gutter="10">
-                  <el-text type="primary"
-                    >每次绘图消耗 <el-text type="warning">{{ dallPower }}算力，</el-text></el-text
-                  >
-                  <el-text type="primary"
-                    >当前可用
-                    <el-text type="warning"> {{ power }}算力</el-text>
-                  </el-text>
-                </el-row>
-              </div>
             </el-form>
           </div>
           <div class="py-4">
@@ -122,7 +110,8 @@
             >
               <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
               <i v-else class="iconfont icon-chuangzuo"></i>
-              <span>{{ isGenerating ? '创作中...' : '立即生成' }}</span>
+              <span v-if="isGenerating">创作中...</span>
+              <span v-else>立即生成({{ dallPower }}算力)</span>
             </button>
           </div>
         </div>
@@ -347,8 +336,8 @@ const allowPulling = ref(true) // 是否允许轮询
 const downloadPulling = ref(false) // 下载轮询
 const tastPullHandler = ref(null)
 const downloadPullHandler = ref(null)
-const power = ref(0)
-const dallPower = ref(0) // 画一张 SD 图片消耗算力
+const userPower = ref(0)
+const dallPower = ref(0)
 const clipboard = ref(null)
 const userId = ref(0)
 const selectedModel = ref(null)
@@ -363,14 +352,6 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     showMessageError('复制失败！')
   })
-
-  getSystemInfo()
-    .then((res) => {
-      dallPower.value = res.data['dall_power']
-    })
-    .catch((e) => {
-      showMessageError('获取系统配置失败：' + e.message)
-    })
 
   // 获取模型列表
   httpGet('/api/dall/models')
@@ -398,7 +379,7 @@ onUnmounted(() => {
 const initData = () => {
   checkSession()
     .then((user) => {
-      power.value = user['power']
+      userPower.value = user['power']
       userId.value = user.id
       isLogin.value = true
       page.value = 0
@@ -511,7 +492,7 @@ const generate = () => {
   httpPost('/api/dall/image', params.value)
     .then(() => {
       ElMessage.success('任务执行成功！')
-      power.value -= dallPower.value
+      userPower.value -= dallPower.value
       // 追加任务列表
       runningJobs.value.push({
         prompt: params.value.prompt,
@@ -589,7 +570,8 @@ const generatePrompt = () => {
 }
 
 const changeModel = (model) => {
-  if (model.value.startsWith('dall')) {
+  dallPower.value = model.power
+  if (model.name.startsWith('dall')) {
     sizes.value = dalleSizes
   } else {
     sizes.value = fluxSizes

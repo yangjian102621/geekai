@@ -90,6 +90,7 @@ func (h *ConfigHandler) RegisterRoutes() {
 	rg.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
 	{
 		rg.POST("update/base", h.UpdateBase)
+		rg.POST("update/power", h.UpdatePower)
 		rg.POST("update/notice", h.UpdateNotice)
 		rg.POST("update/captcha", h.UpdateCaptcha)
 		rg.POST("update/wx_login", h.UpdateWxLogin)
@@ -134,6 +135,47 @@ func (h *ConfigHandler) UpdateBase(c *gin.Context) {
 	h.sysConfig.Base = data
 
 	resp.SUCCESS(c, data)
+}
+
+// UpdatePower 更新系统配置
+func (h *ConfigHandler) UpdatePower(c *gin.Context) {
+	var data struct {
+		InitPower         int            `json:"init_power,omitempty"`          // 新用户注册赠送算力值
+		DailyPower        int            `json:"daily_power,omitempty"`         // 每日签到赠送算力
+		InvitePower       int            `json:"invite_power,omitempty"`        // 邀请新用户赠送算力值
+		MjPower           int            `json:"mj_power,omitempty"`            // MJ 绘画消耗算力
+		MjActionPower     int            `json:"mj_action_power,omitempty"`     // MJ 操作（放大，变换）消耗算力
+		SdPower           int            `json:"sd_power,omitempty"`            // SD 绘画消耗算力
+		SunoPower         int            `json:"suno_power,omitempty"`          // Suno 生成歌曲消耗算力
+		LumaPower         int            `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
+		KeLingPowers      map[string]int `json:"keling_powers,omitempty"`       // 可灵生成视频消耗算力
+		AdvanceVoicePower int            `json:"advance_voice_power,omitempty"` // 高级语音对话消耗算力
+		PromptPower       int            `json:"prompt_power,omitempty"`        // 生成提示词消耗算力
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	h.sysConfig.Base.InitPower = data.InitPower
+	h.sysConfig.Base.DailyPower = data.DailyPower
+	h.sysConfig.Base.InvitePower = data.InvitePower
+	h.sysConfig.Base.MjPower = data.MjPower
+	h.sysConfig.Base.MjActionPower = data.MjActionPower
+	h.sysConfig.Base.SdPower = data.SdPower
+	h.sysConfig.Base.SunoPower = data.SunoPower
+	h.sysConfig.Base.LumaPower = data.LumaPower
+	h.sysConfig.Base.KeLingPowers = data.KeLingPowers
+	h.sysConfig.Base.AdvanceVoicePower = data.AdvanceVoicePower
+	h.sysConfig.Base.PromptPower = data.PromptPower
+
+	err := h.Update(types.ConfigKeySystem, h.sysConfig.Base)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, h.sysConfig.Base)
 }
 
 // UpdateNotice 更新公告配置
