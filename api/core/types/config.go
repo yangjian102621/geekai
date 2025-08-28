@@ -80,7 +80,6 @@ type BaseConfig struct {
 	LumaPower         int            `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
 	KeLingPowers      map[string]int `json:"keling_powers,omitempty"`       // 可灵生成视频消耗算力
 	AdvanceVoicePower int            `json:"advance_voice_power,omitempty"` // 高级语音对话消耗算力
-	PromptPower       int            `json:"prompt_power,omitempty"`        // 生成提示词消耗算力
 
 	WechatCardURL string `json:"wechat_card_url,omitempty"` // 微信客服地址
 
@@ -94,7 +93,6 @@ type BaseConfig struct {
 	Copyright       string `json:"copyright"`        // 版权信息
 	DefaultNickname string `json:"default_nickname"` // 默认昵称
 	ICP             string `json:"icp"`              // ICP 备案号
-	MarkMapText     string `json:"mark_map_text"`    // 思维导入的默认文本
 
 	EnabledVerify    bool     `json:"enabled_verify"`     // 是否启用验证码
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表

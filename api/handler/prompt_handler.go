@@ -17,6 +17,7 @@ import (
 	"geekai/utils"
 	"geekai/utils/resp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -45,7 +46,7 @@ func (h *PromptHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/prompt/")
 
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis)).Use(middleware.RateLimitEvery(h.App.Redis, 30*time.Second))
 	{
 		group.POST("lyric", h.Lyric)
 		group.POST("image", h.Image)
@@ -69,19 +70,6 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.Base.PromptPower > 0 {
-		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.PromptPower, model.PowerLog{
-			Type:   types.PowerConsume,
-			Model:  h.getPromptModel(),
-			Remark: "生成歌词",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	}
-
 	resp.SUCCESS(c, content)
 }
 
@@ -99,18 +87,7 @@ func (h *PromptHandler) Image(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	if h.App.SysConfig.Base.PromptPower > 0 {
-		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.PromptPower, model.PowerLog{
-			Type:   types.PowerConsume,
-			Model:  h.getPromptModel(),
-			Remark: "生成绘画提示词",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	}
+
 	resp.SUCCESS(c, strings.Trim(content, `"`))
 }
 
@@ -127,19 +104,6 @@ func (h *PromptHandler) Video(c *gin.Context) {
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
-	}
-
-	if h.App.SysConfig.Base.PromptPower > 0 {
-		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.PromptPower, model.PowerLog{
-			Type:   types.PowerConsume,
-			Model:  h.getPromptModel(),
-			Remark: "生成视频脚本",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
 	}
 
 	resp.SUCCESS(c, strings.Trim(content, `"`))

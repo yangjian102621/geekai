@@ -13,6 +13,9 @@
             <div class="cell-item">License Key</div>
           </template>
           {{ license.key }}
+          <el-tooltip content="复制" placement="top">
+            <i class="iconfont icon-copy ml-2 cursor-pointer" @click="copy(license.key)"></i>
+          </el-tooltip>
         </el-descriptions-item>
         <el-descriptions-item>
           <template #label>
@@ -104,6 +107,11 @@ const active = () => {
     .catch((e) => {
       ElMessage.error(e.message)
     })
+}
+
+const copy = (text) => {
+  navigator.clipboard.writeText(text)
+  ElMessage.success('复制成功')
 }
 </script>
 

@@ -92,42 +92,6 @@
               </el-col>
             </el-row>
           </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                高级语音算力
-                <el-tooltip
-                  effect="dark"
-                  content="使用一次 OpenAI 高级语音对话消耗的算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-            </template>
-            <el-input v-model.number="system['advance_voice_power']" placeholder="" />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                提示词算力
-                <el-tooltip
-                  effect="dark"
-                  content="生成AI绘图提示词，歌词，视频描述消耗的算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-            </template>
-            <el-input v-model.number="system['prompt_power']" placeholder="" />
-          </el-form-item>
         </div>
 
         <div style="padding: 10px">
@@ -142,7 +106,6 @@
 
 <script setup>
 import { httpGet, httpPost } from '@/utils/http'
-import { copyObj } from '@/utils/libs'
 import { InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, reactive, ref } from 'vue'
@@ -186,12 +149,9 @@ const save = function () {
         daily_power: system.value.daily_power,
         mj_power: system.value.mj_power,
         sd_power: system.value.sd_power,
-        dall_power: system.value.dall_power,
         suno_power: system.value.suno_power,
         luma_power: system.value.luma_power,
         keling_powers: system.value.keling_powers,
-        advance_voice_power: system.value.advance_voice_power,
-        prompt_power: system.value.prompt_power,
       })
         .then(() => {
           ElMessage.success('操作成功！')
