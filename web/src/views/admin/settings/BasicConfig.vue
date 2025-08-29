@@ -323,13 +323,24 @@ const uploadImg = (file) => {
 }
 </script>
 
-<style lang="scss" scoped>
-@use '../../../assets/css/admin/form.scss' as *;
-@use '../../../assets/css/main.scss' as *;
+<style lang="scss">
+@use '@/assets/css/admin/form.scss' as *;
+@use '@/assets/css/main.scss' as *;
 
 .basic-config {
   display: flex;
   justify-content: center;
   padding: 20px;
+
+  a {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .el-form-item__label {
+    font-weight: 700;
+  }
 }
 </style>

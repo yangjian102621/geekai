@@ -8,41 +8,41 @@ package types
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 type OSSConfig struct {
-	Active string
-	Local  LocalStorageConfig
-	Minio  MiniOssConfig
-	QiNiu  QiNiuOssConfig
-	AliYun AliYunOssConfig
+	Active string             `json:"active"`
+	Local  LocalStorageConfig `json:"local"`
+	Minio  MiniOssConfig      `json:"minio"`
+	QiNiu  QiNiuOssConfig     `json:"qiniu"`
+	AliYun AliYunOssConfig    `json:"aliyun"`
 }
+
 type MiniOssConfig struct {
-	Endpoint     string
-	AccessKey    string
-	AccessSecret string
-	Bucket       string
-	SubDir       string
-	UseSSL       bool
-	Domain       string
+	Endpoint     string `json:"endpoint"`
+	AccessKey    string `json:"access_key"`
+	AccessSecret string `json:"access_secret"`
+	Bucket       string `json:"bucket"`
+	SubDir       string `json:"sub_dir"`
+	UseSSL       bool   `json:"use_ssl"`
+	Domain       string `json:"domain"`
 }
 
 type QiNiuOssConfig struct {
-	Zone         string
-	AccessKey    string
-	AccessSecret string
-	Bucket       string
-	SubDir       string
-	Domain       string
+	Zone         string `json:"zone"`
+	AccessKey    string `json:"access_key"`
+	AccessSecret string `json:"access_secret"`
+	Bucket       string `json:"bucket"`
+	SubDir       string `json:"sub_dir"`
+	Domain       string `json:"domain"`
 }
 
 type AliYunOssConfig struct {
-	Endpoint     string
-	AccessKey    string
-	AccessSecret string
-	Bucket       string
-	SubDir       string
-	Domain       string
+	Endpoint     string `json:"endpoint"`
+	AccessKey    string `json:"access_key"`
+	AccessSecret string `json:"access_secret"`
+	Bucket       string `json:"bucket"`
+	Domain       string `json:"domain"`
 }
 
 type LocalStorageConfig struct {
-	BasePath string
-	BaseURL  string
+	BasePath string `json:"base_path"`
+	BaseURL  string `json:"base_url"`
 }
