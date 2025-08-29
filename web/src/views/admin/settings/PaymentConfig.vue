@@ -8,14 +8,14 @@
             <span class="ms-2">支付宝</span>
           </div>
         </template>
-        <div class="rounded-md bg-blue-100 p-3 text-gray-500 border-blue-500 border-2 text-base">
+        <Alert type="info">
           如果你不知道怎么获取这些配置信息，请参考文档：
           <a
             href="https://docs.geekai.me/plus/config/payment.html#%E6%94%AF%E4%BB%98%E5%AE%9D%E9%85%8D%E7%BD%AE"
             target="_blank"
             >支付宝配置</a
           >。
-        </div>
+        </Alert>
 
         <el-form :model="alipay" class="mt-4" label-position="top">
           <el-form-item label="商户ID"><el-input v-model="alipay.app_id" /></el-form-item>
@@ -52,14 +52,14 @@
           </div>
         </template>
 
-        <div class="rounded-md bg-blue-100 p-3 text-gray-500 border-blue-500 border-2 text-base">
+        <Alert type="info">
           如果你不知道怎么获取这些配置信息，请参考文档：
           <a
             href="https://docs.geekai.me/plus/config/payment.html#%E5%BE%AE%E4%BF%A1%E6%94%AF%E4%BB%98%E9%85%8D%E7%BD%AE"
             target="_blank"
             >微信支付配置</a
           >。
-        </div>
+        </Alert>
 
         <el-form :model="wxpay" class="mt-4" label-position="top">
           <el-form-item label="AppID"><el-input v-model="wxpay.app_id" /></el-form-item>
@@ -89,14 +89,14 @@
             <span class="ms-2">易支付</span>
           </div>
         </template>
-        <div class="rounded-md bg-blue-100 p-3 text-gray-500 border-blue-500 border-2 text-base">
+        <Alert type="info">
           如果你不知道怎么获取这些配置信息，请参考文档：
           <a
             href="https://docs.geekai.me/plus/config/payment.html#%E6%98%93%E6%94%AF%E4%BB%98%E5%BC%80%E9%80%9A"
             target="_blank"
             >易支付配置</a
           >。
-        </div>
+        </Alert>
 
         <el-form :model="epay" class="mt-4" label-position="top">
           <el-form-item label="商户ID"><el-input v-model="epay.app_id" /></el-form-item>
@@ -114,6 +114,7 @@
 </template>
 
 <script setup>
+import Alert from '@/components/ui/Alert.vue'
 import { httpGet, httpPost } from '@/utils/http'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'

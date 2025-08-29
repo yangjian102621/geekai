@@ -72,7 +72,7 @@ func (s MiniOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, 
 	if ext == "" {
 		ext = filepath.Ext(parse.Path)
 	}
-	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), ext)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), ext)
 	info, err := s.client.PutObject(
 		context.Background(),
 		s.config.Bucket,
@@ -99,7 +99,7 @@ func (s MiniOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	defer fileReader.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	filename := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	info, err := s.client.PutObject(ctx, s.config.Bucket, filename, fileReader, file.Size, minio.PutObjectOptions{
 		ContentType: file.Header.Get("Body-Type"),
 	})
@@ -121,7 +121,7 @@ func (s MiniOss) PutBase64(base64Img string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error decoding base64:%v", err)
 	}
-	objectKey := fmt.Sprintf("%s/%d.png", s.config.SubDir, time.Now().UnixMicro())
+	objectKey := fmt.Sprintf("%d.png", time.Now().UnixMicro())
 	info, err := s.client.PutObject(
 		context.Background(),
 		s.config.Bucket,
@@ -138,8 +138,7 @@ func (s MiniOss) PutBase64(base64Img string) (string, error) {
 func (s MiniOss) Delete(fileURL string) error {
 	var objectKey string
 	if strings.HasPrefix(fileURL, "http") {
-		filename := filepath.Base(fileURL)
-		objectKey = fmt.Sprintf("%s/%s", s.config.SubDir, filename)
+		objectKey = filepath.Base(fileURL)
 	} else {
 		objectKey = fileURL
 	}

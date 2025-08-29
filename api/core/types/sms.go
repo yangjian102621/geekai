@@ -8,9 +8,9 @@ package types
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 type SMSConfig struct {
-	Active string
-	Ali    SmsConfigAli
-	Bao    SmsConfigBao
+	Active string       `json:"active"`
+	Ali    SmsConfigAli `json:"aliyun"`
+	Bao    SmsConfigBao `json:"bao"`
 }
 
 // SmsConfigAli 阿里云短信平台配置

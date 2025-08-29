@@ -13,6 +13,7 @@ import (
 	"geekai/core/types"
 	"geekai/store"
 	"geekai/store/model"
+	"strings"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
@@ -191,8 +192,8 @@ func (s *MigrationService) migrateCommunicationConfig(config *types.AppConfig) e
 
 	// 短信配置
 	smsConfig := map[string]any{
-		"active": config.SMS.Active,
-		"ali": map[string]any{
+		"active": strings.ToLower(config.SMS.Active),
+		"aliyun": map[string]any{
 			"access_key":    config.SMS.Ali.AccessKey,
 			"access_secret": config.SMS.Ali.AccessSecret,
 			"sign":          config.SMS.Ali.Sign,

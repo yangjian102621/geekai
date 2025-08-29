@@ -25,55 +25,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// AuthConfig 定义授权配置
-type AuthConfig struct {
-	ExactPaths  map[string]bool // 精确匹配的路径
-	PrefixPaths map[string]bool // 前缀匹配的路径
-}
-
-var authConfig = &AuthConfig{
-	ExactPaths: map[string]bool{
-		"/api/user/login":           false,
-		"/api/user/logout":          false,
-		"/api/user/resetPass":       false,
-		"/api/user/register":        false,
-		"/api/user/clogin":          false,
-		"/api/user/clogin/callback": false,
-		"/api/user/signin":          false,
-		"/api/admin/login":          false,
-		"/api/admin/logout":         false,
-		"/api/admin/login/captcha":  false,
-		"/api/app/list":             false,
-		"/api/app/type/list":        false,
-		"/api/app/list/user":        false,
-		"/api/model/list":           false,
-		"/api/mj/imgWall":           false,
-		"/api/mj/notify":            false,
-		"/api/invite/hits":          false,
-		"/api/sd/imgWall":           false,
-		"/api/dall/imgWall":         false,
-		"/api/product/list":         false,
-		"/api/menu/list":            false,
-		"/api/markMap/client":       false,
-		"/api/payment/doPay":        false,
-		"/api/payment/payWays":      false,
-		"/api/download":             false,
-		"/api/dall/models":          false,
-		"/api/chat/message":         false, // 聊天接口需要特殊处理
-		"/api/realtime":             false, // 实时通信接口需要特殊处理
-		"/api/realtime/voice":       false, // 语音聊天接口需要特殊处理
-	},
-	PrefixPaths: map[string]bool{
-		"/api/test/":           false,
-		"/api/payment/notify/": false,
-		"/api/config/":         false,
-		"/api/function/":       false,
-		"/api/sms/":            false,
-		"/api/captcha/":        false,
-		"/static/":             false,
-	},
-}
-
 type AppServer struct {
 	Config    *types.AppConfig
 	Engine    *gin.Engine
@@ -94,10 +45,10 @@ func NewServer(appConfig *types.AppConfig, redis *redis.Client, sysConfig *types
 
 func (s *AppServer) Init(client *redis.Client) {
 	s.Engine.Use(middleware.ParameterHandlerMiddleware())
-	s.Engine.Use(middleware.StaticMiddleware())
 	s.Engine.Use(errorHandler)
 	// 添加静态资源访问
 	s.Engine.Static("/static", s.Config.StaticDir)
+	s.Engine.Use(middleware.StaticMiddleware())
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {

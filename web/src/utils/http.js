@@ -5,8 +5,32 @@
 // * @Author yangjian102621@163.com
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import axios from 'axios'
 import { getAdminToken, getUserToken, removeAdminToken, removeUserToken } from '@/store/session'
+import axios from 'axios'
+
+// Blob 数据读取和解析的辅助函数
+export async function parseBlobResponse(blob) {
+  try {
+    // 检查 Blob 的类型
+    if (blob.type && blob.type.includes('application/json')) {
+      // 如果是 JSON 类型，直接解析
+      const text = await blob.text()
+      return JSON.parse(text)
+    } else {
+      // 如果不是 JSON 类型，尝试解析为文本
+      const text = await blob.text()
+      try {
+        return JSON.parse(text)
+      } catch (e) {
+        // 如果解析 JSON 失败，返回文本内容
+        return { message: text, rawData: text }
+      }
+    }
+  } catch (error) {
+    console.error('解析 Blob 响应失败:', error)
+    return { message: '解析响应数据失败', error: error.message }
+  }
+}
 
 axios.defaults.timeout = 180000
 // axios.defaults.baseURL = process.env.VUE_APP_API_HOST
@@ -29,7 +53,7 @@ axios.interceptors.response.use(
   (response) => {
     return response
   },
-  (error) => {
+  async (error) => {
     if (error.response.status === 401) {
       if (error.response.request.responseURL.indexOf('/api/admin') !== -1) {
         removeAdminToken()
@@ -39,8 +63,14 @@ axios.interceptors.response.use(
       error.response.data.message = '请先登录'
       return Promise.reject(error.response.data)
     }
+
     if (error.response.status === 400) {
-      return Promise.reject(new Error(error.response.data.message))
+      let errorMessage = error.response.data.message
+      if (!errorMessage) {
+        const parsedData = await parseBlobResponse(error.response.data)
+        errorMessage = parsedData.message
+      }
+      return Promise.reject(new Error(errorMessage))
     } else {
       return Promise.reject(error)
     }

@@ -75,7 +75,7 @@ func (s QiNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	defer src.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	key := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	// 上传文件
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
@@ -112,7 +112,7 @@ func (s QiNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string,
 	if ext == "" {
 		ext = filepath.Ext(parse.Path)
 	}
-	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), ext)
+	key := fmt.Sprintf("%d%s", time.Now().UnixMicro(), ext)
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
@@ -128,7 +128,7 @@ func (s QiNiuOss) PutBase64(base64Img string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error decoding base64:%v", err)
 	}
-	objectKey := fmt.Sprintf("%s/%d.png", s.config.SubDir, time.Now().UnixMicro())
+	objectKey := fmt.Sprintf("%d.png", time.Now().UnixMicro())
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
@@ -142,8 +142,7 @@ func (s QiNiuOss) PutBase64(base64Img string) (string, error) {
 func (s QiNiuOss) Delete(fileURL string) error {
 	var objectKey string
 	if strings.HasPrefix(fileURL, "http") {
-		filename := filepath.Base(fileURL)
-		objectKey = fmt.Sprintf("%s/%s", s.config.SubDir, filename)
+		objectKey = filepath.Base(fileURL)
 	} else {
 		objectKey = fileURL
 	}

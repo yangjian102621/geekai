@@ -20,7 +20,6 @@ type MiniOssConfig struct {
 	AccessKey    string `json:"access_key"`
 	AccessSecret string `json:"access_secret"`
 	Bucket       string `json:"bucket"`
-	SubDir       string `json:"sub_dir"`
 	UseSSL       bool   `json:"use_ssl"`
 	Domain       string `json:"domain"`
 }
@@ -30,7 +29,6 @@ type QiNiuOssConfig struct {
 	AccessKey    string `json:"access_key"`
 	AccessSecret string `json:"access_secret"`
 	Bucket       string `json:"bucket"`
-	SubDir       string `json:"sub_dir"`
 	Domain       string `json:"domain"`
 }
 

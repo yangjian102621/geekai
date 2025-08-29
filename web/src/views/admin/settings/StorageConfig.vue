@@ -59,14 +59,39 @@
       </el-tab-pane>
 
       <el-tab-pane label="七牛云" name="qiniu">
+        <div class="rounded-md bg-blue-100 p-3 text-gray-500 border-blue-500 border-2 text-base">
+          如果你不知道怎么获取这些配置信息，请参考文档：
+          <a
+            href="https://docs.geekai.me/plus/config/oss.html#%E4%B8%83%E7%89%9B%E4%BA%91-oss-%E9%85%8D%E7%BD%AE"
+            target="_blank"
+            >七牛云配置</a
+          >。
+        </div>
         <el-form :model="qiniu" class="mt-4" label-position="top">
-          <el-form-item label="Zone"><el-input v-model="qiniu.zone" /></el-form-item>
+          <el-form-item label="Zone">
+            <template #label>
+              <label
+                >区域（Zone）
+                <el-tooltip
+                  placement="right"
+                  content="华南：z2，华东：z0，华北：z1，北美：na0，新加坡：as0"
+                >
+                  <i class="iconfont icon-info"></i>
+                </el-tooltip>
+              </label>
+            </template>
+            <el-input
+              v-model="qiniu.zone"
+              placeholder="华南：z2，华东：z0，华北：z1，北美：na0，新加坡：as0"
+          /></el-form-item>
           <el-form-item label="AccessKey"><el-input v-model="qiniu.access_key" /></el-form-item>
           <el-form-item label="AccessSecret"
             ><el-input v-model="qiniu.access_secret"
           /></el-form-item>
           <el-form-item label="Bucket"><el-input v-model="qiniu.bucket" /></el-form-item>
-          <el-form-item label="Domain"><el-input v-model="qiniu.domain" /></el-form-item>
+          <el-form-item label="Domain"
+            ><el-input v-model="qiniu.domain" placeholder="请输入七牛云Bucket绑定的域名"
+          /></el-form-item>
         </el-form>
       </el-tab-pane>
 
@@ -95,7 +120,6 @@
 
     <div class="flex justify-center mt-6">
       <el-button type="primary" @click="save" :loading="loading">提交保存</el-button>
-      <el-button class="ml-3" @click="test">连接测试</el-button>
     </div>
   </div>
 </template>
@@ -161,14 +185,16 @@ const save = () => {
     .then(() => ElMessage.success('保存成功'))
     .catch((e) => ElMessage.error(e.message))
 }
-
-const test = () => {
-  ElMessage.info('请在对象存储端验证配置')
-}
 </script>
 
 <style lang="scss">
 .settings {
+  a {
+    color: #409eff;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
   .el-form-item__label {
     font-weight: 700;
   }

@@ -1,5 +1,4 @@
 <template>
-  <div class="reset-pass"></div>
   <div class="flex-center loginPage">
     <div class="left">
       <div class="login-box">

@@ -122,15 +122,6 @@ type ErrRes struct {
 
 func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	logger.Debugf("绘画参数：%+v", task)
-	prompt := task.Prompt
-	// translate prompt
-	if utils.HasChinese(prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, prompt), task.TranslateModelId)
-		if err == nil {
-			prompt = content
-			logger.Debugf("重写后提示词：%s", prompt)
-		}
-	}
 
 	var chatModel model.ChatModel
 	if task.ModelId > 0 {
@@ -160,7 +151,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	apiURL := fmt.Sprintf("%s/v1/images/generations", apiKey.ApiURL)
 	reqBody := imgReq{
 		Model:   chatModel.Value,
-		Prompt:  prompt,
+		Prompt:  task.Prompt,
 		N:       1,
 		Size:    task.Size,
 		Style:   task.Style,
@@ -188,7 +179,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	var imgURL string
 	var data = map[string]interface{}{
 		"progress": 100,
-		"prompt":   prompt,
+		"prompt":   task.Prompt,
 	}
 	// 如果返回的是base64，则需要上传到oss
 	if res.Data[0].B64Json != "" {
@@ -214,7 +205,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("error with download image: %v", err)
 		}
-		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", prompt, imgURL)
+		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", task.Prompt, imgURL)
 	}
 
 	return content, nil
