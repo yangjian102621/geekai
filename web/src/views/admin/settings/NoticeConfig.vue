@@ -1,13 +1,8 @@
 <template>
-  <div class="notice-config form" v-loading="loading">
-    <div class="container">
-      <h3>公告配置</h3>
-      <md-editor class="mgb20" v-model="notice" :theme="store.theme" @on-upload-img="onUploadImg" />
-      <el-form-item>
-        <div style="padding-top: 10px; margin-left: 150px">
-          <el-button type="primary" @click="save">保存</el-button>
-        </div>
-      </el-form-item>
+  <div class="notice-config container" v-loading="loading">
+    <md-editor class="mgb20" v-model="notice" :theme="store.theme" @on-upload-img="onUploadImg" />
+    <div class="flex justify-center p-5">
+      <el-button type="primary" @click="save">保存</el-button>
     </div>
   </div>
 </template>

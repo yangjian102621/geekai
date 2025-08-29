@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -30,12 +29,7 @@ func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 // RegisterRoutes 注册路由
 func (h *ChatModelHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/model/")
-
-	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
-	{
-		group.GET("list", h.List)
-	}
+	group.GET("list", h.List)
 }
 
 // List 模型列表

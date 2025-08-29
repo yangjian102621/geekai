@@ -1,18 +1,15 @@
 <template>
-  <div class="privacy-config form" v-loading="loading">
+  <div class="privacy-config container" v-loading="loading">
     <div class="container">
-      <h3>隐私声明</h3>
       <md-editor
         class="mgb20"
         v-model="privacy"
         :theme="store.theme"
         @on-upload-img="onUploadImg"
       />
-      <el-form-item>
-        <div style="padding-top: 10px; margin-left: 150px">
-          <el-button type="primary" @click="save">保存</el-button>
-        </div>
-      </el-form-item>
+      <div class="flex justify-center p-5">
+        <el-button type="primary" @click="save">保存</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -43,7 +40,7 @@ onMounted(() => {
 })
 
 const save = () => {
-  httpPost('/api/admin/config/update/notice', { content: privacy.value })
+  httpPost('/api/admin/config/update/privacy', { content: privacy.value })
     .then(() => {
       ElMessage.success('操作成功！')
     })

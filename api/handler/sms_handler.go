@@ -24,10 +24,10 @@ const CodeStorePrefix = "/verify/codes/"
 
 type SmsHandler struct {
 	BaseHandler
-	redis   *redis.Client
-	sms     *sms.SmsManager
-	smtp    *service.SmtpService
-	captcha *service.CaptchaService
+	redis          *redis.Client
+	sms            *sms.SmsManager
+	smtp           *service.SmtpService
+	captchaService *service.CaptchaService
 }
 
 func NewSmsHandler(
@@ -37,11 +37,11 @@ func NewSmsHandler(
 	smtp *service.SmtpService,
 	captcha *service.CaptchaService) *SmsHandler {
 	return &SmsHandler{
-		redis:       client,
-		sms:         sms,
-		captcha:     captcha,
-		smtp:        smtp,
-		BaseHandler: BaseHandler{App: app}}
+		redis:          client,
+		sms:            sms,
+		captchaService: captcha,
+		smtp:           smtp,
+		BaseHandler:    BaseHandler{App: app}}
 }
 
 // RegisterRoutes 注册路由
@@ -63,12 +63,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if h.App.SysConfig.Base.EnabledVerify {
+	if h.captchaService.GetConfig().Enabled {
 		var check bool
 		if data.X != 0 {
-			check = h.captcha.SlideCheck(data)
+			check = h.captchaService.SlideCheck(data)
 		} else {
-			check = h.captcha.Check(data)
+			check = h.captchaService.Check(data)
 		}
 		if !check {
 			resp.ERROR(c, "请先完人机验证")

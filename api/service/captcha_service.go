@@ -31,6 +31,10 @@ func (s *CaptchaService) UpdateConfig(config types.CaptchaConfig) {
 	s.config = config
 }
 
+func (s *CaptchaService) GetConfig() types.CaptchaConfig {
+	return s.config
+}
+
 func (s *CaptchaService) Get() (interface{}, error) {
 	url := fmt.Sprintf("%s/api/captcha/get", types.GeekAPIURL)
 	var res types.BizVo
@@ -48,7 +52,7 @@ func (s *CaptchaService) Get() (interface{}, error) {
 	return res.Data, nil
 }
 
-func (s *CaptchaService) Check(data interface{}) bool {
+func (s *CaptchaService) Check(data any) bool {
 	url := fmt.Sprintf("%s/api/captcha/check", types.GeekAPIURL)
 	var res types.BizVo
 	r, err := s.client.R().
@@ -66,7 +70,7 @@ func (s *CaptchaService) Check(data interface{}) bool {
 	return true
 }
 
-func (s *CaptchaService) SlideGet() (interface{}, error) {
+func (s *CaptchaService) SlideGet() (any, error) {
 	url := fmt.Sprintf("%s/api/captcha/slide/get", types.GeekAPIURL)
 	var res types.BizVo
 	r, err := s.client.R().
@@ -83,7 +87,7 @@ func (s *CaptchaService) SlideGet() (interface{}, error) {
 	return res.Data, nil
 }
 
-func (s *CaptchaService) SlideCheck(data interface{}) bool {
+func (s *CaptchaService) SlideCheck(data any) bool {
 	url := fmt.Sprintf("%s/api/captcha/slide/check", types.GeekAPIURL)
 	var res types.BizVo
 	r, err := s.client.R().

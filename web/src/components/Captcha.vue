@@ -4,19 +4,16 @@
       v-model="show"
       :close-on-click-modal="true"
       :show-close="isMobileInternal"
+      :append-to-body="true"
       style="width: 360px; --el-dialog-padding-primary: 5px 15px 15px 15px"
     >
       <template #header>
-        <div
-          class="text-center p-3"
-          style="color: var(--el-text-color-primary)"
-          v-if="isMobileInternal"
-        >
+        <div class="text-center p-3" style="color: var(--el-text-color-primary)">
           <span>人机验证</span>
         </div>
       </template>
       <slide-captcha
-        v-if="isMobileInternal"
+        v-if="type === 'slide'"
         :bg-img="bgImg"
         :bk-img="bkImg"
         :result="result"
@@ -47,6 +44,13 @@ import { httpGet, httpPost } from '@/utils/http'
 import { isMobile } from '@/utils/libs'
 import lodash from 'lodash'
 import { ref } from 'vue'
+
+const props = defineProps({
+  type: {
+    type: String,
+    default: 'slide',
+  },
+})
 
 const show = ref(false)
 const maxDot = ref(5)
@@ -98,7 +102,7 @@ const handleConfirm = (dts) => {
 const loadCaptcha = () => {
   show.value = true
   // 手机用滑动验证码
-  if (isMobile()) {
+  if (props.type === 'slide') {
     getSlideCaptcha()
   } else {
     handleRequestCaptCode()

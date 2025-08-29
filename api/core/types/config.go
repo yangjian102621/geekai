@@ -94,7 +94,6 @@ type BaseConfig struct {
 	DefaultNickname string `json:"default_nickname"` // 默认昵称
 	ICP             string `json:"icp"`              // ICP 备案号
 
-	EnabledVerify    bool     `json:"enabled_verify"`     // 是否启用验证码
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
 	AssistantModelId int      `json:"assistant_model_id"` // 用来做提示词,翻译的AI模型 id
 	MaxFileSize      int      `json:"max_file_size"`      // 最大文件大小,单位：MB
@@ -118,6 +117,7 @@ const (
 	ConfigKeyNotice    = "notice"
 	ConfigKeyAgreement = "agreement"
 	ConfigKeyPrivacy   = "privacy"
+	ConfigKeyMarkMap   = "mark_map"
 	ConfigKeyCaptcha   = "captcha"
 	ConfigKeyWxLogin   = "wx_login"
 	ConfigKeyLicense   = "license"

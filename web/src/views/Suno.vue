@@ -205,6 +205,7 @@
             @click="store.create"
             :disabled="store.loading"
             class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+            type="button"
           >
             <i v-if="store.loading" class="iconfont icon-loading animate-spin"></i>
             <i v-else class="iconfont icon-chuangzuo"></i>
@@ -245,6 +246,7 @@
               <div class="w-full py-2">
                 <button
                   class="w-full py-3 bg-gradient-to-r from-orange-300 to-purple-500 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-orange-300 hover:to-red-500 transition-all duration-200 flex items-center justify-center space-x-2"
+                  type="button"
                 >
                   <i class="iconfont icon-upload mr-2"></i>
                   <span>上传音乐</span>

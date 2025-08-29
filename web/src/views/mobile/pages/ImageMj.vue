@@ -195,6 +195,7 @@
         <button
           @click="generate"
           :disabled="loading"
+          type="button"
           class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
         >
           <i v-if="loading" class="iconfont icon-loading animate-spin"></i>

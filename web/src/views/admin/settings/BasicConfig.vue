@@ -90,18 +90,6 @@
             <el-switch v-model="system['enabled_register']" />
           </el-form-item>
 
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                启用验证码
-                <span class="text-xs text-gray-500"
-                  >（启用验证码之后，注册登录都会加载行为验证码，增加安全性。）</span
-                >
-              </div>
-            </template>
-            <el-switch v-model="system['enabled_verify']" />
-          </el-form-item>
-
           <el-form-item label="注册方式" prop="register_ways">
             <el-checkbox-group v-model="system['register_ways']">
               <el-checkbox value="mobile">手机注册</el-checkbox>

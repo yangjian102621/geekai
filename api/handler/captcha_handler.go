@@ -16,16 +16,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 今日头条函数实现
-
 type CaptchaHandler struct {
 	App     *core.AppServer
 	service *service.CaptchaService
-	config  types.CaptchaConfig
 }
 
 func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService, sysConfig *types.SystemConfig) *CaptchaHandler {
-	return &CaptchaHandler{App: app, service: s, config: sysConfig.Captcha}
+	return &CaptchaHandler{App: app, service: s}
 }
 
 // RegisterRoutes 注册路由
@@ -37,10 +34,15 @@ func (h *CaptchaHandler) RegisterRoutes() {
 	group.POST("check", h.Check)
 	group.GET("slide/get", h.SlideGet)
 	group.POST("slide/check", h.SlideCheck)
+	group.GET("config", h.GetConfig)
+}
+
+func (h *CaptchaHandler) GetConfig(c *gin.Context) {
+	resp.SUCCESS(c, gin.H{"enabled": h.service.GetConfig().Enabled, "type": h.service.GetConfig().Type})
 }
 
 func (h *CaptchaHandler) Get(c *gin.Context) {
-	if !h.config.Enabled {
+	if !h.service.GetConfig().Enabled {
 		resp.ERROR(c, "验证码服务未启用")
 		return
 	}
@@ -56,7 +58,7 @@ func (h *CaptchaHandler) Get(c *gin.Context) {
 
 // Check verify the captcha data
 func (h *CaptchaHandler) Check(c *gin.Context) {
-	if !h.config.Enabled {
+	if !h.service.GetConfig().Enabled {
 		resp.ERROR(c, "验证码服务未启用")
 		return
 	}
@@ -80,7 +82,7 @@ func (h *CaptchaHandler) Check(c *gin.Context) {
 
 // SlideGet 获取滑动验证图片
 func (h *CaptchaHandler) SlideGet(c *gin.Context) {
-	if !h.config.Enabled {
+	if !h.service.GetConfig().Enabled {
 		resp.ERROR(c, "验证码服务未启用")
 		return
 	}
@@ -96,7 +98,7 @@ func (h *CaptchaHandler) SlideGet(c *gin.Context) {
 
 // SlideCheck 滑动验证结果校验
 func (h *CaptchaHandler) SlideCheck(c *gin.Context) {
-	if !h.config.Enabled {
+	if !h.service.GetConfig().Enabled {
 		resp.ERROR(c, "验证码服务未启用")
 		return
 	}

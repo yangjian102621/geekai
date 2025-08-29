@@ -226,6 +226,7 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  height: 360px;
 
   .wg-cap-wrap__header {
     height: 50px;

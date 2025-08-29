@@ -7,6 +7,7 @@
       :before-close="close"
       :title="title"
       class="reset-pass-dialog"
+      :append-to-body="true"
     >
       <div class="form">
         <el-form :model="form" label-width="80px" label-position="left">

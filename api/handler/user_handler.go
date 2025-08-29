@@ -35,7 +35,7 @@ type UserHandler struct {
 	redis          *redis.Client
 	levelDB        *store.LevelDB
 	licenseService *service.LicenseService
-	captcha        *service.CaptchaService
+	captchaService *service.CaptchaService
 	userService    *service.UserService
 }
 
@@ -53,7 +53,7 @@ func NewUserHandler(
 		searcher:       searcher,
 		redis:          client,
 		levelDB:        levelDB,
-		captcha:        captcha,
+		captchaService: captcha,
 		licenseService: licenseService,
 		userService:    userService,
 	}
@@ -104,12 +104,13 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.Base.EnabledVerify && data.RegWay == "username" {
+	// 如果注册方式不是账号密码，则需要验证码
+	if h.captchaService.GetConfig().Enabled && data.RegWay != "username" {
 		var check bool
 		if data.X != 0 {
-			check = h.captcha.SlideCheck(data)
+			check = h.captchaService.SlideCheck(data)
 		} else {
-			check = h.captcha.Check(data)
+			check = h.captchaService.Check(data)
 		}
 		if !check {
 			resp.ERROR(c, "请先完人机验证")
@@ -279,15 +280,12 @@ func (h *UserHandler) Login(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	verifyKey := fmt.Sprintf("users/verify/%s", data.Username)
-	needVerify, err := h.redis.Get(c, verifyKey).Bool()
-
-	if h.App.SysConfig.Base.EnabledVerify && needVerify {
+	if h.captchaService.GetConfig().Enabled {
 		var check bool
 		if data.X != 0 {
-			check = h.captcha.SlideCheck(data)
+			check = h.captchaService.SlideCheck(data)
 		} else {
-			check = h.captcha.Check(data)
+			check = h.captchaService.Check(data)
 		}
 		if !check {
 			resp.ERROR(c, "请先完人机验证")
@@ -298,19 +296,17 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var user model.User
 	res := h.DB.Where("username = ?", data.Username).First(&user)
 	if res.Error != nil {
-		h.redis.Set(c, verifyKey, true, 0)
 		resp.ERROR(c, "用户名不存在")
 		return
 	}
 
 	password := utils.GenPassword(data.Password, user.Salt)
 	if password != user.Password {
-		h.redis.Set(c, verifyKey, true, 0)
 		resp.ERROR(c, "用户名或密码错误")
 		return
 	}
 
-	if user.Status == false {
+	if !user.Status {
 		resp.ERROR(c, "该用户已被禁止登录，请联系管理员")
 		return
 	}
@@ -343,8 +339,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 		resp.ERROR(c, "error with save token: "+err.Error())
 		return
 	}
-	// 移除登录行为验证码
-	h.redis.Del(c, verifyKey)
 	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
 }
 

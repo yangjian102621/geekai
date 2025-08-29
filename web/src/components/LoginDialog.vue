@@ -207,6 +207,17 @@
           </el-input>
         </div>
 
+        <div class="block text-sm">
+          <el-checkbox v-model="agreeChecked">
+            我已阅读并同意
+            <a href="javascript:void(0)" class="text-blue-500" @click="openAgreement"
+              >《用户协议》</a
+            >
+            和
+            <a href="javascript:void(0)" class="text-blue-500" @click="openPrivacy">《隐私政策》</a>
+          </el-checkbox>
+        </div>
+
         <div class="w-full">
           <button
             class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
@@ -252,9 +263,17 @@
         </el-row>
       </div>
     </div>
-    <captcha v-if="enableVerify" @success="submit" ref="captchaRef" />
+    <captcha v-if="enableCaptcha" :type="captchaType" @success="submit" ref="captchaRef" />
 
     <reset-pass @hide="showResetPass = false" :show="showResetPass" />
+
+    <el-dialog v-model="showAgreement" title="用户协议" :append-to-body="true">
+      <div class="prose" v-html="agreementHtml"></div>
+    </el-dialog>
+
+    <el-dialog v-model="showPrivacy" title="隐私政策" :append-to-body="true">
+      <div class="prose" v-html="privacyHtml"></div>
+    </el-dialog>
   </div>
 </template>
 
@@ -265,12 +284,13 @@ import SendMsg from '@/components/SendMsg.vue'
 import { getSystemInfo } from '@/store/cache'
 import { setUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import { httpPost } from '@/utils/http'
+import { httpGet, httpPost } from '@/utils/http'
 import { arrayContains } from '@/utils/libs'
 import { validateEmail, validateMobile } from '@/utils/validate'
 import { Checked, Iphone, Lock, Message } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'
+import { marked } from 'marked'
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -313,10 +333,16 @@ const captchaRef = ref(null)
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['hide', 'success'])
 const action = ref('login')
-const enableVerify = ref(false)
+const enableCaptcha = ref(false)
+const captchaType = ref('')
 const showResetPass = ref(false)
 const store = useSharedStore()
 const loading = ref(false)
+const agreeChecked = ref(false)
+const showAgreement = ref(false)
+const showPrivacy = ref(false)
+const agreementHtml = ref('')
+const privacyHtml = ref('')
 
 onMounted(() => {
   getSystemInfo()
@@ -341,12 +367,16 @@ onMounted(() => {
         if (res.data['wechat_card_url'] !== '') {
           wxImg.value = res.data['wechat_card_url']
         }
-        enableVerify.value = res.data['enabled_verify']
       }
     })
     .catch((e) => {
       ElMessage.error('获取系统配置失败：' + e.message)
     })
+
+  httpGet('/api/captcha/config').then((res) => {
+    enableCaptcha.value = res.data['enabled']
+    captchaType.value = res.data['type']
+  })
 })
 
 const submit = (verifyData) => {
@@ -365,7 +395,7 @@ const submitLogin = () => {
   if (!data.value.password) {
     return ElMessage.error('请输入密码')
   }
-  if (enableVerify.value) {
+  if (enableCaptcha.value) {
     captchaRef.value.loadCaptcha()
     action.value = 'login'
   } else {
@@ -418,7 +448,10 @@ const submitRegister = () => {
   if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
     return ElMessage.error('请输入验证码')
   }
-  if (enableVerify.value && activeName.value === 'username') {
+  if (!agreeChecked.value) {
+    return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
+  }
+  if (enableCaptcha.value && activeName.value === 'username') {
     captchaRef.value.loadCaptcha()
     action.value = 'register'
   } else {
@@ -450,6 +483,34 @@ const doRegister = (verifyData) => {
     .finally(() => {
       loading.value = false
     })
+}
+
+// 打开并加载协议
+const openAgreement = () => {
+  if (!agreementHtml.value) {
+    httpGet('/api/config/get?key=agreement')
+      .then((res) => {
+        agreementHtml.value = marked.parse(res.data?.content || '')
+        showAgreement.value = true
+      })
+      .catch((e) => ElMessage.error('加载用户协议失败：' + e.message))
+  } else {
+    showAgreement.value = true
+  }
+}
+
+// 打开并加载隐私政策
+const openPrivacy = () => {
+  if (!privacyHtml.value) {
+    httpGet('/api/config/get?key=privacy')
+      .then((res) => {
+        privacyHtml.value = marked.parse(res.data?.content || '')
+        showPrivacy.value = true
+      })
+      .catch((e) => ElMessage.error('加载隐私政策失败：' + e.message))
+  } else {
+    showPrivacy.value = true
+  }
 }
 </script>
 

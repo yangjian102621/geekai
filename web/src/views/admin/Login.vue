@@ -80,22 +80,24 @@ const enableVerify = ref(false)
 const captchaRef = ref(null)
 const loading = ref(false)
 
-checkAdminSession()
-  .then(() => {
-    router.push('/admin')
-  })
-  .catch(() => {})
+onMounted(() => {
+  // 判断是否登录
+  checkAdminSession()
+    .then(() => {
+      router.push('/admin')
+    })
+    .catch(() => {})
 
-// 加载系统配置
-getSystemInfo()
-  .then((res) => {
-    title.value = res.data.admin_title
-    logo.value = res.data.logo
-    enableVerify.value = res.data['enabled_verify']
-  })
-  .catch((e) => {
-    ElMessage.error('加载系统配置失败: ' + e.message)
-  })
+  // 加载系统配置
+  getSystemInfo()
+    .then((res) => {
+      title.value = res.data.admin_title
+      logo.value = res.data.logo
+    })
+    .catch((e) => {
+      ElMessage.error('加载系统配置失败: ' + e.message)
+    })
+})
 
 const login = function () {
   if (username.value === '') {

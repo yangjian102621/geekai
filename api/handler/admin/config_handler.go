@@ -92,6 +92,9 @@ func (h *ConfigHandler) RegisterRoutes() {
 		rg.POST("update/base", h.UpdateBase)
 		rg.POST("update/power", h.UpdatePower)
 		rg.POST("update/notice", h.UpdateNotice)
+		rg.POST("update/agreement", h.UpdateAgreement)
+		rg.POST("update/privacy", h.UpdatePrivacy)
+		rg.POST("update/mark_map", h.UpdateMarkMap)
 		rg.POST("update/captcha", h.UpdateCaptcha)
 		rg.POST("update/wx_login", h.UpdateWxLogin)
 		rg.POST("update/payment", h.UpdatePayment)
@@ -193,6 +196,64 @@ func (h *ConfigHandler) UpdateNotice(c *gin.Context) {
 	resp.SUCCESS(c, data)
 }
 
+// UpdateAgreement 更新用户协议配置
+func (h *ConfigHandler) UpdateAgreement(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyAgreement, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdatePrivacy 更新隐私政策配置
+func (h *ConfigHandler) UpdatePrivacy(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyPrivacy, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateMarkMap 更新思维导图配置
+func (h *ConfigHandler) UpdateMarkMap(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyMarkMap, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
 // UpdateCaptcha 更新行为验证码配置
 func (h *ConfigHandler) UpdateCaptcha(c *gin.Context) {
 	var data types.CaptchaConfig
@@ -206,10 +267,7 @@ func (h *ConfigHandler) UpdateCaptcha(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	if data.Enabled {
-		h.captchaService.UpdateConfig(data)
-	}
-	h.sysConfig.Captcha = data
+	h.captchaService.UpdateConfig(data)
 	resp.SUCCESS(c, data)
 
 }
