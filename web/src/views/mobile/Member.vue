@@ -4,14 +4,6 @@
       <!-- 产品套餐 -->
       <div class="products-section">
         <div class="text-center bg-[#7c3aed] text-white rounded-lg p-3 mb-4">充值套餐</div>
-        <!-- <div class="info-alert" v-if="vipInfoText">
-          <van-notice-bar
-            :text="vipInfoText"
-            color="#1989fa"
-            background="#ecf9ff"
-            :scrollable="false"
-          />
-        </div> -->
 
         <div class="products-grid" v-if="list.length > 0">
           <div v-for="item in list" :key="item.id" class="product-card">
@@ -24,40 +16,29 @@
 
             <div class="product-info">
               <div class="price-info">
-                <div class="original-price">
-                  <span class="label">原价：</span>
+                <div class="discount-price">
+                  <span class="label">商品价格：</span>
                   <span class="price">￥{{ item.price }}</span>
                 </div>
-                <div class="discount-price">
-                  <span class="label">优惠价：</span>
-                  <span class="price">￥{{ item.discount }}</span>
-                </div>
-              </div>
 
-              <div class="product-details">
-                <div class="detail-item">
-                  <span class="label">有效期：</span>
-                  <span class="value">{{ item.days > 0 ? item.days + '天' : '长期有效' }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">算力值：</span>
-                  <span class="value">{{ item.power }}</span>
+                <div class="product-details">
+                  <div class="detail-item">
+                    <span class="label">算力值：</span>
+                    <span class="value">{{ item.power }}</span>
+                  </div>
                 </div>
               </div>
 
               <div class="payment-methods">
                 <div class="methods-grid">
-                  <van-button
-                    v-for="payWay in payWays"
-                    :key="payWay.pay_type"
-                    size="small"
-                    :color="getPayButtonColor(payWay.pay_type)"
-                    @click="pay(item, payWay)"
-                    class="pay-button"
-                  >
-                    <i class="iconfont" :class="getPayIcon(payWay.pay_type)"></i>
-                    {{ getPayButtonText(payWay.pay_type) }}
-                  </van-button>
+                  <button class="payment-btn wechat-btn" @click="wxPay(item)">
+                    <i class="iconfont icon-wechat-pay"></i>
+                    <span>微信支付</span>
+                  </button>
+                  <button class="payment-btn alipay-btn" @click="alipay(item)">
+                    <i class="iconfont icon-alipay"></i>
+                    <span>支付宝</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -90,29 +71,27 @@
 
     <!-- 支付弹窗 -->
     <van-dialog
-      v-model="showPayDialog"
-      title="支付确认"
+      :show="showPayDialog"
+      :title="title"
       :show-cancel-button="false"
+      confirm-button-text="确认支付成功"
       :close-on-click-overlay="false"
+      @confirm="paySuccess"
     >
       <div class="pay-dialog-content">
         <div v-if="qrImg" class="qr-section">
-          <p class="pay-tip">请使用微信扫码支付：</p>
           <div class="qr-container">
             <van-image :src="qrImg" width="200" height="200" />
           </div>
           <p class="pay-amount">￥{{ currentPrice }}</p>
-        </div>
-        <div class="pay-actions">
-          <van-button type="success" @click="payCallback(true)">支付成功</van-button>
-          <van-button type="danger" @click="payCallback(false)">支付失败</van-button>
+          <p class="pay-tip">支付成功之后点击确定按钮</p>
         </div>
       </div>
     </van-dialog>
 
     <!-- 卡密兑换弹窗 -->
     <van-dialog
-      v-model:show="showRedeemVerifyDialog"
+      :show="showRedeemVerifyDialog"
       title="卡密兑换"
       :show-cancel-button="false"
       :show-confirm-button="false"
@@ -134,7 +113,7 @@ import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
 import QRCode from 'qrcode'
 import { showFailToast, showLoadingToast, showSuccessToast } from 'vant'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 // 响应式数据
 const list = ref([])
@@ -143,7 +122,6 @@ const isLogin = ref(false)
 const loading = ref(true)
 const loadingText = ref('加载中...')
 const vipInfoText = ref('')
-const payWays = ref([])
 const userOrderKey = ref(0)
 
 // 弹窗控制
@@ -154,53 +132,17 @@ const showPayDialog = ref(false)
 const qrImg = ref('')
 const currentPrice = ref(0)
 const currentProduct = ref(null)
-const currentPayWay = ref(null)
+const selectedPid = ref(0)
+const orderTimeout = ref(1800)
+const handler = ref(null)
+const title = ref('')
 
 const store = useSharedStore()
-
-// 支付按钮颜色
-const getPayButtonColor = (payType) => {
-  const colors = {
-    alipay: '#15A6E8',
-    wxpay: '#07C160',
-    qqpay: '#12B7F5',
-    paypal: '#0070BA',
-    jdpay: '#E1251B',
-    douyin: '#000000',
-  }
-  return colors[payType] || '#1989fa'
-}
-
-// 支付按钮图标
-const getPayIcon = (payType) => {
-  const icons = {
-    alipay: 'icon-alipay',
-    wxpay: 'icon-wechat-pay',
-    qqpay: 'icon-qq',
-    paypal: 'icon-paypal',
-    jdpay: 'icon-jd-pay',
-    douyin: 'icon-douyin',
-  }
-  return icons[payType] || 'icon-money'
-}
-
-// 支付按钮文本
-const getPayButtonText = (payType) => {
-  const texts = {
-    alipay: '支付宝',
-    wxpay: '微信支付',
-    qqpay: 'QQ钱包',
-    paypal: 'PayPal',
-    jdpay: '京东支付',
-    douyin: '抖音支付',
-  }
-  return texts[payType] || '支付'
-}
 
 // 初始化
 onMounted(() => {
   checkSession()
-    .then((user) => {
+    .then(() => {
       isLogin.value = true
     })
     .catch(() => {
@@ -222,64 +164,82 @@ onMounted(() => {
   getSystemInfo()
     .then((res) => {
       vipInfoText.value = res.data['vip_info_text']
+      if (res.data['order_pay_timeout'] > 0) {
+        orderTimeout.value = res.data['order_pay_timeout']
+      }
     })
     .catch((e) => {
       console.error('获取系统配置失败：', e.message)
     })
-
-  // 获取支付方式
-  httpGet('/api/payment/payWays')
-    .then((res) => {
-      payWays.value = res.data
-    })
-    .catch((e) => {
-      showFailToast('获取支付方式失败：' + e.message)
-    })
 })
 
 // 支付处理
-const pay = (product, payWay) => {
+const wxPay = (product) => {
   if (!isLogin.value) {
     store.setShowLoginDialog(true)
     return
   }
 
+  selectedPid.value = product.id
   currentProduct.value = product
-  currentPayWay.value = payWay
-  currentPrice.value = Number(product.discount)
+  currentPrice.value = Number(product.price)
+  title.value = '请打开微信扫码支付'
 
   showLoadingToast({
     message: '正在生成支付订单...',
     forbidClick: true,
   })
 
-  let host = import.meta.env.VITE_API_HOST
-  if (host === '') {
-    host = `${location.protocol}//${location.host}`
+  // 生成支付订单
+  GenerateOrder('wxpay')
+}
+
+const alipay = (product) => {
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
   }
 
-  httpPost(`${import.meta.env.VITE_API_HOST}/api/payment/doPay`, {
-    product_id: product.id,
-    pay_way: payWay.pay_way,
-    pay_type: payWay.pay_type,
-    user_id: 0, // 移除用户ID依赖
-    host: host,
-    device: 'mobile',
+  selectedPid.value = product.id
+  currentProduct.value = product
+  currentPrice.value = Number(product.price)
+  title.value = '请打开支付宝扫码支付'
+
+  showLoadingToast({
+    message: '正在生成支付订单...',
+    forbidClick: true,
+  })
+
+  // 生成支付订单
+  GenerateOrder('alipay')
+}
+
+function GenerateOrder(payWay) {
+  // 生成支付订单
+  httpPost('/api/payment/create', {
+    pid: selectedPid.value,
+    pay_way: payWay,
+    domain: `${window.location.protocol}//${window.location.host}`,
+    device: 'pc',
   })
     .then((res) => {
-      if (payWay.pay_way === 'wechat') {
+      if (res.data.pay_url) {
         // 生成二维码
-        QRCode.toDataURL(res.data, { width: 200, height: 200, margin: 2 }, (error, url) => {
+        QRCode.toDataURL(res.data.pay_url, { width: 200, height: 200, margin: 2 }, (error, url) => {
           if (error) {
             showFailToast('生成二维码失败')
           } else {
             qrImg.value = url
             showPayDialog.value = true
+            // 开始查询订单状态
+            if (handler.value) {
+              clearTimeout(handler.value)
+            }
+            handler.value = setTimeout(() => queryOrder(res.data.order_no), 3000)
           }
         })
       } else {
-        // 跳转支付
-        window.open(res.data, '_blank')
+        showFailToast('支付链接生成失败')
       }
     })
     .catch((e) => {
@@ -287,25 +247,47 @@ const pay = (product, payWay) => {
     })
 }
 
-// 支付回调
-const payCallback = (success) => {
+// 查询订单状态
+const queryOrder = async (orderNo) => {
+  try {
+    const res = await httpGet('/api/order/query?order_no=' + orderNo)
+    if (res?.data.status === 2) {
+      paySuccess(true)
+    } else {
+      // 继续查询，但设置最大查询次数
+      const maxQueries = Math.floor(orderTimeout.value / 3) // 每3秒查询一次
+      if (handler.value && maxQueries > 0) {
+        handler.value = setTimeout(() => queryOrder(orderNo), 3000)
+      } else {
+        // 查询超时
+        showFailToast('支付超时，请重新发起支付')
+        showPayDialog.value = false
+        qrImg.value = ''
+      }
+    }
+  } catch (error) {
+    console.error('查询订单状态失败:', error)
+    // 继续查询，但设置最大重试次数
+    if (handler.value) {
+      handler.value = setTimeout(() => queryOrder(orderNo), 3000)
+    }
+  }
+}
+
+const paySuccess = () => {
   showPayDialog.value = false
-  qrImg.value = ''
-
-  if (success) {
-    showSuccessToast('支付成功！')
-    userOrderKey.value += 1
-  }
+  showSuccessToast('支付成功！')
+  clearTimeout(handler.value)
+  userOrderKey.value += 1
 }
 
-// 卡密兑换回调
-const redeemCallback = (success) => {
-  showRedeemVerifyDialog.value = false
-
-  if (success) {
-    showSuccessToast('卡密兑换成功！')
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (handler.value) {
+    clearTimeout(handler.value)
+    handler.value = null
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>
@@ -456,14 +438,46 @@ const redeemCallback = (success) => {
               .methods-grid {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
+                gap: 12px;
 
-                .pay-button {
-                  height: 36px;
-                  font-size: 12px;
+                .payment-btn {
+                  height: 44px;
+                  border: none;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  cursor: pointer;
+                  transition: all 0.3s ease;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 8px;
+
+                  &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                  }
 
                   .iconfont {
-                    margin-right: 4px;
+                    font-size: 18px;
+                  }
+
+                  &.wechat-btn {
+                    background: #07c160;
+                    color: white;
+
+                    &:hover {
+                      background: #06ad56;
+                    }
+                  }
+
+                  &.alipay-btn {
+                    background: #15a6e8;
+                    color: white;
+
+                    &:hover {
+                      background: #1395d1;
+                    }
                   }
                 }
               }
@@ -493,16 +507,42 @@ const redeemCallback = (success) => {
         font-size: 16px;
         color: var(--van-text-color);
         margin-bottom: 16px;
+        font-weight: 500;
       }
 
       .qr-container {
         margin-bottom: 12px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        display: inline-block;
       }
 
       .pay-amount {
         font-size: 20px;
         font-weight: 600;
         color: #ff6b35;
+        margin-bottom: 16px;
+      }
+
+      .pay-status {
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        background: #f0f9ff;
+        border-radius: 8px;
+        border: 1px solid #e0f2fe;
+
+        .success-status {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #07c160;
+          font-weight: 500;
+        }
       }
     }
 
@@ -510,6 +550,8 @@ const redeemCallback = (success) => {
       display: flex;
       gap: 12px;
       justify-content: center;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
     }
   }
 }

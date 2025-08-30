@@ -55,7 +55,7 @@
                   </div>
                   <div class="product-title">
                     <h3 class="name">{{ item.name }}</h3>
-                    <p class="description">{{ item.description || '全模型通用算力' }}</p>
+                    <p class="description">算力值：{{ item.power }}</p>
                   </div>
                 </div>
 
@@ -169,12 +169,12 @@ import RedeemVerify from '@/components/RedeemVerify.vue'
 import UserOrder from '@/components/UserOrder.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
+import { closeLoading, showLoading } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
+import { isMobile } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
 import QRCode from 'qrcode'
-import { onMounted, ref, onUnmounted } from 'vue'
-import { showLoading, closeLoading } from '@/utils/dialog'
-import { isMobile } from '@/utils/libs'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const list = ref([])
 const vipImg = ref('/images/menu/member.png')

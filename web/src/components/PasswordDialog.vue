@@ -4,12 +4,12 @@
     v-model="showDialog"
     :close-on-click-modal="true"
     :show-close="true"
-    style="max-width: 600px"
+    style="max-width: 400px"
     :before-close="close"
     title="修改密码"
   >
-    <div class="form" id="password-form">
-      <el-form :model="form" label-width="120px">
+    <div class="form px-3" id="password-form">
+      <el-form :model="form" label-position="top">
         <el-form-item label="原始密码">
           <el-input v-model="form['old_pass']" type="password" />
         </el-form-item>

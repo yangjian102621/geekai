@@ -112,6 +112,7 @@ func (h *PaymentHandler) SyncOrders() error {
 	}
 
 	for _, order := range orders {
+		time.Sleep(time.Second * 1)
 		//超时15分钟的订单，直接标记为已关闭
 		if time.Now().After(order.CreatedAt.Add(time.Minute * 15)) {
 			h.DB.Model(&model.Order{}).Where("id", order.Id).Update("checked", true)

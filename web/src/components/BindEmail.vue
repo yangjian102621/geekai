@@ -1,5 +1,5 @@
 <template>
-  <div class="form">
+  <div class="form px-3">
     <div class="text-center" v-if="email !== ''">当前已绑定邮箱：{{ email }}</div>
     <el-form label-position="top">
       <el-form-item label="邮箱地址">

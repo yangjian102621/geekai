@@ -1,5 +1,5 @@
 <template>
-  <div class="form">
+  <div class="form px-3">
     <div class="text-center" v-if="mobile !== ''">当前已绑手机号：{{ mobile }}</div>
     <el-form label-position="top">
       <el-form-item label="手机号">

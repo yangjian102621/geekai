@@ -10,7 +10,7 @@
       :append-to-body="true"
     >
       <div class="form">
-        <el-form :model="form" label-width="80px" label-position="left">
+        <el-form :model="form" label-width="80px" label-position="top">
           <el-tabs v-model="form.type" class="demo-tabs">
             <el-tab-pane label="手机号验证" name="mobile">
               <el-form-item label="手机号">
