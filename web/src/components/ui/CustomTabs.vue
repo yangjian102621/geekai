@@ -1,3 +1,23 @@
+<!--
+  CustomTabs 组件
+  
+  使用方法：
+  <custom-tabs v-model="activeTab">
+    <custom-tab-pane name="tab1" label="标签1" width="30%">
+      内容1
+    </custom-tab-pane>
+    <custom-tab-pane name="tab2" label="标签2" width="70%">
+      内容2
+    </custom-tab-pane>
+  </custom-tabs>
+  
+  width 属性说明：
+  - width="30%": 标签页宽度为 30%
+  - width="70%": 标签页宽度为 70%
+  - width="50": 标签页宽度为 50%
+  - 不设置 width: 标签页宽度为自适应
+  - 支持任意百分比值或数字值
+-->
 <template>
   <div class="w-full">
     <div
@@ -47,7 +67,7 @@
       </div>
 
       <div
-        class="flex whitespace-nowrap overflow-x-auto scrollbar-hide"
+        class="flex whitespace-nowrap overflow-x-auto scrollbar-hide justify-between"
         ref="tabsContainer"
         @scroll="checkScrollPosition"
       >
@@ -56,9 +76,10 @@
           v-for="(tab, index) in panes"
           :key="tab.name"
           :class="{
-            '!text-purple-600 bg-white shadow-sm custom-tab-active': modelValue === tab.name,
+            '!text-purple-600 bg-white shadow-sm custom-tab-active ': modelValue === tab.name,
             'hover:bg-gray-50': modelValue !== tab.name,
           }"
+          :style="getWidthStyle(tab.width)"
           @click="handleTabClick(tab.name, index)"
           ref="tabItems"
         >
@@ -86,6 +107,23 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'tab-click'])
+
+// 动态生成宽度样式对象
+const getWidthStyle = (width) => {
+  if (!width) return {}
+
+  // 如果是百分比格式，直接使用
+  if (width.includes('%')) {
+    return { width: width }
+  }
+
+  // 如果是数字，转换为百分比
+  if (!isNaN(width)) {
+    return { width: `${width}%` }
+  }
+
+  return {}
+}
 
 const tabsHeader = ref(null)
 const tabsContainer = ref(null)

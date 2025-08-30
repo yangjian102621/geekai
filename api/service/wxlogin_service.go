@@ -51,6 +51,14 @@ func (s *WxLoginService) UpdateConfig(config types.WxLoginConfig) {
 	s.config = config
 }
 
+func (s *WxLoginService) GetConfig() types.WxLoginConfig {
+	return s.config
+}
+
+func (s *WxLoginService) SetConfig(config types.WxLoginConfig) {
+	s.config = config
+}
+
 func (s *WxLoginService) GetLoginQrCodeUrl(state string) (string, error) {
 	if s.config.ApiKey == "" {
 		return "", errors.New("无效的 API Key")
