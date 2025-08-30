@@ -17,8 +17,9 @@ import (
 	"time"
 	"unicode"
 
-	"golang.org/x/crypto/sha3"
 	rand2 "math/rand"
+
+	"golang.org/x/crypto/sha3"
 )
 
 // RandString generate rand string with specified length
@@ -72,7 +73,16 @@ func Str2stamp(str string) int64 {
 		return 0
 	}
 
-	layout := "2006-01-02 15:04:05"
+	var layout string
+	if strings.Contains(str, "T") {
+		layout = "2006-01-02T15:04:05-07:00"
+	} else {
+		if len(str) < 12 {
+			str = str + " 00:00:00"
+		}
+		layout = "2006-01-02 15:04:05"
+	}
+
 	t, err := time.ParseInLocation(layout, str, time.Local)
 	if err != nil {
 		return 0

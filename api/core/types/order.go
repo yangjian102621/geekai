@@ -11,9 +11,8 @@ type OrderStatus int
 
 const (
 	OrderNotPaid     = OrderStatus(0)
-	OrderScanned     = OrderStatus(1) // 已扫码
-	OrderPaidSuccess = OrderStatus(2)
-	OrderPaidFailed  = OrderStatus(3)
+	OrderPaidSuccess = OrderStatus(2) // 已支付
+	OrderPaidFailed  = OrderStatus(3) // 已关闭
 )
 
 type OrderRemark struct {

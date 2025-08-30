@@ -9,7 +9,6 @@ package handler
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
@@ -77,17 +76,14 @@ func (h *PaymentHandler) RegisterRoutes() {
 
 	// 支付回调接口（公开）
 	rg.POST("notify/alipay", h.AlipayNotify)
-	rg.GET("notify/geek", h.GeekPayNotify)
-	rg.POST("notify/wechat", h.WechatPayNotify)
+	rg.GET("notify/epay", h.EPayNotify)
+	rg.POST("notify/wxpay", h.WxpayNotify)
 
 	// 需要用户登录的接口
 	rg.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
-		rg.POST("create", h.Pay)
+		rg.POST("create", h.CreateOrder)
 	}
-
-	// 同步订单状态
-	h.StartSyncOrders()
 }
 
 func (h *PaymentHandler) StartSyncOrders() {
@@ -116,10 +112,11 @@ func (h *PaymentHandler) SyncOrders() error {
 	}
 
 	for _, order := range orders {
-		// 超时15分钟的订单，直接标记为已关闭
+		//超时15分钟的订单，直接标记为已关闭
 		if time.Now().After(order.CreatedAt.Add(time.Minute * 15)) {
 			h.DB.Model(&model.Order{}).Where("id", order.Id).Update("checked", true)
-			return errors.New("订单超时")
+			logger.Errorf("订单超时：%v", order)
+			continue
 		}
 		// 查询订单状态
 		var res payment.OrderInfo
@@ -127,18 +124,22 @@ func (h *PaymentHandler) SyncOrders() error {
 		case payment.PayChannelEpay:
 			res, err = h.epayService.Query(order.OrderNo)
 			if err != nil {
-				return fmt.Errorf("error with query order info: %v", err)
+				logger.Errorf("error with query order info: %v", err)
+				continue
 			}
 			// 微信支付
 		case payment.PayChannelWX:
 			res, err = h.wxpayService.Query(order.OrderNo)
+			logger.Debugf("微信支付订单状态：%+v", res)
 			if err != nil {
-				return fmt.Errorf("error with query order info: %v", err)
+				logger.Errorf("error with query order info: %v", err)
+				continue
 			}
 		case payment.PayChannelAL:
 			res, err = h.alipayService.Query(order.OrderNo)
 			if err != nil {
-				return fmt.Errorf("error with query order info: %v", err)
+				logger.Errorf("error with query order info: %v", err)
+				continue
 			}
 		}
 
@@ -148,24 +149,26 @@ func (h *PaymentHandler) SyncOrders() error {
 				"checked": true,
 				"status":  types.OrderPaidFailed,
 			})
-			return errors.New("订单已关闭")
+			logger.Errorf("订单已关闭：%v", order)
+			continue
 		}
 
 		// 订单未支付，不处理，继续轮询
 		if !res.Success() {
-			return nil
+			continue
 		}
 
 		// 订单支付成功
 		err = h.paySuccess(res)
 		if err != nil {
-			return fmt.Errorf("error with deal order: %v", err)
+			logger.Errorf("error with deal order: %v", err)
+			continue
 		}
 	}
 	return nil
 }
 
-func (h *PaymentHandler) Pay(c *gin.Context) {
+func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 	var data struct {
 		PayWay  string `json:"pay_way,omitempty"` // 支付方式：支付宝，微信
 		Pid     int    `json:"pid,omitempty"`
@@ -210,7 +213,7 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			if h.config.WxPay.Domain != "" {
 				data.Domain = h.config.WxPay.Domain
 			}
-			notifyURL = fmt.Sprintf("%s/api/payment/notify/wechat", data.Domain)
+			notifyURL = fmt.Sprintf("%s/api/payment/notify/wxpay", data.Domain)
 			payURL, err = h.wxpayService.Pay(payment.PayRequest{
 				OutTradeNo: orderNo,
 				TotalFee:   fmt.Sprintf("%d", int(amount*100)),
@@ -230,7 +233,7 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			if h.config.Epay.Domain != "" {
 				data.Domain = h.config.Epay.Domain
 			}
-			notifyURL = fmt.Sprintf("%s/api/payment/notify/geek", data.Domain)
+			notifyURL = fmt.Sprintf("%s/api/payment/notify/epay", data.Domain)
 			params := payment.PayRequest{
 				OutTradeNo: orderNo,
 				Subject:    product.Name,
@@ -280,7 +283,7 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 			if h.config.Epay.Domain != "" {
 				data.Domain = h.config.Epay.Domain
 			}
-			notifyURL = fmt.Sprintf("%s/api/payment/notify/geek", data.Domain)
+			notifyURL = fmt.Sprintf("%s/api/payment/notify/epay", data.Domain)
 			params := payment.PayRequest{
 				OutTradeNo: orderNo,
 				Subject:    product.Name,
@@ -309,7 +312,6 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 
 	// 创建订单
 	remark := types.OrderRemark{
-		Days:  product.Days,
 		Power: product.Power,
 		Name:  product.Name,
 		Price: product.Price,
@@ -377,7 +379,7 @@ func (h *PaymentHandler) paySuccess(info payment.OrderInfo) error {
 	order.Status = types.OrderPaidSuccess
 	order.TradeNo = info.TradeId
 	order.Checked = true
-	err = h.DB.Updates(&order).Error
+	err = h.DB.Debug().Updates(&order).Error
 	if err != nil {
 		return fmt.Errorf("error with update order info: %v", err)
 	}
@@ -418,14 +420,14 @@ func (h *PaymentHandler) AlipayNotify(c *gin.Context) {
 	c.String(http.StatusOK, "success")
 }
 
-// GeekPayNotify 支付异步回调
-func (h *PaymentHandler) GeekPayNotify(c *gin.Context) {
+// EPayNotify 易支付支付异步回调
+func (h *PaymentHandler) EPayNotify(c *gin.Context) {
 	var params = make(map[string]string)
 	for k := range c.Request.URL.Query() {
 		params[k] = c.Query(k)
 	}
 
-	logger.Infof("收到GeekPay订单支付回调：%+v", params)
+	logger.Infof("收到易支付订单支付回调：%+v", params)
 	// 检查支付状态, 如果未支付，则返回成功
 	if params["trade_status"] != "TRADE_SUCCESS" {
 		c.String(http.StatusOK, "success")
@@ -456,8 +458,8 @@ func (h *PaymentHandler) GeekPayNotify(c *gin.Context) {
 	c.String(http.StatusOK, "success")
 }
 
-// WechatPayNotify 微信商户支付异步回调
-func (h *PaymentHandler) WechatPayNotify(c *gin.Context) {
+// WxpayNotify 微信商户支付异步回调
+func (h *PaymentHandler) WxpayNotify(c *gin.Context) {
 	err := c.Request.ParseForm()
 	if err != nil {
 		c.String(http.StatusOK, "fail")

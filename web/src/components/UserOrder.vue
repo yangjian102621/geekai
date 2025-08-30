@@ -18,7 +18,7 @@
             <span>{{ scope.row.remark && scope.row.remark.power }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="pay_method" label="支付渠道" />
+        <el-table-column prop="channel_name" label="支付渠道" />
         <el-table-column prop="pay_name" label="支付名称" />
         <el-table-column label="支付时间">
           <template #default="scope">

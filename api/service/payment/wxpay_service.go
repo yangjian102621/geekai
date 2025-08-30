@@ -74,6 +74,7 @@ func (s *WxPayService) Pay(params PayRequest) (string, error) {
 			bm.Set("total", utils.IntValue(params.TotalFee, 0)).
 				Set("currency", "CNY")
 		})
+	logger.Debugf("wxpay params: %+v", bm)
 	if params.Device == "mobile" {
 		bm.SetBodyMap("scene_info", func(bm gopay.BodyMap) {
 			bm.Set("payer_client_ip", params.ClientIP)

@@ -303,6 +303,7 @@ func main() {
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			h.RegisterRoutes()
+			h.StartSyncOrders()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
 			h.RegisterRoutes()

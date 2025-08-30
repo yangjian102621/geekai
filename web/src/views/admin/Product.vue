@@ -14,14 +14,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="price" label="商品原价" />
-        <el-table-column prop="discount" label="优惠价" />
-        <el-table-column prop="days" label="有效期(天)">
-          <template #default="scope">
-            <el-tag v-if="scope.row.days === 0">长期有效</el-tag>
-            <span v-else>{{ scope.row.days }}</span>
-          </template>
-        </el-table-column>
+        <el-table-column prop="price" label="商品价格" />
         <el-table-column prop="power" label="算力" />
         <el-table-column prop="sales" label="销量" />
         <el-table-column prop="enabled" label="启用状态">
@@ -55,16 +48,8 @@
           <el-input v-model="item.name" autocomplete="off" />
         </el-form-item>
 
-        <el-form-item label="商品原价：" prop="price">
+        <el-form-item label="商品价格：" prop="price">
           <el-input v-model="item.price" autocomplete="off" />
-        </el-form-item>
-
-        <el-form-item label="优惠价：" prop="discount">
-          <el-input v-model="item.discount" autocomplete="off" />
-        </el-form-item>
-
-        <el-form-item label="有效期：" prop="days">
-          <el-input v-model.number="item.days" autocomplete="off" placeholder="会员有效期(天)" />
         </el-form-item>
 
         <el-form-item label="算力：" prop="power">

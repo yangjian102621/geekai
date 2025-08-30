@@ -42,14 +42,23 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="支付时间">
-          <template #default="scope">
-            <span v-if="scope.row['pay_time']">{{ dateFormat(scope.row['pay_time']) }}</span>
-            <el-tag v-else>未支付</el-tag>
+        <el-table-column label="订单状态">
+          <template #default="{ row }">
+            <el-tag v-if="row.status === 2" type="success">已支付</el-tag>
+            <el-tag v-else-if="row.status === 3" type="danger">已关闭</el-tag>
+            <el-tag v-else type="warning">未支付</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="pay_method" label="支付渠道" />
-        <el-table-column prop="pay_name" label="支付名称" />
+
+        <!-- 支付时间 -->
+        <el-table-column label="支付时间">
+          <template #default="row">
+            <span>{{ dateFormat(row.pay_time) || '--' }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="pay_name" label="支付渠道" min-width="100" />
+        <el-table-column prop="channel_name" label="支付渠道" min-width="100" />
 
         <el-table-column label="操作" width="180">
           <template #default="scope">

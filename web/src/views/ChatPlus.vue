@@ -340,7 +340,7 @@
                                 <VideoPause />
                               </el-icon>
                             </el-button>
-                            <el-button @click="sendMessage" style="color: #754ff6" v-else>
+                            <el-button @click="sendMessage()" style="color: #754ff6" v-else>
                               <el-tooltip class="box-item" effect="dark" content="发送">
                                 <el-icon><Promotion /></el-icon>
                               </el-tooltip>
@@ -832,7 +832,7 @@ const sendSSERequest = async (message) => {
 }
 
 // 发送消息
-const sendMessage = (messageId) => {
+const sendMessage = (messageId = 0) => {
   if (!isLogin.value) {
     console.log('未登录')
     store.setShowLoginDialog(true)
@@ -895,7 +895,7 @@ const sendMessage = (messageId) => {
     tools: toolSelected.value,
     stream: stream.value,
     files: files.value,
-    last_msg_id: messageId,
+    last_msg_id: messageId || 0,
   })
 
   prompt.value = ''

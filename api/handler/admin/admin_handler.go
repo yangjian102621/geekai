@@ -81,19 +81,6 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// if h.App.SysConfig.Base.EnabledVerify {
-	// 	var check bool
-	// 	if data.X != 0 {
-	// 		check = h.captcha.SlideCheck(data)
-	// 	} else {
-	// 		check = h.captcha.Check(data)
-	// 	}
-	// 	if !check {
-	// 		resp.ERROR(c, "请先完人机验证")
-	// 		return
-	// 	}
-	// }
-
 	var manager model.AdminUser
 	res := h.DB.Model(&model.AdminUser{}).Where("username = ?", data.Username).First(&manager)
 	if res.Error != nil {

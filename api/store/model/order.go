@@ -17,7 +17,7 @@ type Order struct {
 	Amount    float64           `gorm:"column:amount;type:decimal(10,2);not null;default:0.00;comment:订单金额" json:"amount"`
 	Status    types.OrderStatus `gorm:"column:status;type:tinyint(1);not null;default:0;comment:订单状态（0：待支付，1：已扫码，2：支付成功）" json:"status"`
 	Remark    string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
-	PayTime   int64             `gorm:"column:pay_time;type:int;comment:支付时间" json:"pay_time"`
+	PayTime   int64             `gorm:"column:pay_time;type:int(11);comment:支付时间" json:"pay_time"`
 	PayWay    string            `gorm:"column:pay_way;type:varchar(20);not null;comment:支付方式" json:"pay_way"`
 	Channel   string            `gorm:"column:channel;type:varchar(30);not null;comment:支付类型渠道：支付宝，微信，聚合支付"` // 支付类型渠道
 	CreatedAt time.Time         `gorm:"column:created_at;type:datetime;not null" json:"created_at"`

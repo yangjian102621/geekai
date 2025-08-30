@@ -118,6 +118,18 @@ func (s *MigrationService) TableMigration() {
 	if s.db.Migrator().HasColumn(&model.ChatModel{}, "description") {
 		s.db.Migrator().DropColumn(&model.ChatModel{}, "description")
 	}
+	if s.db.Migrator().HasColumn(&model.Product{}, "discount") {
+		s.db.Migrator().DropColumn(&model.Product{}, "discount")
+	}
+	if s.db.Migrator().HasColumn(&model.Product{}, "days") {
+		s.db.Migrator().DropColumn(&model.Product{}, "days")
+	}
+	if s.db.Migrator().HasColumn(&model.Product{}, "app_url") {
+		s.db.Migrator().DropColumn(&model.Product{}, "app_url")
+	}
+	if s.db.Migrator().HasColumn(&model.Product{}, "url") {
+		s.db.Migrator().DropColumn(&model.Product{}, "url")
+	}
 }
 
 // 迁移配置数据

@@ -15,9 +15,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ProductHandler struct {
@@ -43,9 +44,7 @@ func (h *ProductHandler) Save(c *gin.Context) {
 		Id        uint    `json:"id"`
 		Name      string  `json:"name"`
 		Price     float64 `json:"price"`
-		Discount  float64 `json:"discount"`
 		Enabled   bool    `json:"enabled"`
-		Days      int     `json:"days"`
 		Power     int     `json:"power"`
 		CreatedAt int64   `json:"created_at"`
 	}
@@ -55,12 +54,10 @@ func (h *ProductHandler) Save(c *gin.Context) {
 	}
 
 	item := model.Product{
-		Name:     data.Name,
-		Price:    data.Price,
-		Discount: data.Discount,
-		Days:     data.Days,
-		Power:    data.Power,
-		Enabled:  data.Enabled}
+		Name:    data.Name,
+		Price:   data.Price,
+		Power:   data.Power,
+		Enabled: data.Enabled}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)

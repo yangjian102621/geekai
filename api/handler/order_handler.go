@@ -15,7 +15,6 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -96,17 +95,8 @@ func (h *OrderHandler) Query(c *gin.Context) {
 		return
 	}
 
-	counter := 0
-	for {
-		time.Sleep(time.Second)
-		var item model.Order
-		h.DB.Where("order_no = ?", orderNo).First(&item)
-		if counter >= 15 || item.Status == types.OrderPaidSuccess || item.Status != order.Status {
-			order.Status = item.Status
-			break
-		}
-		counter++
-	}
+	var item model.Order
+	h.DB.Where("order_no = ?", orderNo).First(&item)
 
 	resp.SUCCESS(c, gin.H{"status": order.Status})
 }
