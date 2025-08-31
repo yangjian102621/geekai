@@ -25,5 +25,5 @@ type ChatModel struct {
 }
 
 func (m *ChatModel) TableName() string {
-	return "chatgpt_chat_models"
+	return "geekai_chat_models"
 }

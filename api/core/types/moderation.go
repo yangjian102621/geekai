@@ -11,6 +11,7 @@ package types
 type ModerationConfig struct {
 	Enable      bool                    `json:"enable"` // 是否启用文本审查
 	Active      string                  `json:"active"`
+	EnableGuide bool                    `json:"enable_guide"` // 是否启用模型引导提示词
 	GuidePrompt string                  `json:"guide_prompt"` // 模型引导提示词
 	Gitee       ModerationGiteeConfig   `json:"gitee"`
 	Baidu       ModerationBaiduConfig   `json:"baidu"`

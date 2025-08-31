@@ -17,5 +17,5 @@ type ChatItem struct {
 }
 
 func (m *ChatItem) TableName() string {
-	return "chatgpt_chat_items"
+	return "geekai_chat_items"
 }

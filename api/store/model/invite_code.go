@@ -12,5 +12,5 @@ type InviteCode struct {
 }
 
 func (m *InviteCode) TableName() string {
-	return "chatgpt_invite_codes"
+	return "geekai_invite_codes"
 }

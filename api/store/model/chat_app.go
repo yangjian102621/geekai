@@ -20,5 +20,5 @@ type ChatApp struct {
 }
 
 func (m *ChatApp) TableName() string {
-	return "chatgpt_chat_roles"
+	return "geekai_chat_roles"
 }

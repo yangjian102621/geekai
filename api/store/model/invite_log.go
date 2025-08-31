@@ -15,5 +15,5 @@ type InviteLog struct {
 }
 
 func (m *InviteLog) TableName() string {
-	return "chatgpt_invite_logs"
+	return "geekai_invite_logs"
 }

@@ -16,5 +16,5 @@ type Redeem struct {
 }
 
 func (m *Redeem) TableName() string {
-	return "chatgpt_redeems"
+	return "geekai_redeems"
 }

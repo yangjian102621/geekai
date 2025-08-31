@@ -15,5 +15,5 @@ type UserLoginLog struct {
 }
 
 func (m *UserLoginLog) TableName() string {
-	return "chatgpt_user_login_logs"
+	return "geekai_user_login_logs"
 }

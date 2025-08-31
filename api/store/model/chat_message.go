@@ -21,5 +21,5 @@ type ChatMessage struct {
 }
 
 func (m *ChatMessage) TableName() string {
-	return "chatgpt_chat_history"
+	return "geekai_chat_history"
 }

@@ -51,5 +51,5 @@ const (
 
 // TableName 返回数据表名称
 func (JimengJob) TableName() string {
-	return "chatgpt_jimeng_jobs"
+	return "geekai_jimeng_jobs"
 }

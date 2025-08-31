@@ -19,5 +19,5 @@ type SdJob struct {
 }
 
 func (m *SdJob) TableName() string {
-	return "chatgpt_sd_jobs"
+	return "geekai_sd_jobs"
 }

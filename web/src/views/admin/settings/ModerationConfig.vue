@@ -72,11 +72,11 @@
     </el-tabs>
 
     <el-form :model="configs" label-position="top" class="py-5">
-      <el-form-item label="启用文本审查">
-        <el-switch v-model="configs.enable" />
+      <el-form-item label="启用模型引导提示词">
+        <el-switch v-model="configs.enable_guide" />
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item v-if="configs.enable_guide">
         <template #label>
           <span class="mr-2">大模型引导提示词</span>
           <el-tooltip
@@ -96,7 +96,11 @@
         />
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item label="启用文本审查服务">
+        <el-switch v-model="configs.enable" />
+      </el-form-item>
+
+      <el-form-item v-if="configs.enable">
         <template #label>
           <div class="flex items-center">
             <span class="mr-2">选择审查服务</span>

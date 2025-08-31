@@ -26,5 +26,5 @@ type Order struct {
 }
 
 func (m *Order) TableName() string {
-	return "chatgpt_orders"
+	return "geekai_orders"
 }

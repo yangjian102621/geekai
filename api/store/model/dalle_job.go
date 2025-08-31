@@ -17,5 +17,5 @@ type DallJob struct {
 }
 
 func (m *DallJob) TableName() string {
-	return "chatgpt_dall_jobs"
+	return "geekai_dall_jobs"
 }

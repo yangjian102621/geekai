@@ -7,5 +7,5 @@ type Config struct {
 }
 
 func (m *Config) TableName() string {
-	return "chatgpt_configs"
+	return "geekai_configs"
 }
