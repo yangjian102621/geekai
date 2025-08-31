@@ -24,7 +24,7 @@ import (
 )
 
 type MiniOss struct {
-	config   *types.MiniOssConfig
+	config   types.MiniOssConfig
 	client   *minio.Client
 	proxyURL string
 }
@@ -33,7 +33,7 @@ func NewMiniOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*Min
 
 	s := &MiniOss{proxyURL: appConfig.ProxyURL}
 	if sysConfig.OSS.Active == Minio {
-		err := s.UpdateConfig(&sysConfig.OSS.Minio)
+		err := s.UpdateConfig(sysConfig.OSS.Minio)
 		if err != nil {
 			logger.Errorf("MinioOSS初始化失败: %v", err)
 		}
@@ -41,7 +41,7 @@ func NewMiniOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*Min
 	return s, nil
 }
 
-func (s *MiniOss) UpdateConfig(config *types.MiniOssConfig) error {
+func (s *MiniOss) UpdateConfig(config types.MiniOssConfig) error {
 	minioClient, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccessKey, config.AccessSecret, ""),
 		Secure: config.UseSSL,

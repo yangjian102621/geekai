@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "3547761",
+      "name": "tencent",
+      "font_class": "tencent",
+      "unicode": "e655",
+      "unicode_decimal": 58965
+    },
+    {
+      "icon_id": "26267540",
+      "name": "baidu",
+      "font_class": "baidu",
+      "unicode": "e656",
+      "unicode_decimal": 58966
+    },
+    {
+      "icon_id": "31975090",
+      "name": "Content Moderation",
+      "font_class": "moderation",
+      "unicode": "e6c6",
+      "unicode_decimal": 59078
+    },
+    {
       "icon_id": "27025075",
       "name": "返回",
       "font_class": "back-bold",

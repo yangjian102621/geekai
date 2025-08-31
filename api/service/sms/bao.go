@@ -19,18 +19,18 @@ import (
 )
 
 type BaoSmsService struct {
-	config *types.SmsConfigBao
+	config types.SmsConfigBao
 	domain string
 }
 
 func NewBaoSmsService(sysConfig *types.SystemConfig) *BaoSmsService {
 	return &BaoSmsService{
-		config: &sysConfig.SMS.Bao,
+		config: sysConfig.SMS.Bao,
 		domain: "api.smsbao.com",
 	}
 }
 
-func (s *BaoSmsService) UpdateConfig(config *types.SmsConfigBao) {
+func (s *BaoSmsService) UpdateConfig(config types.SmsConfigBao) {
 	s.config = config
 }
 

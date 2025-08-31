@@ -181,6 +181,18 @@ const items = [
   },
 
   {
+    icon: 'moderation',
+    index: '/admin/config/moderation',
+    title: '文本审查',
+    subs: [
+      {
+        icon: 'config',
+        index: '/admin/config/moderation',
+        title: '审查配置',
+      },
+    ],
+  },
+  {
     icon: 'role',
     index: '/admin/manger',
     title: '管理员',

@@ -21,7 +21,7 @@ type UploaderManager struct {
 	aliyun *AliYunOss
 	mini   *MiniOss
 	qiniu  *QiNiuOss
-	config *types.OSSConfig
+	active string
 }
 
 func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliyun *AliYunOss, mini *MiniOss, qiniu *QiNiuOss) (*UploaderManager, error) {
@@ -31,7 +31,7 @@ func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliy
 	sysConfig.OSS.Active = strings.ToLower(sysConfig.OSS.Active)
 
 	return &UploaderManager{
-		config: &sysConfig.OSS,
+		active: sysConfig.OSS.Active,
 		local:  local,
 		aliyun: aliyun,
 		mini:   mini,
@@ -40,7 +40,7 @@ func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliy
 }
 
 func (m *UploaderManager) GetUploadHandler() Uploader {
-	switch m.config.Active {
+	switch m.active {
 	case Local:
 		return m.local
 	case AliYun:
@@ -51,4 +51,18 @@ func (m *UploaderManager) GetUploadHandler() Uploader {
 		return m.qiniu
 	}
 	return m.local
+}
+
+func (m *UploaderManager) UpdateConfig(config types.OSSConfig) {
+	switch config.Active {
+	case Local:
+		m.local.UpdateConfig(config.Local)
+	case AliYun:
+		m.aliyun.UpdateConfig(config.AliYun)
+	case Minio:
+		m.mini.UpdateConfig(config.Minio)
+	case QiNiu:
+		m.qiniu.UpdateConfig(config.QiNiu)
+	}
+	m.active = config.Active
 }

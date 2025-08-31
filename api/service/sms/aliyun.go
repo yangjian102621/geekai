@@ -15,14 +15,14 @@ import (
 )
 
 type AliYunSmsService struct {
-	config *types.SmsConfigAli
+	config types.SmsConfigAli
 	client *dysmsapi.Client
 	domain string
 	zoneId string
 }
 
 func NewAliYunSmsService(sysConfig *types.SystemConfig) (*AliYunSmsService, error) {
-	config := &sysConfig.SMS.Ali
+	config := sysConfig.SMS.Ali
 	domain := "dysmsapi.aliyuncs.com"
 	zoneId := "cn-hangzhou"
 
@@ -40,7 +40,7 @@ func NewAliYunSmsService(sysConfig *types.SystemConfig) (*AliYunSmsService, erro
 	return &s, nil
 }
 
-func (s *AliYunSmsService) UpdateConfig(config *types.SmsConfigAli) error {
+func (s *AliYunSmsService) UpdateConfig(config types.SmsConfigAli) error {
 	client, err := dysmsapi.NewClientWithAccessKey(
 		s.zoneId,
 		config.AccessKey,

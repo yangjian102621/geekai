@@ -21,18 +21,18 @@ import (
 )
 
 type LocalStorage struct {
-	config   *types.LocalStorageConfig
+	config   types.LocalStorageConfig
 	proxyURL string
 }
 
 func NewLocalStorage(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *LocalStorage {
 	return &LocalStorage{
-		config:   &sysConfig.OSS.Local,
+		config:   sysConfig.OSS.Local,
 		proxyURL: appConfig.ProxyURL,
 	}
 }
 
-func (s *LocalStorage) UpdateConfig(config *types.LocalStorageConfig) {
+func (s *LocalStorage) UpdateConfig(config types.LocalStorageConfig) {
 	s.config = config
 }
 

@@ -36,7 +36,14 @@
           <span class="bar-item"
             ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
           >
-          <span class="bar-item">tokens: {{ finalTokens }}</span>
+          <span class="bar-item">
+            <el-tooltip class="box-item" effect="dark" content="复制" placement="bottom">
+              <i
+                class="iconfont icon-copy cursor-pointer"
+                @click="copyContent(data.content.text)"
+              ></i>
+            </el-tooltip>
+          </span>
         </div>
       </div>
     </div>
@@ -81,7 +88,14 @@
           <span class="bar-item"
             ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
           >
-          <!--          <span class="bar-item">tokens: {{ finalTokens }}</span>-->
+          <span class="bar-item">
+            <el-tooltip class="box-item" effect="dark" content="复制" placement="bottom">
+              <i
+                class="iconfont icon-copy cursor-pointer"
+                @click="copyContent(data.content.text)"
+              ></i>
+            </el-tooltip>
+          </span>
         </div>
       </div>
     </div>
@@ -90,6 +104,7 @@
 
 <script setup>
 import { FormatFileSize, GetFileIcon, GetFileType } from '@/store/system'
+import { showMessageSuccess } from '@/utils/dialog'
 import { dateFormat, isImage, processPrompt } from '@/utils/libs'
 import { Clock } from '@element-plus/icons-vue'
 import hl from 'highlight.js'
@@ -166,6 +181,10 @@ const processFiles = () => {
 }
 const isExternalImg = (link, files) => {
   return isImage(link) && !files.find((file) => file.url === link)
+}
+const copyContent = (text) => {
+  navigator.clipboard.writeText(text)
+  showMessageSuccess('复制成功')
 }
 </script>
 

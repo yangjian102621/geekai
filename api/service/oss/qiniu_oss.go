@@ -25,7 +25,7 @@ import (
 )
 
 type QiNiuOss struct {
-	config    *types.QiNiuOssConfig
+	config    types.QiNiuOssConfig
 	mac       *qbox.Mac
 	putPolicy storage.PutPolicy
 	uploader  *storage.FormUploader
@@ -38,12 +38,12 @@ func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *QiN
 		proxyURL: appConfig.ProxyURL,
 	}
 	if sysConfig.OSS.Active == QiNiu {
-		s.UpdateConfig(&sysConfig.OSS.QiNiu)
+		s.UpdateConfig(sysConfig.OSS.QiNiu)
 	}
 	return s
 }
 
-func (s *QiNiuOss) UpdateConfig(config *types.QiNiuOssConfig) {
+func (s *QiNiuOss) UpdateConfig(config types.QiNiuOssConfig) {
 	zone, ok := storage.GetRegionByID(storage.RegionID(config.Zone))
 	if !ok {
 		zone = storage.ZoneHuanan

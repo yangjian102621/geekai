@@ -100,29 +100,31 @@ type BaseConfig struct {
 }
 
 type SystemConfig struct {
-	Base    BaseConfig
-	Payment PaymentConfig
-	OSS     OSSConfig
-	SMS     SMSConfig
-	SMTP    SmtpConfig
-	Captcha CaptchaConfig
-	WxLogin WxLoginConfig
-	Jimeng  JimengConfig
-	License License
+	Base       BaseConfig
+	Payment    PaymentConfig
+	OSS        OSSConfig
+	SMS        SMSConfig
+	SMTP       SmtpConfig
+	Captcha    CaptchaConfig
+	WxLogin    WxLoginConfig
+	Jimeng     JimengConfig
+	License    License
+	Moderation ModerationConfig
 }
 
 // 配置键名常量
 const (
-	ConfigKeySystem    = "system"
-	ConfigKeyNotice    = "notice"
-	ConfigKeyAgreement = "agreement"
-	ConfigKeyPrivacy   = "privacy"
-	ConfigKeyMarkMap   = "mark_map"
-	ConfigKeyCaptcha   = "captcha"
-	ConfigKeyWxLogin   = "wx_login"
-	ConfigKeyLicense   = "license"
-	ConfigKeySms       = "sms"
-	ConfigKeySmtp      = "smtp"
-	ConfigKeyOss       = "oss"
-	ConfigKeyPayment   = "payment"
+	ConfigKeySystem     = "system"
+	ConfigKeyNotice     = "notice"
+	ConfigKeyAgreement  = "agreement"
+	ConfigKeyPrivacy    = "privacy"
+	ConfigKeyMarkMap    = "mark_map"
+	ConfigKeyCaptcha    = "captcha"
+	ConfigKeyWxLogin    = "wx_login"
+	ConfigKeyLicense    = "license"
+	ConfigKeySms        = "sms"
+	ConfigKeySmtp       = "smtp"
+	ConfigKeyOss        = "oss"
+	ConfigKeyPayment    = "payment"
+	ConfigKeyModeration = "moderation"
 )

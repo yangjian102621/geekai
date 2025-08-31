@@ -19,6 +19,7 @@ import (
 	"geekai/service/dalle"
 	"geekai/service/jimeng"
 	"geekai/service/mj"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/payment"
 	"geekai/service/sd"
@@ -240,6 +241,12 @@ func main() {
 
 		// 用户服务
 		fx.Provide(service.NewUserService),
+
+		// 文本审查服务
+		fx.Provide(moderation.NewGiteeAIModeration),
+		fx.Provide(moderation.NewBaiduAIModeration),
+		fx.Provide(moderation.NewTencentAIModeration),
+		fx.Provide(moderation.NewServiceManager),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppHandler) {

@@ -23,7 +23,7 @@ import (
 )
 
 type AliYunOss struct {
-	config   *types.AliYunOssConfig
+	config   types.AliYunOssConfig
 	bucket   *oss.Bucket
 	proxyURL string
 }
@@ -33,7 +33,7 @@ func NewAliYunOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*A
 		proxyURL: appConfig.ProxyURL,
 	}
 	if sysConfig.OSS.Active == AliYun {
-		err := s.UpdateConfig(&sysConfig.OSS.AliYun)
+		err := s.UpdateConfig(sysConfig.OSS.AliYun)
 		if err != nil {
 			logger.Errorf("阿里云OSS初始化失败: %v", err)
 		}
@@ -42,7 +42,7 @@ func NewAliYunOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*A
 
 }
 
-func (s *AliYunOss) UpdateConfig(config *types.AliYunOssConfig) error {
+func (s *AliYunOss) UpdateConfig(config types.AliYunOssConfig) error {
 	client, err := oss.New(config.Endpoint, config.AccessKey, config.AccessSecret)
 	if err != nil {
 		return err

@@ -30,12 +30,25 @@ func NewSmsManager(sysConfig *types.SystemConfig, aliyun *AliYunSmsService, bao 
 }
 
 func (m *SmsManager) GetService() Service {
-	if m.active == Ali {
+	switch m.active {
+	case Ali:
 		return m.aliyun
+	case Bao:
+		return m.bao
 	}
-	return m.bao
+	return nil
 }
 
 func (m *SmsManager) SetActive(active string) {
 	m.active = active
+}
+
+func (m *SmsManager) UpdateConfig(config types.SMSConfig) {
+	switch config.Active {
+	case Ali:
+		m.aliyun.UpdateConfig(config.Ali)
+	case Bao:
+		m.bao.UpdateConfig(config.Bao)
+	}
+	m.active = config.Active
 }

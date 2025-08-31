@@ -210,6 +210,12 @@ const routes = [
         component: () => import('@/views/admin/settings/PluginConfig.vue'),
       },
       {
+        path: '/admin/config/moderation',
+        name: 'admin-config-moderation',
+        meta: { title: '文本审查配置' },
+        component: () => import('@/views/admin/settings/ModerationConfig.vue'),
+      },
+      {
         path: '/admin/config/markmap',
         name: 'admin-config-markmap',
         meta: { title: '思维导图配置' },

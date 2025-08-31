@@ -148,14 +148,24 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		logger.Error("load payment config error: ", err)
 	}
 
+	// 加载文本审查配置
+	var moderationConfig types.ModerationConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyModeration).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &moderationConfig)
+	if err != nil {
+		logger.Error("load moderation config error: ", err)
+	}
+
 	return &types.SystemConfig{
-		Base:    baseConfig,
-		License: license,
-		SMS:     smsConfig,
-		OSS:     ossConfig,
-		SMTP:    smtpConfig,
-		Payment: paymentConfig,
-		Captcha: captchaConfig,
-		WxLogin: wxLoginConfig,
+		Base:       baseConfig,
+		License:    license,
+		SMS:        smsConfig,
+		OSS:        ossConfig,
+		SMTP:       smtpConfig,
+		Payment:    paymentConfig,
+		Captcha:    captchaConfig,
+		WxLogin:    wxLoginConfig,
+		Moderation: moderationConfig,
 	}
 }

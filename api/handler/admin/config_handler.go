@@ -8,11 +8,13 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/payment"
 	"geekai/service/sms"
@@ -26,21 +28,17 @@ import (
 
 type ConfigHandler struct {
 	handler.BaseHandler
-	licenseService *service.LicenseService
-	sysConfig      *types.SystemConfig
-	alipayService  *payment.AlipayService
-	wxpayService   *payment.WxPayService
-	epayService    *payment.EPayService
-	smsAliyun      *sms.AliYunSmsService
-	smsBao         *sms.BaoSmsService
-	smsManager     *sms.SmsManager
-	localOss       *oss.LocalStorage
-	qiniuOss       *oss.QiNiuOss
-	aliyunOss      *oss.AliYunOss
-	minioOss       *oss.MiniOss
-	smtpService    *service.SmtpService
-	captchaService *service.CaptchaService
-	wxLoginService *service.WxLoginService
+	licenseService    *service.LicenseService
+	sysConfig         *types.SystemConfig
+	alipayService     *payment.AlipayService
+	wxpayService      *payment.WxPayService
+	epayService       *payment.EPayService
+	smsManager        *sms.SmsManager
+	uploaderManager   *oss.UploaderManager
+	smtpService       *service.SmtpService
+	captchaService    *service.CaptchaService
+	wxLoginService    *service.WxLoginService
+	moderationManager *moderation.ServiceManager
 }
 
 func NewConfigHandler(
@@ -51,34 +49,26 @@ func NewConfigHandler(
 	alipayService *payment.AlipayService,
 	wxpayService *payment.WxPayService,
 	epayService *payment.EPayService,
-	smsAliyun *sms.AliYunSmsService,
-	smsBao *sms.BaoSmsService,
 	smsManager *sms.SmsManager,
-	localOss *oss.LocalStorage,
-	qiniuOss *oss.QiNiuOss,
-	aliyunOss *oss.AliYunOss,
-	minioOss *oss.MiniOss,
+	uploaderManager *oss.UploaderManager,
 	smtpService *service.SmtpService,
 	captchaService *service.CaptchaService,
 	wxLoginService *service.WxLoginService,
+	moderationManager *moderation.ServiceManager,
 ) *ConfigHandler {
 	return &ConfigHandler{
-		BaseHandler:    handler.BaseHandler{App: app, DB: db},
-		licenseService: licenseService,
-		sysConfig:      sysConfig,
-		alipayService:  alipayService,
-		wxpayService:   wxpayService,
-		epayService:    epayService,
-		smsAliyun:      smsAliyun,
-		smsBao:         smsBao,
-		smsManager:     smsManager,
-		localOss:       localOss,
-		qiniuOss:       qiniuOss,
-		aliyunOss:      aliyunOss,
-		minioOss:       minioOss,
-		smtpService:    smtpService,
-		captchaService: captchaService,
-		wxLoginService: wxLoginService,
+		BaseHandler:       handler.BaseHandler{App: app, DB: db},
+		licenseService:    licenseService,
+		sysConfig:         sysConfig,
+		alipayService:     alipayService,
+		wxpayService:      wxpayService,
+		epayService:       epayService,
+		smsManager:        smsManager,
+		uploaderManager:   uploaderManager,
+		moderationManager: moderationManager,
+		smtpService:       smtpService,
+		captchaService:    captchaService,
+		wxLoginService:    wxLoginService,
 	}
 }
 
@@ -101,6 +91,8 @@ func (h *ConfigHandler) RegisterRoutes() {
 		rg.POST("update/sms", h.UpdateSms)
 		rg.POST("update/oss", h.UpdateOss)
 		rg.POST("update/smtp", h.UpdateStmp)
+		rg.POST("update/moderation", h.UpdateModeration)
+		rg.POST("moderation/test", h.TestModeration)
 		rg.GET("get", h.Get)
 		rg.POST("license/active", h.Active)
 		rg.GET("license/get", h.GetLicense)
@@ -280,14 +272,7 @@ func (h *ConfigHandler) UpdatePayment(c *gin.Context) {
 		return
 	}
 
-	var config model.Config
-	oldData := types.PaymentConfig{}
-	err := h.DB.Where("name", types.ConfigKeyPayment).First(&config).Error
-	if err == nil {
-		utils.JsonDecode(config.Value, &oldData)
-	}
-
-	err = h.Update(types.ConfigKeyPayment, data)
+	err := h.Update(types.ConfigKeyPayment, data)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -324,32 +309,14 @@ func (h *ConfigHandler) UpdateSms(c *gin.Context) {
 		return
 	}
 
-	var config model.Config
-	oldData := types.SMSConfig{}
-	err := h.DB.Where("name", types.ConfigKeySms).First(&config).Error
-	if err == nil {
-		utils.JsonDecode(config.Value, &oldData)
-	}
-
-	err = h.Update(types.ConfigKeySms, data)
+	err := h.Update(types.ConfigKeySms, data)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
 	// 更新服务配置
-	switch data.Active {
-	case sms.Ali:
-		err = h.smsAliyun.UpdateConfig(&data.Ali)
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	case sms.Bao:
-		h.smsBao.UpdateConfig(&data.Bao)
-	}
-
-	h.smsManager.SetActive(data.Active)
+	h.smsManager.UpdateConfig(data)
 
 	resp.SUCCESS(c, data)
 }
@@ -362,39 +329,14 @@ func (h *ConfigHandler) UpdateOss(c *gin.Context) {
 		return
 	}
 
-	var config model.Config
-	oldData := types.OSSConfig{}
-	err := h.DB.Where("name", types.ConfigKeyOss).First(&config).Error
-	if err == nil {
-		utils.JsonDecode(config.Value, &oldData)
-	}
-
-	err = h.Update("oss", data)
+	err := h.Update(types.ConfigKeyOss, data)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
 	// 更新服务配置
-	switch data.Active {
-	case oss.Local:
-		h.localOss.UpdateConfig(&data.Local)
-	case oss.QiNiu:
-		h.qiniuOss.UpdateConfig(&data.QiNiu)
-	case oss.AliYun:
-		err := h.aliyunOss.UpdateConfig(&data.AliYun)
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	case oss.Minio:
-		err := h.minioOss.UpdateConfig(&data.Minio)
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	}
-
+	h.uploaderManager.UpdateConfig(data)
 	h.sysConfig.OSS = data
 
 	resp.SUCCESS(c, data)
@@ -408,24 +350,14 @@ func (h *ConfigHandler) UpdateStmp(c *gin.Context) {
 		return
 	}
 
-	var config model.Config
-	oldData := types.SmtpConfig{}
-	err := h.DB.Where("name", types.ConfigKeySmtp).First(&config).Error
-	if err == nil {
-		utils.JsonDecode(config.Value, &oldData)
-	}
-
-	err = h.Update(types.ConfigKeySmtp, data)
+	err := h.Update(types.ConfigKeySmtp, data)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
-	// 配置发生改变时更新服务配置
-	if !data.Equal(&oldData) {
-		h.smtpService.UpdateConfig(&data)
-	}
-
+	// 更新服务配置
+	h.smtpService.UpdateConfig(&data)
 	h.sysConfig.SMTP = data
 	resp.SUCCESS(c, data)
 }
@@ -519,4 +451,89 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 	resp.SUCCESS(c, license)
 }
 
-//
+// UpdateModeration 更新文本审查配置
+func (h *ConfigHandler) UpdateModeration(c *gin.Context) {
+	var data types.ModerationConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyModeration, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	h.moderationManager.UpdateConfig(data)
+	h.sysConfig.Moderation = data
+
+	resp.SUCCESS(c, data)
+}
+
+// 测试结果类型，用于前端显示
+type ModerationTestResult struct {
+	IsAbnormal bool                   `json:"isAbnormal"`
+	Details    []ModerationTestDetail `json:"details"`
+}
+
+type ModerationTestDetail struct {
+	Category    string `json:"category"`
+	Description string `json:"description"`
+	Confidence  string `json:"confidence"`
+	IsCategory  bool   `json:"isCategory"`
+}
+
+// TestModeration 测试文本审查服务
+func (h *ConfigHandler) TestModeration(c *gin.Context) {
+	var data struct {
+		Text    string `json:"text"`
+		Service string `json:"service"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	if data.Text == "" {
+		resp.ERROR(c, "测试文本不能为空")
+		return
+	}
+
+	// 检查是否启用了文本审查
+	if !h.sysConfig.Moderation.Enable {
+		resp.ERROR(c, "文本审查服务未启用")
+		return
+	}
+
+	// 获取当前激活的审核服务
+	service := h.moderationManager.GetService()
+	// 执行文本审核
+	result, err := service.Moderate(data.Text)
+	if err != nil {
+		resp.ERROR(c, "审核服务调用失败: "+err.Error())
+		return
+	}
+
+	// 转换为前端需要的格式
+	testResult := ModerationTestResult{
+		IsAbnormal: result.Flagged,
+		Details:    make([]ModerationTestDetail, 0),
+	}
+
+	// 构建详细信息
+	for category, description := range types.ModerationCategories {
+		score := result.CategoryScores[category]
+		isCategory := result.Categories[category]
+
+		testResult.Details = append(testResult.Details, ModerationTestDetail{
+			Category:    category,
+			Description: description,
+			Confidence:  fmt.Sprintf("%.2f", score),
+			IsCategory:  isCategory,
+		})
+	}
+
+	resp.SUCCESS(c, testResult)
+}
