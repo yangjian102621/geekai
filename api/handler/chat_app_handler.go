@@ -20,31 +20,31 @@ import (
 	"gorm.io/gorm"
 )
 
-type ChatRoleHandler struct {
+type ChatAppHandler struct {
 	BaseHandler
 }
 
-func NewChatRoleHandler(app *core.AppServer, db *gorm.DB) *ChatRoleHandler {
-	return &ChatRoleHandler{BaseHandler: BaseHandler{App: app, DB: db}}
+func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
+	return &ChatAppHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // RegisterRoutes 注册路由
-func (h *ChatRoleHandler) RegisterRoutes() {
+func (h *ChatAppHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/app/")
+	group.GET("list", h.List)
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
-		group.GET("list", h.List)
 		group.GET("list/user", h.ListByUser)
-		group.POST("update", h.UpdateRole)
+		group.POST("update", h.UpdateApp)
 	}
 }
 
 // List 获取用户聊天应用列表
-func (h *ChatRoleHandler) List(c *gin.Context) {
+func (h *ChatAppHandler) List(c *gin.Context) {
 	tid := h.GetInt(c, "tid", 0)
-	var roles []model.ChatRole
+	var roles []model.ChatApp
 	session := h.DB.Where("enable", true)
 	if tid > 0 {
 		session = session.Where("tid", tid)
@@ -55,9 +55,9 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 		return
 	}
 
-	var roleVos = make([]vo.ChatRole, 0)
+	var roleVos = make([]vo.ChatApp, 0)
 	for _, r := range roles {
-		var v vo.ChatRole
+		var v vo.ChatApp
 		err := utils.CopyObject(r, &v)
 		if err == nil {
 			v.Id = r.Id
@@ -68,10 +68,10 @@ func (h *ChatRoleHandler) List(c *gin.Context) {
 }
 
 // ListByUser 获取用户添加的角色列表
-func (h *ChatRoleHandler) ListByUser(c *gin.Context) {
+func (h *ChatAppHandler) ListByUser(c *gin.Context) {
 	id := h.GetInt(c, "id", 0)
 	userId := h.GetLoginUserId(c)
-	var roles []model.ChatRole
+	var roles []model.ChatApp
 	session := h.DB.Where("enable", true)
 	// 如果用户没登录，则获取所有角色
 	if userId > 0 {
@@ -100,9 +100,9 @@ func (h *ChatRoleHandler) ListByUser(c *gin.Context) {
 		return
 	}
 
-	var roleVos = make([]vo.ChatRole, 0)
+	var roleVos = make([]vo.ChatApp, 0)
 	for _, r := range roles {
-		var v vo.ChatRole
+		var v vo.ChatApp
 		err := utils.CopyObject(r, &v)
 		if err == nil {
 			v.Id = r.Id
@@ -112,8 +112,8 @@ func (h *ChatRoleHandler) ListByUser(c *gin.Context) {
 	resp.SUCCESS(c, roleVos)
 }
 
-// UpdateRole 更新用户聊天角色
-func (h *ChatRoleHandler) UpdateRole(c *gin.Context) {
+// UpdateApp 更新用户聊天应用
+func (h *ChatAppHandler) UpdateApp(c *gin.Context) {
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)

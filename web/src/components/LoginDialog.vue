@@ -90,13 +90,19 @@
             <div class="qr-code-container">
               <div class="qr-code-wrapper w-[200px] h-[200px] mx-auto" v-loading="qrcodeLoading">
                 <img :src="wechatLoginQRCode" class="qr-frame" v-if="wechatLoginQRCode" />
+                <div
+                  v-else
+                  class="w-[200px] h-[200px] flex justify-center items-center text-green-600"
+                >
+                  <i class="iconfont icon-wechat !text-3xl"></i>
+                </div>
                 <!-- 二维码过期蒙版 -->
                 <div v-if="qrcodeExpired" class="qr-expired-mask">
                   <div class="expired-content">
                     <i class="iconfont icon-refresh-ccw expired-icon"></i>
                     <p class="expired-text">二维码已过期</p>
                     <button
-                      @click="getWechatLoginURL"
+                      @click="getWxLoginURL"
                       class="bg-gray-200 text-gray-600 px-2.5 py-1 rounded-md hover:bg-gray-300"
                     >
                       <i class="iconfont icon-refresh text-lg"></i>
@@ -443,7 +449,7 @@ onMounted(() => {
 // 监听登录标签页切换
 watch(loginActiveName, (newValue) => {
   if (newValue === 'wechat') {
-    getWechatLoginURL()
+    getWxLoginURL()
   } else {
     // 其他登录方式，清除定时器
     if (pollingTimer.value) {
@@ -458,7 +464,7 @@ watch(loginActiveName, (newValue) => {
 const handleTabClick = (tab) => {
   // CustomTabs组件传递的是tab对象，包含paneName属性
   if (tab.paneName === 'wechat') {
-    getWechatLoginURL()
+    getWxLoginURL()
   } else {
     // 其他登录方式，清除定时器
     if (pollingTimer.value) {
@@ -479,7 +485,7 @@ const submit = (verifyData) => {
 }
 
 // 获取微信登录 URL
-const getWechatLoginURL = () => {
+const getWxLoginURL = () => {
   wechatLoginQRCode.value = ''
   qrcodeLoading.value = true
   qrcodeExpired.value = false

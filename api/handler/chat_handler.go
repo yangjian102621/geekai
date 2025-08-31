@@ -55,7 +55,7 @@ type ChatInput struct {
 	Stream    bool            `json:"stream"`
 	Files     []vo.File       `json:"files"`
 	ChatModel model.ChatModel `json:"chat_model,omitempty"`
-	ChatRole  model.ChatRole  `json:"chat_role,omitempty"`
+	ChatRole  model.ChatApp   `json:"chat_role,omitempty"`
 	LastMsgId uint            `json:"last_msg_id,omitempty"` // 最后的消息ID，用于重新生成答案的时候过滤上下文
 }
 
@@ -136,7 +136,7 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 	}
 
 	// 验证聊天角色
-	var chatRole model.ChatRole
+	var chatRole model.ChatApp
 	err := h.DB.First(&chatRole, input.RoleId).Error
 	if err != nil || !chatRole.Enable {
 		pushMessage(c, ChatEventError, "当前聊天角色不存在或者未启用，请更换角色之后再发起对话！")

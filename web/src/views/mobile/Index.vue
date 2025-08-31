@@ -9,7 +9,7 @@
         <div class="user-avatar" v-if="isLogin" @click="router.push('profile')">
           <van-image :src="userAvatar" round width="40" height="40" />
         </div>
-        <div class="login-btn" v-else @click="router.push('login')">
+        <div class="login-btn" v-else @click="router.push('/login')">
           <van-button size="small" type="primary" round>登录</van-button>
         </div>
       </div>

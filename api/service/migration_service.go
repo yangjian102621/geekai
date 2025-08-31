@@ -28,18 +28,20 @@ const (
 
 // MigrationService 配置迁移服务
 type MigrationService struct {
-	db          *gorm.DB
-	redisClient *redis.Client
-	appConfig   *types.AppConfig
-	levelDB     *store.LevelDB
+	db             *gorm.DB
+	redisClient    *redis.Client
+	appConfig      *types.AppConfig
+	levelDB        *store.LevelDB
+	licenseService *LicenseService
 }
 
-func NewMigrationService(db *gorm.DB, redisClient *redis.Client, appConfig *types.AppConfig, levelDB *store.LevelDB) *MigrationService {
+func NewMigrationService(db *gorm.DB, redisClient *redis.Client, appConfig *types.AppConfig, levelDB *store.LevelDB, licenseService *LicenseService) *MigrationService {
 	return &MigrationService{
-		db:          db,
-		redisClient: redisClient,
-		appConfig:   appConfig,
-		levelDB:     levelDB,
+		db:             db,
+		redisClient:    redisClient,
+		appConfig:      appConfig,
+		levelDB:        levelDB,
+		licenseService: licenseService,
 	}
 }
 
@@ -71,6 +73,7 @@ func (s *MigrationService) MigrateLicense() {
 		logger.Errorf("迁移 License 失败: %v", err)
 		return
 	}
+	s.licenseService.SetLicense(license.Key)
 	logger.Info("迁移 License 完成")
 	s.redisClient.Set(context.Background(), key, "1", 0)
 }

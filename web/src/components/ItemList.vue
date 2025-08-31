@@ -46,7 +46,6 @@ const calcSpan = () => {
     span.value = 1
     return
   }
-  console.log(cols)
   while (cols > 1) {
     if (24 % cols === 0) {
       span.value = 24 / cols

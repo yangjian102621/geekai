@@ -110,6 +110,11 @@ func (s *LicenseService) SyncLicense() {
 				s.license.IsActive = false
 			} else {
 				s.license = license
+				// 保存 License 到数据库
+				err = s.db.Model(&model.Config{}).Where("name = ?", types.ConfigKeyLicense).UpdateColumn("value", utils.JsonEncode(s.license)).Error
+				if err != nil {
+					logger.Errorf("保存 License 到数据库失败: %v", err)
+				}
 			}
 
 			urls, err := s.fetchUrlWhiteList()
@@ -182,6 +187,11 @@ func (s *LicenseService) GetLicense() *types.License {
 		}
 	}
 	return s.license
+}
+
+func (s *LicenseService) SetLicense(licenseKey string) {
+	s.license.Key = licenseKey
+
 }
 
 // IsValidApiURL 判断是否合法的中转 URL

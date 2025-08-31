@@ -110,7 +110,7 @@
             <el-select
               v-model="roleId"
               filterable
-              placeholder="角色"
+              placeholder="应用"
               @change="_newChat"
               class="role-select"
               style="width: 150px"
@@ -306,7 +306,7 @@
                       </div>
                       <div class="flex-between">
                         <div class="flex little-btns">
-                          <span class="tool-item-btn" @click="realtimeChat">
+                          <!-- <span class="tool-item-btn" @click="realtimeChat">
                             <el-tooltip
                               class="box-item"
                               effect="dark"
@@ -316,7 +316,7 @@
                             >
                               <i class="iconfont icon-mic-bold"></i>
                             </el-tooltip>
-                          </span>
+                          </span> -->
 
                           <span class="tool-item-btn">
                             <el-tooltip class="box-item" effect="dark" content="上传附件">
@@ -662,7 +662,7 @@ const initData = async () => {
     // 获取角色列表
     const roleRes = await httpGet('/api/app/list')
     roles.value = roleRes.data
-    if (roles.value.length > 0) {
+    if (roles.value.length > 0 && !roleId.value) {
       roleId.value = roles.value[0].id
     }
 

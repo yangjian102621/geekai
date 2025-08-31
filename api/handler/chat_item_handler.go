@@ -42,9 +42,9 @@ func (h *ChatHandler) List(c *gin.Context) {
 		modelValues = append(modelValues, chat.Model)
 	}
 
-	var roles []model.ChatRole
+	var roles []model.ChatApp
 	var models []model.ChatModel
-	roleMap := make(map[uint]model.ChatRole)
+	roleMap := make(map[uint]model.ChatApp)
 	modelMap := make(map[string]model.ChatModel)
 	h.DB.Where("id IN ?", roleIds).Find(&roles)
 	h.DB.Where("value IN ?", modelValues).Find(&models)
@@ -205,7 +205,7 @@ func (h *ChatHandler) Detail(c *gin.Context) {
 	}
 
 	// 填充角色名称
-	var role model.ChatRole
+	var role model.ChatApp
 	res = h.DB.Where("id", chatItem.RoleId).First(&role)
 	if res.Error != nil {
 		resp.ERROR(c, "Role not found")

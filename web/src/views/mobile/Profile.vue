@@ -3,7 +3,7 @@
     <div class="profile-header">
       <div class="header-bg"></div>
       <div class="header-content">
-        <div class="user-info" v-if="isLogin">
+        <div class="user-info">
           <div class="avatar-container">
             <van-image :src="fileList[0].url" round width="80" height="80" />
           </div>
@@ -15,20 +15,12 @@
             </div>
           </div>
         </div>
-        <div class="login-prompt" v-else>
-          <button
-            class="py-3 px-5 bg-gradient-to-r from-green-400 to-blue-400 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-green-500 hover:to-blue-500 transition-all duration-200 flex items-center justify-center space-x-2"
-            @click="router.push('/login')"
-          >
-            立即登录
-          </button>
-        </div>
       </div>
     </div>
 
     <div class="profile-content">
       <!-- 快捷操作 -->
-      <div class="quick-actions" v-if="isLogin">
+      <div class="quick-actions">
         <h3 class="section-title">快捷操作</h3>
         <van-row :gutter="12">
           <van-col :span="8">
@@ -59,7 +51,7 @@
       </div>
 
       <!-- 我的服务 -->
-      <div class="menu-section" v-if="isLogin">
+      <div class="menu-section">
         <h3 class="section-title">我的服务</h3>
         <van-cell-group>
           <van-cell title="绑定邮箱" is-link @click="showBindEmailDialog = true">
@@ -91,7 +83,7 @@
       </div>
 
       <!-- 退出登录 -->
-      <div class="logout-section" v-if="isLogin">
+      <div class="logout-section">
         <van-button size="large" block type="danger" plain @click="showLogoutConfirm = true">
           退出登录
         </van-button>
@@ -206,7 +198,6 @@ import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
-import { showLoginDialog } from '@/utils/libs'
 import { showFailToast, showLoadingToast, showSuccessToast } from 'vant'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -229,7 +220,6 @@ const fileList = ref([
 ])
 
 const router = useRouter()
-const isLogin = ref(false)
 const showSettings = ref(false)
 const showPasswordDialog = ref(false)
 const showBindEmailDialog = ref(false)
@@ -272,7 +262,6 @@ onMounted(() => {
 
   checkSession()
     .then((user) => {
-      isLogin.value = true
       form.value = { ...form.value, ...user }
       fileList.value[0].url = user.avatar || '/images/avatar/default.jpg'
 
@@ -280,7 +269,7 @@ onMounted(() => {
       fetchUserProfile()
     })
     .catch(() => {
-      isLogin.value = false
+      router.push('/login')
     })
 })
 
@@ -356,9 +345,8 @@ const logout = function () {
     .then(() => {
       removeUserToken()
       store.setIsLogin(false)
-      isLogin.value = false
       showSuccessToast('退出登录成功')
-      showLogoutConfirm.value = false
+      router.push('/login')
 
       // 清除用户数据
       form.value = {

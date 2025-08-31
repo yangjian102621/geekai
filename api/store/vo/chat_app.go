@@ -2,7 +2,7 @@ package vo
 
 import "geekai/core/types"
 
-type ChatRole struct {
+type ChatApp struct {
 	BaseVo
 	Key       string          `json:"key"` // 角色唯一标识
 	Tid       uint            `json:"tid"`

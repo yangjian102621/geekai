@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type ChatRole struct {
+type ChatApp struct {
 	Id        uint      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name      string    `gorm:"column:name;type:varchar(30);not null;comment:角色名称" json:"name"`
 	Tid       uint      `gorm:"column:tid;type:int(11);not null;comment:分类ID" json:"tid"`
@@ -19,6 +19,6 @@ type ChatRole struct {
 	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;not null" json:"updated_at"`
 }
 
-func (m *ChatRole) TableName() string {
+func (m *ChatApp) TableName() string {
 	return "chatgpt_chat_roles"
 }

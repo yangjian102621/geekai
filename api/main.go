@@ -127,7 +127,7 @@ func main() {
 		}),
 
 		// 创建控制器
-		fx.Provide(handler.NewChatRoleHandler),
+		fx.Provide(handler.NewChatAppHandler),
 		fx.Provide(handler.NewUserHandler),
 		fx.Provide(handler.NewChatHandler),
 		fx.Provide(handler.NewNetHandler),
@@ -242,7 +242,7 @@ func main() {
 		fx.Provide(service.NewUserService),
 
 		// 注册路由
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatRoleHandler) {
+		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
