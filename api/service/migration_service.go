@@ -10,6 +10,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"geekai/core/types"
 	"geekai/store"
 	"geekai/store/model"
@@ -76,6 +77,38 @@ func (s *MigrationService) MigrateLicense() {
 	s.licenseService.SetLicense(license.Key)
 	logger.Info("迁移 License 完成")
 	s.redisClient.Set(context.Background(), key, "1", 0)
+}
+
+// 迁移配置内容
+func (s *MigrationService) MigrateConfigContent() error {
+	// 用户协议
+	if err := s.saveConfig(types.ConfigKeyPrivacy, map[string]string{
+		"content": "用户协议内容",
+	}); err != nil {
+		return fmt.Errorf("迁移配置内容失败: %v", err)
+	}
+	// 隐私政策
+	if err := s.saveConfig(types.ConfigKeyAgreement, map[string]string{
+		"content": "隐私政策内容",
+	}); err != nil {
+		return fmt.Errorf("迁移配置内容失败: %v", err)
+	}
+	// 思维导图
+	if err := s.saveConfig(types.ConfigKeyMarkMap, map[string]string{
+		"content": `# GeekAI 演示站
+
+- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
+- 基于 Websocket 实现，完美的打字机体验。
+- 内置了各种预训练好的角色应用,轻松满足你的各种聊天和应用需求。
+- 支持 OPenAI，Azure，文心一言，讯飞星火，清华 ChatGLM等多个大语言模型。
+- 支持 MidJourney / Stable Diffusion AI 绘画集成，开箱即用。
+- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
+- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。
+- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件。`,
+	}); err != nil {
+		return fmt.Errorf("迁移配置内容失败: %v", err)
+	}
+	return nil
 }
 
 // 数据表迁移
@@ -155,6 +188,12 @@ func (s *MigrationService) MigrateConfig(config *types.AppConfig) error {
 	// 迁移通信配置
 	if err := s.migrateCommunicationConfig(config); err != nil {
 		logger.Errorf("迁移通信配置失败: %v", err)
+		return err
+	}
+
+	// 迁移配置内容
+	if err := s.MigrateConfigContent(); err != nil {
+		logger.Errorf("迁移配置内容失败: %v", err)
 		return err
 	}
 
