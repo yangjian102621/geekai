@@ -14,6 +14,7 @@ import (
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/mj"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -28,18 +29,20 @@ import (
 
 type MidJourneyHandler struct {
 	BaseHandler
-	mjService   *mj.Service
-	snowflake   *service.Snowflake
-	uploader    *oss.UploaderManager
-	userService *service.UserService
+	mjService         *mj.Service
+	snowflake         *service.Snowflake
+	uploader          *oss.UploaderManager
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, service *mj.Service, manager *oss.UploaderManager, userService *service.UserService) *MidJourneyHandler {
+func NewMidJourneyHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, service *mj.Service, manager *oss.UploaderManager, userService *service.UserService, moderationManager *moderation.ServiceManager) *MidJourneyHandler {
 	return &MidJourneyHandler{
-		snowflake:   snowflake,
-		mjService:   service,
-		uploader:    manager,
-		userService: userService,
+		snowflake:         snowflake,
+		mjService:         service,
+		uploader:          manager,
+		userService:       userService,
+		moderationManager: moderationManager,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -108,6 +111,29 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 	}
 	if !h.preCheck(c) {
 		return
+	}
+
+	// 文本审核
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceMJ,
+				Input:  data.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
 	}
 
 	var params = ""

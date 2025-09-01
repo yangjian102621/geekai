@@ -247,6 +247,10 @@ func main() {
 		fx.Provide(moderation.NewBaiduAIModeration),
 		fx.Provide(moderation.NewTencentAIModeration),
 		fx.Provide(moderation.NewServiceManager),
+		fx.Provide(admin.NewModerationHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.ModerationHandler) {
+			h.RegisterRoutes()
+		}),
 
 		// 注册路由
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppHandler) {

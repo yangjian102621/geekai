@@ -7,6 +7,7 @@ import (
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/jimeng"
+	"geekai/service/moderation"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -19,16 +20,18 @@ import (
 // JimengHandler 即梦AI处理器
 type JimengHandler struct {
 	BaseHandler
-	jimengService *jimeng.Service
-	userService   *service.UserService
+	jimengService     *jimeng.Service
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
 // NewJimengHandler 创建即梦AI处理器
-func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *gorm.DB, userService *service.UserService) *JimengHandler {
+func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *gorm.DB, userService *service.UserService, moderationManager *moderation.ServiceManager) *JimengHandler {
 	return &JimengHandler{
-		BaseHandler:   BaseHandler{App: app, DB: db},
-		jimengService: jimengService,
-		userService:   userService,
+		BaseHandler:       BaseHandler{App: app, DB: db},
+		jimengService:     jimengService,
+		userService:       userService,
+		moderationManager: moderationManager,
 	}
 }
 
@@ -75,6 +78,31 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	// 文本审核
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(req.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceJiMeng,
+				Input:  req.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
+
+	}
+
 	// 新增：除图像特效外，其他任务类型必须有提示词
 	if req.TaskType != "image_effects" && req.Prompt == "" {
 		resp.ERROR(c, "提示词不能为空")

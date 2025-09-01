@@ -190,6 +190,11 @@ const items = [
         index: '/admin/config/moderation',
         title: '审查配置',
       },
+      {
+        icon: 'list',
+        index: '/admin/moderation/list',
+        title: '审核记录',
+      },
     ],
   },
   {

@@ -13,6 +13,7 @@ import (
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/sd"
 	"geekai/store"
@@ -29,12 +30,13 @@ import (
 
 type SdJobHandler struct {
 	BaseHandler
-	redis       *redis.Client
-	sdService   *sd.Service
-	uploader    *oss.UploaderManager
-	snowflake   *service.Snowflake
-	leveldb     *store.LevelDB
-	userService *service.UserService
+	redis             *redis.Client
+	sdService         *sd.Service
+	uploader          *oss.UploaderManager
+	snowflake         *service.Snowflake
+	leveldb           *store.LevelDB
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
 func NewSdJobHandler(app *core.AppServer,
@@ -43,13 +45,15 @@ func NewSdJobHandler(app *core.AppServer,
 	manager *oss.UploaderManager,
 	snowflake *service.Snowflake,
 	userService *service.UserService,
-	levelDB *store.LevelDB) *SdJobHandler {
+	levelDB *store.LevelDB,
+	moderationManager *moderation.ServiceManager) *SdJobHandler {
 	return &SdJobHandler{
-		sdService:   service,
-		uploader:    manager,
-		snowflake:   snowflake,
-		leveldb:     levelDB,
-		userService: userService,
+		sdService:         service,
+		uploader:          manager,
+		snowflake:         snowflake,
+		leveldb:           levelDB,
+		userService:       userService,
+		moderationManager: moderationManager,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
@@ -100,6 +104,29 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	if err := c.ShouldBindJSON(&data); err != nil || data.Prompt == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
+	}
+
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceSD,
+				Input:  data.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
+
 	}
 
 	if data.Width <= 0 {

@@ -13,6 +13,7 @@ import (
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/suno"
 	"geekai/store/model"
@@ -27,20 +28,22 @@ import (
 
 type SunoHandler struct {
 	BaseHandler
-	sunoService *suno.Service
-	uploader    *oss.UploaderManager
-	userService *service.UserService
+	sunoService       *suno.Service
+	uploader          *oss.UploaderManager
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager, userService *service.UserService) *SunoHandler {
+func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager, userService *service.UserService, moderationManager *moderation.ServiceManager) *SunoHandler {
 	return &SunoHandler{
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
 		},
-		sunoService: service,
-		uploader:    uploader,
-		userService: userService,
+		sunoService:       service,
+		uploader:          uploader,
+		userService:       userService,
+		moderationManager: moderationManager,
 	}
 }
 
@@ -82,6 +85,29 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
+	}
+
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceSuno,
+				Input:  data.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
+
 	}
 
 	user, err := h.GetLoginUser(c)

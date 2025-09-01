@@ -13,6 +13,7 @@ import (
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/video"
 	"geekai/store/model"
@@ -27,20 +28,22 @@ import (
 
 type VideoHandler struct {
 	BaseHandler
-	videoService *video.Service
-	uploader     *oss.UploaderManager
-	userService  *service.UserService
+	videoService      *video.Service
+	uploader          *oss.UploaderManager
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, uploader *oss.UploaderManager, userService *service.UserService) *VideoHandler {
+func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, uploader *oss.UploaderManager, userService *service.UserService, moderationManager *moderation.ServiceManager) *VideoHandler {
 	return &VideoHandler{
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
 		},
-		videoService: service,
-		uploader:     uploader,
-		userService:  userService,
+		videoService:      service,
+		uploader:          uploader,
+		userService:       userService,
+		moderationManager: moderationManager,
 	}
 }
 
@@ -76,6 +79,29 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 	if data.Prompt == "" {
 		resp.ERROR(c, "prompt is needed")
 		return
+	}
+
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceVideo,
+				Input:  data.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
+
 	}
 
 	user, err := h.GetLoginUser(c)

@@ -53,4 +53,21 @@ var ModerationCategories = map[string]string{
 	"porn":     "明确的色情内容",
 	"insult":   "具有侮辱、攻击性语言、人身攻击或冒犯性表达",
 	"violence": "包含暴力、血腥、攻击行为或煽动暴力的言论",
+	"illegal":  "涉及违法活动的内容，如诈骗、赌博等",
+	"terror":   "宣扬恐怖主义、极端暴力或煽动恐怖行为的内容",
+	"ad":       "垃圾广告或未经许可的推广内容",
+	"spam":     "无意义重复内容或诱导性信息",
+	"abuse":    "人身攻击、恶意辱骂或侮辱性言论",
+	"polity":   "涉及国家政治、领导人或政策的违规讨论内容",
 }
+
+// 敏感词来源
+const (
+	ModerationSourceChat   = "chat"
+	ModerationSourceMJ     = "mj"
+	ModerationSourceDalle  = "dalle"
+	ModerationSourceSD     = "sd"
+	ModerationSourceSuno   = "suno"
+	ModerationSourceVideo  = "video"
+	ModerationSourceJiMeng = "jimeng"
+)

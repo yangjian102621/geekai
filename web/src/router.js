@@ -213,7 +213,13 @@ const routes = [
         path: '/admin/config/moderation',
         name: 'admin-config-moderation',
         meta: { title: '文本审查配置' },
-        component: () => import('@/views/admin/settings/ModerationConfig.vue'),
+        component: () => import('@/views/admin/moderation/ModerationConfig.vue'),
+      },
+      {
+        path: '/admin/moderation/list',
+        name: 'admin-moderation-list',
+        meta: { title: '文本审核记录' },
+        component: () => import('@/views/admin/moderation/ModerationList.vue'),
       },
       {
         path: '/admin/config/markmap',

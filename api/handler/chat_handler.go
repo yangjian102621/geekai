@@ -17,6 +17,7 @@ import (
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -62,21 +63,23 @@ type ChatInput struct {
 
 type ChatHandler struct {
 	BaseHandler
-	redis          *redis.Client
-	uploadManager  *oss.UploaderManager
-	licenseService *service.LicenseService
-	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
-	userService    *service.UserService
+	redis             *redis.Client
+	uploadManager     *oss.UploaderManager
+	licenseService    *service.LicenseService
+	ReqCancelFunc     *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService, moderationManager *moderation.ServiceManager) *ChatHandler {
 	return &ChatHandler{
-		BaseHandler:    BaseHandler{App: app, DB: db},
-		redis:          redis,
-		uploadManager:  manager,
-		licenseService: licenseService,
-		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
-		userService:    userService,
+		BaseHandler:       BaseHandler{App: app, DB: db},
+		redis:             redis,
+		uploadManager:     manager,
+		licenseService:    licenseService,
+		ReqCancelFunc:     types.NewLMap[string, context.CancelFunc](),
+		userService:       userService,
+		moderationManager: moderationManager,
 	}
 }
 
@@ -309,6 +312,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	}
 	reqMgs := make([]any, 0)
 
+	// 添加引导提示词,防止模型生成违规内容
+	if h.App.SysConfig.Moderation.EnableGuide {
+		reqMgs = append(reqMgs, map[string]any{
+			"role":    "system",
+			"content": h.App.SysConfig.Moderation.GuidePrompt,
+		})
+	}
+
 	for i := len(chatCtx) - 1; i >= 0; i-- {
 		reqMgs = append(reqMgs, chatCtx[i])
 	}
@@ -352,16 +363,16 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	}
 
 	if len(imgList) > 0 {
-		imgList = append(imgList, map[string]interface{}{
+		imgList = append(imgList, map[string]any{
 			"type": "text",
 			"text": input.Prompt,
 		})
-		req.Messages = append(reqMgs, map[string]interface{}{
+		req.Messages = append(reqMgs, map[string]any{
 			"role":    "user",
 			"content": imgList,
 		})
 	} else {
-		req.Messages = append(reqMgs, map[string]interface{}{
+		req.Messages = append(reqMgs, map[string]any{
 			"role":    "user",
 			"content": finalPrompt,
 		})
@@ -557,6 +568,34 @@ func (h *ChatHandler) saveChatHistory(
 	promptCreatedAt time.Time,
 	replyCreatedAt time.Time) {
 
+	// 文本审核
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(usage.Content)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		logger.Debugf("moderationResult: %+v", moderationResult)
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: userVo.Id,
+				Source: types.ModerationSourceChat,
+				Input:  usage.Prompt,
+				Output: usage.Content,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			pushMessage(c, ChatEventError, "很抱歉，内容触发敏感词预警，AI 无法回答！！！")
+			// 更新用户算力
+			if input.ChatModel.Power > 0 {
+				h.subUserPower(userVo, input, 0, 0)
+			}
+			return
+		}
+	}
 	// 追加聊天记录
 	// for prompt
 	var promptTokens, replyTokens, totalTokens int
