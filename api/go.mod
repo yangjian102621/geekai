@@ -26,7 +26,6 @@ require (
 
 require (
 	github.com/go-pay/gopay v1.5.101
-	github.com/go-rod/rod v0.116.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/go-tika v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.26
@@ -47,13 +46,10 @@ require (
 	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.0 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.20 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
-	github.com/ysmood/fetchup v0.3.0 // indirect
-	github.com/ysmood/goob v0.4.0 // indirect
-	github.com/ysmood/got v0.40.0 // indirect
-	github.com/ysmood/gson v0.7.3 // indirect
-	github.com/ysmood/leakless v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 )
