@@ -168,7 +168,7 @@ const md = new MarkdownIt({
     const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
     // 显示复制代码按钮和展开/收起按钮
     const copyBtn = `<div class="flex">
-      <span class="text-[12px] mr-2 text-[#00e0e0] cursor-pointer expand-btn" data-code-id="${codeIndex}">展开</span>
+      <span class="text-[12px] mr-2 text-[#00e0e0] cursor-pointer expand-btn" data-code-id="${codeIndex}" onclick="window.toggleCodeBlock('${codeIndex}')">收起</span>
       <span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
       </div><textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
       /<\/textarea>/g,
@@ -184,8 +184,8 @@ const md = new MarkdownIt({
       preCode = md.utils.escapeHtml(str)
     }
 
-    // 将代码包裹在 pre 中，添加收起状态的类
-    return `<pre class="code-container flex flex-col code-collapsed" data-code-id="${codeIndex}">
+    // 将代码包裹在 pre 中，添加展开状态的类（默认展开）
+    return `<pre class="code-container flex flex-col code-expanded" data-code-id="${codeIndex}">
       <div class="flex justify-between bg-[#50505a] w-full rounded-tl-[10px] rounded-tr-[10px] px-3 py-1">${langHtml}${copyBtn}</div>
       <code class="language-${lang} hljs">${preCode}</code> 
       <span class="copy-code-btn absolute right-3 bottom-3" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span></pre>`
@@ -254,6 +254,9 @@ const toggleCodeBlock = (codeId) => {
   }
 }
 
+// 将函数暴露到全局作用域
+window.toggleCodeBlock = toggleCodeBlock
+
 // 添加事件监听
 onMounted(() => {
   nextTick(() => {
@@ -265,24 +268,19 @@ onMounted(() => {
 watchEffect(() => {
   if (props.data.content.text) {
     nextTick(() => {
-      setupCodeBlockEvents()
+      // 延迟一点时间确保DOM完全渲染
+      setTimeout(() => {
+        setupCodeBlockEvents()
+      }, 100)
     })
   }
 })
 
 const setupCodeBlockEvents = () => {
-  // 移除旧的事件监听器
-  const oldBtns = document.querySelectorAll('.expand-btn')
-  oldBtns.forEach((btn) => {
-    btn.removeEventListener('click', handleExpandClick)
-  })
-
-  // 为展开按钮添加点击事件
+  // 检查所有代码块并设置展开按钮的显示状态
   const expandBtns = document.querySelectorAll('.expand-btn')
-  expandBtns.forEach((btn) => {
-    btn.addEventListener('click', handleExpandClick)
 
-    // 检查对应的代码块是否需要展开功能
+  expandBtns.forEach((btn) => {
     const codeId = btn.getAttribute('data-code-id')
     const codeContainer = document.querySelector(`pre[data-code-id="${codeId}"]`)
     const codeElement = codeContainer?.querySelector('.hljs')
@@ -299,16 +297,19 @@ const setupCodeBlockEvents = () => {
         btn.style.display = 'none'
         // 移除收起状态的类，让短代码块完全展示
         codeContainer.classList.remove('code-collapsed')
+        codeContainer.classList.add('code-expanded')
       } else {
         btn.style.display = 'inline'
+        // 确保长代码块默认展开
+        if (
+          !codeContainer.classList.contains('code-expanded') &&
+          !codeContainer.classList.contains('code-collapsed')
+        ) {
+          codeContainer.classList.add('code-expanded')
+        }
       }
     }
   })
-}
-
-const handleExpandClick = (e) => {
-  const codeId = e.target.getAttribute('data-code-id')
-  toggleCodeBlock(codeId)
 }
 </script>
 

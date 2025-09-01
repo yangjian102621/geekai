@@ -329,18 +329,17 @@
                         </div>
                         <div class="flex little-btns">
                           <span class="send-btn tool-item-btn">
-                            <!-- showStopGenerate -->
-                            <el-button
-                              type="info"
-                              v-if="showStopGenerate"
-                              @click="stopGenerate"
-                              plain
-                            >
+                            <el-button type="info" v-if="isGenerating" @click="stopGenerate" plain>
                               <el-icon>
                                 <VideoPause />
                               </el-icon>
                             </el-button>
-                            <el-button @click="sendMessage()" style="color: #754ff6" v-else>
+                            <el-button
+                              @click="sendMessage()"
+                              style="color: #754ff6"
+                              :disabled="isGenerating"
+                              v-else
+                            >
                               <el-tooltip class="box-item" effect="dark" content="发送">
                                 <el-icon><Promotion /></el-icon>
                               </el-tooltip>
@@ -635,10 +634,10 @@ httpGet('/api/function/list')
   })
 
 const prompt = ref('')
-const showStopGenerate = ref(false) // 停止生成
+const isGenerating = ref(false)
 const lineBuffer = ref('') // 输出缓冲行
-const canSend = ref(true)
 const isNewMsg = ref(true)
+const abortController = ref(null)
 
 onMounted(() => {
   resizeElement()
@@ -693,9 +692,10 @@ const initData = async () => {
     }
   }
 }
-
+abortController.value = new AbortController()
 // 发送 SSE 请求
 const sendSSERequest = async (message) => {
+  isGenerating.value = true
   try {
     await fetchEventSource('/api/chat/message', {
       method: 'POST',
@@ -710,6 +710,7 @@ const sendSSERequest = async (message) => {
       retryDelay: 0,
       // 设置最大重试次数为0
       maxRetries: 0,
+      signal: abortController.value.signal,
       onopen(response) {
         if (response.ok && response.status === 200) {
           console.log('SSE connection opened')
@@ -717,7 +718,8 @@ const sendSSERequest = async (message) => {
           const errorMsg = `连接失败 (状态码: ${response.status})`
           ElMessage.error(errorMsg)
           console.error('SSE connection failed', response)
-          enableInput()
+          isGenerating.value = false
+
           throw new Error(errorMsg)
         }
       },
@@ -732,12 +734,12 @@ const sendSSERequest = async (message) => {
                 'content'
               ].text = `<div class="bg-red-50 text-red-500 p-3 rounded-md">${data.body}</div>`
             }
-            enableInput()
+            isGenerating.value = false
             return
           }
 
           if (data.type === 'end') {
-            enableInput()
+            isGenerating.value = false
             lineBuffer.value = '' // 清空缓冲
 
             // 获取 token
@@ -795,6 +797,10 @@ const sendSSERequest = async (message) => {
             }
           }
 
+          if (data.type === 'complete') {
+            chatData.value[chatData.value.length - 1] = data.body
+          }
+
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
             document
@@ -804,13 +810,18 @@ const sendSSERequest = async (message) => {
           })
         } catch (error) {
           console.error('Error processing message:', error)
-          enableInput()
+          isGenerating.value = false
           ElMessage.error('消息处理出错，请重试')
         }
       },
       onerror(err) {
         console.error('SSE Error:', err)
-        enableInput()
+        try {
+          abortController.value && abortController.value.abort()
+        } catch (e) {
+          console.error('AbortController abort error:', e)
+        }
+        isGenerating.value = false
         // ElMessage.error('连接已断开，发生错误：' + err.message)
         const reply = chatData.value[chatData.value.length - 1]
         if (reply) {
@@ -821,12 +832,12 @@ const sendSSERequest = async (message) => {
       },
       onclose() {
         console.log('SSE connection closed')
-        enableInput()
+        isGenerating.value = false
       },
     })
   } catch (error) {
     console.error('Failed to send message:', error)
-    enableInput()
+    isGenerating.value = false
     ElMessage.error('发送消息失败，请重试')
   }
 }
@@ -839,12 +850,12 @@ const sendMessage = (messageId = 0) => {
     return
   }
 
-  if (canSend.value === false) {
+  if (isGenerating.value) {
     ElMessage.warning('AI 正在作答中，请稍后...')
     return
   }
 
-  if (prompt.value.trim().length === 0 || canSend.value === false) {
+  if (prompt.value === '') {
     showMessageError('请输入要发送的消息！')
     return false
   }
@@ -883,7 +894,6 @@ const sendMessage = (messageId = 0) => {
   })
 
   showHello.value = false
-  disableInput(false)
 
   // 异步发送 SSE 请求
   sendSSERequest({
@@ -961,7 +971,7 @@ const newChat = () => {
     edit: false,
     removing: false,
   }
-  showStopGenerate.value = false
+  isGenerating.value = false
   loadChatHistory(chatId.value)
   router.push(`/chat/${chatId.value}`)
 }
@@ -980,7 +990,7 @@ const loadChat = function (chat) {
   roleId.value = chat.role_id
   modelID.value = chat.model_id
   chatId.value = chat.chat_id
-  showStopGenerate.value = false
+  isGenerating.value = false
   loadChatHistory(chatId.value)
   router.push(`/chat/${chatId.value}`)
 }
@@ -1051,16 +1061,6 @@ const removeChat = function (chat) {
         })
     })
     .catch(() => {})
-}
-
-const disableInput = (force) => {
-  canSend.value = false
-  showStopGenerate.value = !force
-}
-
-const enableInput = () => {
-  canSend.value = true
-  showStopGenerate.value = false
 }
 
 const onInput = (e) => {
@@ -1165,20 +1165,36 @@ const loadChatHistory = function (chatId) {
 
 // 停止生成
 const stopGenerate = function () {
-  showStopGenerate.value = false
-  httpGet('/api/chat/stop?session_id=' + getClientId()).then(() => {
-    enableInput()
-  })
+  if (abortController.value) {
+    abortController.value.abort()
+    isGenerating.value = false
+    httpGet('/api/chat/stop?session_id=' + getClientId())
+      .then(() => {
+        console.log('会话已中断')
+      })
+      .catch((e) => {
+        showMessageError('中断对话失败:' + e.message)
+      })
+  }
 }
 
 // 重新生成
 const reGenerate = function (messageId) {
   // 恢复发送按钮状态
-  canSend.value = true
-  showStopGenerate.value = false
-  console.log(messageId)
+  if (isGenerating.value) {
+    ElMessage.warning('AI 正在作答中，请稍后...')
+    return
+  }
 
-  chatData.value = chatData.value.filter((item) => item.id < messageId)
+  console.log('messageId', messageId)
+
+  // 判断 messageId 是整数
+  if (messageId !== '' && isNaN(messageId)) {
+    ElMessage.warning('消息 ID 不合法，无法重新生成')
+    return
+  }
+
+  chatData.value = chatData.value.filter((item) => item.id <= messageId)
   // 保存用户消息内容，填入输入框
   const userPrompt = chatData.value[chatData.value.length - 1].content.text
   // 删除用户消息

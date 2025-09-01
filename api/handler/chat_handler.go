@@ -40,6 +40,7 @@ import (
 const (
 	ChatEventStart        = "start"
 	ChatEventEnd          = "end"
+	ChatEventComplete     = "complete"
 	ChatEventError        = "error"
 	ChatEventMessageDelta = "message_delta"
 	ChatEventTitle        = "title"
@@ -539,6 +540,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, input ChatInput, promptTokens
 }
 
 func (h *ChatHandler) saveChatHistory(
+	c *gin.Context,
 	req types.ApiRequest,
 	usage Usage,
 	message types.Message,
@@ -607,6 +609,22 @@ func (h *ChatHandler) saveChatHistory(
 	err = h.DB.Create(&historyReplyMsg).Error
 	if err != nil {
 		logger.Error("failed to save reply history message: ", err)
+	}
+
+	// 发送完整聊天记录给前端
+	var messageVo vo.ChatMessage
+	err = utils.CopyObject(historyReplyMsg, &messageVo)
+	if err == nil {
+		// 解析内容
+		var content vo.MsgContent
+		err = utils.JsonDecode(historyReplyMsg.Content, &content)
+		if err != nil {
+			content.Text = historyReplyMsg.Content
+		}
+		messageVo.Content = content
+		messageVo.CreatedAt = historyReplyMsg.CreatedAt.Unix()
+		messageVo.UpdatedAt = historyReplyMsg.UpdatedAt.Unix()
+		pushMessage(c, ChatEventComplete, messageVo)
 	}
 
 	// 更新用户算力
