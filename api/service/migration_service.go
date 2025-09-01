@@ -51,7 +51,6 @@ func (s *MigrationService) StartMigrate() {
 		s.MigrateConfig(s.appConfig)
 		s.TableMigration()
 		s.MigrateLicense()
-		s.TableRename()
 	}()
 }
 
@@ -67,8 +66,13 @@ func (s *MigrationService) MigrateLicense() {
 	var license types.License
 	err := s.levelDB.Get(types.LicenseKey, &license)
 	if err != nil {
-		logger.Errorf("迁移 License 失败: %v", err)
-		return
+		license = types.License{
+			Key:       "",
+			MachineId: "",
+			Configs:   types.LicenseConfig{UserNum: 0, DeCopy: false},
+			ExpiredAt: 0,
+			IsActive:  false,
+		}
 	}
 	logger.Infof("迁移 License: %+v", license)
 	if err := s.saveConfig(types.ConfigKeyLicense, license); err != nil {
@@ -109,6 +113,47 @@ func (s *MigrationService) MigrateConfigContent() error {
 	}); err != nil {
 		return fmt.Errorf("迁移配置内容失败: %v", err)
 	}
+
+	// 微信登录配置
+	if err := s.saveConfig(types.ConfigKeyWxLogin, map[string]string{
+		"api_key":    "",
+		"notify_url": "",
+		"enabled":    "false",
+	}); err != nil {
+		return fmt.Errorf("迁移配置内容失败: %v", err)
+	}
+
+	// 验证码配置
+	if err := s.saveConfig(types.ConfigKeyCaptcha, map[string]string{
+		"api_key": "",
+		"type":    "dot",
+		"enabled": "false",
+	}); err != nil {
+		return fmt.Errorf("迁移配置内容失败: %v", err)
+	}
+
+	// 文本审核
+	if err := s.saveConfig(types.ConfigKeyModeration, map[string]any{
+		"enable":       "false",
+		"active":       "gitee",
+		"enable_guide": "false",
+		"guide_prompt": "",
+		"gitee": map[string]string{
+			"api_key": "",
+			"model":   "Security-semantic-filtering",
+		},
+		"baidu": map[string]string{
+			"access_key": "",
+			"secret_key": "",
+		},
+		"tencent": map[string]string{
+			"access_key": "",
+			"secret_key": "",
+		},
+	}); err != nil {
+		return fmt.Errorf("迁移配置内容失败: %v", err)
+	}
+
 	return nil
 }
 
@@ -167,63 +212,6 @@ func (s *MigrationService) TableMigration() {
 	if s.db.Migrator().HasColumn(&model.Product{}, "url") {
 		s.db.Migrator().DropColumn(&model.Product{}, "url")
 	}
-}
-
-// 遍历所有的数据表，如果表名中包含 chatgpt_，则重命名为 geekai_，只执行一次
-func (s *MigrationService) TableRename() {
-	key := "migrate:table_rename"
-	if s.redisClient.Get(context.Background(), key).Val() == "1" {
-		logger.Info("数据表重命名已执行，跳过重命名")
-		return
-	}
-
-	logger.Info("开始重命名数据表...")
-
-	// 定义需要重命名的表映射
-	tableRenames := map[string]string{
-		"chatgpt_users":           "geekai_users",
-		"chatgpt_orders":          "geekai_orders",
-		"chatgpt_products":        "geekai_products",
-		"chatgpt_configs":         "geekai_configs",
-		"chatgpt_sd_jobs":         "geekai_sd_jobs",
-		"chatgpt_mj_jobs":         "geekai_mj_jobs",
-		"chatgpt_suno_jobs":       "geekai_suno_jobs",
-		"chatgpt_dall_jobs":       "geekai_dall_jobs",
-		"chatgpt_video_jobs":      "geekai_video_jobs",
-		"chatgpt_jimeng_jobs":     "geekai_jimeng_jobs",
-		"chatgpt_files":           "geekai_files",
-		"chatgpt_menus":           "geekai_menus",
-		"chatgpt_functions":       "geekai_functions",
-		"chatgpt_invite_codes":    "geekai_invite_codes",
-		"chatgpt_invite_logs":     "geekai_invite_logs",
-		"chatgpt_redeems":         "geekai_redeems",
-		"chatgpt_power_logs":      "geekai_power_logs",
-		"chatgpt_user_login_logs": "geekai_user_login_logs",
-	}
-
-	// 执行重命名操作
-	for oldTableName, newTableName := range tableRenames {
-		// 检查旧表是否存在
-		if s.db.Migrator().HasTable(oldTableName) {
-			// 检查新表是否已存在
-			if !s.db.Migrator().HasTable(newTableName) {
-				err := s.db.Exec(fmt.Sprintf("ALTER TABLE %s RENAME TO %s", oldTableName, newTableName)).Error
-				if err != nil {
-					logger.Errorf("重命名数据表 %s 到 %s 失败: %v", oldTableName, newTableName, err)
-				} else {
-					logger.Infof("成功重命名数据表: %s -> %s", oldTableName, newTableName)
-				}
-			} else {
-				logger.Infof("目标表 %s 已存在，跳过重命名 %s", newTableName, oldTableName)
-			}
-		} else {
-			logger.Infof("源表 %s 不存在，跳过重命名", oldTableName)
-		}
-	}
-
-	// 标记重命名已完成
-	s.redisClient.Set(context.Background(), key, "1", 0)
-	logger.Info("数据表重命名完成")
 }
 
 // 迁移配置数据
