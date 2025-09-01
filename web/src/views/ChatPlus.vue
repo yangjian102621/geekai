@@ -401,7 +401,6 @@ import { fetchEventSource } from '@microsoft/fetch-event-source'
 import Clipboard from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import 'highlight.js/styles/a11y-dark.css'
-
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserToken } from '../store/session'
@@ -704,35 +703,28 @@ const sendSSERequest = async (message) => {
       },
       body: JSON.stringify(message),
       openWhenHidden: true,
-      // 禁用重试机制，避免连接断开后一直重试
-      retry: false,
+      // 重试机制，避免连接断开后一直重试
+      retry: 3000,
       // 设置重试延迟为0，确保不重试
-      retryDelay: 0,
+      retryDelay: 3000,
       // 设置最大重试次数为0
-      maxRetries: 0,
+      maxRetries: 3,
       signal: abortController.value.signal,
       onopen(response) {
         if (response.ok && response.status === 200) {
           console.log('SSE connection opened')
         } else {
-          const errorMsg = `连接失败 (状态码: ${response.status})`
-          ElMessage.error(errorMsg)
           console.error('SSE connection failed', response)
           isGenerating.value = false
-
-          throw new Error(errorMsg)
         }
       },
       onmessage(msg) {
         try {
           const data = JSON.parse(msg.data)
           if (data.type === 'error') {
-            // ElMessage.error(data.body)
             const reply = chatData.value[chatData.value.length - 1]
             if (reply) {
-              reply[
-                'content'
-              ].text = `<div class="bg-red-50 text-red-500 p-3 rounded-md">${data.body}</div>`
+              reply['content'].text = `<div class="text-red-500 p-3 rounded-md">${data.body}</div>`
             }
             isGenerating.value = false
             return
@@ -825,9 +817,7 @@ const sendSSERequest = async (message) => {
         // ElMessage.error('连接已断开，发生错误：' + err.message)
         const reply = chatData.value[chatData.value.length - 1]
         if (reply) {
-          reply[
-            'content'
-          ].text = `<div class="bg-red-50 text-red-500 p-3 rounded-md">${err.message}</div>`
+          reply['content'].text = `<div class="text-red-500 p-3 rounded-md">${err.message}</div>`
         }
       },
       onclose() {
@@ -863,7 +853,7 @@ const sendMessage = (messageId = 0) => {
   // 追加消息
   chatData.value.push({
     type: 'prompt',
-    id: randString(32),
+    id: 0,
     icon: loginUser.value.avatar,
     content: {
       text: prompt.value,
@@ -1134,8 +1124,9 @@ const loadChatHistory = function (chatId) {
           chat_id: chatId,
           role_id: roleId.value,
           type: 'reply',
-          id: randString(32),
+          id: 0,
           icon: _role['icon'],
+          isHello: true,
           content: {
             text: _role['hello_msg'],
             files: [],
@@ -1187,6 +1178,7 @@ const reGenerate = function (messageId) {
   }
 
   console.log('messageId', messageId)
+  console.log('chatData.value', chatData.value)
 
   // 判断 messageId 是整数
   if (messageId !== '' && isNaN(messageId)) {
@@ -1194,14 +1186,10 @@ const reGenerate = function (messageId) {
     return
   }
 
-  chatData.value = chatData.value.filter((item) => item.id <= messageId)
-  // 保存用户消息内容，填入输入框
-  const userPrompt = chatData.value[chatData.value.length - 1].content.text
-  // 删除用户消息
-  const lastMessage = chatData.value.pop()
-  // 填入输入框
-  prompt.value = userPrompt
-  sendMessage(lastMessage.id)
+  chatData.value = chatData.value.filter((item) => item.id < messageId && !item.isHello)
+  const userPrompt = chatData.value.pop()
+  prompt.value = userPrompt.content.text
+  sendMessage(messageId)
   // 将光标定位到输入框并聚焦
   nextTick(() => {
     if (inputRef.value) {

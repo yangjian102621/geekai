@@ -104,17 +104,18 @@ func (h *ChatHandler) RegisterRoutes() {
 
 // Chat 处理聊天请求
 func (h *ChatHandler) Chat(c *gin.Context) {
-	var input ChatInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
 	// 设置SSE响应头
 	c.Header("Prompt-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("X-Accel-Buffering", "no")
+
+	var input ChatInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		pushMessage(c, ChatEventError, types.InvalidArgs)
+		c.Abort()
+		return
+	}
 
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
@@ -259,6 +260,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 			var historyMessages []model.ChatMessage
 			dbSession := h.DB.Session(&gorm.Session{}).Where("chat_id", input.ChatId)
 			if input.LastMsgId > 0 { // 重新生成逻辑
+				var lastMessage model.ChatMessage
+				err = dbSession.Where("id <= ?", input.LastMsgId).Where("type", types.PromptMsg).First(&lastMessage).Error
+				if err != nil {
+					input.LastMsgId = 0
+				} else {
+					input.LastMsgId = lastMessage.Id
+				}
 				dbSession = dbSession.Where("id < ?", input.LastMsgId)
 				// 删除对应的聊天记录
 				h.DB.Debug().Where("chat_id", input.ChatId).Where("id >= ?", input.LastMsgId).Delete(&model.ChatMessage{})
