@@ -93,6 +93,12 @@ const routes = [
         component: () => import('@/views/Suno.vue'),
       },
       {
+        name: 'ai3d',
+        path: '/ai3d',
+        meta: { title: 'AI3D模型生成' },
+        component: () => import('@/views/AIThreeDCreate.vue'),
+      },
+      {
         name: 'ExternalLink',
         path: '/external',
         component: () => import('@/views/ExternalPage.vue'),
@@ -148,12 +154,7 @@ const routes = [
     meta: { title: '控制台登录' },
     component: () => import('@/views/admin/Login.vue'),
   },
-  {
-    path: '/payReturn',
-    name: 'pay-return',
-    meta: { title: '支付回调' },
-    component: () => import('@/views/PayReturn.vue'),
-  },
+
   {
     name: 'admin',
     path: '/admin',
@@ -210,7 +211,7 @@ const routes = [
         component: () => import('@/views/admin/settings/PluginConfig.vue'),
       },
       {
-        path: '/admin/config/moderation',
+        path: '/admin/moderation/config',
         name: 'admin-config-moderation',
         meta: { title: '文本审查配置' },
         component: () => import('@/views/admin/moderation/ModerationConfig.vue'),
@@ -345,7 +346,19 @@ const routes = [
         path: '/admin/jimeng/config',
         name: 'admin-jimeng-config',
         meta: { title: '即梦设置' },
-        component: () => import('@/views/admin/jimeng/JimengSetting.vue'),
+        component: () => import('@/views/admin/jimeng/JimengConfig.vue'),
+      },
+      {
+        path: '/admin/ai3d/jobs',
+        name: 'admin-ai3d-jobs',
+        meta: { title: '3D任务管理' },
+        component: () => import('@/views/admin/ai3d/AIThreeDJobs.vue'),
+      },
+      {
+        path: '/admin/ai3d/config',
+        name: 'admin-ai3d-config',
+        meta: { title: '3D配置管理' },
+        component: () => import('@/views/admin/ai3d/AIThreeDConfig.vue'),
       },
       {
         path: '/admin/powerLog',
@@ -458,6 +471,12 @@ const routes = [
         path: '/mobile/jimeng',
         name: 'mobile-jimeng',
         component: () => import('@/views/mobile/JimengCreate.vue'),
+      },
+      {
+        path: '/mobile/3d',
+        name: 'mobile-3d',
+        meta: { title: '3D模型生成' },
+        component: () => import('@/views/mobile/ThreeDCreate.vue'),
       },
     ],
   },

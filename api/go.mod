@@ -33,6 +33,8 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.0
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.21
 	golang.org/x/image v0.15.0
 )
 
@@ -46,8 +48,6 @@ require (
 	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.0 // indirect
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.20 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect

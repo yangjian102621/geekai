@@ -248,8 +248,8 @@ github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpP
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.0 h1:hOyYsl35o74hOhnnPVQIK/bdSIPNp3TKJlCEOXGO7ms=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.0/go.mod h1:3689peGF1zp+P9c+GnUcAzkMp+kXi0Tr44zeQ57Z+7Y=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.0/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
-github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.20 h1:8B80/p+WvzBVz+jM6dosTcfhRe7Jotpyqj0NoGW1wfE=
-github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.20/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.21 h1:ikHhyiq1PiPytUMtEblKPkbf0zzTEi3CpE9z0MARlqY=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.21/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
 github.com/tklauser/go-sysconf v0.3.13 h1:GBUpcahXSpR2xN01jhkNAbTLRk2Yzgggk8IM08lq3r4=
 github.com/tklauser/go-sysconf v0.3.13/go.mod h1:zwleP4Q4OehZHGn4CYZDipCgg9usW5IJePewFCGVEa0=
 github.com/tklauser/numcpus v0.7.0 h1:yjuerZP127QG9m5Zh/mSO4wqurYil27tHrqwRoRjpr4=

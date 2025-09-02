@@ -16,6 +16,7 @@ import (
 	"geekai/handler/admin"
 	logger2 "geekai/logger"
 	"geekai/service"
+	"geekai/service/ai3d"
 	"geekai/service/dalle"
 	"geekai/service/jimeng"
 	"geekai/service/mj"
@@ -210,9 +211,18 @@ func main() {
 		}),
 
 		// 即梦AI 服务
+		fx.Provide(jimeng.NewClient),
 		fx.Provide(jimeng.NewService),
 		fx.Invoke(func(service *jimeng.Service) {
 			service.Start()
+		}),
+
+		// 3D生成服务
+		fx.Provide(ai3d.NewTencent3DClient),
+		fx.Provide(ai3d.NewGitee3DClient),
+		fx.Provide(ai3d.NewService),
+		fx.Invoke(func(s *ai3d.Service) {
+			s.Run()
 		}),
 		fx.Provide(service.NewSnowflake),
 
@@ -380,6 +390,16 @@ func main() {
 		}),
 		fx.Provide(handler.NewVideoHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
+			h.RegisterRoutes()
+		}),
+
+		// 3D生成处理器
+		fx.Provide(handler.NewAI3DHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.AI3DHandler) {
+			h.RegisterRoutes()
+		}),
+		fx.Provide(admin.NewAI3DHandler),
+		fx.Invoke(func(s *core.AppServer, h *admin.AI3DHandler) {
 			h.RegisterRoutes()
 		}),
 

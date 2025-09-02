@@ -435,7 +435,7 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 
 // getPowerFromConfig 从配置中获取指定类型的算力消耗
 func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
-	config := h.jimengService.GetConfig()
+	config := h.App.SysConfig.Jimeng
 
 	switch taskType {
 	case model.JMTaskTypeTextToImage:
@@ -457,7 +457,7 @@ func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
 
 // GetPowerConfig 获取即梦各任务类型算力消耗配置
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
-	config := h.jimengService.GetConfig()
+	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{
 		"text_to_image":  config.Power.TextToImage,
 		"image_to_image": config.Power.ImageToImage,

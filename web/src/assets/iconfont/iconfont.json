@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "34453337",
+      "name": "3D会场",
+      "font_class": "cube",
+      "unicode": "e876",
+      "unicode_decimal": 59510
+    },
+    {
       "icon_id": "3547761",
       "name": "tencent",
       "font_class": "tencent",

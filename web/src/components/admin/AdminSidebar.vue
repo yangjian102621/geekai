@@ -179,6 +179,23 @@ const items = [
       },
     ],
   },
+  {
+    icon: 'cube',
+    index: '/admin/ai3d',
+    title: '3D生成',
+    subs: [
+      {
+        icon: 'list',
+        index: '/admin/ai3d/jobs',
+        title: '任务管理',
+      },
+      {
+        icon: 'config',
+        index: '/admin/ai3d/config',
+        title: '配置管理',
+      },
+    ],
+  },
 
   {
     icon: 'moderation',
@@ -186,14 +203,14 @@ const items = [
     title: '文本审查',
     subs: [
       {
-        icon: 'config',
-        index: '/admin/config/moderation',
-        title: '审查配置',
-      },
-      {
         icon: 'list',
         index: '/admin/moderation/list',
         title: '审核记录',
+      },
+      {
+        icon: 'config',
+        index: '/admin/moderation/config',
+        title: '审查配置',
       },
     ],
   },

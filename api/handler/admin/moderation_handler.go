@@ -8,10 +8,12 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
+	"geekai/service/moderation"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
@@ -22,10 +24,12 @@ import (
 
 type ModerationHandler struct {
 	handler.BaseHandler
+	sysConfig         *types.SystemConfig
+	moderationManager *moderation.ServiceManager
 }
 
-func NewModerationHandler(app *core.AppServer, db *gorm.DB) *ModerationHandler {
-	return &ModerationHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}}
+func NewModerationHandler(app *core.AppServer, db *gorm.DB, sysConfig *types.SystemConfig, moderationManager *moderation.ServiceManager) *ModerationHandler {
+	return &ModerationHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}, sysConfig: sysConfig, moderationManager: moderationManager}
 }
 
 // RegisterRoutes 注册路由
@@ -39,6 +43,8 @@ func (h *ModerationHandler) RegisterRoutes() {
 		group.GET("remove", h.Remove)
 		group.POST("batch-remove", h.BatchRemove)
 		group.GET("source-list", h.GetSourceList)
+		group.POST("config", h.UpdateModeration)
+		group.POST("test", h.TestModeration)
 	}
 }
 
@@ -228,4 +234,91 @@ func (h *ModerationHandler) GetSourceList(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, sources)
+}
+
+// UpdateModeration 更新文本审查配置
+func (h *ModerationHandler) UpdateModeration(c *gin.Context) {
+	var data types.ModerationConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.DB.Where("name", types.ConfigKeyModeration).FirstOrCreate(&model.Config{Name: types.ConfigKeyModeration, Value: utils.JsonEncode(data)}).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	h.moderationManager.UpdateConfig(data)
+	h.sysConfig.Moderation = data
+
+	resp.SUCCESS(c, data)
+}
+
+// 测试结果类型，用于前端显示
+type ModerationTestResult struct {
+	IsAbnormal bool                   `json:"isAbnormal"`
+	Details    []ModerationTestDetail `json:"details"`
+}
+
+type ModerationTestDetail struct {
+	Category    string `json:"category"`
+	Description string `json:"description"`
+	Confidence  string `json:"confidence"`
+	IsCategory  bool   `json:"isCategory"`
+}
+
+// TestModeration 测试文本审查服务
+func (h *ModerationHandler) TestModeration(c *gin.Context) {
+	var data struct {
+		Text    string `json:"text"`
+		Service string `json:"service"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	if data.Text == "" {
+		resp.ERROR(c, "测试文本不能为空")
+		return
+	}
+
+	// 检查是否启用了文本审查
+	if !h.sysConfig.Moderation.Enable {
+		resp.ERROR(c, "文本审查服务未启用")
+		return
+	}
+
+	// 获取当前激活的审核服务
+	service := h.moderationManager.GetService()
+	// 执行文本审核
+	result, err := service.Moderate(data.Text)
+	if err != nil {
+		resp.ERROR(c, "审核服务调用失败: "+err.Error())
+		return
+	}
+
+	// 转换为前端需要的格式
+	testResult := ModerationTestResult{
+		IsAbnormal: result.Flagged,
+		Details:    make([]ModerationTestDetail, 0),
+	}
+
+	// 构建详细信息
+	for category, description := range types.ModerationCategories {
+		score := result.CategoryScores[category]
+		isCategory := result.Categories[category]
+
+		testResult.Details = append(testResult.Details, ModerationTestDetail{
+			Category:    category,
+			Description: description,
+			Confidence:  fmt.Sprintf("%.2f", score),
+			IsCategory:  isCategory,
+		})
+	}
+
+	resp.SUCCESS(c, testResult)
 }

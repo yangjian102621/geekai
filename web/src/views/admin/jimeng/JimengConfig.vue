@@ -241,7 +241,7 @@ onMounted(() => {
 // 加载配置
 const loadConfig = async () => {
   try {
-    const res = await httpGet('/api/admin/jimeng/config')
+    const res = await httpGet('/api/admin/config/get?key=jimeng')
     jimengConfig.value = res.data
   } catch (e) {
     ElMessage.error('加载配置失败: ' + e.message)

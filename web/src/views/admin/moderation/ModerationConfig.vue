@@ -265,7 +265,7 @@ watch(activeTab, (newTab) => {
 const saveModerationConfig = async () => {
   loading.value = true
   try {
-    await httpPost('/api/admin/config/update/moderation', configs.value)
+    await httpPost('/api/admin/moderation/config', configs.value)
     ElMessage.success('保存成功')
   } catch (e) {
     ElMessage.error('保存失败：' + (e.message || '未知错误'))
@@ -289,7 +289,7 @@ const testModeration = async () => {
 
   testLoading.value = true
   try {
-    const res = await httpPost('/api/admin/config/moderation/test', {
+    const res = await httpPost('/api/admin/moderation/test', {
       text: testForm.value.text.trim(),
       service: configs.value.active,
     })

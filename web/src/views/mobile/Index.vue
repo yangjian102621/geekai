@@ -167,6 +167,13 @@ const features = ref([
     color: '#F97316',
     url: '/mobile/jimeng',
   },
+  {
+    key: '3d',
+    name: '3D生成',
+    icon: 'icon-3d',
+    color: '#8B5CF6',
+    url: '/mobile/3d',
+  },
   { key: 'agent', name: '智能体', icon: 'icon-app', color: '#3B82F6', url: '/mobile/apps' },
   {
     key: 'imgWall',
