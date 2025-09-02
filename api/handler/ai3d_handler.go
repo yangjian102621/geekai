@@ -7,7 +7,9 @@ import (
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/ai3d"
+	"geekai/store/model"
 	"geekai/store/vo"
+	"geekai/utils"
 	"geekai/utils/resp"
 	"strconv"
 
@@ -34,10 +36,10 @@ func NewAI3DHandler(app *core.AppServer, db *gorm.DB, service *ai3d.Service, use
 
 // RegisterRoutes 注册路由
 func (h *AI3DHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/3d/")
+	group := h.App.Engine.Group("/api/ai3d/")
 
 	// 公开接口，不需要授权
-	group.GET("models/:type", h.GetModels)
+	group.GET("configs", h.GetConfigs)
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
@@ -224,13 +226,29 @@ func (h *AI3DHandler) Download(c *gin.Context) {
 	c.Redirect(302, job.FileURL)
 }
 
-// GetModels 获取支持的模型列表
-func (h *AI3DHandler) GetModels(c *gin.Context) {
-	models := h.service.GetSupportedModels()
-	if len(models) == 0 {
-		resp.ERROR(c, "无可用3D模型")
+// GetConfigs 获取3D生成配置
+func (h *AI3DHandler) GetConfigs(c *gin.Context) {
+	var config model.Config
+	err := h.DB.Where("name", types.ConfigKeyAI3D).First(&config).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
+	var config3d types.AI3DConfig
+	err = utils.JsonDecode(config.Value, &config3d)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	models := h.service.GetSupportedModels()
+	if len(config3d.Gitee.Models) == 0 {
+		config3d.Gitee.Models = models["gitee"]
+	}
+	if len(config3d.Tencent.Models) == 0 {
+		config3d.Tencent.Models = models["tencent"]
+	}
 
-	resp.SUCCESS(c, models)
+	logger.Info("config3d: ", config3d)
+
+	resp.SUCCESS(c, config3d)
 }

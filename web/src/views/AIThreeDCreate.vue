@@ -4,89 +4,218 @@
     <div class="params-panel">
       <!-- 平台选择Tab -->
       <div class="platform-tabs">
-        <CustomTabs v-model="activePlatform" @change="handlePlatformChange">
-          <CustomTabPane label="魔力方舟" name="gitee">
-            <div class="platform-info">
-              <i class="iconfont icon-gitee"></i>
-              <span>Gitee AI 3D生成</span>
+        <CustomTabs v-model="activePlatform" @tab-click="handlePlatformChange">
+          <CustomTabPane name="gitee" width="48%">
+            <template #label>
+              <div class="flex items-center justify-center">
+                <i class="iconfont icon-gitee mr-1"></i>
+                <span>Gitee 模力方舟</span>
+              </div>
+            </template>
+            <!-- 参数容器 -->
+            <div class="params-container">
+              <!-- 图片上传区域 -->
+              <div class="param-line pt">
+                <span class="label">上传图片：</span>
+              </div>
+              <div class="param-line">
+                <ImageUpload v-model="giteeForm.image_url" :max-count="1" :multiple="false" />
+              </div>
+
+              <!-- 文本提示词 -->
+              <div class="param-line pt">
+                <span class="label">提示词：</span>
+              </div>
+              <div class="param-line">
+                <el-input
+                  v-model="giteeForm.prompt"
+                  type="textarea"
+                  :autosize="{ minRows: 3, maxRows: 5 }"
+                  placeholder="请输入3D模型描述，越详细越好"
+                  maxlength="2000"
+                  show-word-limit
+                />
+              </div>
+
+              <!-- 模型选择 -->
+              <div class="param-line pt">
+                <span class="label">输出格式：</span>
+              </div>
+              <div class="param-line">
+                <el-select
+                  v-model="giteeForm.model"
+                  placeholder="选择输出格式"
+                  @change="handleModelChange"
+                >
+                  <el-option
+                    v-for="model in configs.gitee.models"
+                    :key="model.name"
+                    :label="model.name"
+                    :value="model.name"
+                  />
+                </el-select>
+              </div>
+
+              <!-- 高级参数 -->
+              <div class="param-line pt">
+                <el-button
+                  @click="giteeAdvancedVisible = !giteeAdvancedVisible"
+                  class="advanced-toggle-btn"
+                >
+                  <i
+                    :class="
+                      giteeAdvancedVisible
+                        ? 'iconfont icon-arrow-down'
+                        : 'iconfont icon-arrow-right'
+                    "
+                  ></i>
+                  <span>高级参数设置</span>
+                </el-button>
+              </div>
+
+              <!-- 高级参数内容 -->
+              <div v-show="giteeAdvancedVisible" class="advanced-params">
+                <!-- 纹理开关 -->
+                <div class="param-line">
+                  <el-checkbox v-model="giteeForm.texture">启用纹理</el-checkbox>
+                </div>
+
+                <!-- 随机种子 -->
+                <div class="param-line">
+                  <span class="label">随机种子：</span>
+                  <el-input-number
+                    v-model="giteeForm.seed"
+                    :min="1"
+                    :max="999999"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
+
+                <!-- 迭代次数 -->
+                <div class="param-line">
+                  <span class="label">迭代次数：</span>
+                  <el-input-number
+                    v-model="giteeForm.num_inference_steps"
+                    :min="1"
+                    :max="50"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
+
+                <!-- 引导系数 -->
+                <div class="param-line">
+                  <span class="label">引导系数：</span>
+                  <el-input-number
+                    v-model="giteeForm.guidance_scale"
+                    :min="1"
+                    :max="20"
+                    :step="0.5"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
+
+                <!-- 3D渲染精度 -->
+                <div class="param-line">
+                  <span class="label">3D渲染精度：</span>
+                  <el-select v-model="giteeForm.octree_resolution" style="width: 100%">
+                    <el-option label="64 (低精度)" :value="64" />
+                    <el-option label="128 (中精度)" :value="128" />
+                    <el-option label="256 (高精度)" :value="256" />
+                  </el-select>
+                </div>
+              </div>
             </div>
           </CustomTabPane>
-          <CustomTabPane label="腾讯混元" name="tencent">
-            <div class="platform-info">
-              <i class="iconfont icon-tencent"></i>
-              <span>腾讯云混元3D生成</span>
+          <CustomTabPane name="tencent" width="48%">
+            <template #label>
+              <div class="flex items-center justify-center">
+                <i class="iconfont icon-tencent mr-1"></i>
+                <span>腾讯云混元3D</span>
+              </div>
+            </template>
+            <!-- 参数容器 -->
+            <div class="params-container">
+              <!-- 图片上传区域 -->
+              <div class="param-line pt">
+                <span class="label">上传图片：</span>
+              </div>
+              <div class="param-line">
+                <ImageUpload v-model="tencentForm.image_url" :max-count="1" :multiple="false" />
+              </div>
+
+              <!-- 文本提示词 -->
+              <div class="param-line pt">
+                <span class="label">提示词：</span>
+              </div>
+              <div class="param-line">
+                <el-input
+                  v-model="tencentForm.prompt"
+                  type="textarea"
+                  :autosize="{ minRows: 3, maxRows: 5 }"
+                  placeholder="请输入3D模型描述，越详细越好"
+                  maxlength="2000"
+                  show-word-limit
+                />
+              </div>
+
+              <!-- 模型选择 -->
+              <div class="param-line pt">
+                <span class="label">输出格式：</span>
+              </div>
+              <div class="param-line">
+                <el-select
+                  v-model="tencentForm.model"
+                  @change="handleModelChange"
+                  placeholder="选择输出格式"
+                >
+                  <el-option
+                    v-for="model in configs.tencent.models"
+                    :key="model.name"
+                    :label="model.name"
+                    :value="model.name"
+                  />
+                </el-select>
+              </div>
+
+              <!-- 高级参数 -->
+              <div class="param-line pt">
+                <span class="label">高级参数：</span>
+              </div>
+
+              <!-- PBR材质开关 -->
+              <div class="param-line">
+                <el-checkbox v-model="tencentForm.enable_pbr">启用PBR材质</el-checkbox>
+              </div>
+
+              <!-- 文件格式选择 -->
+              <div class="param-line">
+                <span class="label">文件格式：</span>
+                <el-select v-model="tencentForm.file_format" style="width: 100%">
+                  <el-option label="GLB" value="glb" />
+                  <el-option label="GLTF" value="gltf" />
+                  <el-option label="OBJ" value="obj" />
+                  <el-option label="FBX" value="fbx" />
+                </el-select>
+              </div>
             </div>
           </CustomTabPane>
+          <!-- 生成按钮 -->
+          <div class="generate-section">
+            <button
+              @click="generate3D"
+              :disabled="loading"
+              type="button"
+              class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+              <i v-else class="iconfont icon-chuangzuo"></i>
+              <span>{{ loading ? '创作中...' : `立即生成 (${currentPower}算力)` }}</span>
+            </button>
+          </div>
         </CustomTabs>
-      </div>
-
-      <!-- 参数容器 -->
-      <div class="params-container">
-        <!-- 图片上传区域 -->
-        <div class="param-line pt">
-          <span class="label">上传图片：</span>
-        </div>
-        <div class="param-line">
-          <ImageUpload
-            v-model="currentImage"
-            :max-count="1"
-            :multiple="false"
-            @change="handleImageChange"
-          />
-        </div>
-
-        <!-- 文本提示词 -->
-        <div class="param-line pt">
-          <span class="label">提示词：</span>
-        </div>
-        <div class="param-line">
-          <el-input
-            v-model="currentPrompt"
-            type="textarea"
-            :autosize="{ minRows: 3, maxRows: 5 }"
-            placeholder="请输入3D模型描述，越详细越好"
-            maxlength="2000"
-            show-word-limit
-          />
-        </div>
-
-        <!-- 模型选择 -->
-        <div class="param-line pt">
-          <span class="label">输出格式：</span>
-        </div>
-        <div class="param-line">
-          <el-select v-model="selectedModel" placeholder="选择输出格式" @change="handleModelChange">
-            <el-option
-              v-for="(model, key) in availableModels"
-              :key="key"
-              :label="model.name"
-              :value="key"
-            />
-          </el-select>
-        </div>
-
-        <!-- 算力消耗显示 -->
-        <div class="param-line pt">
-          <span class="label">算力消耗：</span>
-        </div>
-        <div class="power-display">
-          <span class="power-value">{{ currentPower }}</span>
-          <span class="power-unit">点</span>
-        </div>
-
-        <!-- 生成按钮 -->
-        <div class="generate-section">
-          <el-button
-            type="primary"
-            size="large"
-            :loading="generating"
-            :disabled="!canGenerate"
-            @click="generate3D"
-            class="generate-btn"
-          >
-            {{ generating ? '生成中...' : '开始生成' }}
-          </el-button>
-        </div>
       </div>
     </div>
 
@@ -115,7 +244,7 @@
 
             <div class="task-content">
               <div class="task-prompt">
-                {{ task.params ? getPromptFromParams(task.params) : '' }}
+                {{ task.params?.prompt }}
               </div>
               <div class="task-progress" v-if="task.status === 'processing'">
                 <el-progress :percentage="task.progress" :stroke-width="4" />
@@ -124,7 +253,7 @@
 
             <div class="task-actions" v-if="task.status === 'completed'">
               <el-button size="small" @click="preview3D(task)">预览</el-button>
-              <el-button size="small" type="primary" @click="download3D(task)">下载</el-button>
+              <el-button size="small" type="primary" @click="download(task)">下载</el-button>
             </div>
 
             <div class="task-actions" v-else>
@@ -141,8 +270,8 @@
             :page-sizes="[10, 20, 50]"
             :total="total"
             layout="total, sizes, prev, pager, next, jumper"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
+            @size-change="handlePageSizeChange"
+            @current-change="handleCurrentPageChange"
           />
         </div>
       </div>
@@ -179,83 +308,101 @@ import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { httpGet, httpPost } from '@/utils/http'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
+import { checkSession } from '@/store/cache'
 
 // 响应式数据
 const activePlatform = ref('gitee')
-const currentImage = ref([])
-const currentPrompt = ref('')
-const selectedModel = ref('obj')
-const generating = ref(false)
+const loading = ref(false)
 const previewVisible = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const taskList = ref([])
 const currentPreviewTask = ref(null)
+const giteeAdvancedVisible = ref(false) // 控制Gitee高级参数显示状态
+const tencentForm = ref({
+  prompt: '',
+  image_url: '',
+  model: '',
+  power: 0,
+  file_format: '', // 输出文件格式
+  enable_pbr: false, // 是否开启PBR材质
+})
+const giteeForm = ref({
+  prompt: '',
+  image_url: '',
+  model: '',
+  power: 0,
+  file_format: '', // 输出文件格式
+  texture: false, // 是否开启纹理
+  seed: 1234, // 随机种子
+  num_inference_steps: 5, //迭代次数
+  guidance_scale: 7.5, //引导系数
+  octree_resolution: 128, // 3D 渲染精度，越高3D 细节越丰富
+})
+const currentPower = ref(0)
 
-// 平台配置
-const platformConfig = {
-  gitee: {
-    name: '魔力方舟',
-    models: {
-      obj: { name: 'OBJ格式', power: 45 },
-      glb: { name: 'GLB格式', power: 55 },
-      stl: { name: 'STL格式', power: 35 },
-      usdz: { name: 'USDZ格式', power: 65 },
-      fbx: { name: 'FBX格式', power: 75 },
-      mp4: { name: 'MP4格式', power: 85 },
-    },
-  },
-  tencent: {
-    name: '腾讯混元',
-    models: {
-      obj: { name: 'OBJ格式', power: 50 },
-      glb: { name: 'GLB格式', power: 60 },
-      stl: { name: 'STL格式', power: 40 },
-      usdz: { name: 'USDZ格式', power: 70 },
-      fbx: { name: 'FBX格式', power: 80 },
-      mp4: { name: 'MP4格式', power: 90 },
-    },
-  },
+// 计算属性：获取当前活跃平台的表单数据
+const currentForm = computed(() => {
+  return activePlatform.value === 'tencent' ? tencentForm.value : giteeForm.value
+})
+
+const selectedModel = computed(() => {
+  return currentForm.value.model
+})
+
+const currentPrompt = computed(() => {
+  return currentForm.value.prompt
+})
+
+const currentImage = computed(() => {
+  return currentForm.value.image_url ? [{ url: currentForm.value.image_url }] : []
+})
+
+const configs = ref({
+  gitee: { models: [] },
+  tencent: { models: [] },
+})
+
+const loadConfigs = async () => {
+  const response = await httpGet('/api/ai3d/configs')
+  configs.value = response.data
 }
 
-// 计算属性
-const availableModels = computed(() => {
-  return platformConfig[activePlatform.value]?.models || {}
-})
-
-const currentPower = computed(() => {
-  return availableModels.value[selectedModel.value]?.power || 0
-})
-
-const canGenerate = computed(() => {
-  return currentPrompt.value.trim() && currentImage.value.length > 0 && selectedModel.value
-})
-
-// 方法
-const handlePlatformChange = (platform) => {
-  // 切换平台时重置模型选择
-  if (!availableModels.value[selectedModel.value]) {
-    selectedModel.value = Object.keys(availableModels.value)[0]
+const handleModelChange = (value) => {
+  if (activePlatform.value === 'tencent') {
+    const model = configs.value.tencent.models.find((model) => model.name === value)
+    currentPower.value = model.power
+    tencentForm.value.power = model.power
+  } else {
+    const model = configs.value.gitee.models.find((model) => model.name === value)
+    currentPower.value = model.power
+    giteeForm.value.power = model.power
   }
 }
 
-const handleImageChange = (files) => {
-  currentImage.value = files
-}
-
-const handleModelChange = () => {
-  // 模型改变时的处理逻辑
+const handlePlatformChange = (value) => {
+  currentPower.value = value === 'tencent' ? tencentForm.value.power : giteeForm.value.power
 }
 
 const generate3D = async () => {
-  if (!canGenerate.value) {
+  if (currentPower.value === 0) {
     ElMessage.warning('请完善生成参数')
     return
   }
 
+  if (!currentPrompt.value.trim()) {
+    ElMessage.warning('请输入提示词')
+    return
+  }
+
+  if (!selectedModel.value) {
+    ElMessage.warning('请选择输出格式')
+    return
+  }
+
   try {
-    generating.value = true
+    loading.value = true
 
     const requestData = {
       type: activePlatform.value,
@@ -263,15 +410,35 @@ const generate3D = async () => {
       prompt: currentPrompt.value,
       image_url: currentImage.value[0]?.url || '',
       power: currentPower.value,
+      ...currentForm.value, // 包含所有表单参数
     }
 
-    const response = await httpPost('/api/3d/generate', requestData)
+    const response = await httpPost('/api/ai3d/generate', requestData)
 
     if (response.code === 0) {
       ElMessage.success('任务创建成功')
       // 清空表单
-      currentImage.value = []
-      currentPrompt.value = ''
+      tencentForm.value = {
+        prompt: '',
+        image_url: '',
+        model: '',
+        power: 0,
+        file_format: '',
+        enable_pbr: false,
+      }
+      giteeForm.value = {
+        prompt: '',
+        image_url: '',
+        model: '',
+        power: 0,
+        file_format: '',
+        texture: false,
+        seed: 1234,
+        num_inference_steps: 5,
+        guidance_scale: 7.5,
+        octree_resolution: 128,
+      }
+      currentPower.value = 0
       // 刷新任务列表
       loadTasks()
     } else {
@@ -280,13 +447,13 @@ const generate3D = async () => {
   } catch (error) {
     ElMessage.error('创建任务失败：' + error.message)
   } finally {
-    generating.value = false
+    loading.value = false
   }
 }
 
 const loadTasks = async () => {
   try {
-    const response = await httpGet('/api/3d/jobs', {
+    const response = await httpGet('/api/ai3d/jobs', {
       page: currentPage.value,
       page_size: pageSize.value,
     })
@@ -304,13 +471,13 @@ const refreshTasks = () => {
   loadTasks()
 }
 
-const handleSizeChange = (size) => {
+const handlePageSizeChange = (size) => {
   pageSize.value = size
   currentPage.value = 1
   loadTasks()
 }
 
-const handleCurrentChange = (page) => {
+const handleCurrentPageChange = (page) => {
   currentPage.value = page
   loadTasks()
 }
@@ -323,7 +490,7 @@ const deleteTask = async (taskId) => {
       type: 'warning',
     })
 
-    const response = await httpGet(`/api/3d/job/${taskId}/delete`)
+    const response = await httpGet(`/api/ai3d/job/${taskId}/delete`)
     if (response.code === 0) {
       ElMessage.success('删除成功')
       loadTasks()
@@ -347,7 +514,7 @@ const closePreview = () => {
   currentPreviewTask.value = null
 }
 
-const download3D = async (task) => {
+const download = async (task) => {
   if (!task.img_url) {
     ElMessage.warning('模型文件不存在')
     return
@@ -372,7 +539,7 @@ const download3D = async (task) => {
 
 const downloadCurrentModel = () => {
   if (currentPreviewTask.value) {
-    download3D(currentPreviewTask.value)
+    download(currentPreviewTask.value)
   }
 }
 
@@ -386,18 +553,14 @@ const getStatusText = (status) => {
   return statusMap[status] || status
 }
 
-const getPromptFromParams = (paramsStr) => {
-  try {
-    const params = JSON.parse(paramsStr)
-    return params.prompt || ''
-  } catch {
-    return ''
-  }
-}
-
 // 生命周期
 onMounted(() => {
-  loadTasks()
+  loadConfigs()
+  checkSession()
+    .then(() => {
+      loadTasks()
+    })
+    .catch(() => {})
 })
 </script>
 
@@ -445,6 +608,37 @@ onMounted(() => {
       font-weight: 500;
       color: #333;
     }
+  }
+
+  .advanced-toggle-btn {
+    padding: 0;
+    font-size: 14px;
+    color: #409eff;
+    border: none;
+    background: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: #66b1ff;
+      background: #f0f9ff;
+      border-radius: 4px;
+      padding: 4px 8px;
+    }
+
+    i {
+      font-size: 12px;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  .advanced-params {
+    margin-left: 16px;
+    padding: 10px 16px;
+    border-left: 3px solid #e4e7ed;
+    margin-top: 8px;
   }
 }
 
