@@ -249,7 +249,7 @@ func (s *Service) GetJobList(userId uint, page, pageSize int) (*vo.Page, error) 
 			Type:       job.Type,
 			Power:      job.Power,
 			TaskId:     job.TaskId,
-			ImgURL:     job.FileURL,
+			FileURL:    job.FileURL,
 			PreviewURL: job.PreviewURL,
 			Model:      job.Model,
 			Status:     job.Status,

@@ -464,7 +464,7 @@ export const useVideoStore = defineStore('video', () => {
   // 视频下载
   const downloadVideo = async (item) => {
     const url = replaceImg(item.video_url)
-    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const downloadURL = `/api/download?url=${url}`
     const urlObj = new URL(url)
     const fileName = urlObj.pathname.split('/').pop()
 

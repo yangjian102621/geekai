@@ -179,7 +179,7 @@ export const useSunoStore = defineStore('suno', () => {
 
   const download = async (item) => {
     const url = replaceImg(item.audio_url)
-    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const downloadURL = `/api/download?url=${url}`
     const urlObj = new URL(url)
     const fileName = urlObj.pathname.split('/').pop()
 

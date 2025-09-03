@@ -352,7 +352,7 @@ export const useJimengStore = defineStore('mobile-jimeng', () => {
 
   const downloadFile = async (item) => {
     const url = replaceImg(item.video_url || item.img_url)
-    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const downloadURL = `/api/download?url=${url}`
     const urlObj = new URL(url)
     const fileName = urlObj.pathname.split('/').pop()
 

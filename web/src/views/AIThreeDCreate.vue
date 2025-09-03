@@ -16,35 +16,20 @@
             <div class="params-container">
               <!-- 图片上传区域 -->
               <div class="param-line pt">
-                <span class="label">上传图片：</span>
+                <span class="label"><span class="text-red-500 mr-1">*</span>上传图片：</span>
               </div>
               <div class="param-line">
                 <ImageUpload v-model="giteeForm.image_url" :max-count="1" :multiple="false" />
               </div>
 
-              <!-- 文本提示词 -->
-              <div class="param-line pt">
-                <span class="label">提示词：</span>
-              </div>
-              <div class="param-line">
-                <el-input
-                  v-model="giteeForm.prompt"
-                  type="textarea"
-                  :autosize="{ minRows: 3, maxRows: 5 }"
-                  placeholder="请输入3D模型描述，越详细越好"
-                  maxlength="2000"
-                  show-word-limit
-                />
-              </div>
-
               <!-- 模型选择 -->
               <div class="param-line pt">
-                <span class="label">输出格式：</span>
+                <span class="label"><span class="text-red-500 mr-1">*</span>模型选择：</span>
               </div>
               <div class="param-line">
                 <el-select
                   v-model="giteeForm.model"
-                  placeholder="选择输出格式"
+                  placeholder="选择模型"
                   @change="handleModelChange"
                 >
                   <el-option
@@ -55,6 +40,30 @@
                   />
                 </el-select>
               </div>
+              <div class="param-line">
+                <el-alert v-if="giteeForm.model_desc" type="info" :closable="false">
+                  {{ giteeForm.model_desc }}
+                </el-alert>
+              </div>
+
+              <!-- 文件格式选择 -->
+              <div class="param-line">
+                <span class="label mb-3"><span class="text-red-500 mr-1">*</span>输出格式：</span>
+                <el-select v-model="giteeForm.file_format" style="width: 100%">
+                  <el-option
+                    v-for="format in giteeSupportedFormats"
+                    :key="format"
+                    :label="format"
+                    :value="format"
+                  />
+                </el-select>
+              </div>
+
+              <!-- 纹理开关 -->
+              <div class="flex justify-between param-line">
+                <span class="label">生成纹理：</span>
+                <el-switch v-model="giteeForm.texture" size="large" />
+              </div>
 
               <!-- 高级参数 -->
               <div class="param-line pt">
@@ -64,9 +73,7 @@
                 >
                   <i
                     :class="
-                      giteeAdvancedVisible
-                        ? 'iconfont icon-arrow-down'
-                        : 'iconfont icon-arrow-right'
+                      giteeAdvancedVisible ? 'iconfont icon-arrow-up' : 'iconfont icon-arrow-down'
                     "
                   ></i>
                   <span>高级参数设置</span>
@@ -75,14 +82,9 @@
 
               <!-- 高级参数内容 -->
               <div v-show="giteeAdvancedVisible" class="advanced-params">
-                <!-- 纹理开关 -->
-                <div class="param-line">
-                  <el-checkbox v-model="giteeForm.texture">启用纹理</el-checkbox>
-                </div>
-
                 <!-- 随机种子 -->
                 <div class="param-line">
-                  <span class="label">随机种子：</span>
+                  <span class="label mb-3">随机种子：</span>
                   <el-input-number
                     v-model="giteeForm.seed"
                     :min="1"
@@ -94,7 +96,7 @@
 
                 <!-- 迭代次数 -->
                 <div class="param-line">
-                  <span class="label">迭代次数：</span>
+                  <span class="label mb-3">迭代次数：</span>
                   <el-input-number
                     v-model="giteeForm.num_inference_steps"
                     :min="1"
@@ -106,7 +108,7 @@
 
                 <!-- 引导系数 -->
                 <div class="param-line">
-                  <span class="label">引导系数：</span>
+                  <span class="label mb-3">引导系数：</span>
                   <el-input-number
                     v-model="giteeForm.guidance_scale"
                     :min="1"
@@ -119,7 +121,7 @@
 
                 <!-- 3D渲染精度 -->
                 <div class="param-line">
-                  <span class="label">3D渲染精度：</span>
+                  <span class="label mb-3">3D渲染精度：</span>
                   <el-select v-model="giteeForm.octree_resolution" style="width: 100%">
                     <el-option label="64 (低精度)" :value="64" />
                     <el-option label="128 (中精度)" :value="128" />
@@ -138,38 +140,63 @@
             </template>
             <!-- 参数容器 -->
             <div class="params-container">
-              <!-- 图片上传区域 -->
-              <div class="param-line pt">
-                <span class="label">上传图片：</span>
-              </div>
-              <div class="param-line">
-                <ImageUpload v-model="tencentForm.image_url" :max-count="1" :multiple="false" />
+              <div class="param-line pt flex justify-between items-center">
+                <span class="label">生成模式：</span>
+                <custom-switch
+                  v-model="tencentForm.text3d"
+                  active-color="#9c27b0"
+                  inactive-color="#409eff"
+                  :width="120"
+                  size="large"
+                >
+                  <template #active-text>
+                    <div class="flex items-center justify-start pl-4 text-sm">
+                      <i class="iconfont icon-image mr-1"></i> <span>文生3D</span>
+                    </div>
+                  </template>
+                  <template #inactive-text>
+                    <div class="flex items-center justify-end pl-4 text-sm">
+                      <i class="iconfont icon-doc mr-1"></i> <span>图生3D</span>
+                    </div>
+                  </template>
+                </custom-switch>
               </div>
 
               <!-- 文本提示词 -->
-              <div class="param-line pt">
-                <span class="label">提示词：</span>
+              <div v-if="tencentForm.text3d">
+                <div class="param-line pt">
+                  <span class="label"><span class="text-red-500 mr-1">*</span>提示词：</span>
+                </div>
+                <div class="param-line">
+                  <el-input
+                    v-model="tencentForm.prompt"
+                    type="textarea"
+                    :autosize="{ minRows: 3, maxRows: 5 }"
+                    placeholder="请输入3D模型描述，越详细越好"
+                    maxlength="2000"
+                    show-word-limit
+                  />
+                </div>
               </div>
-              <div class="param-line">
-                <el-input
-                  v-model="tencentForm.prompt"
-                  type="textarea"
-                  :autosize="{ minRows: 3, maxRows: 5 }"
-                  placeholder="请输入3D模型描述，越详细越好"
-                  maxlength="2000"
-                  show-word-limit
-                />
+              <div v-else>
+                <!-- 图片上传区域 -->
+                <div class="param-line pt">
+                  <span class="label"><span class="text-red-500 mr-1">*</span>上传图片：</span>
+                </div>
+                <div class="param-line">
+                  <ImageUpload v-model="tencentForm.image_url" :max-count="1" :multiple="false" />
+                </div>
               </div>
 
               <!-- 模型选择 -->
               <div class="param-line pt">
-                <span class="label">输出格式：</span>
+                <span class="label mb-2"><span class="text-red-500 mr-1">*</span>模型选择：</span>
               </div>
               <div class="param-line">
                 <el-select
                   v-model="tencentForm.model"
                   @change="handleModelChange"
-                  placeholder="选择输出格式"
+                  placeholder="选择模型"
                 >
                   <el-option
                     v-for="model in configs.tencent.models"
@@ -179,26 +206,29 @@
                   />
                 </el-select>
               </div>
-
-              <!-- 高级参数 -->
-              <div class="param-line pt">
-                <span class="label">高级参数：</span>
-              </div>
-
-              <!-- PBR材质开关 -->
               <div class="param-line">
-                <el-checkbox v-model="tencentForm.enable_pbr">启用PBR材质</el-checkbox>
+                <el-alert v-if="tencentForm.model_desc" type="info" :closable="false">
+                  {{ tencentForm.model_desc }}
+                </el-alert>
               </div>
 
               <!-- 文件格式选择 -->
               <div class="param-line">
-                <span class="label">文件格式：</span>
+                <span class="label mb-3"><span class="text-red-500 mr-1">*</span>输出格式：</span>
                 <el-select v-model="tencentForm.file_format" style="width: 100%">
-                  <el-option label="GLB" value="glb" />
-                  <el-option label="GLTF" value="gltf" />
-                  <el-option label="OBJ" value="obj" />
-                  <el-option label="FBX" value="fbx" />
+                  <el-option
+                    v-for="format in tencentSupportedFormats"
+                    :key="format"
+                    :label="format"
+                    :value="format"
+                  />
                 </el-select>
+              </div>
+
+              <!-- PBR材质开关 -->
+              <div class="flex justify-between param-line">
+                <span class="label">启用PBR材质：</span>
+                <el-switch v-model="tencentForm.enable_pbr" size="large" />
               </div>
             </div>
           </CustomTabPane>
@@ -232,33 +262,139 @@
           <div
             v-for="task in taskList"
             :key="task.id"
-            class="task-item"
-            :class="{ completed: task.status === 'completed' }"
+            class="task-card"
+            :class="getTaskCardClass(task.status)"
           >
-            <div class="task-header">
-              <span class="task-id">#{{ task.id }}</span>
-              <span class="task-status" :class="task.status">
-                {{ getStatusText(task.status) }}
-              </span>
-            </div>
-
-            <div class="task-content">
-              <div class="task-prompt">
-                {{ task.params?.prompt }}
+            <!-- 任务卡片头部 -->
+            <div class="task-card-header">
+              <div class="task-info">
+                <div class="task-id">
+                  <i class="iconfont icon-renwu mr-2"></i>
+                  #{{ task.id }}
+                </div>
+                <div class="task-platform">
+                  <i :class="getPlatformIcon(task.type)" class="mr-1"></i>
+                  {{ getPlatformName(task.type) }}
+                </div>
               </div>
-              <div class="task-progress" v-if="task.status === 'processing'">
-                <el-progress :percentage="task.progress" :stroke-width="4" />
+              <div class="task-status-wrapper">
+                <div class="task-status" :class="task.status">
+                  <i :class="getStatusIcon(task.status)" class="mr-1"></i>
+                  {{ getStatusText(task.status) }}
+                </div>
+                <div class="task-power">
+                  <i class="iconfont icon-suanli mr-1"></i>
+                  {{ task.power }}
+                </div>
               </div>
             </div>
 
-            <div class="task-actions" v-if="task.status === 'completed'">
-              <el-button size="small" @click="preview3D(task)">预览</el-button>
-              <el-button size="small" type="primary" @click="download(task)">下载</el-button>
+            <!-- 任务卡片内容 -->
+            <div class="task-card-content">
+              <!-- 左侧预览图 -->
+              <div class="task-preview">
+                <div v-if="task.status === 'completed' && task.preview_url" class="preview-image">
+                  <img :src="task.preview_url" :alt="getTaskPrompt(task)" />
+                  <div class="preview-overlay">
+                    <i class="iconfont icon-yulan"></i>
+                  </div>
+                </div>
+                <div v-else-if="getTaskImageUrl(task)" class="input-image">
+                  <img :src="getTaskImageUrl(task)" :alt="getTaskPrompt(task)" />
+                  <div class="input-overlay">
+                    <i class="iconfont icon-tupian"></i>
+                  </div>
+                </div>
+                <div v-else class="prompt-placeholder">
+                  <i class="iconfont icon-wenzi"></i>
+                  <span>{{ getTaskPrompt(task) }}</span>
+                </div>
+              </div>
+
+              <!-- 右侧任务详情 -->
+              <div class="task-details">
+                <div class="task-model">
+                  <i class="iconfont icon-moxing mr-1"></i>
+                  {{ task.model }}
+                </div>
+
+                <div class="task-prompt" v-if="getTaskPrompt(task)">
+                  <i class="iconfont icon-tishi mr-1"></i>
+                  <span>{{ getTaskPrompt(task) }}</span>
+                </div>
+
+                <div class="task-params" v-if="getTaskParams(task)">
+                  <i class="iconfont icon-shezhi mr-1"></i>
+                  <span>{{ getTaskParams(task) }}</span>
+                </div>
+
+                <div class="task-time">
+                  <i class="iconfont icon-shijian mr-1"></i>
+                  {{ formatTime(task.created_at) }}
+                </div>
+
+                <div class="task-error" v-if="task.status === 'failed' && task.err_msg">
+                  <i class="iconfont icon-cuowu mr-1"></i>
+                  <span>{{ task.err_msg }}</span>
+                </div>
+              </div>
             </div>
 
-            <div class="task-actions" v-else>
-              <el-button size="small" @click="deleteTask(task.id)">删除</el-button>
+            <!-- 任务卡片底部操作 -->
+            <div class="task-card-footer">
+              <div class="task-actions">
+                <el-button
+                  v-if="task.status === 'completed'"
+                  size="small"
+                  type="primary"
+                  @click="preview3D(task)"
+                  class="action-btn preview-btn"
+                >
+                  <i class="iconfont icon-eye-open mr-1"></i>
+                  预览
+                </el-button>
+
+                <el-button
+                  v-if="task.status === 'completed'"
+                  size="small"
+                  type="success"
+                  @click="downloadFile(task)"
+                  :loading="task.downloading"
+                  class="action-btn download-btn"
+                >
+                  <i class="iconfont icon-download mr-1" v-if="!task.downloading"></i>
+                  <span v-if="task.downloading">下载中...</span>
+                  <span v-else>下载</span>
+                </el-button>
+
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="deleteTask(task.id)"
+                  class="action-btn delete-btn"
+                >
+                  <i class="iconfont icon-remove mr-1"></i>
+                  删除
+                </el-button>
+
+                <el-button
+                  v-if="task.status === 'processing'"
+                  size="small"
+                  type="info"
+                  disabled
+                  class="action-btn processing-btn"
+                >
+                  <i class="iconfont icon-loading animate-spin mr-1"></i>
+                  处理中...
+                </el-button>
+              </div>
             </div>
+          </div>
+
+          <!-- 空状态 -->
+          <div v-if="taskList.length === 0" class="empty-state">
+            <i class="iconfont icon-kong"></i>
+            <p>暂无任务，开始创建你的第一个3D模型吧！</p>
           </div>
         </div>
 
@@ -281,9 +417,8 @@
     <el-dialog v-model="previewVisible" title="3D模型预览" width="80%" :before-close="closePreview">
       <div class="preview-container">
         <ThreeDPreview
-          v-if="currentPreviewTask && currentPreviewTask.img_url"
-          :model-url="currentPreviewTask.img_url"
-          :model-type="currentPreviewTask.model"
+          v-if="currentPreviewTask && currentPreviewTask.file_url"
+          :model-url="currentPreviewTask.file_url"
         />
         <div v-else class="preview-placeholder">
           <i class="iconfont icon-3d"></i>
@@ -293,7 +428,14 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="closePreview">关闭</el-button>
-          <el-button type="primary" @click="downloadCurrentModel">下载模型</el-button>
+          <el-button
+            type="primary"
+            @click="downloadCurrentModel"
+            :loading="currentPreviewTask.downloading"
+          >
+            <span v-if="!currentPreviewTask.downloading">下载模型</span>
+            <span v-else>下载中...</span>
+          </el-button>
         </span>
       </template>
     </el-dialog>
@@ -303,12 +445,15 @@
 <script setup>
 import ImageUpload from '@/components/ImageUpload.vue'
 import ThreeDPreview from '@/components/ThreeDPreview.vue'
+import CustomSwitch from '@/components/ui/CustomSwitch.vue'
 import CustomTabPane from '@/components/ui/CustomTabPane.vue'
 import CustomTabs from '@/components/ui/CustomTabs.vue'
-import { httpGet, httpPost } from '@/utils/http'
+import { checkSession } from '@/store/cache'
+import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
-import { checkSession } from '@/store/cache'
+import { showMessageError } from '../utils/dialog'
+import { replaceImg } from '../utils/libs'
 
 // 响应式数据
 const activePlatform = ref('gitee')
@@ -320,27 +465,34 @@ const total = ref(0)
 const taskList = ref([])
 const currentPreviewTask = ref(null)
 const giteeAdvancedVisible = ref(false) // 控制Gitee高级参数显示状态
-const tencentForm = ref({
+const tencentDefaultForm = {
+  text3d: false,
   prompt: '',
   image_url: '',
   model: '',
-  power: 0,
   file_format: '', // 输出文件格式
   enable_pbr: false, // 是否开启PBR材质
-})
-const giteeForm = ref({
+  model_desc: '', // 模型描述
+  power: 0, // 算力消耗
+}
+const giteeDefaultForm = {
   prompt: '',
   image_url: '',
   model: '',
-  power: 0,
   file_format: '', // 输出文件格式
   texture: false, // 是否开启纹理
   seed: 1234, // 随机种子
   num_inference_steps: 5, //迭代次数
   guidance_scale: 7.5, //引导系数
   octree_resolution: 128, // 3D 渲染精度，越高3D 细节越丰富
-})
+  model_desc: '', // 模型描述
+  power: 0, // 算力消耗
+}
+const tencentForm = ref(tencentDefaultForm)
+const giteeForm = ref(giteeDefaultForm)
 const currentPower = ref(0)
+const tencentSupportedFormats = ref([])
+const giteeSupportedFormats = ref([])
 
 // 计算属性：获取当前活跃平台的表单数据
 const currentForm = computed(() => {
@@ -374,10 +526,16 @@ const handleModelChange = (value) => {
     const model = configs.value.tencent.models.find((model) => model.name === value)
     currentPower.value = model.power
     tencentForm.value.power = model.power
+    tencentForm.value.model_desc = model.desc
+    tencentForm.value.file_format = model.formats[0]
+    tencentSupportedFormats.value = model.formats
   } else {
     const model = configs.value.gitee.models.find((model) => model.name === value)
     currentPower.value = model.power
     giteeForm.value.power = model.power
+    giteeForm.value.model_desc = model.desc
+    giteeForm.value.file_format = model.formats[0]
+    giteeSupportedFormats.value = model.formats
   }
 }
 
@@ -386,17 +544,14 @@ const handlePlatformChange = (value) => {
 }
 
 const generate3D = async () => {
-  if (currentPower.value === 0) {
-    ElMessage.warning('请完善生成参数')
+  const requestData = {
+    ...(activePlatform.value === 'tencent' ? tencentForm.value : giteeForm.value),
+  }
+  if (requestData.model === '') {
+    ElMessage.warning('请选择模型')
     return
   }
-
-  if (!currentPrompt.value.trim()) {
-    ElMessage.warning('请输入提示词')
-    return
-  }
-
-  if (!selectedModel.value) {
+  if (requestData.file_format === '') {
     ElMessage.warning('请选择输出格式')
     return
   }
@@ -404,13 +559,9 @@ const generate3D = async () => {
   try {
     loading.value = true
 
-    const requestData = {
-      type: activePlatform.value,
-      model: selectedModel.value,
-      prompt: currentPrompt.value,
-      image_url: currentImage.value[0]?.url || '',
-      power: currentPower.value,
-      ...currentForm.value, // 包含所有表单参数
+    requestData.type = activePlatform.value
+    if (requestData.image_url !== '') {
+      requestData.image_url = replaceImg(requestData.image_url[0].url)
     }
 
     const response = await httpPost('/api/ai3d/generate', requestData)
@@ -418,26 +569,8 @@ const generate3D = async () => {
     if (response.code === 0) {
       ElMessage.success('任务创建成功')
       // 清空表单
-      tencentForm.value = {
-        prompt: '',
-        image_url: '',
-        model: '',
-        power: 0,
-        file_format: '',
-        enable_pbr: false,
-      }
-      giteeForm.value = {
-        prompt: '',
-        image_url: '',
-        model: '',
-        power: 0,
-        file_format: '',
-        texture: false,
-        seed: 1234,
-        num_inference_steps: 5,
-        guidance_scale: 7.5,
-        octree_resolution: 128,
-      }
+      tencentForm.value = tencentDefaultForm
+      giteeForm.value = giteeDefaultForm
       currentPower.value = 0
       // 刷新任务列表
       loadTasks()
@@ -453,13 +586,13 @@ const generate3D = async () => {
 
 const loadTasks = async () => {
   try {
-    const response = await httpGet('/api/ai3d/jobs', {
+    const response = await httpGet('/api/ai3d/jobs/mock', {
       page: currentPage.value,
       page_size: pageSize.value,
     })
 
     if (response.code === 0) {
-      taskList.value = response.data.list
+      taskList.value = response.data.items
       total.value = response.data.total
     }
   } catch (error) {
@@ -490,7 +623,7 @@ const deleteTask = async (taskId) => {
       type: 'warning',
     })
 
-    const response = await httpGet(`/api/ai3d/job/${taskId}/delete`)
+    const response = await httpGet(`/api/ai3d/job/delete?id=${taskId}`)
     if (response.code === 0) {
       ElMessage.success('删除成功')
       loadTasks()
@@ -511,35 +644,36 @@ const preview3D = (task) => {
 
 const closePreview = () => {
   previewVisible.value = false
-  currentPreviewTask.value = null
 }
 
-const download = async (task) => {
-  if (!task.img_url) {
-    ElMessage.warning('模型文件不存在')
-    return
-  }
+const downloadFile = async (item) => {
+  const url = replaceImg(item.file_url)
+  const downloadURL = `/api/download?url=${url}`
+  const urlObj = new URL(url)
+  const fileName = urlObj.pathname.split('/').pop()
+
+  item.downloading = true
 
   try {
-    // 创建一个隐藏的a标签来下载文件
+    const response = await httpDownload(downloadURL)
+    const blob = new Blob([response.data])
     const link = document.createElement('a')
-    link.href = task.img_url
-    link.download = `3d_model_${task.id}.${task.model}`
-    link.style.display = 'none'
+    link.href = URL.createObjectURL(blob)
+    link.download = fileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-
-    ElMessage.success('开始下载3D模型')
+    URL.revokeObjectURL(link.href)
+    item.downloading = false
   } catch (error) {
-    console.error('下载失败:', error)
-    ElMessage.error('下载失败，请重试')
+    showMessageError('下载失败')
+    item.downloading = false
   }
 }
 
 const downloadCurrentModel = () => {
   if (currentPreviewTask.value) {
-    download(currentPreviewTask.value)
+    downloadFile(currentPreviewTask.value)
   }
 }
 
@@ -551,6 +685,116 @@ const getStatusText = (status) => {
     failed: '失败',
   }
   return statusMap[status] || status
+}
+
+const getTaskCardClass = (status) => {
+  if (status === 'completed') {
+    return 'task-card-completed'
+  } else if (status === 'processing') {
+    return 'task-card-processing'
+  } else if (status === 'failed') {
+    return 'task-card-failed'
+  } else {
+    return 'task-card-default'
+  }
+}
+
+const getPlatformIcon = (type) => {
+  if (type === 'gitee') {
+    return 'iconfont icon-gitee'
+  } else if (type === 'tencent') {
+    return 'iconfont icon-tencent'
+  }
+  return 'iconfont icon-question'
+}
+
+const getPlatformName = (type) => {
+  if (type === 'gitee') {
+    return 'Gitee 模力方舟'
+  } else if (type === 'tencent') {
+    return '腾讯云混元3D'
+  }
+  return '未知平台'
+}
+
+const getStatusIcon = (status) => {
+  if (status === 'pending') {
+    return 'iconfont icon-pending'
+  } else if (status === 'processing') {
+    return 'iconfont icon-processing'
+  } else if (status === 'completed') {
+    return 'iconfont icon-completed'
+  } else if (status === 'failed') {
+    return 'iconfont icon-failed'
+  }
+  return 'iconfont icon-question'
+}
+
+const getTaskPrompt = (task) => {
+  try {
+    if (task.params) {
+      const parsedParams = JSON.parse(task.params)
+      return parsedParams.prompt || '文生3D任务'
+    }
+    return '文生3D任务'
+  } catch (e) {
+    return '文生3D任务'
+  }
+}
+
+const getTaskImageUrl = (task) => {
+  try {
+    if (task.params) {
+      const parsedParams = JSON.parse(task.params)
+      return parsedParams.image_url || null
+    }
+    return null
+  } catch (e) {
+    return null
+  }
+}
+
+const getTaskParams = (task) => {
+  try {
+    if (task.params) {
+      const parsedParams = JSON.parse(task.params)
+      const params = []
+
+      if (parsedParams.texture) {
+        params.push('纹理')
+      }
+      if (parsedParams.enable_pbr) {
+        params.push('PBR材质')
+      }
+      if (parsedParams.num_inference_steps && parsedParams.num_inference_steps !== 5) {
+        params.push(`迭代次数: ${parsedParams.num_inference_steps}`)
+      }
+      if (parsedParams.guidance_scale && parsedParams.guidance_scale !== 7.5) {
+        params.push(`引导系数: ${parsedParams.guidance_scale}`)
+      }
+      if (parsedParams.octree_resolution && parsedParams.octree_resolution !== 128) {
+        params.push(`精度: ${parsedParams.octree_resolution}`)
+      }
+      if (parsedParams.seed && parsedParams.seed !== 1234) {
+        params.push(`种子: ${parsedParams.seed}`)
+      }
+
+      return params.join('，')
+    }
+    return ''
+  } catch (e) {
+    return ''
+  }
+}
+
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}`
 }
 
 // 生命周期
@@ -565,249 +809,5 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.page-threed {
-  display: flex;
-  height: 100vh;
-  background: #f5f5f5;
-}
-
-.params-panel {
-  width: 400px;
-  background: white;
-  border-right: 1px solid #e4e7ed;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.platform-tabs {
-  margin-bottom: 20px;
-}
-
-.platform-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  i {
-    font-size: 18px;
-    color: #409eff;
-  }
-}
-
-.params-container {
-  .param-line {
-    margin-bottom: 16px;
-
-    &.pt {
-      margin-top: 20px;
-    }
-
-    .label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #333;
-    }
-  }
-
-  .advanced-toggle-btn {
-    padding: 0;
-    font-size: 14px;
-    color: #409eff;
-    border: none;
-    background: none;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      color: #66b1ff;
-      background: #f0f9ff;
-      border-radius: 4px;
-      padding: 4px 8px;
-    }
-
-    i {
-      font-size: 12px;
-      transition: transform 0.3s ease;
-    }
-  }
-
-  .advanced-params {
-    margin-left: 16px;
-    padding: 10px 16px;
-    border-left: 3px solid #e4e7ed;
-    margin-top: 8px;
-  }
-}
-
-.power-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  .power-value {
-    font-size: 24px;
-    font-weight: bold;
-    color: #409eff;
-  }
-
-  .power-unit {
-    color: #666;
-  }
-}
-
-.generate-section {
-  margin-top: 30px;
-
-  .generate-btn {
-    width: 100%;
-    height: 44px;
-    font-size: 16px;
-  }
-}
-
-.content-panel {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.task-list {
-  .list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    h3 {
-      margin: 0;
-      color: #333;
-    }
-  }
-}
-
-.task-items {
-  .task-item {
-    background: white;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
-    border: 1px solid #e4e7ed;
-
-    &.completed {
-      border-color: #67c23a;
-      background: #f0f9ff;
-    }
-
-    .task-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-
-      .task-id {
-        font-weight: 500;
-        color: #666;
-      }
-
-      .task-status {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-
-        &.pending {
-          background: #fdf6ec;
-          color: #e6a23c;
-        }
-
-        &.processing {
-          background: #ecf5ff;
-          color: #409eff;
-        }
-
-        &.completed {
-          background: #f0f9ff;
-          color: #67c23a;
-        }
-
-        &.failed {
-          background: #fef0f0;
-          color: #f56c6c;
-        }
-      }
-    }
-
-    .task-content {
-      margin-bottom: 12px;
-
-      .task-prompt {
-        color: #666;
-        margin-bottom: 8px;
-        line-height: 1.4;
-      }
-    }
-
-    .task-actions {
-      display: flex;
-      gap: 8px;
-    }
-  }
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.preview-container {
-  .three-container {
-    width: 100%;
-    height: 500px;
-    background: #f0f0f0;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-  }
-
-  .preview-placeholder {
-    width: 100%;
-    height: 500px;
-    background: #f0f0f0;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-
-    i {
-      font-size: 48px;
-      margin-bottom: 12px;
-      color: #999;
-    }
-
-    p {
-      margin: 0;
-      font-size: 14px;
-    }
-  }
-}
-
-// 响应式设计
-@media (max-width: 768px) {
-  .page-threed {
-    flex-direction: column;
-  }
-
-  .params-panel {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e4e7ed;
-  }
-}
+@use '@/assets/css/ai3d.scss' as ai3d;
 </style>

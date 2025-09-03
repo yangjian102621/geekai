@@ -136,7 +136,7 @@ func (c *Tencent3DClient) QueryJob(jobId string) (*types.AI3DJobResult, error) {
 				if file.PreviewImageUrl != nil {
 					result.PreviewURL = *file.PreviewImageUrl
 				}
-				break // 取第一个文件
+				// TODO 取第一个文件
 			}
 		}
 	case "FAIL":
@@ -153,6 +153,6 @@ func (c *Tencent3DClient) QueryJob(jobId string) (*types.AI3DJobResult, error) {
 // GetSupportedModels 获取支持的模型列表
 func (c *Tencent3DClient) GetSupportedModels() []types.AI3DModel {
 	return []types.AI3DModel{
-		{Name: "Hunyuan3D-3", Power: 500, Formats: []string{"OBJ", "GLB", "STL", "USDZ", "FBX", "MP4"}, Desc: "Hunyuan3D 是腾讯混元团队推出的高质量 3D 生成模型，具备高保真度、细节丰富和高效生成的特点，可快速将文本或图像转换为逼真的 3D 物体。"},
+		{Name: "Hunyuan3D-3", Power: 500, Formats: []string{"GLB", "OBJ", "STL", "USDZ", "FBX", "MP4"}, Desc: "Hunyuan3D 是腾讯混元团队推出的高质量 3D 生成模型，具备高保真度、细节丰富和高效生成的特点，可快速将文本或图像转换为逼真的 3D 物体。"},
 	}
 }

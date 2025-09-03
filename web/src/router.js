@@ -99,6 +99,12 @@ const routes = [
         component: () => import('@/views/AIThreeDCreate.vue'),
       },
       {
+        name: 'test3d',
+        path: '/test3d',
+        meta: { title: '3D预览测试' },
+        component: () => import('@/views/test/Test3D.vue'),
+      },
+      {
         name: 'ExternalLink',
         path: '/external',
         component: () => import('@/views/ExternalPage.vue'),
@@ -476,7 +482,7 @@ const routes = [
         path: '/mobile/3d',
         name: 'mobile-3d',
         meta: { title: '3D模型生成' },
-        component: () => import('@/views/mobile/ThreeDCreate.vue'),
+        component: () => import('@/views/AIThreeDCreate.vue'),
       },
     ],
   },
@@ -485,7 +491,7 @@ const routes = [
     name: 'test',
     path: '/test',
     meta: { title: '测试页面' },
-    component: () => import('@/views/Test.vue'),
+    component: () => import('@/views/test/Test.vue'),
   },
 
   {

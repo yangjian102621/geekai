@@ -5,26 +5,28 @@
     <!-- 控制面板 -->
     <div class="control-panel">
       <div class="control-group">
-        <label>旋转速度</label>
-        <el-slider
-          v-model="rotationSpeed"
-          :min="0"
-          :max="0.1"
-          :step="0.01"
-          @change="updateRotationSpeed"
-        />
+        <label>缩放</label>
+        <div class="scale-controls">
+          <el-button size="small" @click="zoomOut" :disabled="scale <= 0.1">
+            <el-icon><Minus /></el-icon>
+          </el-button>
+          <span class="scale-value">{{ scale.toFixed(1) }}x</span>
+          <el-button size="small" @click="zoomIn" :disabled="scale >= 3">
+            <el-icon><Plus /></el-icon>
+          </el-button>
+        </div>
       </div>
 
       <div class="control-group">
-        <label>缩放</label>
-        <el-slider v-model="scale" :min="0.1" :max="3" :step="0.1" @change="updateScale" />
-      </div>
-
-      <div class="control-buttons">
-        <el-button size="small" @click="resetCamera">重置视角</el-button>
-        <el-button size="small" @click="toggleAutoRotate">
-          {{ autoRotate ? '停止旋转' : '自动旋转' }}
-        </el-button>
+        <label>模型颜色</label>
+        <div class="color-picker">
+          <el-color-picker
+            v-model="modelColor"
+            @change="updateModelColor"
+            :predefine="predefineColors"
+            size="small"
+          />
+        </div>
       </div>
     </div>
 
@@ -33,6 +35,12 @@
       <div class="loading-content">
         <el-icon class="is-loading"><Loading /></el-icon>
         <p>加载3D模型中...</p>
+        <div v-if="loadingProgress > 0" class="loading-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: loadingProgress + '%' }"></div>
+          </div>
+          <span class="progress-text">{{ loadingProgress.toFixed(1) }}%</span>
+        </div>
       </div>
     </div>
 
@@ -48,20 +56,20 @@
 </template>
 
 <script setup>
-import { Loading, Warning } from '@element-plus/icons-vue'
-import { ElButton, ElIcon, ElSlider } from 'element-plus'
+import { Loading, Minus, Plus, Warning } from '@element-plus/icons-vue'
+import { ElButton, ElIcon } from 'element-plus'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
+import { STLLoader } from 'three/addons/loaders/STLLoader.js'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 // Props
 const props = defineProps({
   modelUrl: {
     type: String,
-    required: true,
+    required: false,
   },
   modelType: {
     type: String,
@@ -73,33 +81,58 @@ const props = defineProps({
 const container = ref(null)
 const loading = ref(true)
 const error = ref('')
-const rotationSpeed = ref(0.02)
+const loadingProgress = ref(0)
 const scale = ref(1)
-const autoRotate = ref(true)
+const modelColor = ref('#00ff88')
+const predefineColors = ref([
+  '#00ff88', // 亮绿色
+  '#ff6b6b', // 亮红色
+  '#4ecdc4', // 亮青色
+  '#45b7d1', // 亮蓝色
+  '#f9ca24', // 亮黄色
+  '#f0932b', // 亮橙色
+  '#eb4d4b', // 亮粉红
+  '#6c5ce7', // 亮紫色
+  '#a29bfe', // 亮靛蓝
+  '#fd79a8', // 亮玫瑰
+])
 
 // Three.js 相关变量
 let scene, camera, renderer, controls, model, mixer, clock
 let animationId
+let baseScale = 1 // 存储基础缩放值
 
 // 初始化Three.js场景
 const initThreeJS = () => {
-  if (!container.value) return
+  if (!container.value) {
+    console.error('ThreeDPreview: 容器元素不存在')
+    return
+  }
 
   // 创建场景
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xf0f0f0)
+  scene.background = new THREE.Color(0x2a2a2a) // 深灰色背景，类似截图
 
-  // 创建相机
+  // 获取容器尺寸，确保有最小尺寸
   const containerRect = container.value.getBoundingClientRect()
-  camera = new THREE.PerspectiveCamera(75, containerRect.width / containerRect.height, 0.1, 1000)
-  camera.position.set(0, 0, 5)
+  const width = Math.max(containerRect.width || 400, 400)
+  const height = Math.max(containerRect.height || 300, 300)
+
+  // 创建相机 - 参考截图的视角（稍微俯视，从左上角观察）
+  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+  camera.position.set(3, 3, 3) // 从左上角俯视角度
 
   // 创建渲染器
-  renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setSize(containerRect.width, containerRect.height)
-  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: true,
+  })
+  renderer.setSize(width, height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.outputColorSpace = THREE.SRGBColorSpace
 
   // 添加到容器
   container.value.appendChild(renderer.domElement)
@@ -108,14 +141,15 @@ const initThreeJS = () => {
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.dampingFactor = 0.05
-  controls.autoRotate = autoRotate.value
-  controls.autoRotateSpeed = rotationSpeed.value
 
   // 添加光源
   addLights()
 
   // 添加地面
   addGround()
+
+  // 添加坐标轴辅助线
+  addAxesHelper()
 
   // 创建时钟
   clock = new THREE.Clock()
@@ -127,31 +161,50 @@ const initThreeJS = () => {
   window.addEventListener('resize', onWindowResize)
 }
 
-// 添加光源
+//
+
+// 添加光源 - 参考截图的柔和光照效果
 const addLights = () => {
-  // 环境光
+  // 环境光 - 提供基础照明，参考截图的柔和效果
   const ambientLight = new THREE.AmbientLight(0x404040, 0.6)
   scene.add(ambientLight)
 
-  // 方向光
+  // 主方向光 - 从左上角照射，模拟截图中的光照方向
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-  directionalLight.position.set(10, 10, 5)
+  directionalLight.position.set(5, 5, 3)
   directionalLight.castShadow = true
   directionalLight.shadow.mapSize.width = 2048
   directionalLight.shadow.mapSize.height = 2048
+  directionalLight.shadow.camera.near = 0.5
+  directionalLight.shadow.camera.far = 50
+  directionalLight.shadow.camera.left = -10
+  directionalLight.shadow.camera.right = 10
+  directionalLight.shadow.camera.top = 10
+  directionalLight.shadow.camera.bottom = -10
   scene.add(directionalLight)
 
-  // 点光源
-  const pointLight = new THREE.PointLight(0xffffff, 0.5)
-  pointLight.position.set(-10, 10, -5)
-  scene.add(pointLight)
+  // 补充光源 - 从右侧照射，提供更均匀的光照
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4)
+  fillLight.position.set(-3, 3, 3)
+  scene.add(fillLight)
+
+  // 背光 - 增加轮廓，但强度较低
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.15)
+  backLight.position.set(0, 2, -5)
+  scene.add(backLight)
 }
 
-// 添加地面
+// 添加地面网格 - 参考截图的深色背景和浅色网格线
 const addGround = () => {
+  // 创建网格辅助线 - 使用深色背景配浅色网格线，增加网格密度
+  const gridHelper = new THREE.GridHelper(20, 40, 0x666666, 0x666666)
+  gridHelper.position.y = -0.01 // 稍微向下一点，避免z-fighting
+  scene.add(gridHelper)
+
+  // 添加半透明地面 - 使用更深的颜色
   const groundGeometry = new THREE.PlaneGeometry(20, 20)
   const groundMaterial = new THREE.MeshLambertMaterial({
-    color: 0xcccccc,
+    color: 0x1a1a1a, // 更深的背景色
     transparent: true,
     opacity: 0.3,
   })
@@ -161,12 +214,26 @@ const addGround = () => {
   scene.add(ground)
 }
 
+// 添加坐标轴辅助线 - 参考截图的样式
+const addAxesHelper = () => {
+  const axesHelper = new THREE.AxesHelper(3) // 稍微小一点的坐标轴
+  scene.add(axesHelper)
+}
+
+//
+
+//
+
 // 加载3D模型
 const loadModel = async () => {
-  if (!props.modelUrl) return
+  if (!props.modelUrl) {
+    console.warn('ThreeDPreview: 没有提供模型URL')
+    return
+  }
 
   try {
     loading.value = true
+    loadingProgress.value = 0
     error.value = ''
 
     // 清除现有模型
@@ -196,24 +263,69 @@ const loadModel = async () => {
       model = loadedModel
       scene.add(model)
 
-      // 调整模型位置和大小
-      centerModel()
-      fitCameraToModel()
+      // 计算模型边界并调整相机位置
+      const box = new THREE.Box3().setFromObject(model)
+      const size = box.getSize(new THREE.Vector3())
+      const center = box.getCenter(new THREE.Vector3())
 
-      // 设置阴影
+      // 调整模型位置到原点
+      model.position.sub(center)
+
+      // 计算并保存基础缩放值
+      const maxDim = Math.max(size.x, size.y, size.z)
+      baseScale = maxDim > 0 ? 2 / maxDim : 1
+
+      // 应用初始缩放
+      model.scale.setScalar(baseScale * scale.value)
+
+      // 根据模型大小调整相机距离 - 保持截图中的俯视角度
+      const cameraDistance = maxDim > 0 ? maxDim * 2 : 5
+
+      // 设置相机位置为左上角俯视角度
+      camera.position.set(cameraDistance * 0.6, cameraDistance * 0.6, cameraDistance * 0.6)
+      camera.lookAt(0, 0, 0)
+
+      if (controls) {
+        controls.target.set(0, 0, 0)
+        controls.update()
+      }
+
+      // 设置阴影和材质
       model.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true
           child.receiveShadow = true
+
+          // 将模型材质改为亮色
+          if (child.material) {
+            const colorHex = modelColor.value.replace('#', '0x')
+            // 如果是数组材质
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => {
+                if (mat.color) {
+                  mat.color.setHex(colorHex)
+                }
+              })
+            } else {
+              // 单个材质
+              if (child.material.color) {
+                child.material.color.setHex(colorHex)
+              }
+            }
+          }
         }
       })
+    } else {
+      console.warn('ThreeDPreview: 模型加载返回空值')
     }
 
     loading.value = false
+    loadingProgress.value = 100
   } catch (err) {
-    console.error('加载3D模型失败:', err)
+    console.error('ThreeDPreview: 加载3D模型失败:', err)
     error.value = `加载模型失败: ${err.message}`
     loading.value = false
+    loadingProgress.value = 0
   }
 }
 
@@ -235,8 +347,16 @@ const loadGLTF = (url) => {
 
         resolve(model)
       },
-      undefined,
-      reject
+      (xhr) => {
+        if (xhr.total > 0) {
+          const percent = (xhr.loaded / xhr.total) * 100
+          loadingProgress.value = percent
+        }
+      },
+      (error) => {
+        console.error('ThreeDPreview: GLTF模型加载失败', error)
+        reject(error)
+      }
     )
   })
 }
@@ -283,74 +403,52 @@ const loadSTL = (url) => {
   })
 }
 
-// 居中模型
-const centerModel = () => {
-  if (!model) return
-
-  const box = new THREE.Box3().setFromObject(model)
-  const center = box.getCenter(new THREE.Vector3())
-  const size = box.getSize(new THREE.Vector3())
-
-  // 居中
-  model.position.sub(center)
-
-  // 调整缩放
-  const maxDim = Math.max(size.x, size.y, size.z)
-  const scale = 2 / maxDim
-  model.scale.setScalar(scale * props.scale)
+// 放大
+const zoomIn = () => {
+  if (scale.value < 3) {
+    scale.value = Math.min(scale.value + 0.1, 3)
+    updateScale(scale.value)
+  }
 }
 
-// 调整相机以适应模型
-const fitCameraToModel = () => {
-  if (!model) return
-
-  const box = new THREE.Box3().setFromObject(model)
-  const size = box.getSize(new THREE.Vector3())
-  const center = box.getCenter(new THREE.Vector3())
-
-  const maxDim = Math.max(size.x, size.y, size.z)
-  const fov = camera.fov * (Math.PI / 180)
-  let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2))
-
-  camera.position.set(center.x, center.y, center.z + cameraZ)
-  camera.lookAt(center)
-
-  controls.target.copy(center)
-  controls.update()
-}
-
-// 更新旋转速度
-const updateRotationSpeed = (value) => {
-  if (controls) {
-    controls.autoRotateSpeed = value
+// 缩小
+const zoomOut = () => {
+  if (scale.value > 0.1) {
+    scale.value = Math.max(scale.value - 0.1, 0.1)
+    updateScale(scale.value)
   }
 }
 
 // 更新缩放
 const updateScale = (value) => {
   if (model) {
-    const box = new THREE.Box3().setFromObject(model)
-    const size = box.getSize(new THREE.Vector3())
-    const maxDim = Math.max(size.x, size.y, size.z)
-    const baseScale = 2 / maxDim
     model.scale.setScalar(baseScale * value)
+    console.log('ThreeDPreview: 更新缩放', { value, baseScale, finalScale: baseScale * value })
   }
 }
 
-// 重置相机
-const resetCamera = () => {
-  if (camera && model) {
-    fitCameraToModel()
+// 更新模型颜色
+const updateModelColor = (color) => {
+  if (model && color) {
+    model.traverse((child) => {
+      if (child.isMesh && child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((mat) => {
+            if (mat.color) {
+              mat.color.setHex(color.replace('#', '0x'))
+            }
+          })
+        } else {
+          if (child.material.color) {
+            child.material.color.setHex(color.replace('#', '0x'))
+          }
+        }
+      }
+    })
   }
 }
 
-// 切换自动旋转
-const toggleAutoRotate = () => {
-  autoRotate.value = !autoRotate.value
-  if (controls) {
-    controls.autoRotate = autoRotate.value
-  }
-}
+//
 
 // 重试加载
 const retryLoad = () => {
@@ -362,9 +460,12 @@ const onWindowResize = () => {
   if (!container.value || !camera || !renderer) return
 
   const containerRect = container.value.getBoundingClientRect()
-  camera.aspect = containerRect.width / containerRect.height
+  const width = Math.max(containerRect.width || 400, 400)
+  const height = Math.max(containerRect.height || 300, 300)
+
+  camera.aspect = width / height
   camera.updateProjectionMatrix()
-  renderer.setSize(containerRect.width, containerRect.height)
+  renderer.setSize(width, height)
 }
 
 // 渲染循环
@@ -429,10 +530,16 @@ watch(
 
 // 生命周期
 onMounted(() => {
-  initThreeJS()
-  if (props.modelUrl) {
-    loadModel()
-  }
+  // 使用nextTick确保DOM完全渲染
+  nextTick(() => {
+    // 延迟初始化，确保容器有正确的尺寸
+    setTimeout(() => {
+      initThreeJS()
+      if (props.modelUrl) {
+        loadModel()
+      }
+    }, 100)
+  })
 })
 
 onUnmounted(() => {
@@ -440,7 +547,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .three-d-preview {
   position: relative;
   width: 100%;
@@ -450,7 +557,11 @@ onUnmounted(() => {
 .preview-container {
   width: 100%;
   height: 100%;
+  min-height: 400px;
   position: relative;
+  background: #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .control-panel {
@@ -475,12 +586,27 @@ onUnmounted(() => {
     }
   }
 
-  .control-buttons {
+  .color-picker {
     display: flex;
+    justify-content: center;
+
+    .el-color-picker--small {
+      width: 100% !important;
+    }
+  }
+
+  .scale-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
 
-    .el-button {
-      flex: 1;
+    .scale-value {
+      min-width: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
     }
   }
 }
@@ -516,6 +642,32 @@ onUnmounted(() => {
     margin: 0 0 16px 0;
     color: #666;
     font-size: 14px;
+  }
+}
+
+.loading-progress {
+  width: 200px;
+  margin-top: 16px;
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+
+    .progress-fill {
+      height: 100%;
+      background: #409eff;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: #666;
   }
 }
 

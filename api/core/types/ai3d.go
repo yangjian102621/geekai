@@ -22,6 +22,13 @@ type Gitee3DConfig struct {
 	Models  []AI3DModel `json:"models,omitempty"`
 }
 
+type AI3DTaskType string
+
+const (
+	AI3DTaskTypeTencent AI3DTaskType = "tencent"
+	AI3DTaskTypeGitee   AI3DTaskType = "gitee"
+)
+
 // AI3DJobResult 3D任务结果
 type AI3DJobResult struct {
 	JobId      string `json:"job_id"`      // 任务ID

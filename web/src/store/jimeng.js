@@ -12,7 +12,7 @@ import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg, substr } from '@/utils/libs'
 import { ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
-import { computed, nextTick, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 
 export const useJimengStore = defineStore('jimeng', () => {
   // 当前激活的功能分类和具体功能
@@ -431,7 +431,7 @@ export const useJimengStore = defineStore('jimeng', () => {
 
   const downloadFile = async (item) => {
     const url = replaceImg(item.video_url || item.img_url)
-    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const downloadURL = `/api/download?url=${url}`
     const urlObj = new URL(url)
     const fileName = urlObj.pathname.split('/').pop()
 

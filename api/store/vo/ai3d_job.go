@@ -6,7 +6,7 @@ type AI3DJob struct {
 	Type       string `json:"type"`
 	Power      int    `json:"power"`
 	TaskId     string `json:"task_id"`
-	ImgURL     string `json:"img_url"`
+	FileURL    string `json:"file_url"`
 	PreviewURL string `json:"preview_url"`
 	Model      string `json:"model"`
 	Status     string `json:"status"`
@@ -29,4 +29,5 @@ type ThreeDJobList struct {
 	PageSize int       `json:"page_size"`
 	Total    int       `json:"total"`
 	List     []AI3DJob `json:"list"`
+	Items    []AI3DJob `json:"items"`
 }
