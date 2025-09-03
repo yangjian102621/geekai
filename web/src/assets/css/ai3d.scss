@@ -1,13 +1,13 @@
 .page-threed {
   display: flex;
   height: 100vh;
-  background: #f5f5f5;
+  background: var(--theme-bg-all);
 }
 
 .params-panel {
   width: 400px;
-  background: white;
-  border-right: 1px solid #e4e7ed;
+  background: var(--card-bg);
+  border-right: 1px solid var(--line-box);
   padding: 20px;
   overflow-y: auto;
 }
@@ -23,7 +23,7 @@
 
   i {
     font-size: 18px;
-    color: #409eff;
+    color: var(--text-color-primary);
   }
 }
 
@@ -38,14 +38,14 @@
     .label {
       display: block;
       font-weight: 600;
-      color: #414141;
+      color: var(--theme-text-color-primary);
     }
   }
 
   .advanced-toggle-btn {
     padding: 0;
     font-size: 14px;
-    color: #409eff;
+    color: var(--text-color-primary);
     border: none;
     background: none;
     display: flex;
@@ -53,8 +53,8 @@
     gap: 4px;
 
     &:hover {
-      color: #66b1ff;
-      background: #f0f9ff;
+      color: var(--text-color-primary);
+      background: var(--el-color-primary-light-9);
       border-radius: 4px;
     }
   }
@@ -62,7 +62,7 @@
   .advanced-params {
     padding: 10px 16px;
     border-radius: 8px;
-    border-left: 4px solid #2196f3;
+    border-left: 4px solid var(--text-color-primary);
   }
 }
 
@@ -74,11 +74,11 @@
   .power-value {
     font-size: 24px;
     font-weight: bold;
-    color: #409eff;
+    color: var(--text-color-primary);
   }
 
   .power-unit {
-    color: #666;
+    color: var(--theme-text-color-secondary);
   }
 }
 
@@ -105,13 +105,13 @@
     align-items: center;
     margin-bottom: 30px;
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--panel-bg);
     border-radius: 12px;
-    color: white;
+    color: var(--theme-text-color-primary);
 
     h3 {
       margin: 0;
-      color: white;
+      color: var(--theme-text-color-primary);
       font-size: 24px;
       font-weight: 600;
       display: flex;
@@ -121,32 +121,32 @@
         content: '';
         width: 4px;
         height: 24px;
-        background: white;
+        background: var(--theme-text-color-primary);
         margin-right: 12px;
         border-radius: 2px;
       }
     }
 
     .el-button {
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
+      // background: rgba(255, 255, 255, 0.2);
+      // border: 1px solid rgba(255, 255, 255, 0.3);
+      // color: white;
 
-      &:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-      }
+      // &:hover {
+      //   background: rgba(255, 255, 255, 0.3);
+      //   border-color: rgba(255, 255, 255, 0.5);
+      // }
     }
   }
 }
 
 .task-items {
   .task-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 16px;
-    border: 1px solid #e4e7ed;
+    border: 1px solid var(--line-box);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
@@ -161,22 +161,22 @@
 
     &.task-card-completed {
       border-left: 4px solid #67c23a;
-      background: #f0f9eb;
+      background: var(--el-fill-color-light);
     }
 
     &.task-card-processing {
-      border-left: 4px solid #409eff;
-      background: #ecf5ff;
+      border-left: 4px solid var(--text-color-primary);
+      background: var(--el-fill-color-light);
     }
 
     &.task-card-failed {
       border-left: 4px solid #f56c6c;
-      background: #fef0f0;
+      background: var(--el-fill-color-light);
     }
 
     &.task-card-default {
       border-left: 4px solid #909399;
-      background: #f4f4f4;
+      background: var(--el-fill-color-light);
     }
   }
 
@@ -196,25 +196,25 @@
       .task-id {
         font-size: 18px;
         font-weight: bold;
-        color: #333;
+        color: var(--theme-text-color-primary);
         display: flex;
         align-items: center;
 
         i {
           font-size: 20px;
-          color: #409eff;
+          color: var(--text-color-primary);
         }
       }
 
       .task-platform {
         font-size: 14px;
-        color: #666;
+        color: var(--theme-text-color-secondary);
         display: flex;
         align-items: center;
 
         i {
           font-size: 16px;
-          color: #409eff;
+          color: var(--text-color-primary);
         }
       }
     }
@@ -233,22 +233,22 @@
         align-items: center;
 
         &.pending {
-          background: #fffbe6;
+          background: var(--el-fill-color-light);
           color: #e6a23c;
         }
 
         &.processing {
-          background: #e1f3d8;
+          background: var(--el-fill-color-light);
           color: #67c23a;
         }
 
         &.completed {
-          background: #e1f3d8;
+          background: var(--el-fill-color-light);
           color: #67c23a;
         }
 
         &.failed {
-          background: #fef0f0;
+          background: var(--el-fill-color-light);
           color: #f56c6c;
         }
 
@@ -260,14 +260,14 @@
 
       .task-power {
         font-size: 14px;
-        color: #666;
+        color: var(--theme-text-color-secondary);
         display: flex;
         align-items: center;
 
         i {
           font-size: 14px;
           margin-right: 4px;
-          color: #409eff;
+          color: var(--text-color-primary);
         }
       }
     }
@@ -283,11 +283,11 @@
       position: relative;
       border-radius: 8px;
       overflow: hidden;
-      background: #f0f0f0;
+      background: var(--chat-wel-bg);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #666;
+      color: var(--theme-text-color-secondary);
       min-height: 120px;
       max-width: 200px;
 
@@ -313,7 +313,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: var(--theme-text-color-primary);
           font-size: 24px;
           opacity: 0;
           transition: opacity 0.3s ease;
@@ -363,7 +363,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #999;
+        color: var(--theme-text-color-secondary);
 
         i {
           font-size: 48px;
@@ -385,20 +385,20 @@
       .task-model {
         font-size: 16px;
         font-weight: bold;
-        color: #333;
+        color: var(--theme-text-color-primary);
         display: flex;
         align-items: center;
 
         i {
           font-size: 18px;
           margin-right: 6px;
-          color: #409eff;
+          color: var(--text-color-primary);
         }
       }
 
       .task-prompt {
         font-size: 14px;
-        color: #666;
+        color: var(--theme-text-color-secondary);
         display: flex;
         align-items: center;
         margin-top: 4px;
@@ -406,13 +406,13 @@
         i {
           font-size: 14px;
           margin-right: 6px;
-          color: #909399;
+          color: var(--theme-text-color-secondary);
         }
       }
 
       .task-params {
         font-size: 14px;
-        color: #666;
+        color: var(--theme-text-color-secondary);
         display: flex;
         align-items: center;
         margin-top: 4px;
@@ -420,13 +420,13 @@
         i {
           font-size: 14px;
           margin-right: 6px;
-          color: #909399;
+          color: var(--theme-text-color-secondary);
         }
       }
 
       .task-time {
         font-size: 12px;
-        color: #999;
+        color: var(--theme-text-color-secondary);
         display: flex;
         align-items: center;
         margin-top: 4px;
@@ -457,7 +457,7 @@
     justify-content: flex-end;
     gap: 8px;
     padding-top: 12px;
-    border-top: 1px dashed #eee;
+    border-top: 1px dashed var(--line-box);
 
     .task-actions {
       display: flex;
@@ -473,19 +473,19 @@
         gap: 4px;
 
         &.preview-btn {
-          background: #409eff;
-          color: white;
-          border: 1px solid #409eff;
+          background: var(--text-color-primary);
+          // color: var(--theme-text-color-primary);
+          border: 1px solid var(--text-color-primary);
 
           &:hover {
-            background: #66b1ff;
-            border-color: #66b1ff;
+            background: var(--text-color-primary);
+            border-color: var(--border-active);
           }
         }
 
         &.download-btn {
           background: #67c23a;
-          color: white;
+          // color: var(--theme-text-color-primary);
           border: 1px solid #67c23a;
 
           &:hover {
@@ -496,7 +496,7 @@
 
         &.delete-btn {
           background: #f56c6c;
-          color: white;
+          // color: var(--theme-text-color-primary);
           border: 1px solid #f56c6c;
 
           &:hover {
@@ -507,7 +507,7 @@
 
         &.processing-btn {
           background: #909399;
-          color: white;
+          // color: var(--theme-text-color-primary);
           border: 1px solid #909399;
           cursor: not-allowed;
         }
@@ -518,13 +518,13 @@
   .empty-state {
     width: 100%;
     height: 200px;
-    background: #f0f0f0;
+    background: var(--chat-wel-bg);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #999;
+    color: var(--theme-text-color-secondary);
     font-size: 14px;
 
     i {
@@ -544,36 +544,36 @@
   width: 100%;
   height: 500px;
   min-height: 500px;
-  background: #f0f0f0;
+  background: var(--chat-wel-bg);
   border-radius: 8px;
   position: relative;
 
   .three-container {
     width: 100%;
     height: 500px;
-    background: #f0f0f0;
+    background: var(--chat-wel-bg);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #666;
+    color: var(--theme-text-color-secondary);
   }
 
   .preview-placeholder {
     width: 100%;
     height: 500px;
-    background: #f0f0f0;
+    background: var(--chat-wel-bg);
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #666;
+    color: var(--theme-text-color-secondary);
 
     i {
       font-size: 48px;
       margin-bottom: 12px;
-      color: #999;
+      color: var(--theme-text-color-secondary);
     }
 
     p {
@@ -591,7 +591,7 @@
   .params-panel {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid var(--line-box);
   }
 
   .task-card-content {

@@ -330,7 +330,7 @@
 
                 <div class="task-time">
                   <i class="iconfont icon-shijian mr-1"></i>
-                  {{ formatTime(task.created_at) }}
+                  {{ dateFormat(task.created_at) }}
                 </div>
 
                 <div class="task-error" v-if="task.status === 'failed' && task.err_msg">
@@ -448,364 +448,50 @@ import ThreeDPreview from '@/components/ThreeDPreview.vue'
 import CustomSwitch from '@/components/ui/CustomSwitch.vue'
 import CustomTabPane from '@/components/ui/CustomTabPane.vue'
 import CustomTabs from '@/components/ui/CustomTabs.vue'
-import { checkSession } from '@/store/cache'
-import { httpDownload, httpGet, httpPost } from '@/utils/http'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, ref } from 'vue'
-import { showMessageError } from '../utils/dialog'
-import { replaceImg } from '../utils/libs'
+import { useAI3DStore } from '@/store/ai3d'
+import { storeToRefs } from 'pinia'
+import { dateFormat } from '../utils/libs'
 
-// 响应式数据
-const activePlatform = ref('gitee')
-const loading = ref(false)
-const previewVisible = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
-const taskList = ref([])
-const currentPreviewTask = ref(null)
-const giteeAdvancedVisible = ref(false) // 控制Gitee高级参数显示状态
-const tencentDefaultForm = {
-  text3d: false,
-  prompt: '',
-  image_url: '',
-  model: '',
-  file_format: '', // 输出文件格式
-  enable_pbr: false, // 是否开启PBR材质
-  model_desc: '', // 模型描述
-  power: 0, // 算力消耗
-}
-const giteeDefaultForm = {
-  prompt: '',
-  image_url: '',
-  model: '',
-  file_format: '', // 输出文件格式
-  texture: false, // 是否开启纹理
-  seed: 1234, // 随机种子
-  num_inference_steps: 5, //迭代次数
-  guidance_scale: 7.5, //引导系数
-  octree_resolution: 128, // 3D 渲染精度，越高3D 细节越丰富
-  model_desc: '', // 模型描述
-  power: 0, // 算力消耗
-}
-const tencentForm = ref(tencentDefaultForm)
-const giteeForm = ref(giteeDefaultForm)
-const currentPower = ref(0)
-const tencentSupportedFormats = ref([])
-const giteeSupportedFormats = ref([])
+const ai3d = useAI3DStore()
+const {
+  activePlatform,
+  loading,
+  previewVisible,
+  currentPage,
+  pageSize,
+  total,
+  taskList,
+  currentPreviewTask,
+  giteeAdvancedVisible,
+  tencentForm,
+  giteeForm,
+  currentPower,
+  tencentSupportedFormats,
+  giteeSupportedFormats,
+  configs,
+} = storeToRefs(ai3d)
 
-// 计算属性：获取当前活跃平台的表单数据
-const currentForm = computed(() => {
-  return activePlatform.value === 'tencent' ? tencentForm.value : giteeForm.value
-})
-
-const selectedModel = computed(() => {
-  return currentForm.value.model
-})
-
-const currentPrompt = computed(() => {
-  return currentForm.value.prompt
-})
-
-const currentImage = computed(() => {
-  return currentForm.value.image_url ? [{ url: currentForm.value.image_url }] : []
-})
-
-const configs = ref({
-  gitee: { models: [] },
-  tencent: { models: [] },
-})
-
-const loadConfigs = async () => {
-  const response = await httpGet('/api/ai3d/configs')
-  configs.value = response.data
-}
-
-const handleModelChange = (value) => {
-  if (activePlatform.value === 'tencent') {
-    const model = configs.value.tencent.models.find((model) => model.name === value)
-    currentPower.value = model.power
-    tencentForm.value.power = model.power
-    tencentForm.value.model_desc = model.desc
-    tencentForm.value.file_format = model.formats[0]
-    tencentSupportedFormats.value = model.formats
-  } else {
-    const model = configs.value.gitee.models.find((model) => model.name === value)
-    currentPower.value = model.power
-    giteeForm.value.power = model.power
-    giteeForm.value.model_desc = model.desc
-    giteeForm.value.file_format = model.formats[0]
-    giteeSupportedFormats.value = model.formats
-  }
-}
-
-const handlePlatformChange = (value) => {
-  currentPower.value = value === 'tencent' ? tencentForm.value.power : giteeForm.value.power
-}
-
-const generate3D = async () => {
-  const requestData = {
-    ...(activePlatform.value === 'tencent' ? tencentForm.value : giteeForm.value),
-  }
-  if (requestData.model === '') {
-    ElMessage.warning('请选择模型')
-    return
-  }
-  if (requestData.file_format === '') {
-    ElMessage.warning('请选择输出格式')
-    return
-  }
-
-  try {
-    loading.value = true
-
-    requestData.type = activePlatform.value
-    if (requestData.image_url !== '') {
-      requestData.image_url = replaceImg(requestData.image_url[0].url)
-    }
-
-    const response = await httpPost('/api/ai3d/generate', requestData)
-
-    if (response.code === 0) {
-      ElMessage.success('任务创建成功')
-      // 清空表单
-      tencentForm.value = tencentDefaultForm
-      giteeForm.value = giteeDefaultForm
-      currentPower.value = 0
-      // 刷新任务列表
-      loadTasks()
-    } else {
-      ElMessage.error(response.message || '创建任务失败')
-    }
-  } catch (error) {
-    ElMessage.error('创建任务失败：' + error.message)
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadTasks = async () => {
-  try {
-    const response = await httpGet('/api/ai3d/jobs/mock', {
-      page: currentPage.value,
-      page_size: pageSize.value,
-    })
-
-    if (response.code === 0) {
-      taskList.value = response.data.items
-      total.value = response.data.total
-    }
-  } catch (error) {
-    ElMessage.error('加载任务列表失败：' + error.message)
-  }
-}
-
-const refreshTasks = () => {
-  loadTasks()
-}
-
-const handlePageSizeChange = (size) => {
-  pageSize.value = size
-  currentPage.value = 1
-  loadTasks()
-}
-
-const handleCurrentPageChange = (page) => {
-  currentPage.value = page
-  loadTasks()
-}
-
-const deleteTask = async (taskId) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这个任务吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    })
-
-    const response = await httpGet(`/api/ai3d/job/delete?id=${taskId}`)
-    if (response.code === 0) {
-      ElMessage.success('删除成功')
-      loadTasks()
-    } else {
-      ElMessage.error(response.message || '删除失败')
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败：' + error.message)
-    }
-  }
-}
-
-const preview3D = (task) => {
-  currentPreviewTask.value = task
-  previewVisible.value = true
-}
-
-const closePreview = () => {
-  previewVisible.value = false
-}
-
-const downloadFile = async (item) => {
-  const url = replaceImg(item.file_url)
-  const downloadURL = `/api/download?url=${url}`
-  const urlObj = new URL(url)
-  const fileName = urlObj.pathname.split('/').pop()
-
-  item.downloading = true
-
-  try {
-    const response = await httpDownload(downloadURL)
-    const blob = new Blob([response.data])
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(link.href)
-    item.downloading = false
-  } catch (error) {
-    showMessageError('下载失败')
-    item.downloading = false
-  }
-}
-
-const downloadCurrentModel = () => {
-  if (currentPreviewTask.value) {
-    downloadFile(currentPreviewTask.value)
-  }
-}
-
-const getStatusText = (status) => {
-  const statusMap = {
-    pending: '等待中',
-    processing: '处理中',
-    completed: '已完成',
-    failed: '失败',
-  }
-  return statusMap[status] || status
-}
-
-const getTaskCardClass = (status) => {
-  if (status === 'completed') {
-    return 'task-card-completed'
-  } else if (status === 'processing') {
-    return 'task-card-processing'
-  } else if (status === 'failed') {
-    return 'task-card-failed'
-  } else {
-    return 'task-card-default'
-  }
-}
-
-const getPlatformIcon = (type) => {
-  if (type === 'gitee') {
-    return 'iconfont icon-gitee'
-  } else if (type === 'tencent') {
-    return 'iconfont icon-tencent'
-  }
-  return 'iconfont icon-question'
-}
-
-const getPlatformName = (type) => {
-  if (type === 'gitee') {
-    return 'Gitee 模力方舟'
-  } else if (type === 'tencent') {
-    return '腾讯云混元3D'
-  }
-  return '未知平台'
-}
-
-const getStatusIcon = (status) => {
-  if (status === 'pending') {
-    return 'iconfont icon-pending'
-  } else if (status === 'processing') {
-    return 'iconfont icon-processing'
-  } else if (status === 'completed') {
-    return 'iconfont icon-completed'
-  } else if (status === 'failed') {
-    return 'iconfont icon-failed'
-  }
-  return 'iconfont icon-question'
-}
-
-const getTaskPrompt = (task) => {
-  try {
-    if (task.params) {
-      const parsedParams = JSON.parse(task.params)
-      return parsedParams.prompt || '文生3D任务'
-    }
-    return '文生3D任务'
-  } catch (e) {
-    return '文生3D任务'
-  }
-}
-
-const getTaskImageUrl = (task) => {
-  try {
-    if (task.params) {
-      const parsedParams = JSON.parse(task.params)
-      return parsedParams.image_url || null
-    }
-    return null
-  } catch (e) {
-    return null
-  }
-}
-
-const getTaskParams = (task) => {
-  try {
-    if (task.params) {
-      const parsedParams = JSON.parse(task.params)
-      const params = []
-
-      if (parsedParams.texture) {
-        params.push('纹理')
-      }
-      if (parsedParams.enable_pbr) {
-        params.push('PBR材质')
-      }
-      if (parsedParams.num_inference_steps && parsedParams.num_inference_steps !== 5) {
-        params.push(`迭代次数: ${parsedParams.num_inference_steps}`)
-      }
-      if (parsedParams.guidance_scale && parsedParams.guidance_scale !== 7.5) {
-        params.push(`引导系数: ${parsedParams.guidance_scale}`)
-      }
-      if (parsedParams.octree_resolution && parsedParams.octree_resolution !== 128) {
-        params.push(`精度: ${parsedParams.octree_resolution}`)
-      }
-      if (parsedParams.seed && parsedParams.seed !== 1234) {
-        params.push(`种子: ${parsedParams.seed}`)
-      }
-
-      return params.join('，')
-    }
-    return ''
-  } catch (e) {
-    return ''
-  }
-}
-
-const formatTime = (timestamp) => {
-  const date = new Date(timestamp)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}`
-}
-
-// 生命周期
-onMounted(() => {
-  loadConfigs()
-  checkSession()
-    .then(() => {
-      loadTasks()
-    })
-    .catch(() => {})
-})
+const {
+  handleModelChange,
+  handlePlatformChange,
+  generate3D,
+  refreshTasks,
+  handlePageSizeChange,
+  handleCurrentPageChange,
+  deleteTask,
+  preview3D,
+  closePreview,
+  downloadFile,
+  downloadCurrentModel,
+  getStatusText,
+  getTaskCardClass,
+  getPlatformIcon,
+  getPlatformName,
+  getStatusIcon,
+  getTaskPrompt,
+  getTaskImageUrl,
+  getTaskParams,
+} = ai3d
 </script>
 
 <style lang="scss" scoped>
