@@ -4,62 +4,56 @@
       <el-form
         :model="jimengConfig"
         label-width="150px"
-        label-position="right"
+        label-position="top"
         ref="configFormRef"
         :rules="rules"
         class="py-3 px-5"
       >
         <!-- 秘钥配置分组 -->
         <div class="mb-3">
-          <h3 class="mb-2">秘钥配置</h3>
-          <el-alert type="info" :closable="false" show-icon>
-            <p class="mb-1">
-              1. 要使用即梦 AI 功能，需要先在火山引擎控制台开通
-              <a
-                href="https://console.volcengine.com/ai/ability/detail/10"
-                target="_blank"
-                class="text-blue-500"
-                >即梦 AI</a
-              >
-              和
-              <a
-                href="https://console.volcengine.com/ai/ability/detail/9"
-                target="_blank"
-                class="text-blue-500"
-                >智能绘图</a
-              >
-              服务。
-            </p>
-            <p>
-              2. AccessKey和SecretKey 请在火山引擎控制台 ->
-              <a
-                href="https://console.volcengine.com/iam/keymanage/"
-                target="_blank"
-                class="text-blue-500"
-                >秘钥管理</a
-              >
-              获取。
-            </p>
-          </el-alert>
+          <h3 class="heading-3 mb-2">秘钥配置</h3>
+          <div class="py-3">
+            <Alert type="info">
+              <p class="mb-1">
+                1. 要使用即梦 AI 功能，需要先在火山引擎控制台开通
+                <a
+                  href="https://console.volcengine.com/ai/ability/detail/10"
+                  target="_blank"
+                  class="text-blue-500"
+                  >即梦 AI</a
+                >
+                和
+                <a
+                  href="https://console.volcengine.com/ai/ability/detail/9"
+                  target="_blank"
+                  class="text-blue-500"
+                  >智能绘图</a
+                >
+                服务。
+              </p>
+              <p>
+                2. AccessKey和SecretKey 请在火山引擎控制台 ->
+                <a
+                  href="https://console.volcengine.com/iam/keymanage/"
+                  target="_blank"
+                  class="text-blue-500"
+                  >秘钥管理</a
+                >
+                获取。
+              </p>
+            </Alert>
+          </div>
           <el-form-item label="AccessKey" prop="access_key">
-            <el-input
-              v-model="jimengConfig.access_key"
-              placeholder="请输入即梦AI的AccessKey"
-              show-password
-            />
+            <el-input v-model="jimengConfig.access_key" placeholder="请输入即梦AI的AccessKey" />
           </el-form-item>
           <el-form-item label="SecretKey" prop="secret_key">
-            <el-input
-              v-model="jimengConfig.secret_key"
-              placeholder="请输入即梦AI的SecretKey"
-              show-password
-            />
+            <el-input v-model="jimengConfig.secret_key" placeholder="请输入即梦AI的SecretKey" />
           </el-form-item>
         </div>
         <el-divider />
         <!-- 算力配置分组 -->
         <div class="mb-3">
-          <h3 class="mb-3">算力配置</h3>
+          <h3 class="heading-3 mb-3">算力配置</h3>
           <el-form-item>
             <template #label>
               <div class="label-title">
@@ -205,6 +199,7 @@
 </template>
 
 <script setup>
+import Alert from '@/components/ui/Alert.vue'
 import { httpGet, httpPost } from '@/utils/http'
 import { InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -295,6 +290,10 @@ const resetConfig = () => {
   .container {
     width: 100%;
     max-width: 800px;
+  }
+
+  .heading-3 {
+    color: var(--theme-text-color-primary);
   }
 
   .label-title {

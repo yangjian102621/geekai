@@ -15,8 +15,11 @@ export const useAI3DStore = defineStore('ai3d', () => {
   const pageSize = ref(10)
   const total = ref(0)
   const taskList = ref([])
-  const currentPreviewTask = ref(null)
+  const currentPreviewTask = ref({
+    downloading: false,
+  })
   const giteeAdvancedVisible = ref(false)
+  const taskPulling = ref(false)
 
   const tencentDefaultForm = {
     text3d: false,
@@ -48,6 +51,9 @@ export const useAI3DStore = defineStore('ai3d', () => {
   const currentPower = ref(0)
   const tencentSupportedFormats = ref([])
   const giteeSupportedFormats = ref([])
+
+  // 定时器引用
+  let taskPullHandler = null
 
   const configs = ref({
     gitee: { models: [] },
@@ -111,19 +117,9 @@ export const useAI3DStore = defineStore('ai3d', () => {
     try {
       loading.value = true
       requestData.type = activePlatform.value
-      if (requestData.image_url !== '') {
-        requestData.image_url = replaceImg(requestData.image_url[0].url)
-      }
       const response = await httpPost('/api/ai3d/generate', requestData)
-      if (response.code === 0) {
-        ElMessage.success('任务创建成功')
-        tencentForm.value = { ...tencentDefaultForm }
-        giteeForm.value = { ...giteeDefaultForm }
-        currentPower.value = 0
-        await loadTasks()
-      } else {
-        ElMessage.error(response.message || '创建任务失败')
-      }
+      ElMessage.success('任务创建成功')
+      await loadTasks()
     } catch (error) {
       ElMessage.error('创建任务失败：' + error.message)
     } finally {
@@ -133,12 +129,24 @@ export const useAI3DStore = defineStore('ai3d', () => {
 
   const loadTasks = async () => {
     try {
-      const response = await httpGet('/api/ai3d/jobs/mock', {
+      const response = await httpGet('/api/ai3d/jobs', {
         page: currentPage.value,
         page_size: pageSize.value,
       })
       if (response.code === 0) {
-        taskList.value = response.data.items
+        let needPull = false
+        const items = response.data.items
+
+        // 检查是否有进行中的任务
+        for (let item of items) {
+          if (item.status === 'pending' || item.status === 'processing') {
+            needPull = true
+            break
+          }
+        }
+
+        taskPulling.value = needPull
+        taskList.value = items
         total.value = response.data.total
       }
     } catch (error) {
@@ -222,16 +230,16 @@ export const useAI3DStore = defineStore('ai3d', () => {
 
   const getStatusText = (status) => {
     const statusMap = {
-      pending: '等待中',
-      processing: '处理中',
-      completed: '已完成',
-      failed: '失败',
+      pending: { text: '等待中', type: 'warning' },
+      processing: { text: '处理中', type: 'primary' },
+      success: { text: '已完成', type: 'success' },
+      failed: { text: '失败', type: 'danger' },
     }
     return statusMap[status] || status
   }
 
   const getTaskCardClass = (status) => {
-    if (status === 'completed') return 'task-card-completed'
+    if (status === 'success') return 'task-card-completed'
     if (status === 'processing') return 'task-card-processing'
     if (status === 'failed') return 'task-card-failed'
     return 'task-card-default'
@@ -249,30 +257,14 @@ export const useAI3DStore = defineStore('ai3d', () => {
     return '未知平台'
   }
 
-  const getStatusIcon = (status) => {
-    if (status === 'pending') return 'iconfont icon-pending'
-    if (status === 'processing') return 'iconfont icon-processing'
-    if (status === 'completed') return 'iconfont icon-completed'
-    if (status === 'failed') return 'iconfont icon-failed'
-    return 'iconfont icon-question'
-  }
-
   const getTaskPrompt = (task) => {
-    try {
-      if (task.params) {
-        const parsedParams = JSON.parse(task.params)
-        return parsedParams.prompt || '文生3D任务'
-      }
-      return '文生3D任务'
-    } catch (e) {
-      return '文生3D任务'
-    }
+    return task.params.prompt ? task.params.prompt : '图生3D任务'
   }
 
   const getTaskImageUrl = (task) => {
     try {
       if (task.params) {
-        const parsedParams = JSON.parse(task.params)
+        const parsedParams = task.params
         return parsedParams.image_url || null
       }
       return null
@@ -282,25 +274,30 @@ export const useAI3DStore = defineStore('ai3d', () => {
   }
 
   const getTaskParams = (task) => {
-    try {
-      if (task.params) {
-        const parsedParams = JSON.parse(task.params)
-        const params = []
-        if (parsedParams.texture) params.push('纹理')
-        if (parsedParams.enable_pbr) params.push('PBR材质')
-        if (parsedParams.num_inference_steps && parsedParams.num_inference_steps !== 5)
-          params.push(`迭代次数: ${parsedParams.num_inference_steps}`)
-        if (parsedParams.guidance_scale && parsedParams.guidance_scale !== 7.5)
-          params.push(`引导系数: ${parsedParams.guidance_scale}`)
-        if (parsedParams.octree_resolution && parsedParams.octree_resolution !== 128)
-          params.push(`精度: ${parsedParams.octree_resolution}`)
-        if (parsedParams.seed && parsedParams.seed !== 1234)
-          params.push(`种子: ${parsedParams.seed}`)
-        return params.join('，')
+    const parsedParams = task.params
+    const params = []
+    if (parsedParams.texture) params.push('纹理')
+    if (parsedParams.enable_pbr) params.push('PBR材质')
+    if (parsedParams.num_inference_steps)
+      params.push(`迭代次数: ${parsedParams.num_inference_steps}`)
+    if (parsedParams.guidance_scale) params.push(`引导系数: ${parsedParams.guidance_scale}`)
+    if (parsedParams.octree_resolution) params.push(`精度: ${parsedParams.octree_resolution}`)
+    if (parsedParams.seed) params.push(`Seed: ${parsedParams.seed}`)
+    return params.join('，')
+  }
+
+  const startTaskPolling = () => {
+    taskPullHandler = setInterval(() => {
+      if (taskPulling.value) {
+        loadTasks()
       }
-      return ''
-    } catch (e) {
-      return ''
+    }, 5000)
+  }
+
+  const stopTaskPolling = () => {
+    if (taskPullHandler) {
+      clearInterval(taskPullHandler)
+      taskPullHandler = null
     }
   }
 
@@ -310,6 +307,7 @@ export const useAI3DStore = defineStore('ai3d', () => {
     checkSession()
       .then(() => {
         loadTasks()
+        startTaskPolling()
       })
       .catch(() => {})
   })
@@ -325,6 +323,7 @@ export const useAI3DStore = defineStore('ai3d', () => {
     taskList,
     currentPreviewTask,
     giteeAdvancedVisible,
+    taskPulling,
     tencentForm,
     giteeForm,
     currentPower,
@@ -353,9 +352,10 @@ export const useAI3DStore = defineStore('ai3d', () => {
     getTaskCardClass,
     getPlatformIcon,
     getPlatformName,
-    getStatusIcon,
     getTaskPrompt,
     getTaskImageUrl,
     getTaskParams,
+    startTaskPolling,
+    stopTaskPolling,
   }
 })

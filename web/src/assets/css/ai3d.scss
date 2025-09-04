@@ -288,8 +288,11 @@
       align-items: center;
       justify-content: center;
       color: var(--theme-text-color-secondary);
-      min-height: 120px;
+      min-height: 200px;
+      max-height: 200px;
+      min-width: 200px;
       max-width: 200px;
+      border: 1px solid var(--line-box);
 
       .preview-image {
         width: 100%;
@@ -542,15 +545,14 @@
 
 .preview-container {
   width: 100%;
-  height: 500px;
-  min-height: 500px;
+  height: calc(100vh - 125px);
   background: var(--chat-wel-bg);
   border-radius: 8px;
   position: relative;
 
   .three-container {
     width: 100%;
-    height: 500px;
+    height: 100%;
     background: var(--chat-wel-bg);
     border-radius: 8px;
     display: flex;
@@ -561,7 +563,7 @@
 
   .preview-placeholder {
     width: 100%;
-    height: 500px;
+    min-height: 500px;
     background: var(--chat-wel-bg);
     border-radius: 8px;
     display: flex;

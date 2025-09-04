@@ -96,6 +96,9 @@ func (h *AI3DHandler) GetJobList(c *gin.Context) {
 		if err != nil {
 			continue
 		}
+		utils.JsonDecode(job.Params, &jobVo.Params)
+		jobVo.CreatedAt = job.CreatedAt.Unix()
+		jobVo.UpdatedAt = job.UpdatedAt.Unix()
 		jobList = append(jobList, jobVo)
 	}
 
@@ -128,6 +131,9 @@ func (h *AI3DHandler) GetJobDetail(c *gin.Context) {
 		resp.ERROR(c, "获取任务详情失败")
 		return
 	}
+	utils.JsonDecode(job.Params, &jobVo.Params)
+	jobVo.CreatedAt = job.CreatedAt.Unix()
+	jobVo.UpdatedAt = job.UpdatedAt.Unix()
 	resp.SUCCESS(c, jobVo)
 }
 
@@ -167,14 +173,14 @@ func (h *AI3DHandler) GetStats(c *gin.Context) {
 	var stats struct {
 		Pending    int64 `json:"pending"`
 		Processing int64 `json:"processing"`
-		Completed  int64 `json:"completed"`
+		Success    int64 `json:"success"`
 		Failed     int64 `json:"failed"`
 	}
 
 	// 统计各状态的任务数量
 	h.db.Model(&model.AI3DJob{}).Where("status = ?", "pending").Count(&stats.Pending)
 	h.db.Model(&model.AI3DJob{}).Where("status = ?", "processing").Count(&stats.Processing)
-	h.db.Model(&model.AI3DJob{}).Where("status = ?", "completed").Count(&stats.Completed)
+	h.db.Model(&model.AI3DJob{}).Where("status = ?", "success").Count(&stats.Success)
 	h.db.Model(&model.AI3DJob{}).Where("status = ?", "failed").Count(&stats.Failed)
 
 	resp.SUCCESS(c, stats)

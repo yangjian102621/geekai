@@ -9,7 +9,6 @@ package oss
 
 import (
 	"geekai/core/types"
-	"strings"
 
 	logger2 "geekai/logger"
 )
@@ -28,7 +27,6 @@ func NewUploaderManager(sysConfig *types.SystemConfig, local *LocalStorage, aliy
 	if sysConfig.OSS.Active == "" {
 		sysConfig.OSS.Active = Local
 	}
-	sysConfig.OSS.Active = strings.ToLower(sysConfig.OSS.Active)
 
 	return &UploaderManager{
 		active: sysConfig.OSS.Active,

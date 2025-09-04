@@ -104,7 +104,6 @@
         :data="taskList"
         v-loading="loading"
         @selection-change="handleSelectionChange"
-        stripe
         border
       >
         <el-table-column type="selection" width="55" />

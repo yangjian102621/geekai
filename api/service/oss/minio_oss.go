@@ -32,11 +32,9 @@ type MiniOss struct {
 func NewMiniOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*MiniOss, error) {
 
 	s := &MiniOss{proxyURL: appConfig.ProxyURL}
-	if sysConfig.OSS.Active == Minio {
-		err := s.UpdateConfig(sysConfig.OSS.Minio)
-		if err != nil {
-			logger.Errorf("MinioOSS初始化失败: %v", err)
-		}
+	err := s.UpdateConfig(sysConfig.OSS.Minio)
+	if err != nil {
+		logger.Warnf("MinioOSS初始化失败: %v", err)
 	}
 	return s, nil
 }

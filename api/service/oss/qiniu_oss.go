@@ -37,9 +37,7 @@ func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *QiN
 	s := &QiNiuOss{
 		proxyURL: appConfig.ProxyURL,
 	}
-	if sysConfig.OSS.Active == QiNiu {
-		s.UpdateConfig(sysConfig.OSS.QiNiu)
-	}
+	s.UpdateConfig(sysConfig.OSS.QiNiu)
 	return s
 }
 

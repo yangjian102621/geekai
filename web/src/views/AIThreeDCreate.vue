@@ -87,8 +87,8 @@
                   <span class="label mb-3">随机种子：</span>
                   <el-input-number
                     v-model="giteeForm.seed"
-                    :min="1"
-                    :max="999999"
+                    :min="0"
+                    :max="10000000"
                     controls-position="right"
                     style="width: 100%"
                   />
@@ -278,12 +278,23 @@
                 </div>
               </div>
               <div class="task-status-wrapper">
-                <div class="task-status" :class="task.status">
-                  <i :class="getStatusIcon(task.status)" class="mr-1"></i>
-                  {{ getStatusText(task.status) }}
+                <div class="task-status">
+                  <el-button
+                    size="small"
+                    :type="getStatusText(task.status).type"
+                    class="action-btn processing-btn"
+                    disabled
+                    round
+                  >
+                    <i
+                      class="iconfont icon-loading animate-spin mr-1"
+                      v-if="task.status === 'processing'"
+                    ></i>
+                    {{ getStatusText(task.status).text }}
+                  </el-button>
                 </div>
                 <div class="task-power">
-                  <i class="iconfont icon-suanli mr-1"></i>
+                  <i class="iconfont icon-power mr-1"></i>
                   {{ task.power }}
                 </div>
               </div>
@@ -292,49 +303,49 @@
             <!-- 任务卡片内容 -->
             <div class="task-card-content">
               <!-- 左侧预览图 -->
-              <div class="task-preview">
-                <div v-if="task.status === 'completed' && task.preview_url" class="preview-image">
+              <div class="task-preview rounded-lg">
+                <div v-if="task.status === 'success' && task.preview_url" class="preview-image">
                   <img :src="task.preview_url" :alt="getTaskPrompt(task)" />
-                  <div class="preview-overlay">
-                    <i class="iconfont icon-yulan"></i>
+                  <div class="preview-overlay cursor-pointer" @click="preview3D(task)">
+                    <i class="iconfont icon-eye-open !text-3xl"></i>
                   </div>
                 </div>
                 <div v-else-if="getTaskImageUrl(task)" class="input-image">
                   <img :src="getTaskImageUrl(task)" :alt="getTaskPrompt(task)" />
                   <div class="input-overlay">
-                    <i class="iconfont icon-tupian"></i>
+                    <i class="iconfont icon-cube !text-3xl"></i>
                   </div>
                 </div>
                 <div v-else class="prompt-placeholder">
-                  <i class="iconfont icon-wenzi"></i>
-                  <span>{{ getTaskPrompt(task) }}</span>
+                  <i class="iconfont icon-doc"></i>
+                  <span>文生3D任务</span>
                 </div>
               </div>
 
               <!-- 右侧任务详情 -->
               <div class="task-details">
                 <div class="task-model">
-                  <i class="iconfont icon-moxing mr-1"></i>
+                  <i class="iconfont icon-model !text-2xl mr-1"></i>
                   {{ task.model }}
                 </div>
 
                 <div class="task-prompt" v-if="getTaskPrompt(task)">
-                  <i class="iconfont icon-tishi mr-1"></i>
+                  <i class="iconfont icon-info !text-lg mr-1"></i>
                   <span>{{ getTaskPrompt(task) }}</span>
                 </div>
 
                 <div class="task-params" v-if="getTaskParams(task)">
-                  <i class="iconfont icon-shezhi mr-1"></i>
+                  <i class="iconfont icon-tag !text-lg mr-1"></i>
                   <span>{{ getTaskParams(task) }}</span>
                 </div>
 
                 <div class="task-time">
-                  <i class="iconfont icon-shijian mr-1"></i>
+                  <i class="iconfont icon-clock !text-xl mr-1"></i>
                   {{ dateFormat(task.created_at) }}
                 </div>
 
                 <div class="task-error" v-if="task.status === 'failed' && task.err_msg">
-                  <i class="iconfont icon-cuowu mr-1"></i>
+                  <i class="iconfont icon-error !text-base mr-1"></i>
                   <span>{{ task.err_msg }}</span>
                 </div>
               </div>
@@ -344,7 +355,7 @@
             <div class="task-card-footer">
               <div class="task-actions">
                 <el-button
-                  v-if="task.status === 'completed'"
+                  v-if="task.status === 'success'"
                   size="small"
                   type="primary"
                   @click="preview3D(task)"
@@ -355,7 +366,7 @@
                 </el-button>
 
                 <el-button
-                  v-if="task.status === 'completed'"
+                  v-if="task.status === 'success'"
                   size="small"
                   type="success"
                   @click="downloadFile(task)"
@@ -375,17 +386,6 @@
                 >
                   <i class="iconfont icon-remove mr-1"></i>
                   删除
-                </el-button>
-
-                <el-button
-                  v-if="task.status === 'processing'"
-                  size="small"
-                  type="info"
-                  disabled
-                  class="action-btn processing-btn"
-                >
-                  <i class="iconfont icon-loading animate-spin mr-1"></i>
-                  处理中...
                 </el-button>
               </div>
             </div>
@@ -414,7 +414,7 @@
     </div>
 
     <!-- 3D预览弹窗 -->
-    <el-dialog v-model="previewVisible" title="3D模型预览" width="80%" :before-close="closePreview">
+    <el-dialog v-model="previewVisible" title="3D模型预览" fullscreen :before-close="closePreview">
       <div class="preview-container">
         <ThreeDPreview
           v-if="currentPreviewTask && currentPreviewTask.file_url"
@@ -487,7 +487,6 @@ const {
   getTaskCardClass,
   getPlatformIcon,
   getPlatformName,
-  getStatusIcon,
   getTaskPrompt,
   getTaskImageUrl,
   getTaskParams,

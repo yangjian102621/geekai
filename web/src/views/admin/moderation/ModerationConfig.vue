@@ -168,7 +168,7 @@
             <p class="text-sm text-gray-500 mt-2">检测结果仅供参考</p>
           </div>
 
-          <el-table :data="testResult.details" border stripe class="result-table">
+          <el-table :data="testResult.details" border class="result-table">
             <el-table-column prop="category" label="类别" width="120">
               <template #default="{ row }">
                 <span class="font-medium">{{ row.category }}</span>

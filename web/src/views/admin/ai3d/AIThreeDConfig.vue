@@ -22,7 +22,6 @@
                     <el-input
                       v-model="configs.tencent.secret_id"
                       placeholder="请输入腾讯云SecretId"
-                      show-password
                     />
                   </el-form-item>
 
@@ -30,7 +29,6 @@
                     <el-input
                       v-model="configs.tencent.secret_key"
                       placeholder="请输入腾讯云SecretKey"
-                      show-password
                     />
                   </el-form-item>
 
@@ -132,11 +130,7 @@
                 <h4>秘钥配置</h4>
                 <el-form :model="configs.gitee" label-width="140px" label-position="top">
                   <el-form-item label="API密钥">
-                    <el-input
-                      v-model="configs.gitee.api_key"
-                      placeholder="请输入Gitee API密钥"
-                      show-password
-                    />
+                    <el-input v-model="configs.gitee.api_key" placeholder="请输入Gitee API密钥" />
                   </el-form-item>
 
                   <el-form-item label="启用状态">

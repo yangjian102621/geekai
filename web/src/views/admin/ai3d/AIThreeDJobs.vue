@@ -13,7 +13,7 @@
             <el-option label="全部" value="" />
             <el-option label="等待中" value="pending" />
             <el-option label="处理中" value="processing" />
-            <el-option label="已完成" value="completed" />
+            <el-option label="已完成" value="success" />
             <el-option label="失败" value="failed" />
           </el-select>
         </el-form-item>
@@ -73,7 +73,7 @@
               <i class="iconfont icon-check"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.completed }}</div>
+              <div class="stat-number">{{ stats.success }}</div>
               <div class="stat-label">已完成</div>
             </div>
           </div>
@@ -94,8 +94,8 @@
 
     <!-- 任务列表 -->
     <div class="table-section w-full">
-      <el-table :data="taskList" v-loading="loading" stripe border style="width: 100%">
-        <el-table-column prop="user_id" label="用户ID" />
+      <el-table :data="taskList" v-loading="loading" border style="width: 100%">
+        <el-table-column prop="user_id" label="用户ID" width="80" />
         <el-table-column prop="type" label="平台">
           <template #default="{ row }">
             <el-tag :type="row.type === 'gitee' ? 'success' : 'primary'">
@@ -103,7 +103,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="model" label="模型格式" />
+        <el-table-column prop="model" label="模型名称" />
+        <el-table-column label="模型格式">
+          <template #default="{ row }">
+            {{ row.params.file_format }}
+          </template>
+        </el-table-column>
         <el-table-column prop="power" label="算力消耗" />
         <el-table-column prop="status" label="状态">
           <template #default="{ row }">
@@ -114,17 +119,26 @@
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间">
           <template #default="{ row }">
-            {{ formatTime(row.created_at) }}
+            {{ dateFormat(row.created_at) }}
           </template>
         </el-table-column>
         <el-table-column prop="updated_at" label="更新时间">
           <template #default="{ row }">
-            {{ formatTime(row.updated_at) }}
+            {{ dateFormat(row.updated_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="viewTask(row)">查看</el-button>
+            <el-button
+              size="small"
+              type="primary"
+              plain
+              v-if="row.status === 'success'"
+              @click="openModelPreview(row)"
+            >
+              预览模型
+            </el-button>
             <el-button size="small" type="danger" @click="deleteTask(row.id)"> 删除 </el-button>
           </template>
         </el-table-column>
@@ -160,7 +174,7 @@
               {{ currentTask.type === 'gitee' ? '魔力方舟' : '腾讯混元' }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="模型格式">{{ currentTask.model }}</el-descriptions-item>
+          <el-descriptions-item label="模型名称">{{ currentTask.model }}</el-descriptions-item>
           <el-descriptions-item label="算力消耗">{{ currentTask.power }}</el-descriptions-item>
           <el-descriptions-item label="任务状态">
             <el-tag :type="getStatusType(currentTask.status)">
@@ -168,24 +182,31 @@
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="创建时间">{{
-            formatTime(currentTask.created_at)
+            dateFormat(currentTask.created_at)
           }}</el-descriptions-item>
           <el-descriptions-item label="更新时间">{{
-            formatTime(currentTask.updated_at)
+            dateFormat(currentTask.updated_at)
           }}</el-descriptions-item>
         </el-descriptions>
 
         <div class="task-params">
           <h4>任务参数</h4>
-          <el-input v-model="taskParamsDisplay" type="textarea" :rows="6" readonly />
+          <div class="params-content">
+            <pre>{{ JSON.stringify(currentTask.params, null, 2) }}</pre>
+          </div>
         </div>
 
-        <div v-if="currentTask.img_url" class="task-result">
+        <div v-if="currentTask.img_url || currentTask.file_url" class="task-result">
           <h4>生成结果</h4>
           <div class="result-links">
             <el-button type="primary" @click="downloadModel(currentTask)"> 下载3D模型 </el-button>
-            <el-button v-if="currentTask.preview_url" @click="viewPreview(currentTask.preview_url)">
-              查看预览
+            <el-button
+              v-if="currentTask.file_url"
+              type="success"
+              plain
+              @click="openModelPreview(currentTask)"
+            >
+              预览模型
             </el-button>
           </div>
         </div>
@@ -203,19 +224,40 @@
       </template>
     </el-dialog>
 
-    <!-- 预览图片弹窗 -->
-    <el-dialog v-model="previewVisible" title="预览图片" width="50%">
-      <div class="preview-container">
-        <el-image :src="previewUrl" fit="contain" style="width: 100%; height: 400px" />
+    <!-- 3D 模型预览弹窗 -->
+    <el-dialog
+      v-model="modelPreviewVisible"
+      :class="['model-preview-dialog', { dark: isDarkTheme }]"
+      title="模型预览"
+      fullscreen
+      destroy-on-close
+    >
+      <div class="model-preview-wrapper">
+        <ThreeDPreview :model-url="modelPreviewUrl" />
       </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button
+            type="primary"
+            @click="downloadModel(currentTask)"
+            :loading="currentTask.downloading"
+          >
+            下载3D模型
+          </el-button>
+          <el-button @click="modelPreviewVisible = false">关闭</el-button>
+        </span>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { httpGet } from '@/utils/http'
+import ThreeDPreview from '@/components/ThreeDPreview.vue'
+import { showMessageError } from '@/utils/dialog'
+import { httpDownload, httpGet } from '@/utils/http'
+import { dateFormat, replaceImg } from '@/utils/libs'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 // 响应式数据
 const loading = ref(false)
@@ -224,9 +266,17 @@ const pageSize = ref(20)
 const total = ref(0)
 const taskList = ref([])
 const taskDetailVisible = ref(false)
-const previewVisible = ref(false)
-const currentTask = ref(null)
+const currentTask = ref({
+  downloading: false,
+})
 const previewUrl = ref('')
+// 3D 预览
+const modelPreviewVisible = ref(false)
+const modelPreviewUrl = ref('')
+// 简单检测暗色主题（若全局有主题管理可替换）
+const isDarkTheme = ref(
+  document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')
+)
 
 // 搜索表单
 const searchForm = reactive({
@@ -241,18 +291,6 @@ const stats = reactive({
   processing: 0,
   completed: 0,
   failed: 0,
-})
-
-// 计算属性
-const taskParamsDisplay = computed(() => {
-  if (!currentTask.value?.params) return '无参数'
-
-  try {
-    const params = JSON.parse(currentTask.value.params)
-    return JSON.stringify(params, null, 2)
-  } catch {
-    return currentTask.value.params
-  }
 })
 
 // 方法
@@ -276,7 +314,7 @@ const loadData = async () => {
     const response = await httpGet('/api/admin/ai3d/jobs', params)
 
     if (response.code === 0) {
-      taskList.value = response.data.list
+      taskList.value = response.data.items
       total.value = response.data.total
     } else {
       ElMessage.error(response.message || '加载数据失败')
@@ -364,31 +402,46 @@ const deleteTask = async (taskId) => {
   }
 }
 
-const downloadModel = (task) => {
-  if (task.img_url) {
+const downloadModel = async (task) => {
+  const url = replaceImg(task.file_url)
+  const downloadURL = `/api/download?url=${url}`
+  const urlObj = new URL(url)
+  const fileName = urlObj.pathname.split('/').pop()
+  task.downloading = true
+  try {
+    const response = await httpDownload(downloadURL)
+    const blob = new Blob([response.data])
     const link = document.createElement('a')
-    link.href = task.img_url
-    link.download = `3d_model_${task.id}.${task.model}`
-    link.style.display = 'none'
+    link.href = URL.createObjectURL(blob)
+    link.download = fileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    ElMessage.success('开始下载3D模型')
-  } else {
-    ElMessage.warning('模型文件不存在')
+    URL.revokeObjectURL(link.href)
+    task.downloading = false
+  } catch (error) {
+    showMessageError('下载失败:' + error.message)
+    task.downloading = false
   }
 }
 
-const viewPreview = (url) => {
-  previewUrl.value = url
-  previewVisible.value = true
+const openModelPreview = (task) => {
+  // 优先使用文件直链，后端下载代理也可拼接
+  const url = task.file_url
+  if (!url) {
+    ElMessage.warning('暂无可预览的模型文件')
+    return
+  }
+  currentTask.value = task
+  modelPreviewUrl.value = url
+  modelPreviewVisible.value = true
 }
 
 const getStatusType = (status) => {
   const typeMap = {
     pending: 'warning',
     processing: 'primary',
-    completed: 'success',
+    success: 'success',
     failed: 'danger',
   }
   return typeMap[status] || 'info'
@@ -398,22 +451,10 @@ const getStatusText = (status) => {
   const textMap = {
     pending: '等待中',
     processing: '处理中',
-    completed: '已完成',
+    success: '已完成',
     failed: '失败',
   }
   return textMap[status] || status
-}
-
-const getProgressStatus = (status) => {
-  if (status === 'failed') return 'exception'
-  if (status === 'completed') return 'success'
-  return ''
-}
-
-const formatTime = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(timestamp * 1000)
-  return date.toLocaleString()
 }
 
 // 生命周期
@@ -424,128 +465,5 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.admin-threed-jobs {
-  padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-
-  h2 {
-    margin: 0;
-    color: #333;
-  }
-}
-
-.search-section {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  .el-form-item {
-    margin-bottom: 0;
-    .el-select__wrapper {
-      height: 36px;
-      line-height: 36px;
-    }
-  }
-}
-
-.stats-section {
-  margin-bottom: 20px;
-
-  .stat-card {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      i {
-        font-size: 24px;
-        color: white;
-      }
-
-      &.pending {
-        background: #e6a23c;
-      }
-
-      &.processing {
-        background: #409eff;
-      }
-
-      &.completed {
-        background: #67c23a;
-      }
-
-      &.failed {
-        background: #f56c6c;
-      }
-    }
-
-    .stat-content {
-      .stat-number {
-        font-size: 24px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 4px;
-      }
-
-      .stat-label {
-        font-size: 14px;
-        color: #666;
-      }
-    }
-  }
-}
-
-.table-section {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.pagination-section {
-  padding: 20px;
-  text-align: center;
-}
-
-.task-detail {
-  .task-params,
-  .task-result,
-  .task-error {
-    margin-top: 20px;
-
-    h4 {
-      margin: 0 0 12px 0;
-      color: #333;
-      font-size: 16px;
-    }
-  }
-
-  .result-links {
-    display: flex;
-    gap: 12px;
-  }
-}
-
-.preview-container {
-  text-align: center;
-}
+@use '@/assets/css/admin/ai3d.scss' as *;
 </style>

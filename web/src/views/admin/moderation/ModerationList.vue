@@ -83,7 +83,6 @@
         :data="tableData"
         v-loading="loading"
         @selection-change="handleSelectionChange"
-        stripe
         border
         style="width: 100%"
       >

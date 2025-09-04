@@ -16,36 +16,43 @@ type Gitee3DClient struct {
 }
 
 type Gitee3DParams struct {
-	Prompt       string `json:"prompt"`        // 文本提示词
-	ImageURL     string `json:"image_url"`     // 输入图片URL
-	ResultFormat string `json:"result_format"` // 输出格式
+	Model             string  `json:"model"`                         // 模型名称
+	FileFormat        string  `json:"file_format,omitempty"`         // 文件格式(Step1X-3D、Hi3DGen模型适用)，支持 glb 和 stl
+	Type              string  `json:"type,omitempty"`                // 输出格式(Hunyuan3D-2模型适用)
+	ImageURL          string  `json:"image_url"`                     // 输入图片URL
+	Texture           bool    `json:"texture,omitempty"`             // 是否开启纹理
+	Seed              int     `json:"seed,omitempty"`                // 随机种子
+	NumInferenceSteps int     `json:"num_inference_steps,omitempty"` //迭代次数
+	GuidanceScale     float64 `json:"guidance_scale,omitempty"`      //引导系数
+	OctreeResolution  int     `json:"octree_resolution,omitempty"`   // 3D 渲染精度，越高3D 细节越丰富
 }
 
 type Gitee3DResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    struct {
-		TaskID string `json:"task_id"`
-	} `json:"data"`
+	TaskID string `json:"task_id"`
+	Output struct {
+		FileURL    string `json:"file_url,omitempty"`
+		PreviewURL string `json:"preview_url,omitempty"`
+	} `json:"output"`
+	Status      string `json:"status"`
+	CreatedAt   any    `json:"created_at"`
+	StartedAt   any    `json:"started_at"`
+	CompletedAt any    `json:"completed_at"`
+	Urls        struct {
+		Get    string `json:"get"`
+		Cancel string `json:"cancel"`
+	} `json:"urls"`
 }
 
-type Gitee3DQueryResponse struct {
-	Code    int    `json:"code"`
+type GiteeErrorResponse struct {
+	Error   int    `json:"error"`
 	Message string `json:"message"`
-	Data    struct {
-		Status     string `json:"status"`
-		Progress   int    `json:"progress"`
-		ResultURL  string `json:"result_url"`
-		PreviewURL string `json:"preview_url"`
-		ErrorMsg   string `json:"error_msg"`
-	} `json:"data"`
 }
 
 func NewGitee3DClient(sysConfig *types.SystemConfig) *Gitee3DClient {
 	return &Gitee3DClient{
 		httpClient: req.C().SetTimeout(time.Minute * 3),
 		config:     sysConfig.AI3D.Gitee,
-		apiURL:     "https://ai.gitee.com/v1/async/image-to-3d",
+		apiURL:     "https://ai.gitee.com/v1",
 	}
 }
 
@@ -53,73 +60,62 @@ func (c *Gitee3DClient) UpdateConfig(config types.Gitee3DConfig) {
 	c.config = config
 }
 
+func (c *Gitee3DClient) GetConfig() *types.Gitee3DConfig {
+	return &c.config
+}
+
 // SubmitJob 提交3D生成任务
 func (c *Gitee3DClient) SubmitJob(params Gitee3DParams) (string, error) {
-	requestBody := map[string]any{
-		"prompt":        params.Prompt,
-		"image_url":     params.ImageURL,
-		"result_format": params.ResultFormat,
-	}
 
+	var giteeResp Gitee3DResponse
 	response, err := c.httpClient.R().
 		SetHeader("Authorization", "Bearer "+c.config.APIKey).
 		SetHeader("Content-Type", "application/json").
-		SetBody(requestBody).
+		SetBody(params).
+		SetSuccessResult(&giteeResp).
 		Post(c.apiURL + "/async/image-to-3d")
 
 	if err != nil {
 		return "", fmt.Errorf("failed to submit gitee 3D job: %v", err)
 	}
 
-	var giteeResp Gitee3DResponse
-	if err := json.Unmarshal(response.Bytes(), &giteeResp); err != nil {
-		return "", fmt.Errorf("failed to parse gitee response: %v", err)
+	if giteeResp.TaskID == "" {
+		var giteeErr GiteeErrorResponse
+		_ = json.Unmarshal(response.Bytes(), &giteeErr)
+		return "", fmt.Errorf("no task ID returned from gitee 3D API: %s", giteeErr.Message)
 	}
 
-	if giteeResp.Code != 0 {
-		return "", fmt.Errorf("gitee API error: %s", giteeResp.Message)
-	}
-
-	if giteeResp.Data.TaskID == "" {
-		return "", fmt.Errorf("no task ID returned from gitee 3D API")
-	}
-
-	return giteeResp.Data.TaskID, nil
+	return giteeResp.TaskID, nil
 }
 
 // QueryJob 查询任务状态
 func (c *Gitee3DClient) QueryJob(taskId string) (*types.AI3DJobResult, error) {
+	var giteeResp Gitee3DResponse
+	apiURL := fmt.Sprintf("%s/task/%s", c.apiURL, taskId)
 	response, err := c.httpClient.R().
 		SetHeader("Authorization", "Bearer "+c.config.APIKey).
-		Get(fmt.Sprintf("%s/task/%s/get", c.apiURL, taskId))
+		SetSuccessResult(&giteeResp).
+		Get(apiURL)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to query gitee 3D job: %v", err)
 	}
 
-	var giteeResp Gitee3DQueryResponse
-	if err := json.Unmarshal(response.Bytes(), &giteeResp); err != nil {
-		return nil, fmt.Errorf("failed to parse gitee query response: %v", err)
-	}
-
-	if giteeResp.Code != 0 {
-		return nil, fmt.Errorf("gitee API error: %s", giteeResp.Message)
-	}
-
 	result := &types.AI3DJobResult{
-		JobId:    taskId,
-		Status:   c.convertStatus(giteeResp.Data.Status),
-		Progress: giteeResp.Data.Progress,
+		TaskId: taskId,
+		Status: c.convertStatus(giteeResp.Status),
 	}
 
-	// 根据状态设置结果
-	switch giteeResp.Data.Status {
-	case "completed":
-		result.FileURL = giteeResp.Data.ResultURL
-		result.PreviewURL = giteeResp.Data.PreviewURL
-	case "failed":
-		result.ErrorMsg = giteeResp.Data.ErrorMsg
+	if giteeResp.TaskID == "" {
+		var giteeErr GiteeErrorResponse
+		_ = json.Unmarshal(response.Bytes(), &giteeErr)
+		result.ErrorMsg = giteeErr.Message
+	} else if giteeResp.Status == "success" {
+		result.FileURL = giteeResp.Output.FileURL
 	}
+	result.RawData = string(response.Bytes())
+
+	logger.Debugf("gitee 3D job response: %+v", result)
 
 	return result, nil
 }
@@ -127,13 +123,13 @@ func (c *Gitee3DClient) QueryJob(taskId string) (*types.AI3DJobResult, error) {
 // convertStatus 转换Gitee状态到系统状态
 func (c *Gitee3DClient) convertStatus(giteeStatus string) string {
 	switch giteeStatus {
-	case "pending":
+	case "waiting":
 		return types.AI3DJobStatusPending
-	case "processing":
+	case "in_progress":
 		return types.AI3DJobStatusProcessing
-	case "completed":
-		return types.AI3DJobStatusCompleted
-	case "failed":
+	case "success":
+		return types.AI3DJobStatusSuccess
+	case "failure", "cancelled":
 		return types.AI3DJobStatusFailed
 	default:
 		return types.AI3DJobStatusPending

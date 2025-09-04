@@ -6,11 +6,18 @@
   "description": "",
   "glyphs": [
     {
-      "icon_id": "34453337",
-      "name": "3D会场",
+      "icon_id": "544492",
+      "name": "cube",
       "font_class": "cube",
-      "unicode": "e876",
-      "unicode_decimal": 59510
+      "unicode": "e72c",
+      "unicode_decimal": 59180
+    },
+    {
+      "icon_id": "5072110",
+      "name": "tag",
+      "font_class": "tag",
+      "unicode": "e657",
+      "unicode_decimal": 58967
     },
     {
       "icon_id": "3547761",
@@ -64,7 +71,7 @@
     {
       "icon_id": "25677845",
       "name": "算力",
-      "font_class": "suanli",
+      "font_class": "power",
       "unicode": "e651",
       "unicode_decimal": 58961
     },

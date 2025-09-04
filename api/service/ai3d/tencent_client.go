@@ -3,6 +3,7 @@ package ai3d
 import (
 	"fmt"
 	"geekai/core/types"
+	"geekai/utils"
 
 	tencent3d "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d/v20250513"
 	tencentcloud "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
@@ -58,6 +59,10 @@ func (c *Tencent3DClient) UpdateConfig(config types.Tencent3DConfig) error {
 	return nil
 }
 
+func (c *Tencent3DClient) GetConfig() *types.Tencent3DConfig {
+	return &c.config
+}
+
 // SubmitJob 提交3D生成任务
 func (c *Tencent3DClient) SubmitJob(params Tencent3DParams) (string, error) {
 	request := tencent3d.NewSubmitHunyuanTo3DJobRequest()
@@ -111,41 +116,38 @@ func (c *Tencent3DClient) QueryJob(jobId string) (*types.AI3DJobResult, error) {
 	}
 
 	result := &types.AI3DJobResult{
-		JobId:    jobId,
-		Status:   *response.Response.Status,
-		Progress: 0,
+		TaskId: jobId,
 	}
 
 	// 根据状态设置进度
 	switch *response.Response.Status {
 	case "WAIT":
-		result.Status = "pending"
-		result.Progress = 10
+		result.Status = types.AI3DJobStatusPending
 	case "RUN":
-		result.Status = "processing"
-		result.Progress = 50
+		result.Status = types.AI3DJobStatusProcessing
 	case "DONE":
-		result.Status = "completed"
-		result.Progress = 100
+		result.Status = types.AI3DJobStatusSuccess
 		// 处理结果文件
 		if len(response.Response.ResultFile3Ds) > 0 {
-			for _, file := range response.Response.ResultFile3Ds {
-				if file.Url != nil {
-					result.FileURL = *file.Url
-				}
-				if file.PreviewImageUrl != nil {
-					result.PreviewURL = *file.PreviewImageUrl
-				}
-				// TODO 取第一个文件
+			// 取第一个文件
+			file := response.Response.ResultFile3Ds[0]
+			if file.Url != nil {
+				result.FileURL = *file.Url
+			}
+			if file.PreviewImageUrl != nil {
+				result.PreviewURL = *file.PreviewImageUrl
 			}
 		}
 	case "FAIL":
-		result.Status = "failed"
-		result.Progress = 0
+		result.Status = types.AI3DJobStatusFailed
 		if response.Response.ErrorMessage != nil {
 			result.ErrorMsg = *response.Response.ErrorMessage
 		}
 	}
+
+	logger.Debugf("tencent 3D job result: %+v", *response.Response)
+
+	result.RawData = utils.JsonEncode(response.Response)
 
 	return result, nil
 }

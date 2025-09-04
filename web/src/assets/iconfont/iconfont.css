@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1756786244728') format('woff2'),
-       url('iconfont.woff?t=1756786244728') format('woff'),
-       url('iconfont.ttf?t=1756786244728') format('truetype');
+  src: url('iconfont.woff2?t=1756954977612') format('woff2'),
+       url('iconfont.woff?t=1756954977612') format('woff'),
+       url('iconfont.ttf?t=1756954977612') format('truetype');
 }
 
 .iconfont {
@@ -14,7 +14,11 @@
 }
 
 .icon-cube:before {
-  content: "\e876";
+  content: "\e72c";
+}
+
+.icon-tag:before {
+  content: "\e657";
 }
 
 .icon-tencent:before {
@@ -45,7 +49,7 @@
   content: "\e652";
 }
 
-.icon-suanli:before {
+.icon-power:before {
   content: "\e651";
 }
 

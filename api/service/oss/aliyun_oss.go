@@ -32,11 +32,9 @@ func NewAliYunOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*A
 	s := &AliYunOss{
 		proxyURL: appConfig.ProxyURL,
 	}
-	if sysConfig.OSS.Active == AliYun {
-		err := s.UpdateConfig(sysConfig.OSS.AliYun)
-		if err != nil {
-			logger.Errorf("阿里云OSS初始化失败: %v", err)
-		}
+	err := s.UpdateConfig(sysConfig.OSS.AliYun)
+	if err != nil {
+		logger.Warnf("阿里云OSS初始化失败: %v", err)
 	}
 	return s, nil
 

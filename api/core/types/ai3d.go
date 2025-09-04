@@ -31,12 +31,12 @@ const (
 
 // AI3DJobResult 3D任务结果
 type AI3DJobResult struct {
-	JobId      string `json:"job_id"`      // 任务ID
+	TaskId     string `json:"task_id"`     // 任务ID
 	Status     string `json:"status"`      // 任务状态
-	Progress   int    `json:"progress"`    // 任务进度 (0-100)
 	FileURL    string `json:"file_url"`    // 3D模型文件URL
 	PreviewURL string `json:"preview_url"` // 预览图片URL
 	ErrorMsg   string `json:"error_msg"`   // 错误信息
+	RawData    string `json:"raw_data"`    // 原始数据
 }
 
 // AI3DModel 3D模型配置
@@ -60,6 +60,6 @@ type AI3DJobRequest struct {
 const (
 	AI3DJobStatusPending    = "pending"    // 等待中
 	AI3DJobStatusProcessing = "processing" // 处理中
-	AI3DJobStatusCompleted  = "completed"  // 已完成
+	AI3DJobStatusSuccess    = "success"    // 已完成
 	AI3DJobStatusFailed     = "failed"     // 失败
 )
