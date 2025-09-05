@@ -217,7 +217,7 @@
           <div class="detail-item">
             <label class="block text-sm font-medium text-gray-700 mb-2">审核结果</label>
             <div class="bg-gray-50 p-3 rounded">
-              <div class="flex flex-col space-y-2">
+              <div class="flex flex-col !items-start space-y-2">
                 <el-tag
                   type="primary"
                   size="small"

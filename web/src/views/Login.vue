@@ -33,11 +33,14 @@
           <login-dialog :show="true" @success="handleLoginSuccess" ref="loginDialogRef" />
         </div>
       </div>
+
+      <footer-bar />
     </div>
   </div>
 </template>
 
 <script setup>
+import FooterBar from '@/components/FooterBar.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
 import { setUserToken } from '@/store/session'
 import { isMobile } from '@/utils/libs'

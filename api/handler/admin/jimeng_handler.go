@@ -259,25 +259,28 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	// 保存配置
 	tx := h.DB.Begin()
 	value := utils.JsonEncode(&req)
-	config := model.Config{Name: types.ConfigKeyJimeng, Value: value}
+	var exist model.Config
+	tx.Where("name", types.ConfigKeyJimeng).First(&exist)
 
-	err := tx.FirstOrCreate(&config).Error
-	if err != nil {
-		resp.ERROR(c, "保存配置失败: "+err.Error())
-		return
-	}
-
-	if config.Id > 0 {
-		config.Value = value
-		err = tx.Updates(&config).Error
+	if exist.Id > 0 {
+		exist.Value = value
+		err := tx.Updates(&exist).Error
 		if err != nil {
 			resp.ERROR(c, "更新配置失败: "+err.Error())
+			return
+		}
+	} else {
+		exist.Name = types.ConfigKeyJimeng
+		exist.Value = value
+		err := tx.Create(&exist).Error
+		if err != nil {
+			resp.ERROR(c, "创建配置失败: "+err.Error())
 			return
 		}
 	}
 
 	// 更新服务中的客户端配置
-	err = h.jimengClient.UpdateConfig(req)
+	err := h.jimengClient.UpdateConfig(req)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		tx.Rollback()

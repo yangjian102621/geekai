@@ -72,12 +72,12 @@
             <el-input v-model="system['copyright']" placeholder="更改此选项需要获取 License 授权" />
           </el-form-item>
 
-          <el-form-item label="默认昵称" prop="default_nickname">
-            <el-input v-model="system['default_nickname']" placeholder="默认昵称" />
-          </el-form-item>
-
           <el-form-item label="ICP 备案号" prop="icp">
             <el-input v-model="system['icp']" placeholder="请输入 ICP 备案号" />
+          </el-form-item>
+
+          <el-form-item label="公安备案号" prop="ga_beian">
+            <el-input v-model="system['ga_beian']" placeholder="请输入公安备案号" />
           </el-form-item>
 
           <el-form-item>
@@ -165,14 +165,19 @@
             <el-input type="textarea" :rows="2" v-model="system['sd_neg_prompt']" placeholder="" />
           </el-form-item>
 
-          <el-form-item label="会员充值说明" prop="vip_info_text">
+          <el-form-item label="订单支付超时时间" prop="order_pay_timeout">
             <template #label>
               <div class="label-title">
-                会员充值说明
-                <span class="text-xs text-gray-500">（会员充值页面的充值说明文字）</span>
+                订单支付超时时间
+                <span class="text-xs text-gray-500">（订单支付超时时间，单位：分钟）</span>
               </div>
             </template>
-            <el-input type="textarea" :rows="2" v-model="system['vip_info_text']" placeholder="" />
+            <el-input-number
+              :min="5"
+              :max="30"
+              v-model.number="system['order_pay_timeout']"
+              placeholder="单位：分钟"
+            />
           </el-form-item>
 
           <el-form-item label="MJ默认API模式" prop="mj_mode">

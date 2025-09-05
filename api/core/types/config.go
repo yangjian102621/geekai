@@ -67,8 +67,7 @@ type BaseConfig struct {
 	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机（mobile），邮箱注册（email），账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
-	OrderPayTimeout int    `json:"order_pay_timeout,omitempty"` //订单支付超时时间
-	VipInfoText     string `json:"vip_info_text,omitempty"`     // 会员页面充值说明
+	OrderPayTimeout int `json:"order_pay_timeout,omitempty"` //订单支付超时时间，单位：分钟
 
 	InitPower         int            `json:"init_power,omitempty"`          // 新用户注册赠送算力值
 	DailyPower        int            `json:"daily_power,omitempty"`         // 每日签到赠送算力
@@ -89,10 +88,10 @@ type BaseConfig struct {
 	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
 	MjMode      string `json:"mj_mode"`       // midjourney 默认的API模式，relax, fast, turbo
 
-	IndexNavs       []int  `json:"index_navs"`       // 首页显示的导航菜单
-	Copyright       string `json:"copyright"`        // 版权信息
-	DefaultNickname string `json:"default_nickname"` // 默认昵称
-	ICP             string `json:"icp"`              // ICP 备案号
+	IndexNavs []int  `json:"index_navs"` // 首页显示的导航菜单
+	Copyright string `json:"copyright"`  // 版权信息
+	ICP       string `json:"icp"`        // ICP 备案号
+	GaBeian   string `json:"ga_beian"`   // 公安备案号
 
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
 	AssistantModelId int      `json:"assistant_model_id"` // 用来做提示词,翻译的AI模型 id

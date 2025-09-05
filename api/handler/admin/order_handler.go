@@ -129,8 +129,8 @@ func (h *OrderHandler) Clear(c *gin.Context) {
 	}
 	deleteIds := make([]uint, 0)
 	for _, order := range orders {
-		// 只删除 5 分钟内的未支付订单
-		if time.Now().After(order.CreatedAt.Add(time.Minute * 5)) {
+		// 只删除超时的未支付订单
+		if time.Now().After(order.CreatedAt.Add(time.Minute * time.Duration(h.App.SysConfig.Base.OrderPayTimeout))) {
 			deleteIds = append(deleteIds, order.Id)
 		}
 	}

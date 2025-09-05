@@ -1,15 +1,30 @@
 <template>
   <div class="foot-container">
-    <div class="footer">
+    <div class="footer text-base">
       <div>
         <a :href="gitURL" target="_blank">
           {{ title }} -
           {{ version }}
         </a>
       </div>
-      <div>
+      <div class="flex justify-center text-sm">
         <span class="mr-2">{{ copyRight }}</span>
-        <a href="https://beian.miit.gov.cn" target="_blank">{{ icp }}</a>
+      </div>
+      <div class="flex justify-center text-sm">
+        <a href="https://beian.miit.gov.cn" target="_blank">ICP备案：{{ icp }}</a>
+        <span>|</span>
+        <img
+          src="https://inews.gtimg.com/newsapp_bt/0/0613150938895_706/0"
+          class="w-4 h-4 mx-1"
+          alt="beian"
+        />
+        <a
+          :href="`http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${getCodeNum(
+            gaBeian
+          )}`"
+          target="_blank"
+          >{{ gaBeian }}</a
+        >
       </div>
     </div>
   </div>
@@ -24,6 +39,7 @@ const version = ref(import.meta.env.VITE_VERSION)
 const gitURL = ref(import.meta.env.VITE_GITHUB_URL)
 const copyRight = ref('')
 const icp = ref('')
+const gaBeian = ref('')
 const license = ref({})
 const props = defineProps({
   textColor: {
@@ -42,6 +58,7 @@ getSystemInfo()
       new Date().getFullYear() +
       ' All rights reserved'
     icp.value = res.data.icp
+    gaBeian.value = res.data.ga_beian
   })
   .catch((e) => {
     showMessageError('获取系统配置失败：' + e.message)
@@ -54,6 +71,16 @@ getLicenseInfo()
   .catch((e) => {
     showMessageError('获取 License 失败：' + e.message)
   })
+
+// 获取公安备案号
+const getCodeNum = (code) => {
+  // 提取数字
+  const num = code.match(/\d+/)
+  if (num) {
+    return num[0]
+  }
+  return ''
+}
 </script>
 
 <style scoped lang="scss">
@@ -64,7 +91,7 @@ getLicenseInfo()
   width: 100%;
   display: flex;
   justify-content: center;
-  background: var(--theme-bg);
+  // background: var(--theme-bg);
   margin-top: -4px;
 
   .footer {
