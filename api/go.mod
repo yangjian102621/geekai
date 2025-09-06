@@ -33,8 +33,6 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	github.com/syndtr/goleveldb v1.0.0
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.0
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.21
 	golang.org/x/image v0.15.0
 )
 

@@ -107,7 +107,6 @@ type SystemConfig struct {
 	Captcha    CaptchaConfig
 	WxLogin    WxLoginConfig
 	Jimeng     JimengConfig
-	AI3D       AI3DConfig
 	License    License
 	Moderation ModerationConfig
 }

@@ -166,15 +166,6 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		logger.Error("load jimeng config error: ", err)
 	}
 
-	// 加载3D生成配置
-	var ai3dConfig types.AI3DConfig
-	sysConfig.Id = 0
-	db.Where("name", types.ConfigKeyAI3D).First(&sysConfig)
-	err = utils.JsonDecode(sysConfig.Value, &ai3dConfig)
-	if err != nil {
-		logger.Error("load ai3d config error: ", err)
-	}
-
 	return &types.SystemConfig{
 		Base:       baseConfig,
 		License:    license,
@@ -186,6 +177,5 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		WxLogin:    wxLoginConfig,
 		Moderation: moderationConfig,
 		Jimeng:     jimengConfig,
-		AI3D:       ai3dConfig,
 	}
 }

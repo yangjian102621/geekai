@@ -179,23 +179,6 @@ const items = [
       },
     ],
   },
-  {
-    icon: 'cube',
-    index: '/admin/ai3d',
-    title: '3D生成',
-    subs: [
-      {
-        icon: 'list',
-        index: '/admin/ai3d/jobs',
-        title: '任务管理',
-      },
-      {
-        icon: 'config',
-        index: '/admin/ai3d/config',
-        title: '配置管理',
-      },
-    ],
-  },
 
   {
     icon: 'moderation',

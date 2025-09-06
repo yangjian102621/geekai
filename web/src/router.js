@@ -93,18 +93,6 @@ const routes = [
         component: () => import('@/views/Suno.vue'),
       },
       {
-        name: 'ai3d',
-        path: '/ai3d',
-        meta: { title: 'AI3D模型生成' },
-        component: () => import('@/views/AIThreeDCreate.vue'),
-      },
-      {
-        name: 'test3d',
-        path: '/test3d',
-        meta: { title: '3D预览测试' },
-        component: () => import('@/views/test/Test3D.vue'),
-      },
-      {
         name: 'ExternalLink',
         path: '/external',
         component: () => import('@/views/ExternalPage.vue'),
@@ -355,18 +343,6 @@ const routes = [
         component: () => import('@/views/admin/jimeng/JimengConfig.vue'),
       },
       {
-        path: '/admin/ai3d/jobs',
-        name: 'admin-ai3d-jobs',
-        meta: { title: '3D任务管理' },
-        component: () => import('@/views/admin/ai3d/AIThreeDJobs.vue'),
-      },
-      {
-        path: '/admin/ai3d/config',
-        name: 'admin-ai3d-config',
-        meta: { title: '3D配置管理' },
-        component: () => import('@/views/admin/ai3d/AIThreeDConfig.vue'),
-      },
-      {
         path: '/admin/powerLog',
         name: 'admin-power-log',
         meta: { title: '算力日志' },
@@ -477,12 +453,6 @@ const routes = [
         path: '/mobile/jimeng',
         name: 'mobile-jimeng',
         component: () => import('@/views/mobile/JimengCreate.vue'),
-      },
-      {
-        path: '/mobile/3d',
-        name: 'mobile-3d',
-        meta: { title: '3D模型生成' },
-        component: () => import('@/views/AIThreeDCreate.vue'),
       },
     ],
   },

@@ -154,24 +154,6 @@ func (s *MigrationService) MigrateConfigContent() error {
 		return fmt.Errorf("迁移配置内容失败: %v", err)
 	}
 
-	// 3D生成配置
-	if err := s.saveConfig(types.ConfigKeyAI3D, map[string]any{
-		"tencent": map[string]any{
-			"access_key": "",
-			"secret_key": "",
-			"region":     "",
-			"enabled":    false,
-			"models":     make([]types.AI3DModel, 0),
-		},
-		"gitee": map[string]any{
-			"api_key": "",
-			"enabled": false,
-			"models":  make([]types.AI3DModel, 0),
-		},
-	}); err != nil {
-		return fmt.Errorf("迁移配置内容失败: %v", err)
-	}
-
 	return nil
 }
 
@@ -179,7 +161,6 @@ func (s *MigrationService) MigrateConfigContent() error {
 func (s *MigrationService) TableMigration() {
 	// 新数据表
 	s.db.AutoMigrate(&model.Moderation{})
-	s.db.AutoMigrate(&model.AI3DJob{})
 
 	// 订单字段整理
 	if s.db.Migrator().HasColumn(&model.Order{}, "pay_type") {
