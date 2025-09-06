@@ -13,11 +13,7 @@
       <div class="flex justify-center text-sm">
         <a href="https://beian.miit.gov.cn" target="_blank">ICP备案：{{ icp }}</a>
         <span>|</span>
-        <img
-          src="https://inews.gtimg.com/newsapp_bt/0/0613150938895_706/0"
-          class="w-4 h-4 mx-1"
-          alt="beian"
-        />
+        <img :src="gaBeianImg" class="w-4 h-4 mx-1" alt="beian" />
         <a
           :href="`http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${getCodeNum(
             gaBeian
@@ -47,6 +43,7 @@ const props = defineProps({
     default: '#ffffff',
   },
 })
+const gaBeianImg = ref('/images/ga_beian.png')
 
 // 获取系统配置
 getSystemInfo()
@@ -75,9 +72,13 @@ getLicenseInfo()
 // 获取公安备案号
 const getCodeNum = (code) => {
   // 提取数字
-  const num = code.match(/\d+/)
-  if (num) {
-    return num[0]
+  try {
+    const num = code.match(/\d+/)
+    if (num) {
+      return num[0]
+    }
+  } catch (e) {
+    return ''
   }
   return ''
 }
