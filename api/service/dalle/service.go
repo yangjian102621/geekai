@@ -201,10 +201,6 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 
 	var content string
 	if sync {
-		imgURL, err := s.downloadImage(task.Id, res.Data[0].Url)
-		if err != nil {
-			return "", fmt.Errorf("error with download image: %v", err)
-		}
 		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", task.Prompt, imgURL)
 	}
 
