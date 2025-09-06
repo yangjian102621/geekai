@@ -1,5 +1,5 @@
 <template>
-  <div class="notice-config container" v-loading="loading">
+  <div class="notice-config container flex flex-col" v-loading="loading">
     <md-editor class="mgb20" v-model="notice" :theme="store.theme" @on-upload-img="onUploadImg" />
     <div class="flex justify-center p-5">
       <el-button type="primary" @click="save">保存</el-button>

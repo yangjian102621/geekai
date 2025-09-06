@@ -122,11 +122,6 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="progress" label="进度" width="100">
-          <template #default="scope">
-            <el-progress :percentage="scope.row.progress" :stroke-width="4" />
-          </template>
-        </el-table-column>
         <el-table-column prop="power" label="算力" width="80" />
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template #default="scope">
@@ -177,9 +172,6 @@
               {{ getStatusName(detailDialog.data.status) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="进度"
-            >{{ detailDialog.data.progress }}%</el-descriptions-item
-          >
           <el-descriptions-item label="算力消耗">{{
             detailDialog.data.power
           }}</el-descriptions-item>

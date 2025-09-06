@@ -119,14 +119,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
 
   .el-dialog {
     margin: 0;
 
     .el-dialog__body {
-      //max-height 80vh
       overflow-y: auto;
+      max-height: calc(100vh - 100px);
     }
   }
 }

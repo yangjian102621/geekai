@@ -1,5 +1,5 @@
 <template>
-  <div class="agreement-config container" v-loading="loading">
+  <div class="agreement-config container flex flex-col" v-loading="loading">
     <md-editor
       class="mgb20"
       v-model="agreement"
