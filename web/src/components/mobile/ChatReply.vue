@@ -8,24 +8,40 @@
       <div class="triangle"></div>
       <div class="content-box" ref="contentRef">
         <div
+          v-if="content"
           :data-clipboard-text="orgContent"
           class="content content-mobile"
           v-html="content"
-          v-if="content"
         ></div>
+        <div v-else-if="error">
+          <div class="content content-mobile !text-red-500">{{ error }}</div>
+        </div>
         <div class="content content-mobile flex justify-start items-center" v-else>
           <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
         </div>
+      </div>
+
+      <!-- 操作按钮区域 -->
+      <div class="action-buttons" v-if="showActions && orgContent">
+        <van-button
+          size="mini"
+          type="primary"
+          plain
+          @click="handleRegenerate"
+          :disabled="isGenerating"
+        >
+          {{ isGenerating ? '生成中...' : '重新生成' }}
+        </van-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-
+import { computed, onMounted, ref } from 'vue'
 import { showImagePreview } from 'vant'
 import Thinking from '../Thinking.vue'
+
 const props = defineProps({
   content: {
     type: Object,
@@ -42,12 +58,37 @@ const props = defineProps({
     type: String,
     default: '/images/gpt-icon.png',
   },
+  showActions: {
+    type: Boolean,
+    default: true,
+  },
+  isGenerating: {
+    type: Boolean,
+    default: false,
+  },
+  messageId: {
+    type: [String, Number],
+    default: '',
+  },
+  error: {
+    type: String,
+    default: '',
+  },
 })
+
+const emits = defineEmits(['regenerate'])
 
 const content = computed(() => {
   return props.content.text
 })
+
 const contentRef = ref(null)
+
+// 处理重新生成
+const handleRegenerate = () => {
+  emits('regenerate', props.messageId)
+}
+
 onMounted(() => {
   const imgs = contentRef.value.querySelectorAll('img')
   for (let i = 0; i < imgs.length; i++) {
@@ -199,6 +240,17 @@ onMounted(() => {
           border-color: #026863;
           color: #2c3e50;
         }
+      }
+    }
+
+    .action-buttons {
+      margin-top: 8px;
+      padding-left: 5px;
+
+      .van-button {
+        font-size: 12px;
+        height: 24px;
+        padding: 0 8px;
       }
     }
   }

@@ -194,7 +194,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	}
 
 	if userVo.Power < input.ChatModel.Power {
-		return fmt.Errorf("您当前剩余算力 %d 已不足以支付当前模型的单次对话需要消耗的算力 %d，[立即购买](/member)。", userVo.Power, input.ChatModel.Power)
+		return fmt.Errorf("您的算力不足，请购买算力。")
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {

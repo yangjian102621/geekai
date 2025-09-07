@@ -789,6 +789,7 @@ const sendSSERequest = async (message) => {
             }
           }
 
+          // 回答完毕，更新完整的消息内容
           if (data.type === 'complete') {
             chatData.value[chatData.value.length - 1] = data.body
           }

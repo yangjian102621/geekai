@@ -20,8 +20,6 @@
         </template>
       </van-nav-bar>
 
-      <!-- 移除分享面板 -->
-
       <div class="chat-list-wrapper">
         <div id="message-list-box" :style="{ height: winHeight + 'px' }" class="message-list-box">
           <van-list
@@ -41,6 +39,11 @@
                 :content="item.content"
                 :icon="item.icon"
                 :org-content="item.orgContent"
+                :message-id="item.id"
+                :is-generating="isGenerating"
+                :show-actions="item.showAction"
+                :error="item.error"
+                @regenerate="handleRegenerate"
               />
             </van-cell>
           </van-list>
@@ -50,23 +53,21 @@
       <div class="chat-box-wrapper">
         <van-sticky ref="bottomBarRef" :offset-bottom="0" position="bottom">
           <van-cell-group inset style="--van-cell-background: var(--van-cell-background-light)">
-            <!-- <div class="flex flex-row p-2">
-              <file-list :files="[{ url: 'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png', name: 'test.png', ext: 'png', size: 1024 }]" />
-            </div> -->
-            <van-field v-model="prompt" center clearable placeholder="输入你的问题">
-              <template #left-icon>
-                <!-- <div class="flex flex-row">
-                  <span class="rounded-full size-6 flex items-center justify-center"><i class="iconfont icon-attachment-cl"></i></span>
-                </div> -->
-              </template>
-
+            <van-field
+              v-model="prompt"
+              center
+              clearable
+              placeholder="输入你的问题"
+              @keyup.enter="sendMessage"
+            >
               <template #button>
-                <van-button size="small" type="primary" @click="sendMessage">发送</van-button>
+                <van-button size="small" type="primary" v-if="!isGenerating" @click="sendMessage"
+                  >发送</van-button
+                >
               </template>
               <template #extra>
                 <div class="icon-box">
-                  <van-icon v-if="showStopGenerate" name="stop-circle-o" @click="stopGenerate" />
-                  <van-icon v-if="showReGenerate" name="play-circle-o" @click="reGenerate" />
+                  <van-icon v-if="isGenerating" name="stop-circle-o" @click="stopGenerate" />
                 </div>
               </template>
             </van-field>
@@ -74,19 +75,6 @@
         </van-sticky>
       </div>
     </div>
-
-    <!--    <van-overlay :show="showMic" z-index="100">-->
-    <!--      <div class="mic-wrapper">-->
-    <!--        <div class="image">-->
-    <!--          <van-image-->
-    <!--              width="100"-->
-    <!--              height="100"-->
-    <!--              src="/images/mic.gif"-->
-    <!--          />-->
-    <!--        </div>-->
-    <!--        <van-button type="success" @click="stopVoice">说完了</van-button>-->
-    <!--      </div>-->
-    <!--    </van-overlay>-->
   </div>
 
   <van-popup v-model:show="showPicker" position="bottom" class="popup">
@@ -142,7 +130,6 @@ const modelValue = ref('')
 const title = ref(router.currentRoute.value.query['title'])
 const chatId = ref(router.currentRoute.value.query['chat_id'])
 const loginUser = ref(null)
-// const showMic = ref(false)
 const showPicker = ref(false)
 const columns = ref([roles.value, models.value])
 const selectedValues = ref([roleId.value, modelId.value])
@@ -250,12 +237,6 @@ md.use(emoji)
 onMounted(() => {
   winHeight.value =
     window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight - 70
-
-  // 移除 Clipboard.js 相关内容
-})
-
-onUnmounted(() => {
-  // Remove WebSocket handler cleanup
 })
 
 const newChat = (item) => {
@@ -272,10 +253,7 @@ const newChat = (item) => {
 }
 
 const onLoad = () => {
-  // checkSession().then(() => {
-  //   connect()
-  // }).catch(() => {
-  // })
+  // 加载更多消息的逻辑可以在这里实现
 }
 
 const loadChatHistory = () => {
@@ -294,6 +272,7 @@ const loadChatHistory = () => {
             text: role.hello_msg,
           },
           orgContent: role.hello_msg,
+          showAction: false,
         })
         return
       }
@@ -303,8 +282,8 @@ const loadChatHistory = () => {
           chatData.value.push(data[i])
           continue
         }
-
-        data[i].orgContent = data[i].content
+        data[i].showAction = true
+        data[i].orgContent = data[i].content.text
         data[i].content.text = md.render(processContent(data[i].content.text))
         chatData.value.push(data[i])
       }
@@ -326,31 +305,18 @@ const loadChatHistory = () => {
 
 // 创建 socket 连接
 const prompt = ref('')
-const showStopGenerate = ref(false) // 停止生成
-const showReGenerate = ref(false) // 重新生成
 const previousText = ref('') // 上一次提问
 const lineBuffer = ref('') // 输出缓冲行
-const canSend = ref(true)
+const isGenerating = ref(false)
 const isNewMsg = ref(true)
 const stream = ref(store.chatStream)
+const abortController = new AbortController()
 watch(
   () => store.chatStream,
   (newValue) => {
     stream.value = newValue
   }
 )
-
-const disableInput = (force) => {
-  canSend.value = false
-  showReGenerate.value = false
-  showStopGenerate.value = !force
-}
-
-const enableInput = () => {
-  canSend.value = true
-  showReGenerate.value = previousText.value !== ''
-  showStopGenerate.value = false
-}
 
 // 将聊天框的滚动条滑动到最底部
 const scrollListBox = () => {
@@ -362,6 +328,7 @@ const scrollListBox = () => {
 // 发送 SSE 请求
 const sendSSERequest = async (message) => {
   try {
+    isGenerating.value = true
     await fetchEventSource('/api/chat/message', {
       method: 'POST',
       headers: {
@@ -369,6 +336,13 @@ const sendSSERequest = async (message) => {
       },
       body: JSON.stringify(message),
       openWhenHidden: true,
+      // 重试机制，避免连接断开后一直重试
+      retry: 3000,
+      // 设置重试延迟为0，确保不重试
+      retryDelay: 3000,
+      // 设置最大重试次数为0
+      maxRetries: 3,
+      signal: abortController.signal,
       onopen(response) {
         if (response.ok && response.status === 200) {
           console.log('SSE connection opened')
@@ -380,13 +354,13 @@ const sendSSERequest = async (message) => {
         try {
           const data = JSON.parse(msg.data)
           if (data.type === 'error') {
-            showMessageError(data.body)
-            enableInput()
+            chatData.value[chatData.value.length - 1].error = data.body
+            isGenerating.value = false
             return
           }
 
           if (data.type === 'end') {
-            enableInput()
+            isGenerating.value = false
             lineBuffer.value = '' // 清空缓冲
             isNewMsg.value = true
             return
@@ -429,32 +403,49 @@ const sendSSERequest = async (message) => {
               })
             }
           }
+
+          // 回答完毕，更新完整的消息内容
+          if (data.type === 'complete') {
+            data.body.showAction = true
+            data.body.orgContent = data.body.content.text
+            chatData.value[chatData.value.length - 1] = data.body
+          }
         } catch (error) {
           console.error('Error processing message:', error)
-          enableInput()
+          isGenerating.value = false
           showMessageError('消息处理出错，请重试')
         }
       },
       onerror(err) {
         console.error('SSE Error:', err)
-        enableInput()
+        try {
+          abortController.value && abortController.value.abort()
+        } catch (e) {
+          console.error('AbortController abort error:', e)
+        }
+        isGenerating.value = false
         showMessageError('连接已断开，请重试')
       },
       onclose() {
         console.log('SSE connection closed')
-        enableInput()
+        isGenerating.value = false
       },
     })
   } catch (error) {
+    try {
+      abortController.value && abortController.value.abort()
+    } catch (e) {
+      console.error('AbortController abort error:', e)
+    }
     console.error('Failed to send message:', error)
-    enableInput()
+    isGenerating.value = false
     showMessageError('发送消息失败，请重试')
   }
 }
 
 // 发送消息
 const sendMessage = () => {
-  if (canSend.value === false) {
+  if (isGenerating.value) {
     showToast('AI 正在作答中，请稍后...')
     return
   }
@@ -489,8 +480,6 @@ const sendMessage = () => {
     scrollListBox()
   })
 
-  disableInput(false)
-
   // 发送 SSE 请求
   sendSSERequest({
     user_id: loginUser.value.id,
@@ -506,16 +495,51 @@ const sendMessage = () => {
   return true
 }
 
-// 重新生成
-const reGenerate = () => {
-  disableInput(false)
-  const text = '重新生成上述问题的答案：' + previousText.value
-  // 追加消息
+// 停止生成
+const stopGenerate = function () {
+  if (abortController.value) {
+    abortController.value.abort()
+    isGenerating.value = false
+    httpGet('/api/chat/stop?session_id=' + getClientId())
+      .then(() => {
+        console.log('会话已中断')
+      })
+      .catch((e) => {
+        showMessageError('中断对话失败:' + e.message)
+      })
+  }
+}
+
+// 处理从ChatReply组件触发的重新生成
+const handleRegenerate = (messageId) => {
+  if (isGenerating.value) {
+    showToast('AI 正在作答中，请稍后...')
+    return
+  }
+
+  console.log('messageId', messageId)
+  console.log('chatData.value', chatData.value)
+
+  // 判断 messageId 是整数
+  if (messageId !== '' && isNaN(messageId)) {
+    showToast('消息 ID 不合法，无法重新生成')
+    return
+  }
+
+  chatData.value = chatData.value.filter((item) => item.id < messageId && !item.isHello)
+  const userPrompt = chatData.value.pop()
+
+  // 添加空回复消息
+  const _role = getRoleById(roleId.value)
   chatData.value.push({
-    type: 'prompt',
+    chat_id: chatId,
+    role_id: roleId.value,
+    type: 'reply',
     id: randString(32),
-    icon: loginUser.value.avatar,
-    content: renderInputText(text),
+    icon: _role['icon'],
+    content: {
+      text: '',
+    },
   })
 
   // 发送 SSE 请求
@@ -524,12 +548,11 @@ const reGenerate = () => {
     role_id: roleId.value,
     model_id: modelId.value,
     chat_id: chatId.value,
-    prompt: previousText.value,
+    last_msg_id: messageId,
+    prompt: userPrompt.content.text,
     stream: stream.value,
   })
 }
-
-// 移除 showShare、shareOptions、shareChat 相关内容
 
 const getRoleById = function (rid) {
   for (let i = 0; i < roles.value.length; i++) {
