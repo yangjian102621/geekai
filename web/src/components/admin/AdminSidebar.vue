@@ -214,18 +214,18 @@ const items = [
         title: '基础配置',
       },
       {
-        icon: 'config',
+        icon: 'power',
         index: '/admin/config/power',
         title: '算力配置',
       },
 
       {
-        icon: 'config',
+        icon: 'menu',
         index: '/admin/config/menu',
         title: '菜单配置',
       },
       {
-        icon: 'config',
+        icon: 'license',
         index: '/admin/config/license',
         title: '授权激活',
       },
