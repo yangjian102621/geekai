@@ -338,16 +338,13 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 				},
 			})
 		} else {
-			// 如果不是逆向模型，则提取文件内容
-			modelValue := input.ChatModel.Value
-			if !(strings.Contains(modelValue, "-all") || strings.HasPrefix(modelValue, "gpt-4-gizmo") || strings.HasPrefix(modelValue, "claude")) {
-				content, err := utils.ReadFileContent(file.URL, h.App.Config.TikaHost)
-				if err != nil {
-					logger.Error("error with read file: ", err)
-					continue
-				} else {
-					fileContents = append(fileContents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
-				}
+			// 处理文件，提取文件内容
+			content, err := utils.ReadFileContent(file.URL, h.App.Config.TikaHost)
+			if err != nil {
+				logger.Error("error with read file: ", err)
+				continue
+			} else {
+				fileContents = append(fileContents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
 			}
 		}
 	}

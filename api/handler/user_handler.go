@@ -112,8 +112,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// 如果注册方式不是账号密码，则需要验证码
-	if h.captchaService.GetConfig().Enabled && data.RegWay != "username" {
+	// 人机验证
+	if h.captchaService.GetConfig().Enabled {
 		var check bool
 		if data.X != 0 {
 			check = h.captchaService.SlideCheck(data)

@@ -146,7 +146,7 @@ const routes = [
     name: 'register',
     path: '/register',
     meta: { title: '用户注册' },
-    component: () => import('@/views/Register.vue'),
+    component: () => import('@/views/Login.vue'),
   },
   {
     name: 'resetpassword',

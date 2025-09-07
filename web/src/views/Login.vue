@@ -22,15 +22,22 @@
             class="text-3xl font-semibold m-0 mb-2 tracking-tight"
             style="color: var(--login-title-color)"
           >
-            欢迎登录
+            {{ title }}
           </h1>
           <p class="text-base m-0 leading-relaxed" style="color: var(--login-subtitle-color)">
-            登录您的账户以继续使用服务
+            {{ subtitle }}
           </p>
         </div>
 
-        <div class="login-content">
-          <login-dialog :show="true" @success="handleLoginSuccess" ref="loginDialogRef" />
+        <div class="register-content">
+          <login-dialog
+            :show="true"
+            :active="active"
+            :inviteCode="inviteCode"
+            @success="handleRegisterSuccess"
+            @changeActive="handleChangeActive"
+            ref="loginDialogRef"
+          />
         </div>
       </div>
 
@@ -42,22 +49,22 @@
 <script setup>
 import FooterBar from '@/components/FooterBar.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
-import { setUserToken } from '@/store/session'
 import { isMobile } from '@/utils/libs'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const loginDialogRef = ref(null)
-const token = router.currentRoute.value.query.token
+const inviteCode = ref(router.currentRoute.value.query.invite_code || '')
+const isRegister = ref(router.currentRoute.value.path === '/register')
+const active = ref(isRegister.value ? 'register' : 'login')
+const title = computed(() => (isRegister.value ? '用户注册' : '用户登录'))
+const subtitle = computed(() =>
+  isRegister.value ? '创建您的账户以开始使用服务' : '登录您的账户以继续使用服务'
+)
 
-if (token) {
-  setUserToken(token)
-  router.push('/chat')
-}
-
-// 处理登录成功
-const handleLoginSuccess = () => {
+// 处理注册成功
+const handleRegisterSuccess = () => {
   if (isMobile()) {
     router.push('/mobile')
   } else {
@@ -65,10 +72,14 @@ const handleLoginSuccess = () => {
   }
 }
 
+const handleChangeActive = (newValue) => {
+  isRegister.value = !newValue
+}
+
 onMounted(() => {
-  // 确保默认显示登录状态
+  // 确保默认显示注册状态
   if (loginDialogRef.value) {
-    loginDialogRef.value.login = true
+    loginDialogRef.value.login = !isRegister
   }
 })
 </script>
