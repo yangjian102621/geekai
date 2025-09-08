@@ -85,7 +85,7 @@
           <el-icon :size="40" class="el-icon--upload"><UploadFilled /></el-icon>
           <div class="el-upload__text">拖拽图片到此处，或 <em>点击上传</em></div>
           <template #tip>
-            <div class="el-upload__tip text-center">
+            <div class="el-upload__tip text-gray-500 text-sm">
               支持 JPG、PNG 格式，最多上传 {{ maxCount }} 张，单张最大 5MB
             </div>
           </template>

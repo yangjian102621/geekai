@@ -101,6 +101,13 @@
                   <span v-else>生成中...</span>
                 </el-button>
               </div>
+
+              <div class="mt-2 mb-2">
+                <label class="text-gray-700 font-semibold">参考图(可选)</label>
+                <div class="py-2">
+                  <ImageUpload v-model="params.image" :max-count="5" :multiple="true" />
+                </div>
+              </div>
             </el-form>
           </div>
           <div class="py-4">
@@ -295,6 +302,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
+import ImageUpload from '@/components/ImageUpload.vue'
 
 const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
