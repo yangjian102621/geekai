@@ -244,7 +244,16 @@ func (h *ModerationHandler) UpdateModeration(c *gin.Context) {
 		return
 	}
 
-	err := h.DB.Where("name", types.ConfigKeyModeration).FirstOrCreate(&model.Config{Name: types.ConfigKeyModeration, Value: utils.JsonEncode(data)}).Error
+	var config model.Config
+	err := h.DB.Where("name", types.ConfigKeyModeration).First(&config).Error
+	if err != nil {
+		config.Name = types.ConfigKeyModeration
+		config.Value = utils.JsonEncode(data)
+		err = h.DB.Create(&config).Error
+	} else {
+		config.Value = utils.JsonEncode(data)
+		err = h.DB.Updates(&config).Error
+	}
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return

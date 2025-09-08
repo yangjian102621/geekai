@@ -384,7 +384,7 @@ import FileSelect from '@/components/FileSelect.vue'
 import Welcome from '@/components/Welcome.vue'
 import { checkSession, getClientId, getSystemInfo } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
-import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
+import { closeLoading, showLoading, showMessageError, showMessageInfo } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { isMobile, randString, removeArrayItem, UUID } from '@/utils/libs'
 import {
@@ -789,6 +789,7 @@ const sendSSERequest = async (message) => {
             }
           }
 
+          // 回答完毕，更新完整的消息内容
           if (data.type === 'complete') {
             chatData.value[chatData.value.length - 1] = data.body
           }
@@ -1161,7 +1162,7 @@ const stopGenerate = function () {
     isGenerating.value = false
     httpGet('/api/chat/stop?session_id=' + getClientId())
       .then(() => {
-        console.log('会话已中断')
+        showMessageInfo('会话已中断')
       })
       .catch((e) => {
         showMessageError('中断对话失败:' + e.message)

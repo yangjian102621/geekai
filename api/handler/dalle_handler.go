@@ -118,6 +118,7 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		UserId:           uint(userId),
 		ModelId:          chatModel.Id,
 		ModelName:        chatModel.Value,
+		Image:            data.Image,
 		Prompt:           data.Prompt,
 		Quality:          data.Quality,
 		Size:             data.Size,

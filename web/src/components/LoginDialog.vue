@@ -398,7 +398,7 @@ const activeName = ref('')
 const wxImg = ref('/images/wx.png')
 const captchaRef = ref(null)
 // eslint-disable-next-line no-undef
-const emits = defineEmits(['hide', 'success'])
+const emits = defineEmits(['hide', 'success', 'changeActive'])
 const action = ref('login')
 const enableCaptcha = ref(false)
 const captchaType = ref('')
@@ -410,6 +410,13 @@ const showAgreement = ref(false)
 const showPrivacy = ref(false)
 const agreementHtml = ref('')
 const privacyHtml = ref('')
+
+watch(
+  () => login.value,
+  (newValue) => {
+    emits('changeActive', newValue)
+  }
+)
 
 onMounted(() => {
   getSystemInfo()
@@ -649,7 +656,7 @@ const submitRegister = () => {
   if (!agreeChecked.value) {
     return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
   }
-  if (enableCaptcha.value && activeName.value === 'username') {
+  if (enableCaptcha.value) {
     captchaRef.value.loadCaptcha()
     action.value = 'register'
   } else {

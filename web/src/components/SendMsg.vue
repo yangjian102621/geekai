@@ -4,15 +4,14 @@
       {{ btnText }}
     </el-button>
 
-    <captcha @success="doSendMsg" ref="captchaRef" />
+    <captcha @success="doSendMsg" ref="captchaRef" :type="captchaType" />
   </el-container>
 </template>
 
 <script setup>
 // 发送短信验证码组件
 import Captcha from '@/components/Captcha.vue'
-import { getSystemInfo } from '@/store/cache'
-import { httpPost } from '@/utils/http'
+import { httpGet, httpPost } from '@/utils/http'
 import { validateEmail, validateMobile } from '@/utils/validate'
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
@@ -29,10 +28,12 @@ const props = defineProps({
 const btnText = ref('发送验证码')
 const canSend = ref(true)
 const captchaRef = ref(null)
-const enableVerify = ref(false)
+const enableCaptcha = ref(false)
+const captchaType = ref('')
 
-getSystemInfo().then((res) => {
-  enableVerify.value = res.data['enabled_verify']
+httpGet('/api/captcha/config').then((res) => {
+  enableCaptcha.value = res.data['enabled']
+  captchaType.value = res.data['type']
 })
 
 const sendMsg = () => {
@@ -43,7 +44,7 @@ const sendMsg = () => {
     return ElMessage.error('请输入合法的邮箱地址')
   }
 
-  if (enableVerify.value) {
+  if (enableCaptcha.value) {
     captchaRef.value.loadCaptcha()
   } else {
     doSendMsg({})

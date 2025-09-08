@@ -16,6 +16,7 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -94,12 +95,14 @@ func (s *Service) Run() {
 }
 
 type imgReq struct {
-	Model   string `json:"model"`
-	Prompt  string `json:"prompt"`
-	N       int    `json:"n,omitempty"`
-	Size    string `json:"size,omitempty"`
-	Quality string `json:"quality,omitempty"`
-	Style   string `json:"style,omitempty"`
+	Model          string   `json:"model"`
+	Image          []string `json:"image,omitempty"`
+	Prompt         string   `json:"prompt"`
+	N              int      `json:"n,omitempty"`
+	Size           string   `json:"size,omitempty"`
+	Quality        string   `json:"quality,omitempty"`
+	Style          string   `json:"style,omitempty"`
+	ResponseFormat string   `json:"response_format,omitempty"`
 }
 
 type imgRes struct {
@@ -157,6 +160,11 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 		Style:   task.Style,
 		Quality: task.Quality,
 	}
+	// 图片编辑
+	if len(task.Image) > 0 {
+		reqBody.Prompt = fmt.Sprintf("%s, %s", strings.Join(task.Image, " "), task.Prompt)
+	}
+
 	logger.Infof("Channel:%s, API KEY:%s, BODY: %+v", apiURL, apiKey.Value, reqBody)
 	r, err := s.httpClient.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).

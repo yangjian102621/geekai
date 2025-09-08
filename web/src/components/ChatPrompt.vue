@@ -232,6 +232,7 @@ const copyContent = (text) => {
             flex-flow: row;
             margin-right: 10px;
             position: relative;
+            justify-content: start;
 
             .el-image {
               border: 1px solid #e3e3e3;
@@ -365,6 +366,7 @@ const copyContent = (text) => {
             flex-flow: row;
             margin-right: 10px;
             position: relative;
+            justify-content: end;
 
             .el-image {
               border: 1px solid #e3e3e3;
