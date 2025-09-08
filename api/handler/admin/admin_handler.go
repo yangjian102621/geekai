@@ -263,7 +263,7 @@ func (h *ManagerHandler) Enable(c *gin.Context) {
 
 // ResetPass 重置密码
 func (h *ManagerHandler) ResetPass(c *gin.Context) {
-	id := h.GetLoginUserId(c)
+	id := h.GetAdminId(c)
 	if id != SuperManagerID {
 		resp.ERROR(c, "只有超级管理员能够进行该操作")
 		return
