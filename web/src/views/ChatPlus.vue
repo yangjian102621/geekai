@@ -724,7 +724,7 @@ const sendSSERequest = async (message) => {
           if (data.type === 'error') {
             const reply = chatData.value[chatData.value.length - 1]
             if (reply) {
-              reply['content'].text = `<div class="text-red-500 p-3 rounded-md">${data.body}</div>`
+              reply['content'].text = `<div class="text-red-500 rounded-md">${data.body}</div>`
             }
             isGenerating.value = false
             return
@@ -818,7 +818,7 @@ const sendSSERequest = async (message) => {
         // ElMessage.error('连接已断开，发生错误：' + err.message)
         const reply = chatData.value[chatData.value.length - 1]
         if (reply) {
-          reply['content'].text = `<div class="text-red-500 p-3 rounded-md">${err.message}</div>`
+          reply['content'].text = `<div class="text-red-500 rounded-md">${err.message}</div>`
         }
       },
       onclose() {
