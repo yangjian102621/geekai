@@ -52,10 +52,12 @@ import LoginDialog from '@/components/LoginDialog.vue'
 import { isMobile } from '@/utils/libs'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { setUserToken } from '@/store/session'
 
 const router = useRouter()
 const loginDialogRef = ref(null)
 const inviteCode = ref(router.currentRoute.value.query.invite_code || '')
+const token = ref(router.currentRoute.value.query.token || '')
 const isRegister = ref(router.currentRoute.value.path === '/register')
 const active = ref(isRegister.value ? 'register' : 'login')
 const title = computed(() => (isRegister.value ? '用户注册' : '用户登录'))
@@ -80,6 +82,11 @@ onMounted(() => {
   // 确保默认显示注册状态
   if (loginDialogRef.value) {
     loginDialogRef.value.login = !isRegister
+  }
+
+  if (token.value) {
+    setUserToken(token.value)
+    handleRegisterSuccess()
   }
 })
 </script>
