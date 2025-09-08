@@ -345,6 +345,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 				continue
 			} else {
 				fileContents = append(fileContents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
+				logger.Debugf("fileContents: %s", fileContents)
 			}
 		}
 	}

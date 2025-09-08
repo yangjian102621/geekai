@@ -7,12 +7,7 @@
     <div class="chat-item">
       <div class="triangle"></div>
       <div class="content-box" ref="contentRef">
-        <div
-          v-if="content"
-          :data-clipboard-text="orgContent"
-          class="content content-mobile"
-          v-html="content"
-        ></div>
+        <div v-if="content" class="content content-mobile" v-html="content"></div>
         <div v-else-if="error">
           <div class="content content-mobile !text-red-500">{{ error }}</div>
         </div>
@@ -32,15 +27,31 @@
         >
           {{ isGenerating ? '生成中...' : '重新生成' }}
         </van-button>
+        <van-button
+          size="mini"
+          type="success"
+          :data-clipboard-text="orgContent"
+          class="copy-answer"
+          plain
+        >
+          复制回答
+        </van-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { showImagePreview } from 'vant'
 import Thinking from '../Thinking.vue'
+import hl from 'highlight.js'
+import MarkdownIt from 'markdown-it'
+import emoji from 'markdown-it-emoji'
+import mathjaxPlugin from 'markdown-it-mathjax3'
+import { processContent } from '@/utils/libs'
+import Clipboard from 'clipboard'
+import { showNotify } from 'vant'
 
 const props = defineProps({
   content: {
@@ -77,9 +88,37 @@ const props = defineProps({
 })
 
 const emits = defineEmits(['regenerate'])
+const md = new MarkdownIt({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
+  highlight: function (str, lang) {
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
+    // 显示复制代码按钮
+    const copyBtn = `<span class="copy-code-mobile" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
+      /<\/textarea>/g,
+      '&lt;/textarea>'
+    )}</textarea>`
+    if (lang && hl.getLanguage(lang)) {
+      const langHtml = `<span class="lang-name">${lang}</span>`
+      // 处理代码高亮
+      const preCode = hl.highlight(str, { language: lang }).value
+      // 将代码包裹在 pre 中
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+    }
 
+    // 处理代码高亮
+    const preCode = md.utils.escapeHtml(str)
+    // 将代码包裹在 pre 中
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+  },
+})
+md.use(mathjaxPlugin)
+md.use(emoji)
 const content = computed(() => {
-  return props.content.text
+  return md.render(processContent(props.content.text))
 })
 
 const contentRef = ref(null)
@@ -89,6 +128,7 @@ const handleRegenerate = () => {
   emits('regenerate', props.messageId)
 }
 
+const clipboard = ref(null)
 onMounted(() => {
   const imgs = contentRef.value.querySelectorAll('img')
   for (let i = 0; i < imgs.length; i++) {
@@ -100,6 +140,18 @@ onMounted(() => {
       showImagePreview([imgs[i].src])
     })
   }
+
+  clipboard.value = new Clipboard('.copy-answer,.copy-code-mobile')
+  clipboard.value.on('success', () => {
+    showNotify({ type: 'success', message: '复制成功', duration: 1000 })
+  })
+  clipboard.value.on('error', () => {
+    showNotify({ type: 'danger', message: '复制失败', duration: 2000 })
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 </script>
 

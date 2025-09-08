@@ -58,8 +58,23 @@
               center
               clearable
               placeholder="输入你的问题"
+              type="textarea"
+              rows="1"
+              :autosize="{ maxHeight: 100, minHeight: 20 }"
+              show-word-limit
               @keyup.enter="sendMessage"
             >
+              <template #left-icon>
+                <van-uploader
+                  :after-read="afterRead"
+                  :max-count="6"
+                  :multiple="true"
+                  :preview-image="false"
+                  accept=".doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.ico,.xls,.xlsx,.ppt,.pptx,.pdf,.mp4,.mp3,.txt,.md,.csv,.html"
+                >
+                  <van-icon name="photo" />
+                </van-uploader>
+              </template>
               <template #button>
                 <van-button size="small" type="primary" v-if="!isGenerating" @click="sendMessage"
                   >发送</van-button
@@ -73,6 +88,7 @@
             </van-field>
           </van-cell-group>
         </van-sticky>
+        <MobileFileList :files="files" removable @remove="onRemovePreview" />
       </div>
     </div>
   </div>
@@ -102,19 +118,17 @@ import ChatReply from '@/components/mobile/ChatReply.vue'
 import { checkSession } from '@/store/cache'
 import { getUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import { showMessageError } from '@/utils/dialog'
-import { httpGet } from '@/utils/http'
+import { showMessageError, showLoading, closeLoading } from '@/utils/dialog'
+import { httpGet, httpPost } from '@/utils/http'
+import MobileFileList from '@/components/mobile/MobileFileList.vue'
 import { processContent, randString, renderInputText, UUID } from '@/utils/libs'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
-// 移除 Clipboard.js 相关内容
 import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
-import MarkdownIt from 'markdown-it'
-import emoji from 'markdown-it-emoji'
-import mathjaxPlugin from 'markdown-it-mathjax3'
 import { showImagePreview, showNotify, showToast } from 'vant'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { getClientId } from '@/store/cache'
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -205,35 +219,7 @@ const finished = ref(false)
 const error = ref(false)
 const store = useSharedStore()
 const url = ref(location.protocol + '//' + location.host + '/chat/export?chat_id=' + chatId.value)
-const md = new MarkdownIt({
-  breaks: true,
-  html: true,
-  linkify: true,
-  typographer: true,
-  highlight: function (str, lang) {
-    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
-    // 显示复制代码按钮
-    const copyBtn = `<span class="copy-code-mobile" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
-<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
-      /<\/textarea>/g,
-      '&lt;/textarea>'
-    )}</textarea>`
-    if (lang && hl.getLanguage(lang)) {
-      const langHtml = `<span class="lang-name">${lang}</span>`
-      // 处理代码高亮
-      const preCode = hl.highlight(lang, str, true).value
-      // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
-    }
 
-    // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str)
-    // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
-  },
-})
-md.use(mathjaxPlugin)
-md.use(emoji)
 onMounted(() => {
   winHeight.value =
     window.innerHeight - navBarRef.value.$el.offsetHeight - bottomBarRef.value.$el.offsetHeight - 70
@@ -284,17 +270,10 @@ const loadChatHistory = () => {
         }
         data[i].showAction = true
         data[i].orgContent = data[i].content.text
-        data[i].content.text = md.render(processContent(data[i].content.text))
         chatData.value.push(data[i])
       }
 
       nextTick(() => {
-        hl.configure({ ignoreUnescapedHTML: true })
-        const blocks = document.querySelector('#message-list-box').querySelectorAll('pre code')
-        blocks.forEach((block) => {
-          hl.highlightElement(block)
-        })
-
         scrollListBox()
       })
     })
@@ -323,6 +302,23 @@ const scrollListBox = () => {
   document
     .getElementById('message-list-box')
     .scrollTo(0, document.getElementById('message-list-box').scrollHeight + 46)
+}
+
+// 滚动到输入区域，确保预览文件可见
+const scrollToBottomBar = () => {
+  try {
+    // 优先让底部输入区域进入视野
+    bottomBarRef.value &&
+      bottomBarRef.value.$el &&
+      bottomBarRef.value.$el.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+      })
+  } catch (e) {}
+  // 再兜底滚动到页面底部
+  try {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })
+  } catch (e) {}
 }
 
 // 发送 SSE 请求
@@ -378,15 +374,9 @@ const sendSSERequest = async (message) => {
               lineBuffer.value += data.body
               const reply = chatData.value[chatData.value.length - 1]
               reply['orgContent'] = lineBuffer.value
-              reply['content']['text'] = md.render(processContent(lineBuffer.value))
+              reply['content']['text'] = lineBuffer.value
 
               nextTick(() => {
-                hl.configure({ ignoreUnescapedHTML: true })
-                const lines = document.querySelectorAll('.message-line')
-                const blocks = lines[lines.length - 1].querySelectorAll('pre code')
-                blocks.forEach((block) => {
-                  hl.highlightElement(block)
-                })
                 scrollListBox()
 
                 const items = document.querySelectorAll('.message-line')
@@ -419,7 +409,7 @@ const sendSSERequest = async (message) => {
       onerror(err) {
         console.error('SSE Error:', err)
         try {
-          abortController.value && abortController.value.abort()
+          abortController && abortController.abort()
         } catch (e) {
           console.error('AbortController abort error:', e)
         }
@@ -433,7 +423,7 @@ const sendSSERequest = async (message) => {
     })
   } catch (error) {
     try {
-      abortController.value && abortController.value.abort()
+      abortController && abortController.abort()
     } catch (e) {
       console.error('AbortController abort error:', e)
     }
@@ -460,7 +450,7 @@ const sendMessage = () => {
     type: 'prompt',
     id: randString(32),
     icon: loginUser.value.avatar,
-    content: { text: renderInputText(prompt.value) },
+    content: { text: renderInputText(prompt.value), files: files.value },
     created_at: new Date().getTime(),
   })
   // 添加空回复消息
@@ -473,6 +463,7 @@ const sendMessage = () => {
     icon: _role['icon'],
     content: {
       text: '',
+      files: [],
     },
   })
 
@@ -488,21 +479,23 @@ const sendMessage = () => {
     chat_id: chatId.value,
     prompt: prompt.value,
     stream: stream.value,
+    files: files.value,
   })
 
   previousText.value = prompt.value
   prompt.value = ''
+  files.value = []
   return true
 }
 
 // 停止生成
 const stopGenerate = function () {
-  if (abortController.value) {
-    abortController.value.abort()
+  if (abortController) {
+    abortController.abort()
     isGenerating.value = false
     httpGet('/api/chat/stop?session_id=' + getClientId())
       .then(() => {
-        console.log('会话已中断')
+        showToast('会话已中断')
       })
       .catch((e) => {
         showMessageError('中断对话失败:' + e.message)
@@ -551,6 +544,7 @@ const handleRegenerate = (messageId) => {
     last_msg_id: messageId,
     prompt: userPrompt.content.text,
     stream: stream.value,
+    files: [],
   })
 }
 
@@ -593,6 +587,38 @@ const copyShareUrl = async () => {
   } catch (e) {
     showNotify({ type: 'danger', message: '复制失败', duration: 2000 })
   }
+}
+
+// 文件上传与管理
+const files = ref([])
+const isHttpUrl = (url) => url.startsWith('http://') || url.startsWith('https://')
+const toAbsUrl = (url) => (isHttpUrl(url) ? url : location.protocol + '//' + location.host + url)
+const afterRead = async (fileItem) => {
+  showLoading('文件上传中...')
+  try {
+    const file = Array.isArray(fileItem) ? fileItem[0].file : fileItem.file || fileItem
+    const formData = new FormData()
+    formData.append('file', file, file.name)
+    const res = await httpPost('/api/upload', formData)
+    const f = res.data || {}
+    f.url = toAbsUrl(f.url || '')
+    files.value = [f, ...files.value]
+    // 确保上传后文件预览立即可见
+    nextTick(() => {
+      scrollToBottomBar()
+    })
+  } catch (e) {
+    showNotify({ type: 'danger', message: '文件上传失败：' + (e.message || '网络错误') })
+  } finally {
+    closeLoading()
+  }
+}
+const removeFile = (f, idx) => {
+  files.value.splice(idx, 1)
+}
+
+const onRemovePreview = ({ file, index }) => {
+  files.value.splice(index, 1)
 }
 </script>
 

@@ -81,6 +81,7 @@ const removeFile = (file) => {
     border: 1px solid #e3e3e3;
     padding: 6px;
     margin-right: 10px;
+    max-height: 54px;
 
     .icon {
       .el-image {
@@ -91,10 +92,10 @@ const removeFile = (file) => {
 
     .body {
       margin-left: 5px;
-      font-size: 14px;
+      font-size: 12px;
 
       .title {
-        line-height: 24px;
+        // line-height: 20px;
         color: #0d0d0d;
       }
 
