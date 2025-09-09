@@ -19,6 +19,125 @@
         </div>
       </div>
 
+      <!-- 提示词编写指南（可折叠） -->
+      <div class="prompt-guide">
+        <el-collapse v-model="guideActive">
+          <el-collapse-item name="guide">
+            <template #title>
+              <div class="guide-title">
+                <i class="iconfont icon-info mr-1"></i>
+                Prompt建议
+              </div>
+            </template>
+            <div class="guide-content">
+              <!-- 创建图像 -->
+              <div class="guide-section">
+                <div class="guide-subtitle">创建图像（文生图）</div>
+                <ul>
+                  <li>
+                    结构建议：<strong>主体描述 + 风格 + 美学</strong>（准确响应）；<strong
+                      >风格 + 主体描述 + 美学 + 氛围</strong
+                    >（更强美学）
+                  </li>
+                  <li>
+                    用专业短词描述风格/镜头/构图；主体用自然语言完整描述（主体 + 行为 + 环境）
+                  </li>
+                  <li>关键信息靠前；用正向表达代替“不要xxx”类否定词</li>
+                  <li>需要生成文字时，明确“生成文字”并补充位置/风格/材质</li>
+                </ul>
+                <blockquote class="quote">
+                  <div>
+                    <strong>示例</strong
+                    >：新年主题海报，上方以手写涂鸦风格写着“新年快乐”，红金配色，纸张纹理，强对比光影，居中极简构图，留白用于标题。
+                  </div>
+                </blockquote>
+                <blockquote class="quote">
+                  <div><strong>Before</strong>：海报，“新年快乐”</div>
+                  <div><strong>After</strong>：一张海报，上面文字写着：“新年快乐”</div>
+                </blockquote>
+                <blockquote class="quote">
+                  <div><strong>Before</strong>：海报，“新年快乐”</div>
+                  <div>
+                    <strong>After</strong>：一张海报，画面上方有手写涂鸦风格的文字写着：“新年快乐”
+                  </div>
+                </blockquote>
+                <p>特征与视角可反复强调：</p>
+                <ul>
+                  <li>御剑飞行 → 男人站在剑上，他踩在剑上，剑被他踩着，御剑飞仙</li>
+                  <li>仰视视角 → 采用低角度，从下往上，仰视与广角构图</li>
+                </ul>
+                <blockquote class="quote">
+                  <div>
+                    <strong>示例</strong
+                    >：百合南瓜羹特写，只展示半碗，米黄色糯米勾芡，橙色南瓜块与丝理清晰，点缀紫白色百合。
+                  </div>
+                </blockquote>
+              </div>
+
+              <!-- 编辑图像 -->
+              <div class="guide-section">
+                <div class="guide-subtitle">编辑图像（图生图/图像编辑）</div>
+                <ul>
+                  <li>应用场景可加：如“海报、平面设计”等词以增强对应风格</li>
+                  <li>生成或保留的文字请用引号包裹，准确率更高</li>
+                  <li>建议长度 ≤ 120 字，最多不超过 800 字，过长可能失效</li>
+                  <li>编辑指令用自然语言；一次只做一件事更易生效</li>
+                  <li>多实体时指明“对谁做什么”，局部编辑尽量精准</li>
+                  <li>效果不明显可提高编辑强度 scale；底图越清晰效果越好</li>
+                </ul>
+                <blockquote class="quote">
+                  <div><strong>示例（添加/删除实体）</strong>：删除图上的女孩；添加一道彩虹。</div>
+                </blockquote>
+                <blockquote class="quote">
+                  <div>
+                    <strong>示例（添加文字）</strong>：一张圣诞节海报，上面写着“Merry Christmas”。
+                  </div>
+                </blockquote>
+                <blockquote class="quote">
+                  <div><strong>示例（修改实体）</strong>：把手里的鸡腿改成汉堡。</div>
+                </blockquote>
+                <blockquote class="quote">
+                  <div>
+                    <strong>示例（修改风格/色彩/动作/背景）</strong
+                    >：改成漫画风格；把外套改成粉色；让男孩微笑；背景换成海边日落。
+                  </div>
+                </blockquote>
+              </div>
+
+              <!-- 生成视频 -->
+              <div class="guide-section">
+                <div class="guide-subtitle">生成视频（文/图生视频）</div>
+                <ul>
+                  <li><strong>基础结构</strong>：主体 / 背景 / 镜头 + 动作</li>
+                  <li>
+                    <strong>多个镜头连贯叙事</strong>：镜头1 + 主体 + 动作1 + 镜头2 + 主体 + 动作2
+                    ...
+                  </li>
+                  <li>
+                    <strong>多个连续动作</strong>：时序：主体1 + 运动1 + 运动2；多主体：主体1 +
+                    运动1 + 主体2 + 运动2 ...
+                  </li>
+                  <li>
+                    <strong>运镜词典</strong
+                    >：镜头切换；镜头向上/下/左/右移动；镜头拉近/拉远；镜头环绕/航拍/广角/360度旋转；镜头跟随；固定镜头；镜头特写；手持拍摄（晃动/抖动）
+                  </li>
+                  <li>
+                    <strong>程度副词</strong
+                    >：快速、缓缓、大幅度、高频率、剧烈等，突出动作强度与节奏
+                  </li>
+                </ul>
+                <blockquote class="quote">
+                  <div>
+                    <strong>示例</strong
+                    >：镜头1，城市夜景航拍，镜头环绕；镜头2，男主在屋顶奔跑，镜头跟随，快速；镜头3，男主停下特写，霓虹反光，缓慢拉近。
+                  </div>
+                </blockquote>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+
       <!-- 功能开关 -->
       <div
         class="function-switch"
@@ -581,6 +700,9 @@ const waterfallRendered = ref(false)
 // 新增：模板预览图
 const templatePreview = ref('')
 
+// 新增：提示词指南折叠面板状态（默认收起）
+const guideActive = ref([])
+
 onMounted(() => {
   store.init()
 })
@@ -732,6 +854,7 @@ function copyErrorMsg(msg) {
 .err-msg-clip {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -743,6 +866,52 @@ function copyErrorMsg(msg) {
   .el-select-dropdown__item {
     height: 60px;
     line-height: 60px;
+  }
+}
+
+// 新增：提示词指南样式
+.prompt-guide {
+  margin: 12px 0 16px;
+
+  .guide-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #666;
+  }
+
+  .guide-content {
+    max-height: 220px;
+    overflow: auto;
+    line-height: 1.6;
+    font-size: 12px;
+    color: #555;
+    padding-right: 4px;
+  }
+
+  .guide-section {
+    margin-bottom: 10px;
+  }
+
+  .guide-subtitle {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+  }
+
+  ul {
+    list-style: disc;
+    padding-left: 18px;
+    margin: 4px 0;
+  }
+
+  .quote {
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-left: 3px solid #a3a3a3;
+    background: #f8f8f8;
+    border-radius: 4px;
+    color: #444;
   }
 }
 </style>

@@ -78,7 +78,7 @@
           :show-file-list="false"
           :http-request="handleUpload"
           :multiple="multiple"
-          accept="image/*"
+          :accept="accept"
           class="uploader"
           :limit="maxCount"
         >
@@ -86,7 +86,7 @@
           <div class="el-upload__text">拖拽图片到此处，或 <em>点击上传</em></div>
           <template #tip>
             <div class="el-upload__tip text-gray-500 text-sm">
-              支持 JPG、PNG 格式，最多上传 {{ maxCount }} 张，单张最大 5MB
+              支持 {{ accept }} 格式，最多上传 {{ maxCount }} 张，单张最大 {{ maxSize }}MB
             </div>
           </template>
         </el-upload>
@@ -122,6 +122,14 @@ const props = defineProps({
   maxCount: {
     type: Number,
     default: 1,
+  },
+  maxSize: {
+    type: Number,
+    default: 5,
+  },
+  accept: {
+    type: String,
+    default: '.png,.jpg,.jpeg',
   },
 })
 
@@ -161,8 +169,8 @@ const handleUpload = async (uploadFile) => {
   }
 
   // 检查文件大小 (5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    ElMessage.error('图片大小不能超过 5MB')
+  if (file.size > props.maxSize * 1024 * 1024) {
+    ElMessage.error(`图片大小不能超过 ${props.maxSize}MB`)
     return
   }
 

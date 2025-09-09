@@ -159,8 +159,16 @@ func (s *MigrationService) MigrateConfigContent() error {
 
 // 数据表迁移
 func (s *MigrationService) TableMigration() {
+
+	// v4.2.7 数据表迁移
+	if s.db.Migrator().HasColumn(&model.JimengJob{}, "task_params") {
+		s.db.Migrator().RenameColumn(&model.JimengJob{}, "task_params", "params")
+	}
+
 	// 新数据表
-	s.db.AutoMigrate(&model.Moderation{})
+	if !s.db.Migrator().HasTable(&model.Moderation{}) {
+		s.db.AutoMigrate(&model.Moderation{})
+	}
 
 	// 订单字段整理
 	if s.db.Migrator().HasColumn(&model.Order{}, "pay_type") {

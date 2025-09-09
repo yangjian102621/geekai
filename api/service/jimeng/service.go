@@ -114,16 +114,16 @@ func (s *Service) CreateTask(userId uint, req *CreateTaskRequest) (*model.Jimeng
 
 	// 创建任务记录
 	job := &model.JimengJob{
-		UserId:     userId,
-		TaskId:     taskId,
-		Type:       req.Type,
-		ReqKey:     req.ReqKey,
-		Prompt:     req.Prompt,
-		TaskParams: string(paramsJson),
-		Status:     model.JMTaskStatusInQueue,
-		Power:      req.Power,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		UserId:    userId,
+		TaskId:    taskId,
+		Type:      req.Type,
+		ReqKey:    req.ReqKey,
+		Prompt:    req.Prompt,
+		Params:    string(paramsJson),
+		Status:    model.JMTaskStatusInQueue,
+		Power:     req.Power,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	// 保存到数据库
@@ -187,7 +187,7 @@ func (s *Service) ProcessTask(jobId uint) error {
 func (s *Service) buildTaskRequest(job *model.JimengJob) (*SubmitTaskRequest, error) {
 	// 解析任务参数
 	var params map[string]any
-	if err := json.Unmarshal([]byte(job.TaskParams), &params); err != nil {
+	if err := json.Unmarshal([]byte(job.Params), &params); err != nil {
 		return nil, fmt.Errorf("parse task params failed: %w", err)
 	}
 
