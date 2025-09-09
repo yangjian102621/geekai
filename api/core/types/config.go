@@ -89,6 +89,7 @@ type BaseConfig struct {
 	MjMode      string `json:"mj_mode"`       // midjourney 默认的API模式，relax, fast, turbo
 
 	IndexNavs []int  `json:"index_navs"` // 首页显示的导航菜单
+	IndexPage string `json:"index_page"` // 首页显示的页面
 	Copyright string `json:"copyright"`  // 版权信息
 	ICP       string `json:"icp"`        // ICP 备案号
 	GaBeian   string `json:"ga_beian"`   // 公安备案号
