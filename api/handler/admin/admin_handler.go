@@ -31,7 +31,7 @@ import (
 
 var logger = logger2.GetLogger()
 
-const SuperManagerID = 1
+const SuperUsername = "admin"
 
 type ManagerHandler struct {
 	handler.BaseHandler
@@ -94,7 +94,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	}
 
 	// 超级管理员默认是ID:1
-	if manager.Id != SuperManagerID && manager.Status == false {
+	if manager.Username != SuperUsername && !manager.Status {
 		resp.ERROR(c, "该用户已被禁止登录，请联系超级管理员")
 		return
 	}
@@ -125,7 +125,7 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 		IsSuperAdmin bool   `json:"is_super_admin"`
 		Token        string `json:"token"`
 	}{
-		IsSuperAdmin: manager.Id == 1,
+		IsSuperAdmin: manager.Username == SuperUsername,
 		Token:        tokenString,
 	}
 
@@ -227,12 +227,19 @@ func (h *ManagerHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	if id == SuperManagerID {
+	var user model.AdminUser
+	res := h.DB.Where("id", id).First(&user)
+	if res.Error != nil {
+		resp.ERROR(c, res.Error.Error())
+		return
+	}
+
+	if user.Username == SuperUsername {
 		resp.ERROR(c, "超级管理员不能删除")
 		return
 	}
 
-	res := h.DB.Where("id", id).Delete(&model.AdminUser{})
+	res = h.DB.Where("id", id).Delete(&model.AdminUser{})
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
@@ -263,8 +270,14 @@ func (h *ManagerHandler) Enable(c *gin.Context) {
 
 // ResetPass 重置密码
 func (h *ManagerHandler) ResetPass(c *gin.Context) {
-	id := h.GetLoginUserId(c)
-	if id != SuperManagerID {
+	id := h.GetAdminId(c)
+	var user model.AdminUser
+	res := h.DB.Where("id", id).First(&user)
+	if res.Error != nil {
+		resp.ERROR(c, res.Error.Error())
+		return
+	}
+	if user.Username != SuperUsername {
 		resp.ERROR(c, "只有超级管理员能够进行该操作")
 		return
 	}
@@ -275,13 +288,6 @@ func (h *ManagerHandler) ResetPass(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	var user model.AdminUser
-	res := h.DB.Where("id", data.Id).First(&user)
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
