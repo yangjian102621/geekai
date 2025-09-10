@@ -145,7 +145,7 @@ const imageList = computed({
     if (props.multiple || props.maxCount > 1) {
       return Array.isArray(props.modelValue) ? props.modelValue : []
     } else {
-      return props.modelValue ? [props.modelValue] : []
+      return props.modelValue && props.modelValue.length > 0 ? [props.modelValue] : []
     }
   },
   set(value) {

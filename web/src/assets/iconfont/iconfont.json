@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "5215282",
+      "name": "动作",
+      "font_class": "action",
+      "unicode": "e658",
+      "unicode_decimal": 58968
+    },
+    {
+      "icon_id": "7250581",
+      "name": "跳舞",
+      "font_class": "dancing",
+      "unicode": "e659",
+      "unicode_decimal": 58969
+    },
+    {
+      "icon_id": "8153037",
+      "name": "动作",
+      "font_class": "running",
+      "unicode": "e65e",
+      "unicode_decimal": 58974
+    },
+    {
+      "icon_id": "42680536",
+      "name": "数字人",
+      "font_class": "shuziren",
+      "unicode": "e6df",
+      "unicode_decimal": 59103
+    },
+    {
       "icon_id": "544492",
       "name": "cube",
       "font_class": "cube",

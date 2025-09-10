@@ -279,7 +279,7 @@ const items = [
       {
         icon: 'xmind',
         index: '/admin/config/markmap',
-        title: '思维导图配置',
+        title: '思维导图',
       },
     ],
   },
