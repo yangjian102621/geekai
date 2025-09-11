@@ -29,7 +29,7 @@
               <span class="label text-sm">{{ item.name }}</span>
               <div class="whitespace-pre-line">
                 <span
-                  class="text-xs text-gray-500 break-words whitespace-pre-line line-clamp-1"
+                  class="text-xs text-gray-500 break-words line-clamp-1 max-w-[200px]"
                   :title="item.label"
                   >{{ item.label }}</span
                 >
@@ -90,7 +90,11 @@
               v-model="modelValue[param.name]"
               :placeholder="param.placeholder"
               :popper-class="param.popperClass"
+              filterable
             >
+              <template #prefix v-if="param.prefix">
+                <i class="iconfont !text-lg" :class="param.prefix"></i>
+              </template>
               <el-option
                 v-for="option in param.options"
                 :key="option.value"
@@ -99,11 +103,18 @@
               >
                 <div class="flex justify-start" v-if="option.image">
                   <span class="flex py-3 mr-2">
-                    <img :src="option.image" class="w-[54px] h-[54px] rounded-lg"
+                    <img
+                      :src="option.image"
+                      class="rounded-lg"
+                      :style="{ width: param.imgSize, height: param.imgSize }"
                   /></span>
                   <div class="flex !items-start flex-col py-2 space-y-1">
                     <span class="label text-sm">{{ option.label }}</span>
-                    <span class="text-xs text-gray-500">{{ option.value }}</span>
+                    <span
+                      class="text-xs text-gray-500 break-words line-clamp-1 max-w-[200px]"
+                      :title="option.value"
+                      >{{ option.value }}</span
+                    >
                   </div>
                 </div>
                 <div class="flex justify-start items-center h-full" v-else>
@@ -148,6 +159,11 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  requiredKeys: {
+    type: Object,
+    default: {},
+    required: false,
+  },
   items: {
     type: Array,
     required: true,
@@ -159,15 +175,20 @@ const props = defineProps({
   },
 })
 
-const selectedModel = ref({ label: '请选择模型' })
+const selectedModel = ref(props.items[0])
+const requiredKeys = ref(props.requiredKeys)
 
 const emit = defineEmits(['update:modelValue'])
 
 // 初始化 modelValue 默认值
 const initModelValue = (model) => {
   const defaultValues = {}
+  requiredKeys.value = {}
   if (model && model.params) {
     model.params.forEach((param) => {
+      if (param.required) {
+        requiredKeys.value[param.name] = { required: true, label: param.label }
+      }
       // 根据参数类型设置默认值
       switch (param.type) {
         case 'text':
@@ -201,6 +222,7 @@ const initModelValue = (model) => {
       }
     })
   }
+  defaultValues.model = selectedModel.value.key
   return defaultValues
 }
 
@@ -212,6 +234,22 @@ watch(
   modelValue,
   (newValue) => {
     emit('update:modelValue', newValue)
+  },
+  { deep: true }
+)
+
+watch(
+  requiredKeys,
+  (newValue) => {
+    emit('update:requiredKeys', newValue)
+  },
+  { deep: true }
+)
+
+watch(
+  () => props.items,
+  (newValue) => {
+    selectedModel.value = newValue[0]
   },
   { deep: true }
 )

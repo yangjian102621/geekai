@@ -9,10 +9,8 @@ type JimengConfig struct {
 
 // JimengPower 即梦AI算力配置
 type JimengPower struct {
-	TextToImage  int `json:"text_to_image"`
-	ImageToImage int `json:"image_to_image"`
-	ImageEdit    int `json:"image_edit"`
-	ImageEffects int `json:"image_effects"`
-	TextToVideo  int `json:"text_to_video"`
-	ImageToVideo int `json:"image_to_video"`
+	Image          int `json:"image"`           // 图片生成算力，单位：积分/张
+	Video          int `json:"video"`           // 视频生成算力，单位：积分/秒
+	VirtualHuman   int `json:"virtual_human"`   // 数字人视频生成算力，单位：积分/秒
+	ActionTransfer int `json:"action_transfer"` // 视频动作迁移算力，单位：积分/秒
 }

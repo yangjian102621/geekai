@@ -132,8 +132,8 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 
 	switch req.TaskType {
 	case "text_to_image":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeTextToImage)
-		taskType = model.JMTaskTypeTextToImage
+		powerCost = h.getPowerFromConfig(model.JMTaskTypeImage)
+		taskType = model.JMTaskTypeImage
 		reqKey = jimeng.ReqKeyTextToImage
 		modelName = "即梦文生图"
 		if req.Scale == 0 {
@@ -147,8 +147,8 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 			"use_pre_llm": req.UsePreLLM,
 		}
 	case "image_to_image":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageToImage)
-		taskType = model.JMTaskTypeImageToImage
+		powerCost = h.getPowerFromConfig(model.JMTaskTypeVideo)
+		taskType = model.JMTaskTypeVideo
 		reqKey = jimeng.ReqKeyImageToImagePortrait
 		modelName = "即梦图生图"
 		if req.Gpen == 0 {
@@ -175,8 +175,8 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 			"seed":        req.Seed,
 		}
 	case "image_edit":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageEdit)
-		taskType = model.JMTaskTypeImageEdit
+		powerCost = h.getPowerFromConfig(model.JMTaskTypeVirtualHuman)
+		taskType = model.JMTaskTypeVirtualHuman
 		reqKey = jimeng.ReqKeyImageEdit
 		modelName = "即梦图像编辑"
 		if req.Scale == 0 {
@@ -188,8 +188,8 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		}
 		params["image_urls"] = []string{req.ImageInput}
 	case "image_effects":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageEffects)
-		taskType = model.JMTaskTypeImageEffects
+		powerCost = h.getPowerFromConfig(model.JMTaskTypeActionTransfer)
+		taskType = model.JMTaskTypeActionTransfer
 		reqKey = jimeng.ReqKeyImageEffects
 		modelName = "即梦图像特效"
 		if req.Width == 0 {
@@ -205,8 +205,8 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 			"height":       req.Height,
 		}
 	case "text_to_video":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeTextToVideo)
-		taskType = model.JMTaskTypeTextToVideo
+		powerCost = h.getPowerFromConfig(model.JMTaskTypeVideo)
+		taskType = model.JMTaskTypeVideo
 		reqKey = jimeng.ReqKeyTextToVideo
 		modelName = "即梦文生视频"
 		if req.AspectRatio == "" {
@@ -217,8 +217,8 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 			"aspect_ratio": req.AspectRatio,
 		}
 	case "image_to_video":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageToVideo)
-		taskType = model.JMTaskTypeImageToVideo
+		powerCost = h.getPowerFromConfig(model.JMTaskTypeVideo)
+		taskType = model.JMTaskTypeVideo
 		reqKey = jimeng.ReqKeyImageToVideo
 		modelName = "即梦图生视频"
 		params = map[string]any{
@@ -287,17 +287,9 @@ func (h *JimengHandler) Jobs(c *gin.Context) {
 
 	switch req.Filter {
 	case "image":
-		query = query.Where("type IN (?)", []model.JMTaskType{
-			model.JMTaskTypeTextToImage,
-			model.JMTaskTypeImageToImage,
-			model.JMTaskTypeImageEdit,
-			model.JMTaskTypeImageEffects,
-		})
+		query = query.Where("type = ?", model.JMTaskTypeImage)
 	case "video":
-		query = query.Where("type IN (?)", []model.JMTaskType{
-			model.JMTaskTypeTextToVideo,
-			model.JMTaskTypeImageToVideo,
-		})
+		query = query.Where("type = ?", model.JMTaskTypeVideo)
 	}
 
 	if len(req.Ids) > 0 {
@@ -438,18 +430,14 @@ func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
 	config := h.App.SysConfig.Jimeng
 
 	switch taskType {
-	case model.JMTaskTypeTextToImage:
-		return config.Power.TextToImage
-	case model.JMTaskTypeImageToImage:
-		return config.Power.ImageToImage
-	case model.JMTaskTypeImageEdit:
-		return config.Power.ImageEdit
-	case model.JMTaskTypeImageEffects:
-		return config.Power.ImageEffects
-	case model.JMTaskTypeTextToVideo:
-		return config.Power.TextToVideo
-	case model.JMTaskTypeImageToVideo:
-		return config.Power.ImageToVideo
+	case model.JMTaskTypeImage:
+		return config.Power.Image
+	case model.JMTaskTypeVideo:
+		return config.Power.Video
+	case model.JMTaskTypeVirtualHuman:
+		return config.Power.VirtualHuman
+	case model.JMTaskTypeActionTransfer:
+		return config.Power.ActionTransfer
 	default:
 		return 10
 	}
@@ -459,11 +447,9 @@ func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
 	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{
-		"text_to_image":  config.Power.TextToImage,
-		"image_to_image": config.Power.ImageToImage,
-		"image_edit":     config.Power.ImageEdit,
-		"image_effects":  config.Power.ImageEffects,
-		"text_to_video":  config.Power.TextToVideo,
-		"image_to_video": config.Power.ImageToVideo,
+		"image":         config.Power.Image,
+		"video":         config.Power.Video,
+		"image_edit":    config.Power.VirtualHuman,
+		"image_effects": config.Power.ActionTransfer,
 	})
 }

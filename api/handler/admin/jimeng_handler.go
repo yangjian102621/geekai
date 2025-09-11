@@ -231,28 +231,20 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	}
 
 	// 验证算力配置
-	if req.Power.TextToImage <= 0 {
-		resp.ERROR(c, "文生图算力必须大于0")
+	if req.Power.Image <= 0 {
+		resp.ERROR(c, "图片生成算力必须大于0")
 		return
 	}
-	if req.Power.ImageToImage <= 0 {
-		resp.ERROR(c, "图生图算力必须大于0")
+	if req.Power.Video <= 0 {
+		resp.ERROR(c, "视频生成算力必须大于0")
 		return
 	}
-	if req.Power.ImageEdit <= 0 {
-		resp.ERROR(c, "图片编辑算力必须大于0")
+	if req.Power.VirtualHuman <= 0 {
+		resp.ERROR(c, "数字人生成算力必须大于0")
 		return
 	}
-	if req.Power.ImageEffects <= 0 {
-		resp.ERROR(c, "图片特效算力必须大于0")
-		return
-	}
-	if req.Power.TextToVideo <= 0 {
-		resp.ERROR(c, "文生视频算力必须大于0")
-		return
-	}
-	if req.Power.ImageToVideo <= 0 {
-		resp.ERROR(c, "图生视频算力必须大于0")
+	if req.Power.ActionTransfer <= 0 {
+		resp.ERROR(c, "视频动作迁移算力必须大于0")
 		return
 	}
 

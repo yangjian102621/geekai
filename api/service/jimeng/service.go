@@ -199,18 +199,14 @@ func (s *Service) buildTaskRequest(job *model.JimengJob) (*SubmitTaskRequest, er
 
 	// 根据任务类型设置特定参数
 	switch job.Type {
-	case model.JMTaskTypeTextToImage:
+	case model.JMTaskTypeImage:
 		s.setTextToImageParams(req, params)
-	case model.JMTaskTypeImageToImage:
+	case model.JMTaskTypeVideo:
 		s.setImageToImageParams(req, params)
-	case model.JMTaskTypeImageEdit:
+	case model.JMTaskTypeVirtualHuman:
 		s.setImageEditParams(req, params)
-	case model.JMTaskTypeImageEffects:
+	case model.JMTaskTypeActionTransfer:
 		s.setImageEffectsParams(req, params)
-	case model.JMTaskTypeTextToVideo:
-		s.setTextToVideoParams(req, params)
-	case model.JMTaskTypeImageToVideo:
-		s.setImageToVideoParams(req, params)
 	default:
 		return nil, fmt.Errorf("unsupported task type: %s", job.Type)
 	}

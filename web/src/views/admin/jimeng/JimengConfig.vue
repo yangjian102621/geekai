@@ -56,134 +56,55 @@
           <h3 class="heading-3 mb-3">算力配置</h3>
           <el-form-item>
             <template #label>
-              <div class="label-title">
-                文生图算力
-                <el-tooltip
-                  effect="dark"
-                  content="用户使用文生图功能时消耗的算力"
-                  raw-content
-                  placement="right"
+              <div class="text-gray-500 text-sm">
+                生成图片消耗的积分，包括：文生图、图生图、图片编辑、图片特效，<span
+                  class="text-red-500"
+                  >单位：积分/张</span
                 >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
               </div>
             </template>
             <el-input-number
-              v-model="jimengConfig.power.text_to_image"
+              v-model="jimengConfig.power.image"
               :min="1"
-              placeholder="请输入文生图算力消耗"
+              placeholder="请输入图片生成算力消耗"
             />
           </el-form-item>
           <el-form-item>
             <template #label>
-              <div class="label-title">
-                图生图算力
-                <el-tooltip
-                  effect="dark"
-                  content="用户使用图生图功能时消耗的算力"
-                  raw-content
-                  placement="right"
+              <div class="text-gray-500 text-sm">
+                生成视频消耗的积分，包括：文生视频、图生视频，<span class="text-red-500"
+                  >单位：积分/秒</span
                 >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
               </div>
             </template>
             <el-input-number
-              v-model="jimengConfig.power.image_to_image"
+              v-model="jimengConfig.power.video"
               :min="1"
-              placeholder="请输入图生图算力消耗"
+              placeholder="请输入视频生成算力消耗"
             />
           </el-form-item>
           <el-form-item>
             <template #label>
-              <div class="label-title">
-                图片编辑算力
-                <el-tooltip
-                  effect="dark"
-                  content="用户使用图片编辑功能时消耗的算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
+              <div class="text-gray-500 text-sm">
+                生成数字人视频消耗的积分，<span class="text-red-500">单位：积分/秒</span>
               </div>
             </template>
             <el-input-number
-              v-model="jimengConfig.power.image_edit"
+              v-model="jimengConfig.power.virtual_human"
               :min="1"
-              placeholder="请输入图片编辑算力消耗"
+              placeholder="请输入数字人视频生成算力消耗"
             />
           </el-form-item>
           <el-form-item>
             <template #label>
-              <div class="label-title">
-                图片特效算力
-                <el-tooltip
-                  effect="dark"
-                  content="用户使用图片特效功能时消耗的算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
+              <div class="text-gray-500 text-sm">
+                生成视频动作迁移消耗的积分，<span class="text-red-500">单位：积分/秒</span>
               </div>
             </template>
             <el-input-number
-              v-model="jimengConfig.power.image_effects"
+              v-model="jimengConfig.power.action_transfer"
               :min="1"
-              placeholder="请输入图片特效算力消耗"
-            />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                文生视频算力
-                <el-tooltip
-                  effect="dark"
-                  content="用户使用文生视频功能时消耗的算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-            </template>
-            <el-input-number
-              v-model="jimengConfig.power.text_to_video"
-              :min="1"
-              placeholder="请输入文生视频算力消耗"
-            />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                图生视频算力
-                <el-tooltip
-                  effect="dark"
-                  content="用户使用图生视频功能时消耗的算力"
-                  raw-content
-                  placement="right"
-                >
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-            </template>
-            <el-input-number
-              v-model="jimengConfig.power.image_to_video"
-              :min="1"
-              placeholder="请输入图生视频算力消耗"
+              placeholder="请输入视频动作迁移算力消耗"
             />
           </el-form-item>
         </div>
@@ -201,7 +122,6 @@
 <script setup>
 import Alert from '@/components/ui/Alert.vue'
 import { httpGet, httpPost } from '@/utils/http'
-import { InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 

@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "10564356",
+      "name": "resize",
+      "font_class": "resize",
+      "unicode": "e718",
+      "unicode_decimal": 59160
+    },
+    {
+      "icon_id": "1727381",
+      "name": "34模板、框架",
+      "font_class": "template",
+      "unicode": "e8a6",
+      "unicode_decimal": 59558
+    },
+    {
+      "icon_id": "9626841",
+      "name": "错误",
+      "font_class": "error-line",
+      "unicode": "e868",
+      "unicode_decimal": 59496
+    },
+    {
+      "icon_id": "9626990",
+      "name": "正确",
+      "font_class": "success-line",
+      "unicode": "e88c",
+      "unicode_decimal": 59532
+    },
+    {
+      "icon_id": "40613765",
+      "name": "运镜控制",
+      "font_class": "yunjing",
+      "unicode": "e69b",
+      "unicode_decimal": 59035
+    },
+    {
       "icon_id": "5215282",
       "name": "动作",
       "font_class": "action",

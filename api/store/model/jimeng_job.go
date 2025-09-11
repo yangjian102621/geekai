@@ -41,12 +41,10 @@ const (
 type JMTaskType string
 
 const (
-	JMTaskTypeTextToImage  = JMTaskType("text_to_image")  // 文生图
-	JMTaskTypeImageToImage = JMTaskType("image_to_image") // 图生图
-	JMTaskTypeImageEdit    = JMTaskType("image_edit")     // 图像编辑
-	JMTaskTypeImageEffects = JMTaskType("image_effects")  // 图像特效
-	JMTaskTypeTextToVideo  = JMTaskType("text_to_video")  // 文生视频
-	JMTaskTypeImageToVideo = JMTaskType("image_to_video") // 图生视频
+	JMTaskTypeImage          = JMTaskType("image")           // 文生图
+	JMTaskTypeVideo          = JMTaskType("video")           // 图生图
+	JMTaskTypeVirtualHuman   = JMTaskType("virtual_human")   // 图像编辑
+	JMTaskTypeActionTransfer = JMTaskType("action_transfer") // 图像特效
 )
 
 // TableName 返回数据表名称
