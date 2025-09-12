@@ -28,8 +28,6 @@ export const useJimengStore = defineStore('jimeng', () => {
 
   // 用户信息
   const isLogin = ref(false)
-  const userPower = ref(100)
-
   // 视频预览
   const showDialog = ref(false)
   const currentVideoUrl = ref('')
@@ -37,16 +35,9 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 登录弹窗
   const shareStore = useSharedStore()
 
-  // 新增：动态获取算力消耗配置
+  // 积分消耗配置
   const powerConfig = reactive({})
-  // 动态设置算力消耗
-  const setFunctionPowers = (config) => {
-    functions.forEach((f) => {
-      if (config[f.key] !== undefined) {
-        f.power = config[f.key]
-      }
-    })
-  }
+  const currentPowerCost = ref('0积分')
 
   // 功能配置
   const functions = JimengFunctions
@@ -69,11 +60,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   const switchFunction = (f) => {
     activeFunction.value = f.key
     formData.value = {}
-  }
-
-  // 获取当前算力消耗
-  const getCurrentPowerCost = () => {
-    return activeFunction.value.power
+    setFunctionPowers()
   }
 
   // 获取功能名称
@@ -198,12 +185,9 @@ export const useJimengStore = defineStore('jimeng', () => {
       shareStore.setShowLoginDialog(true)
       return
     }
-    // if (userPower.value < currentPowerCost.value) {
-    //   showMessageError('算力不足')
-    //   return
-    // }
+    console.log(formData.value)
     for (const key in requiredKeys.value) {
-      if (!formData.value[key].required) {
+      if (!formData.value[key]) {
         showMessageError('缺少参数：' + requiredKeys.value[key].label)
         return
       }
@@ -296,18 +280,25 @@ export const useJimengStore = defineStore('jimeng', () => {
     showDialog.value = true
   }
 
+  const setFunctionPowers = () => {
+    if (activeFunction.value === 'image') {
+      currentPowerCost.value = `${powerConfig.image}积分/张`
+    } else {
+      currentPowerCost.value = `${powerConfig.video}积分/秒`
+    }
+  }
+
   // 初始化方法
   const init = async () => {
     try {
-      // 获取算力消耗配置
+      // 获取积分消耗配置
       const powerRes = await httpGet('/api/jimeng/power-config')
       if (powerRes.data) {
         Object.assign(powerConfig, powerRes.data)
-        setFunctionPowers(powerRes.data)
+        setFunctionPowers()
       }
       const user = await checkSession()
       isLogin.value = true
-      userPower.value = user.power
       // 获取任务列表
       await fetchData(1)
       // 开始轮询
@@ -335,7 +326,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     currentList,
     isOver,
     isLogin,
-    userPower,
     showDialog,
     currentVideoUrl,
 
@@ -346,11 +336,11 @@ export const useJimengStore = defineStore('jimeng', () => {
     formData,
     requiredKeys,
     progress,
+    currentPowerCost,
 
     // 方法
     init,
     switchFunction,
-    getCurrentPowerCost,
     getFunctionName,
     getTaskStatusText,
     getTaskType,

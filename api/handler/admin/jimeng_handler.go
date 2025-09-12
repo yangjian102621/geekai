@@ -131,7 +131,7 @@ func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 			continue // 跳过不存在的
 		}
 		tx := h.DB.Begin()
-		if job.Status != model.JMTaskStatusSuccess && job.Power > 0 {
+		if job.Status != types.JMTaskStatusSuccess && job.Power > 0 {
 			remark := fmt.Sprintf("任务未成功，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 			err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 				Type:   types.PowerRefund,
@@ -172,7 +172,7 @@ func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 // Stats 获取统计信息
 func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	type StatResult struct {
-		Status model.JMTaskStatus `json:"status"`
+		Status types.JMTaskStatus `json:"status"`
 		Count  int64              `json:"count"`
 	}
 
@@ -198,13 +198,13 @@ func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	for _, stat := range stats {
 		result["totalTasks"] = result["totalTasks"].(int64) + stat.Count
 		switch stat.Status {
-		case model.JMTaskStatusInQueue:
+		case types.JMTaskStatusInQueue:
 			result["pendingTasks"] = stat.Count
-		case model.JMTaskStatusSuccess:
+		case types.JMTaskStatusSuccess:
 			result["completedTasks"] = stat.Count
-		case model.JMTaskStatusGenerating:
+		case types.JMTaskStatusGenerating:
 			result["processingTasks"] = stat.Count
-		case model.JMTaskStatusFailed:
+		case types.JMTaskStatusFailed:
 			result["failedTasks"] = stat.Count
 		}
 	}

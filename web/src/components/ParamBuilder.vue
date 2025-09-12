@@ -178,10 +178,13 @@ const props = defineProps({
 const selectedModel = ref(props.items[0])
 const requiredKeys = ref(props.requiredKeys)
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'update:requiredKeys'])
 
 // 初始化 modelValue 默认值
 const initModelValue = (model) => {
+  if (props.items.length === 0) {
+    return {}
+  }
   const defaultValues = {}
   requiredKeys.value = {}
   if (model && model.params) {
@@ -250,6 +253,7 @@ watch(
   () => props.items,
   (newValue) => {
     selectedModel.value = newValue[0]
+    modelValue.value = initModelValue(selectedModel.value)
   },
   { deep: true }
 )

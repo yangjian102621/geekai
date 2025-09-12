@@ -140,7 +140,7 @@
       <!-- 功能开关 -->
       <div class="function-params">
         <div class="mb-3">
-          <div class="mb-2">
+          <div class="mb-2" v-if="store.functionParams[store.activeFunction].length > 0">
             <label class="label text-left font-bold">模型选择</label>
           </div>
           <param-builder
@@ -152,7 +152,10 @@
         </div>
 
         <!-- 提交按钮 -->
-        <div class="submit-btn flex justify-center pt-4">
+        <div
+          class="submit-btn flex justify-center pt-4"
+          v-if="store.functionParams[store.activeFunction].length > 0"
+        >
           <button
             @click="store.submitTask"
             :disabled="store.submitting"
@@ -161,7 +164,7 @@
           >
             <i v-if="store.submitting" class="iconfont icon-loading animate-spin"></i>
             <i v-else class="iconfont icon-chuangzuo"></i>
-            <span>立即生成 ({{ store.currentPowerCost }}算力)</span>
+            <span>立即生成 ({{ store.currentPowerCost }})</span>
           </button>
         </div>
       </div>
@@ -342,7 +345,7 @@
                   </div>
                   <div class="task-meta">
                     <span>{{ dateFormat(item.created_at) }}</span>
-                    <span v-if="item.power">{{ item.power }}算力</span>
+                    <span v-if="item.power">{{ item.power }}积分</span>
                   </div>
                 </div>
               </div>

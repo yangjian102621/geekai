@@ -1,13 +1,13 @@
 package vo
 
-import "geekai/store/model"
+import "geekai/core/types"
 
 // JimengJob 即梦AI任务VO
 type JimengJob struct {
 	Id        uint               `json:"id"`
 	UserId    uint               `json:"user_id"`
 	TaskId    string             `json:"task_id"`
-	Type      model.JMTaskType   `json:"type"`
+	Type      types.JMTaskType   `json:"type"`
 	ReqKey    string             `json:"req_key"`
 	Prompt    string             `json:"prompt"`
 	Params    map[string]any     `json:"params"`
@@ -15,7 +15,7 @@ type JimengJob struct {
 	VideoURL  string             `json:"video_url"`
 	RawData   string             `json:"raw_data"`
 	Progress  int                `json:"progress"`
-	Status    model.JMTaskStatus `json:"status"`
+	Status    types.JMTaskStatus `json:"status"`
 	ErrMsg    string             `json:"err_msg"`
 	Power     int                `json:"power"`
 	CreatedAt int64              `json:"created_at"` // 时间戳

@@ -57,9 +57,8 @@
           <el-form-item>
             <template #label>
               <div class="text-gray-500 text-sm">
-                生成图片消耗的积分，包括：文生图、图生图、图片编辑、图片特效，<span
-                  class="text-red-500"
-                  >单位：积分/张</span
+                生成图片消耗的积分，包括：文生图、图生图、图片编辑、图片特效，<el-tag type="primary"
+                  >单位：积分/张</el-tag
                 >
               </div>
             </template>
@@ -72,8 +71,8 @@
           <el-form-item>
             <template #label>
               <div class="text-gray-500 text-sm">
-                生成视频消耗的积分，包括：文生视频、图生视频，<span class="text-red-500"
-                  >单位：积分/秒</span
+                生成视频消耗的积分，包括：文生视频、图生视频，<el-tag type="primary"
+                  >单位：积分/秒</el-tag
                 >
               </div>
             </template>
@@ -86,7 +85,7 @@
           <el-form-item>
             <template #label>
               <div class="text-gray-500 text-sm">
-                生成数字人视频消耗的积分，<span class="text-red-500">单位：积分/秒</span>
+                生成数字人视频消耗的积分，<el-tag type="primary">单位：积分/秒</el-tag>
               </div>
             </template>
             <el-input-number
@@ -98,7 +97,7 @@
           <el-form-item>
             <template #label>
               <div class="text-gray-500 text-sm">
-                生成视频动作迁移消耗的积分，<span class="text-red-500">单位：积分/秒</span>
+                生成视频动作迁移消耗的积分，<el-tag type="primary">单位：积分/秒</el-tag>
               </div>
             </template>
             <el-input-number

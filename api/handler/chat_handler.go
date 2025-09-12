@@ -69,6 +69,7 @@ type ChatHandler struct {
 	ReqCancelFunc     *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	userService       *service.UserService
 	moderationManager *moderation.ServiceManager
+	userLocks         *types.UserLockManager
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService, moderationManager *moderation.ServiceManager) *ChatHandler {
@@ -80,6 +81,7 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		ReqCancelFunc:     types.NewLMap[string, context.CancelFunc](),
 		userService:       userService,
 		moderationManager: moderationManager,
+		userLocks:         types.NewUserLockManager(),
 	}
 }
 
@@ -119,6 +121,14 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	// 用户级并发锁，确保同一用户同时只有一个对话请求
+	if !h.userLocks.TryLock(input.UserId) {
+		pushMessage(c, ChatEventError, "您有一个对话请求正在进行中，请稍后再试或先停止当前生成！")
+		c.Abort()
+		return
+	}
+	defer h.userLocks.Unlock(input.UserId)
 
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()

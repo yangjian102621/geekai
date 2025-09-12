@@ -102,76 +102,7 @@ export const JimengParams = {
         },
       ],
     },
-    {
-      name: '图片 2.1 文生图',
-      version: '2.1',
-      label: '平面绘感强，可生成文字海报',
-      key: 'jimeng_high_aes_general_v21_L',
-      params: [
-        {
-          name: 'prompt',
-          label: '提示词',
-          type: 'textarea',
-          showWordLimit: true,
-          maxlength: 800,
-          autosize: { minRows: 3, maxRows: 5 },
-          required: true,
-          placeholder: '请输入提示词',
-          info: '用于生成图像的提示词 ，中英文均可输入',
-        },
 
-        {
-          name: 'size',
-          type: 'select',
-          required: true,
-          placeholder: '请选择尺寸',
-          label: '图片尺寸',
-          prefix: 'icon-resize',
-          options: [
-            {
-              label: '21:9 (1195 * 512)',
-              value: '1195x512',
-            },
-            {
-              label: '16:9 (1024 * 576)',
-              value: '1024x576',
-            },
-            {
-              label: '3:2 (1024 * 682)',
-              value: '1024x682',
-            },
-            {
-              label: '4:3 (1024 * 768)',
-              value: '1024x768',
-            },
-            {
-              label: '1:1 (1024 * 1024)',
-              value: '1024x1024',
-            },
-            {
-              label: '3:4 (768 * 1024)',
-              value: '768x1024',
-            },
-            {
-              label: '2:3 (682 * 1024)',
-              value: '682x1024',
-            },
-            {
-              label: '9:16 (576 * 1024)',
-              value: '576x1024',
-            },
-          ],
-        },
-        {
-          name: 'use_pre_llm',
-          type: 'switch',
-          required: false,
-          label: '开启文本扩写',
-          info: '开启后，系统会自动扩写提示词，提高生成质量',
-          value: true,
-        },
-      ],
-    },
     {
       name: '图片 3.0 文生图',
       version: '3.0',
@@ -355,6 +286,17 @@ export const JimengParams = {
           info: '长边与短边比例在3以内，超出此比例或比例相对极端，会导致报错。',
         },
         {
+          name: 'scale',
+          label: '文本描述影响的程度',
+          type: 'slider',
+          required: true,
+          info: '该值越大代表文本描述影响程度越大，且输入图片影响程度越小',
+          min: 0,
+          max: 1,
+          step: 0.1,
+          value: 0.5,
+        },
+        {
           name: 'size',
           type: 'select',
           required: true,
@@ -405,17 +347,6 @@ export const JimengParams = {
       label: '将输入的单人写真图片，进行有创意的特效化处理。',
       key: 'i2i_multi_style_zx2x',
       params: [
-        {
-          name: 'prompt',
-          label: '提示词',
-          type: 'textarea',
-          required: true,
-          showWordLimit: true,
-          maxlength: 800,
-          autosize: { minRows: 3, maxRows: 5 },
-          placeholder: '请输入用于编辑图像的提示词，如：把xxx改成xxx，删除xxx，添加xxx等',
-          info: '建议长度<=120字符，最长不超过800字符',
-        },
         {
           name: 'image_urls',
           label: '参考图片',
@@ -607,6 +538,77 @@ export const JimengParams = {
               value: '2016x864',
             },
           ],
+        },
+      ],
+    },
+
+    {
+      name: '图片 2.1 文生图',
+      version: '2.1',
+      label: '平面绘感强，可生成文字海报',
+      key: 'jimeng_high_aes_general_v21_L',
+      params: [
+        {
+          name: 'prompt',
+          label: '提示词',
+          type: 'textarea',
+          showWordLimit: true,
+          maxlength: 800,
+          autosize: { minRows: 3, maxRows: 5 },
+          required: true,
+          placeholder: '请输入提示词',
+          info: '用于生成图像的提示词 ，中英文均可输入',
+        },
+
+        {
+          name: 'size',
+          type: 'select',
+          required: true,
+          placeholder: '请选择尺寸',
+          label: '图片尺寸',
+          prefix: 'icon-resize',
+          options: [
+            {
+              label: '21:9 (1195 * 512)',
+              value: '1195x512',
+            },
+            {
+              label: '16:9 (1024 * 576)',
+              value: '1024x576',
+            },
+            {
+              label: '3:2 (1024 * 682)',
+              value: '1024x682',
+            },
+            {
+              label: '4:3 (1024 * 768)',
+              value: '1024x768',
+            },
+            {
+              label: '1:1 (1024 * 1024)',
+              value: '1024x1024',
+            },
+            {
+              label: '3:4 (768 * 1024)',
+              value: '768x1024',
+            },
+            {
+              label: '2:3 (682 * 1024)',
+              value: '682x1024',
+            },
+            {
+              label: '9:16 (576 * 1024)',
+              value: '576x1024',
+            },
+          ],
+        },
+        {
+          name: 'use_pre_llm',
+          type: 'switch',
+          required: false,
+          label: '开启文本扩写',
+          info: '开启后，系统会自动扩写提示词，提高生成质量',
+          value: true,
         },
       ],
     },
