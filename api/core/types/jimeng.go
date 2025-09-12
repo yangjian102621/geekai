@@ -2,9 +2,13 @@ package types
 
 // JimengConfig 即梦AI配置
 type JimengConfig struct {
-	AccessKey string      `json:"access_key"`
-	SecretKey string      `json:"secret_key"`
-	Power     JimengPower `json:"power"`
+	// 即梦AI的AccessKey和SecretKey
+	AccessKey string `json:"access_key"`
+	SecretKey string `json:"secret_key"`
+	// 火山引擎大模型专用的验证方式
+	ApiKey string `json:"api_key"`
+	// 算力配置
+	Power JimengPower `json:"power"`
 }
 
 // JimengPower 即梦AI算力配置
@@ -40,7 +44,9 @@ const (
 
 // JimengTaskRequest 即梦AI任务请求
 type JimengTaskRequest struct {
-	ReqKey string `json:"req_key"` // 请求Key
+	TaskType JMTaskType `json:"type"`    // 任务类型
+	ReqKey   string     `json:"req_key"` // 请求Key
+	Power    int        `json:"power"`   // 消耗算力
 	// 公共参数
 	Prompt    string   `json:"prompt,omitempty"`
 	ImageUrls []string `json:"image_urls,omitempty"`
@@ -50,7 +56,7 @@ type JimengTaskRequest struct {
 	UsePreLLM bool   `json:"use_pre_llm,omitempty"`
 
 	// 视频生成参数
-	Duration       string `json:"duration,omitempty"`    // 视频时长
+	Duration       int    `json:"duration,omitempty"`    // 视频时长，单位：秒
 	TemplateId     string `json:"template_id,omitempty"` // 运镜模板ID
 	AspectRatio    string `json:"aspect_ratio,omitempty"`
 	CameraStrength string `json:"camera_strength,omitempty"` // 运镜强度

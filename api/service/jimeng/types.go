@@ -4,32 +4,6 @@ import (
 	"geekai/core/types"
 )
 
-// SubmitTaskRequest 提交任务请求
-type SubmitTaskRequest struct {
-	ReqKey string `json:"req_key"`
-	// 文生图参数
-	Prompt    string  `json:"prompt,omitempty"`
-	Seed      int64   `json:"seed,omitempty"`
-	Scale     float64 `json:"scale,omitempty"`
-	Width     int     `json:"width,omitempty"`
-	Height    int     `json:"height,omitempty"`
-	UsePreLLM bool    `json:"use_pre_llm,omitempty"`
-	// 图生图参数
-	ImageInput       string   `json:"image_input,omitempty"`
-	ImageUrls        []string `json:"image_urls,omitempty"`
-	BinaryDataBase64 []string `json:"binary_data_base64,omitempty"`
-	Gpen             float64  `json:"gpen,omitempty"`
-	Skin             float64  `json:"skin,omitempty"`
-	SkinUnifi        float64  `json:"skin_unifi,omitempty"`
-	GenMode          string   `json:"gen_mode,omitempty"`
-	// 图像编辑参数
-	// 图像特效参数
-	ImageInput1 string `json:"image_input1,omitempty"`
-	TemplateId  string `json:"template_id,omitempty"`
-	// 视频生成参数
-	AspectRatio string `json:"aspect_ratio,omitempty"`
-}
-
 // SubmitTaskResponse 提交任务响应
 type SubmitTaskResponse struct {
 	Code        int    `json:"code"`
@@ -75,6 +49,8 @@ type QueryTaskResponse struct {
 	} `json:"data"`
 }
 
+const CodeSuccess = 10000
+
 // CreateTaskRequest 创建任务请求
 type CreateTaskRequest struct {
 	Type      types.JMTaskType `json:"type"`
@@ -84,3 +60,8 @@ type CreateTaskRequest struct {
 	ImageUrls []string         `json:"image_urls,omitempty"`
 	Power     int              `json:"power,omitempty"`
 }
+
+const (
+	ImageEffectReqKey      = "i2i_multi_style_zx2x"
+	DoubaoSeedream40ReqKey = "doubao-seedream-4-0-250828"
+)

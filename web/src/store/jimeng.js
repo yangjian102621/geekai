@@ -195,14 +195,19 @@ export const useJimengStore = defineStore('jimeng', () => {
 
     try {
       submitting.value = true
-
-      const response = await httpPost('/api/jimeng/task', formData.value)
-      if (response.data) {
-        showMessageOK('任务提交成功')
-        isOver.value = false
-        await fetchData(1)
-        startPolling()
+      formData.value.type = activeFunction.value
+      // 视频 duration 转成整数
+      if (formData.value.duration) {
+        formData.value.duration = parseInt(formData.value.duration)
       }
+      if (formData.value.image_urls && !Array.isArray(formData.value.image_urls)) {
+        formData.value.image_urls = [formData.value.image_urls]
+      }
+      const response = await httpPost('/api/jimeng/task', formData.value)
+      showMessageOK('任务提交成功')
+      isOver.value = false
+      await fetchData(1)
+      startPolling()
     } catch (error) {
       console.error('提交任务失败:', error)
       showMessageError(error.message || '提交任务失败')

@@ -24,10 +24,15 @@
                 >
                 和
                 <a
-                  href="https://console.volcengine.com/ai/ability/detail/9"
+                  href="https://console.volcengine.com/ai/ability/detail/1"
                   target="_blank"
                   class="text-blue-500"
                   >智能绘图</a
+                >以及<a
+                  href="https://console.volcengine.com/ark/region:ark+cn-beijing/openManagement"
+                  target="_blank"
+                  class="text-blue-500"
+                  >火山方舟</a
                 >
                 服务。
               </p>
@@ -41,6 +46,17 @@
                 >
                 获取。
               </p>
+              <p>
+                3. ApiKey 请在火山方舟控制台 ->
+                <a
+                  href="https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey?apikey=%7B%7D"
+                  target="_blank"
+                  class="text-blue-500"
+                >
+                  API Key管理</a
+                >
+                获取。
+              </p>
             </Alert>
           </div>
           <el-form-item label="AccessKey" prop="access_key">
@@ -48,6 +64,19 @@
           </el-form-item>
           <el-form-item label="SecretKey" prop="secret_key">
             <el-input v-model="jimengConfig.secret_key" placeholder="请输入即梦AI的SecretKey" />
+          </el-form-item>
+          <el-form-item prop="api_key">
+            <template #label>
+              <div class="text-sm">
+                火山方舟服务API Key（<span class="text-red-400"
+                  >目前火山方舟服务只支持API Key验证</span
+                >）
+              </div>
+            </template>
+            <el-input v-model="jimengConfig.api_key" placeholder="请输入火山方舟服务API Key" />
+            <div class="text-sm mt-2 text-gray-500">
+              目前豆包生图 4.0 模型在即梦API中不支持，需要使用火山方舟服务。
+            </div>
           </el-form-item>
         </div>
         <el-divider />

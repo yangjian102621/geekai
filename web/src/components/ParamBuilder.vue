@@ -225,7 +225,7 @@ const initModelValue = (model) => {
       }
     })
   }
-  defaultValues.model = selectedModel.value.key
+  defaultValues.req_key = selectedModel.value.key
   return defaultValues
 }
 

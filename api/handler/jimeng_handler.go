@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
@@ -94,32 +95,29 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 	}
 
 	// 获取算力消耗
+	powerCost, err := h.getTaskPower(req)
+	if err != nil {
+		resp.ERROR(c, "计算任务消耗积分失败")
+		return
+	}
 
-	// if user.Power < powerCost {
-	// 	resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
-	// 	return
-	// }
+	if user.Power < powerCost {
+		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
+		return
+	}
 
-	// taskReq := &jimeng.CreateTaskRequest{
-	// 	Type:   taskType,
-	// 	Prompt: req.Prompt,
-	// 	Params: params,
-	// 	ReqKey: reqKey,
-	// 	Power:  powerCost,
-	// }
+	job, err := h.jimengService.CreateTask(user.Id, &req)
+	if err != nil {
+		logger.Errorf("create jimeng task failed: %v", err)
+		resp.ERROR(c, "创建任务失败")
+		return
+	}
 
-	// job, err := h.jimengService.CreateTask(user.Id, taskReq)
-	// if err != nil {
-	// 	logger.Errorf("create jimeng task failed: %v", err)
-	// 	resp.ERROR(c, "创建任务失败")
-	// 	return
-	// }
-
-	// h.userService.DecreasePower(user.Id, powerCost, model.PowerLog{
-	// 	Type:   types.PowerConsume,
-	// 	Model:  "jimeng",
-	// 	Remark: fmt.Sprintf("%s，任务ID：%d", modelName, job.Id),
-	// })
+	h.userService.DecreasePower(user.Id, powerCost, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  job.ReqKey,
+		Remark: fmt.Sprintf("%s，任务ID：%d", req.ReqKey, job.Id),
+	})
 
 	resp.SUCCESS(c)
 }
@@ -224,7 +222,7 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 	if job.Status != types.JMTaskStatusFailed {
 		err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
 			Type:   types.PowerRefund,
-			Model:  "jimeng",
+			Model:  job.ReqKey,
 			Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
 		})
 		if err != nil {
@@ -285,20 +283,24 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 }
 
 // getPowerFromConfig 从配置中获取指定类型的算力消耗
-func (h *JimengHandler) getPowerFromConfig(taskType types.JMTaskType) int {
+func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 	config := h.App.SysConfig.Jimeng
-
-	switch taskType {
+	switch req.TaskType {
 	case types.JMTaskTypeImage:
-		return config.Power.Image
+		return config.Power.Image, nil
 	case types.JMTaskTypeVideo:
-		return config.Power.Video
+		if req.Duration == 0 {
+			return 0, errors.New("视频时长不能为0")
+		}
+		return config.Power.Video * req.Duration, nil
 	case types.JMTaskTypeVirtualHuman:
-		return config.Power.VirtualHuman
+		// TODO 计算音频时长
+		return config.Power.VirtualHuman, nil
 	case types.JMTaskTypeActionTransfer:
-		return config.Power.ActionTransfer
+		// TODO 计算视频时长
+		return config.Power.ActionTransfer, nil
 	default:
-		return 10
+		return 0, errors.New("任务类型不支持")
 	}
 }
 
@@ -306,9 +308,9 @@ func (h *JimengHandler) getPowerFromConfig(taskType types.JMTaskType) int {
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
 	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{
-		"image":         config.Power.Image,
-		"video":         config.Power.Video,
-		"image_edit":    config.Power.VirtualHuman,
-		"image_effects": config.Power.ActionTransfer,
+		"image":           config.Power.Image,
+		"video":           config.Power.Video,
+		"virtual_human":   config.Power.VirtualHuman,
+		"action_transfer": config.Power.ActionTransfer,
 	})
 }
