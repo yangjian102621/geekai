@@ -45,6 +45,13 @@ func NewService(db *gorm.DB, redisCli *redis.Client, tencentClient *Tencent3DCli
 
 // CreateJob 创建3D生成任务
 func (s *Service) CreateJob(userId uint, request vo.AI3DJobParams) (*model.AI3DJob, error) {
+	// 检查用户算力
+	var user model.User
+	s.db.Where("id = ?", userId).First(&user)
+	if user.Power < request.Power {
+		return nil, fmt.Errorf("用户算力不足")
+	}
+
 	switch request.Type {
 	case types.AI3DTaskTypeGitee:
 		if s.giteeClient == nil {
