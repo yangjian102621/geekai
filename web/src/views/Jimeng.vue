@@ -197,6 +197,22 @@
             >
               视频
             </el-button>
+
+            <el-button
+              :type="store.taskFilter === 'virtual_human' ? 'primary' : 'default'"
+              @click="store.switchTaskFilter('virtual_human')"
+              size="small"
+            >
+              数字人
+            </el-button>
+
+            <el-button
+              :type="store.taskFilter === 'action_transfer' ? 'primary' : 'default'"
+              @click="store.switchTaskFilter('action_transfer')"
+              size="small"
+            >
+              动作迁移
+            </el-button>
           </el-button-group>
         </div>
       </div>

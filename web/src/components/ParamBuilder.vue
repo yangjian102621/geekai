@@ -39,121 +39,119 @@
           </div>
         </el-option>
       </el-select>
-
-      <div v-for="param in selectedModel.params" :key="param.name" class="w-full">
-        <div class="w-full flex flex-col !items-start space-y-2" v-if="param.type === 'switch'">
-          <div class="w-full flex justify-between">
-            <label class="label font-bold">{{ param.label }}</label>
-            <el-switch v-model="modelValue[param.name]" size="large" />
+      <template v-for="param in selectedModel.params">
+        <div class="w-full" :key="param.name" v-if="param.type !== 'hidden'">
+          <div class="w-full flex flex-col !items-start space-y-2" v-if="param.type === 'switch'">
+            <div class="w-full flex justify-between">
+              <label class="label font-bold">{{ param.label }}</label>
+              <el-switch v-model="modelValue[param.name]" size="large" />
+            </div>
+            <p v-if="param.info" class="text-xs text-gray-500 mb-1">{{ param.info }}</p>
           </div>
-          <p v-if="param.info" class="text-xs text-gray-500 mb-1">{{ param.info }}</p>
-        </div>
-        <div
-          class="w-full flex flex-col !items-start space-y-2"
-          v-else-if="param.type !== 'hidden'"
-        >
-          <label class="label font-bold">
-            {{ param.label }}
-            <span v-if="param.required" class="text-red-500 ml-1">*</span>
-          </label>
-          <p v-if="param.info" class="text-xs text-gray-500 mb-1">{{ param.info }}</p>
-          <div class="flex w-full">
-            <el-input
-              v-if="param.type === 'text'"
-              v-model="modelValue[param.name]"
-              :placeholder="param.placeholder"
-            />
-            <el-input-number
-              v-if="param.type === 'number'"
-              v-model="modelValue[param.name]"
-              class="!w-full"
-              :placeholder="param.placeholder"
-              :min="param.min"
-              :max="param.max"
-              :step="param.step"
-            />
-            <el-slider
-              v-if="param.type === 'slider'"
-              v-model="modelValue[param.name]"
-              :min="param.min"
-              :max="param.max"
-              :step="param.step"
-            />
-            <el-date-picker
-              v-if="param.type === 'date'"
-              v-model="modelValue[param.name]"
-              :placeholder="param.placeholder"
-            />
-            <el-time-picker
-              v-if="param.type === 'time'"
-              v-model="modelValue[param.name]"
-              :placeholder="param.placeholder"
-            />
-            <el-select
-              v-if="param.type === 'select'"
-              v-model="modelValue[param.name]"
-              :placeholder="param.placeholder"
-              :popper-class="param.popperClass"
-              filterable
-            >
-              <template #prefix v-if="param.prefix">
-                <i class="iconfont !text-lg" :class="param.prefix"></i>
-              </template>
-              <el-option
-                v-for="option in param.options"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
+          <div class="w-full flex flex-col !items-start space-y-2" v-else>
+            <label class="label font-bold">
+              {{ param.label }}
+              <span v-if="param.required" class="text-red-500 ml-1">*</span>
+            </label>
+            <p v-if="param.info" class="text-xs text-gray-500 mb-1">{{ param.info }}</p>
+            <div class="flex w-full">
+              <el-input
+                v-if="param.type === 'text'"
+                v-model="modelValue[param.name]"
+                :placeholder="param.placeholder"
+              />
+              <el-input-number
+                v-if="param.type === 'number'"
+                v-model="modelValue[param.name]"
+                class="!w-full"
+                :placeholder="param.placeholder"
+                :min="param.min"
+                :max="param.max"
+                :step="param.step"
+              />
+              <el-slider
+                v-if="param.type === 'slider'"
+                v-model="modelValue[param.name]"
+                :min="param.min"
+                :max="param.max"
+                :step="param.step"
+              />
+              <el-date-picker
+                v-if="param.type === 'date'"
+                v-model="modelValue[param.name]"
+                :placeholder="param.placeholder"
+              />
+              <el-time-picker
+                v-if="param.type === 'time'"
+                v-model="modelValue[param.name]"
+                :placeholder="param.placeholder"
+              />
+              <el-select
+                v-if="param.type === 'select'"
+                v-model="modelValue[param.name]"
+                :placeholder="param.placeholder"
+                :popper-class="param.popperClass"
+                filterable
               >
-                <div class="flex justify-start" v-if="option.image">
-                  <span class="flex py-3 mr-2">
-                    <img
-                      :src="option.image"
-                      class="rounded-lg"
-                      :style="{ width: param.imgSize, height: param.imgSize }"
-                  /></span>
-                  <div class="flex !items-start flex-col py-2 space-y-1">
-                    <span class="label text-sm">{{ option.label }}</span>
-                    <span
-                      class="text-xs text-gray-500 break-words line-clamp-1 max-w-[200px]"
-                      :title="option.value"
-                      >{{ option.value }}</span
-                    >
+                <template #prefix v-if="param.prefix">
+                  <i class="iconfont !text-lg" :class="param.prefix"></i>
+                </template>
+                <el-option
+                  v-for="option in param.options"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                >
+                  <div class="flex justify-start" v-if="option.image">
+                    <span class="flex py-3 mr-2">
+                      <img
+                        :src="option.image"
+                        class="rounded-lg"
+                        :style="{ width: param.imgSize, height: param.imgSize }"
+                    /></span>
+                    <div class="flex !items-start flex-col py-2 space-y-1">
+                      <span class="label text-sm">{{ option.label }}</span>
+                      <span
+                        class="text-xs text-gray-500 break-words line-clamp-1 max-w-[200px]"
+                        :title="option.value"
+                        >{{ option.value }}</span
+                      >
+                    </div>
                   </div>
-                </div>
-                <div class="flex justify-start items-center h-full" v-else>
-                  <span class="label text-sm">{{ option.label }}</span>
-                </div>
-              </el-option>
-            </el-select>
-            <el-input
-              type="textarea"
-              v-if="param.type === 'textarea'"
-              v-model="modelValue[param.name]"
-              :autosize="param.autosize"
-              :maxlength="param.maxlength"
-              :show-word-limit="param.showWordLimit"
-              :placeholder="param.placeholder"
-            />
-            <ImageUpload
-              v-if="param.type === 'image'"
-              v-model="modelValue[param.name]"
-              :max-count="param.maxCount"
-              :multiple="param.multiple"
-              :max-size="param.maxSize"
-              :accept="param.accept"
-            />
-            <FileUpload
-              v-if="param.type === 'file'"
-              v-model="modelValue[param.name]"
-              :max-count="param.maxCount"
-              :multiple="param.multiple"
-              :max-size="param.maxSize"
-              :accept="param.accept"
-            />
+                  <div class="flex justify-start items-center h-full" v-else>
+                    <span class="label text-sm">{{ option.label }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+              <el-input
+                type="textarea"
+                v-if="param.type === 'textarea'"
+                v-model="modelValue[param.name]"
+                :autosize="param.autosize"
+                :maxlength="param.maxlength"
+                :show-word-limit="param.showWordLimit"
+                :placeholder="param.placeholder"
+              />
+              <ImageUpload
+                v-if="param.type === 'image'"
+                v-model="modelValue[param.name]"
+                :max-count="param.maxCount"
+                :multiple="param.multiple"
+                :max-size="param.maxSize"
+                :accept="param.accept"
+              />
+              <FileUpload
+                v-if="param.type === 'file'"
+                v-model="modelValue[param.name]"
+                :max-count="param.maxCount"
+                :multiple="param.multiple"
+                :max-size="param.maxSize"
+                :accept="param.accept"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
