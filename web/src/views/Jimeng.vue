@@ -240,7 +240,7 @@
                       >
                         您的浏览器不支持视频播放
                       </video>
-                      <div class="video-mask" @click="store.playVideo(item)">
+                      <div class="video-mask" @click="playVideo(item)">
                         <div class="play-btn">
                           <img src="/images/play.svg" alt="播放" />
                         </div>
@@ -370,15 +370,15 @@
     </div>
 
     <!-- 视频预览对话框 -->
-    <el-dialog v-model="store.showDialog" title="视频预览" center>
+    <el-dialog v-model="store.showDialog" title="视频预览" @close="stopVideoPlay" center>
       <div class="flex justify-center items-center">
         <video
+          ref="videoPreviewRef"
           :src="store.currentVideoUrl"
           autoplay
           controls
           preload="auto"
           loop
-          muted
           style="max-height: calc(100vh - 100px); max-width: 100vw; object-fit: cover"
         >
           您的浏览器不支持视频播放
@@ -413,6 +413,23 @@ const templatePreview = ref('')
 
 // 新增：提示词指南折叠面板状态（默认收起）
 const guideActive = ref([])
+
+const videoPreviewRef = ref(null)
+// 播放视频
+const playVideo = (item) => {
+  store.currentVideoUrl = item.video_url
+  store.showDialog = true
+  if (videoPreviewRef.value) {
+    videoPreviewRef.value.play()
+  }
+}
+
+// 停止视频播放
+const stopVideoPlay = () => {
+  if (videoPreviewRef.value) {
+    videoPreviewRef.value.pause()
+  }
+}
 
 onMounted(() => {
   store.init()

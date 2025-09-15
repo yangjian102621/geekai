@@ -41,7 +41,7 @@
 
 <script setup>
 import ParamBuilder from '@/components/ParamBuilder.vue'
-import { JimengFunctions, JimengParams } from '@/store/data/jimeng_data'
+import { JimengFunctions, JimengParams } from '@/store/data/jimeng_params'
 import { ref } from 'vue'
 
 const functions = JimengFunctions

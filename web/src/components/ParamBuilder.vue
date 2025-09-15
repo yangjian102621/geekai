@@ -22,14 +22,15 @@
         <el-option v-for="item in items" :key="item.name" :label="item.name" :value="item">
           <div class="flex justify-start">
             <span
-              class="flex items-center justify-center text-white !text-xl model-version mr-2 w-[40px] h-[40px] rounded-lg"
-              >{{ item.version }}</span
+              class="flex items-center justify-center text-white model-version mr-2 w-[40px] h-[40px] rounded-lg"
+              :class="item.icon.size ? item.icon.size : '!text-xl'"
+              >{{ item.icon.text }}</span
             >
             <div class="flex !items-start flex-col py-2 space-y-1">
               <span class="label text-sm">{{ item.name }}</span>
               <div class="whitespace-pre-line">
                 <span
-                  class="text-xs text-gray-500 break-words line-clamp-1 max-w-[200px]"
+                  class="text-xs text-gray-500 break-words line-clamp-1 max-w-[250px]"
                   :title="item.label"
                   >{{ item.label }}</span
                 >
@@ -47,7 +48,10 @@
           </div>
           <p v-if="param.info" class="text-xs text-gray-500 mb-1">{{ param.info }}</p>
         </div>
-        <div class="w-full flex flex-col !items-start space-y-2" v-else>
+        <div
+          class="w-full flex flex-col !items-start space-y-2"
+          v-else-if="param.type !== 'hidden'"
+        >
           <label class="label font-bold">
             {{ param.label }}
             <span v-if="param.required" class="text-red-500 ml-1">*</span>
@@ -139,6 +143,14 @@
               :max-size="param.maxSize"
               :accept="param.accept"
             />
+            <FileUpload
+              v-if="param.type === 'file'"
+              v-model="modelValue[param.name]"
+              :max-count="param.maxCount"
+              :multiple="param.multiple"
+              :max-size="param.maxSize"
+              :accept="param.accept"
+            />
           </div>
         </div>
       </div>
@@ -147,6 +159,7 @@
 </template>
 
 <script setup>
+import FileUpload from './FileUpload.vue'
 import ImageUpload from './ImageUpload.vue'
 import ParamEmpty from './ui/ParamEmpty.vue'
 
@@ -225,7 +238,11 @@ const initModelValue = (model) => {
       }
     })
   }
+  // 初始化 req_key 和 action
   defaultValues.req_key = selectedModel.value.key
+  defaultValues.action = selectedModel.value.action
+    ? selectedModel.value.action
+    : 'CVSync2AsyncSubmitTask'
   return defaultValues
 }
 

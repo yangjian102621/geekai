@@ -97,7 +97,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 	// 获取算力消耗
 	powerCost, err := h.getTaskPower(req)
 	if err != nil {
-		resp.ERROR(c, "计算任务消耗积分失败")
+		resp.ERROR(c, "计算任务消耗积分失败: "+err.Error())
 		return
 	}
 
@@ -105,6 +105,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
+	req.Power = powerCost
 
 	job, err := h.jimengService.CreateTask(user.Id, &req)
 	if err != nil {
@@ -116,10 +117,25 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 	h.userService.DecreasePower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  job.ReqKey,
-		Remark: fmt.Sprintf("%s，任务ID：%d", req.ReqKey, job.Id),
+		Remark: h.getTaskRemark(req, job.Id),
 	})
 
 	resp.SUCCESS(c)
+}
+
+func (h *JimengHandler) getTaskRemark(req types.JimengTaskRequest, jobId uint) string {
+	remark := fmt.Sprintf("即梦任务%s，任务ID：%d", req.ReqKey, jobId)
+	switch req.TaskType {
+	case types.JMTaskTypeImage:
+		remark = fmt.Sprintf("即梦图片生成，任务ID：%d，%d积分/张", jobId, h.App.SysConfig.Jimeng.Power.Image)
+	case types.JMTaskTypeVideo:
+		remark = fmt.Sprintf("即梦视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, h.App.SysConfig.Jimeng.Power.Video, req.Power/h.App.SysConfig.Jimeng.Power.Video)
+	case types.JMTaskTypeVirtualHuman:
+		remark = fmt.Sprintf("即梦数字人视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, h.App.SysConfig.Jimeng.Power.VirtualHuman, req.Power/h.App.SysConfig.Jimeng.Power.VirtualHuman)
+	case types.JMTaskTypeActionTransfer:
+		remark = fmt.Sprintf("即梦视频动作迁移，任务ID：%d，%d积分/秒, %d秒", jobId, h.App.SysConfig.Jimeng.Power.ActionTransfer, req.Power/h.App.SysConfig.Jimeng.Power.ActionTransfer)
+	}
+	return remark
 }
 
 // Jobs 获取任务列表
@@ -219,7 +235,8 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 	}
 
 	// 失败任务删除后退回算力
-	if job.Status != types.JMTaskStatusFailed {
+	if job.Status == types.JMTaskStatusFailed {
+		logger.Infof("delete jimeng job failed, refund power: %d", job.Power)
 		err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
 			Type:   types.PowerRefund,
 			Model:  job.ReqKey,
@@ -284,6 +301,7 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 
 // getPowerFromConfig 从配置中获取指定类型的算力消耗
 func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
+	logger.Debugf("getTaskPower req: %+v", req)
 	config := h.App.SysConfig.Jimeng
 	switch req.TaskType {
 	case types.JMTaskTypeImage:
@@ -295,10 +313,24 @@ func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 		return config.Power.Video * req.Duration, nil
 	case types.JMTaskTypeVirtualHuman:
 		// TODO 计算音频时长
-		return config.Power.VirtualHuman, nil
+		if req.AudioURL == "" {
+			return 0, errors.New("音频URL不能为空")
+		}
+		audioDuration, err := utils.AudioDurationFromURL(req.AudioURL)
+		if err != nil {
+			return 0, err
+		}
+		return config.Power.VirtualHuman * int(audioDuration.Seconds()), nil
 	case types.JMTaskTypeActionTransfer:
 		// TODO 计算视频时长
-		return config.Power.ActionTransfer, nil
+		if req.VideoURL == "" {
+			return 0, errors.New("视频URL不能为空")
+		}
+		videoDuration, err := utils.VideoDurationMP4FromURL(req.VideoURL)
+		if err != nil {
+			return 0, err
+		}
+		return config.Power.ActionTransfer * int(videoDuration.Seconds()), nil
 	default:
 		return 0, errors.New("任务类型不支持")
 	}

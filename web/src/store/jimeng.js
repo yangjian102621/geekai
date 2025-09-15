@@ -6,7 +6,7 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import { checkSession } from '@/store/cache'
-import { JimengFunctions, JimengParams } from '@/store/data/jimeng_data'
+import { JimengFunctions, JimengParams } from '@/store/data/jimeng_params'
 import { useSharedStore } from '@/store/sharedata'
 import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
@@ -59,7 +59,6 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 切换功能
   const switchFunction = (f) => {
     activeFunction.value = f.key
-    formData.value = {}
     setFunctionPowers()
   }
 
@@ -200,10 +199,14 @@ export const useJimengStore = defineStore('jimeng', () => {
       if (formData.value.duration) {
         formData.value.duration = parseInt(formData.value.duration)
       }
-      if (formData.value.image_urls && !Array.isArray(formData.value.image_urls)) {
-        formData.value.image_urls = [formData.value.image_urls]
+
+      const data = { ...formData.value }
+
+      if (data.image_urls && !Array.isArray(data.image_urls)) {
+        data.image_urls = [data.image_urls]
       }
-      const response = await httpPost('/api/jimeng/task', formData.value)
+
+      const response = await httpPost('/api/jimeng/task', data)
       showMessageOK('任务提交成功')
       isOver.value = false
       await fetchData(1)
@@ -279,12 +282,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     }
   }
 
-  // 播放视频
-  const playVideo = (item) => {
-    currentVideoUrl.value = item.video_url
-    showDialog.value = true
-  }
-
   const setFunctionPowers = () => {
     if (activeFunction.value === 'image') {
       currentPowerCost.value = `${powerConfig.image}积分/张`
@@ -333,7 +330,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     isLogin,
     showDialog,
     currentVideoUrl,
-
     // 配置
     functions,
     activeFunction,
@@ -355,7 +351,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     downloadFile,
     retryTask,
     removeJob,
-    playVideo,
     cleanup,
 
     // 工具函数

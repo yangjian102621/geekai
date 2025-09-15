@@ -46,14 +46,17 @@ const (
 type JimengTaskRequest struct {
 	TaskType JMTaskType `json:"type"`    // 任务类型
 	ReqKey   string     `json:"req_key"` // 请求Key
+	Action   string     `json:"action"`  // 请求Action
 	Power    int        `json:"power"`   // 消耗算力
 	// 公共参数
 	Prompt    string   `json:"prompt,omitempty"`
 	ImageUrls []string `json:"image_urls,omitempty"`
 
 	// 图片生成参数
-	Size      string `json:"size,omitempty"`
-	UsePreLLM bool   `json:"use_pre_llm,omitempty"`
+	Size        string  `json:"size,omitempty"`
+	UsePreLLM   bool    `json:"use_pre_llm,omitempty"`
+	Scale       float64 `json:"scale,omitempty"`
+	ForceSingle bool    `json:"force_single,omitempty"`
 
 	// 视频生成参数
 	Duration       int    `json:"duration,omitempty"`    // 视频时长，单位：秒
@@ -62,7 +65,8 @@ type JimengTaskRequest struct {
 	CameraStrength string `json:"camera_strength,omitempty"` // 运镜强度
 
 	// 数字人视频生成参数
-	AudioURL string `json:"audio_url,omitempty"` // 音频URL
+	AudioURL     string `json:"audio_url,omitempty"`     // 音频URL
+	RecognizeKey string `json:"recognize_key,omitempty"` // 识别主体请求Key
 
 	// 视频动作迁移参数
 	VideoURL string `json:"video_url,omitempty"` // 动作视频URL

@@ -1,5 +1,5 @@
 <template>
-  <div class="image-upload">
+  <div class="image__upload-container">
     <!-- 单图模式 -->
     <template v-if="props.maxCount === 1">
       <div class="single-upload">
@@ -59,7 +59,7 @@
             :show-file-list="false"
             :http-request="handleUpload"
             :multiple="multiple"
-            accept="image/*"
+            :accept="accept"
             class="uploader"
             :limit="maxCount"
           >
@@ -157,7 +157,7 @@ const imageList = computed({
   },
 })
 
-const uploadCount = ref(1)
+// 使用已选图片数量进行限制，不再使用全局计数
 // 处理上传
 const handleUpload = async (uploadFile) => {
   const file = uploadFile.file
@@ -174,12 +174,11 @@ const handleUpload = async (uploadFile) => {
     return
   }
 
-  // 检查数量限制
-  if (uploadCount.value > props.maxCount) {
+  // 检查数量限制（单图或多图）
+  if ((props.multiple || props.maxCount > 1) && imageList.value.length >= props.maxCount) {
     ElMessage.error(`最多只能上传 ${props.maxCount} 张图片`)
     return
   }
-  uploadCount.value++
 
   uploading.value = true
   uploadProgress.value = 0
@@ -225,111 +224,110 @@ const removeImage = (index) => {
   const newList = [...imageList.value]
   newList.splice(index, 1)
   imageList.value = newList
-  uploadCount.value--
 }
 </script>
 
 <style lang="scss">
-.image-upload {
+.image__upload-container {
   width: 100%;
-}
 
-.single-upload {
-  width: 100px;
-  height: 100px;
-  position: relative;
-}
-
-.single-image-item {
-  width: 100px;
-  height: 100px;
-  position: relative;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #dcdfe6;
-}
-
-.upload-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.upload-item {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #dcdfe6;
-
-  .upload-image {
-    width: 100%;
-    height: 100%;
+  .single-upload {
+    width: 100px;
+    height: 100px;
+    position: relative;
   }
 
-  .upload-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+  .single-image-item {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #dcdfe6;
+  }
+
+  .upload-list {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-
-    .remove-btn {
-      background: rgba(245, 108, 108, 0.8);
-      border: none;
-      color: white;
-    }
+    flex-wrap: wrap;
+    gap: 10px;
   }
-}
 
-.upload-btn {
-  .uploader {
-    width: 100%;
+  .upload-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #dcdfe6;
 
-    .el-upload-dragger {
-      width: 100px;
-      height: 100px;
+    .upload-image {
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
+      opacity: 1;
+
+      .remove-btn {
+        background: rgba(245, 108, 108, 0.8);
+        border: none;
+        color: white;
+      }
     }
   }
 
-  .upload-placeholder {
+  .upload-btn {
+    .uploader {
+      width: 100%;
+
+      .el-upload-dragger {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #8c939d;
+    }
+  }
+
+  .upload-area {
+    .el-upload-dragger {
+      width: 100%;
+    }
+
+    .uploader {
+      width: 100%;
+    }
+  }
+
+  .upload-progress {
+    margin-top: 10px;
+  }
+
+  :deep(.el-upload) {
+    width: 100%;
+    height: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    color: #8c939d;
+    justify-content: center;
   }
-}
-
-.upload-area {
-  .el-upload-dragger {
-    width: 100%;
-  }
-
-  .uploader {
-    width: 100%;
-  }
-}
-
-.upload-progress {
-  margin-top: 10px;
-}
-
-:deep(.el-upload) {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

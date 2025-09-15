@@ -160,7 +160,12 @@ func (s *Service) ProcessTask(jobId uint) error {
 		return s.handleTaskError(job.Id, fmt.Sprintf("build task request failed: %v", err))
 	}
 
-	logger.Debugf("提交即梦任务: %+v", params)
+	// 数字人任务，先识别主体
+	if req.TaskType == types.JMTaskTypeVirtualHuman {
+		if err := s.client.AvatarRecognition(req.ImageUrls[0], req.RecognizeKey); err != nil {
+			return s.handleTaskError(job.Id, fmt.Sprintf("avatar recognition failed: %v", err))
+		}
+	}
 
 	// 同步任务 ，后台执行
 	if req.ReqKey == DoubaoSeedream40ReqKey {
@@ -195,6 +200,7 @@ func (s *Service) ProcessTask(jobId uint) error {
 		return nil
 	}
 
+	logger.Debugf("提交即梦任务: %+v", params)
 	// 异步任务 ，前台执行
 	resp, err := s.client.SubmitTask(params)
 	if err != nil {
@@ -245,6 +251,21 @@ func (s *Service) buildTaskRequest(req *types.JimengTaskRequest) (map[string]any
 		delete(params, "duration")
 	}
 
+	// 单独处理图片特效任务
+	if req.ReqKey == ImageEffectReqKey {
+		params["image_input1"] = req.ImageUrls[0]
+		delete(params, "image_urls")
+	}
+
+	// 动作迁移，数字人任务参数处理
+	if req.TaskType == types.JMTaskTypeVirtualHuman || req.TaskType == types.JMTaskTypeActionTransfer {
+		params["image_url"] = req.ImageUrls[0]
+		delete(params, "image_urls")
+	}
+	if req.RecognizeKey != "" {
+		delete(params, "recognize_key")
+	}
+
 	// 删除多余参数，剩下的就是各个任务自己专有参数了
 	delete(params, "type")
 	delete(params, "power")
@@ -280,7 +301,7 @@ func (s *Service) pollTaskStatus() {
 				ReqKey:  job.ReqKey,
 				TaskId:  job.TaskId,
 				ReqJson: `{"return_url":true}`,
-			})
+			}, ASyncActionGetResult)
 
 			if err != nil {
 				s.handleTaskError(job.Id, fmt.Sprintf("query task failed: %s", err.Error()))

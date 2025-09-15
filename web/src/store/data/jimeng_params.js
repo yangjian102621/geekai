@@ -42,8 +42,179 @@ import Spring_Festival_traditional_Chinese_architecture from '@/assets/img/jimen
 export const JimengParams = {
   image: [
     {
-      name: '图片 4.0 文/图生图',
-      version: '4.0',
+      name: '即梦AI图片-4.0',
+      icon: { text: '4.0' },
+      label: '即梦4.0是即梦同源的图像生成能力,支持4K超高清输出',
+      key: 'jimeng_t2i_v40',
+      params: [
+        {
+          name: 'prompt',
+          label: '提示词',
+          type: 'textarea',
+          required: true,
+          showWordLimit: true,
+          maxlength: 800,
+          autosize: { minRows: 3, maxRows: 5 },
+          placeholder: '请输入用于编辑图像的提示词，如：把xxx改成xxx，删除xxx，添加xxx等',
+          info: '最长不超过800字符，prompt过长有概率出图异常或不生效',
+        },
+        {
+          name: 'image_urls',
+          label: '参考图片',
+          type: 'image',
+          required: false,
+          placeholder: '请上传图片',
+          maxSize: 10,
+          multiple: true,
+          maxCount: 10,
+          accept: '.png,.jpg,.jpeg',
+          info: '最大 15MB，支持最多输入10张图',
+        },
+
+        // 图片比例
+        {
+          name: 'scale',
+          type: 'slider',
+          required: true,
+          info: '该值越大代表文本描述影响程度越大，且输入图片影响程度越小',
+          label: '文本影响力',
+          min: 0,
+          max: 1,
+          step: 0.1,
+          value: 0.5,
+        },
+
+        // 是否强制生成单图
+        {
+          name: 'force_single',
+          type: 'hidden',
+          required: true,
+          value: true,
+        },
+
+        // 图片尺寸
+        {
+          name: 'size',
+          type: 'select',
+          required: true,
+          placeholder: '请选择尺寸',
+          label: '图片尺寸',
+          prefix: 'icon-resize',
+          options: [
+            // 1K 分辨率
+            {
+              label: '1:1 (1024 x 1024)',
+              value: '1024x1024',
+            },
+            {
+              label: '4:3 (1152 x 864)',
+              value: '1152x864',
+            },
+            {
+              label: '3:4 (864 x 1152)',
+              value: '864x1152',
+            },
+            {
+              label: '3:2 (1248 x 832)',
+              value: '1248x832',
+            },
+            {
+              label: '2:3 (832 x 1248)',
+              value: '832x1248',
+            },
+            {
+              label: '16:9 (1280 x 720)',
+              value: '1280x720',
+            },
+            {
+              label: '9:16 (720 x 1280)',
+              value: '720x1280',
+            },
+            {
+              label: '21:9 (1512 x 648)',
+              value: '1512x648',
+            },
+            {
+              label: '9:21 (648 x 1512)',
+              value: '648x1512',
+            },
+            // 2K 分辨率
+            {
+              label: '1:1 (2048 x 2048)',
+              value: '2048x2048',
+            },
+            {
+              label: '4:3 (2304 x 1728)',
+              value: '2304x1728',
+            },
+            {
+              label: '3:4 (1728 x 2304)',
+              value: '1728x2304',
+            },
+            {
+              label: '3:2 (2496 x 1664)',
+              value: '2496x1664',
+            },
+            {
+              label: '2:3 (1664 x 2496)',
+              value: '1664x2496',
+            },
+            {
+              label: '16:9 (2560 x 1440)',
+              value: '2560x1440',
+            },
+            {
+              label: '9:16 (1440 x 2560)',
+              value: '1440x2560',
+            },
+            {
+              label: '21:9 (3024 x 1296)',
+              value: '3024x1296',
+            },
+            {
+              label: '9:21 (1296 x 3024)',
+              value: '1296x3024',
+            },
+            // 4K 分辨率
+            {
+              label: '1:1 (4096 x 4096)',
+              value: '4096x4096',
+            },
+            {
+              label: '4:3 (4736 x 3552)',
+              value: '4736x3552',
+            },
+            {
+              label: '3:4 (3552 x 4736)',
+              value: '3552x4736',
+            },
+            {
+              label: '3:2 (5024 x 3360)',
+              value: '5024x3360',
+            },
+            {
+              label: '2:3 (3360 x 5024)',
+              value: '3360x5024',
+            },
+            {
+              label: '16:9 (5472 x 2072)',
+              value: '5472x2072',
+            },
+            {
+              label: '9:16 (2072 x 5472)',
+              value: '2072x5472',
+            },
+            {
+              label: '21:9 (6272 x 2688)',
+              value: '6272x2688',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: '豆包-seedream-4.0',
+      icon: { text: '4.0' },
       label: '支持文本、单图和多图输入，实现基于主体一致性的多图融合创作、图像编辑等多样玩法',
       key: 'doubao-seedream-4-0-250828',
       params: [
@@ -105,7 +276,7 @@ export const JimengParams = {
 
     {
       name: '图片 3.0 文生图',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '影视质感，文字更准，直出2k高清图',
       key: 'jimeng_t2i_v30',
       params: [
@@ -182,7 +353,7 @@ export const JimengParams = {
     },
     {
       name: '图片 3.1 文生图',
-      version: '3.1',
+      icon: { text: '3.1' },
       label: '丰富的美学多样性，画面更鲜明生动',
       key: 'jimeng_t2i_v31',
       params: [
@@ -260,7 +431,7 @@ export const JimengParams = {
 
     {
       name: '图片 3.0 图生图',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '精准执行编辑指令，保持图像内容完整性',
       key: 'jimeng_i2i_v30',
       params: [
@@ -343,7 +514,7 @@ export const JimengParams = {
 
     {
       name: '图片 3.0 图像特效',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '将输入的单人写真图片，进行有创意的特效化处理。',
       key: 'i2i_multi_style_zx2x',
       params: [
@@ -560,7 +731,7 @@ export const JimengParams = {
 
     {
       name: '图片 2.1 文生图',
-      version: '2.1',
+      icon: { text: '2.1' },
       label: '平面绘感强，可生成文字海报',
       key: 'jimeng_high_aes_general_v21_L',
       params: [
@@ -633,7 +804,7 @@ export const JimengParams = {
     // 视频 3.0 720P-文生视频
     {
       name: '视频 3.0 720P-文生视频',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '生成效果与速度兼备',
       key: 'jimeng_t2v_v30',
       params: [
@@ -703,7 +874,7 @@ export const JimengParams = {
     // 视频 3.0 图生视频-首帧
     {
       name: '视频 3.0 720P-图生视频-首帧',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '根据提示词 + 首帧图片生成视频',
       key: 'jimeng_i2v_first_v30',
       params: [
@@ -749,7 +920,7 @@ export const JimengParams = {
     // 视频 3.0 图生视频-首尾帧
     {
       name: '视频 3.0 720P-图生视频-首尾帧',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '根据提示词 + 首尾帧图片生成视频',
       key: 'jimeng_i2v_first_tail_v30',
       params: [
@@ -796,7 +967,7 @@ export const JimengParams = {
     // 视频 3.0 图生视频-运镜
     {
       name: '视频 3.0 720P-图生视频-运镜',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '根据提示词 + 运镜图片生成视频',
       key: 'jimeng_i2v_recamera_v30',
       params: [
@@ -934,7 +1105,7 @@ export const JimengParams = {
     // 视频 3.0 1080P-文生视频
     {
       name: '视频 3.0 1080P-文生视频',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '视觉表达流畅一致，支持1080P高清渲染',
       key: 'jimeng_t2v_v30_1080p',
       params: [
@@ -1004,7 +1175,7 @@ export const JimengParams = {
     // 视频 3.0 1080P-图生视频-首帧
     {
       name: '视频 3.0 1080P-图生视频-首帧',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '根据提示词 + 首帧图片生成1080P视频',
       key: 'jimeng_i2v_first_v30_1080',
       params: [
@@ -1050,7 +1221,7 @@ export const JimengParams = {
     // 视频 3.0 1080P-图生视频-首尾帧
     {
       name: '视频 3.0 1080P-图生视频-首尾帧',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '根据提示词 + 首尾帧图片生成1080P视频',
       key: 'jimeng_i2v_first_tail_v30_1080',
       params: [
@@ -1097,7 +1268,7 @@ export const JimengParams = {
     // 视频 3.0Pro 1080P-图生视频
     {
       name: '视频 3.0Pro 1080P-图生视频',
-      version: '3.0',
+      icon: { text: '3.0' },
       label: '根据提示词 + 首帧图片生成1080P视频',
       key: 'jimeng_ti2v_v30_pro',
       params: [
@@ -1180,8 +1351,122 @@ export const JimengParams = {
       ],
     },
   ],
-  virtualHuman: [],
-  actionTransfer: [],
+  virtual_human: [
+    {
+      name: '即梦AI数字人',
+      icon: { text: '即梦', size: '!text-base' },
+      label: '即梦同源数字人快速模型，单张图片+音频',
+      key: 'jimeng_realman_avatar_picture_omni_v2',
+      action: 'CVSubmitTask',
+      params: [
+        {
+          name: 'image_urls',
+          label: '人物主体图片',
+          required: true,
+          placeholder: '请上传图片',
+          type: 'image',
+          multiple: false,
+          maxCount: 1,
+          maxSize: 5,
+          accept: '.png,.jpg,.jpeg',
+          info: '建议JPG格式，输入图中为单人、人脸占比大、正面效果较好，其他类型图片效果不佳',
+        },
+        {
+          name: 'audio_url',
+          label: '驱动音频',
+          required: true,
+          placeholder: '请上传音频',
+          type: 'file',
+          multiple: false,
+          maxCount: 1,
+          maxSize: 5,
+          accept: '.mp3,.wav,.m4a',
+          info: '音频建议MP3/WAV格式，时长建议小于15秒以保障生成效果，音频过长可能有效果裂化问题',
+        },
+        {
+          name: 'recognize_key',
+          label: '识别主体请求Key',
+          required: true,
+          value: 'jimeng_realman_avatar_picture_create_role_omni',
+          type: 'hidden',
+        },
+      ],
+    },
+    {
+      name: '火山引擎OmniHuman数字人',
+      icon: { text: '火山', size: '!text-base' },
+      label: '火山引擎OmniHuman数字人模型，单张图片+音频',
+      key: 'realman_avatar_picture_omni_v2',
+      action: 'CVSubmitTask',
+      params: [
+        {
+          name: 'image_urls',
+          label: '人物主体图片',
+          required: true,
+          placeholder: '请上传图片',
+          type: 'image',
+          multiple: false,
+          maxCount: 1,
+          maxSize: 5,
+          accept: '.png,.jpg,.jpeg',
+          info: '建议JPG格式，输入图中为单人、人脸占比大、正面效果较好，其他类型图片效果不佳',
+        },
+        {
+          name: 'audio_url',
+          label: '驱动音频',
+          required: true,
+          placeholder: '请上传音频',
+          type: 'file',
+          multiple: false,
+          maxCount: 1,
+          maxSize: 5,
+          accept: '.mp3,.wav,.m4a',
+          info: '音频建议MP3/WAV格式，时长建议小于15秒以保障生成效果，音频过长可能有效果裂化问题',
+        },
+        {
+          name: 'recognize_key',
+          label: '识别主体请求Key',
+          required: true,
+          value: 'realman_avatar_picture_create_role_omni',
+          type: 'hidden',
+        },
+      ],
+    },
+  ],
+  action_transfer: [
+    {
+      name: '即梦AI-动作模仿-4.0',
+      icon: { text: '4.0', fontSize: '!text-xl' },
+      label: '即梦同源的视频动作模仿（生动模式）',
+      key: 'jimeng_dream_actor_m1_gen_video_cv',
+      params: [
+        {
+          name: 'image_urls',
+          label: '人物主体图片',
+          required: true,
+          placeholder: '请上传图片',
+          type: 'image',
+          multiple: false,
+          maxCount: 1,
+          maxSize: 5,
+          accept: '.png,.jpg,.jpeg',
+          info: '图片格式支持 jpeg，jpg，png ，分辨率需在 480x480 以上，1920x1080 以内',
+        },
+        {
+          name: 'video_url',
+          label: '动作视频',
+          required: true,
+          placeholder: '请上传音频',
+          type: 'file',
+          multiple: false,
+          maxCount: 1,
+          maxSize: 100,
+          accept: '.mp4,.mov,.webm',
+          info: '输入的视频时长不可超过30s，支持mp4，mov，webm格式，视频分辨率须在480P以上，2K以内',
+        },
+      ],
+    },
+  ],
 }
 
 export const JimengFunctions = [
@@ -1196,12 +1481,12 @@ export const JimengFunctions = [
     name: '视频生成',
   },
   {
-    key: 'virtualHuman',
+    key: 'virtual_human',
     icon: 'icon-shuziren',
     name: '数字人',
   },
   {
-    key: 'actionTransfer',
+    key: 'action_transfer',
     icon: 'icon-action',
     name: '动作模仿',
   },
