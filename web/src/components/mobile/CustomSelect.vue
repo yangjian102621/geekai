@@ -4,7 +4,11 @@
       @click="showPicker = true"
       class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
     >
-      <span>{{ selectedLabel || placeholder || '请选择' }}</span>
+      <span>
+        <slot name="label">
+          {{ selectedLabel || placeholder || '请选择' }}
+        </slot>
+      </span>
       <i class="iconfont icon-arrow-down text-gray-400"></i>
     </button>
 

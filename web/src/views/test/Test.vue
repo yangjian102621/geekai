@@ -1,5 +1,5 @@
 <template>
-  <div class="audio-chat-page">
+  <div class="audio-chat-page bg-gray-50">
     <div class="flex m-3">
       <el-select v-model="currentFunction" placeholder="请选择功能" popper-class="custom-select">
         <template #prefix>
@@ -18,7 +18,7 @@
     </div>
 
     <div class="p-3">
-      <param-builder
+      <param-builder-mobile
         v-model="formData"
         :items="params[currentFunction]"
         :progress="progress[currentFunction]"
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import ParamBuilder from '@/components/ParamBuilder.vue'
+import ParamBuilderMobile from '@/components/mobile/ParamBuilderMobile.vue'
 import { JimengFunctions, JimengParams } from '@/store/data/jimeng_params'
 import { ref } from 'vue'
 

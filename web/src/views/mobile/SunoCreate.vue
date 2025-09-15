@@ -40,11 +40,12 @@
         >
           <template #option="{ option, selected }">
             <div class="flex items-center w-full">
-              <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
+              <span
+                class="font-bold text-gray-900 mr-2"
+                :class="{ '!text-purple-600': selected }"
+                >{{ option.label }}</span
+              >
               <span class="text-xs text-gray-400">({{ option.value }})</span>
-              <span v-if="selected" class="ml-auto text-green-500"
-                ><i class="iconfont icon-success"></i
-              ></span>
             </div>
           </template>
         </CustomSelect>
@@ -498,10 +499,10 @@
 <script setup>
 import '@/assets/css/mobile/suno.scss'
 import CustomSelect from '@/components/mobile/CustomSelect.vue'
+import { checkSession } from '@/store/cache'
 import { useSunoStore } from '@/store/mobile/suno'
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { checkSession } from '@/store/cache'
 
 const router = useRouter()
 const suno = useSunoStore()

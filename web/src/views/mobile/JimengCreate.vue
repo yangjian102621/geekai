@@ -172,10 +172,11 @@
                 <template #option="{ option, selected }">
                   <div class="flex items-center w-full">
                     <el-image :src="option.preview" fit="cover" class="w-10 h-10 rounded-lg mr-2" />
-                    <span class="font-bold text-blue-600 mr-2">{{ option.label }}</span>
-                    <span v-if="selected" class="ml-auto text-green-500"
-                      ><i class="iconfont icon-success"></i
-                    ></span>
+                    <span
+                      class="font-bold text-gray-900 mr-2"
+                      :class="{ '!text-purple-600': selected }"
+                      >{{ option.label }}</span
+                    >
                   </div>
                 </template>
               </CustomSelect>
