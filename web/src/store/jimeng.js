@@ -272,6 +272,7 @@ export const useJimengStore = defineStore('jimeng', () => {
       const response = await httpGet('/api/jimeng/remove', { id: item.id })
       if (response.data) {
         showMessageOK('删除成功')
+        isOver.value = false
         await fetchData(1)
       }
     } catch (error) {
@@ -346,6 +347,7 @@ export const useJimengStore = defineStore('jimeng', () => {
     getTaskStatusText,
     getTaskType,
     switchTaskFilter,
+    setFunctionPowers,
     fetchData,
     submitTask,
     downloadFile,
