@@ -39,12 +39,12 @@ func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *go
 // RegisterRoutes 注册路由，新增统一任务接口
 func (h *JimengHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/jimeng/")
+	group.GET("power-config", h.GetPowerConfig)
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
 		group.POST("task", h.CreateTask)
-		group.GET("power-config", h.GetPowerConfig)
 		group.POST("jobs", h.Jobs)
 		group.GET("remove", h.Remove)
 		group.GET("retry", h.Retry)
@@ -125,15 +125,31 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 
 func (h *JimengHandler) getTaskRemark(req types.JimengTaskRequest, jobId uint) string {
 	remark := fmt.Sprintf("即梦任务%s，任务ID：%d", req.ReqKey, jobId)
+	perUnit, ok := h.App.SysConfig.Jimeng.Powers[req.ReqKey]
+	if !ok || perUnit <= 0 {
+		return remark // Fallback if power not found or invalid
+	}
 	switch req.TaskType {
 	case types.JMTaskTypeImage:
-		remark = fmt.Sprintf("即梦图片生成，任务ID：%d，%d积分/张", jobId, h.App.SysConfig.Jimeng.Power.Image)
+		remark = fmt.Sprintf("即梦图片生成，任务ID：%d，%d积分/张", jobId, perUnit)
 	case types.JMTaskTypeVideo:
-		remark = fmt.Sprintf("即梦视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, h.App.SysConfig.Jimeng.Power.Video, req.Power/h.App.SysConfig.Jimeng.Power.Video)
+		seconds := 0
+		if perUnit > 0 {
+			seconds = req.Power / perUnit
+		}
+		remark = fmt.Sprintf("即梦视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, perUnit, seconds)
 	case types.JMTaskTypeVirtualHuman:
-		remark = fmt.Sprintf("即梦数字人视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, h.App.SysConfig.Jimeng.Power.VirtualHuman, req.Power/h.App.SysConfig.Jimeng.Power.VirtualHuman)
+		seconds := 0
+		if perUnit > 0 {
+			seconds = req.Power / perUnit
+		}
+		remark = fmt.Sprintf("即梦数字人视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, perUnit, seconds)
 	case types.JMTaskTypeActionTransfer:
-		remark = fmt.Sprintf("即梦视频动作迁移，任务ID：%d，%d积分/秒, %d秒", jobId, h.App.SysConfig.Jimeng.Power.ActionTransfer, req.Power/h.App.SysConfig.Jimeng.Power.ActionTransfer)
+		seconds := 0
+		if perUnit > 0 {
+			seconds = req.Power / perUnit
+		}
+		remark = fmt.Sprintf("即梦视频动作迁移，任务ID：%d，%d积分/秒, %d秒", jobId, perUnit, seconds)
 	}
 	return remark
 }
@@ -299,20 +315,22 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{"message": "重试任务已提交"})
 }
 
-// getPowerFromConfig 从配置中获取指定类型的算力消耗
 func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 	logger.Debugf("getTaskPower req: %+v", req)
 	config := h.App.SysConfig.Jimeng
+	basePower, ok := config.Powers[req.ReqKey]
+	if !ok || basePower <= 0 {
+		return 0, errors.New("未配置模型积分或配置不合法")
+	}
 	switch req.TaskType {
 	case types.JMTaskTypeImage:
-		return config.Power.Image, nil
+		return basePower, nil
 	case types.JMTaskTypeVideo:
 		if req.Duration == 0 {
 			return 0, errors.New("视频时长不能为0")
 		}
-		return config.Power.Video * req.Duration, nil
+		return basePower * req.Duration, nil
 	case types.JMTaskTypeVirtualHuman:
-		// TODO 计算音频时长
 		if req.AudioURL == "" {
 			return 0, errors.New("音频URL不能为空")
 		}
@@ -320,9 +338,12 @@ func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		return config.Power.VirtualHuman * int(audioDuration.Seconds()), nil
+		seconds := int(audioDuration.Seconds())
+		if seconds <= 0 {
+			return 0, errors.New("音频时长无效")
+		}
+		return basePower * seconds, nil
 	case types.JMTaskTypeActionTransfer:
-		// TODO 计算视频时长
 		if req.VideoURL == "" {
 			return 0, errors.New("视频URL不能为空")
 		}
@@ -330,7 +351,11 @@ func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		return config.Power.ActionTransfer * int(videoDuration.Seconds()), nil
+		seconds := int(videoDuration.Seconds())
+		if seconds <= 0 {
+			return 0, errors.New("视频时长无效")
+		}
+		return basePower * seconds, nil
 	default:
 		return 0, errors.New("任务类型不支持")
 	}
@@ -340,9 +365,6 @@ func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
 	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{
-		"image":           config.Power.Image,
-		"video":           config.Power.Video,
-		"virtual_human":   config.Power.VirtualHuman,
-		"action_transfer": config.Power.ActionTransfer,
+		"powers": config.Powers,
 	})
 }

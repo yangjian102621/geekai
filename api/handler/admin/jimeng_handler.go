@@ -231,21 +231,15 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	}
 
 	// 验证算力配置
-	if req.Power.Image <= 0 {
-		resp.ERROR(c, "图片生成算力必须大于0")
+	if len(req.Powers) == 0 {
+		resp.ERROR(c, "请至少配置一个模型的积分")
 		return
 	}
-	if req.Power.Video <= 0 {
-		resp.ERROR(c, "视频生成算力必须大于0")
-		return
-	}
-	if req.Power.VirtualHuman <= 0 {
-		resp.ERROR(c, "数字人生成算力必须大于0")
-		return
-	}
-	if req.Power.ActionTransfer <= 0 {
-		resp.ERROR(c, "视频动作迁移算力必须大于0")
-		return
+	for key, val := range req.Powers {
+		if val <= 0 {
+			resp.ERROR(c, fmt.Sprintf("模型 %s 的积分必须大于0", key))
+			return
+		}
 	}
 
 	// 保存配置

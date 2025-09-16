@@ -82,59 +82,44 @@
         <el-divider />
         <!-- 算力配置分组 -->
         <div class="mb-3">
-          <h3 class="heading-3 mb-3">算力配置</h3>
-          <el-form-item>
-            <template #label>
-              <div class="text-gray-500 text-sm">
-                生成图片消耗的积分，包括：文生图、图生图、图片编辑、图片特效，<el-tag type="primary"
-                  >单位：积分/张</el-tag
-                >
+          <h3 class="heading-3 mb-3">任务积分配置</h3>
+          <Alert type="info" class="mb-3">
+            <div class="text-gray-500">
+              图片类模型统一都是 0.2 元一张，假如你100积分售价1元，建议设置：20积分/张。
+            </div>
+            <div class="text-gray-500">
+              视频/数字人/动作迁移单位：积分/秒，但是不同的模型的价格不一样，建议去火山方舟控制台查看，根据价格设置积分。
+            </div>
+          </Alert>
+
+          <div v-for="func in functions" :key="func.key" class="mb-4">
+            <h4 class="mb-2 text-base font-bold flex items-center gap-2">
+              <i class="iconfont" :class="func.icon"></i>
+              {{ func.name }}
+              <el-tag size="small" type="info">{{ getUnit(func.key) }}</el-tag>
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div
+                v-for="model in params[func.key]"
+                :key="model.key"
+                class="p-3 rounded-md border border-gray-100"
+              >
+                <div class="text-sm mb-2">
+                  <div class="font-bold">{{ model.name }}</div>
+                  <div class="text-gray-500 line-clamp-2" :title="model.label">
+                    {{ model.label }}
+                  </div>
+                </div>
+                <el-input-number
+                  v-model="jimengConfig.powers[model.key]"
+                  :min="1"
+                  :placeholder="`对应模型：${model.key}（${getUnit(func.key)}）`"
+                  class="w-full"
+                />
+                <div class="text-xs text-gray-400 mt-1">对应模型：{{ model.key }}</div>
               </div>
-            </template>
-            <el-input-number
-              v-model="jimengConfig.power.image"
-              :min="1"
-              placeholder="请输入图片生成算力消耗"
-            />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="text-gray-500 text-sm">
-                生成视频消耗的积分，包括：文生视频、图生视频，<el-tag type="primary"
-                  >单位：积分/秒</el-tag
-                >
-              </div>
-            </template>
-            <el-input-number
-              v-model="jimengConfig.power.video"
-              :min="1"
-              placeholder="请输入视频生成算力消耗"
-            />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="text-gray-500 text-sm">
-                生成数字人视频消耗的积分，<el-tag type="primary">单位：积分/秒</el-tag>
-              </div>
-            </template>
-            <el-input-number
-              v-model="jimengConfig.power.virtual_human"
-              :min="1"
-              placeholder="请输入数字人视频生成算力消耗"
-            />
-          </el-form-item>
-          <el-form-item>
-            <template #label>
-              <div class="text-gray-500 text-sm">
-                生成视频动作迁移消耗的积分，<el-tag type="primary">单位：积分/秒</el-tag>
-              </div>
-            </template>
-            <el-input-number
-              v-model="jimengConfig.power.action_transfer"
-              :min="1"
-              placeholder="请输入视频动作迁移算力消耗"
-            />
-          </el-form-item>
+            </div>
+          </div>
         </div>
         <div style="padding: 10px">
           <el-form-item>
@@ -149,6 +134,7 @@
 
 <script setup>
 import Alert from '@/components/ui/Alert.vue'
+import { JimengFunctions, JimengParams } from '@/store/data/jimeng_params'
 import { httpGet, httpPost } from '@/utils/http'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
@@ -156,26 +142,23 @@ import { onMounted, ref } from 'vue'
 const jimengConfig = ref({
   access_key: '',
   secret_key: '',
-  power: {
-    text_to_image: 10,
-    image_to_image: 15,
-    image_edit: 20,
-    image_effects: 25,
-    text_to_video: 30,
-    image_to_video: 35,
-  },
+  api_key: '',
+  powers: {},
 })
 
 const loading = ref(true)
 const saving = ref(false)
-const testing = ref(false)
 const configFormRef = ref()
+const functions = JimengFunctions
+const params = JimengParams
 
 // 表单验证规则
 const rules = {
   access_key: [{ required: true, message: '请输入AccessKey', trigger: 'blur' }],
   secret_key: [{ required: true, message: '请输入SecretKey', trigger: 'blur' }],
 }
+
+const getUnit = (funcKey) => (funcKey === 'image' ? '积分/张' : '积分/秒')
 
 onMounted(() => {
   loadConfig()
@@ -185,7 +168,9 @@ onMounted(() => {
 const loadConfig = async () => {
   try {
     const res = await httpGet('/api/admin/config/get?key=jimeng')
-    jimengConfig.value = res.data
+    const cfg = res.data || {}
+    cfg.powers = cfg.powers || {}
+    jimengConfig.value = cfg
   } catch (e) {
     ElMessage.error('加载配置失败: ' + e.message)
   } finally {
@@ -214,14 +199,8 @@ const resetConfig = () => {
   jimengConfig.value = {
     access_key: '',
     secret_key: '',
-    power: {
-      text_to_image: 10,
-      image_to_image: 15,
-      image_edit: 20,
-      image_effects: 25,
-      text_to_video: 30,
-      image_to_video: 35,
-    },
+    api_key: '',
+    powers: {},
   }
   ElMessage.info('配置已重置')
 }
@@ -237,7 +216,7 @@ const resetConfig = () => {
 
   .container {
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
   }
 
   .heading-3 {

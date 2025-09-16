@@ -8,15 +8,7 @@ type JimengConfig struct {
 	// 火山引擎大模型专用的验证方式
 	ApiKey string `json:"api_key"`
 	// 算力配置
-	Power JimengPower `json:"power"`
-}
-
-// JimengPower 即梦AI算力配置
-type JimengPower struct {
-	Image          int `json:"image"`           // 图片生成算力，单位：积分/张
-	Video          int `json:"video"`           // 视频生成算力，单位：积分/秒
-	VirtualHuman   int `json:"virtual_human"`   // 数字人视频生成算力，单位：积分/秒
-	ActionTransfer int `json:"action_transfer"` // 视频动作迁移算力，单位：积分/秒
+	Powers map[string]int `json:"powers"`
 }
 
 // JMTaskStatus 任务状态

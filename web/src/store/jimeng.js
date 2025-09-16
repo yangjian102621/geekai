@@ -36,7 +36,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   const shareStore = useSharedStore()
 
   // 积分消耗配置
-  const powerConfig = reactive({})
+  const powerConfig = reactive({ powers: {} })
   const currentPowerCost = ref('0积分')
 
   // 功能配置
@@ -83,12 +83,10 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 获取状态类型
   const getTaskType = (type) => {
     const typeMap = {
-      text_to_image: 'primary',
-      image_to_image: 'primary',
-      image_edit: 'primary',
-      image_effects: 'primary',
-      text_to_video: 'success',
-      image_to_video: 'success',
+      image: 'info',
+      video: 'primary',
+      virtual_human: 'success',
+      action_transfer: 'warning',
     }
     return typeMap[type] || 'primary'
   }
@@ -124,7 +122,7 @@ export const useJimengStore = defineStore('jimeng', () => {
       }
 
       total.value = data.total || 0
-      if (data.items.length < pageSize.value) {
+      if (!data.items || data.items.length < pageSize.value) {
         isOver.value = true
       }
       if (pageNum === 1) {
@@ -150,7 +148,7 @@ export const useJimengStore = defineStore('jimeng', () => {
         page_size: 20,
       })
       const data = response.data
-      if (data.items.length === 0) {
+      if (!data.items || data.items.length === 0) {
         stopPolling()
         return
       }
@@ -184,7 +182,6 @@ export const useJimengStore = defineStore('jimeng', () => {
       shareStore.setShowLoginDialog(true)
       return
     }
-    console.log(formData.value)
     for (const key in requiredKeys.value) {
       if (!formData.value[key]) {
         showMessageError('缺少参数：' + requiredKeys.value[key].label)
@@ -284,12 +281,24 @@ export const useJimengStore = defineStore('jimeng', () => {
   }
 
   const setFunctionPowers = () => {
-    if (activeFunction.value === 'image') {
-      currentPowerCost.value = `${powerConfig.image}积分/张`
-    } else {
-      currentPowerCost.value = `${powerConfig.video}积分/秒`
-    }
+    nextTick(() => {
+      const key = formData.value.req_key
+      const perUnit = key ? powerConfig.powers[key] : 0
+      if (!perUnit) {
+        currentPowerCost.value = '未配置积分'
+        return
+      }
+      currentPowerCost.value =
+        activeFunction.value === 'image' ? `${perUnit}积分/张` : `${perUnit}积分/秒`
+    })
   }
+
+  watch(
+    () => formData.value,
+    () => {
+      setFunctionPowers()
+    }
+  )
 
   // 初始化方法
   const init = async () => {
@@ -297,7 +306,7 @@ export const useJimengStore = defineStore('jimeng', () => {
       // 获取积分消耗配置
       const powerRes = await httpGet('/api/jimeng/power-config')
       if (powerRes.data) {
-        Object.assign(powerConfig, powerRes.data)
+        powerConfig.powers = powerRes.data.powers || {}
         setFunctionPowers()
       }
       const user = await checkSession()
