@@ -1178,7 +1178,7 @@ const reGenerate = function (messageIndex) {
   }
 
   if (messageIndex === -1 || isNaN(messageIndex)) {
-    ElMessage.error('找不到要编辑的消息')
+    ElMessage.error('找不到要重新生成消息')
     return
   }
 
