@@ -175,7 +175,7 @@
                     v-if="item.power"
                     class="jimeng-create__works-item-info-tags-item jimeng-create__works-item-info-tags-item--power"
                   >
-                    {{ item.power }}算力
+                    {{ item.power }} 积分
                   </span>
                 </div>
               </div>

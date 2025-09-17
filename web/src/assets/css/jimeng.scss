@@ -343,6 +343,10 @@
   margin: 12px 0 16px;
   background-color: var(--el-fill-color-blank);
 
+  .el-collapse {
+    --el-collapse-border-color: none;
+  }
+
   .guide-title {
     display: flex;
     align-items: center;

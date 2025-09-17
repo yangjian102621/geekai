@@ -263,19 +263,18 @@
                 <div v-if="showHello">
                   <welcome @send="autofillPrompt" />
                 </div>
-                <div v-for="item in chatData" :key="item.id" v-else>
+                <div v-for="(item, index) in chatData" :key="item.id" v-else>
                   <chat-prompt
                     v-if="item.type === 'prompt'"
                     :data="item"
-                    :list-style="listStyle"
+                    :message-index="index"
                     @edit="editUserPrompt"
                   />
                   <chat-reply
                     v-else-if="item.type === 'reply'"
                     :data="item"
                     @regen="reGenerate"
-                    :read-only="false"
-                    :list-style="listStyle"
+                    :message-index="index"
                   />
                 </div>
 
@@ -1171,28 +1170,27 @@ const stopGenerate = function () {
 }
 
 // 重新生成
-const reGenerate = function (messageId) {
+const reGenerate = function (messageIndex) {
   // 恢复发送按钮状态
   if (isGenerating.value) {
     ElMessage.warning('AI 正在作答中，请稍后...')
     return
   }
 
-  console.log('messageId', messageId)
-  console.log('chatData.value', chatData.value)
-
-  // 判断 messageId 是整数
-  if (messageId !== '' && isNaN(messageId)) {
-    ElMessage.warning('消息 ID 不合法，无法重新生成')
+  if (messageIndex === -1 || isNaN(messageIndex)) {
+    ElMessage.error('找不到要编辑的消息')
     return
   }
 
-  chatData.value = chatData.value.filter((item) => item.id < messageId && !item.isHello)
+  // 找到该消息的ID
+  const messageId = chatData.value[messageIndex].id
+  // 移除该消息之后的所有消息
+  chatData.value = chatData.value.slice(0, messageIndex)
   const userPrompt = chatData.value.pop()
   prompt.value = userPrompt.content.text
-  sendMessage(messageId)
   // 将光标定位到输入框并聚焦
   nextTick(() => {
+    sendMessage(messageId)
     if (inputRef.value) {
       inputRef.value.focus()
       // 触发输入事件以更新文本高度
@@ -1201,76 +1199,32 @@ const reGenerate = function (messageId) {
   })
 }
 
-// 编辑用户消息
-const editUserPrompt = function (messageId) {
-  // 找到要编辑的消息及其索引
-  let messageIndex = -1
-  let messageContent = ''
+// 编辑用户消息提交
+const editUserPrompt = function (editData) {
+  const { messageIndex, newContent } = editData
 
-  for (let i = 0; i < chatData.value.length; i++) {
-    if (chatData.value[i].id === messageId) {
-      messageIndex = i
-      messageContent = chatData.value[i].content
-      break
-    }
+  if (messageIndex === -1 || isNaN(messageIndex)) {
+    ElMessage.error('找不到要编辑的消息')
+    return
   }
 
-  if (messageIndex === -1) return
-
-  // 弹出编辑对话框
-  ElMessageBox.prompt('', '编辑消息', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputValue: messageContent,
-    inputType: 'textarea',
-    customClass: 'edit-prompt-dialog',
-    roundButton: true,
+  // 找到该消息下一条消息的ID
+  const messageId = chatData.value[messageIndex + 1].id
+  // 移除该消息之后的所有消息
+  chatData.value = chatData.value.slice(0, messageIndex)
+  console.log('chatData.value', chatData.value)
+  // 设置该消息的内容
+  prompt.value = newContent
+  console.log('messageId', messageId)
+  // 发送消息
+  nextTick(() => {
+    sendMessage(messageId)
+    if (inputRef.value) {
+      inputRef.value.focus()
+      // 触发输入事件以更新文本高度
+      onInput({ keyCode: null })
+    }
   })
-    .then(({ value }) => {
-      if (value.trim() === '') {
-        ElMessage.warning('消息内容不能为空')
-        return
-      }
-
-      // 更新用户消息
-      chatData.value[messageIndex].content = value
-
-      // 移除该消息之后的所有消息
-      chatData.value = chatData.value.slice(0, messageIndex + 1)
-
-      // 添加空回复消息
-      const _role = getRoleById(roleId.value)
-      chatData.value.push({
-        chat_id: chatId,
-        role_id: roleId.value,
-        type: 'reply',
-        id: randString(32),
-        icon: _role['icon'],
-        content: '',
-      })
-
-      disableInput(false)
-
-      // 发送编辑后的消息
-      store.socket.conn.send(
-        JSON.stringify({
-          channel: 'chat',
-          type: 'text',
-          body: {
-            role_id: roleId.value,
-            model_id: modelID.value,
-            chat_id: chatId.value,
-            content: value,
-            tools: toolSelected.value,
-            stream: stream.value,
-            edit_message: true,
-          },
-        })
-      )
-    })
-    .catch(() => {
-      // 取消编辑
-    })
 }
 
 const chatName = ref('')

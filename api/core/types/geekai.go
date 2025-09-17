@@ -20,14 +20,14 @@ func init() {
 
 // CaptchaConfig 行为验证码配置
 type CaptchaConfig struct {
-	ApiKey  string `json:"api_key"`
-	Type    string `json:"type"` // 验证码类型, 可选值: "dot" 或 "slide"
-	Enabled bool   `json:"enabled"`
+	ApiKey  string `json:"api_key,omitempty"`
+	Type    string `json:"type,omitempty"` // 验证码类型, 可选值: "dot" 或 "slide"
+	Enabled bool   `json:"enabled,omitempty"`
 }
 
 // WxLoginConfig 微信登录配置
 type WxLoginConfig struct {
-	ApiKey    string `json:"api_key"`
-	NotifyURL string `json:"notify_url"` // 登录成功回调 URL
-	Enabled   bool   `json:"enabled"`    // 是否启用微信登录
+	ApiKey    string `json:"api_key,omitempty"`
+	NotifyURL string `json:"notify_url,omitempty"` // 登录成功回调 URL
+	Enabled   bool   `json:"enabled,omitempty"`    // 是否启用微信登录
 }

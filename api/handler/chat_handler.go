@@ -272,9 +272,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 		if h.App.SysConfig.Base.ContextDeep > 0 {
 			var historyMessages []model.ChatMessage
 			dbSession := h.DB.Session(&gorm.Session{}).Where("chat_id", input.ChatId)
-			if input.LastMsgId > 0 { // 重新生成逻辑
+			if input.LastMsgId > 0 { // 重新生成和编辑逻辑
 				var lastMessage model.ChatMessage
-				err = dbSession.Where("id <= ?", input.LastMsgId).Where("type", types.PromptMsg).First(&lastMessage).Error
+				err = dbSession.Where("id < ?", input.LastMsgId).Where("type", types.ReplyMsg).Order("id DESC").First(&lastMessage).Error
 				if err != nil {
 					input.LastMsgId = 0
 				} else {
@@ -282,7 +282,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 				}
 				dbSession = dbSession.Where("id < ?", input.LastMsgId)
 				// 删除对应的聊天记录
-				h.DB.Debug().Where("chat_id", input.ChatId).Where("id >= ?", input.LastMsgId).Delete(&model.ChatMessage{})
+				h.DB.Debug().Where("chat_id", input.ChatId).Where("id > ?", input.LastMsgId).Delete(&model.ChatMessage{})
 			}
 			err = dbSession.Limit(h.App.SysConfig.Base.ContextDeep).Order("id DESC").Find(&historyMessages).Error
 			if err == nil {

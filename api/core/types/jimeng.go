@@ -3,12 +3,12 @@ package types
 // JimengConfig 即梦AI配置
 type JimengConfig struct {
 	// 即梦AI的AccessKey和SecretKey
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
+	AccessKey string `json:"access_key,omitempty"`
+	SecretKey string `json:"secret_key,omitempty"`
 	// 火山引擎大模型专用的验证方式
-	ApiKey string `json:"api_key"`
+	ApiKey string `json:"api_key,omitempty"`
 	// 算力配置
-	Powers map[string]int `json:"powers"`
+	Powers map[string]int `json:"powers,omitempty"`
 }
 
 // JMTaskStatus 任务状态

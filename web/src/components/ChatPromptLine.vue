@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-line chat-line-prompt-chat">
+  <div class="chat-line chat-line-prompt-list">
     <div class="chat-line-inner">
       <div class="chat-icon">
         <img :src="data.icon" alt="User" />
@@ -29,68 +29,24 @@
             </div>
           </div>
         </div>
-
-        <!-- 编辑模式 -->
-        <div v-if="isEditing" class="edit-mode">
-          <div class="flex flex-row space-x-2 w-full">
-            <div>
-              <el-tooltip class="box-item" effect="dark" content="取消" placement="top">
-                <i
-                  class="iconfont icon-error-line !text-lg mr-1 cursor-pointer"
-                  @click="cancelEdit"
-                ></i>
-              </el-tooltip>
-            </div>
-            <div class="w-full">
-              <textarea
-                v-model="editText"
-                :rows="3"
-                placeholder="请输入修改后的内容..."
-                class="w-full p-3 border-2 border-purple-500 rounded-md text-sm"
-                resize="vertical"
-                style="background-color: var(--chat-content-bg); color: var(--theme-text-primary)"
-              ></textarea>
-            </div>
-            <div>
-              <el-tooltip class="box-item" effect="dark" content="提交" placement="top">
-                <i
-                  class="iconfont icon-back-circle cursor-pointer !text-3xl text-purple-500 mr-1 hover:text-purple-700 mb-2"
-                  style="transform: rotate(90deg); display: inline-block"
-                  @click="submitEdit"
-                ></i>
-              </el-tooltip>
-            </div>
-          </div>
+        <div class="content position-relative">
+          <div v-html="content"></div>
         </div>
-
-        <!-- 显示模式 -->
-        <div v-else>
-          <div class="content-wrapper">
-            <div class="content position-relative">
-              <div v-html="content"></div>
-            </div>
-          </div>
-          <div
-            class="flex text-gray-500 text-sm py-2 justify-end items-center space-x-2"
-            v-if="data.created_at > 0"
+        <div
+          class="flex text-gray-500 text-sm py-2 items-center space-x-2"
+          v-if="data.created_at > 0"
+        >
+          <span class="flex items-center"
+            ><i class="iconfont icon-clock mr-1"></i> {{ dateFormat(data.created_at) }}</span
           >
-            <span class="flex items-center"
-              ><i class="iconfont icon-clock mr-1"></i> {{ dateFormat(data.created_at) }}</span
-            >
-            <span class="flex items-center">
-              <el-tooltip class="box-item" effect="dark" content="复制" placement="top">
-                <i
-                  class="iconfont icon-copy cursor-pointer !text-sm"
-                  @click="copyContent(data.content.text)"
-                ></i>
-              </el-tooltip>
-            </span>
-            <span class="flex items-center">
-              <el-tooltip class="box-item" effect="dark" content="修改提问" placement="top">
-                <i class="iconfont icon-edit cursor-pointer !text-sm" @click="startEdit"></i>
-              </el-tooltip>
-            </span>
-          </div>
+          <span class="flex items-center">
+            <el-tooltip class="box-item" effect="dark" content="复制" placement="top">
+              <i
+                class="iconfont icon-copy cursor-pointer !text-sm"
+                @click="copyContent(data.content.text)"
+              ></i>
+            </el-tooltip>
+          </span>
         </div>
       </div>
     </div>
@@ -101,7 +57,6 @@
 import { FormatFileSize, GetFileIcon, GetFileType } from '@/store/system'
 import { showMessageSuccess } from '@/utils/dialog'
 import { dateFormat, isImage, processPrompt } from '@/utils/libs'
-import { ElMessage } from 'element-plus'
 import hl from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
@@ -152,18 +107,14 @@ const props = defineProps({
       icon: '',
     },
   },
-  messageIndex: {
-    type: Number,
-    default: -1,
+  listStyle: {
+    type: String,
+    default: 'list',
   },
 })
 const finalTokens = ref(props.data.tokens)
 const content = ref(processPrompt(props.data.content.text))
 const files = ref(props.data.content.files)
-
-// 编辑相关状态
-const isEditing = ref(false)
-const editText = ref('')
 
 // 定义emit事件
 const emit = defineEmits(['edit'])
@@ -185,55 +136,30 @@ const copyContent = (text) => {
   navigator.clipboard.writeText(text)
   showMessageSuccess('复制成功')
 }
-
-// 开始编辑
-const startEdit = () => {
-  isEditing.value = true
-  editText.value = props.data.content.text
-}
-
-// 取消编辑
-const cancelEdit = () => {
-  isEditing.value = false
-  editText.value = ''
-}
-
-// 提交编辑
-const submitEdit = () => {
-  if (!editText.value.trim()) {
-    ElMessage.warning('内容不能为空')
-    return
-  }
-  // 发送重新提交事件，传递修改后的内容
-  emit('edit', {
-    messageIndex: props.messageIndex,
-    newContent: editText.value.trim(),
-  })
-
-  // 退出编辑模式
-  isEditing.value = false
-  editText.value = ''
-}
 </script>
 
 <style lang="scss">
 @use '@/assets/css/markdown/vue.css' as *;
-.chat-page {
-  .chat-line-prompt-chat {
-    background: var(--chat-bg);
+.chat-page,
+.chat-export {
+  .chat-line-prompt-list {
+    background-color: var(--chat-content-bg-list);
+    color: var(--theme-text-color-primary);
     justify-content: center;
     width: 100%;
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
+    // border-bottom: 0.5px solid var(--el-border-color);
 
     .chat-line-inner {
       display: flex;
       width: 100%;
-      padding: 0 25px;
-      flex-flow: row-reverse;
+      max-width: 900px;
+      padding-left: 10px;
 
       .chat-icon {
-        margin-left: 20px;
+        margin-right: 20px;
+        min-width: 36px;
 
         img {
           width: 36px;
@@ -244,10 +170,9 @@ const submitEdit = () => {
       }
 
       .chat-item {
-        padding: 0;
-        overflow: hidden;
-        max-width: calc(100% - 110px);
         width: 100%;
+        padding: 0 5px 0 0;
+        overflow: hidden;
 
         .file-list-box {
           display: flex;
@@ -258,7 +183,7 @@ const submitEdit = () => {
             flex-flow: row;
             margin-right: 10px;
             position: relative;
-            justify-content: end;
+            justify-content: start;
 
             .el-image {
               border: 1px solid #e3e3e3;
@@ -274,8 +199,8 @@ const submitEdit = () => {
             flex-flow: row;
             border-radius: 10px;
             background-color: var(--chat-content-bg);
-            color: var(--theme-text-color-primary);
             border: 1px solid #e3e3e3;
+            color: var(--theme-text-color-primary);
             padding: 6px;
             margin-bottom: 10px;
 
@@ -307,42 +232,31 @@ const submitEdit = () => {
           }
         }
 
-        .content-wrapper {
-          display: flex;
-          flex-flow: row-reverse;
+        .content {
+          word-break: break-word;
+          padding: 0;
+          color: var(--theme-text-color-primary);
+          font-size: var(--content-font-size);
+          border-radius: 5px;
+          overflow: auto;
 
-          .content {
-            word-break: break-word;
-            padding: 1rem;
-            color: var(--theme-text-primary);
-            font-size: var(--content-font-size);
-            overflow: auto;
-            background-color: var(--chat-user-content-bg);
-            border-radius: 10px 0 10px 10px;
-
-            img {
-              max-width: 600px;
-              border-radius: 10px;
-              margin: 10px 0;
-            }
-
-            p {
-              line-height: 1.5;
-            }
-
-            p:last-child {
-              margin-bottom: 0;
-            }
-
-            p:first-child {
-              margin-top: 0;
-            }
+          img {
+            max-width: 600px;
+            border-radius: 10px;
+            margin: 10px 0;
           }
-        }
 
-        .edit-mode {
-          width: 100%;
-          margin-top: 15px;
+          p {
+            line-height: 1.5;
+          }
+
+          p:last-child {
+            margin-bottom: 0;
+          }
+
+          p:first-child {
+            margin-top: 0;
+          }
         }
       }
     }

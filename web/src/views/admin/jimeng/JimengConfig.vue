@@ -207,8 +207,8 @@ const resetConfig = () => {
 </script>
 
 <style lang="scss" scoped>
-@use '../../../assets/css/admin/form.scss' as *;
-@use '../../../assets/css/main.scss' as *;
+@use '@/assets/css/admin/form.scss' as *;
+@use '@/assets/css/main.scss' as *;
 
 .system-config {
   display: flex;

@@ -8,39 +8,39 @@ package types
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 type OSSConfig struct {
-	Active string             `json:"active"`
-	Local  LocalStorageConfig `json:"local"`
-	Minio  MiniOssConfig      `json:"minio"`
-	QiNiu  QiNiuOssConfig     `json:"qiniu"`
-	AliYun AliYunOssConfig    `json:"aliyun"`
+	Active string             `json:"active,omitempty"`
+	Local  LocalStorageConfig `json:"local,omitempty"`
+	Minio  MiniOssConfig      `json:"minio,omitempty"`
+	QiNiu  QiNiuOssConfig     `json:"qiniu,omitempty"`
+	AliYun AliYunOssConfig    `json:"aliyun,omitempty"`
 }
 
 type MiniOssConfig struct {
-	Endpoint     string `json:"endpoint"`
-	AccessKey    string `json:"access_key"`
-	AccessSecret string `json:"access_secret"`
-	Bucket       string `json:"bucket"`
-	UseSSL       bool   `json:"use_ssl"`
-	Domain       string `json:"domain"`
+	Endpoint     string `json:"endpoint,omitempty"`
+	AccessKey    string `json:"access_key,omitempty"`
+	AccessSecret string `json:"access_secret,omitempty"`
+	Bucket       string `json:"bucket,omitempty"`
+	UseSSL       bool   `json:"use_ssl,omitempty"`
+	Domain       string `json:"domain,omitempty"`
 }
 
 type QiNiuOssConfig struct {
-	Zone         string `json:"zone"`
-	AccessKey    string `json:"access_key"`
-	AccessSecret string `json:"access_secret"`
-	Bucket       string `json:"bucket"`
-	Domain       string `json:"domain"`
+	Zone         string `json:"zone,omitempty"`
+	AccessKey    string `json:"access_key,omitempty"`
+	AccessSecret string `json:"access_secret,omitempty"`
+	Bucket       string `json:"bucket,omitempty"`
+	Domain       string `json:"domain,omitempty"`
 }
 
 type AliYunOssConfig struct {
-	Endpoint     string `json:"endpoint"`
-	AccessKey    string `json:"access_key"`
-	AccessSecret string `json:"access_secret"`
-	Bucket       string `json:"bucket"`
-	Domain       string `json:"domain"`
+	Endpoint     string `json:"endpoint,omitempty"`
+	AccessKey    string `json:"access_key,omitempty"`
+	AccessSecret string `json:"access_secret,omitempty"`
+	Bucket       string `json:"bucket,omitempty"`
+	Domain       string `json:"domain,omitempty"`
 }
 
 type LocalStorageConfig struct {
-	BasePath string `json:"base_path"`
-	BaseURL  string `json:"base_url"`
+	BasePath string `json:"base_path,omitempty"`
+	BaseURL  string `json:"base_url,omitempty"`
 }

@@ -1,68 +1,41 @@
 <template>
   <div class="chat-reply">
-    <div class="chat-line chat-line-reply-chat">
+    <div class="chat-line chat-line-reply-list">
       <div class="chat-line-inner">
         <div class="chat-icon">
           <img :src="data.icon" alt="ChatGPT" />
         </div>
+
         <div class="chat-item">
-          <div class="content-wrapper">
-            <div
-              class="content"
-              v-html="md.render(processContent(data.content.text))"
-              v-if="data.content.text"
-            ></div>
-            <div class="content flex justify-start items-center" v-else>
-              <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
-            </div>
+          <div
+            class="content-wrapper"
+            v-html="md.render(processContent(data.content.text))"
+            v-if="data.content.text"
+          ></div>
+          <div class="content-wrapper flex justify-start items-center" v-else>
+            <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
           </div>
           <div
             class="flex text-gray-500 text-sm py-2 items-center space-x-2"
             v-if="data.created_at"
           >
-            <span class="flex items-center"
-              ><i class="iconfont icon-clock mr-1"></i> {{ dateFormat(data.created_at) }}</span
+            <span class="flex items-center">
+              <i class="iconfont icon-clock mr-1"></i> {{ dateFormat(data.created_at) }}</span
             >
             <span class="flex items-center">
               <el-tooltip class="box-item" effect="dark" content="复制回答" placement="top">
-                <el-icon class="copy-reply" :data-clipboard-text="data.content.text">
-                  <DocumentCopy />
-                </el-icon>
-              </el-tooltip>
-            </span>
-            <span class="flex items-center" @click="reGenerate">
-              <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
-                <i class="iconfont icon-refresh cursor-pointer !text-sm"></i>
-              </el-tooltip>
-            </span>
-
-            <span class="flex items-center">
-              <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="生成语音朗读"
-                placement="bottom"
-                v-if="!isPlaying"
-              >
                 <i
-                  class="iconfont icon-speaker !text-sm cursor-pointer"
-                  @click="synthesis(data.content.text)"
-                ></i>
-              </el-tooltip>
-              <el-tooltip
-                class="box-item"
-                effect="dark"
-                content="暂停播放"
-                placement="bottom"
-                v-else
-              >
-                <el-image class="voice-icon" :src="playIcon" @click="stopSynthesis()" />
+                  class="iconfont icon-copy cursor-pointer !text-sm"
+                  :data-clipboard-text="data.content"
+                >
+                </i>
               </el-tooltip>
             </span>
           </div>
         </div>
       </div>
     </div>
+
     <audio ref="audio" @ended="isPlaying = false" />
   </div>
 </template>
@@ -71,7 +44,6 @@
 import { useSharedStore } from '@/store/sharedata'
 import { httpPost } from '@/utils/http'
 import { dateFormat, processContent } from '@/utils/libs'
-import { DocumentCopy } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import hl from 'highlight.js'
 import MarkdownIt from 'markdown-it'
@@ -94,9 +66,13 @@ const props = defineProps({
       tokens: 0,
     },
   },
-  messageIndex: {
-    type: Number,
-    default: -1,
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
+  listStyle: {
+    type: String,
+    default: 'list',
   },
 })
 
@@ -181,8 +157,8 @@ const stopSynthesis = () => {
 }
 
 // 重新生成
-const reGenerate = () => {
-  emits('regen', props.messageIndex)
+const reGenerate = (messageId) => {
+  emits('regen', messageId)
 }
 
 // 添加代码块展开/收起功能
@@ -271,14 +247,158 @@ const setupCodeBlockEvents = () => {
     sans-serif;
   font-family: var(--font-family);
 
-  .chat-line-reply-chat {
+  .chat-line {
+    .boxed {
+      border: 1px solid var(--el-border-color);
+      border-radius: 5px;
+      padding: 0 5px;
+    }
+    .chat-item {
+      .content-wrapper {
+        img {
+          max-width: 600px;
+          border-radius: 10px;
+        }
+
+        p {
+          line-height: 1.5;
+
+          code {
+            color: var(--theme-text-color-primary);
+            font-weight: 600;
+          }
+        }
+
+        p:last-child {
+          margin-bottom: 0;
+        }
+
+        p:first-child {
+          margin-top: 0;
+        }
+
+        .code-container {
+          background-color: #2b2b2b;
+          border-radius: 10px;
+          position: relative;
+
+          .hljs {
+            border-radius: 10px;
+            width: 100%;
+          }
+
+          .copy-code-btn {
+            cursor: pointer;
+            font-size: 12px;
+            color: #c1c1c1;
+
+            &:hover {
+              color: #20a0ff;
+            }
+          }
+        }
+
+        // 添加代码块展开/收起样式
+        .code-collapsed {
+          .hljs {
+            max-height: 200px;
+            overflow: hidden;
+            position: relative;
+            transition: max-height 0.3s ease;
+
+            &::after {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              height: 30px;
+              background: linear-gradient(transparent, #2b2b2b);
+              pointer-events: none;
+            }
+          }
+        }
+
+        .code-expanded {
+          .hljs {
+            max-height: none;
+            overflow: auto;
+            transition: max-height 0.3s ease;
+
+            &::after {
+              display: none;
+            }
+          }
+        }
+
+        .expand-btn {
+          transition: color 0.2s ease;
+
+          &:hover {
+            color: #20a0ff !important;
+          }
+        }
+
+        .lang-name {
+          color: #00e0e0;
+        }
+
+        // 设置表格边框
+
+        table {
+          width: 100%;
+          margin-bottom: 1rem;
+          border-collapse: collapse;
+          border: 1px solid #dee2e6;
+          background-color: var(--chat-content-bg);
+          color: var(--theme-text-color-primary);
+
+          thead {
+            th {
+              border: 1px solid #dee2e6;
+              vertical-align: bottom;
+              border-bottom: 2px solid #dee2e6;
+              padding: 10px;
+            }
+          }
+
+          td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+          }
+        }
+
+        // 代码快
+
+        blockquote {
+          margin: 0 0 0.8rem 0;
+          background-color: var(--quote-bg-color);
+          padding: 0.8rem 1.5rem;
+          color: var(--quote-text-color);
+          border-left: 0.4rem solid #6b50e1; /* 紫色边框 */
+          font-size: 16px;
+          line-height: 1.6;
+        }
+      }
+    }
+  }
+
+  .chat-line-reply-list {
     justify-content: center;
-    padding: 1.5rem;
+    background-color: var(--chat-content-bg);
+    color: var(--theme-text-color-primary);
+    width: 100%;
+    padding-bottom: 0.5rem;
+    padding-top: 1rem;
+    padding-right: 1rem;
+    border: 1px solid var(--el-border-color);
+    border-radius: 10px;
 
     .chat-line-inner {
       display: flex;
       width: 100%;
-      flex-flow: row;
+      max-width: 900px;
+      padding-left: 10px;
 
       .chat-icon {
         margin-right: 20px;
@@ -292,34 +412,26 @@ const setupCodeBlockEvents = () => {
       }
 
       .chat-item {
+        width: 100%;
         position: relative;
         padding: 0;
         overflow: hidden;
-        width: 100%;
-        max-width: calc(100% - 110px);
 
         .content-wrapper {
-          display: flex;
-          .content {
-            min-height: 20px;
-            word-break: break-word;
-            padding: 1rem;
-            color: var(--theme-text-primary);
+          min-height: 20px;
+          word-break: break-word;
+          padding: 0;
+          color: var(--theme-text-color-primary);
+          font-size: var(--content-font-size);
+          border-radius: 5px;
+          overflow: auto;
 
-            font-size: var(--content-font-size);
-            overflow: auto;
-            // background-color #F5F5F5
-            background-color: var(--chat-content-bg);
-            border-radius: 0 10px 10px 10px;
-            width: 100%;
+          p:first-child {
+            margin-top: 0;
+          }
 
-            p:first-child {
-              margin-top: 0;
-            }
-
-            p:last-child {
-              margin-bottom: 0;
-            }
+          p:last-child {
+            margin-bottom: 0;
           }
         }
       }

@@ -9,13 +9,13 @@ package types
 
 // 文本审查
 type ModerationConfig struct {
-	Enable      bool                    `json:"enable"` // 是否启用文本审查
-	Active      string                  `json:"active"`
-	EnableGuide bool                    `json:"enable_guide"` // 是否启用模型引导提示词
-	GuidePrompt string                  `json:"guide_prompt"` // 模型引导提示词
-	Gitee       ModerationGiteeConfig   `json:"gitee"`
-	Baidu       ModerationBaiduConfig   `json:"baidu"`
-	Tencent     ModerationTencentConfig `json:"tencent"`
+	Enable      bool                    `json:"enable,omitempty"` // 是否启用文本审查
+	Active      string                  `json:"active,omitempty"`
+	EnableGuide bool                    `json:"enable_guide,omitempty"` // 是否启用模型引导提示词
+	GuidePrompt string                  `json:"guide_prompt,omitempty"` // 模型引导提示词
+	Gitee       ModerationGiteeConfig   `json:"gitee,omitempty"`
+	Baidu       ModerationBaiduConfig   `json:"baidu,omitempty"`
+	Tencent     ModerationTencentConfig `json:"tencent,omitempty"`
 }
 
 const (
@@ -26,26 +26,26 @@ const (
 
 // GiteeAI 文本审查配置
 type ModerationGiteeConfig struct {
-	ApiKey string `json:"api_key"`
-	Model  string `json:"model"` // 文本审核模型
+	ApiKey string `json:"api_key,omitempty"`
+	Model  string `json:"model,omitempty"` // 文本审核模型
 }
 
 // 百度文本审查配置
 type ModerationBaiduConfig struct {
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
+	AccessKey string `json:"access_key,omitempty"`
+	SecretKey string `json:"secret_key,omitempty"`
 }
 
 // 腾讯云文本审查配置
 type ModerationTencentConfig struct {
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
+	AccessKey string `json:"access_key,omitempty"`
+	SecretKey string `json:"secret_key,omitempty"`
 }
 
 type ModerationResult struct {
-	Flagged        bool               `json:"flagged"`
-	Categories     map[string]bool    `json:"categories"`
-	CategoryScores map[string]float64 `json:"category_scores"`
+	Flagged        bool               `json:"flagged,omitempty"`
+	Categories     map[string]bool    `json:"categories,omitempty"`
+	CategoryScores map[string]float64 `json:"category_scores,omitempty"`
 }
 
 var ModerationCategories = map[string]string{

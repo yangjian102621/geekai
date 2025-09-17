@@ -179,6 +179,10 @@ func (h *JimengHandler) Jobs(c *gin.Context) {
 		query = query.Where("type = ?", types.JMTaskTypeImage)
 	case "video":
 		query = query.Where("type = ?", types.JMTaskTypeVideo)
+	case "virtual_human":
+		query = query.Where("type = ?", types.JMTaskTypeVirtualHuman)
+	case "action_transfer":
+		query = query.Where("type = ?", types.JMTaskTypeActionTransfer)
 	}
 
 	if len(req.Ids) > 0 {

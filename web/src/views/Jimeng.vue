@@ -19,7 +19,7 @@
       </div>
 
       <!-- 提示词编写指南（可折叠） -->
-      <div class="prompt-guide pl-2">
+      <div class="prompt-guide px-2">
         <el-collapse v-model="guideActive">
           <el-collapse-item name="guide">
             <template #title>

@@ -322,6 +322,13 @@ export const useJimengStore = defineStore('jimeng', () => {
 
   // 页面卸载时清理轮询
   const cleanup = () => {
+    page.value = 1
+    pageSize.value = 10
+    total.value = 0
+    taskFilter.value = 'all'
+    currentList.value = []
+    isOver.value = false
+    loading.value = false
     stopPolling()
   }
 
