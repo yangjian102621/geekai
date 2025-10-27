@@ -101,8 +101,8 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 	// 兼容 GPT-O1 模型
 	if strings.HasPrefix(session.Model.Value, "o1-") {
-		utils.SendChunkMsg(ws, "AI 正在思考...\n")
-		req.Stream = false
+		utils.SendChunkMsg(ws, "> AI 正在思考...\n")
+		req.Stream = session.Stream
 		session.Start = time.Now().Unix()
 	} else {
 		req.MaxTokens = session.Model.MaxTokens

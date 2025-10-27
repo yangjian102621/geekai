@@ -63,7 +63,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 	start := time.Now()
 	var apiKey = model.ApiKey{}
 	response, err := h.doRequest(ctx, req, session, &apiKey)
-	logger.Info("HTTP请求完成，耗时：", time.Now().Sub(start))
+	logger.Info("HTTP请求完成，耗时：", time.Since(start))
 	if err != nil {
 		if strings.Contains(err.Error(), "context canceled") {
 			return fmt.Errorf("用户取消了请求：%s", prompt)
@@ -89,6 +89,12 @@ func (h *ChatHandler) sendOpenAiMessage(
 		var function model.Function
 		var toolCall = false
 		var arguments = make([]string, 0)
+
+		if strings.HasPrefix(req.Model, "o1-") {
+			content := fmt.Sprintf("AI 思考结束，耗时：%d 秒。\n\n", time.Now().Unix()-session.Start)
+			utils.SendChunkMsg(ws, content)
+		}
+
 		scanner := bufio.NewScanner(response.Body)
 		for scanner.Scan() {
 			line := scanner.Text()
@@ -150,10 +156,10 @@ func (h *ChatHandler) sendOpenAiMessage(
 			// output stopped
 			if responseBody.Choices[0].FinishReason != "" {
 				break // 输出完成或者输出中断了
-			} else {
+			} else { // 正常输出结果
 				content := responseBody.Choices[0].Delta.Content
 				contents = append(contents, utils.InterfaceToString(content))
-				utils.SendChunkMsg(ws, responseBody.Choices[0].Delta.Content)
+				utils.SendChunkMsg(ws, content)
 			}
 		} // end for
 
