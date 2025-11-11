@@ -244,6 +244,7 @@ func main() {
 			group.POST("resetPass", h.ResetPass)
 			group.GET("clogin", h.CLogin)
 			group.GET("clogin/callback", h.CLoginCallback)
+			group.GET("signin", h.SignIn)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")

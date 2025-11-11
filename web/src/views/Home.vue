@@ -39,25 +39,25 @@
           <el-popover v-if="moreNavs.length > 0" placement="right-end" trigger="hover">
             <template #reference>
               <li class="menu-list-item flex-center-col">
-                <i class="iconfont icon-more"/>
+                <i class="iconfont icon-more" />
               </li>
             </template>
             <template #default>
               <ul class="more-menus">
                 <li
-                    v-for="(item, index) in moreNavs"
-                    :key="item.url"
-                    :class="{
-                      active: item.url === curPath,
-                      moreTitle: index !== 3 && index !== 4,
-                      twoTittle: index === 3 || index === 4,
-                    }"
+                  v-for="(item, index) in moreNavs"
+                  :key="item.url"
+                  :class="{
+                    active: item.url === curPath,
+                    moreTitle: index !== 3 && index !== 4,
+                    twoTittle: index === 3 || index === 4,
+                  }"
                 >
                   <a @click="changeNav(item)">
-                      <span v-if="item.icon.startsWith('icon')" class="mr-2">
-                        <i class="iconfont" :class="item.icon"></i>
-                      </span>
-                    <el-image :src="item.icon" style="width: 20px; height: 20px" v-else/>
+                    <span v-if="item.icon.startsWith('icon')" class="mr-2">
+                      <i class="iconfont" :class="item.icon"></i>
+                    </span>
+                    <el-image :src="item.icon" style="width: 20px; height: 20px" v-else />
                     <span :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</span>
                   </a>
                 </li>
@@ -67,7 +67,7 @@
           <el-popover placement="right-end" trigger="hover" v-if="loginUser.id">
             <template #reference>
               <li class="menu-list-item flex-center-col">
-                <i class="iconfont icon-config"/>
+                <i class="iconfont icon-config" />
               </li>
             </template>
             <template #default>
@@ -75,7 +75,7 @@
                 <li>
                   <div @click="showConfigDialog = true" class="flex">
                     <el-icon>
-                      <UserFilled/>
+                      <UserFilled />
                     </el-icon>
                     <span class="username title">{{ loginUser.nickname }}</span>
                   </div>
@@ -100,7 +100,7 @@
               <i class="iconfont icon-house"></i>
             </a>
             <div class="pl-1">
-              <ThemeChange/>
+              <ThemeChange size="small" />
             </div>
           </div>
         </div>
@@ -133,17 +133,17 @@
 </template>
 
 <script setup>
-import {UserFilled} from "@element-plus/icons-vue";
+import { UserFilled } from "@element-plus/icons-vue";
 import ThemeChange from "@/components/ThemeChange.vue";
-import {useRouter} from "vue-router";
-import {computed, onMounted, ref, watch} from "vue";
-import {httpGet} from "@/utils/http";
-import {ElMessage} from "element-plus";
-import {checkSession, getLicenseInfo, getSystemInfo} from "@/store/cache";
-import {removeUserToken} from "@/store/session";
-import {useSharedStore} from "@/store/sharedata";
+import { useRouter } from "vue-router";
+import { computed, onMounted, ref, watch } from "vue";
+import { httpGet } from "@/utils/http";
+import { ElMessage } from "element-plus";
+import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
+import { removeUserToken } from "@/store/session";
+import { useSharedStore } from "@/store/sharedata";
 import ConfigDialog from "@/components/UserInfoDialog.vue";
-import {showMessageError} from "@/utils/dialog";
+import { showMessageError } from "@/utils/dialog";
 import LoginDialog from "@/components/LoginDialog.vue";
 
 const router = useRouter();
@@ -188,7 +188,7 @@ const getFirstPathSegment = (url) => {
 
 const stars = computed(() => {
   return 1000;
-})
+});
 
 watch(
   () => store.showLoginDialog,

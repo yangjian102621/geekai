@@ -95,6 +95,7 @@ const (
 	PowerInvite   = PowerType(4) // 邀请奖励
 	PowerRedeem   = PowerType(5) // 众筹
 	PowerGift     = PowerType(6) // 系统赠送
+	PowerSignIn   = PowerType(7) // 每日签到
 )
 
 func (t PowerType) String() string {
@@ -111,6 +112,8 @@ func (t PowerType) String() string {
 		return "赠送"
 	case PowerInvite:
 		return "邀请"
+	case PowerSignIn:
+		return "签到"
 	}
 	return "其他"
 }

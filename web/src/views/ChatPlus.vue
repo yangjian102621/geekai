@@ -3,7 +3,7 @@
     <el-container>
       <el-aside v-show="store.chatListExtend">
         <div class="flex w-full justify-center pt-3 pb-3">
-          <img :src="logo" style="max-height: 40px" :alt="title" v-if="logo !== ''"/>
+          <img :src="logo" style="max-height: 40px" :alt="title" v-if="logo !== ''" />
           <h2 v-else>{{ title }}</h2>
         </div>
 
@@ -194,7 +194,7 @@
     </el-container>
 
     <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
-      <div class="notice p-4">
+      <div class="notice">
         <div v-html="notice"></div>
       </div>
 
@@ -232,24 +232,24 @@
   </div>
 </template>
 <script setup>
-import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import ChatPrompt from "@/components/ChatPrompt.vue";
 import ChatReply from "@/components/ChatReply.vue";
-import {Delete, Edit, InfoFilled, More, Promotion, Search, Share, VideoPause} from "@element-plus/icons-vue";
+import { Delete, Edit, InfoFilled, More, Promotion, Search, Share, VideoPause } from "@element-plus/icons-vue";
 import "highlight.js/styles/a11y-dark.css";
-import {isMobile, randString, removeArrayItem, UUID} from "@/utils/libs";
-import {ElMessage, ElMessageBox} from "element-plus";
-import {httpGet, httpPost} from "@/utils/http";
-import {useRouter} from "vue-router";
+import { isMobile, randString, removeArrayItem, UUID } from "@/utils/libs";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { httpGet, httpPost } from "@/utils/http";
+import { useRouter } from "vue-router";
 import Clipboard from "clipboard";
-import {checkSession, getClientId, getSystemInfo} from "@/store/cache";
+import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
 import Welcome from "@/components/Welcome.vue";
-import {useSharedStore} from "@/store/sharedata";
+import { useSharedStore } from "@/store/sharedata";
 import FileSelect from "@/components/FileSelect.vue";
 import FileList from "@/components/FileList.vue";
 import ChatSetting from "@/components/ChatSetting.vue";
 import BackTop from "@/components/BackTop.vue";
-import {closeLoading, showLoading, showMessageError} from "@/utils/dialog";
+import { closeLoading, showLoading, showMessageError } from "@/utils/dialog";
 import MarkdownIt from "markdown-it";
 import emoji from "markdown-it-emoji";
 
@@ -977,6 +977,7 @@ const realtimeChat = () => {
 </style>
 
 <style lang="stylus">
+@import '@/assets/css/markdown/vue.css';
 .notice-dialog {
   .el-dialog__header {
     padding-bottom 0
@@ -984,6 +985,10 @@ const realtimeChat = () => {
 
   .el-dialog__body {
     padding 0 20px
+
+    h2 {
+      margin: 20px 0 15px 0;
+    }
 
     ol, ul {
       padding-left 10px
@@ -995,7 +1000,7 @@ const realtimeChat = () => {
     }
 
     ul {
-      list-style disc
+      list-style inside
     }
   }
 }

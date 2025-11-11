@@ -97,17 +97,19 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	var req = types.ApiRequest{
-		Model: session.Model.Value,
+		Model:       session.Model.Value,
+		Stream:      session.Stream,
+		Temperature: session.Model.Temperature,
 	}
-	// 兼容 GPT-O1 模型
-	if strings.HasPrefix(session.Model.Value, "o1-") {
+	// 兼容 OpenAI 模型
+	if strings.HasPrefix(session.Model.Value, "o1-") ||
+		strings.HasPrefix(session.Model.Value, "o3-") ||
+		strings.HasPrefix(session.Model.Value, "gpt") {
 		utils.SendChunkMsg(ws, "> AI 正在思考...\n")
-		req.Stream = session.Stream
+		req.MaxCompletionTokens = session.Model.MaxTokens
 		session.Start = time.Now().Unix()
 	} else {
 		req.MaxTokens = session.Model.MaxTokens
-		req.Temperature = session.Model.Temperature
-		req.Stream = session.Stream
 	}
 
 	if len(session.Tools) > 0 && !strings.HasPrefix(session.Model.Value, "o1-") {
@@ -275,17 +277,17 @@ func (h *ChatHandler) Tokens(c *gin.Context) {
 	}
 
 	// 如果没有传入 text 字段，则说明是获取当前 reply 总的 token 消耗（带上下文）
-	//if data.Text == "" && data.ChatId != "" {
-	//	var item model.ChatMessage
-	//	userId, _ := c.Get(types.LoginUserID)
-	//	res := h.DB.Where("user_id = ?", userId).Where("chat_id = ?", data.ChatId).Last(&item)
-	//	if res.Error != nil {
-	//		resp.ERROR(c, res.Error.Error())
-	//		return
-	//	}
-	//	resp.SUCCESS(c, item.Tokens)
-	//	return
-	//}
+	if data.Text == "" && data.ChatId != "" {
+		var item model.ChatMessage
+		userId, _ := c.Get(types.LoginUserID)
+		res := h.DB.Where("user_id = ?", userId).Where("chat_id = ?", data.ChatId).Last(&item)
+		if res.Error != nil {
+			resp.ERROR(c, res.Error.Error())
+			return
+		}
+		resp.SUCCESS(c, item.Tokens)
+		return
+	}
 
 	tokens, err := utils.CalcTokens(data.Text, data.Model)
 	if err != nil {

@@ -60,8 +60,6 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 	s.Engine.Use(errorHandler)
 	// 添加静态资源访问
 	s.Engine.Static("/static", s.Config.StaticDir)
-	//启动服务
-
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
