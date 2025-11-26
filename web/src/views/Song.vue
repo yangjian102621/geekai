@@ -1,5 +1,5 @@
 <template>
-  <div class="page-song" :style="{ height: winHeight + 'px' }">
+  <div class="page-song">
     <div class="inner">
       <h2 class="title">{{ song.title }}</h2>
       <div class="row tags" v-if="song.tags">
@@ -11,15 +11,10 @@
           <el-avatar :size="32" :src="song.user?.avatar" />
         </span>
         <span class="nickname">{{ song.user?.nickname }}</span>
-        <button class="btn btn-icon" @click="play">
-          <i class="iconfont icon-play"></i> {{ song.play_times }}
-        </button>
+        <button class="btn btn-icon" @click="play"><i class="iconfont icon-play"></i> {{ song.play_times }}</button>
 
         <el-tooltip content="复制歌曲链接" placement="top">
-          <button
-            class="btn btn-icon copy-link"
-            :data-clipboard-text="getShareURL(song)"
-          >
+          <button class="btn btn-icon copy-link" :data-clipboard-text="getShareURL(song)">
             <i class="iconfont icon-share1"></i>
           </button>
         </el-tooltip>
@@ -31,18 +26,12 @@
       </div>
 
       <div class="row">
-        <textarea class="prompt" maxlength="2000" rows="18" readonly>{{
-          song.prompt
-        }}</textarea>
+        <textarea class="prompt" maxlength="2000" rows="18" readonly>{{ song.prompt }}</textarea>
       </div>
     </div>
 
     <div class="music-player" v-if="playList.length > 0">
-      <music-player
-        :songs="playList"
-        ref="playerRef"
-        @play="song.play_times += 1"
-      />
+      <music-player :songs="playList" ref="playerRef" @play="song.play_times += 1" />
     </div>
   </div>
 </template>
@@ -67,8 +56,7 @@ httpGet("/api/suno/detail", { song_id: id })
   .then((res) => {
     song.value = res.data;
     playList.value = [song.value];
-    document.title =
-      song.value?.title + " | By " + song.value?.user.nickname + " | Suno音乐";
+    document.title = song.value?.title + " | By " + song.value?.user.nickname + " | Suno音乐";
   })
   .catch((e) => {
     showMessageError("获取歌曲详情失败：" + e.message);

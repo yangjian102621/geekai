@@ -213,6 +213,10 @@ export function processContent(content) {
       return "";
     });
   }
+
+  // 支持 \[ 公式标签
+  content = content.replace(/\\\[/g, "$$").replace(/\\\]/g, "$$");
+  content = content.replace(/\\\(\\boxed\{(\d+)\}\\\)/g, '<span class="boxed">$1</span>');
   return content;
 }
 
@@ -240,7 +244,7 @@ export function showLoginDialog(router) {
 
 export const replaceImg = (img) => {
   if (!img.startsWith("http")) {
-    img = `${location.protocol}//${location.host}/${img}`;
+    img = `${location.protocol}//${location.host}${img}`;
   }
   const devHost = process.env.VUE_APP_API_HOST;
   const localhost = "http://localhost:5678";

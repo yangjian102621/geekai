@@ -102,6 +102,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	if data.Sampler == "" {
 		data.Sampler = "Euler a"
 	}
+
 	idValue, _ := c.Get(types.LoginUserID)
 	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
 	taskId, err := h.snowflake.Next(true)
@@ -111,8 +112,7 @@ func (h *SdJobHandler) Image(c *gin.Context) {
 	}
 
 	task := types.SdTask{
-		ClientId: data.ClientId,
-		Type:     types.TaskImage,
+		Type: types.TaskImage,
 		Params: types.SdTaskParams{
 			TaskId:       taskId,
 			Prompt:       data.Prompt,

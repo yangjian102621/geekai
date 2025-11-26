@@ -56,11 +56,15 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 
 	if h.App.SysConfig.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成歌词",
 		})
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
 	}
 
 	resp.SUCCESS(c, content)
@@ -82,11 +86,15 @@ func (h *PromptHandler) Image(c *gin.Context) {
 	}
 	if h.App.SysConfig.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成绘画提示词",
 		})
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
 	}
 	resp.SUCCESS(c, strings.Trim(content, `"`))
 }
@@ -108,11 +116,15 @@ func (h *PromptHandler) Video(c *gin.Context) {
 
 	if h.App.SysConfig.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成视频脚本",
 		})
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
 	}
 
 	resp.SUCCESS(c, strings.Trim(content, `"`))

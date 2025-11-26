@@ -163,9 +163,13 @@ func main() {
 		fx.Provide(dalle.NewService),
 		fx.Invoke(func(s *dalle.Service) {
 			s.Run()
-			s.CheckTaskNotify()
 			s.DownloadImages()
 			s.CheckTaskStatus()
+		}),
+
+		fx.Provide(service.NewMigrationService),
+		fx.Invoke(func(s *service.MigrationService) {
+			s.Migrate()
 		}),
 
 		// 邮件服务
@@ -182,7 +186,6 @@ func main() {
 		fx.Invoke(func(s *mj.Service) {
 			s.Run()
 			s.SyncTaskProgress()
-			s.CheckTaskNotify()
 			s.DownloadImages()
 		}),
 
@@ -191,21 +194,18 @@ func main() {
 		fx.Invoke(func(s *sd.Service, config *types.AppConfig) {
 			s.Run()
 			s.CheckTaskStatus()
-			s.CheckTaskNotify()
 		}),
 
 		fx.Provide(suno.NewService),
 		fx.Invoke(func(s *suno.Service) {
 			s.Run()
 			s.SyncTaskProgress()
-			s.CheckTaskNotify()
 			s.DownloadFiles()
 		}),
 		fx.Provide(video.NewService),
 		fx.Invoke(func(s *video.Service) {
 			s.Run()
 			s.SyncTaskProgress()
-			s.CheckTaskNotify()
 			s.DownloadFiles()
 		}),
 		fx.Provide(service.NewUserService),
@@ -492,6 +492,7 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
 			group := s.Engine.Group("/api/video")
 			group.POST("luma/create", h.LumaCreate)
+			group.POST("keling/create", h.KeLingCreate)
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
@@ -560,8 +561,8 @@ func main() {
 		fx.Provide(admin.NewMediaHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.MediaHandler) {
 			group := s.Engine.Group("/api/admin/media")
-			group.POST("/list/suno", h.SunoList)
-			group.POST("/list/luma", h.LumaList)
+			group.POST("/suno", h.SunoList)
+			group.POST("/videos", h.Videos)
 			group.GET("/remove", h.Remove)
 		}),
 		fx.Provide(handler.NewRealtimeHandler),

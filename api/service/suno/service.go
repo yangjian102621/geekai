@@ -18,9 +18,10 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
-	"github.com/go-redis/redis/v8"
 	"io"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/imroc/req/v3"
 	"gorm.io/gorm"
@@ -35,7 +36,6 @@ type Service struct {
 	taskQueue     *store.RedisQueue
 	notifyQueue   *store.RedisQueue
 	wsService     *service.WebsocketService
-	clientIds     map[string]string
 	userService   *service.UserService
 }
 
@@ -47,7 +47,6 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 		notifyQueue:   store.NewRedisQueue("Suno_Notify_Queue", redisCli),
 		uploadManager: manager,
 		wsService:     wsService,
-		clientIds:     map[string]string{},
 		userService:   userService,
 	}
 }
@@ -70,7 +69,6 @@ func (s *Service) Run() {
 		}
 		task.Id = v.Id
 		s.PushTask(task)
-		s.clientIds[v.TaskId] = task.ClientId
 	}
 	logger.Info("Starting Suno job consumer...")
 	go func() {
@@ -95,7 +93,6 @@ func (s *Service) Run() {
 					"err_msg":  err.Error(),
 					"progress": service.FailTaskProgress,
 				})
-				s.notifyQueue.RPush(service.NotifyMessage{ClientId: task.ClientId, UserId: task.UserId, JobId: int(task.Id), Message: service.TaskStatusFailed})
 				continue
 			}
 
@@ -104,7 +101,6 @@ func (s *Service) Run() {
 				"task_id": r.Data,
 				"channel": r.Channel,
 			})
-			s.clientIds[r.Data] = task.ClientId
 		}
 	}()
 }
@@ -138,7 +134,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	if task.Type == 1 {
 		reqBody["gpt_description_prompt"] = task.Prompt
 	} else { // 自定义模式
-		reqBody["prompt"] = task.Prompt
+		reqBody["prompt"] = task.Lyrics
 		reqBody["tags"] = task.Tags
 		reqBody["mv"] = task.Model
 		reqBody["title"] = task.Title
@@ -146,7 +142,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 
 	var res RespVo
 	apiURL := fmt.Sprintf("%s/suno/submit/music", apiKey.ApiURL)
-	logger.Debugf("API URL: %s, request body: %+v", apiURL, reqBody)
+	logger.Debugf("API URL: %s, request body: %s", apiURL, utils.JsonEncode(reqBody))
 	r, err := req.C().R().
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(reqBody).
@@ -262,27 +258,6 @@ func (s *Service) Upload(task types.SunoTask) (RespVo, error) {
 	return res, nil
 }
 
-func (s *Service) CheckTaskNotify() {
-	go func() {
-		logger.Info("Running Suno task notify checking ...")
-		for {
-			var message service.NotifyMessage
-			err := s.notifyQueue.LPop(&message)
-			if err != nil {
-				continue
-			}
-			logger.Debugf("notify message: %+v", message)
-			logger.Debugf("client id: %+v", s.wsService.Clients)
-			client := s.wsService.Clients.Get(message.ClientId)
-			logger.Debugf("%+v", client)
-			if client == nil {
-				continue
-			}
-			utils.SendChannelMsg(client, types.ChSuno, message.Message)
-		}
-	}()
-}
-
 func (s *Service) DownloadFiles() {
 	go func() {
 		var items []model.SunoJob
@@ -311,7 +286,6 @@ func (s *Service) DownloadFiles() {
 				v.AudioURL = audioURL
 				v.Progress = 100
 				s.db.Updates(&v)
-				s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[v.TaskId], UserId: v.UserId, JobId: int(v.Id), Message: service.TaskStatusFinished})
 			}
 
 			time.Sleep(time.Second * 10)
@@ -377,12 +351,10 @@ func (s *Service) SyncTaskProgress() {
 						}
 					}
 					tx.Commit()
-					s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[job.TaskId], UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFinished})
 				} else if task.Data.FailReason != "" {
 					job.Progress = service.FailTaskProgress
 					job.ErrMsg = task.Data.FailReason
 					s.db.Updates(&job)
-					s.notifyQueue.RPush(service.NotifyMessage{ClientId: s.clientIds[job.TaskId], UserId: job.UserId, JobId: int(job.Id), Message: service.TaskStatusFailed})
 				}
 			}
 

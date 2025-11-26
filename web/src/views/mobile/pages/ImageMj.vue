@@ -59,6 +59,7 @@
             <div class="text-line">
               <van-field
                 v-model="params.prompt"
+                maxlength="2000"
                 rows="3"
                 autosize
                 type="textarea"
@@ -72,6 +73,7 @@
                 v-model="params.prompt"
                 rows="3"
                 autosize
+                maxlength="2000"
                 type="textarea"
                 placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
               />
@@ -135,7 +137,7 @@
       <div class="text-line">
         <van-collapse v-model="activeColspan">
           <van-collapse-item title="反向提示词" name="neg_prompt">
-            <van-field v-model="params.neg_prompt" rows="3" autosize type="textarea" placeholder="不想出现在图片上的元素(例如：树，建筑)" />
+            <van-field v-model="params.neg_prompt" rows="3" maxlength="2000" autosize type="textarea" placeholder="不想出现在图片上的元素(例如：树，建筑)" />
           </van-collapse-item>
         </van-collapse>
       </div>
@@ -253,7 +255,7 @@ import { showConfirmDialog, showFailToast, showImagePreview, showNotify, showSuc
 import { httpGet, httpPost } from "@/utils/http";
 import Compressor from "compressorjs";
 import { getSessionId } from "@/store/session";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useRouter } from "vue-router";
 import { Delete } from "@element-plus/icons-vue";
 import { showLoginDialog } from "@/utils/libs";
@@ -280,7 +282,6 @@ const models = [
 ];
 const imgList = ref([]);
 const params = ref({
-  client_id: getClientId(),
   task_type: "image",
   rate: rates[0].value,
   model: models[0].value,
@@ -308,6 +309,10 @@ const isLogin = ref(false);
 const prompt = ref("");
 const store = useSharedStore();
 const clipboard = ref(null);
+const taskPulling = ref(true);
+const tastPullHandler = ref(null);
+const downloadPulling = ref(false);
+const downloadPullHandler = ref(null);
 
 onMounted(() => {
   clipboard.value = new Clipboard(".copy-prompt");
@@ -325,26 +330,33 @@ onMounted(() => {
       isLogin.value = true;
       fetchRunningJobs();
       fetchFinishJobs(1);
+
+      tastPullHandler.value = setInterval(() => {
+        if (taskPulling.value) {
+          fetchRunningJobs();
+        }
+      }, 5000);
+
+      downloadPullHandler.value = setInterval(() => {
+        if (downloadPulling.value) {
+          page.value = 1;
+          fetchFinishJobs(1);
+        }
+      }, 5000);
     })
     .catch(() => {
       // router.push('/login')
     });
-
-  store.addMessageHandler("mj", (data) => {
-    if (data.channel !== "mj" || data.clientId !== getClientId()) {
-      return;
-    }
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 1;
-      fetchFinishJobs(1);
-    }
-    fetchRunningJobs();
-  });
 });
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("mj");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
+  if (downloadPullHandler.value) {
+    clearInterval(downloadPullHandler.value);
+  }
 });
 
 const mjPower = ref(1);
@@ -360,6 +372,10 @@ getSystemInfo()
 
 // 获取运行中的任务
 const fetchRunningJobs = (userId) => {
+  if (!isLogin.value) {
+    return;
+  }
+
   httpGet(`/api/mj/jobs?finish=0&user_id=${userId}`)
     .then((res) => {
       const jobs = res.data.items;
@@ -379,6 +395,14 @@ const fetchRunningJobs = (userId) => {
         }
         _jobs.push(jobs[i]);
       }
+      if (runningJobs.value.length !== _jobs.length) {
+        page.value = 1;
+        downloadPulling.value = true;
+        fetchFinishJobs(1);
+      }
+      if (_jobs.length === 0) {
+        taskPulling.value = false;
+      }
       runningJobs.value = _jobs;
     })
     .catch((e) => {
@@ -392,11 +416,16 @@ const error = ref(false);
 const page = ref(0);
 const pageSize = ref(10);
 const fetchFinishJobs = (page) => {
+  if (!isLogin.value) {
+    return;
+  }
+
   loading.value = true;
   // 获取已完成的任务
   httpGet(`/api/mj/jobs?finish=1&page=${page}&page_size=${pageSize.value}`)
     .then((res) => {
       const jobs = res.data.items;
+      let hasDownload = false;
       for (let i = 0; i < jobs.length; i++) {
         if (jobs[i].type === "upscale" || jobs[i].type === "swapFace") {
           jobs[i]["thumb_url"] = jobs[i]["img_url"] + "?imageView2/1/w/480/h/600/q/75";
@@ -404,13 +433,23 @@ const fetchFinishJobs = (page) => {
           jobs[i]["thumb_url"] = jobs[i]["img_url"] + "?imageView2/1/w/480/h/480/q/75";
         }
 
+        if (jobs[i]["img_url"] === "" && jobs[i].progress === 100) {
+          hasDownload = true;
+        }
+
         if (jobs[i].type !== "upscale" && jobs[i].progress === 100) {
           jobs[i]["can_opt"] = true;
         }
       }
+
+      if (page === 1) {
+        downloadPulling.value = hasDownload;
+      }
+
       if (jobs.length < pageSize.value) {
         finished.value = true;
       }
+
       if (page === 1) {
         finishedJobs.value = jobs;
       } else {
@@ -478,7 +517,6 @@ const uploadImg = (file) => {
 
 const send = (url, index, item) => {
   httpPost(url, {
-    client_id: getClientId(),
     index: index,
     channel_id: item.channel_id,
     message_id: item.message_id,
@@ -489,7 +527,9 @@ const send = (url, index, item) => {
     .then(() => {
       showSuccessToast("任务推送成功，请耐心等待任务执行...");
       power.value -= mjActionPower.value;
-      fetchRunningJobs();
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       showFailToast("任务推送失败：" + e.message);
@@ -523,7 +563,10 @@ const generate = () => {
     .then(() => {
       showToast("绘画任务推送成功，请耐心等待任务执行");
       power.value -= mjPower.value;
-      fetchRunningJobs();
+      taskPulling.value = true;
+      runningJobs.value.push({
+        progress: 0,
+      });
     })
     .catch((e) => {
       showFailToast("任务推送失败：" + e.message);

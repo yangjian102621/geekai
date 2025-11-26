@@ -63,7 +63,11 @@ const doSendMsg = (data) => {
     x: data.x,
   })
     .then(() => {
-      ElMessage.success("验证码发送成功");
+      if (props.type === "mobile") {
+        ElMessage.success("验证码发送成功");
+      } else if (props.type === "email") {
+        ElMessage.success("验证码已发送至邮箱，如果长时间未收到，请检查是否在垃圾邮件中！");
+      }
       let time = 60;
       btnText.value = time;
       const handler = setInterval(() => {

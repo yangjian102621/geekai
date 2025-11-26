@@ -140,6 +140,7 @@ const types = ref([
   { label: "DALL-E", value: "dalle" },
   { label: "Suno文生歌", value: "suno" },
   { label: "Luma视频", value: "luma" },
+  { label: "可灵视频", value: "keling" },
   { label: "Realtime API", value: "realtime" },
   { label: "其他", value: "other" },
 ]);

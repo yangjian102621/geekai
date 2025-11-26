@@ -22,7 +22,7 @@
     "json-bigint": "^1.0.0",
     "lodash": "^4.17.21",
     "markdown-it": "^13.0.1",
-	"markdown-it-emoji": "^2.0.0",
+    "markdown-it-emoji": "^2.0.0",
     "markdown-it-mathjax3": "^4.3.2",
     "markmap-common": "^0.16.0",
     "markmap-lib": "^0.16.1",

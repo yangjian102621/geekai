@@ -90,7 +90,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	}
 
 	// 检查 prompt 长度是否超过了当前模型允许的最大上下文长度
-	promptTokens, err := utils.CalcTokens(prompt, session.Model.Value)
+	promptTokens, _ := utils.CalcTokens(prompt, session.Model.Value)
 	if promptTokens > session.Model.MaxContext {
 
 		return errors.New("对话内容超出了当前模型允许的最大上下文长度！")
@@ -105,7 +105,6 @@ func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSessio
 	if strings.HasPrefix(session.Model.Value, "o1-") ||
 		strings.HasPrefix(session.Model.Value, "o3-") ||
 		strings.HasPrefix(session.Model.Value, "gpt") {
-		utils.SendChunkMsg(ws, "> AI 正在思考...\n")
 		req.MaxCompletionTokens = session.Model.MaxTokens
 		session.Start = time.Now().Unix()
 	} else {

@@ -111,9 +111,5 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	if h.App.Debug {
-		resp.SUCCESS(c, code)
-	} else {
-		resp.SUCCESS(c)
-	}
+	resp.SUCCESS(c)
 }

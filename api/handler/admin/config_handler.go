@@ -48,6 +48,7 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&data); err != nil {
+		logger.Errorf("Update config failed: %v", err)
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
@@ -132,7 +133,8 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 		return
 	}
 
-	resp.SUCCESS(c, info.HostID)
+	resp.SUCCESS(c)
+
 }
 
 // GetLicense 获取 License 信息
@@ -144,7 +146,6 @@ func (h *ConfigHandler) GetLicense(c *gin.Context) {
 // FixData 修复数据
 func (h *ConfigHandler) FixData(c *gin.Context) {
 	resp.ERROR(c, "当前升级版本没有数据需要修正！")
-	return
 	//var fixed bool
 	//version := "data_fix_4.1.4"
 	//err := h.levelDB.Get(version, &fixed)

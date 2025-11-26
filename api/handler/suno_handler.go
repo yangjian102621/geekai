@@ -18,9 +18,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type SunoHandler struct {
@@ -45,7 +46,6 @@ func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, upl
 func (h *SunoHandler) Create(c *gin.Context) {
 
 	var data struct {
-		ClientId     string `json:"client_id"`
 		Prompt       string `json:"prompt"`
 		Instrumental bool   `json:"instrumental"`
 		Lyrics       string `json:"lyrics"`
@@ -90,7 +90,6 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		}
 	}
 	task := types.SunoTask{
-		ClientId:     data.ClientId,
 		UserId:       int(h.GetLoginUserId(c)),
 		Type:         data.Type,
 		Title:        data.Title,
@@ -98,6 +97,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefSongId:    data.RefSongId,
 		ExtendSecs:   data.ExtendSecs,
 		Prompt:       data.Prompt,
+		Lyrics:       data.Lyrics,
 		Tags:         data.Tags,
 		Model:        data.Model,
 		Instrumental: data.Instrumental,

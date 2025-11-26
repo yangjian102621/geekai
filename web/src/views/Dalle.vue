@@ -66,6 +66,7 @@
                   :autosize="{ minRows: 4, maxRows: 6 }"
                   type="textarea"
                   ref="promptRef"
+                  maxlength="2000"
                   placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
                   v-loading="isGenerating"
                 />
@@ -230,7 +231,7 @@ import { Delete, InfoFilled, Picture } from "@element-plus/icons-vue";
 import { httpGet, httpPost } from "@/utils/http";
 import { ElMessage, ElMessageBox } from "element-plus";
 import Clipboard from "clipboard";
-import { checkSession, getClientId, getSystemInfo } from "@/store/cache";
+import { checkSession, getSystemInfo } from "@/store/cache";
 import { useSharedStore } from "@/store/sharedata";
 import TaskList from "@/components/TaskList.vue";
 import BackTop from "@/components/BackTop.vue";
@@ -266,7 +267,6 @@ const styles = [
   { name: "自然", value: "natural" },
 ];
 const params = ref({
-  client_id: getClientId(),
   quality: "standard",
   size: "1024x1024",
   style: "vivid",
@@ -275,6 +275,8 @@ const params = ref({
 
 const finishedJobs = ref([]);
 const runningJobs = ref([]);
+const allowPulling = ref(true); // 是否允许轮询
+const tastPullHandler = ref(null);
 const power = ref(0);
 const dallPower = ref(0); // 画一张 SD 图片消耗算力
 const clipboard = ref(null);
@@ -300,20 +302,6 @@ onMounted(() => {
       showMessageError("获取系统配置失败：" + e.message);
     });
 
-  store.addMessageHandler("dall", (data) => {
-    // 丢弃无关消息
-    if (data.channel !== "dall" || data.clientId !== getClientId()) {
-      return;
-    }
-
-    if (data.body === "FINISH" || data.body === "FAIL") {
-      page.value = 0;
-      isOver.value = false;
-      fetchFinishJobs();
-    }
-    nextTick(() => fetchRunningJobs());
-  });
-
   // 获取模型列表
   httpGet("/api/dall/models")
     .then((res) => {
@@ -329,7 +317,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   clipboard.value.destroy();
-  store.removeMessageHandler("dall");
+  if (tastPullHandler.value) {
+    clearInterval(tastPullHandler.value);
+  }
 });
 
 const initData = () => {
@@ -338,10 +328,16 @@ const initData = () => {
       power.value = user["power"];
       userId.value = user.id;
       isLogin.value = true;
-
       page.value = 0;
       fetchRunningJobs();
       fetchFinishJobs();
+
+      // 轮询运行中任务
+      tastPullHandler.value = setInterval(() => {
+        if (allowPulling.value) {
+          fetchRunningJobs();
+        }
+      }, 5000);
     })
     .catch(() => {});
 };
@@ -353,7 +349,17 @@ const fetchRunningJobs = () => {
   // 获取运行中的任务
   httpGet(`/api/dall/jobs?finish=false`)
     .then((res) => {
-      runningJobs.value = res.data.items;
+      // 如果任务有更新，则更新已完成任务列表
+      if (res.data.items && res.data.items.length !== runningJobs.value.length) {
+        page.value = 0;
+        fetchFinishJobs();
+      }
+      if (res.data.items.length > 0) {
+        runningJobs.value = res.data.items;
+      } else {
+        allowPulling.value = false;
+        runningJobs.value = [];
+      }
     })
     .catch((e) => {
       ElMessage.error("获取任务失败：" + e.message);
@@ -409,7 +415,12 @@ const generate = () => {
     .then(() => {
       ElMessage.success("任务执行成功！");
       power.value -= dallPower.value;
-      fetchRunningJobs();
+      // 追加任务列表
+      runningJobs.value.push({
+        prompt: params.value.prompt,
+        progress: 0,
+      });
+      allowPulling.value = true;
     })
     .catch((e) => {
       ElMessage.error("任务执行失败：" + e.message);

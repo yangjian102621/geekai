@@ -13,9 +13,10 @@ import (
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type UploadHandler struct {
@@ -28,11 +29,24 @@ func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderMan
 }
 
 func (h *UploadHandler) Upload(c *gin.Context) {
+	// 判断文件大小
+	f, err := c.FormFile("file")
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	if h.App.SysConfig.MaxFileSize > 0 && f.Size > int64(h.App.SysConfig.MaxFileSize)*1024*1024 {
+		resp.ERROR(c, "文件大小超过限制")
+		return
+	}
+
 	file, err := h.uploaderManager.GetUploadHandler().PutFile(c, "file")
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
+
 	userId := 0
 	res := h.DB.Create(&model.File{
 		UserId:    userId,

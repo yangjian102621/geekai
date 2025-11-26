@@ -52,6 +52,7 @@
       <van-picker
           :columns="columns"
           title="选择模型和角色"
+          @change="onChange"
           @cancel="showPicker = false"
           @confirm="newChat"
       >
@@ -114,7 +115,8 @@ checkSession().then((user) => {
           text: items[i].name,
           value: items[i].id,
           icon: items[i].icon,
-          helloMsg: items[i].hello_msg
+          helloMsg: items[i].hello_msg,
+          model_id: items[i].model_id
         })
       }
     }
@@ -257,6 +259,19 @@ const removeChat = (item) => {
     showFailToast('操作失败：' + e.message);
   })
 
+}
+
+const onChange = (item) => {
+  const selectedValues = item.selectedOptions
+  if (selectedValues[0].model_id) {
+    for (let i = 0; i < columns.value[1].length; i++) {
+      columns.value[1][i].disabled = columns.value[1][i].value !== selectedValues[0].model_id;
+    }
+  } else {
+    for (let i = 0; i < columns.value[1].length; i++) {
+      columns.value[1][i].disabled = false;
+    }
+  }
 }
 
 </script>
