@@ -26,15 +26,20 @@
 - [x] 支持网站 Logo 版权等信息的修改
 
 ## 功能截图
+
 请参考 [GeekAI 项目介绍](https://docs.geekai.me/plus/info/)。
 
 ### 体验地址
 
 > 免费体验地址：[https://chat.geekai.me](https://chat.geekai.me) <br/> > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
 
-## 快速部署
+## 快速部署体验
 
-请参考文档 [**GeekAI 快速部署**](https://docs.geekai.me/plus/install/)。
+您可以通过 EazyDevelop 平台体验-键私有化部署 **GeekAI 创作助手**，只需一分钟即可部署成功。
+
+部署模板地址: [https://eazydevelop.eazytec-cloud.com/templates/dev-template-5e4dc4-1764053014?q=bB3R_1VnJq9_3Zs9uX](https://eazydevelop.eazytec-cloud.com/templates/dev-template-5e4dc4-1764053014?q=bB3R_1VnJq9_3Zs9uX)
+
+详细部署教程请参考 [EazyDevelop 部署 GeekAI](https://docs.geekai.me/plus/install/quick-start.html#eazydevelop-一键部署)。
 
 ## 使用须知
 
@@ -49,12 +54,6 @@
 ## 客户端下载
 
 目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/geekai/releases/tag/v3.1.2
-
-## TODOLIST
-
-- [ ] 支持基于知识库的 AI 问答
-- [ ] 文生视频，文生歌曲功能
-- [ ] 微信支付功能
 
 ## 项目文档
 
