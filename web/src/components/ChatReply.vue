@@ -1,111 +1,137 @@
 <template>
-  <div class="chat-line chat-line-reply-list" v-if="listStyle === 'list'">
-    <div class="chat-line-inner">
-      <div class="chat-icon">
-        <img :src="data.icon" alt="ChatGPT" />
-      </div>
+  <div class="chat-reply">
+    <div class="chat-line chat-line-reply-list" v-if="listStyle === 'list'">
+      <div class="chat-line-inner">
+        <div class="chat-icon">
+          <img :src="data.icon" alt="ChatGPT" />
+        </div>
 
-      <div class="chat-item">
-        <div class="content-wrapper" v-html="md.render(processContent(data.content))"></div>
-        <div class="bar" v-if="data.created_at">
-          <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
-          >
-          <span class="bar-item">tokens: {{ data.tokens }}</span>
-          <span class="bar-item">
-            <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
-              <el-icon class="copy-reply" :data-clipboard-text="data.content">
-                <DocumentCopy />
-              </el-icon>
-            </el-tooltip>
-          </span>
-          <span v-if="!readOnly">
-            <span class="bar-item" @click="reGenerate(data.prompt)">
-              <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
-                <el-icon><Refresh /></el-icon>
+        <div class="chat-item">
+          <div class="content-wrapper" v-html="md.render(processContent(data.content))"></div>
+          <div class="bar flex text-gray-500" v-if="data.created_at">
+            <span class="bar-item text-sm">{{ dateFormat(data.created_at) }}</span>
+            <!-- <span class="bar-item">tokens: {{ data.tokens }}</span> -->
+            <span class="bar-item">
+              <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
+                <el-icon class="copy-reply" :data-clipboard-text="data.content">
+                  <DocumentCopy />
+                </el-icon>
               </el-tooltip>
             </span>
+            <span v-if="!readOnly" class="flex">
+              <span class="bar-item" @click="reGenerate(data.prompt)">
+                <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
+                  <el-icon><Refresh /></el-icon>
+                </el-tooltip>
+              </span>
 
-            <span class="bar-item" @click="synthesis(data.content)">
-              <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom">
-                <i class="iconfont icon-speaker"></i>
-              </el-tooltip>
+              <span class="bar-item">
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="生成语音朗读"
+                  placement="bottom"
+                >
+                  <i
+                    class="iconfont icon-speaker"
+                    v-if="!isPlaying"
+                    @click="synthesis(data.content)"
+                  ></i>
+                  <el-image class="voice-icon" :src="playIcon" v-else />
+                </el-tooltip>
+              </span>
             </span>
-          </span>
-          <!--          <span class="bar-item">-->
-          <!--            <el-dropdown trigger="click">-->
-          <!--              <span class="el-dropdown-link">-->
-          <!--                <el-icon><More/></el-icon>-->
-          <!--              </span>-->
-          <!--              <template #dropdown>-->
-          <!--                <el-dropdown-menu>-->
-          <!--                  <el-dropdown-item :icon="Headset" @click="synthesis(orgContent)">生成语音</el-dropdown-item>-->
-          <!--                </el-dropdown-menu>-->
-          <!--              </template>-->
-          <!--            </el-dropdown>-->
-          <!--          </span>-->
+            <!--          <span class="bar-item">-->
+            <!--            <el-dropdown trigger="click">-->
+            <!--              <span class="el-dropdown-link">-->
+            <!--                <el-icon><More/></el-icon>-->
+            <!--              </span>-->
+            <!--              <template #dropdown>-->
+            <!--                <el-dropdown-menu>-->
+            <!--                  <el-dropdown-item :icon="Headset" @click="synthesis(orgContent)">生成语音</el-dropdown-item>-->
+            <!--                </el-dropdown-menu>-->
+            <!--              </template>-->
+            <!--            </el-dropdown>-->
+            <!--          </span>-->
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="chat-line chat-line-reply-chat" v-else>
-    <div class="chat-line-inner">
-      <div class="chat-icon">
-        <img :src="data.icon" alt="ChatGPT" />
-      </div>
-      <div class="chat-item">
-        <div class="content-wrapper">
-          <div class="content" v-html="md.render(processContent(data.content))"></div>
+    <div class="chat-line chat-line-reply-chat" v-else>
+      <div class="chat-line-inner">
+        <div class="chat-icon">
+          <img :src="data.icon" alt="ChatGPT" />
         </div>
-        <div class="bar" v-if="data.created_at">
-          <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
-          >
-          <!--          <span class="bar-item">tokens: {{ data.tokens }}</span>-->
-          <span class="bar-item bg">
-            <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
-              <el-icon class="copy-reply" :data-clipboard-text="data.content">
-                <DocumentCopy />
-              </el-icon>
-            </el-tooltip>
-          </span>
-          <span v-if="!readOnly">
-            <span class="bar-item bg" @click="reGenerate(data.prompt)">
-              <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
-                <el-icon><Refresh /></el-icon>
+        <div class="chat-item">
+          <div class="content-wrapper">
+            <div class="content" v-html="md.render(processContent(data.content))"></div>
+          </div>
+          <div class="bar text-gray-500" v-if="data.created_at">
+            <span class="bar-item text-sm"> {{ dateFormat(data.created_at) }}</span>
+            <!--          <span class="bar-item">tokens: {{ data.tokens }}</span>-->
+            <span class="bar-item bg">
+              <el-tooltip class="box-item" effect="dark" content="复制回答" placement="bottom">
+                <el-icon class="copy-reply" :data-clipboard-text="data.content">
+                  <DocumentCopy />
+                </el-icon>
               </el-tooltip>
             </span>
+            <span v-if="!readOnly" class="flex">
+              <span class="bar-item bg" @click="reGenerate(data.prompt)">
+                <el-tooltip class="box-item" effect="dark" content="重新生成" placement="bottom">
+                  <el-icon><Refresh /></el-icon>
+                </el-tooltip>
+              </span>
 
-            <span class="bar-item bg" @click="synthesis(data.content)">
-              <el-tooltip class="box-item" effect="dark" content="生成语音朗读" placement="bottom">
-                <i class="iconfont icon-speaker"></i>
-              </el-tooltip>
+              <span class="bar-item bg">
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="生成语音朗读"
+                  placement="bottom"
+                  v-if="!isPlaying"
+                >
+                  <i class="iconfont icon-speaker" @click="synthesis(data.content)"></i>
+                </el-tooltip>
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="暂停播放"
+                  placement="bottom"
+                  v-else
+                >
+                  <el-image class="voice-icon" :src="playIcon" @click="stopSynthesis()" />
+                </el-tooltip>
+              </span>
             </span>
-          </span>
+          </div>
         </div>
       </div>
     </div>
+    <audio ref="audio" @ended="isPlaying = false" />
   </div>
 </template>
 
 <script setup>
-import {Clock, DocumentCopy, Refresh} from "@element-plus/icons-vue";
-import {ElMessage} from "element-plus";
-import {dateFormat, processContent} from "@/utils/libs";
-import hl from "highlight.js";
-import emoji from "markdown-it-emoji";
-import mathjaxPlugin from "markdown-it-mathjax3";
-import MarkdownIt from "markdown-it";
-
+import { useSharedStore } from '@/store/sharedata'
+import { httpPost } from '@/utils/http'
+import { dateFormat, processContent } from '@/utils/libs'
+import { DocumentCopy, Refresh } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import hl from 'highlight.js'
+import MarkdownIt from 'markdown-it'
+import emoji from 'markdown-it-emoji'
+import mathjaxPlugin from 'markdown-it-mathjax3'
+import { ref } from 'vue'
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
   data: {
     type: Object,
     default: {
-      icon: "",
-      content: "",
-      created_at: "",
+      icon: '',
+      content: '',
+      created_at: '',
       tokens: 0,
     },
   },
@@ -115,9 +141,14 @@ const props = defineProps({
   },
   listStyle: {
     type: String,
-    default: "list",
+    default: 'list',
   },
-});
+})
+
+const audio = ref(null)
+const isPlaying = ref(false)
+const playIcon = ref('/images/voice.gif')
+const store = useSharedStore()
 
 const md = new MarkdownIt({
   breaks: true,
@@ -125,49 +156,77 @@ const md = new MarkdownIt({
   linkify: true,
   typographer: true,
   highlight: function (str, lang) {
-    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000);
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
     // 显示复制代码按钮
     const copyBtn = `<span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
 <textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
       /<\/textarea>/g,
-      "&lt;/textarea>"
-    )}</textarea>`;
+      '&lt;/textarea>'
+    )}</textarea>`
     if (lang && hl.getLanguage(lang)) {
-      const langHtml = `<span class="lang-name">${lang}</span>`;
+      const langHtml = `<span class="lang-name">${lang}</span>`
       // 处理代码高亮
-      const preCode = hl.highlight(str, { language: lang }).value;
+      const preCode = hl.highlight(str, { language: lang }).value
       // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`;
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
     }
 
     // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str);
+    const preCode = md.utils.escapeHtml(str)
     // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`;
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
   },
-});
-md.use(mathjaxPlugin);
-md.use(emoji);
-const emits = defineEmits(["regen"]);
+})
+md.use(mathjaxPlugin)
+md.use(emoji)
+const emits = defineEmits(['regen'])
 
 if (!props.data.icon) {
-  props.data.icon = "images/gpt-icon.png";
+  props.data.icon = 'images/gpt-icon.png'
 }
 
 const synthesis = (text) => {
-  console.log(text);
-  ElMessage.info("语音合成功能暂不可用");
-};
+  isPlaying.value = true
+  httpPost('/api/chat/tts', { text: text, model_id: store.ttsModel }, { responseType: 'blob' })
+    .then((response) => {
+      // 创建 Blob 对象，明确指定 MIME 类型
+      const blob = new Blob([response], { type: 'audio/mpeg' }) // 假设音频格式为 MP3
+      const audioUrl = URL.createObjectURL(blob)
+      // 播放音频
+      audio.value.src = audioUrl
+      audio.value
+        .play()
+        .then(() => {
+          // 播放完成后释放 URL
+          URL.revokeObjectURL(audioUrl)
+        })
+        .catch(() => {
+          ElMessage.error('音频播放失败，请检查浏览器是否支持该音频格式')
+          isPlaying.value = false
+        })
+    })
+    .catch((e) => {
+      ElMessage.error('语音合成失败：' + e.message)
+      isPlaying.value = false
+    })
+}
+
+const stopSynthesis = () => {
+  isPlaying.value = false
+  audio.value.pause()
+  audio.value.currentTime = 0
+}
 
 // 重新生成
 const reGenerate = (prompt) => {
-  console.log(prompt);
-  emits("regen", prompt);
-};
+  console.log(prompt)
+  emits('regen', prompt)
+}
 </script>
 
 <style lang="stylus">
 @import '@/assets/css/markdown/vue.css';
+
 .chat-page,.chat-export {
   --font-family: Menlo,"微软雅黑","Roboto Mono","Courier New",Courier,monospace,"Inter",sans-serif;
   font-family: var(--font-family);
@@ -265,7 +324,7 @@ const reGenerate = (prompt) => {
           // 代码快
 
           blockquote {
-            margin 0
+            margin 0 0 0.8rem 0
             background-color: var(--quote-bg-color);
             padding: 0.8rem 1.5rem;
             color: var(--quote-text-color);
@@ -284,7 +343,8 @@ const reGenerate = (prompt) => {
     width 100%
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
-    border-bottom: 0.5px solid var(--el-border-color);
+    border: 1px solid var(--el-border-color);
+    border-radius: 10px;
 
     .chat-line-inner {
       display flex;
@@ -324,10 +384,18 @@ const reGenerate = (prompt) => {
           padding 10px 10px 10px 0;
 
           .bar-item {
-            padding 3px 5px;
             margin-right 10px;
             border-radius 5px;
             cursor pointer
+            display flex
+            align-items center
+            justify-content center
+            height 26px
+
+            .voice-icon {
+              width 20px
+              height 20px
+            }
 
             .el-icon {
               position relative
@@ -403,11 +471,21 @@ const reGenerate = (prompt) => {
 
         .bar {
           padding 10px 10px 10px 0;
+          display flex
 
           .bar-item {
-            padding 3px 5px;
             margin-right 10px;
             border-radius 5px;
+            display flex
+            align-items center
+            justify-content center
+            height 26px
+
+            .voice-icon {
+              width 20px
+              height 20px
+            }
+
 
             .el-icon {
               position relative

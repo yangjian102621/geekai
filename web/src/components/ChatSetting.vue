@@ -18,19 +18,28 @@
         <el-form-item label="流式输出：">
           <el-switch v-model="data.stream" @change="(val) => {store.setChatStream(val)}" />
         </el-form-item>
+        <el-form-item label="语音音色：">
+          <el-select v-model="data.ttsModel" placeholder="请选择语音音色" @change="changeTTSModel">
+            <el-option v-for="v in models" :value="v.id" :label="v.name" :key="v.id">
+              {{ v.name }}
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
     </div>
   </el-dialog>
 </template>
 
 <script setup>
-import {computed, ref} from "vue"
+import {computed, ref, onMounted} from "vue"
 import {useSharedStore} from "@/store/sharedata";
+import {httpGet} from "@/utils/http";
 const store = useSharedStore();
 
 const data = ref({
   style: store.chatListStyle,
   stream: store.chatStream,
+  ttsModel: store.ttsModel,
 })
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -43,6 +52,20 @@ const showDialog = computed(() => {
 const emits = defineEmits(['hide']);
 const close = function () {
   emits('hide', false);
+}
+const models = ref([]);
+onMounted(() => {
+  // 获取模型列表
+  httpGet("/api/model/list?type=tts").then((res) => {
+    models.value = res.data;
+    if (!data.ttsModel) {
+      store.setTtsModel(models.value[0].id);
+    }
+  })
+})
+
+const changeTTSModel = (item) => {
+  store.setTtsModel(item);
 }
 </script>
 

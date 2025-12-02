@@ -13,6 +13,7 @@ import (
 	"geekai/core/types"
 	"geekai/store/model"
 	"io"
+	"net/url"
 	"time"
 
 	"github.com/imroc/req/v3"
@@ -47,7 +48,7 @@ type OpenAIResponse struct {
 }
 
 func OpenAIRequest(db *gorm.DB, prompt string, modelId int) (string, error) {
-	messages := make([]interface{}, 1)
+	messages := make([]any, 1)
 	messages[0] = types.Message{
 		Role:    "user",
 		Content: prompt,
@@ -55,7 +56,7 @@ func OpenAIRequest(db *gorm.DB, prompt string, modelId int) (string, error) {
 	return SendOpenAIMessage(db, messages, modelId)
 }
 
-func SendOpenAIMessage(db *gorm.DB, messages []interface{}, modelId int) (string, error) {
+func SendOpenAIMessage(db *gorm.DB, messages []any, modelId int) (string, error) {
 	var chatModel model.ChatModel
 	db.Where("id", modelId).First(&chatModel)
 	if chatModel.Value == "" {
@@ -74,10 +75,17 @@ func SendOpenAIMessage(db *gorm.DB, messages []interface{}, modelId int) (string
 	var response OpenAIResponse
 	client := req.C()
 	if len(apiKey.ProxyURL) > 5 {
-		client.SetProxyURL(apiKey.ApiURL)
+		client.SetProxyURL(apiKey.ProxyURL)
 	}
-	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
-	logger.Infof("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, chatModel.Name)
+	var apiURL string
+	p, _ := url.Parse(apiKey.ApiURL)
+	// 如果设置的是 BASE_URL 没有路径，则添加 /v1/chat/completions
+	if p.Path == "" {
+		apiURL = fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
+	} else {
+		apiURL = apiKey.ApiURL
+	}
+	logger.Infof("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiURL, apiKey.ApiURL, apiKey.ProxyURL, chatModel.Name)
 	r, err := client.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{

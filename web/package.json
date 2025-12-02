@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "animate.css": "^4.1.1",
     "axios": "^0.27.2",
     "clipboard": "^2.0.11",
@@ -33,12 +32,17 @@
     "pinia": "^2.1.4",
     "qrcode": "^1.5.3",
     "qs": "^6.11.1",
+    "@better-scroll/core": "^2.5.1",
+    "@better-scroll/mouse-wheel": "^2.5.1",
+    "@better-scroll/observe-dom": "^2.5.1",
+    "@better-scroll/pull-up": "^2.5.1",
+    "@better-scroll/scroll-bar": "^2.5.1",
     "sortablejs": "^1.15.0",
     "three": "^0.128.0",
-    "v3-waterfall": "^1.3.3",
     "vant": "^4.5.0",
     "vue": "^3.2.13",
-    "vue-router": "^4.0.15"
+    "vue-router": "^4.0.15",
+    "vue-waterfall-plugin-next": "^2.6.5"
   },
   "devDependencies": {
     "@babel/core": "7.18.6",

@@ -28,17 +28,15 @@ type Service struct {
 	client          *Client // MJ Client
 	taskQueue       *store.RedisQueue
 	db              *gorm.DB
-	wsService       *service.WebsocketService
 	uploaderManager *oss.UploaderManager
 	userService     *service.UserService
 }
 
-func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, wsService *service.WebsocketService, userService *service.UserService) *Service {
+func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, userService *service.UserService) *Service {
 	return &Service{
 		db:              db,
 		taskQueue:       store.NewRedisQueue("MidJourney_Task_Queue", redisCli),
 		client:          client,
-		wsService:       wsService,
 		uploaderManager: manager,
 		userService:     userService,
 	}

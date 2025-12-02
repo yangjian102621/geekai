@@ -13,4 +13,5 @@ type ChatModel struct {
 	Temperature float32 // 模型温度
 	KeyId       int     // 绑定 API KEY ID
 	Type        string  // 模型类型
+	Options     string  // 模型选项
 }

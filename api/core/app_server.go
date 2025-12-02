@@ -73,6 +73,23 @@ func (s *AppServer) Run(db *gorm.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode system config: %v", err)
 	}
+	// 统计安装信息
+	go func() {
+		info, err := host.Info()
+		if err == nil {
+			apiURL := fmt.Sprintf("%s/%s", s.Config.ApiConfig.ApiURL, "api/installs/push")
+			timestamp := time.Now().Unix()
+			product := "geekai-plus"
+			signStr := fmt.Sprintf("%s#%s#%d", product, info.HostID, timestamp)
+			sign := utils.Sha256(signStr)
+			resp, err := req.C().R().SetBody(map[string]interface{}{"product": product, "device_id": info.HostID, "timestamp": timestamp, "sign": sign}).Post(apiURL)
+			if err != nil {
+				logger.Errorf("register install info failed: %v", err)
+			} else {
+				logger.Debugf("register install info success: %v", resp.String())
+			}
+		}
+	}()
 	logger.Infof("http://%s", s.Config.Listen)
 
 	// 统计安装信息
@@ -115,19 +132,23 @@ func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		method := c.Request.Method
 		origin := c.Request.Header.Get("Origin")
+		
+		// 设置允许的请求源
 		if origin != "" {
-			// 设置允许的请求源
 			c.Header("Access-Control-Allow-Origin", origin)
-			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-			//允许跨域设置可以返回其他子段，可以自定义字段
-			c.Header("Access-Control-Allow-Headers", "Authorization, Body-Length, Body-Type, Admin-Authorization,content-type")
-			// 允许浏览器（客户端）可以解析的头部 （重要）
-			c.Header("Access-Control-Expose-Headers", "Body-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
-			//设置缓存时间
-			c.Header("Access-Control-Max-Age", "172800")
-			//允许客户端传递校验信息比如 cookie (重要)
-			c.Header("Access-Control-Allow-Credentials", "true")
+		} else {
+			c.Header("Access-Control-Allow-Origin", "*")
 		}
+		
+		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		//允许跨域设置可以返回其他子段，可以自定义字段
+		c.Header("Access-Control-Allow-Headers", "Authorization, Body-Length, Body-Type, Admin-Authorization,content-type")
+		// 允许浏览器（客户端）可以解析的头部 （重要）
+		c.Header("Access-Control-Expose-Headers", "Body-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
+		//设置缓存时间
+		c.Header("Access-Control-Max-Age", "172800")
+		//允许客户端传递校验信息比如 cookie (重要)
+		c.Header("Access-Control-Allow-Credentials", "true")
 
 		if method == http.MethodOptions {
 			c.JSON(http.StatusOK, "ok!")

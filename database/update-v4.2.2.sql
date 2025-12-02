@@ -1,0 +1,1 @@
+ALTER TABLE `chatgpt_chat_models` ADD `options` TEXT NOT NULL COMMENT '模型自定义选项' AFTER `key_id`;

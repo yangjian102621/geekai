@@ -59,6 +59,12 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 如果要启用图形验证码功能，则检查是否配置了 API 服务
+	if data.Config.EnabledVerify && h.App.Config.ApiConfig.AppId == "" {
+		resp.ERROR(c, "启用验证码服务需要先配置 GeekAI 官方 API 服务 AppId 和 Token")
+		return
+	}
+
 	value := utils.JsonEncode(&data.Config)
 	config := model.Config{Key: data.Key, Config: value}
 	res := h.DB.FirstOrCreate(&config, model.Config{Key: data.Key})

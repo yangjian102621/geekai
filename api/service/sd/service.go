@@ -33,16 +33,14 @@ type Service struct {
 	taskQueue     *store.RedisQueue
 	db            *gorm.DB
 	uploadManager *oss.UploaderManager
-	wsService     *service.WebsocketService
 	userService   *service.UserService
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, levelDB *store.LevelDB, redisCli *redis.Client, wsService *service.WebsocketService, userService *service.UserService) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, userService *service.UserService) *Service {
 	return &Service{
 		httpClient:    req.C(),
 		taskQueue:     store.NewRedisQueue("StableDiffusion_Task_Queue", redisCli),
 		db:            db,
-		wsService:     wsService,
 		uploadManager: manager,
 		userService:   userService,
 	}

@@ -58,7 +58,9 @@
                       <i class="iconfont" :class="item.icon"></i>
                     </span>
                     <el-image :src="item.icon" style="width: 20px; height: 20px" v-else />
-                    <span :class="item.url === curPath ? 'title active' : 'title'">{{ item.name }}</span>
+                    <span :class="item.url === curPath ? 'title active' : 'title'">{{
+                      item.name
+                    }}</span>
                   </a>
                 </li>
               </ul>
@@ -77,7 +79,7 @@
                     <el-icon>
                       <UserFilled />
                     </el-icon>
-                    <span class="username title">{{ loginUser.nickname }}</span>
+                    <span class="username title">账户信息</span>
                   </div>
                 </li>
                 <li v-if="!license.de_copy">
@@ -108,7 +110,12 @@
     </div>
     <el-scrollbar class="right-main">
       <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
-        <el-button @click="router.push('/login')" class="btn-go animate__animated animate__pulse animate__infinite" round>登录</el-button>
+        <el-button
+          @click="router.push('/login')"
+          class="btn-go animate__animated animate__pulse animate__infinite"
+          round
+          >登录</el-button
+        >
       </div>
       <div class="content custom-scroll">
         <router-view :key="routerViewKey" v-slot="{ Component }">
@@ -123,7 +130,9 @@
 
     <el-dialog v-model="showLoginDialog" width="500px" @close="store.setShowLoginDialog(false)">
       <template #header>
-        <div class="text-center text-xl" style="color: var(--theme-text-color-primary)">登录后解锁功能</div>
+        <div class="text-center text-xl" style="color: var(--theme-text-color-primary)">
+          登录后解锁功能
+        </div>
       </template>
       <div class="p-4 pt-2 pb-2">
         <LoginDialog @success="loginSuccess" @hide="store.setShowLoginDialog(false)" />
@@ -133,33 +142,33 @@
 </template>
 
 <script setup>
-import { UserFilled } from "@element-plus/icons-vue";
-import ThemeChange from "@/components/ThemeChange.vue";
-import { useRouter } from "vue-router";
-import { computed, onMounted, ref, watch } from "vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
-import { removeUserToken } from "@/store/session";
-import { useSharedStore } from "@/store/sharedata";
-import ConfigDialog from "@/components/UserInfoDialog.vue";
-import { showMessageError } from "@/utils/dialog";
-import LoginDialog from "@/components/LoginDialog.vue";
+import { UserFilled } from '@element-plus/icons-vue'
+import ThemeChange from '@/components/ThemeChange.vue'
+import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { httpGet } from '@/utils/http'
+import { ElMessage } from 'element-plus'
+import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
+import { removeUserToken } from '@/store/session'
+import { useSharedStore } from '@/store/sharedata'
+import ConfigDialog from '@/components/UserInfoDialog.vue'
+import { showMessageError } from '@/utils/dialog'
+import LoginDialog from '@/components/LoginDialog.vue'
 
-const router = useRouter();
-const logo = ref("");
-const mainNavs = ref([]);
-const moreNavs = ref([]);
-const curPath = ref();
+const router = useRouter()
+const logo = ref('')
+const mainNavs = ref([])
+const moreNavs = ref([])
+const curPath = ref()
 
-const title = ref("");
-const store = useSharedStore();
-const loginUser = ref({});
-const routerViewKey = ref(0);
-const showConfigDialog = ref(false);
-const license = ref({ de_copy: true });
-const showLoginDialog = ref(false);
-const githubURL = ref(process.env.VUE_APP_GITHUB_URL);
+const title = ref('')
+const store = useSharedStore()
+const loginUser = ref({})
+const routerViewKey = ref(0)
+const showConfigDialog = ref(false)
+const license = ref({ de_copy: true })
+const showLoginDialog = ref(false)
+const githubURL = ref(process.env.VUE_APP_GITHUB_URL)
 
 /**
  * 从路径名中提取第一个路径段
@@ -167,123 +176,123 @@ const githubURL = ref(process.env.VUE_APP_GITHUB_URL);
  * @returns 第一个路径段（不含斜杠），例如 'chat'，如果不存在则返回 null
  */
 const extractFirstSegment = (pathname) => {
-  const segments = pathname.split("/").filter((segment) => segment.length > 0);
-  return segments.length > 0 ? segments[0] : null;
-};
+  const segments = pathname.split('/').filter((segment) => segment.length > 0)
+  return segments.length > 0 ? segments[0] : null
+}
 const getFirstPathSegment = (url) => {
   try {
     // 尝试使用 URL 构造函数解析完整的 URL
-    const parsedUrl = new URL(url);
-    return extractFirstSegment(parsedUrl.pathname);
+    const parsedUrl = new URL(url)
+    return extractFirstSegment(parsedUrl.pathname)
   } catch (error) {
     // 如果解析失败，假设是相对路径，使用当前窗口的位置作为基准
-    if (typeof window !== "undefined") {
-      const parsedUrl = new URL(url, window.location.origin);
-      return extractFirstSegment(parsedUrl.pathname);
+    if (typeof window !== 'undefined') {
+      const parsedUrl = new URL(url, window.location.origin)
+      return extractFirstSegment(parsedUrl.pathname)
     }
     // 如果无法解析，返回 null
-    return null;
+    return null
   }
-};
+}
 
 const stars = computed(() => {
-  return 1000;
-});
+  return 1000
+})
 
 watch(
   () => store.showLoginDialog,
   (newValue) => {
-    showLoginDialog.value = newValue;
+    showLoginDialog.value = newValue
   }
-);
+)
 
 // 监听路由变化;
 router.beforeEach((to, from, next) => {
-  curPath.value = to.path;
-  next();
-});
+  curPath.value = to.path
+  next()
+})
 
-if (curPath.value === "/external") {
-  curPath.value = router.currentRoute.value.query.url;
+if (curPath.value === '/external') {
+  curPath.value = router.currentRoute.value.query.url
 }
 const changeNav = (item) => {
-  curPath.value = item.url;
-  if (item.url.indexOf("http") !== -1) {
+  curPath.value = item.url
+  if (item.url.indexOf('http') !== -1) {
     // 外部链接
-    router.push({ path: "/external", query: { url: item.url, title: item.name } });
+    router.push({ path: '/external', query: { url: item.url, title: item.name } })
   } else {
     // 路由切换，确保路径变化
     if (router.currentRoute.value.path !== item.url) {
       router.push(item.url).then(() => {
         // 刷新 `routerViewKey` 触发视图重新渲染
-        routerViewKey.value += 1;
-      });
+        routerViewKey.value += 1
+      })
     }
   }
-};
+}
 
 onMounted(() => {
-  curPath.value = router.currentRoute.value.path;
+  curPath.value = router.currentRoute.value.path
   getSystemInfo()
     .then((res) => {
-      logo.value = res.data.logo;
-      title.value = res.data.title;
+      logo.value = res.data.logo
+      title.value = res.data.title
     })
     .catch((e) => {
-      ElMessage.error("获取系统配置失败：" + e.message);
-    });
+      ElMessage.error('获取系统配置失败：' + e.message)
+    })
   // 获取菜单
-  httpGet("/api/menu/list")
+  httpGet('/api/menu/list')
     .then((res) => {
-      mainNavs.value = res.data;
+      mainNavs.value = res.data
       // 根据窗口的高度计算应该显示多少菜单
-      const rows = Math.floor((window.innerHeight - 100) / 90);
+      const rows = Math.floor((window.innerHeight - 100) / 90)
       if (res.data.length > rows) {
-        mainNavs.value = res.data.slice(0, rows);
-        moreNavs.value = res.data.slice(rows);
+        mainNavs.value = res.data.slice(0, rows)
+        moreNavs.value = res.data.slice(rows)
       }
     })
     .catch((e) => {
-      ElMessage.error("获取系统菜单失败：" + e.message);
-    });
+      ElMessage.error('获取系统菜单失败：' + e.message)
+    })
 
   getLicenseInfo()
     .then((res) => {
-      license.value = res.data;
+      license.value = res.data
     })
     .catch((e) => {
-      license.value = { de_copy: false };
-      showMessageError("获取 License 配置：" + e.message);
-    });
-  curPath.value = "/" + getFirstPathSegment(window.location.href);
-  init();
-});
+      license.value = { de_copy: false }
+      showMessageError('获取 License 配置：' + e.message)
+    })
+  curPath.value = '/' + getFirstPathSegment(window.location.href)
+  init()
+})
 
 const init = () => {
   checkSession()
     .then((user) => {
-      loginUser.value = user;
+      loginUser.value = user
     })
-    .catch(() => {});
-};
+    .catch(() => {})
+}
 
 const logout = function () {
-  httpGet("/api/user/logout")
+  httpGet('/api/user/logout')
     .then(() => {
-      removeUserToken();
-      router.push("/login");
+      removeUserToken()
+      router.push('/login')
     })
     .catch(() => {
-      ElMessage.error("注销失败！");
-    });
-};
+      ElMessage.error('注销失败！')
+    })
+}
 
 const loginSuccess = () => {
-  init();
-  store.setShowLoginDialog(false);
+  init()
+  store.setShowLoginDialog(false)
   // 刷新组件
-  routerViewKey.value += 1;
-};
+  routerViewKey.value += 1
+}
 </script>
 
 <style lang="stylus" scoped>

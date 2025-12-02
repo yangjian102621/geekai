@@ -256,6 +256,7 @@ func main() {
 			group.GET("clear", h.Clear)
 			group.POST("tokens", h.Tokens)
 			group.GET("stop", h.StopGenerate)
+			group.POST("tts", h.TextToSpeech)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.NetHandler) {
 			s.Engine.POST("/api/upload", h.Upload)
@@ -335,6 +336,7 @@ func main() {
 			group.POST("save", h.Save)
 			group.GET("remove", h.Remove)
 			group.GET("loginLog", h.LoginLog)
+			group.GET("genLoginLink", h.GenLoginLink)
 			group.POST("resetPass", h.ResetPass)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
@@ -431,6 +433,7 @@ func main() {
 			group.POST("weibo", h.WeiBo)
 			group.POST("zaobao", h.ZaoBao)
 			group.POST("dalle3", h.Dall3)
+			group.POST("websearch", h.WebSearch)
 			group.GET("list", h.List)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {

@@ -35,18 +35,16 @@ type Service struct {
 	uploadManager *oss.UploaderManager
 	taskQueue     *store.RedisQueue
 	notifyQueue   *store.RedisQueue
-	wsService     *service.WebsocketService
 	userService   *service.UserService
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, wsService *service.WebsocketService, userService *service.UserService) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, userService *service.UserService) *Service {
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
 		taskQueue:     store.NewRedisQueue("Suno_Task_Queue", redisCli),
 		notifyQueue:   store.NewRedisQueue("Suno_Notify_Queue", redisCli),
 		uploadManager: manager,
-		wsService:     wsService,
 		userService:   userService,
 	}
 }

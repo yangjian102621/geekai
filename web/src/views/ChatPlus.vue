@@ -464,7 +464,7 @@ onUnmounted(() => {
 // 初始化数据
 const initData = () => {
   // 加载模型
-  httpGet("/api/model/list")
+  httpGet("/api/model/list?type=chat")
     .then((res) => {
       models.value = res.data;
       if (!modelID.value) {
@@ -751,12 +751,13 @@ const sendMessage = function () {
   }
   // 如果携带了文件，则串上文件地址
   let content = prompt.value;
-  if (files.value.length === 1) {
+  if (files.value.length > 0) {
     content += files.value.map((file) => file.url).join(" ");
-  } else if (files.value.length > 1) {
-    showMessageError("当前只支持上传一个文件！");
-    return false;
   }
+  // else if (files.value.length > 1) {
+  //   showMessageError("当前只支持上传一个文件！");
+  //   return false;
+  // }
   // 追加消息
   chatData.value.push({
     type: "prompt",

@@ -64,8 +64,6 @@ import {
   Uploader,
 } from "vant";
 import { router } from "@/router";
-import "v3-waterfall/dist/style.css";
-import V3waterfall from "v3-waterfall";
 import "@/assets/css/theme-dark.styl";
 import "@/assets/css/theme-light.styl";
 import "@/assets/css/common.styl";
@@ -104,7 +102,6 @@ app.use(ShareSheet);
 app.use(Switch);
 app.use(Uploader);
 app.use(Tag);
-app.use(V3waterfall);
 app.use(Overlay);
 app.use(Col);
 app.use(Row);

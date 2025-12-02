@@ -142,6 +142,7 @@ const types = ref([
   { label: "Luma视频", value: "luma" },
   { label: "可灵视频", value: "keling" },
   { label: "Realtime API", value: "realtime" },
+  { label: "语音合成", value: "tts" },
   { label: "其他", value: "other" },
 ]);
 const isEdit = ref(false);
