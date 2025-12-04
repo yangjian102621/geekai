@@ -43,6 +43,8 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 			types.SystemConfig
 			Content string `json:"content,omitempty"`
 			Updated bool   `json:"updated,omitempty"`
+			// 微信公众号配置
+			types.WechatConfig
 		} `json:"config"`
 		ConfigBak types.SystemConfig `json:"config_bak,omitempty"`
 	}
@@ -65,7 +67,13 @@ func (h *ConfigHandler) Update(c *gin.Context) {
 		return
 	}
 
-	value := utils.JsonEncode(&data.Config)
+	var value string
+	if data.Key == "wechat" {
+		// 针对 wechat 配置，只保存 wechat 相关的字段
+		value = utils.JsonEncode(&data.Config.WechatConfig)
+	} else {
+		value = utils.JsonEncode(&data.Config)
+	}
 	config := model.Config{Key: data.Key, Config: value}
 	res := h.DB.FirstOrCreate(&config, model.Config{Key: data.Key})
 	if res.Error != nil {
@@ -104,6 +112,10 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	var config model.Config
 	res := h.DB.Where("marker", key).First(&config)
 	if res.Error != nil {
+		if res.Error == gorm.ErrRecordNotFound {
+			resp.SUCCESS(c, make(map[string]interface{})) // 返回空配置
+			return
+		}
 		resp.ERROR(c, res.Error.Error())
 		return
 	}

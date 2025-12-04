@@ -744,3 +744,113 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 	}
 	resp.SUCCESS(c)
 }
+
+// WechatLogin 微信公众号 小程序授权登录
+func (h *UserHandler) WechatLogin(c *gin.Context) {
+	var data struct {
+		Code       string `json:"code"`
+		InviteCode string `json:"invite_code"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 检测最大注册人数
+	var totalUser int64
+	h.DB.Model(&model.User{}).Count(&totalUser)
+	if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
+		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
+		return
+	}
+	// 根据code 获取openid
+
+	// 验证邀请码
+	inviteCode := model.InviteCode{}
+	if data.InviteCode != "" {
+		res := h.DB.Where("code = ?", data.InviteCode).First(&inviteCode)
+		if res.Error != nil {
+			resp.ERROR(c, "无效的邀请码")
+			return
+		}
+	}
+	salt := utils.RandString(8)
+	password := fmt.Sprintf("%d", utils.RandomNumber(8))
+	userName := fmt.Sprintf("%s@%d", "wx", utils.RandomNumber(10))
+	user := model.User{
+		Username:  userName,
+		Password:  utils.GenPassword(password, salt),
+		Avatar:    "/images/avatar/user.png",
+		Salt:      salt,
+		Status:    true,
+		ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
+		Power:     h.App.SysConfig.InitPower,
+	}
+
+	// 被邀请人也获得赠送算力
+	if data.InviteCode != "" {
+		user.Power += h.App.SysConfig.InvitePower
+	}
+	if h.licenseService.GetLicense().Configs.DeCopy {
+		user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+	} else {
+		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
+	}
+
+	tx := h.DB.Begin()
+	if err := tx.Create(&user).Error; err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 记录邀请关系
+	if data.InviteCode != "" {
+		// 增加邀请数量
+		h.DB.Model(&model.InviteCode{}).Where("code = ?", data.InviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
+		if h.App.SysConfig.InvitePower > 0 {
+			err := h.userService.IncreasePower(int(inviteCode.UserId), h.App.SysConfig.InvitePower, model.PowerLog{
+				Type:   types.PowerInvite,
+				Model:  "Invite",
+				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.InvitePower, inviteCode.Code, user.Username),
+			})
+			if err != nil {
+				tx.Rollback()
+				resp.ERROR(c, err.Error())
+				return
+			}
+		}
+
+		// 添加邀请记录
+		err := tx.Create(&model.InviteLog{
+			InviterId:  inviteCode.UserId,
+			UserId:     user.Id,
+			Username:   user.Username,
+			InviteCode: inviteCode.Code,
+			Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.InvitePower),
+		}).Error
+		if err != nil {
+			tx.Rollback()
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	tx.Commit()
+
+	// 自动登录创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.Id,
+		"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+	if err != nil {
+		resp.ERROR(c, "Failed to generate token, "+err.Error())
+		return
+	}
+	// 保存到 redis
+	key := fmt.Sprintf("users/%d", user.Id)
+	if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+		resp.ERROR(c, "error with save token: "+err.Error())
+		return
+	}
+	resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
+}

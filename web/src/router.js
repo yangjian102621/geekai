@@ -269,6 +269,11 @@ const routes = [
         name: 'admin-manger',
         meta: { title: '管理员' },
         component: () => import('@/views/admin/Manager.vue'),
+      },{
+        path: '/admin/wechatConfig',
+        name: 'admin-wechat-config',
+        meta: { title: '公众号配置' },
+        component: () => import('@/views/admin/wechat/Config.vue'),
       },
     ],
   },
