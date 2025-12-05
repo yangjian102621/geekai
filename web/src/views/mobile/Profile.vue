@@ -130,6 +130,7 @@
 </template>
 
 <script setup>
+import { isWechat } from "@/utils/util";
 import { onMounted, ref } from "vue";
 import { showFailToast, showLoadingToast, showNotify, showSuccessToast } from "vant";
 import { httpGet, httpPost } from "@/utils/http";
@@ -294,10 +295,26 @@ const pay = (product, payWay) => {
     pay_type: payWay.pay_type,
     user_id: userId.value,
     host: host,
-    device: "wechat",
+    device: isWechat() ? "jsapi" : "wechat",
   })
     .then((res) => {
-      location.href = res.data;
+      if(isWechat()){
+        console.log("微信支付参数：", res.data);
+        let payParams = JSON.parse(res.data);
+        if (typeof WeixinJSBridge == "undefined"){
+           if( document.addEventListener ){
+               document.addEventListener('WeixinJSBridgeReady', onBridgeReady(payParams), false);
+           }else if (document.attachEvent){
+               document.attachEvent('WeixinJSBridgeReady', onBridgeReady(payParams));
+               document.attachEvent('onWeixinJSBridgeReady', onBridgeReady(payParams));
+           }
+        }else{
+           onBridgeReady(payParams);
+        }
+      }else{
+        location.href = res.data;
+      }
+      
     })
     .catch((e) => {
       showFailToast("生成支付订单失败：" + e.message);
@@ -315,6 +332,30 @@ const logout = function () {
       showFailToast("注销失败！");
     });
 };
+const onBridgeReady =  function onBridgeReady(payParams){
+          WeixinJSBridge.invoke(
+            'getBrandWCPayRequest', {
+              "appId": payParams.appId,     //公众号ID，由商户传入
+              "timeStamp": payParams.timeStamp,         //时间戳，自1970年以来的秒数
+              "nonceStr": payParams.nonceStr, //随机串
+              "package": payParams.package,     //预支付交易会话标识
+              "signType": payParams.signType,         //微信签名方式：
+              "paySign": payParams.paySign //微信签名
+            },
+            function(res){
+              if(res.err_msg == "get_brand_wcpay_request:ok" ){
+                // 使用以上方式判断前端返回,微信团队郑重提示：
+                //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+                showSuccessToast("支付成功！");
+                setTimeout(() => {
+                  location.reload();
+                }, 1500);
+              } else {
+                showFailToast("支付失败：" + res.err_msg);
+              }
+            }
+          );
+        }
 </script>
 
 <style lang="stylus">

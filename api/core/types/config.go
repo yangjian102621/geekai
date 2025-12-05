@@ -173,3 +173,11 @@ type SystemConfig struct {
 	MaxFileSize      int      `json:"max_file_size"`      // 最大文件大小,单位：MB
 
 }
+
+type WechatConfig struct {
+	WechatAppID    string `json:"wechat_app_id,omitempty"`
+	WechatSecret   string `json:"wechat_secret,omitempty"`
+	WechatToken    string `json:"wechat_token,omitempty"`
+	WechatAESKey   string `json:"wechat_aes_key,omitempty"`
+	WechatCallback string `json:"wechat_callback,omitempty"`
+}

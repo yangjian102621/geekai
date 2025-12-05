@@ -44,6 +44,16 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 		return
 	}
 
+	if key == "wechat" {
+		wechatAppId, ok := value["wechat_app_id"]
+		if !ok {
+			resp.ERROR(c, "wechat_app_id not found in config_json")
+			return
+		}
+		resp.SUCCESS(c, gin.H{"config_json": gin.H{"wechat_app_id": wechatAppId}})
+		return
+	}
+
 	resp.SUCCESS(c, value)
 }
 

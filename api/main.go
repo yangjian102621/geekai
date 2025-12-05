@@ -209,6 +209,7 @@ func main() {
 			s.DownloadFiles()
 		}),
 		fx.Provide(service.NewUserService),
+		fx.Provide(service.NewWechatService),
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),
 		fx.Provide(payment.NewJPayService),
@@ -245,6 +246,7 @@ func main() {
 			group.GET("clogin", h.CLogin)
 			group.GET("clogin/callback", h.CLoginCallback)
 			group.GET("signin", h.SignIn)
+			group.POST("wechatLogin", h.WechatLogin)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
 			group := s.Engine.Group("/api/chat/")

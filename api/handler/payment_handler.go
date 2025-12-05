@@ -105,7 +105,8 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 	}
 
 	amount := product.Discount
-	var payURL, returnURL, notifyURL string
+	var payURL interface{}
+	var returnURL, notifyURL string
 	switch data.PayWay {
 	case "alipay":
 		if h.App.Config.AlipayConfig.NotifyURL != "" { // 用于本地调试支付
@@ -155,6 +156,18 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 				Subject:    product.Name,
 				NotifyURL:  notifyURL,
 				ClientIP:   c.ClientIP(),
+			})
+		} else if data.Device == "jsapi" {
+			if user.OpenId == "" {
+				resp.ERROR(c, "用户 OpenId 未绑定，无法使用 JSAPI 支付")
+				return
+			}
+			payURL, err = h.wechatPayService.PayJsapi(payment.WechatPayParams{
+				OutTradeNo: orderNo,
+				TotalFee:   int(amount * 100),
+				Subject:    product.Name,
+				NotifyURL:  notifyURL,
+				OpenID:     user.OpenId,
 			})
 		} else {
 			payURL, err = h.wechatPayService.PayUrlNative(payment.WechatPayParams{
@@ -257,7 +270,11 @@ func (h *PaymentHandler) Pay(c *gin.Context) {
 		resp.ERROR(c, "error with create order: "+err.Error())
 		return
 	}
-	resp.SUCCESS(c, payURL)
+	if data.Device == "jsapi" {
+		resp.SUCCESS(c, payURL)
+	} else {
+		resp.SUCCESS(c, payURL.(string))
+	}
 }
 
 // 异步通知回调公共逻辑

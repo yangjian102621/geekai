@@ -191,7 +191,7 @@
 import { onMounted, ref, watch } from "vue";
 import { httpGet, httpPost } from "@/utils/http";
 import { ElMessage } from "element-plus";
-import { setUserToken } from "@/store/session";
+import { getUserToken, setUserToken } from "@/store/session";
 import { validateEmail, validateMobile } from "@/utils/validate";
 import { Checked, Close, Iphone, Lock, Message } from "@element-plus/icons-vue";
 import SendMsg from "@/components/SendMsg.vue";
@@ -202,6 +202,7 @@ import ResetPass from "@/components/ResetPass.vue";
 import { setRoute } from "@/store/system";
 import { useRouter } from "vue-router";
 import { useSharedStore } from "@/store/sharedata";
+import { isWechat } from "@/utils/util";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -240,16 +241,66 @@ const enableVerify = ref(false);
 const showResetPass = ref(false);
 const router = useRouter();
 const store = useSharedStore();
+const wechatAppId = ref(""); // 新增：存储微信公众号app_id
 
 onMounted(() => {
-  const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`;
-  httpGet("/api/user/clogin?return_url=" + returnURL)
-    .then((res) => {
-      wechatLoginURL.value = res.data.url;
-    })
-    .catch((e) => {
-      console.log(e.message);
-    });
+  // 如果已经登录，直接跳转到首页
+  if (getUserToken()) {
+    router.push("/");
+    return;
+  }
+
+  // 判断是否为微信浏览器
+  if (isWechat()) {
+
+
+    // 检查 URL 中是否包含 code 参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    if (code) {
+      
+      // 可以在这里将 code 发送到后端进行登录验证
+     httpPost("/api/user/wechatLogin", { code: code })
+        .then((res) => {
+          setUserToken(res.data.token);
+          store.setIsLogin(true);
+          router.push('/mobile/profile');
+          return; // 登录成功后直接返回，避免再次跳转到授权页面
+      })
+      .catch((e) => {
+        ElMessage.error("登录失败，" + e.message);
+      });
+    } else {
+      // 如果是微信浏览器，获取微信公众号配置
+      httpGet("/api/config/get?key=wechat")
+          .then((res) => {
+            if (res.data && res.data.config_json && res.data.config_json.wechat_app_id) {
+              wechatAppId.value = res.data.config_json.wechat_app_id;
+              // 构造微信授权 URL
+              const redirectUri = encodeURIComponent(`${location.protocol}//${location.host}/mobile/login`);
+              const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${wechatAppId.value}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`;
+
+              // 如果是微信浏览器，直接跳转到授权页面
+              window.location.href = authUrl;
+            } else {
+              console.log("未获取到微信公众号配置或 wechat_app_id");
+            }
+          })
+          .catch((e) => {
+            console.error("获取微信公众号配置失败：", e.message);
+          });
+    }
+  } else {
+    // 非微信浏览器，继续原有逻辑
+    const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`;
+    httpGet("/api/user/clogin?return_url=" + returnURL)
+      .then((res) => {
+        wechatLoginURL.value = res.data.url;
+      })
+      .catch((e) => {
+        console.log(e.message);
+      });
+  }
 
   getSystemInfo()
     .then((res) => {

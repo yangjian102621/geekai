@@ -9,6 +9,7 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"geekai/core/types"
 	"github.com/go-pay/gopay"
@@ -53,6 +54,7 @@ type WechatPayParams struct {
 	ClientIP   string `json:"client_ip"`
 	ReturnURL  string `json:"return_url"`
 	NotifyURL  string `json:"notify_url"`
+	OpenID     string `json:"open_id"`
 }
 
 func (s *WechatPayService) PayUrlNative(params WechatPayParams) (string, error) {
@@ -141,4 +143,45 @@ func (s *WechatPayService) TradeVerify(request *http.Request) NotifyVo {
 		TradeId:    result.TransactionId,
 		Amount:     fmt.Sprintf("%.2f", float64(result.Amount.Total)/100),
 	}
+}
+
+func (s *WechatPayService) PayJsapi(params WechatPayParams) (string, error) {
+	expire := time.Now().Add(10 * time.Minute).Format(time.RFC3339)
+	// 初始化 BodyMap
+	bm := make(gopay.BodyMap)
+	bm.Set("appid", s.config.AppId).
+		Set("mchid", s.config.MchId).
+		Set("description", params.Subject).
+		Set("out_trade_no", params.OutTradeNo).
+		Set("time_expire", expire).
+		Set("notify_url", params.NotifyURL).
+		SetBodyMap("amount", func(bm gopay.BodyMap) {
+			bm.Set("total", params.TotalFee).
+				Set("currency", "CNY")
+		}).
+		SetBodyMap("payer", func(bm gopay.BodyMap) {
+			bm.Set("openid", params.OpenID)
+		})
+
+	wxRsp, err := s.client.V3TransactionJsapi(context.Background(), bm)
+	if err != nil {
+		return "", fmt.Errorf("error with client v3 transaction Jsapi: %v", err)
+	}
+	if wxRsp.Code != wechat.Success {
+		return "", fmt.Errorf("error with generating pay url: %v", wxRsp.Error)
+	}
+
+	// 签名
+	payParams, err := s.client.PaySignOfJSAPI(s.config.AppId, wxRsp.Response.PrepayId)
+
+	if err != nil {
+		return "", fmt.Errorf("error with generating jsapi pay sign: %v", err)
+	}
+
+	payParamsBytes, err := json.Marshal(payParams)
+	if err != nil {
+		return "", fmt.Errorf("error with marshaling pay params: %v", err)
+	}
+
+	return string(payParamsBytes), nil
 }

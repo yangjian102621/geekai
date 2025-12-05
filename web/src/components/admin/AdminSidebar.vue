@@ -205,6 +205,18 @@ const items = [
   //     },
   //   ],
   // },
+  {
+    icon: 'menu',
+    index: '1',
+    title: '微信公众号',
+    subs: [
+      {
+        index: '/admin/wechatConfig',
+        title: '公众号配置',
+        icon: 'config',
+      },
+    ],
+  },
 ]
 
 const route = useRoute()
