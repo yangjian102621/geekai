@@ -38,6 +38,7 @@ type UserHandler struct {
 	licenseService *service.LicenseService
 	captcha        *service.CaptchaService
 	userService    *service.UserService
+	wechatService  *service.WechatService // 添加 WechatService 字段
 }
 
 func NewUserHandler(
@@ -48,6 +49,7 @@ func NewUserHandler(
 	levelDB *store.LevelDB,
 	captcha *service.CaptchaService,
 	userService *service.UserService,
+	wechatService *service.WechatService, // 添加 WechatService 参数
 	licenseService *service.LicenseService) *UserHandler {
 	return &UserHandler{
 		BaseHandler:    BaseHandler{DB: db, App: app},
@@ -57,6 +59,7 @@ func NewUserHandler(
 		captcha:        captcha,
 		licenseService: licenseService,
 		userService:    userService,
+		wechatService:  wechatService, // 初始化 WechatService
 	}
 }
 
@@ -764,7 +767,6 @@ func (h *UserHandler) WechatLogin(c *gin.Context) {
 		return
 	}
 	// 根据code 获取openid
-
 	// 验证邀请码
 	inviteCode := model.InviteCode{}
 	if data.InviteCode != "" {
@@ -777,24 +779,67 @@ func (h *UserHandler) WechatLogin(c *gin.Context) {
 	salt := utils.RandString(8)
 	password := fmt.Sprintf("%d", utils.RandomNumber(8))
 	userName := fmt.Sprintf("%s@%d", "wx", utils.RandomNumber(10))
-	user := model.User{
+
+	openID, accessToken, err := h.wechatService.GetOpenIDByCode(data.Code)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 获取微信用户昵称头像
+	userInfo, err := h.wechatService.GetUserInfo(accessToken, openID)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	
+	nickname := userInfo["nickname"].(string)
+	headimgurl := userInfo["headimgurl"].(string)
+	
+	// 查询用户是否存在
+	var user model.User
+	res := h.DB.Where("open_id = ?", openID).First(&user)
+	if res.Error == nil {
+		// 用户存在，直接登录
+		user.Nickname = nickname
+		user.Avatar = headimgurl
+		h.DB.Save(&user)
+		// 创建 token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user_id": user.Id,
+			"expired": time.Now().Add(time.Second * time.Duration(h.App.Config.Session.MaxAge)).Unix(),
+		})
+		tokenString, err := token.SignedString([]byte(h.App.Config.Session.SecretKey))
+		if err != nil {
+			resp.ERROR(c, "Failed to generate token, "+err.Error())
+			return
+		}
+		// 保存到 redis
+		key := fmt.Sprintf("users/%d", user.Id)
+		if _, err := h.redis.Set(c, key, tokenString, 0).Result(); err != nil {
+			resp.ERROR(c, "error with save token: "+err.Error())
+			return
+		}
+		resp.SUCCESS(c, gin.H{"token": tokenString, "user_id": user.Id, "username": user.Username})
+		return
+	}
+
+	// 用户不存在，创建新用户
+	user = model.User{
 		Username:  userName,
 		Password:  utils.GenPassword(password, salt),
-		Avatar:    "/images/avatar/user.png",
 		Salt:      salt,
 		Status:    true,
 		ChatRoles: utils.JsonEncode([]string{"gpt"}), // 默认只订阅通用助手角色
 		Power:     h.App.SysConfig.InitPower,
+		OpenId:    openID,
+		Nickname: nickname,
+		Avatar:    headimgurl,
 	}
 
 	// 被邀请人也获得赠送算力
 	if data.InviteCode != "" {
 		user.Power += h.App.SysConfig.InvitePower
-	}
-	if h.licenseService.GetLicense().Configs.DeCopy {
-		user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
-	} else {
-		user.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
 	}
 
 	tx := h.DB.Begin()

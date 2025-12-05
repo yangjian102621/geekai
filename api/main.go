@@ -209,6 +209,7 @@ func main() {
 			s.DownloadFiles()
 		}),
 		fx.Provide(service.NewUserService),
+		fx.Provide(service.NewWechatService),
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewHuPiPay),
 		fx.Provide(payment.NewJPayService),

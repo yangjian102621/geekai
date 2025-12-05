@@ -248,6 +248,7 @@ func needLogin(c *gin.Context) bool {
 		c.Request.URL.Path == "/api/admin/logout" ||
 		c.Request.URL.Path == "/api/admin/login/captcha" ||
 		c.Request.URL.Path == "/api/user/register" ||
+		c.Request.URL.Path == "/api/user/wechatLogin" ||
 		c.Request.URL.Path == "/api/chat/history" ||
 		c.Request.URL.Path == "/api/chat/detail" ||
 		c.Request.URL.Path == "/api/chat/list" ||

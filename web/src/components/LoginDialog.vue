@@ -191,7 +191,7 @@
 import { onMounted, ref, watch } from "vue";
 import { httpGet, httpPost } from "@/utils/http";
 import { ElMessage } from "element-plus";
-import { setUserToken } from "@/store/session";
+import { getUserToken, setUserToken } from "@/store/session";
 import { validateEmail, validateMobile } from "@/utils/validate";
 import { Checked, Close, Iphone, Lock, Message } from "@element-plus/icons-vue";
 import SendMsg from "@/components/SendMsg.vue";
@@ -244,6 +244,12 @@ const store = useSharedStore();
 const wechatAppId = ref(""); // 新增：存储微信公众号app_id
 
 onMounted(() => {
+  // 如果已经登录，直接跳转到首页
+  if (getUserToken()) {
+    router.push("/");
+    return;
+  }
+
   // 判断是否为微信浏览器
   if (isWechat()) {
 
@@ -252,10 +258,19 @@ onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
     if (code) {
-      console.log("微信授权 code:", code);
+      
       // 可以在这里将 code 发送到后端进行登录验证
-      // 例如：httpPost("/api/user/wechat_login", { code: code });
-    }else {
+     httpPost("/api/user/wechatLogin", { code: code })
+        .then((res) => {
+          setUserToken(res.data.token);
+          store.setIsLogin(true);
+          router.push('/mobile/profile');
+          return; // 登录成功后直接返回，避免再次跳转到授权页面
+      })
+      .catch((e) => {
+        ElMessage.error("登录失败，" + e.message);
+      });
+    } else {
       // 如果是微信浏览器，获取微信公众号配置
       httpGet("/api/config/get?key=wechat")
           .then((res) => {
