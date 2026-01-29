@@ -8,11 +8,12 @@ package logger
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"os"
+	"strings"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"os"
-	"strings"
 )
 
 var logger *zap.Logger
@@ -23,7 +24,7 @@ func GetLogger() *zap.SugaredLogger {
 		return sugarLogger
 	}
 
-	logLevel := zap.NewAtomicLevelAt(getLogLevel(os.Getenv("LOG_LEVEL")))
+	logLevel := zap.NewAtomicLevelAt(getLogLevel(os.Getenv("GEEKAI_LOG_LEVEL")))
 	encoder := getEncoder()
 	writerSyncer := getLogWriter()
 	fileCore := zapcore.NewCore(encoder, writerSyncer, logLevel)

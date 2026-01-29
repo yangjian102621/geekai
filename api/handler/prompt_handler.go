@@ -56,7 +56,7 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 
 	if h.App.SysConfig.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成歌词",
@@ -86,7 +86,7 @@ func (h *PromptHandler) Image(c *gin.Context) {
 	}
 	if h.App.SysConfig.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成绘画提示词",
@@ -116,7 +116,7 @@ func (h *PromptHandler) Video(c *gin.Context) {
 
 	if h.App.SysConfig.PromptPower > 0 {
 		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(int(userId), h.App.SysConfig.PromptPower, model.PowerLog{
+		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
 			Type:   types.PowerConsume,
 			Model:  h.getPromptModel(),
 			Remark: "生成视频脚本",

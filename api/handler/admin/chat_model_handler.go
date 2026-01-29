@@ -40,6 +40,8 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 		Power       int               `json:"power"`
 		MaxTokens   int               `json:"max_tokens"`  // 最大响应长度
 		MaxContext  int               `json:"max_context"` // 最大上下文长度
+		Description string            `json:"description"` //模型描述
+		Category    string            `json:"category"`    //模型类别
 		Temperature float32           `json:"temperature"` // 模型温度
 		KeyId       int               `json:"key_id,omitempty"`
 		CreatedAt   int64             `json:"created_at"`
@@ -64,8 +66,10 @@ func (h *ChatModelHandler) Save(c *gin.Context) {
 	item.Power = data.Power
 	item.MaxTokens = data.MaxTokens
 	item.MaxContext = data.MaxContext
+	item.Description = data.Description
+	item.Category = data.Category
 	item.Temperature = data.Temperature
-	item.KeyId = data.KeyId
+	item.KeyId = uint(data.KeyId)
 	item.Type = data.Type
 	item.Options = utils.JsonEncode(data.Options)
 	var res *gorm.DB
@@ -113,7 +117,7 @@ func (h *ChatModelHandler) List(c *gin.Context) {
 	// initialize key name
 	keyIds := make([]int, 0)
 	for _, v := range items {
-		keyIds = append(keyIds, v.KeyId)
+		keyIds = append(keyIds, int(v.KeyId))
 	}
 	var keys []model.ApiKey
 	keyMap := make(map[uint]string)

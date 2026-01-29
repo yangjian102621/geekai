@@ -78,10 +78,10 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 	typeIds := make([]int, 0)
 	for _, v := range items {
 		if v.ModelId > 0 {
-			modelIds = append(modelIds, v.ModelId)
+			modelIds = append(modelIds, int(v.ModelId))
 		}
 		if v.Tid > 0 {
-			typeIds = append(typeIds, v.Tid)
+			typeIds = append(typeIds, int(v.Tid))
 		}
 	}
 
@@ -113,8 +113,8 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 			role.Id = v.Id
 			role.CreatedAt = v.CreatedAt.Unix()
 			role.UpdatedAt = v.UpdatedAt.Unix()
-			role.ModelName = modelNameMap[role.ModelId]
-			role.TypeName = typeNameMap[role.Tid]
+			role.ModelName = modelNameMap[int(role.ModelId)]
+			role.TypeName = typeNameMap[int(role.Tid)]
 			roles = append(roles, role)
 		}
 	}

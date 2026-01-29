@@ -2,7 +2,7 @@ package vo
 
 type VideoJob struct {
 	Id        uint                   `json:"id"`
-	UserId    int                    `json:"user_id"`
+	UserId    uint                   `json:"user_id"`
 	Channel   string                 `json:"channel"`
 	Type      string                 `json:"type"`
 	TaskId    string                 `json:"task_id"`

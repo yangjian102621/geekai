@@ -1,24 +1,31 @@
 <template>
   <div class="mobile-message-reply">
     <div class="chat-icon">
-      <van-image :src="icon"/>
+      <van-image :src="icon" />
     </div>
 
     <div class="chat-item">
       <div class="triangle"></div>
       <div class="content-box" ref="contentRef">
-        <div :data-clipboard-text="orgContent" class="content content-mobile" v-html="content"></div>
+        <div
+          :data-clipboard-text="orgContent"
+          class="content content-mobile"
+          v-html="content"
+          v-if="content"
+        ></div>
+        <div class="content content-mobile flex justify-start items-center" v-else>
+          <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
+        </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import {nextTick, onMounted, ref} from "vue"
+import { onMounted, ref } from 'vue'
 
-import {showImagePreview} from "vant";
-
+import { showImagePreview } from 'vant'
+import Thinking from '../Thinking.vue'
 const props = defineProps({
   content: {
     type: String,
@@ -31,8 +38,8 @@ const props = defineProps({
   icon: {
     type: String,
     default: '/images/gpt-icon.png',
-  }
-});
+  },
+})
 
 const contentRef = ref(null)
 onMounted(() => {
@@ -43,7 +50,7 @@ onMounted(() => {
     }
     imgs[i].addEventListener('click', (e) => {
       e.stopPropagation()
-      showImagePreview([imgs[i].src]);
+      showImagePreview([imgs[i].src])
     })
   }
 })

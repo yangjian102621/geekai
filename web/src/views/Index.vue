@@ -14,20 +14,12 @@
                 <i class="iconfont icon-book"></i>
               </a>
             </el-tooltip>
-            <el-tooltip
-              class="box-item"
-              content="Github 源码"
-              placement="bottom"
-            >
+            <el-tooltip class="box-item" content="Github 源码" placement="bottom">
               <a :href="githubURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-github"></i>
               </a>
             </el-tooltip>
-            <el-tooltip
-              class="box-item"
-              content="Gitee 源码"
-              placement="bottom"
-            >
+            <el-tooltip class="box-item" content="Gitee 源码" placement="bottom">
               <a :href="giteeURL" class="link-button" target="_blank">
                 <i class="iconfont icon-gitee"></i>
               </a>
@@ -50,7 +42,7 @@
       <h1 class="animate__animated animate__backInDown">
         {{ title }}
       </h1>
-      <div class="msg-text cursor-ani">
+      <!-- <div class="msg-text cursor-ani">
         <span
           v-for="(char, index) in displayedChars"
           :key="index"
@@ -58,7 +50,7 @@
         >
           {{ char }}
         </span>
-      </div>
+      </div> -->
 
       <div class="navs animate__animated animate__backInDown">
         <el-space wrap :size="14">
@@ -80,112 +72,129 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import FooterBar from "@/components/FooterBar.vue";
-import ThemeChange from "@/components/ThemeChange.vue";
-import { httpGet } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { checkSession, getLicenseInfo, getSystemInfo } from "@/store/cache";
-import { isMobile } from "@/utils/libs";
+import FooterBar from '@/components/FooterBar.vue'
+import ThemeChange from '@/components/ThemeChange.vue'
+import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
+import { httpGet } from '@/utils/http'
+import { isMobile } from '@/utils/libs'
+import { ElMessage } from 'element-plus'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
+const router = useRouter()
 
 if (isMobile()) {
-  router.push("/mobile/index");
+  router.push('/mobile/index')
 }
 
-const title = ref("");
-const logo = ref("");
-const slogan = ref("");
-const license = ref({ de_copy: true });
+const title = ref('')
+const logo = ref('')
+const slogan = ref('')
+const license = ref({ de_copy: true })
 
-const isLogin = ref(false);
-const docsURL = ref(process.env.VUE_APP_DOCS_URL);
-const githubURL = ref(process.env.VUE_APP_GITHUB_URL);
-const giteeURL = ref(process.env.VUE_APP_GITEE_URL);
-const navs = ref([]);
+const isLogin = ref(false)
+const docsURL = ref(process.env.VUE_APP_DOCS_URL)
+const githubURL = ref(process.env.VUE_APP_GITHUB_URL)
+const giteeURL = ref(process.env.VUE_APP_GITEE_URL)
+const navs = ref([])
 
 const iconMap = ref({
-  "/chat": "icon-chat",
-  "/mj": "icon-mj",
-  "/sd": "icon-sd",
-  "/dalle": "icon-dalle",
-  "/images-wall": "icon-image",
-  "/suno": "icon-suno",
-  "/xmind": "icon-xmind",
-  "/apps": "icon-app",
-  "/member": "icon-vip-user",
-  "/invite": "icon-share",
-  "/luma": "icon-luma"
-});
+  '/chat': 'icon-chat',
+  '/mj': 'icon-mj',
+  '/sd': 'icon-sd',
+  '/dalle': 'icon-dalle',
+  '/images-wall': 'icon-image',
+  '/suno': 'icon-suno',
+  '/xmind': 'icon-xmind',
+  '/apps': 'icon-app',
+  '/member': 'icon-vip-user',
+  '/invite': 'icon-share',
+  '/luma': 'icon-luma',
+})
 
-const displayedChars = ref([]);
-const initAnimation = ref("");
-let timer = null; // 定时器句柄
+const displayedChars = ref([])
+const initAnimation = ref('')
+let timer = null // 定时器句柄
 
 // 初始化间隔时间和随机时间数组
-const interTime = ref(50);
-const interArr = [90, 100, 70, 88, 80, 110, 85, 400, 90, 99];
+const interTime = ref(50)
+const interArr = [90, 100, 70, 88, 80, 110, 85, 400, 90, 99]
 
 onMounted(() => {
   getSystemInfo()
     .then((res) => {
-      title.value = res.data.title;
-      logo.value = res.data.logo;
-      slogan.value = res.data.slogan;
-      if (timer) clearInterval(timer); // 清除定时器
-      timer = setInterval(setContent, interTime.value);
+      title.value = res.data.title
+      logo.value = res.data.logo
+      slogan.value = res.data.slogan
+
+      // 确保获取数据后再启动定时器
+      if (timer) clearInterval(timer) // 清除已有定时器
+      timer = setInterval(setContent, interTime.value)
     })
     .catch((e) => {
-      ElMessage.error("获取系统配置失败：" + e.message);
-    });
+      ElMessage.error('获取系统配置失败：' + e.message)
+    })
 
   getLicenseInfo()
     .then((res) => {
-      license.value = res.data;
+      license.value = res.data
     })
     .catch((e) => {
-      license.value = { de_copy: false };
-      ElMessage.error("获取 License 配置失败：" + e.message);
-    });
+      license.value = { de_copy: false }
+      ElMessage.error('获取 License 配置失败：' + e.message)
+    })
 
-  httpGet("/api/menu/list?index=1")
+  httpGet('/api/menu/list?index=1')
     .then((res) => {
-      navs.value = res.data;
+      navs.value = res.data
     })
     .catch((e) => {
-      ElMessage.error("获取导航菜单失败：" + e.message);
-    });
+      ElMessage.error('获取导航菜单失败：' + e.message)
+    })
 
   checkSession()
     .then(() => {
-      isLogin.value = true;
+      isLogin.value = true
     })
-    .catch(() => {});
-});
+    .catch(() => {})
+})
+
+// 组件销毁时清除定时器
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+})
+
 // 打字机内容逐字符显示
 const setContent = () => {
+  if (!slogan.value) {
+    if (timer) clearInterval(timer)
+    timer = setTimeout(setContent, 100)
+    return
+  }
+
   if (initAnimation.value.length >= slogan.value.length) {
     // 文本已全部输出
-    initAnimation.value = "";
-    displayedChars.value = [];
-    if (timer) clearInterval(timer);
-    timer = setInterval(setContent, interTime.value);
+    initAnimation.value = ''
+    displayedChars.value = []
+    if (timer) clearInterval(timer)
+    timer = setInterval(setContent, interTime.value)
   } else {
-    const nextChar = slogan.value.charAt(initAnimation.value.length);
-    initAnimation.value += slogan.value.charAt(initAnimation.value.length); // 逐字符追加
-    displayedChars.value.push(nextChar);
-    interTime.value = interArr[Math.floor(Math.random() * interArr.length)]; // 设置随机间隔
-    if (timer) clearInterval(timer);
-    timer = setInterval(setContent, interTime.value);
+    const nextChar = slogan.value.charAt(initAnimation.value.length)
+    initAnimation.value += nextChar // 逐字符追加
+    displayedChars.value.push(nextChar)
+    interTime.value = interArr[Math.floor(Math.random() * interArr.length)] // 设置随机间隔
+    if (timer) clearInterval(timer)
+    timer = setInterval(setContent, interTime.value)
   }
-};
+}
 // 计算彩虹色
 const rainbowColor = (index) => {
-  const hue = (index * 40) % 360; // 每个字符间隔40度，形成彩虹色
-  return `hsl(${hue}, 90%, 50%)`; // 色调(hue)，饱和度(70%)，亮度(50%)
-};
+  const hue = (index * 40) % 360 // 每个字符间隔40度，形成彩虹色
+  return `hsl(${hue}, 90%, 50%)` // 色调(hue)，饱和度(70%)，亮度(50%)
+}
 </script>
 
 <style lang="stylus" scoped>

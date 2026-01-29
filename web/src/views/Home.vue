@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
     <div class="tab-box">
-      <div class="flex-center-col pt-2 mb-2">
+      <!-- <div class="flex-center-col pt-2 mb-2">
         <div class="flex flex-center-col">
           <div class="menuIcon" @click="store.setChatListExtend(!store.chatListExtend)">
             <el-tooltip content="隐藏对话列表" placement="right" v-if="store.chatListExtend">
@@ -12,16 +12,16 @@
             </el-tooltip>
           </div>
         </div>
-      </div>
+      </div> -->
 
-      <div class="menu-list">
+      <div class="menu-list pt-2">
         <ul>
           <li
             class="menu-list-item flex-center-col"
             v-for="item in mainNavs"
             :key="item.url"
             @click="changeNav(item)"
-            :class="item.url === curPath ? 'active' : ''"
+            :class="curPath.startsWith(item.url) ? 'active' : ''"
           >
             <span v-if="item.icon.startsWith('icon')">
               <i class="iconfont" :class="item.icon"></i>
@@ -48,7 +48,7 @@
                   v-for="(item, index) in moreNavs"
                   :key="item.url"
                   :class="{
-                    active: item.url === curPath,
+                    active: curPath.startsWith(item.url),
                     moreTitle: index !== 3 && index !== 4,
                     twoTittle: index === 3 || index === 4,
                   }"
@@ -58,7 +58,7 @@
                       <i class="iconfont" :class="item.icon"></i>
                     </span>
                     <el-image :src="item.icon" style="width: 20px; height: 20px" v-else />
-                    <span :class="item.url === curPath ? 'title active' : 'title'">{{
+                    <span class="title" :class="curPath.startsWith(item.url) ? 'active' : ''">{{
                       item.name
                     }}</span>
                   </a>
@@ -142,18 +142,18 @@
 </template>
 
 <script setup>
-import { UserFilled } from '@element-plus/icons-vue'
+import LoginDialog from '@/components/LoginDialog.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
-import { useRouter } from 'vue-router'
-import { computed, onMounted, ref, watch } from 'vue'
-import { httpGet } from '@/utils/http'
-import { ElMessage } from 'element-plus'
+import ConfigDialog from '@/components/UserInfoDialog.vue'
 import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import ConfigDialog from '@/components/UserInfoDialog.vue'
 import { showMessageError } from '@/utils/dialog'
-import LoginDialog from '@/components/LoginDialog.vue'
+import { httpGet } from '@/utils/http'
+import { UserFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const logo = ref('')
@@ -209,6 +209,7 @@ watch(
 // 监听路由变化;
 router.beforeEach((to, from, next) => {
   curPath.value = to.path
+  console.log(curPath.value)
   next()
 })
 
@@ -246,7 +247,7 @@ onMounted(() => {
     .then((res) => {
       mainNavs.value = res.data
       // 根据窗口的高度计算应该显示多少菜单
-      const rows = Math.floor((window.innerHeight - 100) / 90)
+      const rows = Math.floor((window.innerHeight - 100) / 75)
       if (res.data.length > rows) {
         mainNavs.value = res.data.slice(0, rows)
         moreNavs.value = res.data.slice(rows)

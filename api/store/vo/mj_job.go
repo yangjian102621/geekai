@@ -3,7 +3,7 @@ package vo
 type MidJourneyJob struct {
 	Id        uint   `json:"id"`
 	Type      string `json:"type"`
-	UserId    int    `json:"user_id"`
+	UserId    uint   `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	TaskId    string `json:"task_id"`
 	MessageId string `json:"message_id"`

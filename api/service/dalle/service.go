@@ -132,7 +132,11 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	}
 
 	var chatModel model.ChatModel
-	s.db.Where("id = ?", task.ModelId).First(&chatModel)
+	if task.ModelId > 0 {
+		s.db.Where("id", task.ModelId).First(&chatModel)
+	} else {
+		s.db.Where("value", task.ModelName).First(&chatModel)
+	}
 
 	// get image generation API KEY
 	var apiKey model.ApiKey
@@ -242,7 +246,7 @@ func (s *Service) CheckTaskStatus() {
 				if err != nil {
 					continue
 				}
-				err = s.userService.IncreasePower(int(job.UserId), job.Power, model.PowerLog{
+				err = s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 					Type:   types.PowerRefund,
 					Model:  task.ModelName,
 					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),

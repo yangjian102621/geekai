@@ -49,7 +49,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 
 	userId := 0
 	res := h.DB.Create(&model.File{
-		UserId:    userId,
+		UserId:    uint(userId),
 		Name:      file.Name,
 		ObjKey:    file.ObjKey,
 		URL:       file.URL,

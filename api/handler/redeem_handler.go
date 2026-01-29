@@ -61,7 +61,7 @@ func (h *RedeemHandler) Verify(c *gin.Context) {
 	}
 
 	tx := h.DB.Begin()
-	err := h.userService.IncreasePower(int(userId), item.Power, model.PowerLog{
+	err := h.userService.IncreasePower(userId, item.Power, model.PowerLog{
 		Type:   types.PowerRedeem,
 		Model:  "兑换码",
 		Remark: fmt.Sprintf("兑换码核销，算力：%d，兑换码：%s...", item.Power, item.Code[:10]),

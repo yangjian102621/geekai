@@ -14,11 +14,12 @@ import (
 	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
-	"net/http"
-	"strings"
 )
 
 // Websocket 连接处理 handler
@@ -103,7 +104,7 @@ func (h *WebsocketHandler) Client(c *gin.Context) {
 			}
 			// if the role bind a model_id, use role's bind model_id
 			if chatRole.ModelId > 0 {
-				chatMessage.RoleId = chatRole.ModelId
+				chatMessage.RoleId = int(chatRole.ModelId)
 			}
 			// get model info
 			var chatModel model.ChatModel

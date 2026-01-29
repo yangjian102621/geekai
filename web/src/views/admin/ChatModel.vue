@@ -24,12 +24,21 @@
             <el-tag type="success" v-else>聊天</el-tag>
           </template>
         </el-table-column>
+
+        <el-table-column prop="category" label="标签" />
         <el-table-column prop="value" label="模型值">
           <template #default="scope">
             <span>{{ scope.row.value }}</span>
             <el-icon class="copy-model" :data-clipboard-text="scope.row.value">
               <DocumentCopy />
             </el-icon>
+          </template>
+        </el-table-column>
+        <el-table-column prop="description" label="模型描述" width="180">
+          <template #default="scope">
+            <el-tooltip :content="scope.row.description || ''" placement="top" :show-after="200">
+              <div class="description-cell">{{ scope.row.description }}</div>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column prop="power" label="费率" />
@@ -61,7 +70,12 @@
       </el-table>
     </el-row>
 
-    <el-dialog v-model="showDialog" :title="title" :close-on-click-modal="false" style="width: 90%; max-width: 600px">
+    <el-dialog
+      v-model="showDialog"
+      :title="title"
+      :close-on-click-modal="false"
+      style="width: 90%; max-width: 600px"
+    >
       <el-form :model="item" label-width="120px" ref="formRef" :rules="rules">
         <el-form-item label="模型类型：" prop="type">
           <el-select v-model="item.type" placeholder="请选择模型类型">
@@ -78,15 +92,14 @@
           <el-input v-model="item.value" autocomplete="off" />
         </el-form-item>
 
+        <el-form-item label="模型标签" prop="category">
+          <el-input v-model="item.category" autocomplete="off" />
+        </el-form-item>
+
         <el-form-item label="消耗算力：" prop="power">
           <template #label>
             <div class="flex items-center">
               <span class="mr-1">消耗算力</span>
-              <el-tooltip effect="dark" content="每日签到赠送算力" raw-content placement="right">
-                <el-icon>
-                  <InfoFilled />
-                </el-icon>
-              </el-tooltip>
             </div>
           </template>
           <el-input v-model.number="item.power" autocomplete="off" placeholder="消耗算力" />
@@ -94,28 +107,50 @@
 
         <div v-if="item.type === 'chat'">
           <el-form-item label="最长响应：" prop="max_tokens">
-            <el-input v-model.number="item.max_tokens" autocomplete="off" placeholder="模型最大响应长度" />
+            <el-input
+              v-model.number="item.max_tokens"
+              autocomplete="off"
+              placeholder="模型最大响应长度"
+            />
           </el-form-item>
 
           <el-form-item>
             <template #label>
               <div class="flex items-center">
                 <span class="mr-1">最大上下文</span>
-                <el-tooltip effect="dark" content="去各大模型的官方 API 文档查询模型支持的最大上下文长度" raw-content placement="right">
+                <el-tooltip
+                  effect="dark"
+                  content="去各大模型的官方 API 文档查询模型支持的最大上下文长度"
+                  raw-content
+                  placement="right"
+                >
                   <el-icon>
                     <InfoFilled />
                   </el-icon>
                 </el-tooltip>
               </div>
             </template>
-            <el-input v-model.number="item.max_context" autocomplete="off" placeholder="模型最大上下文长度" />
+            <el-input
+              v-model.number="item.max_context"
+              autocomplete="off"
+              placeholder="模型最大上下文长度"
+            />
+          </el-form-item>
+
+          <el-form-item label="模型描述" prop="description">
+            <el-input v-model="item.description" autocomplete="off" />
           </el-form-item>
 
           <el-form-item label="创意度：" prop="temperature">
             <template #label>
               <div class="flex items-center">
                 <span class="mr-1">创意度</span>
-                <el-tooltip effect="dark" content="OpenAI 0-2，其他模型 0-1" raw-content placement="right">
+                <el-tooltip
+                  effect="dark"
+                  content="OpenAI 0-2，其他模型 0-1"
+                  raw-content
+                  placement="right"
+                >
                   <el-icon>
                     <InfoFilled />
                   </el-icon>
@@ -153,7 +188,12 @@
           <template #label>
             <div class="flex items-center">
               <span class="mr-1">开放状态</span>
-              <el-tooltip effect="dark" content="开放后，该模型将对所有用户可见。<br/> 如果模型没有启用，则当前设置无效。" raw-content placement="right">
+              <el-tooltip
+                effect="dark"
+                content="开放后，该模型将对所有用户可见。<br/> 如果模型没有启用，则当前设置无效。"
+                raw-content
+                placement="right"
+              >
                 <el-icon>
                   <InfoFilled />
                 </el-icon>
@@ -175,76 +215,75 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, reactive, ref } from "vue";
-import { httpGet, httpPost } from "@/utils/http";
-import { ElMessage } from "element-plus";
-import { dateFormat, removeArrayItem, substr } from "@/utils/libs";
-import { DocumentCopy, InfoFilled, Plus, Search } from "@element-plus/icons-vue";
-import { Sortable } from "sortablejs";
-import ClipboardJS from "clipboard";
-import Default from "md-editor-v3";
+import { httpGet, httpPost } from '@/utils/http'
+import { dateFormat, removeArrayItem, substr } from '@/utils/libs'
+import { DocumentCopy, InfoFilled, Plus, Search } from '@element-plus/icons-vue'
+import ClipboardJS from 'clipboard'
+import { ElMessage } from 'element-plus'
+import { Sortable } from 'sortablejs'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 
 // 变量定义
-const items = ref([]);
-const query = ref({ name: "" });
-const item = ref({});
-const showDialog = ref(false);
-const title = ref("");
+const items = ref([])
+const query = ref({ name: '' })
+const item = ref({})
+const showDialog = ref(false)
+const title = ref('')
 const rules = reactive({
-  type: [{ required: true, message: "请选择模型类型", trigger: "change" }],
-  name: [{ required: true, message: "请输入模型名称", trigger: "change" }],
-  value: [{ required: true, message: "请输入模型值", trigger: "change" }],
-  power: [{ required: true, message: "请输入消耗算力", trigger: "change" }],
-});
-const loading = ref(true);
-const formRef = ref(null);
+  type: [{ required: true, message: '请选择模型类型', trigger: 'change' }],
+  name: [{ required: true, message: '请输入模型名称', trigger: 'change' }],
+  value: [{ required: true, message: '请输入模型值', trigger: 'change' }],
+  power: [{ required: true, message: '请输入消耗算力', trigger: 'change' }],
+})
+const loading = ref(true)
+const formRef = ref(null)
 const type = ref([
-  { label: "聊天", value: "chat" },
-  { label: "绘图", value: "img" },
-  { label: "语音", value: "tts" },
-]);
+  { label: '聊天', value: 'chat' },
+  { label: '绘图', value: 'img' },
+  { label: '语音', value: 'tts' },
+])
 
 const voices = ref([
-  { label: "Echo", value: "echo" },
-  { label: "Fable", value: "fable" },
-  { label: "Onyx", value: "onyx" },
-  { label: "Nova", value: "nova" },
-  { label: "Shimmer", value: "shimmer" },
-]);
+  { label: 'Echo', value: 'echo' },
+  { label: 'Fable', value: 'fable' },
+  { label: 'Onyx', value: 'onyx' },
+  { label: 'Nova', value: 'nova' },
+  { label: 'Shimmer', value: 'shimmer' },
+])
 
 // 获取 API KEY
-const apiKeys = ref([]);
-httpGet("/api/admin/apikey/list")
+const apiKeys = ref([])
+httpGet('/api/admin/apikey/list')
   .then((res) => {
-    apiKeys.value = res.data;
+    apiKeys.value = res.data
   })
   .catch((e) => {
-    ElMessage.error("获取 API KEY 失败：" + e.message);
-  });
+    ElMessage.error('获取 API KEY 失败：' + e.message)
+  })
 
 // 获取数据
 const fetchData = () => {
-  httpGet("/api/admin/model/list", query.value)
+  httpGet('/api/admin/model/list', query.value)
     .then((res) => {
       if (res.data) {
         // 初始化数据
-        const arr = res.data;
+        const arr = res.data
         for (let i = 0; i < arr.length; i++) {
-          arr[i].last_used_at = dateFormat(arr[i].last_used_at);
+          arr[i].last_used_at = dateFormat(arr[i].last_used_at)
         }
-        items.value = arr;
+        items.value = arr
       }
-      loading.value = false;
+      loading.value = false
     })
     .catch(() => {
-      ElMessage.error("获取数据失败");
-    });
-};
+      ElMessage.error('获取数据失败')
+    })
+}
 
-const clipboard = ref(null);
+const clipboard = ref(null)
 onMounted(() => {
-  fetchData();
-  const drawBodyWrapper = document.querySelector(".el-table__body tbody");
+  fetchData()
+  const drawBodyWrapper = document.querySelector('.el-table__body tbody')
 
   // 初始化拖动排序插件
   Sortable.create(drawBodyWrapper, {
@@ -252,94 +291,104 @@ onMounted(() => {
     animation: 500,
     onEnd({ newIndex, oldIndex, from }) {
       if (oldIndex === newIndex) {
-        return;
+        return
       }
 
-      const sortedData = Array.from(from.children).map((row) => row.querySelector(".sort").getAttribute("data-id"));
-      const ids = [];
-      const sorts = [];
+      const sortedData = Array.from(from.children).map((row) =>
+        row.querySelector('.sort').getAttribute('data-id')
+      )
+      const ids = []
+      const sorts = []
       sortedData.forEach((id, index) => {
-        ids.push(parseInt(id));
-        sorts.push(index + 1);
-        items.value[index].sort_num = index + 1;
-      });
+        ids.push(parseInt(id))
+        sorts.push(index + 1)
+        items.value[index].sort_num = index + 1
+      })
 
-      httpPost("/api/admin/model/sort", { ids: ids, sorts: sorts })
+      httpPost('/api/admin/model/sort', { ids: ids, sorts: sorts })
         .then(() => {})
         .catch((e) => {
-          ElMessage.error("排序失败：" + e.message);
-        });
+          ElMessage.error('排序失败：' + e.message)
+        })
     },
-  });
+  })
 
-  clipboard.value = new ClipboardJS(".copy-model");
-  clipboard.value.on("success", () => {
-    ElMessage.success("复制成功！");
-  });
+  clipboard.value = new ClipboardJS('.copy-model')
+  clipboard.value.on('success', () => {
+    ElMessage.success('复制成功！')
+  })
 
-  clipboard.value.on("error", () => {
-    ElMessage.error("复制失败！");
-  });
-});
+  clipboard.value.on('error', () => {
+    ElMessage.error('复制失败！')
+  })
+})
 
 onUnmounted(() => {
-  clipboard.value.destroy();
-});
+  clipboard.value.destroy()
+})
 
 const add = function () {
-  title.value = "新增模型";
-  showDialog.value = true;
-  item.value = { enabled: true, power: 1, open: true, max_tokens: 1024, max_context: 8192, temperature: 0.9, options: {} };
-};
+  title.value = '新增模型'
+  showDialog.value = true
+  item.value = {
+    enabled: true,
+    power: 1,
+    open: true,
+    description: '',
+    max_tokens: 1024,
+    max_context: 8192,
+    temperature: 0.9,
+  }
+}
 
 const edit = function (row) {
-  title.value = "修改模型";
-  showDialog.value = true;
-  item.value = row;
-};
+  title.value = '修改模型'
+  showDialog.value = true
+  item.value = row
+}
 
 const save = function () {
   formRef.value.validate((valid) => {
-    item.value.temperature = parseFloat(item.value.temperature);
+    item.value.temperature = parseFloat(item.value.temperature)
     if (valid) {
-      showDialog.value = false;
-      item.value.key_id = parseInt(item.value.key_id);
-      httpPost("/api/admin/model/save", item.value)
+      showDialog.value = false
+      item.value.key_id = parseInt(item.value.key_id)
+      httpPost('/api/admin/model/save', item.value)
         .then(() => {
-          ElMessage.success("操作成功！");
-          fetchData();
+          ElMessage.success('操作成功！')
+          fetchData()
         })
         .catch((e) => {
-          ElMessage.error("操作失败，" + e.message);
-        });
+          ElMessage.error('操作失败，' + e.message)
+        })
     } else {
-      return false;
+      return false
     }
-  });
-};
+  })
+}
 
 const modelSet = (filed, row) => {
-  httpPost("/api/admin/model/set", { id: row.id, filed: filed, value: row[filed] })
+  httpPost('/api/admin/model/set', { id: row.id, filed: filed, value: row[filed] })
     .then(() => {
-      ElMessage.success("操作成功！");
+      ElMessage.success('操作成功！')
     })
     .catch((e) => {
-      ElMessage.error("操作失败：" + e.message);
-    });
-};
+      ElMessage.error('操作失败：' + e.message)
+    })
+}
 
 const remove = function (row) {
-  httpGet("/api/admin/model/remove?id=" + row.id)
+  httpGet('/api/admin/model/remove?id=' + row.id)
     .then(() => {
-      ElMessage.success("删除成功！");
+      ElMessage.success('删除成功！')
       items.value = removeArrayItem(items.value, row, (v1, v2) => {
-        return v1.id === v2.id;
-      });
+        return v1.id === v2.id
+      })
     })
     .catch((e) => {
-      ElMessage.error("删除失败：" + e.message);
-    });
-};
+      ElMessage.error('删除失败：' + e.message)
+    })
+}
 </script>
 
 <style lang="stylus" scoped>
@@ -359,6 +408,13 @@ const remove = function (row) {
       margin-left 6px
       cursor pointer
     }
+  }
+
+  .description-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
   }
 
   .el-select {

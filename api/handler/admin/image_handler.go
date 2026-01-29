@@ -18,6 +18,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -189,7 +190,7 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		tx.Delete(&job)
 		md = "mid-journey"
 		power = job.Power
-		userId = job.UserId
+		userId = int(job.UserId)
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		imgURL = job.ImgURL
@@ -205,7 +206,7 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		tx.Delete(&job)
 		md = "stable-diffusion"
 		power = job.Power
-		userId = job.UserId
+		userId = int(job.UserId)
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		imgURL = job.ImgURL
@@ -232,7 +233,7 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 	}
 
 	if progress != 100 {
-		err := h.userService.IncreasePower(userId, power, model.PowerLog{
+		err := h.userService.IncreasePower(uint(userId), power, model.PowerLog{
 			Type:   types.PowerRefund,
 			Model:  md,
 			Remark: remark,

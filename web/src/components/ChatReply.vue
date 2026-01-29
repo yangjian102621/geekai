@@ -7,7 +7,14 @@
         </div>
 
         <div class="chat-item">
-          <div class="content-wrapper" v-html="md.render(processContent(data.content))"></div>
+          <div
+            class="content-wrapper"
+            v-html="md.render(processContent(data.content))"
+            v-if="data.content"
+          ></div>
+          <div class="content-wrapper flex justify-start items-center" v-else>
+            <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
+          </div>
           <div class="bar flex text-gray-500" v-if="data.created_at">
             <span class="bar-item text-sm">{{ dateFormat(data.created_at) }}</span>
             <!-- <span class="bar-item">tokens: {{ data.tokens }}</span> -->
@@ -65,7 +72,14 @@
         </div>
         <div class="chat-item">
           <div class="content-wrapper">
-            <div class="content" v-html="md.render(processContent(data.content))"></div>
+            <div
+              class="content"
+              v-html="md.render(processContent(data.content))"
+              v-if="data.content"
+            ></div>
+            <div class="content flex justify-start items-center" v-else>
+              <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
+            </div>
           </div>
           <div class="bar text-gray-500" v-if="data.created_at">
             <span class="bar-item text-sm"> {{ dateFormat(data.created_at) }}</span>
@@ -124,6 +138,7 @@ import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import mathjaxPlugin from 'markdown-it-mathjax3'
 import { ref } from 'vue'
+import Thinking from './Thinking.vue'
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
   data: {

@@ -59,14 +59,6 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 }
 
 func (h *ChatHandler) sendMessage(ctx context.Context, session *types.ChatSession, role model.ChatRole, prompt string, ws *types.WsClient) error {
-	if !h.App.Debug {
-		defer func() {
-			if r := recover(); r != nil {
-				logger.Error("Recover message from error: ", r)
-			}
-		}()
-	}
-
 	var user model.User
 	res := h.DB.Model(&model.User{}).First(&user, session.UserId)
 	if res.Error != nil {
@@ -395,7 +387,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, session *types.ChatSession, p
 		power = session.Model.Power
 	}
 
-	err := h.userService.DecreasePower(int(userVo.Id), power, model.PowerLog{
+	err := h.userService.DecreasePower(userVo.Id, power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  session.Model.Value,
 		Remark: fmt.Sprintf("模型名称：%s, 提问长度：%d，回复长度：%d", session.Model.Name, promptTokens, replyTokens),
