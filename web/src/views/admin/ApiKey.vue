@@ -173,6 +173,7 @@ const presets = ref([
   { label: '中转01', value: 'https://api.geekai.pro' },
   { label: '中转03', value: 'https://api.geekai.me' },
   { label: 'OpenAI', value: 'https://api.openai.com' },
+  { label: 'MiniMax', value: 'https://api.minimax.io' },
 ])
 const preset = ref(null)
 

@@ -176,6 +176,15 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 		Stream:      input.Stream,
 		Temperature: input.ChatModel.Temperature,
 	}
+	// 兼容 MiniMax 模型，温度范围 0-1
+	if strings.HasPrefix(strings.ToLower(input.ChatModel.Value), "minimax") {
+		if req.Temperature > 1.0 {
+			req.Temperature = 1.0
+		}
+		if req.Temperature < 0 {
+			req.Temperature = 0
+		}
+	}
 	// 兼容 OpenAI 模型
 	if strings.HasPrefix(input.ChatModel.Value, "o1-") ||
 		strings.HasPrefix(input.ChatModel.Value, "o3-") ||
