@@ -6,6 +6,258 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42693930",
+      "name": "即梦AI-02",
+      "font_class": "jimeng2",
+      "unicode": "eabc",
+      "unicode_decimal": 60092
+    },
+    {
+      "icon_id": "42693927",
+      "name": "即梦AI-01",
+      "font_class": "jimeng",
+      "unicode": "eabb",
+      "unicode_decimal": 60091
+    },
+    {
+      "icon_id": "1283",
+      "name": "视频",
+      "font_class": "video",
+      "unicode": "e63f",
+      "unicode_decimal": 58943
+    },
+    {
+      "icon_id": "35224131",
+      "name": "empty-box",
+      "font_class": "empty-box",
+      "unicode": "e638",
+      "unicode_decimal": 58936
+    },
+    {
+      "icon_id": "9143175",
+      "name": "审核",
+      "font_class": "check2",
+      "unicode": "e7e2",
+      "unicode_decimal": 59362
+    },
+    {
+      "icon_id": "15450788",
+      "name": "创作者中心",
+      "font_class": "creator",
+      "unicode": "e6a1",
+      "unicode_decimal": 59041
+    },
+    {
+      "icon_id": "1134341",
+      "name": "提现",
+      "font_class": "withdraw",
+      "unicode": "e689",
+      "unicode_decimal": 59017
+    },
+    {
+      "icon_id": "10887127",
+      "name": "提现记录",
+      "font_class": "withdraw-log",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "34452904",
+      "name": "money-rmb",
+      "font_class": "money",
+      "unicode": "e831",
+      "unicode_decimal": 59441
+    },
+    {
+      "icon_id": "34467697",
+      "name": "doller",
+      "font_class": "doller",
+      "unicode": "e633",
+      "unicode_decimal": 58931
+    },
+    {
+      "icon_id": "9512709",
+      "name": "钱包￥",
+      "font_class": "wallet",
+      "unicode": "e64d",
+      "unicode_decimal": 58957
+    },
+    {
+      "icon_id": "8365142",
+      "name": "check",
+      "font_class": "check",
+      "unicode": "e810",
+      "unicode_decimal": 59408
+    },
+    {
+      "icon_id": "10213506",
+      "name": "refuse",
+      "font_class": "refuse",
+      "unicode": "e629",
+      "unicode_decimal": 58921
+    },
+    {
+      "icon_id": "19393806",
+      "name": "Reject",
+      "font_class": "Reject",
+      "unicode": "e70d",
+      "unicode_decimal": 59149
+    },
+    {
+      "icon_id": "248916",
+      "name": "clock",
+      "font_class": "clock",
+      "unicode": "e65d",
+      "unicode_decimal": 58973
+    },
+    {
+      "icon_id": "6151096",
+      "name": "eye-close",
+      "font_class": "eye-close",
+      "unicode": "e7aa",
+      "unicode_decimal": 59306
+    },
+    {
+      "icon_id": "6151097",
+      "name": "eye-open",
+      "font_class": "eye-open",
+      "unicode": "e7ab",
+      "unicode_decimal": 59307
+    },
+    {
+      "icon_id": "6145570",
+      "name": "list",
+      "font_class": "list",
+      "unicode": "e650",
+      "unicode_decimal": 58960
+    },
+    {
+      "icon_id": "13127646",
+      "name": "categroy",
+      "font_class": "categroy",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    },
+    {
+      "icon_id": "1613505",
+      "name": "展开",
+      "font_class": "zhankai",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
+      "icon_id": "10905663",
+      "name": "微信小程序",
+      "font_class": "wechat-mini",
+      "unicode": "e63d",
+      "unicode_decimal": 58941
+    },
+    {
+      "icon_id": "21530643",
+      "name": "牛头",
+      "font_class": "niutou",
+      "unicode": "e64c",
+      "unicode_decimal": 58956
+    },
+    {
+      "icon_id": "24877229",
+      "name": "七牛云",
+      "font_class": "qiniu",
+      "unicode": "e62c",
+      "unicode_decimal": 58924
+    },
+    {
+      "icon_id": "3717493",
+      "name": "存储服务",
+      "font_class": "storage",
+      "unicode": "e69a",
+      "unicode_decimal": 59034
+    },
+    {
+      "icon_id": "7133059",
+      "name": "本地存储",
+      "font_class": "localstorage",
+      "unicode": "ea8d",
+      "unicode_decimal": 60045
+    },
+    {
+      "icon_id": "9360420",
+      "name": "minio",
+      "font_class": "minio",
+      "unicode": "e855",
+      "unicode_decimal": 59477
+    },
+    {
+      "icon_id": "21053628",
+      "name": "阿里云",
+      "font_class": "aliyun",
+      "unicode": "e672",
+      "unicode_decimal": 58994
+    },
+    {
+      "icon_id": "30046100",
+      "name": "comment-sms",
+      "font_class": "sms",
+      "unicode": "e82c",
+      "unicode_decimal": 59436
+    },
+    {
+      "icon_id": "4893414",
+      "name": "短信",
+      "font_class": "duanxin",
+      "unicode": "e65c",
+      "unicode_decimal": 58972
+    },
+    {
+      "icon_id": "553324",
+      "name": "验证码",
+      "font_class": "yanzm",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "1264836",
+      "name": "邀请码",
+      "font_class": "yaoqm",
+      "unicode": "e66e",
+      "unicode_decimal": 58990
+    },
+    {
+      "icon_id": "24827618",
+      "name": "网易支付",
+      "font_class": "epay",
+      "unicode": "e628",
+      "unicode_decimal": 58920
+    },
+    {
+      "icon_id": "43863501",
+      "name": "Coze",
+      "font_class": "coze",
+      "unicode": "e61b",
+      "unicode_decimal": 58907
+    },
+    {
+      "icon_id": "11551884",
+      "name": "token",
+      "font_class": "token",
+      "unicode": "e68e",
+      "unicode_decimal": 59022
+    },
+    {
+      "icon_id": "38795534",
+      "name": "reset",
+      "font_class": "reset",
+      "unicode": "e649",
+      "unicode_decimal": 58953
+    },
+    {
+      "icon_id": "5838820",
+      "name": "统计",
+      "font_class": "stats",
+      "unicode": "e878",
+      "unicode_decimal": 59512
+    },
+    {
       "icon_id": "42692844",
       "name": "可灵大模型",
       "font_class": "keling",
@@ -491,7 +743,7 @@
     {
       "icon_id": "12600802",
       "name": "mp4",
-      "font_class": "mp1",
+      "font_class": "mp4",
       "unicode": "e647",
       "unicode_decimal": 58951
     },

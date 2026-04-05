@@ -104,16 +104,16 @@ const routes = [
         component: () => import('@/views/Song.vue'),
       },
       {
-        name: 'luma',
-        path: '/luma',
-        meta: { title: 'Luma视频创作' },
-        component: () => import('@/views/Luma.vue'),
+        name: 'video',
+        path: '/video',
+        meta: { title: '视频创作中心' },
+        component: () => import('@/views/Video.vue'),
       },
       {
-        name: 'keling',
-        path: '/keling',
-        meta: { title: 'KeLing视频创作' },
-        component: () => import('@/views/KeLing.vue'),
+        name: 'jimeng',
+        path: '/jimeng',
+        meta: { title: '即梦AI' },
+        component: () => import('@/views/Jimeng.vue'),
       },
     ],
   },
@@ -259,6 +259,18 @@ const routes = [
         component: () => import('@/views/admin/records/Medias.vue'),
       },
       {
+        path: '/admin/jimeng/jobs',
+        name: 'admin-jimeng-jobs',
+        meta: { title: '即梦AI任务' },
+        component: () => import('@/views/admin/jimeng/JimengJobs.vue'),
+      },
+      {
+        path: '/admin/jimeng/config',
+        name: 'admin-jimeng-config',
+        meta: { title: '即梦设置' },
+        component: () => import('@/views/admin/jimeng/JimengSetting.vue'),
+      },
+      {
         path: '/admin/powerLog',
         name: 'admin-power-log',
         meta: { title: '算力日志' },
@@ -358,4 +370,4 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-export { router, prevRoute }
+export { prevRoute, router }

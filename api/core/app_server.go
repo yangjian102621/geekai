@@ -34,6 +34,50 @@ import (
 	"gorm.io/gorm"
 )
 
+// AuthConfig 定义授权配置
+type AuthConfig struct {
+	ExactPaths  map[string]bool // 精确匹配的路径
+	PrefixPaths map[string]bool // 前缀匹配的路径
+}
+
+var authConfig = &AuthConfig{
+	ExactPaths: map[string]bool{
+		"/api/user/login":          false,
+		"/api/user/logout":         false,
+		"/api/user/resetPass":      false,
+		"/api/user/register":       false,
+		"/api/admin/login":         false,
+		"/api/admin/logout":        false,
+		"/api/admin/login/captcha": false,
+		"/api/app/list":            false,
+		"/api/app/type/list":       false,
+		"/api/app/list/user":       false,
+		"/api/model/list":          false,
+		"/api/mj/imgWall":          false,
+		"/api/mj/notify":           false,
+		"/api/invite/hits":         false,
+		"/api/sd/imgWall":          false,
+		"/api/dall/imgWall":        false,
+		"/api/product/list":        false,
+		"/api/menu/list":           false,
+		"/api/markMap/client":      false,
+		"/api/payment/doPay":       false,
+		"/api/payment/payWays":     false,
+		"/api/download":            false,
+		"/api/dall/models":         false,
+	},
+	PrefixPaths: map[string]bool{
+		"/api/test/":           false,
+		"/api/payment/notify/": false,
+		"/api/user/clogin":     false,
+		"/api/config/":         false,
+		"/api/function/":       false,
+		"/api/sms/":            false,
+		"/api/captcha/":        false,
+		"/static/":             false,
+	},
+}
+
 type AppServer struct {
 	Config    *types.AppConfig
 	Engine    *gin.Engine
@@ -61,13 +105,28 @@ func (s *AppServer) Init(debug bool, client *redis.Client) {
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
+
+	// 重命名 config 表字段
+	if db.Migrator().HasColumn(&model.Config{}, "config_json") {
+		db.Migrator().RenameColumn(&model.Config{}, "config_json", "value")
+	}
+	if db.Migrator().HasColumn(&model.Config{}, "marker") {
+		db.Migrator().RenameColumn(&model.Config{}, "marker", "name")
+	}
+	if db.Migrator().HasIndex(&model.Config{}, "idx_chatgpt_configs_key") {
+		db.Migrator().DropIndex(&model.Config{}, "idx_chatgpt_configs_key")
+	}
+	if db.Migrator().HasIndex(&model.Config{}, "marker") {
+		db.Migrator().DropIndex(&model.Config{}, "marker")
+	}
+
 	// load system configs
 	var sysConfig model.Config
-	err := db.Where("marker", "system").First(&sysConfig).Error
+	err := db.Where("name", "system").First(&sysConfig).Error
 	if err != nil {
 		return fmt.Errorf("failed to load system config: %v", err)
 	}
-	err = utils.JsonDecode(sysConfig.Config, &s.SysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &s.SysConfig)
 	if err != nil {
 		return fmt.Errorf("failed to decode system config: %v", err)
 	}
@@ -99,6 +158,7 @@ func (s *AppServer) Run(db *gorm.DB) error {
 		&model.MidJourneyJob{},
 		&model.UserLoginLog{},
 		&model.DallJob{},
+		&model.JimengJob{},
 	)
 	// 手动删除字段
 	if db.Migrator().HasColumn(&model.Order{}, "deleted_at") {
@@ -216,6 +276,11 @@ func corsMiddleware() gin.HandlerFunc {
 // 用户授权验证
 func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if !needLogin(c) {
+			c.Next()
+			return
+		}
+
 		clientProtocols := c.GetHeader("Sec-WebSocket-Protocol")
 		var tokenString string
 		isAdminApi := strings.Contains(c.Request.URL.Path, "/api/admin/")
@@ -234,18 +299,13 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		}
 
 		if tokenString == "" {
-			if needLogin(c) {
-				resp.NotAuth(c, "You should put Authorization in request headers")
-				c.Abort()
-				return
-			} else { // 直接放行
-				c.Next()
-				return
-			}
+			resp.NotAuth(c, "You should put Authorization in request headers")
+			c.Abort()
+			return
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok && needLogin(c) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			if isAdminApi {
@@ -256,21 +316,21 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 
 		})
 
-		if err != nil && needLogin(c) {
+		if err != nil {
 			resp.NotAuth(c, fmt.Sprintf("Error with parse auth token: %v", err))
 			c.Abort()
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || !token.Valid && needLogin(c) {
+		if !ok || !token.Valid {
 			resp.NotAuth(c, "Token is invalid")
 			c.Abort()
 			return
 		}
 
 		expr := utils.IntValue(utils.InterfaceToString(claims["expired"]), 0)
-		if expr > 0 && int64(expr) < time.Now().Unix() && needLogin(c) {
+		if expr > 0 && int64(expr) < time.Now().Unix() {
 			resp.NotAuth(c, "Token is expired")
 			c.Abort()
 			return
@@ -280,55 +340,46 @@ func authorizeMiddleware(s *AppServer, client *redis.Client) gin.HandlerFunc {
 		if isAdminApi {
 			key = fmt.Sprintf("admin/%v", claims["user_id"])
 		}
-		if _, err := client.Get(context.Background(), key).Result(); err != nil && needLogin(c) {
+		if _, err := client.Get(context.Background(), key).Result(); err != nil {
 			resp.NotAuth(c, "Token is not found in redis")
 			c.Abort()
 			return
 		}
 		c.Set(types.LoginUserID, claims["user_id"])
+		c.Next()
 	}
 }
 
 func needLogin(c *gin.Context) bool {
-	if c.Request.URL.Path == "/api/user/login" ||
-		c.Request.URL.Path == "/api/user/logout" ||
-		c.Request.URL.Path == "/api/user/resetPass" ||
-		c.Request.URL.Path == "/api/admin/login" ||
-		c.Request.URL.Path == "/api/admin/logout" ||
-		c.Request.URL.Path == "/api/admin/login/captcha" ||
-		c.Request.URL.Path == "/api/user/register" ||
-		c.Request.URL.Path == "/api/chat/history" ||
-		c.Request.URL.Path == "/api/chat/detail" ||
-		c.Request.URL.Path == "/api/chat/list" ||
-		c.Request.URL.Path == "/api/app/list" ||
-		c.Request.URL.Path == "/api/app/type/list" ||
-		c.Request.URL.Path == "/api/app/list/user" ||
-		c.Request.URL.Path == "/api/model/list" ||
-		c.Request.URL.Path == "/api/mj/imgWall" ||
-		c.Request.URL.Path == "/api/mj/notify" ||
-		c.Request.URL.Path == "/api/invite/hits" ||
-		c.Request.URL.Path == "/api/sd/imgWall" ||
-		c.Request.URL.Path == "/api/dall/imgWall" ||
-		c.Request.URL.Path == "/api/product/list" ||
-		c.Request.URL.Path == "/api/menu/list" ||
-		c.Request.URL.Path == "/api/markMap/client" ||
-		c.Request.URL.Path == "/api/payment/doPay" ||
-		c.Request.URL.Path == "/api/payment/payWays" ||
-		c.Request.URL.Path == "/api/suno/detail" ||
-		c.Request.URL.Path == "/api/suno/play" ||
-		c.Request.URL.Path == "/api/download" ||
-		c.Request.URL.Path == "/api/dall/models" ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/test") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/payment/notify/") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/user/clogin") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/config/") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/function/") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/sms/") ||
-		strings.HasPrefix(c.Request.URL.Path, "/api/captcha/") ||
-		strings.HasPrefix(c.Request.URL.Path, "/static/") {
+	path := c.Request.URL.Path
+
+	// 如果不是 API 路径，不需要登录
+	if !strings.HasPrefix(path, "/api") {
 		return false
 	}
+
+	// 检查精确匹配的路径
+	if skip, exists := authConfig.ExactPaths[path]; exists {
+		return skip
+	}
+
+	// 检查前缀匹配的路径
+	for prefix, skip := range authConfig.PrefixPaths {
+		if strings.HasPrefix(path, prefix) {
+			return skip
+		}
+	}
+
 	return true
+}
+
+// 跳过授权
+func (s *AppServer) SkipAuth(url string, prefix bool) {
+	if prefix {
+		authConfig.PrefixPaths[url] = false
+	} else {
+		authConfig.ExactPaths[url] = false
+	}
 }
 
 // 统一参数处理

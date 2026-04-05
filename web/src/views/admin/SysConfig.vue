@@ -169,10 +169,10 @@
                 <el-form-item>
                   <template #label>
                     <div class="label-title">
-                      默认翻译模型
+                      系统辅助AI模型
                       <el-tooltip
                         effect="dark"
-                        content="选择一个默认模型来翻译提示词"
+                        content="用来辅助用户生成提示词，翻译的AI模型，默认使用 gpt-4o-mini"
                         raw-content
                         placement="right"
                       >
@@ -183,9 +183,9 @@
                     </div>
                   </template>
                   <el-select
-                    v-model.number="system['translate_model_id']"
+                    v-model.number="system['assistant_model_id']"
                     :filterable="true"
-                    placeholder="选择一个默认模型来翻译提示词"
+                    placeholder="选择一个系统辅助AI模型"
                     style="width: 100%"
                   >
                     <el-option

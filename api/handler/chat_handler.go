@@ -95,6 +95,15 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
+	// 这里做个全局的异常处理，防止整个请求异常，导致 SSE 连接断开
+	defer func() {
+		if err := recover(); err != nil {
+			logger.Errorf("chat handler error: %v", err)
+			pushMessage(c, ChatEventError, err)
+			c.Abort()
+		}
+	}()
+
 	// 使用旧的聊天数据覆盖模型和角色ID
 	var chat model.ChatItem
 	h.DB.Where("chat_id", input.ChatId).First(&chat)

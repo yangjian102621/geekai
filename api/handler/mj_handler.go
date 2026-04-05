@@ -160,7 +160,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		UserId:           userId,
 		ImgArr:           data.ImgArr,
 		Mode:             h.App.SysConfig.MjMode,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		TranslateModelId: h.App.SysConfig.AssistantModelId,
 	}
 	job := model.MidJourneyJob{
 		Type:      data.TaskType,

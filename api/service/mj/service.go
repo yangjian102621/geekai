@@ -191,7 +191,7 @@ func (s *Service) DownloadImages() {
 				if strings.HasPrefix(v.OrgURL, "https://cdn.discordapp.com") {
 					proxy = true
 				}
-				imgURL, err := s.uploaderManager.GetUploadHandler().PutUrlFile(v.OrgURL, proxy)
+				imgURL, err := s.uploaderManager.GetUploadHandler().PutUrlFile(v.OrgURL, ".png", proxy)
 
 				if err != nil {
 					logger.Errorf("error with download image %s, %v", v.OrgURL, err)
@@ -212,7 +212,9 @@ func (s *Service) DownloadImages() {
 // PushTask push a new mj task in to task queue
 func (s *Service) PushTask(task types.MjTask) {
 	logger.Debugf("add a new MidJourney task to the task list: %+v", task)
-	s.taskQueue.RPush(task)
+	if err := s.taskQueue.RPush(task); err != nil {
+		logger.Errorf("push mj task to queue failed: %v", err)
+	}
 }
 
 // SyncTaskProgress 异步拉取任务

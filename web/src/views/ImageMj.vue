@@ -688,87 +688,26 @@
                           v-if="item.progress === 100"
                         >
                           <div class="opt" v-if="item['can_opt']">
-                            <div class="flex flex-row justify-start items-center mb-3">
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
-                                @click="upscale(1, item)"
-                              >
-                                U1
-                              </button>
-
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
-                                @click="upscale(2, item)"
-                              >
-                                U2
-                              </button>
-
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
-                                @click="upscale(3, item)"
-                              >
-                                U3
-                              </button>
-
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
-                                @click="upscale(4, item)"
-                              >
-                                U4
-                              </button>
-
-                              <div class="show-prompt ml-2">
-                                <el-popover
-                                  placement="left"
-                                  title="提示词"
-                                  :width="240"
-                                  trigger="hover"
+                            <el-row :gutter="8" class="mb-3">
+                              <el-col :span="6" v-for="i in 4" :key="'u' + i">
+                                <button
+                                  class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
+                                  @click="upscale(i, item)"
                                 >
-                                  <template #reference>
-                                    <i class="iconfont icon-prompt text-white text-xl"></i>
-                                  </template>
-
-                                  <template #default>
-                                    <div class="mj-list-item-prompt">
-                                      <span>{{ item.prompt }}</span>
-                                      <el-icon
-                                        class="copy-prompt-mj"
-                                        :data-clipboard-text="item.prompt"
-                                      >
-                                        <DocumentCopy />
-                                      </el-icon>
-                                    </div>
-                                  </template>
-                                </el-popover>
-                              </div>
-                            </div>
-
-                            <div class="flex flex-row justify-start items-center mb-3">
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
-                                @click="variation(1, item)"
-                              >
-                                V1
-                              </button>
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
-                                @click="variation(2, item)"
-                              >
-                                V2
-                              </button>
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
-                                @click="variation(3, item)"
-                              >
-                                V3
-                              </button>
-                              <button
-                                class="px-3 h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600 ml-2"
-                                @click="variation(4, item)"
-                              >
-                                V4
-                              </button>
-                            </div>
+                                  U{{ i }}
+                                </button>
+                              </el-col>
+                            </el-row>
+                            <el-row :gutter="8" class="mb-3">
+                              <el-col :span="6" v-for="i in 4" :key="'v' + i">
+                                <button
+                                  class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
+                                  @click="variation(i, item)"
+                                >
+                                  V{{ i }}
+                                </button>
+                              </el-col>
+                            </el-row>
                           </div>
 
                           <div
@@ -797,13 +736,28 @@
                                 </el-button>
                               </el-tooltip>
                               <el-tooltip content="删除" placement="top">
-                                <el-button
-                                  type="danger"
-                                  :icon="Delete"
-                                  @click="removeImage(item)"
-                                  circle
-                                />
+                                <el-button type="danger" @click="removeImage(item)" circle>
+                                  <i class="iconfont icon-remove"></i>
+                                </el-button>
                               </el-tooltip>
+                              <el-popover
+                                placement="top"
+                                title="提示词"
+                                :width="240"
+                                trigger="hover"
+                              >
+                                <template #reference>
+                                  <el-button type="primary" circle>
+                                    <i class="iconfont icon-prompt text-white"></i>
+                                  </el-button>
+                                </template>
+
+                                <template #default>
+                                  <div class="mj-list-item-prompt">
+                                    <span>{{ item.prompt }}</span>
+                                  </div>
+                                </template>
+                              </el-popover>
                             </div>
                           </div>
                         </div>
@@ -866,7 +820,7 @@ import { useSharedStore } from '@/store/sharedata'
 import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { copyObj, removeArrayItem } from '@/utils/libs'
-import { Delete, DocumentCopy, InfoFilled, Plus, UploadFilled } from '@element-plus/icons-vue'
+import { Delete, InfoFilled, Plus, UploadFilled } from '@element-plus/icons-vue'
 import Clipboard from 'clipboard'
 import Compressor from 'compressorjs'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'

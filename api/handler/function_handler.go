@@ -213,7 +213,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		Prompt:           prompt,
 		ModelId:          0,
 		ModelName:        "dall-e-3",
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		TranslateModelId: h.App.SysConfig.AssistantModelId,
 		N:                1,
 		Quality:          "standard",
 		Size:             "1024x1024",
@@ -265,27 +265,27 @@ func (h *FunctionHandler) WebSearch(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	
+
 	// 从参数中获取搜索关键词
 	keyword, ok := params["keyword"].(string)
 	if !ok || keyword == "" {
 		resp.ERROR(c, "搜索关键词不能为空")
 		return
 	}
-	
+
 	// 从参数中获取最大页数，默认为1页
 	maxPages := 1
 	if pages, ok := params["max_pages"].(float64); ok {
 		maxPages = int(pages)
 	}
-	
+
 	// 获取用户ID
 	userID, ok := params["user_id"].(float64)
 	if !ok {
 		resp.ERROR(c, "用户ID不能为空")
 		return
 	}
-	
+
 	// 查询用户信息
 	var user model.User
 	res := h.DB.Where("id = ?", int(userID)).First(&user)
@@ -293,21 +293,21 @@ func (h *FunctionHandler) WebSearch(c *gin.Context) {
 		resp.ERROR(c, "用户不存在")
 		return
 	}
-	
+
 	// 检查用户算力是否足够
 	searchPower := 1 // 每次搜索消耗1点算力
 	if user.Power < searchPower {
 		resp.ERROR(c, "算力不足，无法执行网络搜索")
 		return
 	}
-	
+
 	// 执行网络搜索
 	searchResults, err := crawler.SearchWeb(keyword, maxPages)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("搜索失败: %v", err))
 		return
 	}
-	
+
 	// 扣减用户算力
 	err = h.userService.DecreasePower(user.Id, searchPower, model.PowerLog{
 		Type:   types.PowerConsume,
@@ -318,7 +318,7 @@ func (h *FunctionHandler) WebSearch(c *gin.Context) {
 		resp.ERROR(c, "扣减算力失败："+err.Error())
 		return
 	}
-	
+
 	// 返回搜索结果
 	resp.SUCCESS(c, searchResults)
 }

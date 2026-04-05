@@ -85,7 +85,7 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 		Type:             types.VideoLuma,
 		Prompt:           data.Prompt,
 		Params:           params,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		TranslateModelId: h.App.SysConfig.AssistantModelId,
 	}
 	// 插入数据库
 	job := model.VideoJob{
@@ -181,7 +181,7 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 		Type:             types.VideoKeLing,
 		Prompt:           data.Prompt,
 		Params:           params,
-		TranslateModelId: h.App.SysConfig.TranslateModelId,
+		TranslateModelId: h.App.SysConfig.AssistantModelId,
 		Channel:          data.Channel,
 	}
 	// 插入数据库

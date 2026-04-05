@@ -1,0 +1,567 @@
+// 视频生成页面统一样式
+.page-video {
+  display: flex;
+  min-height: 100vh;
+  background: var(--chat-bg);
+  
+  // Element Plus 样式覆盖
+  :deep(.el-form-item__label) {
+    color: var(--text-theme-color);
+  }
+  
+  :deep(.el-textarea) {
+    --el-input-focus-border-color: var(--el-color-primary);
+  }
+  
+  :deep(.el-textarea__inner) {
+    background: transparent;
+    color: var(--text-theme-color);
+  }
+  
+  .el-input__wrapper {
+    background: transparent;
+    padding: 5px;
+  }
+  
+  // 左侧参数面板
+  .params-panel {
+    min-width: 320px;
+    max-width: 320px;
+    margin: 10px;
+    padding: 0 15px 20px 15px;
+    border-radius: 10px;
+    color: var(--text-theme-color);
+    font-size: 14px;
+    overflow: auto;
+    background: var(--card-bg);
+    
+    h2 {
+      font-weight: bold;
+      font-size: 20px;
+      text-align: center;
+      color: var(--theme-textcolor-normal);
+      margin-bottom: 20px;
+    }
+    
+    // 隐藏滚动条
+    ::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background-color: transparent;
+    }
+    
+    // 标签页样式
+    .video-type-tabs {
+      margin-bottom: 20px;
+      
+      :deep(.el-tabs__item.is-active) {
+        color: var(--theme-textcolor-normal);
+        font-size: 16px;
+      }
+      
+      :deep(.el-tabs__item) {
+        color: var(--text-theme-color);
+        font-size: 16px;
+      }
+      
+      :deep(.el-tabs__active-bar) {
+        background-color: var(--theme-textcolor-normal);
+      }
+      
+      .el-tabs {
+        --el-tabs-header-height: 45px;
+      }
+    }
+    
+    // 参数行
+    .param-line {
+      padding: 5px 0;
+      
+      &.pt {
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+      
+      .label {
+        margin-right: 5px;
+        position: relative;
+        top: 1px;
+      }
+      
+      .form-item-inner {
+        display: flex;
+        align-items: center;
+        
+        .el-icon {
+          margin-left: 10px;
+        }
+      }
+    }
+    
+    // 表单项样式
+    .el-form {
+      .el-form-item__label {
+        color: var(--text-theme-color);
+      }
+      
+      .el-input, .el-slider {
+        width: 100%;
+      }
+      
+      .el-select {
+        width: 100%;
+        --el-select-input-focus-border-color: var(--el-color-primary);
+        --el-input-focus-border-color: var(--el-color-primary);
+        
+        .el-input__wrapper {
+          background: var(--chat-bg);
+        }
+        
+        .el-input__inner {
+          color: var(--text-theme-color);
+        }
+      }
+    }
+    
+    // 网格内容项
+    .grid-content {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 8px 14px;
+      display: flex;
+      cursor: pointer;
+      margin-bottom: 10px;
+      border: 1px solid var(--chat-bg);
+      
+      &:hover {
+        border: 1px solid var(--theme-border-hover);
+      }
+      
+      &.active {
+        border: 1px solid var(--theme-border-hover);
+      }
+      
+      .icon {
+        width: 20px;
+        height: 20px;
+        margin-bottom: 5px;
+        
+        &.proportion {
+          width: 20px;
+          height: 20px;
+        }
+      }
+      
+      .texts {
+        margin-left: 5px;
+        margin-top: 2px;
+        color: var(--text-theme-color);
+      }
+    }
+    
+    // 运镜控制
+    .camera-control {
+      padding: 10px;
+      border-radius: 4px;
+      background: var(--card-bg);
+      
+      :deep(.el-form-item:last-child) {
+        margin-bottom: 0 !important;
+      }
+    }
+    
+    // 生成按钮
+    .generate-btn {
+      .iconfont {
+        margin-right: 5px;
+      }
+    }
+    
+    // 项目组样式
+    .item-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      
+      .label {
+        margin-right: 10px;
+      }
+    }
+    
+    // 图片模式切换样式
+    .image-mode-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+      .label {
+        margin-right: 10px;
+        color: var(--text-theme-color);
+      }
+    }
+    
+    // 过渡动画
+    .slide-fade-enter-active {
+      transition: all 0.3s ease-out;
+    }
+    
+    .slide-fade-leave-active {
+      transition: all 0.3s ease-in;
+    }
+    
+    .slide-fade-enter-from {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    
+    .slide-fade-leave-to {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+  }
+ 
+  
+  // KeLing 参数面板特有样式
+  .params-container {
+    // 任务类型标签页
+    .task-type-tabs {
+      margin-bottom: 20px;
+      
+      .text {
+        margin-bottom: 10px;
+        color: #6b778c;
+        font-size: 15px;
+      }
+    }
+    
+    // 图片上传样式
+    .img-inline {
+      display: flex;
+      flex-wrap: wrap;
+      
+      .img-uploader {
+        text-align: center;
+        position: relative;
+        
+        :deep(.el-upload) {
+          border: 1px dashed var(--el-border-color);
+          border-radius: 6px;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          width: 120px;
+          height: 120px;
+          transition: var(--el-transition-duration-fast);
+          margin-bottom: 20px;
+          
+          &:hover {
+            border-color: var(--el-color-primary);
+          }
+        }
+        
+        .removeimg {
+          position: absolute;
+          right: -5px;
+          top: -5px;
+          z-index: 10;
+          cursor: pointer;
+          color: #f56c6c;
+          font-size: 20px;
+        }
+        
+      }
+      
+      .btn-swap {
+        .icon-exchange {
+          color: var(--text-theme-color);
+          cursor: pointer;
+          font-size: 20px;
+        }
+      }
+    }
+    
+    // 提交按钮
+    .submit-btn {
+      display: flex;
+      margin: 20px 0;
+      
+      .el-button {
+        width: 100%;
+      }
+    }
+    
+    // 算力信息
+    .text-info {
+      width: 100%;
+      padding: 10px 0;
+      
+      .el-tag {
+        margin-right: 10px;
+      }
+    }
+  }
+  
+  // 右侧主要内容区域
+  .main-content {
+    padding: 1.5rem;
+    flex: 1;
+    background: var(--chat-bg);
+    color: var(--text-theme-color);
+    overflow-x: hidden;
+    
+    // 作品标题栏
+    .works-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      
+      .h-title {
+        color: var(--text-theme-color);
+        margin: 0;
+      }
+      
+      // .filter-buttons {
+      //   .el-button-group {
+      //     .el-button {
+      //       --el-button-bg-color: var(--card-bg);
+      //       --el-button-border-color: var(--chat-bg);
+      //       --el-button-text-color: var(--text-theme-color);
+      //       --el-button-hover-bg-color: var(--theme-border-hover);
+      //       --el-button-hover-border-color: var(--theme-border-hover);
+      //       --el-button-active-bg-color: var(--el-color-primary);
+      //       --el-button-active-border-color: var(--el-color-primary);
+            
+      //       &.is-type-primary {
+      //         --el-button-bg-color: var(--el-color-primary);
+      //         --el-button-border-color: var(--el-color-primary);
+      //         --el-button-text-color: #ffffff;
+      //       }
+      //     }
+      //   }
+      // }
+    }
+    
+    // 任务列表
+    .video-list {
+      .list-box {
+        padding: 0;
+        
+        .item {
+          display: flex;
+          flex-flow: row;
+          align-items: center;
+          min-height: 100px;
+          padding: 10px 15px;
+          border-radius: 10px;
+          cursor: pointer;
+          margin-bottom: 20px;
+          background: var(--card-bg);
+          
+          .left {
+            .container {
+              width: 160px;
+              position: relative;
+              overflow: hidden;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              
+              .video {
+                width: 160px;
+                height: 120px;
+                border-radius: 5px;
+                background-color: var(--el-fill-color-light);
+              }
+              
+              .el-image {
+                width: 160px;
+                height: 90px;
+                border-radius: 5px;
+              }
+              
+              .duration {
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                background-color: rgba(14, 8, 8, 0.7);
+                padding: 0 3px;
+                font-family: 'Input Sans';
+                font-size: 14px;
+                font-weight: 700;
+                border-radius: 0.125rem;
+              }
+              
+              .play {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 50%;
+                border: none;
+                border-radius: 5px;
+                background: rgba(100, 100, 100, 0.3);
+                cursor: pointer;
+                color: var(--text-theme-color);
+                opacity: 0;
+                transform: translate(-50%, 0px);
+                transition: opacity 0.3s ease 0s;
+              }
+              
+              &:hover {
+                .play {
+                  opacity: 1;
+                }
+              }
+            }
+          }
+          
+          .center {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-flow: column;
+            padding: 0 20px;
+            
+            .prompt, .failed {
+              padding: 0;
+              font-size: 16px;
+              max-height: 80px;
+              line-height: 28px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            
+            .prompt {
+              color: var(--text-fb);
+              cursor: text;
+            }
+            
+            .failed {
+              color: #E4696B;
+            }
+            
+            .pb-2 {
+              padding-bottom: 8px;
+              
+              .el-tag {
+                margin-right: 4px;
+                margin-bottom: 4px;
+              }
+            }
+          }
+          
+          .right {
+            display: flex;
+            justify-content: right;
+            min-width: 200px;
+            font-size: 14px;
+            padding: 0;
+            
+            .tools {
+              display: flex;
+              justify-content: left;
+              align-items: center;
+              flex-flow: row;
+              height: 90px;
+              
+              .btn-publish {
+                padding: 2px 10px;
+                
+                .text {
+                  margin-right: 10px;
+                }
+              }
+              
+              .btn-icon {
+                background: none;
+                padding: 6px;
+                transition: background 0.6s ease 0s;
+                color: #919191;
+                
+                &:hover {
+                  color: var(--el-color-primary);
+                }
+                
+                .downloading {
+                  width: 16px;
+                }
+              }
+            }
+          }
+          
+          .right-error {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        }
+      }
+      
+      // 分页
+      .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
+  
+  // 通用按钮样式
+  .btn {
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    color: var(--theme-text-color-primary);
+    background-color: var(--btn-bg);
+    
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+  
+  // 无数据样式
+  .no-data {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-theme-color);
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .page-video {
+    flex-direction: column;
+    
+    .params-panel {
+      min-width: 100%;
+      max-width: 100%;
+      margin: 10px 0;
+    }
+    
+    .main-content {
+      padding: 1rem;
+      
+      .video-list .list-box .item {
+        .left .container {
+          width: 120px;
+          
+          .video, .el-image {
+            width: 120px;
+          }
+        }
+        
+        .center {
+          padding: 0 10px;
+        }
+        
+        .right {
+          min-width: 120px;
+        }
+      }
+    }
+  }
+}

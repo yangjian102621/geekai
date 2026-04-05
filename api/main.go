@@ -17,6 +17,7 @@ import (
 	logger2 "geekai/logger"
 	"geekai/service"
 	"geekai/service/dalle"
+	"geekai/service/jimeng"
 	"geekai/service/mj"
 	"geekai/service/oss"
 	"geekai/service/payment"
@@ -140,6 +141,7 @@ func main() {
 		fx.Provide(handler.NewProductHandler),
 		fx.Provide(handler.NewConfigHandler),
 		fx.Provide(handler.NewPowerLogHandler),
+		fx.Provide(handler.NewJimengHandler),
 
 		fx.Provide(admin.NewConfigHandler),
 		fx.Provide(admin.NewAdminHandler),
@@ -153,6 +155,7 @@ func main() {
 		fx.Provide(admin.NewOrderHandler),
 		fx.Provide(admin.NewChatHandler),
 		fx.Provide(admin.NewPowerLogHandler),
+		fx.Provide(admin.NewAdminJimengHandler),
 
 		// 创建服务
 		fx.Provide(sms.NewSendServiceManager),
@@ -207,6 +210,12 @@ func main() {
 			s.Run()
 			s.SyncTaskProgress()
 			s.DownloadFiles()
+		}),
+
+		// 即梦AI 服务
+		fx.Provide(jimeng.NewService),
+		fx.Invoke(func(service *jimeng.Service) {
+			service.Start()
 		}),
 		fx.Provide(service.NewUserService),
 		fx.Provide(payment.NewAlipayService),
@@ -500,6 +509,14 @@ func main() {
 			group.GET("list", h.List)
 			group.GET("remove", h.Remove)
 			group.GET("publish", h.Publish)
+		}),
+
+		// 即梦AI 路由
+		fx.Invoke(func(s *core.AppServer, h *handler.JimengHandler) {
+			h.RegisterRoutes()
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
+			h.RegisterRoutes()
 		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {

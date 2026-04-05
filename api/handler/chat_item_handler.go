@@ -20,6 +20,7 @@ import (
 
 // List 获取会话列表
 func (h *ChatHandler) List(c *gin.Context) {
+	logger.Info(h.GetLoginUserId(c))
 	if !h.IsLogin(c) {
 		resp.SUCCESS(c)
 		return
@@ -28,7 +29,7 @@ func (h *ChatHandler) List(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	var items = make([]vo.ChatItem, 0)
 	var chats []model.ChatItem
-	h.DB.Where("user_id", userId).Order("id DESC").Find(&chats)
+	h.DB.Debug().Where("user_id", userId).Order("id DESC").Find(&chats)
 	if len(chats) == 0 {
 		resp.SUCCESS(c, items)
 		return

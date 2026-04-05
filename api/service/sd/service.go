@@ -253,7 +253,9 @@ func (s *Service) checkTaskProgress(apiKey model.ApiKey) (*TaskProgressResp, err
 
 func (s *Service) PushTask(task types.SdTask) {
 	logger.Debugf("add a new MidJourney task to the task list: %+v", task)
-	s.taskQueue.RPush(task)
+	if err := s.taskQueue.RPush(task); err != nil {
+		logger.Errorf("push sd task to queue failed: %v", err)
+	}
 }
 
 // CheckTaskStatus 检查任务状态，自动删除过期或者失败的任务

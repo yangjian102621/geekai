@@ -91,7 +91,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 
-  --primary-color: #21aa93
+  // --primary-color: #21aa93
 
   h1 { font-size: 2em; } /* 通常是 2em */
   h2 { font-size: 1.5em; } /* 通常是 1.5em */
@@ -116,6 +116,18 @@ html, body {
       overflow-y auto
     }
   }
+}
+
+.el-popper.is-customized {
+  /* 设置内边距以保证高度为32px */
+  padding: 6px 12px;
+  background: linear-gradient(180deg, #e1bee7, #7e57c2);
+  color #fff
+}
+
+.el-popper.is-customized .el-popper__arrow::before {
+  background: linear-gradient(180deg, #b39ddb, #7e57c2);
+  right: 0;
 }
 
 /* 省略显示 */

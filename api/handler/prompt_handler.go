@@ -48,7 +48,7 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.LyricPromptTemplate, data.Prompt), h.App.SysConfig.TranslateModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.LyricPromptTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -79,7 +79,7 @@ func (h *PromptHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.TranslateModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -108,7 +108,7 @@ func (h *PromptHandler) Video(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.TranslateModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -158,9 +158,9 @@ func (h *PromptHandler) MetaPrompt(c *gin.Context) {
 }
 
 func (h *PromptHandler) getPromptModel() string {
-	if h.App.SysConfig.TranslateModelId > 0 {
+	if h.App.SysConfig.AssistantModelId > 0 {
 		var chatModel model.ChatModel
-		h.DB.Where("id", h.App.SysConfig.TranslateModelId).First(&chatModel)
+		h.DB.Where("id", h.App.SysConfig.AssistantModelId).First(&chatModel)
 		return chatModel.Value
 	}
 	return "gpt-4o"

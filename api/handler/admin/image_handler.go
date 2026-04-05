@@ -194,7 +194,6 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		imgURL = job.ImgURL
-		break
 	case "sd":
 		var job model.SdJob
 		if res := h.DB.Where("id", id).First(&job); res.Error != nil {
@@ -210,7 +209,6 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		imgURL = job.ImgURL
-		break
 	case "dall":
 		var job model.DallJob
 		if res := h.DB.Where("id", id).First(&job); res.Error != nil {
@@ -226,7 +224,6 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		imgURL = job.ImgURL
-		break
 	default:
 		resp.ERROR(c, types.InvalidArgs)
 		return

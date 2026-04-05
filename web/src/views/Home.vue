@@ -69,7 +69,7 @@
           <el-popover placement="right-end" trigger="hover" v-if="loginUser.id">
             <template #reference>
               <li class="menu-list-item flex-center-col">
-                <i class="iconfont icon-config" />
+                <i class="iconfont icon-user-circle" />
               </li>
             </template>
             <template #default>
@@ -97,6 +97,11 @@
               </ul>
             </template>
           </el-popover>
+          <div v-else class="mb-2 flex justify-center">
+            <el-button @click="store.setShowLoginDialog(true)" type="primary" size="small">
+              登录
+            </el-button>
+          </div>
           <div class="menu-bot-item">
             <a @click="router.push('/')" class="link-button">
               <i class="iconfont icon-house"></i>
@@ -109,14 +114,14 @@
       </div>
     </div>
     <el-scrollbar class="right-main">
-      <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
+      <!-- <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
         <el-button
           @click="router.push('/login')"
           class="btn-go animate__animated animate__pulse animate__infinite"
           round
           >登录</el-button
         >
-      </div>
+      </div> -->
       <div class="content custom-scroll">
         <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
@@ -209,7 +214,6 @@ watch(
 // 监听路由变化;
 router.beforeEach((to, from, next) => {
   curPath.value = to.path
-  console.log(curPath.value)
   next()
 })
 
@@ -281,7 +285,9 @@ const logout = function () {
   httpGet('/api/user/logout')
     .then(() => {
       removeUserToken()
-      router.push('/login')
+      // 刷新组件
+      routerViewKey.value += 1
+      loginUser.value = {}
     })
     .catch(() => {
       ElMessage.error('注销失败！')
