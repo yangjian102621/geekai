@@ -110,7 +110,7 @@
             <el-select
               v-model="roleId"
               filterable
-              placeholder="角色"
+              placeholder="应用"
               @change="_newChat"
               class="role-select"
               style="width: 150px"
@@ -306,7 +306,7 @@
                       </div>
                       <div class="flex-between">
                         <div class="flex little-btns">
-                          <span class="tool-item-btn" @click="realtimeChat">
+                          <!-- <span class="tool-item-btn" @click="realtimeChat">
                             <el-tooltip
                               class="box-item"
                               effect="dark"
@@ -316,7 +316,7 @@
                             >
                               <i class="iconfont icon-mic-bold"></i>
                             </el-tooltip>
-                          </span>
+                          </span> -->
 
                           <span class="tool-item-btn">
                             <el-tooltip class="box-item" effect="dark" content="上传附件">
@@ -329,18 +329,17 @@
                         </div>
                         <div class="flex little-btns">
                           <span class="send-btn tool-item-btn">
-                            <!-- showStopGenerate -->
-                            <el-button
-                              type="info"
-                              v-if="showStopGenerate"
-                              @click="stopGenerate"
-                              plain
-                            >
+                            <el-button type="info" v-if="isGenerating" @click="stopGenerate" plain>
                               <el-icon>
                                 <VideoPause />
                               </el-icon>
                             </el-button>
-                            <el-button @click="sendMessage" style="color: #754ff6" v-else>
+                            <el-button
+                              @click="sendMessage()"
+                              style="color: #754ff6"
+                              :disabled="isGenerating"
+                              v-else
+                            >
                               <el-tooltip class="box-item" effect="dark" content="发送">
                                 <el-icon><Promotion /></el-icon>
                               </el-tooltip>
@@ -361,31 +360,7 @@
       </el-main>
     </el-container>
 
-    <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
-      <div class="notice">
-        <div v-html="notice"></div>
-      </div>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="notShow" type="primary">我知道了，不再显示</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
     <ChatSetting :show="showChatSetting" @hide="showChatSetting = false" />
-
-    <!-- <el-dialog
-      v-model="showConversationDialog"
-      title="实时语音通话"
-      :before-close="hangUp"
-    >
-      <realtime-conversation
-        @close="showConversationDialog = false"
-        ref="conversationRef"
-        :height="dialogHeight + 'px'"
-      />
-    </el-dialog> -->
 
     <el-dialog v-model="showConversationDialog" title="实时语音通话" :fullscreen="true">
       <div v-loading="!frameLoaded">
@@ -409,7 +384,7 @@ import FileSelect from '@/components/FileSelect.vue'
 import Welcome from '@/components/Welcome.vue'
 import { checkSession, getClientId, getSystemInfo } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
-import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
+import { closeLoading, showLoading, showMessageError, showMessageInfo } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { isMobile, randString, removeArrayItem, UUID } from '@/utils/libs'
 import {
@@ -426,11 +401,10 @@ import { fetchEventSource } from '@microsoft/fetch-event-source'
 import Clipboard from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import 'highlight.js/styles/a11y-dark.css'
-import MarkdownIt from 'markdown-it'
-import emoji from 'markdown-it-emoji'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserToken } from '../store/session'
+import { substr } from '../utils/libs'
 
 const title = ref('GeekAI-智能助手')
 const logo = ref('')
@@ -453,9 +427,7 @@ const isLogin = ref(false)
 const showHello = ref(true)
 const inputRef = ref(null)
 const textHeightRef = ref(null)
-const showNotice = ref(false)
-const notice = ref('')
-const noticeKey = ref('SYSTEM_NOTICE')
+
 const store = useSharedStore()
 const row = ref(1)
 const showChatSetting = ref(false)
@@ -651,30 +623,6 @@ getSystemInfo()
     ElMessage.error('获取系统配置失败：' + e.message)
   })
 
-const md = new MarkdownIt({
-  breaks: true,
-  html: true,
-  linkify: true,
-  typographer: true,
-}).use(emoji)
-// 获取系统公告
-httpGet('/api/config/get?key=notice')
-  .then((res) => {
-    try {
-      notice.value = md.render(res.data['content'])
-      const oldNotice = localStorage.getItem(noticeKey.value)
-      // 如果公告有更新，则显示公告
-      if (oldNotice !== notice.value && notice.value.length > 10) {
-        showNotice.value = true
-      }
-    } catch (e) {
-      console.warn(e)
-    }
-  })
-  .catch((e) => {
-    ElMessage.error('获取系统配置失败：' + e.message)
-  })
-
 // 获取工具函数
 httpGet('/api/function/list')
   .then((res) => {
@@ -685,10 +633,10 @@ httpGet('/api/function/list')
   })
 
 const prompt = ref('')
-const showStopGenerate = ref(false) // 停止生成
+const isGenerating = ref(false)
 const lineBuffer = ref('') // 输出缓冲行
-const canSend = ref(true)
 const isNewMsg = ref(true)
+const abortController = ref(null)
 
 onMounted(() => {
   resizeElement()
@@ -712,7 +660,7 @@ const initData = async () => {
     // 获取角色列表
     const roleRes = await httpGet('/api/app/list')
     roles.value = roleRes.data
-    if (roles.value.length > 0) {
+    if (roles.value.length > 0 && !roleId.value) {
       roleId.value = roles.value[0].id
     }
 
@@ -743,9 +691,10 @@ const initData = async () => {
     }
   }
 }
-
+abortController.value = new AbortController()
 // 发送 SSE 请求
 const sendSSERequest = async (message) => {
+  isGenerating.value = true
   try {
     await fetchEventSource('/api/chat/message', {
       method: 'POST',
@@ -754,24 +703,35 @@ const sendSSERequest = async (message) => {
       },
       body: JSON.stringify(message),
       openWhenHidden: true,
+      // 重试机制，避免连接断开后一直重试
+      retry: 3000,
+      // 设置重试延迟为0，确保不重试
+      retryDelay: 3000,
+      // 设置最大重试次数为0
+      maxRetries: 3,
+      signal: abortController.value.signal,
       onopen(response) {
         if (response.ok && response.status === 200) {
           console.log('SSE connection opened')
         } else {
-          throw new Error(`Failed to open SSE connection: ${response.status}`)
+          console.error('SSE connection failed', response)
+          isGenerating.value = false
         }
       },
       onmessage(msg) {
         try {
           const data = JSON.parse(msg.data)
           if (data.type === 'error') {
-            ElMessage.error(data.body)
-            enableInput()
+            const reply = chatData.value[chatData.value.length - 1]
+            if (reply) {
+              reply['content'].text = `<div class="text-red-500 rounded-md">${data.body}</div>`
+            }
+            isGenerating.value = false
             return
           }
 
           if (data.type === 'end') {
-            enableInput()
+            isGenerating.value = false
             lineBuffer.value = '' // 清空缓冲
 
             // 获取 token
@@ -794,6 +754,21 @@ const sendSSERequest = async (message) => {
               .catch(() => {})
             isNewMsg.value = true
             tmpChatTitle.value = message.prompt
+            console.log('chatData.value', chatData.value)
+            // 判断 chatlist 中指定的 chat_id 是否存在
+            const chat = chatList.value.find((chat) => chat.chat_id === chatId.value)
+            if (!chat) {
+              const _role = getRoleById(roleId.value)
+              chatList.value.unshift({
+                chat_id: chatId.value,
+                title: substr(message.prompt, 15),
+                role_id: roleId.value,
+                model_id: modelID.value,
+                icon: _role.icon,
+                created_at: new Date().getTime(),
+                updated_at: new Date().getTime(),
+              })
+            }
             return
           }
 
@@ -814,6 +789,11 @@ const sendSSERequest = async (message) => {
             }
           }
 
+          // 回答完毕，更新完整的消息内容
+          if (data.type === 'complete') {
+            chatData.value[chatData.value.length - 1] = data.body
+          }
+
           // 将聊天框的滚动条滑动到最底部
           nextTick(() => {
             document
@@ -823,41 +803,50 @@ const sendSSERequest = async (message) => {
           })
         } catch (error) {
           console.error('Error processing message:', error)
-          enableInput()
+          isGenerating.value = false
           ElMessage.error('消息处理出错，请重试')
         }
       },
       onerror(err) {
         console.error('SSE Error:', err)
-        enableInput()
-        ElMessage.error('连接已断开，请重试')
+        try {
+          abortController.value && abortController.value.abort()
+        } catch (e) {
+          console.error('AbortController abort error:', e)
+        }
+        isGenerating.value = false
+        // ElMessage.error('连接已断开，发生错误：' + err.message)
+        const reply = chatData.value[chatData.value.length - 1]
+        if (reply) {
+          reply['content'].text = `<div class="text-red-500 rounded-md">${err.message}</div>`
+        }
       },
       onclose() {
         console.log('SSE connection closed')
-        enableInput()
+        isGenerating.value = false
       },
     })
   } catch (error) {
     console.error('Failed to send message:', error)
-    enableInput()
+    isGenerating.value = false
     ElMessage.error('发送消息失败，请重试')
   }
 }
 
 // 发送消息
-const sendMessage = (messageId) => {
+const sendMessage = (messageId = 0) => {
   if (!isLogin.value) {
     console.log('未登录')
     store.setShowLoginDialog(true)
     return
   }
 
-  if (canSend.value === false) {
+  if (isGenerating.value) {
     ElMessage.warning('AI 正在作答中，请稍后...')
     return
   }
 
-  if (prompt.value.trim().length === 0 || canSend.value === false) {
+  if (prompt.value === '') {
     showMessageError('请输入要发送的消息！')
     return false
   }
@@ -865,7 +854,7 @@ const sendMessage = (messageId) => {
   // 追加消息
   chatData.value.push({
     type: 'prompt',
-    id: randString(32),
+    id: 0,
     icon: loginUser.value.avatar,
     content: {
       text: prompt.value,
@@ -896,7 +885,6 @@ const sendMessage = (messageId) => {
   })
 
   showHello.value = false
-  disableInput(false)
 
   // 异步发送 SSE 请求
   sendSSERequest({
@@ -908,7 +896,7 @@ const sendMessage = (messageId) => {
     tools: toolSelected.value,
     stream: stream.value,
     files: files.value,
-    last_msg_id: messageId,
+    last_msg_id: messageId || 0,
   })
 
   prompt.value = ''
@@ -974,7 +962,7 @@ const newChat = () => {
     edit: false,
     removing: false,
   }
-  showStopGenerate.value = false
+  isGenerating.value = false
   loadChatHistory(chatId.value)
   router.push(`/chat/${chatId.value}`)
 }
@@ -993,7 +981,7 @@ const loadChat = function (chat) {
   roleId.value = chat.role_id
   modelID.value = chat.model_id
   chatId.value = chat.chat_id
-  showStopGenerate.value = false
+  isGenerating.value = false
   loadChatHistory(chatId.value)
   router.push(`/chat/${chatId.value}`)
 }
@@ -1064,16 +1052,6 @@ const removeChat = function (chat) {
         })
     })
     .catch(() => {})
-}
-
-const disableInput = (force) => {
-  canSend.value = false
-  showStopGenerate.value = !force
-}
-
-const enableInput = () => {
-  canSend.value = true
-  showStopGenerate.value = false
 }
 
 const onInput = (e) => {
@@ -1147,8 +1125,9 @@ const loadChatHistory = function (chatId) {
           chat_id: chatId,
           role_id: roleId.value,
           type: 'reply',
-          id: randString(32),
+          id: 0,
           icon: _role['icon'],
+          isHello: true,
           content: {
             text: _role['hello_msg'],
             files: [],
@@ -1178,27 +1157,40 @@ const loadChatHistory = function (chatId) {
 
 // 停止生成
 const stopGenerate = function () {
-  showStopGenerate.value = false
-  httpGet('/api/chat/stop?session_id=' + getClientId()).then(() => {
-    enableInput()
-  })
+  if (abortController.value) {
+    abortController.value.abort()
+    isGenerating.value = false
+    httpGet('/api/chat/stop?session_id=' + getClientId())
+      .then(() => {
+        showMessageInfo('会话已中断')
+      })
+      .catch((e) => {
+        showMessageError('中断对话失败:' + e.message)
+      })
+  }
 }
 
 // 重新生成
 const reGenerate = function (messageId) {
   // 恢复发送按钮状态
-  canSend.value = true
-  showStopGenerate.value = false
-  console.log(messageId)
+  if (isGenerating.value) {
+    ElMessage.warning('AI 正在作答中，请稍后...')
+    return
+  }
 
-  chatData.value = chatData.value.filter((item) => item.id < messageId)
-  // 保存用户消息内容，填入输入框
-  const userPrompt = chatData.value[chatData.value.length - 1].content.text
-  // 删除用户消息
-  const lastMessage = chatData.value.pop()
-  // 填入输入框
-  prompt.value = userPrompt
-  sendMessage(lastMessage.id)
+  console.log('messageId', messageId)
+  console.log('chatData.value', chatData.value)
+
+  // 判断 messageId 是整数
+  if (messageId !== '' && isNaN(messageId)) {
+    ElMessage.warning('消息 ID 不合法，无法重新生成')
+    return
+  }
+
+  chatData.value = chatData.value.filter((item) => item.id < messageId && !item.isHello)
+  const userPrompt = chatData.value.pop()
+  prompt.value = userPrompt.content.text
+  sendMessage(messageId)
   // 将光标定位到输入框并聚焦
   nextTick(() => {
     if (inputRef.value) {
@@ -1318,11 +1310,6 @@ const getModelValue = (model_id) => {
   return ''
 }
 
-const notShow = () => {
-  localStorage.setItem(noticeKey.value, notice.value)
-  showNotice.value = false
-}
-
 const files = ref([])
 // 插入文件
 const insertFile = (file) => {
@@ -1361,47 +1348,21 @@ const realtimeChat = () => {
 // };
 </script>
 
-<style scoped lang="stylus">
-@import '../assets/css/chat-plus.styl'
+<style scoped lang="scss">
+@use '@/assets/css/chat-plus.scss' as *;
 </style>
 
-<style lang="stylus">
-@import '../assets/css/markdown/vue.css';
-.notice-dialog {
-  .el-dialog__header {
-    padding-bottom 0
-  }
-
-  .el-dialog__body {
-    padding 0 20px
-
-    h2 {
-      margin: 20px 0 15px 0;
-    }
-
-    ol, ul {
-      padding-left 10px
-    }
-
-    ol {
-      list-style decimal-leading-zero
-      padding-left 20px
-    }
-
-    ul {
-      list-style inside
-    }
-  }
-}
+<style lang="scss">
+@use '@/assets/css/markdown/vue.css' as *;
+@use 'sass:color';
 
 .input-container {
   .el-textarea {
     .el-textarea__inner {
-      padding-right 40px
+      padding-right: 40px;
     }
   }
 }
-
 
 .model-selector-popover {
   max-width: 820px !important;
@@ -1424,7 +1385,7 @@ const realtimeChat = () => {
   .category-tabs {
     display: flex;
     flex-wrap: wrap;
-    border-bottom: 1px solid #E4E7ED;
+    border-bottom: 1px solid #e4e7ed;
     margin-bottom: 16px;
 
     .category-tab {
@@ -1438,21 +1399,21 @@ const realtimeChat = () => {
       border-bottom: 2px solid transparent;
 
       &:hover {
-        color: #409EFF;
+        color: #409eff;
       }
 
       &.active {
-        color: #409EFF;
-        border-bottom-color: #409EFF;
+        color: #409eff;
+        border-bottom-color: #409eff;
         font-weight: 500;
       }
 
       &.reset-filter {
-        color: #F56C6C;
+        color: #f56c6c;
         margin-left: auto;
 
         &:hover {
-          color: darken(#F56C6C, 10%);
+          color: color.adjust(#f56c6c, $lightness: -10%);
         }
       }
     }
@@ -1473,7 +1434,7 @@ const realtimeChat = () => {
   }
 
   .model-card {
-    border: 1px solid #DCDFE6;
+    border: 1px solid #dcdfe6;
     border-radius: 6px;
     padding: 14px;
     cursor: pointer;

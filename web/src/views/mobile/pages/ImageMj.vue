@@ -1,6 +1,6 @@
 <template>
   <div class="mobile-mj">
-    <van-form @submit="generate">
+    <van-form>
       <div class="text-line">图片比例</div>
       <div class="text-line">
         <van-row :gutter="10">
@@ -191,20 +191,21 @@
         </van-collapse>
       </div>
 
-      <div class="text-line pt-6">
-        <el-tag
-          >绘图消耗{{ mjPower }}算力，U/V 操作消耗{{ mjActionPower }}算力，当前算力：{{
-            power
-          }}</el-tag
+      <div class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm">
+        <button
+          @click="generate"
+          :disabled="loading"
+          type="button"
+          class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
         >
-      </div>
-
-      <div class="text-line">
-        <van-button round block type="primary" native-type="submit"> 立即生成 </van-button>
+          <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+          <i v-else class="iconfont icon-chuangzuo"></i>
+          <span>{{ loading ? '创作中...' : '立即生成' }}({{ mjPower }}算力)</span>
+        </button>
       </div>
     </van-form>
 
-    <h3>任务列表</h3>
+    <h3 class="m-3">任务列表</h3>
     <div class="running-job-list pt-3 pb-3">
       <van-empty
         v-if="runningJobs.length === 0"
@@ -236,7 +237,7 @@
       </van-grid>
     </div>
 
-    <h3>创作记录</h3>
+    <h3 class="m-3">创作记录</h3>
     <div class="finish-job-list">
       <van-empty
         v-if="finishedJobs.length === 0"
@@ -255,7 +256,7 @@
         @load="onLoad"
       >
         <van-grid :gutter="10" :column-num="2">
-          <van-grid-item v-for="item in finishedJobs" :key="item.id">
+          <van-grid-item v-for="item in finishedJobs" :key="item.id" class="min-h-[270px]">
             <div class="failed" v-if="item.progress === 101">
               <div class="title">任务失败</div>
               <div class="opt">
@@ -376,10 +377,10 @@ const params = ref({
   model: models[0].value,
   chaos: 0,
   stylize: 0,
-  seed: 0,
+  seed: -1,
   img_arr: [],
   raw: false,
-  iw: 0,
+  iw: 0.7,
   prompt: '',
   neg_prompt: '',
   tile: false,
@@ -734,6 +735,6 @@ const tabChange = (tab) => {
 }
 </script>
 
-<style lang="stylus">
-@import "../../../assets/css/mobile/image-mj.styl"
+<style lang="scss">
+@use '@/assets/css/mobile/image-mj.scss' as *;
 </style>

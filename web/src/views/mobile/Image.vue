@@ -1,51 +1,53 @@
 <template>
   <div class="mobile-image container">
-    <van-tabs v-model:active="activeName" class="my-tab" animated sticky>
-      <van-tab title="MJ" name="mj" v-if="activeMenu.mj">
+    <CustomTabs :model-value="activeName" @update:model-value="activeName = $event" class="my-tab">
+      <CustomTabPane name="mj" label="MJ" v-if="activeMenu.mj">
         <image-mj />
-      </van-tab>
-      <van-tab title="SD" name="sd" v-if="activeMenu.sd">
+      </CustomTabPane>
+      <CustomTabPane name="sd" label="SD" v-if="activeMenu.sd">
         <image-sd />
-      </van-tab>
-      <van-tab title="DALL" name="dall" v-if="activeMenu.dall">
+      </CustomTabPane>
+      <CustomTabPane name="dall" label="DALL" v-if="activeMenu.dall">
         <image-dall />
-      </van-tab>
-    </van-tabs>
+      </CustomTabPane>
+    </CustomTabs>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import ImageMj from "@/views/mobile/pages/ImageMj.vue";
-import ImageSd from "@/views/mobile/pages/ImageSd.vue";
-import ImageDall from "@/views/mobile/pages/ImageDall.vue";
-import { httpGet } from "@/utils/http";
+import CustomTabPane from '@/components/ui/CustomTabPane.vue'
+import CustomTabs from '@/components/ui/CustomTabs.vue'
+import { httpGet } from '@/utils/http'
+import ImageDall from '@/views/mobile/pages/ImageDall.vue'
+import ImageMj from '@/views/mobile/pages/ImageMj.vue'
+import ImageSd from '@/views/mobile/pages/ImageSd.vue'
+import { onMounted, ref } from 'vue'
 
-const activeName = ref("");
-const menus = ref([]);
+const activeName = ref('')
+const menus = ref([])
 const activeMenu = ref({
   mj: false,
   sd: false,
   dall: false,
-});
+})
 
 onMounted(() => {
-  httpGet("/api/menu/list").then((res) => {
-    menus.value = res.data;
+  httpGet('/api/menu/list').then((res) => {
+    menus.value = res.data
     activeMenu.value = {
-      mj: menus.value.some((item) => item.url === "/mj"),
-      sd: menus.value.some((item) => item.url === "/sd"),
-      dall: menus.value.some((item) => item.url === "/dalle"),
-    };
-  });
-});
+      mj: menus.value.some((item) => item.url === '/mj'),
+      sd: menus.value.some((item) => item.url === '/sd'),
+      dall: menus.value.some((item) => item.url === '/dalle'),
+    }
+  })
+})
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .mobile-image {
   .my-tab {
     .van-tab__panel {
-      padding 10px
+      padding: 10px;
     }
   }
 }

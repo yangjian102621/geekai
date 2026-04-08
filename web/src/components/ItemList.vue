@@ -1,7 +1,12 @@
 <template>
   <div class="item__list-box" ref="containerRef">
     <el-row :gutter="gap">
-      <el-col v-for="item in items" :key="item.id" :span="span" :style="{marginBottom:gap+'px'} ">
+      <el-col
+        v-for="item in items"
+        :key="item.id"
+        :span="span"
+        :style="{ marginBottom: gap + 'px' }"
+      >
         <slot :item="item"></slot>
       </el-col>
     </el-row>
@@ -10,23 +15,23 @@
 
 <script setup>
 // 列表组件
-import {onMounted, ref} from "vue";
+import { onMounted, ref } from 'vue'
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
   items: {
     type: Array,
-    required: true
+    required: true,
   },
   gap: {
     type: Number,
-    default: 10
+    default: 10,
   },
   width: {
     type: Number,
-    default: 240
-  }
-});
+    default: 240,
+  },
+})
 
 const containerRef = ref(null)
 const span = ref(12)
@@ -41,7 +46,6 @@ const calcSpan = () => {
     span.value = 1
     return
   }
-  console.log(cols)
   while (cols > 1) {
     if (24 % cols === 0) {
       span.value = 24 / cols
@@ -54,10 +58,8 @@ const calcSpan = () => {
 window.onresize = () => calcSpan()
 </script>
 
-<style lang="stylus">
-
+<style lang="scss">
 .item__list-box {
-  width 100%
+  width: 100%;
 }
-
 </style>

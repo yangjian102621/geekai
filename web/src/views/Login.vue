@@ -1,360 +1,147 @@
 <template>
-  <div class="flex-center loginPage">
-    <div class="left">
-      <div class="login-box">
-        <AccountTop>
-          <template #default>
-            <div class="wechatLog flex-center" v-if="wechatLoginURL !== ''">
-              <a :href="wechatLoginURL" @click="setRoute(router.currentRoute.value.path)">
-                <i class="iconfont icon-wechat"></i>使用微信登录
-              </a>
-            </div>
-          </template>
-        </AccountTop>
+  <div
+    class="min-h-screen flex items-center justify-center p-5 relative overflow-auto"
+    style="background: var(--login-bg)"
+  >
+    <router-link
+      to="/"
+      class="fixed top-5 left-5 z-50 flex items-center justify-center w-11 h-11 border border-transparent rounded-xl text-white no-underline shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+      style="background: var(--btnColor)"
+      title="返回首页"
+    >
+      <i class="iconfont icon-home text-xl"></i>
+    </router-link>
+    <div class="w-full max-w-md mx-auto">
+      <div
+        class="rounded-3xl p-10 shadow-2xl backdrop-blur-sm relative overflow-hidden"
+        style="background: var(--login-card-bg); border: 1px solid var(--login-card-border)"
+      >
+        <div class="absolute top-0 left-0 right-0 h-1" style="background: var(--btnColor)"></div>
+        <div class="text-center mb-8">
+          <h1
+            class="text-3xl font-semibold m-0 mb-2 tracking-tight"
+            style="color: var(--login-title-color)"
+          >
+            {{ title }}
+          </h1>
+          <p class="text-base m-0 leading-relaxed" style="color: var(--login-subtitle-color)">
+            {{ subtitle }}
+          </p>
+        </div>
 
-        <div class="input-form">
-          <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules">
-            <el-form-item label="" prop="username">
-              <div class="form-title">账号</div>
-              <el-input
-                v-model="ruleForm.username"
-                size="large"
-                placeholder="请输入账号"
-                @keyup="handleKeyup"
-              />
-            </el-form-item>
-            <el-form-item label="" prop="password">
-              <div class="flex-between w100">
-                <div class="form-title">密码</div>
-                <div class="form-forget text-color-primary" @click="router.push('/resetpassword')">
-                  忘记密码？
-                </div>
-              </div>
-
-              <el-input
-                size="large"
-                v-model="ruleForm.password"
-                placeholder="请输入密码"
-                show-password
-                autocomplete="off"
-                @keyup="handleKeyup"
-              />
-            </el-form-item>
-            <el-form-item label="" prop="agreement" :class="{ 'agreement-error': agreementError }">
-              <div class="agreement-box" :class="{ shake: isShaking }">
-                <el-checkbox v-model="ruleForm.agreement" @change="handleAgreementChange">
-                  我已阅读并同意
-                  <span class="agreement-link" @click.stop.prevent="openAgreement"
-                    >《用户协议》</span
-                  >
-                  和
-                  <span class="agreement-link" @click.stop.prevent="openPrivacy">《隐私政策》</span>
-                </el-checkbox>
-              </div>
-            </el-form-item>
-            <el-form-item>
-              <el-button class="login-btn" size="large" type="primary" @click="login"
-                >登录</el-button
-              >
-            </el-form-item>
-          </el-form>
+        <div class="register-content">
+          <login-dialog
+            :show="true"
+            :active="active"
+            :inviteCode="inviteCode"
+            @success="handleRegisterSuccess"
+            @changeActive="handleChangeActive"
+            ref="loginDialogRef"
+          />
         </div>
       </div>
-    </div>
-    <account-bg />
 
-    <captcha v-if="enableVerify" @success="doLogin" ref="captchaRef" />
+      <footer-bar />
+    </div>
   </div>
 </template>
 
 <script setup>
-import AccountBg from '@/components/AccountBg.vue'
-import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
-import { setUserToken } from '@/store/session'
-import { useSharedStore } from '@/store/sharedata'
-import { setRoute } from '@/store/system'
-import { showMessageError } from '@/utils/dialog'
-import { httpGet, httpPost } from '@/utils/http'
-import { ElMessageBox } from 'element-plus'
-import MarkdownIt from 'markdown-it'
-import { onMounted, reactive, ref } from 'vue'
+import FooterBar from '@/components/FooterBar.vue'
+import LoginDialog from '@/components/LoginDialog.vue'
+import { isMobile } from '@/utils/libs'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-
-import AccountTop from '@/components/AccountTop.vue'
-import Captcha from '@/components/Captcha.vue'
+import { setUserToken } from '@/store/session'
 
 const router = useRouter()
-const title = ref('')
-const logo = ref('')
-const licenseConfig = ref({})
-const wechatLoginURL = ref('')
-const enableVerify = ref(false)
-const captchaRef = ref(null)
-const ruleFormRef = ref(null)
-const ruleForm = reactive({
-  username: import.meta.env.VITE_USER,
-  password: import.meta.env.VITE_PASS,
-  agreement: false,
-})
-const rules = {
-  username: [{ required: true, trigger: 'blur', message: '请输入账号' }],
-  password: [{ required: true, trigger: 'blur', message: '请输入密码' }],
-  agreement: [{ required: true, trigger: 'change', message: '请同意用户协议' }],
-}
-const agreementContent = ref('')
-const privacyContent = ref('')
+const loginDialogRef = ref(null)
+const inviteCode = ref(router.currentRoute.value.query.invite_code || '')
+const token = ref(router.currentRoute.value.query.token || '')
+const isRegister = ref(router.currentRoute.value.path === '/register')
+const active = ref(isRegister.value ? 'register' : 'login')
+const title = computed(() => (isRegister.value ? '用户注册' : '用户登录'))
+const subtitle = computed(() =>
+  isRegister.value ? '创建您的账户以开始使用服务' : '登录您的账户以继续使用服务'
+)
 
-// 初始化markdown解析器
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true,
-})
+// 处理注册成功
+const handleRegisterSuccess = () => {
+  if (isMobile()) {
+    router.push('/mobile')
+  } else {
+    router.push('/chat')
+  }
+}
+
+const handleChangeActive = (newValue) => {
+  isRegister.value = !newValue
+}
 
 onMounted(() => {
-  // 检查URL中是否存在token参数
-  const urlParams = new URLSearchParams(window.location.search)
-  const token = urlParams.get('token')
-  if (token) {
-    setUserToken(token)
-    store.setIsLogin(true)
-    router.push('/chat')
-    return
+  // 确保默认显示注册状态
+  if (loginDialogRef.value) {
+    loginDialogRef.value.login = !isRegister
   }
 
-  // 获取系统配置
-  getSystemInfo()
-    .then((res) => {
-      logo.value = res.data.logo
-      title.value = res.data.title
-      enableVerify.value = res.data['enabled_verify']
-    })
-    .catch((e) => {
-      showMessageError('获取系统配置失败：' + e.message)
-      title.value = 'Geek-AI'
-    })
-
-  // 获取用户协议
-  httpGet('/api/config/get?key=agreement')
-    .then((res) => {
-      if (res.data && res.data.content) {
-        agreementContent.value = res.data.content
-      } else {
-        agreementContent.value =
-          '用户在使用本服务前应当阅读并同意本协议。本协议内容包括协议正文及所有本平台已经发布的或将来可能发布的各类规则。所有规则为本协议不可分割的组成部分，与协议正文具有同等法律效力。'
-      }
-    })
-    .catch((e) => {
-      agreementContent.value =
-        '用户在使用本服务前应当阅读并同意本协议。本协议内容包括协议正文及所有本平台已经发布的或将来可能发布的各类规则。所有规则为本协议不可分割的组成部分，与协议正文具有同等法律效力。'
-    })
-
-  // 获取隐私政策
-  httpGet('/api/config/get?key=privacy')
-    .then((res) => {
-      if (res.data && res.data.content) {
-        privacyContent.value = res.data.content
-      } else {
-        privacyContent.value =
-          '我们非常重视用户的隐私和个人信息保护。您在使用我们的产品与服务时，我们可能会收集和使用您的相关信息。我们希望通过本《隐私政策》向您说明我们在收集和使用您相关信息时对应的处理规则。'
-      }
-    })
-    .catch((e) => {
-      privacyContent.value =
-        '我们非常重视用户的隐私和个人信息保护。您在使用我们的产品与服务时，我们可能会收集和使用您的相关信息。我们希望通过本《隐私政策》向您说明我们在收集和使用您相关信息时对应的处理规则。'
-    })
-
-  getLicenseInfo()
-    .then((res) => {
-      licenseConfig.value = res.data
-    })
-    .catch((e) => {
-      showMessageError('获取 License 配置：' + e.message)
-    })
-
-  checkSession()
-    .then(() => {
-      router.back()
-    })
-    .catch(() => {})
-
-  const returnURL = `${location.protocol}//${location.host}/login/callback?action=login`
-  httpGet('/api/user/clogin?return_url=' + returnURL)
-    .then((res) => {
-      wechatLoginURL.value = res.data.url
-    })
-    .catch((e) => {
-      console.error(e)
-    })
+  if (token.value) {
+    setUserToken(token.value)
+    handleRegisterSuccess()
+  }
 })
-
-const handleKeyup = (e) => {
-  if (e.key === 'Enter') {
-    login()
-  }
-}
-
-const login = async function () {
-  if (!ruleForm.agreement) {
-    agreementError.value = true
-    isShaking.value = true
-    setTimeout(() => {
-      isShaking.value = false
-    }, 500)
-    showMessageError('请先阅读并同意用户协议')
-    return
-  }
-
-  await ruleFormRef.value.validate(async (valid) => {
-    if (valid) {
-      if (enableVerify.value) {
-        captchaRef.value.loadCaptcha()
-      } else {
-        doLogin({})
-      }
-    }
-  })
-}
-
-const store = useSharedStore()
-const doLogin = (verifyData) => {
-  httpPost('/api/user/login', {
-    username: ruleForm.username,
-    password: ruleForm.password,
-    key: verifyData.key,
-    dots: verifyData.dots,
-    x: verifyData.x,
-  })
-    .then((res) => {
-      setUserToken(res.data.token)
-      store.setIsLogin(true)
-      router.back()
-    })
-    .catch((e) => {
-      showMessageError('登录失败，' + e.message)
-    })
-}
-
-const agreementError = ref(false)
-const isShaking = ref(false)
-
-const handleAgreementChange = () => {
-  agreementError.value = !ruleForm.agreement
-  if (agreementError.value) {
-    isShaking.value = true
-    setTimeout(() => {
-      isShaking.value = false
-    }, 500)
-  }
-}
-
-const openAgreement = () => {
-  // 使用弹窗显示用户协议内容，支持Markdown格式
-  ElMessageBox.alert(
-    `<div class="markdown-content">${md.render(agreementContent.value)}</div>`,
-    '用户协议',
-    {
-      confirmButtonText: '我已阅读',
-      dangerouslyUseHTMLString: true,
-      callback: () => {},
-    }
-  )
-}
-
-const openPrivacy = () => {
-  // 使用弹窗显示隐私政策内容，支持Markdown格式
-  ElMessageBox.alert(
-    `<div class="markdown-content">${md.render(privacyContent.value)}</div>`,
-    '隐私政策',
-    {
-      confirmButtonText: '我已阅读',
-      dangerouslyUseHTMLString: true,
-      callback: () => {},
-    }
-  )
-}
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/login.styl'
+<style scoped>
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .min-h-screen {
+    padding: 1rem;
+  }
 
-.agreement-box
-  margin-bottom: 10px
-  transition: all 0.3s
+  .fixed.top-5.left-5 {
+    top: 1rem;
+    left: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 
-.agreement-link
-  color: var(--el-color-primary)
-  cursor: pointer
+  .fixed.top-5.left-5 .iconfont {
+    font-size: 1.125rem;
+  }
 
-.agreement-error
-  .el-checkbox
-    .el-checkbox__input
-      .el-checkbox__inner
-        border-color: #F56C6C !important
+  .max-w-md {
+    margin-top: 3.75rem;
+  }
 
-.shake
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both
+  .p-10 {
+    padding: 2rem 1.5rem;
+  }
 
-@keyframes shake
-  10%, 90%
-    transform: translate3d(-1px, 0, 0)
-  20%, 80%
-    transform: translate3d(2px, 0, 0)
-  30%, 50%, 70%
-    transform: translate3d(-4px, 0, 0)
-  40%, 60%
-    transform: translate3d(4px, 0, 0)
-</style>
+  .rounded-3xl {
+    border-radius: 1rem;
+  }
 
-<style>
-/* 全局样式，用于Markdown内容显示 */
-.markdown-content {
-  text-align: left;
-  max-height: 60vh;
-  overflow-y: auto;
-  padding: 10px;
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+
+  .text-base {
+    font-size: 0.875rem;
+  }
 }
 
-.markdown-content h1 {
-  font-size: 1.5em;
-  margin-bottom: 15px;
-}
+/* 小屏幕手机适配 */
+@media (max-width: 480px) {
+  .p-10 {
+    padding: 1.5rem 1.25rem;
+  }
 
-.markdown-content h2 {
-  font-size: 1.3em;
-  margin: 15px 0 10px;
-}
+  .text-3xl {
+    font-size: 1.25rem;
+  }
 
-.markdown-content p {
-  margin-bottom: 10px;
-  line-height: 1.5;
-}
-
-.markdown-content ul,
-.markdown-content ol {
-  padding-left: 20px;
-  margin-bottom: 10px;
-}
-
-.markdown-content blockquote {
-  border-left: 4px solid #ccc;
-  padding-left: 10px;
-  color: #666;
-  margin: 10px 0;
-}
-
-.markdown-content code {
-  background-color: #f0f0f0;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: monospace;
-}
-
-.markdown-content pre {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
-  overflow-x: auto;
-  margin: 10px 0;
+  .text-base {
+    font-size: 0.875rem;
+  }
 }
 </style>

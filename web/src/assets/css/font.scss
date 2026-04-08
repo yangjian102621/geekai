@@ -1,0 +1,16 @@
+$font-regular: 'PingFangSC-Regular', 'Roboto', 'sans-serif', 'ui-sans-serif', '-apple-system',
+  'system-ui', 'Segoe UI', 'Helvetica', 'Apple Color Emoji', 'Arial', 'sans-serif', 'Segoe UI Emoji',
+  'Segoe UI Symbol';
+$font-medium: 'PingFangSC-Medium', 'Roboto', 'sans-serif', 'ui-sans-serif', '-apple-system',
+  'system-ui', 'Segoe UI', 'Helvetica', 'Apple Color Emoji', 'Arial', 'sans-serif', 'Segoe UI Emoji',
+  'Segoe UI Symbol';
+
+.font-regular {
+  font-family: $font-regular;
+  font-weight: normal;
+}
+
+.font-medium {
+  font-family: $font-medium;
+  font-weight: 500;
+}

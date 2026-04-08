@@ -9,11 +9,13 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -25,6 +27,18 @@ type PowerLogHandler struct {
 
 func NewPowerLogHandler(app *core.AppServer, db *gorm.DB) *PowerLogHandler {
 	return &PowerLogHandler{BaseHandler: BaseHandler{App: app, DB: db}}
+}
+
+// RegisterRoutes 注册路由
+func (h *PowerLogHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/powerLog/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("list", h.List)
+		group.GET("stats", h.Stats)
+	}
 }
 
 func (h *PowerLogHandler) List(c *gin.Context) {
@@ -71,4 +85,46 @@ func (h *PowerLogHandler) List(c *gin.Context) {
 		}
 	}
 	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, list))
+}
+
+// Stats 获取用户算力统计
+func (h *PowerLogHandler) Stats(c *gin.Context) {
+	userId := h.GetLoginUserId(c)
+	if userId == 0 {
+		resp.NotAuth(c)
+		return
+	}
+
+	// 获取用户信息（包含余额）
+	var user model.User
+	if err := h.DB.Where("id", userId).First(&user).Error; err != nil {
+		resp.ERROR(c, "用户不存在")
+		return
+	}
+
+	// 计算总消费（所有支出记录）
+	var totalConsume int64
+	h.DB.Model(&model.PowerLog{}).
+		Where("user_id", userId).
+		Where("mark", types.PowerSub).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&totalConsume)
+
+	// 计算今日消费
+	today := time.Now().Format("2006-01-02")
+	var todayConsume int64
+	h.DB.Model(&model.PowerLog{}).
+		Where("user_id", userId).
+		Where("mark", types.PowerSub).
+		Where("DATE(created_at) = ?", today).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&todayConsume)
+
+	stats := map[string]interface{}{
+		"total":   totalConsume,
+		"today":   todayConsume,
+		"balance": user.Power,
+	}
+
+	resp.SUCCESS(c, stats)
 }

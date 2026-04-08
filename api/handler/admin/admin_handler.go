@@ -11,6 +11,7 @@ import (
 	"context"
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	logger2 "geekai/logger"
@@ -19,9 +20,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -45,6 +47,26 @@ func NewAdminHandler(app *core.AppServer, db *gorm.DB, client *redis.Client, cap
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *ManagerHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/")
+
+	// 公开接口，不需要授权
+	group.POST("login", h.Login)
+	group.GET("logout", h.Logout)
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("session", h.Session)
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.POST("enable", h.Enable)
+		group.GET("remove", h.Remove)
+		group.POST("resetPass", h.ResetPass)
+	}
+}
+
 // Login 登录
 func (h *ManagerHandler) Login(c *gin.Context) {
 	var data struct {
@@ -57,19 +79,6 @@ func (h *ManagerHandler) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
-	}
-
-	if h.App.SysConfig.EnabledVerify {
-		var check bool
-		if data.X != 0 {
-			check = h.captcha.SlideCheck(data)
-		} else {
-			check = h.captcha.Check(data)
-		}
-		if !check {
-			resp.ERROR(c, "请先完人机验证")
-			return
-		}
 	}
 
 	var manager model.AdminUser
@@ -135,16 +144,15 @@ func (h *ManagerHandler) Logout(c *gin.Context) {
 
 // Session 会话检测
 func (h *ManagerHandler) Session(c *gin.Context) {
-	id := h.GetLoginUserId(c)
-	key := fmt.Sprintf("admin/%d", id)
-	if _, err := h.redis.Get(context.Background(), key).Result(); err != nil {
-		resp.NotAuth(c)
+	id := h.GetAdminId(c)
+	if id == 0 {
+		resp.NotAuth(c, "当前用户已退出登录")
 		return
 	}
 	var manager model.AdminUser
-	res := h.DB.Where("id", id).First(&manager)
-	if res.Error != nil {
-		resp.NotAuth(c)
+	err := h.DB.Where("id", id).First(&manager).Error
+	if err != nil {
+		resp.NotAuth(c, "当前用户已退出登录")
 		return
 	}
 

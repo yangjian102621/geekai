@@ -6,6 +6,76 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "544492",
+      "name": "cube",
+      "font_class": "cube",
+      "unicode": "e72c",
+      "unicode_decimal": 59180
+    },
+    {
+      "icon_id": "5072110",
+      "name": "tag",
+      "font_class": "tag",
+      "unicode": "e657",
+      "unicode_decimal": 58967
+    },
+    {
+      "icon_id": "3547761",
+      "name": "tencent",
+      "font_class": "tencent",
+      "unicode": "e655",
+      "unicode_decimal": 58965
+    },
+    {
+      "icon_id": "26267540",
+      "name": "baidu",
+      "font_class": "baidu",
+      "unicode": "e656",
+      "unicode_decimal": 58966
+    },
+    {
+      "icon_id": "31975090",
+      "name": "Content Moderation",
+      "font_class": "moderation",
+      "unicode": "e6c6",
+      "unicode_decimal": 59078
+    },
+    {
+      "icon_id": "27025075",
+      "name": "返回",
+      "font_class": "back-bold",
+      "unicode": "e654",
+      "unicode_decimal": 58964
+    },
+    {
+      "icon_id": "6237605",
+      "name": "返回",
+      "font_class": "back-circle",
+      "unicode": "e653",
+      "unicode_decimal": 58963
+    },
+    {
+      "icon_id": "18952076",
+      "name": "返回",
+      "font_class": "back",
+      "unicode": "e6c8",
+      "unicode_decimal": 59080
+    },
+    {
+      "icon_id": "33483666",
+      "name": "openai",
+      "font_class": "openai",
+      "unicode": "e652",
+      "unicode_decimal": 58962
+    },
+    {
+      "icon_id": "25677845",
+      "name": "算力",
+      "font_class": "power",
+      "unicode": "e651",
+      "unicode_decimal": 58961
+    },
+    {
       "icon_id": "42693930",
       "name": "即梦AI-02",
       "font_class": "jimeng2",
@@ -434,7 +504,7 @@
     },
     {
       "icon_id": "39584617",
-      "name": "MidJourney-copy",
+      "name": "MidJourney",
       "font_class": "MidJourney",
       "unicode": "e60e",
       "unicode_decimal": 58894

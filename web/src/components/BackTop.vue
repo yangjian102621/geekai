@@ -6,7 +6,7 @@
     :style="{
       bottom: bottom + 'px',
       right: right + 'px',
-      backgroundColor: bgColor
+      backgroundColor: bgColor,
     }"
   >
     <el-icon><ArrowUpBold /></el-icon>
@@ -14,56 +14,56 @@
 </template>
 
 <script>
-import { ArrowUpBold } from "@element-plus/icons-vue";
+import { ArrowUpBold } from '@element-plus/icons-vue'
 
 export default {
-  name: "BackTop",
+  name: 'BackTop',
   components: { ArrowUpBold },
   props: {
     bottom: {
       type: Number,
-      default: 155
+      default: 155,
     },
     right: {
       type: Number,
-      default: 30
+      default: 30,
     },
     bgColor: {
       type: String,
-      default: "#b6aaf9"
-    }
+      default: '#b6aaf9',
+    },
   },
   data() {
     return {
-      showButton: false
-    };
+      showButton: false,
+    }
   },
   mounted() {
-    this.checkScroll();
-    window.addEventListener("resize", this.checkScroll);
-    this.$el.parentElement.addEventListener("scroll", this.checkScroll);
+    this.checkScroll()
+    window.addEventListener('resize', this.checkScroll)
+    this.$el.parentElement.addEventListener('scroll', this.checkScroll)
   },
   beforeUnmount() {
-    window.removeEventListener("resize", this.checkScroll);
-    this.$el.parentElement.removeEventListener("scroll", this.checkScroll);
+    window.removeEventListener('resize', this.checkScroll)
+    this.$el.parentElement.removeEventListener('scroll', this.checkScroll)
   },
   methods: {
     scrollToTop() {
-      const container = this.$el.parentElement;
+      const container = this.$el.parentElement
       container.scrollTo({
         top: 0,
-        behavior: "smooth"
-      });
+        behavior: 'smooth',
+      })
     },
     checkScroll() {
-      const container = this.$el.parentElement;
-      this.showButton = container.scrollTop > 50;
-    }
-  }
-};
+      const container = this.$el.parentElement
+      this.showButton = container.scrollTop > 50
+    },
+  },
+}
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .scroll-to-top {
   position: fixed;
   color: white;
@@ -72,12 +72,12 @@ export default {
   cursor: pointer;
   outline: none;
   transition: opacity 0.3s;
-  width 30px
-  height 30px
-  display flex
-  justify-content center
-  align-items center
-  font-size 18px
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
 
   &:hover {
     opacity: 0.6;

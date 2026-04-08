@@ -370,11 +370,11 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
 import { httpGet, httpPost } from '@/utils/http'
-import { ElMessage } from 'element-plus'
 import { dateFormat, substr } from '@/utils/libs'
 import { Search } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
 
 // 变量定义
 const data = ref({
@@ -514,20 +514,20 @@ const showImage = (url) => {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .image-page {
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 150px;
-      margin-right 10px;
+      max-width: 150px;
+      margin-right: 10px;
     }
   }
 
   .opt-box {
     padding-bottom: 10px;
-    display flex;
-    justify-content flex-end
+    display: flex;
+    justify-content: flex-end;
 
     .el-icon {
       margin-right: 5px;
@@ -535,13 +535,13 @@ const showImage = (url) => {
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .pagination {
-    margin-top 20px
-    display flex
-    justify-content center
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
   }
 }
 </style>

@@ -5,21 +5,26 @@
 // * @Author yangjian102621@163.com
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import { createApp } from "vue";
-import ElementPlus from "element-plus";
-import "element-plus/dist/index.css";
-import "@/assets/iconfont/iconfont.css";
-import "vant/lib/index.css";
-import App from "./App.vue";
-import { useThemeStore } from "@/store/theme";
-import { createPinia } from "pinia";
-import "animate.css/animate.min.css";
-import "@/assets/css/tailwind.css";
+import '@/assets/css/tailwind.css'
+import '@/assets/iconfont/iconfont.css'
+import { useThemeStore } from '@/store/theme'
+import 'animate.css/animate.min.css'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import { createPinia } from 'pinia'
+import 'vant/lib/index.css'
+import { createApp } from 'vue'
+import App from './App.vue'
 
+import '@/assets/css/common.scss'
+import '@/assets/css/theme-dark.scss'
+import '@/assets/css/theme-light.scss'
+import { router } from '@/router'
 import {
   ActionSheet,
   Badge,
   Button,
+  Calendar,
   Cell,
   CellGroup,
   Circle,
@@ -48,12 +53,17 @@ import {
   Overlay,
   Picker,
   Popup,
+  PullRefresh,
+  Radio,
+  RadioGroup,
   Row,
   Search,
   ShareSheet,
   Slider,
   Sticky,
+  Swipe,
   SwipeCell,
+  SwipeItem,
   Switch,
   Tab,
   Tabbar,
@@ -61,64 +71,75 @@ import {
   Tabs,
   Tag,
   TextEllipsis,
+  Toast,
   Uploader,
-} from "vant";
-import { router } from "@/router";
-import "@/assets/css/theme-dark.styl";
-import "@/assets/css/theme-light.styl";
-import "@/assets/css/common.styl";
+} from 'vant'
 
-const pinia = createPinia();
-const themeStore = useThemeStore(pinia); // 使用 theme store
+const pinia = createPinia()
+const themeStore = useThemeStore(pinia) // 使用 theme store
 
 // 设置初始主题
-document.documentElement.setAttribute("data-theme", themeStore.theme);
+document.documentElement.setAttribute('data-theme', themeStore.theme)
 
-const app = createApp(App);
-app.use(createPinia());
-app.use(ConfigProvider);
-app.use(Tabbar);
-app.use(TabbarItem);
-app.use(NavBar);
-app.use(Search);
-app.use(Cell);
-app.use(Image);
-app.use(TextEllipsis);
-app.use(Notify);
-app.use(Picker);
-app.use(Popup);
-app.use(List);
-app.use(Form);
-app.use(Field);
-app.use(CellGroup);
-app.use(Button);
-app.use(DropdownMenu);
-app.use(Icon);
-app.use(DropdownItem);
-app.use(Sticky);
-app.use(SwipeCell);
-app.use(Dialog);
-app.use(ShareSheet);
-app.use(Switch);
-app.use(Uploader);
-app.use(Tag);
-app.use(Overlay);
-app.use(Col);
-app.use(Row);
-app.use(Slider);
-app.use(Badge);
-app.use(Collapse);
-app.use(CollapseItem);
-app.use(Grid);
-app.use(GridItem);
-app.use(Empty);
-app.use(Circle);
-app.use(Loading);
-app.use(Lazyload);
-app.use(ImagePreview);
-app.use(Tab);
-app.use(Tabs);
-app.use(Divider);
-app.use(NoticeBar);
-app.use(ActionSheet);
-app.use(router).use(ElementPlus).mount("#app");
+// 同时设置初始 dark 类
+if (themeStore.theme === 'dark') {
+  document.documentElement.classList.add('dark')
+} else {
+  document.documentElement.classList.remove('dark')
+}
+
+const app = createApp(App)
+app.use(createPinia())
+app.use(ConfigProvider)
+app.use(Tabbar)
+app.use(TabbarItem)
+app.use(NavBar)
+app.use(Search)
+app.use(Cell)
+app.use(Image)
+app.use(TextEllipsis)
+app.use(Notify)
+app.use(Picker)
+app.use(Popup)
+app.use(Radio)
+app.use(RadioGroup)
+app.use(List)
+app.use(Form)
+app.use(Field)
+app.use(CellGroup)
+app.use(Button)
+app.use(DropdownMenu)
+app.use(Icon)
+app.use(DropdownItem)
+app.use(Sticky)
+app.use(Swipe)
+app.use(SwipeItem)
+app.use(SwipeCell)
+app.use(Dialog)
+app.use(ShareSheet)
+app.use(Switch)
+app.use(Uploader)
+app.use(Tag)
+app.use(Overlay)
+app.use(Col)
+app.use(Row)
+app.use(Slider)
+app.use(Badge)
+app.use(Collapse)
+app.use(CollapseItem)
+app.use(Grid)
+app.use(GridItem)
+app.use(Empty)
+app.use(Circle)
+app.use(Loading)
+app.use(Lazyload)
+app.use(ImagePreview)
+app.use(Tab)
+app.use(Tabs)
+app.use(Divider)
+app.use(NoticeBar)
+app.use(ActionSheet)
+app.use(PullRefresh)
+app.use(Calendar)
+app.use(Toast)
+app.use(router).use(ElementPlus).mount('#app')

@@ -43,17 +43,17 @@
                 >
               </div>
 
-              <div class="submit-btn flex-center">
-                <el-button
-                  style="width: 200px"
-                  type="primary"
-                  :dark="false"
-                  round
+              <div class="p-4">
+                <button
+                  class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+                  type="button"
                   @click="generateAI"
-                  :loading="loading"
+                  :disabled="loading"
                 >
-                  生成思维导图
-                </el-button>
+                  <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+                  <i v-else class="iconfont icon-chuangzuo"></i>
+                  <span>生成思维导图</span>
+                </button>
               </div>
 
               <div class="param-line">使用已有内容生成？</div>
@@ -66,15 +66,14 @@
                 />
               </div>
 
-              <div class="param-line flex-center">
-                <el-button
-                  color="rgb(78, 51, 254)"
-                  style="width: 200px"
-                  :dark="false"
-                  round
+              <div class="param-line">
+                <button
+                  class="w-full py-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-green-500 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
                   @click="generate"
-                  >直接生成（免费）</el-button
+                  type="button"
                 >
+                  直接生成（免费）
+                </button>
               </div>
             </el-form>
           </div>
@@ -145,10 +144,8 @@ onMounted(async () => {
   if (cache) {
     text.value = cache
   } else {
-    const res = await getSystemInfo().catch((e) => {
-      ElMessage.error('获取系统配置失败：' + e.message)
-    })
-    text.value = res.data['mark_map_text']
+    const res = await httpGet('/api/config/get?key=mark_map')
+    text.value = res.data?.content || ''
     content.value = text.value
   }
 
@@ -297,7 +294,7 @@ const downloadImage = async () => {
 }
 </script>
 
-<style lang="stylus">
-@import '../assets/css/mark-map.styl'
-@import '../assets/css/custom-scroll.styl'
+<style lang="scss">
+@use '../assets/css/mark-map.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

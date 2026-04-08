@@ -1,263 +1,273 @@
 <template>
- <div class="player">
-   <div class="container">
-     <div class="cover">
-       <el-image :src="cover" fit="cover" />
-     </div>
-     <div class="info">
-       <div class="title">{{title}}</div>
-       <div class="style">
-         <span class="tags">{{ tags }}</span>
-         <span class="text-lightGray"> | </span>
-         <span class="time">{{ formatTime(currentTime) }}<span class="split">/</span>{{ formatTime(duration) }}</span>
-       </div>
-     </div>
+  <div class="player">
+    <div class="container">
+      <div class="cover">
+        <el-image :src="cover" fit="cover" />
+      </div>
+      <div class="info">
+        <div class="title">{{ title }}</div>
+        <div class="style">
+          <span class="tags">{{ tags }}</span>
+          <span class="text-lightGray"> | </span>
+          <span class="time"
+            >{{ formatTime(currentTime) }}<span class="split">/</span
+            >{{ formatTime(duration) }}</span
+          >
+        </div>
+      </div>
 
-     <div class="controls-container">
-       <div class="controls">
-         <button @click="prevSong" class="control-btn">
-           <i class="iconfont icon-prev"></i>
-         </button>
-         <button @click="togglePlay" class="control-btn">
-           <i class="iconfont icon-play" v-if="!isPlaying"></i>
-           <i class="iconfont icon-pause" v-else></i>
-         </button>
-         <button @click="nextSong" class="control-btn">
-           <i class="iconfont icon-next"></i>
-         </button>
-       </div>
-     </div>
+      <div class="controls-container">
+        <div class="controls">
+          <button @click="prevSong" class="control-btn">
+            <i class="iconfont icon-prev"></i>
+          </button>
+          <button @click="togglePlay" class="control-btn">
+            <i class="iconfont icon-play" v-if="!isPlaying"></i>
+            <i class="iconfont icon-pause" v-else></i>
+          </button>
+          <button @click="nextSong" class="control-btn">
+            <i class="iconfont icon-next"></i>
+          </button>
+        </div>
+      </div>
 
-     <div class="progress-bar" @click="setProgress" ref="progressBarRef">
-       <div class="progress" :style="{ width: `${progressPercent}%` }"></div>
-     </div>
-     <audio ref="audio" @timeupdate="updateProgress" @ended="nextSong"></audio>
+      <div class="progress-bar" @click="setProgress" ref="progressBarRef">
+        <div class="progress" :style="{ width: `${progressPercent}%` }"></div>
+      </div>
+      <audio ref="audio" @timeupdate="updateProgress" @ended="nextSong"></audio>
 
-     <el-button v-if="showClose" class="close" type="info" :icon="Close" circle size="small" @click="emits('close')" />
-   </div>
- </div>
+      <el-button
+        v-if="showClose"
+        class="close"
+        type="info"
+        :icon="Close"
+        circle
+        size="small"
+        @click="emits('close')"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>
-import {ref, onMounted, watch} from 'vue';
-import {showMessageError} from "@/utils/dialog";
-import {Close} from "@element-plus/icons-vue";
-import {formatTime} from "@/utils/libs";
-import {httpGet} from "@/utils/http"
+import { showMessageError } from '@/utils/dialog'
+import { httpGet } from '@/utils/http'
+import { formatTime } from '@/utils/libs'
+import { Close } from '@element-plus/icons-vue'
+import { onMounted, ref, watch } from 'vue'
 
-const audio = ref(null);
-const isPlaying = ref(false);
-const songIndex = ref(0);
-const currentTime = ref(0);
-const duration = ref(100);
-const progressPercent = ref(0);
+const audio = ref(null)
+const isPlaying = ref(false)
+const songIndex = ref(0)
+const currentTime = ref(0)
+const duration = ref(100)
+const progressPercent = ref(0)
 const progressBarRef = ref(null)
-const title = ref("")
-const tags = ref("")
-const cover = ref("")
+const title = ref('')
+const tags = ref('')
+const cover = ref('')
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
   songs: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   showClose: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 // eslint-disable-next-line no-undef
-const emits = defineEmits(['close','play']);
+const emits = defineEmits(['close', 'play'])
 
-watch(() => props.songs, (newVal) => {
-  loadSong(newVal[songIndex.value]);
-});
-
+watch(
+  () => props.songs,
+  (newVal) => {
+    loadSong(newVal[songIndex.value])
+  }
+)
 
 const loadSong = (song) => {
   if (!song) {
-    showMessageError("歌曲加载失败")
+    showMessageError('歌曲加载失败')
     return
   }
   title.value = song.title
   tags.value = song.tags
   cover.value = song.cover_url
-  audio.value.src = song.audio_url;
-  audio.value.load();
+  audio.value.src = song.audio_url
+  audio.value.load()
   isPlaying.value = false
   audio.value.onloadedmetadata = () => {
-    duration.value = audio.value.duration;
-  };
-};
+    duration.value = audio.value.duration
+  }
+}
 
 const togglePlay = () => {
   if (isPlaying.value) {
-    audio.value.pause();
+    audio.value.pause()
     isPlaying.value = false
   } else {
     play()
   }
-};
+}
 
 const play = () => {
   if (isPlaying.value) {
     return
   }
-  audio.value.play();
+  audio.value.play()
   isPlaying.value = true
   if (audio.value.currentTime === 0) {
-    emits("play")
+    emits('play')
     // 增加播放数量
-    httpGet("/api/suno/play",{song_id:props.songs[songIndex.value].song_id}).then().catch()
+    httpGet('/api/suno/play', { song_id: props.songs[songIndex.value].song_id }).then().catch()
   }
 }
 
 const prevSong = () => {
-  songIndex.value = (songIndex.value - 1 + props.songs.length) % props.songs.length;
-  loadSong(props.songs[songIndex.value]);
-  audio.value.play();
-  isPlaying.value = true;
-};
+  songIndex.value = (songIndex.value - 1 + props.songs.length) % props.songs.length
+  loadSong(props.songs[songIndex.value])
+  audio.value.play()
+  isPlaying.value = true
+}
 
 const nextSong = () => {
-  songIndex.value = (songIndex.value + 1) % props.songs.length;
-  loadSong(props.songs[songIndex.value]);
-  audio.value.play();
-  isPlaying.value = true;
-};
+  songIndex.value = (songIndex.value + 1) % props.songs.length
+  loadSong(props.songs[songIndex.value])
+  audio.value.play()
+  isPlaying.value = true
+}
 
 const updateProgress = () => {
   try {
-    currentTime.value = audio.value.currentTime;
-    progressPercent.value = (currentTime.value / duration.value) * 100;
+    currentTime.value = audio.value.currentTime
+    progressPercent.value = (currentTime.value / duration.value) * 100
   } catch (e) {
     console.error(e.message)
   }
-};
+}
 
 const setProgress = (event) => {
-  const totalWidth = progressBarRef.value.offsetWidth;
-  const clickX = event.offsetX;
-  const audioDuration = audio.value.duration;
-  audio.value.currentTime = (clickX / totalWidth) * audioDuration;
-};
+  const totalWidth = progressBarRef.value.offsetWidth
+  const clickX = event.offsetX
+  const audioDuration = audio.value.duration
+  audio.value.currentTime = (clickX / totalWidth) * audioDuration
+}
 
 // eslint-disable-next-line no-undef
 defineExpose({
-  play
-});
+  play,
+})
 
 onMounted(() => {
-  loadSong(props.songs[songIndex.value]);
-});
+  loadSong(props.songs[songIndex.value])
+})
 </script>
 
-<style lang="stylus" scoped>
-
+<style lang="scss" scoped>
 .player {
-  display flex
-  justify-content center
-  width 100%
+  display: flex;
+  justify-content: center;
+  width: 100%;
 
   .container {
-    display flex
+    display: flex;
     background-color: #363030;
     border-radius: 10px;
-    border 1px solid #544F4F;
+    border: 1px solid #544f4f;
     padding: 5px;
-    width: 80%
+    width: 80%;
     text-align: center;
-    position relative
-    overflow hidden
-
+    position: relative;
+    overflow: hidden;
 
     .cover {
       .el-image {
         border-radius: 50%;
-        width 50px
+        width: 50px;
       }
     }
 
     .info {
-      padding 0 10px
-      min-width  300px
-      display flex
-      justify-content center
-      align-items flex-start
-      flex-flow column
-      line-height 1.5
+      padding: 0 10px;
+      min-width: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-flow: column;
+      line-height: 1.5;
 
       .title {
-        font-weight 700
-        font-size 16px
-        color #ffffff
+        font-weight: 700;
+        font-size: 16px;
+        color: #ffffff;
       }
 
       .style {
-        font-size 14px
-        display flex
-        color #e1e1e1
+        font-size: 14px;
+        display: flex;
+        color: #e1e1e1;
         .tags {
-          font-weight 600
-          white-space: nowrap; /* 防止文本换行 */
-          overflow: hidden;    /* 隐藏溢出的文本 */
-          text-overflow: ellipsis; /* 使用省略号表示溢出的文本 */
-          max-width 200px
+          font-weight: 600;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 200px;
         }
         .text-lightGray {
-          color: rgb(114 110 108);
-          padding 0 3px
+          color: rgb(114, 110, 108);
+          padding: 0 3px;
         }
         .time {
-          font-family 'Input Sans'
-          font-weight 700
+          font-family: 'Input Sans';
+          font-weight: 700;
           .split {
-            font-size 12px
-            position relative
-            top -2px
-            margin 0 1px 0 3px
+            font-size: 12px;
+            position: relative;
+            top: -2px;
+            margin: 0 1px 0 3px;
           }
         }
       }
     }
 
     .controls-container {
-      width 100%
-      display flex
-      flex-flow column
-      justify-content center
+      width: 100%;
+      display: flex;
+      flex-flow: column;
+      justify-content: center;
 
       .controls {
         display: flex;
         justify-content: space-around;
-        margin-bottom 10px
+        margin-bottom: 10px;
         .control-btn {
           background: none;
           border: none;
           color: #fff;
           cursor: pointer;
-          background-color #363030
-          border-radius 5px
-          padding 6px
+          background-color: #363030;
+          border-radius: 5px;
+          padding: 6px;
 
           .iconfont {
-            font-size 20px
+            font-size: 20px;
           }
           &:hover {
-            background-color #5F5958
+            background-color: #5f5958;
           }
         }
-
       }
     }
 
     .progress-bar {
-      position absolute
-      width 100%
-      left 0
-      bottom 0
+      position: absolute;
+      width: 100%;
+      left: 0;
+      bottom: 0;
       height: 8px;
       background-color: #555;
       cursor: pointer;
@@ -268,15 +278,13 @@ onMounted(() => {
         border-radius: 5px;
         width: 0;
       }
-
     }
 
     .close {
-      position absolute
-      right 10px
-      top 15px
+      position: absolute;
+      right: 10px;
+      top: 15px;
     }
   }
 }
-
 </style>

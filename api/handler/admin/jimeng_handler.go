@@ -21,18 +21,18 @@ import (
 // AdminJimengHandler 管理后台即梦AI处理器
 type AdminJimengHandler struct {
 	handler.BaseHandler
-	jimengService *jimeng.Service
-	userService   *service.UserService
-	uploader      *oss.UploaderManager
+	jimengClient *jimeng.Client
+	userService  *service.UserService
+	uploader     *oss.UploaderManager
 }
 
 // NewAdminJimengHandler 创建管理后台即梦AI处理器
-func NewAdminJimengHandler(app *core.AppServer, db *gorm.DB, jimengService *jimeng.Service, userService *service.UserService, uploader *oss.UploaderManager) *AdminJimengHandler {
+func NewAdminJimengHandler(app *core.AppServer, db *gorm.DB, jimengClient *jimeng.Client, userService *service.UserService, uploader *oss.UploaderManager) *AdminJimengHandler {
 	return &AdminJimengHandler{
-		BaseHandler:   handler.BaseHandler{App: app, DB: db},
-		jimengService: jimengService,
-		userService:   userService,
-		uploader:      uploader,
+		BaseHandler:  handler.BaseHandler{App: app, DB: db},
+		jimengClient: jimengClient,
+		userService:  userService,
+		uploader:     uploader,
 	}
 }
 
@@ -43,7 +43,6 @@ func (h *AdminJimengHandler) RegisterRoutes() {
 	rg.GET("/jobs/:id", h.JobDetail)
 	rg.POST("/jobs/remove", h.BatchRemove)
 	rg.GET("/stats", h.Stats)
-	rg.GET("/config", h.GetConfig)
 	rg.POST("/config/update", h.UpdateConfig)
 }
 
@@ -213,12 +212,6 @@ func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	resp.SUCCESS(c, result)
 }
 
-// GetConfig 获取即梦AI配置
-func (h *AdminJimengHandler) GetConfig(c *gin.Context) {
-	jimengConfig := h.jimengService.GetConfig()
-	resp.SUCCESS(c, jimengConfig)
-}
-
 // UpdateConfig 更新即梦AI配置
 func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	var req types.JimengConfig
@@ -266,31 +259,35 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	// 保存配置
 	tx := h.DB.Begin()
 	value := utils.JsonEncode(&req)
-	config := model.Config{Name: "jimeng", Value: value}
+	var exist model.Config
+	tx.Where("name", types.ConfigKeyJimeng).First(&exist)
 
-	err := tx.FirstOrCreate(&config, model.Config{Name: "jimeng"}).Error
-	if err != nil {
-		resp.ERROR(c, "保存配置失败: "+err.Error())
-		return
-	}
-
-	if config.Id > 0 {
-		config.Value = value
-		err = tx.Updates(&config).Error
+	if exist.Id > 0 {
+		exist.Value = value
+		err := tx.Updates(&exist).Error
 		if err != nil {
 			resp.ERROR(c, "更新配置失败: "+err.Error())
+			return
+		}
+	} else {
+		exist.Name = types.ConfigKeyJimeng
+		exist.Value = value
+		err := tx.Create(&exist).Error
+		if err != nil {
+			resp.ERROR(c, "创建配置失败: "+err.Error())
 			return
 		}
 	}
 
 	// 更新服务中的客户端配置
-	updateErr := h.jimengService.UpdateClientConfig(req.AccessKey, req.SecretKey)
-	if updateErr != nil {
-		resp.ERROR(c, updateErr.Error())
+	err := h.jimengClient.UpdateConfig(req)
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		tx.Rollback()
 		return
 	}
 	tx.Commit()
+	h.App.SysConfig.Jimeng = req
 
 	resp.SUCCESS(c, gin.H{"message": "配置更新成功"})
 }

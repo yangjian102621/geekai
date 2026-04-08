@@ -226,7 +226,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 				TotalTokens:      0,
 			}
 			message.Content = usage.Content
-			h.saveChatHistory(req, usage, message, input, userVo, promptCreatedAt, replyCreatedAt)
+			h.saveChatHistory(c, req, usage, message, input, userVo, promptCreatedAt, replyCreatedAt)
 		}
 	} else { // 非流式输出
 		var respVo OpenAIResVo
@@ -242,7 +242,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 		pushMessage(c, "text", content)
 		respVo.Usage.Prompt = input.Prompt
 		respVo.Usage.Content = content
-		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, input, userVo, promptCreatedAt, time.Now())
+		h.saveChatHistory(c, req, respVo.Usage, respVo.Choices[0].Message, input, userVo, promptCreatedAt, time.Now())
 	}
 
 	return nil

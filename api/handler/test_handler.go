@@ -1,21 +1,36 @@
 package handler
 
 import (
+	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/service"
 	"geekai/service/payment"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type TestHandler struct {
+	App       *core.AppServer
 	db        *gorm.DB
 	snowflake *service.Snowflake
-	js        *payment.GeekPayService
+	js        *payment.EPayService
 }
 
-func NewTestHandler(db *gorm.DB, snowflake *service.Snowflake, js *payment.GeekPayService) *TestHandler {
-	return &TestHandler{db: db, snowflake: snowflake, js: js}
+func NewTestHandler(app *core.AppServer, db *gorm.DB, snowflake *service.Snowflake, js *payment.EPayService) *TestHandler {
+	return &TestHandler{App: app, db: db, snowflake: snowflake, js: js}
+}
+
+// RegisterRoutes 注册路由
+func (h *TestHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/test/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.Any("sse", h.PostTest, h.SseTest)
+	}
 }
 
 func (h *TestHandler) SseTest(c *gin.Context) {

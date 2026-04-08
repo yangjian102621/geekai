@@ -139,7 +139,7 @@
           登录后解锁功能
         </div>
       </template>
-      <div class="p-4 pt-2 pb-2">
+      <div class="w-full p-4 pt-2 pb-2">
         <LoginDialog @success="loginSuccess" @hide="store.setShowLoginDialog(false)" />
       </div>
     </el-dialog>
@@ -285,9 +285,7 @@ const logout = function () {
   httpGet('/api/user/logout')
     .then(() => {
       removeUserToken()
-      // 刷新组件
-      routerViewKey.value += 1
-      loginUser.value = {}
+      router.push('/login')
     })
     .catch(() => {
       ElMessage.error('注销失败！')
@@ -302,7 +300,7 @@ const loginSuccess = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/custom-scroll.styl"
-@import "../assets/css/home.styl"
+<style lang="scss" scoped>
+@use '../assets/css/custom-scroll.scss' as *;
+@use '../assets/css/home.scss' as *;
 </style>

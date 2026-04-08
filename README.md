@@ -1,90 +1,77 @@
-# GeekAI
+# 🚀 GeekAI-PLUS：一站式 AI 创意生产力平台
 
-> 根据[《生成式人工智能服务管理暂行办法》](https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)的要求，请勿对中国地区公众提供一切未经备案的生成式人工智能服务。
+**重新定义 AI 创作体验，让每个人都能成为内容创作大师**
 
-**GeekAI** 基于 AI 大语言模型 API 实现的 AI 助手全套开源解决方案，自带运营管理后台，开箱即用。集成了 OpenAI, Claude, 通义千问，Kimi，DeepSeek，Gitee AI 等多个平台的大语言模型。集成了 MidJourney 和 Stable Diffusion AI 绘画功能。
+基于 GeekAI 项目开发的高级版，增加了很多高级功能，比如思维导图，Dalle 绘画等。**高级版源码不会一次性开放，只提供镜像给大家免费使用**，源码会逐步逐步按照版同步迁移到[社区版（GeekAI）](https://github.com/yangjian102621/geekai)。所以如果大家想要二次开发，请移步去社区版。
 
-主要特性：
+## ✨ 核心特色
 
-- 完整的开源系统，前端应用和后台管理系统皆可开箱即用。
-- 基于 Websocket 实现，完美的打字机体验。
-- 内置了各种预训练好的角色应用，比如小红书写手，英语翻译大师，苏格拉底，孔子，乔布斯，周报助手等。轻松满足你的各种聊天和应用需求。
-- 支持 OpenAI, Claude, 通义千问，Kimi，DeepSeek 等多个大语言模型，**支持 Gitee AI Serverless 大模型 API**。
-- 支持 Suno 文生音乐
-- 支持 MidJourney / Stable Diffusion AI 绘画集成，文生图，图生图，换脸，融图。开箱即用。
-- 支持使用个人微信二维码作为充值收费的支付渠道，无需企业支付通道。
-- 已集成支付宝支付功能，微信支付，支持多种会员套餐和点卡购买功能。
-- 集成插件 API 功能，可结合大语言模型的 function 功能开发各种强大的插件，已内置实现了微博热搜，今日头条，今日早报和 AI
-  绘画函数插件。
+### 🎨 **全能 AI 创作矩阵**
 
-### 🚀 更多功能请查看 [GeekAI-PLUS](https://github.com/yangjian102621/geekai-plus)
+- **智能对话**：集成 ChatGPT、Claude 等多款顶级 AI 模型，支持角色扮演和专业对话
+- **图像生成**：整合 MidJourney、DALL-E、Stable Diffusion 三大主流 AI 绘画引擎
+- **音频创作**：Suno AI 音乐生成，从旋律到歌词一键创作专属音乐
+- **视频制作**：Luma 和 KeLing，即梦，Veo3 视频 AI，文本到视频，创意无限
+- **思维导图**：AI 辅助思维整理，复杂想法可视化呈现
 
-- [x] 更友好的 UI 界面
-- [x] 支持 Dall-E 文生图功能
-- [x] 支持文生思维导图
-- [x] 支持为模型绑定指定的 API KEY，支持为角色绑定指定的模型等功能
-- [x] 支持网站 Logo 版权等信息的修改
+### 🏗️ **企业级技术架构**
+
+- **高性能后端**：Go + Gin + MySQL + Redis，支持高并发访问
+- **现代化前端**：Vue3 + Element Plus + Vant，桌面移动双端适配
+- **智能缓存**：多层缓存策略，响应速度提升 80%
+- **弹性部署**：Docker 容器化部署，一键启动，轻松扩展
+- **私有化部署**：支持私有化部署，私有化部署不支持升级，需要手动升级
+- **文档支持**：丰富且详细的部署和 API 开发文档支持，二次开发轻松上手
+
+### 💼 **商业化就绪**
+
+- **完整用户系统**：注册登录、权限管理、积分充值
+- **灵活计费模式**：支持按次付费、包月订阅等多种商业模式
+- **数据统计分析**：用户行为、消费记录、系统性能全方位监控
+- **管理后台**：功能完备的管理员界面，运营数据一目了然
+
+### 🎯 **用户体验优势**
+
+- **响应式设计**：完美适配桌面、平板、手机等全终端设备
+- **暗黑模式**：支持明暗主题切换，护眼舒适
+- **实时交互**：WebSocket 实时通信，创作过程流畅无卡顿
+- **文件管理**：支持多种云存储，作品安全可靠
+
+## 🎪 **应用场景**
+
+- **内容创作者**：博客写作、社交媒体素材、短视频制作
+- **企业营销**：品牌宣传材料、产品介绍、创意广告
+- **教育培训**：课件制作、知识图谱、互动内容
+- **个人娱乐**：AI 聊天、创意绘画、音乐创作
+
+## 🔥 **为什么选择 GeekAI-PLUS？**
+
+1. **技术领先**：集成当前最先进的 AI 技术，始终保持创新前沿
+2. **开箱即用**：完整的商业化解决方案，无需从零开发
+3. **高度定制**：模块化架构设计，支持个性化功能扩展
+4. **稳定可靠**：经过大量用户验证，性能稳定，安全可信
+5. **持续更新**：紧跟 AI 技术发展，功能持续迭代升级
+
+## 演示站点
+
+[Geek-AI 创作系统](https://www.geekai.me)
+
+## 文档地址
+
+[Geek-AI 文档](https://www.geekai.me/docs/)
+
+## 部署
+
+1. 安装 docker 和 docker-compose 程序，这个自行解决。
+2. 直接在项目根目录运行启动命令:
+   ```shell
+   docker-compose up -d
+   ```
 
 ## 功能截图
 
-请参考 [GeekAI 项目介绍](https://docs.geekai.me/plus/info/)。
+请参考 [GeekAI 项目介绍](https://docs.geekai.me/info/)。
 
-### 体验地址
+---
 
-> 免费体验地址：[https://chat.geekai.me](https://chat.geekai.me) <br/> > **注意：请合法使用，禁止输出任何敏感、不友好或违规的内容！！！**
-
-## 快速部署体验
-
-您可以通过 EazyDevelop 平台体验-键私有化部署 **GeekAI 创作助手**，只需一分钟即可部署成功。
-
-部署模板地址: [https://eazydevelop.eazytec-cloud.com/templates/dev-template-5e4dc4-1764053014?q=bB3R_1VnJq9_3Zs9uX](https://eazydevelop.eazytec-cloud.com/templates/dev-template-5e4dc4-1764053014?q=bB3R_1VnJq9_3Zs9uX)
-
-详细部署教程请参考 [EazyDevelop 部署 GeekAI](https://docs.geekai.me/plus/install/quick-start.html#eazydevelop-一键部署)。
-
-## 使用须知
-
-1. 本项目基于 Apache2.0 协议，免费开放全部源代码，可以作为个人学习使用或者商用。
-2. 如需商用必须保留版权信息，请自觉遵守。确保合法合规使用，在运营过程中产生的一切任何后果自负，与作者无关。
-
-## 项目地址
-
-- Github 地址：https://github.com/yangjian102621/geekai
-- 码云地址：https://gitee.com/blackfox/geekai
-
-## 客户端下载
-
-目前已经支持 Win/Linux/Mac/Android 客户端，下载地址为：https://github.com/yangjian102621/geekai/releases/tag/v3.1.2
-
-## 项目文档
-
-最新的部署视频教程：[https://www.bilibili.com/video/BV1Cc411t7CX/](https://www.bilibili.com/video/BV1Cc411t7CX/)
-
-详细的部署和开发文档请参考 [**GeekAI 文档**](https://docs.geekai.me)。
-
-加微信进入微信讨论群可获取 **一键部署脚本（添加好友时请注明来自 Github!!!）。**
-
-![微信名片](https://docs.geekai.me/images/wx_card.png)
-
-## 参与贡献
-
-个人的力量始终有限，任何形式的贡献都是欢迎的，包括但不限于贡献代码，优化文档，提交 issue 和 PR 等。
-
-#### 特此声明：由于个人时间有限，不接受在微信或者微信群给开发者提 Bug，有问题或者优化建议请提交 Issue 和 PR。非常感谢您的配合！
-
-### Commit 类型
-
-- feat: 新特性或功能
-- fix: 缺陷修复
-- docs: 文档更新
-- style: 代码风格或者组件样式更新
-- refactor: 代码重构，不引入新功能和缺陷修复
-- opt: 性能优化
-- chore: 一些不涉及到功能变动的小提交，比如修改文字表述，修改注释等
-
-## 打赏
-
-如果你觉得这个项目对你有帮助，并且情况允许的话，可以请作者喝杯咖啡，非常感谢你的支持～
-
-![打赏](https://blog.img.r9it.com/image-f02ca9eccbe93c7b1193c2623e7336ea.png)
-
-![Star History Chart](https://api.star-history.com/svg?repos=yangjian102621/geekai&type=Date)
+_让 AI 成为你最强大的创作伙伴，开启无限创意可能！_

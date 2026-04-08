@@ -138,38 +138,39 @@ const fetchData = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/custom-scroll.styl"
+<style lang="scss" scoped>
+@use '../assets/css/custom-scroll.scss' as *;
+
 .power-log {
-  color #ffffff
+  color: #ffffff;
   .inner {
-    padding 0 20px 20px 20px
-    overflow auto
+    padding: 0 20px 20px 20px;
+    overflow: auto;
 
     .list-box {
-      overflow-x hidden
+      overflow-x: hidden;
       //overflow-y auto
       background: var(--chat-bg);
       padding: 20px;
       margin-top: 20px;
       border-radius: 10px;
       .handle-box {
-        padding 0 20px 20px 0
+        padding: 0 20px 20px 0;
 
         .el-input {
-          max-width 150px
+          max-width: 150px;
         }
 
         .el-date-editor {
-          max-width 200px;
+          max-width: 200px;
         }
       }
 
       .pagination {
-        display flex
-        justify-content center
-        width 100%
-        margin-top 20px
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 20px;
       }
     }
   }

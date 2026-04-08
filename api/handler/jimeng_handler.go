@@ -2,11 +2,12 @@ package handler
 
 import (
 	"fmt"
-
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/jimeng"
+	"geekai/service/moderation"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -19,27 +20,34 @@ import (
 // JimengHandler 即梦AI处理器
 type JimengHandler struct {
 	BaseHandler
-	jimengService *jimeng.Service
-	userService   *service.UserService
+	jimengService     *jimeng.Service
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
 // NewJimengHandler 创建即梦AI处理器
-func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *gorm.DB, userService *service.UserService) *JimengHandler {
+func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *gorm.DB, userService *service.UserService, moderationManager *moderation.ServiceManager) *JimengHandler {
 	return &JimengHandler{
-		BaseHandler:   BaseHandler{App: app, DB: db},
-		jimengService: jimengService,
-		userService:   userService,
+		BaseHandler:       BaseHandler{App: app, DB: db},
+		jimengService:     jimengService,
+		userService:       userService,
+		moderationManager: moderationManager,
 	}
 }
 
 // RegisterRoutes 注册路由，新增统一任务接口
 func (h *JimengHandler) RegisterRoutes() {
-	rg := h.App.Engine.Group("/api/jimeng")
-	rg.POST("task", h.CreateTask)            // 只保留统一任务接口
-	rg.GET("power-config", h.GetPowerConfig) // 新增算力配置接口
-	rg.POST("jobs", h.Jobs)
-	rg.GET("remove", h.Remove)
-	rg.GET("retry", h.Retry)
+	group := h.App.Engine.Group("/api/jimeng/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("task", h.CreateTask)
+		group.GET("power-config", h.GetPowerConfig)
+		group.POST("jobs", h.Jobs)
+		group.GET("remove", h.Remove)
+		group.GET("retry", h.Retry)
+	}
 }
 
 // JimengTaskRequest 统一任务请求结构体
@@ -70,6 +78,31 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+
+	// 文本审核
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(req.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceJiMeng,
+				Input:  req.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
+
+	}
+
 	// 新增：除图像特效外，其他任务类型必须有提示词
 	if req.TaskType != "image_effects" && req.Prompt == "" {
 		resp.ERROR(c, "提示词不能为空")
@@ -153,12 +186,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 			"seed":  req.Seed,
 			"scale": req.Scale,
 		}
-		if len(req.ImageUrls) > 0 {
-			params["image_urls"] = req.ImageUrls
-		}
-		if len(req.BinaryDataBase64) > 0 {
-			params["binary_data_base64"] = req.BinaryDataBase64
-		}
+		params["image_urls"] = []string{req.ImageInput}
 	case "image_effects":
 		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageEffects)
 		taskType = model.JMTaskTypeImageEffects
@@ -181,9 +209,6 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		taskType = model.JMTaskTypeTextToVideo
 		reqKey = jimeng.ReqKeyTextToVideo
 		modelName = "即梦文生视频"
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
 		if req.AspectRatio == "" {
 			req.AspectRatio = jimeng.AspectRatio16_9
 		}
@@ -196,9 +221,6 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		taskType = model.JMTaskTypeImageToVideo
 		reqKey = jimeng.ReqKeyImageToVideo
 		modelName = "即梦图生视频"
-		if req.Seed == 0 {
-			req.Seed = -1
-		}
 		params = map[string]any{
 			"seed":         req.Seed,
 			"aspect_ratio": req.AspectRatio,
@@ -333,8 +355,10 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, "无权限操作")
 		return
 	}
-	if job.Status != model.JMTaskStatusFailed {
-		resp.ERROR(c, "只有失败的任务才能删除")
+
+	// 正在运行中的任务不能删除
+	if job.Status == model.JMTaskStatusGenerating || job.Status == model.JMTaskStatusInQueue {
+		resp.ERROR(c, "正在运行中的任务不能删除，否则无法退回算力")
 		return
 	}
 
@@ -345,17 +369,20 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	// 退回算力
-	err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
-		Type:   types.PowerRefund,
-		Model:  "jimeng",
-		Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
-	})
-	if err != nil {
-		resp.ERROR(c, "退回算力失败")
-		tx.Rollback()
-		return
+	// 失败任务删除后退回算力
+	if job.Status != model.JMTaskStatusFailed {
+		err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
+			Type:   types.PowerRefund,
+			Model:  "jimeng",
+			Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
+		})
+		if err != nil {
+			resp.ERROR(c, "退回算力失败")
+			tx.Rollback()
+			return
+		}
 	}
+
 	tx.Commit()
 
 	resp.SUCCESS(c, gin.H{})
@@ -408,7 +435,7 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 
 // getPowerFromConfig 从配置中获取指定类型的算力消耗
 func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
-	config := h.jimengService.GetConfig()
+	config := h.App.SysConfig.Jimeng
 
 	switch taskType {
 	case model.JMTaskTypeTextToImage:
@@ -430,7 +457,7 @@ func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
 
 // GetPowerConfig 获取即梦各任务类型算力消耗配置
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
-	config := h.jimengService.GetConfig()
+	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{
 		"text_to_image":  config.Power.TextToImage,
 		"image_to_image": config.Power.ImageToImage,

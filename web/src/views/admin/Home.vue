@@ -52,6 +52,6 @@ watch(
 )
 </script>
 
-<style lang="stylus" scoped>
-@import "../../assets/css/main.styl";
+<style lang="scss" scoped>
+@use '../../assets/css/main.scss' as *;
 </style>

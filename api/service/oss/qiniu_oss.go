@@ -24,18 +24,24 @@ import (
 	"github.com/qiniu/go-sdk/v7/storage"
 )
 
-type QinNiuOss struct {
-	config    *types.QiNiuOssConfig
+type QiNiuOss struct {
+	config    types.QiNiuOssConfig
 	mac       *qbox.Mac
 	putPolicy storage.PutPolicy
 	uploader  *storage.FormUploader
-	manager   *storage.BucketManager
+	bucket    *storage.BucketManager
 	proxyURL  string
 }
 
-func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
-	config := &appConfig.OSS.QiNiu
-	// build storage uploader
+func NewQiNiuOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *QiNiuOss {
+	s := &QiNiuOss{
+		proxyURL: appConfig.ProxyURL,
+	}
+	s.UpdateConfig(sysConfig.OSS.QiNiu)
+	return s
+}
+
+func (s *QiNiuOss) UpdateConfig(config types.QiNiuOssConfig) {
 	zone, ok := storage.GetRegionByID(storage.RegionID(config.Zone))
 	if !ok {
 		zone = storage.ZoneHuanan
@@ -47,20 +53,13 @@ func NewQiNiuOss(appConfig *types.AppConfig) QinNiuOss {
 	putPolicy := storage.PutPolicy{
 		Scope: config.Bucket,
 	}
-	if config.SubDir == "" {
-		config.SubDir = "gpt"
-	}
-	return QinNiuOss{
-		config:    config,
-		mac:       mac,
-		putPolicy: putPolicy,
-		uploader:  formUploader,
-		manager:   storage.NewBucketManager(mac, &storeConfig),
-		proxyURL:  appConfig.ProxyURL,
-	}
+	s.config = config
+	s.mac = mac
+	s.putPolicy = putPolicy
+	s.uploader = formUploader
+	s.bucket = storage.NewBucketManager(mac, &storeConfig)
 }
-
-func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
+func (s QiNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	// 解析表单
 	file, err := ctx.FormFile(name)
 	if err != nil {
@@ -74,7 +73,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	defer src.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	key := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	// 上传文件
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
@@ -93,7 +92,7 @@ func (s QinNiuOss) PutFile(ctx *gin.Context, name string) (File, error) {
 
 }
 
-func (s QinNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
+func (s QiNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string, error) {
 	var fileData []byte
 	var err error
 	if useProxy {
@@ -111,7 +110,7 @@ func (s QinNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string
 	if ext == "" {
 		ext = filepath.Ext(parse.Path)
 	}
-	key := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), ext)
+	key := fmt.Sprintf("%d%s", time.Now().UnixMicro(), ext)
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
@@ -122,12 +121,12 @@ func (s QinNiuOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QinNiuOss) PutBase64(base64Img string) (string, error) {
+func (s QiNiuOss) PutBase64(base64Img string) (string, error) {
 	imageData, err := base64.StdEncoding.DecodeString(base64Img)
 	if err != nil {
 		return "", fmt.Errorf("error decoding base64:%v", err)
 	}
-	objectKey := fmt.Sprintf("%s/%d.png", s.config.SubDir, time.Now().UnixMicro())
+	objectKey := fmt.Sprintf("%d.png", time.Now().UnixMicro())
 	ret := storage.PutRet{}
 	extra := storage.PutExtra{}
 	// 上传文件字节数据
@@ -138,16 +137,15 @@ func (s QinNiuOss) PutBase64(base64Img string) (string, error) {
 	return fmt.Sprintf("%s/%s", s.config.Domain, ret.Key), nil
 }
 
-func (s QinNiuOss) Delete(fileURL string) error {
+func (s QiNiuOss) Delete(fileURL string) error {
 	var objectKey string
 	if strings.HasPrefix(fileURL, "http") {
-		filename := filepath.Base(fileURL)
-		objectKey = fmt.Sprintf("%s/%s", s.config.SubDir, filename)
+		objectKey = filepath.Base(fileURL)
 	} else {
 		objectKey = fileURL
 	}
 
-	return s.manager.Delete(s.config.Bucket, objectKey)
+	return s.bucket.Delete(s.config.Bucket, objectKey)
 }
 
-var _ Uploader = QinNiuOss{}
+var _ Uploader = QiNiuOss{}

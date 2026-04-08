@@ -10,12 +10,14 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -39,6 +41,20 @@ func NewPromptHandler(app *core.AppServer, db *gorm.DB, userService *service.Use
 	}
 }
 
+// RegisterRoutes 注册路由
+func (h *PromptHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/prompt/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis)).Use(middleware.RateLimitEvery(h.App.Redis, 30*time.Second))
+	{
+		group.POST("lyric", h.Lyric)
+		group.POST("image", h.Image)
+		group.POST("video", h.Video)
+		group.POST("meta", h.MetaPrompt)
+	}
+}
+
 // Lyric 生成歌词
 func (h *PromptHandler) Lyric(c *gin.Context) {
 	var data struct {
@@ -48,23 +64,10 @@ func (h *PromptHandler) Lyric(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.LyricPromptTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.LyricPromptTemplate, data.Prompt), h.App.SysConfig.Base.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
-	}
-
-	if h.App.SysConfig.PromptPower > 0 {
-		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
-			Type:   types.PowerConsume,
-			Model:  h.getPromptModel(),
-			Remark: "生成歌词",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
 	}
 
 	resp.SUCCESS(c, content)
@@ -79,23 +82,12 @@ func (h *PromptHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.ImagePromptOptimizeTemplate, data.Prompt), h.App.SysConfig.Base.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	if h.App.SysConfig.PromptPower > 0 {
-		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
-			Type:   types.PowerConsume,
-			Model:  h.getPromptModel(),
-			Remark: "生成绘画提示词",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
-	}
+
 	resp.SUCCESS(c, strings.Trim(content, `"`))
 }
 
@@ -108,23 +100,10 @@ func (h *PromptHandler) Video(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.AssistantModelId)
+	content, err := utils.OpenAIRequest(h.DB, fmt.Sprintf(service.VideoPromptTemplate, data.Prompt), h.App.SysConfig.Base.AssistantModelId)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
-	}
-
-	if h.App.SysConfig.PromptPower > 0 {
-		userId := h.GetLoginUserId(c)
-		err = h.userService.DecreasePower(userId, h.App.SysConfig.PromptPower, model.PowerLog{
-			Type:   types.PowerConsume,
-			Model:  h.getPromptModel(),
-			Remark: "生成视频脚本",
-		})
-		if err != nil {
-			resp.ERROR(c, err.Error())
-			return
-		}
 	}
 
 	resp.SUCCESS(c, strings.Trim(content, `"`))
@@ -158,9 +137,9 @@ func (h *PromptHandler) MetaPrompt(c *gin.Context) {
 }
 
 func (h *PromptHandler) getPromptModel() string {
-	if h.App.SysConfig.AssistantModelId > 0 {
+	if h.App.SysConfig.Base.AssistantModelId > 0 {
 		var chatModel model.ChatModel
-		h.DB.Where("id", h.App.SysConfig.AssistantModelId).First(&chatModel)
+		h.DB.Where("id", h.App.SysConfig.Base.AssistantModelId).First(&chatModel)
 		return chatModel.Value
 	}
 	return "gpt-4o"

@@ -10,9 +10,11 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/dalle"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -25,20 +27,40 @@ import (
 
 type DallJobHandler struct {
 	BaseHandler
-	dallService *dalle.Service
-	uploader    *oss.UploaderManager
-	userService *service.UserService
+	dallService       *dalle.Service
+	uploader          *oss.UploaderManager
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service, manager *oss.UploaderManager, userService *service.UserService) *DallJobHandler {
+func NewDallJobHandler(app *core.AppServer, db *gorm.DB, service *dalle.Service, manager *oss.UploaderManager, userService *service.UserService, moderationManager *moderation.ServiceManager) *DallJobHandler {
 	return &DallJobHandler{
-		dallService: service,
-		uploader:    manager,
-		userService: userService,
+		dallService:       service,
+		uploader:          manager,
+		userService:       userService,
+		moderationManager: moderationManager,
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
 		},
+	}
+}
+
+// RegisterRoutes 注册路由
+func (h *DallJobHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/dall/")
+
+	// 公开接口，不需要授权
+	group.GET("imgWall", h.ImgWall)
+	group.GET("models", h.GetModels)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("image", h.Image)
+		group.GET("jobs", h.JobList)
+		group.GET("remove", h.Remove)
+		group.GET("publish", h.Publish)
 	}
 }
 
@@ -48,6 +70,29 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	if err := c.ShouldBindJSON(&data); err != nil || data.Prompt == "" {
 		resp.ERROR(c, types.InvalidArgs)
 		return
+	}
+
+	// 文本审核
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceDalle,
+				Input:  data.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，提示词未通过文本审核，请重新输入！")
+			return
+		}
 	}
 
 	var chatModel model.ChatModel
@@ -73,11 +118,12 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 		UserId:           uint(userId),
 		ModelId:          chatModel.Id,
 		ModelName:        chatModel.Value,
+		Image:            data.Image,
 		Prompt:           data.Prompt,
 		Quality:          data.Quality,
 		Size:             data.Size,
 		Style:            data.Style,
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		Power:            chatModel.Power,
 	}
 	job := model.DallJob{

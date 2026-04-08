@@ -10,17 +10,19 @@
             <span class="sort" :data-id="scope.row.id">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="函数别名" prop="label"/>
-        <el-table-column label="功能描述" prop="description"/>
+        <el-table-column label="函数别名" prop="label" />
+        <el-table-column label="功能描述" prop="description" />
         <el-table-column label="启用状态">
           <template #default="scope">
-            <el-switch v-model="scope.row.enabled" @change="functionSet('enabled',scope.row)"/>
+            <el-switch v-model="scope.row.enabled" @change="functionSet('enabled', scope.row)" />
           </template>
         </el-table-column>
 
         <el-table-column label="操作" width="150" align="right">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-button size="small" type="primary" @click="rowEdit(scope.$index, scope.row)"
+              >编辑</el-button
+            >
             <el-popconfirm title="确定要删除当前函数吗?" @confirm="remove(scope.row)" :width="200">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
@@ -31,34 +33,18 @@
       </el-table>
     </el-row>
 
-    <el-dialog
-        v-model="showDialog"
-        :title="title"
-        :close-on-click-modal="false"
-        width="50%"
-    >
+    <el-dialog v-model="showDialog" :title="title" :close-on-click-modal="false" width="50%">
       <el-form :model="item" label-width="120px" ref="formRef" label-position="left" :rules="rules">
         <el-form-item label="函数名称：" prop="name">
-          <el-input
-              v-model="item.name"
-              placeholder="函数名称最好为英文"
-              autocomplete="off"
-          />
+          <el-input v-model="item.name" placeholder="函数名称最好为英文" autocomplete="off" />
         </el-form-item>
 
         <el-form-item label="函数标签：" prop="label">
-          <el-input
-              v-model="item.label"
-              placeholder="函数的中文名称"
-              autocomplete="off"
-          />
+          <el-input v-model="item.label" placeholder="函数的中文名称" autocomplete="off" />
         </el-form-item>
 
         <el-form-item label="功能描述：" prop="description">
-          <el-input
-              v-model="item.description"
-              autocomplete="off"
-          />
+          <el-input v-model="item.description" autocomplete="off" />
         </el-form-item>
 
         <el-form-item label="函数参数：" prop="parameters">
@@ -66,10 +52,7 @@
             <el-table :data="params" :border="childBorder" size="small">
               <el-table-column label="参数名称" width="120">
                 <template #default="scope">
-                  <el-input
-                      v-model="scope.row.name"
-                      autocomplete="off"
-                  />
+                  <el-input v-model="scope.row.name" autocomplete="off" />
                 </template>
               </el-table-column>
               <el-table-column label="参数类型" width="120">
@@ -81,17 +64,14 @@
               </el-table-column>
               <el-table-column label="参数描述">
                 <template #default="scope">
-                  <el-input
-                      v-model="scope.row.desc"
-                      autocomplete="off"
-                  />
+                  <el-input v-model="scope.row.desc" autocomplete="off" />
                 </template>
               </el-table-column>
 
               <el-table-column label="必填参数" width="80">
                 <template #default="scope">
                   <div class="param-opt">
-                    <el-checkbox v-model="scope.row.required"/>
+                    <el-checkbox v-model="scope.row.required" />
                   </div>
                 </template>
               </el-table-column>
@@ -99,7 +79,13 @@
               <el-table-column label="操作" width="80">
                 <template #default="scope">
                   <div class="param-opt">
-                    <el-button type="danger" :icon="Delete" circle @click="removeParam(scope.$index)" size="small"/>
+                    <el-button
+                      type="danger"
+                      :icon="Delete"
+                      circle
+                      @click="removeParam(scope.$index)"
+                      size="small"
+                    />
                   </div>
                 </template>
               </el-table-column>
@@ -108,7 +94,7 @@
             <div class="param-line">
               <el-button type="primary" @click="addParam" size="small">
                 <el-icon>
-                  <Plus/>
+                  <Plus />
                 </el-icon>
                 增加参数
               </el-button>
@@ -118,25 +104,21 @@
 
         <el-form-item label="API 地址：" prop="action">
           <el-input
-              v-model="item.action"
-              autocomplete="off"
-              placeholder="该函数实现的API地址，可以是第三方服务API"
+            v-model="item.action"
+            autocomplete="off"
+            placeholder="该函数实现的API地址，可以是第三方服务API"
           />
         </el-form-item>
 
         <el-form-item label="API Token：" prop="token">
-          <el-input
-              v-model="item.token"
-              autocomplete="off"
-              placeholder="API授权Token"
-          >
+          <el-input v-model="item.token" autocomplete="off" placeholder="API授权Token">
             <template #append>
               <el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="只有本地服务才可以使用自动生成Token<br/>第三方服务请填写第三方服务API Token"
-                  placement="top-end"
-                  raw-content
+                class="box-item"
+                effect="dark"
+                content="只有本地服务才可以使用自动生成Token<br/>第三方服务请填写第三方服务API Token"
+                placement="top-end"
+                raw-content
               >
                 <el-button @click="generateToken">生成Token</el-button>
               </el-tooltip>
@@ -144,27 +126,26 @@
           </el-input>
         </el-form-item>
         <el-form-item label="启用状态">
-          <el-switch v-model="item.enabled"/>
+          <el-switch v-model="item.enabled" />
         </el-form-item>
       </el-form>
 
       <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="showDialog = false">取消</el-button>
-              <el-button type="primary" @click="save">保存</el-button>
-            </span>
+        <span class="dialog-footer">
+          <el-button @click="showDialog = false">取消</el-button>
+          <el-button type="primary" @click="save">保存</el-button>
+        </span>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-
-import {Delete, Plus} from "@element-plus/icons-vue";
-import {onMounted, reactive, ref} from "vue";
-import {httpGet, httpPost} from "@/utils/http";
-import {ElMessage} from "element-plus";
-import {arrayContains, copyObj} from "@/utils/libs";
+import { httpGet, httpPost } from '@/utils/http'
+import { arrayContains, copyObj } from '@/utils/libs'
+import { Delete, Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
 
 const showDialog = ref(false)
 const parentBorder = ref(true)
@@ -174,35 +155,36 @@ const item = ref({})
 const params = ref([])
 const formRef = ref(null)
 const loading = ref(true)
-const title = ref("新增函数")
+const title = ref('新增函数')
 
 const rules = reactive({
-  name: [{required: true, message: '请输入函数名称', trigger: 'blur',}],
-  label: [{required: true, message: '请输入函数标签', trigger: 'blur',}],
-  description: [{required: true, message: '请输入函数功能描述', trigger: 'blur',}],
+  name: [{ required: true, message: '请输入函数名称', trigger: 'blur' }],
+  label: [{ required: true, message: '请输入函数标签', trigger: 'blur' }],
+  description: [{ required: true, message: '请输入函数功能描述', trigger: 'blur' }],
 })
-const paramsType = ref(["string", "number"])
-
+const paramsType = ref(['string', 'number'])
 
 onMounted(() => {
   fetch()
 })
 
 const fetch = () => {
-  httpGet('/api/admin/function/list').then((res) => {
-    if (res.data) {
-      tableData.value = res.data
-    }
-    loading.value = false
-  }).catch(() => {
-    ElMessage.error("获取数据失败");
-  })
+  httpGet('/api/admin/function/list')
+    .then((res) => {
+      if (res.data) {
+        tableData.value = res.data
+      }
+      loading.value = false
+    })
+    .catch(() => {
+      ElMessage.error('获取数据失败')
+    })
 }
 
 // 编辑
 const curIndex = ref(0)
 const rowEdit = function (index, row) {
-  title.value = "编辑函数"
+  title.value = '编辑函数'
   curIndex.value = index
   item.value = copyObj(row)
   // initialize parameters
@@ -214,7 +196,7 @@ const rowEdit = function (index, row) {
       name: key,
       type: props[key].type,
       desc: props[key].description,
-      required: arrayContains(required, key)
+      required: arrayContains(required, key),
     })
   }
   params.value = _params
@@ -222,7 +204,7 @@ const rowEdit = function (index, row) {
 }
 
 const addRow = function () {
-  item.value = {enabled: true}
+  item.value = { enabled: true }
   params.value = []
   showDialog.value = true
 }
@@ -235,104 +217,114 @@ const save = function () {
       const required = []
       // process params
       for (let i = 0; i < params.value.length; i++) {
-        properties[params.value[i].name] = {"type": params.value[i].type, "description": params.value[i].desc}
+        properties[params.value[i].name] = {
+          type: params.value[i].type,
+          description: params.value[i].desc,
+        }
         if (params.value[i].required) {
           required.push(params.value[i].name)
         }
       }
-      item.value.parameters = {type: "object", "properties": properties, required: required}
-      httpPost('/api/admin/function/save', item.value).then((res) => {
-        ElMessage.success('操作成功')
-        console.log(res.data)
-        if (item.value.id > 0) {
-          tableData.value[curIndex.value] = item.value
-        } else {
-          tableData.value.push(res.data)
-        }
-      }).catch((e) => {
-        ElMessage.error('操作失败，' + e.message)
-      })
+      item.value.parameters = { type: 'object', properties: properties, required: required }
+      httpPost('/api/admin/function/save', item.value)
+        .then((res) => {
+          ElMessage.success('操作成功')
+          console.log(res.data)
+          if (item.value.id > 0) {
+            tableData.value[curIndex.value] = item.value
+          } else {
+            tableData.value.push(res.data)
+          }
+        })
+        .catch((e) => {
+          ElMessage.error('操作失败，' + e.message)
+        })
     }
   })
 }
 
 const remove = function (row) {
-  httpGet('/api/admin/function/remove?id=' + row.id).then(() => {
-    ElMessage.success("删除成功！")
-    fetch()
-  }).catch(() => {
-    ElMessage.error("删除失败！")
-  })
+  httpGet('/api/admin/function/remove?id=' + row.id)
+    .then(() => {
+      ElMessage.success('删除成功！')
+      fetch()
+    })
+    .catch(() => {
+      ElMessage.error('删除失败！')
+    })
 }
 
 const addParam = function () {
   if (!params.value) {
     item.value = []
   }
-  params.value.push({name: "", type: "string", desc: "", required: false})
+  params.value.push({ name: '', type: 'string', desc: '', required: false })
 }
 
 const removeParam = function (index) {
-  params.value.splice(index, 1);
+  params.value.splice(index, 1)
 }
 
 const functionSet = (filed, row) => {
-  httpPost('/api/admin/function/set', {id: row.id, filed: filed, value: row[filed]}).then(() => {
-    ElMessage.success("操作成功！")
-  }).catch(e => {
-    ElMessage.error("操作失败：" + e.message)
-  })
+  httpPost('/api/admin/function/set', { id: row.id, filed: filed, value: row[filed] })
+    .then(() => {
+      ElMessage.success('操作成功！')
+    })
+    .catch((e) => {
+      ElMessage.error('操作失败：' + e.message)
+    })
 }
 
 const generateToken = () => {
-  httpGet('/api/admin/function/token').then(res => {
-    ElMessage.success("生成 Token 成功")
-    item.value.token = res.data
-  }).catch(() => {
-    ElMessage.error("生成 Token 失败")
-  })
+  httpGet('/api/admin/function/token')
+    .then((res) => {
+      ElMessage.success('生成 Token 成功')
+      item.value.token = res.data
+    })
+    .catch(() => {
+      ElMessage.error('生成 Token 失败')
+    })
 }
-
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .function {
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
   }
 
   .param-line {
-    padding 5px 0
+    padding: 5px 0;
 
     .el-icon {
-      margin-right 5px;
+      margin-right: 5px;
     }
   }
 
   .param-opt {
-    display flex
-    justify-content center
+    display: flex;
+    justify-content: center;
 
     .el-icon {
       font-size: 20px;
-      margin-top 5px;
-      margin-left 5px;
-      cursor pointer
+      margin-top: 5px;
+      margin-left: 5px;
+      cursor: pointer;
     }
   }
 
   .el-input--small {
-    width 30px;
+    width: 30px;
 
     .el-input__inner {
-      text-align center
+      text-align: center;
     }
   }
 
   .pagination {
-    padding 20px 0
-    display flex
-    justify-content right
+    padding: 20px 0;
+    display: flex;
+    justify-content: right;
   }
 }
 </style>

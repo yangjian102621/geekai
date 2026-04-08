@@ -9,6 +9,7 @@ package admin
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/handler"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -28,6 +29,17 @@ func NewUploadHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderMan
 	return &UploadHandler{BaseHandler: handler.BaseHandler{DB: db, App: app}, uploaderManager: manager}
 }
 
+// RegisterRoutes 注册路由
+func (h *UploadHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/upload")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.POST("", h.Upload)
+	}
+}
+
 func (h *UploadHandler) Upload(c *gin.Context) {
 	// 判断文件大小
 	f, err := c.FormFile("file")
@@ -36,7 +48,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	if h.App.SysConfig.MaxFileSize > 0 && f.Size > int64(h.App.SysConfig.MaxFileSize)*1024*1024 {
+	if h.App.SysConfig.Base.MaxFileSize > 0 && f.Size > int64(h.App.SysConfig.Base.MaxFileSize)*1024*1024 {
 		resp.ERROR(c, "文件大小超过限制")
 		return
 	}

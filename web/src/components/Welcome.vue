@@ -116,54 +116,54 @@ const send = (text) => {
   emits('send', text)
 }
 </script>
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .welcome {
-  text-align center
-  display flex
-  justify-content center
-  margin-top 8vh
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  margin-top: 8vh;
 
   .container {
-    max-width 768px;
-    width 100%
+    max-width: 768px;
+    width: 100%;
 
     .title {
       // font-size: 2.25rem
-      line-height: 2.5rem
-      font-weight 600
-      margin-bottom: 4rem
-      color var(--text-color)
+      line-height: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 4rem;
+      color: var(--text-color);
     }
 
     .grid-content {
       .item-title {
         div {
-          padding 6px 10px;
+          padding: 6px 10px;
 
           .iconfont {
-            font-size 24px;
+            font-size: 24px;
           }
         }
       }
 
       .list-box {
         ul {
-          padding 10px;
+          padding: 10px;
 
           li {
-            font-size 14px;
-            padding .75rem
-            border-radius 5px;
+            font-size: 14px;
+            padding: 0.75rem;
+            border-radius: 5px;
             background-color: var(--chat-wel-bg);
-            color:var( --theme-text-color-secondary);
-            line-height 1.5
+            color: var(--theme-text-color-secondary);
+            line-height: 1.5;
 
             a {
-              cursor pointer
-              display block
-              width 100%
+              cursor: pointer;
+              display: block;
+              width: 100%;
             }
-            margin-top 10px;
+            margin-top: 10px;
           }
         }
       }

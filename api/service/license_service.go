@@ -8,30 +8,37 @@ package service
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"errors"
 	"fmt"
-	"geekai/core"
 	"geekai/core/types"
-	"geekai/store"
+	"geekai/store/model"
+	"geekai/utils"
+	"strings"
 	"time"
 
 	"github.com/imroc/req/v3"
+	"github.com/shirou/gopsutil/host"
+	"gorm.io/gorm"
 )
 
 type LicenseService struct {
-	config       types.ApiConfig
-	levelDB      *store.LevelDB
 	license      *types.License
 	urlWhiteList []string
 	machineId    string
+	db           *gorm.DB
 }
 
-func NewLicenseService(server *core.AppServer, levelDB *store.LevelDB) *LicenseService {
-	var license types.License
+func NewLicenseService(sysConfig *types.SystemConfig, db *gorm.DB) *LicenseService {
+	var machineId string
+	info, err := host.Info()
+	if err == nil {
+		machineId = info.HostID
+	}
+	logger.Infof("License: %+v", sysConfig.License)
 	return &LicenseService{
-		config:    server.Config.ApiConfig,
-		levelDB:   levelDB,
-		license:   &license,
-		machineId: "",
+		license:   &sysConfig.License,
+		machineId: machineId,
+		db:        db,
 	}
 }
 
@@ -46,15 +53,15 @@ type License struct {
 }
 
 // ActiveLicense 激活 License
-func (s *LicenseService) ActiveLicense(license string, machineId string) error {
+func (s *LicenseService) ActiveLicense(license string) error {
 	var res struct {
 		Code    types.BizCode `json:"code"`
 		Message string        `json:"message"`
 		Data    License       `json:"data"`
 	}
-	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/active")
+	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/active")
 	response, err := req.C().R().
-		SetBody(map[string]string{"license": license, "machine_id": machineId}).
+		SetBody(map[string]string{"license": license, "machine_id": s.machineId}).
 		SetSuccessResult(&res).Post(apiURL)
 	if err != nil {
 		return fmt.Errorf("发送激活请求失败: %v", err)
@@ -68,17 +75,24 @@ func (s *LicenseService) ActiveLicense(license string, machineId string) error {
 		return fmt.Errorf("激活失败：%v", res.Message)
 	}
 
+	if res.Data.ExpiredAt > 0 && res.Data.ExpiredAt < time.Now().Unix() {
+		return fmt.Errorf("License 已过期")
+	}
+
 	s.license = &types.License{
 		Key:       license,
-		MachineId: machineId,
+		MachineId: s.machineId,
 		Configs:   res.Data.Configs,
 		ExpiredAt: res.Data.ExpiredAt,
 		IsActive:  true,
 	}
-	err = s.levelDB.Put(types.LicenseKey, s.license)
+
+	// 保存 License 到数据库
+	err = s.db.Model(&model.Config{}).Where("name = ?", types.ConfigKeyLicense).UpdateColumn("value", utils.JsonEncode(s.license)).Error
 	if err != nil {
-		return fmt.Errorf("保存许可证书失败：%v", err)
+		return fmt.Errorf("保存 License 到数据库失败: %v", err)
 	}
+
 	return nil
 }
 
@@ -96,6 +110,11 @@ func (s *LicenseService) SyncLicense() {
 				s.license.IsActive = false
 			} else {
 				s.license = license
+				// 保存 License 到数据库
+				err = s.db.Model(&model.Config{}).Where("name = ?", types.ConfigKeyLicense).UpdateColumn("value", utils.JsonEncode(s.license)).Error
+				if err != nil {
+					logger.Errorf("保存 License 到数据库失败: %v", err)
+				}
 			}
 
 			urls, err := s.fetchUrlWhiteList()
@@ -109,33 +128,30 @@ func (s *LicenseService) SyncLicense() {
 }
 
 func (s *LicenseService) fetchLicense() (*types.License, error) {
-	//var res struct {
-	//	Code    types.BizCode `json:"code"`
-	//	Message string        `json:"message"`
-	//	Data    License       `json:"data"`
-	//}
-	//apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/check")
-	//response, err := req.C().R().
-	//	SetBody(map[string]string{"license": s.license.Key, "machine_id": s.machineId}).
-	//	SetSuccessResult(&res).Post(apiURL)
-	//if err != nil {
-	//	return nil, fmt.Errorf("发送激活请求失败: %v", err)
-	//}
-	//if response.IsErrorState() {
-	//	return nil, fmt.Errorf("激活失败：%v", response.Status)
-	//}
-	//if res.Code != types.Success {
-	//	return nil, fmt.Errorf("激活失败：%v", res.Message)
-	//}
+	var res struct {
+		Code    types.BizCode `json:"code"`
+		Message string        `json:"message"`
+		Data    License       `json:"data"`
+	}
+	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/check")
+	response, err := req.C().R().
+		SetBody(map[string]string{"license": s.license.Key, "machine_id": s.machineId}).
+		SetSuccessResult(&res).Post(apiURL)
+	if err != nil {
+		return nil, fmt.Errorf("License 同步失败: %v", err)
+	}
+	if response.IsErrorState() {
+		return nil, fmt.Errorf("License 同步失败：%v", response.Status)
+	}
+	if res.Code != types.Success {
+		return nil, fmt.Errorf("License 同步失败：%v", res.Message)
+	}
 
 	return &types.License{
-		Key:       "abc",
-		MachineId: "abc",
-		Configs: types.LicenseConfig{
-			UserNum: 10000,
-			DeCopy:  false,
-		},
-		ExpiredAt: 0,
+		Key:       res.Data.License,
+		MachineId: res.Data.MachineId,
+		Configs:   res.Data.Configs,
+		ExpiredAt: res.Data.ExpiredAt,
 		IsActive:  true,
 	}, nil
 }
@@ -146,7 +162,7 @@ func (s *LicenseService) fetchUrlWhiteList() ([]string, error) {
 		Message string        `json:"message"`
 		Data    []string      `json:"data"`
 	}
-	apiURL := fmt.Sprintf("%s/%s", s.config.ApiURL, "api/license/urls")
+	apiURL := fmt.Sprintf("%s/%s", types.GeekAPIURL, "api/license/urls")
 	response, err := req.C().R().SetSuccessResult(&res).Get(apiURL)
 	if err != nil {
 		return nil, fmt.Errorf("发送请求失败: %v", err)
@@ -163,35 +179,46 @@ func (s *LicenseService) fetchUrlWhiteList() ([]string, error) {
 
 // GetLicense 获取许可信息
 func (s *LicenseService) GetLicense() *types.License {
+	if s.license == nil {
+		var config model.Config
+		s.db.Model(&model.Config{}).Where("name = ?", types.ConfigKeyLicense).First(&config)
+		if config.Value != "" {
+			utils.JsonDecode(config.Value, &s.license)
+		}
+	}
 	return s.license
+}
+
+func (s *LicenseService) SetLicense(licenseKey string) {
+	s.license.Key = licenseKey
+
 }
 
 // IsValidApiURL 判断是否合法的中转 URL
 func (s *LicenseService) IsValidApiURL(uri string) error {
 	// 获得许可授权的直接放行
-	return nil
-	//if s.license.IsActive {
-	//	if s.license.MachineId != s.machineId {
-	//		return errors.New("系统使用了盗版的许可证书")
-	//	}
-	//
-	//	if time.Now().Unix() > s.license.ExpiredAt {
-	//		return errors.New("系统许可证书已经过期")
-	//	}
-	//	return nil
-	//}
-	//
-	//if len(s.urlWhiteList) == 0 {
-	//	urls, err := s.fetchUrlWhiteList()
-	//	if err == nil {
-	//		s.urlWhiteList = urls
-	//	}
-	//}
-	//
-	//for _, v := range s.urlWhiteList {
-	//	if strings.HasPrefix(uri, v) {
-	//		return nil
-	//	}
-	//}
-	//return fmt.Errorf("当前 API 地址 %s 不在白名单列表当中。", uri)
+	if s.license.IsActive {
+		if s.license.MachineId != s.machineId {
+			return errors.New("系统使用了盗版的许可证书")
+		}
+
+		if time.Now().Unix() > s.license.ExpiredAt {
+			return errors.New("系统许可证书已经过期")
+		}
+		return nil
+	}
+
+	if len(s.urlWhiteList) == 0 {
+		urls, err := s.fetchUrlWhiteList()
+		if err == nil {
+			s.urlWhiteList = urls
+		}
+	}
+
+	for _, v := range s.urlWhiteList {
+		if strings.HasPrefix(uri, v) {
+			return nil
+		}
+	}
+	return fmt.Errorf("当前 API 地址 %s 不在白名单列表当中。", uri)
 }

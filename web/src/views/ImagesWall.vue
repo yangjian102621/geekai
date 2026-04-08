@@ -3,11 +3,17 @@
     <div class="inner custom-scroll">
       <div class="header">
         <h2 class="text-xl pt-4 pb-4">AI 绘画作品墙</h2>
-        <div class="settings pr-14">
+        <div class="settings">
           <el-radio-group v-model="imgType" @change="changeImgType">
-            <el-radio label="mj" size="large">MidJourney</el-radio>
-            <el-radio label="sd" size="large">Stable Diffusion</el-radio>
-            <el-radio label="dall" size="large">DALL-E</el-radio>
+            <el-radio-button value="mj"
+              ><i class="iconfont icon-mj mr-1"></i>MidJourney</el-radio-button
+            >
+            <el-radio-button value="sd"
+              ><i class="iconfont icon-sd mr-1"></i>StableDiffusion</el-radio-button
+            >
+            <el-radio-button value="dall"
+              ><i class="iconfont icon-dalle mr-1"></i>Dalle</el-radio-button
+            >
           </el-radio-group>
         </div>
       </div>
@@ -371,7 +377,7 @@ const drawSameMj = (row) => {
 }
 </script>
 
-<style lang="stylus">
-@import '../assets/css/images-wall.styl';
-@import '../assets/css/custom-scroll.styl';
+<style lang="scss">
+@use '../assets/css/images-wall.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

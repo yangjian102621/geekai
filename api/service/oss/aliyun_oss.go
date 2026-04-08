@@ -23,35 +23,35 @@ import (
 )
 
 type AliYunOss struct {
-	config   *types.AliYunOssConfig
+	config   types.AliYunOssConfig
 	bucket   *oss.Bucket
 	proxyURL string
 }
 
-func NewAliYunOss(appConfig *types.AppConfig) (*AliYunOss, error) {
-	config := &appConfig.OSS.AliYun
-	// 创建 OSS 客户端
+func NewAliYunOss(sysConfig *types.SystemConfig, appConfig *types.AppConfig) (*AliYunOss, error) {
+	s := &AliYunOss{
+		proxyURL: appConfig.ProxyURL,
+	}
+	err := s.UpdateConfig(sysConfig.OSS.AliYun)
+	if err != nil {
+		logger.Warnf("阿里云OSS初始化失败: %v", err)
+	}
+	return s, nil
+
+}
+
+func (s *AliYunOss) UpdateConfig(config types.AliYunOssConfig) error {
 	client, err := oss.New(config.Endpoint, config.AccessKey, config.AccessSecret)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	// 获取存储空间
 	bucket, err := client.Bucket(config.Bucket)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	if config.SubDir == "" {
-		config.SubDir = "gpt"
-	}
-
-	return &AliYunOss{
-		config:   config,
-		bucket:   bucket,
-		proxyURL: appConfig.ProxyURL,
-	}, nil
-
+	s.bucket = bucket
+	s.config = config
+	return nil
 }
 
 func (s AliYunOss) PutFile(ctx *gin.Context, name string) (File, error) {
@@ -68,7 +68,7 @@ func (s AliYunOss) PutFile(ctx *gin.Context, name string) (File, error) {
 	defer src.Close()
 
 	fileExt := filepath.Ext(file.Filename)
-	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), fileExt)
+	objectKey := fmt.Sprintf("%d%s", time.Now().UnixMicro(), fileExt)
 	// 上传文件
 	err = s.bucket.PutObject(objectKey, src)
 	if err != nil {
@@ -102,7 +102,7 @@ func (s AliYunOss) PutUrlFile(fileURL string, ext string, useProxy bool) (string
 	if ext == "" {
 		ext = filepath.Ext(parse.Path)
 	}
-	objectKey := fmt.Sprintf("%s/%d%s", s.config.SubDir, time.Now().UnixMicro(), ext)
+	objectKey := fmt.Sprintf("%d%s", time.Now().UnixMicro(), ext)
 	// 上传文件字节数据
 	err = s.bucket.PutObject(objectKey, bytes.NewReader(fileData))
 	if err != nil {
@@ -116,7 +116,7 @@ func (s AliYunOss) PutBase64(base64Img string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error decoding base64:%v", err)
 	}
-	objectKey := fmt.Sprintf("%s/%d.png", s.config.SubDir, time.Now().UnixMicro())
+	objectKey := fmt.Sprintf("%d.png", time.Now().UnixMicro())
 	// 上传文件字节数据
 	err = s.bucket.PutObject(objectKey, bytes.NewReader(imageData))
 	if err != nil {
@@ -128,8 +128,7 @@ func (s AliYunOss) PutBase64(base64Img string) (string, error) {
 func (s AliYunOss) Delete(fileURL string) error {
 	var objectKey string
 	if strings.HasPrefix(fileURL, "http") {
-		filename := filepath.Base(fileURL)
-		objectKey = fmt.Sprintf("%s/%s", s.config.SubDir, filename)
+		objectKey = filepath.Base(fileURL)
 	} else {
 		objectKey = fileURL
 	}

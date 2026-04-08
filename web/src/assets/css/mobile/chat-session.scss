@@ -1,0 +1,159 @@
+@use 'model-select.scss' as *;
+
+.mobile-chat {
+  .van-nav-bar {
+    position: static;
+
+    .setting {
+      font-size: 18px;
+    }
+  }
+
+  .chat-list-wrapper {
+    padding: 10px 0 10px 0;
+    background: var(--van-background);
+    overflow: hidden;
+
+    .message-list-box {
+      overflow: auto;
+
+      .van-cell {
+        background: none;
+        font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+      }
+    }
+  }
+
+  .chat-box-wrapper {
+    .van-sticky {
+      .van-cell-group--inset {
+        margin: 0;
+
+        .van-cell {
+          padding: 10px;
+
+          .icon-box {
+            .van-icon {
+              font-size: 24px;
+              margin-left: 10px;
+            }
+          }
+
+          .button-voice {
+            padding: 0 2px;
+
+            .el-icon {
+              font-size: 24px;
+            }
+            height: 30px;
+          }
+        }
+      }
+
+      // .file-preview-list {
+      //   display: flex;
+      //   flex-wrap: wrap;
+      //   padding: 6px 10px 0 10px;
+      //   gap: 8px;
+
+      //   .file-preview-item {
+      //     position: relative;
+      //     display: inline-flex;
+      //     align-items: center;
+      //     border: 1px solid #e8e8e8;
+      //     background: var(--van-cell-background);
+      //     border-radius: 8px;
+      //     padding: 6px 26px 6px 6px;
+      //     overflow: hidden;
+
+      //     .thumb {
+      //       width: 56px;
+      //       height: 56px;
+      //       border-radius: 6px;
+      //       overflow: hidden;
+
+      //       .img {
+      //         width: 56px;
+      //         height: 56px;
+      //       }
+
+      //       .size {
+      //         position: absolute;
+      //         left: 6px;
+      //         bottom: 6px;
+      //         background: rgba(0, 0, 0, 0.5);
+      //         color: #fff;
+      //         font-size: 10px;
+      //         padding: 1px 4px;
+      //         border-radius: 3px;
+      //       }
+      //     }
+
+      //     .doc {
+      //       display: inline-flex;
+      //       align-items: center;
+      //       gap: 6px;
+      //       max-width: 220px;
+      //       .icon {
+      //         width: 24px;
+      //         height: 24px;
+      //       }
+      //       .name {
+      //         white-space: nowrap;
+      //         text-overflow: ellipsis;
+      //         overflow: hidden;
+      //         max-width: 180px;
+      //       }
+      //       .size {
+      //         color: #8c8c8c;
+      //         font-size: 12px;
+      //         margin-left: 6px;
+      //       }
+      //     }
+
+      //     .remove {
+      //       position: absolute;
+      //       right: 6px;
+      //       top: 6px;
+      //       font-size: 14px;
+      //       color: #999;
+      //     }
+      //   }
+      // }
+    }
+  }
+
+  .van-nav-bar__title {
+    .van-dropdown-menu__title {
+      margin-right: 10px;
+    }
+
+    .van-cell__title {
+      text-align: left;
+    }
+  }
+
+  .van-nav-bar__right {
+    .van-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+.van-overlay {
+  .mic-wrapper {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+  }
+}
+
+// .van-theme-dark {
+//   .mobile-chat {
+//     .chat-list-wrapper {
+//       background: #232425;
+//     }
+//   }
+// }

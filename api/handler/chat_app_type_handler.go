@@ -19,6 +19,12 @@ func NewChatAppTypeHandler(app *core.AppServer, db *gorm.DB) *ChatAppTypeHandler
 	return &ChatAppTypeHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatAppTypeHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/app/type/")
+	group.GET("list", h.List)
+}
+
 // List 获取App类型列表
 func (h *ChatAppTypeHandler) List(c *gin.Context) {
 	var items []model.AppType

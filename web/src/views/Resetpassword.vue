@@ -1,5 +1,4 @@
 <template>
-  <div class="reset-pass"></div>
   <div class="flex-center loginPage">
     <div class="left">
       <div class="login-box">
@@ -123,9 +122,10 @@ const save = () => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/login.styl"
-::v-deep(.el-tabs__item.is-active, .el-tabs__item:hover){
-    color: var(--common-text-color) !important;
-  }
+<style lang="scss" scoped>
+@use '../assets/css/login.scss' as *;
+
+::v-deep(.el-tabs__item.is-active, .el-tabs__item:hover) {
+  color: var(--common-text-color) !important;
+}
 </style>

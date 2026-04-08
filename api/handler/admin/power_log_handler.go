@@ -28,6 +28,12 @@ func NewPowerLogHandler(app *core.AppServer, db *gorm.DB) *PowerLogHandler {
 	return &PowerLogHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *PowerLogHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/powerLog/")
+	group.POST("list", h.List)
+}
+
 func (h *PowerLogHandler) List(c *gin.Context) {
 	var data struct {
 		Username string   `json:"username"`

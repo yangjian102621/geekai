@@ -13,7 +13,6 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
-	"geekai/service/crawler"
 	"geekai/service/dalle"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -31,7 +30,6 @@ import (
 
 type FunctionHandler struct {
 	BaseHandler
-	config        types.ApiConfig
 	uploadManager *oss.UploaderManager
 	dallService   *dalle.Service
 	userService   *service.UserService
@@ -49,11 +47,21 @@ func NewFunctionHandler(
 			App: server,
 			DB:  db,
 		},
-		config:        config.ApiConfig,
 		uploadManager: manager,
 		dallService:   dallService,
 		userService:   userService,
 	}
+}
+
+// RegisterRoutes 注册路由
+func (h *FunctionHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/function/")
+	group.GET("list", h.List)
+
+	// 需要用户授权的接口
+	group.POST("weibo", h.WeiBo)
+	group.POST("zaobao", h.ZaoBao)
+	group.POST("dalle3", h.Dall3)
 }
 
 type resVo struct {
@@ -107,16 +115,10 @@ func (h *FunctionHandler) WeiBo(c *gin.Context) {
 		return
 	}
 
-	if h.config.Token == "" {
-		resp.ERROR(c, "无效的 API Token")
-		return
-	}
-
-	url := fmt.Sprintf("%s/api/weibo/fetch", h.config.ApiURL)
+	url := fmt.Sprintf("%s/api/weibo/fetch", types.GeekAPIURL)
 	var res resVo
 	r, err := req.C().R().
-		SetHeader("AppId", h.config.AppId).
-		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.config.Token)).
+		SetHeader("Authorization", "Bearer geekai-plus").
 		SetSuccessResult(&res).Get(url)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("%v", err))
@@ -146,16 +148,10 @@ func (h *FunctionHandler) ZaoBao(c *gin.Context) {
 		return
 	}
 
-	if h.config.Token == "" {
-		resp.ERROR(c, "无效的 API Token")
-		return
-	}
-
-	url := fmt.Sprintf("%s/api/zaobao/fetch", h.config.ApiURL)
+	url := fmt.Sprintf("%s/api/zaobao/fetch", types.GeekAPIURL)
 	var res resVo
 	r, err := req.C().R().
-		SetHeader("AppId", h.config.AppId).
-		SetHeader("Authorization", fmt.Sprintf("Bearer %s", h.config.Token)).
+		SetHeader("Authorization", "Bearer geekai-plus").
 		SetSuccessResult(&res).Get(url)
 	if err != nil {
 		resp.ERROR(c, fmt.Sprintf("%v", err))
@@ -193,16 +189,23 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 
+	var chatModel model.ChatModel
+	res := h.DB.Where("type = ?", "img").Where("enabled", true).First(&chatModel)
+	if res.Error != nil {
+		resp.ERROR(c, "没有找到可用的AI绘图模型！")
+		return
+	}
+
 	logger.Debugf("绘画参数：%+v", params)
 	var user model.User
-	res := h.DB.Where("id = ?", params["user_id"]).First(&user)
+	res = h.DB.Where("id = ?", params["user_id"]).First(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "当前用户不存在！")
 		return
 	}
 
-	if user.Power < h.App.SysConfig.DallPower {
-		resp.ERROR(c, "创建 DALL-E 绘图任务失败，算力不足")
+	if user.Power < chatModel.Power {
+		resp.ERROR(c, "创建绘图任务失败，算力不足")
 		return
 	}
 
@@ -211,24 +214,24 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	task := types.DallTask{
 		UserId:           user.Id,
 		Prompt:           prompt,
-		ModelId:          0,
-		ModelName:        "dall-e-3",
-		TranslateModelId: h.App.SysConfig.AssistantModelId,
+		ModelId:          chatModel.Id,
+		ModelName:        chatModel.Value,
+		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		N:                1,
 		Quality:          "standard",
 		Size:             "1024x1024",
 		Style:            "vivid",
-		Power:            h.App.SysConfig.DallPower,
+		Power:            chatModel.Power,
 	}
 	job := model.DallJob{
 		UserId:   user.Id,
 		Prompt:   prompt,
-		Power:    h.App.SysConfig.DallPower,
+		Power:    chatModel.Power,
 		TaskInfo: utils.JsonEncode(task),
 	}
 	err := h.DB.Create(&job).Error
 	if err != nil {
-		resp.ERROR(c, "创建 DALL-E 绘图任务失败："+err.Error())
+		resp.ERROR(c, "创建绘图任务失败："+err.Error())
 		return
 	}
 
@@ -251,76 +254,6 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, content)
-}
-
-// 实现一个联网搜索的函数工具，采用爬虫实现
-func (h *FunctionHandler) WebSearch(c *gin.Context) {
-	if err := h.checkAuth(c); err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-
-	var params map[string]interface{}
-	if err := c.ShouldBindJSON(&params); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	// 从参数中获取搜索关键词
-	keyword, ok := params["keyword"].(string)
-	if !ok || keyword == "" {
-		resp.ERROR(c, "搜索关键词不能为空")
-		return
-	}
-
-	// 从参数中获取最大页数，默认为1页
-	maxPages := 1
-	if pages, ok := params["max_pages"].(float64); ok {
-		maxPages = int(pages)
-	}
-
-	// 获取用户ID
-	userID, ok := params["user_id"].(float64)
-	if !ok {
-		resp.ERROR(c, "用户ID不能为空")
-		return
-	}
-
-	// 查询用户信息
-	var user model.User
-	res := h.DB.Where("id = ?", int(userID)).First(&user)
-	if res.Error != nil {
-		resp.ERROR(c, "用户不存在")
-		return
-	}
-
-	// 检查用户算力是否足够
-	searchPower := 1 // 每次搜索消耗1点算力
-	if user.Power < searchPower {
-		resp.ERROR(c, "算力不足，无法执行网络搜索")
-		return
-	}
-
-	// 执行网络搜索
-	searchResults, err := crawler.SearchWeb(keyword, maxPages)
-	if err != nil {
-		resp.ERROR(c, fmt.Sprintf("搜索失败: %v", err))
-		return
-	}
-
-	// 扣减用户算力
-	err = h.userService.DecreasePower(user.Id, searchPower, model.PowerLog{
-		Type:   types.PowerConsume,
-		Model:  "web_search",
-		Remark: fmt.Sprintf("网络搜索：%s", utils.CutWords(keyword, 10)),
-	})
-	if err != nil {
-		resp.ERROR(c, "扣减算力失败："+err.Error())
-		return
-	}
-
-	// 返回搜索结果
-	resp.SUCCESS(c, searchResults)
 }
 
 // List 获取所有的工具函数列表

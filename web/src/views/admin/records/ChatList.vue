@@ -365,20 +365,20 @@ const showMessages = (row) => {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .chat-page {
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 150px;
-      margin-right 10px;
+      max-width: 150px;
+      margin-right: 10px;
     }
   }
 
   .opt-box {
     padding-bottom: 10px;
-    display flex;
-    justify-content flex-end
+    display: flex;
+    justify-content: flex-end;
 
     .el-icon {
       margin-right: 5px;
@@ -386,28 +386,29 @@ const showMessages = (row) => {
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .pagination {
-    margin-top 20px
-    display flex
-    justify-content right
+    margin-top: 20px;
+    display: flex;
+    justify-content: right;
   }
 
   .chat-detail {
-    max-height 90vh
-    overflow auto
+    max-height: 90vh;
+    overflow: auto;
   }
+
   .chat-box {
-    overflow auto
+    overflow: auto;
 
     // 变量定义
     --content-font-size: 16px;
     --content-color: #c1c1c1;
 
     font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-    max-height 90vh
+    max-height: 90vh;
 
     .chat-line {
       // 隐藏滚动条
@@ -421,9 +422,7 @@ const showMessages = (row) => {
       font-size: 14px;
       display: flex;
       justify-content: flex-start;
-
     }
   }
-
 }
 </style>

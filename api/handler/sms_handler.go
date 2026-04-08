@@ -24,24 +24,31 @@ const CodeStorePrefix = "/verify/codes/"
 
 type SmsHandler struct {
 	BaseHandler
-	redis   *redis.Client
-	sms     *sms.ServiceManager
-	smtp    *service.SmtpService
-	captcha *service.CaptchaService
+	redis          *redis.Client
+	sms            *sms.SmsManager
+	smtp           *service.SmtpService
+	captchaService *service.CaptchaService
 }
 
 func NewSmsHandler(
 	app *core.AppServer,
 	client *redis.Client,
-	sms *sms.ServiceManager,
+	sms *sms.SmsManager,
 	smtp *service.SmtpService,
 	captcha *service.CaptchaService) *SmsHandler {
 	return &SmsHandler{
-		redis:       client,
-		sms:         sms,
-		captcha:     captcha,
-		smtp:        smtp,
-		BaseHandler: BaseHandler{App: app}}
+		redis:          client,
+		sms:            sms,
+		captchaService: captcha,
+		smtp:           smtp,
+		BaseHandler:    BaseHandler{App: app}}
+}
+
+// RegisterRoutes 注册路由
+func (h *SmsHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/sms/")
+	// 无需授权的接口
+	group.POST("code", h.SendCode)
 }
 
 // SendCode 发送验证码
@@ -56,12 +63,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if h.App.SysConfig.EnabledVerify {
+	if h.captchaService.GetConfig().Enabled {
 		var check bool
 		if data.X != 0 {
-			check = h.captcha.SlideCheck(data)
+			check = h.captchaService.SlideCheck(data)
 		} else {
-			check = h.captcha.Check(data)
+			check = h.captchaService.Check(data)
 		}
 		if !check {
 			resp.ERROR(c, "请先完人机验证")
@@ -72,14 +79,14 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	code := utils.RandomNumber(6)
 	var err error
 	if strings.Contains(data.Receiver, "@") { // email
-		if !utils.Contains(h.App.SysConfig.RegisterWays, "email") {
+		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "email") {
 			resp.ERROR(c, "系统已禁用邮箱注册！")
 			return
 		}
 		// 检查邮箱后缀是否在白名单
-		if len(h.App.SysConfig.EmailWhiteList) > 0 {
+		if len(h.App.SysConfig.Base.EmailWhiteList) > 0 {
 			inWhiteList := false
-			for _, suffix := range h.App.SysConfig.EmailWhiteList {
+			for _, suffix := range h.App.SysConfig.Base.EmailWhiteList {
 				if strings.HasSuffix(data.Receiver, suffix) {
 					inWhiteList = true
 					break
@@ -92,7 +99,7 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
-		if !utils.Contains(h.App.SysConfig.RegisterWays, "mobile") {
+		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") {
 			resp.ERROR(c, "系统已禁用手机号注册！")
 			return
 		}

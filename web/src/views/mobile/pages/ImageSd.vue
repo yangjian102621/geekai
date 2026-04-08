@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-sd">
-    <van-form @submit="generate">
-      <van-cell-group inset>
+    <van-form>
+      <van-cell-group class="px-3 pt-3 pb-4">
         <div>
           <van-field
             v-model="params.sampler"
@@ -130,17 +130,22 @@
           </van-collapse-item>
         </van-collapse>
 
-        <div class="text-line pt-6">
-          <el-tag>绘图消耗{{ sdPower }}算力，当前算力：{{ power }}</el-tag>
-        </div>
-
-        <div class="text-line">
-          <van-button round block type="primary" native-type="submit"> 立即生成 </van-button>
+        <div class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm">
+          <button
+            @click="generate"
+            :disabled="loading"
+            type="button"
+            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+          >
+            <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+            <i v-else class="iconfont icon-chuangzuo"></i>
+            <span>{{ loading ? '创作中...' : '立即生成' }}({{ sdPower }}算力)</span>
+          </button>
         </div>
       </van-cell-group>
     </van-form>
 
-    <h3>任务列表</h3>
+    <h3 class="m-3">任务列表</h3>
     <div class="running-job-list pt-3 pb-3">
       <van-empty
         v-if="runningJobs.length === 0"
@@ -172,7 +177,7 @@
       </van-grid>
     </div>
 
-    <h3>创作记录</h3>
+    <h3 class="m-3">创作记录</h3>
     <div class="finish-job-list">
       <van-empty
         v-if="finishedJobs.length === 0"
@@ -562,6 +567,6 @@ const showInfo = (message) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import "../../../assets/css/mobile/image-sd.styl"
+<style lang="scss" scoped>
+@use '@/assets/css/mobile/image-sd.scss' as *;
 </style>

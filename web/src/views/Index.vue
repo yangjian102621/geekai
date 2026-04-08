@@ -8,7 +8,7 @@
           <img :src="logo" class="logo" alt="Geek-AI" />
         </div>
         <div class="menu-item">
-          <span v-if="!license?.de_copy">
+          <span v-if="!license || !license.de_copy">
             <el-tooltip class="box-item" content="部署文档" placement="bottom">
               <a :href="docsURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-book"></i>
@@ -51,15 +51,6 @@
       <h1 class="animate__animated animate__backInDown">
         {{ title }}
       </h1>
-      <!-- <div class="msg-text cursor-ani">
-        <span
-          v-for="(char, index) in displayedChars"
-          :key="index"
-          :style="{ color: rainbowColor(index) }"
-        >
-          {{ char }}
-        </span>
-      </div> -->
 
       <div class="navs animate__animated animate__backInDown">
         <el-space wrap :size="14">
@@ -69,7 +60,8 @@
             class="nav-item-box"
             @click="router.push(item.url)"
           >
-            <i :class="'iconfont ' + item.icon"></i>
+            <i :class="'iconfont mb-2 ' + item.icon" v-if="item.icon.startsWith('icon')"></i>
+            <el-image :src="item.icon" class="rounded-lg w-10 h-10 mb-2" alt="Geek-AI" v-else />
             <div>{{ item.name }}</div>
           </div>
         </el-space>
@@ -77,6 +69,19 @@
     </div>
 
     <footer-bar />
+
+    <!-- 网站公告对话框 -->
+    <el-dialog v-model="showNotice" :show-close="true" class="notice-dialog" title="网站公告">
+      <div class="notice">
+        <div v-html="notice"></div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="notShow" type="primary">我知道了，不再显示</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -86,19 +91,17 @@ import ThemeChange from '@/components/ThemeChange.vue'
 import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { httpGet } from '@/utils/http'
+import { isMobile } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
-import { onMounted, onUnmounted, ref } from 'vue'
+import MarkdownIt from 'markdown-it'
+import emoji from 'markdown-it-emoji'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// if (isMobile()) {
-//   router.push('/mobile/index')
-// }
-
 const title = ref('')
 const logo = ref('')
-const slogan = ref('')
 const license = ref({ de_copy: true })
 
 const isLogin = ref(false)
@@ -107,24 +110,28 @@ const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 const giteeURL = ref(import.meta.env.VITE_GITEE_URL)
 const navs = ref([])
 
-const displayedChars = ref([])
-const initAnimation = ref('')
-let timer = null // 定时器句柄
+// 公告相关变量
+const showNotice = ref(false)
+const notice = ref('')
+const noticeKey = ref('SYSTEM_NOTICE')
 
-// 初始化间隔时间和随机时间数组
-const interTime = ref(50)
-const interArr = [90, 100, 70, 88, 80, 110, 85, 400, 90, 99]
+// Markdown 解析器
+const md = new MarkdownIt({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
+}).use(emoji)
 
 onMounted(() => {
+  if (isMobile()) {
+    router.push('/mobile/index')
+    return
+  }
   getSystemInfo()
     .then((res) => {
       title.value = res.data.title
       logo.value = res.data.logo
-      slogan.value = res.data.slogan
-
-      // 确保获取数据后再启动定时器
-      if (timer) clearInterval(timer) // 清除已有定时器
-      timer = setInterval(setContent, interTime.value)
     })
     .catch((e) => {
       ElMessage.error('获取系统配置失败：' + e.message)
@@ -152,57 +159,68 @@ onMounted(() => {
       isLogin.value = true
     })
     .catch(() => {})
-})
 
-// 组件销毁时清除定时器
-onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-})
-
-// 打字机内容逐字符显示
-const setContent = () => {
-  if (!slogan.value) {
-    if (timer) clearInterval(timer)
-    timer = setTimeout(setContent, 100)
-    return
-  }
-
-  if (initAnimation.value.length >= slogan.value.length) {
-    // 文本已全部输出
-    initAnimation.value = ''
-    displayedChars.value = []
-    if (timer) clearInterval(timer)
-    timer = setInterval(setContent, interTime.value)
-  } else {
-    const nextChar = slogan.value.charAt(initAnimation.value.length)
-    initAnimation.value += nextChar // 逐字符追加
-    displayedChars.value.push(nextChar)
-    interTime.value = interArr[Math.floor(Math.random() * interArr.length)] // 设置随机间隔
-    if (timer) clearInterval(timer)
-    timer = setInterval(setContent, interTime.value)
-  }
-}
-// 计算彩虹色
-const rainbowColor = (index) => {
-  const hue = (index * 40) % 360 // 每个字符间隔40度，形成彩虹色
-  return `hsl(${hue}, 90%, 50%)` // 色调(hue)，饱和度(70%)，亮度(50%)
-}
-
-const logout = function () {
-  httpGet('/api/user/logout')
-    .then(() => {
-      removeUserToken()
-      router.push('/login')
+  // 获取系统公告
+  httpGet('/api/config/get?key=notice')
+    .then((res) => {
+      try {
+        notice.value = md.render(res.data['content'])
+        const oldNotice = localStorage.getItem(noticeKey.value)
+        // 如果公告有更新，则显示公告
+        if (oldNotice !== notice.value && notice.value.length > 10) {
+          showNotice.value = true
+        }
+      } catch (e) {
+        console.warn(e)
+      }
     })
     .catch((e) => {
-      ElMessage.error('注销失败：' + e.message)
+      ElMessage.error('获取系统配置失败：' + e.message)
     })
+})
+
+const logout = () => {
+  removeUserToken()
+  router.push('/login')
+}
+
+// 不再显示公告
+const notShow = () => {
+  localStorage.setItem(noticeKey.value, notice.value)
+  showNotice.value = false
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/index.styl'
+<style lang="scss" scoped>
+@use '../assets/css/index.scss' as *;
+</style>
+
+<style lang="scss">
+.notice-dialog {
+  .el-dialog__header {
+    padding-bottom: 0;
+  }
+
+  .el-dialog__body {
+    padding: 0 20px;
+
+    h2 {
+      margin: 20px 0 15px 0;
+    }
+
+    ol,
+    ul {
+      padding-left: 10px;
+    }
+
+    ol {
+      list-style: decimal-leading-zero;
+      padding-left: 20px;
+    }
+
+    ul {
+      list-style: inside;
+    }
+  }
+}
 </style>

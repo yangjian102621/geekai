@@ -91,6 +91,6 @@ const getShareURL = (item) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/song.styl'
+<style lang="scss" scoped>
+@use '../assets/css/song.scss' as *;
 </style>

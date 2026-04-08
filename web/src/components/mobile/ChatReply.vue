@@ -7,25 +7,52 @@
     <div class="chat-item">
       <div class="triangle"></div>
       <div class="content-box" ref="contentRef">
-        <div
-          :data-clipboard-text="orgContent"
-          class="content content-mobile"
-          v-html="content"
-          v-if="content"
-        ></div>
+        <div v-if="content" class="content content-mobile" v-html="content"></div>
+        <div v-else-if="error">
+          <div class="content content-mobile !text-red-500">{{ error }}</div>
+        </div>
         <div class="content content-mobile flex justify-start items-center" v-else>
           <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
         </div>
+      </div>
+
+      <!-- 操作按钮区域 -->
+      <div class="action-buttons" v-if="showActions && orgContent">
+        <van-button
+          size="mini"
+          type="primary"
+          plain
+          @click="handleRegenerate"
+          :disabled="isGenerating"
+        >
+          {{ isGenerating ? '生成中...' : '重新生成' }}
+        </van-button>
+        <van-button
+          size="mini"
+          type="success"
+          :data-clipboard-text="orgContent"
+          class="copy-answer"
+          plain
+        >
+          复制回答
+        </van-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { showImagePreview } from 'vant'
 import Thinking from '../Thinking.vue'
+import hl from 'highlight.js'
+import MarkdownIt from 'markdown-it'
+import emoji from 'markdown-it-emoji'
+import mathjaxPlugin from 'markdown-it-mathjax3'
+import { processContent } from '@/utils/libs'
+import Clipboard from 'clipboard'
+import { showNotify } from 'vant'
+
 const props = defineProps({
   content: {
     type: Object,
@@ -42,12 +69,66 @@ const props = defineProps({
     type: String,
     default: '/images/gpt-icon.png',
   },
+  showActions: {
+    type: Boolean,
+    default: true,
+  },
+  isGenerating: {
+    type: Boolean,
+    default: false,
+  },
+  messageId: {
+    type: [String, Number],
+    default: '',
+  },
+  error: {
+    type: String,
+    default: '',
+  },
 })
 
-const content = computed(() => {
-  return props.content.text
+const emits = defineEmits(['regenerate'])
+const md = new MarkdownIt({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true,
+  highlight: function (str, lang) {
+    const codeIndex = parseInt(Date.now()) + Math.floor(Math.random() * 10000000)
+    // 显示复制代码按钮
+    const copyBtn = `<span class="copy-code-mobile" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+<textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
+      /<\/textarea>/g,
+      '&lt;/textarea>'
+    )}</textarea>`
+    if (lang && hl.getLanguage(lang)) {
+      const langHtml = `<span class="lang-name">${lang}</span>`
+      // 处理代码高亮
+      const preCode = hl.highlight(str, { language: lang }).value
+      // 将代码包裹在 pre 中
+      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn} ${langHtml}</pre>`
+    }
+
+    // 处理代码高亮
+    const preCode = md.utils.escapeHtml(str)
+    // 将代码包裹在 pre 中
+    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code>${copyBtn}</pre>`
+  },
 })
+md.use(mathjaxPlugin)
+md.use(emoji)
+const content = computed(() => {
+  return md.render(processContent(props.content.text))
+})
+
 const contentRef = ref(null)
+
+// 处理重新生成
+const handleRegenerate = () => {
+  emits('regenerate', props.messageId)
+}
+
+const clipboard = ref(null)
 onMounted(() => {
   const imgs = contentRef.value.querySelectorAll('img')
   for (let i = 0; i < imgs.length; i++) {
@@ -59,22 +140,34 @@ onMounted(() => {
       showImagePreview([imgs[i].src])
     })
   }
+
+  clipboard.value = new Clipboard('.copy-answer,.copy-code-mobile')
+  clipboard.value.on('success', () => {
+    showNotify({ type: 'success', message: '复制成功', duration: 1000 })
+  })
+  clipboard.value.on('error', () => {
+    showNotify({ type: 'danger', message: '复制失败', duration: 2000 })
+  })
+})
+
+onUnmounted(() => {
+  clipboard.value.destroy()
 })
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .mobile-message-reply {
-  display flex
+  display: flex;
   justify-content: flex-start;
 
   .chat-icon {
-    margin-right 5px
+    margin-right: 5px;
 
     .van-image {
-      width 32px
+      width: 32px;
 
       img {
-        border-radius 5px
+        border-radius: 5px;
       }
     }
   }
@@ -97,107 +190,102 @@ onMounted(() => {
     }
 
     .content-box {
-
-      display flex
-      flex-direction row
+      display: flex;
+      flex-direction: row;
 
       .content {
-        text-align left
-        width 100%
-        overflow-x auto
-        min-height 20px;
-        word-break break-word;
+        text-align: left;
+        width: 100%;
+        overflow-x: auto;
+        min-height: 20px;
+        word-break: break-word;
         padding: 5px 10px;
-        color #444444
+        color: #444444;
         background-color: #ffffff;
-        font-size: 14px
+        font-size: 14px;
         border-radius: 5px;
 
         p:last-child {
-          margin-bottom: 0
+          margin-bottom: 0;
         }
 
         p:first-child {
-          margin-top 0
+          margin-top: 0;
         }
 
         p {
           code {
-            color #2b2b2b
-            background-color #c1c1c1
-            padding 2px 5px
-            border-radius 5px
+            color: #2b2b2b;
+            background-color: #c1c1c1;
+            padding: 2px 5px;
+            border-radius: 5px;
           }
 
           img {
-            max-width 100%
+            max-width: 100%;
           }
         }
 
         .code-container {
-          position relative
+          position: relative;
 
           .hljs {
-            border-radius 10px
-            line-height 1.5
+            border-radius: 10px;
+            line-height: 1.5;
           }
 
           .copy-code-mobile {
             position: absolute;
-            right 10px
-            top 10px
-            cursor pointer
-            font-size 12px
-            color #c1c1c1
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #c1c1c1;
 
             &:hover {
-              color #20a0ff
+              color: #20a0ff;
             }
           }
-
         }
 
         .lang-name {
-          display none
-          position absolute;
-          right 10px
-          bottom 50px
-          padding 2px 6px 4px 6px
-          background-color #444444
-          border-radius 10px
-          color #00e0e0
+          display: none;
+          position: absolute;
+          right: 10px;
+          bottom: 50px;
+          padding: 2px 6px 4px 6px;
+          background-color: #444444;
+          border-radius: 10px;
+          color: #00e0e0;
         }
 
-
         // 设置表格边框
-
         table {
-          width 100%
-          margin-bottom 1rem
-          color #212529
-          border-collapse collapse;
-          border 1px solid #dee2e6;
-          background-color #ffffff
+          width: 100%;
+          margin-bottom: 1rem;
+          color: #212529;
+          border-collapse: collapse;
+          border: 1px solid #dee2e6;
+          background-color: #ffffff;
 
           thead {
             th {
-              border 1px solid #dee2e6
-              vertical-align: bottom
-              border-bottom: 2px solid #dee2e6
-              padding 10px
+              border: 1px solid #dee2e6;
+              vertical-align: bottom;
+              border-bottom: 2px solid #dee2e6;
+              padding: 10px;
             }
           }
 
           td {
-            border 1px solid #dee2e6
-            padding 10px
+            border: 1px solid #dee2e6;
+            padding: 10px;
           }
         }
 
         // 代码快
-
         blockquote {
-          margin 0
+          margin: 0;
           background-color: #ebfffe;
           padding: 0.8rem 1.5rem;
           border-left: 0.5rem solid;
@@ -207,9 +295,18 @@ onMounted(() => {
       }
     }
 
+    .action-buttons {
+      margin-top: 8px;
+      padding-left: 5px;
+
+      .van-button {
+        font-size: 12px;
+        height: 24px;
+        padding: 0 8px;
+      }
+    }
   }
 }
-
 
 .van-theme-dark {
   .mobile-message-reply {
@@ -220,18 +317,16 @@ onMounted(() => {
 
       .content-box {
         .content {
-          color #c1c1c1
+          color: #c1c1c1;
           background-color: #404042;
 
           p > code {
-            color #c1c1c1
-            background-color #2b2b2b
+            color: #c1c1c1;
+            background-color: #2b2b2b;
           }
         }
       }
-
     }
   }
-
 }
 </style>

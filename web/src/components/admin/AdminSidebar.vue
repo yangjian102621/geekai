@@ -181,14 +181,107 @@ const items = [
   },
 
   {
+    icon: 'moderation',
+    index: '/admin/config/moderation',
+    title: '文本审查',
+    subs: [
+      {
+        icon: 'list',
+        index: '/admin/moderation/list',
+        title: '审核记录',
+      },
+      {
+        icon: 'config',
+        index: '/admin/moderation/config',
+        title: '审查配置',
+      },
+    ],
+  },
+  {
     icon: 'role',
     index: '/admin/manger',
     title: '管理员',
   },
+
   {
     icon: 'config',
-    index: '/admin/system',
+    index: 'config-center',
     title: '系统设置',
+    subs: [
+      {
+        icon: 'config',
+        index: '/admin/config/basic',
+        title: '基础配置',
+      },
+      {
+        icon: 'power',
+        index: '/admin/config/power',
+        title: '算力配置',
+      },
+
+      {
+        icon: 'menu',
+        index: '/admin/config/menu',
+        title: '菜单配置',
+      },
+      {
+        icon: 'license',
+        index: '/admin/config/license',
+        title: '授权激活',
+      },
+      {
+        icon: 'recharge',
+        index: '/admin/config/payment',
+        title: '支付配置',
+      },
+      {
+        icon: 'menu',
+        index: '/admin/config/storage',
+        title: '存储配置',
+      },
+      {
+        icon: 'sms',
+        index: '/admin/config/sms',
+        title: '短信配置',
+      },
+      {
+        icon: 'email',
+        index: '/admin/config/smtp',
+        title: '邮件配置',
+      },
+      {
+        icon: 'plugin',
+        index: '/admin/config/plugin',
+        title: '插件配置',
+      },
+    ],
+  },
+  {
+    icon: 'linggan',
+    index: 'content-config',
+    title: '文案配置',
+    subs: [
+      {
+        icon: 'speaker',
+        index: '/admin/config/notice',
+        title: '公告配置',
+      },
+      {
+        icon: 'info',
+        index: '/admin/config/agreement',
+        title: '用户协议',
+      },
+      {
+        icon: 'info',
+        index: '/admin/config/privacy',
+        title: '隐私声明',
+      },
+      {
+        icon: 'xmind',
+        index: '/admin/config/markmap',
+        title: '思维导图配置',
+      },
+    ],
   },
   {
     icon: 'log',
@@ -234,7 +327,7 @@ const sidebar = useSidebarStore()
 setMenuItems(items)
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .sidebar {
   display: block;
   position: absolute;
@@ -242,42 +335,45 @@ setMenuItems(items)
   top: 0;
   bottom: 0;
   overflow-y: scroll;
+  background-color: #324157;
 
   .logo {
-    display flex
-    padding 6px 15px;
-    cursor pointer
-    background-color: #324157
+    display: flex;
+    padding: 6px 15px;
+    cursor: pointer;
+    background-color: #324157;
 
     img {
-      height 36px;
-      padding-top 5px;
-      border-radius 100%
-      background #fff
-      border 2px solid #754ff6
-      padding 2px
+      height: 36px;
+      padding-top: 5px;
+      border-radius: 100%;
+      background: #fff;
+      border: 2px solid #754ff6;
+      padding: 2px;
     }
 
     .text {
-      color #ffffff
-      font-weight bold
-      padding 12px 0 12px 10px;
+      color: #ffffff;
+      font-weight: bold;
+      padding: 12px 0 12px 10px;
       transition: width 2s ease;
     }
   }
 
   ul {
-    height: 100%;
+    height: auto;
+    min-height: 100%;
 
-    .el-menu-item, .el-sub-menu {
+    .el-menu-item,
+    .el-sub-menu {
       .iconfont {
-        font-size 16px;
-        margin-right 5px;
+        font-size: 16px;
+        margin-right: 5px;
       }
     }
 
     .el-menu-item.is-active {
-      background-color rgb(40, 52, 70)
+      background-color: rgb(40, 52, 70);
     }
   }
 
@@ -291,26 +387,26 @@ setMenuItems(items)
 }
 
 .sidebar.dark {
-  border-right 1px solid var(--el-border-color-dark)
+  border-right: 1px solid var(--el-border-color-dark);
 
   .logo {
-    background var(--el-bg-color)
-    border-right 1px solid var(--el-border-color)
+    background: var(--el-bg-color);
+    border-right: 1px solid var(--el-border-color);
 
     .text {
-      color var(--el-text-color-regular)
+      color: var(--el-text-color-regular);
     }
   }
 
   ul {
-    background var(--el-bg-color)
+    background: var(--el-bg-color);
 
     .el-menu-item.is-active {
-      background-color var(--el-menu-bg-color-dark)
+      background-color: var(--el-menu-bg-color-dark);
     }
 
     .el-menu-item:hover {
-      background-color var(--el-menu-bg-color-darker)
+      background-color: var(--el-menu-bg-color-darker);
     }
   }
 
@@ -319,7 +415,7 @@ setMenuItems(items)
   }
 
   .el-menu {
-    border-color var(--el-border-color)
+    border-color: var(--el-border-color);
   }
 }
 </style>

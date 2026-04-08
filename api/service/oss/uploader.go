@@ -9,10 +9,10 @@ package oss
 
 import "github.com/gin-gonic/gin"
 
-const Local = "LOCAL"
-const Minio = "MINIO"
-const QiNiu = "QINIU"
-const AliYun = "ALIYUN"
+const Local = "local"
+const Minio = "minio"
+const QiNiu = "qiniu"
+const AliYun = "aliyun"
 
 type File struct {
 	Name   string `json:"name"`

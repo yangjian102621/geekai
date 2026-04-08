@@ -1,0 +1,75 @@
+@use 'font.scss' as *;
+:root[data-theme='light'] {
+  --text-fb: #000;
+  --text-color: #5b62ce; // 主要的文本颜色
+  --normal-color: rgba(43, 54, 116, 1); // 普通颜色
+  --theme-textcolor-normal: #5b62ce;
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  article {
+    font-family: $font-regular;
+  }
+  html,
+  body,
+  #app,
+  .wrapper {
+    font-family: $font-regular;
+  }
+
+  --btnColor: linear-gradient(88deg, #af61f0 1.44%, #5b62ce);
+  --border-active: rgba(134, 140, 255, 1);
+  --code-btnColor: linear-gradient(88deg, #af61f0 1.44%, #5b62ce);
+  --card-bg: #fff;
+  --chat-bg: #fff;
+  --theme-bg: linear-gradient(88deg, #fff3f3 1.44%, #e7e8ff);
+  --theme-bg-all: #f5f7fd;
+  --theme-bg-color: #f5f7fd;
+  --sign-bg: rgba(244, 247, 254, 1);
+  --text-theme-color: rgba(43, 54, 116, 1);
+  --text-color-primary: rgba(67, 24, 255, 1);
+  --line-box: rgba(79, 89, 102, 0.122);
+  --theme-text-color-primary: #000;
+  --theme-text-primary: #000;
+  --theme-text-color-secondary: #666;
+  --chat-content-bg: #f5f7fc;
+  --chat-user-content-bg: #e0dfff;
+  --chat-list-bg: #0302020a;
+  --chat-wel-bg: rgba(247, 247, 248, 1);
+  --hover-deep-color: #fff;
+  --el-bg-color-overlay: #fff;
+  --el-bg-color: #fff;
+  --el-fill-color-blank: #fff;
+  --el-pagination-button-bg-color: rgba(86, 86, 95, 0.2);
+  --tab-title-bg: #fff; //顶部tab栏背景切换
+  --tab-title-color: #595959; //顶部tab栏文字切换
+
+  // 操作按钮
+  --btn-bg: rgba(100, 100, 100, 0.1);
+
+  // 加载动画
+  --el-mask-color: rgba(100, 100, 100, 0.2);
+  // code 标签背景
+  --code-bg-color: #ececec;
+  --code-text-color: var(--el-color-primary);
+
+  // 引用快样式
+  --quote-bg-color: #e0dfff;
+  --quote-text-color: #333;
+  // 面板背景
+  --panel-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
+
+  // 登录注册页面专用变量
+  --login-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
+  --login-card-bg: #fff;
+  --login-card-border: rgba(79, 89, 102, 0.122);
+  --login-title-color: #000;
+  --login-subtitle-color: #666;
+  --login-text-color: #666;
+  --login-link-color: #5b62ce;
+  --login-link-hover-bg: rgba(91, 98, 206, 0.1);
+}

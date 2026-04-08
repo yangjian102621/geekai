@@ -75,14 +75,15 @@
 </template>
 
 <script setup>
-import { router } from '@/router'
 import { checkSession } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { removeArrayItem, showLoginDialog } from '@/utils/libs'
 import { showConfirmDialog, showFailToast, showSuccessToast } from 'vant'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const title = ref('会话列表')
+const router = useRouter()
 const chatName = ref('')
 const chats = ref([])
 const allChats = ref([])
@@ -103,8 +104,12 @@ checkSession()
   .then((user) => {
     loginUser.value = user
     isLogin.value = true
+  })
+  .finally(() => {
+    loading.value = false
+    finished.value = true
     // 加载角色列表
-    httpGet(`/api/app/list/user`)
+    httpGet(`/api/app/list`)
       .then((res) => {
         if (res.data) {
           const items = res.data
@@ -126,44 +131,6 @@ checkSession()
 
     // 加载模型
     httpGet('/api/model/list?enable=1')
-      .then((res) => {
-        if (res.data) {
-          const items = res.data
-          for (let i = 0; i < items.length; i++) {
-            models.value.push({ text: items[i].name, value: items[i].id })
-          }
-        }
-      })
-      .catch((e) => {
-        showFailToast('加载模型失败: ' + e.message)
-      })
-  })
-  .catch(() => {
-    loading.value = false
-    finished.value = true
-
-    // 加载角色列表
-    httpGet('/api/app/list/user')
-      .then((res) => {
-        if (res.data) {
-          const items = res.data
-          for (let i = 0; i < items.length; i++) {
-            // console.log(items[i])
-            roles.value.push({
-              text: items[i].name,
-              value: items[i].id,
-              icon: items[i].icon,
-              helloMsg: items[i].hello_msg,
-            })
-          }
-        }
-      })
-      .catch(() => {
-        showFailToast('加载聊天角色失败')
-      })
-
-    // 加载模型
-    httpGet('/api/model/list')
       .then((res) => {
         if (res.data) {
           const items = res.data
@@ -292,6 +259,6 @@ const onChange = (item) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../../assets/css/mobile/chat-list.styl'
+<style lang="scss" scoped>
+@use '../../assets/css/mobile/chat-list.scss' as *;
 </style>

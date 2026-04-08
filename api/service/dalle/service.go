@@ -16,6 +16,7 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -94,12 +95,14 @@ func (s *Service) Run() {
 }
 
 type imgReq struct {
-	Model   string `json:"model"`
-	Prompt  string `json:"prompt"`
-	N       int    `json:"n,omitempty"`
-	Size    string `json:"size,omitempty"`
-	Quality string `json:"quality,omitempty"`
-	Style   string `json:"style,omitempty"`
+	Model          string   `json:"model"`
+	Image          []string `json:"image,omitempty"`
+	Prompt         string   `json:"prompt"`
+	N              int      `json:"n,omitempty"`
+	Size           string   `json:"size,omitempty"`
+	Quality        string   `json:"quality,omitempty"`
+	Style          string   `json:"style,omitempty"`
+	ResponseFormat string   `json:"response_format,omitempty"`
 }
 
 type imgRes struct {
@@ -122,15 +125,6 @@ type ErrRes struct {
 
 func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	logger.Debugf("绘画参数：%+v", task)
-	prompt := task.Prompt
-	// translate prompt
-	if utils.HasChinese(prompt) {
-		content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, prompt), task.TranslateModelId)
-		if err == nil {
-			prompt = content
-			logger.Debugf("重写后提示词：%s", prompt)
-		}
-	}
 
 	var chatModel model.ChatModel
 	if task.ModelId > 0 {
@@ -160,12 +154,17 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	apiURL := fmt.Sprintf("%s/v1/images/generations", apiKey.ApiURL)
 	reqBody := imgReq{
 		Model:   chatModel.Value,
-		Prompt:  prompt,
+		Prompt:  task.Prompt,
 		N:       1,
 		Size:    task.Size,
 		Style:   task.Style,
 		Quality: task.Quality,
 	}
+	// 图片编辑
+	if len(task.Image) > 0 {
+		reqBody.Prompt = fmt.Sprintf("%s, %s", strings.Join(task.Image, " "), task.Prompt)
+	}
+
 	logger.Infof("Channel:%s, API KEY:%s, BODY: %+v", apiURL, apiKey.Value, reqBody)
 	r, err := s.httpClient.R().SetHeader("Body-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
@@ -188,7 +187,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	var imgURL string
 	var data = map[string]interface{}{
 		"progress": 100,
-		"prompt":   prompt,
+		"prompt":   task.Prompt,
 	}
 	// 如果返回的是base64，则需要上传到oss
 	if res.Data[0].B64Json != "" {
@@ -210,11 +209,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 
 	var content string
 	if sync {
-		imgURL, err := s.downloadImage(task.Id, res.Data[0].Url)
-		if err != nil {
-			return "", fmt.Errorf("error with download image: %v", err)
-		}
-		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", prompt, imgURL)
+		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", task.Prompt, imgURL)
 	}
 
 	return content, nil

@@ -9,6 +9,7 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -30,6 +31,22 @@ type NetHandler struct {
 
 func NewNetHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManager) *NetHandler {
 	return &NetHandler{BaseHandler: BaseHandler{App: app, DB: db}, uploaderManager: manager}
+}
+
+// RegisterRoutes 注册路由
+func (h *NetHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/upload")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("", h.Upload)
+		group.POST("list", h.List)
+		group.GET("remove", h.Remove)
+	}
+
+	// 公开接口，不需要授权
+	h.App.Engine.GET("/api/download", h.Download)
 }
 
 func (h *NetHandler) Upload(c *gin.Context) {

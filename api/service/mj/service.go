@@ -67,25 +67,6 @@ func (s *Service) Run() {
 				continue
 			}
 
-			// translate prompt
-			if utils.HasChinese(task.Prompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.Prompt), task.TranslateModelId)
-				if err == nil {
-					task.Prompt = content
-				} else {
-					logger.Warnf("error with translate prompt: %v", err)
-				}
-			}
-			// translate negative prompt
-			if task.NegPrompt != "" && utils.HasChinese(task.NegPrompt) {
-				content, err := utils.OpenAIRequest(s.db, fmt.Sprintf(service.TranslatePromptTemplate, task.NegPrompt), task.TranslateModelId)
-				if err == nil {
-					task.NegPrompt = content
-				} else {
-					logger.Warnf("error with translate prompt: %v", err)
-				}
-			}
-
 			// use fast mode as default
 			if task.Mode == "" {
 				task.Mode = "fast"

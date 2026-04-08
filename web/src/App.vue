@@ -78,8 +78,9 @@ console.log(
 )
 </script>
 
-<style lang="stylus">
-html, body {
+<style lang="scss">
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -87,33 +88,44 @@ html, body {
 #app {
   margin: 0 !important;
   padding: 0 !important;
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 
   // --primary-color: #21aa93
 
-  h1 { font-size: 2em; } /* 通常是 2em */
-  h2 { font-size: 1.5em; } /* 通常是 1.5em */
-  h3 { font-size: 1.17em; } /* 通常是 1.17em */
-  h4 { font-size: 1em; } /* 通常是 1em */
-  h5 { font-size: 0.83em; } /* 通常是 0.83em */
-  h6 { font-size: 0.67em; } /* 通常是 0.67em */
-
+  h1 {
+    font-size: 2em;
+  } /* 通常是 2em */
+  h2 {
+    font-size: 1.5em;
+  } /* 通常是 1.5em */
+  h3 {
+    font-size: 1.17em;
+  } /* 通常是 1.17em */
+  h4 {
+    font-size: 1em;
+  } /* 通常是 1em */
+  h5 {
+    font-size: 0.83em;
+  } /* 通常是 0.83em */
+  h6 {
+    font-size: 0.67em;
+  } /* 通常是 0.67em */
 }
 
 .el-overlay-dialog {
-  display flex
-  justify-content center
-  align-items center
-  overflow hidden
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   .el-dialog {
-    margin 0;
+    margin: 0;
 
     .el-dialog__body {
-      //max-height 80vh
-      overflow-y auto
+      overflow-y: auto;
+      max-height: calc(100vh - 100px);
     }
   }
 }
@@ -122,7 +134,7 @@ html, body {
   /* 设置内边距以保证高度为32px */
   padding: 6px 12px;
   background: linear-gradient(180deg, #e1bee7, #7e57c2);
-  color #fff
+  color: #fff;
 }
 
 .el-popper.is-customized .el-popper__arrow::before {
@@ -138,12 +150,12 @@ html, body {
 }
 
 .van-toast--fail {
-  background #fef0f0
-  color #f56c6c
+  background: #fef0f0;
+  color: #f56c6c;
 }
 
 .van-toast--success {
-  background #D6FBCC
-  color #07C160
+  background: #d6fbcc;
+  color: #07c160;
 }
 </style>

@@ -1,5 +1,12 @@
 <template>
-  <el-dialog class="config-dialog" v-model="showDialog" :close-on-click-modal="true" :before-close="close" style="max-width: 400px" title="账户信息">
+  <el-dialog
+    class="config-dialog"
+    v-model="showDialog"
+    :close-on-click-modal="true"
+    :before-close="close"
+    style="max-width: 400px"
+    title="账户信息"
+  >
     <div class="flex-center-col pl-4 pr-4" id="user-info">
       <user-profile @hide="close" />
     </div>
@@ -7,30 +14,30 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-import UserProfile from "@/components/UserProfile.vue";
+import UserProfile from '@/components/UserProfile.vue'
+import { computed } from 'vue'
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
   show: Boolean,
-});
+})
 
 const showDialog = computed(() => {
-  return props.show;
-});
+  return props.show
+})
 
 // eslint-disable-next-line no-undef
-const emits = defineEmits(["hide"]);
+const emits = defineEmits(['hide'])
 const close = function () {
-  emits("hide", false);
-};
+  emits('hide', false)
+}
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .config-dialog {
   .el-dialog {
-    --el-dialog-width 90%;
-    max-width 800px;
+    --el-dialog-width: 90%;
+    max-width: 800px;
   }
 }
 </style>

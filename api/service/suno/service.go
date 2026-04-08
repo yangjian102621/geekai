@@ -112,6 +112,10 @@ type RespVo struct {
 	Message string `json:"message"`
 	Data    string `json:"data"`
 	Channel string `json:"channel,omitempty"`
+	Error   struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+	} `json:"error,omitempty"`
 }
 
 func (s *Service) Create(task types.SunoTask) (RespVo, error) {
@@ -126,7 +130,7 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 		return RespVo{}, errors.New("no available API KEY for Suno")
 	}
 
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"task_id":           task.RefTaskId,
 		"continue_clip_id":  task.RefSongId,
 		"continue_at":       task.ExtendSecs,
@@ -154,13 +158,14 @@ func (s *Service) Create(task types.SunoTask) (RespVo, error) {
 	}
 
 	body, _ := io.ReadAll(r.Body)
+	logger.Debugf("API response: %s", string(body))
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		return RespVo{}, fmt.Errorf("解析API数据失败：%v, %s", err, string(body))
 	}
 
 	if res.Code != "success" {
-		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Message)
+		return RespVo{}, fmt.Errorf("API 返回失败：%s", res.Error.Message)
 	}
 	// update the last_use_at for api key
 	apiKey.LastUsedAt = time.Now().Unix()
@@ -225,7 +230,7 @@ func (s *Service) Upload(task types.SunoTask) (RespVo, error) {
 		return RespVo{}, errors.New("no available API KEY for Suno")
 	}
 
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"url": task.AudioURL,
 	}
 
@@ -330,7 +335,13 @@ func (s *Service) SyncTaskProgress() {
 						job.SongId = v.Id
 						job.Duration = int(v.Metadata.Duration)
 						job.Prompt = v.Metadata.Prompt
-						job.Tags = v.Metadata.Tags
+						// 修复 tags 字段过长导致插入数据库失败
+						if len(v.Metadata.Tags) > 255 {
+							job.Tags = v.Metadata.Tags[:255]
+						} else {
+							job.Tags = v.Metadata.Tags
+						}
+
 						job.ModelName = v.ModelName
 						job.RawData = utils.JsonEncode(v)
 						job.CoverURL = v.ImageLargeUrl

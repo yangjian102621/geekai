@@ -21,7 +21,7 @@
         </div>
         <div v-else class="upload-item single-image-item">
           <el-image :src="imageList[0]" fit="cover" class="upload-image" />
-          <div class="upload-overlay" style="opacity: 1">
+          <div class="upload-overlay">
             <el-button
               type="danger"
               :icon="Delete"
@@ -85,7 +85,7 @@
           <el-icon :size="40" class="el-icon--upload"><UploadFilled /></el-icon>
           <div class="el-upload__text">拖拽图片到此处，或 <em>点击上传</em></div>
           <template #tip>
-            <div class="el-upload__tip text-center">
+            <div class="el-upload__tip text-gray-500 text-sm">
               支持 JPG、PNG 格式，最多上传 {{ maxCount }} 张，单张最大 5MB
             </div>
           </template>
@@ -221,7 +221,7 @@ const removeImage = (index) => {
 }
 </script>
 
-<style lang="stylus">
+<style lang="scss">
 .image-upload {
   width: 100%;
 }
@@ -270,18 +270,13 @@ const removeImage = (index) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s;
+    opacity: 1;
 
     .remove-btn {
       background: rgba(245, 108, 108, 0.8);
       border: none;
       color: white;
     }
-  }
-
-  &:hover .upload-overlay {
-    opacity: 1;
   }
 }
 
@@ -297,6 +292,7 @@ const removeImage = (index) => {
       justify-content: center;
     }
   }
+
   .upload-placeholder {
     display: flex;
     flex-direction: column;
@@ -311,6 +307,7 @@ const removeImage = (index) => {
   .el-upload-dragger {
     width: 100%;
   }
+
   .uploader {
     width: 100%;
   }

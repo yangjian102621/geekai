@@ -10,34 +10,34 @@
   </div>
 </template>
 <script setup>
-import { useRouter } from "vue-router";
-import { computed, ref, onMounted } from "vue";
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const loading = ref(true);
-const router = useRouter();
+const loading = ref(true)
+const router = useRouter()
 const externalUrl = computed(() => {
-  loading.value = true;
-  return router.currentRoute.value.query.url || "about:blank";
-});
+  loading.value = true
+  return router.currentRoute.value.query.url || 'about:blank'
+})
 
 // 设置标题
-document.title = router.currentRoute.value.query.title;
+document.title = router.currentRoute.value.query.title
 
 const onIframeLoad = () => {
-  loading.value = false;
-};
+  loading.value = false
+}
 </script>
 
-<style scoped lang="stylus">
+<style scoped lang="scss">
 .page-iframe {
-  width 100%
-  height 100vh
-  overflow hidden
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 
   .iframe {
-    width 100%
-    height 100%
-    border none
+    width: 100%;
+    height: 100%;
+    border: none;
   }
 }
 </style>

@@ -7,8 +7,8 @@ package sms
 // * @Author yangjian102621@163.com
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const Ali = "ALI"
-const Bao = "BAO"
+const Ali = "aliyun"
+const Bao = "bao"
 
 type Service interface {
 	SendVerifyCode(mobile string, code int) error

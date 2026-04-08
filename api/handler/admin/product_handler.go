@@ -15,9 +15,10 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ProductHandler struct {
@@ -28,14 +29,22 @@ func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
 	return &ProductHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ProductHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/product/")
+	group.POST("save", h.Save)
+	group.GET("list", h.List)
+	group.POST("enable", h.Enable)
+	group.POST("sort", h.Sort)
+	group.GET("remove", h.Remove)
+}
+
 func (h *ProductHandler) Save(c *gin.Context) {
 	var data struct {
 		Id        uint    `json:"id"`
 		Name      string  `json:"name"`
 		Price     float64 `json:"price"`
-		Discount  float64 `json:"discount"`
 		Enabled   bool    `json:"enabled"`
-		Days      int     `json:"days"`
 		Power     int     `json:"power"`
 		CreatedAt int64   `json:"created_at"`
 	}
@@ -45,12 +54,10 @@ func (h *ProductHandler) Save(c *gin.Context) {
 	}
 
 	item := model.Product{
-		Name:     data.Name,
-		Price:    data.Price,
-		Discount: data.Discount,
-		Days:     data.Days,
-		Power:    data.Power,
-		Enabled:  data.Enabled}
+		Name:    data.Name,
+		Price:   data.Price,
+		Power:   data.Power,
+		Enabled: data.Enabled}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)

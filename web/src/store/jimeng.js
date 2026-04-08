@@ -12,7 +12,7 @@ import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg, substr } from '@/utils/libs'
 import { ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
-import { computed, nextTick, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 
 export const useJimengStore = defineStore('jimeng', () => {
   // 当前激活的功能分类和具体功能
@@ -137,13 +137,13 @@ export const useJimengStore = defineStore('jimeng', () => {
   })
 
   const imageEditParams = reactive({
-    image_urls: '',
+    image_input: '',
     scale: 0.5,
     seed: -1,
   })
 
   const imageEffectsParams = reactive({
-    image_input1: '',
+    image_input: '',
     template_id: '',
     size: '1328x1328',
   })
@@ -154,7 +154,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   })
 
   const imageToVideoParams = reactive({
-    image_urls: [],
+    image_input: [],
     aspect_ratio: '16:9',
     seed: -1,
   })
@@ -374,7 +374,7 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_to_image':
           Object.assign(requestData, {
-            image_input: imageToImageParams.image_input,
+            image_input: imageToImageParams.image_input[0],
             width: parseInt(imageToImageParams.size.split('x')[0]),
             height: parseInt(imageToImageParams.size.split('x')[1]),
             gpen: imageToImageParams.gpen,
@@ -386,17 +386,18 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_edit':
           Object.assign(requestData, {
-            image_urls: imageEditParams.image_urls,
+            image_input: imageEditParams.image_input[0],
             scale: imageEditParams.scale,
             seed: imageEditParams.seed,
           })
           break
         case 'image_effects':
           Object.assign(requestData, {
-            image_input: imageEffectsParams.image_input1,
+            image_input: imageEffectsParams.image_input[0],
             template_id: imageEffectsParams.template_id,
             width: parseInt(imageEffectsParams.size.split('x')[0]),
             height: parseInt(imageEffectsParams.size.split('x')[1]),
+            prompt: imageEffectsParams.prompt,
           })
           break
         case 'text_to_video':
@@ -407,7 +408,7 @@ export const useJimengStore = defineStore('jimeng', () => {
           break
         case 'image_to_video':
           Object.assign(requestData, {
-            image_urls: imageToVideoParams.image_urls,
+            image_urls: imageToVideoParams.image_input,
             aspect_ratio: imageToVideoParams.aspect_ratio,
             seed: imageToVideoParams.seed,
           })
@@ -430,7 +431,7 @@ export const useJimengStore = defineStore('jimeng', () => {
 
   const downloadFile = async (item) => {
     const url = replaceImg(item.video_url || item.img_url)
-    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const downloadURL = `/api/download?url=${url}`
     const urlObj = new URL(url)
     const fileName = urlObj.pathname.split('/').pop()
 
@@ -497,62 +498,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     showDialog.value = true
   }
 
-  // 画同款功能
-  const drawSame = (item) => {
-    // 联动功能开关
-    if (item.type === 'text_to_image' || item.type === 'image_to_image') {
-      activeCategory.value = 'image_generation'
-      useImageInput.value = item.type === 'image_to_image'
-    } else if (item.type === 'text_to_video' || item.type === 'image_to_video') {
-      activeCategory.value = 'video_generation'
-      useImageInput.value = item.type === 'image_to_video'
-    } else if (item.type === 'image_edit') {
-      activeCategory.value = 'image_editing'
-    } else if (item.type === 'image_effects') {
-      activeCategory.value = 'image_effects'
-    }
-    switchFunction(item.type)
-    nextTick(() => {
-      currentPrompt.value = item.prompt
-    })
-    if (item.type === 'text_to_image') {
-      if (item.width && item.height) {
-        textToImageParams.size = `${item.width}x${item.height}`
-      }
-      if (item.scale) textToImageParams.scale = item.scale
-      if (item.seed) textToImageParams.seed = item.seed
-      if (item.use_pre_llm !== undefined) textToImageParams.use_pre_llm = item.use_pre_llm
-    } else if (item.type === 'image_to_image') {
-      if (item.image_input) imageToImageParams.image_input = item.image_input
-      if (item.width && item.height) {
-        imageToImageParams.size = `${item.width}x${item.height}`
-      }
-      if (item.gpen) imageToImageParams.gpen = item.gpen
-      if (item.skin) imageToImageParams.skin = item.skin
-      if (item.skin_unifi) imageToImageParams.skin_unifi = item.skin_unifi
-      if (item.gen_mode) imageToImageParams.gen_mode = item.gen_mode
-      if (item.seed) imageToImageParams.seed = item.seed
-    } else if (item.type === 'image_edit') {
-      if (item.image_urls) imageEditParams.image_urls = item.image_urls
-      if (item.scale) imageEditParams.scale = item.scale
-      if (item.seed) imageEditParams.seed = item.seed
-    } else if (item.type === 'image_effects') {
-      if (item.image_input1) imageEffectsParams.image_input1 = item.image_input1
-      if (item.template_id) imageEffectsParams.template_id = item.template_id
-      if (item.width && item.height) {
-        imageEffectsParams.size = `${item.width}x${item.height}`
-      }
-    } else if (item.type === 'text_to_video') {
-      if (item.aspect_ratio) textToVideoParams.aspect_ratio = item.aspect_ratio
-      if (item.seed) textToVideoParams.seed = item.seed
-    } else if (item.type === 'image_to_video') {
-      if (item.image_urls) imageToVideoParams.image_urls = item.image_urls
-      if (item.aspect_ratio) imageToVideoParams.aspect_ratio = item.aspect_ratio
-      if (item.seed) imageToVideoParams.seed = item.seed
-    }
-    showMessageOK('已填入全部参数，可直接生成同款')
-  }
-
   // 页面卸载时清理轮询
   const cleanup = () => {
     stopPolling()
@@ -615,14 +560,12 @@ export const useJimengStore = defineStore('jimeng', () => {
     removeJob,
     playVideo,
     cleanup,
-    drawSame,
 
     // 工具函数
     substr,
     replaceImg,
   }
 })
-
 export const imageSizeOptions = [
   { label: '1:1 (1328x1328)', value: '1328x1328' },
   { label: '3:2 (1584x1056)', value: '1584x1056' },
@@ -639,4 +582,69 @@ export const videoAspectRatioOptions = [
   { label: '1:1 (正方形)', value: '1:1' },
   { label: '16:9 (横版)', value: '16:9' },
   { label: '9:16 (竖版)', value: '9:16' },
+]
+
+export const imageEffectsTemplateOptions = [
+  {
+    label: '毛毡3D拍立得风格',
+    value: 'felt_3d_polaroid',
+    preview: '/images/jimeng/templates/felt_3d_polaroid.png',
+  },
+  { label: '像素世界风', value: 'my_world', preview: '/images/jimeng/templates/my_world.png' },
+  {
+    label: '像素世界-万物通用版',
+    value: 'my_world_universal',
+    preview: '/images/jimeng/templates/my_world_universal.png',
+  },
+  {
+    label: '盲盒玩偶风',
+    value: 'plastic_bubble_figure',
+    preview: '/images/jimeng/templates/plastic_bubble_figure.png',
+  },
+  {
+    label: '塑料泡罩人偶-文字卡头版',
+    value: 'plastic_bubble_figure_cartoon_text',
+    preview: '/images/jimeng/templates/plastic_bubble_figure_cartoon_text.png',
+  },
+  {
+    label: '毛绒玩偶风',
+    value: 'furry_dream_doll',
+    preview: '/images/jimeng/templates/furry_dream_doll.png',
+  },
+  {
+    label: '迷你世界玩偶风',
+    value: 'micro_landscape_mini_world',
+    preview: '/images/jimeng/templates/micro_landscape_mini_world.png',
+  },
+  {
+    label: '微型景观小世界-职业版',
+    value: 'micro_landscape_mini_world_professional',
+    preview: '/images/jimeng/templates/micro_landscape_mini_world_professional.png',
+  },
+  {
+    label: '亚克力挂饰',
+    value: 'acrylic_ornaments',
+    preview: '/images/jimeng/templates/acrylic_ornaments.png',
+  },
+  {
+    label: '毛毡钥匙扣',
+    value: 'felt_keychain',
+    preview: '/images/jimeng/templates/felt_keychain.png',
+  },
+  {
+    label: 'Lofi 像素人物小卡',
+    value: 'lofi_pixel_character_mini_card',
+    preview: '/images/jimeng/templates/lofi_pixel_character_mini_card.png',
+  },
+  {
+    label: '天使形象手办',
+    value: 'angel_figurine',
+    preview: '/images/jimeng/templates/angel_figurine.png',
+  },
+  {
+    label: '躺在毛茸茸肚皮里',
+    value: 'lying_in_fluffy_belly',
+    preview: '/images/jimeng/templates/lying_in_fluffy_belly.png',
+  },
+  { label: '玻璃球', value: 'glass_ball', preview: '/images/jimeng/templates/glass_ball.png' },
 ]

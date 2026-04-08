@@ -11,29 +11,25 @@ type OrderStatus int
 
 const (
 	OrderNotPaid     = OrderStatus(0)
-	OrderScanned     = OrderStatus(1) // 已扫码
-	OrderPaidSuccess = OrderStatus(2)
+	OrderPaidSuccess = OrderStatus(2) // 已支付
+	OrderPaidFailed  = OrderStatus(3) // 已关闭
 )
 
 type OrderRemark struct {
-	Days     int     `json:"days"`  // 有效期
-	Power    int     `json:"power"` // 增加算力点数
-	Name     string  `json:"name"`  // 产品名称
-	Price    float64 `json:"price"`
-	Discount float64 `json:"discount"`
+	Days  int     `json:"days"`  // 有效期
+	Power int     `json:"power"` // 增加算力点数
+	Name  string  `json:"name"`  // 产品名称
+	Price float64 `json:"price"`
 }
 
-var PayMethods = map[string]string{
+// PayChannel 支付渠道
+var PayChannel = map[string]string{
 	"alipay": "支付宝商号",
-	"wechat": "微信商号",
-	"hupi":   "虎皮椒",
-	"geek":   "易支付",
+	"wxpay":  "微信商号",
+	"epay":   "易支付",
 }
-var PayNames = map[string]string{
+
+var PayWays = map[string]string{
 	"alipay": "支付宝",
 	"wxpay":  "微信支付",
-	"qqpay":  "QQ钱包",
-	"jdpay":  "京东支付",
-	"douyin": "抖音支付",
-	"paypal": "PayPal支付",
 }

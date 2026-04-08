@@ -9,106 +9,399 @@ package admin
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
-	"geekai/store"
+	"geekai/service/oss"
+	"geekai/service/payment"
+	"geekai/service/sms"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shirou/gopsutil/host"
 	"gorm.io/gorm"
 )
 
 type ConfigHandler struct {
 	handler.BaseHandler
-	levelDB        *store.LevelDB
-	licenseService *service.LicenseService
+	licenseService  *service.LicenseService
+	sysConfig       *types.SystemConfig
+	alipayService   *payment.AlipayService
+	wxpayService    *payment.WxPayService
+	epayService     *payment.EPayService
+	smsManager      *sms.SmsManager
+	uploaderManager *oss.UploaderManager
+	smtpService     *service.SmtpService
+	captchaService  *service.CaptchaService
+	wxLoginService  *service.WxLoginService
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB, levelDB *store.LevelDB, licenseService *service.LicenseService) *ConfigHandler {
+func NewConfigHandler(
+	app *core.AppServer,
+	db *gorm.DB,
+	licenseService *service.LicenseService,
+	sysConfig *types.SystemConfig,
+	alipayService *payment.AlipayService,
+	wxpayService *payment.WxPayService,
+	epayService *payment.EPayService,
+	smsManager *sms.SmsManager,
+	uploaderManager *oss.UploaderManager,
+	smtpService *service.SmtpService,
+	captchaService *service.CaptchaService,
+	wxLoginService *service.WxLoginService,
+) *ConfigHandler {
 	return &ConfigHandler{
-		BaseHandler:    handler.BaseHandler{App: app, DB: db},
-		levelDB:        levelDB,
-		licenseService: licenseService,
+		BaseHandler:     handler.BaseHandler{App: app, DB: db},
+		licenseService:  licenseService,
+		sysConfig:       sysConfig,
+		alipayService:   alipayService,
+		wxpayService:    wxpayService,
+		epayService:     epayService,
+		smsManager:      smsManager,
+		uploaderManager: uploaderManager,
+		smtpService:     smtpService,
+		captchaService:  captchaService,
+		wxLoginService:  wxLoginService,
 	}
 }
 
-func (h *ConfigHandler) Update(c *gin.Context) {
-	var data struct {
-		Key    string `json:"key"`
-		Config struct {
-			types.SystemConfig
-			Content string `json:"content,omitempty"`
-			Updated bool   `json:"updated,omitempty"`
-		} `json:"config"`
-		ConfigBak types.SystemConfig `json:"config_bak,omitempty"`
+// RegisterRoutes 注册路由
+func (h *ConfigHandler) RegisterRoutes() {
+	rg := h.App.Engine.Group("/api/admin/config")
+
+	// 需要管理员登录的接口
+	rg.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		rg.POST("update/base", h.UpdateBase)
+		rg.POST("update/power", h.UpdatePower)
+		rg.POST("update/notice", h.UpdateNotice)
+		rg.POST("update/agreement", h.UpdateAgreement)
+		rg.POST("update/privacy", h.UpdatePrivacy)
+		rg.POST("update/mark_map", h.UpdateMarkMap)
+		rg.POST("update/captcha", h.UpdateCaptcha)
+		rg.POST("update/wx_login", h.UpdateWxLogin)
+		rg.POST("update/payment", h.UpdatePayment)
+		rg.POST("update/sms", h.UpdateSms)
+		rg.POST("update/oss", h.UpdateOss)
+		rg.POST("update/smtp", h.UpdateStmp)
+		rg.GET("get", h.Get)
+		rg.POST("license/active", h.Active)
+		rg.GET("license/get", h.GetLicense)
 	}
+}
+
+// UpdateBase 更新基础配置
+func (h *ConfigHandler) UpdateBase(c *gin.Context) {
+	var data types.BaseConfig
 
 	if err := c.ShouldBindJSON(&data); err != nil {
-		logger.Errorf("Update config failed: %v", err)
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	// ONLY authorized user can change the copyright
-	if (data.Key == "system" && data.Config.Copyright != data.ConfigBak.Copyright) && !h.licenseService.GetLicense().Configs.DeCopy {
-		resp.ERROR(c, "您无权修改版权信息，请先联系作者获取授权")
+	// 未授权的话不允许修改版权
+	license := h.licenseService.GetLicense()
+	if !license.IsActive && data.Copyright != h.sysConfig.Base.Copyright {
+		resp.ERROR(c, "未授权系统不允许修改版权信息")
 		return
 	}
 
-	// 如果要启用图形验证码功能，则检查是否配置了 API 服务
-	if data.Config.EnabledVerify && h.App.Config.ApiConfig.AppId == "" {
-		resp.ERROR(c, "启用验证码服务需要先配置 GeekAI 官方 API 服务 AppId 和 Token")
+	// 未授权的话不允许修改 Logo
+	if !license.IsActive && data.Logo != h.sysConfig.Base.Logo {
+		resp.ERROR(c, "未授权系统不允许修改 Logo")
 		return
 	}
 
-	value := utils.JsonEncode(&data.Config)
-	config := model.Config{Name: data.Key, Value: value}
-	res := h.DB.FirstOrCreate(&config, model.Config{Name: data.Key})
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
+	err := h.Update(types.ConfigKeySystem, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 
-	if config.Id > 0 {
-		config.Value = value
-		res := h.DB.Updates(&config)
-		if res.Error != nil {
-			resp.ERROR(c, res.Error.Error())
-			return
-		}
+	h.sysConfig.Base = data
 
-		// update config cache for AppServer
-		var cfg model.Config
-		h.DB.Where("name", data.Key).First(&cfg)
-		var err error
-		if data.Key == "system" {
-			err = utils.JsonDecode(cfg.Value, &h.App.SysConfig)
-		}
-		if err != nil {
-			resp.ERROR(c, "Failed to update config cache: "+err.Error())
-			return
-		}
-		logger.Infof("Update AppServer's config successfully: %v", config.Value)
-	}
-
-	resp.SUCCESS(c, config)
+	resp.SUCCESS(c, data)
 }
 
-// Get 获取指定的系统配置
-func (h *ConfigHandler) Get(c *gin.Context) {
-	key := c.Query("key")
+// UpdatePower 更新系统配置
+func (h *ConfigHandler) UpdatePower(c *gin.Context) {
+	var data struct {
+		InitPower     int            `json:"init_power,omitempty"`      // 新用户注册赠送算力值
+		DailyPower    int            `json:"daily_power,omitempty"`     // 每日签到赠送算力
+		InvitePower   int            `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
+		MjPower       int            `json:"mj_power,omitempty"`        // MJ 绘画消耗算力
+		MjActionPower int            `json:"mj_action_power,omitempty"` // MJ 操作（放大，变换）消耗算力
+		SdPower       int            `json:"sd_power,omitempty"`        // SD 绘画消耗算力
+		SunoPower     int            `json:"suno_power,omitempty"`      // Suno 生成歌曲消耗算力
+		LumaPower     int            `json:"luma_power,omitempty"`      // Luma 生成视频消耗算力
+		KeLingPowers  map[string]int `json:"keling_powers,omitempty"`   // 可灵生成视频消耗算力
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	h.sysConfig.Base.InitPower = data.InitPower
+	h.sysConfig.Base.DailyPower = data.DailyPower
+	h.sysConfig.Base.InvitePower = data.InvitePower
+	h.sysConfig.Base.MjPower = data.MjPower
+	h.sysConfig.Base.MjActionPower = data.MjActionPower
+	h.sysConfig.Base.SdPower = data.SdPower
+	h.sysConfig.Base.SunoPower = data.SunoPower
+	h.sysConfig.Base.LumaPower = data.LumaPower
+	h.sysConfig.Base.KeLingPowers = data.KeLingPowers
+
+	err := h.Update(types.ConfigKeySystem, h.sysConfig.Base)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, h.sysConfig.Base)
+}
+
+// UpdateNotice 更新公告配置
+func (h *ConfigHandler) UpdateNotice(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyNotice, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateAgreement 更新用户协议配置
+func (h *ConfigHandler) UpdateAgreement(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyAgreement, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdatePrivacy 更新隐私政策配置
+func (h *ConfigHandler) UpdatePrivacy(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyPrivacy, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateMarkMap 更新思维导图配置
+func (h *ConfigHandler) UpdateMarkMap(c *gin.Context) {
+	var data struct {
+		Content string `json:"content"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyMarkMap, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateCaptcha 更新行为验证码配置
+func (h *ConfigHandler) UpdateCaptcha(c *gin.Context) {
+	var data types.CaptchaConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyCaptcha, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	h.captchaService.UpdateConfig(data)
+	resp.SUCCESS(c, data)
+
+}
+
+// UpdatePayment 更新支付配置
+func (h *ConfigHandler) UpdatePayment(c *gin.Context) {
+	var data types.PaymentConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyPayment, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 如果启用状态发生改变，则需要更新支付服务配置
+	if data.WxPay.Enabled {
+		err = h.wxpayService.UpdateConfig(&data.WxPay)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	if data.Epay.Enabled {
+		h.epayService.UpdateConfig(&data.Epay)
+	}
+	if data.Alipay.Enabled {
+		err = h.alipayService.UpdateConfig(&data.Alipay)
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+
+	h.sysConfig.Payment = data
+	resp.SUCCESS(c, data)
+}
+
+// UpdateSms 更新短信配置
+func (h *ConfigHandler) UpdateSms(c *gin.Context) {
+	var data types.SMSConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeySms, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 更新服务配置
+	h.smsManager.UpdateConfig(data)
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateOss 更新 Oss 配置
+func (h *ConfigHandler) UpdateOss(c *gin.Context) {
+	var data types.OSSConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeyOss, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 更新服务配置
+	h.uploaderManager.UpdateConfig(data)
+	h.sysConfig.OSS = data
+
+	resp.SUCCESS(c, data)
+}
+
+// UpdateStmp 更新 Stmp 配置
+func (h *ConfigHandler) UpdateStmp(c *gin.Context) {
+	var data types.SmtpConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	err := h.Update(types.ConfigKeySmtp, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 更新服务配置
+	h.smtpService.UpdateConfig(&data)
+	h.sysConfig.SMTP = data
+	resp.SUCCESS(c, data)
+}
+
+// UpdateWxLogin 更新微信登录配置
+func (h *ConfigHandler) UpdateWxLogin(c *gin.Context) {
+	var data types.WxLoginConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	err := h.Update(types.ConfigKeyWxLogin, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	if data.Enabled {
+		h.wxLoginService.UpdateConfig(data)
+	}
+
+	h.sysConfig.WxLogin = data
+	resp.SUCCESS(c, data)
+}
+
+// Update 更新系统配置
+func (h *ConfigHandler) Update(name string, value any) error {
 	var config model.Config
-	res := h.DB.Where("name", key).First(&config)
+	err := h.DB.Where("name", name).First(&config).Error
+	if err != nil { // 不存在则创建
+		config.Name = name
+		config.Value = utils.JsonEncode(value)
+		return h.DB.Create(&config).Error
+	} else { // 存在则更新
+		config.Value = utils.JsonEncode(value)
+		return h.DB.Updates(&config).Error
+	}
+
+}
+
+// Get 获取指定名称的系统配置
+func (h *ConfigHandler) Get(c *gin.Context) {
+	name := c.Query("key")
+	var config model.Config
+	res := h.DB.Where("name", name).First(&config)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return
 	}
 
-	var value map[string]interface{}
+	var value map[string]any
 	err := utils.JsonDecode(config.Value, &value)
 	if err != nil {
 		resp.ERROR(c, err.Error())
@@ -127,19 +420,21 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	info, err := host.Info()
+
+	err := h.licenseService.ActiveLicense(data.License)
+	license := h.licenseService.GetLicense()
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-
-	err = h.licenseService.ActiveLicense(data.License, info.HostID)
-	if err != nil {
+	if err := h.Update(types.ConfigKeyLicense, license); err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
+	// 更新系统配置
+	h.sysConfig.License = *license
 
-	resp.SUCCESS(c)
+	resp.SUCCESS(c, license.MachineId)
 
 }
 
@@ -147,70 +442,4 @@ func (h *ConfigHandler) Active(c *gin.Context) {
 func (h *ConfigHandler) GetLicense(c *gin.Context) {
 	license := h.licenseService.GetLicense()
 	resp.SUCCESS(c, license)
-}
-
-// FixData 修复数据
-func (h *ConfigHandler) FixData(c *gin.Context) {
-	resp.ERROR(c, "当前升级版本没有数据需要修正！")
-	//var fixed bool
-	//version := "data_fix_4.1.4"
-	//err := h.levelDB.Get(version, &fixed)
-	//if err == nil || fixed {
-	//	resp.ERROR(c, "当前版本数据修复已完成，请不要重复执行操作")
-	//	return
-	//}
-	//tx := h.DB.Begin()
-	//var users []model.User
-	//err = tx.Find(&users).Error
-	//if err != nil {
-	//	resp.ERROR(c, err.Error())
-	//	return
-	//}
-	//for _, user := range users {
-	//	if user.Email != "" || user.Mobile != "" {
-	//		continue
-	//	}
-	//	if utils.IsValidEmail(user.Username) {
-	//		user.Email = user.Username
-	//	} else if utils.IsValidMobile(user.Username) {
-	//		user.Mobile = user.Username
-	//	}
-	//	err = tx.Save(&user).Error
-	//	if err != nil {
-	//		resp.ERROR(c, err.Error())
-	//		tx.Rollback()
-	//		return
-	//	}
-	//}
-	//
-	//var orders []model.Order
-	//err = h.DB.Find(&orders).Error
-	//if err != nil {
-	//	resp.ERROR(c, err.Error())
-	//	return
-	//}
-	//for _, order := range orders {
-	//	if order.PayWay == "支付宝" {
-	//		order.PayWay = "alipay"
-	//		order.PayType = "alipay"
-	//	} else if order.PayWay == "微信支付" {
-	//		order.PayWay = "wechat"
-	//		order.PayType = "wxpay"
-	//	} else if order.PayWay == "hupi" {
-	//		order.PayType = "wxpay"
-	//	}
-	//	err = tx.Save(&order).Error
-	//	if err != nil {
-	//		resp.ERROR(c, err.Error())
-	//		tx.Rollback()
-	//		return
-	//	}
-	//}
-	//tx.Commit()
-	//err = h.levelDB.Put(version, true)
-	//if err != nil {
-	//	resp.ERROR(c, err.Error())
-	//	return
-	//}
-	//resp.SUCCESS(c)
 }

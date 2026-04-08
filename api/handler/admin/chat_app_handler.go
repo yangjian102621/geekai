@@ -10,6 +10,7 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -30,14 +31,29 @@ func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
 	return &ChatAppHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatAppHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/role/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.POST("sort", h.Sort)
+		group.POST("set", h.Set)
+		group.GET("remove", h.Remove)
+	}
+}
+
 // Save 创建或者更新某个角色
 func (h *ChatAppHandler) Save(c *gin.Context) {
-	var data vo.ChatRole
+	var data vo.ChatApp
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	var role model.ChatRole
+	var role model.ChatApp
 	err := utils.CopyObject(data, &role)
 	if err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -65,8 +81,8 @@ func (h *ChatAppHandler) Save(c *gin.Context) {
 }
 
 func (h *ChatAppHandler) List(c *gin.Context) {
-	var items []model.ChatRole
-	var roles = make([]vo.ChatRole, 0)
+	var items []model.ChatApp
+	var roles = make([]vo.ChatApp, 0)
 	res := h.DB.Order("sort_num ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
@@ -107,7 +123,7 @@ func (h *ChatAppHandler) List(c *gin.Context) {
 	}
 
 	for _, v := range items {
-		var role vo.ChatRole
+		var role vo.ChatApp
 		err := utils.CopyObject(v, &role)
 		if err == nil {
 			role.Id = v.Id
@@ -135,7 +151,7 @@ func (h *ChatAppHandler) Sort(c *gin.Context) {
 	}
 
 	for index, id := range data.Ids {
-		err := h.DB.Model(&model.ChatRole{}).Where("id = ?", id).Update("sort_num", data.Sorts[index]).Error
+		err := h.DB.Model(&model.ChatApp{}).Where("id = ?", id).Update("sort_num", data.Sorts[index]).Error
 		if err != nil {
 			resp.ERROR(c, err.Error())
 			return
@@ -157,7 +173,7 @@ func (h *ChatAppHandler) Set(c *gin.Context) {
 		return
 	}
 
-	err := h.DB.Model(&model.ChatRole{}).Where("id = ?", data.Id).Update(data.Filed, data.Value).Error
+	err := h.DB.Model(&model.ChatApp{}).Where("id = ?", data.Id).Update(data.Filed, data.Value).Error
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -172,9 +188,8 @@ func (h *ChatAppHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	res := h.DB.Where("id", id).Delete(&model.ChatRole{})
+	res := h.DB.Where("id", id).Delete(&model.ChatApp{})
 	if res.Error != nil {
-		logger.Error("error with update database：", res.Error)
 		resp.ERROR(c, "删除失败！")
 		return
 	}

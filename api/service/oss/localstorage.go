@@ -21,15 +21,19 @@ import (
 )
 
 type LocalStorage struct {
-	config   *types.LocalStorageConfig
+	config   types.LocalStorageConfig
 	proxyURL string
 }
 
-func NewLocalStorage(config *types.AppConfig) LocalStorage {
-	return LocalStorage{
-		config:   &config.OSS.Local,
-		proxyURL: config.ProxyURL,
+func NewLocalStorage(sysConfig *types.SystemConfig, appConfig *types.AppConfig) *LocalStorage {
+	return &LocalStorage{
+		config:   sysConfig.OSS.Local,
+		proxyURL: appConfig.ProxyURL,
 	}
+}
+
+func (s *LocalStorage) UpdateConfig(config types.LocalStorageConfig) {
+	s.config = config
 }
 
 func (s LocalStorage) PutFile(ctx *gin.Context, name string) (File, error) {

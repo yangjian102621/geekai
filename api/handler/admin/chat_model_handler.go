@@ -8,7 +8,9 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -26,6 +28,22 @@ type ChatModelHandler struct {
 
 func NewChatModelHandler(app *core.AppServer, db *gorm.DB) *ChatModelHandler {
 	return &ChatModelHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
+}
+
+// RegisterRoutes 注册路由
+func (h *ChatModelHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/model/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.POST("save", h.Save)
+		group.POST("set", h.Set)
+		group.POST("sort", h.Sort)
+		group.GET("remove", h.Remove)
+		group.POST("batch-remove", h.BatchRemove)
+	}
 }
 
 func (h *ChatModelHandler) Save(c *gin.Context) {
@@ -200,4 +218,34 @@ func (h *ChatModelHandler) Remove(c *gin.Context) {
 		return
 	}
 	resp.SUCCESS(c)
+}
+
+// BatchRemove 批量删除模型
+func (h *ChatModelHandler) BatchRemove(c *gin.Context) {
+	var data struct {
+		Ids []uint `json:"ids"`
+	}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	if len(data.Ids) == 0 {
+		resp.ERROR(c, "请选择要删除的模型")
+		return
+	}
+
+	// 执行批量删除
+	err := h.DB.Where("id IN ?", data.Ids).Delete(&model.ChatModel{}).Error
+	if err != nil {
+		logger.Error("批量删除模型失败：", err)
+		resp.ERROR(c, "批量删除失败："+err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, gin.H{
+		"message":       fmt.Sprintf("成功删除 %d 个模型", len(data.Ids)),
+		"deleted_count": len(data.Ids),
+	})
 }

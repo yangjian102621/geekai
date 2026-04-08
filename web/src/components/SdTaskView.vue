@@ -1,5 +1,10 @@
 <template>
-  <el-dialog v-model="show" :fullscreen="true" @close="close" style="--el-dialog-border-radius: 0px">
+  <el-dialog
+    v-model="show"
+    :fullscreen="true"
+    @close="close"
+    style="--el-dialog-border-radius: 0px"
+  >
     <template #header>
       <div class="header">
         <h3 style="color: var(--text-theme-color)">绘画任务详情</h3>
@@ -121,52 +126,52 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
-import Clipboard from "clipboard";
-import { showMessageOK, showMessageError } from "@/utils/dialog";
+import { showMessageError, showMessageOK } from '@/utils/dialog'
+import Clipboard from 'clipboard'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: Boolean,
   data: Object,
-});
+})
 
-const item = ref(props.data);
-const show = ref(props.modelValue);
-const emit = defineEmits(["drawSame", "close"]);
+const item = ref(props.data)
+const show = ref(props.modelValue)
+const emit = defineEmits(['drawSame', 'close'])
 
-const clipboard = ref(null);
+const clipboard = ref(null)
 onMounted(() => {
-  clipboard.value = new Clipboard(".copy-prompt-wall");
-  clipboard.value.on("success", () => {
-    showMessageOK("复制成功！");
-  });
+  clipboard.value = new Clipboard('.copy-prompt-wall')
+  clipboard.value.on('success', () => {
+    showMessageOK('复制成功！')
+  })
 
-  clipboard.value.on("error", () => {
-    showMessageError("复制失败！");
-  });
-});
+  clipboard.value.on('error', () => {
+    showMessageError('复制失败！')
+  })
+})
 
 watch(
   () => props.modelValue,
   (newValue) => {
-    show.value = newValue;
+    show.value = newValue
   }
-);
+)
 
 watch(
   () => props.data,
   (newValue) => {
-    item.value = newValue;
+    item.value = newValue
   }
-);
+)
 
 const drawSame = (item) => {
-  emit("drawSame", item);
-};
+  emit('drawSame', item)
+}
 
 const close = () => {
-  emit("close");
-};
+  emit('close')
+}
 </script>
 
-<style lang="stylus" scoped></style>
+<style lang="scss" scoped></style>

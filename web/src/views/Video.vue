@@ -22,17 +22,13 @@
             </div>
 
             <!-- 提示词生成按钮 -->
-            <div class="param-line pt">
-              <el-button
-                class="generate-btn"
-                @click="store.generatePrompt"
-                :loading="store.isGenerating"
-                size="small"
-                color="#5865f2"
-                style="width: 100%"
-              >
-                <i class="iconfont icon-chuangzuo"></i>
-                生成AI视频提示词
+            <div class="flex justify-end pt-1">
+              <el-button @click="store.generatePrompt" type="primary" :loading="store.isGenerating">
+                <span v-if="!store.isGenerating">
+                  <i class="iconfont icon-chuangzuo"></i>
+                  生成提示词
+                </span>
+                <span v-else>生成中...</span>
               </el-button>
             </div>
 
@@ -126,16 +122,29 @@
             </div>
 
             <!-- 算力显示 -->
-            <el-row class="text-info">
-              <el-text type="primary"
-                >当前可用算力：<el-text type="warning">{{ store.availablePower }}</el-text></el-text
+            <div
+              class="power-info flex items-center justify-between mb-4 mt-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm"
+            >
+              <div class="flex items-center space-x-2">
+                <el-icon color="#f59e42" size="20"><i class="iconfont icon-lightning"></i></el-icon>
+                <span class="font-medium text-gray-700">当前可用算力：</span>
+                <span class="font-bold text-lg text-yellow-500">{{ store.availablePower }}</span>
+              </div>
+              <el-tooltip content="算力用于生成视频，每次生成会消耗对应算力" placement="left">
+                <el-icon color="#a78bfa" size="18"><InfoFilled /></el-icon>
+              </el-tooltip>
+            </div>
+            <div class="flex justify-center">
+              <button
+                @click="store.createLumaVideo"
+                :disabled="store.generating"
+                class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+                type="button"
               >
-            </el-row>
-            <!-- 生成按钮 -->
-            <div class="submit-btn">
-              <el-button type="primary" :dark="false" @click="store.createLumaVideo" round>
-                立即生成 ({{ store.lumaPowerCost }}<i class="iconfont icon-vip2"></i>)
-              </el-button>
+                <i v-if="store.generating" class="iconfont icon-loading animate-spin"></i>
+                <i v-else class="iconfont icon-chuangzuo"></i>
+                <span>立即生成 ({{ store.lumaPowerCost }}算力)</span>
+              </button>
             </div>
           </div>
         </el-tab-pane>
@@ -398,17 +407,17 @@
             </div>
 
             <!-- 提示词生成按钮 -->
-            <div class="param-line pt">
+            <div class="flex justify-end">
               <el-button
                 class="generate-btn"
                 @click="store.generatePrompt"
                 :loading="store.isGenerating"
-                size="small"
                 color="#5865f2"
-                style="width: 100%"
               >
-                <i class="iconfont icon-chuangzuo"></i>
-                生成专业视频提示词
+                <span v-if="!store.isGenerating">
+                  <i class="iconfont icon-chuangzuo"></i> 生成提示词
+                </span>
+                <span v-else>生成中...</span>
               </el-button>
             </div>
 
@@ -429,23 +438,32 @@
             </div>
 
             <!-- 算力显示 -->
-            <el-row class="text-info">
-              <el-text type="primary"
-                >当前可用算力：<el-text type="warning">{{ store.availablePower }}</el-text></el-text
-              >
-            </el-row>
+            <!-- 算力显示 -->
+            <div
+              class="power-info flex items-center justify-between mb-4 mt-2 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm"
+            >
+              <div class="flex items-center space-x-2">
+                <el-icon color="#f59e42" size="20"><i class="iconfont icon-lightning"></i></el-icon>
+                <span class="font-medium text-gray-700">当前可用算力：</span>
+                <span class="font-bold text-lg text-yellow-500">{{ store.availablePower }}</span>
+              </div>
+              <el-tooltip content="算力用于生成视频，每次生成会消耗对应算力" placement="left">
+                <el-icon color="#a78bfa" size="18"><InfoFilled /></el-icon>
+              </el-tooltip>
+            </div>
 
             <!-- 生成按钮 -->
-            <div class="submit-btn">
-              <el-button
-                type="primary"
-                :dark="false"
+            <div class="flex justify-center">
+              <button
                 @click="store.createKelingVideo"
-                round
-                :loading="store.generating"
+                :disabled="store.generating"
+                class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+                type="button"
               >
-                立即生成 ({{ store.kelingPowerCost }}<i class="iconfont icon-vip2"></i>)
-              </el-button>
+                <i v-if="store.generating" class="iconfont icon-loading animate-spin"></i>
+                <i v-else class="iconfont icon-chuangzuo"></i>
+                <span>立即生成 ({{ store.kelingPowerCost }}算力)</span>
+              </button>
             </div>
           </div>
         </el-tab-pane>
@@ -599,12 +617,11 @@
     </div>
 
     <!-- 视频预览对话框 -->
-    <black-dialog
-      :show="store.showDialog"
+    <el-dialog
+      v-model="store.showDialog"
       title="预览视频"
       hide-footer
-      @cancal="store.showDialog = false"
-      @update:show="store.showDialog = $event"
+      @close="store.showDialog = false"
       width="auto"
     >
       <video
@@ -614,16 +631,14 @@
         :autoplay="true"
         loop="loop"
         muted="muted"
-        v-show="store.showDialog"
       >
         您的浏览器不支持视频播放
       </video>
-    </black-dialog>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import BlackDialog from '@/components/ui/BlackDialog.vue'
 import Generating from '@/components/ui/Generating.vue'
 import { useVideoStore } from '@/store/video'
 import { CircleCloseFilled, InfoFilled, Plus } from '@element-plus/icons-vue'
@@ -640,6 +655,6 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="stylus" scoped>
-@import "../assets/css/video.styl"
+<style lang="scss" scoped>
+@use '../assets/css/video.scss' as *;
 </style>

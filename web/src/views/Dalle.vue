@@ -85,40 +85,42 @@
                   :autosize="{ minRows: 4, maxRows: 6 }"
                   type="textarea"
                   ref="promptRef"
-                  maxlength="2000"
+                  maxlength="1024"
+                  show-word-limit
                   placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
-                  v-loading="isGenerating"
+                  v-loading="promptGenerating"
                 />
               </div>
 
-              <el-row class="text-info">
-                <el-button
-                  class="generate-btn"
-                  size="small"
-                  @click="generatePrompt"
-                  color="#5865f2"
-                  :disabled="isGenerating"
-                >
-                  <i class="iconfont icon-chuangzuo" style="margin-right: 5px"></i>
-                  <span>生成专业绘画指令</span>
+              <div class="flex justify-end pt-2 pr-2">
+                <el-button @click="generatePrompt" type="primary" :loading="promptGenerating">
+                  <span v-if="!promptGenerating">
+                    <i class="iconfont icon-chuangzuo"></i>
+                    生成专业绘画指令
+                  </span>
+                  <span v-else>生成中...</span>
                 </el-button>
-              </el-row>
+              </div>
 
-              <div class="text-info">
-                <el-row :gutter="10">
-                  <el-text type="primary"
-                    >每次绘图消耗 <el-text type="warning">{{ dallPower }}算力，</el-text></el-text
-                  >
-                  <el-text type="primary"
-                    >当前可用
-                    <el-text type="warning"> {{ power }}算力</el-text>
-                  </el-text>
-                </el-row>
+              <div class="mt-2 mb-2">
+                <label class="text-gray-700 font-semibold">参考图(可选)</label>
+                <div class="py-2">
+                  <ImageUpload v-model="params.image" :max-count="5" :multiple="true" />
+                </div>
               </div>
             </el-form>
           </div>
-          <div class="submit-btn">
-            <el-button type="primary" :dark="false" round @click="generate"> 立即生成 </el-button>
+          <div class="py-4">
+            <button
+              class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+              type="button"
+              @click="generate"
+            >
+              <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
+              <i v-else class="iconfont icon-chuangzuo"></i>
+              <span v-if="isGenerating">创作中...</span>
+              <span v-else>立即生成({{ dallPower }}算力)</span>
+            </button>
           </div>
         </div>
         <div class="task-list-box pl-6 pr-6 pb-4 pt-4 h-dvh">
@@ -300,6 +302,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
+import ImageUpload from '@/components/ImageUpload.vue'
 
 const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
@@ -342,8 +345,8 @@ const allowPulling = ref(true) // 是否允许轮询
 const downloadPulling = ref(false) // 下载轮询
 const tastPullHandler = ref(null)
 const downloadPullHandler = ref(null)
-const power = ref(0)
-const dallPower = ref(0) // 画一张 SD 图片消耗算力
+const userPower = ref(0)
+const dallPower = ref(0)
 const clipboard = ref(null)
 const userId = ref(0)
 const selectedModel = ref(null)
@@ -358,14 +361,6 @@ onMounted(() => {
   clipboard.value.on('error', () => {
     showMessageError('复制失败！')
   })
-
-  getSystemInfo()
-    .then((res) => {
-      dallPower.value = res.data['dall_power']
-    })
-    .catch((e) => {
-      showMessageError('获取系统配置失败：' + e.message)
-    })
 
   // 获取模型列表
   httpGet('/api/dall/models')
@@ -393,7 +388,7 @@ onUnmounted(() => {
 const initData = () => {
   checkSession()
     .then((user) => {
-      power.value = user['power']
+      userPower.value = user['power']
       userId.value = user.id
       isLogin.value = true
       page.value = 0
@@ -488,7 +483,11 @@ const fetchFinishJobs = () => {
 
 // 创建绘图任务
 const promptRef = ref(null)
+const isGenerating = ref(false)
 const generate = () => {
+  if (isGenerating.value) {
+    return
+  }
   if (params.value.prompt === '') {
     promptRef.value.focus()
     return ElMessage.error('请输入绘画提示词！')
@@ -498,10 +497,11 @@ const generate = () => {
     store.setShowLoginDialog(true)
     return
   }
+  isGenerating.value = true
   httpPost('/api/dall/image', params.value)
     .then(() => {
       ElMessage.success('任务执行成功！')
-      power.value -= dallPower.value
+      userPower.value -= dallPower.value
       // 追加任务列表
       runningJobs.value.push({
         prompt: params.value.prompt,
@@ -512,6 +512,9 @@ const generate = () => {
     })
     .catch((e) => {
       ElMessage.error('任务执行失败：' + e.message)
+    })
+    .finally(() => {
+      isGenerating.value = false
     })
 }
 
@@ -558,25 +561,26 @@ const publishImage = (item, action) => {
     })
 }
 
-const isGenerating = ref(false)
+const promptGenerating = ref(false)
 const generatePrompt = () => {
   if (params.value.prompt === '') {
     return showMessageError('请输入原始提示词')
   }
-  isGenerating.value = true
+  promptGenerating.value = true
   httpPost('/api/prompt/image', { prompt: params.value.prompt })
     .then((res) => {
       params.value.prompt = res.data
-      isGenerating.value = false
+      promptGenerating.value = false
     })
     .catch((e) => {
       showMessageError('生成提示词失败：' + e.message)
-      isGenerating.value = false
+      promptGenerating.value = false
     })
 }
 
 const changeModel = (model) => {
-  if (model.value.startsWith('dall')) {
+  dallPower.value = model.power
+  if (model.name.startsWith('dall')) {
     sizes.value = dalleSizes
   } else {
     sizes.value = fluxSizes
@@ -585,7 +589,7 @@ const changeModel = (model) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-@import '../assets/css/image-dall.styl';
-@import '../assets/css/custom-scroll.styl';
+<style lang="scss" scoped>
+@use '../assets/css/image-dall.scss' as *;
+@use '../assets/css/custom-scroll.scss' as *;
 </style>

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,8 +14,6 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
-
-	"geekai/core/types"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -36,17 +33,8 @@ type Service struct {
 }
 
 // NewService 创建即梦服务
-func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManager) *Service {
+func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManager, client *Client) *Service {
 	taskQueue := store.NewRedisQueue("JimengTaskQueue", redisCli)
-	// 从数据库加载配置
-	var config model.Config
-	db.Where("name = ?", "Jimeng").First(&config)
-	var jimengConfig types.JimengConfig
-	if config.Id > 0 {
-		_ = utils.JsonDecode(config.Value, &jimengConfig)
-	}
-	client := NewClient(jimengConfig.AccessKey, jimengConfig.SecretKey)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Service{
 		db:        db,
@@ -378,7 +366,7 @@ func (s *Service) pollTaskStatus() {
 
 		for _, job := range jobs {
 			// 任务超时处理
-			if job.UpdatedAt.Before(time.Now().Add(-5 * time.Minute)) {
+			if job.UpdatedAt.Before(time.Now().Add(-10 * time.Minute)) {
 				s.handleTaskError(job.Id, "task timeout")
 				continue
 			}
@@ -391,7 +379,7 @@ func (s *Service) pollTaskStatus() {
 			})
 
 			if err != nil {
-				logger.Errorf("query jimeng task status failed: %v", err)
+				s.handleTaskError(job.Id, fmt.Sprintf("query task failed: %s", err.Error()))
 				continue
 			}
 
@@ -446,9 +434,7 @@ func (s *Service) pollTaskStatus() {
 				s.handleTaskError(job.Id, "task not found")
 
 			case model.JMTaskStatusExpired:
-				// 任务过期
-				s.handleTaskError(job.Id, "task expired")
-
+				continue
 			default:
 				logger.Warnf("unknown task status: %s", resp.Data.Status)
 			}
@@ -523,78 +509,4 @@ func (s *Service) GetJob(jobId uint) (*model.JimengJob, error) {
 		return nil, err
 	}
 	return &job, nil
-}
-
-// testConnection 测试即梦AI连接
-func (s *Service) testConnection(accessKey, secretKey string) error {
-	testClient := NewClient(accessKey, secretKey)
-
-	// 使用一个简单的查询任务来测试连接
-	testReq := &QueryTaskRequest{
-		ReqKey: "test_connection",
-		TaskId: "test_task_id_12345",
-	}
-
-	_, err := testClient.QueryTask(testReq)
-	// 即使任务不存在，只要不是认证错误就说明连接正常
-	if err != nil {
-		// 检查是否是认证错误
-		if strings.Contains(err.Error(), "InvalidAccessKey") {
-			return fmt.Errorf("认证失败，请检查AccessKey和SecretKey是否正确")
-		}
-		// 其他错误（如任务不存在）说明连接正常
-		return nil
-	}
-	return nil
-}
-
-// UpdateClientConfig 更新客户端配置
-func (s *Service) UpdateClientConfig(accessKey, secretKey string) error {
-	// 创建新的客户端
-	newClient := NewClient(accessKey, secretKey)
-
-	// 测试新客户端是否可用
-	err := s.testConnection(accessKey, secretKey)
-	if err != nil {
-		return err
-	}
-
-	// 更新客户端
-	s.client = newClient
-	return nil
-}
-
-var defaultPower = types.JimengPower{
-	TextToImage:  20,
-	ImageToImage: 20,
-	ImageEdit:    20,
-	ImageEffects: 20,
-	TextToVideo:  300,
-	ImageToVideo: 300,
-}
-
-// GetConfig 获取即梦AI配置
-func (s *Service) GetConfig() *types.JimengConfig {
-	var config model.Config
-	err := s.db.Where("name", "jimeng").First(&config).Error
-	if err != nil {
-		// 如果配置不存在，返回默认配置
-		return &types.JimengConfig{
-			AccessKey: "",
-			SecretKey: "",
-			Power:     defaultPower,
-		}
-	}
-
-	var jimengConfig types.JimengConfig
-	err = utils.JsonDecode(config.Value, &jimengConfig)
-	if err != nil {
-		return &types.JimengConfig{
-			AccessKey: "",
-			SecretKey: "",
-			Power:     defaultPower,
-		}
-	}
-
-	return &jimengConfig
 }

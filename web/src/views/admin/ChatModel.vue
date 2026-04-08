@@ -11,10 +11,24 @@
 
       <el-button :icon="Search" @click="fetchData">搜索</el-button>
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
+      <el-button
+        type="danger"
+        :icon="Delete"
+        :disabled="selectedItems.length === 0"
+        @click="batchRemove"
+      >
+        批量删除 ({{ selectedItems.length }})
+      </el-button>
     </div>
 
     <el-row>
-      <el-table :data="items" :row-key="(row) => row.id" table-layout="auto">
+      <el-table
+        :data="items"
+        :row-key="(row) => row.id"
+        table-layout="auto"
+        @selection-change="handleSelectionChange"
+        ref="tableRef"
+      >
         <el-table-column type="selection" width="38"></el-table-column>
         <el-table-column prop="name" label="模型名称">
           <template #default="scope">
@@ -216,9 +230,9 @@
 <script setup>
 import { httpGet, httpPost } from '@/utils/http'
 import { dateFormat, removeArrayItem, substr } from '@/utils/libs'
-import { DocumentCopy, InfoFilled, Plus, Search } from '@element-plus/icons-vue'
+import { DocumentCopy, InfoFilled, Plus, Search, Delete } from '@element-plus/icons-vue'
 import ClipboardJS from 'clipboard'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Sortable } from 'sortablejs'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 
@@ -390,24 +404,69 @@ const remove = function (row) {
       ElMessage.error('删除失败：' + e.message)
     })
 }
+
+const selectedItems = ref([])
+const tableRef = ref(null)
+
+const handleSelectionChange = (val) => {
+  selectedItems.value = val
+}
+
+const batchRemove = () => {
+  if (selectedItems.value.length === 0) {
+    ElMessage.warning('请选择要删除的模型')
+    return
+  }
+
+  // 构建确认信息
+  ElMessageBox.confirm('确定要删除选中模型吗？<br/> 此操作不可恢复！', '批量删除确认', {
+    confirmButtonText: '确定删除',
+    cancelButtonText: '取消',
+    type: 'warning',
+    dangerouslyUseHTMLString: true,
+    customClass: 'batch-delete-confirm',
+  })
+    .then(() => {
+      const ids = selectedItems.value.map((item) => item.id)
+      httpPost('/api/admin/model/batch-remove', { ids: ids })
+        .then((res) => {
+          ElMessage.success(`批量删除成功！已删除 ${res.data.deleted_count} 个模型`)
+          fetchData()
+          selectedItems.value = []
+        })
+        .catch((e) => {
+          ElMessage.error('批量删除失败：' + e.message)
+        })
+    })
+    .catch(() => {
+      // 用户取消
+    })
+}
 </script>
 
-<style lang="stylus" scoped>
-@import "../../assets/css/admin/form.styl";
+<style lang="scss" scoped>
+@use '../../assets/css/admin/form.scss' as *;
 .model-list {
-
   .handle-box {
-    margin-bottom 20px
+    margin-bottom: 20px;
     .handle-input {
-      max-width 150px;
-      margin-right 10px;
+      max-width: 150px;
+      margin-right: 10px;
+    }
+
+    .el-button {
+      margin-right: 10px;
+
+      &:last-child {
+        margin-right: 0;
+      }
     }
   }
 
   .cell {
     .copy-model {
-      margin-left 6px
-      cursor pointer
+      margin-left: 6px;
+      cursor: pointer;
     }
   }
 
@@ -419,22 +478,21 @@ const remove = function (row) {
   }
 
   .el-select {
-    width: 100%
+    width: 100%;
   }
 
   .sort {
-    cursor move
+    cursor: move;
     .iconfont {
-      position relative
-      top 1px
+      position: relative;
+      top: 1px;
     }
   }
 
   .pagination {
-    padding 20px 0
-    display flex
-    justify-content right
+    padding: 20px 0;
+    display: flex;
+    justify-content: right;
   }
-
 }
 </style>

@@ -8,19 +8,19 @@
 </template>
 
 <script setup>
-import {ref} from "vue"
+import { ref } from 'vue'
 
 const winHeight = ref(window.innerHeight)
 </script>
 
-<style lang="stylus" scoped>
+<style lang="scss" scoped>
 .page-404 {
   display: flex;
   justify-content: center;
   background-color: #282c34;
 
   .inner {
-    text-align center
+    text-align: center;
 
     h1 {
       color: #202020;
@@ -31,10 +31,9 @@ const winHeight = ref(window.innerHeight)
     }
 
     h2 {
-      color #ffffff;
+      color: #ffffff;
       font-weight: bold;
     }
   }
-
 }
 </style>

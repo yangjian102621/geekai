@@ -1,5 +1,7 @@
 package service
 
+import logger2 "geekai/logger"
+
 const FailTaskProgress = 101
 const (
 	TaskStatusRunning  = "RUNNING"
@@ -14,6 +16,8 @@ type NotifyMessage struct {
 	Message  string `json:"message"`
 	Type     string `json:"type"`
 }
+
+var logger = logger2.GetLogger()
 
 const TranslatePromptTemplate = "Translate the following painting prompt words into English keyword phrases. Without any explanation, directly output the keyword phrases separated by commas. The content to be translated is: [%s]"
 

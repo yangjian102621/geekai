@@ -14,8 +14,10 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -39,6 +41,7 @@ import (
 const (
 	ChatEventStart        = "start"
 	ChatEventEnd          = "end"
+	ChatEventComplete     = "complete"
 	ChatEventError        = "error"
 	ChatEventMessageDelta = "message_delta"
 	ChatEventTitle        = "title"
@@ -54,43 +57,68 @@ type ChatInput struct {
 	Stream    bool            `json:"stream"`
 	Files     []vo.File       `json:"files"`
 	ChatModel model.ChatModel `json:"chat_model,omitempty"`
-	ChatRole  model.ChatRole  `json:"chat_role,omitempty"`
+	ChatRole  model.ChatApp   `json:"chat_role,omitempty"`
 	LastMsgId uint            `json:"last_msg_id,omitempty"` // 最后的消息ID，用于重新生成答案的时候过滤上下文
 }
 
 type ChatHandler struct {
 	BaseHandler
-	redis          *redis.Client
-	uploadManager  *oss.UploaderManager
-	licenseService *service.LicenseService
-	ReqCancelFunc  *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
-	userService    *service.UserService
+	redis             *redis.Client
+	uploadManager     *oss.UploaderManager
+	licenseService    *service.LicenseService
+	ReqCancelFunc     *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService) *ChatHandler {
+func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService, moderationManager *moderation.ServiceManager) *ChatHandler {
 	return &ChatHandler{
-		BaseHandler:    BaseHandler{App: app, DB: db},
-		redis:          redis,
-		uploadManager:  manager,
-		licenseService: licenseService,
-		ReqCancelFunc:  types.NewLMap[string, context.CancelFunc](),
-		userService:    userService,
+		BaseHandler:       BaseHandler{App: app, DB: db},
+		redis:             redis,
+		uploadManager:     manager,
+		licenseService:    licenseService,
+		ReqCancelFunc:     types.NewLMap[string, context.CancelFunc](),
+		userService:       userService,
+		moderationManager: moderationManager,
+	}
+}
+
+// RegisterRoutes 注册路由
+func (h *ChatHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/chat/")
+
+	// 聊天接口不需要授权（已在authConfig中配置）
+	group.Any("message", h.Chat)
+
+	// 其他接口需要用户授权
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.GET("detail", h.Detail)
+		group.POST("update", h.Update)
+		group.GET("remove", h.Remove)
+		group.GET("history", h.History)
+		group.GET("clear", h.Clear)
+		group.POST("tokens", h.Tokens)
+		group.GET("stop", h.StopGenerate)
+		group.POST("tts", h.TextToSpeech)
 	}
 }
 
 // Chat 处理聊天请求
 func (h *ChatHandler) Chat(c *gin.Context) {
-	var input ChatInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
 	// 设置SSE响应头
 	c.Header("Prompt-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("X-Accel-Buffering", "no")
+
+	var input ChatInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		pushMessage(c, ChatEventError, types.InvalidArgs)
+		c.Abort()
+		return
+	}
 
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
@@ -113,7 +141,7 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 	}
 
 	// 验证聊天角色
-	var chatRole model.ChatRole
+	var chatRole model.ChatApp
 	err := h.DB.First(&chatRole, input.RoleId).Error
 	if err != nil || !chatRole.Enable {
 		pushMessage(c, ChatEventError, "当前聊天角色不存在或者未启用，请更换角色之后再发起对话！")
@@ -166,7 +194,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	}
 
 	if userVo.Power < input.ChatModel.Power {
-		return fmt.Errorf("您当前剩余算力 %d 已不足以支付当前模型的单次对话需要消耗的算力 %d，[立即购买](/member)。", userVo.Power, input.ChatModel.Power)
+		return fmt.Errorf("您的算力不足，请购买算力。")
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
@@ -229,17 +257,24 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	// 加载聊天上下文
 	chatCtx := make([]any, 0)
 	messages := make([]any, 0)
-	if h.App.SysConfig.EnableContext {
+	if h.App.SysConfig.Base.EnableContext {
 		_ = utils.JsonDecode(input.ChatRole.Context, &messages)
-		if h.App.SysConfig.ContextDeep > 0 {
+		if h.App.SysConfig.Base.ContextDeep > 0 {
 			var historyMessages []model.ChatMessage
 			dbSession := h.DB.Session(&gorm.Session{}).Where("chat_id", input.ChatId)
 			if input.LastMsgId > 0 { // 重新生成逻辑
+				var lastMessage model.ChatMessage
+				err = dbSession.Where("id <= ?", input.LastMsgId).Where("type", types.PromptMsg).First(&lastMessage).Error
+				if err != nil {
+					input.LastMsgId = 0
+				} else {
+					input.LastMsgId = lastMessage.Id
+				}
 				dbSession = dbSession.Where("id < ?", input.LastMsgId)
 				// 删除对应的聊天记录
 				h.DB.Debug().Where("chat_id", input.ChatId).Where("id >= ?", input.LastMsgId).Delete(&model.ChatMessage{})
 			}
-			err = dbSession.Limit(h.App.SysConfig.ContextDeep).Order("id DESC").Find(&historyMessages).Error
+			err = dbSession.Limit(h.App.SysConfig.Base.ContextDeep).Order("id DESC").Find(&historyMessages).Error
 			if err == nil {
 				for i := len(historyMessages) - 1; i >= 0; i-- {
 					msg := historyMessages[i]
@@ -267,7 +302,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 			}
 
 			// 上下文的深度超出了模型的最大上下文深度
-			if len(chatCtx) >= h.App.SysConfig.ContextDeep {
+			if len(chatCtx) >= h.App.SysConfig.Base.ContextDeep {
 				break
 			}
 
@@ -276,6 +311,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 		}
 	}
 	reqMgs := make([]any, 0)
+
+	// 添加引导提示词,防止模型生成违规内容
+	if h.App.SysConfig.Moderation.EnableGuide {
+		reqMgs = append(reqMgs, map[string]any{
+			"role":    "system",
+			"content": h.App.SysConfig.Moderation.GuidePrompt,
+		})
+	}
 
 	for i := len(chatCtx) - 1; i >= 0; i-- {
 		reqMgs = append(reqMgs, chatCtx[i])
@@ -295,16 +338,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 				},
 			})
 		} else {
-			// 如果不是逆向模型，则提取文件内容
-			modelValue := input.ChatModel.Value
-			if !(strings.Contains(modelValue, "-all") || strings.HasPrefix(modelValue, "gpt-4-gizmo") || strings.HasPrefix(modelValue, "claude")) {
-				content, err := utils.ReadFileContent(file.URL, h.App.Config.TikaHost)
-				if err != nil {
-					logger.Error("error with read file: ", err)
-					continue
-				} else {
-					fileContents = append(fileContents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
-				}
+			// 处理文件，提取文件内容
+			content, err := utils.ReadFileContent(file.URL, h.App.Config.TikaHost)
+			if err != nil {
+				logger.Error("error with read file: ", err)
+				continue
+			} else {
+				fileContents = append(fileContents, fmt.Sprintf("%s 文件内容：%s", file.Name, content))
+				logger.Debugf("fileContents: %s", fileContents)
 			}
 		}
 	}
@@ -320,16 +361,16 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	}
 
 	if len(imgList) > 0 {
-		imgList = append(imgList, map[string]interface{}{
+		imgList = append(imgList, map[string]any{
 			"type": "text",
 			"text": input.Prompt,
 		})
-		req.Messages = append(reqMgs, map[string]interface{}{
+		req.Messages = append(reqMgs, map[string]any{
 			"role":    "user",
 			"content": imgList,
 		})
 	} else {
-		req.Messages = append(reqMgs, map[string]interface{}{
+		req.Messages = append(reqMgs, map[string]any{
 			"role":    "user",
 			"content": finalPrompt,
 		})
@@ -445,7 +486,7 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, input ChatInput, apiKey *model.ApiKey) (*http.Response, error) {
 	// if the chat model bind a KEY, use it directly
 	if input.ChatModel.KeyId > 0 {
-		h.DB.Where("id", input.ChatModel.KeyId).Find(apiKey)
+		h.DB.Where("id", input.ChatModel.KeyId).Where("enabled", true).Find(apiKey)
 	} else { // use the last unused key
 		h.DB.Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
 	}
@@ -516,6 +557,7 @@ func (h *ChatHandler) subUserPower(userVo vo.User, input ChatInput, promptTokens
 }
 
 func (h *ChatHandler) saveChatHistory(
+	c *gin.Context,
 	req types.ApiRequest,
 	usage Usage,
 	message types.Message,
@@ -524,6 +566,34 @@ func (h *ChatHandler) saveChatHistory(
 	promptCreatedAt time.Time,
 	replyCreatedAt time.Time) {
 
+	// 文本审核
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(usage.Content)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		logger.Debugf("moderationResult: %+v", moderationResult)
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: userVo.Id,
+				Source: types.ModerationSourceChat,
+				Input:  usage.Prompt,
+				Output: usage.Content,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			pushMessage(c, ChatEventError, "很抱歉，内容触发敏感词预警，AI 无法回答！！！")
+			// 更新用户算力
+			if input.ChatModel.Power > 0 {
+				h.subUserPower(userVo, input, 0, 0)
+			}
+			return
+		}
+	}
 	// 追加聊天记录
 	// for prompt
 	var promptTokens, replyTokens, totalTokens int
@@ -584,6 +654,22 @@ func (h *ChatHandler) saveChatHistory(
 	err = h.DB.Create(&historyReplyMsg).Error
 	if err != nil {
 		logger.Error("failed to save reply history message: ", err)
+	}
+
+	// 发送完整聊天记录给前端
+	var messageVo vo.ChatMessage
+	err = utils.CopyObject(historyReplyMsg, &messageVo)
+	if err == nil {
+		// 解析内容
+		var content vo.MsgContent
+		err = utils.JsonDecode(historyReplyMsg.Content, &content)
+		if err != nil {
+			content.Text = historyReplyMsg.Content
+		}
+		messageVo.Content = content
+		messageVo.CreatedAt = historyReplyMsg.CreatedAt.Unix()
+		messageVo.UpdatedAt = historyReplyMsg.UpdatedAt.Unix()
+		pushMessage(c, ChatEventComplete, messageVo)
 	}
 
 	// 更新用户算力
@@ -710,221 +796,3 @@ func (h *ChatHandler) TextToSpeech(c *gin.Context) {
 		logger.Error("写入音频数据到响应失败:", err)
 	}
 }
-
-// // OPenAI 消息发送实现
-// func (h *ChatHandler) sendOpenAiMessage(
-// 	req types.ApiRequest,
-// 	userVo vo.User,
-// 	ctx context.Context,
-// 	session *types.ChatSession,
-// 	role model.ChatRole,
-// 	prompt string,
-// 	c *gin.Context) error {
-// 	promptCreatedAt := time.Now() // 记录提问时间
-// 	start := time.Now()
-// 	var apiKey = model.ApiKey{}
-// 	response, err := h.doRequest(ctx, req, session, &apiKey)
-// 	logger.Info("HTTP请求完成，耗时：", time.Since(start))
-// 	if err != nil {
-// 		if strings.Contains(err.Error(), "context canceled") {
-// 			return fmt.Errorf("用户取消了请求：%s", prompt)
-// 		} else if strings.Contains(err.Error(), "no available key") {
-// 			return errors.New("抱歉😔😔😔，系统已经没有可用的 API KEY，请联系管理员！")
-// 		}
-// 		return err
-// 	} else {
-// 		defer response.Body.Close()
-// 	}
-
-// 	if response.StatusCode != 200 {
-// 		body, _ := io.ReadAll(response.Body)
-// 		return fmt.Errorf("请求 OpenAI API 失败：%d, %v", response.StatusCode, string(body))
-// 	}
-
-// 	contentType := response.Header.Get("Prompt-Type")
-// 	if strings.Contains(contentType, "text/event-stream") {
-// 		replyCreatedAt := time.Now() // 记录回复时间
-// 		// 循环读取 Chunk 消息
-// 		var message = types.Message{Role: "assistant"}
-// 		var contents = make([]string, 0)
-// 		var function model.Function
-// 		var toolCall = false
-// 		var arguments = make([]string, 0)
-// 		var reasoning = false
-
-// 		pushMessage(c, ChatEventStart, "开始响应")
-// 		scanner := bufio.NewScanner(response.Body)
-// 		for scanner.Scan() {
-// 			line := scanner.Text()
-// 			if !strings.Contains(line, "data:") || len(line) < 30 {
-// 				continue
-// 			}
-// 			var responseBody = types.ApiResponse{}
-// 			err = json.Unmarshal([]byte(line[6:]), &responseBody)
-// 			if err != nil { // 数据解析出错
-// 				return errors.New(line)
-// 			}
-// 			if len(responseBody.Choices) == 0 { // Fixed: 兼容 Azure API 第一个输出空行
-// 				continue
-// 			}
-// 			if responseBody.Choices[0].Delta.Prompt == nil &&
-// 				responseBody.Choices[0].Delta.ToolCalls == nil &&
-// 				responseBody.Choices[0].Delta.ReasoningContent == "" {
-// 				continue
-// 			}
-
-// 			if responseBody.Choices[0].FinishReason == "stop" && len(contents) == 0 {
-// 				pushMessage(c, ChatEventError, "抱歉😔😔😔，AI助手由于未知原因已经停止输出内容。")
-// 				break
-// 			}
-
-// 			var tool types.ToolCall
-// 			if len(responseBody.Choices[0].Delta.ToolCalls) > 0 {
-// 				tool = responseBody.Choices[0].Delta.ToolCalls[0]
-// 				if toolCall && tool.Function.Name == "" {
-// 					arguments = append(arguments, tool.Function.Arguments)
-// 					continue
-// 				}
-// 			}
-
-// 			// 兼容 Function Call
-// 			fun := responseBody.Choices[0].Delta.FunctionCall
-// 			if fun.Name != "" {
-// 				tool = *new(types.ToolCall)
-// 				tool.Function.Name = fun.Name
-// 			} else if toolCall {
-// 				arguments = append(arguments, fun.Arguments)
-// 				continue
-// 			}
-
-// 			if !utils.IsEmptyValue(tool) {
-// 				res := h.DB.Where("name = ?", tool.Function.Name).First(&function)
-// 				if res.Error == nil {
-// 					toolCall = true
-// 					callMsg := fmt.Sprintf("正在调用工具 `%s` 作答 ...\n\n", function.Label)
-// 					pushMessage(c, ChatEventMessageDelta, map[string]interface{}{
-// 						"type":    "text",
-// 						"content": callMsg,
-// 					})
-// 					contents = append(contents, callMsg)
-// 				}
-// 				continue
-// 			}
-
-// 			if responseBody.Choices[0].FinishReason == "tool_calls" ||
-// 				responseBody.Choices[0].FinishReason == "function_call" { // 函数调用完毕
-// 				break
-// 			}
-
-// 			// output stopped
-// 			if responseBody.Choices[0].FinishReason != "" {
-// 				break // 输出完成或者输出中断了
-// 			} else { // 正常输出结果
-// 				// 兼容思考过程
-// 				if responseBody.Choices[0].Delta.ReasoningContent != "" {
-// 					reasoningContent := responseBody.Choices[0].Delta.ReasoningContent
-// 					if !reasoning {
-// 						reasoningContent = fmt.Sprintf("<think>%s", reasoningContent)
-// 						reasoning = true
-// 					}
-
-// 					pushMessage(c, ChatEventMessageDelta, map[string]interface{}{
-// 						"type":    "text",
-// 						"content": reasoningContent,
-// 					})
-// 					contents = append(contents, reasoningContent)
-// 				} else if responseBody.Choices[0].Delta.Prompt != "" {
-// 					finalContent := responseBody.Choices[0].Delta.Prompt
-// 					if reasoning {
-// 						finalContent = fmt.Sprintf("</think>%s", responseBody.Choices[0].Delta.Prompt)
-// 						reasoning = false
-// 					}
-// 					contents = append(contents, utils.InterfaceToString(finalContent))
-// 					pushMessage(c, ChatEventMessageDelta, map[string]interface{}{
-// 						"type":    "text",
-// 						"content": finalContent,
-// 					})
-// 				}
-// 			}
-// 		} // end for
-
-// 		if err := scanner.Err(); err != nil {
-// 			if strings.Contains(err.Error(), "context canceled") {
-// 				logger.Info("用户取消了请求：", prompt)
-// 			} else {
-// 				logger.Error("信息读取出错：", err)
-// 			}
-// 		}
-
-// 		if toolCall { // 调用函数完成任务
-// 			params := make(map[string]any)
-// 			_ = utils.JsonDecode(strings.Join(arguments, ""), &params)
-// 			logger.Debugf("函数名称: %s, 函数参数：%s", function.Name, params)
-// 			params["user_id"] = userVo.Id
-// 			var apiRes types.BizVo
-// 			r, err := req2.C().R().SetHeader("Body-Type", "application/json").
-// 				SetHeader("Authorization", function.Token).
-// 				SetBody(params).Post(function.Action)
-// 			errMsg := ""
-// 			if err != nil {
-// 				errMsg = err.Error()
-// 			} else {
-// 				all, _ := io.ReadAll(r.Body)
-// 				err = json.Unmarshal(all, &apiRes)
-// 				if err != nil {
-// 					errMsg = err.Error()
-// 				} else if apiRes.Code != types.Success {
-// 					errMsg = apiRes.Message
-// 				}
-// 			}
-
-// 			if errMsg != "" {
-// 				errMsg = "调用函数工具出错：" + errMsg
-// 				contents = append(contents, errMsg)
-// 			} else {
-// 				errMsg = utils.InterfaceToString(apiRes.Data)
-// 				contents = append(contents, errMsg)
-// 			}
-// 			pushMessage(c, ChatEventMessageDelta, map[string]interface{}{
-// 				"type":    "text",
-// 				"content": errMsg,
-// 			})
-// 		}
-
-// 		// 消息发送成功
-// 		if len(contents) > 0 {
-// 			usage := Usage{
-// 				Prompt:           prompt,
-// 				Prompt:          strings.Join(contents, ""),
-// 				PromptTokens:     0,
-// 				CompletionTokens: 0,
-// 				TotalTokens:      0,
-// 			}
-// 			message.Prompt = usage.Prompt
-// 			h.saveChatHistory(req, usage, message, session, role, userVo, promptCreatedAt, replyCreatedAt)
-// 		}
-// 	} else {
-// 		var respVo OpenAIResVo
-// 		body, err := io.ReadAll(response.Body)
-// 		if err != nil {
-// 			return fmt.Errorf("读取响应失败：%v", body)
-// 		}
-// 		err = json.Unmarshal(body, &respVo)
-// 		if err != nil {
-// 			return fmt.Errorf("解析响应失败：%v", body)
-// 		}
-// 		content := respVo.Choices[0].Message.Prompt
-// 		if strings.HasPrefix(req.Model, "o1-") {
-// 			content = fmt.Sprintf("AI思考结束，耗时：%d 秒。\n%s", time.Now().Unix()-session.Start, respVo.Choices[0].Message.Prompt)
-// 		}
-// 		pushMessage(c, ChatEventMessageDelta, map[string]interface{}{
-// 			"type":    "text",
-// 			"content": content,
-// 		})
-// 		respVo.Usage.Prompt = prompt
-// 		respVo.Usage.Prompt = content
-// 		h.saveChatHistory(req, respVo.Usage, respVo.Choices[0].Message, session, role, userVo, promptCreatedAt, time.Now())
-// 	}
-
-// 	return nil
-// }

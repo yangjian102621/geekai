@@ -45,9 +45,9 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet } from '@/utils/http'
+import { computed, onMounted, ref } from 'vue'
 const store = useSharedStore()
 
 const data = ref({
@@ -60,7 +60,7 @@ const props = defineProps({
   show: Boolean,
 })
 
-const showDialog = ref(props.show)
+const showDialog = computed(() => props.show)
 const emits = defineEmits(['hide'])
 const close = function () {
   emits('hide', false)
@@ -81,8 +81,4 @@ const changeTTSModel = (item) => {
 }
 </script>
 
-<style lang="stylus" scoped>
-.chat-setting {
-
-}
-</style>
+<style lang="scss" scoped></style>

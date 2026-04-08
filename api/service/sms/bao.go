@@ -19,18 +19,19 @@ import (
 )
 
 type BaoSmsService struct {
-	config *types.SmsConfigBao
+	config types.SmsConfigBao
+	domain string
 }
 
-func NewSmsBaoSmsService(appConfig *types.AppConfig) *BaoSmsService {
-	config := appConfig.SMS.Bao
-	if config.Domain == "" { // use default domain
-		config.Domain = "api.smsbao.com"
-		logger.Infof("Using default domain for SMS-BAO: %s", config.Domain)
-	}
+func NewBaoSmsService(sysConfig *types.SystemConfig) *BaoSmsService {
 	return &BaoSmsService{
-		config: &config,
+		config: sysConfig.SMS.Bao,
+		domain: "api.smsbao.com",
 	}
+}
+
+func (s *BaoSmsService) UpdateConfig(config types.SmsConfigBao) {
+	s.config = config
 }
 
 var errMsg = map[string]string{
@@ -56,7 +57,7 @@ func (s *BaoSmsService) SendVerifyCode(mobile string, code int) error {
 	params.Set("m", mobile)
 	params.Set("c", content)
 
-	apiURL := fmt.Sprintf("https://%s/sms?%s", s.config.Domain, params.Encode())
+	apiURL := fmt.Sprintf("https://%s/sms?%s", s.domain, params.Encode())
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return err

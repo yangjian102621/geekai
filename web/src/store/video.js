@@ -441,8 +441,6 @@ export const useVideoStore = defineStore('video', () => {
     }
 
     isGenerating.value = true
-    showLoading('正在生成视频脚本...')
-
     try {
       const res = await httpPost('/api/prompt/video', { prompt })
       if (activeVideoType.value === 'luma') {
@@ -450,10 +448,8 @@ export const useVideoStore = defineStore('video', () => {
       } else {
         kelingParams.prompt = res.data
       }
-      closeLoading()
     } catch (error) {
       showMessageError('生成提示词失败：' + error.message)
-      closeLoading()
     } finally {
       isGenerating.value = false
     }
@@ -468,7 +464,7 @@ export const useVideoStore = defineStore('video', () => {
   // 视频下载
   const downloadVideo = async (item) => {
     const url = replaceImg(item.video_url)
-    const downloadURL = `${import.meta.env.VITE_API_HOST}/api/download?url=${url}`
+    const downloadURL = `/api/download?url=${url}`
     const urlObj = new URL(url)
     const fileName = urlObj.pathname.split('/').pop()
 

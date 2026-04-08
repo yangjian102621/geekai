@@ -8,26 +8,23 @@ package types
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 type SMSConfig struct {
-	Active string
-	Ali    SmsConfigAli
-	Bao    SmsConfigBao
+	Active string       `json:"active"`
+	Ali    SmsConfigAli `json:"aliyun"`
+	Bao    SmsConfigBao `json:"bao"`
 }
 
 // SmsConfigAli 阿里云短信平台配置
 type SmsConfigAli struct {
-	AccessKey    string
-	AccessSecret string
-	Product      string
-	Domain       string
-	Sign         string // 短信签名
-	CodeTempId   string // 验证码短信模板 ID
+	AccessKey    string `json:"access_key"`
+	AccessSecret string `json:"access_secret"`
+	Sign         string `json:"sign"`         // 短信签名
+	CodeTempId   string `json:"code_temp_id"` // 验证码短信模板 ID
 }
 
 // SmsConfigBao 短信宝平台配置
 type SmsConfigBao struct {
-	Username     string //短信宝平台注册的用户名
-	Password     string //短信宝平台注册的密码
-	Domain       string //域名
-	Sign         string // 短信签名
-	CodeTemplate string // 验证码短信模板 匹配
+	Username     string `json:"username"`      //短信宝平台注册的用户名
+	Password     string `json:"password"`      //短信宝平台注册的密码
+	Sign         string `json:"sign"`          // 短信签名
+	CodeTemplate string `json:"code_template"` // 验证码短信模板 匹配
 }

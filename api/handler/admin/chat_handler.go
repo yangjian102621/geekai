@@ -9,6 +9,7 @@ package admin
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -28,16 +29,31 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB) *ChatHandler {
 	return &ChatHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *ChatHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/chat/")
+
+	// 需要管理员授权的接口
+	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	{
+		group.POST("list", h.List)
+		group.POST("message", h.Messages)
+		group.GET("history", h.History)
+		group.GET("remove", h.RemoveChat)
+		group.GET("message/remove", h.RemoveMessage)
+	}
+}
+
 type chatItemVo struct {
-	Username  string      `json:"username"`
-	UserId    uint        `json:"user_id"`
-	ChatId    string      `json:"chat_id"`
-	Title     string      `json:"title"`
-	Role      vo.ChatRole `json:"role"`
-	Model     string      `json:"model"`
-	Token     int         `json:"token"`
-	CreatedAt int64       `json:"created_at"`
-	MsgNum    int         `json:"msg_num"` // 消息数量
+	Username  string     `json:"username"`
+	UserId    uint       `json:"user_id"`
+	ChatId    string     `json:"chat_id"`
+	Title     string     `json:"title"`
+	Role      vo.ChatApp `json:"role"`
+	Model     string     `json:"model"`
+	Token     int        `json:"token"`
+	CreatedAt int64      `json:"created_at"`
+	MsgNum    int        `json:"msg_num"` // 消息数量
 }
 
 func (h *ChatHandler) List(c *gin.Context) {
@@ -87,7 +103,7 @@ func (h *ChatHandler) List(c *gin.Context) {
 		}
 		var messages []model.ChatMessage
 		var users []model.User
-		var roles []model.ChatRole
+		var roles []model.ChatApp
 		h.DB.Where("chat_id IN ?", chatIds).Find(&messages)
 		h.DB.Where("id IN ?", userIds).Find(&users)
 		h.DB.Where("id IN ?", roleIds).Find(&roles)
@@ -95,7 +111,7 @@ func (h *ChatHandler) List(c *gin.Context) {
 		tokenMap := make(map[string]int)
 		userMap := make(map[uint]string)
 		msgMap := make(map[string]int)
-		roleMap := make(map[uint]vo.ChatRole)
+		roleMap := make(map[uint]vo.ChatApp)
 		for _, msg := range messages {
 			tokenMap[msg.ChatId] += msg.Tokens
 			msgMap[msg.ChatId] += 1
@@ -104,7 +120,7 @@ func (h *ChatHandler) List(c *gin.Context) {
 			userMap[user.Id] = user.Username
 		}
 		for _, r := range roles {
-			var roleVo vo.ChatRole
+			var roleVo vo.ChatApp
 			err := utils.CopyObject(r, &roleVo)
 			if err != nil {
 				continue

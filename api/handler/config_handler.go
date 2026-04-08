@@ -27,6 +27,15 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB, licenseService *service.
 	return &ConfigHandler{BaseHandler: BaseHandler{App: app, DB: db}, licenseService: licenseService}
 }
 
+// RegisterRoutes 注册路由
+func (h *ConfigHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/config/")
+
+	// 无需授权的接口
+	group.GET("get", h.Get)
+	group.GET("license", h.License)
+}
+
 // Get 获取指定的系统配置
 func (h *ConfigHandler) Get(c *gin.Context) {
 	key := c.Query("key")

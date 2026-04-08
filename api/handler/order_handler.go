@@ -9,12 +9,12 @@ package handler
 
 import (
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -26,6 +26,18 @@ type OrderHandler struct {
 
 func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 	return &OrderHandler{BaseHandler: BaseHandler{App: app, DB: db}}
+}
+
+// RegisterRoutes 注册路由
+func (h *OrderHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/order/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.GET("list", h.List)
+		group.GET("query", h.Query)
+	}
 }
 
 // List 订单列表
@@ -48,20 +60,21 @@ func (h *OrderHandler) List(c *gin.Context) {
 				order.Id = item.Id
 				order.CreatedAt = item.CreatedAt.Unix()
 				order.UpdatedAt = item.UpdatedAt.Unix()
-				payMethod, ok := types.PayMethods[item.PayWay]
+				payChannel, ok := types.PayChannel[item.Channel]
 				if !ok {
-					payMethod = item.PayWay
+					payChannel = item.PayWay
 				}
-				payName, ok := types.PayNames[item.PayType]
+				payWays, ok := types.PayWays[item.PayWay]
 				if !ok {
-					payName = item.PayWay
+					payWays = item.PayWay
 				}
-				order.PayMethod = payMethod
-				order.PayName = payName
+				order.ChannelName = payChannel
+				order.PayName = payWays
 				list = append(list, order)
 			} else {
 				logger.Error(err)
 			}
+
 		}
 	}
 	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, list))
@@ -82,17 +95,8 @@ func (h *OrderHandler) Query(c *gin.Context) {
 		return
 	}
 
-	counter := 0
-	for {
-		time.Sleep(time.Second)
-		var item model.Order
-		h.DB.Where("order_no = ?", orderNo).First(&item)
-		if counter >= 15 || item.Status == types.OrderPaidSuccess || item.Status != order.Status {
-			order.Status = item.Status
-			break
-		}
-		counter++
-	}
+	var item model.Order
+	h.DB.Where("order_no = ?", orderNo).First(&item)
 
 	resp.SUCCESS(c, gin.H{"status": order.Status})
 }

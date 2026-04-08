@@ -29,6 +29,14 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 	return &OrderHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *OrderHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/order/")
+	group.POST("list", h.List)
+	group.GET("remove", h.Remove)
+	group.GET("clear", h.Clear)
+}
+
 func (h *OrderHandler) List(c *gin.Context) {
 	var data struct {
 		OrderNo  string   `json:"order_no"`
@@ -68,16 +76,16 @@ func (h *OrderHandler) List(c *gin.Context) {
 				order.Id = item.Id
 				order.CreatedAt = item.CreatedAt.Unix()
 				order.UpdatedAt = item.UpdatedAt.Unix()
-				payMethod, ok := types.PayMethods[item.PayWay]
+				payChannel, ok := types.PayChannel[item.Channel]
 				if !ok {
-					payMethod = item.PayWay
+					payChannel = item.Channel
 				}
-				payName, ok := types.PayNames[item.PayType]
+				payWays, ok := types.PayWays[item.PayWay]
 				if !ok {
-					payName = item.PayWay
+					payWays = item.PayWay
 				}
-				order.PayMethod = payMethod
-				order.PayName = payName
+				order.ChannelName = payChannel
+				order.PayName = payWays
 				list = append(list, order)
 			} else {
 				logger.Error(err)
@@ -121,8 +129,8 @@ func (h *OrderHandler) Clear(c *gin.Context) {
 	}
 	deleteIds := make([]uint, 0)
 	for _, order := range orders {
-		// 只删除 15 分钟内的未支付订单
-		if time.Now().After(order.CreatedAt.Add(time.Minute * 15)) {
+		// 只删除超时的未支付订单
+		if time.Now().After(order.CreatedAt.Add(time.Minute * time.Duration(h.App.SysConfig.Base.OrderPayTimeout))) {
 			deleteIds = append(deleteIds, order.Id)
 		}
 	}

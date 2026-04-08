@@ -10,8 +10,10 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
+	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/suno"
 	"geekai/store/model"
@@ -26,20 +28,41 @@ import (
 
 type SunoHandler struct {
 	BaseHandler
-	sunoService *suno.Service
-	uploader    *oss.UploaderManager
-	userService *service.UserService
+	sunoService       *suno.Service
+	uploader          *oss.UploaderManager
+	userService       *service.UserService
+	moderationManager *moderation.ServiceManager
 }
 
-func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager, userService *service.UserService) *SunoHandler {
+func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, uploader *oss.UploaderManager, userService *service.UserService, moderationManager *moderation.ServiceManager) *SunoHandler {
 	return &SunoHandler{
 		BaseHandler: BaseHandler{
 			App: app,
 			DB:  db,
 		},
-		sunoService: service,
-		uploader:    uploader,
-		userService: userService,
+		sunoService:       service,
+		uploader:          uploader,
+		userService:       userService,
+		moderationManager: moderationManager,
+	}
+}
+
+// RegisterRoutes 注册路由
+func (h *SunoHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/suno/")
+
+	// 公开接口，不需要授权
+	group.GET("play", h.Play)
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.POST("create", h.Create)
+		group.GET("list", h.List)
+		group.GET("remove", h.Remove)
+		group.GET("publish", h.Publish)
+		group.POST("update", h.Update)
+		group.GET("detail", h.Detail)
 	}
 }
 
@@ -64,13 +87,36 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		return
 	}
 
+	if h.App.SysConfig.Moderation.Enable {
+		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
+		if err != nil {
+			logger.Error("failed to moderate content: ", err)
+		}
+		if moderationResult.Flagged {
+			// 记录违规内容
+			moderation := model.Moderation{
+				UserId: h.GetLoginUserId(c),
+				Source: types.ModerationSourceSuno,
+				Input:  data.Prompt,
+				Result: utils.JsonEncode(moderationResult),
+			}
+			err = h.DB.Create(&moderation).Error
+			if err != nil {
+				logger.Error("failed to save moderation: ", err)
+			}
+			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
+			return
+		}
+
+	}
+
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
-	if user.Power < h.App.SysConfig.SunoPower {
+	if user.Power < h.App.SysConfig.Base.SunoPower {
 		resp.ERROR(c, "您的算力不足，请充值后再试！")
 		return
 	}
@@ -118,7 +164,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefSongId:    data.RefSongId,
 		RefTaskId:    data.RefTaskId,
 		ExtendSecs:   data.ExtendSecs,
-		Power:        h.App.SysConfig.SunoPower,
+		Power:        h.App.SysConfig.Base.SunoPower,
 		SongId:       utils.RandString(32),
 	}
 	if data.Lyrics != "" {

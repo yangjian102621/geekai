@@ -27,6 +27,16 @@ func NewMenuHandler(app *core.AppServer, db *gorm.DB) *MenuHandler {
 	return &MenuHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}}
 }
 
+// RegisterRoutes 注册路由
+func (h *MenuHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/admin/menu/")
+	group.POST("save", h.Save)
+	group.GET("list", h.List)
+	group.POST("enable", h.Enable)
+	group.POST("sort", h.Sort)
+	group.GET("remove", h.Remove)
+}
+
 func (h *MenuHandler) Save(c *gin.Context) {
 	var data struct {
 		Id      uint   `json:"id"`

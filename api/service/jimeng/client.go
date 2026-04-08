@@ -3,8 +3,10 @@ package jimeng
 import (
 	"encoding/json"
 	"fmt"
+	"geekai/core/types"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/volcengine/volc-sdk-golang/base"
 	"github.com/volcengine/volc-sdk-golang/service/visual"
@@ -13,14 +15,22 @@ import (
 // Client 即梦API客户端
 type Client struct {
 	visual *visual.Visual
+	config types.JimengConfig
 }
 
 // NewClient 创建即梦API客户端
-func NewClient(accessKey, secretKey string) *Client {
+func NewClient(sysConfig *types.SystemConfig) *Client {
+
+	client := &Client{}
+	client.UpdateConfig(sysConfig.Jimeng)
+	return client
+}
+
+func (c *Client) UpdateConfig(config types.JimengConfig) error {
 	// 使用官方SDK的visual实例
 	visualInstance := visual.NewInstance()
-	visualInstance.Client.SetAccessKey(accessKey)
-	visualInstance.Client.SetSecretKey(secretKey)
+	visualInstance.Client.SetAccessKey(config.AccessKey)
+	visualInstance.Client.SetSecretKey(config.SecretKey)
 
 	// 添加即梦AI专有的API配置
 	jimengApis := map[string]*base.ApiInfo{
@@ -55,9 +65,32 @@ func NewClient(accessKey, secretKey string) *Client {
 		visualInstance.Client.ApiInfoList[name] = info
 	}
 
-	return &Client{
-		visual: visualInstance,
+	c.config = config
+	c.visual = visualInstance
+
+	return c.testConnection()
+}
+
+// testConnection 测试即梦AI连接
+func (c *Client) testConnection() error {
+
+	// 使用一个简单的查询任务来测试连接
+	testReq := &QueryTaskRequest{
+		ReqKey: "test_connection",
+		TaskId: "test_task_id_12345",
 	}
+
+	_, err := c.QueryTask(testReq)
+	// 即使任务不存在，只要不是认证错误就说明连接正常
+	if err != nil {
+		// 检查是否是认证错误
+		if strings.Contains(err.Error(), "InvalidAccessKey") {
+			return fmt.Errorf("认证失败，请检查AccessKey和SecretKey是否正确")
+		}
+		// 其他错误（如任务不存在）说明连接正常
+		return nil
+	}
+	return nil
 }
 
 // SubmitTask 提交异步任务

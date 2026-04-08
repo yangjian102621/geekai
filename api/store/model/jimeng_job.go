@@ -7,7 +7,7 @@ import (
 // JimengJob 即梦AI任务模型
 type JimengJob struct {
 	Id         uint         `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserId     uint         `gorm:"column:user_id;type:int;not null;index;comment:用户ID" json:"user_id"`
+	UserId     uint         `gorm:"column:user_id;type:int(11);not null;index;comment:用户ID" json:"user_id"`
 	TaskId     string       `gorm:"column:task_id;type:varchar(100);not null;index;comment:任务ID" json:"task_id"`
 	Type       JMTaskType   `gorm:"column:type;type:varchar(50);not null;comment:任务类型" json:"type"`
 	ReqKey     string       `gorm:"column:req_key;type:varchar(100);comment:请求Key" json:"req_key"`
@@ -51,5 +51,5 @@ const (
 
 // TableName 返回数据表名称
 func (JimengJob) TableName() string {
-	return "chatgpt_jimeng_jobs"
+	return "geekai_jimeng_jobs"
 }

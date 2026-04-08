@@ -1,260 +1,668 @@
 <template>
   <div class="dashboard" v-loading="loading">
-    <el-row class="mgb20" :gutter="20">
+    <!-- 统计卡片区域 -->
+    <el-row class="stats-row" :gutter="24">
       <el-col :span="6">
-        <el-card shadow="hover" :body-style="{ padding: '0px' }">
-          <div class="grid-content grid-con-1">
-            <el-icon class="grid-con-icon">
-              <User/>
-            </el-icon>
-            <div class="grid-cont-right">
-              <div class="grid-num">{{ stats.users }}</div>
-              <div>今日新增用户</div>
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon user-icon">
+              <el-icon><User /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ stats.users }}</div>
+              <div class="card-label">用户总数</div>
+              <div class="card-desc">今日新增: {{ stats.todayUsers || 0 }}</div>
             </div>
           </div>
         </el-card>
       </el-col>
+
       <el-col :span="6">
-        <el-card shadow="hover" :body-style="{ padding: '0px' }">
-          <div class="grid-content grid-con-2">
-            <el-icon class="grid-con-icon">
-              <ChatDotRound/>
-            </el-icon>
-            <div class="grid-cont-right">
-              <div class="grid-num">{{ stats.chats }}</div>
-              <div>今日新增对话</div>
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon chat-icon">
+              <el-icon><ChatDotRound /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ stats.chats }}</div>
+              <div class="card-label">对话总数</div>
+              <div class="card-desc">今日: {{ stats.todayChats }}</div>
             </div>
           </div>
         </el-card>
       </el-col>
+
       <el-col :span="6">
-        <el-card shadow="hover" :body-style="{ padding: '0px' }">
-          <div class="grid-content grid-con-3">
-            <el-icon class="grid-con-icon">
-              <TrendCharts/>
-            </el-icon>
-            <div class="grid-cont-right">
-              <div class="grid-num">{{ stats.tokens }}</div>
-              <div>今日消耗 Tokens</div>
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon token-icon">
+              <el-icon><TrendCharts /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ formatNumber(stats.power || stats.tokens) }}</div>
+              <div class="card-label">算力消耗</div>
+              <div class="card-desc">今日: {{ formatNumber(stats.todayPower || stats.todayTokens) }}</div>
             </div>
           </div>
         </el-card>
       </el-col>
+
       <el-col :span="6">
-        <el-card shadow="hover" :body-style="{ padding: '0px' }">
-          <div class="grid-content grid-con-3">
-            <el-icon class="grid-con-icon">
-              <i class="iconfont icon-reward"></i>
-            </el-icon>
-            <div class="grid-cont-right">
-              <div class="grid-num">￥{{ stats.income }}</div>
-              <div>今日入账</div>
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon income-icon">
+              <el-icon><Money /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">￥{{ stats.income.toFixed(2) }}</div>
+              <div class="card-label">总收入</div>
+              <div class="card-desc">今日: ￥{{ stats.todayIncome?.toFixed(2) || '0.00' }}</div>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row class="mgb20" :gutter="20">
-      <el-col :span="8">
-        <div class="e-chart">
-          <div id="chart-users" style="height: 400px"></div>
-          <div class="title">最近7日用户注册</div>
-        </div>
+    <!-- 第二行统计卡片 -->
+    <el-row class="stats-row" :gutter="24">
+      <el-col :span="6">
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon image-icon">
+              <el-icon><Picture /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ stats.imageJobs }}</div>
+              <div class="card-label">图片生成</div>
+              <div class="card-desc">今日: {{ stats.todayImageJobs }}</div>
+            </div>
+          </div>
+        </el-card>
       </el-col>
 
-      <el-col :span="8">
-        <div class="e-chart">
-          <div id="chart-tokens" style="height: 400px"></div>
-          <div class="title">最近7日Token消耗</div>
-        </div>
+      <el-col :span="6">
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon video-icon">
+              <el-icon><VideoPlay /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ stats.videoJobs }}</div>
+              <div class="card-label">视频生成</div>
+              <div class="card-desc">今日: {{ stats.todayVideoJobs }}</div>
+            </div>
+          </div>
+        </el-card>
       </el-col>
 
-      <el-col :span="8">
-        <div class="e-chart">
-          <div id="chart-income" style="height: 400px"></div>
-          <div class="title">最近7日收入</div>
-        </div>
+      <el-col :span="6">
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon music-icon">
+              <el-icon><Headset /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ stats.musicJobs }}</div>
+              <div class="card-label">音乐生成</div>
+              <div class="card-desc">今日: {{ stats.todayMusicJobs }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <el-col :span="6">
+        <el-card class="stats-card" shadow="hover">
+          <div class="card-content">
+            <div class="card-icon order-icon">
+              <el-icon><ShoppingCart /></el-icon>
+            </div>
+            <div class="card-info">
+              <div class="card-number">{{ stats.orders }}</div>
+              <div class="card-label">订单总数</div>
+              <div class="card-desc">今日: {{ stats.todayOrders }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 图表和列表区域 -->
+    <el-row :gutter="24" class="content-row">
+      <!-- 图表区域 -->
+      <el-col :span="12">
+        <el-card class="chart-card" shadow="hover">
+          <div class="card-header">
+            <h3>用户增长趋势</h3>
+            <el-button type="text" size="small">30天</el-button>
+          </div>
+          <div id="chart-users" style="height: 280px"></div>
+        </el-card>
+      </el-col>
+
+      <el-col :span="12">
+        <el-card class="chart-card" shadow="hover">
+          <div class="card-header">
+            <h3>收入趋势</h3>
+            <el-button type="text" size="small">7天</el-button>
+          </div>
+          <div id="chart-income" style="height: 280px"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 底部列表区域 -->
+    <el-row :gutter="24" class="content-row">
+      <!-- 最近订单 -->
+      <el-col :span="12">
+        <el-card class="list-card" shadow="hover">
+          <div class="card-header">
+            <h3>最近订单</h3>
+          </div>
+          <div class="order-list">
+            <div class="order-item" v-for="order in recentOrders" :key="order.order_no">
+              <div class="order-info">
+                <div class="order-id">#{{ order.order_no }}</div>
+                <div class="order-amount">￥{{ order.amount }}</div>
+              </div>
+              <div class="order-meta">
+                <div class="order-date">{{ formatTime(order.created_at) }}</div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 最近用户 -->
+      <el-col :span="12">
+        <el-card class="list-card" shadow="hover">
+          <div class="card-header">
+            <h3>最近用户</h3>
+          </div>
+          <div class="user-list">
+            <div class="user-item" v-for="user in recentUsers" :key="user.nickname">
+              <div class="user-avatar">
+                <el-avatar :size="40" :src="user.avatar">{{ user.nickname.charAt(0) }}</el-avatar>
+              </div>
+              <div class="user-info">
+                <div class="user-name">{{ user.nickname }}</div>
+              </div>
+              <div class="user-meta">
+                <div class="user-time">{{ formatTime(user.last_active) }}</div>
+              </div>
+            </div>
+          </div>
+        </el-card>
       </el-col>
     </el-row>
   </div>
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue';
-import {ChatDotRound, TrendCharts, User} from "@element-plus/icons-vue";
-import {httpGet} from "@/utils/http";
-import {ElMessage} from "element-plus";
-import * as echarts from 'echarts';
+import { httpGet } from '@/utils/http'
+import {
+  ChatDotRound,
+  Headset,
+  Money,
+  Picture,
+  ShoppingCart,
+  TrendCharts,
+  User,
+  VideoPlay,
+} from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
+import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
 
-const stats = ref({users: 0, chats: 0, tokens: 0, rewards: 0})
+const stats = ref({
+  users: 0,
+  chats: 0,
+  tokens: 0,
+  power: 0,
+  income: 0,
+  orders: 0,
+  activeUsers: 0,
+  powerConsumption: 0,
+  imageJobs: 0,
+  videoJobs: 0,
+  musicJobs: 0,
+  todayUsers: 0,
+  todayOrders: 0,
+  todayIncome: 0,
+  todayTokens: 0,
+  todayPower: 0,
+  todayImageJobs: 0,
+  todayVideoJobs: 0,
+  todayMusicJobs: 0,
+})
 const loading = ref(true)
 
-onMounted(() => {
-  const chartUsers = echarts.init(document.getElementById("chart-users"))
-  const chartTokens = echarts.init(document.getElementById("chart-tokens"))
-  const chartIncome = echarts.init(document.getElementById("chart-income"))
-  httpGet('/api/admin/dashboard/stats').then((res) => {
-    stats.value.users = res.data.users
-    stats.value.chats = res.data.chats
-    stats.value.tokens = res.data.tokens
-    stats.value.income = res.data.income
-    const chartData = res.data.chart
-    loading.value = false
+// 数据列表
+const recentOrders = ref([])
+const recentUsers = ref([])
+const popularJobs = ref([]) // 改为热门任务
 
-    const x = []
-    const dataUsers = []
-    for (let k in chartData.users) {
-      x.push(k)
-      dataUsers.push(chartData.users[k])
-    }
-    chartUsers.setOption({
-      xAxis: {
-        data: x
-      },
-      yAxis: {},
-      series: [
-        {
-          data: dataUsers,
-          type: 'line',
-          label: {
-            show: true,
-            position: 'bottom',
-            textStyle: {
-              fontSize: 18
-            }
-          }
-        }
-      ]
-    })
-    const dataTokens = []
-    for (let k in chartData.historyMessage) {
-      dataTokens.push(chartData.historyMessage[k])
-    }
-    chartTokens.setOption({
-      xAxis: {
-        data: x
-      },
-      yAxis: {},
-      series: [
-        {
-          data: dataTokens,
-          type: 'line',
-          label: {
-            show: true,
-            position: 'bottom',
-            textStyle: {
-              fontSize: 18
-            }
-          }
-        }
-      ]
-    })
-
-    const dataIncome = []
-    for (let k in chartData.orders) {
-      dataIncome.push(chartData.orders[k])
-    }
-    chartIncome.setOption({
-      xAxis: {
-        data: x
-      },
-      yAxis: {},
-      series: [
-        {
-          data: dataIncome,
-          type: 'line',
-          label: {
-            show: true,
-            position: 'bottom',
-            textStyle: {
-              fontSize: 18
-            }
-          }
-        }
-      ]
-    })
-
-  }).catch((e) => {
-    ElMessage.error("获取统计数据失败：" + e.message)
-  })
-
-  window.onresize = function () { // 自适应大小
-    chartUsers.resize()
-    chartTokens.resize()
-    chartIncome.resize()
-  };
-})
-
-</script>
-
-<style scoped lang="stylus">
-.dashboard {
-  padding 20px
-
-  .grid-content {
-    display: flex;
-    align-items: center;
-    height: 100px;
+const formatNumber = (num) => {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + 'w'
   }
+  return num
+}
 
-  .grid-cont-right {
-    flex: 1;
-    text-align: center;
-    font-size: 14px;
-    color: #999;
-  }
-
-  .grid-num {
-    font-size: 30px;
-    font-weight: bold;
-  }
-
-  .grid-con-icon {
-    font-size: 50px;
-    width: 100px;
-    height: 100px;
-    text-align: center;
-    line-height: 100px;
-    color: #fff;
-
-    .iconfont {
-      font-size: 50px;
-    }
-  }
-
-  .e-chart {
-    .title {
-      text-align center
-      font-size 16px
-      color #444444
-    }
-  }
-
-  .grid-con-1 .grid-con-icon {
-    background: rgb(45, 140, 240);
-  }
-
-  .grid-con-1 .grid-num {
-    color: rgb(45, 140, 240);
-  }
-
-  .grid-con-2 .grid-con-icon {
-    background: rgb(100, 213, 114);
-  }
-
-  .grid-con-2 .grid-num {
-    color: rgb(100, 213, 114);
-  }
-
-  .grid-con-3 .grid-con-icon {
-    background: rgb(242, 94, 67);
-  }
-
-  .grid-con-3 .grid-num {
-    color: rgb(242, 94, 67);
+// 时间格式化工具
+const formatTime = (dateStr) => {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = (now - date) / 1000
+  if (diff < 60 * 60) {
+    return Math.floor(diff / 60) + '分钟前'
+  } else if (diff < 60 * 60 * 24) {
+    return Math.floor(diff / 3600) + '小时前'
+  } else {
+    return Math.floor(diff / 86400) + '天前'
   }
 }
 
+onMounted(() => {
+  const chartUsersEl = document.getElementById('chart-users')
+  const chartIncomeEl = document.getElementById('chart-income')
 
+  if (!chartUsersEl || !chartIncomeEl) {
+    ElMessage.error('图表容器未找到')
+    return
+  }
+
+  const chartUsers = echarts.init(chartUsersEl)
+  const chartIncome = echarts.init(chartIncomeEl)
+  httpGet('/api/admin/dashboard/stats')
+    .then((res) => {
+      // 更新统计数据
+      Object.assign(stats.value, res.data)
+      recentOrders.value = res.data.recentOrders || []
+      recentUsers.value = res.data.recentUsers || []
+      const chartData = res.data.chart || {}
+      loading.value = false
+
+      // 检查图表数据是否存在
+      if (!chartData.users || !chartData.orders) {
+        ElMessage.warning('图表数据不完整')
+        return
+      }
+
+      const x = []
+      const dataUsers = []
+      for (let k in chartData.users) {
+        x.push(k)
+        dataUsers.push(chartData.users[k])
+      }
+      chartUsers.setOption({
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderColor: '#ddd',
+          textStyle: { color: '#666' },
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true,
+        },
+        xAxis: {
+          type: 'category',
+          data: x,
+          axisLine: { lineStyle: { color: '#ddd' } },
+          axisTick: { show: false },
+          axisLabel: { color: '#999' },
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: '#999' },
+          splitLine: { lineStyle: { color: '#f0f0f0' } },
+        },
+        series: [
+          {
+            data: dataUsers,
+            type: 'line',
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 6,
+            lineStyle: {
+              color: '#8B5CF6',
+              width: 3,
+            },
+            itemStyle: {
+              color: '#8B5CF6',
+            },
+            areaStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  {
+                    offset: 0,
+                    color: 'rgba(139, 92, 246, 0.3)',
+                  },
+                  {
+                    offset: 1,
+                    color: 'rgba(139, 92, 246, 0.05)',
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      })
+
+      const dataIncome = []
+      for (let k in chartData.orders) {
+        dataIncome.push(chartData.orders[k])
+      }
+      chartIncome.setOption({
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderColor: '#ddd',
+          textStyle: { color: '#666' },
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true,
+        },
+        xAxis: {
+          type: 'category',
+          data: x,
+          axisLine: { lineStyle: { color: '#ddd' } },
+          axisTick: { show: false },
+          axisLabel: { color: '#999' },
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: '#999' },
+          splitLine: { lineStyle: { color: '#f0f0f0' } },
+        },
+        series: [
+          {
+            data: dataIncome,
+            type: 'line',
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 6,
+            lineStyle: {
+              color: '#10B981',
+              width: 3,
+            },
+            itemStyle: {
+              color: '#10B981',
+            },
+            areaStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  {
+                    offset: 0,
+                    color: 'rgba(16, 185, 129, 0.3)',
+                  },
+                  {
+                    offset: 1,
+                    color: 'rgba(16, 185, 129, 0.05)',
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      })
+    })
+    .catch((e) => {
+      ElMessage.error('获取统计数据失败：' + e.message)
+    })
+
+  window.onresize = function () {
+    // 自适应大小
+    if (chartUsers) chartUsers.resize()
+    if (chartIncome) chartIncome.resize()
+  }
+})
+</script>
+
+<style scoped lang="scss">
+.dashboard {
+  padding: 24px;
+  background: var(--theme-bg-color);
+  min-height: 100vh;
+
+  .stats-row {
+    margin-bottom: 24px;
+  }
+
+  .content-row {
+    margin-bottom: 24px;
+  }
+
+  .stats-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--el-box-shadow, 0 8px 25px rgba(0, 0, 0, 0.1));
+    }
+
+    :deep(.el-card__body) {
+      padding: 24px;
+    }
+  }
+
+  .card-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .card-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+    flex-shrink: 0;
+
+    &.user-icon {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    &.chat-icon {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    &.token-icon {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    &.income-icon {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    &.order-icon {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    &.image-icon {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    &.video-icon {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    &.music-icon {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+  }
+
+  .card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--theme-text-color-primary);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .card-label {
+    font-size: 16px;
+    color: var(--el-text-color-regular);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .card-desc {
+    font-size: 14px;
+    color: var(--theme-text-color-secondary);
+  }
+
+  .chart-card,
+  .list-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    background: var(--card-bg);
+
+    :deep(.el-card__body) {
+      padding: 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--el-border-color);
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--theme-text-color-primary);
+    }
+  }
+
+  .order-list,
+  .user-list,
+  .app-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--el-border-color);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .order-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .order-id {
+        font-size: 14px;
+        color: var(--theme-text-color-secondary);
+      }
+
+      .order-amount {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--el-color-success, #10b981);
+      }
+    }
+
+    .order-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .order-date {
+        font-size: 12px;
+        color: var(--theme-text-color-secondary);
+      }
+    }
+  }
+
+  .user-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--el-border-color);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+
+      .user-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--theme-text-color-primary);
+        margin-bottom: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .user-id {
+        font-size: 12px;
+        color: var(--theme-text-color-secondary);
+      }
+    }
+
+    .user-meta {
+      text-align: right;
+
+      .user-time {
+        font-size: 12px;
+        color: var(--theme-text-color-secondary);
+        margin-bottom: 4px;
+      }
+    }
+  }
+}
 </style>

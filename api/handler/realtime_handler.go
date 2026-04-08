@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"geekai/core"
+	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
@@ -37,6 +38,18 @@ type RealtimeHandler struct {
 
 func NewRealtimeHandler(server *core.AppServer, db *gorm.DB, userService *service.UserService) *RealtimeHandler {
 	return &RealtimeHandler{BaseHandler: BaseHandler{App: server, DB: db}, userService: userService}
+}
+
+// RegisterRoutes 注册路由
+func (h *RealtimeHandler) RegisterRoutes() {
+	group := h.App.Engine.Group("/api/realtime/")
+
+	// 需要用户授权的接口
+	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	{
+		group.Any("", h.Connection)
+		group.POST("voice", h.VoiceChat)
+	}
 }
 
 func (h *RealtimeHandler) Connection(c *gin.Context) {
@@ -154,7 +167,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 		return
 	}
 
-	if user.Power < h.App.SysConfig.AdvanceVoicePower {
+	if user.Power < h.App.SysConfig.Base.AdvanceVoicePower {
 		resp.ERROR(c, "当前用户算力不足，无法使用该功能")
 		return
 	}
@@ -198,7 +211,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
 	// 扣减算力
-	err = h.userService.DecreasePower(userId, h.App.SysConfig.AdvanceVoicePower, model.PowerLog{
+	err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.AdvanceVoicePower, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "advanced-voice",
 		Remark: "实时语音通话",

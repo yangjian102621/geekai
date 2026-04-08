@@ -24,11 +24,9 @@ require (
 	gorm.io/driver/mysql v1.4.7
 )
 
-require github.com/xxl-job/xxl-job-executor-go v1.2.0
-
 require (
 	github.com/go-pay/gopay v1.5.101
-	github.com/go-rod/rod v0.116.2
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/go-tika v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/sashabaranov/go-openai v1.38.1
@@ -50,11 +48,6 @@ require (
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
-	github.com/ysmood/fetchup v0.3.0 // indirect
-	github.com/ysmood/goob v0.4.0 // indirect
-	github.com/ysmood/got v0.40.0 // indirect
-	github.com/ysmood/gson v0.7.3 // indirect
-	github.com/ysmood/leakless v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 )
@@ -69,7 +62,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gaukas/godicttls v0.0.3 // indirect
-	github.com/go-basic/ipv4 v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
