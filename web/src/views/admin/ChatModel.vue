@@ -146,7 +146,7 @@
                 <span class="mr-1">创意度</span>
                 <el-tooltip
                   effect="dark"
-                  content="OpenAI 0-2，其他模型 0-1"
+                  content="OpenAI 0-2，MiniMax/DeepSeek 等其他模型 0-1"
                   raw-content
                   placement="right"
                 >
