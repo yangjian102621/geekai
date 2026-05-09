@@ -28,11 +28,17 @@
             error-text="请求失败，点击重新加载"
             @load="onLoad"
           >
-            <van-cell v-for="item in chatData" :key="item" :border="false" class="message-line">
+            <van-cell
+              v-for="(item, index) in chatData"
+              :key="item"
+              :border="false"
+              class="message-line"
+            >
               <chat-prompt
                 v-if="item.type === 'prompt'"
                 :content="item.content"
                 :icon="item.icon"
+                :message-index="index"
               />
               <chat-reply
                 v-else-if="item.type === 'reply'"
@@ -43,6 +49,7 @@
                 :is-generating="isGenerating"
                 :show-actions="item.showAction"
                 :error="item.error"
+                :message-index="index"
                 @regenerate="handleRegenerate"
               />
             </van-cell>
@@ -62,7 +69,7 @@
               rows="1"
               :autosize="{ maxHeight: 100, minHeight: 20 }"
               show-word-limit
-              @keyup.enter="sendMessage"
+              @keyup.enter="sendMessage(0)"
             >
               <template #left-icon>
                 <van-uploader
@@ -76,7 +83,7 @@
                 </van-uploader>
               </template>
               <template #button>
-                <van-button size="small" type="primary" v-if="!isGenerating" @click="sendMessage"
+                <van-button size="small" type="primary" v-if="!isGenerating" @click="sendMessage(0)"
                   >发送</van-button
                 >
               </template>
@@ -115,20 +122,18 @@
 <script setup>
 import ChatPrompt from '@/components/mobile/ChatPrompt.vue'
 import ChatReply from '@/components/mobile/ChatReply.vue'
-import { checkSession } from '@/store/cache'
+import MobileFileList from '@/components/mobile/MobileFileList.vue'
+import { checkSession, getClientId } from '@/store/cache'
 import { getUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import { showMessageError, showLoading, closeLoading } from '@/utils/dialog'
+import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
-import MobileFileList from '@/components/mobile/MobileFileList.vue'
-import { processContent, randString, renderInputText, UUID } from '@/utils/libs'
+import { randString, renderInputText, UUID } from '@/utils/libs'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
-import hl from 'highlight.js'
 import 'highlight.js/styles/a11y-dark.css'
 import { showImagePreview, showNotify, showToast } from 'vant'
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getClientId } from '@/store/cache'
 
 const winHeight = ref(0)
 const navBarRef = ref(null)
@@ -434,7 +439,7 @@ const sendSSERequest = async (message) => {
 }
 
 // 发送消息
-const sendMessage = () => {
+const sendMessage = (messageId = 0) => {
   if (isGenerating.value) {
     showToast('AI 正在作答中，请稍后...')
     return
@@ -480,6 +485,7 @@ const sendMessage = () => {
     prompt: prompt.value,
     stream: stream.value,
     files: files.value,
+    last_msg_id: messageId || 0,
   })
 
   previousText.value = prompt.value
@@ -504,47 +510,26 @@ const stopGenerate = function () {
 }
 
 // 处理从ChatReply组件触发的重新生成
-const handleRegenerate = (messageId) => {
+const handleRegenerate = (messageIndex) => {
   if (isGenerating.value) {
     showToast('AI 正在作答中，请稍后...')
     return
   }
 
-  console.log('messageId', messageId)
-  console.log('chatData.value', chatData.value)
-
-  // 判断 messageId 是整数
-  if (messageId !== '' && isNaN(messageId)) {
-    showToast('消息 ID 不合法，无法重新生成')
+  if (messageIndex === -1 || isNaN(messageIndex)) {
+    showToast('找不到要重新生成消息')
     return
   }
 
-  chatData.value = chatData.value.filter((item) => item.id < messageId && !item.isHello)
+  // 找到该消息的ID
+  const messageId = chatData.value[messageIndex].id
+  // 移除该消息之后的所有消息
+  chatData.value = chatData.value.slice(0, messageIndex)
   const userPrompt = chatData.value.pop()
+  prompt.value = userPrompt.content.text
 
-  // 添加空回复消息
-  const _role = getRoleById(roleId.value)
-  chatData.value.push({
-    chat_id: chatId,
-    role_id: roleId.value,
-    type: 'reply',
-    id: randString(32),
-    icon: _role['icon'],
-    content: {
-      text: '',
-    },
-  })
-
-  // 发送 SSE 请求
-  sendSSERequest({
-    user_id: loginUser.value.id,
-    role_id: roleId.value,
-    model_id: modelId.value,
-    chat_id: chatId.value,
-    last_msg_id: messageId,
-    prompt: userPrompt.content.text,
-    stream: stream.value,
-    files: [],
+  nextTick(() => {
+    sendMessage(messageId)
   })
 }
 

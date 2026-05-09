@@ -137,12 +137,6 @@ const routes = [
     component: () => import('@/views/Login.vue'),
   },
   {
-    name: 'resetpassword',
-    path: '/resetpassword',
-    meta: { title: '重置密码' },
-    component: () => import('@/views/Resetpassword.vue'),
-  },
-  {
     path: '/admin/login',
     name: 'admin-login',
     meta: { title: '控制台登录' },

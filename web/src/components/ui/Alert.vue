@@ -23,7 +23,7 @@ const props = defineProps({
 
 const typeClass = computed(() => {
   return {
-    info: 'bg-blue-100 text-blue-500 border-blue-500',
+    info: 'bg-blue-100 text-white-500 border-blue-500',
     success: 'bg-green-100 text-green-500 border-green-500',
     warning: 'bg-yellow-100 text-yellow-500 border-yellow-500',
   }[props.type]

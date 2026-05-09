@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-line chat-line-prompt-list" v-if="listStyle === 'list'">
+  <div class="chat-line chat-line-prompt-chat">
     <div class="chat-line-inner">
       <div class="chat-icon">
         <img :src="data.icon" alt="User" />
@@ -29,73 +29,68 @@
             </div>
           </div>
         </div>
-        <div class="content position-relative">
-          <div v-html="content"></div>
-        </div>
-        <div class="bar" v-if="data.created_at > 0">
-          <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
-          >
-          <span class="bar-item">
-            <el-tooltip class="box-item" effect="dark" content="复制" placement="bottom">
-              <i
-                class="iconfont icon-copy cursor-pointer"
-                @click="copyContent(data.content.text)"
-              ></i>
-            </el-tooltip>
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="chat-line chat-line-prompt-chat" v-else>
-    <div class="chat-line-inner">
-      <div class="chat-icon">
-        <img :src="data.icon" alt="User" />
-      </div>
-
-      <div class="chat-item">
-        <div v-if="files && files.length > 0" class="file-list-box">
-          <div v-for="file in files" :key="file.url">
-            <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover" />
+        <!-- 编辑模式 -->
+        <div v-if="isEditing" class="edit-mode">
+          <div class="flex flex-row space-x-2 w-full">
+            <div>
+              <el-tooltip class="box-item" effect="dark" content="取消" placement="top">
+                <i
+                  class="iconfont icon-error-line !text-lg mr-1 cursor-pointer"
+                  @click="cancelEdit"
+                ></i>
+              </el-tooltip>
             </div>
-            <div class="item" v-else>
-              <div class="icon">
-                <el-image :src="GetFileIcon(file.ext)" fit="cover" />
-              </div>
-              <div class="body">
-                <div class="title">
-                  <el-link :href="file.url" target="_blank" style="--el-font-weight-primary: bold"
-                    >{{ file.name }}
-                  </el-link>
-                </div>
-                <div class="info">
-                  <span>{{ GetFileType(file.ext) }}</span>
-                  <span>{{ FormatFileSize(file.size) }}</span>
-                </div>
-              </div>
+            <div class="w-full">
+              <textarea
+                v-model="editText"
+                :rows="3"
+                placeholder="请输入修改后的内容..."
+                class="w-full p-3 border-2 border-purple-500 rounded-md text-sm"
+                resize="vertical"
+                style="background-color: var(--chat-content-bg); color: var(--theme-text-primary)"
+              ></textarea>
+            </div>
+            <div>
+              <el-tooltip class="box-item" effect="dark" content="提交" placement="top">
+                <i
+                  class="iconfont icon-back-circle cursor-pointer !text-3xl text-purple-500 mr-1 hover:text-purple-700 mb-2"
+                  style="transform: rotate(90deg); display: inline-block"
+                  @click="submitEdit"
+                ></i>
+              </el-tooltip>
             </div>
           </div>
         </div>
-        <div class="content-wrapper">
-          <div class="content position-relative">
-            <div v-html="content"></div>
+
+        <!-- 显示模式 -->
+        <div v-else>
+          <div class="content-wrapper">
+            <div class="content position-relative">
+              <div v-html="content"></div>
+            </div>
           </div>
-        </div>
-        <div class="bar" v-if="data.created_at > 0">
-          <span class="bar-item"
-            ><el-icon><Clock /></el-icon> {{ dateFormat(data.created_at) }}</span
+          <div
+            class="flex text-gray-500 text-sm py-2 justify-end items-center space-x-2"
+            v-if="data.created_at > 0"
           >
-          <span class="bar-item">
-            <el-tooltip class="box-item" effect="dark" content="复制" placement="bottom">
-              <i
-                class="iconfont icon-copy cursor-pointer"
-                @click="copyContent(data.content.text)"
-              ></i>
-            </el-tooltip>
-          </span>
+            <span class="flex items-center"
+              ><i class="iconfont icon-clock mr-1"></i> {{ dateFormat(data.created_at) }}</span
+            >
+            <span class="flex items-center">
+              <el-tooltip class="box-item" effect="dark" content="复制" placement="top">
+                <i
+                  class="iconfont icon-copy cursor-pointer !text-sm"
+                  @click="copyContent(data.content.text)"
+                ></i>
+              </el-tooltip>
+            </span>
+            <span class="flex items-center">
+              <el-tooltip class="box-item" effect="dark" content="修改提问" placement="top">
+                <i class="iconfont icon-edit cursor-pointer !text-sm" @click="startEdit"></i>
+              </el-tooltip>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -106,7 +101,7 @@
 import { FormatFileSize, GetFileIcon, GetFileType } from '@/store/system'
 import { showMessageSuccess } from '@/utils/dialog'
 import { dateFormat, isImage, processPrompt } from '@/utils/libs'
-import { Clock } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import hl from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
@@ -157,14 +152,18 @@ const props = defineProps({
       icon: '',
     },
   },
-  listStyle: {
-    type: String,
-    default: 'list',
+  messageIndex: {
+    type: Number,
+    default: -1,
   },
 })
 const finalTokens = ref(props.data.tokens)
 const content = ref(processPrompt(props.data.content.text))
 const files = ref(props.data.content.files)
+
+// 编辑相关状态
+const isEditing = ref(false)
+const editText = ref('')
 
 // 定义emit事件
 const emit = defineEmits(['edit'])
@@ -186,148 +185,40 @@ const copyContent = (text) => {
   navigator.clipboard.writeText(text)
   showMessageSuccess('复制成功')
 }
+
+// 开始编辑
+const startEdit = () => {
+  isEditing.value = true
+  editText.value = props.data.content.text
+}
+
+// 取消编辑
+const cancelEdit = () => {
+  isEditing.value = false
+  editText.value = ''
+}
+
+// 提交编辑
+const submitEdit = () => {
+  if (!editText.value.trim()) {
+    ElMessage.warning('内容不能为空')
+    return
+  }
+  // 发送重新提交事件，传递修改后的内容
+  emit('edit', {
+    messageIndex: props.messageIndex,
+    newContent: editText.value.trim(),
+  })
+
+  // 退出编辑模式
+  isEditing.value = false
+  editText.value = ''
+}
 </script>
 
 <style lang="scss">
 @use '@/assets/css/markdown/vue.css' as *;
-.chat-page,
-.chat-export {
-  .chat-line-prompt-list {
-    background-color: var(--chat-content-bg-list);
-    color: var(--theme-text-color-primary);
-    justify-content: center;
-    width: 100%;
-    padding-bottom: 1.5rem;
-    padding-top: 1.5rem;
-    // border-bottom: 0.5px solid var(--el-border-color);
-
-    .chat-line-inner {
-      display: flex;
-      width: 100%;
-      max-width: 900px;
-      padding-left: 10px;
-
-      .chat-icon {
-        margin-right: 20px;
-
-        img {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          padding: 1px;
-        }
-      }
-
-      .chat-item {
-        width: 100%;
-        padding: 0 5px 0 0;
-        overflow: hidden;
-
-        .file-list-box {
-          display: flex;
-          flex-flow: column;
-
-          .image {
-            display: flex;
-            flex-flow: row;
-            margin-right: 10px;
-            position: relative;
-            justify-content: start;
-
-            .el-image {
-              border: 1px solid #e3e3e3;
-              border-radius: 10px;
-              margin-bottom: 10px;
-              max-width: 150px;
-              max-height: 150px;
-            }
-          }
-
-          .item {
-            display: flex;
-            flex-flow: row;
-            border-radius: 10px;
-            background-color: var(--chat-content-bg);
-            border: 1px solid #e3e3e3;
-            color: var(--theme-text-color-primary);
-            padding: 6px;
-            margin-bottom: 10px;
-
-            .icon {
-              .el-image {
-                width: 40px;
-                height: 40px;
-              }
-            }
-
-            .body {
-              margin-left: 8px;
-              font-size: 14px;
-
-              .title {
-                font-weight: bold;
-                line-height: 24px;
-                color: #0d0d0d;
-              }
-
-              .info {
-                color: #b4b4b4;
-
-                span {
-                  margin-right: 10px;
-                }
-              }
-            }
-          }
-        }
-
-        .content {
-          word-break: break-word;
-          padding: 0;
-          color: var(--theme-text-color-primary);
-          font-size: var(--content-font-size);
-          border-radius: 5px;
-          overflow: auto;
-
-          img {
-            max-width: 600px;
-            border-radius: 10px;
-            margin: 10px 0;
-          }
-
-          p {
-            line-height: 1.5;
-          }
-
-          p:last-child {
-            margin-bottom: 0;
-          }
-
-          p:first-child {
-            margin-top: 0;
-          }
-        }
-
-        .bar {
-          padding: 10px 10px 10px 0;
-
-          .bar-item {
-            // background-color #f7f7f8;
-            color: #888;
-            padding: 3px 5px;
-            margin-right: 10px;
-            border-radius: 5px;
-
-            .el-icon {
-              position: relative;
-              top: 2px;
-            }
-          }
-        }
-      }
-    }
-  }
-
+.chat-page {
   .chat-line-prompt-chat {
     background: var(--chat-bg);
     justify-content: center;
@@ -356,6 +247,7 @@ const copyContent = (text) => {
         padding: 0;
         overflow: hidden;
         max-width: calc(100% - 110px);
+        width: 100%;
 
         .file-list-box {
           display: flex;
@@ -448,20 +340,9 @@ const copyContent = (text) => {
           }
         }
 
-        .bar {
-          padding: 10px 10px 10px 0;
-
-          .bar-item {
-            color: #888;
-            padding: 3px 5px;
-            margin-right: 10px;
-            border-radius: 5px;
-
-            .el-icon {
-              position: relative;
-              top: 2px;
-            }
-          }
+        .edit-mode {
+          width: 100%;
+          margin-top: 15px;
         }
       }
     }

@@ -1,6 +1,6 @@
 <template>
-  <div class="privacy-config container" v-loading="loading">
-    <div class="container">
+  <div class="privacy-config container w-full" v-loading="loading">
+    <div class="w-full">
       <md-editor
         class="mgb20"
         v-model="privacy"

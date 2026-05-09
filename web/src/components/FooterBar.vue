@@ -2,10 +2,10 @@
   <div class="foot-container">
     <div class="footer text-base">
       <div>
-        <a :href="gitURL" target="_blank">
+        <span>
           {{ title }} -
           {{ version }}
-        </a>
+        </span>
       </div>
       <div class="flex justify-center text-sm">
         <span class="mr-2">{{ copyRight }}</span>

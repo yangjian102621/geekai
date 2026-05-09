@@ -123,20 +123,25 @@ const md = new MarkdownIt({
   typographer: true,
 }).use(emoji)
 
-onMounted(() => {
-  if (isMobile()) {
-    router.push('/mobile/index')
-    return
-  }
-  getSystemInfo()
-    .then((res) => {
-      title.value = res.data.title
-      logo.value = res.data.logo
-    })
-    .catch((e) => {
-      ElMessage.error('获取系统配置失败：' + e.message)
-    })
+if (isMobile()) {
+  router.push('/mobile/index')
+}
 
+getSystemInfo()
+  .then((res) => {
+    const data = res.data
+    title.value = data.title
+    logo.value = data.logo
+    console.log(data)
+    if (data.index_page) {
+      router.push(data.index_page)
+    }
+  })
+  .catch((e) => {
+    ElMessage.error('获取系统配置失败：' + e.message)
+  })
+
+onMounted(() => {
   getLicenseInfo()
     .then((res) => {
       license.value = res.data

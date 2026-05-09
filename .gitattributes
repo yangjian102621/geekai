@@ -1,0 +1,5 @@
+web/src/assets/fonts filter=lfs diff=lfs merge=lfs -text
+web/src/assets/iconfont filter=lfs diff=lfs merge=lfs -text
+web/src/assets/img filter=lfs diff=lfs merge=lfs -text
+web/public filter=lfs diff=lfs merge=lfs -text
+api/res filter=lfs diff=lfs merge=lfs -text

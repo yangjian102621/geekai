@@ -8,21 +8,8 @@
     title="聊天配置"
   >
     <div class="chat-setting">
-      <el-form :model="data" label-width="100px" label-position="left">
-        <el-form-item label="聊天样式：">
-          <el-radio-group
-            v-model="data.style"
-            @change="
-              (val) => {
-                store.setChatListStyle(val)
-              }
-            "
-          >
-            <el-radio value="list">列表样式</el-radio>
-            <el-radio value="chat">对话样式</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="流式输出：">
+      <el-form :model="data" label-width="100px" label-position="top">
+        <el-form-item label="启用流式输出：">
           <el-switch
             v-model="data.stream"
             @change="
@@ -32,7 +19,7 @@
             "
           />
         </el-form-item>
-        <el-form-item label="语音音色：">
+        <el-form-item label="朗读语音模型：">
           <el-select v-model="data.ttsModel" placeholder="请选择语音音色" @change="changeTTSModel">
             <el-option v-for="v in models" :value="v.id" :label="v.name" :key="v.id">
               {{ v.name }}
@@ -51,7 +38,6 @@ import { computed, onMounted, ref } from 'vue'
 const store = useSharedStore()
 
 const data = ref({
-  style: store.chatListStyle,
   stream: store.chatStream,
   ttsModel: store.ttsModel,
 })

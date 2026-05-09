@@ -57,13 +57,19 @@ func (s *UserService) DecreasePower(userId uint, power int, log model.PowerLog) 
 	defer s.lock.Unlock()
 
 	tx := s.db.Begin()
+	var user model.User
+	tx.Where("id", userId).First(&user)
+	if user.Power < power {
+		tx.Rollback()
+		return fmt.Errorf("用户算力不足")
+	}
+
 	err := tx.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power - ?", power)).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("扣减算力失败：%v", err)
 	}
-	var user model.User
-	tx.Where("id", userId).First(&user)
+
 	err = tx.Create(&model.PowerLog{
 		UserId:    user.Id,
 		Username:  user.Username,

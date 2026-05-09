@@ -42,16 +42,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { showImagePreview } from 'vant'
-import Thinking from '../Thinking.vue'
+import { processContent } from '@/utils/libs'
+import Clipboard from 'clipboard'
 import hl from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import mathjaxPlugin from 'markdown-it-mathjax3'
-import { processContent } from '@/utils/libs'
-import Clipboard from 'clipboard'
-import { showNotify } from 'vant'
+import { showImagePreview, showNotify } from 'vant'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import Thinking from '../Thinking.vue'
 
 const props = defineProps({
   content: {
@@ -84,6 +83,10 @@ const props = defineProps({
   error: {
     type: String,
     default: '',
+  },
+  messageIndex: {
+    type: Number,
+    default: -1,
   },
 })
 
@@ -125,7 +128,7 @@ const contentRef = ref(null)
 
 // 处理重新生成
 const handleRegenerate = () => {
-  emits('regenerate', props.messageId)
+  emits('regenerate', props.messageIndex)
 }
 
 const clipboard = ref(null)

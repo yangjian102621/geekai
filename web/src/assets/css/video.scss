@@ -14,7 +14,7 @@
   }
 
   :deep(.el-textarea__inner) {
-    background: transparent;
+    // background: transparent;
     color: var(--text-theme-color);
   }
 
@@ -104,7 +104,8 @@
         color: var(--text-theme-color);
       }
 
-      .el-input, .el-slider {
+      .el-input,
+      .el-slider {
         width: 100%;
       }
 
@@ -422,7 +423,8 @@
             flex-flow: column;
             padding: 0 20px;
 
-            .prompt, .failed {
+            .prompt,
+            .failed {
               padding: 0;
               font-size: 16px;
               max-height: 80px;
@@ -547,7 +549,8 @@
         .left .container {
           width: 120px;
 
-          .video, .el-image {
+          .video,
+          .el-image {
             width: 120px;
           }
         }

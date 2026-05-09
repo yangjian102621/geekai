@@ -6,8 +6,8 @@
       </div>
 
       <div v-for="item in chatData" :key="item.id">
-        <chat-prompt v-if="item.type === 'prompt'" :data="item" list-style="list" />
-        <chat-reply
+        <chat-prompt-line v-if="item.type === 'prompt'" :data="item" list-style="list" />
+        <chat-reply-line
           v-else-if="item.type === 'reply'"
           :data="item"
           :read-only="true"
@@ -19,8 +19,8 @@
   </div>
 </template>
 <script setup>
-import ChatPrompt from '@/components/ChatPrompt.vue'
-import ChatReply from '@/components/ChatReply.vue'
+import ChatPromptLine from '@/components/ChatPromptLine.vue'
+import ChatReplyLine from '@/components/ChatReplyLine.vue'
 import { httpGet } from '@/utils/http'
 import Clipboard from 'clipboard'
 import { ElMessage } from 'element-plus'

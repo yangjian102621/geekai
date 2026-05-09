@@ -64,7 +64,53 @@
               placeholder="请选择菜单，多选"
               style="width: 100%"
             >
-              <el-option v-for="item in menus" :key="item.id" :label="item.name" :value="item.id" />
+              <el-option v-for="item in menus" :key="item.id" :label="item.name" :value="item.id">
+                <div class="flex items-center">
+                  <i :class="'iconfont mr-2 ' + item.icon" v-if="item.icon.startsWith('icon')"></i>
+                  <el-image
+                    :src="item.icon"
+                    class="rounded-lg w-10 h-10 mr-2"
+                    alt="Geek-AI"
+                    v-else
+                  />
+                  <div>{{ item.name }}</div>
+                </div>
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item>
+            <template #label>
+              <div class="label-title">
+                首页默认页面
+                <span class="text-xs text-gray-500"
+                  >（设置后，用户访问首页时会自动跳转到该页面）</span
+                >
+              </div>
+            </template>
+            <el-select
+              v-model="system['index_page']"
+              :filterable="true"
+              placeholder="请选择页面"
+              style="width: 100%"
+              value-key="url"
+              clearable
+            >
+              <template #prefix>
+                <i class="iconfont icon-home"></i>
+              </template>
+              <el-option v-for="item in menus" :key="item.id" :label="item.name" :value="item.url">
+                <div class="flex items-center">
+                  <i :class="'iconfont mr-2 ' + item.icon" v-if="item.icon.startsWith('icon')"></i>
+                  <el-image
+                    :src="item.icon"
+                    class="rounded-lg w-10 h-10 mr-2"
+                    alt="Geek-AI"
+                    v-else
+                  />
+                  <div>{{ item.name }}</div>
+                </div>
+              </el-option>
             </el-select>
           </el-form-item>
 

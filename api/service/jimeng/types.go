@@ -1,42 +1,8 @@
 package jimeng
 
-import "geekai/store/model"
-
-// ReqKey 常量定义
-const (
-	ReqKeyTextToImage          = "high_aes_general_v30l_zt2i" // 文生图
-	ReqKeyImageToImagePortrait = "i2i_portrait_photo"         // 图生图人像写真
-	ReqKeyImageEdit            = "seededit_v3.0"              // 图像编辑
-	ReqKeyImageEffects         = "i2i_multi_style_zx2x"       // 图像特效
-	ReqKeyTextToVideo          = "jimeng_vgfm_t2v_l20"        // 文生视频
-	ReqKeyImageToVideo         = "jimeng_vgfm_i2v_l20"        // 图生视频
+import (
+	"geekai/core/types"
 )
-
-// SubmitTaskRequest 提交任务请求
-type SubmitTaskRequest struct {
-	ReqKey string `json:"req_key"`
-	// 文生图参数
-	Prompt    string  `json:"prompt,omitempty"`
-	Seed      int64   `json:"seed,omitempty"`
-	Scale     float64 `json:"scale,omitempty"`
-	Width     int     `json:"width,omitempty"`
-	Height    int     `json:"height,omitempty"`
-	UsePreLLM bool    `json:"use_pre_llm,omitempty"`
-	// 图生图参数
-	ImageInput       string   `json:"image_input,omitempty"`
-	ImageUrls        []string `json:"image_urls,omitempty"`
-	BinaryDataBase64 []string `json:"binary_data_base64,omitempty"`
-	Gpen             float64  `json:"gpen,omitempty"`
-	Skin             float64  `json:"skin,omitempty"`
-	SkinUnifi        float64  `json:"skin_unifi,omitempty"`
-	GenMode          string   `json:"gen_mode,omitempty"`
-	// 图像编辑参数
-	// 图像特效参数
-	ImageInput1 string `json:"image_input1,omitempty"`
-	TemplateId  string `json:"template_id,omitempty"`
-	// 视频生成参数
-	AspectRatio string `json:"aspect_ratio,omitempty"`
-}
 
 // SubmitTaskResponse 提交任务响应
 type SubmitTaskResponse struct {
@@ -73,7 +39,7 @@ type QueryTaskResponse struct {
 		ImageUrls         []string           `json:"image_urls"`
 		VideoUrl          string             `json:"video_url"`
 		RespData          string             `json:"resp_data"`
-		Status            model.JMTaskStatus `json:"status"`
+		Status            types.JMTaskStatus `json:"status"`
 		LlmResult         string             `json:"llm_result"`
 		PeResult          string             `json:"pe_result"`
 		PredictTagsResult string             `json:"predict_tags_result"`
@@ -83,9 +49,73 @@ type QueryTaskResponse struct {
 	} `json:"data"`
 }
 
+const CodeSuccess = 10000
+
+// 即梦AI错误代码常量
+const (
+	// 成功
+	ECSuccess = 10000
+
+	// 请求参数错误 (50200-50215)
+	ECReqInvalidArgs     = 50200 // 参数错误
+	ECReqMissingArgs     = 50201 // 缺少参数
+	ECParseArgs          = 50204 // 参数类型错误/参数缺失
+	ECImageSizeLimited   = 50205 // 图像尺寸超过限制
+	ECImageEmpty         = 50206 // 请求参数中没有获取到图像
+	ECImageDecodeError   = 50207 // 图像解码错误
+	ECVideoEmpty         = 50209 // 请求参数中没有获取到视频
+	ECVideoDecodeError   = 50210 // 视频解码错误
+	ECVideoSizeLimited   = 50211 // 视频尺寸超过限制
+	ECReqBodySizeLimited = 50213 // 请求Body过大
+	ECVideoTimeTooLong   = 50214 // 输入视频时长过大
+	ECRPCProcess         = 50215 // 请求处理失败
+
+	// 算法服务错误 (60102-60208)
+	ECJPFaceDetect      = 60102 // 算法服务需要输入人脸图，但未检测到
+	ECFSLeaderRiskError = 60208 // 输入图片中包含敏感信息，未通过审核
+
+	// 权限和系统错误 (50400-50501)
+	ECAuth        = 50400 // 权限校验失败
+	ECReqMethod   = 50402 // 访问的接口不存在
+	ECReqLimit    = 50429 // 超过调用QPS限制
+	ECInternal    = 50500 // 服务器内部错误
+	ECRPCInternal = 50501 // 服务器内部RPC错误
+)
+
+// 错误代码到错误信息的映射
+var errorCodeMessages = map[int]string{
+	// 成功
+	ECSuccess: "请求成功",
+
+	// 请求参数错误
+	ECReqInvalidArgs:     "参数错误，检查入参及MIME类型",
+	ECReqMissingArgs:     "缺少参数，检查入参及MIME类型",
+	ECParseArgs:          "参数类型错误/参数缺失，检查入参及MIME类型",
+	ECImageSizeLimited:   "图像尺寸超过限制，参考接口文档入参要求部分",
+	ECImageEmpty:         "请求参数中没有获取到图像，检查入参",
+	ECImageDecodeError:   "图像解码错误：没有获取到图像或者通过image_base64参数传递图像是base64解码错误，检查输出图片或检查base64是否错误携带前缀",
+	ECVideoEmpty:         "请求参数中没有获取到视频。输入为视频时可能返回此错误，检查入参",
+	ECVideoDecodeError:   "视频解码错误。输入为视频时可能返回此错误，检查输入视频是否不正确",
+	ECVideoSizeLimited:   "视频尺寸超过限制。输入为视频时可能返回此错误，检查输入视频大小",
+	ECReqBodySizeLimited: "请求Body过大，超出接口限制，检查请求Body大小",
+	ECVideoTimeTooLong:   "输入视频时长过大，检查输入视频时长",
+	ECRPCProcess:         "由于输入的图片、视频、参数等不满足要求，导致请求处理失败。若接口文档中有具体说明，优先参考其具体含义，按照具体服务说明进行检查",
+
+	// 算法服务错误
+	ECJPFaceDetect:      "算法服务需要输入人脸图，但未检测到，检查输入图片是否包含人脸",
+	ECFSLeaderRiskError: "输入图片中包含敏感信息，未通过审核",
+
+	// 权限和系统错误
+	ECAuth:        "权限校验失败，请检查是否已创建应用并开通服务或签名，参考接入指南及快速接入",
+	ECReqMethod:   "访问的接口不存在，检查入参",
+	ECReqLimit:    "超过调用QPS限制，购买QPS增项包",
+	ECInternal:    "服务器内部错误，提工单",
+	ECRPCInternal: "服务器内部RPC错误，提工单",
+}
+
 // CreateTaskRequest 创建任务请求
 type CreateTaskRequest struct {
-	Type      model.JMTaskType `json:"type"`
+	Type      types.JMTaskType `json:"type"`
 	Prompt    string           `json:"prompt"`
 	Params    map[string]any   `json:"params"`
 	ReqKey    string           `json:"req_key"`
@@ -93,53 +123,14 @@ type CreateTaskRequest struct {
 	Power     int              `json:"power,omitempty"`
 }
 
-// LogoInfo 水印信息
-type LogoInfo struct {
-	AddLogo         bool    `json:"add_logo"`
-	Position        int     `json:"position"`
-	Language        int     `json:"language"`
-	Opacity         float64 `json:"opacity"`
-	LogoTextContent string  `json:"logo_text_content"`
-}
-
-// ReqJsonConfig 查询配置
-type ReqJsonConfig struct {
-	ReturnUrl bool      `json:"return_url"`
-	LogoInfo  *LogoInfo `json:"logo_info,omitempty"`
-}
-
-// ImageEffectTemplate 图像特效模板
 const (
-	TemplateIdFelt3DPolaroid             = "felt_3d_polaroid"                        // 毛毡3d拍立得风格
-	TemplateIdMyWorld                    = "my_world"                                // 像素世界风
-	TemplateIdMyWorldUniversal           = "my_world_universal"                      // 像素世界-万物通用版
-	TemplateIdPlasticBubbleFigure        = "plastic_bubble_figure"                   // 盲盒玩偶风
-	TemplateIdPlasticBubbleFigureCartoon = "plastic_bubble_figure_cartoon_text"      // 塑料泡罩人偶-文字卡头版
-	TemplateIdFurryDreamDoll             = "furry_dream_doll"                        // 毛绒玩偶风
-	TemplateIdMicroLandscapeMiniWorld    = "micro_landscape_mini_world"              // 迷你世界玩偶风
-	TemplateIdMicroLandscapeProfessional = "micro_landscape_mini_world_professional" // 微型景观小世界-职业版
-	TemplateIdAcrylicOrnaments           = "acrylic_ornaments"                       // 亚克力挂饰
-	TemplateIdFeltKeychain               = "felt_keychain"                           // 毛毡钥匙扣
-	TemplateIdLofiPixelCharacter         = "lofi_pixel_character_mini_card"          // Lofi像素人物小卡
-	TemplateIdAngelFigurine              = "angel_figurine"                          // 天使形象手办
-	TemplateIdLyingInFluffyBelly         = "lying_in_fluffy_belly"                   // 躺在毛茸茸肚皮里
-	TemplateIdGlassBall                  = "glass_ball"                              // 玻璃球
+	ImageEffectReqKey      = "i2i_multi_style_zx2x"
+	DoubaoSeedream40ReqKey = "doubao-seedream-4-0-250828"
 )
 
-// AspectRatio 视频宽高比
 const (
-	AspectRatio16_9 = "16:9" // 1280×720
-	AspectRatio9_16 = "9:16" // 720×1280
-	AspectRatio1_1  = "1:1"  // 960×960
-	AspectRatio4_3  = "4:3"  // 960×720
-	AspectRatio3_4  = "3:4"  // 720×960
-	AspectRatio21_9 = "21:9" // 1680×720
-	AspectRatio9_21 = "9:21" // 720×1680
-)
-
-// GenMode 生成模式
-const (
-	GenModeCreative      = "creative"       // 提示词模式
-	GenModeReference     = "reference"      // 全参考模式
-	GenModeReferenceChar = "reference_char" // 人物参考模式
+	ASyncActionSubmit    = "CVSync2AsyncSubmitTask" // 异步提交任务
+	SyncActionSubmit     = "CVSubmitTask"           // 同步提交任务
+	ASyncActionGetResult = "CVSync2AsyncGetResult"  // 异步获取结果
+	SyncActionGetResult  = "CVGetResult"            // 同步获取结果
 )

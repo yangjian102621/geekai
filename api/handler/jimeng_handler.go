@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
@@ -38,49 +39,28 @@ func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *go
 // RegisterRoutes 注册路由，新增统一任务接口
 func (h *JimengHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/jimeng/")
+	group.GET("power-config", h.GetPowerConfig)
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
 		group.POST("task", h.CreateTask)
-		group.GET("power-config", h.GetPowerConfig)
 		group.POST("jobs", h.Jobs)
 		group.GET("remove", h.Remove)
 		group.GET("retry", h.Retry)
 	}
 }
 
-// JimengTaskRequest 统一任务请求结构体
-// 支持所有生图和生成视频类型
-type JimengTaskRequest struct {
-	TaskType         string   `json:"task_type" binding:"required"`
-	Prompt           string   `json:"prompt"`
-	ImageInput       string   `json:"image_input"`
-	ImageUrls        []string `json:"image_urls"`
-	BinaryDataBase64 []string `json:"binary_data_base64"`
-	Scale            float64  `json:"scale"`
-	Width            int      `json:"width"`
-	Height           int      `json:"height"`
-	Gpen             float64  `json:"gpen"`
-	Skin             float64  `json:"skin"`
-	SkinUnifi        float64  `json:"skin_unifi"`
-	GenMode          string   `json:"gen_mode"`
-	Seed             int64    `json:"seed"`
-	UsePreLLM        bool     `json:"use_pre_llm"`
-	TemplateId       string   `json:"template_id"`
-	AspectRatio      string   `json:"aspect_ratio"`
-}
-
 // CreateTask 统一任务创建接口
 func (h *JimengHandler) CreateTask(c *gin.Context) {
-	var req JimengTaskRequest
+	var req types.JimengTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
 	// 文本审核
-	if h.App.SysConfig.Moderation.Enable {
+	if h.App.SysConfig.Moderation.Enable && req.Prompt != "" {
 		moderationResult, err := h.moderationManager.GetService().Moderate(req.Prompt)
 		if err != nil {
 			logger.Error("failed to moderate content: ", err)
@@ -103,136 +83,21 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 
 	}
 
-	// 新增：除图像特效外，其他任务类型必须有提示词
-	if req.TaskType != "image_effects" && req.Prompt == "" {
-		resp.ERROR(c, "提示词不能为空")
+	if req.Prompt == "" && len(req.ImageUrls) == 0 {
+		resp.ERROR(c, "提示词和图片不能同时为空")
 		return
 	}
+
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
-	if req.Width == 0 {
-		req.Width = 1328
-	}
-	if req.Height == 0 {
-		req.Height = 1328
-	}
-	if req.Seed == 0 {
-		req.Seed = -1
-	}
-
-	var powerCost int
-	var taskType model.JMTaskType
-	var params map[string]any
-	var reqKey string
-	var modelName string
-
-	switch req.TaskType {
-	case "text_to_image":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeTextToImage)
-		taskType = model.JMTaskTypeTextToImage
-		reqKey = jimeng.ReqKeyTextToImage
-		modelName = "即梦文生图"
-		if req.Scale == 0 {
-			req.Scale = 2.5
-		}
-		params = map[string]any{
-			"seed":        req.Seed,
-			"scale":       req.Scale,
-			"width":       req.Width,
-			"height":      req.Height,
-			"use_pre_llm": req.UsePreLLM,
-		}
-	case "image_to_image":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageToImage)
-		taskType = model.JMTaskTypeImageToImage
-		reqKey = jimeng.ReqKeyImageToImagePortrait
-		modelName = "即梦图生图"
-		if req.Gpen == 0 {
-			req.Gpen = 0.4
-		}
-		if req.Skin == 0 {
-			req.Skin = 0.3
-		}
-		if req.GenMode == "" {
-			if req.Prompt != "" {
-				req.GenMode = jimeng.GenModeCreative
-			} else {
-				req.GenMode = jimeng.GenModeReference
-			}
-		}
-		params = map[string]any{
-			"image_input": req.ImageInput,
-			"width":       req.Width,
-			"height":      req.Height,
-			"gpen":        req.Gpen,
-			"skin":        req.Skin,
-			"skin_unifi":  req.SkinUnifi,
-			"gen_mode":    req.GenMode,
-			"seed":        req.Seed,
-		}
-	case "image_edit":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageEdit)
-		taskType = model.JMTaskTypeImageEdit
-		reqKey = jimeng.ReqKeyImageEdit
-		modelName = "即梦图像编辑"
-		if req.Scale == 0 {
-			req.Scale = 0.5
-		}
-		params = map[string]any{
-			"seed":  req.Seed,
-			"scale": req.Scale,
-		}
-		params["image_urls"] = []string{req.ImageInput}
-	case "image_effects":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageEffects)
-		taskType = model.JMTaskTypeImageEffects
-		reqKey = jimeng.ReqKeyImageEffects
-		modelName = "即梦图像特效"
-		if req.Width == 0 {
-			req.Width = 1328
-		}
-		if req.Height == 0 {
-			req.Height = 1328
-		}
-		params = map[string]any{
-			"image_input1": req.ImageInput,
-			"template_id":  req.TemplateId,
-			"width":        req.Width,
-			"height":       req.Height,
-		}
-	case "text_to_video":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeTextToVideo)
-		taskType = model.JMTaskTypeTextToVideo
-		reqKey = jimeng.ReqKeyTextToVideo
-		modelName = "即梦文生视频"
-		if req.AspectRatio == "" {
-			req.AspectRatio = jimeng.AspectRatio16_9
-		}
-		params = map[string]any{
-			"seed":         req.Seed,
-			"aspect_ratio": req.AspectRatio,
-		}
-	case "image_to_video":
-		powerCost = h.getPowerFromConfig(model.JMTaskTypeImageToVideo)
-		taskType = model.JMTaskTypeImageToVideo
-		reqKey = jimeng.ReqKeyImageToVideo
-		modelName = "即梦图生视频"
-		params = map[string]any{
-			"seed":         req.Seed,
-			"aspect_ratio": req.AspectRatio,
-		}
-		if len(req.ImageUrls) > 0 {
-			params["image_urls"] = req.ImageUrls
-		}
-		if len(req.BinaryDataBase64) > 0 {
-			params["binary_data_base64"] = req.BinaryDataBase64
-		}
-	default:
-		resp.ERROR(c, "不支持的任务类型")
+	// 获取算力消耗
+	powerCost, err := h.getTaskPower(req)
+	if err != nil {
+		resp.ERROR(c, "计算任务消耗积分失败: "+err.Error())
 		return
 	}
 
@@ -240,16 +105,9 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
 		return
 	}
+	req.Power = powerCost
 
-	taskReq := &jimeng.CreateTaskRequest{
-		Type:   taskType,
-		Prompt: req.Prompt,
-		Params: params,
-		ReqKey: reqKey,
-		Power:  powerCost,
-	}
-
-	job, err := h.jimengService.CreateTask(user.Id, taskReq)
+	job, err := h.jimengService.CreateTask(user.Id, &req)
 	if err != nil {
 		logger.Errorf("create jimeng task failed: %v", err)
 		resp.ERROR(c, "创建任务失败")
@@ -258,11 +116,42 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 
 	h.userService.DecreasePower(user.Id, powerCost, model.PowerLog{
 		Type:   types.PowerConsume,
-		Model:  "jimeng",
-		Remark: fmt.Sprintf("%s，任务ID：%d", modelName, job.Id),
+		Model:  job.ReqKey,
+		Remark: h.getTaskRemark(req, job.Id),
 	})
 
-	resp.SUCCESS(c, job)
+	resp.SUCCESS(c)
+}
+
+func (h *JimengHandler) getTaskRemark(req types.JimengTaskRequest, jobId uint) string {
+	remark := fmt.Sprintf("即梦任务%s，任务ID：%d", req.ReqKey, jobId)
+	perUnit, ok := h.App.SysConfig.Jimeng.Powers[req.ReqKey]
+	if !ok || perUnit <= 0 {
+		return remark // Fallback if power not found or invalid
+	}
+	switch req.TaskType {
+	case types.JMTaskTypeImage:
+		remark = fmt.Sprintf("即梦图片生成，任务ID：%d，%d积分/张", jobId, perUnit)
+	case types.JMTaskTypeVideo:
+		seconds := 0
+		if perUnit > 0 {
+			seconds = req.Power / perUnit
+		}
+		remark = fmt.Sprintf("即梦视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, perUnit, seconds)
+	case types.JMTaskTypeVirtualHuman:
+		seconds := 0
+		if perUnit > 0 {
+			seconds = req.Power / perUnit
+		}
+		remark = fmt.Sprintf("即梦数字人视频生成，任务ID：%d，%d积分/秒, %d秒", jobId, perUnit, seconds)
+	case types.JMTaskTypeActionTransfer:
+		seconds := 0
+		if perUnit > 0 {
+			seconds = req.Power / perUnit
+		}
+		remark = fmt.Sprintf("即梦视频动作迁移，任务ID：%d，%d积分/秒, %d秒", jobId, perUnit, seconds)
+	}
+	return remark
 }
 
 // Jobs 获取任务列表
@@ -287,17 +176,13 @@ func (h *JimengHandler) Jobs(c *gin.Context) {
 
 	switch req.Filter {
 	case "image":
-		query = query.Where("type IN (?)", []model.JMTaskType{
-			model.JMTaskTypeTextToImage,
-			model.JMTaskTypeImageToImage,
-			model.JMTaskTypeImageEdit,
-			model.JMTaskTypeImageEffects,
-		})
+		query = query.Where("type = ?", types.JMTaskTypeImage)
 	case "video":
-		query = query.Where("type IN (?)", []model.JMTaskType{
-			model.JMTaskTypeTextToVideo,
-			model.JMTaskTypeImageToVideo,
-		})
+		query = query.Where("type = ?", types.JMTaskTypeVideo)
+	case "virtual_human":
+		query = query.Where("type = ?", types.JMTaskTypeVirtualHuman)
+	case "action_transfer":
+		query = query.Where("type = ?", types.JMTaskTypeActionTransfer)
 	}
 
 	if len(req.Ids) > 0 {
@@ -357,7 +242,7 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 	}
 
 	// 正在运行中的任务不能删除
-	if job.Status == model.JMTaskStatusGenerating || job.Status == model.JMTaskStatusInQueue {
+	if job.Status == types.JMTaskStatusGenerating || job.Status == types.JMTaskStatusInQueue {
 		resp.ERROR(c, "正在运行中的任务不能删除，否则无法退回算力")
 		return
 	}
@@ -370,10 +255,11 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 	}
 
 	// 失败任务删除后退回算力
-	if job.Status != model.JMTaskStatusFailed {
+	if job.Status == types.JMTaskStatusFailed {
+		logger.Infof("delete jimeng job failed, refund power: %d", job.Power)
 		err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
 			Type:   types.PowerRefund,
-			Model:  "jimeng",
+			Model:  job.ReqKey,
 			Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
 		})
 		if err != nil {
@@ -411,13 +297,13 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 	}
 
 	// 只有失败的任务才能重试
-	if job.Status != model.JMTaskStatusFailed {
+	if job.Status != types.JMTaskStatusFailed {
 		resp.ERROR(c, "只有失败的任务才能重试")
 		return
 	}
 
 	// 重置任务状态
-	if err := h.jimengService.UpdateJobStatus(uint(jobId), model.JMTaskStatusInQueue, ""); err != nil {
+	if err := h.jimengService.UpdateJobStatus(uint(jobId), types.JMTaskStatusInQueue, ""); err != nil {
 		logger.Errorf("reset job status failed: %v", err)
 		resp.ERROR(c, "重置任务状态失败")
 		return
@@ -433,25 +319,49 @@ func (h *JimengHandler) Retry(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{"message": "重试任务已提交"})
 }
 
-// getPowerFromConfig 从配置中获取指定类型的算力消耗
-func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
+func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
+	logger.Debugf("getTaskPower req: %+v", req)
 	config := h.App.SysConfig.Jimeng
-
-	switch taskType {
-	case model.JMTaskTypeTextToImage:
-		return config.Power.TextToImage
-	case model.JMTaskTypeImageToImage:
-		return config.Power.ImageToImage
-	case model.JMTaskTypeImageEdit:
-		return config.Power.ImageEdit
-	case model.JMTaskTypeImageEffects:
-		return config.Power.ImageEffects
-	case model.JMTaskTypeTextToVideo:
-		return config.Power.TextToVideo
-	case model.JMTaskTypeImageToVideo:
-		return config.Power.ImageToVideo
+	basePower, ok := config.Powers[req.ReqKey]
+	if !ok || basePower <= 0 {
+		return 0, errors.New("未配置模型积分或配置不合法")
+	}
+	switch req.TaskType {
+	case types.JMTaskTypeImage:
+		return basePower, nil
+	case types.JMTaskTypeVideo:
+		if req.Duration == 0 {
+			return 0, errors.New("视频时长不能为0")
+		}
+		return basePower * req.Duration, nil
+	case types.JMTaskTypeVirtualHuman:
+		if req.AudioURL == "" {
+			return 0, errors.New("音频URL不能为空")
+		}
+		audioDuration, err := utils.AudioDurationFromURL(req.AudioURL)
+		if err != nil {
+			return 0, err
+		}
+		seconds := int(audioDuration.Seconds())
+		if seconds <= 0 {
+			return 0, errors.New("音频时长无效")
+		}
+		return basePower * seconds, nil
+	case types.JMTaskTypeActionTransfer:
+		if req.VideoURL == "" {
+			return 0, errors.New("视频URL不能为空")
+		}
+		videoDuration, err := utils.VideoDurationMP4FromURL(req.VideoURL)
+		if err != nil {
+			return 0, err
+		}
+		seconds := int(videoDuration.Seconds())
+		if seconds <= 0 {
+			return 0, errors.New("视频时长无效")
+		}
+		return basePower * seconds, nil
 	default:
-		return 10
+		return 0, errors.New("任务类型不支持")
 	}
 }
 
@@ -459,11 +369,6 @@ func (h *JimengHandler) getPowerFromConfig(taskType model.JMTaskType) int {
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
 	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{
-		"text_to_image":  config.Power.TextToImage,
-		"image_to_image": config.Power.ImageToImage,
-		"image_edit":     config.Power.ImageEdit,
-		"image_effects":  config.Power.ImageEffects,
-		"text_to_video":  config.Power.TextToVideo,
-		"image_to_video": config.Power.ImageToVideo,
+		"powers": config.Powers,
 	})
 }

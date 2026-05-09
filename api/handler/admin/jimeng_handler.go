@@ -131,7 +131,7 @@ func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 			continue // 跳过不存在的
 		}
 		tx := h.DB.Begin()
-		if job.Status != model.JMTaskStatusSuccess && job.Power > 0 {
+		if job.Status != types.JMTaskStatusSuccess && job.Power > 0 {
 			remark := fmt.Sprintf("任务未成功，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 			err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 				Type:   types.PowerRefund,
@@ -172,7 +172,7 @@ func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 // Stats 获取统计信息
 func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	type StatResult struct {
-		Status model.JMTaskStatus `json:"status"`
+		Status types.JMTaskStatus `json:"status"`
 		Count  int64              `json:"count"`
 	}
 
@@ -198,13 +198,13 @@ func (h *AdminJimengHandler) Stats(c *gin.Context) {
 	for _, stat := range stats {
 		result["totalTasks"] = result["totalTasks"].(int64) + stat.Count
 		switch stat.Status {
-		case model.JMTaskStatusInQueue:
+		case types.JMTaskStatusInQueue:
 			result["pendingTasks"] = stat.Count
-		case model.JMTaskStatusSuccess:
+		case types.JMTaskStatusSuccess:
 			result["completedTasks"] = stat.Count
-		case model.JMTaskStatusGenerating:
+		case types.JMTaskStatusGenerating:
 			result["processingTasks"] = stat.Count
-		case model.JMTaskStatusFailed:
+		case types.JMTaskStatusFailed:
 			result["failedTasks"] = stat.Count
 		}
 	}
@@ -231,29 +231,15 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 	}
 
 	// 验证算力配置
-	if req.Power.TextToImage <= 0 {
-		resp.ERROR(c, "文生图算力必须大于0")
+	if len(req.Powers) == 0 {
+		resp.ERROR(c, "请至少配置一个模型的积分")
 		return
 	}
-	if req.Power.ImageToImage <= 0 {
-		resp.ERROR(c, "图生图算力必须大于0")
-		return
-	}
-	if req.Power.ImageEdit <= 0 {
-		resp.ERROR(c, "图片编辑算力必须大于0")
-		return
-	}
-	if req.Power.ImageEffects <= 0 {
-		resp.ERROR(c, "图片特效算力必须大于0")
-		return
-	}
-	if req.Power.TextToVideo <= 0 {
-		resp.ERROR(c, "文生视频算力必须大于0")
-		return
-	}
-	if req.Power.ImageToVideo <= 0 {
-		resp.ERROR(c, "图生视频算力必须大于0")
-		return
+	for key, val := range req.Powers {
+		if val <= 0 {
+			resp.ERROR(c, fmt.Sprintf("模型 %s 的积分必须大于0", key))
+			return
+		}
 	}
 
 	// 保存配置

@@ -69,6 +69,7 @@ type ChatHandler struct {
 	ReqCancelFunc     *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	userService       *service.UserService
 	moderationManager *moderation.ServiceManager
+	userLocks         *types.UserLockManager
 }
 
 func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService, moderationManager *moderation.ServiceManager) *ChatHandler {
@@ -80,6 +81,7 @@ func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manag
 		ReqCancelFunc:     types.NewLMap[string, context.CancelFunc](),
 		userService:       userService,
 		moderationManager: moderationManager,
+		userLocks:         types.NewUserLockManager(),
 	}
 }
 
@@ -119,6 +121,14 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	// 用户级并发锁，确保同一用户同时只有一个对话请求
+	if !h.userLocks.TryLock(input.UserId) {
+		pushMessage(c, ChatEventError, "您有一个对话请求正在进行中，请稍后再试或先停止当前生成！")
+		c.Abort()
+		return
+	}
+	defer h.userLocks.Unlock(input.UserId)
 
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
@@ -262,9 +272,9 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 		if h.App.SysConfig.Base.ContextDeep > 0 {
 			var historyMessages []model.ChatMessage
 			dbSession := h.DB.Session(&gorm.Session{}).Where("chat_id", input.ChatId)
-			if input.LastMsgId > 0 { // 重新生成逻辑
+			if input.LastMsgId > 0 { // 重新生成和编辑逻辑
 				var lastMessage model.ChatMessage
-				err = dbSession.Where("id <= ?", input.LastMsgId).Where("type", types.PromptMsg).First(&lastMessage).Error
+				err = dbSession.Where("id < ?", input.LastMsgId).Where("type", types.ReplyMsg).Order("id DESC").First(&lastMessage).Error
 				if err != nil {
 					input.LastMsgId = 0
 				} else {
@@ -272,7 +282,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 				}
 				dbSession = dbSession.Where("id < ?", input.LastMsgId)
 				// 删除对应的聊天记录
-				h.DB.Debug().Where("chat_id", input.ChatId).Where("id >= ?", input.LastMsgId).Delete(&model.ChatMessage{})
+				h.DB.Debug().Where("chat_id", input.ChatId).Where("id > ?", input.LastMsgId).Delete(&model.ChatMessage{})
 			}
 			err = dbSession.Limit(h.App.SysConfig.Base.ContextDeep).Order("id DESC").Find(&historyMessages).Error
 			if err == nil {

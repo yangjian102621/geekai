@@ -368,10 +368,7 @@ func (h *ConfigHandler) UpdateWxLogin(c *gin.Context) {
 		return
 	}
 
-	if data.Enabled {
-		h.wxLoginService.UpdateConfig(data)
-	}
-
+	h.wxLoginService.UpdateConfig(data)
 	h.sysConfig.WxLogin = data
 	resp.SUCCESS(c, data)
 }
