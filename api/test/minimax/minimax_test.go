@@ -33,13 +33,13 @@ func TestMiniMaxTemperatureClamping(t *testing.T) {
 		input    float32
 		expected float32
 	}{
-		{"normal temperature", "MiniMax-M2.7", 0.9, 0.9},
-		{"temperature too high", "MiniMax-M2.7", 1.5, 1.0},
-		{"temperature at max", "MiniMax-M2.5-highspeed", 1.0, 1.0},
-		{"temperature at zero", "MiniMax-M2.5", 0.0, 0.0},
+		{"normal temperature", "MiniMax-M3", 0.9, 0.9},
+		{"temperature too high", "MiniMax-M3", 1.5, 1.0},
+		{"temperature at max", "MiniMax-M2.7-highspeed", 1.0, 1.0},
+		{"temperature at zero", "MiniMax-M2.7", 0.0, 0.0},
 		{"negative temperature", "MiniMax-M2.7-highspeed", -0.5, 0.0},
-		{"extreme high temp", "MiniMax-M2.7", 2.0, 1.0},
-		{"case insensitive", "minimax-m2.7", 2.0, 1.0},
+		{"extreme high temp", "MiniMax-M3", 2.0, 1.0},
+		{"case insensitive", "minimax-m3", 2.0, 1.0},
 		{"non-minimax not clamped", "gpt-4o", 1.5, 1.5},
 		{"deepseek not clamped", "deepseek-chat", 1.5, 1.5},
 		{"claude not clamped", "claude-3-5-sonnet-20240620", 1.8, 1.8},
@@ -59,8 +59,8 @@ func TestMiniMaxTemperatureClamping(t *testing.T) {
 // TestMiniMaxModelPrefix tests MiniMax model identification
 func TestMiniMaxModelPrefix(t *testing.T) {
 	minimax := []string{
-		"MiniMax-M2.7", "MiniMax-M2.7-highspeed",
-		"MiniMax-M2.5", "MiniMax-M2.5-highspeed", "minimax-m2.7",
+		"MiniMax-M3", "MiniMax-M2.7",
+		"MiniMax-M2.7-highspeed", "minimax-m3",
 	}
 	nonMinimax := []string{
 		"gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet-20240620",
@@ -120,7 +120,7 @@ func TestMiniMaxSSEParsing(t *testing.T) {
 	}
 }
 
-// TestMiniMaxReasoningContent tests reasoning_content parsing for MiniMax M2.5
+// TestMiniMaxReasoningContent tests reasoning_content parsing for MiniMax M3
 func TestMiniMaxReasoningContent(t *testing.T) {
 	sseData := []string{
 		`data: {"id":"chatcmpl-test","choices":[{"index":0,"delta":{"role":"assistant","reasoning_content":"Let me think..."},"finish_reason":null}]}`,
@@ -197,7 +197,7 @@ func TestMiniMaxSSEServerIntegration(t *testing.T) {
 	defer server.Close()
 
 	body := types.ApiRequest{
-		Model:       "MiniMax-M2.7",
+		Model:       "MiniMax-M3",
 		Temperature: 0.9,
 		MaxTokens:   4096,
 		Stream:      true,
@@ -248,7 +248,7 @@ func TestMiniMaxNonStreamingIntegration(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
 			"id":    "chatcmpl-minimax",
-			"model": "MiniMax-M2.7",
+			"model": "MiniMax-M3",
 			"choices": []map[string]any{{
 				"index":         0,
 				"message":       map[string]string{"role": "assistant", "content": "Hello from MiniMax!"},
@@ -264,7 +264,7 @@ func TestMiniMaxNonStreamingIntegration(t *testing.T) {
 	defer server.Close()
 
 	body := types.ApiRequest{
-		Model:       "MiniMax-M2.7",
+		Model:       "MiniMax-M3",
 		Temperature: 0.9,
 		MaxTokens:   4096,
 		Stream:      false,
