@@ -8,16 +8,17 @@ package service
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"geekai/core/types"
 	"geekai/store"
 	"geekai/store/model"
 	"strings"
+	"sync"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 const (
@@ -29,59 +30,27 @@ const (
 
 // MigrationService 配置迁移服务
 type MigrationService struct {
-	db             *gorm.DB
-	redisClient    *redis.Client
-	appConfig      *types.AppConfig
-	levelDB        *store.LevelDB
-	licenseService *LicenseService
+	db          *gorm.DB
+	redisClient *redis.Client
+	appConfig   *types.AppConfig
+	levelDB     *store.LevelDB
 }
 
-func NewMigrationService(db *gorm.DB, redisClient *redis.Client, appConfig *types.AppConfig, levelDB *store.LevelDB, licenseService *LicenseService) *MigrationService {
+func NewMigrationService(db *gorm.DB, redisClient *redis.Client, appConfig *types.AppConfig, levelDB *store.LevelDB) *MigrationService {
 	return &MigrationService{
-		db:             db,
-		redisClient:    redisClient,
-		appConfig:      appConfig,
-		levelDB:        levelDB,
-		licenseService: licenseService,
+		db:          db,
+		redisClient: redisClient,
+		appConfig:   appConfig,
+		levelDB:     levelDB,
 	}
 }
 
 func (s *MigrationService) StartMigrate() {
+	// 表结构同步必须在对外服务前完成，避免缺列导致业务报错
+	s.TableMigration()
 	go func() {
-		s.MigrateConfig(s.appConfig)
-		s.TableMigration()
-		s.MigrateLicense()
+		_ = s.MigrateConfig(s.appConfig)
 	}()
-}
-
-// 迁移 License
-func (s *MigrationService) MigrateLicense() {
-	key := "migrate:license"
-	if s.redisClient.Get(context.Background(), key).Val() == "1" {
-		logger.Info("License 已迁移，跳过迁移")
-		return
-	}
-
-	logger.Info("开始迁移 License...")
-	var license types.License
-	err := s.levelDB.Get(types.LicenseKey, &license)
-	if err != nil {
-		license = types.License{
-			Key:       "",
-			MachineId: "",
-			Configs:   types.LicenseConfig{UserNum: 0, DeCopy: false},
-			ExpiredAt: 0,
-			IsActive:  false,
-		}
-	}
-	logger.Infof("迁移 License: %+v", license)
-	if err := s.saveConfig(types.ConfigKeyLicense, license); err != nil {
-		logger.Errorf("迁移 License 失败: %v", err)
-		return
-	}
-	s.licenseService.SetLicense(license.Key)
-	logger.Info("迁移 License 完成")
-	s.redisClient.Set(context.Background(), key, "1", 0)
 }
 
 // 迁移配置内容
@@ -157,73 +126,162 @@ func (s *MigrationService) MigrateConfigContent() error {
 	return nil
 }
 
-// 数据表迁移
-func (s *MigrationService) TableMigration() {
+// 永不删除的保护列（大小写不敏感）
+var protectedColumns = map[string]struct{}{
+	"id":         {},
+	"created_at": {},
+	"updated_at": {},
+}
 
-	// v4.2.7 数据表迁移
-	if s.db.Migrator().HasColumn(&model.JimengJob{}, "task_params") {
-		s.db.Migrator().RenameColumn(&model.JimengJob{}, "task_params", "params")
-	}
-
-	// 新数据表
-	if !s.db.Migrator().HasTable(&model.Moderation{}) {
-		s.db.AutoMigrate(&model.Moderation{})
-	}
-
-	// 订单字段整理
-	if s.db.Migrator().HasColumn(&model.Order{}, "pay_type") {
-		s.db.Migrator().RenameColumn(&model.Order{}, "pay_type", "channel")
-	}
-	if !s.db.Migrator().HasColumn(&model.Order{}, "checked") {
-		s.db.Migrator().AddColumn(&model.Order{}, "checked")
-	}
-
-	// 重命名 config 表字段
-	if s.db.Migrator().HasColumn(&model.Config{}, "config_json") {
-		s.db.Migrator().RenameColumn(&model.Config{}, "config_json", "value")
-	}
-	if s.db.Migrator().HasColumn(&model.Config{}, "marker") {
-		s.db.Migrator().RenameColumn(&model.Config{}, "marker", "name")
-	}
-	if s.db.Migrator().HasIndex(&model.Config{}, "idx_chatgpt_configs_key") {
-		s.db.Migrator().DropIndex(&model.Config{}, "idx_chatgpt_configs_key")
-	}
-	if s.db.Migrator().HasIndex(&model.Config{}, "marker") {
-		s.db.Migrator().DropIndex(&model.Config{}, "marker")
-	}
-
-	// 手动删除字段
-	if s.db.Migrator().HasColumn(&model.Order{}, "deleted_at") {
-		s.db.Migrator().DropColumn(&model.Order{}, "deleted_at")
-	}
-	if s.db.Migrator().HasColumn(&model.ChatItem{}, "deleted_at") {
-		s.db.Migrator().DropColumn(&model.ChatItem{}, "deleted_at")
-	}
-	if s.db.Migrator().HasColumn(&model.ChatMessage{}, "deleted_at") {
-		s.db.Migrator().DropColumn(&model.ChatMessage{}, "deleted_at")
-	}
-	if s.db.Migrator().HasColumn(&model.User{}, "chat_config") {
-		s.db.Migrator().DropColumn(&model.User{}, "chat_config")
-	}
-	if s.db.Migrator().HasColumn(&model.ChatModel{}, "category") {
-		s.db.Migrator().DropColumn(&model.ChatModel{}, "category")
-	}
-	if s.db.Migrator().HasColumn(&model.ChatModel{}, "description") {
-		s.db.Migrator().DropColumn(&model.ChatModel{}, "description")
-	}
-	if s.db.Migrator().HasColumn(&model.Product{}, "discount") {
-		s.db.Migrator().DropColumn(&model.Product{}, "discount")
-	}
-	if s.db.Migrator().HasColumn(&model.Product{}, "days") {
-		s.db.Migrator().DropColumn(&model.Product{}, "days")
-	}
-	if s.db.Migrator().HasColumn(&model.Product{}, "app_url") {
-		s.db.Migrator().DropColumn(&model.Product{}, "app_url")
-	}
-	if s.db.Migrator().HasColumn(&model.Product{}, "url") {
-		s.db.Migrator().DropColumn(&model.Product{}, "url")
+// allModels 全部需要同步的数据表 model
+func allModels() []any {
+	return []any{
+		&model.AdminUser{},
+		&model.ApiKey{},
+		&model.AppType{},
+		&model.ChatApp{},
+		&model.ChatItem{},
+		&model.ChatMessage{},
+		&model.ChatModel{},
+		&model.Config{},
+		&model.DallJob{},
+		&model.File{},
+		&model.Function{},
+		&model.InviteCode{},
+		&model.InviteLog{},
+		&model.JimengJob{},
+		&model.Menu{},
+		&model.MidJourneyJob{},
+		&model.Moderation{},
+		&model.Order{},
+		&model.PowerLog{},
+		&model.Product{},
+		&model.Redeem{},
+		&model.SdJob{},
+		&model.SunoJob{},
+		&model.User{},
+		&model.UserLoginLog{},
+		&model.VideoJob{},
 	}
 }
+
+// 数据表迁移：先处理字段重命名（保数据），再全量同步 schema
+func (s *MigrationService) TableMigration() {
+	logger.Info("开始数据表迁移...")
+	s.renameColumns()
+	if err := s.SyncAllModels(); err != nil {
+		logger.Errorf("同步数据表字段失败: %v", err)
+		return
+	}
+	logger.Info("数据表迁移完成")
+}
+
+// renameColumns 只处理「改名」场景：删旧加新会丢数据，必须先 Rename
+func (s *MigrationService) renameColumns() {
+	m := s.db.Migrator()
+
+	if m.HasColumn(&model.JimengJob{}, "task_params") {
+		_ = m.RenameColumn(&model.JimengJob{}, "task_params", "params")
+	}
+	if m.HasColumn(&model.Order{}, "pay_type") {
+		_ = m.RenameColumn(&model.Order{}, "pay_type", "channel")
+	}
+	if m.HasColumn(&model.Config{}, "config_json") {
+		_ = m.RenameColumn(&model.Config{}, "config_json", "value")
+	}
+	if m.HasColumn(&model.Config{}, "marker") {
+		_ = m.RenameColumn(&model.Config{}, "marker", "name")
+	}
+	if m.HasIndex(&model.Config{}, "idx_chatgpt_configs_key") {
+		_ = m.DropIndex(&model.Config{}, "idx_chatgpt_configs_key")
+	}
+	if m.HasIndex(&model.Config{}, "marker") {
+		_ = m.DropIndex(&model.Config{}, "marker")
+	}
+}
+
+// SyncAllModels 按 model 定义同步所有数据表：缺列新建，多余列删除
+func (s *MigrationService) SyncAllModels() error {
+	var firstErr error
+	for _, m := range allModels() {
+		if err := s.syncModel(m); err != nil {
+			logger.Errorf("同步 model %T 失败: %v", m, err)
+			if firstErr == nil {
+				firstErr = err
+			}
+		}
+	}
+	return firstErr
+}
+
+func (s *MigrationService) syncModel(dst any) error {
+	tableName := s.tableName(dst)
+	if err := s.db.AutoMigrate(dst); err != nil {
+		return fmt.Errorf("AutoMigrate %s: %w", tableName, err)
+	}
+	if err := s.dropUnusedColumns(dst); err != nil {
+		return fmt.Errorf("drop unused columns %s: %w", tableName, err)
+	}
+	logger.Infof("已同步数据表: %s", tableName)
+	return nil
+}
+
+func (s *MigrationService) dropUnusedColumns(dst any) error {
+	dbCols, err := s.db.Migrator().ColumnTypes(dst)
+	if err != nil {
+		return err
+	}
+	modelCols, err := s.modelColumnNames(dst)
+	if err != nil {
+		return err
+	}
+
+	for _, col := range dbCols {
+		name := col.Name()
+		if s.isProtectedColumn(name) {
+			continue
+		}
+		if _, ok := modelCols[strings.ToLower(name)]; ok {
+			continue
+		}
+		logger.Infof("删除多余字段: %s.%s", s.tableName(dst), name)
+		if err := s.db.Migrator().DropColumn(dst, name); err != nil {
+			return fmt.Errorf("DropColumn %s: %w", name, err)
+		}
+	}
+	return nil
+}
+
+func (s *MigrationService) modelColumnNames(dst any) (map[string]struct{}, error) {
+	parsed, err := schema.Parse(dst, &schemaCache, s.db.Config.NamingStrategy)
+	if err != nil {
+		return nil, err
+	}
+	cols := make(map[string]struct{}, len(parsed.Fields))
+	for _, field := range parsed.Fields {
+		if field.DBName == "" || field.IgnoreMigration {
+			continue
+		}
+		cols[strings.ToLower(field.DBName)] = struct{}{}
+	}
+	return cols, nil
+}
+
+func (s *MigrationService) isProtectedColumn(name string) bool {
+	_, ok := protectedColumns[strings.ToLower(name)]
+	return ok
+}
+
+func (s *MigrationService) tableName(dst any) string {
+	stmt := &gorm.Statement{DB: s.db}
+	if err := stmt.Parse(dst); err != nil {
+		return fmt.Sprintf("%T", dst)
+	}
+	return stmt.Schema.Table
+}
+
+// schema.Parse 进程内复用的 schema cache
+var schemaCache sync.Map
 
 // 迁移配置数据
 func (s *MigrationService) MigrateConfig(config *types.AppConfig) error {
