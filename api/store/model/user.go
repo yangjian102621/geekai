@@ -21,7 +21,7 @@ type User struct {
 	ChatModels  string    `gorm:"column:chat_models_json;type:text;default:null;comment:AI模型 json" json:"chat_models"`
 	LastLoginAt int64     `gorm:"column:last_login_at;type:int;not null;comment:最后登录时间" json:"last_login_at"`
 	Vip         bool      `gorm:"column:vip;type:tinyint(1);not null;default:0;comment:是否会员" json:"vip"`
-	LastLoginIp string    `gorm:"column:last_login_ip;type:char(16);not null;comment:最后登录 IP" json:"last_login_ip"`
+	LastLoginIp string    `gorm:"column:last_login_ip;type:char(32);not null;comment:最后登录 IP" json:"last_login_ip"`
 	OpenId      string    `gorm:"column:openid;type:varchar(100);comment:第三方登录账号ID" json:"openid"`
 	Platform    string    `gorm:"column:platform;type:varchar(30);comment:登录平台" json:"platform"`
 	CreatedAt   time.Time `gorm:"column:created_at;type:datetime;not null" json:"created_at"`

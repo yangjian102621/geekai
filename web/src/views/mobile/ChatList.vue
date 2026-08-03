@@ -1,5 +1,5 @@
 <template>
-  <div class="app-background">
+  <div class="app-background" v-if="menus['/chat']?.enabled">
     <div class="container mobile-chat-list">
       <van-nav-bar
         :title="title"
@@ -72,15 +72,19 @@
       <van-field v-model="tmpChatTitle" label="" placeholder="请输入对话标题" class="field" />
     </van-dialog>
   </div>
+  <div v-else>
+    <FunDisabled />
+  </div>
 </template>
 
 <script setup>
-import { checkSession } from '@/store/cache'
+import { checkSession, getMenus } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { removeArrayItem, showLoginDialog } from '@/utils/libs'
 import { showConfirmDialog, showFailToast, showSuccessToast } from 'vant'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import FunDisabled from '@/components/ui/FunDisabled.vue'
 
 const title = ref('会话列表')
 const router = useRouter()
@@ -99,50 +103,61 @@ const columns = ref([roles.value, models.value])
 const showEditChat = ref(false)
 const item = ref({})
 const tmpChatTitle = ref('')
+const menus = ref({})
 
-checkSession()
-  .then((user) => {
-    loginUser.value = user
-    isLogin.value = true
-  })
-  .finally(() => {
-    loading.value = false
-    finished.value = true
-    // 加载角色列表
-    httpGet(`/api/app/list`)
-      .then((res) => {
-        if (res.data) {
-          const items = res.data
-          for (let i = 0; i < items.length; i++) {
-            // console.log(items[i])
-            roles.value.push({
-              text: items[i].name,
-              value: items[i].id,
-              icon: items[i].icon,
-              helloMsg: items[i].hello_msg,
-              model_id: items[i].model_id,
-            })
-          }
-        }
-      })
-      .catch(() => {
-        showFailToast('加载聊天角色失败')
-      })
+onMounted(() => {
+  getMenus()
+    .then((data) => {
+      menus.value = data
+    })
+    .catch((e) => {
+      showNotify({ type: 'danger', message: '获取菜单失败：' + e.message })
+    })
 
-    // 加载模型
-    httpGet('/api/model/list?enable=1')
-      .then((res) => {
-        if (res.data) {
-          const items = res.data
-          for (let i = 0; i < items.length; i++) {
-            models.value.push({ text: items[i].name, value: items[i].id })
+  checkSession()
+    .then((user) => {
+      loginUser.value = user
+      isLogin.value = true
+    })
+    .finally(() => {
+      loading.value = false
+      finished.value = true
+      // 加载角色列表
+      httpGet(`/api/app/list`)
+        .then((res) => {
+          if (res.data) {
+            const items = res.data
+            for (let i = 0; i < items.length; i++) {
+              // console.log(items[i])
+              roles.value.push({
+                text: items[i].name,
+                value: items[i].id,
+                icon: items[i].icon,
+                helloMsg: items[i].hello_msg,
+                model_id: items[i].model_id,
+              })
+            }
           }
-        }
-      })
-      .catch((e) => {
-        showFailToast('加载模型失败: ' + e.message)
-      })
-  })
+        })
+        .catch(() => {
+          showFailToast('加载聊天角色失败')
+        })
+
+      // 加载模型
+      httpGet('/api/model/list?enable=1')
+        .then((res) => {
+          if (res.data) {
+            const items = res.data
+            for (let i = 0; i < items.length; i++) {
+              models.value.push({ text: items[i].name, value: items[i].id })
+            }
+          }
+        })
+        .catch((e) => {
+          showFailToast('加载模型失败: ' + e.message)
+        })
+    })
+})
 
 const onLoad = () => {
   checkSession()

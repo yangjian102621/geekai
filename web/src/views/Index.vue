@@ -8,7 +8,7 @@
           <img :src="logo" class="logo" alt="Geek-AI" />
         </div>
         <div class="menu-item">
-          <span v-if="!license || !license.de_copy">
+          <span>
             <el-tooltip class="box-item" content="部署文档" placement="bottom">
               <a :href="docsURL" class="link-button mr-3" target="_blank">
                 <i class="iconfont icon-book"></i>
@@ -88,7 +88,7 @@
 <script setup>
 import FooterBar from '@/components/FooterBar.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
-import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
+import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { httpGet } from '@/utils/http'
 import { isMobile } from '@/utils/libs'
@@ -102,7 +102,6 @@ const router = useRouter()
 
 const title = ref('')
 const logo = ref('')
-const license = ref({ de_copy: true })
 
 const isLogin = ref(false)
 const docsURL = ref(import.meta.env.VITE_DOCS_URL)
@@ -123,17 +122,15 @@ const md = new MarkdownIt({
   typographer: true,
 }).use(emoji)
 
-if (isMobile()) {
-  router.push('/mobile/index')
-}
-
 getSystemInfo()
   .then((res) => {
     const data = res.data
     title.value = data.title
     logo.value = data.logo
-    console.log(data)
-    if (data.index_page) {
+
+    if (isMobile() && data.enable_mobile_site) {
+      router.push('/mobile/index')
+    } else if (data.index_page) {
       router.push(data.index_page)
     }
   })
@@ -142,15 +139,6 @@ getSystemInfo()
   })
 
 onMounted(() => {
-  getLicenseInfo()
-    .then((res) => {
-      license.value = res.data
-    })
-    .catch((e) => {
-      license.value = { de_copy: false }
-      ElMessage.error('获取 License 配置失败：' + e.message)
-    })
-
   httpGet('/api/menu/list?index=1')
     .then((res) => {
       navs.value = res.data

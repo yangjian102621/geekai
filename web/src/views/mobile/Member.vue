@@ -1,5 +1,5 @@
 <template>
-  <div class="member-page">
+  <div class="member-page" v-if="menus['/member']?.enabled">
     <div class="member-content" v-loading="loading" :element-loading-text="loadingText">
       <!-- 产品套餐 -->
       <div class="products-section">
@@ -103,14 +103,18 @@
       </div>
     </van-dialog>
   </div>
+  <div v-else>
+    <FunDisabled />
+  </div>
 </template>
 
 <script setup>
 import RedeemVerify from '@/components/RedeemVerify.vue'
 import UserOrder from '@/components/UserOrder.vue'
-import { checkSession, getSystemInfo } from '@/store/cache'
+import { checkSession, getSystemInfo, getMenus } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
+import FunDisabled from '@/components/ui/FunDisabled.vue'
 import QRCode from 'qrcode'
 import { showFailToast, showLoadingToast, showSuccessToast } from 'vant'
 import { onMounted, onUnmounted, ref } from 'vue'
@@ -123,6 +127,7 @@ const loading = ref(true)
 const loadingText = ref('加载中...')
 const vipInfoText = ref('')
 const userOrderKey = ref(0)
+const menus = ref({})
 
 // 弹窗控制
 const showRedeemVerifyDialog = ref(false)
@@ -170,6 +175,14 @@ onMounted(() => {
     })
     .catch((e) => {
       console.error('获取系统配置失败：', e.message)
+    })
+
+  getMenus()
+    .then((data) => {
+      menus.value = data
+    })
+    .catch((e) => {
+      showNotify({ type: 'danger', message: '获取菜单失败：' + e.message })
     })
 })
 

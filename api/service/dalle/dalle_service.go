@@ -16,7 +16,6 @@ import (
 	"geekai/store"
 	"geekai/store/model"
 	"geekai/utils"
-	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -98,10 +97,8 @@ type imgReq struct {
 	Model          string   `json:"model"`
 	Image          []string `json:"image,omitempty"`
 	Prompt         string   `json:"prompt"`
-	N              int      `json:"n,omitempty"`
+	AspectRatio    string   `json:"aspect_ratio,omitempty"`
 	Size           string   `json:"size,omitempty"`
-	Quality        string   `json:"quality,omitempty"`
-	Style          string   `json:"style,omitempty"`
 	ResponseFormat string   `json:"response_format,omitempty"`
 }
 
@@ -116,10 +113,10 @@ type imgRes struct {
 
 type ErrRes struct {
 	Error struct {
-		Code    interface{} `json:"code"`
-		Message string      `json:"message"`
-		Param   interface{} `json:"param"`
-		Type    string      `json:"type"`
+		Code    any    `json:"code"`
+		Message string `json:"message"`
+		Param   any    `json:"param"`
+		Type    string `json:"type"`
 	} `json:"error"`
 }
 
@@ -130,7 +127,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	if task.ModelId > 0 {
 		s.db.Where("id", task.ModelId).First(&chatModel)
 	} else {
-		s.db.Where("value", task.ModelName).First(&chatModel)
+		s.db.Where("value", task.ModelValue).First(&chatModel)
 	}
 
 	// get image generation API KEY
@@ -153,16 +150,16 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	}
 	apiURL := fmt.Sprintf("%s/v1/images/generations", apiKey.ApiURL)
 	reqBody := imgReq{
-		Model:   chatModel.Value,
-		Prompt:  task.Prompt,
-		N:       1,
-		Size:    task.Size,
-		Style:   task.Style,
-		Quality: task.Quality,
+		Model:          chatModel.Value,
+		Prompt:         task.Prompt,
+		AspectRatio:    task.AspectRatio,
+		Size:           task.Size,
+		ResponseFormat: "url",
 	}
+
 	// 图片编辑
 	if len(task.Image) > 0 {
-		reqBody.Prompt = fmt.Sprintf("%s, %s", strings.Join(task.Image, " "), task.Prompt)
+		reqBody.Image = task.Image
 	}
 
 	logger.Infof("Channel:%s, API KEY:%s, BODY: %+v", apiURL, apiKey.Value, reqBody)
@@ -185,7 +182,7 @@ func (s *Service) Image(task types.DallTask, sync bool) (string, error) {
 	// update the api key last use time
 	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	var imgURL string
-	var data = map[string]interface{}{
+	var data = map[string]any{
 		"progress": 100,
 		"prompt":   task.Prompt,
 	}

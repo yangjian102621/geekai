@@ -50,12 +50,6 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref(route.query.tab || 'mj')
-const menus = ref([])
-const activeMenu = ref({
-  mj: false,
-  sd: false,
-  dall: false,
-})
 
 // Tab切换处理
 const onTabChange = (name) => {

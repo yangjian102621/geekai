@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"geekai/core/types"
+	logger2 "geekai/logger"
 	"geekai/utils"
 	"geekai/utils/resp"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 )
+
+var logger = logger2.GetLogger()
 
 // 前端用户授权验证
 func UserAuthMiddleware(secretKey string, redis *redis.Client) gin.HandlerFunc {

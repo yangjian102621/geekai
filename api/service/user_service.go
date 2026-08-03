@@ -70,6 +70,7 @@ func (s *UserService) DecreasePower(userId uint, power int, log model.PowerLog) 
 		return fmt.Errorf("扣减算力失败：%v", err)
 	}
 
+	tx.Where("id", userId).First(&user)
 	err = tx.Create(&model.PowerLog{
 		UserId:    user.Id,
 		Username:  user.Username,

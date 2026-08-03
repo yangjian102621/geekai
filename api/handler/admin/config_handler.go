@@ -26,7 +26,6 @@ import (
 
 type ConfigHandler struct {
 	handler.BaseHandler
-	licenseService  *service.LicenseService
 	sysConfig       *types.SystemConfig
 	alipayService   *payment.AlipayService
 	wxpayService    *payment.WxPayService
@@ -41,7 +40,6 @@ type ConfigHandler struct {
 func NewConfigHandler(
 	app *core.AppServer,
 	db *gorm.DB,
-	licenseService *service.LicenseService,
 	sysConfig *types.SystemConfig,
 	alipayService *payment.AlipayService,
 	wxpayService *payment.WxPayService,
@@ -54,7 +52,6 @@ func NewConfigHandler(
 ) *ConfigHandler {
 	return &ConfigHandler{
 		BaseHandler:     handler.BaseHandler{App: app, DB: db},
-		licenseService:  licenseService,
 		sysConfig:       sysConfig,
 		alipayService:   alipayService,
 		wxpayService:    wxpayService,
@@ -87,8 +84,6 @@ func (h *ConfigHandler) RegisterRoutes() {
 		rg.POST("update/oss", h.UpdateOss)
 		rg.POST("update/smtp", h.UpdateStmp)
 		rg.GET("get", h.Get)
-		rg.POST("license/active", h.Active)
-		rg.GET("license/get", h.GetLicense)
 	}
 }
 
@@ -98,19 +93,6 @@ func (h *ConfigHandler) UpdateBase(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	// 未授权的话不允许修改版权
-	license := h.licenseService.GetLicense()
-	if !license.IsActive && data.Copyright != h.sysConfig.Base.Copyright {
-		resp.ERROR(c, "未授权系统不允许修改版权信息")
-		return
-	}
-
-	// 未授权的话不允许修改 Logo
-	if !license.IsActive && data.Logo != h.sysConfig.Base.Logo {
-		resp.ERROR(c, "未授权系统不允许修改 Logo")
 		return
 	}
 
@@ -406,37 +388,4 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, value)
-}
-
-// Active 激活系统
-func (h *ConfigHandler) Active(c *gin.Context) {
-	var data struct {
-		License string `json:"license"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	err := h.licenseService.ActiveLicense(data.License)
-	license := h.licenseService.GetLicense()
-	if err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	if err := h.Update(types.ConfigKeyLicense, license); err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	// 更新系统配置
-	h.sysConfig.License = *license
-
-	resp.SUCCESS(c, license.MachineId)
-
-}
-
-// GetLicense 获取 License 信息
-func (h *ConfigHandler) GetLicense(c *gin.Context) {
-	license := h.licenseService.GetLicense()
-	resp.SUCCESS(c, license)
 }

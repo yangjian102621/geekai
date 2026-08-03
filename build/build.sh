@@ -15,10 +15,10 @@ cd ../build
 
 # remove docker image if exists
 docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch
-# build docker image for geekai-go
+# build docker image for Geek-AI API
 docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-api:$version-$arch -f dockerfile-api-go ../
 
-# build docker image for geekai-web
+# build docker image for Geek-AI-web
 docker rmi -f registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch
 docker build -t registry.cn-shenzhen.aliyuncs.com/geekmaster/geekai-web:$version-$arch -f dockerfile-web-$arch ../
 

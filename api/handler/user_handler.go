@@ -35,7 +35,6 @@ type UserHandler struct {
 	searcher       *xdb.Searcher
 	redis          *redis.Client
 	levelDB        *store.LevelDB
-	licenseService *service.LicenseService
 	captchaService *service.CaptchaService
 	userService    *service.UserService
 	wxLoginService *service.WxLoginService
@@ -51,15 +50,13 @@ func NewUserHandler(
 	captcha *service.CaptchaService,
 	userService *service.UserService,
 	wxLoginService *service.WxLoginService,
-	ipSearcher *xdb.Searcher,
-	licenseService *service.LicenseService) *UserHandler {
+	ipSearcher *xdb.Searcher) *UserHandler {
 	return &UserHandler{
 		BaseHandler:    BaseHandler{DB: db, App: app},
 		searcher:       searcher,
 		redis:          client,
 		levelDB:        levelDB,
 		captchaService: captcha,
-		licenseService: licenseService,
 		userService:    userService,
 		wxLoginService: wxLoginService,
 		ipSearcher:     ipSearcher,
@@ -129,14 +126,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	data.Password = strings.TrimSpace(data.Password)
 	if len(data.Password) < 8 {
 		resp.ERROR(c, "密码长度不能少于8个字符")
-		return
-	}
-
-	// 检测最大注册人数
-	var totalUser int64
-	h.DB.Model(&model.User{}).Count(&totalUser)
-	if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
-		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
 		return
 	}
 
@@ -327,7 +316,7 @@ func (h *UserHandler) GetWxLoginState(c *gin.Context) {
 }
 
 // createNewUser 创建新用户
-func (h *UserHandler) createNewUser(user model.User, inviteCode string) (model.User, error) {
+func (h *UserHandler) createNewUser(user model.User, code string) (model.User, error) {
 	if user.OpenId != "" {
 		user.Platform = "wechat"
 		user.Nickname = fmt.Sprintf("微信用户@%d", utils.RandomNumber(6))
@@ -353,19 +342,22 @@ func (h *UserHandler) createNewUser(user model.User, inviteCode string) (model.U
 	// 创建用户
 	tx := h.DB.Begin()
 	if err := tx.Create(&user).Error; err != nil {
+		tx.Rollback()
 		return user, err
 	}
 
 	// 记录邀请关系
-	if inviteCode != "" {
-		inviteCode := model.InviteCode{}
-		err := h.DB.Where("code = ?", inviteCode).First(&inviteCode).Error
+	if code != "" {
+		var inviteCode model.InviteCode
+		err := h.DB.Where("code = ?", code).First(&inviteCode).Error
 		if err != nil {
+			logger.Error("无效的邀请码：", err.Error())
+			tx.Rollback()
 			return user, fmt.Errorf("无效的邀请码")
 		}
 
 		// 增加邀请数量
-		h.DB.Model(&model.InviteCode{}).Where("code = ?", inviteCode).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
+		h.DB.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
 		if h.App.SysConfig.Base.InvitePower > 0 {
 			err := h.userService.IncreasePower(inviteCode.UserId, h.App.SysConfig.Base.InvitePower, model.PowerLog{
 				Type:   types.PowerInvite,

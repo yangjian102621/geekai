@@ -41,7 +41,8 @@
         <el-table-column prop="type" label="模型类型">
           <template #default="scope">
             <el-tag type="primary" v-if="scope.row.type === 'img'">绘图</el-tag>
-            <el-tag type="success" v-else>聊天</el-tag>
+            <el-tag type="warning" v-if="scope.row.type === 'tts'">语音</el-tag>
+            <el-tag type="success" v-if="scope.row.type === 'chat'">聊天</el-tag>
           </template>
         </el-table-column>
 
@@ -230,7 +231,7 @@
 <script setup>
 import { httpGet, httpPost } from '@/utils/http'
 import { dateFormat, removeArrayItem, substr } from '@/utils/libs'
-import { DocumentCopy, InfoFilled, Plus, Search, Delete } from '@element-plus/icons-vue'
+import { Delete, DocumentCopy, InfoFilled, Plus, Search } from '@element-plus/icons-vue'
 import ClipboardJS from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Sortable } from 'sortablejs'
@@ -239,7 +240,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue'
 // 变量定义
 const items = ref([])
 const query = ref({ name: '' })
-const item = ref({})
+const item = ref({ options: {} })
 const showDialog = ref(false)
 const title = ref('')
 const rules = reactive({
@@ -353,6 +354,7 @@ const add = function () {
     max_tokens: 1024,
     max_context: 8192,
     temperature: 0.9,
+    options: {},
   }
 }
 

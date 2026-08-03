@@ -9,7 +9,7 @@
         <div v-if="files && files.length > 0" class="file-list-box">
           <div v-for="file in files" :key="file.url">
             <div class="image" v-if="isImage(file.ext)">
-              <el-image :src="file.url" fit="cover" />
+              <el-image :src="file.url" fit="cover" :preview-src-list="[file.url]" />
             </div>
             <div class="item" v-else>
               <div class="icon">

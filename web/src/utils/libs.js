@@ -203,7 +203,7 @@ export function processContent(content) {
   if (content.includes('<think>')) {
     content = content.replace(/<think>(.*?)<\/think>/gs, (match, content) => {
       if (content.length > 10) {
-        return `<blockquote>${content}</blockquote>`
+        return `<blockquote>\n\n${content}</blockquote>`
       }
       return ''
     })

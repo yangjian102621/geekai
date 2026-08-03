@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { checkSession, getSystemInfo } from '@/store/cache'
+import { checkSession, getSystemInfo, getMenus } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { arrayContains, removeArrayItem, showLoginDialog, substr } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
@@ -145,6 +145,7 @@ const features = ref([
     icon: 'icon-dalle',
     color: '#F59E0B',
     url: '/mobile/create?tab=dalle',
+    path: '/dalle',
   },
   {
     key: 'suno',
@@ -152,6 +153,7 @@ const features = ref([
     icon: 'icon-mp3',
     color: '#EF4444',
     url: '/mobile/suno',
+    path: '/suno',
   },
   {
     key: 'video',
@@ -159,6 +161,7 @@ const features = ref([
     icon: 'icon-video',
     color: '#10B981',
     url: '/mobile/video',
+    path: '/video',
   },
   {
     key: 'jimeng',
@@ -166,6 +169,7 @@ const features = ref([
     icon: 'icon-jimeng',
     color: '#F97316',
     url: '/mobile/jimeng',
+    path: '/jimeng',
   },
   {
     key: '3d',
@@ -173,6 +177,7 @@ const features = ref([
     icon: 'icon-3d',
     color: '#8B5CF6',
     url: '/mobile/3d',
+    path: '/3d',
   },
   { key: 'agent', name: '智能体', icon: 'icon-app', color: '#3B82F6', url: '/mobile/apps' },
   {
@@ -181,6 +186,7 @@ const features = ref([
     icon: 'icon-image-list',
     color: '#EC4899',
     url: '/mobile/imgWall',
+    path: '/images-wall',
   },
 ])
 
@@ -224,6 +230,14 @@ onMounted(() => {
       userAvatar.value = user.avatar || '/images/avatar/default.jpg'
     })
     .catch(() => {})
+
+  getMenus()
+    .then((menus) => {
+      features.value = features.value.filter((feature) => menus[feature.path]?.enabled)
+    })
+    .catch((e) => {
+      ElMessage.error('获取菜单失败：' + e.message)
+    })
 
   fetchApps()
 })

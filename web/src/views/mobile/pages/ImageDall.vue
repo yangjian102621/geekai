@@ -1,203 +1,193 @@
 <template>
   <div class="mobile-sd">
-    <van-form>
-      <van-cell-group class="px-3 pt-3 pb-4">
-        <div>
-          <van-field
-            v-model="selectedModel"
-            is-link
-            label="生图模型"
-            placeholder="选择生图模型"
-            @click="showModelPicker = true"
-          />
-          <van-popup v-model:show="showModelPicker" position="bottom" teleport="#app">
-            <van-picker
-              :columns="models"
-              @cancel="showModelPicker = false"
-              @confirm="modelConfirm"
+    <div v-if="menus['/dalle']?.enabled">
+      <van-form>
+        <van-cell-group class="px-3 pt-3 pb-4">
+          <div>
+            <van-field
+              v-model="selectedModel"
+              is-link
+              label="生图模型"
+              placeholder="选择生图模型"
+              @click="showModelPicker = true"
             />
-          </van-popup>
-        </div>
-        <div>
-          <van-field
-            v-model="quality"
-            is-link
-            label="图片质量"
-            placeholder="选择图片质量"
-            @click="showQualityPicker = true"
-          />
-          <van-popup v-model:show="showQualityPicker" position="bottom" teleport="#app">
-            <van-picker
-              :columns="qualities"
-              @cancel="showQualityPicker = false"
-              @confirm="qualityConfirm"
-            />
-          </van-popup>
-        </div>
-
-        <div>
-          <van-field
-            v-model="size"
-            is-link
-            label="图片尺寸"
-            placeholder="选择图片尺寸"
-            @click="showSizePicker = true"
-          />
-          <van-popup v-model:show="showSizePicker" position="bottom" teleport="#app">
-            <van-picker :columns="sizes" @cancel="showSizePicker = false" @confirm="sizeConfirm" />
-          </van-popup>
-        </div>
-
-        <div>
-          <van-field
-            v-model="style"
-            is-link
-            label="图片样式"
-            placeholder="选择图片样式"
-            @click="showStylePicker = true"
-          />
-          <van-popup v-model:show="showStylePicker" position="bottom" teleport="#app">
-            <van-picker
-              :columns="styles"
-              @cancel="showStylePicker = false"
-              @confirm="styleConfirm"
-            />
-          </van-popup>
-        </div>
-
-        <van-field
-          v-model="params.prompt"
-          rows="3"
-          autosize
-          maxlength="2000"
-          type="textarea"
-          placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
-        />
-
-        <div class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm">
-          <button
-            @click="generate"
-            :disabled="loading"
-            type="button"
-            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
-          >
-            <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
-            <i v-else class="iconfont icon-chuangzuo"></i>
-            <span>{{ loading ? '创作中...' : '立即生成' }}({{ dallPower }}算力)</span>
-          </button>
-        </div>
-      </van-cell-group>
-    </van-form>
-
-    <h3 class="m-3">任务列表</h3>
-    <div class="running-job-list pt-3 pb-3">
-      <van-empty
-        v-if="runningJobs.length === 0"
-        image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
-        image-size="80"
-        description="暂无记录"
-      />
-      <van-grid :gutter="10" :column-num="3" v-else>
-        <van-grid-item v-for="item in runningJobs" :key="item.id">
-          <div v-if="item.progress > 0">
-            <van-image src="/images/img-holder.png"></van-image>
-            <div class="progress">
-              <van-circle
-                v-model:current-rate="item.progress"
-                :rate="item.progress"
-                :speed="100"
-                :text="item.progress + '%'"
-                :stroke-width="60"
-                size="90px"
+            <van-popup v-model:show="showModelPicker" position="bottom" teleport="#app">
+              <van-picker
+                :columns="models"
+                @cancel="showModelPicker = false"
+                @confirm="modelConfirm"
               />
+            </van-popup>
+          </div>
+
+          <div>
+            <van-field
+              v-model="aspectRatio"
+              is-link
+              label="图片比例"
+              placeholder="选择图片比例"
+              @click="showSizePicker = true"
+            />
+            <van-popup v-model:show="showSizePicker" position="bottom" teleport="#app">
+              <van-picker
+                :columns="radioAspects"
+                @cancel="showSizePicker = false"
+                @confirm="sizeConfirm"
+              />
+            </van-popup>
+          </div>
+
+          <van-field
+            v-model="params.prompt"
+            rows="3"
+            autosize
+            maxlength="2000"
+            type="textarea"
+            placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
+          />
+
+          <div class="mt-3 mb-3 px-3">
+            <label class="text-gray-700 font-semibold">参考图(可选)</label>
+            <div class="py-2">
+              <ImageUpload v-model="params.image" :max-count="5" :multiple="true" />
             </div>
           </div>
 
-          <div v-else class="task-in-queue">
-            <span class="icon"><i class="iconfont icon-quick-start"></i></span>
-            <span class="text">排队中</span>
+          <div
+            class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm"
+          >
+            <button
+              @click="generate"
+              :disabled="loading"
+              type="button"
+              class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+              <i v-else class="iconfont icon-chuangzuo"></i>
+              <span>{{ loading ? '创作中...' : '立即生成' }}({{ dallPower }}算力)</span>
+            </button>
           </div>
-        </van-grid-item>
-      </van-grid>
-    </div>
+        </van-cell-group>
+      </van-form>
 
-    <h3 class="m-3">创作记录</h3>
-    <div class="finish-job-list">
-      <van-empty
-        v-if="finishedJobs.length === 0"
-        image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
-        image-size="80"
-        description="暂无记录"
-      />
-
-      <van-list
-        v-else
-        v-model:error="error"
-        v-model:loading="loading"
-        :finished="finished"
-        error-text="请求失败，点击重新加载"
-        finished-text="没有更多了"
-        @load="onLoad"
-      >
-        <van-grid :gutter="10" :column-num="2">
-          <van-grid-item v-for="item in finishedJobs" :key="item.id">
-            <div class="failed" v-if="item.progress === 101">
-              <div class="title">任务失败</div>
-              <div class="opt">
-                <van-button size="small" @click="showErrMsg(item)">详情</van-button>
-                <van-button type="danger" @click="removeImage($event, item)" size="small"
-                  >删除</van-button
-                >
+      <h3 class="m-3">任务列表</h3>
+      <div class="running-job-list pt-3 pb-3">
+        <van-empty
+          v-if="runningJobs.length === 0"
+          image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+          image-size="80"
+          description="暂无记录"
+        />
+        <van-grid :gutter="10" :column-num="3" v-else>
+          <van-grid-item v-for="item in runningJobs" :key="item.id">
+            <div v-if="item.progress > 0">
+              <van-image src="/images/img-holder.png"></van-image>
+              <div class="progress">
+                <van-circle
+                  v-model:current-rate="item.progress"
+                  :rate="item.progress"
+                  :speed="100"
+                  :text="item.progress + '%'"
+                  :stroke-width="60"
+                  size="90px"
+                />
               </div>
             </div>
-            <div class="job-item" v-else>
-              <van-image
-                :src="item['img_url']"
-                :class="item['can_opt'] ? '' : 'upscale'"
-                lazy-load
-                @click="imageView(item)"
-                fit="cover"
-              >
-                <template v-slot:loading>
-                  <van-loading type="spinner" size="20" />
-                </template>
-              </van-image>
 
-              <div class="remove">
-                <el-button type="danger" :icon="Delete" @click="removeImage($event, item)" circle />
-                <el-button
-                  type="warning"
-                  v-if="item.publish"
-                  @click="publishImage($event, item, false)"
-                  circle
-                >
-                  <i class="iconfont icon-cancel-share"></i>
-                </el-button>
-                <el-button type="success" v-else @click="publishImage($event, item, true)" circle>
-                  <i class="iconfont icon-share-bold"></i>
-                </el-button>
-                <el-button type="primary" @click="showPrompt(item)" circle>
-                  <i class="iconfont icon-prompt"></i>
-                </el-button>
-              </div>
+            <div v-else class="task-in-queue">
+              <span class="icon"><i class="iconfont icon-quick-start"></i></span>
+              <span class="text">排队中</span>
             </div>
           </van-grid-item>
         </van-grid>
-      </van-list>
+      </div>
+
+      <h3 class="m-3">创作记录</h3>
+      <div class="finish-job-list">
+        <van-empty
+          v-if="finishedJobs.length === 0"
+          image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+          image-size="80"
+          description="暂无记录"
+        />
+
+        <van-list
+          v-else
+          v-model:error="error"
+          v-model:loading="loading"
+          :finished="finished"
+          error-text="请求失败，点击重新加载"
+          finished-text="没有更多了"
+          @load="onLoad"
+        >
+          <van-grid :gutter="10" :column-num="2">
+            <van-grid-item v-for="item in finishedJobs" :key="item.id">
+              <div class="failed" v-if="item.progress === 101">
+                <div class="title">任务失败</div>
+                <div class="opt">
+                  <van-button size="small" @click="showErrMsg(item)">详情</van-button>
+                  <van-button type="danger" @click="removeImage($event, item)" size="small"
+                    >删除</van-button
+                  >
+                </div>
+              </div>
+              <div class="job-item" v-else>
+                <van-image
+                  :src="item['img_url']"
+                  :class="item['can_opt'] ? '' : 'upscale'"
+                  lazy-load
+                  @click="imageView(item)"
+                  fit="cover"
+                >
+                  <template v-slot:loading>
+                    <van-loading type="spinner" size="20" />
+                  </template>
+                </van-image>
+
+                <div class="remove">
+                  <el-button
+                    type="danger"
+                    :icon="Delete"
+                    @click="removeImage($event, item)"
+                    circle
+                  />
+                  <el-button
+                    type="warning"
+                    v-if="item.publish"
+                    @click="publishImage($event, item, false)"
+                    circle
+                  >
+                    <i class="iconfont icon-cancel-share"></i>
+                  </el-button>
+                  <el-button type="success" v-else @click="publishImage($event, item, true)" circle>
+                    <i class="iconfont icon-share-bold"></i>
+                  </el-button>
+                  <el-button type="primary" @click="showPrompt(item)" circle>
+                    <i class="iconfont icon-prompt"></i>
+                  </el-button>
+                </div>
+              </div>
+            </van-grid-item>
+          </van-grid>
+        </van-list>
+      </div>
+      <button
+        style="display: none"
+        class="copy-prompt-dall"
+        :data-clipboard-text="prompt"
+        id="copy-btn-dall"
+      >
+        复制
+      </button>
     </div>
-    <button
-      style="display: none"
-      class="copy-prompt-dall"
-      :data-clipboard-text="prompt"
-      id="copy-btn-dall"
-    >
-      复制
-    </button>
+    <div v-else>
+      <FunDisabled />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { checkSession, getSystemInfo } from '@/store/cache'
+import { checkSession, getSystemInfo, getMenus } from '@/store/cache'
 import { getSessionId } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
@@ -215,52 +205,64 @@ import {
 } from 'vant'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import FunDisabled from '@/components/ui/FunDisabled.vue'
+import ImageUpload from '@/components/ImageUpload.vue'
 
 const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
 const isLogin = ref(false)
+const menus = ref({})
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
   mjBoxHeight.value = window.innerHeight - 150
 }
 
-const qualities = [
-  { text: '标准', value: 'standard' },
-  { text: '高清', value: 'hd' },
-]
-const fluxSizes = [
-  { text: '1024x1024', value: '1024x1024' },
-  { text: '1024x768', value: '1024x768' },
-  { text: '768x1024', value: '768x1024' },
-  { text: '1280x960', value: '1280x960' },
-  { text: '960x1280', value: '960x1280' },
-  { text: '1366x768', value: '1366x768' },
-  { text: '768x1366', value: '768x1366' },
-]
-const dalleSizes = [
-  { text: '1024x1024', value: '1024x1024' },
-  { text: '1792x1024', value: '1792x1024' },
-  { text: '1024x1792', value: '1024x1792' },
-]
-
-let sizes = dalleSizes
-const styles = [
-  { text: '生动', value: 'vivid' },
-  { text: '自然', value: 'natural' },
-]
+// 为了兼容 size 和 aspect_ratio 参数，label 对应的是 aspect_ratio 的值，size 是预估值
+const radioAspects = ref([
+  { value: '1:1', size: '1024x1024', text: '1:1（正方形，头像）', icon: 'icon-aspect_1_1' },
+  {
+    value: '2:3',
+    size: '512x768',
+    text: '2:3（社交媒体，自拍）',
+    icon: 'icon-aspect_2_3',
+  },
+  {
+    value: '4:3',
+    size: '1024x768',
+    text: '4:3（文章配图，插画）',
+    icon: 'icon-aspect_4_3',
+  },
+  {
+    value: '9:16',
+    size: '768x1366',
+    text: '9:16（手机壁纸，人像）',
+    icon: 'icon-aspect_9_16',
+  },
+  {
+    value: '16:9',
+    size: '1366x768',
+    text: '16:9（桌面壁纸，风景）',
+    icon: 'icon-aspect_16_9',
+  },
+  { value: '3:2', size: '768x512', text: '3:2（1248x832）', icon: 'icon-aspect_3_2' },
+  { value: '3:4', size: '960x1280', text: '3:4（864x1152）', icon: 'icon-aspect_3_4' },
+  { value: '4:5', size: '960x1280', text: '4:5（896x1120）', icon: 'icon-aspect_4_5' },
+  {
+    value: '5:4',
+    size: '1280x960',
+    label: '5:4（1120x896）',
+    icon: 'icon-aspect_5_4',
+  },
+  { value: '21:9', size: '1344x576', text: '21:9（1536x658）', icon: 'icon-aspect_16_9' },
+])
 const params = ref({
-  quality: qualities[0].value,
-  size: sizes[0].value,
-  style: styles[0].value,
+  aspect_ratio: '1:1',
+  size: '1024x1024',
   prompt: '',
 })
-const quality = ref(qualities[0].text)
-const size = ref(sizes[0].text)
-const style = ref(styles[0].text)
+const aspectRatio = ref(radioAspects.value[0].text)
 
-const showQualityPicker = ref(false)
-const showStylePicker = ref(false)
 const showSizePicker = ref(false)
 const showModelPicker = ref(false)
 
@@ -312,6 +314,14 @@ onMounted(() => {
     })
     .catch((e) => {
       showMessageError('获取模型列表失败：' + e.message)
+    })
+
+  getMenus()
+    .then((data) => {
+      menus.value = data
+    })
+    .catch((e) => {
+      showNotify({ type: 'danger', message: '获取菜单失败：' + e.message })
     })
 })
 
@@ -408,10 +418,6 @@ const generate = () => {
     promptRef.value.focus()
     return showToast('请输入绘画提示词！')
   }
-
-  if (!params.value.seed) {
-    params.value.seed = -1
-  }
   params.value.session_id = getSessionId()
   httpPost('/api/dall/image', params.value)
     .then(() => {
@@ -492,21 +498,10 @@ const imageView = (item) => {
   showImagePreview([item['img_url']])
 }
 
-const qualityConfirm = (item) => {
-  params.value.quality = item.selectedOptions[0].value
-  quality.value = item.selectedOptions[0].text
-  showQualityPicker.value = false
-}
-
-const styleConfirm = (item) => {
-  params.value.style = item.selectedOptions[0].value
-  style.value = item.selectedOptions[0].text
-  showStylePicker.value = false
-}
-
 const sizeConfirm = (item) => {
-  params.value.size = item.selectedOptions[0].value
-  size.value = item.selectedOptions[0].text
+  params.value.aspect_ratio = item.selectedOptions[0].value
+  params.value.size = item.selectedOptions[0].size
+  aspectRatio.value = item.selectedOptions[0].text
   showSizePicker.value = false
 }
 

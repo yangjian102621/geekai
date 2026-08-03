@@ -225,11 +225,6 @@ const items = [
         title: '菜单配置',
       },
       {
-        icon: 'license',
-        index: '/admin/config/license',
-        title: '授权激活',
-      },
-      {
         icon: 'recharge',
         index: '/admin/config/payment',
         title: '支付配置',

@@ -83,7 +83,7 @@
   width: 100%;
 }
 .el-input__wrapper {
-  background: var(--card-bg);
+  //background: var(--card-bg);
 }
 .el-dialog__title {
   font-weight: bold;
@@ -138,7 +138,8 @@
   border: none;
 }
 
-.el-tag, .el-tag.el-tag--primary {
+.el-tag,
+.el-tag.el-tag--primary {
   --el-tag-bg-color: #f0ebff;
 }
 .box-card {

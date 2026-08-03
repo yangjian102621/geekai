@@ -6,7 +6,7 @@
           <img :src="data.icon" alt="ChatGPT" />
         </div>
         <div class="chat-item">
-          <div class="content-wrapper">
+          <div class="content-wrapper flex-col">
             <div
               class="content"
               v-html="md.render(processContent(data.content.text))"
@@ -14,6 +14,12 @@
             ></div>
             <div class="content flex justify-start items-center" v-else>
               <span class="mr-2">AI 思考中</span> <Thinking :duration="1.5" />
+            </div>
+            <div class="mt-3">
+              <AttachmentList
+                v-if="data.content && data.content.files && data.content.files.length"
+                :files="data.content.files"
+              />
             </div>
           </div>
           <div
@@ -79,6 +85,7 @@ import emoji from 'markdown-it-emoji'
 import mathjaxPlugin from 'markdown-it-mathjax3'
 import { nextTick, onMounted, reactive, ref, watchEffect } from 'vue'
 import Thinking from './Thinking.vue'
+import AttachmentList from './AttachmentList.vue'
 // eslint-disable-next-line no-undef,no-unused-vars
 const props = defineProps({
   data: {
@@ -118,7 +125,7 @@ const md = new MarkdownIt({
     // 显示复制代码按钮和展开/收起按钮
     const copyBtn = `<div class="flex">
       <span class="text-[12px] mr-2 text-[#00e0e0] cursor-pointer expand-btn" data-code-id="${codeIndex}" onclick="window.toggleCodeBlock('${codeIndex}')">收起</span>
-      <span class="copy-code-btn" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
+      <span class="copy-code-btn text-blue-500 text-sm cursor-pointer" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span>
       </div><textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy-target-${codeIndex}">${str.replace(
       /<\/textarea>/g,
       '&lt;/textarea>'
@@ -127,7 +134,7 @@ const md = new MarkdownIt({
     let preCode = ''
     // 处理代码高亮
     if (lang && hl.getLanguage(lang)) {
-      langHtml = `<span class="lang-name">${lang}</span>`
+      langHtml = `<span class="lang-name text-white">${lang}</span>`
       preCode = hl.highlight(str, { language: lang }).value
     } else {
       preCode = md.utils.escapeHtml(str)
@@ -137,7 +144,7 @@ const md = new MarkdownIt({
     return `<pre class="code-container flex flex-col code-expanded" data-code-id="${codeIndex}">
       <div class="flex justify-between bg-[#50505a] w-full rounded-tl-[10px] rounded-tr-[10px] px-3 py-1">${langHtml}${copyBtn}</div>
       <code class="language-${lang} hljs">${preCode}</code> 
-      <span class="copy-code-btn absolute right-3 bottom-3" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span></pre>`
+      <span class="copy-code-btn absolute right-3 bottom-3 text-white text-sm cursor-pointer" data-clipboard-action="copy" data-clipboard-target="#copy-target-${codeIndex}">复制</span></pre>`
   },
 })
 md.use(mathjaxPlugin)
@@ -313,12 +320,26 @@ const setupCodeBlockEvents = () => {
             border-radius: 0 10px 10px 10px;
             width: 100%;
 
+            .code-expanded {
+              position: relative;
+            }
+
+            pre code.hljs {
+              min-width: 100%;
+              max-width: 100%;
+              word-break: break-word;
+            }
+
             p:first-child {
               margin-top: 0;
             }
 
             p:last-child {
               margin-bottom: 0;
+            }
+
+            think {
+              border: 1px solid var(--el-border-color);
             }
           }
         }

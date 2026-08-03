@@ -21,15 +21,19 @@
         </div>
         <div v-else class="upload-item single-image-item">
           <el-image :src="imageList[0]" fit="cover" class="upload-image" />
-          <div class="upload-overlay">
-            <el-button
-              type="danger"
-              :icon="Delete"
-              size="small"
-              circle
-              @click="removeImage(0)"
-              class="remove-btn"
-            />
+          <div class="upload-overlay flex items-center justify-center space-x-2">
+            <el-tooltip content="删除" placement="top">
+              <i
+                class="iconfont icon-remove text-base text-red-500 cursor-pointer"
+                @click="removeImage(index)"
+              ></i>
+            </el-tooltip>
+            <el-tooltip content="预览" placement="top">
+              <i
+                class="iconfont icon-eye-open text-lg text-white cursor-pointer"
+                @click="previewImage(index)"
+              ></i>
+            </el-tooltip>
           </div>
         </div>
       </div>
@@ -40,15 +44,19 @@
       <div class="upload-list" v-if="imageList.length > 0">
         <div v-for="(image, index) in imageList" :key="index" class="upload-item">
           <el-image :src="image" fit="cover" class="upload-image" />
-          <div class="upload-overlay">
-            <el-button
-              type="danger"
-              :icon="Delete"
-              size="small"
-              circle
-              @click="removeImage(index)"
-              class="remove-btn"
-            />
+          <div class="upload-overlay flex items-center justify-center space-x-2">
+            <el-tooltip content="删除" placement="top">
+              <i
+                class="iconfont icon-remove text-base text-red-500 cursor-pointer"
+                @click="removeImage(index)"
+              ></i>
+            </el-tooltip>
+            <el-tooltip content="预览" placement="top">
+              <i
+                class="iconfont icon-eye-open text-lg text-white cursor-pointer"
+                @click="previewImage(index)"
+              ></i>
+            </el-tooltip>
           </div>
         </div>
         <!-- 上传按钮 -->
@@ -100,13 +108,20 @@
       :stroke-width="4"
       class="upload-progress"
     />
+
+    <!-- 图片预览弹窗 -->
+    <el-image-viewer
+      v-if="previewVisible"
+      :url-list="[previewImageSrc]"
+      @close="previewVisible = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { httpPost } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
-import { Delete, UploadFilled } from '@element-plus/icons-vue'
+import { UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { computed, ref } from 'vue'
 
@@ -138,6 +153,8 @@ const emit = defineEmits(['update:modelValue', 'upload-success'])
 // 上传状态
 const uploading = ref(false)
 const uploadProgress = ref(0)
+const previewVisible = ref(false)
+const previewImageSrc = ref('')
 
 // 图片列表
 const imageList = computed({
@@ -224,6 +241,11 @@ const removeImage = (index) => {
   const newList = [...imageList.value]
   newList.splice(index, 1)
   imageList.value = newList
+}
+
+const previewImage = (index) => {
+  previewImageSrc.value = imageList.value[index]
+  previewVisible.value = true
 }
 </script>
 

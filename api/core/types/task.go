@@ -72,14 +72,13 @@ type SdTaskParams struct {
 type DallTask struct {
 	ModelId          uint     `json:"model_id"`
 	ModelName        string   `json:"model_name"`
+	ModelValue       string   `json:"model_value"`
 	Image            []string `json:"image,omitempty"`
 	Id               uint     `json:"id"`
 	UserId           uint     `json:"user_id"`
 	Prompt           string   `json:"prompt"`
-	N                int      `json:"n"`
-	Quality          string   `json:"quality"`
+	AspectRatio      string   `json:"aspect_ratio"`
 	Size             string   `json:"size"`
-	Style            string   `json:"style"`
 	Power            int      `json:"power"`
 	TranslateModelId int      `json:"translate_model_id"` // 提示词翻译模型ID
 }

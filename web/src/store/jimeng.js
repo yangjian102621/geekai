@@ -71,6 +71,7 @@ export const useJimengStore = defineStore('jimeng', () => {
   // 获取任务状态文本
   const getTaskStatusText = (status) => {
     const statusMap = {
+      submited: '任务已提交',
       in_queue: '任务排队中',
       generating: '任务执行中',
       success: '任务成功',

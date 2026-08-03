@@ -20,4 +20,5 @@ type Function struct {
 	Action      string     `json:"action"`
 	Token       string     `json:"token"`
 	Enabled     bool       `json:"enabled"`
+	Power       int        `json:"power"`
 }

@@ -37,7 +37,7 @@
                 <i class="iconfont icon-info"></i>
               </el-tooltip>
             </label>
-            <el-input v-model="smtpConfig.port" type="number" placeholder="请输入端口号" />
+            <el-input v-model.number="smtpConfig.port" type="number" placeholder="请输入端口号" />
           </el-form-item>
 
           <el-form-item label="是否使用TLS"

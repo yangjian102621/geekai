@@ -140,14 +140,9 @@
                     plain
                   >
                     <div class="selected-model-display">
-                      <span class="model-name-text">{{ getSelectedModelName() }}</span>
-                      <el-tag
-                        v-if="getSelectedModel()"
-                        size="small"
-                        type="info"
-                        style="margin-left: 8px; flex-shrink: 0"
-                      >
-                        {{ getSelectedModel() && getSelectedModel().power }}算力
+                      <span class="model-name-text">{{ selectedModel.name }}</span>
+                      <el-tag size="small" type="info" style="margin-left: 8px; flex-shrink: 0">
+                        {{ selectedModel.power }}算力
                       </el-tag>
                     </div>
                   </el-button>
@@ -546,10 +541,10 @@ watch(
 )
 
 // 获取选中的模型名称
-const getSelectedModelName = () => {
+const selectedModel = computed(() => {
   const model = getSelectedModel()
-  return model ? model.name : '选择模型'
-}
+  return model ? model : { name: '选择模型', power: 0 }
+})
 
 // 获取选中的模型
 const getSelectedModel = () => {
@@ -584,10 +579,6 @@ watch(
     stream.value = newValue
   }
 )
-
-if (isMobile()) {
-  router.push('/mobile/chat')
-}
 
 // 初始化角色ID参数
 if (router.currentRoute.value.query.role_id) {
@@ -666,7 +657,7 @@ const initData = async () => {
     // 获取模型列表
     const modelRes = await httpGet('/api/model/list')
     models.value = modelRes.data
-    if (models.value.length > 0) {
+    if (models.value.length > 0 && !modelID.value) {
       modelID.value = models.value[0].id
     }
 

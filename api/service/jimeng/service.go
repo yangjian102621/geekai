@@ -11,6 +11,7 @@ import (
 
 	"geekai/core/types"
 	logger2 "geekai/logger"
+	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store"
 	"geekai/store/model"
@@ -23,29 +24,31 @@ var logger = logger2.GetLogger()
 
 // Service 即梦服务（合并了消费者功能）
 type Service struct {
-	db        *gorm.DB
-	redis     *redis.Client
-	taskQueue *store.RedisQueue
-	client    *Client
-	ctx       context.Context
-	cancel    context.CancelFunc
-	running   bool
-	uploader  *oss.UploaderManager
+	db          *gorm.DB
+	redis       *redis.Client
+	taskQueue   *store.RedisQueue
+	client      *Client
+	ctx         context.Context
+	cancel      context.CancelFunc
+	running     bool
+	uploader    *oss.UploaderManager
+	userService *service.UserService
 }
 
 // NewService 创建即梦服务
-func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManager, client *Client) *Service {
+func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManager, client *Client, userService *service.UserService) *Service {
 	taskQueue := store.NewRedisQueue("JimengTaskQueue", redisCli)
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Service{
-		db:        db,
-		redis:     redisCli,
-		taskQueue: taskQueue,
-		client:    client,
-		ctx:       ctx,
-		cancel:    cancel,
-		running:   false,
-		uploader:  uploader,
+		db:          db,
+		redis:       redisCli,
+		taskQueue:   taskQueue,
+		client:      client,
+		ctx:         ctx,
+		cancel:      cancel,
+		running:     false,
+		uploader:    uploader,
+		userService: userService,
 	}
 }
 
@@ -115,7 +118,7 @@ func (s *Service) CreateTask(userId uint, req *types.JimengTaskRequest) (*model.
 		ReqKey:    req.ReqKey,
 		Prompt:    req.Prompt,
 		Params:    utils.JsonEncode(req),
-		Status:    types.JMTaskStatusInQueue,
+		Status:    types.JMTaskStatusSubmited,
 		Power:     req.Power,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -216,6 +219,7 @@ func (s *Service) ProcessTask(jobId uint) error {
 	if err := s.db.Model(&model.JimengJob{}).Where("id = ?", job.Id).Updates(map[string]any{
 		"task_id":    resp.Data.TaskId,
 		"raw_data":   string(rawData),
+		"status":     types.JMTaskStatusInQueue, // 把任务状态改成排队中，以便开启轮询
 		"updated_at": time.Now(),
 	}).Error; err != nil {
 		logger.Errorf("update jimeng job task_id failed: %v", err)
@@ -277,12 +281,10 @@ func (s *Service) pollTaskStatus() {
 
 	for {
 		var jobs []model.JimengJob
-		s.db.Where("status IN (?)", []types.JMTaskStatus{types.JMTaskStatusGenerating, types.JMTaskStatusInQueue}).Find(&jobs)
-		if len(jobs) == 0 {
-			logger.Debugf("no jimeng task to poll, sleep 10s")
-			time.Sleep(10 * time.Second)
-			continue
-		}
+		// 找出排队中和处理中的任务进行轮询
+		s.db.Where("status IN (?)", []types.JMTaskStatus{
+			types.JMTaskStatusGenerating,
+			types.JMTaskStatusInQueue}).Find(&jobs)
 
 		for _, job := range jobs {
 			// 任务超时处理
@@ -364,6 +366,21 @@ func (s *Service) pollTaskStatus() {
 				logger.Warnf("unknown task status: %s", resp.Data.Status)
 			}
 
+		}
+
+		// 找出失败的任务，并恢复其扣减算力
+		s.db.Where("status = ?", types.JMTaskStatusFailed).Where("power > ?", 0).Find(&jobs)
+		for _, job := range jobs {
+			err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+				Type:   types.PowerRefund,
+				Model:  job.ReqKey,
+				Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
+			})
+			if err != nil {
+				continue
+			}
+			// 更新任务状态
+			s.db.Model(&job).UpdateColumn("power", 0)
 		}
 
 		time.Sleep(5 * time.Second)

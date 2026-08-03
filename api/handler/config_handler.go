@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
@@ -20,11 +19,10 @@ import (
 
 type ConfigHandler struct {
 	BaseHandler
-	licenseService *service.LicenseService
 }
 
-func NewConfigHandler(app *core.AppServer, db *gorm.DB, licenseService *service.LicenseService) *ConfigHandler {
-	return &ConfigHandler{BaseHandler: BaseHandler{App: app, DB: db}, licenseService: licenseService}
+func NewConfigHandler(app *core.AppServer, db *gorm.DB) *ConfigHandler {
+	return &ConfigHandler{BaseHandler: BaseHandler{App: app, DB: db}}
 }
 
 // RegisterRoutes 注册路由
@@ -33,7 +31,6 @@ func (h *ConfigHandler) RegisterRoutes() {
 
 	// 无需授权的接口
 	group.GET("get", h.Get)
-	group.GET("license", h.License)
 }
 
 // Get 获取指定的系统配置
@@ -54,10 +51,4 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, value)
-}
-
-// License 获取 License 配置
-func (h *ConfigHandler) License(c *gin.Context) {
-	license := h.licenseService.GetLicense()
-	resp.SUCCESS(c, license.Configs)
 }

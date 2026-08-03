@@ -215,12 +215,9 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		UserId:           user.Id,
 		Prompt:           prompt,
 		ModelId:          chatModel.Id,
-		ModelName:        chatModel.Value,
+		ModelValue:       chatModel.Value,
+		ModelName:        chatModel.Name,
 		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
-		N:                1,
-		Quality:          "standard",
-		Size:             "1024x1024",
-		Style:            "vivid",
 		Power:            chatModel.Power,
 	}
 	job := model.DallJob{

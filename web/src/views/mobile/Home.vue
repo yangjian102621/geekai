@@ -84,7 +84,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-@use '../../assets/iconfont/iconfont.css' as *;
+@use '@/assets/iconfont/iconfont.css' as *;
 
 .mobile-home {
   .page-content {

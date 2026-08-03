@@ -30,6 +30,7 @@ func NewMenuHandler(app *core.AppServer, db *gorm.DB) *MenuHandler {
 func (h *MenuHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/menu/")
 	group.GET("list", h.List)
+	group.GET("list/all", h.ListAll)
 }
 
 // List 数据列表
@@ -43,6 +44,23 @@ func (h *MenuHandler) List(c *gin.Context) {
 		session = session.Where("id IN ?", h.App.SysConfig.Base.IndexNavs)
 	}
 	res := session.Order("sort_num ASC").Find(&items)
+	if res.Error == nil {
+		for _, item := range items {
+			var product vo.Menu
+			err := utils.CopyObject(item, &product)
+			if err == nil {
+				list = append(list, product)
+			}
+		}
+	}
+	resp.SUCCESS(c, list)
+}
+
+// ListAll 获取所有的菜单列表
+func (h *MenuHandler) ListAll(c *gin.Context) {
+	var items []model.Menu
+	var list = make([]vo.Menu, 0)
+	res := h.DB.Order("sort_num ASC").Find(&items)
 	if res.Error == nil {
 		for _, item := range items {
 			var product vo.Menu

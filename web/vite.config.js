@@ -25,6 +25,23 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE_URL,
     build: {
       outDir: 'dist', // 构建输出目录
+      target: 'esnext', // 允许使用顶层 await 等最新特性
+    },
+
+    // 开发环境与依赖预构建同样对齐到 esnext，避免 esbuild 报错
+    esbuild: {
+      target: 'esnext',
+      supported: {
+        'top-level-await': true,
+      },
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        target: 'esnext',
+        supported: {
+          'top-level-await': true,
+        },
+      },
     },
 
     resolve: {

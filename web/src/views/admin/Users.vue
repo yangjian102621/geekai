@@ -138,12 +138,12 @@
           />
         </el-form-item>
 
-        <el-form-item label="聊天角色" prop="chat_roles">
+        <el-form-item label="应用权限" prop="chat_roles">
           <el-select
             v-model="user.chat_roles"
             multiple
             :filterable="true"
-            placeholder="选择聊天角色，多选"
+            placeholder="选择 AI 应用"
           >
             <el-option v-for="item in roles" :key="item.key" :label="item.name" :value="item.key" />
           </el-select>
@@ -243,8 +243,6 @@ const rules = reactive({
     { required: true, message: '请输入提问次数' },
     { type: 'number', message: '请输入有效数字' },
   ],
-  chat_roles: [{ required: true, message: '请选择聊天角色', trigger: 'change' }],
-  chat_models: [{ required: true, message: '请选择AI模型', trigger: 'change' }],
 })
 const loading = ref(true)
 

@@ -189,10 +189,11 @@
   }
 
   blockquote {
-    border-left: 4px solid #42b983;
+    border-left: 5px solid #c1c1c1;
     padding: 10px 15px;
     color: #777;
-    background-color: rgba(66, 185, 131, 0.1);
+    background-color: rgba(193, 193, 193, 0.2);
+    border-radius: 10px;
   }
 
   table {

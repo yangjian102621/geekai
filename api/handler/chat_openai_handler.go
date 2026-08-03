@@ -212,6 +212,14 @@ func (h *ChatHandler) sendOpenAiMessage(
 			} else {
 				errMsg = utils.InterfaceToString(apiRes.Data)
 				contents = append(contents, errMsg)
+				// 扣减算力
+				if function.Power > 0 {
+					h.userService.DecreasePower(userVo.Id, function.Power, model.PowerLog{
+						Type:   types.PowerConsume,
+						Model:  function.Name,
+						Remark: fmt.Sprintf("函数调用，%s(%s)", function.Label, function.Name),
+					})
+				}
 			}
 			pushMessage(c, "text", errMsg)
 		}

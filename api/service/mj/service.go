@@ -203,8 +203,8 @@ func (s *Service) SyncTaskProgress() {
 	go func() {
 		var jobs []model.MidJourneyJob
 		for {
-			err := s.db.Where("progress < ?", 100).Find(&jobs).Error
-			if err != nil {
+			res := s.db.Where("progress < ?", 100).Where("channel_id <> ?", "").Find(&jobs)
+			if res.Error != nil {
 				continue
 			}
 
@@ -214,10 +214,6 @@ func (s *Service) SyncTaskProgress() {
 					job.Progress = service.FailTaskProgress
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
-					continue
-				}
-
-				if job.ChannelId == "" {
 					continue
 				}
 

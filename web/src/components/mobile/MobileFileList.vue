@@ -8,8 +8,17 @@
         isImage(f.ext) ? 'p-0' : 'p-2',
       ]"
     >
-      <div v-if="isImage(f.ext)" class="relative w-[56px] h-[56px] overflow-hidden rounded-lg">
-        <img :src="f.url" alt="img" class="w-full h-full object-cover" />
+      <div
+        v-if="isImage(f.ext)"
+        class="relative max-w-[200px] max-h-[200px] overflow-hidden rounded-lg"
+      >
+        <el-image
+          :src="f.url"
+          alt="img"
+          class="w-full h-full"
+          :preview-src-list="[f.url]"
+          fit="cover"
+        />
       </div>
       <div v-else :class="['flex items-center', direction === 'col' ? 'w-full' : 'max-w-[240px]']">
         <img :src="GetFileIcon(f.ext)" class="w-10 h-10 mr-2" />

@@ -101,3 +101,16 @@ func GetImgExt(filename string) string {
 	}
 	return ext
 }
+
+func GetFileSize(url string) (int64, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+	return int64(len(body)), nil
+}

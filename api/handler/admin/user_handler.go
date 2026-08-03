@@ -13,7 +13,6 @@ import (
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
-	"geekai/service"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -28,12 +27,11 @@ import (
 
 type UserHandler struct {
 	handler.BaseHandler
-	licenseService *service.LicenseService
-	redis          *redis.Client
+	redis *redis.Client
 }
 
-func NewUserHandler(app *core.AppServer, db *gorm.DB, licenseService *service.LicenseService, redisCli *redis.Client) *UserHandler {
-	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, licenseService: licenseService, redis: redisCli}
+func NewUserHandler(app *core.AppServer, db *gorm.DB, redisCli *redis.Client) *UserHandler {
+	return &UserHandler{BaseHandler: handler.BaseHandler{App: app, DB: db}, redis: redisCli}
 }
 
 // RegisterRoutes 注册路由
@@ -114,13 +112,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	// 检测最大注册人数
-	var totalUser int64
-	h.DB.Model(&model.User{}).Count(&totalUser)
-	if h.licenseService.GetLicense().Configs.UserNum > 0 && int(totalUser) >= h.licenseService.GetLicense().Configs.UserNum {
-		resp.ERROR(c, "当前注册用户数已达上限，请请升级 License")
-		return
-	}
 	var user = model.User{}
 	var res *gorm.DB
 	var userVo vo.User
@@ -198,11 +189,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			ChatModels:  utils.JsonEncode(data.ChatModels),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
 		}
-		if h.licenseService.GetLicense().Configs.DeCopy {
-			u.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
-		} else {
-			u.Nickname = fmt.Sprintf("极客学长@%d", utils.RandomNumber(6))
-		}
+		u.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 		res = h.DB.Create(&u)
 		_ = utils.CopyObject(u, &userVo)
 		userVo.Id = u.Id

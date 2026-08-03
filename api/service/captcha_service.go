@@ -20,9 +20,9 @@ type CaptchaService struct {
 	client *req.Client
 }
 
-func NewCaptchaService(captchaConfig types.CaptchaConfig) *CaptchaService {
+func NewCaptchaService(sysConfig *types.SystemConfig) *CaptchaService {
 	return &CaptchaService{
-		config: captchaConfig,
+		config: sysConfig.Captcha,
 		client: req.C().SetTimeout(10 * time.Second),
 	}
 }
@@ -35,7 +35,7 @@ func (s *CaptchaService) GetConfig() types.CaptchaConfig {
 	return s.config
 }
 
-func (s *CaptchaService) Get() (interface{}, error) {
+func (s *CaptchaService) Get() (any, error) {
 	url := fmt.Sprintf("%s/api/captcha/get", types.GeekAPIURL)
 	var res types.BizVo
 	r, err := s.client.R().

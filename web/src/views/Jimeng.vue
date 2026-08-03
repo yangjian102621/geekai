@@ -229,7 +229,6 @@
           >
             <template #default="{ item }">
               <div class="task-item">
-                <!-- 保持原有内容 -->
                 <div class="task-left">
                   <div class="task-preview">
                     <el-image

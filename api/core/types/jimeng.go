@@ -15,7 +15,8 @@ type JimengConfig struct {
 type JMTaskStatus string
 
 const (
-	JMTaskStatusInQueue    = JMTaskStatus("in_queue")   // 任务已提交
+	JMTaskStatusSubmited   = JMTaskStatus("submited")   // 任务已提交
+	JMTaskStatusInQueue    = JMTaskStatus("in_queue")   // 任务排队中
 	JMTaskStatusGenerating = JMTaskStatus("generating") // 任务处理中
 	JMTaskStatusDone       = JMTaskStatus("done")       // 处理完成
 	JMTaskStatusNotFound   = JMTaskStatus("not_found")  // 任务未找到

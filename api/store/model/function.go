@@ -9,6 +9,7 @@ type Function struct {
 	Token       string `gorm:"column:token;type:varchar(255);comment:API授权token" json:"token"`
 	Action      string `gorm:"column:action;type:varchar(255);comment:函数处理 API" json:"action"`
 	Enabled     bool   `gorm:"column:enabled;type:tinyint(1);not null;default:0;comment:是否启用" json:"enabled"`
+	Power       int    `gorm:"column:power;type:int(11);not null;default:0;comment:消费算力点数" json:"power"`
 }
 
 func (m *Function) TableName() string {

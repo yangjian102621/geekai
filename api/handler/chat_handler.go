@@ -19,6 +19,7 @@ import (
 	"geekai/service"
 	"geekai/service/moderation"
 	"geekai/service/oss"
+	"geekai/service/sora"
 	"geekai/store/model"
 	"geekai/store/vo"
 	"geekai/utils"
@@ -65,36 +66,39 @@ type ChatHandler struct {
 	BaseHandler
 	redis             *redis.Client
 	uploadManager     *oss.UploaderManager
-	licenseService    *service.LicenseService
 	ReqCancelFunc     *types.LMap[string, context.CancelFunc] // HttpClient 请求取消 handle function
 	userService       *service.UserService
 	moderationManager *moderation.ServiceManager
 	userLocks         *types.UserLockManager
+	soraService       *sora.SoraService
 }
 
-func NewChatHandler(app *core.AppServer, db *gorm.DB, redis *redis.Client, manager *oss.UploaderManager, licenseService *service.LicenseService, userService *service.UserService, moderationManager *moderation.ServiceManager) *ChatHandler {
+func NewChatHandler(app *core.AppServer,
+	db *gorm.DB,
+	redis *redis.Client,
+	manager *oss.UploaderManager,
+	userService *service.UserService,
+	soraService *sora.SoraService,
+	moderationManager *moderation.ServiceManager) *ChatHandler {
 	return &ChatHandler{
 		BaseHandler:       BaseHandler{App: app, DB: db},
 		redis:             redis,
 		uploadManager:     manager,
-		licenseService:    licenseService,
 		ReqCancelFunc:     types.NewLMap[string, context.CancelFunc](),
 		userService:       userService,
 		moderationManager: moderationManager,
 		userLocks:         types.NewUserLockManager(),
+		soraService:       soraService,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *ChatHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/chat/")
-
-	// 聊天接口不需要授权（已在authConfig中配置）
-	group.Any("message", h.Chat)
-
 	// 其他接口需要用户授权
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
+		group.Any("message", h.Chat)
 		group.GET("list", h.List)
 		group.GET("detail", h.Detail)
 		group.POST("update", h.Update)
@@ -340,14 +344,14 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	for _, file := range input.Files {
 		logger.Debugf("detected file: %+v", file.URL)
 		// 处理图片
-		if isImageURL(file.URL) {
+		if isImageURL(file.URL) || isVideoURL(file.URL) {
 			imgList = append(imgList, gin.H{
 				"type": "image_url",
 				"image_url": gin.H{
 					"url": file.URL,
 				},
 			})
-		} else {
+		} else if isTextURL(file.URL) {
 			// 处理文件，提取文件内容
 			content, err := utils.ReadFileContent(file.URL, h.App.Config.TikaHost)
 			if err != nil {
@@ -408,23 +412,43 @@ func isImageURL(url string) bool {
 		".svg":  true,
 		".ico":  true,
 	}
+	return validImageExts[ext]
+}
 
-	if !validImageExts[ext] {
+// 判断是个链接是否是文本链接
+func isTextURL(url string) bool {
+	// 检查是否是有效的URL
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 		return false
 	}
 
-	// 发送HEAD请求检查Content-Type
-	client := &http.Client{
-		Timeout: 5 * time.Second,
+	// 检查文件扩展名
+	ext := strings.ToLower(path.Ext(url))
+	validTextExts := map[string]bool{
+		".txt":  true,
+		".doc":  true,
+		".docx": true,
+		".pdf":  true,
 	}
-	resp, err := client.Head(url)
-	if err != nil {
+	return validTextExts[ext]
+}
+
+// 判断是个链接是否是视频
+func isVideoURL(url string) bool {
+	// 检查是否是有效的URL
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 		return false
 	}
-	defer resp.Body.Close()
 
-	contentType := resp.Header.Get("Content-Type")
-	return strings.HasPrefix(contentType, "image/")
+	// 检查文件扩展名
+	ext := strings.ToLower(path.Ext(url))
+	validVideoExts := map[string]bool{
+		".mp4": true,
+		".avi": true,
+		".mov": true,
+		".wmv": true,
+	}
+	return validVideoExts[ext]
 }
 
 // Tokens 统计 token 数量
@@ -505,11 +529,6 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, input
 		return nil, errors.New("no available key, please import key")
 	}
 
-	// ONLY allow apiURL in blank list
-	err := h.licenseService.IsValidApiURL(apiKey.ApiURL)
-	if err != nil {
-		return nil, err
-	}
 	logger.Debugf("对话请求消息体：%+v", req)
 	var apiURL string
 	p, _ := url.Parse(apiKey.ApiURL)
@@ -644,6 +663,16 @@ func (h *ChatHandler) saveChatHistory(
 		replyTokens, _ = utils.CalcTokens(message.Content, req.Model)
 		totalTokens = replyTokens + getTotalTokens(req)
 	}
+
+	// 如果是 Sora 相关模型，则下载视频
+	files := make([]vo.File, 0)
+	if strings.HasPrefix(req.Model, "sora") {
+		video, err := h.soraService.DownloadVideoURL(message.Content)
+		if err == nil {
+			files = append(files, *video)
+		}
+	}
+
 	historyReplyMsg := model.ChatMessage{
 		UserId: userVo.Id,
 		ChatId: input.ChatId,
@@ -652,7 +681,7 @@ func (h *ChatHandler) saveChatHistory(
 		Icon:   input.ChatRole.Icon,
 		Content: utils.JsonEncode(vo.MsgContent{
 			Text:  message.Content,
-			Files: input.Files,
+			Files: files,
 		}),
 		Tokens:      replyTokens,
 		TotalTokens: totalTokens,
@@ -676,6 +705,7 @@ func (h *ChatHandler) saveChatHistory(
 		if err != nil {
 			content.Text = historyReplyMsg.Content
 		}
+		content.Files = files
 		messageVo.Content = content
 		messageVo.CreatedAt = historyReplyMsg.CreatedAt.Unix()
 		messageVo.UpdatedAt = historyReplyMsg.UpdatedAt.Unix()

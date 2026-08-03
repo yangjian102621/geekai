@@ -1,265 +1,278 @@
 <template>
   <div class="mobile-sd">
-    <van-form>
-      <van-cell-group class="px-3 pt-3 pb-4">
-        <div>
-          <van-field
-            v-model="params.sampler"
-            is-link
-            readonly
-            label="采样方法"
-            placeholder="选择采样方法"
-            @click="showSamplerPicker = true"
-          />
-          <van-popup v-model:show="showSamplerPicker" position="bottom" teleport="#app">
-            <van-picker
-              :columns="samplers"
-              @cancel="showSamplerPicker = false"
-              @confirm="samplerConfirm"
-            />
-          </van-popup>
-        </div>
-
-        <van-field label="图片尺寸">
-          <template #input>
-            <van-row gutter="20">
-              <van-col span="12">
-                <el-input v-model="params.width" size="small" placeholder="宽" />
-              </van-col>
-              <van-col span="12">
-                <el-input v-model="params.height" size="small" placeholder="高" />
-              </van-col>
-            </van-row>
-          </template>
-        </van-field>
-
-        <van-field v-model.number="params.steps" label="迭代步数" placeholder="">
-          <template #right-icon>
-            <van-icon
-              name="info-o"
-              @click="showInfo('值越大则代表细节越多，同时也意味着出图速度越慢，一般推荐20-30')"
-            />
-          </template>
-        </van-field>
-        <van-field v-model.number="params.cfg_scale" label="引导系数" placeholder="">
-          <template #right-icon>
-            <van-icon
-              name="info-o"
-              @click="
-                showInfo('提示词引导系数，图像在多大程度上服从提示词，较低值会产生更有创意的结果')
-              "
-            />
-          </template>
-        </van-field>
-        <van-field v-model.number="params.seed" label="随机因子" placeholder="">
-          <template #right-icon>
-            <van-icon
-              name="info-o"
-              @click="
-                showInfo('随机数种子，相同的种子会得到相同的结果，设置为 -1 则每次随机生成种子')
-              "
-            />
-          </template>
-        </van-field>
-
-        <van-field label="高清修复">
-          <template #input>
-            <van-switch v-model="params.hd_fix" />
-          </template>
-        </van-field>
-
-        <div v-if="params.hd_fix">
+    <div v-if="menus['/sd']?.enabled">
+      <van-form>
+        <van-cell-group class="px-3 pt-3 pb-4">
           <div>
             <van-field
-              v-model="params.hd_scale_alg"
+              v-model="params.sampler"
               is-link
               readonly
-              label="放大算法"
-              placeholder="选择放大算法"
-              @click="showUpscalePicker = true"
+              label="采样方法"
+              placeholder="选择采样方法"
+              @click="showSamplerPicker = true"
             />
-            <van-popup v-model:show="showUpscalePicker" position="bottom" teleport="#app">
+            <van-popup v-model:show="showSamplerPicker" position="bottom" teleport="#app">
               <van-picker
-                :columns="upscaleAlgArr"
-                @cancel="showUpscalePicker = false"
-                @confirm="upscaleConfirm"
+                :columns="samplers"
+                @cancel="showSamplerPicker = false"
+                @confirm="samplerConfirm"
               />
             </van-popup>
           </div>
 
-          <van-field v-model.number="params.hd_scale" label="放大倍数" />
-          <van-field v-model.number="params.hd_steps" label="迭代步数" />
-
-          <van-field label="重绘幅度">
+          <van-field label="图片尺寸">
             <template #input>
-              <van-slider
-                v-model.number="params.hd_redraw_rate"
-                :max="1"
-                :step="0.1"
-                @update:model-value="showToast('当前值：' + params.hd_redraw_rate)"
-              />
+              <van-row gutter="20">
+                <van-col span="12">
+                  <el-input v-model="params.width" size="small" placeholder="宽" />
+                </van-col>
+                <van-col span="12">
+                  <el-input v-model="params.height" size="small" placeholder="高" />
+                </van-col>
+              </van-row>
             </template>
+          </van-field>
+
+          <van-field v-model.number="params.steps" label="迭代步数" placeholder="">
             <template #right-icon>
               <van-icon
                 name="info-o"
-                @click="showInfo('决定算法对图像内容的影响程度，较大的值将得到越有创意的图像')"
+                @click="showInfo('值越大则代表细节越多，同时也意味着出图速度越慢，一般推荐20-30')"
               />
             </template>
           </van-field>
-        </div>
-
-        <van-field
-          v-model="params.prompt"
-          maxlength="2000"
-          rows="3"
-          autosize
-          type="textarea"
-          placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
-        />
-
-        <van-collapse v-model="activeColspan">
-          <van-collapse-item title="反向提示词" name="neg_prompt">
-            <van-field
-              v-model="params.neg_prompt"
-              rows="3"
-              maxlength="2000"
-              autosize
-              type="textarea"
-              placeholder="不想出现在图片上的元素(例如：树，建筑)"
-            />
-          </van-collapse-item>
-        </van-collapse>
-
-        <div class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm">
-          <button
-            @click="generate"
-            :disabled="loading"
-            type="button"
-            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
-          >
-            <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
-            <i v-else class="iconfont icon-chuangzuo"></i>
-            <span>{{ loading ? '创作中...' : '立即生成' }}({{ sdPower }}算力)</span>
-          </button>
-        </div>
-      </van-cell-group>
-    </van-form>
-
-    <h3 class="m-3">任务列表</h3>
-    <div class="running-job-list pt-3 pb-3">
-      <van-empty
-        v-if="runningJobs.length === 0"
-        image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
-        image-size="80"
-        description="暂无记录"
-      />
-      <van-grid :gutter="10" :column-num="3" v-else>
-        <van-grid-item v-for="item in runningJobs" :key="item.id">
-          <div v-if="item.progress > 0">
-            <van-image src="/images/img-holder.png"></van-image>
-            <div class="progress">
-              <van-circle
-                v-model:current-rate="item.progress"
-                :rate="item.progress"
-                :speed="100"
-                :text="item.progress + '%'"
-                :stroke-width="60"
-                size="90px"
+          <van-field v-model.number="params.cfg_scale" label="引导系数" placeholder="">
+            <template #right-icon>
+              <van-icon
+                name="info-o"
+                @click="
+                  showInfo('提示词引导系数，图像在多大程度上服从提示词，较低值会产生更有创意的结果')
+                "
               />
+            </template>
+          </van-field>
+          <van-field v-model.number="params.seed" label="随机因子" placeholder="">
+            <template #right-icon>
+              <van-icon
+                name="info-o"
+                @click="
+                  showInfo('随机数种子，相同的种子会得到相同的结果，设置为 -1 则每次随机生成种子')
+                "
+              />
+            </template>
+          </van-field>
+
+          <van-field label="高清修复">
+            <template #input>
+              <van-switch v-model="params.hd_fix" />
+            </template>
+          </van-field>
+
+          <div v-if="params.hd_fix">
+            <div>
+              <van-field
+                v-model="params.hd_scale_alg"
+                is-link
+                readonly
+                label="放大算法"
+                placeholder="选择放大算法"
+                @click="showUpscalePicker = true"
+              />
+              <van-popup v-model:show="showUpscalePicker" position="bottom" teleport="#app">
+                <van-picker
+                  :columns="upscaleAlgArr"
+                  @cancel="showUpscalePicker = false"
+                  @confirm="upscaleConfirm"
+                />
+              </van-popup>
             </div>
+
+            <van-field v-model.number="params.hd_scale" label="放大倍数" />
+            <van-field v-model.number="params.hd_steps" label="迭代步数" />
+
+            <van-field label="重绘幅度">
+              <template #input>
+                <van-slider
+                  v-model.number="params.hd_redraw_rate"
+                  :max="1"
+                  :step="0.1"
+                  @update:model-value="showToast('当前值：' + params.hd_redraw_rate)"
+                />
+              </template>
+              <template #right-icon>
+                <van-icon
+                  name="info-o"
+                  @click="showInfo('决定算法对图像内容的影响程度，较大的值将得到越有创意的图像')"
+                />
+              </template>
+            </van-field>
           </div>
 
-          <div v-else class="task-in-queue">
-            <span class="icon"><i class="iconfont icon-quick-start"></i></span>
-            <span class="text">排队中</span>
+          <van-field
+            v-model="params.prompt"
+            maxlength="2000"
+            rows="3"
+            autosize
+            type="textarea"
+            placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
+          />
+
+          <van-collapse v-model="activeColspan">
+            <van-collapse-item title="反向提示词" name="neg_prompt">
+              <van-field
+                v-model="params.neg_prompt"
+                rows="3"
+                maxlength="2000"
+                autosize
+                type="textarea"
+                placeholder="不想出现在图片上的元素(例如：树，建筑)"
+              />
+            </van-collapse-item>
+          </van-collapse>
+
+          <div
+            class="sticky bottom-4 bg-[var(--van-cell-group-background)] rounded-xl p-4 shadow-sm"
+          >
+            <button
+              @click="generate"
+              :disabled="loading"
+              type="button"
+              class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <i v-if="loading" class="iconfont icon-loading animate-spin"></i>
+              <i v-else class="iconfont icon-chuangzuo"></i>
+              <span>{{ loading ? '创作中...' : '立即生成' }}({{ sdPower }}算力)</span>
+            </button>
           </div>
-        </van-grid-item>
-      </van-grid>
-    </div>
+        </van-cell-group>
+      </van-form>
 
-    <h3 class="m-3">创作记录</h3>
-    <div class="finish-job-list">
-      <van-empty
-        v-if="finishedJobs.length === 0"
-        image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
-        image-size="80"
-        description="暂无记录"
-      />
-
-      <van-list
-        v-else
-        v-model:error="error"
-        v-model:loading="loading"
-        :finished="finished"
-        error-text="请求失败，点击重新加载"
-        finished-text="没有更多了"
-        @load="onLoad"
-      >
-        <van-grid :gutter="10" :column-num="2">
-          <van-grid-item v-for="item in finishedJobs" :key="item.id">
-            <div class="failed" v-if="item.progress === 101">
-              <div class="title">任务失败</div>
-              <div class="opt">
-                <van-button size="small" @click="showErrMsg(item)">详情</van-button>
-                <van-button type="danger" @click="removeImage($event, item)" size="small"
-                  >删除</van-button
-                >
+      <h3 class="m-3">任务列表</h3>
+      <div class="running-job-list pt-3 pb-3">
+        <van-empty
+          v-if="runningJobs.length === 0"
+          image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+          image-size="80"
+          description="暂无记录"
+        />
+        <van-grid :gutter="10" :column-num="3" v-else>
+          <van-grid-item v-for="item in runningJobs" :key="item.id">
+            <div v-if="item.progress > 0">
+              <van-image src="/images/img-holder.png"></van-image>
+              <div class="progress">
+                <van-circle
+                  v-model:current-rate="item.progress"
+                  :rate="item.progress"
+                  :speed="100"
+                  :text="item.progress + '%'"
+                  :stroke-width="60"
+                  size="90px"
+                />
               </div>
             </div>
-            <div class="job-item" v-else>
-              <van-image
-                :src="item['img_url']"
-                :class="item['can_opt'] ? '' : 'upscale'"
-                lazy-load
-                @click="imageView(item)"
-                fit="cover"
-              >
-                <template v-slot:loading>
-                  <van-loading type="spinner" size="20" />
-                </template>
-              </van-image>
 
-              <div class="remove">
-                <el-button type="danger" :icon="Delete" @click="removeImage($event, item)" circle />
-                <el-button
-                  type="warning"
-                  v-if="item.publish"
-                  @click="publishImage($event, item, false)"
-                  circle
-                >
-                  <i class="iconfont icon-cancel-share"></i>
-                </el-button>
-                <el-button type="success" v-else @click="publishImage($event, item, true)" circle>
-                  <i class="iconfont icon-share-bold"></i>
-                </el-button>
-                <el-button type="primary" @click="showPrompt(item)" circle>
-                  <i class="iconfont icon-prompt"></i>
-                </el-button>
-              </div>
+            <div v-else class="task-in-queue">
+              <span class="icon"><i class="iconfont icon-quick-start"></i></span>
+              <span class="text">排队中</span>
             </div>
           </van-grid-item>
         </van-grid>
-      </van-list>
+      </div>
+
+      <h3 class="m-3">创作记录</h3>
+      <div class="finish-job-list">
+        <van-empty
+          v-if="finishedJobs.length === 0"
+          image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+          image-size="80"
+          description="暂无记录"
+        />
+
+        <van-list
+          v-else
+          v-model:error="error"
+          v-model:loading="loading"
+          :finished="finished"
+          error-text="请求失败，点击重新加载"
+          finished-text="没有更多了"
+          @load="onLoad"
+        >
+          <van-grid :gutter="10" :column-num="2">
+            <van-grid-item v-for="item in finishedJobs" :key="item.id">
+              <div class="failed" v-if="item.progress === 101">
+                <div class="title">任务失败</div>
+                <div class="opt">
+                  <van-button size="small" @click="showErrMsg(item)">详情</van-button>
+                  <van-button type="danger" @click="removeImage($event, item)" size="small"
+                    >删除</van-button
+                  >
+                </div>
+              </div>
+              <div class="job-item" v-else>
+                <van-image
+                  :src="item['img_url']"
+                  :class="item['can_opt'] ? '' : 'upscale'"
+                  lazy-load
+                  @click="imageView(item)"
+                  fit="cover"
+                >
+                  <template v-slot:loading>
+                    <van-loading type="spinner" size="20" />
+                  </template>
+                </van-image>
+
+                <div class="remove">
+                  <el-button
+                    type="danger"
+                    :icon="Delete"
+                    @click="removeImage($event, item)"
+                    circle
+                  />
+                  <el-button
+                    type="warning"
+                    v-if="item.publish"
+                    @click="publishImage($event, item, false)"
+                    circle
+                  >
+                    <i class="iconfont icon-cancel-share"></i>
+                  </el-button>
+                  <el-button type="success" v-else @click="publishImage($event, item, true)" circle>
+                    <i class="iconfont icon-share-bold"></i>
+                  </el-button>
+                  <el-button type="primary" @click="showPrompt(item)" circle>
+                    <i class="iconfont icon-prompt"></i>
+                  </el-button>
+                </div>
+              </div>
+            </van-grid-item>
+          </van-grid>
+        </van-list>
+      </div>
+      <button
+        style="display: none"
+        class="copy-prompt-sd"
+        :data-clipboard-text="prompt"
+        id="copy-btn-sd"
+      >
+        复制
+      </button>
     </div>
-    <button
-      style="display: none"
-      class="copy-prompt-sd"
-      :data-clipboard-text="prompt"
-      id="copy-btn-sd"
-    >
-      复制
-    </button>
+    <div v-else>
+      <FunDisabled />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { checkSession, getSystemInfo } from '@/store/cache'
+import { checkSession, getSystemInfo, getMenus } from '@/store/cache'
 import { getSessionId } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
 import { showLoginDialog } from '@/utils/libs'
 import { Delete } from '@element-plus/icons-vue'
 import Clipboard from 'clipboard'
+import FunDisabled from '@/components/ui/FunDisabled.vue'
 import {
   showConfirmDialog,
   showDialog,
@@ -276,6 +289,7 @@ const listBoxHeight = ref(window.innerHeight - 40)
 const mjBoxHeight = ref(window.innerHeight - 150)
 const isLogin = ref(false)
 const activeColspan = ref([''])
+const menus = ref({})
 
 window.onresize = () => {
   listBoxHeight.value = window.innerHeight - 40
@@ -351,6 +365,14 @@ onMounted(() => {
     })
     .catch((e) => {
       showNotify({ type: 'danger', message: '获取系统配置失败：' + e.message })
+    })
+
+  getMenus()
+    .then((data) => {
+      menus.value = data
+    })
+    .catch((e) => {
+      showNotify({ type: 'danger', message: '获取菜单失败：' + e.message })
     })
 })
 

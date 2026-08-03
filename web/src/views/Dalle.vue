@@ -3,7 +3,7 @@
     <div class="page-dall">
       <div class="inner custom-scroll">
         <div class="sd-box">
-          <h2>DALL-E 创作中心</h2>
+          <h2 class="!text-[#252f76] py-3">AI图像生成</h2>
 
           <div class="sd-params">
             <el-form :model="params" label-width="80px" label-position="left">
@@ -25,55 +25,25 @@
               </div>
 
               <div class="param-line">
-                <el-form-item label="图片质量">
+                <el-form-item label="图片比例">
                   <template #default>
                     <div class="form-item-inner">
-                      <el-select v-model="params.quality" style="width: 150px">
-                        <el-option
-                          v-for="v in qualities"
-                          :label="v.name"
-                          :value="v.value"
-                          :key="v.value"
-                        />
-                      </el-select>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
-
-              <div class="param-line">
-                <el-form-item label="图片尺寸">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-select v-model="params.size" style="width: 150px">
-                        <el-option v-for="v in sizes" :label="v" :value="v" :key="v" />
-                      </el-select>
-                    </div>
-                  </template>
-                </el-form-item>
-              </div>
-
-              <div class="param-line">
-                <el-form-item label="图片样式">
-                  <template #default>
-                    <div class="form-item-inner">
-                      <el-select v-model="params.style" style="width: 150px">
-                        <el-option
-                          v-for="v in styles"
-                          :label="v.name"
-                          :value="v.value"
-                          :key="v.value"
-                        />
-                      </el-select>
-                      <el-tooltip
-                        content="生动使模型倾向于生成超真实和戏剧性的图像"
-                        raw-content
-                        placement="right"
+                      <el-select
+                        v-model="params.aspect_ratio"
+                        style="width: 150px"
+                        value-key="value"
+                        @change="changeAspectRatio"
                       >
-                        <el-icon class="info-icon">
-                          <InfoFilled />
-                        </el-icon>
-                      </el-tooltip>
+                        <el-option
+                          v-for="v in radioAspects"
+                          :label="v.label"
+                          :value="v.value"
+                          :key="v.value"
+                        >
+                          <i class="iconfont mr-1" :class="v.icon"></i>
+                          {{ v.label }}
+                        </el-option>
+                      </el-select>
                     </div>
                   </template>
                 </el-form-item>
@@ -105,7 +75,12 @@
               <div class="mt-2 mb-2">
                 <label class="text-gray-700 font-semibold">参考图(可选)</label>
                 <div class="py-2">
-                  <ImageUpload v-model="params.image" :max-count="5" :multiple="true" />
+                  <ImageUpload
+                    v-model="params.image"
+                    :max-count="5"
+                    :max-size="20"
+                    :multiple="true"
+                  />
                 </div>
               </div>
             </el-form>
@@ -291,18 +266,18 @@
 import nodata from '@/assets/img/no-data.png'
 
 import BackTop from '@/components/BackTop.vue'
+import ImageUpload from '@/components/ImageUpload.vue'
 import TaskList from '@/components/TaskList.vue'
-import { checkSession, getSystemInfo } from '@/store/cache'
+import { checkSession } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
 import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
-import { Delete, InfoFilled } from '@element-plus/icons-vue'
+import { Delete } from '@element-plus/icons-vue'
 import Clipboard from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
-import ImageUpload from '@/components/ImageUpload.vue'
 
 const listBoxHeight = ref(0)
 // const paramBoxHeight = ref(0)
@@ -321,21 +296,48 @@ resizeElement()
 window.onresize = () => {
   resizeElement()
 }
-const qualities = [
-  { name: '标准', value: 'standard' },
-  { name: '高清', value: 'hd' },
-]
-const dalleSizes = ['1024x1024', '1792x1024', '1024x1792']
-const fluxSizes = ['1024x1024', '1152x896', '896x1152', '1280x960', '1024x576']
-const sizes = ref(dalleSizes)
-const styles = [
-  { name: '生动', value: 'vivid' },
-  { name: '自然', value: 'natural' },
-]
+
+// 为了兼容 size 和 aspect_ratio 参数，label 对应的是 aspect_ratio 的值，size 是预估值
+const radioAspects = ref({
+  '1:1': { value: '1:1', size: '1024x1024', label: '1:1（正方形，头像）', icon: 'icon-aspect_1_1' },
+  '2:3': {
+    value: '2:3',
+    size: '512x768',
+    label: '2:3（社交媒体，自拍）',
+    icon: 'icon-aspect_2_3',
+  },
+  '4:3': {
+    value: '4:3',
+    size: '1024x768',
+    label: '4:3（文章配图，插画）',
+    icon: 'icon-aspect_4_3',
+  },
+  '9:16': {
+    value: '9:16',
+    size: '768x1366',
+    label: '9:16（手机壁纸，人像）',
+    icon: 'icon-aspect_9_16',
+  },
+  '16:9': {
+    value: '16:9',
+    size: '1366x768',
+    label: '16:9（桌面壁纸，风景）',
+    icon: 'icon-aspect_16_9',
+  },
+  '3:2': { value: '3:2', size: '768x512', label: '3:2（1248x832）', icon: 'icon-aspect_3_2' },
+  '3:4': { value: '3:4', size: '960x1280', label: '3:4（864x1152）', icon: 'icon-aspect_3_4' },
+  '4:5': { value: '4:5', size: '960x1280', label: '4:5（896x1120）', icon: 'icon-aspect_4_5' },
+  '5:4': {
+    value: '5:4',
+    size: '1280x960',
+    label: '5:4（1120x896）',
+    icon: 'icon-aspect_5_4',
+  },
+  '21:9': { value: '21:9', size: '1344x576', label: '21:9（1536x658）', icon: 'icon-aspect_16_9' },
+})
 const params = ref({
-  quality: 'standard',
+  aspect_ratio: '1:1',
   size: '1024x1024',
-  style: 'vivid',
   prompt: '',
 })
 
@@ -384,6 +386,11 @@ onUnmounted(() => {
     clearInterval(downloadPullHandler.value)
   }
 })
+
+// 改变图片比例
+const changeAspectRatio = (value) => {
+  params.value.size = radioAspects.value[value].size
+}
 
 const initData = () => {
   checkSession()
@@ -580,11 +587,6 @@ const generatePrompt = () => {
 
 const changeModel = (model) => {
   dallPower.value = model.power
-  if (model.name.startsWith('dall')) {
-    sizes.value = dalleSizes
-  } else {
-    sizes.value = fluxSizes
-  }
   params.value.model_id = selectedModel.value.id
 }
 </script>

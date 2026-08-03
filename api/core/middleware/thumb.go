@@ -14,8 +14,8 @@ import (
 	"golang.org/x/image/webp"
 )
 
-// 静态资源中间件
-func StaticMiddleware() gin.HandlerFunc {
+// 缩略图中间件
+func ThumbMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		url := c.Request.URL.String()

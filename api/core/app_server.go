@@ -44,11 +44,11 @@ func NewServer(appConfig *types.AppConfig, redis *redis.Client, sysConfig *types
 }
 
 func (s *AppServer) Init(client *redis.Client) {
+	s.Engine.Use(middleware.ThumbMiddleware())
 	s.Engine.Use(middleware.ParameterHandlerMiddleware())
 	s.Engine.Use(errorHandler)
 	// 添加静态资源访问
 	s.Engine.Static("/static", s.Config.StaticDir)
-	s.Engine.Use(middleware.StaticMiddleware())
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {

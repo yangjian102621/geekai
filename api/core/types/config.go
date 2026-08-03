@@ -37,22 +37,6 @@ type RedisConfig struct {
 	DB       int
 }
 
-// LicenseKey 存储许可证书的 KEY
-const LicenseKey = "Geek-AI-License"
-
-type License struct {
-	Key       string        `json:"key"`        // 许可证书密钥
-	MachineId string        `json:"machine_id"` // 机器码
-	ExpiredAt int64         `json:"expired_at"` // 过期时间
-	IsActive  bool          `json:"is_active"`  // 是否激活
-	Configs   LicenseConfig `json:"configs"`
-}
-
-type LicenseConfig struct {
-	UserNum int  `json:"user_num"` // 用户数量
-	DeCopy  bool `json:"de_copy"`  // 去版权
-}
-
 func (c RedisConfig) Url() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
@@ -97,6 +81,8 @@ type BaseConfig struct {
 	EmailWhiteList   []string `json:"email_white_list"`   // 邮箱白名单列表
 	AssistantModelId int      `json:"assistant_model_id"` // 用来做提示词,翻译的AI模型 id
 	MaxFileSize      int      `json:"max_file_size"`      // 最大文件大小,单位：MB
+
+	EnableMobileSite bool `json:"enable_mobile_site"` // 是否开启手机站点
 }
 
 type SystemConfig struct {
@@ -108,7 +94,6 @@ type SystemConfig struct {
 	Captcha    CaptchaConfig
 	WxLogin    WxLoginConfig
 	Jimeng     JimengConfig
-	License    License
 	Moderation ModerationConfig
 }
 
@@ -121,7 +106,6 @@ const (
 	ConfigKeyMarkMap    = "mark_map"
 	ConfigKeyCaptcha    = "captcha"
 	ConfigKeyWxLogin    = "wx_login"
-	ConfigKeyLicense    = "license"
 	ConfigKeySms        = "sms"
 	ConfigKeySmtp       = "smtp"
 	ConfigKeyOss        = "oss"

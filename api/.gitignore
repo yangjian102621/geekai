@@ -16,6 +16,7 @@ tmp
 bin
 data
 config.toml
+config.toml.*.bak
 static/upload 
 static/audio
 storage.json 

@@ -82,7 +82,7 @@
                     <span class="username title">账户信息</span>
                   </div>
                 </li>
-                <li v-if="!license.de_copy">
+                <li>
                   <a :href="githubURL" target="_blank" class="flex">
                     <i class="iconfont icon-github"></i>
                     <span class="title">项目源码</span>
@@ -150,10 +150,9 @@
 import LoginDialog from '@/components/LoginDialog.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
 import ConfigDialog from '@/components/UserInfoDialog.vue'
-import { checkSession, getLicenseInfo, getSystemInfo } from '@/store/cache'
+import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import { showMessageError } from '@/utils/dialog'
 import { httpGet } from '@/utils/http'
 import { UserFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -171,7 +170,6 @@ const store = useSharedStore()
 const loginUser = ref({})
 const routerViewKey = ref(0)
 const showConfigDialog = ref(false)
-const license = ref({ de_copy: true })
 const showLoginDialog = ref(false)
 const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 
@@ -261,14 +259,6 @@ onMounted(() => {
       ElMessage.error('获取系统菜单失败：' + e.message)
     })
 
-  getLicenseInfo()
-    .then((res) => {
-      license.value = res.data
-    })
-    .catch((e) => {
-      license.value = { de_copy: false }
-      showMessageError('获取 License 配置：' + e.message)
-    })
   curPath.value = '/' + getFirstPathSegment(window.location.href)
   init()
 })

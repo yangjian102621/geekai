@@ -247,29 +247,11 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 		return
 	}
 
-	tx := h.DB.Begin()
-	if err := tx.Where("id = ? AND user_id = ?", jobId, user.Id).Delete(&model.JimengJob{}).Error; err != nil {
+	if err := h.DB.Where("id = ? AND user_id = ?", jobId, user.Id).Delete(&model.JimengJob{}).Error; err != nil {
 		logger.Errorf("delete jimeng job failed: %v", err)
 		resp.ERROR(c, "删除任务失败")
 		return
 	}
-
-	// 失败任务删除后退回算力
-	if job.Status == types.JMTaskStatusFailed {
-		logger.Infof("delete jimeng job failed, refund power: %d", job.Power)
-		err = h.userService.IncreasePower(user.Id, job.Power, model.PowerLog{
-			Type:   types.PowerRefund,
-			Model:  job.ReqKey,
-			Remark: fmt.Sprintf("删除任务，退回%d算力", job.Power),
-		})
-		if err != nil {
-			resp.ERROR(c, "退回算力失败")
-			tx.Rollback()
-			return
-		}
-	}
-
-	tx.Commit()
 
 	resp.SUCCESS(c, gin.H{})
 }

@@ -39,9 +39,9 @@ const (
 	LoginStatusExpired = "expired" // 登录失效，需要重新登录
 )
 
-func NewWxLoginService(config types.WxLoginConfig, redisClient *redis.Client) *WxLoginService {
+func NewWxLoginService(sysConfig *types.SystemConfig, redisClient *redis.Client) *WxLoginService {
 	return &WxLoginService{
-		config:      config,
+		config:      sysConfig.WxLogin,
 		client:      req.C().SetTimeout(10 * time.Second),
 		redisClient: redisClient,
 	}

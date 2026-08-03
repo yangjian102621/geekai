@@ -42,8 +42,10 @@
 </template>
 
 <script setup>
+import { getMenus } from '@/store/cache'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 
@@ -60,6 +62,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/create?tab=mj',
+    path: '/mj',
   },
   {
     key: 'sd',
@@ -71,6 +74,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/create?tab=sd',
+    path: '/sd',
   },
   {
     key: 'dalle',
@@ -82,6 +86,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/create?tab=dalle',
+    path: '/dalle',
   },
   {
     key: 'suno',
@@ -94,6 +99,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/suno',
+    path: '/suno',
   },
   {
     key: 'video',
@@ -105,6 +111,7 @@ const aiTools = ref([
     status: 'beta',
     statusText: '测试版',
     url: '/mobile/video',
+    path: '/video',
   },
   {
     key: 'jimeng',
@@ -116,6 +123,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/jimeng',
+    path: '/jimeng',
   },
   {
     key: 'imgWall',
@@ -127,6 +135,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/imgWall',
+    path: '/images-wall',
   },
   {
     key: 'apps',
@@ -138,6 +147,7 @@ const aiTools = ref([
     status: 'active',
     statusText: '可用',
     url: '/mobile/apps',
+    path: '/apps',
   },
 ])
 
@@ -149,6 +159,12 @@ const navigateTo = (url) => {
     router.push(url)
   }
 }
+
+onMounted(() => {
+  getMenus().then((menus) => {
+    aiTools.value = aiTools.value.filter((tool) => menus[tool.path]?.enabled)
+  })
+})
 </script>
 
 <style lang="scss" scoped>

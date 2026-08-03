@@ -64,7 +64,7 @@ export const JimengParams = {
           type: 'image',
           required: false,
           placeholder: '请上传图片',
-          maxSize: 10,
+          maxSize: 15,
           multiple: true,
           maxCount: 10,
           accept: '.png,.jpg,.jpeg',

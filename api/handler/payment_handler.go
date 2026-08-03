@@ -138,6 +138,7 @@ func (h *PaymentHandler) SyncOrders() error {
 			}
 		case payment.PayChannelAL:
 			res, err = h.alipayService.Query(order.OrderNo)
+			logger.Debugf("支付宝支付订单状态：%+v", res)
 			if err != nil {
 				logger.Errorf("error with query order info: %v", err)
 				continue

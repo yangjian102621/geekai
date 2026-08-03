@@ -115,7 +115,7 @@
           </el-form-item>
 
           <el-form-item label="版权信息" prop="copyright">
-            <el-input v-model="system['copyright']" placeholder="更改此选项需要获取 License 授权" />
+            <el-input v-model="system['copyright']" placeholder="请输入版权信息" />
           </el-form-item>
 
           <el-form-item label="ICP 备案号" prop="icp">
@@ -251,7 +251,19 @@
           </el-form-item>
         </div>
 
-        <div style="padding: 10px">
+        <el-form-item>
+          <template #label>
+            <div class="label-title">
+              启用手机站
+              <span class="text-xs text-gray-500"
+                >（启用手机站点之后，用户可以在手机上访问网站）</span
+              >
+            </div>
+          </template>
+          <el-switch v-model="system['enable_mobile_site']" />
+        </el-form-item>
+
+        <div class="py-2">
           <el-form-item>
             <el-button type="primary" @click="save">保存</el-button>
           </el-form-item>
@@ -323,6 +335,12 @@ const save = function () {
     if (valid) {
       httpPost('/api/admin/config/update/base', system.value)
         .then(() => {
+          // 动态更新手机站路由
+          if (system.value['enable_mobile_site']) {
+            // addMobileRoutes()
+          } else {
+            // removeMobileRoutes()
+          }
           ElMessage.success('操作成功！')
         })
         .catch((e) => {

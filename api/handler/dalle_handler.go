@@ -117,12 +117,12 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	task := types.DallTask{
 		UserId:           uint(userId),
 		ModelId:          chatModel.Id,
-		ModelName:        chatModel.Value,
+		ModelName:        chatModel.Name,
+		ModelValue:       chatModel.Value,
 		Image:            data.Image,
 		Prompt:           data.Prompt,
-		Quality:          data.Quality,
+		AspectRatio:      data.AspectRatio,
 		Size:             data.Size,
-		Style:            data.Style,
 		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		Power:            chatModel.Power,
 	}
@@ -144,7 +144,7 @@ func (h *DallJobHandler) Image(c *gin.Context) {
 	// 扣减算力
 	err = h.userService.DecreasePower(user.Id, chatModel.Power, model.PowerLog{
 		Type:   types.PowerConsume,
-		Model:  chatModel.Value,
+		Model:  chatModel.Name,
 		Remark: fmt.Sprintf("绘画提示词：%s", utils.CutWords(task.Prompt, 10)),
 	})
 	if err != nil {

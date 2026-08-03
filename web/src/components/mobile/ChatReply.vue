@@ -16,6 +16,10 @@
         </div>
       </div>
 
+      <div class="mt-3">
+        <AttachmentList v-if="files && files.length" :files="files" />
+      </div>
+
       <!-- 操作按钮区域 -->
       <div class="action-buttons" v-if="showActions && orgContent">
         <van-button
@@ -50,7 +54,8 @@ import emoji from 'markdown-it-emoji'
 import mathjaxPlugin from 'markdown-it-mathjax3'
 import { showImagePreview, showNotify } from 'vant'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import Thinking from '../Thinking.vue'
+import AttachmentList from '@/components/AttachmentList.vue'
+import Thinking from '@/components/Thinking.vue'
 
 const props = defineProps({
   content: {
@@ -89,6 +94,8 @@ const props = defineProps({
     default: -1,
   },
 })
+
+const files = computed(() => props.content.files || [])
 
 const emits = defineEmits(['regenerate'])
 const md = new MarkdownIt({

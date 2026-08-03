@@ -85,15 +85,6 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		logger.Error("load system config error: ", err)
 	}
 
-	// 加载许可证配置
-	var license types.License
-	sysConfig.Id = 0
-	db.Where("name", types.ConfigKeyLicense).First(&sysConfig)
-	err = utils.JsonDecode(sysConfig.Value, &license)
-	if err != nil {
-		logger.Error("load license config error: ", err)
-	}
-
 	// 加载验证码配置
 	var captchaConfig types.CaptchaConfig
 	sysConfig.Id = 0
@@ -168,7 +159,6 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 
 	return &types.SystemConfig{
 		Base:       baseConfig,
-		License:    license,
 		SMS:        smsConfig,
 		OSS:        ossConfig,
 		SMTP:       smtpConfig,

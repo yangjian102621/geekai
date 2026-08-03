@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"geekai/core/types"
 	logger2 "geekai/logger"
-	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils"
 	"github.com/imroc/req/v3"
@@ -26,9 +25,8 @@ import (
 
 // Client MidJourney client
 type Client struct {
-	client         *req.Client
-	licenseService *service.LicenseService
-	db             *gorm.DB
+	client *req.Client
+	db     *gorm.DB
 }
 
 type ImageReq struct {
@@ -77,11 +75,10 @@ type QueryRes struct {
 
 var logger = logger2.GetLogger()
 
-func NewClient(licenseService *service.LicenseService, db *gorm.DB) *Client {
+func NewClient(db *gorm.DB) *Client {
 	return &Client{
-		client:         req.C().SetTimeout(time.Minute).SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"),
-		licenseService: licenseService,
-		db:             db,
+		client: req.C().SetTimeout(time.Minute).SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"),
+		db:     db,
 	}
 }
 
@@ -196,10 +193,6 @@ func (c *Client) doRequest(body interface{}, apiPath string, channel string) (Im
 	err := session.Order("last_used_at ASC").First(&apiKey).Error
 	if err != nil {
 		return ImageRes{}, fmt.Errorf("no available MidJourney api key: %v", err)
-	}
-
-	if err = c.licenseService.IsValidApiURL(apiKey.ApiURL); err != nil {
-		return ImageRes{}, err
 	}
 
 	apiURL := fmt.Sprintf("%s/%s", apiKey.ApiURL, apiPath)

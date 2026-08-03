@@ -38,14 +38,14 @@
       </el-tab-pane>
 
       <el-tab-pane label="MinIO" name="minio">
-        <div class="rounded-md bg-blue-100 p-3 text-gray-500 border-blue-500 border-2 text-base">
+        <Alert type="info">
           如果你不知道怎么获取这些配置信息，请参考文档：
           <a
             href="https://docs.geekai.me/plus/config/oss.html#%E6%90%AD%E5%BB%BA-minio-%E5%AD%98%E5%82%A8%E6%9C%8D%E5%8A%A1"
             target="_blank"
             >Minio 配置</a
           >。
-        </div>
+        </Alert>
         <el-form :model="minio" class="mt-4" label-position="top">
           <el-form-item label="Endpoint"><el-input v-model="minio.endpoint" /></el-form-item>
           <el-form-item label="AccessKey"><el-input v-model="minio.access_key" /></el-form-item>
@@ -59,14 +59,14 @@
       </el-tab-pane>
 
       <el-tab-pane label="七牛云" name="qiniu">
-        <div class="rounded-md bg-blue-100 p-3 text-gray-500 border-blue-500 border-2 text-base">
+        <Alert type="info">
           如果你不知道怎么获取这些配置信息，请参考文档：
           <a
             href="https://docs.geekai.me/plus/config/oss.html#%E4%B8%83%E7%89%9B%E4%BA%91-oss-%E9%85%8D%E7%BD%AE"
             target="_blank"
             >七牛云配置</a
           >。
-        </div>
+        </Alert>
         <el-form :model="qiniu" class="mt-4" label-position="top">
           <el-form-item label="Zone">
             <template #label>
@@ -96,6 +96,14 @@
       </el-tab-pane>
 
       <el-tab-pane label="阿里云OSS" name="aliyun">
+        <Alert type="info">
+          如果你不知道怎么获取这些配置信息，请参考文档：
+          <a
+            href="https://docs.geekai.me/plus/config/oss.html#%E9%98%BF%E9%87%8C%E4%BA%91-oss-%E9%85%8D%E7%BD%AE"
+            target="_blank"
+            >阿里云OSS配置</a
+          >。
+        </Alert>
         <el-form :model="aliyun" class="mt-4" label-position="top">
           <el-form-item label="Endpoint"><el-input v-model="aliyun.endpoint" /></el-form-item>
           <el-form-item label="AccessKey"><el-input v-model="aliyun.access_key" /></el-form-item>
@@ -128,11 +136,12 @@
 import { httpGet, httpPost } from '@/utils/http'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
+import Alert from '@/components/ui/Alert.vue'
 
 const loading = ref(true)
 const activeTab = ref('local')
 const active = ref('local')
-const local = ref({ base_path: '', base_url: '' })
+const local = ref({ base_path: './static/upload', base_url: '/static/upload' })
 const minio = ref({
   endpoint: '',
   access_key: '',

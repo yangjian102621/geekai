@@ -11,22 +11,26 @@
         <span class="mr-2">{{ copyRight }}</span>
       </div>
       <div class="flex justify-center text-sm">
-        <a href="https://beian.miit.gov.cn" target="_blank">ICP备案：{{ icp }}</a>
-        <span>|</span>
-        <img :src="gaBeianImg" class="w-4 h-4 mx-1" alt="beian" />
-        <a
-          :href="`http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${getCodeNum(
-            gaBeian
-          )}`"
-          target="_blank"
-          >{{ gaBeian }}</a
-        >
+        <template v-if="icp">
+          <a href="https://beian.miit.gov.cn" target="_blank">ICP备案：{{ icp }}</a>
+        </template>
+        <template v-if="gaBeian">
+          <span>|</span>
+          <img :src="gaBeianImg" class="w-4 h-4 mx-1" alt="beian" />
+          <a
+            :href="`http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${getCodeNum(
+              gaBeian
+            )}`"
+            target="_blank"
+            >{{ gaBeian }}</a
+          >
+        </template>
       </div>
     </div>
   </div>
 </template>
 <script setup>
-import { getLicenseInfo, getSystemInfo } from '@/store/cache'
+import { getSystemInfo } from '@/store/cache'
 import { showMessageError } from '@/utils/dialog'
 import { ref } from 'vue'
 
@@ -36,7 +40,6 @@ const gitURL = ref(import.meta.env.VITE_GITHUB_URL)
 const copyRight = ref('')
 const icp = ref('')
 const gaBeian = ref('')
-const license = ref({})
 const props = defineProps({
   textColor: {
     type: String,
@@ -61,14 +64,6 @@ getSystemInfo()
     showMessageError('获取系统配置失败：' + e.message)
   })
 
-getLicenseInfo()
-  .then((res) => {
-    license.value = res.data
-  })
-  .catch((e) => {
-    showMessageError('获取 License 失败：' + e.message)
-  })
-
 // 获取公安备案号
 const getCodeNum = (code) => {
   // 提取数字
@@ -86,6 +81,7 @@ const getCodeNum = (code) => {
 
 <style scoped lang="scss">
 .foot-container {
+  // 仅在 PC 端 fixed，移动端正常流式布局
   position: fixed;
   left: 0;
   bottom: 0;
@@ -94,6 +90,12 @@ const getCodeNum = (code) => {
   justify-content: center;
   // background: var(--theme-bg);
   margin-top: -4px;
+
+  @media (max-width: 768px) {
+    margin-top: 2rem !important;
+    position: static;
+    margin-top: 0;
+  }
 
   .footer {
     // max-width: 400px;

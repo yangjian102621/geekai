@@ -24,6 +24,7 @@ import (
 	"geekai/service/payment"
 	"geekai/service/sd"
 	"geekai/service/sms"
+	"geekai/service/sora"
 	"geekai/service/suno"
 	"geekai/service/video"
 	"geekai/store"
@@ -166,12 +167,6 @@ func main() {
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
-		// License 服务
-		fx.Provide(service.NewLicenseService),
-		fx.Invoke(func(licenseService *service.LicenseService) {
-			licenseService.SyncLicense()
-		}),
-
 		// Dalle 服务
 		fx.Provide(dalle.NewService),
 		fx.Invoke(func(s *dalle.Service) {
@@ -188,6 +183,9 @@ func main() {
 			s.SyncTaskProgress()
 			s.DownloadImages()
 		}),
+
+		// Sora service
+		fx.Provide(sora.NewSoraService),
 
 		// Stable Diffusion 机器人
 		fx.Provide(sd.NewService),
@@ -222,12 +220,8 @@ func main() {
 		fx.Provide(sms.NewAliYunSmsService),
 		fx.Provide(sms.NewBaoSmsService),
 		fx.Provide(sms.NewSmsManager),
-		fx.Provide(func(config *types.SystemConfig) *service.CaptchaService {
-			return service.NewCaptchaService(config.Captcha)
-		}),
-		fx.Provide(func(config *types.SystemConfig, client *redis.Client) *service.WxLoginService {
-			return service.NewWxLoginService(config.WxLogin, client)
-		}),
+		fx.Provide(service.NewCaptchaService),
+		fx.Provide(service.NewWxLoginService),
 
 		// 支付服务
 		fx.Provide(payment.NewAlipayService),
