@@ -79,10 +79,18 @@
     }
   }
 
-  .menu-list-item:hover,
-  .active {
+  .menu-list-item:hover {
     background: rgba(79, 89, 102, 0.122);
     border-radius: 8px;
+
+    .el-icon {
+      background: transparent !important;
+    }
+  }
+
+  .menu-list-item.active {
+    background: var(--menu-active-bg, rgba(107, 85, 255, 0.15));
+    color: var(--menu-active-color, var(--theme-border-hover));
 
     .el-icon {
       background: transparent !important;
@@ -111,6 +119,7 @@
     cursor: pointer;
     font-weight: 550;
     color: var(--text-theme-color);
+    transition: background 0.2s ease, color 0.2s ease;
 
     &:hover {
       .el-icon {
@@ -128,8 +137,14 @@
     }
 
     &.active {
-      color: var(--text-theme-color);
+      background: var(--menu-active-bg, rgba(107, 85, 255, 0.15));
+      border-radius: 8px;
+      color: var(--menu-active-color, var(--theme-border-hover));
       font-weight: 700;
+
+      .iconfont {
+        color: inherit;
+      }
     }
   }
 
@@ -214,12 +229,16 @@
       }
 
       &:hover {
-        background: rgba(183, 176, 255, 0.5);
+        background: var(--menu-active-bg, rgba(183, 176, 255, 0.5));
       }
     }
 
     li.active {
-      background: rgba(183, 176, 255, 0.5);
+      background: var(--menu-active-bg, rgba(183, 176, 255, 0.5));
+
+      .title {
+        color: var(--menu-active-color, var(--theme-border-hover));
+      }
     }
   }
 

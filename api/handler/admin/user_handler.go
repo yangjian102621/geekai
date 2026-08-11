@@ -8,6 +8,7 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"bytes"
 	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
@@ -17,11 +18,16 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +53,218 @@ func (h *UserHandler) RegisterRoutes() {
 		group.GET("loginLog", h.LoginLog)
 		group.GET("genLoginLink", h.GenLoginLink)
 		group.POST("resetPass", h.ResetPass)
+		group.GET("import/template", h.ImportTemplate)
+		group.POST("import", h.ImportUsers)
 	}
+}
+
+// ImportTemplate 下载用户导入模板
+func (h *UserHandler) ImportTemplate(c *gin.Context) {
+	f := excelize.NewFile()
+	sheetName := "Sheet1"
+	// 表头
+	headers := []string{"用户名", "密码", "手机", "邮箱", "剩余算力", "启用状态"}
+	for i, title := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		_ = f.SetCellValue(sheetName, cell, title)
+	}
+	// 示例数据
+	sample := []interface{}{"user001", "Passw0rd!", "13800000000", "user001@example.com", 100, 1}
+	for i, v := range sample {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 2)
+		_ = f.SetCellValue(sheetName, cell, v)
+	}
+
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		logger.Error("failed to generate user import template: ", err)
+		resp.ERROR(c, "生成模板失败")
+		return
+	}
+
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Content-Disposition", "attachment; filename=\"user_import_template.xlsx\"")
+	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buf.Bytes())
+}
+
+// ImportUsers 批量导入用户
+func (h *UserHandler) ImportUsers(c *gin.Context) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		resp.ERROR(c, "文件上传失败: "+err.Error())
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if ext != ".xlsx" {
+		resp.ERROR(c, "只支持 .xlsx 格式的 Excel 文件")
+		return
+	}
+
+	src, err := fileHeader.Open()
+	if err != nil {
+		resp.ERROR(c, "无法读取上传文件: "+err.Error())
+		return
+	}
+	defer src.Close()
+
+	// 读取到内存，避免多次读取问题
+	var buf bytes.Buffer
+	if _, err = buf.ReadFrom(src); err != nil {
+		resp.ERROR(c, "读取文件内容失败: "+err.Error())
+		return
+	}
+
+	excel, err := excelize.OpenReader(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		resp.ERROR(c, "解析 Excel 失败: "+err.Error())
+		return
+	}
+	defer func() {
+		_ = excel.Close()
+	}()
+
+	rows, err := excel.GetRows("Sheet1")
+	if err != nil {
+		resp.ERROR(c, "读取工作表失败: "+err.Error())
+		return
+	}
+	if len(rows) < 2 {
+		resp.ERROR(c, "Excel 中没有可导入的数据")
+		return
+	}
+
+	type rowError struct {
+		Row   int    `json:"row"`
+		Error string `json:"error"`
+	}
+
+	var (
+		successCount int
+		failedCount  int
+		errorsList   []rowError
+	)
+
+	usernameSet := make(map[string]struct{})
+
+	// 从第二行开始读取
+	for index, row := range rows[1:] {
+		line := index + 2 // Excel 行号
+		if len(row) == 0 {
+			continue
+		}
+
+		get := func(i int) string {
+			if i < len(row) {
+				return strings.TrimSpace(row[i])
+			}
+			return ""
+		}
+
+		username := get(0)
+		password := get(1)
+		mobile := get(2)
+		email := get(3)
+		powerStr := get(4)
+		statusStr := get(5)
+
+		// 基础校验
+		if username == "" {
+			failedCount++
+			errorsList = append(errorsList, rowError{Row: line, Error: "用户名不能为空"})
+			continue
+		}
+		if _, ok := usernameSet[username]; ok {
+			failedCount++
+			errorsList = append(errorsList, rowError{Row: line, Error: "同一文件中用户名重复"})
+			continue
+		}
+		usernameSet[username] = struct{}{}
+
+		if len(password) < 8 || len(password) > 16 {
+			failedCount++
+			errorsList = append(errorsList, rowError{Row: line, Error: "密码必须为 8-16 位"})
+			continue
+		}
+
+		if mobile != "" && len(mobile) != 11 {
+			failedCount++
+			errorsList = append(errorsList, rowError{Row: line, Error: "手机号必须为 11 位"})
+			continue
+		}
+
+		// 解析算力
+		power := 0
+		if powerStr != "" {
+			p, err := strconv.Atoi(powerStr)
+			if err != nil {
+				failedCount++
+				errorsList = append(errorsList, rowError{Row: line, Error: "剩余算力必须为数字"})
+				continue
+			}
+			if p < 0 {
+				failedCount++
+				errorsList = append(errorsList, rowError{Row: line, Error: "剩余算力不能为负数"})
+				continue
+			}
+			power = p
+		}
+
+		// 解析启用状态
+		status := true
+		if statusStr != "" {
+			switch strings.TrimSpace(statusStr) {
+			case "0", "否", "false", "停用":
+				status = false
+			case "1", "是", "true", "启用":
+				status = true
+			default:
+				failedCount++
+				errorsList = append(errorsList, rowError{Row: line, Error: "启用状态只支持 1/是 或 0/否"})
+				continue
+			}
+		}
+
+		// 检查用户名是否已存在
+		var exist model.User
+		if err = h.DB.Where("username = ?", username).First(&exist).Error; err == nil && exist.Id > 0 {
+			failedCount++
+			errorsList = append(errorsList, rowError{Row: line, Error: "用户名已存在"})
+			continue
+		}
+
+		salt := utils.RandString(8)
+		u := model.User{
+			Username:    username,
+			Password:    utils.GenPassword(password, salt),
+			Mobile:      mobile,
+			Email:       email,
+			Avatar:      "/images/avatar/user.png",
+			Salt:        salt,
+			Power:       power,
+			Status:      status,
+			ChatRoles:   utils.JsonEncode([]string{}),
+			ChatConfig:  "{}",
+			ChatModels:  utils.JsonEncode([]int{}),
+			ExpiredTime: 0, // 长期有效
+			Vip:         false,
+		}
+		u.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+
+		if err = h.DB.Create(&u).Error; err != nil {
+			failedCount++
+			errorsList = append(errorsList, rowError{Row: line, Error: "写入数据库失败: " + err.Error()})
+			continue
+		}
+
+		successCount++
+	}
+
+	resp.SUCCESS(c, gin.H{
+		"success": successCount,
+		"failed":  failedCount,
+		"errors":  errorsList,
+	})
 }
 
 // List 用户列表
@@ -96,17 +313,16 @@ func (h *UserHandler) List(c *gin.Context) {
 
 func (h *UserHandler) Save(c *gin.Context) {
 	var data struct {
-		Id          uint     `json:"id"`
-		Password    string   `json:"password"`
-		Username    string   `json:"username"`
-		Mobile      string   `json:"mobile"`
-		Email       string   `json:"email"`
-		ChatRoles   []string `json:"chat_roles"`
-		ChatModels  []int    `json:"chat_models"`
-		ExpiredTime string   `json:"expired_time"`
-		Status      bool     `json:"status"`
-		Vip         bool     `json:"vip"`
-		Power       int      `json:"power"`
+		Id          uint   `json:"id"`
+		Password    string `json:"password"`
+		Username    string `json:"username"`
+		Mobile      string `json:"mobile"`
+		Email       string `json:"email"`
+		ChatModels  []int  `json:"chat_models"`
+		ExpiredTime string `json:"expired_time"`
+		Status      bool   `json:"status"`
+		Vip         bool   `json:"vip"`
+		Power       int    `json:"power"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -128,11 +344,10 @@ func (h *UserHandler) Save(c *gin.Context) {
 		user.Status = data.Status
 		user.Vip = data.Vip
 		user.Power = data.Power
-		user.ChatRoles = utils.JsonEncode(data.ChatRoles)
 		user.ChatModels = utils.JsonEncode(data.ChatModels)
 		user.ExpiredTime = utils.Str2stamp(data.ExpiredTime)
 
-		res = h.DB.Select("username", "mobile", "email", "status", "vip", "power", "chat_roles_json", "chat_models_json", "expired_time").Updates(&user)
+		res = h.DB.Select("username", "mobile", "email", "status", "vip", "power", "chat_models_json", "expired_time").Updates(&user)
 
 		if res.Error != nil {
 			logger.Error("error with update database：", res.Error)
@@ -184,7 +399,6 @@ func (h *UserHandler) Save(c *gin.Context) {
 			Salt:        salt,
 			Power:       data.Power,
 			Status:      true,
-			ChatRoles:   utils.JsonEncode(data.ChatRoles),
 			ChatConfig:  "{}",
 			ChatModels:  utils.JsonEncode(data.ChatModels),
 			ExpiredTime: utils.Str2stamp(data.ExpiredTime),
@@ -278,10 +492,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 		if err = tx.Where("user_id = ?", id).Delete(&model.MidJourneyJob{}).Error; err != nil {
 			break
 		}
-		if err = tx.Where("user_id = ?", id).Delete(&model.SdJob{}).Error; err != nil {
-			break
-		}
-		if err = tx.Where("user_id = ?", id).Delete(&model.DallJob{}).Error; err != nil {
+		if err = tx.Where("user_id = ?", id).Delete(&model.ImageJob{}).Error; err != nil {
 			break
 		}
 		if err = tx.Where("user_id = ?", id).Delete(&model.SunoJob{}).Error; err != nil {

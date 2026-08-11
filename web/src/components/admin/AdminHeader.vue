@@ -158,8 +158,12 @@ const logout = function () {
   overflow: hidden;
   height: 50px;
   font-size: 22px;
-  background-color: var(--chat-content-bg);
+  background: var(--admin-header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--admin-header-border);
   color: var(--theme-text-color-primary);
+  transition: background 0.2s ease, border-color 0.2s ease;
 
   .collapse-btn {
     display: flex;
@@ -167,11 +171,13 @@ const logout = function () {
     align-items: center;
     height: 100%;
     float: left;
-    padding: 0 10px;
+    padding: 0 14px;
     cursor: pointer;
+    transition: background 0.2s ease;
+    border-radius: 0;
 
     &:hover {
-      background-color: #eaecef;
+      background: var(--admin-header-hover);
     }
   }
 
@@ -180,6 +186,16 @@ const logout = function () {
     display: flex;
     align-items: center;
     height: 50px;
+
+    :deep(.el-breadcrumb__item) {
+      .el-breadcrumb__inner {
+        color: var(--theme-text-color-secondary);
+        transition: color 0.2s ease;
+      }
+      &:last-child .el-breadcrumb__inner {
+        color: var(--theme-text-color-primary);
+      }
+    }
   }
 
   .header-right {
@@ -219,20 +235,31 @@ const logout = function () {
 
       .user-name {
         margin-left: 10px;
+        cursor: pointer;
 
         .el-icon {
-          color: #303133;
+          color: var(--theme-text-color-secondary);
+          transition: color 0.2s ease;
+        }
+
+        &:hover .el-icon {
+          color: var(--theme-text-color-primary);
         }
       }
 
       .user-avatar {
+        transition: opacity 0.2s ease;
+      }
+
+      .user-name:hover .user-avatar {
+        opacity: 0.9;
       }
     }
   }
 }
 
 .el-dropdown-link {
-  color: #fff;
+  color: var(--theme-text-color-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -260,8 +287,5 @@ const logout = function () {
       line-height: 1.5;
     }
   }
-}
-
-.admin-header {
 }
 </style>

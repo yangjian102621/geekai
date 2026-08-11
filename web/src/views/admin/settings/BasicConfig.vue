@@ -201,16 +201,6 @@
             </div>
           </el-form-item>
 
-          <el-form-item>
-            <template #label>
-              <div class="label-title">
-                SD反向提示词
-                <span class="text-xs text-gray-500">（Stable-Diffusion 绘画默认反向提示词）</span>
-              </div>
-            </template>
-            <el-input type="textarea" :rows="2" v-model="system['sd_neg_prompt']" placeholder="" />
-          </el-form-item>
-
           <el-form-item label="订单支付超时时间" prop="order_pay_timeout">
             <template #label>
               <div class="label-title">

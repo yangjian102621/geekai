@@ -8,7 +8,7 @@
     :before-close="close"
     title="修改密码"
   >
-    <div class="form px-3" id="password-form">
+    <div class="pt-1" id="password-form">
       <el-form :model="form" label-position="top">
         <el-form-item label="原始密码">
           <el-input v-model="form['old_pass']" type="password" />
@@ -23,7 +23,7 @@
     </div>
 
     <template #footer>
-      <span class="dialog-footer">
+      <span class="pt-1 flex justify-end">
         <el-button @click="close">关闭</el-button>
         <el-button type="primary" @click="save"> 保存 </el-button>
       </span>

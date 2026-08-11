@@ -138,14 +138,13 @@ const userAvatar = ref('/images/avatar/default.jpg')
 // 功能配置
 const features = ref([
   { key: 'mj', name: 'MJ绘画', icon: 'icon-mj', color: '#8B5CF6', url: '/mobile/create?tab=mj' },
-  { key: 'sd', name: 'SD绘画', icon: 'icon-sd', color: '#06B6D4', url: '/mobile/create?tab=sd' },
   {
-    key: 'dalle',
-    name: 'DALL·E',
+    key: 'image',
+    name: 'AI图像生成',
     icon: 'icon-dalle',
     color: '#F59E0B',
-    url: '/mobile/create?tab=dalle',
-    path: '/dalle',
+    url: '/mobile/create?tab=image',
+    path: '/image',
   },
   {
     key: 'suno',
@@ -226,7 +225,7 @@ onMounted(() => {
   checkSession()
     .then((user) => {
       isLogin.value = true
-      roles.value = user.chat_roles
+      roles.value = Array.isArray(user.chat_roles) ? user.chat_roles : []
       userAvatar.value = user.avatar || '/images/avatar/default.jpg'
     })
     .catch(() => {})
@@ -265,20 +264,20 @@ const updateRole = (row, opt) => {
   let actionTitle = ''
   if (opt === 'add') {
     actionTitle = '添加应用'
-    const exists = arrayContains(roles.value, row.key)
+    const exists = arrayContains(roles.value, row.id)
     if (exists) {
       return
     }
-    roles.value.push(row.key)
+    roles.value.push(row.id)
   } else {
     actionTitle = '移除应用'
-    const exists = arrayContains(roles.value, row.key)
+    const exists = arrayContains(roles.value, row.id)
     if (!exists) {
       return
     }
-    roles.value = removeArrayItem(roles.value, row.key)
+    roles.value = removeArrayItem(roles.value, row.id)
   }
-  httpPost('/api/app/update', { keys: roles.value })
+  httpPost('/api/app/workspace', { ids: roles.value })
     .then(() => {
       showNotify({ type: 'success', message: actionTitle + '成功！', duration: 1000 })
     })
@@ -287,8 +286,8 @@ const updateRole = (row, opt) => {
     })
 }
 
-const hasRole = (roleKey) => {
-  return arrayContains(roles.value, roleKey, (v1, v2) => v1 === v2)
+const hasRole = (roleId) => {
+  return arrayContains(roles.value, roleId, (v1, v2) => v1 === v2)
 }
 
 const useRole = (roleId) => {

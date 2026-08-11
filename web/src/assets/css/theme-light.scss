@@ -34,6 +34,8 @@
   --text-theme-color: rgba(43, 54, 116, 1);
   --text-color-primary: rgba(67, 24, 255, 1);
   --line-box: rgba(79, 89, 102, 0.122);
+  --menu-active-bg: rgba(107, 85, 255, 0.3);
+  --menu-active-color: rgba(67, 24, 255, 1);
   --theme-text-color-primary: #000;
   --theme-text-primary: #000;
   --theme-text-color-secondary: #666;
@@ -73,4 +75,19 @@
   --login-text-color: #666;
   --login-link-color: #5b62ce;
   --login-link-hover-bg: rgba(91, 98, 206, 0.1);
+
+  // 管理后台 玻璃拟态（light）
+  --admin-sidebar-bg: rgba(255, 255, 255, 0.85);
+  --admin-sidebar-border: rgba(0, 0, 0, 0.06);
+  --admin-sidebar-active-bg: rgba(107, 85, 255, 0.2);
+  --admin-sidebar-active-border: #6b55ff;
+  --admin-sidebar-text: #374151;
+  --admin-sidebar-text-muted: #6b7280;
+  --admin-header-bg: rgba(255, 255, 255, 0.8);
+  --admin-header-border: rgba(0, 0, 0, 0.06);
+  --admin-header-hover: rgba(107, 85, 255, 0.08);
+  --admin-tags-bg: rgba(255, 255, 255, 0.75);
+  --admin-tags-item-bg: rgba(255, 255, 255, 0.6);
+  --admin-tags-active-bg: rgba(107, 85, 255, 0.25);
+  --admin-tags-border: rgba(0, 0, 0, 0.08);
 }

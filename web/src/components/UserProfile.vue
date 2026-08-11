@@ -43,9 +43,9 @@
           <el-button type="primary" size="small" @click="signIn" class="ml-2">签到</el-button>
         </el-tooltip>
       </el-form-item>
-      <el-form-item label="会员到期时间" v-if="user['expired_time'] > 0">
+      <!-- <el-form-item label="会员到期时间" v-if="user['expired_time'] > 0">
         <el-tag type="danger">{{ dateFormat(user['expired_time']) }}</el-tag>
-      </el-form-item>
+      </el-form-item> -->
 
       <el-row class="opt-line">
         <el-button :dark="false" type="primary" @click="save">保存</el-button>

@@ -123,22 +123,20 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	h.DB.Model(&model.Order{}).Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", zeroTime).Count(&stats.TodayOrders)
 
 	// 图片生成任务统计
-	var mjJobs, sdJobs, dallJobs, jimengImageJobs int64
+	var mjJobs, imageJobs, jimengImageJobs int64
 	h.DB.Model(&model.MidJourneyJob{}).Count(&mjJobs)
-	h.DB.Model(&model.SdJob{}).Count(&sdJobs)
-	h.DB.Model(&model.DallJob{}).Count(&dallJobs)
+	h.DB.Model(&model.ImageJob{}).Count(&imageJobs)
 	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_image", "image_to_image", "image_edit", "image_effects"}).Count(&jimengImageJobs)
-	stats.ImageJobs = mjJobs + sdJobs + dallJobs + jimengImageJobs
+	stats.ImageJobs = mjJobs + imageJobs + jimengImageJobs
 
 	logger.Info("stats.ImageJobs", stats.ImageJobs)
 
 	// 今日图片生成任务统计
-	var todayMjJobs, todaySdJobs, todayDallJobs, todayJimengImageJobs int64
+	var todayMjJobs, todayImageJobs, todayJimengImageJobs int64
 	h.DB.Model(&model.MidJourneyJob{}).Where("created_at > ?", zeroTime).Count(&todayMjJobs)
-	h.DB.Model(&model.SdJob{}).Where("created_at > ?", zeroTime).Count(&todaySdJobs)
-	h.DB.Model(&model.DallJob{}).Where("created_at > ?", zeroTime).Count(&todayDallJobs)
+	h.DB.Model(&model.ImageJob{}).Where("created_at > ?", zeroTime).Count(&todayImageJobs)
 	h.DB.Model(&model.JimengJob{}).Where("type IN ?", []string{"text_to_image", "image_to_image", "image_edit", "image_effects"}).Where("created_at > ?", zeroTime).Count(&todayJimengImageJobs)
-	stats.TodayImageJobs = todayMjJobs + todaySdJobs + todayDallJobs + todayJimengImageJobs
+	stats.TodayImageJobs = todayMjJobs + todayImageJobs + todayJimengImageJobs
 
 	// 视频生成任务统计
 	var videoJobs, jimengVideoJobs int64

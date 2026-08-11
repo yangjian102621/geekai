@@ -1,12 +1,13 @@
 <template>
   <div class="container user-list" v-loading="loading">
-    <div class="handle-box">
+    <div class="handle-box flex">
       <el-input v-model="query.username" placeholder="账号" class="handle-input mr10"></el-input>
       <el-input v-model="query.mobile" placeholder="手机" class="handle-input mr10"></el-input>
       <el-input v-model="query.email" placeholder="邮箱" class="handle-input mr10"></el-input>
       <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
       <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
       <el-button type="danger" :icon="Delete" @click="multipleDelete">删除</el-button>
+      <el-button type="warning" @click="showImportDialog = true">导入用户</el-button>
     </div>
 
     <el-row>
@@ -121,7 +122,13 @@
           <el-input v-model="user.email" autocomplete="off" />
         </el-form-item>
         <el-form-item v-if="add" label="密码：" prop="password">
-          <el-input v-model="user.password" autocomplete="off" placeholder="8-16位" />
+          <el-input
+            v-model="user.password"
+            type="password"
+            show-password
+            autocomplete="off"
+            placeholder="8-16位"
+          />
         </el-form-item>
         <el-form-item label="剩余算力：" prop="power">
           <el-input v-model.number="user.power" autocomplete="off" placeholder="0" />
@@ -136,17 +143,6 @@
             value-format="YYYY-MM-DD HH:mm:ss"
             :disabled-date="disabledDate"
           />
-        </el-form-item>
-
-        <el-form-item label="应用权限" prop="chat_roles">
-          <el-select
-            v-model="user.chat_roles"
-            multiple
-            :filterable="true"
-            placeholder="选择 AI 应用"
-          >
-            <el-option v-for="item in roles" :key="item.key" :label="item.name" :value="item.key" />
-          </el-select>
         </el-form-item>
 
         <el-form-item label="模型权限" prop="chat_models">
@@ -184,7 +180,7 @@
         </el-form-item>
 
         <el-form-item label="新密码：">
-          <el-input v-model="pass.password" autocomplete="off" />
+          <el-input v-model="pass.password" type="password" show-password autocomplete="off" />
         </el-form-item>
       </el-form>
 
@@ -203,12 +199,51 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="showImportDialog" title="批量导入用户" width="50%">
+      <div class="mb-2 text-sm text-gray-500 flex items-center justify-between">
+        <span>仅支持 .xlsx 格式的 Excel 文件。请先下载模板，按要求填写后再上传。</span>
+        <el-button type="primary" link @click="downloadTemplate">下载模板</el-button>
+      </div>
+      <el-upload
+        class="upload-demo"
+        drag
+        :auto-upload="true"
+        :show-file-list="false"
+        :before-upload="beforeImportUpload"
+        :http-request="doImport"
+        accept=".xlsx"
+      >
+        <el-icon class="el-icon--upload"><DocumentCopy /></el-icon>
+        <div class="el-upload__text">将文件拖到此处，或 <em>点击上传</em></div>
+        <template #tip>
+          <div class="el-upload__tip text-gray-500 text-sm">
+            只支持扩展名为 .xlsx 的 Excel 文件。
+          </div>
+        </template>
+      </el-upload>
+
+      <div v-if="importResult" class="mt-4 text-sm">
+        <p>导入成功：{{ importResult.success }} 条，失败：{{ importResult.failed }} 条。</p>
+        <ul v-if="importResult.errors && importResult.errors.length" class="mt-2 text-red-500">
+          <li v-for="err in importResult.errors" :key="err.row">
+            第 {{ err.row }} 行：{{ err.error }}
+          </li>
+        </ul>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showImportDialog = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
-import { httpGet, httpPost } from '@/utils/http'
+import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { dateFormat, disabledDate } from '@/utils/libs'
 import { Delete, DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -221,12 +256,13 @@ const query = ref({ username: '', page: 1, page_size: 15 })
 const title = ref('添加用户')
 const vipImg = ref('/images/menu/member.png')
 const add = ref(true)
-const user = ref({ chat_roles: [], chat_models: [] })
+const user = ref({ chat_models: [] })
 const pass = ref({ username: '', password: '', id: 0 })
-const roles = ref([])
 const models = ref([])
 const showUserEditDialog = ref(false)
 const showResetPassDialog = ref(false)
+const showImportDialog = ref(false)
+const importResult = ref(null)
 const rules = reactive({
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [
@@ -250,15 +286,6 @@ const userEditFormRef = ref(null)
 
 onMounted(() => {
   fetchUserList(users.value.page, users.value.page_size)
-  // 获取角色列表
-  httpGet('/api/admin/role/list')
-    .then((res) => {
-      roles.value = res.data
-    })
-    .catch(() => {
-      ElMessage.error('获取聊天角色失败')
-    })
-
   httpGet('/api/admin/model/list')
     .then((res) => {
       models.value = res.data
@@ -436,6 +463,55 @@ const copyUsername = (username) => {
   } catch (e) {
     ElMessage.error('复制失败')
   }
+}
+
+// 下载导入模板
+const downloadTemplate = () => {
+  httpDownload('/api/admin/user/import/template')
+    .then((response) => {
+      const blob = new Blob([response.data])
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'user_import_template.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    })
+    .catch((e) => {
+      ElMessage.error('下载模板失败：' + (e.message || '未知错误'))
+    })
+}
+
+// 导入前校验
+const beforeImportUpload = (file) => {
+  const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+  if (ext !== '.xlsx') {
+    ElMessage.error('只支持 .xlsx 格式的 Excel 文件')
+    return false
+  }
+  return true
+}
+
+// 执行导入
+const doImport = (option) => {
+  const formData = new FormData()
+  formData.append('file', option.file)
+
+  httpPost('/api/admin/user/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+    .then((res) => {
+      importResult.value = res.data
+      ElMessage.success('导入完成')
+      fetchUserList(users.value.page, users.value.page_size)
+      option.onSuccess(res)
+    })
+    .catch((e) => {
+      ElMessage.error('导入失败：' + (e.message || '未知错误'))
+      option.onError(e)
+    })
 }
 </script>
 

@@ -102,7 +102,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="API KEY：" prop="value">
-          <el-input v-model="item.value" autocomplete="off" />
+          <el-input v-model="item.value" type="password" show-password autocomplete="off" />
         </el-form-item>
         <el-form-item label="API URL：" prop="api_url">
           <el-input
@@ -157,8 +157,7 @@ const title = ref('')
 const types = ref([
   { label: '对话', value: 'chat' },
   { label: 'Midjourney', value: 'mj' },
-  { label: 'Stable-Diffusion', value: 'sd' },
-  { label: 'DALL-E', value: 'dalle' },
+  { label: 'AI图像生成', value: 'image' },
   { label: 'Suno文生歌', value: 'suno' },
   { label: 'Luma视频', value: 'luma' },
   { label: '可灵视频', value: 'keling' },

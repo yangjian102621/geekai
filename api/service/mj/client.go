@@ -12,16 +12,19 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core/types"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"geekai/store/model"
 	"geekai/utils"
-	"github.com/imroc/req/v3"
-	"gorm.io/gorm"
 	"io"
 	"time"
 
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 )
+
+var logger = log.GetLogger()
 
 // Client MidJourney client
 type Client struct {
@@ -72,8 +75,6 @@ type QueryRes struct {
 	Status     string `json:"status"`
 	SubmitTime int    `json:"submitTime"`
 }
-
-var logger = logger2.GetLogger()
 
 func NewClient(db *gorm.DB) *Client {
 	return &Client{
@@ -179,6 +180,28 @@ func (c *Client) Variation(task types.MjTask) (ImageRes, error) {
 	}
 	apiPath := fmt.Sprintf("mj-%s/mj/submit/action", task.Mode)
 
+	return c.doRequest(body, apiPath, task.ChannelId)
+}
+
+// Modal 提交局部重绘（inpaint）/ ZOOM，请求体 taskId 必填（提交成功返回的 taskId，不是查询结果里的 messageId），prompt、maskBase64 可选
+func (c *Client) Modal(task types.MjTask) (ImageRes, error) {
+	apiPath := fmt.Sprintf("mj-%s/mj/submit/modal", task.Mode)
+	taskId := task.TaskId
+	if taskId == "" {
+		taskId = task.MessageId
+	}
+	if taskId == "" {
+		return ImageRes{}, fmt.Errorf("modal 任务缺少原图 taskId（提交成功返回的 ID）")
+	}
+	body := map[string]any{
+		"taskId": taskId,
+	}
+	if task.Prompt != "" {
+		body["prompt"] = task.Prompt
+	}
+	if task.MaskBase64 != "" {
+		body["maskBase64"] = task.MaskBase64
+	}
 	return c.doRequest(body, apiPath, task.ChannelId)
 }
 

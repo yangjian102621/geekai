@@ -15,22 +15,13 @@
             <image-mj />
           </div>
         </CustomTabPane>
-        <CustomTabPane name="sd">
-          <template #label>
-            <i class="iconfont icon-sd mr-1"></i>
-            <span>StableDiffusion</span>
-          </template>
-          <div class="tab-content">
-            <image-sd />
-          </div>
-        </CustomTabPane>
-        <CustomTabPane name="dalle">
+        <CustomTabPane name="image">
           <template #label>
             <i class="iconfont icon-dalle mr-1"></i>
-            <span>Dalle</span>
+            <span>AI图像生成</span>
           </template>
           <div class="tab-content">
-            <image-dall />
+            <image-page />
           </div>
         </CustomTabPane>
       </CustomTabs>
@@ -41,9 +32,8 @@
 <script setup>
 import CustomTabPane from '@/components/ui/CustomTabPane.vue'
 import CustomTabs from '@/components/ui/CustomTabs.vue'
-import ImageDall from '@/views/mobile/pages/ImageDall.vue'
+import ImagePage from '@/views/mobile/pages/Image.vue'
 import ImageMj from '@/views/mobile/pages/ImageMj.vue'
-import ImageSd from '@/views/mobile/pages/ImageSd.vue'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

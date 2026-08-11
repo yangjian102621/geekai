@@ -20,7 +20,6 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -54,33 +53,50 @@ func (h *VideoHandler) RegisterRoutes() {
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
-		group.POST("luma/create", h.LumaCreate)
-		group.POST("keling/create", h.KeLingCreate)
+		group.POST("create", h.Create)
 		group.GET("list", h.List)
 		group.GET("remove", h.Remove)
 		group.GET("publish", h.Publish)
+		group.GET("power-config", h.GetPowerConfig)     // 获取算力配置
+		group.GET("power-by-key", h.GetPowerByPriceKey) // 根据 priceKey 获取算力
 	}
 }
 
-func (h *VideoHandler) LumaCreate(c *gin.Context) {
+type VideoTaskRequest struct {
+	Provider string         `json:"provider"`  // 服务提供商（不带版本号：veo, sora）
+	Model    string         `json:"model"`     // 模型标识（带版本号：veo-2.0, sora-2.0）
+	Prompt   string         `json:"prompt"`    // 提示词
+	Params   map[string]any `json:"params"`    // 模型特定参数
+	PriceKey string         `json:"price_key"` // 价格键（如 "fixed", "5_720P" 等）
+}
 
-	var data struct {
-		Prompt        string `json:"prompt"`
-		FirstFrameImg string `json:"first_frame_img,omitempty"`
-		EndFrameImg   string `json:"end_frame_img,omitempty"`
-		ExpandPrompt  bool   `json:"expand_prompt,omitempty"`
-		Loop          bool   `json:"loop,omitempty"`
-	}
+// Create 统一的创建视频任务接口
+func (h *VideoHandler) Create(c *gin.Context) {
+	var data VideoTaskRequest
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	// 检查 Prompt 长度
+
+	// 验证必填字段
+	if data.Provider == "" {
+		resp.ERROR(c, "provider 不能为空")
+		return
+	}
+	if data.Model == "" {
+		resp.ERROR(c, "model 不能为空")
+		return
+	}
 	if data.Prompt == "" {
-		resp.ERROR(c, "prompt is needed")
+		resp.ERROR(c, "prompt 不能为空")
+		return
+	}
+	if data.PriceKey == "" {
+		resp.ERROR(c, "price_key 不能为空")
 		return
 	}
 
+	// 文本审查
 	if h.App.SysConfig.Moderation.Enable {
 		moderationResult, err := h.moderationManager.GetService().Moderate(data.Prompt)
 		if err != nil {
@@ -101,138 +117,45 @@ func (h *VideoHandler) LumaCreate(c *gin.Context) {
 			resp.ERROR(c, "当前创作内容包含敏感词，请重新输入！")
 			return
 		}
-
 	}
 
+	// 获取用户信息
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 
-	if user.Power < h.App.SysConfig.Base.LumaPower {
-		resp.ERROR(c, "您的算力不足，请充值后再试！")
-		return
-	}
-
-	userId := int(h.GetLoginUserId(c))
-	params := types.LumaVideoParams{
-		PromptOptimize: data.ExpandPrompt,
-		Loop:           data.Loop,
-		StartImgURL:    data.FirstFrameImg,
-		EndImgURL:      data.EndFrameImg,
-	}
-	task := types.VideoTask{
-		UserId:           userId,
-		Type:             types.VideoLuma,
-		Prompt:           data.Prompt,
-		Params:           params,
-		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
-	}
-	// 插入数据库
-	job := model.VideoJob{
-		UserId:   uint(userId),
-		Type:     types.VideoLuma,
-		Prompt:   data.Prompt,
-		Power:    h.App.SysConfig.Base.LumaPower,
-		TaskInfo: utils.JsonEncode(task),
-	}
-	tx := h.DB.Create(&job)
-	if tx.Error != nil {
-		resp.ERROR(c, tx.Error.Error())
-		return
-	}
-
-	// 创建任务
-	task.Id = job.Id
-	h.videoService.PushTask(task)
-
-	// update user's power
-	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
-		Type:   types.PowerConsume,
-		Model:  "luma",
-		Remark: fmt.Sprintf("Luma 文生视频，任务ID：%d", job.Id),
-	})
+	// 计算算力
+	power, err := video.CalculatePower(h.DB, data.Model, data.PriceKey)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	resp.SUCCESS(c)
-}
 
-func (h *VideoHandler) KeLingCreate(c *gin.Context) {
-
-	var data struct {
-		Channel       string              `json:"channel"`
-		TaskType      string              `json:"task_type"`       // 任务类型: text2video/image2video
-		Model         string              `json:"model"`           // 模型: kling-v1-5,kling-v1-6
-		Prompt        string              `json:"prompt"`          // 视频描述
-		NegPrompt     string              `json:"negative_prompt"` // 负面提示词
-		CfgScale      float64             `json:"cfg_scale"`       // 相关性系数(0-1)
-		Mode          string              `json:"mode"`            // 生成模式: std/pro
-		AspectRatio   string              `json:"aspect_ratio"`    // 画面比例: 16:9/9:16/1:1
-		Duration      string              `json:"duration"`        // 视频时长: 5/10
-		CameraControl types.CameraControl `json:"camera_control"`  // 摄像机控制
-		Image         string              `json:"image"`           // 参考图片URL(image2video)
-		ImageTail     string              `json:"image_tail"`      // 尾帧图片URL(image2video)
-	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	user, err := h.GetLoginUser(c)
-	if err != nil {
-		resp.NotAuth(c)
-		return
-	}
-
-	// 计算当前任务所需算力
-	key := fmt.Sprintf("%s_%s_%s", data.Model, data.Mode, data.Duration)
-	power := h.App.SysConfig.Base.KeLingPowers[key]
-	if power == 0 {
-		resp.ERROR(c, "当前模型暂不支持")
-		return
-	}
+	// 检查算力是否充足
 	if user.Power < power {
 		resp.ERROR(c, "您的算力不足，请充值后再试！")
 		return
 	}
 
-	if data.Prompt == "" {
-		resp.ERROR(c, "prompt is needed")
-		return
-	}
-
+	// 构建任务
 	userId := int(h.GetLoginUserId(c))
-	params := types.KeLingVideoParams{
-		TaskType:      data.TaskType,
-		Model:         data.Model,
-		Prompt:        data.Prompt,
-		NegPrompt:     data.NegPrompt,
-		CfgScale:      data.CfgScale,
-		Mode:          data.Mode,
-		AspectRatio:   data.AspectRatio,
-		Duration:      data.Duration,
-		CameraControl: data.CameraControl,
-		Image:         data.Image,
-		ImageTail:     data.ImageTail,
-	}
 	task := types.VideoTask{
 		UserId:           userId,
-		Type:             types.VideoKeLing,
+		Type:             data.Provider, // provider 作为 type
 		Prompt:           data.Prompt,
-		Params:           params,
+		Params:           data.Params,
 		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
-		Channel:          data.Channel,
 	}
+
 	// 插入数据库
 	job := model.VideoJob{
-		UserId:   uint(userId),
-		Type:     types.VideoKeLing,
-		Prompt:   data.Prompt,
-		Power:    power,
-		TaskInfo: utils.JsonEncode(task),
+		UserId: uint(userId),
+		Type:   data.Provider,
+		Prompt: data.Prompt,
+		Power:  power,
+		Params: utils.JsonEncode(task),
 	}
 	tx := h.DB.Create(&job)
 	if tx.Error != nil {
@@ -244,17 +167,52 @@ func (h *VideoHandler) KeLingCreate(c *gin.Context) {
 	task.Id = job.Id
 	h.videoService.PushTask(task)
 
-	// update user's power
+	// 扣减算力
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
-		Model:  "keling",
-		Remark: fmt.Sprintf("keling 文生视频，任务ID：%d", job.Id),
+		Model:  data.Provider,
+		Remark: fmt.Sprintf("%s 视频生成，任务ID：%d", data.Provider, job.Id),
 	})
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	resp.SUCCESS(c)
+
+	resp.SUCCESS(c, gin.H{"job_id": job.Id})
+}
+
+// GetPowerConfig 获取算力配置
+func (h *VideoHandler) GetPowerConfig(c *gin.Context) {
+	config, err := video.GetVideoConfig(h.DB)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, config.VideoPowers)
+}
+
+// GetPowerByPriceKey 根据 modelKey 和 priceKey 获取算力值
+func (h *VideoHandler) GetPowerByPriceKey(c *gin.Context) {
+	modelKey := c.Query("model_key")
+	priceKey := c.Query("price_key")
+
+	if modelKey == "" {
+		resp.ERROR(c, "model_key 不能为空")
+		return
+	}
+	if priceKey == "" {
+		resp.ERROR(c, "price_key 不能为空")
+		return
+	}
+
+	power, err := video.CalculatePower(h.DB, modelKey, priceKey)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, gin.H{"power": power})
 }
 
 func (h *VideoHandler) List(c *gin.Context) {
@@ -268,7 +226,7 @@ func (h *VideoHandler) List(c *gin.Context) {
 		session = session.Where("type", t)
 	}
 	if all {
-		session = session.Where("publish", 0).Where("progress", 100)
+		session = session.Where("publish", 0).Where("status", types.VideoStatusSuccess)
 	} else {
 		session = session.Where("user_id", userId)
 	}
@@ -296,36 +254,51 @@ func (h *VideoHandler) List(c *gin.Context) {
 			continue
 		}
 		item.CreatedAt = v.CreatedAt.Unix()
-		if item.VideoURL == "" {
-			item.VideoURL = v.WaterURL
-		}
-		// 解析任务详情
-		if item.Type == types.VideoKeLing {
+		// 解析任务详情（用于前端展示标签）
+		if v.Params != "" {
 			task := types.VideoTask{}
-			err = utils.JsonDecode(v.TaskInfo, &task)
-			if err != nil {
-				continue
-			}
-			var params types.KeLingVideoParams
-			err = utils.JsonDecode(utils.JsonEncode(task.Params), &params)
-			if err != nil {
-				continue
-			}
-			item.RawData = map[string]interface{}{
-				"task_type":    params.TaskType,
-				"model":        params.Model,
-				"cfg_scale":    params.CfgScale,
-				"mode":         params.Mode,
-				"aspect_ratio": params.AspectRatio,
-				"duration":     params.Duration,
-				"model_name":   fmt.Sprintf("%s_%s_%s", params.Model, params.Mode, params.Duration),
-			}
-
-			// 如果视频URL不为空，则设置为生成成功
-			if item.VideoURL != "" {
-				item.Progress = 100
+			if err := utils.JsonDecode(v.Params, &task); err == nil {
+				// 默认从 params map 中提取常用字段
+				if paramsMap, ok := task.Params.(map[string]any); ok {
+					if item.Params == nil {
+						item.Params = make(map[string]any)
+					}
+					if _, ok := item.Params["task_type"]; !ok {
+						if taskType, ok := paramsMap["task_type"]; ok {
+							item.Params["task_type"] = taskType
+						}
+					}
+					if _, ok := item.Params["model"]; !ok {
+						if modelKey, ok := paramsMap["model"]; ok {
+							item.Params["model"] = modelKey
+						}
+					}
+					if _, ok := item.Params["duration"]; !ok {
+						if duration, ok := paramsMap["duration"]; ok {
+							item.Params["duration"] = duration
+						}
+					}
+					if _, ok := item.Params["size"]; !ok {
+						if size, ok := paramsMap["size"]; ok {
+							item.Params["size"] = size
+						} else if size, ok := paramsMap["resolution"].(string); ok {
+							item.Params["size"] = size
+						}
+					}
+					if _, ok := item.Params["mode"]; !ok {
+						if mode, ok := paramsMap["mode"]; ok {
+							item.Params["mode"] = mode
+						}
+					}
+					if _, ok := item.Params["sound"]; !ok {
+						if sound, ok := paramsMap["sound"]; ok {
+							item.Params["sound"] = sound
+						}
+					}
+				}
 			}
 		}
+
 		items = append(items, item)
 	}
 
@@ -341,9 +314,9 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		resp.ERROR(c, err.Error())
 		return
 	}
-	// 只有失败或者超时的任务才能删除
-	if !(job.Progress == service.FailTaskProgress || time.Now().After(job.CreatedAt.Add(time.Minute*30))) {
-		resp.ERROR(c, "只有失败和超时(30分钟)的任务才能删除！")
+	// 只有失败的任务才能删除
+	if job.Status != types.VideoStatusFailed {
+		resp.ERROR(c, "只有失败的任务才能删除！")
 		return
 	}
 
@@ -355,7 +328,6 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 	}
 
 	// 删除文件
-	_ = h.uploader.GetUploadHandler().Delete(job.CoverURL)
 	_ = h.uploader.GetUploadHandler().Delete(job.VideoURL)
 
 	resp.SUCCESS(c)

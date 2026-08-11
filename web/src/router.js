@@ -34,12 +34,6 @@ const homeRoutes = {
       component: () => import('@/views/ImageMj.vue'),
     },
     {
-      name: 'image-sd',
-      path: '/sd',
-      meta: { title: 'stable diffusion 绘画中心' },
-      component: () => import('@/views/ImageSd.vue'),
-    },
-    {
       name: 'member',
       path: '/member',
       meta: { title: '会员充值中心' },
@@ -53,9 +47,9 @@ const homeRoutes = {
     },
     {
       name: 'images',
-      path: '/images-wall',
+      path: '/gallery',
       meta: { title: '作品展示' },
-      component: () => import('@/views/ImagesWall.vue'),
+      component: () => import('@/views/Gallery.vue'),
     },
     {
       name: 'user-invitation',
@@ -76,10 +70,16 @@ const homeRoutes = {
       component: () => import('@/views/MarkMap.vue'),
     },
     {
-      name: 'dalle',
-      path: '/dalle',
-      meta: { title: 'DALLE-3' },
-      component: () => import('@/views/Dalle.vue'),
+      name: 'image',
+      path: '/image',
+      meta: { title: 'AI图像生成' },
+      component: () => import('@/views/Image.vue'),
+    },
+    {
+      name: 'ppt',
+      path: '/ppt',
+      meta: { title: 'PPT 生成' },
+      component: () => import('@/views/PPTCreate.vue'),
     },
     {
       name: 'suno',
@@ -316,10 +316,16 @@ const routes = [
         component: () => import('@/views/admin/records/ImageList.vue'),
       },
       {
-        path: '/admin/medias',
-        name: 'admin-medias',
-        meta: { title: '音视频管理' },
-        component: () => import('@/views/admin/records/Medias.vue'),
+        path: '/admin/records/suno',
+        name: 'admin-suno',
+        meta: { title: 'Suno音乐管理' },
+        component: () => import('@/views/admin/records/Suno.vue'),
+      },
+      {
+        path: '/admin/records/videos',
+        name: 'admin-videos',
+        meta: { title: '视频任务管理' },
+        component: () => import('@/views/admin/records/Videos.vue'),
       },
       {
         path: '/admin/jimeng/jobs',
@@ -334,6 +340,24 @@ const routes = [
         component: () => import('@/views/admin/jimeng/JimengConfig.vue'),
       },
       {
+        path: '/admin/video/config',
+        name: 'admin-video-config',
+        meta: { title: '视频生成配置' },
+        component: () => import('@/views/admin/video/VideoConfig.vue'),
+      },
+      {
+        path: '/admin/ppt/config',
+        name: 'admin-ppt-config',
+        meta: { title: 'PPT 生成配置' },
+        component: () => import('@/views/admin/settings/PPTConfig.vue'),
+      },
+      {
+        path: '/admin/ppt/jobs',
+        name: 'admin-ppt-jobs',
+        meta: { title: 'PPT 任务列表' },
+        component: () => import('@/views/admin/ppt/PPTJobs.vue'),
+      },
+      {
         path: '/admin/powerLog',
         name: 'admin-power-log',
         meta: { title: '算力日志' },
@@ -344,6 +368,12 @@ const routes = [
         name: 'admin-manger',
         meta: { title: '管理员' },
         component: () => import('@/views/admin/Manager.vue'),
+      },
+      {
+        path: '/admin/config/wechat',
+        name: 'admin-wechat-config',
+        meta: { title: '微信配置' },
+        component: () => import('@/views/admin/settings/WechatConfig.vue'),
       },
     ],
   },
@@ -407,9 +437,9 @@ const mobileRoutes = {
     },
     {
       meta: { title: '作品展示' },
-      path: '/mobile/imgWall',
-      name: 'mobile-img-wall',
-      component: () => import('@/views/mobile/pages/ImgWall.vue'),
+      path: '/mobile/gallery',
+      name: 'mobile-gallery',
+      component: () => import('@/views/mobile/pages/Gallery.vue'),
     },
     {
       path: '/mobile/chat/session',

@@ -347,6 +347,7 @@ import { Checked, Iphone, Lock, Message } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
+import { isWechat } from '@/utils/libs'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 
 // eslint-disable-next-line no-undef
@@ -419,6 +420,45 @@ watch(
 )
 
 onMounted(() => {
+  // 如果是微信浏览器，则尝试获取微信公众号授权登录
+  if (isWechat()) {
+    // 检查 URL 中是否包含 code 参数
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    if (code) {
+      // 可以在这里将 code 发送到后端进行登录验证
+      httpPost('/api/user/wxAuthLogin', { code: code })
+        .then((res) => {
+          setUserToken(res.data.token)
+          store.setIsLogin(true)
+          ElMessage.success('登录成功！')
+          emits('hide')
+          emits('success')
+        })
+        .catch((e) => {
+          ElMessage.error('登录失败，' + e.message)
+        })
+        .finally(() => {
+          loading.value = false
+        })
+    } else {
+      // 如果是微信浏览器，获取微信公众号配置
+      httpGet('/api/config/get?key=wx_gzh')
+        .then((res) => {
+          // 构造微信授权 URL
+          const redirectUri = encodeURIComponent(`${location.protocol}//${location.host}/login`)
+          const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${res.data.app_id}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+
+          // 如果是微信浏览器，直接跳转到授权页面
+          window.location.href = authUrl
+        })
+        .catch((e) => {
+          console.error('获取微信公众号配置失败：', e.message)
+        })
+    }
+  }
+
+  // 获取系统配置
   getSystemInfo()
     .then((res) => {
       if (res.data) {
@@ -447,6 +487,7 @@ onMounted(() => {
       ElMessage.error('获取系统配置失败：' + e.message)
     })
 
+  // 获取验证码配置
   httpGet('/api/captcha/config').then((res) => {
     enableCaptcha.value = res.data['enabled']
     captchaType.value = res.data['type']

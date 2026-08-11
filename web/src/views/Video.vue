@@ -1,473 +1,60 @@
 <template>
   <div class="page-video">
     <!-- 左侧参数设置面板 -->
-    <div class="params-panel">
-      <!-- 视频类型切换标签页 -->
-      <el-tabs
-        v-model="store.activeVideoType"
-        @tab-change="store.switchVideoType"
-        class="video-type-tabs"
-      >
-        <!-- Luma 视频参数 -->
-        <el-tab-pane label="Luma视频" name="luma">
-          <div class="params-container">
-            <div class="param-line">
-              <el-input
-                v-model="store.lumaParams.prompt"
-                type="textarea"
-                maxlength="2000"
-                :autosize="{ minRows: 4, maxRows: 6 }"
-                placeholder="请在此输入视频提示词，用逗号分割，您也可以点击下面的提示词助手生成视频提示词"
-              />
-            </div>
+    <div class="params-panel pt-2">
+      <div class="provider-buttons">
+        <div class="provider-grid">
+          <button
+            v-for="p in providerOrder"
+            :key="p"
+            class="provider-btn text-base"
+            :class="{ active: store.activeProvider === p }"
+            @click="store.switchProvider(p)"
+            type="button"
+          >
+            <i class="iconfont mr-2 !text-xl" :class="getProviderIcon(p)"></i>
+            {{ getProviderName(p) }}
+          </button>
+        </div>
+      </div>
 
-            <!-- 提示词生成按钮 -->
-            <div class="flex justify-end pt-1">
-              <el-button @click="store.generatePrompt" type="primary" :loading="store.isGenerating">
-                <span v-if="!store.isGenerating">
-                  <i class="iconfont icon-chuangzuo"></i>
-                  生成提示词
-                </span>
-                <span v-else>生成中...</span>
-              </el-button>
-            </div>
+      <div class="function-params pt-3">
+        <div class="mb-2" v-if="store.providerModels.length > 0">
+          <label class="label text-left font-bold">模型选择</label>
+        </div>
+        <ParamBuilder
+          v-model="store.formData"
+          v-model:required-keys="store.requiredKeys"
+          :items="store.providerModels"
+          @price-params-change="handlePriceParamsChange"
+        />
 
-            <!-- 图片辅助生成开关 -->
-            <div class="param-line pt">
-              <div class="image-mode-toggle">
-                <span class="label">使用图片辅助生成</span>
-                <el-switch
-                  v-model="store.lumaUseImageMode"
-                  @change="store.toggleLumaImageMode"
-                  size="small"
-                />
-              </div>
-            </div>
-
-            <!-- 图片上传区域（可折叠） -->
-            <div v-if="store.lumaUseImageMode" class="img-inline">
-              <div class="img-uploader video-img-box mr-2">
-                <el-icon
-                  v-if="store.lumaParams.image"
-                  @click="store.removeLumaImage('start')"
-                  class="removeimg"
-                >
-                  <CircleCloseFilled />
-                </el-icon>
-                <el-upload
-                  class="uploader img-uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="store.uploadLumaStartImage"
-                  accept=".jpg,.png,.jpeg"
-                >
-                  <el-image
-                    v-if="store.lumaParams.image"
-                    :src="store.lumaParams.image"
-                    fit="cover"
-                  />
-                  <div class="flex flex-col" v-else>
-                    <el-icon class="mb-1 text-base"><Plus /></el-icon>
-                    <span>起始帧</span>
-                  </div>
-                </el-upload>
-              </div>
-
-              <div
-                class="flex items-center h-[120px] cursor-pointer"
-                v-if="store.lumaParams.image && store.lumaParams.image_tail"
-              >
-                <el-tooltip content="交换图片" placement="top">
-                  <i class="iconfont icon-exchange" @click="store.switchLumaImages"></i>
-                </el-tooltip>
-              </div>
-
-              <div class="img-uploader video-img-box ml-2">
-                <el-icon
-                  v-if="store.lumaParams.image_tail"
-                  @click="store.removeLumaImage('end')"
-                  class="removeimg"
-                >
-                  <CircleCloseFilled />
-                </el-icon>
-                <el-upload
-                  class="uploader img-uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="store.uploadLumaEndImage"
-                  accept=".jpg,.png,.jpeg"
-                >
-                  <el-image
-                    v-if="store.lumaParams.image_tail"
-                    :src="store.lumaParams.image_tail"
-                    fit="cover"
-                  />
-                  <div class="flex flex-col" v-else>
-                    <el-icon class="mb-1 text-base"><Plus /></el-icon>
-                    <span>结束帧</span>
-                  </div>
-                </el-upload>
-              </div>
-            </div>
-
-            <!-- Luma 特有参数设置 -->
-            <div class="item-group flex justify-between">
-              <span class="label">循环参考图</span>
-              <el-switch v-model="store.lumaParams.loop" size="small" />
-            </div>
-
-            <div class="item-group flex justify-between">
-              <span class="label">提示词优化</span>
-              <el-switch v-model="store.lumaParams.expand_prompt" size="small" />
-            </div>
-
-            <!-- 算力显示 -->
-            <div
-              class="power-info flex items-center justify-between mb-4 mt-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm"
-            >
-              <div class="flex items-center space-x-2">
-                <el-icon color="#f59e42" size="20"><i class="iconfont icon-lightning"></i></el-icon>
-                <span class="font-medium text-gray-700">当前可用算力：</span>
-                <span class="font-bold text-lg text-yellow-500">{{ store.availablePower }}</span>
-              </div>
-              <el-tooltip content="算力用于生成视频，每次生成会消耗对应算力" placement="left">
-                <el-icon color="#a78bfa" size="18"><InfoFilled /></el-icon>
-              </el-tooltip>
-            </div>
-            <div class="flex justify-center">
-              <button
-                @click="store.createLumaVideo"
-                :disabled="store.generating"
-                class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
-                type="button"
-              >
-                <i v-if="store.generating" class="iconfont icon-loading animate-spin"></i>
-                <i v-else class="iconfont icon-chuangzuo"></i>
-                <span>立即生成 ({{ store.lumaPowerCost }}算力)</span>
-              </button>
-            </div>
+        <div
+          class="power-info flex items-center justify-between mb-4 mt-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm"
+        >
+          <div class="flex items-center space-x-2">
+            <el-icon color="#f59e42" size="20"><i class="iconfont icon-lightning"></i></el-icon>
+            <span class="font-medium text-gray-700">当前可用算力：</span>
+            <span class="font-bold text-lg text-yellow-500">{{ store.availablePower }}</span>
           </div>
-        </el-tab-pane>
+          <el-tooltip content="算力用于生成视频，每次生成会消耗对应算力" placement="left">
+            <el-icon color="#a78bfa" size="18"><InfoFilled /></el-icon>
+          </el-tooltip>
+        </div>
 
-        <!-- KeLing 视频参数 -->
-        <el-tab-pane label="可灵视频" name="keling">
-          <div class="params-container">
-            <el-form :model="store.kelingParams" label-width="80px" label-position="left">
-              <!-- 画面比例 -->
-              <div class="param-line">
-                <div class="param-line pt">
-                  <span>画面比例：</span>
-                  <el-tooltip content="生成画面的尺寸比例" placement="right">
-                    <el-icon><InfoFilled /></el-icon>
-                  </el-tooltip>
-                </div>
-
-                <div class="param-line pt">
-                  <el-row :gutter="10">
-                    <el-col :span="8" v-for="item in store.rates" :key="item.value">
-                      <div
-                        class="flex-col items-center"
-                        :class="
-                          item.value === store.kelingParams.aspect_ratio
-                            ? 'grid-content active'
-                            : 'grid-content'
-                        "
-                        @click="store.changeRate(item)"
-                      >
-                        <el-image class="icon proportion" :src="item.img" fit="cover"></el-image>
-                        <div class="texts">{{ item.text }}</div>
-                      </div>
-                    </el-col>
-                  </el-row>
-                </div>
-              </div>
-
-              <!-- 模型选择 -->
-              <div class="param-line">
-                <el-form-item label="模型选择">
-                  <el-select
-                    v-model="store.kelingParams.model"
-                    placeholder="请选择模型"
-                    @change="store.updateModelPower"
-                  >
-                    <el-option
-                      v-for="item in store.models"
-                      :key="item.value"
-                      :label="item.text"
-                      :value="item.value"
-                    />
-                  </el-select>
-                </el-form-item>
-              </div>
-
-              <!-- 视频时长 -->
-              <div class="param-line">
-                <el-form-item label="视频时长">
-                  <el-select
-                    v-model="store.kelingParams.duration"
-                    placeholder="请选择时长"
-                    @change="store.updateModelPower"
-                  >
-                    <el-option label="5秒" value="5" />
-                    <el-option label="10秒" value="10" />
-                  </el-select>
-                </el-form-item>
-              </div>
-
-              <!-- 生成模式 -->
-              <div class="param-line">
-                <el-form-item label="生成模式">
-                  <el-select
-                    v-model="store.kelingParams.mode"
-                    placeholder="请选择模式"
-                    @change="store.updateModelPower"
-                  >
-                    <el-option label="标准模式" value="std" />
-                    <el-option label="专业模式" value="pro" />
-                  </el-select>
-                </el-form-item>
-              </div>
-
-              <!-- 创意程度 -->
-              <div class="param-line">
-                <el-form-item label="创意程度">
-                  <el-slider v-model="store.kelingParams.cfg_scale" :min="0" :max="1" :step="0.1" />
-                </el-form-item>
-              </div>
-
-              <!-- 运镜控制 -->
-              <div class="param-line" v-if="store.showCameraControl">
-                <div class="param-line pt">
-                  <span>运镜控制：</span>
-                  <el-tooltip content="生成画面的运镜效果，仅 1.5的高级模式可用" placement="right">
-                    <el-icon><InfoFilled /></el-icon>
-                  </el-tooltip>
-                </div>
-
-                <div class="param-line">
-                  <el-select
-                    v-model="store.kelingParams.camera_control.type"
-                    placeholder="请选择运镜类型"
-                  >
-                    <el-option label="请选择" value="" />
-                    <el-option label="简单运镜" value="simple" />
-                    <el-option label="下移拉远" value="down_back" />
-                    <el-option label="推进上移" value="forward_up" />
-                    <el-option label="右旋推进" value="right_turn_forward" />
-                    <el-option label="左旋推进" value="left_turn_forward" />
-                  </el-select>
-                </div>
-
-                <!-- 仅在simple模式下显示详细配置 -->
-                <div
-                  class="camera-control mt-2"
-                  v-if="store.kelingParams.camera_control.type === 'simple'"
-                >
-                  <el-form-item label="水平移动">
-                    <el-slider
-                      v-model="store.kelingParams.camera_control.config.horizontal"
-                      :min="-10"
-                      :max="10"
-                    />
-                  </el-form-item>
-                  <el-form-item label="垂直移动">
-                    <el-slider
-                      v-model="store.kelingParams.camera_control.config.vertical"
-                      :min="-10"
-                      :max="10"
-                    />
-                  </el-form-item>
-                  <el-form-item label="左右旋转">
-                    <el-slider
-                      v-model="store.kelingParams.camera_control.config.pan"
-                      :min="-10"
-                      :max="10"
-                    />
-                  </el-form-item>
-                  <el-form-item label="上下旋转">
-                    <el-slider
-                      v-model="store.kelingParams.camera_control.config.tilt"
-                      :min="-10"
-                      :max="10"
-                    />
-                  </el-form-item>
-                  <el-form-item label="横向翻转">
-                    <el-slider
-                      v-model="store.kelingParams.camera_control.config.roll"
-                      :min="-10"
-                      :max="10"
-                    />
-                  </el-form-item>
-                  <el-form-item label="镜头缩放">
-                    <el-slider
-                      v-model="store.kelingParams.camera_control.config.zoom"
-                      :min="-10"
-                      :max="10"
-                    />
-                  </el-form-item>
-                </div>
-              </div>
-            </el-form>
-
-            <!-- 图片辅助生成开关 -->
-            <div class="param-line pt">
-              <div class="image-mode-toggle">
-                <span class="label">使用图片辅助生成</span>
-                <el-switch
-                  v-model="store.kelingUseImageMode"
-                  @change="store.toggleKelingImageMode"
-                  size="small"
-                />
-              </div>
-            </div>
-
-            <!-- 图片上传区域（可折叠） -->
-            <div v-if="store.kelingUseImageMode" class="img-inline">
-              <div class="img-uploader video-img-box mr-2">
-                <el-icon
-                  v-if="store.kelingParams.image"
-                  @click="store.removeKelingImage('start')"
-                  class="removeimg"
-                >
-                  <CircleCloseFilled />
-                </el-icon>
-                <el-upload
-                  class="uploader img-uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="store.uploadKelingStartImage"
-                  accept=".jpg,.png,.jpeg"
-                >
-                  <el-image
-                    v-if="store.kelingParams.image"
-                    :src="store.kelingParams.image"
-                    fit="cover"
-                  />
-                  <div class="flex flex-col" v-else>
-                    <el-icon class="mb-1 text-base"><Plus /></el-icon>
-                    <span>起始帧</span>
-                  </div>
-                </el-upload>
-              </div>
-              <div
-                class="flex items-center h-[120px] cursor-pointer"
-                v-if="store.kelingParams.image && store.kelingParams.image_tail"
-              >
-                <el-tooltip content="交换图片" placement="top">
-                  <i class="iconfont icon-exchange" @click="store.switchKelingImages"></i>
-                </el-tooltip>
-              </div>
-              <div class="img-uploader video-img-box ml-2">
-                <el-icon
-                  v-if="store.kelingParams.image_tail"
-                  @click="store.removeKelingImage('end')"
-                  class="removeimg"
-                >
-                  <CircleCloseFilled />
-                </el-icon>
-                <el-upload
-                  class="uploader img-uploader"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="store.uploadKelingEndImage"
-                  accept=".jpg,.png,.jpeg"
-                >
-                  <el-image
-                    v-if="store.kelingParams.image_tail"
-                    :src="store.kelingParams.image_tail"
-                    fit="cover"
-                  />
-                  <div class="flex flex-col" v-else>
-                    <el-icon class="mb-1 text-base"><Plus /></el-icon>
-                    <span>结束帧</span>
-                  </div>
-                </el-upload>
-              </div>
-            </div>
-
-            <!-- 提示词输入 -->
-            <div class="param-line pt">
-              <span>提示词：</span>
-              <el-tooltip content="输入你想要的内容，用逗号分割" placement="right">
-                <el-icon><InfoFilled /></el-icon>
-              </el-tooltip>
-            </div>
-            <div class="param-line pt">
-              <el-input
-                v-model="store.kelingParams.prompt"
-                type="textarea"
-                maxlength="500"
-                :autosize="{ minRows: 4, maxRows: 6 }"
-                :placeholder="
-                  store.kelingUseImageMode
-                    ? '描述视频画面细节'
-                    : '请在此输入视频提示词，您也可以点击下面的提示词助手生成视频提示词'
-                "
-              />
-            </div>
-
-            <!-- 提示词生成按钮 -->
-            <div class="flex justify-end">
-              <el-button
-                class="generate-btn"
-                @click="store.generatePrompt"
-                :loading="store.isGenerating"
-                color="#5865f2"
-              >
-                <span v-if="!store.isGenerating">
-                  <i class="iconfont icon-chuangzuo"></i> 生成提示词
-                </span>
-                <span v-else>生成中...</span>
-              </el-button>
-            </div>
-
-            <!-- 排除内容 -->
-            <div class="param-line pt">
-              <span>不希望出现的内容：（可选）</span>
-              <el-tooltip content="不想出现在图片上的元素(例如：树，建筑)" placement="right">
-                <el-icon><InfoFilled /></el-icon>
-              </el-tooltip>
-            </div>
-            <div class="param-line pt">
-              <el-input
-                v-model="store.kelingParams.negative_prompt"
-                type="textarea"
-                :autosize="{ minRows: 4, maxRows: 6 }"
-                placeholder="请在此输入你不希望出现在视频上的内容"
-              />
-            </div>
-
-            <!-- 算力显示 -->
-            <!-- 算力显示 -->
-            <div
-              class="power-info flex items-center justify-between mb-4 mt-2 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm"
-            >
-              <div class="flex items-center space-x-2">
-                <el-icon color="#f59e42" size="20"><i class="iconfont icon-lightning"></i></el-icon>
-                <span class="font-medium text-gray-700">当前可用算力：</span>
-                <span class="font-bold text-lg text-yellow-500">{{ store.availablePower }}</span>
-              </div>
-              <el-tooltip content="算力用于生成视频，每次生成会消耗对应算力" placement="left">
-                <el-icon color="#a78bfa" size="18"><InfoFilled /></el-icon>
-              </el-tooltip>
-            </div>
-
-            <!-- 生成按钮 -->
-            <div class="flex justify-center">
-              <button
-                @click="store.createKelingVideo"
-                :disabled="store.generating"
-                class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
-                type="button"
-              >
-                <i v-if="store.generating" class="iconfont icon-loading animate-spin"></i>
-                <i v-else class="iconfont icon-chuangzuo"></i>
-                <span>立即生成 ({{ store.kelingPowerCost }}算力)</span>
-              </button>
-            </div>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+        <div class="flex justify-center" v-if="store.providerModels.length > 0">
+          <button
+            @click="store.createVideoTask"
+            :disabled="store.submitting"
+            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-base"
+            type="button"
+          >
+            <i v-if="store.submitting" class="iconfont icon-loading animate-spin"></i>
+            <i v-else class="iconfont icon-chuangzuo"></i>
+            <span>立即生成 ({{ store.currentPowerCost }}算力)</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- 右侧任务列表 -->
@@ -488,18 +75,13 @@
               全部
             </el-button>
             <el-button
-              :type="store.taskFilter === 'luma' ? 'primary' : 'default'"
-              @click="store.switchTaskFilter('luma')"
+              v-for="p in providerOrder"
+              :key="`filter-${p}`"
+              :type="store.taskFilter === p ? 'primary' : 'default'"
+              @click="store.switchTaskFilter(p)"
               size="small"
             >
-              Luma
-            </el-button>
-            <el-button
-              :type="store.taskFilter === 'keling' ? 'primary' : 'default'"
-              @click="store.switchTaskFilter('keling')"
-              size="small"
-            >
-              可灵
+              {{ getProviderName(p) }}
             </el-button>
           </el-button-group>
         </div>
@@ -511,7 +93,7 @@
             <div class="item">
               <div class="left">
                 <div class="container">
-                  <div v-if="item.progress === 100">
+                  <div v-if="item.status === 'success'">
                     <video
                       class="video"
                       :src="store.replaceImg(item.video_url)"
@@ -528,28 +110,77 @@
                       <img src="/images/play.svg" alt="" />
                     </button>
                   </div>
+                  <div
+                    v-else-if="item.status === 'downloading'"
+                    class="flex items-center justify-center"
+                    style="height: 200px"
+                  >
+                    <div class="text-center">
+                      <div
+                        class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"
+                      ></div>
+                      <span class="text-sm text-purple-600 mt-2 block">视频下载中...</span>
+                    </div>
+                  </div>
                   <el-image
-                    :src="item.cover_url"
+                    src="/images/failed.jpg"
                     class="border rounded-lg"
                     fit="cover"
-                    v-else-if="item.progress === 101"
+                    v-else-if="item.status === 'failed'"
                   />
-                  <generating message="正在生成视频" v-else />
+                  <div
+                    v-else-if="(item.progress || 0) > 0 && (item.progress || 0) < 100"
+                    class="flex h-[120px] items-center justify-center"
+                  >
+                    <el-progress
+                      type="circle"
+                      :percentage="item.progress || 0"
+                      :width="80"
+                      :stroke-width="6"
+                      class="rounded-full bg-white/95 p-1 shadow-sm flex items-center justify-center"
+                    >
+                      <template #default="{ percentage }">
+                        <span class="flex w-full justify-center text-base font-medium text-gray-700"
+                          >{{ percentage }}%</span
+                        >
+                      </template>
+                    </el-progress>
+                  </div>
+                  <div class="flex !items-end justify-center h-[120px]" v-else>
+                    <Generating message="正在生成视频" />
+                  </div>
+
+                  <div
+                    class="absolute top-0 right-0"
+                    v-if="item.status === 'pending' && !((item.progress || 0) > 0)"
+                  >
+                    <!-- 非 in_progress 状态才显示 status 标签 -->
+                    <el-tag type="info" class="mr-1"> 排队中 </el-tag>
+                  </div>
                 </div>
               </div>
 
               <div class="center">
-                <div class="pb-2" v-if="item.raw_data">
-                  <el-tag class="mr-1">{{
-                    item.raw_data.task_type || store.activeVideoType
-                  }}</el-tag>
-                  <el-tag class="mr-1" v-if="item.raw_data.model">{{ item.raw_data.model }}</el-tag>
-                  <el-tag class="mr-1" v-if="item.raw_data.duration"
-                    >{{ item.raw_data.duration }}秒</el-tag
-                  >
-                  <el-tag class="mr-1" v-if="item.raw_data.mode">{{ item.raw_data.mode }}</el-tag>
+                <div class="pb-2">
+                  <el-tag class="mr-1">{{ item.type }}</el-tag>
+                  <template v-if="item.params">
+                    <el-tag class="mr-1" v-if="item.params.task_type">{{
+                      item.params.task_type
+                    }}</el-tag>
+                    <el-tag class="mr-1" v-if="item.params.model">{{ item.params.model }}</el-tag>
+                    <el-tag class="mr-1" v-if="item.params.duration"
+                      >{{ item.params.duration }}秒</el-tag
+                    >
+                    <el-tag class="mr-1" v-if="item.params.mode">{{ item.params.mode }}</el-tag>
+                    <el-tag class="mr-1" v-if="item.params.size">
+                      分辨率：{{ item.params.size }}
+                    </el-tag>
+                  </template>
+                  <el-tag class="mr-1" type="warning" v-if="item.power">
+                    消耗算力：{{ item.power }}
+                  </el-tag>
                 </div>
-                <div class="failed" v-if="item.progress === 101">
+                <div class="failed" v-if="item.status === 'failed'">
                   任务执行失败：{{ item.err_msg }}，任务提示词：{{ item.prompt }}
                 </div>
                 <div class="prompt" v-else>
@@ -621,16 +252,16 @@
       v-model="store.showDialog"
       title="预览视频"
       hide-footer
-      @close="store.showDialog = false"
+      @close="handleVideoDialogClose"
       width="auto"
     >
       <video
+        ref="videoPlayerRef"
         style="max-width: 90vw; max-height: 90vh"
         :src="store.currentVideoUrl"
         preload="auto"
         :autoplay="true"
-        loop="loop"
-        muted="muted"
+        controls="controls"
       >
         您的浏览器不支持视频播放
       </video>
@@ -639,12 +270,56 @@
 </template>
 
 <script setup>
+import ParamBuilder from '@/components/ParamBuilder.vue'
 import Generating from '@/components/ui/Generating.vue'
 import { useVideoStore } from '@/store/video'
-import { CircleCloseFilled, InfoFilled, Plus } from '@element-plus/icons-vue'
-import { onMounted, onUnmounted } from 'vue'
+import { InfoFilled } from '@element-plus/icons-vue'
+import { getProviderName } from '@/store/data/video_params'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const store = useVideoStore()
+const videoPlayerRef = ref(null)
+
+const providerOrder = computed(() =>
+  ['sora', 'veo', 'doubao', 'keling', 'minimax', 'wan'].filter((p) => store.providers.includes(p))
+)
+
+const getProviderIcon = (provider) => {
+  const icons = {
+    sora: 'icon-sora',
+    doubao: 'icon-doubao',
+    veo: 'icon-gemini',
+    keling: 'icon-keling',
+    minimax: 'icon-minimax',
+    wan: 'icon-wan',
+  }
+  return icons[provider] || 'icon-video'
+}
+
+// 状态配置
+const statusConfig = {
+  pending: { label: '等待中', type: 'info' },
+  in_progress: { label: '进行中', type: 'primary' },
+  downloading: { label: '下载中', type: 'success' },
+  success: { label: '成功', type: 'success' },
+  failed: { label: '失败', type: 'danger' },
+}
+
+// 处理价格参数变化事件
+const handlePriceParamsChange = () => {
+  // 价格参数变化时，store 中的 watch 会自动触发 setCurrentPowerCost
+  // setCurrentPowerCost 是异步的，会调用 API 获取最新算力值
+  // 无需额外处理，watch 会自动更新 currentPowerCost
+}
+
+// 处理视频对话框关闭事件
+const handleVideoDialogClose = () => {
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.pause()
+    videoPlayerRef.value.currentTime = 0
+  }
+  store.showDialog = false
+}
 
 onMounted(() => {
   store.init()
@@ -657,4 +332,33 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use '../assets/css/video.scss' as *;
+
+.provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.provider-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-theme-color);
+  transition: all 0.15s ease;
+
+  &.active {
+    background: linear-gradient(90deg, #3b82f6, #a855f7);
+    border-color: rgba(99, 102, 241, 0.6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+  }
+
+  &:hover:not(.active) {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
 </style>

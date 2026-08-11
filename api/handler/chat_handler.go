@@ -95,20 +95,21 @@ func NewChatHandler(app *core.AppServer,
 // RegisterRoutes 注册路由
 func (h *ChatHandler) RegisterRoutes() {
 	group := h.App.Engine.Group("/api/chat/")
+	group.GET("detail", h.Detail)
+	group.GET("history", h.History)
 	// 其他接口需要用户授权
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
 	{
 		group.Any("message", h.Chat)
 		group.GET("list", h.List)
-		group.GET("detail", h.Detail)
 		group.POST("update", h.Update)
 		group.GET("remove", h.Remove)
-		group.GET("history", h.History)
 		group.GET("clear", h.Clear)
 		group.POST("tokens", h.Tokens)
 		group.GET("stop", h.StopGenerate)
 		group.POST("tts", h.TextToSpeech)
 	}
+
 }
 
 // Chat 处理聊天请求
@@ -272,7 +273,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	chatCtx := make([]any, 0)
 	messages := make([]any, 0)
 	if h.App.SysConfig.Base.EnableContext {
-		_ = utils.JsonDecode(input.ChatRole.Context, &messages)
+		_ = utils.JsonDecode(input.ChatRole.SystemPrompt, &messages)
 		if h.App.SysConfig.Base.ContextDeep > 0 {
 			var historyMessages []model.ChatMessage
 			dbSession := h.DB.Session(&gorm.Session{}).Where("chat_id", input.ChatId)
@@ -668,7 +669,10 @@ func (h *ChatHandler) saveChatHistory(
 	files := make([]vo.File, 0)
 	if strings.HasPrefix(req.Model, "sora") {
 		video, err := h.soraService.DownloadVideoURL(message.Content)
-		if err == nil {
+		if err != nil {
+			logger.Error("failed to download video: ", err)
+			pushMessage(c, ChatEventError, "视频下载失败："+err.Error())
+		} else {
 			files = append(files, *video)
 		}
 	}

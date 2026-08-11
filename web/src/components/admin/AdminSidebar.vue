@@ -9,9 +9,9 @@
       class="sidebar-el-menu"
       :default-active="onRoutes"
       :collapse="sidebar.collapse"
-      background-color="#324157"
-      text-color="#bfcbd9"
-      active-text-color="#20a0ff"
+      background-color="transparent"
+      text-color="var(--admin-sidebar-text-muted)"
+      active-text-color="var(--admin-sidebar-text)"
       unique-opened
       router
     >
@@ -33,7 +33,7 @@
                   {{ threeItem.title }}
                 </el-menu-item>
               </el-sub-menu>
-              <el-menu-item v-else :index="subItem.index" :key="subItem.index">
+              <el-menu-item v-else :index="subItem.index">
                 <i v-if="subItem.icon" :class="'iconfont icon-' + subItem.icon"></i>
                 {{ subItem.title }}
               </el-menu-item>
@@ -156,9 +156,10 @@ const items = [
       },
       {
         icon: 'mp3',
-        index: '/admin/medias',
-        title: '音视频记录',
+        index: '/admin/records/suno',
+        title: 'Suno音乐',
       },
+      
     ],
   },
   {
@@ -176,6 +177,42 @@ const items = [
         icon: 'config',
         index: '/admin/jimeng/config',
         title: '即梦设置',
+      },
+    ],
+  },
+  {
+    icon: 'video',
+    title: '视频生成',
+    index: '/admin/video',
+    subs: [
+      {
+        icon: 'config',
+        index: '/admin/video/config',
+        title: '生成配置',
+      },
+
+      {
+        icon: 'list',
+        index: '/admin/records/videos',
+        title: '生成记录',
+      },
+      
+    ],
+  },
+  {
+    icon: 'ppt',
+    title: 'AIPPT',
+    index: '/admin/ppt',
+    subs: [
+      {
+        icon: 'config',
+        index: '/admin/ppt/config',
+        title: 'PPT 生成配置',
+      },
+      {
+        icon: 'list',
+        index: '/admin/ppt/jobs',
+        title: 'PPT 任务列表',
       },
     ],
   },
@@ -249,6 +286,11 @@ const items = [
         index: '/admin/config/plugin',
         title: '插件配置',
       },
+      {
+        index: '/admin/config/wechat',
+        title: '微信配置',
+        icon: 'wechat',
+      },
     ],
   },
   {
@@ -288,29 +330,6 @@ const items = [
     index: '/admin/loginLog',
     title: '用户登录日志',
   },
-  // {
-  //   icon: 'menu',
-  //   index: '1',
-  //   title: '常用模板页面',
-  //   subs: [
-  //     {
-  //       index: '/admin/demo/form',
-  //       title: '表单页面',
-  //     },
-  //     {
-  //       index: '/admin/demo/table',
-  //       title: '常用表格',
-  //     },
-  //     {
-  //       index: '/admin/demo/import',
-  //       title: '导入Excel',
-  //     },
-  //     {
-  //       index: '/admin/demo/editor',
-  //       title: '富文本编辑器',
-  //     },
-  //   ],
-  // },
 ]
 
 const route = useRoute()
@@ -330,34 +349,43 @@ setMenuItems(items)
   top: 0;
   bottom: 0;
   overflow-y: scroll;
-  background-color: #324157;
+  background: var(--admin-sidebar-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid var(--admin-sidebar-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
 
   .logo {
     display: flex;
     padding: 6px 15px;
     cursor: pointer;
-    background-color: #324157;
+    background: transparent;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: var(--admin-header-hover);
+    }
 
     img {
       height: 36px;
-      padding-top: 5px;
+      padding: 2px;
       border-radius: 100%;
       background: #fff;
       border: 2px solid #754ff6;
-      padding: 2px;
     }
 
     .text {
-      color: #ffffff;
+      color: var(--admin-sidebar-text);
       font-weight: bold;
       padding: 12px 0 12px 10px;
-      transition: width 2s ease;
+      transition: width 2s ease, color 0.2s ease;
     }
   }
 
   ul {
     height: auto;
     min-height: 100%;
+    background: transparent;
 
     .el-menu-item,
     .el-sub-menu {
@@ -367,42 +395,37 @@ setMenuItems(items)
       }
     }
 
-    .el-menu-item.is-active {
-      background-color: rgb(40, 52, 70);
+    .el-menu-item {
+      transition: background 0.2s ease, color 0.2s ease;
+      margin: 2px 8px;
+      border-radius: 8px;
+
+      &:hover {
+        background: var(--admin-header-hover);
+      }
+
+      &.is-active {
+        background: var(--admin-sidebar-active-bg);
+        color: var(--admin-sidebar-text);
+        box-shadow: inset 3px 0 0 var(--admin-sidebar-active-border);
+      }
     }
+
+    .el-sub-menu__title {
+      transition: background 0.2s ease;
+      margin: 2px 8px;
+      border-radius: 8px;
+
+      &:hover {
+        background: var(--admin-header-hover);
+      }
+    }
+
   }
 
-  .sidebar-el-menu:not(.el-menu--collapse) {
-    width: 250px;
-  }
-}
-
-.sidebar::-webkit-scrollbar {
-  width: 0;
-}
-
-.sidebar.dark {
-  border-right: 1px solid var(--el-border-color-dark);
-
-  .logo {
-    background: var(--el-bg-color);
-    border-right: 1px solid var(--el-border-color);
-
-    .text {
-      color: var(--el-text-color-regular);
-    }
-  }
-
-  ul {
-    background: var(--el-bg-color);
-
-    .el-menu-item.is-active {
-      background-color: var(--el-menu-bg-color-dark);
-    }
-
-    .el-menu-item:hover {
-      background-color: var(--el-menu-bg-color-darker);
-    }
+  .sidebar-el-menu {
+    border-right: none;
+    background: transparent;
   }
 
   .sidebar-el-menu:not(.el-menu--collapse) {
@@ -410,7 +433,11 @@ setMenuItems(items)
   }
 
   .el-menu {
-    border-color: var(--el-border-color);
+    border-color: transparent;
   }
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 0;
 }
 </style>

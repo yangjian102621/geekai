@@ -351,7 +351,7 @@ import { checkSession, getSystemInfo, getMenus } from '@/store/cache'
 import { getSessionId } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
-import { showLoginDialog } from '@/utils/libs'
+import { getThumbURL, showLoginDialog } from '@/utils/libs'
 import { Delete } from '@element-plus/icons-vue'
 import Clipboard from 'clipboard'
 import Compressor from 'compressorjs'
@@ -543,9 +543,9 @@ const fetchFinishJobs = (page) => {
       let hasDownload = false
       for (let i = 0; i < jobs.length; i++) {
         if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
-          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
+          jobs[i]['thumb_url'] = getThumbURL(jobs[i]['img_url'], 480, 600)
         } else {
-          jobs[i]['thumb_url'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
+          jobs[i]['thumb_url'] = getThumbURL(jobs[i]['img_url'], 480, 480)
         }
 
         if (jobs[i]['img_url'] === '' && jobs[i].progress === 100) {

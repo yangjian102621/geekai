@@ -2,8 +2,6 @@ package moderation
 
 import (
 	"geekai/core/types"
-
-	logger2 "geekai/logger"
 )
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -12,8 +10,6 @@ import (
 // * that can be found in the LICENSE file.
 // * @Author yangjian102621@163.com
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-var logger = logger2.GetLogger()
 
 type Service interface {
 	Moderate(text string) (types.ModerationResult, error)

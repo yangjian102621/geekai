@@ -14,7 +14,7 @@ import (
 	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"geekai/service"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -29,7 +29,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 const SuperUsername = "admin"
 
@@ -293,7 +293,7 @@ func (h *ManagerHandler) ResetPass(c *gin.Context) {
 
 	password := utils.GenPassword(data.Password, user.Salt)
 	user.Password = password
-	res = h.DB.Updates(&user)
+	res = h.DB.Model(&model.AdminUser{}).Where("id", data.Id).UpdateColumn("password", password)
 	if res.Error != nil {
 		resp.ERROR(c, res.Error.Error())
 		return

@@ -39,6 +39,7 @@ type UserHandler struct {
 	userService    *service.UserService
 	wxLoginService *service.WxLoginService
 	ipSearcher     *xdb.Searcher
+	wechatService  *service.WxGzhService
 }
 
 func NewUserHandler(
@@ -50,6 +51,7 @@ func NewUserHandler(
 	captcha *service.CaptchaService,
 	userService *service.UserService,
 	wxLoginService *service.WxLoginService,
+	wechatService *service.WxGzhService,
 	ipSearcher *xdb.Searcher) *UserHandler {
 	return &UserHandler{
 		BaseHandler:    BaseHandler{DB: db, App: app},
@@ -59,6 +61,7 @@ func NewUserHandler(
 		captchaService: captcha,
 		userService:    userService,
 		wxLoginService: wxLoginService,
+		wechatService:  wechatService,
 		ipSearcher:     ipSearcher,
 	}
 }
@@ -75,6 +78,7 @@ func (h *UserHandler) RegisterRoutes() {
 	group.POST("login/callback", h.WxLoginCallback)
 	group.GET("login/status", h.GetWxLoginState)
 	group.GET("logout", h.Logout)
+	group.POST("wxAuthLogin", h.WxAuthLogin)
 
 	// 需要用户授权的接口
 	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
@@ -319,11 +323,22 @@ func (h *UserHandler) GetWxLoginState(c *gin.Context) {
 func (h *UserHandler) createNewUser(user model.User, code string) (model.User, error) {
 	if user.OpenId != "" {
 		user.Platform = "wechat"
-		user.Nickname = fmt.Sprintf("微信用户@%d", utils.RandomNumber(6))
-		user.Username = fmt.Sprintf("wx@%d", utils.RandomNumber(8))
-		user.Password = "geekai123"
+		// 如果未设置昵称，则生成默认昵称
+		if user.Nickname == "" {
+			user.Nickname = fmt.Sprintf("微信用户@%d", utils.RandomNumber(6))
+		}
+		// 如果未设置用户名，则生成默认用户名
+		if user.Username == "" {
+			user.Username = fmt.Sprintf("wx@%d", utils.RandomNumber(8))
+		}
+		// 如果未设置密码，则生成默认密码
+		if user.Password == "" {
+			user.Password = "geekai123"
+		}
 	} else {
-		user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+		if user.Nickname == "" {
+			user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
+		}
 		if user.Username == "" || user.Password == "" {
 			return user, fmt.Errorf("用户名或密码不能为空")
 		}
@@ -332,9 +347,11 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 	salt := utils.RandString(8)
 	user.Salt = salt
 	user.Password = utils.GenPassword(user.Password, salt)
-	user.Avatar = "/images/avatar/user.png"
+	// 如果未设置头像，则使用默认头像
+	if user.Avatar == "" {
+		user.Avatar = "/images/avatar/user.png"
+	}
 	user.Status = true
-	user.ChatRoles = utils.JsonEncode([]string{"gpt"})
 	user.ChatConfig = "{}"
 	user.ChatModels = "{}"
 	user.Power = h.App.SysConfig.Base.InitPower
@@ -471,6 +488,20 @@ func (h *UserHandler) Session(c *gin.Context) {
 		h.DB.Model(&user).UpdateColumn("vip", false)
 	}
 	userVo.Id = user.Id
+	// 工作区应用 ID 列表（历史可能为 key 数组，仅解析数字 ID）
+	if user.ChatRoles != "" {
+		var raw []interface{}
+		if utils.JsonDecode(user.ChatRoles, &raw) == nil {
+			for _, v := range raw {
+				if n, ok := v.(float64); ok && n >= 0 {
+					userVo.ChatRoles = append(userVo.ChatRoles, uint(n))
+				}
+			}
+		}
+	}
+	if userVo.ChatRoles == nil {
+		userVo.ChatRoles = []uint{}
+	}
 	resp.SUCCESS(c, userVo)
 
 }
@@ -483,6 +514,7 @@ type userProfile struct {
 	Power       int    `json:"power"`
 	ExpiredTime int64  `json:"expired_time"`
 	Vip         bool   `json:"vip"`
+	GemIds      []uint `json:"gem_ids"`
 }
 
 func (h *UserHandler) Profile(c *gin.Context) {
@@ -502,6 +534,19 @@ func (h *UserHandler) Profile(c *gin.Context) {
 	}
 
 	profile.Id = user.Id
+	if user.GemIds != "" {
+		var raw []interface{}
+		if utils.JsonDecode(user.GemIds, &raw) == nil {
+			for _, v := range raw {
+				if n, ok := v.(float64); ok {
+					profile.GemIds = append(profile.GemIds, uint(n))
+				}
+			}
+		}
+	}
+	if profile.GemIds == nil {
+		profile.GemIds = []uint{}
+	}
 	resp.SUCCESS(c, profile)
 }
 
@@ -520,6 +565,12 @@ func (h *UserHandler) ProfileUpdate(c *gin.Context) {
 	h.DB.First(&user, user.Id)
 	user.Avatar = data.Avatar
 	user.Nickname = data.Nickname
+	if data.GemIds != nil {
+		if len(data.GemIds) > 8 {
+			data.GemIds = data.GemIds[:8]
+		}
+		user.GemIds = utils.JsonEncode(data.GemIds)
+	}
 	res := h.DB.Updates(&user)
 	if res.Error != nil {
 		resp.ERROR(c, "更新用户信息失败")
@@ -584,13 +635,14 @@ func (h *UserHandler) ResetPass(c *gin.Context) {
 
 	session := h.DB.Session(&gorm.Session{})
 	var key string
-	if data.Type == "email" {
+	switch data.Type {
+	case "email":
 		session = session.Where("email", data.Email)
 		key = CodeStorePrefix + data.Email
-	} else if data.Type == "mobile" {
+	case "mobile":
 		session = session.Where("mobile", data.Mobile)
 		key = CodeStorePrefix + data.Mobile
-	} else {
+	default:
 		resp.ERROR(c, "验证类别错误")
 		return
 	}
@@ -721,4 +773,82 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 		})
 	}
 	resp.SUCCESS(c)
+}
+
+// 微信公众号 小程序授权登录
+func (h *UserHandler) WxAuthLogin(c *gin.Context) {
+	var data struct {
+		Code       string `json:"code"`
+		InviteCode string `json:"invite_code"`
+	}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+
+	// 根据 code 获取 openid
+	openID, accessToken, err := h.wechatService.GetOpenIDByCode(data.Code)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 获取微信用户昵称头像
+	userInfo, err := h.wechatService.GetUserInfo(accessToken, openID)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	nickname := userInfo["nickname"].(string)
+	headimgurl := userInfo["headimgurl"].(string)
+
+	// 查询用户是否存在
+	var user model.User
+	h.DB.Where("openid = ?", openID).First(&user)
+	if user.Id > 0 {
+		// 用户存在，更新用户信息并登录
+		user.Nickname = nickname
+		user.Avatar = headimgurl
+		if err := h.DB.Save(&user).Error; err != nil {
+			resp.ERROR(c, "更新用户信息失败")
+			return
+		}
+
+		token, err := h.doLogin(&user, c.ClientIP())
+		if err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+
+		resp.SUCCESS(c, gin.H{"token": token, "user_id": user.Id, "username": user.Username})
+		return
+	}
+
+	// 用户不存在，创建新用户
+	user = model.User{
+		OpenId:   openID,
+		Nickname: nickname,
+		Avatar:   headimgurl,
+	}
+
+	// 被邀请人也获得赠送算力
+	if data.InviteCode != "" {
+		user.Power = h.App.SysConfig.Base.InitPower * 2
+	}
+
+	user, err = h.createNewUser(user, data.InviteCode)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	// 自动登录
+	token, err := h.doLogin(&user, c.ClientIP())
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c, gin.H{"token": token, "user_id": user.Id, "username": user.Username})
 }

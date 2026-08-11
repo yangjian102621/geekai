@@ -25,10 +25,10 @@
 
   // 左侧参数面板
   .params-panel {
-    min-width: 320px;
-    max-width: 320px;
+    min-width: 380px;
+    max-width: 380px;
     margin: 10px;
-    padding: 0 15px 20px 15px;
+    padding: 15px 15px 20px 15px;
     border-radius: 10px;
     color: var(--text-theme-color);
     font-size: 14px;
@@ -422,6 +422,9 @@
             align-items: flex-start;
             flex-flow: column;
             padding: 0 20px;
+            // 允许中间区域在 flex 布局中收缩，避免挤压右侧操作区
+            flex: 1 1 auto;
+            min-width: 0;
 
             .prompt,
             .failed {
@@ -440,6 +443,10 @@
 
             .failed {
               color: #e4696b;
+              // 错误信息中经常包含很长的无空格字符串（如 JSON、错误栈），
+              // 强制单词内换行，防止撑破布局把右侧删除按钮挤出视口
+              word-break: break-all;
+              white-space: normal;
             }
 
             .pb-2 {
@@ -495,6 +502,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            // 保证错误状态下删除按钮始终占据固定宽度，不被中间内容挤压
+            min-width: 60px;
+            flex-shrink: 0;
           }
         }
       }

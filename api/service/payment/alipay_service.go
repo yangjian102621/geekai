@@ -11,7 +11,7 @@ import (
 	"context"
 	"fmt"
 	"geekai/core/types"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"net/http"
 	"os"
 
@@ -24,7 +24,7 @@ type AlipayService struct {
 	config *types.AlipayConfig
 }
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 func NewAlipayService(sysConfig *types.SystemConfig) (*AlipayService, error) {
 	config := sysConfig.Payment.Alipay

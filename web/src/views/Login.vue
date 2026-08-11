@@ -88,6 +88,7 @@ onMounted(() => {
     setUserToken(token.value)
     handleRegisterSuccess()
   }
+
 })
 </script>
 

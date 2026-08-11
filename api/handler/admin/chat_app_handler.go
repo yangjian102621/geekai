@@ -8,7 +8,6 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
 	"geekai/core/types"
@@ -59,15 +58,14 @@ func (h *ChatAppHandler) Save(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	// 管理后台创建/编辑的 Gem 均为系统内置
+	role.UserId = 0
+	if data.SystemPrompt != "" {
+		role.SystemPrompt = data.SystemPrompt
+	}
 	role.Id = data.Id
 	if data.CreatedAt > 0 {
 		role.CreatedAt = time.Unix(data.CreatedAt, 0)
-	} else {
-		err = h.DB.Where("marker", data.Key).First(&role).Error
-		if err == nil {
-			resp.ERROR(c, fmt.Sprintf("角色 %s 已存在", data.Key))
-			return
-		}
 	}
 	err = h.DB.Save(&role).Error
 	if err != nil {
@@ -83,7 +81,8 @@ func (h *ChatAppHandler) Save(c *gin.Context) {
 func (h *ChatAppHandler) List(c *gin.Context) {
 	var items []model.ChatApp
 	var roles = make([]vo.ChatApp, 0)
-	res := h.DB.Order("sort_num ASC").Find(&items)
+	// 仅展示系统内置智能体（user_id = 0），不展示用户自行创建的智能体
+	res := h.DB.Where("user_id = 0").Order("sort_num ASC").Find(&items)
 	if res.Error != nil {
 		resp.ERROR(c, "No data found")
 		return

@@ -39,17 +39,7 @@ export const useVideoStore = defineStore('video', () => {
     negative_prompt: '',
     image: '',
     image_tail: '',
-    camera_control: {
-      type: '',
-      config: {
-        horizontal: 0,
-        vertical: 0,
-        pan: 0,
-        tilt: 0,
-        roll: 0,
-        zoom: 0,
-      },
-    },
+    sound: false,
   })
   const kelingUseImageMode = ref(false)
   const kelingStartImage = ref([])
@@ -64,25 +54,6 @@ export const useVideoStore = defineStore('video', () => {
   ]
   const durationOptions = ['5', '10']
   const modeOptions = ['std', 'pro']
-  const cameraControlOptions = [
-    '',
-    'simple',
-    'down_back',
-    'forward_up',
-    'right_turn_forward',
-    'left_turn_forward',
-  ]
-  const getCameraControlLabel = (option) => {
-    const labelMap = {
-      '': '请选择',
-      simple: '简单运镜',
-      down_back: '下移拉远',
-      forward_up: '推进上移',
-      right_turn_forward: '右旋推进',
-      left_turn_forward: '左旋推进',
-    }
-    return labelMap[option] || option
-  }
 
   // 页面数据
   const page = ref(1)
@@ -361,8 +332,6 @@ export const useVideoStore = defineStore('video', () => {
     modelOptions,
     durationOptions,
     modeOptions,
-    cameraControlOptions,
-    getCameraControlLabel,
     page,
     pageSize,
     total,

@@ -25,9 +25,18 @@ type CaptchaConfig struct {
 	Enabled bool   `json:"enabled,omitempty"`
 }
 
-// WxLoginConfig 微信登录配置
+// WxLoginConfig 微信扫码登录配置
 type WxLoginConfig struct {
 	ApiKey    string `json:"api_key,omitempty"`
 	NotifyURL string `json:"notify_url,omitempty"` // 登录成功回调 URL
 	Enabled   bool   `json:"enabled,omitempty"`    // 是否启用微信登录
+}
+
+// 微信公众号配置
+type WxGzhConfig struct {
+	AppId          string `json:"app_id,omitempty"`
+	Secret         string `json:"secret,omitempty"`
+	Token          string `json:"token"`
+	EncodingAESKey string `json:"encoding_aes_key"`
+	Enabled        bool   `json:"enabled"`
 }

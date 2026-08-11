@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4125778 */
-  src: url('iconfont.woff2?t=1757571432313') format('woff2'),
-       url('iconfont.woff?t=1757571432313') format('woff'),
-       url('iconfont.ttf?t=1757571432313') format('truetype');
+  src: url('iconfont.woff2?t=1773972304243') format('woff2'),
+       url('iconfont.woff?t=1773972304243') format('woff'),
+       url('iconfont.ttf?t=1773972304243') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,126 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-ppt:before {
+  content: "\e67d";
+}
+
+.icon-pin:before {
+  content: "\e9f2";
+}
+
+.icon-unpin:before {
+  content: "\e67c";
+}
+
+.icon-rebot:before {
+  content: "\e6bf";
+}
+
+.icon-rebot2:before {
+  content: "\e67b";
+}
+
+.icon-doubao:before {
+  content: "\e67a";
+}
+
+.icon-seedance:before {
+  content: "\e902";
+}
+
+.icon-folder:before {
+  content: "\e806";
+}
+
+.icon-calendar:before {
+  content: "\e81a";
+}
+
+.icon-timer:before {
+  content: "\ece1";
+}
+
+.icon-aigc:before {
+  content: "\e676";
+}
+
+.icon-wan:before {
+  content: "\e673";
+}
+
+.icon-minimax:before {
+  content: "\e7df";
+}
+
+.icon-gemini:before {
+  content: "\e674";
+}
+
+.icon-sora:before {
+  content: "\e675";
+}
+
+.icon-workflow:before {
+  content: "\e68b";
+}
+
+.icon-ai-agent:before {
+  content: "\eba3";
+}
+
+.icon-channel2:before {
+  content: "\e66d";
+}
+
+.icon-channel:before {
+  content: "\e738";
+}
+
+.icon-warning:before {
+  content: "\e668";
+}
+
+.icon-info:before {
+  content: "\e66c";
+}
+
+.icon-aspect_9_16:before {
+  content: "\e65f";
+}
+
+.icon-aspect_2_3:before {
+  content: "\e660";
+}
+
+.icon-aspect_4_5:before {
+  content: "\e662";
+}
+
+.icon-aspect_3_4:before {
+  content: "\e663";
+}
+
+.icon-aspect_4_3:before {
+  content: "\e664";
+}
+
+.icon-aspect_3_2:before {
+  content: "\e665";
+}
+
+.icon-aspect_1_1:before {
+  content: "\e667";
+}
+
+.icon-aspect_5_4:before {
+  content: "\e669";
+}
+
+.icon-aspect_16_9:before {
+  content: "\e66b";
 }
 
 .icon-resize:before {
@@ -329,20 +449,12 @@
   content: "\e8e9";
 }
 
-.icon-AIduihua_jihuo:before {
-  content: "\e6bb";
-}
-
 .icon-MidJourney:before {
   content: "\e60e";
 }
 
 .icon-stable-diffusion:before {
   content: "\e60f";
-}
-
-.icon-info:before {
-  content: "\e6a0";
 }
 
 .icon-more-horizontal:before {
@@ -607,10 +719,6 @@
 
 .icon-pdf:before {
   content: "\e6c3";
-}
-
-.icon-ppt:before {
-  content: "\e642";
 }
 
 .icon-txt:before {

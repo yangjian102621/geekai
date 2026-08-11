@@ -103,110 +103,50 @@ export const JimengParams = {
           options: [
             // 1K 分辨率
             {
-              label: '1:1 (1024 x 1024)',
+              label: '1024x1024 (1:1)',
               value: '1024x1024',
-            },
-            {
-              label: '4:3 (1152 x 864)',
-              value: '1152x864',
-            },
-            {
-              label: '3:4 (864 x 1152)',
-              value: '864x1152',
-            },
-            {
-              label: '3:2 (1248 x 832)',
-              value: '1248x832',
-            },
-            {
-              label: '2:3 (832 x 1248)',
-              value: '832x1248',
-            },
-            {
-              label: '16:9 (1280 x 720)',
-              value: '1280x720',
-            },
-            {
-              label: '9:16 (720 x 1280)',
-              value: '720x1280',
-            },
-            {
-              label: '21:9 (1512 x 648)',
-              value: '1512x648',
-            },
-            {
-              label: '9:21 (648 x 1512)',
-              value: '648x1512',
             },
             // 2K 分辨率
             {
-              label: '1:1 (2048 x 2048)',
+              label: '2048x2048 (1:1)',
               value: '2048x2048',
             },
             {
-              label: '4:3 (2304 x 1728)',
+              label: '2304x1728 (4:3)',
               value: '2304x1728',
             },
             {
-              label: '3:4 (1728 x 2304)',
-              value: '1728x2304',
-            },
-            {
-              label: '3:2 (2496 x 1664)',
+              label: '2496x1664 (3:2)',
               value: '2496x1664',
             },
             {
-              label: '2:3 (1664 x 2496)',
-              value: '1664x2496',
-            },
-            {
-              label: '16:9 (2560 x 1440)',
+              label: '2560x1440 (16:9)',
               value: '2560x1440',
             },
             {
-              label: '9:16 (1440 x 2560)',
-              value: '1440x2560',
-            },
-            {
-              label: '21:9 (3024 x 1296)',
+              label: '3024x1296 (21:9)',
               value: '3024x1296',
-            },
-            {
-              label: '9:21 (1296 x 3024)',
-              value: '1296x3024',
             },
             // 4K 分辨率
             {
-              label: '1:1 (4096 x 4096)',
+              label: '4096x4096 (1:1)',
               value: '4096x4096',
             },
             {
-              label: '4:3 (4736 x 3552)',
-              value: '4736x3552',
+              label: '4694x3520 (4:3)',
+              value: '4694x3520',
             },
             {
-              label: '3:4 (3552 x 4736)',
-              value: '3552x4736',
+              label: '4992x3328 (3:2)',
+              value: '4992x3328',
             },
             {
-              label: '3:2 (5024 x 3360)',
-              value: '5024x3360',
+              label: '5404x3040 (16:9)',
+              value: '5404x3040',
             },
             {
-              label: '2:3 (3360 x 5024)',
-              value: '3360x5024',
-            },
-            {
-              label: '16:9 (5472 x 2072)',
-              value: '5472x2072',
-            },
-            {
-              label: '9:16 (2072 x 5472)',
-              value: '2072x5472',
-            },
-            {
-              label: '21:9 (6272 x 2688)',
-              value: '6272x2688',
+              label: '6198x2656 (21:9)',
+              value: '6198x2656',
             },
           ],
         },
@@ -508,6 +448,57 @@ export const JimengParams = {
               value: '3024x1296',
             },
           ],
+        },
+      ],
+    },
+
+    {
+      name: 'AI营销商品图3.0',
+      icon: { text: '3.0' },
+      label: '支持上传包含物品主体的营销商品图和提示词，通过AI技术实现商品图的背景替换',
+      key: 'i2i_dreamlight3_0_background_replace',
+      params: [
+        {
+          name: 'image_urls',
+          label: '商品图片',
+          type: 'image',
+          required: true,
+          placeholder: '请上传商品图片',
+          maxSize: 5,
+          multiple: false,
+          maxCount: 1,
+          accept: '.png,.jpg,.jpeg',
+          info: '支持上传包含物品主体的营销商品图',
+        },
+        {
+          name: 'prompt',
+          label: '背景提示词',
+          type: 'textarea',
+          required: true,
+          showWordLimit: true,
+          maxlength: 800,
+          autosize: { minRows: 3, maxRows: 5 },
+          placeholder: '请输入背景描述，如：雪山，雪地，草甸，一望无际的雪原，优美的风景',
+          info: '用于描述期望的背景场景，支持中英文输入',
+        },
+        {
+          name: 'seg_prompt',
+          label: '抠图提示词',
+          type: 'textarea',
+          required: false,
+          showWordLimit: true,
+          maxlength: 200,
+          autosize: { minRows: 2, maxRows: 3 },
+          placeholder: '请输入需要分割的主体描述，如：毛绒熊',
+          info: '可选，用于精确指定需要分割的主体。如果不提供，将自动分割图片中的主要主体（人物/商品）',
+        },
+        {
+          name: 'light_switch',
+          type: 'switch',
+          required: false,
+          label: '保留商品光照',
+          info: '开启后保留原商品的光照效果，关闭后光照会适配新背景环境',
+          value: false,
         },
       ],
     },

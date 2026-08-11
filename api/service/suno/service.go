@@ -12,11 +12,12 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core/types"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"geekai/service"
 	"geekai/service/oss"
 	"geekai/store"
 	"geekai/store/model"
+	"geekai/store/vo"
 	"geekai/utils"
 	"io"
 	"time"
@@ -27,7 +28,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 type Service struct {
 	httpClient    *req.Client
@@ -61,13 +62,24 @@ func (s *Service) Run() {
 	var jobs []model.SunoJob
 	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
 	for _, v := range jobs {
-		var task types.SunoTask
-		err := utils.JsonDecode(v.TaskInfo, &task)
-		if err != nil {
-			logger.Errorf("decode task info with error: %v", err)
-			continue
+		// 从 Params 中提取字段构建 task
+		task := types.SunoTask{
+			Id:           v.Id,
+			UserId:       int(v.UserId),
+			Channel:      v.Channel,
+			Type:         v.Type,
+			Title:        v.Title,
+			RefTaskId:    v.RefTaskId,
+			RefSongId:    v.RefSongId,
+			Prompt:       v.Params.Prompt,
+			Lyrics:       v.Params.Lyrics,
+			Tags:         v.Params.Tags,
+			Model:        v.Params.Model,
+			Instrumental: v.Params.Instrumental,
+			ExtendSecs:   v.Params.ExtendSecs,
+			SongId:       v.SongId,
+			AudioURL:     v.AudioURL,
 		}
-		task.Id = v.Id
 		s.PushTask(task)
 	}
 	logger.Info("Starting Suno job consumer...")
@@ -335,15 +347,22 @@ func (s *Service) SyncTaskProgress() {
 						job.SongId = v.Id
 						job.Duration = int(v.Metadata.Duration)
 						job.Prompt = v.Metadata.Prompt
+
+						// 设置 Params
+						tags := v.Metadata.Tags
 						// 修复 tags 字段过长导致插入数据库失败
-						if len(v.Metadata.Tags) > 255 {
-							job.Tags = v.Metadata.Tags[:255]
-						} else {
-							job.Tags = v.Metadata.Tags
+						if len(tags) > 255 {
+							tags = tags[:255]
+						}
+						job.Params = vo.SunoParam{
+							Prompt:       v.Metadata.Prompt,
+							Tags:         tags,
+							Model:        v.ModelName,
+							Instrumental: job.Params.Instrumental, // 保持原任务参数
+							ExtendSecs:   job.Params.ExtendSecs,   // 保持原任务参数
 						}
 
-						job.ModelName = v.ModelName
-						job.RawData = utils.JsonEncode(v)
+						job.Output = utils.JsonEncode(v)
 						job.CoverURL = v.ImageLargeUrl
 						job.AudioURL = v.AudioUrl
 
@@ -372,11 +391,12 @@ func (s *Service) SyncTaskProgress() {
 			}
 
 			// 找出失败的任务，并恢复其扣减算力
-			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			s.db.Select("id", "user_id", "power", "task_id", "err_msg", "params").
+				Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
 			for _, job := range jobs {
 				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 					Type:   types.PowerRefund,
-					Model:  job.ModelName,
+					Model:  job.Params.Model,
 					Remark: fmt.Sprintf("Suno 任务失败，退回算力。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
 				})
 				if err != nil {

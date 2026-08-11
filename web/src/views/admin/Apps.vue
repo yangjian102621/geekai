@@ -5,16 +5,6 @@
     </div>
     <el-row>
       <el-table :data="tableData" border>
-        <el-table-column type="expand">
-          <template #default="props">
-            <div>
-              <el-table :data="props.row.context" :border="childBorder">
-                <el-table-column label="对话应用" prop="role" width="120" />
-                <el-table-column label="对话内容" prop="content" />
-              </el-table>
-            </div>
-          </template>
-        </el-table-column>
         <el-table-column label="应用名称" prop="name">
           <template #default="scope">
             <span class="sort" :data-id="scope.row.id">
@@ -24,7 +14,6 @@
           </template>
         </el-table-column>
         <el-table-column label="应用类型" prop="type_name" />
-        <el-table-column label="应用标识" prop="key" />
         <el-table-column label="绑定模型" prop="model_name" />
         <el-table-column label="启用状态">
           <template #default="scope">
@@ -72,10 +61,6 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="应用标志：" prop="key">
-          <el-input v-model="role.key" autocomplete="off" />
-        </el-form-item>
-
         <el-form-item label="应用图标：" prop="icon">
           <el-input v-model="role.icon">
             <template #append>
@@ -96,85 +81,13 @@
           <el-input v-model="role.hello_msg" autocomplete="off" />
         </el-form-item>
 
-        <el-form-item label="上下文信息：" prop="context">
-          <template #default>
-            <el-table :data="role.context" :border="childBorder" size="small">
-              <el-table-column label="对话应用" width="120">
-                <template #default="scope">
-                  <el-select v-model="scope.row.role" placeholder="Role">
-                    <el-option
-                      v-for="value in messageRoles"
-                      :key="value"
-                      :label="value"
-                      :value="value"
-                    />
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column label="对话内容">
-                <template #header>
-                  <div class="context-msg-key">
-                    <span>对话内容</span>
-                    <span class="fr">
-                      <el-button type="primary" @click="addContext" size="small">
-                        <el-icon>
-                          <Plus />
-                        </el-icon>
-                        增加一行
-                      </el-button>
-                    </span>
-                  </div>
-                </template>
-
-                <template #default="scope">
-                  <div class="context-msg-content">
-                    <el-input
-                      type="textarea"
-                      :rows="3"
-                      v-model="scope.row.content"
-                      autocomplete="off"
-                      v-loading="isGenerating"
-                    />
-                    <span class="remove-item">
-                      <el-tooltip effect="dark" content="删除当前行" placement="right">
-                        <el-button circle type="danger" size="small">
-                          <el-icon @click="removeContext(scope.$index)"><Delete /></el-icon>
-                        </el-button>
-                      </el-tooltip>
-
-                      <el-popover placement="right" :width="400" trigger="click">
-                        <template #reference>
-                          <el-button type="primary" circle size="small" class="icon-btn">
-                            <i class="iconfont icon-linggan"></i>
-                          </el-button>
-                        </template>
-                        <el-input
-                          type="textarea"
-                          :rows="3"
-                          v-model="metaPrompt"
-                          autocomplete="off"
-                          placeholder="请您输入要 AI实现的目标，任务或者需要AI扮演的角色？"
-                        />
-                        <el-row class="text-line">
-                          <el-text type="info" size="small">使用 AI 生成 System 预设指令</el-text>
-                          <el-button
-                            class="generate-btn"
-                            size="small"
-                            @click="generatePrompt(scope.row)"
-                            color="#5865f2"
-                            :disabled="isGenerating"
-                          >
-                            <i class="iconfont icon-chuangzuo"></i>
-                            <span>立即生成</span>
-                          </el-button>
-                        </el-row>
-                      </el-popover>
-                    </span>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </template>
+        <el-form-item label="预设提示词：" prop="system_prompt">
+          <el-input
+            v-model="role.system_prompt"
+            type="textarea"
+            :rows="6"
+            placeholder="请输入系统预设提示词，将作为该应用的系统指令"
+          />
         </el-form-item>
 
         <el-form-item label="启用状态">
@@ -193,10 +106,9 @@
 </template>
 
 <script setup>
-import { showMessageError } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { copyObj, removeArrayItem } from '@/utils/libs'
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import Compressor from 'compressorjs'
 import { ElMessage } from 'element-plus'
 import { Sortable } from 'sortablejs'
@@ -207,14 +119,13 @@ const parentBorder = ref(true)
 const childBorder = ref(true)
 const tableData = ref([])
 const sortedTableData = ref([])
-const role = ref({ context: [] })
+const role = ref({ system_prompt: '' })
 const formRef = ref(null)
 const optTitle = ref('')
 const loading = ref(true)
 
 const rules = reactive({
-  name: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  key: [{ required: true, message: '请输入应用标识', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入应用名称', trigger: 'blur' }],
   icon: [{ required: true, message: '请输入应用图标', trigger: 'blur' }],
   sort: [
     { required: true, message: '请输入排序数字', trigger: 'blur' },
@@ -225,7 +136,6 @@ const rules = reactive({
 
 const appTypes = ref([])
 const models = ref([])
-const messageRoles = ref(['system', 'user', 'assistant'])
 onMounted(() => {
   fetchData()
 
@@ -320,7 +230,7 @@ const rowEdit = function (index, row) {
 
 const addRole = function () {
   optTitle.value = '添加新应用'
-  role.value = { context: [] }
+  role.value = { system_prompt: '', enable: true }
   showDialog.value = true
 }
 
@@ -353,17 +263,6 @@ const removeRole = function (row) {
     })
 }
 
-const addContext = function () {
-  if (!role.value.context) {
-    role.value.context = []
-  }
-  role.value.context.push({ role: '', content: '' })
-}
-
-const removeContext = function (index) {
-  role.value.context.splice(index, 1)
-}
-
 // 图片上传
 const uploadImg = (file) => {
   // 压缩图片并上传
@@ -386,24 +285,6 @@ const uploadImg = (file) => {
       ElMessage.error('上传失败:' + e.message)
     },
   })
-}
-
-const isGenerating = ref(false)
-const metaPrompt = ref('')
-const generatePrompt = (row) => {
-  if (metaPrompt.value === '') {
-    return showMessageError('请输入元提示词')
-  }
-  isGenerating.value = true
-  httpPost('/api/prompt/meta', { prompt: metaPrompt.value })
-    .then((res) => {
-      row.content = res.data
-      isGenerating.value = false
-    })
-    .catch((e) => {
-      showMessageError('生成失败：' + e.message)
-      isGenerating.value = false
-    })
 }
 </script>
 
@@ -428,32 +309,6 @@ const generatePrompt = (row) => {
     }
   }
 
-  .context-msg-key {
-    .fr {
-      float: right;
-
-      .el-icon {
-        margin-right: 5px;
-      }
-    }
-  }
-
-  .context-msg-content {
-    display: flex;
-
-    .remove-item {
-      display: flex;
-      padding: 10px;
-      flex-flow: column;
-      align-items: center;
-      justify-content: center;
-
-      .icon-btn {
-        margin: 10px 0 0 0;
-      }
-    }
-  }
-
   .el-input--small {
     width: 30px;
 
@@ -474,16 +329,6 @@ const generatePrompt = (row) => {
     padding: 20px 0;
     display: flex;
     justify-content: right;
-  }
-}
-
-.text-line {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 10px;
-  .iconfont {
-    margin-right: 5px;
-    font-size: 14px;
   }
 }
 </style>

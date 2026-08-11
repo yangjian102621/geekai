@@ -116,6 +116,7 @@ import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
 import FunDisabled from '@/components/ui/FunDisabled.vue'
 import QRCode from 'qrcode'
+import { isWechat } from '@/utils/libs'
 import { showFailToast, showLoadingToast, showSuccessToast } from 'vant'
 import { onMounted, onUnmounted, ref } from 'vue'
 
@@ -143,6 +144,7 @@ const handler = ref(null)
 const title = ref('')
 
 const store = useSharedStore()
+const wxGzhConfig = ref({})
 
 // 初始化
 onMounted(() => {
@@ -177,6 +179,15 @@ onMounted(() => {
       console.error('获取系统配置失败：', e.message)
     })
 
+  // 获取微信公众号配置
+  httpGet('/api/config/get?key=wx_gzh')
+    .then((res) => {
+      wxGzhConfig.value = res.data
+    })
+    .catch((e) => {
+      console.error('获取微信公众号配置失败：', e.message)
+    })
+
   getMenus()
     .then((data) => {
       menus.value = data
@@ -202,9 +213,13 @@ const wxPay = (product) => {
     message: '正在生成支付订单...',
     forbidClick: true,
   })
-
+  var payWay = 'wxpay'
+  var device = 'pc'
+  if (isWechat()) {
+    device = 'mobile'
+  }
   // 生成支付订单
-  GenerateOrder('wxpay')
+  GenerateOrder(payWay, device)
 }
 
 const alipay = (product) => {
@@ -227,30 +242,49 @@ const alipay = (product) => {
   GenerateOrder('alipay')
 }
 
-function GenerateOrder(payWay) {
+function GenerateOrder(payWay, device = 'pc') {
   // 生成支付订单
   httpPost('/api/payment/create', {
     pid: selectedPid.value,
     pay_way: payWay,
     domain: `${window.location.protocol}//${window.location.host}`,
-    device: 'pc',
+    device: device,
   })
     .then((res) => {
       if (res.data.pay_url) {
-        // 生成二维码
-        QRCode.toDataURL(res.data.pay_url, { width: 200, height: 200, margin: 2 }, (error, url) => {
-          if (error) {
-            showFailToast('生成二维码失败')
-          } else {
-            qrImg.value = url
-            showPayDialog.value = true
-            // 开始查询订单状态
-            if (handler.value) {
-              clearTimeout(handler.value)
+        // 如果是微信浏览器，并且微信公众号配置启用，则使用微信JSAPI支付
+        if (isWechat() && wxGzhConfig.value.enabled) {
+          let payParams = JSON.parse(res.data.pay_url)
+          if (typeof WeixinJSBridge == 'undefined') {
+            if (document.addEventListener) {
+              document.addEventListener('WeixinJSBridgeReady', onBridgeReady(payParams), false)
+            } else if (document.attachEvent) {
+              document.attachEvent('WeixinJSBridgeReady', onBridgeReady(payParams))
+              document.attachEvent('onWeixinJSBridgeReady', onBridgeReady(payParams))
             }
-            handler.value = setTimeout(() => queryOrder(res.data.order_no), 3000)
+          } else {
+            onBridgeReady(payParams)
           }
-        })
+        } else {
+          // 生成二维码
+          QRCode.toDataURL(
+            res.data.pay_url,
+            { width: 200, height: 200, margin: 2 },
+            (error, url) => {
+              if (error) {
+                showFailToast('生成二维码失败')
+              } else {
+                qrImg.value = url
+                showPayDialog.value = true
+                // 开始查询订单状态
+                if (handler.value) {
+                  clearTimeout(handler.value)
+                }
+                handler.value = setTimeout(() => queryOrder(res.data.order_no), 3000)
+              }
+            }
+          )
+        }
       } else {
         showFailToast('支付链接生成失败')
       }
@@ -301,6 +335,31 @@ onUnmounted(() => {
     handler.value = null
   }
 })
+const onBridgeReady = function onBridgeReady(payParams) {
+  WeixinJSBridge.invoke(
+    'getBrandWCPayRequest',
+    {
+      appId: payParams.appId, //公众号ID，由商户传入
+      timeStamp: payParams.timeStamp, //时间戳，自1970年以来的秒数
+      nonceStr: payParams.nonceStr, //随机串
+      package: payParams.package, //预支付交易会话标识
+      signType: payParams.signType, //微信签名方式：
+      paySign: payParams.paySign, //微信签名
+    },
+    function (res) {
+      if (res.err_msg == 'get_brand_wcpay_request:ok') {
+        // 使用以上方式判断前端返回,微信团队郑重提示：
+        //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+        showSuccessToast('支付成功！')
+        setTimeout(() => {
+          location.reload()
+        }, 1500)
+      } else {
+        showFailToast('支付失败：' + res.err_msg)
+      }
+    }
+  )
+}
 </script>
 
 <style lang="scss" scoped>

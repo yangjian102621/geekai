@@ -13,7 +13,7 @@ import (
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
-	"geekai/service/dalle"
+	"geekai/service/image"
 	"geekai/service/oss"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -31,7 +31,7 @@ import (
 type FunctionHandler struct {
 	BaseHandler
 	uploadManager *oss.UploaderManager
-	dallService   *dalle.Service
+	imageService  *image.Service
 	userService   *service.UserService
 }
 
@@ -40,7 +40,7 @@ func NewFunctionHandler(
 	db *gorm.DB,
 	config *types.AppConfig,
 	manager *oss.UploaderManager,
-	dallService *dalle.Service,
+	imageService *image.Service,
 	userService *service.UserService) *FunctionHandler {
 	return &FunctionHandler{
 		BaseHandler: BaseHandler{
@@ -48,7 +48,7 @@ func NewFunctionHandler(
 			DB:  db,
 		},
 		uploadManager: manager,
-		dallService:   dallService,
+		imageService:  imageService,
 		userService:   userService,
 	}
 }
@@ -61,7 +61,7 @@ func (h *FunctionHandler) RegisterRoutes() {
 	// 需要用户授权的接口
 	group.POST("weibo", h.WeiBo)
 	group.POST("zaobao", h.ZaoBao)
-	group.POST("dalle3", h.Dall3)
+	group.POST("image3", h.Image3)
 }
 
 type resVo struct {
@@ -176,8 +176,8 @@ func (h *FunctionHandler) ZaoBao(c *gin.Context) {
 	resp.SUCCESS(c, strings.Join(builder, "\n\n"))
 }
 
-// Dall3 DallE3 AI 绘图
-func (h *FunctionHandler) Dall3(c *gin.Context) {
+// Image3 AI 图像生成
+func (h *FunctionHandler) Image3(c *gin.Context) {
 	if err := h.checkAuth(c); err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -209,9 +209,9 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		return
 	}
 
-	// create dall task
+	// create image task
 	prompt := utils.InterfaceToString(params["prompt"])
-	task := types.DallTask{
+	task := types.ImageTask{
 		UserId:           user.Id,
 		Prompt:           prompt,
 		ModelId:          chatModel.Id,
@@ -220,11 +220,11 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 		TranslateModelId: h.App.SysConfig.Base.AssistantModelId,
 		Power:            chatModel.Power,
 	}
-	job := model.DallJob{
-		UserId:   user.Id,
-		Prompt:   prompt,
-		Power:    chatModel.Power,
-		TaskInfo: utils.JsonEncode(task),
+	job := model.ImageJob{
+		UserId: user.Id,
+		Prompt: prompt,
+		Power:  chatModel.Power,
+		Params: utils.JsonEncode(task),
 	}
 	err := h.DB.Create(&job).Error
 	if err != nil {
@@ -233,7 +233,7 @@ func (h *FunctionHandler) Dall3(c *gin.Context) {
 	}
 
 	task.Id = job.Id
-	content, err := h.dallService.Image(task, true)
+	content, err := h.imageService.Image(task, true)
 	if err != nil {
 		resp.ERROR(c, "任务执行失败："+err.Error())
 		return

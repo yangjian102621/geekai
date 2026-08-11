@@ -179,7 +179,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	}
 	apiURL := fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
 	logger.Infof("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, "advanced-voice")
-	r, err := client.R().SetHeader("Body-Type", "application/json").
+	r, err := client.R().SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+apiKey.Value).
 		SetBody(types.ApiRequest{
 			Model:       "advanced-voice",
@@ -221,11 +221,12 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 		return
 	}
 
-	logger.Infof("Response: %v", response.Choices[0].Message.Content)
+	replyText := utils.NormalizeAssistantContent(response.Choices[0].Message.Content)
+	logger.Infof("Response: %v", replyText)
 
 	// 提取链接
 	re := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
-	links := re.FindAllStringSubmatch(response.Choices[0].Message.Content, -1)
+	links := re.FindAllStringSubmatch(replyText, -1)
 	var url = ""
 	if len(links) > 0 {
 		url = links[0][2]

@@ -10,7 +10,7 @@
                   v-for="item in currentApps"
                   :key="item.id"
                   :app="item"
-                  :has-role="hasRole(item.key)"
+                  :has-role="hasRole(item.id)"
                   @use-role="useRole"
                   @update-role="updateRole"
                 />
@@ -45,7 +45,7 @@
                   v-for="item in getAppsByType(type.id)"
                   :key="item.id"
                   :app="item"
-                  :has-role="hasRole(item.key)"
+                  :has-role="hasRole(item.id)"
                   @use-role="useRole"
                   @update-role="updateRole"
                 />
@@ -118,7 +118,7 @@ onMounted(async () => {
   try {
     const user = await checkSession()
     isLogin.value = true
-    roles.value = user.chat_roles
+    roles.value = Array.isArray(user.chat_roles) ? user.chat_roles : []
   } catch (error) {
     // 用户未登录，继续执行
   }
@@ -181,30 +181,30 @@ const updateRole = async (app, opt) => {
   let actionTitle = ''
   if (opt === 'add') {
     actionTitle = '添加应用'
-    const exists = arrayContains(roles.value, app.key)
+    const exists = arrayContains(roles.value, app.id)
     if (exists) {
       return
     }
-    roles.value.push(app.key)
+    roles.value.push(app.id)
   } else {
     actionTitle = '移除应用'
-    const exists = arrayContains(roles.value, app.key)
+    const exists = arrayContains(roles.value, app.id)
     if (!exists) {
       return
     }
-    roles.value = removeArrayItem(roles.value, app.key)
+    roles.value = removeArrayItem(roles.value, app.id)
   }
 
   try {
-    await httpPost('/api/app/update', { keys: roles.value })
+    await httpPost('/api/app/workspace', { ids: roles.value })
     showNotify({ type: 'success', message: actionTitle + '成功！' })
   } catch (e) {
     showNotify({ type: 'danger', message: actionTitle + '失败：' + e.message })
   }
 }
 
-const hasRole = (roleKey) => {
-  return arrayContains(roles.value, roleKey, (v1, v2) => v1 === v2)
+const hasRole = (roleId) => {
+  return arrayContains(roles.value, roleId, (v1, v2) => v1 === v2)
 }
 
 const useRole = (roleId) => {

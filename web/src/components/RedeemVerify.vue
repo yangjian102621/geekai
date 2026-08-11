@@ -1,11 +1,11 @@
 <template>
-  <div class="form" id="redeem-form">
-    <el-form :model="form">
+  <div class="pt-3" id="redeem-form">
+    <el-form :model="form" label-position="top">
       <el-form-item>
         <el-input v-model="form.code" placeholder="请输入兑换码" />
       </el-form-item>
     </el-form>
-    <div class="dialog-footer">
+    <div class="pt-3 flex justify-end">
       <el-button type="primary" @click="save">兑换</el-button>
       <el-button @click="emits('hide')">取消</el-button>
     </div>
@@ -41,19 +41,12 @@ const save = () => {
 
 <style scoped lang="scss">
 .form {
-  padding: 20px;
-
   .form-title {
     font-size: 18px;
     font-weight: 600;
     color: var(--el-text-color-primary);
     margin-bottom: 20px;
     text-align: center;
-  }
-
-  .dialog-footer {
-    text-align: center;
-    margin-top: 20px;
   }
 }
 </style>

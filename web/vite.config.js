@@ -51,11 +51,20 @@ export default defineConfig(({ mode }) => {
       },
     },
 
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler', // 使用新的 Sass API，避免 legacy JS API 警告
+        },
+      },
+    },
+
     server: {
       port: 8888, // 设置你想要的端口号
       open: false, // 可选：启动服务器时自动打开浏览器
       ...(process.env.NODE_ENV === 'development'
         ? {
+            allowedHosts: ['localhost', '127.0.0.1', 'sapi.geekai.me'],
             proxy: {
               '/api': {
                 target: apiHost,

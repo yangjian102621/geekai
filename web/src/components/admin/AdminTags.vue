@@ -123,10 +123,13 @@ const handleTags = (command) => {
   position: relative;
   height: 30px;
   overflow: hidden;
-  background: #fff;
+  background: var(--admin-tags-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 5px 120px 5px 10px;
-  -webkit-box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid var(--admin-tags-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: background 0.2s ease, border-color 0.2s ease;
 
   ul {
     box-sizing: border-box;
@@ -138,21 +141,28 @@ const handleTags = (command) => {
       align-items: center;
       float: left;
       margin: 3px 5px 2px 3px;
-      border-radius: 3px;
+      border-radius: 6px;
       font-size: 12px;
       overflow: hidden;
       cursor: pointer;
       height: 23px;
-      border: 1px solid var(--el-border-color);
-      background: var(--el-bg-color);
+      border: 1px solid var(--admin-tags-border);
+      background: var(--admin-tags-item-bg);
       padding: 0 5px 0 12px;
-      color: var(--el-text-color);
-      -webkit-transition: all 0.3s ease-in;
-      -moz-transition: all 0.3s ease-in;
-      transition: all 0.3s ease-in;
+      color: var(--theme-text-color-secondary);
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
       &:hover {
-        background: var(--el-menu-bg-color-dark);
+        background: var(--admin-header-hover);
+      }
+    }
+
+    .tags-li.active {
+      background: var(--admin-tags-active-bg);
+      border-color: rgba(107, 85, 255, 0.4);
+      .tags-li-title {
+        color: var(--el-color-primary);
+        font-weight: 500;
       }
     }
 
@@ -163,11 +173,8 @@ const handleTags = (command) => {
       white-space: nowrap;
       text-overflow: ellipsis;
       margin-right: 5px;
-      color: #666;
-    }
-
-    .tags-li.active .tags-li-title {
-      color: var(--el-color-primary);
+      color: var(--theme-text-color-secondary);
+      transition: color 0.2s ease;
     }
   }
 
@@ -180,12 +187,14 @@ const handleTags = (command) => {
     text-align: center;
     width: 110px;
     height: 30px;
-    background: var(--el-bg-color);
+    background: transparent;
     z-index: 10;
   }
 }
 
 .tags.dark {
-  border-bottom: 1px solid var(--el-border-color);
+  .tags-li.active {
+    border-color: rgba(107, 85, 255, 0.5);
+  }
 }
 </style>

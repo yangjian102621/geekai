@@ -6,6 +6,7 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import '@/assets/css/tailwind.css'
+import '@/assets/css/custom-scroll.scss'
 import '@/assets/iconfont/iconfont.css'
 import { useThemeStore } from '@/store/theme'
 import 'animate.css/animate.min.css'

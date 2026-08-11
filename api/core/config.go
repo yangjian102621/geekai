@@ -10,7 +10,7 @@ package core
 import (
 	"bytes"
 	"geekai/core/types"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"geekai/store/model"
 	"geekai/utils"
 	"os"
@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 func NewDefaultConfig() *types.AppConfig {
 	return &types.AppConfig{
@@ -157,6 +157,15 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		logger.Error("load jimeng config error: ", err)
 	}
 
+	// 加载微信公众号配置
+	var wxGzhConfig types.WxGzhConfig
+	sysConfig.Id = 0
+	db.Where("name", types.ConfigKeyWxGzh).First(&sysConfig)
+	err = utils.JsonDecode(sysConfig.Value, &wxGzhConfig)
+	if err != nil {
+		logger.Error("load wx gzh config error: ", err)
+	}
+
 	return &types.SystemConfig{
 		Base:       baseConfig,
 		SMS:        smsConfig,
@@ -167,5 +176,6 @@ func LoadSystemConfig(db *gorm.DB) *types.SystemConfig {
 		WxLogin:    wxLoginConfig,
 		Moderation: moderationConfig,
 		Jimeng:     jimengConfig,
+		WxGzh:      wxGzhConfig,
 	}
 }

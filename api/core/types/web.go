@@ -36,9 +36,8 @@ const (
 
 	ChPing   = WsChannel("ping")
 	ChChat   = WsChannel("chat")
-	ChMj     = WsChannel("mj")
-	ChSd     = WsChannel("sd")
-	ChDall   = WsChannel("dall")
+	ChMj    = WsChannel("mj")
+	ChImage = WsChannel("image")
 	ChSuno   = WsChannel("suno")
 	ChLuma   = WsChannel("luma")
 	ChKeLing = WsChannel("keling")

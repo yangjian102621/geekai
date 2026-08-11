@@ -125,9 +125,9 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	if data.SongId != "" && data.Type == 3 {
 		var song model.SunoJob
 		if err := h.DB.Where("song_id = ?", data.SongId).First(&song).Error; err == nil {
-			data.Instrumental = song.Instrumental
-			data.Model = song.ModelName
-			data.Tags = song.Tags
+			data.Instrumental = song.Params.Instrumental
+			data.Model = song.Params.Model
+			data.Tags = song.Params.Tags
 		}
 		// 拼接歌词
 		var refSong model.SunoJob
@@ -153,22 +153,26 @@ func (h *SunoHandler) Create(c *gin.Context) {
 
 	// 插入数据库
 	job := model.SunoJob{
-		UserId:       uint(task.UserId),
-		Prompt:       data.Prompt,
-		Instrumental: data.Instrumental,
-		ModelName:    data.Model,
-		TaskInfo:     utils.JsonEncode(task),
-		Tags:         data.Tags,
-		Title:        data.Title,
-		Type:         data.Type,
-		RefSongId:    data.RefSongId,
-		RefTaskId:    data.RefTaskId,
-		ExtendSecs:   data.ExtendSecs,
-		Power:        h.App.SysConfig.Base.SunoPower,
-		SongId:       utils.RandString(32),
+		UserId:    uint(task.UserId),
+		Prompt:    data.Prompt,
+		Params: vo.SunoParam{
+			Prompt:     data.Prompt,
+			Instrumental: data.Instrumental,
+			Tags:       data.Tags,
+			ExtendSecs: data.ExtendSecs,
+			Lyrics:     data.Lyrics,
+			Model:      data.Model,
+		},
+		Title:     data.Title,
+		Type:      data.Type,
+		RefSongId: data.RefSongId,
+		RefTaskId: data.RefTaskId,
+		Power:     h.App.SysConfig.Base.SunoPower,
+		SongId:    utils.RandString(32),
 	}
 	if data.Lyrics != "" {
 		job.Prompt = data.Lyrics
+		job.Params.Prompt = data.Lyrics
 	}
 	tx := h.DB.Create(&job)
 	if tx.Error != nil {
@@ -183,8 +187,8 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	// update user's power
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:      types.PowerConsume,
-		Model:     job.ModelName,
-		Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.ModelName),
+		Model:     job.Params.Model,
+		Remark:    fmt.Sprintf("Suno 文生歌曲，%s", job.Params.Model),
 		CreatedAt: time.Now(),
 	})
 	if err != nil {

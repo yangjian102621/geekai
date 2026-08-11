@@ -8,7 +8,7 @@
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
 import { showMessageInfo } from '@/utils/dialog'
-import { isChrome, isMobile } from '@/utils/libs'
+import { initThumbTemplate, isChrome, isMobile } from '@/utils/libs'
 import { ElConfigProvider } from 'element-plus'
 import { onMounted } from 'vue'
 
@@ -34,6 +34,9 @@ window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
 
 const store = useSharedStore()
 onMounted(() => {
+  // 初始化缩略图模板（从后端加载并缓存到localStorage）
+  initThumbTemplate()
+
   // 获取系统参数
   getSystemInfo().then((res) => {
     const link = document.createElement('link')
@@ -53,10 +56,8 @@ onMounted(() => {
 
   // 设置主题
   document.documentElement.setAttribute('data-theme', store.theme)
-})
 
-// 打印 banner
-const banner = `
+  const banner = `
   .oooooo.                        oooo              .o.       ooooo 
  d8P'  'Y8b                        888             .888.       888
 888            .ooooo.   .ooooo.   888  oooo      .8"888.      888  
@@ -65,17 +66,18 @@ const banner = `
 '88.    .88'  888    .o 888    .o  888  88b.   .8'      888.   888  
   Y8bood8P'    Y8bod8P'  Y8bod8P' o888o o888o o88o     o8888o o888o
   `
-console.log('%c' + banner + '', 'color: purple;font-size: 18px;')
+  console.log('%c' + banner + '', 'color: purple;font-size: 18px;')
 
-console.log(
-  '%c感谢大家为 GeekAI 做出的卓越贡献！',
-  "color: green;font-size: 40px;font-family: '微软雅黑';"
-)
-console.log(
-  '%c项目源码：https://github.com/yangjian102621/geekai %c 您的 star 对我们非常重要！',
-  "color: green;font-size: 20px;font-family: '微软雅黑';",
-  "color: red;font-size: 20px;font-family: '微软雅黑';"
-)
+  console.log(
+    '%c感谢大家为 GeekAI 做出的卓越贡献！',
+    "color: green;font-size: 40px;font-family: '微软雅黑';"
+  )
+  console.log(
+    '%c项目源码：https://github.com/yangjian102621/geekai %c 您的 star 对我们非常重要！',
+    "color: green;font-size: 20px;font-family: '微软雅黑';",
+    "color: red;font-size: 20px;font-family: '微软雅黑';"
+  )
+})
 </script>
 
 <style lang="scss">

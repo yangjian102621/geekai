@@ -73,6 +73,7 @@ import { FormatFileSize, GetFileIcon } from '@/store/system'
 import { computed } from 'vue'
 import { httpDownload } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
+import { showMessageError } from '@/utils/dialog'
 
 const props = defineProps({
   files: {

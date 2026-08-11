@@ -57,8 +57,11 @@ type BaseConfig struct {
 	DailyPower        int            `json:"daily_power,omitempty"`         // 每日签到赠送算力
 	InvitePower       int            `json:"invite_power,omitempty"`        // 邀请新用户赠送算力值
 	MjPower           int            `json:"mj_power,omitempty"`            // MJ 绘画消耗算力
-	MjActionPower     int            `json:"mj_action_power,omitempty"`     // MJ 操作（放大，变换）消耗算力
-	SdPower           int            `json:"sd_power,omitempty"`            // SD 绘画消耗算力
+	MjActionPower     int            `json:"mj_action_power,omitempty"`     // MJ 操作（放大，变换）消耗算力，未配置分项时回退用
+	MjUpscalePower    int            `json:"mj_upscale_power,omitempty"`    // MJ 放大/变换消耗算力
+	MjBlendPower      int            `json:"mj_blend_power,omitempty"`      // MJ 融图消耗算力
+	MjSwapFacePower   int            `json:"mj_swap_face_power,omitempty"`  // MJ 换脸消耗算力
+	MjModalPower      int            `json:"mj_modal_power,omitempty"`      // MJ 局部重绘消耗算力
 	SunoPower         int            `json:"suno_power,omitempty"`          // Suno 生成歌曲消耗算力
 	LumaPower         int            `json:"luma_power,omitempty"`          // Luma 生成视频消耗算力
 	KeLingPowers      map[string]int `json:"keling_powers,omitempty"`       // 可灵生成视频消耗算力
@@ -69,8 +72,7 @@ type BaseConfig struct {
 	EnableContext bool `json:"enable_context,omitempty"`
 	ContextDeep   int  `json:"context_deep,omitempty"`
 
-	SdNegPrompt string `json:"sd_neg_prompt"` // SD 默认反向提示词
-	MjMode      string `json:"mj_mode"`       // midjourney 默认的API模式，relax, fast, turbo
+	MjMode string `json:"mj_mode"` // midjourney 默认的API模式，relax, fast, turbo
 
 	IndexNavs []int  `json:"index_navs"` // 首页显示的导航菜单
 	IndexPage string `json:"index_page"` // 首页显示的页面
@@ -95,22 +97,26 @@ type SystemConfig struct {
 	WxLogin    WxLoginConfig
 	Jimeng     JimengConfig
 	Moderation ModerationConfig
+	WxGzh      WxGzhConfig
 }
 
 // 配置键名常量
 const (
-	ConfigKeySystem     = "system"
-	ConfigKeyNotice     = "notice"
-	ConfigKeyAgreement  = "agreement"
-	ConfigKeyPrivacy    = "privacy"
-	ConfigKeyMarkMap    = "mark_map"
-	ConfigKeyCaptcha    = "captcha"
-	ConfigKeyWxLogin    = "wx_login"
-	ConfigKeySms        = "sms"
-	ConfigKeySmtp       = "smtp"
-	ConfigKeyOss        = "oss"
-	ConfigKeyPayment    = "payment"
-	ConfigKeyModeration = "moderation"
-	ConfigKeyAI3D       = "ai3d"
-	ConfigKeyJimeng     = "jimeng"
+	ConfigKeySystem     = "system"     // 系统配置
+	ConfigKeyNotice     = "notice"     // 公告配置
+	ConfigKeyAgreement  = "agreement"  // 用户协议配置
+	ConfigKeyPrivacy    = "privacy"    // 隐私政策配置
+	ConfigKeyMarkMap    = "mark_map"   // 水印配置
+	ConfigKeyCaptcha    = "captcha"    // 验证码配置
+	ConfigKeyWxLogin    = "wx_login"   // 微信扫码登录配置
+	ConfigKeyWxGzh      = "wx_gzh"     // 微信公众号配置
+	ConfigKeySms        = "sms"        // 短信配置
+	ConfigKeySmtp       = "smtp"       // SMTP 配置
+	ConfigKeyOss        = "oss"        // OSS 配置
+	ConfigKeyPayment    = "payment"    // 支付配置
+	ConfigKeyModeration = "moderation" // 文本审查配置
+	ConfigKeyAI3D       = "ai3d"       // AI3D 配置
+	ConfigKeyJimeng     = "jimeng"     // 即梦AI配置
+	ConfigKeyVideo      = "video"      // 视频生成配置
+	ConfigKeyPPT        = "ppt"        // PPT 生成配置
 )

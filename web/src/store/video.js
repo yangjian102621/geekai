@@ -6,7 +6,8 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import nodata from '@/assets/img/no-data.png'
-import { checkSession, getSystemInfo } from '@/store/cache'
+import { checkSession } from '@/store/cache'
+import { getVideoModelByKey, getVideoModels, getVideoProviders } from '@/store/data/video_params'
 import { useSharedStore } from '@/store/sharedata'
 import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
@@ -14,14 +15,14 @@ import { replaceImg, substr } from '@/utils/libs'
 import Clipboard from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
-import { computed, reactive, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export const useVideoStore = defineStore('video', () => {
-  // 当前活跃的视频类型
-  const activeVideoType = ref('luma')
+  const providers = getVideoProviders()
+  const activeProvider = ref(providers.includes('sora') ? 'sora' : providers[0] || '')
 
-  // 共同状态
   const loading = ref(false)
+  const submitting = ref(false)
   const list = ref([])
   const noData = ref(true)
   const page = ref(1)
@@ -31,129 +32,42 @@ export const useVideoStore = defineStore('video', () => {
   const pullHandler = ref(null)
   const clipboard = ref(null)
 
-  // 视频预览
   const showDialog = ref(false)
   const currentVideoUrl = ref('')
 
-  // 用户信息
   const isLogin = ref(false)
-  const availablePower = ref(100)
+  const availablePower = ref(0)
   const shareStore = useSharedStore()
 
-  // 任务筛选
-  const taskFilter = ref('all') // 'all', 'luma', 'keling'
+  const taskFilter = ref('all') // 'all' 或 provider
 
-  // Luma 相关状态
-  const lumaUseImageMode = ref(false) // 是否使用图片辅助生成
-  const lumaParams = reactive({
-    prompt: '',
-    expand_prompt: false,
-    loop: false,
-    image: '', // 起始帧
-    image_tail: '', // 结束帧
-  })
+  const formData = ref({})
+  const requiredKeys = ref({})
 
-  // KeLing 相关状态
-  const isGenerating = ref(false)
-  const generating = ref(false)
-  const kelingPowerCost = ref(10)
-  const lumaPowerCost = ref(10)
-  const showCameraControl = ref(false)
-  const keLingPowers = ref({})
+  const powerConfig = ref({})
+  const currentPowerCost = ref(0)
 
-  const models = ref([
-    { text: '可灵 1.6', value: 'kling-v1-6' },
-    { text: '可灵 1.5', value: 'kling-v1-5' },
-    { text: '可灵 1.0', value: 'kling-v1' },
-  ])
-
-  const rates = [
-    { css: 'square', value: '1:1', text: '1:1', img: '/images/mj/rate_1_1.png' },
-    { css: 'size16-9', value: '16:9', text: '16:9', img: '/images/mj/rate_16_9.png' },
-    { css: 'size9-16', value: '9:16', text: '9:16', img: '/images/mj/rate_9_16.png' },
-  ]
-
-  // KeLing 相关状态
-  const kelingUseImageMode = ref(false) // 是否使用图片辅助生成
-  const kelingParams = reactive({
-    model: 'kling-v1-6',
-    prompt: '',
-    negative_prompt: '',
-    cfg_scale: 0.7,
-    mode: 'std',
-    aspect_ratio: '16:9',
-    duration: '5',
-    camera_control: {
-      type: '',
-      config: {
-        horizontal: 0,
-        vertical: 0,
-        pan: 0,
-        tilt: 0,
-        roll: 0,
-        zoom: 0,
-      },
-    },
-    image: '',
-    image_tail: '',
-  })
-
-  // 计算属性
   const currentList = computed(() => {
     return list.value.filter((item) => {
-      if (taskFilter.value === 'all') {
-        return true
-      } else if (taskFilter.value === 'luma') {
-        return item.type === 'luma' || !item.type // 兼容旧数据
-      } else if (taskFilter.value === 'keling') {
-        return item.type === 'keling'
-      }
-      return true
+      if (taskFilter.value === 'all') return true
+      return item.type === taskFilter.value
     })
   })
 
-  // 初始化方法
-  const init = async () => {
-    try {
-      const user = await checkSession()
-      isLogin.value = true
-      availablePower.value = user.power
+  const providerModels = computed(() => {
+    if (!activeProvider.value) return []
+    return getVideoModels(activeProvider.value)
+  })
 
-      // 初始化剪贴板
-      if (clipboard.value) {
-        clipboard.value.destroy()
-      }
-      clipboard.value = new Clipboard('.copy-prompt')
-      clipboard.value.on('success', () => {
-        ElMessage.success('复制成功！')
-      })
-      clipboard.value.on('error', () => {
-        ElMessage.error('复制失败！')
-      })
-
-      // 获取系统信息
-      const sysInfo = await getSystemInfo()
-      lumaPowerCost.value = sysInfo.data.luma_power
-      keLingPowers.value = sysInfo.data.keling_powers
-      updateModelPower()
-
-      // 获取数据并开始轮询
-      await fetchData(1)
-      startPolling()
-    } catch (error) {
-      console.error('初始化失败:', error)
-    }
-  }
-
-  // 清理方法
-  const cleanup = () => {
+  const initClipboard = () => {
     if (clipboard.value) {
       clipboard.value.destroy()
     }
-    stopPolling()
+    clipboard.value = new Clipboard('.copy-prompt')
+    clipboard.value.on('success', () => ElMessage.success('复制成功！'))
+    clipboard.value.on('error', () => ElMessage.error('复制失败！'))
   }
 
-  // 开始轮询
   const startPolling = () => {
     if (pullHandler.value) {
       clearInterval(pullHandler.value)
@@ -165,7 +79,6 @@ export const useVideoStore = defineStore('video', () => {
     }, 5000)
   }
 
-  // 停止轮询
   const stopPolling = () => {
     if (pullHandler.value) {
       clearInterval(pullHandler.value)
@@ -173,13 +86,35 @@ export const useVideoStore = defineStore('video', () => {
     }
   }
 
-  // 获取任务列表
+  const init = async () => {
+    try {
+      const user = await checkSession()
+      isLogin.value = true
+      availablePower.value = user.power
+
+      initClipboard()
+      await loadPowerConfig()
+      await fetchData(1)
+      startPolling()
+    } catch (error) {
+      console.error('初始化失败:', error)
+    }
+  }
+
+  const cleanup = () => {
+    if (clipboard.value) {
+      clipboard.value.destroy()
+    }
+    stopPolling()
+  }
+
   const fetchData = async (_page) => {
     if (_page) {
       page.value = _page
     }
 
     try {
+      loading.value = true
       const res = await httpGet('/api/video/list', {
         page: page.value,
         page_size: pageSize.value,
@@ -189,9 +124,9 @@ export const useVideoStore = defineStore('video', () => {
       total.value = res.data.total
       let needPull = false
       const items = []
-
       for (let v of res.data.items) {
-        if (v.progress === 0 || v.progress === 102) {
+        // 检查是否需要继续轮询：progress 为 0 或 102，或者状态为 pending/in_progress/downloading
+        if (v.status === 'pending' || v.status === 'in_progress' || v.status === 'downloading') {
           needPull = true
         }
         items.push({
@@ -199,269 +134,236 @@ export const useVideoStore = defineStore('video', () => {
           downloading: false,
         })
       }
-
-      loading.value = false
       taskPulling.value = needPull
-
-      if (JSON.stringify(list.value) !== JSON.stringify(items)) {
-        list.value = items
-      }
+      list.value = items
       noData.value = list.value.length === 0
     } catch (error) {
-      loading.value = false
       noData.value = true
       console.error('获取任务列表失败:', error)
-    }
-  }
-
-  // Luma 相关方法
-  const uploadLumaStartImage = async (file) => {
-    const formData = new FormData()
-    formData.append('file', file.file)
-
-    try {
-      showLoading('图片上传中...')
-      const res = await httpPost('/api/upload', formData)
-      lumaParams.image = res.data.url
-      ElMessage.success('上传成功')
-      closeLoading()
-    } catch (error) {
-      showMessageError('上传失败: ' + error.message)
-      closeLoading()
-    }
-  }
-
-  const uploadLumaEndImage = async (file) => {
-    const formData = new FormData()
-    formData.append('file', file.file)
-
-    try {
-      showLoading('图片上传中...')
-      const res = await httpPost('/api/upload', formData)
-      lumaParams.image_tail = res.data.url
-      ElMessage.success('上传成功')
-    } catch (error) {
-      showMessageError('上传失败: ' + error.message)
     } finally {
-      closeLoading()
+      loading.value = false
     }
   }
 
-  const removeLumaImage = (type) => {
-    if (type === 'start') {
-      lumaParams.image = ''
-    } else if (type === 'end') {
-      lumaParams.image_tail = ''
+  const switchProvider = (provider) => {
+    activeProvider.value = provider
+  }
+
+  const switchTaskFilter = (filter) => {
+    taskFilter.value = filter
+    page.value = 1
+    fetchData(1)
+  }
+
+  const loadPowerConfig = async () => {
+    try {
+      const res = await httpGet('/api/video/power-config')
+      powerConfig.value = res.data || {}
+    } catch (error) {
+      console.error('加载算力配置失败:', error)
+      powerConfig.value = {}
     }
   }
 
-  const switchLumaImages = () => {
-    ;[lumaParams.image, lumaParams.image_tail] = [lumaParams.image_tail, lumaParams.image]
+  // 格式化参数值为字符串（用于生成 priceKey）
+  const formatParamValue = (paramName, value) => {
+    if (paramName === 'sound') {
+      return value === true || value === 'true' || value === 1 ? 'sound' : 'silent'
+    }
+    if (typeof value === 'boolean') {
+      return value ? 'true' : 'false'
+    }
+    return String(value)
   }
 
-  const toggleLumaImageMode = (enabled) => {
-    lumaUseImageMode.value = enabled
-    // 关闭时清空图片
-    if (!enabled) {
-      lumaParams.image = ''
-      lumaParams.image_tail = ''
+  // 根据模型配置和表单数据生成价格 key
+  const generatePriceKey = (model, formData) => {
+    if (!model.priceParams || !Array.isArray(model.priceParams)) {
+      return 'fixed'
+    }
+
+    // 如果是固定价格
+    if (model.priceParams.length === 1 && model.priceParams[0] === 'fixed') {
+      return 'fixed'
+    }
+
+    // 从 formData 中提取 priceParams 指定的参数值
+    const values = model.priceParams.map((paramName) => {
+      let value = formData[paramName]
+
+      // 如果值缺失，尝试从模型参数配置中获取默认值
+      if (value === undefined || value === null || value === '') {
+        const param = model.params?.find((p) => p.name === paramName)
+        if (param) {
+          if (param.type === 'select' && param.options && param.options.length > 0) {
+            value = param.value || param.options[0].value
+          } else {
+            value = param.value
+          }
+        }
+      }
+
+      // 如果仍然没有值，使用空字符串（这种情况应该很少）
+      if (value === undefined || value === null) {
+        value = ''
+      }
+
+      return formatParamValue(paramName, value)
+    })
+
+    // 用下划线连接生成 priceKey
+    return values.join('_')
+  }
+
+  // 防抖定时器
+  let powerDebounceTimer = null
+
+  // 根据 priceKey 获取算力值
+  const getPowerByPriceKey = async (modelKey, priceKey) => {
+    try {
+      const res = await httpGet('/api/video/power-by-key', {
+        model_key: modelKey,
+        price_key: priceKey,
+      })
+      return res.data?.power || 0
+    } catch (error) {
+      console.error('获取算力失败:', error)
+      return 0
     }
   }
 
-  const createLumaVideo = async () => {
+  const setCurrentPowerCost = async () => {
+    // 清除之前的定时器
+    if (powerDebounceTimer) {
+      clearTimeout(powerDebounceTimer)
+    }
+
+    // 设置新的定时器（防抖）
+    powerDebounceTimer = setTimeout(async () => {
+      const modelKey = formData.value?.req_key
+      if (!modelKey) {
+        currentPowerCost.value = 0
+        return
+      }
+
+      const model = getVideoModelByKey(modelKey)
+      if (!model) {
+        currentPowerCost.value = 0
+        return
+      }
+
+      const priceKey = generatePriceKey(model, formData.value)
+      if (!priceKey) {
+        currentPowerCost.value = 0
+        return
+      }
+
+      // 调用 API 获取算力
+      const power = await getPowerByPriceKey(modelKey, priceKey)
+      currentPowerCost.value = power
+    }, 300) // 300ms 防抖
+  }
+
+  watch(
+    () => formData.value,
+    () => setCurrentPowerCost(),
+    { deep: true }
+  )
+
+  const isEmptyValue = (v) => {
+    if (v === undefined || v === null) return true
+    if (typeof v === 'string' && v.trim() === '') return true
+    if (Array.isArray(v) && v.length === 0) return true
+    return false
+  }
+
+  const normalizeImageParam = (paramName, value) => {
+    if (!value) return value
+    if (Array.isArray(value)) {
+      return value.filter(Boolean).map((u) => replaceImg(u))
+    }
+    if (typeof value === 'string') {
+      if (paramName === 'images') return [replaceImg(value)]
+      return replaceImg(value)
+    }
+    return value
+  }
+
+  const createVideoTask = async () => {
     if (!isLogin.value) {
       shareStore.setShowLoginDialog(true)
       return
     }
 
-    if (!lumaParams.prompt?.trim()) {
+    const modelKey = formData.value?.req_key
+    if (!modelKey) {
+      return ElMessage.error('请选择模型')
+    }
+
+    const model = getVideoModelByKey(modelKey)
+    if (!model) {
+      return ElMessage.error('模型配置不存在')
+    }
+
+    for (const key in requiredKeys.value) {
+      if (isEmptyValue(formData.value?.[key])) {
+        return showMessageError('缺少参数：' + requiredKeys.value[key].label)
+      }
+    }
+
+    const raw = { ...(formData.value || {}) }
+    delete raw.req_key
+    delete raw.action
+
+    const prompt = raw.prompt
+    if (!prompt || !prompt.trim()) {
       return ElMessage.error('请输入视频描述')
     }
 
-    if (lumaUseImageMode.value && !lumaParams.image) {
-      return ElMessage.error('请上传起始帧图片')
+    // prompt 作为顶层字段提交
+    delete raw.prompt
+
+    // 图片字段归一化（string/array + replaceImg）
+    if (Array.isArray(model.params)) {
+      model.params.forEach((p) => {
+        if (p.type === 'image') {
+          raw[p.name] = normalizeImageParam(p.name, raw[p.name])
+        }
+      })
     }
 
-    // 处理参数
+    // 生成 priceKey
+    const priceKey = generatePriceKey(model, formData.value)
+
     const requestData = {
-      ...lumaParams,
-      task_type: lumaUseImageMode.value ? 'image2video' : 'text2video',
-    }
-
-    // 处理图片链接
-    if (requestData.image) {
-      requestData.first_frame_img = replaceImg(requestData.image)
-    }
-    if (requestData.image_tail) {
-      requestData.end_frame_img = replaceImg(requestData.image_tail)
+      provider: model.provider,
+      model: model.key,
+      prompt,
+      params: raw,
+      price_key: priceKey,
     }
 
     try {
-      await httpPost('/api/video/luma/create', requestData)
+      submitting.value = true
+      showLoading('创建任务中...')
+      await httpPost('/api/video/create', requestData)
+      showMessageOK('任务创建成功')
+      closeLoading()
       await fetchData(1)
       taskPulling.value = true
-      showMessageOK('创建任务成功')
     } catch (error) {
+      closeLoading()
       showMessageError('创建任务失败：' + error.message)
-    }
-  }
-
-  // KeLing 相关方法
-  const changeRate = (item) => {
-    kelingParams.aspect_ratio = item.value
-  }
-
-  const updateModelPower = () => {
-    showCameraControl.value = kelingParams.model === 'kling-v1-5' && kelingParams.mode === 'pro'
-    kelingPowerCost.value =
-      keLingPowers.value[`${kelingParams.model}_${kelingParams.mode}_${kelingParams.duration}`] ||
-      10
-  }
-
-  const toggleKelingImageMode = (enabled) => {
-    kelingUseImageMode.value = enabled
-    // 关闭时清空图片
-    if (!enabled) {
-      kelingParams.image = ''
-      kelingParams.image_tail = ''
-    }
-  }
-
-  const uploadKelingStartImage = async (file) => {
-    const formData = new FormData()
-    formData.append('file', file.file)
-
-    try {
-      showLoading('图片上传中...')
-      const res = await httpPost('/api/upload', formData)
-      kelingParams.image = res.data.url
-      ElMessage.success('上传成功')
-      closeLoading()
-    } catch (error) {
-      showMessageError('上传失败: ' + error.message)
-      closeLoading()
-    }
-  }
-
-  const uploadKelingEndImage = async (file) => {
-    const formData = new FormData()
-    formData.append('file', file.file)
-
-    try {
-      showLoading('图片上传中...')
-      const res = await httpPost('/api/upload', formData)
-      kelingParams.image_tail = res.data.url
-      ElMessage.success('上传成功')
-    } catch (error) {
-      showMessageError('上传失败: ' + error.message)
     } finally {
-      closeLoading()
+      submitting.value = false
     }
   }
 
-  const removeKelingImage = (type) => {
-    if (type === 'start') {
-      kelingParams.image = ''
-    } else if (type === 'end') {
-      kelingParams.image_tail = ''
-    }
-  }
-
-  const switchKelingImages = () => {
-    ;[kelingParams.image, kelingParams.image_tail] = [kelingParams.image_tail, kelingParams.image]
-  }
-
-  const createKelingVideo = async () => {
-    if (!isLogin.value) {
-      shareStore.setShowLoginDialog(true)
-      return
-    }
-
-    if (generating.value) return
-
-    if (!kelingParams.prompt?.trim()) {
-      return ElMessage.error('请输入视频描述')
-    }
-
-    if (kelingParams.prompt.length > 500) {
-      return ElMessage.error('视频描述不能超过 500 个字符')
-    }
-
-    if (kelingUseImageMode.value && !kelingParams.image) {
-      return ElMessage.error('请上传起始帧图片')
-    }
-
-    generating.value = true
-
-    // 处理参数
-    const requestData = {
-      ...kelingParams,
-      task_type: kelingUseImageMode.value ? 'image2video' : 'text2video',
-    }
-
-    // 处理图片链接
-    if (requestData.image) {
-      requestData.image = replaceImg(requestData.image)
-    }
-    if (requestData.image_tail) {
-      requestData.image_tail = replaceImg(requestData.image_tail)
-    }
-
-    try {
-      await httpPost('/api/video/keling/create', requestData)
-      showMessageOK('任务创建成功')
-
-      // 新增重置
-      page.value = 1
-      list.value.unshift({
-        progress: 0,
-        prompt: requestData.prompt,
-        raw_data: {
-          task_type: requestData.task_type,
-          model: requestData.model,
-          duration: requestData.duration,
-          mode: requestData.mode,
-        },
-      })
-      taskPulling.value = true
-    } catch (error) {
-      showMessageError('创建失败: ' + error.message)
-    } finally {
-      generating.value = false
-    }
-  }
-
-  // 提示词生成
-  const generatePrompt = async () => {
-    if (isGenerating.value) return
-
-    const prompt = activeVideoType.value === 'luma' ? lumaParams.prompt : kelingParams.prompt
-    if (!prompt) {
-      return showMessageError('请输入原始提示词')
-    }
-
-    isGenerating.value = true
-    try {
-      const res = await httpPost('/api/prompt/video', { prompt })
-      if (activeVideoType.value === 'luma') {
-        lumaParams.prompt = res.data
-      } else {
-        kelingParams.prompt = res.data
-      }
-    } catch (error) {
-      showMessageError('生成提示词失败：' + error.message)
-    } finally {
-      isGenerating.value = false
-    }
-  }
-
-  // 视频预览
   const playVideo = (item) => {
     currentVideoUrl.value = replaceImg(item.video_url)
     showDialog.value = true
   }
 
-  // 视频下载
   const downloadVideo = async (item) => {
     const url = replaceImg(item.video_url)
     const downloadURL = `/api/download?url=${url}`
@@ -480,17 +382,16 @@ export const useVideoStore = defineStore('video', () => {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(link.href)
-      item.downloading = false
     } catch (error) {
       showMessageError('下载失败')
+    } finally {
       item.downloading = false
     }
   }
 
-  // 删除任务
   const removeJob = async (item) => {
     try {
-      await ElMessageBox.confirm('此操作将会删除任务相关文件，继续操作码?', '删除提示', {
+      await ElMessageBox.confirm('此操作将会删除任务相关文件，继续操作吗?', '删除提示', {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
         type: 'warning',
@@ -498,7 +399,7 @@ export const useVideoStore = defineStore('video', () => {
 
       await httpGet('/api/video/remove', { id: item.id })
       ElMessage.success('任务删除成功')
-      await fetchData()
+      await fetchData(1)
     } catch (error) {
       if (error !== 'cancel') {
         ElMessage.error('任务删除失败：' + error.message)
@@ -506,39 +407,19 @@ export const useVideoStore = defineStore('video', () => {
     }
   }
 
-  // 发布任务
-  const publishJob = async (item) => {
-    try {
-      await httpGet('/api/video/publish', { id: item.id, publish: item.publish })
-      ElMessage.success('操作成功')
-    } catch (error) {
-      ElMessage.error('操作失败：' + error.message)
-    }
-  }
-
-  // 切换视频类型
-  const switchVideoType = (type) => {
-    activeVideoType.value = type
-  }
-
-  // 切换任务筛选
-  const switchTaskFilter = (filter) => {
-    taskFilter.value = filter
-    page.value = 1
-    fetchData(1)
-  }
-
   return {
-    // 状态
-    activeVideoType,
+    activeProvider,
+    providerModels,
+    providers,
+
     loading,
+    submitting,
     list,
     currentList,
     noData,
     page,
     pageSize,
     total,
-    taskPulling,
     showDialog,
     currentVideoUrl,
     isLogin,
@@ -546,52 +427,23 @@ export const useVideoStore = defineStore('video', () => {
     nodata,
     taskFilter,
 
-    // Luma 状态
-    lumaUseImageMode,
-    lumaParams,
-    lumaPowerCost,
-    // KeLing 状态
-    kelingUseImageMode,
-    isGenerating,
-    generating,
-    kelingPowerCost,
-    showCameraControl,
-    keLingPowers,
-    models,
-    rates,
-    kelingParams,
+    formData,
+    requiredKeys,
+    powerConfig,
+    currentPowerCost,
 
-    // 方法
     init,
     cleanup,
     fetchData,
-    switchVideoType,
+    switchProvider,
     switchTaskFilter,
 
-    // Luma 方法
-    toggleLumaImageMode,
-    uploadLumaStartImage,
-    uploadLumaEndImage,
-    removeLumaImage,
-    switchLumaImages,
-    createLumaVideo,
+    loadPowerConfig,
+    createVideoTask,
 
-    // KeLing 方法
-    toggleKelingImageMode,
-    changeRate,
-    updateModelPower,
-    uploadKelingStartImage,
-    uploadKelingEndImage,
-    removeKelingImage,
-    switchKelingImages,
-    createKelingVideo,
-
-    // 共同方法
-    generatePrompt,
     playVideo,
     downloadVideo,
     removeJob,
-    publishJob,
     substr,
     replaceImg,
   }

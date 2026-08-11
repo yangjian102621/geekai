@@ -1,19 +1,6 @@
 <template>
   <div class="layout">
     <div class="tab-box">
-      <!-- <div class="flex-center-col pt-2 mb-2">
-        <div class="flex flex-center-col">
-          <div class="menuIcon" @click="store.setChatListExtend(!store.chatListExtend)">
-            <el-tooltip content="隐藏对话列表" placement="right" v-if="store.chatListExtend">
-              <i class="iconfont icon-colspan"></i>
-            </el-tooltip>
-            <el-tooltip content="展开对话列表" placement="right" v-else>
-              <i class="iconfont icon-expand"></i>
-            </el-tooltip>
-          </div>
-        </div>
-      </div> -->
-
       <div class="menu-list pt-2">
         <ul>
           <li
@@ -66,27 +53,51 @@
               </ul>
             </template>
           </el-popover>
+
           <el-popover placement="right-end" trigger="hover" v-if="loginUser.id">
             <template #reference>
               <li class="menu-list-item flex-center-col">
-                <i class="iconfont icon-user-circle" />
+                <el-avatar
+                  v-if="loginUser.avatar"
+                  :src="loginUser.avatar"
+                  shape="circle"
+                  :size="32"
+                  class="user-avatar"
+                />
+                <i v-else class="iconfont icon-user-circle" />
               </li>
             </template>
             <template #default>
               <ul class="more-menus setting-menus">
                 <li>
-                  <div @click="showConfigDialog = true" class="flex">
-                    <el-icon>
-                      <UserFilled />
-                    </el-icon>
-                    <span class="username title">账户信息</span>
+                  <div @click="showPowerLogDialog = true" class="flex">
+                    <i class="iconfont icon-list"></i>
+                    <span class="title">算力日志</span>
                   </div>
                 </li>
                 <li>
-                  <a :href="githubURL" target="_blank" class="flex">
-                    <i class="iconfont icon-github"></i>
-                    <span class="title">项目源码</span>
-                  </a>
+                  <div @click="showMemberDialog = true" class="flex">
+                    <i class="iconfont icon-config"></i>
+                    <span class="title">用户设置</span>
+                  </div>
+                </li>
+                <li>
+                  <div @click="showInvitationDialog = true" class="flex">
+                    <i class="iconfont icon-share"></i>
+                    <span class="title">推广计划</span>
+                  </div>
+                </li>
+                <li>
+                    <a :href="githubURL" target="_blank" class="flex">
+                      <i class="iconfont icon-github"></i>
+                      <span class="title">项目源码</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://docs.geekai.me" target="_blank" class="flex">
+                      <i class="iconfont icon-book"></i>
+                      <span class="title">项目文档</span>
+                    </a>
                 </li>
                 <li>
                   <a @click="logout" class="flex">
@@ -114,14 +125,6 @@
       </div>
     </div>
     <el-scrollbar class="right-main">
-      <!-- <div class="topheader" v-if="loginUser.id === undefined || !loginUser.id">
-        <el-button
-          @click="router.push('/login')"
-          class="btn-go animate__animated animate__pulse animate__infinite"
-          round
-          >登录</el-button
-        >
-      </div> -->
       <div class="content custom-scroll">
         <router-view :key="routerViewKey" v-slot="{ Component }">
           <transition name="move" mode="out-in">
@@ -129,9 +132,51 @@
           </transition>
         </router-view>
       </div>
-      <!-- </div> -->
     </el-scrollbar>
-    <config-dialog v-if="loginUser.id" :show="showConfigDialog" @hide="showConfigDialog = false" />
+    <!-- 算力日志弹窗 -->
+    <el-dialog
+      v-model="showPowerLogDialog"
+      title="算力日志"
+      width="90%"
+      :close-on-click-modal="true"
+      :close-on-press-escape="true"
+      style="max-width: 1200px"
+      @close="showPowerLogDialog = false"
+    >
+      <div class="powerlog-dialog-content">
+        <PowerLog />
+      </div>
+    </el-dialog>
+
+    <!-- 用户设置弹窗 -->
+    <el-dialog
+      v-model="showMemberDialog"
+      title="用户设置"
+      width="90%"
+      :close-on-click-modal="true"
+      :close-on-press-escape="true"
+      style="max-width: 1400px"
+      @close="showMemberDialog = false"
+    >
+      <div class="member-dialog-content">
+        <Member />
+      </div>
+    </el-dialog>
+
+    <!-- 推广计划弹窗 -->
+    <el-dialog
+      v-model="showInvitationDialog"
+      title="推广计划"
+      width="90%"
+      :close-on-click-modal="true"
+      :close-on-press-escape="true"
+      style="max-width: 1200px"
+      @close="showInvitationDialog = false"
+    >
+      <div class="invitation-dialog-content">
+        <Invitation />
+      </div>
+    </el-dialog>
 
     <el-dialog v-model="showLoginDialog" width="500px" @close="store.setShowLoginDialog(false)">
       <template #header>
@@ -149,12 +194,13 @@
 <script setup>
 import LoginDialog from '@/components/LoginDialog.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
-import ConfigDialog from '@/components/UserInfoDialog.vue'
+import PowerLog from '@/views/PowerLog.vue'
+import Member from '@/views/Member.vue'
+import Invitation from '@/views/Invitation.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet } from '@/utils/http'
-import { UserFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -169,7 +215,9 @@ const title = ref('')
 const store = useSharedStore()
 const loginUser = ref({})
 const routerViewKey = ref(0)
-const showConfigDialog = ref(false)
+const showPowerLogDialog = ref(false)
+const showMemberDialog = ref(false)
+const showInvitationDialog = ref(false)
 const showLoginDialog = ref(false)
 const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
 
@@ -293,4 +341,37 @@ const loginSuccess = () => {
 <style lang="scss" scoped>
 @use '../assets/css/custom-scroll.scss' as *;
 @use '../assets/css/home.scss' as *;
+</style>
+
+<style lang="scss">
+.powerlog-dialog-content,
+.member-dialog-content,
+.invitation-dialog-content {
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  padding: 0;
+}
+
+.powerlog-dialog-content {
+  .power-log {
+    .inner {
+      padding: 0;
+    }
+  }
+}
+
+.member-dialog-content {
+  .member-page {
+    min-height: auto;
+    padding: 0;
+  }
+}
+
+.invitation-dialog-content {
+  .page-invitation {
+    .inner {
+      padding: 20px;
+    }
+  }
+}
 </style>

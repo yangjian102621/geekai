@@ -335,8 +335,8 @@
               </div>
               <!-- 标签 -->
               <div class="song-tags">
-                <span v-if="item.major_model_version" class="model-tag">
-                  {{ item.major_model_version }}
+                <span v-if="item.params.model" class="model-tag">
+                  {{ item.params.model }}
                 </span>
                 <span v-if="item.type === 4" class="upload-tag">
                   <i class="iconfont icon-upload mr-1"></i>用户上传

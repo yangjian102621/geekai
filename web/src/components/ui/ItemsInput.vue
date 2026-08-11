@@ -1,6 +1,6 @@
 <template>
   <!-- 多项目输入组件 -->
-  <div class="items-input-box">
+  <div class="flex items-start gap-2 flex-wrap">
     <el-tag
       v-for="tag in tags"
       :key="tag"
@@ -26,20 +26,24 @@
 import { nextTick, ref, watch } from 'vue'
 // eslint-disable-next-line no-undef
 const props = defineProps({
-  value: {
+  modelValue: {
     type: Array,
     default: () => [],
   },
 })
 // eslint-disable-next-line no-undef
 const emits = defineEmits(['update:value'])
-const tags = ref(props.value)
+const tags = ref(props.modelValue)
 const inputValue = ref('')
 const inputVisible = ref(false)
 const InputRef = ref(null)
 
+onMounted(() => {
+  console.log(props.modelValue)
+})
+
 watch(
-  () => props.value,
+  () => props.modelValue,
   (newValue) => {
     tags.value = newValue
   }
@@ -65,14 +69,3 @@ const handleInputConfirm = () => {
   emits('update:value', tags.value)
 }
 </script>
-
-<style scoped lang="scss">
-.items-input-box {
-  display: flex;
-
-  .el-tag {
-    display: flex;
-    margin-right: 6px;
-  }
-}
-</style>

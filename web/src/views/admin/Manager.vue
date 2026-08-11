@@ -47,11 +47,11 @@
         </el-form-item>
 
         <el-form-item label="密码：" prop="password">
-          <el-input v-model="item.password" type="password" autocomplete="off" />
+          <el-input v-model="item.password" type="password" show-password autocomplete="off" />
         </el-form-item>
 
         <el-form-item label="重复密码：" prop="repass">
-          <el-input v-model="item.repass" type="password" autocomplete="off" />
+          <el-input v-model="item.repass" type="password" show-password autocomplete="off" />
         </el-form-item>
       </el-form>
 

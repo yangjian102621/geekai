@@ -35,7 +35,7 @@
                   <el-button size="small" class="sm-btn-theme" @click="useRole(scope.item)"
                     >使用</el-button
                   >
-                  <el-tooltip content="从工作区移除" placement="top" v-if="hasRole(scope.item.key)">
+                  <el-tooltip content="从工作区移除" placement="top" v-if="hasRole(scope.item.id)">
                     <el-button size="small" type="danger" @click="updateRole(scope.item, 'remove')"
                       >移除</el-button
                     >
@@ -89,7 +89,7 @@ onMounted(() => {
 const getRoles = () => {
   checkSession()
     .then((user) => {
-      roles.value = user.chat_roles
+      roles.value = Array.isArray(user.chat_roles) ? user.chat_roles : []
     })
     .catch((e) => {
       console.log(e.message)
@@ -128,20 +128,20 @@ const updateRole = (row, opt) => {
       const title = ref('')
       if (opt === 'add') {
         title.value = '添加应用'
-        const exists = arrayContains(roles.value, row.key)
+        const exists = arrayContains(roles.value, row.id)
         if (exists) {
           return
         }
-        roles.value.push(row.key)
+        roles.value.push(row.id)
       } else {
         title.value = '移除应用'
-        const exists = arrayContains(roles.value, row.key)
+        const exists = arrayContains(roles.value, row.id)
         if (!exists) {
           return
         }
-        roles.value = removeArrayItem(roles.value, row.key)
+        roles.value = removeArrayItem(roles.value, row.id)
       }
-      httpPost('/api/app/update', { keys: roles.value })
+      httpPost('/api/app/workspace', { ids: roles.value })
         .then(() => {
           ElMessage.success({
             message: title.value + '成功！',
@@ -157,8 +157,8 @@ const updateRole = (row, opt) => {
     })
 }
 
-const hasRole = (roleKey) => {
-  return arrayContains(roles.value, roleKey, (v1, v2) => v1 === v2)
+const hasRole = (roleId) => {
+  return arrayContains(roles.value, roleId, (v1, v2) => v1 === v2)
 }
 
 const router = useRouter()

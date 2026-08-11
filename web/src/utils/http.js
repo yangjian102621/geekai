@@ -7,6 +7,8 @@
 
 import { getAdminToken, getUserToken, removeAdminToken, removeUserToken } from '@/store/session'
 import axios from 'axios'
+import { showMessageError } from '@/utils/dialog'
+import { replaceImg } from '@/utils/libs'
 
 // Blob 数据读取和解析的辅助函数
 export async function parseBlobResponse(blob) {
@@ -107,6 +109,19 @@ export function httpPost(url, data = {}, options = {}) {
   })
 }
 
+export function httpPatch(url, data = {}, options = {}) {
+  return new Promise((resolve, reject) => {
+    axios
+      .patch(url, data, options)
+      .then((response) => {
+        resolve(response.data)
+      })
+      .catch((err) => {
+        reject(err)
+      })
+  })
+}
+
 export function httpDownload(url) {
   return new Promise((resolve, reject) => {
     axios({
@@ -138,4 +153,30 @@ export function httpPostDownload(url, data) {
         reject(err)
       })
   })
+}
+
+// 文件下载
+export const downloadFile = async (item, key) => {
+  const url = replaceImg(item[key])
+  const downloadURL = `/api/download?url=${url}`
+  const urlObj = new URL(url)
+  const fileName = urlObj.pathname.split('/').pop()
+
+  item.downloading = true
+
+  try {
+    const response = await httpDownload(downloadURL)
+    const blob = new Blob([response.data])
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(link.href)
+    item.downloading = false
+  } catch (error) {
+    showMessageError('下载失败')
+    item.downloading = false
+  }
 }

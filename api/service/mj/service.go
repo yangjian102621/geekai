@@ -97,6 +97,9 @@ func (s *Service) Run() {
 			case types.TaskSwapFace:
 				res, err = s.client.SwapFace(task)
 				break
+			case types.TaskModal:
+				res, err = s.client.Modal(task)
+				break
 			}
 
 			if err != nil || (res.Code != 1 && res.Code != 22) {

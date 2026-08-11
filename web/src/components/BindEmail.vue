@@ -6,17 +6,15 @@
         <el-input v-model="form.email" />
       </el-form-item>
       <el-form-item label="验证码">
-        <el-row :gutter="0">
-          <el-col :span="16">
-            <el-input v-model="form.code" maxlength="6" />
-          </el-col>
-          <el-col :span="8" style="padding-left: 10px">
+        <div class="flex w-full items-center gap-2">
+          <el-input v-model="form.code" maxlength="6" class="flex-1" />
+          <span class="flex-none">
             <send-msg :receiver="form.email" type="email" />
-          </el-col>
-        </el-row>
+          </span>
+        </div>
       </el-form-item>
     </el-form>
-    <div class="dialog-footer text-center">
+    <div class="pt-3 flex justify-end">
       <el-button type="primary" @click="save"> 保存 </el-button>
       <el-button @click="emits('hide')"> 取消 </el-button>
     </div>
@@ -62,14 +60,6 @@ const save = () => {
 
 <style lang="scss" scoped>
 .form {
-  .text-center {
-    text-align: center;
-    padding-bottom: 15px;
-    font-size: 14px;
-    color: #a1a1a1;
-    font-weight: 700;
-  }
-
   .el-form-item__content {
     .el-row {
       width: 100%;

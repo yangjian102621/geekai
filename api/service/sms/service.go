@@ -9,6 +9,7 @@ package sms
 
 const Ali = "aliyun"
 const Bao = "bao"
+const Tencent = "tencent"
 
 type Service interface {
 	SendVerifyCode(mobile string, code int) error

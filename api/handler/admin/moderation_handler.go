@@ -212,12 +212,8 @@ func (h *ModerationHandler) GetSourceList(c *gin.Context) {
 			"name": "Midjourney 绘图",
 		},
 		{
-			"id":   types.ModerationSourceDalle,
-			"name": "Dalle 绘图",
-		},
-		{
-			"id":   types.ModerationSourceSD,
-			"name": "StableDiffusion 绘图",
+			"id":   types.ModerationSourceImage,
+			"name": "AI图像生成",
 		},
 		{
 			"id":   types.ModerationSourceSuno,

@@ -1,0 +1,305 @@
+package image
+
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// * Copyright 2023 The Geek-AI Authors. All rights reserved.
+// * Use of this source code is governed by a Apache-2.0 license
+// * that can be found in the LICENSE file.
+// * @Author yangjian102621@163.com
+// * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+import (
+	"fmt"
+	"geekai/core/types"
+	"geekai/log"
+	"geekai/service"
+	"geekai/service/oss"
+	"geekai/store"
+	"geekai/store/model"
+	"geekai/utils"
+	"io"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
+)
+
+var logger = log.GetLogger()
+
+// Image Generation Service
+
+type Service struct {
+	httpClient    *req.Client
+	db            *gorm.DB
+	uploadManager *oss.UploaderManager
+	taskQueue     *store.RedisQueue
+	userService   *service.UserService
+}
+
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, userService *service.UserService) *Service {
+	return &Service{
+		httpClient:    req.C().SetTimeout(time.Minute * 3),
+		db:            db,
+		taskQueue:     store.NewRedisQueue("Image_Task_Queue", redisCli),
+		uploadManager: manager,
+		userService:   userService,
+	}
+}
+
+// PushTask push a new image task in to task queue
+func (s *Service) PushTask(task types.ImageTask) {
+	logger.Infof("add a new Image generation task to the task list: %+v", task)
+	if err := s.taskQueue.RPush(task); err != nil {
+		logger.Errorf("push image task to queue failed: %v", err)
+	}
+}
+
+func (s *Service) Run() {
+	// 将数据库中未提交的任务加载到队列
+	var jobs []model.ImageJob
+	s.db.Where("progress", 0).Find(&jobs)
+	for _, v := range jobs {
+		var task types.ImageTask
+		err := utils.JsonDecode(v.Params, &task)
+		if err != nil {
+			logger.Errorf("decode task params with error: %v", err)
+			continue
+		}
+		task.Id = v.Id
+		s.PushTask(task)
+	}
+
+	logger.Info("Starting Image generation job consumer...")
+	go func() {
+		for {
+			var task types.ImageTask
+			err := s.taskQueue.LPop(&task)
+			if err != nil {
+				logger.Errorf("taking task with error: %v", err)
+				continue
+			}
+			logger.Infof("handle a new Image generation task: %+v", task)
+			go func() {
+				_, err = s.Image(task, false)
+				if err != nil {
+					logger.Errorf("error with image task: %v", err)
+					s.db.Model(&model.ImageJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
+						"progress": service.FailTaskProgress,
+						"err_msg":  err.Error(),
+					})
+				}
+			}()
+		}
+	}()
+}
+
+type imgReq struct {
+	Model          string   `json:"model"`
+	Image          []string `json:"image,omitempty"`
+	Prompt         string   `json:"prompt"`
+	AspectRatio    string   `json:"aspect_ratio,omitempty"`
+	Size           string   `json:"size,omitempty"`
+	ResponseFormat string   `json:"response_format,omitempty"`
+}
+
+type imgRes struct {
+	Created int64 `json:"created"`
+	Data    []struct {
+		RevisedPrompt string `json:"revised_prompt,omitempty"`
+		Url           string `json:"url,omitempty"`
+		B64Json       string `json:"b64_json,omitempty"`
+	} `json:"data"`
+}
+
+type ErrRes struct {
+	Error struct {
+		Code    any    `json:"code"`
+		Message string `json:"message"`
+		Param   any    `json:"param"`
+		Type    string `json:"type"`
+	} `json:"error"`
+}
+
+func (s *Service) Image(task types.ImageTask, sync bool) (string, error) {
+	logger.Debugf("绘画参数：%+v", task)
+
+	var chatModel model.ChatModel
+	if task.ModelId > 0 {
+		s.db.Where("id", task.ModelId).First(&chatModel)
+	} else {
+		s.db.Where("value", task.ModelValue).First(&chatModel)
+	}
+
+	// get image generation API KEY
+	var apiKey model.ApiKey
+	session := s.db.Where("enabled", true)
+	if chatModel.KeyId > 0 {
+		session = session.Where("id = ?", chatModel.KeyId)
+	} else {
+		session = session.Where("type = ?", "image")
+	}
+	err := session.Order("last_used_at ASC").First(&apiKey).Error
+	if err != nil {
+		return "", fmt.Errorf("no available Image Generation api key: %v", err)
+	}
+
+	var res imgRes
+	var errRes ErrRes
+	if len(apiKey.ProxyURL) > 5 {
+		s.httpClient.SetProxyURL(apiKey.ProxyURL).R()
+	}
+	apiURL := fmt.Sprintf("%s/v1/images/generations", apiKey.ApiURL)
+	reqBody := imgReq{
+		Model:          chatModel.Value,
+		Prompt:         task.Prompt,
+		AspectRatio:    task.AspectRatio,
+		Size:           task.Size,
+		ResponseFormat: "url",
+	}
+
+	// 图片编辑
+	if len(task.Image) > 0 {
+		reqBody.Image = task.Image
+	}
+
+	logger.Infof("Channel:%s, API KEY:%s, BODY: %+v", apiURL, apiKey.Value, reqBody)
+	r, err := s.httpClient.R().SetHeader("Body-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+apiKey.Value).
+		SetBody(reqBody).
+		SetErrorResult(&errRes).
+		SetSuccessResult(&res).
+		Post(apiURL)
+	if err != nil {
+		logger.Errorf("error with send request: %v", err)
+		return "", fmt.Errorf("error with send request: %v", err)
+	}
+
+	if r.IsErrorState() {
+		logger.Errorf("error with send request, status: %s, %+v", r.Status, errRes.Error)
+		return "", fmt.Errorf("error with send request, status: %s, %+v", r.Status, errRes.Error)
+	}
+
+	if len(res.Data) == 0 && r.Body != nil {
+		body, _ := io.ReadAll(r.Body)
+		return "", fmt.Errorf("%s", string(body))
+	}
+
+	// update the api key last use time
+	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
+	var imgURL string
+	var data = map[string]any{
+		"progress": 100,
+		"prompt":   task.Prompt,
+	}
+	// 如果返回的是base64，则需要上传到oss
+	if res.Data[0].B64Json != "" {
+		imgURL, err = s.uploadManager.GetUploadHandler().PutBase64(res.Data[0].B64Json)
+		if err != nil {
+			return "", fmt.Errorf("error with upload image: %v", err)
+		}
+		logger.Infof("upload image to oss: %s", imgURL)
+		data["img_url"] = imgURL
+	} else {
+		imgURL = res.Data[0].Url
+	}
+	data["org_url"] = imgURL
+	// update task progress
+	err = s.db.Model(&model.ImageJob{Id: task.Id}).UpdateColumns(data).Error
+	if err != nil {
+		return "", fmt.Errorf("err with update database: %v", err)
+	}
+
+	var content string
+	if sync {
+		content = fmt.Sprintf("```\n%s\n```\n下面是我为你创作的图片：\n\n![](%s)\n", task.Prompt, imgURL)
+	}
+
+	return content, nil
+}
+
+func (s *Service) CheckTaskStatus() {
+	go func() {
+		logger.Info("Running Image generation task status checking ...")
+		for {
+			// 检查未完成任务进度
+			var jobs []model.ImageJob
+			s.db.Where("progress < ?", 100).Find(&jobs)
+			for _, job := range jobs {
+				// 超时的任务标记为失败
+				if time.Since(job.CreatedAt) > time.Minute*10 {
+					job.Progress = service.FailTaskProgress
+					job.ErrMsg = "任务超时"
+					s.db.Updates(&job)
+				}
+			}
+
+			// 找出失败的任务，并恢复其扣减算力
+			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			for _, job := range jobs {
+				var task types.ImageTask
+				err := utils.JsonDecode(job.Params, &task)
+				if err != nil {
+					continue
+				}
+				err = s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  task.ModelName,
+					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+				})
+				if err != nil {
+					continue
+				}
+				// 更新任务状态
+				s.db.Model(&job).UpdateColumn("power", 0)
+			}
+			time.Sleep(time.Second * 10)
+		}
+	}()
+}
+
+func (s *Service) DownloadImages() {
+	go func() {
+		var items []model.ImageJob
+		for {
+			res := s.db.Where("img_url = ? AND progress = ?", "", 100).Find(&items)
+			if res.Error != nil {
+				continue
+			}
+
+			// download images
+			for _, v := range items {
+				if v.OrgURL == "" {
+					continue
+				}
+
+				logger.Infof("try to download image: %s", v.OrgURL)
+				imgURL, err := s.downloadImage(v.Id, v.OrgURL)
+				if err != nil {
+					logger.Error("error with download image: %s, error: %v", imgURL, err)
+					continue
+				} else {
+					logger.Infof("download image %s successfully.", v.OrgURL)
+				}
+
+			}
+
+			time.Sleep(time.Second * 5)
+		}
+	}()
+}
+
+func (s *Service) downloadImage(jobId uint, orgURL string) (string, error) {
+	// sava image
+	imgURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(orgURL, ".png", false)
+	if err != nil {
+		return "", err
+	}
+
+	// update img_url
+	res := s.db.Model(&model.ImageJob{Id: jobId}).UpdateColumn("img_url", imgURL)
+	if res.Error != nil {
+		return "", err
+	}
+	return imgURL, nil
+}

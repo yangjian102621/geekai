@@ -104,9 +104,6 @@ export const useSunoStore = defineStore('suno', () => {
       const items = []
 
       for (let v of res.data.items) {
-        if (v.progress === 100) {
-          v.major_model_version = v['raw_data']['major_model_version']
-        }
         if (v.progress === 0 || v.progress === 102) {
           needPull = true
         }

@@ -63,6 +63,7 @@ func (h *MidJourneyHandler) RegisterRoutes() {
 		group.POST("image", h.Image)
 		group.POST("upscale", h.Upscale)
 		group.POST("variation", h.Variation)
+		group.POST("modal", h.Modal)
 		group.GET("jobs", h.JobList)
 		group.GET("remove", h.Remove)
 		group.GET("publish", h.Publish)
@@ -82,7 +83,31 @@ func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 	}
 
 	return true
+}
 
+// preCheckPower 检查用户算力是否 >= required，不足时写 ERROR 并返回 false
+func (h *MidJourneyHandler) preCheckPower(c *gin.Context, required int) bool {
+	user, err := h.GetLoginUser(c)
+	if err != nil {
+		resp.NotAuth(c)
+		return false
+	}
+	if required <= 0 {
+		required = h.App.SysConfig.Base.MjActionPower
+	}
+	if user.Power < required {
+		resp.ERROR(c, "当前用户剩余算力不足以完成本次操作！")
+		return false
+	}
+	return true
+}
+
+// mjActionPower 取分项算力，若未配置则回退 MjActionPower
+func mjActionPower(base int, fallback int) int {
+	if base > 0 {
+		return base
+	}
+	return fallback
 }
 
 // Image 创建一个绘画任务
@@ -109,7 +134,14 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	if !h.preCheck(c) {
+	// 按任务类型计算所需算力
+	power := h.App.SysConfig.Base.MjPower
+	if data.TaskType == types.TaskBlend.String() {
+		power = mjActionPower(h.App.SysConfig.Base.MjBlendPower, h.App.SysConfig.Base.MjActionPower)
+	} else if data.TaskType == types.TaskSwapFace.String() {
+		power = mjActionPower(h.App.SysConfig.Base.MjSwapFacePower, h.App.SysConfig.Base.MjActionPower)
+	}
+	if !h.preCheckPower(c, power) {
 		return
 	}
 
@@ -215,7 +247,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
 		Prompt:    fmt.Sprintf("%s %s", data.Prompt, params),
-		Power:     h.App.SysConfig.Base.MjPower,
+		Power:     power,
 		CreatedAt: time.Now(),
 	}
 	opt := "绘图"
@@ -264,7 +296,8 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		return
 	}
 
-	if !h.preCheck(c) {
+	power := mjActionPower(h.App.SysConfig.Base.MjUpscalePower, h.App.SysConfig.Base.MjActionPower)
+	if !h.preCheckPower(c, power) {
 		return
 	}
 
@@ -286,7 +319,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
-		Power:     h.App.SysConfig.Base.MjActionPower,
+		Power:     power,
 		CreatedAt: time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
@@ -319,7 +352,8 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		return
 	}
 
-	if !h.preCheck(c) {
+	power := mjActionPower(h.App.SysConfig.Base.MjUpscalePower, h.App.SysConfig.Base.MjActionPower)
+	if !h.preCheckPower(c, power) {
 		return
 	}
 
@@ -342,7 +376,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
 		Progress:  0,
-		Power:     h.App.SysConfig.Base.MjActionPower,
+		Power:     power,
 		CreatedAt: time.Now(),
 	}
 	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
@@ -357,6 +391,81 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		Type:   types.PowerConsume,
 		Model:  "mid-journey",
 		Remark: fmt.Sprintf("Variation 操作，任务ID：%s", job.TaskId),
+	})
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	resp.SUCCESS(c)
+}
+
+// modalReq 局部重绘请求参数
+type modalReq struct {
+	TaskId     string `json:"task_id"`               // 原图任务 ID（message_id）
+	ChannelId  string `json:"channel_id"`            // 渠道 ID
+	Prompt     string `json:"prompt"`                // 提示词
+	MaskBase64 string `json:"mask_base64,omitempty"` // 蒙版 base64，可选
+}
+
+// Modal 提交局部重绘（inpaint）
+func (h *MidJourneyHandler) Modal(c *gin.Context) {
+	var data modalReq
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.TaskId == "" || data.ChannelId == "" {
+		resp.ERROR(c, "task_id 与 channel_id 必填")
+		return
+	}
+	if data.Prompt == "" {
+		resp.ERROR(c, "请填写局部重绘提示词")
+		return
+	}
+
+	power := mjActionPower(h.App.SysConfig.Base.MjModalPower, h.App.SysConfig.Base.MjActionPower)
+	if !h.preCheckPower(c, power) {
+		return
+	}
+
+	idValue, _ := c.Get(types.LoginUserID)
+	userId := utils.IntValue(utils.InterfaceToString(idValue), 0)
+	taskId, _ := h.snowflake.Next(true)
+	// 原图 message_id 必须传入 API，同时写入 TaskId/MessageId 避免序列化 omitempty 丢失
+	task := types.MjTask{
+		Type:       types.TaskModal,
+		UserId:     userId,
+		ChannelId:  data.ChannelId,
+		TaskId:     data.TaskId,
+		MessageId:  data.TaskId,
+		Prompt:     data.Prompt,
+		MaskBase64: data.MaskBase64,
+		Mode:       h.App.SysConfig.Base.MjMode,
+	}
+	job := model.MidJourneyJob{
+		Type:      types.TaskModal.String(),
+		ChannelId: data.ChannelId,
+		UserId:    uint(userId),
+		TaskId:    taskId,
+		TaskInfo:  utils.JsonEncode(task),
+		Progress:  0,
+		Prompt:    data.Prompt,
+		Power:     power,
+		CreatedAt: time.Now(),
+	}
+	if res := h.DB.Create(&job); res.Error != nil || res.RowsAffected == 0 {
+		resp.ERROR(c, "添加任务失败："+res.Error.Error())
+		return
+	}
+
+	task.Id = job.Id
+	h.mjService.PushTask(task)
+
+	err := h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
+		Type:   types.PowerConsume,
+		Model:  "mid-journey",
+		Remark: fmt.Sprintf("局部重绘操作，任务ID：%s", job.TaskId),
 	})
 	if err != nil {
 		resp.ERROR(c, err.Error())
@@ -432,6 +541,7 @@ func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize
 		if err != nil {
 			continue
 		}
+		job.CreatedAt = item.CreatedAt.Unix()
 		jobs = append(jobs, job)
 	}
 	return nil, vo.NewPage(total, page, pageSize, jobs)

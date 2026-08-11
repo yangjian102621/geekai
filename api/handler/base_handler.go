@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"geekai/store/model"
 	"geekai/utils"
 	"strings"
@@ -22,7 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 type BaseHandler struct {
 	App *core.AppServer

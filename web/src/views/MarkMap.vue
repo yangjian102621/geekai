@@ -236,7 +236,13 @@ const generateAI = () => {
     model_id: modelID.value,
   })
     .then((res) => {
-      text.value = res.data
+      const raw = res?.data
+      if (raw == null || String(raw).trim() === '') {
+        ElMessage.error('生成结果为空，请重试或更换模型')
+        loading.value = false
+        return
+      }
+      text.value = typeof raw === 'string' ? raw : String(raw)
       content.value = processContent(text.value)
       const model = getModelById(modelID.value)
       loginUser.value.power -= model.power

@@ -56,13 +56,64 @@
             <el-input v-model="configs.bao.username" placeholder="请输入用户名" />
           </el-form-item>
           <el-form-item label="密码">
-            <el-input v-model="configs.bao.password" placeholder="请输入密码" />
+            <el-input v-model="configs.bao.password" type="password" show-password placeholder="请输入密码" />
           </el-form-item>
           <el-form-item label="短信签名">
             <el-input v-model="configs.bao.sign" placeholder="请输入短信签名" />
           </el-form-item>
           <el-form-item label="验证码模板">
             <el-input v-model="configs.bao.code_template" placeholder="请输入验证码模板" />
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="腾讯云短信" name="tencent">
+        <template #label>
+          <div class="flex items-center">
+            <i class="iconfont icon-tencent"></i>
+            <span class="ml-2">腾讯云短信</span>
+          </div>
+        </template>
+
+        <Alert type="info">
+          如果你不知道怎么获取这些配置信息，请参考文档：
+          <a
+            href="https://docs.geekai.me/plus/config/sms.html#%E8%85%BE%E8%AE%AF%E4%BA%91"
+            target="_blank"
+            >腾讯云短信配置</a
+          >。
+        </Alert>
+
+        <el-form :model="configs.tencent" label-position="top">
+          <el-form-item label="SecretId">
+            <el-input v-model="configs.tencent.secret_id" placeholder="请输入SecretId" />
+          </el-form-item>
+          <el-form-item label="SecretKey">
+            <el-input
+              v-model="configs.tencent.secret_key"
+              type="password"
+              show-password
+              placeholder="请输入SecretKey"
+            />
+          </el-form-item>
+          <el-form-item label="应用ID (SmsSdkAppId)">
+            <el-input v-model="configs.tencent.sms_sdk_app_id" placeholder="请输入短信应用ID" />
+          </el-form-item>
+          <el-form-item label="短信签名">
+            <el-input v-model="configs.tencent.sign" placeholder="请输入短信签名" />
+          </el-form-item>
+          <el-form-item label="验证码模板ID">
+            <el-input v-model="configs.tencent.code_temp_id" placeholder="请输入验证码模板ID" />
+            <div class="text-sm text-gray-500 mt-1">在腾讯云短信控制台创建的模板ID</div>
+          </el-form-item>
+          <el-form-item label="地区 (Region)">
+            <el-input
+              v-model="configs.tencent.region"
+              placeholder="请输入地区，默认 ap-guangzhou"
+            />
+            <div class="text-sm text-gray-500 mt-1">
+              常见地区：ap-guangzhou（广州）、ap-beijing（北京）、ap-shanghai（上海）
+            </div>
           </el-form-item>
         </el-form>
       </el-tab-pane>
@@ -73,6 +124,7 @@
       <el-radio-group v-model="configs.active" size="large">
         <el-radio value="aliyun" border>阿里云</el-radio>
         <el-radio value="bao" border>短信宝</el-radio>
+        <el-radio value="tencent" border>腾讯云</el-radio>
       </el-radio-group>
     </div>
 
@@ -103,6 +155,15 @@ const configs = ref({
     password: '',
     sign: '',
     code_template: '',
+  },
+  tencent: {
+    secret_id: '',
+    secret_key: '',
+    sms_sdk_app_id: '',
+    sign: '',
+    code_temp_id: '',
+    code_template: '',
+    region: 'ap-guangzhou',
   },
 })
 

@@ -17,9 +17,11 @@
                 <el-input v-model="form.mobile" placeholder="请输入手机号" />
               </el-form-item>
               <el-form-item label="验证码">
-                <div class="flex">
-                  <el-input v-model="form.code" maxlength="6" class="mr-2 max-w-[200px]" />
-                  <send-msg size="" :receiver="form.mobile" type="mobile" />
+                <div class="flex w-full items-center gap-2">
+                  <el-input v-model="form.code" maxlength="6" class="flex-1" />
+                  <span class="flex-none">
+                    <send-msg :receiver="form.mobile" type="mobile" />
+                  </span>
                 </div>
               </el-form-item>
             </el-tab-pane>
@@ -28,9 +30,11 @@
                 <el-input v-model="form.email" placeholder="请输入邮箱地址" />
               </el-form-item>
               <el-form-item label="验证码">
-                <div class="flex">
-                  <el-input v-model="form.code" maxlength="6" class="mr-2 w-1/2" />
-                  <send-msg size="" :receiver="form.email" type="email" />
+                <div class="flex w-full items-center gap-2">
+                  <el-input v-model="form.code" maxlength="6" class="flex-1" />
+                  <span class="flex-none">
+                    <send-msg :receiver="form.email" type="email" />
+                  </span>
                 </div>
               </el-form-item>
             </el-tab-pane>
@@ -46,8 +50,8 @@
       </div>
 
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="save" round> 重置密码 </el-button>
+        <div class="pt-1 flex justify-end">
+          <el-button type="primary" @click="save"> 重置密码 </el-button>
         </div>
       </template>
     </el-dialog>
@@ -112,10 +116,6 @@ const close = function () {
 
 <style lang="scss">
 .reset-pass {
-  .form {
-    padding: 0 20px;
-  }
-
   .code-row {
     width: 100%;
     .send-button {

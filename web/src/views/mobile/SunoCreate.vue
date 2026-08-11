@@ -313,10 +313,10 @@
               <!-- 标签 -->
               <div class="flex items-center space-x-2 mt-2">
                 <span
-                  v-if="item.major_model_version"
+                  v-if="item.params.model"
                   class="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full"
                 >
-                  {{ item.major_model_version }}
+                  {{ item.params.model }}
                 </span>
                 <span
                   v-if="item.type === 4"

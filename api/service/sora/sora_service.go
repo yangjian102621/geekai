@@ -1,21 +1,20 @@
 package sora
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"geekai/service/oss"
 	"geekai/store/vo"
 	"geekai/utils"
-	"io"
-	"net/http"
 	"path/filepath"
 	"regexp"
 	"time"
 
-	logger2 "geekai/logger"
+	"geekai/log"
 )
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 type SoraService struct {
 	uploadManager *oss.UploaderManager
@@ -34,15 +33,10 @@ func (s *SoraService) DownloadVideoURL(text string) (*vo.File, error) {
 		return nil, err
 	}
 
-	// 获取 JSON 数据
-	resp, err := http.Get(videoDataURL)
+	// 用统一的超时/重试策略，避免“偶发 HTTPS 握手超时”直接导致失败
+	body, _, err := utils.FetchURLBytes(context.Background(), videoDataURL, "", 30*time.Second, 2, 2<<20)
 	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
+		logger.Errorf("failed to get video data: %v", err)
 		return nil, err
 	}
 
@@ -50,13 +44,14 @@ func (s *SoraService) DownloadVideoURL(text string) (*vo.File, error) {
 	var videoData map[string]any
 	err = json.Unmarshal(body, &videoData)
 	if err != nil {
+		logger.Errorf("failed to unmarshal video data: %v", err)
 		return nil, err
 	}
 
 	if v, ok := videoData["url"].(string); ok && v != "" {
 		logger.Infof("try to download video: %s", v)
 		videoURL, err := s.uploadManager.GetUploadHandler().PutUrlFile(v, ".mp4", true)
-		if err != nil {
+		if err != nil { // 如果上传失败，则返回原始错误
 			return nil, err
 		}
 

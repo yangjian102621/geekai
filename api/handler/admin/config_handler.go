@@ -8,6 +8,7 @@ package admin
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"errors"
 	"geekai/core"
 	"geekai/core/middleware"
 	"geekai/core/types"
@@ -35,6 +36,7 @@ type ConfigHandler struct {
 	smtpService     *service.SmtpService
 	captchaService  *service.CaptchaService
 	wxLoginService  *service.WxLoginService
+	wxGzhService    *service.WxGzhService
 }
 
 func NewConfigHandler(
@@ -49,6 +51,7 @@ func NewConfigHandler(
 	smtpService *service.SmtpService,
 	captchaService *service.CaptchaService,
 	wxLoginService *service.WxLoginService,
+	wxChatService *service.WxGzhService,
 ) *ConfigHandler {
 	return &ConfigHandler{
 		BaseHandler:     handler.BaseHandler{App: app, DB: db},
@@ -61,6 +64,7 @@ func NewConfigHandler(
 		smtpService:     smtpService,
 		captchaService:  captchaService,
 		wxLoginService:  wxLoginService,
+		wxGzhService:    wxChatService,
 	}
 }
 
@@ -84,6 +88,7 @@ func (h *ConfigHandler) RegisterRoutes() {
 		rg.POST("update/oss", h.UpdateOss)
 		rg.POST("update/smtp", h.UpdateStmp)
 		rg.GET("get", h.Get)
+		rg.POST("update/wx_gzh", h.UpdateWxGzh)
 	}
 }
 
@@ -110,15 +115,18 @@ func (h *ConfigHandler) UpdateBase(c *gin.Context) {
 // UpdatePower 更新系统配置
 func (h *ConfigHandler) UpdatePower(c *gin.Context) {
 	var data struct {
-		InitPower     int            `json:"init_power,omitempty"`      // 新用户注册赠送算力值
-		DailyPower    int            `json:"daily_power,omitempty"`     // 每日签到赠送算力
-		InvitePower   int            `json:"invite_power,omitempty"`    // 邀请新用户赠送算力值
-		MjPower       int            `json:"mj_power,omitempty"`        // MJ 绘画消耗算力
-		MjActionPower int            `json:"mj_action_power,omitempty"` // MJ 操作（放大，变换）消耗算力
-		SdPower       int            `json:"sd_power,omitempty"`        // SD 绘画消耗算力
-		SunoPower     int            `json:"suno_power,omitempty"`      // Suno 生成歌曲消耗算力
-		LumaPower     int            `json:"luma_power,omitempty"`      // Luma 生成视频消耗算力
-		KeLingPowers  map[string]int `json:"keling_powers,omitempty"`   // 可灵生成视频消耗算力
+		InitPower       int            `json:"init_power,omitempty"`         // 新用户注册赠送算力值
+		DailyPower      int            `json:"daily_power,omitempty"`        // 每日签到赠送算力
+		InvitePower     int            `json:"invite_power,omitempty"`       // 邀请新用户赠送算力值
+		MjPower         int            `json:"mj_power,omitempty"`           // MJ 绘画消耗算力
+		MjActionPower   int            `json:"mj_action_power,omitempty"`    // MJ 操作（放大，变换）消耗算力
+		MjUpscalePower  int            `json:"mj_upscale_power,omitempty"`   // MJ 放大/变换消耗算力
+		MjBlendPower    int            `json:"mj_blend_power,omitempty"`     // MJ 融图消耗算力
+		MjSwapFacePower int            `json:"mj_swap_face_power,omitempty"` // MJ 换脸消耗算力
+		MjModalPower    int            `json:"mj_modal_power,omitempty"`     // MJ 局部重绘消耗算力
+		SunoPower       int            `json:"suno_power,omitempty"`         // Suno 生成歌曲消耗算力
+		LumaPower       int            `json:"luma_power,omitempty"`         // Luma 生成视频消耗算力
+		KeLingPowers    map[string]int `json:"keling_powers,omitempty"`      // 可灵生成视频消耗算力
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -130,7 +138,10 @@ func (h *ConfigHandler) UpdatePower(c *gin.Context) {
 	h.sysConfig.Base.InvitePower = data.InvitePower
 	h.sysConfig.Base.MjPower = data.MjPower
 	h.sysConfig.Base.MjActionPower = data.MjActionPower
-	h.sysConfig.Base.SdPower = data.SdPower
+	h.sysConfig.Base.MjUpscalePower = data.MjUpscalePower
+	h.sysConfig.Base.MjBlendPower = data.MjBlendPower
+	h.sysConfig.Base.MjSwapFacePower = data.MjSwapFacePower
+	h.sysConfig.Base.MjModalPower = data.MjModalPower
 	h.sysConfig.Base.SunoPower = data.SunoPower
 	h.sysConfig.Base.LumaPower = data.LumaPower
 	h.sysConfig.Base.KeLingPowers = data.KeLingPowers
@@ -374,18 +385,40 @@ func (h *ConfigHandler) Update(name string, value any) error {
 func (h *ConfigHandler) Get(c *gin.Context) {
 	name := c.Query("key")
 	var config model.Config
-	res := h.DB.Where("name", name).First(&config)
-	if res.Error != nil {
-		resp.ERROR(c, res.Error.Error())
+	err := h.DB.Where("name", name).First(&config).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		resp.SUCCESS(c, nil)
+		return
+	}
+
+	if err != nil {
+		resp.ERROR(c, err.Error())
 		return
 	}
 
 	var value map[string]any
-	err := utils.JsonDecode(config.Value, &value)
+	err = utils.JsonDecode(config.Value, &value)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
 	resp.SUCCESS(c, value)
+}
+
+func (h *ConfigHandler) UpdateWxGzh(c *gin.Context) {
+	var data types.WxGzhConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	err := h.Update(types.ConfigKeyWxGzh, data)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	h.wxGzhService.UpdateConfig(data)
+	h.sysConfig.WxGzh = data
+	resp.SUCCESS(c, data)
 }

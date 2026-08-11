@@ -6,9 +6,11 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"io"
 	"net/http"
+	urlpkg "net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/go-tika/tika"
 )
@@ -84,23 +86,69 @@ func cleanBlankLine(content string) string {
 
 // 下载文件
 func downloadFile(url string) (string, error) {
-	base := filepath.Base(url)
+	u, err := urlpkg.Parse(url)
+	if err != nil {
+		return "", err
+	}
+
+	base := filepath.Base(u.Path)
+	if base == "" || base == "." || base == "/" {
+		base = "download"
+	}
 	dir := os.TempDir()
 	filename := filepath.Join(dir, base)
-	out, err := os.Create(filename)
-	if err != nil {
-		return "", err
-	}
-	defer out.Close()
 
-	// 获取数据
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+	client := newHTTPClient(60*time.Second, "")
+	retries := 2
+	var lastErr error
+	for attempt := 0; attempt <= retries; attempt++ {
+		// 每次重试都重新创建文件，避免写一半残留
+		out, err := os.Create(filename)
+		if err != nil {
+			return "", err
+		}
 
-	// 写入数据到文件
-	_, err = io.Copy(out, resp.Body)
-	return filename, err
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+		if err != nil {
+			_ = out.Close()
+			return "", err
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			_ = out.Close()
+			lastErr = err
+			_ = os.Remove(filename)
+			if attempt < retries && isRetryableError(err) {
+				time.Sleep(retryDelay(attempt))
+				continue
+			}
+			return "", err
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			_ = resp.Body.Close()
+			_ = out.Close()
+			_ = os.Remove(filename)
+			lastErr = fmt.Errorf("download file failed: status=%d", resp.StatusCode)
+			return "", lastErr
+		}
+
+		_, copyErr := io.Copy(out, resp.Body)
+		_ = resp.Body.Close()
+		_ = out.Close()
+		if copyErr != nil {
+			lastErr = copyErr
+			_ = os.Remove(filename)
+			if attempt < retries && isRetryableError(copyErr) {
+				time.Sleep(retryDelay(attempt))
+				continue
+			}
+			return "", copyErr
+		}
+
+		return filename, nil
+	}
+
+	return "", lastErr
 }

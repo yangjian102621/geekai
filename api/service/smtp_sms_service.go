@@ -120,7 +120,7 @@ func (s *SmtpService) sendTLS(auth smtp.Auth, to string, subject string, body st
 	}
 	_, _ = fmt.Fprintln(wc)
 	// 将邮件内容写入
-	_, err = fmt.Fprintf(wc, body)
+	_, err = fmt.Fprint(wc, body)
 	if err != nil {
 		return fmt.Errorf("error sending email: %v", err)
 	}

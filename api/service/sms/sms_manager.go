@@ -9,23 +9,25 @@ package sms
 
 import (
 	"geekai/core/types"
-	logger2 "geekai/logger"
+	"geekai/log"
 )
 
 type SmsManager struct {
-	aliyun *AliYunSmsService
-	bao    *BaoSmsService
-	active string
+	aliyun  *AliYunSmsService
+	bao     *BaoSmsService
+	tencent *TencentSmsService
+	active  string
 }
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
-func NewSmsManager(sysConfig *types.SystemConfig, aliyun *AliYunSmsService, bao *BaoSmsService) (*SmsManager, error) {
+func NewSmsManager(sysConfig *types.SystemConfig, aliyun *AliYunSmsService, bao *BaoSmsService, tencent *TencentSmsService) (*SmsManager, error) {
 
 	return &SmsManager{
-		active: sysConfig.SMS.Active,
-		aliyun: aliyun,
-		bao:    bao,
+		active:  sysConfig.SMS.Active,
+		aliyun:  aliyun,
+		bao:     bao,
+		tencent: tencent,
 	}, nil
 }
 
@@ -35,6 +37,8 @@ func (m *SmsManager) GetService() Service {
 		return m.aliyun
 	case Bao:
 		return m.bao
+	case Tencent:
+		return m.tencent
 	}
 	return nil
 }
@@ -49,6 +53,8 @@ func (m *SmsManager) UpdateConfig(config types.SMSConfig) {
 		m.aliyun.UpdateConfig(config.Ali)
 	case Bao:
 		m.bao.UpdateConfig(config.Bao)
+	case Tencent:
+		m.tencent.UpdateConfig(config.Tencent)
 	}
 	m.active = config.Active
 }

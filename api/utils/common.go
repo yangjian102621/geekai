@@ -115,7 +115,7 @@ func Ip2Region(searcher *xdb.Searcher, ip string) string {
 	return fmt.Sprintf("%s-%s-%s", arr[0], arr[2], arr[3])
 }
 
-func IsEmptyValue(obj interface{}) bool {
+func IsEmptyValue(obj any) bool {
 	if obj == nil {
 		return true
 	}

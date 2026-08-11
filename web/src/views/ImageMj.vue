@@ -272,29 +272,7 @@
                     格式图片；
                   </div>
                   <div class="param-line">
-                    <div class="img-inline">
-                      <div class="img-list-box">
-                        <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
-                          <el-image :src="imgURL" fit="cover" />
-                          <el-button
-                            type="danger"
-                            :icon="Delete"
-                            @click="removeUploadImage(imgURL)"
-                            circle
-                          />
-                        </div>
-                      </div>
-                      <el-upload
-                        class="img-uploader"
-                        :auto-upload="true"
-                        :show-file-list="false"
-                        :http-request="uploadImg"
-                      >
-                        <el-icon class="uploader-icon">
-                          <Plus />
-                        </el-icon>
-                      </el-upload>
-                    </div>
+                    <ImageUpload v-model="imgList" :max-count="5" :multiple="true" />
                   </div>
 
                   <div class="param-line" style="padding-top: 10px">
@@ -397,55 +375,15 @@
                   <div class="text">
                     请上传两张以上的图片，最多不超过五张，超过五张图片请使用图生图功能
                   </div>
-                  <div class="img-inline">
-                    <div class="img-list-box">
-                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
-                        <el-image :src="imgURL" fit="cover" />
-                        <el-button
-                          type="danger"
-                          :icon="Delete"
-                          @click="removeUploadImage(imgURL)"
-                          circle
-                        />
-                      </div>
-                    </div>
-                    <el-upload
-                      class="img-uploader"
-                      :auto-upload="true"
-                      :show-file-list="false"
-                      :http-request="uploadImg"
-                    >
-                      <el-icon class="uploader-icon">
-                        <Plus />
-                      </el-icon>
-                    </el-upload>
+                  <div class="param-line">
+                    <ImageUpload v-model="imgList" :max-count="5" :multiple="true" />
                   </div>
                 </el-tab-pane>
 
                 <el-tab-pane label="换脸" name="swapFace">
                   <div class="text">请上传两张有脸部的图片，用左边图片的脸替换右边图片的脸</div>
-                  <div class="img-inline">
-                    <div class="img-list-box">
-                      <div class="img-item" v-for="imgURL in imgList" :key="imgURL">
-                        <el-image :src="imgURL" fit="cover" />
-                        <el-button
-                          type="danger"
-                          :icon="Delete"
-                          @click="removeUploadImage(imgURL)"
-                          circle
-                        />
-                      </div>
-                    </div>
-                    <el-upload
-                      class="img-uploader"
-                      :auto-upload="true"
-                      :show-file-list="false"
-                      :http-request="uploadImg"
-                    >
-                      <el-icon class="uploader-icon">
-                        <Plus />
-                      </el-icon>
-                    </el-upload>
+                  <div class="param-line">
+                    <ImageUpload v-model="imgList" :max-count="2" :multiple="true" />
                   </div>
                 </el-tab-pane>
 
@@ -460,60 +398,23 @@
                     注意：只有于 niji6 和 v6
                     模型支持一致性功能，如果选择其他模型此功能将会生成失败。
                   </div>
-                  <div class="param-line">
-                    <el-form-item label="角色一致性：" prop="cref">
-                      <el-input
+                  <div class="param-line cref-two-cols">
+                    <div class="cref-col">
+                      <label class="cref-label">角色一致性</label>
+                      <ImageUpload
                         v-model="params.cref"
-                        placeholder="请输入图片URL或者上传图片"
-                        style="
-                          --el-input-focus-border-color: #b0a0f8;
-                          max-width: 500px;
-                          width: 100%;
-                        "
-                        size="small"
-                      >
-                        <template #append>
-                          <el-upload
-                            :auto-upload="true"
-                            :show-file-list="false"
-                            @click="beforeUpload('cref')"
-                            :http-request="uploadImg"
-                          >
-                            <el-icon class="uploader-icon">
-                              <UploadFilled />
-                            </el-icon>
-                          </el-upload>
-                        </template>
-                      </el-input>
-                    </el-form-item>
-                  </div>
-
-                  <div class="param-line">
-                    <el-form-item label="风格一致性：" prop="sref">
-                      <el-input
+                        :max-count="1"
+                        class="cref-upload-inner"
+                      />
+                    </div>
+                    <div class="cref-col">
+                      <label class="cref-label">风格一致性</label>
+                      <ImageUpload
                         v-model="params.sref"
-                        placeholder="请输入图片URL或者上传图片"
-                        style="
-                          --el-input-focus-border-color: #b0a0f8;
-                          max-width: 500px;
-                          width: 100%;
-                        "
-                        size="small"
-                      >
-                        <template #append>
-                          <el-upload
-                            :auto-upload="true"
-                            :show-file-list="false"
-                            @click="beforeUpload('sref')"
-                            :http-request="uploadImg"
-                          >
-                            <el-icon class="uploader-icon">
-                              <UploadFilled />
-                            </el-icon>
-                          </el-upload>
-                        </template>
-                      </el-input>
-                    </el-form-item>
+                        :max-count="1"
+                        class="cref-upload-inner"
+                      />
+                    </div>
                   </div>
 
                   <div class="param-line" style="padding-top: 10px">
@@ -600,16 +501,10 @@
               </el-tabs>
 
               <el-row class="text-info">
-                <el-text type="primary"
-                  >每次绘图消耗
-                  <el-text type="warning">{{ mjPower }}算力;</el-text>
-                  &nbsp;&nbsp; U/V 操作消耗<el-text type="warning"
-                    >{{ mjActionPower }}算力;</el-text
-                  > </el-text
-                >&nbsp;&nbsp;
-                <el-text type="primary"
-                  >当前可用算力：<el-text type="warning">{{ power }}</el-text></el-text
-                >
+                <el-text type="primary">
+                  绘图 {{ mjPower }} 算力；U/V {{ mjUpscalePower }}；融图 {{ mjBlendPower }}；换脸 {{ mjSwapFacePower }}；局部重绘 {{ mjModalPower }} 算力；
+                  当前可用：<el-text type="warning">{{ power }}</el-text>
+                </el-text>
               </el-row>
 
               <div class="submit-btn">
@@ -695,24 +590,36 @@
                           class="px-4 pt-2 pb-4 border-t border-t-gray-800"
                           v-if="item.progress === 100"
                         >
-                          <div class="opt" v-if="item['can_opt']">
-                            <el-row :gutter="8" class="mb-3">
-                              <el-col :span="6" v-for="i in 4" :key="'u' + i">
+                          <div class="opt" v-if="item['can_opt'] || item['can_modal']">
+                            <template v-if="item['can_opt']">
+                              <el-row :gutter="8" class="mb-3">
+                                <el-col :span="6" v-for="i in 4" :key="'u' + i">
+                                  <button
+                                    class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
+                                    @click="upscale(i, item)"
+                                  >
+                                    U{{ i }}
+                                  </button>
+                                </el-col>
+                              </el-row>
+                              <el-row :gutter="8" class="mb-3">
+                                <el-col :span="6" v-for="i in 4" :key="'v' + i">
+                                  <button
+                                    class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
+                                    @click="variation(i, item)"
+                                  >
+                                    V{{ i }}
+                                  </button>
+                                </el-col>
+                              </el-row>
+                            </template>
+                            <el-row v-if="item['can_modal']" :gutter="8" class="mb-3">
+                              <el-col :span="24">
                                 <button
-                                  class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
-                                  @click="upscale(i, item)"
+                                  class="w-full h-6 rounded bg-purple-600 text-xs text-white shadow-md transition-all duration-300 hover:bg-purple-700"
+                                  @click="openModalDialog(item)"
                                 >
-                                  U{{ i }}
-                                </button>
-                              </el-col>
-                            </el-row>
-                            <el-row :gutter="8" class="mb-3">
-                              <el-col :span="6" v-for="i in 4" :key="'v' + i">
-                                <button
-                                  class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
-                                  @click="variation(i, item)"
-                                >
-                                  V{{ i }}
+                                  局部重绘
                                 </button>
                               </el-col>
                             </el-row>
@@ -733,14 +640,9 @@
                                 </el-button>
                               </el-tooltip>
 
-                              <el-tooltip content="复制提示词" placement="top">
-                                <el-button
-                                  type="info"
-                                  circle
-                                  class="copy-prompt-mj"
-                                  :data-clipboard-text="item.prompt"
-                                >
-                                  <i class="iconfont icon-file"></i>
+                              <el-tooltip content="任务详情" placement="top">
+                                <el-button type="info" circle @click="showDetail(item)">
+                                  <i class="iconfont icon-info"></i>
                                 </el-button>
                               </el-tooltip>
                               <el-tooltip content="删除" placement="top">
@@ -748,24 +650,6 @@
                                   <i class="iconfont icon-remove"></i>
                                 </el-button>
                               </el-tooltip>
-                              <el-popover
-                                placement="top"
-                                title="提示词"
-                                :width="240"
-                                trigger="hover"
-                              >
-                                <template #reference>
-                                  <el-button type="primary" circle>
-                                    <i class="iconfont icon-prompt text-white"></i>
-                                  </el-button>
-                                </template>
-
-                                <template #default>
-                                  <div class="mj-list-item-prompt">
-                                    <span>{{ item.prompt }}</span>
-                                  </div>
-                                </template>
-                              </el-popover>
                             </div>
                           </div>
                         </div>
@@ -815,24 +699,134 @@
       v-if="previewURL !== ''"
       :url-list="[previewURL]"
     />
+
+    <!-- 局部重绘弹窗 -->
+    <el-dialog
+      v-model="modalVisible"
+      title="局部重绘"
+      class="modal-inpaint-dialog"
+      destroy-on-close
+      @closed="onModalClosed"
+    >
+      <div class="modal-inpaint-box">
+        <p class="text-sm text-gray-600 mb-2">下方为原图，请在图上涂抹需要重绘的区域（半透明红色即蒙版），可调整画笔大小或清除后重画。蒙版按原图尺寸导出，与涂抹区域一致。</p>
+        <div class="relative inline-block rounded overflow-hidden border border-gray-200 bg-gray-100 modal-inpaint-wrap" ref="modalCanvasWrapRef">
+          <img
+            :src="modalItem?.img_url"
+            ref="modalImgRef"
+            class="block max-h-[75vh] w-auto max-w-full"
+            crossorigin="anonymous"
+            @load="onModalImageLoad"
+          />
+          <!-- 半透明蒙版层：与显示图同尺寸，用户在此绘制 -->
+          <canvas
+            ref="modalCanvasRef"
+            class="absolute left-0 top-0 cursor-crosshair pointer-events-auto"
+            :width="modalCanvasSize.w"
+            :height="modalCanvasSize.h"
+            @mousedown="modalDrawStart"
+            @mousemove="modalDrawMove"
+            @mouseup="modalDrawEnd"
+            @mouseleave="modalDrawEnd"
+          />
+          <!-- 用于导出的黑白蒙版：原图 naturalWidth × naturalHeight -->
+          <canvas
+            ref="modalMaskCanvasRef"
+            class="hidden"
+            :width="modalNaturalSize.w"
+            :height="modalNaturalSize.h"
+          />
+        </div>
+        <div class="flex items-center gap-4 mt-3">
+          <span class="text-sm">画笔大小：</span>
+          <el-slider v-model="modalBrushSize" :min="4" :max="40" :step="2" style="width: 120px" />
+          <el-button size="small" @click="modalClearMask">清除蒙版</el-button>
+        </div>
+        <el-form-item label="重绘提示词" required class="mt-3">
+          <el-input
+            v-model="modalPrompt"
+            type="textarea"
+            :rows="2"
+            placeholder="描述你希望在该区域生成的内容"
+            maxlength="1024"
+            show-word-limit
+          />
+        </el-form-item>
+      </div>
+      <template #footer>
+        <el-button @click="modalVisible = false">取消</el-button>
+        <el-button type="primary" :loading="modalSubmitting" @click="submitModal">
+          提交（消耗 {{ mjModalPower }} 算力）
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 任务详情弹窗 -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="任务详情"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <div class="detail-content" v-if="currentDetail">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="任务类型">
+            {{ currentDetail.type === 'image' ? '绘图' : currentDetail.type === 'upscale' ? '放大' : currentDetail.type === 'variation' ? '变换' : currentDetail.type === 'blend' ? '融图' : currentDetail.type === 'swapFace' ? '换脸' : currentDetail.type === 'modal' ? '局部重绘' : currentDetail.type || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="提示词">
+            <div class="flex items-center gap-2">
+              <span class="break-all">{{ currentDetail.prompt }}</span>
+              <el-tooltip content="复制提示词" placement="top">
+                <i
+                  class="iconfont icon-copy cursor-pointer shrink-0"
+                  @click="copyPrompt(currentDetail.prompt)"
+                />
+              </el-tooltip>
+            </div>
+          </el-descriptions-item>
+          <el-descriptions-item
+            label="生成的图片"
+            v-if="currentDetail.progress === 100 && currentDetail.img_url"
+          >
+            <el-image
+              :src="getThumbURL(currentDetail.img_url, 200, 200)"
+              :preview-src-list="[currentDetail.img_url]"
+              fit="cover"
+              style="width: 200px; height: 200px"
+            />
+          </el-descriptions-item>
+          <el-descriptions-item label="消耗算力">
+            {{ currentDetail.power ?? 0 }}
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ dateFormat(currentDetail.created_at) }}
+          </el-descriptions-item>
+          <el-descriptions-item
+            label="错误信息"
+            v-if="currentDetail.progress === 101 && currentDetail.err_msg"
+          >
+            <el-text type="danger">{{ currentDetail.err_msg }}</el-text>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import nodata from '@/assets/img/no-data.png'
 import BackTop from '@/components/BackTop.vue'
+import ImageUpload from '@/components/ImageUpload.vue'
 import TaskList from '@/components/TaskList.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { getSessionId } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
-import { copyObj, removeArrayItem } from '@/utils/libs'
-import { Delete, InfoFilled, Plus, UploadFilled } from '@element-plus/icons-vue'
-import Clipboard from 'clipboard'
-import Compressor from 'compressorjs'
+import { copyObj, dateFormat, getThumbURL } from '@/utils/libs'
+import { InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
@@ -952,21 +946,11 @@ const power = ref(0)
 const userId = ref(0)
 const isLogin = ref(false)
 
-const clipboard = ref(null)
 onMounted(() => {
   initData()
-  clipboard.value = new Clipboard('.copy-prompt-mj')
-  clipboard.value.on('success', () => {
-    ElMessage.success('复制成功！')
-  })
-
-  clipboard.value.on('error', () => {
-    ElMessage.error('复制失败！')
-  })
 })
 
 onUnmounted(() => {
-  clipboard.value.destroy()
   if (tastPullHandler.value) {
     clearInterval(tastPullHandler.value)
   }
@@ -1004,10 +988,20 @@ const initData = () => {
 
 const mjPower = ref(1)
 const mjActionPower = ref(1)
+const mjUpscalePower = ref(1)
+const mjBlendPower = ref(1)
+const mjSwapFacePower = ref(1)
+const mjModalPower = ref(1)
 getSystemInfo()
   .then((res) => {
-    mjPower.value = res.data['mj_power']
-    mjActionPower.value = res.data['mj_action_power']
+    const d = res.data || {}
+    const fallback = d['mj_action_power'] || 1
+    mjPower.value = d['mj_power'] || 1
+    mjActionPower.value = fallback
+    mjUpscalePower.value = d['mj_upscale_power'] > 0 ? d['mj_upscale_power'] : fallback
+    mjBlendPower.value = d['mj_blend_power'] > 0 ? d['mj_blend_power'] : fallback
+    mjSwapFacePower.value = d['mj_swap_face_power'] > 0 ? d['mj_swap_face_power'] : fallback
+    mjModalPower.value = d['mj_modal_power'] > 0 ? d['mj_modal_power'] : fallback
   })
   .catch((e) => {
     ElMessage.error('获取系统配置失败：' + e.message)
@@ -1032,11 +1026,10 @@ const fetchRunningJobs = () => {
             type: 'error',
             duration: 0,
           })
-          if (jobs[i].type === 'image') {
-            power.value += mjPower.value
-          } else {
-            power.value += mjActionPower.value
-          }
+          const refund = (jobs[i].power != null && jobs[i].power > 0)
+            ? jobs[i].power
+            : (jobs[i].type === 'image' ? mjPower.value : mjUpscalePower.value)
+          power.value += refund
         }
         _jobs.push(jobs[i])
       }
@@ -1073,9 +1066,9 @@ const fetchFinishJobs = () => {
       for (let i = 0; i < jobs.length; i++) {
         if (jobs[i]['img_url'] !== '') {
           if (jobs[i].type === 'upscale' || jobs[i].type === 'swapFace') {
-            jobs[i]['img_thumb'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/600/q/75'
+            jobs[i]['img_thumb'] = getThumbURL(jobs[i]['img_url'], 480, 600)
           } else {
-            jobs[i]['img_thumb'] = jobs[i]['img_url'] + '?imageView2/1/w/480/h/480/q/75'
+            jobs[i]['img_thumb'] = getThumbURL(jobs[i]['img_url'], 480, 480)
           }
         } else {
           if (jobs[i].progress === 100) {
@@ -1090,6 +1083,10 @@ const fetchFinishJobs = () => {
 
         if (jobs[i].type !== 'upscale' && jobs[i].progress === 100) {
           jobs[i]['can_opt'] = true
+        }
+        // 所有已完成且有图的任务均支持局部重绘
+        if (jobs[i].progress === 100 && jobs[i].img_url) {
+          jobs[i]['can_modal'] = true
         }
       }
 
@@ -1120,49 +1117,6 @@ const changeRate = (item) => {
 // 切换模型
 const changeModel = (item) => {
   params.value.model = item.value
-}
-
-const imgKey = ref('')
-const beforeUpload = (key) => {
-  imgKey.value = key
-}
-
-// 图片上传
-const uploadImg = (file) => {
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
-  }
-
-  // 压缩图片并上传
-  new Compressor(file.file, {
-    quality: 0.6,
-    success(result) {
-      const formData = new FormData()
-      formData.append('file', result, result.name)
-      showLoading('图片上传中...')
-      // 执行上传操作
-      httpPost('/api/upload', formData)
-        .then((res) => {
-          if (imgKey.value === '') {
-            imgList.value.push(res.data.url)
-          } else {
-            // 单张图片上传
-            params.value[imgKey.value] = res.data.url
-            imgKey.value = ''
-          }
-          ElMessage.success('上传成功')
-          closeLoading()
-        })
-        .catch((e) => {
-          ElMessage.error('上传失败:' + e.message)
-          closeLoading()
-        })
-    },
-    error(err) {
-      console.log(err.message)
-    },
-  })
 }
 
 // 创建绘图任务
@@ -1198,10 +1152,16 @@ const generate = () => {
   params.value.session_id = getSessionId()
   params.value.img_arr = imgList.value
   isGenerating.value = true
+  const deductPower =
+    params.value.task_type === 'blend'
+      ? mjBlendPower.value
+      : params.value.task_type === 'swapFace'
+        ? mjSwapFacePower.value
+        : mjPower.value
   httpPost('/api/mj/image', params.value)
     .then(() => {
       ElMessage.success('绘画任务推送成功，请耐心等待任务执行...')
-      power.value -= mjPower.value
+      power.value -= deductPower
       taskPulling.value = true
       runningJobs.value.push({
         progress: 0,
@@ -1237,7 +1197,7 @@ const send = (url, index, item) => {
   })
     .then(() => {
       ElMessage.success('任务推送成功，请耐心等待任务执行...')
-      power.value -= mjActionPower.value
+      power.value -= mjUpscalePower.value
       taskPulling.value = true
       runningJobs.value.push({
         progress: 0,
@@ -1246,6 +1206,188 @@ const send = (url, index, item) => {
     .catch((e) => {
       ElMessage.error('任务推送失败：' + e.message)
     })
+}
+
+// 局部重绘弹窗
+const modalVisible = ref(false)
+const modalItem = ref(null)
+const modalPrompt = ref('')
+const modalCanvasRef = ref(null)
+const modalMaskCanvasRef = ref(null)
+const modalImgRef = ref(null)
+const modalCanvasWrapRef = ref(null)
+const modalCanvasSize = ref({ w: 0, h: 0 })   // 显示层尺寸（与当前显示图一致）
+const modalNaturalSize = ref({ w: 0, h: 0 })  // 原图尺寸，蒙版 canvas 使用
+const modalBrushSize = ref(16)
+const modalSubmitting = ref(false)
+const modalDrawing = ref(false)
+let modalCtx = null      // 显示层：半透明绘制，底图可见
+let modalMaskCtx = null  // 导出层：黑底白字，用于 API
+
+const openModalDialog = (item) => {
+  modalItem.value = item
+  modalPrompt.value = ''
+  modalCanvasSize.value = { w: 0, h: 0 }
+  modalNaturalSize.value = { w: 0, h: 0 }
+  modalVisible.value = true
+}
+
+const onModalImageLoad = () => {
+  nextTick(() => {
+    const img = modalImgRef.value
+    if (!img || !modalItem.value) return
+    const displayW = img.offsetWidth || Math.min(img.naturalWidth || 400, 960)
+    const displayH = img.offsetHeight || Math.min(img.naturalHeight || 400, 720)
+    const naturalW = img.naturalWidth || displayW
+    const naturalH = img.naturalHeight || displayH
+    if (displayW <= 0 || displayH <= 0) return
+    modalCanvasSize.value = { w: displayW, h: displayH }
+    modalNaturalSize.value = { w: naturalW, h: naturalH }
+    nextTick(() => {
+      const canvas = modalCanvasRef.value
+      const maskCanvas = modalMaskCanvasRef.value
+      if (!canvas || !maskCanvas) return
+      modalCtx = canvas.getContext('2d')
+      modalMaskCtx = maskCanvas.getContext('2d')
+      if (!modalCtx || !modalMaskCtx) return
+      // 显示层：与显示图同尺寸，不填黑，绘制时用半透明红色
+      modalCtx.lineCap = 'round'
+      modalCtx.lineJoin = 'round'
+      // 导出层：原图尺寸 naturalW×naturalH，黑底，后续绘制白色蒙版
+      modalMaskCtx.fillStyle = '#000000'
+      modalMaskCtx.fillRect(0, 0, naturalW, naturalH)
+      modalMaskCtx.strokeStyle = '#ffffff'
+      modalMaskCtx.lineCap = 'round'
+      modalMaskCtx.lineJoin = 'round'
+    })
+  })
+}
+
+// 将显示坐标换算到原图坐标，用于在蒙版 canvas 上绘制
+const displayToNatural = (displayX, displayY) => {
+  const ds = modalCanvasSize.value
+  const ns = modalNaturalSize.value
+  if (ds.w <= 0 || ds.h <= 0) return { x: 0, y: 0, scale: 1 }
+  const scaleX = ns.w / ds.w
+  const scaleY = ns.h / ds.h
+  return {
+    x: displayX * scaleX,
+    y: displayY * scaleY,
+    scale: Math.max(scaleX, scaleY),
+  }
+}
+
+const modalDrawStart = (e) => {
+  if (!modalCtx || !modalMaskCtx) return
+  modalDrawing.value = true
+  const size = modalBrushSize.value
+  const x = e.offsetX
+  const y = e.offsetY
+  const { x: maskX, y: maskY, scale } = displayToNatural(x, y)
+  const maskLineWidth = size * scale
+  // 显示层：半透明红色，方便对照底图
+  modalCtx.strokeStyle = 'rgba(255, 80, 80, 0.55)'
+  modalCtx.lineWidth = size
+  modalCtx.beginPath()
+  modalCtx.moveTo(x, y)
+  // 导出层：原图坐标系，白色
+  modalMaskCtx.strokeStyle = '#ffffff'
+  modalMaskCtx.lineWidth = maskLineWidth
+  modalMaskCtx.beginPath()
+  modalMaskCtx.moveTo(maskX, maskY)
+}
+
+const modalDrawMove = (e) => {
+  if (!modalDrawing.value || !modalCtx || !modalMaskCtx) return
+  const size = modalBrushSize.value
+  const x = e.offsetX
+  const y = e.offsetY
+  const { x: maskX, y: maskY, scale } = displayToNatural(x, y)
+  const maskLineWidth = size * scale
+  modalCtx.lineWidth = size
+  modalCtx.lineTo(x, y)
+  modalCtx.stroke()
+  modalMaskCtx.lineWidth = maskLineWidth
+  modalMaskCtx.lineTo(maskX, maskY)
+  modalMaskCtx.stroke()
+}
+
+const modalDrawEnd = () => {
+  modalDrawing.value = false
+}
+
+const modalClearMask = () => {
+  const canvas = modalCanvasRef.value
+  const maskCanvas = modalMaskCanvasRef.value
+  if (!canvas || !maskCanvas || !modalCtx || !modalMaskCtx) return
+  modalCtx.clearRect(0, 0, canvas.width, canvas.height)
+  modalMaskCtx.fillStyle = '#000000'
+  modalMaskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height)
+}
+
+const getModalMaskBase64 = () => {
+  const maskCanvas = modalMaskCanvasRef.value
+  if (!maskCanvas || modalNaturalSize.value.w === 0) return ''
+  const dataUrl = maskCanvas.toDataURL('image/png')
+  return dataUrl.replace(/^data:image\/\w+;base64,/, '')
+}
+
+const submitModal = () => {
+  if (!modalPrompt.value.trim()) {
+    ElMessage.warning('请填写重绘提示词')
+    return
+  }
+  if (!modalItem.value) return
+  const taskId = modalItem.value.task_id || modalItem.value.message_id
+  if (!taskId || !modalItem.value.channel_id) {
+    ElMessage.warning('缺少原图信息，无法提交局部重绘')
+    return
+  }
+  modalSubmitting.value = true
+  const maskBase64 = getModalMaskBase64()
+  const body = {
+    task_id: taskId,
+    channel_id: modalItem.value.channel_id,
+    prompt: modalPrompt.value.trim(),
+  }
+  if (maskBase64) body.mask_base64 = maskBase64
+  httpPost('/api/mj/modal', body)
+    .then(() => {
+      ElMessage.success('任务推送成功，请耐心等待任务执行...')
+      power.value -= mjModalPower.value
+      taskPulling.value = true
+      runningJobs.value.push({ progress: 0 })
+      modalVisible.value = false
+    })
+    .catch((e) => {
+      ElMessage.error('任务推送失败：' + e.message)
+    })
+    .finally(() => {
+      modalSubmitting.value = false
+    })
+}
+
+const onModalClosed = () => {
+  modalItem.value = null
+  modalPrompt.value = ''
+  modalCtx = null
+  modalMaskCtx = null
+}
+
+// 任务详情弹窗
+const detailDialogVisible = ref(false)
+const currentDetail = ref(null)
+const showDetail = (item) => {
+  currentDetail.value = item
+  detailDialogVisible.value = true
+}
+const copyPrompt = (text) => {
+  if (!text) return
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success('复制成功')
+  }).catch(() => {
+    ElMessage.error('复制失败')
+  })
 }
 
 const removeImage = (item) => {
@@ -1305,11 +1447,6 @@ const tabChange = (tab) => {
   }
 }
 
-// 删除已上传图片
-const removeUploadImage = (url) => {
-  imgList.value = removeArrayItem(imgList.value, url)
-}
-
 const promptGenerating = ref(false)
 const generatePrompt = () => {
   if (params.value.prompt === '') {
@@ -1328,7 +1465,47 @@ const generatePrompt = () => {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @use '../assets/css/image-mj.scss' as *;
 @use '../assets/css/custom-scroll.scss' as *;
+
+.modal-inpaint-dialog {
+  :deep(.el-dialog) {
+    width: min(960px, 90vw);
+  }
+}
+.modal-inpaint-wrap {
+  max-width: 100%;
+}
+
+/* 一致性参数：两列布局，每列上 label 下上传 */
+.cref-two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 520px;
+}
+
+.cref-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .cref-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--el-text-color-regular, #606266);
+    margin: 0;
+  }
+
+  .cref-upload-inner {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .cref-two-cols {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

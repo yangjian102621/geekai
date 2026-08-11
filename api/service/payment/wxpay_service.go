@@ -9,6 +9,7 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"geekai/core/types"
 	"geekai/utils"
@@ -88,7 +89,18 @@ func (s *WxPayService) Pay(params PayRequest) (string, error) {
 		if wxRsp.Code != wechat.Success {
 			return "", fmt.Errorf("error status with generating pay url: %v", wxRsp.Error)
 		}
-		return wxRsp.Response.PrepayId, nil
+		// 签名
+		payParams, err := s.client.PaySignOfJSAPI(s.config.AppId, wxRsp.Response.PrepayId)
+
+		if err != nil {
+			return "", fmt.Errorf("error with generating jsapi pay sign: %v", err)
+		}
+		payParamsBytes, err := json.Marshal(payParams)
+		if err != nil {
+			return "", fmt.Errorf("error with marshaling pay params: %v", err)
+		}
+
+		return string(payParamsBytes), nil
 	} else if params.Device == "pc" {
 		wxRsp, err := s.client.V3TransactionNative(context.Background(), bm)
 		if err != nil {

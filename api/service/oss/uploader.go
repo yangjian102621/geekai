@@ -13,6 +13,7 @@ const Local = "local"
 const Minio = "minio"
 const QiNiu = "qiniu"
 const AliYun = "aliyun"
+const Tencent = "tencent"
 
 type File struct {
 	Name   string `json:"name"`

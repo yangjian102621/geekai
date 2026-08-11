@@ -65,8 +65,7 @@ var ModerationCategories = map[string]string{
 const (
 	ModerationSourceChat   = "chat"
 	ModerationSourceMJ     = "mj"
-	ModerationSourceDalle  = "dalle"
-	ModerationSourceSD     = "sd"
+	ModerationSourceImage  = "image"
 	ModerationSourceSuno   = "suno"
 	ModerationSourceVideo  = "video"
 	ModerationSourceJiMeng = "jimeng"

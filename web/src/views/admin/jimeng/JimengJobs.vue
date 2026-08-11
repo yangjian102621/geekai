@@ -46,56 +46,54 @@
 
     <!-- 搜索筛选 -->
     <el-card class="filter-card" shadow="never">
-      <el-form :model="queryForm" ref="queryFormRef" :inline="true" label-width="80px">
-        <el-form-item label="用户ID">
-          <el-input
-            v-model="queryForm.user_id"
-            placeholder="请输入用户ID"
-            clearable
-            style="width: 150px"
-          />
-        </el-form-item>
-        <el-form-item label="任务类型">
-          <el-select
-            v-model="queryForm.type"
-            placeholder="请选择任务类型"
-            clearable
-            style="width: 150px"
-            @change="handleQuery"
-          >
-            <el-option label="文生图" value="text_to_image" />
-            <el-option label="图生图" value="image_to_image" />
-            <el-option label="图像编辑" value="image_edit" />
-            <el-option label="图像特效" value="image_effects" />
-            <el-option label="文生视频" value="text_to_video" />
-            <el-option label="图生视频" value="image_to_video" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="任务状态">
-          <el-select
-            v-model="queryForm.status"
-            placeholder="请选择状态"
-            clearable
-            style="width: 120px"
-            @change="handleQuery"
-          >
-            <el-option label="等待中" value="in_queue" />
-            <el-option label="处理中" value="generating" />
-            <el-option label="已完成" value="success" />
-            <el-option label="失败" value="failed" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
+      <div class="flex items-center gap-2">
+        <el-input
+          v-model="queryForm.user_id"
+          placeholder="请输入用户ID"
+          clearable
+          style="width: 150px"
+        />
+        <el-select
+          v-model="queryForm.type"
+          placeholder="请选择任务类型"
+          clearable
+          style="width: 150px"
+          @change="handleQuery"
+        >
+          <el-option label="文生图" value="text_to_image" />
+          <el-option label="图生图" value="image_to_image" />
+          <el-option label="图像编辑" value="image_edit" />
+          <el-option label="图像特效" value="image_effects" />
+          <el-option label="文生视频" value="text_to_video" />
+          <el-option label="图生视频" value="image_to_video" />
+        </el-select>
+        
+        <el-select
+          v-model="queryForm.status"
+          placeholder="请选择状态"
+          clearable
+          style="width: 120px"
+          @change="handleQuery"
+        >
+          <el-option label="等待中" value="in_queue" />
+          <el-option label="处理中" value="generating" />
+          <el-option label="已完成" value="success" />
+          <el-option label="失败" value="failed" />
+        </el-select>
+        
+        <div>
           <el-button type="primary" @click="handleQuery" :loading="loading">
-            <i class="iconfont icon-search mr-1" />
-            搜索
-          </el-button>
+          <i class="iconfont icon-search mr-1" />
+          搜索
+        </el-button>
+        </div>
+        <div>
           <el-button type="danger" @click="handleBatchDelete" :disabled="!multipleSelection.length">
-            <i class="iconfont icon-remove mr-1" />
-            批量删除
-          </el-button>
-        </el-form-item>
-      </el-form>
+          <i class="iconfont icon-remove mr-1" />
+          批量删除
+        </el-button>
+        </div>
+      </div>
     </el-card>
 
     <!-- 任务列表 -->
@@ -266,7 +264,6 @@ const pagination = reactive({
 const taskList = ref([])
 const loading = ref(false)
 const multipleSelection = ref([])
-const queryFormRef = ref(null)
 
 // 统计信息
 const stats = reactive({

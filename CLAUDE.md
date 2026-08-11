@@ -56,7 +56,7 @@ Key entities: User, ChatItem, ChatMessage, ChatRole, ChatModel, Order, Product, 
 ### API Structure
 - User APIs: `/api/user/*` (auth, profile, settings)
 - Chat APIs: `/api/chat/*` (conversations, messages)
-- AI Service APIs: `/api/mj/*`, `/api/sd/*`, `/api/dall/*`, `/api/suno/*`, `/api/video/*`
+- AI Service APIs: `/api/mj/*`, `/api/dall/*`, `/api/suno/*`, `/api/video/*`
 - Admin APIs: `/api/admin/*` (management functions)
 
 ### Configuration

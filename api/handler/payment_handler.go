@@ -216,7 +216,7 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 				data.Domain = h.config.WxPay.Domain
 			}
 			notifyURL = fmt.Sprintf("%s/api/payment/notify/wxpay", data.Domain)
-			payURL, err = h.wxpayService.Pay(payment.PayRequest{
+			params := payment.PayRequest{
 				OutTradeNo: orderNo,
 				TotalFee:   fmt.Sprintf("%d", int(amount*100)),
 				Subject:    product.Name,
@@ -224,7 +224,11 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 				ClientIP:   c.ClientIP(),
 				Device:     data.Device,
 				PayWay:     payment.PayWayWX,
-			})
+			}
+			if data.Device == "mobile" {
+				params.OpenID = user.OpenId
+			}
+			payURL, err = h.wxpayService.Pay(params)
 			if err != nil {
 				resp.ERROR(c, err.Error())
 				return

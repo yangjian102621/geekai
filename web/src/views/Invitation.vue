@@ -101,7 +101,7 @@ import QRCode from 'qrcode'
 import { onMounted, ref } from 'vue'
 
 const inviteURL = ref('')
-const qrImg = ref('/images/wx.png')
+const qrImg = ref('')
 const invitePower = ref(0)
 const hits = ref(0)
 const regNum = ref(0)

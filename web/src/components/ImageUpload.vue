@@ -16,6 +16,9 @@
             <div class="upload-placeholder">
               <el-icon :size="20"><UploadFilled /></el-icon>
               <span>上传图片</span>
+              <el-button size="small" @click.stop="openPasteZone" v-if="!showPasteZone"
+                >粘贴截图</el-button
+              >
             </div>
           </el-upload>
         </div>
@@ -25,13 +28,13 @@
             <el-tooltip content="删除" placement="top">
               <i
                 class="iconfont icon-remove text-base text-red-500 cursor-pointer"
-                @click="removeImage(index)"
+                @click="removeImage(0)"
               ></i>
             </el-tooltip>
             <el-tooltip content="预览" placement="top">
               <i
                 class="iconfont icon-eye-open text-lg text-white cursor-pointer"
-                @click="previewImage(index)"
+                @click="previewImage(0)"
               ></i>
             </el-tooltip>
           </div>
@@ -42,21 +45,23 @@
     <!-- 多图模式 -->
     <template v-else>
       <div class="upload-list" v-if="imageList.length > 0">
-        <div v-for="(image, index) in imageList" :key="index" class="upload-item">
-          <el-image :src="image" fit="cover" class="upload-image" />
-          <div class="upload-overlay flex items-center justify-center space-x-2">
-            <el-tooltip content="删除" placement="top">
-              <i
-                class="iconfont icon-remove text-base text-red-500 cursor-pointer"
-                @click="removeImage(index)"
-              ></i>
-            </el-tooltip>
-            <el-tooltip content="预览" placement="top">
-              <i
-                class="iconfont icon-eye-open text-lg text-white cursor-pointer"
-                @click="previewImage(index)"
-              ></i>
-            </el-tooltip>
+        <div ref="uploadListRef" class="upload-list-inner">
+          <div v-for="(image, index) in imageList" :key="image" class="upload-item">
+            <el-image :src="image" fit="cover" class="upload-image" />
+            <div class="upload-overlay flex items-center justify-center space-x-2">
+              <el-tooltip content="删除" placement="top">
+                <i
+                  class="iconfont icon-remove text-base text-red-500 cursor-pointer"
+                  @click="removeImage(index)"
+                ></i>
+              </el-tooltip>
+              <el-tooltip content="预览" placement="top">
+                <i
+                  class="iconfont icon-eye-open text-lg text-white cursor-pointer"
+                  @click="previewImage(index)"
+                ></i>
+              </el-tooltip>
+            </div>
           </div>
         </div>
         <!-- 上传按钮 -->
@@ -72,10 +77,14 @@
             :limit="maxCount"
           >
             <div class="upload-placeholder">
-              <el-icon :size="20"><UploadFilled /></el-icon>
-              <span>上传图片</span>
+              <i class="iconfont icon-plus"></i>
             </div>
           </el-upload>
+          <div class="paste-actions">
+            <el-button size="small" @click="openPasteZone" v-if="!showPasteZone"
+              >粘贴截图</el-button
+            >
+          </div>
         </div>
       </div>
       <!-- 初始上传区域 -->
@@ -98,8 +107,23 @@
             </div>
           </template>
         </el-upload>
+        <div class="paste-actions">
+          <el-button size="small" @click="openPasteZone" v-if="!showPasteZone">粘贴截图</el-button>
+        </div>
       </div>
     </template>
+
+    <!-- 粘贴区域（多图模式与单图模式共用） -->
+    <div
+      v-if="showPasteZone && (props.multiple || props.maxCount > 1 || imageList.length === 0)"
+      ref="pasteZoneRef"
+      class="paste-zone paste-zone-global"
+      tabindex="0"
+      @paste.prevent="onPaste"
+    >
+      <div class="paste-zone-text">在此区域按 Ctrl+V 粘贴截图</div>
+      <el-button text size="small" class="paste-zone-close" @click="closePasteZone">关闭</el-button>
+    </div>
 
     <!-- 上传进度 -->
     <el-progress
@@ -123,7 +147,8 @@ import { httpPost } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
 import { UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { computed, ref } from 'vue'
+import { Sortable } from 'sortablejs'
+import { computed, nextTick, ref, watch, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -156,12 +181,23 @@ const uploadProgress = ref(0)
 const previewVisible = ref(false)
 const previewImageSrc = ref('')
 
+// 粘贴截图区域
+const showPasteZone = ref(false)
+const pasteZoneRef = ref(null)
+
+// 拖拽排序
+const uploadListRef = ref(null)
+let sortableInstance = null
+
 // 图片列表
 const imageList = computed({
   get() {
     if (props.multiple || props.maxCount > 1) {
       return Array.isArray(props.modelValue) ? props.modelValue : []
     } else {
+      if (Array.isArray(props.modelValue)) {
+        return props.modelValue.length > 0 && props.modelValue[0] ? [props.modelValue[0]] : []
+      }
       return props.modelValue && props.modelValue.length > 0 ? [props.modelValue] : []
     }
   },
@@ -247,21 +283,97 @@ const previewImage = (index) => {
   previewImageSrc.value = imageList.value[index]
   previewVisible.value = true
 }
+
+const openPasteZone = () => {
+  showPasteZone.value = true
+  nextTick(() => {
+    if (pasteZoneRef.value) {
+      pasteZoneRef.value.focus()
+    }
+  })
+}
+
+const closePasteZone = () => {
+  showPasteZone.value = false
+}
+
+const onPaste = (e) => {
+  const items = e.clipboardData && e.clipboardData.items
+  if (!items || !items.length) return
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (item.kind === 'file' && item.type && item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) {
+        handleUpload({ file })
+      }
+      break
+    }
+  }
+}
+
+// 拖拽排序：同步新顺序到 v-model
+const handleSortEnd = (evt) => {
+  const { oldIndex, newIndex } = evt
+  if (oldIndex === newIndex) return
+  const list = [...imageList.value]
+  const [removed] = list.splice(oldIndex, 1)
+  list.splice(newIndex, 0, removed)
+  imageList.value = list
+  // 调试：拖拽后打印图片列表
+  console.log('[ImageUpload] 拖拽排序', { oldIndex, newIndex, imageList: list })
+}
+
+const initSortable = () => {
+  if (!uploadListRef.value || sortableInstance) return
+  sortableInstance = Sortable.create(uploadListRef.value, {
+    animation: 150,
+    ghostClass: 'upload-item--sort-ghost',
+    onEnd: handleSortEnd,
+  })
+}
+
+const destroySortable = () => {
+  if (sortableInstance) {
+    sortableInstance.destroy()
+    sortableInstance = null
+  }
+}
+
+watch(
+  () => [props.maxCount, imageList.value.length],
+  () => {
+    if (props.maxCount > 1 && imageList.value.length > 0) {
+      nextTick(() => initSortable())
+    } else {
+      destroySortable()
+    }
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(destroySortable)
 </script>
 
 <style lang="scss">
 .image__upload-container {
+  --upload-size: 100px;
   width: 100%;
 
+  .el-upload-dragger {
+    --el-upload-dragger-padding-horizontal: 20px;
+  }
+
   .single-upload {
-    width: 100px;
-    height: 100px;
+    width: var(--upload-size);
+    height: var(--upload-size);
     position: relative;
   }
 
   .single-image-item {
-    width: 100px;
-    height: 100px;
+    width: var(--upload-size);
+    height: var(--upload-size);
     position: relative;
     border-radius: 6px;
     overflow: hidden;
@@ -274,13 +386,24 @@ const previewImage = (index) => {
     gap: 10px;
   }
 
+  .upload-list-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .upload-item {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: var(--upload-size);
+    height: var(--upload-size);
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid #dcdfe6;
+    cursor: move;
+
+    &.upload-item--sort-ghost {
+      opacity: 0.5;
+    }
 
     .upload-image {
       width: 100%;
@@ -312,8 +435,8 @@ const previewImage = (index) => {
       width: 100%;
 
       .el-upload-dragger {
-        width: 100px;
-        height: 100px;
+        width: var(--upload-size);
+        height: var(--upload-size);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -342,6 +465,32 @@ const previewImage = (index) => {
 
   .upload-progress {
     margin-top: 10px;
+  }
+
+  .paste-actions {
+    margin-top: 8px;
+  }
+
+  .paste-zone {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: 1px dashed #c0c4cc;
+    border-radius: 6px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f5f7fa;
+    outline: none;
+
+    .paste-zone-text {
+      font-size: 12px;
+      color: #606266;
+    }
+
+    .paste-zone-close {
+      margin-left: 8px;
+    }
   }
 
   :deep(.el-upload) {

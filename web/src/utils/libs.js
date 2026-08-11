@@ -9,6 +9,7 @@
  * Util lib functions
  */
 import { showConfirmDialog } from 'vant'
+import { httpGet } from '@/utils/http'
 
 // generate a random string
 export function randString(length) {
@@ -259,4 +260,77 @@ export function isChrome() {
 // 格式化日期时间
 export function formatDateTime(timestamp, format = 'yyyy-MM-dd HH:mm:ss') {
   return dateFormat(timestamp, format)
+}
+
+export function isWechat() {
+  const ua = navigator.userAgent.toLowerCase()
+  return ua.indexOf('micromessenger') !== -1
+}
+
+// 默认缩略图模板（本地存储格式）
+const DEFAULT_THUMB_TEMPLATE = '?imageView2/4/w/{width}/h/{height}/q/75'
+const THUMB_TEMPLATE_KEY = 'GEEKAI_THUMB_TEMPLATE'
+
+/**
+ * 初始化缩略图模板（从后端加载并缓存到localStorage）
+ * @returns {Promise<void>}
+ */
+export async function initThumbTemplate() {
+  try {
+    const res = await httpGet('/api/config/oss/thumb')
+    if (res.data && res.data.template) {
+      const template = res.data.template || DEFAULT_THUMB_TEMPLATE
+      localStorage.setItem(THUMB_TEMPLATE_KEY, template)
+      return
+    }
+  } catch (error) {
+    console.warn('获取缩略图模板失败，使用默认模板:', error)
+  }
+
+  // 获取失败时使用默认模板并缓存
+  localStorage.setItem(THUMB_TEMPLATE_KEY, DEFAULT_THUMB_TEMPLATE)
+}
+
+/**
+ * 获取缓存的缩略图模板
+ * @returns {string} 缩略图模板
+ */
+function getCachedThumbTemplate() {
+  const cached = localStorage.getItem(THUMB_TEMPLATE_KEY)
+  return cached || DEFAULT_THUMB_TEMPLATE
+}
+
+/**
+ * 生成缩略图URL
+ * @param {string} originalURL - 原始图片URL
+ * @param {number} width - 缩略图宽度
+ * @param {number} height - 缩略图高度，0表示自适应
+ * @param {string} template - 缩略图模板（可选），如果不提供则从localStorage获取
+ * @returns {string} 缩略图URL
+ */
+export function getThumbURL(originalURL, width = 300, height = 0, template = null) {
+  if (!originalURL) {
+    return originalURL
+  }
+
+  // 如果没有提供模板，从localStorage获取
+  if (!template) {
+    template = getCachedThumbTemplate()
+  }
+
+  // 如果模板为空字符串，返回原图（表示不支持缩略图）
+  if (template === '') {
+    return originalURL
+  }
+
+  // 如果模板为空，使用默认模板（降级方案）
+  if (!template) {
+    template = DEFAULT_THUMB_TEMPLATE
+  }
+
+  // 替换变量
+  const thumbURL = template.replace(/{width}/g, width).replace(/{height}/g, height)
+
+  // 拼接原始URL和缩略图参数
+  return originalURL + thumbURL
 }

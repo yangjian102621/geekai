@@ -42,8 +42,7 @@ func (h *ImageHandler) RegisterRoutes() {
 	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
 	{
 		group.POST("list/mj", h.MjList)
-		group.POST("list/sd", h.SdList)
-		group.POST("list/dall", h.DallList)
+		group.POST("list/image", h.ImageList)
 		group.GET("remove", h.Remove)
 	}
 }
@@ -100,8 +99,8 @@ func (h *ImageHandler) MjList(c *gin.Context) {
 	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, items))
 }
 
-// SdList Stable Diffusion 任务列表
-func (h *ImageHandler) SdList(c *gin.Context) {
+// ImageList Image generation 任务列表
+func (h *ImageHandler) ImageList(c *gin.Context) {
 	var data imageQuery
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -123,59 +122,15 @@ func (h *ImageHandler) SdList(c *gin.Context) {
 		session = session.Where("created_at >= ? AND created_at <= ?", data.CreatedAt[0], data.CreatedAt[1])
 	}
 	var total int64
-	session.Model(&model.SdJob{}).Count(&total)
-	var list []model.SdJob
-	var items = make([]vo.SdJob, 0)
+	session.Model(&model.ImageJob{}).Count(&total)
+	var list []model.ImageJob
+	var items = make([]vo.ImageJob, 0)
 	offset := (data.Page - 1) * data.PageSize
 	err := session.Order("id DESC").Offset(offset).Limit(data.PageSize).Find(&list).Error
 	if err == nil {
 		// 填充数据
 		for _, item := range list {
-			var job vo.SdJob
-			err = utils.CopyObject(item, &job)
-			if err != nil {
-				continue
-			}
-			job.CreatedAt = item.CreatedAt.Unix()
-			items = append(items, job)
-		}
-	}
-
-	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, items))
-}
-
-// DallList DALL-E 任务列表
-func (h *ImageHandler) DallList(c *gin.Context) {
-	var data imageQuery
-	if err := c.ShouldBindJSON(&data); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	session := h.DB.Session(&gorm.Session{})
-	if data.Username != "" {
-		var user model.User
-		err := h.DB.Where("username", data.Username).First(&user).Error
-		if err == nil {
-			session = session.Where("user_id", user.Id)
-		}
-	}
-	if data.Prompt != "" {
-		session = session.Where("prompt LIKE ?", "%"+data.Prompt+"%")
-	}
-	if len(data.CreatedAt) == 2 {
-		session = session.Where("created_at >= ? AND created_at <= ?", data.CreatedAt[0], data.CreatedAt[1])
-	}
-	var total int64
-	session.Model(&model.DallJob{}).Count(&total)
-	var list []model.DallJob
-	var items = make([]vo.DallJob, 0)
-	offset := (data.Page - 1) * data.PageSize
-	err := session.Order("id DESC").Offset(offset).Limit(data.PageSize).Find(&list).Error
-	if err == nil {
-		// 填充数据
-		for _, item := range list {
-			var job vo.DallJob
+			var job vo.ImageJob
 			err = utils.CopyObject(item, &job)
 			if err != nil {
 				continue
@@ -209,8 +164,8 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		progress = job.Progress
 		imgURL = job.ImgURL
-	case "sd":
-		var job model.SdJob
+	case "image":
+		var job model.ImageJob
 		if res := h.DB.Where("id", id).First(&job); res.Error != nil {
 			resp.ERROR(c, "记录不存在")
 			return
@@ -218,22 +173,7 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 
 		// 删除任务
 		tx.Delete(&job)
-		md = "stable-diffusion"
-		power = job.Power
-		userId = int(job.UserId)
-		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
-		progress = job.Progress
-		imgURL = job.ImgURL
-	case "dall":
-		var job model.DallJob
-		if res := h.DB.Where("id", id).First(&job); res.Error != nil {
-			resp.ERROR(c, "记录不存在")
-			return
-		}
-
-		// 删除任务
-		tx.Delete(&job)
-		md = "dall-e-3"
+		md = "image-generation"
 		power = job.Power
 		userId = int(job.UserId)
 		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)

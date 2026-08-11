@@ -14,22 +14,21 @@ import (
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/handler/admin"
-	logger2 "geekai/logger"
+	"geekai/log"
 	"geekai/service"
-	"geekai/service/dalle"
+	"geekai/service/image"
 	"geekai/service/jimeng"
 	"geekai/service/mj"
 	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/payment"
-	"geekai/service/sd"
+	"geekai/service/ppt"
 	"geekai/service/sms"
 	"geekai/service/sora"
 	"geekai/service/suno"
 	"geekai/service/video"
 	"geekai/store"
 	"io"
-	"log"
 	"os"
 	"os/signal"
 	"runtime/debug"
@@ -43,7 +42,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var logger = logger2.GetLogger()
+var logger = log.GetLogger()
 
 //go:embed res
 var xdbFS embed.FS
@@ -89,7 +88,7 @@ func main() {
 		fx.Provide(func() *types.AppConfig {
 			config, err := core.LoadConfig(configFile)
 			if err != nil {
-				log.Fatal(err)
+				logger.Fatal(err)
 			}
 			config.Path = configFile
 			return config
@@ -136,16 +135,23 @@ func main() {
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRedeemHandler),
 		fx.Provide(handler.NewCaptchaHandler),
+		fx.Provide(func(db *gorm.DB, userService *service.UserService, uploadManager *oss.UploaderManager) *ppt.PptService {
+			return ppt.NewPptService(db, userService, uploadManager)
+		}),
+		fx.Provide(handler.NewPPTTaskHandler),
+		fx.Invoke(func(ppt *ppt.PptService) {
+			ppt.RecoverStaleProcessingTasks()
+		}),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
-		fx.Provide(handler.NewSdJobHandler),
 		fx.Provide(handler.NewPaymentHandler),
 		fx.Provide(handler.NewOrderHandler),
 		fx.Provide(handler.NewProductHandler),
 		fx.Provide(handler.NewConfigHandler),
 		fx.Provide(handler.NewPowerLogHandler),
 		fx.Provide(handler.NewJimengHandler),
-
+		fx.Provide(service.NewWxGzhService),
+		fx.Provide(handler.NewWxGzhHandler),
 		fx.Provide(service.NewMigrationService),
 		fx.Invoke(func(migrationService *service.MigrationService) {
 			migrationService.StartMigrate()
@@ -164,12 +170,15 @@ func main() {
 		fx.Provide(admin.NewOrderHandler),
 		fx.Provide(admin.NewPowerLogHandler),
 		fx.Provide(admin.NewAdminJimengHandler),
+		fx.Provide(admin.NewVideoHandler),
+		fx.Provide(admin.NewSunoHandler),
+		fx.Provide(admin.NewPPTHandler),
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
-		// Dalle 服务
-		fx.Provide(dalle.NewService),
-		fx.Invoke(func(s *dalle.Service) {
+		// Image 服务
+		fx.Provide(image.NewService),
+		fx.Invoke(func(s *image.Service) {
 			s.Run()
 			s.DownloadImages()
 			s.CheckTaskStatus()
@@ -186,13 +195,6 @@ func main() {
 
 		// Sora service
 		fx.Provide(sora.NewSoraService),
-
-		// Stable Diffusion 机器人
-		fx.Provide(sd.NewService),
-		fx.Invoke(func(s *sd.Service, config *types.AppConfig) {
-			s.Run()
-			s.CheckTaskStatus()
-		}),
 
 		fx.Provide(suno.NewService),
 		fx.Invoke(func(s *suno.Service) {
@@ -219,6 +221,7 @@ func main() {
 		// 创建短信服务
 		fx.Provide(sms.NewAliYunSmsService),
 		fx.Provide(sms.NewBaoSmsService),
+		fx.Provide(sms.NewTencentSmsService),
 		fx.Provide(sms.NewSmsManager),
 		fx.Provide(service.NewCaptchaService),
 		fx.Provide(service.NewWxLoginService),
@@ -233,6 +236,7 @@ func main() {
 		fx.Provide(oss.NewMiniOss),
 		fx.Provide(oss.NewQiNiuOss),
 		fx.Provide(oss.NewAliYunOss),
+		fx.Provide(oss.NewTencentOss),
 		fx.Provide(oss.NewUploaderManager),
 
 		// 用户服务
@@ -267,13 +271,13 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
 			h.RegisterRoutes()
 		}),
+		fx.Invoke(func(s *core.AppServer, h *handler.PPTTaskHandler) {
+			h.RegisterRoutes()
+		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.SdJobHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
@@ -366,8 +370,8 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Provide(handler.NewDallJobHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.DallJobHandler) {
+		fx.Provide(handler.NewImageJobHandler),
+		fx.Invoke(func(s *core.AppServer, h *handler.ImageJobHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewSunoHandler),
@@ -386,6 +390,15 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
 			h.RegisterRoutes()
 		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.VideoHandler) {
+			h.RegisterRoutes()
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.SunoHandler) {
+			h.RegisterRoutes()
+		}),
+		fx.Invoke(func(s *core.AppServer, h *admin.PPTHandler) {
+			h.RegisterRoutes()
+		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {
 			h.RegisterRoutes()
@@ -400,6 +413,11 @@ func main() {
 		}),
 		fx.Provide(handler.NewPromptHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
+			h.RegisterRoutes()
+		}),
+
+		// 微信公众号路由
+		fx.Invoke(func(s *core.AppServer, h *handler.WxGzhHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
@@ -427,10 +445,6 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *admin.ImageHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Provide(admin.NewMediaHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.MediaHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewRealtimeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
 			h.RegisterRoutes()
@@ -439,7 +453,7 @@ func main() {
 	// 启动应用程序
 	go func() {
 		if err := app.Start(context.Background()); err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 	}()
 
@@ -452,7 +466,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := app.Stop(ctx); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 }

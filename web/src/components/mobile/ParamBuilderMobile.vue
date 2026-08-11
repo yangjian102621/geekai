@@ -45,12 +45,32 @@
         </CustomSelect>
       </div>
 
+      <!-- 模型介绍 -->
+      <div
+        v-if="selectedModel && selectedModel.label"
+        class="w-full p-4 bg-gray-50 rounded-lg border border-gray-200"
+      >
+        <div class="flex-1 min-w-0">
+          <h4 class="text-sm font-semibold text-blue-600 mb-1">
+            <i
+              class="iconfont !text-base"
+              :class="selectedModel.icon.iconfont"
+              v-if="selectedModel.icon.iconfont"
+            ></i>
+            {{ selectedModel.name }}
+          </h4>
+          <p class="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+            {{ selectedModel.label }}
+          </p>
+        </div>
+      </div>
+
       <!-- 参数渲染（移动端卡片样式） -->
       <template v-for="param in selectedModel.params">
         <div
           class="bg-white rounded-xl shadow-sm w-full p-4"
           :key="param.name"
-          v-if="param.type !== 'hidden'"
+          v-if="isParamVisible(param, modelValue)"
         >
           <!-- switch 类型单独处理 -->
           <div class="w-full flex flex-col !items-start space-y-2" v-if="param.type === 'switch'">
@@ -156,6 +176,17 @@
                 :show-word-limit="param.showWordLimit"
                 :placeholder="param.placeholder"
               />
+              <div class="flex justify-end pt-2 w-full" v-if="param.enablePromptOptimizer">
+                <van-button
+                  @click="generatePrompt"
+                  type="primary"
+                  size="small"
+                  :loading="submitting"
+                >
+                  <i class="iconfont icon-chuangzuo mr-1"></i>
+                  优化提示词
+                </van-button>
+              </div>
               <ImageUpload
                 v-if="param.type === 'image'"
                 v-model="modelValue[param.name]"
@@ -185,6 +216,8 @@ import FileUpload from '@/components/FileUpload.vue'
 import ImageUpload from '@/components/ImageUpload.vue'
 import CustomSelect from '@/components/mobile/CustomSelect.vue'
 import ParamEmpty from '@/components/ui/ParamEmpty.vue'
+import { httpPost } from '@/utils/http'
+import { showMessageError } from '@/utils/dialog'
 import { computed, onMounted, ref, watch } from 'vue'
 
 const title = ref('参数构建器')
@@ -215,20 +248,53 @@ const props = defineProps({
 const selectedModel = ref(props.items[0])
 const selectedModelKey = ref(props.items[0] ? props.items[0].key : '')
 const requiredKeys = ref(props.requiredKeys)
+const submitting = ref(false)
 
-const emit = defineEmits(['update:modelValue', 'update:requiredKeys'])
+const emit = defineEmits(['update:modelValue', 'update:requiredKeys', 'price-params-change'])
+
+// 与桌面端保持一致的 showWhen 判断逻辑
+const matchSingleShowWhen = (condition, values) => {
+  if (!condition || !values) return false
+  const { field, value } = condition
+  if (!field) return false
+  return values[field] === value
+}
+
+const isParamVisible = (param, values = modelValue.value) => {
+  if (!param) return false
+  if (param.type === 'hidden') return false
+
+  const { showWhen } = param
+  if (!showWhen) {
+    return true
+  }
+
+  if (!Array.isArray(showWhen)) {
+    return matchSingleShowWhen(showWhen, values)
+  }
+
+  return showWhen.every((condition) => matchSingleShowWhen(condition, values))
+}
+
+const recalcRequiredKeys = (values, model) => {
+  const next = {}
+  if (model && model.params) {
+    model.params.forEach((param) => {
+      if (param.required && isParamVisible(param, values)) {
+        next[param.name] = { required: true, label: param.label }
+      }
+    })
+  }
+  requiredKeys.value = next
+}
 
 const initModelValue = (model) => {
   if (!props.items || props.items.length === 0) {
     return {}
   }
   const defaultValues = {}
-  requiredKeys.value = {}
   if (model && model.params) {
     model.params.forEach((param) => {
-      if (param.required) {
-        requiredKeys.value[param.name] = { required: true, label: param.label }
-      }
       switch (param.type) {
         case 'text':
         case 'textarea':
@@ -253,7 +319,12 @@ const initModelValue = (model) => {
           defaultValues[param.name] = param.value || null
           break
         case 'image':
-          defaultValues[param.name] = param.value || []
+          defaultValues[param.name] =
+            param.value || (param.multiple || (param.maxCount && param.maxCount > 1) ? [] : '')
+          break
+        case 'file':
+          defaultValues[param.name] =
+            param.value || (param.multiple || (param.maxCount && param.maxCount > 1) ? [] : '')
           break
         default:
           defaultValues[param.name] = param.value || ''
@@ -264,6 +335,7 @@ const initModelValue = (model) => {
   defaultValues.action = selectedModel.value.action
     ? selectedModel.value.action
     : 'CVSync2AsyncSubmitTask'
+  recalcRequiredKeys(defaultValues, model)
   return defaultValues
 }
 
@@ -281,8 +353,20 @@ const modelOptions = computed(() => {
 
 watch(
   modelValue,
-  (newValue) => {
+  (newValue, oldValue) => {
     emit('update:modelValue', newValue)
+    recalcRequiredKeys(newValue, selectedModel.value)
+    
+    // 检查是否有 priceParams 相关字段变化
+    if (selectedModel.value && selectedModel.value.priceParams) {
+      const priceParamsChanged = selectedModel.value.priceParams.some((paramName) => {
+        return newValue[paramName] !== oldValue?.[paramName]
+      })
+      
+      if (priceParamsChanged) {
+        emit('price-params-change', newValue)
+      }
+    }
   },
   { deep: true }
 )
@@ -309,14 +393,14 @@ watch(selectedModelKey, (key) => {
   if (!key) return
   const found = (props.items || []).find((m) => m.key === key)
   if (found) {
-    selectedModel.value = found
-    modelValue.value = initModelValue(found)
+    changeModel(found)
   }
 })
 
 onMounted(() => {
   if (props.modelValue && Object.keys(props.modelValue).length > 0) {
     modelValue.value = { ...props.modelValue }
+    recalcRequiredKeys(modelValue.value, selectedModel.value)
   } else {
     modelValue.value = initModelValue(selectedModel.value)
   }
@@ -332,6 +416,45 @@ const formatParamOptions = (param) => {
     value: o.value,
     image: o.image,
   }))
+}
+
+// 检查字段是否在 priceParams 中
+const isPriceParam = (fieldName) => {
+  if (!selectedModel.value || !selectedModel.value.priceParams) {
+    return false
+  }
+  return selectedModel.value.priceParams.includes(fieldName)
+}
+
+// 生成提示词
+const generatePrompt = async () => {
+  const prompt = modelValue.value?.prompt
+  if (!prompt) {
+    return showMessageError('请输入原始提示词')
+  }
+  try {
+    submitting.value = true
+    const res = await httpPost('/api/prompt/video', { prompt })
+    modelValue.value = { ...modelValue.value, prompt: res.data }
+  } catch (error) {
+    showMessageError('生成提示词失败：' + error.message)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 模型切换方法
+const changeModel = (item) => {
+  if (item) {
+    selectedModel.value = item
+    selectedModelKey.value = item.key
+    // 更新 modelValue 为选中模型的默认值
+    modelValue.value = initModelValue(item)
+    // 模型切换时也触发价格参数变化事件
+    if (item.priceParams && item.priceParams.length > 0) {
+      emit('price-params-change', modelValue.value)
+    }
+  }
 }
 </script>
 

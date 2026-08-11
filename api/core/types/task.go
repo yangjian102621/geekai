@@ -20,6 +20,7 @@ const (
 	TaskSwapFace  = TaskType("swapFace")
 	TaskUpscale   = TaskType("upscale")
 	TaskVariation = TaskType("variation")
+	TaskModal     = TaskType("modal") // 局部重绘
 )
 
 // MjTask MidJourney 任务
@@ -38,43 +39,17 @@ type MjTask struct {
 	ChannelId        string   `json:"channel_id"`         // 渠道ID，用来区分是哪个渠道创建的任务，一个任务的 create 和 action 操作必须要再同一个渠道
 	Mode             string   `json:"mode"`               // 绘画模式，relax, fast, turbo
 	TranslateModelId int      `json:"translate_model_id"` // 提示词翻译模型ID
+	MaskBase64       string   `json:"mask_base64,omitempty"` // 局部重绘蒙版 base64（仅 TaskModal 使用）
 }
 
-type SdTask struct {
-	Id               int          `json:"id"` // job 数据库ID
-	Type             TaskType     `json:"type"`
-	UserId           int          `json:"user_id"`
-	Params           SdTaskParams `json:"params"`
-	RetryCount       int          `json:"retry_count"`
-	TranslateModelId int          `json:"translate_model_id"` // 提示词翻译模型ID
-}
-
-type SdTaskParams struct {
-	TaskId       string  `json:"task_id"`
-	Prompt       string  `json:"prompt"`     // 提示词
-	NegPrompt    string  `json:"neg_prompt"` // 反向提示词
-	Steps        int     `json:"steps"`      // 迭代步数，默认20
-	Sampler      string  `json:"sampler"`    // 采样器
-	Scheduler    string  `json:"scheduler"`  // 采样调度
-	FaceFix      bool    `json:"face_fix"`   // 面部修复
-	CfgScale     float32 `json:"cfg_scale"`  //引导系数，默认 7
-	Seed         int64   `json:"seed"`       // 随机数种子
-	Height       int     `json:"height"`
-	Width        int     `json:"width"`
-	HdFix        bool    `json:"hd_fix"`         // 启用高清修复
-	HdRedrawRate float32 `json:"hd_redraw_rate"` // 高清修复重绘幅度
-	HdScale      int     `json:"hd_scale"`       // 放大倍数
-	HdScaleAlg   string  `json:"hd_scale_alg"`   // 放大算法
-	HdSteps      int     `json:"hd_steps"`       // 高清修复迭代步数
-}
-
-// DallTask DALL-E task
-type DallTask struct {
+// ImageTask Image generation task
+type ImageTask struct {
 	ModelId          uint     `json:"model_id"`
 	ModelName        string   `json:"model_name"`
 	ModelValue       string   `json:"model_value"`
 	Image            []string `json:"image,omitempty"`
 	Id               uint     `json:"id"`
+	TaskId           string   `json:"task_id"` // Kapon 异步任务 ID，与 API 返回的 task_id 一致
 	UserId           uint     `json:"user_id"`
 	Prompt           string   `json:"prompt"`
 	AspectRatio      string   `json:"aspect_ratio"`
@@ -102,60 +77,22 @@ type SunoTask struct {
 }
 
 const (
-	VideoLuma   = "luma"
-	VideoRunway = "runway"
-	VideoCog    = "cog"
-	VideoKeLing = "keling"
+	VideoLuma    = "luma"
+	VideoSora    = "sora"
+	VideoVeo     = "veo"
+	VideoKeLing  = "keling"
+	VideoMiniMax = "minimax"
+	VideoWan     = "wan"
+	VideoDoubao  = "doubao"
 )
 
 type VideoTask struct {
-	Id               uint        `json:"id"`
-	Channel          string      `json:"channel"`
-	UserId           int         `json:"user_id"`
-	Type             string      `json:"type"`
-	TaskId           string      `json:"task_id"`
-	Prompt           string      `json:"prompt"` // 提示词
-	Params           interface{} `json:"params"`
-	TranslateModelId int         `json:"translate_model_id"` // 提示词翻译模型ID
-}
-
-type LumaVideoParams struct {
-	PromptOptimize bool   `json:"prompt_optimize"` // 是否优化提示词
-	Loop           bool   `json:"loop"`            // 是否循环参考图
-	StartImgURL    string `json:"start_img_url"`   // 第一帧参考图地址
-	EndImgURL      string `json:"end_img_url"`     // 最后一帧参考图地址
-	Model          string `json:"model"`           // 使用哪个模型生成视频
-	Radio          string `json:"radio"`           // 视频尺寸
-	Style          string `json:"style"`           // 风格
-	Duration       int    `json:"duration"`        // 视频时长（秒）
-}
-
-type KeLingVideoParams struct {
-	TaskType      string        `json:"task_type"`       // 任务类型: text2video/image2video
-	Model         string        `json:"model"`           // 模型: default/anime
-	Prompt        string        `json:"prompt"`          // 视频描述
-	NegPrompt     string        `json:"negative_prompt"` // 负面提示词
-	CfgScale      float64       `json:"cfg_scale"`       // 相关性系数(0-1)
-	Mode          string        `json:"mode"`            // 生成模式: std/pro
-	AspectRatio   string        `json:"aspect_ratio"`    // 画面比例: 16:9/9:16/1:1
-	Duration      string        `json:"duration"`        // 视频时长: 5/10
-	CameraControl CameraControl `json:"camera_control"`  // 摄像机控制
-	Image         string        `json:"image"`           // 参考图片URL(image2video)
-	ImageTail     string        `json:"image_tail"`      // 尾帧图片URL(image2video)
-}
-
-// CameraControl 摄像机控制
-type CameraControl struct {
-	Type   string       `json:"type"`   // 控制类型: simple/down_back/forward_up/right_turn_forward/left_turn_forward
-	Config CameraConfig `json:"config"` // 控制参数(仅simple类型时使用)
-}
-
-// CameraConfig 摄像机参数
-type CameraConfig struct {
-	Horizontal int `json:"horizontal"` // 水平移动(-10到10)
-	Vertical   int `json:"vertical"`   // 垂直移动(-10到10)
-	Pan        int `json:"pan"`        // 左右旋转(-10到10)
-	Tilt       int `json:"tilt"`       // 上下旋转(-10到10)
-	Roll       int `json:"roll"`       // 横向翻转(-10到10)
-	Zoom       int `json:"zoom"`       // 镜头缩放(-10到10)
+	Id               uint   `json:"id"`
+	Channel          string `json:"channel"`
+	UserId           int    `json:"user_id"`
+	Type             string `json:"type"` // provider（不带版本号：veo, sora, luma）
+	TaskId           string `json:"task_id"`
+	Prompt           string `json:"prompt"` // 提示词
+	Params           any    `json:"params"`
+	TranslateModelId int    `json:"translate_model_id"` // 提示词翻译模型ID
 }
