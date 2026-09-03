@@ -65,7 +65,8 @@
 1. 安装 docker 和 docker-compose 程序，这个自行解决。
 2. 直接在项目根目录运行启动命令:
    ```shell
-   docker-compose up -d
+   cd docker
+   docker compose up -d
    ```
 
 ## 功能截图
