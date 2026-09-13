@@ -352,7 +352,7 @@ const userEdit = function (row) {
 }
 
 const addUser = () => {
-  user.value = { chat_id: 0, chat_roles: [], chat_models: [] }
+  user.value = { chat_id: 0, chat_models: [] }
   title.value = '添加用户'
   showUserEditDialog.value = true
   add.value = true

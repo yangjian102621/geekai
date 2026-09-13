@@ -124,9 +124,16 @@ type CreateTaskRequest struct {
 }
 
 const (
-	ImageEffectReqKey      = "i2i_multi_style_zx2x"
-	DoubaoSeedream40ReqKey = "doubao-seedream-4-0-250828"
+	ImageEffectReqKey = "i2i_multi_style_zx2x"
 )
+
+func IsSeedreamReqKey(reqKey string) bool {
+	return len(reqKey) >= len("doubao-seedream-") && reqKey[:len("doubao-seedream-")] == "doubao-seedream-"
+}
+
+func IsSeedanceReqKey(reqKey string) bool {
+	return len(reqKey) >= len("doubao-seedance-") && reqKey[:len("doubao-seedance-")] == "doubao-seedance-"
+}
 
 const (
 	ASyncActionSubmit    = "CVSync2AsyncSubmitTask" // 异步提交任务

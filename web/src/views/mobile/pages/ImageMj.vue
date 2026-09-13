@@ -258,7 +258,7 @@
         >
           <van-grid :gutter="10" :column-num="2">
             <van-grid-item v-for="item in finishedJobs" :key="item.id" class="min-h-[270px]">
-              <div class="failed" v-if="item.progress === 101">
+              <div class="failed" v-if="item.status === 'failed'">
                 <div class="title">任务失败</div>
                 <div class="opt">
                   <van-button size="small" @click="showErrMsg(item)">详情</van-button>
@@ -548,11 +548,11 @@ const fetchFinishJobs = (page) => {
           jobs[i]['thumb_url'] = getThumbURL(jobs[i]['img_url'], 480, 480)
         }
 
-        if (jobs[i]['img_url'] === '' && jobs[i].progress === 100) {
+        if (jobs[i]['img_url'] === '' && jobs[i].status === 'downloading') {
           hasDownload = true
         }
 
-        if (jobs[i].type !== 'upscale' && jobs[i].progress === 100) {
+        if (jobs[i].type !== 'upscale' && jobs[i].status === 'success') {
           jobs[i]['can_opt'] = true
         }
       }

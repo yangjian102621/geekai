@@ -243,7 +243,6 @@ func (h *UserHandler) ImportUsers(c *gin.Context) {
 			Salt:        salt,
 			Power:       power,
 			Status:      status,
-			ChatRoles:   utils.JsonEncode([]string{}),
 			ChatConfig:  "{}",
 			ChatModels:  utils.JsonEncode([]int{}),
 			ExpiredTime: 0, // 长期有效

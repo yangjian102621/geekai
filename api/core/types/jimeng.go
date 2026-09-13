@@ -42,8 +42,9 @@ type JimengTaskRequest struct {
 	Action   string     `json:"action"`  // 请求Action
 	Power    int        `json:"power"`   // 消耗算力
 	// 公共参数
-	Prompt    string   `json:"prompt,omitempty"`
-	ImageUrls []string `json:"image_urls,omitempty"`
+	Prompt    string          `json:"prompt,omitempty"`
+	ImageUrls []string        `json:"image_urls,omitempty"`
+	Content   []JMContentItem `json:"content,omitempty"` // Seedance 官方多模态输入，优先级高于兼容字段
 
 	// 图片生成参数
 	Size        string  `json:"size,omitempty"`
@@ -52,10 +53,14 @@ type JimengTaskRequest struct {
 	ForceSingle bool    `json:"force_single,omitempty"`
 
 	// 视频生成参数
-	Duration       int    `json:"duration,omitempty"`    // 视频时长，单位：秒
-	TemplateId     string `json:"template_id,omitempty"` // 运镜模板ID
-	AspectRatio    string `json:"aspect_ratio,omitempty"`
-	CameraStrength string `json:"camera_strength,omitempty"` // 运镜强度
+	Duration        int    `json:"duration,omitempty"`        // 视频时长，单位：秒
+	TemplateId      string `json:"template_id,omitempty"`     // 运镜模板ID
+	AspectRatio     string `json:"aspect_ratio,omitempty"`    // 视频比例
+	Resolution      string `json:"resolution,omitempty"`      // 视频分辨率
+	CameraStrength  string `json:"camera_strength,omitempty"` // 运镜强度
+	GenerateAudio   *bool  `json:"generate_audio,omitempty"`  // Seedance 是否生成音频
+	ReturnLastFrame bool   `json:"return_last_frame,omitempty"`
+	Watermark       *bool  `json:"watermark,omitempty"`
 
 	// 数字人视频生成参数
 	AudioURL     string `json:"audio_url,omitempty"`     // 音频URL
@@ -63,4 +68,19 @@ type JimengTaskRequest struct {
 
 	// 视频动作迁移参数
 	VideoURL string `json:"video_url,omitempty"` // 动作视频URL
+}
+
+// JMAssetRef 多模态素材引用。
+type JMAssetRef struct {
+	URL string `json:"url,omitempty"`
+}
+
+// JMContentItem Seedance content[] 子项。
+type JMContentItem struct {
+	Type     string      `json:"type"` // text/image_url/video_url/audio_url
+	Text     string      `json:"text,omitempty"`
+	ImageURL *JMAssetRef `json:"image_url,omitempty"`
+	VideoURL *JMAssetRef `json:"video_url,omitempty"`
+	AudioURL *JMAssetRef `json:"audio_url,omitempty"`
+	Role     string      `json:"role,omitempty"` // first_frame/last_frame/reference_image/reference_video/reference_audio
 }

@@ -65,13 +65,11 @@ export const VideoParams = {
           type: 'select',
           required: true,
           options: [
-            { label: '10秒(逆向)', value: '10' },
-            { label: '15秒(逆向)', value: '15' },
-            { label: '4秒(官转)', value: '4' },
-            { label: '8秒(官转)', value: '8' },
-            { label: '12秒(官转)', value: '12' },
+            { label: '4秒', value: '4' },
+            { label: '8秒', value: '8' },
+            { label: '12秒', value: '12' },
           ],
-          value: '10',
+          value: '4',
         },
       ],
       priceParams: ['fixed'], // 固定价格

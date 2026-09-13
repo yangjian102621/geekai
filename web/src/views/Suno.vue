@@ -30,13 +30,31 @@
               </template>
             </el-popover>
           </div>
-          <el-select v-model="store.data.model" placeholder="请选择模型" class="w-full">
+          <el-select
+            v-model="store.data.model"
+            placeholder="请选择模型"
+            class="suno-model-select w-full"
+            fit-input-width
+            popper-class="suno-model-select__popper"
+          >
             <el-option
               v-for="model in store.models"
               :key="model.value"
               :label="model.label"
               :value="model.value"
-            />
+            >
+              <div class="suno-model-option">
+                <div aria-hidden="true">
+                  <i class="iconfont icon-suno !text-2xl"></i>
+                </div>
+                <div class="suno-model-option__body">
+                  <div class="suno-model-option__title">
+                    Suno {{ model.label }} - {{ model.value }}
+                  </div>
+                  <div class="suno-model-option__hint" :title="model.hint">{{ model.hint }}</div>
+                </div>
+              </div>
+            </el-option>
           </el-select>
         </div>
 
@@ -210,7 +228,7 @@
             <i v-if="store.loading" class="iconfont icon-loading animate-spin"></i>
             <i v-else class="iconfont icon-chuangzuo"></i>
             <span
-              >{{ store.loading ? '创作中...' : store.btnText }} ({{ store.sunoPower }}算力)</span
+              >{{ store.loading ? '创作中...' : store.btnText }} ({{ store.sunoPower }}积分)</span
             >
           </button>
         </div>
@@ -289,15 +307,15 @@
                   </template>
                 </el-image>
                 <!-- 音乐播放按钮 -->
-                <button v-if="item.progress === 100" @click="play(item)" class="play-overlay">
+                <button v-if="item.status === 'success'" @click="play(item)" class="play-overlay">
                   <i class="iconfont icon-play text-white text-xl"></i>
                 </button>
                 <!-- 进度动画 -->
-                <div v-if="item.progress < 100 && item.progress !== 101" class="progress-overlay">
+                <div v-if="item.status === 'pending' || item.status === 'in_progress' || item.status === 'downloading'" class="progress-overlay">
                   <i class="iconfont icon-loading animate-spin text-blue-500 text-xl"></i>
                 </div>
                 <!-- 失败状态 -->
-                <div v-if="item.progress === 101" class="error-overlay">
+                <div v-if="item.status === 'failed'" class="error-overlay">
                   <i class="iconfont icon-warning text-red-500 text-xl"></i>
                 </div>
               </div>
@@ -315,8 +333,8 @@
                   </p>
                 </div>
                 <!-- 任务状态 -->
-                <div v-if="item.progress < 100" class="task-status">
-                  <div v-if="item.progress === 101" class="status-error">
+                <div v-if="item.status !== 'success'" class="task-status">
+                  <div v-if="item.status === 'failed'" class="status-error">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
@@ -351,15 +369,14 @@
             </div>
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="song-actions">
+          <!-- 操作按钮：仅生成成功时展示；失败时仅保留删除 -->
+          <div v-if="item.status === 'success'" class="song-actions">
             <div class="action-buttons">
-              <button v-if="item.progress === 100" @click="play(item)" class="action-btn play-btn">
+              <button @click="play(item)" class="action-btn play-btn">
                 <i class="iconfont icon-play text-xs"></i>
                 <span>播放</span>
               </button>
               <button
-                v-if="item.progress === 100"
                 @click="store.download(item)"
                 :disabled="item.downloading"
                 class="action-btn download-btn"
@@ -387,29 +404,17 @@
                 <i v-else class="iconfont icon-download text-xs"></i>
                 <span>{{ item.downloading ? '下载中...' : '下载' }}</span>
               </button>
-              <button
-                v-if="item.progress === 100 && item.ref_song"
-                @click="store.merge(item)"
-                class="action-btn merge-btn"
-              >
+              <button v-if="item.ref_song" @click="store.merge(item)" class="action-btn merge-btn">
                 <i class="iconfont icon-concat text-xs"></i>
                 <span>合并</span>
               </button>
-              <button
-                v-if="item.progress !== 101"
-                @click="store.extend(item)"
-                class="action-btn extend-btn"
-              >
+              <button @click="store.extend(item)" class="action-btn extend-btn">
                 <i class="iconfont icon-edit text-xs"></i>
                 <span>续写</span>
               </button>
             </div>
             <div class="action-buttons">
-              <button
-                v-if="item.progress !== 101"
-                @click="store.update(item)"
-                class="action-btn edit-btn"
-              >
+              <button @click="store.update(item)" class="action-btn edit-btn">
                 <i class="iconfont icon-edit text-xs"></i>
                 <span>编辑</span>
               </button>
@@ -419,9 +424,17 @@
               </button>
             </div>
           </div>
+          <div v-else-if="item.status === 'failed'" class="song-actions">
+            <div class="action-buttons ml-auto">
+              <button @click="store.removeJob(item)" class="action-btn delete-btn">
+                <i class="iconfont icon-remove text-xs"></i>
+                <span>删除</span>
+              </button>
+            </div>
+          </div>
 
           <!-- 进度条 -->
-          <div v-if="item.progress < 100 && item.progress !== 101" class="progress-bar">
+          <div v-if="item.status === 'pending' || item.status === 'in_progress' || item.status === 'downloading'" class="progress-bar">
             <div class="progress-info">
               <span>生成进度</span>
               <span>{{ item.progress }}%</span>
@@ -432,7 +445,7 @@
           </div>
 
           <!-- 错误信息 -->
-          <div v-if="item.progress === 101" class="error-message">
+          <div v-if="item.status === 'failed'" class="error-message">
             <div class="flex items-start space-x-2">
               <div>
                 <p class="error-text">{{ item.err_msg || '未知错误' }}</p>
@@ -569,4 +582,124 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use '@/assets/css/suno.scss';
+</style>
+
+<!-- 下拉 teleport 到 body，与 Element 内部结构用纯 CSS 覆盖 -->
+<style lang="scss">
+.suno-model-select__popper {
+  margin-top: 6px !important;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+
+  /* 插槽外层 span 默认单行高，强制放开避免行与行叠字 */
+  .el-select-dropdown__item > span {
+    display: block !important;
+    height: auto !important;
+    width: 100%;
+    min-height: 0 !important;
+    line-height: normal !important;
+    white-space: normal !important;
+  }
+
+  .el-select-dropdown__item {
+    display: flex;
+    align-items: flex-start;
+    height: auto !important;
+    min-height: 56px;
+    margin: 2px 6px;
+    padding: 8px 10px !important;
+    line-height: normal !important;
+    white-space: normal !important;
+    border-radius: 10px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: rgba(37, 99, 235, 0.07) !important;
+    }
+
+    &.is-selected {
+      background-color: rgba(37, 99, 235, 0.1) !important;
+
+      .suno-model-option__title {
+        color: var(--el-color-primary);
+      }
+    }
+  }
+
+  .suno-model-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .suno-model-option__badge {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: linear-gradient(155deg, #8b5cf6 0%, #6366f1 42%, #4f46e5 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.38),
+      0 2px 8px rgba(79, 70, 229, 0.45);
+  }
+
+  .suno-model-option__badge::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 52%;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent);
+    pointer-events: none;
+  }
+
+  .suno-model-option__badge-text {
+    position: relative;
+    z-index: 1;
+    padding: 0 3px;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  }
+
+  .suno-model-option__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .suno-model-option__title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--el-text-color-primary);
+  }
+
+  .suno-model-option__hint {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--el-text-color-secondary);
+  }
+
+  .suno-model-option__title,
+  .suno-model-option__hint {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
 </style>

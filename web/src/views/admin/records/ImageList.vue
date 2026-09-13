@@ -42,11 +42,11 @@
               </el-table-column>
               <el-table-column prop="progress" label="任务进度">
                 <template #default="scope">
-                  <span v-if="scope.row.progress <= 100">{{ scope.row.progress }}%</span>
+                  <span v-if="scope.row.status !== 'failed'">{{ scope.row.progress }}%</span>
                   <el-tag v-else type="danger">已失败</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="power" label="消耗算力" />
+              <el-table-column prop="power" label="消耗积分" />
               <el-table-column label="结果图片">
                 <template #default="scope">
                   <el-button
@@ -87,7 +87,7 @@
                     :width="300"
                     trigger="hover"
                     :content="scope.row.err_msg"
-                    v-if="scope.row.progress === 101"
+                    v-if="scope.row.status === 'failed'"
                   >
                     <template #reference>
                       <el-text type="danger">{{ substr(scope.row.err_msg, 20) }}</el-text>
@@ -157,11 +157,11 @@
               <el-table-column prop="user_id" label="用户ID" />
               <el-table-column prop="progress" label="任务进度">
                 <template #default="scope">
-                  <span v-if="scope.row.progress <= 100">{{ scope.row.progress }}%</span>
+                  <span v-if="scope.row.status !== 'failed'">{{ scope.row.progress }}%</span>
                   <el-tag v-else type="danger">已失败</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="power" label="消耗算力" />
+              <el-table-column prop="power" label="消耗积分" />
               <el-table-column label="结果图片">
                 <template #default="scope">
                   <el-button
@@ -202,7 +202,7 @@
                     :width="300"
                     trigger="hover"
                     :content="scope.row.err_msg"
-                    v-if="scope.row.progress === 101"
+                    v-if="scope.row.status === 'failed'"
                   >
                     <template #reference>
                       <el-text type="danger">{{ substr(scope.row.err_msg, 20) }}</el-text>
@@ -283,7 +283,7 @@
 
           <el-descriptions-item
             label="生成的图片"
-            v-if="currentDetail.progress === 100 && currentDetail.img_url"
+            v-if="currentDetail.status === 'success' && currentDetail.img_url"
           >
             <el-image
               :src="getThumbURL(currentDetail.img_url, 200, 200)"
@@ -314,7 +314,7 @@
             {{ currentDetail.params?.model_name || '-' }}
           </el-descriptions-item>
 
-          <el-descriptions-item label="消耗算力">
+          <el-descriptions-item label="消耗积分">
             {{ currentDetail.power || 0 }}
           </el-descriptions-item>
 
@@ -327,12 +327,12 @@
           </el-descriptions-item>
 
           <el-descriptions-item label="创建时间">
-            {{ formatTime(currentDetail.created_at) }}
+            {{ dateFormat(currentDetail.created_at) }}
           </el-descriptions-item>
 
           <el-descriptions-item
             label="错误信息"
-            v-if="currentDetail.progress === 101 && currentDetail.err_msg"
+            v-if="currentDetail.status === 'failed' && currentDetail.err_msg"
           >
             <el-text type="danger">{{ currentDetail.err_msg }}</el-text>
           </el-descriptions-item>
@@ -343,10 +343,10 @@
 </template>
 
 <script setup>
+import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { dateFormat, getThumbURL, substr } from '@/utils/libs'
 import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 // 变量定义
@@ -415,7 +415,7 @@ const fetchMjData = () => {
       d.loading = false
     })
     .catch((e) => {
-      ElMessage.error('获取数据失败：' + e.message)
+      showMessageError('获取数据失败：' + e.message)
     })
 }
 
@@ -434,18 +434,18 @@ const fetchImageData = () => {
       d.loading = false
     })
     .catch((e) => {
-      ElMessage.error('获取数据失败：' + e.message)
+      showMessageError('获取数据失败：' + e.message)
     })
 }
 
 const remove = function (row, tab) {
   httpGet(`/api/admin/image/remove?id=${row.id}&tab=${tab}`)
     .then(() => {
-      ElMessage.success('删除成功！')
+      showMessageOK('删除成功！')
       handleChange(tab)
     })
     .catch((e) => {
-      ElMessage.error('删除失败：' + e.message)
+      showMessageError('删除失败：' + e.message)
     })
 }
 
@@ -482,26 +482,13 @@ const showDetail = (row) => {
   showDetailDialog.value = true
 }
 
-// 格式化时间
-const formatTime = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(timestamp * 1000)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
-
 // 复制提示词
 const copyPrompt = async (text) => {
   if (!text) return
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text)
-      ElMessage.success('复制成功！')
+      showMessageOK('复制成功！')
       return
     }
     const textarea = document.createElement('textarea')
@@ -510,9 +497,9 @@ const copyPrompt = async (text) => {
     textarea.select()
     document.execCommand('copy')
     document.body.removeChild(textarea)
-    ElMessage.success('复制成功！')
+    showMessageOK('复制成功！')
   } catch {
-    ElMessage.error('复制失败！')
+    showMessageError('复制失败！')
   }
 }
 </script>

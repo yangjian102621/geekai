@@ -233,6 +233,7 @@
                   <div class="task-preview">
                     <el-image
                       v-if="item.img_url"
+                      :key="`${item.id}-${item.status}-${item.img_url}`"
                       :src="item.img_url"
                       :preview-src-list="[item.img_url]"
                       :preview-teleported="true"
@@ -247,6 +248,7 @@
                     </el-image>
                     <div v-else-if="item.video_url" class="w-full h-full preview-video-wrapper">
                       <video
+                        :key="`${item.id}-${item.status}-${item.video_url}`"
                         :src="item.video_url"
                         preload="auto"
                         loop="loop"
@@ -274,7 +276,11 @@
                         </span>
                       </div>
                       <div
-                        v-else-if="item.status === 'generating'"
+                        v-else-if="
+                          item.status === 'generating' ||
+                          item.status === 'submited' ||
+                          item.status === 'done'
+                        "
                         class="flex flex-col items-center gap-1"
                       >
                         <span>
@@ -317,6 +323,15 @@
                           <i
                             class="iconfont icon-copy cursor-pointer"
                             @click="copyPrompt(item.prompt)"
+                          ></i>
+                        </el-tooltip>
+                      </span>
+
+                      <span class="ml-1">
+                        <el-tooltip content="任务详情" placement="top">
+                          <i
+                            class="iconfont icon-info cursor-pointer text-[#6366f1]"
+                            @click="showTaskDetail(item)"
                           ></i>
                         </el-tooltip>
                       </span>
@@ -400,6 +415,132 @@
         </video>
       </div>
     </el-dialog>
+
+    <!-- 任务详情（参考 Image.vue） -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="任务详情"
+      width="680px"
+      class="jimeng-detail-dialog"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div class="detail-content" v-if="currentDetail">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="任务类型">
+            <el-tag size="small" :type="store.getTaskType(currentDetail.type)">
+              {{ store.getFunctionName(currentDetail.type) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="模型 / ReqKey">
+            {{ currentDetail.req_key || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            {{ store.getTaskStatusText(currentDetail.status) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="任务 ID">
+            {{ currentDetail.task_id || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="消耗积分">
+            {{ currentDetail.power ?? 0 }}
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ dateFormat(currentDetail.created_at) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="提示词">
+            <div class="prompt-with-copy">
+              <span class="break-all">{{ currentDetail.prompt || '（无）' }}</span>
+              <el-tooltip v-if="currentDetail.prompt" content="复制提示词" placement="top">
+                <i
+                  class="iconfont icon-copy ml-2 cursor-pointer shrink-0"
+                  @click="copyPrompt(currentDetail.prompt)"
+                />
+              </el-tooltip>
+            </div>
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="currentDetail.err_msg && String(currentDetail.err_msg).trim()"
+            label="错误信息"
+          >
+            <el-text type="danger" class="break-all">{{ currentDetail.err_msg }}</el-text>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <template v-if="detailUploadImages.length">
+          <h4 class="detail-section-title">上传的图片</h4>
+          <div class="detail-media-grid detail-media-grid--image">
+            <el-image
+              v-for="(url, idx) in detailUploadImages"
+              :key="'uimg-' + idx"
+              :src="getThumbURL(url, 160, 160)"
+              :preview-src-list="detailUploadImages"
+              :initial-index="idx"
+              fit="cover"
+              class="detail-thumb"
+            />
+          </div>
+        </template>
+
+        <template v-if="detailUploadVideos.length">
+          <h4 class="detail-section-title">上传的视频</h4>
+          <div class="detail-media-stack">
+            <video
+              v-for="(url, idx) in detailUploadVideos"
+              :key="'uvid-' + idx"
+              :src="url"
+              controls
+              preload="metadata"
+              class="detail-video-preview"
+            >
+              您的浏览器不支持视频播放
+            </video>
+          </div>
+        </template>
+
+        <template v-if="detailUploadAudios.length">
+          <h4 class="detail-section-title">上传的音频</h4>
+          <div class="detail-media-stack">
+            <audio
+              v-for="(url, idx) in detailUploadAudios"
+              :key="'uaud-' + idx"
+              :src="url"
+              controls
+              class="w-full"
+            />
+          </div>
+        </template>
+
+        <template v-if="detailResultImage || detailResultVideo">
+          <h4 class="detail-section-title">生成结果</h4>
+          <div v-if="detailResultImage" class="detail-media-grid detail-media-grid--image mb-3">
+            <el-image
+              :src="getThumbURL(detailResultImage, 220, 220)"
+              :preview-src-list="[detailResultImage]"
+              fit="cover"
+              class="detail-thumb detail-thumb--large"
+            />
+          </div>
+          <div v-if="detailResultVideo" class="detail-media-stack">
+            <video
+              :src="detailResultVideo"
+              controls
+              preload="metadata"
+              class="detail-video-preview detail-video-preview--large"
+            >
+              您的浏览器不支持视频播放
+            </video>
+          </div>
+        </template>
+
+        <template v-if="detailOtherParamsText">
+          <el-collapse class="detail-params-collapse">
+            <el-collapse-item title="其他请求参数（JSON）" name="params">
+              <pre class="detail-json">{{ detailOtherParamsText }}</pre>
+            </el-collapse-item>
+          </el-collapse>
+        </template>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -410,9 +551,9 @@ import ParamBuilder from '@/components/ParamBuilder.vue'
 import Generating from '@/components/ui/Generating.vue'
 import { useJimengStore } from '@/store/jimeng'
 import { useSharedStore } from '@/store/sharedata'
-import { dateFormat } from '@/utils/libs'
+import { dateFormat, getThumbURL, replaceImg } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
 
@@ -430,6 +571,167 @@ const templatePreview = ref('')
 const guideActive = ref([])
 
 const videoPreviewRef = ref(null)
+
+function toUrlList(v) {
+  if (v == null) {
+    return []
+  }
+  if (Array.isArray(v)) {
+    return v.map((x) => (typeof x === 'string' ? x.trim() : x)).filter(Boolean)
+  }
+  if (typeof v === 'string' && v.trim()) {
+    return [v.trim()]
+  }
+  return []
+}
+
+// Seedance content 项里的 { url: "..." } 引用
+function pickRefUrl(ref) {
+  if (!ref || typeof ref !== 'object') {
+    return ''
+  }
+  const url = ref.url
+  return typeof url === 'string' && url.trim() ? url.trim() : ''
+}
+
+function collectContentUrls(params, type) {
+  if (!params || !Array.isArray(params.content)) {
+    return []
+  }
+  const out = []
+  for (const row of params.content) {
+    if (!row || typeof row !== 'object' || row.type !== type) {
+      continue
+    }
+    if (type === 'image_url') {
+      const u = pickRefUrl(row.image_url)
+      if (u) {
+        out.push(u)
+      }
+    } else if (type === 'video_url') {
+      const u = pickRefUrl(row.video_url)
+      if (u) {
+        out.push(u)
+      }
+    } else if (type === 'audio_url') {
+      const u = pickRefUrl(row.audio_url)
+      if (u) {
+        out.push(u)
+      }
+    }
+  }
+  return out
+}
+
+function uniqUrls(urls) {
+  return [...new Set(urls.filter(Boolean))]
+}
+
+// 解析任务 params（与 Image.vue 一致：支持字符串或对象）
+function parseJobParams(item) {
+  let params = {}
+  try {
+    if (item.params) {
+      if (typeof item.params === 'string') {
+        params = JSON.parse(item.params)
+      } else if (typeof item.params === 'object') {
+        params = { ...item.params }
+      }
+    }
+  } catch (e) {
+    console.error('解析即梦任务 params 失败:', e)
+  }
+  return params
+}
+
+const detailDialogVisible = ref(false)
+const currentDetail = ref(null)
+
+const detailParsedParams = computed(() => {
+  const row = currentDetail.value
+  if (!row) {
+    return {}
+  }
+  return parseJobParams(row)
+})
+
+const detailUploadImages = computed(() => {
+  const p = detailParsedParams.value
+  const fromFields = toUrlList(p.image_urls)
+  const fromContent = collectContentUrls(p, 'image_url')
+  return uniqUrls([...fromFields, ...fromContent].map((u) => replaceImg(u)))
+})
+
+const detailUploadVideos = computed(() => {
+  const p = detailParsedParams.value
+  const fromFields = toUrlList(p.video_url)
+  const fromContent = collectContentUrls(p, 'video_url')
+  return uniqUrls([...fromFields, ...fromContent].map((u) => replaceImg(u)))
+})
+
+const detailUploadAudios = computed(() => {
+  const p = detailParsedParams.value
+  const fromFields = toUrlList(p.audio_url)
+  const fromContent = collectContentUrls(p, 'audio_url')
+  return uniqUrls([...fromFields, ...fromContent].map((u) => replaceImg(u)))
+})
+
+const detailResultImage = computed(() => {
+  const row = currentDetail.value
+  if (!row || row.status !== 'success' || !row.img_url) {
+    return ''
+  }
+  return replaceImg(row.img_url)
+})
+
+const detailResultVideo = computed(() => {
+  const row = currentDetail.value
+  if (!row || row.status !== 'success' || !row.video_url) {
+    return ''
+  }
+  return replaceImg(row.video_url)
+})
+
+const PARAM_SKIP_KEYS = new Set([
+  'prompt',
+  'image_urls',
+  'video_url',
+  'audio_url',
+  'content',
+  'type',
+  'req_key',
+  'action',
+  'power',
+])
+
+const detailOtherParamsText = computed(() => {
+  const p = detailParsedParams.value
+  const rest = {}
+  for (const k of Object.keys(p)) {
+    if (PARAM_SKIP_KEYS.has(k)) {
+      continue
+    }
+    rest[k] = p[k]
+  }
+  if (Object.keys(rest).length === 0) {
+    return ''
+  }
+  try {
+    return JSON.stringify(rest, null, 2)
+  } catch {
+    return ''
+  }
+})
+
+function showTaskDetail(item) {
+  const params = parseJobParams(item)
+  currentDetail.value = {
+    ...item,
+    params,
+  }
+  detailDialogVisible.value = true
+}
+
 // 播放视频
 const playVideo = (item) => {
   store.currentVideoUrl = item.video_url
@@ -505,4 +807,75 @@ function copyErrorMsg(msg) {
 
 <style lang="scss" scoped>
 @use '@/assets/css/jimeng.scss' as *;
+
+.detail-content {
+  :deep(.el-descriptions__label) {
+    min-width: 112px;
+  }
+}
+
+.detail-section-title {
+  margin: 16px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-theme-color, #252f76);
+}
+
+.prompt-with-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.detail-media-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.detail-media-grid--image .detail-thumb {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-thumb--large {
+  width: 200px;
+  height: 200px;
+}
+
+.detail-media-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-video-preview {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 8px;
+  background: #000;
+}
+
+.detail-video-preview--large {
+  max-height: 360px;
+}
+
+.detail-params-collapse {
+  margin-top: 16px;
+}
+
+.detail-json {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  max-height: 240px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--el-fill-color-light, #f5f7fa);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
 </style>

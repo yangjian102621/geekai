@@ -289,7 +289,7 @@
       }
     }
 
-    // 算力信息
+    // 积分信息
     .text-info {
       width: 100%;
       padding: 10px 0;
@@ -341,179 +341,221 @@
       // }
     }
 
-    // 任务列表
+    // 任务列表（竖排卡片：大预览 + 底部标签与操作，提示词见详情）
     .video-list {
       .list-box {
         padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
 
-        .item {
+        .video-task-item {
           display: flex;
-          flex-flow: row;
-          align-items: center;
-          min-height: 100px;
-          padding: 10px 15px;
-          border-radius: 10px;
-          cursor: pointer;
-          margin-bottom: 20px;
+          flex-direction: column;
+          align-items: stretch;
+          padding: 0;
+          overflow: hidden;
+          border-radius: 0;
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          transition: none;
+
+          &:has(.video-task-preview--failed) {
+            height: 100%;
+          }
+        }
+
+        /* 失败卡片：瀑布流格子有固定高度，让内容区铺满以便占位图 cover */
+        :deep(.waterfall-item:has(.video-task-preview--failed) .waterfall-card) {
+          height: 100%;
+        }
+
+        .video-task-preview {
+          position: relative;
+          width: 100%;
+          min-height: 180px;
+          max-height: none;
+          border-radius: 0;
+          overflow: hidden;
           background: var(--card-bg);
+          flex: 0 0 auto;
 
-          .left {
-            .container {
-              width: 160px;
-              position: relative;
-              overflow: hidden;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-
-              .video {
-                width: 160px;
-                height: 120px;
-                border-radius: 5px;
-                background-color: var(--el-fill-color-light);
-              }
-
-              .el-image {
-                width: 160px;
-                height: 90px;
-                border-radius: 5px;
-              }
-
-              .duration {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                background-color: rgba(14, 8, 8, 0.7);
-                padding: 0 3px;
-                font-family: 'Input Sans';
-                font-size: 14px;
-                font-weight: 700;
-                border-radius: 0.125rem;
-              }
-
-              .play {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                top: 0;
-                left: 50%;
-                border: none;
-                border-radius: 5px;
-                background: rgba(100, 100, 100, 0.3);
-                cursor: pointer;
-                color: var(--text-theme-color);
-                opacity: 0;
-                transform: translate(-50%, 0px);
-                transition: opacity 0.3s ease 0s;
-              }
-
-              &:hover {
-                .play {
-                  opacity: 1;
-                }
-              }
-            }
-          }
-
-          .center {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            flex-flow: column;
-            padding: 0 20px;
-            // 允许中间区域在 flex 布局中收缩，避免挤压右侧操作区
+          &.video-task-preview--failed {
             flex: 1 1 auto;
-            min-width: 0;
-
-            .prompt,
-            .failed {
-              padding: 0;
-              font-size: 16px;
-              max-height: 80px;
-              line-height: 28px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            }
-
-            .prompt {
-              color: var(--text-fb);
-              cursor: text;
-            }
-
-            .failed {
-              color: #e4696b;
-              // 错误信息中经常包含很长的无空格字符串（如 JSON、错误栈），
-              // 强制单词内换行，防止撑破布局把右侧删除按钮挤出视口
-              word-break: break-all;
-              white-space: normal;
-            }
-
-            .pb-2 {
-              padding-bottom: 8px;
-
-              .el-tag {
-                margin-right: 4px;
-                margin-bottom: 4px;
-              }
-            }
+            min-height: 180px;
+            background: var(--card-bg);
           }
 
-          .right {
-            display: flex;
-            justify-content: right;
-            min-width: 200px;
-            font-size: 14px;
-            padding: 0;
+          &.video-task-preview--busy {
+            min-height: 180px;
+          }
+        }
 
-            .tools {
-              display: flex;
-              justify-content: left;
-              align-items: center;
-              flex-flow: row;
-              height: 90px;
+        .video-task-preview-inner {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-              .btn-publish {
-                padding: 2px 10px;
+        .video-task-preview-inner--success {
+          position: relative;
+          inset: auto;
+          display: block;
+        }
 
-                .text {
-                  margin-right: 10px;
-                }
-              }
+        .video-task-preview-inner--busy {
+          padding: 8px;
+          min-height: 180px;
+        }
 
-              .btn-icon {
-                background: none;
-                padding: 6px;
-                transition: background 0.6s ease 0s;
-                color: #919191;
+        // 失败态：占位图铺满格子（与 LazyImg 成功态 cover 一致）
+        .video-task-preview-inner--failed {
+          position: absolute;
+          inset: 0;
+          padding: 0;
+          margin: 0;
+          width: 100%;
+          height: 100%;
+          box-sizing: border-box;
+          background: transparent;
+        }
 
-                &:hover {
-                  color: var(--el-color-primary);
-                }
+        .video-task-fail-img {
+          width: 60%;
 
-                .downloading {
-                  width: 16px;
-                }
-              }
-            }
+          display: block;
+          object-fit: cover;
+          object-position: center;
+        }
+
+        .video-task-video {
+          width: 100%;
+          height: auto;
+          max-height: none;
+          object-fit: contain;
+          object-position: center center;
+          display: block;
+          background: #111;
+          cursor: pointer;
+        }
+
+        .video-task-preview .video-task-overlay {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 4;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 8px 10px;
+          border-radius: 0;
+          background: rgba(0, 0, 0, 0.48);
+          backdrop-filter: blur(6px);
+          opacity: 0;
+          transform: translateY(4px);
+          pointer-events: none;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .video-task-overlay-time {
+          min-width: 0;
+          font-size: 13px;
+          line-height: 1.2;
+          color: rgba(255, 255, 255, 0.92);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .video-task-preview .video-task-overlay .video-task-tools {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 4px;
+          flex-shrink: 0;
+        }
+
+        .video-task-item:hover .video-task-preview .video-task-overlay {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .video-task-tool {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          padding: 0;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 7px;
+          background: rgba(8, 10, 16, 0.62);
+          color: #f5f7fa;
+          cursor: pointer;
+          transition:
+            color 0.15s ease,
+            background 0.15s ease,
+            border-color 0.15s ease;
+
+          .iconfont {
+            font-size: 15px;
           }
 
-          .right-error {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            // 保证错误状态下删除按钮始终占据固定宽度，不被中间内容挤压
-            min-width: 60px;
-            flex-shrink: 0;
+          &:hover:not(:disabled) {
+            color: #fff;
+            border-color: rgba(129, 140, 248, 0.8);
+            background: rgba(79, 70, 229, 0.72);
           }
+
+          &:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+          }
+        }
+
+        .video-task-tool--danger {
+          color: var(--el-color-danger);
+
+          &:hover:not(:disabled) {
+            color: #fff;
+            background: var(--el-color-danger);
+          }
+        }
+
+        .video-task-tool-loading {
+          width: 18px;
+          height: 18px;
+          display: block;
         }
       }
 
-      // 分页
-      .pagination {
-        margin-top: 20px;
-        display: flex;
-        justify-content: center;
+      .waterfall-load-more {
+        padding: 10px 0 14px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-disabled-color, #909399);
+
+        .waterfall-loading-icon {
+          width: 40px;
+          height: 40px;
+          margin: 0 auto;
+          display: block;
+        }
+
+        .waterfall-no-more {
+          display: inline-flex;
+          align-items: center;
+          color: var(--text-disabled-color, #909399);
+        }
       }
     }
   }
@@ -555,22 +597,28 @@
     .main-content {
       padding: 1rem;
 
-      .video-list .list-box .item {
-        .left .container {
-          width: 120px;
-
-          .video,
-          .el-image {
-            width: 120px;
-          }
+      .video-list .list-box {
+        .video-task-preview {
+          min-height: 0;
+          max-height: none;
         }
 
-        .center {
-          padding: 0 10px;
+        .video-task-item {
+          border-radius: 0;
         }
 
-        .right {
-          min-width: 120px;
+        .video-task-preview .video-task-overlay {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .video-task-overlay-time {
+          font-size: 12px;
+        }
+
+        .video-task-preview-inner--busy {
+          min-height: 160px;
         }
       }
     }

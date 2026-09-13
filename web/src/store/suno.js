@@ -1,22 +1,42 @@
 import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
-import { httpDownload, httpGet, httpPost } from '@/utils/http'
+import { downloadFile, httpDownload, httpGet, httpPost } from '@/utils/http'
 import { replaceImg } from '@/utils/libs'
 import Compressor from 'compressorjs'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { compact } from 'lodash'
 import { defineStore } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
-import { checkSession, getSystemInfo } from './cache'
-import { useSharedStore } from './sharedata'
+import { getSystemInfo } from './cache'
 
 export const useSunoStore = defineStore('suno', () => {
   // 响应式数据
   const custom = ref(false)
+  /**
+   * Suno mv 与各版本说明（Geek 服务文档对齐）
+   * badge：下拉左侧角标内短文案
+   */
   const models = ref([
-    { label: 'v3.0', value: 'chirp-v3-0' },
-    { label: 'v3.5', value: 'chirp-v3-5' },
-    { label: 'v4.0', value: 'chirp-v4' },
-    { label: 'v4.5', value: 'chirp-auk' },
+    {
+      label: 'v5.5',
+      value: 'chirp-fenix',
+      badge: '5.5',
+      hint: '当前最强，人声细腻情绪足，最长8分钟',
+    },
+    { label: 'v5', value: 'chirp-crow', badge: '5.0', hint: '接近真人、提示词理解准，通用首选' },
+    {
+      label: 'v4.5+',
+      value: 'chirp-bluejay',
+      badge: '4.5+',
+      hint: '配器音色丰富可编辑，最长8分钟',
+    },
+    {
+      label: 'v4.5-all',
+      value: 'chirp-auk-turbo',
+      badge: '4.5t',
+      hint: '极速出歌结构好，最长4分钟',
+    },
+    { label: 'v4.5', value: 'chirp-auk', badge: '4.5', hint: '人声稳定配器均衡，最长4分钟' },
+    { label: 'v4', value: 'chirp-v4', badge: '4.0', hint: '48k细节多中文友好，最长150秒' },
   ])
 
   const tags = ref([
@@ -39,7 +59,7 @@ export const useSunoStore = defineStore('suno', () => {
   ])
 
   const data = ref({
-    model: 'chirp-auk',
+    model: 'chirp-fenix',
     tags: '',
     lyrics: '',
     prompt: '',
@@ -63,8 +83,6 @@ export const useSunoStore = defineStore('suno', () => {
   const promptPlaceholder = ref('请在这里输入你自己写的歌词...')
   const isGenerating = ref(false)
   const sunoPower = ref(0)
-  const isLogin = ref(false)
-  const shareStore = useSharedStore()
 
   // 分页相关
   const page = ref(1)
@@ -80,9 +98,6 @@ export const useSunoStore = defineStore('suno', () => {
   onMounted(() => {
     getSystemInfo().then((res) => {
       sunoPower.value = res.data.suno_power
-    })
-    checkSession().then((res) => {
-      isLogin.value = true
     })
   })
 
@@ -104,7 +119,7 @@ export const useSunoStore = defineStore('suno', () => {
       const items = []
 
       for (let v of res.data.items) {
-        if (v.progress === 0 || v.progress === 102) {
+        if (['pending', 'in_progress', 'downloading'].includes(v.status)) {
           needPull = true
         }
         items.push(v)
@@ -126,10 +141,6 @@ export const useSunoStore = defineStore('suno', () => {
   }
 
   const create = async () => {
-    if (!isLogin.value) {
-      return shareStore.setShowLoginDialog(true)
-    }
-
     data.value.type = custom.value ? 2 : 1
     data.value.ref_task_id = refSong.value ? refSong.value.task_id : ''
     data.value.ref_song_id = refSong.value ? refSong.value.song_id : ''
@@ -175,36 +186,10 @@ export const useSunoStore = defineStore('suno', () => {
   }
 
   const download = async (item) => {
-    const url = replaceImg(item.audio_url)
-    const downloadURL = `/api/download?url=${url}`
-    const urlObj = new URL(url)
-    const fileName = urlObj.pathname.split('/').pop()
-
-    item.downloading = true
-
-    try {
-      const response = await httpDownload(downloadURL)
-      const blob = new Blob([response.data])
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(link.href)
-      item.downloading = false
-    } catch (error) {
-      showMessageError('下载失败')
-      item.downloading = false
-    }
+    await downloadFile(item, 'audio_url')
   }
 
   const uploadAudio = async (file) => {
-    // 判断是否登录
-    if (!isLogin.value) {
-      return shareStore.setShowLoginDialog(true)
-    }
-
     const formData = new FormData()
     formData.append('file', file.file, file.name)
     showLoading('正在上传文件...')
@@ -375,7 +360,7 @@ export const useSunoStore = defineStore('suno', () => {
 
   const resetData = () => {
     data.value = {
-      model: 'chirp-auk',
+      model: 'chirp-fenix',
       tags: '',
       lyrics: '',
       prompt: '',

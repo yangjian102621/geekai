@@ -136,6 +136,7 @@ func (h *ImageHandler) ImageList(c *gin.Context) {
 				continue
 			}
 			job.CreatedAt = item.CreatedAt.Unix()
+			job.Publish = item.Publish != 0
 			items = append(items, job)
 		}
 	}
@@ -148,8 +149,8 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 	tab := c.Query("tab")
 
 	tx := h.DB.Begin()
-	var md, remark, imgURL string
-	var power, userId, progress int
+	var md, remark, imgURL, status string
+	var power, userId int
 	switch tab {
 	case "mj":
 		var job model.MidJourneyJob
@@ -161,8 +162,8 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		md = "mid-journey"
 		power = job.Power
 		userId = int(job.UserId)
-		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
-		progress = job.Progress
+		remark = fmt.Sprintf("任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
+		status = job.Status
 		imgURL = job.ImgURL
 	case "image":
 		var job model.ImageJob
@@ -176,15 +177,15 @@ func (h *ImageHandler) Remove(c *gin.Context) {
 		md = "image-generation"
 		power = job.Power
 		userId = int(job.UserId)
-		remark = fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
-		progress = job.Progress
+		remark = fmt.Sprintf("任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
+		status = job.Status
 		imgURL = job.ImgURL
 	default:
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
 
-	if progress != 100 {
+	if status != model.ImageStatusSuccess {
 		err := h.userService.IncreasePower(uint(userId), power, model.PowerLog{
 			Type:   types.PowerRefund,
 			Model:  md,

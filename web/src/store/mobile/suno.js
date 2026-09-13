@@ -198,10 +198,10 @@ export const useSunoStore = defineStore('suno', () => {
         let needPull = false
         const items = []
         for (let v of res.data.items) {
-          if (v.progress === 100) {
+          if (v.status === 'success') {
             v.major_model_version = v['raw_data']['major_model_version']
           }
-          if (v.progress === 0 || v.progress === 102) {
+          if (v.status === 'pending' || v.status === 'in_progress' || v.status === 'downloading') {
             needPull = true
           }
           items.push(v)
@@ -236,10 +236,10 @@ export const useSunoStore = defineStore('suno', () => {
         let needPull = false
         const firstPageItems = []
         for (let v of res.data.items) {
-          if (v.progress === 100) {
+          if (v.status === 'success') {
             v.major_model_version = v['raw_data']['major_model_version']
           }
-          if (v.progress === 0 || v.progress === 102) {
+          if (v.status === 'pending' || v.status === 'in_progress' || v.status === 'downloading') {
             needPull = true
           }
           firstPageItems.push(v)

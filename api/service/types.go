@@ -2,7 +2,6 @@ package service
 
 import "geekai/log"
 
-const FailTaskProgress = 101
 const (
 	TaskStatusRunning  = "RUNNING"
 	TaskStatusFinished = "FINISH"

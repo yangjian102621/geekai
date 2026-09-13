@@ -6,10 +6,12 @@ type MidJourneyJob struct {
 	UserId    uint   `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	TaskId    string `json:"task_id"`
+	TaskInfo  string `json:"task_info"` // JSON：MjTask（prompt、img_arr、full_prompt、mode 等）
 	MessageId string `json:"message_id"`
 	ImgURL    string `json:"img_url"`
 	OrgURL    string `json:"org_url"`
 	Hash      string `json:"hash"`
+	Status    string `json:"status"`
 	Progress  int    `json:"progress"`
 	Prompt    string `json:"prompt"`
 	UseProxy  bool   `json:"use_proxy"`

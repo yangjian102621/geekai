@@ -58,7 +58,7 @@ func (s *Service) PushTask(task types.ImageTask) {
 func (s *Service) Run() {
 	// 将数据库中未提交的任务加载到队列
 	var jobs []model.ImageJob
-	s.db.Where("progress", 0).Find(&jobs)
+	s.db.Where("task_id", "").Where("status IN ?", []string{model.ImageStatusPending, model.ImageStatusInProgress}).Find(&jobs)
 	for _, v := range jobs {
 		var task types.ImageTask
 		err := utils.JsonDecode(v.Params, &task)
@@ -81,11 +81,17 @@ func (s *Service) Run() {
 			}
 			logger.Infof("handle a new Image generation task: %+v", task)
 			go func() {
+				s.db.Model(&model.ImageJob{Id: task.Id}).UpdateColumns(map[string]any{
+					"status":   model.ImageStatusInProgress,
+					"progress": 1,
+					"err_msg":  "",
+				})
 				_, err = s.Image(task, false)
 				if err != nil {
 					logger.Errorf("error with image task: %v", err)
 					s.db.Model(&model.ImageJob{Id: task.Id}).UpdateColumns(map[string]interface{}{
-						"progress": service.FailTaskProgress,
+						"status":   model.ImageStatusFailed,
+						"progress": 0,
 						"err_msg":  err.Error(),
 					})
 				}
@@ -189,8 +195,10 @@ func (s *Service) Image(task types.ImageTask, sync bool) (string, error) {
 	s.db.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 	var imgURL string
 	var data = map[string]any{
+		"status":   model.ImageStatusDownloading,
 		"progress": 100,
 		"prompt":   task.Prompt,
+		"task_id":  utils.RandString(12),
 	}
 	// 如果返回的是base64，则需要上传到oss
 	if res.Data[0].B64Json != "" {
@@ -224,18 +232,19 @@ func (s *Service) CheckTaskStatus() {
 		for {
 			// 检查未完成任务进度
 			var jobs []model.ImageJob
-			s.db.Where("progress < ?", 100).Find(&jobs)
+			s.db.Where("status IN ?", []string{model.ImageStatusPending, model.ImageStatusInProgress, model.ImageStatusDownloading}).Find(&jobs)
 			for _, job := range jobs {
 				// 超时的任务标记为失败
 				if time.Since(job.CreatedAt) > time.Minute*10 {
-					job.Progress = service.FailTaskProgress
+					job.Status = model.ImageStatusFailed
+					job.Progress = 0
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
 				}
 			}
 
-			// 找出失败的任务，并恢复其扣减算力
-			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			// 找出失败的任务，并恢复其扣减积分
+			s.db.Where("status", model.ImageStatusFailed).Where("power > ?", 0).Find(&jobs)
 			for _, job := range jobs {
 				var task types.ImageTask
 				err := utils.JsonDecode(job.Params, &task)
@@ -245,7 +254,7 @@ func (s *Service) CheckTaskStatus() {
 				err = s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 					Type:   types.PowerRefund,
 					Model:  task.ModelName,
-					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+					Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
 				})
 				if err != nil {
 					continue
@@ -262,7 +271,7 @@ func (s *Service) DownloadImages() {
 	go func() {
 		var items []model.ImageJob
 		for {
-			res := s.db.Where("img_url = ? AND progress = ?", "", 100).Find(&items)
+			res := s.db.Where("img_url = ? AND status = ?", "", model.ImageStatusDownloading).Find(&items)
 			if res.Error != nil {
 				continue
 			}
@@ -297,7 +306,10 @@ func (s *Service) downloadImage(jobId uint, orgURL string) (string, error) {
 	}
 
 	// update img_url
-	res := s.db.Model(&model.ImageJob{Id: jobId}).UpdateColumn("img_url", imgURL)
+	res := s.db.Model(&model.ImageJob{Id: jobId}).UpdateColumns(map[string]any{
+		"img_url": imgURL,
+		"status":  model.ImageStatusSuccess,
+	})
 	if res.Error != nil {
 		return "", err
 	}

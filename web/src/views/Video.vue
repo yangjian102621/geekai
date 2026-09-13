@@ -34,10 +34,10 @@
         >
           <div class="flex items-center space-x-2">
             <el-icon color="#f59e42" size="20"><i class="iconfont icon-lightning"></i></el-icon>
-            <span class="font-medium text-gray-700">当前可用算力：</span>
+            <span class="font-medium text-gray-700">当前可用积分：</span>
             <span class="font-bold text-lg text-yellow-500">{{ store.availablePower }}</span>
           </div>
-          <el-tooltip content="算力用于生成视频，每次生成会消耗对应算力" placement="left">
+          <el-tooltip content="积分用于生成视频，每次生成会消耗对应积分" placement="left">
             <el-icon color="#a78bfa" size="18"><InfoFilled /></el-icon>
           </el-tooltip>
         </div>
@@ -51,7 +51,7 @@
           >
             <i v-if="store.submitting" class="iconfont icon-loading animate-spin"></i>
             <i v-else class="iconfont icon-chuangzuo"></i>
-            <span>立即生成 ({{ store.currentPowerCost }}算力)</span>
+            <span>立即生成 ({{ store.currentPowerCost }}积分)</span>
           </button>
         </div>
       </div>
@@ -63,6 +63,11 @@
       v-loading="store.loading"
       element-loading-background="rgba(100,100,100,0.3)"
     >
+      <div class="job-list-box px-2 pt-2 pb-2">
+        <h2 class="text-xl mb-1">任务列表</h2>
+        <task-list :list="videoRunningJobsForList" />
+      </div>
+
       <div class="works-header">
         <h2 class="h-title text-2xl">你的作品</h2>
         <div class="filter-buttons">
@@ -89,139 +94,137 @@
 
       <div class="video-list">
         <div class="list-box" v-if="!store.noData">
-          <div v-for="item in store.currentList" :key="item.id">
-            <div class="item">
-              <div class="left">
-                <div class="container">
-                  <div v-if="item.status === 'success'">
+          <Waterfall
+            :list="worksListForWaterfall"
+            v-bind="videoWaterfallOptions"
+            :is-loading="store.loading"
+            :is-over="store.isOver"
+            :lazyload="true"
+            @afterRender="onWaterfallAfterRender"
+          >
+            <template #default="{ item }">
+              <div class="video-task-item">
+                <div
+                  class="video-task-preview"
+                  :class="{
+                    'video-task-preview--failed': item.status === 'failed',
+                    'video-task-preview--busy':
+                      item.status === 'downloading' ||
+                      item.status === 'pending' ||
+                      item.status === 'in_progress',
+                  }"
+                  @mouseenter="handleTaskPreviewEnter"
+                  @mouseleave="handleTaskPreviewLeave"
+                >
+                  <div
+                    v-if="item.status === 'success'"
+                    class="video-task-preview-inner video-task-preview-inner--success"
+                  >
                     <video
-                      class="video"
+                      class="video-task-video"
                       :src="store.replaceImg(item.video_url)"
-                      preload="auto"
-                      loop="loop"
-                      muted="muted"
+                      preload="metadata"
+                      loop
+                      muted
+                      playsinline
+                      @loadedmetadata="handleTaskMediaReady"
+                      @loadeddata="handleTaskMediaReady"
+                      @error="handleTaskMediaReady"
+                      @click.stop="store.playVideo(item)"
                     >
                       您的浏览器不支持视频播放
                     </video>
-                    <button
-                      class="play flex justify-center items-center"
-                      @click="store.playVideo(item)"
-                    >
-                      <img src="/images/play.svg" alt="" />
-                    </button>
                   </div>
                   <div
                     v-else-if="item.status === 'downloading'"
-                    class="flex items-center justify-center"
-                    style="height: 200px"
+                    class="video-task-preview-inner video-task-preview-inner--busy"
                   >
-                    <div class="text-center">
+                    <div class="text-center px-2">
                       <div
-                        class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"
+                        class="animate-spin rounded-full h-12 w-12 border-2 border-indigo-500 border-t-transparent mx-auto"
                       ></div>
-                      <span class="text-sm text-purple-600 mt-2 block">视频下载中...</span>
+                      <span class="text-sm text-indigo-600 dark:text-indigo-300 mt-3 block">
+                        视频下载中…
+                      </span>
                     </div>
                   </div>
-                  <el-image
-                    src="/images/failed.jpg"
-                    class="border rounded-lg"
-                    fit="cover"
+                  <div
                     v-else-if="item.status === 'failed'"
-                  />
+                    class="video-task-preview-inner video-task-preview-inner--failed"
+                  >
+                    <img class="video-task-fail-img" :src="taskFailedImage" alt="" />
+                  </div>
                   <div
                     v-else-if="(item.progress || 0) > 0 && (item.progress || 0) < 100"
-                    class="flex h-[120px] items-center justify-center"
+                    class="video-task-preview-inner video-task-preview-inner--busy"
                   >
                     <el-progress
                       type="circle"
                       :percentage="item.progress || 0"
-                      :width="80"
+                      :width="96"
                       :stroke-width="6"
-                      class="rounded-full bg-white/95 p-1 shadow-sm flex items-center justify-center"
                     >
                       <template #default="{ percentage }">
-                        <span class="flex w-full justify-center text-base font-medium text-gray-700"
-                          >{{ percentage }}%</span
-                        >
+                        <span class="text-base font-medium text-gray-700">{{ percentage }}%</span>
                       </template>
                     </el-progress>
                   </div>
-                  <div class="flex !items-end justify-center h-[120px]" v-else>
+                  <div v-else class="video-task-preview-inner video-task-preview-inner--busy">
                     <Generating message="正在生成视频" />
                   </div>
 
-                  <div
-                    class="absolute top-0 right-0"
-                    v-if="item.status === 'pending' && !((item.progress || 0) > 0)"
-                  >
-                    <!-- 非 in_progress 状态才显示 status 标签 -->
-                    <el-tag type="info" class="mr-1"> 排队中 </el-tag>
+                  <div class="video-task-overlay">
+                    <div class="video-task-overlay-time">{{ dateFormat(item.created_at) }}</div>
+                    <div class="video-task-tools">
+                      <el-tooltip content="复制提示词" placement="top">
+                        <button
+                          type="button"
+                          class="video-task-tool copy-prompt"
+                          :data-clipboard-text="item.prompt"
+                        >
+                          <i class="iconfont icon-copy"></i>
+                        </button>
+                      </el-tooltip>
+                      <el-tooltip content="任务详情（含完整提示词）" placement="top">
+                        <button type="button" class="video-task-tool" @click="showTaskDetail(item)">
+                          <i class="iconfont icon-info text-[#6366f1]"></i>
+                        </button>
+                      </el-tooltip>
+                      <el-tooltip
+                        v-if="item.status === 'success' && item.video_url"
+                        content="下载视频"
+                        placement="top"
+                      >
+                        <button
+                          type="button"
+                          class="video-task-tool"
+                          :disabled="item.downloading"
+                          @click="store.downloadVideo(item)"
+                        >
+                          <i v-if="!item.downloading" class="iconfont icon-download"></i>
+                          <img
+                            v-else
+                            src="/images/loading.gif"
+                            class="video-task-tool-loading"
+                            alt=""
+                          />
+                        </button>
+                      </el-tooltip>
+                      <el-tooltip content="删除任务" placement="top">
+                        <button
+                          type="button"
+                          class="video-task-tool video-task-tool--danger"
+                          @click="store.removeJob(item)"
+                        >
+                          <i class="iconfont icon-remove"></i>
+                        </button>
+                      </el-tooltip>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div class="center">
-                <div class="pb-2">
-                  <el-tag class="mr-1">{{ item.type }}</el-tag>
-                  <template v-if="item.params">
-                    <el-tag class="mr-1" v-if="item.params.task_type">{{
-                      item.params.task_type
-                    }}</el-tag>
-                    <el-tag class="mr-1" v-if="item.params.model">{{ item.params.model }}</el-tag>
-                    <el-tag class="mr-1" v-if="item.params.duration"
-                      >{{ item.params.duration }}秒</el-tag
-                    >
-                    <el-tag class="mr-1" v-if="item.params.mode">{{ item.params.mode }}</el-tag>
-                    <el-tag class="mr-1" v-if="item.params.size">
-                      分辨率：{{ item.params.size }}
-                    </el-tag>
-                  </template>
-                  <el-tag class="mr-1" type="warning" v-if="item.power">
-                    消耗算力：{{ item.power }}
-                  </el-tag>
-                </div>
-                <div class="failed" v-if="item.status === 'failed'">
-                  任务执行失败：{{ item.err_msg }}，任务提示词：{{ item.prompt }}
-                </div>
-                <div class="prompt" v-else>
-                  {{ store.substr(item.prompt, 1000) }}
-                </div>
-              </div>
-
-              <div class="right" v-if="item.progress === 100">
-                <div class="tools">
-                  <el-tooltip content="复制提示词" placement="top">
-                    <button class="btn btn-icon copy-prompt" :data-clipboard-text="item.prompt">
-                      <i class="iconfont icon-copy"></i>
-                    </button>
-                  </el-tooltip>
-
-                  <el-tooltip content="下载视频" placement="top">
-                    <button
-                      class="btn btn-icon"
-                      @click="store.downloadVideo(item)"
-                      :disabled="item.downloading"
-                    >
-                      <i class="iconfont icon-download" v-if="!item.downloading"></i>
-                      <el-image src="/images/loading.gif" class="downloading" fit="cover" v-else />
-                    </button>
-                  </el-tooltip>
-
-                  <el-tooltip content="删除" placement="top">
-                    <button class="btn btn-icon" @click="store.removeJob(item)">
-                      <i class="iconfont icon-remove"></i>
-                    </button>
-                  </el-tooltip>
-                </div>
-              </div>
-
-              <div class="right-error" v-else>
-                <el-button type="danger" @click="store.removeJob(item)" circle>
-                  <i class="iconfont icon-remove"></i>
-                </el-button>
-              </div>
-            </div>
-          </div>
+            </template>
+          </Waterfall>
         </div>
 
         <el-empty
@@ -231,18 +234,20 @@
           v-else
         />
 
-        <div class="pagination">
-          <el-pagination
-            v-if="store.total > store.pageSize"
-            background
-            style="--el-pagination-button-bg-color: rgba(86, 86, 95, 0.2)"
-            layout="total,prev, pager, next"
-            :hide-on-single-page="true"
-            :current-page="store.page"
-            :page-size="store.pageSize"
-            @current-change="store.fetchData"
-            :total="store.total"
+        <div class="waterfall-load-more" v-if="!store.noData">
+          <img
+            :src="videoWaterfallOptions.loadProps.loading"
+            class="waterfall-loading-icon"
+            v-if="!waterfallRendered"
+            alt=""
           />
+          <div
+            v-if="waterfallRendered && store.isOver"
+            class="waterfall-no-more bg-[#f5f5f5] text-gray-500 rounded-md px-3 py-2 mt-3"
+          >
+            <span class="mr-2 text-base">没有更多数据了</span>
+            <i class="iconfont icon-face"></i>
+          </div>
         </div>
       </div>
     </div>
@@ -266,19 +271,388 @@
         您的浏览器不支持视频播放
       </video>
     </el-dialog>
+
+    <!-- 任务详情 -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="任务详情"
+      width="680px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div class="detail-content" v-if="currentDetail">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="提供商">
+            {{ getProviderName(currentDetail.type) }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="currentDetail.channel" label="渠道">
+            {{ currentDetail.channel }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            {{ statusConfig[currentDetail.status]?.label || currentDetail.status }}
+          </el-descriptions-item>
+          <el-descriptions-item label="进度">
+            {{ currentDetail.progress ?? 0 }}%
+          </el-descriptions-item>
+          <el-descriptions-item label="任务 ID">
+            {{ currentDetail.task_id || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="detailFlatParams.model" label="模型">
+            {{ detailFlatParams.model }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="detailFlatParams.task_type" label="生成模式">
+            {{ detailFlatParams.task_type }}
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="detailFlatParams.duration != null && detailFlatParams.duration !== ''"
+            label="时长"
+          >
+            {{ detailFlatParams.duration }} 秒
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="detailFlatParams.size || detailFlatParams.resolution"
+            label="分辨率"
+          >
+            {{ detailFlatParams.size || detailFlatParams.resolution }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="detailFlatParams.mode" label="模式">
+            {{ detailFlatParams.mode }}
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="detailFlatParams.sound != null && detailFlatParams.sound !== ''"
+            label="声音"
+          >
+            {{ detailFlatParams.sound }}
+          </el-descriptions-item>
+          <el-descriptions-item label="消耗积分">
+            {{ currentDetail.power ?? 0 }}
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ dateFormat(currentDetail.created_at) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="提示词">
+            <div class="prompt-with-copy">
+              <span class="break-all">{{ currentDetail.prompt || '（无）' }}</span>
+              <el-tooltip v-if="currentDetail.prompt" content="复制提示词" placement="top">
+                <button
+                  type="button"
+                  class="inline-btn"
+                  @click="copyPromptText(currentDetail.prompt)"
+                >
+                  <i class="iconfont icon-copy ml-2 cursor-pointer shrink-0" />
+                </button>
+              </el-tooltip>
+            </div>
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="currentDetail.err_msg && String(currentDetail.err_msg).trim()"
+            label="错误信息"
+          >
+            <el-text type="danger" class="break-all">{{ currentDetail.err_msg }}</el-text>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <template v-if="detailUploadImages.length">
+          <h4 class="detail-section-title">参考 / 上传的图片</h4>
+          <div class="detail-media-grid detail-media-grid--image">
+            <el-image
+              v-for="(url, idx) in detailUploadImages"
+              :key="'uimg-' + idx"
+              :src="getThumbURL(url, 160, 160)"
+              :preview-src-list="detailUploadImages"
+              :initial-index="idx"
+              fit="cover"
+              class="detail-thumb"
+            />
+          </div>
+        </template>
+
+        <template v-if="detailUploadVideos.length">
+          <h4 class="detail-section-title">参考 / 上传的视频</h4>
+          <div class="detail-media-stack">
+            <video
+              v-for="(url, idx) in detailUploadVideos"
+              :key="'uvid-' + idx"
+              :src="url"
+              controls
+              preload="metadata"
+              class="detail-video-preview"
+            >
+              您的浏览器不支持视频播放
+            </video>
+          </div>
+        </template>
+
+        <template v-if="detailUploadAudios.length">
+          <h4 class="detail-section-title">参考 / 上传的音频</h4>
+          <div class="detail-media-stack">
+            <audio
+              v-for="(url, idx) in detailUploadAudios"
+              :key="'uaud-' + idx"
+              :src="url"
+              controls
+              class="w-full"
+            />
+          </div>
+        </template>
+
+        <template v-if="detailResultVideo">
+          <h4 class="detail-section-title">生成结果</h4>
+          <div class="detail-media-stack">
+            <video
+              :src="detailResultVideo"
+              controls
+              preload="metadata"
+              class="detail-video-preview detail-video-preview--large"
+            >
+              您的浏览器不支持视频播放
+            </video>
+          </div>
+        </template>
+
+        <template v-if="detailOtherParamsText">
+          <el-collapse class="detail-params-collapse">
+            <el-collapse-item title="其他请求参数（JSON）" name="params">
+              <pre class="detail-json">{{ detailOtherParamsText }}</pre>
+            </el-collapse-item>
+          </el-collapse>
+        </template>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import ParamBuilder from '@/components/ParamBuilder.vue'
+import TaskList from '@/components/TaskList.vue'
 import Generating from '@/components/ui/Generating.vue'
+import { useSharedStore } from '@/store/sharedata'
 import { useVideoStore } from '@/store/video'
 import { InfoFilled } from '@element-plus/icons-vue'
 import { getProviderName } from '@/store/data/video_params'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { dateFormat, getThumbURL, replaceImg } from '@/utils/libs'
+import { ElMessage } from 'element-plus'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { Waterfall } from 'vue-waterfall-plugin-next'
+import 'vue-waterfall-plugin-next/dist/style.css'
 
 const store = useVideoStore()
+const sharedStore = useSharedStore()
 const videoPlayerRef = ref(null)
+const waterfallRendered = ref(false)
+const waterfallOptions = sharedStore.waterfallOptions
+const taskFailedImage = sharedStore.taskFailedImage
+const videoWaterfallOptions = computed(() => ({
+  ...waterfallOptions,
+  gutter: 2,
+  hasAroundGutter: false,
+}))
+const worksListForWaterfall = computed(() => {
+  return store.currentList
+})
+
+function isVideoTaskRunning(item) {
+  return item.status === 'pending' || item.status === 'in_progress'
+}
+
+/** TaskList：队首为执行中，其余为排队；按创建时间升序 */
+const videoRunningJobsForList = computed(() => {
+  const rows = store.taskList.filter(isVideoTaskRunning)
+  return [...rows]
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .map((row) => ({
+      id: row.id,
+      progress: row.progress ?? 0,
+    }))
+})
+
+const VIDEO_IMAGE_PARAM_KEYS = [
+  'image_urls',
+  'images',
+  'input_reference',
+  'image',
+  'image_tail',
+  'first_frame_image',
+]
+
+function toUrlList(v) {
+  if (v == null) {
+    return []
+  }
+  if (Array.isArray(v)) {
+    return v.map((x) => (typeof x === 'string' ? x.trim() : x)).filter(Boolean)
+  }
+  if (typeof v === 'string' && v.trim()) {
+    return [v.trim()]
+  }
+  return []
+}
+
+function pickRefUrl(ref) {
+  if (!ref || typeof ref !== 'object') {
+    return ''
+  }
+  const url = ref.url
+  return typeof url === 'string' && url.trim() ? url.trim() : ''
+}
+
+function collectContentUrls(params, type) {
+  if (!params || !Array.isArray(params.content)) {
+    return []
+  }
+  const out = []
+  for (const row of params.content) {
+    if (!row || typeof row !== 'object' || row.type !== type) {
+      continue
+    }
+    if (type === 'image_url') {
+      const u = pickRefUrl(row.image_url)
+      if (u) {
+        out.push(u)
+      }
+    } else if (type === 'video_url') {
+      const u = pickRefUrl(row.video_url)
+      if (u) {
+        out.push(u)
+      }
+    } else if (type === 'audio_url') {
+      const u = pickRefUrl(row.audio_url)
+      if (u) {
+        out.push(u)
+      }
+    }
+  }
+  return out
+}
+
+function uniqUrls(urls) {
+  return [...new Set(urls.filter(Boolean))]
+}
+
+function parseJobParams(item) {
+  let params = {}
+  try {
+    if (item.params) {
+      if (typeof item.params === 'string') {
+        params = JSON.parse(item.params)
+      } else if (typeof item.params === 'object') {
+        params = { ...item.params }
+      }
+    }
+  } catch (e) {
+    console.error('解析视频任务 params 失败:', e)
+  }
+  return params
+}
+
+// 数据库存的是 VideoTask JSON，模型表单在嵌套字段 params 里
+function mergeVideoTaskParams(parsed) {
+  if (!parsed || typeof parsed !== 'object') {
+    return {}
+  }
+  const inner = parsed.params
+  if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+    const { params: _nested, ...rest } = parsed
+    return { ...rest, ...inner }
+  }
+  return { ...parsed }
+}
+
+const detailDialogVisible = ref(false)
+const currentDetail = ref(null)
+
+const detailFlatParams = computed(() => {
+  const row = currentDetail.value
+  if (!row) {
+    return {}
+  }
+  return mergeVideoTaskParams(parseJobParams(row))
+})
+
+const detailUploadImages = computed(() => {
+  const p = detailFlatParams.value
+  const acc = []
+  for (const k of VIDEO_IMAGE_PARAM_KEYS) {
+    if (p[k] != null) {
+      acc.push(...toUrlList(p[k]))
+    }
+  }
+  acc.push(...collectContentUrls(p, 'image_url'))
+  return uniqUrls(acc.map((u) => replaceImg(u)))
+})
+
+const detailUploadVideos = computed(() => {
+  const p = detailFlatParams.value
+  const fromFields = toUrlList(p.video_url)
+  const fromContent = collectContentUrls(p, 'video_url')
+  return uniqUrls([...fromFields, ...fromContent].map((u) => replaceImg(u)))
+})
+
+const detailUploadAudios = computed(() => {
+  const p = detailFlatParams.value
+  const fromFields = toUrlList(p.audio_url)
+  const fromContent = collectContentUrls(p, 'audio_url')
+  return uniqUrls([...fromFields, ...fromContent].map((u) => replaceImg(u)))
+})
+
+const detailResultVideo = computed(() => {
+  const row = currentDetail.value
+  if (!row || row.status !== 'success' || !row.video_url) {
+    return ''
+  }
+  return replaceImg(row.video_url)
+})
+
+const PARAM_SHOWN_IN_DESCRIPTIONS = new Set([
+  'model',
+  'task_type',
+  'duration',
+  'size',
+  'mode',
+  'sound',
+  'resolution',
+  ...VIDEO_IMAGE_PARAM_KEYS,
+  'prompt',
+  'video_url',
+  'audio_url',
+  'content',
+  'image_urls',
+])
+
+const detailOtherParamsText = computed(() => {
+  const p = detailFlatParams.value
+  const rest = {}
+  for (const k of Object.keys(p)) {
+    if (PARAM_SHOWN_IN_DESCRIPTIONS.has(k)) {
+      continue
+    }
+    rest[k] = p[k]
+  }
+  if (Object.keys(rest).length === 0) {
+    return ''
+  }
+  try {
+    return JSON.stringify(rest, null, 2)
+  } catch {
+    return ''
+  }
+})
+
+function showTaskDetail(item) {
+  currentDetail.value = { ...item }
+  detailDialogVisible.value = true
+}
+
+function copyPromptText(text) {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      ElMessage.success('提示词已复制')
+    })
+    .catch(() => {
+      ElMessage.error('复制失败')
+    })
+}
 
 const providerOrder = computed(() =>
   ['sora', 'veo', 'doubao', 'keling', 'minimax', 'wan'].filter((p) => store.providers.includes(p))
@@ -305,10 +679,14 @@ const statusConfig = {
   failed: { label: '失败', type: 'danger' },
 }
 
+function videoStatusTagType(status) {
+  return statusConfig[status]?.type || 'info'
+}
+
 // 处理价格参数变化事件
 const handlePriceParamsChange = () => {
   // 价格参数变化时，store 中的 watch 会自动触发 setCurrentPowerCost
-  // setCurrentPowerCost 是异步的，会调用 API 获取最新算力值
+  // setCurrentPowerCost 是异步的，会调用 API 获取最新积分值
   // 无需额外处理，watch 会自动更新 currentPowerCost
 }
 
@@ -321,11 +699,80 @@ const handleVideoDialogClose = () => {
   store.showDialog = false
 }
 
+function handleTaskPreviewEnter(event) {
+  const target = event.currentTarget
+  if (!(target instanceof HTMLElement)) {
+    return
+  }
+  const videoElement = target.querySelector('.video-task-video')
+  if (!(videoElement instanceof HTMLVideoElement)) {
+    return
+  }
+  videoElement.muted = true
+  const playPromise = videoElement.play()
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch(() => {})
+  }
+}
+
+function handleTaskPreviewLeave(event) {
+  const target = event.currentTarget
+  if (!(target instanceof HTMLElement)) {
+    return
+  }
+  const videoElement = target.querySelector('.video-task-video')
+  if (!(videoElement instanceof HTMLVideoElement)) {
+    return
+  }
+  videoElement.pause()
+}
+
+let taskMediaReadyRafId = 0
+
+function handleTaskMediaReady() {
+  if (taskMediaReadyRafId) {
+    cancelAnimationFrame(taskMediaReadyRafId)
+  }
+  taskMediaReadyRafId = requestAnimationFrame(() => {
+    window.dispatchEvent(new Event('resize'))
+    taskMediaReadyRafId = 0
+  })
+}
+
+function onWaterfallAfterRender() {
+  waterfallRendered.value = true
+  if (!store.loading && !store.isOver) {
+    store.fetchData(store.page + 1)
+  }
+}
+
+watch(
+  () => store.loading,
+  (value) => {
+    if (value) {
+      waterfallRendered.value = false
+    }
+  }
+)
+
+watch(
+  () => store.isOver,
+  (value) => {
+    if (value) {
+      waterfallRendered.value = true
+    }
+  }
+)
+
 onMounted(() => {
   store.init()
 })
 
 onUnmounted(() => {
+  if (taskMediaReadyRafId) {
+    cancelAnimationFrame(taskMediaReadyRafId)
+    taskMediaReadyRafId = 0
+  }
   store.cleanup()
 })
 </script>
@@ -360,5 +807,81 @@ onUnmounted(() => {
   &:hover:not(.active) {
     background: rgba(0, 0, 0, 0.1);
   }
+}
+
+.detail-content {
+  :deep(.el-descriptions__label) {
+    min-width: 112px;
+  }
+}
+
+.detail-section-title {
+  margin: 16px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-theme-color, #252f76);
+}
+
+.prompt-with-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.inline-btn {
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  line-height: inherit;
+}
+
+.detail-media-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.detail-media-grid--image .detail-thumb {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-media-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-video-preview {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 8px;
+  background: #000;
+}
+
+.detail-video-preview--large {
+  max-height: 360px;
+}
+
+.detail-params-collapse {
+  margin-top: 16px;
+}
+
+.detail-json {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  max-height: 240px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--el-fill-color-light, #f5f7fa);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>

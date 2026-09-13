@@ -19,6 +19,7 @@ type SunoJob struct {
 	Prompt    string       `gorm:"column:prompt;type:varchar(2000);not null;comment:提示词" json:"prompt"`
 	CoverURL  string       `gorm:"column:cover_url;type:varchar(512);comment:封面图地址" json:"cover_url"`
 	AudioURL  string       `gorm:"column:audio_url;type:varchar(512);comment:音频地址" json:"audio_url"`
+	Status    string       `gorm:"column:status;type:varchar(20);default:pending;comment:任务状态:pending,in_progress,downloading,success,failed" json:"status"`
 	Progress  int          `gorm:"column:progress;type:smallint;default:0;comment:任务进度" json:"progress"`
 	Duration  int          `gorm:"column:duration;type:smallint;not null;default:0;comment:歌曲时长" json:"duration"`
 	Publish   int          `gorm:"column:publish;type:tinyint(1);not null;comment:是否发布" json:"publish"`

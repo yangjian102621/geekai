@@ -488,20 +488,6 @@ func (h *UserHandler) Session(c *gin.Context) {
 		h.DB.Model(&user).UpdateColumn("vip", false)
 	}
 	userVo.Id = user.Id
-	// 工作区应用 ID 列表（历史可能为 key 数组，仅解析数字 ID）
-	if user.ChatRoles != "" {
-		var raw []interface{}
-		if utils.JsonDecode(user.ChatRoles, &raw) == nil {
-			for _, v := range raw {
-				if n, ok := v.(float64); ok && n >= 0 {
-					userVo.ChatRoles = append(userVo.ChatRoles, uint(n))
-				}
-			}
-		}
-	}
-	if userVo.ChatRoles == nil {
-		userVo.ChatRoles = []uint{}
-	}
 	resp.SUCCESS(c, userVo)
 
 }

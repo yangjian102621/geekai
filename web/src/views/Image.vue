@@ -147,7 +147,7 @@
               <i v-if="isGenerating" class="iconfont icon-loading animate-spin"></i>
               <i v-else class="iconfont icon-chuangzuo"></i>
               <span v-if="isGenerating">创作中...</span>
-              <span v-else>立即生成({{ imagePower }}算力)</span>
+              <span v-else>立即生成({{ imagePower }}积分)</span>
             </button>
           </div>
         </div>
@@ -157,118 +157,93 @@
               <h2 class="text-xl">任务列表</h2>
               <task-list :list="runningJobs" />
               <template v-if="finishedJobs.length > 0">
-                <h2 class="text-xl">创作记录</h2>
+                <h2 class="text-xl">你的作品</h2>
                 <div class="finish-job-list mt-3">
                   <div v-if="finishedJobs.length > 0">
                     <Waterfall
                       :list="finishedJobs"
-                      :row-key="waterfallOptions.rowKey"
-                      :gutter="waterfallOptions.gutter"
-                      :has-around-gutter="waterfallOptions.hasAroundGutter"
-                      :width="waterfallOptions.width"
-                      :breakpoints="waterfallOptions.breakpoints"
-                      :img-selector="waterfallOptions.imgSelector"
-                      :background-color="waterfallOptions.backgroundColor"
-                      :animation-effect="waterfallOptions.animationEffect"
-                      :animation-duration="waterfallOptions.animationDuration"
-                      :animation-delay="waterfallOptions.animationDelay"
-                      :animation-cancel="waterfallOptions.animationCancel"
-                      :lazyload="waterfallOptions.lazyload"
-                      :load-props="waterfallOptions.loadProps"
-                      :cross-origin="waterfallOptions.crossOrigin"
-                      :align="waterfallOptions.align"
+                      v-bind="imageWaterfallOptions"
                       :is-loading="loading"
                       :is-over="isOver"
-                      @afterRender="loading = false"
+                      :lazyload="true"
+                      @afterRender="onWaterfallAfterRender"
                     >
                       <template #default="{ item, url }">
-                        <div
-                          class="bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-linear hover:shadow-md hover:shadow-purple-800 group"
-                        >
-                          <div class="overflow-hidden rounded-lg">
+                        <div class="image-task-item">
+                          <div
+                            class="image-task-preview"
+                            :class="{ 'image-task-preview--failed': item.status === 'failed' }"
+                          >
                             <LazyImg
                               :url="url"
-                              v-if="item.progress === 100"
-                              class="cursor-pointer transition-all duration-300 ease-linear group-hover:scale-105"
+                              v-if="item.status === 'success'"
+                              class="image-task-image"
                               @click="previewImg(item)"
                             />
-                            <el-image v-else-if="item.progress === 101">
-                              <template #error>
-                                <div class="image-slot">
-                                  <div class="err-msg-container">
-                                    <div class="title">任务失败</div>
-                                    <div class="opt">
-                                      <el-popover
-                                        title="错误详情"
-                                        trigger="click"
-                                        :width="250"
-                                        :content="item['err_msg']"
-                                        placement="top"
-                                      >
-                                        <template #reference>
-                                          <el-button type="info">详情</el-button>
-                                        </template>
-                                      </el-popover>
-                                      <el-button type="danger" @click="removeImage(item)"
-                                        >删除</el-button
-                                      >
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
-                            </el-image>
+                            <img
+                              v-else-if="item.status === 'failed'"
+                              class="image-task-image image-task-image--failed"
+                              :src="taskFailedImage"
+                              title="点击查看详情"
+                              @click="showDetail(item)"
+                            />
                           </div>
-                          <div
-                            class="px-4 pt-2 pb-4 border-t border-t-gray-800"
-                            v-if="item.progress === 100"
-                          >
-                            <div
-                              class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
-                            >
-                              <div class="flex">
-                                <el-tooltip content="取消分享" placement="top" v-if="item.publish">
-                                  <el-button
-                                    type="warning"
-                                    @click="publishImage(item, false)"
-                                    circle
-                                  >
-                                    <i class="iconfont icon-cancel-share"></i>
-                                  </el-button>
-                                </el-tooltip>
-                                <el-tooltip content="分享" placement="top" v-else>
-                                  <el-button
-                                    type="success"
-                                    @click="publishImage(item, true)"
-                                    circle
-                                  >
-                                    <i class="iconfont icon-share-bold"></i>
-                                  </el-button>
-                                </el-tooltip>
+                          <div class="image-task-overlay">
+                            <div class="image-task-overlay-time">
+                              {{ dateFormat(item.created_at) }}
+                            </div>
+                            <div class="image-task-tools">
+                              <el-tooltip
+                                content="取消分享"
+                                placement="top"
+                                v-if="item.status === 'success' && item.publish"
+                              >
+                                <button
+                                  type="button"
+                                  class="image-task-tool"
+                                  @click="publishImage(item, false)"
+                                >
+                                  <i class="iconfont icon-cancel-share"></i>
+                                </button>
+                              </el-tooltip>
+                              <el-tooltip content="分享" placement="top" v-else-if="item.status === 'success'">
+                                <button
+                                  type="button"
+                                  class="image-task-tool"
+                                  @click="publishImage(item, true)"
+                                >
+                                  <i class="iconfont icon-share-bold"></i>
+                                </button>
+                              </el-tooltip>
 
-                                <el-tooltip content="详情" placement="top">
-                                  <el-button type="info" circle @click="showDetail(item)">
-                                    <i class="iconfont icon-info"></i>
-                                  </el-button>
-                                </el-tooltip>
-                                <el-tooltip content="删除" placement="top">
-                                  <el-button
-                                    type="danger"
-                                    :icon="Delete"
-                                    @click="removeImage(item)"
-                                    circle
-                                  />
-                                </el-tooltip>
+                              <el-tooltip content="详情" placement="top">
+                                <button
+                                  type="button"
+                                  class="image-task-tool"
+                                  @click="showDetail(item)"
+                                >
+                                  <i class="iconfont icon-info text-[#6366f1]"></i>
+                                </button>
+                              </el-tooltip>
+                              <el-tooltip content="删除" placement="top">
+                                <button
+                                  type="button"
+                                  class="image-task-tool image-task-tool--danger"
+                                  @click="removeImage(item)"
+                                >
+                                  <i class="iconfont icon-remove"></i>
+                                </button>
+                              </el-tooltip>
 
-                                <el-tooltip content="下载" placement="top">
-                                  <el-button
-                                    type="primary"
-                                    circle
-                                    :icon="Download"
-                                    @click="downloadImage(item)"
-                                    :loading="item.downloading"
-                                  />
-                                </el-tooltip>
-                              </div>
+                              <el-tooltip content="下载" placement="top" v-if="item.status === 'success'">
+                                <button
+                                  type="button"
+                                  class="image-task-tool"
+                                  @click="downloadImage(item)"
+                                >
+                                  <i class="iconfont icon-download"></i>
+                                </button>
+                              </el-tooltip>
                             </div>
                           </div>
                         </div>
@@ -277,19 +252,12 @@
 
                     <div class="flex justify-center py-10">
                       <img
-                        :src="waterfallOptions.loadProps.loading"
+                        :src="imageWaterfallOptions.loadProps.loading"
                         class="max-w-[50px] max-h-[50px]"
-                        v-if="loading"
+                        v-if="!waterfallRendered"
                       />
                       <div v-else>
-                        <button
-                          class="px-5 py-2 rounded-full bg-purple-700 text-md text-white cursor-pointer hover:bg-purple-800 transition-all duration-300"
-                          @click="fetchFinishJobs"
-                          v-if="!isOver"
-                        >
-                          加载更多
-                        </button>
-                        <div class="no-more-data" v-else>
+                        <div class="no-more-data" v-if="isOver">
                           <span class="text-gray-500 mr-2">没有更多数据了</span>
                           <i class="iconfont icon-face"></i>
                         </div>
@@ -341,7 +309,7 @@
 
           <el-descriptions-item
             label="生成的图片"
-            v-if="currentDetail.progress === 100 && currentDetail.img_url"
+            v-if="currentDetail.status === 'success' && currentDetail.img_url"
           >
             <el-image
               :src="getThumbURL(currentDetail.img_url, 200, 200)"
@@ -372,7 +340,7 @@
             {{ currentDetail.params?.model_name || '-' }}
           </el-descriptions-item>
 
-          <el-descriptions-item label="消耗算力">
+          <el-descriptions-item label="消耗积分">
             {{ currentDetail.power || 0 }}
           </el-descriptions-item>
 
@@ -390,11 +358,14 @@
 
           <el-descriptions-item
             label="错误信息"
-            v-if="currentDetail.progress === 101 && currentDetail.err_msg"
+            v-if="currentDetail.status === 'failed' && currentDetail.err_msg"
           >
             <el-text type="danger">{{ currentDetail.err_msg }}</el-text>
           </el-descriptions-item>
         </el-descriptions>
+        <div v-if="currentDetail.status === 'failed'" class="image-detail-failed-actions">
+          <el-button type="danger" @click="removeImageFromDetail">删除此任务</el-button>
+        </div>
       </div>
     </el-dialog>
   </div>
@@ -413,23 +384,28 @@ import { showMessageError } from '@/utils/dialog'
 import { downloadFile, httpGet, httpPost } from '@/utils/http'
 import { dateFormat, getThumbURL } from '@/utils/libs'
 import Clipboard from 'clipboard'
-import { Delete, Download, List } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
 
 const listBoxHeight = ref(0)
-const isLogin = ref(false)
 const loading = ref(true)
 const isOver = ref(false)
 const previewURL = ref('')
 const store = useSharedStore()
 const models = ref([])
 const waterfallOptions = store.waterfallOptions
+const imageWaterfallOptions = computed(() => ({
+  ...waterfallOptions,
+  gutter: 2,
+  hasAroundGutter: false,
+}))
+const waterfallRendered = ref(false)
 const resizeElement = function () {
   listBoxHeight.value = window.innerHeight - 58
 }
+const taskFailedImage = store.taskFailedImage
 
 resizeElement()
 window.onresize = () => {
@@ -537,7 +513,6 @@ const initData = () => {
     .then((user) => {
       userPower.value = user['power']
       userId.value = user.id
-      isLogin.value = true
       page.value = 0
       fetchRunningJobs()
       fetchFinishJobs()
@@ -561,9 +536,6 @@ const initData = () => {
 }
 
 const fetchRunningJobs = () => {
-  if (!isLogin.value) {
-    return
-  }
   // 获取运行中的任务
   httpGet(`/api/image/jobs?finish=false`)
     .then((res) => {
@@ -588,11 +560,8 @@ const page = ref(1)
 const pageSize = ref(15)
 // 获取已完成的任务
 const fetchFinishJobs = () => {
-  if (!isLogin.value) {
-    return
-  }
-
   loading.value = true
+  waterfallRendered.value = false
   page.value = page.value + 1
 
   httpGet(`/api/image/jobs?finish=true&page=${page.value}&page_size=${pageSize.value}`)
@@ -606,7 +575,7 @@ const fetchFinishJobs = () => {
       for (let i = 0; i < imageList.length; i++) {
         if (imageList[i]['img_url']) {
           imageList[i]['img_thumb'] = getThumbURL(imageList[i]['img_url'], 300, 0)
-        } else if (imageList[i].progress === 100) {
+        } else if (imageList[i].status === 'downloading') {
           needPulling = true
           imageList[i]['img_thumb'] = waterfallOptions.loadProps.loading
         }
@@ -621,11 +590,20 @@ const fetchFinishJobs = () => {
       } else {
         finishedJobs.value = finishedJobs.value.concat(imageList)
       }
+      loading.value = false
     })
     .catch((e) => {
       ElMessage.error('获取任务失败：' + e.message)
       loading.value = false
     })
+}
+
+const onWaterfallAfterRender = () => {
+  waterfallRendered.value = true
+  loading.value = false
+  if (!isOver.value) {
+    fetchFinishJobs()
+  }
 }
 
 const isGenerating = ref(false)
@@ -635,11 +613,6 @@ const generate = () => {
   }
   if (params.value.prompt === '') {
     return ElMessage.error('请输入绘画提示词！')
-  }
-
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
   }
 
   if (!params.value.size) {
@@ -667,6 +640,7 @@ const generate = () => {
       // 追加任务列表
       runningJobs.value.push({
         prompt: params.value.prompt,
+        status: 'pending',
         progress: 0,
       })
       allowPulling.value = true
@@ -680,7 +654,8 @@ const generate = () => {
     })
 }
 
-const removeImage = (item) => {
+const removeImage = (item, options = {}) => {
+  const { closeDetailAfterRemove = false } = options
   ElMessageBox.confirm('此操作将会删除任务和图片，继续操作码?', '删除提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -690,6 +665,9 @@ const removeImage = (item) => {
       httpGet('/api/image/remove', { id: item.id })
         .then(() => {
           ElMessage.success('任务删除成功')
+          if (closeDetailAfterRemove) {
+            detailDialogVisible.value = false
+          }
           page.value = 0
           isOver.value = false
           fetchFinishJobs()
@@ -699,6 +677,13 @@ const removeImage = (item) => {
         })
     })
     .catch(() => {})
+}
+
+const removeImageFromDetail = () => {
+  if (!currentDetail.value) {
+    return
+  }
+  removeImage(currentDetail.value, { closeDetailAfterRemove: true })
 }
 
 const previewImg = (item) => {
@@ -772,29 +757,9 @@ const showDetail = (item) => {
   }
   detailDialogVisible.value = true
 }
-
 </script>
 
 <style lang="scss" scoped>
 @use '../assets/css/image.scss' as *;
 @use '../assets/css/custom-scroll.scss' as *;
-
-.detail-content {
-  :deep(.el-descriptions__label) {
-    min-width: 110px;
-  }
-
-  .prompt-text {
-    display: flex;
-    align-items: center;
-    word-break: break-all;
-  }
-
-  .reference-images {
-    display: flex;
-    flex-wrap: wrap;
-  }
-}
 </style>
-
-<style lang="scss"></style>

@@ -35,19 +35,6 @@
                   <el-button size="small" class="sm-btn-theme" @click="useRole(scope.item)"
                     >使用</el-button
                   >
-                  <el-tooltip content="从工作区移除" placement="top" v-if="hasRole(scope.item.id)">
-                    <el-button size="small" type="danger" @click="updateRole(scope.item, 'remove')"
-                      >移除</el-button
-                    >
-                  </el-tooltip>
-                  <el-tooltip content="添加到工作区" placement="top" v-else>
-                    <el-button
-                      size="small"
-                      style="--el-color-primary: #009999"
-                      @click="updateRole(scope.item, 'add')"
-                      >添加</el-button
-                    >
-                  </el-tooltip>
                 </div>
               </div>
             </div>
@@ -64,10 +51,8 @@
 <script setup>
 import nodata from '@/assets/img/no-data.png'
 import ItemList from '@/components/ItemList.vue'
-import { checkSession } from '@/store/cache'
-import { useSharedStore } from '@/store/sharedata'
-import { httpGet, httpPost } from '@/utils/http'
-import { arrayContains, removeArrayItem, substr } from '@/utils/libs'
+import { httpGet } from '@/utils/http'
+import { substr } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -77,24 +62,11 @@ const listBoxHeight = window.innerHeight - 133
 const typeId = ref('')
 const appTypes = ref([])
 const list = ref([])
-const roles = ref([])
-const store = useSharedStore()
 
 onMounted(() => {
   getAppType()
   getAppList()
-  getRoles()
 })
-
-const getRoles = () => {
-  checkSession()
-    .then((user) => {
-      roles.value = Array.isArray(user.chat_roles) ? user.chat_roles : []
-    })
-    .catch((e) => {
-      console.log(e.message)
-    })
-}
 
 const getAppType = () => {
   httpGet('/api/app/type/list')
@@ -120,45 +92,6 @@ const getAppList = (tid = '') => {
     .catch((e) => {
       ElMessage.error('获取应用失败：' + e.message)
     })
-}
-
-const updateRole = (row, opt) => {
-  checkSession()
-    .then(() => {
-      const title = ref('')
-      if (opt === 'add') {
-        title.value = '添加应用'
-        const exists = arrayContains(roles.value, row.id)
-        if (exists) {
-          return
-        }
-        roles.value.push(row.id)
-      } else {
-        title.value = '移除应用'
-        const exists = arrayContains(roles.value, row.id)
-        if (!exists) {
-          return
-        }
-        roles.value = removeArrayItem(roles.value, row.id)
-      }
-      httpPost('/api/app/workspace', { ids: roles.value })
-        .then(() => {
-          ElMessage.success({
-            message: title.value + '成功！',
-            duration: 1000,
-          })
-        })
-        .catch((e) => {
-          ElMessage.error(title.value + '失败：' + e.message)
-        })
-    })
-    .catch(() => {
-      store.setShowLoginDialog(true)
-    })
-}
-
-const hasRole = (roleId) => {
-  return arrayContains(roles.value, roleId, (v1, v2) => v1 === v2)
 }
 
 const router = useRouter()

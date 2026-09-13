@@ -4,6 +4,7 @@ type PaymentConfig struct {
 	Alipay AlipayConfig `json:"alipay,omitempty"` // 支付宝支付渠道配置
 	Epay   EpayConfig   `json:"epay,omitempty"`   // 易支付配置
 	WxPay  WxPayConfig  `json:"wxpay,omitempty"`  // 微信支付渠道配置
+	Stripe StripeConfig `json:"stripe,omitempty"` // Stripe 支付配置
 }
 
 // AlipayConfig 支付宝支付配置
@@ -57,4 +58,20 @@ func (c *EpayConfig) Equal(other *EpayConfig) bool {
 		c.PrivateKey == other.PrivateKey &&
 		c.ApiURL == other.ApiURL &&
 		c.Domain == other.Domain
+}
+
+// StripeConfig Stripe 支付配置
+type StripeConfig struct {
+	Enabled    bool   `json:"enabled,omitempty"`     // 是否启用该支付通道
+	SecretKey  string `json:"secret_key,omitempty"`  // Stripe Secret Key
+	WebhookKey string `json:"webhook_key,omitempty"` // Stripe Webhook Signing Secret
+	Domain     string `json:"domain,omitempty"`      // 支付回跳域名
+	Currency   string `json:"currency,omitempty"`    // 货币代码
+}
+
+func (c *StripeConfig) Equal(other *StripeConfig) bool {
+	return c.SecretKey == other.SecretKey &&
+		c.WebhookKey == other.WebhookKey &&
+		c.Domain == other.Domain &&
+		c.Currency == other.Currency
 }

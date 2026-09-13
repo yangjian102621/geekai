@@ -143,7 +143,7 @@ func (s *Service) PushTask(task types.VideoTask) {
 func (s *Service) Run() {
 	// 将数据库中未提交的任务加载到队列
 	var jobs []model.VideoJob
-	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
+	s.db.Where("task_id", "").Where("status", types.VideoStatusPending).Find(&jobs)
 	for _, v := range jobs {
 		var task types.VideoTask
 		err := utils.JsonDecode(v.Params, &task)
@@ -234,7 +234,7 @@ func (s *Service) SyncTaskProgress() {
 		logger.Info("[video] task status poller started")
 		var jobs []model.VideoJob
 		for {
-			res := s.db.Where("status IN ?", []string{types.VideoStatusInProgress, types.VideoStatusPending}).Where("task_id <> ?", "").Find(&jobs)
+			res := s.db.Where("status IN ?", []string{types.VideoStatusInProgress, types.VideoStatusPending, types.VideoStatusDownloading}).Find(&jobs)
 			if res.Error != nil {
 				continue
 			}
@@ -312,14 +312,14 @@ func (s *Service) SyncTaskProgress() {
 
 			}
 
-			// 找出失败的任务，并恢复其扣减算力
+			// 找出失败的任务，并恢复其扣减积分
 			s.db.Select("id", "user_id", "power", "task_id", "err_msg", "type").
 				Where("status", types.VideoStatusFailed).Where("power > ?", 0).Find(&jobs)
 			for _, job := range jobs {
 				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 					Type:   types.PowerRefund,
 					Model:  job.Type,
-					Remark: fmt.Sprintf("%s 任务失败，退回算力。任务ID：%s，Err:%s", job.Type, job.TaskId, job.ErrMsg),
+					Remark: fmt.Sprintf("%s 任务失败，退回积分。任务ID：%s，Err:%s", job.Type, job.TaskId, job.ErrMsg),
 				})
 				if err != nil {
 					continue

@@ -75,7 +75,7 @@
             </template>
             <el-input v-model="jimengConfig.api_key" placeholder="请输入火山方舟服务API Key" />
             <div class="text-sm mt-2 text-gray-500">
-              目前豆包生图 4.0 模型在即梦API中不支持，需要使用火山方舟服务。
+              目前 Seedream 生图模型统一走火山方舟 API Key；Seedance 视频模型共用「视频生成」配置中的 ApiURL 和 ApiKey。
             </div>
           </el-form-item>
         </div>

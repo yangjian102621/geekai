@@ -70,6 +70,13 @@ func (h *ConfigHandler) Get(c *gin.Context) {
 		delete(value, "token")
 		delete(value, "encoding_aes_key")
 	}
+	if key == types.ConfigKeySystem {
+		if value == nil {
+			value = make(map[string]any)
+		}
+		// 支付开关在 payment 配置中，前端会员页仅需是否展示 Stripe
+		value["stripe_pay_enabled"] = h.sysConfig.Payment.Stripe.Enabled
+	}
 	resp.SUCCESS(c, value)
 }
 

@@ -37,6 +37,7 @@ type PaymentHandler struct {
 	alipayService *payment.AlipayService
 	epayService   *payment.EPayService
 	wxpayService  *payment.WxPayService
+	stripeService *payment.StripeService
 	snowflake     *service.Snowflake
 	userService   *service.UserService
 	fs            embed.FS
@@ -49,6 +50,7 @@ func NewPaymentHandler(
 	alipayService *payment.AlipayService,
 	geekPayService *payment.EPayService,
 	wxpayService *payment.WxPayService,
+	stripeService *payment.StripeService,
 	db *gorm.DB,
 	userService *service.UserService,
 	snowflake *service.Snowflake,
@@ -58,6 +60,7 @@ func NewPaymentHandler(
 		alipayService: alipayService,
 		epayService:   geekPayService,
 		wxpayService:  wxpayService,
+		stripeService: stripeService,
 		snowflake:     snowflake,
 		userService:   userService,
 		fs:            fs,
@@ -78,6 +81,7 @@ func (h *PaymentHandler) RegisterRoutes() {
 	rg.POST("notify/alipay", h.AlipayNotify)
 	rg.GET("notify/epay", h.EPayNotify)
 	rg.POST("notify/wxpay", h.WxpayNotify)
+	rg.POST("notify/stripe", h.StripeNotify)
 
 	// 需要用户登录的接口
 	rg.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
@@ -143,6 +147,8 @@ func (h *PaymentHandler) SyncOrders() error {
 				logger.Errorf("error with query order info: %v", err)
 				continue
 			}
+		case payment.PayChannelStripe:
+			continue
 		}
 
 		// 订单已关闭
@@ -204,6 +210,7 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 	}
 
 	amount := product.Price
+	stripeAmount := product.StripePrice
 	var payURL, notifyURL string
 	switch data.PayWay {
 	case "wxpay":
@@ -307,6 +314,57 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 			} else {
 				payURL = r
 			}
+		} else {
+			resp.ERROR(c, "系统没有配置可用的支付渠道！")
+			return
+		}
+	case "stripe":
+		if h.config.Stripe.Enabled {
+			logger.Debugf("Stripe，%+v", data)
+			data.Channel = payment.PayChannelStripe
+			if h.config.Stripe.Domain != "" {
+				data.Domain = h.config.Stripe.Domain
+			}
+			if stripeAmount <= 0 {
+				resp.ERROR(c, "当前产品未配置 Stripe 价格")
+				return
+			}
+			successURL := fmt.Sprintf("%s/member", data.Domain)
+			params := payment.PayRequest{
+				Device:     data.Device,
+				OutTradeNo: orderNo,
+				Subject:    product.Name,
+				TotalFee:   fmt.Sprintf("%.2f", stripeAmount),
+				Currency:   h.config.Stripe.Currency,
+				ReturnURL:  successURL,
+			}
+			payURL, err = h.stripeService.Pay(params)
+			if err != nil {
+				resp.ERROR(c, "error with generate stripe checkout session: "+err.Error())
+				return
+			}
+		} else if h.config.Epay.Enabled {
+			logger.Debugf("Stripe fall back to epay，%+v", data)
+			data.Channel = payment.PayChannelEpay
+			if h.config.Epay.Domain != "" {
+				data.Domain = h.config.Epay.Domain
+			}
+			notifyURL = fmt.Sprintf("%s/api/payment/notify/epay", data.Domain)
+			params := payment.PayRequest{
+				OutTradeNo: orderNo,
+				Subject:    product.Name,
+				TotalFee:   fmt.Sprintf("%f", amount),
+				ClientIP:   c.ClientIP(),
+				Device:     data.Device,
+				PayWay:     data.PayWay,
+				NotifyURL:  notifyURL,
+			}
+			r, err := h.epayService.Pay(params)
+			if err != nil {
+				resp.ERROR(c, err.Error())
+				return
+			}
+			payURL = r
 		} else {
 			resp.ERROR(c, "系统没有配置可用的支付渠道！")
 			return
@@ -477,6 +535,26 @@ func (h *PaymentHandler) WxpayNotify(c *gin.Context) {
 	if err != nil {
 		logger.Errorf("订单校验失败：%v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"code": "FAIL"})
+		return
+	}
+
+	err = h.paySuccess(orderInfo)
+	if err != nil {
+		logger.Error(err)
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	c.String(http.StatusOK, "success")
+}
+
+// StripeNotify Stripe 支付异步回调
+func (h *PaymentHandler) StripeNotify(c *gin.Context) {
+	orderInfo, err := h.stripeService.TradeVerify(c.Request)
+	logger.Infof("收到 Stripe 订单支付回调：%+v", orderInfo)
+	if err != nil {
+		logger.Errorf("订单校验失败：%v", err)
+		c.String(http.StatusBadRequest, "fail")
 		return
 	}
 

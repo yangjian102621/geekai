@@ -21,17 +21,33 @@ type SmtpService struct {
 	config *types.SmtpConfig
 }
 
-func NewSmtpService(appConfig *types.AppConfig) *SmtpService {
-	return &SmtpService{
-		config: &appConfig.SmtpConfig,
+// NewSmtpService 优先使用数据库中的 SMTP 配置（管理后台保存），否则回退到 config.toml。
+func NewSmtpService(appConfig *types.AppConfig, sysConfig *types.SystemConfig) *SmtpService {
+	s := &SmtpService{}
+	if sysConfig.SMTP.Host != "" && sysConfig.SMTP.Port > 0 {
+		c := sysConfig.SMTP
+		s.config = &c
+	} else {
+		s.config = &appConfig.SmtpConfig
 	}
+	return s
 }
 
 func (s *SmtpService) UpdateConfig(config *types.SmtpConfig) {
 	s.config = config
 }
 
+func (s *SmtpService) smtpConfigured() error {
+	if s.config == nil || s.config.Host == "" || s.config.Port <= 0 {
+		return fmt.Errorf("SMTP 未配置或无效：请在管理后台填写邮件服务器地址和端口")
+	}
+	return nil
+}
+
 func (s *SmtpService) SendVerifyCode(to string, code int) error {
+	if err := s.smtpConfigured(); err != nil {
+		return err
+	}
 	subject := fmt.Sprintf("%s 注册验证码", s.config.AppName)
 	body := fmt.Sprintf("【%s】：您的验证码为 %d，请不要告诉他人。如非本人操作，请忽略此邮件。", s.config.AppName, code)
 

@@ -153,15 +153,15 @@ func (h *SunoHandler) Create(c *gin.Context) {
 
 	// 插入数据库
 	job := model.SunoJob{
-		UserId:    uint(task.UserId),
-		Prompt:    data.Prompt,
+		UserId: uint(task.UserId),
+		Prompt: data.Prompt,
 		Params: vo.SunoParam{
-			Prompt:     data.Prompt,
+			Prompt:       data.Prompt,
 			Instrumental: data.Instrumental,
-			Tags:       data.Tags,
-			ExtendSecs: data.ExtendSecs,
-			Lyrics:     data.Lyrics,
-			Model:      data.Model,
+			Tags:         data.Tags,
+			ExtendSecs:   data.ExtendSecs,
+			Lyrics:       data.Lyrics,
+			Model:        data.Model,
 		},
 		Title:     data.Title,
 		Type:      data.Type,
@@ -169,6 +169,8 @@ func (h *SunoHandler) Create(c *gin.Context) {
 		RefTaskId: data.RefTaskId,
 		Power:     h.App.SysConfig.Base.SunoPower,
 		SongId:    utils.RandString(32),
+		Status:    model.ImageStatusPending,
+		Progress:  0,
 	}
 	if data.Lyrics != "" {
 		job.Prompt = data.Lyrics
@@ -266,7 +268,7 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 	}
 
 	// 只有失败或者已完成的任务可以删除
-	if !(job.Progress == service.FailTaskProgress || job.Progress == 100) {
+	if job.Status != model.ImageStatusFailed && job.Status != model.ImageStatusSuccess {
 		resp.ERROR(c, "只有失败和超时(10分钟)的任务才能删除！")
 		return
 	}

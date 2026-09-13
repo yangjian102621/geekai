@@ -39,6 +39,14 @@
                     <i class="iconfont icon-alipay"></i>
                     <span>支付宝</span>
                   </button>
+                  <button
+                    v-if="stripePayEnabled"
+                    class="payment-btn stripe-btn"
+                    @click="stripePay(item)"
+                  >
+                    <i class="iconfont icon-reward"></i>
+                    <span>Stripe</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -140,6 +148,7 @@ const currentPrice = ref(0)
 const currentProduct = ref(null)
 const selectedPid = ref(0)
 const orderTimeout = ref(1800)
+const stripePayEnabled = ref(false)
 const handler = ref(null)
 const title = ref('')
 
@@ -174,6 +183,7 @@ onMounted(() => {
       if (res.data['order_pay_timeout'] > 0) {
         orderTimeout.value = res.data['order_pay_timeout']
       }
+      stripePayEnabled.value = !!res.data['stripe_pay_enabled']
     })
     .catch((e) => {
       console.error('获取系统配置失败：', e.message)
@@ -242,6 +252,25 @@ const alipay = (product) => {
   GenerateOrder('alipay')
 }
 
+const stripePay = (product) => {
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
+  }
+
+  selectedPid.value = product.id
+  currentProduct.value = product
+  currentPrice.value = Number(product.price)
+  title.value = 'Stripe Checkout'
+
+  showLoadingToast({
+    message: '正在生成 Stripe 支付订单...',
+    forbidClick: true,
+  })
+
+  GenerateOrder('stripe')
+}
+
 function GenerateOrder(payWay, device = 'pc') {
   // 生成支付订单
   httpPost('/api/payment/create', {
@@ -251,6 +280,10 @@ function GenerateOrder(payWay, device = 'pc') {
     device: device,
   })
     .then((res) => {
+      if (payWay === 'stripe') {
+        window.location.href = res.data.pay_url
+        return
+      }
       if (res.data.pay_url) {
         // 如果是微信浏览器，并且微信公众号配置启用，则使用微信JSAPI支付
         if (isWechat() && wxGzhConfig.value.enabled) {
@@ -550,6 +583,11 @@ const onBridgeReady = function onBridgeReady(payParams) {
                     &:hover {
                       background: #1395d1;
                     }
+                  }
+
+                  &.stripe-btn {
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                    color: white;
                   }
                 }
               }

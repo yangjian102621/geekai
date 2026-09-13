@@ -3,6 +3,8 @@ import loadingIcon from '@/assets/img/loading.gif'
 import Storage from 'good-storage'
 import { defineStore } from 'pinia'
 
+const taskFailedImage = '/images/failed.png'
+
 let waterfallOptions = {
   // 唯一key值
   rowKey: 'id',
@@ -87,6 +89,7 @@ export const useSharedStore = defineStore('shared', {
     chatListExtend: Storage.get('chat_list_extend', true),
     ttsModel: Storage.get('tts_model', ''),
     waterfallOptions,
+    taskFailedImage,
   }),
   getters: {},
   actions: {

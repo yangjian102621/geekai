@@ -7,6 +7,7 @@ import (
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/utils"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -16,10 +17,20 @@ import (
 type WxGzhService struct {
 	config types.WxGzhConfig
 	DB     *gorm.DB
+
+	ccMu     sync.Mutex
+	ccToken  string
+	ccExpire time.Time
+	ccForApp string
 }
 
 func (s *WxGzhService) UpdateConfig(config types.WxGzhConfig) {
 	s.config = config
+	s.ccMu.Lock()
+	s.ccToken = ""
+	s.ccExpire = time.Time{}
+	s.ccForApp = ""
+	s.ccMu.Unlock()
 }
 
 func (s *WxGzhService) GetConfig() types.WxGzhConfig {
