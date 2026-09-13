@@ -120,8 +120,8 @@
 
 <script setup>
 import { checkSession, getSystemInfo, getMenus } from '@/store/cache'
-import { httpGet, httpPost } from '@/utils/http'
-import { arrayContains, removeArrayItem, showLoginDialog, substr } from '@/utils/libs'
+import { httpGet } from '@/utils/http'
+import { showLoginDialog, substr } from '@/utils/libs'
 import { ElMessage } from 'element-plus'
 import { showNotify } from 'vant'
 import { computed, onMounted, ref } from 'vue'
@@ -132,7 +132,6 @@ const router = useRouter()
 const isLogin = ref(false)
 const apps = ref([])
 const loading = ref(false)
-const roles = ref([])
 const userAvatar = ref('/images/avatar/default.jpg')
 
 // 功能配置
@@ -225,7 +224,6 @@ onMounted(() => {
   checkSession()
     .then((user) => {
       isLogin.value = true
-      roles.value = Array.isArray(user.chat_roles) ? user.chat_roles : []
       userAvatar.value = user.avatar || '/images/avatar/default.jpg'
     })
     .catch(() => {})
@@ -254,40 +252,6 @@ const fetchApps = () => {
     .catch((e) => {
       showNotify({ type: 'danger', message: '获取应用失败：' + e.message })
     })
-}
-
-const updateRole = (row, opt) => {
-  if (!isLogin.value) {
-    return showLoginDialog(router)
-  }
-
-  let actionTitle = ''
-  if (opt === 'add') {
-    actionTitle = '添加应用'
-    const exists = arrayContains(roles.value, row.id)
-    if (exists) {
-      return
-    }
-    roles.value.push(row.id)
-  } else {
-    actionTitle = '移除应用'
-    const exists = arrayContains(roles.value, row.id)
-    if (!exists) {
-      return
-    }
-    roles.value = removeArrayItem(roles.value, row.id)
-  }
-  httpPost('/api/app/workspace', { ids: roles.value })
-    .then(() => {
-      showNotify({ type: 'success', message: actionTitle + '成功！', duration: 1000 })
-    })
-    .catch((e) => {
-      showNotify({ type: 'danger', message: actionTitle + '失败：' + e.message })
-    })
-}
-
-const hasRole = (roleId) => {
-  return arrayContains(roles.value, roleId, (v1, v2) => v1 === v2)
 }
 
 const useRole = (roleId) => {

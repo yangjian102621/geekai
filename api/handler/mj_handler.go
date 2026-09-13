@@ -245,6 +245,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
+		Status:    model.ImageStatusPending,
 		Progress:  0,
 		Prompt:    fmt.Sprintf("%s %s", data.Prompt, params),
 		Power:     power,
@@ -318,6 +319,7 @@ func (h *MidJourneyHandler) Upscale(c *gin.Context) {
 		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
+		Status:    model.ImageStatusPending,
 		Progress:  0,
 		Power:     power,
 		CreatedAt: time.Now(),
@@ -375,6 +377,7 @@ func (h *MidJourneyHandler) Variation(c *gin.Context) {
 		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
+		Status:    model.ImageStatusPending,
 		Progress:  0,
 		Power:     power,
 		CreatedAt: time.Now(),
@@ -449,6 +452,7 @@ func (h *MidJourneyHandler) Modal(c *gin.Context) {
 		UserId:    uint(userId),
 		TaskId:    taskId,
 		TaskInfo:  utils.JsonEncode(task),
+		Status:    model.ImageStatusPending,
 		Progress:  0,
 		Prompt:    data.Prompt,
 		Power:     power,
@@ -509,9 +513,9 @@ func (h *MidJourneyHandler) JobList(c *gin.Context) {
 func (h *MidJourneyHandler) getData(finish bool, userId uint, page int, pageSize int, publish bool) (error, vo.Page) {
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
-		session = session.Where("progress >= ?", 100).Order("id DESC")
+		session = session.Where("status IN ?", []string{model.ImageStatusSuccess, model.ImageStatusFailed}).Order("id DESC")
 	} else {
-		session = session.Where("progress < ?", 100).Order("id ASC")
+		session = session.Where("status IN ?", []string{model.ImageStatusPending, model.ImageStatusInProgress, model.ImageStatusDownloading}).Order("id ASC")
 	}
 	if userId > 0 {
 		session = session.Where("user_id = ?", userId)

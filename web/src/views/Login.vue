@@ -81,7 +81,7 @@ const handleChangeActive = (newValue) => {
 onMounted(() => {
   // 确保默认显示注册状态
   if (loginDialogRef.value) {
-    loginDialogRef.value.login = !isRegister
+    loginDialogRef.value.login = !isRegister.value
   }
 
   if (token.value) {

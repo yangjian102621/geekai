@@ -254,7 +254,7 @@
                 </el-image>
                 <!-- 音乐播放按钮 -->
                 <button
-                  v-if="item.progress === 100"
+                  v-if="item.status === 'success'"
                   @click="suno.play(item)"
                   class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
                 >
@@ -262,14 +262,14 @@
                 </button>
                 <!-- 进度动画 -->
                 <div
-                  v-if="item.progress < 100 && item.progress !== 101"
+                  v-if="item.status === 'pending' || item.status === 'in_progress' || item.status === 'downloading'"
                   class="absolute inset-0 flex items-center justify-center bg-blue-500 bg-opacity-20"
                 >
                   <i class="iconfont icon-loading animate-spin text-blue-500 text-xl"></i>
                 </div>
                 <!-- 失败状态 -->
                 <div
-                  v-if="item.progress === 101"
+                  v-if="item.status === 'failed'"
                   class="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-20"
                 >
                   <i class="iconfont icon-warning text-red-500 text-xl"></i>
@@ -287,9 +287,9 @@
                   </p>
                 </div>
                 <!-- 任务状态 -->
-                <div v-if="item.progress < 100" class="flex items-center space-x-2 text-sm">
+                <div v-if="item.status !== 'success'" class="flex items-center space-x-2 text-sm">
                   <div
-                    v-if="item.progress === 101"
+                    v-if="item.status === 'failed'"
                     class="text-red-600 flex items-center space-x-1"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,7 +344,7 @@
           <div class="flex items-center justify-between mt-4">
             <div class="flex space-x-2">
               <button
-                v-if="item.progress === 100"
+                v-if="item.status === 'success'"
                 @click="suno.play(item)"
                 class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
               >
@@ -352,7 +352,7 @@
                 <span>播放</span>
               </button>
               <button
-                v-if="item.progress === 100"
+                v-if="item.status === 'success'"
                 @click="suno.download(item)"
                 :disabled="item.downloading"
                 class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 flex items-center space-x-1"
@@ -381,7 +381,7 @@
                 <span>{{ item.downloading ? '下载中...' : '下载' }}</span>
               </button>
               <button
-                v-if="item.progress === 100"
+                v-if="item.status === 'success'"
                 @click="suno.extend(item)"
                 class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center min-w-[60px]"
               >
@@ -399,7 +399,7 @@
           </div>
 
           <!-- 进度条 -->
-          <div v-if="item.progress < 100 && item.progress !== 101" class="mt-4">
+          <div v-if="item.status === 'pending' || item.status === 'in_progress' || item.status === 'downloading'" class="mt-4">
             <div class="flex justify-between text-sm text-gray-600 mb-1">
               <span>生成进度</span>
               <span>{{ item.progress }}%</span>
@@ -414,7 +414,7 @@
 
           <!-- 错误信息 -->
           <div
-            v-if="item.progress === 101"
+            v-if="item.status === 'failed'"
             class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg"
           >
             <div class="flex items-start space-x-2">

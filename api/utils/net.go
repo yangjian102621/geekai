@@ -8,6 +8,7 @@ package utils
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -172,6 +173,81 @@ func FetchURLBytes(ctx context.Context, rawURL string, proxy string, timeout tim
 		}
 
 		return body, resp.StatusCode, nil
+	}
+
+	return nil, 0, lastErr
+}
+
+// PostURLBytes 发起 POST（如 application/json）并返回响应体（只在 2xx 认为成功）。
+func PostURLBytes(ctx context.Context, rawURL string, contentType string, body []byte, proxy string, timeout time.Duration, retries int, maxBytes int64) ([]byte, int, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if timeout <= 0 {
+		timeout = defaultHTTPTimeout
+	}
+	if retries < 0 {
+		retries = 0
+	}
+	if maxBytes <= 0 {
+		maxBytes = 8 << 20
+	}
+	if contentType == "" {
+		contentType = "application/json"
+	}
+
+	var lastErr error
+	for attempt := 0; attempt <= retries; attempt++ {
+		if ctx.Err() != nil {
+			return nil, 0, ctx.Err()
+		}
+
+		client := newHTTPClient(timeout, proxy)
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, rawURL, bytes.NewReader(body))
+		if err != nil {
+			return nil, 0, err
+		}
+		req.Header.Set("Content-Type", contentType)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			lastErr = err
+			if attempt < retries && isRetryableError(err) {
+				time.Sleep(retryDelay(attempt))
+				continue
+			}
+			return nil, 0, err
+		}
+
+		respBody, readErr := readAllLimit(resp.Body, maxBytes)
+		_ = resp.Body.Close()
+		if readErr != nil {
+			lastErr = readErr
+			if attempt < retries && isRetryableError(readErr) {
+				time.Sleep(retryDelay(attempt))
+				continue
+			}
+			return nil, resp.StatusCode, readErr
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			status := resp.StatusCode
+			lastErr = fmt.Errorf("request failed: status=%d", status)
+			if attempt < retries && (status == http.StatusTooManyRequests || status >= 500 && status <= 599) {
+				time.Sleep(retryDelay(attempt))
+				continue
+			}
+			preview := strings.TrimSpace(string(respBody))
+			if len(preview) > 256 {
+				preview = preview[:256]
+			}
+			if preview != "" {
+				return respBody, status, fmt.Errorf("request failed: status=%d body=%s", status, preview)
+			}
+			return respBody, status, lastErr
+		}
+
+		return respBody, resp.StatusCode, nil
 	}
 
 	return nil, 0, lastErr

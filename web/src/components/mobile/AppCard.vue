@@ -19,14 +19,6 @@
           @click="$emit('use-role', app.id)"
           >开始对话</van-button
         >
-        <van-button
-          size="small"
-          :type="hasRole ? 'danger' : 'success'"
-          class="action-btn"
-          @click="$emit('update-role', app, hasRole ? 'remove' : 'add')"
-        >
-          {{ hasRole ? '移出工作台' : '添加到工作台' }}
-        </van-button>
       </div>
     </div>
   </van-cell>
@@ -38,13 +30,9 @@ defineProps({
     type: Object,
     required: true,
   },
-  hasRole: {
-    type: Boolean,
-    default: false,
-  },
 })
 
-defineEmits(['use-role', 'update-role'])
+defineEmits(['use-role'])
 </script>
 
 <style scoped lang="scss">

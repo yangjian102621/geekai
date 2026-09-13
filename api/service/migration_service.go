@@ -388,6 +388,14 @@ func (s *MigrationService) incrementalTableMigration() {
 	if s.db.Migrator().HasColumn(&model.User{}, "chat_config") {
 		s.db.Migrator().DropColumn(&model.User{}, "chat_config")
 	}
+	var hasChatRolesJSON int
+	if s.db.Raw("SELECT COUNT(1) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'geekai_users' AND COLUMN_NAME = 'chat_roles_json'").Scan(&hasChatRolesJSON).Error == nil && hasChatRolesJSON > 0 {
+		if err := s.db.Exec("ALTER TABLE geekai_users DROP COLUMN chat_roles_json").Error; err != nil {
+			logger.Errorf("删除 geekai_users.chat_roles_json 失败: %v", err)
+		} else {
+			logger.Info("geekai_users: 已删除 chat_roles_json 列")
+		}
+	}
 	if s.db.Migrator().HasColumn(&model.ChatModel{}, "category") {
 		s.db.Migrator().DropColumn(&model.ChatModel{}, "category")
 	}
@@ -406,6 +414,7 @@ func (s *MigrationService) incrementalTableMigration() {
 	if s.db.Migrator().HasColumn(&model.Product{}, "url") {
 		s.db.Migrator().DropColumn(&model.Product{}, "url")
 	}
+	s.migrateProductStripePrice()
 	if s.db.Migrator().HasColumn(&model.VideoJob{}, "water_url") {
 		s.db.Migrator().DropColumn(&model.VideoJob{}, "water_url")
 	}
@@ -429,17 +438,7 @@ func (s *MigrationService) incrementalTableMigration() {
 	}
 
 	// ========== 数据迁移：根据业务逻辑更新现有数据 ==========
-
-	// video_job: 根据 progress 填充 status
-	if s.db.Migrator().HasColumn(&model.VideoJob{}, "status") {
-		s.db.Exec(`UPDATE geekai_video_jobs SET status = CASE 
-			WHEN progress < 100 THEN 'in_progress'
-			WHEN progress = 100 THEN 'success'
-			WHEN progress = 101 THEN 'failed'
-			WHEN progress = 102 THEN 'downloading'
-			ELSE 'pending'
-		END WHERE status = '' OR status IS NULL`)
-	}
+	s.migrateTaskStatuses()
 
 	// suno_job: 从 output 提取 tags/model_name 填入 params
 	s.migrateSunoJobData()
@@ -453,6 +452,96 @@ func (s *MigrationService) TableMigration() {
 	s.fixTableConstraints()
 	s.incrementalTableMigration()
 	s.migrateChatAppSystemPromptFromJSON()
+}
+
+// migrateTaskStatuses 将历史 progress 魔法数与 status 对齐（幂等）。
+// 顺序：先处理 101/102/100 等离散值，再 1–99 进行中，最后 progress=0 为排队，避免旧逻辑里 progress<100 把 0 标成 in_progress。
+func (s *MigrationService) migrateTaskStatuses() {
+	migrator := s.db.Migrator()
+	exec := func(label, sql string, args ...interface{}) {
+		if err := s.db.Exec(sql, args...).Error; err != nil {
+			logger.Warnf("回填 %s 失败（可忽略若表/列不存在）: %v", label, err)
+		}
+	}
+
+	// image_jobs：与 image_service 约定一致（失败 progress=0；下载中 progress=100）
+	if migrator.HasTable("geekai_image_jobs") && migrator.HasColumn(&model.ImageJob{}, "status") {
+		exec("geekai_image_jobs failed(101)",
+			"UPDATE `geekai_image_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 101",
+			model.ImageStatusFailed)
+		exec("geekai_image_jobs downloading(102)",
+			"UPDATE `geekai_image_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 102",
+			model.ImageStatusDownloading)
+		exec("geekai_image_jobs success(100)",
+			"UPDATE `geekai_image_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 100",
+			model.ImageStatusSuccess)
+		exec("geekai_image_jobs in_progress(1-99)",
+			"UPDATE `geekai_image_jobs` SET `status` = ? WHERE `progress` >= 1 AND `progress` <= 99",
+			model.ImageStatusInProgress)
+		exec("geekai_image_jobs pending(0)",
+			"UPDATE `geekai_image_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 0",
+			model.ImageStatusPending)
+	}
+
+	// mj_jobs：含历史 progress=-1 失败
+	if migrator.HasTable("geekai_mj_jobs") && migrator.HasColumn(&model.MidJourneyJob{}, "status") {
+		exec("geekai_mj_jobs failed(101)",
+			"UPDATE `geekai_mj_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 101",
+			model.ImageStatusFailed)
+		exec("geekai_mj_jobs failed(-1)",
+			"UPDATE `geekai_mj_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = -1",
+			model.ImageStatusFailed)
+		exec("geekai_mj_jobs downloading(102)",
+			"UPDATE `geekai_mj_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 102",
+			model.ImageStatusDownloading)
+		exec("geekai_mj_jobs success(100)",
+			"UPDATE `geekai_mj_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 100",
+			model.ImageStatusSuccess)
+		exec("geekai_mj_jobs in_progress(1-99)",
+			"UPDATE `geekai_mj_jobs` SET `status` = ? WHERE `progress` >= 1 AND `progress` <= 99",
+			model.ImageStatusInProgress)
+		exec("geekai_mj_jobs pending(0)",
+			"UPDATE `geekai_mj_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 0",
+			model.ImageStatusPending)
+	}
+
+	// suno_jobs：与五态常量一致，去掉重复的 101 更新
+	if migrator.HasTable("geekai_suno_jobs") && migrator.HasColumn(&model.SunoJob{}, "status") {
+		exec("geekai_suno_jobs failed(101)",
+			"UPDATE `geekai_suno_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 101",
+			model.ImageStatusFailed)
+		exec("geekai_suno_jobs downloading(102)",
+			"UPDATE `geekai_suno_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 102",
+			model.ImageStatusDownloading)
+		exec("geekai_suno_jobs success(100)",
+			"UPDATE `geekai_suno_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 100",
+			model.ImageStatusSuccess)
+		exec("geekai_suno_jobs in_progress(1-99)",
+			"UPDATE `geekai_suno_jobs` SET `status` = ? WHERE `progress` >= 1 AND `progress` <= 99",
+			model.ImageStatusInProgress)
+		exec("geekai_suno_jobs pending(0)",
+			"UPDATE `geekai_suno_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 0",
+			model.ImageStatusPending)
+	}
+
+	// video_jobs：状态字符串与 Image 五态相同
+	if migrator.HasTable("geekai_video_jobs") && migrator.HasColumn(&model.VideoJob{}, "status") {
+		exec("geekai_video_jobs failed(101)",
+			"UPDATE `geekai_video_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 101",
+			types.VideoStatusFailed)
+		exec("geekai_video_jobs downloading(102)",
+			"UPDATE `geekai_video_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 102",
+			types.VideoStatusDownloading)
+		exec("geekai_video_jobs success(100)",
+			"UPDATE `geekai_video_jobs` SET `status` = ?, `progress` = 100 WHERE `progress` = 100",
+			types.VideoStatusSuccess)
+		exec("geekai_video_jobs in_progress(1-99)",
+			"UPDATE `geekai_video_jobs` SET `status` = ? WHERE `progress` >= 1 AND `progress` <= 99",
+			types.VideoStatusInProgress)
+		exec("geekai_video_jobs pending(0)",
+			"UPDATE `geekai_video_jobs` SET `status` = ?, `progress` = 0 WHERE `progress` = 0",
+			types.VideoStatusPending)
+	}
 }
 
 // migrateChatAppSystemPromptFromJSON 将智能体 system_prompt 字段中历史 JSON 数组
@@ -542,6 +631,11 @@ func (s *MigrationService) migratePaymentConfig(config *types.AppConfig) error {
 		Alipay: config.AlipayConfig,
 		Epay:   config.GeekPayConfig,
 		WxPay:  config.WechatPayConfig,
+		Stripe: types.StripeConfig{
+			Enabled:  false,
+			Currency: "usd",
+			Domain:   config.ProxyURL,
+		},
 	}
 	if err := s.saveConfig(types.ConfigKeyPayment, paymentConfig); err != nil {
 		return err
@@ -701,5 +795,38 @@ func (s *MigrationService) migrateSunoJobData() {
 	}
 
 	logger.Infof("SunoJob 数据合并完成，共更新 %d 条记录", updatedCount)
+	s.redisClient.Set(context.Background(), key, "1", 0)
+}
+
+// migrateProductStripePrice 回填 Stripe 专用价格。
+// 仅对 stripe_price 为 0 的记录执行回填，避免覆盖已手工配置的 Stripe 价格。
+func (s *MigrationService) migrateProductStripePrice() {
+	key := "migrate:product_stripe_price"
+	if s.redisClient.Get(context.Background(), key).Val() == "1" {
+		logger.Info("Product stripe_price 已迁移，跳过")
+		return
+	}
+
+	logger.Info("开始迁移 Product stripe_price...")
+
+	var products []model.Product
+	if err := s.db.Where("stripe_price = 0 OR stripe_price IS NULL").Find(&products).Error; err != nil {
+		logger.Errorf("查询 Product 数据失败: %v", err)
+		return
+	}
+
+	updatedCount := 0
+	for _, product := range products {
+		if product.Price <= 0 {
+			continue
+		}
+		if err := s.db.Model(&model.Product{}).Where("id = ?", product.Id).Update("stripe_price", product.Price).Error; err != nil {
+			logger.Errorf("回填 Product stripe_price 失败 (ID: %d): %v", product.Id, err)
+			continue
+		}
+		updatedCount++
+	}
+
+	logger.Infof("Product stripe_price 迁移完成，共更新 %d 条记录", updatedCount)
 	s.redisClient.Set(context.Background(), key, "1", 0)
 }

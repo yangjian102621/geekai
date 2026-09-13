@@ -9,6 +9,8 @@ package admin
 
 import (
 	"errors"
+	"strings"
+
 	"geekai/core"
 	"geekai/core/middleware"
 	"geekai/core/types"
@@ -31,6 +33,7 @@ type ConfigHandler struct {
 	alipayService   *payment.AlipayService
 	wxpayService    *payment.WxPayService
 	epayService     *payment.EPayService
+	stripeService   *payment.StripeService
 	smsManager      *sms.SmsManager
 	uploaderManager *oss.UploaderManager
 	smtpService     *service.SmtpService
@@ -46,6 +49,7 @@ func NewConfigHandler(
 	alipayService *payment.AlipayService,
 	wxpayService *payment.WxPayService,
 	epayService *payment.EPayService,
+	stripeService *payment.StripeService,
 	smsManager *sms.SmsManager,
 	uploaderManager *oss.UploaderManager,
 	smtpService *service.SmtpService,
@@ -59,6 +63,7 @@ func NewConfigHandler(
 		alipayService:   alipayService,
 		wxpayService:    wxpayService,
 		epayService:     epayService,
+		stripeService:   stripeService,
 		smsManager:      smsManager,
 		uploaderManager: uploaderManager,
 		smtpService:     smtpService,
@@ -89,6 +94,9 @@ func (h *ConfigHandler) RegisterRoutes() {
 		rg.POST("update/smtp", h.UpdateStmp)
 		rg.GET("get", h.Get)
 		rg.POST("update/wx_gzh", h.UpdateWxGzh)
+		rg.POST("update/wx_gzh_menu", h.UpdateWxGzhMenu)
+		rg.POST("wx_gzh/menu/publish", h.PublishWxGzhMenu)
+		rg.GET("wx_gzh/menu/query", h.QueryWxGzhMenu)
 	}
 }
 
@@ -282,6 +290,9 @@ func (h *ConfigHandler) UpdatePayment(c *gin.Context) {
 			return
 		}
 	}
+	if data.Stripe.Enabled {
+		h.stripeService.UpdateConfig(&data.Stripe)
+	}
 
 	h.sysConfig.Payment = data
 	resp.SUCCESS(c, data)
@@ -333,6 +344,10 @@ func (h *ConfigHandler) UpdateStmp(c *gin.Context) {
 	var data types.SmtpConfig
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Host == "" || data.Port <= 0 {
+		resp.ERROR(c, "邮件服务器地址和端口不能为空")
 		return
 	}
 
@@ -421,4 +436,104 @@ func (h *ConfigHandler) UpdateWxGzh(c *gin.Context) {
 	h.wxGzhService.UpdateConfig(data)
 	h.sysConfig.WxGzh = data
 	resp.SUCCESS(c, data)
+}
+
+// UpdateWxGzhMenu 保存公众号自定义菜单草稿（不调用微信接口）。
+func (h *ConfigHandler) UpdateWxGzhMenu(c *gin.Context) {
+	var data types.WxGzhMenuConfig
+	if err := c.ShouldBindJSON(&data); err != nil {
+		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if data.Button == nil {
+		data.Button = []types.WxGzhMenuButton{}
+	}
+	if err := h.Update(types.ConfigKeyWxGzhMenu, data); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	resp.SUCCESS(c, data)
+}
+
+func (h *ConfigHandler) loadWxGzhCredentials() (appID, secret string, err error) {
+	var row model.Config
+	if err = h.DB.Where("name", types.ConfigKeyWxGzh).First(&row).Error; err != nil {
+		return "", "", err
+	}
+	var wx types.WxGzhConfig
+	if err = utils.JsonDecode(row.Value, &wx); err != nil {
+		return "", "", err
+	}
+	return strings.TrimSpace(wx.AppId), strings.TrimSpace(wx.Secret), nil
+}
+
+// PublishWxGzhMenu 将草稿菜单同步到微信公众平台（menu/create）。
+func (h *ConfigHandler) PublishWxGzhMenu(c *gin.Context) {
+	appID, secret, err := h.loadWxGzhCredentials()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.ERROR(c, "请先配置微信公众号 AppID 与 AppSecret")
+			return
+		}
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if appID == "" || secret == "" {
+		resp.ERROR(c, "请先配置微信公众号 AppID 与 AppSecret")
+		return
+	}
+
+	var menu types.WxGzhMenuConfig
+	var menuRow model.Config
+	if err := h.DB.Where("name", types.ConfigKeyWxGzhMenu).First(&menuRow).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	} else {
+		if err := utils.JsonDecode(menuRow.Value, &menu); err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	if menu.Button == nil {
+		menu.Button = []types.WxGzhMenuButton{}
+	}
+
+	if err := h.wxGzhService.PublishCustomMenu(c.Request.Context(), appID, secret, menu); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	resp.SUCCESS(c, gin.H{"message": "已同步到微信"})
+}
+
+// QueryWxGzhMenu 从微信拉取当前菜单并写入草稿 wx_gzh_menu。
+func (h *ConfigHandler) QueryWxGzhMenu(c *gin.Context) {
+	appID, secret, err := h.loadWxGzhCredentials()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.ERROR(c, "请先配置微信公众号 AppID 与 AppSecret")
+			return
+		}
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if appID == "" || secret == "" {
+		resp.ERROR(c, "请先配置微信公众号 AppID 与 AppSecret")
+		return
+	}
+
+	menuCfg, err := h.wxGzhService.GetCustomMenuFromWechat(c.Request.Context(), appID, secret)
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	if menuCfg.Button == nil {
+		menuCfg.Button = []types.WxGzhMenuButton{}
+	}
+	if err := h.Update(types.ConfigKeyWxGzhMenu, menuCfg); err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+	resp.SUCCESS(c, menuCfg)
 }

@@ -56,7 +56,7 @@ onMounted(() => {
   // 获取模型列表
   httpGet('/api/model/list?type=tts').then((res) => {
     models.value = res.data
-    if (!data.ttsModel && models.value.length > 0) {
+    if (!data.value.ttsModel && models.value.length > 0) {
       store.setTtsModel(models.value[0].id)
     }
   })

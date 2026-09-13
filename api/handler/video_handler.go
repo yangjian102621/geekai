@@ -55,6 +55,8 @@ func (h *VideoHandler) RegisterRoutes() {
 	{
 		group.POST("create", h.Create)
 		group.GET("list", h.List)
+		group.GET("tasks", h.TaskList)
+		group.GET("works", h.WorkList)
 		group.GET("remove", h.Remove)
 		group.GET("publish", h.Publish)
 		group.GET("power-config", h.GetPowerConfig)     // 获取算力配置
@@ -151,11 +153,13 @@ func (h *VideoHandler) Create(c *gin.Context) {
 
 	// 插入数据库
 	job := model.VideoJob{
-		UserId: uint(userId),
-		Type:   data.Provider,
-		Prompt: data.Prompt,
-		Power:  power,
-		Params: utils.JsonEncode(task),
+		UserId:   uint(userId),
+		Type:     data.Provider,
+		Prompt:   data.Prompt,
+		Power:    power,
+		Params:   utils.JsonEncode(task),
+		Status:   types.VideoStatusPending,
+		Progress: 0,
 	}
 	tx := h.DB.Create(&job)
 	if tx.Error != nil {
@@ -299,6 +303,78 @@ func (h *VideoHandler) List(c *gin.Context) {
 			}
 		}
 
+		items = append(items, item)
+	}
+
+	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, items))
+}
+
+// TaskList 任务列表：仅返回进行中的任务（pending / in_progress）
+func (h *VideoHandler) TaskList(c *gin.Context) {
+	userId := h.GetLoginUserId(c)
+	t := c.Query("type")
+	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
+	if t != "" {
+		session = session.Where("type", t)
+	}
+	session = session.Where("status IN ?", []string{types.VideoStatusPending, types.VideoStatusInProgress})
+
+	var list []model.VideoJob
+	err := session.Order("id desc").Find(&list).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	items := make([]vo.VideoJob, 0, len(list))
+	for _, v := range list {
+		var item vo.VideoJob
+		if err := utils.CopyObject(v, &item); err != nil {
+			continue
+		}
+		item.CreatedAt = v.CreatedAt.Unix()
+		items = append(items, item)
+	}
+
+	resp.SUCCESS(c, items)
+}
+
+// WorkList 作品列表：仅返回 downloading / success / failed
+func (h *VideoHandler) WorkList(c *gin.Context) {
+	userId := h.GetLoginUserId(c)
+	t := c.Query("type")
+	page := h.GetInt(c, "page", 1)
+	pageSize := h.GetInt(c, "page_size", 20)
+	session := h.DB.Session(&gorm.Session{}).Where("user_id", userId)
+	if t != "" {
+		session = session.Where("type", t)
+	}
+	session = session.Where(
+		"status IN ?",
+		[]string{types.VideoStatusDownloading, types.VideoStatusSuccess, types.VideoStatusFailed},
+	)
+
+	var total int64
+	session.Model(&model.VideoJob{}).Count(&total)
+
+	if page > 0 && pageSize > 0 {
+		offset := (page - 1) * pageSize
+		session = session.Offset(offset).Limit(pageSize)
+	}
+	var list []model.VideoJob
+	err := session.Order("id desc").Find(&list).Error
+	if err != nil {
+		resp.ERROR(c, err.Error())
+		return
+	}
+
+	items := make([]vo.VideoJob, 0, len(list))
+	for _, v := range list {
+		var item vo.VideoJob
+		if err := utils.CopyObject(v, &item); err != nil {
+			continue
+		}
+		item.CreatedAt = v.CreatedAt.Unix()
 		items = append(items, item)
 	}
 

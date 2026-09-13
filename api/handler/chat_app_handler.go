@@ -40,7 +40,6 @@ func (h *ChatAppHandler) RegisterRoutes() {
 		group.POST("create", h.Create)
 		group.POST("copy", h.Copy)
 		group.POST("update", h.UpdateApp)
-		group.POST("workspace", h.UpdateWorkArea)
 		group.POST("remove", h.Remove)
 	}
 }
@@ -211,27 +210,6 @@ func (h *ChatAppHandler) UpdateApp(c *gin.Context) {
 		"system_prompt": data.SystemPrompt,
 	}
 	if err := h.DB.Model(&role).Updates(updates).Error; err != nil {
-		resp.ERROR(c, err.Error())
-		return
-	}
-	resp.SUCCESS(c, nil)
-}
-
-// UpdateWorkArea 更新用户工作区应用列表（存为应用 id 数组）
-func (h *ChatAppHandler) UpdateWorkArea(c *gin.Context) {
-	userId := h.GetLoginUserId(c)
-	if userId == 0 {
-		resp.NotAuth(c)
-		return
-	}
-	var body struct {
-		Ids []uint `json:"ids"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-	if err := h.DB.Model(&model.User{}).Where("id = ?", userId).Update("chat_roles_json", utils.JsonEncode(body.Ids)).Error; err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}

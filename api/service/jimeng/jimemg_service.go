@@ -1,9 +1,13 @@
 package jimeng
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,6 +25,13 @@ import (
 )
 
 var logger = log.GetLogger()
+
+const seedanceOfficialBaseURL = "https://ark.cn-beijing.volces.com/api/v3"
+
+const (
+	jimengMediaRepairInterval = 60 * time.Second
+	jimengMediaRepairBatch    = 50
+)
 
 // Service 即梦服务（合并了消费者功能）
 type Service struct {
@@ -61,6 +72,7 @@ func (s *Service) Start() {
 	s.running = true
 	go s.consumeTasks()
 	go s.pollTaskStatus()
+	go s.runJimengSuccessMediaRepairLoop()
 }
 
 // Stop 停止服务
@@ -145,22 +157,11 @@ func (s *Service) ProcessTask(jobId uint) error {
 		return fmt.Errorf("get jimeng job failed: %w", err)
 	}
 
-	// 更新任务状态为处理中
-	if err := s.UpdateJobStatus(job.Id, types.JMTaskStatusGenerating, ""); err != nil {
-		return fmt.Errorf("update job status failed: %w", err)
-	}
-
 	// 解析任务参数
 	var req types.JimengTaskRequest
 	err := utils.JsonDecode(job.Params, &req)
 	if err != nil {
 		return fmt.Errorf("parse task params failed: %w", err)
-	}
-
-	// 构建请求并提交任务
-	params, err := s.buildTaskRequest(&req)
-	if err != nil {
-		return s.handleTaskError(job.Id, fmt.Sprintf("build task request failed: %v", err))
 	}
 
 	// 数字人任务，先识别主体
@@ -170,8 +171,8 @@ func (s *Service) ProcessTask(jobId uint) error {
 		}
 	}
 
-	// 同步任务 ，后台执行
-	if req.ReqKey == DoubaoSeedream40ReqKey {
+	// Seedream 同步生图（Ark）
+	if IsSeedreamReqKey(req.ReqKey) {
 		go func() {
 			resp, err := s.client.SubmitSyncImageTask(req)
 			if err != nil {
@@ -191,16 +192,42 @@ func (s *Service) ProcessTask(jobId uint) error {
 				return
 			}
 
+			if len(resp.Data) == 0 || resp.Data[0] == nil || resp.Data[0].Url == nil || strings.TrimSpace(*resp.Data[0].Url) == "" {
+				_ = s.db.Model(&model.JimengJob{}).Where("id = ?", job.Id).Update("raw_data", string(rawData)).Error
+				_ = s.handleTaskError(job.Id, "seedream response has no image url")
+				return
+			}
+
+			remoteURL := strings.TrimSpace(*resp.Data[0].Url)
+			ext := filepath.Ext(strings.Split(remoteURL, "?")[0])
+			if ext == "" {
+				ext = ".png"
+			}
+
 			// 更新任务状态
 			updates["status"] = types.JMTaskStatusSuccess
-			// 下载图片
-			imgUrl, err := s.uploader.GetUploadHandler().PutUrlFile(*resp.Data[0].Url, ".png", false)
-			if err == nil {
-				updates["img_url"] = imgUrl
+			// 转存到本地/OSS（失败时回退为官方临时 URL，与即梦异步任务一致）
+			imgURL, err := s.uploader.GetUploadHandler().PutUrlFile(remoteURL, ext, false)
+			if err != nil {
+				logger.Errorf("jimeng seedream upload image failed, job_id=%d: %v", job.Id, err)
+				imgURL = remoteURL
 			}
+			updates["img_url"] = imgURL
+			updates["progress"] = 100
 			s.db.Model(&model.JimengJob{}).Where("id = ?", job.Id).Updates(updates)
 		}()
 		return nil
+	}
+
+	// Seedance 视频任务（DoubaoAdapter）
+	if IsSeedanceReqKey(req.ReqKey) {
+		return s.submitSeedanceTask(job.Id, &req)
+	}
+
+	// 其他请求走即梦 Visual 异步任务
+	params, err := s.buildTaskRequest(&req)
+	if err != nil {
+		return s.handleTaskError(job.Id, fmt.Sprintf("build task request failed: %v", err))
 	}
 
 	logger.Debugf("提交即梦任务: %+v", params)
@@ -226,6 +253,123 @@ func (s *Service) ProcessTask(jobId uint) error {
 	}
 
 	return nil
+}
+
+func (s *Service) submitSeedanceTask(jobId uint, req *types.JimengTaskRequest) error {
+	jimengConfig, err := s.getJimengConfig()
+	if err != nil {
+		return s.handleTaskError(jobId, fmt.Sprintf("load jimeng config failed: %v", err))
+	}
+
+	content := s.buildSeedanceContent(req)
+	if len(content) == 0 {
+		return s.handleTaskError(jobId, "seedance content 不能为空")
+	}
+
+	payload := map[string]any{
+		"model":      req.ReqKey,
+		"content":    content,
+		"duration":   req.Duration,
+		"ratio":      req.AspectRatio,
+		"resolution": req.Resolution,
+	}
+	// 兼容旧参数：0 让官方走默认值
+	if req.Duration == 0 {
+		delete(payload, "duration")
+	}
+	if req.AspectRatio == "" {
+		delete(payload, "ratio")
+	}
+	if req.Resolution == "" {
+		delete(payload, "resolution")
+	}
+	if req.ReturnLastFrame {
+		payload["return_last_frame"] = req.ReturnLastFrame
+	}
+	if req.Watermark != nil {
+		payload["watermark"] = *req.Watermark
+	}
+	if req.GenerateAudio != nil {
+		payload["generate_audio"] = *req.GenerateAudio
+	}
+
+	resp, rawData, err := s.callSeedanceCreate(payload, jimengConfig)
+	if err != nil {
+		return s.handleTaskError(jobId, fmt.Sprintf("submit seedance task failed: %v", err))
+	}
+
+	logger.Debugf("seedance create response: %+v", resp)
+
+	if err := s.db.Model(&model.JimengJob{}).Where("id = ?", jobId).Updates(map[string]any{
+		"task_id":    resp.TaskID,
+		"raw_data":   rawData,
+		"status":     types.JMTaskStatusInQueue,
+		"updated_at": time.Now(),
+	}).Error; err != nil {
+		logger.Errorf("update seedance task_id failed: %v", err)
+	}
+	return nil
+}
+
+func (s *Service) buildSeedanceContent(req *types.JimengTaskRequest) []types.JMContentItem {
+	if len(req.Content) > 0 {
+		return req.Content
+	}
+
+	content := make([]types.JMContentItem, 0, 4)
+	if req.Prompt != "" {
+		content = append(content, types.JMContentItem{
+			Type: "text",
+			Text: req.Prompt,
+		})
+	}
+
+	if len(req.ImageUrls) > 0 {
+		for index, imageURL := range req.ImageUrls {
+			if imageURL == "" {
+				continue
+			}
+			role := "reference_image"
+			if len(req.ImageUrls) == 1 {
+				role = "first_frame"
+			} else if len(req.ImageUrls) == 2 {
+				if index == 0 {
+					role = "first_frame"
+				} else {
+					role = "last_frame"
+				}
+			}
+			content = append(content, types.JMContentItem{
+				Type: "image_url",
+				ImageURL: &types.JMAssetRef{
+					URL: imageURL,
+				},
+				Role: role,
+			})
+		}
+	}
+
+	if req.VideoURL != "" {
+		content = append(content, types.JMContentItem{
+			Type: "video_url",
+			VideoURL: &types.JMAssetRef{
+				URL: req.VideoURL,
+			},
+			Role: "reference_video",
+		})
+	}
+
+	if req.AudioURL != "" {
+		content = append(content, types.JMContentItem{
+			Type: "audio_url",
+			AudioURL: &types.JMAssetRef{
+				URL: req.AudioURL,
+			},
+			Role: "reference_audio",
+		})
+	}
+
+	return content
 }
 
 // buildTaskRequest 构建任务请求（统一的参数解析）
@@ -295,8 +439,15 @@ func (s *Service) pollTaskStatus() {
 				continue
 			}
 
-			// 豆包生图 4.0 是同步任务，不需要轮询
-			if job.ReqKey == DoubaoSeedream40ReqKey {
+			// Seedream 为同步任务，不需要轮询
+			if IsSeedreamReqKey(job.ReqKey) {
+				continue
+			}
+
+			if IsSeedanceReqKey(job.ReqKey) {
+				if err := s.pollSeedanceTask(&job); err != nil {
+					s.handleTaskError(job.Id, err.Error())
+				}
 				continue
 			}
 
@@ -333,6 +484,7 @@ func (s *Service) pollTaskStatus() {
 				updates := map[string]any{
 					"status":     types.JMTaskStatusSuccess,
 					"updated_at": time.Now(),
+					"progress":   100,
 				}
 
 				// 设置结果URL
@@ -370,13 +522,13 @@ func (s *Service) pollTaskStatus() {
 
 		}
 
-		// 找出失败的任务，并恢复其扣减算力
+		// 找出失败的任务，并恢复其扣减积分
 		s.db.Where("status = ?", types.JMTaskStatusFailed).Where("power > ?", 0).Find(&jobs)
 		for _, job := range jobs {
 			err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 				Type:   types.PowerRefund,
 				Model:  job.ReqKey,
-				Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d", job.Id),
+				Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d", job.Id),
 			})
 			if err != nil {
 				continue
@@ -389,6 +541,159 @@ func (s *Service) pollTaskStatus() {
 
 	}
 
+}
+
+func (s *Service) pollSeedanceTask(job *model.JimengJob) error {
+	jimengConfig, err := s.getJimengConfig()
+	if err != nil {
+		return fmt.Errorf("load jimeng config failed: %w", err)
+	}
+
+	resp, rawData, err := s.callSeedanceQuery(job.TaskId, jimengConfig)
+	if err != nil {
+		return fmt.Errorf("query seedance task failed: %w", err)
+	}
+
+	logger.Debugf("seedance query response: %+v", resp)
+
+	s.db.Model(&model.JimengJob{}).Where("id = ?", job.Id).Update("raw_data", rawData)
+
+	switch resp.Status {
+	case "succeeded":
+		updates := map[string]any{
+			"status":     types.JMTaskStatusSuccess,
+			"updated_at": time.Now(),
+			"progress":   100,
+		}
+		if resp.Content.VideoURL != "" {
+			videoURL, upErr := s.uploader.GetUploadHandler().PutUrlFile(resp.Content.VideoURL, ".mp4", false)
+			if upErr != nil {
+				logger.Errorf("upload seedance video failed: %v", upErr)
+				videoURL = resp.Content.VideoURL
+			}
+			updates["video_url"] = videoURL
+		}
+		return s.db.Model(&model.JimengJob{}).Where("id = ?", job.Id).Updates(updates).Error
+	case "queued", "running":
+		return s.UpdateJobStatus(job.Id, types.JMTaskStatusGenerating, "")
+	case "failed", "cancelled":
+		errMsg := resp.Error
+		if errMsg == "" {
+			errMsg = "seedance task failed"
+		}
+		return fmt.Errorf("%s", errMsg)
+	default:
+		return nil
+	}
+}
+
+type seedanceCreateResponse struct {
+	ID         string `json:"id"`
+	PlatformID string `json:"platform_id"`
+}
+
+type seedanceCreateResult struct {
+	TaskID string
+}
+
+type seedanceQueryResponse struct {
+	ID         string `json:"id"`
+	PlatformID string `json:"platform_id"`
+	Status     string `json:"status"`
+	Error      string `json:"error"`
+	Content    struct {
+		VideoURL string `json:"video_url"`
+	} `json:"content"`
+}
+
+func (s *Service) callSeedanceCreate(payload map[string]any, jimengConfig *types.JimengConfig) (*seedanceCreateResult, string, error) {
+	if jimengConfig == nil || strings.TrimSpace(jimengConfig.ApiKey) == "" {
+		return nil, "", fmt.Errorf("jimeng api key 未配置")
+	}
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, "", err
+	}
+	url := fmt.Sprintf("%s/contents/generations/tasks", seedanceOfficialBaseURL)
+	req, err := http.NewRequest("POST", url, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(jimengConfig.ApiKey))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, string(raw), fmt.Errorf("status=%d body=%s", resp.StatusCode, string(raw))
+	}
+	var parsed seedanceCreateResponse
+	if err := json.Unmarshal(raw, &parsed); err != nil {
+		return nil, string(raw), err
+	}
+	taskID := parsed.PlatformID
+	if taskID == "" {
+		taskID = parsed.ID
+	}
+	if taskID == "" {
+		return nil, string(raw), fmt.Errorf("seedance create 响应缺少 task id: %s", string(raw))
+	}
+	return &seedanceCreateResult{TaskID: taskID}, string(raw), nil
+}
+
+func (s *Service) callSeedanceQuery(taskID string, jimengConfig *types.JimengConfig) (*seedanceQueryResponse, string, error) {
+	if jimengConfig == nil || strings.TrimSpace(jimengConfig.ApiKey) == "" {
+		return nil, "", fmt.Errorf("jimeng api key 未配置")
+	}
+	url := fmt.Sprintf("%s/contents/generations/tasks/%s", seedanceOfficialBaseURL, taskID)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(jimengConfig.ApiKey))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, string(raw), fmt.Errorf("status=%d body=%s", resp.StatusCode, string(raw))
+	}
+	var parsed seedanceQueryResponse
+	if err := json.Unmarshal(raw, &parsed); err != nil {
+		return nil, string(raw), err
+	}
+	return &parsed, string(raw), nil
+}
+
+func (s *Service) getJimengConfig() (*types.JimengConfig, error) {
+	var configRow model.Config
+	if err := s.db.Where("name = ?", types.ConfigKeyJimeng).First(&configRow).Error; err != nil {
+		return nil, err
+	}
+	var jimengConfig types.JimengConfig
+	if err := utils.JsonDecode(configRow.Value, &jimengConfig); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(jimengConfig.ApiKey) == "" {
+		return nil, fmt.Errorf("jimeng api key 未配置")
+	}
+	return &jimengConfig, nil
 }
 
 // UpdateJobStatus 更新任务状态
@@ -444,6 +749,142 @@ func (s *Service) GetTaskStats() (map[string]any, error) {
 	}
 
 	return result, nil
+}
+
+// runJimengSuccessMediaRepairLoop 定时修复：状态已是 success 但进度未满且媒体地址均为空的任务，从 raw_data 重新解析并转存。
+func (s *Service) runJimengSuccessMediaRepairLoop() {
+	ticker := time.NewTicker(jimengMediaRepairInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-s.ctx.Done():
+			logger.Info("Jimeng success-media repair loop stopped")
+			return
+		case <-ticker.C:
+			s.repairJimengSuccessJobsMediaOnce()
+		}
+	}
+}
+
+func (s *Service) repairJimengSuccessJobsMediaOnce() {
+	var jobs []model.JimengJob
+	err := s.db.Where("status = ?", types.JMTaskStatusSuccess).
+		Where("progress <> ?", 100).
+		Where("(COALESCE(img_url, '') = ? AND COALESCE(video_url, '') = ?)", "", "").
+		Where("raw_data IS NOT NULL AND raw_data <> ?", "").
+		Order("id ASC").
+		Limit(jimengMediaRepairBatch).
+		Find(&jobs).Error
+	if err != nil {
+		logger.Errorf("jimeng media repair query failed: %v", err)
+		return
+	}
+	if len(jobs) == 0 {
+		return
+	}
+	for i := range jobs {
+		job := jobs[i]
+		remoteImg, remoteVid := parseJimengRawMediaURLs(job.RawData)
+		if strings.TrimSpace(remoteImg) == "" && strings.TrimSpace(remoteVid) == "" {
+			logger.Warnf("jimeng media repair: job_id=%d no media url in raw_data", job.Id)
+			continue
+		}
+		updates := map[string]any{
+			"updated_at": time.Now(),
+			"progress":   100,
+		}
+		if strings.TrimSpace(remoteImg) != "" {
+			updates["img_url"] = s.putJimengRemoteMedia(strings.TrimSpace(remoteImg), ".png", false)
+		}
+		if strings.TrimSpace(remoteVid) != "" {
+			updates["video_url"] = s.putJimengRemoteMedia(strings.TrimSpace(remoteVid), ".mp4", true)
+		}
+		if err := s.db.Model(&model.JimengJob{}).Where("id = ?", job.Id).Updates(updates).Error; err != nil {
+			logger.Errorf("jimeng media repair update failed job_id=%d: %v", job.Id, err)
+		} else {
+			logger.Infof("jimeng media repair ok job_id=%d", job.Id)
+		}
+	}
+}
+
+// parseJimengRawMediaURLs 从 raw_data 解析远程图片/视频地址（即梦异步、Ark Seedream、Seedance）。
+func parseJimengRawMediaURLs(raw string) (remoteImg, remoteVideo string) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", ""
+	}
+	var root map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(raw), &root); err != nil {
+		return "", ""
+	}
+
+	if dataRaw, ok := root["data"]; ok {
+		dataBytes := []byte(dataRaw)
+		trimmed := bytes.TrimSpace(dataBytes)
+		if len(trimmed) > 0 && trimmed[0] == '[' {
+			var items []struct {
+				Url *string `json:"url"`
+			}
+			if json.Unmarshal(dataBytes, &items) == nil {
+				for _, it := range items {
+					if it.Url != nil && strings.TrimSpace(*it.Url) != "" {
+						return strings.TrimSpace(*it.Url), ""
+					}
+				}
+			}
+		} else {
+			var qd struct {
+				ImageUrls []string `json:"image_urls"`
+				VideoUrl  string   `json:"video_url"`
+			}
+			if json.Unmarshal(dataBytes, &qd) == nil {
+				img := ""
+				if len(qd.ImageUrls) > 0 {
+					img = strings.TrimSpace(qd.ImageUrls[0])
+				}
+				vid := strings.TrimSpace(qd.VideoUrl)
+				if img != "" || vid != "" {
+					return img, vid
+				}
+			}
+		}
+	}
+
+	if contentRaw, ok := root["content"]; ok {
+		var c struct {
+			VideoURL string `json:"video_url"`
+		}
+		if json.Unmarshal(contentRaw, &c) == nil && strings.TrimSpace(c.VideoURL) != "" {
+			return "", strings.TrimSpace(c.VideoURL)
+		}
+	}
+
+	return "", ""
+}
+
+func (s *Service) putJimengRemoteMedia(remote, fallbackExt string, isVideo bool) string {
+	remote = strings.TrimSpace(remote)
+	if remote == "" {
+		return ""
+	}
+	ext := fallbackExt
+	if !isVideo {
+		u := remote
+		if i := strings.Index(u, "?"); i >= 0 {
+			u = u[:i]
+		}
+		if e := filepath.Ext(u); e != "" {
+			ext = e
+		}
+	} else {
+		ext = ".mp4"
+	}
+	out, err := s.uploader.GetUploadHandler().PutUrlFile(remote, ext, false)
+	if err != nil {
+		logger.Errorf("jimeng putJimengRemoteMedia failed: %v", err)
+		return remote
+	}
+	return out
 }
 
 // GetJob 获取任务

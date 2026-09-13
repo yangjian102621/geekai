@@ -53,6 +53,7 @@ type SunoJob struct {
 	CoverURL     string                 `json:"cover_url"`    // 封面图 URL
 	AudioURL     string                 `json:"audio_url"`    // 音频 URL
 	ModelName    string                 `json:"model_name"`   // 模型名称
+	Status       string                 `json:"status"`       // 任务状态
 	Progress     int                    `json:"progress"`     // 任务进度
 	Duration     int                    `json:"duration"`     // 银屏时长，秒
 	Publish      bool                   `json:"publish"`      // 是否发布

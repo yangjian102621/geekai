@@ -6,28 +6,61 @@
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import nodata from '@/assets/img/no-data.png'
+import failedIcon from '@/assets/img/failed.png'
+import loadingGif from '@/assets/img/loading.gif'
 import { checkSession } from '@/store/cache'
 import { getVideoModelByKey, getVideoModels, getVideoProviders } from '@/store/data/video_params'
-import { useSharedStore } from '@/store/sharedata'
 import { closeLoading, showLoading, showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
-import { replaceImg, substr } from '@/utils/libs'
+import { getThumbURL, replaceImg, substr } from '@/utils/libs'
 import Clipboard from 'clipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
 export const useVideoStore = defineStore('video', () => {
+  const normalizeWorkItemThumb = (item) => {
+    if (!item) {
+      return item
+    }
+    if (item.status === 'success' && item.video_url) {
+      item.img_thumb = getThumbURL(replaceImg(item.video_url), 300, 0)
+      return item
+    }
+    if (item.status === 'failed') {
+      item.img_thumb = failedIcon
+      return item
+    }
+    if (item.status === 'downloading') {
+      item.img_thumb = loadingGif
+      return item
+    }
+    item.img_thumb = loadingGif
+    return item
+  }
+
+  const normalizeWorkListThumbs = (rows) => {
+    if (!rows || !rows.length) {
+      return rows
+    }
+    for (const row of rows) {
+      normalizeWorkItemThumb(row)
+    }
+    return rows
+  }
+
   const providers = getVideoProviders()
   const activeProvider = ref(providers.includes('sora') ? 'sora' : providers[0] || '')
 
   const loading = ref(false)
   const submitting = ref(false)
+  const taskList = ref([])
   const list = ref([])
   const noData = ref(true)
   const page = ref(1)
   const pageSize = ref(10)
   const total = ref(0)
+  const isOver = ref(false)
   const taskPulling = ref(true)
   const pullHandler = ref(null)
   const clipboard = ref(null)
@@ -35,9 +68,7 @@ export const useVideoStore = defineStore('video', () => {
   const showDialog = ref(false)
   const currentVideoUrl = ref('')
 
-  const isLogin = ref(false)
   const availablePower = ref(0)
-  const shareStore = useSharedStore()
 
   const taskFilter = ref('all') // 'all' 或 provider
 
@@ -48,10 +79,11 @@ export const useVideoStore = defineStore('video', () => {
   const currentPowerCost = ref(0)
 
   const currentList = computed(() => {
-    return list.value.filter((item) => {
+    const filtered = list.value.filter((item) => {
       if (taskFilter.value === 'all') return true
       return item.type === taskFilter.value
     })
+    return filtered
   })
 
   const providerModels = computed(() => {
@@ -72,11 +104,10 @@ export const useVideoStore = defineStore('video', () => {
     if (pullHandler.value) {
       clearInterval(pullHandler.value)
     }
+    pollLatest()
     pullHandler.value = setInterval(() => {
-      if (taskPulling.value) {
-        fetchData(page.value)
-      }
-    }, 5000)
+        pollLatest()
+    }, 2000)
   }
 
   const stopPolling = () => {
@@ -89,11 +120,11 @@ export const useVideoStore = defineStore('video', () => {
   const init = async () => {
     try {
       const user = await checkSession()
-      isLogin.value = true
       availablePower.value = user.power
 
       initClipboard()
       await loadPowerConfig()
+      await fetchTaskList()
       await fetchData(1)
       startPolling()
     } catch (error) {
@@ -108,40 +139,126 @@ export const useVideoStore = defineStore('video', () => {
     stopPolling()
   }
 
-  const fetchData = async (_page) => {
-    if (_page) {
-      page.value = _page
-    }
-
+  const fetchData = async (pageNum = 1) => {
     try {
       loading.value = true
-      const res = await httpGet('/api/video/list', {
-        page: page.value,
+      page.value = pageNum
+      if (pageNum === 1) {
+        isOver.value = false
+      }
+
+      const res = await httpGet('/api/video/works', {
+        page: pageNum,
         page_size: pageSize.value,
         type: taskFilter.value === 'all' ? '' : taskFilter.value,
       })
-
+  
       total.value = res.data.total
-      let needPull = false
-      const items = []
-      for (let v of res.data.items) {
-        // 检查是否需要继续轮询：progress 为 0 或 102，或者状态为 pending/in_progress/downloading
-        if (v.status === 'pending' || v.status === 'in_progress' || v.status === 'downloading') {
-          needPull = true
+      const items = (res.data.items || []).map((v) => ({
+        ...v,
+        downloading: false,
+      }))
+      normalizeWorkListThumbs(items)
+  
+      if (items.length === 0) {
+        isOver.value = true
+        if (pageNum === 1) {
+          list.value = []
+          noData.value = true
         }
-        items.push({
-          ...v,
-          downloading: false,
-        })
+        taskPulling.value = false
+        return
       }
+
+      if (items.length < pageSize.value || pageNum * pageSize.value >= total.value) {
+        isOver.value = true
+      }
+
+      const needPull = items.some((item) => item.status === 'downloading')
       taskPulling.value = needPull
-      list.value = items
+  
+      if (pageNum === 1) {
+        list.value = items
+      } else {
+        const merged = [...list.value]
+        const exists = new Set(merged.map((it) => it.id))
+        for (const item of items) {
+          if (!exists.has(item.id)) {
+            merged.push(item)
+          }
+        }
+        list.value = merged
+      }
       noData.value = list.value.length === 0
     } catch (error) {
-      noData.value = true
+      if (pageNum === 1) {
+        noData.value = true
+      }
       console.error('获取任务列表失败:', error)
     } finally {
       loading.value = false
+    }
+  }
+
+  const pollLatest = async () => {
+    try {
+      const [taskRes, workRes] = await Promise.all([
+        httpGet('/api/video/tasks', {
+          type: taskFilter.value === 'all' ? '' : taskFilter.value,
+        }),
+        httpGet('/api/video/works', {
+          page: 1,
+          page_size: pageSize.value,
+          type: taskFilter.value === 'all' ? '' : taskFilter.value,
+        }),
+      ])
+      const nextTasks = (taskRes.data || []).map((v) => ({ ...v, downloading: false }))
+      taskList.value = nextTasks
+        const res = workRes
+      const items = (res.data.items || []).map((v) => ({ ...v, downloading: false }))
+      normalizeWorkListThumbs(items)
+        let needPull = false
+      const latestMap = new Map(items.map((it) => [it.id, it]))
+      const matchedIds = []
+      const missedIds = []
+      for (const fetchedItem of items) {
+        if (list.value.some((localItem) => localItem.id === fetchedItem.id)) {
+          matchedIds.push(fetchedItem.id)
+        } else {
+          missedIds.push(fetchedItem.id)
+        }
+      }
+        list.value = list.value.map((row) => {
+        const latest = latestMap.get(row.id)
+        if (!latest) {
+          return row
+        }
+        if (latest.status === 'downloading') {
+          needPull = true
+        }
+        return normalizeWorkItemThumb({ ...row, ...latest })
+      })
+      for (const row of items) {
+        if (!list.value.some((item) => item.id === row.id)) {
+          list.value.unshift(row)
+        }
+      }
+      normalizeWorkListThumbs(list.value)
+      taskPulling.value = needPull || nextTasks.length > 0
+      } catch (error) {
+        console.error('轮询视频任务失败:', error)
+    }
+  }
+
+  const fetchTaskList = async () => {
+    try {
+      const res = await httpGet('/api/video/tasks', {
+        type: taskFilter.value === 'all' ? '' : taskFilter.value,
+      })
+      const items = (res.data || []).map((v) => ({ ...v, downloading: false }))
+      taskList.value = items
+      } catch (error) {
+      console.error('获取任务列表失败:', error)
     }
   }
 
@@ -152,6 +269,8 @@ export const useVideoStore = defineStore('video', () => {
   const switchTaskFilter = (filter) => {
     taskFilter.value = filter
     page.value = 1
+    isOver.value = false
+    fetchTaskList()
     fetchData(1)
   }
 
@@ -160,7 +279,7 @@ export const useVideoStore = defineStore('video', () => {
       const res = await httpGet('/api/video/power-config')
       powerConfig.value = res.data || {}
     } catch (error) {
-      console.error('加载算力配置失败:', error)
+      console.error('加载积分配置失败:', error)
       powerConfig.value = {}
     }
   }
@@ -218,7 +337,7 @@ export const useVideoStore = defineStore('video', () => {
   // 防抖定时器
   let powerDebounceTimer = null
 
-  // 根据 priceKey 获取算力值
+  // 根据 priceKey 获取积分值
   const getPowerByPriceKey = async (modelKey, priceKey) => {
     try {
       const res = await httpGet('/api/video/power-by-key', {
@@ -227,7 +346,7 @@ export const useVideoStore = defineStore('video', () => {
       })
       return res.data?.power || 0
     } catch (error) {
-      console.error('获取算力失败:', error)
+      console.error('获取积分失败:', error)
       return 0
     }
   }
@@ -258,7 +377,7 @@ export const useVideoStore = defineStore('video', () => {
         return
       }
 
-      // 调用 API 获取算力
+      // 调用 API 获取积分
       const power = await getPowerByPriceKey(modelKey, priceKey)
       currentPowerCost.value = power
     }, 300) // 300ms 防抖
@@ -290,11 +409,6 @@ export const useVideoStore = defineStore('video', () => {
   }
 
   const createVideoTask = async () => {
-    if (!isLogin.value) {
-      shareStore.setShowLoginDialog(true)
-      return
-    }
-
     const modelKey = formData.value?.req_key
     if (!modelKey) {
       return ElMessage.error('请选择模型')
@@ -349,6 +463,8 @@ export const useVideoStore = defineStore('video', () => {
       await httpPost('/api/video/create', requestData)
       showMessageOK('任务创建成功')
       closeLoading()
+      isOver.value = false
+      await fetchTaskList()
       await fetchData(1)
       taskPulling.value = true
     } catch (error) {
@@ -399,6 +515,8 @@ export const useVideoStore = defineStore('video', () => {
 
       await httpGet('/api/video/remove', { id: item.id })
       ElMessage.success('任务删除成功')
+      isOver.value = false
+      await fetchTaskList()
       await fetchData(1)
     } catch (error) {
       if (error !== 'cancel') {
@@ -415,14 +533,15 @@ export const useVideoStore = defineStore('video', () => {
     loading,
     submitting,
     list,
+    taskList,
     currentList,
     noData,
     page,
     pageSize,
     total,
+    isOver,
     showDialog,
     currentVideoUrl,
-    isLogin,
     availablePower,
     nodata,
     taskFilter,
@@ -435,6 +554,7 @@ export const useVideoStore = defineStore('video', () => {
     init,
     cleanup,
     fetchData,
+    fetchTaskList,
     switchProvider,
     switchTaskFilter,
 

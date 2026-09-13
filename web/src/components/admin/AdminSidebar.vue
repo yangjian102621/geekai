@@ -15,14 +15,14 @@
       unique-opened
       router
     >
-      <template v-for="item in items">
+      <template v-for="item in items" :key="item.path">
         <template v-if="item.subs">
           <el-sub-menu :index="item.index" :key="item.index">
             <template #title>
               <i :class="'iconfont icon-' + item.icon"></i>
               <span>{{ item.title }}</span>
             </template>
-            <template v-for="subItem in item.subs">
+            <template v-for="subItem in item.subs" :key="subItem.index">
               <el-sub-menu v-if="subItem.subs" :index="subItem.index" :key="subItem.index">
                 <template #title>{{ subItem.title }}</template>
                 <el-menu-item

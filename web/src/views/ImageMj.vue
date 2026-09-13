@@ -2,188 +2,131 @@
   <div class="page-mj">
     <div class="inner custom-scroll">
       <div class="mj-box">
-        <h2>MidJourney 创作中心</h2>
+        <header class="mj-box__head">
+          <h2 class="mj-box__title">MidJourneyAI生图</h2>
+        </header>
 
         <div class="mj-params" :style="{ height: paramBoxHeight + 'px' }">
-          <el-form :model="params" label-width="80px" label-position="left">
-            <div class="param-line pt">
-              <span>图片比例：</span>
-              <el-tooltip content="生成图片的尺寸比例" placement="right">
-                <el-icon>
-                  <InfoFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
+          <el-form :model="params" label-position="top" class="mj-params-form" label-width="auto">
+            <section class="mj-sec">
+              <h3 class="mj-sec__title">比例</h3>
+              <p class="mj-sec__hint" title="生成图的宽高比；也可在提示词末尾写 --ar 宽:高">
+                点击选择比例；或在提示词中加 <code class="mj-code">--ar w:h</code>
+              </p>
+              <div class="mj-aspect-chips" role="list">
+                <button
+                  v-for="item in rates"
+                  :key="item.value"
+                  type="button"
+                  class="mj-chip"
+                  :class="{ 'mj-chip--active': item.value === params.rate }"
+                  :title="'比例 ' + item.text"
+                  @click="changeRate(item)"
+                >
+                  {{ item.text }}
+                </button>
+              </div>
+            </section>
 
-            <div class="param-line pt">
-              <el-row :gutter="10">
-                <el-col :span="8" v-for="item in rates" :key="item.value">
-                  <div
-                    class="flex-col items-center"
-                    :class="item.value === params.rate ? 'grid-content active' : 'grid-content'"
-                    @click="changeRate(item)"
-                  >
-                    <el-image class="icon" :src="item.img" fit="cover"></el-image>
-                    <div class="text">{{ item.text }}</div>
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
-
-            <div class="param-line" style="padding-top: 10px">
-              <el-form-item label="图片画质">
-                <template #default>
-                  <div class="form-item-inner flex-row items-center">
-                    <el-select v-model="params.quality" placeholder="请选择" style="width: 150px">
-                      <el-option
-                        v-for="item in options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                      >
-                      </el-option>
-                    </el-select>
-                    <el-tooltip content="生成的图片质量，质量越好出图越慢" placement="right">
-                      <el-icon>
-                        <InfoFilled />
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
+            <section class="mj-sec">
+              <h3 class="mj-sec__title">画质</h3>
+              <p class="mj-sec__hint">越高越慢，细节相对更好。</p>
+              <el-form-item label="输出档位" class="mj-form-item--compact">
+                <el-select v-model="params.quality" placeholder="默认" class="mj-select-full">
+                  <el-option
+                    v-for="item in options"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
               </el-form-item>
-            </div>
+            </section>
 
-            <div class="param-line pt">
-              <span>模型选择：</span>
-              <el-tooltip
-                content="MJ: 偏真实通用模型 <br/>NIJI: 偏动漫风格、适用于二次元模型"
-                raw-content
-                placement="right"
-              >
-                <el-icon>
-                  <InfoFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
-            <div class="param-line pt">
-              <el-row :gutter="10">
-                <el-col :span="12" v-for="item in models" :key="item.value">
-                  <div
-                    :class="item.value === params.model ? 'model active' : 'model'"
-                    @click="changeModel(item)"
-                  >
-                    <el-image :src="item.img" fit="cover"></el-image>
-                    <div class="text">{{ item.text }}</div>
+            <section class="mj-sec">
+              <h3 class="mj-sec__title">模型</h3>
+              <div class="mj-model-cards">
+                <button
+                  v-for="item in models"
+                  :key="item.value"
+                  type="button"
+                  class="mj-model-card"
+                  :class="{ 'mj-model-card--active': item.value === params.model }"
+                  @click="changeModel(item)"
+                >
+                  <div class="mj-model-card__row">
+                    <span class="mj-model-card__name">{{ item.text }}</span>
+                    <code class="mj-model-card__flag">{{ item.flag }}</code>
                   </div>
-                </el-col>
-              </el-row>
-            </div>
+                  <div class="mj-model-card__badge">{{ item.badge }}</div>
+                  <p class="mj-model-card__summary">{{ item.summary }}</p>
+                </button>
+              </div>
+            </section>
 
-            <div class="param-line">
-              <el-form-item label="重复平铺">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-switch v-model="params.tile" inactive-color="#464649" />
+            <section class="mj-sec">
+              <h3 class="mj-sec__title">选项</h3>
+              <div class="mj-switch-grid">
+                <label class="mj-switch-row">
+                  <span class="mj-switch-row__text"
+                    >重复平铺
+                    <el-tooltip content="生成可无缝平铺的重复图案" placement="right">
+                      <i class="iconfont icon-info !text-sm"></i>
+                    </el-tooltip>
+                  </span>
+
+                  <el-switch v-model="params.tile" inactive-color="#464649" />
+                </label>
+                <label class="mj-switch-row">
+                  <span class="mj-switch-row__text"
+                    >RAW 模式
                     <el-tooltip
-                      content="重复：--tile，参数释义：生成可用作重复平铺的图像，以创建无缝图案。"
-                      raw-content
+                      content="更写实、细节更强，建议写更长提示词。动漫模型勿开。"
                       placement="right"
                     >
-                      <el-icon>
-                        <InfoFilled />
-                      </el-icon>
+                      <i class="iconfont icon-info !text-sm"></i>
                     </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+                  </span>
 
-            <div class="param-line">
-              <el-form-item label="原始模式">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-switch v-model="params.raw" inactive-color="#464649" />
-                    <el-tooltip
-                      content="启用新的RAW模式，呈现的人物写实感更加逼真，人物细节、光源、流畅度也更加接近原始作品。<br/> 同时也意味着您需要添加更长的提示。"
-                      raw-content
-                      placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled />
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+                  <el-switch v-model="params.raw" inactive-color="#464649" />
+                </label>
+              </div>
+            </section>
 
-            <div class="param-line" style="padding-top: 10px">
-              <el-form-item label="创意度">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-slider
-                      v-model.number="params.chaos"
-                      :max="100"
-                      :step="1"
-                      style="width: 180px"
-                    />
-                    <el-tooltip
-                      content="参数用法：--chaos 或--c，取值范围: 0-100 <br/> 取值越高结果越发散，反之则稳定收敛<br /> 默认值0最为精准稳定"
-                      raw-content
-                      placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled />
-                      </el-icon>
+            <section class="mj-sec mj-sec--last">
+              <h3 class="mj-sec__title">高级</h3>
+              <div class="mj-slider-field" title="--chaos 0–100，越高越发散，0 最稳">
+                <el-form-item class="mj-form-item--compact">
+                  <template #label>
+                    <span class="mr-1">创意度</span>
+                    <el-tooltip content="--chaos 0–100，越高越发散，0 最稳" placement="right">
+                      <i class="iconfont icon-info !text-sm"></i>
                     </el-tooltip>
+                  </template>
+                  <div class="w-full px-4">
+                    <el-slider v-model.number="params.chaos" :max="100" :step="1" />
                   </div>
-                </template>
-              </el-form-item>
-            </div>
-
-            <div class="param-line">
-              <el-form-item label="风格化">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-slider
-                      v-model.number="params.stylize"
-                      :min="0"
-                      :max="1000"
-                      :step="1"
-                      style="width: 180px"
-                    />
-                    <el-tooltip
-                      content="风格化：--stylize 或 --s，范围 1-1000，默认值100 <br/>高取值会产生非常艺术化但与提示关联性较低的图像"
-                      raw-content
-                      placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled />
-                      </el-icon>
+                </el-form-item>
+              </div>
+              <div class="mj-slider-field" title="--stylize 0–1000，越高越艺术">
+                <el-form-item class="mj-form-item--compact">
+                  <template #label>
+                    <span class="mr-1">风格化</span>
+                    <el-tooltip content="--stylize 0–1000，越高越艺术" placement="right">
+                      <i class="iconfont icon-info !text-sm"></i>
                     </el-tooltip>
+                  </template>
+                  <div class="w-full px-4">
+                    <el-slider v-model.number="params.stylize" :min="0" :max="1000" :step="1" />
                   </div>
-                </template>
-              </el-form-item>
-            </div>
-
-            <div class="param-line">
-              <el-form-item label="随机种子">
-                <template #default>
-                  <div class="form-item-inner">
-                    <el-input v-model.number="params.seed" />
-                    <el-tooltip
-                      content="随机种子：--seed，默认值0表示随机产生 <br/>使用相同的种子参数和描述将产生相似的图像"
-                      raw-content
-                      placement="right"
-                    >
-                      <el-icon>
-                        <InfoFilled />
-                      </el-icon>
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-form-item>
-            </div>
+                </el-form-item>
+              </div>
+              <div class="mj-slider-field" title="--seed：0 或默认随机；相同种子与描述可复现相似图">
+                <el-form-item label="随机种子" class="mj-form-item--compact">
+                  <el-input v-model.number="params.seed" />
+                </el-form-item>
+              </div>
+            </section>
           </el-form>
         </div>
       </div>
@@ -222,7 +165,7 @@
                         maxlength="1024"
                         show-word-limit
                         type="textarea"
-                        ref="promptRef"
+                        ref="promptTextareaTxt"
                         v-loading="promptGenerating"
                         placeholder="请在此输入绘画提示词，您也可以点击下面的提示词助手生成绘画提示词"
                       />
@@ -259,7 +202,6 @@
                         v-model="params.neg_prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
-                        ref="promptRef"
                         maxlength="2000"
                         placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
                       />
@@ -324,7 +266,7 @@
                         v-model="params.prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
-                        ref="promptRef"
+                        ref="promptTextareaImg"
                         v-loading="promptGenerating"
                         placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
                       />
@@ -364,7 +306,6 @@
                         v-model="params.neg_prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
-                        ref="promptRef"
                         placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
                       />
                     </div>
@@ -395,25 +336,17 @@
                   </template>
 
                   <div class="text">
-                    注意：只有于 niji6 和 v6
-                    模型支持一致性功能，如果选择其他模型此功能将会生成失败。
+                    注意：仅 <code>--niji 6</code> 与
+                    <code>--v 6.1</code> 支持一致性功能；选其他模型会生成失败。
                   </div>
                   <div class="param-line cref-two-cols">
                     <div class="cref-col">
                       <label class="cref-label">角色一致性</label>
-                      <ImageUpload
-                        v-model="params.cref"
-                        :max-count="1"
-                        class="cref-upload-inner"
-                      />
+                      <ImageUpload v-model="params.cref" :max-count="1" class="cref-upload-inner" />
                     </div>
                     <div class="cref-col">
                       <label class="cref-label">风格一致性</label>
-                      <ImageUpload
-                        v-model="params.sref"
-                        :max-count="1"
-                        class="cref-upload-inner"
-                      />
+                      <ImageUpload v-model="params.sref" :max-count="1" class="cref-upload-inner" />
                     </div>
                   </div>
 
@@ -466,7 +399,7 @@
                         v-model="params.prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
-                        ref="promptRef"
+                        ref="promptTextareaCref"
                         placeholder="请在此输入绘画提示词，系统会自动翻译中文提示词，高手请直接输入英文提示词"
                       />
                     </div>
@@ -492,7 +425,6 @@
                         v-model="params.neg_prompt"
                         :autosize="{ minRows: 4, maxRows: 6 }"
                         type="textarea"
-                        ref="promptRef"
                         placeholder="请在此输入你不希望出现在图片上的内容，系统会自动翻译中文提示词"
                       />
                     </div>
@@ -502,8 +434,11 @@
 
               <el-row class="text-info">
                 <el-text type="primary">
-                  绘图 {{ mjPower }} 算力；U/V {{ mjUpscalePower }}；融图 {{ mjBlendPower }}；换脸 {{ mjSwapFacePower }}；局部重绘 {{ mjModalPower }} 算力；
-                  当前可用：<el-text type="warning">{{ power }}</el-text>
+                  绘图 {{ mjPower }} 积分；U/V {{ mjUpscalePower }}；融图 {{ mjBlendPower }}；换脸
+                  {{ mjSwapFacePower }}；局部重绘 {{ mjModalPower }} 积分； 当前可用：<el-text
+                    type="warning"
+                    >{{ power }}</el-text
+                  >
                 </el-text>
               </el-row>
 
@@ -527,158 +462,184 @@
             <template v-if="finishedJobs.length > 0">
               <h2 class="text-xl">创作记录</h2>
               <div class="finish-job-list mt-3">
-                <div v-if="finishedJobs.length > 0">
-                  <Waterfall
-                    :list="finishedJobs"
-                    :row-key="waterfallOptions.rowKey"
-                    :gutter="waterfallOptions.gutter"
-                    :has-around-gutter="waterfallOptions.hasAroundGutter"
-                    :width="waterfallOptions.width"
-                    :breakpoints="waterfallOptions.breakpoints"
-                    :img-selector="waterfallOptions.imgSelector"
-                    :background-color="waterfallOptions.backgroundColor"
-                    :animation-effect="waterfallOptions.animationEffect"
-                    :animation-duration="waterfallOptions.animationDuration"
-                    :animation-delay="waterfallOptions.animationDelay"
-                    :animation-cancel="waterfallOptions.animationCancel"
-                    :lazyload="waterfallOptions.lazyload"
-                    :load-props="waterfallOptions.loadProps"
-                    :cross-origin="waterfallOptions.crossOrigin"
-                    :align="waterfallOptions.align"
-                    :is-loading="loading"
-                    :is-over="isOver"
-                    @afterRender="loading = false"
-                  >
-                    <template #default="{ item, url }">
-                      <div
-                        class="bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-linear hover:shadow-md hover:shadow-purple-800 group"
-                      >
-                        <div class="overflow-hidden rounded-lg">
+                <Waterfall
+                  :list="finishedJobs"
+                  :row-key="waterfallOptions.rowKey"
+                  :gutter="waterfallOptions.gutter"
+                  :has-around-gutter="waterfallOptions.hasAroundGutter"
+                  :width="waterfallOptions.width"
+                  :breakpoints="waterfallOptions.breakpoints"
+                  :img-selector="waterfallOptions.imgSelector"
+                  :background-color="waterfallOptions.backgroundColor"
+                  :animation-effect="waterfallOptions.animationEffect"
+                  :animation-duration="waterfallOptions.animationDuration"
+                  :animation-delay="waterfallOptions.animationDelay"
+                  :animation-cancel="waterfallOptions.animationCancel"
+                  :lazyload="waterfallOptions.lazyload"
+                  :load-props="waterfallOptions.loadProps"
+                  :cross-origin="waterfallOptions.crossOrigin"
+                  :align="waterfallOptions.align"
+                  :is-loading="loading"
+                  :is-over="isOver"
+                  @afterRender="loading = false"
+                >
+                  <template #default="{ item, url }">
+                    <div class="image-task-item">
+                      <div class="image-task-media">
+                        <div
+                          class="image-task-preview"
+                          :class="{ 'image-task-preview--failed': item.status === 'failed' }"
+                        >
                           <LazyImg
+                            v-if="item.status === 'success'"
                             :url="url"
-                            v-if="item.progress === 100"
-                            class="cursor-pointer transition-all duration-300 ease-linear group-hover:scale-105"
+                            class="image-task-image"
                             @click="previewImg(item)"
                           />
-                          <el-image v-else-if="item.progress === 101">
-                            <template #error>
-                              <div class="image-slot">
-                                <div class="err-msg-container">
-                                  <div class="title">任务失败</div>
-                                  <div class="opt">
-                                    <el-popover
-                                      title="错误详情"
-                                      trigger="click"
-                                      :width="250"
-                                      :content="item['err_msg']"
-                                      placement="top"
-                                    >
-                                      <template #reference>
-                                        <el-button type="info">详情</el-button>
-                                      </template>
-                                    </el-popover>
-                                    <el-button type="danger" @click="removeImage(item)"
-                                      >删除</el-button
-                                    >
-                                  </div>
-                                </div>
-                              </div>
-                            </template>
-                          </el-image>
+                          <img
+                            v-else-if="item.status === 'failed'"
+                            class="image-task-image image-task-image--failed"
+                            :src="taskFailedImage"
+                            title="点击查看详情"
+                            @click="showDetail(item)"
+                          />
                         </div>
                         <div
-                          class="px-4 pt-2 pb-4 border-t border-t-gray-800"
-                          v-if="item.progress === 100"
+                          v-if="item.status === 'success'"
+                          class="image-task-overlay mj-task-overlay--meta"
+                          @click.stop
                         >
-                          <div class="opt" v-if="item['can_opt'] || item['can_modal']">
-                            <template v-if="item['can_opt']">
-                              <el-row :gutter="8" class="mb-3">
-                                <el-col :span="6" v-for="i in 4" :key="'u' + i">
-                                  <button
-                                    class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
-                                    @click="upscale(i, item)"
-                                  >
-                                    U{{ i }}
-                                  </button>
-                                </el-col>
-                              </el-row>
-                              <el-row :gutter="8" class="mb-3">
-                                <el-col :span="6" v-for="i in 4" :key="'v' + i">
-                                  <button
-                                    class="w-full h-6 rounded bg-gray-500 text-xs text-white shadow-md transition-all duration-300 hover:bg-gray-600"
-                                    @click="variation(i, item)"
-                                  >
-                                    V{{ i }}
-                                  </button>
-                                </el-col>
-                              </el-row>
-                            </template>
-                            <el-row v-if="item['can_modal']" :gutter="8" class="mb-3">
-                              <el-col :span="24">
-                                <button
-                                  class="w-full h-6 rounded bg-purple-600 text-xs text-white shadow-md transition-all duration-300 hover:bg-purple-700"
-                                  @click="openModalDialog(item)"
-                                >
-                                  局部重绘
-                                </button>
-                              </el-col>
-                            </el-row>
+                          <div class="image-task-overlay-time">
+                            {{ dateFormat(item.created_at) }}
                           </div>
-
-                          <div
-                            class="pt-3 flex justify-center items-center border-t border-t-gray-600 border-opacity-50"
-                          >
-                            <div class="flex">
-                              <el-tooltip content="取消分享" placement="top" v-if="item.publish">
-                                <el-button type="warning" @click="publishImage(item, false)" circle>
-                                  <i class="iconfont icon-cancel-share"></i>
-                                </el-button>
-                              </el-tooltip>
-                              <el-tooltip content="分享" placement="top" v-else>
-                                <el-button type="success" @click="publishImage(item, true)" circle>
-                                  <i class="iconfont icon-share-bold"></i>
-                                </el-button>
-                              </el-tooltip>
-
-                              <el-tooltip content="任务详情" placement="top">
-                                <el-button type="info" circle @click="showDetail(item)">
-                                  <i class="iconfont icon-info"></i>
-                                </el-button>
-                              </el-tooltip>
-                              <el-tooltip content="删除" placement="top">
-                                <el-button type="danger" @click="removeImage(item)" circle>
-                                  <i class="iconfont icon-remove"></i>
-                                </el-button>
-                              </el-tooltip>
-                            </div>
+                          <div class="image-task-tools">
+                            <el-tooltip content="取消分享" placement="top" v-if="item.publish">
+                              <button
+                                type="button"
+                                class="image-task-tool"
+                                @click="publishImage(item, false)"
+                              >
+                                <i class="iconfont icon-cancel-share"></i>
+                              </button>
+                            </el-tooltip>
+                            <el-tooltip content="分享" placement="top" v-else>
+                              <button
+                                type="button"
+                                class="image-task-tool"
+                                @click="publishImage(item, true)"
+                              >
+                                <i class="iconfont icon-share-bold"></i>
+                              </button>
+                            </el-tooltip>
+                            <el-tooltip content="任务详情" placement="top">
+                              <button
+                                type="button"
+                                class="image-task-tool"
+                                @click="showDetail(item)"
+                              >
+                                <i class="iconfont icon-info text-[#6366f1]"></i>
+                              </button>
+                            </el-tooltip>
+                            <el-tooltip content="删除" placement="top">
+                              <button
+                                type="button"
+                                class="image-task-tool image-task-tool--danger"
+                                @click="removeImage(item)"
+                              >
+                                <i class="iconfont icon-remove"></i>
+                              </button>
+                            </el-tooltip>
+                          </div>
+                        </div>
+                        <div
+                          v-else-if="item.status === 'failed'"
+                          class="image-task-overlay mj-task-overlay--failed"
+                          @click.stop
+                        >
+                          <div class="image-task-overlay-time">
+                            {{ dateFormat(item.created_at) }}
+                          </div>
+                          <div class="image-task-tools">
+                            <el-popover
+                              title="错误详情"
+                              trigger="click"
+                              :width="260"
+                              :content="item['err_msg']"
+                              placement="top"
+                            >
+                              <template #reference>
+                                <button type="button" class="image-task-tool">
+                                  <i class="iconfont icon-info text-[#6366f1]"></i>
+                                </button>
+                              </template>
+                            </el-popover>
+                            <el-tooltip content="删除" placement="top">
+                              <button
+                                type="button"
+                                class="image-task-tool image-task-tool--danger"
+                                @click="removeImage(item)"
+                              >
+                                <i class="iconfont icon-remove"></i>
+                              </button>
+                            </el-tooltip>
                           </div>
                         </div>
                       </div>
-                    </template>
-                  </Waterfall>
-
-                  <div class="flex justify-center py-10">
-                    <img
-                      :src="waterfallOptions.loadProps.loading"
-                      class="max-w-[50px] max-h-[50px]"
-                      v-if="loading"
-                    />
-                    <div v-else>
-                      <button
-                        class="px-5 py-2 rounded-full bg-purple-700 text-md text-white cursor-pointer hover:bg-purple-800 transition-all duration-300"
-                        @click="fetchFinishJobs"
-                        v-if="!isOver"
-                      >
-                        加载更多
-                      </button>
-                      <div class="no-more-data" v-else>
-                        <span class="text-gray-500 mr-2">没有更多数据了</span>
-                        <i class="iconfont icon-face"></i>
+                      <div v-if="item.status === 'success'" class="mj-task-opt" @click.stop>
+                        <div v-if="item['can_opt']" class="mj-task-opt__uv">
+                          <button
+                            v-for="i in 4"
+                            :key="'u' + i"
+                            type="button"
+                            class="mj-task-opt-btn mj-task-opt-btn--uv"
+                            @click="upscale(i, item)"
+                          >
+                            U{{ i }}
+                          </button>
+                          <button
+                            v-for="i in 4"
+                            :key="'v' + i"
+                            type="button"
+                            class="mj-task-opt-btn mj-task-opt-btn--uv"
+                            @click="variation(i, item)"
+                          >
+                            V{{ i }}
+                          </button>
+                        </div>
+                        <div v-if="item['can_modal']" class="mj-task-opt__modal">
+                          <button
+                            type="button"
+                            class="mj-task-opt-btn mj-task-opt-btn--modal"
+                            @click="openModalDialog(item)"
+                          >
+                            局部重绘
+                          </button>
+                        </div>
                       </div>
+                    </div>
+                  </template>
+                </Waterfall>
+
+                <div class="flex justify-center py-10">
+                  <img
+                    :src="waterfallOptions.loadProps.loading"
+                    class="max-w-[50px] max-h-[50px]"
+                    v-if="loading"
+                  />
+                  <div v-else>
+                    <button
+                      class="px-5 py-2 rounded-full bg-purple-700 text-md text-white cursor-pointer hover:bg-purple-800 transition-all duration-300"
+                      @click="fetchFinishJobs"
+                      v-if="!isOver"
+                    >
+                      加载更多
+                    </button>
+                    <div class="no-more-data" v-else>
+                      <span class="text-gray-500 mr-2">没有更多数据了</span>
+                      <i class="iconfont icon-face"></i>
                     </div>
                   </div>
                 </div>
-                <el-empty :image-size="100" :image="nodata" description="暂无记录" v-else />
               </div>
             </template>
 
@@ -690,15 +651,7 @@
       <!-- end task list box -->
     </div>
 
-    <el-image-viewer
-      @close="
-        () => {
-          previewURL = ''
-        }
-      "
-      v-if="previewURL !== ''"
-      :url-list="[previewURL]"
-    />
+    <el-image-viewer v-if="previewURL !== ''" :url-list="[previewURL]" @close="closePreview" />
 
     <!-- 局部重绘弹窗 -->
     <el-dialog
@@ -709,8 +662,13 @@
       @closed="onModalClosed"
     >
       <div class="modal-inpaint-box">
-        <p class="text-sm text-gray-600 mb-2">下方为原图，请在图上涂抹需要重绘的区域（半透明红色即蒙版），可调整画笔大小或清除后重画。蒙版按原图尺寸导出，与涂抹区域一致。</p>
-        <div class="relative inline-block rounded overflow-hidden border border-gray-200 bg-gray-100 modal-inpaint-wrap" ref="modalCanvasWrapRef">
+        <p class="text-sm text-gray-600 mb-2">
+          下方为原图，请在图上涂抹需要重绘的区域（半透明红色即蒙版），可调整画笔大小或清除后重画。蒙版按原图尺寸导出，与涂抹区域一致。
+        </p>
+        <div
+          class="relative inline-block rounded overflow-hidden border border-gray-200 bg-gray-100 modal-inpaint-wrap"
+          ref="modalCanvasWrapRef"
+        >
           <img
             :src="modalItem?.img_url"
             ref="modalImgRef"
@@ -756,7 +714,7 @@
       <template #footer>
         <el-button @click="modalVisible = false">取消</el-button>
         <el-button type="primary" :loading="modalSubmitting" @click="submitModal">
-          提交（消耗 {{ mjModalPower }} 算力）
+          提交（消耗 {{ mjModalPower }} 积分）
         </el-button>
       </template>
     </el-dialog>
@@ -765,37 +723,91 @@
     <el-dialog
       v-model="detailDialogVisible"
       title="任务详情"
-      width="600px"
+      class="mj-detail-dialog"
+      width="680px"
       :close-on-click-modal="false"
     >
-      <div class="detail-content" v-if="currentDetail">
-        <el-descriptions :column="1" border>
-          <el-descriptions-item label="任务类型">
-            {{ currentDetail.type === 'image' ? '绘图' : currentDetail.type === 'upscale' ? '放大' : currentDetail.type === 'variation' ? '变换' : currentDetail.type === 'blend' ? '融图' : currentDetail.type === 'swapFace' ? '换脸' : currentDetail.type === 'modal' ? '局部重绘' : currentDetail.type || '-' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="提示词">
-            <div class="flex items-center gap-2">
-              <span class="break-all">{{ currentDetail.prompt }}</span>
-              <el-tooltip content="复制提示词" placement="top">
+      <div class="detail-content mj-detail-body" v-if="currentDetail">
+        <el-descriptions :column="1" border size="small">
+          <el-descriptions-item label="任务 ID">
+            <div class="mj-detail-copy-row">
+              <span class="break-all font-mono text-[13px]">{{
+                currentDetail.task_id || '-'
+              }}</span>
+              <el-tooltip v-if="currentDetail.task_id" content="复制" placement="top">
                 <i
-                  class="iconfont icon-copy cursor-pointer shrink-0"
+                  class="iconfont icon-copy mj-detail-copy-ico"
+                  @click="copyPrompt(currentDetail.task_id)"
+                />
+              </el-tooltip>
+            </div>
+          </el-descriptions-item>
+          <el-descriptions-item label="任务类型">
+            {{ mjDetailTypeLabel(currentDetail.type) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            {{ currentDetail.status || '-' }}
+            <span
+              v-if="currentDetail.progress != null && currentDetail.status !== 'success'"
+              class="text-gray-500 ml-1"
+            >
+              ({{ currentDetail.progress }}%)
+            </span>
+          </el-descriptions-item>
+          <el-descriptions-item label="原始提示词" v-if="detailTaskPayload?.prompt">
+            <div class="mj-detail-copy-row">
+              <span class="break-all mj-detail-text">{{ detailTaskPayload.prompt }}</span>
+              <el-tooltip content="复制" placement="top">
+                <i
+                  class="iconfont icon-copy mj-detail-copy-ico"
+                  @click="copyPrompt(detailTaskPayload.prompt)"
+                />
+              </el-tooltip>
+            </div>
+          </el-descriptions-item>
+          <el-descriptions-item label="负面提示词" v-if="detailTaskPayload?.neg_prompt">
+            <span class="break-all mj-detail-text">{{ detailTaskPayload.neg_prompt }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="完整提示词">
+            <div class="mj-detail-copy-row align-start">
+              <span class="break-all mj-detail-text">{{ currentDetail.prompt || '—' }}</span>
+              <el-tooltip v-if="currentDetail.prompt" content="复制" placement="top">
+                <i
+                  class="iconfont icon-copy mj-detail-copy-ico"
                   @click="copyPrompt(currentDetail.prompt)"
                 />
               </el-tooltip>
             </div>
           </el-descriptions-item>
+          <el-descriptions-item label="引用图片" v-if="detailTaskImages.length > 0">
+            <div class="mj-detail-refimgs">
+              <el-image
+                v-for="(url, idx) in detailTaskImages"
+                :key="'ref-' + idx"
+                :src="url"
+                :preview-src-list="detailTaskImages"
+                fit="cover"
+                class="mj-detail-refimg"
+                preview-teleported
+              />
+            </div>
+          </el-descriptions-item>
+          <el-descriptions-item label="局部重绘" v-if="detailHasMask">
+            <el-text type="info">已提交蒙版（内容略）</el-text>
+          </el-descriptions-item>
           <el-descriptions-item
-            label="生成的图片"
-            v-if="currentDetail.progress === 100 && currentDetail.img_url"
+            label="生成结果"
+            v-if="currentDetail.status === 'success' && currentDetail.img_url"
           >
             <el-image
-              :src="getThumbURL(currentDetail.img_url, 200, 200)"
+              :src="getThumbURL(currentDetail.img_url, 240, 240)"
               :preview-src-list="[currentDetail.img_url]"
               fit="cover"
-              style="width: 200px; height: 200px"
+              class="mj-detail-result"
+              preview-teleported
             />
           </el-descriptions-item>
-          <el-descriptions-item label="消耗算力">
+          <el-descriptions-item label="消耗积分">
             {{ currentDetail.power ?? 0 }}
           </el-descriptions-item>
           <el-descriptions-item label="创建时间">
@@ -803,9 +815,16 @@
           </el-descriptions-item>
           <el-descriptions-item
             label="错误信息"
-            v-if="currentDetail.progress === 101 && currentDetail.err_msg"
+            v-if="currentDetail.status === 'failed' && currentDetail.err_msg"
           >
             <el-text type="danger">{{ currentDetail.err_msg }}</el-text>
+          </el-descriptions-item>
+          <el-descriptions-item
+            label="原始载荷"
+            v-if="currentDetail.task_info && !detailTaskPayload"
+          >
+            <span class="text-gray-500 text-xs">无法解析 JSON，以下为原始文本：</span>
+            <pre class="mj-detail-raw">{{ currentDetail.task_info }}</pre>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -821,12 +840,12 @@ import TaskList from '@/components/TaskList.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { getSessionId } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
-import { closeLoading, showLoading, showMessageError } from '@/utils/dialog'
+import { showMessageError } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { copyObj, dateFormat, getThumbURL } from '@/utils/libs'
 import { InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { LazyImg, Waterfall } from 'vue-waterfall-plugin-next'
 import 'vue-waterfall-plugin-next/dist/style.css'
@@ -837,11 +856,10 @@ const loading = ref(true)
 const previewURL = ref('')
 const store = useSharedStore()
 const waterfallOptions = store.waterfallOptions
+const taskFailedImage = store.taskFailedImage
 
 const resizeElement = function () {
-  // listBoxHeight.value = window.innerHeight - 80;
   listBoxHeight.value = window.innerHeight - 30
-  // paramBoxHeight.value = window.innerHeight - 160;
   paramBoxHeight.value = window.innerHeight - 110
 }
 resizeElement()
@@ -850,45 +868,45 @@ window.onresize = () => {
 }
 
 const rates = [
-  { css: 'square', value: '1:1', text: '1:1', img: '/images/mj/rate_1_1.png' },
-  { css: 'size1-2', value: '1:2', text: '1:2', img: '/images/mj/rate_1_2.png' },
-  { css: 'size2-1', value: '2:1', text: '2:1', img: '/images/mj/rate_2_1.png' },
-  { css: 'size2-3', value: '2:3', text: '2:3', img: '/images/mj/rate_3_4.png' },
-  { css: 'size3-2', value: '3:2', text: '3:2', img: '/images/mj/rate_4_3.png' },
-  { css: 'size3-4', value: '3:4', text: '3:4', img: '/images/mj/rate_3_4.png' },
-  { css: 'size4-3', value: '4:3', text: '4:3', img: '/images/mj/rate_4_3.png' },
-  {
-    css: 'size16-9',
-    value: '16:9',
-    text: '16:9',
-    img: '/images/mj/rate_16_9.png',
-  },
-  {
-    css: 'size9-16',
-    value: '9:16',
-    text: '9:16',
-    img: '/images/mj/rate_9_16.png',
-  },
+  { value: '1:1', text: '1:1' },
+  { value: '1:2', text: '1:2' },
+  { value: '2:1', text: '2:1' },
+  { value: '2:3', text: '2:3' },
+  { value: '3:2', text: '3:2' },
+  { value: '3:4', text: '3:4' },
+  { value: '4:3', text: '4:3' },
+  { value: '16:9', text: '16:9' },
+  { value: '9:16', text: '9:16' },
 ]
 const models = [
-  { text: 'MJ-V7', value: ' --v 7', img: '/images/mj/mj-v7.png' },
-  { text: 'MJ-V6.1', value: ' --v 6.1', img: '/images/mj/mj-v6.png' },
-  { text: 'MJ-V6.0', value: ' --v 6', img: '/images/mj/mj-v5.2.png' },
-  { text: 'MJ-V5.2', value: ' --v 5.2', img: '/images/mj/mj-v5.1.jpg' },
-  { text: 'MJ-V5.1', value: ' --v 5.1', img: '/images/mj/mj-v5.jpg' },
-  { text: '动漫风-niji4', value: ' --niji 4', img: '/images/mj/nj4.jpg' },
-  { text: '动漫风-niji5', value: ' --niji 5', img: '/images/mj/mj-niji.png' },
   {
-    text: '动漫风-niji5 可爱',
-    value: ' --niji 5 --style cute',
-    img: '/images/mj/nj1.jpg',
+    text: 'Midjourney V7',
+    flag: '--v 7',
+    value: ' --v 7',
+    badge: '官方默认 · 全能',
+    summary: '写实与国风最稳，画质与理解力强；适合绝大多数日常与商业出图。',
   },
   {
-    text: '动漫风-niji5 风景',
-    value: ' --niji 5 --style scenic',
-    img: '/images/mj/nj2.jpg',
+    text: 'Midjourney V8.1 Alpha',
+    flag: '--v 8.1',
+    value: ' --v 8.1',
+    badge: '测试版 · 更快更省',
+    summary: '速度明显快于 V7、成本更低，画质接近；适合批量与快速改词试错。',
   },
-  { text: '动漫风-niji6', value: ' --niji 6', img: '/images/mj/nj3.jpg' },
+  {
+    text: 'Niji・Journey V6',
+    flag: '--niji 6',
+    value: ' --niji 6',
+    badge: '二次元 · 插画向',
+    summary: '动漫、立绘、分镜强于通用 MJ；不做写实首选 Niji。',
+  },
+  {
+    text: 'Midjourney V6.1',
+    flag: '--v 6.1',
+    value: ' --v 6.1',
+    badge: '经典 · 兼容老词',
+    summary: '旧 prompt 更稳、可控性高；适合不愿大改词、求稳妥的用户。',
+  },
 ]
 
 const options = [
@@ -935,6 +953,21 @@ const imgList = ref([])
 
 const activeName = ref('txt2img')
 
+const promptTextareaTxt = ref(null)
+const promptTextareaImg = ref(null)
+const promptTextareaCref = ref(null)
+
+function focusPromptInput() {
+  const tab = activeName.value
+  const el =
+    tab === 'img2img'
+      ? promptTextareaImg.value
+      : tab === 'cref'
+        ? promptTextareaCref.value
+        : promptTextareaTxt.value
+  el?.focus?.()
+}
+
 const runningJobs = ref([])
 const finishedJobs = ref([])
 const taskPulling = ref(true) // 任务轮询
@@ -943,8 +976,6 @@ const downloadPulling = ref(false) // 图片下载轮询
 const downloadPullHandler = ref(null)
 
 const power = ref(0)
-const userId = ref(0)
-const isLogin = ref(false)
 
 onMounted(() => {
   initData()
@@ -964,8 +995,6 @@ const initData = () => {
   checkSession()
     .then((user) => {
       power.value = user['power']
-      userId.value = user.id
-      isLogin.value = true
       page.value = 0
       fetchFinishJobs()
 
@@ -987,7 +1016,6 @@ const initData = () => {
 }
 
 const mjPower = ref(1)
-const mjActionPower = ref(1)
 const mjUpscalePower = ref(1)
 const mjBlendPower = ref(1)
 const mjSwapFacePower = ref(1)
@@ -997,7 +1025,6 @@ getSystemInfo()
     const d = res.data || {}
     const fallback = d['mj_action_power'] || 1
     mjPower.value = d['mj_power'] || 1
-    mjActionPower.value = fallback
     mjUpscalePower.value = d['mj_upscale_power'] > 0 ? d['mj_upscale_power'] : fallback
     mjBlendPower.value = d['mj_blend_power'] > 0 ? d['mj_blend_power'] : fallback
     mjSwapFacePower.value = d['mj_swap_face_power'] > 0 ? d['mj_swap_face_power'] : fallback
@@ -1009,16 +1036,12 @@ getSystemInfo()
 
 // 获取运行中的任务
 const fetchRunningJobs = () => {
-  if (!isLogin.value) {
-    return
-  }
-
   httpGet(`/api/mj/jobs?finish=false`)
     .then((res) => {
       const jobs = res.data.items
       const _jobs = []
       for (let i = 0; i < jobs.length; i++) {
-        if (jobs[i].progress === 101) {
+        if (jobs[i].status === 'failed') {
           ElNotification({
             title: '任务执行失败',
             dangerouslyUseHTMLString: true,
@@ -1026,9 +1049,12 @@ const fetchRunningJobs = () => {
             type: 'error',
             duration: 0,
           })
-          const refund = (jobs[i].power != null && jobs[i].power > 0)
-            ? jobs[i].power
-            : (jobs[i].type === 'image' ? mjPower.value : mjUpscalePower.value)
+          const refund =
+            jobs[i].power != null && jobs[i].power > 0
+              ? jobs[i].power
+              : jobs[i].type === 'image'
+                ? mjPower.value
+                : mjUpscalePower.value
           power.value += refund
         }
         _jobs.push(jobs[i])
@@ -1052,7 +1078,7 @@ const page = ref(0)
 const pageSize = ref(15)
 const isOver = ref(false)
 const fetchFinishJobs = () => {
-  if (!isLogin.value || isOver.value) {
+  if (isOver.value) {
     return
   }
 
@@ -1071,7 +1097,7 @@ const fetchFinishJobs = () => {
             jobs[i]['img_thumb'] = getThumbURL(jobs[i]['img_url'], 480, 480)
           }
         } else {
-          if (jobs[i].progress === 100) {
+          if (jobs[i].status === 'downloading') {
             needDownload = true
           }
           jobs[i]['img_thumb'] = waterfallOptions.loadProps.loading
@@ -1081,11 +1107,11 @@ const fetchFinishJobs = () => {
           downloadPulling.value = needDownload
         }
 
-        if (jobs[i].type !== 'upscale' && jobs[i].progress === 100) {
+        if (jobs[i].type !== 'upscale' && jobs[i].status === 'success') {
           jobs[i]['can_opt'] = true
         }
         // 所有已完成且有图的任务均支持局部重绘
-        if (jobs[i].progress === 100 && jobs[i].img_url) {
+        if (jobs[i].status === 'success' && jobs[i].img_url) {
           jobs[i]['can_modal'] = true
         }
       }
@@ -1093,8 +1119,8 @@ const fetchFinishJobs = () => {
       if (jobs.length < pageSize.value) {
         isOver.value = true
       }
-      // 对比一下jobs和finishedJobs，如果相同，则不进行更新
       if (JSON.stringify(jobs) === JSON.stringify(finishedJobs.value)) {
+        loading.value = false
         return
       }
 
@@ -1120,20 +1146,14 @@ const changeModel = (item) => {
 }
 
 // 创建绘图任务
-const promptRef = ref(null)
 const isGenerating = ref(false)
 const generate = () => {
   if (isGenerating.value) {
     return
   }
 
-  if (!isLogin.value) {
-    store.setShowLoginDialog(true)
-    return
-  }
-
   if (params.value.prompt === '' && params.value.task_type === 'image') {
-    promptRef.value.focus()
+    focusPromptInput()
     return ElMessage.error('请输入绘画提示词！')
   }
   if (params.value.model.indexOf('niji') !== -1 && params.value.raw) {
@@ -1164,6 +1184,7 @@ const generate = () => {
       power.value -= deductPower
       taskPulling.value = true
       runningJobs.value.push({
+        status: 'pending',
         progress: 0,
       })
       isOver.value = false
@@ -1216,13 +1237,13 @@ const modalCanvasRef = ref(null)
 const modalMaskCanvasRef = ref(null)
 const modalImgRef = ref(null)
 const modalCanvasWrapRef = ref(null)
-const modalCanvasSize = ref({ w: 0, h: 0 })   // 显示层尺寸（与当前显示图一致）
-const modalNaturalSize = ref({ w: 0, h: 0 })  // 原图尺寸，蒙版 canvas 使用
+const modalCanvasSize = ref({ w: 0, h: 0 }) // 显示层尺寸（与当前显示图一致）
+const modalNaturalSize = ref({ w: 0, h: 0 }) // 原图尺寸，蒙版 canvas 使用
 const modalBrushSize = ref(16)
 const modalSubmitting = ref(false)
 const modalDrawing = ref(false)
-let modalCtx = null      // 显示层：半透明绘制，底图可见
-let modalMaskCtx = null  // 导出层：黑底白字，用于 API
+let modalCtx = null // 显示层：半透明绘制，底图可见
+let modalMaskCtx = null // 导出层：黑底白字，用于 API
 
 const openModalDialog = (item) => {
   modalItem.value = item
@@ -1377,17 +1398,57 @@ const onModalClosed = () => {
 // 任务详情弹窗
 const detailDialogVisible = ref(false)
 const currentDetail = ref(null)
+
+/** 解析 task_info（MjTask JSON） */
+function parseMjTaskInfo(raw) {
+  if (raw == null || raw === '') return null
+  if (typeof raw === 'object') return raw
+  if (typeof raw !== 'string') return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+const detailTaskPayload = computed(() => parseMjTaskInfo(currentDetail.value?.task_info))
+
+const detailTaskImages = computed(() => {
+  const arr = detailTaskPayload.value?.img_arr
+  return Array.isArray(arr) ? arr.filter((u) => u && String(u).trim()) : []
+})
+
+const detailHasMask = computed(() => {
+  const m = detailTaskPayload.value?.mask_base64
+  return typeof m === 'string' && m.length > 0
+})
+
+function mjDetailTypeLabel(type) {
+  const map = {
+    image: '绘图',
+    upscale: '放大',
+    variation: '变换',
+    blend: '融图',
+    swapFace: '换脸',
+    modal: '局部重绘',
+  }
+  return map[type] || type || '-'
+}
+
 const showDetail = (item) => {
   currentDetail.value = item
   detailDialogVisible.value = true
 }
 const copyPrompt = (text) => {
   if (!text) return
-  navigator.clipboard.writeText(text).then(() => {
-    ElMessage.success('复制成功')
-  }).catch(() => {
-    ElMessage.error('复制失败')
-  })
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      ElMessage.success('复制成功')
+    })
+    .catch(() => {
+      ElMessage.error('复制失败')
+    })
 }
 
 const removeImage = (item) => {
@@ -1427,7 +1488,6 @@ const publishImage = (item, action) => {
       item.publish = action
       page.value = 0
       isOver.value = false
-      item.publish = action
     })
     .catch((e) => {
       ElMessage.error(text + '失败：' + e.message)
@@ -1436,6 +1496,10 @@ const publishImage = (item, action) => {
 
 const previewImg = (item) => {
   previewURL.value = item.img_url
+}
+
+const closePreview = () => {
+  previewURL.value = ''
 }
 
 // 切换菜单
@@ -1507,5 +1571,89 @@ const generatePrompt = () => {
   .cref-two-cols {
     grid-template-columns: 1fr;
   }
+}
+
+/* 任务详情弹窗 */
+.mj-detail-dialog {
+  :deep(.el-dialog__body) {
+    padding-top: 6px;
+  }
+}
+
+.mj-detail-body {
+  max-height: min(72vh, 640px);
+  overflow-y: auto;
+}
+
+.mj-detail-copy-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &.align-start {
+    align-items: flex-start;
+
+    .mj-detail-copy-ico {
+      margin-top: 4px;
+    }
+  }
+}
+
+.mj-detail-text {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mj-detail-copy-ico {
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--el-text-color-secondary);
+  opacity: 0.85;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+    color: var(--el-color-primary);
+  }
+}
+
+.mj-detail-refimgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mj-detail-refimg {
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.mj-detail-result {
+  width: 240px;
+  max-width: 100%;
+  height: 240px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.mj-detail-raw {
+  display: block;
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-radius: 8px;
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color-lighter);
 }
 </style>

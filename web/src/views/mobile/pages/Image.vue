@@ -122,7 +122,7 @@
         >
           <van-grid :gutter="10" :column-num="2">
             <van-grid-item v-for="item in finishedJobs" :key="item.id">
-              <div class="failed" v-if="item.progress === 101">
+              <div class="failed" v-if="item.status === 'failed'">
                 <div class="title">任务失败</div>
                 <div class="opt">
                   <van-button size="small" @click="showDetail(item)">详情</van-button>
@@ -192,7 +192,7 @@
         <van-cell title="创建时间" :value="formatTime(currentDetail.created_at)" />
 
         <van-cell
-          v-if="currentDetail.progress === 100 && currentDetail.img_url"
+          v-if="currentDetail.status === 'success' && currentDetail.img_url"
           title="生成的图片"
         >
           <template #value>
@@ -226,7 +226,7 @@
         </van-cell>
 
         <van-cell
-          v-if="currentDetail.progress === 101 && currentDetail.err_msg"
+          v-if="currentDetail.status === 'failed' && currentDetail.err_msg"
           title="错误信息"
         >
           <template #value>

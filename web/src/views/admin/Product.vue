@@ -15,6 +15,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="price" label="商品价格" />
+        <el-table-column prop="stripe_price" label="Stripe 价格(USD)" />
         <el-table-column prop="power" label="算力" />
         <el-table-column prop="sales" label="销量" />
         <el-table-column prop="enabled" label="启用状态">
@@ -52,6 +53,10 @@
           <el-input v-model="item.price" autocomplete="off" />
         </el-form-item>
 
+        <el-form-item label="Stripe 价格(USD)：" prop="stripe_price">
+          <el-input v-model="item.stripe_price" autocomplete="off" placeholder="Stripe 专用美元价格" />
+        </el-form-item>
+
         <el-form-item label="算力：" prop="power">
           <el-input v-model.number="item.power" autocomplete="off" placeholder="增加算力值" />
         </el-form-item>
@@ -87,6 +92,7 @@ const title = ref('')
 const rules = reactive({
   name: [{ required: true, message: '请输入产品名称', trigger: 'change' }],
   price: [{ required: true, message: '请输产品价格', trigger: 'change' }],
+  stripe_price: [{ required: true, message: '请输 Stripe 价格', trigger: 'change' }],
   discount: [{ required: true, message: '请输优惠金额', trigger: 'change' }],
   days: [{ required: true, message: '请输入有效期', trigger: 'change' }],
 })
@@ -143,7 +149,7 @@ onMounted(() => {
 const add = function () {
   title.value = '新增产品'
   showDialog.value = true
-  item.value = {}
+  item.value = { stripe_price: 0 }
 }
 
 const edit = function (row) {
@@ -157,6 +163,7 @@ const save = function () {
     if (valid) {
       showDialog.value = false
       item.value['price'] = parseFloat(item.value['price'])
+      item.value['stripe_price'] = parseFloat(item.value['stripe_price'])
       item.value['discount'] = parseFloat(item.value['discount'])
       httpPost('/api/admin/product/save', item.value)
         .then((res) => {

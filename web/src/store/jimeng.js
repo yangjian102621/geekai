@@ -7,13 +7,44 @@
 
 import { checkSession } from '@/store/cache'
 import { JimengFunctions, JimengParams } from '@/store/data/jimeng_params'
-import { useSharedStore } from '@/store/sharedata'
 import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpDownload, httpGet, httpPost } from '@/utils/http'
-import { replaceImg, substr } from '@/utils/libs'
+import failedIcon from '@/assets/img/failed.png'
+import loadingGif from '@/assets/img/loading.gif'
+import { getThumbURL, replaceImg, substr } from '@/utils/libs'
 import { ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
+
+/** 与瀑布流 imgSelector: img_thumb 对齐（参考 Image.vue） */
+function normalizeJimengWaterfallThumb(item) {
+  const img = item.img_url ? replaceImg(item.img_url) : ''
+  if (img) {
+    item.img_thumb = getThumbURL(img, 300, 0)
+    return
+  }
+  if (item.video_url) {
+    item.img_thumb = loadingGif
+    return
+  }
+  if (item.status === 'failed') {
+    item.img_thumb = failedIcon
+    return
+  }
+  item.img_thumb = loadingGif
+}
+
+function refreshJimengListThumbs(list) {
+  if (!list || !list.length) {
+    return
+  }
+  for (const row of list) {
+    normalizeJimengWaterfallThumb(row)
+  }
+}
+
+/** 轮询需跟进的非终态（含 submited：队列尚未改 in_queue 前） */
+const POLLING_ACTIVE_STATUSES = new Set(['submited', 'in_queue', 'generating', 'done'])
 
 export const useJimengStore = defineStore('jimeng', () => {
   // 共同状态
@@ -26,14 +57,9 @@ export const useJimengStore = defineStore('jimeng', () => {
   const currentList = ref([])
   const isOver = ref(false)
 
-  // 用户信息
-  const isLogin = ref(false)
   // 视频预览
   const showDialog = ref(false)
   const currentVideoUrl = ref('')
-
-  // 登录弹窗
-  const shareStore = useSharedStore()
 
   // 积分消耗配置
   const powerConfig = reactive({ powers: {} })
@@ -74,6 +100,7 @@ export const useJimengStore = defineStore('jimeng', () => {
       submited: '任务已提交',
       in_queue: '任务排队中',
       generating: '任务执行中',
+      done: '处理完成',
       success: '任务成功',
       failed: '任务失败',
       canceled: '任务已取消',
@@ -131,11 +158,29 @@ export const useJimengStore = defineStore('jimeng', () => {
       } else {
         currentList.value = currentList.value.concat(data.items)
       }
+      refreshJimengListThumbs(currentList.value)
     } catch (error) {
       showMessageError('获取任务列表失败:' + error.message)
     } finally {
       loading.value = false
     }
+  }
+
+  /** 轮询合并：新行对象 + 新数组引用，避免瀑布流对同 id 行就地 mutate 不刷新 */
+  const mergeJobsIntoCurrentList = (rows) => {
+    if (!rows || !rows.length) {
+      return
+    }
+    const next = currentList.value.map((item) => {
+      const hit = rows.find((i) => i.id === item.id)
+      if (hit) {
+        const row = { ...item, ...hit }
+        normalizeJimengWaterfallThumb(row)
+        return row
+      }
+      return item
+    })
+    currentList.value = next
   }
 
   // 简单轮询逻辑
@@ -144,28 +189,40 @@ export const useJimengStore = defineStore('jimeng', () => {
       clearInterval(pollHandler)
     }
     pollHandler = setInterval(async () => {
-      const response = await httpPost('/api/jimeng/jobs', {
-        page: 1,
-        page_size: 20,
-      })
-      const data = response.data
-      if (!data.items || data.items.length === 0) {
-        stopPolling()
-        return
-      }
+      try {
+        const activeIds = currentList.value
+          .filter((item) => POLLING_ACTIVE_STATUSES.has(item.status))
+          .map((item) => item.id)
 
-      const todoList = data.items.filter(
-        (item) => item.status === 'in_queue' || item.status === 'generating'
-      )
-      // 更新当前列表
-      currentList.value.forEach((item) => {
-        const index = data.items.findIndex((i) => i.id === item.id)
-        if (index !== -1) {
-          Object.assign(item, data.items[index])
+        const body = {
+          page: 1,
+          page_size: 100,
+          filter: taskFilter.value,
         }
-      })
-      if (todoList.length === 0) {
-        stopPolling()
+        if (activeIds.length > 0) {
+          body.ids = activeIds
+        }
+
+        const response = await httpPost('/api/jimeng/jobs', body)
+        const data = response.data || {}
+        if (!data.items || data.items.length === 0) {
+          if (activeIds.length === 0) {
+            stopPolling()
+          }
+          return
+        }
+
+        mergeJobsIntoCurrentList(data.items)
+
+        const stillActive = currentList.value.some((item) =>
+          POLLING_ACTIVE_STATUSES.has(item.status)
+        )
+
+        if (!stillActive) {
+          stopPolling()
+        }
+      } catch (e) {
+        console.error('jimeng poll error', e)
       }
     }, 3000)
   }
@@ -179,10 +236,6 @@ export const useJimengStore = defineStore('jimeng', () => {
 
   // 提交任务
   const submitTask = async () => {
-    if (!isLogin.value) {
-      shareStore.setShowLoginDialog(true)
-      return
-    }
     for (const key in requiredKeys.value) {
       if (!formData.value[key]) {
         showMessageError('缺少参数：' + requiredKeys.value[key].label)
@@ -202,6 +255,24 @@ export const useJimengStore = defineStore('jimeng', () => {
 
       if (data.image_urls && !Array.isArray(data.image_urls)) {
         data.image_urls = [data.image_urls]
+      }
+      if (data.video_url && !Array.isArray(data.video_url)) {
+        data.video_url = [data.video_url]
+      }
+      if (data.audio_url && !Array.isArray(data.audio_url)) {
+        data.audio_url = [data.audio_url]
+      }
+
+      if (typeof data.req_key === 'string' && data.req_key.startsWith('doubao-seedance-')) {
+        data.content = buildSeedanceContent(data)
+        if (data.seedance_mode === 'multimodal' && data.content.length === 0) {
+          throw new Error('多模态模式下，请至少上传图片、视频或音频中的一种素材')
+        }
+        // Seedance 统一使用 content[] 传多模态，避免旧字段类型与后端绑定冲突。
+        delete data.video_url
+        delete data.audio_url
+        delete data.image_role
+        delete data.seedance_mode
       }
 
       const response = await httpPost('/api/jimeng/task', data)
@@ -294,6 +365,73 @@ export const useJimengStore = defineStore('jimeng', () => {
     })
   }
 
+  const normalizeMediaList = (value) => {
+    if (!value) {
+      return []
+    }
+    if (Array.isArray(value)) {
+      return value.filter(Boolean)
+    }
+    return [value]
+  }
+
+  const buildSeedanceContent = (data) => {
+    const content = []
+    if (data.prompt) {
+      content.push({
+        type: 'text',
+        text: data.prompt,
+      })
+    }
+
+    const imageList = normalizeMediaList(data.image_urls)
+    const videoList = normalizeMediaList(data.video_url)
+    const audioList = normalizeMediaList(data.audio_url)
+    const imageRole = data.image_role || 'reference_image'
+
+    if (data.seedance_mode === 'image_first') {
+      imageList.slice(0, 1).forEach((url) => {
+        content.push({
+          type: 'image_url',
+          image_url: { url },
+          role: 'first_frame',
+        })
+      })
+    } else if (data.seedance_mode === 'image_first_last') {
+      imageList.slice(0, 2).forEach((url, index) => {
+        content.push({
+          type: 'image_url',
+          image_url: { url },
+          role: index === 0 ? 'first_frame' : 'last_frame',
+        })
+      })
+    } else {
+      imageList.forEach((url) => {
+        content.push({
+          type: 'image_url',
+          image_url: { url },
+          role: imageRole,
+        })
+      })
+    }
+
+    videoList.forEach((url) => {
+      content.push({
+        type: 'video_url',
+        video_url: { url },
+        role: 'reference_video',
+      })
+    })
+    audioList.forEach((url) => {
+      content.push({
+        type: 'audio_url',
+        audio_url: { url },
+        role: 'reference_audio',
+      })
+    })
+    return content
+  }
+
   watch(
     () => formData.value,
     () => {
@@ -310,8 +448,7 @@ export const useJimengStore = defineStore('jimeng', () => {
         powerConfig.powers = powerRes.data.powers || {}
         setFunctionPowers()
       }
-      const user = await checkSession()
-      isLogin.value = true
+      await checkSession()
       // 获取任务列表
       await fetchData(1)
       // 开始轮询
@@ -345,7 +482,6 @@ export const useJimengStore = defineStore('jimeng', () => {
     taskFilter,
     currentList,
     isOver,
-    isLogin,
     showDialog,
     currentVideoUrl,
     // 配置

@@ -47,7 +47,7 @@
                   <img src="/images/play.svg" alt="" />
                 </button>
               </div>
-              <el-image v-else-if="scope.row.progress === 101" src="/images/failed.jpg" style="height: 90px" fit="cover" />
+              <el-image v-else-if="scope.row.status === 'failed'" src="/images/failed.jpg" style="height: 90px" fit="cover" />
               <div class="flex flex-col items-center justify-center h-[100px]" v-else>
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
                 <span class="text-xs text-purple-600 mt-2 block">生成中...</span>
@@ -56,11 +56,11 @@
           </el-table-column>
           <el-table-column prop="progress" label="任务进度" width="100">
             <template #default="scope">
-              <span v-if="scope.row.progress <= 100">{{ scope.row.progress }}%</span>
+              <span v-if="scope.row.status !== 'failed'">{{ scope.row.progress }}%</span>
               <el-tag v-else type="danger">已失败</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="power" label="消耗算力" width="100" />
+          <el-table-column prop="power" label="消耗积分" width="100" />
           <el-table-column prop="play_times" label="播放次数" width="100" />
           <el-table-column label="歌词" width="110">
             <template #default="scope">
@@ -77,7 +77,7 @@
           <el-table-column label="失败原因" width="180">
             <template #default="scope">
               <el-popover
-                v-if="scope.row.progress === 101"
+                v-if="scope.row.status === 'failed'"
                 placement="top-start"
                 title="失败原因"
                 :width="300"
@@ -151,12 +151,12 @@
           <div class="detail-item">
             <div class="detail-label">任务进度</div>
             <div class="detail-value">
-              <span v-if="currentDetail.progress <= 100">{{ currentDetail.progress }}%</span>
+              <span v-if="currentDetail.status !== 'failed'">{{ currentDetail.progress }}%</span>
               <el-tag v-else type="danger">已失败</el-tag>
             </div>
           </div>
           <div class="detail-item">
-            <div class="detail-label">算力消耗</div>
+            <div class="detail-label">积分消耗</div>
             <div class="detail-value">{{ currentDetail.power }}</div>
           </div>
           <div class="detail-item">
@@ -178,13 +178,13 @@
           <div class="detail-value" v-html="md.render(currentDetail.prompt)" />
         </div>
 
-        <div v-if="currentDetail.progress === 101 && currentDetail.err_msg" class="detail-full error">
+        <div v-if="currentDetail.status === 'failed' && currentDetail.err_msg" class="detail-full error">
           <div class="detail-label">错误信息</div>
           <div class="detail-value">{{ currentDetail.err_msg }}</div>
         </div>
 
         <!-- 音乐预览区域 - 仅成功任务显示 -->
-        <div v-if="currentDetail.progress === 100 && currentDetail.cover_url" class="detail-preview">
+        <div v-if="currentDetail.status === 'success' && currentDetail.cover_url" class="detail-preview">
           <div class="detail-label mb-2">音乐预览</div>
           <div class="preview-container">
             <el-image :src="currentDetail.cover_url" fit="cover" class="preview-image" />
@@ -201,10 +201,10 @@
 
 <script setup>
 import MusicPlayer from '@/components/MusicPlayer.vue'
+import { showMessageError, showMessageOK } from '@/utils/dialog'
 import { httpGet, httpPost } from '@/utils/http'
 import { dateFormat, formatTime, substr } from '@/utils/libs'
 import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import MarkdownIt from 'markdown-it'
 import { nextTick, onMounted, ref } from 'vue'
 
@@ -249,18 +249,18 @@ const fetchData = () => {
       loading.value = false
     })
     .catch((e) => {
-      ElMessage.error('获取数据失败：' + e.message)
+      showMessageError('获取数据失败：' + e.message)
     })
 }
 
 const remove = function (row) {
   httpGet(`/api/admin/suno/remove?id=${row.id}`)
     .then(() => {
-      ElMessage.success('删除成功！')
+      showMessageOK('删除成功！')
       fetchData()
     })
     .catch((e) => {
-      ElMessage.error('删除失败：' + e.message)
+      showMessageError('删除失败：' + e.message)
     })
 }
 
@@ -272,7 +272,7 @@ const playMusic = (item) => {
 
 const md = MarkdownIt({
   breaks: true,
-  html: true,
+  html: false,
   linkify: true,
 })
 

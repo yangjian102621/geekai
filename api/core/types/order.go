@@ -27,9 +27,11 @@ var PayChannel = map[string]string{
 	"alipay": "支付宝商号",
 	"wxpay":  "微信商号",
 	"epay":   "易支付",
+	"stripe": "Stripe 商号",
 }
 
 var PayWays = map[string]string{
 	"alipay": "支付宝",
 	"wxpay":  "微信支付",
+	"stripe": "Stripe",
 }

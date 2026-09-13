@@ -106,6 +106,26 @@
           <el-form-item label="启用该支付通道"><el-switch v-model="epay.enabled" /></el-form-item>
         </el-form>
       </el-tab-pane>
+
+      <el-tab-pane label="Stripe" name="stripe">
+        <template #label>
+          <div class="d-flex align-items-center text-orange-600">
+            <i class="iconfont icon-reward"></i>
+            <span class="ms-2">Stripe</span>
+          </div>
+        </template>
+        <Alert type="info">
+          Stripe Checkout 采用托管收银台模式，支付完成后会回跳到会员页，最终支付状态以 webhook 为准。
+        </Alert>
+
+        <el-form :model="stripe" class="mt-4" label-position="top">
+          <el-form-item label="Secret Key"><el-input v-model="stripe.secret_key" /></el-form-item>
+          <el-form-item label="Webhook Signing Secret"><el-input v-model="stripe.webhook_key" /></el-form-item>
+          <el-form-item label="回跳域名"><el-input v-model="stripe.domain" /></el-form-item>
+          <el-form-item label="货币代码"><el-input v-model="stripe.currency" placeholder="usd" /></el-form-item>
+          <el-form-item label="启用该支付通道"><el-switch v-model="stripe.enabled" /></el-form-item>
+        </el-form>
+      </el-tab-pane>
     </el-tabs>
     <div class="flex justify-center mt-6">
       <el-button type="primary" @click="save" :loading="loading">提交保存</el-button>
@@ -143,6 +163,7 @@ const wxpay = ref({
   domain: '',
 })
 const epay = ref({ enabled: false, app_id: '', private_key: '', api_url: '', domain: '' })
+const stripe = ref({ enabled: false, secret_key: '', webhook_key: '', domain: '', currency: 'usd' })
 
 onMounted(() => {
   httpGet('/api/admin/config/get?key=payment')
@@ -151,6 +172,7 @@ onMounted(() => {
       alipay.value = { ...alipay.value, ...(data.alipay || {}) }
       wxpay.value = { ...wxpay.value, ...(data.wxpay || data.wechat || {}) }
       epay.value = { ...epay.value, ...(data.epay || {}) }
+      stripe.value = { ...stripe.value, ...(data.stripe || {}) }
 
       // 如果 domain 为空，则设置为当前域名
       if (!alipay.value.domain) {
@@ -162,6 +184,12 @@ onMounted(() => {
       if (!epay.value.domain) {
         epay.value.domain = domain.value
       }
+      if (!stripe.value.domain) {
+        stripe.value.domain = domain.value
+      }
+      if (!stripe.value.currency) {
+        stripe.value.currency = 'usd'
+      }
     })
     .catch(() => {})
     .finally(() => (loading.value = false))
@@ -169,7 +197,7 @@ onMounted(() => {
 
 const save = () => {
   loading.value = true
-  const payload = { alipay: alipay.value, wxpay: wxpay.value, epay: epay.value }
+  const payload = { alipay: alipay.value, wxpay: wxpay.value, epay: epay.value, stripe: stripe.value }
   httpPost('/api/admin/config/update/payment', payload)
     .then(() => ElMessage.success('保存成功'))
     .catch((e) => ElMessage.error(e.message))

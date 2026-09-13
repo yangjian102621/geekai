@@ -13,13 +13,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"geekai/core/types"
+	"geekai/utils"
+	"image"
+	"image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"geekai/utils"
+	"strconv"
+	"strings"
 	"time"
 
+	_ "image/gif"
+	_ "image/jpeg"
+
 	"github.com/imroc/req/v3"
+	"github.com/nfnt/resize"
+	_ "golang.org/x/image/webp"
 	"gorm.io/gorm"
 )
 
@@ -141,10 +150,10 @@ func (a *SoraAdapter) CreateTask(task types.VideoTask, videoConfig *types.VideoC
 
 	// 其他场景：保持原来的 JSON 调用，input_reference 继续传 URL 字符串
 	reqBody := SoraCreateRequest{
-		Model:    model,
-		Prompt:   task.Prompt,
-		Size:     size,
-		Seconds:  seconds,
+		Model:     model,
+		Prompt:    task.Prompt,
+		Size:      size,
+		Seconds:   seconds,
 		Watermark: watermark,
 	}
 
@@ -201,6 +210,12 @@ func (a *SoraAdapter) createOfficialSoraTask(task types.VideoTask, videoConfig *
 	if err != nil {
 		return CreateTaskResponse{}, fmt.Errorf("下载参考图片失败：%v", err)
 	}
+	if size != "" {
+		imgData, err = normalizeImageBytesForSize(imgData, size)
+		if err != nil {
+			return CreateTaskResponse{}, fmt.Errorf("处理参考图片尺寸失败：%v", err)
+		}
+	}
 
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
@@ -224,7 +239,7 @@ func (a *SoraAdapter) createOfficialSoraTask(task types.VideoTask, videoConfig *
 	}
 
 	// 文件字段
-	fileWriter, err := writer.CreateFormFile("input_reference", "image")
+	fileWriter, err := writer.CreateFormFile("input_reference", "image.png")
 	if err != nil {
 		return CreateTaskResponse{}, err
 	}
@@ -279,6 +294,86 @@ func (a *SoraAdapter) createOfficialSoraTask(task types.VideoTask, videoConfig *
 func downloadImageBytes(imageURL string) ([]byte, error) {
 	body, _, err := utils.FetchURLBytes(context.Background(), imageURL, "", 3*time.Minute, 2, 32<<20)
 	return body, err
+}
+
+// normalizeImageBytesForSize 将参考图等比缩放并裁切为目标尺寸，确保与 Sora size 参数一致
+func normalizeImageBytesForSize(imageData []byte, size string) ([]byte, error) {
+	targetWidth, targetHeight, err := parseVideoSize(size)
+	if err != nil {
+		return nil, err
+	}
+	if targetWidth <= 0 || targetHeight <= 0 {
+		return nil, fmt.Errorf("无效的图片尺寸: %s", size)
+	}
+
+	srcImage, _, err := image.Decode(bytes.NewReader(imageData))
+	if err != nil {
+		return nil, fmt.Errorf("解码参考图片失败：%w", err)
+	}
+	srcBounds := srcImage.Bounds()
+	srcWidth := srcBounds.Dx()
+	srcHeight := srcBounds.Dy()
+	if srcWidth <= 0 || srcHeight <= 0 {
+		return nil, fmt.Errorf("参考图片尺寸无效")
+	}
+
+	if srcWidth == targetWidth && srcHeight == targetHeight {
+		var exactBuf bytes.Buffer
+		if err = png.Encode(&exactBuf, srcImage); err != nil {
+			return nil, fmt.Errorf("编码参考图片失败：%w", err)
+		}
+		return exactBuf.Bytes(), nil
+	}
+
+	scaleByWidth := float64(targetWidth) / float64(srcWidth)
+	scaleByHeight := float64(targetHeight) / float64(srcHeight)
+	scale := scaleByWidth
+	if scaleByHeight > scale {
+		scale = scaleByHeight
+	}
+
+	resizedWidth := int(float64(srcWidth) * scale)
+	resizedHeight := int(float64(srcHeight) * scale)
+	if resizedWidth < targetWidth {
+		resizedWidth = targetWidth
+	}
+	if resizedHeight < targetHeight {
+		resizedHeight = targetHeight
+	}
+
+	resizedImage := resize.Resize(uint(resizedWidth), uint(resizedHeight), srcImage, resize.Lanczos3)
+	offsetX := (resizedWidth - targetWidth) / 2
+	offsetY := (resizedHeight - targetHeight) / 2
+	targetRect := image.Rect(0, 0, targetWidth, targetHeight)
+	croppedImage := image.NewRGBA(targetRect)
+	for y := 0; y < targetHeight; y++ {
+		for x := 0; x < targetWidth; x++ {
+			croppedImage.Set(x, y, resizedImage.At(x+offsetX, y+offsetY))
+		}
+	}
+
+	var out bytes.Buffer
+	if err = png.Encode(&out, croppedImage); err != nil {
+		return nil, fmt.Errorf("编码裁切后的参考图片失败：%w", err)
+	}
+	return out.Bytes(), nil
+}
+
+// parseVideoSize 解析 "720x1280" 这样的尺寸字符串
+func parseVideoSize(size string) (int, int, error) {
+	parts := strings.Split(strings.TrimSpace(size), "x")
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("非法尺寸格式: %s", size)
+	}
+	width, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+	if err != nil {
+		return 0, 0, fmt.Errorf("解析宽度失败: %w", err)
+	}
+	height, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+	if err != nil {
+		return 0, 0, fmt.Errorf("解析高度失败: %w", err)
+	}
+	return width, height, nil
 }
 
 // downloadImageAsDataURL 下载远程图片并转为 data URL，避免向官方 Sora 直接传地址

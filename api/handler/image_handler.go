@@ -127,10 +127,12 @@ func (h *ImageJobHandler) Image(c *gin.Context) {
 		Power:            chatModel.Power,
 	}
 	job := model.ImageJob{
-		UserId: uint(userId),
-		Prompt: data.Prompt,
-		Power:  chatModel.Power,
-		Params: utils.JsonEncode(task),
+		UserId:   uint(userId),
+		Prompt:   data.Prompt,
+		Power:    chatModel.Power,
+		Status:   model.ImageStatusPending,
+		Progress: 0,
+		Params:   utils.JsonEncode(task),
 	}
 	res := h.DB.Create(&job)
 	if res.Error != nil {
@@ -189,9 +191,9 @@ func (h *ImageJobHandler) getData(finish bool, userId uint, page int, pageSize i
 
 	session := h.DB.Session(&gorm.Session{})
 	if finish {
-		session = session.Where("progress >= ?", 100).Order("id DESC")
+		session = session.Where("status IN ?", []string{model.ImageStatusSuccess, model.ImageStatusFailed}).Order("id DESC")
 	} else {
-		session = session.Where("progress < ?", 100).Order("id ASC")
+		session = session.Where("status IN ?", []string{model.ImageStatusPending, model.ImageStatusInProgress, model.ImageStatusDownloading}).Order("id ASC")
 	}
 	if userId > 0 {
 		session = session.Where("user_id = ?", userId)
@@ -221,6 +223,8 @@ func (h *ImageJobHandler) getData(finish bool, userId uint, page int, pageSize i
 			continue
 		}
 		job.CreatedAt = item.CreatedAt.Unix()
+		// CopyObject skips int→bool (model.Publish vs vo.Publish); keep list in sync with DB
+		job.Publish = item.Publish != 0
 		jobs = append(jobs, job)
 	}
 

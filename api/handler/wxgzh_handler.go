@@ -87,9 +87,3 @@ func validateSignature(signature, token, timestamp, nonce string) bool {
 	// 4. 与 signature 比对
 	return hashed == signature
 }
-
-// 创建微信菜单
-func (h *WxGzhHandler) CreateMenu(c *gin.Context) {
-
-	resp.SUCCESS(c, "创建菜单成功")
-}

@@ -102,21 +102,22 @@ type SystemConfig struct {
 
 // 配置键名常量
 const (
-	ConfigKeySystem     = "system"     // 系统配置
-	ConfigKeyNotice     = "notice"     // 公告配置
-	ConfigKeyAgreement  = "agreement"  // 用户协议配置
-	ConfigKeyPrivacy    = "privacy"    // 隐私政策配置
-	ConfigKeyMarkMap    = "mark_map"   // 水印配置
-	ConfigKeyCaptcha    = "captcha"    // 验证码配置
-	ConfigKeyWxLogin    = "wx_login"   // 微信扫码登录配置
-	ConfigKeyWxGzh      = "wx_gzh"     // 微信公众号配置
-	ConfigKeySms        = "sms"        // 短信配置
-	ConfigKeySmtp       = "smtp"       // SMTP 配置
-	ConfigKeyOss        = "oss"        // OSS 配置
-	ConfigKeyPayment    = "payment"    // 支付配置
-	ConfigKeyModeration = "moderation" // 文本审查配置
-	ConfigKeyAI3D       = "ai3d"       // AI3D 配置
-	ConfigKeyJimeng     = "jimeng"     // 即梦AI配置
-	ConfigKeyVideo      = "video"      // 视频生成配置
-	ConfigKeyPPT        = "ppt"        // PPT 生成配置
+	ConfigKeySystem     = "system"      // 系统配置
+	ConfigKeyNotice     = "notice"      // 公告配置
+	ConfigKeyAgreement  = "agreement"   // 用户协议配置
+	ConfigKeyPrivacy    = "privacy"     // 隐私政策配置
+	ConfigKeyMarkMap    = "mark_map"    // 水印配置
+	ConfigKeyCaptcha    = "captcha"     // 验证码配置
+	ConfigKeyWxLogin    = "wx_login"    // 微信扫码登录配置
+	ConfigKeyWxGzh      = "wx_gzh"      // 微信公众号配置
+	ConfigKeyWxGzhMenu  = "wx_gzh_menu" // 微信公众号自定义菜单草稿
+	ConfigKeySms        = "sms"         // 短信配置
+	ConfigKeySmtp       = "smtp"        // SMTP 配置
+	ConfigKeyOss        = "oss"         // OSS 配置
+	ConfigKeyPayment    = "payment"     // 支付配置
+	ConfigKeyModeration = "moderation"  // 文本审查配置
+	ConfigKeyAI3D       = "ai3d"        // AI3D 配置
+	ConfigKeyJimeng     = "jimeng"      // 即梦AI配置
+	ConfigKeyVideo      = "video"       // 视频生成配置
+	ConfigKeyPPT        = "ppt"         // PPT 生成配置
 )

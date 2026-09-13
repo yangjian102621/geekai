@@ -10,9 +10,7 @@
                   v-for="item in currentApps"
                   :key="item.id"
                   :app="item"
-                  :has-role="hasRole(item.id)"
                   @use-role="useRole"
-                  @update-role="updateRole"
                 />
               </template>
               <template v-else-if="!loading && currentApps.length === 0">
@@ -45,9 +43,7 @@
                   v-for="item in getAppsByType(type.id)"
                   :key="item.id"
                   :app="item"
-                  :has-role="hasRole(item.id)"
                   @use-role="useRole"
-                  @update-role="updateRole"
                 />
               </template>
               <template v-else-if="!loading && getAppsByType(type.id).length === 0">
@@ -78,8 +74,8 @@ import EmptyState from '@/components/mobile/EmptyState.vue'
 import CustomTabPane from '@/components/ui/CustomTabPane.vue'
 import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { checkSession } from '@/store/cache'
-import { httpGet, httpPost } from '@/utils/http'
-import { arrayContains, removeArrayItem, showLoginDialog, substr } from '@/utils/libs'
+import { httpGet } from '@/utils/http'
+import { showLoginDialog, substr } from '@/utils/libs'
 import { showNotify } from 'vant'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -89,7 +85,6 @@ const isLogin = ref(false)
 const allApps = ref([]) // 存储所有应用数据
 const appTypes = ref([])
 const loading = ref(false)
-const roles = ref([])
 const activeTab = ref('all')
 const initialized = ref(false)
 
@@ -116,9 +111,8 @@ const currentApps = computed(() => {
 
 onMounted(async () => {
   try {
-    const user = await checkSession()
+    await checkSession()
     isLogin.value = true
-    roles.value = Array.isArray(user.chat_roles) ? user.chat_roles : []
   } catch (error) {
     // 用户未登录，继续执行
   }
@@ -171,40 +165,6 @@ const handleTabChange = async (tabName) => {
   activeTab.value = tabName
   // 等待DOM更新完成
   await nextTick()
-}
-
-const updateRole = async (app, opt) => {
-  if (!isLogin.value) {
-    return showLoginDialog(router)
-  }
-
-  let actionTitle = ''
-  if (opt === 'add') {
-    actionTitle = '添加应用'
-    const exists = arrayContains(roles.value, app.id)
-    if (exists) {
-      return
-    }
-    roles.value.push(app.id)
-  } else {
-    actionTitle = '移除应用'
-    const exists = arrayContains(roles.value, app.id)
-    if (!exists) {
-      return
-    }
-    roles.value = removeArrayItem(roles.value, app.id)
-  }
-
-  try {
-    await httpPost('/api/app/workspace', { ids: roles.value })
-    showNotify({ type: 'success', message: actionTitle + '成功！' })
-  } catch (e) {
-    showNotify({ type: 'danger', message: actionTitle + '失败：' + e.message })
-  }
-}
-
-const hasRole = (roleId) => {
-  return arrayContains(roles.value, roleId, (v1, v2) => v1 === v2)
 }
 
 const useRole = (roleId) => {

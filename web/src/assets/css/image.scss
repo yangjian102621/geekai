@@ -10,7 +10,10 @@
       margin: 10px;
       // background-color: #262626;
       // border: 1px solid #454545;
-      min-width: 300px;
+      // 侧栏过窄时固定宽 btn 会提前换行；260px 仅能摆 4×56+gap，Chrome/Blink 常因 flex 分配更宽而表现为 5 列。锁定 360px 保证与 max-width 一致的可视空间。
+      flex: 0 0 360px;
+      width: 360px;
+      min-width: 360px;
       max-width: 360px;
       padding: 10px;
       border-radius: 10px;
@@ -221,4 +224,168 @@
       }
     }
   }
+}
+
+.detail-content {
+  :deep(.el-descriptions__label) {
+    min-width: 110px;
+  }
+
+  .prompt-text {
+    display: flex;
+    align-items: center;
+    word-break: break-all;
+  }
+
+  .reference-images {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+.image-task-item {
+  position: relative;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+
+  &:has(.image-task-preview--failed) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+/* 失败项：瀑布流格子有高度，让卡片铺满以便占位图 cover */
+.finish-job-list :deep(.waterfall-item:has(.image-task-preview--failed) .waterfall-card) {
+  height: 100%;
+}
+
+.image-task-preview {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color);
+  background: var(--card-bg);
+  flex: 0 0 auto;
+
+  &.image-task-preview--failed {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 180px;
+    justify-content: center;
+    align-items: center;
+    background: var(--card-bg);
+  }
+}
+
+.image-task-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+}
+
+.image-task-image--failed {
+  position: static;
+  width: 60%;
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+  object-position: center center;
+  cursor: pointer;
+}
+
+.image-detail-failed-actions {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.image-task-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.image-task-item:hover .image-task-overlay {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.image-task-overlay-time {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.image-task-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.image-task-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(8, 10, 16, 0.62);
+  color: #f5f7fa;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.image-task-tool .iconfont {
+  font-size: 15px;
+}
+
+.image-task-tool:hover {
+  color: #fff;
+  border-color: rgba(129, 140, 248, 0.8);
+  background: rgba(79, 70, 229, 0.72);
+}
+
+.image-task-tool--danger {
+  color: var(--el-color-danger);
+}
+
+.image-task-tool--danger:hover {
+  color: #fff;
+  background: var(--el-color-danger);
+  border-color: var(--el-color-danger);
+}
+
+.image-task-image--failed .lazy__img {
+  width: 90% !important;
 }

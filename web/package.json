@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path .gitignore"
   },
   "dependencies": {
     "@better-scroll/core": "^2.5.1",
@@ -51,6 +51,8 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
     "autoprefixer": "^10.4.20",
+    "eslint": "8.57.1",
+    "eslint-plugin-vue": "9.33.0",
     "postcss": "^8.4.49",
     "sass-embedded": "^1.89.2",
     "stylus": "^0.58.1",

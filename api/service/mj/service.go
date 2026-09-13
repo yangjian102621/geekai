@@ -45,7 +45,7 @@ func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *os
 func (s *Service) Run() {
 	// 将数据库中未提交的人物加载到队列
 	var jobs []model.MidJourneyJob
-	s.db.Where("task_id", "").Where("progress", 0).Find(&jobs)
+	s.db.Where("task_id", "").Where("status IN ?", []string{model.ImageStatusPending, model.ImageStatusInProgress}).Find(&jobs)
 	for _, v := range jobs {
 		var task types.MjTask
 		err := utils.JsonDecode(v.TaskInfo, &task)
@@ -80,6 +80,11 @@ func (s *Service) Run() {
 			}
 
 			logger.Infof("handle a new MidJourney task: %+v", task)
+			s.db.Model(&model.MidJourneyJob{Id: task.Id}).UpdateColumns(map[string]any{
+				"status":   model.ImageStatusInProgress,
+				"progress": 1,
+				"err_msg":  "",
+			})
 			var res ImageRes
 			switch task.Type {
 			case types.TaskImage:
@@ -111,7 +116,8 @@ func (s *Service) Run() {
 				}
 
 				logger.Error("绘画任务执行失败：", errMsg)
-				job.Progress = service.FailTaskProgress
+				job.Status = model.ImageStatusFailed
+				job.Progress = 0
 				job.ErrMsg = errMsg
 				// update the task progress
 				s.db.Updates(&job)
@@ -123,6 +129,7 @@ func (s *Service) Run() {
 			job.TaskId = res.Result
 			job.MessageId = res.Result
 			job.ChannelId = res.Channel
+			job.Status = model.ImageStatusInProgress
 			s.db.Updates(&job)
 		}
 	}()
@@ -158,7 +165,7 @@ func (s *Service) DownloadImages() {
 	go func() {
 		var items []model.MidJourneyJob
 		for {
-			res := s.db.Where("img_url = ? AND progress = ?", "", 100).Find(&items)
+			res := s.db.Where("img_url = ? AND status = ?", "", model.ImageStatusDownloading).Find(&items)
 			if res.Error != nil {
 				continue
 			}
@@ -185,6 +192,7 @@ func (s *Service) DownloadImages() {
 				}
 
 				v.ImgURL = imgURL
+				v.Status = model.ImageStatusSuccess
 				s.db.Updates(&v)
 			}
 
@@ -206,7 +214,7 @@ func (s *Service) SyncTaskProgress() {
 	go func() {
 		var jobs []model.MidJourneyJob
 		for {
-			res := s.db.Where("progress < ?", 100).Where("channel_id <> ?", "").Find(&jobs)
+			res := s.db.Where("status IN ?", []string{model.ImageStatusPending, model.ImageStatusInProgress, model.ImageStatusDownloading}).Where("channel_id <> ?", "").Find(&jobs)
 			if res.Error != nil {
 				continue
 			}
@@ -214,7 +222,8 @@ func (s *Service) SyncTaskProgress() {
 			for _, job := range jobs {
 				// 10 分钟还没完成的任务标记为失败
 				if time.Since(job.CreatedAt) > time.Minute*10 {
-					job.Progress = service.FailTaskProgress
+					job.Status = model.ImageStatusFailed
+					job.Progress = 0
 					job.ErrMsg = "任务超时"
 					s.db.Updates(&job)
 					continue
@@ -229,7 +238,8 @@ func (s *Service) SyncTaskProgress() {
 				// 任务执行失败了
 				if task.FailReason != "" {
 					s.db.Model(&model.MidJourneyJob{Id: job.Id}).UpdateColumns(map[string]interface{}{
-						"progress": service.FailTaskProgress,
+						"status":   model.ImageStatusFailed,
+						"progress": 0,
 						"err_msg":  task.FailReason,
 					})
 					logger.Errorf("task failed: %v", task.FailReason)
@@ -243,6 +253,11 @@ func (s *Service) SyncTaskProgress() {
 				if task.ImageUrl != "" {
 					job.OrgURL = task.ImageUrl
 				}
+				if job.Progress >= 100 {
+					job.Status = model.ImageStatusDownloading
+				} else {
+					job.Status = model.ImageStatusInProgress
+				}
 				err = s.db.Updates(&job).Error
 				if err != nil {
 					logger.Errorf("error with update database: %v", err)
@@ -250,13 +265,13 @@ func (s *Service) SyncTaskProgress() {
 				}
 			}
 
-			// 找出失败的任务，并恢复其扣减算力
-			s.db.Where("progress", service.FailTaskProgress).Where("power > ?", 0).Find(&jobs)
+			// 找出失败的任务，并恢复其扣减积分
+			s.db.Where("status", model.ImageStatusFailed).Where("power > ?", 0).Find(&jobs)
 			for _, job := range jobs {
 				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 					Type:   types.PowerRefund,
 					Model:  "mid-journey",
-					Remark: fmt.Sprintf("任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+					Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
 				})
 				if err != nil {
 					continue

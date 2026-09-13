@@ -251,7 +251,7 @@ export const useVideoStore = defineStore('video', () => {
         let needPull = false
         const items = []
         for (let v of res.data.items) {
-          if (v.progress === 0 || v.progress === 102) {
+          if (v.status === 'pending' || v.status === 'in_progress' || v.status === 'downloading') {
             needPull = true
           }
           items.push(v)

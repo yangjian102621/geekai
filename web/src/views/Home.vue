@@ -76,7 +76,7 @@
                   </div>
                 </li>
                 <li>
-                  <div @click="showMemberDialog = true" class="flex">
+                  <div @click="goMember" class="flex">
                     <i class="iconfont icon-config"></i>
                     <span class="title">用户设置</span>
                   </div>
@@ -148,21 +148,6 @@
       </div>
     </el-dialog>
 
-    <!-- 用户设置弹窗 -->
-    <el-dialog
-      v-model="showMemberDialog"
-      title="用户设置"
-      width="90%"
-      :close-on-click-modal="true"
-      :close-on-press-escape="true"
-      style="max-width: 1400px"
-      @close="showMemberDialog = false"
-    >
-      <div class="member-dialog-content">
-        <Member />
-      </div>
-    </el-dialog>
-
     <!-- 推广计划弹窗 -->
     <el-dialog
       v-model="showInvitationDialog"
@@ -195,7 +180,6 @@
 import LoginDialog from '@/components/LoginDialog.vue'
 import ThemeChange from '@/components/ThemeChange.vue'
 import PowerLog from '@/views/PowerLog.vue'
-import Member from '@/views/Member.vue'
 import Invitation from '@/views/Invitation.vue'
 import { checkSession, getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
@@ -216,7 +200,6 @@ const store = useSharedStore()
 const loginUser = ref({})
 const routerViewKey = ref(0)
 const showPowerLogDialog = ref(false)
-const showMemberDialog = ref(false)
 const showInvitationDialog = ref(false)
 const showLoginDialog = ref(false)
 const githubURL = ref(import.meta.env.VITE_GITHUB_URL)
@@ -319,6 +302,10 @@ const init = () => {
     .catch(() => {})
 }
 
+const goMember = () => {
+  router.push('/member')
+}
+
 const logout = function () {
   httpGet('/api/user/logout')
     .then(() => {
@@ -345,7 +332,6 @@ const loginSuccess = () => {
 
 <style lang="scss">
 .powerlog-dialog-content,
-.member-dialog-content,
 .invitation-dialog-content {
   max-height: calc(100vh - 150px);
   overflow-y: auto;
@@ -357,13 +343,6 @@ const loginSuccess = () => {
     .inner {
       padding: 0;
     }
-  }
-}
-
-.member-dialog-content {
-  .member-page {
-    min-height: auto;
-    padding: 0;
   }
 }
 

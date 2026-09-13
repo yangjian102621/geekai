@@ -15,6 +15,7 @@ type MidJourneyJob struct {
 	ImgURL    string    `gorm:"column:img_url;type:varchar(400);comment:图片URL" json:"img_url"`
 	OrgURL    string    `gorm:"column:org_url;type:varchar(400);comment:原始图片地址" json:"org_url"`
 	Hash      string    `gorm:"column:hash;type:varchar(100);comment:message hash" json:"hash"`
+	Status    string    `gorm:"column:status;type:varchar(20);default:pending;comment:任务状态:pending,in_progress,downloading,success,failed" json:"status"`
 	Progress  int       `gorm:"column:progress;type:smallint;default:0;comment:任务进度" json:"progress"`
 	UseProxy  int       `gorm:"column:use_proxy;type:tinyint(1);not null;default:0;comment:是否使用反代" json:"use_proxy"`
 	Publish   int       `gorm:"column:publish;type:tinyint(1);not null;comment:是否发布" json:"publish"`

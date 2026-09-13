@@ -41,12 +41,13 @@ func (h *ProductHandler) RegisterRoutes() {
 
 func (h *ProductHandler) Save(c *gin.Context) {
 	var data struct {
-		Id        uint    `json:"id"`
-		Name      string  `json:"name"`
-		Price     float64 `json:"price"`
-		Enabled   bool    `json:"enabled"`
-		Power     int     `json:"power"`
-		CreatedAt int64   `json:"created_at"`
+		Id          uint    `json:"id"`
+		Name        string  `json:"name"`
+		Price       float64 `json:"price"`
+		StripePrice float64 `json:"stripe_price"`
+		Enabled     bool    `json:"enabled"`
+		Power       int     `json:"power"`
+		CreatedAt   int64   `json:"created_at"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
@@ -54,10 +55,11 @@ func (h *ProductHandler) Save(c *gin.Context) {
 	}
 
 	item := model.Product{
-		Name:    data.Name,
-		Price:   data.Price,
-		Power:   data.Power,
-		Enabled: data.Enabled}
+		Name:        data.Name,
+		Price:       data.Price,
+		StripePrice: data.StripePrice,
+		Power:       data.Power,
+		Enabled:     data.Enabled}
 	item.Id = data.Id
 	if item.Id > 0 {
 		item.CreatedAt = time.Unix(data.CreatedAt, 0)

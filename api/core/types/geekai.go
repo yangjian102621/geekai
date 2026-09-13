@@ -40,3 +40,19 @@ type WxGzhConfig struct {
 	EncodingAESKey string `json:"encoding_aes_key"`
 	Enabled        bool   `json:"enabled"`
 }
+
+// WxGzhMenuConfig 公众号自定义菜单草稿（与微信公众平台 menu/create 的 button 结构一致）
+type WxGzhMenuConfig struct {
+	Button []WxGzhMenuButton `json:"button"`
+}
+
+// WxGzhMenuButton 单条菜单；含子菜单时仅填 Name 与 SubButton，不填 Type
+type WxGzhMenuButton struct {
+	Type       string            `json:"type,omitempty"`        // view | click 等
+	Name       string            `json:"name"`
+	Key        string            `json:"key,omitempty"`         // click
+	URL        string            `json:"url,omitempty"`         // view
+	AppID      string            `json:"appid,omitempty"`       // miniprogram
+	PagePath   string            `json:"pagepath,omitempty"`    // miniprogram
+	SubButton  []WxGzhMenuButton `json:"sub_button,omitempty"`  // 子菜单
+}

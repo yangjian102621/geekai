@@ -199,8 +199,8 @@ func main() {
 		fx.Provide(suno.NewService),
 		fx.Invoke(func(s *suno.Service) {
 			s.Run()
-			s.SyncTaskProgress()
-			s.DownloadFiles()
+			// s.SyncTaskProgress()
+			// s.DownloadFiles()
 		}),
 		fx.Provide(video.NewService),
 		fx.Invoke(func(s *video.Service) {
@@ -230,6 +230,7 @@ func main() {
 		fx.Provide(payment.NewAlipayService),
 		fx.Provide(payment.NewEPayService),
 		fx.Provide(payment.NewWxpayService),
+		fx.Provide(payment.NewStripeService),
 
 		// 文件上传服务
 		fx.Provide(oss.NewLocalStorage),

@@ -167,23 +167,38 @@
                   <span>{{ feature }}</span>
                 </div>
               </div>
-              <div class="mt-auto grid grid-cols-2 gap-2">
-                <el-button
-                  class="h-10 w-full text-[0.8125rem] font-medium"
-                  type="success"
-                  @click="wxPay(item)"
-                >
-                  <i class="iconfont icon-wechat-pay mr-1"></i>
-                  <span>微信支付</span>
-                </el-button>
-                <el-button
-                  class="h-10 w-full text-[0.8125rem] font-medium"
-                  color="#1677FF"
-                  @click="alipay(item)"
-                >
-                  <i class="iconfont icon-alipay mr-1"></i>
-                  <span>支付宝</span>
-                </el-button>
+              <div class="grid grid-cols-2 gap-2">
+                <span>
+                  <el-button
+                    class="h-10 w-full text-[0.8125rem] font-medium"
+                    type="success"
+                    @click="wxPay(item)"
+                  >
+                    <i class="iconfont icon-wechat-pay mr-1"></i>
+                    <span>微信支付</span>
+                  </el-button>
+                </span>
+                <span>
+                  <el-button
+                    class="h-10 w-full text-[0.8125rem] font-medium"
+                    color="#1677FF"
+                    @click="alipay(item)"
+                  >
+                    <i class="iconfont icon-alipay mr-1"></i>
+                    <span>支付宝</span>
+                  </el-button>
+                </span>
+                <span class="col-span-2">
+                  <el-button
+                    v-if="stripePayEnabled"
+                    class="h-10 w-full text-[0.8125rem] font-medium"
+                    color="#f59e0b"
+                    @click="stripePay(item)"
+                  >
+                    <i class="iconfont icon-reward mr-1"></i>
+                    <span>Stripe</span>
+                  </el-button>
+                </span>
               </div>
             </div>
           </div>
@@ -322,6 +337,7 @@ const usernameInput = ref('')
 const user = ref(null)
 const isLogin = ref(false)
 const orderTimeout = ref(1800)
+const stripePayEnabled = ref(false)
 const loading = ref(true)
 const loadingText = ref('加载中...')
 
@@ -387,6 +403,7 @@ onMounted(() => {
       if (res.data['order_pay_timeout'] > 0) {
         orderTimeout.value = res.data['order_pay_timeout']
       }
+      stripePayEnabled.value = !!res.data['stripe_pay_enabled']
     })
     .catch((e) => {
       ElMessage.error('获取系统配置失败：' + e.message)
@@ -485,6 +502,17 @@ const alipay = (product) => {
   generateOrder('alipay')
 }
 
+const stripePay = (product) => {
+  if (!isLogin.value) {
+    store.setShowLoginDialog(true)
+    return
+  }
+
+  selectedPid.value = product.id
+  title.value = 'Stripe Checkout'
+  generateOrder('stripe')
+}
+
 const generateOrder = (payWay) => {
   showLoading('正在生成支付订单...')
   // 生成支付订单
@@ -496,6 +524,11 @@ const generateOrder = (payWay) => {
   })
     .then((res) => {
       closeLoading()
+
+      if (payWay === 'stripe') {
+        window.location.href = res.data.pay_url
+        return
+      }
 
       if (isMobile()) {
         window.location.href = res.data.pay_url

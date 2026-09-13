@@ -1,13 +1,15 @@
 package payment
 
 // 支付渠道定义
-const PayChannelAL = "alipay" // 支付宝
-const PayChannelWX = "wxpay"  // 微信支付
-const PayChannelEpay = "epay" // 易支付
+const PayChannelAL = "alipay"     // 支付宝
+const PayChannelWX = "wxpay"      // 微信支付
+const PayChannelEpay = "epay"     // 易支付
+const PayChannelStripe = "stripe" // Stripe
 
 // 支付方式
 const PayWayAL = "alipay"
 const PayWayWX = "wxpay"
+const PayWayStripe = "stripe"
 
 const (
 	Success = 0
@@ -19,6 +21,7 @@ type PayRequest struct {
 	OutTradeNo string // 商户订单号
 	Subject    string // 商品名称
 	TotalFee   string // 商品金额
+	Currency   string // 币种
 	ReturnURL  string // 回调地址
 	NotifyURL  string // 回调地址
 

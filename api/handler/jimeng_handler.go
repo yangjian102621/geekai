@@ -58,6 +58,12 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
+	if jimeng.IsSeedanceReqKey(req.ReqKey) {
+		if err := h.validateSeedanceRequest(&req); err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
 
 	// 文本审核
 	if h.App.SysConfig.Moderation.Enable && req.Prompt != "" {
@@ -83,7 +89,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 
 	}
 
-	if req.Prompt == "" && len(req.ImageUrls) == 0 {
+	if !jimeng.IsSeedanceReqKey(req.ReqKey) && req.Prompt == "" && len(req.ImageUrls) == 0 {
 		resp.ERROR(c, "提示词和图片不能同时为空")
 		return
 	}
@@ -315,6 +321,9 @@ func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 		if req.Duration == 0 {
 			return 0, errors.New("视频时长不能为0")
 		}
+		if req.Duration == -1 {
+			return basePower, nil
+		}
 		return basePower * req.Duration, nil
 	case types.JMTaskTypeVirtualHuman:
 		if req.AudioURL == "" {
@@ -353,4 +362,182 @@ func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{
 		"powers": config.Powers,
 	})
+}
+
+func (h *JimengHandler) validateSeedanceRequest(req *types.JimengTaskRequest) error {
+	if req.Duration != 0 && req.Duration != -1 {
+		if req.Duration < 4 || req.Duration > 15 {
+			return errors.New("Seedance 视频时长必须在 4-15 秒之间，或使用 -1 智能时长")
+		}
+	}
+
+	if req.AspectRatio != "" {
+		allowedRatio := map[string]bool{
+			"16:9": true, "4:3": true, "1:1": true, "3:4": true, "9:16": true, "21:9": true, "adaptive": true,
+		}
+		if !allowedRatio[req.AspectRatio] {
+			return errors.New("不支持的视频比例参数")
+		}
+	}
+
+	if req.Resolution != "" {
+		allowedResolution := map[string]bool{"480p": true, "720p": true, "1080p": true}
+		if !allowedResolution[req.Resolution] {
+			return errors.New("不支持的视频分辨率参数")
+		}
+	}
+
+	if req.ReqKey == "doubao-seedance-2-0-fast-260128" && req.Resolution == "1080p" {
+		return errors.New("Seedance 2.0 Fast 不支持 1080p")
+	}
+
+	if !h.seedanceSupportsVideoAudio(req.ReqKey) {
+		if req.VideoURL != "" || req.AudioURL != "" {
+			return errors.New("当前 Seedance 模型不支持视频或音频输入")
+		}
+	}
+
+	content := req.Content
+	if len(content) == 0 {
+		content = h.buildCompatSeedanceContent(req)
+	}
+	if len(content) == 0 {
+		return errors.New("Seedance 至少需要文本、图片或视频其中之一")
+	}
+
+	imageRoleCount := map[string]int{}
+	hasImageOrVideo := false
+	hasAudio := false
+	hasText := false
+
+	for _, item := range content {
+		switch item.Type {
+		case "text":
+			if item.Text == "" {
+				return errors.New("文本输入不能为空")
+			}
+			hasText = true
+		case "image_url":
+			if item.ImageURL == nil || item.ImageURL.URL == "" {
+				return errors.New("图片输入缺少 url")
+			}
+			role := item.Role
+			if role == "" {
+				role = "first_frame"
+			}
+			if role != "first_frame" && role != "last_frame" && role != "reference_image" {
+				return errors.New("图片 role 仅支持 first_frame、last_frame、reference_image")
+			}
+			imageRoleCount[role]++
+			hasImageOrVideo = true
+		case "video_url":
+			if !h.seedanceSupportsVideoAudio(req.ReqKey) {
+				return errors.New("当前 Seedance 模型不支持视频输入")
+			}
+			if item.VideoURL == nil || item.VideoURL.URL == "" {
+				return errors.New("视频输入缺少 url")
+			}
+			if item.Role != "" && item.Role != "reference_video" {
+				return errors.New("视频 role 仅支持 reference_video")
+			}
+			hasImageOrVideo = true
+		case "audio_url":
+			if !h.seedanceSupportsVideoAudio(req.ReqKey) {
+				return errors.New("当前 Seedance 模型不支持音频输入")
+			}
+			if item.AudioURL == nil || item.AudioURL.URL == "" {
+				return errors.New("音频输入缺少 url")
+			}
+			if item.Role != "" && item.Role != "reference_audio" {
+				return errors.New("音频 role 仅支持 reference_audio")
+			}
+			hasAudio = true
+		default:
+			return fmt.Errorf("不支持的 Seedance content 类型: %s", item.Type)
+		}
+	}
+
+	if hasAudio && !hasImageOrVideo {
+		return errors.New("音频不可单独输入，必须搭配图片或视频")
+	}
+	if imageRoleCount["first_frame"] > 1 {
+		return errors.New("first_frame 最多只能上传 1 张")
+	}
+	if imageRoleCount["last_frame"] > 1 {
+		return errors.New("last_frame 最多只能上传 1 张")
+	}
+	if imageRoleCount["reference_image"] > 9 {
+		return errors.New("reference_image 最多支持 9 张")
+	}
+	if imageRoleCount["reference_image"] > 0 && (imageRoleCount["first_frame"] > 0 || imageRoleCount["last_frame"] > 0) {
+		return errors.New("reference_image 模式不能与 first_frame/last_frame 混用")
+	}
+	if imageRoleCount["last_frame"] > 0 && imageRoleCount["first_frame"] == 0 {
+		return errors.New("使用 last_frame 时必须同时提供 first_frame")
+	}
+	if imageRoleCount["first_frame"] > 0 && imageRoleCount["last_frame"] == 0 && imageRoleCount["reference_image"] == 0 && !hasText {
+		return errors.New("图生视频至少需要提示词或补充参考素材")
+	}
+
+	return nil
+}
+
+func (h *JimengHandler) seedanceSupportsVideoAudio(reqKey string) bool {
+	return reqKey == "doubao-seedance-2-0-260128" || reqKey == "doubao-seedance-2-0-fast-260128"
+}
+
+func (h *JimengHandler) buildCompatSeedanceContent(req *types.JimengTaskRequest) []types.JMContentItem {
+	content := make([]types.JMContentItem, 0, 4)
+	if req.Prompt != "" {
+		content = append(content, types.JMContentItem{
+			Type: "text",
+			Text: req.Prompt,
+		})
+	}
+
+	if len(req.ImageUrls) > 0 {
+		for index, imageURL := range req.ImageUrls {
+			if imageURL == "" {
+				continue
+			}
+			role := "reference_image"
+			if len(req.ImageUrls) == 1 {
+				role = "first_frame"
+			} else if len(req.ImageUrls) == 2 {
+				if index == 0 {
+					role = "first_frame"
+				} else {
+					role = "last_frame"
+				}
+			}
+			content = append(content, types.JMContentItem{
+				Type: "image_url",
+				ImageURL: &types.JMAssetRef{
+					URL: imageURL,
+				},
+				Role: role,
+			})
+		}
+	}
+
+	if req.VideoURL != "" {
+		content = append(content, types.JMContentItem{
+			Type: "video_url",
+			VideoURL: &types.JMAssetRef{
+				URL: req.VideoURL,
+			},
+			Role: "reference_video",
+		})
+	}
+
+	if req.AudioURL != "" {
+		content = append(content, types.JMContentItem{
+			Type: "audio_url",
+			AudioURL: &types.JMAssetRef{
+				URL: req.AudioURL,
+			},
+			Role: "reference_audio",
+		})
+	}
+	return content
 }
