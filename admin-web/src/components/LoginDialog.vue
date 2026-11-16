@@ -120,108 +120,70 @@
     </div>
 
     <div class="register-box w-full" v-else>
-      <el-form :model="data" class="form space-y-5" v-if="enableRegister">
-        <el-tabs v-model="activeName" class="demo-tabs dark:text-white">
-          <el-tab-pane label="手机注册" name="mobile" v-if="enableMobile">
-            <div class="block">
-              <el-input
-                placeholder="手机号码"
-                size="large"
-                v-model="data.mobile"
-                maxlength="11"
-                autocomplete="off"
-              >
-                <template #prefix>
-                  <el-icon>
-                    <Iphone />
-                  </el-icon>
-                </template>
-              </el-input>
-            </div>
-            <div class="block mt-4">
-              <el-row :gutter="10">
-                <el-col :span="12">
-                  <el-input
-                    placeholder="验证码"
-                    size="large"
-                    maxlength="30"
-                    v-model="data.code"
-                    autocomplete="off"
-                  >
-                    <template #prefix>
-                      <el-icon>
-                        <Checked />
-                      </el-icon>
-                    </template>
-                  </el-input>
-                </el-col>
-                <el-col :span="12">
-                  <send-msg size="large" :receiver="data.mobile" type="mobile" />
-                </el-col>
-              </el-row>
-            </div>
-          </el-tab-pane>
-          <!-- 暂时隐藏邮箱注册入口
-          <el-tab-pane label="邮箱注册" name="email" v-if="enableEmail">
-            <div class="block">
-              <el-input placeholder="邮箱地址" size="large" v-model="data.email" autocomplete="off">
-                <template #prefix>
-                  <el-icon>
-                    <Message />
-                  </el-icon>
-                </template>
-              </el-input>
-            </div>
-            <div class="block mt-4">
-              <el-row :gutter="10">
-                <el-col :span="12">
-                  <el-input
-                    placeholder="验证码"
-                    size="large"
-                    maxlength="30"
-                    v-model="data.code"
-                    autocomplete="off"
-                  >
-                    <template #prefix>
-                      <el-icon>
-                        <Checked />
-                      </el-icon>
-                    </template>
-                  </el-input>
-                </el-col>
-                <el-col :span="12">
-                  <send-msg size="large" :receiver="data.email" type="email" />
-                </el-col>
-              </el-row>
-            </div>
-          </el-tab-pane>
-          -->
-          <el-tab-pane label="用户名注册" name="username" v-if="enableUser">
-            <div class="block">
-              <el-input
-                placeholder="用户名"
-                size="large"
-                v-model="data.username"
-                autocomplete="off"
-              >
-                <template #prefix>
-                  <el-icon>
-                    <Iphone />
-                  </el-icon>
-                </template>
-              </el-input>
-            </div>
-          </el-tab-pane>
-        </el-tabs>
+      <el-form :model="registerData" class="form space-y-5" v-if="enableRegister">
+        <div class="block">
+          <el-input
+            placeholder="用户名（必填）"
+            aria-label="用户名"
+            size="large"
+            v-model="registerData.username"
+            maxlength="30"
+            autocomplete="username"
+          >
+            <template #prefix>
+              <el-icon><User /></el-icon>
+            </template>
+          </el-input>
+        </div>
 
         <div class="block">
           <el-input
-            placeholder="请输入密码(8-16位)"
+            placeholder="手机号（必填）"
+            aria-label="手机号"
+            size="large"
+            v-model="registerData.mobile"
+            maxlength="11"
+            inputmode="tel"
+            autocomplete="tel"
+          >
+            <template #prefix>
+              <el-icon><Iphone /></el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="block">
+          <el-row :gutter="10">
+            <el-col :span="12">
+              <el-input
+                placeholder="短信验证码（必填）"
+                aria-label="短信验证码"
+                size="large"
+                maxlength="6"
+                inputmode="numeric"
+                v-model="registerData.code"
+                autocomplete="one-time-code"
+              >
+                <template #prefix>
+                  <el-icon><Checked /></el-icon>
+                </template>
+              </el-input>
+            </el-col>
+            <el-col :span="12">
+              <send-msg size="large" :receiver="registerData.mobile.trim()" type="mobile" />
+            </el-col>
+          </el-row>
+        </div>
+
+        <div class="block">
+          <el-input
+            placeholder="密码（选填，8-16位）"
+            aria-label="密码（选填）"
             maxlength="16"
             size="large"
-            v-model="data.password"
+            v-model="registerData.password"
             show-password
-            autocomplete="off"
+            autocomplete="new-password"
           >
             <template #prefix>
               <el-icon>
@@ -231,14 +193,15 @@
           </el-input>
         </div>
 
-        <div class="block">
+        <div class="block" v-if="registerData.password">
           <el-input
-            placeholder="重复密码(8-16位)"
+            placeholder="请再次输入密码"
+            aria-label="确认密码"
             size="large"
             maxlength="16"
-            v-model="data.repass"
+            v-model="registerData.repass"
             show-password
-            autocomplete="off"
+            autocomplete="new-password"
           >
             <template #prefix>
               <el-icon>
@@ -252,7 +215,7 @@
           <el-input
             placeholder="邀请码(可选)"
             size="large"
-            v-model="data.invite_code"
+            v-model="registerData.invite_code"
             autocomplete="off"
           >
             <template #prefix>
@@ -343,9 +306,8 @@ import { getSystemInfo } from '@/store/cache'
 import { setUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
-import { arrayContains } from '@/utils/libs'
-import { validateEmail, validateMobile } from '@/utils/validate'
-import { Checked, Iphone, Lock, Message } from '@element-plus/icons-vue'
+import { validateMobile } from '@/utils/validate'
+import { Checked, Iphone, Lock, Message, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
@@ -383,6 +345,14 @@ const data = ref({
   code: '',
   invite_code: props.inviteCode,
 })
+const registerData = ref({
+  username: '',
+  mobile: '',
+  password: '',
+  repass: '',
+  code: '',
+  invite_code: props.inviteCode,
+})
 
 // 微信登录相关变量
 const wechatLoginQRCode = ref('')
@@ -392,12 +362,8 @@ const pollingTimer = ref(null)
 const qrcodeExpired = ref(false)
 const qrcodeTimer = ref(null)
 
-const enableMobile = ref(false)
-// const enableEmail = ref(false)
-const enableUser = ref(false)
 const enableRegister = ref(true)
 
-const activeName = ref('')
 const wxImg = ref('/images/wx.png')
 const captchaRef = ref(null)
 // eslint-disable-next-line no-undef
@@ -464,19 +430,6 @@ onMounted(() => {
   getSystemInfo()
     .then((res) => {
       if (res.data) {
-        const registerWays = res.data['register_ways']
-        if (arrayContains(registerWays, 'username')) {
-          enableUser.value = true
-          activeName.value = 'username'
-        }
-        // if (arrayContains(registerWays, 'email')) {
-        //   enableEmail.value = true
-        //   activeName.value = 'email'
-        // }
-        if (arrayContains(registerWays, 'mobile')) {
-          enableMobile.value = true
-          activeName.value = 'mobile'
-        }
         // 是否启用注册
         enableRegister.value = res.data['enabled_register']
         // 使用后台上传的客服微信二维码
@@ -674,28 +627,28 @@ const doLogin = (verifyData) => {
 
 // 注册操作
 const submitRegister = () => {
-  if (activeName.value === 'username' && data.value.username === '') {
+  registerData.value.username = registerData.value.username.trim()
+  registerData.value.mobile = registerData.value.mobile.trim()
+  registerData.value.code = registerData.value.code.trim()
+  if (!registerData.value.username) {
     return ElMessage.error('请输入用户名')
   }
 
-  if (activeName.value === 'mobile' && !validateMobile(data.value.mobile)) {
+  if (!validateMobile(registerData.value.mobile)) {
     return ElMessage.error('请输入合法的手机号')
   }
 
-  if (activeName.value === 'email' && !validateEmail(data.value.email)) {
-    return ElMessage.error('请输入合法的邮箱地址')
+  if (!/^\d{6}$/.test(registerData.value.code)) {
+    return ElMessage.error('请输入6位短信验证码')
   }
 
-  if (data.value.password.length < 8) {
+  if (registerData.value.password && registerData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符')
   }
-  if (data.value.repass !== data.value.password) {
+  if (registerData.value.password && registerData.value.repass !== registerData.value.password) {
     return ElMessage.error('两次输入密码不一致')
   }
 
-  if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
-    return ElMessage.error('请输入验证码')
-  }
   if (!agreeChecked.value) {
     return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
   }
@@ -708,12 +661,14 @@ const submitRegister = () => {
 }
 
 const doRegister = (verifyData) => {
-  data.value.key = verifyData.key
-  data.value.dots = verifyData.dots
-  data.value.x = verifyData.x
-  data.value.reg_way = activeName.value
   loading.value = true
-  httpPost('/api/user/register', data.value)
+  httpPost('/api/user/register', {
+    ...registerData.value,
+    reg_way: 'mobile',
+    key: verifyData.key,
+    dots: verifyData.dots,
+    x: verifyData.x,
+  })
     .then((res) => {
       setUserToken(res.data.token)
       ElMessage.success({

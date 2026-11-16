@@ -15,6 +15,7 @@ import (
 	"geekai/utils"
 	"geekai/utils/resp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -99,8 +100,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
-		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") {
+		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") && !utils.Contains(h.App.SysConfig.Base.RegisterWays, "username") {
 			resp.ERROR(c, "系统已禁用手机号注册！")
+			return
+		}
+		if h.sms.GetService() == nil {
+			resp.ERROR(c, "短信服务未配置")
 			return
 		}
 		err = h.sms.GetService().SendVerifyCode(data.Receiver, code)
@@ -112,11 +117,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 	}
 
 	// 存储验证码，等待后面注册验证
-	_, err = h.redis.Set(c, CodeStorePrefix+data.Receiver, code, 0).Result()
+	_, err = h.redis.Set(c, CodeStorePrefix+data.Receiver, code, 5*time.Minute).Result()
 	if err != nil {
 		resp.ERROR(c, "验证码保存失败")
 		return
 	}
+	h.redis.Del(c, CodeStorePrefix+data.Receiver+"/attempts")
 
 	resp.SUCCESS(c)
 }
