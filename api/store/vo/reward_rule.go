@@ -6,5 +6,5 @@ type RewardRule struct {
 	Desc   string `json:"desc"`   // 规则描述
 	Icon   string `json:"icon"`   // 图标类名
 	Color  string `json:"color"`  // 图标颜色
-	Reward int    `json:"reward"` // 奖励算力
+	Reward int    `json:"reward"` // 奖励积分
 }

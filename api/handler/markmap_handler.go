@@ -74,7 +74,7 @@ func (h *MarkMapHandler) Generate(c *gin.Context) {
 	}
 
 	if user.Power < chatModel.Power {
-		resp.ERROR(c, fmt.Sprintf("您当前剩余算力（%d）已不足以支付当前模型算力（%d）！", user.Power, chatModel.Power))
+		resp.ERROR(c, fmt.Sprintf("您当前剩余积分（%d）已不足以支付当前模型积分（%d）！", user.Power, chatModel.Power))
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *MarkMapHandler) Generate(c *gin.Context) {
 		return
 	}
 
-	// 扣减算力
+	// 扣减积分
 	if chatModel.Power > 0 {
 		err = h.userService.DecreasePower(userId, chatModel.Power, model.PowerLog{
 			Type:   types.PowerConsume,

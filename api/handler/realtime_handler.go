@@ -159,7 +159,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 		return
 	}
 
-	// 检查用户是否还有算力
+	// 检查用户是否还有积分
 	userId := h.GetLoginUserId(c)
 	var user model.User
 	if err := h.DB.Where("id", userId).First(&user).Error; err != nil {
@@ -168,7 +168,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	}
 
 	if user.Power < h.App.SysConfig.Base.AdvanceVoicePower {
-		resp.ERROR(c, "当前用户算力不足，无法使用该功能")
+		resp.ERROR(c, "当前用户积分不足，无法使用该功能")
 		return
 	}
 
@@ -210,7 +210,7 @@ func (h *RealtimeHandler) VoiceChat(c *gin.Context) {
 	// 更新 API KEY 的最后使用时间
 	h.DB.Model(&apiKey).UpdateColumn("last_used_at", time.Now().Unix())
 
-	// 扣减算力
+	// 扣减积分
 	err = h.userService.DecreasePower(userId, h.App.SysConfig.Base.AdvanceVoicePower, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  "advanced-voice",

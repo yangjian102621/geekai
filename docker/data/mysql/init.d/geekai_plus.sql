@@ -152,7 +152,7 @@ CREATE TABLE `geekai_chat_models` (
   `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模型值',
   `sort_num` tinyint(1) NOT NULL COMMENT '排序数字',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启用模型',
-  `power` smallint NOT NULL COMMENT '消耗算力点数',
+  `power` smallint NOT NULL COMMENT '消耗积分点数',
   `temperature` float(3,1) NOT NULL DEFAULT '1.0' COMMENT '模型创意度',
   `max_tokens` bigint NOT NULL DEFAULT '1024' COMMENT '最大响应长度',
   `max_context` bigint NOT NULL DEFAULT '4096' COMMENT '最大上下文长度',
@@ -301,7 +301,7 @@ CREATE TABLE `geekai_functions` (
   `token` varchar(255) DEFAULT NULL COMMENT 'API授权token',
   `action` varchar(255) DEFAULT NULL COMMENT '函数处理 API',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启用',
-  `power` int NOT NULL DEFAULT '0' COMMENT '消费算力点数'
+  `power` int NOT NULL DEFAULT '0' COMMENT '消费积分点数'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='函数插件表';
 
 --
@@ -328,7 +328,7 @@ CREATE TABLE `geekai_image_jobs` (
   `img_url` varchar(255) NOT NULL COMMENT '图片地址',
   `org_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '原图地址',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-  `power` smallint NOT NULL COMMENT '消耗算力',
+  `power` smallint NOT NULL COMMENT '消耗积分',
   `progress` smallint NOT NULL COMMENT '任务进度',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '错误信息',
   `created_at` datetime NOT NULL
@@ -388,7 +388,7 @@ CREATE TABLE `geekai_jimeng_jobs` (
   `progress` bigint DEFAULT '0' COMMENT '进度百分比',
   `status` varchar(20) DEFAULT 'pending' COMMENT '任务状态',
   `err_msg` varchar(1024) DEFAULT NULL COMMENT '错误信息',
-  `power` int DEFAULT '0' COMMENT '消耗算力',
+  `power` int DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -449,7 +449,7 @@ CREATE TABLE `geekai_mj_jobs` (
   `use_proxy` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否使用反代',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='MidJourney 任务表';
 
@@ -508,13 +508,13 @@ CREATE TABLE `geekai_power_logs` (
   `user_id` int NOT NULL COMMENT '用户ID',
   `username` varchar(30) NOT NULL COMMENT '用户名',
   `type` tinyint(1) NOT NULL COMMENT '类型（1：充值，2：消费，3：退费）',
-  `amount` smallint NOT NULL COMMENT '算力数值',
+  `amount` smallint NOT NULL COMMENT '积分数值',
   `balance` bigint NOT NULL COMMENT '余额',
   `model` varchar(255) NOT NULL COMMENT '模型',
   `remark` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '备注',
   `mark` tinyint(1) NOT NULL COMMENT '资金类型（0：支出，1：收入）',
   `created_at` datetime NOT NULL COMMENT '创建时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户算力消费日志';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户积分消费日志';
 
 -- --------------------------------------------------------
 
@@ -527,7 +527,7 @@ CREATE TABLE `geekai_products` (
   `id` int NOT NULL,
   `name` varchar(30) NOT NULL COMMENT '名称',
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '价格',
-  `power` bigint NOT NULL DEFAULT '0' COMMENT '增加算力值',
+  `power` bigint NOT NULL DEFAULT '0' COMMENT '增加积分值',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启动',
   `sales` bigint NOT NULL DEFAULT '0' COMMENT '销量',
   `sort_num` tinyint NOT NULL DEFAULT '0' COMMENT '排序',
@@ -554,7 +554,7 @@ CREATE TABLE `geekai_redeems` (
   `id` int NOT NULL,
   `user_id` int NOT NULL COMMENT '用户 ID',
   `name` varchar(30) NOT NULL COMMENT '兑换码名称',
-  `power` bigint NOT NULL COMMENT '算力',
+  `power` bigint NOT NULL COMMENT '积分',
   `code` varchar(100) NOT NULL COMMENT '兑换码',
   `enabled` tinyint(1) NOT NULL COMMENT '是否启用',
   `created_at` datetime NOT NULL,
@@ -587,7 +587,7 @@ CREATE TABLE `geekai_suno_jobs` (
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `output` text COMMENT '原始输出数据',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `play_times` bigint DEFAULT NULL COMMENT '播放次数',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='MidJourney 任务表';
@@ -608,7 +608,7 @@ CREATE TABLE `geekai_users` (
   `password` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '头像',
   `salt` char(12) NOT NULL COMMENT '密码盐',
-  `power` bigint NOT NULL DEFAULT '0' COMMENT '剩余算力',
+  `power` bigint NOT NULL DEFAULT '0' COMMENT '剩余积分',
   `expired_time` bigint NOT NULL COMMENT '用户过期时间',
   `status` tinyint(1) NOT NULL COMMENT '当前状态',
   `chat_config_json` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '聊天配置json',
@@ -675,7 +675,7 @@ CREATE TABLE `geekai_video_jobs` (
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '错误信息',
   `output` text COMMENT '任务输出的原始信息',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL,
   `status` varchar(20) DEFAULT 'pending' COMMENT '任务状态:pending,in_progress,downloading,success,failed'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='MidJourney 任务表';

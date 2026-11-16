@@ -77,7 +77,7 @@ type ApiError struct {
 const PromptMsg = "prompt" // prompt message
 const ReplyMsg = "reply"   // reply message
 
-// PowerType 算力日志类型
+// PowerType 积分日志类型
 type PowerType int
 
 const (

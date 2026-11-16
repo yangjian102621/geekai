@@ -11,7 +11,7 @@ type ImageJob struct {
 	ImgURL    string    `gorm:"column:img_url;type:varchar(255);not null;comment:图片地址" json:"img_url"`
 	OrgURL    string    `gorm:"column:org_url;type:varchar(1024);comment:原图地址" json:"org_url"`
 	Publish   int       `gorm:"column:publish;type:tinyint(1);not null;comment:是否发布" json:"publish"`
-	Power     int       `gorm:"column:power;type:smallint;not null;comment:消耗算力" json:"power"`
+	Power     int       `gorm:"column:power;type:smallint;not null;comment:消耗积分" json:"power"`
 	Status    string    `gorm:"column:status;type:varchar(20);default:pending;comment:任务状态:pending,in_progress,downloading,success,failed" json:"status"`
 	Progress  int       `gorm:"column:progress;type:smallint;not null;comment:任务进度" json:"progress"`
 	ErrMsg    string    `gorm:"column:err_msg;type:varchar(1024);not null;comment:错误信息" json:"err_msg"`

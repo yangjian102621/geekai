@@ -205,7 +205,7 @@ func (h *FunctionHandler) Image3(c *gin.Context) {
 	}
 
 	if user.Power < chatModel.Power {
-		resp.ERROR(c, "创建绘图任务失败，算力不足")
+		resp.ERROR(c, "创建绘图任务失败，积分不足")
 		return
 	}
 
@@ -239,14 +239,14 @@ func (h *FunctionHandler) Image3(c *gin.Context) {
 		return
 	}
 
-	// 扣减算力
+	// 扣减积分
 	err = h.userService.DecreasePower(user.Id, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  task.ModelName,
 		Remark: fmt.Sprintf("绘画提示词：%s", utils.CutWords(job.Prompt, 10)),
 	})
 	if err != nil {
-		resp.ERROR(c, "扣减算力失败："+err.Error())
+		resp.ERROR(c, "扣减积分失败："+err.Error())
 		return
 	}
 

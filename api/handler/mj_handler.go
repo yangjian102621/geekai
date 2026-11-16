@@ -78,14 +78,14 @@ func (h *MidJourneyHandler) preCheck(c *gin.Context) bool {
 	}
 
 	if user.Power < h.App.SysConfig.Base.MjPower {
-		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
+		resp.ERROR(c, "当前用户剩余积分不足以完成本次绘画！")
 		return false
 	}
 
 	return true
 }
 
-// preCheckPower 检查用户算力是否 >= required，不足时写 ERROR 并返回 false
+// preCheckPower 检查用户积分是否 >= required，不足时写 ERROR 并返回 false
 func (h *MidJourneyHandler) preCheckPower(c *gin.Context, required int) bool {
 	user, err := h.GetLoginUser(c)
 	if err != nil {
@@ -96,13 +96,13 @@ func (h *MidJourneyHandler) preCheckPower(c *gin.Context, required int) bool {
 		required = h.App.SysConfig.Base.MjActionPower
 	}
 	if user.Power < required {
-		resp.ERROR(c, "当前用户剩余算力不足以完成本次操作！")
+		resp.ERROR(c, "当前用户剩余积分不足以完成本次操作！")
 		return false
 	}
 	return true
 }
 
-// mjActionPower 取分项算力，若未配置则回退 MjActionPower
+// mjActionPower 取分项积分，若未配置则回退 MjActionPower
 func mjActionPower(base int, fallback int) int {
 	if base > 0 {
 		return base
@@ -134,7 +134,7 @@ func (h *MidJourneyHandler) Image(c *gin.Context) {
 		resp.ERROR(c, types.InvalidArgs)
 		return
 	}
-	// 按任务类型计算所需算力
+	// 按任务类型计算所需积分
 	power := h.App.SysConfig.Base.MjPower
 	if data.TaskType == types.TaskBlend.String() {
 		power = mjActionPower(h.App.SysConfig.Base.MjBlendPower, h.App.SysConfig.Base.MjActionPower)

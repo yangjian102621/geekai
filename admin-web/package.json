@@ -1,0 +1,47 @@
+{
+  "name": "geekai-admin-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path .gitignore",
+    "test": "node --test src/utils/redirect.test.js"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^0.27.2",
+    "clipboard": "^2.0.11",
+    "compressorjs": "^1.2.1",
+    "echarts": "^5.5.0",
+    "element-plus": "^2.4.0",
+    "good-storage": "^1.1.1",
+    "highlight.js": "^11.7.0",
+    "lodash": "^4.17.21",
+    "markdown-it": "^13.0.1",
+    "markdown-it-emoji": "^2.0.0",
+    "markdown-it-mathjax3": "^4.3.2",
+    "marked": "^15.0.11",
+    "md-editor-v3": "^2.2.1",
+    "pinia": "^2.1.4",
+    "qrcode": "^1.5.3",
+    "qs": "^6.11.1",
+    "sortablejs": "^1.15.0",
+    "unplugin-auto-import": "^0.18.5",
+    "vant": "^4.5.0",
+    "vue": "^3.2.13",
+    "vue-router": "^4.0.15"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "8.57.1",
+    "eslint-plugin-vue": "9.33.0",
+    "postcss": "^8.4.49",
+    "sass-embedded": "^1.89.2",
+    "stylus": "^0.58.1",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.4.10"
+  }
+}

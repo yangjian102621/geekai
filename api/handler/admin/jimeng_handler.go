@@ -132,7 +132,7 @@ func (h *AdminJimengHandler) BatchRemove(c *gin.Context) {
 		}
 		tx := h.DB.Begin()
 		if job.Status != types.JMTaskStatusSuccess && job.Power > 0 {
-			remark := fmt.Sprintf("任务未成功，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
+			remark := fmt.Sprintf("任务未成功，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 			err = h.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
 				Type:   types.PowerRefund,
 				Model:  "jimeng",
@@ -230,7 +230,7 @@ func (h *AdminJimengHandler) UpdateConfig(c *gin.Context) {
 		return
 	}
 
-	// 验证算力配置
+	// 验证积分配置
 	if len(req.Powers) == 0 {
 		resp.ERROR(c, "请至少配置一个模型的积分")
 		return

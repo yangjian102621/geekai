@@ -392,7 +392,7 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 				UserId:     user.Id,
 				Username:   user.Username,
 				InviteCode: inviteCode.Code,
-				Remark:     fmt.Sprintf("奖励 %d 算力", h.App.SysConfig.Base.InvitePower),
+				Remark:     fmt.Sprintf("奖励 %d 积分", h.App.SysConfig.Base.InvitePower),
 			}).Error
 			if err != nil {
 				tx.Rollback()
@@ -818,7 +818,7 @@ func (h *UserHandler) WxAuthLogin(c *gin.Context) {
 		Avatar:   headimgurl,
 	}
 
-	// 被邀请人也获得赠送算力
+	// 被邀请人也获得赠送积分
 	if data.InviteCode != "" {
 		user.Power = h.App.SysConfig.Base.InitPower * 2
 	}

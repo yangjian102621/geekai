@@ -1,4 +1,4 @@
-# 前端 Vue 项目构建
+# 官网与管理后台静态文件
 FROM registry.cn-hangzhou.aliyuncs.com/geekmaster/nginx:1.20.2
 
 MAINTAINER yangjian<yangjian102621@163.com>

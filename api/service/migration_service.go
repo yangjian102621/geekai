@@ -128,6 +128,8 @@ func (s *MigrationService) fullTableMigration() {
 	logger.Info("执行全量表迁移（同步 schema）...")
 	models := []any{
 		&model.Config{},
+		&model.LibrarySource{},
+		&model.LibraryResource{},
 		&model.AdminUser{},
 		&model.ChatApp{},
 		&model.ApiKey{},
@@ -150,7 +152,6 @@ func (s *MigrationService) fullTableMigration() {
 		&model.SunoJob{},
 		&model.VideoJob{},
 		&model.JimengJob{},
-		&model.PPTJob{},
 		&model.Moderation{},
 		&model.ImageJob{},
 	}

@@ -10,7 +10,7 @@ type Product struct {
 	Name        string    `gorm:"column:name;type:varchar(30);not null;comment:名称" json:"name"`
 	Price       float64   `gorm:"column:price;type:decimal(10,2);not null;default:0.00;comment:价格" json:"price"`
 	StripePrice float64   `gorm:"column:stripe_price;type:decimal(10,2);not null;default:0.00;comment:Stripe价格" json:"stripe_price"`
-	Power       int       `gorm:"column:power;type:int;not null;default:0;comment:增加算力值" json:"power"`
+	Power       int       `gorm:"column:power;type:int;not null;default:0;comment:增加积分值" json:"power"`
 	Enabled     bool      `gorm:"column:enabled;type:tinyint(1);not null;default:0;comment:是否启动" json:"enabled"`
 	Sales       int       `gorm:"column:sales;type:int;not null;default:0;comment:销量" json:"sales"`
 	SortNum     int       `gorm:"column:sort_num;type:tinyint;not null;default:0;comment:排序" json:"sort_num"`

@@ -13,7 +13,7 @@ type User struct {
 	Password    string    `gorm:"column:password;type:char(64);not null;comment:密码" json:"password"`
 	Avatar      string    `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"`
 	Salt        string    `gorm:"column:salt;type:char(12);not null;comment:密码盐" json:"salt"`
-	Power       int       `gorm:"column:power;type:int;default:0;comment:剩余算力" json:"power"`
+	Power       int       `gorm:"column:power;type:int;default:0;comment:剩余积分" json:"power"`
 	ExpiredTime int64     `gorm:"column:expired_time;type:int;not null;comment:用户过期时间" json:"expired_time"`
 	Status      bool      `gorm:"column:status;type:tinyint(1);not null;comment:当前状态" json:"status"`
 	ChatConfig  string    `gorm:"column:chat_config_json;type:text;default:null;comment:聊天配置json" json:"chat_config"`

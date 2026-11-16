@@ -1,0 +1,128 @@
+import errorIcon from '@/assets/img/failed.png'
+import loadingIcon from '@/assets/img/loading.gif'
+import Storage from 'good-storage'
+import { defineStore } from 'pinia'
+
+const taskFailedImage = '/images/failed.png'
+
+let waterfallOptions = {
+  // 唯一key值
+  rowKey: 'id',
+  // 卡片之间的间隙
+  gutter: 10,
+  // 是否有周围的gutter
+  hasAroundGutter: true,
+  // 卡片在PC上的宽度
+  width: 200,
+  // 自定义行显示个数，主要用于对移动端的适配
+  breakpoints: {
+    3840: {
+      // 4K下
+      rowPerView: 8,
+    },
+    2560: {
+      // 2K下
+      rowPerView: 7,
+    },
+    1920: {
+      // 2K下
+      rowPerView: 6,
+    },
+    1600: {
+      // 2K下
+      rowPerView: 5,
+    },
+    1366: {
+      // 2K下
+      rowPerView: 4,
+    },
+    800: {
+      // 当屏幕宽度小于等于800
+      rowPerView: 3,
+    },
+    500: {
+      // 当屏幕宽度小于等于500
+      rowPerView: 2,
+    },
+  },
+  // 动画效果
+  animationEffect: 'animate__fadeInUp',
+  // 动画时间
+  animationDuration: 1000,
+  // 动画延迟
+  animationDelay: 300,
+  animationCancel: false,
+  // 背景色
+  backgroundColor: '',
+  // imgSelector
+  imgSelector: 'img_thumb',
+  // 是否跨域
+  crossOrigin: true,
+  // 加载配置
+  loadProps: {
+    loading: loadingIcon,
+    error: errorIcon,
+    ratioCalculator: (width, height) => {
+      const minRatio = 3 / 4
+      const maxRatio = 4 / 3
+      const curRatio = height / width
+      if (curRatio < minRatio) {
+        return minRatio
+      } else if (curRatio > maxRatio) {
+        return maxRatio
+      } else {
+        return curRatio
+      }
+    },
+  },
+  // 是否懒加载
+  lazyload: true,
+  align: 'center',
+}
+
+export const useSharedStore = defineStore('shared', {
+  state: () => ({
+    showLoginDialog: false,
+    chatStream: Storage.get('chat_stream', true),
+    theme: Storage.get('theme', 'light'),
+    isLogin: false,
+    chatListExtend: Storage.get('chat_list_extend', true),
+    ttsModel: Storage.get('tts_model', ''),
+    waterfallOptions,
+    taskFailedImage,
+  }),
+  getters: {},
+  actions: {
+    setShowLoginDialog(value) {
+      this.showLoginDialog = value
+    },
+    setChatStream(value) {
+      this.chatStream = value
+      Storage.set('chat_stream', value)
+    },
+    setChatListExtend(value) {
+      this.chatListExtend = value
+      Storage.set('chat_list_extend', value)
+    },
+    setTheme(theme) {
+      this.theme = theme
+      document.documentElement.setAttribute('data-theme', theme) // 设置 HTML 的 data-theme 属性
+
+      // 同时设置 dark 类，以便 Tailwind 的 dark: 前缀能够工作
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+
+      Storage.set('theme', theme)
+    },
+    setIsLogin(value) {
+      this.isLogin = value
+    },
+    setTtsModel(value) {
+      this.ttsModel = value
+      Storage.set('tts_model', value)
+    },
+  },
+})

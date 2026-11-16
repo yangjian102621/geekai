@@ -66,7 +66,6 @@ func NewMysql(config *gorm.Config, appConfig *types.AppConfig) (*gorm.DB, error)
 		"chatgpt_dall_jobs":       "geekai_dall_jobs",
 		"chatgpt_video_jobs":      "geekai_video_jobs",
 		"chatgpt_jimeng_jobs":     "geekai_jimeng_jobs",
-		"chatgpt_ppt_jobs":        "geekai_ppt_jobs",
 		"chatgpt_files":           "geekai_files",
 		"chatgpt_menus":           "geekai_menus",
 		"chatgpt_functions":       "geekai_functions",

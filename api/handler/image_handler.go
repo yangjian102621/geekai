@@ -101,14 +101,14 @@ func (h *ImageJobHandler) Image(c *gin.Context) {
 		return
 	}
 
-	// 检查用户剩余算力
+	// 检查用户剩余积分
 	user, err := h.GetLoginUser(c)
 	if err != nil {
 		resp.NotAuth(c)
 		return
 	}
 	if user.Power < chatModel.Power {
-		resp.ERROR(c, "当前用户剩余算力不足以完成本次绘画！")
+		resp.ERROR(c, "当前用户剩余积分不足以完成本次绘画！")
 		return
 	}
 
@@ -143,7 +143,7 @@ func (h *ImageJobHandler) Image(c *gin.Context) {
 	task.Id = job.Id
 	h.imageService.PushTask(task)
 
-	// 扣减算力
+	// 扣减积分
 	err = h.userService.DecreasePower(user.Id, chatModel.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  chatModel.Name,

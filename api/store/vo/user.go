@@ -8,7 +8,7 @@ type User struct {
 	Email       string `json:"email"`
 	Avatar      string `json:"avatar"`
 	Salt        string `json:"salt"`         // 密码盐
-	Power       int    `json:"power"`        // 剩余算力
+	Power       int    `json:"power"`        // 剩余积分
 	ChatModels  []int  `json:"chat_models"`  // AI模型集合
 	ExpiredTime int64  `json:"expired_time"` // 账户到期时间
 	Status      bool   `json:"status"`       // 当前状态

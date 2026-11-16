@@ -7,7 +7,7 @@ arch=${2:-amd64}
 cd ../api
 make clean $arch
 
-# build web app
+# build website and administration console
 cd ../web
 npm run build
 

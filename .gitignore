@@ -4,6 +4,11 @@ logs
 
 *.local
 
+# Local dependencies installed at the repository root
+/node_modules/
+/package.json
+/package-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

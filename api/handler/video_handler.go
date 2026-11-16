@@ -59,8 +59,8 @@ func (h *VideoHandler) RegisterRoutes() {
 		group.GET("works", h.WorkList)
 		group.GET("remove", h.Remove)
 		group.GET("publish", h.Publish)
-		group.GET("power-config", h.GetPowerConfig)     // 获取算力配置
-		group.GET("power-by-key", h.GetPowerByPriceKey) // 根据 priceKey 获取算力
+		group.GET("power-config", h.GetPowerConfig)     // 获取积分配置
+		group.GET("power-by-key", h.GetPowerByPriceKey) // 根据 priceKey 获取积分
 	}
 }
 
@@ -128,16 +128,16 @@ func (h *VideoHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 计算算力
+	// 计算积分
 	power, err := video.CalculatePower(h.DB, data.Model, data.PriceKey)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
 	}
 
-	// 检查算力是否充足
+	// 检查积分是否充足
 	if user.Power < power {
-		resp.ERROR(c, "您的算力不足，请充值后再试！")
+		resp.ERROR(c, "您的积分不足，请充值后再试！")
 		return
 	}
 
@@ -171,7 +171,7 @@ func (h *VideoHandler) Create(c *gin.Context) {
 	task.Id = job.Id
 	h.videoService.PushTask(task)
 
-	// 扣减算力
+	// 扣减积分
 	err = h.userService.DecreasePower(job.UserId, job.Power, model.PowerLog{
 		Type:   types.PowerConsume,
 		Model:  data.Provider,
@@ -185,7 +185,7 @@ func (h *VideoHandler) Create(c *gin.Context) {
 	resp.SUCCESS(c, gin.H{"job_id": job.Id})
 }
 
-// GetPowerConfig 获取算力配置
+// GetPowerConfig 获取积分配置
 func (h *VideoHandler) GetPowerConfig(c *gin.Context) {
 	config, err := video.GetVideoConfig(h.DB)
 	if err != nil {
@@ -196,7 +196,7 @@ func (h *VideoHandler) GetPowerConfig(c *gin.Context) {
 	resp.SUCCESS(c, config.VideoPowers)
 }
 
-// GetPowerByPriceKey 根据 modelKey 和 priceKey 获取算力值
+// GetPowerByPriceKey 根据 modelKey 和 priceKey 获取积分值
 func (h *VideoHandler) GetPowerByPriceKey(c *gin.Context) {
 	modelKey := c.Query("model_key")
 	priceKey := c.Query("price_key")

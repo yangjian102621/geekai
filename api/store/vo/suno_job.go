@@ -60,7 +60,7 @@ type SunoJob struct {
 	ErrMsg       string                 `json:"err_msg"`      // 错误信息
 	Output       map[string]interface{} `json:"output"`       // 原始输出数据 json
 	Params       SunoParam              `json:"params"`       // 任务参数
-	Power        int                    `json:"power"`        // 消耗算力
+	Power        int                    `json:"power"`        // 消耗积分
 	RefSong      map[string]interface{} `json:"ref_song,omitempty"`
 	User         map[string]interface{} `json:"user,omitempty"` //关联用户信息
 	PlayTimes    int                    `json:"play_times"`     // 播放次数

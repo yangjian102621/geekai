@@ -36,7 +36,7 @@ func GetVideoConfig(db *gorm.DB) (*types.VideoConfig, error) {
 	return &videoConfig, nil
 }
 
-// GetModelPowerConfig 获取指定模型的算力配置
+// GetModelPowerConfig 获取指定模型的积分配置
 func GetModelPowerConfig(db *gorm.DB, modelKey string) (*types.VideoModelPower, error) {
 	config, err := GetVideoConfig(db)
 	if err != nil {
@@ -45,13 +45,13 @@ func GetModelPowerConfig(db *gorm.DB, modelKey string) (*types.VideoModelPower, 
 
 	modelPower, ok := config.VideoPowers[modelKey]
 	if !ok {
-		return nil, fmt.Errorf("模型 %s 的算力配置不存在", modelKey)
+		return nil, fmt.Errorf("模型 %s 的积分配置不存在", modelKey)
 	}
 
 	return &modelPower, nil
 }
 
-// CalculatePower 根据 modelKey 和 priceKey 计算算力
+// CalculatePower 根据 modelKey 和 priceKey 计算积分
 // modelKey: 模型标识（如 "veo-2.0", "sora-2.0"）
 // priceKey: 价格键（如 "fixed", "5_720P", "std_5_sound" 等）
 func CalculatePower(db *gorm.DB, modelKey string, priceKey string) (int, error) {

@@ -98,9 +98,9 @@ func (h *VideoHandler) UpdateConfig(c *gin.Context) {
 		return
 	}
 
-	// 验证算力配置
+	// 验证积分配置
 	if len(req.VideoPowers) == 0 {
-		resp.ERROR(c, "请至少配置一个模型的算力")
+		resp.ERROR(c, "请至少配置一个模型的积分")
 		return
 	}
 
@@ -238,7 +238,7 @@ func (h *VideoHandler) Remove(c *gin.Context) {
 		md = job.Type
 		power = job.Power
 		userId = int(job.UserId)
-		remark = fmt.Sprintf("视频任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
+		remark = fmt.Sprintf("视频任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 		needRefund = job.Status != types.VideoStatusSuccess
 		fileURL = job.VideoURL
 	default:

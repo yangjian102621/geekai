@@ -20,7 +20,7 @@ type MidJourneyJob struct {
 	UseProxy  int       `gorm:"column:use_proxy;type:tinyint(1);not null;default:0;comment:是否使用反代" json:"use_proxy"`
 	Publish   int       `gorm:"column:publish;type:tinyint(1);not null;comment:是否发布" json:"publish"`
 	ErrMsg    string    `gorm:"column:err_msg;type:varchar(1024);comment:错误信息" json:"err_msg"`
-	Power     int       `gorm:"column:power;type:smallint;not null;default:0;comment:消耗算力" json:"power"`
+	Power     int       `gorm:"column:power;type:smallint;not null;default:0;comment:消耗积分" json:"power"`
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null" json:"created_at"`
 }
 

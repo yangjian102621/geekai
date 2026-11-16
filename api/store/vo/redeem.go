@@ -5,7 +5,7 @@ type Redeem struct {
 	UserId     uint   `json:"user_id"` // 用户 ID
 	Name       string `json:"name"`
 	Username   string `json:"username"`
-	Power      int    `json:"power"` // 算力
+	Power      int    `json:"power"` // 积分
 	Code       string `json:"code"`  // 兑换码
 	Enabled    bool   `json:"enabled"`
 	RedeemedAt int64  `json:"redeemed_at"` // 兑换时间

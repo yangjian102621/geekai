@@ -117,7 +117,7 @@ func (h *SunoHandler) Create(c *gin.Context) {
 	}
 
 	if user.Power < h.App.SysConfig.Base.SunoPower {
-		resp.ERROR(c, "您的算力不足，请充值后再试！")
+		resp.ERROR(c, "您的积分不足，请充值后再试！")
 		return
 	}
 

@@ -19,7 +19,7 @@ func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{db: db, lock: sync.Mutex{}}
 }
 
-// IncreasePower 增加用户算力
+// IncreasePower 增加用户积分
 func (s *UserService) IncreasePower(userId uint, power int, log model.PowerLog) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -51,7 +51,7 @@ func (s *UserService) IncreasePower(userId uint, power int, log model.PowerLog) 
 	return nil
 }
 
-// DecreasePower 减少用户算力
+// DecreasePower 减少用户积分
 func (s *UserService) DecreasePower(userId uint, power int, log model.PowerLog) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -61,13 +61,13 @@ func (s *UserService) DecreasePower(userId uint, power int, log model.PowerLog) 
 	tx.Where("id", userId).First(&user)
 	if user.Power < power {
 		tx.Rollback()
-		return fmt.Errorf("用户算力不足")
+		return fmt.Errorf("用户积分不足")
 	}
 
 	err := tx.Model(&model.User{}).Where("id", userId).UpdateColumn("power", gorm.Expr("power - ?", power)).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("扣减算力失败：%v", err)
+		return fmt.Errorf("扣减积分失败：%v", err)
 	}
 
 	tx.Where("id", userId).First(&user)
@@ -84,7 +84,7 @@ func (s *UserService) DecreasePower(userId uint, power int, log model.PowerLog) 
 	}).Error
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("记录算力日志失败：%v", err)
+		return fmt.Errorf("记录积分日志失败：%v", err)
 	}
 	tx.Commit()
 	return nil

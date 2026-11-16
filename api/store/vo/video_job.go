@@ -14,6 +14,6 @@ type VideoJob struct {
 	ErrMsg    string         `json:"err_msg"`   // 错误信息
 	Params    map[string]any `json:"params"`    // 任务参数 json（用于前端显示）
 	Output    map[string]any `json:"output"`    // 任务输出信息 json（管理后台使用）
-	Power     int            `json:"power"`     // 消耗算力
+	Power     int            `json:"power"`     // 消耗积分
 	CreatedAt int64          `json:"created_at"`
 }

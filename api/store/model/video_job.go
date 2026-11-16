@@ -16,7 +16,7 @@ type VideoJob struct {
 	Publish   int       `gorm:"column:publish;type:tinyint(1);not null;comment:是否发布" json:"publish"`
 	ErrMsg    string    `gorm:"column:err_msg;type:varchar(1024);comment:错误信息" json:"err_msg"`
 	Output    string    `gorm:"column:output;type:text;comment:任务输出的原始信息" json:"output"`
-	Power     int       `gorm:"column:power;type:smallint;not null;default:0;comment:消耗算力" json:"power"`
+	Power     int       `gorm:"column:power;type:smallint;not null;default:0;comment:消耗积分" json:"power"`
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null" json:"created_at"`
 }
 

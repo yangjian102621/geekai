@@ -212,7 +212,7 @@ func (h *ChatHandler) sendOpenAiMessage(
 			} else {
 				errMsg = utils.InterfaceToString(apiRes.Data)
 				contents = append(contents, errMsg)
-				// 扣减算力
+				// 扣减积分
 				if function.Power > 0 {
 					h.userService.DecreasePower(userVo.Id, function.Power, model.PowerLog{
 						Type:   types.PowerConsume,

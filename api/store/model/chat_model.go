@@ -13,7 +13,7 @@ type ChatModel struct {
 	Value       string    `gorm:"column:value;type:varchar(255);not null;comment:模型值" json:"value"`
 	SortNum     int       `gorm:"column:sort_num;type:tinyint(1);not null;comment:排序数字" json:"sort_num"`
 	Enabled     bool      `gorm:"column:enabled;type:tinyint(1);not null;default:0;comment:是否启用模型" json:"enabled"`
-	Power       int       `gorm:"column:power;type:smallint;not null;comment:消耗算力点数" json:"power"`
+	Power       int       `gorm:"column:power;type:smallint;not null;comment:消耗积分点数" json:"power"`
 	Temperature float32   `gorm:"column:temperature;type:float(3,1);not null;default:1.0;comment:模型创意度" json:"temperature"`
 	MaxTokens   int       `gorm:"column:max_tokens;type:int;not null;default:1024;comment:最大响应长度" json:"max_tokens"`
 	MaxContext  int       `gorm:"column:max_context;type:int;not null;default:4096;comment:最大上下文长度" json:"max_context"`

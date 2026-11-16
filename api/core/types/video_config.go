@@ -11,10 +11,10 @@ package types
 type VideoConfig struct {
 	ApiURL      string                     `json:"api_url"`      // API 地址
 	ApiKey      string                     `json:"api_key"`      // API 密钥
-	VideoPowers map[string]VideoModelPower `json:"video_powers"` // 模型算力配置
+	VideoPowers map[string]VideoModelPower `json:"video_powers"` // 模型积分配置
 }
 
-// VideoModelPower 单个模型的算力配置
+// VideoModelPower 单个模型的积分配置
 // PowerConfig 说明：
 // 新的价格配置方式：根据模型的 priceParams 生成笛卡尔乘积，每个组合对应一个价格
 // 固定价格示例：{"fixed": 20}
@@ -23,7 +23,7 @@ type VideoConfig struct {
 type VideoModelPower struct {
 	Provider    string         `json:"provider"`     // 服务提供商（不带版本号：veo, sora, luma）
 	Model       string         `json:"model"`        // 模型名称（带版本号：veo-2.0, sora-2.0）
-	PowerConfig map[string]int `json:"power_config"` // 算力配置（基于 priceParams 的笛卡尔乘积）
+	PowerConfig map[string]int `json:"power_config"` // 积分配置（基于 priceParams 的笛卡尔乘积）
 	ApiKeyType  string         `json:"api_key_type"` // ApiKey 表的 type 字段（可选，用于多 API Key 场景）
 }
 

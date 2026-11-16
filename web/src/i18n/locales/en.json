@@ -1,0 +1,256 @@
+{
+  "nav": {
+    "docs": "Documentation",
+    "home": "Home",
+    "invite": "Invite",
+    "pricing": "Pricing",
+    "download": "Download",
+    "login": "Sign In",
+    "lang_switch": "中"
+  },
+  "auth": {
+    "logout": "Sign Out"
+  },
+  "service": {
+    "unavailable": "Unable to connect to the service. Please reload the page to try again.",
+    "reload": "Reload Page"
+  },
+  "hero": {
+    "badge": "Desktop Client · v1.6.14",
+    "title": "Your AI-powered lifelong learning companion",
+    "subtitle": "Double-click to launch, zero config. From daily reading to deep research, from personal knowledge base to co-writing — ThinkBuddy packages a complete learning workspace into a native desktop app. Just open and go.",
+    "cta_download": "Download ThinkBuddy",
+    "platforms": "Available for Windows · macOS (Apple Silicon / Intel)",
+    "typed_lines": [
+      "PDF / EPUB per-page citations and annotations",
+      "Multi-vector retrieval + grounded answers",
+      "Markdown co-writing with AI rewrite",
+      "Immersive YouTube learning + notes",
+      "Mastery Path unlocks tools by proficiency"
+    ]
+  },
+  "demo": {
+    "title": "What ThinkBuddy Can Do",
+    "subtitle": "Hand tasks to ThinkBuddy. It plans autonomously, calls tools, generates files — and leaves both the process and the results for your review.",
+    "card1": {
+      "title": "Deep Reading",
+      "desc": "PDF / EPUB page-by-page citations and annotations for long-form learning."
+    },
+    "card2": {
+      "title": "Knowledge Base Q&A",
+      "desc": "Multi-vector store (LightRAG / GraphRAG / PageIndex) + citation grounding. Answers come with sources."
+    },
+    "card3": {
+      "title": "Smart Writing",
+      "desc": "Markdown live preview + AI rewrite / expand / shorten — your co-writing partner."
+    }
+  },
+  "features": {
+    "title": "Core Capabilities",
+    "subtitle": "Six modules covering the full learning lifecycle",
+    "reading": {
+      "title": "Immersive Reading",
+      "desc": "PDF / EPUB / Word / PPT parsing, per-page citations, annotations, EPUB chapter navigation."
+    },
+    "knowledge": {
+      "title": "Knowledge Base Q&A",
+      "desc": "Self-hosted vector retrieval + GraphRAG knowledge graph + PageIndex reasoning retrieval. Answers are grounded."
+    },
+    "learning": {
+      "title": "Courses & Mastery Paths",
+      "desc": "Auto-generated Books, Little Tutor practice, Mastery Path gates tool access by mastery level."
+    },
+    "video": {
+      "title": "Video Learning",
+      "desc": "Immersive YouTube learning with timestamp citations, AI Q&A, and synced notes."
+    },
+    "cowriter": {
+      "title": "Co-Writer",
+      "desc": "Markdown / CommonMark / GFM live preview. AI rewrite, expand, shorten. Math and diagrams supported."
+    },
+    "agent": {
+      "title": "Multi-Model Agent",
+      "desc": "Four agents — Chat, Deep Question, Notebook summary, Visualize — routed by capability registry."
+    }
+  },
+  "stats": {
+    "modules": "modules",
+    "apps": "CLI Apps",
+    "models": "model providers",
+    "platforms": "platforms (Web/Desktop/CLI)"
+  },
+  "bigtext": {
+    "title": "ThinkBuddy Can Help You Do Anything",
+    "subtitle": "From reading, notes, research to co-writing, from knowledge base to video learning — every learning scenario in one desktop app."
+  },
+  "versions": {
+    "title": "Release Timeline",
+    "subtitle": "Ships every two weeks. Highlights from the last 5 releases.",
+    "v1614": {
+      "highlight": "Original figure & page visual practice, recoverable knowledge-base index, research tools & managed plugins, video learning merged into Reading workspace."
+    },
+    "v1613": {
+      "highlight": "Expanded reading, listening & quiz practice, improved document parsing & voice config, Polish UI & more model providers."
+    },
+    "v1612": {
+      "highlight": "Knowledge base migrates with workspace, Kiwix archive connection, original figures in grounded answers, task board & German UI."
+    },
+    "v1611": {
+      "highlight": "French & Ukrainian UI, reading folders & figure extraction, paged Office preview, knowledge-base auto-sync."
+    },
+    "v1610": {
+      "highlight": "Standalone role models for LightRAG, index build provenance, PDF attachment follows parsing engine, model providers no longer pre-filtered."
+    }
+  },
+  "ecosystem": {
+    "title": "ThinkBuddy Connects Your Learning Ecosystem",
+    "subtitle": "First-party IM channels + MCP tool protocol + third-party plugins + dozens of model vendors",
+    "cat": {
+      "im": "IM Channels",
+      "tools": "Tool Protocol",
+      "kb": "Knowledge Engines",
+      "models": "Model Vendors"
+    }
+  },
+  "credits": {
+    "title": "Popular credit plans",
+    "subtitle": "¥100 = 1000 credits, start free, upgrade as you grow",
+    "per_month": "/mo",
+    "free": {
+      "name": "Free",
+      "desc": "100 daily active credits, covers light use comfortably.",
+      "cta": "Start for free"
+    },
+    "pro": {
+      "badge": "Recommended",
+      "name": "Pro",
+      "desc": "2000 credits/mo · all Agents · 15 tasks/day",
+      "cta": "Start 7-day trial"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Custom",
+      "desc": "Team seats · centralized billing · private deployment",
+      "cta": "Contact sales"
+    },
+    "more_pricing": "See full personal & enterprise plans and credit comparison on the"
+  },
+  "download": {
+    "title": "Choose your download",
+    "mac": "macOS",
+    "win": "Windows x64",
+    "win_note": "ARM64 compatible",
+    "mac_arm64": "macOS (Apple Silicon)",
+    "mac_arm64_note": "M1 / M2 / M3 / M4",
+    "mac_intel": "macOS (Intel)",
+    "mac_intel_note": "x86_64",
+    "current": "This device",
+    "unavailable": "Not available yet",
+    "unreachable": "Download status unavailable right now",
+    "retry": "Retry",
+    "mac_unknown_hint": "We couldn't detect your Mac chip. Please pick the version matching your device."
+  },
+  "footer": {
+    "tagline": "AI-powered lifelong learning companion",
+    "col_product": "Product",
+    "col_resources": "Resources",
+    "col_legal": "Legal",
+    "download": "Download",
+    "versions": "Release Notes",
+    "docs": "Docs",
+    "faq": "FAQ",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2026 ThinkBuddy. Powered by ThinkBuddy (hanyoai)."
+  },
+  "invite": {
+    "title": "Invite Friends, Learn Together",
+    "share_title": "Share Your Invite",
+    "qr_hint": "Scan to register and download",
+    "copy": "Copy Invite Link",
+    "copied": "Copied",
+    "guest": {
+      "login_btn": "Sign in to get your invite link"
+    },
+    "loading": "Loading invite info…",
+    "error": "Failed to load, please retry"
+  },
+  "pricing": {
+    "badge": "Credit Pricing · ¥100 = 1000 credits",
+    "title": "Choose the plan that fits your learning",
+    "subtitle": "Start free, upgrade as you grow. Credits work across reading, Q&A, writing, video learning, and Agent tasks.",
+    "monthly": "Monthly",
+    "yearly": "Yearly (save 20%)",
+    "per_month": "/mo",
+    "pay_note": "Most payment methods supported for upgrade",
+    "free": {
+      "name": "Free",
+      "tagline": "Start free, try the core features",
+      "trial_note": "7-day Pro trial · 500 credits included",
+      "cta": "Start for free",
+      "f1": "100 credits",
+      "f1u": "/mo",
+      "f2": "Daily active reward: 30 credits/day",
+      "f3": "Auto model routing",
+      "f4": "3 automated tasks /day",
+      "f5": "Basic reading / Q&A / writing"
+    },
+    "pro": {
+      "badge": "Recommended",
+      "name": "Pro",
+      "tagline": "Full features + large credit quota for heavy learners",
+      "trial_note": "7-day free trial · cancel anytime",
+      "cta": "Start 7-day trial",
+      "f1": "1000 base credits",
+      "f1b": "+ 1000 bonus credits",
+      "f2": "Daily active reward: 50 credits/day",
+      "f3": "Access to all models",
+      "f4": "15 automated tasks /day",
+      "f5": "All Agents (Chat/Deep Q/Notebook/Visualize)",
+      "f6": "Priority support"
+    },
+    "topup": {
+      "title": "Top up extra credits",
+      "subtitle": "¥100 = 1000 credits, no expiry, use anytime",
+      "credits": "credits",
+      "buy": "Top up",
+      "pack1": {
+        "name": "Starter"
+      },
+      "pack2": {
+        "name": "Value"
+      },
+      "pack3": {
+        "name": "Bulk"
+      }
+    },
+    "compare": {
+      "title": "Which plan is right for you?",
+      "feature": "Feature",
+      "base_credits": "Base credits",
+      "bonus_credits": "Bonus credits",
+      "daily_reward": "Daily active reward",
+      "per_day": "/day",
+      "tasks": "Automated tasks",
+      "models": "Model routing",
+      "auto": "Auto",
+      "all": "All",
+      "agents": "Agent",
+      "all4": "All 4",
+      "priority": "Priority support"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": "How can I start the 7-day Pro free trial?",
+      "a1": "Select Pro and click \"Start 7-day trial.\" You get 7 days of Pro access plus 500 base credits after adding a valid payment method. You won't be charged when the trial begins. After the trial, your subscription renews at ¥10/mo or ¥96/yr. To avoid renewal, cancel at least one day before the trial ends.",
+      "q2": "Can I cancel my subscription at any time?",
+      "a2": "Yes. Cancel anytime from your profile. After cancellation, your subscription will not renew automatically, but you can continue using your current plan and remaining quota until the end of the billing period.",
+      "q3": "Do top-up credits expire?",
+      "a3": "No. Top-up credits never expire — use them anytime. ¥100 = 1000 credits; larger top-ups include bonus credits.",
+      "q4": "How are credits consumed?",
+      "a4": "Credits are consumed by AI token usage and tool executions: reading, knowledge-base Q&A, AI writing, video summaries, and Agent tasks all use credits. Different models consume at different rates; auto routing picks the most cost-effective model first.",
+      "q5": "How are daily activity credits awarded?",
+      "a5": "You're considered active for the day if you start at least one conversation in the client. The corresponding credits are added to your account on the following day."
+    }
+  }
+}

@@ -63,7 +63,7 @@ func (h *UserHandler) ImportTemplate(c *gin.Context) {
 	f := excelize.NewFile()
 	sheetName := "Sheet1"
 	// 表头
-	headers := []string{"用户名", "密码", "手机", "邮箱", "剩余算力", "启用状态"}
+	headers := []string{"用户名", "密码", "手机", "邮箱", "剩余积分", "启用状态"}
 	for i, title := range headers {
 		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
 		_ = f.SetCellValue(sheetName, cell, title)
@@ -193,18 +193,18 @@ func (h *UserHandler) ImportUsers(c *gin.Context) {
 			continue
 		}
 
-		// 解析算力
+		// 解析积分
 		power := 0
 		if powerStr != "" {
 			p, err := strconv.Atoi(powerStr)
 			if err != nil {
 				failedCount++
-				errorsList = append(errorsList, rowError{Row: line, Error: "剩余算力必须为数字"})
+				errorsList = append(errorsList, rowError{Row: line, Error: "剩余积分必须为数字"})
 				continue
 			}
 			if p < 0 {
 				failedCount++
-				errorsList = append(errorsList, rowError{Row: line, Error: "剩余算力不能为负数"})
+				errorsList = append(errorsList, rowError{Row: line, Error: "剩余积分不能为负数"})
 				continue
 			}
 			power = p
@@ -353,7 +353,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 			resp.ERROR(c, res.Error.Error())
 			return
 		}
-		// 记录算力日志
+		// 记录积分日志
 		if oldPower != user.Power {
 			mark := types.PowerAdd
 			amount := user.Power - oldPower
@@ -369,7 +369,7 @@ func (h *UserHandler) Save(c *gin.Context) {
 				Balance:   user.Power,
 				Mark:      mark,
 				Model:     "管理员",
-				Remark:    fmt.Sprintf("后台管理员强制修改用户算力，修改前：%d,修改后:%d, 管理员ID：%d", oldPower, user.Power, h.GetLoginUserId(c)),
+				Remark:    fmt.Sprintf("后台管理员强制修改用户积分，修改前：%d,修改后:%d, 管理员ID：%d", oldPower, user.Power, h.GetLoginUserId(c)),
 				CreatedAt: time.Now(),
 			})
 		}
@@ -476,7 +476,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 		if err = tx.Where("user_id = ?", id).Delete(&model.UserLoginLog{}).Error; err != nil {
 			break
 		}
-		// 删除算力日志
+		// 删除积分日志
 		if err = tx.Where("user_id = ?", id).Delete(&model.PowerLog{}).Error; err != nil {
 			break
 		}

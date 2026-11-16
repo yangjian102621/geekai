@@ -427,11 +427,11 @@ func (h *PaymentHandler) paySuccess(info payment.OrderInfo) error {
 		return fmt.Errorf("error with decode order remark: %v", err)
 	}
 
-	// 增加用户算力
+	// 增加用户积分
 	err = h.userService.IncreasePower(order.UserId, remark.Power, model.PowerLog{
 		Type:      types.PowerRecharge,
 		Model:     order.Subject,
-		Remark:    fmt.Sprintf("充值算力，金额：%f，订单号：%s", order.Amount, order.OrderNo),
+		Remark:    fmt.Sprintf("充值积分，金额：%f，订单号：%s", order.Amount, order.OrderNo),
 		CreatedAt: time.Now(),
 	})
 	if err != nil {

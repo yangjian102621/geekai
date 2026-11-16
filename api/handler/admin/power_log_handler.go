@@ -88,7 +88,7 @@ func (h *PowerLogHandler) List(c *gin.Context) {
 		}
 	}
 
-	// 统计消费算力总和
+	// 统计消费积分总和
 	var totalPower float64
 	if len(data.Date) == 2 {
 		session.Where("mark", 0).Select("SUM(amount) as total_sum").Scan(&totalPower)

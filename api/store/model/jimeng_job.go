@@ -20,7 +20,7 @@ type JimengJob struct {
 	Progress  int                `gorm:"column:progress;type:int;default:0;comment:进度百分比" json:"progress"`
 	Status    types.JMTaskStatus `gorm:"column:status;type:varchar(20);default:'pending';comment:任务状态" json:"status"`
 	ErrMsg    string             `gorm:"column:err_msg;type:varchar(1024);comment:错误信息" json:"err_msg"`
-	Power     int                `gorm:"column:power;type:int(11);default:0;comment:消耗算力" json:"power"`
+	Power     int                `gorm:"column:power;type:int(11);default:0;comment:消耗积分" json:"power"`
 	CreatedAt time.Time          `gorm:"column:created_at;type:datetime;not null;comment:创建时间" json:"created_at"`
 	UpdatedAt time.Time          `gorm:"column:updated_at;type:datetime;not null;comment:更新时间" json:"updated_at"`
 }

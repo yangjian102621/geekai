@@ -88,14 +88,14 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 	// 今日新增对话
 	h.DB.Model(&model.ChatItem{}).Where("created_at > ?", zeroTime).Count(&stats.TodayChats)
 
-	// 总算力消耗
+	// 总积分消耗
 	var powerLogs []model.PowerLog
 	h.DB.Where("mark = ?", types.PowerSub).Find(&powerLogs)
 	for _, item := range powerLogs {
 		stats.Tokens += item.Amount
 	}
 
-	// 今日算力消耗
+	// 今日积分消耗
 	var todayPowerLogs []model.PowerLog
 	h.DB.Where("mark = ?", types.PowerSub).Where("created_at > ?", zeroTime).Find(&todayPowerLogs)
 	for _, item := range todayPowerLogs {
@@ -202,7 +202,7 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 		}
 	}
 
-	// 统计7天算力消耗
+	// 统计7天积分消耗
 	var chartPowerLogs []model.PowerLog
 	err = h.DB.Where("mark = ?", types.PowerSub).Where("created_at > ?", startDate).Find(&chartPowerLogs).Error
 	if err == nil {

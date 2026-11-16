@@ -100,7 +100,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	// 获取算力消耗
+	// 获取积分消耗
 	powerCost, err := h.getTaskPower(req)
 	if err != nil {
 		resp.ERROR(c, "计算任务消耗积分失败: "+err.Error())
@@ -108,7 +108,7 @@ func (h *JimengHandler) CreateTask(c *gin.Context) {
 	}
 
 	if user.Power < powerCost {
-		resp.ERROR(c, fmt.Sprintf("算力不足，需要%d算力", powerCost))
+		resp.ERROR(c, fmt.Sprintf("积分不足，需要%d积分", powerCost))
 		return
 	}
 	req.Power = powerCost
@@ -249,7 +249,7 @@ func (h *JimengHandler) Remove(c *gin.Context) {
 
 	// 正在运行中的任务不能删除
 	if job.Status == types.JMTaskStatusGenerating || job.Status == types.JMTaskStatusInQueue {
-		resp.ERROR(c, "正在运行中的任务不能删除，否则无法退回算力")
+		resp.ERROR(c, "正在运行中的任务不能删除，否则无法退回积分")
 		return
 	}
 
@@ -356,7 +356,7 @@ func (h *JimengHandler) getTaskPower(req types.JimengTaskRequest) (int, error) {
 	}
 }
 
-// GetPowerConfig 获取即梦各任务类型算力消耗配置
+// GetPowerConfig 获取即梦各任务类型积分消耗配置
 func (h *JimengHandler) GetPowerConfig(c *gin.Context) {
 	config := h.App.SysConfig.Jimeng
 	resp.SUCCESS(c, gin.H{

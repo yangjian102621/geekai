@@ -7,7 +7,7 @@ type JimengConfig struct {
 	SecretKey string `json:"secret_key,omitempty"`
 	// 火山引擎大模型专用的验证方式
 	ApiKey string `json:"api_key,omitempty"`
-	// 算力配置
+	// 积分配置
 	Powers map[string]int `json:"powers,omitempty"`
 }
 
@@ -40,7 +40,7 @@ type JimengTaskRequest struct {
 	TaskType JMTaskType `json:"type"`    // 任务类型
 	ReqKey   string     `json:"req_key"` // 请求Key
 	Action   string     `json:"action"`  // 请求Action
-	Power    int        `json:"power"`   // 消耗算力
+	Power    int        `json:"power"`   // 消耗积分
 	// 公共参数
 	Prompt    string          `json:"prompt,omitempty"`
 	ImageUrls []string        `json:"image_urls,omitempty"`

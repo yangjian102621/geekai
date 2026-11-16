@@ -1,0 +1,256 @@
+{
+  "nav": {
+    "home": "首页",
+    "invite": "邀请",
+    "docs": "使用文档",
+    "pricing": "定价",
+    "download": "下载",
+    "login": "登录",
+    "lang_switch": "EN"
+  },
+  "auth": {
+    "logout": "退出"
+  },
+  "service": {
+    "unavailable": "暂时无法连接服务，请刷新页面重试。",
+    "reload": "刷新页面"
+  },
+  "hero": {
+    "badge": "桌面客户端 · v1.6.14",
+    "title": "AI 驱动的终身学习伙伴",
+    "subtitle": "双击即用，零配置上手。从日常阅读到深度研究，从个人知识库到多人协同写作，ThinkBuddy 把完整的学习工作区装进一个原生桌面应用，打开就能用。",
+    "cta_download": "下载 ThinkBuddy",
+    "platforms": "支持 Windows · macOS（Apple 芯片 / Intel）",
+    "typed_lines": [
+      "PDF / EPUB 逐页引用与标注",
+      "知识库多向量检索 + 引用溯源",
+      "Markdown 协同写作 + AI 重写",
+      "YouTube 沉浸式学习 + 笔记",
+      "Mastery Path 按掌握度解锁"
+    ]
+  },
+  "demo": {
+    "title": "ThinkBuddy 能帮你做什么",
+    "subtitle": "把任务交给 ThinkBuddy，它自主规划、调用工具、生成文件，全过程与结果都留给你审阅。",
+    "card1": {
+      "title": "深度阅读",
+      "desc": "PDF / EPUB 逐页引用与标注，沉浸式学习长文档。"
+    },
+    "card2": {
+      "title": "知识库问答",
+      "desc": "多向量库（LightRAG / GraphRAG / PageIndex）+ 引用溯源，答案有出处。"
+    },
+    "card3": {
+      "title": "智能写作",
+      "desc": "Markdown 实时预览 + AI 重写 / 扩写 / 缩写，协同写作的得力助手。"
+    }
+  },
+  "features": {
+    "title": "核心能力矩阵",
+    "subtitle": "六大模块覆盖学习全场景",
+    "reading": {
+      "title": "沉浸式阅读",
+      "desc": "PDF / EPUB / Word / PPT 全格式解析，逐页引用、标注、EPUB 章节导航。"
+    },
+    "knowledge": {
+      "title": "知识库问答",
+      "desc": "自托管向量检索 + GraphRAG 知识图谱 + PageIndex 推理检索，答案带引用。"
+    },
+    "learning": {
+      "title": "课程与掌握路径",
+      "desc": "Book 自动生成、Little Tutor 陪练、Mastery Path 按掌握度解锁工具调用。"
+    },
+    "video": {
+      "title": "视频学习",
+      "desc": "YouTube 沉浸式学习，时间戳引用 + AI 提问 + 笔记同步。"
+    },
+    "cowriter": {
+      "title": "协同写作",
+      "desc": "Markdown / CommonMark / GFM 实时预览，AI 重写、扩写、缩写，公式与图表支持。"
+    },
+    "agent": {
+      "title": "多模型 Agent",
+      "desc": "Chat、Deep Question、Notebook 总结、Visualize 可视化四大 Agent，按能力路由。"
+    }
+  },
+  "stats": {
+    "modules": "大模块",
+    "apps": "CLI Apps",
+    "models": "模型厂商",
+    "platforms": "端（Web/桌面/CLI）"
+  },
+  "bigtext": {
+    "title": "ThinkBuddy 能帮你做任何事",
+    "subtitle": "从阅读、笔记、研究到协同写作，从知识库到视频学习——一切学习场景，一个桌面应用。"
+  },
+  "versions": {
+    "title": "版本迭代时间线",
+    "subtitle": "每两周一次发版，近 5 个版本亮点速览",
+    "v1614": {
+      "highlight": "新增原文图表/页面视觉练习、可恢复的知识库索引、科研工具和受管插件，视频学习并入 Reading 工作区。"
+    },
+    "v1613": {
+      "highlight": "扩展阅读、听力和题库练习，改进文档解析与语音配置，新增波兰语和更多模型提供商。"
+    },
+    "v1612": {
+      "highlight": "知识库可随工作区迁移，支持连接 Kiwix 档案，将原文图表带入有依据的回答，新增任务看板和德语界面。"
+    },
+    "v1611": {
+      "highlight": "新增法语和乌克兰语界面，阅读支持文件夹和图表提取，Office 文件按页预览，知识库可自动同步。"
+    },
+    "v1610": {
+      "highlight": "为 LightRAG 引擎引入独立角色模型，索引记录构建来源，PDF 附件遵循解析引擎设置，模型提供商不再被预过滤。"
+    }
+  },
+  "ecosystem": {
+    "title": "ThinkBuddy 连接你的学习生态",
+    "subtitle": "第一方 IM 渠道 + MCP 工具协议 + 第三方插件 + 数十家模型厂商",
+    "cat": {
+      "im": "IM 渠道",
+      "tools": "工具协议",
+      "kb": "知识库引擎",
+      "models": "模型厂商"
+    }
+  },
+  "credits": {
+    "title": "常用积分套餐",
+    "subtitle": "100元=1000积分，免费起步，按需升级",
+    "per_month": "/月",
+    "free": {
+      "name": "免费版",
+      "desc": "每日活跃100积分，轻度使用基本用不完。",
+      "cta": "免费开始"
+    },
+    "pro": {
+      "badge": "推荐",
+      "name": "专业版",
+      "desc": "2000积分/月 · 全部 Agent · 15任务/天",
+      "cta": "开始7天试用"
+    },
+    "enterprise": {
+      "name": "企业版",
+      "price": "定制",
+      "desc": "团队席位 · 集中结算 · 私有部署",
+      "cta": "联系销售"
+    },
+    "more_pricing": "详细个人/企业套餐与积分对比见"
+  },
+  "download": {
+    "title": "选择你的下载版本",
+    "mac": "macOS",
+    "win": "Windows x64",
+    "win_note": "兼容 ARM64",
+    "mac_arm64": "macOS（Apple 芯片）",
+    "mac_arm64_note": "M1 / M2 / M3 / M4",
+    "mac_intel": "macOS（Intel）",
+    "mac_intel_note": "x86_64 芯片",
+    "current": "当前设备",
+    "unavailable": "暂未提供",
+    "unreachable": "下载状态暂不可确认",
+    "retry": "重试",
+    "mac_unknown_hint": "无法识别你的 Mac 芯片型号，请选择与你设备匹配的版本下载。"
+  },
+  "footer": {
+    "tagline": "AI 驱动的终身学习伙伴",
+    "col_product": "产品",
+    "col_resources": "资源",
+    "col_legal": "法律",
+    "download": "下载",
+    "versions": "版本记录",
+    "docs": "使用文档",
+    "faq": "常见问题",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "copyright": "© 2026 ThinkBuddy. Powered by ThinkBuddy (hanyoai)."
+  },
+  "invite": {
+    "title": "邀请好友，一起学习",
+    "share_title": "分享你的专属邀请",
+    "qr_hint": "扫码注册并下载",
+    "copy": "复制邀请链接",
+    "copied": "已复制",
+    "guest": {
+      "login_btn": "登录获取专属邀请链接"
+    },
+    "loading": "正在加载邀请信息…",
+    "error": "加载失败，请稍后重试"
+  },
+  "pricing": {
+    "badge": "积分定价 · 100元=1000积分",
+    "title": "选择适合你的学习计划",
+    "subtitle": "免费起步，按需升级。积分可用于阅读、问答、写作、视频学习与 Agent 任务。",
+    "monthly": "每月",
+    "yearly": "每年（省20%）",
+    "per_month": "/月",
+    "pay_note": "支持多种支付方式升级",
+    "free": {
+      "name": "免费版",
+      "tagline": "免费起步，体验核心功能",
+      "trial_note": "7天Pro试用 · 含500积分",
+      "cta": "免费开始",
+      "f1": "100积分",
+      "f1u": "/月",
+      "f2": "每日活跃奖励 30积分/天",
+      "f3": "自动模型路由",
+      "f4": "3次自动任务 /天",
+      "f5": "基础阅读 / 问答 / 写作"
+    },
+    "pro": {
+      "badge": "推荐",
+      "name": "专业版",
+      "tagline": "全功能 + 大额积分，重度学习者首选",
+      "trial_note": "7天免费试用 · 取消随时",
+      "cta": "开始7天试用",
+      "f1": "1000基础积分",
+      "f1b": "+ 1000奖励积分",
+      "f2": "每日活跃奖励 50积分/天",
+      "f3": "全部模型接入",
+      "f4": "15次自动任务 /天",
+      "f5": "全部 Agent（Chat/Deep Q/Notebook/Visualize）",
+      "f6": "优先支持"
+    },
+    "topup": {
+      "title": "额外充值积分",
+      "subtitle": "100元=1000积分，积分不过期，随充随用",
+      "credits": "积分",
+      "buy": "充值",
+      "pack1": {
+        "name": "基础包"
+      },
+      "pack2": {
+        "name": "超值包"
+      },
+      "pack3": {
+        "name": "大额包"
+      }
+    },
+    "compare": {
+      "title": "哪个套餐更适合你？",
+      "feature": "功能",
+      "base_credits": "基础积分",
+      "bonus_credits": "奖励积分",
+      "daily_reward": "每日活跃奖励",
+      "per_day": "/天",
+      "tasks": "自动任务",
+      "models": "模型路由",
+      "auto": "自动",
+      "all": "全部",
+      "agents": "Agent",
+      "all4": "全部4个",
+      "priority": "优先支持"
+    },
+    "faq": {
+      "title": "常见问题",
+      "q1": "如何开始7天Pro试用？",
+      "a1": "选择专业版并点击\"开始7天试用\"。添加有效支付方式后即可获得7天Pro权限与500基础积分。试用期内不会扣费，结束后按所选周期自动续费（¥10/月或¥96/年）。如需取消，请在试用结束前至少1天操作。",
+      "q2": "可以随时取消订阅吗？",
+      "a2": "可以。随时在个人中心取消订阅，取消后不再自动续费，但可继续使用当前套餐及剩余额度至本计费周期结束。",
+      "q3": "充值积分会过期吗？",
+      "a3": "不会。额外充值的积分不过期，随充随用。100元=1000积分，大额充值额外赠送。",
+      "q4": "积分是怎么消耗的？",
+      "a4": "积分按 AI 调用的 token 与工具执行次数消耗：阅读解析、知识库问答、AI 写作、视频学习摘要、Agent 任务均消耗积分。不同模型消耗速率不同，自动路由会优先选择性价比最高的模型。",
+      "q5": "每日活跃积分怎么发放？",
+      "a5": "当日在客户端发起至少一次对话即视为活跃，对应积分将在次日发放至你的账户。"
+    }
+  }
+}

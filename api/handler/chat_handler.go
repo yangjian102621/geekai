@@ -209,7 +209,7 @@ func (h *ChatHandler) sendMessage(ctx context.Context, input ChatInput, c *gin.C
 	}
 
 	if userVo.Power < input.ChatModel.Power {
-		return fmt.Errorf("您的算力不足，请购买算力。")
+		return fmt.Errorf("您的积分不足，请购买积分。")
 	}
 
 	if userVo.ExpiredTime > 0 && userVo.ExpiredTime <= time.Now().Unix() {
@@ -569,7 +569,7 @@ func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, input
 	return client.Do(request)
 }
 
-// 扣减用户算力
+// 扣减用户积分
 func (h *ChatHandler) subUserPower(userVo vo.User, input ChatInput, promptTokens int, replyTokens int) {
 	power := 1
 	if input.ChatModel.Power > 0 {
@@ -617,7 +617,7 @@ func (h *ChatHandler) saveChatHistory(
 				logger.Error("failed to save moderation: ", err)
 			}
 			pushMessage(c, ChatEventError, "很抱歉，内容触发敏感词预警，AI 无法回答！！！")
-			// 更新用户算力
+			// 更新用户积分
 			if input.ChatModel.Power > 0 {
 				h.subUserPower(userVo, input, 0, 0)
 			}
@@ -716,7 +716,7 @@ func (h *ChatHandler) saveChatHistory(
 		pushMessage(c, ChatEventComplete, messageVo)
 	}
 
-	// 更新用户算力
+	// 更新用户积分
 	if input.ChatModel.Power > 0 {
 		h.subUserPower(userVo, input, promptTokens, replyTokens)
 	}

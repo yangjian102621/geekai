@@ -123,7 +123,7 @@ func (h *RedeemHandler) Export(c *gin.Context) {
 	writer := csv.NewWriter(c.Writer)
 
 	// 写入 CSV 文件的标题行
-	headers := []string{"名称", "兑换码", "算力", "创建时间"}
+	headers := []string{"名称", "兑换码", "积分", "创建时间"}
 	if err := writer.Write(headers); err != nil {
 		resp.ERROR(c, err.Error())
 		return

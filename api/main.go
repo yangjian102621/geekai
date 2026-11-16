@@ -18,11 +18,11 @@ import (
 	"geekai/service"
 	"geekai/service/image"
 	"geekai/service/jimeng"
+	"geekai/service/library"
 	"geekai/service/mj"
 	"geekai/service/moderation"
 	"geekai/service/oss"
 	"geekai/service/payment"
-	"geekai/service/ppt"
 	"geekai/service/sms"
 	"geekai/service/sora"
 	"geekai/service/suno"
@@ -108,6 +108,13 @@ func main() {
 		fx.Provide(store.NewMysql),
 		fx.Provide(store.NewRedisClient),
 		fx.Provide(store.NewLevelDB),
+		fx.Provide(func(db *gorm.DB) *library.Service {
+			return library.NewService(library.NewRepository(db))
+		}),
+		fx.Provide(handler.NewLibraryHandler),
+		fx.Provide(admin.NewLibraryHandler),
+		fx.Invoke(func(h *handler.LibraryHandler) { h.RegisterRoutes() }),
+		fx.Invoke(func(h *admin.LibraryHandler) { h.RegisterRoutes() }),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
@@ -135,13 +142,6 @@ func main() {
 		fx.Provide(handler.NewSmsHandler),
 		fx.Provide(handler.NewRedeemHandler),
 		fx.Provide(handler.NewCaptchaHandler),
-		fx.Provide(func(db *gorm.DB, userService *service.UserService, uploadManager *oss.UploaderManager) *ppt.PptService {
-			return ppt.NewPptService(db, userService, uploadManager)
-		}),
-		fx.Provide(handler.NewPPTTaskHandler),
-		fx.Invoke(func(ppt *ppt.PptService) {
-			ppt.RecoverStaleProcessingTasks()
-		}),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
 		fx.Provide(handler.NewPaymentHandler),
@@ -172,7 +172,6 @@ func main() {
 		fx.Provide(admin.NewAdminJimengHandler),
 		fx.Provide(admin.NewVideoHandler),
 		fx.Provide(admin.NewSunoHandler),
-		fx.Provide(admin.NewPPTHandler),
 
 		// 邮件服务
 		fx.Provide(service.NewSmtpService),
@@ -270,9 +269,6 @@ func main() {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.PPTTaskHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
@@ -395,9 +391,6 @@ func main() {
 			h.RegisterRoutes()
 		}),
 		fx.Invoke(func(s *core.AppServer, h *admin.SunoHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.PPTHandler) {
 			h.RegisterRoutes()
 		}),
 		fx.Provide(admin.NewChatAppTypeHandler),

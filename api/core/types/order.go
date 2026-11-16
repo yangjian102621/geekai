@@ -17,7 +17,7 @@ const (
 
 type OrderRemark struct {
 	Days  int     `json:"days"`  // 有效期
-	Power int     `json:"power"` // 增加算力点数
+	Power int     `json:"power"` // 增加积分点数
 	Name  string  `json:"name"`  // 产品名称
 	Price float64 `json:"price"`
 }

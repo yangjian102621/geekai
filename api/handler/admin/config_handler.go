@@ -123,18 +123,18 @@ func (h *ConfigHandler) UpdateBase(c *gin.Context) {
 // UpdatePower 更新系统配置
 func (h *ConfigHandler) UpdatePower(c *gin.Context) {
 	var data struct {
-		InitPower       int            `json:"init_power,omitempty"`         // 新用户注册赠送算力值
-		DailyPower      int            `json:"daily_power,omitempty"`        // 每日签到赠送算力
-		InvitePower     int            `json:"invite_power,omitempty"`       // 邀请新用户赠送算力值
-		MjPower         int            `json:"mj_power,omitempty"`           // MJ 绘画消耗算力
-		MjActionPower   int            `json:"mj_action_power,omitempty"`    // MJ 操作（放大，变换）消耗算力
-		MjUpscalePower  int            `json:"mj_upscale_power,omitempty"`   // MJ 放大/变换消耗算力
-		MjBlendPower    int            `json:"mj_blend_power,omitempty"`     // MJ 融图消耗算力
-		MjSwapFacePower int            `json:"mj_swap_face_power,omitempty"` // MJ 换脸消耗算力
-		MjModalPower    int            `json:"mj_modal_power,omitempty"`     // MJ 局部重绘消耗算力
-		SunoPower       int            `json:"suno_power,omitempty"`         // Suno 生成歌曲消耗算力
-		LumaPower       int            `json:"luma_power,omitempty"`         // Luma 生成视频消耗算力
-		KeLingPowers    map[string]int `json:"keling_powers,omitempty"`      // 可灵生成视频消耗算力
+		InitPower       int            `json:"init_power,omitempty"`         // 新用户注册赠送积分值
+		DailyPower      int            `json:"daily_power,omitempty"`        // 每日签到赠送积分
+		InvitePower     int            `json:"invite_power,omitempty"`       // 邀请新用户赠送积分值
+		MjPower         int            `json:"mj_power,omitempty"`           // MJ 绘画消耗积分
+		MjActionPower   int            `json:"mj_action_power,omitempty"`    // MJ 操作（放大，变换）消耗积分
+		MjUpscalePower  int            `json:"mj_upscale_power,omitempty"`   // MJ 放大/变换消耗积分
+		MjBlendPower    int            `json:"mj_blend_power,omitempty"`     // MJ 融图消耗积分
+		MjSwapFacePower int            `json:"mj_swap_face_power,omitempty"` // MJ 换脸消耗积分
+		MjModalPower    int            `json:"mj_modal_power,omitempty"`     // MJ 局部重绘消耗积分
+		SunoPower       int            `json:"suno_power,omitempty"`         // Suno 生成歌曲消耗积分
+		LumaPower       int            `json:"luma_power,omitempty"`         // Luma 生成视频消耗积分
+		KeLingPowers    map[string]int `json:"keling_powers,omitempty"`      // 可灵生成视频消耗积分
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)

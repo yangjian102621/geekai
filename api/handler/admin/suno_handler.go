@@ -110,7 +110,7 @@ func (h *SunoHandler) Remove(c *gin.Context) {
 	md := "suno"
 	power := job.Power
 	userId := int(job.UserId)
-	remark := fmt.Sprintf("SUNO 任务失败，退回算力。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
+	remark := fmt.Sprintf("SUNO 任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg)
 	needRefund := job.Progress != 100
 	fileURL := job.AudioURL
 

@@ -87,7 +87,7 @@ func (h *PowerLogHandler) List(c *gin.Context) {
 	resp.SUCCESS(c, vo.NewPage(total, data.Page, data.PageSize, list))
 }
 
-// Stats 获取用户算力统计
+// Stats 获取用户积分统计
 func (h *PowerLogHandler) Stats(c *gin.Context) {
 	userId := h.GetLoginUserId(c)
 	if userId == 0 {

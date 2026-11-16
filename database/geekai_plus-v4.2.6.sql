@@ -34,7 +34,7 @@ CREATE TABLE `geekai_3d_jobs` (
   `id` bigint UNSIGNED NOT NULL,
   `user_id` int NOT NULL COMMENT '用户ID',
   `type` varchar(20) NOT NULL COMMENT 'API类型 (tencent/gitee)',
-  `power` int NOT NULL COMMENT '消耗算力',
+  `power` int NOT NULL COMMENT '消耗积分',
   `task_id` varchar(100) DEFAULT NULL COMMENT '第三方任务ID',
   `file_url` varchar(1024) DEFAULT NULL COMMENT '生成的3D模型文件地址',
   `preview_url` varchar(1024) DEFAULT NULL COMMENT '预览图片地址',
@@ -176,7 +176,7 @@ CREATE TABLE `geekai_chat_models` (
   `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '模型值',
   `sort_num` tinyint(1) NOT NULL COMMENT '排序数字',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启用模型',
-  `power` smallint NOT NULL COMMENT '消耗算力点数',
+  `power` smallint NOT NULL COMMENT '消耗积分点数',
   `temperature` float(3,1) NOT NULL DEFAULT '1.0' COMMENT '模型创意度',
   `max_tokens` bigint NOT NULL DEFAULT '1024' COMMENT '最大响应长度',
   `max_context` bigint NOT NULL DEFAULT '4096' COMMENT '最大上下文长度',
@@ -273,7 +273,7 @@ CREATE TABLE `geekai_configs` (
 --
 
 INSERT INTO `geekai_configs` (`id`, `name`, `value`) VALUES
-(1, 'system', '{\"title\":\"GeekAI 创作助手\",\"slogan\":\"我辈之人，先干为敬，让每一个人都能用好AI\",\"admin_title\":\"GeekAI 控制台\",\"logo\":\"/images/logo.png\",\"bar_logo\":\"/images/bar_logo.png\",\"register_ways\":[\"username\",\"email\",\"mobile\"],\"enabled_register\":true,\"order_pay_timeout\":600,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点算力，赠送算力当月有效当月没有消费完的算力不结余到下个月。 点卡充值的算力长期有效。\",\"init_power\":10,\"daily_power\":1,\"invite_power\":10,\"mj_power\":20,\"sd_power\":5,\"suno_power\":50,\"luma_power\":120,\"keling_powers\":{\"kling-v1-5_pro_10\":840,\"kling-v1-5_pro_5\":420,\"kling-v1-5_std_10\":480,\"kling-v1-5_std_5\":240,\"kling-v1-6_pro_10\":840,\"kling-v1-6_pro_5\":420,\"kling-v1-6_std_10\":480,\"kling-v1-6_std_5\":240,\"kling-v1_pro_10\":840,\"kling-v1_pro_5\":420,\"kling-v1_std_10\":240,\"kling-v1_std_5\":120},\"advance_voice_power\":100,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":10,\"sd_neg_prompt\":\"nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet\",\"mj_mode\":\"fast\",\"index_navs\":[1,5,13,19,9,12,6,20,8,10],\"copyright\":\"极客学长\",\"default_nickname\":\"\",\"icp\":\"粤ICP备19122051号\",\"enabled_verify\":false,\"email_white_list\":[\"qq.com\",\"163.com\",\"gmail.com\",\"hotmail.com\",\"126.com\",\"outlook.com\",\"foxmail.com\",\"yahoo.com\"],\"assistant_model_id\":0,\"max_file_size\":10}'),
+(1, 'system', '{\"title\":\"GeekAI 创作助手\",\"slogan\":\"我辈之人，先干为敬，让每一个人都能用好AI\",\"admin_title\":\"GeekAI 控制台\",\"logo\":\"/images/logo.png\",\"bar_logo\":\"/images/bar_logo.png\",\"register_ways\":[\"username\",\"email\",\"mobile\"],\"enabled_register\":true,\"order_pay_timeout\":600,\"vip_info_text\":\"月度会员，年度会员每月赠送 1000 点积分，赠送积分当月有效当月没有消费完的积分不结余到下个月。 点卡充值的积分长期有效。\",\"init_power\":10,\"daily_power\":1,\"invite_power\":10,\"mj_power\":20,\"sd_power\":5,\"suno_power\":50,\"luma_power\":120,\"keling_powers\":{\"kling-v1-5_pro_10\":840,\"kling-v1-5_pro_5\":420,\"kling-v1-5_std_10\":480,\"kling-v1-5_std_5\":240,\"kling-v1-6_pro_10\":840,\"kling-v1-6_pro_5\":420,\"kling-v1-6_std_10\":480,\"kling-v1-6_std_5\":240,\"kling-v1_pro_10\":840,\"kling-v1_pro_5\":420,\"kling-v1_std_10\":240,\"kling-v1_std_5\":120},\"advance_voice_power\":100,\"wechat_card_url\":\"/images/wx.png\",\"enable_context\":true,\"context_deep\":10,\"sd_neg_prompt\":\"nsfw, paintings,low quality,easynegative,ng_deepnegative ,lowres,bad anatomy,bad hands,bad feet\",\"mj_mode\":\"fast\",\"index_navs\":[1,5,13,19,9,12,6,20,8,10],\"copyright\":\"极客学长\",\"default_nickname\":\"\",\"icp\":\"粤ICP备19122051号\",\"enabled_verify\":false,\"email_white_list\":[\"qq.com\",\"163.com\",\"gmail.com\",\"hotmail.com\",\"126.com\",\"outlook.com\",\"foxmail.com\",\"yahoo.com\"],\"assistant_model_id\":0,\"max_file_size\":10}'),
 (3, 'notice', '{\"content\":\"## v4.2.6 更新日志\\n\\n- 功能重构：优化系统配置管理功能，把 OSS，支付，短信，邮件等配置全部迁移到管理后台，无需通过修改配置文档的方式修改 🎉🎉🎉\\n- 功能优化：重构 API 授权代码，采用中间件鉴权方式，实现更加精准的 API 鉴权 🎉🎉🎉\\n- 功能优化：优化 PC 端的 Suno 音乐，视频生成，以及即梦 AI 页面 UI\\n- 功能优化：重构登录和注册页面，兼容移动端和 PC 端，并且所有的登录组件共用了同一套组件代码，大大降低维护成本 🎉🎉🎉\\n- 功能优化：管理后台增加模型批量删除功能\\n- 功能优化：优化 Table 组件 UI，并支持 dark 主题\\n- 功能优化：移动端对话页面支持上传文件和图片\\n- 功能新增：新增微信扫码登录支持\\n- 功能新增：新增安全监控，内容审核功能，支持敏感内容过滤拦截\\n- 功能新增：DALL-E 绘图支持参 Google Banana 图片编辑功能\\n\\n注意：当前站点仅为开源项目 \\u003ca style=\\\"color: #F56C6C\\\" href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003eGeekAI-Plus\\u003c/a\\u003e 的演示项目，本项目单纯就是给大家体验项目功能使用。\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n\\u003cstrong style=\\\"color: #F56C6C\\\"\\u003e体验额度用完之后请不要在当前站点进行任何充值操作！！！\\u003c/strong\\u003e\\n 如果觉得好用你就花几分钟自己部署一套，没有API KEY 的同学可以去下面几个推荐的中转站购买：\\n1、\\u003ca href=\\\"https://api.chat-plus.net\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.chat-plus.net\\u003c/a\\u003e\\n2、\\u003ca href=\\\"https://api.geekai.me\\\" target=\\\"_blank\\\"\\n   style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://api.geekai.me\\u003c/a\\u003e\\n支持MidJourney，GPT，Claude，Google Gemmi，以及国内各个厂家的大模型，现在有超级优惠，价格远低于 OpenAI 官方。关于中转 API 的优势和劣势请参考 [中转API技术原理](https://docs.geekai.me/config/chat/#%E4%B8%AD%E8%BD%ACapi%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86)。GPT-3.5，GPT-4，DALL-E3 绘图......你都可以随意使用，无需魔法。\\n接入教程： \\u003ca href=\\\"https://docs.geekai.me\\\" target=\\\"_blank\\\"\\n             style=\\\"font-size: 20px;color:#F56C6C\\\"\\u003ehttps://docs.geekai.me\\u003c/a\\u003e\\n本项目源码地址：\\u003ca href=\\\"https://github.com/yangjian102621/geekai\\\" target=\\\"_blank\\\"\\u003ehttps://github.com/yangjian102621/geekai\\u003c/a\\u003e\"}'),
 (17, 'agreement', '{\"content\":\"# 用户协议\"}'),
 (18, 'privacy', '{\"content\":\"隐私申明\"}'),
@@ -294,7 +294,7 @@ CREATE TABLE `geekai_dall_jobs` (
   `img_url` varchar(255) NOT NULL COMMENT '图片地址',
   `org_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '原图地址',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
-  `power` smallint NOT NULL COMMENT '消耗算力',
+  `power` smallint NOT NULL COMMENT '消耗积分',
   `progress` smallint NOT NULL COMMENT '任务进度',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '错误信息',
   `created_at` datetime NOT NULL
@@ -399,7 +399,7 @@ CREATE TABLE `geekai_jimeng_jobs` (
   `progress` bigint DEFAULT '0' COMMENT '进度百分比',
   `status` varchar(20) DEFAULT 'pending' COMMENT '任务状态',
   `err_msg` varchar(1024) DEFAULT NULL COMMENT '错误信息',
-  `power` int DEFAULT '0' COMMENT '消耗算力',
+  `power` int DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -428,7 +428,7 @@ INSERT INTO `geekai_menus` (`id`, `name`, `icon`, `url`, `sort_num`, `enabled`) 
 (1, 'AI 对话', 'icon-chat', '/chat', 1, 1),
 (5, 'MJ 绘画', 'icon-mj', '/mj', 2, 1),
 (6, 'SD 绘画', 'icon-sd', '/sd', 3, 1),
-(7, '算力日志', 'icon-file', '/powerLog', 11, 1),
+(7, '积分日志', 'icon-file', '/powerLog', 11, 1),
 (8, '应用中心', 'icon-app', '/apps', 10, 1),
 (9, '画廊', 'icon-image', '/images-wall', 5, 1),
 (10, '会员计划', 'icon-vip2', '/member', 12, 1),
@@ -464,7 +464,7 @@ CREATE TABLE `geekai_mj_jobs` (
   `use_proxy` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否使用反代',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '错误信息',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MidJourney 任务表';
 
@@ -523,13 +523,13 @@ CREATE TABLE `geekai_power_logs` (
   `user_id` int NOT NULL COMMENT '用户ID',
   `username` varchar(30) NOT NULL COMMENT '用户名',
   `type` tinyint(1) NOT NULL COMMENT '类型（1：充值，2：消费，3：退费）',
-  `amount` smallint NOT NULL COMMENT '算力数值',
+  `amount` smallint NOT NULL COMMENT '积分数值',
   `balance` bigint NOT NULL COMMENT '余额',
   `model` varchar(255) NOT NULL COMMENT '模型',
   `remark` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '备注',
   `mark` tinyint(1) NOT NULL COMMENT '资金类型（0：支出，1：收入）',
   `created_at` datetime NOT NULL COMMENT '创建时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户算力消费日志';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户积分消费日志';
 
 -- --------------------------------------------------------
 
@@ -542,7 +542,7 @@ CREATE TABLE `geekai_products` (
   `id` int NOT NULL,
   `name` varchar(30) NOT NULL COMMENT '名称',
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '价格',
-  `power` bigint NOT NULL DEFAULT '0' COMMENT '增加算力值',
+  `power` bigint NOT NULL DEFAULT '0' COMMENT '增加积分值',
   `enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否启动',
   `sales` bigint NOT NULL DEFAULT '0' COMMENT '销量',
   `sort_num` tinyint NOT NULL DEFAULT '0' COMMENT '排序',
@@ -569,7 +569,7 @@ CREATE TABLE `geekai_redeems` (
   `id` int NOT NULL,
   `user_id` int NOT NULL COMMENT '用户 ID',
   `name` varchar(30) NOT NULL COMMENT '兑换码名称',
-  `power` bigint NOT NULL COMMENT '算力',
+  `power` bigint NOT NULL COMMENT '积分',
   `code` varchar(100) NOT NULL COMMENT '兑换码',
   `enabled` tinyint(1) NOT NULL COMMENT '是否启用',
   `created_at` datetime NOT NULL,
@@ -595,7 +595,7 @@ CREATE TABLE `geekai_sd_jobs` (
   `progress` smallint DEFAULT '0' COMMENT '任务进度',
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '错误信息',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stable Diffusion 任务表';
 
@@ -629,7 +629,7 @@ CREATE TABLE `geekai_suno_jobs` (
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '错误信息',
   `raw_data` text COMMENT '原始数据',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `play_times` bigint DEFAULT NULL COMMENT '播放次数',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MidJourney 任务表';
@@ -650,7 +650,7 @@ CREATE TABLE `geekai_users` (
   `password` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '头像',
   `salt` char(12) NOT NULL COMMENT '密码盐',
-  `power` bigint NOT NULL DEFAULT '0' COMMENT '剩余算力',
+  `power` bigint NOT NULL DEFAULT '0' COMMENT '剩余积分',
   `expired_time` bigint NOT NULL COMMENT '用户过期时间',
   `status` tinyint(1) NOT NULL COMMENT '当前状态',
   `chat_config_json` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '聊天配置json',
@@ -717,7 +717,7 @@ CREATE TABLE `geekai_video_jobs` (
   `publish` tinyint(1) NOT NULL COMMENT '是否发布',
   `err_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '错误信息',
   `raw_data` text COMMENT '原始数据',
-  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗算力',
+  `power` smallint NOT NULL DEFAULT '0' COMMENT '消耗积分',
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MidJourney 任务表';
 
