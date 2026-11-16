@@ -75,6 +75,7 @@ func (h *UserHandler) RegisterRoutes() {
 	// 公开接口，不需要授权
 	group.POST("register", h.Register)
 	group.POST("login", h.Login)
+	group.POST("login/mobile", h.MobileLogin)
 	group.POST("resetPass", h.ResetPass)
 	group.GET("login/qrcode", h.GetWxLoginQRCode)
 	group.POST("login/callback", h.WxLoginCallback)
@@ -159,14 +160,12 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	// 按手机号串行处理注册，避免并发请求重复绑定同一手机号。
-	lockKey := "register/mobile/" + data.Mobile
-	lockToken := utils.RandString(32)
-	locked, err := h.redis.SetNX(c, lockKey, lockToken, time.Minute).Result()
-	if err != nil || !locked {
+	unlock, err := h.lockMobile(c, data.Mobile)
+	if err != nil {
 		resp.ERROR(c, "注册请求正在处理中，请稍后重试")
 		return
 	}
-	defer h.redis.Eval(c, `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end return 0`, []string{lockKey}, lockToken)
+	defer unlock()
 
 	var item model.User
 	err = h.DB.Where("username = ? OR mobile = ?", data.Username, data.Mobile).First(&item).Error
@@ -179,21 +178,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// 原子校验并消费验证码；五次错误后需重新获取，旧的永久验证码不再接受。
-	key := CodeStorePrefix + data.Mobile
-	verified, err := h.redis.Eval(c, `
-local code = redis.call('GET', KEYS[1])
-if not code or redis.call('TTL', KEYS[1]) <= 0 then return 0 end
-if code ~= ARGV[1] then
-    local attempts = redis.call('INCR', KEYS[2])
-    if attempts == 1 then redis.call('EXPIRE', KEYS[2], 300) end
-    if attempts >= 5 then redis.call('DEL', KEYS[1]) end
-    return 0
-end
-redis.call('DEL', KEYS[1], KEYS[2])
-return 1
-`, []string{key, key + "/attempts"}, data.Code).Int()
-	if err != nil || verified != 1 {
+	if !h.consumeSmsCode(c, data.Mobile, data.Code) {
 		resp.ERROR(c, "验证码错误或已过期，请重新获取")
 		return
 	}

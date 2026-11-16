@@ -1,12 +1,12 @@
 <template>
   <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
-      <custom-tabs v-model="loginActiveName" @tab-click="handleTabClick">
+      <custom-tabs v-model="loginActiveName">
         <!-- 账号密码登录 -->
-        <custom-tab-pane name="account" width="48">
+        <custom-tab-pane name="account" width="32">
           <template #label>
-            <div class="flex items-center justify-center px-3">
-              <i class="iconfont icon-user-fill mr-2"></i>
+            <div class="flex items-center justify-center">
+              <i class="iconfont icon-user-fill mr-2 max-[400px]:hidden"></i>
               <span>账号登录</span>
             </div>
           </template>
@@ -78,11 +78,74 @@
           </el-form>
         </custom-tab-pane>
 
-        <!-- 微信登录 -->
-        <custom-tab-pane name="wechat" width="48">
+        <custom-tab-pane name="mobile" width="32">
           <template #label>
-            <div class="flex items-center justify-center px-3">
-              <i class="iconfont icon-wechat mr-2"></i>
+            <div class="flex items-center justify-center">
+              <el-icon class="mr-2 max-[400px]:!hidden"><Iphone /></el-icon>
+              <span>手机号登录</span>
+            </div>
+          </template>
+          <el-form
+            :model="mobileLoginData"
+            class="form space-y-5"
+            @submit.prevent="submitMobileLogin"
+          >
+            <el-input
+              v-model="mobileLoginData.mobile"
+              placeholder="请输入手机号"
+              aria-label="登录手机号"
+              size="large"
+              maxlength="11"
+              inputmode="tel"
+              autocomplete="tel"
+            >
+              <template #prefix>
+                <el-icon><Iphone /></el-icon>
+              </template>
+            </el-input>
+            <div class="flex gap-2.5">
+              <el-input
+                class="flex-1 min-w-0"
+                v-model="mobileLoginData.code"
+                placeholder="短信验证码"
+                aria-label="登录短信验证码"
+                size="large"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+              >
+                <template #prefix>
+                  <el-icon><Checked /></el-icon>
+                </template>
+              </el-input>
+              <send-msg
+                class="w-[120px] !flex-none"
+                size="large"
+                :receiver="mobileLoginData.mobile.trim()"
+                purpose="login"
+              />
+            </div>
+            <div class="text-sm leading-6" style="color: var(--login-text-color)">
+              <el-checkbox v-model="mobileAgreeChecked">我已阅读并同意</el-checkbox>
+              <a href="javascript:void(0)" class="text-blue-500 whitespace-nowrap" @click="openAgreement">《用户协议》</a>
+              和
+              <a href="javascript:void(0)" class="text-blue-500 whitespace-nowrap" @click="openPrivacy">《隐私政策》</a>
+            </div>
+            <button
+              class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md disabled:opacity-60"
+              :disabled="loading"
+              type="submit"
+            >
+              {{ loading ? '登录中...' : '登录 / 注册' }}
+            </button>
+          </el-form>
+        </custom-tab-pane>
+
+        <!-- 微信登录 -->
+        <custom-tab-pane name="wechat" width="32">
+          <template #label>
+            <div class="flex items-center justify-center">
+              <i class="iconfont icon-wechat mr-2 max-[400px]:hidden"></i>
               <span>微信登录</span>
             </div>
           </template>
@@ -153,26 +216,28 @@
         </div>
 
         <div class="block">
-          <el-row :gutter="10">
-            <el-col :span="12">
-              <el-input
-                placeholder="短信验证码（必填）"
-                aria-label="短信验证码"
-                size="large"
-                maxlength="6"
-                inputmode="numeric"
-                v-model="registerData.code"
-                autocomplete="one-time-code"
-              >
-                <template #prefix>
-                  <el-icon><Checked /></el-icon>
-                </template>
-              </el-input>
-            </el-col>
-            <el-col :span="12">
-              <send-msg size="large" :receiver="registerData.mobile.trim()" type="mobile" />
-            </el-col>
-          </el-row>
+          <div class="flex gap-2.5">
+            <el-input
+              class="flex-1 min-w-0"
+              placeholder="短信验证码（必填）"
+              aria-label="短信验证码"
+              size="large"
+              maxlength="6"
+              inputmode="numeric"
+              v-model="registerData.code"
+              autocomplete="one-time-code"
+            >
+              <template #prefix>
+                <el-icon><Checked /></el-icon>
+              </template>
+            </el-input>
+            <send-msg
+              class="w-[120px] !flex-none"
+              size="large"
+              :receiver="registerData.mobile.trim()"
+              type="mobile"
+            />
+          </div>
         </div>
 
         <div class="block">
@@ -353,6 +418,8 @@ const registerData = ref({
   code: '',
   invite_code: props.inviteCode,
 })
+const mobileLoginData = ref({ mobile: '', code: '' })
+const mobileAgreeChecked = ref(false)
 
 // 微信登录相关变量
 const wechatLoginQRCode = ref('')
@@ -464,26 +531,13 @@ watch(loginActiveName, (newValue) => {
   }
 })
 
-const handleTabClick = (tab) => {
-  // CustomTabs组件传递的是tab对象，包含paneName属性
-  if (tab.paneName === 'wechat') {
-    getWxLoginURL()
-  } else {
-    // 其他登录方式，清除定时器
-    if (pollingTimer.value) {
-      clearInterval(pollingTimer.value)
-    }
-    if (qrcodeTimer.value) {
-      clearTimeout(qrcodeTimer.value)
-    }
-  }
-}
-
 const submit = (verifyData) => {
   if (action.value === 'login') {
     doLogin(verifyData)
   } else if (action.value === 'register') {
     doRegister(verifyData)
+  } else if (action.value === 'mobileLogin') {
+    doLogin(verifyData, true)
   }
 }
 
@@ -604,12 +658,38 @@ const submitLogin = () => {
   }
 }
 
-const doLogin = (verifyData) => {
-  data.value.key = verifyData.key
-  data.value.dots = verifyData.dots
-  data.value.x = verifyData.x
+const submitMobileLogin = () => {
+  if (loading.value) return
+  mobileLoginData.value.mobile = mobileLoginData.value.mobile.trim()
+  mobileLoginData.value.code = mobileLoginData.value.code.trim()
+  if (!validateMobile(mobileLoginData.value.mobile)) {
+    return ElMessage.error('请输入合法的手机号')
+  }
+  if (!/^\d{6}$/.test(mobileLoginData.value.code)) {
+    return ElMessage.error('请输入6位短信验证码')
+  }
+  if (!mobileAgreeChecked.value) {
+    return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
+  }
+  if (enableCaptcha.value) {
+    action.value = 'mobileLogin'
+    captchaRef.value.loadCaptcha()
+  } else {
+    doLogin({}, true)
+  }
+}
+
+const doLogin = (verifyData, mobileLogin = false) => {
+  const payload = mobileLogin
+    ? { ...mobileLoginData.value, invite_code: props.inviteCode }
+    : data.value
   loading.value = true
-  httpPost('/api/user/login', data.value)
+  httpPost(mobileLogin ? '/api/user/login/mobile' : '/api/user/login', {
+    ...payload,
+    key: verifyData.key,
+    dots: verifyData.dots,
+    x: verifyData.x,
+  })
     .then((res) => {
       setUserToken(res.data.token)
       store.setIsLogin(true)
