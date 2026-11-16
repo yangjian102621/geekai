@@ -161,6 +161,7 @@
               </el-row>
             </div>
           </el-tab-pane>
+          <!-- 暂时隐藏邮箱注册入口
           <el-tab-pane label="邮箱注册" name="email" v-if="enableEmail">
             <div class="block">
               <el-input placeholder="邮箱地址" size="large" v-model="data.email" autocomplete="off">
@@ -194,6 +195,7 @@
               </el-row>
             </div>
           </el-tab-pane>
+          -->
           <el-tab-pane label="用户名注册" name="username" v-if="enableUser">
             <div class="block">
               <el-input
@@ -391,7 +393,7 @@ const qrcodeExpired = ref(false)
 const qrcodeTimer = ref(null)
 
 const enableMobile = ref(false)
-const enableEmail = ref(false)
+// const enableEmail = ref(false)
 const enableUser = ref(false)
 const enableRegister = ref(true)
 
@@ -467,10 +469,10 @@ onMounted(() => {
           enableUser.value = true
           activeName.value = 'username'
         }
-        if (arrayContains(registerWays, 'email')) {
-          enableEmail.value = true
-          activeName.value = 'email'
-        }
+        // if (arrayContains(registerWays, 'email')) {
+        //   enableEmail.value = true
+        //   activeName.value = 'email'
+        // }
         if (arrayContains(registerWays, 'mobile')) {
           enableMobile.value = true
           activeName.value = 'mobile'
