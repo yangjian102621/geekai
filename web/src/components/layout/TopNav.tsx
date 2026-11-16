@@ -27,7 +27,7 @@ export function TopNav() {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `nav-link text-sm font-medium transition-colors ${
-      isActive ? "text-brand-600" : "text-slate-700 hover:text-slate-900"
+      isActive ? "text-brand-600" : "text-body-strong hover:text-ink"
     }`;
 
   const handleLogin = openLoginPage;
@@ -53,21 +53,22 @@ export function TopNav() {
     <header
       data-topnav
       className={`topnav fixed top-0 inset-x-0 z-50 ${
-        scrolled ? "topnav-scrolled" : "bg-white/60"
+        scrolled ? "topnav-scrolled" : "bg-canvas/80"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 relative">
           <Link to="/" className="flex items-center gap-2 z-10">
             <img src="/assets/logo.png" alt="ThinkBuddy" className="h-8 w-8" />
-            <span className="text-lg font-bold tracking-tight text-slate-900">ThinkBuddy</span>
+            <span className="text-lg font-semibold tracking-tight text-ink">ThinkBuddy</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
             <NavLink to="/" end className={linkClass}>{t("nav.home")}</NavLink>
             {/* 定价暂时隐藏 */}
             <NavLink to="/invite" className={linkClass}>{t("nav.invite")}</NavLink>
-            {docsURL && <a href={docsURL} target="_blank" rel="noopener noreferrer" className="nav-link text-sm font-medium transition-colors text-slate-700 hover:text-slate-900">
+            {user && <NavLink to="/space" className={linkClass}>{t("nav.space")}</NavLink>}
+            {docsURL && <a href={docsURL} target="_blank" rel="noopener noreferrer" className="nav-link text-sm font-medium transition-colors text-body-strong hover:text-ink">
               {t("nav.docs")}
             </a>}
           </nav>
@@ -76,7 +77,7 @@ export function TopNav() {
             {/* 语言切换 */}
             <button
               onClick={toggleLang}
-              className="text-xs font-semibold text-slate-500 hover:text-brand-600 px-2 py-1 rounded-md transition"
+              className="text-xs font-semibold text-muted hover:text-brand-600 px-2 py-1 rounded-md transition"
               aria-label="toggle language"
             >
               {langLabel}
@@ -119,23 +120,28 @@ export function TopNav() {
         </div>
 
         {open && (
-          <div className="md:hidden border-t border-slate-200 py-4">
+          <div className="md:hidden border-t border-hairline py-4">
             <nav className="flex flex-col gap-1">
-              <NavLink to="/" end onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-slate-700 rounded hover:bg-slate-50">
+              <NavLink to="/" end onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft">
                 {t("nav.home")}
               </NavLink>
-              <NavLink to="/invite" onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-slate-700 rounded hover:bg-slate-50">
+              <NavLink to="/invite" onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft">
                 {t("nav.invite")}
               </NavLink>
-              {docsURL && <a href={docsURL} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-slate-700 rounded hover:bg-slate-50">
+              {docsURL && <a href={docsURL} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft">
                 {t("nav.docs")}
               </a>}
               {user ? (
-                <button onClick={handleLogout} className="text-left py-2 px-3 text-sm font-medium text-slate-700 rounded hover:bg-slate-50">
-                  {t("auth.logout")} ({user.username})
-                </button>
+                <>
+                  <NavLink to="/space" onClick={() => setOpen(false)} className="block py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft">
+                    {t("nav.space")}
+                  </NavLink>
+                  <button onClick={handleLogout} className="text-left py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft">
+                    {t("auth.logout")} ({user.username})
+                  </button>
+                </>
               ) : (
-                <button onClick={() => { setOpen(false); handleLogin(); }} className="text-left py-2 px-3 text-sm font-medium text-slate-700 rounded hover:bg-slate-50">
+                <button onClick={() => { setOpen(false); handleLogin(); }} className="text-left py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft">
                   {t("nav.login")}
                 </button>
               )}
@@ -146,7 +152,7 @@ export function TopNav() {
                       key={option.key}
                       href={option.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 py-2 px-3 text-sm font-medium text-slate-700 rounded hover:bg-slate-50"
+                      className="flex items-center gap-3 py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft"
                     >
                       <PlatformIcon platform={option.key} size={16} />
                       <span className="flex-1">{t(option.labelKey)}</span>
@@ -157,12 +163,12 @@ export function TopNav() {
                   ) : (
                     <div
                       key={option.key}
-                      className="flex items-center gap-3 py-2 px-3 text-sm font-medium text-slate-400 rounded cursor-not-allowed"
+                      className="flex items-center gap-3 py-2 px-3 text-sm font-medium text-muted-soft rounded cursor-not-allowed"
                       title={t("download.unavailable")}
                     >
                       <PlatformIcon platform={option.key} size={16} />
                       <span className="flex-1">{t(option.labelKey)}</span>
-                      <span className="text-[10px] font-semibold text-slate-400">{t("download.unavailable")}</span>
+                      <span className="text-[10px] font-semibold text-muted-soft">{t("download.unavailable")}</span>
                     </div>
                   )
                 )

@@ -65,6 +65,8 @@ services:
       - ./logs/app:/var/www/app/logs
       - ./static:/var/www/app/static
       - ./data/leveldb:/var/www/app/data
+      # 官网安装包与 latest.json，供 /api/v1/latest、/api/v1/download 和 /update 使用
+      - ./update:/var/www/app/update
 
   # 前端应用
   geekai-web:
