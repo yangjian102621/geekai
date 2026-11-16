@@ -6,7 +6,14 @@ import { getUserToken, removeUserToken } from "../../config";
 export interface AuthUser {
   id: number;
   username: string;
+  nickname?: string;
+  email?: string;
+  mobile?: string;
+  avatar?: string;
   power?: number;
+  vip?: boolean;
+  expired_time?: number;
+  status?: boolean;
 }
 
 export function useAuth() {

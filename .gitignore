@@ -22,6 +22,11 @@ logs
 miniprogram
 .shared
 .claude
+.workbuddy/
 docs/mydocs
 database/archive 
 docs/plans
+
+# 安装包体积大，不入库；latest.json 需要保留
+/update/*.exe
+/update/*.dmg

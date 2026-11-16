@@ -26,6 +26,9 @@ export interface DownloadOption {
 // 后端 /api/v1/latest 返回安装包的同源相对路径（如 /update/ThinkBuddySetup-dt1.6.14.exe），
 // mac 包按清单 mac.<arch>.url 输出（缺分支/缺包不输出该 key，即“暂未提供”）。
 // 接口不可用或缺少平台地址时显示不可用，不推导安装包地址。
+// 后端 /api/v1/latest 返回安装包的同源相对路径（如 /update/ThinkBuddySetup-dt1.6.14.exe），
+// mac 包按清单 mac.<arch>.url 输出（缺分支/缺包不输出该 key，即“暂未提供”）。
+// 接口不可用时退回平台下载接口（Windows），mac 不做无依据的推导。
 interface LatestResponse {
   version?: string;
   url?: string;
@@ -34,7 +37,7 @@ interface LatestResponse {
 
 const FALLBACK: DownloadLinks = {
   version: "",
-  windows: null,
+  windows: "/api/v1/download",
   macArm64: null,
   macX64: null,
   unreachable: true,

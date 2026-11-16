@@ -5,7 +5,7 @@ import { PlatformIcon } from "./PlatformIcon";
 
 function ChevronIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-soft">
       <path d="m9 18 6-6-6-6" />
     </svg>
   );
@@ -43,9 +43,9 @@ export function DownloadMenu({
       <a
         key={option.key}
         href={option.href}
-        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 whitespace-nowrap"
+        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-soft whitespace-nowrap"
       >
-        <span className="flex-1 text-sm text-slate-700">{t(option.labelKey)}</span>
+        <span className="flex-1 text-sm text-body-strong">{t(option.labelKey)}</span>
         {option.badgeKey && (
           <span className="text-[10px] font-semibold text-brand-600">{t(option.badgeKey)}</span>
         )}
@@ -56,8 +56,8 @@ export function DownloadMenu({
         className="flex items-center gap-3 px-3 py-2 rounded-xl opacity-55 cursor-not-allowed whitespace-nowrap"
         title={t("download.unavailable")}
       >
-        <span className="flex-1 text-sm text-slate-500">{t(option.labelKey)}</span>
-        <span className="text-[10px] font-semibold text-slate-400">{t("download.unavailable")}</span>
+        <span className="flex-1 text-sm text-muted">{t(option.labelKey)}</span>
+        <span className="text-[10px] font-semibold text-muted-soft">{t("download.unavailable")}</span>
       </div>
     );
 
@@ -65,18 +65,18 @@ export function DownloadMenu({
     <div className={`relative group ${className}`}>
       {trigger}
       <div className={`absolute hidden group-hover:block z-30 ${panelPosition}`}>
-        <div className="w-64 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl text-left">
+        <div className="w-64 rounded-xl border border-hairline bg-canvas p-1.5 shadow-lg text-left">
           <div className="relative group/mac">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 cursor-default">
-              <span className="text-slate-500"><PlatformIcon platform="mac-arm64" /></span>
-              <span className="flex-1 text-sm text-slate-700">{t("download.mac")}</span>
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-soft cursor-default">
+              <span className="text-muted"><PlatformIcon platform="mac-arm64" /></span>
+              <span className="flex-1 text-sm text-body-strong">{t("download.mac")}</span>
               {isMac && (
                 <span className="text-[10px] font-semibold text-brand-600">{t("download.current")}</span>
               )}
               <ChevronIcon />
             </div>
             <div className={`absolute hidden group-hover/mac:block z-40 ${macSubPosition}`}>
-              <div className="w-48 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl text-left">
+              <div className="w-48 rounded-xl border border-hairline bg-canvas p-1.5 shadow-lg text-left">
                 {macItem(macArm64)}
                 {macItem(macX64)}
               </div>
@@ -85,12 +85,12 @@ export function DownloadMenu({
           {windows.href ? (
             <a
               href={windows.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-soft"
             >
-              <span className="text-slate-500"><PlatformIcon platform="windows" /></span>
-              <span className="flex-1 text-sm text-slate-700">
+              <span className="text-muted"><PlatformIcon platform="windows" /></span>
+              <span className="flex-1 text-sm text-body-strong">
                 {t(windows.labelKey)}
-                <span className="text-slate-400">（{t(windows.noteKey)}）</span>
+                <span className="text-muted-soft">（{t(windows.noteKey)}）</span>
               </span>
               {windows.badgeKey && (
                 <span className="text-[10px] font-semibold text-brand-600">{t(windows.badgeKey)}</span>
@@ -101,9 +101,9 @@ export function DownloadMenu({
               className="flex items-center gap-3 px-3 py-2 rounded-xl opacity-55 cursor-not-allowed"
               title={t("download.unavailable")}
             >
-              <span className="text-slate-500"><PlatformIcon platform="windows" /></span>
-              <span className="flex-1 text-sm text-slate-500">{t(windows.labelKey)}</span>
-              <span className="text-[10px] font-semibold text-slate-400">{t("download.unavailable")}</span>
+              <span className="text-muted"><PlatformIcon platform="windows" /></span>
+              <span className="flex-1 text-sm text-muted">{t(windows.labelKey)}</span>
+              <span className="text-[10px] font-semibold text-muted-soft">{t("download.unavailable")}</span>
             </div>
           )}
         </div>
