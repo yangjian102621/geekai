@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.VITE_API_HOST || "http://localhost:5678";
   const adminTarget = "http://localhost:8889";
   const apiProxy = Object.fromEntries(
-    ["/api", "/static", "/healthz", "/update"].map((path) => [
+    ["/api", "/v1", "/static", "/healthz", "/update"].map((path) => [
       path,
       { target: apiTarget, changeOrigin: true, ws: true },
     ]),

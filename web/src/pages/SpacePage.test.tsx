@@ -42,6 +42,8 @@ describe("Personal Space", () => {
     vi.mocked(useAuth).mockReturnValue({ data: user, isLoading: false, isError: false } as ReturnType<typeof useAuth>);
     vi.mocked(api.get).mockImplementation(async (path) => {
       switch (path) {
+        case "/user/model-token":
+          return { data: { code: 0, data: { enabled: false } } };
         case "/powerLog/stats":
           return { data: { data: { total: 120, today: 20, balance: 880 } } };
         case "/invite/stats":

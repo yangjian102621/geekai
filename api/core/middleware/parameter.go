@@ -12,7 +12,7 @@ import (
 // 统一参数处理
 func ParameterHandlerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Library handlers bound their JSON bodies before reading them.
+		// 模型请求保留消息原文；资料库接口自行限制并解析请求体。
 		if strings.HasPrefix(c.Request.URL.Path, "/v1/") || strings.HasPrefix(c.Request.URL.Path, "/api/v1/library") || strings.HasPrefix(c.Request.URL.Path, "/api/admin/library") {
 			c.Next()
 			return
