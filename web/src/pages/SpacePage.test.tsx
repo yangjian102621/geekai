@@ -114,7 +114,16 @@ describe("Personal Space", () => {
   it("renders account details on the profile tab", () => {
     renderSpace("/space/profile");
     expect(screen.getByRole("heading", { level: 1, name: "space.profile" })).toBeTruthy();
-    expect(screen.getByText("alice@example.com")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "alice" })).toBeTruthy();
     expect(screen.getByText("space.username")).toBeTruthy();
+    expect(screen.getByText("space.mobile")).toBeTruthy();
+    expect(screen.getByText("space.balance")).toBeTruthy();
+    expect(screen.getByRole("img", { name: "alice" }).getAttribute("src")).toBe("/assets/logo.png");
+    expect(screen.queryByText("Alice")).toBeNull();
+    expect(screen.queryByText("alice@example.com")).toBeNull();
+    expect(screen.queryByText("ID: 7")).toBeNull();
+    for (const field of ["space.nickname", "space.email", "space.vip", "space.expired_at"]) {
+      expect(screen.queryByText(field)).toBeNull();
+    }
   });
 });
