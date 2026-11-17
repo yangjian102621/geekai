@@ -62,7 +62,7 @@ func expectModelAPIAuth(mock sqlmock.Sqlmock, key string, status bool, expiry in
 func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
 	h, mock := modelAPITestHandler(t)
 	h.RegisterRoutes()
-	for _, key := range []string{"", "raw-site-jwt", "Bearer upstream-key", "Bearer sk-thinkbuddy-short"} {
+	for _, key := range []string{"", "raw-site-jwt", "Bearer upstream-key", "Bearer sk-short", "Bearer sk-thinkbuddy-" + strings.Repeat("a", 43)} {
 		w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", key, "")
 		if w.Code != 401 || !strings.Contains(w.Body.String(), `"error"`) {
 			t.Fatalf("invalid credentials accepted: %d %s", w.Code, w.Body.String())
@@ -137,7 +137,7 @@ func TestModelTokenRotationAndRevocation(t *testing.T) {
 			Code int
 			Data struct{ Token string }
 		}
-		if json.Unmarshal(w.Body.Bytes(), &result) != nil || result.Code != 0 || len(result.Data.Token) != len(modelTokenPrefix)+43 || modelTokenHash(result.Data.Token) != digest.value {
+		if json.Unmarshal(w.Body.Bytes(), &result) != nil || result.Code != 0 || !strings.HasPrefix(result.Data.Token, "sk-") || len(result.Data.Token) != 46 || modelTokenHash(result.Data.Token) != digest.value {
 			t.Fatalf("token not generated or stored as hash: %s", w.Body.String())
 		}
 	}

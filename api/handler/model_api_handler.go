@@ -26,7 +26,7 @@ type ModelAPIHandler struct {
 	userService *service.UserService
 }
 
-const modelTokenPrefix = "sk-thinkbuddy-"
+const modelTokenPrefix = "sk-"
 
 func NewModelAPIHandler(app *core.AppServer, db *gorm.DB, users *service.UserService) *ModelAPIHandler {
 	return &ModelAPIHandler{BaseHandler: BaseHandler{App: app, DB: db}, userService: users}

@@ -8,7 +8,7 @@ import { ModelTokenPanel } from "./ModelTokenPanel";
 vi.mock("../../api/client", () => ({ api: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
-const secret = "sk-thinkbuddy-test-only";
+const secret = "sk-test-only";
 const copy = vi.fn().mockResolvedValue(undefined);
 
 beforeEach(() => {
