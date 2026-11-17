@@ -42,6 +42,7 @@ type UserHandler struct {
 	wxLoginService *service.WxLoginService
 	ipSearcher     *xdb.Searcher
 	wechatService  *service.WxGzhService
+	tokengineOAuth *service.TokengineOAuth
 }
 
 func NewUserHandler(
@@ -65,6 +66,7 @@ func NewUserHandler(
 		wxLoginService: wxLoginService,
 		wechatService:  wechatService,
 		ipSearcher:     ipSearcher,
+		tokengineOAuth: service.NewTokengineOAuth(app.Config.TokengineOAuth),
 	}
 }
 
@@ -76,6 +78,10 @@ func (h *UserHandler) RegisterRoutes() {
 	group.POST("register", h.Register)
 	group.POST("login", h.Login)
 	group.POST("login/mobile", h.MobileLogin)
+	group.GET("login/tokengine/config", h.TokengineConfig)
+	group.GET("login/tokengine/start", h.TokengineStart)
+	group.GET("login/tokengine/callback", h.TokengineCallback)
+	group.POST("login/tokengine/complete", h.TokengineComplete)
 	group.POST("resetPass", h.ResetPass)
 	group.GET("login/qrcode", h.GetWxLoginQRCode)
 	group.POST("login/callback", h.WxLoginCallback)
@@ -354,7 +360,7 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 		if user.Nickname == "" {
 			user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 		}
-		if user.Username == "" || (user.Password == "" && user.Mobile == "") {
+		if user.Username == "" || (user.Password == "" && user.Mobile == "" && (user.TokengineID == nil || *user.TokengineID == "")) {
 			return user, fmt.Errorf("用户名和手机号不能为空")
 		}
 	}

@@ -14,3 +14,9 @@ TikaHost = "http://tika:9998"
   Port = 6379
   Password = ""
   DB = 0
+
+[TokengineOAuth]
+  Enabled = false
+  BaseURL = "https://tokengine.hanyoai.com"
+  ClientID = "geekai-web"
+  RedirectURL = "http://localhost:8888/api/user/login/tokengine/callback"

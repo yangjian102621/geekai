@@ -1,15 +1,28 @@
 <template>
   <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
-      <custom-tabs v-model="loginActiveName">
+      <div class="primary-login-methods" role="group" aria-label="主要登录方式">
+        <button
+          type="button"
+          :class="{ active: loginActiveName === 'mobile' }"
+          :aria-pressed="loginActiveName === 'mobile'"
+          @click="loginActiveName = 'mobile'"
+        >
+          手机号登录
+        </button>
+        <button
+          type="button"
+          :class="{ active: loginActiveName === 'tokengine' }"
+          :aria-pressed="loginActiveName === 'tokengine'"
+          @click="loginActiveName = 'tokengine'"
+        >
+          Token 平台登录
+        </button>
+      </div>
+
+      <div>
         <!-- 账号密码登录 -->
-        <custom-tab-pane name="account" width="32">
-          <template #label>
-            <div class="flex items-center justify-center">
-              <i class="iconfont icon-user-fill mr-2 max-[400px]:hidden"></i>
-              <span>账号登录</span>
-            </div>
-          </template>
+        <div v-if="loginActiveName === 'account'">
           <el-form :model="data" class="form space-y-5">
             <div class="block">
               <el-input placeholder="账号" size="large" v-model="data.username" autocomplete="off">
@@ -76,15 +89,9 @@
               </div>
             </div>
           </el-form>
-        </custom-tab-pane>
+        </div>
 
-        <custom-tab-pane name="mobile" width="32">
-          <template #label>
-            <div class="flex items-center justify-center">
-              <el-icon class="mr-2 max-[400px]:!hidden"><Iphone /></el-icon>
-              <span>手机号登录</span>
-            </div>
-          </template>
+        <div v-if="loginActiveName === 'mobile'">
           <el-form
             :model="mobileLoginData"
             class="form space-y-5"
@@ -139,16 +146,10 @@
               {{ loading ? '登录中...' : '登录 / 注册' }}
             </button>
           </el-form>
-        </custom-tab-pane>
+        </div>
 
         <!-- 微信登录 -->
-        <custom-tab-pane name="wechat" width="32">
-          <template #label>
-            <div class="flex items-center justify-center">
-              <i class="iconfont icon-wechat mr-2 max-[400px]:hidden"></i>
-              <span>微信登录</span>
-            </div>
-          </template>
+        <div v-if="loginActiveName === 'wechat'">
           <div class="wechat-login pt-3">
             <div class="qr-code-container">
               <div class="qr-code-wrapper w-[200px] h-[200px] mx-auto" v-loading="qrcodeLoading">
@@ -178,8 +179,46 @@
               </p>
             </div>
           </div>
-        </custom-tab-pane>
-      </custom-tabs>
+        </div>
+
+        <div v-if="loginActiveName === 'tokengine'" class="py-4 text-center">
+          <el-icon class="!text-4xl mb-4" style="color: var(--login-link-color)"><Key /></el-icon>
+          <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 Token 平台账号登录</p>
+          <button
+            type="button"
+            class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="!tokengineEnabled"
+            @click="startTokengineLogin"
+          >
+            Token 平台登录
+          </button>
+          <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">Token 平台登录暂未开放</p>
+        </div>
+      </div>
+
+      <div class="other-login-divider"><span>其他登录方式</span></div>
+      <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
+        <button
+          type="button"
+          aria-label="账号登录"
+          :aria-pressed="loginActiveName === 'account'"
+          :class="{ active: loginActiveName === 'account' }"
+          @click="loginActiveName = 'account'"
+        >
+          <span class="secondary-login-icon"><el-icon><User /></el-icon></span>
+          <span>账号登录</span>
+        </button>
+        <button
+          type="button"
+          aria-label="微信登录"
+          :aria-pressed="loginActiveName === 'wechat'"
+          :class="{ active: loginActiveName === 'wechat' }"
+          @click="loginActiveName = 'wechat'"
+        >
+          <span class="secondary-login-icon text-green-600"><i class="iconfont icon-wechat" aria-hidden="true"></i></span>
+          <span>微信登录</span>
+        </button>
+      </div>
     </div>
 
     <div class="register-box w-full" v-else>
@@ -365,14 +404,13 @@
 import Captcha from '@/components/Captcha.vue'
 import ResetPass from '@/components/ResetPass.vue'
 import SendMsg from '@/components/SendMsg.vue'
-import CustomTabPane from '@/components/ui/CustomTabPane.vue'
-import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { getSystemInfo } from '@/store/cache'
 import { setUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
+import { safeRedirect } from '@/utils/redirect'
 import { validateMobile } from '@/utils/validate'
-import { Checked, Iphone, Lock, Message, User } from '@element-plus/icons-vue'
+import { Checked, Iphone, Key, Lock, Message, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
@@ -391,24 +429,11 @@ const props = defineProps({
     default: '',
   },
 })
-const showDialog = ref(false)
-watch(
-  () => props.show,
-  (newValue) => {
-    showDialog.value = newValue
-  }
-)
-
 const login = ref(props.active === 'login')
-const loginActiveName = ref('account') // 新增：登录标签页激活状态
+const loginActiveName = ref('mobile')
 const data = ref({
   username: import.meta.env.VITE_USER,
   password: import.meta.env.VITE_PASS,
-  mobile: '',
-  email: '',
-  repass: '',
-  code: '',
-  invite_code: props.inviteCode,
 })
 const registerData = ref({
   username: '',
@@ -420,6 +445,15 @@ const registerData = ref({
 })
 const mobileLoginData = ref({ mobile: '', code: '' })
 const mobileAgreeChecked = ref(false)
+const tokengineEnabled = ref(false)
+
+const startTokengineLogin = () => {
+  const query = new URLSearchParams({
+    invite_code: props.inviteCode,
+    redirect: safeRedirect(new URLSearchParams(window.location.search).get('redirect')),
+  })
+  window.location.assign('/api/user/login/tokengine/start?' + query)
+}
 
 // 微信登录相关变量
 const wechatLoginQRCode = ref('')
@@ -447,6 +481,19 @@ const showPrivacy = ref(false)
 const agreementHtml = ref('')
 const privacyHtml = ref('')
 
+const handleLoginSuccess = (res) => {
+  setUserToken(res.data.token)
+  store.setIsLogin(true)
+  ElMessage.success('登录成功！')
+  emits('hide')
+  emits('success')
+}
+
+const clearWechatTimers = () => {
+  clearInterval(pollingTimer.value)
+  clearTimeout(qrcodeTimer.value)
+}
+
 watch(
   () => login.value,
   (newValue) => {
@@ -455,21 +502,19 @@ watch(
 )
 
 onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search)
+  httpGet('/api/user/login/tokengine/config')
+    .then((res) => { tokengineEnabled.value = res.data?.enabled === true })
+    .catch(() => { tokengineEnabled.value = false })
+
   // 如果是微信浏览器，则尝试获取微信公众号授权登录
-  if (isWechat()) {
+  if (isWechat() && !urlParams.has('tokengine')) {
     // 检查 URL 中是否包含 code 参数
-    const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get('code')
     if (code) {
       // 可以在这里将 code 发送到后端进行登录验证
       httpPost('/api/user/wxAuthLogin', { code: code })
-        .then((res) => {
-          setUserToken(res.data.token)
-          store.setIsLogin(true)
-          ElMessage.success('登录成功！')
-          emits('hide')
-          emits('success')
-        })
+        .then(handleLoginSuccess)
         .catch((e) => {
           ElMessage.error('登录失败，' + e.message)
         })
@@ -521,13 +566,7 @@ watch(loginActiveName, (newValue) => {
   if (newValue === 'wechat') {
     getWxLoginURL()
   } else {
-    // 其他登录方式，清除定时器
-    if (pollingTimer.value) {
-      clearInterval(pollingTimer.value)
-    }
-    if (qrcodeTimer.value) {
-      clearTimeout(qrcodeTimer.value)
-    }
+    clearWechatTimers()
   }
 })
 
@@ -547,10 +586,7 @@ const getWxLoginURL = () => {
   qrcodeLoading.value = true
   qrcodeExpired.value = false
 
-  // 清除可能存在的旧定时器
-  if (qrcodeTimer.value) {
-    clearTimeout(qrcodeTimer.value)
-  }
+  clearWechatTimers()
 
   httpGet('/api/user/login/qrcode')
     .then((res) => {
@@ -569,10 +605,7 @@ const getWxLoginURL = () => {
       // 设置1分钟后二维码过期
       qrcodeTimer.value = setTimeout(() => {
         qrcodeExpired.value = true
-        // 停止轮询
-        if (pollingTimer.value) {
-          clearInterval(pollingTimer.value)
-        }
+        clearWechatTimers()
       }, 60 * 1000) // 1分钟过期
     })
     .catch((e) => {
@@ -585,14 +618,8 @@ const getWxLoginURL = () => {
 
 // 开始轮询
 const startPolling = () => {
-  // 清除可能存在的旧定时器
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-  }
-
-  pollingTimer.value = setInterval(() => {
-    checkLoginStatus()
-  }, 1000) // 每1秒检查一次
+  clearInterval(pollingTimer.value)
+  pollingTimer.value = setInterval(checkLoginStatus, 1000)
 }
 
 // 检查登录状态
@@ -602,42 +629,29 @@ const checkLoginStatus = () => {
   httpGet(`/api/user/login/status?state=${wechatLoginState.value}`)
     .then((res) => {
       const status = res.data.status
+      if (status === 'pending') return
+      clearWechatTimers()
 
       switch (status) {
         case 'success':
           // 登录成功
-          clearInterval(pollingTimer.value)
-          clearTimeout(qrcodeTimer.value)
-          setUserToken(res.data.token)
-          store.setIsLogin(true)
-          ElMessage.success('登录成功！')
-          emits('hide')
-          emits('success')
+          handleLoginSuccess(res)
           break
 
         case 'expired':
           // 二维码过期
-          clearInterval(pollingTimer.value)
-          clearTimeout(qrcodeTimer.value)
           qrcodeExpired.value = true
-          break
-
-        case 'pending':
-          // 继续轮询
           break
 
         default:
           // 其他错误情况
-          clearInterval(pollingTimer.value)
-          clearTimeout(qrcodeTimer.value)
           ElMessage.error('登录失败，请重试')
           break
       }
     })
-    .catch((e) => {
+    .catch(() => {
       // 发生错误时显示过期状态
-      clearInterval(pollingTimer.value)
-      clearTimeout(qrcodeTimer.value)
+      clearWechatTimers()
       qrcodeExpired.value = true
     })
 }
@@ -690,13 +704,7 @@ const doLogin = (verifyData, mobileLogin = false) => {
     dots: verifyData.dots,
     x: verifyData.x,
   })
-    .then((res) => {
-      setUserToken(res.data.token)
-      store.setIsLogin(true)
-      ElMessage.success('登录成功！')
-      emits('hide')
-      emits('success')
-    })
+    .then(handleLoginSuccess)
     .catch((e) => {
       ElMessage.error('登录失败，' + e.message)
     })
@@ -797,19 +805,19 @@ const openPrivacy = () => {
 }
 
 // 组件卸载时清除定时器
-onUnmounted(() => {
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-  }
-  if (qrcodeTimer.value) {
-    clearTimeout(qrcodeTimer.value)
-  }
-})
+onUnmounted(clearWechatTimers)
 </script>
 
 <style lang="scss">
 .login-dialog {
   border-radius: 10px;
+
+  .primary-login-methods button:focus-visible,
+  .secondary-login-methods button:focus-visible {
+    outline: 2px solid var(--login-link-color);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
 
   // 微信登录样式
   .wechat-login {
@@ -868,28 +876,80 @@ onUnmounted(() => {
     }
   }
 
-  // CustomTabs 组件样式优化
-  :deep(.custom-tabs-header) {
-    background: var(--el-fill-color-light);
-    border-radius: 8px;
-    margin-bottom: 20px;
-  }
+  .primary-login-methods {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--login-card-border);
 
-  :deep(.custom-tab-item) {
-    font-weight: 500;
-    transition: all 0.3s ease;
+    button {
+      flex: 1;
+      padding: 0 0 12px;
+      border-bottom: 2px solid transparent;
+      color: var(--login-text-color);
+      font-size: 16px;
+      font-weight: 500;
 
-    &:hover {
-      background: var(--el-fill-color);
+      &.active {
+        color: var(--login-link-color);
+        border-bottom-color: currentColor;
+      }
     }
   }
 
-  :deep(.custom-tab-active) {
-    background: var(--el-color-primary);
-    color: white !important;
+  .other-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 28px 0 20px;
+    color: var(--login-text-color);
+    font-size: 13px;
 
-    &:hover {
-      background: var(--el-color-primary);
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--login-card-border);
+    }
+  }
+
+  .secondary-login-methods {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+
+    button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--login-text-color);
+      font-size: 12px;
+
+      &:hover,
+      &.active {
+        color: var(--login-link-color);
+
+        .secondary-login-icon {
+          border-color: var(--login-link-color);
+        }
+      }
+    }
+  }
+
+  .secondary-login-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--login-card-border);
+    border-radius: 50%;
+    font-size: 22px;
+
+    .iconfont {
+      font-size: 24px;
     }
   }
 

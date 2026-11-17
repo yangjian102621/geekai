@@ -36,7 +36,6 @@
             :inviteCode="inviteCode"
             @success="handleRegisterSuccess"
             @changeActive="handleChangeActive"
-            ref="loginDialogRef"
           />
         </div>
       </div>
@@ -52,16 +51,16 @@ import LoginDialog from '@/components/LoginDialog.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { setUserToken } from '@/store/session'
+import { useSharedStore } from '@/store/sharedata'
+import { httpPost } from '@/utils/http'
+import { ElMessage } from 'element-plus'
 import { safeRedirect } from '@/utils/redirect'
 
 const router = useRouter()
-const loginDialogRef = ref(null)
-const inviteCode = ref(
-  router.currentRoute.value.query.invite_code || router.currentRoute.value.query.invite || ''
-)
-const token = ref(router.currentRoute.value.query.token || '')
+const store = useSharedStore()
+const inviteCode = router.currentRoute.value.query.invite_code || router.currentRoute.value.query.invite || ''
 const isRegister = ref(router.currentRoute.value.path === '/register')
-const active = ref(isRegister.value ? 'register' : 'login')
+const active = isRegister.value ? 'register' : 'login'
 const title = computed(() => (isRegister.value ? '用户注册' : '用户登录'))
 const subtitle = computed(() =>
   isRegister.value ? '创建您的账户以开始使用服务' : '登录您的账户以继续使用服务'
@@ -76,17 +75,31 @@ const handleChangeActive = (newValue) => {
   isRegister.value = !newValue
 }
 
-onMounted(() => {
-  // 确保默认显示注册状态
-  if (loginDialogRef.value) {
-    loginDialogRef.value.login = !isRegister.value
+onMounted(async () => {
+  const { tokengine, message, token, ...query } = router.currentRoute.value.query
+  if (!tokengine) {
+    if (token) {
+      setUserToken(token)
+      handleRegisterSuccess()
+    }
+    return
   }
 
-  if (token.value) {
-    setUserToken(token.value)
+  await router.replace({ path: '/login', query })
+  if (tokengine !== 'success') {
+    ElMessage.error(typeof message === 'string' ? message : 'Token 平台登录失败，请重试')
+    return
+  }
+
+  try {
+    const res = await httpPost('/api/user/login/tokengine/complete')
+    setUserToken(res.data.token)
+    store.setIsLogin(true)
+    ElMessage.success('登录成功！')
     handleRegisterSuccess()
+  } catch (error) {
+    ElMessage.error(error.message || 'Token 平台登录失败，请重试')
   }
-
 })
 </script>
 
