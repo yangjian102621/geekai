@@ -40,6 +40,7 @@ func (h *ModelAPIHandler) RegisterRoutes() {
 
 	api := h.App.Engine.Group("/v1", h.authenticate)
 	api.GET("/models", h.Models)
+	api.POST("/chat/completions", h.ChatCompletions)
 }
 
 func modelAPIError(c *gin.Context, status int, code, message string) {
