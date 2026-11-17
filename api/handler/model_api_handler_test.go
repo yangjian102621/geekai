@@ -52,7 +52,7 @@ func modelAPIRequest(engine *gin.Engine, method, path, token, body string) *http
 }
 
 func expectModelAPIAuth(mock sqlmock.Sqlmock, key string, status bool, expiry int64) {
-	mock.ExpectQuery("SELECT .*geekai_model_tokens.*token_hash").WithArgs(modelTokenHash(key)).
+	mock.ExpectQuery("SELECT .*thinkbuddy_model_tokens.*token_hash").WithArgs(modelTokenHash(key)).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id", "token_hash"}).AddRow(7, modelTokenHash(key)))
 	mock.ExpectQuery("SELECT .*geekai_users").WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "status", "expired_time", "chat_models_json", "power"}).
@@ -62,14 +62,14 @@ func expectModelAPIAuth(mock sqlmock.Sqlmock, key string, status bool, expiry in
 func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
 	h, mock := modelAPITestHandler(t)
 	h.RegisterRoutes()
-	for _, key := range []string{"", "raw-site-jwt", "Bearer upstream-key", "Bearer sk-geekai-short"} {
+	for _, key := range []string{"", "raw-site-jwt", "Bearer upstream-key", "Bearer sk-thinkbuddy-short"} {
 		w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", key, "")
 		if w.Code != 401 || !strings.Contains(w.Body.String(), `"error"`) {
 			t.Fatalf("invalid credentials accepted: %d %s", w.Code, w.Body.String())
 		}
 	}
-	key := "sk-geekai-" + strings.Repeat("a", 43)
-	mock.ExpectQuery("SELECT .*geekai_model_tokens.*token_hash").WithArgs(modelTokenHash(key)).
+	key := modelTokenPrefix + strings.Repeat("a", 43)
+	mock.ExpectQuery("SELECT .*thinkbuddy_model_tokens.*token_hash").WithArgs(modelTokenHash(key)).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id"}))
 	if w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", "Bearer "+key, ""); w.Code != 401 {
 		t.Fatalf("revoked token accepted: %d", w.Code)
@@ -96,7 +96,7 @@ func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
 			OwnedBy string `json:"owned_by"`
 		}
 	}
-	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &catalog) != nil || catalog.Object != "list" || len(catalog.Data) != 1 || catalog.Data[0].ID != "test-model" || catalog.Data[0].OwnedBy != "geekai" {
+	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &catalog) != nil || catalog.Object != "list" || len(catalog.Data) != 1 || catalog.Data[0].ID != "test-model" || catalog.Data[0].OwnedBy != "thinkbuddy" {
 		t.Fatalf("bad standard catalog: %d %s", w.Code, w.Body.String())
 	}
 	if strings.Contains(w.Body.String(), "key_id") || w.Header().Get("Cache-Control") != "no-store" {
@@ -129,7 +129,7 @@ func TestModelTokenRotationAndRevocation(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		digest := &tokenHashArgument{}
 		mock.ExpectBegin()
-		mock.ExpectExec("INSERT INTO `geekai_model_tokens`.*ON DUPLICATE KEY UPDATE").
+		mock.ExpectExec("INSERT INTO `thinkbuddy_model_tokens`.*ON DUPLICATE KEY UPDATE").
 			WithArgs(7, digest, sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectCommit()
 		w := modelAPIRequest(h.App.Engine, "POST", "/test-token", "", `{"user_id":999}`)
@@ -137,17 +137,17 @@ func TestModelTokenRotationAndRevocation(t *testing.T) {
 			Code int
 			Data struct{ Token string }
 		}
-		if json.Unmarshal(w.Body.Bytes(), &result) != nil || result.Code != 0 || len(result.Data.Token) != 53 || modelTokenHash(result.Data.Token) != digest.value {
+		if json.Unmarshal(w.Body.Bytes(), &result) != nil || result.Code != 0 || len(result.Data.Token) != len(modelTokenPrefix)+43 || modelTokenHash(result.Data.Token) != digest.value {
 			t.Fatalf("token not generated or stored as hash: %s", w.Body.String())
 		}
 	}
-	mock.ExpectQuery("SELECT .*geekai_model_tokens.*user_id").WithArgs(7).
+	mock.ExpectQuery("SELECT .*thinkbuddy_model_tokens.*user_id").WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id", "token_hash", "created_at"}).AddRow(7, "private-hash", time.Now()))
 	if w := modelAPIRequest(h.App.Engine, "GET", "/test-token", "", ""); !strings.Contains(w.Body.String(), `"enabled":true`) || strings.Contains(w.Body.String(), "private-hash") {
 		t.Fatalf("unsafe token status: %s", w.Body.String())
 	}
 	mock.ExpectBegin()
-	mock.ExpectExec("DELETE FROM `geekai_model_tokens` WHERE user_id = \\?").WithArgs(7).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec("DELETE FROM `thinkbuddy_model_tokens` WHERE user_id = \\?").WithArgs(7).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectCommit()
 	if w := modelAPIRequest(h.App.Engine, "DELETE", "/test-token", "", ""); !strings.Contains(w.Body.String(), `"code":0`) {
 		t.Fatalf("revoke failed: %s", w.Body.String())

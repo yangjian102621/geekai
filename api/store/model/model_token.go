@@ -9,4 +9,4 @@ type ModelToken struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (ModelToken) TableName() string { return "geekai_model_tokens" }
+func (ModelToken) TableName() string { return "thinkbuddy_model_tokens" }

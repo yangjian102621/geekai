@@ -26,6 +26,8 @@ type ModelAPIHandler struct {
 	userService *service.UserService
 }
 
+const modelTokenPrefix = "sk-thinkbuddy-"
+
 func NewModelAPIHandler(app *core.AppServer, db *gorm.DB, users *service.UserService) *ModelAPIHandler {
 	return &ModelAPIHandler{BaseHandler: BaseHandler{App: app, DB: db}, userService: users}
 }
@@ -87,7 +89,7 @@ func (h *ModelAPIHandler) RotateToken(c *gin.Context) {
 		resp.ERROR(c, "生成模型令牌失败")
 		return
 	}
-	token := "sk-geekai-" + base64.RawURLEncoding.EncodeToString(random[:])
+	token := modelTokenPrefix + base64.RawURLEncoding.EncodeToString(random[:])
 	item := model.ModelToken{UserId: user.Id, TokenHash: modelTokenHash(token), CreatedAt: time.Now()}
 	err := h.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "user_id"}},
@@ -115,8 +117,8 @@ func (h *ModelAPIHandler) RevokeToken(c *gin.Context) {
 func (h *ModelAPIHandler) authenticate(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 	parts := strings.Fields(c.GetHeader("Authorization"))
-	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || !strings.HasPrefix(parts[1], "sk-geekai-") || len(parts[1]) != 53 {
-		modelAPIError(c, http.StatusUnauthorized, "invalid_api_key", "请使用 GeekAI 模型令牌进行 Bearer 认证")
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || !strings.HasPrefix(parts[1], modelTokenPrefix) || len(parts[1]) != len(modelTokenPrefix)+43 {
+		modelAPIError(c, http.StatusUnauthorized, "invalid_api_key", "请使用 ThinkBuddy 模型令牌进行 Bearer 认证")
 		return
 	}
 	var token model.ModelToken
@@ -162,7 +164,7 @@ func (h *ModelAPIHandler) Models(c *gin.Context) {
 			continue
 		}
 		seen[item.Value] = true
-		data = append(data, gin.H{"id": item.Value, "object": "model", "created": item.CreatedAt.Unix(), "owned_by": "geekai"})
+		data = append(data, gin.H{"id": item.Value, "object": "model", "created": item.CreatedAt.Unix(), "owned_by": "thinkbuddy"})
 	}
 	c.JSON(http.StatusOK, gin.H{"object": "list", "data": data})
 }
