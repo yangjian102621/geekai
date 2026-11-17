@@ -1,32 +1,21 @@
 <template>
-  <div
-    class="min-h-screen flex items-center justify-center p-5 relative overflow-auto"
-    style="background: var(--login-bg)"
-  >
-    <a
-      href="/"
-      class="fixed top-5 left-5 z-50 flex items-center justify-center w-11 h-11 border border-transparent rounded-xl text-white no-underline shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
-      style="background: var(--btnColor)"
-      title="返回首页"
-    >
-      <i class="iconfont icon-home text-xl"></i>
-    </a>
-    <div class="w-full max-w-md mx-auto">
-      <div
-        class="rounded-3xl p-10 shadow-2xl backdrop-blur-sm relative overflow-hidden"
-        style="background: var(--login-card-bg); border: 1px solid var(--login-card-border)"
-      >
-        <div class="absolute top-0 left-0 right-0 h-1" style="background: var(--btnColor)"></div>
-        <div class="text-center mb-8">
-          <h1
-            class="text-3xl font-semibold m-0 mb-2 tracking-tight"
-            style="color: var(--login-title-color)"
-          >
-            {{ title }}
-          </h1>
-          <p class="text-base m-0 leading-relaxed" style="color: var(--login-subtitle-color)">
-            {{ subtitle }}
-          </p>
+  <div class="login-page">
+    <header class="login-header">
+      <a href="/" class="login-brand" aria-label="ThinkBuddy 首页">
+        <img :src="'/assets/logo.png'" width="32" height="32" alt="" />
+        <span>ThinkBuddy</span>
+      </a>
+    </header>
+
+    <main class="login-main">
+      <section class="login-card" aria-labelledby="login-title">
+        <a href="/" class="login-back">
+          <el-icon><ArrowLeft /></el-icon>
+          <span>返回首页</span>
+        </a>
+        <div class="login-intro">
+          <h1 id="login-title" class="login-title">{{ title }}</h1>
+          <p v-if="isRegister">{{ subtitle }}</p>
         </div>
 
         <div class="register-content">
@@ -38,16 +27,18 @@
             @changeActive="handleChangeActive"
           />
         </div>
-      </div>
+      </section>
+    </main>
 
-      <footer-bar />
-    </div>
+    <footer class="login-footer">
+      © {{ currentYear }} ThinkBuddy. Powered by ThinkBuddy (hanyoai).
+    </footer>
   </div>
 </template>
 
 <script setup>
-import FooterBar from '@/components/FooterBar.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { setUserToken } from '@/store/session'
@@ -58,6 +49,7 @@ import { safeRedirect } from '@/utils/redirect'
 
 const router = useRouter()
 const store = useSharedStore()
+const currentYear = new Date().getFullYear()
 const inviteCode = router.currentRoute.value.query.invite_code || router.currentRoute.value.query.invite || ''
 const isRegister = ref(router.currentRoute.value.path === '/register')
 const active = isRegister.value ? 'register' : 'login'
@@ -104,56 +96,160 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .min-h-screen {
-    padding: 1rem;
-  }
-
-  .fixed.top-5.left-5 {
-    top: 1rem;
-    left: 1rem;
-    width: 2.5rem;
-    height: 2.5rem;
-  }
-
-  .fixed.top-5.left-5 .iconfont {
-    font-size: 1.125rem;
-  }
-
-  .max-w-md {
-    margin-top: 3.75rem;
-  }
-
-  .p-10 {
-    padding: 2rem 1.5rem;
-  }
-
-  .rounded-3xl {
-    border-radius: 1rem;
-  }
-
-  .text-3xl {
-    font-size: 1.5rem;
-  }
-
-  .text-base {
-    font-size: 0.875rem;
-  }
+.login-page,
+:global(.login-policy-dialog),
+:global(.reset-pass-dialog) {
+  --el-color-primary: var(--login-link-color);
+  --el-color-primary-light-3: var(--login-link-color);
+  --el-color-primary-light-9: var(--login-link-hover-bg);
+  --el-color-primary-dark-2: var(--login-primary-hover);
+  --el-text-color-primary: var(--login-title-color);
+  --el-text-color-regular: var(--login-text-color);
+  --el-text-color-secondary: var(--login-subtitle-color);
+  --el-text-color-placeholder: var(--login-placeholder-color);
+  --el-border-color: var(--login-card-border);
+  --el-border-color-light: var(--login-card-border);
+  --el-fill-color-blank: var(--login-input-bg);
+  --el-fill-color-light: var(--login-soft-bg);
+  --el-bg-color: var(--login-card-bg);
+  --el-bg-color-overlay: var(--login-card-bg);
+  --el-box-shadow: 0 1px 3px rgba(20, 20, 19, 0.07);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto,
+    'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+  color: var(--login-title-color);
 }
 
-/* 小屏幕手机适配 */
+.login-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--login-bg);
+}
+
+.login-header {
+  width: 100%;
+  max-width: 1280px;
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.login-brand,
+.login-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.login-brand {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+:global(:root[data-theme='dark'] .login-brand img) {
+  filter: invert(1);
+}
+
+.login-back {
+  margin-bottom: 12px;
+  color: var(--login-text-color);
+  font-size: 13px;
+}
+
+.login-back:hover {
+  color: var(--login-link-color);
+}
+
+.login-brand:focus-visible,
+.login-back:focus-visible {
+  outline: 2px solid var(--login-link-color);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.login-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 448px;
+  margin-bottom: 32px;
+  padding: 36px 40px;
+  border: 1px solid var(--login-card-border);
+  border-radius: 12px;
+  background: var(--login-card-bg);
+}
+
+.login-intro {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.login-page .login-title {
+  margin: 0 0 12px;
+  font-family: Georgia, 'Times New Roman', 'Noto Serif SC', 'Source Han Serif SC',
+    'Songti SC', 'STSong', 'SimSun', serif;
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.login-page .login-intro p {
+  margin: 0;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--login-subtitle-color);
+}
+
+.login-footer {
+  padding: 16px 16px 24px;
+  color: var(--login-subtitle-color);
+  font-size: 12px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+:global(.login-policy-dialog),
+:global(.reset-pass-dialog) {
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--login-card-border);
+  border-radius: 12px;
+}
+
+:global(.login-policy-dialog) {
+  width: 640px;
+}
+
 @media (max-width: 480px) {
-  .p-10 {
-    padding: 1.5rem 1.25rem;
+  .login-header {
+    padding: 0 20px;
   }
 
-  .text-3xl {
-    font-size: 1.25rem;
+  .login-main {
+    padding: 20px 16px;
   }
 
-  .text-base {
-    font-size: 0.875rem;
+  .login-card {
+    padding: 28px 24px;
   }
+
+  .login-page .login-title {
+    font-size: 32px;
+  }
+
 }
 </style>

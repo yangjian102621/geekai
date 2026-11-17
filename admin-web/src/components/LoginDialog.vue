@@ -54,7 +54,7 @@
             <el-row class="btn-row mt-8" :gutter="20">
               <el-col :span="24">
                 <button
-                  class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
+                  class="login-submit"
                   @click="submitLogin"
                   type="button"
                 >
@@ -134,12 +134,12 @@
             </div>
             <div class="text-sm leading-6" style="color: var(--login-text-color)">
               <el-checkbox v-model="mobileAgreeChecked">我已阅读并同意</el-checkbox>
-              <a href="javascript:void(0)" class="text-blue-500 whitespace-nowrap" @click="openAgreement">《用户协议》</a>
+              <a href="javascript:void(0)" class="login-link whitespace-nowrap" @click="openAgreement">《用户协议》</a>
               和
-              <a href="javascript:void(0)" class="text-blue-500 whitespace-nowrap" @click="openPrivacy">《隐私政策》</a>
+              <a href="javascript:void(0)" class="login-link whitespace-nowrap" @click="openPrivacy">《隐私政策》</a>
             </div>
             <button
-              class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md disabled:opacity-60"
+              class="login-submit"
               :disabled="loading"
               type="submit"
             >
@@ -186,7 +186,7 @@
           <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 Token 平台账号登录</p>
           <button
             type="button"
-            class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+            class="login-submit"
             :disabled="!tokengineEnabled"
             @click="startTokengineLogin"
           >
@@ -258,7 +258,7 @@
           <div class="flex gap-2.5">
             <el-input
               class="flex-1 min-w-0"
-              placeholder="短信验证码（必填）"
+              placeholder="短信验证码"
               aria-label="短信验证码"
               size="large"
               maxlength="6"
@@ -333,17 +333,17 @@
         <div class="block text-sm">
           <el-checkbox v-model="agreeChecked">
             我已阅读并同意
-            <a href="javascript:void(0)" class="text-blue-500" @click="openAgreement"
+            <a href="javascript:void(0)" class="login-link" @click="openAgreement"
               >《用户协议》</a
             >
             和
-            <a href="javascript:void(0)" class="text-blue-500" @click="openPrivacy">《隐私政策》</a>
+            <a href="javascript:void(0)" class="login-link" @click="openPrivacy">《隐私政策》</a>
           </el-checkbox>
         </div>
 
         <div class="w-full">
           <button
-            class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
+            class="login-submit"
             @click="submitRegister"
             type="button"
           >
@@ -390,11 +390,11 @@
 
     <reset-pass @hide="showResetPass = false" :show="showResetPass" />
 
-    <el-dialog v-model="showAgreement" title="用户协议" :append-to-body="true">
+    <el-dialog v-model="showAgreement" title="用户协议" class="login-policy-dialog" :append-to-body="true">
       <div class="prose" v-html="agreementHtml"></div>
     </el-dialog>
 
-    <el-dialog v-model="showPrivacy" title="隐私政策" :append-to-body="true">
+    <el-dialog v-model="showPrivacy" title="隐私政策" class="login-policy-dialog" :append-to-body="true">
       <div class="prose" v-html="privacyHtml"></div>
     </el-dialog>
   </div>
@@ -809,9 +809,80 @@ onUnmounted(clearWechatTimers)
 </script>
 
 <style lang="scss">
-.login-dialog {
-  border-radius: 10px;
+.login-dialog .send-btn,
+.reset-pass-dialog .send-btn {
+  --el-button-bg-color: var(--login-soft-bg);
+  --el-button-border-color: var(--login-card-border);
+  --el-button-text-color: var(--login-link-color);
+  --el-button-hover-bg-color: var(--login-link-hover-bg);
+  --el-button-hover-border-color: var(--login-link-color);
+  --el-button-hover-text-color: var(--login-link-color);
+  --el-button-active-bg-color: var(--login-link-hover-bg);
+  --el-button-active-border-color: var(--login-link-color);
+  --el-button-active-text-color: var(--login-link-color);
+  --el-button-disabled-bg-color: var(--login-soft-bg);
+  --el-button-disabled-border-color: var(--login-card-border);
+  --el-button-disabled-text-color: var(--login-subtitle-color);
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
 
+.reset-pass-dialog .send-btn {
+  height: 32px;
+}
+
+.login-dialog {
+  .login-submit {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--login-primary-color);
+    border-radius: 8px;
+    background: var(--login-primary-color);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    transition: background-color 160ms ease, border-color 160ms ease;
+
+    &:hover:not(:disabled) {
+      background: var(--login-primary-hover);
+      border-color: var(--login-primary-hover);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  .login-link {
+    color: var(--login-link-color);
+    white-space: nowrap;
+
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  .el-checkbox {
+    height: auto;
+    align-items: flex-start;
+    white-space: normal;
+
+    .el-checkbox__input {
+      margin-top: 4px;
+    }
+
+    .el-checkbox__label {
+      white-space: normal;
+      line-height: 1.7;
+    }
+  }
+
+  .login-submit:focus-visible,
+  .login-link:focus-visible,
   .primary-login-methods button:focus-visible,
   .secondary-login-methods button:focus-visible {
     outline: 2px solid var(--login-link-color);
@@ -953,31 +1024,38 @@ onUnmounted(clearWechatTimers)
     }
   }
 
-  :deep(.el-input) {
+  .el-input {
     .el-input__wrapper {
-      background: var(--el-fill-color-blank);
-      border-color: var(--el-border-color);
+      min-height: 44px;
+      border-radius: 8px;
+      background: var(--login-input-bg);
+      box-shadow: 0 0 0 1px var(--login-card-border) inset;
+      transition: box-shadow 160ms ease;
+
+      &:hover {
+        box-shadow: 0 0 0 1px var(--login-placeholder-color) inset;
+      }
 
       &.is-focus {
-        border-color: var(--el-color-primary);
+        box-shadow: 0 0 0 1px var(--login-link-color) inset;
       }
     }
 
     .el-input__inner {
-      color: var(--el-text-color-primary);
+      color: var(--login-title-color);
 
       &::placeholder {
-        color: var(--el-text-color-placeholder);
+        color: var(--login-placeholder-color);
       }
     }
 
     .el-input__prefix,
     .el-input__suffix {
-      color: var(--el-text-color-regular);
+      color: var(--login-subtitle-color);
     }
   }
 
-  :deep(.el-button) {
+  .el-button {
     &.el-button--info {
       color: var(--el-text-color-regular);
       background: transparent;
