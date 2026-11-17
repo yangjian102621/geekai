@@ -145,6 +145,8 @@ func main() {
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
+		fx.Provide(handler.NewModelAPIHandler),
+		fx.Invoke(func(h *handler.ModelAPIHandler) { h.RegisterRoutes() }),
 		fx.Provide(handler.NewPaymentHandler),
 		fx.Provide(handler.NewOrderHandler),
 		fx.Provide(handler.NewProductHandler),
