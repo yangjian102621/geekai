@@ -9,6 +9,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"geekai/core"
 	"geekai/core/middleware"
@@ -19,6 +20,7 @@ import (
 	"geekai/store/vo"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"regexp"
 	"strings"
 	"time"
 
@@ -40,6 +42,7 @@ type UserHandler struct {
 	wxLoginService *service.WxLoginService
 	ipSearcher     *xdb.Searcher
 	wechatService  *service.WxGzhService
+	tokengineOAuth *service.TokengineOAuth
 }
 
 func NewUserHandler(
@@ -63,6 +66,7 @@ func NewUserHandler(
 		wxLoginService: wxLoginService,
 		wechatService:  wechatService,
 		ipSearcher:     ipSearcher,
+		tokengineOAuth: service.NewTokengineOAuth(app.Config.TokengineOAuth),
 	}
 }
 
@@ -73,6 +77,11 @@ func (h *UserHandler) RegisterRoutes() {
 	// 公开接口，不需要授权
 	group.POST("register", h.Register)
 	group.POST("login", h.Login)
+	group.POST("login/mobile", h.MobileLogin)
+	group.GET("login/tokengine/config", h.TokengineConfig)
+	group.GET("login/tokengine/start", h.TokengineStart)
+	group.GET("login/tokengine/callback", h.TokengineCallback)
+	group.POST("login/tokengine/complete", h.TokengineComplete)
 	group.POST("resetPass", h.ResetPass)
 	group.GET("login/qrcode", h.GetWxLoginQRCode)
 	group.POST("login/callback", h.WxLoginCallback)
@@ -93,14 +102,15 @@ func (h *UserHandler) RegisterRoutes() {
 	}
 }
 
-// Register user register
+var registrationMobilePattern = regexp.MustCompile(`^1[3-9]\d{9}$`)
+var registrationCodePattern = regexp.MustCompile(`^\d{6}$`)
+
+// Register 使用自定义用户名和已验证的手机号注册，密码可选。
 func (h *UserHandler) Register(c *gin.Context) {
 	// parameters process
 	var data struct {
-		RegWay     string `json:"reg_way"`
 		Username   string `json:"username"`
 		Mobile     string `json:"mobile"`
-		Email      string `json:"email"`
 		Password   string `json:"password"`
 		Code       string `json:"code"`
 		InviteCode string `json:"invite_code"`
@@ -110,6 +120,34 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	if !h.App.SysConfig.Base.EnabledRegister {
+		resp.ERROR(c, "注册功能已关闭")
+		return
+	}
+	if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "username") && !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") {
+		resp.ERROR(c, "系统已禁用手机号验证注册")
+		return
+	}
+	data.Username = strings.TrimSpace(data.Username)
+	data.Mobile = strings.TrimSpace(data.Mobile)
+	data.Code = strings.TrimSpace(data.Code)
+	data.Password = strings.TrimSpace(data.Password)
+	if data.Username == "" || len([]rune(data.Username)) > 30 {
+		resp.ERROR(c, "请输入不超过30个字符的用户名")
+		return
+	}
+	if !registrationMobilePattern.MatchString(data.Mobile) {
+		resp.ERROR(c, "请输入合法的手机号")
+		return
+	}
+	if !registrationCodePattern.MatchString(data.Code) {
+		resp.ERROR(c, "请输入6位短信验证码")
+		return
+	}
+	if data.Password != "" && (len([]rune(data.Password)) < 8 || len([]rune(data.Password)) > 16) {
+		resp.ERROR(c, "密码长度应为8-16个字符")
 		return
 	}
 
@@ -127,52 +165,35 @@ func (h *UserHandler) Register(c *gin.Context) {
 		}
 	}
 
-	data.Password = strings.TrimSpace(data.Password)
-	if len(data.Password) < 8 {
-		resp.ERROR(c, "密码长度不能少于8个字符")
+	// 按手机号串行处理注册，避免并发请求重复绑定同一手机号。
+	unlock, err := h.lockMobile(c, data.Mobile)
+	if err != nil {
+		resp.ERROR(c, "注册请求正在处理中，请稍后重试")
 		return
 	}
+	defer unlock()
 
-	// 检查验证码
-	var key string
-	if data.RegWay == "email" {
-		key = CodeStorePrefix + data.Email
-		code, err := h.redis.Get(c, key).Result()
-		if err != nil || code != data.Code {
-			resp.ERROR(c, "验证码错误")
-			return
-		}
-	} else if data.RegWay == "mobile" {
-		key = CodeStorePrefix + data.Mobile
-		code, err := h.redis.Get(c, key).Result()
-		if err != nil || code != data.Code {
-			resp.ERROR(c, "验证码错误")
-			return
-		}
-	}
-
-	// check if the username is existing
-	user := model.User{Username: data.Username, Password: data.Password}
 	var item model.User
-	session := h.DB.Session(&gorm.Session{})
-	if data.Mobile != "" {
-		session = session.Where("mobile = ?", data.Mobile)
-		user.Username = data.Mobile
-		user.Mobile = data.Mobile
-	} else if data.Email != "" {
-		session = session.Where("email = ?", data.Email)
-		user.Username = data.Email
-		user.Email = data.Email
-	} else if data.Username != "" {
-		session = session.Where("username = ?", data.Username)
+	err = h.DB.Where("username = ? OR mobile = ?", data.Username, data.Mobile).First(&item).Error
+	if err == nil {
+		resp.ERROR(c, "用户名或手机号已被注册")
+		return
 	}
-	session.First(&item)
-	if item.Id > 0 {
-		resp.ERROR(c, "该用户名已经被注册")
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		resp.ERROR(c, "查询用户失败，请稍后重试")
 		return
 	}
 
-	user, err := h.createNewUser(user, data.InviteCode)
+	if !h.consumeSmsCode(c, data.Mobile, data.Code) {
+		resp.ERROR(c, "验证码错误或已过期，请重新获取")
+		return
+	}
+
+	user, err := h.createNewUser(model.User{
+		Username: data.Username,
+		Mobile:   data.Mobile,
+		Password: data.Password,
+	}, data.InviteCode)
 	if err != nil {
 		resp.ERROR(c, err.Error())
 		return
@@ -339,14 +360,17 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 		if user.Nickname == "" {
 			user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 		}
-		if user.Username == "" || user.Password == "" {
-			return user, fmt.Errorf("用户名或密码不能为空")
+		if user.Username == "" || (user.Password == "" && user.Mobile == "" && (user.TokengineID == nil || *user.TokengineID == "")) {
+			return user, fmt.Errorf("用户名和手机号不能为空")
 		}
 	}
 
 	salt := utils.RandString(8)
 	user.Salt = salt
-	user.Password = utils.GenPassword(user.Password, salt)
+	// 未设置密码时保留空值，避免空密码被哈希后用于密码登录。
+	if user.Password != "" {
+		user.Password = utils.GenPassword(user.Password, salt)
+	}
 	// 如果未设置头像，则使用默认头像
 	if user.Avatar == "" {
 		user.Avatar = "/images/avatar/user.png"
@@ -401,7 +425,9 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 		}
 	}
 
-	tx.Commit()
+	if err := tx.Commit().Error; err != nil {
+		return user, err
+	}
 
 	return user, nil
 }

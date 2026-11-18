@@ -8,13 +8,16 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
+	"crypto/rand"
 	"geekai/core"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/sms"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"math/big"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -55,12 +58,18 @@ func (h *SmsHandler) RegisterRoutes() {
 func (h *SmsHandler) SendCode(c *gin.Context) {
 	var data struct {
 		Receiver string `json:"receiver"` // 接收者
+		Purpose  string `json:"purpose"`
 		Key      string `json:"key"`
 		Dots     string `json:"dots,omitempty"`
 		X        int    `json:"x,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		resp.ERROR(c, types.InvalidArgs)
+		return
+	}
+	data.Receiver = strings.TrimSpace(data.Receiver)
+	if data.Purpose == "login" && !registrationMobilePattern.MatchString(data.Receiver) {
+		resp.ERROR(c, "请输入合法的手机号")
 		return
 	}
 	if h.captchaService.GetConfig().Enabled {
@@ -76,8 +85,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		}
 	}
 
-	code := utils.RandomNumber(6)
-	var err error
+	number, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		resp.ERROR(c, "验证码生成失败")
+		return
+	}
+	code := int(number.Int64()) + 100000
 	if strings.Contains(data.Receiver, "@") { // email
 		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "email") {
 			resp.ERROR(c, "系统已禁用邮箱注册！")
@@ -99,8 +112,12 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		}
 		err = h.smtp.SendVerifyCode(data.Receiver, code)
 	} else {
-		if !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") {
+		if data.Purpose != "login" && !utils.Contains(h.App.SysConfig.Base.RegisterWays, "mobile") && !utils.Contains(h.App.SysConfig.Base.RegisterWays, "username") {
 			resp.ERROR(c, "系统已禁用手机号注册！")
+			return
+		}
+		if h.sms.GetService() == nil {
+			resp.ERROR(c, "短信服务未配置")
 			return
 		}
 		err = h.sms.GetService().SendVerifyCode(data.Receiver, code)
@@ -111,12 +128,13 @@ func (h *SmsHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	// 存储验证码，等待后面注册验证
-	_, err = h.redis.Set(c, CodeStorePrefix+data.Receiver, code, 0).Result()
+	// 存储验证码，供登录、注册等流程验证。
+	_, err = h.redis.Set(c, CodeStorePrefix+data.Receiver, code, 5*time.Minute).Result()
 	if err != nil {
 		resp.ERROR(c, "验证码保存失败")
 		return
 	}
+	h.redis.Del(c, CodeStorePrefix+data.Receiver+"/attempts")
 
 	resp.SUCCESS(c)
 }

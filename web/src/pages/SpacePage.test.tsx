@@ -42,6 +42,8 @@ describe("Personal Space", () => {
     vi.mocked(useAuth).mockReturnValue({ data: user, isLoading: false, isError: false } as ReturnType<typeof useAuth>);
     vi.mocked(api.get).mockImplementation(async (path) => {
       switch (path) {
+        case "/user/model-token":
+          return { data: { code: 0, data: { enabled: false } } };
         case "/powerLog/stats":
           return { data: { data: { total: 120, today: 20, balance: 880 } } };
         case "/invite/stats":
@@ -114,7 +116,16 @@ describe("Personal Space", () => {
   it("renders account details on the profile tab", () => {
     renderSpace("/space/profile");
     expect(screen.getByRole("heading", { level: 1, name: "space.profile" })).toBeTruthy();
-    expect(screen.getByText("alice@example.com")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "alice" })).toBeTruthy();
     expect(screen.getByText("space.username")).toBeTruthy();
+    expect(screen.getByText("space.mobile")).toBeTruthy();
+    expect(screen.getByText("space.balance")).toBeTruthy();
+    expect(screen.getByRole("img", { name: "alice" }).getAttribute("src")).toBe("/assets/logo.png");
+    expect(screen.queryByText("Alice")).toBeNull();
+    expect(screen.queryByText("alice@example.com")).toBeNull();
+    expect(screen.queryByText("ID: 7")).toBeNull();
+    for (const field of ["space.nickname", "space.email", "space.vip", "space.expired_at"]) {
+      expect(screen.queryByText(field)).toBeNull();
+    }
   });
 });

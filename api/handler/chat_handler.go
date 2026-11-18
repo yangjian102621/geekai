@@ -8,7 +8,6 @@ package handler
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -26,7 +25,6 @@ import (
 	"geekai/utils/resp"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -519,54 +517,11 @@ func (h *ChatHandler) StopGenerate(c *gin.Context) {
 // 发送请求到 OpenAI 服务器
 // useOwnApiKey: 是否使用了用户自己的 API KEY
 func (h *ChatHandler) doRequest(ctx context.Context, req types.ApiRequest, input ChatInput, apiKey *model.ApiKey) (*http.Response, error) {
-	// if the chat model bind a KEY, use it directly
-	if input.ChatModel.KeyId > 0 {
-		h.DB.Where("id", input.ChatModel.KeyId).Where("enabled", true).Find(apiKey)
-	} else { // use the last unused key
-		h.DB.Where("type", "chat").Where("enabled", true).Order("last_used_at ASC").First(apiKey)
-	}
-
-	if apiKey.Id == 0 {
-		return nil, errors.New("no available key, please import key")
-	}
-
-	logger.Debugf("对话请求消息体：%+v", req)
-	var apiURL string
-	p, _ := url.Parse(apiKey.ApiURL)
-	// 如果设置的是 BASE_URL 没有路径，则添加 /v1/chat/completions
-	if p.Path == "" {
-		apiURL = fmt.Sprintf("%s/v1/chat/completions", apiKey.ApiURL)
-	} else {
-		apiURL = apiKey.ApiURL
-	}
-	// 创建 HttpClient 请求对象
-	var client *http.Client
 	requestBody, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
-	request, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return nil, err
-	}
-
-	request = request.WithContext(ctx)
-	request.Header.Set("Content-Type", "application/json")
-	if len(apiKey.ProxyURL) > 5 { // 使用代理
-		proxy, _ := url.Parse(apiKey.ProxyURL)
-		client = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxy),
-			},
-		}
-	} else {
-		client = http.DefaultClient
-	}
-	logger.Infof("Sending %s request, API KEY:%s, PROXY: %s, Model: %s", apiKey.ApiURL, apiURL, apiKey.ProxyURL, req.Model)
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey.Value))
-	// 更新API KEY 最后使用时间
-	h.DB.Model(&model.ApiKey{}).Where("id", apiKey.Id).UpdateColumn("last_used_at", time.Now().Unix())
-	return client.Do(request)
+	return service.RequestChatCompletion(ctx, h.DB, input.ChatModel.KeyId, requestBody, apiKey)
 }
 
 // 扣减用户积分

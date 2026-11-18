@@ -62,3 +62,25 @@ export function formatTime(value: number | string | undefined, language: string)
 export function formatNumber(value: number | undefined, language: string): string {
   return (value ?? 0).toLocaleString(language);
 }
+
+export interface ModelTokenStatus {
+  enabled: boolean;
+  created_at?: string;
+}
+
+export async function fetchModelToken(): Promise<ModelTokenStatus> {
+  const { data } = await api.get<{ code: number; message?: string; data: ModelTokenStatus }>("/user/model-token");
+  if (data.code !== 0) throw new Error(data.message || "Failed to load model token");
+  return data.data;
+}
+
+export async function rotateModelToken(): Promise<{ token: string; created_at: string }> {
+  const { data } = await api.post<{ code: number; message?: string; data: { token: string; created_at: string } }>("/user/model-token");
+  if (data.code !== 0) throw new Error(data.message || "Failed to create model token");
+  return data.data;
+}
+
+export async function revokeModelToken(): Promise<void> {
+  const { data } = await api.delete<{ code: number; message?: string }>("/user/model-token");
+  if (data.code !== 0) throw new Error(data.message || "Failed to revoke model token");
+}

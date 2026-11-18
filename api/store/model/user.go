@@ -23,6 +23,7 @@ type User struct {
 	LastLoginIp string    `gorm:"column:last_login_ip;type:char(32);not null;comment:最后登录 IP" json:"last_login_ip"`
 	OpenId      string    `gorm:"column:openid;type:varchar(100);comment:第三方登录账号ID" json:"openid"`
 	Platform    string    `gorm:"column:platform;type:varchar(30);comment:登录平台" json:"platform"`
+	TokengineID *string   `gorm:"column:tokengine_id;type:char(64);uniqueIndex;comment:Tokengine身份摘要" json:"-"`
 	GemIds      string    `gorm:"column:gem_ids_json;type:text;default:null;comment:用户固定的智能体ID列表(JSON数组)" json:"gem_ids"`
 	CreatedAt   time.Time `gorm:"column:created_at;type:datetime;not null" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;type:datetime;not null" json:"updated_at"`

@@ -1,4 +1,24 @@
 {
+  "model_api": {
+    "title": "Model API",
+    "description": "Connect ThinkBuddy Desktop or another compatible client to call models using your credits here.",
+    "base_url": "Base URL",
+    "protocol": "API format",
+    "token": "Model API key",
+    "enabled": "Your model API key is enabled",
+    "disabled": "No model API key yet",
+    "create": "Create key",
+    "reset": "Reset key",
+    "revoke": "Revoke key",
+    "processing": "Processing…",
+    "copy": "Copy",
+    "copied": "Copied",
+    "save_once": "The key is shown only after creation. Save it now. Each account has one key; resetting it immediately invalidates the previous key.",
+    "confirm_reset": "Resetting immediately invalidates the previous key. Connected clients will need the new key. Continue?",
+    "confirm_revoke": "Clients using this key will no longer be able to call models. Revoke it?",
+    "action_error": "The operation failed. Please try again.",
+    "copy_error": "Copy failed. Select the key and copy it manually."
+  },
   "space": {
     "title": "Personal Space",
     "subtitle": "View your credits and account details",

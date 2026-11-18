@@ -1,6 +1,6 @@
 <template>
   <el-container class="send-verify-code">
-    <el-button type="success" :size="props.size" :disabled="!canSend" @click="sendMsg">
+    <el-button class="send-btn" type="success" :size="props.size" :disabled="!canSend" @click="sendMsg">
       {{ btnText }}
     </el-button>
 
@@ -20,6 +20,7 @@ import { ref } from 'vue'
 const props = defineProps({
   receiver: String,
   size: String,
+  purpose: String,
   type: {
     type: String,
     default: 'mobile',
@@ -59,6 +60,7 @@ const doSendMsg = (data) => {
   canSend.value = false
   httpPost('/api/sms/code', {
     receiver: props.receiver,
+    purpose: props.purpose,
     key: data.key,
     dots: data.dots,
     x: data.x,

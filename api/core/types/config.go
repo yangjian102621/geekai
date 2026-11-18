@@ -28,6 +28,14 @@ type AppConfig struct {
 	GeekPayConfig   EpayConfig   // GEEK 支付配置
 	WechatPayConfig WxPayConfig  // 微信支付渠道配置
 	TikaHost        string       // TiKa 服务器地址
+	TokengineOAuth  TokengineOAuthConfig
+}
+
+type TokengineOAuthConfig struct {
+	Enabled     bool
+	BaseURL     string
+	ClientID    string
+	RedirectURL string
 }
 
 type RedisConfig struct {

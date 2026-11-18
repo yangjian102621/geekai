@@ -1,15 +1,28 @@
 <template>
   <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
-      <custom-tabs v-model="loginActiveName" @tab-click="handleTabClick">
+      <div class="primary-login-methods" role="group" aria-label="主要登录方式">
+        <button
+          type="button"
+          :class="{ active: loginActiveName === 'mobile' }"
+          :aria-pressed="loginActiveName === 'mobile'"
+          @click="loginActiveName = 'mobile'"
+        >
+          手机号登录
+        </button>
+        <button
+          type="button"
+          :class="{ active: loginActiveName === 'tokengine' }"
+          :aria-pressed="loginActiveName === 'tokengine'"
+          @click="loginActiveName = 'tokengine'"
+        >
+          Token 平台登录
+        </button>
+      </div>
+
+      <div>
         <!-- 账号密码登录 -->
-        <custom-tab-pane name="account" width="48">
-          <template #label>
-            <div class="flex items-center justify-center px-3">
-              <i class="iconfont icon-user-fill mr-2"></i>
-              <span>账号登录</span>
-            </div>
-          </template>
+        <div v-if="loginActiveName === 'account'">
           <el-form :model="data" class="form space-y-5">
             <div class="block">
               <el-input placeholder="账号" size="large" v-model="data.username" autocomplete="off">
@@ -41,7 +54,7 @@
             <el-row class="btn-row mt-8" :gutter="20">
               <el-col :span="24">
                 <button
-                  class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
+                  class="login-submit"
                   @click="submitLogin"
                   type="button"
                 >
@@ -76,16 +89,67 @@
               </div>
             </div>
           </el-form>
-        </custom-tab-pane>
+        </div>
+
+        <div v-if="loginActiveName === 'mobile'">
+          <el-form
+            :model="mobileLoginData"
+            class="form space-y-5"
+            @submit.prevent="submitMobileLogin"
+          >
+            <el-input
+              v-model="mobileLoginData.mobile"
+              placeholder="请输入手机号"
+              aria-label="登录手机号"
+              size="large"
+              maxlength="11"
+              inputmode="tel"
+              autocomplete="tel"
+            >
+              <template #prefix>
+                <el-icon><Iphone /></el-icon>
+              </template>
+            </el-input>
+            <div class="flex gap-2.5">
+              <el-input
+                class="flex-1 min-w-0"
+                v-model="mobileLoginData.code"
+                placeholder="短信验证码"
+                aria-label="登录短信验证码"
+                size="large"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+              >
+                <template #prefix>
+                  <el-icon><Checked /></el-icon>
+                </template>
+              </el-input>
+              <send-msg
+                class="w-[120px] !flex-none"
+                size="large"
+                :receiver="mobileLoginData.mobile.trim()"
+                purpose="login"
+              />
+            </div>
+            <div class="text-sm leading-6" style="color: var(--login-text-color)">
+              <el-checkbox v-model="mobileAgreeChecked">我已阅读并同意</el-checkbox>
+              <a href="javascript:void(0)" class="login-link whitespace-nowrap" @click="openAgreement">《用户协议》</a>
+              和
+              <a href="javascript:void(0)" class="login-link whitespace-nowrap" @click="openPrivacy">《隐私政策》</a>
+            </div>
+            <button
+              class="login-submit"
+              :disabled="loading"
+              type="submit"
+            >
+              {{ loading ? '登录中...' : '登录 / 注册' }}
+            </button>
+          </el-form>
+        </div>
 
         <!-- 微信登录 -->
-        <custom-tab-pane name="wechat" width="48">
-          <template #label>
-            <div class="flex items-center justify-center px-3">
-              <i class="iconfont icon-wechat mr-2"></i>
-              <span>微信登录</span>
-            </div>
-          </template>
+        <div v-if="loginActiveName === 'wechat'">
           <div class="wechat-login pt-3">
             <div class="qr-code-container">
               <div class="qr-code-wrapper w-[200px] h-[200px] mx-auto" v-loading="qrcodeLoading">
@@ -115,111 +179,115 @@
               </p>
             </div>
           </div>
-        </custom-tab-pane>
-      </custom-tabs>
+        </div>
+
+        <div v-if="loginActiveName === 'tokengine'" class="py-4 text-center">
+          <el-icon class="!text-4xl mb-4" style="color: var(--login-link-color)"><Key /></el-icon>
+          <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 Token 平台账号登录</p>
+          <button
+            type="button"
+            class="login-submit"
+            :disabled="!tokengineEnabled"
+            @click="startTokengineLogin"
+          >
+            Token 平台登录
+          </button>
+          <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">Token 平台登录暂未开放</p>
+        </div>
+      </div>
+
+      <div class="other-login-divider"><span>其他登录方式</span></div>
+      <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
+        <button
+          type="button"
+          aria-label="账号登录"
+          :aria-pressed="loginActiveName === 'account'"
+          :class="{ active: loginActiveName === 'account' }"
+          @click="loginActiveName = 'account'"
+        >
+          <span class="secondary-login-icon"><el-icon><User /></el-icon></span>
+          <span>账号登录</span>
+        </button>
+        <button
+          type="button"
+          aria-label="微信登录"
+          :aria-pressed="loginActiveName === 'wechat'"
+          :class="{ active: loginActiveName === 'wechat' }"
+          @click="loginActiveName = 'wechat'"
+        >
+          <span class="secondary-login-icon text-green-600"><i class="iconfont icon-wechat" aria-hidden="true"></i></span>
+          <span>微信登录</span>
+        </button>
+      </div>
     </div>
 
     <div class="register-box w-full" v-else>
-      <el-form :model="data" class="form space-y-5" v-if="enableRegister">
-        <el-tabs v-model="activeName" class="demo-tabs dark:text-white">
-          <el-tab-pane label="手机注册" name="mobile" v-if="enableMobile">
-            <div class="block">
-              <el-input
-                placeholder="手机号码"
-                size="large"
-                v-model="data.mobile"
-                maxlength="11"
-                autocomplete="off"
-              >
-                <template #prefix>
-                  <el-icon>
-                    <Iphone />
-                  </el-icon>
-                </template>
-              </el-input>
-            </div>
-            <div class="block mt-4">
-              <el-row :gutter="10">
-                <el-col :span="12">
-                  <el-input
-                    placeholder="验证码"
-                    size="large"
-                    maxlength="30"
-                    v-model="data.code"
-                    autocomplete="off"
-                  >
-                    <template #prefix>
-                      <el-icon>
-                        <Checked />
-                      </el-icon>
-                    </template>
-                  </el-input>
-                </el-col>
-                <el-col :span="12">
-                  <send-msg size="large" :receiver="data.mobile" type="mobile" />
-                </el-col>
-              </el-row>
-            </div>
-          </el-tab-pane>
-          <el-tab-pane label="邮箱注册" name="email" v-if="enableEmail">
-            <div class="block">
-              <el-input placeholder="邮箱地址" size="large" v-model="data.email" autocomplete="off">
-                <template #prefix>
-                  <el-icon>
-                    <Message />
-                  </el-icon>
-                </template>
-              </el-input>
-            </div>
-            <div class="block mt-4">
-              <el-row :gutter="10">
-                <el-col :span="12">
-                  <el-input
-                    placeholder="验证码"
-                    size="large"
-                    maxlength="30"
-                    v-model="data.code"
-                    autocomplete="off"
-                  >
-                    <template #prefix>
-                      <el-icon>
-                        <Checked />
-                      </el-icon>
-                    </template>
-                  </el-input>
-                </el-col>
-                <el-col :span="12">
-                  <send-msg size="large" :receiver="data.email" type="email" />
-                </el-col>
-              </el-row>
-            </div>
-          </el-tab-pane>
-          <el-tab-pane label="用户名注册" name="username" v-if="enableUser">
-            <div class="block">
-              <el-input
-                placeholder="用户名"
-                size="large"
-                v-model="data.username"
-                autocomplete="off"
-              >
-                <template #prefix>
-                  <el-icon>
-                    <Iphone />
-                  </el-icon>
-                </template>
-              </el-input>
-            </div>
-          </el-tab-pane>
-        </el-tabs>
+      <el-form :model="registerData" class="form space-y-5" v-if="enableRegister">
+        <div class="block">
+          <el-input
+            placeholder="用户名（必填）"
+            aria-label="用户名"
+            size="large"
+            v-model="registerData.username"
+            maxlength="30"
+            autocomplete="username"
+          >
+            <template #prefix>
+              <el-icon><User /></el-icon>
+            </template>
+          </el-input>
+        </div>
 
         <div class="block">
           <el-input
-            placeholder="请输入密码(8-16位)"
+            placeholder="手机号（必填）"
+            aria-label="手机号"
+            size="large"
+            v-model="registerData.mobile"
+            maxlength="11"
+            inputmode="tel"
+            autocomplete="tel"
+          >
+            <template #prefix>
+              <el-icon><Iphone /></el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="block">
+          <div class="flex gap-2.5">
+            <el-input
+              class="flex-1 min-w-0"
+              placeholder="短信验证码"
+              aria-label="短信验证码"
+              size="large"
+              maxlength="6"
+              inputmode="numeric"
+              v-model="registerData.code"
+              autocomplete="one-time-code"
+            >
+              <template #prefix>
+                <el-icon><Checked /></el-icon>
+              </template>
+            </el-input>
+            <send-msg
+              class="w-[120px] !flex-none"
+              size="large"
+              :receiver="registerData.mobile.trim()"
+              type="mobile"
+            />
+          </div>
+        </div>
+
+        <div class="block">
+          <el-input
+            placeholder="密码（选填，8-16位）"
+            aria-label="密码（选填）"
             maxlength="16"
             size="large"
-            v-model="data.password"
+            v-model="registerData.password"
             show-password
-            autocomplete="off"
+            autocomplete="new-password"
           >
             <template #prefix>
               <el-icon>
@@ -229,14 +297,15 @@
           </el-input>
         </div>
 
-        <div class="block">
+        <div class="block" v-if="registerData.password">
           <el-input
-            placeholder="重复密码(8-16位)"
+            placeholder="请再次输入密码"
+            aria-label="确认密码"
             size="large"
             maxlength="16"
-            v-model="data.repass"
+            v-model="registerData.repass"
             show-password
-            autocomplete="off"
+            autocomplete="new-password"
           >
             <template #prefix>
               <el-icon>
@@ -250,7 +319,7 @@
           <el-input
             placeholder="邀请码(可选)"
             size="large"
-            v-model="data.invite_code"
+            v-model="registerData.invite_code"
             autocomplete="off"
           >
             <template #prefix>
@@ -264,17 +333,17 @@
         <div class="block text-sm">
           <el-checkbox v-model="agreeChecked">
             我已阅读并同意
-            <a href="javascript:void(0)" class="text-blue-500" @click="openAgreement"
+            <a href="javascript:void(0)" class="login-link" @click="openAgreement"
               >《用户协议》</a
             >
             和
-            <a href="javascript:void(0)" class="text-blue-500" @click="openPrivacy">《隐私政策》</a>
+            <a href="javascript:void(0)" class="login-link" @click="openPrivacy">《隐私政策》</a>
           </el-checkbox>
         </div>
 
         <div class="w-full">
           <button
-            class="w-full h-12 rounded-xl text-base font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 shadow-md"
+            class="login-submit"
             @click="submitRegister"
             type="button"
           >
@@ -321,11 +390,11 @@
 
     <reset-pass @hide="showResetPass = false" :show="showResetPass" />
 
-    <el-dialog v-model="showAgreement" title="用户协议" :append-to-body="true">
+    <el-dialog v-model="showAgreement" title="用户协议" class="login-policy-dialog" :append-to-body="true">
       <div class="prose" v-html="agreementHtml"></div>
     </el-dialog>
 
-    <el-dialog v-model="showPrivacy" title="隐私政策" :append-to-body="true">
+    <el-dialog v-model="showPrivacy" title="隐私政策" class="login-policy-dialog" :append-to-body="true">
       <div class="prose" v-html="privacyHtml"></div>
     </el-dialog>
   </div>
@@ -335,15 +404,13 @@
 import Captcha from '@/components/Captcha.vue'
 import ResetPass from '@/components/ResetPass.vue'
 import SendMsg from '@/components/SendMsg.vue'
-import CustomTabPane from '@/components/ui/CustomTabPane.vue'
-import CustomTabs from '@/components/ui/CustomTabs.vue'
 import { getSystemInfo } from '@/store/cache'
 import { setUserToken } from '@/store/session'
 import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
-import { arrayContains } from '@/utils/libs'
-import { validateEmail, validateMobile } from '@/utils/validate'
-import { Checked, Iphone, Lock, Message } from '@element-plus/icons-vue'
+import { safeRedirect } from '@/utils/redirect'
+import { validateMobile } from '@/utils/validate'
+import { Checked, Iphone, Key, Lock, Message, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
@@ -362,25 +429,31 @@ const props = defineProps({
     default: '',
   },
 })
-const showDialog = ref(false)
-watch(
-  () => props.show,
-  (newValue) => {
-    showDialog.value = newValue
-  }
-)
-
 const login = ref(props.active === 'login')
-const loginActiveName = ref('account') // 新增：登录标签页激活状态
+const loginActiveName = ref('mobile')
 const data = ref({
   username: import.meta.env.VITE_USER,
   password: import.meta.env.VITE_PASS,
+})
+const registerData = ref({
+  username: '',
   mobile: '',
-  email: '',
+  password: '',
   repass: '',
   code: '',
   invite_code: props.inviteCode,
 })
+const mobileLoginData = ref({ mobile: '', code: '' })
+const mobileAgreeChecked = ref(false)
+const tokengineEnabled = ref(false)
+
+const startTokengineLogin = () => {
+  const query = new URLSearchParams({
+    invite_code: props.inviteCode,
+    redirect: safeRedirect(new URLSearchParams(window.location.search).get('redirect')),
+  })
+  window.location.assign('/api/user/login/tokengine/start?' + query)
+}
 
 // 微信登录相关变量
 const wechatLoginQRCode = ref('')
@@ -390,12 +463,8 @@ const pollingTimer = ref(null)
 const qrcodeExpired = ref(false)
 const qrcodeTimer = ref(null)
 
-const enableMobile = ref(false)
-const enableEmail = ref(false)
-const enableUser = ref(false)
 const enableRegister = ref(true)
 
-const activeName = ref('')
 const wxImg = ref('/images/wx.png')
 const captchaRef = ref(null)
 // eslint-disable-next-line no-undef
@@ -412,6 +481,19 @@ const showPrivacy = ref(false)
 const agreementHtml = ref('')
 const privacyHtml = ref('')
 
+const handleLoginSuccess = (res) => {
+  setUserToken(res.data.token)
+  store.setIsLogin(true)
+  ElMessage.success('登录成功！')
+  emits('hide')
+  emits('success')
+}
+
+const clearWechatTimers = () => {
+  clearInterval(pollingTimer.value)
+  clearTimeout(qrcodeTimer.value)
+}
+
 watch(
   () => login.value,
   (newValue) => {
@@ -420,21 +502,19 @@ watch(
 )
 
 onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search)
+  httpGet('/api/user/login/tokengine/config')
+    .then((res) => { tokengineEnabled.value = res.data?.enabled === true })
+    .catch(() => { tokengineEnabled.value = false })
+
   // 如果是微信浏览器，则尝试获取微信公众号授权登录
-  if (isWechat()) {
+  if (isWechat() && !urlParams.has('tokengine')) {
     // 检查 URL 中是否包含 code 参数
-    const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get('code')
     if (code) {
       // 可以在这里将 code 发送到后端进行登录验证
       httpPost('/api/user/wxAuthLogin', { code: code })
-        .then((res) => {
-          setUserToken(res.data.token)
-          store.setIsLogin(true)
-          ElMessage.success('登录成功！')
-          emits('hide')
-          emits('success')
-        })
+        .then(handleLoginSuccess)
         .catch((e) => {
           ElMessage.error('登录失败，' + e.message)
         })
@@ -462,19 +542,6 @@ onMounted(() => {
   getSystemInfo()
     .then((res) => {
       if (res.data) {
-        const registerWays = res.data['register_ways']
-        if (arrayContains(registerWays, 'username')) {
-          enableUser.value = true
-          activeName.value = 'username'
-        }
-        if (arrayContains(registerWays, 'email')) {
-          enableEmail.value = true
-          activeName.value = 'email'
-        }
-        if (arrayContains(registerWays, 'mobile')) {
-          enableMobile.value = true
-          activeName.value = 'mobile'
-        }
         // 是否启用注册
         enableRegister.value = res.data['enabled_register']
         // 使用后台上传的客服微信二维码
@@ -499,36 +566,17 @@ watch(loginActiveName, (newValue) => {
   if (newValue === 'wechat') {
     getWxLoginURL()
   } else {
-    // 其他登录方式，清除定时器
-    if (pollingTimer.value) {
-      clearInterval(pollingTimer.value)
-    }
-    if (qrcodeTimer.value) {
-      clearTimeout(qrcodeTimer.value)
-    }
+    clearWechatTimers()
   }
 })
-
-const handleTabClick = (tab) => {
-  // CustomTabs组件传递的是tab对象，包含paneName属性
-  if (tab.paneName === 'wechat') {
-    getWxLoginURL()
-  } else {
-    // 其他登录方式，清除定时器
-    if (pollingTimer.value) {
-      clearInterval(pollingTimer.value)
-    }
-    if (qrcodeTimer.value) {
-      clearTimeout(qrcodeTimer.value)
-    }
-  }
-}
 
 const submit = (verifyData) => {
   if (action.value === 'login') {
     doLogin(verifyData)
   } else if (action.value === 'register') {
     doRegister(verifyData)
+  } else if (action.value === 'mobileLogin') {
+    doLogin(verifyData, true)
   }
 }
 
@@ -538,10 +586,7 @@ const getWxLoginURL = () => {
   qrcodeLoading.value = true
   qrcodeExpired.value = false
 
-  // 清除可能存在的旧定时器
-  if (qrcodeTimer.value) {
-    clearTimeout(qrcodeTimer.value)
-  }
+  clearWechatTimers()
 
   httpGet('/api/user/login/qrcode')
     .then((res) => {
@@ -560,10 +605,7 @@ const getWxLoginURL = () => {
       // 设置1分钟后二维码过期
       qrcodeTimer.value = setTimeout(() => {
         qrcodeExpired.value = true
-        // 停止轮询
-        if (pollingTimer.value) {
-          clearInterval(pollingTimer.value)
-        }
+        clearWechatTimers()
       }, 60 * 1000) // 1分钟过期
     })
     .catch((e) => {
@@ -576,14 +618,8 @@ const getWxLoginURL = () => {
 
 // 开始轮询
 const startPolling = () => {
-  // 清除可能存在的旧定时器
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-  }
-
-  pollingTimer.value = setInterval(() => {
-    checkLoginStatus()
-  }, 1000) // 每1秒检查一次
+  clearInterval(pollingTimer.value)
+  pollingTimer.value = setInterval(checkLoginStatus, 1000)
 }
 
 // 检查登录状态
@@ -593,42 +629,29 @@ const checkLoginStatus = () => {
   httpGet(`/api/user/login/status?state=${wechatLoginState.value}`)
     .then((res) => {
       const status = res.data.status
+      if (status === 'pending') return
+      clearWechatTimers()
 
       switch (status) {
         case 'success':
           // 登录成功
-          clearInterval(pollingTimer.value)
-          clearTimeout(qrcodeTimer.value)
-          setUserToken(res.data.token)
-          store.setIsLogin(true)
-          ElMessage.success('登录成功！')
-          emits('hide')
-          emits('success')
+          handleLoginSuccess(res)
           break
 
         case 'expired':
           // 二维码过期
-          clearInterval(pollingTimer.value)
-          clearTimeout(qrcodeTimer.value)
           qrcodeExpired.value = true
-          break
-
-        case 'pending':
-          // 继续轮询
           break
 
         default:
           // 其他错误情况
-          clearInterval(pollingTimer.value)
-          clearTimeout(qrcodeTimer.value)
           ElMessage.error('登录失败，请重试')
           break
       }
     })
-    .catch((e) => {
+    .catch(() => {
       // 发生错误时显示过期状态
-      clearInterval(pollingTimer.value)
-      clearTimeout(qrcodeTimer.value)
+      clearWechatTimers()
       qrcodeExpired.value = true
     })
 }
@@ -649,19 +672,39 @@ const submitLogin = () => {
   }
 }
 
-const doLogin = (verifyData) => {
-  data.value.key = verifyData.key
-  data.value.dots = verifyData.dots
-  data.value.x = verifyData.x
+const submitMobileLogin = () => {
+  if (loading.value) return
+  mobileLoginData.value.mobile = mobileLoginData.value.mobile.trim()
+  mobileLoginData.value.code = mobileLoginData.value.code.trim()
+  if (!validateMobile(mobileLoginData.value.mobile)) {
+    return ElMessage.error('请输入合法的手机号')
+  }
+  if (!/^\d{6}$/.test(mobileLoginData.value.code)) {
+    return ElMessage.error('请输入6位短信验证码')
+  }
+  if (!mobileAgreeChecked.value) {
+    return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
+  }
+  if (enableCaptcha.value) {
+    action.value = 'mobileLogin'
+    captchaRef.value.loadCaptcha()
+  } else {
+    doLogin({}, true)
+  }
+}
+
+const doLogin = (verifyData, mobileLogin = false) => {
+  const payload = mobileLogin
+    ? { ...mobileLoginData.value, invite_code: props.inviteCode }
+    : data.value
   loading.value = true
-  httpPost('/api/user/login', data.value)
-    .then((res) => {
-      setUserToken(res.data.token)
-      store.setIsLogin(true)
-      ElMessage.success('登录成功！')
-      emits('hide')
-      emits('success')
-    })
+  httpPost(mobileLogin ? '/api/user/login/mobile' : '/api/user/login', {
+    ...payload,
+    key: verifyData.key,
+    dots: verifyData.dots,
+    x: verifyData.x,
+  })
+    .then(handleLoginSuccess)
     .catch((e) => {
       ElMessage.error('登录失败，' + e.message)
     })
@@ -672,28 +715,28 @@ const doLogin = (verifyData) => {
 
 // 注册操作
 const submitRegister = () => {
-  if (activeName.value === 'username' && data.value.username === '') {
+  registerData.value.username = registerData.value.username.trim()
+  registerData.value.mobile = registerData.value.mobile.trim()
+  registerData.value.code = registerData.value.code.trim()
+  if (!registerData.value.username) {
     return ElMessage.error('请输入用户名')
   }
 
-  if (activeName.value === 'mobile' && !validateMobile(data.value.mobile)) {
+  if (!validateMobile(registerData.value.mobile)) {
     return ElMessage.error('请输入合法的手机号')
   }
 
-  if (activeName.value === 'email' && !validateEmail(data.value.email)) {
-    return ElMessage.error('请输入合法的邮箱地址')
+  if (!/^\d{6}$/.test(registerData.value.code)) {
+    return ElMessage.error('请输入6位短信验证码')
   }
 
-  if (data.value.password.length < 8) {
+  if (registerData.value.password && registerData.value.password.length < 8) {
     return ElMessage.error('密码的长度为8-16个字符')
   }
-  if (data.value.repass !== data.value.password) {
+  if (registerData.value.password && registerData.value.repass !== registerData.value.password) {
     return ElMessage.error('两次输入密码不一致')
   }
 
-  if ((activeName.value === 'mobile' || activeName.value === 'email') && data.value.code === '') {
-    return ElMessage.error('请输入验证码')
-  }
   if (!agreeChecked.value) {
     return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
   }
@@ -706,12 +749,14 @@ const submitRegister = () => {
 }
 
 const doRegister = (verifyData) => {
-  data.value.key = verifyData.key
-  data.value.dots = verifyData.dots
-  data.value.x = verifyData.x
-  data.value.reg_way = activeName.value
   loading.value = true
-  httpPost('/api/user/register', data.value)
+  httpPost('/api/user/register', {
+    ...registerData.value,
+    reg_way: 'mobile',
+    key: verifyData.key,
+    dots: verifyData.dots,
+    x: verifyData.x,
+  })
     .then((res) => {
       setUserToken(res.data.token)
       ElMessage.success({
@@ -760,19 +805,90 @@ const openPrivacy = () => {
 }
 
 // 组件卸载时清除定时器
-onUnmounted(() => {
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-  }
-  if (qrcodeTimer.value) {
-    clearTimeout(qrcodeTimer.value)
-  }
-})
+onUnmounted(clearWechatTimers)
 </script>
 
 <style lang="scss">
+.login-dialog .send-btn,
+.reset-pass-dialog .send-btn {
+  --el-button-bg-color: var(--login-soft-bg);
+  --el-button-border-color: var(--login-card-border);
+  --el-button-text-color: var(--login-link-color);
+  --el-button-hover-bg-color: var(--login-link-hover-bg);
+  --el-button-hover-border-color: var(--login-link-color);
+  --el-button-hover-text-color: var(--login-link-color);
+  --el-button-active-bg-color: var(--login-link-hover-bg);
+  --el-button-active-border-color: var(--login-link-color);
+  --el-button-active-text-color: var(--login-link-color);
+  --el-button-disabled-bg-color: var(--login-soft-bg);
+  --el-button-disabled-border-color: var(--login-card-border);
+  --el-button-disabled-text-color: var(--login-subtitle-color);
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.reset-pass-dialog .send-btn {
+  height: 32px;
+}
+
 .login-dialog {
-  border-radius: 10px;
+  .login-submit {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--login-primary-color);
+    border-radius: 8px;
+    background: var(--login-primary-color);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    transition: background-color 160ms ease, border-color 160ms ease;
+
+    &:hover:not(:disabled) {
+      background: var(--login-primary-hover);
+      border-color: var(--login-primary-hover);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  .login-link {
+    color: var(--login-link-color);
+    white-space: nowrap;
+
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  .el-checkbox {
+    height: auto;
+    align-items: flex-start;
+    white-space: normal;
+
+    .el-checkbox__input {
+      margin-top: 4px;
+    }
+
+    .el-checkbox__label {
+      white-space: normal;
+      line-height: 1.7;
+    }
+  }
+
+  .login-submit:focus-visible,
+  .login-link:focus-visible,
+  .primary-login-methods button:focus-visible,
+  .secondary-login-methods button:focus-visible {
+    outline: 2px solid var(--login-link-color);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
 
   // 微信登录样式
   .wechat-login {
@@ -831,56 +947,115 @@ onUnmounted(() => {
     }
   }
 
-  // CustomTabs 组件样式优化
-  :deep(.custom-tabs-header) {
-    background: var(--el-fill-color-light);
-    border-radius: 8px;
-    margin-bottom: 20px;
-  }
+  .primary-login-methods {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--login-card-border);
 
-  :deep(.custom-tab-item) {
-    font-weight: 500;
-    transition: all 0.3s ease;
+    button {
+      flex: 1;
+      padding: 0 0 12px;
+      border-bottom: 2px solid transparent;
+      color: var(--login-text-color);
+      font-size: 16px;
+      font-weight: 500;
 
-    &:hover {
-      background: var(--el-fill-color);
+      &.active {
+        color: var(--login-link-color);
+        border-bottom-color: currentColor;
+      }
     }
   }
 
-  :deep(.custom-tab-active) {
-    background: var(--el-color-primary);
-    color: white !important;
+  .other-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 28px 0 20px;
+    color: var(--login-text-color);
+    font-size: 13px;
 
-    &:hover {
-      background: var(--el-color-primary);
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--login-card-border);
     }
   }
 
-  :deep(.el-input) {
+  .secondary-login-methods {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+
+    button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--login-text-color);
+      font-size: 12px;
+
+      &:hover,
+      &.active {
+        color: var(--login-link-color);
+
+        .secondary-login-icon {
+          border-color: var(--login-link-color);
+        }
+      }
+    }
+  }
+
+  .secondary-login-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--login-card-border);
+    border-radius: 50%;
+    font-size: 22px;
+
+    .iconfont {
+      font-size: 24px;
+    }
+  }
+
+  .el-input {
     .el-input__wrapper {
-      background: var(--el-fill-color-blank);
-      border-color: var(--el-border-color);
+      min-height: 44px;
+      border-radius: 8px;
+      background: var(--login-input-bg);
+      box-shadow: 0 0 0 1px var(--login-card-border) inset;
+      transition: box-shadow 160ms ease;
+
+      &:hover {
+        box-shadow: 0 0 0 1px var(--login-placeholder-color) inset;
+      }
 
       &.is-focus {
-        border-color: var(--el-color-primary);
+        box-shadow: 0 0 0 1px var(--login-link-color) inset;
       }
     }
 
     .el-input__inner {
-      color: var(--el-text-color-primary);
+      color: var(--login-title-color);
 
       &::placeholder {
-        color: var(--el-text-color-placeholder);
+        color: var(--login-placeholder-color);
       }
     }
 
     .el-input__prefix,
     .el-input__suffix {
-      color: var(--el-text-color-regular);
+      color: var(--login-subtitle-color);
     }
   }
 
-  :deep(.el-button) {
+  .el-button {
     &.el-button--info {
       color: var(--el-text-color-regular);
       background: transparent;

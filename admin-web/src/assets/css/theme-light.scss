@@ -67,14 +67,19 @@
   --panel-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
 
   // 登录注册页面专用变量
-  --login-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
-  --login-card-bg: #fff;
-  --login-card-border: rgba(79, 89, 102, 0.122);
-  --login-title-color: #000;
-  --login-subtitle-color: #666;
-  --login-text-color: #666;
-  --login-link-color: #5b62ce;
-  --login-link-hover-bg: rgba(91, 98, 206, 0.1);
+  --login-bg: #faf9f5;
+  --login-card-bg: #faf9f5;
+  --login-card-border: #e3ddd1;
+  --login-title-color: #141413;
+  --login-subtitle-color: #6b6862;
+  --login-text-color: #3d3d3a;
+  --login-placeholder-color: #757168;
+  --login-input-bg: #faf9f5;
+  --login-soft-bg: #f5f2ea;
+  --login-primary-color: #8a5a2b;
+  --login-primary-hover: #75491f;
+  --login-link-color: #8a5a2b;
+  --login-link-hover-bg: #f6ecdd;
 
   // 管理后台 玻璃拟态（light）
   --admin-sidebar-bg: rgba(255, 255, 255, 0.85);

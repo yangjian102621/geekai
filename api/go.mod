@@ -41,6 +41,8 @@ require (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -61,6 +63,7 @@ require (
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
