@@ -1,6 +1,6 @@
 Listen = "0.0.0.0:5678"
 ProxyURL = "" # 如 http://127.0.0.1:7777
-MysqlDns = "root:password@tcp(127.0.0.1:3306)/geekai?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+MysqlDns = "root:password@tcp(127.0.0.1:3306)/geekai?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local&timeout=5s"
 StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 TikaHost = "http://tika:9998"

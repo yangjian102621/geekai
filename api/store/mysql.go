@@ -13,6 +13,8 @@ import (
 	"geekai/log"
 	"time"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	logger2 "gorm.io/gorm/logger"
@@ -32,9 +34,13 @@ func NewGormConfig() *gorm.Config {
 }
 
 func NewMysql(config *gorm.Config, appConfig *types.AppConfig) (*gorm.DB, error) {
-	db, err := gorm.Open(mysql.Open(appConfig.MysqlDns), config)
+	dns, err := withDialTimeout(appConfig.MysqlDns)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid MySQL DSN: %v", err)
+	}
+	db, err := gorm.Open(mysql.Open(dns), config)
+	if err != nil {
+		return nil, fmt.Errorf("MySQL 连接失败: %v", err)
 	}
 
 	sqlDB, err := db.DB()
@@ -89,4 +95,23 @@ func NewMysql(config *gorm.Config, appConfig *types.AppConfig) (*gorm.DB, error)
 		}
 	}
 	return db, nil
+}
+
+// withDialTimeout 为 DSN 填充连接和读写超时，避免数据库不可达时长时间卡住。
+// DSN 中已显式指定（如 timeout=5s）的参数优先，仅在未指定时填充默认值。
+func withDialTimeout(dsn string) (string, error) {
+	cfg, err := mysqldriver.ParseDSN(dsn)
+	if err != nil {
+		return "", err
+	}
+	if cfg.Timeout == 0 {
+		cfg.Timeout = 5 * time.Second
+	}
+	if cfg.ReadTimeout == 0 {
+		cfg.ReadTimeout = 30 * time.Second
+	}
+	if cfg.WriteTimeout == 0 {
+		cfg.WriteTimeout = 30 * time.Second
+	}
+	return cfg.FormatDSN(), nil
 }
