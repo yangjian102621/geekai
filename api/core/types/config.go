@@ -29,6 +29,8 @@ type AppConfig struct {
 	WechatPayConfig WxPayConfig  // 微信支付渠道配置
 	TikaHost        string       // TiKa 服务器地址
 	TokengineOAuth  TokengineOAuthConfig
+
+	ClientEventMaxBytes int64 // 客户端事件上报请求大小，未配置时为 256 KiB
 }
 
 type TokengineOAuthConfig struct {

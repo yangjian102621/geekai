@@ -61,6 +61,10 @@ func ParameterHandlerMiddleware() gin.HandlerFunc {
 
 // shouldSkipPath 判断路径是否属于"原文保留"清单。
 func shouldSkipPath(path string) bool {
+	// 客户端事件自行限制请求体大小，并保留事件属性中的原始 JSON。
+	if path == "/api/v1/events" {
+		return true
+	}
 	for _, prefix := range skipPathPrefixes {
 		if strings.HasPrefix(path, prefix) {
 			return true

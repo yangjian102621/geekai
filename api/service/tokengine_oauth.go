@@ -4,13 +4,14 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"geekai/core/types"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,6 +19,19 @@ import (
 )
 
 const TokengineCallbackPath = "/api/user/login/tokengine/callback"
+
+var ErrTokengineUnauthorized = errors.New("invalid Tokengine access token")
+var errTokengineRedirect = errors.New("OAuth endpoint redirected")
+
+// Keep credentials, response contents and request URLs out of error messages.
+type TokengineOAuthError struct {
+	Reason     string
+	StatusCode int
+	cause      error
+}
+
+func (e *TokengineOAuthError) Error() string { return "OAuth failed: " + e.Reason }
+func (e *TokengineOAuthError) Unwrap() error { return e.cause }
 
 type TokengineOAuth struct {
 	config types.TokengineOAuthConfig
@@ -37,7 +51,7 @@ func NewTokengineOAuth(config types.TokengineOAuthConfig) *TokengineOAuth {
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 			CheckRedirect: func(*http.Request, []*http.Request) error {
-				return errors.New("OAuth endpoint redirected")
+				return errTokengineRedirect
 			},
 		},
 	}
@@ -140,16 +154,37 @@ func (s *TokengineOAuth) Exchange(ctx context.Context, code, verifier string) (T
 	if token.AccessToken == "" || len(token.AccessToken) > 16384 || !strings.EqualFold(token.TokenType, "Bearer") {
 		return identity, errors.New("invalid OAuth token response")
 	}
-	req, err = http.NewRequestWithContext(ctx, http.MethodGet, s.config.BaseURL+"/oauth/userinfo", nil)
+	return s.UserInfo(ctx, token.AccessToken)
+}
+
+// UserInfo verifies desktop access tokens without creating users or rewards.
+func (s *TokengineOAuth) UserInfo(ctx context.Context, accessToken string) (TokengineIdentity, error) {
+	var identity TokengineIdentity
+	if strings.TrimSpace(accessToken) == "" || len(accessToken) > 16384 {
+		return identity, &TokengineOAuthError{Reason: "invalid_token", cause: ErrTokengineUnauthorized}
+	}
+	base, err := oauthConfigURL(s.config.BaseURL)
+	if !s.config.Enabled || err != nil || base.Path != "" {
+		return identity, &TokengineOAuthError{Reason: "identity_not_configured"}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.config.BaseURL+"/oauth/userinfo", nil)
 	if err != nil {
+		return identity, &TokengineOAuthError{Reason: "invalid_identity_request", cause: err}
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	var payload struct {
+		TokengineIdentity
+		Data *TokengineIdentity `json:"data"`
+	}
+	if err = s.readJSON(req, &payload); err != nil {
 		return identity, err
 	}
-	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
-	if err = s.readJSON(req, &identity); err != nil {
-		return identity, err
+	identity = payload.TokengineIdentity
+	if identity.Subject == "" && payload.Data != nil {
+		identity = *payload.Data
 	}
 	if strings.TrimSpace(identity.Subject) == "" || len(identity.Subject) > 256 {
-		return identity, errors.New("invalid OAuth identity")
+		return identity, &TokengineOAuthError{Reason: "invalid_identity"}
 	}
 	return identity, nil
 }
@@ -157,19 +192,53 @@ func (s *TokengineOAuth) Exchange(ctx context.Context, code, verifier string) (T
 func (s *TokengineOAuth) readJSON(req *http.Request, target interface{}) error {
 	response, err := s.client.Do(req)
 	if err != nil {
-		return errors.New("OAuth request failed")
+		return &TokengineOAuthError{Reason: tokengineNetworkFailureReason(err), cause: err}
 	}
 	defer response.Body.Close()
+	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
+		return &TokengineOAuthError{Reason: "invalid_token", StatusCode: response.StatusCode, cause: ErrTokengineUnauthorized}
+	}
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("OAuth endpoint returned status %d", response.StatusCode)
+		return &TokengineOAuthError{Reason: "upstream_http_error", StatusCode: response.StatusCode}
 	}
 	const limit = 1 << 20
 	body, err := io.ReadAll(io.LimitReader(response.Body, limit+1))
-	if err != nil || len(body) > limit {
-		return errors.New("invalid OAuth response size")
+	if err != nil {
+		reason := tokengineNetworkFailureReason(err)
+		if reason == "request_failed" {
+			reason = "response_read_failed"
+		}
+		return &TokengineOAuthError{Reason: reason, StatusCode: response.StatusCode, cause: err}
+	}
+	if len(body) > limit {
+		return &TokengineOAuthError{Reason: "response_too_large", StatusCode: response.StatusCode}
 	}
 	if err := json.Unmarshal(body, target); err != nil {
-		return errors.New("invalid OAuth JSON response")
+		return &TokengineOAuthError{Reason: "invalid_response_json", StatusCode: response.StatusCode, cause: err}
 	}
 	return nil
+}
+
+func tokengineNetworkFailureReason(err error) string {
+	var timeout net.Error
+	var dns *net.DNSError
+	var connection *net.OpError
+	var certificate *tls.CertificateVerificationError
+	var tlsHeader tls.RecordHeaderError
+	switch {
+	case errors.Is(err, errTokengineRedirect):
+		return "redirect_rejected"
+	case errors.Is(err, context.Canceled):
+		return "request_canceled"
+	case errors.Is(err, context.DeadlineExceeded), errors.As(err, &timeout) && timeout.Timeout():
+		return "timeout"
+	case errors.As(err, &dns):
+		return "dns_failed"
+	case errors.As(err, &certificate), errors.As(err, &tlsHeader):
+		return "tls_failed"
+	case errors.As(err, &connection):
+		return "connection_failed"
+	default:
+		return "request_failed"
+	}
 }

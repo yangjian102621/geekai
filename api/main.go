@@ -66,7 +66,7 @@ func NewAppLifeCycle() *AppLifecycle {
 	return &AppLifecycle{}
 }
 
-// Handlers 汇总全部 52 个路由注册器。
+// Handlers 汇总全部路由注册器。
 //
 // 为什么要显式列出而不是靠 fx 的 group / As：
 //  1. fx.As 会替换构造函数的返回类型，*handler.PaymentHandler 这类"既要注册路由、又要单独
@@ -77,7 +77,7 @@ func NewAppLifeCycle() *AppLifecycle {
 type Handlers struct {
 	fx.In
 
-	// 用户侧（30 个）
+	// 用户侧
 	ChatApp     *handler.ChatAppHandler
 	User        *handler.UserHandler
 	Chat        *handler.ChatHandler
@@ -108,6 +108,7 @@ type Handlers struct {
 	Prompt      *handler.PromptHandler
 	Realtime    *handler.RealtimeHandler
 	Library     *handler.LibraryHandler
+	ClientEvent *handler.ClientEventHandler
 
 	// 管理后台（22 个）
 	AdminConfig      *admin.ConfigHandler
@@ -136,7 +137,7 @@ type Handlers struct {
 
 // wantRegistrars 是"必须被注册的路由注册器总数"，同时等价于 Handlers 的字段数。
 // 任何"加了字段忘了加切片"或"加了 handler 忘了加字段"都会在启动期炸掉，而不是静默不生效。
-const wantRegistrars = 52
+const wantRegistrars = 53
 
 // registerRoutes 是 main.go 里唯一的路由注册点。
 // 新增 handler 必须同时在 Handlers 结构体里加字段、在下面的切片里加一项。
@@ -147,7 +148,7 @@ func registerRoutes(r *core.Router, hs Handlers) {
 		hs.Captcha, hs.Mj, hs.ChatModel, hs.ModelAPI, hs.Payment, hs.Order,
 		hs.Product, hs.Config, hs.PowerLog, hs.Jimeng, hs.WxGzh, hs.Invite,
 		hs.Function, hs.Menu, hs.MarkMap, hs.ImageJob, hs.Suno, hs.Video,
-		hs.ChatAppType, hs.Test, hs.Prompt, hs.Realtime, hs.Library,
+		hs.ChatAppType, hs.Test, hs.Prompt, hs.Realtime, hs.Library, hs.ClientEvent,
 		// 管理后台
 		hs.AdminConfig, hs.AdminManager, hs.AdminApiKey, hs.AdminUser,
 		hs.AdminChatApp, hs.AdminRedeem, hs.AdminDashboard, hs.AdminChatModel,
@@ -209,7 +210,7 @@ func main() {
 		fx.Provide(func(s *core.AppServer) *core.Router {
 			return s.Router
 		}),
-		// 唯一的路由注册点：52 个 handler 一处登记、一处装配，顺序确定
+		// 唯一的路由注册点，顺序确定
 		fx.Invoke(registerRoutes),
 		fx.Provide(func(db *gorm.DB) *types.SystemConfig {
 			return core.LoadSystemConfig(db)
@@ -225,6 +226,7 @@ func main() {
 		}),
 		fx.Provide(handler.NewLibraryHandler),
 		fx.Provide(admin.NewLibraryHandler),
+		fx.Provide(handler.NewClientEventHandler),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS

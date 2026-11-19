@@ -149,6 +149,7 @@ func (s *MigrationService) fullTableMigration() {
 		&model.PowerLog{},
 		&model.File{},
 		&model.UserLoginLog{},
+		&model.ClientEvent{},
 		&model.MidJourneyJob{},
 		&model.SunoJob{},
 		&model.VideoJob{},
