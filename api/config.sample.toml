@@ -21,7 +21,7 @@ TokengineServiceToken = "" # Token 平台统一管理令牌：用户资料、赠
   Enabled = false
   BaseURL = "https://tokengine.hanyoai.com"
   ClientID = "geekai-web"
-  RedirectURL = "http://localhost:8888/api/user/login/tokengine/callback"
+  RedirectURL = "http://localhost:3000/api/user/login/tokengine/callback"
 
 [FirstUseGift]
   BaseURL = "" # 留空复用 TokengineOAuth.BaseURL

@@ -14,6 +14,19 @@
         </el-button>
       </el-form>
       <el-divider />
+      <el-form :model="rewardQuota" label-position="top" class="px-3 py-5" v-loading="quotaLoading">
+        <el-form-item label="签到、邀请积分追加 Token 额度">
+          <el-switch v-model="rewardQuota.enabled" />
+        </el-form-item>
+        <el-form-item label="每获得 1 积分，追加的平台额度">
+          <el-input-number v-model="rewardQuota.quota_per_point" :min="1" :max="1000000000" :precision="0" />
+        </el-form-item>
+        <p class="text-sm text-gray-500 mb-4">积分继续保留。配置仅影响之后的新奖励；未绑定 Token 账号的奖励会在绑定后发放。</p>
+        <el-button type="primary" :loading="quotaSaving" :disabled="!quotaLoaded" @click="saveRewardQuota">
+          保存额度换算配置
+        </el-button>
+      </el-form>
+      <el-divider />
       <el-form
         :model="system"
         label-position="top"
@@ -148,8 +161,19 @@ const firstUseGift = ref({ enabled: false, plan_id: 0 })
 const giftLoading = ref(true)
 const giftLoaded = ref(false)
 const giftSaving = ref(false)
+const rewardQuota = ref({ enabled: false, quota_per_point: 1000 })
+const quotaLoading = ref(true)
+const quotaLoaded = ref(false)
+const quotaSaving = ref(false)
 
 onMounted(() => {
+  httpGet('/api/admin/config/get?key=reward_quota')
+    .then((res) => {
+      rewardQuota.value = { enabled: false, quota_per_point: 1000, ...res.data }
+      quotaLoaded.value = true
+    })
+    .catch((e) => ElMessage.error('加载额度换算配置失败：' + e.message))
+    .finally(() => { quotaLoading.value = false })
   httpGet('/api/admin/config/get?key=first_use_gift')
     .then((res) => {
       firstUseGift.value = { enabled: false, plan_id: 0, ...res.data }
@@ -168,6 +192,22 @@ onMounted(() => {
 })
 
 const rules = reactive({})
+
+const saveRewardQuota = async () => {
+  if (!Number.isInteger(rewardQuota.value.quota_per_point) || rewardQuota.value.quota_per_point < 1 || rewardQuota.value.quota_per_point > 1000000000) {
+    ElMessage.error('每积分额度须为 1 至 1000000000 的整数')
+    return
+  }
+  quotaSaving.value = true
+  try {
+    await httpPost('/api/admin/config/update/reward_quota', rewardQuota.value)
+    ElMessage.success('额度换算配置已保存')
+  } catch (e) {
+    ElMessage.error('保存额度换算配置失败：' + e.message)
+  } finally {
+    quotaSaving.value = false
+  }
+}
 
 const saveFirstUseGift = async () => {
   if (!Number.isInteger(firstUseGift.value.plan_id) || firstUseGift.value.plan_id < 0 ||

@@ -357,6 +357,26 @@ func main() {
 		fx.Provide(service.NewUserService),
 		// 积分账本服务：所有改变余额的操作都应经过它（事务 + 幂等键）
 		fx.Provide(service.NewLedgerService),
+		fx.Provide(service.NewRewardQuotaService),
+		fx.Invoke(func(lifecycle fx.Lifecycle, s *service.RewardQuotaService) {
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			lifecycle.Append(fx.Hook{
+				OnStart: func(context.Context) error {
+					go func() { defer close(done); s.Run(ctx) }()
+					return nil
+				},
+				OnStop: func(stopCtx context.Context) error {
+					cancel()
+					select {
+					case <-done:
+						return nil
+					case <-stopCtx.Done():
+						return stopCtx.Err()
+					}
+				},
+			})
+		}),
 
 		// 文本审查服务
 		fx.Provide(moderation.NewGiteeAIModeration),

@@ -45,6 +45,7 @@ func TestLedgerRefundFailedJobFirstTime(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "power"}).AddRow(7, "alice", 10))
 	mock.ExpectExec(logInsertSQL).WithArgs(
 		7, "alice", types.PowerRefund, 3, 13, "mid-journey", "任务失败，退回积分。任务ID：42", types.PowerAdd, "job:mj", 42, sqlmock.AnyArg(),
+		0, "", "", "", "", nil,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(creditSQL).WithArgs(3, 7).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectCommit()

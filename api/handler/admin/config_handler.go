@@ -81,6 +81,7 @@ func (h *ConfigHandler) RegisterRoutes(r *core.Router) {
 		rg.POST("update/base", h.UpdateBase)
 		rg.POST("update/power", h.UpdatePower)
 		rg.POST("update/first_use_gift", h.UpdateFirstUseGift)
+		rg.POST("update/reward_quota", h.UpdateRewardQuota)
 		rg.POST("update/notice", h.UpdateNotice)
 		rg.POST("update/agreement", h.UpdateAgreement)
 		rg.POST("update/privacy", h.UpdatePrivacy)
@@ -173,6 +174,28 @@ func (h *ConfigHandler) UpdateFirstUseGift(c *gin.Context) {
 		Columns: []clause.Column{{Name: "name"}}, DoUpdates: clause.AssignmentColumns([]string{"value"}),
 	}).Create(&row).Error; err != nil {
 		resp.ERROR(c, "保存首次登录赠送配置失败")
+		return
+	}
+	resp.SUCCESS(c, rule)
+}
+
+func (h *ConfigHandler) UpdateRewardQuota(c *gin.Context) {
+	var rule types.RewardQuotaRule
+	if err := c.ShouldBindJSON(&rule); err != nil || rule.QuotaPerPoint <= 0 || rule.QuotaPerPoint > 1000000000 {
+		resp.ERROR(c, "每积分额度须为 1 至 1000000000 的整数")
+		return
+	}
+	if rule.Enabled {
+		if err := service.NewRewardQuotaService(h.DB, h.App.Config).Validate(); err != nil {
+			resp.ERROR(c, err.Error())
+			return
+		}
+	}
+	row := model.Config{Name: types.ConfigKeyRewardQuota, Value: utils.JsonEncode(rule)}
+	if err := h.DB.WithContext(c.Request.Context()).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "name"}}, DoUpdates: clause.AssignmentColumns([]string{"value"}),
+	}).Create(&row).Error; err != nil {
+		resp.ERROR(c, "保存额度换算配置失败")
 		return
 	}
 	resp.SUCCESS(c, rule)

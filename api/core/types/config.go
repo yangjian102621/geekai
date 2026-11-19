@@ -61,6 +61,11 @@ type FirstUseGiftRule struct {
 	PlanID  int  `json:"plan_id"`
 }
 
+type RewardQuotaRule struct {
+	Enabled       bool  `json:"enabled"`
+	QuotaPerPoint int64 `json:"quota_per_point"`
+}
+
 type RedisConfig struct {
 	Host     string
 	Port     int
@@ -153,3 +158,4 @@ const (
 )
 
 const ConfigKeyFirstUseGift = "first_use_gift" // 首次客户端登录赠送订阅
+const ConfigKeyRewardQuota = "reward_quota"    // 签到和邀请积分追加 Token 额度
