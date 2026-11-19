@@ -2,84 +2,143 @@ package middleware
 
 import (
 	"bytes"
-	"geekai/utils"
+	"encoding/json"
 	"io"
+	"math"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// 统一参数处理
+// skipPathPrefixes 是"消息原文必须逐字保留"的路径，既不 trim query 也不改写 body。
+//   - /v1/：模型转发请求，SSE / 多模态 payload 需要原文；
+//   - /api/v1/library、/api/admin/library：资料库接口自行限制并解析请求体。
+var skipPathPrefixes = []string{"/v1/", "/api/v1/library", "/api/admin/library"}
+
+// ParameterHandlerMiddleware 统一参数处理。
+//
+// 相对旧实现修正 4 点，其余语义（query trim / 跳过清单 / multipart 跳过）保持不变：
+//  1. JSON body 解析改用 json.Decoder + UseNumber()：杜绝 float64 中转导致的 int64 精度丢失
+//     （旧实现把 1234567890123456789 写成 1234567890123456800）；
+//  2. 数字规范化：1.0 → 1、2e3 → 2000，与旧 float64 行为保持一致，避免把整数值浮点写法弄坏；
+//  3. 解析失败还原**原始字节**（旧实现里 ShouldBindJSON 失败后 body 已被读空，handler 拿到空 body）；
+//  4. 回写 body 后同步 ContentLength（旧实现未同步，下游按旧长度读取可能截断或多读）。
+//
+// 刻意保留：JSON 字符串值两端 TrimSpace。去掉它属于用户可见的行为变更（例如聊天框里粘贴的
+// 缩进代码首尾空白会被吞），需要产品与前端一起确认，本轮不动。
 func ParameterHandlerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 模型请求保留消息原文；资料库接口自行限制并解析请求体。
-		if strings.HasPrefix(c.Request.URL.Path, "/v1/") || strings.HasPrefix(c.Request.URL.Path, "/api/v1/library") || strings.HasPrefix(c.Request.URL.Path, "/api/admin/library") {
-			c.Next()
-			return
-		}
-		// GET 参数处理
-		params := c.Request.URL.Query()
-		for key, values := range params {
-			for i, value := range values {
-				params[key][i] = strings.TrimSpace(value)
-			}
-		}
-		// update get parameters
-		c.Request.URL.RawQuery = params.Encode()
-		// skip file upload requests
-		contentType := c.Request.Header.Get("Content-Type")
-		if strings.Contains(contentType, "multipart/form-data") {
+		// 跳过清单必须放在最前面：旧实现对这些路径连 query 都不 trim。
+		if shouldSkipPath(c.Request.URL.Path) {
 			c.Next()
 			return
 		}
 
-		if strings.Contains(contentType, "application/json") {
-			// process POST JSON request body
-			bodyBytes, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				c.Next()
-				return
-			}
+		trimQueryParams(c)
 
-			// 还原请求体
-			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-			// 将请求体解析为 JSON
-			var jsonData map[string]any
-			if err := c.ShouldBindJSON(&jsonData); err != nil {
-				c.Next()
-				return
-			}
-
-			// 对 JSON 数据中的字符串值去除两端空格
-			trimJSONStrings(jsonData)
-			// 更新请求体
-			c.Request.Body = io.NopCloser(bytes.NewBufferString(utils.JsonEncode(jsonData)))
+		if !shouldRewriteJSONBody(c) || c.Request.Body == nil {
+			c.Next()
+			return
 		}
 
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.Next()
+			return
+		}
+		rewritten, ok := trimJSONBody(body)
+		if !ok { // 解析失败：原样还原原始字节，不吞 body
+			c.Request.Body = io.NopCloser(bytes.NewReader(body))
+			c.Next()
+			return
+		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(rewritten))
+		c.Request.ContentLength = int64(len(rewritten))
 		c.Next()
 	}
 }
 
-// 递归对 JSON 数据中的字符串值去除两端空格
-func trimJSONStrings(data any) {
+// shouldSkipPath 判断路径是否属于"原文保留"清单。
+func shouldSkipPath(path string) bool {
+	for _, prefix := range skipPathPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// trimQueryParams 对 GET 参数做两端去空格，与原实现逐字一致。
+func trimQueryParams(c *gin.Context) {
+	params := c.Request.URL.Query()
+	for key, values := range params {
+		for i, value := range values {
+			params[key][i] = strings.TrimSpace(value)
+		}
+	}
+	c.Request.URL.RawQuery = params.Encode()
+}
+
+// shouldRewriteJSONBody 判断是否需要改写请求体：只处理 application/json，跳过文件上传。
+func shouldRewriteJSONBody(c *gin.Context) bool {
+	contentType := c.Request.Header.Get("Content-Type")
+	if strings.Contains(contentType, "multipart/form-data") {
+		return false
+	}
+	return strings.Contains(contentType, "application/json")
+}
+
+// trimJSONBody 解析、规范化并重新序列化 JSON 对象。
+// 返回 ok=false 表示"不该改 / 改不了"，调用方必须还原原始字节。
+func trimJSONBody(body []byte) ([]byte, bool) {
+	dec := json.NewDecoder(bytes.NewReader(body))
+	dec.UseNumber()
+	var data any
+	if err := dec.Decode(&data); err != nil {
+		return nil, false
+	}
+	if _, isObject := data.(map[string]any); !isObject {
+		return nil, false // 只处理 JSON 对象，数组/标量原样透传
+	}
+	out, err := json.Marshal(sanitizeJSON(data))
+	if err != nil {
+		return nil, false
+	}
+	return out, true
+}
+
+// sanitizeJSON 一次遍历同时完成两件事（两者互不影响，故合并以省一次递归）：
+//  1. 字符串值 TrimSpace —— 保留旧语义；
+//  2. json.Number 规范化 —— 让 1.0 → 1、2e3 → 2000 与旧 float64 行为一致，
+//     同时靠 Int64() 保住 >2^53 的整数精度（旧实现中转 float64 会丢精度）。
+//
+// 规范化结果仍然是 json.Number，因此 json.Marshal 会原样输出数字字面量，不会被二次格式化。
+func sanitizeJSON(data any) any {
 	switch v := data.(type) {
+	case string:
+		return strings.TrimSpace(v)
+	case json.Number:
+		// 整数（含超出 float64 精度范围的大整数）直接原样保真。
+		if i, err := v.Int64(); err == nil {
+			return json.Number(strconv.FormatInt(i, 10))
+		}
+		// 整数值的浮点写法（1.0 / 2e3）归一成整数字面量，保持对 int 字段的可绑定性。
+		if f, err := v.Float64(); err == nil && f == math.Trunc(f) && math.Abs(f) < 1e18 {
+			return json.Number(strconv.FormatInt(int64(f), 10))
+		}
+		return v
 	case map[string]any:
 		for key, value := range v {
-			switch valueType := value.(type) {
-			case string:
-				v[key] = strings.TrimSpace(valueType)
-			case map[string]any, []any:
-				trimJSONStrings(value)
-			}
+			v[key] = sanitizeJSON(value)
 		}
+		return v
 	case []any:
 		for i, value := range v {
-			switch valueType := value.(type) {
-			case string:
-				v[i] = strings.TrimSpace(valueType)
-			case map[string]any, []any:
-				trimJSONStrings(value)
-			}
+			v[i] = sanitizeJSON(value)
 		}
+		return v
+	default:
+		return data
 	}
 }
