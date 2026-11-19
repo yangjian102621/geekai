@@ -14,8 +14,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const TokengineCallbackPath = "/api/user/login/tokengine/callback"
@@ -42,6 +44,25 @@ type TokengineOAuth struct {
 type TokengineIdentity struct {
 	Subject  string `json:"sub"`
 	Username string `json:"username"`
+	Phone    string `json:"phone,omitempty"`
+	Balance  string `json:"balance,omitempty"`
+}
+
+// Explicit fields exclude upstream passwords, management credentials and AI tokens.
+type TokengineUserProfile struct {
+	ID           int64  `json:"id"`
+	Username     string `json:"username"`
+	DisplayName  string `json:"display_name"`
+	Email        string `json:"email"`
+	Telephone    string `json:"telephone"`
+	Role         int    `json:"role"`
+	Status       int    `json:"status"`
+	Group        string `json:"group"`
+	Quota        int64  `json:"quota"`
+	UsedQuota    int64  `json:"used_quota"`
+	RequestCount int64  `json:"request_count"`
+	AffCode      string `json:"aff_code"`
+	InviterID    int64  `json:"inviter_id"`
 }
 
 func NewTokengineOAuth(config types.TokengineOAuthConfig) *TokengineOAuth {
@@ -183,10 +204,52 @@ func (s *TokengineOAuth) UserInfo(ctx context.Context, accessToken string) (Toke
 	if identity.Subject == "" && payload.Data != nil {
 		identity = *payload.Data
 	}
-	if strings.TrimSpace(identity.Subject) == "" || len(identity.Subject) > 256 {
+	if strings.TrimSpace(identity.Subject) == "" || len(identity.Subject) > 256 ||
+		utf8.RuneCountInString(identity.Username) > 64 || utf8.RuneCountInString(identity.Phone) > 32 || len(identity.Balance) > 128 {
 		return identity, &TokengineOAuthError{Reason: "invalid_identity"}
 	}
 	return identity, nil
+}
+
+// UserProfile accepts only a subject already verified by UserInfo.
+func (s *TokengineOAuth) UserProfile(ctx context.Context, subject, serviceToken string) (*TokengineUserProfile, error) {
+	base, err := oauthConfigURL(s.config.BaseURL)
+	serviceToken = strings.TrimSpace(serviceToken)
+	if !s.config.Enabled || err != nil || base.Path != "" || serviceToken == "" {
+		return nil, &TokengineOAuthError{Reason: "profile_not_configured"}
+	}
+	id, err := strconv.ParseInt(strings.TrimPrefix(subject, "u_"), 10, 64)
+	if err != nil || id <= 0 || subject != "u_"+strconv.FormatInt(id, 10) {
+		return nil, &TokengineOAuthError{Reason: "invalid_profile_subject"}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.config.BaseURL+"/api/user/"+strconv.FormatInt(id, 10), nil)
+	if err != nil {
+		return nil, &TokengineOAuthError{Reason: "invalid_profile_request", cause: err}
+	}
+	req.Header.Set("Authorization", "Bearer "+serviceToken)
+	req.Header.Set("Accept", "application/json")
+	var payload struct {
+		Success bool                  `json:"success"`
+		Data    *TokengineUserProfile `json:"data"`
+	}
+	if err := s.readJSON(req, &payload); err != nil {
+		return nil, err
+	}
+	if !payload.Success || payload.Data == nil || payload.Data.ID != id || payload.Data.Role <= 0 || payload.Data.Status <= 0 {
+		return nil, &TokengineOAuthError{Reason: "invalid_profile_response"}
+	}
+	for _, field := range []struct {
+		value string
+		limit int
+	}{
+		{payload.Data.Username, 64}, {payload.Data.DisplayName, 128}, {payload.Data.Email, 255},
+		{payload.Data.Telephone, 32}, {payload.Data.Group, 64}, {payload.Data.AffCode, 32},
+	} {
+		if utf8.RuneCountInString(field.value) > field.limit {
+			return nil, &TokengineOAuthError{Reason: "invalid_profile_response"}
+		}
+	}
+	return payload.Data, nil
 }
 
 func (s *TokengineOAuth) readJSON(req *http.Request, target interface{}) error {

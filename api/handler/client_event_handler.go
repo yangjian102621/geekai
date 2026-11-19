@@ -36,7 +36,7 @@ func NewClientEventHandler(app *core.AppServer, db *gorm.DB) *ClientEventHandler
 		BaseHandler: BaseHandler{App: app, DB: db},
 		events:      service.NewClientEventService(db),
 		oauth:       service.NewTokengineOAuth(app.Config.TokengineOAuth),
-		gift:        service.NewFirstUseGiftService(db, app.Config.FirstUseGift, app.Config.TokengineOAuth.BaseURL),
+		gift:        service.NewFirstUseGiftService(db, app.Config.FirstUseGift, app.Config.TokengineOAuth.BaseURL, app.Config.TokengineManagementToken()),
 		maxBytes:    maxBytes,
 	}
 }

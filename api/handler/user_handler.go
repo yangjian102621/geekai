@@ -437,7 +437,10 @@ func (h *UserHandler) doLogin(user *model.User, ip string) (string, error) {
 	// 更新最后登录时间和IP
 	user.LastLoginIp = ip
 	user.LastLoginAt = time.Now().Unix()
-	err := h.DB.Model(user).Updates(user).Error
+	err := h.DB.Model(user).Updates(map[string]any{
+		"last_login_ip": user.LastLoginIp,
+		"last_login_at": user.LastLoginAt,
+	}).Error
 	if err != nil {
 		return "", fmt.Errorf("failed to update user: %v", err)
 	}
@@ -700,6 +703,13 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 		resp.ERROR(c, "验证码错误")
 		return
 	}
+
+	unlock, err := h.lockMobile(c, data.Mobile)
+	if err != nil {
+		resp.ERROR(c, "手机号请求正在处理中，请稍后重试")
+		return
+	}
+	defer unlock()
 
 	// 检查手机号是否被其他账号绑定
 	var item model.User

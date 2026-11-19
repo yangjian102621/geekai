@@ -9,6 +9,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 )
 
 type AppConfig struct {
@@ -31,6 +32,8 @@ type AppConfig struct {
 	TokengineOAuth  TokengineOAuthConfig
 	FirstUseGift    FirstUseGiftConfig
 
+	TokengineServiceToken string // Token 平台统一管理令牌：用户资料、订阅和额度共用
+
 	ClientEventMaxBytes int64 // 客户端事件上报请求大小，未配置时为 256 KiB
 }
 
@@ -43,7 +46,14 @@ type TokengineOAuthConfig struct {
 
 type FirstUseGiftConfig struct {
 	BaseURL      string
-	ServiceToken string
+	ServiceToken string // 兼容旧配置，新配置使用 TokengineServiceToken
+}
+
+func (c *AppConfig) TokengineManagementToken() string {
+	if token := strings.TrimSpace(c.TokengineServiceToken); token != "" {
+		return token
+	}
+	return strings.TrimSpace(c.FirstUseGift.ServiceToken)
 }
 
 type FirstUseGiftRule struct {

@@ -49,12 +49,12 @@ type firstUseGiftState struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewFirstUseGiftService(db *gorm.DB, config types.FirstUseGiftConfig, oauthBaseURL string) *FirstUseGiftService {
+func NewFirstUseGiftService(db *gorm.DB, config types.FirstUseGiftConfig, oauthBaseURL, serviceToken string) *FirstUseGiftService {
 	if strings.TrimSpace(config.BaseURL) == "" {
 		config.BaseURL = oauthBaseURL
 	}
 	config.BaseURL = strings.TrimRight(strings.TrimSpace(config.BaseURL), "/")
-	config.ServiceToken = strings.TrimSpace(config.ServiceToken)
+	config.ServiceToken = strings.TrimSpace(serviceToken)
 	return &FirstUseGiftService{
 		db: db.Session(&gorm.Session{Logger: db.Logger.LogMode(gormlogger.Silent)}), config: config,
 		client: &http.Client{Timeout: 10 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {

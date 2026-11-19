@@ -5,6 +5,7 @@ StaticDir = "./static" # 静态资源的目录
 StaticUrl = "/static" # 静态资源访问 URL
 TikaHost = "http://tika:9998"
 ClientEventMaxBytes = 262144 # 客户端事件上报最大请求大小（字节）
+TokengineServiceToken = "" # Token 平台统一管理令牌：用户资料、赠送订阅、兑换额度共用
 
 [Session]
   SecretKey = "azyehq3ivunjhbntz78isj00i4hz2mt9xtddysfucxakadq4qbfrt0b7q3lnvg80" # 注意：这个是 JWT Token 授权密钥，生产环境请务必更换
@@ -24,4 +25,3 @@ ClientEventMaxBytes = 262144 # 客户端事件上报最大请求大小（字节�
 
 [FirstUseGift]
   BaseURL = "" # 留空复用 TokengineOAuth.BaseURL
-  ServiceToken = "" # 仅供服务端使用的订阅管理令牌
