@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"geekai/core"
+	"geekai/core/types"
 	"geekai/handler"
 	"geekai/handler/admin"
 	"geekai/service/library"
@@ -151,8 +152,8 @@ func TestPlatformLibraryIntegration(t *testing.T) {
 			t.Error("ThinkBuddy sent WeKnora content traffic through GeekAI")
 		}
 	})
-	app := &core.AppServer{Engine: engine}
-	handler.NewLibraryHandler(app, service).RegisterRoutes()
+	app := core.NewServerWithEngine(engine, &types.AppConfig{}, nil)
+	handler.NewLibraryHandler(app, service).RegisterRoutes(app.Router)
 	group := engine.Group("/api/admin/library", func(c *gin.Context) {
 		if c.GetHeader("Admin-Authorization") != "integration-admin" {
 			c.AbortWithStatus(401)

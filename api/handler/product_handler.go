@@ -27,8 +27,9 @@ func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *ProductHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/product/")
+func (h *ProductHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：前台价格页商品列表
+	group := r.PublicGroup("/api/product/")
 	group.GET("list", h.List)
 }
 

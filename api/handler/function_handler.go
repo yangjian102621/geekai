@@ -54,11 +54,12 @@ func NewFunctionHandler(
 }
 
 // RegisterRoutes 注册路由
-func (h *FunctionHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/function/")
+func (h *FunctionHandler) RegisterRoutes(r *core.Router) {
+	group := r.PublicGroup("/api/function/")
 	group.GET("list", h.List)
 
-	// 需要用户授权的接口
+	// 以下 3 条保持公开：鉴权由其内部的 checkAuth 完成（全仓第 3 份鉴权实现）。
+	// 收编进 UserGroup 会额外引入"redis 会话必须存在"这一层校验，属于行为变更，留待 Phase 3。
 	group.POST("weibo", h.WeiBo)
 	group.POST("zaobao", h.ZaoBao)
 	group.POST("image3", h.Image3)

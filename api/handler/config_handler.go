@@ -35,10 +35,9 @@ func NewConfigHandler(app *core.AppServer, db *gorm.DB, uploaderManager *oss.Upl
 }
 
 // RegisterRoutes 注册路由
-func (h *ConfigHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/config/")
-
+func (h *ConfigHandler) RegisterRoutes(r *core.Router) {
 	// 无需授权的接口
+	group := r.PublicGroup("/api/config/")
 	group.GET("get", h.Get)
 	group.GET("oss/thumb", h.GetOssThumbTemplate)
 }

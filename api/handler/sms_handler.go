@@ -48,9 +48,9 @@ func NewSmsHandler(
 }
 
 // RegisterRoutes 注册路由
-func (h *SmsHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/sms/")
-	// 无需授权的接口
+func (h *SmsHandler) RegisterRoutes(r *core.Router) {
+	// 无需授权的接口：注册 / 登录前必须能发验证码
+	group := r.PublicGroup("/api/sms/")
 	group.POST("code", h.SendCode)
 }
 

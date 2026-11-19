@@ -111,7 +111,7 @@ func main() {
 		}),
 		fx.Provide(handler.NewLibraryHandler),
 		fx.Provide(admin.NewLibraryHandler),
-		fx.Invoke(func(h *handler.LibraryHandler) { h.RegisterRoutes() }),
+		fx.Invoke(func(r *core.Router, h *handler.LibraryHandler) { h.RegisterRoutes(r) }),
 		fx.Invoke(func(r *core.Router, h *admin.LibraryHandler) { h.RegisterRoutes(r) }),
 
 		fx.Provide(func() embed.FS {
@@ -269,20 +269,20 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.DownloadHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.SmsHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.CaptchaHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.RedeemHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.ConfigHandler) {
+			h.RegisterRoutes(r)
 		}),
 
 		// 管理后台路由注册
@@ -307,8 +307,8 @@ func main() {
 		fx.Invoke(func(r *core.Router, h *admin.DashboardHandler) {
 			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatModelHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.ChatModelHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(r *core.Router, h *admin.ChatModelHandler) {
 			h.RegisterRoutes(r)
@@ -323,11 +323,11 @@ func main() {
 		fx.Invoke(func(r *core.Router, h *admin.OrderHandler) {
 			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.OrderHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ProductHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.ProductHandler) {
+			h.RegisterRoutes(r)
 		}),
 
 		fx.Provide(handler.NewInviteHandler),
@@ -346,15 +346,15 @@ func main() {
 		}),
 
 		fx.Provide(handler.NewFunctionHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.FunctionHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(admin.NewChatHandler),
 		fx.Invoke(func(r *core.Router, h *admin.ChatHandler) {
 			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.PowerLogHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.PowerLogHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(r *core.Router, h *admin.PowerLogHandler) {
 			h.RegisterRoutes(r)
@@ -364,12 +364,12 @@ func main() {
 			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewMenuHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.MenuHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.MenuHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewMarkMapHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.MarkMapHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewImageJobHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.ImageJobHandler) {
@@ -380,8 +380,8 @@ func main() {
 			h.RegisterRoutes()
 		}),
 		fx.Provide(handler.NewVideoHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.VideoHandler) {
+			h.RegisterRoutes(r)
 		}),
 
 		// 即梦AI 路由
@@ -402,12 +402,12 @@ func main() {
 			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewChatAppTypeHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppTypeHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.ChatAppTypeHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewTestHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.TestHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewPromptHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
@@ -415,8 +415,8 @@ func main() {
 		}),
 
 		// 微信公众号路由
-		fx.Invoke(func(s *core.AppServer, h *handler.WxGzhHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.WxGzhHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
@@ -444,8 +444,8 @@ func main() {
 			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewRealtimeHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *handler.RealtimeHandler) {
+			h.RegisterRoutes(r)
 		}),
 	)
 	// 启动应用程序

@@ -27,8 +27,9 @@ func NewMenuHandler(app *core.AppServer, db *gorm.DB) *MenuHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *MenuHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/menu/")
+func (h *MenuHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：全站导航
+	group := r.PublicGroup("/api/menu/")
 	group.GET("list", h.List)
 	group.GET("list/all", h.ListAll)
 }
