@@ -27,7 +27,7 @@ import (
 
 type AppServer struct {
 	Config    *types.AppConfig
-	Engine    *gin.Engine
+	engine    *gin.Engine // 刻意不导出：handler 层物理上拿不到引擎
 	SysConfig *types.SystemConfig // system config cache
 	Redis     *redis.Client
 	Router    *Router // 对外唯一的路由注册入口，handler 层只能拿到它，拿不到 Engine
@@ -39,7 +39,7 @@ func NewServer(appConfig *types.AppConfig, redis *redis.Client, sysConfig *types
 	s := &AppServer{
 		Config:    appConfig,
 		Redis:     redis,
-		Engine:    gin.Default(),
+		engine:    gin.Default(),
 		SysConfig: sysConfig,
 	}
 	s.initEngine()
@@ -53,7 +53,7 @@ func NewServerWithEngine(engine *gin.Engine, appConfig *types.AppConfig, redis *
 	s := &AppServer{
 		Config: appConfig,
 		Redis:  redis,
-		Engine: engine,
+		engine: engine,
 	}
 	s.initEngine()
 	return s
@@ -62,14 +62,14 @@ func NewServerWithEngine(engine *gin.Engine, appConfig *types.AppConfig, redis *
 // initEngine 装配全局中间件与静态资源，并在末尾一次性构造 Router。
 // 构造即完备：不存在"Router 必须在使用前额外 Init"的顺序依赖，也就没有 nil Router 的窗口。
 func (s *AppServer) initEngine() {
-	s.Engine.Use(middleware.ThumbMiddleware())
-	s.Engine.Use(middleware.ParameterHandlerMiddleware())
-	s.Engine.Use(errorHandler)
+	s.engine.Use(middleware.ThumbMiddleware())
+	s.engine.Use(middleware.ParameterHandlerMiddleware())
+	s.engine.Use(errorHandler)
 	// 添加静态资源访问。空 StaticDir 不再注册一个指向 cwd 的静态路由。
 	if s.Config != nil && s.Config.StaticDir != "" {
-		s.Engine.Static("/static", s.Config.StaticDir)
+		s.engine.Static("/static", s.Config.StaticDir)
 	}
-	s.Router = NewRouter(s.Engine, s.Config, s.Redis)
+	s.Router = NewRouter(s.engine, s.Config, s.Redis)
 }
 
 func (s *AppServer) Run(db *gorm.DB) error {
@@ -100,7 +100,7 @@ func (s *AppServer) Run(db *gorm.DB) error {
 		}
 	}()
 	logger.Infof("http://%s", s.Config.Listen)
-	return s.Engine.Run(s.Config.Listen)
+	return s.engine.Run(s.Config.Listen)
 }
 
 // 全局异常处理
