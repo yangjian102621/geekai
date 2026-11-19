@@ -30,15 +30,17 @@ type Service struct {
 	db              *gorm.DB
 	uploaderManager *oss.UploaderManager
 	userService     *service.UserService
+	ledgerService   *service.LedgerService
 }
 
-func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, userService *service.UserService) *Service {
+func NewService(redisCli *redis.Client, db *gorm.DB, client *Client, manager *oss.UploaderManager, userService *service.UserService, ledgerService *service.LedgerService) *Service {
 	return &Service{
 		db:              db,
 		taskQueue:       store.NewRedisQueue("MidJourney_Task_Queue", redisCli),
 		client:          client,
 		uploaderManager: manager,
 		userService:     userService,
+		ledgerService:   ledgerService,
 	}
 }
 
@@ -265,19 +267,27 @@ func (s *Service) SyncTaskProgress() {
 				}
 			}
 
-			// 找出失败的任务，并恢复其扣减积分
+			// 找出失败的任务，并恢复其扣减积分。
+			// 走 LedgerService.RefundFailedJob：抢占式 power=0 + 同事务幂等账本，
+			// 重复扫描/多实例并发都不会二次退款。
 			s.db.Where("status", model.ImageStatusFailed).Where("power > ?", 0).Find(&jobs)
 			for _, job := range jobs {
-				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-					Type:   types.PowerRefund,
-					Model:  "mid-journey",
-					Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+				_, err := s.ledgerService.RefundFailedJob(service.FailedJobRefund{
+					Table:   "geekai_mj_jobs",
+					JobId:   job.Id,
+					UserId:  job.UserId,
+					Power:   job.Power,
+					RefType: "job:mj",
+					Log: model.PowerLog{
+						Type:   types.PowerRefund,
+						Model:  "mid-journey",
+						Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d，Err: %s", job.Id, job.ErrMsg),
+					},
 				})
 				if err != nil {
+					logger.Errorf("任务 %d 退款失败：%v", job.Id, err)
 					continue
 				}
-				// 更新任务状态
-				s.db.Model(&job).UpdateColumn("power", 0)
 			}
 
 			time.Sleep(time.Second * 5)
