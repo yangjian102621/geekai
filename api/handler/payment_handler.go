@@ -9,6 +9,7 @@ package handler
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"geekai/core"
 	"geekai/core/types"
@@ -17,7 +18,10 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
+	"math"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -39,6 +43,7 @@ type PaymentHandler struct {
 	stripeService *payment.StripeService
 	snowflake     *service.Snowflake
 	userService   *service.UserService
+	ledgerService *service.LedgerService
 	fs            embed.FS
 	lock          sync.Mutex
 	config        *types.PaymentConfig
@@ -52,6 +57,7 @@ func NewPaymentHandler(
 	stripeService *payment.StripeService,
 	db *gorm.DB,
 	userService *service.UserService,
+	ledgerService *service.LedgerService,
 	snowflake *service.Snowflake,
 	fs embed.FS,
 	sysConfig *types.SystemConfig) *PaymentHandler {
@@ -62,6 +68,7 @@ func NewPaymentHandler(
 		stripeService: stripeService,
 		snowflake:     snowflake,
 		userService:   userService,
+		ledgerService: ledgerService,
 		fs:            fs,
 		lock:          sync.Mutex{},
 		BaseHandler: BaseHandler{
@@ -399,6 +406,16 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 }
 
 // 支付成功处理
+//
+// 资金安全要点（重构原因）：
+//  1. 整个处理必须是【一个事务】。旧实现里积分由 userService.IncreasePower 自己开事务
+//     提交，后续更新订单/销量失败时根本回滚不了，结果是"积分已发、订单还停在待支付"，
+//     渠道一重试就再发一次积分 —— 钱的最大口子。
+//  2. 幂等闸门用条件更新实现：只有把订单从"非成功"改成"成功"的那个执行者才有资格发货。
+//     并发回调 / 轮询补偿 / 渠道重投都只会有一个赢家，其余 RowsAffected==0 直接返回。
+//  3. 发货走 LedgerService.Grant，带业务幂等键 (order, order.Id)，即使闸门被绕过，
+//     数据库唯一索引 uk_power_ref 仍然兜住第二次入账。
+//  4. 必须校验金额：渠道回传金额与订单金额不一致时拒绝发货并返回错误，绝不按错的金额发货。
 func (h *PaymentHandler) paySuccess(info payment.OrderInfo) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
@@ -409,15 +426,14 @@ func (h *PaymentHandler) paySuccess(info payment.OrderInfo) error {
 		return fmt.Errorf("error with fetch order: %v", err)
 	}
 
-	// 已支付订单，直接返回
+	// 已支付订单，直接返回（快速路径；真正的幂等闸门在下面的事务里）
 	if order.Status == types.OrderPaidSuccess {
 		return nil
 	}
 
-	var user model.User
-	err = h.DB.First(&user, order.UserId).Error
-	if err != nil {
-		return fmt.Errorf("error with fetch user info: %v", err)
+	// 金额校验：宁可失败让渠道重试/人工介入，也不能按错误金额发货
+	if err := verifyPaidAmount(order, info); err != nil {
+		return err
 	}
 
 	var remark types.OrderRemark
@@ -426,34 +442,79 @@ func (h *PaymentHandler) paySuccess(info payment.OrderInfo) error {
 		return fmt.Errorf("error with decode order remark: %v", err)
 	}
 
-	// 增加用户积分
-	err = h.userService.IncreasePower(order.UserId, remark.Power, model.PowerLog{
-		Type:      types.PowerRecharge,
-		Model:     order.Subject,
-		Remark:    fmt.Sprintf("充值积分，金额：%f，订单号：%s", order.Amount, order.OrderNo),
-		CreatedAt: time.Now(),
+	if h.ledgerService == nil {
+		return errors.New("积分账本服务未初始化，无法发放充值积分")
+	}
+
+	payTime := utils.Str2stamp(info.PayTime)
+	return h.DB.Transaction(func(tx *gorm.DB) error {
+		// 幂等闸门：状态不等于"已支付成功"时才允许改，改成功者才拥有发货权
+		res := tx.Model(&model.Order{}).
+			Where("id = ? AND status <> ?", order.Id, types.OrderPaidSuccess).
+			Updates(map[string]any{
+				"status":   types.OrderPaidSuccess,
+				"pay_time": payTime,
+				"trade_no": info.TradeId,
+				"checked":  true,
+			})
+		if res.Error != nil {
+			return fmt.Errorf("error with update order info: %v", res.Error)
+		}
+		if res.RowsAffected == 0 {
+			// 已被其它回调/轮询处理过，本次不发货（不是错误）
+			logger.Infof("订单 %s 已处理过，跳过重复发货", order.OrderNo)
+			return nil
+		}
+
+		// 发放积分：与订单状态在同一事务内
+		if remark.Power > 0 {
+			granted, err := h.ledgerService.Grant(
+				tx,
+				order.UserId,
+				remark.Power,
+				service.LedgerRef{Type: "order", ID: order.Id},
+				model.PowerLog{
+					UserId: order.UserId,
+					Type:   types.PowerRecharge,
+					Model:  order.Subject,
+					Remark: fmt.Sprintf("充值积分，金额：%f，订单号：%s", order.Amount, order.OrderNo),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if !granted {
+				// 订单已改成功但积分此前发过：说明历史数据已入账，不重复发放
+				logger.Warnf("订单 %s 的积分此前已入账，本次跳过发放", order.OrderNo)
+			}
+		}
+
+		// 更新产品销量：同一事务，失败则整单回滚（渠道会重试）
+		if err = tx.Model(&model.Product{}).Where("id = ?", order.ProductId).
+			UpdateColumn("sales", gorm.Expr("sales + ?", 1)).Error; err != nil {
+			return fmt.Errorf("error with update product sales: %v", err)
+		}
+		return nil
 	})
-	if err != nil {
-		return err
-	}
+}
 
-	// 更新订单状态
-	order.PayTime = utils.Str2stamp(info.PayTime)
-	order.Status = types.OrderPaidSuccess
-	order.TradeNo = info.TradeId
-	order.Checked = true
-	err = h.DB.Debug().Updates(&order).Error
-	if err != nil {
-		return fmt.Errorf("error with update order info: %v", err)
+// verifyPaidAmount 校验渠道回传的实付金额与订单金额是否一致。
+// 允许 1 分钱误差（渠道侧分/元换算与浮点表示）。
+// 渠道未回传金额时只告警不拦截，避免因个别渠道字段缺失导致已付款订单永远不到账。
+func verifyPaidAmount(order model.Order, info payment.OrderInfo) error {
+	raw := strings.TrimSpace(info.Amount)
+	if raw == "" {
+		logger.Warnf("支付渠道未回传金额，跳过金额校验，订单号：%s", order.OrderNo)
+		return nil
 	}
-
-	// 更新产品销量
-	err = h.DB.Model(&model.Product{}).Where("id = ?", order.ProductId).
-		UpdateColumn("sales", gorm.Expr("sales + ?", 1)).Error
+	paid, err := strconv.ParseFloat(raw, 64)
 	if err != nil {
-		return fmt.Errorf("error with update product sales: %v", err)
+		return fmt.Errorf("无法解析渠道回传金额 %q，订单号：%s", raw, order.OrderNo)
 	}
-
+	if math.Abs(paid-order.Amount) > 0.01 {
+		logger.Errorf("支付金额与订单金额不一致，订单号：%s，应付：%.2f，实付：%.2f", order.OrderNo, order.Amount, paid)
+		return fmt.Errorf("支付金额不匹配：订单 %s 应付 %.2f，实付 %.2f", order.OrderNo, order.Amount, paid)
+	}
 	return nil
 }
 

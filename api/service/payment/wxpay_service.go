@@ -132,8 +132,10 @@ func (s *WxPayService) Query(outTradeNo string) (OrderInfo, error) {
 	orderInfo := OrderInfo{
 		OutTradeNo: wxRsp.Response.OutTradeNo,
 		TradeId:    wxRsp.Response.TransactionId,
-		Amount:     fmt.Sprintf("%d", wxRsp.Response.Amount.Total/100),
-		PayTime:    wxRsp.Response.SuccessTime,
+		// 注意：这里必须是 %.2f。历史实现用 "%d",Total/100 做整数除法，
+		// 12.50 元会被回传成 "12"，导致上层的"实付金额 == 订单金额"校验误判。
+		Amount:  fmt.Sprintf("%.2f", float64(wxRsp.Response.Amount.Total)/100),
+		PayTime: wxRsp.Response.SuccessTime,
 	}
 	if wxRsp.Response.TradeState == "SUCCESS" {
 		orderInfo.Status = Success

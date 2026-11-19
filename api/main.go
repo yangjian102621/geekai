@@ -344,6 +344,8 @@ func main() {
 
 		// 用户服务
 		fx.Provide(service.NewUserService),
+		// 积分账本服务：所有改变余额的操作都应经过它（事务 + 幂等键）
+		fx.Provide(service.NewLedgerService),
 
 		// 文本审查服务
 		fx.Provide(moderation.NewGiteeAIModeration),
