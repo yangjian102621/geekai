@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -21,6 +23,7 @@ type ClientEventHandler struct {
 	BaseHandler
 	events   *service.ClientEventService
 	oauth    *service.TokengineOAuth
+	gift     *service.FirstUseGiftService
 	maxBytes int64
 }
 
@@ -33,6 +36,7 @@ func NewClientEventHandler(app *core.AppServer, db *gorm.DB) *ClientEventHandler
 		BaseHandler: BaseHandler{App: app, DB: db},
 		events:      service.NewClientEventService(db),
 		oauth:       service.NewTokengineOAuth(app.Config.TokengineOAuth),
+		gift:        service.NewFirstUseGiftService(db, app.Config.FirstUseGift, app.Config.TokengineOAuth.BaseURL),
 		maxBytes:    maxBytes,
 	}
 }
@@ -100,6 +104,31 @@ func (h *ClientEventHandler) Report(c *gin.Context) {
 			rejectClientEvent(c, http.StatusInternalServerError, "report_save_failed", "save", err)
 		}
 		return
+	}
+	if userID != nil {
+		for _, event := range events {
+			if event.Name != "login" {
+				continue
+			}
+			ctx, cancel := context.WithTimeout(context.WithoutCancel(c.Request.Context()), 20*time.Second)
+			result, err := h.gift.Claim(ctx, *userID)
+			cancel()
+			if err != nil {
+				fields := []any{"request_id", c.Writer.Header().Get("X-Request-ID"), "user_id", *userID, "status", result.Status}
+				reason := clientEventDatabaseReason(err)
+				var failure *service.FirstUseGiftError
+				if errors.As(err, &failure) {
+					reason = failure.Reason
+					fields = append(fields, "upstream_status", failure.StatusCode)
+					if errors.Unwrap(err) != nil {
+						fields = append(fields, "database_reason", clientEventDatabaseReason(err))
+					}
+				}
+				fields = append(fields, "reason", reason)
+				logger.Errorw("first_use_gift_failed", fields...)
+			}
+			break
+		}
 	}
 	c.JSON(http.StatusOK, gin.H{"accepted": len(events)})
 }

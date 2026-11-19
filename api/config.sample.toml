@@ -21,3 +21,7 @@ ClientEventMaxBytes = 262144 # 客户端事件上报最大请求大小（字节�
   BaseURL = "https://tokengine.hanyoai.com"
   ClientID = "geekai-web"
   RedirectURL = "http://localhost:8888/api/user/login/tokengine/callback"
+
+[FirstUseGift]
+  BaseURL = "" # 留空复用 TokengineOAuth.BaseURL
+  ServiceToken = "" # 仅供服务端使用的订阅管理令牌

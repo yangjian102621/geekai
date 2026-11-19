@@ -29,6 +29,7 @@ type AppConfig struct {
 	WechatPayConfig WxPayConfig  // 微信支付渠道配置
 	TikaHost        string       // TiKa 服务器地址
 	TokengineOAuth  TokengineOAuthConfig
+	FirstUseGift    FirstUseGiftConfig
 
 	ClientEventMaxBytes int64 // 客户端事件上报请求大小，未配置时为 256 KiB
 }
@@ -38,6 +39,16 @@ type TokengineOAuthConfig struct {
 	BaseURL     string
 	ClientID    string
 	RedirectURL string
+}
+
+type FirstUseGiftConfig struct {
+	BaseURL      string
+	ServiceToken string
+}
+
+type FirstUseGiftRule struct {
+	Enabled bool `json:"enabled"`
+	PlanID  int  `json:"plan_id"`
 }
 
 type RedisConfig struct {
@@ -130,3 +141,5 @@ const (
 	ConfigKeyJimeng     = "jimeng"      // 即梦AI配置
 	ConfigKeyVideo      = "video"       // 视频生成配置
 )
+
+const ConfigKeyFirstUseGift = "first_use_gift" // 首次客户端登录赠送订阅

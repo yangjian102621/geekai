@@ -24,6 +24,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ConfigHandler struct {
@@ -79,6 +80,7 @@ func (h *ConfigHandler) RegisterRoutes(r *core.Router) {
 	{
 		rg.POST("update/base", h.UpdateBase)
 		rg.POST("update/power", h.UpdatePower)
+		rg.POST("update/first_use_gift", h.UpdateFirstUseGift)
 		rg.POST("update/notice", h.UpdateNotice)
 		rg.POST("update/agreement", h.UpdateAgreement)
 		rg.POST("update/privacy", h.UpdatePrivacy)
@@ -158,6 +160,22 @@ func (h *ConfigHandler) UpdatePower(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, h.sysConfig.Base)
+}
+
+func (h *ConfigHandler) UpdateFirstUseGift(c *gin.Context) {
+	var rule types.FirstUseGiftRule
+	if err := c.ShouldBindJSON(&rule); err != nil || rule.PlanID < 0 || rule.Enabled && rule.PlanID == 0 {
+		resp.ERROR(c, "启用首次登录赠送订阅时，请填写有效的套餐 ID")
+		return
+	}
+	row := model.Config{Name: types.ConfigKeyFirstUseGift, Value: utils.JsonEncode(rule)}
+	if err := h.DB.WithContext(c.Request.Context()).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "name"}}, DoUpdates: clause.AssignmentColumns([]string{"value"}),
+	}).Create(&row).Error; err != nil {
+		resp.ERROR(c, "保存首次登录赠送配置失败")
+		return
+	}
+	resp.SUCCESS(c, rule)
 }
 
 // UpdateNotice 更新公告配置
