@@ -35,8 +35,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-redis/redis/v8"
-
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
@@ -93,11 +91,11 @@ func main() {
 			config.Path = configFile
 			return config
 		}),
-		// 创建应用服务
+		// 创建应用服务（构造即完备：Engine 中间件、静态资源与 Router 都在 NewServer 内部装配完毕）
 		fx.Provide(core.NewServer),
-		// 初始化
-		fx.Invoke(func(s *core.AppServer, client *redis.Client) {
-			s.Init(client)
+		// 对外唯一的路由注册入口：handler 只能拿到 *core.Router，拿不到 *gin.Engine
+		fx.Provide(func(s *core.AppServer) *core.Router {
+			return s.Router
 		}),
 		fx.Provide(func(db *gorm.DB) *types.SystemConfig {
 			return core.LoadSystemConfig(db)
